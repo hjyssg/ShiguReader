@@ -1,0 +1,34 @@
+h1 {
+  color: green;
+}
+
+body {
+  text-align: center;
+  margin: auto;
+}
+
+.app-container{
+  margin: 10px 10px;
+}
+
+.app-logo {
+	height: 100px;
+	width: 100px;
+}
+
+.home-row {
+  text-align: left !important;
+  border-radius: 5px;
+}
+
+.row-thumbnail {
+  margin: 0.5rem 1rem;
+  max-height: 5rem;
+  max-width: 5rem;
+}
+
+.row-file-name{
+  font-size: 2rem;
+  font-weight: bold;
+  color: black;
+}
