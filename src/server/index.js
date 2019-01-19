@@ -55,6 +55,14 @@ function generateContentUrl(pathes, outputPath) {
     return { files, dirs };
 }
 
+function getCache(outputPath) {
+    if (fs.existsSync(outputPath)) {
+        const cacheFiles =  fs.readdirSync(outputPath);
+        return generateContentUrl(cacheFiles, outputPath);
+    }
+    return null;
+}
+
 allfl.read(userConfig.home_pathes, {}, (results) => {
     const arr = [];
     for (let i = 0; i < results.length; i++) {
@@ -135,9 +143,8 @@ app.post('/api/firstImage', (req, res) => {
     }
 
     const outputPath = getOutputPath(fileName);
-    const cacheFiles = fs.readdirSync(outputPath);
-    const temp = generateContentUrl(cacheFiles, outputPath);
-    if (temp.files.length > 10) {
+    const temp = getCache(outputPath);
+    if (temp && temp.files.length > 10) {
         res.send({ image: temp.files[0] });
         return;
     }
@@ -193,13 +200,11 @@ app.post('/api/firstImage', (req, res) => {
         // 	res.send("7zip error");
         // });
     })
-        .catch((data) => {
-            console.log(`/api/firstImage received a error: ${data}`);
-            res.send(404);
-        });
+    .catch((data) => {
+        console.log(`/api/firstImage received a error: ${data}`);
+        res.send(404);
+    });
 });
-
-
 
 // http://localhost:8080/api/extract
 app.post('/api/extract', (req, res) => {
@@ -208,9 +213,8 @@ app.post('/api/extract', (req, res) => {
         res.send(404);
     }
     const outputPath = getOutputPath(fileName);
-    const cacheFiles = fs.readdirSync(outputPath);
-    const temp = generateContentUrl(cacheFiles, outputPath);
-    if (temp.files.length > 10) {
+    const temp = getCache(outputPath);
+    if (temp && temp.files.length > 10) {
         res.send({ files: temp.files });
         return;
     }

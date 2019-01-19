@@ -27,14 +27,6 @@ export default class OneBook extends Component {
   }
 
   renderFileList() {
-    if (_.isEmpty(this.state.files)) {
-      return (
-        <div className="spinner-border" role="status">
-            <span className="sr-only">Loading...</span>
-        </div>
-      );
-    }
-
     const listItems = this.state.files.map((item) => {
       return (<li className="one-book-image-li" key={item}><img className="one-book-image" src={item} alt="book-image"/></li>);
     });
@@ -42,6 +34,14 @@ export default class OneBook extends Component {
   }
 
   render() {
+    if (_.isEmpty(this.state.files)) {
+      return (
+        <div className="one-book-loading">
+          { `${_.getFn(this.props.filePath)}  is Loading...`}
+        </div>
+      );
+    }
+
     return (
       <div>
         <h4 className="one-book-title">{_.getFn(this.props.filePath)}</h4>
