@@ -51,7 +51,7 @@ allfl.read(pathes, {}, function (results){
 			arr.push(p);
 		}
 	}
-	db.allFiles = arr;
+	db.allFiles = arr || [];
 });
 
 //http://localhost:8080/api/home
@@ -81,6 +81,30 @@ app.post('/api/lsDir', (req, res)=>{
 		res.send({dirs, files});
 	});
 });
+
+function addOne(table, key){
+	if(!table[key]){
+		table[key] = 1;
+	}else{
+		table[key] = table[key] + 1;
+	}
+}
+
+app.get('/api/tag',  (req, res) => {
+	const tags = {};
+	const authors = {};
+	db.allFiles.forEach((e)=>{
+		const result = nameParser.parse(e);
+		if(result){
+			addOne(authors, result.author.name);
+			addOne(tags, result.tag);
+			(result.extra||[]).forEach(e => addOne(tags, e));
+		}
+	});
+
+
+	res.send({tags, authors});
+})
 
 function read7zOutput(data){
 	const lines = data && data.split("\n");

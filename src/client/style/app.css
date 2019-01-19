@@ -48,5 +48,8 @@ body {
 }
 
 .one-book-image {
-  min-height:95vh;
+  min-height: 85vh;
+  max-height: 90vh;
+  margin-bottom: 1rem;
+
 }

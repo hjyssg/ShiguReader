@@ -2,7 +2,6 @@
 
 import React, { Component } from 'react';
 import LoadingImage from './LoadingImage';
-import Alert from 'react-bootstrap/lib/Alert';
 import folderIcon from './images/folder.png';
 import _ from "underscore";
 

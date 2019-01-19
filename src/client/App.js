@@ -2,12 +2,11 @@ import React, { Component } from 'react';
 import './style/app.css';
 import Home from './Home';
 import OneBook from './OneBook';
-import PropTypes from 'prop-types';
+import TagPage from './TagPage';
 import _ from "underscore";
-import Button from 'react-bootstrap/lib/Button';
 import Nav from 'react-bootstrap/lib/Nav';
 
-const MODES = ["home", "author" ,"tag", "genre", "onebook"];
+const MODES = ["home", "author" ,"tag",  "onebook"];
 
 const imageTypes = ["jpg", "png"];
 const compressTypes = ["zip", "rar"];
@@ -39,21 +38,33 @@ export default class App extends Component {
   }
 
   chooseSubComponent(){
-    if(this.state.mode === "home"){
+    if (this.state.mode === "home"){
       return <Home modeChange={this.swithToOneBook.bind(this)}/>;
-    }else if (this.state.mode === "onebook"){
+    } else if (this.state.mode === "onebook"){
       return <OneBook filePath={this.state.zipPathForOneBook}/>
+    } else if (this.state.mode === "tag"){
+      return <TagPage mode="tag"/>
+    } else if (this.state.mode === "author"){
+      return <TagPage mode="author"/>
     }
+
+  }
+
+  switchMode(selectedKey){
+    this.setState({mode: selectedKey});
   }
 
   render() {
     const { mode } = this.state;
+    const that = this;
     const listItems = MODES.map(function(item, index){
-      return (<Nav.Item key={index}><Nav.Link src={item}>{item.toUpperCase()} </Nav.Link></Nav.Item>);
+      return (<Nav.Item key={index}>
+                  <Nav.Link src={item} onClick={that.switchMode.bind(that, item)}>{item.toUpperCase()} </Nav.Link>
+              </Nav.Item>);
     });
     return (
       <div className="app-container">
-        <Nav fill variant="tabs" activeKey="/home" onSelect={selectedKey => {this.setState({mode: selectedKey})}}>
+        <Nav fill variant="tabs">
           {listItems}
         </Nav>
         {this.chooseSubComponent()}

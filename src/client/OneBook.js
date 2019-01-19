@@ -40,6 +40,11 @@ export default class OneBook extends Component {
   }
 
   render() {
-    return this.renderFileList();
+    return (
+    <div>
+      <h2 className="one-book-title">{this.props.filePath}</h2>
+      {this.renderFileList()}
+      <h2 className="one-book-title">{this.props.filePath}</h2>
+    </div>);
   }
 }
