@@ -20,7 +20,6 @@
     "child-process-promise": "^2.2.1",
     "classnames": "^2.2.6",
     "express": "^4.16.3",
-    "iconv-lite": "^0.4.24",
     "node-filelist": "^1.0.0",
     "prop-types": "^15.6.2",
     "react": "^16.5.2",

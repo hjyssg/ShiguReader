@@ -8,6 +8,27 @@
   "rules": {
     "no-console": "off",
     "comma-dangle": "off",
-    "react/jsx-filename-extension": "off"
+    "react/jsx-filename-extension": "off",
+    "linebreak-style": "off",
+    "func-names": "off",
+    "arrow-parens": "off",
+    "quotes": "off",
+    "no-else-return": "off",
+    "react/jsx-no-bind": "off",
+    "react/destructuring-assignment": "off",
+    "react/require-default-props": "off",
+    "react/forbid-prop-types": "off",
+    "indent": "off", 
+    "react/jsx-indent": "off",
+    "react/jsx-indent-props": "off",
+    "no-plusplus":"off",
+    "operator-assignment": "off",
+    "prefer-destructuring":"off",
+    "no-multi-spaces": "off",
+    "template-curly-spacing":"off",
+    "react/sort-comp": "off",
+    "jsx-a11y/click-events-have-key-events": "off",
+    "jsx-a11y/no-noninteractive-element-interactions": "off",
+    "no-param-reassign": "off"
   }
 }
