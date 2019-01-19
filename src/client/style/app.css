@@ -1,19 +1,18 @@
-h1 {
-  color: green;
-}
-
 body {
   text-align: center;
   margin: auto;
 }
 
-.app-container{
-  margin: 10px 10px;
+@media screen and (min-width: 700px) {
+  .app-container {
+    margin-left: 5%;
+    margin-right: 5%;
+  }
 }
 
-.app-logo {
-	height: 100px;
-	width: 100px;
+.app-container{
+  margin-top: 2rem;
+  margin-bottom: 4rem;
 }
 
 .home-row {
@@ -21,14 +20,33 @@ body {
   border-radius: 5px;
 }
 
-.row-thumbnail {
+.row-thumbnail-image {
   margin: 0.2rem 1rem;
-  pading: 0px !important;
-  max-height: 5.5rem;
+  padding: 0px !important;
+
+  /* https://stackoverflow.com/questions/19414856/how-can-i-make-all-images-of-different-height-and-width-the-same-via-css */
+  /* width: 100px; */
+  height: 120px !important;
 }
 
-.row-file-name{
+.row-file-name {
   font-size: 2rem;
   font-weight: bold;
   color: black;
+}
+
+.one-book-list{
+  list-style: none;
+  background-color: #befc80;
+}
+
+.one-book-image-li{
+  margin-right: auto;
+  margin-left: auto;
+  display: flex !important;
+  justify-content: center !important;
+}
+
+.one-book-image {
+  min-height:95vh;
 }

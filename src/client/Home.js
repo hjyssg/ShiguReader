@@ -25,11 +25,12 @@ export default class Home extends Component {
     }
 
     fetch('/api/home')
+      .then(_.resHandle)
       .then(res => {
-        return res.json();
-      })
-      .then(res => {
-          this.setState({ dirs: res.dirs||[], files: res.files||[], loadedHome:true});
+          this.setState({ 
+            loadedHome: true,
+            ...res
+          });
       });
   }
 
@@ -42,45 +43,52 @@ export default class Home extends Component {
       },
       body: JSON.stringify({dir: value})
     })
+    .then(_.resHandle)
     .then(res => {
-      return res.json();
-    })
-    .then(res => {
-        this.setState({ dirs: res.dirs||[], files: res.files||[]});
+        this.setState({...res});
     });
   }
 
-  onFileCilck(){
-
-
-
+  onFileCilck(value){
+    if(_.isCompress(value) && this.props.modeChange){
+      this.props.modeChange(value);
+    }
   }
 
   getTableRow(image, item, isFolder){
-    var fn = path.basename(item, path.extname(item));
+    // var fn = path.basename(item, path.extname(item));
     let func = isFolder? this.onDirClick: this.onFileCilck;
     func = func.bind(this, item);
     return (
       <li type="button" className="list-group-item btn btn-primary home-row" key={item} 
                         onClick={func}>
         {image}
-        <span className="row-file-name">{fn}</span>
+        <span className="row-file-name">{item}</span>
       </li>);
   }
 
   renderFileList(){
-    const {dirs, files} = this.state;
-    if(_.isEmpty(dirs) && _.isEmpty(files)){
-      return <Alert >...</Alert>;
+    const {dirs, files, res, failed} = this.state;
+    if(failed || (res && res.status !== 200)){
+      return(
+        <div className="alert alert-danger" role="alert">
+          The server is down. Please check.
+        </div>)
+    } else if(_.isEmpty(dirs) && _.isEmpty(files)){
+      return(
+      <div className="alert alert-info" role="alert">
+        Loading...
+      </div>)
     }  
+
     const dirItems = dirs.map((item, index) => {
-      return this.getTableRow(<img className="row-thumbnail" src={folderIcon}/>, item, "isDir");
+      return this.getTableRow(<img className="row-thumbnail-image" src={folderIcon}/>, item, "isDir");
     });
 
     //!!todo if the file is already an image file
 
     const fileItems = files.map((item, index) => {
-      return  this.getTableRow(<LoadingImage className="row-thumbnail" fileName={item}/>, item);
+      return  this.getTableRow(<LoadingImage className="row-thumbnail-image" fileName={item}/>, item);
     });
 
     return (

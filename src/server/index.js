@@ -3,6 +3,7 @@ const os = require('os');
 const fs = require('fs');
 const path = require('path');
 const allfl = require('./node-filelist');
+const nameParser = require('./name-parser');
 const _7z = require('7zip')['7z'];
 const {spawn} = require('child-process-promise');
 var iconv = require('iconv-lite');
@@ -15,15 +16,13 @@ const pathes = userConfig.pathes;
 
 const option  = { "ext" : "zip|rar" };
 
-const root = path.join(__dirname, "..\\..\\..");
-const cachePath = path.join(__dirname, "..\\..\\cache");
+const root = path.join(__dirname, "..", "..", "..");
+const cachePath = path.join(__dirname, "..", "..", "cache");
 
 // const cachePath = path.join("C:\\cache");
 
-
 const app = express();
 const db = {};
-const file2content = [];
 
 app.use(express.static('dist'));
 app.use(express.static(root));
@@ -87,7 +86,6 @@ function read7zOutput(data){
 	const lines = data && data.split("\n");
 	const BEG = 52; //by 7zip
 	const files = [];
-
 	for(let ii = 0; ii < lines.length; ii++){
 		let line = lines[ii];
 		if(line && line.length > BEG){
@@ -97,7 +95,6 @@ function read7zOutput(data){
 			}
 		}
 	}
-
 	return files;
 }
 
@@ -132,14 +129,15 @@ app.post('/api/firstImage', (req, res) => {
 		var getFirst = spawn(_7z, opt, { capture: [ 'stdout', 'stderr' ]});
 		var childProcess = getFirst.childProcess;
 		childProcess.on("close", function(code){
-			console.log('[spawn] exit: ', code);
+			console.log('[spawn /api/firstImage] exit:', code);
 			if(code === 0){
 				//send path to client
 				let temp = path.join("cache", path.basename(outPath), one);
 				temp = temp.replace(new RegExp('\\' + path.sep, 'g'), '/');
-				res.send({image: temp})
+				res.send({image: temp});
 			}else{
-				res.send(404)
+				console.error("[spawn /api/firstImage]", code)
+				res.send(404);
 			}
 		})
 
@@ -160,35 +158,46 @@ app.post('/api/firstImage', (req, res) => {
 		// 	res.send("7zip error");
 		// });
 	})
-	
 	.catch(function (data) {
-	    console.log('when list content, received a error: ' + data);
+	    console.log('/api/firstImage received a error: ' + data);
 	    res.send(404);
 	});
 })
 
 // http://localhost:8080/api/extract
-app.get('/api/extract', (req, res)=>{
-	//https://medium.freecodecamp.org/node-js-child-processes-everything-you-need-to-know-e69498fe970a
-	const fileName = 'C:\\__\\aaa.zip';
+app.post('/api/extract', (req, res)=>{
+	const fileName = req.body && req.body.fileName;
 	if (!fileName){
 		res.send(404);
 	}
 
-	const outPath = path.join(cachePath, path.basename(fileName, path.extname(fileName)));
+	const outputFolder =  path.basename(fileName, path.extname(fileName));
+	const outPath = path.join(cachePath, outputFolder);
 
-	var all = ['x', fileName, '-o'+ outPath];
+	var all = ['e', fileName, '-o'+ outPath, "-aos"];
 
 	var task = spawn(_7z, all, { capture: [ 'stdout', 'stderr' ]});
-	task.then('data', function (data) {
-		data = data.stdout;
-	    console.log('extract: ' + data);
-  		res.send(data);
-	}).catch(function (data) {
-	    console.log('We received a error: ' + data);
-	    res.send("7zip error");
-	});
+	var childProcess = task.childProcess;
+	childProcess.on("close", function(code){
+		console.log('[spawn /api/extract] exit: ', code);
+		if(code === 0){
+			fs.readdir(outPath,  function (error, results){
+				const files = [];
+				const dirs = [];
+				for(var i=0; i< results.length; i++){
+					const p = results[i];
+					if(isImage(p)) {
+						let temp = path.join("cache", path.basename(outPath), p);
+						temp = temp.replace(new RegExp('\\' + path.sep, 'g'), '/');
+						files.push(temp);
+					}
+				}
+				res.send({dirs, files});
+			});
+		} else {
+			res.send(404);
+		}
+	})
 });
-
 
 app.listen(8080, () => console.log('Listening on port 8080!'));
