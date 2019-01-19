@@ -10,9 +10,19 @@ body {
   }
 }
 
-.app-container{
+.app-container {
   margin-top: 2rem;
   margin-bottom: 4rem;
+}
+
+.app-nav-item {
+  border-width: 2px !important;
+  border-color: yellowgreen !important;
+}
+
+.app-nav-item:hover{
+  background-color: #1a4282;
+  color: white;
 }
 
 .home-row {
@@ -29,15 +39,20 @@ body {
   height: 120px !important;
 }
 
+.home-row:hover .row-thumbnail-file-image {
+  height: 300px !important;
+}
+
+
 .row-file-name {
-  font-size: 2rem;
+  font-size: 1.5rem;
   font-weight: bold;
   color: black;
 }
 
-.one-book-list{
+.one-book-list {
   list-style: none;
-  background-color: #befc80;
+  /* background-color: #befc80; */
 }
 
 .one-book-image-li{
@@ -51,5 +66,4 @@ body {
   min-height: 85vh;
   max-height: 90vh;
   margin-bottom: 1rem;
-
 }

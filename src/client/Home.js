@@ -23,14 +23,26 @@ export default class Home extends Component {
       return;
     }
 
+    if(this.props.pathForHome){
+      this.onDirClick(this.props.pathForHome);
+      return;
+    }
+
     fetch('/api/home')
-      .then(_.resHandle)
-      .then(res => {
-          this.setState({ 
-            loadedHome: true,
-            ...res
-          });
-      });
+    .then(_.resHandle)
+    .then(res => {
+        this.setState({ 
+          loadedHome: true,
+          ...res
+        });
+    });
+  }
+
+  componentDidUpdate(){
+    if(this.props.pathForHome){
+      this.onDirClick(this.props.pathForHome);
+      return;
+    }
   }
 
   onDirClick(value){
@@ -44,7 +56,12 @@ export default class Home extends Component {
     })
     .then(_.resHandle)
     .then(res => {
-        this.setState({...res});
+      if(!res.failed){
+        this.setState({
+          currentPath: value,
+          ...res
+        });
+      }
     });
   }
 
@@ -87,7 +104,7 @@ export default class Home extends Component {
     //!!todo if the file is already an image file
 
     const fileItems = files.map((item, index) => {
-      return  this.getTableRow(<LoadingImage className="row-thumbnail-image" fileName={item}/>, item);
+      return  this.getTableRow(<LoadingImage className="row-thumbnail-image row-thumbnail-file-image" fileName={item}/>, item);
     });
 
     return (

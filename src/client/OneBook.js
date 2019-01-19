@@ -11,6 +11,7 @@ export default class OneBook extends Component {
   }
 
   componentDidMount() {
+    document.title = this.props.filePath;
     fetch('/api/extract',{
       method: 'POST',
       headers: {
@@ -42,9 +43,9 @@ export default class OneBook extends Component {
   render() {
     return (
     <div>
-      <h2 className="one-book-title">{this.props.filePath}</h2>
+      <h4 className="one-book-title">{_.getFn(this.props.filePath)}</h4>
       {this.renderFileList()}
-      <h2 className="one-book-title">{this.props.filePath}</h2>
+      <h4 className="one-book-title">{this.props.filePath}</h4>
     </div>);
   }
 }

@@ -69,7 +69,7 @@ app.post('/api/lsDir', (req, res)=>{
 	fs.readdir(dir,  function (error, results){
 		const files = [];
 		const dirs = [];
-		for(var i=0; i< results.length; i++){
+		for(var i=0; results && i< results.length; i++){
 			const p = results[i];
 			const ext = path.extname(p).toLowerCase();
 			if(!ext){

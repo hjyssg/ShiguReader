@@ -2,9 +2,7 @@
 
 import React, { Component } from 'react';
 import LoadingImage from './LoadingImage';
-import folderIcon from './images/folder.png';
 import _ from "underscore";
-
 const path = require('path');
 
 export default class TagPage extends Component {
