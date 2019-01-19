@@ -11,8 +11,8 @@ const userConfig = require('../user-config');
 
 // const MODES = ['home', 'author', 'tag', 'onebook'];
 
-const imageTypes = ['jpg', 'png'];
-const compressTypes = ['zip', 'rar'];
+const imageTypes = ['.jpg', '.png'];
+const compressTypes = ['.zip', '.rar'];
 _.isImage = function (fn) {
     return imageTypes.some(e => fn.endsWith(e));
 };
@@ -150,6 +150,7 @@ export default class App extends Component {
 
       return (
           <div className="app-container">
+              {mode === 'home'  && pathForHome && <h4>{pathForHome} </h4>}
               <Nav fill variant="tabs">
                   {listItems}
               </Nav>

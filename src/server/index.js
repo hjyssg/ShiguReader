@@ -8,8 +8,6 @@ const userConfig = require('../user-config');
 const sevenZip = require('7zip')['7z'];
 const { spawn } = require('child-process-promise');
 
-const pathes = userConfig.home_pathes;
-
 //  https://www.npmjs.com/package/node-7z#options
 const root = path.join(__dirname, "..", "..", "..");
 const cachePath = path.join(__dirname, "..", "..", "cache");
@@ -26,8 +24,8 @@ app.use(express.static(root));
 //  https://stackoverflow.com/questions/10005939/how-do-i-consume-the-json-post-data-in-an-express-application
 app.use(express.json());
 
-const imageTypes = ["jpg", "png"];
-const compressTypes = ["zip", "rar"];
+const imageTypes = [".jpg", ".png"];
+const compressTypes = [".zip", ".rar"];
 
 function isImage(fn) {
     return imageTypes.some((e) => fn.endsWith(e));
@@ -37,7 +35,27 @@ function isCompress(fn) {
     return compressTypes.some((e) => fn.endsWith(e));
 }
 
-allfl.read(pathes, {}, (results) => {
+function getOutputPath(zipFn) {
+    const outputFolder = path.basename(zipFn, path.extname(zipFn));
+    return path.join(cachePath, outputFolder);
+}
+
+function generateContentUrl(pathes, outputPath) {
+    const files = [];
+    const dirs = [];
+    const base = path.basename(outputPath);
+    for (let i = 0; i < pathes.length; i++) {
+        const p = pathes[i];
+        if (isImage(p)) {
+            let temp = path.join("cache", base, p);
+            temp = temp.replace(new RegExp(`\\${  path.sep}`, 'g'), '/');
+            files.push(temp);
+        }
+    }
+    return { files, dirs };
+}
+
+allfl.read(userConfig.home_pathes, {}, (results) => {
     const arr = [];
     for (let i = 0; i < results.length; i++) {
         const p = results[i].path;
@@ -55,7 +73,6 @@ app.post('/api/lsDir', (req, res) => {
         res.send(404);
     }
 
-    // todo
     fs.readdir(dir, (error, results) => {
         const files = [];
         const dirs = [];
@@ -117,6 +134,14 @@ app.post('/api/firstImage', (req, res) => {
         res.send(404);
     }
 
+    const outputPath = getOutputPath(fileName);
+    const cacheFiles = fs.readdirSync(outputPath);
+    const temp = generateContentUrl(cacheFiles, outputPath);
+    if (temp.files.length > 10) {
+        res.send({ image: temp.files[0] });
+        return;
+    }
+
     // assume zip
     const getList = spawn(sevenZip, ['l', '-ba', fileName], { capture: ['stdout', 'stderr'] });
 
@@ -133,18 +158,16 @@ app.post('/api/firstImage', (req, res) => {
             res.send(404);
         }
 
-        const outputFolder = path.basename(fileName, path.extname(fileName));
-        const outPath = path.join(cachePath, outputFolder);
         const one = files[0];
         // Overwrite mode
-        const opt = ['x', fileName, `-o${outPath}`, one, "-aos"];
+        const opt = ['e', fileName, `-o${outputPath}`, one, "-aos"];
         const getFirst = spawn(sevenZip, opt, { capture: ['stdout', 'stderr'] });
         const childProcess = getFirst.childProcess;
         childProcess.on("close", (code) => {
             console.log('[spawn /api/firstImage] exit:', code);
             if (code === 0) {
                 // send path to client
-                let temp = path.join("cache", path.basename(outPath), one);
+                let temp = path.join("cache", path.basename(outputPath), one);
                 temp = temp.replace(new RegExp(`\\${  path.sep}`, 'g'), '/');
                 res.send({ image: temp });
             } else {
@@ -176,35 +199,31 @@ app.post('/api/firstImage', (req, res) => {
         });
 });
 
+
+
 // http://localhost:8080/api/extract
 app.post('/api/extract', (req, res) => {
     const fileName = req.body && req.body.fileName;
     if (!fileName) {
         res.send(404);
     }
+    const outputPath = getOutputPath(fileName);
+    const cacheFiles = fs.readdirSync(outputPath);
+    const temp = generateContentUrl(cacheFiles, outputPath);
+    if (temp.files.length > 10) {
+        res.send({ files: temp.files });
+        return;
+    }
 
-    const outputFolder = path.basename(fileName, path.extname(fileName));
-    const outPath = path.join(cachePath, outputFolder);
-
-    const all = ['e', fileName, `-o${outPath}`, "-aos"];
-
+    const all = ['e', fileName, `-o${outputPath}`, "-aos"];
     const task = spawn(sevenZip, all, { capture: ['stdout', 'stderr'] });
     const childProcess = task.childProcess;
     childProcess.on("close", (code) => {
         console.log('[spawn /api/extract] exit: ', code);
         if (code === 0) {
-            fs.readdir(outPath, (error, results) => {
-                const files = [];
-                const dirs = [];
-                for (let i = 0; i < results.length; i++) {
-                    const p = results[i];
-                    if (isImage(p)) {
-                        let temp = path.join("cache", path.basename(outPath), p);
-                        temp = temp.replace(new RegExp(`\\${  path.sep}`, 'g'), '/');
-                        files.push(temp);
-                    }
-                }
-                res.send({ dirs, files });
+            fs.readdir(outputPath, (error, results) => {
+                const temp = generateContentUrl(results, outputPath);
+                res.send({ ...temp });
             });
         } else {
             res.send(404);
