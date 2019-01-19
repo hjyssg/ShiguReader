@@ -4,16 +4,12 @@ import _ from "underscore";
 import PropTypes from 'prop-types';
 import LoadingImage from './LoadingImage';
 import folderIcon from './images/folder.png';
+import Sender from './Sender';
 
 export default class ExplorerPage extends Component {
     constructor(prop) {
         super(prop);
-        this.state = {
-          hasError: false,
-          dirs: (this.props.dirs || []),
-          files: [],
-          currentPath: ""
-        };
+        this.state = { hasError: false };
     }
 
     componentDidUpdate() {
@@ -22,13 +18,9 @@ export default class ExplorerPage extends Component {
       }
     }
 
-    getCurrentPath() {
-      return this.state.currentPath;
-    }
-
     onFileCilck(value) {
-        if (_.isCompress(value) && this.props.modeChange) {
-            this.props.modeChange(value);
+        if (_.isCompress(value)) {
+            this.props.openBookFunc(value);
         }
     }
 
@@ -49,30 +41,22 @@ export default class ExplorerPage extends Component {
         );
     }
 
-    displayPath(value) {
-      fetch('/api/lsDir', {
-          method: 'POST',
-          headers: {
-              Accept: 'application/json',
-              'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ dir: value })
-      })
-      .then(_.resHandle)
-      .then(res => {
-          if (!res.failed) {
-              this.setState({
-                  currentPath: value,
-                  ...res
-              });
-          }
-      });
+    displayPath(dir) {
+        Sender.lsDir({ dir }, res => {
+            if (!res.failed) {
+                this.props.openDirFunc(dir, res.dirs, res.files);
+            }
+        });
     }
 
     renderFileList() {
         const {
-            dirs, files, res, failed
+            res, failed
         } = this.state;
+
+        const {
+            dirs, files
+        } = this.props;
 
         if (failed || (res && res.status !== 200)) {
             return (
@@ -86,11 +70,11 @@ export default class ExplorerPage extends Component {
 
         const dirItems = dirs.map((item) => this.getTableRow(<img className="row-thumbnail-image" src={folderIcon} alt="folder-thumbnail"/>, item, "isDir"));
         //! !todo if the file is already an image file
-        const fileItems = files.map((item) => this.getTableRow(<LoadingImage className="row-thumbnail-image row-thumbnail-file-image" fileName={item} />, item));
+        const zipfileItems = files.filter(_.isCompress).map((item) => this.getTableRow(<LoadingImage className="row-thumbnail-image row-thumbnail-file-image" fileName={item} />, item));
         return (
             <ul className="list-group">
                 {dirItems}
-                {fileItems}
+                {zipfileItems}
             </ul>
         );
     }
@@ -118,5 +102,7 @@ export default class ExplorerPage extends Component {
 ExplorerPage.propTypes = {
     pathForHome: PropTypes.string,
     dirs: PropTypes.array,
-    modeChange: PropTypes.func
+    files: PropTypes.array,
+    openBookFunc: PropTypes.func,
+    openDirFunc: PropTypes.func,
 };

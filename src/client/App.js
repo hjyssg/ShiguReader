@@ -5,6 +5,7 @@ import Nav from 'react-bootstrap/lib/Nav';
 import ExplorerPage from "./ExplorerPage";
 import OneBook from "./OneBook";
 import TagPage from "./TagPage";
+import Sender from './Sender';
 
 const userConfig = require('../user-config');
 
@@ -20,6 +21,7 @@ _.isCompress = function (fn) {
 };
 
 _.getDir = function (fn) {
+   //get parent
     const tokens = fn.split('\\');
     return tokens.slice(0, tokens.length - 1).join('\\');
 };
@@ -39,26 +41,47 @@ _.resHandle = function (res) {
 
 // http://localhost:3000/
 export default class App extends Component {
-  state = { mode: 'home' };
 
-  swithToOneBook(zipPath) {
+  constructor(props) {
+    super(props);
+    this.state = {
+      mode: 'home',
+
+      pathForHome: "",
+      dirsForHome: userConfig.home_pathes,
+      filesForHome: [],
+
+      zipPathForOneBook: ""
+    };
+  }
+
+  openBookFunc(zipPath) {
       this.setState({
           mode: 'onebook',
-          zipPathForOneBook: zipPath
+          zipPathForOneBook: zipPath,
       });
   }
 
+  openDirFunc(path, dirs, files) {
+    this.setState({
+        pathForHome: path,
+        dirsForHome: dirs,
+        filesForHome: files
+    });
+  }
+
   chooseSubComponent() {
-      const { mode, pathForHome, zipPathForOneBook } = this.state;
+      const { mode, dirsForHome, filesForHome, zipPathForOneBook } = this.state;
       if (mode === "home") {
           return (
               <ExplorerPage
                   ref={homePage => {
                       this.homePage = homePage;
                   }}
-                  modeChange={this.swithToOneBook.bind(this)}
-                  pathForHome={pathForHome}
-                  dirs={userConfig.home_pathes}
+                  dirs={dirsForHome}
+                  files={filesForHome}
+                  openDirFunc={this.openDirFunc.bind(this)}
+                  openBookFunc={this.openBookFunc.bind(this)}
               />
           );
       } else if (mode === "onebook") {
@@ -72,27 +95,44 @@ export default class App extends Component {
       }
   }
 
+  changeExplorerPath(dir) {
+    Sender.lsDir({ dir }, res => {
+        if (!res.failed) {
+          this.setState({ mode: 'home'});
+          this.openDirFunc(dir, res.dirs, res.files);
+        }
+    });
+  }
+
   switchMode(selectedKey) {
-      const { mode, zipPathForOneBook } = this.state;
+      const { mode, zipPathForOneBook, pathForHome } = this.state;
       if (selectedKey === 'back') {
           let p;
           if (mode === 'onebook') {
               p = _.getDir(zipPathForOneBook);
           } else if (mode === 'home') {
-              p = _.getDir(this.homePage.state.currentPath);
+              p = _.getDir(pathForHome);
           }
-          this.setState({ mode: 'home', pathForHome: p });
+          this.changeExplorerPath(p);
+      } else if (mode === "home") {
+        this.setState({
+          mode: 'home',
+          pathForHome: "",
+          dirsForHome: userConfig.home_pathes,
+          filesForHome: [],
+          zipPathForOneBook: ""
+        });
       } else {
           this.setState({ mode: selectedKey });
       }
   }
 
   render() {
-      const { mode } = this.state;
+      const { mode, pathForHome } = this.state;
       const that = this;
       let navs = ['home', 'author', 'tag'];
 
-      if (mode === 'onebook' || mode === 'home') {
+      if (mode === 'onebook' || (mode === 'home' && pathForHome &&  _.getDir(pathForHome))) {
           navs = ['back'].concat(navs);
       }
 
