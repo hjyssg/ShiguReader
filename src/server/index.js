@@ -1,9 +1,11 @@
 const express = require('express');
 const os = require('os');
+const fs = require('fs');
 const path = require('path');
-const fl = require('./node-filelist');
+const allfl = require('./node-filelist');
 const _7z = require('7zip')['7z'];
 const {spawn} = require('child-process-promise');
+var iconv = require('iconv-lite');
 
 const userConfig = {};
 userConfig.pathes = ["C:\\__"];
@@ -15,6 +17,9 @@ const option  = { "ext" : "zip|rar" };
 
 const root = path.join(__dirname, "..\\..\\..");
 const cachePath = path.join(__dirname, "..\\..\\cache");
+
+// const cachePath = path.join("C:\\cache");
+
 
 const app = express();
 const db = {};
@@ -38,12 +43,12 @@ function isCompress(fn){
 	return compressTypes.some((e)=> fn.endsWith(e));
 }
 
-fl.read(pathes, {}, function (results){
+allfl.read(pathes, {}, function (results){
 	const arr = [];
 	for(var i=0; i< results.length; i++){
 		const p = results[i].path;
 		const ext = path.extname(p).toLowerCase();
-		if(!ext || isImage(ext) || isCompress(ext)){
+		if(!ext || isCompress(ext)){
 			arr.push(p);
 		}
 	}
@@ -62,23 +67,41 @@ app.post('/api/lsDir', (req, res)=>{
 	}
 
 	//todo
-	fl.read([dir], {}, function (results){
+	fs.readdir(dir,  function (error, results){
 		const files = [];
 		const dirs = [];
 		for(var i=0; i< results.length; i++){
-			const p = results[i].path;
+			const p = results[i];
 			const ext = path.extname(p).toLowerCase();
 			if(!ext){
-				dirs.push(p);
+				dirs.push(path.join(dir, p));
 			}else if(isImage(ext) || isCompress(ext)) {
-				files.push(p);
+				files.push(path.join(dir, p));
 			}
 		}
-		
 		res.send({dirs, files});
 	});
 });
 
+function read7zOutput(data){
+	const lines = data && data.split("\n");
+	const BEG = 52; //by 7zip
+	const files = [];
+
+	for(let ii = 0; ii < lines.length; ii++){
+		let line = lines[ii];
+		if(line && line.length > BEG){
+			line = line.slice(BEG, line.length-1);
+			if(isImage(line) || isCompress(line)){
+				files.push(line.trim());
+			}
+		}
+	}
+
+	return files;
+}
+
+//!!need to set windows console to utf8 
 app.post('/api/firstImage', (req, res) => {
 	const fileName = req.body && req.body.fileName;
 	if (!fileName){
@@ -87,44 +110,58 @@ app.post('/api/firstImage', (req, res) => {
 
 	//assume zip
 	var getList = spawn(_7z, ['l', '-ba', fileName], { capture: [ 'stdout', 'stderr' ]});
+
 	getList.then(function (data) {
 		//parse 7zip output
 		data = data.stdout;
 		if(!data){
-			res.send("404 fail to ");
-		}
-		lines = data && data.split("\n");
-		
-		const PRE = 10; //by me
-		const BEG = 52; //by 7zip
-		const files = [];
-
-		for(let ii = 0; files.length < PRE && ii < lines.length; ii++){
-			let line = lines[ii];
-			if(line && line.length > BEG){
-				line = line.slice(BEG, line.length-1);
-				if(isImage(line) || isCompress(line)){
-					files.push(line.slice(BEG))
-				}
-			}
+			res.send("404 fail");
 		}
 
-		data = data && data.slice(50);
+		const files = read7zOutput(data);
 
-		const ouputPath = path.join(cachePath, path.basename(fileName, path.extname(fileName)));
-		const thumbnai = data && data[0];
-		var opt = ['e', fileName, '-o'+ ouputPath, thumbnai, "-r"];
+		if(!files[0]){
+			res.send(404);
+		}
+
+		const outputFolder =  path.basename(fileName, path.extname(fileName));
+		const outPath = path.join(cachePath, outputFolder);
+		const one =  files[0];
+		//Overwrite mode
+		var opt = ['x', fileName, '-o'+ outPath, one, "-aos"];
 		var getFirst = spawn(_7z, opt, { capture: [ 'stdout', 'stderr' ]});
-		getFirst.then('data', function (data) {
-			data = data.stdout;
-			console.log('extract: ' + data);
-			res.send(data);
-		}).catch(function (data) {
-			console.log('when extracting, received a error: ' + data);
-			res.send("7zip error");
-		});
+		var childProcess = getFirst.childProcess;
+		childProcess.on("close", function(code){
+			console.log('[spawn] exit: ', code);
+			if(code === 0){
+				//send path to client
+				let temp = path.join("cache", path.basename(outPath), one);
+				temp = temp.replace(new RegExp('\\' + path.sep, 'g'), '/');
+				res.send({image: temp})
+			}else{
+				res.send(404)
+			}
+		})
 
-	}).catch(function (data) {
+		// console.log('[spawn] childProcess.pid: ', childProcess.pid);
+		// childProcess.stdout.on('data', function (data) {
+		// 	console.log('[spawn] stdout: ', data.toString());
+		// });
+		// childProcess.stderr.on('data', function (data) {
+		// 	console.log('[spawn] stderr: ', data.toString());
+		// });
+
+		// getFirst.then('data', function (data) {
+		// 	data = data.stdout;
+		// 	console.log('extract: ' + data);
+		// 	res.send(data);
+		// }).catch(function (data) {
+		// 	console.log('when extracting, received a error: ' + data);
+		// 	res.send("7zip error");
+		// });
+	})
+	
+	.catch(function (data) {
 	    console.log('when list content, received a error: ' + data);
 	    res.send(404);
 	});
@@ -138,9 +175,9 @@ app.get('/api/extract', (req, res)=>{
 		res.send(404);
 	}
 
-	const ouputPath = path.join(cachePath, path.basename(fileName, path.extname(fileName)));
+	const outPath = path.join(cachePath, path.basename(fileName, path.extname(fileName)));
 
-	var all = ['x', fileName, '-o'+ ouputPath];
+	var all = ['x', fileName, '-o'+ outPath];
 
 	var task = spawn(_7z, all, { capture: [ 'stdout', 'stderr' ]});
 	task.then('data', function (data) {

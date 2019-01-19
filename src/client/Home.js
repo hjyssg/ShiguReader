@@ -77,6 +77,8 @@ export default class Home extends Component {
       return this.getTableRow(<img className="row-thumbnail" src={folderIcon}/>, item, "isDir");
     });
 
+    //!!todo if the file is already an image file
+
     const fileItems = files.map((item, index) => {
       return  this.getTableRow(<LoadingImage className="row-thumbnail" fileName={item}/>, item);
     });
