@@ -68,6 +68,7 @@ export default class ExplorerPage extends Component {
             );
         }
 
+        //! todo when there is >6000 files, does not need to render all  list
         const dirItems = dirs.map((item) => this.getTableRow(<img className="row-thumbnail-image" src={folderIcon} alt="folder-thumbnail"/>, item, "isDir"));
         //! !todo if the file is already an image file
         const zipfileItems = files.filter(_.isCompress).map((item) => this.getTableRow(<LoadingImage className="row-thumbnail-image row-thumbnail-file-image" fileName={item} />, item));

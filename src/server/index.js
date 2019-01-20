@@ -2,7 +2,7 @@ const express = require('express');
 const os = require('os');
 const fs = require('fs');
 const path = require('path');
-const allfl = require('./node-filelist');
+const fileiterator = require('../file-iterator');
 const nameParser = require('../name-parser');
 const userConfig = require('../user-config');
 const sevenZip = require('7zip')['7z'];
@@ -13,7 +13,10 @@ const root = path.join(__dirname, "..", "..", "..");
 const cachePath = path.join(__dirname, "..", "..", "cache");
 
 const app = express();
-const db = {};
+const db = {
+    allFiles : [],
+    dirCache: {}
+};
 
 app.use(express.static('dist'));
 app.use(express.static(root));
@@ -39,10 +42,6 @@ function getOutputPath(zipFn) {
     return path.join(cachePath, outputFolder);
 }
 
-function getOutputPathForTag(tag) {
-    return path.join(cachePath, tag);
-}
-
 function generateContentUrl(pathes, outputPath) {
     const files = [];
     const dirs = [];
@@ -66,34 +65,45 @@ function getCache(outputPath) {
     return null;
 }
 
-const chcpTast = exec("chcp", { capture: ['stdout', 'stderr'] });
-chcpTast.then(data => {
-    console.log("[chcp]", data.stdout);
-    const r = new RegExp("\\d+");
-    const m = r.exec(data.stdout);
-    const charset = parseInt(m && m[0]);
+function init() {
+    const chcpTast = exec("chcp", { capture: ['stdout', 'stderr'] });
+    chcpTast.then(data => {
+        console.log("[chcp]", data.stdout);
+        const r = new RegExp("\\d+");
+        const m = r.exec(data.stdout);
+        const charset = parseInt(m && m[0]);
 
-    if (charset !== 65001) {
-        console.error("Please switch you console encoding to utf8 in windows language setting");
-    }
-});
+        if (charset !== 65001) {
+            console.error("Please switch you console encoding to utf8 in windows language setting");
+        }
+    });
 
-allfl.read(userConfig.home_pathes, {}, (results) => {
+    const filter = (e) => {return isCompress(e) || isImage(e);}
+    const results = fileiterator(userConfig.home_pathes, { filter });
     const arr = [];
     for (let i = 0; i < results.length; i++) {
-        const p = results[i].path;
+        const p = results[i];
         const ext = path.extname(p).toLowerCase();
         if (!ext || isCompress(ext)) {
             arr.push(p);
         }
     }
     db.allFiles = arr || [];
-});
+}
+
+init();
 
 app.post('/api/lsDir', (req, res) => {
     const dir = req.body && req.body.dir;
     if (!dir || !fs.existsSync(dir)) {
         res.send(404);
+        return;
+    }
+
+    //need to replace with real cache
+    if(db.dirCache[dir]){
+        res.send(db.dirCache[dir]);
+        return;
     }
 
     fs.readdir(dir, (error, results) => {
@@ -108,7 +118,9 @@ app.post('/api/lsDir', (req, res) => {
                 files.push(path.join(dir, p));
             }
         }
-        res.send({ dirs, files });
+        const result = {dirs, files}
+        db.dirCache[dir] = result;
+        res.send(result);
     });
 });
 
@@ -158,6 +170,7 @@ app.post("/api/tagSearch", (req, res) => {
     const tag = req.body && req.body.tag;
     if (!author && !tag) {
         res.send(404);
+        return;
     }
 
     res.send(searchByTagAndAuthor(tag, author));
@@ -168,6 +181,7 @@ app.post("/api/tagFirstImagePath", (req, res) => {
     const tag = req.body && req.body.tag;
     if (!author && !tag) {
         res.send(404);
+        return;
     }
 
     const { tagFiles, authorFiles } = searchByTagAndAuthor(tag, author);
@@ -208,6 +222,7 @@ function getFirstImageFromZip(fileName, res) {
         if (!text) {
             console.error("/api/firstImage]", "no text");
             res.send("404 fail");
+            return;
         }
 
         const files = read7zOutput(text);
@@ -215,6 +230,7 @@ function getFirstImageFromZip(fileName, res) {
         if (!files[0]) {
             console.error("/api/firstImage]", "no files");
             res.send(404);
+            return;
         }
 
         const one = files[0];
@@ -247,6 +263,7 @@ app.post('/api/firstImage', (req, res) => {
     const fileName = req.body && req.body.fileName;
     if (!fileName || !fs.existsSync(fileName)) {
         res.send(404);
+        return;
     }
     getFirstImageFromZip(fileName, res);
 });
@@ -256,6 +273,7 @@ app.post('/api/extract', (req, res) => {
     const fileName = req.body && req.body.fileName;
     if (!fileName || !fs.existsSync(fileName)) {
         res.send(404);
+        return;
     }
     const outputPath = getOutputPath(fileName);
     const temp = getCache(outputPath);
