@@ -6,13 +6,11 @@ const allfl = require('./node-filelist');
 const nameParser = require('./name-parser');
 const userConfig = require('../user-config');
 const sevenZip = require('7zip')['7z'];
-const { spawn } = require('child-process-promise');
+const { spawn, exec } = require('child-process-promise');
+const iconvLite = require('iconv-lite');
 
-//  https://www.npmjs.com/package/node-7z#options
 const root = path.join(__dirname, "..", "..", "..");
 const cachePath = path.join(__dirname, "..", "..", "cache");
-
-// const cachePath = path.join("C:\\cache");
 
 const app = express();
 const db = {};
@@ -62,6 +60,18 @@ function getCache(outputPath) {
     }
     return null;
 }
+
+const chcpTast = exec("chcp", { capture: ['stdout', 'stderr'] });
+chcpTast.then(data => {
+    console.log("[chcp]", data.stdout);
+    const r = new RegExp("\\d+");
+    const m = r.exec(data.stdout);
+    const charset = parseInt(m && m[0]);
+
+    if (charset !== 65001) {
+        console.error("Please switch you console encoding to utf8 in windows language setting");
+    }
+});
 
 allfl.read(userConfig.home_pathes, {}, (results) => {
     const arr = [];
@@ -170,6 +180,7 @@ app.post('/api/firstImage', (req, res) => {
         const opt = ['e', fileName, `-o${outputPath}`, one, "-aos"];
         const getFirst = spawn(sevenZip, opt, { capture: ['stdout', 'stderr'] });
         const childProcess = getFirst.childProcess;
+
         childProcess.on("close", (code) => {
             console.log('[spawn /api/firstImage] exit:', code);
             if (code === 0) {

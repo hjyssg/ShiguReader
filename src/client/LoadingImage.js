@@ -4,23 +4,15 @@ import Image from 'react-bootstrap/lib/Image';
 import PropTypes from 'prop-types';
 import loading from './images/loading.png';
 import notAvailable from './images/not-available.png';
+import Sender from './Sender';
 
 export default class LoadingImage extends Component {
   state = { loaded: false };
 
   componentDidMount() {
-    fetch('/api/firstImage', {
-      method: 'POST',
-      headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ fileName: this.props.fileName })
-    })
-    .then(_.resHandle)
-    .then(res => {
-        this.setState({ loaded: true, image: res.image, failed: res.failed });
-    });
+    Sender.post('/api/firstImage', { fileName: this.props.fileName },
+      (res) => { this.setState({ loaded: true, ...res }); }
+    );
   }
 
   render() {
