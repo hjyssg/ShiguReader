@@ -79,10 +79,24 @@ h4 {
   font-size: 3rem;
 }
 
-.one-book-foot-index-number{
-  position: relative;
-  top: 85vh;
-  padding-left: 100px;
+.one-book-footer{
+  display: flex;
+  justify-content: flex-start;
+}
+
+.one-book-footer div{
+  margin-right: 10px;
+  padding: 5px 5px;
+}
+
+.one-book-foot-author:hover{
+  background-color: chocolate;
+  color: ivory;
+  cursor: pointer;
+}
+
+.one-book-foot-index-number {
+  cursor: none;
 }
 
 .tag-page-list-group{

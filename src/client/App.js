@@ -86,7 +86,7 @@ export default class App extends Component {
               />
           );
       } else if (mode === "onebook") {
-          return (<OneBook filePath={zipPathForOneBook} />);
+          return (<OneBook filePath={zipPathForOneBook} openDirFunc={this.openDirFunc.bind(this)}/>);
       } else if (mode === "tag") {
           return <TabPage mode="tag" />;
       } else if (mode === "author") {

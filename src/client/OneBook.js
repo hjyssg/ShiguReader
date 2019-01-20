@@ -1,6 +1,8 @@
 import React, { Component } from 'react';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
+const nameParser = require('../name-parser');
+import Sender from './Sender';
 
 export default class OneBook extends Component {
   constructor(props) {
@@ -9,6 +11,12 @@ export default class OneBook extends Component {
       files: [],
       index: -1
     };
+  }
+
+  showAuthorFiles(author) {
+    Sender.post("/api/tagSearch", { author }, res => {
+      this.props.openDirFunc("", [], res.authorFiles);
+    });
   }
 
   componentDidMount() {
@@ -77,16 +85,25 @@ export default class OneBook extends Component {
       );
     }
 
+    const result = nameParser.parse(_.getFn(this.props.filePath));
+    const author = result && result.author.name;
+ 
     if (screen.width > 1500) {
-      return (
+      return (  
+              <div>
               <div className="one-book-container">
                     <img className="one-book-image" src={files[index]} alt="book-image"
                          onClick={this.next.bind(this)}
                          onContextMenu={this.prev.bind(this)}
                          index={index}
                     />
-                    <h6 className="one-book-foot-index-number">{`${index+1}/${files.length}` }</h6>
-              </div>);
+              </div>
+              <div className="one-book-footer">
+                <div className="one-book-foot-index-number">{`${index+1}/${files.length}` }</div>
+                <div className="one-book-foot-author" onClick={this.showAuthorFiles.bind(this, author)}>{author}</div>
+              </div>
+              </div>
+              );
     } else {
       return (
         <div>
