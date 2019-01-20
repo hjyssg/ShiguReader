@@ -6,7 +6,8 @@ export default class OneBook extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      files: []
+      files: [],
+      index: -1
     };
   }
 
@@ -22,19 +23,42 @@ export default class OneBook extends Component {
     })
     .then(_.resHandle)
     .then(res => {
-        this.setState({ files: res.files || [] });
+        this.setState({ files: res.files || [], index: 0});
     });
+  }
+
+  swithPage(index){
+    if(index < 0){
+      return;
+    } else if(index >= this.state.files.length-1){
+      return;
+    }
+    this.setState({index})
+  }
+
+  next(event){
+    var index = parseInt(event.target.getAttribute("index")) + 1;
+    event.preventDefault();
+    this.swithPage(index);
+  }
+
+  prev(event){
+    var index = parseInt(event.target.getAttribute("index")) - 1;
+    event.preventDefault();
+    this.swithPage(index);
   }
 
   renderFileList() {
-    const listItems = this.state.files.map((item) => {
-      return (<li className="one-book-image-li" key={item}><img className="one-book-image" src={item} alt="book-image"/></li>);
-    });
-    return (<ul className="one-book-list">{listItems}</ul>);
+      const {files, index} = this.state;
+      const listItems = files.map((item) => {
+        return (<li className="one-book-image-li" key={item}><img className="one-book-image" src={item} alt="book-image"/></li>);
+      });
+      return (<ul className="one-book-list">{listItems}</ul>);
   }
 
   render() {
-    if (_.isEmpty(this.state.files)) {
+    const {files, index} = this.state;
+    if (_.isEmpty(files)) {
       return (
         <div className="one-book-loading">
           { `${_.getFn(this.props.filePath)}  is Loading...`}
@@ -42,13 +66,22 @@ export default class OneBook extends Component {
       );
     }
 
-    return (
-      <div>
-        <h4 className="one-book-title">{_.getFn(this.props.filePath)}</h4>
-          {this.renderFileList()}
-        <h4 className="one-book-title">{this.props.filePath}</h4>
-      </div>
-    );
+    if(screen.width > 1500){
+      return (<div className="one-book-container">
+                    <img className="one-book-image" src={files[index]} alt="book-image"
+                         onClick={this.next.bind(this)}
+                         onContextMenu={this.prev.bind(this)}
+                         index={index}
+                    />
+              </div>);
+    } else {
+      return (
+        <div>
+            {this.renderFileList()}
+           <h4 className="one-book-title">{this.props.filePath}</h4>
+        </div>
+      );
+    }
   }
 }
 

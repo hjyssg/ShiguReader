@@ -133,6 +133,16 @@ export default class App extends Component {
       }
   }
 
+  renderHeader(){
+    const { mode, pathForHome, zipPathForOneBook } = this.state;
+
+    if(mode === "home" && pathForHome){
+        return  <h4>{pathForHome} </h4>;
+    }else if(mode === 'onebook'){
+        return <h4>{_.getFn(zipPathForOneBook)}</h4>
+    }
+  }
+
   render() {
       const { mode, pathForHome } = this.state;
       const that = this;
@@ -156,7 +166,7 @@ export default class App extends Component {
 
       return (
           <div className="app-container">
-              {mode === 'home'  && pathForHome && <h4>{pathForHome} </h4>}
+              {this.renderHeader()}
               <Nav fill variant="tabs">
                   {listItems}
               </Nav>

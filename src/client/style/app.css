@@ -15,7 +15,7 @@ h4 {
 }
 
 .app-container {
-  margin-top: 2rem;
+  margin-top: 0.5rem;
   margin-bottom: 4rem;
 }
 
@@ -59,7 +59,8 @@ h4 {
   /* background-color: #befc80; */
 }
 
-.one-book-image-li{
+.one-book-container,
+.one-book-image-li {
   margin-right: auto;
   margin-left: auto;
   display: flex !important;
@@ -73,7 +74,7 @@ h4 {
   box-shadow: 0 2px 4px 0 rgba(0,0,0,0.16),0 2px 10px 0 rgba(0,0,0,0.12)!important;
 }
 
-.one-book-loading{
+.one-book-loading {
   text-align: center;
   font-size: 3rem;
 }
