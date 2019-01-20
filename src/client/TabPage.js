@@ -1,10 +1,11 @@
 // @flow
 import React, { Component } from 'react';
+import LoadingImage from './LoadingImage';
 import _ from "underscore";
 import PropTypes from 'prop-types';
 import Sender from './Sender';
 
-export default class TagPage extends Component {
+export default class TabPage extends Component {
   constructor(prop) {
     super(prop);
     this.state = { hasError: false, tags: [] };
@@ -51,6 +52,7 @@ export default class TagPage extends Component {
     const tagItems = _.keys(display).map((key) => {
       const str = `${key} (${display[key]})`;
       return  (<li key={key}>
+                  <LoadingImage className="tag-page-thumbnail" fileName={key} mode={this.props.mode} />
                   <button type="button" className="btn btn-light tag-page-list-item-button" onClick={this.showAuthorFiles.bind(this, key)}>{str}</button>
                 </li>);
     });
@@ -78,10 +80,10 @@ export default class TagPage extends Component {
   }
 }
 
-TagPage.propTypes = {
+TabPage.propTypes = {
   mode: PropTypes.oneOf(["tag", "author"])
 };
 
-TagPage.propTypes = {
+TabPage.propTypes = {
   openDirFunc: PropTypes.func,
 };

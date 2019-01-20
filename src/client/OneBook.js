@@ -40,9 +40,10 @@ export default class OneBook extends Component {
   }
 
   changePage(index) {
+    const lastIndex = (this.state.files || []).length - 1;
     if (index < 0) {
       return;
-    } else if (index >= (this.state.files || []).length - 1) {
+    } else if (index > lastIndex) {
       return;
     }
     this.setState({ index });
@@ -78,14 +79,14 @@ export default class OneBook extends Component {
 
     if (screen.width > 1500) {
       return (
-<div className="one-book-container">
+              <div className="one-book-container">
                     <img className="one-book-image" src={files[index]} alt="book-image"
                          onClick={this.next.bind(this)}
                          onContextMenu={this.prev.bind(this)}
                          index={index}
                     />
-              </div>
-);
+                    <h6 className="one-book-foot-index-number">{`${index+1}/${files.length}` }</h6>
+              </div>);
     } else {
       return (
         <div>

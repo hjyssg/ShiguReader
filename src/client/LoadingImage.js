@@ -10,7 +10,17 @@ export default class LoadingImage extends Component {
   state = { loaded: false };
 
   componentDidMount() {
-    Sender.post('/api/firstImage', { fileName: this.props.fileName },
+    const {mode} = this.props;
+    const api = (mode === "author" || mode === "tag") ? "/api/tagFirstImagePath" :  '/api/firstImage';
+    const body = {};
+
+    if(mode === "author" || mode === "tag"){
+      body[mode] = this.props.fileName;
+    }else{
+      body["fileName"] = this.props.fileName;
+    }
+
+    Sender.post(api, body,
       (res) => { this.setState({ loaded: true, ...res }); }
     );
   }
@@ -28,5 +38,6 @@ export default class LoadingImage extends Component {
 
 LoadingImage.propTypes = {
   fileName: PropTypes.string,
-  className: PropTypes.string
+  className: PropTypes.string,
+  mode: PropTypes.string,
 };

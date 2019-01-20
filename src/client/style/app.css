@@ -79,6 +79,12 @@ h4 {
   font-size: 3rem;
 }
 
+.one-book-foot-index-number{
+  position: relative;
+  top: 85vh;
+  padding-left: 100px;
+}
+
 .tag-page-list-group{
   list-style: none;
 }
@@ -86,4 +92,8 @@ h4 {
 .tag-page-list-item-button {
   margin-top: 0.25rem;
   margin-bottom: 0.25rem;
+}
+
+.tag-page-thumbnail {
+  max-width: 100px !important;
 }

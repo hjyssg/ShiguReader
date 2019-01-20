@@ -39,6 +39,10 @@ function getOutputPath(zipFn) {
     return path.join(cachePath, outputFolder);
 }
 
+function getOutputPathForTag(tag) {
+    return path.join(cachePath, tag);
+}
+
 function generateContentUrl(pathes, outputPath) {
     const files = [];
     const dirs = [];
@@ -130,6 +134,25 @@ app.get('/api/tag', (req, res) => {
     res.send({ tags, authors });
 });
 
+function searchByTagAndAuthor (tag, author) {
+    const tagFiles = [];
+    const authorFiles = [];
+    db.allFiles.forEach((e) => {
+        if (author) {
+            const result = nameParser.parse(e);
+            if (result && result.author.name === author) {
+                authorFiles.push(e);
+            }
+        }
+        if (tag && e.indexOf(tag) > -1) {
+            tagFiles.push(e);
+        }
+    });
+
+    return { tagFiles, authorFiles };
+
+}
+
 app.post("/api/tagSearch", (req, res) => {
     const author = req.body && req.body.author;
     const tag = req.body && req.body.tag;
@@ -137,20 +160,20 @@ app.post("/api/tagSearch", (req, res) => {
         res.send(404);
     }
 
-    const tagFiles = [];
-    const authorFiles = [];
-    db.allFiles.forEach((e) => {
-        if(author){
-            const result = nameParser.parse(e);
-            if (result && result.author.name === author) {
-                authorFiles.push(e);
-            }
-        }
-        if(tag){
-            //
-        }
-    });
-    res.send({ tagFiles, authorFiles });
+    res.send(searchByTagAndAuthor(tag, author));
+});
+
+app.post("/api/tagFirstImagePath", (req, res) => {
+    const author = req.body && req.body.author;
+    const tag = req.body && req.body.tag;
+    if (!author && !tag) {
+        res.send(404);
+    }
+
+    const { tagFiles, authorFiles } = searchByTagAndAuthor(tag, author);
+    const filePathes = author? authorFiles: tagFiles;
+    const chosendFileName = filePathes.filter(isCompress)[0];  // need to improve
+    getFirstImageFromZip(chosendFileName, res);
 });
 
 function read7zOutput(data) {
@@ -169,13 +192,7 @@ function read7zOutput(data) {
     return files;
 }
 
-//! !need to set windows console to utf8
-app.post('/api/firstImage', (req, res) => {
-    const fileName = req.body && req.body.fileName;
-    if (!fileName || !fs.existsSync(fileName)) {
-        res.send(404);
-    }
-
+function getFirstImageFromZip(fileName, res) {
     const outputPath = getOutputPath(fileName);
     const temp = getCache(outputPath);
     if (temp && temp.files[0] && isImage(temp.files[0])) {
@@ -223,6 +240,15 @@ app.post('/api/firstImage', (req, res) => {
         console.error(`[/api/firstImage] received a error: ${data}`);
         res.send(404);
     });
+}
+
+//! !need to set windows console to utf8
+app.post('/api/firstImage', (req, res) => {
+    const fileName = req.body && req.body.fileName;
+    if (!fileName || !fs.existsSync(fileName)) {
+        res.send(404);
+    }
+    getFirstImageFromZip(fileName, res);
 });
 
 // http://localhost:8080/api/extract
