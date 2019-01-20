@@ -64,6 +64,7 @@ export default class App extends Component {
 
   openDirFunc(path, dirs, files) {
     this.setState({
+        mode: "home",
         pathForHome: path,
         dirsForHome: dirs,
         filesForHome: files
@@ -89,7 +90,7 @@ export default class App extends Component {
       } else if (mode === "tag") {
           return <TagPage mode="tag" />;
       } else if (mode === "author") {
-          return <TagPage mode="author" />;
+          return <TagPage mode="author"  openDirFunc={this.openDirFunc.bind(this)} />;
       } else {
           return (<div>{mode}</div>);
       }
@@ -104,17 +105,22 @@ export default class App extends Component {
     });
   }
 
+  handleBackButton(){
+    const { mode, zipPathForOneBook, pathForHome } = this.state;
+    let p;
+    if (mode === 'onebook') {
+        p = _.getDir(zipPathForOneBook);
+        this.changeExplorerPath(p);
+    } else if (mode === 'home') {
+        p = _.getDir(pathForHome);
+        this.changeExplorerPath(p);
+    }
+  }
+
   switchMode(selectedKey) {
-      const { mode, zipPathForOneBook, pathForHome } = this.state;
       if (selectedKey === 'back') {
-          let p;
-          if (mode === 'onebook') {
-              p = _.getDir(zipPathForOneBook);
-          } else if (mode === 'home') {
-              p = _.getDir(pathForHome);
-          }
-          this.changeExplorerPath(p);
-      } else if (mode === "home") {
+        this.handleBackButton();
+      } else if (selectedKey === "home") {
         this.setState({
           mode: 'home',
           pathForHome: "",
@@ -130,7 +136,7 @@ export default class App extends Component {
   render() {
       const { mode, pathForHome } = this.state;
       const that = this;
-      let navs = ['home', 'author', 'tag'];
+      let navs = ['home', 'author'];
 
       if (mode === 'onebook' || (mode === 'home' && pathForHome &&  _.getDir(pathForHome))) {
           navs = ['back'].concat(navs);

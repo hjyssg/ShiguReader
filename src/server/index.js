@@ -130,6 +130,29 @@ app.get('/api/tag', (req, res) => {
     res.send({ tags, authors });
 });
 
+app.post("/api/tagSearch", (req, res)=>{
+    const author = req.body && req.body.author;
+    const tag = req.body && req.body.tagl
+    if (!author && !tag) {
+        res.send(404);
+    }
+
+    const tagFiles = [];
+    const authorFiles = [];
+    db.allFiles.forEach((e) => {
+        if(author){
+            const result = nameParser.parse(e);
+            if (result && result.author.name === author) {
+                authorFiles.push(e);
+            }
+        }
+        if(tag){
+            //
+        }
+    });
+    res.send({ tagFiles, authorFiles });
+});
+
 function read7zOutput(data) {
     const lines = data && data.split("\n");
     const BEG = 52; // by 7zip

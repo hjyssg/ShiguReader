@@ -15,6 +15,12 @@ Sender.post = function (api, body, callback) {
     .then(callback);
 };
 
+Sender.get = function (api, callback) {
+    fetch(api)
+    .then(_.resHandle)
+    .then(callback);
+};
+
 Sender.lsDir = function (body, callback) {
     Sender.post('/api/lsDir', body, callback);
 };

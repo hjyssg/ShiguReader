@@ -77,3 +77,12 @@ h4 {
   text-align: center;
   font-size: 3rem;
 }
+
+.tag-page-list-group{
+  list-style: none;
+}
+
+.tag-page-list-item-button {
+  margin-top: 0.25rem;
+  margin-bottom: 0.25rem;
+}

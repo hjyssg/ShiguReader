@@ -2,7 +2,7 @@
 import React, { Component } from 'react';
 import _ from "underscore";
 import PropTypes from 'prop-types';
-
+import Sender from './Sender';
 
 export default class TagPage extends Component {
   constructor(prop) {
@@ -21,14 +21,15 @@ export default class TagPage extends Component {
       return;
     }
 
-    fetch('/api/tag')
-      .then(_.resHandle)
-      .then(res => {
-          this.setState({
-            loadedHome: true,
-            ...res
-          });
-      });
+    Sender.get('/api/tag', res => {
+        this.setState({ loadedHome: true, ...res });
+    });
+  }
+
+  showAuthorFiles(author) {
+    Sender.post("/api/tagSearch", { author }, res => {
+      this.props.openDirFunc("", [], res.authorFiles);
+    });
   }
 
   renderTagList() {
@@ -49,11 +50,13 @@ export default class TagPage extends Component {
 
     const tagItems = _.keys(display).map((key) => {
       const str = `${key} (${display[key]})`;
-      return  (<li key={key}>{str} {' '} </li>);
+      return  (<li key={key}>
+                  <button type="button" className="btn btn-light tag-page-list-item-button" onClick={this.showAuthorFiles.bind(this, key)}>{str}</button>
+                </li>);
     });
 
     return (
-      <ul className="list-group">
+      <ul className="tag-page-list-group">
         {tagItems}
       </ul>
     );
@@ -77,4 +80,8 @@ export default class TagPage extends Component {
 
 TagPage.propTypes = {
   mode: PropTypes.oneOf(["tag", "author"])
+};
+
+TagPage.propTypes = {
+  openDirFunc: PropTypes.func,
 };
