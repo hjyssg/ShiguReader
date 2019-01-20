@@ -34,7 +34,8 @@ function isCompress(fn) {
 }
 
 function getOutputPath(zipFn) {
-    const outputFolder = path.basename(zipFn, path.extname(zipFn));
+    let outputFolder = path.basename(zipFn, path.extname(zipFn));
+    outputFolder = outputFolder.replace(/[`~!@#$%^&*()_|+\-=?;:'",.<>/]/gi, '');
     return path.join(cachePath, outputFolder);
 }
 
@@ -161,28 +162,29 @@ app.post('/api/firstImage', (req, res) => {
 
     // assume zip
     const getList = spawn(sevenZip, ['l', '-ba', fileName], { capture: ['stdout', 'stderr'] });
-
     getList.then((data) => {
         // parse 7zip output
         const text = data.stdout;
         if (!text) {
+            console.error("/api/firstImage]", "no text");
             res.send("404 fail");
         }
 
         const files = read7zOutput(text);
 
         if (!files[0]) {
+            console.error("/api/firstImage]", "no files");
             res.send(404);
         }
 
         const one = files[0];
         // Overwrite mode
-        const opt = ['e', fileName, `-o${outputPath}`, one, "-aos"];
+        const opt = ['x', fileName, `-o${outputPath}`, one, "-aos"];
         const getFirst = spawn(sevenZip, opt, { capture: ['stdout', 'stderr'] });
         const childProcess = getFirst.childProcess;
 
         childProcess.on("close", (code) => {
-            console.log('[spawn /api/firstImage] exit:', code);
+            // console.log('[spawn /api/firstImage] exit:', code);
             if (code === 0) {
                 // send path to client
                 let temp = path.join("cache", path.basename(outputPath), one);
@@ -193,26 +195,9 @@ app.post('/api/firstImage', (req, res) => {
                 res.send(404);
             }
         });
-
-        // console.log('[spawn] childProcess.pid: ', childProcess.pid);
-        // childProcess.stdout.on('data', function (data) {
-        // 	console.log('[spawn] stdout: ', data.toString());
-        // });
-        // childProcess.stderr.on('data', function (data) {
-        // 	console.log('[spawn] stderr: ', data.toString());
-        // });
-
-        // getFirst.then('data', function (data) {
-        // 	data = data.stdout;
-        // 	console.log('extract: ' + data);
-        // 	res.send(data);
-        // }).catch(function (data) {
-        // 	console.log('when extracting, received a error: ' + data);
-        // 	res.send("7zip error");
-        // });
     })
     .catch((data) => {
-        console.log(`/api/firstImage received a error: ${data}`);
+        console.error(`[/api/firstImage] received a error: ${data}`);
         res.send(404);
     });
 });
@@ -234,7 +219,7 @@ app.post('/api/extract', (req, res) => {
     const task = spawn(sevenZip, all, { capture: ['stdout', 'stderr'] });
     const childProcess = task.childProcess;
     childProcess.on("close", (code) => {
-        console.log('[spawn /api/extract] exit: ', code);
+        // console.log('[spawn /api/extract] exit: ', code);
         if (code === 0) {
             fs.readdir(outputPath, (error, results) => {
                 const temp = generateContentUrl(results, outputPath);
@@ -242,6 +227,7 @@ app.post('/api/extract', (req, res) => {
             });
         } else {
             res.send(404);
+            console.error('[spawn /api/extract] exit: ', code);
         }
     });
 });
