@@ -88,7 +88,7 @@ allfl.read(userConfig.home_pathes, {}, (results) => {
 
 app.post('/api/lsDir', (req, res) => {
     const dir = req.body && req.body.dir;
-    if (!dir) {
+    if (!dir || !fs.existsSync(dir)) {
         res.send(404);
     }
 
@@ -130,9 +130,9 @@ app.get('/api/tag', (req, res) => {
     res.send({ tags, authors });
 });
 
-app.post("/api/tagSearch", (req, res)=>{
+app.post("/api/tagSearch", (req, res) => {
     const author = req.body && req.body.author;
-    const tag = req.body && req.body.tagl
+    const tag = req.body && req.body.tag;
     if (!author && !tag) {
         res.send(404);
     }
@@ -172,13 +172,13 @@ function read7zOutput(data) {
 //! !need to set windows console to utf8
 app.post('/api/firstImage', (req, res) => {
     const fileName = req.body && req.body.fileName;
-    if (!fileName) {
+    if (!fileName || !fs.existsSync(fileName)) {
         res.send(404);
     }
 
     const outputPath = getOutputPath(fileName);
     const temp = getCache(outputPath);
-    if (temp && temp.files.length > 10) {
+    if (temp && temp.files[0] && isImage(temp.files[0])) {
         res.send({ image: temp.files[0] });
         return;
     }
@@ -228,7 +228,7 @@ app.post('/api/firstImage', (req, res) => {
 // http://localhost:8080/api/extract
 app.post('/api/extract', (req, res) => {
     const fileName = req.body && req.body.fileName;
-    if (!fileName) {
+    if (!fileName || !fs.existsSync(fileName)) {
         res.send(404);
     }
     const outputPath = getOutputPath(fileName);

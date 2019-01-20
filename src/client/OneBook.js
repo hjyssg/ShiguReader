@@ -12,7 +12,6 @@ export default class OneBook extends Component {
   }
 
   componentDidMount() {
-    document.title = this.props.filePath;
     fetch('/api/extract', {
       method: 'POST',
       headers: {
@@ -23,41 +22,52 @@ export default class OneBook extends Component {
     })
     .then(_.resHandle)
     .then(res => {
-        this.setState({ files: res.files || [], index: 0});
+        this.setState({ files: res.files || [], index: 0 });
+        document.addEventListener('keydown', this.handleKeyDown.bind(this));
     });
   }
 
-  swithPage(index){
-    if(index < 0){
+  componentWillUnmount() {
+    document.removeEventListener("keydown", this.handleKeyDown.bind(this));
+  }
+
+  handleKeyDown(event) {
+    if (event.key === "ArrowRight") {
+      this.changePage(this.state.index + 1);
+    } else if (event.key === "ArrowLeft") {
+      this.changePage(this.state.index - 1);
+    }
+  }
+
+  changePage(index) {
+    if (index < 0) {
       return;
-    } else if(index >= this.state.files.length-1){
+    } else if (index >= (this.state.files || []).length - 1) {
       return;
     }
-    this.setState({index})
+    this.setState({ index });
   }
 
-  next(event){
-    var index = parseInt(event.target.getAttribute("index")) + 1;
+  next(event) {
+    let index = parseInt(event.target.getAttribute("index")) + 1;
     event.preventDefault();
-    this.swithPage(index);
+    this.changePage(index);
   }
 
-  prev(event){
-    var index = parseInt(event.target.getAttribute("index")) - 1;
+  prev(event) {
+    let index = parseInt(event.target.getAttribute("index")) - 1;
     event.preventDefault();
-    this.swithPage(index);
+    this.changePage(index);
   }
 
   renderFileList() {
-      const {files, index} = this.state;
-      const listItems = files.map((item) => {
-        return (<li className="one-book-image-li" key={item}><img className="one-book-image" src={item} alt="book-image"/></li>);
-      });
+      const { files, index } = this.state;
+      const listItems = files.map((item) => (<li className="one-book-image-li" key={item}><img className="one-book-image" src={item} alt="book-image"/></li>));
       return (<ul className="one-book-list">{listItems}</ul>);
   }
 
   render() {
-    const {files, index} = this.state;
+    const { files, index } = this.state;
     if (_.isEmpty(files)) {
       return (
         <div className="one-book-loading">
@@ -66,14 +76,16 @@ export default class OneBook extends Component {
       );
     }
 
-    if(screen.width > 1500){
-      return (<div className="one-book-container">
+    if (screen.width > 1500) {
+      return (
+<div className="one-book-container">
                     <img className="one-book-image" src={files[index]} alt="book-image"
                          onClick={this.next.bind(this)}
                          onContextMenu={this.prev.bind(this)}
                          index={index}
                     />
-              </div>);
+              </div>
+);
     } else {
       return (
         <div>

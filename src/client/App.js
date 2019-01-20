@@ -136,10 +136,22 @@ export default class App extends Component {
   renderHeader(){
     const { mode, pathForHome, zipPathForOneBook } = this.state;
 
-    if(mode === "home" && pathForHome){
+    if (mode === "home" && pathForHome) {
         return  <h4>{pathForHome} </h4>;
-    }else if(mode === 'onebook'){
+    } else if(mode === 'onebook') {
         return <h4>{_.getFn(zipPathForOneBook)}</h4>
+    }
+  }
+
+  getWebTitle() {
+    const { mode, pathForHome, zipPathForOneBook } = this.state;
+
+    if (mode === "home" && pathForHome) {
+        return  pathForHome;
+    } else if (mode === 'onebook') {
+        return _.getFn(zipPathForOneBook);
+    } else {
+        return "comic reader";
     }
   }
 
@@ -147,6 +159,8 @@ export default class App extends Component {
       const { mode, pathForHome } = this.state;
       const that = this;
       let navs = ['home', 'author'];
+
+      document.title = this.getWebTitle();
 
       if (mode === 'onebook' || (mode === 'home' && pathForHome &&  _.getDir(pathForHome))) {
           navs = ['back'].concat(navs);
