@@ -5,6 +5,7 @@ import PropTypes from 'prop-types';
 import LoadingImage from './LoadingImage';
 import folderIcon from './images/folder.png';
 import Sender from './Sender';
+import { Switch, Route, Link } from 'react-router-dom'
 
 export default class ExplorerPage extends Component {
     constructor(prop) {
@@ -24,7 +25,7 @@ export default class ExplorerPage extends Component {
         func = func.bind(this, item);
 
         const text = this.props.PathForExplorer? _.getFn(item): item;
-        return (
+        const result =  (
             <li
                 type="button"
                 className="list-group-item btn btn-primary home-row"
@@ -35,6 +36,12 @@ export default class ExplorerPage extends Component {
                 <span className="row-file-name">{text}</span>
             </li>
         );
+
+        if(isFolder){
+            return result;
+        }else {
+            return <Link to='/onebook'  key={item}>{result}</Link>
+        }
     }
 
     displayPath(dir) {

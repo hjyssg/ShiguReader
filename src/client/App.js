@@ -6,6 +6,7 @@ import ExplorerPage from "./ExplorerPage";
 import OneBook from "./OneBook";
 import TagPage from "./TagPage";
 import Sender from './Sender';
+import { Switch, Route, Link } from 'react-router-dom'
 
 const userConfig = require('../user-config');
 
@@ -87,7 +88,7 @@ export default class App extends Component {
               />
           );
       } else if (mode === "onebook") {
-          return (<OneBook filePath={zipPathForOneBook} openDirFunc={this.openDirFunc.bind(this)}/>);
+        //   return (<OneBook filePath={zipPathForOneBook} openDirFunc={this.openDirFunc.bind(this)}/>);
       } else if (mode === "tag") {
           return <TagPage mode="tag" />;
       } else if (mode === "author") {
@@ -159,7 +160,7 @@ export default class App extends Component {
   }
 
   render() {
-      const { mode, PathForExplorer } = this.state;
+      const { mode, PathForExplorer, zipPathForOneBook } = this.state;
       const that = this;
       let navs = ['home', 'author'];
 
@@ -181,6 +182,8 @@ export default class App extends Component {
           </Nav.Item>
       ));
 
+      const renderOneBook = (props) => { return (<OneBook filePath={zipPathForOneBook} openDirFunc={this.openDirFunc.bind(this)}/>)};
+
       return (
           <div className="app-container">
               {this.renderHeader()}
@@ -188,6 +191,9 @@ export default class App extends Component {
                   {listItems}
               </Nav>
               {this.chooseSubComponent()}
+            <Switch>
+                <Route path='/onebook' render={renderOneBook}/>
+            </Switch>
           </div>
       );
   }

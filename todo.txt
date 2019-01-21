@@ -5,3 +5,10 @@ server cache
 create own scroll item
 
 1. app.js to keep the state, try to make subcomponent stateless
+
+！！
+open one book in new page. since I want to watch many books at once
+未必需要全套的react route。但绝对需要这个
+
+bug：
+explorer没文件的时间，没显示
