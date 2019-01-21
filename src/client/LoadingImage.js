@@ -11,14 +11,18 @@ const VisibilitySensor = require('react-visibility-sensor').default;
 
 
 export default class LoadingImage extends Component {
-  state = { loaded: false };
+  constructor(props) {
+    super(props);
+    this.state = {
+      loaded: false
+    };
+  }
 
   componentDidMount() {
     
   }
 
   onChange(isVisible){
-    // console.log(isVisible, this.props.fileName)
     if(isVisible && !this.state.loaded & !this.loading){
       const {mode} = this.props;
       const api = (mode === "author" || mode === "tag") ? "/api/tagFirstImagePath" :  '/api/firstImage';

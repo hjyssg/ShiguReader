@@ -1,19 +1,19 @@
-'use strict';
+let pReg = /\((.*?)\)/g  
+let bReg = /\[(.*?)\]/g ;
 
-var _ = require("underscore");
-var pReg = "\\((.*?)\\)";
-var bReg = "\\[(.*?)\\]";
-var s = "\\s*";
-var feReg = "\\..*$";
-var fullRegs = [];
+function isYear(str) {
+    if (str && str.length === 6 && /\d{6}/.test(str)) {
+        const y = parseInt(str.slice(0, 2));
+        const m = parseInt(str.slice(2, 4));
+        const d = parseInt(str.slice(4, 6));
 
-//e.g  [真珠貝] マナタマプラス .zip
-fullRegs[0] = new RegExp( bReg + s + "(.*?)" + s + feReg);
-
-//e.g [真珠貝] マナタマプラス (ラブプラス).zip
-fullRegs[1] = new RegExp( bReg + s + "(.*?)" + s + pReg + feReg);
-
-var authorReg = /\[(.*)\((.*)\)\]/;
+        let invalid = y > 30 && y < 80;
+        invalid = invalid || (m < 0 || m > 12);
+        invalid = invalid || (d < 0 || d > 30);
+        return !invalid;
+    }
+    return false;
+}
 
 function getAuthorName(str){
     var macthes = str.match(/(.*?)\s*\((.*?)\)/);
@@ -21,45 +21,70 @@ function getAuthorName(str){
         return {
             group: macthes[1].trim(),
             name: macthes[2].trim(),
-            isDoujin: true
         };
     }else{
         return {
             name: str.trim(),
-            isDoujin:false
         };
     }
 }
 
+function match(reg, str){
+    const result = [];
+    var token = reg.exec(str);
+    while (token){
+        result.push(token[1]);
+        token = reg.exec(str);
+    }
+    return result;
+}
 
-function parse(str, config){
-    if(!str){
+
+function parse(str) {
+    if (!str) {
       return null;
     }
 
-    for (var i = fullRegs.length - 1; i >= 0; i--) {
-        var macthes = str.match(fullRegs[i]);
-        if(macthes && macthes.length > 0){
-            var result = {};
-            result.author = getAuthorName(macthes[1]);
-            result.isDoujin = result.author.isDoujin;
-            result.title = macthes[2].trim();
-            if(i == 1){
-              result.tag = macthes[3].trim();
-            }
+    const bMacthes =  match(bReg, str);
+    const pMacthes = match(pReg, str);
 
-            var prefix = str.replace(macthes[0], "");
-            var tags = prefix.match(/\((.*?)\)/g)
-            if(tags && tags.length > 0){
-                result.extra = tags;
-                result.extra = _.map(result.extra, function(e){
-                                                            return e.trim().replace(/^\(/, "").replace(/\)$/, "")
-                                                        });
+    const hasB = (bMacthes && bMacthes.length > 0);
+    const hasP = (pMacthes && pMacthes.length > 0);
+
+    if(!hasB && !hasP){
+        return null;
+    }
+
+    let tags = [];
+    let author = null;
+
+    // looking for author, avoid 6 year digit
+    if (bMacthes && bMacthes.length > 0) {
+        for (let ii = 0; ii < bMacthes.length; ii++) {
+            const token = bMacthes[ii].trim();
+            if (isYear(token)) {
+                tags.push(token);
+            } else {
+                //  [真珠貝(武田弘光)]
+                const temp = getAuthorName(token);
+                author = temp.name;
+                temp.group && tags.push(temp.group);
+                break;
             }
-            return result;
         }
     }
-    return null;
+
+    if(pMacthes && pMacthes.length > 0){
+        tags = tags.concat(pMacthes);
+    }
+
+    if(tags.indexOf(author) >= 0){
+        tags.splice(tags.indexOf(author), 1);
+    }
+
+    return {
+        author, tags
+    };
 }
 
 module.exports.parse = parse;

@@ -19,6 +19,12 @@ export default class OneBook extends Component {
     });
   }
 
+  showTagFiles(tag) {
+    Sender.post("/api/tagSearch", { tag }, res => {
+      this.props.openDirFunc("", [], res.tagFiles);
+    });
+  }
+
   componentDidMount() {
     fetch('/api/extract', {
       method: 'POST',
@@ -86,22 +92,28 @@ export default class OneBook extends Component {
     }
 
     const result = nameParser.parse(_.getFn(this.props.filePath));
-    const author = result && result.author.name;
+    const author = result && result.author;
+    const tags = (result && result.tags)||[];
  
     if (screen.width > 1500) {
+      const tagDivs = tags.map((tag)=>{
+        return (<div key={tag} className="one-book-foot-author" onClick={this.showTagFiles.bind(this, tag)}>{tag}</div>)
+      })
+
       return (  
               <div>
-              <div className="one-book-container">
-                    <img className="one-book-image" src={files[index]} alt="book-image"
-                         onClick={this.next.bind(this)}
-                         onContextMenu={this.prev.bind(this)}
-                         index={index}
-                    />
-              </div>
-              <div className="one-book-footer">
-                <div className="one-book-foot-index-number">{`${index+1}/${files.length}` }</div>
-                <div className="one-book-foot-author" onClick={this.showAuthorFiles.bind(this, author)}>{author}</div>
-              </div>
+                <div className="one-book-container">
+                      <img className="one-book-image" src={files[index]} alt="book-image"
+                          onClick={this.next.bind(this)}
+                          onContextMenu={this.prev.bind(this)}
+                          index={index}
+                      />
+                </div>
+                <div className="one-book-footer">
+                  <div className="one-book-foot-index-number">{`${index+1}/${files.length}` }</div>
+                  <div className="one-book-foot-author" onClick={this.showAuthorFiles.bind(this, author)}>{author}</div>
+                  {tagDivs}
+                </div>
               </div>
               );
     } else {

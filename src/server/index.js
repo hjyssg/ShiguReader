@@ -125,6 +125,9 @@ app.post('/api/lsDir', (req, res) => {
 });
 
 function addOne(table, key) {
+    if(!key){
+        return;
+    }
     if (!table[key]) {
         table[key] = 1;
     } else {
@@ -138,9 +141,8 @@ app.get('/api/tag', (req, res) => {
     db.allFiles.forEach((e) => {
         const result = nameParser.parse(e);
         if (result) {
-            addOne(authors, result.author.name);
-            addOne(tags, result.tag);
-            (result.extra || []).forEach(tag => addOne(tags, tag));
+            addOne(authors, result.author);
+            result.tags.forEach(tag => addOne(tags, tag));
         }
     });
     res.send({ tags, authors });
@@ -152,7 +154,7 @@ function searchByTagAndAuthor (tag, author) {
     db.allFiles.forEach((e) => {
         if (author) {
             const result = nameParser.parse(e);
-            if (result && result.author.name === author) {
+            if (result && result.author === author) {
                 authorFiles.push(e);
             }
         }
