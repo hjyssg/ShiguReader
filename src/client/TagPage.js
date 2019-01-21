@@ -5,7 +5,7 @@ import _ from "underscore";
 import PropTypes from 'prop-types';
 import Sender from './Sender';
 
-export default class TabPage extends Component {
+export default class TagPage extends Component {
   constructor(prop) {
     super(prop);
     this.state = { hasError: false, tags: [] };
@@ -80,10 +80,10 @@ export default class TabPage extends Component {
   }
 }
 
-TabPage.propTypes = {
+TagPage.propTypes = {
   mode: PropTypes.oneOf(["tag", "author"])
 };
 
-TabPage.propTypes = {
+TagPage.propTypes = {
   openDirFunc: PropTypes.func,
 };

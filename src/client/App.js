@@ -4,7 +4,7 @@ import _ from "underscore";
 import Nav from 'react-bootstrap/lib/Nav';
 import ExplorerPage from "./ExplorerPage";
 import OneBook from "./OneBook";
-import TabPage from "./TabPage";
+import TagPage from "./TagPage";
 import Sender from './Sender';
 
 const userConfig = require('../user-config');
@@ -88,9 +88,9 @@ export default class App extends Component {
       } else if (mode === "onebook") {
           return (<OneBook filePath={zipPathForOneBook} openDirFunc={this.openDirFunc.bind(this)}/>);
       } else if (mode === "tag") {
-          return <TabPage mode="tag" />;
+          return <TagPage mode="tag" />;
       } else if (mode === "author") {
-          return <TabPage mode="author"  openDirFunc={this.openDirFunc.bind(this)} />;
+          return <TagPage mode="author"  openDirFunc={this.openDirFunc.bind(this)} />;
       } else {
           return (<div>{mode}</div>);
       }
