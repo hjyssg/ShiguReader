@@ -12,12 +12,6 @@ export default class ExplorerPage extends Component {
         this.state = { hasError: false };
     }
 
-    componentDidUpdate() {
-      if (this.props.pathForHome) {
-          this.displayPath(this.props.pathForHome);
-      }
-    }
-
     onFileCilck(value) {
         if (_.isCompress(value)) {
             this.props.openBookFunc(value);
@@ -28,6 +22,8 @@ export default class ExplorerPage extends Component {
     // var fn = path.basename(item, path.extname(item));
         let func = isFolder ? this.displayPath : this.onFileCilck;
         func = func.bind(this, item);
+
+        const text = this.props.PathForExplorer? _.getFn(item): item;
         return (
             <li
                 type="button"
@@ -36,7 +32,7 @@ export default class ExplorerPage extends Component {
                 onClick={func}
             >
                 {image}
-                <span className="row-file-name">{item}</span>
+                <span className="row-file-name">{text}</span>
             </li>
         );
     }
@@ -101,7 +97,7 @@ export default class ExplorerPage extends Component {
 }
 
 ExplorerPage.propTypes = {
-    pathForHome: PropTypes.string,
+    PathForExplorer: PropTypes.string,
     dirs: PropTypes.array,
     files: PropTypes.array,
     openBookFunc: PropTypes.func,

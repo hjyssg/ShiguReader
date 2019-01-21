@@ -3,3 +3,5 @@ explorer for only visible. performance for big number
 server cache
 
 create own scroll item
+
+1. app.js to keep the state, try to make subcomponent stateless

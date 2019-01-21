@@ -9,7 +9,6 @@ import Sender from './Sender';
 
 const VisibilitySensor = require('react-visibility-sensor').default;
 
-
 export default class LoadingImage extends Component {
   constructor(props) {
     super(props);
@@ -20,6 +19,10 @@ export default class LoadingImage extends Component {
 
   componentDidMount() {
     
+  }
+
+  componentWillUnmount(){
+    this.isUnmounted = true;
   }
 
   onChange(isVisible){
@@ -37,7 +40,7 @@ export default class LoadingImage extends Component {
       this.loading = true;
 
       Sender.post(api, body,
-        (res) => { this.setState({ loaded: true, ...res }); }
+        (res) => { !this.isUnmounted && this.setState({ loaded: true, ...res }); }
       );
     }
   }

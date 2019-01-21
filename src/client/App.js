@@ -47,9 +47,9 @@ export default class App extends Component {
     this.state = {
       mode: 'home',
 
-      pathForHome: "",
-      dirsForHome: userConfig.home_pathes,
-      filesForHome: [],
+      PathForExplorer: "",
+      dirsForExplorer: userConfig.home_pathes,
+      filesForExplorer: [],
 
       zipPathForOneBook: ""
     };
@@ -65,24 +65,25 @@ export default class App extends Component {
   openDirFunc(path, dirs, files) {
     this.setState({
         mode: "home",
-        pathForHome: path,
-        dirsForHome: dirs,
-        filesForHome: files
+        PathForExplorer: path,
+        dirsForExplorer: dirs,
+        filesForExplorer: files
     });
   }
 
   chooseSubComponent() {
-      const { mode, dirsForHome, filesForHome, zipPathForOneBook } = this.state;
+      const { mode, PathForExplorer, dirsForExplorer, filesForExplorer, zipPathForOneBook } = this.state;
       if (mode === "home") {
           return (
               <ExplorerPage
                   ref={homePage => {
                       this.homePage = homePage;
                   }}
-                  dirs={dirsForHome}
-                  files={filesForHome}
+                  dirs={dirsForExplorer}
+                  files={filesForExplorer}
                   openDirFunc={this.openDirFunc.bind(this)}
                   openBookFunc={this.openBookFunc.bind(this)}
+                  PathForExplorer={PathForExplorer}
               />
           );
       } else if (mode === "onebook") {
@@ -99,20 +100,22 @@ export default class App extends Component {
   changeExplorerPath(dir) {
     Sender.lsDir({ dir }, res => {
         if (!res.failed) {
-          this.setState({ mode: 'home'});
           this.openDirFunc(dir, res.dirs, res.files);
         }
     });
   }
 
   handleBackButton(){
-    const { mode, zipPathForOneBook, pathForHome } = this.state;
+    const { mode, zipPathForOneBook, PathForExplorer } = this.state;
     let p;
     if (mode === 'onebook') {
         p = _.getDir(zipPathForOneBook);
         this.changeExplorerPath(p);
+
+        //go back to author
+
     } else if (mode === 'home') {
-        p = _.getDir(pathForHome);
+        p = _.getDir(PathForExplorer);
         this.changeExplorerPath(p);
     }
   }
@@ -123,9 +126,9 @@ export default class App extends Component {
       } else if (selectedKey === "home") {
         this.setState({
           mode: 'home',
-          pathForHome: "",
-          dirsForHome: userConfig.home_pathes,
-          filesForHome: [],
+          PathForExplorer: "",
+          dirsForExplorer: userConfig.home_pathes,
+          filesForExplorer: [],
           zipPathForOneBook: ""
         });
       } else {
@@ -134,20 +137,20 @@ export default class App extends Component {
   }
 
   renderHeader(){
-    const { mode, pathForHome, zipPathForOneBook } = this.state;
+    const { mode, PathForExplorer, zipPathForOneBook } = this.state;
 
-    if (mode === "home" && pathForHome) {
-        return  <h4>{pathForHome} </h4>;
+    if (mode === "home" && PathForExplorer) {
+        return  <h4>{PathForExplorer} </h4>;
     } else if(mode === 'onebook') {
         return <h4>{_.getFn(zipPathForOneBook)}</h4>
     }
   }
 
   getWebTitle() {
-    const { mode, pathForHome, zipPathForOneBook } = this.state;
+    const { mode, PathForExplorer, zipPathForOneBook } = this.state;
 
-    if (mode === "home" && pathForHome) {
-        return  pathForHome;
+    if (mode === "home" && PathForExplorer) {
+        return  PathForExplorer;
     } else if (mode === 'onebook') {
         return _.getFn(zipPathForOneBook);
     } else {
@@ -156,13 +159,13 @@ export default class App extends Component {
   }
 
   render() {
-      const { mode, pathForHome } = this.state;
+      const { mode, PathForExplorer } = this.state;
       const that = this;
       let navs = ['home', 'author'];
 
       document.title = this.getWebTitle();
 
-      if (mode === 'onebook' || (mode === 'home' && pathForHome &&  _.getDir(pathForHome))) {
+      if (mode === 'onebook' || (mode === 'home' && PathForExplorer &&  _.getDir(PathForExplorer))) {
           navs = ['back'].concat(navs);
       }
 
