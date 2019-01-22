@@ -1,0 +1,23 @@
+.home-row {
+  text-align: left !important;
+  border-radius: 5px;
+}
+
+.row-thumbnail-image {
+  margin: 0.2rem 1rem;
+  padding: 0px !important;
+
+  /* https://stackoverflow.com/questions/19414856/how-can-i-make-all-images-of-different-height-and-width-the-same-via-css */
+  /* width: 100px; */
+  height: 50px !important;
+}
+
+.home-row:hover .row-thumbnail-file-image {
+  height: 300px !important;
+}
+
+.row-file-name {
+  font-size: 1rem;
+  font-weight: bold;
+  color: black;
+}

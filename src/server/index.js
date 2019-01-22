@@ -9,14 +9,21 @@ const sevenZip = require('7zip')['7z'];
 const { spawn, exec } = require('child-process-promise');
 const iconvLite = require('iconv-lite');
 const ora = require('ora');
+const stringHash =require("string-hash");
 
 const root = path.join(__dirname, "..", "..", "..");
 const cachePath = path.join(__dirname, "..", "..", "cache");
 
 const app = express();
 const db = {
+    //a list of all files
     allFiles : [],
-    dirCache: {}
+    //dir to its files and dirs
+    dirCache: {},
+    //hash to file or dir path
+    hashTable: {},
+    //hash to tag or author
+    tagHashTable: {}
 };
 
 app.use(express.static('dist'));
@@ -91,25 +98,29 @@ function init() {
     spinner.start();
 
     const filter = (e) => {return isCompress(e) || isImage(e);}
-    const results = fileiterator(userConfig.home_pathes, { filter });
+    const results = fileiterator(userConfig.home_pathes, { filter }).concat(userConfig.home_pathes);
     const arr = [];
     for (let i = 0; i < results.length; i++) {
         const p = results[i];
         const ext = path.extname(p).toLowerCase();
         if (!ext || isCompress(ext)) {
             arr.push(p);
+
+            db.hashTable[stringHash(p)] = p;
+            updateTagHash(p);
         }
     }
     db.allFiles = arr || [];
 
-    
     spinner.succeed();
 }
 
 init();
 
 app.post('/api/lsDir', (req, res) => {
-    const dir = req.body && req.body.dir;
+    const hashdir = db.hashTable[(req.body && req.body.hash)];
+    const dir = hashdir|| req.body && req.body.dir;
+
     if (!dir || !fs.existsSync(dir)) {
         res.send(404);
         return;
@@ -125,19 +136,36 @@ app.post('/api/lsDir', (req, res) => {
         const files = [];
         const dirs = [];
         for (let i = 0; results && i < results.length; i++) {
-            const p = results[i];
+            let p = results[i];
             const ext = path.extname(p).toLowerCase();
             if (!ext) {
                 dirs.push(path.join(dir, p));
             } else if (isImage(ext) || isCompress(ext)) {
                 files.push(path.join(dir, p));
             }
+
+            updateTagHash(p);
+            p = path.join(dir, p);
+            db.hashTable[stringHash(p)] = p;
         }
-        const result = {dirs, files}
+        const result = {dirs, files, path: dir}
         db.dirCache[dir] = result;
         res.send(result);
     });
 });
+
+function updateTagHash(str){
+    const result = nameParser.parse(str);
+    if(result){
+        result.tags.forEach(tag => {
+            db.tagHashTable[stringHash(tag)] = tag;
+        });
+
+        if(result.author){
+            db.tagHashTable[stringHash(result.author)] = result.author;
+        }
+    }
+}
 
 function addOne(table, key) {
     if(!key){
@@ -159,6 +187,8 @@ app.get('/api/tag', (req, res) => {
             addOne(authors, result.author);
             result.tags.forEach(tag => addOne(tags, tag));
         }
+
+        updateTagHash(e);
     });
     res.send({ tags, authors });
 });
@@ -178,13 +208,15 @@ function searchByTagAndAuthor (tag, author) {
         }
     });
 
-    return { tagFiles, authorFiles };
+    return { tagFiles, authorFiles, tag, author };
 
 }
 
 app.post("/api/tagSearch", (req, res) => {
+    const hashTag =  db.tagHashTable[(req.body && req.body.hash)];
+    const tag = hashTag || req.body && req.body.tag;
     const author = req.body && req.body.author;
-    const tag = req.body && req.body.tag;
+
     if (!author && !tag) {
         res.send(404);
         return;
@@ -287,7 +319,8 @@ app.post('/api/firstImage', (req, res) => {
 
 // http://localhost:8080/api/extract
 app.post('/api/extract', (req, res) => {
-    const fileName = req.body && req.body.fileName;
+    const hashFile = db.hashTable[(req.body && req.body.hash)];
+    const fileName = hashFile ||  req.body && req.body.fileName;
     if (!fileName || !fs.existsSync(fileName)) {
         res.send(404);
         return;
@@ -295,7 +328,7 @@ app.post('/api/extract', (req, res) => {
     const outputPath = getOutputPath(fileName);
     const temp = getCache(outputPath);
     if (temp && temp.files.length > 10) {
-        res.send({ files: temp.files });
+        res.send({ files: temp.files, path: fileName });
         return;
     }
 
@@ -307,7 +340,7 @@ app.post('/api/extract', (req, res) => {
         if (code === 0) {
             fs.readdir(outputPath, (error, results) => {
                 const temp = generateContentUrl(results, outputPath);
-                res.send({ ...temp });
+                res.send({ ...temp, path:fileName });
             });
         } else {
             res.send(404);

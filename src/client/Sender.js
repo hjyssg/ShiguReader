@@ -2,6 +2,14 @@ import _ from "underscore";
 
 const Sender = {};
 
+_.resHandle = function (res) {
+    if (res.status === 200) {
+        return res.json();
+    }
+    console.error('[failed]', res.status, res.statusText);
+    return { failed: true, res };
+};
+
 Sender.post = function (api, body, callback) {
     fetch(api, {
         method: 'POST',

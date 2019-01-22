@@ -1,112 +1,144 @@
 // @flow
 import React, { Component } from 'react';
 import _ from "underscore";
+import './style/explorer.css';
 import PropTypes from 'prop-types';
 import LoadingImage from './LoadingImage';
 import folderIcon from './images/folder.png';
 import Sender from './Sender';
-import { Switch, Route, Link } from 'react-router-dom'
+import { Link } from 'react-router-dom';
+const userConfig = require('../user-config');
+import stringHash from "string-hash";
 
 export default class ExplorerPage extends Component {
     constructor(prop) {
         super(prop);
-        this.state = { hasError: false };
+    }
+    
+    getHash() {
+        return this.props.match.params.tag || this.props.match.params.number;
     }
 
-    onFileCilck(value) {
-        if (_.isCompress(value)) {
-            this.props.openBookFunc(value);
+    getMode(){
+        if(this.props.match.params.tag){
+            return "tag"
+        }else{
+            return "explorer";
         }
     }
 
-    getTableRow(image, item, isFolder) {
-    // var fn = path.basename(item, path.extname(item));
-        let func = isFolder ? this.displayPath : this.onFileCilck;
-        func = func.bind(this, item);
-
-        const text = this.props.PathForExplorer? _.getFn(item): item;
-        const result =  (
-            <li
-                type="button"
-                className="list-group-item btn btn-primary home-row"
-                key={item}
-                onClick={func}
-            >
-                {image}
-                <span className="row-file-name">{text}</span>
-            </li>
-        );
-
-        if(isFolder){
-            return result;
-        }else {
-            return <Link to='/onebook'  key={item}>{result}</Link>
+    componentDidMount() {
+        const hash = this.getHash();
+        if (hash && this.loadedHash !== hash) {
+            if(this.getMode() === "tag"){
+                this.requestTagSearch();
+            }else{
+                this.requestLsDir();
+            }
         }
     }
+    
+    componentDidUpdate() {
+        this.componentDidMount();
+    }
 
-    displayPath(dir) {
-        Sender.lsDir({ dir }, res => {
+    requestTagSearch(tag) {
+        Sender.post("/api/tagSearch", { hash: this.getHash() }, res => {
             if (!res.failed) {
-                this.props.openDirFunc(dir, res.dirs, res.files);
+                this.loadedHash = this.getHash();
+                this.files = res.tagFiles|| [];
+                this.dirs = [];
+                this.tag = res.tag;
+                this.forceUpdate();
+              }else{
+                this.res = res;
+                this.forceUpdate();
+              }
+        });
+    }
+    
+    requestLsDir() {
+        Sender.lsDir({ hash: this.getHash() }, res => {
+            if (!res.failed) {
+                const {dirs, files, path} = res;
+                this.files = files|| [];
+                this.dirs = dirs||[];
+                this.path = path;
+                this.loadedHash = this.getHash();
+                this.forceUpdate();
+            } else {
+                this.res = res;
+                this.forceUpdate();
             }
         });
     }
+    
+    RenderRow(item, isFolder) {
+        const imageContent = isFolder? <img className="row-thumbnail-image" src={folderIcon} alt="folder-thumbnail"/>:
+                            <LoadingImage className="row-thumbnail-image row-thumbnail-file-image" fileName={item} />;
+        const text = isFolder? item: _.getFn(item);
+        const pathHash = stringHash(item);
+        const toUrl = isFolder? ('/explorer/'+ pathHash) : ('/onebook/' + pathHash);
+        const result =  (
+            <li className="list-group-item home-row" key={item}>
+            {imageContent}
+            <span className="row-file-name">{text}</span>
+            </li>
+        );
 
+        return  <Link to={toUrl}  key={item}>{result}</Link>;
+    }
+    
+    
     renderFileList() {
-        const {
-            res, failed
-        } = this.state;
-
-        const {
-            dirs, files
-        } = this.props;
-
-        if (failed || (res && res.status !== 200)) {
-            return (
-                <div className="alert alert-danger" role="alert">The server is down. Please check.</div>
-            );
-        } else if (_.isEmpty(dirs) && _.isEmpty(files)) {
+        let dirs, files;
+        if(!this.getHash()) {
+            dirs = userConfig.home_pathes;
+            files = [];
+        } else {
+            dirs = this.dirs;
+            files = this.files;
+        }
+        
+        if (_.isEmpty(dirs) && _.isEmpty(files)) {
             return (
                 <div className="alert alert-info" role="alert">Loading...</div>
             );
         }
-
+        
         //! todo when there is >6000 files, does not need to render all  list
-        const dirItems = dirs.map((item) => this.getTableRow(<img className="row-thumbnail-image" src={folderIcon} alt="folder-thumbnail"/>, item, "isDir"));
+        const dirItems = dirs.map((item) => this.RenderRow(item, "isDir"));
         //! !todo if the file is already an image file
-        const zipfileItems = files.filter(_.isCompress).map((item) => this.getTableRow(<LoadingImage className="row-thumbnail-image row-thumbnail-file-image" fileName={item} />, item));
+        const zipfileItems = files.filter(_.isCompress).map((item) => this.RenderRow(item));
         return (
             <ul className="list-group">
-                {dirItems}
-                {zipfileItems}
+            {dirItems}
+            {zipfileItems}
             </ul>
         );
     }
-
+    
     componentDidCatch(error) {
         // Display fallback UI
         console.error(error);
-        this.setState({ hasError: true });
     }
-
+    
     render() {
-        const { hasError } = this.state;
-        if (hasError) {
-            // You can render any custom fallback UI
-            return <h1>Something went wrong.</h1>;
+        if (this.res && this.res.failed) {
+            return <h1>{this.res.res.status + " " + this.res.res.statusText}</h1>;
         }
         return (
             <div className="home-container">
-                {this.renderFileList()}
+            {this.renderFileList()}
             </div>
         );
     }
 }
 
 ExplorerPage.propTypes = {
-    PathForExplorer: PropTypes.string,
     dirs: PropTypes.array,
     files: PropTypes.array,
     openBookFunc: PropTypes.func,
     openDirFunc: PropTypes.func,
+    cookies: PropTypes.any
 };

@@ -4,17 +4,20 @@ import LoadingImage from './LoadingImage';
 import _ from "underscore";
 import PropTypes from 'prop-types';
 import Sender from './Sender';
+import './style/tagPage.css';
+import { Link } from 'react-router-dom';
+import stringHash from "string-hash";
+
 
 export default class TagPage extends Component {
   constructor(prop) {
     super(prop);
-    this.state = { hasError: false, tags: [] };
+    this.state = { tags: [] };
   }
 
   componentDidCatch(error) {
     // Display fallback UI
     console.error(error);
-    this.setState({ hasError: true });
 }
 
   componentDidMount() {
@@ -23,37 +26,35 @@ export default class TagPage extends Component {
     }
 
     Sender.get('/api/tag', res => {
+      if (!res.failed) {
         this.setState({ loadedHome: true, ...res });
-    });
-  }
-
-  showAuthorFiles(author) {
-    Sender.post("/api/tagSearch", { author }, res => {
-      this.props.openDirFunc("", [], res.authorFiles);
+      } else {
+        this.res = res;
+        this.forceUpdate();
+      }
     });
   }
 
   renderTagList() {
     const {
         tags = [],
-        authors = [],
-        res,
-        failed
+        authors = []
     } = this.state;
 
-    if (failed || (res && res.status !== 200)) {
-          return (<div className="alert alert-danger" role="alert">The server is down. Please check. </div>);
-    } else if (_.isEmpty(tags) && _.isEmpty(authors)) {
+    if (_.isEmpty(tags) && _.isEmpty(authors)) {
       return (<div className="alert alert-info" role="alert">Loading...</div>);
     }
 
     const display = this.props.mode === "author" ? authors : tags;
 
-    const tagItems = _.keys(display).map((key) => {
-      const str = `${key} (${display[key]})`;
-      return  (<li key={key}>
-                  <LoadingImage className="tag-page-thumbnail" fileName={key} mode={this.props.mode} />
-                  <button type="button" className="btn btn-light tag-page-list-item-button" onClick={this.showAuthorFiles.bind(this, key)}>{str}</button>
+    const tagItems = _.keys(display).map((tag) => {
+      const displayText = `${tag} (${display[tag]})`;
+      const tagHash = stringHash(tag);
+      const url = "/tag/" + tagHash;
+
+      return  (<li key={tag}>
+                  <LoadingImage className="tag-page-thumbnail" fileName={tag} mode={this.props.mode} />
+                  <Link className=" tag-page-list-item-button" to={url}  key={tag}>{displayText}</Link>
                 </li>);
     });
 
@@ -65,13 +66,9 @@ export default class TagPage extends Component {
   }
 
   render() {
-    const { hasError } = this.state;
-
-    if (hasError) {
-      // You can render any custom fallback UI
-      return <h1>Something went wrong.</h1>;
+    if (this.res && this.res.failed) {
+      return <h1>{this.res.res.status + " " + this.res.res.statusText}</h1>;
     }
-
     return (
       <div className="tag-container">
         {this.renderTagList()}

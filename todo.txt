@@ -1,14 +1,21 @@
-simple tags: year, doujin or raw
-explorer for only visible. performance for big number
-server cache
-
-create own scroll item
-
-1. app.js to keep the state, try to make subcomponent stateless
-
-！！
-open one book in new page. since I want to watch many books at once
-未必需要全套的react route。但绝对需要这个
+1. 从onebook点击tag，进去相关tag界面
+2. 大量file时候渲染性能。可以做成类似gmail那样的pagination
+3. 服务器缓存 Cache管理
+4. react url。直接点开连接看。不需要像iOS app那样。
+5. Webpack多页面支持
 
 bug：
-explorer没文件的时间，没显示
+1. explorer没文件的时候，没有反馈
+2. 服务器挂的时候，需要反馈
+
+note：
+尽量不要用state，修改触发坑很多。
+react route的匹配是greedy，需要加个exact标签。真tmd坑。
+react-cookie谁做的，改cookie会setState然后重画。坑得妈都不认识了。
+
+App.js 最外面那层，使用react route切换page
+Explorer显示文件夹文件，或者显示tag模式下的文件
+TagPage显示tag列表或者作者列表
+先不区分作者和一般tag。工作太大.
+
+name parser的group放到哪好啊？

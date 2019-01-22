@@ -53,7 +53,7 @@ export default class LoadingImage extends Component {
     } else if (this.state.loaded === false) {
       content = (<Image className={`loading-image ${  this.props.className}`} src={this.state.image || loading} thumbnail />);
     } else {
-      content = (<Image className={this.props.className} src={this.state.image} thumbnail />);
+      content = (<Image className={this.props.className} src={"../" + this.state.image} thumbnail />);
     }
 
     //early
