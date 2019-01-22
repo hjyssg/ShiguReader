@@ -22,13 +22,16 @@
     "classnames": "^2.2.6",
     "express": "^4.16.3",
     "iconv-lite": "^0.4.24",
+    "js-cookie": "^2.2.0",
     "node-filelist": "^1.0.0",
+    "ora": "^3.0.0",
     "prop-types": "^15.6.2",
     "react": "^16.5.2",
     "react-bootstrap": "^1.0.0-beta.3",
     "react-dom": "^16.5.2",
     "react-router-dom": "^4.3.1",
     "react-visibility-sensor": "^5.0.2",
+    "string-hash": "^1.1.3",
     "underscore": "^1.9.1"
   },
   "devDependencies": {

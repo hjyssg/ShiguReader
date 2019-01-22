@@ -8,6 +8,7 @@ const userConfig = require('../user-config');
 const sevenZip = require('7zip')['7z'];
 const { spawn, exec } = require('child-process-promise');
 const iconvLite = require('iconv-lite');
+const ora = require('ora');
 
 const root = path.join(__dirname, "..", "..", "..");
 const cachePath = path.join(__dirname, "..", "..", "cache");
@@ -67,6 +68,12 @@ function getCache(outputPath) {
 
 function init() {
     const chcpTast = exec("chcp", { capture: ['stdout', 'stderr'] });
+    
+    const spinner = ora();
+    spinner.text = "scanning local files";
+    spinner.color = "yellow";
+    spinner.start();
+
     chcpTast.then(data => {
         console.log("[chcp]", data.stdout);
         const r = new RegExp("\\d+");
@@ -77,6 +84,11 @@ function init() {
             console.error("Please switch you console encoding to utf8 in windows language setting");
         }
     });
+
+    spinner.succeed();
+    spinner.text = "Analyzing local files";
+    spinner.color = "green";
+    spinner.start();
 
     const filter = (e) => {return isCompress(e) || isImage(e);}
     const results = fileiterator(userConfig.home_pathes, { filter });
@@ -89,6 +101,9 @@ function init() {
         }
     }
     db.allFiles = arr || [];
+
+    
+    spinner.succeed();
 }
 
 init();
