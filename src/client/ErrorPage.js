@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import './style/ErrorPage.css';
+import './style/ErrorPage.scss';
 
 export default class ErrorPage extends Component {
      render(){
@@ -11,7 +11,7 @@ export default class ErrorPage extends Component {
         }
 
         return (
-        <div id="notfound">
+        <div id="notfound" className="error-page-container">
             <div className="notfound">
                 <div className="notfound-404">
                     <h1>{status}</h1>

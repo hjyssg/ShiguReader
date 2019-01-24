@@ -4,7 +4,7 @@ import LoadingImage from './LoadingImage';
 import _ from "underscore";
 import PropTypes from 'prop-types';
 import Sender from './Sender';
-import './style/tagPage.css';
+import './style/TagPage.scss';
 import { Link } from 'react-router-dom';
 import stringHash from "string-hash";
 import ErrorPage from './ErrorPage';

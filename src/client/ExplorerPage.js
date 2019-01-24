@@ -1,7 +1,7 @@
 // @flow
 import React, { Component } from 'react';
 import _ from "underscore";
-import './style/explorer.css';
+import './style/Explorer.scss';
 import PropTypes from 'prop-types';
 import LoadingImage from './LoadingImage';
 import folderIcon from './images/folder.png';
@@ -76,12 +76,12 @@ export default class ExplorerPage extends Component {
     
     RenderRow(item, isFolder) {
         const imageContent = isFolder? <img className="row-thumbnail-image" src={folderIcon} alt="folder-thumbnail"/>:
-                            <LoadingImage className="row-thumbnail-image row-thumbnail-file-image" fileName={item} />;
+                            <LoadingImage className="row-thumbnail-image " fileName={item} />;
         const text = isFolder? item: _.getFn(item);
         const pathHash = stringHash(item);
         const toUrl = isFolder? ('/explorer/'+ pathHash) : ('/onebook/' + pathHash);
         const result =  (
-            <li className="list-group-item home-row" key={item}>
+            <li className="list-group-item explorer-dir-row" key={item}>
             {imageContent}
             <span className="row-file-name">{text}</span>
             </li>
@@ -129,7 +129,7 @@ export default class ExplorerPage extends Component {
             return <ErrorPage res={this.res.res}/>;
         }
         return (
-            <div className="home-container">
+            <div className="explorer-container">
             {this.renderFileList()}
             </div>
         );

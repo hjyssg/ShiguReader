@@ -5,7 +5,7 @@ const nameParser = require('../name-parser');
 import { Link } from 'react-router-dom';
 import stringHash from "string-hash";
 import Sender from './Sender';
-import './style/oneBook.css';
+import './style/OneBook.scss';
 import ErrorPage from './ErrorPage';
 
 
