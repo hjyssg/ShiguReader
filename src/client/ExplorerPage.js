@@ -75,20 +75,6 @@ export default class ExplorerPage extends Component {
         });
     }
     
-    RenderRow(item) {
-        const text =  _.getFn(item);
-        const pathHash = stringHash(item);
-        const toUrl =('/explorer/'+ pathHash)
-        const result =  (
-            <li className="explorer-dir-row" key={item}>
-            <i className="far fa-folder"></i>
-            <span className="row-file-name">{text}</span>
-            </li>
-        );
-        return  <Link to={toUrl}  key={item}>{result}</Link>;
-    }
-    
-    
     renderFileList() {
         let dirs, files;
         if(!this.getHash()) {
@@ -113,9 +99,9 @@ export default class ExplorerPage extends Component {
             const pathHash = stringHash(item);
             const toUrl =('/explorer/'+ pathHash);
             const result =  (
-                <li className="explorer-dir-row" key={item}>
+                <li className="explorer-dir-list-item" key={item}>
                 <i className="far fa-folder"></i>
-                <span className="row-file-name">{item}</span>
+                <span className="explorer-dir-list-item">{item}</span>
                 </li>
             );
             return  <Link to={toUrl}  key={item}>{result}</Link>;

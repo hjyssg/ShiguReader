@@ -1,12 +1,34 @@
 .explorer-container{
 
-  .explorer-dir-row {
+  .fa-folder{
+    color: yellowgreen;
+  }
+
+  a {
+    color: #DDDDDD !important;
+  }
+
+  .dir-list{
+    list-style: none;
+  }
+
+  .explorer-dir-list-item {
     text-align: left !important;
     border-radius: 5px;
     background-color: #4f535b;
     border: white;
     border-width: 1px;
   }
+
+  .explorer-dir-list-item {
+    font-size: 1rem;
+    font-weight: bold;
+    color: black;
+    padding-left: 5px;
+    color:#DDDDDD
+  }
+
+
   
   .row-thumbnail-image {
     margin: 0.2rem 1rem;
@@ -32,12 +54,6 @@
     object-fit: scale-down;
     margin: auto;
     text-align:center;
-  }
-  
-  .row-file-name {
-    font-size: 1rem;
-    font-weight: bold;
-    color: black;
   }
 }
 
