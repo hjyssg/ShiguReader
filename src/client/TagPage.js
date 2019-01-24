@@ -7,7 +7,7 @@ import Sender from './Sender';
 import './style/tagPage.css';
 import { Link } from 'react-router-dom';
 import stringHash from "string-hash";
-
+import ErrorPage from './ErrorPage';
 
 export default class TagPage extends Component {
   constructor(prop) {
@@ -67,7 +67,7 @@ export default class TagPage extends Component {
 
   render() {
     if (this.res && this.res.failed) {
-      return <h1>{this.res.res.status + " " + this.res.res.statusText}</h1>;
+      return <ErrorPage res={this.res.res}/>;
     }
     return (
       <div className="tag-container">

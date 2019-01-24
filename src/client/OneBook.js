@@ -6,6 +6,7 @@ import { Link } from 'react-router-dom';
 import stringHash from "string-hash";
 import Sender from './Sender';
 import './style/oneBook.css';
+import ErrorPage from './ErrorPage';
 
 
 export default class OneBook extends Component {
@@ -100,7 +101,7 @@ export default class OneBook extends Component {
   
   render() {
     if (this.res && this.res.failed) {
-      return <h1>{this.res.res.status + " " + this.res.res.statusText}</h1>;
+      return <ErrorPage res={this.res.res}/>;
     }
     
     const { files, index } = this.state;

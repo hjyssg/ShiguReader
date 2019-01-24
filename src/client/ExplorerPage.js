@@ -7,8 +7,9 @@ import LoadingImage from './LoadingImage';
 import folderIcon from './images/folder.png';
 import Sender from './Sender';
 import { Link } from 'react-router-dom';
-const userConfig = require('../user-config');
 import stringHash from "string-hash";
+const userConfig = require('../user-config');
+import ErrorPage from './ErrorPage';
 
 export default class ExplorerPage extends Component {
     constructor(prop) {
@@ -125,7 +126,7 @@ export default class ExplorerPage extends Component {
     
     render() {
         if (this.res && this.res.failed) {
-            return <h1>{this.res.res.status + " " + this.res.res.statusText}</h1>;
+            return <ErrorPage res={this.res.res}/>;
         }
         return (
             <div className="home-container">
