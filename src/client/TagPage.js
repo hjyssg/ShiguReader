@@ -65,8 +65,12 @@ export default class TagPage extends Component {
     );
   }
 
+  isFailedLoading(){
+    return this.res && this.res.failed;
+  }
+
   render() {
-    if (this.res && this.res.failed) {
+    if (this.isFailedLoading()) {
       return <ErrorPage res={this.res.res}/>;
     }
     return (

@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
 import _ from "underscore";
-import Image from 'react-bootstrap/lib/Image';
 import PropTypes from 'prop-types';
 import loading from './images/loading.png';
 import notAvailable from './images/not-available.png';
@@ -47,16 +46,16 @@ export default class LoadingImage extends Component {
 
   render() {
     let content;
+    const {className} = this.props;
+    const cn = "loading-image  " + className;
     if (this.state.failed) {
-      const cn = "loading-image  " + this.props.className;
-      content = (<Image ref={e=>{this.dom = e && e.node}} className={cn} src={notAvailable} thumbnail />);
+      content = (<img ref={e=>{this.dom = e && e.node}} className={cn} src={notAvailable}/>);
     } else if (this.state.loaded === false) {
-      content = (<Image className={`loading-image ${  this.props.className}`} src={this.state.image || loading} thumbnail />);
+      content = (<img className={cn} src={loading} />);
     } else {
-      content = (<Image className={this.props.className} src={"../" + this.state.image} thumbnail />);
+      content = (<img className={className} src={"../" + this.state.image}/>);
     }
 
-    //early
     return (
       <VisibilitySensor offset={{bottom:-1000}} onChange={this.onChange.bind(this)}>
         {content}

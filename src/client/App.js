@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import './style/app.css';
+import './style/app.scss';
 import _ from "underscore";
 import Nav from 'react-bootstrap/lib/Nav';
 import ExplorerPage from "./ExplorerPage";
@@ -14,7 +14,6 @@ import PropTypes from 'prop-types';
 
 const userConfig = require('../user-config');
 
-
 const imageTypes = ['.jpg', '.png'];
 const compressTypes = ['.zip', '.rar'];
 _.isImage = function (fn) {
@@ -26,11 +25,13 @@ _.isCompress = function (fn) {
 
 _.getDir = function (fn) {
     //get parent
+    if(!fn){return ""};
     const tokens = fn.split('\\');
     return tokens.slice(0, tokens.length - 1).join('\\');
 };
 
 _.getFn = function (fn) {
+    if(!fn){return ""};
     const tokens = fn.split('\\');
     return tokens[tokens.length - 1];
 };
@@ -71,8 +72,8 @@ class App extends Component {
     
     render() {
         // document.title = this.getWebTitle();
-        const topNav = (
-            <div className="topnav">
+        const topNav = !window.location.pathname.includes("/onebook") && (
+            <div className="topnav container">
                 <Link to='/' className="home-nav-item">Home</Link>
                 <Link to='/author'>Author</Link>
                 <Link to='/tag'>Tag</Link>

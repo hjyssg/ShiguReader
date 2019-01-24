@@ -51,6 +51,7 @@ export default class ExplorerPage extends Component {
                 this.dirs = [];
                 this.tag = res.tag;
                 this.forceUpdate();
+                this.res = res;
               }else{
                 this.res = res;
                 this.forceUpdate();
@@ -74,19 +75,16 @@ export default class ExplorerPage extends Component {
         });
     }
     
-    RenderRow(item, isFolder) {
-        const imageContent = isFolder? <img className="row-thumbnail-image" src={folderIcon} alt="folder-thumbnail"/>:
-                            <LoadingImage className="row-thumbnail-image " fileName={item} />;
-        const text = isFolder? item: _.getFn(item);
+    RenderRow(item) {
+        const text =  _.getFn(item);
         const pathHash = stringHash(item);
-        const toUrl = isFolder? ('/explorer/'+ pathHash) : ('/onebook/' + pathHash);
+        const toUrl =('/explorer/'+ pathHash)
         const result =  (
-            <li className="list-group-item explorer-dir-row" key={item}>
-            {imageContent}
+            <li className="explorer-dir-row" key={item}>
+            <i className="far fa-folder"></i>
             <span className="row-file-name">{text}</span>
             </li>
         );
-
         return  <Link to={toUrl}  key={item}>{result}</Link>;
     }
     
@@ -102,20 +100,50 @@ export default class ExplorerPage extends Component {
         }
         
         if (_.isEmpty(dirs) && _.isEmpty(files)) {
-            return (
-                <div className="alert alert-info" role="alert">Loading...</div>
-            );
-        }
+            if(this.res){
+                return (<center className="">Loading...</center>);
+            }else{
+                return <center className="">Empty Folder</center>;
+            }
+        } 
         
         //! todo when there is >6000 files, does not need to render all  list
-        const dirItems = dirs.map((item) => this.RenderRow(item, "isDir"));
+        const dirItems = dirs.map((item) =>  {
+            const text =  _.getFn(item);
+            const pathHash = stringHash(item);
+            const toUrl =('/explorer/'+ pathHash);
+            const result =  (
+                <li className="explorer-dir-row" key={item}>
+                <i className="far fa-folder"></i>
+                <span className="row-file-name">{item}</span>
+                </li>
+            );
+            return  <Link to={toUrl}  key={item}>{result}</Link>;
+        });
         //! !todo if the file is already an image file
-        const zipfileItems = files.filter(_.isCompress).map((item) => this.RenderRow(item));
+        const zipfileItems = files.filter(_.isCompress).map((item) => {
+            const text = _.getFn(item);
+            const pathHash = stringHash(item);
+            const toUrl =  '/onebook/' + pathHash;
+            return (<div key={item} className="col-sm-6 col-md-4 col-lg-3 file-cell">
+                        <Link to={toUrl}  key={item}>
+                        <center>{text}</center>
+                        <LoadingImage className="row-thumbnail-image row-file-thumbnail" fileName={item} />
+                        </Link>
+                    </div>);
+        });
+
         return (
-            <ul className="list-group">
-            {dirItems}
-            {zipfileItems}
-            </ul>
+            <div className="explorer-container">
+                <ul className="dir-list container">
+                    {dirItems}
+                </ul>
+                <div className="file-grid container">
+                    <div className="row">
+                        {zipfileItems}
+                    </div>
+                </div>
+            </div>
         );
     }
     
@@ -123,13 +151,16 @@ export default class ExplorerPage extends Component {
         // Display fallback UI
         console.error(error);
     }
+
+    isFailedLoading(){
+        return this.res && this.res.failed;
+    }
     
     render() {
-        if (this.res && this.res.failed) {
+        if (this.isFailedLoading()) {
             return <ErrorPage res={this.res.res}/>;
         }
-        return (
-            <div className="explorer-container">
+        return (<div>
             {this.renderFileList()}
             </div>
         );

@@ -1,16 +1,37 @@
 .explorer-container{
+
   .explorer-dir-row {
     text-align: left !important;
     border-radius: 5px;
+    background-color: #4f535b;
+    border: white;
+    border-width: 1px;
   }
   
   .row-thumbnail-image {
     margin: 0.2rem 1rem;
     padding: 0px !important;
-  
-    /* https://stackoverflow.com/questions/19414856/how-can-i-make-all-images-of-different-height-and-width-the-same-via-css */
-    /* width: 100px; */
-    height: 50px !important;
+  }
+
+  .file-cell{
+    height:335px;
+    border-radius: 9px;
+    border: 1px solid #34353b;
+    background: #43464e;
+    padding-top:5px;
+    padding-bottom: 5px;
+    display: flex;
+    flex-flow:column;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .row-file-thumbnail{
+    max-width:100%;
+    height:280px;
+    object-fit: scale-down;
+    margin: auto;
+    text-align:center;
   }
   
   .row-file-name {

@@ -1,0 +1,60 @@
+body {
+  text-align: center;
+  margin: auto;
+}
+
+a {
+  color: #DDDDDD;
+}
+
+/* @media screen and (min-width: 700px) {
+  .app-container {
+    margin-left: 5%;
+    margin-right: 5%;
+  }
+} */
+
+@media screen and (min-width: 1600px) {
+  .container {
+      max-width: 1500px !important;
+  }
+}
+
+.app-container {
+  background-color: #4f535b;
+  min-height: 100vh;
+
+  .topnav {
+    overflow: hidden;
+  }
+  
+  /* Style the links inside the navigation bar */
+  .topnav a {
+    float: left;
+    display: block;
+    color: black;
+    text-align: center;
+    padding: 14px 16px;
+    text-decoration: none;
+    font-size: 17px;
+  }
+  
+  /* Change the color of links on hover */
+  .topnav a:hover {
+    background-color: #ddd;
+    color: black;
+  }
+  
+  /* Style the "active" element to highlight the current page */
+  .topnav a.active {
+    background-color: #2196F3;
+    color: white;
+  }
+  
+  .home-nav-item{
+    background-color: #2196F3;
+  }
+}
+
+
+

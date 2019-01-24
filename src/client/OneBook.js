@@ -99,8 +99,12 @@ export default class OneBook extends Component {
     return (<ul className="one-book-list">{listItems}</ul>);
   }
   
+  isFailedLoading(){
+    return this.res && this.res.failed;
+  }
+
   render() {
-    if (this.res && this.res.failed) {
+    if (this.isFailedLoading()) { 
       return <ErrorPage res={this.res.res}/>;
     }
     
@@ -127,20 +131,26 @@ export default class OneBook extends Component {
                   <Link to={url}  key={tag}>{tag}</Link>
                 </div>);
       })
-      
+    
+      const parentPath = _.getDir(this.state.path);
+      const parentHash = stringHash(parentPath);
+      const toUrl =('/explorer/'+ parentHash);
+
       return (  
-        <div>
         <div className="one-book-container">
-        <img className="one-book-image" src={"../" + files[index]} alt="book-image"
-        onClick={this.next.bind(this)}
-        onContextMenu={this.prev.bind(this)}
-        index={index}
-        />
-        </div>
-        <div className="one-book-footer">
-        <div className="one-book-foot-index-number">{`${index+1}/${files.length}` }</div>
-        {tagDivs}
-        </div>
+          <div className="one-book-wrapper">
+            <div className="one-book-title"><center>{_.getFn(this.state.path)}</center></div>
+            <img className="one-book-image" src={"../" + files[index]} alt="book-image"
+            onClick={this.next.bind(this)}
+            onContextMenu={this.prev.bind(this)}
+            index={index}
+            />
+          </div>
+          <div className="one-book-footer">
+            <div className="one-book-foot-index-number">{`${index+1}/${files.length}` }</div>
+            {tagDivs}
+          </div>
+         {this.state.path && <div className="one-book-path"><Link to={toUrl}>{parentPath} </Link></div>}
         </div>
       );
     } else {
