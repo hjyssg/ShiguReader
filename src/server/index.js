@@ -18,8 +18,6 @@ const app = express();
 const db = {
     //a list of all files
     allFiles : [],
-    //dir to its files and dirs
-    dirCache: {},
     //hash to file or dir path
     hashTable: {},
     //hash to tag or author
@@ -126,12 +124,6 @@ app.post('/api/lsDir', (req, res) => {
         return;
     }
 
-    //need to replace with real cache
-    if(db.dirCache[dir]){
-        res.send(db.dirCache[dir]);
-        return;
-    }
-
     fs.readdir(dir, (error, results) => {
         const files = [];
         const dirs = [];
@@ -149,7 +141,6 @@ app.post('/api/lsDir', (req, res) => {
             db.hashTable[stringHash(p)] = p;
         }
         const result = {dirs, files, path: dir}
-        db.dirCache[dir] = result;
         res.send(result);
     });
 });

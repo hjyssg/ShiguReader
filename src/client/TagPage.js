@@ -8,17 +8,13 @@ import './style/TagPage.scss';
 import { Link } from 'react-router-dom';
 import stringHash from "string-hash";
 import ErrorPage from './ErrorPage';
+import Spinner from './subcomponent/Spinner'
 
 export default class TagPage extends Component {
   constructor(prop) {
     super(prop);
-    this.state = { tags: [] };
+    this.state = { tags: [], sortByNumber: true };
   }
-
-  componentDidCatch(error) {
-    // Display fallback UI
-    console.error(error);
-}
 
   componentDidMount() {
     if (this.state.loadedHome) {
@@ -42,23 +38,28 @@ export default class TagPage extends Component {
     } = this.state;
 
     if (_.isEmpty(tags) && _.isEmpty(authors)) {
-      return (<div className="alert alert-info" role="alert">Loading...</div>);
+      return (<div className="tag-page-loading"> {<Spinner />}{ "Loading..."}</div>);
     }
 
-    const display = this.props.mode === "author" ? authors : tags;
+    const items = this.props.mode === "author" ? authors : tags;
+    const keys = _.keys(items);
 
-    const tagItems = _.keys(display).map((tag) => {
-      const displayText = `${tag} (${display[tag]})`;
+    if(this.state.sortByNumber){
+      keys.sort((a, b) => items[b] - items[a]);
+    }
+
+    const tagItems = keys.map((tag) => {
+      const itemText = `${tag} (${items[tag]})`;
       const tagHash = stringHash(tag);
       const url = "/tag/" + tagHash;
 
       return  (<li key={tag} className="col-sm-6 col-md-4 col-lg-3 tag-page-list-item">
-                  <Link className="tag-page-list-item-link" to={url}  key={tag}>
-                    <center>{displayText}</center>
-                    <LoadingImage className="tag-page-thumbnail" fileName={tag} mode={this.props.mode} />
-                  </Link>
-                </li>);
-    });
+                    <Link className="tag-page-list-item-link" to={url}  key={tag}>
+                      <center>{itemText}</center>
+                      <LoadingImage className="tag-page-thumbnail" fileName={tag} mode={this.props.mode} />
+                    </Link>
+                  </li>);
+      });
 
     return (
       <ul className="tag-page-list-group container">
@@ -73,12 +74,17 @@ export default class TagPage extends Component {
     return this.res && this.res.failed;
   }
 
+  getTitle(){
+    return this.props.mode === "tag"? "By Tags" : "By Authors";
+  }
+
   render() {
     if (this.isFailedLoading()) {
       return <ErrorPage res={this.res.res}/>;
     }
     return (
       <div className="tag-container">
+        <center className="location-title">{this.getTitle()}</center>
         {this.renderTagList()}
       </div>
     );

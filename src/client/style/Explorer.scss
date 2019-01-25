@@ -1,5 +1,13 @@
-.explorer-container{
+.explorer-page-loading {
+  text-align: center;
+  font-size: 3rem;
+  position: fixed;
+  left: 45%;
+  top: 50%;
+}
 
+.explorer-container{
+  
   .fa-folder{
     color: yellowgreen;
   }

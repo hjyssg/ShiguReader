@@ -1,8 +1,12 @@
 let pReg = /\((.*?)\)/g  
 let bReg = /\[(.*?)\]/g ;
 
-function isYear(str) {
-    if (str && str.length === 6 && /\d{6}/.test(str)) {
+function isOnlyDigit(str){
+    return str.match(/^[0-9]+$/) != null
+}
+
+function isDate(str) {
+    if (str && str.length === 6) {
         const y = parseInt(str.slice(0, 2));
         const m = parseInt(str.slice(2, 4));
         const d = parseInt(str.slice(4, 6));
@@ -13,6 +17,12 @@ function isYear(str) {
         return !invalid;
     }
     return false;
+}
+
+function convertYearString(str) {
+    const y = parseInt(str.slice(0, 2));
+    const m = parseInt(str.slice(2, 4));
+    return y + "-" + m;
 }
 
 function getAuthorName(str){
@@ -39,6 +49,7 @@ function match(reg, str){
     return result;
 }
 
+const NEED_GROUP = false;
 
 function parse(str) {
     if (!str) {
@@ -61,14 +72,17 @@ function parse(str) {
     // looking for author, avoid 6 year digit
     if (bMacthes && bMacthes.length > 0) {
         for (let ii = 0; ii < bMacthes.length; ii++) {
-            const token = bMacthes[ii].trim();
-            if (isYear(token)) {
-                tags.push(token);
+            let token = bMacthes[ii].trim();
+            if(isOnlyDigit(token)){
+                if (isDate(token)) {
+                    token = convertYearString(token);
+                    tags.push(token);
+                }
             } else {
                 //  [真珠貝(武田弘光)]
                 const temp = getAuthorName(token);
                 author = temp.name;
-                temp.group && tags.push(temp.group);
+                NEED_GROUP && temp.group && tags.push(temp.group);
                 break;
             }
         }

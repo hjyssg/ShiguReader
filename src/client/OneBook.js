@@ -7,6 +7,7 @@ import stringHash from "string-hash";
 import Sender from './Sender';
 import './style/OneBook.scss';
 import ErrorPage from './ErrorPage';
+import Spinner from './subcomponent/Spinner'
 
 
 export default class OneBook extends Component {
@@ -112,7 +113,8 @@ export default class OneBook extends Component {
     if (_.isEmpty(files)) {
       return (
         <div className="one-book-loading">
-        { "is Loading..."}
+          {<Spinner />}
+          { "Loading..."}
         </div>
       );
     }

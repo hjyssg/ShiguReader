@@ -87,7 +87,10 @@ export default class ExplorerPage extends Component {
         
         if (_.isEmpty(dirs) && _.isEmpty(files)) {
             if(this.res){
-                return (<center className="">Loading...</center>);
+                return (<div className="explorer-page-loading">
+                {<Spinner />}
+                { "Loading..."}
+              </div>);
             }else{
                 return <center className="">Empty Folder</center>;
             }
@@ -133,20 +136,26 @@ export default class ExplorerPage extends Component {
         );
     }
     
-    componentDidCatch(error) {
-        // Display fallback UI
-        console.error(error);
-    }
-
     isFailedLoading(){
         return this.res && this.res.failed;
+    }
+
+    getTitle(){
+        const mode = this.getMode();
+        if(this.tag && mode === "tag") {
+            return "Tag: " + this.tag;
+        }else if(this.path){
+            return "At " + this.path;
+        }
     }
     
     render() {
         if (this.isFailedLoading()) {
             return <ErrorPage res={this.res.res}/>;
         }
+
         return (<div>
+            <center className="location-title">{this.getTitle()}</center>
             {this.renderFileList()}
             </div>
         );

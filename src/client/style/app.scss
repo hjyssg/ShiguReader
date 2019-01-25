@@ -7,12 +7,12 @@ a {
   color: #DDDDDD;
 }
 
-/* @media screen and (min-width: 700px) {
-  .app-container {
-    margin-left: 5%;
-    margin-right: 5%;
-  }
-} */
+.location-title {
+  color: rgb(215, 235, 255);
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
 
 @media screen and (min-width: 1600px) {
   .container {
