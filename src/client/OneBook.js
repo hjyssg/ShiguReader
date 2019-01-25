@@ -92,6 +92,11 @@ export default class OneBook extends Component {
     if (index < 0) {
       return;
     } else if (index > lastIndex) {
+      spop({
+        template: 'Last Page',
+        position: 'top-right',
+        autoclose: 3000
+      });
       return;
     }
     this.setState({ index });
@@ -152,6 +157,10 @@ export default class OneBook extends Component {
       const parentPath = _.getDir(this.state.path);
       const parentHash = stringHash(parentPath);
       const toUrl =('/explorer/'+ parentHash);
+
+      if(this.state.path){
+        document.title = _.getFn(this.state.path);
+      }
 
       return (  
         <div className="one-book-container">
