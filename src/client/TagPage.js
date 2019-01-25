@@ -52,15 +52,19 @@ export default class TagPage extends Component {
       const tagHash = stringHash(tag);
       const url = "/tag/" + tagHash;
 
-      return  (<li key={tag}>
-                  <LoadingImage className="tag-page-thumbnail" fileName={tag} mode={this.props.mode} />
-                  <Link className=" tag-page-list-item-button" to={url}  key={tag}>{displayText}</Link>
+      return  (<li key={tag} className="col-sm-6 col-md-4 col-lg-3 tag-page-list-item">
+                  <Link className="tag-page-list-item-link" to={url}  key={tag}>
+                    <center>{displayText}</center>
+                    <LoadingImage className="tag-page-thumbnail" fileName={tag} mode={this.props.mode} />
+                  </Link>
                 </li>);
     });
 
     return (
-      <ul className="tag-page-list-group">
+      <ul className="tag-page-list-group container">
+        <div className="row">
         {tagItems}
+        </div>
       </ul>
     );
   }

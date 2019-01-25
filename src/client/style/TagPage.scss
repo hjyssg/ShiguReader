@@ -1,12 +1,28 @@
-.tag-page-list-group{
-  list-style: none;
-}
+.tag-container{
+  .tag-page-list-group{
+    list-style: none;
+  }
 
-.tag-page-list-item-button {
-  margin-top: 0.25rem;
-  margin-bottom: 0.25rem;
-}
+  .tag-page-list-item-link {
+    margin-top: 0.25rem;
+    margin-bottom: 0.25rem;
+  }
 
-.tag-page-thumbnail {
-  max-width: 100px !important;
+  .tag-page-thumbnail {
+    max-width: 200px !important;
+  }
+
+  .tag-page-list-item {
+    height:335px;
+    border: 1px solid #34353b;
+    border-radius: 9px;
+    background: #43464e;
+    padding-top:5px;
+    padding-bottom: 5px;
+    display: flex;
+    flex-flow:column;
+    justify-content: start;
+    align-items: center;
+    overflow: hidden;
+  }
 }

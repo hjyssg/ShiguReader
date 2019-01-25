@@ -111,10 +111,10 @@ export default class ExplorerPage extends Component {
             const text = _.getFn(item);
             const pathHash = stringHash(item);
             const toUrl =  '/onebook/' + pathHash;
-            return (<div key={item} className="col-sm-6 col-md-4 col-lg-3 file-cell">
-                        <Link to={toUrl}  key={item}>
-                        <center>{text}</center>
-                        <LoadingImage className="row-thumbnail-image row-file-thumbnail" fileName={item} />
+            return (<div key={item} className="col-sm-6 col-md-4 col-lg-3 file-out-cell">
+                        <Link to={toUrl}  key={item} className="file-cell">
+                        <center className="file-cell-title">{text}</center>
+                        <LoadingImage className="file-cell-thumbnail" fileName={item} />
                         </Link>
                     </div>);
         });
