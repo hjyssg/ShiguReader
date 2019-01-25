@@ -13,7 +13,7 @@
   flex-flow: column;
   padding: 20px;
 
-  .one-book-wrapper{
+  .one-book-wrapper {
     display: flex !important;
     justify-content: center !important;
     align-items: center;
@@ -71,5 +71,9 @@
 
   .one-book-foot-index-number {
     cursor: none;
+  }
+
+  .one-book-delete-cmd{
+    cursor: pointer;
   }
 }

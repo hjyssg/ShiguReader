@@ -19,6 +19,10 @@ export default class OneBook extends Component {
       index: -1
     };
   }
+
+  deleteFile(path){
+    
+  }
   
   showAuthorFiles(author) {
     Sender.post("/api/tagSearch", { author }, res => {
@@ -152,7 +156,11 @@ export default class OneBook extends Component {
             <div className="one-book-foot-index-number">{`${index+1}/${files.length}` }</div>
             {tagDivs}
           </div>
-         {this.state.path && <div className="one-book-path"><Link to={toUrl}>{parentPath} </Link></div>}
+         {this.state.path && 
+            <div className="one-book-path">
+              <span className="one-book-delete-cmd" onClick={this.deleteFile.bind(this, this.state.path)}><i class="fas fa-trash-alt"></i></span>
+              <Link to={toUrl}>{parentPath} </Link>
+            </div>}
         </div>
       );
     } else {
