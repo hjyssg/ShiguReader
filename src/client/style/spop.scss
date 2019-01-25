@@ -1,0 +1,275 @@
+/*!
+ * smallPop 0.1.2 | https://github.com/silvio-r/spop
+ * Copyright (c) 2015 Sílvio Rosa @silvior_
+ * MIT license
+ */
+
+$spop-bg-color:			#454A56 !default;
+$spop-color:			#fff !default;
+
+$spop-info-bg:		   	$spop-bg-color !default;
+$spop-info-color:		#3a95ed !default;
+
+$spop-error-bg:			$spop-bg-color !default;
+$spop-error-color:		#ff5656 !default;
+
+$spop-success-bg:		$spop-bg-color !default;
+$spop-success-color:	#2ecc54 !default;
+
+$spop-warning-bg:		$spop-bg-color !default;
+$spop-warning-color:	#fcd000 !default;
+
+$spop-title-color:      #fff !default;
+$spop-link-color:       $spop-title-color !default;
+
+$spop-width: 			320px !default;
+$spop-font-size-base:   14px;
+$spop-space:			0.7em !default;
+
+$spop-animation-duration:	0.4s !default;
+
+$use-box-shadow: 			false !default;
+$box-shadow: 				0 0 6px 2px rgba( #000, 0.25) !default;
+
+$use-border-radius:			true !default;
+$border-radius: 			2px !default;
+
+$use-icon:                  true;
+
+.spop-container {
+    z-index: 2000;
+    position: fixed;
+
+    &,
+    *,
+    *:after,
+    *:before { box-sizing: border-box;}
+}
+
+.spop--top-left   {
+    top: 0;
+    left: 0;
+    .spop { transform-origin: 0 0;}
+}
+.spop--top-center {
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    .spop { transform-origin: 50% 0;}
+}
+.spop--top-right  {
+    top: 0;
+    right: 0;
+    .spop { transform-origin: 100% 0;}
+}
+
+
+.spop--center  {
+    top: 50%;
+    left: 50%;
+    transform: translate3d(-50%, -50%, 0);
+    .spop { transform-origin: 50% 0;}
+}
+
+
+.spop--bottom-left   {
+    bottom: 0;
+    left: 0;
+    .spop {transform-origin: 0 100%;}
+}
+.spop--bottom-center {
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    .spop { transform-origin: 50% 100%;}
+}
+.spop--bottom-right  {
+    bottom: 0;
+    right: 0;
+    .spop { transform-origin: 100% 100%;}
+}
+
+
+@media screen and (max-width:30em) {
+    .spop--top-left,
+    .spop--top-center,
+    .spop--top-right,
+    .spop--bottom-left,
+    .spop--bottom-center,
+    .spop--bottom-right  {
+        top: auto;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        margin-left: 0;
+        transform: translateX(0);
+        .spop { transform-origin: 50% 100%;}
+    }
+
+    .spop { border-bottom: 1px solid rgba(#000,0.15);}
+}
+
+.spop {
+    position: relative;
+    min-height: 56px;
+    line-height: 1.25;
+    font-size: $spop-font-size-base;
+    transform: translateZ(0);
+
+
+    @if $use-box-shadow == true {
+        box-shadow: $box-shadow;
+    }
+
+    @media screen and (min-width:30em) {
+        @if $use-border-radius == true {
+            border-radius: $border-radius;
+        }
+
+        width: $spop-width;
+        margin: $spop-space;
+    }
+}
+
+.spop--info,
+.spop--error,
+.spop--warning,
+.spop--success { color: $spop-color; background-color: $spop-bg-color;}
+
+@keyframes spopIn {
+    0%   { transform: scale(0.2,0.2);}
+    95%  { transform: scale(1.1,1.1);}
+    100% { transform: scale(1,1);}
+}
+@keyframes spopOut {
+    0%   { opacity: 1; transform: scale(1,1);}
+    20%  { transform: scale(1.1,1.1);}
+    100% { opacity: 0; transform: scale(0,0);}
+}
+
+.spop--out {
+    animation: spopOut $spop-animation-duration ease-in-out;
+}
+
+.spop--in {
+    animation: spopIn $spop-animation-duration ease-in-out;
+}
+
+.spop-body {
+    padding: ($spop-space * 2);
+    p { margin: 0;}
+
+    a {
+        color: $spop-link-color;
+        text-decoration: underline;
+
+        &:hover {
+            color: rgba($spop-link-color, 0.8);
+            text-decoration: none;
+        }
+    }
+}
+
+.spop-title {
+    margin-top: 0;
+    margin-bottom: 0.25em;
+    color: $spop-title-color;
+}
+
+.spop-close {
+    position: absolute;
+    right: 0;
+    top: 0;
+    height: 32px;
+    width: 32px;
+    padding-top: 7px;
+    padding-right: 7px;
+    font-size: 22px;
+    font-weight: bold;
+    text-align: right;
+    line-height: 0.6;
+    color: $spop-color;
+    opacity: 0.5;
+
+    &:hover {
+        opacity: 0.7;
+        cursor: pointer;
+    }
+}
+
+@if $use-icon == true {
+    .spop-icon {
+        position: absolute;
+        top: 13px;
+        left: 16px;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        animation: spopIn $spop-animation-duration $spop-animation-duration ease-in-out;
+        &:after,
+        &:before {
+            content:"";
+            position: absolute;
+            display: block;
+        }
+
+        & + .spop-body { padding-left: ($spop-space * 6);}
+    }
+
+    .spop-icon--error,
+    .spop-icon--info {
+        border: 2px solid $spop-info-color;
+        &:before {
+            top: 5px;
+            left: 11px;
+            width: 4px;
+            height: 4px;
+            background-color:$spop-info-color;
+        }
+        &:after {
+            top: 12px;
+            left: 11px;
+            width: 4px;
+            height: 9px;
+            background-color:$spop-info-color;
+        }
+    }
+
+    .spop-icon--error {
+        border-color: $spop-error-color;
+        &:before {
+            top: 16px;
+            background-color:$spop-error-color;
+        }
+        &:after {
+            top: 5px;
+            background-color:$spop-error-color;
+        }
+    }
+
+    .spop-icon--success {
+        border: 2px solid $spop-success-color;
+        &:before {
+            top: 7px;
+            left: 7px;
+            width: 13px;
+            height: 8px;
+            border-bottom: 3px solid $spop-success-color;
+            border-left: 3px solid $spop-success-color;
+            transform: rotate(-45deg);
+        }
+    }
+
+    .spop-icon--warning {
+        border: 2px solid $spop-warning-color;
+        &:before {
+            top: 7px;
+            left: 7px;
+            width: 0;
+            height: 0;
+            border-style: solid;
+            border-color: transparent transparent $spop-warning-color transparent;
+            border-width: 0 6px 10px 6px;
+        }
+    }
+}

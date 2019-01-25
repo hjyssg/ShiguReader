@@ -7,11 +7,10 @@ import stringHash from "string-hash";
 import Sender from './Sender';
 import './style/OneBook.scss';
 import ErrorPage from './ErrorPage';
-import Spinner from './subcomponent/Spinner'
-
+import Spinner from './subcomponent/Spinner';
+const spop  = require("./subcomponent/spop");
 
 export default class OneBook extends Component {
-  
   constructor(props) {
     super(props);
     this.state = {
@@ -20,8 +19,20 @@ export default class OneBook extends Component {
     };
   }
 
-  deleteFile(path){
-    
+  copyToClipboard(event){
+    //https://stackoverflow.com/questions/49236100/copy-text-from-span-to-clipboard
+    var textArea = document.createElement("textarea");
+    textArea.value = "DEL \"" +  this.state.path + "\"";
+    document.body.appendChild(textArea);
+    textArea.select();
+    document.execCommand("Copy");
+    textArea.remove();
+
+    spop({
+      template: 'Copied to Clipboard',
+      position: 'bottom-right',
+      autoclose: 3000
+    });
   }
   
   showAuthorFiles(author) {
@@ -158,7 +169,9 @@ export default class OneBook extends Component {
           </div>
          {this.state.path && 
             <div className="one-book-path">
-              <span className="one-book-delete-cmd" onClick={this.deleteFile.bind(this, this.state.path)}><i class="fas fa-trash-alt"></i></span>
+              <span className="one-book-delete-cmd fas fa-trash-alt"
+                    title="Copy Del command"
+                    onClick={this.copyToClipboard.bind(this)}></span>
               <Link to={toUrl}>{parentPath} </Link>
             </div>}
         </div>

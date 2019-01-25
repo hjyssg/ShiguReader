@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import './style/app.scss';
+import './style/spop.scss';
 import _ from "underscore";
 import Nav from 'react-bootstrap/lib/Nav';
 import ExplorerPage from "./ExplorerPage";
@@ -10,7 +11,6 @@ import { Switch, Route, Link } from 'react-router-dom';
 import Cookies from 'universal-cookie';
 import stringHash from "string-hash";
 import PropTypes from 'prop-types';
-
 
 const userConfig = require('../user-config');
 
