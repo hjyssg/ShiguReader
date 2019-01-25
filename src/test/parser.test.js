@@ -34,29 +34,29 @@ describe('name parser', () => {
 
         s1 = "(DOUJIN)(C82) [真珠貝 (武田弘光)] apple (cake).zip";
         result = parser.parse(s1);
-        assert.deepEqual(result.tags.sort(), [ "DOUJIN", "C82", "真珠貝", "cake"].sort());
+        assert.deepEqual(result.tags.sort(), [ "DOUJIN", "C82", "cake"].sort());
         assert.equal(result.author, "武田弘光");
 
         s1 = "(DOUJIN)(C82)[真珠貝(武田弘光)]apple(cake).zip";
         result = parser.parse(s1);
-        assert.deepEqual(result.tags.sort(), [ "DOUJIN", "C82", "真珠貝", "cake"].sort());
+        assert.deepEqual(result.tags.sort(), [ "DOUJIN", "C82", "cake"].sort());
         assert.equal(result.author, "武田弘光");
 
         s1 = "(COMIC1☆9) [橘花屋 (上杉響士郎, 榊ゆいの)] すみません。 (アイドルマスター シンデレラガールズ).zip";
         result = parser.parse(s1);
         assert.equal(result.author, "上杉響士郎, 榊ゆいの");
-        assert.deepEqual(result.tags.sort(),["COMIC1☆9", "橘花屋", "アイドルマスター シンデレラガールズ"].sort());
+        assert.deepEqual(result.tags.sort(),["COMIC1☆9", "アイドルマスター シンデレラガールズ"].sort());
     })
 
 
     it("find name with year tag", ()=>{
         s1 = "[150622](COMIC1☆9) [橘花屋 (上杉響士郎, 榊ゆいの)] すみません。 (アイドルマスター シンデレラガールズ).zip";
         result = parser.parse(s1);
-        assert.deepEqual(result.tags.sort(),["150622", "COMIC1☆9", "橘花屋", "アイドルマスター シンデレラガールズ"].sort());
+        assert.deepEqual(result.tags.sort(),["150622", "COMIC1☆9", "アイドルマスター シンデレラガールズ"].sort());
         assert.equal(result.author, "上杉響士郎, 榊ゆいの");
     })
 
-    it("find name", ()=>{
+    it("find author name", ()=>{
         s1 = "(同人ゲームCG) [170428] [ピンポイント] 王女&女騎士Wド下品露出 ～恥辱の見世物奴隷～";
         result = parser.parse(s1);
         assert.deepEqual(result.tags.sort(),["同人ゲームCG", "170428"].sort());
@@ -76,5 +76,15 @@ describe('name parser', () => {
         result = parser.parse(s1);
         assert.deepEqual(result.tags.sort(),["画集"].sort());
         assert.equal(result.author, "山戸大輔");
+    });
+
+    it("tag converter", ()=>{
+        s1 = "[桃井涼太] 艦隊これくしょん -艦これ- 4コマコミック 吹雪、がんばります! Vol.1(艦隊これくしょん) [Digital].zip";
+        result = parser.parse(s1);
+        assert.deepEqual(result.tags.sort(),["艦これ"].sort());
+
+        s2 = "[桃井涼太] 艦隊これくしょん -艦これ- 4コマコミック 吹雪、がんばります! Vol.1(艦これ) [Digital].zip";
+        result = parser.parse(s1);
+        assert.deepEqual(result.tags.sort(),["艦これ"].sort());
     })
 });

@@ -143,7 +143,7 @@ export default class ExplorerPage extends Component {
     getTitle(){
         const mode = this.getMode();
         if(this.tag && mode === "tag") {
-            return "Tag: " + this.tag;
+            return "Tag: " + this.tag + " (" + (this.files||[]).length + ")";
         }else if(this.path){
             return "At " + this.path;
         }

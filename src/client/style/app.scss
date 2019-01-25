@@ -24,6 +24,10 @@ a {
   background-color: #4f535b;
   min-height: 100vh;
 
+  .fas{
+    color: #DDDDDD;
+  }
+
   .topnav {
     overflow: hidden;
   }
@@ -49,10 +53,6 @@ a {
   .topnav a.active {
     background-color: #2196F3;
     color: white;
-  }
-  
-  .home-nav-item{
-    background-color: #2196F3;
   }
 }
 

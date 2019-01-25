@@ -74,9 +74,9 @@ class App extends Component {
         // document.title = this.getWebTitle();
         const topNav = !window.location.pathname.includes("/onebook") && (
             <div className="topnav container">
-                <Link to='/' className="home-nav-item">Home</Link>
-                <Link to='/author'>Author</Link>
-                <Link to='/tag'>Tag</Link>
+                <Link to='/'><i className="fas fa-home">Home</i></Link>
+                <Link to='/author'><i className="fas fa-pen">Authors</i></Link>
+                <Link to='/tag'><i className="fas fa-tags">Tags</i></Link>
             </div>
         );
         

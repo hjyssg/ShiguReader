@@ -1,3 +1,13 @@
+const same_tags = require("./same-tags");
+const convertTable = {};
+
+same_tags.forEach(row => {
+    for(const ii = 1; ii < row.length; row++){
+        convertTable[row[ii]] = row[0];
+    }
+});
+
+
 let pReg = /\((.*?)\)/g  
 let bReg = /\[(.*?)\]/g ;
 
@@ -20,9 +30,16 @@ function isDate(str) {
 }
 
 function convertYearString(str) {
-    const y = parseInt(str.slice(0, 2));
-    const m = parseInt(str.slice(2, 4));
-    return y + "-" + m;
+    let y =  parseInt(str.slice(0, 2));
+    const m = str.slice(2, 4);
+
+    if (y > 80) {
+        y = 1900 + y;
+    }else {
+        y = 2000 + y;
+    }
+
+    return y + "/" + m;
 }
 
 function getAuthorName(str){
@@ -95,6 +112,13 @@ function parse(str) {
     if(tags.indexOf(author) >= 0){
         tags.splice(tags.indexOf(author), 1);
     }
+
+    tags = tags.map(e => {
+        if(convertTable[e]){
+            return convertTable[e];
+        }
+        return e;
+    })
 
     return {
         author, tags

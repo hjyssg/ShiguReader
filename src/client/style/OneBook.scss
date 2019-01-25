@@ -6,11 +6,19 @@
   top: 50%;
 }
 
-.one-book-container{
+.one-book-container {
   display: flex !important;
   justify-content: center !important;
   align-items: center;
   flex-flow: column;
+  padding: 20px;
+
+  .one-book-wrapper{
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center;
+    flex-flow: column;
+  }
 
   .one-book-list {
     list-style: none;
@@ -39,8 +47,8 @@
   }
 
   .one-book-image {
-    min-height: 85vh;
-    max-height: 90vh;
+    min-height: 86vh;
+    max-height: 92vh;
     margin-bottom: 1rem;
     box-shadow: 0 2px 4px 0 rgba(0,0,0,0.16),0 2px 10px 0 rgba(0,0,0,0.12)!important;
   }
