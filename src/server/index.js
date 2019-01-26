@@ -120,7 +120,7 @@ app.post('/api/lsDir', (req, res) => {
     const dir = hashdir|| req.body && req.body.dir;
 
     if (!dir || !fs.existsSync(dir)) {
-        res.send(404);
+        res.sendStatus(404);
         return;
     }
 
@@ -185,31 +185,32 @@ app.get('/api/tag', (req, res) => {
 });
 
 function searchByTagAndAuthor (tag, author) {
-    const tagFiles = [];
-    const authorFiles = [];
+    const files = [];
     db.allFiles.forEach((e) => {
-        if (author) {
-            const result = nameParser.parse(e);
-            if (result && result.author === author) {
-                authorFiles.push(e);
-            }
+        const result = nameParser.parse(e);
+        if (result && author &&  result.author === author) {
+            files.push(e);
         }
-        if (tag && e.indexOf(tag) > -1) {
-            tagFiles.push(e);
+        if (result && tag && result.tags.indexOf(tag) > -1) {
+            files.push(e);
         }
     });
 
-    return { tagFiles, authorFiles, tag, author };
+    return { files, tag, author };
 
 }
 
+// tree para
+// 1. hash
+// 2. mode
 app.post("/api/search", (req, res) => {
+    const mode = req.body && req.body.mode;
     const hashTag =  db.tagHashTable[(req.body && req.body.hash)];
-    const tag = hashTag || req.body && req.body.tag;
-    const author = req.body && req.body.author;
+    const tag =  mode === "tag" && hashTag;
+    const author =  mode === "author" && hashTag;
 
     if (!author && !tag) {
-        res.send(404);
+        res.sendStatus(404);
         return;
     }
 
@@ -220,12 +221,12 @@ app.post("/api/tagFirstImagePath", (req, res) => {
     const author = req.body && req.body.author;
     const tag = req.body && req.body.tag;
     if (!author && !tag) {
-        res.send(404);
+        res.sendStatus(404);
         return;
     }
 
-    const { tagFiles, authorFiles } = searchByTagAndAuthor(tag, author);
-    const filePathes = author? authorFiles: tagFiles;
+    const { files } = searchByTagAndAuthor(tag, author);
+    const filePathes = files;
     const chosendFileName = filePathes.filter(isCompress)[0];  // need to improve
     getFirstImageFromZip(chosendFileName, res);
 });
@@ -269,7 +270,7 @@ function getFirstImageFromZip(fileName, res) {
 
         if (!files[0]) {
             console.error("/api/firstImage]", "no files");
-            res.send(404);
+            res.sendStatus(404);
             return;
         }
 
@@ -288,13 +289,13 @@ function getFirstImageFromZip(fileName, res) {
                 res.send({ image: temp });
             } else {
                 console.error("[spawn /api/firstImage]", code);
-                res.send(404);
+                res.sendStatus(404);
             }
         });
     })
     .catch((data) => {
         console.error(`[/api/firstImage] received a error: ${data}`);
-        res.send(404);
+        res.sendStatus(404);
     });
 }
 
@@ -302,7 +303,7 @@ function getFirstImageFromZip(fileName, res) {
 app.post('/api/firstImage', (req, res) => {
     const fileName = req.body && req.body.fileName;
     if (!fileName || !fs.existsSync(fileName)) {
-        res.send(404);
+        res.sendStatus(404);
         return;
     }
     getFirstImageFromZip(fileName, res);
@@ -313,7 +314,7 @@ app.post('/api/extract', (req, res) => {
     const hashFile = db.hashTable[(req.body && req.body.hash)];
     const fileName = hashFile ||  req.body && req.body.fileName;
     if (!fileName || !fs.existsSync(fileName)) {
-        res.send(404);
+        res.sendStatus(404);
         return;
     }
     const outputPath = getOutputPath(fileName);
@@ -334,7 +335,7 @@ app.post('/api/extract', (req, res) => {
                 res.send({ ...temp, path:fileName });
             });
         } else {
-            res.send(404);
+            res.sendStatus(404);
             console.error('[spawn /api/extract] exit: ', code);
         }
     });

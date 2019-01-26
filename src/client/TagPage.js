@@ -9,8 +9,8 @@ import { Link } from 'react-router-dom';
 import stringHash from "string-hash";
 import ErrorPage from './ErrorPage';
 import Spinner from './subcomponent/Spinner'
-
-const ONE_SUB_PAGE_NUMBER = 100;
+import Pagination from 'rc-pagination';
+const PER_PAGE = 6 * 20;
 
 export default class TagPage extends Component {
   constructor(prop) {
@@ -41,6 +41,10 @@ export default class TagPage extends Component {
     return this.props.mode === "author" ? authors : tags;
   }
 
+  getItemLength(){
+    return _.keys(this.getItems()).length
+  }
+
   renderTagList() {
     const {
         tags = [],
@@ -58,12 +62,12 @@ export default class TagPage extends Component {
       keys.sort((a, b) => items[b] - items[a]);
     }
 
-    keys = keys.slice(this.state.pageIndex * ONE_SUB_PAGE_NUMBER, (this.state.pageIndex+1) * ONE_SUB_PAGE_NUMBER);
+    keys = keys.slice(this.state.pageIndex * PER_PAGE, (this.state.pageIndex+1) * PER_PAGE);
 
     const tagItems = keys.map((tag) => {
       const itemText = `${tag} (${items[tag]})`;
       const tagHash = stringHash(tag);
-      const url = "/tag/" + tagHash;
+      const url = this.props.mode === "author"? ("/author/" + tagHash) :  ("/tag/" + tagHash);
 
       return  (<li key={tag} className="col-sm-6 col-md-4 col-lg-2 tag-page-list-item">
                     <Link className="tag-page-list-item-link" to={url}  key={tag}>
@@ -88,7 +92,22 @@ export default class TagPage extends Component {
 
   getTitle(){
     let text = this.props.mode === "tag"? "By Tags" : "By Authors";
-    return text + " (" + _.keys(this.getItems()).length + ")";
+    return text + " (" + this.getItemLength() + ")";
+  }
+
+  handlePageChange(index){
+    this.setState({ pageIndex: index+1});
+  }
+
+  renderPagination(){
+    if(this.getItemLength() === 0){
+      return;
+    }
+
+    return (<Pagination current={this.state.pageIndex+1}  
+                        pageSize={PER_PAGE}
+                        total={this.getItemLength()} 
+                        onChange={this.handlePageChange.bind(this)} />);
   }
 
   render() {
@@ -99,6 +118,7 @@ export default class TagPage extends Component {
       <div className="tag-container">
         <center className="location-title">{this.getTitle()}</center>
         {this.renderTagList()}
+        {this.renderPagination()}
       </div>
     );
   }

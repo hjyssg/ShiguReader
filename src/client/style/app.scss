@@ -14,9 +14,15 @@ a {
   margin-bottom: 10px;
 }
 
-@media screen and (min-width: 1600px) {
+.rc-pagination {
+  display: flex;
+  justify-content: center;
+}
+
+
+@media screen and (min-width: 1300px) {
   .container {
-      max-width: 1550px !important;
+      max-width: 1280px !important;
   }
 }
 

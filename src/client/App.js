@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import './style/app.scss';
 import './style/spop.scss';
+import './style/rc-pagination.scss';
 import _ from "underscore";
 import Nav from 'react-bootstrap/lib/Nav';
 import ExplorerPage from "./ExplorerPage";
@@ -62,6 +63,7 @@ class App extends Component {
             <Route exact path='/' render={renderExplorer}/>
             <Route path='/explorer/:number' render={renderExplorer}/>
             <Route path='/tag/:tag' render={renderExplorer}/>
+            <Route path='/author/:author' render={renderExplorer}/>
             <Route path='/onebook/:number' render={renderOneBook}/>
             <Route path='/tag' render={renderTagPage}/>
             <Route path='/author' render={renderAuthorPage}/>

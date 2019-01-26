@@ -35,18 +35,6 @@ export default class OneBook extends Component {
     });
   }
   
-  showAuthorFiles(author) {
-    Sender.post("/api/search", { author }, res => {
-      this.props.openDirFunc("", [], res.authorFiles);
-    });
-  }
-  
-  showTagFiles(tag) {
-    Sender.post("/api/search", { tag }, res => {
-      this.props.openDirFunc("", [], res.tagFiles);
-    });
-  }
-  
   getHash(){
     return this.props.match.params.number;
   }
@@ -145,54 +133,45 @@ export default class OneBook extends Component {
     //temp
     tags = author? tags.concat(author): tags;
     
-    if (screen.width > 1500) {
-      const tagDivs = tags.length > 0 && tags.map((tag)=>{
-        const tagHash = stringHash(tag);
-        const url = "/tag/" + tagHash;
-        return (<div key={tag} className="one-book-foot-author" >
-                  <Link to={url}  key={tag}>{tag}</Link>
-                </div>);
-      })
-    
-      const parentPath = _.getDir(this.state.path);
-      const parentHash = stringHash(parentPath);
-      const toUrl =('/explorer/'+ parentHash);
+    const tagDivs = tags.length > 0 && tags.map((tag)=>{
+      const tagHash = stringHash(tag);
+      const url = tag === author? ("/author/" + tagHash) : ("/tag/" + tagHash);
+      return (<div key={tag} className="one-book-foot-author" >
+                <Link to={url}  key={tag}>{tag}</Link>
+              </div>);
+    })
+  
+    const parentPath = _.getDir(this.state.path);
+    const parentHash = stringHash(parentPath);
+    const toUrl =('/explorer/'+ parentHash);
 
-      if(this.state.path){
-        document.title = _.getFn(this.state.path);
-      }
-
-      return (  
-        <div className="one-book-container">
-          <div className="one-book-wrapper">
-            <div className="one-book-title"><center>{_.getFn(this.state.path)}</center></div>
-            <img className="one-book-image" src={"../" + files[index]} alt="book-image"
-            onClick={this.next.bind(this)}
-            onContextMenu={this.prev.bind(this)}
-            index={index}
-            />
-          </div>
-          <div className="one-book-footer">
-            <div className="one-book-foot-index-number">{`${index+1}/${files.length}` }</div>
-            {tagDivs}
-          </div>
-         {this.state.path && 
-            <div className="one-book-path">
-              <span className="one-book-delete-cmd fas fa-trash-alt"
-                    title="Copy Del command"
-                    onClick={this.copyToClipboard.bind(this)}></span>
-              <Link to={toUrl}>{parentPath} </Link>
-            </div>}
-        </div>
-      );
-    } else {
-      return (
-        <div>
-        {this.renderFileList()}
-        <h4 className="one-book-title">{this.props.filePath}</h4>
-        </div>
-      );
+    if(this.state.path){
+      document.title = _.getFn(this.state.path);
     }
+
+    return (  
+      <div className="one-book-container">
+        <div className="one-book-wrapper">
+          <div className="one-book-title"><center>{_.getFn(this.state.path)}</center></div>
+          <img className="one-book-image" src={"../" + files[index]} alt="book-image"
+          onClick={this.next.bind(this)}
+          onContextMenu={this.prev.bind(this)}
+          index={index}
+          />
+        </div>
+        <div className="one-book-footer">
+          <div className="one-book-foot-index-number">{`${index+1}/${files.length}` }</div>
+          {tagDivs}
+        </div>
+        {this.state.path && 
+          <div className="one-book-path">
+            <span className="one-book-delete-cmd fas fa-trash-alt"
+                  title="Copy Del command"
+                  onClick={this.copyToClipboard.bind(this)}></span>
+            <Link to={toUrl}>{parentPath} </Link>
+          </div>}
+      </div>
+    );
   }
 }
 

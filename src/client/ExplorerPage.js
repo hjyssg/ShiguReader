@@ -10,19 +10,26 @@ import { Link } from 'react-router-dom';
 import stringHash from "string-hash";
 const userConfig = require('../user-config');
 import ErrorPage from './ErrorPage';
+import Pagination from 'rc-pagination';
+const PER_PAGE = 6 * 20;
 
 export default class ExplorerPage extends Component {
     constructor(prop) {
         super(prop);
+        this.state = { pageIndex: 0 };
     }
     
     getHash() {
-        return this.props.match.params.tag || this.props.match.params.number;
+        return this.props.match.params.tag || 
+               this.props.match.params.author||
+               this.props.match.params.number;
     }
 
     getMode(){
         if(this.props.match.params.tag){
             return "tag"
+        }if(this.props.match.params.author){
+            return "author"
         }else{
             return "explorer";
         }
@@ -32,8 +39,10 @@ export default class ExplorerPage extends Component {
         const hash = this.getHash();
         if (hash && this.loadedHash !== hash) {
             if(this.getMode() === "tag"){
-                this.requestTagSearch();
-            }else{
+                this.requestSearch();
+            }else if(this.getMode() === "author"){
+                this.requestSearch();
+            }  else {
                 this.requestLsDir();
             }
         }
@@ -43,19 +52,17 @@ export default class ExplorerPage extends Component {
         this.componentDidMount();
     }
 
-    requestTagSearch(tag) {
-        Sender.post("/api/search", { hash: this.getHash() }, res => {
+    requestSearch(mode) {
+        Sender.post("/api/search", { hash: this.getHash(),  mode: this.getMode()}, res => {
             if (!res.failed) {
                 this.loadedHash = this.getHash();
-                this.files = res.tagFiles|| [];
+                this.files = res.files|| [];
                 this.dirs = [];
                 this.tag = res.tag;
-                this.forceUpdate();
-                this.res = res;
-              }else{
-                this.res = res;
-                this.forceUpdate();
+                this.author = res.author;
               }
+              this.forceUpdate();
+              this.res = res;
         });
     }
     
@@ -110,7 +117,11 @@ export default class ExplorerPage extends Component {
             return  <Link to={toUrl}  key={item}>{result}</Link>;
         });
         //! !todo if the file is already an image file
-        const zipfileItems = files.filter(_.isCompress).map((item) => {
+
+        files = files.filter(_.isCompress);
+        files = files.slice(this.state.pageIndex * PER_PAGE, (this.state.pageIndex+1) * PER_PAGE);
+
+        const zipfileItems = files.map((item) => {
             const text = _.getFn(item);
             const pathHash = stringHash(item);
             const toUrl =  '/onebook/' + pathHash;
@@ -144,19 +155,38 @@ export default class ExplorerPage extends Component {
         const mode = this.getMode();
         if(this.tag && mode === "tag") {
             return "Tag: " + this.tag + " (" + (this.files||[]).length + ")";
+        } else if(this.author && mode === "author") {
+            return "Author: " + this.author + " (" + (this.files||[]).length + ")";
         }else if(this.path){
             return "At " + this.path;
         }
     }
+
+    handlePageChange(index){
+        this.setState({ pageIndex: index+1});
+      }
+    
+    renderPagination(){
+        const fileLength = (this.files||[]).length;
+        if(fileLength === 0){
+          return;
+        }
+    
+        return (<Pagination current={this.state.pageIndex+1}  
+                            pageSize={PER_PAGE}
+                            total={fileLength} 
+                            onChange={this.handlePageChange.bind(this)} />);
+      }
     
     render() {
         if (this.isFailedLoading()) {
             return <ErrorPage res={this.res.res}/>;
         }
 
-        return (<div>
+        return (<div className="explorer-container-out">
             <center className="location-title">{this.getTitle()}</center>
             {this.renderFileList()}
+            {this.renderPagination()}
             </div>
         );
     }
