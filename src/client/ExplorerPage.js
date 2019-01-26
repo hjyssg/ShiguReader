@@ -9,6 +9,7 @@ import Sender from './Sender';
 import { Link } from 'react-router-dom';
 import stringHash from "string-hash";
 const userConfig = require('../user-config');
+const spop  = require("./subcomponent/spop");
 import ErrorPage from './ErrorPage';
 import Pagination from 'rc-pagination';
 const PER_PAGE = 6 * 20;
@@ -18,6 +19,22 @@ export default class ExplorerPage extends Component {
         super(prop);
         this.state = { pageIndex: 0 };
     }
+
+    copyToClipboard(path){
+        //https://stackoverflow.com/questions/49236100/copy-text-from-span-to-clipboard
+        var textArea = document.createElement("textarea");
+        textArea.value = "DEL \"" +  path + "\"";
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand("Copy");
+        textArea.remove();
+    
+        spop({
+          template: 'Copied to Clipboard',
+          position: 'bottom-right',
+          autoclose: 3000
+        });
+      }
     
     getHash() {
         return this.props.match.params.tag || 
@@ -130,6 +147,9 @@ export default class ExplorerPage extends Component {
                         <center className="file-cell-title">{text}</center>
                         <LoadingImage className="file-cell-thumbnail" fileName={item} />
                         </Link>
+                         <span className="explorer-delete-cmd fas fa-trash-alt"
+                                        title="Copy Del command"
+                                        onClick={this.copyToClipboard.bind(this, item)}></span>
                     </div>);
         });
 

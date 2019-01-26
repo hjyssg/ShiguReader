@@ -46,12 +46,12 @@
   }
 
   .file-cell {
-    height: 260px;
+    height: 280px;
     border: 1px solid #34353b;
     border-radius: 9px;
     background: #43464e;
     padding-top:5px;
-    padding-bottom: 5px;
+    padding-bottom: 10px;
     display: flex;
     flex-flow:column;
     justify-content: start;
@@ -73,6 +73,13 @@
     object-fit: scale-down;
     margin: auto;
     text-align:center;
+  }
+
+  .explorer-delete-cmd{
+    position: relative;
+    top: -25px;
+    left: 12px;
+    color: #DDDDDD;
   }
 }
 
