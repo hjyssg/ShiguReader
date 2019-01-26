@@ -11,12 +11,14 @@ const userConfig = require('../user-config');
 import ErrorPage from './ErrorPage';
 import Pagination from 'rc-pagination';
 import FileChangeToolbar from './subcomponent/FileChangeToolbar';
+import Spinner from './subcomponent/Spinner';
 const PER_PAGE = 6 * 20;
 
 export default class ExplorerPage extends Component {
     constructor(prop) {
         super(prop);
         this.state = { pageIndex: 0 };
+        this.failedTimes = 0;
     }
 
     getHash() {
@@ -42,7 +44,7 @@ export default class ExplorerPage extends Component {
 
     componentDidMount() {
         const hash = this.getHash();
-        if (hash && this.loadedHash !== hash) {
+        if (hash && this.loadedHash !== hash && this.failedTimes < 3) {
             if(this.getMode() === "tag"){
                 this.requestSearch();
             }else if(this.getMode() === "author"){
@@ -67,6 +69,8 @@ export default class ExplorerPage extends Component {
                 this.dirs = [];
                 this.tag = res.tag;
                 this.author = res.author;
+            }else{
+                this.failedTimes++;
             }
             this.forceUpdate();
             this.res = res;
@@ -81,9 +85,12 @@ export default class ExplorerPage extends Component {
                 this.dirs = [];
                 this.tag = res.tag;
                 this.author = res.author;
+              }else{
+                  this.failedTimes++;
               }
               this.forceUpdate();
               this.res = res;
+              
         });
     }
     
@@ -114,13 +121,13 @@ export default class ExplorerPage extends Component {
         }
         
         if (_.isEmpty(dirs) && _.isEmpty(files)) {
-            if(this.res){
+            if(!this.res){
                 return (<div className="explorer-page-loading">
                 {<Spinner />}
                 { "Loading..."}
               </div>);
             }else{
-                return <center className="">Empty Folder</center>;
+                return <center className="">Nothing Available</center>;
             }
         } 
         
