@@ -72,9 +72,9 @@ export default class OneBook extends Component {
   }
   
   handleKeyDown(event) {
-    if (event.key === "ArrowRight") {
+    if (event.key === "ArrowRight" || event.key.toLowerCase() === "d") {
       this.changePage(this.state.index + 1);
-    } else if (event.key === "ArrowLeft") {
+    } else if (event.key === "ArrowLeft" || event.key.toLowerCase() === "a") {
       this.changePage(this.state.index - 1);
     }
   }
