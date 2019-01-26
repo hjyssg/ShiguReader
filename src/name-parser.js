@@ -1,4 +1,5 @@
 const same_tags = require("./same-tags");
+const char_names = require("./character-names");
 const convertTable = {};
 
 same_tags.forEach(row => {
@@ -7,6 +8,7 @@ same_tags.forEach(row => {
     }
 });
 
+char_names.sort((a, b) => (b.length - a.length))
 
 let pReg = /\((.*?)\)/g  
 let bReg = /\[(.*?)\]/g ;
@@ -105,13 +107,19 @@ function parse(str) {
         }
     }
 
-    if(pMacthes && pMacthes.length > 0){
+    if (pMacthes && pMacthes.length > 0) {
         tags = tags.concat(pMacthes);
     }
 
     if(tags.indexOf(author) >= 0){
         tags.splice(tags.indexOf(author), 1);
     }
+
+    char_names.forEach(name => {
+        if(str.indexOf(name) > -1 && (author||"").indexOf(name) === -1 ){
+            tags.push(name);
+        }
+    })
 
     tags = tags.map(e => {
         if(convertTable[e]){

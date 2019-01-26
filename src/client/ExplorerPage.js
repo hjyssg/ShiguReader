@@ -22,6 +22,7 @@ export default class ExplorerPage extends Component {
     getHash() {
         return this.props.match.params.tag || 
                this.props.match.params.author||
+               this.props.match.params.search||
                this.props.match.params.number;
     }
 
@@ -32,6 +33,8 @@ export default class ExplorerPage extends Component {
             return "author"
         }else if(this.props.match.params.number){
             return "explorer";
+        }else if(this.props.match.params.search){
+            return "search";
         }else{
             return "home"
         }
@@ -44,6 +47,8 @@ export default class ExplorerPage extends Component {
                 this.requestSearch();
             }else if(this.getMode() === "author"){
                 this.requestSearch();
+            }else if(this.getMode() === "search"){
+                this.requestTextSearch();
             }  else {
                 this.requestLsDir();
             }
@@ -52,6 +57,20 @@ export default class ExplorerPage extends Component {
     
     componentDidUpdate() {
         this.componentDidMount();
+    }
+
+    requestTextSearch(mode) {
+        Sender.post("/api/search", { text: this.props.match.params.search,  mode: this.getMode()}, res => {
+            if (!res.failed) {
+                this.loadedHash = this.getHash();
+                this.files = res.files|| [];
+                this.dirs = [];
+                this.tag = res.tag;
+                this.author = res.author;
+            }
+            this.forceUpdate();
+            this.res = res;
+        });
     }
 
     requestSearch(mode) {
@@ -158,12 +177,16 @@ export default class ExplorerPage extends Component {
 
     getTitle(){
         const mode = this.getMode();
+        const fn = " (" + (this.files||[]).length + ")";
+
         if(this.tag && mode === "tag") {
-            return "Tag: " + this.tag + " (" + (this.files||[]).length + ")";
+            return "Tag: " + this.tag + fn;
         } else if(this.author && mode === "author") {
-            return "Author: " + this.author + " (" + (this.files||[]).length + ")";
-        }else if(this.path){
+            return "Author: " + this.author + fn;
+        } else if(this.path){
             return "At " + this.path;
+        } else if(mode === "search"){
+            return "Search Result: " + this.getHash() + fn;
         }
     }
 
@@ -188,8 +211,7 @@ export default class ExplorerPage extends Component {
             return <ErrorPage res={this.res.res}/>;
         }
 
-        document.title = this.tag||this.author||this.path||"ShiguReader";
-
+        document.title = this.tag||this.author||this.path||this.props.match.params.search||"ShiguReader";
         return (<div className={"explorer-container-out " + this.getMode()} >
             <center className="location-title">{this.getTitle()}</center>
             {this.renderFileList()}

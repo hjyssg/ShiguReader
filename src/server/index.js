@@ -7,7 +7,6 @@ const nameParser = require('../name-parser');
 const userConfig = require('../user-config');
 const sevenZip = require('7zip')['7z'];
 const { spawn, exec } = require('child-process-promise');
-const iconvLite = require('iconv-lite');
 const ora = require('ora');
 const stringHash =require("string-hash");
 
@@ -184,14 +183,18 @@ app.get('/api/tag', (req, res) => {
     res.send({ tags, authors });
 });
 
-function searchByTagAndAuthor (tag, author) {
+function searchByTagAndAuthor (tag, author, text) {
     const files = [];
     db.allFiles.forEach((e) => {
-        const result = nameParser.parse(e);
+        const result = (author ||tag) && nameParser.parse(e);
         if (result && author &&  result.author === author) {
             files.push(e);
         }
         if (result && tag && result.tags.indexOf(tag) > -1) {
+            files.push(e);
+        }
+
+        if(text && e.indexOf(text) > -1){
             files.push(e);
         }
     });
@@ -203,18 +206,20 @@ function searchByTagAndAuthor (tag, author) {
 // tree para
 // 1. hash
 // 2. mode
+// 3. text
 app.post("/api/search", (req, res) => {
     const mode = req.body && req.body.mode;
     const hashTag =  db.tagHashTable[(req.body && req.body.hash)];
     const tag =  mode === "tag" && hashTag;
     const author =  mode === "author" && hashTag;
+    const text = mode === "search" && req.body && req.body.text;
 
-    if (!author && !tag) {
+    if (!author && !tag && !text) {
         res.sendStatus(404);
         return;
     }
 
-    res.send(searchByTagAndAuthor(tag, author));
+    res.send(searchByTagAndAuthor(tag, author, text));
 });
 
 app.post("/api/tagFirstImagePath", (req, res) => {

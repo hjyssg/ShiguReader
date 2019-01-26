@@ -6,7 +6,7 @@ import _ from "underscore";
 import ExplorerPage from "./ExplorerPage";
 import OneBook from "./OneBook";
 import TagPage from "./TagPage";
-import { Switch, Route, Link } from 'react-router-dom';
+import { Switch, Route, Link, Redirect } from 'react-router-dom';
 import Cookies from 'universal-cookie';
 import stringHash from "string-hash";
 
@@ -45,6 +45,11 @@ class App extends Component {
 
         userConfig.home_pathes.forEach(e => this.cookies.set(stringHash(e) , e)); 
     }
+
+    onSearchClick(event) {
+        this.searchText = document.getElementsByClassName('search-input')[0].value;
+        this.forceUpdate();
+    }
     
     RenderSubComponent() {
         const cookies = this.cookies;
@@ -61,6 +66,8 @@ class App extends Component {
             <Route path='/explorer/:number' render={renderExplorer}/>
             <Route path='/tag/:tag' render={renderExplorer}/>
             <Route path='/author/:author' render={renderExplorer}/>
+            <Route path='/search/:search' render={renderExplorer}/>
+
             <Route path='/onebook/:number' render={renderOneBook}/>
             <Route path='/tag' render={renderTagPage}/>
             <Route path='/author' render={renderAuthorPage}/>
@@ -71,11 +78,26 @@ class App extends Component {
     
     render() {
         // document.title = this.getWebTitle();
+        if(this.searchText){
+            const path = "/search/" + this.searchText;
+            this.searchText = "";
+            return (<Redirect
+                to={{
+                    pathname: path,
+                }}/>);
+        }
+
         const topNav = !window.location.pathname.includes("/onebook") && (
             <div className="topnav container">
+                <div className="links">
                 <Link to='/'><i className="fas fa-home">Home</i></Link>
                 <Link to='/author'><i className="fas fa-pen">Authors</i></Link>
                 <Link to='/tag'><i className="fas fa-tags">Tags</i></Link>
+                </div>
+                <div className="search-bar">
+                    <input className="search-input" type="text" placeholder="Search.."/>
+                    <button  onClick={this.onSearchClick.bind(this)}><i className="fa fa-search"></i></button>
+                </div>
             </div>
         );
         

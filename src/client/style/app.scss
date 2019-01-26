@@ -55,24 +55,60 @@ a {
 
   .topnav {
     overflow: hidden;
-  }
-  
-  .topnav a {
-    float: left;
-    display: block;
-    color: black;
-    text-align: center;
-    padding: 14px 16px;
-    text-decoration: none;
-    font-size: 17px;
-  }
-  
-  .topnav a:hover {
-    background-color: rgb(221, 221, 221);
-      i{
-        color: midnightblue;
+
+    .links {
+      float: left;
+      display: inline-flex;
+
+      a {
+        display: block;
+        color: black;
+        text-align: center;
+        padding: 14px 16px;
+        text-decoration: none;
+        font-size: 17px;
       }
+  
+      a:hover {
+        background-color: rgb(221, 221, 221);
+        i{
+          color: midnightblue;
+        }
+      }
+    }
+
+    .search-bar{
+      float: right;
+      display: inline-flex;
+      input[type=text] {
+        padding: 6px;
+        border: none;
+        margin-top: 8px;
+        font-size: 17px;
+      }
+
+      button{
+        margin-top: 8px;
+        cursor: pointer;
+      }
+    }
+
+    @media screen and (max-width: 600px) {
+     .links, .search-bar{
+      float: none;
+     }
+    }
+
   }
+  
+
+  
+
+
+   
+
+  
+
 }
 
 
