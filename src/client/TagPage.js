@@ -15,7 +15,7 @@ const PER_PAGE = 6 * 20;
 export default class TagPage extends Component {
   constructor(prop) {
     super(prop);
-    this.state = { tags: [], sortByNumber: true, pageIndex: 0 };
+    this.state = { tags: [], sortByNumber: true, pageIndex: 1 };
   }
 
   componentDidMount() {
@@ -62,7 +62,7 @@ export default class TagPage extends Component {
       keys.sort((a, b) => items[b] - items[a]);
     }
 
-    keys = keys.slice(this.state.pageIndex * PER_PAGE, (this.state.pageIndex+1) * PER_PAGE);
+    keys = keys.slice((this.state.pageIndex-1) * PER_PAGE, this.state.pageIndex * PER_PAGE);
 
     const tagItems = keys.map((tag) => {
       const itemText = `${tag} (${items[tag]})`;
@@ -96,7 +96,7 @@ export default class TagPage extends Component {
   }
 
   handlePageChange(index){
-    this.setState({ pageIndex: index+1});
+    this.setState({ pageIndex: index});
   }
 
   renderPagination(){
@@ -104,7 +104,7 @@ export default class TagPage extends Component {
       return;
     }
 
-    return (<Pagination current={this.state.pageIndex+1}  
+    return (<Pagination current={this.state.pageIndex}  
                         pageSize={PER_PAGE}
                         total={this.getItemLength()} 
                         onChange={this.handlePageChange.bind(this)} />);

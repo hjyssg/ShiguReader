@@ -17,7 +17,7 @@ const PER_PAGE = 6 * 20;
 export default class ExplorerPage extends Component {
     constructor(prop) {
         super(prop);
-        this.state = { pageIndex: 0 };
+        this.state = { pageIndex: 1 };
         this.failedTimes = 0;
     }
 
@@ -147,7 +147,7 @@ export default class ExplorerPage extends Component {
         //! !todo if the file is already an image file
 
         files = files.filter(_.isCompress);
-        files = files.slice(this.state.pageIndex * PER_PAGE, (this.state.pageIndex+1) * PER_PAGE);
+        files = files.slice((this.state.pageIndex-1) * PER_PAGE, (this.state.pageIndex) * PER_PAGE);
 
         const zipfileItems = files.map((item) => {
             const text = _.getFn(item);
@@ -198,7 +198,7 @@ export default class ExplorerPage extends Component {
     }
 
     handlePageChange(index){
-        this.setState({ pageIndex: index+1});
+        this.setState({ pageIndex: index});
       }
     
     renderPagination(){
@@ -207,7 +207,7 @@ export default class ExplorerPage extends Component {
           return;
         }
     
-        return (<Pagination current={this.state.pageIndex+1}  
+        return (<Pagination current={this.state.pageIndex}  
                             pageSize={PER_PAGE}
                             total={fileLength} 
                             onChange={this.handlePageChange.bind(this)} />);
