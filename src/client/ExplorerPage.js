@@ -4,14 +4,13 @@ import _ from "underscore";
 import './style/Explorer.scss';
 import PropTypes from 'prop-types';
 import LoadingImage from './LoadingImage';
-import folderIcon from './images/folder.png';
 import Sender from './Sender';
 import { Link } from 'react-router-dom';
 import stringHash from "string-hash";
 const userConfig = require('../user-config');
-const spop  = require("./subcomponent/spop");
 import ErrorPage from './ErrorPage';
 import Pagination from 'rc-pagination';
+import FileChangeToolbar from './subcomponent/FileChangeToolbar';
 const PER_PAGE = 6 * 20;
 
 export default class ExplorerPage extends Component {
@@ -20,22 +19,6 @@ export default class ExplorerPage extends Component {
         this.state = { pageIndex: 0 };
     }
 
-    copyToClipboard(path){
-        //https://stackoverflow.com/questions/49236100/copy-text-from-span-to-clipboard
-        var textArea = document.createElement("textarea");
-        textArea.value = "DEL \"" +  path + "\"";
-        document.body.appendChild(textArea);
-        textArea.select();
-        document.execCommand("Copy");
-        textArea.remove();
-    
-        spop({
-          template: 'Copied to Clipboard',
-          position: 'bottom-right',
-          autoclose: 3000
-        });
-      }
-    
     getHash() {
         return this.props.match.params.tag || 
                this.props.match.params.author||
@@ -143,13 +126,13 @@ export default class ExplorerPage extends Component {
             const pathHash = stringHash(item);
             const toUrl =  '/onebook/' + pathHash;
             return (<div key={item} className="col-sm-6 col-md-4 col-lg-3 file-out-cell">
-                        <Link to={toUrl}  key={item} className="file-cell">
-                        <center className="file-cell-title">{text}</center>
-                        <LoadingImage className="file-cell-thumbnail" fileName={item} />
-                        </Link>
-                         <span className="explorer-delete-cmd fas fa-trash-alt"
-                                        title="Copy Del command"
-                                        onClick={this.copyToClipboard.bind(this, item)}></span>
+                        <div className="file-cell">
+                            <Link to={toUrl}  key={item} className="file-cell-inner">
+                                <center className="file-cell-title">{text}</center>
+                                <LoadingImage className="file-cell-thumbnail" fileName={item} />
+                            </Link>
+                            <FileChangeToolbar file={item} />
+                        </div>
                     </div>);
         });
 

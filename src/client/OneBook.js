@@ -9,6 +9,7 @@ import './style/OneBook.scss';
 import ErrorPage from './ErrorPage';
 import Spinner from './subcomponent/Spinner';
 const spop  = require("./subcomponent/spop");
+import FileChangeToolbar from './subcomponent/FileChangeToolbar';
 
 export default class OneBook extends Component {
   constructor(props) {
@@ -162,17 +163,19 @@ export default class OneBook extends Component {
           index={index}
           />
         </div>
+        <div className="one-book-foot-index-number">{`${index+1}/${files.length}` }</div>
         <div className="one-book-footer">
-          <div className="one-book-foot-index-number">{`${index+1}/${files.length}` }</div>
           {tagDivs}
         </div>
         {this.state.path && 
           <div className="one-book-path">
-            <span className="one-book-delete-cmd fas fa-trash-alt"
-                  title="Copy Del command"
-                  onClick={this.copyToClipboard.bind(this)}></span>
             <Link to={toUrl}>{parentPath} </Link>
-          </div>}
+            <FileChangeToolbar className="one-book-toolbar" file={this.state.path} />
+          </div>
+        }
+        {/* {
+          this.state.path && <FileChangeToolbar className="one-book-toolbar" file={this.state.path} />
+        } */}
       </div>
     );
   }

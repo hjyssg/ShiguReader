@@ -7,6 +7,27 @@ a {
   color: #DDDDDD;
 }
 
+
+
+.file-change-tool-bar {
+  padding-top: 5px;
+  padding-left: 5px;
+  padding-right: 5px;
+  color: #DDDDDD;
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+
+  .fas{
+    margin-left: 5px;
+    cursor: pointer;
+  }
+
+  .fas:hover{
+    color: orangered !important;
+  }
+}
+
 .location-title {
   color: rgb(215, 235, 255);
   font-size: 1rem;

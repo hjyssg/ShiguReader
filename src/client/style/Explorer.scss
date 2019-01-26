@@ -59,27 +59,29 @@
     overflow: hidden;
   }
 
-  .file-cell-title{
-    line-height: 1em;
-    height: 2em;       /* height is 2x line-height, so two lines will display */
+  .file-cell-inner {
+    padding-bottom: 5px;
+    display: flex;
+    flex-flow:column;
+    justify-content: start;
+    align-items: center;
     overflow: hidden;
-  }
 
-  .file-cell-thumbnail{
-    margin: 0.2rem 1rem;
-    padding: 0px !important;
-    max-width:100%;
-    height: 205px;
-    object-fit: scale-down;
-    margin: auto;
-    text-align:center;
-  }
-
-  .explorer-delete-cmd{
-    position: relative;
-    top: -25px;
-    left: 12px;
-    color: #DDDDDD;
+    .file-cell-title {
+      line-height: 1em;
+      height: 2em;       /* height is 2x line-height, so two lines will display */
+      overflow: hidden;
+    }
+  
+    .file-cell-thumbnail {
+      margin: 0.2rem 1rem;
+      padding: 0px !important;
+      max-width:100%;
+      height: 205px;
+      object-fit: scale-down;
+      margin: auto;
+      text-align:center;
+    }
   }
 }
 

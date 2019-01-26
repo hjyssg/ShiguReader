@@ -50,6 +50,7 @@
     max-height: 800px;
     margin-bottom: 1rem;
     box-shadow: 0 2px 4px 0 rgba(0,0,0,0.16),0 2px 10px 0 rgba(0,0,0,0.12)!important;
+    z-index: 10;
   }
 
   .one-book-footer {
@@ -70,11 +71,16 @@
 
   .one-book-foot-index-number {
     cursor: none;
+    position: fixed;
+    right: 20px;
+    bottom: 20px;
+    color: #DDDDDD;
+    font-weight: 600;
   }
 
-  .one-book-delete-cmd{
-    display: inline-block;
-    cursor: pointer;
-    margin-right: 10px;
+  .one-book-toolbar {
+    width: 200px;
+    font-size: 1.5rem;
+    display: inline-flex;
   }
 }
