@@ -8,6 +8,12 @@
 
 .explorer-container-out{
   padding-bottom: 50px;
+
+  &.home{
+    .explorer-dir-list-item {
+      font-size: 2.5rem;
+    }
+  }
 }
 
 .explorer-container{

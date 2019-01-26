@@ -30,8 +30,10 @@ export default class ExplorerPage extends Component {
             return "tag"
         }if(this.props.match.params.author){
             return "author"
-        }else{
+        }else if(this.props.match.params.number){
             return "explorer";
+        }else{
+            return "home"
         }
     }
 
@@ -186,7 +188,9 @@ export default class ExplorerPage extends Component {
             return <ErrorPage res={this.res.res}/>;
         }
 
-        return (<div className="explorer-container-out">
+        document.title = this.tag||this.author||this.path||"ShiguReader";
+
+        return (<div className={"explorer-container-out " + this.getMode()} >
             <center className="location-title">{this.getTitle()}</center>
             {this.renderFileList()}
             {this.renderPagination()}

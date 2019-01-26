@@ -7,8 +7,6 @@ a {
   color: #DDDDDD;
 }
 
-
-
 .file-change-tool-bar {
   padding-top: 5px;
   padding-left: 5px;
@@ -59,7 +57,6 @@ a {
     overflow: hidden;
   }
   
-  /* Style the links inside the navigation bar */
   .topnav a {
     float: left;
     display: block;
@@ -70,16 +67,11 @@ a {
     font-size: 17px;
   }
   
-  /* Change the color of links on hover */
   .topnav a:hover {
-    background-color: #ddd;
-    color: black;
-  }
-  
-  /* Style the "active" element to highlight the current page */
-  .topnav a.active {
-    background-color: #2196F3;
-    color: white;
+    background-color: rgb(221, 221, 221);
+      i{
+        color: midnightblue;
+      }
   }
 }
 

@@ -114,6 +114,9 @@ export default class TagPage extends Component {
     if (this.isFailedLoading()) {
       return <ErrorPage res={this.res.res}/>;
     }
+
+    document.title = this.props.mode === "author"? "Authors" : "Tags"; 
+
     return (
       <div className="tag-container">
         <center className="location-title">{this.getTitle()}</center>
