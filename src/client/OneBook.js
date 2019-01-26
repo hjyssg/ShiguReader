@@ -36,13 +36,13 @@ export default class OneBook extends Component {
   }
   
   showAuthorFiles(author) {
-    Sender.post("/api/tagSearch", { author }, res => {
+    Sender.post("/api/search", { author }, res => {
       this.props.openDirFunc("", [], res.authorFiles);
     });
   }
   
   showTagFiles(tag) {
-    Sender.post("/api/tagSearch", { tag }, res => {
+    Sender.post("/api/search", { tag }, res => {
       this.props.openDirFunc("", [], res.tagFiles);
     });
   }

@@ -10,10 +10,12 @@ import stringHash from "string-hash";
 import ErrorPage from './ErrorPage';
 import Spinner from './subcomponent/Spinner'
 
+const ONE_SUB_PAGE_NUMBER = 100;
+
 export default class TagPage extends Component {
   constructor(prop) {
     super(prop);
-    this.state = { tags: [], sortByNumber: true };
+    this.state = { tags: [], sortByNumber: true, pageIndex: 0 };
   }
 
   componentDidMount() {
@@ -31,6 +33,14 @@ export default class TagPage extends Component {
     });
   }
 
+  getItems(){
+    const {
+      tags = [],
+      authors = []
+    } = this.state;
+    return this.props.mode === "author" ? authors : tags;
+  }
+
   renderTagList() {
     const {
         tags = [],
@@ -41,19 +51,21 @@ export default class TagPage extends Component {
       return (<div className="tag-page-loading"> {<Spinner />}{ "Loading..."}</div>);
     }
 
-    const items = this.props.mode === "author" ? authors : tags;
-    const keys = _.keys(items);
+    const items = this.getItems();
+    let keys = _.keys(items);
 
     if(this.state.sortByNumber){
       keys.sort((a, b) => items[b] - items[a]);
     }
+
+    keys = keys.slice(this.state.pageIndex * ONE_SUB_PAGE_NUMBER, (this.state.pageIndex+1) * ONE_SUB_PAGE_NUMBER);
 
     const tagItems = keys.map((tag) => {
       const itemText = `${tag} (${items[tag]})`;
       const tagHash = stringHash(tag);
       const url = "/tag/" + tagHash;
 
-      return  (<li key={tag} className="col-sm-6 col-md-4 col-lg-3 tag-page-list-item">
+      return  (<li key={tag} className="col-sm-6 col-md-4 col-lg-2 tag-page-list-item">
                     <Link className="tag-page-list-item-link" to={url}  key={tag}>
                       <center>{itemText}</center>
                       <LoadingImage className="tag-page-thumbnail" fileName={tag} mode={this.props.mode} />
@@ -75,7 +87,8 @@ export default class TagPage extends Component {
   }
 
   getTitle(){
-    return this.props.mode === "tag"? "By Tags" : "By Authors";
+    let text = this.props.mode === "tag"? "By Tags" : "By Authors";
+    return text + " (" + _.keys(this.getItems()).length + ")";
   }
 
   render() {

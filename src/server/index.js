@@ -203,7 +203,7 @@ function searchByTagAndAuthor (tag, author) {
 
 }
 
-app.post("/api/tagSearch", (req, res) => {
+app.post("/api/search", (req, res) => {
     const hashTag =  db.tagHashTable[(req.body && req.body.hash)];
     const tag = hashTag || req.body && req.body.tag;
     const author = req.body && req.body.author;

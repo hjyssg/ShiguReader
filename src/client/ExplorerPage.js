@@ -44,7 +44,7 @@ export default class ExplorerPage extends Component {
     }
 
     requestTagSearch(tag) {
-        Sender.post("/api/tagSearch", { hash: this.getHash() }, res => {
+        Sender.post("/api/search", { hash: this.getHash() }, res => {
             if (!res.failed) {
                 this.loadedHash = this.getHash();
                 this.files = res.tagFiles|| [];
