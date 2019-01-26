@@ -17,6 +17,8 @@ export default class OneBook extends Component {
       files: [],
       index: -1
     };
+
+    this.failTimes = 0;
   }
 
   copyToClipboard(event){
@@ -41,7 +43,7 @@ export default class OneBook extends Component {
   
   componentDidMount() {
     const file = this.getHash();
-    if(file && this.loadedHash !== file){
+    if(file && this.loadedHash !== file && this.failTimes < 3){
       this.displayFile(file);
     }
   }
@@ -58,6 +60,7 @@ export default class OneBook extends Component {
         document.addEventListener('keydown', this.handleKeyDown.bind(this));
       }else{
         this.res = res;
+        this.failTimes++;
         this.forceUpdate();
       }
     });
