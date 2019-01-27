@@ -125,7 +125,7 @@ function setUpFileWatch(){
     var log = console.log.bind(console);
 
     const addCallBack = path => {
-        log(`${path} has been added`);
+        // log(`${path} has been added`);
         db.allFiles.push(path);
 
         updateTagHash(path);
@@ -133,7 +133,7 @@ function setUpFileWatch(){
     };
 
     const deleteCallBack = path => {
-        log(`${path} has been removed`);
+        // log(`${path} has been removed`);
         const index = db.allFiles.indexOf(path);
         db.allFiles[index] = "";
     };

@@ -4,9 +4,11 @@
 4. react url。直接点开连接看。不需要像iOS app那样。
 5. Webpack多页面支持
 
+
 bug：
 1. explorer没文件的时候，没有反馈
 2. 服务器挂的时候，需要反馈
+3. 全是JPG的文件夹显示不对
 
 note：
 尽量不要用state，修改触发坑很多。
