@@ -19,6 +19,7 @@
     "babel-polyfill": "^6.26.0",
     "bootstrap": "^4.2.1",
     "child-process-promise": "^2.2.1",
+    "chokidar": "^2.0.4",
     "classnames": "^2.2.6",
     "express": "^4.16.3",
     "ora": "^3.0.0",

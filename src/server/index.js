@@ -9,6 +9,7 @@ const sevenZip = require('7zip')['7z'];
 const { spawn, exec } = require('child-process-promise');
 const ora = require('ora');
 const stringHash =require("string-hash");
+var chokidar = require('chokidar');
 
 const root = path.join(__dirname, "..", "..", "..");
 const cachePath = path.join(__dirname, "..", "..", "cache");
@@ -94,8 +95,11 @@ function init() {
     spinner.color = "green";
     spinner.start();
 
-    const filter = (e) => {return isCompress(e) || isImage(e);}
+    const filter = (e) => {return isCompress(e) || isImage(e);};
+    let beg = (new Date).getTime()
     const results = fileiterator(userConfig.home_pathes, { filter }).concat(userConfig.home_pathes);
+    let end = (new Date).getTime();
+    console.log((end - beg)/1000, "to read local dirs");
     const arr = [];
     for (let i = 0; i < results.length; i++) {
         const p = results[i];
@@ -108,8 +112,41 @@ function init() {
         }
     }
     db.allFiles = arr || [];
-
+    setUpFileWatch();
     spinner.succeed();
+}
+
+function setUpFileWatch(){
+    var watcher = chokidar.watch(userConfig.home_pathes, {
+        ignored: /\*.jpg/,
+        ignoreInitial: true,
+        persistent: true}
+    );
+    var log = console.log.bind(console);
+
+    const addCallBack = path => {
+        log(`${path} has been added`);
+        db.allFiles.push(path);
+
+        updateTagHash(path);
+        db.hashTable[stringHash(path)] = path;
+    };
+
+    const deleteCallBack = path => {
+        log(`${path} has been removed`);
+        const index = db.allFiles.indexOf(path);
+        db.allFiles[index] = "";
+    };
+
+    watcher
+    .on('add', addCallBack)
+    .on('unlink', deleteCallBack);
+    
+    // More possible events.
+    watcher
+    .on('addDir', addCallBack)
+    .on('unlinkDir', deleteCallBack)
+
 }
 
 init();
@@ -266,7 +303,7 @@ function getFirstImageFromZip(fileName, res) {
         // parse 7zip output
         const text = data.stdout;
         if (!text) {
-            console.error("/api/firstImage]", "no text");
+            console.error("[getFirstImageFromZip]", "no text");
             res.send("404 fail");
             return;
         }
@@ -274,7 +311,7 @@ function getFirstImageFromZip(fileName, res) {
         const files = read7zOutput(text);
 
         if (!files[0]) {
-            console.error("/api/firstImage]", "no files");
+            console.error("[getFirstImageFromZip]", "no files");
             res.sendStatus(404);
             return;
         }
@@ -293,13 +330,13 @@ function getFirstImageFromZip(fileName, res) {
                 temp = temp.replace(new RegExp(`\\${  path.sep}`, 'g'), '/');
                 res.send({ image: temp });
             } else {
-                console.error("[spawn /api/firstImage]", code);
+                console.error("[getFirstImageFromZip extract spawn failed]", code);
                 res.sendStatus(404);
             }
         });
     })
     .catch((data) => {
-        console.error(`[/api/firstImage] received a error: ${data}`);
+        console.error(`[getFirstImageFromZip list content] received a error: ${data}`);
         res.sendStatus(404);
     });
 }

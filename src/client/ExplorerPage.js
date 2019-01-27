@@ -67,13 +67,13 @@ export default class ExplorerPage extends Component {
                 this.loadedHash = this.getHash();
                 this.files = res.files|| [];
                 this.dirs = [];
-                this.tag = res.tag;
-                this.author = res.author;
+                this.tag = "";
+                this.author = "";
             }else{
                 this.failedTimes++;
             }
-            this.forceUpdate();
             this.res = res;
+            this.forceUpdate();
         });
     }
 
@@ -88,9 +88,8 @@ export default class ExplorerPage extends Component {
               }else{
                   this.failedTimes++;
               }
-              this.forceUpdate();
               this.res = res;
-              
+              this.forceUpdate();
         });
     }
     
