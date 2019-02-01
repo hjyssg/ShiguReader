@@ -6,10 +6,11 @@ const fileiterator = require('../file-iterator');
 const nameParser = require('../name-parser');
 const userConfig = require('../user-config');
 const sevenZip = require('7zip')['7z'];
-const { spawn, exec } = require('child-process-promise');
+const { exec } = require('child-process-promise');
 const ora = require('ora');
 const stringHash =require("string-hash");
 var chokidar = require('chokidar');
+const execa = require('execa');
 
 const root = path.join(__dirname, "..", "..", "..");
 const cachePath = path.join(__dirname, "..", "..", "cache");
@@ -71,28 +72,20 @@ function getCache(outputPath) {
     return null;
 }
 
-function init() {
-    const chcpTast = exec("chcp", { capture: ['stdout', 'stderr'] });
-    
+async function init() {
+    const {stdout, stderr} = await execa("chcp");
+    console.log("[chcp]", stdout);
+    const r = new RegExp("\\d+");
+    const m = r.exec(stdout);
+    const charset = parseInt(m && m[0]);
+
+    if (charset !== 65001) {
+        console.error("Please switch you console encoding to utf8 in windows language setting");
+    }
+
     const spinner = ora();
     spinner.text = "scanning local files";
     spinner.color = "yellow";
-    spinner.start();
-
-    chcpTast.then(data => {
-        console.log("[chcp]", data.stdout);
-        const r = new RegExp("\\d+");
-        const m = r.exec(data.stdout);
-        const charset = parseInt(m && m[0]);
-
-        if (charset !== 65001) {
-            console.error("Please switch you console encoding to utf8 in windows language setting");
-        }
-    });
-
-    spinner.succeed();
-    spinner.text = "Analyzing local files";
-    spinner.color = "green";
     spinner.start();
 
     const filter = (e) => {return isCompress(e) || isImage(e);};
@@ -100,6 +93,12 @@ function init() {
     const results = fileiterator(userConfig.home_pathes, { filter }).concat(userConfig.home_pathes);
     let end = (new Date).getTime();
     console.log((end - beg)/1000, "to read local dirs");
+
+    spinner.succeed();
+    spinner.text = "Analyzing local files";
+    spinner.color = "green";
+    spinner.start();
+
     const arr = [];
     for (let i = 0; i < results.length; i++) {
         const p = results[i];
@@ -289,7 +288,7 @@ function read7zOutput(data) {
     return files;
 }
 
-function getFirstImageFromZip(fileName, res) {
+async function getFirstImageFromZip(fileName, res) {
     const outputPath = getOutputPath(fileName);
     const temp = getCache(outputPath);
     if (temp && temp.files[0] && isImage(temp.files[0])) {
@@ -298,47 +297,35 @@ function getFirstImageFromZip(fileName, res) {
     }
 
     // assume zip
-    const getList = spawn(sevenZip, ['l', '-ba', fileName], { capture: ['stdout', 'stderr'] });
-    getList.then((data) => {
-        // parse 7zip output
-        const text = data.stdout;
-        if (!text) {
-            console.error("[getFirstImageFromZip]", "no text");
-            res.send("404 fail");
-            return;
-        }
+    let {stdout, stderr} = await execa(sevenZip, ['l', '-ba', fileName], { capture: ['stdout', 'stderr'] });
+    const text = stdout;
+    if (!text) {
+        console.error("[getFirstImageFromZip]", "no text");
+        res.send("404 fail");
+        return;
+    }
 
-        const files = read7zOutput(text);
+    const files = read7zOutput(text);
+    const one = files[0];
 
-        if (!files[0]) {
-            console.error("[getFirstImageFromZip]", "no files");
-            res.sendStatus(404);
-            return;
-        }
-
-        const one = files[0];
-        // Overwrite mode
-        const opt = ['x', fileName, `-o${outputPath}`, one, "-aos"];
-        const getFirst = spawn(sevenZip, opt, { capture: ['stdout', 'stderr'] });
-        const childProcess = getFirst.childProcess;
-
-        childProcess.on("close", (code) => {
-            // console.log('[spawn /api/firstImage] exit:', code);
-            if (code === 0) {
-                // send path to client
-                let temp = path.join("cache", path.basename(outputPath), one);
-                temp = temp.replace(new RegExp(`\\${  path.sep}`, 'g'), '/');
-                res.send({ image: temp });
-            } else {
-                console.error("[getFirstImageFromZip extract spawn failed]", code);
-                res.sendStatus(404);
-            }
-        });
-    })
-    .catch((data) => {
-        console.error(`[getFirstImageFromZip list content] received a error: ${data}`);
+    if (!one) {
+        console.error("[getFirstImageFromZip]", "no files");
         res.sendStatus(404);
-    });
+        return;
+    }
+
+    // Overwrite mode
+    const opt = ['x', fileName, `-o${outputPath}`, one, "-aos"];
+    const {stdout2, stderr2} = await execa(sevenZip, opt);
+    if (!stderr2) {
+        // send path to client
+        let temp = path.join("cache", path.basename(outputPath), one);
+        temp = temp.replace(new RegExp(`\\${  path.sep}`, 'g'), '/');
+        res.send({ image: temp });
+    } else {
+        console.error("[getFirstImageFromZip extract exec failed]", code);
+        res.sendStatus(404);
+    }
 }
 
 //! !need to set windows console to utf8
@@ -366,21 +353,19 @@ app.post('/api/extract', (req, res) => {
         return;
     }
 
-    const all = ['e', fileName, `-o${outputPath}`, "-aos"];
-    const task = spawn(sevenZip, all, { capture: ['stdout', 'stderr'] });
-    const childProcess = task.childProcess;
-    childProcess.on("close", (code) => {
-        // console.log('[spawn /api/extract] exit: ', code);
-        if (code === 0) {
+    (async () => {
+        const all = ['e', fileName, `-o${outputPath}`, "-aos"];
+        const {stdout, stderr} = await execa(sevenZip, all);
+        if (!stderr) {
             fs.readdir(outputPath, (error, results) => {
                 const temp = generateContentUrl(results, outputPath);
                 res.send({ ...temp, path:fileName });
             });
         } else {
             res.sendStatus(404);
-            console.error('[spawn /api/extract] exit: ', code);
+            console.error('[/api/extract] exit: ', code);
         }
-    });
+    })();
 });
 
 app.listen(8080, () => console.log('Listening on port 8080!'));
