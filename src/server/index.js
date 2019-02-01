@@ -6,7 +6,7 @@ const fileiterator = require('../file-iterator');
 const nameParser = require('../name-parser');
 const userConfig = require('../user-config');
 const sevenZip = require('7zip')['7z'];
-const { exec } = require('child-process-promise');
+const pLimit = require('p-limit');
 const ora = require('ora');
 const stringHash =require("string-hash");
 var chokidar = require('chokidar');
@@ -14,6 +14,8 @@ const execa = require('execa');
 
 const root = path.join(__dirname, "..", "..", "..");
 const cachePath = path.join(__dirname, "..", "..", "cache");
+
+const limit = pLimit(5);
 
 const app = express();
 const db = {
@@ -145,7 +147,6 @@ function setUpFileWatch(){
     watcher
     .on('addDir', addCallBack)
     .on('unlinkDir', deleteCallBack)
-
 }
 
 init();
@@ -219,10 +220,11 @@ app.get('/api/tag', (req, res) => {
     res.send({ tags, authors });
 });
 
-function searchByTagAndAuthor (tag, author, text) {
+function searchByTagAndAuthor(tag, author, text, onlyNeedOne) {
     const files = [];
-    db.allFiles.forEach((e) => {
-        const result = (author ||tag) && nameParser.parse(e);
+    for (let ii = 0; ii < db.allFiles.length; ii++) {
+        const e = db.allFiles[ii];
+        const result = (author || tag) && nameParser.parse(e);
         if (result && author &&  result.author === author) {
             files.push(e);
         }
@@ -230,13 +232,15 @@ function searchByTagAndAuthor (tag, author, text) {
             files.push(e);
         }
 
-        if(text && e.indexOf(text) > -1){
+        if (text && e.indexOf(text) > -1) {
             files.push(e);
         }
-    });
 
+        if (onlyNeedOne && files.length > 1) {
+            break;
+        }
+    }
     return { files, tag, author };
-
 }
 
 // tree para
@@ -266,7 +270,7 @@ app.post("/api/tagFirstImagePath", (req, res) => {
         return;
     }
 
-    const { files } = searchByTagAndAuthor(tag, author);
+    const { files } = searchByTagAndAuthor(tag, author, null, true);
     const filePathes = files;
     const chosendFileName = filePathes.filter(isCompress)[0];  // need to improve
     getFirstImageFromZip(chosendFileName, res);
@@ -296,35 +300,56 @@ async function getFirstImageFromZip(fileName, res) {
         return;
     }
 
-    // assume zip
-    let {stdout, stderr} = await execa(sevenZip, ['l', '-ba', fileName], { capture: ['stdout', 'stderr'] });
-    const text = stdout;
-    if (!text) {
-        console.error("[getFirstImageFromZip]", "no text");
-        res.send("404 fail");
-        return;
-    }
+    var stats = fs.statSync(fileName);
+    var fileSizeInBytes = stats["size"]
+    //Convert the file size to megabytes (optional)
+    var fileSizeInMegabytes = fileSizeInBytes / 1000000.0;
+    //bigger than 30mb
+    if(fileSizeInMegabytes > 40){
+        // assume zip
+        let {stdout, stderr} = await limit(() => execa(sevenZip, ['l', '-ba', fileName]));
+        const text = stdout;
+        if (!text) {
+            console.error("[getFirstImageFromZip]", "no text");
+            res.send("404 fail");
+            return;
+        }
 
-    const files = read7zOutput(text);
-    const one = files[0];
+        const files = read7zOutput(text);
+        const one = files[0];
 
-    if (!one) {
-        console.error("[getFirstImageFromZip]", "no files");
-        res.sendStatus(404);
-        return;
-    }
+        if (!one) {
+            console.error("[getFirstImageFromZip]", "no files");
+            res.sendStatus(404);
+            return;
+        }
 
-    // Overwrite mode
-    const opt = ['x', fileName, `-o${outputPath}`, one, "-aos"];
-    const {stdout2, stderr2} = await execa(sevenZip, opt);
-    if (!stderr2) {
-        // send path to client
-        let temp = path.join("cache", path.basename(outputPath), one);
-        temp = temp.replace(new RegExp(`\\${  path.sep}`, 'g'), '/');
-        res.send({ image: temp });
+        // Overwrite mode
+        const opt = ['x', fileName, `-o${outputPath}`, one, "-aos"];
+        const {stdout2, stderr2} = await execa(sevenZip, opt);
+        if (!stderr2) {
+            // send path to client
+            let temp = path.join("cache", path.basename(outputPath), one);
+            temp = temp.replace(new RegExp(`\\${  path.sep}`, 'g'), '/');
+            res.send({ image: temp });
+        } else {
+            console.error("[getFirstImageFromZip extract exec failed]", code);
+            res.sendStatus(404);
+        }
     } else {
-        console.error("[getFirstImageFromZip extract exec failed]", code);
-        res.sendStatus(404);
+        (async () => {
+            const all = ['e', fileName, `-o${outputPath}`, "-aos"];
+            const {stdout, stderr} = await execa(sevenZip, all);
+            if (!stderr) {
+                fs.readdir(outputPath, (error, results) => {
+                    const temp = generateContentUrl(results, outputPath);
+                    res.send({ image: temp.files[0]});
+                });
+            } else {
+                res.sendStatus(404);
+                console.error('[getFirstImageFromZip extract exec failed] exit: ', code);
+            }
+        })();
     }
 }
 
