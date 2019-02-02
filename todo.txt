@@ -20,5 +20,11 @@ App.js 最外面那层，使用react route切换page
 Explorer显示文件夹文件，或者显示tag模式下的文件
 TagPage显示tag列表或者作者列表
 
+bug 2019.2.2
+chrome tcp一次只能6个
+导致first image要全部load完，然后处理的图片才会load。
+需要把first image多个request做成一个。
+
+
 
 name parser的group放到哪好啊？

@@ -104,6 +104,7 @@ export default class ExplorerPage extends Component {
                 this.forceUpdate();
             } else {
                 this.res = res;
+                this.failedTimes++;
                 this.forceUpdate();
             }
         });
