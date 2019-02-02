@@ -28,7 +28,7 @@ function iterate (p, config, result, depth) {
     const stat = fs.statSync(p);
     try {
         if (stat.isFile()) {
-            if (config.filter && !config.filter(p)) {
+            if (config && config.filter && !config.filter(p)) {
                 return;
             }
             result.push(p);

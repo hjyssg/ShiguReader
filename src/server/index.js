@@ -21,6 +21,8 @@ const app = express();
 const db = {
     //a list of all files
     allFiles : [],
+    //a list of cache files folder -> files
+    cacheTable: {},
     //hash to file or dir path
     hashTable: {},
     //hash to tag or author
@@ -66,11 +68,18 @@ function generateContentUrl(pathes, outputPath) {
     return { files, dirs };
 }
 
+//  outputPath is the folder name
 function getCache(outputPath) {
-    if (fs.existsSync(outputPath)) {
-        const cacheFiles =  fs.readdirSync(outputPath);
-        return generateContentUrl(cacheFiles, outputPath);
+    //in-memory is fast
+    if(db.cacheTable[outputPath] && db.cacheTable[outputPath].length > 0){
+        return generateContentUrl(db.cacheTable[outputPath], outputPath);
     }
+
+    // this is slow
+    // if (fs.existsSync(outputPath)) {
+    //     const cacheFiles =  fs.readdirSync(outputPath);
+    //     return generateContentUrl(cacheFiles, outputPath);
+    // }
     return null;
 }
 
@@ -92,9 +101,8 @@ async function init() {
     const results = fileiterator(userConfig.home_pathes, { filter }).concat(userConfig.home_pathes);
     let end = (new Date).getTime();
     console.log((end - beg)/1000, "to read local dirs");
-
     console.log("Analyzing local files");
-
+    
     const arr = [];
     for (let i = 0; i < results.length; i++) {
         const p = results[i];
@@ -107,6 +115,7 @@ async function init() {
         }
     }
     db.allFiles = arr || [];
+
     setUpFileWatch();
     app.listen(8080, () => console.log('Listening on port 8080!'));
     console.log("init done");
@@ -116,8 +125,8 @@ function setUpFileWatch(){
     var watcher = chokidar.watch(userConfig.home_pathes, {
         ignored: /\*.jpg/,
         ignoreInitial: true,
-        persistent: true}
-    );
+        persistent: true
+    });
     var log = console.log.bind(console);
 
     const addCallBack = path => {
@@ -135,13 +144,36 @@ function setUpFileWatch(){
     };
 
     watcher
-    .on('add', addCallBack)
-    .on('unlink', deleteCallBack);
+        .on('add', addCallBack)
+        .on('unlink', deleteCallBack);
     
     // More possible events.
     watcher
-    .on('addDir', addCallBack)
-    .on('unlinkDir', deleteCallBack)
+        .on('addDir', addCallBack)
+        .on('unlinkDir', deleteCallBack);
+
+    //also for cache files
+    var cacheWatcher = chokidar.watch(cachePath, {
+        persistent: true
+    });
+
+    cacheWatcher
+        .on('unlinkDir', path => {
+            db.cacheTable[path] = undefined;
+        });
+
+    cacheWatcher
+        .on('add', p => {
+            const fp =  path.dirname(p);
+            db.cacheTable[fp] = db.cacheTable[fp] || [];
+            db.cacheTable[fp].push(path.basename(p));
+        })
+        .on('unlink', p => {
+            const fp =  path.dirname(p);
+            db.cacheTable[fp] = db.cacheTable[fp] || [];
+            const index = db.cacheTable[fp].indexOf(path.basename(p));
+            db.cacheTable[fp].splice(index, 1);
+        });
 }
 
 init();
