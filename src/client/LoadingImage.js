@@ -17,7 +17,9 @@ export default class LoadingImage extends Component {
   }
 
   componentDidMount() {
-    
+    setTimeout(()=>{
+      this.onChange(true)
+    }, 20*1000);
   }
 
   componentWillUnmount(){

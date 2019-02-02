@@ -151,6 +151,27 @@ function setUpFileWatch(){
 
 init();
 
+app.post('/api/moveFile', (req, res) => {
+    const src = req.body && req.body.src;
+    const dest = req.body && req.body.dest;
+
+    if(!src || !dest){
+        res.sendStatus(404);
+        return;
+    }
+
+    (async () =>{
+        const {stdout, stderr} = await execa("move", [src, dest]);
+        if(!stderr){
+            console.log(stdout);
+            res.sendStatus(200);
+        }else{
+            console.error(stderr);
+            res.sendStatus(404);
+        }
+    })();
+});
+
 app.post('/api/lsDir', (req, res) => {
     const hashdir = db.hashTable[(req.body && req.body.hash)];
     const dir = hashdir|| req.body && req.body.dir;
