@@ -2,6 +2,8 @@ const same_tags = require("./same-tags");
 const char_names = require("./character-names");
 const convertTable = {};
 
+const localCache = {};
+
 same_tags.forEach(row => {
     for(const ii = 1; ii < row.length; row++){
         convertTable[row[ii]] = row[0];
@@ -75,6 +77,10 @@ function parse(str) {
       return null;
     }
 
+    if(localCache[str]){
+        return localCache[str];
+    }
+
     const bMacthes =  match(bReg, str);
     const pMacthes = match(pReg, str);
 
@@ -128,9 +134,12 @@ function parse(str) {
         return e;
     })
 
-    return {
+    const result = {
         author, tags
     };
+
+    localCache[str] = result;
+    return result;
 }
 
 module.exports.parse = parse;

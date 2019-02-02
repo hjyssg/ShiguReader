@@ -59,7 +59,7 @@ export default class LoadingImage extends Component {
     }
 
     return (
-      <VisibilitySensor offset={{bottom:-1000}} onChange={this.onChange.bind(this)}>
+      <VisibilitySensor offset={{bottom:-1000, top: -500}} onChange={this.onChange.bind(this)}>
         {content}
       </VisibilitySensor>
     );

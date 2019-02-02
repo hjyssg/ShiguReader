@@ -3,6 +3,7 @@
 3. 服务器缓存 Cache管理
 4. react url。直接点开连接看。不需要像iOS app那样。
 5. Webpack多页面支持
+6. first image不要一次发n个request会卡住。并在一起发
 
 
 bug：
@@ -18,6 +19,6 @@ react-cookie谁做的，改cookie会setState然后重画。坑得妈都不认识
 App.js 最外面那层，使用react route切换page
 Explorer显示文件夹文件，或者显示tag模式下的文件
 TagPage显示tag列表或者作者列表
-先不区分作者和一般tag。工作太大.
+
 
 name parser的group放到哪好啊？

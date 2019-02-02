@@ -6,8 +6,7 @@ const fileiterator = require('../file-iterator');
 const nameParser = require('../name-parser');
 const userConfig = require('../user-config');
 const sevenZip = require('7zip')['7z'];
-const pLimit = require('p-limit');
-const ora = require('ora');
+
 const stringHash =require("string-hash");
 var chokidar = require('chokidar');
 const execa = require('execa');
@@ -15,7 +14,8 @@ const execa = require('execa');
 const root = path.join(__dirname, "..", "..", "..");
 const cachePath = path.join(__dirname, "..", "..", "cache");
 
-const limit = pLimit(5);
+const pLimit = require('p-limit');
+const limit = pLimit(6);
 
 const app = express();
 const db = {
@@ -85,10 +85,7 @@ async function init() {
         console.error("Please switch you console encoding to utf8 in windows language setting");
     }
 
-    const spinner = ora();
-    spinner.text = "scanning local files";
-    spinner.color = "yellow";
-    spinner.start();
+    console.log("scanning local files");
 
     const filter = (e) => {return isCompress(e) || isImage(e);};
     let beg = (new Date).getTime()
@@ -96,10 +93,7 @@ async function init() {
     let end = (new Date).getTime();
     console.log((end - beg)/1000, "to read local dirs");
 
-    spinner.succeed();
-    spinner.text = "Analyzing local files";
-    spinner.color = "green";
-    spinner.start();
+    console.log("Analyzing local files");
 
     const arr = [];
     for (let i = 0; i < results.length; i++) {
@@ -114,7 +108,8 @@ async function init() {
     }
     db.allFiles = arr || [];
     setUpFileWatch();
-    spinner.succeed();
+    app.listen(8080, () => console.log('Listening on port 8080!'));
+    console.log("init done");
 }
 
 function setUpFileWatch(){
@@ -242,6 +237,7 @@ app.get('/api/tag', (req, res) => {
 });
 
 function searchByTagAndAuthor(tag, author, text, onlyNeedOne) {
+    // let beg = (new Date).getTime()
     const files = [];
     for (let ii = 0; ii < db.allFiles.length; ii++) {
         const e = db.allFiles[ii];
@@ -261,6 +257,9 @@ function searchByTagAndAuthor(tag, author, text, onlyNeedOne) {
             break;
         }
     }
+
+    // let end = (new Date).getTime();
+    // console.log((end - beg)/1000, "to search");
     return { files, tag, author };
 }
 
@@ -313,9 +312,15 @@ function read7zOutput(data) {
     return files;
 }
 
-async function getFirstImageFromZip(fileName, res) {
+async function getFirstImageFromZip(fileName, res, mode, counter) {
     const outputPath = getOutputPath(fileName);
     const temp = getCache(outputPath);
+    const isPreG = mode === "pre-generate";
+    if(isPreG){
+        res.send = () => {};
+        res.sendStatus = () => {};
+    }
+
     if (temp && temp.files[0] && isImage(temp.files[0])) {
         res.send({ image: temp.files[0] });
         return;
@@ -326,7 +331,7 @@ async function getFirstImageFromZip(fileName, res) {
     //Convert the file size to megabytes (optional)
     var fileSizeInMegabytes = fileSizeInBytes / 1000000.0;
     //bigger than 30mb
-    if(fileSizeInMegabytes > 40){
+    if(fileSizeInMegabytes > 40 || isPreG){
         // assume zip
         let {stdout, stderr} = await limit(() => execa(sevenZip, ['l', '-ba', fileName]));
         const text = stdout;
@@ -340,7 +345,7 @@ async function getFirstImageFromZip(fileName, res) {
         const one = files[0];
 
         if (!one) {
-            console.error("[getFirstImageFromZip]", "no files");
+            console.error("[getFirstImageFromZip]", "no files from output");
             res.sendStatus(404);
             return;
         }
@@ -353,6 +358,11 @@ async function getFirstImageFromZip(fileName, res) {
             let temp = path.join("cache", path.basename(outputPath), one);
             temp = temp.replace(new RegExp(`\\${  path.sep}`, 'g'), '/');
             res.send({ image: temp });
+
+            if(isPreG){
+                counter.counter++;
+                console.log("pre-generate", counter.counter, "/", counter.total);
+            }
         } else {
             console.error("[getFirstImageFromZip extract exec failed]", code);
             res.sendStatus(404);
@@ -373,6 +383,19 @@ async function getFirstImageFromZip(fileName, res) {
         })();
     }
 }
+
+//  a huge back ground tast 
+//  it generate all thumbnail 
+//  will need about 50 GB local space
+// and will be slow
+// http://localhost:8080/api/pregenerateThumbnails
+app.get('/api/pregenerateThumbnails', (req, res) => {
+    let counter = {counter: 1, total: db.allFiles.length};
+    db.allFiles.forEach(fileName =>{
+        getFirstImageFromZip(fileName, res, "pre-generate", counter);
+    })
+});
+
 
 //! !need to set windows console to utf8
 app.post('/api/firstImage', (req, res) => {
@@ -414,4 +437,4 @@ app.post('/api/extract', (req, res) => {
     })();
 });
 
-app.listen(8080, () => console.log('Listening on port 8080!'));
+
