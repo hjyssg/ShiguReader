@@ -14,8 +14,14 @@
   }
 
   .tag-page-list-item-link {
+    color: white;
     margin-top: 0.25rem;
     margin-bottom: 0.25rem;
+
+    display: flex;
+    flex-flow:column;
+    justify-content: start;
+    align-items: center;
   }
 
   .tag-page-thumbnail {
@@ -23,16 +29,17 @@
   }
 
   .tag-page-list-item {
-    // height:335px;
-    border: 1px solid #34353b;
-    border-radius: 9px;
-    background: #43464e;
-    padding-top:5px;
-    padding-bottom: 5px;
-    display: flex;
-    flex-flow:column;
-    justify-content: start;
-    align-items: center;
-    overflow: hidden;
+    padding-bottom: 10px;
+   
+    .tag-cell{
+      height:260px;
+      background: #43464e;
+      overflow: hidden;
+      border: 1px solid #34353b;
+      border-radius: 9px;
+      padding-left: 15px;
+      padding-right: 15px;
+      padding-bottom: 10px;
+    }
   }
 }

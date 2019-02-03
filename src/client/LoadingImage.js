@@ -19,7 +19,7 @@ export default class LoadingImage extends Component {
   componentDidMount() {
     setTimeout(()=>{
       this.onChange(true)
-    }, 20*1000);
+    }, 2*1000);
   }
 
   componentWillUnmount(){
@@ -48,18 +48,24 @@ export default class LoadingImage extends Component {
 
   render() {
     let content;
-    const {className} = this.props;
+    const {className, fileName} = this.props;
     const cn = "loading-image  " + className;
+    let active = true;
     if (this.state.failed) {
-      content = (<img ref={e=>{this.dom = e && e.node}} className={cn} src={notAvailable}/>);
+      content = (<img key={fileName} ref={e=>{this.dom = e && e.node}} className={cn} src={notAvailable}/>);
     } else if (this.state.loaded === false) {
-      content = (<img className={cn} src={loading} />);
+      content = (<img key={fileName} className={cn} src={loading} />);
     } else {
-      content = (<img className={className} src={"../" + this.state.image}/>);
+      active = false;
+      content = (<img key={fileName} className={className} src={"../" + this.state.image}/>);
     }
 
     return (
-      <VisibilitySensor offset={{bottom:-1000, top: -500}} onChange={this.onChange.bind(this)}>
+      <VisibilitySensor 
+          active={active}
+          key={fileName}
+          // offset={{bottom:-1000, top: -500}} 
+          onChange={this.onChange.bind(this)}>
         {content}
       </VisibilitySensor>
     );

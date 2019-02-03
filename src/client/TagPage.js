@@ -69,20 +69,22 @@ export default class TagPage extends Component {
       const tagHash = stringHash(tag);
       const url = this.props.mode === "author"? ("/author/" + tagHash) :  ("/tag/" + tagHash);
 
-      return  (<li key={tag} className="col-sm-6 col-md-4 col-lg-2 tag-page-list-item">
-                    <Link className="tag-page-list-item-link" to={url}  key={tag}>
-                      <center>{itemText}</center>
-                      <LoadingImage className="tag-page-thumbnail" fileName={tag} mode={this.props.mode} />
-                    </Link>
-                  </li>);
+      return  (<div key={tag} className="col-sm-6 col-md-4 col-lg-3 tag-page-list-item">
+                    <div className={"tag-cell"}>
+                      <Link className="tag-page-list-item-link" to={url}  key={tag}>
+                        <center>{itemText}</center>
+                        <LoadingImage className="tag-page-thumbnail" fileName={tag} mode={this.props.mode} />
+                      </Link>
+                    </div>
+                  </div>);
       });
 
     return (
-      <ul className="tag-page-list-group container">
+      <div className="tag-page-list-group container">
         <div className="row">
         {tagItems}
         </div>
-      </ul>
+      </div>
     );
   }
 

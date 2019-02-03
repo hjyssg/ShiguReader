@@ -55,12 +55,13 @@ export default class OneBook extends Component {
   
   displayFile(file){
     Sender.post("/api/extract", {  hash: this.getHash() }, res => {
+      this.res = res;
+
       if (!res.failed) {
         this.loadedHash = this.getHash();
         this.setState({ files: res.files || [], index: 0, path:res.path });
         document.addEventListener('keydown', this.handleKeyDown.bind(this));
       }else{
-        this.res = res;
         this.failTimes++;
         this.forceUpdate();
       }
@@ -123,12 +124,18 @@ export default class OneBook extends Component {
     
     const { files, index } = this.state;
     if (_.isEmpty(files)) {
-      return (
-        <div className="one-book-loading">
-          {<Spinner />}
-          { "Loading..."}
-        </div>
-      );
+      if(this.res && !this.refs.failed){
+        return <h3><center>no content files</center></h3>;
+      } else {
+        return (
+          <div className="one-book-loading">
+            {<Spinner />}
+            { "Loading..."}
+          </div>
+        );
+      }
+
+      
     }
     
     const result = nameParser.parse(_.getFn(this.state.path));
