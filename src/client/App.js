@@ -69,8 +69,8 @@ class App extends Component {
             <Route path='/search/:search' render={renderExplorer}/>
 
             <Route path='/onebook/:number' render={renderOneBook}/>
-            <Route path='/tagPage' render={renderTagPage}/>
-            <Route path='/authorPage' render={renderAuthorPage}/>
+            <Route path='/tagPage/:index' render={renderTagPage}/>
+            <Route path='/authorPage/:index' render={renderAuthorPage}/>
         </Switch>
         );
         return result;
@@ -91,8 +91,8 @@ class App extends Component {
             <div className="topnav container">
                 <div className="links">
                 <Link to='/'><i className="fas fa-home">Home</i></Link>
-                <Link to='/authorPage'><i className="fas fa-pen">Authors</i></Link>
-                <Link to='/tagPage'><i className="fas fa-tags">Tags</i></Link>
+                <Link to='/authorPage/1'><i className="fas fa-pen">Authors</i></Link>
+                <Link to='/tagPage/1'><i className="fas fa-tags">Tags</i></Link>
                 </div>
                 <div className="search-bar">
                     <input className="search-input" type="text" placeholder="Search.."/>
