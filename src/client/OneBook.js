@@ -11,6 +11,7 @@ import Spinner from './subcomponent/Spinner';
 const spop  = require("./subcomponent/spop");
 import FileChangeToolbar from './subcomponent/FileChangeToolbar';
 var classNames = require('classnames');
+var dateFormat = require('dateformat');
 
 export default class OneBook extends Component {
   constructor(props) {
@@ -60,7 +61,7 @@ export default class OneBook extends Component {
 
       if (!res.failed) {
         this.loadedHash = this.getHash();
-        this.setState({ files: res.files || [], index: 0, path:res.path });
+        this.setState({ files: res.files || [], index: 0, path:res.path, fileStat: res.stat });
         document.addEventListener('keydown', this.handleKeyDown.bind(this));
       }else{
         this.failTimes++;
@@ -129,6 +130,15 @@ export default class OneBook extends Component {
     return <div className={cn}>{text}</div>;
   }
 
+  renderFileSizeAndTime(){
+    if(this.state.fileStat){
+      const size = Math.ceil(this.state.fileStat.size/ 1000000.0) + "MB";
+      const mTime = dateFormat(this.state.fileStat.mtime, "isoDate");;
+      const text = mTime + " :: " + size;
+      return <div className={"file-stat"}>{text} </div>
+    }
+  }
+
   render() {
     if (this.isFailedLoading()) { 
       return <ErrorPage res={this.res.res}/>;
@@ -190,6 +200,7 @@ export default class OneBook extends Component {
             <FileChangeToolbar className="one-book-toolbar" file={this.state.path} />
           </div>
         }
+        {this.renderFileSizeAndTime()}
         {/* {
           this.state.path && <FileChangeToolbar className="one-book-toolbar" file={this.state.path} />
         } */}

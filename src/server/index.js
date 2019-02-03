@@ -459,10 +459,13 @@ app.post('/api/extract', (req, res) => {
         res.sendStatus(404);
         return;
     }
+
+    const stat = fs.statSync(fileName);
+
     const outputPath = getOutputPath(fileName);
     const temp = getCache(outputPath);
     if (temp && temp.files.length > 10) {
-        res.send({ files: temp.files, path: fileName });
+        res.send({ files: temp.files, path: fileName, stat });
         return;
     }
 
@@ -473,7 +476,7 @@ app.post('/api/extract', (req, res) => {
             if (!stderr) {
                 fs.readdir(outputPath, (error, results) => {
                     const temp = generateContentUrl(results, outputPath);
-                    res.send({ ...temp, path:fileName });
+                    res.send({ ...temp, path:fileName, stat });
                 });
             } else {
                 res.sendStatus(404);

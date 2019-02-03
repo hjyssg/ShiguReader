@@ -64,7 +64,7 @@ export default class LoadingImage extends Component {
       <VisibilitySensor 
           active={active}
           key={fileName}
-          // offset={{bottom:-1000, top: -500}} 
+          offset={{bottom:-500, top: -500}} 
           onChange={this.onChange.bind(this)}>
         {content}
       </VisibilitySensor>
