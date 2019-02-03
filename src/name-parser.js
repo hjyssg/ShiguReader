@@ -5,7 +5,7 @@ const convertTable = {};
 const localCache = {};
 
 same_tags.forEach(row => {
-    for(const ii = 1; ii < row.length; row++){
+    for(let ii = 1; ii < row.length; ii++){
         convertTable[row[ii]] = row[0];
     }
 });
@@ -115,6 +115,7 @@ function parse(str) {
 
     if (pMacthes && pMacthes.length > 0) {
         tags = tags.concat(pMacthes);
+        tags = tags.filter(e=> {return !isOnlyDigit(e)});
     }
 
     if(tags.indexOf(author) >= 0){

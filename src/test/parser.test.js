@@ -52,19 +52,19 @@ describe('name parser', () => {
     it("find name with year tag", ()=>{
         s1 = "[150622](COMIC1☆9) [橘花屋 (上杉響士郎, 榊ゆいの)] すみません。 (アイドルマスター シンデレラガールズ).zip";
         result = parser.parse(s1);
-        assert.deepEqual(result.tags.sort(),["150622", "COMIC1☆9", "アイドルマスター シンデレラガールズ"].sort());
+        assert.deepEqual(result.tags.sort(),["2015/06", "COMIC1☆9", "アイドルマスター シンデレラガールズ"].sort());
         assert.equal(result.author, "上杉響士郎, 榊ゆいの");
     })
 
     it("find author name", ()=>{
         s1 = "(同人ゲームCG) [170428] [ピンポイント] 王女&女騎士Wド下品露出 ～恥辱の見世物奴隷～";
         result = parser.parse(s1);
-        assert.deepEqual(result.tags.sort(),["同人ゲームCG", "170428"].sort());
+        assert.deepEqual(result.tags.sort(),["同人ゲームCG", "2017/04"].sort());
         assert.equal(result.author, "ピンポイント");
 
         s1 = "(ゲームCG) [181207] [DWARFSOFT] ムチムチデカパイマラ喰い魔王様とおんぼろ四畳半同棲生活";
         result = parser.parse(s1);
-        assert.deepEqual(result.tags.sort(),["ゲームCG", "181207"].sort());
+        assert.deepEqual(result.tags.sort(),["ゲームCG", "2018/12"].sort());
         assert.equal(result.author, "DWARFSOFT");
 
         s1 = "(一般コミック) [白正男×山戸大輔] テコンダー朴 第01巻-第02巻";
@@ -81,10 +81,14 @@ describe('name parser', () => {
     it("tag converter", ()=>{
         s1 = "[桃井涼太] 艦隊これくしょん -艦これ- 4コマコミック 吹雪、がんばります! Vol.1(艦隊これくしょん) [Digital].zip";
         result = parser.parse(s1);
-        assert.deepEqual(result.tags.sort(),["艦これ"].sort());
+        assert.deepEqual(result.tags.sort(),["艦これ", "吹雪"].sort());
 
         s2 = "[桃井涼太] 艦隊これくしょん -艦これ- 4コマコミック 吹雪、がんばります! Vol.1(艦これ) [Digital].zip";
         result = parser.parse(s1);
-        assert.deepEqual(result.tags.sort(),["艦これ"].sort());
-    })
+        assert.deepEqual(result.tags.sort(),["艦これ", "吹雪"].sort());
+
+        s3 = "[Pixel Cot. (羽原メグル)] こおりのせかい (艦隊これくしょん-艦これ-) (1).zip";
+        result = parser.parse(s3);
+        assert.deepEqual(result.tags.sort(),["艦これ"].sort());   
+    })   
 });
