@@ -11,7 +11,7 @@ import ErrorPage from './ErrorPage';
 import Spinner from './subcomponent/Spinner'
 import Pagination from 'rc-pagination';
 import { Redirect } from 'react-router-dom';
-const PER_PAGE = 6 * 20;
+const PER_PAGE = 4 * 5;
 
 export default class TagPage extends Component {
   constructor(prop) {

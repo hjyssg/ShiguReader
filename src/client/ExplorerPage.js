@@ -12,7 +12,7 @@ import ErrorPage from './ErrorPage';
 import Pagination from 'rc-pagination';
 import FileChangeToolbar from './subcomponent/FileChangeToolbar';
 import Spinner from './subcomponent/Spinner';
-const PER_PAGE = 6 * 20;
+const PER_PAGE = 4 * 5;
 
 export default class ExplorerPage extends Component {
     constructor(prop) {
