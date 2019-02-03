@@ -224,6 +224,12 @@ app.post('/api/lsDir', (req, res) => {
             p = path.join(dir, p);
             db.hashTable[stringHash(p)] = p;
         }
+
+        //sort by modified time
+        files.sort(function(a, b) {
+            return fs.statSync(b).mtime.getTime() - fs.statSync(a).mtime.getTime();
+        })
+
         const result = {dirs, files, path: dir}
         res.send(result);
     });

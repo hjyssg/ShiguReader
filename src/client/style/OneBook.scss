@@ -75,6 +75,10 @@
     bottom: 20px;
     color: #DDDDDD;
     font-weight: 600;
+
+    &.is-last {
+      color: orange;
+    }
   }
 
   .one-book-toolbar {

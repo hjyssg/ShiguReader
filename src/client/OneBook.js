@@ -10,6 +10,7 @@ import ErrorPage from './ErrorPage';
 import Spinner from './subcomponent/Spinner';
 const spop  = require("./subcomponent/spop");
 import FileChangeToolbar from './subcomponent/FileChangeToolbar';
+var classNames = require('classnames');
 
 export default class OneBook extends Component {
   constructor(props) {
@@ -117,6 +118,17 @@ export default class OneBook extends Component {
     return this.res && this.res.failed;
   }
 
+  renderPagination() {
+    const { files, index } = this.state;
+    const isLast = index+1 === files.length;
+    const text = (index+1) + "/" + files.length;
+    const cn = classNames("one-book-foot-index-number", {
+      "is-last": isLast
+    })
+    
+    return <div className={cn}>{text}</div>;
+  }
+
   render() {
     if (this.isFailedLoading()) { 
       return <ErrorPage res={this.res.res}/>;
@@ -133,9 +145,7 @@ export default class OneBook extends Component {
             { "Loading..."}
           </div>
         );
-      }
-
-      
+      } 
     }
     
     const result = nameParser.parse(_.getFn(this.state.path));
@@ -170,7 +180,7 @@ export default class OneBook extends Component {
           index={index}
           />
         </div>
-        <div className="one-book-foot-index-number">{`${index+1}/${files.length}` }</div>
+        {this.renderPagination()}
         <div className="one-book-footer">
           {tagDivs}
         </div>
