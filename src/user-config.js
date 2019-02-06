@@ -1,5 +1,7 @@
 'use strict';
 
+module.exports.cache_folder_name = "cache";
+
 module.exports.home_pathes = ["T:\\迅雷下载", "D:\\_Happy_Lesson\\_Going_to_sort", "D:\\_Happy_Lesson\\_Unread"];
 
 // module.exports.home_pathes = ["D:\\_Comic"];

@@ -8,11 +8,12 @@ const userConfig = require('../user-config');
 const sevenZip = require('../7zip')['7z'];
 const util = require("../util");
 const stringHash = require("string-hash");
-var chokidar = require('chokidar');
+const chokidar = require('chokidar');
 const execa = require('execa');
 
 const root = path.join(__dirname, "..", "..", "..");
-const cachePath = path.join(__dirname, "..", "..", "cache");
+const cache_folder_name = userConfig.cache_folder_name;
+const cachePath = path.join(__dirname, "..", "..", cache_folder_name);
 
 const isImage = util.isImage;
 const isCompress = util.isCompress;
@@ -52,7 +53,7 @@ function generateContentUrl(pathes, outputPath) {
     for (let i = 0; i < pathes.length; i++) {
         const p = pathes[i];
         if (isImage(p)) {
-            let temp = path.join("cache", base, p);
+            let temp = path.join(cache_folder_name, base, p);
             temp = temp.replace(new RegExp(`\\${  path.sep}`, 'g'), '/');
             files.push(temp);
         }
@@ -114,15 +115,13 @@ async function init() {
 }
 
 function setUpFileWatch(){
-    var watcher = chokidar.watch(userConfig.home_pathes, {
+    const watcher = chokidar.watch(userConfig.home_pathes, {
         ignored: /\*.jpg/,
         ignoreInitial: true,
         persistent: true
     });
-    var log = console.log.bind(console);
 
     const addCallBack = path => {
-        // log(`${path} has been added`);
         db.allFiles.push(path);
 
         updateTagHash(path);
@@ -130,7 +129,6 @@ function setUpFileWatch(){
     };
 
     const deleteCallBack = path => {
-        // log(`${path} has been removed`);
         const index = db.allFiles.indexOf(path);
         db.allFiles[index] = "";
     };
@@ -145,7 +143,7 @@ function setUpFileWatch(){
         .on('unlinkDir', deleteCallBack);
 
     //also for cache files
-    var cacheWatcher = chokidar.watch(cachePath, {
+    const cacheWatcher = chokidar.watch(cachePath, {
         persistent: true
     });
 
@@ -364,14 +362,15 @@ async function getFirstImageFromZip(fileName, res, mode, counter) {
         return;
     }
 
-    var stats = fs.statSync(fileName);
-    var fileSizeInBytes = stats["size"]
+    const stats = fs.statSync(fileName);
+    const fileSizeInBytes = stats["size"]
     //Convert the file size to megabytes (optional)
-    var fileSizeInMegabytes = fileSizeInBytes / 1000000.0;
+    const fileSizeInMegabytes = fileSizeInBytes / 1000000.0;
+    const full_extract_for_thumbnail_size = 40;
 
     try{
         //bigger than 30mb
-        if(fileSizeInMegabytes > 40 || isPreG){
+        if(fileSizeInMegabytes > full_extract_for_thumbnail_size || isPreG){
             // assume zip
             let {stdout, stderr} = await limit(() => execa(sevenZip, ['l', '-ba', fileName]));
             const text = stdout;
@@ -395,7 +394,7 @@ async function getFirstImageFromZip(fileName, res, mode, counter) {
             const {stdout2, stderr2} = await execa(sevenZip, opt);
             if (!stderr2) {
                 // send path to client
-                let temp = path.join("cache", path.basename(outputPath), one);
+                let temp = path.join(cache_folder_name, path.basename(outputPath), one);
                 temp = temp.replace(new RegExp(`\\${  path.sep}`, 'g'), '/');
                 sendImage(temp);
 
