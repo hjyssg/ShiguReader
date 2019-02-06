@@ -2,7 +2,6 @@ import React, { Component } from 'react';
 import './style/App.scss';
 import './style/spop.scss';
 import './style/rc-pagination.scss';
-import _ from "underscore";
 import ExplorerPage from "./ExplorerPage";
 import OneBook from "./OneBook";
 import TagPage from "./TagPage";
@@ -12,27 +11,10 @@ import stringHash from "string-hash";
 
 const userConfig = require('../user-config');
 
-const imageTypes = ['.jpg', '.png'];
-const compressTypes = ['.zip', '.rar'];
-_.isImage = function (fn) {
-    return imageTypes.some(e => fn.endsWith(e));
-};
-_.isCompress = function (fn) {
-    return compressTypes.some(e => fn.endsWith(e));
-};
+import _ from "underscore";
+const util = require("../util");
+util.attach(_);
 
-_.getDir = function (fn) {
-    //get parent
-    if(!fn){return ""};
-    const tokens = fn.split('\\');
-    return tokens.slice(0, tokens.length - 1).join('\\');
-};
-
-_.getFn = function (fn) {
-    if(!fn){return ""};
-    const tokens = fn.split('\\');
-    return tokens[tokens.length - 1];
-};
 
 // http://localhost:3000/
 class App extends Component {

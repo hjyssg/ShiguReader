@@ -6,13 +6,16 @@ const fileiterator = require('../file-iterator');
 const nameParser = require('../name-parser');
 const userConfig = require('../user-config');
 const sevenZip = require('../7zip')['7z'];
-
-const stringHash =require("string-hash");
+const util = require("../util");
+const stringHash = require("string-hash");
 var chokidar = require('chokidar');
 const execa = require('execa');
 
 const root = path.join(__dirname, "..", "..", "..");
 const cachePath = path.join(__dirname, "..", "..", "cache");
+
+const isImage = util.isImage;
+const isCompress = util.isCompress;
 
 const pLimit = require('p-limit');
 const limit = pLimit(6);
@@ -35,17 +38,6 @@ app.use(express.static(root));
 //  to consume json request body
 //  https://stackoverflow.com/questions/10005939/how-do-i-consume-the-json-post-data-in-an-express-application
 app.use(express.json());
-
-const imageTypes = [".jpg", ".png"];
-const compressTypes = [".zip", ".rar"];
-
-function isImage(fn) {
-    return imageTypes.some((e) => fn.toLowerCase().endsWith(e));
-}
-
-function isCompress(fn) {
-    return compressTypes.some((e) => fn.toLowerCase().endsWith(e));
-}
 
 function getOutputPath(zipFn) {
     let outputFolder = path.basename(zipFn, path.extname(zipFn));
