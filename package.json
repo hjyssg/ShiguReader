@@ -15,7 +15,6 @@
   "author": "Aji",
   "license": "",
   "dependencies": {
-    "7zip": "0.0.6",
     "babel-polyfill": "^6.26.0",
     "bootstrap": "^4.2.1",
     "child-process-promise": "^2.2.1",

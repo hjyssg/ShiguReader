@@ -5,7 +5,7 @@ const path = require('path');
 const fileiterator = require('../file-iterator');
 const nameParser = require('../name-parser');
 const userConfig = require('../user-config');
-const sevenZip = require('7zip')['7z'];
+const sevenZip = require('../7zip')['7z'];
 
 const stringHash =require("string-hash");
 var chokidar = require('chokidar');
