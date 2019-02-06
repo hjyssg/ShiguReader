@@ -61,52 +61,38 @@ export default class ExplorerPage extends Component {
         this.componentDidMount();
     }
 
+    handleRes(res){
+        if (!res.failed) {
+            this.loadedHash = this.getHash();
+            const {dirs, files, path, tag, author} = res;
+            this.loadedHash = this.getHash();
+            this.files = files || [];
+            this.dirs = dirs || [];
+            this.path = path || "";
+            this.tag = tag || "";
+            this.author = author || "";
+        }else{
+            this.failedTimes++;
+        }
+        this.res = res;
+        this.forceUpdate();
+    }
+
     requestTextSearch(mode) {
         Sender.post("/api/search", { text: this.props.match.params.search,  mode: this.getMode()}, res => {
-            if (!res.failed) {
-                this.loadedHash = this.getHash();
-                this.files = res.files|| [];
-                this.dirs = [];
-                this.tag = "";
-                this.author = "";
-            }else{
-                this.failedTimes++;
-            }
-            this.res = res;
-            this.forceUpdate();
+            this.handleRes(res);
         });
     }
 
     requestSearch(mode) {
         Sender.post("/api/search", { hash: this.getHash(),  mode: this.getMode()}, res => {
-            if (!res.failed) {
-                this.loadedHash = this.getHash();
-                this.files = res.files|| [];
-                this.dirs = [];
-                this.tag = res.tag;
-                this.author = res.author;
-              }else{
-                  this.failedTimes++;
-              }
-              this.res = res;
-              this.forceUpdate();
+            this.handleRes(res);
         });
     }
     
     requestLsDir() {
         Sender.lsDir({ hash: this.getHash() }, res => {
-            if (!res.failed) {
-                const {dirs, files, path} = res;
-                this.files = files|| [];
-                this.dirs = dirs||[];
-                this.path = path;
-                this.loadedHash = this.getHash();
-                this.forceUpdate();
-            } else {
-                this.res = res;
-                this.failedTimes++;
-                this.forceUpdate();
-            }
+            this.handleRes(res);
         });
     }
     
