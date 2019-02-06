@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import loading from './images/loading.png';
 import notAvailable from './images/not-available.png';
 import Sender from './Sender';
+import ImageLoader from 'react-image-file';
 // const VisibilitySensor = require('react-visibility-sensor').default;
 
 const VisibilitySensor = require('react-visibility-sensor').default;
@@ -40,9 +41,21 @@ export default class LoadingImage extends Component {
 
       this.loading = true;
 
-      Sender.post(api, body,
-        (res) => { !this.isUnmounted && this.setState({ loaded: true, ...res }); }
-      );
+      fetch(api, {
+        method: 'POST',
+        headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(body)
+      })
+      .then((res) => res.blob())
+      .then((res) => { 
+        if(!this.isUnmounted){
+          this.url = URL.createObjectURL(res);
+          this.setState({ loaded: true }); 
+        }
+      });
     }
   }
 
@@ -55,9 +68,9 @@ export default class LoadingImage extends Component {
       content = (<img key={fileName} ref={e=>{this.dom = e && e.node}} className={cn} src={notAvailable}/>);
     } else if (this.state.loaded === false) {
       content = (<img key={fileName} className={cn} src={loading} />);
-    } else {
+    } else if (this.url) {
       active = false;
-      content = (<img key={fileName} className={className} src={"../" + this.state.image}/>);
+      content = (<img key={fileName} className={className} src={this.url}/>);
     }
 
     return (

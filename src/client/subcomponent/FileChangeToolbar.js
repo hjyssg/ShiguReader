@@ -3,6 +3,7 @@ import '../style/Spinner.scss';
 const spop  = require("./spop");
 const userConfig = require('../../user-config');
 import PropTypes from 'prop-types';
+var classNames = require('classnames');
 
 export default class FileChangeToolbar extends Component {
     copyToClipboard(path, mode){
@@ -31,8 +32,10 @@ export default class FileChangeToolbar extends Component {
 
      render(){
         const {file, className} = this.props;
+        const cn = classNames("file-change-tool-bar", className);
+
         return (
-            <div className={"file-change-tool-bar " + className } >
+            <div className={cn} >
                 <div className="explorer-delete-cmd fas fa-trash-alt"
                                 title="Copy Del"
                                 onClick={this.copyToClipboard.bind(this, file, "delete")}></div>

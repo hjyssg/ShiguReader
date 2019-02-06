@@ -40,11 +40,11 @@ const imageTypes = [".jpg", ".png"];
 const compressTypes = [".zip", ".rar"];
 
 function isImage(fn) {
-    return imageTypes.some((e) => fn.endsWith(e));
+    return imageTypes.some((e) => fn.toLowerCase().endsWith(e));
 }
 
 function isCompress(fn) {
-    return compressTypes.some((e) => fn.endsWith(e));
+    return compressTypes.some((e) => fn.toLowerCase().endsWith(e));
 }
 
 function getOutputPath(zipFn) {
@@ -357,10 +357,18 @@ async function getFirstImageFromZip(fileName, res, mode, counter) {
     if(isPreG){
         res.send = () => {};
         res.sendStatus = () => {};
+        res.sendFile = () => {};
+    }
+
+    function sendImage(img){
+        let ext = path.extname(img);
+        ext = ext.slice(1);
+        res.setHeader('Content-Type', 'image/' + ext );
+        res.sendFile(path.resolve(img));
     }
 
     if (temp && temp.files[0] && isImage(temp.files[0])) {
-        res.send({ image: temp.files[0] });
+        sendImage(temp.files[0]);
         return;
     }
 
@@ -397,7 +405,7 @@ async function getFirstImageFromZip(fileName, res, mode, counter) {
                 // send path to client
                 let temp = path.join("cache", path.basename(outputPath), one);
                 temp = temp.replace(new RegExp(`\\${  path.sep}`, 'g'), '/');
-                res.send({ image: temp });
+                sendImage(temp);
 
                 if(isPreG){
                     counter.counter++;
@@ -414,7 +422,12 @@ async function getFirstImageFromZip(fileName, res, mode, counter) {
                 if (!stderr) {
                     fs.readdir(outputPath, (error, results) => {
                         const temp = generateContentUrl(results, outputPath);
-                        res.send({ image: temp.files[0]});
+                        if(temp.files[0]){
+                            sendImage(temp.files[0]);
+                        }else{
+                            res.sendStatus(404);
+                            const temp = generateContentUrl(results, outputPath);
+                        }
                     });
                 } else {
                     res.sendStatus(404);
