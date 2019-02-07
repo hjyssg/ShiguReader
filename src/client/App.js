@@ -22,9 +22,7 @@ class App extends Component {
     constructor(props) {
         super(props);
         this.state = {};
-
         this.cookies = new Cookies();
-
         userConfig.home_pathes.forEach(e => this.cookies.set(stringHash(e) , e)); 
     }
 

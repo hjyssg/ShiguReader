@@ -39,7 +39,7 @@ export default class TagPage extends Component {
       }
     });
   }
-
+  
   getItems(){
     const {
       tags = [],

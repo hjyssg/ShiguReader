@@ -48,11 +48,11 @@ export default class ExplorerPage extends Component {
         if (hash && this.loadedHash !== hash && this.failedTimes < 3) {
             if(this.getMode() === "tag"){
                 this.requestSearch();
-            }else if(this.getMode() === "author"){
+            } else if(this.getMode() === "author"){
                 this.requestSearch();
-            }else if(this.getMode() === "search"){
+            } else if (this.getMode() === "search"){
                 this.requestTextSearch();
-            }  else {
+            } else {
                 this.requestLsDir();
             }
         }
@@ -170,11 +170,13 @@ export default class ExplorerPage extends Component {
         const mode = this.getMode();
         const fn = " (" + (this.files||[]).length + ")";
 
-        if(this.tag && mode === "tag") {
+        if(mode === "home"){
+            return "";
+        }else if(this.tag && mode === "tag") {
             return "Tag: " + this.tag + fn;
         } else if(this.author && mode === "author") {
             return "Author: " + this.author + fn;
-        } else if(this.path){
+        } else if(mode === "explorer" && this.path){
             return "At " + this.path;
         } else if(mode === "search"){
             return "Search Result: " + this.getHash() + fn;
@@ -186,6 +188,9 @@ export default class ExplorerPage extends Component {
       }
     
     renderPagination(){
+        if(this.getMode() === "home"){
+            return;
+        }
         const fileLength = (this.files||[]).length;
         if(fileLength === 0){
           return;
@@ -195,14 +200,24 @@ export default class ExplorerPage extends Component {
                             pageSize={this.perPage}
                             total={fileLength} 
                             onChange={this.handlePageChange.bind(this)} />);
-      }
+    }
+
+    setWebTitle(){
+        const mode = this.getMode();
+        if(mode === "home"){
+            document.title = "ShiguReader";
+        }else{
+            document.title = this.tag||this.author||this.path||this.props.match.params.search|| "ShiguReader";
+        }
+    }
     
     render() {
+        this.setWebTitle();
+
         if (this.isFailedLoading()) {
             return <ErrorPage res={this.res.res}/>;
         }
 
-        document.title = this.tag||this.author||this.path||this.props.match.params.search||"ShiguReader";
         return (<div className={"explorer-container-out " + this.getMode()} >
             <center className="location-title">{this.getTitle()}</center>
             {this.renderFileList()}

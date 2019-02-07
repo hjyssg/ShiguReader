@@ -10,7 +10,7 @@ export default class FileChangeToolbar extends Component {
         //https://stackoverflow.com/questions/49236100/copy-text-from-span-to-clipboard
         var textArea = document.createElement("textarea");
         if(mode === "delete"){
-            textArea.value = "DEL \"" +  path + "\"";
+            textArea.value = "DEL /f \"" +  path + "\"";
         } else if(mode === "good"){
             textArea.value = "MOVE \"" +  path + "\"" + "  \"" + userConfig.good_folder +"\"";
         }else if(mode === "not_good"){

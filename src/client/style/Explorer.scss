@@ -9,9 +9,13 @@
 .explorer-container-out{
   padding-bottom: 50px;
 
-  &.home{
-    .explorer-dir-list-item {
-      font-size: 2.5rem;
+
+  @media only screen and (min-width: 1200px) {
+    &.home{
+      .explorer-dir-list-item {
+        font-size: 2.5rem;
+        max-width: 80%;
+      }
     }
   }
 }
@@ -19,7 +23,7 @@
 .explorer-container{
   padding-bottom: 30px;
   
-  .fa-folder{
+  .fa-folder {
     color: yellowgreen;
   }
 
@@ -27,22 +31,22 @@
     color: #DDDDDD !important;
   }
 
-  .dir-list{
+  .dir-list {
     list-style: none;
   }
 
   .explorer-dir-list-item {
     text-align: left !important;
-    border-radius: 5px;
     background-color: #4f535b;
+
+    border-radius: 5px;
     border: white;
     border-width: 1px;
-  }
 
-  .explorer-dir-list-item {
     font-size: 1rem;
     font-weight: bold;
     color: black;
+
     padding-left: 5px;
     color:#DDDDDD
   }
