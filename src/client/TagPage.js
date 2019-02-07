@@ -8,7 +8,7 @@ import './style/TagPage.scss';
 import { Link } from 'react-router-dom';
 import stringHash from "string-hash";
 import ErrorPage from './ErrorPage';
-import Spinner from './subcomponent/Spinner'
+import CenterSpinner from './subcomponent/CenterSpinner';
 import Pagination from 'rc-pagination';
 import { Redirect } from 'react-router-dom';
 
@@ -59,7 +59,7 @@ export default class TagPage extends Component {
     } = this.state;
 
     if (_.isEmpty(tags) && _.isEmpty(authors)) {
-      return (<div className="tag-page-loading"> {<Spinner />}{ "Loading..."}</div>);
+      return (<CenterSpinner/>);
     }
 
     const items = this.getItems();

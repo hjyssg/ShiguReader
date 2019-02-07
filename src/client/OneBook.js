@@ -7,7 +7,7 @@ import stringHash from "string-hash";
 import Sender from './Sender';
 import './style/OneBook.scss';
 import ErrorPage from './ErrorPage';
-import Spinner from './subcomponent/Spinner';
+import CenterSpinner from './subcomponent/CenterSpinner';
 const spop  = require("./subcomponent/spop");
 import FileChangeToolbar from './subcomponent/FileChangeToolbar';
 var classNames = require('classnames');
@@ -187,12 +187,7 @@ export default class OneBook extends Component {
       if(this.res && !this.refs.failed){
         return <h3><center>no content files</center></h3>;
       } else {
-        return (
-          <div className="one-book-loading">
-            {<Spinner />}
-            { "Loading..."}
-          </div>
-        );
+        return (<CenterSpinner />);
       } 
     }
     

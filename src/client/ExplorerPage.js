@@ -11,7 +11,7 @@ const userConfig = require('../user-config');
 import ErrorPage from './ErrorPage';
 import Pagination from 'rc-pagination';
 import FileChangeToolbar from './subcomponent/FileChangeToolbar';
-import Spinner from './subcomponent/Spinner';
+import CenterSpinner from './subcomponent/CenterSpinner';
 const util = require("../util");
 
 export default class ExplorerPage extends Component {
@@ -109,10 +109,7 @@ export default class ExplorerPage extends Component {
         
         if (_.isEmpty(dirs) && _.isEmpty(files)) {
             if(!this.res){
-                return (<div className="explorer-page-loading">
-                {<Spinner />}
-                { "Loading..."}
-              </div>);
+                return (<CenterSpinner />);
             }else{
                 return <center className="">Nothing Available</center>;
             }
