@@ -24,9 +24,25 @@ module.exports.getFn = function (fn) {
     return tokens[tokens.length - 1];
 };
 
+const isPad = module.exports.isPad = function(){
+    // https://stackoverflow.com/questions/9038625/detect-if-device-is-ios
+    return /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+}
+
+module.exports.getPerPageItemNumber = function() {
+    if(isPad()){
+        return 3 * 6;
+    }else{
+        return 4 * 5;
+    }
+}
+
 module.exports.attach = function (obj) {
     obj.isImage = module.exports.isImage;
     obj.isCompress = module.exports.isCompress;
     obj.getDir = module.exports.getDir;
     obj.getFn = module.exports.getFn;
+    obj.isPad = module.exports.isPad;
+    obj.getPerPageItemNumber = module.exports.getPerPageItemNumber;
 }
+

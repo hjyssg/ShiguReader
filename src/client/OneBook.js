@@ -12,6 +12,7 @@ const spop  = require("./subcomponent/spop");
 import FileChangeToolbar from './subcomponent/FileChangeToolbar';
 var classNames = require('classnames');
 var dateFormat = require('dateformat');
+import LoadingImage from './LoadingImage';
 
 export default class OneBook extends Component {
   constructor(props) {
@@ -61,7 +62,9 @@ export default class OneBook extends Component {
 
       if (!res.failed) {
         this.loadedHash = this.getHash();
-        this.setState({ files: res.files || [], index: 0, path:res.path, fileStat: res.stat });
+        let files = res.files || [];
+        files.sort((a, b) => a.localeCompare(b));
+        this.setState({ files: files, index: 0, path:res.path, fileStat: res.stat });
         document.addEventListener('keydown', this.handleKeyDown.bind(this));
       }else{
         this.failTimes++;
@@ -109,34 +112,69 @@ export default class OneBook extends Component {
     this.changePage(index);
   }
   
-  renderFileList() {
-    const { files, index } = this.state;
-    const listItems = files.map((item) => (<li className="one-book-image-li" key={item}><img className="one-book-image" src={"../"+item} alt="book-image"/></li>));
-    return (<ul className="one-book-list">{listItems}</ul>);
-  }
-  
+
   isFailedLoading(){
     return this.res && this.res.failed;
   }
 
   renderPagination() {
+    if(_.isPad()){ return; }
     const { files, index } = this.state;
     const isLast = index+1 === files.length;
     const text = (index+1) + "/" + files.length;
     const cn = classNames("one-book-foot-index-number", {
       "is-last": isLast
     })
-    
     return <div className={cn}>{text}</div>;
   }
 
   renderFileSizeAndTime(){
-    if(this.state.fileStat){
+    if (this.state.fileStat) {
       const size = Math.ceil(this.state.fileStat.size/ 1000000.0) + "MB";
       const mTime = dateFormat(this.state.fileStat.mtime, "isoDate");;
       const text = mTime + " :: " + size;
       return <div className={"file-stat"}>{text} </div>
     }
+  }
+
+  renderImage(){
+    const { files, index } = this.state;
+    if(!_.isPad()){
+      return <img className="one-book-image" src={"../" + files[index]} alt="book-image"
+                   onClick={this.next.bind(this)}
+                   onContextMenu={this.prev.bind(this)}
+                   index={index}
+                   />
+    } else {
+      const images = files.map(file => {
+        return <LoadingImage className={"mobile-one-book-image"} 
+                             bottomOffet={-4000}
+                             topOffet={-3000}
+                             url={"../" +file} 
+                             key={file}/>
+      });
+
+      return (<div className="mobile-one-book-container">
+                {images}
+            </div>);
+    }
+  }
+
+  renderPath() {
+    if (!this.state.path) {
+      return;
+    }
+
+    const parentPath = _.getDir(this.state.path);
+    const parentHash = stringHash(parentPath);
+    const toUrl = ('/explorer/'+ parentHash);
+    const toolbar = !_.isPad() && <FileChangeToolbar className="one-book-toolbar" file={this.state.path}/>;
+
+    return (
+      <div className="one-book-path">
+        <Link to={toUrl}>{parentPath} </Link>
+        {toolbar}
+      </div>);
   }
 
   render() {
@@ -172,10 +210,6 @@ export default class OneBook extends Component {
               </div>);
     })
   
-    const parentPath = _.getDir(this.state.path);
-    const parentHash = stringHash(parentPath);
-    const toUrl =('/explorer/'+ parentHash);
-
     if(this.state.path){
       document.title = _.getFn(this.state.path);
     }
@@ -184,26 +218,14 @@ export default class OneBook extends Component {
       <div className="one-book-container">
         <div className="one-book-wrapper">
           <div className="one-book-title"><center>{_.getFn(this.state.path)}</center></div>
-          <img className="one-book-image" src={"../" + files[index]} alt="book-image"
-          onClick={this.next.bind(this)}
-          onContextMenu={this.prev.bind(this)}
-          index={index}
-          />
+          {this.renderImage()}
         </div>
         {this.renderPagination()}
         <div className="one-book-footer">
           {tagDivs}
         </div>
-        {this.state.path && 
-          <div className="one-book-path">
-            <Link to={toUrl}>{parentPath} </Link>
-            <FileChangeToolbar className="one-book-toolbar" file={this.state.path} />
-          </div>
-        }
+        {this.renderPath()}
         {this.renderFileSizeAndTime()}
-        {/* {
-          this.state.path && <FileChangeToolbar className="one-book-toolbar" file={this.state.path} />
-        } */}
       </div>
     );
   }

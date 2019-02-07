@@ -4,9 +4,6 @@ import PropTypes from 'prop-types';
 import loading from './images/loading.png';
 import notAvailable from './images/not-available.png';
 import Sender from './Sender';
-import ImageLoader from 'react-image-file';
-// const VisibilitySensor = require('react-visibility-sensor').default;
-
 const VisibilitySensor = require('react-visibility-sensor').default;
 
 export default class LoadingImage extends Component {
@@ -28,40 +25,50 @@ export default class LoadingImage extends Component {
   }
 
   onChange(isVisible){
+    const {onChange, url, mode, fileName} = this.props;
+
+    if(isVisible){
+      onChange && onChange();
+    }
+
     if(isVisible && !this.state.loaded & !this.loading){
-      const {mode} = this.props;
-      const api = (mode === "author" || mode === "tag") ? "/api/tagFirstImagePath" :  '/api/firstImage';
-      const body = {};
+      if(url){
+        this.url = url;
+        this.setState({ loaded: true }); 
+      } else {
+        const api = (mode === "author" || mode === "tag") ? "/api/tagFirstImagePath" :  '/api/firstImage';
+        const body = {};
 
-      if(mode === "author" || mode === "tag"){
-        body[mode] = this.props.fileName;
-      }else{
-        body["fileName"] = this.props.fileName;
-      }
-
-      this.loading = true;
-
-      fetch(api, {
-        method: 'POST',
-        headers: {
-            Accept: 'application/json',
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(body)
-      })
-      .then((res) => res.blob())
-      .then((res) => { 
-        if(!this.isUnmounted){
-          this.url = URL.createObjectURL(res);
-          this.setState({ loaded: true }); 
+        if(mode === "author" || mode === "tag"){
+          body[mode] = fileName;
+        }else{
+          body["fileName"] = fileName;
         }
-      });
+
+        this.loading = true;
+
+        fetch(api, {
+          method: 'POST',
+          headers: {
+              Accept: 'application/json',
+              'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(body)
+        })
+        .then((res) => res.blob())
+        .then((res) => { 
+          if(!this.isUnmounted){
+            this.url = URL.createObjectURL(res);
+            this.setState({ loaded: true }); 
+          }
+        });
+      }
     }
   }
 
   render() {
     let content;
-    const {className, fileName} = this.props;
+    const {className, fileName, url, bottomOffet, topOffet} = this.props;
     const cn = "loading-image  " + className;
     let active = true;
     if (this.state.failed) {
@@ -76,8 +83,8 @@ export default class LoadingImage extends Component {
     return (
       <VisibilitySensor 
           active={active}
-          key={fileName}
-          offset={{bottom:-500, top: -500}} 
+          key={fileName||url}
+          offset={{bottom: bottomOffet || -200, top: topOffet || -200}} 
           onChange={this.onChange.bind(this)}>
         {content}
       </VisibilitySensor>
@@ -89,4 +96,8 @@ LoadingImage.propTypes = {
   fileName: PropTypes.string,
   className: PropTypes.string,
   mode: PropTypes.string,
+  url: PropTypes.string,   //predefined url, not request from this component,
+  bottomOffet: PropTypes.number,
+  topOffet: PropTypes.number,
+  onChange: PropTypes.func
 };

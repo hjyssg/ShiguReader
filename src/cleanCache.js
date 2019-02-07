@@ -35,7 +35,7 @@ folders1.forEach(p1 => {
         //nothing
     }else if(stat.isDirectory()){
         const subfiles = fs.readdirSync(p1);
-        subfiles.sort((a, b) => a.firstname.localeCompare(b.firstname))
+        subfiles.sort((a, b) => a.localeCompare(b));
         if(subfiles.length > 3){
             for(let ii = 2; ii < subfiles.length; ii++){
                 del(path.resolve(p1, subfiles[ii]));

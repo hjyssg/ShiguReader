@@ -12,13 +12,14 @@ import ErrorPage from './ErrorPage';
 import Pagination from 'rc-pagination';
 import FileChangeToolbar from './subcomponent/FileChangeToolbar';
 import Spinner from './subcomponent/Spinner';
-const PER_PAGE = 4 * 5;
+const util = require("../util");
 
 export default class ExplorerPage extends Component {
     constructor(prop) {
         super(prop);
         this.state = { pageIndex: 1 };
         this.failedTimes = 0;
+        this.perPage = util.getPerPageItemNumber();
     }
 
     getHash() {
@@ -133,7 +134,7 @@ export default class ExplorerPage extends Component {
         //! !todo if the file is already an image file
 
         files = files.filter(_.isCompress);
-        files = files.slice((this.state.pageIndex-1) * PER_PAGE, (this.state.pageIndex) * PER_PAGE);
+        files = files.slice((this.state.pageIndex-1) * this.perPage, (this.state.pageIndex) * this.perPage);
 
         const zipfileItems = files.map((item) => {
             const text = _.getFn(item);
@@ -194,7 +195,7 @@ export default class ExplorerPage extends Component {
         }
     
         return (<Pagination current={this.state.pageIndex}  
-                            pageSize={PER_PAGE}
+                            pageSize={this.perPage}
                             total={fileLength} 
                             onChange={this.handlePageChange.bind(this)} />);
       }

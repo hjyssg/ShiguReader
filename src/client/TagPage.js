@@ -11,12 +11,14 @@ import ErrorPage from './ErrorPage';
 import Spinner from './subcomponent/Spinner'
 import Pagination from 'rc-pagination';
 import { Redirect } from 'react-router-dom';
-const PER_PAGE = 4 * 5;
+
+const util = require("../util");
 
 export default class TagPage extends Component {
   constructor(prop) {
     super(prop);
     this.state = { tags: [], sortByNumber: true };
+    this.perPage = util.getPerPageItemNumber();
   }
 
   get pageIndex(){
@@ -67,7 +69,7 @@ export default class TagPage extends Component {
       keys.sort((a, b) => items[b] - items[a]);
     }
 
-    keys = keys.slice((this.pageIndex-1) * PER_PAGE, this.pageIndex * PER_PAGE);
+    keys = keys.slice((this.pageIndex-1) * this.perPage, this.pageIndex * this.perPage);
 
     const tagItems = keys.map((tag) => {
       const itemText = `${tag} (${items[tag]})`;
@@ -114,7 +116,7 @@ export default class TagPage extends Component {
     }
 
     return (<Pagination current={this.pageIndex}  
-                        pageSize={PER_PAGE}
+                        pageSize={this.perPage}
                         total={this.getItemLength()} 
                         onChange={this.handlePageChange.bind(this)} />);
   }
