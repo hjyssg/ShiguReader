@@ -18,9 +18,9 @@ module.exports.getDir = function (fn) {
     return tokens.slice(0, tokens.length - 1).join('\\');
 };
 
-module.exports.getFn = function (fn) {
+module.exports.getFn = function (fn, seperator) {
     if (!fn) { return ""; }
-    const tokens = fn.split('\\');
+    const tokens = seperator? fn.split(seperator) : fn.split('\\');
     return tokens[tokens.length - 1];
 };
 

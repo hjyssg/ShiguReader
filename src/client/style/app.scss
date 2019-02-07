@@ -98,7 +98,6 @@ a {
       float: none;
      }
     }
-
   }
 }
 
@@ -108,9 +107,10 @@ a {
   width: 100%;
   height: 100%;
   justify-content: center;
-  align-items:center;
+  align-items: center;
 
-  .loading-inner{
+  .loading-inner {
+    margin-top: 100px;
     text-align: center;
     font-size: 2rem;
   }

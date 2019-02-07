@@ -65,8 +65,9 @@ export default class ExplorerPage extends Component {
     handleRes(res){
         if (!res.failed) {
             this.loadedHash = this.getHash();
-            const {dirs, files, path, tag, author} = res;
+            let {dirs, files, path, tag, author} = res;
             this.loadedHash = this.getHash();
+            files = files.filter(_.isCompress)
             this.files = files || [];
             this.dirs = dirs || [];
             this.path = path || "";
@@ -116,7 +117,6 @@ export default class ExplorerPage extends Component {
         } 
         
         const dirItems = dirs.map((item) =>  {
-            const text =  _.getFn(item);
             const pathHash = stringHash(item);
             const toUrl =('/explorer/'+ pathHash);
             const result =  (
@@ -128,19 +128,17 @@ export default class ExplorerPage extends Component {
             return  <Link to={toUrl}  key={item}>{result}</Link>;
         });
         //! !todo if the file is already an image file
-
-        files = files.filter(_.isCompress);
         files = files.slice((this.state.pageIndex-1) * this.perPage, (this.state.pageIndex) * this.perPage);
 
         const zipfileItems = files.map((item) => {
             const text = _.getFn(item);
             const pathHash = stringHash(item);
             const toUrl =  '/onebook/' + pathHash;
-            return (<div key={item} className="col-sm-6 col-md-4 col-lg-3 file-out-cell">
+            return (<div key={item} className={"col-sm-6 col-md-4 col-lg-3 file-out-cell"}>
                         <div className="file-cell">
-                            <Link to={toUrl}  key={item} className="file-cell-inner">
-                                <center className="file-cell-title" title={text}>{text}</center>
-                                <LoadingImage className="file-cell-thumbnail" fileName={item} />
+                            <Link to={toUrl}  key={item} className={"file-cell-inner"}>
+                                <center className={"file-cell-title"} title={text}>{text}</center>
+                                <LoadingImage className={"file-cell-thumbnail"} title={text} fileName={item} />
                             </Link>
                             <FileChangeToolbar file={item} />
                         </div>
@@ -148,12 +146,12 @@ export default class ExplorerPage extends Component {
         });
 
         return (
-            <div className="explorer-container">
-                <ul className="dir-list container">
+            <div className={"explorer-container"}>
+                <ul className={"dir-list container"}>
                     {dirItems}
                 </ul>
-                <div className="file-grid container">
-                    <div className="row">
+                <div className={"file-grid container"}>
+                    <div className={"row"}>
                         {zipfileItems}
                     </div>
                 </div>
@@ -218,7 +216,7 @@ export default class ExplorerPage extends Component {
         }
 
         return (<div className={"explorer-container-out " + this.getMode()} >
-            <center className="location-title">{this.getTitle()}</center>
+            <center className={"location-title"}>{this.getTitle()}</center>
             {this.renderFileList()}
             {this.renderPagination()}
             </div>

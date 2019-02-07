@@ -13,6 +13,7 @@ import FileChangeToolbar from './subcomponent/FileChangeToolbar';
 var classNames = require('classnames');
 var dateFormat = require('dateformat');
 import LoadingImage from './LoadingImage';
+const util = require("../util");
 
 export default class OneBook extends Component {
   constructor(props) {
@@ -112,7 +113,6 @@ export default class OneBook extends Component {
     this.changePage(index);
   }
   
-
   isFailedLoading(){
     return this.res && this.res.failed;
   }
@@ -131,8 +131,10 @@ export default class OneBook extends Component {
   renderFileSizeAndTime(){
     if (this.state.fileStat) {
       const size = Math.ceil(this.state.fileStat.size/ 1000000.0) + "MB";
-      const mTime = dateFormat(this.state.fileStat.mtime, "isoDate");;
-      const text = mTime + " :: " + size;
+      const mTime = dateFormat(this.state.fileStat.mtime, "isoDate");
+      const { files, index } = this.state;
+      const title = util.getFn(files[index], "/" );
+      const text = [mTime, size, title].join(" :: ");
       return <div className={"file-stat"}>{text} </div>
     }
   }
