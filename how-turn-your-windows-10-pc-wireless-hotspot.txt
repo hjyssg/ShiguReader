@@ -1,0 +1,2 @@
+NETSH WLAN set hostednetwork mode=allow ssid=hjy_wifi_name key=wifi2019
+NETSH WLAN start hostednetwork

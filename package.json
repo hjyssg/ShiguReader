@@ -10,7 +10,8 @@
     "server": "nodemon src/server/index.js",
     "dev": "concurrently \"npm run server\" \"npm run client\"",
     "flow": "flow",
-    "test": "mocha .\\src\\test"
+    "test": "mocha .\\src\\test",
+    "clean-cache": "node src\\cleanCache.js"
   },
   "author": "Aji",
   "license": "",

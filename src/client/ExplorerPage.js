@@ -24,21 +24,21 @@ export default class ExplorerPage extends Component {
 
     getHash() {
         return this.props.match.params.tag || 
-               this.props.match.params.author||
-               this.props.match.params.search||
+               this.props.match.params.author ||
+               this.props.match.params.search ||
                this.props.match.params.number;
     }
 
     getMode(){
         if(this.props.match.params.tag){
             return "tag"
-        }if(this.props.match.params.author){
+        } else if(this.props.match.params.author) {
             return "author"
-        }else if(this.props.match.params.number){
+        } else if(this.props.match.params.number) {
             return "explorer";
-        }else if(this.props.match.params.search){
+        } else if(this.props.match.params.search) {
             return "search";
-        }else{
+        } else {
             return "home"
         }
     }
@@ -115,7 +115,6 @@ export default class ExplorerPage extends Component {
             }
         } 
         
-        //! todo when there is >6000 files, does not need to render all  list
         const dirItems = dirs.map((item) =>  {
             const text =  _.getFn(item);
             const pathHash = stringHash(item);
@@ -140,7 +139,7 @@ export default class ExplorerPage extends Component {
             return (<div key={item} className="col-sm-6 col-md-4 col-lg-3 file-out-cell">
                         <div className="file-cell">
                             <Link to={toUrl}  key={item} className="file-cell-inner">
-                                <center className="file-cell-title">{text}</center>
+                                <center className="file-cell-title" title={text}>{text}</center>
                                 <LoadingImage className="file-cell-thumbnail" fileName={item} />
                             </Link>
                             <FileChangeToolbar file={item} />
@@ -185,7 +184,7 @@ export default class ExplorerPage extends Component {
 
     handlePageChange(index){
         this.setState({ pageIndex: index});
-      }
+    }
     
     renderPagination(){
         if(this.getMode() === "home"){

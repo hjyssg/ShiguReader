@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const userConfig = require('./user-config');
+const rimraf = require("./rimraf");
 const cache_folder_name = path.resolve(userConfig.cache_folder_name);
 
 let counter = 0;
@@ -15,7 +16,12 @@ function del(file){
         if(stat.isFile()){
             fs.unlinkSync(file);
         } else {
-          fs.rmdirSync(file);
+            //!!todo not empty folder
+            try{
+                fs.rmdirSync(file);
+            }catch(e){
+                rimraf(file);
+            }
         }
 
         counter++;
@@ -44,4 +50,6 @@ folders1.forEach(p1 => {
             del(p1);
         }
     }
-})
+});
+
+console.log("done");
