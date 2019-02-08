@@ -3,6 +3,7 @@ const path = require('path');
 const userConfig = require('./user-config');
 const rimraf = require("./rimraf");
 const cache_folder_name = path.resolve(userConfig.cache_folder_name);
+const util = require("./util");
 
 let counter = 0;
 
@@ -41,6 +42,10 @@ folders1.forEach(p1 => {
         //nothing
     }else if(stat.isDirectory()){
         const subfiles = fs.readdirSync(p1);
+        const noimages = subfiles.filter(e => !util.isImage(e));
+        noimages.forEach(e => del(path.resolve(p1,e)));
+        
+        subfiles = subfiles.filter(e => util.isImage(e));
         subfiles.sort((a, b) => a.localeCompare(b));
         if(subfiles.length > 3){
             for(let ii = 2; ii < subfiles.length; ii++){

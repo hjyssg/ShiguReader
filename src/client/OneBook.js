@@ -14,34 +14,25 @@ var classNames = require('classnames');
 var dateFormat = require('dateformat');
 import LoadingImage from './LoadingImage';
 const util = require("../util");
+import AudioPlayer from 'react-modular-audio-player';
+
+
+function getUrl(fn){
+  return "../" + fn;
+}
 
 export default class OneBook extends Component {
   constructor(props) {
     super(props);
     this.state = {
       files: [],
+      musicFiles: [],
       index: -1
     };
 
     this.failTimes = 0;
   }
 
-  copyToClipboard(event){
-    //https://stackoverflow.com/questions/49236100/copy-text-from-span-to-clipboard
-    var textArea = document.createElement("textarea");
-    textArea.value = "DEL \"" +  this.state.path + "\"";
-    document.body.appendChild(textArea);
-    textArea.select();
-    document.execCommand("Copy");
-    textArea.remove();
-
-    spop({
-      template: 'Copied to Clipboard',
-      position: 'bottom-right',
-      autoclose: 3000
-    });
-  }
-  
   getHash(){
     return this.props.match.params.number;
   }
@@ -60,12 +51,16 @@ export default class OneBook extends Component {
   displayFile(file){
     Sender.post("/api/extract", {  hash: this.getHash() }, res => {
       this.res = res;
-
       if (!res.failed) {
         this.loadedHash = this.getHash();
         let files = res.files || [];
         files.sort((a, b) => a.localeCompare(b));
-        this.setState({ files: files, index: 0, path:res.path, fileStat: res.stat });
+
+        let musicFiles = res.musicFiles || [];
+        musicFiles.sort((a, b) => a.localeCompare(b));
+
+
+        this.setState({ files, musicFiles, index: 0, path:res.path, fileStat: res.stat });
         document.addEventListener('keydown', this.handleKeyDown.bind(this));
       }else{
         this.failTimes++;
@@ -142,7 +137,10 @@ export default class OneBook extends Component {
   renderImage(){
     const { files, index } = this.state;
     if(!_.isPad()){
-      return <img className="one-book-image" src={"../" + files[index]} alt="book-image"
+      const cn = classNames("one-book-image", {
+        "has-music": this.hasMusic()
+      });
+      return <img  className={cn} src={getUrl(files[index])} alt="book-image"
                    onClick={this.next.bind(this)}
                    onContextMenu={this.prev.bind(this)}
                    index={index}
@@ -152,7 +150,7 @@ export default class OneBook extends Component {
         return <LoadingImage className={"mobile-one-book-image"} 
                              bottomOffet={-4000}
                              topOffet={-3000}
-                             url={"../" +file} 
+                             url={getUrl(file)} 
                              key={file}/>
       });
 
@@ -177,6 +175,26 @@ export default class OneBook extends Component {
         <Link to={toUrl}>{parentPath} </Link>
         {toolbar}
       </div>);
+  }
+
+  hasMusic(){
+    const {musicFiles} = this.state;
+    return musicFiles.length > 0;
+  }
+
+  renderMusicPlayer(){
+    if(this.hasMusic()){
+      const {musicFiles} = this.state;
+      let playlist = musicFiles.map(e => {
+        return { src: getUrl(e), title: util.getFn(e, "/") }
+      })
+      return <AudioPlayer  audioFiles={playlist}
+                           hideLoop={true}
+                           playerWidth={"90%"}
+                           iconSize={"1.5rem"}
+                           fontWeight={"500"}
+                           fontSize={"1.2rem"}/>;
+    }
   }
 
   render() {
@@ -216,6 +234,7 @@ export default class OneBook extends Component {
         <div className="one-book-wrapper">
           <div className="one-book-title"><center>{_.getFn(this.state.path)}</center></div>
           {this.renderImage()}
+          {this.renderMusicPlayer()}
         </div>
         {this.renderPagination()}
         <div className="one-book-footer">

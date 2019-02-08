@@ -30,7 +30,6 @@
     color: #DDDDDD !important;
   }
 
-
   .one-book-image-li {
     padding-top:10px;
     margin-right: auto;
@@ -42,16 +41,19 @@
     margin-bottom: 1rem;
     box-shadow: 0 2px 4px 0 rgba(0,0,0,0.16),0 2px 10px 0 rgba(0,0,0,0.12)!important;
     z-index: 10;
+
+    &.has-music{
+      max-height: 450px;
+    }
   }
 
-  .mobile-one-book-image{
+  .mobile-one-book-image {
     // width: 95%;
     width: calc(100% - 10px);
     margin:5px 5px;
-
   }
 
-  .mobile-one-book-container{
+  .mobile-one-book-container {
     width: 100%;
   }
 
@@ -93,5 +95,15 @@
   .file-stat{
     color: #f1f1f1;
     font-size: 1rem;
+  }
+
+  .audio-player{
+    height: 50px;
+    background: #d3ffd5;
+    border-radius: 10px;
+    padding: 20px 20px;
+
+    min-width: 200px;
+
   }
 }

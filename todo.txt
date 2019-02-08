@@ -1,6 +1,7 @@
 todo：
 文件夹范围search
 播放视频
+播放音乐
 
 完成：
 1. 从onebook点击tag，进去相关tag界面

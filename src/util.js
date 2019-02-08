@@ -2,6 +2,7 @@
 
 const imageTypes = [".jpg", ".png"];
 const compressTypes = [".zip", ".rar", ".7zip"];
+const musicTypes = [".mp3"]
 
 module.exports.isImage = function (fn) {
     return imageTypes.some((e) => fn.toLowerCase().endsWith(e));
@@ -10,6 +11,10 @@ module.exports.isImage = function (fn) {
 module.exports.isCompress = function (fn) {
     return compressTypes.some((e) => fn.toLowerCase().endsWith(e));
 };
+
+module.exports.isMusic = function(fn){
+    return musicTypes.some((e) => fn.toLowerCase().endsWith(e));
+}
 
 //get parent
 module.exports.getDir = function (fn) {
@@ -40,6 +45,8 @@ module.exports.getPerPageItemNumber = function() {
 module.exports.attach = function (obj) {
     obj.isImage = module.exports.isImage;
     obj.isCompress = module.exports.isCompress;
+    obj.isMusic = module.exports.isMusic;
+
     obj.getDir = module.exports.getDir;
     obj.getFn = module.exports.getFn;
     obj.isPad = module.exports.isPad;

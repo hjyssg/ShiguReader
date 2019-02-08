@@ -46,19 +46,26 @@ function getOutputPath(zipFn) {
     return path.join(cachePath, outputFolder);
 }
 
+function cleanFileName(fn) {
+    return fn.replace(new RegExp(`\\${  path.sep}`, 'g'), '/');
+}
+
 function generateContentUrl(pathes, outputPath) {
     const files = [];
     const dirs = [];
+    const musicFiles = [];
     const base = path.basename(outputPath);
     for (let i = 0; i < pathes.length; i++) {
         const p = pathes[i];
+        let temp = path.join(cache_folder_name, base, p);
+        temp = cleanFileName(temp);
         if (isImage(p)) {
-            let temp = path.join(cache_folder_name, base, p);
-            temp = temp.replace(new RegExp(`\\${  path.sep}`, 'g'), '/');
             files.push(temp);
+        }else if(util.isMusic(p)){
+            musicFiles.push(temp);
         }
     }
-    return { files, dirs };
+    return { files, dirs, musicFiles };
 }
 
 //  outputPath is the folder name
@@ -395,7 +402,7 @@ async function getFirstImageFromZip(fileName, res, mode, counter) {
             if (!stderr2) {
                 // send path to client
                 let temp = path.join(cache_folder_name, path.basename(outputPath), one);
-                temp = temp.replace(new RegExp(`\\${  path.sep}`, 'g'), '/');
+                temp = cleanFileName(temp);
                 sendImage(temp);
 
                 if(isPreG){
@@ -417,7 +424,6 @@ async function getFirstImageFromZip(fileName, res, mode, counter) {
                             sendImage(temp.files[0]);
                         }else{
                             res.sendStatus(404);
-                            const temp = generateContentUrl(results, outputPath);
                         }
                     });
                 } else {
