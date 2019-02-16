@@ -30,12 +30,17 @@ class App extends Component {
         this.searchText = document.getElementsByClassName('search-input')[0].value;
         this.forceUpdate();
     }
+
+    onFilterClick(event){
+        this.filterText = document.getElementsByClassName('search-input')[0].value;
+        this.forceUpdate();
+    }
     
     RenderSubComponent() {
         const cookies = this.cookies;
         const renderOneBook = (props) => { return (<OneBook {...props} cookies={cookies}/>)};
 
-        const renderExplorer = (props) => { return (<ExplorerPage  {...props} cookies={cookies} />)};
+        const renderExplorer = (props) => { return (<ExplorerPage  {...props} filterText={this.filterText} cookies={cookies} />)};
 
         const renderTagPage = (props) => { return (<TagPage mode="tag" {...props} cookies={cookies}/>)};
         const renderAuthorPage = (props) => { return (<TagPage mode="author" {...props} cookies={cookies}/>)};                                                       
@@ -67,7 +72,10 @@ class App extends Component {
                 }}/>);
         }
 
-        const topNav = !window.location.pathname.includes("/onebook") && (
+        const isOneBook = window.location.pathname.includes("/onebook");
+        const isExplorer = window.location.pathname.includes("/explorer")
+
+        const topNav = !isOneBook && (
             <div className="topnav container">
                 <div className="links">
                 <Link to='/'><i className="fas fa-home">Home</i></Link>
@@ -76,7 +84,8 @@ class App extends Component {
                 </div>
                 <div className="search-bar">
                     <input className="search-input" type="text" placeholder="Search.."/>
-                    <button  onClick={this.onSearchClick.bind(this)}><i className="fa fa-search"></i></button>
+                    <button  onClick={this.onSearchClick.bind(this)} title="Search"><i className="fa fa-search"></i></button>
+                    {isExplorer && <button  onClick={this.onFilterClick.bind(this)} title="Filter Files"><i className="fa fa-filter"></i></button>}
                 </div>
             </div>
         );

@@ -98,6 +98,17 @@ export default class ExplorerPage extends Component {
         });
     }
     
+    getFilteredFiles(){
+        var filterText = this.props.filterText && this.props.filterText.toLowerCase();
+        if(filterText){
+            return (this.files||[]).filter(e => {
+                return e.toLowerCase().indexOf(filterText) > -1;
+            });
+        }else{
+            return (this.files||[]);
+        }
+    }
+
     renderFileList() {
         let dirs, files;
         if(!this.getHash()) {
@@ -105,7 +116,7 @@ export default class ExplorerPage extends Component {
             files = [];
         } else {
             dirs = this.dirs;
-            files = this.files;
+            files = this.getFilteredFiles();
         }
         
         if (_.isEmpty(dirs) && _.isEmpty(files)) {
@@ -129,6 +140,8 @@ export default class ExplorerPage extends Component {
         });
         //! !todo if the file is already an image file
         files = files.slice((this.state.pageIndex-1) * this.perPage, (this.state.pageIndex) * this.perPage);
+
+      
 
         const zipfileItems = files.map((item) => {
             const text = _.getFn(item);
@@ -188,7 +201,7 @@ export default class ExplorerPage extends Component {
         if(this.getMode() === "home"){
             return;
         }
-        const fileLength = (this.files||[]).length;
+        const fileLength = this.getFilteredFiles().length;
         if(fileLength === 0){
           return;
         }
@@ -229,5 +242,6 @@ ExplorerPage.propTypes = {
     files: PropTypes.array,
     openBookFunc: PropTypes.func,
     openDirFunc: PropTypes.func,
-    cookies: PropTypes.any
+    cookies: PropTypes.any,
+    filterText: PropTypes.string
 };
