@@ -142,7 +142,6 @@ export default class ExplorerPage extends Component {
         files = files.slice((this.state.pageIndex-1) * this.perPage, (this.state.pageIndex) * this.perPage);
 
       
-
         const zipfileItems = files.map((item) => {
             const text = _.getFn(item);
             const pathHash = stringHash(item);
@@ -193,6 +192,19 @@ export default class ExplorerPage extends Component {
         }
     }
 
+    getLinkToEhentai(){
+        let searchable = this.tag || this.author;
+        if(this.getMode() === "search"){
+            searchable = this.getHash();
+        }
+
+        if(searchable){
+            const link = "https://exhentai.org/?f_search=" + searchable;
+            const title = "Search '"  + searchable +  "' in Exhentai";
+            return <a className="explorer-external-link" href={link} title={title}>{this.getTitle()} </a>;
+        } 
+    }
+
     handlePageChange(index){
         this.setState({ pageIndex: index});
     }
@@ -229,7 +241,7 @@ export default class ExplorerPage extends Component {
         }
 
         return (<div className={"explorer-container-out " + this.getMode()} >
-            <center className={"location-title"}>{this.getTitle()}</center>
+            <center className={"location-title"}>{this.getLinkToEhentai()}</center>
             {this.renderFileList()}
             {this.renderPagination()}
             </div>
