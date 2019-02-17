@@ -187,7 +187,7 @@ app.post('/api/moveFile', (req, res) => {
     (async () =>{
         const {stdout, stderr} = await execa("move", [src, dest]);
         if(!stderr){
-            console.log(stdout);
+            console.log("move", src, dest, "successfully");
             res.sendStatus(200);
         }else{
             console.error(stderr);
@@ -213,7 +213,6 @@ app.post('/api/deleteFile', (req, res) => {
             console.warn(src + 'was deleted');
         }
     });
-
 });
 
 app.post('/api/lsDir', (req, res) => {

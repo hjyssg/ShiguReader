@@ -30,7 +30,6 @@ export default class OneBook extends Component {
       musicFiles: [],
       index: -1
     };
-
     this.failTimes = 0;
   }
 
@@ -43,6 +42,8 @@ export default class OneBook extends Component {
     if(file && this.loadedHash !== file && this.failTimes < 3){
       this.displayFile(file);
     }
+
+    screenfull.onchange(()=> this.forceUpdate());
   }
   
   componentDidUpdate() {
@@ -132,8 +133,8 @@ export default class OneBook extends Component {
       const mTime = dateFormat(this.state.fileStat.mtime, "isoDate");
       const { files, index } = this.state;
       const title = util.getFn(files[index], "/" );
-      const text = [mTime, size, title].join(" :: ");
-      return <div className={"file-stat"}>{text} </div>
+      const text = [mTime, size, title].map(e => <div key={e} style={{marginLeft:"15px"}}> {e} </div>)
+      return <div className={"one-book-file-stat"}>{text} </div>
     }
   }
 
@@ -171,13 +172,19 @@ export default class OneBook extends Component {
     const parentPath = _.getDir(this.state.path);
     const parentHash = stringHash(parentPath);
     const toUrl = ('/explorer/'+ parentHash);
-    const toolbar = !_.isPad() && <FileChangeToolbar className="one-book-toolbar" file={this.state.path}/>;
-
+    
     return (
       <div className="one-book-path">
         <Link to={toUrl}>{parentPath} </Link>
-        {toolbar}
       </div>);
+  }
+
+  renderToolbar(){
+    if (!this.state.path) {
+      return;
+    }
+    const toolbar = !_.isPad() && <FileChangeToolbar className="one-book-toolbar" file={this.state.path}/>;
+    return toolbar;
   }
 
   hasMusic(){
@@ -202,7 +209,6 @@ export default class OneBook extends Component {
 
   toggleFullScreen(){
     screenfull.toggle();
-    this.forceUpdate();
   }
 
   renderToggleFullScreenButton(){
@@ -241,19 +247,24 @@ export default class OneBook extends Component {
       document.title = _.getFn(this.state.path);
     }
 
+    const wraperCn = classNames("one-book-wrapper", {
+      "full-screen": screenfull.isFullscreen
+    });
+
     return (  
       <div className="one-book-container">
-        <div className="one-book-wrapper">
-          <div className="one-book-title"><center>{_.getFn(this.state.path)} {this.renderToggleFullScreenButton()} </center></div>
+        <div className={wraperCn}>
           {this.renderImage()}
           {this.renderMusicPlayer()}
         </div>
+        <div className="one-book-title"> {this.renderPath()} {_.getFn(this.state.path)} </div>
         {this.renderPagination()}
-        <div className="one-book-footer">
+        {this.renderFileSizeAndTime()}
+        <div className="one-book-tags">
           {tagDivs}
         </div>
-        {this.renderPath()}
-        {this.renderFileSizeAndTime()}
+        {this.renderToolbar()}
+        {this.renderToggleFullScreenButton()} 
       </div>
     );
   }
