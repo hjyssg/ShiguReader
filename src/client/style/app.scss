@@ -14,6 +14,7 @@ a {
   color: #DDDDDD;
   display: flex;
   justify-content: space-between;
+  align-items: center;
   width: 100%;
 
   .fas{
@@ -23,6 +24,12 @@ a {
 
   .fas:hover{
     color: orangered !important;
+  }
+
+  .fa-arrow-right{
+    background: transparent;
+    border: 0px;
+    padding: 0px;
   }
 }
 

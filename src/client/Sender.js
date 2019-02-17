@@ -11,6 +11,18 @@ _.resHandle = function (res) {
     return { failed: true, res };
 };
 
+Sender.simplePost = function (api, body, callback) {
+    fetch(api, {
+        method: 'POST',
+        headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(body)
+    })
+    .then(callback);
+};
+
 Sender.post = function (api, body, callback) {
     fetch(api, {
         method: 'POST',

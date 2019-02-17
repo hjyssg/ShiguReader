@@ -4,8 +4,53 @@ const spop  = require("./spop");
 const userConfig = require('../../user-config');
 import PropTypes from 'prop-types';
 var classNames = require('classnames');
+import Menu from '@material-ui/core/Menu';
+import MenuItem from '@material-ui/core/MenuItem';
+import Swal from 'sweetalert2';
+import Sender from '../Sender';
 
 export default class FileChangeToolbar extends Component {
+    state = {
+        anchorEl: null,
+    };
+    
+    handleClick = event => {
+        this.setState({ anchorEl: event.currentTarget });
+    };
+
+    handleClose = (path) => {
+        this.setState({ anchorEl: null });
+
+        if(typeof path === "string"){
+            Swal.fire({
+                title: "Move File",
+                text: 'Do you want to move this file to ' + path ,
+                type: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Yes',
+                cancelButtonText: 'No'
+            }).then((result) => {
+                if (result.value === true) {
+                    Sender.simplePost("/api/moveFile", {src: this.props.file, dest: path}, res => {
+                        if (!res.failed) {
+                            spop({
+                                template: 'Moved Successfully',
+                                position: 'bottom-right',
+                                autoclose: 3000
+                            });
+                        }else{
+                            spop({
+                                template: 'Failed to Move',
+                                position: 'bottom-right',
+                                autoclose: 3000
+                            });
+                        }
+                    });
+                } 
+            });
+        }
+    };
+
     copyToClipboard(path, mode){
         //https://stackoverflow.com/questions/49236100/copy-text-from-span-to-clipboard
         var textArea = document.createElement("textarea");
@@ -29,9 +74,9 @@ export default class FileChangeToolbar extends Component {
         });
     }
 
-
-     render(){
+    render(){
         const {file, className} = this.props;
+        const { anchorEl } = this.state;
         const cn = classNames("file-change-tool-bar", className);
 
         return (
@@ -45,6 +90,19 @@ export default class FileChangeToolbar extends Component {
                 <div className="explorer-delete-cmd fas fa-times"
                                 title={"Move to " + userConfig.not_good_folder}
                                 onClick={this.copyToClipboard.bind(this, file, "not_good")}></div>
+                <div>
+                    <button onClick={this.handleClick} className="fas fa-arrow-right" title="directly move"/>
+                    <Menu
+                    id="simple-menu"
+                    anchorEl={anchorEl}
+                    open={Boolean(anchorEl)}
+                    onClose={this.handleClose}
+                    >
+                        <MenuItem onClick={this.handleClose.bind(this, userConfig.good_folder)}>{"Move to " + userConfig.good_folder}</MenuItem>
+                        <MenuItem onClick={this.handleClose.bind(this, userConfig.not_good_folder)}>{"Move to " + userConfig.not_good_folder}</MenuItem>
+                        <MenuItem onClick={this.handleClose.bind(this, userConfig.not_good_folder)}>{"Move to " + userConfig.not_good_folder}</MenuItem>
+                    </Menu>
+            </div>
         </div>
         )
      }

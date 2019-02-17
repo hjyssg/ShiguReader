@@ -16,6 +16,7 @@
   "author": "Aji",
   "license": "",
   "dependencies": {
+    "@material-ui/core": "^3.9.2",
     "babel-polyfill": "^6.26.0",
     "bootstrap": "^4.2.1",
     "child-process-promise": "^2.2.1",
@@ -34,6 +35,7 @@
     "react-visibility-sensor": "^5.0.2",
     "screenfull": "^4.0.0",
     "string-hash": "^1.1.3",
+    "sweetalert2": "^8.0.7",
     "underscore": "^1.9.1",
     "universal-cookie": "^3.0.7",
     "whatwg-fetch": "^3.0.0"
