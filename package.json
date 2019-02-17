@@ -32,6 +32,7 @@
     "react-modular-audio-player": "^1.1.1",
     "react-router-dom": "^4.3.1",
     "react-visibility-sensor": "^5.0.2",
+    "screenfull": "^4.0.0",
     "string-hash": "^1.1.3",
     "underscore": "^1.9.1",
     "universal-cookie": "^3.0.7",

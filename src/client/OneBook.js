@@ -15,6 +15,7 @@ var dateFormat = require('dateformat');
 import LoadingImage from './LoadingImage';
 const util = require("../util");
 import AudioPlayer from 'react-modular-audio-player';
+import screenfull from 'screenfull';
 
 
 function getUrl(fn){
@@ -197,6 +198,15 @@ export default class OneBook extends Component {
     }
   }
 
+  toggleFullScreen(){
+    screenfull.toggle();
+    this.forceUpdate();
+  }
+
+  renderToggleFullScreenButton(){
+    return <button className="fas fa-arrows-alt fs-toggle-button" title="Toggle Full Screen" onClick={this.toggleFullScreen.bind(this)}/>
+  }
+
   render() {
     if (this.isFailedLoading()) { 
       return <ErrorPage res={this.res.res}/>;
@@ -232,7 +242,7 @@ export default class OneBook extends Component {
     return (  
       <div className="one-book-container">
         <div className="one-book-wrapper">
-          <div className="one-book-title"><center>{_.getFn(this.state.path)}</center></div>
+          <div className="one-book-title"><center>{_.getFn(this.state.path)} {this.renderToggleFullScreenButton()} </center></div>
           {this.renderImage()}
           {this.renderMusicPlayer()}
         </div>

@@ -1,12 +1,9 @@
 todo：
-文件夹范围search
 更方便单手操作
 翻页button靠近才显示
-search link to ehentai 
 breadcrumb path
-https://exhentai.org/?f_doujinshi=1&f_manga=1&f_artistcg=1&f_gamecg=1&f_western=0&f_non-h=1&f_imageset=0&f_cosplay=1&f_asianporn=0&f_misc=0&f_search=%E6%8E%83%E9%99%A4%E6%9C%8B%E5%85%B7&f_apply=Apply+Filter
 播放视频
-播放音乐
+
 
 完成：
 1. 从onebook点击tag，进去相关tag界面
@@ -15,6 +12,9 @@ https://exhentai.org/?f_doujinshi=1&f_manga=1&f_artistcg=1&f_gamecg=1&f_western=
 4. react url。直接点开连接看。不需要像iOS app那样。
 5. Webpack多页面支持
 6. first image不要一次发n个request会卡住。
+7. 文件夹范围filter
+8. search link to ehentai 
+9. 播放音乐
 
 bug：
 1. explorer没文件的时候，没有反馈
