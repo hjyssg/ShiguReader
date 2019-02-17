@@ -33,13 +33,8 @@ export default class FileChangeToolbar extends Component {
                     if (!res.failed) {
                         spop({
                             template: 'Delete successfully',
-                            position: 'bottom-center',
-                            autoclose: 60000
+                            position: 'bottom-center'
                         });
-
-                        setTimeout(()=>{
-                            window.location.reload();
-                        }, 5000);
                     }else{
                         spop({
                             template: 'Failed to delete',
@@ -69,8 +64,7 @@ export default class FileChangeToolbar extends Component {
                         if (!res.failed) {
                             spop({
                                 template: 'Moved Successfully',
-                                position: 'bottom-center',
-                                autoclose: 3000
+                                position: 'bottom-center'
                             });
                         }else{
                             spop({
@@ -108,9 +102,28 @@ export default class FileChangeToolbar extends Component {
         });
     }
 
-    render(){
-        const {file, className} = this.props;
+    renderDirectChange(){
         const { anchorEl } = this.state;
+        const {file, className, showDirectChange} = this.props;
+        if(showDirectChange){
+            return (<div>
+                    <button onClick={this.handleClick} className="fas fa-arrow-right" title="directly move"/>
+                    <Menu
+                    id="simple-menu"
+                    anchorEl={anchorEl}
+                    open={Boolean(anchorEl)}
+                    onClose={this.handleClose}
+                    >
+                        <MenuItem onClick={this.handleClose.bind(this, userConfig.good_folder)}>{"Move to " + userConfig.good_folder}</MenuItem>
+                        <MenuItem onClick={this.handleClose.bind(this, userConfig.not_good_folder)}>{"Move to " + userConfig.not_good_folder}</MenuItem>
+                        <MenuItem onClick={this.handleDelete.bind(this)}><i className="fas fa-trash-alt file-bar-delete-button">Delete</i></MenuItem>
+                    </Menu>
+            </div>);
+        }
+    }
+
+    render(){
+        const {file, className, showDirectChange} = this.props;
         const cn = classNames("file-change-tool-bar", className);
 
         return (
@@ -124,19 +137,7 @@ export default class FileChangeToolbar extends Component {
                 <div className="explorer-delete-cmd fas fa-times"
                                 title={"Move to " + userConfig.not_good_folder}
                                 onClick={this.copyToClipboard.bind(this, file, "not_good")}></div>
-                <div>
-                    <button onClick={this.handleClick} className="fas fa-arrow-right" title="directly move"/>
-                    <Menu
-                    id="simple-menu"
-                    anchorEl={anchorEl}
-                    open={Boolean(anchorEl)}
-                    onClose={this.handleClose}
-                    >
-                        <MenuItem onClick={this.handleClose.bind(this, userConfig.good_folder)}>{"Move to " + userConfig.good_folder}</MenuItem>
-                        <MenuItem onClick={this.handleClose.bind(this, userConfig.not_good_folder)}>{"Move to " + userConfig.not_good_folder}</MenuItem>
-                        <MenuItem onClick={this.handleDelete.bind(this)}><i className="fas fa-trash-alt file-bar-delete-button">Delete</i></MenuItem>
-                    </Menu>
-            </div>
+                {this.renderDirectChange()}
         </div>
         )
      }
@@ -145,5 +146,6 @@ export default class FileChangeToolbar extends Component {
 
 
 FileChangeToolbar.propTypes = {
-    file: PropTypes.string
+    file: PropTypes.string,
+    showDirectChange: PropTypes.bool
 };

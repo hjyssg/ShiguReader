@@ -168,7 +168,7 @@ export default class OneBook extends Component {
     const parentPath = _.getDir(this.state.path);
     const parentHash = stringHash(parentPath);
     const toUrl = ('/explorer/'+ parentHash);
-    const toolbar = !_.isPad() && <FileChangeToolbar className="one-book-toolbar" file={this.state.path}/>;
+    const toolbar = !_.isPad() && <FileChangeToolbar className="one-book-toolbar" showDirectChange={true} file={this.state.path}/>;
 
     return (
       <div className="one-book-path">

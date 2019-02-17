@@ -13,11 +13,17 @@
   }
 
   .fs-toggle-button{
-    color: #a7ef92;
-    background-color: white;
+    color: #e6eff3;
+    background-color: transparent;
     border: 0;
+    margin-left: 10px;
     border-radius: 2px;
     padding: 5px;
+    cursor: pointer;
+
+    &:hover{
+      color: #bbe1f1;
+    }
   }
 
   .one-book-list {
@@ -112,6 +118,5 @@
     padding: 20px 20px;
 
     min-width: 200px;
-
   }
 }
