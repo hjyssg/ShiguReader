@@ -33,12 +33,9 @@ a {
   } 
 }
 
-.file-bar-delete-button{
+.path-highlight{
   color:red;
-
-  &::before{
-    margin-right: 10px;
-  }
+  font-weight: 700;
 }
 
 .location-title {
