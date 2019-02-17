@@ -121,7 +121,7 @@ $use-icon:                  true;
         box-shadow: $box-shadow;
     }
 
-    @media screen and (min-width:30em) {
+    @media screen and (min-width:30rem) {
         @if $use-border-radius == true {
             border-radius: $border-radius;
         }
@@ -129,6 +129,12 @@ $use-icon:                  true;
         width: $spop-width;
         margin: $spop-space;
     }
+}
+
+.spop--bottom-center{
+    .spop {
+        width: 40rem;
+    }    
 }
 
 .spop--info,

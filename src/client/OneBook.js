@@ -74,10 +74,13 @@ export default class OneBook extends Component {
   }
   
   handleKeyDown(event) {
-    if (event.key === "ArrowRight" || event.key.toLowerCase() === "d") {
+    const key = event.key.toLowerCase();
+    if (key === "arrowright" || key === "d") {
       this.changePage(this.state.index + 1);
-    } else if (event.key === "ArrowLeft" || event.key.toLowerCase() === "a") {
+    } else if (key === "arrowleft" || key === "a") {
       this.changePage(this.state.index - 1);
+    }else if(key === "enter"){
+      this.toggleFullScreen();
     }
   }
   

@@ -60,7 +60,7 @@ export default class FileChangeToolbar extends Component {
                     Sender.simplePost("/api/moveFile", {src: this.props.file, dest: path}, res => {
                         if (!res.failed) {
                             spop({
-                                template: ['Moved', this.props.file, "to", path, 'Successfully'].join(""),
+                                template: ['Moved', this.props.file, "to", path, 'Successfully'].join(" "),
                                 position: 'bottom-center'
                             });
                         }else{
