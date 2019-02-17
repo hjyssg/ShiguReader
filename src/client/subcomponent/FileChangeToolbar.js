@@ -16,7 +16,41 @@ export default class FileChangeToolbar extends Component {
     
     handleClick = event => {
         this.setState({ anchorEl: event.currentTarget });
-    };
+    }
+
+    handleDelete(){
+        this.setState({ anchorEl: null });
+        Swal.fire({
+            title: "Delete",
+            text: 'Do you want to delete this file?' ,
+            type: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Yes',
+            cancelButtonText: 'No'
+        }).then((result) => {
+            if (result.value === true) {
+                Sender.simplePost("/api/deleteFile", {src: this.props.file}, res => {
+                    if (!res.failed) {
+                        spop({
+                            template: 'Delete successfully',
+                            position: 'bottom-center',
+                            autoclose: 60000
+                        });
+
+                        setTimeout(()=>{
+                            window.location.reload();
+                        }, 5000);
+                    }else{
+                        spop({
+                            template: 'Failed to delete',
+                            position: 'bottom-center',
+                            autoclose: 60000
+                        });
+                    }
+                });
+            } 
+        });
+    }
 
     handleClose = (path) => {
         this.setState({ anchorEl: null });
@@ -24,7 +58,7 @@ export default class FileChangeToolbar extends Component {
         if(typeof path === "string"){
             Swal.fire({
                 title: "Move File",
-                text: 'Do you want to move this file to ' + path ,
+                text: 'Do you want to move this file to ' + path +"?",
                 type: 'warning',
                 showCancelButton: true,
                 confirmButtonText: 'Yes',
@@ -35,13 +69,13 @@ export default class FileChangeToolbar extends Component {
                         if (!res.failed) {
                             spop({
                                 template: 'Moved Successfully',
-                                position: 'bottom-right',
+                                position: 'bottom-center',
                                 autoclose: 3000
                             });
                         }else{
                             spop({
                                 template: 'Failed to Move',
-                                position: 'bottom-right',
+                                position: 'bottom-center',
                                 autoclose: 3000
                             });
                         }
@@ -100,7 +134,7 @@ export default class FileChangeToolbar extends Component {
                     >
                         <MenuItem onClick={this.handleClose.bind(this, userConfig.good_folder)}>{"Move to " + userConfig.good_folder}</MenuItem>
                         <MenuItem onClick={this.handleClose.bind(this, userConfig.not_good_folder)}>{"Move to " + userConfig.not_good_folder}</MenuItem>
-                        <MenuItem onClick={this.handleClose.bind(this, userConfig.not_good_folder)}>{"Move to " + userConfig.not_good_folder}</MenuItem>
+                        <MenuItem onClick={this.handleDelete.bind(this)}><i className="fas fa-trash-alt file-bar-delete-button">Delete</i></MenuItem>
                     </Menu>
             </div>
         </div>

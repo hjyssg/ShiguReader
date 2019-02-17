@@ -196,6 +196,26 @@ app.post('/api/moveFile', (req, res) => {
     })();
 });
 
+app.post('/api/deleteFile', (req, res) => {
+    const src = req.body && req.body.src;
+
+    if(!src){
+        res.sendStatus(404);
+        return;
+    }
+
+    fs.unlink(src, (err) => {
+        if (err){
+            console.error(err);
+            res.sendStatus(404);
+        }else{
+            res.sendStatus(200);
+            console.warn(src + 'was deleted');
+        }
+    });
+
+});
+
 app.post('/api/lsDir', (req, res) => {
     const hashdir = db.hashTable[(req.body && req.body.hash)];
     const dir = hashdir|| req.body && req.body.dir;

@@ -60,7 +60,6 @@ export default class OneBook extends Component {
         let musicFiles = res.musicFiles || [];
         musicFiles.sort((a, b) => a.localeCompare(b));
 
-
         this.setState({ files, musicFiles, index: 0, path:res.path, fileStat: res.stat });
         document.addEventListener('keydown', this.handleKeyDown.bind(this));
       }else{
