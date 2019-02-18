@@ -71,16 +71,10 @@ export default class OneBook extends Component {
         //or 1.jpg, 2.jpg 3.jpg 1.jpg
         //the sort is trigger
 
-        const fileIndexs =  files.map(e => util.getFnWithoutExtention(e));
+        util.sortFileNames(files);
 
-        if(fileIndexs.every(isOnlyDigit)){
-          files.sort((a, b) =>  {return parseInt(util.getFnWithoutExtention(a)) - parseInt(util.getFnWithoutExtention(b)) });
-        } else {
-          files.sort((a, b) => a.localeCompare(b));
-        }
-        
         let musicFiles = res.musicFiles || [];
-        musicFiles.sort((a, b) => a.localeCompare(b));
+        util.sortFileNames(musicFiles);
 
         this.setState({ files, musicFiles, path:res.path, fileStat: res.stat });
         document.addEventListener('keydown', this.handleKeyDown.bind(this));

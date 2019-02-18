@@ -418,7 +418,7 @@ async function getFirstImageFromZip(fileName, res, mode, counter) {
             }
 
             const files = read7zOutput(text, 10);
-            files.sort((a, b)=> a.localeCompare(b))
+            util.sortFileNames(files);
             const one = files[0];
 
             if (!one) {

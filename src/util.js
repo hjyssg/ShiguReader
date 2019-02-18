@@ -2,7 +2,11 @@
 
 const imageTypes = [".jpg", ".png"];
 const compressTypes = [".zip", ".rar", ".7zip"];
-const musicTypes = [".mp3"]
+const musicTypes = [".mp3"];
+
+function isOnlyDigit(str){
+    return str.match(/^[0-9]+$/) != null
+}
 
 module.exports.isImage = function (fn) {
     return imageTypes.some((e) => fn.toLowerCase().endsWith(e));
@@ -29,10 +33,22 @@ const getFn = module.exports.getFn = function (fn, seperator) {
     return tokens[tokens.length - 1];
 };
 
-module.exports.getFnWithoutExtention = function (fn) {
+const getFnWithoutExtention = module.exports.getFnWithoutExtention = function (fn, seperator) {
+    seperator = seperator || "/"
     if (!fn) { return ""; }
-    return getFn(fn, "/").split(".")[0];
+    return getFn(fn, seperator).split(".")[0];
 };
+
+module.exports.sortFileNames = function (files) {
+    const fileIndexs =  files.map(e => getFnWithoutExtention(e));
+
+    if(fileIndexs.every(isOnlyDigit)){
+      files.sort((a, b) =>  {return parseInt(getFnWithoutExtention(a)) - parseInt(getFnWithoutExtention(b)) });
+    } else {
+      files.sort((a, b) => a.localeCompare(b));
+    }
+};
+
 
 const isPad = module.exports.isPad = function(){
     // https://stackoverflow.com/questions/9038625/detect-if-device-is-ios
