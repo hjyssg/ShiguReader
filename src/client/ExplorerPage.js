@@ -13,13 +13,24 @@ import Pagination from 'rc-pagination';
 import FileChangeToolbar from './subcomponent/FileChangeToolbar';
 import CenterSpinner from './subcomponent/CenterSpinner';
 const util = require("../util");
+const queryString = require('query-string');
 
 export default class ExplorerPage extends Component {
     constructor(prop) {
         super(prop);
-        this.state = { pageIndex: 1 };
+        this.state = { pageIndex: this.getInitPageIndex()};
         this.failedTimes = 0;
         this.perPage = util.getPerPageItemNumber();
+    }
+
+    getInitPageIndex(){
+        const parsed = queryString.parse(location.hash);
+        return parseInt(parsed.pageIndex) || 1;
+    }
+
+    handlePageChange(index){
+        this.setState({ pageIndex: index});
+        location.hash = queryString.stringify({pageIndex: index});
     }
 
     getHash() {
@@ -205,10 +216,6 @@ export default class ExplorerPage extends Component {
         } 
     }
 
-    handlePageChange(index){
-        this.setState({ pageIndex: index});
-    }
-    
     renderPagination(){
         if(this.getMode() === "home"){
             return;

@@ -16,7 +16,7 @@ import LoadingImage from './LoadingImage';
 const util = require("../util");
 import AudioPlayer from 'react-modular-audio-player';
 import screenfull from 'screenfull';
-
+const queryString = require('query-string');
 
 function getUrl(fn){
   return "../" + fn;
@@ -28,9 +28,18 @@ export default class OneBook extends Component {
     this.state = {
       files: [],
       musicFiles: [],
-      index: -1
+      index: this.getInitIndex()
     };
     this.failTimes = 0;
+  }
+
+  getInitIndex(){
+    const parsed = queryString.parse(location.hash);
+    return parseInt(parsed.index) || 0;
+  }
+
+  setIndex(index){
+    location.hash = queryString.stringify({index});
   }
 
   getHash(){
@@ -61,7 +70,7 @@ export default class OneBook extends Component {
         let musicFiles = res.musicFiles || [];
         musicFiles.sort((a, b) => a.localeCompare(b));
 
-        this.setState({ files, musicFiles, index: 0, path:res.path, fileStat: res.stat });
+        this.setState({ files, musicFiles, path:res.path, fileStat: res.stat });
         document.addEventListener('keydown', this.handleKeyDown.bind(this));
       }else{
         this.failTimes++;
@@ -98,6 +107,7 @@ export default class OneBook extends Component {
       return;
     }
     this.setState({ index });
+    this.setIndex(index);
   }
   
   next(event) {
