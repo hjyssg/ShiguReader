@@ -13,8 +13,12 @@ const execa = require('execa');
 const pfs = require('promise-fs');
 
 const isExist = async (path) => {
-    const error = await pfs.access(path);
-    return !error;
+    try{
+        const error = await pfs.access(path);
+        return !error;
+    }catch(e){
+        return false;
+    }
 };
 
 const root = path.join(__dirname, "..", "..", "..");
@@ -492,11 +496,29 @@ app.post('/api/firstImage', async (req, res) => {
 // http://localhost:8080/api/extract
 app.post('/api/extract', async (req, res) => {
     const hashFile = db.hashTable[(req.body && req.body.hash)];
-    const fileName = hashFile ||  req.body && req.body.fileName;
-    if (!fileName || !(await isExist(fileName))) {
+    let fileName = hashFile ||  req.body && req.body.fileName;
+    if (!fileName) {
         res.sendStatus(404);
         return;
     }
+
+    if(!(await isExist(fileName))){
+        //maybe the file move to other location
+        const baseName = path.basename(fileName);
+        //todo loop is slow
+        const isSomewhere = db.allFiles.some(e => {
+            if(e.endsWith(baseName)){
+                fileName = e;
+                return true;
+            }
+        });
+
+        if(!isSomewhere){
+            res.sendStatus(404);
+            return;
+        }
+    }
+    
 
     const stat = await pfs.stat(fileName);
 
