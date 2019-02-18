@@ -10,6 +10,12 @@ const util = require("../util");
 const stringHash = require("string-hash");
 const chokidar = require('chokidar');
 const execa = require('execa');
+const pfs = require('promise-fs');
+
+const isExist = async (path) => {
+    const error = await pfs.access(path);
+    return !error;
+};
 
 const root = path.join(__dirname, "..", "..", "..");
 const cache_folder_name = userConfig.cache_folder_name;
@@ -17,6 +23,7 @@ const cachePath = path.join(__dirname, "..", "..", cache_folder_name);
 
 const isImage = util.isImage;
 const isCompress = util.isCompress;
+const isMusic = util.isMusic;
 
 const pLimit = require('p-limit');
 const limit = pLimit(6);
@@ -61,7 +68,7 @@ function generateContentUrl(pathes, outputPath) {
         temp = cleanFileName(temp);
         if (isImage(p)) {
             files.push(temp);
-        }else if(util.isMusic(p)){
+        }else if(isMusic(p)){
             musicFiles.push(temp);
         }
     }
@@ -74,12 +81,6 @@ function getCache(outputPath) {
     if(db.cacheTable[outputPath] && db.cacheTable[outputPath].length > 0){
         return generateContentUrl(db.cacheTable[outputPath], outputPath);
     }
-
-    // this is slow
-    // if (fs.existsSync(outputPath)) {
-    //     const cacheFiles =  fs.readdirSync(outputPath);
-    //     return generateContentUrl(cacheFiles, outputPath);
-    // }
     return null;
 }
 
@@ -215,11 +216,12 @@ app.post('/api/deleteFile', (req, res) => {
     });
 });
 
-app.post('/api/lsDir', (req, res) => {
+
+app.post('/api/lsDir', async (req, res) => {
     const hashdir = db.hashTable[(req.body && req.body.hash)];
     const dir = hashdir|| req.body && req.body.dir;
 
-    if (!dir || !fs.existsSync(dir)) {
+    if (!dir || !(await isExist(dir))) {
         res.sendStatus(404);
         return;
     }
@@ -350,7 +352,8 @@ app.post("/api/tagFirstImagePath", (req, res) => {
     getFirstImageFromZip(chosendFileName, res);
 });
 
-function read7zOutput(data) {
+function read7zOutput(data, needLineNum) {
+    needLineNum = needLineNum || Infinity;
     const lines = data && data.split("\n");
     const BEG = 52; // by 7zip
     const files = [];
@@ -358,8 +361,11 @@ function read7zOutput(data) {
         let line = lines[ii];
         if (line && line.length > BEG) {
             line = line.slice(BEG, line.length - 1);
-            if (isImage(line) || isCompress(line)) {
+            if (isImage(line)) {
                 files.push(line.trim());
+                if(files.length > needLineNum){
+                    return files;
+                }
             }
         }
     }
@@ -389,6 +395,7 @@ async function getFirstImageFromZip(fileName, res, mode, counter) {
     }
 
     const stats = fs.statSync(fileName);
+    // const stats = fs.statSync(fileName);
     const fileSizeInBytes = stats["size"]
     //Convert the file size to megabytes (optional)
     const fileSizeInMegabytes = fileSizeInBytes / 1000000.0;
@@ -406,7 +413,8 @@ async function getFirstImageFromZip(fileName, res, mode, counter) {
                 return;
             }
 
-            const files = read7zOutput(text);
+            const files = read7zOutput(text, 10);
+            files.sort((a, b)=> a.localeCompare(b))
             const one = files[0];
 
             if (!one) {
@@ -471,9 +479,10 @@ app.get('/api/pregenerateThumbnails', (req, res) => {
 
 
 //! !need to set windows console to utf8
-app.post('/api/firstImage', (req, res) => {
+app.post('/api/firstImage', async (req, res) => {
     const fileName = req.body && req.body.fileName;
-    if (!fileName || !fs.existsSync(fileName)) {
+
+    if (!fileName || !(await isExist(fileName))) {
         res.sendStatus(404);
         return;
     }
@@ -481,15 +490,15 @@ app.post('/api/firstImage', (req, res) => {
 });
 
 // http://localhost:8080/api/extract
-app.post('/api/extract', (req, res) => {
+app.post('/api/extract', async (req, res) => {
     const hashFile = db.hashTable[(req.body && req.body.hash)];
     const fileName = hashFile ||  req.body && req.body.fileName;
-    if (!fileName || !fs.existsSync(fileName)) {
+    if (!fileName || !(await isExist(fileName))) {
         res.sendStatus(404);
         return;
     }
 
-    const stat = fs.statSync(fileName);
+    const stat = await pfs.stat(fileName);
 
     const outputPath = getOutputPath(fileName);
     const temp = getCache(outputPath);
@@ -517,5 +526,4 @@ app.post('/api/extract', (req, res) => {
         }
     })();
 });
-
 
