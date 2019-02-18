@@ -121,6 +121,8 @@ async function init() {
     }
     db.allFiles = arr || [];
 
+    console.log("There are",db.allFiles.length, "files");
+
     setUpFileWatch();
     app.listen(8080, () => console.log('Listening on port 8080!'));
     console.log("init done");
@@ -215,7 +217,7 @@ app.post('/api/deleteFile', (req, res) => {
             res.sendStatus(404);
         }else{
             res.sendStatus(200);
-            console.warn(src + 'was deleted');
+            console.warn(src + ' was deleted');
         }
     });
 });
@@ -296,7 +298,7 @@ app.get('/api/tag', (req, res) => {
     res.send({ tags, authors });
 });
 
-function searchByTagAndAuthor(tag, author, text, onlyNeedOne) {
+function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
     // let beg = (new Date).getTime()
     const files = [];
     for (let ii = 0; ii < db.allFiles.length; ii++) {
@@ -313,7 +315,7 @@ function searchByTagAndAuthor(tag, author, text, onlyNeedOne) {
             files.push(e);
         }
 
-        if (onlyNeedOne && files.length > 1) {
+        if (onlyNeedFew && files.length > 5) {
             break;
         }
     }
@@ -352,7 +354,18 @@ app.post("/api/tagFirstImagePath", (req, res) => {
 
     const { files } = searchByTagAndAuthor(tag, author, null, true);
     const filePathes = files;
-    const chosendFileName = filePathes.filter(isCompress)[0];  // need to improve
+    const fileNames = filePathes.filter(e => {
+        if(e.includes("アニメ")){
+            return false;
+        }
+        return isCompress(e);
+    });
+    chosendFileName = fileNames[0];
+    if(!chosendFileName){
+        res.sendStatus(404);
+        return;
+    }
+
     getFirstImageFromZip(chosendFileName, res);
 });
 
