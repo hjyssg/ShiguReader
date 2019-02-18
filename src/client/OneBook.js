@@ -17,6 +17,7 @@ const util = require("../util");
 import AudioPlayer from 'react-modular-audio-player';
 import screenfull from 'screenfull';
 const queryString = require('query-string');
+const isOnlyDigit = nameParser.isOnlyDigit;
 
 function getUrl(fn){
   return "../" + fn;
@@ -65,8 +66,19 @@ export default class OneBook extends Component {
       if (!res.failed) {
         this.loadedHash = this.getHash();
         let files = res.files || [];
-        files.sort((a, b) => a.localeCompare(b));
 
+        //files name can be 001.jpg, 002.jpg, 011.jpg, 012.jpg
+        //or 1.jpg, 2.jpg 3.jpg 1.jpg
+        //the sort is trigger
+
+        const fileIndexs =  files.map(e => util.getFnWithoutExtention(e));
+
+        if(fileIndexs.every(isOnlyDigit)){
+          files.sort((a, b) =>  {return parseInt(util.getFnWithoutExtention(a)) - parseInt(util.getFnWithoutExtention(b)) });
+        } else {
+          files.sort((a, b) => a.localeCompare(b));
+        }
+        
         let musicFiles = res.musicFiles || [];
         musicFiles.sort((a, b) => a.localeCompare(b));
 

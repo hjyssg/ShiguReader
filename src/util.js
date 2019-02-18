@@ -23,10 +23,15 @@ module.exports.getDir = function (fn) {
     return tokens.slice(0, tokens.length - 1).join('\\');
 };
 
-module.exports.getFn = function (fn, seperator) {
+const getFn = module.exports.getFn = function (fn, seperator) {
     if (!fn) { return ""; }
     const tokens = seperator? fn.split(seperator) : fn.split('\\');
     return tokens[tokens.length - 1];
+};
+
+module.exports.getFnWithoutExtention = function (fn) {
+    if (!fn) { return ""; }
+    return getFn(fn, "/").split(".")[0];
 };
 
 const isPad = module.exports.isPad = function(){

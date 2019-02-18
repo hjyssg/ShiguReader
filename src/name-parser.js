@@ -144,3 +144,4 @@ function parse(str) {
 }
 
 module.exports.parse = parse;
+module.exports.isOnlyDigit = isOnlyDigit;
