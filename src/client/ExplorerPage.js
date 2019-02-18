@@ -123,7 +123,7 @@ export default class ExplorerPage extends Component {
             if(!this.res){
                 return (<CenterSpinner />);
             }else{
-                return <center className="">Nothing Available</center>;
+                return <center className="one-book-nothing-available">Nothing Available</center>;
             }
         } 
         

@@ -215,6 +215,26 @@ export default class OneBook extends Component {
     return <button className="fas fa-arrows-alt fs-toggle-button" title="Toggle Full Screen" onClick={this.toggleFullScreen.bind(this)}/>
   }
 
+  renderTags(){
+    const result = nameParser.parse(_.getFn(this.state.path));
+    const author = result && result.author;
+    let tags = (result && result.tags)||[];
+    //temp
+    tags = author? tags.concat(author): tags;
+    
+    const tagDivs = tags.length > 0 && tags.map((tag)=>{
+      const tagHash = stringHash(tag);
+      const url = tag === author? ("/author/" + tagHash) : ("/tag/" + tagHash);
+      return (<div key={tag} className="one-book-foot-author" >
+                <Link to={url}  key={tag}>{tag}</Link>
+              </div>);
+    })
+
+    return (<div className="one-book-tags">
+            {tagDivs}
+          </div>);
+  }
+
   render() {
     if (this.isFailedLoading()) { 
       return <ErrorPage res={this.res.res}/>;
@@ -229,20 +249,7 @@ export default class OneBook extends Component {
       } 
     }
     
-    const result = nameParser.parse(_.getFn(this.state.path));
-    const author = result && result.author;
-    let tags = (result && result.tags)||[];
-    //temp
-    tags = author? tags.concat(author): tags;
     
-    const tagDivs = tags.length > 0 && tags.map((tag)=>{
-      const tagHash = stringHash(tag);
-      const url = tag === author? ("/author/" + tagHash) : ("/tag/" + tagHash);
-      return (<div key={tag} className="one-book-foot-author" >
-                <Link to={url}  key={tag}>{tag}</Link>
-              </div>);
-    })
-  
     if(this.state.path){
       document.title = _.getFn(this.state.path);
     }
@@ -260,9 +267,7 @@ export default class OneBook extends Component {
         <div className="one-book-title"> {this.renderPath()} {_.getFn(this.state.path)} </div>
         {this.renderPagination()}
         {this.renderFileSizeAndTime()}
-        <div className="one-book-tags">
-          {tagDivs}
-        </div>
+        {this.renderTags()}
         {this.renderToolbar()}
         {this.renderToggleFullScreenButton()} 
       </div>
