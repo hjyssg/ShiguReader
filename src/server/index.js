@@ -1,5 +1,4 @@
 const express = require('express');
-const os = require('os');
 const fs = require('fs');
 const path = require('path');
 const fileiterator = require('../file-iterator');
@@ -19,6 +18,14 @@ const isExist = async (path) => {
     }catch(e){
         return false;
     }
+};
+
+function sortFileNamesByMTime (files) {
+    //for 100+ files will run forever
+    const fs = require('fs');
+    files.sort(function(a, b) {
+        return fs.statSync(b).mtime.getTime() - fs.statSync(a).mtime.getTime();
+    })
 };
 
 const root = path.join(__dirname, "..", "..", "..");
@@ -249,10 +256,7 @@ app.post('/api/lsDir', async (req, res) => {
             db.hashTable[stringHash(p)] = p;
         }
 
-        //sort by modified time
-        files.sort(function(a, b) {
-            return fs.statSync(b).mtime.getTime() - fs.statSync(a).mtime.getTime();
-        })
+        sortFileNamesByMTime(files);
 
         const result = {dirs, files, path: dir}
         res.send(result);
@@ -319,6 +323,9 @@ function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
             break;
         }
     }
+
+    // !!not good
+    // sortFileNamesByMTime(files);
 
     // let end = (new Date).getTime();
     // console.log((end - beg)/1000, "to search");
