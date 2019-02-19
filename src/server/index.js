@@ -291,6 +291,7 @@ app.get('/api/tag', (req, res) => {
     const tags = {};
     const authors = {};
     db.allFiles.forEach((e) => {
+        e = path.basename(e);
         const result = nameParser.parse(e);
         if (result) {
             addOne(authors, result.author);
