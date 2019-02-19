@@ -1,4 +1,4 @@
-module.exports = [
+module.exports.same_tags = [
     ["艦これ","艦隊これくしょん", "艦隊これくしょん-艦これ-", "艦隊これくしょん -艦これ-","艦隊これくしょん -艦これ", "Kantai Collection -KanColle-", "Kantai Collection"],
     ["ラブライブ!","ラブライブ! School idol project","ラブライブ"],
     ["ラブライブ!サンシャイン!!", "ブライブ！ サンシャイン!!"],
@@ -8,3 +8,8 @@ module.exports = [
     ["アイドルマスター", "アイマス", "THE iDOLM@STER"],
 ];
 
+module.exports.not_author_but_tag = [
+    "同人音声",
+    "アンソロジー",
+    "DL版"
+]

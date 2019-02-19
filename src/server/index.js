@@ -406,9 +406,18 @@ async function getFirstImageFromZip(fileName, res, mode, counter) {
         res.sendFile(path.resolve(img));
     }
 
-    if (temp && temp.files[0] && isImage(temp.files[0])) {
-        sendImage(temp.files[0]);
-        return;
+    function chooseOneFile(files){
+        const tempFiles = files.filter(isImage);
+        util.sortFileNames(tempFiles);
+        return tempFiles[0];
+    }
+
+    if (temp && temp.files) {
+        const img = chooseOneFile(temp.files);
+        if(img){
+            sendImage(img);
+            return;
+        }
     }
 
     const stats = fs.statSync(fileName);
@@ -429,10 +438,9 @@ async function getFirstImageFromZip(fileName, res, mode, counter) {
                 res.send("404 fail");
                 return;
             }
-
+            
             const files = read7zOutput(text, 10);
-            util.sortFileNames(files);
-            const one = files[0];
+            const one = chooseOneFile(files);
 
             if (!one) {
                 console.error("[getFirstImageFromZip]", fileName,  "no files from output");
@@ -464,9 +472,10 @@ async function getFirstImageFromZip(fileName, res, mode, counter) {
                 if (!stderr) {
                     fs.readdir(outputPath, (error, results) => {
                         const temp = generateContentUrl(results, outputPath);
-                        if(temp.files[0]){
-                            sendImage(temp.files[0]);
-                        }else{
+                        const img = chooseOneFile(temp.files);
+                        if (img) {
+                            sendImage(img);
+                        } else {
                             res.sendStatus(404);
                         }
                     });
