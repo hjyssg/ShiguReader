@@ -39,6 +39,6 @@ function iterate (p, config, result, depth) {
             });
         }
     } catch (e) {
-        console.err(e);
+        console.error(e);
     }
 }
