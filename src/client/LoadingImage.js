@@ -55,9 +55,16 @@ export default class LoadingImage extends Component {
           },
           body: JSON.stringify(body)
         })
-        .then((res) => res.blob())
+        .then((res) => {
+          if(res.status === 200){
+            return res.blob();
+          }else{
+            this.setState({ failed: true }); 
+            return null;
+          }
+        })
         .then((res) => { 
-          if(!this.isUnmounted){
+          if(!this.isUnmounted && res){
             this.url = URL.createObjectURL(res);
             this.setState({ loaded: true }); 
           }

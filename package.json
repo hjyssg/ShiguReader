@@ -11,7 +11,7 @@
     "dev": "concurrently \"npm run server\" \"npm run client\"",
     "flow": "flow",
     "test": "mocha .\\src\\test",
-    "clean-cache": "node src\\cleanCache.js"
+    "clean-cache": "node src\\tools\\cleanCache.js"
   },
   "author": "Aji",
   "license": "",

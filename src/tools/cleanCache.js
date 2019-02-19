@@ -1,9 +1,9 @@
 const fs = require('fs');
 const path = require('path');
-const userConfig = require('./user-config');
+const userConfig = require('../user-config');
 const rimraf = require("./rimraf");
 const cache_folder_name = path.resolve(userConfig.cache_folder_name);
-const util = require("./util");
+const util = require("../util");
 
 let counter = 0;
 
@@ -21,7 +21,11 @@ function del(file){
             try{
                 fs.rmdirSync(file);
             }catch(e){
-                rimraf(file);
+                rimraf(file, (err) =>{
+                    if(err){
+                        console.error(err);
+                    }
+                });
             }
         }
 
@@ -41,12 +45,12 @@ folders1.forEach(p1 => {
     if (stat.isFile()) {
         //nothing
     }else if(stat.isDirectory()){
-        const subfiles = fs.readdirSync(p1);
+        let subfiles = fs.readdirSync(p1);
         const noimages = subfiles.filter(e => !util.isImage(e));
         noimages.forEach(e => del(path.resolve(p1,e)));
         
         subfiles = subfiles.filter(e => util.isImage(e));
-        subfiles.sort((a, b) => a.localeCompare(b));
+        util.sortFileNames(subfiles);
         if(subfiles.length > 3){
             for(let ii = 2; ii < subfiles.length; ii++){
                 del(path.resolve(p1, subfiles[ii]));
