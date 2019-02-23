@@ -28,6 +28,7 @@ module.exports.getDir = function (fn) {
     return tokens.slice(0, tokens.length - 1).join('\\');
 };
 
+// '\' is for browser path
 const getFn = module.exports.getFn = function (fn, seperator) {
     if (!fn) { return ""; }
     const tokens = seperator? fn.split(seperator) : fn.split('\\');
@@ -49,6 +50,13 @@ module.exports.sortFileNames = function (files) {
       files.sort((a, b) => a.localeCompare(b));
     }
 };
+
+module.exports.filterHiddenFile =function(files){
+    return files.filter(f => {
+        const temp = getFn(f, "/");
+        return temp && temp[0] !== ".";
+    })
+}
 
 const isPad = module.exports.isPad = function(){
     // https://stackoverflow.com/questions/9038625/detect-if-device-is-ios

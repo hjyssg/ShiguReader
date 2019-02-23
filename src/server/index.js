@@ -415,7 +415,8 @@ async function getFirstImageFromZip(fileName, res, mode, counter) {
     }
 
     function chooseOneFile(files){
-        const tempFiles = files.filter(isImage);
+        let tempFiles = files.filter(isImage);
+        tempFiles = util.filterHiddenFile(tempFiles);
         util.sortFileNames(tempFiles);
         return tempFiles[0];
     }
@@ -428,8 +429,8 @@ async function getFirstImageFromZip(fileName, res, mode, counter) {
         }
     }
 
-    const stats = fs.statSync(fileName);
-    // const stats = fs.statSync(fileName);
+    const stats = await pfs.stat(fileName);
+
     const fileSizeInBytes = stats["size"]
     //Convert the file size to megabytes (optional)
     const fileSizeInMegabytes = fileSizeInBytes / 1000000.0;
@@ -549,13 +550,17 @@ app.post('/api/extract', async (req, res) => {
         }
     }
     
-
     const stat = await pfs.stat(fileName);
+
+    function sendBack(files, dirs, musicFiles, path, stat){
+        const tempFiles =  util.filterHiddenFile(files);
+        res.send({ files: tempFiles, dirs, musicFiles,path, stat });
+    }
 
     const outputPath = getOutputPath(fileName);
     const temp = getCache(outputPath);
     if (temp && temp.files.length > 10) {
-        res.send({ files: temp.files, path: fileName, stat });
+        sendBack(temp.files, temp.dirs, temp.musicFiles, fileName, stat);
         return;
     }
 
@@ -566,7 +571,7 @@ app.post('/api/extract', async (req, res) => {
             if (!stderr) {
                 fs.readdir(outputPath, (error, results) => {
                     const temp = generateContentUrl(results, outputPath);
-                    res.send({ ...temp, path:fileName, stat });
+                    sendBack(temp.files, temp.dirs, temp.musicFiles, fileName, stat);
                 });
             } else {
                 res.sendStatus(404);

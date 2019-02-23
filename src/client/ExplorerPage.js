@@ -129,6 +129,14 @@ export default class ExplorerPage extends Component {
             dirs = this.dirs;
             files = this.getFilteredFiles();
         }
+
+        if(this.getMode() === "tag" || this.getMode() === "author" || this.getMode() === "search"){
+            files.sort((a, b) => {
+                const ap = util.getFn(a);
+                const bp = util.getFn(b);
+                return ap.localeCompare(bp);
+            });
+        }
         
         if (_.isEmpty(dirs) && _.isEmpty(files)) {
             if(!this.res){

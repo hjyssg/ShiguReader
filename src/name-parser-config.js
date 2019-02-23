@@ -12,5 +12,6 @@ module.exports.not_author_but_tag = [
     "同人音声",
     "アンソロジー",
     "DL版",
-    "よろず"
+    "よろず",
+    "成年コミック"
 ]

@@ -128,3 +128,10 @@ a {
   }
 }
 
+.rc-pagination-item{
+  min-width: 38px !important;
+
+  &.rc-pagination-item-active{
+    font-weight: 600;
+  }
+}
