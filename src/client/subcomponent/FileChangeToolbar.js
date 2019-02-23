@@ -31,11 +31,13 @@ export default class FileChangeToolbar extends Component {
                 Sender.simplePost("/api/deleteFile", {src: this.props.file}, res => {
                     if (!res.failed) {
                         spop({
+                            style: "success",
                             template: 'Delete ' + this.props.file + ' successfully',
                             position: 'bottom-center'
                         });
                     }else{
                         spop({
+                            style: "error",
                             template: 'Failed to delete',
                             position: 'bottom-center',
                             autoclose: 60000
@@ -57,14 +59,18 @@ export default class FileChangeToolbar extends Component {
                 cancelButtonText: 'No'
             }).then((result) => {
                 if (result.value === true) {
+                    const template = "<div><div>Moved<div><div>" + this.props.file +  "<div><div>to  " + path + "<div><div>Successfully<div> <div>";
+
                     Sender.simplePost("/api/moveFile", {src: this.props.file, dest: path}, res => {
                         if (!res.failed) {
                             spop({
-                                template: ['Moved', this.props.file, "to", path, 'Successfully'].join(" "),
+                                style: "success",
+                                template: template, // ['Moved', this.props.file, "to", path, 'Successfully'].join(" "),
                                 position: 'bottom-center'
                             });
                         }else{
                             spop({
+                                style: "error",
                                 template: 'Failed to Move',
                                 position: 'bottom-center',
                                 autoclose: 3000
