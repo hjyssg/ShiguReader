@@ -6,6 +6,7 @@ const _ = require("underscore");
 
 module.exports = function (folders, config) {
     const result = [];
+    config.visited = {};
     folders.forEach((src) => {
         const stat = fs.statSync(src);
         if (stat.isFile()) {
@@ -14,6 +15,7 @@ module.exports = function (folders, config) {
             iterate(src, config, result, 0);
         }
     });
+    delete config.visited;
     return result;
 };
 
@@ -25,6 +27,9 @@ function isLegalDepth(depth, config) {
 }
 
 function iterate (p, config, result, depth) {
+    if(config.visited[p]){
+        return;
+    }
     const stat = fs.statSync(p);
     try {
         if (stat.isFile()) {
@@ -40,5 +45,7 @@ function iterate (p, config, result, depth) {
         }
     } catch (e) {
         console.error(e);
+    } finally{
+        config.visited[p] = true;
     }
 }
