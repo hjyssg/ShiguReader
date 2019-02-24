@@ -69,6 +69,17 @@ export default class TagPage extends Component {
       keys.sort((a, b) => items[b] - items[a]);
     }
 
+    // if(this.props.mode === "tag"){
+      //pick comiket in first page
+
+    var filterText = this.props.filterText && this.props.filterText.toLowerCase();
+    if(filterText){
+      keys =  keys.filter(e => {
+            return e.toLowerCase().indexOf(filterText) > -1;
+      });
+      keys.sort((a, b) => a.localeCompare(b));
+    }
+
     keys = keys.slice((this.pageIndex-1) * this.perPage, this.pageIndex * this.perPage);
 
     const tagItems = keys.map((tag) => {
@@ -154,4 +165,5 @@ TagPage.propTypes = {
 
 TagPage.propTypes = {
   openDirFunc: PropTypes.func,
+  filterText: PropTypes.string
 };

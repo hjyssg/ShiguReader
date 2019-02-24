@@ -42,8 +42,8 @@ class App extends Component {
 
         const renderExplorer = (props) => { return (<ExplorerPage  {...props} filterText={this.filterText} cookies={cookies} />)};
 
-        const renderTagPage = (props) => { return (<TagPage mode="tag" {...props} cookies={cookies}/>)};
-        const renderAuthorPage = (props) => { return (<TagPage mode="author" {...props} cookies={cookies}/>)};                                                       
+        const renderTagPage = (props) => { return (<TagPage mode="tag" filterText={this.filterText} {...props} cookies={cookies}/>)};
+        const renderAuthorPage = (props) => { return (<TagPage mode="author" filterText={this.filterText} {...props} cookies={cookies}/>)};                                                       
 
         const result = (
         <Switch>
@@ -73,7 +73,9 @@ class App extends Component {
         }
 
         const isOneBook = window.location.pathname.includes("/onebook");
-        const isExplorer = window.location.pathname.includes("/explorer")
+        const isExplorer = window.location.pathname.includes("/explorer");
+        const isTag = window.location.pathname.includes("/tagPage");
+        const isAuthor = window.location.pathname.includes("/author");
 
         const topNav = !isOneBook && (
             <div className="topnav container">
@@ -85,7 +87,7 @@ class App extends Component {
                 <div className="search-bar">
                     <input className="search-input" type="text" placeholder="Search.."/>
                     <button  onClick={this.onSearchClick.bind(this)} title="Search"><i className="fa fa-search"></i></button>
-                    {isExplorer && <button  onClick={this.onFilterClick.bind(this)} title="Filter Files"><i className="fa fa-filter"></i></button>}
+                    {(isExplorer || isTag || isAuthor)  && <button  onClick={this.onFilterClick.bind(this)} title="Filter Files"><i className="fa fa-filter"></i></button>}
                 </div>
             </div>
         );
