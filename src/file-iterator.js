@@ -5,7 +5,7 @@ const fs = require("fs");
 const _ = require("underscore");
 
 module.exports = function (folders, config) {
-    const result = [];
+    const result = {pathes: [], infos: {} };
     config.visited = {};
     folders.forEach((src) => {
         const stat = fs.statSync(src);
@@ -31,12 +31,13 @@ function iterate (p, config, result, depth) {
         return;
     }
     const stat = fs.statSync(p);
+    result.infos[p] = stat;
     try {
         if (stat.isFile()) {
             if (config && config.filter && !config.filter(p)) {
                 return;
             }
-            result.push(p);
+            result.pathes.push(p);
         } else if (stat.isDirectory() && isLegalDepth(depth + 1, config)) {
             fs.readdirSync(p).forEach((e) => {
                 e = path.join(p, e);

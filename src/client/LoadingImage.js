@@ -79,12 +79,12 @@ export default class LoadingImage extends Component {
     const cn = "loading-image  " + className;
     let active = true;
     if (this.state.failed) {
-      content = (<img key={fileName} ref={e=>{this.dom = e && e.node}} className={cn} src={notAvailable} title={fileName}/>);
+      content = (<img key={fileName} ref={e=>{this.dom = e && e.node}} className={cn} src={notAvailable} title={title || fileName}/>);
     } else if (this.state.loaded === false) {
-      content = (<img key={fileName} className={cn} src={loading} title={fileName}/>);
+      content = (<img key={fileName} className={cn} src={loading} title={title || fileName}/>);
     } else if (this.url) {
       active = false;
-      content = (<img key={fileName} className={className} src={this.url} title={fileName}/>);
+      content = (<img key={fileName} className={className} src={this.url} title={title || fileName}/>);
     }
 
     return (

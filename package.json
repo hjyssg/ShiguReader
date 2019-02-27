@@ -24,6 +24,7 @@
     "dateformat": "^3.0.3",
     "execa": "^1.0.0",
     "express": "^4.16.3",
+    "filesize": "^4.1.2",
     "p-limit": "^2.1.0",
     "prop-types": "^15.6.2",
     "query-string": "^6.2.0",

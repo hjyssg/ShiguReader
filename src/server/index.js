@@ -43,6 +43,8 @@ const app = express();
 const db = {
     //a list of all files
     allFiles : [],
+    //file path to file stats
+    fileToInfo: {},
     //a list of cache files folder -> files
     cacheTable: {},
     //hash to file or dir path
@@ -110,14 +112,15 @@ async function init() {
 
     const filter = (e) => {return isCompress(e) || isImage(e);};
     let beg = (new Date).getTime()
-    const results = fileiterator(userConfig.home_pathes, { filter }).concat(userConfig.home_pathes);
+    const results = fileiterator(userConfig.home_pathes, { filter });
+    results.pathes = results.pathes.concat(userConfig.home_pathes);
     let end = (new Date).getTime();
     console.log((end - beg)/1000, "to read local dirs");
     console.log("Analyzing local files");
     
     const arr = [];
-    for (let i = 0; i < results.length; i++) {
-        const p = results[i];
+    for (let i = 0; i < results.pathes.length; i++) {
+        const p = results.pathes[i];
         const ext = path.extname(p).toLowerCase();
         if (!ext || isCompress(ext)) {
             arr.push(p);
@@ -127,6 +130,7 @@ async function init() {
         }
     }
     db.allFiles = arr || [];
+    db.fileToInfo = results.infos;
 
     console.log("There are",db.allFiles.length, "files");
 
@@ -142,11 +146,13 @@ function setUpFileWatch(){
         persistent: true
     });
 
-    const addCallBack = path => {
+    const addCallBack = (path, stats) => {
         db.allFiles.push(path);
 
         updateTagHash(path);
         db.hashTable[stringHash(path)] = path;
+
+        db.fileToInfo[path] = stats;
     };
 
     const deleteCallBack = path => {
@@ -242,23 +248,29 @@ app.post('/api/lsDir', async (req, res) => {
     fs.readdir(dir, (error, results) => {
         const files = [];
         const dirs = [];
+        const infos = {};
         for (let i = 0; results && i < results.length; i++) {
             let p = results[i];
             const ext = path.extname(p).toLowerCase();
-            if (!ext) {
-                dirs.push(path.join(dir, p));
+            p = path.join(dir, p);
+            const tempInfo = db.fileToInfo[p];
+
+            if (tempInfo && tempInfo.isDirectory()) {
+            // if(!ext){
+                dirs.push(p);
+                infos[p] = tempInfo;
             } else if (isImage(ext) || isCompress(ext)) {
-                files.push(path.join(dir, p));
+                files.push(p);
+                infos[p] = tempInfo;
             }
 
             updateTagHash(p);
-            p = path.join(dir, p);
             db.hashTable[stringHash(p)] = p;
         }
 
         sortFileNamesByMTime(files);
 
-        const result = {dirs, files, path: dir}
+        const result = {dirs, files, path: dir, fileInfos: infos}
         res.send(result);
     });
 });
@@ -306,18 +318,20 @@ app.get('/api/tag', (req, res) => {
 function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
     // let beg = (new Date).getTime()
     const files = [];
+    const fileInfos = {};
     for (let ii = 0; ii < db.allFiles.length; ii++) {
         const e = db.allFiles[ii];
+        const info = db.fileToInfo[e];
         const result = (author || tag) && nameParser.parse(e);
         if (result && author &&  result.author === author) {
             files.push(e);
-        }
-        if (result && tag && result.tags.indexOf(tag) > -1) {
+            fileInfos[e] = info;
+        } else if (result && tag && result.tags.indexOf(tag) > -1) {
             files.push(e);
-        }
-
-        if (text && e.indexOf(text) > -1) {
+            fileInfos[e] = info;
+        }else if (text && e.indexOf(text) > -1) {
             files.push(e);
+            fileInfos[e] = info;
         }
 
         if (onlyNeedFew && files.length > 5) {
@@ -330,7 +344,7 @@ function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
 
     // let end = (new Date).getTime();
     // console.log((end - beg)/1000, "to search");
-    return { files, tag, author };
+    return { files, tag, author, fileInfos };
 }
 
 // tree para

@@ -122,18 +122,19 @@ export default class FileChangeToolbar extends Component {
     // }
 
     render(){
-        const {file, className, showDirectChange} = this.props;
+        const {file, className, header} = this.props;
         const cn = classNames("file-change-tool-bar", className);
 
         return (
             <div className={cn} >
-                <div className="explorer-delete-cmd fas fa-trash-alt"
+                {header && <span className="file-change-tool-bar-header">{header}</span>}
+                <div className="fas fa-trash-alt"
                                 title="Copy Del"
                                 onClick={this.handleDelete.bind(this)}></div>
-                <div className="explorer-delete-cmd fas fa-check"
+                <div className="fas fa-check"
                                 title={"Move to " + userConfig.good_folder}
                                 onClick={this.handleClose.bind(this, userConfig.good_folder)}></div>
-                <div className="explorer-delete-cmd fas fa-times"
+                <div className="fas fa-times"
                                 title={"Move to " + userConfig.not_good_folder}
                                 onClick={this.handleClose.bind(this, userConfig.not_good_folder)}></div>
             </div>
@@ -142,5 +143,6 @@ export default class FileChangeToolbar extends Component {
 }
 
 FileChangeToolbar.propTypes = {
-    file: PropTypes.string
+    file: PropTypes.string,
+    header: PropTypes.any
 };

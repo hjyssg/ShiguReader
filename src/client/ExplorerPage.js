@@ -13,6 +13,7 @@ import Pagination from 'rc-pagination';
 import FileChangeToolbar from './subcomponent/FileChangeToolbar';
 import CenterSpinner from './subcomponent/CenterSpinner';
 const util = require("../util");
+const filesizeUitl = require('filesize');
 const queryString = require('query-string');
 
 export default class ExplorerPage extends Component {
@@ -76,7 +77,7 @@ export default class ExplorerPage extends Component {
     handleRes(res){
         if (!res.failed) {
             this.loadedHash = this.getHash();
-            let {dirs, files, path, tag, author} = res;
+            let {dirs, files, path, tag, author, fileInfos} = res;
             this.loadedHash = this.getHash();
             files = files.filter(_.isCompress)
             this.files = files || [];
@@ -84,6 +85,7 @@ export default class ExplorerPage extends Component {
             this.path = path || "";
             this.tag = tag || "";
             this.author = author || "";
+            this.fileInfos = fileInfos || {};
         }else{
             this.failedTimes++;
         }
@@ -160,18 +162,24 @@ export default class ExplorerPage extends Component {
         //! !todo if the file is already an image file
         files = files.slice((this.state.pageIndex-1) * this.perPage, (this.state.pageIndex) * this.perPage);
 
-      
+        //better tooltip to show file size 
+        //and tag
         const zipfileItems = files.map((item) => {
             const text = _.getFn(item);
             const pathHash = stringHash(item);
             const toUrl =  '/onebook/' + pathHash;
+
+            //todo
+            const stats = this.fileInfos[item];
+            const fileSize = stats && filesizeUitl(stats.size, {base: 2});
+            
             return (<div key={item} className={"col-sm-6 col-md-4 col-lg-3 file-out-cell"}>
                         <div className="file-cell">
                             <Link to={toUrl}  key={item} className={"file-cell-inner"}>
                                 <center className={"file-cell-title"} title={text}>{text}</center>
                                 <LoadingImage className={"file-cell-thumbnail"} title={text} fileName={item} />
                             </Link>
-                            <FileChangeToolbar file={item} />
+                            <FileChangeToolbar header={fileSize} file={item} />
                         </div>
                     </div>);
         });
