@@ -6,13 +6,13 @@ import PropTypes from 'prop-types';
 import Sender from './Sender';
 import './style/TagPage.scss';
 import { Link } from 'react-router-dom';
-import stringHash from "string-hash";
 import ErrorPage from './ErrorPage';
 import CenterSpinner from './subcomponent/CenterSpinner';
 import Pagination from 'rc-pagination';
 import { Redirect } from 'react-router-dom';
 
 const util = require("../util");
+const stringHash = util.stringHash;;
 
 export default class TagPage extends Component {
   constructor(prop) {

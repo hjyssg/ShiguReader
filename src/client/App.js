@@ -6,15 +6,10 @@ import ExplorerPage from "./ExplorerPage";
 import OneBook from "./OneBook";
 import TagPage from "./TagPage";
 import { Switch, Route, Link, Redirect } from 'react-router-dom';
-import Cookies from 'universal-cookie';
-import stringHash from "string-hash";
-
-const userConfig = require('../user-config');
 
 import _ from "underscore";
 const util = require("../util");
 util.attach(_);
-
 
 // http://localhost:3000/
 class App extends Component {
@@ -22,8 +17,6 @@ class App extends Component {
     constructor(props) {
         super(props);
         this.state = {};
-        this.cookies = new Cookies();
-        userConfig.home_pathes.forEach(e => this.cookies.set(stringHash(e) , e)); 
     }
 
     onSearchClick(event) {
@@ -37,13 +30,12 @@ class App extends Component {
     }
     
     RenderSubComponent() {
-        const cookies = this.cookies;
-        const renderOneBook = (props) => { return (<OneBook {...props} cookies={cookies}/>)};
+        const renderOneBook = (props) => { return (<OneBook {...props}/>)};
 
-        const renderExplorer = (props) => { return (<ExplorerPage  {...props} filterText={this.filterText} cookies={cookies} />)};
+        const renderExplorer = (props) => { return (<ExplorerPage  {...props} filterText={this.filterText}  />)};
 
-        const renderTagPage = (props) => { return (<TagPage mode="tag" filterText={this.filterText} {...props} cookies={cookies}/>)};
-        const renderAuthorPage = (props) => { return (<TagPage mode="author" filterText={this.filterText} {...props} cookies={cookies}/>)};                                                       
+        const renderTagPage = (props) => { return (<TagPage mode="tag" filterText={this.filterText} {...props}/>)};
+        const renderAuthorPage = (props) => { return (<TagPage mode="author" filterText={this.filterText} {...props}/>)};                                                       
 
         const result = (
         <Switch>

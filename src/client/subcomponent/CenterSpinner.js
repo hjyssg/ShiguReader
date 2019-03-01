@@ -10,11 +10,13 @@ export default class CenterSpinner extends Component {
         <div className="loading-container">
             <div className="loading-inner">
               {<Spinner />}
-              { "Loading..."}
+              <div className="title">{this.props.text}</div>
+              <div>is Loading</div>
             </div>
         </div>)
      }
 }
 
 CenterSpinner.propTypes = { 
+  text: PropTypes.string
 };

@@ -1,9 +1,7 @@
 import React, { Component } from 'react';
 import _ from 'underscore';
-import PropTypes from 'prop-types';
 const nameParser = require('../name-parser');
 import { Link } from 'react-router-dom';
-import stringHash from "string-hash";
 import Sender from './Sender';
 import './style/OneBook.scss';
 import ErrorPage from './ErrorPage';
@@ -18,6 +16,7 @@ import AudioPlayer from 'react-modular-audio-player';
 import screenfull from 'screenfull';
 const queryString = require('query-string');
 const isOnlyDigit = nameParser.isOnlyDigit;
+const stringHash = util.stringHash;
 
 function getUrl(fn){
   return "../" + fn;
@@ -261,7 +260,9 @@ export default class OneBook extends Component {
       if(this.res && !this.refs.failed){
         return <h3><center>no content files</center></h3>;
       } else {
-        return (<CenterSpinner />);
+        const hash = this.getHash();
+        const text = window.localStorage && window.localStorage.getItem(hash);
+        return (<CenterSpinner text={text}/>);
       } 
     }
     

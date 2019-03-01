@@ -6,7 +6,7 @@ import PropTypes from 'prop-types';
 import LoadingImage from './LoadingImage';
 import Sender from './Sender';
 import { Link } from 'react-router-dom';
-import stringHash from "string-hash";
+
 const userConfig = require('../user-config');
 import ErrorPage from './ErrorPage';
 import Pagination from 'rc-pagination';
@@ -15,6 +15,7 @@ import CenterSpinner from './subcomponent/CenterSpinner';
 const util = require("../util");
 const filesizeUitl = require('filesize');
 const queryString = require('query-string');
+const stringHash = util.stringHash;;
 
 export default class ExplorerPage extends Component {
     constructor(prop) {
@@ -79,7 +80,8 @@ export default class ExplorerPage extends Component {
             this.loadedHash = this.getHash();
             let {dirs, files, path, tag, author, fileInfos} = res;
             this.loadedHash = this.getHash();
-            files = files.filter(_.isCompress)
+            files = files || [];
+            files = files.filter(util.isCompress)
             this.files = files || [];
             this.dirs = dirs || [];
             this.path = path || "";
@@ -142,7 +144,9 @@ export default class ExplorerPage extends Component {
         
         if (_.isEmpty(dirs) && _.isEmpty(files)) {
             if(!this.res){
-                return (<CenterSpinner />);
+                const hash = this.getHash();
+                const text = window.localStorage && window.localStorage.getItem(hash);
+                return (<CenterSpinner text={text}/>);
             }else{
                 return <center className="one-book-nothing-available">Nothing Available</center>;
             }

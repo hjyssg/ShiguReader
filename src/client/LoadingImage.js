@@ -1,9 +1,7 @@
 import React, { Component } from 'react';
-import _ from "underscore";
 import PropTypes from 'prop-types';
 import loading from './images/loading.png';
 import notAvailable from './images/not-available.png';
-import Sender from './Sender';
 const VisibilitySensor = require('react-visibility-sensor').default;
 
 export default class LoadingImage extends Component {

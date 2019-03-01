@@ -47,10 +47,8 @@ const db = {
     fileToInfo: {},
     //a list of cache files folder -> files
     cacheTable: {},
-    //hash to file or dir path
+    //hash to any string
     hashTable: {},
-    //hash to tag or author
-    tagHashTable: {}
 };
 
 app.use(express.static('dist'));
@@ -279,11 +277,11 @@ function updateTagHash(str){
     const result = nameParser.parse(str);
     if(result){
         result.tags.forEach(tag => {
-            db.tagHashTable[stringHash(tag)] = tag;
+            db.hashTable[stringHash(tag)] = tag;
         });
 
         if(result.author){
-            db.tagHashTable[stringHash(result.author)] = result.author;
+            db.hashTable[stringHash(result.author)] = result.author;
         }
     }
 }
@@ -353,7 +351,7 @@ function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
 // 3. text
 app.post("/api/search", (req, res) => {
     const mode = req.body && req.body.mode;
-    const hashTag =  db.tagHashTable[(req.body && req.body.hash)];
+    const hashTag =  db.hashTable[(req.body && req.body.hash)];
     const tag =  mode === "tag" && hashTag;
     const author =  mode === "author" && hashTag;
     const text = mode === "search" && req.body && req.body.text;

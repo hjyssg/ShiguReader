@@ -71,6 +71,14 @@ module.exports.getPerPageItemNumber = function() {
     }
 }
 
+module.exports.stringHash = function (str) {
+    const stringHash = require("string-hash");
+    const  result = stringHash(str);
+    window.localStorage && window.localStorage.setItem(result, str)
+    return result;
+};
+
+
 module.exports.attach = function (obj) {
     obj.isImage = module.exports.isImage;
     obj.isCompress = module.exports.isCompress;
@@ -80,5 +88,6 @@ module.exports.attach = function (obj) {
     obj.getFn = module.exports.getFn;
     obj.isPad = module.exports.isPad;
     obj.getPerPageItemNumber = module.exports.getPerPageItemNumber;
+    obj.stringHash = module.exports.stringHash;
 }
 
