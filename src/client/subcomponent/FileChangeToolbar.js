@@ -4,12 +4,14 @@ const spop  = require("./spop");
 const userConfig = require('../../user-config');
 import PropTypes from 'prop-types';
 var classNames = require('classnames');
-// import Menu from '@material-ui/core/Menu';
-// import MenuItem from '@material-ui/core/MenuItem';
 import Swal from 'sweetalert2';
 import Sender from '../Sender';
 
 export default class FileChangeToolbar extends Component {
+    static defaultProps = {
+        popPosition: "bottom-center"
+    }
+
     state = {
         anchorEl: null,
     };
@@ -33,13 +35,13 @@ export default class FileChangeToolbar extends Component {
                         spop({
                             style: "success",
                             template: 'Delete ' + this.props.file + ' successfully',
-                            position: 'bottom-center'
+                            position:  this.props.popPosition
                         });
                     }else{
                         spop({
                             style: "error",
                             template: 'Failed to delete',
-                            position: 'bottom-center',
+                            position:  this.props.popPosition,
                             autoclose: 60000
                         });
                     }
@@ -66,13 +68,13 @@ export default class FileChangeToolbar extends Component {
                             spop({
                                 style: "success",
                                 template: template, // ['Moved', this.props.file, "to", path, 'Successfully'].join(" "),
-                                position: 'bottom-center'
+                                position:  this.props.popPosition
                             });
                         }else{
                             spop({
                                 style: "error",
                                 template: 'Failed to Move',
-                                position: 'bottom-center',
+                                position:  this.props.popPosition,
                                 autoclose: 3000
                             });
                         }
@@ -144,5 +146,6 @@ export default class FileChangeToolbar extends Component {
 
 FileChangeToolbar.propTypes = {
     file: PropTypes.string,
-    header: PropTypes.any
+    header: PropTypes.any,
+    popPosition: PropTypes.string
 };

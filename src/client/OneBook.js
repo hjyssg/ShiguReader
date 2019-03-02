@@ -200,7 +200,7 @@ export default class OneBook extends Component {
     if (!this.state.path) {
       return;
     }
-    const toolbar = !_.isPad() && <FileChangeToolbar className="one-book-toolbar" file={this.state.path}/>;
+    const toolbar = !_.isPad() && <FileChangeToolbar className="one-book-toolbar" file={this.state.path} popPosition={"top-center"}/>;
     return toolbar;
   }
 
@@ -264,7 +264,7 @@ export default class OneBook extends Component {
       } else {
         const hash = this.getHash();
         const text = window.localStorage && window.localStorage.getItem(hash);
-        return (<CenterSpinner text={text}/>);
+        return (<CenterSpinner text={text} splitFilePath/>);
       } 
     }
     

@@ -131,7 +131,8 @@ $use-icon:                  true;
     }
 }
 
-.spop--bottom-center{
+.spop--top-center,
+.spop--bottom-center {
     .spop {
         width: 40rem;
     }    
@@ -190,7 +191,7 @@ $use-icon:                  true;
     width: 32px;
     padding-top: 7px;
     padding-right: 7px;
-    font-size: 22px;
+    font-size: 35px;
     font-weight: bold;
     text-align: right;
     line-height: 0.6;
