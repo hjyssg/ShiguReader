@@ -179,7 +179,7 @@ export default class ExplorerPage extends Component {
             
             return (<div key={item} className={"col-sm-6 col-md-4 col-lg-3 file-out-cell"}>
                         <div className="file-cell">
-                            <Link to={toUrl}  key={item} className={"file-cell-inner"}>
+                            <Link  target="_blank" to={toUrl}  key={item} className={"file-cell-inner"}>
                                 <center className={"file-cell-title"} title={text}>{text}</center>
                                 <LoadingImage className={"file-cell-thumbnail"} title={item} fileName={item} />
                             </Link>
@@ -254,7 +254,7 @@ export default class ExplorerPage extends Component {
             const link = "https://exhentai.org/?f_search=" + searchable;
             const title = "Search '"  + searchable +  "' in Exhentai";
             return (<center className={"location-title"}>
-                        <a className="explorer-external-link" href={link} title={title}>{this.getTitle()} </a>
+                        <a className="explorer-external-link" target="_blank" href={link} title={title}>{this.getTitle()} </a>
                     </center>);
         } 
     }

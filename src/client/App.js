@@ -5,6 +5,7 @@ import './style/rc-pagination.scss';
 import ExplorerPage from "./ExplorerPage";
 import OneBook from "./OneBook";
 import TagPage from "./TagPage";
+import ChartPage from "./ChartPage";
 import { Switch, Route, Link, Redirect } from 'react-router-dom';
 
 import _ from "underscore";
@@ -35,7 +36,9 @@ class App extends Component {
         const renderExplorer = (props) => { return (<ExplorerPage  {...props} filterText={this.filterText}  />)};
 
         const renderTagPage = (props) => { return (<TagPage mode="tag" filterText={this.filterText} {...props}/>)};
-        const renderAuthorPage = (props) => { return (<TagPage mode="author" filterText={this.filterText} {...props}/>)};                                                       
+        const renderAuthorPage = (props) => { return (<TagPage mode="author" filterText={this.filterText} {...props}/>)}; 
+        
+        const renderChartPage = (props) =>  { return (<ChartPage {...props}/>)}; 
 
         const result = (
         <Switch>
@@ -48,6 +51,8 @@ class App extends Component {
             <Route path='/onebook/:number' render={renderOneBook}/>
             <Route path='/tagPage/:index' render={renderTagPage}/>
             <Route path='/authorPage/:index' render={renderAuthorPage}/>
+
+            <Route path='/chart' render={renderChartPage}/>
         </Switch>
         );
         return result;
@@ -75,6 +80,7 @@ class App extends Component {
                 <Link to='/'><i className="fas fa-home">Home</i></Link>
                 <Link to='/authorPage/1'><i className="fas fa-pen">Authors</i></Link>
                 <Link to='/tagPage/1'><i className="fas fa-tags">Tags</i></Link>
+                <Link to='/chart'><i className="fas fa-chart-bar">Chart</i></Link>
                 </div>
                 <div className="search-bar">
                     <input className="search-input" type="text" placeholder="Search.."/>

@@ -89,7 +89,7 @@ export default class TagPage extends Component {
 
       return  (<div key={tag} className="col-sm-6 col-md-4 col-lg-3 tag-page-list-item">
                     <div className={"tag-cell"}>
-                      <Link className="tag-page-list-item-link" to={url}  key={tag}>
+                      <Link target="_blank" className="tag-page-list-item-link" to={url}  key={tag}>
                         <center>{itemText}</center>
                         <LoadingImage className="tag-page-thumbnail" fileName={tag} mode={this.props.mode} />
                       </Link>

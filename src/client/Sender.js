@@ -4,7 +4,7 @@ import 'whatwg-fetch';
 const Sender = {};
 
 _.resHandle = function (res) {
-    if (res.status === 200) {
+    if (res.status === 200 || res.status === 304) {
         return res.json();
     }
     console.error('[failed]', res.status, res.statusText);

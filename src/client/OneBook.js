@@ -1,6 +1,9 @@
 import React, { Component } from 'react';
 import _ from 'underscore';
 const nameParser = require('../name-parser');
+const classNames = require('classnames');
+const dateFormat = require('dateformat');
+
 import { Link } from 'react-router-dom';
 import Sender from './Sender';
 import './style/OneBook.scss';
@@ -8,15 +11,14 @@ import ErrorPage from './ErrorPage';
 import CenterSpinner from './subcomponent/CenterSpinner';
 const spop  = require("./subcomponent/spop");
 import FileChangeToolbar from './subcomponent/FileChangeToolbar';
-var classNames = require('classnames');
-var dateFormat = require('dateformat');
 import LoadingImage from './LoadingImage';
-const util = require("../util");
 import AudioPlayer from 'react-modular-audio-player';
+
+const util = require("../util");
 import screenfull from 'screenfull';
 const queryString = require('query-string');
-const isOnlyDigit = nameParser.isOnlyDigit;
 const stringHash = util.stringHash;
+const filesizeUitl = require('filesize');
 
 function getUrl(fn){
   return "../" + fn;
@@ -144,7 +146,7 @@ export default class OneBook extends Component {
 
   renderFileSizeAndTime(){
     if (this.state.fileStat) {
-      const size = Math.ceil(this.state.fileStat.size/ 1000000.0) + "MB";
+      const size = filesizeUitl(this.state.fileStat.size, {base: 2});
       const mTime = dateFormat(this.state.fileStat.mtime, "isoDate");
       const { files, index } = this.state;
       const title = util.getFn(files[index], "/" );
@@ -241,7 +243,7 @@ export default class OneBook extends Component {
       const tagHash = stringHash(tag);
       const url = tag === author? ("/author/" + tagHash) : ("/tag/" + tagHash);
       return (<div key={tag} className="one-book-foot-author" >
-                <Link to={url}  key={tag}>{tag}</Link>
+                <Link  target="_blank" to={url}  key={tag}>{tag}</Link>
               </div>);
     })
 

@@ -6,6 +6,11 @@ const convertTable = {};
 
 const localCache = {};
 
+const comiketTags = [];
+for(let index = 65; index < 99; index++){
+    comiketTags.push(`C${index}`);
+}
+
 same_tags.forEach(row => {
     for(let ii = 1; ii < row.length; ii++){
         convertTable[row[ii]] = row[0];
@@ -142,8 +147,15 @@ function parse(str) {
         author = null;
     }
 
+    let comiket = null;
+    tags.forEach(e => {
+        if(comiketTags.includes(e)){
+            comiket = e;
+        }
+    })
+
     const result = {
-        author, tags
+        author, tags, comiket
     };
 
     localCache[str] = result;
@@ -152,3 +164,4 @@ function parse(str) {
 
 module.exports.parse = parse;
 module.exports.isOnlyDigit = isOnlyDigit;
+module.exports.comiketTags = comiketTags;

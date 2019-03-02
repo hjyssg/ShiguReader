@@ -238,6 +238,21 @@ app.post('/api/deleteFile', (req, res) => {
     });
 });
 
+app.post('/api/allInfo', (req, res) => {
+    const tempfileToInfo = {};
+    db.allFiles.forEach(e => {
+        if(util.isCompress(e)){
+            tempfileToInfo[e] = {
+                size: db.fileToInfo[e].size,
+                mtime:  db.fileToInfo[e].mtime
+            };
+        }
+    })
+
+    res.send({
+        fileToInfo: tempfileToInfo
+    }); 
+});
 
 app.post('/api/lsDir', async (req, res) => {
     const hashdir = db.hashTable[(req.body && req.body.hash)];
