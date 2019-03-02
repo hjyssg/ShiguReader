@@ -7,8 +7,13 @@ const convertTable = {};
 const localCache = {};
 
 const comiketTags = [];
-for(let index = 65; index < 99; index++){
+for(let index = 65; index < 97; index++){
     comiketTags.push(`C${index}`);
+}
+
+comiketTags.push("COMIC1");
+for(let index = 2; index < 16; index++){
+    comiketTags.push(`COMIC1☆${index}`);
 }
 
 same_tags.forEach(row => {

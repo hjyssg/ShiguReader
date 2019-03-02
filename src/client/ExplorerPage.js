@@ -23,6 +23,7 @@ export default class ExplorerPage extends Component {
         this.state = { pageIndex: this.getInitPageIndex()};
         this.failedTimes = 0;
         this.perPage = util.getPerPageItemNumber();
+        this.files = [];
     }
 
     getInitPageIndex(){
@@ -116,11 +117,11 @@ export default class ExplorerPage extends Component {
     getFilteredFiles(){
         var filterText = this.props.filterText && this.props.filterText.toLowerCase();
         if(filterText){
-            return (this.files||[]).filter(e => {
+            return this.files.filter(e => {
                 return e.toLowerCase().indexOf(filterText) > -1;
             });
         }else{
-            return (this.files||[]);
+            return this.files;
         }
     }
 
@@ -217,7 +218,8 @@ export default class ExplorerPage extends Component {
                 let item = pathes.slice(0, ii+1).join("\\");
                 if(ii === pathes.length -1){
                     //last one not link
-                    pathList.push(<div key={item} className={"breadcrumb-item current"}>{pathes[ii]}</div>);
+                    pathList.push(<div key={item} className={"breadcrumb-item current"}>{pathes[ii]} </div>);
+                    pathList.push(<span className="file-count">{`${this.files.length} files`} </span>)
                 }else{
                     const pathHash = stringHash(item);
                     const toUrl =('/explorer/'+ pathHash);
