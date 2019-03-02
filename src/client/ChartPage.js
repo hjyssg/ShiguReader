@@ -89,6 +89,8 @@ export default class ChartPage extends Component {
             // }
           };
 
+        //add big tag
+
         return (
             <div className="individual-chart-container">
               <Bar
