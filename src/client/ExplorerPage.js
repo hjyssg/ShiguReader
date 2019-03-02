@@ -181,7 +181,7 @@ export default class ExplorerPage extends Component {
                         <div className="file-cell">
                             <Link to={toUrl}  key={item} className={"file-cell-inner"}>
                                 <center className={"file-cell-title"} title={text}>{text}</center>
-                                <LoadingImage className={"file-cell-thumbnail"} title={text} fileName={item} />
+                                <LoadingImage className={"file-cell-thumbnail"} title={item} fileName={item} />
                             </Link>
                             <FileChangeToolbar header={fileSize} file={item} />
                         </div>
@@ -206,6 +206,29 @@ export default class ExplorerPage extends Component {
         return this.res && this.res.failed;
     }
 
+    getBreadcrumb(){
+        const mode = this.getMode();
+        if(mode === "explorer" && this.path){
+            // return "At " + this.path;
+            const pathes = this.path.split("\\");
+            const pathList = [];
+            //https://www.w3schools.com/howto/howto_css_breadcrumbs.asp
+            for(let ii =0; ii < pathes.length; ii++){
+                let item = pathes.slice(0, ii+1).join("\\");
+                if(ii === pathes.length -1){
+                    //last one not link
+                    pathList.push(<div key={item} className={"breadcrumb-item current"}>{pathes[ii]}</div>);
+                }else{
+                    const pathHash = stringHash(item);
+                    const toUrl =('/explorer/'+ pathHash);
+                    pathList.push(<Link to={toUrl}  key={item} className={"breadcrumb-item"}>{pathes[ii]}</Link>);
+                }
+            }
+
+            return   (<div className="container"><ul className="explorer-breadcrumb">{pathList}</ul></div>);
+        }
+    }
+
     getTitle(){
         const mode = this.getMode();
         const fn = " (" + (this.files||[]).length + ")";
@@ -216,8 +239,6 @@ export default class ExplorerPage extends Component {
             return "Tag: " + this.tag + fn;
         } else if(this.author && mode === "author") {
             return "Author: " + this.author + fn;
-        } else if(mode === "explorer" && this.path){
-            return "At " + this.path;
         } else if(mode === "search"){
             return "Search Result: " + this.getHash() + fn;
         }
@@ -232,7 +253,9 @@ export default class ExplorerPage extends Component {
         if(searchable){
             const link = "https://exhentai.org/?f_search=" + searchable;
             const title = "Search '"  + searchable +  "' in Exhentai";
-            return <a className="explorer-external-link" href={link} title={title}>{this.getTitle()} </a>;
+            return (<center className={"location-title"}>
+                        <a className="explorer-external-link" href={link} title={title}>{this.getTitle()} </a>
+                    </center>);
         } 
     }
 
@@ -268,7 +291,8 @@ export default class ExplorerPage extends Component {
         }
 
         return (<div className={"explorer-container-out " + this.getMode()} >
-            <center className={"location-title"}>{this.getLinkToEhentai()}</center>
+            {this.getLinkToEhentai()}
+            {this.getBreadcrumb()}
             {this.renderFileList()}
             {this.renderPagination()}
             </div>

@@ -203,12 +203,17 @@ app.post('/api/moveFile', (req, res) => {
     }
 
     (async () =>{
-        const {stdout, stderr} = await execa("move", [src, dest]);
-        if(!stderr){
-            console.log("move", src, dest, "successfully");
-            res.sendStatus(200);
-        }else{
-            console.error(stderr);
+        try{
+            const {stdout, stderr} = await execa("move", [src, dest]);
+            if(!stderr){
+                console.log("move", src, dest, "successfully");
+                res.sendStatus(200);
+            }else{
+                console.error(stderr);
+                res.sendStatus(404);
+            }
+        }catch(e){
+            console.error(e);
             res.sendStatus(404);
         }
     })();
