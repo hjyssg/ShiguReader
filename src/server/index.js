@@ -24,9 +24,8 @@ const isExist = async (path) => {
 
 function sortFileNamesByMTime (files) {
     //for 100+ files will run forever
-    const fs = require('fs');
     files.sort(function(a, b) {
-        return fs.statSync(b).mtime.getTime() - fs.statSync(a).mtime.getTime();
+        return db.fileToInfo[b].mtime.getTime() - db.fileToInfo[a].mtime.getTime();
     })
 };
 
@@ -272,40 +271,59 @@ app.post('/api/allInfo', (req, res) => {
 app.post('/api/lsDir', async (req, res) => {
     const hashdir = db.hashTable[(req.body && req.body.hash)];
     const dir = hashdir|| req.body && req.body.dir;
+    const isRecursive = req.body && req.body.isRecursive;
 
     if (!dir || !(await isExist(dir))) {
         res.sendStatus(404);
         return;
     }
-
-    fs.readdir(dir, (error, results) => {
+    
+    if(isRecursive){
         const files = [];
         const dirs = [];
         const infos = {};
-        for (let i = 0; results && i < results.length; i++) {
-            let p = results[i];
-            const ext = path.extname(p).toLowerCase();
-            p = path.join(dir, p);
-            const tempInfo = db.fileToInfo[p];
-
-            if (tempInfo && tempInfo.isDirectory()) {
-            // if(!ext){
-                dirs.push(p);
-                infos[p] = tempInfo;
-            } else if (isImage(ext) || isCompress(ext)) {
-                files.push(p);
-                infos[p] = tempInfo;
+        db.allFiles.forEach(p => {
+            if(p && p.startsWith(dir)){
+                const ext = path.extname(p).toLowerCase();
+                if (isImage(ext) || isCompress(ext)){
+                    files.push(p);
+                    infos[p] = db.fileToInfo[p];
+                }
             }
-
-            updateTagHash(p);
-            db.hashTable[stringHash(p)] = p;
-        }
-
-        sortFileNamesByMTime(files);
+        })
 
         const result = {dirs, files, path: dir, fileInfos: infos}
         res.send(result);
-    });
+    }else{
+        fs.readdir(dir, (error, results) => {
+            const files = [];
+            const dirs = [];
+            const infos = {};
+    
+            for (let i = 0; results && i < results.length; i++) {
+                let p = results[i];
+                const ext = path.extname(p).toLowerCase();
+                p = path.join(dir, p);
+                const tempInfo = db.fileToInfo[p];
+    
+                if (tempInfo && tempInfo.isDirectory()) {
+                    dirs.push(p);
+                    infos[p] = tempInfo;
+                } else if (isImage(ext) || isCompress(ext)) {
+                    files.push(p);
+                    infos[p] = tempInfo;
+                }
+    
+                updateTagHash(p);
+                db.hashTable[stringHash(p)] = p;
+            }
+    
+            sortFileNamesByMTime(files);
+    
+            const result = {dirs, files, path: dir, fileInfos: infos}
+            res.send(result);
+        });
+    }
 });
 
 function updateTagHash(str){

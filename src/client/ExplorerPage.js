@@ -20,7 +20,7 @@ const stringHash = util.stringHash;;
 export default class ExplorerPage extends Component {
     constructor(prop) {
         super(prop);
-        this.state = { pageIndex: this.getInitPageIndex()};
+        this.state = { pageIndex: this.getInitPageIndex(), isRecursive: false};
         this.failedTimes = 0;
         this.perPage = util.getPerPageItemNumber();
         this.files = [];
@@ -109,7 +109,7 @@ export default class ExplorerPage extends Component {
     }
     
     requestLsDir() {
-        Sender.lsDir({ hash: this.getHash() }, res => {
+        Sender.lsDir({ hash: this.getHash(), isRecursive: this.state.isRecursive }, res => {
             this.handleRes(res);
         });
     }
@@ -207,7 +207,17 @@ export default class ExplorerPage extends Component {
         return this.res && this.res.failed;
     }
 
-    getBreadcrumb(){
+    toggleRecursively(){
+        this.setState({
+            pageIndex: 1,
+            isRecursive: !this.state.isRecursive
+        }, ()=>{
+            this.failedTimes = 0;
+            this.requestLsDir();
+        })
+    }
+
+    getExplorerToolbar(){
         const mode = this.getMode();
         if(mode === "explorer" && this.path){
             // return "At " + this.path;
@@ -219,7 +229,6 @@ export default class ExplorerPage extends Component {
                 if(ii === pathes.length -1){
                     //last one not link
                     pathList.push(<div key={item} className={"breadcrumb-item current"}>{pathes[ii]} </div>);
-                    pathList.push(<span className="file-count">{`${this.files.length} files`} </span>)
                 }else{
                     const pathHash = stringHash(item);
                     const toUrl =('/explorer/'+ pathHash);
@@ -227,7 +236,15 @@ export default class ExplorerPage extends Component {
                 }
             }
 
-            return   (<div className="container"><ul className="explorer-breadcrumb">{pathList}</ul></div>);
+            const text = this.state.isRecursive? "Show only one level" : "Show Recursively";
+            const right = (
+                <div className="float-right">
+                    <span key="recursive-button" className="recursive-button fas fa-glasses" onClick={this.toggleRecursively.bind(this)}> {text} </span>
+                    <span key="file-count" className="file-count">{`${this.files.length} files`} </span>
+                </div>);
+
+
+            return   (<div className="container"><ul className="explorer-breadcrumb">{pathList}{right}</ul></div>);
         }
     }
 
@@ -294,7 +311,7 @@ export default class ExplorerPage extends Component {
 
         return (<div className={"explorer-container-out " + this.getMode()} >
             {this.getLinkToEhentai()}
-            {this.getBreadcrumb()}
+            {this.getExplorerToolbar()}
             {this.renderFileList()}
             {this.renderPagination()}
             </div>

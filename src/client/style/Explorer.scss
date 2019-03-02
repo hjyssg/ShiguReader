@@ -125,8 +125,22 @@
     text-decoration: underline;
   }
 
-  .file-count{
+  .float-right{
     float: right;
     color: gray;
+
+    .recursive-button{
+      margin-left: 60px;
+      cursor: pointer;
+      color: gray;
+      
+      &:hover{
+        color: #34353b;
+      }
+    }
+  
+    .file-count{
+      margin-left: 20px;
+    }
   }
 }
