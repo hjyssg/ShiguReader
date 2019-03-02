@@ -10,6 +10,8 @@ const stringHash = require("string-hash");
 const chokidar = require('chokidar');
 const execa = require('execa');
 const pfs = require('promise-fs');
+const dateFormat = require('dateformat');
+const winston = require("winston");
 
 const isExist = async (path) => {
     try{
@@ -31,6 +33,19 @@ function sortFileNamesByMTime (files) {
 const root = path.join(__dirname, "..", "..", "..");
 const cache_folder_name = userConfig.cache_folder_name;
 const cachePath = path.join(__dirname, "..", "..", cache_folder_name);
+let logPath = path.join(__dirname, "..", "..", "log");
+logPath = path.join(logPath, dateFormat(new Date(), "isoDate"))+ ".log";
+
+const logger = winston.createLogger({
+    transports: [
+      new winston.transports.Console(),
+      new winston.transports.File({ 
+        filename: logPath, 
+        formatter: function(params) {
+            return params.message ? params.message : "";
+        }})
+    ]
+  });
 
 const isImage = util.isImage;
 const isCompress = util.isCompress;
@@ -206,7 +221,7 @@ app.post('/api/moveFile', (req, res) => {
         try{
             const {stdout, stderr} = await execa("move", [src, dest]);
             if(!stderr){
-                console.log("move", src, dest, "successfully");
+                logger.info(`[MOVE] ${src} to ${dest}`);
                 res.sendStatus(200);
             }else{
                 console.error(stderr);
@@ -233,7 +248,7 @@ app.post('/api/deleteFile', (req, res) => {
             res.sendStatus(404);
         }else{
             res.sendStatus(200);
-            console.warn(src + ' was deleted');
+            logger.info(`[DELETE] ${src}`);
         }
     });
 });
