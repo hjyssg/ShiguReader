@@ -87,6 +87,7 @@ const NEED_GROUP = false;
 const _TYPES_ = [
     "同人音声",
     "成年コミック",
+    "一般コミック",
     "同人CG集",
     "ゲームCG",
     "画集"

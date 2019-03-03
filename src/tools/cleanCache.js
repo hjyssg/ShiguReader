@@ -13,21 +13,20 @@ function isSubDirectory(parent, child) {
 
 function del(file){
     if(isSubDirectory(cache_folder_name, file)){
-        const stat = fs.statSync(file);
-        if(stat.isFile()){
-            fs.unlinkSync(file);
-        } else {
-            //!!todo not empty folder
-            try{
-                fs.rmdirSync(file);
-            }catch(e){
-                rimraf(file, (err) =>{
-                    if(err){
-                        console.error(err);
+        rimraf(file, (err) =>{
+            if(err){
+                try{
+                    const stat = fs.statSync(file);
+                    if(stat.isFile()){
+                        fs.unlinkSync(file);
+                    } else {
+                        fs.rmdirSync(file);
                     }
-                });
+                }catch(e){
+                    console.error(file, e);
+                }
             }
-        }
+        });
 
         counter++;
         if(counter % 20 === 0){
@@ -44,6 +43,7 @@ folders1.forEach(p1 => {
     const stat = fs.statSync(p1);
     if (stat.isFile()) {
         //nothing
+        del(p1);
     }else if(stat.isDirectory()){
         let subfiles = fs.readdirSync(p1);
         const noimages = subfiles.filter(e => !util.isImage(e));
@@ -51,12 +51,14 @@ folders1.forEach(p1 => {
         
         subfiles = subfiles.filter(e => util.isImage(e));
         util.sortFileNames(subfiles);
-        if(subfiles.length > 3){
-            for(let ii = 2; ii < subfiles.length; ii++){
+        if (subfiles.length === 0){
+            del(p1);
+        }else  if(subfiles.length === 1){
+            //nothing
+        }else if(subfiles.length >= 2){
+            for(let ii = 1; ii < subfiles.length; ii++){
                 del(path.resolve(p1, subfiles[ii]));
             }
-        } else if (subfiles.length === 0){
-            del(p1);
         }
     }
 });
