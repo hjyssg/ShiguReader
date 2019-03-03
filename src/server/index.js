@@ -1,7 +1,7 @@
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
-const fileiterator = require('../file-iterator');
+const fileiterator = require('./file-iterator');
 const nameParser = require('../name-parser');
 const userConfig = require('../user-config');
 const sevenZip = require('../7zip')['7z'];
@@ -127,7 +127,7 @@ async function init() {
     const results = fileiterator(userConfig.home_pathes, { filter });
     results.pathes = results.pathes.concat(userConfig.home_pathes);
     let end = (new Date).getTime();
-    console.log((end - beg)/1000, "to read local dirs");
+    console.log(`${(end - beg)/1000}s  to read local dirs`);
     console.log("Analyzing local files");
     
     const arr = [];
@@ -292,6 +292,8 @@ app.post('/api/lsDir', async (req, res) => {
             }
         })
 
+        sortFileNamesByMTime(files);
+
         const result = {dirs, files, path: dir, fileInfos: infos}
         res.send(result);
     }else{
@@ -380,7 +382,7 @@ function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
         } else if (result && tag && result.tags.indexOf(tag) > -1) {
             files.push(e);
             fileInfos[e] = info;
-        }else if (text && e.indexOf(text) > -1) {
+        }else if (text && e.toLowerCase().indexOf(text.toLowerCase()) > -1) {
             files.push(e);
             fileInfos[e] = info;
         }

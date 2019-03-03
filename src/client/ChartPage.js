@@ -8,7 +8,7 @@ const nameParser = require('../name-parser');
 const filesizeUitl = require('filesize');
 import CenterSpinner from './subcomponent/CenterSpinner';
 import ErrorPage from './ErrorPage';
-import {Bar} from 'react-chartjs-2';
+import {Bar, Pie} from 'react-chartjs-2';
 
 export default class ChartPage extends Component {
     constructor(prop) {
@@ -103,6 +103,44 @@ export default class ChartPage extends Component {
           );
     }
 
+    renderPieChart(){
+        const byType = {}; //doujin -> 300. 
+        this.files.forEach(e => {
+            const result = nameParser.parse(util.getFn(e));
+            if(result &&  result.type){
+                const type = result.type;
+                byType[type] = byType[type] || 0;
+                byType[type]++;
+            }
+        });
+
+        const data = {};
+        data.labels = _.keys(byType);
+        const value = _.values(byType);
+
+        data.datasets = [{
+            type: 'pie',
+            label: 'by type',
+            backgroundColor: ["#69d2e7","#a7dbd8","#e0e4cc","#f38630","#fa6900", "#fe4365","#fc9d9a","#f9cdad","#c8c8a9","#83af9b"],
+            data:  value
+          }];
+
+          return (
+            <div className="individual-chart-container">
+              <Pie
+                className="type-pie-chart"
+                data={data}
+                width={500}
+                height={500}
+                options={{
+                    maintainAspectRatio: false
+                }}
+              />
+            </div>
+          );
+
+    }
+
     getTotalSize(){
         let total = 0;
         let num = 0;
@@ -128,6 +166,7 @@ export default class ChartPage extends Component {
                 <div className="chart-container container">
                     <div className="total-info"> {this.getTotalSize()} </div>
                     {this.renderComiketChart()}
+                    {this.renderPieChart()}
                 </div>)
         }
     }

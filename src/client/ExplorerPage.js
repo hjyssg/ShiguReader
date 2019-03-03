@@ -89,11 +89,21 @@ export default class ExplorerPage extends Component {
             this.tag = tag || "";
             this.author = author || "";
             this.fileInfos = fileInfos || {};
+            this.res = res;
+
+            //check pageindex
+            const fileNum = this.getFilteredFiles().length;
+            if(this.state.pageIndex * this.perPage > fileNum){
+                //this will set state
+                this.handlePageChange(1);
+            }else{
+                this.forceUpdate();
+            }
         }else{
+            this.res = res;
             this.failedTimes++;
+            this.forceUpdate();
         }
-        this.res = res;
-        this.forceUpdate();
     }
 
     requestTextSearch(mode) {
@@ -240,7 +250,7 @@ export default class ExplorerPage extends Component {
             const right = (
                 <div className="float-right">
                     <span key="recursive-button" className="recursive-button fas fa-glasses" onClick={this.toggleRecursively.bind(this)}> {text} </span>
-                    <span key="file-count" className="file-count">{`${this.files.length} files`} </span>
+                    <span key="file-count" className="file-count">{`${this.getFilteredFiles().length} files`} </span>
                 </div>);
 
 
