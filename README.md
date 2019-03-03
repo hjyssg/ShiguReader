@@ -40,9 +40,11 @@ npm run clean-cache
 windows语言设置要参考unicode setting.png  
 user-config.js修改用户文件设置  
 
-##### 提前生成thumbnail
-http://localhost:8080/api/pregenerateThumbnails  
-30分钟大约生成10,000个thumbnail
+##### 热键
+漫画页面
+enter 全屏
+左右方向翻页
+
 
 ##### 联系方式
 qq 398355565

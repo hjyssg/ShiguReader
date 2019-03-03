@@ -80,15 +80,27 @@ a {
       float: left;
       display: inline-flex;
 
+      .pregenerate-all,
       a {
         display: block;
-        color: black;
         text-align: center;
         padding: 14px 16px;
         text-decoration: none;
         font-size: 17px;
       }
-  
+
+      .pregenerate-all{
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+      }
+      
+      .pregenerate-all:hover{
+        background-color: rgb(221, 221, 221);
+        color: midnightblue;
+      }
+
+
       a:hover {
         background-color: rgb(221, 221, 221);
         i{

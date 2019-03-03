@@ -464,6 +464,13 @@ function read7zOutput(data, needLineNum) {
     return files;
 }
 
+function chooseOneFile(files){
+    let tempFiles = files.filter(isImage);
+    tempFiles = util.filterHiddenFile(tempFiles);
+    util.sortFileNames(tempFiles);
+    return tempFiles[0];
+}
+
 async function getFirstImageFromZip(fileName, res, mode, counter) {
     const outputPath = getOutputPath(fileName);
     const temp = getCache(outputPath);
@@ -479,13 +486,6 @@ async function getFirstImageFromZip(fileName, res, mode, counter) {
         ext = ext.slice(1);
         res.setHeader('Content-Type', 'image/' + ext );
         res.sendFile(path.resolve(img));
-    }
-
-    function chooseOneFile(files){
-        let tempFiles = files.filter(isImage);
-        tempFiles = util.filterHiddenFile(tempFiles);
-        util.sortFileNames(tempFiles);
-        return tempFiles[0];
     }
 
     if (temp && temp.files) {
