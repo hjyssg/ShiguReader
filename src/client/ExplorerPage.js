@@ -20,20 +20,33 @@ const stringHash = util.stringHash;;
 export default class ExplorerPage extends Component {
     constructor(prop) {
         super(prop);
-        this.state = { pageIndex: this.getInitPageIndex(), isRecursive: false};
+        this.state = this.getInitState();
         this.failedTimes = 0;
         this.perPage = util.getPerPageItemNumber();
         this.files = [];
     }
 
-    getInitPageIndex(){
+    getInitState(){
         const parsed = queryString.parse(location.hash);
-        return parseInt(parsed.pageIndex) || 1;
+        const pageIndex = parseInt(parsed.pageIndex) || 1;
+        const isRecursive = !!(parsed.isRecursive === "true");
+
+        return {
+            pageIndex,
+            isRecursive
+        }
+    }
+
+    setStateAndSetHash(state, callback){
+        const obj = Object.assign({}, this.state, state);
+        //merge
+        location.hash = queryString.stringify(obj);
+        this.setState(state, callback);
     }
 
     handlePageChange(index){
-        this.setState({ pageIndex: index});
-        location.hash = queryString.stringify({pageIndex: index});
+        this.setStateAndSetHash({ pageIndex: index});
+        // location.hash = queryString.stringify({pageIndex: index});
     }
 
     getHash() {
@@ -218,7 +231,7 @@ export default class ExplorerPage extends Component {
     }
 
     toggleRecursively(){
-        this.setState({
+        this.setStateAndSetHash({
             pageIndex: 1,
             isRecursive: !this.state.isRecursive
         }, ()=>{
