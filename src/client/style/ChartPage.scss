@@ -1,9 +1,15 @@
 .chart-container{
+    background: antiquewhite;;
+
     .total-info{
-        color : #DDDDDD;
+        padding-top: 10px;
+        color : black;
     }
 
     .individual-chart-container{
-        background-color : antiquewhite;
+        // background-color : antiquewhite;
+        margin-top: 10px;
+        border-top: 1px gray solid;
+        padding-top: 10px;
     }
 }

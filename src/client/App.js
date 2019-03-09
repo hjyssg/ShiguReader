@@ -113,7 +113,7 @@ class App extends Component {
         const isAuthor = window.location.pathname.includes("/author");
 
         const topNav = !isOneBook && (
-            <div className="topnav container">
+            <div className="app-top-topnav container">
                 <div className="links">
                     <Link to='/'><i className="fas fa-home">Home</i></Link>
                     <Link to='/authorPage/1'><i className="fas fa-pen">Authors</i></Link>

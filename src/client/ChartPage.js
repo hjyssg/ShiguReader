@@ -79,6 +79,9 @@ export default class ChartPage extends Component {
 
         const opt = {
             maintainAspectRatio: false,
+            legend: {
+                position: "right"
+            }
             // scales: {
             //   xAxes: [{
             //     stacked: true
@@ -121,7 +124,7 @@ export default class ChartPage extends Component {
         data.datasets = [{
             type: 'pie',
             label: 'by type',
-            backgroundColor: ["#69d2e7","#a7dbd8","#e0e4cc","#f38630","#fa6900", "#fe4365","#fc9d9a","#f9cdad","#c8c8a9","#83af9b"],
+            backgroundColor: ["aqua", "blue", "orange", "yellow","green", "lime", "pink"],
             data:  value
           }];
 
@@ -130,10 +133,13 @@ export default class ChartPage extends Component {
               <Pie
                 className="type-pie-chart"
                 data={data}
-                width={500}
-                height={500}
+                width={300}
+                height={300}
                 options={{
-                    maintainAspectRatio: false
+                    maintainAspectRatio: false,
+                    legend: {
+                        position: "right"
+                    }
                 }}
               />
             </div>
@@ -150,7 +156,10 @@ export default class ChartPage extends Component {
                 num++;
             }
         })
-        return  `${num} files: ${filesizeUitl(total, {base: 2})}`
+        return (<div className="total-info"> 
+                     <div>{`There are ${num} files`}</div>
+                     <div>{`Total: ${filesizeUitl(total, {base: 2})}`}</div>
+                </div>)
     }
 
     render(){
@@ -164,7 +173,7 @@ export default class ChartPage extends Component {
             
             return (
                 <div className="chart-container container">
-                    <div className="total-info"> {this.getTotalSize()} </div>
+                    {this.getTotalSize()}
                     {this.renderComiketChart()}
                     {this.renderPieChart()}
                 </div>)
