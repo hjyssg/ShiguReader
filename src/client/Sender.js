@@ -20,7 +20,12 @@ Sender.simplePost = function (api, body, callback) {
         },
         body: JSON.stringify(body)
     })
-    .then(callback);
+    .then(res => {
+        if(!(res.status === 200 || res.status === 304)){
+            res.failed = true;
+        }
+        callback(res);
+    });
 };
 
 Sender.post = function (api, body, callback) {
