@@ -1,0 +1,30 @@
+.file-change-tool-bar {
+  padding-top: 5px;
+  padding-left: 5px;
+  padding-right: 5px;
+  color: #DDDDDD;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+
+  .fas{
+    margin-left: 5px;
+    cursor: pointer;
+  }
+
+  .fas:hover{
+    color: orangered !important;
+  }
+
+  .fa-arrow-right{
+    background: transparent;
+    border: 0px;
+    padding: 0px;
+  } 
+
+  .file-change-tool-bar-header{
+    line-height: 16px;
+    font-size: 16px;
+  }
+}

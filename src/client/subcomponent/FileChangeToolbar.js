@@ -6,6 +6,7 @@ import PropTypes from 'prop-types';
 var classNames = require('classnames');
 import Swal from 'sweetalert2';
 import Sender from '../Sender';
+import '../style/FileChangeToolbar.scss';
 
 export default class FileChangeToolbar extends Component {
     static defaultProps = {
