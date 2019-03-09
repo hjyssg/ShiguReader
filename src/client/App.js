@@ -13,6 +13,7 @@ import Swal from 'sweetalert2';
 import _ from "underscore";
 const util = require("../util");
 util.attach(_);
+import screenfull from 'screenfull';
 
 // http://localhost:3000/
 class App extends Component {
@@ -21,6 +22,21 @@ class App extends Component {
         super(props);
         this.state = {};
     }
+
+    componentDidMount(){
+        document.addEventListener('keydown', this.handleKeyDown.bind(this));
+    }
+
+    componentWillUnmount() {
+        document.removeEventListener("keydown", this.handleKeyDown.bind(this));
+    }
+
+    handleKeyDown(event) {
+        const key = event.key.toLowerCase();
+         if(key === "enter"){
+            screenfull.toggle();
+        }
+      }
 
     onPrenerate(){
         if(!this.isOnPrenerate){

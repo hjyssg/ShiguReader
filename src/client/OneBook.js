@@ -15,10 +15,12 @@ import LoadingImage from './LoadingImage';
 import AudioPlayer from 'react-modular-audio-player';
 
 const util = require("../util");
-import screenfull from 'screenfull';
+
 const queryString = require('query-string');
 const stringHash = util.stringHash;
 const filesizeUitl = require('filesize');
+import screenfull from 'screenfull';
+
 
 function getUrl(fn){
   return "../" + fn;
@@ -96,8 +98,6 @@ export default class OneBook extends Component {
       this.changePage(this.state.index + 1);
     } else if (key === "arrowleft" || key === "a" || key === "j") {
       this.changePage(this.state.index - 1);
-    }else if(key === "enter"){
-      this.toggleFullScreen();
     }
   }
   
@@ -224,13 +224,9 @@ export default class OneBook extends Component {
     }
   }
 
-  toggleFullScreen(){
-    screenfull.toggle();
-  }
-
-  renderToggleFullScreenButton(){
-    return <button className="fas fa-arrows-alt fs-toggle-button" title="Toggle Full Screen" onClick={this.toggleFullScreen.bind(this)}/>
-  }
+  // renderToggleFullScreenButton(){
+  //   return <button className="fas fa-arrows-alt fs-toggle-button" title="Toggle Full Screen" onClick={this.toggleFullScreen.bind(this)}/>
+  // }
 
   renderTags(){
     const result = nameParser.parse(_.getFn(this.state.path));
@@ -288,7 +284,7 @@ export default class OneBook extends Component {
         {this.renderFileSizeAndTime()}
         {this.renderTags()}
         {this.renderToolbar()}
-        {this.renderToggleFullScreenButton()} 
+        {/* {this.renderToggleFullScreenButton()}  */}
       </div>
     );
   }
