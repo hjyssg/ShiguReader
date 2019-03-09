@@ -8,7 +8,7 @@ const nameParser = require('../name-parser');
 const filesizeUitl = require('filesize');
 import CenterSpinner from './subcomponent/CenterSpinner';
 import ErrorPage from './ErrorPage';
-import {Bar, Pie} from 'react-chartjs-2';
+import {Bar, Pie, Line} from 'react-chartjs-2';
 
 export default class ChartPage extends Component {
     constructor(prop) {
@@ -106,6 +106,48 @@ export default class ChartPage extends Component {
           );
     }
 
+    rendeTimeChart(){
+        const byTime = {}; //time -> 300. 
+        this.files.forEach(e => {
+            const fileInfo = this.fileToInfo[e];
+            const t  = new Date(fileInfo.mtime);
+            const tLabel = t.getFullYear();
+            byTime[tLabel] = byTime[tLabel] || 0;
+            byTime[tLabel]++;
+        });
+
+        const data = {};
+        data.labels = _.keys(byTime);
+        const value = _.values(byTime);
+
+        data.datasets = [{
+            type: 'line',
+            label: 'by year',
+            backgroundColor: "orange",
+            fill: false,
+            showLine: true,
+            tension: 0,
+            data:  value
+          }];
+
+          return (
+            <div className="individual-chart-container">
+              <Line
+                className="type-time-chart"
+                data={data}
+                width={800}
+                height={200}
+                options={{
+                    maintainAspectRatio: false,
+                    legend: {
+                        position: "right"
+                    }
+                }}
+              />
+            </div>
+          );
+    }
+
     renderPieChart(){
         const byType = {}; //doujin -> 300. 
         this.files.forEach(e => {
@@ -174,6 +216,7 @@ export default class ChartPage extends Component {
             return (
                 <div className="chart-container container">
                     {this.getTotalSize()}
+                    {this.rendeTimeChart()}
                     {this.renderComiketChart()}
                     {this.renderPieChart()}
                 </div>)
