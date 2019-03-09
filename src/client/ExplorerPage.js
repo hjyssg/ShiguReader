@@ -39,14 +39,12 @@ export default class ExplorerPage extends Component {
 
     setStateAndSetHash(state, callback){
         const obj = Object.assign({}, this.state, state);
-        //merge
         location.hash = queryString.stringify(obj);
         this.setState(state, callback);
     }
 
     handlePageChange(index){
         this.setStateAndSetHash({ pageIndex: index});
-        // location.hash = queryString.stringify({pageIndex: index});
     }
 
     getHash() {
@@ -105,8 +103,9 @@ export default class ExplorerPage extends Component {
             this.res = res;
 
             //check pageindex
-            const fileNum = this.getFilteredFiles().length;
-            if(this.state.pageIndex * this.perPage > fileNum){
+            const availableFiles = this.getFileInPage(this.getFilteredFiles());
+
+            if(availableFiles.length === 0){
                 //this will set state
                 this.handlePageChange(1);
             }else{
@@ -146,6 +145,10 @@ export default class ExplorerPage extends Component {
         }else{
             return this.files;
         }
+    }
+
+    getFileInPage(files){
+        return files.slice((this.state.pageIndex-1) * this.perPage, (this.state.pageIndex) * this.perPage);
     }
 
     renderFileList() {
@@ -188,7 +191,7 @@ export default class ExplorerPage extends Component {
             return  <Link to={toUrl}  key={item}>{result}</Link>;
         });
         //! !todo if the file is already an image file
-        files = files.slice((this.state.pageIndex-1) * this.perPage, (this.state.pageIndex) * this.perPage);
+        files = this.getFileInPage(files);
 
         //better tooltip to show file size 
         //and tag
@@ -310,10 +313,23 @@ export default class ExplorerPage extends Component {
           return;
         }
     
+        const that =this;
         return (<Pagination current={this.state.pageIndex}  
                             pageSize={this.perPage}
                             total={fileLength} 
-                            onChange={this.handlePageChange.bind(this)} />);
+                            itemRender={(item, type) =>{
+                                if(type === "page"){
+                                    let hash =  that.getHash();
+                                    const obj = Object.assign({}, this.state);
+                                    obj.pageIndex = item;
+                                    hash += "#" + queryString.stringify(obj);
+                                    return  <Link to={hash}  >{item}</Link>;
+                                }else if(type === "prev" || type === "next"){
+                                    return <a className="rc-pagination-item-link" />
+                                }
+                            }}
+                            onChange={this.handlePageChange.bind(this)} 
+                            />);
     }
 
     setWebTitle(){

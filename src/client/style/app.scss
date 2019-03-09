@@ -156,6 +156,12 @@ a {
 .rc-pagination-item{
   min-width: 38px !important;
 
+  a {
+    display: block;
+    width: 100%;
+    height: 100%;;
+  }
+
   &.rc-pagination-item-active{
     font-weight: 600;
   }

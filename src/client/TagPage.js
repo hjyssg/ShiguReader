@@ -130,6 +130,16 @@ export default class TagPage extends Component {
     return (<Pagination current={this.pageIndex}  
                         pageSize={this.perPage}
                         total={this.getItemLength()} 
+                        itemRender={(item, type) =>{
+                          if(type === "page"){
+                              let url = location.pathname.split("/");
+                              url[2] = item;
+                              url = url.join("/");
+                              return  <Link to={url}  >{item}</Link>;
+                          }else if(type === "prev" || type === "next"){
+                              return <a className="rc-pagination-item-link" />
+                          }
+                        }}
                         onChange={this.handlePageChange.bind(this)} />);
   }
 
