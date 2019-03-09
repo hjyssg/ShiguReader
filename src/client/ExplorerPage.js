@@ -68,6 +68,12 @@ export default class ExplorerPage extends Component {
         }
     }
 
+    componentWillReceiveProps(nextProps){
+        if(nextProps.filterText){
+            this.handlePageChange(1);
+        }
+    }
+
     componentDidMount() {
         const hash = this.getHash();
         if (hash && this.loadedHash !== hash && this.failedTimes < 3) {
