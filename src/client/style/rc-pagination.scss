@@ -303,3 +303,39 @@
 }
 
 /*# sourceMappingURL=rc-pagination.css.map*/
+
+
+// below done by aji47
+
+.rc-pagination-prev,
+.rc-pagination-next {
+  color: white;
+
+  .rc-pagination-item-link{
+    color: #f1f1f1;
+    font-size: 20px;
+    font-weight: 500;
+  }
+}
+
+.rc-pagination-prev,
+.rc-pagination-next,
+.rc-pagination-item {
+  border-radius: 0px;
+  margin-right: 4px;
+  border: 1px solid #000000;
+  background: #34353b;
+}
+
+.rc-pagination-item {
+  a {
+    color: #f1f1f1;
+    font-size: 14px;
+    font-weight: 500;
+  }
+}
+
+.rc-pagination-item-active{
+  color: white;
+  background: #43464e !important;
+}
