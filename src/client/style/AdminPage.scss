@@ -1,0 +1,52 @@
+.radio-button{
+  display: flex;
+  align-items: center;
+  margin-bottom: 5px;
+  input {
+    height: 1.2rem;
+    width: 1.2rem;
+    margin-right: 5px;
+  }
+}
+
+.admin-container{
+    padding-top: 20px;
+    background: #737780;
+    border: 1px solid #000000;
+    min-height: 1000px;
+    color: #f1f1f1;
+
+    .admin-section{
+      .admin-section-title {
+        color: #f1f1f1;
+        font-size: 20px;
+        font-weight: 600;
+      }
+
+      .admin-section-content {
+        margin: 8px auto 10px 10px;
+        clear: both;
+      }
+
+      margin-bottom: 20px;
+    }
+
+    .submit {
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        color: #f1f1f1;
+        background-color: #34353b;
+        min-height: 26px;
+        padding: 1px 5px 2px;
+        margin: 0 2px;
+        border: 2px solid #8d8d8d;
+        border-radius: 3px;
+        font-size: 9pt;
+      }
+      
+      .submit:hover{
+        border: 1px solid rgba(224, 184, 184, 0.712);
+      }
+    
+}

@@ -6,9 +6,9 @@ import ExplorerPage from "./ExplorerPage";
 import OneBook from "./OneBook";
 import TagPage from "./TagPage";
 import ChartPage from "./ChartPage";
+import AdminPage from "./AdminPage";
 import { Switch, Route, Link, Redirect } from 'react-router-dom';
-import Sender from './Sender';
-import Swal from 'sweetalert2';
+
 
 import _ from "underscore";
 const util = require("../util");
@@ -38,25 +38,6 @@ class App extends Component {
         }
       }
 
-    onPrenerate(){
-        if(!this.isOnPrenerate){
-            Swal.fire({
-                title: "Pregenerate",
-                text: 'Pregenerating thumbnails takes time. Half hour about 10,000 files.' ,
-                showCancelButton: true,
-                confirmButtonText: 'Yes',
-                cancelButtonText: 'No'
-            }).then((result) => {
-                if (result.value === true) {
-                    this.isOnPrenerate = true;
-                    Sender.get('/api/pregenerateThumbnails', res =>{
-                        console.log(res)
-                    });
-                } 
-            });
-        }
-    }
-
     onSearchClick(event) {
         this.searchText = document.getElementsByClassName('search-input')[0].value;
         this.forceUpdate();
@@ -77,6 +58,8 @@ class App extends Component {
         
         const renderChartPage = (props) =>  { return (<ChartPage {...props}/>)}; 
 
+        const renderAdminPage = (props) =>  { return (<AdminPage {...props}/>)}; 
+
         const result = (
         <Switch>
             <Route exact path='/' render={renderExplorer}/>
@@ -90,6 +73,8 @@ class App extends Component {
             <Route path='/authorPage/:index' render={renderAuthorPage}/>
 
             <Route path='/chart' render={renderChartPage}/>
+            <Route path='/admin' render={renderAdminPage}/>
+
         </Switch>
         );
         return result;
@@ -119,7 +104,7 @@ class App extends Component {
                     <Link to='/authorPage/1'><i className="fas fa-pen">Authors</i></Link>
                     <Link to='/tagPage/1'><i className="fas fa-tags">Tags</i></Link>
                     <Link to='/chart'><i className="fas fa-chart-bar">Chart</i></Link>
-                    {isHome && <i className="pregenerate-all fas fa-people-carry" title={"pregenerate all thumbnail"} onClick={this.onPrenerate.bind(this)}>Pregenerate</i>}
+                    <Link to='/admin'><i className="fas fa-tools">Admin</i></Link>
                 </div>
                 <div className="search-bar">
                     <input className="search-input" type="text" placeholder="Search.."/>

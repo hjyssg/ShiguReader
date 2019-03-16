@@ -31,11 +31,6 @@ yarn (or npm install)
 yarn dev (or npm run dev)
 ```
 
-##### clean local cache 定期手动清理解压缩漫画
-```bash
-npm run clean-cache
-```
-
 ##### 注意事项
 windows语言设置要参考unicode setting.png  
 user-config.js修改用户文件设置  

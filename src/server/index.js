@@ -572,11 +572,22 @@ async function getFirstImageFromZip(fileName, res, mode, counter) {
 //  will need about 50 GB local space
 // and will be slow
 // http://localhost:8080/api/pregenerateThumbnails
-app.get('/api/pregenerateThumbnails', (req, res) => {
-    let counter = {counter: 1, total: db.allFiles.length};
-    db.allFiles.forEach(fileName =>{
+app.post('/api/pregenerateThumbnails', (req, res) => {
+    let path = req.body && req.body.path;
+    if(!path){
+        return;
+    }
+    // const totalFiles = !path ? db.allFiles : db.allFiles.filter(e => e.includes(path));
+    const totalFiles = db.allFiles.filter(e => e.includes(path));
+    let counter = {counter: 1, total: totalFiles.length};
+    totalFiles.forEach(fileName =>{
         getFirstImageFromZip(fileName, res, "pre-generate", counter);
     })
+});
+
+app.get('/api/cleanCache', (req, res) => {
+    const cleanCache = require("../tools/cleanCache");
+    cleanCache.cleanCache();
 });
 
 
