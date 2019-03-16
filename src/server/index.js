@@ -481,6 +481,10 @@ async function getFirstImageFromZip(fileName, res, mode, counter) {
         res.sendFile = () => {};
     }
 
+    if(!util.isCompress(fileName)){
+        return;
+    }
+
     function sendImage(img){
         let ext = path.extname(img);
         ext = ext.slice(1);
