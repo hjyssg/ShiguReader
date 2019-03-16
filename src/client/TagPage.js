@@ -116,6 +116,9 @@ export default class TagPage extends Component {
   }
 
   handlePageChange(index){
+    if(window.event.ctrlKey){
+      return;
+    }
     const temp = this.props.mode === "tag"? "/tagPage/": "/authorPage/";
     const path = temp + index;
     this.redirect = path;
