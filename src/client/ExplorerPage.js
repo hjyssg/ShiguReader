@@ -140,7 +140,7 @@ export default class ExplorerPage extends Component {
     }
     
     requestLsDir() {
-        Sender.lsDir({ hash: this.getHash(), isRecursive: this.state.isRecursive }, res => {
+        Sender.lsDir({ hash: this.getHash(), dir: this.getPathFromLocalStorage(), isRecursive: this.state.isRecursive }, res => {
             this.handleRes(res);
         });
     }
@@ -158,6 +158,11 @@ export default class ExplorerPage extends Component {
 
     getFileInPage(files){
         return files.slice((this.state.pageIndex-1) * this.perPage, (this.state.pageIndex) * this.perPage);
+    }
+
+    getPathFromLocalStorage(){
+        const hash = this.getHash();
+        return window.localStorage && window.localStorage.getItem(hash);
     }
 
     renderFileList() {
@@ -180,9 +185,7 @@ export default class ExplorerPage extends Component {
         
         if (_.isEmpty(dirs) && _.isEmpty(files)) {
             if(!this.res){
-                const hash = this.getHash();
-                const text = window.localStorage && window.localStorage.getItem(hash);
-                return (<CenterSpinner text={text}/>);
+                return (<CenterSpinner text={this.getPathFromLocalStorage()}/>);
             }else{
                 return <center className="one-book-nothing-available">Nothing Available</center>;
             }
