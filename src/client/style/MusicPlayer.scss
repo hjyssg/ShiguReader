@@ -1,0 +1,26 @@
+.aji-music-player {
+    width: 100%;
+    border-radius: 2px;
+    padding: 0px 10px;
+
+    .aji-music-player-item {
+        color: #DDDDDD;
+        cursor: pointer;
+        margin-bottom: 10px;
+        overflow-x: visible;
+
+        &:hover {
+            color: rgb(251, 147, 147);
+        }
+
+        &.aji-music-player-active {
+            &::before{
+                color: chartreuse;
+            }
+        }
+    }
+
+    audio{
+        width: 100%;
+    }
+}

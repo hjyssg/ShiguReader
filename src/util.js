@@ -41,6 +41,11 @@ const getFnWithoutExtention = module.exports.getFnWithoutExtention = function (f
     return getFn(fn, seperator).split(".")[0];
 };
 
+//used by client
+module.exports.getUrl = function (fn){
+    return "../" + fn;
+}
+
 module.exports.sortFileNames = function (files) {
     const fileIndexs =  files.map(e => getFnWithoutExtention(e));
 

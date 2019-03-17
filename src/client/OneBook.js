@@ -12,19 +12,14 @@ import CenterSpinner from './subcomponent/CenterSpinner';
 const spop  = require("./subcomponent/spop");
 import FileChangeToolbar from './subcomponent/FileChangeToolbar';
 import LoadingImage from './LoadingImage';
-import AudioPlayer from 'react-modular-audio-player';
+import MusicPlayer from './MusicPlayer';
 
 const util = require("../util");
-
 const queryString = require('query-string');
 const stringHash = util.stringHash;
 const filesizeUitl = require('filesize');
 import screenfull from 'screenfull';
-
-
-function getUrl(fn){
-  return "../" + fn;
-}
+const getUrl = util.getUrl;
 
 export default class OneBook extends Component {
   constructor(props) {
@@ -212,21 +207,10 @@ export default class OneBook extends Component {
   renderMusicPlayer(){
     if(this.hasMusic()){
       const {musicFiles} = this.state;
-      let playlist = musicFiles.map(e => {
-        return { src: getUrl(e), title: util.getFn(e, "/") }
-      })
-      return <AudioPlayer  audioFiles={playlist}
-                           hideLoop={true}
-                           playerWidth={"90%"}
-                           iconSize={"1.5rem"}
-                           fontWeight={"500"}
-                           fontSize={"1.2rem"}/>;
+
+      return <MusicPlayer  audioFiles={musicFiles} />;
     }
   }
-
-  // renderToggleFullScreenButton(){
-  //   return <button className="fas fa-arrows-alt fs-toggle-button" title="Toggle Full Screen" onClick={this.toggleFullScreen.bind(this)}/>
-  // }
 
   renderTags(){
     const result = nameParser.parse(_.getFn(this.state.path));
