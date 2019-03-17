@@ -59,7 +59,7 @@ export default class OneBook extends Component {
   }
   
   displayFile(file){
-    Sender.post("/api/extract", {  hash: this.getHash() }, res => {
+    Sender.post("/api/extract", {fileName: this.getPathFromLocalStorage(),   hash: this.getHash() }, res => {
       this.res = res;
       if (!res.failed) {
         this.loadedHash = this.getHash();
@@ -232,6 +232,11 @@ export default class OneBook extends Component {
           </div>);
   }
 
+  getPathFromLocalStorage(){
+    const hash = this.getHash();
+    return window.localStorage && window.localStorage.getItem(hash);
+  }
+
   render() {
     if (this.isFailedLoading()) { 
       return <ErrorPage res={this.res.res}/>;
@@ -242,9 +247,7 @@ export default class OneBook extends Component {
       if(this.res && !this.refs.failed){
         return <h3><center>no content files</center></h3>;
       } else {
-        const hash = this.getHash();
-        const text = window.localStorage && window.localStorage.getItem(hash);
-        return (<CenterSpinner text={text} splitFilePath/>);
+        return (<CenterSpinner text={this.getPathFromLocalStorage()} splitFilePath/>);
       } 
     }
     

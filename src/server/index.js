@@ -63,6 +63,8 @@ const db = {
     cacheTable: {},
     //hash to any string
     hashTable: {},
+    //has no thumbnail file
+    hasNoThumbnail: {}
 };
 
 app.use(express.static('dist'));
@@ -481,7 +483,7 @@ async function getFirstImageFromZip(fileName, res, mode, counter) {
         res.sendFile = () => {};
     }
 
-    if(!util.isCompress(fileName)){
+    if(!util.isCompress(fileName) || db.hasNoThumbnail[fileName]){
         return;
     }
 
@@ -511,7 +513,8 @@ async function getFirstImageFromZip(fileName, res, mode, counter) {
         //bigger than 30mb
         if(fileSizeInMegabytes > full_extract_for_thumbnail_size || isPreG){
             // assume zip
-            let {stdout, stderr} = await limit(() => execa(sevenZip, ['l', '-ba', fileName]));
+            // let {stdout, stderr} = await limit(() => execa(sevenZip, ['l', '-ba', fileName]));
+            let {stdout, stderr} = await limit(() => execa(sevenZip, ['l', '-r', fileName]));
             const text = stdout;
             if (!text) {
                 console.error("[getFirstImageFromZip]", "no text");
@@ -524,6 +527,7 @@ async function getFirstImageFromZip(fileName, res, mode, counter) {
 
             if (!one) {
                 console.error("[getFirstImageFromZip]", fileName,  "no files from output");
+                db.hasNoThumbnail[fileName] = true;
                 res.sendStatus(404);
                 return;
             }
