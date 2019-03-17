@@ -63,6 +63,7 @@ a {
     .search-bar{
       @media screen and (min-width: 1000px) {
         float: right;
+        margin-bottom: 25px;
       }
       display: inline-flex;
       input[type=text] {
