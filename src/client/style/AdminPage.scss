@@ -13,8 +13,9 @@
     padding-top: 20px;
     background: #737780;
     border: 1px solid #000000;
-    min-height: 1000px;
+    min-height: 800px;
     color: #f1f1f1;
+    position: relative;
 
     .admin-section{
       .admin-section-title {
@@ -48,5 +49,15 @@
       .submit:hover{
         border: 1px solid rgba(224, 184, 184, 0.712);
       }
-    
+
+      .author-link{
+        position: absolute;
+        right: 20px;
+        bottom: 20px;
+
+        a {
+          color: white;
+          font-size: 1.2rem;
+        }
+      }
 }

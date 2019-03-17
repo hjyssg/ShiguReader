@@ -87,6 +87,10 @@ export default class AdminPage extends Component {
                         <div className="submit" onClick={this.cleanCache.bind(this)}>Submit</div>
                     </div>
                 </div>
+
+                <div className="author-link"> 
+                        <a className="fab fa-github" title="Aji47's Github" href="https://github.com/hjyssg/ShiguReader" target="_blank"> Created By Aji47 </a> 
+                </div>
             </div>)
         
     }
