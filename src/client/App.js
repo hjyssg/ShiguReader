@@ -40,6 +40,9 @@ class App extends Component {
 
     onSearchClick(event) {
         this.searchText = document.getElementsByClassName('search-input')[0].value;
+        if(this.searchText.trim){
+            this.searchText = this.searchText.trim();
+        }
         this.forceUpdate();
     }
 

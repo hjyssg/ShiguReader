@@ -44,7 +44,7 @@ export default class ExplorerPage extends Component {
     }
 
     handlePageChange(index){
-        if(window.event.ctrlKey){
+        if(window.event && window.event.ctrlKey){
             return;
         }
         this.setStateAndSetHash({ pageIndex: index});
