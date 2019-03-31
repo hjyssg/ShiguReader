@@ -34,7 +34,7 @@ yarn dev (or npm run dev)
 ##### 注意事项
 windows语言设置:
 
-![unicode setting](unicode setting.png)
+![unicode setting](screenshot/unicode-setting.png)
 
 ##### 热键
 漫画页面
