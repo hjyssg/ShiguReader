@@ -20,6 +20,7 @@ const stringHash = util.stringHash;
 const filesizeUitl = require('filesize');
 import screenfull from 'screenfull';
 const getUrl = util.getUrl;
+const Constant = require("../constant");
 
 export default class OneBook extends Component {
   constructor(props) {
@@ -222,7 +223,7 @@ export default class OneBook extends Component {
     const tagDivs = tags.length > 0 && tags.map((tag)=>{
       const tagHash = stringHash(tag);
       let url = tag === author? ("/author/" + tagHash) : ("/tag/" + tagHash);
-      url += "#sortOrder=sorted by folder";
+      url += "#sortOrder=" + Constant.SORT_BY_FOLDER;
       return (<div key={tag} className="one-book-foot-author" >
                 <Link  target="_blank" to={url}  key={tag}>{tag}</Link>
               </div>);

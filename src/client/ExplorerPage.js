@@ -19,18 +19,19 @@ const stringHash = util.stringHash;
 import RadioButtonGroup from './subcomponent/RadioButtonGroup';
 import Breadcrumb from './subcomponent/Breadcrumb';
 
-const SORT_BY_DATE = "From Latest";
-const SORT_BY_DATE_REVERSE = "From Earliest";
-const SORT_BY_FOLDER = "sorted by folder";
-const SORT_BY_FILENAME = "sorted by filename"
+const Constant = require("../constant");
 
+const { SORT_BY_DATE, 
+        SORT_BY_DATE_REVERSE,
+        SORT_BY_FOLDER,
+        SORT_BY_FILENAME } =  Constant;
 
+const { MODE_TAG,
+        MODE_HOME,
+        MODE_AUTHOR,
+        MODE_SEARCH,
+        MODE_EXPLORER} = Constant;
 
-const MODE_TAG = "mode tag";
-const MODE_HOME = "mode home";
-const MODE_AUTHOR = "mode author";
-const MODE_SEARCH = "mode search";
-const MODE_EXPLORER = "mode explorer";
 
 export default class ExplorerPage extends Component {
     constructor(prop) {
@@ -145,13 +146,13 @@ export default class ExplorerPage extends Component {
     }
 
     requestTextSearch(mode) {
-        Sender.post("/api/search", { text: this.props.match.params.search,  mode: this.getMode()}, res => {
+        Sender.post(Constant.SEARCH_API, { text: this.props.match.params.search,  mode: this.getMode()}, res => {
             this.handleRes(res);
         });
     }
 
     requestSearch(mode) {
-        Sender.post("/api/search", { hash: this.getHash(), 
+        Sender.post(Constant.SEARCH_API, { hash: this.getHash(), 
                                     text: window.localStorage && window.localStorage.getItem(this.getHash()),
                                     mode: this.getMode()}, res => {
             this.handleRes(res);

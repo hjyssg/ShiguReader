@@ -12,6 +12,8 @@ const execa = require('execa');
 const pfs = require('promise-fs');
 const dateFormat = require('dateformat');
 const winston = require("winston");
+const Constant = require("../constant");
+
 
 const isExist = async (path) => {
     try{
@@ -406,12 +408,18 @@ function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
 // 1. hash
 // 2. mode
 // 3. text
-app.post("/api/search", (req, res) => {
+app.post(Constant.SEARCH_API, (req, res) => {
     const mode = req.body && req.body.mode;
     const hashTag =  db.hashTable[(req.body && req.body.hash)];
-    const tag =  mode === "mode tag" && hashTag;
-    const author =  mode === "mode author" && hashTag;
-    const text = mode === "mode search" && req.body && req.body.text;
+    const { MODE_TAG,
+            MODE_AUTHOR,
+            MODE_SEARCH
+            } = Constant;
+
+
+    const tag =  mode === MODE_TAG && hashTag;
+    const author =  mode === MODE_AUTHOR && hashTag;
+    const text = mode === MODE_SEARCH && req.body && req.body.text;
 
     if (!author && !tag && !text) {
         res.sendStatus(404);
@@ -421,7 +429,7 @@ app.post("/api/search", (req, res) => {
     res.send(searchByTagAndAuthor(tag, author, text));
 });
 
-app.post("/api/tagFirstImagePath", (req, res) => {
+app.post(Constant.TAG_THUMBNAIL_PATH_API, (req, res) => {
     const author = req.body && req.body.author;
     const tag = req.body && req.body.tag;
     if (!author && !tag) {

@@ -4,6 +4,9 @@ import loading from './images/loading.png';
 import notAvailable from './images/not-available.png';
 const VisibilitySensor = require('react-visibility-sensor').default;
 
+const Constant = require("../constant");
+
+
 export default class LoadingImage extends Component {
   constructor(props) {
     super(props);
@@ -34,7 +37,7 @@ export default class LoadingImage extends Component {
         this.url = url;
         this.setState({ loaded: true }); 
       } else {
-        const api = (mode === "author" || mode === "tag") ? "/api/tagFirstImagePath" :  '/api/firstImage';
+        const api = (mode === "author" || mode === "tag") ? Constant.TAG_THUMBNAIL_PATH_API :  '/api/firstImage';
         const body = {};
 
         if(mode === "author" || mode === "tag"){
