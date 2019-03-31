@@ -409,9 +409,9 @@ function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
 app.post("/api/search", (req, res) => {
     const mode = req.body && req.body.mode;
     const hashTag =  db.hashTable[(req.body && req.body.hash)];
-    const tag =  mode === "tag" && hashTag;
-    const author =  mode === "author" && hashTag;
-    const text = mode === "search" && req.body && req.body.text;
+    const tag =  mode === "mode tag" && hashTag;
+    const author =  mode === "mode author" && hashTag;
+    const text = mode === "mode search" && req.body && req.body.text;
 
     if (!author && !tag && !text) {
         res.sendStatus(404);

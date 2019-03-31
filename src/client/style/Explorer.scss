@@ -1,3 +1,32 @@
+.side-menu {
+  height: 100%; /* 100% Full-height */
+  width: 250px; /* 0 width - change this with JavaScript */
+  position: fixed; /* Stay in place */
+  z-index: 1; /* Stay on top */
+  top: 0; /* Stay at the top */
+  left: 0;
+  background-color: #99a2b5; /* Black*/
+  overflow-x: hidden; /* Disable horizontal scroll */
+  padding-top: 100px; /* Place content 60px from the top */
+  padding-left: 20px;
+  padding-right: 10px;
+
+  // &:hover {
+  //   width: 250px;
+  // }
+
+  .side-menu-radio-title{
+    color: #1d5be2;
+    font-size: 20px;
+  }
+
+  .radio-button {
+    font-weight: 600px;
+    font-size: 17px;
+    color: #eff4ff;
+  }
+}
+
 .explorer-page-loading {
   text-align: center;
   font-size: 3rem;
@@ -99,48 +128,3 @@
   }
 }
 
-.explorer-breadcrumb {
-  padding: 8px 16px;
-  list-style: none;
-  background-color: #eee;
-
-  .breadcrumb-item{
-    display: inline;
-    font-size: 18px;
-
-    &.current{
-      color: #34353b;
-    }
-  }
-
-  .breadcrumb-item+.breadcrumb-item:before {
-    padding-left: 4px;
-    padding-right: 4px;
-    color: black;
-    content: "/\00a0";
-  }
-
-  .breadcrumb-item a:hover {
-    color: #01447e;
-    text-decoration: underline;
-  }
-
-  .float-right{
-    float: right;
-    color: gray;
-
-    .recursive-button{
-      margin-left: 60px;
-      cursor: pointer;
-      color: gray;
-      
-      &:hover{
-        color: #34353b;
-      }
-    }
-  
-    .file-count{
-      margin-left: 20px;
-    }
-  }
-}

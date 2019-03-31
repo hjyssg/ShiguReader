@@ -15,7 +15,22 @@ import CenterSpinner from './subcomponent/CenterSpinner';
 const util = require("../util");
 const filesizeUitl = require('filesize');
 const queryString = require('query-string');
-const stringHash = util.stringHash;;
+const stringHash = util.stringHash;
+import RadioButtonGroup from './subcomponent/RadioButtonGroup';
+import Breadcrumb from './subcomponent/Breadcrumb';
+
+const SORT_BY_DATE = "From Latest";
+const SORT_BY_DATE_REVERSE = "From Earliest";
+const SORT_BY_FOLDER = "sorted by folder";
+const SORT_BY_FILENAME = "sorted by filename"
+
+
+
+const MODE_TAG = "mode tag";
+const MODE_HOME = "mode home";
+const MODE_AUTHOR = "mode author";
+const MODE_SEARCH = "mode search";
+const MODE_EXPLORER = "mode explorer";
 
 export default class ExplorerPage extends Component {
     constructor(prop) {
@@ -30,10 +45,12 @@ export default class ExplorerPage extends Component {
         const parsed = queryString.parse(location.hash);
         const pageIndex = parseInt(parsed.pageIndex) || 1;
         const isRecursive = !!(parsed.isRecursive === "true");
+        const sortOrder = parsed.sortOrder || SORT_BY_DATE;
 
         return {
             pageIndex,
-            isRecursive
+            isRecursive,
+            sortOrder
         }
     }
 
@@ -59,15 +76,15 @@ export default class ExplorerPage extends Component {
 
     getMode(){
         if(this.props.match.params.tag){
-            return "tag"
+            return MODE_TAG;
         } else if(this.props.match.params.author) {
-            return "author"
+            return MODE_AUTHOR;
         } else if(this.props.match.params.number) {
-            return "explorer";
+            return MODE_EXPLORER;
         } else if(this.props.match.params.search) {
-            return "search";
+            return MODE_SEARCH;
         } else {
-            return "home"
+            return MODE_HOME;
         }
     }
 
@@ -80,11 +97,11 @@ export default class ExplorerPage extends Component {
     componentDidMount() {
         const hash = this.getHash();
         if (hash && this.loadedHash !== hash && this.failedTimes < 3) {
-            if(this.getMode() === "tag"){
+            if(this.getMode() === MODE_TAG){
                 this.requestSearch();
-            } else if(this.getMode() === "author"){
+            } else if(this.getMode() === MODE_AUTHOR){
                 this.requestSearch();
-            } else if (this.getMode() === "search"){
+            } else if (this.getMode() === MODE_SEARCH){
                 this.requestTextSearch();
             } else {
                 this.requestLsDir();
@@ -134,7 +151,9 @@ export default class ExplorerPage extends Component {
     }
 
     requestSearch(mode) {
-        Sender.post("/api/search", { hash: this.getHash(),  mode: this.getMode()}, res => {
+        Sender.post("/api/search", { hash: this.getHash(), 
+                                    text: window.localStorage && window.localStorage.getItem(this.getHash()),
+                                    mode: this.getMode()}, res => {
             this.handleRes(res);
         });
     }
@@ -166,6 +185,7 @@ export default class ExplorerPage extends Component {
     }
 
     renderFileList() {
+        const { sortOrder } = this.state;
         let dirs, files;
         if(!this.getHash()) {
             dirs = userConfig.home_pathes;
@@ -175,11 +195,39 @@ export default class ExplorerPage extends Component {
             files = this.getFilteredFiles();
         }
 
-        if(this.getMode() === "tag" || this.getMode() === "author" || this.getMode() === "search"){
+        const byFn = (a, b) => {
+            const ap = util.getFn(a);
+            const bp = util.getFn(b);
+            return ap.localeCompare(bp);
+        }
+
+        if(sortOrder  === SORT_BY_FILENAME){
             files.sort((a, b) => {
-                const ap = util.getFn(a);
-                const bp = util.getFn(b);
-                return ap.localeCompare(bp);
+                return byFn(a, b);
+            });
+        }else if(sortOrder === SORT_BY_FOLDER){
+            files.sort((a, b) => {
+                const ad = util.getDir(a);
+                const bd = util.getDir(b);
+                if(ad !== bd){
+                    return ad.localeCompare(bd);
+                } else {
+                    return byFn(a, b)
+                }
+            });
+        }else if (sortOrder === SORT_BY_DATE ||  sortOrder === SORT_BY_DATE_REVERSE){
+            files.sort((a, b) => {
+                const as = this.fileInfos[a];
+                const bs = this.fileInfos[b];
+                if(as.mtime !== bs.mtime){
+                    if(sortOrder === SORT_BY_DATE_REVERSE){
+                        return as.mtimeMs - bs.mtimeMs;
+                    }else{
+                        return bs.mtimeMs - as.mtimeMs;
+                    }
+                }else{
+                    return byFn(a, b);
+                }
             });
         }
         
@@ -207,7 +255,7 @@ export default class ExplorerPage extends Component {
 
         //better tooltip to show file size 
         //and tag
-        const zipfileItems = files.map((item) => {
+        const zipfileItems = files.map((item, index) => {
             const text = _.getFn(item);
             const pathHash = stringHash(item);
             const toUrl =  '/onebook/' + pathHash;
@@ -215,8 +263,22 @@ export default class ExplorerPage extends Component {
             //todo
             const stats = this.fileInfos[item];
             const fileSize = stats && filesizeUitl(stats.size, {base: 2});
+
+            let seperator;
+
+            if(sortOrder === SORT_BY_FOLDER && 
+                (this.getMode() === MODE_AUTHOR || this.getMode() === MODE_TAG || this.getMode() === MODE_SEARCH )){
+                const prev = files[index - 1];
+                if(!prev || util.getDir(prev) !== util.getDir(item)){
+                    seperator = (<div className="col-12"  key={item+"---seperator"}> 
+                                 <Breadcrumb path={util.getDir(item)}/>
+                                 </div>);
+                }
+            }
             
-            return (<div key={item} className={"col-sm-6 col-md-4 col-lg-3 file-out-cell"}>
+            return (<React.Fragment  key={item}>
+                    {seperator}
+                    <div key={item} className={"col-sm-6 col-md-4 col-lg-3 file-out-cell"}>
                         <div className="file-cell">
                             <Link  target="_blank" to={toUrl}  key={item} className={"file-cell-inner"}>
                                 <center className={"file-cell-title"} title={text}>{text}</center>
@@ -224,7 +286,8 @@ export default class ExplorerPage extends Component {
                             </Link>
                             <FileChangeToolbar header={fileSize} file={item} />
                         </div>
-                    </div>);
+                    </div>
+                    </React.Fragment>);
         });
 
         return (
@@ -257,32 +320,15 @@ export default class ExplorerPage extends Component {
 
     getExplorerToolbar(){
         const mode = this.getMode();
-        if(mode === "explorer" && this.path){
-            // return "At " + this.path;
-            const pathes = this.path.split("\\");
-            const pathList = [];
-            //https://www.w3schools.com/howto/howto_css_breadcrumbs.asp
-            for(let ii =0; ii < pathes.length; ii++){
-                let item = pathes.slice(0, ii+1).join("\\");
-                if(ii === pathes.length -1){
-                    //last one not link
-                    pathList.push(<div key={item} className={"breadcrumb-item current"}>{pathes[ii]} </div>);
-                }else{
-                    const pathHash = stringHash(item);
-                    const toUrl =('/explorer/'+ pathHash);
-                    pathList.push(<Link to={toUrl}  key={item} className={"breadcrumb-item"}>{pathes[ii]}</Link>);
-                }
-            }
-
+        if(mode === MODE_EXPLORER && this.path){
             const text = this.state.isRecursive? "Show only one level" : "Show Recursively";
             const right = (
-                <div className="float-right">
-                    <span key="recursive-button" className="recursive-button fas fa-glasses" onClick={this.toggleRecursively.bind(this)}> {text} </span>
-                    <span key="file-count" className="file-count">{`${this.getFilteredFiles().length} files`} </span>
-                </div>);
+            <div className="float-right">
+                <span key="recursive-button" className="recursive-button fas fa-glasses" onClick={this.toggleRecursively.bind(this)}> {text} </span>
+                <span key="file-count" className="file-count">{this.getFilteredFiles().length + " files"} </span>
+            </div>);
 
-
-            return   (<div className="container"><ul className="explorer-breadcrumb">{pathList}{right}</ul></div>);
+            return <div className="container"><Breadcrumb path={this.path} right={right}/></div>
         }
     }
 
@@ -290,20 +336,20 @@ export default class ExplorerPage extends Component {
         const mode = this.getMode();
         const fn = " (" + (this.files||[]).length + ")";
 
-        if(mode === "home"){
+        if(mode === MODE_HOME){
             return "";
         }else if(this.tag && mode === "tag") {
             return "Tag: " + this.tag + fn;
-        } else if(this.author && mode === "author") {
+        } else if(this.author && mode === MODE_AUTHOR) {
             return "Author: " + this.author + fn;
-        } else if(mode === "search"){
+        } else if(mode === MODE_SEARCH){
             return "Search Result: " + this.getHash() + fn;
         }
     }
 
     getLinkToEhentai(){
         let searchable = this.tag || this.author;
-        if(this.getMode() === "search"){
+        if(this.getMode() === MODE_SEARCH){
             searchable = this.getHash();
         }
 
@@ -317,7 +363,7 @@ export default class ExplorerPage extends Component {
     }
 
     renderPagination(){
-        if(this.getMode() === "home"){
+        if(this.getMode() === MODE_HOME){
             return;
         }
         const fileLength = this.getFilteredFiles().length;
@@ -346,10 +392,33 @@ export default class ExplorerPage extends Component {
 
     setWebTitle(){
         const mode = this.getMode();
-        if(mode === "home"){
+        if(mode === MODE_HOME){
             document.title = "ShiguReader";
         }else{
             document.title = this.tag||this.author||this.path||this.props.match.params.search|| "ShiguReader";
+        }
+    }
+
+    onSortChange(e){
+        this.setStateAndSetHash({sortOrder: e.target.value})
+    }
+
+    renderSideMenu(){
+        const SORT_OPTIONS = [
+            SORT_BY_DATE,
+            SORT_BY_DATE_REVERSE,
+            SORT_BY_FILENAME
+        ];
+
+        if(this.getMode() !== MODE_EXPLORER){
+            SORT_OPTIONS.push(SORT_BY_FOLDER)
+        }
+
+        if(this.getMode() !== MODE_HOME){
+            return (<div className="side-menu">
+                    <div className="side-menu-radio-title"> File Order </div>
+                    <RadioButtonGroup options={SORT_OPTIONS} name="explorer-sort-order" onChange={this.onSortChange.bind(this)}/>
+                </div>)
         }
     }
     
@@ -361,6 +430,7 @@ export default class ExplorerPage extends Component {
         }
 
         return (<div className={"explorer-container-out " + this.getMode()} >
+            {this.renderSideMenu()}
             {this.getLinkToEhentai()}
             {this.getExplorerToolbar()}
             {this.renderFileList()}

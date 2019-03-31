@@ -1,0 +1,51 @@
+.explorer-breadcrumb {
+  padding: 8px 16px;
+  list-style: none;
+  background-color: #eee;
+
+  .breadcrumb-item {
+    display: inline;
+    font-size: 18px;
+
+    color: #007bff !important;
+    text-decoration: none;
+    background-color: transparent;
+    -webkit-text-decoration-skip: objects;
+
+    &.current{
+      color: #34353b;
+    }
+  }
+
+  .breadcrumb-item+.breadcrumb-item:before {
+    padding-left: 4px;
+    padding-right: 4px;
+    color: black;
+    content: "/\00a0";
+  }
+
+  .breadcrumb-item a:hover {
+    color: #01447e;
+    text-decoration: underline;
+  }
+
+
+  .float-right{
+    float: right;
+    color: gray;
+
+    .recursive-button {
+      margin-left: 60px;
+      cursor: pointer;
+      color: gray;
+      
+      &:hover{
+        color: #34353b;
+      }
+    }
+  
+    .file-count{
+      margin-left: 20px;
+    }
+  }
+}
