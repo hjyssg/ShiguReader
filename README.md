@@ -32,8 +32,9 @@ yarn dev (or npm run dev)
 ```
 
 ##### 注意事项
-windows语言设置要参考unicode setting.png  
-user-config.js修改用户文件设置  
+windows语言设置:
+
+![unicode setting](unicode setting.png)
 
 ##### 热键
 漫画页面
