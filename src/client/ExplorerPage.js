@@ -24,7 +24,8 @@ const Constant = require("../constant");
 const { SORT_BY_DATE, 
         SORT_BY_DATE_REVERSE,
         SORT_BY_FOLDER,
-        SORT_BY_FILENAME } =  Constant;
+        SORT_BY_FILENAME,
+        SORT_RANDOMLY } =  Constant;
 
 const { MODE_TAG,
         MODE_HOME,
@@ -230,6 +231,10 @@ export default class ExplorerPage extends Component {
                     return byFn(a, b);
                 }
             });
+        }else if (sortOrder === SORT_RANDOMLY){
+            files.sort((a, b) => {
+                return Math.random() - 0.5;
+            });
         }
         
         if (_.isEmpty(dirs) && _.isEmpty(files)) {
@@ -412,8 +417,10 @@ export default class ExplorerPage extends Component {
         ];
 
         if(this.getMode() !== MODE_EXPLORER){
-            SORT_OPTIONS.push(SORT_BY_FOLDER)
+            SORT_OPTIONS.push(SORT_BY_FOLDER);
         }
+
+        SORT_OPTIONS.push(SORT_RANDOMLY);
 
         if(this.getMode() !== MODE_HOME){
             return (<div className="side-menu">
