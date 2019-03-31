@@ -417,7 +417,7 @@ export default class ExplorerPage extends Component {
         if(this.getMode() !== MODE_HOME){
             return (<div className="side-menu">
                     <div className="side-menu-radio-title"> File Order </div>
-                    <RadioButtonGroup options={SORT_OPTIONS} name="explorer-sort-order" onChange={this.onSortChange.bind(this)}/>
+                    <RadioButtonGroup defaultChecked={SORT_OPTIONS.indexOf(this.state.sortOrder)} options={SORT_OPTIONS} name="explorer-sort-order" onChange={this.onSortChange.bind(this)}/>
                 </div>)
         }
     }

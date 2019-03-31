@@ -221,7 +221,8 @@ export default class OneBook extends Component {
     
     const tagDivs = tags.length > 0 && tags.map((tag)=>{
       const tagHash = stringHash(tag);
-      const url = tag === author? ("/author/" + tagHash) : ("/tag/" + tagHash);
+      let url = tag === author? ("/author/" + tagHash) : ("/tag/" + tagHash);
+      url += "#sortOrder=sorted by folder";
       return (<div key={tag} className="one-book-foot-author" >
                 <Link  target="_blank" to={url}  key={tag}>{tag}</Link>
               </div>);
