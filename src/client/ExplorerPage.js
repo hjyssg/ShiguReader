@@ -123,8 +123,8 @@ export default class ExplorerPage extends Component {
             let {dirs, files, path, tag, author, fileInfos} = res;
             this.loadedHash = this.getHash();
             files = files || [];
-            files = files.filter(util.isCompress)
-            this.files = files || [];
+            this.videoFiles = files.filter(util.isVideo) || []
+            this.files = files.filter(util.isCompress) || [];
             this.dirs = dirs || [];
             this.path = path || "";
             this.tag = tag || "";
@@ -188,17 +188,8 @@ export default class ExplorerPage extends Component {
         return window.localStorage && window.localStorage.getItem(hash);
     }
 
-    renderFileList() {
-        const { sortOrder } = this.state;
-        let dirs, files;
-        if(!this.getHash()) {
-            dirs = userConfig.home_pathes;
-            files = [];
-        } else {
-            dirs = this.dirs;
-            files = this.getFilteredFiles();
-        }
-
+    sortFiles(files, sortOrder){
+        //-------sort algo
         const byFn = (a, b) => {
             const ap = util.getFn(a);
             const bp = util.getFn(b);
@@ -252,8 +243,24 @@ export default class ExplorerPage extends Component {
                 }
             });
         }
+    }
+
+    renderFileList() {
+        const { sortOrder } = this.state;
+        let dirs, files, videos;
+        if(!this.getHash()) {
+            dirs = userConfig.home_pathes;
+            files = [];
+            videos = [];
+        } else {
+            dirs = this.dirs;
+            videos = this.videoFiles;
+            files = this.getFilteredFiles();
+        }
+
+        this.sortFiles(files, sortOrder);
         
-        if (_.isEmpty(dirs) && _.isEmpty(files)) {
+        if (_.isEmpty(dirs) && _.isEmpty(files) && _.isEmpty(videos)) {
             if(!this.res){
                 return (<CenterSpinner text={this.getPathFromLocalStorage()}/>);
             }else{
@@ -272,6 +279,19 @@ export default class ExplorerPage extends Component {
             );
             return  <Link to={toUrl}  key={item}>{result}</Link>;
         });
+
+        const videoItems = videos.map((item) =>  {
+            const pathHash = stringHash(item);
+            const toUrl =('/videoPlayer/'+ pathHash);
+            const result =  (
+                <li className="explorer-dir-list-item" key={item}>
+                <i className="far fa-file-video"></i>
+                <span className="explorer-dir-list-item">{item}</span>
+                </li>
+            );
+            return  <Link to={toUrl}  key={item}>{result}</Link>;
+        });
+
         //! !todo if the file is already an image file
         files = this.getFileInPage(files);
 
@@ -317,6 +337,11 @@ export default class ExplorerPage extends Component {
                 <ul className={"dir-list container"}>
                     {dirItems}
                 </ul>
+
+                <ul className={"dir-list container"}>
+                    {videoItems}
+                </ul>
+
                 <div className={"file-grid container"}>
                     <div className={"row"}>
                         {zipfileItems}

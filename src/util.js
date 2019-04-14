@@ -4,6 +4,7 @@
 const imageTypes = [".jpg", ".png", ".jpeg", ".gif", ".bmp", ".webp"];
 const compressTypes = [".zip", ".rar", ".7zip"];
 const musicTypes = [".mp3"];
+const videoTypes = [".mp4"];
 
 function isOnlyDigit(str){
     return str.match(/^[0-9]+$/) != null
@@ -19,6 +20,10 @@ module.exports.isCompress = function (fn) {
 
 module.exports.isMusic = function(fn){
     return musicTypes.some((e) => fn.toLowerCase().endsWith(e));
+}
+
+module.exports.isVideo = function(fn){
+    return videoTypes.some((e) => fn.toLowerCase().endsWith(e));
 }
 
 //get parent

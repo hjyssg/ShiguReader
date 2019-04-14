@@ -298,7 +298,7 @@ app.post('/api/lsDir', async (req, res) => {
         db.allFiles.forEach(p => {
             if(p && p.startsWith(dir)){
                 const ext = path.extname(p).toLowerCase();
-                if (isImage(ext) || isCompress(ext)){
+                if (isImage(ext) || isCompress(ext) || util.isVideo(ext)){
                     files.push(p);
                     infos[p] = db.fileToInfo[p];
                 }
@@ -324,7 +324,7 @@ app.post('/api/lsDir', async (req, res) => {
                 if (tempInfo && tempInfo.isDirectory()) {
                     dirs.push(p);
                     infos[p] = tempInfo;
-                } else if (isImage(ext) || isCompress(ext)) {
+                } else if (isImage(ext) || isCompress(ext) || util.isVideo(ext)) {
                     files.push(p);
                     infos[p] = tempInfo;
                 }

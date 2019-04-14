@@ -4,6 +4,7 @@ import './style/spop.scss';
 import './style/rc-pagination.scss';
 import ExplorerPage from "./ExplorerPage";
 import OneBook from "./OneBook";
+import VideoPlayer from "./VideoPlayer";
 import TagPage from "./TagPage";
 import ChartPage from "./ChartPage";
 import AdminPage from "./AdminPage";
@@ -53,6 +54,7 @@ class App extends Component {
     
     RenderSubComponent() {
         const renderOneBook = (props) => { return (<OneBook {...props}/>)};
+        const renderVideo = (props) => { return (<VideoPlayer {...props}/>)};
 
         const renderExplorer = (props) => { return (<ExplorerPage  {...props} filterText={this.filterText}  />)};
 
@@ -74,9 +76,12 @@ class App extends Component {
             <Route path='/onebook/:number' render={renderOneBook}/>
             <Route path='/tagPage/:index' render={renderTagPage}/>
             <Route path='/authorPage/:index' render={renderAuthorPage}/>
+            <Route path='/videoPlayer/:number' render={renderVideo}/>
+
 
             <Route path='/chart' render={renderChartPage}/>
             <Route path='/admin' render={renderAdminPage}/>
+            
 
         </Switch>
         );
