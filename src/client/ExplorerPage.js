@@ -25,6 +25,8 @@ const { SORT_BY_DATE,
         SORT_BY_DATE_REVERSE,
         SORT_BY_FOLDER,
         SORT_BY_FILENAME,
+        SORT_FROM_SMALL,
+        SORT_FROM_BIG,
         SORT_RANDOMLY } =  Constant;
 
 const { MODE_TAG,
@@ -235,6 +237,20 @@ export default class ExplorerPage extends Component {
             files.sort((a, b) => {
                 return Math.random() - 0.5;
             });
+        }else if (sortOrder === SORT_FROM_BIG || sortOrder === SORT_FROM_SMALL){
+            files.sort((a, b) => {
+                const as = this.fileInfos[a];
+                const bs = this.fileInfos[b];
+                if(as.size !== bs.size){
+                    if(sortOrder === SORT_FROM_SMALL){
+                        return as.size - bs.size;
+                    }else{
+                        return bs.size - as.size;
+                    }
+                }else{
+                    return byFn(a, b);
+                }
+            });
         }
         
         if (_.isEmpty(dirs) && _.isEmpty(files)) {
@@ -413,6 +429,8 @@ export default class ExplorerPage extends Component {
         const SORT_OPTIONS = [
             SORT_BY_DATE,
             SORT_BY_DATE_REVERSE,
+            SORT_FROM_BIG,
+            SORT_FROM_SMALL,
             SORT_BY_FILENAME
         ];
 
