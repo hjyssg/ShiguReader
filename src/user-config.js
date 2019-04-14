@@ -8,7 +8,12 @@ module.exports.home_pathes = ["T:\\迅雷下载", "D:\\_Happy_Lesson", "D:\\_Hap
 /** 
  * OPTIONAL where to move file
  */
-module.exports.good_folder = "D:\\_Happy_Lesson\\_Going_to_sort\\good_2019_03_01";
+const now = new Date();
+const y = now.getFullYear();
+let mm = now.getMonth()+1;
+mm = ( mm < 10 ) ? ( "0" + ( mm ).toString() ) : ( mm ).toString();
+const fd = "good_"+ [y, mm, "01"].join("_");
+module.exports.good_folder = "D:\\_Happy_Lesson\\_Going_to_sort\\"+fd;
 
 /**
  * OPTIONAL where to move file

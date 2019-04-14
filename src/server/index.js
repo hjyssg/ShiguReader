@@ -222,12 +222,21 @@ app.post('/api/moveFile', (req, res) => {
 
     (async () =>{
         try{
-            const {stdout, stderr} = await execa("move", [src, dest]);
-            if(!stderr){
+            let err;
+            if(!(await isExist(dest))){
+                err = await pfs.mkdir(dest);
+            }
+            if (!err) {
+                const {stdout, stderr} = await execa("move", [src, dest]);
+                err = stderr;
+                // err = await pfs.rename(src, dest);
+            }
+
+            if(!err){
                 logger.info(`[MOVE] ${src} to ${dest}`);
                 res.sendStatus(200);
             }else{
-                console.error(stderr);
+                console.error(err);
                 res.sendStatus(404);
             }
         }catch(e){
