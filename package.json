@@ -21,6 +21,7 @@
     "child-process-promise": "^2.2.1",
     "chokidar": "^2.0.4",
     "classnames": "^2.2.6",
+    "cors": "^2.8.5",
     "dateformat": "^3.0.3",
     "execa": "^1.0.0",
     "express": "^4.16.3",

@@ -13,6 +13,7 @@ const pfs = require('promise-fs');
 const dateFormat = require('dateformat');
 const winston = require("winston");
 const Constant = require("../constant");
+var cors = require('cors')
 
 
 const isExist = async (path) => {
@@ -210,6 +211,17 @@ function setUpFileWatch(){
 }
 
 init();
+
+// http://localhost:8080/api/exhentaiApi
+app.post('/api/exhentaiApi/', cors(), function (req, res) {
+    const src = req.body && req.body.src;
+
+    db.allFiles
+    res.send({
+        allFiles: db.allFiles
+    }); 
+    console.log("/api/exhentaiApi/");
+})
 
 app.post('/api/moveFile', (req, res) => {
     const src = req.body && req.body.src;
