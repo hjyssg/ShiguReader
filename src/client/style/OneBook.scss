@@ -40,6 +40,14 @@
   .one-book-title {
     color: #f1f1f1;
     display: flex;
+
+    .one-book-title-filename{
+      cursor: copy;
+      &:hover{
+        background: greenyellow;
+        color: black;
+      }
+    }
   }
 
   .one-book-path{
