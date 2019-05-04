@@ -280,17 +280,17 @@ export default class ExplorerPage extends Component {
             return  <Link to={toUrl}  key={item}>{result}</Link>;
         });
 
-        const videoItems = videos.map((item) =>  {
-            const pathHash = stringHash(item);
-            const toUrl =('/videoPlayer/'+ pathHash);
-            const result =  (
-                <li className="explorer-dir-list-item" key={item}>
-                <i className="far fa-file-video"></i>
-                <span className="explorer-dir-list-item">{item}</span>
-                </li>
-            );
-            return  <Link to={toUrl}  key={item}>{result}</Link>;
-        });
+        // const videoItems = videos.map((item) =>  {
+        //     const pathHash = stringHash(item);
+        //     const toUrl =('/videoPlayer/'+ pathHash);
+        //     const result =  (
+        //         <li className="explorer-dir-list-item" key={item}>
+        //         <i className="far fa-file-video"></i>
+        //         <span className="explorer-dir-list-item">{item}</span>
+        //         </li>
+        //     );
+        //     return  <Link to={toUrl}  key={item}>{result}</Link>;
+        // });
 
         //! !todo if the file is already an image file
         files = this.getFileInPage(files);
@@ -338,9 +338,9 @@ export default class ExplorerPage extends Component {
                     {dirItems}
                 </ul>
 
-                <ul className={"dir-list container"}>
+                {/* <ul className={"dir-list container"}>
                     {videoItems}
-                </ul>
+                </ul> */}
 
                 <div className={"file-grid container"}>
                     <div className={"row"}>
@@ -385,7 +385,7 @@ export default class ExplorerPage extends Component {
 
         if(mode === MODE_HOME){
             return "";
-        }else if(this.tag && mode === "tag") {
+        }else if(this.tag && mode === MODE_TAG) {
             return "Tag: " + this.tag + fn;
         } else if(this.author && mode === MODE_AUTHOR) {
             return "Author: " + this.author + fn;
