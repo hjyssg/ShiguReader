@@ -25,12 +25,6 @@ const isExist = async (path) => {
     }
 };
 
-function sortFileNamesByMTime (files) {
-    //for 100+ files will run forever
-    files.sort(function(a, b) {
-        return db.fileToInfo[b].mtime.getTime() - db.fileToInfo[a].mtime.getTime();
-    })
-};
 
 const root = path.join(__dirname, "..", "..", "..");
 const cache_folder_name = userConfig.cache_folder_name;
@@ -317,8 +311,6 @@ app.post('/api/lsDir', async (req, res) => {
             }
         })
 
-        sortFileNamesByMTime(files);
-
         const result = {dirs, files, path: dir, fileInfos: infos}
         res.send(result);
     }else{
@@ -344,8 +336,6 @@ app.post('/api/lsDir', async (req, res) => {
                 updateTagHash(p);
                 db.hashTable[stringHash(p)] = p;
             }
-    
-            sortFileNamesByMTime(files);
     
             const result = {dirs, files, path: dir, fileInfos: infos}
             res.send(result);
@@ -416,9 +406,6 @@ function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
             break;
         }
     }
-
-    // !!not good
-    // sortFileNamesByMTime(files);
 
     // let end = (new Date).getTime();
     // console.log((end - beg)/1000, "to search");

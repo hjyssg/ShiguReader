@@ -258,7 +258,11 @@ export default class ExplorerPage extends Component {
             files = this.getFilteredFiles();
         }
 
-        this.sortFiles(files, sortOrder);
+        try {
+            this.sortFiles(files, sortOrder);
+        }catch(e){
+            console.error(e);
+        }
         
         if (_.isEmpty(dirs) && _.isEmpty(files) && _.isEmpty(videos)) {
             if(!this.res){
