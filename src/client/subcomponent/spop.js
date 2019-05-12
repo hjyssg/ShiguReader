@@ -49,14 +49,13 @@
 
 		container = $(this.getPosition('spop--', this.opt.position));
 
-		icon = (!this.opt.icon) ? '' : '<i class="spop-icon '+
-		            this.getStyle('spop-icon--', this.opt.style) +'"></i>';
+		icon = (!this.opt.icon) ? '' : '<div class="spop-icon '+
+		            this.getIconClass(this.opt.style) +'"></div>';
 
-		layout ='<div class="spop-close" data-spop="close" aria-label="Close">&times;</div>' +
-						icon +
+		layout =icon +
 					'<div class="spop-body">' +
 						template +
-					'</div>';
+					'</div>' + '<div class="spop-close" data-spop="close" aria-label="Close">&times;</div>';
 
 		if (!container) {
 
@@ -87,6 +86,16 @@
 
 		container.appendChild(this.pop);
 	};
+
+	SmallPop.prototype.getIconClass =  function( arg){
+		var table = {
+			'success': "fas fa-check-circle",
+			'error'  : "fas fa-times",
+			'warning': "fas fa-exclamation"
+		}
+		
+		return table[arg];
+	}
 
 	SmallPop.prototype.getStyle = function(sufix, arg) {
 

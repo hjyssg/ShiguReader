@@ -36,6 +36,11 @@ $border-radius: 			2px !default;
 
 $use-icon:                  true;
 
+.spop--info,
+.spop--error,
+.spop--warning,
+.spop--success { color: $spop-color; background-color: $spop-bg-color;}
+
 .spop-container {
     z-index: 2000;
     position: fixed;
@@ -115,6 +120,8 @@ $use-icon:                  true;
     line-height: 1.25;
     font-size: $spop-font-size-base;
     transform: translateZ(0);
+    display: flex;
+    align-items: center;
 
 
     @if $use-box-shadow == true {
@@ -135,13 +142,9 @@ $use-icon:                  true;
 .spop--bottom-center {
     .spop {
         width: 40rem;
+        padding-right: 10px;
     }    
 }
-
-.spop--info,
-.spop--error,
-.spop--warning,
-.spop--success { color: $spop-color; background-color: $spop-bg-color;}
 
 @keyframes spopIn {
     0%   { transform: scale(0.2,0.2);}
@@ -162,36 +165,17 @@ $use-icon:                  true;
     animation: spopIn $spop-animation-duration ease-in-out;
 }
 
-.spop-body {
-    padding: ($spop-space * 2);
-    p { margin: 0;}
 
-    a {
-        color: $spop-link-color;
-        text-decoration: underline;
-
-        &:hover {
-            color: rgba($spop-link-color, 0.8);
-            text-decoration: none;
-        }
-    }
-}
-
-.spop-title {
-    margin-top: 0;
-    margin-bottom: 0.25em;
-    color: $spop-title-color;
+.spop-body{
+    margin-left: 10px;
+    margin-right: 10px;
 }
 
 .spop-close {
-    position: absolute;
-    right: 0;
-    top: 0;
     height: 32px;
     width: 32px;
-    padding-top: 7px;
-    padding-right: 7px;
-    font-size: 35px;
+    padding-right: 10px;
+    font-size: 42px;
     font-weight: bold;
     text-align: right;
     line-height: 0.6;
@@ -204,79 +188,20 @@ $use-icon:                  true;
     }
 }
 
-@if $use-icon == true {
-    .spop-icon {
-        position: absolute;
-        top: 13px;
-        left: 16px;
-        width: 30px;
-        height: 30px;
-        border-radius: 50%;
-        animation: spopIn $spop-animation-duration $spop-animation-duration ease-in-out;
-        &:after,
-        &:before {
-            content:"";
-            position: absolute;
-            display: block;
-        }
+.spop-icon {
+    font-size: 30px;
+    margin-left: 10px;
 
-        & + .spop-body { padding-left: ($spop-space * 6);}
+    &.fa-check-circle{
+        color: greenyellow;
     }
 
-    .spop-icon--error,
-    .spop-icon--info {
-        border: 2px solid $spop-info-color;
-        &:before {
-            top: 5px;
-            left: 11px;
-            width: 4px;
-            height: 4px;
-            background-color:$spop-info-color;
-        }
-        &:after {
-            top: 12px;
-            left: 11px;
-            width: 4px;
-            height: 9px;
-            background-color:$spop-info-color;
-        }
+    &.fa-times{
+        color: red;
     }
 
-    .spop-icon--error {
-        border-color: $spop-error-color;
-        &:before {
-            top: 16px;
-            background-color:$spop-error-color;
-        }
-        &:after {
-            top: 5px;
-            background-color:$spop-error-color;
-        }
-    }
-
-    .spop-icon--success {
-        border: 2px solid $spop-success-color;
-        &:before {
-            top: 7px;
-            left: 7px;
-            width: 13px;
-            height: 8px;
-            border-bottom: 3px solid $spop-success-color;
-            border-left: 3px solid $spop-success-color;
-            transform: rotate(-45deg);
-        }
-    }
-
-    .spop-icon--warning {
-        border: 2px solid $spop-warning-color;
-        &:before {
-            top: 7px;
-            left: 7px;
-            width: 0;
-            height: 0;
-            border-style: solid;
-            border-color: transparent transparent $spop-warning-color transparent;
-            border-width: 0 6px 10px 6px;
-        }
+    &.fa-exclamation{
+        color: yellow;
     }
 }
+
