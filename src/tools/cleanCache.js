@@ -15,16 +15,17 @@ function del(file){
     if(isSubDirectory(cache_folder_name, file)){
         rimraf(file, (err) =>{
             if(err){
-                try{
-                    const stat = fs.statSync(file);
-                    if(stat.isFile()){
-                        fs.unlinkSync(file);
-                    } else {
-                        fs.rmdirSync(file);
-                    }
-                }catch(e){
-                    console.error(file, e);
-                }
+                // try{
+                //     const stat = fs.statSync(file);
+                //     if(stat.isFile()){
+                //         fs.unlinkSync(file);
+                //     } else {
+                //         fs.rmdirSync(file);
+                //     }
+                // }catch(e){
+                //     console.error(file, e);
+                // }
+                console.error(err);
             }
         });
 
