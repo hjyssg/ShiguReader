@@ -19,6 +19,7 @@ const stringHash = util.stringHash;
 import RadioButtonGroup from './subcomponent/RadioButtonGroup';
 import Breadcrumb from './subcomponent/Breadcrumb';
 
+
 const Constant = require("../constant");
 
 const { SORT_BY_DATE, 
@@ -212,13 +213,13 @@ export default class ExplorerPage extends Component {
             });
         }else if (sortOrder === SORT_BY_DATE ||  sortOrder === SORT_BY_DATE_REVERSE){
             files.sort((a, b) => {
-                const as = this.fileInfos[a];
-                const bs = this.fileInfos[b];
-                if(as.mtime !== bs.mtime){
+                const at = (this.fileInfos[a] && this.fileInfos[a].mtimeMs) || Infinity;
+                const bs = (this.fileInfos[b] && this.fileInfos[b].mtimeMs) || Infinity;
+                if(at !== bs){
                     if(sortOrder === SORT_BY_DATE_REVERSE){
-                        return as.mtimeMs - bs.mtimeMs;
+                        return at - bs;
                     }else{
-                        return bs.mtimeMs - as.mtimeMs;
+                        return bs - at;
                     }
                 }else{
                     return byFn(a, b);
@@ -230,13 +231,13 @@ export default class ExplorerPage extends Component {
             });
         }else if (sortOrder === SORT_FROM_BIG || sortOrder === SORT_FROM_SMALL){
             files.sort((a, b) => {
-                const as = this.fileInfos[a];
-                const bs = this.fileInfos[b];
-                if(as.size !== bs.size){
+                const ass = (this.fileInfos[a] && this.fileInfos[a].size) || 0;
+                const bs =  (this.fileInfos[b] && this.fileInfos[b].size) || 0;
+                if(ass !== bs){
                     if(sortOrder === SORT_FROM_SMALL){
-                        return as.size - bs.size;
+                        return ass - bs;
                     }else{
-                        return bs.size - as.size;
+                        return bs - ass;
                     }
                 }else{
                     return byFn(a, b);
@@ -249,7 +250,7 @@ export default class ExplorerPage extends Component {
         const { sortOrder } = this.state;
         let dirs, files, videos;
         if(!this.getHash()) {
-            dirs = userConfig.home_pathes;
+            dirs = userConfig.home_pathes.concat(userConfig.good_folder);
             files = [];
             videos = [];
         } else {
@@ -469,10 +470,29 @@ export default class ExplorerPage extends Component {
 
         SORT_OPTIONS.push(SORT_RANDOMLY);
 
+        let info;
+        const files = this.getFilteredFiles();
+        let totalSize = 0;
+        if(files && files.length > 0){
+            files.forEach(e => {
+                if(this.fileInfos[e]){
+                    totalSize += this.fileInfos[e].size;
+                }
+            });
+
+            info = <div>{filesizeUitl(totalSize, {base: 2})} </div>
+        }
+
+        //show tags
+
         if(this.getMode() !== MODE_HOME){
             return (<div className="side-menu">
                     <div className="side-menu-radio-title"> File Order </div>
-                    <RadioButtonGroup defaultChecked={SORT_OPTIONS.indexOf(this.state.sortOrder)} options={SORT_OPTIONS} name="explorer-sort-order" onChange={this.onSortChange.bind(this)}/>
+                    <RadioButtonGroup 
+                            defaultChecked={SORT_OPTIONS.indexOf(this.state.sortOrder)} 
+                            options={SORT_OPTIONS} name="explorer-sort-order" 
+                            onChange={this.onSortChange.bind(this)}/>
+                    {info}
                 </div>)
         }
     }
