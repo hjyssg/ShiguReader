@@ -18,7 +18,8 @@ const queryString = require('query-string');
 const stringHash = util.stringHash;
 import RadioButtonGroup from './subcomponent/RadioButtonGroup';
 import Breadcrumb from './subcomponent/Breadcrumb';
-
+const nameParser = require('../name-parser');
+const classNames = require('classnames');
 
 const Constant = require("../constant");
 
@@ -53,6 +54,7 @@ export default class ExplorerPage extends Component {
         const sortOrder = parsed.sortOrder || SORT_BY_DATE;
 
         return {
+            anchorSideMenu: false,
             pageIndex,
             isRecursive,
             sortOrder
@@ -96,6 +98,10 @@ export default class ExplorerPage extends Component {
     componentWillReceiveProps(nextProps){
         if(nextProps.filterText){
             this.handlePageChange(1);
+
+            this.setState({
+                filterText: nextProps.filterText
+            })
         }
     }
 
@@ -170,7 +176,7 @@ export default class ExplorerPage extends Component {
     }
     
     getFilteredFiles(){
-        var filterText = this.props.filterText && this.props.filterText.toLowerCase();
+        var filterText = this.state.filterText && this.state.filterText.toLowerCase();
         if(filterText){
             return this.files.filter(e => {
                 return e.toLowerCase().indexOf(filterText) > -1;
@@ -455,6 +461,16 @@ export default class ExplorerPage extends Component {
         this.setStateAndSetHash({sortOrder: e.target.value})
     }
 
+    toggleSideMenu(event){
+        if(event.target.className.includes( "side-menu-click-layer")){
+            this.setState({anchorSideMenu: !this.state.anchorSideMenu})
+        }
+    }
+
+    setFilterText(text){
+        this.setStateAndSetHash({filterText: text, pageIndex: 1});
+    }
+
     renderSideMenu(){
         const SORT_OPTIONS = [
             SORT_BY_DATE,
@@ -471,28 +487,61 @@ export default class ExplorerPage extends Component {
         SORT_OPTIONS.push(SORT_RANDOMLY);
 
         let info;
-        const files = this.getFilteredFiles();
+        const files = this.getFilteredFiles() || [];
         let totalSize = 0;
-        if(files && files.length > 0){
-            files.forEach(e => {
-                if(this.fileInfos[e]){
-                    totalSize += this.fileInfos[e].size;
+        files.forEach(e => {
+            if(this.fileInfos[e]){
+                totalSize += this.fileInfos[e].size;
+            }
+        });
+        info = <div className="side-menu-folder-small-info">{filesizeUitl(totalSize, {base: 2})} </div>
+
+        const tag2Freq = {};
+
+        files.forEach(e => {
+            const result = nameParser.parse(_.getFn(e));
+            let tags = (result && result.tags)||[];
+
+            tags.forEach(t => {
+                if(t.length > 1){
+                    tag2Freq[t] = tag2Freq[t] || 0;
+                    tag2Freq[t]++;
                 }
-            });
+            })
+        });
 
-            info = <div>{filesizeUitl(totalSize, {base: 2})} </div>
-        }
+        let tags = _.keys(tag2Freq);
 
-        //show tags
+       tags.sort((a, b) => {
+            return tag2Freq[b] - tag2Freq[a];
+        })
+
+        const tagInfos = tags.slice(0, 30).map(t => {
+            return (<div className="side-menu-single-tag" onClick={() => this.setFilterText(t)} key={t}>
+                        {t}<span>({tag2Freq[t]})</span> 
+                    </div>);
+        });
+
+        const showAll = (
+        <div className="side-menu-single-tag" onClick={() => this.setFilterText("")} key={"----null------"}>
+            All
+        </div>);
+
+        tagInfos.unshift(showAll );
 
         if(this.getMode() !== MODE_HOME){
-            return (<div className="side-menu">
+            const cn = classNames("side-menu", "side-menu-click-layer", {
+                anchorSideMenu: this.state.anchorSideMenu
+            });
+
+            return (<div className={cn} onClick={this.toggleSideMenu.bind(this)}>
                     <div className="side-menu-radio-title"> File Order </div>
                     <RadioButtonGroup 
                             defaultChecked={SORT_OPTIONS.indexOf(this.state.sortOrder)} 
                             options={SORT_OPTIONS} name="explorer-sort-order" 
                             onChange={this.onSortChange.bind(this)}/>
                     {info}
+                    {tagInfos}
                 </div>)
         }
     }

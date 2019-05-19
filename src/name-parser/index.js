@@ -177,6 +177,7 @@ function parse(str) {
         }
     });
 
+
     if(!type && (comiket|| group)){
         type = "Doujin";
     }

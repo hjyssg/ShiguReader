@@ -1,15 +1,14 @@
 .side-menu {
   box-sizing: border-box;
   height: 100%; /* 100% Full-height */
-  
-  width: 0px;
+  width: 20px;
   padding-left: 20px;
   transition: width 0.1s;
 
- 
+  &.anchorSideMenu,
   &:hover{
     width: 250px; 
-    padding-top: 100px; 
+    padding-top: 30px; 
     padding-left: 20px;
     padding-right: 10px;
   }
@@ -28,11 +27,6 @@
   background-color: #99a2b5; /* Black*/
   overflow-x: hidden; /* Disable horizontal scroll */
  
-
-  // &:hover {
-  //   width: 250px;
-  // }
-
   .side-menu-radio-title{
     color: #1d5be2;
     font-size: 20px;
@@ -42,6 +36,22 @@
     font-weight: 600px;
     font-size: 17px;
     color: #eff4ff;
+  }
+
+  .side-menu-folder-small-info{
+    padding-bottom: 5px;
+    border-bottom: #DDDDDD solid 1px;
+    margin-bottom: 5px;
+  }
+
+  .side-menu-single-tag{
+    cursor: pointer;
+    color: #eff4ff;
+
+    &:hover{
+      color: #43464e;
+      font-weight: bold;
+    }
   }
 }
 
