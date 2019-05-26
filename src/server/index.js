@@ -209,8 +209,6 @@ init();
 // http://localhost:8080/api/exhentaiApi
 app.post('/api/exhentaiApi/', cors(), function (req, res) {
     const src = req.body && req.body.src;
-
-    db.allFiles
     res.send({
         allFiles: db.allFiles
     }); 

@@ -54,7 +54,7 @@ export default class ExplorerPage extends Component {
         const sortOrder = parsed.sortOrder || SORT_BY_DATE;
 
         return {
-            anchorSideMenu: false,
+            anchorSideMenu: true,
             pageIndex,
             isRecursive,
             sortOrder
@@ -458,7 +458,7 @@ export default class ExplorerPage extends Component {
     }
 
     onSortChange(e){
-        this.setStateAndSetHash({sortOrder: e.target.value})
+        this.setStateAndSetHash({sortOrder: e})
     }
 
     toggleSideMenu(event){
@@ -537,7 +537,7 @@ export default class ExplorerPage extends Component {
             return (<div className={cn} onClick={this.toggleSideMenu.bind(this)}>
                     <div className="side-menu-radio-title"> File Order </div>
                     <RadioButtonGroup 
-                            defaultChecked={SORT_OPTIONS.indexOf(this.state.sortOrder)} 
+                            checked={SORT_OPTIONS.indexOf(this.state.sortOrder)} 
                             options={SORT_OPTIONS} name="explorer-sort-order" 
                             onChange={this.onSortChange.bind(this)}/>
                     {info}
