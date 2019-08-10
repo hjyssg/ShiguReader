@@ -13,7 +13,7 @@ const y = now.getFullYear();
 let mm = now.getMonth()+1;
 mm = ( mm < 10 ) ? ( "0" + ( mm ).toString() ) : ( mm ).toString();
 const fd = "good_"+ [y, mm, "01"].join("_");
-module.exports.good_folder = "D:\\_Happy_Lesson\\_Going_to_sort\\"+fd;
+module.exports.good_folder = "D:\\_Happy_Lesson\\_Going_to_sort\\_good\\"+fd;
 
 /**
  * OPTIONAL where to move file
