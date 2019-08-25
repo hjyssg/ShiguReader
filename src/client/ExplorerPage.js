@@ -353,6 +353,8 @@ export default class ExplorerPage extends Component {
                     {videoItems}
                 </ul> */}
 
+                {this.renderPagination()}
+
                 <div className={"file-grid container"}>
                     <div className={"row"}>
                         {zipfileItems}

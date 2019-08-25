@@ -18,20 +18,21 @@
 # DO NOT SKIP ANY STEP BELOW
 # 不要跳过下面任何一个步骤
 
-# If you do not have nodejs installed, please to go https://nodejs.org/
+# If you do not have nodejs installed, please go to https://nodejs.org/
 # 没有nodejs,麻烦先安装nodejs
 
 # Clone the repository
 # 把代码clone或者下载到本地
 git clone https://github.com/hjyssg/ShiguReader
 
+## change user config
+## 手动修改设置
+用任意文本编辑器手动修改src/user-config.js用户文件设置  
+modify src/user-config.js accoding to your own comic files location
+
 # Go inside the directory
 # 命令行进入文件夹
 cd ShiguReader
-
-## change user config
-## 手动修改设置
-手动修改user-config.js用户文件设置  
 
 # Install dependencies
 npm install

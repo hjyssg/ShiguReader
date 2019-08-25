@@ -10,9 +10,9 @@ module.exports.SORT_BY_DATE = "From Latest";
 module.exports.SORT_BY_DATE_REVERSE = "From Earliest";
 module.exports.SORT_FROM_SMALL = "From Small file size";
 module.exports.SORT_FROM_BIG = "From Big file size";
-module.exports.SORT_BY_FOLDER = "sorted by folder";
-module.exports.SORT_BY_FILENAME = "sorted by filename";
-module.exports.SORT_RANDOMLY = "sorted randomly";
+module.exports.SORT_BY_FOLDER = "By folder name";
+module.exports.SORT_BY_FILENAME = "By filename";
+module.exports.SORT_RANDOMLY = "Randomly";
  
 //todo 
 module.exports.TAG_THUMBNAIL_PATH_API  = "/api/tagFirstImagePath";
