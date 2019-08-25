@@ -119,6 +119,9 @@ async function init() {
         console.error("Please switch you console encoding to utf8 in windows language setting");
     }
 
+    console.log("clean previous cache files");
+    doClean();
+
     console.log("scanning local files");
 
     const filter = (e) => {return isCompress(e) || isImage(e);};
@@ -607,13 +610,17 @@ app.post('/api/pregenerateThumbnails', (req, res) => {
     })
 });
 
-app.get('/api/cleanCache', (req, res) => {
+function doClean(){
     const cleanCache = require("../tools/cleanCache");
     try{
         cleanCache.cleanCache();
     }catch(e){
         console.error(e);
     }
+}
+
+app.get('/api/cleanCache', (req, res) => {
+    doClean();
 });
 
 
