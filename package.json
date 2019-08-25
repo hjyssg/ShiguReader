@@ -41,7 +41,8 @@
     "underscore": "^1.9.1",
     "universal-cookie": "^3.0.7",
     "whatwg-fetch": "^3.0.0",
-    "winston": "^3.2.1"
+    "winston": "^3.2.1",
+    "promise-fs": "^2.1.1"
   },
   "devDependencies": {
     "@babel/core": "^7.0.0",
