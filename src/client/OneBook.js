@@ -11,6 +11,7 @@ import ErrorPage from './ErrorPage';
 import CenterSpinner from './subcomponent/CenterSpinner';
 const spop  = require("./subcomponent/spop");
 import FileChangeToolbar from './subcomponent/FileChangeToolbar';
+import ScrollZoomer from './subcomponent/ScrollZoomer';
 import LoadingImage from './LoadingImage';
 import MusicPlayer from './MusicPlayer';
 
@@ -292,6 +293,7 @@ export default class OneBook extends Component {
         {this.renderFileSizeAndTime()}
         {this.renderTags()}
         {this.renderToolbar()}
+        <ScrollZoomer />
         {/* {this.renderToggleFullScreenButton()}  */}
       </div>
     );
