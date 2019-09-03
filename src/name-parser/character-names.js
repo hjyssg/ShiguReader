@@ -235,6 +235,7 @@ module.exports =[
 "Maestrale",
 
 "穂乃果",
-"ことり"
+"ことり",
 
+"エルフ"
 ];
