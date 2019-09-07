@@ -6,14 +6,56 @@ const convertTable = {};
 
 const localCache = {};
 
-const comiketTags = [];
-for(let index = 65; index < 97; index++){
-    comiketTags.push(`C${index}`);
+const ALL_COMIC_TAGS = [];
+const comiket_tags = [];
+const comic_star_tags = [];
+for(let index = 65; index < 100; index++){
+    comiket_tags.push(`C${index}`);
+    ALL_COMIC_TAGS.push(`C${index}`);
 }
 
-comiketTags.push("COMIC1");
-for(let index = 2; index < 16; index++){
-    comiketTags.push(`COMIC1☆${index}`);
+ALL_COMIC_TAGS.push("COMIC1");
+for(let index = 2; index < 20; index++){
+    comic_star_tags.push(`COMIC1☆${index}`)
+    ALL_COMIC_TAGS.push(`COMIC1☆${index}`);
+}
+
+//for sort algo, not very accurate
+function getDateFromTags(tags){
+  if(!tags || tags.length === 0){
+      return null;
+  }
+
+  const _tags =  tags.filter(e => ALL_COMIC_TAGS.includes(e));
+  let tag = _tags && _tags[0];
+  let result = null;
+  let num;
+  let year;
+  let month;
+  if(tag){
+    if(comiket_tags.includes(tag)){
+        tag = tag.replace("C", "");
+        num = parseInt(tag);
+        year = Math.floor(num /2) + 1971;
+        month = num % 2 === 0? 8 : 11;
+        result = new Date(year, month, 1);
+    }else if(comic_star_tags.includes(tag)){
+        tag = tag.replace("COMIC1☆", "");
+        num = parseInt(tag);
+
+        if(num <= 10){
+            //once per year
+            result = new Date(2006+num, 3, 30);
+        }else{
+            num = (num - 10)
+            year = 2017 + Math.floor(num /2);
+            month = num % 2 === 0? 10 : 4;
+            result = new Date(year, month, 30);
+        }
+    }
+  }
+
+  return result;
 }
 
 same_tags.forEach(row => {
@@ -165,7 +207,7 @@ function parse(str) {
 
     let comiket = null;
     tags.forEach(e => {
-        if(comiketTags.includes(e)){
+        if(ALL_COMIC_TAGS.includes(e)){
             comiket = e;
         }
     })
@@ -193,4 +235,5 @@ function parse(str) {
 
 module.exports.parse = parse;
 module.exports.isOnlyDigit = isOnlyDigit;
-module.exports.comiketTags = comiketTags;
+module.exports.ALL_COMIC_TAGS = ALL_COMIC_TAGS;
+module.exports.getDateFromTags = getDateFromTags;

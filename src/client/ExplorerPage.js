@@ -219,16 +219,39 @@ export default class ExplorerPage extends Component {
             });
         }else if (sortOrder === SORT_BY_DATE ||  sortOrder === SORT_BY_DATE_REVERSE){
             files.sort((a, b) => {
-                const at = (this.fileInfos[a] && this.fileInfos[a].mtimeMs) || Infinity;
-                const bs = (this.fileInfos[b] && this.fileInfos[b].mtimeMs) || Infinity;
-                if(at !== bs){
+               
+
+                const fileTimeA = (this.fileInfos[a] && this.fileInfos[a].mtimeMs) || Infinity;
+                const fileTimeB = (this.fileInfos[b] && this.fileInfos[b].mtimeMs) || Infinity;
+
+                function comprTime(at, bt){
+                    let result;
                     if(sortOrder === SORT_BY_DATE_REVERSE){
-                        return at - bs;
+                        result = at - bt;
                     }else{
-                        return bs - at;
+                        result = bt - at;
                     }
+
+                    if(result === 0){
+                        result = byFn(a, b);
+                    }
+                    return result;
+                }
+
+                if(this.getMode() === MODE_EXPLORER){
+                    return comprTime(fileTimeA, fileTimeB);
                 }else{
-                    return byFn(a, b);
+
+                    const pA = nameParser.parse(util.getFn(a));
+                    const pB = nameParser.parse(util.getFn(b));
+    
+                    let aboutTimeA = pA && nameParser.getDateFromTags(pA.tags);
+                    let aboutTimeB = pB && nameParser.getDateFromTags(pB.tags);
+    
+                    aboutTimeA = aboutTimeA && aboutTimeA.getTime();
+                    aboutTimeB = aboutTimeB && aboutTimeB.getTime();
+
+                    return comprTime(aboutTimeA || fileTimeA, fileTimeB || fileTimeA);
                 }
             });
         }else if (sortOrder === SORT_RANDOMLY){

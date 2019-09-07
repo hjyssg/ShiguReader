@@ -91,4 +91,21 @@ describe('name parser', () => {
         result = parser.parse(s3);
         assert.deepEqual(result.tags.sort(),["艦これ"].sort());   
     })   
+
+    
+    it("tag time calculation", ()=>{
+        const C96T = parser.getDateFromTags(["C96"]).getTime();
+        const C95T = parser.getDateFromTags(["C95"]).getTime();
+        const C91T = parser.getDateFromTags(["C91"]).getTime();
+        const C87T = parser.getDateFromTags(["C87"]).getTime();
+        const C85T = parser.getDateFromTags(["C85"]).getTime();
+        const C84T = parser.getDateFromTags(["C84"]).getTime();
+        const C72T = parser.getDateFromTags(["C72"]).getTime();
+
+        assert(C96T > C95T);
+        assert(C95T > C91T);
+        assert(C91T > C87T);
+        assert(C85T > C84T);
+        assert(C84T > C72T);
+    })
 });

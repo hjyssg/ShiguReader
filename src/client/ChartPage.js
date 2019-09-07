@@ -61,9 +61,9 @@ export default class ChartPage extends Component {
         })
 
         const data = {};
-        data.labels = nameParser.comiketTags;
+        data.labels = nameParser.ALL_COMIC_TAGS;
         const value = [];
-        nameParser.comiketTags.forEach(e => {
+        nameParser.ALL_COMIC_TAGS.forEach(e => {
             value.push(byComiket[e]);
         })
 
