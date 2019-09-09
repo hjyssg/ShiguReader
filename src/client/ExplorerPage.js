@@ -251,7 +251,7 @@ export default class ExplorerPage extends Component {
                     aboutTimeA = aboutTimeA && aboutTimeA.getTime();
                     aboutTimeB = aboutTimeB && aboutTimeB.getTime();
 
-                    return comprTime(aboutTimeA || fileTimeA, fileTimeB || fileTimeA);
+                    return comprTime(aboutTimeA || fileTimeA, aboutTimeB || fileTimeB);
                 }
             });
         }else if (sortOrder === SORT_RANDOMLY){

@@ -96,6 +96,8 @@ describe('name parser', () => {
     it("tag time calculation", ()=>{
         const C96T = parser.getDateFromTags(["C96"]).getTime();
         const C95T = parser.getDateFromTags(["C95"]).getTime();
+        const C94T = parser.getDateFromTags(["C94"]).getTime();
+        const C92T = parser.getDateFromTags(["C92"]).getTime();
         const C91T = parser.getDateFromTags(["C91"]).getTime();
         const C87T = parser.getDateFromTags(["C87"]).getTime();
         const C85T = parser.getDateFromTags(["C85"]).getTime();
@@ -104,6 +106,9 @@ describe('name parser', () => {
 
         assert(C96T > C95T);
         assert(C95T > C91T);
+        assert(C95T > C94T);
+        assert(C94T > C92T);
+        assert(C92T > C91T);
         assert(C91T > C87T);
         assert(C85T > C84T);
         assert(C84T > C72T);
