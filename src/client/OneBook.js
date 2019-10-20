@@ -101,29 +101,34 @@ export default class OneBook extends Component {
   changePage(index) {
     const lastIndex = (this.state.files || []).length - 1;
     if (index < 0) {
-      return;
+      //do nothing
     } else if (index > lastIndex) {
       spop({
         template: 'Last Page',
         position: 'top-right',
         autoclose: 3000
       });
-      return;
+    }else{
+      this.setState({ index });
+      this.setIndex(index);
+
+      // //https://stackoverflow.com/questions/4210798/how-to-scroll-to-top-of-page-with-javascript-jquery
+      // document.body.scrollTop = document.documentElement.scrollTop = 0;
     }
-    this.setState({ index });
-    this.setIndex(index);
   }
   
   next(event) {
     let index = parseInt(event.target.getAttribute("index")) + 1;
     event.preventDefault();
     this.changePage(index);
+    this.scrollZoomer.reset();
   }
   
   prev(event) {
     let index = parseInt(event.target.getAttribute("index")) - 1;
     event.preventDefault();
     this.changePage(index);
+    this.scrollZoomer.reset();
   }
   
   isFailedLoading(){
@@ -293,7 +298,7 @@ export default class OneBook extends Component {
         {this.renderFileSizeAndTime()}
         {this.renderTags()}
         {this.renderToolbar()}
-        <ScrollZoomer />
+        <ScrollZoomer ref={scrollZoomer => this.scrollZoomer = scrollZoomer} />
         {/* {this.renderToggleFullScreenButton()}  */}
       </div>
     );
