@@ -29,6 +29,10 @@ $zoom-width: 10%;
         font-weight: 600;
         font-size: 6rem;
         color: black;
+
+        &:active{
+            color: slategray;
+        }
     }
 
     &:hover{
