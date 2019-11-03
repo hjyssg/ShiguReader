@@ -67,19 +67,19 @@
   }
 
   .one-book-image {
-    max-height: 925px;
     margin-bottom: 0.5rem;
     box-shadow: 0 2px 4px 0 rgba(0,0,0,0.16),0 2px 10px 0 rgba(0,0,0,0.12)!important;
     z-index: 10;
+    // max-height: 925px;
 
     &.has-music{
-      max-height: 450px;
+      // max-height: 450px;
     }
   }
 
   .full-screen {
     .one-book-image{
-      max-height: 1060px;
+      // max-height: 1060px;
     }
   }
 

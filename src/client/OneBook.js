@@ -3,6 +3,7 @@ import _ from 'underscore';
 const nameParser = require('../name-parser');
 const classNames = require('classnames');
 const dateFormat = require('dateformat');
+import ReactDOM from 'react-dom';
 
 import { Link } from 'react-router-dom';
 import Sender from './Sender';
@@ -11,9 +12,10 @@ import ErrorPage from './ErrorPage';
 import CenterSpinner from './subcomponent/CenterSpinner';
 const spop  = require("./subcomponent/spop");
 import FileChangeToolbar from './subcomponent/FileChangeToolbar';
-import ScrollZoomer from './subcomponent/ScrollZoomer';
 import LoadingImage from './LoadingImage';
 import MusicPlayer from './MusicPlayer';
+import $ from 'jquery'
+import "./style/BigColumnButton.scss";
 
 const util = require("../util");
 const queryString = require('query-string');
@@ -59,6 +61,75 @@ export default class OneBook extends Component {
   componentDidUpdate() {
     this.componentDidMount();
   }
+
+  updateScrollPos(e) {
+    $('html').css('cursor', 'row-resize');
+    console.log(this.clickY, e.pageY, this.clickY - e.pageY );
+
+    let change = $(window).scrollTop() + (this.clickY - e.pageY);
+    change = change >= 0? Math.min(change, 500) : Math.max(change, -500);
+    $(window).scrollTop(change);
+  }
+  
+
+  getImageSize(){
+    this.loadedImage = this.state.index;
+    const imageDom = ReactDOM.findDOMNode(this.imgRef);
+    this.imgHeight = imageDom.clientHeight;
+
+    this.clicked = false;
+    this.clickY = 0;
+
+    //set max height
+    let maxHeight = 952;
+    if(screenfull.isFullscreen){
+      maxHeight = 1052;
+    }else if (this.hasMusic()){
+      maxHeight = 500;
+    }
+    if(this.imgHeight > maxHeight){
+      this.imgHeight = maxHeight;
+      this.applyHeightToImage(this.imgHeight);
+    }
+  }
+
+  onwheel(e){
+    const CHANGE_RATE = 1.05;
+    this.imgHeight = e.wheelDelta > 0?  this.imgHeight * CHANGE_RATE : this.imgHeight / CHANGE_RATE;
+    this.applyHeightToImage(this.imgHeight);
+    e.preventDefault();
+  }
+
+  applyHeightToImage(height){
+    const imageDom = ReactDOM.findDOMNode(this.imgRef);
+    imageDom.setAttribute("height", height);
+  }
+
+  bindUserInteraction(){
+    document.addEventListener('keydown', this.handleKeyDown.bind(this));
+
+    const imageDom = ReactDOM.findDOMNode(this.imgRef);
+    this.imgHeight = imageDom.clientHeight;
+    imageDom.addEventListener("wheel", this.onwheel.bind(this), {passive: false} );
+
+    const that = this;
+    $(imageDom).on({
+      'mousemove': function(e) {
+          that.clicked && that.updateScrollPos(e);
+          e.preventDefault();
+      },
+      'mousedown': function(e) {
+          that.clicked = true;
+          that.clickY = e.pageY;
+          e.preventDefault();
+      },
+      'mouseup': function(e) {
+          that.clicked = false;
+          $('html').css('cursor', 'auto');
+          e.preventDefault();
+      }
+    });
+  }
   
   displayFile(file){
     Sender.post("/api/extract", {fileName: this.getPathFromLocalStorage(),   hash: this.getHash() }, res => {
@@ -72,12 +143,11 @@ export default class OneBook extends Component {
         //the sort is trigger
 
         util.sortFileNames(files);
-
         let musicFiles = res.musicFiles || [];
         util.sortFileNames(musicFiles);
-
         this.setState({ files, musicFiles, path:res.path, fileStat: res.stat });
-        document.addEventListener('keydown', this.handleKeyDown.bind(this));
+
+        this.bindUserInteraction();
       }else{
         this.failTimes++;
         this.forceUpdate();
@@ -118,14 +188,16 @@ export default class OneBook extends Component {
   }
   
   next(event) {
-    let index = parseInt(event.target.getAttribute("index")) + 1;
     event.preventDefault();
+    event.stopPropagation();
+    let index = this.state.index + 1;
     this.changePage(index);
   }
   
   prev(event) {
-    let index = parseInt(event.target.getAttribute("index")) - 1;
     event.preventDefault();
+    event.stopPropagation();
+    let index = this.state.index - 1;
     this.changePage(index);
   }
   
@@ -162,8 +234,8 @@ export default class OneBook extends Component {
         "has-music": this.hasMusic()
       });
       return <img  className={cn} src={getUrl(files[index])} alt="book-image"
-                   onClick={this.next.bind(this)}
-                   onContextMenu={this.prev.bind(this)}
+                   ref={img => this.imgRef = img}
+                   onLoad={this.getImageSize.bind(this)}
                    index={index}
                    />
     } else {
@@ -296,8 +368,9 @@ export default class OneBook extends Component {
         {this.renderFileSizeAndTime()}
         {this.renderTags()}
         {this.renderToolbar()}
-        <ScrollZoomer ref={scrollZoomer => this.scrollZoomer = scrollZoomer} />
-        {/* {this.renderToggleFullScreenButton()}  */}
+  
+        <div className="big-column-button next"> <i class="fas fa-arrow-circle-right" onClick={this.next.bind(this)}></i> </div>
+        <div className="big-column-button prev"> <i class="fas fa-arrow-circle-left" onClick={this.prev.bind(this)}></i>  </div>
       </div>
     );
   }

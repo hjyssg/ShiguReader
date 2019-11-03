@@ -26,7 +26,9 @@
     "execa": "^1.0.0",
     "express": "^4.16.3",
     "filesize": "^4.1.2",
+    "jquery": "^3.4.1",
     "p-limit": "^2.1.0",
+    "promise-fs": "^2.1.1",
     "prop-types": "^15.6.2",
     "query-string": "^6.2.0",
     "rc-pagination": "^1.17.8",
@@ -41,8 +43,7 @@
     "underscore": "^1.9.1",
     "universal-cookie": "^3.0.7",
     "whatwg-fetch": "^3.0.0",
-    "winston": "^3.2.1",
-    "promise-fs": "^2.1.1"
+    "winston": "^3.2.1"
   },
   "devDependencies": {
     "@babel/core": "^7.0.0",
