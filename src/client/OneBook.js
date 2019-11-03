@@ -97,7 +97,7 @@ export default class OneBook extends Component {
     const CHANGE_RATE = 1.05;
     this.imgHeight = e.wheelDelta > 0?  this.imgHeight * CHANGE_RATE : this.imgHeight / CHANGE_RATE;
     this.applyHeightToImage(this.imgHeight);
-    e.preventDefault();
+    e.preventDefault && e.preventDefault();
   }
 
   applyHeightToImage(height){
@@ -163,8 +163,14 @@ export default class OneBook extends Component {
     const key = event.key.toLowerCase();
     if (key === "arrowright" || key === "d" || key === "l") {
       this.changePage(this.state.index + 1);
+      event.preventDefault();
     } else if (key === "arrowleft" || key === "a" || key === "j") {
       this.changePage(this.state.index - 1);
+      event.preventDefault();
+    } else if (key === "+" ) {
+      this.onwheel({wheelDelta: 1})
+    } else if (key === "-" ) {
+      this.onwheel({wheelDelta: -1})
     }
   }
   
@@ -369,8 +375,8 @@ export default class OneBook extends Component {
         {this.renderTags()}
         {this.renderToolbar()}
   
-        <div className="big-column-button next"> <i class="fas fa-arrow-circle-right" onClick={this.next.bind(this)}></i> </div>
-        <div className="big-column-button prev"> <i class="fas fa-arrow-circle-left" onClick={this.prev.bind(this)}></i>  </div>
+        <div className="big-column-button next"> <i className="fas fa-arrow-circle-right" onClick={this.next.bind(this)}></i> </div>
+        <div className="big-column-button prev"> <i className="fas fa-arrow-circle-left" onClick={this.prev.bind(this)}></i>  </div>
       </div>
     );
   }
