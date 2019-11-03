@@ -121,14 +121,12 @@ export default class OneBook extends Component {
     let index = parseInt(event.target.getAttribute("index")) + 1;
     event.preventDefault();
     this.changePage(index);
-    this.scrollZoomer.reset();
   }
   
   prev(event) {
     let index = parseInt(event.target.getAttribute("index")) - 1;
     event.preventDefault();
     this.changePage(index);
-    this.scrollZoomer.reset();
   }
   
   isFailedLoading(){
