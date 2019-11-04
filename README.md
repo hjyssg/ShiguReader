@@ -9,9 +9,6 @@
 ![screenshot-03](screenshot/03.png)
 
 
-##### 怎么运行？
-参考 Env_README.md
-
 ##### Quick Start
 
 ```bash
@@ -38,7 +35,9 @@ cd ShiguReader
 npm install
 
 # Start development server
-pm run dev
+npm run dev
+
+# open http://localhost:3000/
 ```
 
 ##### 注意事项
