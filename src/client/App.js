@@ -35,12 +35,20 @@ class App extends Component {
     handleKeyDown(event) {
         const key = event.key.toLowerCase();
          if(key === "enter"){
-            screenfull.toggle();
+            if(this.getSearchInputText().length === 0){
+                screenfull.toggle();
+            }else{
+                this.onSearchClick();
+            }
         }
-      }
+    }
+
+    getSearchInputText(){
+        return document.getElementsByClassName('search-input')[0].value;
+    }
 
     onSearchClick(event) {
-        this.searchText = document.getElementsByClassName('search-input')[0].value;
+        this.searchText = this.getSearchInputText();
         if(this.searchText.trim){
             this.searchText = this.searchText.trim();
         }
@@ -48,7 +56,7 @@ class App extends Component {
     }
 
     onFilterClick(event){
-        this.filterText = document.getElementsByClassName('search-input')[0].value;
+        this.filterText = this.getSearchInputText();;
         this.forceUpdate();
     }
     
