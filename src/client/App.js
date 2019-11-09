@@ -44,7 +44,8 @@ class App extends Component {
     }
 
     getSearchInputText(){
-        return document.getElementsByClassName('search-input')[0].value;
+        const input = document.getElementsByClassName('search-input');
+        return input[0] && input[0].value || "";
     }
 
     onSearchClick(event) {
