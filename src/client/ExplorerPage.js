@@ -54,7 +54,7 @@ export default class ExplorerPage extends Component {
         const sortOrder = parsed.sortOrder || SORT_BY_DATE;
 
         return {
-            anchorSideMenu: true,
+            anchorSideMenu: false,
             pageIndex,
             isRecursive,
             sortOrder

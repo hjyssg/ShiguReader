@@ -108,7 +108,11 @@ export default class OneBook extends Component {
   bindUserInteraction(){
     document.addEventListener('keydown', this.handleKeyDown.bind(this));
 
-    const imageDom = ReactDOM.findDOMNode(this.imgRef);
+    if(this.hasMusic()){
+      return;
+    }
+
+    const imageDom = ReactDOM.findDOMNode(this.wrapperRef);
     this.imgHeight = imageDom.clientHeight;
     imageDom.addEventListener("wheel", this.onwheel.bind(this), {passive: false} );
 
@@ -357,12 +361,13 @@ export default class OneBook extends Component {
     }
 
     const wraperCn = classNames("one-book-wrapper", {
-      "full-screen": screenfull.isFullscreen
+      "full-screen": screenfull.isFullscreen,
+      "has-music": this.hasMusic()
     });
 
     return (  
       <div className="one-book-container">
-        <div className={wraperCn}>
+        <div className={wraperCn} ref={wrapper => this.wrapperRef = wrapper}>
           {this.renderImage()}
           {this.renderMusicPlayer()}
         </div>

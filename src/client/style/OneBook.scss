@@ -16,6 +16,10 @@
     justify-content: center !important;
     align-items: center;
     flex-flow: column;
+    
+    &:not(.has-music){
+      width: 100%;
+    }
   }
 
   .fs-toggle-button{
@@ -70,11 +74,6 @@
     margin-bottom: 0.5rem;
     box-shadow: 0 2px 4px 0 rgba(0,0,0,0.16),0 2px 10px 0 rgba(0,0,0,0.12)!important;
     z-index: 10;
-    // max-height: 925px;
-
-    &:hover{
-      box-shadow: 0 2px 4px 0 rgba(235, 208, 208, 0.801),0 2px 10px 0  rgba(235, 208, 208, 0.801) !important;
-    }
 
     &.has-music{
       // max-height: 450px;
