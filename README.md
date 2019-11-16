@@ -35,7 +35,7 @@ cd ShiguReader
 npm install
 
 # Start development server
-npm run dev
+npm run dev or click run.bat
 
 # open http://localhost:3000/
 ```
