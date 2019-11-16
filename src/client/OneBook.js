@@ -25,6 +25,8 @@ import screenfull from 'screenfull';
 const getUrl = util.getUrl;
 const Constant = require("../constant");
 
+const MIN_HEIGHT = 400;
+
 export default class OneBook extends Component {
   constructor(props) {
     super(props);
@@ -63,7 +65,7 @@ export default class OneBook extends Component {
   }
 
   updateScrollPos(e) {
-    $('html').css('cursor', 'row-resize');
+    // $('html').css('cursor', 'row-resize');
     console.log(this.clickY, e.pageY, this.clickY - e.pageY );
 
     let change = $(window).scrollTop() + (this.clickY - e.pageY);
@@ -91,6 +93,11 @@ export default class OneBook extends Component {
       this.imgHeight = maxHeight;
       this.applyHeightToImage(this.imgHeight);
     }
+
+    if(this.imgHeight < MIN_HEIGHT){
+      this.imgHeight = MIN_HEIGHT;
+      this.applyHeightToImage(this.imgHeight);
+    }
   }
 
   onwheel(e){
@@ -101,6 +108,8 @@ export default class OneBook extends Component {
   }
 
   applyHeightToImage(height){
+    height = Math.max(height, MIN_HEIGHT);
+
     const imageDom = ReactDOM.findDOMNode(this.imgRef);
     imageDom.setAttribute("height", height);
   }
@@ -129,7 +138,7 @@ export default class OneBook extends Component {
       },
       'mouseup': function(e) {
           that.clicked = false;
-          $('html').css('cursor', 'auto');
+          // $('html').css('cursor', 'auto');
           e.preventDefault();
       }
     });
@@ -243,11 +252,15 @@ export default class OneBook extends Component {
       const cn = classNames("one-book-image", {
         "has-music": this.hasMusic()
       });
-      return <img  className={cn} src={getUrl(files[index])} alt="book-image"
-                   ref={img => this.imgRef = img}
-                   onLoad={this.getImageSize.bind(this)}
-                   index={index}
-                   />
+      return (<React.Fragment>
+              <img  className={cn} src={getUrl(files[index])} alt="book-image"
+                           ref={img => this.imgRef = img}
+                           onLoad={this.getImageSize.bind(this)}
+                           index={index}
+                           />
+              {index < files.length-1 && <img  className={"one-book-image-preload"} src={getUrl(files[index+1])} />}
+              {index > 0 && <img  className={"one-book-image-preload"}  src={getUrl(files[index-1])} />}
+              </React.Fragment>);    
     } else {
       const images = files.map(file => {
         return <LoadingImage className={"mobile-one-book-image"} 
