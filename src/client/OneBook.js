@@ -258,8 +258,8 @@ export default class OneBook extends Component {
                            onLoad={this.getImageSize.bind(this)}
                            index={index}
                            />
-              {index < files.length-1 && <img  className={"one-book-image-preload"} src={getUrl(files[index+1])} />}
-              {index > 0 && <img  className={"one-book-image-preload"}  src={getUrl(files[index-1])} />}
+              {index < files.length-1 &&  <link rel="preload" href={getUrl(files[index+1])} as="image" /> }
+              {index > 0 && <link rel="preload" href={getUrl(files[index-1])} as="image" />}
               </React.Fragment>);    
     } else {
       const images = files.map(file => {
