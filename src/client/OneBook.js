@@ -87,7 +87,7 @@ export default class OneBook extends Component {
     if(screenfull.isFullscreen){
       maxHeight = 1052;
     }else if (this.hasMusic()){
-      maxHeight = 500;
+      maxHeight = 450;
     }
     if(this.imgHeight > maxHeight){
       this.imgHeight = maxHeight;
