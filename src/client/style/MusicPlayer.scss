@@ -3,6 +3,12 @@
     border-radius: 2px;
     padding: 0px 10px;
 
+    .aji-music-items{
+        max-height: 350px;
+        overflow-y: scroll;
+        margin-bottom: 20px;
+    }
+
     .aji-music-player-item {
         color: #DDDDDD;
         cursor: pointer;

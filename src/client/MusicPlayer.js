@@ -49,7 +49,9 @@ export default class MusicPlayer extends Component {
         //https://stackoverflow.com/questions/43577182/react-js-audio-src-is-updating-on-setstate-but-the-audio-playing-doesnt-chang
         return (
                 <div className="aji-music-player">
-                    {audioItems}
+                    <div className="aji-music-items">
+                        {audioItems}
+                    </div>
                     <audio controls ref="audio">
                         <source src={getUrl(audioFiles[index])} />
                     </audio>
