@@ -26,7 +26,11 @@
         }
     }
 
-    audio{
+    .aji-music-player-control {
         width: 100%;
+
+        &:focus {
+            outline: none;
+        }
     }
 }

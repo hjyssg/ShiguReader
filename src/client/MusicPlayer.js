@@ -52,7 +52,7 @@ export default class MusicPlayer extends Component {
                     <div className="aji-music-items">
                         {audioItems}
                     </div>
-                    <audio controls ref="audio">
+                    <audio className="aji-music-player-control" controls ref="audio">
                         <source src={getUrl(audioFiles[index])} />
                     </audio>
                 </div>
