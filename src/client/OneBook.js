@@ -66,8 +66,7 @@ export default class OneBook extends Component {
 
   updateScrollPos(e) {
     // $('html').css('cursor', 'row-resize');
-    console.log(this.clickY, e.pageY, this.clickY - e.pageY );
-
+    // console.log(this.clickY, e.pageY, this.clickY - e.pageY );
     let change = $(window).scrollTop() + (this.clickY - e.pageY);
     change = change >= 0? Math.min(change, 500) : Math.max(change, -500);
     $(window).scrollTop(change);
@@ -187,7 +186,10 @@ export default class OneBook extends Component {
     }
   }
   
-  changePage(index) {
+  changePage(index, event) {
+    event && event.preventDefault();
+    event && event.stopPropagation();
+
     const lastIndex = (this.state.files || []).length - 1;
     if (index < 0) {
       //do nothing
@@ -203,21 +205,19 @@ export default class OneBook extends Component {
 
       // //https://stackoverflow.com/questions/4210798/how-to-scroll-to-top-of-page-with-javascript-jquery
       // document.body.scrollTop = document.documentElement.scrollTop = 0;
+
+      $(window).scrollTop(0);
     }
   }
   
   next(event) {
-    event.preventDefault();
-    event.stopPropagation();
     let index = this.state.index + 1;
-    this.changePage(index);
+    this.changePage(index, event);
   }
   
   prev(event) {
-    event.preventDefault();
-    event.stopPropagation();
     let index = this.state.index - 1;
-    this.changePage(index);
+    this.changePage(index, event);
   }
   
   isFailedLoading(){
