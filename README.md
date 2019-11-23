@@ -46,9 +46,11 @@ windows语言设置:
 ![unicode setting](screenshot/unicode-setting.png)
 
 ##### 热键
-漫画页面
-enter 全屏
-左右方向翻页
+漫画页面  
+enter: 全屏  
+AD和左右方向键: 翻页  
++- 缩放  
+
 
 
 ##### 联系方式
