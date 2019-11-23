@@ -392,7 +392,7 @@ function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
         const e = db.allFiles[ii];
         const info = db.fileToInfo[e];
         const result = (author || tag) && nameParser.parse(e);
-        if (result && author &&  result.author === author) {
+        if (result && author &&  (result.author === author || result.group === author )) {
             files.push(e);
             fileInfos[e] = info;
         } else if (result && tag && result.tags.indexOf(tag) > -1) {
