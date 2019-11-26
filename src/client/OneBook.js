@@ -57,7 +57,13 @@ export default class OneBook extends Component {
       this.displayFile(file);
     }
 
-    screenfull.onchange(()=> this.forceUpdate());
+    screenfull.onchange(()=> {
+      this.forceUpdate();
+    });
+
+    window.addEventListener("resize", ()=> {
+      this.adjustImageSizeAfterResize();
+    })
   }
   
   componentDidUpdate() {
@@ -71,9 +77,22 @@ export default class OneBook extends Component {
     change = change >= 0? Math.min(change, 500) : Math.max(change, -500);
     $(window).scrollTop(change);
   }
-  
 
-  getImageSize(){
+  adjustImageSizeAfterResize(){
+    this.applyHeightToImage(this.getMaxHeight());
+  }
+
+  getMaxHeight(){
+    let maxHeight = 952;
+    if (this.hasMusic()){
+      maxHeight = 450;
+    } else {
+      maxHeight = isNaN(window.innerHeight) ? window.clientHeight : window.innerHeight;
+    }
+    return maxHeight;
+  }
+
+  adjustImageSize(){
     this.loadedImage = this.state.index;
     const imageDom = ReactDOM.findDOMNode(this.imgRef);
     this.imgHeight = imageDom.clientHeight;
@@ -82,31 +101,25 @@ export default class OneBook extends Component {
     this.clickY = 0;
 
     //set max height
-    let maxHeight = 952;
-    if(screenfull.isFullscreen){
-      maxHeight = 1052;
-    }else if (this.hasMusic()){
-      maxHeight = 450;
-    }
+    const maxHeight = this.getMaxHeight();
+
     if(this.imgHeight > maxHeight){
-      this.imgHeight = maxHeight;
-      this.applyHeightToImage(this.imgHeight);
+      this.applyHeightToImage(maxHeight);
     }
 
     if(this.imgHeight < MIN_HEIGHT){
-      this.imgHeight = MIN_HEIGHT;
-      this.applyHeightToImage(this.imgHeight);
+      this.applyHeightToImage(MIN_HEIGHT);
     }
   }
 
   onwheel(e){
     const CHANGE_RATE = 1.05;
-    this.imgHeight = e.wheelDelta > 0?  this.imgHeight * CHANGE_RATE : this.imgHeight / CHANGE_RATE;
-    this.applyHeightToImage(this.imgHeight);
+    this.applyHeightToImage(e.wheelDelta > 0?  this.imgHeight * CHANGE_RATE : this.imgHeight / CHANGE_RATE);
     e.preventDefault && e.preventDefault();
   }
 
   applyHeightToImage(height){
+    this.imgHeight = height;
     height = Math.max(height, MIN_HEIGHT);
 
     const imageDom = ReactDOM.findDOMNode(this.imgRef);
@@ -169,6 +182,7 @@ export default class OneBook extends Component {
   
   componentWillUnmount() {
     document.removeEventListener("keydown", this.handleKeyDown.bind(this));
+    window.removeEventListener("resize");
   }
   
   handleKeyDown(event) {
@@ -255,7 +269,7 @@ export default class OneBook extends Component {
       return (<React.Fragment>
               <img  className={cn} src={getUrl(files[index])} alt="book-image"
                            ref={img => this.imgRef = img}
-                           onLoad={this.getImageSize.bind(this)}
+                           onLoad={this.adjustImageSize.bind(this)}
                            index={index}
                            />
               {index < files.length-1 &&  <link rel="preload" href={getUrl(files[index+1])} as="image" /> }
