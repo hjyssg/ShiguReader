@@ -76,8 +76,7 @@ export default class OneBook extends Component {
     const ADJUSTER = 1.05;
     let change = $(window).scrollTop() + (this.clickY - e.pageY) * ADJUSTER;
     $(window).scrollTop(change);
-
-    console.log(change)
+    // console.log(change)
   }
 
   adjustImageSizeAfterResize(){
