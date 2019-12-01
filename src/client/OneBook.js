@@ -89,7 +89,7 @@ export default class OneBook extends Component {
     } else {
       maxHeight = isNaN(window.innerHeight) ? window.clientHeight : window.innerHeight;
     }
-    return maxHeight;
+    return maxHeight - 10;
   }
 
   adjustImageSize(){
@@ -123,7 +123,7 @@ export default class OneBook extends Component {
     height = Math.max(height, MIN_HEIGHT);
 
     const imageDom = ReactDOM.findDOMNode(this.imgRef);
-    imageDom.setAttribute("height", height);
+    imageDom && imageDom.setAttribute("height", height);
   }
 
   bindUserInteraction(){
@@ -181,8 +181,8 @@ export default class OneBook extends Component {
   }
   
   componentWillUnmount() {
-    document.removeEventListener("keydown", this.handleKeyDown.bind(this));
-    window.removeEventListener("resize");
+    document && document.removeEventListener("keydown", this.handleKeyDown.bind(this));
+    window && window.removeEventListener("resize");
   }
   
   handleKeyDown(event) {
