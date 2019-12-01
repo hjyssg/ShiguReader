@@ -37,6 +37,10 @@ function iterate (p, config, result, depth) {
             if (config && config.filter && !config.filter(p)) {
                 return;
             }
+
+            if(config && config.doLog && result.pathes.length % 100 === 0){
+                console.log("scan:", result.pathes.length);
+            }
             result.pathes.push(p);
         } else if (stat.isDirectory() && isLegalDepth(depth + 1, config)) {
             fs.readdirSync(p).forEach((e) => {

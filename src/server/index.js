@@ -126,7 +126,7 @@ async function init() {
 
     const filter = (e) => {return isCompress(e) || isImage(e);};
     let beg = (new Date).getTime()
-    const results = fileiterator(userConfig.home_pathes, { filter });
+    const results = fileiterator(userConfig.home_pathes, { filter:filter, doLog: true  });
     results.pathes = results.pathes.concat(userConfig.home_pathes);
     let end = (new Date).getTime();
     console.log(`${(end - beg)/1000}s  to read local dirs`);
