@@ -73,9 +73,11 @@ export default class OneBook extends Component {
   updateScrollPos(e) {
     // $('html').css('cursor', 'row-resize');
     // console.log(this.clickY, e.pageY, this.clickY - e.pageY );
-    let change = $(window).scrollTop() + (this.clickY - e.pageY);
-    change = change >= 0? Math.min(change, 500) : Math.max(change, -500);
+    const ADJUSTER = 1.05;
+    let change = $(window).scrollTop() + (this.clickY - e.pageY) * ADJUSTER;
     $(window).scrollTop(change);
+
+    console.log(change)
   }
 
   adjustImageSizeAfterResize(){
