@@ -149,8 +149,14 @@ async function init() {
     console.log("There are",db.allFiles.length, "files");
 
     setUpFileWatch();
-    app.listen(8080, () => console.log('Listening on port 8080!'));
-    console.log("init done");
+    
+    app.listen(8080, () => {
+        console.log("----------------------------------------------------------------");
+        console.log('Listening on port 8080!');
+        console.log("init done");
+        console.log("You can open ShiguReader from Browser now!");
+        console.log("----------------------------------------------------------------");
+    });
 }
 
 function setUpFileWatch(){
