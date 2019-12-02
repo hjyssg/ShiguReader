@@ -61,9 +61,7 @@ export default class OneBook extends Component {
       this.forceUpdate();
     });
 
-    window.addEventListener("resize", ()=> {
-      this.adjustImageSizeAfterResize();
-    })
+    window.addEventListener("resize", this.adjustImageSizeAfterResize.bind(this));
   }
   
   componentDidUpdate() {
@@ -183,7 +181,7 @@ export default class OneBook extends Component {
   
   componentWillUnmount() {
     document && document.removeEventListener("keydown", this.handleKeyDown.bind(this));
-    window && window.removeEventListener("resize");
+    window && window.removeEventListener("resize", this.adjustImageSizeAfterResize.bind(this));
   }
   
   handleKeyDown(event) {
