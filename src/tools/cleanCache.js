@@ -44,10 +44,10 @@ function cleanCache(){
         try {
             p1 = path.resolve(cache_folder_name, p1);
             const stat = fs.statSync(p1);
-            if (stat.isFile()) {
+            if (stat.isFile) {
                 //nothing
                 del(p1);
-            }else if(stat.isDirectory()){
+            }else if(stat.isDirectory){
                 let subfiles = fs.readdirSync(p1);
                 const noimages = subfiles.filter(e => !util.isImage(e));
                 noimages.forEach(e => del(path.resolve(p1,e)));

@@ -332,7 +332,7 @@ app.post('/api/lsDir', async (req, res) => {
                 p = path.join(dir, p);
                 const tempInfo = db.fileToInfo[p];
     
-                if (tempInfo && tempInfo.isDirectory()) {
+                if (tempInfo && tempInfo.isDirectory) {
                     dirs.push(p);
                     infos[p] = tempInfo;
                 } else if (isImage(ext) || isCompress(ext) || util.isVideo(ext)) {

@@ -4,3 +4,4 @@ dist
 cache
 *.log
 yarn.lock
+shigureader_local_file_info.json

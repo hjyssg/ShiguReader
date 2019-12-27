@@ -27,6 +27,7 @@
     "express": "^4.16.3",
     "filesize": "^4.1.2",
     "jquery": "^3.4.1",
+    "node-json-db": "^1.0.3",
     "p-limit": "^2.1.0",
     "promise-fs": "^2.1.1",
     "prop-types": "^15.6.2",
