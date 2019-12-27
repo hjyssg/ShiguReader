@@ -7,10 +7,9 @@ const JsonDB = require('node-json-db').JsonDB;
 const Config = require('node-json-db/dist/lib/JsonDBConfig').Config;
 
 const db = new JsonDB(new Config("shigureader_local_file_info", true, true, '/'));
-let dbInfo = db.getData("/");
 
 module.exports = function (folders, config) {
-    const result = {pathes: [], infos: {} };
+    const result = {pathes: [], infos: db.getData("/") };
     config.visited = {};
     folders.forEach((src) => {
         const stat = fs.statSync(src);
@@ -22,7 +21,7 @@ module.exports = function (folders, config) {
     });
     delete config.visited;
 
-    db.push("/", dbInfo);
+    db.push("/", result.infos);
     return result;
 };
 
@@ -34,14 +33,10 @@ function isLegalDepth(depth, config) {
 }
 
 function getStat(p){
-    let stat;
-    stat = dbInfo[p];
-    if(!stat){
-        stat = fs.statSync(p);
-        stat.isFile = stat.isFile();
-        stat.isDirectory = stat.isDirectory();
-        dbInfo[p] = stat;
-    }
+    const stat = fs.statSync(p);
+    //for jsonify
+    stat.isFile = stat.isFile();
+    stat.isDirectory = stat.isDirectory();
     return stat;
 }
 
@@ -49,8 +44,7 @@ function iterate (p, config, result, depth) {
     if(config.visited[p]){
         return;
     }
-    let stat = getStat(p);
-    
+    const stat = getStat(p);
     result.infos[p] = stat;
     try {
         if (stat.isFile) {
@@ -58,7 +52,7 @@ function iterate (p, config, result, depth) {
                 return;
             }
 
-            if(config && config.doLog && result.pathes.length % 100 === 0){
+            if(config && config.doLog &&  result.pathes.length % 500 === 0){
                 console.log("scan:", result.pathes.length);
             }
             result.pathes.push(p);
