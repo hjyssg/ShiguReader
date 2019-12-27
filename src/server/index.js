@@ -390,6 +390,8 @@ app.get('/api/tag', (req, res) => {
     res.send({ tags, authors });
 });
 
+const MIN_AUTHOR_LENGTH = 3;
+
 function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
     // let beg = (new Date).getTime()
     const files = [];
@@ -398,7 +400,8 @@ function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
         const e = db.allFiles[ii];
         const info = db.fileToInfo[e];
         const result = (author || tag) && nameParser.parse(e);
-        if (result && author &&  (result.author === author || result.group === author )) {
+        //sometimes there are mulitple authors for one book
+        if (result && author &&  (result.author === author || (author.length >= MIN_AUTHOR_LENGTH && result.author &&  result.author.includes(author)) || result.group === author )) {
             files.push(e);
             fileInfos[e] = info;
         } else if (result && tag && result.tags.indexOf(tag) > -1) {
