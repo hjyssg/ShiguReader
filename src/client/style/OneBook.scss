@@ -16,6 +16,10 @@
     justify-content: center !important;
     align-items: center;
     flex-flow: column;
+
+    &.clip-with-prev{
+      flex-flow: row;
+    }
     
     &:not(.has-music){
       width: 100%;
@@ -134,5 +138,17 @@
     color: #f1f1f1;
     font-size: 1rem;
     display: flex;
+  }
+
+  .clip-with-prev-button{
+    color: #f1f1f1;
+    font-size: 1rem;
+    display: inline-flex;
+
+    &:hover{
+      background-color: chocolate;
+      color: ivory;
+      cursor: pointer;
+    }
   }
 }

@@ -117,12 +117,21 @@ export default class OneBook extends Component {
     e.preventDefault && e.preventDefault();
   }
 
+  makeTwoImageSameHeight(){
+    if(this.state.clipWithPrev){
+      let imageDom = ReactDOM.findDOMNode(this.prevImgRef);
+      imageDom && imageDom.setAttribute("height", this.imgHeight);
+    }
+  }
+
   applyHeightToImage(height){
     this.imgHeight = height;
     height = Math.max(height, MIN_HEIGHT);
 
-    const imageDom = ReactDOM.findDOMNode(this.imgRef);
+    let imageDom = ReactDOM.findDOMNode(this.imgRef);
     imageDom && imageDom.setAttribute("height", height);
+
+    this.makeTwoImageSameHeight();
   }
 
   bindUserInteraction(){
@@ -198,12 +207,30 @@ export default class OneBook extends Component {
       this.onwheel({wheelDelta: -1})
     }
   }
+
+  doClipWithPrev(){
+    let next;
+
+    if(!this.state.clipWithPrev){
+      next = "right";
+    }else{
+      next = this.state.clipWithPrev === "right"? "left" : "right";
+    }
+
+    this.setState({
+      clipWithPrev: next
+    })
+  }
   
+  getLastIndex(){
+    return (this.state.files || []).length - 1;
+  }
+
   changePage(index, event) {
     event && event.preventDefault();
     event && event.stopPropagation();
 
-    const lastIndex = (this.state.files || []).length - 1;
+    const lastIndex = this.getLastIndex();
     if (index < 0) {
       //do nothing
     } else if (index > lastIndex) {
@@ -213,7 +240,7 @@ export default class OneBook extends Component {
         autoclose: 3000
       });
     }else{
-      this.setState({ index });
+      this.setState({ index: index, clipWithPrev: undefined });
       this.setIndex(index);
 
       // //https://stackoverflow.com/questions/4210798/how-to-scroll-to-top-of-page-with-javascript-jquery
@@ -260,17 +287,25 @@ export default class OneBook extends Component {
   }
 
   renderImage(){
-    const { files, index } = this.state;
+    const { files, index, clipWithPrev } = this.state;
     if(!_.isPad()){
       const cn = classNames("one-book-image", {
         "has-music": this.hasMusic()
       });
+
+      const prevImg =  clipWithPrev &&  <img  className={cn} src={getUrl(files[index-1])} alt="book-image"
+                                          ref={img => this.prevImgRef = img}
+                                          onLoad={this.makeTwoImageSameHeight.bind(this)}
+                                          index={index-1}
+                                        />;
       return (<React.Fragment>
+              { clipWithPrev === "right" &&  prevImg }
               <img  className={cn} src={getUrl(files[index])} alt="book-image"
                            ref={img => this.imgRef = img}
                            onLoad={this.adjustImageSize.bind(this)}
                            index={index}
                            />
+              { clipWithPrev === "left" &&  prevImg }
               {index < files.length-1 &&  <link rel="preload" href={getUrl(files[index+1])} as="image" /> }
               {index > 0 && <link rel="preload" href={getUrl(files[index-1])} as="image" />}
               </React.Fragment>);    
@@ -388,7 +423,8 @@ export default class OneBook extends Component {
 
     const wraperCn = classNames("one-book-wrapper", {
       "full-screen": screenfull.isFullscreen,
-      "has-music": this.hasMusic()
+      "has-music": this.hasMusic(),
+      "clip-with-prev": this.state.clipWithPrev
     });
 
     return (  
@@ -408,6 +444,7 @@ export default class OneBook extends Component {
   
         <div className="big-column-button next"> <i className="fas fa-arrow-circle-right" onClick={this.next.bind(this)}></i> </div>
         <div className="big-column-button prev"> <i className="fas fa-arrow-circle-left" onClick={this.prev.bind(this)}></i>  </div>
+        {this.state.index > 0 && <div className="clip-with-prev-button" onClick={this.doClipWithPrev.bind(this)}>clip with prev image</div>}
       </div>
     );
   }
