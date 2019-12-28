@@ -171,8 +171,8 @@ function setUpFileWatch(){
 
         updateTagHash(path);
         db.hashTable[stringHash(path)] = path;
-        stat.isFile = stat.isFile();
-        stat.isDirectory = stat.isDirectory();
+        stats.isFile = stats.isFile();
+        stats.isDirectory = stats.isDirectory();
 
         db.fileToInfo[path] = stats;
     };
