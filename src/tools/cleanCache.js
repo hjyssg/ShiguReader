@@ -11,6 +11,8 @@ function isSubDirectory(parent, child) {
     return path.relative(child, parent).startsWith('..');
 }
 
+const show_error = false;
+
 function del(file){
     if(isSubDirectory(cache_folder_name, file)){
         rimraf(file, (err) =>{
@@ -25,7 +27,7 @@ function del(file){
                 // }catch(e){
                 //     console.error(file, e);
                 // }
-                console.error(err);
+                show_error && console.error(err);
             }
         });
 
@@ -65,7 +67,7 @@ function cleanCache(){
                 }
             }
         }catch(e){
-            console.error(e);
+            show_error && console.error(e);
         }
     });
     console.log("cache clean done");
