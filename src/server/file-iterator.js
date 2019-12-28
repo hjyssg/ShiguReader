@@ -44,7 +44,7 @@ function iterate (p, config, result, depth) {
     if(config.visited[p]){
         return;
     }
-    const stat = getStat(p);
+    const stat = result.infos[p] || getStat(p);
     result.infos[p] = stat;
     try {
         if (stat.isFile) {
