@@ -1,3 +1,9 @@
+@mixin onHover {
+  background-color: chocolate;
+  color: ivory;
+  cursor: pointer;
+}
+
 .one-book-nothing-available{
   color: #e6eff3;
   font-size: 2rem;
@@ -110,9 +116,7 @@
   }
 
   .one-book-foot-author:hover{
-    background-color: chocolate;
-    color: ivory;
-    cursor: pointer;
+    @include onHover();
   }
 
   .one-book-foot-index-number {
@@ -146,9 +150,13 @@
     display: inline-flex;
 
     &:hover{
-      background-color: chocolate;
-      color: ivory;
-      cursor: pointer;
+     @include onHover();
     }
+  }
+
+  .rotate-button{
+    &:hover{
+      @include onHover();
+     }
   }
 }

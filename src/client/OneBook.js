@@ -134,6 +134,18 @@ export default class OneBook extends Component {
     this.makeTwoImageSameHeight();
   }
 
+  rotateImg(newAngle){
+    let imageDom = ReactDOM.findDOMNode(this.imgRef);
+    if(imageDom){
+      if(typeof newAngle === "number"){ 
+        this.rotateAngle = newAngle;
+      }else{
+        this.rotateAngle = (this.rotateAngle||0) + 90;
+      }
+      imageDom.setAttribute("style", "transform: rotate(" + this.rotateAngle + "deg)");
+    }
+  }
+
   bindUserInteraction(){
     document.addEventListener('keydown', this.handleKeyDown.bind(this));
 
@@ -242,6 +254,7 @@ export default class OneBook extends Component {
     }else{
       this.setState({ index: index, clipWithPrev: undefined });
       this.setIndex(index);
+      this.rotateImg(0);
 
       // //https://stackoverflow.com/questions/4210798/how-to-scroll-to-top-of-page-with-javascript-jquery
       // document.body.scrollTop = document.documentElement.scrollTop = 0;
@@ -445,6 +458,7 @@ export default class OneBook extends Component {
         <div className="big-column-button next"> <i className="fas fa-arrow-circle-right" onClick={this.next.bind(this)}></i> </div>
         <div className="big-column-button prev"> <i className="fas fa-arrow-circle-left" onClick={this.prev.bind(this)}></i>  </div>
         {this.state.index > 0 && <div className="clip-with-prev-button" onClick={this.doClipWithPrev.bind(this)}>clip with prev image</div>}
+        <div className="fas fa-sync-alt rotate-button" onClick={this.rotateImg.bind(this)}>rotate image</div>
       </div>
     );
   }
