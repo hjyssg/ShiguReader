@@ -18,7 +18,7 @@ module.exports.good_folder = "D:\\_Happy_Lesson\\_Going_to_sort\\_good\\"+fd;
 /**
  * OPTIONAL where to move file
  */
-module.exports.not_good_folder = "D:\\_Happy_Lesson\\_Going_to_sort\\_Compressed_3";
+module.exports.not_good_folder = "D:\\_Happy_Lesson\\_Going_to_sort\\_Compressed_"+ y;
 
 
 //----------------- below section used by developer-----------------------------

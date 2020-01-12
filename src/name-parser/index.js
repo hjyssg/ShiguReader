@@ -37,8 +37,10 @@ function getDateFromTags(tags){
         tag = tag.replace("C", "");
         num = parseInt(tag);
         year = Math.floor(num /2) + 1971;
-        month = num % 2 === 0? 8 : 11;
-        result = new Date(year, month, 1);
+        const isSummer = num % 2 === 0;
+        month = isSummer? 8 : 11;
+        const day = isSummer? 10: 28;
+        result = new Date(year, month, day);
     }else if(comic_star_tags.includes(tag)){
         tag = tag.replace("COMIC1☆", "");
         num = parseInt(tag);
