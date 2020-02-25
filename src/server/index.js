@@ -465,7 +465,7 @@ app.post(Constant.TAG_THUMBNAIL_PATH_API, (req, res) => {
         }
         return isCompress(e);
     });
-    chosendFileName = fileNames[0];
+    chosendFileName = chooseOneFile(fileNames);
     if(!chosendFileName){
         res.sendStatus(404);
         return;
