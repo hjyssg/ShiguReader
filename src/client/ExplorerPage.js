@@ -118,6 +118,11 @@ export default class ExplorerPage extends Component {
                 this.requestLsDir();
             }
         }
+
+        Sender.get('/api/getGoodAuthorNames', res =>{
+            // console.log(res)
+            this.goodAuthors = res;
+        });
     }
     
     componentDidUpdate() {
@@ -176,13 +181,25 @@ export default class ExplorerPage extends Component {
     }
     
     getFilteredFiles(){
+        let files = this.files;
+        const goodSet = this.goodAuthors;
+        const GOOD_STANDARD = 2;
+        if(this.state.filterByGoodAuthorName){
+             files = files.filter(e => {
+                 const temp = nameParser.parse(e);
+                 if(temp && temp.author && goodSet[temp.author] && goodSet[temp.author] > GOOD_STANDARD){
+                     return e;
+                 }
+             })
+         }
+
         var filterText = this.state.filterText && this.state.filterText.toLowerCase();
         if(filterText){
-            return this.files.filter(e => {
+            return files.filter(e => {
                 return e.toLowerCase().indexOf(filterText) > -1;
             });
         }else{
-            return this.files;
+            return files;
         }
     }
 
@@ -496,6 +513,12 @@ export default class ExplorerPage extends Component {
         this.setStateAndSetHash({filterText: text, pageIndex: 1});
     }
 
+    toggleGoodAuthor(){
+        this.setState({
+            filterByGoodAuthorName: !this.state.filterByGoodAuthorName
+        });
+    };
+
     renderSideMenu(){
         const SORT_OPTIONS = [
             SORT_BY_DATE,
@@ -547,12 +570,20 @@ export default class ExplorerPage extends Component {
                     </div>);
         });
 
+
         const showAll = (
         <div className="side-menu-single-tag" onClick={() => this.setFilterText("")} key={"----null------"}>
             All
         </div>);
 
-        tagInfos.unshift(showAll );
+        tagInfos.unshift(showAll);
+
+        const filterByGoodAuthorName = (
+            <div className="side-menu-single-tag" onClick={this.toggleGoodAuthor.bind(this)} key={"----good_author------"}>
+                Filter By good_folder_root
+        </div>);
+
+        tagInfos.unshift(filterByGoodAuthorName);
 
         if(this.getMode() !== MODE_HOME){
             const cn = classNames("side-menu", "side-menu-click-layer", {

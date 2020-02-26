@@ -15,6 +15,12 @@ mm = ( mm < 10 ) ? ( "0" + ( mm ).toString() ) : ( mm ).toString();
 const fd = "good_"+ [y, mm, "01"].join("_");
 module.exports.good_folder = "D:\\_Happy_Lesson\\_Going_to_sort\\_good\\"+fd;
 
+/** 
+ * OPTIONAL all good folders
+ */
+module.exports.good_folder_root = "D:\\_Happy_Lesson\\_Going_to_sort\\_good"
+
+
 /**
  * OPTIONAL where to move file
  */

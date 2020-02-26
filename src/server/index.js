@@ -296,6 +296,24 @@ app.post('/api/allInfo', (req, res) => {
     }); 
 });
 
+app.get('/api/getGoodAuthorNames',async (req, res) => {
+    const set = {};
+    db.allFiles.forEach(p => {
+        if(p && p.startsWith(userConfig.good_folder_root)){
+            const ext = path.extname(p).toLowerCase();
+            if (isCompress(ext)){
+               const temp = nameParser.parse(p);
+               const name = temp && temp.author;
+                if(name){
+                    set[name] = set[name]? set[name]+1: 1;
+                }
+            }
+        }
+    });
+
+    res.send(set);
+})
+
 app.post('/api/lsDir', async (req, res) => {
     const hashdir = db.hashTable[(req.body && req.body.hash)];
     const dir = hashdir|| req.body && req.body.dir;
