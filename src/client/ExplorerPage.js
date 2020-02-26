@@ -120,8 +120,9 @@ export default class ExplorerPage extends Component {
         }
 
         Sender.get('/api/getGoodAuthorNames', res =>{
-            // console.log(res)
-            this.goodAuthors = res;
+            this.setState({
+                goodAuthors: res
+            })
         });
     }
     
@@ -182,7 +183,7 @@ export default class ExplorerPage extends Component {
     
     getFilteredFiles(){
         let files = this.files;
-        const goodSet = this.goodAuthors;
+        const goodSet = this.state.goodAuthors;
         const GOOD_STANDARD = 2;
         if(this.state.filterByGoodAuthorName){
              files = files.filter(e => {
@@ -578,12 +579,14 @@ export default class ExplorerPage extends Component {
 
         tagInfos.unshift(showAll);
 
-        const filterByGoodAuthorName = (
-            <div className="side-menu-single-tag" onClick={this.toggleGoodAuthor.bind(this)} key={"----good_author------"}>
-                Filter By good_folder_root
-        </div>);
-
-        tagInfos.unshift(filterByGoodAuthorName);
+        //no one pay me, I am not going to improve the ui
+        if(this.state.goodAuthors){
+            const filterByGoodAuthorName = (
+                <div className="side-menu-single-tag" onClick={this.toggleGoodAuthor.bind(this)} key={"----good_author------"}>
+                    Filter By good_folder_root
+            </div>);
+            tagInfos.unshift(filterByGoodAuthorName);
+        }
 
         if(this.getMode() !== MODE_HOME){
             const cn = classNames("side-menu", "side-menu-click-layer", {
