@@ -105,7 +105,7 @@ export default class ExplorerPage extends Component {
         }
     }
 
-    componentDidMount() {
+    askServer(){
         const hash = this.getHash();
         if (hash && this.loadedHash !== hash && this.failedTimes < 3) {
             if(this.getMode() === MODE_TAG){
@@ -118,6 +118,10 @@ export default class ExplorerPage extends Component {
                 this.requestLsDir();
             }
         }
+    }
+
+    componentDidMount() {
+        this.askServer();
 
         Sender.get('/api/getGoodAuthorNames', res =>{
             this.setState({
@@ -127,7 +131,7 @@ export default class ExplorerPage extends Component {
     }
     
     componentDidUpdate() {
-        this.componentDidMount();
+        this.askServer();
     }
 
     handleRes(res){
