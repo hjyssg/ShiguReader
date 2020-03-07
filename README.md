@@ -24,7 +24,7 @@ git clone https://github.com/hjyssg/ShiguReader
 
 ## change user config
 ## 手动修改设置
-用任意文本编辑器手动修改src/user-config.js用户文件设置  
+#用任意文本编辑器手动修改src/user-config.js用户文件设置  
 modify src/user-config.js accoding to your own comic files location
 
 # Go inside the directory
