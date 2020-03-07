@@ -126,7 +126,7 @@ async function init() {
 
     const filter = (e) => {return isCompress(e) || isImage(e);};
     let beg = (new Date).getTime()
-    const results = fileiterator(userConfig.home_pathes, { filter:filter, doLog: true,  getExtraInfo: getExtraInfo  });
+    const results = fileiterator(userConfig.home_pathes, { filter:filter, doLog: true  });
     results.pathes = results.pathes.concat(userConfig.home_pathes);
     let end = (new Date).getTime();
     console.log(`${(end - beg)/1000}s  to read local dirs`);
@@ -159,22 +159,21 @@ async function init() {
     });
 }
 
-async function getExtraInfo(fileName, stat){
-    if(!isCompress(fileName)　|| fileName.includes("アニメ")){
-        return;
-    }
+// async function getExtraInfo(fileName, stat){
+//     if(!isCompress(fileName)　|| fileName.includes("アニメ")){
+//         return;
+//     }
 
-    let {stdout, stderr} = await limit(() => execa(sevenZip, ['l', '-r', fileName]));
-    const text = stdout;
-    if (!text) {
-        return {};
-    }
+//     let {stdout, stderr} = await limit(() => execa(sevenZip, ['l', '-r', fileName]));
+//     const text = stdout;
+//     if (!text) {
+//         return {};
+//     }
     
-    const files = read7zOutput(text, Infinity);
-    console.log(fileName, files.length);
-    return {fileNum: files.length}
-
-}
+//     const files = read7zOutput(text, Infinity);
+//     console.log(fileName, files.length);
+//     return {fileNum: files.length}
+// }
 
 function setUpFileWatch(){
     const watcher = chokidar.watch(userConfig.home_pathes, {

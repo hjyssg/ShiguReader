@@ -37,11 +37,9 @@ function getStat(p, config){
     //for jsonify
     stat.isFile = stat.isFile();
     stat.isDirectory = stat.isDirectory();
-
-    if(config.getExtraInfo){
-        stat.extra = config.getExtraInfo(p, stat);
-    }
-
+    // if(config.getExtraInfo){
+    //     stat.extra = config.getExtraInfo(p, stat);
+    // }
     return stat;
 }
 

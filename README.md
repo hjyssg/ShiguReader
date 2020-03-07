@@ -27,6 +27,10 @@ git clone https://github.com/hjyssg/ShiguReader
 #用任意文本编辑器手动修改src/user-config.js用户文件设置  
 modify src/user-config.js accoding to your own comic files location
 
+## 2020/03/07
+## windows default cmd is not working
+## Please use Git Bash 
+
 # Go inside the directory
 # 命令行进入文件夹
 cd ShiguReader
