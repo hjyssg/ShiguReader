@@ -32,7 +32,7 @@ function isLegalDepth(depth, config) {
     return true;
 }
 
-function getStat(p){
+function getStat(p, config){
     const stat = fs.statSync(p);
     //for jsonify
     stat.isFile = stat.isFile();
@@ -49,7 +49,7 @@ function iterate (p, config, result, depth) {
     if(config.visited[p]){
         return;
     }
-    const stat = result.infos[p] || getStat(p);
+    const stat = result.infos[p] || getStat(p, config);
     result.infos[p] = stat;
     try {
         if (stat.isFile) {

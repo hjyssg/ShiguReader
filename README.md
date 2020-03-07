@@ -32,6 +32,8 @@ modify src/user-config.js accoding to your own comic files location
 cd ShiguReader
 
 # Install dependencies
+# 最近gitub都被墙
+# npm install --registry=http://registry.npm.taobao.org
 npm install
 
 # Start development server

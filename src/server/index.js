@@ -159,7 +159,7 @@ async function init() {
     });
 }
 
-function getExtraInfo(fileName){
+async function getExtraInfo(fileName){
     let {stdout, stderr} = await limit(() => execa(sevenZip, ['l', '-r', fileName]));
     const text = stdout;
     if (!text) {
