@@ -73,7 +73,7 @@
     "less": "^3.9.0",
     "less-loader": "^4.1.0",
     "mocha": "^5.2.0",
-    "node-sass": "^4.11.0",
+    "node-sass": "^4.13.1",
     "nodemon": "^1.18.9",
     "sass-loader": "^7.1.0",
     "style-loader": "^0.23.1",
