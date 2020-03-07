@@ -37,3 +37,4 @@ if(!module.exports.home_pathes && module.exports.home_pathes.length === 0) {
 }
 
 
+module.exports.oversized_image_size = 4;

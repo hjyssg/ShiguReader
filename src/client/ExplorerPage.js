@@ -199,6 +199,10 @@ export default class ExplorerPage extends Component {
              })
          }
 
+         if(this.state.filterByOversizeImage){
+             
+         }
+
         var filterText = this.state.filterText && this.state.filterText.toLowerCase();
         if(filterText){
             return files.filter(e => {
@@ -525,6 +529,12 @@ export default class ExplorerPage extends Component {
         });
     };
 
+    toggleOversizeImage(){
+        this.setState({
+            filterByOversizeImage: !this.state.filterByOversizeImage
+        });
+    };
+
     renderSideMenu(){
         const SORT_OPTIONS = [
             SORT_BY_DATE,
@@ -588,9 +598,15 @@ export default class ExplorerPage extends Component {
         let checkbox;
         if(this.state.goodAuthors){
             checkbox = (<Checkbox  onChange={this.toggleGoodAuthor.bind(this)} checked={this.state.filterByGoodAuthorName}>
-                                    Filter By good_folder_root 
-                            </Checkbox> );       
-        }
+                             By good_folder_root 
+                        </Checkbox> );       
+        }   
+
+        const st2 = `image size bigger than ${userConfig.oversized_image_size} MB` ;
+
+        let checkbox2 = (<Checkbox  onChange={this.toggleOversizeImage.bind(this)} checked={this.state.filterByOversizeImage}>
+                                   {st2}   
+                            </Checkbox> ); 
 
         if(this.getMode() !== MODE_HOME){
             const cn = classNames("side-menu", "side-menu-click-layer", {
@@ -605,6 +621,7 @@ export default class ExplorerPage extends Component {
                             onChange={this.onSortChange.bind(this)}/>
                     <div className="side-menu-radio-title"> Special Filter </div>
                     {checkbox}
+                    {checkbox2}
                     {info}
                     {tagInfos}
                 </div>)
