@@ -18,6 +18,7 @@ const queryString = require('query-string');
 const stringHash = util.stringHash;
 import RadioButtonGroup from './subcomponent/RadioButtonGroup';
 import Breadcrumb from './subcomponent/Breadcrumb';
+import Checkbox from './subcomponent/Checkbox';
 const nameParser = require('../name-parser');
 const classNames = require('classnames');
 
@@ -584,12 +585,11 @@ export default class ExplorerPage extends Component {
         tagInfos.unshift(showAll);
 
         //no one pay me, I am not going to improve the ui
+        let checkbox;
         if(this.state.goodAuthors){
-            const filterByGoodAuthorName = (
-                <div className="side-menu-single-tag" onClick={this.toggleGoodAuthor.bind(this)} key={"----good_author------"}>
-                    Filter By good_folder_root
-            </div>);
-            tagInfos.unshift(filterByGoodAuthorName);
+            checkbox = (<Checkbox  onChange={this.toggleGoodAuthor.bind(this)} checked={this.state.filterByGoodAuthorName}>
+                                    Filter By good_folder_root 
+                            </Checkbox> );       
         }
 
         if(this.getMode() !== MODE_HOME){
@@ -603,6 +603,8 @@ export default class ExplorerPage extends Component {
                             checked={SORT_OPTIONS.indexOf(this.state.sortOrder)} 
                             options={SORT_OPTIONS} name="explorer-sort-order" 
                             onChange={this.onSortChange.bind(this)}/>
+                    <div className="side-menu-radio-title"> Special Filter </div>
+                    {checkbox}
                     {info}
                     {tagInfos}
                 </div>)

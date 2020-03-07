@@ -1,0 +1,17 @@
+.aji-checkbox{
+  color: #eff4ff;
+  cursor: pointer;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  display: flex;
+  align-items: center;
+
+  input {
+    height: 1.2rem;
+    width: 1.2rem;
+    margin-right: 5px;
+  }
+}
