@@ -159,7 +159,11 @@ async function init() {
     });
 }
 
-async function getExtraInfo(fileName){
+async function getExtraInfo(fileName, stat){
+    if(!isCompress(fileName)　|| fileName.includes("アニメ")){
+        return;
+    }
+
     let {stdout, stderr} = await limit(() => execa(sevenZip, ['l', '-r', fileName]));
     const text = stdout;
     if (!text) {
@@ -167,6 +171,7 @@ async function getExtraInfo(fileName){
     }
     
     const files = read7zOutput(text, Infinity);
+    console.log(fileName, files.length);
     return {fileNum: files.length}
 
 }
