@@ -15,20 +15,20 @@ import RadioButtonGroup from './subcomponent/RadioButtonGroup';
 export default class AdminPage extends Component {
     constructor(prop) {
         super(prop);
-        this.prePath = userConfig.folder_list[0];
+        this.state = { prePath : userConfig.folder_list[0] };
     }
 
     onPrenerate(){
         Swal.fire({
             title: "Pregenerate Thumbnail",
-            text: this.prePath ,
+            text: this.state.prePath ,
             showCancelButton: true,
             confirmButtonText: 'Yes',
             cancelButtonText: 'No'
         }).then((result) => {
             if (result.value === true) {
                 const reqB = {
-                    path: this.prePath
+                    path: this.state.prePath
                 }
                 Sender.post('/api/pregenerateThumbnails', reqB, res =>{
                     console.log(res)
@@ -38,7 +38,9 @@ export default class AdminPage extends Component {
     }
 
     onPathChange(e){
-        this.prePath = e.target.value;
+        this.setState({
+            prePath : typeof e === "string"? e :  e.target.value
+        })
     }
 
     cleanCache(){
@@ -50,7 +52,7 @@ export default class AdminPage extends Component {
         }).then((result) => {
             if (result.value === true) {
                 const req = {
-                    path: this.prePath
+                    path: this.state.prePath
                 }
                 Sender.get('/api/cleanCache', req, res =>{
                     console.log(res)
@@ -65,7 +67,7 @@ export default class AdminPage extends Component {
                 <div className="admin-section">
                     <div className="admin-section-title"> Pregenerate Thumbnail</div>
                     <div className="admin-section-content">
-                        <RadioButtonGroup options={userConfig.folder_list} name="pregenerate" onChange={this.onPathChange.bind(this)}/>
+                        <RadioButtonGroup checked={userConfig.folder_list.indexOf(this.state.prePath)} options={userConfig.folder_list} name="pregenerate" onChange={this.onPathChange.bind(this)}/>
                         <div className="submit" onClick={this.onPrenerate.bind(this)}>Submit</div>
                     </div>
                 </div>
