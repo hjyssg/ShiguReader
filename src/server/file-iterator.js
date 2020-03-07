@@ -39,7 +39,7 @@ function getStat(p, config){
     stat.isDirectory = stat.isDirectory();
 
     if(config.getExtraInfo){
-        stat.extra = config.getExtraInfo(p);
+        // stat.extra = config.getExtraInfo(p);
     }
 
     return stat;
