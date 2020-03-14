@@ -7,6 +7,9 @@ var classNames = require('classnames');
 import Swal from 'sweetalert2';
 import Sender from '../Sender';
 import '../style/FileChangeToolbar.scss';
+import Dropdown from "./Dropdown";
+import DropdownItem from "./DropdownItem";
+
 
 export default class FileChangeToolbar extends Component {
     static defaultProps = {
@@ -124,9 +127,26 @@ export default class FileChangeToolbar extends Component {
     //         </div>);
     // }
 
+    getDropdownItems(){
+        return userConfig.additional_folder.map((e, index) =>{
+            return  (<DropdownItem key={index}>
+                <div tabIndex="0"  className="" 
+            title={"Move to " + e}
+            onClick={this.handleClose.bind(this, e)}> {index+1} </div>
+            </DropdownItem>);
+        });
+    }
+
     render(){
-        const {file, className, header} = this.props;
+        const {file, className, header, isInOneBook} = this.props;
         const cn = classNames("file-change-tool-bar", className);
+
+        let additional;
+        if(isInOneBook){
+            additional = this.getDropdownItems();
+        }else{
+            additional = <Dropdown>{this.getDropdownItems()}</Dropdown>;
+        }
 
         return (
             <div className={cn} >
@@ -140,6 +160,7 @@ export default class FileChangeToolbar extends Component {
                 <div tabIndex="0"  className="fas fa-times"
                                 title={"Move to " + userConfig.not_good_folder}
                                 onClick={this.handleClose.bind(this, userConfig.not_good_folder)}></div>
+                {additional}
             </div>
         )
      }

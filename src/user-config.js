@@ -26,6 +26,12 @@ module.exports.good_folder_root = "D:\\_Happy_Lesson\\_Going_to_sort\\_good"
  */
 module.exports.not_good_folder = "D:\\_Happy_Lesson\\_Going_to_sort\\_Compressed_"+ y;
 
+module.exports.additional_folder = [
+    "D:\\_Happy_Lesson\\_Going_to_sort\\non-h",
+    "D:\\_AV\\_Picture",
+    "D:\\cache"
+];
+
 
 //----------------- below section used by developer-----------------------------
 module.exports.cache_folder_name = "cache";
