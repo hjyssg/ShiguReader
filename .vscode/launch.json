@@ -7,6 +7,12 @@
         {
             "type": "node",
             "request": "launch",
+            "name": "script-generator",
+            "program": "${workspaceFolder}\\src\\tools\\script-generator.js"
+        },
+        {
+            "type": "node",
+            "request": "launch",
             "name": "server",
             "program": "${workspaceFolder}\\src\\server\\index.js"
         }
