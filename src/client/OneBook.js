@@ -289,13 +289,21 @@ export default class OneBook extends Component {
   }
 
   renderFileSizeAndTime(){
-    if (this.state.fileStat) {
-      const size = filesizeUitl(this.state.fileStat.size, {base: 2});
-      const mTime = dateFormat(this.state.fileStat.mtime, "isoDate");
-      const { files, index } = this.state;
+    const {fileStat,  files, index } = this.state;
+    if (fileStat) {
+      const size = filesizeUitl(fileStat.size, {base: 2});
+      const avg = filesizeUitl(fileStat.size/files.length, {base: 2});
+      const mTime = dateFormat(fileStat.mtime, "isoDate");
       const title = util.getFn(files[index], "/" );
-      const text = [mTime, size, title].map(e => <div key={e} style={{marginLeft:"15px"}}> {e} </div>)
-      return <div className={"one-book-file-stat"}>{text} </div>
+      const titles = [
+        "Modify Time",
+        "Total Size",
+        "Image Name",
+        "Average Image Size"
+      ];
+
+      const texts = [mTime, size, title, avg].map((e, ii) => <div key={e} style={{marginLeft:"15px"}} title={titles[ii]}> {e} </div>);
+      return <div className={"one-book-file-stat"}>{texts} </div>
     }
   }
 
