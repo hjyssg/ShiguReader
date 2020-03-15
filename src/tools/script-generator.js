@@ -13,7 +13,7 @@ function getStat(p, config){
 
 function iterate (p, config, result, depth) {
     console.log(`cd ${p}`)
-    console.log();
+    console.log("              ");
     fs.readdirSync(p).forEach((e, ii) => {
         const stat = getStat(p, config);
         const fp = path.join(p, e);
@@ -21,9 +21,9 @@ function iterate (p, config, result, depth) {
             console.log("7z.exe a", `"${e}.zip"  "${fp}\\*" `, )
         }
         if(ii%5 === 0){
-            console.log();
+            console.log("              ");
         }
     });
 }
 
-iterate("D:\\_Happy_Lesson\\_Going_to_sort\\_Compressed_2020\\1\\2");
+iterate("D:\\_Happy_Lesson\\_Going_to_sort\\_Compressed_3\\新建文件夹\\c2");

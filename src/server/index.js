@@ -499,7 +499,7 @@ app.post(Constant.TAG_THUMBNAIL_PATH_API, (req, res) => {
         }
         return isCompress(e);
     });
-    chosendFileName = chooseOneFile(fileNames);
+    chosendFileName = chooseOneZip(fileNames);
     if(!chosendFileName){
         res.sendStatus(404);
         return;
@@ -528,10 +528,16 @@ function read7zOutput(data, needLineNum) {
     return files;
 }
 
-function chooseOneFile(files){
+function chooseOneImage(files){
     let tempFiles = files.filter(isImage);
     tempFiles = util.filterHiddenFile(tempFiles);
     util.sortFileNames(tempFiles);
+    return tempFiles[0];
+}
+
+function chooseOneZip(files){
+    let tempFiles = files.filter(isCompress);
+    tempFiles = util.filterHiddenFile(tempFiles);
     return tempFiles[0];
 }
 
@@ -557,7 +563,7 @@ async function getFirstImageFromZip(fileName, res, mode, counter) {
     }
 
     if (temp && temp.files) {
-        const img = chooseOneFile(temp.files);
+        const img = chooseOneImage(temp.files);
         if(img){
             sendImage(img);
             return;
@@ -585,7 +591,7 @@ async function getFirstImageFromZip(fileName, res, mode, counter) {
             }
             
             const files = read7zOutput(text, 10);
-            const one = chooseOneFile(files);
+            const one = chooseOneImage(files);
 
             if (!one) {
                 console.error("[getFirstImageFromZip]", fileName,  "no files from output");
@@ -618,7 +624,7 @@ async function getFirstImageFromZip(fileName, res, mode, counter) {
                 if (!stderr) {
                     fs.readdir(outputPath, (error, results) => {
                         const temp = generateContentUrl(results, outputPath);
-                        const img = chooseOneFile(temp.files);
+                        const img = chooseOneImage(temp.files);
                         if (img) {
                             sendImage(img);
                         } else {
