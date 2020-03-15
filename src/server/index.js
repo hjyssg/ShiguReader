@@ -590,7 +590,7 @@ async function getFirstImageFromZip(fileName, res, mode, counter) {
                 return;
             }
             
-            const files = read7zOutput(text, 10);
+            const files = read7zOutput(text);
             const one = chooseOneImage(files);
 
             if (!one) {
