@@ -302,7 +302,7 @@ export default class OneBook extends Component {
         "Average Image Size"
       ];
 
-      const texts = [mTime, size, title, avg].map((e, ii) => <div key={e} style={{marginLeft:"15px"}} title={titles[ii]}> {e} </div>);
+      const texts = [mTime, size, title, avg].map((e, ii) => <div key={e+ii} style={{marginLeft:"15px"}} title={titles[ii]}> {e} </div>);
       return <div className={"one-book-file-stat"}>{texts} </div>
     }
   }
