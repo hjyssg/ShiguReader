@@ -58,7 +58,9 @@ export default class ExplorerPage extends Component {
             anchorSideMenu: false,
             pageIndex,
             isRecursive,
-            sortOrder
+            sortOrder,
+            filterByGoodAuthorName: parsed.filterByGoodAuthorName === "true",
+            filterByFirstTime: parsed.filterByFirstTime === "true",
         }
     }
 
@@ -531,19 +533,19 @@ export default class ExplorerPage extends Component {
     }
 
     toggleGoodAuthor(){
-        this.setState({
+        this.setStateAndSetHash({
             filterByGoodAuthorName: !this.state.filterByGoodAuthorName
         });
     };
 
-    toggleOversizeImage(){
-        this.setState({
-            filterByOversizeImage: !this.state.filterByOversizeImage
-        });
-    };
+    // toggleOversizeImage(){
+    //     this.setStateAndSetHash({
+    //         filterByOversizeImage: !this.state.filterByOversizeImage
+    //     });
+    // };
 
     toggleFirstTime(){
-        this.setState({
+        this.setStateAndSetHash({
             filterByFirstTime: !this.state.filterByFirstTime
         });
     }

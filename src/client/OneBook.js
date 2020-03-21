@@ -96,6 +96,9 @@ export default class OneBook extends Component {
     const imageDom = ReactDOM.findDOMNode(this.imgRef);
     this.imgHeight = imageDom.clientHeight;
 
+    const dimDom = document.getElementsByClassName("dimension-tag")[0];
+    dimDom.textContent = `${imageDom.naturalWidth}×${imageDom.naturalHeight}`;
+
     this.clicked = false;
     this.clickY = 0;
 
@@ -295,14 +298,16 @@ export default class OneBook extends Component {
       const avg = filesizeUitl(fileStat.size/files.length, {base: 2});
       const mTime = dateFormat(fileStat.mtime, "isoDate");
       const title = util.getFn(files[index], "/" );
+      const dim = "";  //change by dom operation
       const titles = [
         "Modify Time",
         "Total Size",
         "Image Name",
-        "Average Image Size"
+        "Average Image Size",
+        "Dimensions"
       ];
 
-      const texts = [mTime, size, title, avg].map((e, ii) => <div key={e+ii} style={{marginLeft:"15px"}} title={titles[ii]}> {e} </div>);
+      const texts = [mTime, size, title, avg, dim].map((e, ii) => <div className={titles[ii] ==="Dimensions"? "dimension-tag": ""} key={e+ii} style={{marginLeft:"15px"}} title={titles[ii]}> {e} </div>);
       return <div className={"one-book-file-stat"}>{texts} </div>
     }
   }
