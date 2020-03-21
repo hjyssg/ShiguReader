@@ -144,19 +144,28 @@
     display: flex;
   }
 
-  .clip-with-prev-button{
-    color: #f1f1f1;
-    font-size: 1rem;
-    display: inline-flex;
-
-    &:hover{
-     @include onHover();
+  .one-book-second-toolbar {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 5px;
+    
+    .clip-with-prev-button {
+      color: #f1f1f1;
+      font-size: 1.5rem;
+      display: inline-flex;
+  
+      &:hover{
+       @include onHover();
+      }
     }
-  }
-
-  .rotate-button{
-    &:hover{
-      @include onHover();
-     }
+  
+    .rotate-button{
+      font-size: 1.5rem;
+      margin-left: 10px;
+      &:hover{
+        @include onHover();
+       }
+    }
   }
 }

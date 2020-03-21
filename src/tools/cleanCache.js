@@ -27,13 +27,13 @@ function del(file){
                 // }catch(e){
                 //     console.error(file, e);
                 // }
-                show_error && console.error(err);
+                show_error && console.error("[cache clean]", err);
             }
         });
 
         counter++;
         if(counter % 20 === 0){
-            console.log("delete:", counter);
+            console.log("[cache clean]delete:", counter);
         }
     } else {
         throw "try to delete non-cache file";
@@ -67,7 +67,7 @@ function cleanCache(){
                 }
             }
         }catch(e){
-            show_error && console.error(e);
+            show_error && console.error("[cache clean] error",e);
         }
     });
     console.log("cache clean done");
