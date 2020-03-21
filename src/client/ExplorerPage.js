@@ -126,7 +126,8 @@ export default class ExplorerPage extends Component {
 
         Sender.get('/api/getGoodAuthorNames', res =>{
             this.setState({
-                goodAuthors: res
+                goodAuthors: res.goodAuthors,
+                otherAuthors: res.otherAuthors
             })
         });
     }
@@ -189,6 +190,7 @@ export default class ExplorerPage extends Component {
     getFilteredFiles(){
         let files = this.files;
         const goodSet = this.state.goodAuthors;
+        const otherSet = this.state.otherAuthors;
         const GOOD_STANDARD = 2;
         if(this.state.filterByGoodAuthorName){
              files = files.filter(e => {
@@ -199,8 +201,13 @@ export default class ExplorerPage extends Component {
              })
          }
 
-         if(this.state.filterByOversizeImage){
-             
+         if(this.state.filterByFirstTime){
+            files = files.filter(e => {
+                const temp = nameParser.parse(e);
+                if(temp && temp.author && (goodSet[temp.author]||0 + otherSet[temp.author]||0) <= 1){
+                    return e;
+                }
+            })
          }
 
         var filterText = this.state.filterText && this.state.filterText.toLowerCase();
@@ -535,6 +542,12 @@ export default class ExplorerPage extends Component {
         });
     };
 
+    toggleFirstTime(){
+        this.setState({
+            filterByFirstTime: !this.state.filterByFirstTime
+        });
+    }
+
     renderSideMenu(){
         const SORT_OPTIONS = [
             SORT_BY_DATE,
@@ -602,10 +615,16 @@ export default class ExplorerPage extends Component {
                         </Checkbox> );       
         }   
 
-        const st2 = `image size bigger than ${userConfig.oversized_image_size} MB` ;
+        // const st2 = `image size bigger than ${userConfig.oversized_image_size} MB` ;
 
-        let checkbox2 = (<Checkbox  onChange={this.toggleOversizeImage.bind(this)} checked={this.state.filterByOversizeImage}>
-                                   {st2}   
+        // let checkbox2 = (<Checkbox  onChange={this.toggleOversizeImage.bind(this)} checked={this.state.filterByOversizeImage}>
+        //                            {st2}   
+        //                     </Checkbox> ); 
+
+        const st3 = `first time` ;
+
+        let checkbox3 = (<Checkbox  onChange={this.toggleFirstTime.bind(this)} checked={this.state.filterByFirstTime}>
+                                   {st3}   
                             </Checkbox> ); 
 
         if(this.getMode() !== MODE_HOME){
@@ -621,7 +640,7 @@ export default class ExplorerPage extends Component {
                             onChange={this.onSortChange.bind(this)}/>
                     <div className="side-menu-radio-title"> Special Filter </div>
                     {checkbox}
-                    {checkbox2}
+                    {checkbox3}
                     {info}
                     {tagInfos}
                 </div>)

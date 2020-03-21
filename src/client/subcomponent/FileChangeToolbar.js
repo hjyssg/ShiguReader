@@ -9,6 +9,8 @@ import Sender from '../Sender';
 import '../style/FileChangeToolbar.scss';
 import Dropdown from "./Dropdown";
 import DropdownItem from "./DropdownItem";
+const util = require("../../util");
+
 
 
 export default class FileChangeToolbar extends Component {
@@ -132,7 +134,7 @@ export default class FileChangeToolbar extends Component {
             return  (<DropdownItem key={index}>
                 <div tabIndex="0"  className="" 
             title={"Move to " + e}
-            onClick={this.handleClose.bind(this, e)}> {index+1} </div>
+            onClick={this.handleClose.bind(this, e)}> {util.getFn(e)[0]} </div>
             </DropdownItem>);
         });
     }
