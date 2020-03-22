@@ -206,7 +206,8 @@ export default class ExplorerPage extends Component {
          if(this.state.filterByFirstTime){
             files = files.filter(e => {
                 const temp = nameParser.parse(e);
-                if(temp && temp.author && (goodSet[temp.author]||0 + otherSet[temp.author]||0) <= 1){
+                if(temp && temp.author && ((goodSet[temp.author]||0) + (otherSet[temp.author]||0)) <= 1){
+                    
                     return e;
                 }
             })

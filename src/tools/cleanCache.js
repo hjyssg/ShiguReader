@@ -33,7 +33,7 @@ function del(file){
 
         counter++;
         if(counter % 20 === 0){
-            console.log("[cache clean]delete:", counter);
+            console.log("[cache clean] delete:", counter);
         }
     } else {
         throw "try to delete non-cache file";
@@ -70,7 +70,7 @@ function cleanCache(){
             show_error && console.error("[cache clean] error",e);
         }
     });
-    console.log("cache clean done");
+    console.log("[cache clean] done");
 }
 
 module.exports.cleanCache = cleanCache;

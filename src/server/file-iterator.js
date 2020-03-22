@@ -56,7 +56,7 @@ function iterate (p, config, result, depth) {
             }
 
             if(config && config.doLog &&  result.pathes.length % 500 === 0){
-                console.log("scan:", result.pathes.length);
+                console.log("[file-iterator] scan:", result.pathes.length);
             }
             result.pathes.push(p);
         } else if (stat.isDirectory && isLegalDepth(depth + 1, config)) {
