@@ -240,6 +240,8 @@ export default class ExplorerPage extends Component {
             return ap.localeCompare(bp);
         }
 
+        let inRandom = false;
+
         if(sortOrder  === SORT_BY_FILENAME){
             files.sort((a, b) => {
                 return byFn(a, b);
@@ -291,11 +293,7 @@ export default class ExplorerPage extends Component {
                     return comprTime(aboutTimeA || fileTimeA, aboutTimeB || fileTimeB);
                 }
             });
-        }else if (sortOrder === SORT_RANDOMLY){
-            files.sort((a, b) => {
-                return Math.random() - 0.5;
-            });
-        }else if (sortOrder === SORT_FROM_BIG || sortOrder === SORT_FROM_SMALL){
+        } else if (sortOrder === SORT_FROM_BIG || sortOrder === SORT_FROM_SMALL){
             files.sort((a, b) => {
                 const ass = (this.fileInfos[a] && this.fileInfos[a].size) || 0;
                 const bs =  (this.fileInfos[b] && this.fileInfos[b].size) || 0;
@@ -309,7 +307,16 @@ export default class ExplorerPage extends Component {
                     return byFn(a, b);
                 }
             });
+        } else if (sortOrder === SORT_RANDOMLY){
+            if(!this.isAlreadyRandom){
+                files.sort((a, b) => {
+                    return Math.random() - 0.5;
+                });
+            }
+            inRandom = true;
         }
+
+        this.isAlreadyRandom = inRandom;
     }
 
     renderFileList() {
