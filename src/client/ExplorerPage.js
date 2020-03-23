@@ -44,8 +44,11 @@ export default class ExplorerPage extends Component {
         super(prop);
         this.state = this.getInitState();
         this.failedTimes = 0;
-        this.perPage = util.getPerPageItemNumber();
         this.files = [];
+    }
+
+    getNumPerPage(){
+        return this.state.noThumbnail? 40 :  util.getPerPageItemNumber();
     }
 
     getInitState(){
@@ -53,7 +56,7 @@ export default class ExplorerPage extends Component {
         const pageIndex = parseInt(parsed.pageIndex) || 1;
         const isRecursive = !!(parsed.isRecursive === "true");
         const sortOrder = parsed.sortOrder || SORT_BY_DATE;
-
+    
         return {
             anchorSideMenu: false,
             pageIndex,
@@ -61,6 +64,7 @@ export default class ExplorerPage extends Component {
             sortOrder,
             filterByGoodAuthorName: parsed.filterByGoodAuthorName === "true",
             filterByFirstTime: parsed.filterByFirstTime === "true",
+            noThumbnail: parsed.noThumbnail === "true"
         }
     }
 
@@ -194,7 +198,7 @@ export default class ExplorerPage extends Component {
         const goodSet = this.state.goodAuthors;
         const otherSet = this.state.otherAuthors;
         const GOOD_STANDARD = 2;
-        if(this.state.filterByGoodAuthorName){
+        if(this.state.filterByGoodAuthorName && goodSet && otherSet){
              files = files.filter(e => {
                  const temp = nameParser.parse(e);
                  if(temp && temp.author && goodSet[temp.author] && goodSet[temp.author] > GOOD_STANDARD){
@@ -203,7 +207,7 @@ export default class ExplorerPage extends Component {
              })
          }
 
-         if(this.state.filterByFirstTime){
+         if(this.state.filterByFirstTime && goodSet && otherSet){
             files = files.filter(e => {
                 const temp = nameParser.parse(e);
                 if(temp && temp.author && ((goodSet[temp.author]||0) + (otherSet[temp.author]||0)) <= 1){
@@ -224,7 +228,7 @@ export default class ExplorerPage extends Component {
     }
 
     getFileInPage(files){
-        return files.slice((this.state.pageIndex-1) * this.perPage, (this.state.pageIndex) * this.perPage);
+        return files.slice((this.state.pageIndex-1) * this.getNumPerPage(), (this.state.pageIndex) * this.getNumPerPage());
     }
 
     getPathFromLocalStorage(){
@@ -319,6 +323,13 @@ export default class ExplorerPage extends Component {
         this.isAlreadyRandom = inRandom;
     }
 
+    getOneLineListItem(icon, item){
+        return (<li className="explorer-one-line-list-item" key={item}>
+        {icon}
+        <span className="explorer-one-line-list-item-text">{item}</span>
+        </li>);
+    }
+
     renderFileList() {
         const { sortOrder } = this.state;
         let dirs, files, videos;
@@ -349,12 +360,7 @@ export default class ExplorerPage extends Component {
         const dirItems = dirs.map((item) =>  {
             const pathHash = stringHash(item);
             const toUrl =('/explorer/'+ pathHash);
-            const result =  (
-                <li className="explorer-dir-list-item" key={item}>
-                <i className="far fa-folder"></i>
-                <span className="explorer-dir-list-item">{item}</span>
-                </li>
-            );
+            const result =  this.getOneLineListItem(<i className="far fa-folder"></i>, item);
             return  <Link to={toUrl}  key={item}>{result}</Link>;
         });
 
@@ -362,9 +368,9 @@ export default class ExplorerPage extends Component {
         //     const pathHash = stringHash(item);
         //     const toUrl =('/videoPlayer/'+ pathHash);
         //     const result =  (
-        //         <li className="explorer-dir-list-item" key={item}>
+        //         <li className="explorer-one-line-list-item" key={item}>
         //         <i className="far fa-file-video"></i>
-        //         <span className="explorer-dir-list-item">{item}</span>
+        //         <span className="explorer-one-line-list-item">{item}</span>
         //         </li>
         //     );
         //     return  <Link to={toUrl}  key={item}>{result}</Link>;
@@ -395,20 +401,33 @@ export default class ExplorerPage extends Component {
                                  </div>);
                 }
             }
+
+            let zipItem;
+
+            if(this.state.noThumbnail){
+                zipItem = (<Link  target="_blank" to={toUrl}  key={item} className={""}>
+                        {this.getOneLineListItem(<i className="fas fa-book"></i>, text)}
+                        </Link>)
+            }else{
+                zipItem = (
+                <div key={item} className={"col-sm-6 col-md-4 col-lg-3 file-out-cell"}>
+                    <div className="file-cell">
+                        <Link  target="_blank" to={toUrl}  key={item} className={"file-cell-inner"}>
+                            <center className={"file-cell-title"} title={text}>{text}</center>
+                            <LoadingImage className={"file-cell-thumbnail"} title={item} fileName={item} />
+                        </Link>
+                        <FileChangeToolbar header={fileSize} file={item} />
+                    </div>
+                </div>);
+            }
             
             return (<React.Fragment  key={item}>
                     {seperator}
-                    <div key={item} className={"col-sm-6 col-md-4 col-lg-3 file-out-cell"}>
-                        <div className="file-cell">
-                            <Link  target="_blank" to={toUrl}  key={item} className={"file-cell-inner"}>
-                                <center className={"file-cell-title"} title={text}>{text}</center>
-                                <LoadingImage className={"file-cell-thumbnail"} title={item} fileName={item} />
-                            </Link>
-                            <FileChangeToolbar header={fileSize} file={item} />
-                        </div>
-                    </div>
+                    {zipItem}
                     </React.Fragment>);
         });
+
+        const rowCn = this.state.noThumbnail? "file-list" : "row";
 
         return (
             <div className={"explorer-container"}>
@@ -421,9 +440,8 @@ export default class ExplorerPage extends Component {
                 </ul> */}
 
                 {this.renderPagination()}
-
                 <div className={"file-grid container"}>
-                    <div className={"row"}>
+                    <div className={rowCn}>
                         {zipfileItems}
                     </div>
                 </div>
@@ -445,12 +463,21 @@ export default class ExplorerPage extends Component {
         })
     }
 
+    toggleThumbNail(){
+        this.setStateAndSetHash({
+            noThumbnail: !this.state.noThumbnail
+        })
+    }
+
     getExplorerToolbar(){
         const mode = this.getMode();
         if(mode === MODE_EXPLORER && this.path){
-            const text = this.state.isRecursive? "Show only one level" : "Show Recursively";
+            const text = this.state.isRecursive? "Show only one level" : "Show subfolder's files";
+            const text2 = this.state.noThumbnail? "Show Thumbnail" : "File Name Only";
+
             const right = (
             <div className="float-right">
+                <span className="fas fa-book thumbnail-button" onClick={this.toggleThumbNail.bind(this)}> {text2} </span>
                 <span key="recursive-button" className="recursive-button fas fa-glasses" onClick={this.toggleRecursively.bind(this)}> {text} </span>
                 <span key="file-count" className="file-count">{this.getFilteredFiles().length + " files"} </span>
             </div>);
@@ -500,7 +527,7 @@ export default class ExplorerPage extends Component {
     
         const that =this;
         return (<Pagination current={this.state.pageIndex}  
-                            pageSize={this.perPage}
+                            pageSize={this.getNumPerPage()}
                             total={fileLength} 
                             itemRender={(item, type) =>{
                                 if(type === "page"){

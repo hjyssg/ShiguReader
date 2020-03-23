@@ -3,6 +3,8 @@
   cursor: pointer;
   position: relative;
   height: 16px;
+  display: flex;
+  justify-content: center;
 
   .aji-dropdown-menu{
     display: none;

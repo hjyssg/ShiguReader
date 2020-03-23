@@ -71,7 +71,7 @@
 
   @media only screen and (min-width: 1200px) {
     &.home{
-      .explorer-dir-list-item {
+      .explorer-one-line-list-item {
         font-size: 20px;
         max-width: 1100px;
       }
@@ -85,7 +85,7 @@
 
 .explorer-container{
   padding-bottom: 30px;
-  
+
   .fa-folder {
     color: yellowgreen;
   }
@@ -98,9 +98,16 @@
     list-style: none;
   }
 
-  .explorer-dir-list-item {
+  .file-list{
+    text-align: left !important;
+  }
+
+  .explorer-one-line-list-item {
     text-align: left !important;
     background-color: #4f535b;
+
+    display: flex;
+    align-items: center;
 
     border-radius: 5px;
     border: white;
@@ -111,7 +118,12 @@
     color: black;
 
     padding-left: 5px;
-    color:#DDDDDD
+    color:#DDDDDD;
+
+    .far,
+    .fas {
+      margin-right: 5px; 
+    }
   }
 
   .file-out-cell {

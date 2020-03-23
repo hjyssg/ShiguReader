@@ -34,6 +34,7 @@
     float: right;
     color: gray;
 
+    .thumbnail-button,
     .recursive-button {
       margin-left: 60px;
       cursor: pointer;
@@ -43,8 +44,23 @@
         color: #34353b;
       }
     }
-  
-    .file-count{
+
+    @media screen and (max-width: 800px) {
+      .thumbnail-button,
+     .recursive-button {
+       font-size: 10px;
+       margin-left: 20px;
+     }
+    }
+
+    @media screen and (max-width: 530px) {
+      .thumbnail-button,
+     .recursive-button {
+       display: none;
+     }
+    }
+
+    .file-count {
       margin-left: 20px;
     }
   }
