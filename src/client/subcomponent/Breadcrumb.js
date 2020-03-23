@@ -3,10 +3,12 @@ import '../style/Breadcrumb.scss';
 import { Link } from 'react-router-dom';
 const util = require("../../util");
 const stringHash = util.stringHash;
+const classNames = require('classnames');
+
 
 export default class Breadcrumb extends Component {
     render(){
-        const {path, right} = this.props;
+        const {path, right, className} = this.props;
         // return "At " + this.path;
         const pathes = path.split("\\");
         const pathList = [];
@@ -24,9 +26,9 @@ export default class Breadcrumb extends Component {
         }
 
         
+        const cn =  classNames("explorer-breadcrumb", className);
 
-
-        return   (<ul className="explorer-breadcrumb">{pathList}{right}</ul>);
+        return   (<ul className={cn}>{pathList}{right}</ul>);
     }
 }
 

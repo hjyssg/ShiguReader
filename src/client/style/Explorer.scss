@@ -68,6 +68,21 @@
 .explorer-container-out{
   padding-bottom: 50px;
 
+  &.mode_search,
+  &.mode_tag,
+  &.mode_author{
+    .explorer-breadcrumb {
+      margin-bottom: 5px;
+    }
+
+    .not-first-breadcrumb{
+      margin-top: 10px;
+    }
+
+    .explorer-one-line-list-item{
+      padding-left: 16px;
+    }
+  }
 
   @media only screen and (min-width: 1200px) {
     &.home{

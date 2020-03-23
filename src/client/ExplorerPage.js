@@ -381,6 +381,7 @@ export default class ExplorerPage extends Component {
 
         //better tooltip to show file size 
         //and tag
+        let breadcrumbCount = 0;
         const zipfileItems = files.map((item, index) => {
             const text = _.getFn(item);
             const pathHash = stringHash(item);
@@ -397,15 +398,16 @@ export default class ExplorerPage extends Component {
                 const prev = files[index - 1];
                 if(!prev || util.getDir(prev) !== util.getDir(item)){
                     seperator = (<div className="col-12"  key={item+"---seperator"}> 
-                                 <Breadcrumb path={util.getDir(item)}/>
+                                 <Breadcrumb path={util.getDir(item)} className={breadcrumbCount > 0? "not-first-breadcrumb": "" }/>
                                  </div>);
+                    breadcrumbCount++;
                 }
             }
 
             let zipItem;
 
             if(this.state.noThumbnail){
-                zipItem = (<Link  target="_blank" to={toUrl}  key={item} className={""}>
+                zipItem = (<Link to={toUrl}  key={item} className={""}>
                         {this.getOneLineListItem(<i className="fas fa-book"></i>, text)}
                         </Link>)
             }else{
@@ -469,15 +471,20 @@ export default class ExplorerPage extends Component {
         })
     }
 
+    renderToggleThumbNailButton(){
+        const text2 = this.state.noThumbnail? "Show Thumbnail" : "File Name Only";
+        return (
+            <span className="fas fa-book thumbnail-button" onClick={this.toggleThumbNail.bind(this)}> {text2} </span>
+        );
+    }
+
     getExplorerToolbar(){
         const mode = this.getMode();
         if(mode === MODE_EXPLORER && this.path){
             const text = this.state.isRecursive? "Show only one level" : "Show subfolder's files";
-            const text2 = this.state.noThumbnail? "Show Thumbnail" : "File Name Only";
-
             const right = (
             <div className="float-right">
-                <span className="fas fa-book thumbnail-button" onClick={this.toggleThumbNail.bind(this)}> {text2} </span>
+                {this.renderToggleThumbNailButton()}
                 <span key="recursive-button" className="recursive-button fas fa-glasses" onClick={this.toggleRecursively.bind(this)}> {text} </span>
                 <span key="file-count" className="file-count">{this.getFilteredFiles().length + " files"} </span>
             </div>);
@@ -510,8 +517,16 @@ export default class ExplorerPage extends Component {
         if(searchable){
             const link = "https://exhentai.org/?f_search=" + searchable;
             const title = "Search '"  + searchable +  "' in Exhentai";
+
+            let btn;
+            if(this.getMode() === MODE_AUTHOR || this.getMode() === MODE_TAG || this.getMode() === MODE_SEARCH){
+                btn = this.renderToggleThumbNailButton();
+            }
+
+
             return (<center className={"location-title"}>
                         <a className="explorer-external-link" target="_blank" href={link} title={title}>{this.getTitle()} </a>
+                        {btn}
                     </center>);
         } 
     }
@@ -691,7 +706,9 @@ export default class ExplorerPage extends Component {
             return <ErrorPage res={this.res.res}/>;
         }
 
-        return (<div className={"explorer-container-out " + this.getMode()} >
+        const cn = classNames("explorer-container-out", this.getMode().replace(" ", "_"));
+
+        return (<div className={cn} >
             {this.renderSideMenu()}
             {this.getLinkToEhentai()}
             {this.getExplorerToolbar()}
