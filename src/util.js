@@ -2,7 +2,7 @@
 
 //https://stackoverflow.com/questions/11852589/what-image-formats-do-the-major-browsers-support-2012
 const imageTypes = [".jpg", ".png", ".jpeg", ".gif", ".bmp", ".webp"];
-const compressTypes = [".zip", ".rar", ".7zip"];
+const compressTypes = [".zip", ".rar", ".7zip", ".7z"];
 const musicTypes = [".mp3"];
 const videoTypes = [".mp4"];
 
