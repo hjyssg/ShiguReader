@@ -19,7 +19,7 @@
     "bootstrap": "4.3.1",
     "chart.js": "^2.7.3",
     "child-process-promise": "^2.2.1",
-    "chokidar": "^2.0.4",
+    "chokidar": "^3.3.1",
     "classnames": "^2.2.6",
     "cors": "^2.8.5",
     "dateformat": "^3.0.3",

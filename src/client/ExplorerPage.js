@@ -543,6 +543,7 @@ export default class ExplorerPage extends Component {
         const that =this;
         return (<Pagination current={this.state.pageIndex}  
                             pageSize={this.getNumPerPage()}
+                            showQuickJumper={{goButton: true}}
                             total={fileLength} 
                             itemRender={(item, type) =>{
                                 if(type === "page"){
