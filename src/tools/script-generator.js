@@ -26,4 +26,4 @@ function iterate (p, config, result, depth) {
     });
 }
 
-iterate("D:\\_Happy_Lesson\\_Going_to_sort\\_Compressed_3\\新建文件夹\\c2");
+iterate("D:\\2");

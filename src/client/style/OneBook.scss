@@ -98,12 +98,21 @@
 
   .mobile-one-book-image {
     // width: 95%;
-    width: calc(100% - 10px);
+    // width: calc(100% - 10px);
     margin:5px 5px;
+    max-height: 100vh;
+
+    @media screen and (max-width: 550px) {
+      max-width: 500px;
+    }
   }
 
   .mobile-one-book-container {
     width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
   }
 
   .one-book-tags {
