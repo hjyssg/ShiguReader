@@ -143,6 +143,10 @@ export default class FileChangeToolbar extends Component {
         const {file, className, header, isInOneBook} = this.props;
         const cn = classNames("file-change-tool-bar", className);
 
+        if(!location.hostname.includes("localhost")){
+            return  <div className={cn} ></div>;
+        }
+
         let additional;
         if(isInOneBook){
             additional = this.getDropdownItems();

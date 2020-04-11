@@ -16,6 +16,7 @@ const util = require("../util");
 const filesizeUitl = require('filesize');
 const queryString = require('query-string');
 const stringHash = util.stringHash;
+const isPad = util.isPad;
 import RadioButtonGroup from './subcomponent/RadioButtonGroup';
 import Breadcrumb from './subcomponent/Breadcrumb';
 import Checkbox from './subcomponent/Checkbox';
@@ -602,6 +603,10 @@ export default class ExplorerPage extends Component {
     }
 
     renderSideMenu(){
+        if(isPad()){
+            return;
+        }
+
         const SORT_OPTIONS = [
             SORT_BY_DATE,
             SORT_BY_DATE_REVERSE,
@@ -699,7 +704,7 @@ export default class ExplorerPage extends Component {
                 </div>)
         }
     }
-    
+
     render() {
         this.setWebTitle();
 

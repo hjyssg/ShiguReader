@@ -57,9 +57,11 @@ export default class OneBook extends Component {
       this.displayFile(file);
     }
 
-    screenfull.onchange(()=> {
-      this.forceUpdate();
-    });
+    if(!_.isPad ()){
+      screenfull.onchange(()=> {
+        this.forceUpdate();
+      });
+     }
 
     window.addEventListener("resize", this.adjustImageSizeAfterResize.bind(this));
   }
@@ -428,6 +430,29 @@ export default class OneBook extends Component {
     });
   }
 
+  renderNextPrevButton(){
+    if(_.isPad()){
+      return;
+    }
+
+    return (
+      <React.Fragment>
+        <div className="big-column-button next"> <i className="fas fa-arrow-circle-right" onClick={this.next.bind(this)}></i> </div>
+        <div className="big-column-button prev"> <i className="fas fa-arrow-circle-left" onClick={this.prev.bind(this)}></i>  </div>
+      </React.Fragment>
+    );
+  }
+
+  renderSecondBar(){
+    if(_.isPad()){
+      return;
+    }
+    return (<div className="one-book-second-toolbar">
+              {this.state.index > 0 && <div className="clip-with-prev-button fas fa-arrows-alt-h" onClick={this.doClipWithPrev.bind(this)} title="clip with prev image"></div>}
+              <div className="fas fa-sync-alt rotate-button" title="rotate image" onClick={this.rotateImg.bind(this)}></div>
+            </div>);
+  }
+
   render() {
     if (this.isFailedLoading()) { 
       return <ErrorPage res={this.res.res}/>;
@@ -442,7 +467,6 @@ export default class OneBook extends Component {
       } 
     }
     
-    
     if(this.state.path){
       document.title = _.getFn(this.state.path);
     }
@@ -453,12 +477,14 @@ export default class OneBook extends Component {
       "clip-with-prev": this.state.clipWithPrev
     });
 
+    const content = (<div className={wraperCn} ref={wrapper => this.wrapperRef = wrapper}>
+                      {this.renderImage()}
+                      {this.renderMusicPlayer()}
+    </div>);
+
     return (  
       <div className="one-book-container">
-        <div className={wraperCn} ref={wrapper => this.wrapperRef = wrapper}>
-          {this.renderImage()}
-          {this.renderMusicPlayer()}
-        </div>
+        {!_.isPad() && content}
         <div className="one-book-title" >
             {this.renderPath()} 
             <span onClick={this.onTitleClick.bind(this)} className="one-book-title-filename">{_.getFn(this.state.path)} </span>
@@ -467,13 +493,11 @@ export default class OneBook extends Component {
         {this.renderFileSizeAndTime()}
         {this.renderTags()}
         {this.renderToolbar()}
-  
-        <div className="big-column-button next"> <i className="fas fa-arrow-circle-right" onClick={this.next.bind(this)}></i> </div>
-        <div className="big-column-button prev"> <i className="fas fa-arrow-circle-left" onClick={this.prev.bind(this)}></i>  </div>
-        <div className="one-book-second-toolbar">
-          {this.state.index > 0 && <div className="clip-with-prev-button fas fa-arrows-alt-h" onClick={this.doClipWithPrev.bind(this)} title="clip with prev image"></div>}
-         <div className="fas fa-sync-alt rotate-button" title="rotate image" onClick={this.rotateImg.bind(this)}></div>
-        </div>
+        {this.renderNextPrevButton()}
+
+
+
+        {_.isPad() && content}
       </div>
     );
   }

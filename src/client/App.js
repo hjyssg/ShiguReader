@@ -96,6 +96,13 @@ class App extends Component {
         );
         return result;
     }
+
+    componentDidCatch(error, info) {
+        // Display fallback UI
+        this.setState({ hasError: true });
+        // You can also log the error to an error reporting service
+        console.error(error, info);
+    }
     
     render() {
         // document.title = this.getWebTitle();
