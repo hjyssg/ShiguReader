@@ -343,11 +343,13 @@ export default class OneBook extends Component {
               </React.Fragment>);    
     } else {
       const images = files.map(file => {
-        return <LoadingImage className={"mobile-one-book-image"} 
+        return (<div key={file} className="mobile-one-book-one-image-container"> 
+                    <LoadingImage className={"mobile-one-book-image"} 
+                            style={{"maxHeight": this.getMaxHeight()}}
                              bottomOffet={-4000}
                              topOffet={-3000}
                              url={getUrl(file)} 
-                             key={file}/>
+                             key={file}/> </div>);
       });
 
       return (<div className="mobile-one-book-container">

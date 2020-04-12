@@ -76,16 +76,16 @@ export default class LoadingImage extends Component {
 
   render() {
     let content;
-    const {className, fileName, url, bottomOffet, topOffet, title} = this.props;
+    const {className, fileName, url, bottomOffet, topOffet, title, ...others} = this.props;
     const cn = "loading-image  " + className;
     let active = true;
     if (this.state.failed) {
-      content = (<img key={fileName} ref={e=>{this.dom = e && e.node}} className={cn} src={notAvailable} title={title || fileName}/>);
+      content = (<img key={fileName} ref={e=>{this.dom = e && e.node}} className={cn} src={notAvailable} title={title || fileName} {...others}/>);
     } else if (this.state.loaded === false) {
-      content = (<img key={fileName} className={cn} src={loading} title={title || fileName}/>);
+      content = (<img key={fileName} className={cn} src={loading} title={title || fileName} {...others}/>);
     } else if (this.url) {
       active = false;
-      content = (<img key={fileName} className={className} src={this.url} title={title || fileName}/>);
+      content = (<img key={fileName} className={className} src={this.url} title={title || fileName} {...others}/>);
     }
 
     return (
