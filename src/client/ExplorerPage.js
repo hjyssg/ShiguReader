@@ -603,10 +603,6 @@ export default class ExplorerPage extends Component {
     }
 
     renderSideMenu(){
-        if(isPad()){
-            return;
-        }
-
         const SORT_OPTIONS = [
             SORT_BY_DATE,
             SORT_BY_DATE_REVERSE,

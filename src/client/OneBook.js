@@ -94,6 +94,10 @@ export default class OneBook extends Component {
   }
 
   adjustImageSize(){
+    if(_.isPad()){
+      return;
+    }
+
     this.loadedImage = this.state.index;
     const imageDom = ReactDOM.findDOMNode(this.imgRef);
     this.imgHeight = imageDom.clientHeight;
@@ -154,7 +158,7 @@ export default class OneBook extends Component {
   bindUserInteraction(){
     document.addEventListener('keydown', this.handleKeyDown.bind(this));
 
-    if(this.hasMusic()){
+    if(this.hasMusic() || _.isPad()){
       return;
     }
 
