@@ -16,9 +16,11 @@ export default class LoadingImage extends Component {
   }
 
   componentDidMount() {
-    setTimeout(()=>{
-      this.onChange(true)
-    }, 2*1000);
+    if(this.props.isThumbnail){
+      setTimeout(()=>{
+        this.onChange(true)
+      }, 2*1000);
+    }
   }
 
   componentWillUnmount(){
@@ -76,7 +78,7 @@ export default class LoadingImage extends Component {
 
   render() {
     let content;
-    const {className, fileName, url, bottomOffet, topOffet, title, ...others} = this.props;
+    const {className, fileName, url, bottomOffet, topOffet, title, isThumbnail, ...others} = this.props;
     const cn = "loading-image  " + className;
     let active = true;
     if (this.state.failed) {
