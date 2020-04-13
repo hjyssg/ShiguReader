@@ -8,6 +8,12 @@
 ![screenshot-02](screenshot/02.png)
 ![screenshot-03](screenshot/03.png)
 
+##### Demo Video
+
+[iPhone使用](https://www.bilibili.com/video/BV1xt4y1U73L/)
+[PC使用](https://www.bilibili.com/video/BV1t64y1u729/)
+
+
 
 ##### Quick Start
 
