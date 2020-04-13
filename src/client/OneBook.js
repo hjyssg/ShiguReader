@@ -222,7 +222,7 @@ export default class OneBook extends Component {
     } else if (key === "arrowleft" || key === "a" || key === "j") {
       this.changePage(this.state.index - 1);
       event.preventDefault();
-    } else if (key === "+" ) {
+    } else if (key === "+" || key === "=" ) {
       this.onwheel({wheelDelta: 1})
     } else if (key === "-" ) {
       this.onwheel({wheelDelta: -1})
