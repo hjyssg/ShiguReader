@@ -12,11 +12,13 @@ module.exports = function (folders, config) {
     const result = {pathes: [], infos: db.getData("/") };
     config.visited = {};
     folders.forEach((src) => {
-        const stat = fs.statSync(src);
-        if (stat.isFile()) {
-            throw "only source folder path";
-        } else {
-            iterate(src, config, result, 0);
+        if(fs.existsSync(src)){
+            const stat = fs.statSync(src);
+            if (stat.isFile()) {
+                throw "only source folder path";
+            } else {
+                iterate(src, config, result, 0);
+            }
         }
     });
     delete config.visited;
