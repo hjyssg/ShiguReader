@@ -50,6 +50,16 @@ npm install
 npm run dev or click run.bat
 
 # open http://localhost:3000/
+
+# If you want to open it on your iPhone, iPad or other mobile device 
+# in cmd, ipconfig
+# find your pc LAN ip address
+# In your mobile device browser, open  http://pc_ip_address:3000/
+
+# 如果要在iphone ipad等移动设备看漫画
+# 用cmd的ipconfig得到pc的ip地址
+# 然后在移动设备的浏览器上 http://pc的ip地址:3000/
+
 ```
 
 ##### 注意事项
