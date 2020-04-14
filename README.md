@@ -63,8 +63,10 @@ npm run dev or click run.bat
 ```
 
 ##### 注意事项
-windows语言设置:
+如果src/user-config.js的module.exports.meaning_cache_folder_name = true (默认是false)
+你可能需要如下设置。但可能导致其他工业软件乱码。
 
+windows语言设置:
 ![unicode setting](screenshot/unicode-setting.png)
 
 ##### 热键

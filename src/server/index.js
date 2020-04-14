@@ -72,8 +72,13 @@ app.use(express.static(root));
 app.use(express.json());
 
 function getOutputPath(zipFn) {
-    let outputFolder = path.basename(zipFn, path.extname(zipFn));
-    outputFolder = outputFolder.replace(/[`~!@#$%^&*()_|+\-=?;:'",.<>/]/gi, '');
+    let outputFolder;
+    if(userConfig.meaning_cache_folder_name){
+        outputFolder = stringHash(zipFn).toString();
+    }else{
+        outputFolder = path.basename(zipFn, path.extname(zipFn));
+        outputFolder = outputFolder.replace(/[`~!@#$%^&*()_|+\-=?;:'",.<>/]/gi, '');
+    }
     return path.join(cachePath, outputFolder);
 }
 

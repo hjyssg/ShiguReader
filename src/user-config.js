@@ -42,5 +42,8 @@ if(!module.exports.home_pathes && module.exports.home_pathes.length === 0) {
     throw "need home paths"
 }
 
+//wehter to use meaningful file name in cache folder
+//or encode they by hash function
+module.exports.meaning_cache_folder_name = true;
 
 module.exports.oversized_image_size = 4;
