@@ -41,6 +41,18 @@ function del(file){
 }
 
 function cleanCache(){
+    if(!fs.existsSync(cache_folder_name)){
+        err = fs.mkdir(cache_folder_name, (err) => {
+            if (err){
+                 throw err;
+            }
+          });
+    } else {
+        _clean();
+    }
+}
+
+function _clean(){
     const folders1 = fs.readdirSync(cache_folder_name);
     folders1.forEach(p1 => {
         try {
