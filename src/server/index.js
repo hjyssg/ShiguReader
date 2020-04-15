@@ -25,8 +25,15 @@ const isExist = async (path) => {
     }
 };
 
+const isDevServer = process.env.WEBPACK_DEV_SERVER;
 
-const root = path.join(__dirname, "..", "..", "..");
+let root;
+if(isDevServer){
+    root = path.join(__dirname, "..", "..", "..");
+}else{
+    root = path.join(__dirname, "..", "..");
+}
+
 const cache_folder_name = userConfig.cache_folder_name;
 const cachePath = path.join(__dirname, "..", "..", cache_folder_name);
 let logPath = path.join(__dirname, "..", "..", "log");
@@ -757,3 +764,16 @@ app.post('/api/extract', async (req, res) => {
     })();
 });
 
+
+
+if(!isDevServer){
+    var history = require('connect-history-api-fallback');
+    app.use(history({
+        verbose: true,
+    }));
+
+    app.get('/index.html', (req, res) => {
+        const as = path.resolve(__dirname, "..", "..", 'dist', 'index.html');
+        res.sendFile(as);
+    })
+}
