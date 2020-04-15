@@ -39,6 +39,13 @@ const cachePath = path.join(__dirname, "..", "..", cache_folder_name);
 let logPath = path.join(__dirname, "..", "..", "log");
 logPath = path.join(logPath, dateFormat(new Date(), "isoDate"))+ ".log";
 
+console.log("--------------------");
+console.log("__dirname", __dirname)
+console.log("root", root);
+console.log("log path:", logPath);
+console.log("cache path:", cachePath);
+console.log("----------------------");
+
 const logger = winston.createLogger({
     transports: [
       new winston.transports.Console(),
