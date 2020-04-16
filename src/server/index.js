@@ -35,9 +35,9 @@ if(isDevServer){
 }
 
 const cache_folder_name = userConfig.cache_folder_name;
-const cachePath = path.join(__dirname, "..", "..", cache_folder_name);
-let logPath = path.join(__dirname, "..", "..", "log");
+let logPath = userConfig.logPath;
 logPath = path.join(logPath, dateFormat(new Date(), "isoDate"))+ ".log";
+const file_db_path = userConfig.file_db_path;
 
 console.log("--------------------");
 console.log("process.cwd()", process.cwd());
@@ -45,7 +45,6 @@ console.log("__filename", __filename);
 console.log("__dirname", __dirname);
 console.log("root", root);
 console.log("log path:", logPath);
-console.log("cache path:", cachePath);
 console.log("----------------------");
 
 const logger = winston.createLogger({
@@ -95,7 +94,7 @@ function getOutputPath(zipFn) {
         outputFolder = path.basename(zipFn, path.extname(zipFn));
         outputFolder = outputFolder.replace(/[`~!@#$%^&*()_|+\-=?;:'",.<>/]/gi, '');
     }
-    return path.join(cachePath, outputFolder);
+    return path.join(cache_folder_name, outputFolder);
 }
 
 function cleanFileName(fn) {
@@ -147,7 +146,11 @@ async function init() {
 
     const filter = (e) => {return isCompress(e) || isImage(e);};
     let beg = (new Date).getTime()
-    const results = fileiterator(userConfig.home_pathes, { filter:filter, doLog: true  });
+    const results = fileiterator(userConfig.home_pathes, { 
+        filter:filter, 
+        doLog: true,
+        db_path: file_db_path
+    });
     results.pathes = results.pathes.concat(userConfig.home_pathes);
     let end = (new Date).getTime();
     console.log(`${(end - beg)/1000}s  to read local dirs`);
@@ -229,7 +232,7 @@ function setUpFileWatch(){
         .on('unlinkDir', deleteCallBack);
 
     //also for cache files
-    const cacheWatcher = chokidar.watch(cachePath, {
+    const cacheWatcher = chokidar.watch(cache_folder_name, {
         persistent: true
     });
 
@@ -638,7 +641,7 @@ async function getFirstImageFromZip(fileName, res, mode, counter) {
 
                 if(isPreG){
                     counter.counter++;
-                    console.log("pre-generate", counter.counter, "/", counter.total);
+                    console.log("[getFirstImageFromZip] pre-generate", counter.counter, "/", counter.total);
                 }
             } else {
                 console.error("[getFirstImageFromZip extract exec failed]", code);
@@ -656,16 +659,17 @@ async function getFirstImageFromZip(fileName, res, mode, counter) {
                             sendImage(img);
                         } else {
                             res.sendStatus(404);
+                            console.error('[getFirstImageFromZip extract] no image output') 
                         }
                     });
                 } else {
                     res.sendStatus(404);
-                    console.error('[getFirstImageFromZip extract exec failed] exit: ', stderr);
+                    console.error('[getFirstImageFromZip extract] exit: ', stderr);
                 }
             })();
         }
     } catch(e) {
-        console.error("[getFirstImageFromZip exception", e);
+        console.error("[getFirstImageFromZip] exception", e);
         res.sendStatus(404);
     }
 }

@@ -6,9 +6,8 @@ const _ = require("underscore");
 const JsonDB = require('node-json-db').JsonDB;
 const Config = require('node-json-db/dist/lib/JsonDBConfig').Config;
 
-const db = new JsonDB(new Config("shigureader_local_file_info", true, true, '/'));
-
 module.exports = function (folders, config) {
+    const db = new JsonDB(new Config(config.db_path, true, true, '/'));
     const result = {pathes: [], infos: db.getData("/") };
     config.visited = {};
     folders.forEach((src) => {

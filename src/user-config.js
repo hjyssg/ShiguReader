@@ -3,7 +3,7 @@
 /**
  * MUST Where ShiguReader will scan files 修改成本地存放漫画zip的路径
  */
-module.exports.home_pathes = ["T:\\迅雷下载", "D:\\_Happy_Lesson", "D:\\_Happy_Lesson\\_Unread", "D:\\_Happy_Lesson\\_Going_to_sort", "E:\\_Temp_Music"];
+module.exports.home_pathes = ["T:\\迅雷下载"];
 
 /** 
  * OPTIONAL where to move file
@@ -34,7 +34,16 @@ module.exports.additional_folder = [
 
 
 //----------------- below section used by developer-----------------------------
-module.exports.cache_folder_name = "cache";
+
+const path = require('path');
+
+const workspace_name = module.exports.workspace_name = "workspace";
+
+const cache_folder_name= module.exports.cache_folder_name = "cache";
+
+module.exports.logPath = path.join(__dirname, "..", "..", workspace_name, "log");
+
+module.exports.file_db_path =  path.join(__dirname, "..", "..", workspace_name, "shigureader_local_file_info");
 
 module.exports.folder_list = module.exports.home_pathes.concat(module.exports.good_folder, module.exports.not_good_folder);
 
@@ -46,4 +55,5 @@ if(!module.exports.home_pathes && module.exports.home_pathes.length === 0) {
 //or encode they by hash function
 module.exports.meaning_cache_folder_name = true;
 
+//in MB
 module.exports.oversized_image_size = 4;
