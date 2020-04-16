@@ -25,7 +25,6 @@
   "license": "",
   "dependencies": {
     "babel-polyfill": "^6.26.0",
-    "bootstrap": "4.3.1",
     "chart.js": "^2.7.3",
     "child-process-promise": "^2.2.1",
     "chokidar": "^3.3.1",
@@ -36,10 +35,6 @@
     "execa": "^1.0.0",
     "express": "^4.16.3",
     "filesize": "^4.1.2",
-    "imagemin": "^7.0.1",
-    "imagemin-jpeg-recompress": "^6.0.0",
-    "imagemin-jpegtran": "^6.0.0",
-    "imagemin-mozjpeg": "^8.0.0",
     "jpegtran": "^1.0.6",
     "jquery": "^3.4.1",
     "node-json-db": "^1.0.3",
@@ -91,6 +86,10 @@
     "url-loader": "^1.0.1",
     "webpack": "^4.29.0",
     "webpack-cli": "^3.0.8",
-    "webpack-dev-server": "^3.1.14"
+    "webpack-dev-server": "^3.1.14",
+    "imagemin": "^7.0.1",
+    "imagemin-jpeg-recompress": "^6.0.0",
+    "imagemin-jpegtran": "^6.0.0",
+    "imagemin-mozjpeg": "^8.0.0"
   }
 }
