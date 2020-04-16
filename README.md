@@ -24,8 +24,8 @@
 * 支持手机和平板。不需要USB接线，手机不需要安装任何东西，任意浏览器直接可以阅读。
 * 播放zip文件里的音乐文件。
 * 配色和旧版熊猫网的一模一样，亲切熟悉。
-* 服务器端支持windows和Mac。
-* 客户端支持除IE和Edge的主流浏览器。
+* 服务器端支持windows和*nix。*nix需要用户自己安装7zip，并加到cmd路径下。
+* 客户端支持除IE和Edge的主流浏览器。比如电脑的Chrome和iPad的safari。
 
 
 ##### Quick Start
