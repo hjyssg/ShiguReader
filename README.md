@@ -30,7 +30,7 @@
 
 ##### Quick Start
 
-####### 中文
+###### 中文
 
 ```bash
 # 不要跳过下面任何一个步骤
@@ -68,7 +68,7 @@ npm run dev
 
 ```
 
-####### English
+###### English
 
 ```bash
 # If you do not have nodejs installed, please go to https://nodejs.org/
