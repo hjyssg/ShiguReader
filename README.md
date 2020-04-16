@@ -48,13 +48,14 @@ git clone https://github.com/hjyssg/ShiguReader
 # cd F:\ShiguReader
 
 # 安装依赖
-# 最近gitub可能被墙 
+# 最近gitub可能被墙， 所以用taobao的源。
 npm install --registry=http://registry.npm.taobao.org
 
-# install中途要是node sass报错
+# install中途要是node-sass报错
 # 看一下issue页面。有解决办法
 
 # 启动服务器
+# 会有点慢，差不多一两分钟。耐心
 npm run dev
 
 # 打开 http://localhost:3000/
