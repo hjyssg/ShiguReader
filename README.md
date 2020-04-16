@@ -30,6 +30,8 @@
 
 ##### Quick Start
 
+####### 中文
+
 ```bash
 # 不要跳过下面任何一个步骤
 
@@ -66,6 +68,8 @@ npm run dev
 
 ```
 
+####### English
+
 ```bash
 # If you do not have nodejs installed, please go to https://nodejs.org/
 
@@ -97,7 +101,7 @@ npm run dev
 ```
 
 ##### 注意事项
-如果src/user-config.js的module.exports.readable_cache_folder_name = true  
+当src/user-config.js的module.exports.readable_cache_folder_name = true的时候
 你可能需要如下设置。但有s1坛友反映会导致其他非unicode软件乱码。
 
 windows语言设置:
