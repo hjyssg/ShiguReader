@@ -35,9 +35,9 @@ if(isDevServer){
 }
 
 const cache_folder_name = userConfig.cache_folder_name;
-let logPath = userConfig.logPath;
+let logPath = path.join(__dirname, "..","..", userConfig.workspace_name, "log");
 logPath = path.join(logPath, dateFormat(new Date(), "isoDate"))+ ".log";
-const file_db_path = userConfig.file_db_path;
+let file_db_path =  path.join(__dirname, "..", "..",  userConfig.workspace_name, "shigureader_local_file_info");
 
 console.log("--------------------");
 console.log("process.cwd()", process.cwd());
@@ -45,6 +45,7 @@ console.log("__filename", __filename);
 console.log("__dirname", __dirname);
 console.log("root", root);
 console.log("log path:", logPath);
+console.log("file_db_path", file_db_path);
 console.log("----------------------");
 
 const logger = winston.createLogger({

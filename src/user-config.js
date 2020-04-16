@@ -41,10 +41,6 @@ const workspace_name = module.exports.workspace_name = "workspace";
 
 const cache_folder_name= module.exports.cache_folder_name = "cache";
 
-module.exports.logPath = path.join(__dirname, "..", "..", workspace_name, "log");
-
-module.exports.file_db_path =  path.join(__dirname, "..", "..", workspace_name, "shigureader_local_file_info");
-
 module.exports.folder_list = module.exports.home_pathes.concat(module.exports.good_folder, module.exports.not_good_folder);
 
 if(!module.exports.home_pathes && module.exports.home_pathes.length === 0) {
