@@ -547,20 +547,25 @@ app.post(Constant.TAG_THUMBNAIL_PATH_API, (req, res) => {
     getFirstImageFromZip(chosendFileName, res);
 });
 
-function read7zOutput(data, needLineNum) {
-    needLineNum = needLineNum || Infinity;
+function read7zOutput(data) {
     const lines = data && data.split("\n");
-    const BEG = 52; // by 7zip
     const files = [];
     for (let ii = 0; ii < lines.length; ii++) {
-        let line = lines[ii];
-        if (line && line.length > BEG) {
-            line = line.slice(BEG, line.length - 1);
-            if (isImage(line)) {
-                files.push(line.trim());
-                if(files.length > needLineNum){
-                    return files;
-                }
+        let line = lines[ii].trim();
+        let tokens = line.split(" = ");
+        // an example 
+        // Path = 041.jpg
+        // Folder = -
+        // Size = 1917111
+        // Packed Size = 1865172
+        // Modified = 2020-04-03 17:29:52
+        // Created = 2020-04-03 17:29:52
+        // Accessed = 2020-04-03 17:29:52
+        if(tokens.length === 2){
+            const key = tokens[0];
+            const value = tokens[1]
+            if(key.toLowerCase() === "path" && isImage(value)){
+                files.push(value.trim());
             }
         }
     }
@@ -614,14 +619,14 @@ async function getFirstImageFromZip(fileName, res, mode, counter) {
     const fileSizeInBytes = stats["size"]
     //Convert the file size to megabytes (optional)
     const fileSizeInMegabytes = fileSizeInBytes / 1000000.0;
-    const full_extract_for_thumbnail_size = 40;
 
     try{
         //bigger than 30mb
-        if(fileSizeInMegabytes > full_extract_for_thumbnail_size || isPreG){
+        if(fileSizeInMegabytes > userConfig.full_extract_for_thumbnail_size || isPreG){
             // assume zip
             // let {stdout, stderr} = await limit(() => execa(sevenZip, ['l', '-ba', fileName]));
-            let {stdout, stderr} = await limit(() => execa(sevenZip, ['l', '-r', fileName]));
+            //https://superuser.com/questions/1020232/list-zip-files-contents-using-7zip-command-line-with-non-verbose-machine-friend
+            let {stdout, stderr} = await limit(() => execa(sevenZip, ['l', '-r', '-ba' ,'-slt', fileName]));
             const text = stdout;
             if (!text) {
                 console.error("[getFirstImageFromZip]", "no text");

@@ -51,5 +51,11 @@ if(!module.exports.home_pathes && module.exports.home_pathes.length === 0) {
 //or encode they by hash function
 module.exports.meaning_cache_folder_name = true;
 
+// when the server extracting an image from a zip as its thumbnail,
+// this number decides if it will uncompress all the content to cache folder or only a few files.
+// For small files, it is faster to uncompress all the content
+// For big files, it is better to get its content list and only uncompress a few contents
+module.exports.full_extract_for_thumbnail_size = 40;
+
 //in MB
 module.exports.oversized_image_size = 4;
