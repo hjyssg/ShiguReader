@@ -1,6 +1,177 @@
 HISTORY of the 7-Zip
 --------------------
 
+19.00          2019-02-21
+-------------------------
+- Encryption strength for 7z archives was increased:
+  the size of random initialization vector was increased from 64-bit to 128-bit,
+  and the pseudo-random number generator was improved.
+- Some bugs were fixed.
+
+
+18.06          2018-12-30
+-------------------------
+- The speed for LZMA/LZMA2 compressing was increased by 3-10%,
+  and there are minor changes in compression ratio.
+- Some bugs were fixed.
+- The bug in 7-Zip 18.02-18.05 was fixed: there was memory leak in xz decoder.
+- 7-Zip 18.02-18.05 used only one CPU thread for bz2 archive creation.
+  
+
+18.05          2018-04-30
+-------------------------
+- The speed for LZMA/LZMA2 compressing was increased 
+    by 8% for fastest/fast compression levels and 
+    by 3% for normal/maximum compression levels.
+- 7-Zip now shows Properties (Info) window and CRC/SHA results window
+  as "list view" window instead of "message box" window.
+- Some improvements in zip, hfs and dmg code.
+- Previous versions of 7-Zip could work incorrectly in "Large memory pages" mode in
+  Windows 10 because of some BUG with "Large Pages" in Windows 10. 
+  Now 7-Zip doesn't use "Large Pages" on Windows 10 up to revision 1709 (16299).
+- The vulnerability in RAR unpacking code was fixed (CVE-2018-10115).
+- Some bugs were fixed.
+ 
+
+18.03 beta     2018-03-04
+-------------------------
+- The speed for single-thread LZMA/LZMA2 decoding
+  was increased by 30% in x64 version and by 3% in x86 version.
+- 7-Zip now can use multi-threading for 7z/LZMA2 decoding,
+  if there are multiple independent data chunks in LZMA2 stream.
+- 7-Zip now can use multi-threading for xz decoding,
+  if there are multiple blocks in xz stream.
+- New localization: Kabyle.
+- Some bugs were fixed.
+
+
+18.01          2018-01-28
+-------------------------
+- 7-Zip now can unpack DMG archives that use LZFSE compression method.
+- 7-Zip now doesn't allow update operation for archives that have read-only attribute.
+- The BUG was fixed:
+  extracting from tar with -si switch didn't set timestamps for directories.
+- Some bugs were fixed.
+
+
+18.00 beta     2018-01-10
+-------------------------
+- 7-Zip now can unpack OBJ/COFF files.
+- new -sse switch to stop archive creating, if 7-Zip can't open some input file. 
+- Some bugs were fixed.
+
+
+17.01 beta     2017-08-28
+-------------------------
+- Minor speed optimization for LZMA2 (xz and 7z) multi-threading compression.
+  7-Zip now uses additional memory buffers for multi-block LZMA2 compression.
+  CPU utilization was slightly improved.
+- 7-zip now creates multi-block xz archives by default. Block size can be 
+  specified with -ms[Size]{m|g} switch.
+- xz decoder now can unpack random block from multi-block xz archives.
+  7-Zip File Manager now can open nested multi-block xz archives 
+  (for example, image.iso.xz) without full unpacking of xz archive.
+- 7-Zip now can create zip archives from stdin to stdout.
+- 7-Zip command line: @listfile now doesn't work after -- switch.
+  Use -i@listfile before -- switch instead.
+- The BUGs were fixed:
+  7-Zip could add unrequired alternate file streams to WIM archives, 
+  for commands that contain filename wildcards and -sns switch.
+  7-Zip 17.00 beta crashed for commands that write anti-item to 7z archive.
+  7-Zip 17.00 beta ignored "Use large memory pages" option.
+
+
+17.00 beta     2017-04-29
+-------------------------
+- ZIP unpacking code was improved.
+- 7-Zip now reserves file space before writing to file (for extraction from archive).
+  It can reduce file fragmentation.
+- Some bugs were fixed. 7-Zip could crash in some cases.
+- Internal changes in code.
+
+
+16.04          2016-10-04
+-------------------------
+- The bug was fixed: 7-Zip 16.03 exe installer under Vista didn't create 
+  links in Start / Programs menu.
+- Some bugs were fixed in RAR code.
+
+
+16.03          2016-09-28
+-------------------------
+- Installer and SFX modules now use some protection against DLL preloading attack.
+- Some bugs were fixed in 7z, NSIS, SquashFS, RAR5 and another code.
+
+
+16.02          2016-05-21
+-------------------------
+- 7-Zip now can extract multivolume ZIP archives (z01, z02, ... , zip).
+- Some bugs were fixed.
+
+
+15.14          2015-12-31
+-------------------------
+- 7-Zip File Manager:
+  - The code for "Open file from archive" operation was improved.
+  - The code for "Tools/Options" window was improved.
+  - The BUG was fixed: there was incorrect mouse cursor capture for 
+    drag-and-drop operations from open archive to Explorer window.
+- Some bugs were fixed.
+- New localization: Yoruba.
+
+
+15.12          2015-11-19
+-------------------------
+- The release version.
+
+
+15.11 beta     2015-11-14
+-------------------------
+- Some bugs were fixed.
+
+
+15.10 beta     2015-11-01
+-------------------------
+- The BUG in 9.21 - 15.09 was fixed:
+  7-Zip could ignore some parameters, specified for archive creation operation
+  for gzip and bzip2 formats in "Add to Archive" window and in command line 
+  version (-m switch).
+- Some bugs were fixed.
+
+
+15.09 beta     2015-10-16
+-------------------------
+- 7-Zip now can extract ext2 and multivolume VMDK images.
+- Some bugs were fixed.
+
+
+15.08 beta     2015-10-01
+-------------------------
+- 7-Zip now can extract ext3 and ext4 (Linux file system) images.
+- Some bugs were fixed.
+
+
+15.07 beta     2015-09-17
+-------------------------
+- 7-Zip now can extract GPT images and single file QCOW2, VMDK, VDI images.
+- 7-Zip now can extract solid WIM archives with LZMS compression.
+- Some bugs were fixed.
+
+
+15.06 beta     2015-08-09
+-------------------------
+- 7-Zip now can extract RAR5 archives.
+- 7-Zip now doesn't sort files by type while adding to solid 7z archive.
+- new -mqs switch to sort files by type while adding to solid 7z archive.
+- The BUG in 7-Zip File Manager was fixed:
+  The "Move" operation to open 7z archive didn't delete empty files.
+- The BUG in 15.05 was fixed:
+  console version added some text to the end of stdout stream, is -so switch was used. 
+- The BUG in 9.30 - 15.05 was fixed:
+  7-Zip could not open multivolume sfx RAR archive.
+- Some bugs were fixed.
+
+
 15.05 beta     2015-06-14
 -------------------------
 - 7-Zip now uses new installer.
