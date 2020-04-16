@@ -49,7 +49,7 @@ if(!module.exports.home_pathes && module.exports.home_pathes.length === 0) {
 
 //wehter to use meaningful file name in cache folder
 //or encode they by hash function
-module.exports.meaning_cache_folder_name = true;
+module.exports.readable_cache_folder_name = true;
 
 // when the server extracting an image from a zip as its thumbnail,
 // this number decides if it will uncompress all the content to cache folder or only a few files.

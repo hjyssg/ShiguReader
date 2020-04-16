@@ -77,7 +77,7 @@ npm run dev or click run.bat
 ```
 
 ##### 注意事项
-如果src/user-config.js的module.exports.meaning_cache_folder_name = true (默认是false)  
+如果src/user-config.js的module.exports.readable_cache_folder_name = true  
 你可能需要如下设置。但有s1坛友反映会导致其他非unicode软件乱码。
 
 windows语言设置:
