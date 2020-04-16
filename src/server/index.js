@@ -30,6 +30,7 @@ const cache_folder_name = userConfig.cache_folder_name;
 let logPath = path.join(__dirname, "..","..", userConfig.workspace_name, "log");
 logPath = path.join(logPath, dateFormat(new Date(), "isoDate"))+ ".log";
 let file_db_path =  path.join(__dirname, "..", "..",  userConfig.workspace_name, "shigureader_local_file_info");
+const sevenZipPath = path.join(process.cwd(), "resource/7zip");
 
 console.log("--------------------");
 console.log("process.cwd()", process.cwd());
@@ -38,9 +39,10 @@ console.log("__dirname", __dirname);
 console.log("root", root);
 console.log("log path:", logPath);
 console.log("file_db_path", file_db_path);
+console.log("sevenZipPath", sevenZipPath);
 console.log("----------------------");
 
-const sevenZip = require(path.join(process.cwd(), "resource/7zip"))['7z'];
+const sevenZip = require(sevenZipPath)['7z'];
 
 
 const logger = winston.createLogger({
