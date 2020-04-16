@@ -711,7 +711,7 @@ app.post('/api/pregenerateThumbnails', (req, res) => {
 function doClean(){
     const cleanCache = require("../tools/cleanCache");
     try{
-        cleanCache.cleanCache();
+        cleanCache.cleanCache(cachePath);
     }catch(e){
         console.error(e);
     }

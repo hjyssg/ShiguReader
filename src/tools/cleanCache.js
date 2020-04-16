@@ -1,8 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-const userConfig = require('../user-config');
 const rimraf = require("./rimraf");
-const cache_folder_name = path.resolve(userConfig.cache_folder_name);
 const util = require("../util");
 
 let counter = 0;
@@ -13,8 +11,8 @@ function isSubDirectory(parent, child) {
 
 const show_error = false;
 
-function del(file){
-    if(isSubDirectory(cache_folder_name, file)){
+function del(file, cachePath){
+    if(isSubDirectory(cachePath, file)){
         rimraf(file, (err) =>{
             if(err){
                 // try{
@@ -40,36 +38,35 @@ function del(file){
     }
 }
 
-function cleanCache(){
-    if(!fs.existsSync(cache_folder_name)){
-        err = fs.mkdir(cache_folder_name, (err) => {
+function cleanCache(cachePath){
+    if(!fs.existsSync(cachePath)){
+        err = fs.mkdir(cachePath, (err) => {
             if (err){
                  throw err;
             }
           });
     } else {
-        _clean();
+        _clean(cachePath);
     }
 }
 
-function _clean(){
-    const folders1 = fs.readdirSync(cache_folder_name);
+function _clean(cachePath){
+    const folders1 = fs.readdirSync(cachePath);
     folders1.forEach(p1 => {
         try {
-            p1 = path.resolve(cache_folder_name, p1);
+            p1 = path.resolve(cachePath, p1);
             const stat = fs.statSync(p1);
-            if (stat.isFile) {
-                //nothing
-                del(p1);
-            }else if(stat.isDirectory){
+            if (stat.isFile()) {
+                del(p1, cachePath);
+            }else if(stat.isDirectory()){
                 let subfiles = fs.readdirSync(p1);
                 const noimages = subfiles.filter(e => !util.isImage(e));
-                noimages.forEach(e => del(path.resolve(p1,e)));
+                noimages.forEach(e => del(path.resolve(p1,e), cachePath));
 
                 subfiles = subfiles.filter(e => util.isImage(e));
                 util.sortFileNames(subfiles);
                 if (subfiles.length === 0){
-                    del(p1);
+                    del(p1, cachePath);
                 }else  if(subfiles.length === 1){
                     //nothing
                 }else if(subfiles.length >= 2){
