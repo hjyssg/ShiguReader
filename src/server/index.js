@@ -27,6 +27,7 @@ const isExist = async (path) => {
 
 let root = path.join(__dirname, "..", "..");
 const cache_folder_name = userConfig.cache_folder_name;
+const cachePath = path.join(__dirname, "..", "..", cache_folder_name);
 let logPath = path.join(__dirname, "..","..", userConfig.workspace_name, "log");
 logPath = path.join(logPath, dateFormat(new Date(), "isoDate"))+ ".log";
 let file_db_path =  path.join(__dirname, "..", "..",  userConfig.workspace_name, "shigureader_local_file_info");
@@ -100,7 +101,7 @@ function getOutputPath(zipFn) {
     }else{
         outputFolder = outputFolder.replace(/[`~!@#$%^&*()_|+\-=?;:'",.<>/]/gi, '');
     }
-    return path.join(cache_folder_name, outputFolder);
+    return path.join(cachePath, outputFolder);
 }
 
 function cleanFileName(fn) {
