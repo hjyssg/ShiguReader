@@ -31,37 +31,61 @@
 ##### Quick Start
 
 ```bash
-# DO NOT SKIP ANY STEP BELOW
 # 不要跳过下面任何一个步骤
 
-# If you do not have nodejs installed, please go to https://nodejs.org/
-# 没有nodejs,麻烦先安装nodejs
+# 没有nodejs,麻烦先安装nodejs https://nodejs.org/
 
-# Clone the repository
-# 把代码clone
-# github右上角下载到本地
+# 把代码clone或者github右上角下载到本地
+git clone https://github.com/hjyssg/ShiguReader
+
+# 手动修改设置
+# 用任意文本编辑器手动修改src/user-config.js用户文件设置  
+
+## 日志 2020/03/07
+## windows的默认cmd 有时不好用，建议使用Git Bash 
+
+# 命令行进入文件夹。比如
+# cd F:\ShiguReader
+
+# 安装依赖
+# 最近gitub可能被墙 
+npm install --registry=http://registry.npm.taobao.org
+
+# install中途要是node sass报错
+# 看一下issue页面。有解决办法
+
+# 启动服务器
+npm run dev
+
+# 打开 http://localhost:3000/
+
+# 如果要在iphone ipad等移动设备看漫画
+# 用cmd的ipconfig得到pc的ip地址
+# 然后在移动设备的浏览器上 http://pc的ip地址:3000/
+
+```
+
+```bash
+# If you do not have nodejs installed, please go to https://nodejs.org/
+
+# Clone the repository or download
 git clone https://github.com/hjyssg/ShiguReader
 
 ## change user config
-## 手动修改设置
-#用任意文本编辑器手动修改src/user-config.js用户文件设置  
-modify src/user-config.js accoding to your own comic files location
+## modify src/user-config.js accoding to your own comic files location
 
 ## 2020/03/07
 ## windows default cmd is not working
 ## Please use Git Bash 
 
 # Go inside the directory
-# 命令行进入文件夹
 cd ShiguReader
 
 # Install dependencies
-# 最近gitub都被墙
-# npm install --registry=http://registry.npm.taobao.org
 npm install
 
 # Start development server
-npm run dev or click run.bat
+npm run dev
 
 # open http://localhost:3000/
 
@@ -69,11 +93,6 @@ npm run dev or click run.bat
 # in cmd, ipconfig
 # find your pc LAN ip address
 # In your mobile device browser, open  http://pc_ip_address:3000/
-
-# 如果要在iphone ipad等移动设备看漫画
-# 用cmd的ipconfig得到pc的ip地址
-# 然后在移动设备的浏览器上 http://pc的ip地址:3000/
-
 ```
 
 ##### 注意事项
