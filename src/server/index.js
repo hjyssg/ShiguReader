@@ -94,10 +94,10 @@ app.use(express.json());
 
 function getOutputPath(zipFn) {
     let outputFolder;
+    outputFolder = path.basename(zipFn, path.extname(zipFn));
     if(userConfig.meaning_cache_folder_name){
         outputFolder = stringHash(zipFn).toString();
     }else{
-        outputFolder = path.basename(zipFn, path.extname(zipFn));
         outputFolder = outputFolder.replace(/[`~!@#$%^&*()_|+\-=?;:'",.<>/]/gi, '');
     }
     return path.join(cache_folder_name, outputFolder);
@@ -563,9 +563,9 @@ function read7zOutput(data) {
         // Accessed = 2020-04-03 17:29:52
         if(tokens.length === 2){
             const key = tokens[0];
-            const value = tokens[1]
+            const value = tokens[1].trim();
             if(key.toLowerCase() === "path" && isImage(value)){
-                files.push(value.trim());
+                files.push(value);
             }
         }
     }
@@ -586,6 +586,10 @@ function chooseOneZip(files){
 }
 
 async function getFirstImageFromZip(fileName, res, mode, counter) {
+    if(!util.isCompress(fileName) || db.hasNoThumbnail[fileName]){
+        return;
+    }
+
     const outputPath = getOutputPath(fileName);
     const temp = getCache(outputPath);
     const isPreG = mode === "pre-generate";
@@ -593,10 +597,6 @@ async function getFirstImageFromZip(fileName, res, mode, counter) {
         res.send = () => {};
         res.sendStatus = () => {};
         res.sendFile = () => {};
-    }
-
-    if(!util.isCompress(fileName) || db.hasNoThumbnail[fileName]){
-        return;
     }
 
     function sendImage(img){
@@ -649,7 +649,8 @@ async function getFirstImageFromZip(fileName, res, mode, counter) {
             const {stdout2, stderr2} = await execa(sevenZip, opt);
             if (!stderr2) {
                 // send path to client
-                let temp = path.join(cache_folder_name, path.basename(outputPath), one);
+                const subtokens = one.split(path.sep);
+                let temp = path.join(cache_folder_name, path.basename(outputPath), subtokens[subtokens.length-1]);
                 temp = cleanFileName(temp);
                 sendImage(temp);
 
