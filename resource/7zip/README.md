@@ -1,5 +1,9 @@
 # 7zip Windows Package via Node.js
 
+
+### The old package is not longer maintained, I have to download and manually update its binary. By Aji
+
+
 <a href="https://www.npmjs.com/package/7zip"><img width="134" height="20" src="https://img.shields.io/npm/dm/7zip.svg"></a>&nbsp;&nbsp;<a href="https://github.com/fritx/win-7zip"><img width="84" height="20" src="https://img.shields.io/badge/license-LGPL-yellow.svg"></a>
 
 This npm package contains a lite-version of [7zip](http://7-zip.org), ≈2.4MB.

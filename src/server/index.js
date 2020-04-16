@@ -1,20 +1,20 @@
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
-const fileiterator = require('./file-iterator');
-const nameParser = require('../name-parser');
-const userConfig = require('../user-config');
-const sevenZip = require('../7zip')['7z'];
-const util = require("../util");
 const stringHash = require("string-hash");
 const chokidar = require('chokidar');
 const execa = require('execa');
 const pfs = require('promise-fs');
 const dateFormat = require('dateformat');
 const winston = require("winston");
-const Constant = require("../constant");
 var cors = require('cors')
 
+const Constant = require("../constant");
+const fileiterator = require('./file-iterator');
+const nameParser = require('../name-parser');
+const userConfig = require('../user-config');
+const util = require("../util");
+const sevenZip = require(path.join(__dirname, "..", "..", "resource", "7zip") )['7z'];
 
 const isExist = async (path) => {
     try{
@@ -40,7 +40,9 @@ let logPath = path.join(__dirname, "..", "..", "log");
 logPath = path.join(logPath, dateFormat(new Date(), "isoDate"))+ ".log";
 
 console.log("--------------------");
-console.log("__dirname", __dirname)
+console.log("process.cwd()", process.cwd());
+console.log("__filename", __filename);
+console.log("__dirname", __dirname);
 console.log("root", root);
 console.log("log path:", logPath);
 console.log("cache path:", cachePath);
