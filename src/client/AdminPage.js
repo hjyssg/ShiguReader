@@ -62,6 +62,8 @@ export default class AdminPage extends Component {
     }
 
     render(){
+        document.title = "Admin"
+
         return (
             <div className="admin-container container">
                 <div className="admin-section">

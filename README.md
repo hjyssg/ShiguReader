@@ -36,7 +36,8 @@
 # 没有nodejs,麻烦先安装nodejs
 
 # Clone the repository
-# 把代码clone或者下载到本地
+# 把代码clone
+# github右上角下载到本地
 git clone https://github.com/hjyssg/ShiguReader
 
 ## change user config

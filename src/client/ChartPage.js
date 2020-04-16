@@ -205,6 +205,8 @@ export default class ChartPage extends Component {
     }
 
     render(){
+        document.title = "Chart"
+
         if (!this.res) {
             return (<CenterSpinner/>);
         } else if(this.isFailedLoading()) {

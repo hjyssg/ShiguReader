@@ -3,7 +3,7 @@
 /**
  * MUST Where ShiguReader will scan files 修改成本地存放漫画zip的路径
  */
-module.exports.home_pathes = ["T:\\迅雷下载"];
+module.exports.home_pathes = ["T:\\迅雷下载", "D:\\_Happy_Lesson", "D:\\_Happy_Lesson\\_Unread", "D:\\_Happy_Lesson\\_Going_to_sort", "E:\\_Temp_Music"];
 
 /** 
  * OPTIONAL where to move file

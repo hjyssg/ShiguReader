@@ -42,8 +42,16 @@ console.log("file_db_path", file_db_path);
 console.log("sevenZipPath", sevenZipPath);
 console.log("----------------------");
 
-const sevenZip = require(sevenZipPath)['7z'];
+const isWin = process.platform === "win32";
 
+let sevenZip;
+if(isWin){
+    sevenZip = require(sevenZipPath)['7z'];
+}else{
+    //assume linux/mac people already install it by cmd
+    //https://superuser.com/questions/548349/how-can-i-install-7zip-so-i-can-run-it-from-terminal-on-os-x
+    sevenZip = "7z";
+}
 
 const logger = winston.createLogger({
     transports: [
@@ -126,15 +134,18 @@ function getCache(outputPath) {
     return null;
 }
 
-async function init() {
-    const {stdout, stderr} = await execa("chcp");
-    console.log("[chcp]", stdout);
-    const r = new RegExp("\\d+");
-    const m = r.exec(stdout);
-    const charset = parseInt(m && m[0]);
 
-    if (charset !== 65001) {
-        console.error("Please switch you console encoding to utf8 in windows language setting");
+async function init() {
+    if(isWin){
+        const {stdout, stderr} = await execa("chcp");
+        console.log("[chcp]", stdout);
+        const r = new RegExp("\\d+");
+        const m = r.exec(stdout);
+        const charset = parseInt(m && m[0]);
+    
+        if (charset !== 65001) {
+            console.error("Please switch you console encoding to utf8 in windows language setting");
+        }
     }
 
     console.log("clean previous cache files");
