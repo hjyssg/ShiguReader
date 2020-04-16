@@ -29,3 +29,12 @@ mkdir F:\1
 
 ```
 
+
+$ /f/ShiguReader/executables/ShiguReader.exe
+--------------------
+__dirname F:\snapshot\shigureader\src\server
+
+
+$ /f/ShiguReader/executables/11/ShiguReader.exe
+--------------------
+__dirname F:\snapshot\shigureader\src\server

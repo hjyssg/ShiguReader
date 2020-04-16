@@ -6,10 +6,9 @@
   "bin": "src/server/index.js",
   "pkg": {
     "assets": [
-      "dist/*"
-    ],
-    "targets": [
-      "x86"
+      "dist/**/*",
+      "fontawesome-free-5.7.2-web/**/*",
+      "src/7zip/**/*"
     ]
   },
   "scripts": {
@@ -19,7 +18,8 @@
     "server": "nodemon src/server/index.js",
     "dev": "concurrently \"npm run server\" \"npm run client\"",
     "flow": "flow",
-    "test": "mocha .\\src\\test"
+    "test": "mocha .\\src\\test",
+    "pkg": "npm run build && pkg package.json -t host --out-dir executables"
   },
   "author": "aji47",
   "license": "",
