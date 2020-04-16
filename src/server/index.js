@@ -14,7 +14,6 @@ const fileiterator = require('./file-iterator');
 const nameParser = require('../name-parser');
 const userConfig = require('../user-config');
 const util = require("../util");
-const sevenZip = require(path.join(__dirname, "..", "..", "resource", "7zip") )['7z'];
 
 const isExist = async (path) => {
     try{
@@ -25,15 +24,8 @@ const isExist = async (path) => {
     }
 };
 
-const isDevServer = process.env.WEBPACK_DEV_SERVER;
 
-let root;
-if(isDevServer){
-    root = path.join(__dirname, "..", "..", "..");
-}else{
-    root = path.join(__dirname, "..", "..");
-}
-
+let root = path.join(__dirname, "..", "..");
 const cache_folder_name = userConfig.cache_folder_name;
 let logPath = path.join(__dirname, "..","..", userConfig.workspace_name, "log");
 logPath = path.join(logPath, dateFormat(new Date(), "isoDate"))+ ".log";
@@ -47,6 +39,9 @@ console.log("root", root);
 console.log("log path:", logPath);
 console.log("file_db_path", file_db_path);
 console.log("----------------------");
+
+const sevenZip = require(path.join(process.cwd(), "resource/7zip"))['7z'];
+
 
 const logger = winston.createLogger({
     transports: [
@@ -780,14 +775,12 @@ app.post('/api/extract', async (req, res) => {
 
 
 
-if(!isDevServer){
-    var history = require('connect-history-api-fallback');
-    app.use(history({
-        verbose: true,
-    }));
+const history = require('connect-history-api-fallback');
+app.use(history({
+    verbose: true,
+}));
 
-    app.get('/index.html', (req, res) => {
-        const as = path.resolve(__dirname, "..", "..", 'dist', 'index.html');
-        res.sendFile(as);
-    })
-}
+app.get('/index.html', (req, res) => {
+    const as = path.resolve(__dirname, "..", "..", 'dist', 'index.html');
+    res.sendFile(as);
+})
