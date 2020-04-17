@@ -5,9 +5,11 @@ import './style/ErrorPage.scss';
 export default class ErrorPage extends Component {
      render(){
         const {status, statusText} = this.props.res;
+        let userText = this.props.userText;
         let text = statusText;
         if(status === 504){
-            text += ". Is the server running right now?"
+            text += ". Is the server running right now?";
+            userText = null;
         }
 
         return (
@@ -19,10 +21,12 @@ export default class ErrorPage extends Component {
                 <h2>{text}</h2>
                 {/* <a href="#">Go To Homepage</a> */}
             </div>
+            <h4>{userText}</h4>
         </div>);
      }
 }
 
 ErrorPage.propTypes = {
-    res: PropTypes.object
+    res: PropTypes.object,
+    userText: PropTypes.string
 };

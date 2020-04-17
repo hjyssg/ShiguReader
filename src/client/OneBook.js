@@ -461,7 +461,14 @@ export default class OneBook extends Component {
 
   render() {
     if (this.isFailedLoading()) { 
-      return <ErrorPage res={this.res.res}/>;
+      let userText;
+      if(this.res.res.status === 404){
+        userText = `Does not find ${this.getPathFromLocalStorage()}.`;
+      } else if (this.res.res.status === 500){
+        userText = `${this.getPathFromLocalStorage()} is a broken file`;
+      }
+
+      return <ErrorPage res={this.res.res} userText={userText}/>;
     }
     
     const { files, index } = this.state;

@@ -788,11 +788,11 @@ app.post('/api/extract', async (req, res) => {
                     sendBack(temp.files, temp.dirs, temp.musicFiles, fileName, stat);
                 });
             } else {
-                res.sendStatus(404);
+                res.sendStatus(500);
                 console.error('[/api/extract] exit: ', stderr);
             }
         } catch (e){
-            res.sendStatus(404);
+            res.sendStatus(500);
             console.error('[/api/extract] exit: ', e);
         }
     })();
