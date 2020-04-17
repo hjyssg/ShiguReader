@@ -75,7 +75,8 @@ export default class AdminPage extends Component {
                 </div>
 
                 <div className="admin-section">
-                    <div className="admin-section-title"> Clean Cache</div>
+                    <div className="admin-section-title" title="only keep thumbnail and delete other files"> Clean Cache</div>
+                    <div className="admin-section-text" > only keep thumbnails and delete other files</div>
                     <div className="admin-section-content">
                         <div className="submit" onClick={this.cleanCache.bind(this)}>Submit</div>
                     </div>

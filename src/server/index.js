@@ -44,7 +44,6 @@ console.log("sevenZipPath", sevenZipPath);
 console.log("----------------------");
 
 const isWin = process.platform === "win32";
-
 let sevenZip;
 if(isWin){
     sevenZip = require(sevenZipPath)['7z'];
