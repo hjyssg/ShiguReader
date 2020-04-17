@@ -247,7 +247,7 @@ function setUpFileWatch(){
 
     cacheWatcher
         .on('unlinkDir', path => {
-            const p =  path.dirname(p);
+            const p =  path.dirname(path);
             db.cacheTable[p] = undefined;
         });
 
