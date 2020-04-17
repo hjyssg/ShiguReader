@@ -129,12 +129,12 @@ function generateContentUrl(pathes, outputPath) {
 //  outputPath is the folder name
 function getCache(outputPath) {
     //in-memory is fast
-    if(db.cacheTable[outputPath] && db.cacheTable[outputPath].length > 0){
-        return generateContentUrl(db.cacheTable[outputPath], outputPath);
+    const single_cache_folder = path.basename(outputPath);
+    if(db.cacheTable[single_cache_folder] && db.cacheTable[single_cache_folder].length > 0){
+        return generateContentUrl(db.cacheTable[single_cache_folder], outputPath);
     }
     return null;
 }
-
 
 async function init() {
     if(isWin){
@@ -248,17 +248,23 @@ function setUpFileWatch(){
 
     cacheWatcher
         .on('unlinkDir', path => {
-            db.cacheTable[path] = undefined;
+            const p =  path.dirname(p);
+            db.cacheTable[p] = undefined;
         });
+
+    function getCacheFp(p){
+        const result =  path.dirname(p);
+        return path.basename(result);
+    }
 
     cacheWatcher
         .on('add', p => {
-            const fp =  path.dirname(p);
+            const fp =  getCacheFp(p);
             db.cacheTable[fp] = db.cacheTable[fp] || [];
             db.cacheTable[fp].push(path.basename(p));
         })
         .on('unlink', p => {
-            const fp =  path.dirname(p);
+            const fp =  getCacheFp(p);
             db.cacheTable[fp] = db.cacheTable[fp] || [];
             const index = db.cacheTable[fp].indexOf(path.basename(p));
             db.cacheTable[fp].splice(index, 1);
