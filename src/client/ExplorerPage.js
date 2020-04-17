@@ -39,6 +39,7 @@ const { MODE_TAG,
         MODE_SEARCH,
         MODE_EXPLORER} = Constant;
 
+const GOOD_STANDARD = 2;
 
 export default class ExplorerPage extends Component {
     constructor(prop) {
@@ -198,7 +199,6 @@ export default class ExplorerPage extends Component {
         let files = this.files;
         const goodSet = this.state.goodAuthors;
         const otherSet = this.state.otherAuthors;
-        const GOOD_STANDARD = 2;
         if(this.state.filterByGoodAuthorName && goodSet && otherSet){
              files = files.filter(e => {
                  const temp = nameParser.parse(e);
@@ -665,6 +665,7 @@ export default class ExplorerPage extends Component {
         let checkbox;
         if(this.state.goodAuthors){
             checkbox = (<Checkbox  onChange={this.toggleGoodAuthor.bind(this)} checked={this.state.filterByGoodAuthorName}>
+                            title={`need to found more than ${GOOD_STANDARD} times in good folder`}
                              By good_folder_root 
                         </Checkbox> );       
         }   

@@ -24,7 +24,6 @@ const isExist = async (path) => {
     }
 };
 
-
 let root = path.join(__dirname, "..", "..");
 const cache_folder_name = userConfig.cache_folder_name;
 const cachePath = path.join(__dirname, "..", "..", cache_folder_name);
@@ -32,6 +31,9 @@ let logPath = path.join(__dirname, "..","..", userConfig.workspace_name, "log");
 logPath = path.join(logPath, dateFormat(new Date(), "isoDate"))+ ".log";
 let file_db_path =  path.join(__dirname, "..", "..",  userConfig.workspace_name, "shigureader_local_file_info");
 const sevenZipPath = path.join(process.cwd(), "resource/7zip");
+
+console.log("process.argv", process.argv);
+const isProduction = process.argv.includes("--production");
 
 console.log("--------------------");
 console.log("process.cwd()", process.cwd());
@@ -188,6 +190,7 @@ async function init() {
         console.log('Listening on port 8080!');
         console.log("init done");
         console.log("You can open ShiguReader from Browser now!");
+        console.log(`http://localhost:${isProduction? 8080: 3000}`);
         console.log("----------------------------------------------------------------");
     });
 }
@@ -798,14 +801,15 @@ app.post('/api/extract', async (req, res) => {
     })();
 });
 
+if(isProduction){
+    const history = require('connect-history-api-fallback');
+    app.use(history({
+        verbose: true,
+    }));
 
+    app.get('/index.html', (req, res) => {
+        const as = path.resolve(__dirname, "..", "..", 'dist', 'index.html');
+        res.sendFile(as);
+    })
+}
 
-const history = require('connect-history-api-fallback');
-app.use(history({
-    verbose: true,
-}));
-
-app.get('/index.html', (req, res) => {
-    const as = path.resolve(__dirname, "..", "..", 'dist', 'index.html');
-    res.sendFile(as);
-})
