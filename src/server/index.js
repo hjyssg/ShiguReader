@@ -246,9 +246,9 @@ function setUpFileWatch(){
     });
 
     cacheWatcher
-        .on('unlinkDir', path => {
-            const p =  path.dirname(path);
-            db.cacheTable[p] = undefined;
+        .on('unlinkDir', p => {
+            const fp =  path.dirname(p);
+            db.cacheTable[fp] = undefined;
         });
 
     function getCacheFp(p){
@@ -651,12 +651,12 @@ async function getFirstImageFromZip(fileName, res, mode, counter) {
             }
 
             // Overwrite mode
+            //-aos	Skip extracting of existing files.
             const opt = ['x', fileName, `-o${outputPath}`, one, "-aos"];
             const {stdout2, stderr2} = await execa(sevenZip, opt);
             if (!stderr2) {
                 // send path to client
-                const subtokens = one.split(path.sep);
-                let temp = path.join(cache_folder_name, path.basename(outputPath), subtokens[subtokens.length-1]);
+                let temp = path.join(outputPath, one);
                 temp = cleanFileName(temp);
                 sendImage(temp);
 
