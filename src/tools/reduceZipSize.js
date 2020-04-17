@@ -6,7 +6,22 @@ const compress_cache = "compress_cache";
 const pfs = require('promise-fs');
 
 const util = require("../util");
-const sevenZip = require('../7zip')['7z'];
+const isWin = process.platform === "win32";
+let sevenZip;
+if(isWin){
+    sevenZip = require(sevenZipPath)['7z'];
+}else{
+    //assume linux/mac people already install it by cmd
+    //https://superuser.com/questions/548349/how-can-i-install-7zip-so-i-can-run-it-from-terminal-on-os-x
+    sevenZip = "7z";
+}
+
+
+// need dep
+// "imagemin": "^7.0.1",
+// "imagemin-jpeg-recompress": "^6.0.0",
+// "imagemin-jpegtran": "^6.0.0",
+// "imagemin-mozjpeg": "^8.0.0"
 
 const isExist = async (path) => {
     try{
