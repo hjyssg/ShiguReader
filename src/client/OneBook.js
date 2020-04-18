@@ -350,7 +350,7 @@ export default class OneBook extends Component {
                       key={e+ii} style={{marginLeft:"15px"}} title={titles[ii]}> {e} 
                     </div>);
       const mobilePageNum = _.isPad() && (
-        <div  style={{marginLeft:"15px"}} > {`${index}/${files.length}`}  </div>
+        <div  style={{marginLeft:"15px"}} > {`${index+1}/${files.length}`}  </div>
       )
       return <div className={"one-book-file-stat"}>{texts} {mobilePageNum} </div>
     }
