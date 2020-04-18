@@ -382,11 +382,12 @@ export default class OneBook extends Component {
     } else {
       let images;
       if(userConfig.onebook_only_image_per_page){
-        images = (<div className="mobile-single-image-container"> 
+        images = (<div className="mobile-single-image-container" 
+                        ref={(e) =>  this.imgContainerRef = e}
+                        onClick={this.onClickMobileOneImageContainer.bind(this)}> 
                 <img className={"mobile-single-image"} 
                   style={{"maxHeight": this.getMaxHeight()}}
                   ref={(img) =>  this.imgRef = img}
-                  onClick={this.onClickMobileOneImage.bind(this)}
                   src={getUrl(files[index])}  />
                </div>);
       }else{
@@ -408,14 +409,14 @@ export default class OneBook extends Component {
     }
   }
 
-  onClickMobileOneImage(event){
+  onClickMobileOneImageContainer(event){
     var x = event.pageX;
     var y = event.pageY;
 
-    const imageDom = ReactDOM.findDOMNode(this.imgRef);
-    const imgWidth = imageDom.clientWidth;
+    const dom = ReactDOM.findDOMNode(this.imgContainerRef);
+    const width = dom.clientWidth;
 
-    if(x > imgWidth/2){
+    if(x > width/2){
       if(userConfig.mobile_click_right_side_to_go_next){
         this.next();
       }else{
