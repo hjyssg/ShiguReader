@@ -121,9 +121,11 @@
       margin-bottom: 30px;
       margin-left: 5px;
       margin-right: 5px;
+      overflow: scroll;
 
       .mobile-single-image{
         object-fit: cover;
+        max-width: 100%;
       }
     }
   }

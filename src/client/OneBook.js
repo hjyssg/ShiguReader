@@ -107,7 +107,7 @@ export default class OneBook extends Component {
   }
 
   adjustImageSize(){
-    if(_.isPad() && !userConfig.onebook_only_image_per_page){
+    if(_.isPad()){
       return;
     }
 
@@ -372,7 +372,7 @@ export default class OneBook extends Component {
               { clipWithPrev === "right" &&  prevImg }
               <img  className={cn} src={getUrl(files[index])} alt="book-image"
                            ref={img => this.imgRef = img}
-                           onLoad={this.adjustImageSize.bind(this)}
+                          //  onLoad={this.adjustImageSize.bind(this)}
                            index={index}
                            />
               { clipWithPrev === "left" &&  prevImg }
@@ -387,7 +387,6 @@ export default class OneBook extends Component {
                   style={{"maxHeight": this.getMaxHeight()}}
                   ref={(img) =>  this.imgRef = img}
                   onClick={this.onClickMobileOneImage.bind(this)}
-                  onLoad={this.adjustImageSize.bind(this)}
                   src={getUrl(files[index])}  />
                </div>);
       }else{
