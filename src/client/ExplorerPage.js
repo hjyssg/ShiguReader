@@ -423,7 +423,7 @@ export default class ExplorerPage extends Component {
                                     className={"file-cell-thumbnail"} 
                                     title={item} fileName={item}   
                                     url={this.thumbnails[item]}
-                                    onReceiveUr={url => {this.thumbnails[item] = url;}} 
+                                    onReceiveUrl={url => {this.thumbnails[item] = url;}} 
                                     />
                         </Link>
                         <FileChangeToolbar header={fileSize} file={item} />

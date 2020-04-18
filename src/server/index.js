@@ -631,18 +631,6 @@ async function getFirstImageFromZip(fileName, res, mode, counter) {
     const sendable = !isPregenerateMode;
 
     const contentInfo = zip_content_db.getData("/");
-    if(!isPregenerateMode && contentInfo[fileName]){
-        if(contentInfo[fileName].thumbnail) {
-            const img = contentInfo[fileName].thumbnail;
-            if(img){
-                sendImage(img);
-                return;
-            }
-        }else if(!contentInfo[fileName].thumbnail){
-            return;
-        }
-    }
- 
     const outputPath = getOutputPath(fileName);
  
     function sendImage(img){

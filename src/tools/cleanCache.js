@@ -52,6 +52,7 @@ function cleanCache(cachePath){
 
 function _clean(cachePath){
     const folders1 = fs.readdirSync(cachePath);
+    //check each file/dir in level 1
     folders1.forEach(p1 => {
         try {
             p1 = path.resolve(cachePath, p1);
