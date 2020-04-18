@@ -8,7 +8,8 @@ export default class LoadingImage extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      failed: 0
+      failed: 0,
+      url: props.url
     };
   }
 
@@ -16,7 +17,7 @@ export default class LoadingImage extends Component {
     if(this.props.isThumbnail){
       setTimeout(()=>{
         this.onChange(true)
-      }, 200);
+      }, 0);
     }
   }
 
@@ -24,19 +25,9 @@ export default class LoadingImage extends Component {
     this.isUnmounted = true;
   }
 
-  onChange(isVisible){
-    const {onChange, url} = this.props;
-
-    if(isVisible){
-      onChange && onChange();
-    }
-
-    if(isVisible && !this.state.url & !this.loading){
-      if(url){
-        this.setState({ url: url }); 
-      } else {
+  onChange(){
+    if(!this.state.url & !this.loading){
         this.requestThumbnail()
-      }
     }
   }
 
@@ -52,30 +43,6 @@ export default class LoadingImage extends Component {
     }
 
     this.loading = true;
-
-    // fetch(api, {
-    //   method: 'POST',
-    //   headers: {
-    //       Accept: 'application/json',
-    //       'Content-Type': 'application/json',
-    //   },
-    //   body: JSON.stringify(body)
-    // })
-    // .then((res) => {
-    //   if(res.status === 200){
-    //     return res.blob();
-    //   }else{
-    //     this.setState({ failed: true }); 
-    //     return null;
-    //   }
-    // })
-    // .then((res) => { 
-    //   if(!this.isUnmounted && res){
-    //     this.url = URL.createObjectURL(res);
-    //     this.setState({ loaded: true }); 
-    //   }
-    // });
-
     Sender.post(api, body, res => {
       if(this.isUnmounted){
         return;
