@@ -682,7 +682,7 @@ async function getFirstImageFromZip(fileName, res, mode, counter) {
         const one = chooseThumbnailImage(files);
         
         if (!one) {
-            console.error("[getFirstImageFromZip]", fileName,  "no files from output");
+            console.log("[getFirstImageFromZip]", fileName,  "no image file from output");
             handleFail();
             return;
         }

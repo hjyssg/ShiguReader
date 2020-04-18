@@ -134,4 +134,14 @@ a {
   &.rc-pagination-item-active{
     font-weight: 600;
   }
+
+  .rc-pagination-options{
+
+  }
 }
+
+@media screen and (max-width: 700px) {
+  .rc-pagination-options{
+    display: none;
+  }
+ }
