@@ -99,7 +99,7 @@
   .mobile-one-book-container {
     width: 100%;
 
-    .mobile-one-book-one-image-container{
+    .mobile-one-book-image_array-container{
       display: flex;
       align-items: center;
       justify-content: center;
@@ -110,6 +110,19 @@
       .mobile-one-book-image {
         max-width: 98%;
         object-fit: cover;
+      }
+    }
+
+    .mobile-single-image-container{
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 30px;
+      margin-left: 5px;
+      margin-right: 5px;
+
+      .mobile-single-image{
+        
       }
     }
   }

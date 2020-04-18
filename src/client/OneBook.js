@@ -26,6 +26,7 @@ const getUrl = util.getUrl;
 const Constant = require("../constant");
 
 const MIN_HEIGHT = 400;
+const userConfig = require('../user-config');
 
 export default class OneBook extends Component {
   constructor(props) {
@@ -93,15 +94,22 @@ export default class OneBook extends Component {
     return maxHeight - 10;
   }
 
+  getMaxWidth(){
+    const result = isNaN(window.innerWidth) ? window.clientWidth : window.innerWidth;
+    return result - 10;
+  }
+
   adjustImageSize(){
-    if(_.isPad()){
+    if(_.isPad() && !userConfig.onebook_only_image_per_page){
       return;
     }
 
     this.loadedImage = this.state.index;
     const imageDom = ReactDOM.findDOMNode(this.imgRef);
     this.imgHeight = imageDom.clientHeight;
+    this.imgWidth = imageDom.clientWidth
 
+    //display img's real px number
     const dimDom = document.getElementsByClassName("dimension-tag")[0];
     dimDom.textContent = `${imageDom.naturalWidth}×${imageDom.naturalHeight}`;
 
@@ -110,14 +118,41 @@ export default class OneBook extends Component {
 
     //set max height
     const maxHeight = this.getMaxHeight();
+    const maxWidth = this.getMaxWidth();
 
-    if(this.imgHeight > maxHeight){
+    const widthRatio = this.imgWidth / maxWidth;
+    const heighthRatio = this.imgHeight / maxHeight;
+
+
+    if(widthRatio > 1 && widthRatio > heighthRatio){
+      this.applyWidthToImage(maxWidth);
+    }else if(heighthRatio > 1) {
       this.applyHeightToImage(maxHeight);
     }
 
     if(this.imgHeight < MIN_HEIGHT){
       this.applyHeightToImage(MIN_HEIGHT);
     }
+  }
+
+
+  applyWidthToImage(width){
+    this.imgWidth = width;
+    const MIN_WIDTH = 400;
+    width = Math.max(width, MIN_WIDTH);
+
+    let imageDom = ReactDOM.findDOMNode(this.imgRef);
+    imageDom && imageDom.setAttribute("width", width);
+  }
+
+  applyHeightToImage(height){
+    this.imgHeight = height;
+    height = Math.max(height, MIN_HEIGHT);
+
+    let imageDom = ReactDOM.findDOMNode(this.imgRef);
+    imageDom && imageDom.setAttribute("height", height);
+
+    this.makeTwoImageSameHeight();
   }
 
   onwheel(e){
@@ -131,16 +166,6 @@ export default class OneBook extends Component {
       let imageDom = ReactDOM.findDOMNode(this.prevImgRef);
       imageDom && imageDom.setAttribute("height", this.imgHeight);
     }
-  }
-
-  applyHeightToImage(height){
-    this.imgHeight = height;
-    height = Math.max(height, MIN_HEIGHT);
-
-    let imageDom = ReactDOM.findDOMNode(this.imgRef);
-    imageDom && imageDom.setAttribute("height", height);
-
-    this.makeTwoImageSameHeight();
   }
 
   rotateImg(newAngle){
@@ -342,19 +367,54 @@ export default class OneBook extends Component {
               {index > 0 && <link rel="preload" href={getUrl(files[index-1])} as="image" />}
               </React.Fragment>);    
     } else {
-      const images = files.map(file => {
-        return (<div key={file} className="mobile-one-book-one-image-container"> 
-                    <LoadingImage className={"mobile-one-book-image"} 
-                            style={{"maxHeight": this.getMaxHeight()}}
-                             bottomOffet={-4000}
-                             topOffet={-3000}
-                             url={getUrl(file)} 
-                             key={file}/> </div>);
-      });
+      let images;
+      if(userConfig.onebook_only_image_per_page){
+        images = (<div className="mobile-single-image-container"> 
+                <img className={"mobile-single-image"} 
+                  style={{"maxHeight": this.getMaxHeight()}}
+                  ref={(img) =>  this.imgRef = img}
+                  onClick={this.onClickMobileOneImage.bind(this)}
+                  onLoad={this.adjustImageSize.bind(this)}
+                  src={getUrl(files[index])}  />
+               </div>);
+      }else{
+        images =files.map(file => {
+          return (<div key={file} className="mobile-one-book-image_array-container"> 
+                      <LoadingImage className={"mobile-one-book-image"} 
+                              style={{"maxHeight": this.getMaxHeight()}}
+                               bottomOffet={-4000}
+                               topOffet={-3000}
+                               url={getUrl(file)} 
+                               key={file}/> 
+                  </div>);
+        });
+      }
 
       return (<div className="mobile-one-book-container">
                 {images}
             </div>);
+    }
+  }
+
+  onClickMobileOneImage(event){
+    var x = event.pageX;
+    var y = event.pageY;
+
+    const imageDom = ReactDOM.findDOMNode(this.imgRef);
+    const imgWidth = imageDom.clientWidth;
+
+    if(x > imgWidth/2){
+      if(userConfig.mobile_click_right_side_to_go_next){
+        this.next();
+      }else{
+        this.prev();
+      }
+    }else{
+      if(userConfig.mobile_click_right_side_to_go_next){
+        this.prev();
+      }else{
+        this.next();
+      }
     }
   }
 
@@ -507,8 +567,6 @@ export default class OneBook extends Component {
         {this.renderTags()}
         {this.renderToolbar()}
         {this.renderNextPrevButton()}
-
-
 
         {_.isPad() && content}
       </div>
