@@ -679,8 +679,8 @@ async function getFirstImageFromZip(fileName, res, mode, counter) {
 
         //Overwrite mode: -aos	Skip extracting of existing files.
         const opt = ['x', fileName, `-o${outputPath}`, one, "-aos"];
-        const {stdout2, stderr2} = await execa(sevenZip, opt);
-        if (!stderr2) {
+        const {stderrForThumbnail} = await execa(sevenZip, opt);
+        if (!stderrForThumbnail) {
             // send path to client
             let temp = path.join(outputPath, one);
             temp = turnPathSepToWebSep(temp);

@@ -10,6 +10,7 @@ export default class LoadingImage extends Component {
   constructor(props) {
     super(props);
     this.state = {
+      failed: 0
     };
   }
 
@@ -91,13 +92,18 @@ export default class LoadingImage extends Component {
   }
 
   Error(){
-    if(this.state.failed < 3){
+    if(!this.isTotalFailed()){
       this.setState({
         url: null,
+        failed: this.state.failed+1
       }, ()=> {
         this.requestThumbnail()
       });
     }
+  }
+
+  isTotalFailed(){
+    return this.state.failed > 2;
   }
 
   render() {
@@ -106,16 +112,16 @@ export default class LoadingImage extends Component {
     const cn = "loading-image  " + className;
     let active = true;
 
-    if (this.state.failed) {
+    if (this.isTotalFailed()) {
       content = (<img key={fileName} ref={e=>{this.dom = e && e.node}} className={cn} src={notAvailable} title={title || fileName} {...others}/>);
-    } else if (!this.state.url) {
-      content = (<img key={fileName} className={cn} src={loading} title={title || fileName} {...others}/>);
     } else if (this.state.url) {
       active = false;
       content = (<img key={fileName} ref={e=>{this.dom = e && e.node}} 
                       className={className} src={this.state.url} title={title || fileName} 
                       onError={this.Error.bind(this)} 
                       {...others}/>);
+    } else {
+      content = (<img key={fileName} className={cn} src={loading} title={title || fileName} {...others}/>);
     }
 
     return (
