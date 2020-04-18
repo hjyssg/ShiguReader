@@ -130,7 +130,7 @@ export default class OneBook extends Component {
     const widthRatio = this.imgWidth / maxWidth;
     const heighthRatio = this.imgHeight / maxHeight;
 
-
+    //only need to adjust one dimension
     if(widthRatio > 1 && widthRatio > heighthRatio){
       this.applyWidthToImage(maxWidth);
     }else if(heighthRatio > 1) {
@@ -372,7 +372,7 @@ export default class OneBook extends Component {
               { clipWithPrev === "right" &&  prevImg }
               <img  className={cn} src={getUrl(files[index])} alt="book-image"
                            ref={img => this.imgRef = img}
-                          //  onLoad={this.adjustImageSize.bind(this)}
+                           onLoad={this.adjustImageSize.bind(this)}
                            index={index}
                            />
               { clipWithPrev === "left" &&  prevImg }
