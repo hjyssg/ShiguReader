@@ -418,7 +418,13 @@ export default class ExplorerPage extends Component {
                     <div className="file-cell">
                         <Link  target="_blank" to={toUrl}  key={item} className={"file-cell-inner"}>
                             <center className={"file-cell-title"} title={text}>{text}</center>
-                            <LoadingImage isThumbnail className={"file-cell-thumbnail"} title={item} fileName={item}   url={this.thumbnails[item]} />
+                            <LoadingImage 
+                                    isThumbnail 
+                                    className={"file-cell-thumbnail"} 
+                                    title={item} fileName={item}   
+                                    url={this.thumbnails[item]}
+                                    onReceiveUr={url => {this.thumbnails[item] = url;}} 
+                                    />
                         </Link>
                         <FileChangeToolbar header={fileSize} file={item} />
                     </div>

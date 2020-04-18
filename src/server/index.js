@@ -93,10 +93,10 @@ const db = {
 };
 
 app.use(express.static('dist', {
-    maxAge: (1000*3600*5).toString()
+    maxAge: (1000*3600).toString()
 }));
 app.use(express.static(rootPath, {
-    maxAge: (1000*3600*24*30).toString() // uses milliseconds per docs
+    maxAge: (1000*3600*24).toString() // uses milliseconds per docs
 }));
 
 //  to consume json request body
@@ -631,7 +631,7 @@ async function getFirstImageFromZip(fileName, res, mode, counter) {
     const sendable = !isPregenerateMode;
 
     const contentInfo = zip_content_db.getData("/");
-    if(contentInfo[fileName]){
+    if(!isPregenerateMode && contentInfo[fileName]){
         if(contentInfo[fileName].thumbnail) {
             const img = contentInfo[fileName].thumbnail;
             if(img){
@@ -661,6 +661,7 @@ async function getFirstImageFromZip(fileName, res, mode, counter) {
             thumbnail: thumbnail,
             pageNum: pageNum
         };
+        zip_content_db.push("/", contentInfo);
     }
 
     try{
