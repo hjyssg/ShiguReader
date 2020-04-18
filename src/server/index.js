@@ -622,6 +622,16 @@ function fullPathToUrl(img){
     return turnPathSepToWebSep("..\\"+ path.relative(rootPath, fullpath));
 }
 
+function get7zipOption(fileName, outputPath, one){
+    //https://sevenzip.osdn.jp/chm/cmdline/commands/extract.htm
+    //e make folder as one level
+    if(one){
+        return ['e', fileName, `-o${outputPath}`, one, "-aos"];
+    }else{
+        return ['e', fileName, `-o${outputPath}`, "-aos"];
+    }
+}
+
 async function getFirstImageFromZip(fileName, res, mode, counter) {
     if(!util.isCompress(fileName)){
         return;
@@ -678,7 +688,7 @@ async function getFirstImageFromZip(fileName, res, mode, counter) {
         }
 
         //Overwrite mode: -aos	Skip extracting of existing files.
-        const opt = ['e', fileName, `-o${outputPath}`, one, "-aos"];
+        const opt = get7zipOption(fileName, outputPath, one);
         const {stderrForThumbnail} = await execa(sevenZip, opt);
         if (!stderrForThumbnail) {
             // send path to client
@@ -786,8 +796,8 @@ app.post('/api/extract', async (req, res) => {
 
     (async () => {
         try{
-            const all = ['e', fileName, `-o${outputPath}`, "-aos"];
-            const {stdout, stderr} = await execa(sevenZip, all);
+            const opt = get7zipOption(fileName, outputPath);
+            const {stdout, stderr} = await execa(sevenZip, opt);
             if (!stderr) {
                 fs.readdir(outputPath, (error, results) => {
                     const temp = generateContentUrl(results, outputPath);
