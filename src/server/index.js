@@ -93,10 +93,10 @@ const db = {
 };
 
 app.use(express.static('dist'),{
-    maxAge: (1000*3600*5).toString
+    maxAge: (1000*3600*5).toString()
 });
 app.use(express.static(rootPath, {
-    maxAge: (1000*3600*24*30).toString // uses milliseconds per docs
+    maxAge: (1000*3600*24*30).toString() // uses milliseconds per docs
 }));
 
 //  to consume json request body
