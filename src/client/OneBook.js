@@ -555,6 +555,10 @@ export default class OneBook extends Component {
     
     if(this.state.path){
       document.title = _.getFn(this.state.path);
+
+      if(_.isPad() && index > 0){
+        document.title = index.toString() + " " +  document.title;
+      }
     }
 
     const wraperCn = classNames("one-book-wrapper", {
