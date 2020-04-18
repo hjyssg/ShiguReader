@@ -92,9 +92,9 @@ const db = {
     hashTable: {},
 };
 
-app.use(express.static('dist'),{
+app.use(express.static('dist', {
     maxAge: (1000*3600*5).toString()
-});
+}));
 app.use(express.static(rootPath, {
     maxAge: (1000*3600*24*30).toString() // uses milliseconds per docs
 }));

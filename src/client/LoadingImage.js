@@ -71,6 +71,9 @@ export default class LoadingImage extends Component {
         // });
 
         Sender.post(api, body, res => {
+          if(this.isUnmounted){
+            return;
+          }
           if (res.failed) {
             this.setState({ failed: true }); 
           }else{
