@@ -110,7 +110,12 @@ export default class ChartPage extends Component {
         const byTime = {}; //time -> 300. 
         this.files.forEach(e => {
             const fileInfo = this.fileToInfo[e];
-            const t  = new Date(fileInfo.mtime);
+            const pA = nameParser.parse(util.getFn(e));
+            let aboutTimeA = pA && nameParser.getDateFromTags(pA.tags);
+            aboutTimeA = aboutTimeA && aboutTimeA.getTime();
+            aboutTimeA = aboutTimeA || fileInfo.mtime;
+
+            const t  = new Date(aboutTimeA);
             const tLabel = t.getFullYear();
             byTime[tLabel] = byTime[tLabel] || 0;
             byTime[tLabel]++;
