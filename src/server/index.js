@@ -661,6 +661,7 @@ async function getFirstImageFromZip(fileName, res, mode, counter) {
             thumbnail: thumbnail,
             pageNum: pageNum
         };
+        zip_content_db.push("/", contentInfo);
     }
 
     try{

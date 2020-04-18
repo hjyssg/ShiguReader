@@ -77,6 +77,7 @@ export default class LoadingImage extends Component {
           if (res.failed) {
             this.setState({ failed: true }); 
           }else{
+            this.props.onReceiveUrl && this.props.onReceiveUrl(res.url);
             this.setState({ url: res.url }); 
           }
         });
@@ -86,7 +87,7 @@ export default class LoadingImage extends Component {
 
   render() {
     let content;
-    const {className, fileName, url, bottomOffet, topOffet, title, isThumbnail, ...others} = this.props;
+    const {className, fileName, url, bottomOffet, topOffet, title, isThumbnail, onGetUrl, ...others} = this.props;
     const cn = "loading-image  " + className;
     let active = true;
     if (this.state.failed) {
