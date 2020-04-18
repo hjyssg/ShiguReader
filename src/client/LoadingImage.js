@@ -3,9 +3,8 @@ import PropTypes from 'prop-types';
 import loading from './images/loading.png';
 import notAvailable from './images/not-available.png';
 const VisibilitySensor = require('react-visibility-sensor').default;
-
+import Sender from './Sender';
 const Constant = require("../constant");
-
 
 export default class LoadingImage extends Component {
   constructor(props) {
@@ -50,25 +49,34 @@ export default class LoadingImage extends Component {
 
         this.loading = true;
 
-        fetch(api, {
-          method: 'POST',
-          headers: {
-              Accept: 'application/json',
-              'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(body)
-        })
-        .then((res) => {
-          if(res.status === 200){
-            return res.blob();
-          }else{
+        // fetch(api, {
+        //   method: 'POST',
+        //   headers: {
+        //       Accept: 'application/json',
+        //       'Content-Type': 'application/json',
+        //   },
+        //   body: JSON.stringify(body)
+        // })
+        // .then((res) => {
+        //   if(res.status === 200){
+        //     return res.blob();
+        //   }else{
+        //     this.setState({ failed: true }); 
+        //     return null;
+        //   }
+        // })
+        // .then((res) => { 
+        //   if(!this.isUnmounted && res){
+        //     this.url = URL.createObjectURL(res);
+        //     this.setState({ loaded: true }); 
+        //   }
+        // });
+
+        Sender.post(api, body, res => {
+          if (res.failed) {
             this.setState({ failed: true }); 
-            return null;
-          }
-        })
-        .then((res) => { 
-          if(!this.isUnmounted && res){
-            this.url = URL.createObjectURL(res);
+          }else{
+            this.url = res.url;
             this.setState({ loaded: true }); 
           }
         });

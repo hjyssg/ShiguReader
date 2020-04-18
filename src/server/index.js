@@ -24,7 +24,7 @@ const isExist = async (path) => {
     }
 };
 
-let root = path.join(__dirname, "..", "..");
+let rootPath = path.join(__dirname, "..", "..");
 const cache_folder_name = userConfig.cache_folder_name;
 const cachePath = path.join(__dirname, "..", "..", cache_folder_name);
 let logPath = path.join(__dirname, "..","..", userConfig.workspace_name, "log");
@@ -46,7 +46,7 @@ console.log("--------------------");
 console.log("process.cwd()", process.cwd());
 console.log("__filename", __filename);
 console.log("__dirname", __dirname);
-console.log("root", root);
+console.log("rootPath", rootPath);
 console.log("log path:", logPath);
 console.log("file_db_path", file_db_path);
 console.log("sevenZipPath", sevenZipPath);
@@ -93,7 +93,7 @@ const db = {
 };
 
 app.use(express.static('dist'));
-app.use(express.static(root, {
+app.use(express.static(rootPath, {
     maxAge: '12096000000' // uses milliseconds per docs
 }));
 
@@ -588,7 +588,7 @@ function read7zOutput(data) {
     return files;
 }
 
-function chooseOneImage(files){
+function chooseThumbnailImage(files){
     let tempFiles = files.filter(isImage);
     tempFiles = util.filterHiddenFile(tempFiles);
     util.sortFileNames(tempFiles);
@@ -600,7 +600,6 @@ function chooseOneZip(files){
     tempFiles = util.filterHiddenFile(tempFiles);
     return tempFiles[0];
 }
-
 
 async function getFirstImageFromZip(fileName, res, mode, counter) {
     if(!util.isCompress(fileName)){
@@ -628,8 +627,13 @@ async function getFirstImageFromZip(fileName, res, mode, counter) {
     function sendImage(img){
         let ext = path.extname(img);
         ext = ext.slice(1);
-        sendable && res.setHeader('Content-Type', 'image/' + ext );
-        sendable && res.sendFile(path.resolve(img));
+        // !send by image. no able to use cache
+        // sendable && res.setHeader('Content-Type', 'image/' + ext );
+        // sendable && res.sendFile(path.resolve(img));
+        const fullpath = path.resolve(img);
+        sendable && res.send({
+            url: "..\\"+ path.relative(rootPath, fullpath)
+        })
     }
 
     const stats = await pfs.stat(fileName);
@@ -666,7 +670,7 @@ async function getFirstImageFromZip(fileName, res, mode, counter) {
             }
 
             const files = read7zOutput(text);
-            const one = chooseOneImage(files);
+            const one = chooseThumbnailImage(files);
             
             if (!one) {
                 console.error("[getFirstImageFromZip]", fileName,  "no files from output");
@@ -701,7 +705,7 @@ async function getFirstImageFromZip(fileName, res, mode, counter) {
                 if (!stderr) {
                     fs.readdir(outputPath, (error, results) => {
                         const temp = generateContentUrl(results, outputPath);
-                        const img = chooseOneImage(temp.files);
+                        const img = chooseThumbnailImage(temp.files);
                         if (img) {
                             sendImage(img);
                         } else {
