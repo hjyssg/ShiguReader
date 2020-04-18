@@ -123,6 +123,10 @@
       margin-right: 5px;
       overflow: scroll;
 
+      @media screen and (min-height: 800px) {
+        min-height: 800px;;
+      }
+
       .mobile-single-image{
         object-fit: cover;
         max-width: 100%;
