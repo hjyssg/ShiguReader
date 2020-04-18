@@ -394,7 +394,19 @@ app.post('/api/lsDir', async (req, res) => {
         res.sendStatus(404);
         return;
     }
+
+    function getThumbnails(files){
+        const contentInfo = zip_content_db.getData("/");
+        const thumbnails = {};
+        files.forEach(fileName => {
+            if(contentInfo[fileName] && contentInfo[fileName].thumbnail) {
+                thumbnails[fileName] = fullPathToUrl(contentInfo[fileName].thumbnail);
+            }
+        }); 
+        return thumbnails;
+    }
     
+    let result;
     if(isRecursive){
         const files = [];
         const dirs = [];
@@ -409,7 +421,7 @@ app.post('/api/lsDir', async (req, res) => {
             }
         })
 
-        const result = {dirs, files, path: dir, fileInfos: infos}
+        result = {dirs, files, path: dir, fileInfos: infos, thumbnails: getThumbnails(files)};
         res.send(result);
     }else{
         fs.readdir(dir, (error, results) => {
@@ -435,7 +447,7 @@ app.post('/api/lsDir', async (req, res) => {
                 db.hashTable[stringHash(p)] = p;
             }
     
-            const result = {dirs, files, path: dir, fileInfos: infos}
+            result = {dirs, files, path: dir, fileInfos: infos, thumbnails: getThumbnails(files)};
             res.send(result);
         });
     }
@@ -601,6 +613,11 @@ function chooseOneZip(files){
     return tempFiles[0];
 }
 
+function fullPathToUrl(img){
+    const fullpath = path.resolve(img);
+    return "..\\"+ path.relative(rootPath, fullpath);
+}
+
 async function getFirstImageFromZip(fileName, res, mode, counter) {
     if(!util.isCompress(fileName)){
         return;
@@ -630,9 +647,8 @@ async function getFirstImageFromZip(fileName, res, mode, counter) {
         // !send by image. no able to use cache
         // sendable && res.setHeader('Content-Type', 'image/' + ext );
         // sendable && res.sendFile(path.resolve(img));
-        const fullpath = path.resolve(img);
         sendable && res.send({
-            url: "..\\"+ path.relative(rootPath, fullpath)
+            url: fullPathToUrl(img)
         })
     }
 

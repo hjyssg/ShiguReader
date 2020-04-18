@@ -10,7 +10,6 @@ export default class LoadingImage extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      loaded: false
     };
   }
 
@@ -35,8 +34,7 @@ export default class LoadingImage extends Component {
 
     if(isVisible && !this.state.loaded & !this.loading){
       if(url){
-        this.url = url;
-        this.setState({ loaded: true }); 
+        this.setState({ url: url }); 
       } else {
         const api = (mode === "author" || mode === "tag") ? Constant.TAG_THUMBNAIL_PATH_API :  '/api/firstImage';
         const body = {};
@@ -76,8 +74,7 @@ export default class LoadingImage extends Component {
           if (res.failed) {
             this.setState({ failed: true }); 
           }else{
-            this.url = res.url;
-            this.setState({ loaded: true }); 
+            this.setState({ url: res.url }); 
           }
         });
       }
@@ -91,11 +88,11 @@ export default class LoadingImage extends Component {
     let active = true;
     if (this.state.failed) {
       content = (<img key={fileName} ref={e=>{this.dom = e && e.node}} className={cn} src={notAvailable} title={title || fileName} {...others}/>);
-    } else if (this.state.loaded === false) {
+    } else if (!this.state.url) {
       content = (<img key={fileName} className={cn} src={loading} title={title || fileName} {...others}/>);
-    } else if (this.url) {
+    } else if (this.state.url) {
       active = false;
-      content = (<img key={fileName} className={className} src={this.url} title={title || fileName} {...others}/>);
+      content = (<img key={fileName} className={className} src={this.state.url} title={title || fileName} {...others}/>);
     }
 
     return (
