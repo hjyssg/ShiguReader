@@ -85,6 +85,10 @@ export default class OneBook extends Component {
   }
 
   getMaxHeight(){
+    if(_.isPad()){
+      return window.screen.height - 10;
+     }
+
     let maxHeight = 952;
     if (this.hasMusic()){
       maxHeight = 450;
@@ -95,6 +99,9 @@ export default class OneBook extends Component {
   }
 
   getMaxWidth(){
+    if(_.isPad()){
+     return window.screen.width;
+    }
     const result = isNaN(window.innerWidth) ? window.clientWidth : window.innerWidth;
     return result - 10;
   }
@@ -130,9 +137,9 @@ export default class OneBook extends Component {
       this.applyHeightToImage(maxHeight);
     }
 
-    if(this.imgHeight < MIN_HEIGHT){
-      this.applyHeightToImage(MIN_HEIGHT);
-    }
+    // if(this.imgHeight < MIN_HEIGHT){
+    //   this.applyHeightToImage(MIN_HEIGHT);
+    // }
   }
 
 
@@ -338,8 +345,14 @@ export default class OneBook extends Component {
         "Dimensions"
       ];
 
-      const texts = [mTime, size, title, avg, dim].map((e, ii) => <div className={titles[ii] ==="Dimensions"? "dimension-tag": ""} key={e+ii} style={{marginLeft:"15px"}} title={titles[ii]}> {e} </div>);
-      return <div className={"one-book-file-stat"}>{texts} </div>
+      const texts = [mTime, size, title, avg, dim].map((e, ii) => 
+                    <div className={titles[ii] ==="Dimensions"? "dimension-tag": ""} 
+                      key={e+ii} style={{marginLeft:"15px"}} title={titles[ii]}> {e} 
+                    </div>);
+      const mobilePageNum = _.isPad() && (
+        <div  style={{marginLeft:"15px"}} > {`${index}/${files.length}`}  </div>
+      )
+      return <div className={"one-book-file-stat"}>{texts} {mobilePageNum} </div>
     }
   }
 
@@ -555,9 +568,11 @@ export default class OneBook extends Component {
                       {this.renderMusicPlayer()}
     </div>);
 
+    const isContentBelow = _.isPad() && !userConfig.onebook_only_image_per_page;
+
     return (  
       <div className="one-book-container">
-        {!_.isPad() && content}
+        {!isContentBelow && content}
         <div className="one-book-title" >
             {this.renderPath()} 
             <span onClick={this.onTitleClick.bind(this)} className="one-book-title-filename">{_.getFn(this.state.path)} </span>
@@ -568,7 +583,7 @@ export default class OneBook extends Component {
         {this.renderToolbar()}
         {this.renderNextPrevButton()}
 
-        {_.isPad() && content}
+        {isContentBelow && content}
       </div>
     );
   }
