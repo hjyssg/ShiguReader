@@ -188,9 +188,12 @@
     }
 
     .empty-block{
-      border: 3px #34353b solid;
       width: 180px;
       margin-top: 10px;
+      font-size: 80px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
     }
   }
 }
