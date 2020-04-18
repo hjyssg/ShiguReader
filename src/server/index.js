@@ -683,7 +683,7 @@ async function getFirstImageFromZip(fileName, res, mode, counter) {
         
         if (!one) {
             console.error("[getFirstImageFromZip]", fileName,  "no files from output");
-            shandleFail();
+            handleFail();
             return;
         }
 
