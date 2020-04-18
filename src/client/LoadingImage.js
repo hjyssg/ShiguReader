@@ -1,8 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import loading from './images/loading.png';
 import notAvailable from './images/not-available.png';
-const VisibilitySensor = require('react-visibility-sensor').default;
 import Sender from './Sender';
 const Constant = require("../constant");
 
@@ -18,7 +16,7 @@ export default class LoadingImage extends Component {
     if(this.props.isThumbnail){
       setTimeout(()=>{
         this.onChange(true)
-      }, 2*1000);
+      }, 200);
     }
   }
 
@@ -110,29 +108,19 @@ export default class LoadingImage extends Component {
     let content;
     const {className, fileName, url, bottomOffet, topOffet, title, isThumbnail, onReceiveUrl, ...others} = this.props;
     const cn = "loading-image  " + className;
-    let active = true;
 
     if (this.isTotalFailed()) {
       content = (<img key={fileName} ref={e=>{this.dom = e && e.node}} className={cn} src={notAvailable} title={title || fileName} {...others}/>);
     } else if (this.state.url) {
-      active = false;
       content = (<img key={fileName} ref={e=>{this.dom = e && e.node}} 
                       className={className} src={this.state.url} title={title || fileName} 
                       onError={this.Error.bind(this)} 
                       {...others}/>);
     } else {
-      content = (<img key={fileName} className={cn} src={loading} title={title || fileName} {...others}/>);
+      content = (<img key={fileName} className={cn}  title={title || fileName} {...others}/>);
     }
 
-    return (
-      <VisibilitySensor 
-          active={active}
-          key={fileName||url}
-          offset={{bottom: bottomOffet || -200, top: topOffet || -200}} 
-          onChange={this.onChange.bind(this)}>
-        {content}
-      </VisibilitySensor>
-    );
+    return content;
   }
 }
 
