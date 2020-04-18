@@ -429,6 +429,8 @@ export default class OneBook extends Component {
         this.next();
       }
     }
+
+    event.preventDefault();
   }
 
   renderPath() {
