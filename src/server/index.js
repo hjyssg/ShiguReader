@@ -114,7 +114,7 @@ function getOutputPath(zipFn) {
     return path.join(cachePath, outputFolder);
 }
 
-function cleanFileName(fn) {
+function turnPathSepToWebSep(fn) {
     return fn.replace(new RegExp(`\\${  path.sep}`, 'g'), '/');
 }
 
@@ -126,7 +126,7 @@ function generateContentUrl(pathes, outputPath) {
     for (let i = 0; i < pathes.length; i++) {
         const p = pathes[i];
         let temp = path.join(cache_folder_name, base, p);
-        temp = cleanFileName(temp);
+        temp = turnPathSepToWebSep(temp);
         if (isImage(p)) {
             files.push(temp);
         }else if(isMusic(p)){
@@ -407,6 +407,8 @@ app.post('/api/lsDir', async (req, res) => {
         }); 
         return thumbnails;
     }
+
+
     
     let result;
     if(isRecursive){
@@ -617,7 +619,7 @@ function chooseOneZip(files){
 
 function fullPathToUrl(img){
     const fullpath = path.resolve(img);
-    return "..\\"+ path.relative(rootPath, fullpath);
+    return turnPathSepToWebSep("..\\"+ path.relative(rootPath, fullpath));
 }
 
 async function getFirstImageFromZip(fileName, res, mode, counter) {
@@ -654,88 +656,52 @@ async function getFirstImageFromZip(fileName, res, mode, counter) {
         })
     }
 
-    const stats = await pfs.stat(fileName);
-    const fileSizeInBytes = stats["size"]
-    //Convert the file size to megabytes (optional)
-    const fileSizeInMegabytes = fileSizeInBytes / 1000000.0;
-
     function updateZipDb(thumbnail, pageNum){
-        // const time1 = new Date().getTime();
         contentInfo[fileName] = {
             thumbnail: thumbnail,
             pageNum: pageNum
         };
-        // zip_content_db.push("/", contentInfo);
-        // const time2 = new Date().getTime();
-        // console.log("[jsondb push]", (time2-time1)/1000);
     }
 
     try{
-        //bigger than 30mb
-        if(fileSizeInMegabytes > userConfig.full_extract_for_thumbnail_size || isPregenerateMode){
-            // assume zip
-            // let {stdout, stderr} = await limit(() => execa(sevenZip, ['l', '-ba', fileName]));
-            //https://superuser.com/questions/1020232/list-zip-files-contents-using-7zip-command-line-with-non-verbose-machine-friend
-            let {stdout, stderr} = await limit(() => execa(sevenZip, ['l', '-r', '-ba' ,'-slt', fileName]));
-            const text = stdout;
-            
+        //https://superuser.com/questions/1020232/list-zip-files-contents-using-7zip-command-line-with-non-verbose-machine-friend
+        let {stdout, stderr} = await limit(() => execa(sevenZip, ['l', '-r', '-ba' ,'-slt', fileName]));
+        const text = stdout;
+        
+        if (!text) {
+            console.error("[getFirstImageFromZip]", "no text");
+            sendable && res.send("404 fail");
+            updateZipDb(null, 0);
+            return;
+        }
 
-            if (!text) {
-                console.error("[getFirstImageFromZip]", "no text");
-                sendable && res.send("404 fail");
-                updateZipDb(null, 0);
-                return;
-            }
+        const files = read7zOutput(text);
+        const one = chooseThumbnailImage(files);
+        
+        if (!one) {
+            console.error("[getFirstImageFromZip]", fileName,  "no files from output");
+            sendable && res.sendStatus(404);
+            updateZipDb(null, 0);
+            return;
+        }
 
-            const files = read7zOutput(text);
-            const one = chooseThumbnailImage(files);
-            
-            if (!one) {
-                console.error("[getFirstImageFromZip]", fileName,  "no files from output");
-                sendable && res.sendStatus(404);
-                updateZipDb(null, 0);
-                return;
-            }
+        //Overwrite mode: -aos	Skip extracting of existing files.
+        const opt = ['x', fileName, `-o${outputPath}`, one, "-aos"];
+        const {stdout2, stderr2} = await execa(sevenZip, opt);
+        if (!stderr2) {
+            // send path to client
+            let temp = path.join(outputPath, one);
+            temp = turnPathSepToWebSep(temp);
+            sendImage(temp);
+            updateZipDb(temp, files.length);
 
-            // Overwrite mode
-            //-aos	Skip extracting of existing files.
-            const opt = ['x', fileName, `-o${outputPath}`, one, "-aos"];
-            const {stdout2, stderr2} = await execa(sevenZip, opt);
-            if (!stderr2) {
-                // send path to client
-                let temp = path.join(outputPath, one);
-                temp = cleanFileName(temp);
-                sendImage(temp);
-                updateZipDb(temp, files.length);
-
-                if(isPregenerateMode){
-                    counter.counter++;
-                    console.log("[getFirstImageFromZip] pre-generate", counter.counter, "/", counter.total);
-                }
-            } else {
-                console.error("[getFirstImageFromZip extract exec failed]", code);
-                sendable && res.sendStatus(404);
+            if(isPregenerateMode){
+                counter.counter++;
+                console.log("[getFirstImageFromZip] pre-generate", counter.counter, "/", counter.total);
             }
         } else {
-            (async () => {
-                const all = ['e', fileName, `-o${outputPath}`, "-aos"];
-                const {stdout, stderr} = await execa(sevenZip, all);
-                if (!stderr) {
-                    fs.readdir(outputPath, (error, results) => {
-                        const temp = generateContentUrl(results, outputPath);
-                        const img = chooseThumbnailImage(temp.files);
-                        if (img) {
-                            sendImage(img);
-                        } else {
-                            sendable && res.sendStatus(404);
-                            console.error('[getFirstImageFromZip extract] no image output') 
-                        }
-                    });
-                } else {
-                    sendable && res.sendStatus(404);
-                    console.error('[getFirstImageFromZip extract] exit: ', stderr);
-                }
-            })();
+            console.error("[getFirstImageFromZip extract exec failed]", code);
+            sendable && res.sendStatus(404);
         }
     } catch(e) {
         console.error("[getFirstImageFromZip] exception", e);
