@@ -4,6 +4,7 @@ cache
 *.log
 yarn.lock
 shigureader_local_file_info.json
+shigureader_zip_file_content_info.json
 unzip_cache
 compress_cache
 executables
