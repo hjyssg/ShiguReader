@@ -664,6 +664,11 @@ async function getFirstImageFromZip(fileName, res, mode, counter) {
         zip_content_db.push("/", contentInfo);
     }
 
+    function handleFail(){
+        sendable && res.sendStatus(404);
+        updateZipDb(null, 0);
+    }
+
     try{
         //https://superuser.com/questions/1020232/list-zip-files-contents-using-7zip-command-line-with-non-verbose-machine-friend
         let {stdout, stderr} = await limit(() => execa(sevenZip, ['l', '-r', '-ba' ,'-slt', fileName]));
@@ -671,8 +676,7 @@ async function getFirstImageFromZip(fileName, res, mode, counter) {
         
         if (!text) {
             console.error("[getFirstImageFromZip]", "no text");
-            sendable && res.send("404 fail");
-            updateZipDb(null, 0);
+            handleFail();
             return;
         }
 
@@ -681,8 +685,7 @@ async function getFirstImageFromZip(fileName, res, mode, counter) {
         
         if (!one) {
             console.error("[getFirstImageFromZip]", fileName,  "no files from output");
-            sendable && res.sendStatus(404);
-            updateZipDb(null, 0);
+            shandleFail();
             return;
         }
 
@@ -702,11 +705,11 @@ async function getFirstImageFromZip(fileName, res, mode, counter) {
             }
         } else {
             console.error("[getFirstImageFromZip extract exec failed]", code);
-            sendable && res.sendStatus(404);
+            handleFail();
         }
     } catch(e) {
         console.error("[getFirstImageFromZip] exception", e);
-        sendable && res.sendStatus(404);
+        handleFail();
     }
 }
 
