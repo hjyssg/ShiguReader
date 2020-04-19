@@ -27,11 +27,22 @@ module.exports.isVideo = function(fn){
     return videoTypes.some((e) => fn.toLowerCase().endsWith(e));
 }
 
+const THUMBNAIL_FLAG = "thumbnail--";
+const isCompressedThumbnail = module.exports.isCompressedThumbnail = function(filename){
+    return filename && filename.includes(THUMBNAIL_FLAG);
+}
+
+module.exports.getCompressedThumbnailFileName = function(filename){
+    return THUMBNAIL_FLAG + filename;
+}
+
+
 module.exports.chooseThumbnailImage = function(files){
     let tempFiles = files.filter(isImage);
     tempFiles = filterHiddenFile(tempFiles);
     sortFileNames(tempFiles);
-    return tempFiles[0];
+    const compressed = tempFiles.filter(isCompressedThumbnail);
+    return compressed[0] || tempFiles[0];
 }
 
 //get parent
