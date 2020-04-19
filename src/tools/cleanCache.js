@@ -61,19 +61,13 @@ function _clean(cachePath){
                 del(p1, cachePath);
             }else if(stat.isDirectory()){
                 let subfiles = fs.readdirSync(p1);
-                const noimages = subfiles.filter(e => !util.isImage(e));
-                noimages.forEach(e => del(path.resolve(p1,e), cachePath));
-
-                subfiles = subfiles.filter(e => util.isImage(e));
-                util.sortFileNames(subfiles);
-                if (subfiles.length === 0){
-                    del(p1, cachePath);
-                }else  if(subfiles.length === 1){
-                    //nothing
-                }else if(subfiles.length >= 2){
-                    for(let ii = 1; ii < subfiles.length; ii++){
-                        del(path.resolve(p1, subfiles[ii]));
+                const thumbnail = util.chooseThumbnailImage(subfiles);
+                //only thumbnail
+                for(let ii = 1; ii < subfiles.length; ii++){
+                    if(subfiles[ii] === thumbnail){
+                        continue;
                     }
+                    del(path.resolve(p1, subfiles[ii]));
                 }
             }
         }catch(e){

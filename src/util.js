@@ -11,7 +11,7 @@ function isOnlyDigit(str){
     return str.match(/^[0-9]+$/) != null
 }
 
-module.exports.isImage = function (fn) {
+const isImage = module.exports.isImage = function (fn) {
     return imageTypes.some((e) => fn.toLowerCase().endsWith(e));
 };
 
@@ -25,6 +25,13 @@ module.exports.isMusic = function(fn){
 
 module.exports.isVideo = function(fn){
     return videoTypes.some((e) => fn.toLowerCase().endsWith(e));
+}
+
+module.exports.chooseThumbnailImage = function(files){
+    let tempFiles = files.filter(isImage);
+    tempFiles = filterHiddenFile(tempFiles);
+    sortFileNames(tempFiles);
+    return tempFiles[0];
 }
 
 //get parent
@@ -52,7 +59,7 @@ module.exports.getUrl = function (fn){
     return "../" + fn;
 }
 
-module.exports.sortFileNames = function (files) {
+const sortFileNames = module.exports.sortFileNames = function (files) {
     const fileIndexs =  files.map(e => getFnWithoutExtention(e));
 
     if(fileIndexs.every(isOnlyDigit)){
@@ -62,7 +69,7 @@ module.exports.sortFileNames = function (files) {
     }
 };
 
-module.exports.filterHiddenFile =function(files){
+const filterHiddenFile = module.exports.filterHiddenFile =function(files){
     return files.filter(f => {
         const temp = getFn(f, "/");
         return temp && temp[0] !== ".";

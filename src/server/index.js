@@ -645,13 +645,6 @@ function read7zOutput(data) {
     return files;
 }
 
-function chooseThumbnailImage(files){
-    let tempFiles = files.filter(isImage);
-    tempFiles = util.filterHiddenFile(tempFiles);
-    util.sortFileNames(tempFiles);
-    return tempFiles[0];
-}
-
 function chooseOneZip(files){
     let tempFiles = files.filter(isCompress);
     tempFiles = util.filterHiddenFile(tempFiles);
@@ -720,7 +713,7 @@ async function getFirstImageFromZip(fileName, res, mode, counter) {
         }
 
         const files = read7zOutput(text);
-        const one = chooseThumbnailImage(files);
+        const one = util.chooseThumbnailImage(files);
         
         if (!one) {
             console.log("[getFirstImageFromZip]", fileName,  "no image file from output");
