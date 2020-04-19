@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import notAvailable from './images/not-available.png';
 import Sender from './Sender';
 const Constant = require("../constant");
+const classNames = require('classnames');
 
 export default class LoadingImage extends Component {
   constructor(props) {
@@ -74,17 +75,17 @@ export default class LoadingImage extends Component {
   render() {
     let content;
     const {className, fileName, url, bottomOffet, topOffet, title, isThumbnail, onReceiveUrl, ...others} = this.props;
-    const cn = "loading-image  " + className;
+    const cn = classNames("loading-image", className,{
+      "empty-block fas fa-file-archive": !this.state.url
+    });
 
-    if (this.isTotalFailed()) {
-      content = (<img key={fileName} ref={e=>{this.dom = e && e.node}} className={cn} src={notAvailable} title={title || fileName} {...others}/>);
-    } else if (this.state.url) {
+   if (this.state.url) {
       content = (<img key={fileName} ref={e=>{this.dom = e && e.node}} 
                       className={className} src={this.state.url} title={title || fileName} 
                       onError={this.Error.bind(this)} 
                       {...others}/>);
     } else {
-      content = (<img key={fileName} className={cn}  title={title || fileName} {...others}/>);
+      content = (<div key={fileName} className={cn}  title={title || fileName} {...others}/>);
     }
 
     return content;

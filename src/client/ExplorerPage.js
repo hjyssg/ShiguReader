@@ -482,7 +482,9 @@ export default class ExplorerPage extends Component {
     renderToggleThumbNailButton(){
         const text2 = this.state.noThumbnail? "Show Thumbnail" : "File Name Only";
         return (
-            <span className="fas fa-book thumbnail-button" onClick={this.toggleThumbNail.bind(this)}> {text2} </span>
+           <span className="thumbnail-button">
+                <span className="fas fa-book " onClick={this.toggleThumbNail.bind(this)}/> <span>{text2} </span> 
+            </span>
         );
     }
 
@@ -491,9 +493,12 @@ export default class ExplorerPage extends Component {
         if(mode === MODE_EXPLORER && this.path){
             const text = this.state.isRecursive? "Show only one level" : "Show subfolder's files";
             const right = (
-            <div className="float-right">
+            <div className="top-button-gropus">
                 {this.renderToggleThumbNailButton()}
-                <span key="recursive-button" className="recursive-button fas fa-glasses" onClick={this.toggleRecursively.bind(this)}> {text} </span>
+                <span className="recursive-button"> 
+                    <span className="fas fa-glasses" onClick={this.toggleRecursively.bind(this)}/>
+                    <span> {text} </span>
+                </span>
                 <span key="file-count" className="file-count">{this.getFilteredFiles().length + " files"} </span>
             </div>);
 

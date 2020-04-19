@@ -50,6 +50,10 @@ a {
   .app-top-topnav {
     overflow: hidden;
 
+    @media screen and (max-width: 980px) {
+      margin-bottom: 20px;
+    }
+
     .links {
       float: left;
       display: inline-flex;
@@ -75,6 +79,7 @@ a {
         float: right;
         margin-bottom: 25px;
       }
+
       display: inline-flex;
       input[type=text] {
         padding: 6px;
@@ -134,4 +139,14 @@ a {
   &.rc-pagination-item-active{
     font-weight: 600;
   }
+
+  .rc-pagination-options{
+
+  }
 }
+
+@media screen and (max-width: 700px) {
+  .rc-pagination-options{
+    display: none;
+  }
+ }

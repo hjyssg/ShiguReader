@@ -7,6 +7,10 @@
     display: inline;
     font-size: 18px;
 
+    @media screen and (max-width: 800px) {
+      font-size: 15px;
+    }
+
     color: #007bff !important;
     text-decoration: none;
     background-color: transparent;
@@ -30,38 +34,45 @@
   }
 
 
-  .float-right{
-    float: right;
+  .top-button-gropus{
     color: gray;
+    margin-top: 10px;
+    position: relative;
 
     .thumbnail-button,
     .recursive-button {
-      margin-left: 60px;
       cursor: pointer;
       color: gray;
+
+      .fas {
+        color: gray;
+      }
       
       &:hover{
         color: #34353b;
+
+        .fas {
+          color: #34353b;
+        }
       }
+    }
+
+    .recursive-button {
+      margin-left: 60px;
     }
 
     @media screen and (max-width: 800px) {
       .thumbnail-button,
-     .recursive-button {
-       font-size: 10px;
-       margin-left: 20px;
-     }
-    }
-
-    @media screen and (max-width: 530px) {
-      .thumbnail-button,
-     .recursive-button {
-       display: none;
-     }
+      .recursive-button {
+        font-size: 10px;
+      }
     }
 
     .file-count {
-      margin-left: 20px;
+      @media screen and (min-width: 400px) {
+        position: absolute;
+        right: 5px;
+      }
     }
   }
 }
