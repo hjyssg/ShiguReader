@@ -24,7 +24,7 @@ export default class VideoPlayer extends Component {
   render() {
     const fn = window.localStorage && window.localStorage.getItem(this.getHash());
     //temp
-    const url = "http://localhost:8080/video/apple.mp4";
+    const url = "http://localhost:8080/api/video/"+this.getHash();
     return (<div className="container video-player">
               <video id="videoPlayer" controls muted="muted" autoplay> 
                  <source src={url} type="video/mp4" />

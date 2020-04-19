@@ -148,6 +148,10 @@ function getCache(outputPath) {
     return null;
 }
 
+function isSupportedFile(e){
+    return isCompress(e) || isVideo(e);
+}
+
 async function init() {
     if(isWin){
         const {stdout, stderr} = await execa("chcp");
@@ -166,7 +170,7 @@ async function init() {
 
     console.log("scanning local files");
 
-    const filter = (e) => {return isCompress(e) || isVideo(e);};
+    const filter = (e) => {return isSupportedFile(e);};
     let beg = (new Date).getTime()
     const results = fileiterator(userConfig.home_pathes, { 
         filter:filter, 
@@ -182,7 +186,7 @@ async function init() {
     for (let i = 0; i < results.pathes.length; i++) {
         const p = results.pathes[i];
         const ext = path.extname(p).toLowerCase();
-        if (!ext || isCompress(ext)) {
+        if (!ext ||  isSupportedFile(ext)) {
             arr.push(p);
 
             db.hashTable[stringHash(p)] = p;
@@ -389,42 +393,40 @@ app.get('/api/getGoodAuthorNames',async (req, res) => {
     });
 });
 
-app.get('/api/video/:filename', function(req, res) {
-    const path = 'assets/sample.mp4'
-    const stat = fs.statSync(path)
-    const fileSize = stat.size
-    const range = req.headers.range
+app.get('/api/video/:hash', async (req, res) => {
+    const filepath = db.hashTable[req.params.hash];
+    const stat = await pfs.stat(filepath);
+    const fileSize = stat.size;
+    const range = req.headers.range;
   
     if (range) {
-      const parts = range.replace(/bytes=/, "").split("-")
-      const start = parseInt(parts[0], 10)
-      const end = parts[1]
-        ? parseInt(parts[1], 10)
-        : fileSize-1
+      const parts = range.replace(/bytes=/, "").split("-");
+      const start = parseInt(parts[0], 10);
+      const end = parts[1]? parseInt(parts[1], 10) : fileSize-1;
   
       if(start >= fileSize) {
         res.status(416).send('Requested range not satisfiable\n'+start+' >= '+fileSize);
-        return
+        return;
       }
       
-      const chunksize = (end-start)+1
-      const file = fs.createReadStream(path, {start, end})
+      const chunksize = (end-start) + 1;
+      const file = fs.createReadStream(filepath, {start, end});
       const head = {
         'Content-Range': `bytes ${start}-${end}/${fileSize}`,
         'Accept-Ranges': 'bytes',
         'Content-Length': chunksize,
         'Content-Type': 'video/mp4',
-      }
+      };
   
-      res.writeHead(206, head)
-      file.pipe(res)
+      res.writeHead(206, head);
+      file.pipe(res);
     } else {
       const head = {
         'Content-Length': fileSize,
         'Content-Type': 'video/mp4',
-      }
-      res.writeHead(200, head)
-      fs.createReadStream(path).pipe(res)
+      };
+      res.writeHead(200, head);
+      fs.createReadStream(filepath).pipe(res)
     }
   })
 
@@ -457,7 +459,7 @@ app.post('/api/lsDir', async (req, res) => {
         db.allFiles.forEach(p => {
             if(p && p.startsWith(dir)){
                 const ext = path.extname(p).toLowerCase();
-                if (isCompress(ext) || isVideo(ext)){
+                if (isSupportedFile(ext)){
                     files.push(p);
                     infos[p] = db.fileToInfo[p];
                 }
@@ -481,7 +483,7 @@ app.post('/api/lsDir', async (req, res) => {
                 if (tempInfo && tempInfo.isDirectory) {
                     dirs.push(p);
                     infos[p] = tempInfo;
-                } else if (isCompress(ext) || isVideo(ext)) {
+                } else if (isSupportedFile(ext)) {
                     files.push(p);
                     infos[p] = tempInfo;
                 }
