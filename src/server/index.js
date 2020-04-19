@@ -751,7 +751,10 @@ async function getThumbnailFromZip(fileName, res, mode, counter) {
 
             const minifyImageFile = require("../tools/minifyImageFile").minifyImageFile;
             minifyImageFile(outputPath, path.basename(one), (err, info) => { 
-                console.log("[getThumbnailFromZip] get minized thumbnail")
+                if(isPregenerateMode){
+                    counter.minCounter++;
+                    console.log("[getThumbnailFromZip] get minized thumbnail", counter.minCounter, "/", counter.total);
+                }
              });
 
             if(isPregenerateMode){
@@ -780,7 +783,7 @@ app.post('/api/pregenerateThumbnails', (req, res) => {
     }
     // const totalFiles = !path ? db.allFiles : db.allFiles.filter(e => e.includes(path));
     const totalFiles = db.allFiles.filter(e => e.includes(path));
-    let counter = {counter: 1, total: totalFiles.length};
+    let counter = {counter: 1, total: totalFiles.length, minCounter: 1};
     totalFiles.forEach(fileName =>{
         getThumbnailFromZip(fileName, res, "pre-generate", counter);
     })
