@@ -88,8 +88,8 @@
     }
   }
 
-  @media only screen and (min-width: 1200px) {
-    &.home{
+  &.mode_home {
+    @media only screen and (min-width: 1200px) {
       .explorer-one-line-list-item {
         font-size: 20px;
         max-width: 1100px;
@@ -135,6 +135,14 @@
     font-size: 1rem;
     font-weight: bold;
     color: black;
+
+    @media only screen and (max-width: 500px) {
+      font-size: 10px;
+    }
+
+    @media only screen and (max-width: 1100px) {
+        font-size: 12px;
+    }
 
     padding-left: 5px;
     color:#DDDDDD;
