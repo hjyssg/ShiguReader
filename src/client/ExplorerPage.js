@@ -513,22 +513,34 @@ export default class ExplorerPage extends Component {
         );
     }
 
+    renderLevelButton(){
+     const text = this.state.isRecursive? "Show only one level" : "Show subfolder's files";
+     return (
+        <span className="recursive-button exp-top-button" onClick={this.toggleRecursively.bind(this)}> 
+        <span className="fas fa-glasses" />
+        <span> {text} </span>
+        </span>
+     );
+    }
+
     getExplorerToolbar(){
         const mode = this.getMode();
+        const fileCount = (<div key="file-count" className="file-count col-6 col-md-3">{this.getFilteredFiles().length + " files"} </div>);
         if(mode === MODE_EXPLORER && this.path){
-            const text = this.state.isRecursive? "Show only one level" : "Show subfolder's files";
-            const right = (
-            <div className="top-button-gropus">
-                {this.renderToggleThumbNailButton()}
-                <span className="recursive-button exp-top-button" onClick={this.toggleRecursively.bind(this)}> 
-                    <span className="fas fa-glasses" />
-                    <span> {text} </span>
-                </span>
-                {this.renderShowVideoButton()}
-                <span key="file-count" className="file-count">{this.getFilteredFiles().length + " files"} </span>
+            const topButtons = (
+            <div className="top-button-gropus container">
+                <div className="row">
+                    <div className="col-6 col-md-3"> {this.renderToggleThumbNailButton()} </div>
+                    <div className="col-6 col-md-3"> {this.renderLevelButton()} </div>
+                    <div className="col-6 col-md-3"> {this.renderShowVideoButton()} </div>
+                    {fileCount}
+                </div>
             </div>);
 
-            return <div className="container"><Breadcrumb path={this.path} right={right}/></div>
+            return (<div className="container">
+                        <Breadcrumb path={this.path} /> 
+                        {topButtons}
+                    </div>);
         }
     }
 

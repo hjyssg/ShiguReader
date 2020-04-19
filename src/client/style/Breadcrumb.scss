@@ -2,6 +2,7 @@
   padding: 8px 16px;
   list-style: none;
   background-color: #eee;
+  margin-bottom: 0px;
 
   .breadcrumb-item {
     display: inline;
@@ -32,47 +33,42 @@
     color: #01447e;
     text-decoration: underline;
   }
+}
 
+.top-button-gropus{
+  color: gray;
+  position: relative;
+  background-color: #eee;
+  margin-bottom: 1rem;
 
-  .top-button-gropus{
+  .exp-top-button {
+    cursor: pointer;
     color: gray;
-    margin-top: 10px;
-    position: relative;
 
-    .exp-top-button {
-      cursor: pointer;
+    .fas {
       color: gray;
+    }
+    
+    &:hover{
+      color: #34353b;
 
       .fas {
-        color: gray;
-      }
-      
-      &:hover{
         color: #34353b;
-
-        .fas {
-          color: #34353b;
-        }
-      }
-    }
-
-    .show-video-button,
-    .recursive-button {
-      margin-left: 30px;
-    }
-
-    @media screen and (max-width: 800px) {
-      .thumbnail-button,
-      .recursive-button {
-        font-size: 10px;
-      }
-    }
-
-    .file-count {
-      @media screen and (min-width: 400px) {
-        position: absolute;
-        right: 5px;
       }
     }
   }
+
+  @media screen and (max-width: 800px) {
+    .file-count,
+    .exp-top-button {
+      font-size: 10px;
+    }
+  }
+}
+
+.file-count {
+  float: right;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
