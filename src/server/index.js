@@ -443,7 +443,6 @@ app.post('/api/lsDir', async (req, res) => {
     }
 
     function getThumbnails(files){
-        const contentInfo = zip_content_db.getData("/");
         const thumbnails = {};
         files.forEach(fileName => {
             const outputPath = getOutputPath(fileName);
@@ -452,8 +451,6 @@ app.post('/api/lsDir', async (req, res) => {
             const thumb = util.chooseThumbnailImage(cacheFiles);
             if(thumb){
                 thumbnails[fileName] = fullPathToUrl(thumb);
-            }else if(contentInfo[fileName] && contentInfo[fileName].thumbnail) {
-                thumbnails[fileName] = fullPathToUrl(contentInfo[fileName].thumbnail);
             }
         }); 
         return thumbnails;
@@ -682,7 +679,6 @@ async function extractThumbnailFromZip(fileName, res, mode, counter) {
     const isPregenerateMode = mode === "pre-generate";
     const sendable = !isPregenerateMode;
 
-    const contentInfo = zip_content_db.getData("/");
     const outputPath = getOutputPath(fileName);
  
     function sendImage(img){
@@ -696,9 +692,9 @@ async function extractThumbnailFromZip(fileName, res, mode, counter) {
         })
     }
 
-    function updateZipDb(thumbnail, pageNum){
+    function updateZipDb(pageNum){
+        const contentInfo = zip_content_db.getData("/");
         contentInfo[fileName] = {
-            thumbnail: thumbnail,
             pageNum: pageNum
         };
         zip_content_db.push("/", contentInfo);
@@ -706,7 +702,7 @@ async function extractThumbnailFromZip(fileName, res, mode, counter) {
 
     function handleFail(){
         sendable && res.sendStatus(404);
-        updateZipDb(null, 0);
+        updateZipDb(0);
     }
 
     //check if there is compress thumbnail  e.g thumbnail--001.jpg
@@ -717,10 +713,6 @@ async function extractThumbnailFromZip(fileName, res, mode, counter) {
             let temp = path.join(outputPath, path.basename(tempOne));
             temp = turnPathSepToWebSep(temp);
             sendImage(temp);
-
-            contentInfo[fileName]  = contentInfo[fileName] || {};
-            contentInfo[fileName].thumbnail =  temp;
-            zip_content_db.push("/", contentInfo);
         }
         return;
     }
@@ -753,7 +745,7 @@ async function extractThumbnailFromZip(fileName, res, mode, counter) {
             let temp = path.join(outputPath, path.basename(one));
             temp = turnPathSepToWebSep(temp);
             sendImage(temp);
-            updateZipDb(temp, files.length);
+            updateZipDb(files.length);
 
             const minifyImageFile = require("../tools/minifyImageFile").minifyImageFile;
             minifyImageFile(outputPath, path.basename(one), (err, info) => { 
