@@ -335,7 +335,7 @@ export default class ExplorerPage extends Component {
     }
 
     renderFileList() {
-        const { sortOrder } = this.state;
+        const { sortOrder, showVideo } = this.state;
         let dirs, files, videos;
         if(!this.getHash()) {
             dirs = userConfig.home_pathes.concat(userConfig.good_folder);
@@ -370,7 +370,7 @@ export default class ExplorerPage extends Component {
 
         let videoItems;
 
-        if(this.state.showVideo){
+        if(showVideo){
                 videoItems = videos.map((item) =>  {
                    const pathHash = stringHash(item);
                    const toUrl =('/videoPlayer/'+ pathHash);
@@ -452,7 +452,7 @@ export default class ExplorerPage extends Component {
                 </ul>
 
                 {
-                    this.state.showVideo &&  
+                    showVideo &&  
                     (<ul className={"dir-list container"}>
                         {videoItems}
                     </ul>)
@@ -503,11 +503,20 @@ export default class ExplorerPage extends Component {
         );
     }
 
+    renderShowVideoButton(){
+        const text2 = this.state.showVideo? "hide video" : "show video";
+        return (
+            <span className="show-video-button exp-top-button" onClick={this.toggleShowVideo.bind(this)}> 
+            <span className="fas fa-video" />
+            <span> {text2} </span>
+            </span>
+        );
+    }
+
     getExplorerToolbar(){
         const mode = this.getMode();
         if(mode === MODE_EXPLORER && this.path){
             const text = this.state.isRecursive? "Show only one level" : "Show subfolder's files";
-            const text2 = this.state.showVideo? "hide video" : "show video";
             const right = (
             <div className="top-button-gropus">
                 {this.renderToggleThumbNailButton()}
@@ -515,12 +524,7 @@ export default class ExplorerPage extends Component {
                     <span className="fas fa-glasses" />
                     <span> {text} </span>
                 </span>
-
-                <span className="show-video-button exp-top-button" onClick={this.toggleShowVideo.bind(this)}> 
-                    <span className="fas fa-video" />
-                    <span> {text2} </span>
-                </span>
-
+                {this.renderShowVideoButton()}
                 <span key="file-count" className="file-count">{this.getFilteredFiles().length + " files"} </span>
             </div>);
 
@@ -558,10 +562,12 @@ export default class ExplorerPage extends Component {
                 btn = this.renderToggleThumbNailButton();
             }
 
+            const videoButuon = this.getMode() === MODE_SEARCH &&  this.renderShowVideoButton();
 
             return (<center className={"location-title"}>
                         <a className="explorer-external-link" target="_blank" href={link} title={title}>{this.getTitle()} </a>
                         {btn}
+                        {videoButuon}
                     </center>);
         } 
     }
