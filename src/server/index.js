@@ -446,7 +446,13 @@ app.post('/api/lsDir', async (req, res) => {
         const contentInfo = zip_content_db.getData("/");
         const thumbnails = {};
         files.forEach(fileName => {
-            if(contentInfo[fileName] && contentInfo[fileName].thumbnail) {
+            const outputPath = getOutputPath(fileName);
+            let cacheFiles = getCache(outputPath);
+            cacheFiles = (cacheFiles && cacheFiles.files) || [];
+            const thumb = util.chooseThumbnailImage(cacheFiles);
+            if(util.isCompressedThumbnail(thumb)){
+                thumbnails[fileName] = fullPathToUrl(thumb);
+            }else if(contentInfo[fileName] && contentInfo[fileName].thumbnail) {
                 thumbnails[fileName] = fullPathToUrl(contentInfo[fileName].thumbnail);
             }
         }); 
