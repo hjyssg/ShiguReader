@@ -39,6 +39,11 @@ a {
   background-color: #4f535b;
   min-height: 100vh;
 
+  //at least always 550px
+  @media screen and (max-width: 550px) {
+    width: 550px;
+  }
+
   .fas{
     color: #DDDDDD;
     &::before{
@@ -85,11 +90,27 @@ a {
         border: none;
         margin-top: 8px;
         font-size: 17px;
+        border-radius: 0px;
       }
 
-      button{
+      .filter-button,
+      .search-button {
         margin-top: 8px;
         cursor: pointer;
+        border-radius: 0px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: #a7a7a7;
+        padding-left: 5px;
+        padding-right: 5px;
+        border: 1px rgba(224, 194, 194, 0.726) solid;
+        margin-left: 1px;
+
+        &:hover{
+          color: white;
+          background-color: #34353b;
+        }
       }
     }
 
