@@ -3,8 +3,9 @@
 //https://stackoverflow.com/questions/11852589/what-image-formats-do-the-major-browsers-support-2012
 const imageTypes = [".jpg", ".png", ".jpeg", ".gif", ".bmp", ".webp"];
 const compressTypes = [".zip", ".rar", ".7zip", ".7z"];
-const musicTypes = [".mp3"];
-const videoTypes = [".mp4"];
+const musicTypes = [".mp3", ".wav"];
+const videoTypes = [".mp4", ".3gp", ".avi", ".mov", 
+                    ".mp4", ".m4v", ".m4a", ".mkv",  ".webm" ];
 
 function isOnlyDigit(str){
     return str.match(/^[0-9]+$/) != null
