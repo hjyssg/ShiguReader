@@ -3,6 +3,9 @@ const same_tags = config.same_tags;
 const not_author_but_tag = config.not_author_but_tag;
 const char_names = require("./character-names");
 const convertTable = {};
+const util = require("../util");
+const isCompress = util.isCompress;
+
 
 const localCache = {};
 
@@ -138,7 +141,7 @@ const _TYPES_ = [
 ]
 
 function parse(str) {
-    if (!str) {
+    if (!str || !isCompress(str)) {
       return null;
     }
 
