@@ -39,8 +39,7 @@
     margin-top: 10px;
     position: relative;
 
-    .thumbnail-button,
-    .recursive-button {
+    .exp-top-button {
       cursor: pointer;
       color: gray;
 
@@ -57,8 +56,9 @@
       }
     }
 
+    .show-video-button,
     .recursive-button {
-      margin-left: 60px;
+      margin-left: 30px;
     }
 
     @media screen and (max-width: 800px) {

@@ -58,12 +58,14 @@ export default class ExplorerPage extends Component {
         const pageIndex = parseInt(parsed.pageIndex) || 1;
         const isRecursive = !!(parsed.isRecursive === "true");
         const sortOrder = parsed.sortOrder || SORT_BY_DATE;
+        const showVideo = !!(parsed.showVideo === "true");
     
         return {
             anchorSideMenu: false,
             pageIndex,
             isRecursive,
             sortOrder,
+            showVideo,
             filterByGoodAuthorName: parsed.filterByGoodAuthorName === "true",
             filterByFirstTime: parsed.filterByFirstTime === "true",
             noThumbnail: parsed.noThumbnail === "true"
@@ -366,17 +368,21 @@ export default class ExplorerPage extends Component {
             return  <Link to={toUrl}  key={item}>{result}</Link>;
         });
 
-        // const videoItems = videos.map((item) =>  {
-        //     const pathHash = stringHash(item);
-        //     const toUrl =('/videoPlayer/'+ pathHash);
-        //     const result =  (
-        //         <li className="explorer-one-line-list-item" key={item}>
-        //         <i className="far fa-file-video"></i>
-        //         <span className="explorer-one-line-list-item">{item}</span>
-        //         </li>
-        //     );
-        //     return  <Link to={toUrl}  key={item}>{result}</Link>;
-        // });
+        let videoItems;
+
+        if(this.state.showVideo){
+                videoItems = videos.map((item) =>  {
+                   const pathHash = stringHash(item);
+                   const toUrl =('/videoPlayer/'+ pathHash);
+                   const result =  (
+                       <li className="explorer-one-line-list-item" key={item}>
+                       <i className="far fa-file-video"></i>
+                       <span className="explorer-one-line-list-item">{item}</span>
+                       </li>
+                   );
+                   return  <Link to={toUrl}  key={item}>{result}</Link>;
+               });
+        }
 
         //! !todo if the file is already an image file
         files = this.getFileInPage(files);
@@ -445,9 +451,12 @@ export default class ExplorerPage extends Component {
                     {dirItems}
                 </ul>
 
-                {/* <ul className={"dir-list container"}>
-                    {videoItems}
-                </ul> */}
+                {
+                    this.state.showVideo &&  
+                    (<ul className={"dir-list container"}>
+                        {videoItems}
+                    </ul>)
+                }
 
                 {this.renderPagination()}
                 <div className={"file-grid container"}>
@@ -479,11 +488,17 @@ export default class ExplorerPage extends Component {
         })
     }
 
+    toggleShowVideo(){
+        this.setStateAndSetHash({
+            showVideo: !this.state.showVideo
+        })
+    }
+
     renderToggleThumbNailButton(){
         const text2 = this.state.noThumbnail? "Show Thumbnail" : "File Name Only";
         return (
-           <span className="thumbnail-button">
-                <span className="fas fa-book " onClick={this.toggleThumbNail.bind(this)}/> <span>{text2} </span> 
+           <span className="thumbnail-button exp-top-button" onClick={this.toggleThumbNail.bind(this)}>
+                <span className="fas fa-book" /> <span>{text2} </span> 
             </span>
         );
     }
@@ -492,13 +507,20 @@ export default class ExplorerPage extends Component {
         const mode = this.getMode();
         if(mode === MODE_EXPLORER && this.path){
             const text = this.state.isRecursive? "Show only one level" : "Show subfolder's files";
+            const text2 = this.state.showVideo? "hide video" : "show video";
             const right = (
             <div className="top-button-gropus">
                 {this.renderToggleThumbNailButton()}
-                <span className="recursive-button"> 
-                    <span className="fas fa-glasses" onClick={this.toggleRecursively.bind(this)}/>
+                <span className="recursive-button exp-top-button" onClick={this.toggleRecursively.bind(this)}> 
+                    <span className="fas fa-glasses" />
                     <span> {text} </span>
                 </span>
+
+                <span className="show-video-button exp-top-button" onClick={this.toggleShowVideo.bind(this)}> 
+                    <span className="fas fa-video" />
+                    <span> {text2} </span>
+                </span>
+
                 <span key="file-count" className="file-count">{this.getFilteredFiles().length + " files"} </span>
             </div>);
 

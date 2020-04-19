@@ -76,6 +76,8 @@ const logger = winston.createLogger({
 const isImage = util.isImage;
 const isCompress = util.isCompress;
 const isMusic = util.isMusic;
+const isVideo = util.isVideo;
+
 
 const pLimit = require('p-limit');
 const limit = pLimit(6);
@@ -164,7 +166,7 @@ async function init() {
 
     console.log("scanning local files");
 
-    const filter = (e) => {return isCompress(e);};
+    const filter = (e) => {return isCompress(e) || isVideo(e);};
     let beg = (new Date).getTime()
     const results = fileiterator(userConfig.home_pathes, { 
         filter:filter, 
@@ -385,7 +387,46 @@ app.get('/api/getGoodAuthorNames',async (req, res) => {
         goodAuthors: set,
         otherAuthors: otherSet
     });
-})
+});
+
+app.get('/api/video/:filename', function(req, res) {
+    const path = 'assets/sample.mp4'
+    const stat = fs.statSync(path)
+    const fileSize = stat.size
+    const range = req.headers.range
+  
+    if (range) {
+      const parts = range.replace(/bytes=/, "").split("-")
+      const start = parseInt(parts[0], 10)
+      const end = parts[1]
+        ? parseInt(parts[1], 10)
+        : fileSize-1
+  
+      if(start >= fileSize) {
+        res.status(416).send('Requested range not satisfiable\n'+start+' >= '+fileSize);
+        return
+      }
+      
+      const chunksize = (end-start)+1
+      const file = fs.createReadStream(path, {start, end})
+      const head = {
+        'Content-Range': `bytes ${start}-${end}/${fileSize}`,
+        'Accept-Ranges': 'bytes',
+        'Content-Length': chunksize,
+        'Content-Type': 'video/mp4',
+      }
+  
+      res.writeHead(206, head)
+      file.pipe(res)
+    } else {
+      const head = {
+        'Content-Length': fileSize,
+        'Content-Type': 'video/mp4',
+      }
+      res.writeHead(200, head)
+      fs.createReadStream(path).pipe(res)
+    }
+  })
 
 app.post('/api/lsDir', async (req, res) => {
     const hashdir = db.hashTable[(req.body && req.body.hash)];
@@ -408,8 +449,6 @@ app.post('/api/lsDir', async (req, res) => {
         return thumbnails;
     }
 
-
-    
     let result;
     if(isRecursive){
         const files = [];
@@ -418,7 +457,7 @@ app.post('/api/lsDir', async (req, res) => {
         db.allFiles.forEach(p => {
             if(p && p.startsWith(dir)){
                 const ext = path.extname(p).toLowerCase();
-                if (isImage(ext) || isCompress(ext) || util.isVideo(ext)){
+                if (isCompress(ext) || isVideo(ext)){
                     files.push(p);
                     infos[p] = db.fileToInfo[p];
                 }
@@ -442,7 +481,7 @@ app.post('/api/lsDir', async (req, res) => {
                 if (tempInfo && tempInfo.isDirectory) {
                     dirs.push(p);
                     infos[p] = tempInfo;
-                } else if (isImage(ext) || isCompress(ext) || util.isVideo(ext)) {
+                } else if (isCompress(ext) || isVideo(ext)) {
                     files.push(p);
                     infos[p] = tempInfo;
                 }

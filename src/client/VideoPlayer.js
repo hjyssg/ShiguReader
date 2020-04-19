@@ -22,10 +22,14 @@ export default class VideoPlayer extends Component {
   }
 
   render() {
-    const fn =   window.localStorage && window.localStorage.getItem(this.getHash());
-    return <div className="container video-player">
-      todo
-      </div>
+    const fn = window.localStorage && window.localStorage.getItem(this.getHash());
+    //temp
+    const url = "http://localhost:8080/video/apple.mp4";
+    return (<div className="container video-player">
+              <video id="videoPlayer" controls muted="muted" autoplay> 
+                 <source src={url} type="video/mp4" />
+              </video>
+            </div>);
   } 
 }
 
