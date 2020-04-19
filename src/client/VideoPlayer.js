@@ -1,14 +1,7 @@
 import React, { Component } from 'react';
 import _ from 'underscore';
 import './style/VideoPlayer.scss';
-const spop  = require("./subcomponent/spop");
-const util = require("../util");
-const queryString = require('query-string');
-const stringHash = util.stringHash;
 const filesizeUitl = require('filesize');
-import screenfull from 'screenfull';
-const getUrl = util.getUrl;
-const Constant = require("../constant");
 
 export default class VideoPlayer extends Component {
   constructor(props) {
@@ -25,11 +18,15 @@ export default class VideoPlayer extends Component {
     const fn = window.localStorage && window.localStorage.getItem(this.getHash());
     //temp
     const url = "http://localhost:8080/api/video/"+this.getHash();
-    return (<div className="container video-player">
-              <video id="videoPlayer" controls muted="muted" autoplay> 
-                 <source src={url} type="video/mp4" />
-              </video>
-            </div>);
+    return (<div className="video-player-page">
+              <div className="video-player-container">
+                <video id="videoPlayer" controls muted="muted" autoplay> 
+                  <source src={url} type="video/mp4" />
+                </video>
+              </div>
+              <div className="video-title"> {fn} </div>
+            </div>
+            );
   } 
 }
 
