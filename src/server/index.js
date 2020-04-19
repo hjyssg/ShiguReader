@@ -24,7 +24,7 @@ const isExist = async (path) => {
     }
 };
 
-let root = path.join(__dirname, "..", "..");
+let rootPath = path.join(__dirname, "..", "..");
 const cache_folder_name = userConfig.cache_folder_name;
 const cachePath = path.join(__dirname, "..", "..", cache_folder_name);
 let logPath = path.join(__dirname, "..","..", userConfig.workspace_name, "log");
@@ -32,14 +32,21 @@ logPath = path.join(logPath, dateFormat(new Date(), "isoDate"))+ ".log";
 let file_db_path =  path.join(__dirname, "..", "..",  userConfig.workspace_name, "shigureader_local_file_info");
 const sevenZipPath = path.join(process.cwd(), "resource/7zip");
 
-console.log("process.argv", process.argv);
+
+const JsonDB = require('node-json-db').JsonDB;
+const Config = require('node-json-db/dist/lib/JsonDBConfig').Config;
+let zip_content_db_path =  path.join(__dirname, "..", "..",  userConfig.workspace_name, "shigureader_zip_file_content_info");
+
+const zip_content_db = new JsonDB(new Config(zip_content_db_path, true, true, '/'));
+
+// console.log("process.argv", process.argv);
 const isProduction = process.argv.includes("--production");
 
 console.log("--------------------");
 console.log("process.cwd()", process.cwd());
 console.log("__filename", __filename);
 console.log("__dirname", __dirname);
-console.log("root", root);
+console.log("rootPath", rootPath);
 console.log("log path:", logPath);
 console.log("file_db_path", file_db_path);
 console.log("sevenZipPath", sevenZipPath);
@@ -83,12 +90,14 @@ const db = {
     cacheTable: {},
     //hash to any string
     hashTable: {},
-    //has no thumbnail file
-    hasNoThumbnail: {}
 };
 
-app.use(express.static('dist'));
-app.use(express.static(root));
+app.use(express.static('dist', {
+    maxAge: (1000*3600).toString()
+}));
+app.use(express.static(rootPath, {
+    maxAge: (1000*3600*24).toString() // uses milliseconds per docs
+}));
 
 //  to consume json request body
 //  https://stackoverflow.com/questions/10005939/how-do-i-consume-the-json-post-data-in-an-express-application
@@ -105,7 +114,7 @@ function getOutputPath(zipFn) {
     return path.join(cachePath, outputFolder);
 }
 
-function cleanFileName(fn) {
+function turnPathSepToWebSep(fn) {
     return fn.replace(new RegExp(`\\${  path.sep}`, 'g'), '/');
 }
 
@@ -117,7 +126,7 @@ function generateContentUrl(pathes, outputPath) {
     for (let i = 0; i < pathes.length; i++) {
         const p = pathes[i];
         let temp = path.join(cache_folder_name, base, p);
-        temp = cleanFileName(temp);
+        temp = turnPathSepToWebSep(temp);
         if (isImage(p)) {
             files.push(temp);
         }else if(isMusic(p)){
@@ -155,7 +164,7 @@ async function init() {
 
     console.log("scanning local files");
 
-    const filter = (e) => {return isCompress(e) || isImage(e);};
+    const filter = (e) => {return isCompress(e);};
     let beg = (new Date).getTime()
     const results = fileiterator(userConfig.home_pathes, { 
         filter:filter, 
@@ -387,7 +396,21 @@ app.post('/api/lsDir', async (req, res) => {
         res.sendStatus(404);
         return;
     }
+
+    function getThumbnails(files){
+        const contentInfo = zip_content_db.getData("/");
+        const thumbnails = {};
+        files.forEach(fileName => {
+            if(contentInfo[fileName] && contentInfo[fileName].thumbnail) {
+                thumbnails[fileName] = fullPathToUrl(contentInfo[fileName].thumbnail);
+            }
+        }); 
+        return thumbnails;
+    }
+
+
     
+    let result;
     if(isRecursive){
         const files = [];
         const dirs = [];
@@ -402,7 +425,7 @@ app.post('/api/lsDir', async (req, res) => {
             }
         })
 
-        const result = {dirs, files, path: dir, fileInfos: infos}
+        result = {dirs, files, path: dir, fileInfos: infos, thumbnails: getThumbnails(files)};
         res.send(result);
     }else{
         fs.readdir(dir, (error, results) => {
@@ -428,7 +451,7 @@ app.post('/api/lsDir', async (req, res) => {
                 db.hashTable[stringHash(p)] = p;
             }
     
-            const result = {dirs, files, path: dir, fileInfos: infos}
+            result = {dirs, files, path: dir, fileInfos: infos, thumbnails: getThumbnails(files)};
             res.send(result);
         });
     }
@@ -581,7 +604,7 @@ function read7zOutput(data) {
     return files;
 }
 
-function chooseOneImage(files){
+function chooseThumbnailImage(files){
     let tempFiles = files.filter(isImage);
     tempFiles = util.filterHiddenFile(tempFiles);
     util.sortFileNames(tempFiles);
@@ -594,107 +617,97 @@ function chooseOneZip(files){
     return tempFiles[0];
 }
 
+function fullPathToUrl(img){
+    const fullpath = path.resolve(img);
+    return turnPathSepToWebSep("..\\"+ path.relative(rootPath, fullpath));
+}
+
+function get7zipOption(fileName, outputPath, one){
+    //https://sevenzip.osdn.jp/chm/cmdline/commands/extract.htm
+    //e make folder as one level
+    if(one){
+        return ['e', fileName, `-o${outputPath}`, one, "-aos"];
+    }else{
+        return ['e', fileName, `-o${outputPath}`, "-aos"];
+    }
+}
+
 async function getFirstImageFromZip(fileName, res, mode, counter) {
-    if(!util.isCompress(fileName) || db.hasNoThumbnail[fileName]){
+    if(!util.isCompress(fileName)){
         return;
     }
 
-    const outputPath = getOutputPath(fileName);
-    const temp = getCache(outputPath);
-    const isPreG = mode === "pre-generate";
-    if(isPreG){
-        res.send = () => {};
-        res.sendStatus = () => {};
-        res.sendFile = () => {};
-    }
+    const isPregenerateMode = mode === "pre-generate";
+    const sendable = !isPregenerateMode;
 
+    const contentInfo = zip_content_db.getData("/");
+    const outputPath = getOutputPath(fileName);
+ 
     function sendImage(img){
         let ext = path.extname(img);
         ext = ext.slice(1);
-        res.setHeader('Content-Type', 'image/' + ext );
-        res.sendFile(path.resolve(img));
+        // !send by image. no able to use cache
+        // sendable && res.setHeader('Content-Type', 'image/' + ext );
+        // sendable && res.sendFile(path.resolve(img));
+        sendable && res.send({
+            url: fullPathToUrl(img)
+        })
     }
 
-    if (temp && temp.files) {
-        const img = chooseOneImage(temp.files);
-        if(img){
-            sendImage(img);
-            return;
-        }
+    function updateZipDb(thumbnail, pageNum){
+        contentInfo[fileName] = {
+            thumbnail: thumbnail,
+            pageNum: pageNum
+        };
+        zip_content_db.push("/", contentInfo);
     }
 
-    const stats = await pfs.stat(fileName);
-
-    const fileSizeInBytes = stats["size"]
-    //Convert the file size to megabytes (optional)
-    const fileSizeInMegabytes = fileSizeInBytes / 1000000.0;
+    function handleFail(){
+        sendable && res.sendStatus(404);
+        updateZipDb(null, 0);
+    }
 
     try{
-        //bigger than 30mb
-        if(fileSizeInMegabytes > userConfig.full_extract_for_thumbnail_size || isPreG){
-            // assume zip
-            // let {stdout, stderr} = await limit(() => execa(sevenZip, ['l', '-ba', fileName]));
-            //https://superuser.com/questions/1020232/list-zip-files-contents-using-7zip-command-line-with-non-verbose-machine-friend
-            let {stdout, stderr} = await limit(() => execa(sevenZip, ['l', '-r', '-ba' ,'-slt', fileName]));
-            const text = stdout;
-            if (!text) {
-                console.error("[getFirstImageFromZip]", "no text");
-                res.send("404 fail");
-                return;
-            }
-            
-            const files = read7zOutput(text);
-            const one = chooseOneImage(files);
+        //https://superuser.com/questions/1020232/list-zip-files-contents-using-7zip-command-line-with-non-verbose-machine-friend
+        let {stdout, stderr} = await limit(() => execa(sevenZip, ['l', '-r', '-ba' ,'-slt', fileName]));
+        const text = stdout;
+        
+        if (!text) {
+            console.error("[getFirstImageFromZip]", "no text");
+            handleFail();
+            return;
+        }
 
-            if (!one) {
-                console.error("[getFirstImageFromZip]", fileName,  "no files from output");
-                db.hasNoThumbnail[fileName] = true;
-                res.sendStatus(404);
-                return;
-            }
+        const files = read7zOutput(text);
+        const one = chooseThumbnailImage(files);
+        
+        if (!one) {
+            console.error("[getFirstImageFromZip]", fileName,  "no files from output");
+            shandleFail();
+            return;
+        }
 
-            // Overwrite mode
-            //-aos	Skip extracting of existing files.
-            const opt = ['x', fileName, `-o${outputPath}`, one, "-aos"];
-            const {stdout2, stderr2} = await execa(sevenZip, opt);
-            if (!stderr2) {
-                // send path to client
-                let temp = path.join(outputPath, one);
-                temp = cleanFileName(temp);
-                sendImage(temp);
+        //Overwrite mode: -aos	Skip extracting of existing files.
+        const opt = get7zipOption(fileName, outputPath, one);
+        const {stderrForThumbnail} = await execa(sevenZip, opt);
+        if (!stderrForThumbnail) {
+            // send path to client
+            let temp = path.join(outputPath, path.basename(one));
+            temp = turnPathSepToWebSep(temp);
+            sendImage(temp);
+            updateZipDb(temp, files.length);
 
-                if(isPreG){
-                    counter.counter++;
-                    console.log("[getFirstImageFromZip] pre-generate", counter.counter, "/", counter.total);
-                }
-            } else {
-                console.error("[getFirstImageFromZip extract exec failed]", code);
-                res.sendStatus(404);
+            if(isPregenerateMode){
+                counter.counter++;
+                console.log("[getFirstImageFromZip] pre-generate", counter.counter, "/", counter.total);
             }
         } else {
-            (async () => {
-                const all = ['e', fileName, `-o${outputPath}`, "-aos"];
-                const {stdout, stderr} = await execa(sevenZip, all);
-                if (!stderr) {
-                    fs.readdir(outputPath, (error, results) => {
-                        const temp = generateContentUrl(results, outputPath);
-                        const img = chooseOneImage(temp.files);
-                        if (img) {
-                            sendImage(img);
-                        } else {
-                            res.sendStatus(404);
-                            console.error('[getFirstImageFromZip extract] no image output') 
-                        }
-                    });
-                } else {
-                    res.sendStatus(404);
-                    console.error('[getFirstImageFromZip extract] exit: ', stderr);
-                }
-            })();
+            console.error("[getFirstImageFromZip extract exec failed]", code);
+            handleFail();
         }
     } catch(e) {
         console.error("[getFirstImageFromZip] exception", e);
-        res.sendStatus(404);
+        handleFail();
     }
 }
 
@@ -783,8 +796,8 @@ app.post('/api/extract', async (req, res) => {
 
     (async () => {
         try{
-            const all = ['e', fileName, `-o${outputPath}`, "-aos"];
-            const {stdout, stderr} = await execa(sevenZip, all);
+            const opt = get7zipOption(fileName, outputPath);
+            const {stdout, stderr} = await execa(sevenZip, opt);
             if (!stderr) {
                 fs.readdir(outputPath, (error, results) => {
                     const temp = generateContentUrl(results, outputPath);

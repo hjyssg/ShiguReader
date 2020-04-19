@@ -147,7 +147,7 @@ export default class ExplorerPage extends Component {
     handleRes(res){
         if (!res.failed) {
             this.loadedHash = this.getHash();
-            let {dirs, files, path, tag, author, fileInfos} = res;
+            let {dirs, files, path, tag, author, fileInfos, thumbnails} = res;
             this.loadedHash = this.getHash();
             files = files || [];
             this.videoFiles = files.filter(util.isVideo) || []
@@ -157,6 +157,7 @@ export default class ExplorerPage extends Component {
             this.tag = tag || "";
             this.author = author || "";
             this.fileInfos = fileInfos || {};
+            this.thumbnails = thumbnails || {};
             this.res = res;
 
             //check pageindex
@@ -417,7 +418,13 @@ export default class ExplorerPage extends Component {
                     <div className="file-cell">
                         <Link  target="_blank" to={toUrl}  key={item} className={"file-cell-inner"}>
                             <center className={"file-cell-title"} title={text}>{text}</center>
-                            <LoadingImage isThumbnail className={"file-cell-thumbnail"} title={item} fileName={item} />
+                            <LoadingImage 
+                                    isThumbnail 
+                                    className={"file-cell-thumbnail"} 
+                                    title={item} fileName={item}   
+                                    url={this.thumbnails[item]}
+                                    onReceiveUrl={url => {this.thumbnails[item] = url;}} 
+                                    />
                         </Link>
                         <FileChangeToolbar header={fileSize} file={item} />
                     </div>

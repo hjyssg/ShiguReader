@@ -1,17 +1,15 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import loading from './images/loading.png';
 import notAvailable from './images/not-available.png';
-const VisibilitySensor = require('react-visibility-sensor').default;
-
+import Sender from './Sender';
 const Constant = require("../constant");
-
 
 export default class LoadingImage extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      loaded: false
+      failed: 0,
+      url: props.url
     };
   }
 
@@ -19,7 +17,7 @@ export default class LoadingImage extends Component {
     if(this.props.isThumbnail){
       setTimeout(()=>{
         this.onChange(true)
-      }, 2*1000);
+      }, 0);
     }
   }
 
@@ -27,78 +25,69 @@ export default class LoadingImage extends Component {
     this.isUnmounted = true;
   }
 
-  onChange(isVisible){
-    const {onChange, url, mode, fileName} = this.props;
+  onChange(){
+    if(!this.state.url & !this.loading){
+        this.requestThumbnail()
+    }
+  }
 
-    if(isVisible){
-      onChange && onChange();
+  requestThumbnail(){
+    const { mode, fileName } = this.props;
+    const api = (mode === "author" || mode === "tag") ? Constant.TAG_THUMBNAIL_PATH_API :  '/api/firstImage';
+    const body = {};
+
+    if(mode === "author" || mode === "tag"){
+      body[mode] = fileName;
+    }else{
+      body["fileName"] = fileName;
     }
 
-    if(isVisible && !this.state.loaded & !this.loading){
-      if(url){
-        this.url = url;
-        this.setState({ loaded: true }); 
-      } else {
-        const api = (mode === "author" || mode === "tag") ? Constant.TAG_THUMBNAIL_PATH_API :  '/api/firstImage';
-        const body = {};
-
-        if(mode === "author" || mode === "tag"){
-          body[mode] = fileName;
-        }else{
-          body["fileName"] = fileName;
-        }
-
-        this.loading = true;
-
-        fetch(api, {
-          method: 'POST',
-          headers: {
-              Accept: 'application/json',
-              'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(body)
-        })
-        .then((res) => {
-          if(res.status === 200){
-            return res.blob();
-          }else{
-            this.setState({ failed: true }); 
-            return null;
-          }
-        })
-        .then((res) => { 
-          if(!this.isUnmounted && res){
-            this.url = URL.createObjectURL(res);
-            this.setState({ loaded: true }); 
-          }
-        });
+    this.loading = true;
+    Sender.post(api, body, res => {
+      if(this.isUnmounted){
+        return;
       }
+      if (res.failed) {
+        this.setState({ failed: this.state.failed+1 }); 
+      }else{
+        this.props.onReceiveUrl && this.props.onReceiveUrl(res.url);
+        this.setState({ url: res.url }); 
+      }
+    });
+  }
+
+  Error(){
+    if(!this.isTotalFailed()){
+      this.setState({
+        url: null,
+        failed: this.state.failed+1
+      }, ()=> {
+        this.requestThumbnail()
+      });
     }
+  }
+
+  isTotalFailed(){
+    return this.state.failed > 2;
   }
 
   render() {
     let content;
-    const {className, fileName, url, bottomOffet, topOffet, title, isThumbnail, ...others} = this.props;
+    const {className, fileName, url, bottomOffet, topOffet, title, isThumbnail, onReceiveUrl, ...others} = this.props;
     const cn = "loading-image  " + className;
-    let active = true;
-    if (this.state.failed) {
+
+    if (this.isTotalFailed()) {
       content = (<img key={fileName} ref={e=>{this.dom = e && e.node}} className={cn} src={notAvailable} title={title || fileName} {...others}/>);
-    } else if (this.state.loaded === false) {
-      content = (<img key={fileName} className={cn} src={loading} title={title || fileName} {...others}/>);
-    } else if (this.url) {
-      active = false;
-      content = (<img key={fileName} className={className} src={this.url} title={title || fileName} {...others}/>);
+    } else if (this.state.url) {
+      content = (<img key={fileName} ref={e=>{this.dom = e && e.node}} 
+                      className={className} src={this.state.url} title={title || fileName} 
+                      onError={this.Error.bind(this)} 
+                      {...others}/>);
+    } else {
+      content = (<img key={fileName} className={cn}  title={title || fileName} {...others}/>);
     }
 
-    return (
-      <VisibilitySensor 
-          active={active}
-          key={fileName||url}
-          offset={{bottom: bottomOffet || -200, top: topOffet || -200}} 
-          onChange={this.onChange.bind(this)}>
-        {content}
-      </VisibilitySensor>
-    );
+    return content;
   }
 }
 
