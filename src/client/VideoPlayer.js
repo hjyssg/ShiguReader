@@ -20,7 +20,7 @@ export default class VideoPlayer extends Component {
     const url = "http://localhost:8080/api/video/"+this.getHash();
     return (<div className="video-player-page">
               <div className="video-player-container">
-                <video id="videoPlayer" controls muted="muted" autoplay> 
+                <video id="videoPlayer" controls> 
                   <source src={url} type="video/mp4" />
                 </video>
               </div>
