@@ -75,9 +75,9 @@ function _clean(cachePath, minized){
                         if(minized && !util.isCompressedThumbnail(fileName) && util.canBeCompressed(fileName)){
                             const outputName = util.getCompressedThumbnailFileName(fileName);
                             const outputPath = path.resolve(p1, outputName);
-
+                            const THUMB_WIDTH = 250; 
                             sharp(filePath)
-                            .resize(300)
+                            .resize(250)
                             .toFile(outputPath, (err, info) => { 
                                 if(!err){
                                     // console.log("[cleanCache] generate ", outputName);
