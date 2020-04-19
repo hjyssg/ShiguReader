@@ -15,6 +15,8 @@ const nameParser = require('../name-parser');
 const userConfig = require('../user-config');
 const util = require("../util");
 
+
+
 const isExist = async (path) => {
     try{
         const error = await pfs.access(path);
@@ -710,10 +712,8 @@ async function getThumbnailFromZip(fileName, res, mode, counter) {
             temp = turnPathSepToWebSep(temp);
             sendImage(temp);
 
-            contentInfo[fileName] = {
-                thumbnail: temp,
-                pageNum: contentInfo[fileName] && contentInfo[fileName].pageNum
-            };
+            contentInfo[fileName]  = contentInfo[fileName] || {};
+            contentInfo[fileName].thumbnail =  temp;
             zip_content_db.push("/", contentInfo);
         }
         return;
@@ -748,6 +748,11 @@ async function getThumbnailFromZip(fileName, res, mode, counter) {
             temp = turnPathSepToWebSep(temp);
             sendImage(temp);
             updateZipDb(temp, files.length);
+
+            const minifyImageFile = require("../tools/minifyImageFile").minifyImageFile;
+            minifyImageFile(outputPath, path.basename(one), (err, info) => { 
+                console.log("[getThumbnailFromZip] get minized thumbnail")
+             });
 
             if(isPregenerateMode){
                 counter.counter++;

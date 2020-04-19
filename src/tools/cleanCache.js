@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const rimraf = require("./rimraf");
 const util = require("../util");
-const sharp = require('sharp');
+const minifyImageFile = require("./minifyImageFile");
 
 let counter = 0;
 
@@ -51,8 +51,6 @@ function cleanCache(cachePath, minized){
     }
 }
 
-const POST_FIX = "---thumbnail";
-
 function _clean(cachePath, minized){
     const folders1 = fs.readdirSync(cachePath);
     //check each file/dir in level 1
@@ -72,15 +70,9 @@ function _clean(cachePath, minized){
 
                     //compress first image to standard thumbnail
                     if(fileName === thumbnail){
-                        if(minized && !util.isCompressedThumbnail(fileName) && util.canBeCompressed(fileName)){
-                            const outputName = util.getCompressedThumbnailFileName(fileName);
-                            const outputPath = path.resolve(p1, outputName);
-                            const THUMB_WIDTH = 250; 
-                            sharp(filePath)
-                            .resize(250)
-                            .toFile(outputPath, (err, info) => { 
+                        if(minized){
+                            minifyImageFile(p1, fileName, (err, info) => { 
                                 if(!err){
-                                    // console.log("[cleanCache] generate ", outputName);
                                     del(filePath, cachePath);
                                 }
                              });

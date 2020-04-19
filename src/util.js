@@ -37,7 +37,7 @@ module.exports.getCompressedThumbnailFileName = function(filename){
 }
 
 const compressable = ["jpg", "jpeg", ".png",  ".gif"]
-module.exports.canBeCompressed = function(filename){
+module.exports.canBeCompressed = function(fn){
     return compressable.some((e) => fn.toLowerCase().endsWith(e));
 }
 
