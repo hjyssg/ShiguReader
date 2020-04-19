@@ -5,7 +5,6 @@ import Sender from './Sender';
 const Constant = require("../constant");
 const classNames = require('classnames');
 
-
 export default class LoadingImage extends Component {
   constructor(props) {
     super(props);
