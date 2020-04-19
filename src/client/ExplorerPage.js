@@ -717,8 +717,9 @@ export default class ExplorerPage extends Component {
         //no one pay me, I am not going to improve the ui
         let checkbox;
         if(this.state.goodAuthors){
-            checkbox = (<Checkbox  onChange={this.toggleGoodAuthor.bind(this)} checked={this.state.filterByGoodAuthorName}>
-                            title={`need to found more than ${GOOD_STANDARD} times in good folder`}
+            checkbox = (<Checkbox  onChange={this.toggleGoodAuthor.bind(this)} 
+                                    checked={this.state.filterByGoodAuthorName} 
+                                  title={`need to found more than ${GOOD_STANDARD} times in good folder`}>
                              By good_folder_root 
                         </Checkbox> );       
         }   
