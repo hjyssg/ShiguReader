@@ -79,7 +79,7 @@ export default class AdminPage extends Component {
                     <div className="admin-section-text" > only keep thumbnails and delete other files</div>
                     <div className="admin-section-content">
                         <div className="submit" onClick={this.cleanCache.bind(this)}>clean</div>
-                        <div className="submit" onClick={this.cleanCache.bind(this, "minized")}>clean and make thumbnail file smaller to save distk space</div>
+                        {/* <div className="submit" onClick={this.cleanCache.bind(this, "minized")}>clean and make thumbnail file smaller to save distk space</div> */}
                     </div>
                 </div>
 

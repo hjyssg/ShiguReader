@@ -753,7 +753,7 @@ async function getThumbnailFromZip(fileName, res, mode, counter) {
             minifyImageFile(outputPath, path.basename(one), (err, info) => { 
                 if(isPregenerateMode){
                     counter.minCounter++;
-                    console.log("[getThumbnailFromZip] get minized thumbnail", counter.minCounter, "/", counter.total);
+                    console.log("[getThumbnailFromZip] get minized thumbnail", counter.minCounter);
                 }
              });
 
