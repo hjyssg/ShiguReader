@@ -107,6 +107,9 @@ npm run dev
 windows语言设置:
 ![unicode setting](screenshot/unicode-setting.png)
 
+cache文件夹存的都是原始图片文件的文件。多了会用掉太多硬盘空间。  
+Admin页面可以手动启动压缩脚本。把原来文件压缩成50kg以下的小图片。
+
 ##### 热键
 漫画页面  
 enter: 全屏  
