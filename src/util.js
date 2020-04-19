@@ -36,6 +36,10 @@ module.exports.getCompressedThumbnailFileName = function(filename){
     return THUMBNAIL_FLAG + filename;
 }
 
+const compressable = ["jpg", "jpeg", ".png",  ".gif"]
+module.exports.canBeCompressed = function(filename){
+    return compressable.some((e) => fn.toLowerCase().endsWith(e));
+}
 
 module.exports.chooseThumbnailImage = function(files){
     let tempFiles = files.filter(isImage);

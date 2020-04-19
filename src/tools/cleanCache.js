@@ -72,7 +72,7 @@ function _clean(cachePath, minized){
 
                     //compress first image to standard thumbnail
                     if(fileName === thumbnail){
-                        if(minized && !util.isCompressedThumbnail(fileName)){
+                        if(minized && !util.isCompressedThumbnail(fileName) && util.canBeCompressed(fileName)){
                             const outputName = util.getCompressedThumbnailFileName(fileName);
                             const outputPath = path.resolve(p1, outputName);
 
