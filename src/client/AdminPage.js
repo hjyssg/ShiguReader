@@ -43,7 +43,7 @@ export default class AdminPage extends Component {
         })
     }
 
-    cleanCache(){
+    cleanCache(minized){
         Swal.fire({
             title: "Clean Cache",
             showCancelButton: true,
@@ -52,7 +52,7 @@ export default class AdminPage extends Component {
         }).then((result) => {
             if (result.value === true) {
                 const req = {
-                    path: this.state.prePath
+                    minized: minized
                 }
                 Sender.get('/api/cleanCache', req, res =>{
                     console.log(res)
@@ -78,7 +78,8 @@ export default class AdminPage extends Component {
                     <div className="admin-section-title" title="only keep thumbnail and delete other files"> Clean Cache</div>
                     <div className="admin-section-text" > only keep thumbnails and delete other files</div>
                     <div className="admin-section-content">
-                        <div className="submit" onClick={this.cleanCache.bind(this)}>Submit</div>
+                        <div className="submit" onClick={this.cleanCache.bind(this)}>clean</div>
+                        <div className="submit" onClick={this.cleanCache.bind(this, "minized")}>clean and make thumbnail file smaller to save distk space</div>
                     </div>
                 </div>
 

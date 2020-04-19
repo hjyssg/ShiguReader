@@ -39,7 +39,7 @@ function del(file, cachePath){
     }
 }
 
-function cleanCache(cachePath){
+function cleanCache(cachePath, minized){
     if(!fs.existsSync(cachePath)){
         err = fs.mkdir(cachePath, (err) => {
             if (err){
@@ -47,13 +47,13 @@ function cleanCache(cachePath){
             }
           });
     } else {
-        _clean(cachePath);
+        _clean(cachePath, minized);
     }
 }
 
 const POST_FIX = "---thumbnail";
 
-function _clean(cachePath){
+function _clean(cachePath, minized){
     const folders1 = fs.readdirSync(cachePath);
     //check each file/dir in level 1
     folders1.forEach(p1 => {
@@ -72,19 +72,21 @@ function _clean(cachePath){
 
                     //compress first image to standard thumbnail
                     if(fileName === thumbnail){
-                        if(!util.isCompressedThumbnail(fileName)){
+                        if(minized && !util.isCompressedThumbnail(fileName)){
                             const outputName = util.getCompressedThumbnailFileName(fileName);
+                            const outputPath = path.resolve(p1, outputName);
 
                             sharp(filePath)
                             .resize(300)
-                            .toFile(path.resolve(p1, outputName), (err, info) => { 
+                            .toFile(outputPath, (err, info) => { 
                                 if(!err){
-                                    console.log("[cleanCache] generate ", outputName);
+                                    // console.log("[cleanCache] generate ", outputName);
                                     del(filePath, cachePath);
                                 }
                              });
                         }
                     }else{
+                        //del the rest
                         del(filePath, cachePath);
                     }
                 }

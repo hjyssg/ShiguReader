@@ -617,7 +617,7 @@ app.post(Constant.TAG_THUMBNAIL_PATH_API, (req, res) => {
         return;
     }
 
-    getFirstImageFromZip(chosendFileName, res);
+    getThumbnailFromZip(chosendFileName, res);
 });
 
 function read7zOutput(data) {
@@ -666,7 +666,7 @@ function get7zipOption(fileName, outputPath, one){
     }
 }
 
-async function getFirstImageFromZip(fileName, res, mode, counter) {
+async function getThumbnailFromZip(fileName, res, mode, counter) {
     if(!util.isCompress(fileName)){
         return;
     }
@@ -701,13 +701,31 @@ async function getFirstImageFromZip(fileName, res, mode, counter) {
         updateZipDb(null, 0);
     }
 
+    //check if there is compress thumbnail  e.g thumbnail--001.jpg
+    const cacheFiles = getCache(outputPath);
+    if (cacheFiles && cacheFiles.files.length > 0) {
+        const tempOne =  util.chooseThumbnailImage(cacheFiles.files);
+        if(util.isCompressedThumbnail(tempOne)){
+            let temp = path.join(outputPath, path.basename(tempOne));
+            temp = turnPathSepToWebSep(temp);
+            sendImage(temp);
+
+            contentInfo[fileName] = {
+                thumbnail: temp,
+                pageNum: contentInfo[fileName] && contentInfo[fileName].pageNum
+            };
+            zip_content_db.push("/", contentInfo);
+        }
+        return;
+    }
+
     try{
         //https://superuser.com/questions/1020232/list-zip-files-contents-using-7zip-command-line-with-non-verbose-machine-friend
         let {stdout, stderr} = await limit(() => execa(sevenZip, ['l', '-r', '-ba' ,'-slt', fileName]));
         const text = stdout;
         
         if (!text) {
-            console.error("[getFirstImageFromZip]", "no text");
+            console.error("[getThumbnailFromZip]", "no text");
             handleFail();
             return;
         }
@@ -716,7 +734,7 @@ async function getFirstImageFromZip(fileName, res, mode, counter) {
         const one = util.chooseThumbnailImage(files);
         
         if (!one) {
-            console.log("[getFirstImageFromZip]", fileName,  "no image file from output");
+            console.log("[getThumbnailFromZip]", fileName,  "no image file from output");
             handleFail();
             return;
         }
@@ -733,14 +751,14 @@ async function getFirstImageFromZip(fileName, res, mode, counter) {
 
             if(isPregenerateMode){
                 counter.counter++;
-                console.log("[getFirstImageFromZip] pre-generate", counter.counter, "/", counter.total);
+                console.log("[getThumbnailFromZip] pre-generate", counter.counter, "/", counter.total);
             }
         } else {
-            console.error("[getFirstImageFromZip extract exec failed]", code);
+            console.error("[getThumbnailFromZip extract exec failed]", code);
             handleFail();
         }
     } catch(e) {
-        console.error("[getFirstImageFromZip] exception", e);
+        console.error("[getThumbnailFromZip] exception", e);
         handleFail();
     }
 }
@@ -759,21 +777,22 @@ app.post('/api/pregenerateThumbnails', (req, res) => {
     const totalFiles = db.allFiles.filter(e => e.includes(path));
     let counter = {counter: 1, total: totalFiles.length};
     totalFiles.forEach(fileName =>{
-        getFirstImageFromZip(fileName, res, "pre-generate", counter);
+        getThumbnailFromZip(fileName, res, "pre-generate", counter);
     })
 });
 
-function doClean(){
+function doClean(minized){
     const cleanCache = require("../tools/cleanCache");
     try{
-        cleanCache.cleanCache(cachePath);
+        cleanCache.cleanCache(cachePath, minized);
     }catch(e){
         console.error(e);
     }
 }
 
 app.get('/api/cleanCache', (req, res) => {
-    doClean();
+    const minized = req.body && req.body.minized;
+    doClean(minized);
 });
 
 
@@ -785,7 +804,7 @@ app.post('/api/firstImage', async (req, res) => {
         res.sendStatus(404);
         return;
     }
-    getFirstImageFromZip(fileName, res);
+    getThumbnailFromZip(fileName, res);
 });
 
 // http://localhost:8080/api/extract
@@ -823,6 +842,7 @@ app.post('/api/extract', async (req, res) => {
 
     const outputPath = getOutputPath(fileName);
     const temp = getCache(outputPath);
+    //TODO: should use pageNum
     if (temp && temp.files.length > 10) {
         sendBack(temp.files, temp.dirs, temp.musicFiles, fileName, stat);
         return;
