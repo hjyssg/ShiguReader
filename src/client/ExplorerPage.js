@@ -328,7 +328,8 @@ export default class ExplorerPage extends Component {
     }
 
     getOneLineListItem(icon, item){
-        return (<li className="explorer-one-line-list-item" key={item}>
+        return (
+        <li className="explorer-one-line-list-item" key={item}>
         {icon}
         <span className="explorer-one-line-list-item-text">{item}</span>
         </li>);

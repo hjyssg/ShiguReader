@@ -1,3 +1,9 @@
+#root {
+  @media screen and (max-width: 500px) {
+    min-width: 500px;
+  }
+}
+
 body {
   text-align: center;
   margin: auto;
@@ -38,11 +44,6 @@ a {
 .app-container {
   background-color: #4f535b;
   min-height: 100vh;
-
-  //at least always 550px
-  @media screen and (max-width: 550px) {
-    width: 550px;
-  }
 
   .fas{
     color: #DDDDDD;
