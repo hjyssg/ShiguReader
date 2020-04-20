@@ -10,6 +10,7 @@ import Sender from './Sender';
 import './style/OneBook.scss';
 import ErrorPage from './ErrorPage';
 import CenterSpinner from './subcomponent/CenterSpinner';
+import ClickAndCopyText from './subcomponent/ClickAndCopyText';
 const spop  = require("./subcomponent/spop");
 import FileChangeToolbar from './subcomponent/FileChangeToolbar';
 import LoadingImage from './LoadingImage';
@@ -498,22 +499,6 @@ export default class OneBook extends Component {
     return window.localStorage && window.localStorage.getItem(hash);
   }
 
-  onTitleClick(){
-    //https://stackoverflow.com/questions/49236100/copy-text-from-span-to-clipboard
-    var textArea = document.createElement("textarea");
-    textArea.value = _.getFn(this.state.path)
-    document.body.appendChild(textArea);
-    textArea.select();
-    document.execCommand("Copy");
-    textArea.remove();
-   
-    spop({
-      template: 'Copied to Clipboard',
-      position: 'bottom-right',
-      autoclose: 3000
-    });
-  }
-
   renderNextPrevButton(){
     if(_.isPad()){
       return;
@@ -584,7 +569,7 @@ export default class OneBook extends Component {
         {!isContentBelow && content}
         <div className="one-book-title" >
             {this.renderPath()} 
-            <span onClick={this.onTitleClick.bind(this)} className="one-book-title-filename">{_.getFn(this.state.path)} </span>
+            <ClickAndCopyText text={_.getFn(this.state.path)} />
         </div>
         {this.renderPagination()}
         {this.renderFileSizeAndTime()}
