@@ -66,7 +66,21 @@ function isDirectParent(parent, filePath){
 }
 
 function isSubDirectory(parent, child) {
-    return child.length > parent.length && child.startsWith(parent);;
+    if(child.length > parent.length && child.startsWith(parent)){
+        let parentPath = path.resolve(child, "..");
+        while(true){
+            if(parentPath === parent){
+                return true;
+            }
+
+            const newparentPath = path.resolve(parentPath, "..");
+            if(newparentPath === parentPath){
+                //go to the top
+                return false;
+            }
+            parentPath = newparentPath;
+        }
+    }
 }
 
 module.exports = {
