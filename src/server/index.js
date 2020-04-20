@@ -8,6 +8,8 @@ const pfs = require('promise-fs');
 const dateFormat = require('dateformat');
 const winston = require("winston");
 var cors = require('cors')
+const fileChangeHandler = require("./fileChangeHandler");
+
 
 const Constant = require("../constant");
 const fileiterator = require('./file-iterator');
@@ -19,18 +21,10 @@ const {
         fullPathToUrl,
         getOutputPath,
         turnPathSepToWebSep,
-        generateContentUrl
+        generateContentUrl,
+        isExist
 } = pathUtil;
 const { isImage, isCompress, isMusic, isVideo } = util;
-
-const isExist = async (path) => {
-    try{
-        const error = await pfs.access(path);
-        return !error;
-    }catch(e){
-        return false;
-    }
-};
 
 const rootPath = pathUtil.getRootPath();
 const cache_folder_name = userConfig.cache_folder_name;
@@ -84,7 +78,6 @@ const logger = winston.createLogger({
   });
 
 
-
 function isSupportedFile(e){
     return isCompress(e) || isVideo(e);
 }
@@ -115,6 +108,7 @@ app.use(express.static(rootPath, {
 //  https://stackoverflow.com/questions/10005939/how-do-i-consume-the-json-post-data-in-an-express-application
 app.use(express.json());
 
+fileChangeHandler.init(app, logger);
 
 //  outputPath is the folder name
 function getCache(outputPath) {
@@ -246,7 +240,6 @@ function setUpFileWatch(){
         });
 }
 
-init();
 
 // http://localhost:8080/api/exhentaiApi
 app.post('/api/exhentaiApi/', cors(), function (req, res) {
@@ -256,60 +249,6 @@ app.post('/api/exhentaiApi/', cors(), function (req, res) {
     }); 
     console.log("/api/exhentaiApi/");
 })
-
-app.post('/api/moveFile', (req, res) => {
-    const src = req.body && req.body.src;
-    const dest = req.body && req.body.dest;
-
-    if(!src || !dest){
-        res.sendStatus(404);
-        return;
-    }
-
-    (async () =>{
-        try{
-            let err;
-            if(!(await isExist(dest))){
-                err = await pfs.mkdir(dest);
-            }
-            if (!err) {
-                const {stdout, stderr} = await execa("move", [src, dest]);
-                err = stderr;
-                // err = await pfs.rename(src, dest);
-            }
-
-            if(!err){
-                logger.info(`[MOVE] ${src} to ${dest}`);
-                res.sendStatus(200);
-            }else{
-                console.error(err);
-                res.sendStatus(404);
-            }
-        }catch(e){
-            console.error(e);
-            res.sendStatus(404);
-        }
-    })();
-});
-
-app.post('/api/deleteFile', (req, res) => {
-    const src = req.body && req.body.src;
-
-    if(!src){
-        res.sendStatus(404);
-        return;
-    }
-
-    fs.unlink(src, (err) => {
-        if (err){
-            console.error(err);
-            res.sendStatus(404);
-        }else{
-            res.sendStatus(200);
-            logger.info(`[DELETE] ${src}`);
-        }
-    });
-});
 
 app.post('/api/allInfo', (req, res) => {
     const tempfileToInfo = {};
@@ -838,3 +777,4 @@ if(isProduction){
     })
 }
 
+init();

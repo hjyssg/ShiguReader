@@ -6,6 +6,7 @@ const util = require("../util");
 const isImage = util.isImage;
 const isMusic = util.isMusic;
 const cache_folder_name = userConfig.cache_folder_name;
+const pfs = require('promise-fs');
 
 const rootPath = path.join(__dirname, "..", "..");
 const getRootPath = function(){
@@ -50,10 +51,20 @@ const generateContentUrl = function (pathes, outputPath) {
     return { files, dirs, musicFiles };
 }
 
+const isExist = async (path) => {
+    try{
+        const error = await pfs.access(path);
+        return !error;
+    }catch(e){
+        return false;
+    }
+};
+
 module.exports = {
     fullPathToUrl,
     getOutputPath,
     turnPathSepToWebSep,
     generateContentUrl,
-    getRootPath
+    getRootPath,
+    isExist
 };
