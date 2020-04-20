@@ -189,9 +189,21 @@ async function init() {
     });
 }
 
+function shouldWatch(p){
+    const ext = path.extname(p).toLowerCase();
+    if (!ext ||  isSupportedFile(ext) || isMusic(ext) ||isImage(ext)) {
+        return true;
+    }
+    return false;
+}
+
+function shouldIgnore(p){
+    return !shouldWatch(p);
+}
+
 function setUpFileWatch(){
     const watcher = chokidar.watch(userConfig.home_pathes, {
-        ignored: /\*.jpg/,
+        ignored: shouldIgnore,
         ignoreInitial: true,
         persistent: true,
         ignorePermissionErrors: true
@@ -224,6 +236,7 @@ function setUpFileWatch(){
 
     //also for cache files
     const cacheWatcher = chokidar.watch(cache_folder_name, {
+        ignored: shouldIgnore,
         persistent: true,
         ignorePermissionErrors: true
     });
