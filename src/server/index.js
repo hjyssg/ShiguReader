@@ -133,9 +133,6 @@ async function init() {
         }
     }
 
-    console.log("clean previous cache files");
-    doClean();
-
     console.log("scanning local files");
 
     const filter = (e) => {return isSupportedFile(e);};
@@ -168,7 +165,7 @@ async function init() {
 
     setUpFileWatch();
     const port = isProduction? 3000: 8080;
-    app.listen(port, () => {
+    const server = app.listen(port, () => {
         console.log("----------------------------------------------------------------");
         console.log(`Listening on port ${port}`);
         console.log("init done");
@@ -511,7 +508,7 @@ app.post(Constant.TAG_THUMBNAIL_PATH_API, (req, res) => {
         }
         return isCompress(e);
     });
-    chosendFileName = chooseOneZip(fileNames);
+    chosendFileName = chooseOneZipForOneTag(fileNames);
     if(!chosendFileName){
         res.sendStatus(404);
         return;
@@ -545,12 +542,11 @@ function read7zOutput(data) {
     return files;
 }
 
-function chooseOneZip(files){
+function chooseOneZipForOneTag(files){
     let tempFiles = files.filter(isCompress);
     tempFiles = util.filterHiddenFile(tempFiles);
     return tempFiles[0];
 }
-
 
 function get7zipOption(fileName, outputPath, one){
     //https://sevenzip.osdn.jp/chm/cmdline/commands/extract.htm
@@ -678,7 +674,7 @@ app.post('/api/pregenerateThumbnails', (req, res) => {
     })
 });
 
-function doClean(minized){
+function doCacheClean(minized){
     const cleanCache = require("../tools/cleanCache");
     try{
         cleanCache.cleanCache(cachePath, minized);
@@ -689,7 +685,7 @@ function doClean(minized){
 
 app.get('/api/cleanCache', (req, res) => {
     const minized = req.body && req.body.minized;
-    doClean(minized);
+    doCacheClean(minized);
 });
 
 
