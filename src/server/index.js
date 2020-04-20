@@ -82,6 +82,19 @@ function isSupportedFile(e){
     return isCompress(e) || isVideo(e);
 }
 
+function updateTagHash(str){
+    const result = nameParser.parse(str);
+    if(result){
+        result.tags.forEach(tag => {
+            db.hashTable[stringHash(tag)] = tag;
+        });
+
+        if(result.author){
+            db.hashTable[stringHash(result.author)] = result.author;
+        }
+    }
+}
+
 const pLimit = require('p-limit');
 const limit = pLimit(6);
 
@@ -247,6 +260,7 @@ app.post('/api/exhentaiApi/', cors(), function (req, res) {
     console.log("/api/exhentaiApi/");
 })
 
+//-------------------------Get info ----------------------
 app.post('/api/allInfo', (req, res) => {
     const tempfileToInfo = {};
     db.allFiles.forEach(e => {
@@ -287,6 +301,34 @@ app.get('/api/getGoodAuthorNames',async (req, res) => {
     });
 });
 
+app.get('/api/tag', (req, res) => {
+    function addOne(table, key) {
+        if(!key){
+            return;
+        }
+        if (!table[key]) {
+            table[key] = 1;
+        } else {
+            table[key] = table[key] + 1;
+        }
+    }
+
+    const tags = {};
+    const authors = {};
+    db.allFiles.forEach((e) => {
+        e = path.basename(e);
+        const result = nameParser.parse(e);
+        if (result) {
+            addOne(authors, result.author);
+            result.tags.forEach(tag => addOne(tags, tag));
+        }
+
+        updateTagHash(e);
+    });
+    res.send({ tags, authors });
+});
+
+//----------------for video streaming
 app.get('/api/video/:hash', async (req, res) => {
     const filepath = db.hashTable[req.params.hash];
     const stat = await pfs.stat(filepath);
@@ -324,6 +366,7 @@ app.get('/api/video/:hash', async (req, res) => {
     }
   })
 
+//----------------get folder contents
 app.post('/api/lsDir', async (req, res) => {
     const hashdir = db.hashTable[(req.body && req.body.hash)];
     const dir = hashdir|| req.body && req.body.dir;
@@ -395,50 +438,11 @@ app.post('/api/lsDir', async (req, res) => {
     }
 });
 
-function updateTagHash(str){
-    const result = nameParser.parse(str);
-    if(result){
-        result.tags.forEach(tag => {
-            db.hashTable[stringHash(tag)] = tag;
-        });
-
-        if(result.author){
-            db.hashTable[stringHash(result.author)] = result.author;
-        }
-    }
-}
-
-function addOne(table, key) {
-    if(!key){
-        return;
-    }
-    if (!table[key]) {
-        table[key] = 1;
-    } else {
-        table[key] = table[key] + 1;
-    }
-}
-
-app.get('/api/tag', (req, res) => {
-    const tags = {};
-    const authors = {};
-    db.allFiles.forEach((e) => {
-        e = path.basename(e);
-        const result = nameParser.parse(e);
-        if (result) {
-            addOne(authors, result.author);
-            result.tags.forEach(tag => addOne(tags, tag));
-        }
-
-        updateTagHash(e);
-    });
-    res.send({ tags, authors });
-});
-
-const MIN_AUTHOR_LENGTH = 3;
+//---------------------------SEARCH API------------------
 
 function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
     // let beg = (new Date).getTime()
+    const MIN_AUTHOR_TEXT_LENGTH = 3;
     const files = [];
     const fileInfos = {};
     for (let ii = 0; ii < db.allFiles.length; ii++) {
@@ -446,7 +450,7 @@ function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
         const info = db.fileToInfo[e];
         const result = (author || tag) && nameParser.parse(e);
         //sometimes there are mulitple authors for one book
-        if (result && author &&  (result.author === author || (author.length >= MIN_AUTHOR_LENGTH && result.author &&  result.author.includes(author)) || result.group === author )) {
+        if (result && author &&  (result.author === author || (author.length >= MIN_AUTHOR_TEXT_LENGTH && result.author &&  result.author.includes(author)) || result.group === author )) {
             files.push(e);
             fileInfos[e] = info;
         } else if (result && tag && result.tags.indexOf(tag) > -1) {
@@ -467,10 +471,7 @@ function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
     return { files, tag, author, fileInfos };
 }
 
-// tree para
-// 1. hash
-// 2. mode
-// 3. text
+// three para 1.hash 2.mode 3.text
 app.post(Constant.SEARCH_API, (req, res) => {
     const mode = req.body && req.body.mode;
     const hashTag =  db.hashTable[(req.body && req.body.hash)];
@@ -491,6 +492,14 @@ app.post(Constant.SEARCH_API, (req, res) => {
 
     res.send(searchByTagAndAuthor(tag, author, text));
 });
+
+//-----------------thumbnail related-----------------------------------
+
+function chooseOneZipForOneTag(files){
+    let tempFiles = files.filter(isCompress);
+    tempFiles = util.filterHiddenFile(tempFiles);
+    return tempFiles[0];
+}
 
 app.post(Constant.TAG_THUMBNAIL_PATH_API, (req, res) => {
     const author = req.body && req.body.author;
@@ -540,12 +549,6 @@ function read7zOutput(data) {
         }
     }
     return files;
-}
-
-function chooseOneZipForOneTag(files){
-    let tempFiles = files.filter(isCompress);
-    tempFiles = util.filterHiddenFile(tempFiles);
-    return tempFiles[0];
 }
 
 function get7zipOption(fileName, outputPath, one){
@@ -656,11 +659,8 @@ async function extractThumbnailFromZip(fileName, res, mode, counter) {
     }
 }
 
-//  a huge back ground tast 
-//  it generate all thumbnail 
-//  will need about 50 GB local space
-// and will be slow
-// http://localhost:8080/api/pregenerateThumbnails
+//  a huge back ground task 
+//  it generate all thumbnail and will be slow
 app.post('/api/pregenerateThumbnails', (req, res) => {
     let path = req.body && req.body.path;
     if(!path){
@@ -672,20 +672,6 @@ app.post('/api/pregenerateThumbnails', (req, res) => {
     totalFiles.forEach(fileName =>{
         extractThumbnailFromZip(fileName, res, "pre-generate", counter);
     })
-});
-
-function doCacheClean(minized){
-    const cleanCache = require("../tools/cleanCache");
-    try{
-        cleanCache.cleanCache(cachePath, minized);
-    }catch(e){
-        console.error(e);
-    }
-}
-
-app.get('/api/cleanCache', (req, res) => {
-    const minized = req.body && req.body.minized;
-    doCacheClean(minized);
 });
 
 
@@ -700,7 +686,6 @@ app.post('/api/firstImage', async (req, res) => {
     extractThumbnailFromZip(fileName, res);
 });
 
-// http://localhost:8080/api/extract
 app.post('/api/extract', async (req, res) => {
     const hashFile = db.hashTable[(req.body && req.body.hash)];
     let fileName = hashFile ||  req.body && req.body.fileName;
@@ -759,6 +744,22 @@ app.post('/api/extract', async (req, res) => {
             console.error('[/api/extract] exit: ', e);
         }
     })();
+});
+
+//-----------------------------cache---------------------
+
+function doCacheClean(minized){
+    const cleanCache = require("../tools/cleanCache");
+    try{
+        cleanCache.cleanCache(cachePath, minized);
+    }catch(e){
+        console.error(e);
+    }
+}
+
+app.get('/api/cleanCache', (req, res) => {
+    const minized = req.body && req.body.minized;
+    doCacheClean(minized);
 });
 
 if(isProduction){
