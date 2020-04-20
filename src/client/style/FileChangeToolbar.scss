@@ -7,14 +7,15 @@
   justify-content: space-between;
   align-items: center;
   width: 100%;
-
+  
+  .letter-button,
   .fas{
     margin-left: 5px;
     cursor: pointer;
-  }
 
-  .fas:hover{
-    color: orangered !important;
+    &:hover{
+      color: orangered !important;
+    }
   }
 
   .fa-arrow-right{

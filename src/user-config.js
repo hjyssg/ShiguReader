@@ -37,7 +37,7 @@ module.exports.additional_folder = [
 
 
 //----------------- below section used by developer-----------------------------
-
+module.exports.path_will_scan = module.exports.home_pathes.concat(module.exports.good_folder);
 
 const path = require('path');
 
@@ -54,6 +54,9 @@ module.exports.folder_list = module.exports.home_pathes.concat(module.exports.go
 if(!module.exports.home_pathes && module.exports.home_pathes.length === 0) {
     throw "need home paths"
 }
+
+//delete or move to recyle bin
+module.exports.move_file_to_recyle = true;
 
 //wehter to use meaningful file name in cache folder
 //or encode they by hash function

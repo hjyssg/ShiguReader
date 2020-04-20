@@ -15,7 +15,7 @@ const isImage = module.exports.isImage = function (fn) {
     return imageTypes.some((e) => fn.toLowerCase().endsWith(e));
 };
 
-module.exports.isCompress = function (fn) {
+const isCompress = module.exports.isCompress = function (fn) {
     return compressTypes.some((e) => fn.toLowerCase().endsWith(e));
 };
 
@@ -91,6 +91,22 @@ const filterHiddenFile = module.exports.filterHiddenFile =function(files){
     })
 }
 
+module.exports.chooseOneZipForOneTag = function(files){
+    const _files = files.filter(e => {
+        if(e.includes("アニメ")){
+            return false;
+        }
+        return true;
+    });
+    let tempFiles =  _files.filter(isCompress);
+    tempFiles = filterHiddenFile(tempFiles);
+    return tempFiles[0];
+}
+
+module.exports.chooseOneThumbnailForOneTag = function(files){
+    return files && files[0];
+}
+
 const isPad = module.exports.isPad = function(){
     // https://stackoverflow.com/questions/9038625/detect-if-device-is-ios
     return /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
@@ -111,6 +127,17 @@ module.exports.stringHash = function (str) {
     return result;
 };
 
+module.exports.array_unique = function(arr){
+    const result = [];
+    const marked = {};
+    (arr || []).forEach(e => {
+        if(!marked[e]){
+            result.push(e);
+            marked[e] = true;
+        }
+    });
+    return result;
+}
 
 module.exports.attach = function (obj) {
     obj.isImage = module.exports.isImage;

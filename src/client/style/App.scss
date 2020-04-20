@@ -171,3 +171,12 @@ a {
     display: none;
   }
  }
+
+
+ .click-and-copy-text {
+  cursor: copy;
+  &:hover{
+    background: greenyellow;
+    color: black;
+  }
+}

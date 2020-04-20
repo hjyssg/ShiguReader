@@ -2,6 +2,8 @@ import React, { Component } from 'react';
 import _ from 'underscore';
 import './style/VideoPlayer.scss';
 const filesizeUitl = require('filesize');
+import ClickAndCopyText from './subcomponent/ClickAndCopyText';
+import FileChangeToolbar from './subcomponent/FileChangeToolbar';
 
 export default class VideoPlayer extends Component {
   constructor(props) {
@@ -24,7 +26,8 @@ export default class VideoPlayer extends Component {
                   <source src={url} type="video/mp4" />
                 </video>
               </div>
-              <div className="video-title"> {fn} </div>
+             <div className="video-title">  <ClickAndCopyText  text={fn} /> </div>
+            <FileChangeToolbar showAllButtons className="video-toolbar" file={fn} popPosition={"top-center"}/>
             </div>
             );
   } 

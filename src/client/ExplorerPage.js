@@ -162,6 +162,12 @@ export default class ExplorerPage extends Component {
             this.thumbnails = thumbnails || {};
             this.res = res;
 
+            if(this.videoFiles.length > 0){
+                this.setStateAndSetHash({
+                    showVideo: true
+                });
+            }
+
             //check pageindex
             const availableFiles = this.getFileInPage(this.getFilteredFiles());
 
@@ -339,7 +345,7 @@ export default class ExplorerPage extends Component {
         const { sortOrder, showVideo } = this.state;
         let dirs, files, videos;
         if(!this.getHash()) {
-            dirs = userConfig.home_pathes.concat(userConfig.good_folder);
+            dirs = userConfig.path_will_scan;
             files = [];
             videos = [];
         } else {

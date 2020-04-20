@@ -10,9 +10,34 @@ import ErrorPage from './ErrorPage';
 import CenterSpinner from './subcomponent/CenterSpinner';
 import Pagination from 'rc-pagination';
 import { Redirect } from 'react-router-dom';
+const nameParser = require('../name-parser');
+
 
 const util = require("../util");
-const stringHash = util.stringHash;;
+const stringHash = util.stringHash;
+
+
+function addOne(table, key) {
+  if(!key){
+      return;
+  }
+  if (!table[key]) {
+      table[key] = 1;
+  } else {
+      table[key] = table[key] + 1;
+  }
+}
+
+function addToArray(table, key, value){
+  if(!key || !value){
+    return;
+  }
+  if (!table[key]) {
+      table[key] = [value];
+  } else {
+      table[key].push(value);
+  }
+}
 
 export default class TagPage extends Component {
   constructor(prop) {
@@ -26,13 +51,14 @@ export default class TagPage extends Component {
   }
 
   componentDidMount() {
-    if (this.state.loadedHome) {
+    if (this.state.loaded) {
       return;
     }
 
-    Sender.get('/api/tag', res => {
+    Sender.get('/api/allInfo', res => {
       if (!res.failed) {
-        this.setState({ loadedHome: true, ...res });
+        this.setItems(res);
+        this.setState({ loaded: true });
       } else {
         this.res = res;
         this.forceUpdate();
@@ -40,22 +66,55 @@ export default class TagPage extends Component {
     });
   }
   
+  setItems(res){
+    const { allFiles = [], allThumbnails = {} } = res;
+    const tags = {};
+    const authors = {};
+    const authorToFiles = {};
+    const tagToFiles = {};
+
+    allFiles.forEach((filePath) => {
+        const fileName = util.getFn(filePath);
+        const result = nameParser.parse(fileName);
+        if (result) {
+            const fileThumbnail = allThumbnails[filePath];
+            addOne(authors, result.author);
+            addToArray(authorToFiles, result.author, fileThumbnail );
+            result.tags.forEach(tag => {
+              addOne(tags, tag);
+              addToArray(tagToFiles, tag, fileThumbnail);
+            });
+        }
+    });
+
+    this.setState({
+      tags,
+      authors,
+      authorToFiles,
+      tagToFiles
+    })
+  }
+
   getItems(){
-    const {
-      tags = [],
-      authors = []
-    } = this.state;
-    return this.props.mode === "author" ? authors : tags;
+    return this.isAuthorMode()? this.state.authors : this.state.tags;
+  }
+
+  getThumbnails(){
+    return this.isAuthorMode()? this.state.authorToFiles : this.state.tagToFiles;
   }
 
   getItemLength(){
     return _.keys(this.getItems()).length
   }
 
+  isAuthorMode(){
+    return this.props.mode === "author";
+  }
+
   renderTagList() {
     const {
-        tags = [],
-        authors = []
+      tags = [],
+      authors = []
     } = this.state;
 
     if (_.isEmpty(tags) && _.isEmpty(authors)) {
@@ -65,12 +124,11 @@ export default class TagPage extends Component {
     const items = this.getItems();
     let keys = _.keys(items);
 
+    const tagToThumbnail = this.getThumbnails();
+
     if(this.state.sortByNumber){
       keys.sort((a, b) => items[b] - items[a]);
     }
-
-    // if(this.props.mode === "tag"){
-      //pick comiket in first page
 
     var filterText = this.props.filterText && this.props.filterText.toLowerCase();
     if(filterText){
@@ -85,13 +143,17 @@ export default class TagPage extends Component {
     const tagItems = keys.map((tag) => {
       const itemText = `${tag} (${items[tag]})`;
       const tagHash = stringHash(tag);
-      const url = this.props.mode === "author"? ("/author/" + tagHash) :  ("/tag/" + tagHash);
+      const url = this.isAuthorMode()? ("/author/" + tagHash) :  ("/tag/" + tagHash);
+      const thumbnailUrl = util.chooseOneThumbnailForOneTag(tagToThumbnail[tag]);
 
       return  (<div key={tag} className="col-sm-6 col-md-4 col-lg-3 tag-page-list-item">
                     <div className={"tag-cell"}>
                       <Link target="_blank" className="tag-page-list-item-link" to={url}  key={tag}>
                         <center>{itemText}</center>
-                        <LoadingImage isThumbnail className="tag-page-thumbnail" fileName={tag} mode={this.props.mode} />
+                        <LoadingImage isThumbnail 
+                                      className="tag-page-thumbnail" fileName={tag} 
+                                      mode={this.props.mode} 
+                                      url={thumbnailUrl} />
                       </Link>
                     </div>
                   </div>);
@@ -133,6 +195,7 @@ export default class TagPage extends Component {
     return (<Pagination current={this.pageIndex}  
                         pageSize={this.perPage}
                         total={this.getItemLength()} 
+                        showQuickJumper={{goButton: true}}
                         itemRender={(item, type) =>{
                           if(type === "page"){
                               let url = location.pathname.split("/");
@@ -160,11 +223,12 @@ export default class TagPage extends Component {
       return <ErrorPage res={this.res.res}/>;
     }
 
-    document.title = this.props.mode === "author"? "Authors" : "Tags"; 
+    document.title = this.isAuthorMode()? "Authors" : "Tags"; 
 
     return (
       <div className="tag-container">
         <center className="location-title">{this.getTitle()}</center>
+        {this.renderPagination()}
         {this.renderTagList()}
         {this.renderPagination()}
       </div>

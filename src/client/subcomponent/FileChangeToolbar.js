@@ -11,8 +11,6 @@ import Dropdown from "./Dropdown";
 import DropdownItem from "./DropdownItem";
 const util = require("../../util");
 
-
-
 export default class FileChangeToolbar extends Component {
     static defaultProps = {
         popPosition: "bottom-center"
@@ -130,17 +128,24 @@ export default class FileChangeToolbar extends Component {
     // }
 
     getDropdownItems(){
+        const {showAllButtons} = this.props;
         return userConfig.additional_folder.map((e, index) =>{
-            return  (<DropdownItem key={index}>
-                <div tabIndex="0"  className="" 
+            const dd = (<div tabIndex="0"  className="letter-button" 
             title={"Move to " + e}
-            onClick={this.handleClose.bind(this, e)}> {util.getFn(e)[0]} </div>
-            </DropdownItem>);
+            onClick={this.handleClose.bind(this, e)}> {util.getFn(e)[0]} </div>);
+
+            if(showAllButtons){
+                return dd;
+            }else{
+                return  (<DropdownItem key={index}>
+                    {dd}
+                </DropdownItem>);
+            }
         });
     }
 
     render(){
-        const {file, className, header, isInOneBook} = this.props;
+        const {file, className, header, showAllButtons} = this.props;
         const cn = classNames("file-change-tool-bar", className);
 
         if(!location.hostname.includes("localhost")){
@@ -148,7 +153,7 @@ export default class FileChangeToolbar extends Component {
         }
 
         let additional;
-        if(isInOneBook){
+        if(showAllButtons){
             additional = this.getDropdownItems();
         }else{
             additional = <Dropdown>{this.getDropdownItems()}</Dropdown>;

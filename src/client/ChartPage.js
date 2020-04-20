@@ -18,7 +18,7 @@ export default class ChartPage extends Component {
 
     componentDidMount() {
         if(this.failedTimes < 3) {
-            Sender.post("/api/allInfo", {}, res => {
+            Sender.get("/api/allInfo", res => {
                 this.handleRes(res);
             });
         }

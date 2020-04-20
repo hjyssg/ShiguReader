@@ -8,36 +8,36 @@ const pfs = require('promise-fs');
 const dateFormat = require('dateformat');
 const winston = require("winston");
 var cors = require('cors')
+const fileChangeHandler = require("./fileChangeHandler");
 
 const Constant = require("../constant");
 const fileiterator = require('./file-iterator');
 const nameParser = require('../name-parser');
 const userConfig = require('../user-config');
 const util = require("../util");
+const pathUtil = require("./pathUtil");
+const {
+        fullPathToUrl,
+        getOutputPath,
+        turnPathSepToWebSep,
+        generateContentUrl,
+        isExist,
+        isDirectParent,
+        isSubDirectory
+} = pathUtil;
+const { isImage, isCompress, isMusic, isVideo } = util;
 
-
-
-const isExist = async (path) => {
-    try{
-        const error = await pfs.access(path);
-        return !error;
-    }catch(e){
-        return false;
-    }
-};
-
-let rootPath = path.join(__dirname, "..", "..");
+const rootPath = pathUtil.getRootPath();
 const cache_folder_name = userConfig.cache_folder_name;
-const cachePath = path.join(__dirname, "..", "..", cache_folder_name);
-let logPath = path.join(__dirname, "..","..", userConfig.workspace_name, "log");
+const cachePath = path.join(rootPath, cache_folder_name);
+let logPath = path.join(rootPath, userConfig.workspace_name, "log");
 logPath = path.join(logPath, dateFormat(new Date(), "isoDate"))+ ".log";
-let file_db_path =  path.join(__dirname, "..", "..",  userConfig.workspace_name, "shigureader_local_file_info");
-const sevenZipPath = path.join(process.cwd(), "resource/7zip");
+let file_db_path =  path.join(rootPath,  userConfig.workspace_name, "shigureader_local_file_info");
 
 
 const JsonDB = require('node-json-db').JsonDB;
 const Config = require('node-json-db/dist/lib/JsonDBConfig').Config;
-let zip_content_db_path =  path.join(__dirname, "..", "..",  userConfig.workspace_name, "shigureader_zip_file_content_info");
+let zip_content_db_path =  path.join(rootPath,  userConfig.workspace_name, "shigureader_zip_file_content_info");
 
 const zip_content_db = new JsonDB(new Config(zip_content_db_path, true, true, '/'));
 
@@ -51,18 +51,21 @@ console.log("__dirname", __dirname);
 console.log("rootPath", rootPath);
 console.log("log path:", logPath);
 console.log("file_db_path", file_db_path);
-console.log("sevenZipPath", sevenZipPath);
-console.log("----------------------");
 
 const isWin = process.platform === "win32";
 let sevenZip;
 if(isWin){
+    const sevenZipPath = path.join(process.cwd(), "resource/7zip");
     sevenZip = require(sevenZipPath)['7z'];
+    console.log("sevenZipPath", sevenZipPath);
 }else{
     //assume linux/mac people already install it by cmd
     //https://superuser.com/questions/548349/how-can-i-install-7zip-so-i-can-run-it-from-terminal-on-os-x
     sevenZip = "7z";
 }
+
+console.log("----------------------");
+
 
 const logger = winston.createLogger({
     transports: [
@@ -75,11 +78,23 @@ const logger = winston.createLogger({
     ]
   });
 
-const isImage = util.isImage;
-const isCompress = util.isCompress;
-const isMusic = util.isMusic;
-const isVideo = util.isVideo;
 
+function isSupportedFile(e){
+    return isCompress(e) || isVideo(e);
+}
+
+function updateTagHash(str){
+    const result = nameParser.parse(str);
+    if(result){
+        result.tags.forEach(tag => {
+            db.hashTable[stringHash(tag)] = tag;
+        });
+
+        if(result.author){
+            db.hashTable[stringHash(result.author)] = result.author;
+        }
+    }
+}
 
 const pLimit = require('p-limit');
 const limit = pLimit(6);
@@ -107,38 +122,7 @@ app.use(express.static(rootPath, {
 //  https://stackoverflow.com/questions/10005939/how-do-i-consume-the-json-post-data-in-an-express-application
 app.use(express.json());
 
-function getOutputPath(zipFn) {
-    let outputFolder;
-    outputFolder = path.basename(zipFn, path.extname(zipFn));
-    if(!userConfig.readable_cache_folder_name){
-        outputFolder = stringHash(zipFn).toString();
-    }else{
-        outputFolder = outputFolder.replace(/[`~!@#$%^&*()_|+\-=?;:'",.<>/]/gi, '');
-    }
-    return path.join(cachePath, outputFolder);
-}
-
-function turnPathSepToWebSep(fn) {
-    return fn.replace(new RegExp(`\\${  path.sep}`, 'g'), '/');
-}
-
-function generateContentUrl(pathes, outputPath) {
-    const files = [];
-    const dirs = [];
-    const musicFiles = [];
-    const base = path.basename(outputPath);
-    for (let i = 0; i < pathes.length; i++) {
-        const p = pathes[i];
-        let temp = path.join(cache_folder_name, base, p);
-        temp = turnPathSepToWebSep(temp);
-        if (isImage(p)) {
-            files.push(temp);
-        }else if(isMusic(p)){
-            musicFiles.push(temp);
-        }
-    }
-    return { files, dirs, musicFiles };
-}
+fileChangeHandler.init(app, logger);
 
 //  outputPath is the folder name
 function getCache(outputPath) {
@@ -148,10 +132,6 @@ function getCache(outputPath) {
         return generateContentUrl(db.cacheTable[single_cache_folder], outputPath);
     }
     return null;
-}
-
-function isSupportedFile(e){
-    return isCompress(e) || isVideo(e);
 }
 
 async function init() {
@@ -167,14 +147,11 @@ async function init() {
         }
     }
 
-    console.log("clean previous cache files");
-    doClean();
-
     console.log("scanning local files");
 
     const filter = (e) => {return isSupportedFile(e);};
     let beg = (new Date).getTime()
-    const results = fileiterator(userConfig.home_pathes, { 
+    const results = fileiterator(userConfig.path_will_scan, { 
         filter:filter, 
         doLog: true,
         db_path: file_db_path
@@ -202,7 +179,7 @@ async function init() {
 
     setUpFileWatch();
     const port = isProduction? 3000: 8080;
-    app.listen(port, () => {
+    const server = app.listen(port, () => {
         console.log("----------------------------------------------------------------");
         console.log(`Listening on port ${port}`);
         console.log("init done");
@@ -212,27 +189,12 @@ async function init() {
     });
 }
 
-// async function getExtraInfo(fileName, stat){
-//     if(!isCompress(fileName)　|| fileName.includes("アニメ")){
-//         return;
-//     }
-
-//     let {stdout, stderr} = await limit(() => execa(sevenZip, ['l', '-r', fileName]));
-//     const text = stdout;
-//     if (!text) {
-//         return {};
-//     }
-    
-//     const files = read7zOutput(text, Infinity);
-//     console.log(fileName, files.length);
-//     return {fileNum: files.length}
-// }
-
 function setUpFileWatch(){
     const watcher = chokidar.watch(userConfig.home_pathes, {
         ignored: /\*.jpg/,
         ignoreInitial: true,
-        persistent: true
+        persistent: true,
+        ignorePermissionErrors: true
     });
 
     const addCallBack = (path, stats) => {
@@ -262,7 +224,8 @@ function setUpFileWatch(){
 
     //also for cache files
     const cacheWatcher = chokidar.watch(cache_folder_name, {
-        persistent: true
+        persistent: true,
+        ignorePermissionErrors: true
     });
 
     cacheWatcher
@@ -290,7 +253,6 @@ function setUpFileWatch(){
         });
 }
 
-init();
 
 // http://localhost:8080/api/exhentaiApi
 app.post('/api/exhentaiApi/', cors(), function (req, res) {
@@ -301,73 +263,30 @@ app.post('/api/exhentaiApi/', cors(), function (req, res) {
     console.log("/api/exhentaiApi/");
 })
 
-app.post('/api/moveFile', (req, res) => {
-    const src = req.body && req.body.src;
-    const dest = req.body && req.body.dest;
-
-    if(!src || !dest){
-        res.sendStatus(404);
-        return;
-    }
-
-    (async () =>{
-        try{
-            let err;
-            if(!(await isExist(dest))){
-                err = await pfs.mkdir(dest);
-            }
-            if (!err) {
-                const {stdout, stderr} = await execa("move", [src, dest]);
-                err = stderr;
-                // err = await pfs.rename(src, dest);
-            }
-
-            if(!err){
-                logger.info(`[MOVE] ${src} to ${dest}`);
-                res.sendStatus(200);
-            }else{
-                console.error(err);
-                res.sendStatus(404);
-            }
-        }catch(e){
-            console.error(e);
-            res.sendStatus(404);
-        }
-    })();
-});
-
-app.post('/api/deleteFile', (req, res) => {
-    const src = req.body && req.body.src;
-
-    if(!src){
-        res.sendStatus(404);
-        return;
-    }
-
-    fs.unlink(src, (err) => {
-        if (err){
-            console.error(err);
-            res.sendStatus(404);
-        }else{
-            res.sendStatus(200);
-            logger.info(`[DELETE] ${src}`);
-        }
-    });
-});
-
-app.post('/api/allInfo', (req, res) => {
+//-------------------------Get info ----------------------
+app.get('/api/allInfo', (req, res) => {
     const tempfileToInfo = {};
+    const allFiles = [];
+    // let beg = (new Date).getTime()
     db.allFiles.forEach(e => {
         if(util.isCompress(e)){
             tempfileToInfo[e] = {
                 size: db.fileToInfo[e].size,
                 mtime:  db.fileToInfo[e].mtime
             };
+            allFiles.push(e);
         }
     })
 
+    const allThumbnails = getThumbnails(allFiles);
+
+    // let end = (new Date).getTime();
+    // console.log((end - beg)/1000, "to search");
+
     res.send({
-        fileToInfo: tempfileToInfo
+        fileToInfo: tempfileToInfo,
+        allFiles,
+        allThumbnails
     }); 
 });
 
@@ -395,6 +314,37 @@ app.get('/api/getGoodAuthorNames',async (req, res) => {
     });
 });
 
+/*
+*  deprecated we move the logic to frontend
+*/
+app.get('/api/tag', (req, res) => {
+    function addOne(table, key) {
+        if(!key){
+            return;
+        }
+        if (!table[key]) {
+            table[key] = 1;
+        } else {
+            table[key] = table[key] + 1;
+        }
+    }
+
+    const tags = {};
+    const authors = {};
+    db.allFiles.forEach((e) => {
+        e = path.basename(e);
+        const result = nameParser.parse(e);
+        if (result) {
+            addOne(authors, result.author);
+            result.tags.forEach(tag => addOne(tags, tag));
+        }
+
+        updateTagHash(e);
+    });
+    res.send({ tags, authors });
+});
+
+//----------------for video streaming
 app.get('/api/video/:hash', async (req, res) => {
     const filepath = db.hashTable[req.params.hash];
     const stat = await pfs.stat(filepath);
@@ -432,6 +382,21 @@ app.get('/api/video/:hash', async (req, res) => {
     }
   })
 
+//----------------get folder contents
+function getThumbnails(files){
+    const thumbnails = {};
+    files.forEach(fileName => {
+        const outputPath = getOutputPath(cachePath, fileName);
+        let cacheFiles = getCache(outputPath);
+        cacheFiles = (cacheFiles && cacheFiles.files) || [];
+        const thumb = util.chooseThumbnailImage(cacheFiles);
+        if(thumb){
+            thumbnails[fileName] = fullPathToUrl(thumb);
+        }
+    }); 
+    return thumbnails;
+}
+
 app.post('/api/lsDir', async (req, res) => {
     const hashdir = db.hashTable[(req.body && req.body.hash)];
     const dir = hashdir|| req.body && req.body.dir;
@@ -442,111 +407,56 @@ app.post('/api/lsDir', async (req, res) => {
         return;
     }
 
-    function getThumbnails(files){
-        const thumbnails = {};
-        files.forEach(fileName => {
-            const outputPath = getOutputPath(fileName);
-            let cacheFiles = getCache(outputPath);
-            cacheFiles = (cacheFiles && cacheFiles.files) || [];
-            const thumb = util.chooseThumbnailImage(cacheFiles);
-            if(thumb){
-                thumbnails[fileName] = fullPathToUrl(thumb);
-            }
-        }); 
-        return thumbnails;
-    }
-
     let result;
-    if(isRecursive){
-        const files = [];
-        const dirs = [];
-        const infos = {};
-        db.allFiles.forEach(p => {
-            if(p && p.startsWith(dir)){
-                const ext = path.extname(p).toLowerCase();
-                if (isSupportedFile(ext)){
-                    files.push(p);
-                    infos[p] = db.fileToInfo[p];
-                }
-            }
-        })
+    const files = [];
+    const dirs = [];
+    const infos = {};
+    const oneLevel = !isRecursive;
+    db.allFiles.forEach(p => {
+        if(p && isSubDirectory(dir, p)){
+            const singleInfo = db.fileToInfo[p];
+            if(oneLevel && !isDirectParent(dir, p)){
+                let itsParent = path.resolve(p, "..");
+   
+                //for example
+                //the dir is     F:/git 
+                //the file is    F:/git/a/b/1.zip
+                //add            F:/git/a
+                let counter = 0;
+                while(!isDirectParent(dir, itsParent)){
+                    itsParent = path.resolve(itsParent, "..");
+                    counter++;
 
-        result = {dirs, files, path: dir, fileInfos: infos, thumbnails: getThumbnails(files)};
-        res.send(result);
-    }else{
-        fs.readdir(dir, (error, results) => {
-            const files = [];
-            const dirs = [];
-            const infos = {};
-    
-            for (let i = 0; results && i < results.length; i++) {
-                let p = results[i];
-                const ext = path.extname(p).toLowerCase();
-                p = path.join(dir, p);
-                const tempInfo = db.fileToInfo[p];
-    
-                if (tempInfo && tempInfo.isDirectory) {
-                    dirs.push(p);
-                    infos[p] = tempInfo;
-                } else if (isSupportedFile(ext)) {
-                    files.push(p);
-                    infos[p] = tempInfo;
+                    if(counter > 200){
+                        throw "[lsdir] while loop"
+                    }
                 }
-    
-                updateTagHash(p);
-                db.hashTable[stringHash(p)] = p;
+                dirs.push(itsParent);
+                return;
             }
-    
-            result = {dirs, files, path: dir, fileInfos: infos, thumbnails: getThumbnails(files)};
-            res.send(result);
-        });
-    }
+
+            const ext = path.extname(p).toLowerCase();
+            if (isSupportedFile(ext)){
+                files.push(p);
+                infos[p] = singleInfo;
+            }
+        }
+    })
+
+    const _dirs = util.array_unique(dirs);
+    result = { dirs: _dirs, 
+               files, path: 
+               dir, 
+               fileInfos: infos, 
+               thumbnails: getThumbnails(files)};
+    res.send(result);
 });
 
-function updateTagHash(str){
-    const result = nameParser.parse(str);
-    if(result){
-        result.tags.forEach(tag => {
-            db.hashTable[stringHash(tag)] = tag;
-        });
-
-        if(result.author){
-            db.hashTable[stringHash(result.author)] = result.author;
-        }
-    }
-}
-
-function addOne(table, key) {
-    if(!key){
-        return;
-    }
-    if (!table[key]) {
-        table[key] = 1;
-    } else {
-        table[key] = table[key] + 1;
-    }
-}
-
-app.get('/api/tag', (req, res) => {
-    const tags = {};
-    const authors = {};
-    db.allFiles.forEach((e) => {
-        e = path.basename(e);
-        const result = nameParser.parse(e);
-        if (result) {
-            addOne(authors, result.author);
-            result.tags.forEach(tag => addOne(tags, tag));
-        }
-
-        updateTagHash(e);
-    });
-    res.send({ tags, authors });
-});
-
-const MIN_AUTHOR_LENGTH = 3;
+//---------------------------SEARCH API------------------
 
 function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
     // let beg = (new Date).getTime()
+    const MIN_AUTHOR_TEXT_LENGTH = 3;
     const files = [];
     const fileInfos = {};
     for (let ii = 0; ii < db.allFiles.length; ii++) {
@@ -554,7 +464,7 @@ function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
         const info = db.fileToInfo[e];
         const result = (author || tag) && nameParser.parse(e);
         //sometimes there are mulitple authors for one book
-        if (result && author &&  (result.author === author || (author.length >= MIN_AUTHOR_LENGTH && result.author &&  result.author.includes(author)) || result.group === author )) {
+        if (result && author &&  (result.author === author || (author.length >= MIN_AUTHOR_TEXT_LENGTH && result.author &&  result.author.includes(author)) || result.group === author )) {
             files.push(e);
             fileInfos[e] = info;
         } else if (result && tag && result.tags.indexOf(tag) > -1) {
@@ -575,10 +485,7 @@ function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
     return { files, tag, author, fileInfos };
 }
 
-// tree para
-// 1. hash
-// 2. mode
-// 3. text
+// three para 1.hash 2.mode 3.text
 app.post(Constant.SEARCH_API, (req, res) => {
     const mode = req.body && req.body.mode;
     const hashTag =  db.hashTable[(req.body && req.body.hash)];
@@ -600,6 +507,8 @@ app.post(Constant.SEARCH_API, (req, res) => {
     res.send(searchByTagAndAuthor(tag, author, text));
 });
 
+//-----------------thumbnail related-----------------------------------
+
 app.post(Constant.TAG_THUMBNAIL_PATH_API, (req, res) => {
     const author = req.body && req.body.author;
     const tag = req.body && req.body.tag;
@@ -609,14 +518,7 @@ app.post(Constant.TAG_THUMBNAIL_PATH_API, (req, res) => {
     }
 
     const { files } = searchByTagAndAuthor(tag, author, null, true);
-    const filePathes = files;
-    const fileNames = filePathes.filter(e => {
-        if(e.includes("アニメ")){
-            return false;
-        }
-        return isCompress(e);
-    });
-    chosendFileName = chooseOneZip(fileNames);
+    chosendFileName = util.chooseOneZipForOneTag(files);
     if(!chosendFileName){
         res.sendStatus(404);
         return;
@@ -650,17 +552,6 @@ function read7zOutput(data) {
     return files;
 }
 
-function chooseOneZip(files){
-    let tempFiles = files.filter(isCompress);
-    tempFiles = util.filterHiddenFile(tempFiles);
-    return tempFiles[0];
-}
-
-function fullPathToUrl(img){
-    const fullpath = path.resolve(img);
-    return turnPathSepToWebSep("..\\"+ path.relative(rootPath, fullpath));
-}
-
 function get7zipOption(fileName, outputPath, one){
     //https://sevenzip.osdn.jp/chm/cmdline/commands/extract.htm
     //e make folder as one level
@@ -679,7 +570,7 @@ async function extractThumbnailFromZip(fileName, res, mode, counter) {
     const isPregenerateMode = mode === "pre-generate";
     const sendable = !isPregenerateMode;
 
-    const outputPath = getOutputPath(fileName);
+    const outputPath = getOutputPath(cachePath, fileName);
  
     function sendImage(img){
         let ext = path.extname(img);
@@ -769,11 +660,8 @@ async function extractThumbnailFromZip(fileName, res, mode, counter) {
     }
 }
 
-//  a huge back ground tast 
-//  it generate all thumbnail 
-//  will need about 50 GB local space
-// and will be slow
-// http://localhost:8080/api/pregenerateThumbnails
+//  a huge back ground task 
+//  it generate all thumbnail and will be slow
 app.post('/api/pregenerateThumbnails', (req, res) => {
     let path = req.body && req.body.path;
     if(!path){
@@ -785,20 +673,6 @@ app.post('/api/pregenerateThumbnails', (req, res) => {
     totalFiles.forEach(fileName =>{
         extractThumbnailFromZip(fileName, res, "pre-generate", counter);
     })
-});
-
-function doClean(minized){
-    const cleanCache = require("../tools/cleanCache");
-    try{
-        cleanCache.cleanCache(cachePath, minized);
-    }catch(e){
-        console.error(e);
-    }
-}
-
-app.get('/api/cleanCache', (req, res) => {
-    const minized = req.body && req.body.minized;
-    doClean(minized);
 });
 
 
@@ -813,7 +687,6 @@ app.post('/api/firstImage', async (req, res) => {
     extractThumbnailFromZip(fileName, res);
 });
 
-// http://localhost:8080/api/extract
 app.post('/api/extract', async (req, res) => {
     const hashFile = db.hashTable[(req.body && req.body.hash)];
     let fileName = hashFile ||  req.body && req.body.fileName;
@@ -846,7 +719,7 @@ app.post('/api/extract', async (req, res) => {
         res.send({ files: tempFiles, dirs, musicFiles,path, stat });
     }
 
-    const outputPath = getOutputPath(fileName);
+    const outputPath = getOutputPath(cachePath, fileName);
     const temp = getCache(outputPath);
     //TODO: should use pageNum
     if (temp && temp.files.length > 10) {
@@ -874,6 +747,22 @@ app.post('/api/extract', async (req, res) => {
     })();
 });
 
+//-----------------------------cache---------------------
+
+function doCacheClean(minized){
+    const cleanCache = require("../tools/cleanCache");
+    try{
+        cleanCache.cleanCache(cachePath, minized);
+    }catch(e){
+        console.error(e);
+    }
+}
+
+app.get('/api/cleanCache', (req, res) => {
+    const minized = req.body && req.body.minized;
+    doCacheClean(minized);
+});
+
 if(isProduction){
     const history = require('connect-history-api-fallback');
     app.use(history({
@@ -886,3 +775,4 @@ if(isProduction){
     })
 }
 
+init();
