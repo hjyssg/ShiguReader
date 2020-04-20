@@ -193,7 +193,8 @@ function setUpFileWatch(){
     const watcher = chokidar.watch(userConfig.home_pathes, {
         ignored: /\*.jpg/,
         ignoreInitial: true,
-        persistent: true
+        persistent: true,
+        ignorePermissionErrors: true
     });
 
     const addCallBack = (path, stats) => {
@@ -223,7 +224,8 @@ function setUpFileWatch(){
 
     //also for cache files
     const cacheWatcher = chokidar.watch(cache_folder_name, {
-        persistent: true
+        persistent: true,
+        ignorePermissionErrors: true
     });
 
     cacheWatcher
@@ -306,6 +308,36 @@ app.get('/api/getGoodAuthorNames',async (req, res) => {
         goodAuthors: set,
         otherAuthors: otherSet
     });
+});
+
+/*
+*  deprecated we move the logic to frontend
+*/
+app.get('/api/tag', (req, res) => {
+    function addOne(table, key) {
+        if(!key){
+            return;
+        }
+        if (!table[key]) {
+            table[key] = 1;
+        } else {
+            table[key] = table[key] + 1;
+        }
+    }
+
+    const tags = {};
+    const authors = {};
+    db.allFiles.forEach((e) => {
+        e = path.basename(e);
+        const result = nameParser.parse(e);
+        if (result) {
+            addOne(authors, result.author);
+            result.tags.forEach(tag => addOne(tags, tag));
+        }
+
+        updateTagHash(e);
+    });
+    res.send({ tags, authors });
 });
 
 //----------------for video streaming

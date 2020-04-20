@@ -195,6 +195,7 @@ export default class TagPage extends Component {
     return (<Pagination current={this.pageIndex}  
                         pageSize={this.perPage}
                         total={this.getItemLength()} 
+                        showQuickJumper={{goButton: true}}
                         itemRender={(item, type) =>{
                           if(type === "page"){
                               let url = location.pathname.split("/");
