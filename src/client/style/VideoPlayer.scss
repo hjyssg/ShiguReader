@@ -19,4 +19,19 @@
         font-size: 20px;
         color: #f1f1f1;
     }
+
+    .video-toolbar{
+        display: flex;
+        justify-content: center;
+        align-content: center;
+
+        margin-left: auto;
+        margin-right: auto;
+        margin-top: 20px;
+        font-size: 20px;
+
+        .aji-dropdown-item{
+            font-size: 28px;
+        }
+    }
 }
