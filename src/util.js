@@ -15,7 +15,7 @@ const isImage = module.exports.isImage = function (fn) {
     return imageTypes.some((e) => fn.toLowerCase().endsWith(e));
 };
 
-module.exports.isCompress = function (fn) {
+const isCompress = module.exports.isCompress = function (fn) {
     return compressTypes.some((e) => fn.toLowerCase().endsWith(e));
 };
 
@@ -89,6 +89,22 @@ const filterHiddenFile = module.exports.filterHiddenFile =function(files){
         const temp = getFn(f, "/");
         return temp && temp[0] !== ".";
     })
+}
+
+module.exports.chooseOneZipForOneTag = function(files){
+    const _files = files.filter(e => {
+        if(e.includes("アニメ")){
+            return false;
+        }
+        return true;
+    });
+    let tempFiles =  _files.filter(isCompress);
+    tempFiles = filterHiddenFile(tempFiles);
+    return tempFiles[0];
+}
+
+module.exports.chooseOneThumbnailForOneTag = function(files){
+    return files && files[0];
 }
 
 const isPad = module.exports.isPad = function(){

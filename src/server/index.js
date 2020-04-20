@@ -262,19 +262,25 @@ app.post('/api/exhentaiApi/', cors(), function (req, res) {
 })
 
 //-------------------------Get info ----------------------
-app.post('/api/allInfo', (req, res) => {
+app.get('/api/allInfo', (req, res) => {
     const tempfileToInfo = {};
+    const allFiles = [];
     db.allFiles.forEach(e => {
         if(util.isCompress(e)){
             tempfileToInfo[e] = {
                 size: db.fileToInfo[e].size,
                 mtime:  db.fileToInfo[e].mtime
             };
+            allFiles.push(e);
         }
     })
 
+    const allThumbnails = getThumbnails(allFiles);
+
     res.send({
-        fileToInfo: tempfileToInfo
+        fileToInfo: tempfileToInfo,
+        allFiles,
+        allThumbnails
     }); 
 });
 
@@ -300,33 +306,6 @@ app.get('/api/getGoodAuthorNames',async (req, res) => {
         goodAuthors: set,
         otherAuthors: otherSet
     });
-});
-
-app.get('/api/tag', (req, res) => {
-    function addOne(table, key) {
-        if(!key){
-            return;
-        }
-        if (!table[key]) {
-            table[key] = 1;
-        } else {
-            table[key] = table[key] + 1;
-        }
-    }
-
-    const tags = {};
-    const authors = {};
-    db.allFiles.forEach((e) => {
-        e = path.basename(e);
-        const result = nameParser.parse(e);
-        if (result) {
-            addOne(authors, result.author);
-            result.tags.forEach(tag => addOne(tags, tag));
-        }
-
-        updateTagHash(e);
-    });
-    res.send({ tags, authors });
 });
 
 //----------------for video streaming
@@ -368,6 +347,20 @@ app.get('/api/video/:hash', async (req, res) => {
   })
 
 //----------------get folder contents
+function getThumbnails(files){
+    const thumbnails = {};
+    files.forEach(fileName => {
+        const outputPath = getOutputPath(cachePath, fileName);
+        let cacheFiles = getCache(outputPath);
+        cacheFiles = (cacheFiles && cacheFiles.files) || [];
+        const thumb = util.chooseThumbnailImage(cacheFiles);
+        if(thumb){
+            thumbnails[fileName] = fullPathToUrl(thumb);
+        }
+    }); 
+    return thumbnails;
+}
+
 app.post('/api/lsDir', async (req, res) => {
     const hashdir = db.hashTable[(req.body && req.body.hash)];
     const dir = hashdir|| req.body && req.body.dir;
@@ -376,20 +369,6 @@ app.post('/api/lsDir', async (req, res) => {
     if (!dir || !(await isExist(dir))) {
         res.sendStatus(404);
         return;
-    }
-
-    function getThumbnails(files){
-        const thumbnails = {};
-        files.forEach(fileName => {
-            const outputPath = getOutputPath(cachePath, fileName);
-            let cacheFiles = getCache(outputPath);
-            cacheFiles = (cacheFiles && cacheFiles.files) || [];
-            const thumb = util.chooseThumbnailImage(cacheFiles);
-            if(thumb){
-                thumbnails[fileName] = fullPathToUrl(thumb);
-            }
-        }); 
-        return thumbnails;
     }
 
     let result;
@@ -494,12 +473,6 @@ app.post(Constant.SEARCH_API, (req, res) => {
 
 //-----------------thumbnail related-----------------------------------
 
-function chooseOneZipForOneTag(files){
-    let tempFiles = files.filter(isCompress);
-    tempFiles = util.filterHiddenFile(tempFiles);
-    return tempFiles[0];
-}
-
 app.post(Constant.TAG_THUMBNAIL_PATH_API, (req, res) => {
     const author = req.body && req.body.author;
     const tag = req.body && req.body.tag;
@@ -509,14 +482,7 @@ app.post(Constant.TAG_THUMBNAIL_PATH_API, (req, res) => {
     }
 
     const { files } = searchByTagAndAuthor(tag, author, null, true);
-    const filePathes = files;
-    const fileNames = filePathes.filter(e => {
-        if(e.includes("アニメ")){
-            return false;
-        }
-        return isCompress(e);
-    });
-    chosendFileName = chooseOneZipForOneTag(fileNames);
+    chosendFileName = util.chooseOneZipForOneTag(files);
     if(!chosendFileName){
         res.sendStatus(404);
         return;
