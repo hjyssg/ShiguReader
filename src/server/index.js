@@ -14,8 +14,14 @@ const fileiterator = require('./file-iterator');
 const nameParser = require('../name-parser');
 const userConfig = require('../user-config');
 const util = require("../util");
-
-
+const pathUtil = require("./pathUtil");
+const {
+        fullPathToUrl,
+        getOutputPath,
+        turnPathSepToWebSep,
+        generateContentUrl
+} = pathUtil;
+const { isImage, isCompress, isMusic, isVideo } = util;
 
 const isExist = async (path) => {
     try{
@@ -26,18 +32,17 @@ const isExist = async (path) => {
     }
 };
 
-let rootPath = path.join(__dirname, "..", "..");
+const rootPath = pathUtil.getRootPath();
 const cache_folder_name = userConfig.cache_folder_name;
-const cachePath = path.join(__dirname, "..", "..", cache_folder_name);
-let logPath = path.join(__dirname, "..","..", userConfig.workspace_name, "log");
+const cachePath = path.join(rootPath, cache_folder_name);
+let logPath = path.join(rootPath, userConfig.workspace_name, "log");
 logPath = path.join(logPath, dateFormat(new Date(), "isoDate"))+ ".log";
-let file_db_path =  path.join(__dirname, "..", "..",  userConfig.workspace_name, "shigureader_local_file_info");
-const sevenZipPath = path.join(process.cwd(), "resource/7zip");
+let file_db_path =  path.join(rootPath,  userConfig.workspace_name, "shigureader_local_file_info");
 
 
 const JsonDB = require('node-json-db').JsonDB;
 const Config = require('node-json-db/dist/lib/JsonDBConfig').Config;
-let zip_content_db_path =  path.join(__dirname, "..", "..",  userConfig.workspace_name, "shigureader_zip_file_content_info");
+let zip_content_db_path =  path.join(rootPath,  userConfig.workspace_name, "shigureader_zip_file_content_info");
 
 const zip_content_db = new JsonDB(new Config(zip_content_db_path, true, true, '/'));
 
@@ -51,18 +56,21 @@ console.log("__dirname", __dirname);
 console.log("rootPath", rootPath);
 console.log("log path:", logPath);
 console.log("file_db_path", file_db_path);
-console.log("sevenZipPath", sevenZipPath);
-console.log("----------------------");
 
 const isWin = process.platform === "win32";
 let sevenZip;
 if(isWin){
+    const sevenZipPath = path.join(process.cwd(), "resource/7zip");
     sevenZip = require(sevenZipPath)['7z'];
+    console.log("sevenZipPath", sevenZipPath);
 }else{
     //assume linux/mac people already install it by cmd
     //https://superuser.com/questions/548349/how-can-i-install-7zip-so-i-can-run-it-from-terminal-on-os-x
     sevenZip = "7z";
 }
+
+console.log("----------------------");
+
 
 const logger = winston.createLogger({
     transports: [
@@ -75,11 +83,11 @@ const logger = winston.createLogger({
     ]
   });
 
-const isImage = util.isImage;
-const isCompress = util.isCompress;
-const isMusic = util.isMusic;
-const isVideo = util.isVideo;
 
+
+function isSupportedFile(e){
+    return isCompress(e) || isVideo(e);
+}
 
 const pLimit = require('p-limit');
 const limit = pLimit(6);
@@ -107,38 +115,6 @@ app.use(express.static(rootPath, {
 //  https://stackoverflow.com/questions/10005939/how-do-i-consume-the-json-post-data-in-an-express-application
 app.use(express.json());
 
-function getOutputPath(zipFn) {
-    let outputFolder;
-    outputFolder = path.basename(zipFn, path.extname(zipFn));
-    if(!userConfig.readable_cache_folder_name){
-        outputFolder = stringHash(zipFn).toString();
-    }else{
-        outputFolder = outputFolder.replace(/[`~!@#$%^&*()_|+\-=?;:'",.<>/]/gi, '');
-    }
-    return path.join(cachePath, outputFolder);
-}
-
-function turnPathSepToWebSep(fn) {
-    return fn.replace(new RegExp(`\\${  path.sep}`, 'g'), '/');
-}
-
-function generateContentUrl(pathes, outputPath) {
-    const files = [];
-    const dirs = [];
-    const musicFiles = [];
-    const base = path.basename(outputPath);
-    for (let i = 0; i < pathes.length; i++) {
-        const p = pathes[i];
-        let temp = path.join(cache_folder_name, base, p);
-        temp = turnPathSepToWebSep(temp);
-        if (isImage(p)) {
-            files.push(temp);
-        }else if(isMusic(p)){
-            musicFiles.push(temp);
-        }
-    }
-    return { files, dirs, musicFiles };
-}
 
 //  outputPath is the folder name
 function getCache(outputPath) {
@@ -148,10 +124,6 @@ function getCache(outputPath) {
         return generateContentUrl(db.cacheTable[single_cache_folder], outputPath);
     }
     return null;
-}
-
-function isSupportedFile(e){
-    return isCompress(e) || isVideo(e);
 }
 
 async function init() {
@@ -211,22 +183,6 @@ async function init() {
         console.log("----------------------------------------------------------------");
     });
 }
-
-// async function getExtraInfo(fileName, stat){
-//     if(!isCompress(fileName)　|| fileName.includes("アニメ")){
-//         return;
-//     }
-
-//     let {stdout, stderr} = await limit(() => execa(sevenZip, ['l', '-r', fileName]));
-//     const text = stdout;
-//     if (!text) {
-//         return {};
-//     }
-    
-//     const files = read7zOutput(text, Infinity);
-//     console.log(fileName, files.length);
-//     return {fileNum: files.length}
-// }
 
 function setUpFileWatch(){
     const watcher = chokidar.watch(userConfig.home_pathes, {
@@ -445,7 +401,7 @@ app.post('/api/lsDir', async (req, res) => {
     function getThumbnails(files){
         const thumbnails = {};
         files.forEach(fileName => {
-            const outputPath = getOutputPath(fileName);
+            const outputPath = getOutputPath(cachePath, fileName);
             let cacheFiles = getCache(outputPath);
             cacheFiles = (cacheFiles && cacheFiles.files) || [];
             const thumb = util.chooseThumbnailImage(cacheFiles);
@@ -656,10 +612,6 @@ function chooseOneZip(files){
     return tempFiles[0];
 }
 
-function fullPathToUrl(img){
-    const fullpath = path.resolve(img);
-    return turnPathSepToWebSep("..\\"+ path.relative(rootPath, fullpath));
-}
 
 function get7zipOption(fileName, outputPath, one){
     //https://sevenzip.osdn.jp/chm/cmdline/commands/extract.htm
@@ -679,7 +631,7 @@ async function extractThumbnailFromZip(fileName, res, mode, counter) {
     const isPregenerateMode = mode === "pre-generate";
     const sendable = !isPregenerateMode;
 
-    const outputPath = getOutputPath(fileName);
+    const outputPath = getOutputPath(cachePath, fileName);
  
     function sendImage(img){
         let ext = path.extname(img);
@@ -846,7 +798,7 @@ app.post('/api/extract', async (req, res) => {
         res.send({ files: tempFiles, dirs, musicFiles,path, stat });
     }
 
-    const outputPath = getOutputPath(fileName);
+    const outputPath = getOutputPath(cachePath, fileName);
     const temp = getCache(outputPath);
     //TODO: should use pageNum
     if (temp && temp.files.length > 10) {
