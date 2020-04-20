@@ -267,6 +267,7 @@ app.post('/api/exhentaiApi/', cors(), function (req, res) {
 app.get('/api/allInfo', (req, res) => {
     const tempfileToInfo = {};
     const allFiles = [];
+    // let beg = (new Date).getTime()
     db.allFiles.forEach(e => {
         if(util.isCompress(e)){
             tempfileToInfo[e] = {
@@ -278,6 +279,9 @@ app.get('/api/allInfo', (req, res) => {
     })
 
     const allThumbnails = getThumbnails(allFiles);
+
+    // let end = (new Date).getTime();
+    // console.log((end - beg)/1000, "to search");
 
     res.send({
         fileToInfo: tempfileToInfo,
