@@ -162,6 +162,12 @@ export default class ExplorerPage extends Component {
             this.thumbnails = thumbnails || {};
             this.res = res;
 
+            if(this.videoFiles.length > 0){
+                this.setStateAndSetHash({
+                    showVideo: true
+                });
+            }
+
             //check pageindex
             const availableFiles = this.getFileInPage(this.getFilteredFiles());
 
