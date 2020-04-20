@@ -10,7 +10,6 @@ const winston = require("winston");
 var cors = require('cors')
 const fileChangeHandler = require("./fileChangeHandler");
 
-
 const Constant = require("../constant");
 const fileiterator = require('./file-iterator');
 const nameParser = require('../name-parser');
@@ -22,7 +21,9 @@ const {
         getOutputPath,
         turnPathSepToWebSep,
         generateContentUrl,
-        isExist
+        isExist,
+        isDirectParent,
+        isSubDirectory
 } = pathUtil;
 const { isImage, isCompress, isMusic, isVideo } = util;
 
@@ -150,7 +151,7 @@ async function init() {
 
     const filter = (e) => {return isSupportedFile(e);};
     let beg = (new Date).getTime()
-    const results = fileiterator(userConfig.home_pathes, { 
+    const results = fileiterator(userConfig.path_will_scan, { 
         filter:filter, 
         doLog: true,
         db_path: file_db_path
@@ -392,50 +393,48 @@ app.post('/api/lsDir', async (req, res) => {
     }
 
     let result;
-    if(isRecursive){
-        const files = [];
-        const dirs = [];
-        const infos = {};
-        db.allFiles.forEach(p => {
-            if(p && p.startsWith(dir)){
-                const ext = path.extname(p).toLowerCase();
-                if (isSupportedFile(ext)){
-                    files.push(p);
-                    infos[p] = db.fileToInfo[p];
-                }
-            }
-        })
+    const files = [];
+    const dirs = [];
+    const infos = {};
+    const oneLevel = !isRecursive;
+    db.allFiles.forEach(p => {
+        if(p && isSubDirectory(dir, p)){
+            const singleInfo = db.fileToInfo[p];
+            if(oneLevel && !isDirectParent(dir, p)){
+                let itsParent = path.resolve(p, "..");
+   
+                //for example
+                //the dir is     F:/git 
+                //the file is    F:/git/a/b/1.zip
+                //add            F:/git/a
+                let counter = 0;
+                while(!isDirectParent(dir, itsParent)){
+                    itsParent = path.resolve(itsParent, "..");
+                    counter++;
 
-        result = {dirs, files, path: dir, fileInfos: infos, thumbnails: getThumbnails(files)};
-        res.send(result);
-    }else{
-        fs.readdir(dir, (error, results) => {
-            const files = [];
-            const dirs = [];
-            const infos = {};
-    
-            for (let i = 0; results && i < results.length; i++) {
-                let p = results[i];
-                const ext = path.extname(p).toLowerCase();
-                p = path.join(dir, p);
-                const tempInfo = db.fileToInfo[p];
-    
-                if (tempInfo && tempInfo.isDirectory) {
-                    dirs.push(p);
-                    infos[p] = tempInfo;
-                } else if (isSupportedFile(ext)) {
-                    files.push(p);
-                    infos[p] = tempInfo;
+                    if(counter > 200){
+                        throw "[lsdir] while loop"
+                    }
                 }
-    
-                updateTagHash(p);
-                db.hashTable[stringHash(p)] = p;
+                dirs.push(itsParent);
+                return;
             }
-    
-            result = {dirs, files, path: dir, fileInfos: infos, thumbnails: getThumbnails(files)};
-            res.send(result);
-        });
-    }
+
+            const ext = path.extname(p).toLowerCase();
+            if (isSupportedFile(ext)){
+                files.push(p);
+                infos[p] = singleInfo;
+            }
+        }
+    })
+
+    const _dirs = util.array_unique(dirs);
+    result = { dirs: _dirs, 
+               files, path: 
+               dir, 
+               fileInfos: infos, 
+               thumbnails: getThumbnails(files)};
+    res.send(result);
 });
 
 //---------------------------SEARCH API------------------

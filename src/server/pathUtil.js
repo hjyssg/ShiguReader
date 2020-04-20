@@ -60,11 +60,22 @@ const isExist = async (path) => {
     }
 };
 
+function isDirectParent(parent, filePath){
+    const parentPath = path.resolve(filePath, "..");
+    return parentPath === parent;
+}
+
+function isSubDirectory(parent, child) {
+    return child.length > parent.length && child.startsWith(parent);;
+}
+
 module.exports = {
     fullPathToUrl,
     getOutputPath,
     turnPathSepToWebSep,
     generateContentUrl,
     getRootPath,
-    isExist
+    isExist,
+    isDirectParent,
+    isSubDirectory
 };

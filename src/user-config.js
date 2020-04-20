@@ -37,7 +37,7 @@ module.exports.additional_folder = [
 
 
 //----------------- below section used by developer-----------------------------
-
+module.exports.path_will_scan = module.exports.home_pathes.concat(module.exports.good_folder);
 
 const path = require('path');
 

@@ -5,10 +5,8 @@ const util = require("../util");
 const minifyImageFile = require("./minifyImageFile");
 
 let counter = 0;
-
-function isSubDirectory(parent, child) {
-    return path.relative(child, parent).startsWith('..');
-}
+const pathUtil = require("./pathUtil");
+const {  isSubDirectory } = pathUtil;
 
 const show_error = false;
 

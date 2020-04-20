@@ -339,7 +339,7 @@ export default class ExplorerPage extends Component {
         const { sortOrder, showVideo } = this.state;
         let dirs, files, videos;
         if(!this.getHash()) {
-            dirs = userConfig.home_pathes.concat(userConfig.good_folder);
+            dirs = userConfig.path_will_scan;
             files = [];
             videos = [];
         } else {

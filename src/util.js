@@ -111,6 +111,17 @@ module.exports.stringHash = function (str) {
     return result;
 };
 
+module.exports.array_unique = function(arr){
+    const result = [];
+    const marked = {};
+    (arr || []).forEach(e => {
+        if(!marked[e]){
+            result.push(e);
+            marked[e] = true;
+        }
+    });
+    return result;
+}
 
 module.exports.attach = function (obj) {
     obj.isImage = module.exports.isImage;
