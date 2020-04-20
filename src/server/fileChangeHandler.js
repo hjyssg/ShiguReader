@@ -6,6 +6,7 @@ const {
 const pfs = require('promise-fs');
 const fs = require('fs');
 const execa = require('execa');
+const userConfig = require('../user-config');
 
 
 //handle move file, delete file
@@ -46,23 +47,35 @@ module.exports.init = function(app, logger){
         })();
     });
     
-    app.post('/api/deleteFile', (req, res) => {
+    app.post('/api/deleteFile', async (req, res) => {
         const src = req.body && req.body.src;
     
-        if(!src){
+        if(!src || !(await isExist(src))){
             res.sendStatus(404);
             return;
         }
-    
-        fs.unlink(src, (err) => {
-            if (err){
-                console.error(err);
-                res.sendStatus(404);
-            }else{
-                res.sendStatus(200);
-                logger.info(`[DELETE] ${src}`);
-            }
-        });
+
+        if(userConfig.move_file_to_recyle){
+            const trash = require('trash');
+            await trash([src]);
+            if(!(await isExist(src))){
+              res.sendStatus(200);
+              logger.info(`[DELETE] ${src}`);
+            } else{
+              console.error(err);
+              res.sendStatus(404);
+           }
+        }else{
+            fs.unlink(src, (err) => {
+                if (err){
+                    console.error(err);
+                    res.sendStatus(404);
+                }else{
+                    res.sendStatus(200);
+                    logger.info(`[DELETE] ${src}`);
+                }
+            });
+        }
     });
 };
 

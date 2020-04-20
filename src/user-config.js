@@ -55,6 +55,9 @@ if(!module.exports.home_pathes && module.exports.home_pathes.length === 0) {
     throw "need home paths"
 }
 
+//delete or move to recyle bin
+module.exports.move_file_to_recyle = true;
+
 //wehter to use meaningful file name in cache folder
 //or encode they by hash function
 module.exports.readable_cache_folder_name = true;
