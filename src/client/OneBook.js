@@ -309,11 +309,17 @@ export default class OneBook extends Component {
   }
   
   next(event) {
+    if(this.state.files.length <= 1){
+      return;
+    }
     let index = this.state.index + 1;
     this.changePage(index, event);
   }
   
   prev(event) {
+    if(this.state.files.length <= 1){
+      return;
+    }
     let index = this.state.index - 1;
     this.changePage(index, event);
   }
@@ -386,10 +392,14 @@ export default class OneBook extends Component {
     } else {
       let images;
       if(userConfig.onebook_only_image_per_page){
+        const cn = classNames("mobile-single-image", {
+          "has-music": this.hasMusic()
+        });
+
         images = (<div className="mobile-single-image-container" 
                         ref={(e) =>  this.imgContainerRef = e}
                         onClick={this.onClickMobileOneImageContainer.bind(this)}> 
-                <img className={"mobile-single-image"} 
+                <img className={cn} 
                   style={{"maxHeight": this.getMaxHeight()}}
                   ref={(img) =>  this.imgRef = img}
                   src={getUrl(files[index])}  />

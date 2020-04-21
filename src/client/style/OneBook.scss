@@ -124,8 +124,8 @@
         max-width: 100%;
         max-height: 900px;
 
-        @media screen and (max-height: 760px) {
-          margin-bottom: 600px;
+        &.has-music {
+          max-height: 600px;
         }
       }
     }
