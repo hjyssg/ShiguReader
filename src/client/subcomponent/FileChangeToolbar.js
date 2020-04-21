@@ -130,7 +130,7 @@ export default class FileChangeToolbar extends Component {
     getDropdownItems(){
         const {showAllButtons} = this.props;
         return userConfig.additional_folder.map((e, index) =>{
-            const dd = (<div tabIndex="0"  className="letter-button" 
+            const dd = (<div tabIndex="0"  className="letter-button"  key={index}
             title={"Move to " + e}
             onClick={this.handleClose.bind(this, e)}> {util.getFn(e)[0]} </div>);
 

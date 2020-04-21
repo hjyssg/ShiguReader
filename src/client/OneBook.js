@@ -395,12 +395,10 @@ export default class OneBook extends Component {
         const cn = classNames("mobile-single-image", {
           "has-music": this.hasMusic()
         });
-
         images = (<div className="mobile-single-image-container" 
                         ref={(e) =>  this.imgContainerRef = e}
                         onClick={this.onClickMobileOneImageContainer.bind(this)}> 
                 <img className={cn} 
-                  style={{"maxHeight": this.getMaxHeight()}}
                   ref={(img) =>  this.imgRef = img}
                   src={getUrl(files[index])}  />
                </div>);
@@ -408,7 +406,6 @@ export default class OneBook extends Component {
         images =files.map(file => {
           return (<div key={file} className="mobile-one-book-image_array-container"> 
                       <LoadingImage className={"mobile-one-book-image"} 
-                              style={{"maxHeight": this.getMaxHeight()}}
                                bottomOffet={-4000}
                                topOffet={-3000}
                                url={getUrl(file)} 

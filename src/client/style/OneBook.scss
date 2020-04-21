@@ -115,8 +115,8 @@
       margin-right: 5px;
       overflow: scroll;
 
-      @media screen and (min-height: 800px) {
-        min-height: 800px;;
+      @media screen and (min-height: 600px) {
+        min-height: 600px;;
       }
 
       .mobile-single-image{
@@ -125,7 +125,8 @@
         max-height: 900px;
 
         &.has-music {
-          max-height: 600px;
+          max-width: 500px;
+          max-height: 500px;
         }
       }
     }
