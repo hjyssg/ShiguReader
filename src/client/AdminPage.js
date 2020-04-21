@@ -21,17 +21,18 @@ export default class AdminPage extends Component {
 
     onPrenerate(){
         const pathInput = ReactDOM.findDOMNode(this.pathInputRef);
+        const path = pathInput.value || this.state.prePath;
 
         Swal.fire({
             title: "Pregenerate Thumbnail",
-            text: pathInput.value || this.state.prePath ,
+            text:  path,
             showCancelButton: true,
             confirmButtonText: 'Yes',
             cancelButtonText: 'No'
         }).then((result) => {
             if (result.value === true) {
                 const reqB = {
-                    path: this.state.prePath
+                    path: path
                 }
                 Sender.post('/api/pregenerateThumbnails', reqB, res =>{
                     console.log(res)
