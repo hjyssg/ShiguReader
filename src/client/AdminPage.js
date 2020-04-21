@@ -9,6 +9,7 @@ const userConfig = require('../user-config');
 // const filesizeUitl = require('filesize');
 // import CenterSpinner from './subcomponent/CenterSpinner';
 // import ErrorPage from './ErrorPage';
+import ReactDOM from 'react-dom';
 import Swal from 'sweetalert2';
 import RadioButtonGroup from './subcomponent/RadioButtonGroup';
 
@@ -19,9 +20,11 @@ export default class AdminPage extends Component {
     }
 
     onPrenerate(){
+        const pathInput = ReactDOM.findDOMNode(this.pathInputRef);
+
         Swal.fire({
             title: "Pregenerate Thumbnail",
-            text: this.state.prePath ,
+            text: pathInput.value || this.state.prePath ,
             showCancelButton: true,
             confirmButtonText: 'Yes',
             cancelButtonText: 'No'
@@ -69,7 +72,9 @@ export default class AdminPage extends Component {
                 <div className="admin-section">
                     <div className="admin-section-title"> Pregenerate Thumbnail</div>
                     <div className="admin-section-content">
-                        <RadioButtonGroup checked={userConfig.folder_list.indexOf(this.state.prePath)} options={userConfig.folder_list} name="pregenerate" onChange={this.onPathChange.bind(this)}/>
+                        <RadioButtonGroup checked={userConfig.folder_list.indexOf(this.state.prePath)} 
+                                        options={userConfig.folder_list} name="pregenerate" onChange={this.onPathChange.bind(this)}/>
+                        <input className="aji-path-intput" ref={pathInput => this.pathInputRef = pathInput} />
                         <div className="submit" onClick={this.onPrenerate.bind(this)}>Submit</div>
                     </div>
                 </div>
