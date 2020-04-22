@@ -15,16 +15,13 @@
     opacity: 1;
   }
 
-  @media screen and (max-width: 1200px) {
+  @media screen and (max-width: 1600px) {
     display: none
   }
 
-  // @media screen and (min-width: 1200px) {
-  //   width: 250px; 
-  //   padding-top: 100px; 
-  //   padding-left: 20px;
-  //   padding-right: 10px;
-  // }
+  &.anchorSideMenu {
+    display: block !important;
+  }
 
   position: fixed; /* Stay in place */
   z-index: 1; /* Stay on top */

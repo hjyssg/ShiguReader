@@ -530,16 +530,28 @@ export default class ExplorerPage extends Component {
      );
     }
 
+    
+    renderToggleMenuButton(){
+        const text = "toggle side menu"
+        return (
+           <span className="toggle-side-menu-button exp-top-button" onClick={this.toggleSideMenu.bind(this)}> 
+           <span className="fas fa-ellipsis-h" />
+           <span> {text} </span>
+           </span>
+        );
+       }
+
     getExplorerToolbar(){
         const mode = this.getMode();
-        const fileCount = (<div key="file-count" className="file-count col-6 col-md-3">{this.getFilteredFiles().length + " files"} </div>);
+        const fileCount = (<div key="file-count" className="file-count col-6 col-md-1">{this.getFilteredFiles().length + " files"} </div>);
         if(mode === MODE_EXPLORER && this.path){
             const topButtons = (
             <div className="top-button-gropus container">
                 <div className="row">
+                    <div classNames="col-6 col-md-3" > {this.renderToggleMenuButton()} </div>  
                     <div className="col-6 col-md-3"> {this.renderToggleThumbNailButton()} </div>
                     <div className="col-6 col-md-3"> {this.renderLevelButton()} </div>
-                    <div className="col-6 col-md-3"> {this.renderShowVideoButton()} </div>
+                    <div className="col-6 col-md-2"> {this.renderShowVideoButton()} </div>
                     {fileCount}
                 </div>
             </div>);
@@ -634,9 +646,7 @@ export default class ExplorerPage extends Component {
     }
 
     toggleSideMenu(event){
-        if(event.target.className.includes( "side-menu-click-layer")){
-            this.setState({anchorSideMenu: !this.state.anchorSideMenu})
-        }
+        this.setState({anchorSideMenu: !this.state.anchorSideMenu})
     }
 
     setFilterText(text){
@@ -747,7 +757,7 @@ export default class ExplorerPage extends Component {
                 anchorSideMenu: this.state.anchorSideMenu
             });
 
-            return (<div className={cn} onClick={this.toggleSideMenu.bind(this)}>
+            return (<div className={cn}>
                     <div className="side-menu-radio-title"> File Order </div>
                     <RadioButtonGroup 
                             checked={SORT_OPTIONS.indexOf(this.state.sortOrder)} 
