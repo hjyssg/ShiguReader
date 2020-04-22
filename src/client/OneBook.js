@@ -424,17 +424,23 @@ export default class OneBook extends Component {
     var x = event.pageX;
     var y = event.pageY;
 
+    console.log(y);
+
     const dom = ReactDOM.findDOMNode(this.imgContainerRef);
     const width = dom.clientWidth;
+    const height = dom.clientHeight;
 
-    if(x > width/2){
-      if(userConfig.mobile_click_right_side_to_go_next){
+    const posX = x > width/2;
+    const posY = y > height/2;
+
+    if(posX){
+      if(posY){
         this.next();
       }else{
         this.prev();
       }
     }else{
-      if(userConfig.mobile_click_right_side_to_go_next){
+      if(posY){
         this.prev();
       }else{
         this.next();
