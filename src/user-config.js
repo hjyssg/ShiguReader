@@ -47,8 +47,6 @@ const cache_folder_name= module.exports.cache_folder_name = "cache";
 
 module.exports.onebook_only_image_per_page = true;
 
-module.exports.mobile_click_right_side_to_go_next = true;
-
 module.exports.folder_list = module.exports.home_pathes.concat(module.exports.good_folder, module.exports.not_good_folder);
 
 if(!module.exports.home_pathes && module.exports.home_pathes.length === 0) {
