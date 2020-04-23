@@ -5,7 +5,7 @@ const util = require("../util");
 const minifyImageFile = require("./minifyImageFile");
 
 let counter = 0;
-const pathUtil = require("./pathUtil");
+const pathUtil = require("../server/pathUtil");
 const {  isSubDirectory } = pathUtil;
 
 const show_error = false;
