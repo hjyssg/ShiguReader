@@ -242,7 +242,8 @@ function checkIfDownload(text, allFiles){
         const r2 = parse(e);
 
         if(r1 && r2){
-            if(r1.author === r2.author || r1.group === r2.group){
+            if( (r1.author && r2.author && r1.author === r2.author) || 
+                (r1.group && r2.group && r1.group === r2.group)){
                 status =  SAME_AUTHOR;
                 if(r1.title === r2.title){
                     status = IS_IN_PC;
