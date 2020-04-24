@@ -234,7 +234,7 @@ function isSimilar(s1, s2){
     if(!s1 && !s2){
         return true;
     }else if(s1 && s2){
-        return (s1.includes(s2) || s2.includes(s1)) && Math.abs(s1.length - s2.length) < 3;
+        return oneInsideOne(s1, s2) && Math.abs(s1.length - s2.length) < 3;
     }else{
         return true;
     }
@@ -244,13 +244,25 @@ function isSame(s1, s2){
     return s1 && s2 && s1 === s2;
 }
 
+function oneInsideOne(s1, s2){
+  return s1 && s2 && (s1.includes(s2) || s2.includes(s1));
+}
+
 function checkIfDownload(text, allFiles){
     var status = 0;
+    let similarTitle;
     for (var ii = 0; ii < allFiles.length; ii++) {
       const e = allFiles[ii];
+      if(isOnlyDigit(e) || isOnlyDigit(text)){
+          continue;
+      }
+
       if(e === text){
-         status = IS_IN_PC;
-         break;
+        status = IS_IN_PC;
+        break;
+      } else if(oneInsideOne(text, e)){
+        status = Math.max(status, LIKELY_IN_PC);
+        similarTitle = e;
       }else{
         const r1 = parse(text);
         const r2 = parse(e);
@@ -263,25 +275,29 @@ function checkIfDownload(text, allFiles){
             const isSimilarGroup = isSimilar(r1.group, r2.group);
 
             if( (isSameAuthor && isSimilarGroup) || (isSameGroup && isSimilarAuthor) ){
-                status =  SAME_AUTHOR;
+                status = Math.max(status,  SAME_AUTHOR);
                 if(r1.title === r2.title){
-                    status = IS_IN_PC;
+                    status = Math.max(status, IS_IN_PC);
                     break;
-                }else if(r1.title.includes(r2.title) || r2.title.includes(r1.title)){
+                }else if(oneInsideOne(r1.title, r2.title)){
                     status = LIKELY_IN_PC;
+                    similarTitle = e;
                 }
             }
         }
       }
     };
-    return status;
+    return {
+        status, 
+        similarTitle
+    }
 }
 
 
 
-const IS_IN_PC = "in_pc";
-const LIKELY_IN_PC = "likely_in_pc";
-const SAME_AUTHOR = "from same_author"
+const IS_IN_PC = 100;
+const LIKELY_IN_PC = 70;
+const SAME_AUTHOR = 20;
 
 function onLoad(dom) {
     const res = JSON.parse(dom.responseText);
@@ -292,14 +308,14 @@ function onLoad(dom) {
     nodes.forEach(e => {
           const text = e.textContent;
           const r =  parse(text);
-          const status = checkIfDownload(text, allFiles);
+          const {status, similarTitle} = checkIfDownload(text, allFiles);
           if(status === IS_IN_PC){
             e.style.color =  "#61ef47"; //"green";
             e.title = "明确已经下载过了";
             e.style.fontWeight = 600;
           } else if(status === LIKELY_IN_PC){
             e.style.color = "#efd41b"; //"yellow";
-            e.title = "可能下载过了";
+            e.title = `电脑里的“${similarTitle}”和这本好像一样`;
             e.style.fontWeight = 600;
           }else if(status === SAME_AUTHOR){
             e.style.color = "#ef8787"; // "red";
@@ -315,6 +331,7 @@ function appendLink(fileTitleDom, text){
     link.textContent = `Search ${text} in ShiguReader`;
     link.style.display = "block";
     fileTitleDom.append(link);
+    link.target="_blank"
     link.href = "http://localhost:3000/search/" + text;
 }
 
