@@ -549,7 +549,7 @@ export default class ExplorerPage extends Component {
                     <div className="col-6 col-md-3"> {this.renderToggleThumbNailButton()} </div>
                     <div className="col-6 col-md-3"> {this.renderLevelButton()} </div>
                     <div className="col-6 col-md-3"> {this.renderShowVideoButton()} </div>
-                    <div className="col-6 col-md-3" > {this.renderToggleMenuButton()} </div>  
+                    <div className="col-6 col-md-3 d-flex flex-xl-row-reverse" > {this.renderToggleMenuButton()} </div>  
             </div>);
 
             return (<div className="container explorer-top">

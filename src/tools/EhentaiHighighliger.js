@@ -308,16 +308,19 @@ function onLoad(dom) {
 
     nodes.forEach(e => {
             const text = e.textContent;
+
+            if(text.includes("翻訳") || text.includes("翻译")){
+                return;
+            }
+
             const r =  parse(text);
             const {status, similarTitle} = checkIfDownload(text, allFiles);
             if(status === IS_IN_PC){
                 e.style.color =  "#61ef47"; //"green";
                 e.title = "明确已经下载过了";
-                e.style.fontWeight = 600;
             } else if(status === LIKELY_IN_PC){
                 e.style.color = "#efd41b"; //"yellow";
                 e.title = `电脑里的“${similarTitle}”和这本好像一样`;
-                e.style.fontWeight = 600;
             }else if(status === SAME_AUTHOR){
                 e.style.color = "#ef8787"; // "red";
                 let authortimes = goodAuthors[r.author]||0 + otherAuthors[r.author]||0;
@@ -327,6 +330,9 @@ function onLoad(dom) {
                 }else{
                     e.title = `下载同样社团“${r.group}”的书 ${grouptimes}次`;
                 }
+            }
+
+            if(status){
                 e.style.fontWeight = 600;
             }
     });
@@ -387,5 +393,16 @@ function main() {
 //     }
 // }
 GM_addStyle(".shigureader_link {   font-size: 12px;   text-decoration: none;} .shigureader_link:hover {    color: #b0f3ff;} ");
+
+// [title]:hover:after{
+//     content: attr(title);
+//     background:white;
+//     color: rgb(27, 25, 25);
+//     font-size: 20px;
+//     padding: 5px;
+//     border-radius:5px;
+//     border:1px solid;
+//     z-index: 100;
+//   }
 
 main();
