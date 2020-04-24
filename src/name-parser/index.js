@@ -231,7 +231,6 @@ function parse(str) {
     type = type || "etc";
 
     let title = str;
-    let title = str;
     (bMacthes||[]).concat(pMacthes||[]).concat([/\[/g, /\]/g, /\(/g, /\)/g ]).forEach(e => {
         title = title.replace(e, "");
     })

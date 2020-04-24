@@ -284,16 +284,48 @@ function onLoad(dom) {
             e.style.color = "red";
             e.title = "下载同样作者的书";
           }
-      })
-  }
+    });
+}
+
+function appendLink(fileTitleDom, text){
+    var link = document.createElement("a");
+    link.textContent = `Search ${text} in ShiguReader`;
+    link.style.display = "block";
+    fileTitleDom.append(link);
+    link.href = "http://localhost:3000/search/" + text;
+}
+
   
 function main() {
+    //annote file table
     var api = 'http://localhost:8080/api/exhentaiApi';
     GM_xmlhttpRequest({
         method: "GET",
         url:api,
         onload: onLoad
-      });
+    });
+
+    //add shigureader search link  
+    let fileTitleDom = document.getElementById("gj");
+    let title = fileTitleDom && fileTitleDom.textContent;
+
+    if(!title){
+        fileTitleDom = document.getElementById("gn");
+        title = fileTitleDom && fileTitleDom.textContent;
+    }
+
+    if(title){
+        const r = parse(title);
+        if(r){
+            if(r.author){
+                appendLink(fileTitleDom, r.author);
+            }else if(r.group){
+                appendLink(fileTitleDom, r.group);
+            }
+        }else{
+            appendLink(fileTitleDom, title);
+        }
+    }
   }
   
   main()
