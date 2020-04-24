@@ -7,7 +7,6 @@ const execa = require('execa');
 const pfs = require('promise-fs');
 const dateFormat = require('dateformat');
 const winston = require("winston");
-var cors = require('cors')
 const fileChangeHandler = require("./fileChangeHandler");
 
 const Constant = require("../constant");
@@ -268,12 +267,18 @@ function setUpFileWatch(){
 
 
 // http://localhost:8080/api/exhentaiApi
-app.post('/api/exhentaiApi/', cors(), function (req, res) {
-    const src = req.body && req.body.src;
+app.get('/api/exhentaiApi', function (req, res) {
+    let allfiles = db.allFiles.filter(isCompress);
+    allfiles = allfiles.map(e => {
+        return path.basename(e, path.extname(e)).trim();
+    });
+
+    const result = getGoodAndOtherSet();
     res.send({
-        allFiles: db.allFiles
+        allFiles: allfiles,
+        goodAuthors: result.set,
+        otherAuthors: result.otherSet
     }); 
-    console.log("/api/exhentaiApi/");
 })
 
 //-------------------------Get info ----------------------
@@ -303,7 +308,7 @@ app.get('/api/allInfo', (req, res) => {
     }); 
 });
 
-app.get('/api/getGoodAuthorNames',async (req, res) => {
+function getGoodAndOtherSet(){
     const set = {};
     const otherSet = {};
     db.allFiles.forEach(p => {
@@ -321,9 +326,18 @@ app.get('/api/getGoodAuthorNames',async (req, res) => {
         }
     });
 
+    return {
+        set,
+        otherSet
+    }
+}
+
+app.get('/api/getGoodAuthorNames',async (req, res) => {
+    const result = getGoodAndOtherSet();
+
     res.send({
-        goodAuthors: set,
-        otherAuthors: otherSet
+        goodAuthors: result.set,
+        otherAuthors: result.otherSet
     });
 });
 
