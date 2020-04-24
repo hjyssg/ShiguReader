@@ -545,21 +545,18 @@ export default class ExplorerPage extends Component {
         const mode = this.getMode();
         if(mode === MODE_EXPLORER && this.path){
             const topButtons = (
-            <div className="top-button-gropus container">
-                <div className="row">
+            <div className="top-button-gropus row">
                     <div className="col-6 col-md-3"> {this.renderToggleThumbNailButton()} </div>
                     <div className="col-6 col-md-3"> {this.renderLevelButton()} </div>
                     <div className="col-6 col-md-3"> {this.renderShowVideoButton()} </div>
-                    <div key="file-count" className="file-count col-6 col-md-3">{this.getFilteredFiles().length + " files"} </div>
-                </div>
-                <div className="row">
-                    <div className="col-6 col-md-9">  </div>
                     <div className="col-6 col-md-3" > {this.renderToggleMenuButton()} </div>  
-                </div>
             </div>);
 
-            return (<div className="container">
-                        <Breadcrumb path={this.path} /> 
+            return (<div className="container explorer-top">
+                        <div className="row">
+                        <Breadcrumb path={this.path} className="col-12 col-md-10 col-xl-11" /> 
+                        <div className="file-count col-6 col-md-2 col-xl-1">{this.getFilteredFiles().length + " files"} </div>
+                        </div>
                         {topButtons}
                     </div>);
         }
