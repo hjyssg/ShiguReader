@@ -9,6 +9,7 @@
 // @author			Aji47
 // @include			*://exhentai.org/*
 // @include			*://g.e-hentai.org/*
+// @include			*://e-hentai.org/*
 // ==/UserScript==
 
 //用于tempermonkey
