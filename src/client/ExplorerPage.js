@@ -579,7 +579,8 @@ export default class ExplorerPage extends Component {
 
     getLinkToEhentai(){
         let searchable = this.tag || this.author;
-        if(this.getMode() === MODE_SEARCH){
+        const isSearchMode = this.getMode() === MODE_SEARCH;
+        if(isSearchMode){
             searchable = this.getHash();
         }
 
@@ -592,12 +593,14 @@ export default class ExplorerPage extends Component {
                 btn = this.renderToggleThumbNailButton();
             }
 
-            const videoButuon = this.getMode() === MODE_SEARCH &&  this.renderShowVideoButton();
+            const videoButuon = isSearchMode &&  this.renderShowVideoButton();
+            const menuButton = isSearchMode && this.renderToggleMenuButton();
 
             return (<center className={"location-title"}>
                         <a className="explorer-external-link" target="_blank" href={link} title={title}>{this.getTitle()} </a>
                         {btn}
                         {videoButuon}
+                        {menuButton}
                     </center>);
         } 
     }

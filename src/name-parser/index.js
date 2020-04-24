@@ -140,6 +140,19 @@ const _TYPES_ = [
     "画集"
 ]
 
+function includesWithoutCase(list, str){
+    if(!str){
+        return false;
+    }
+    list = list.map(e => e.toLowerCase());
+    str = str.toLowerCase();
+    return list.includes(str);
+}
+
+function toLowerCase(list, str){
+    return list.map(e => e.toLowerCase());
+}
+
 function parse(str) {
     if (!str || !isCompress(str)) {
       return null;
@@ -205,25 +218,24 @@ function parse(str) {
         return e;
     })
 
-    if(not_author_but_tag.includes(author)){
+    if(includesWithoutCase(not_author_but_tag, author)){
         tags.push(author);
         author = null;
     }
 
     let comiket = null;
     tags.forEach(e => {
-        if(ALL_COMIC_TAGS.includes(e)){
+        if(includesWithoutCase(ALL_COMIC_TAGS, e)){
             comiket = e;
         }
     })
 
     let type;
     _TYPES_.forEach(t => {
-        if(tags.includes(t)){
+        if(includesWithoutCase(tags, t)){
             type = t;
         }
     });
-
 
     if(!type && (comiket|| group)){
         type = "Doujin";

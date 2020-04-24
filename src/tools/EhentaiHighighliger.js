@@ -127,6 +127,19 @@ const _TYPES_ = [
     "画集"
 ]
 
+function includesWithoutCase(list, str){
+    if(!str){
+        return false;
+    }
+    list = list.map(e => e.toLowerCase());
+    str = str.toLowerCase();
+    return list.includes(str);
+}
+
+function toLowerCase(list, str){
+    return list.map(e => e.toLowerCase());
+}
+
 function parse(str) {
     if (!str) {
       return null;
@@ -187,31 +200,29 @@ function parse(str) {
         return e;
     })
 
-    if(not_author_but_tag.includes(author)){
+    if(includesWithoutCase(not_author_but_tag, author)){
         tags.push(author);
         author = null;
     }
 
     let comiket = null;
     tags.forEach(e => {
-        if(ALL_COMIC_TAGS.includes(e)){
+        if(includesWithoutCase(ALL_COMIC_TAGS, e)){
             comiket = e;
         }
     })
 
     let type;
     _TYPES_.forEach(t => {
-        if(tags.includes(t)){
+        if(includesWithoutCase(tags, t)){
             type = t;
         }
     });
-
 
     if(!type && (comiket|| group)){
         type = "Doujin";
     }
     type = type || "etc";
-
 
     let title = str;
     (bMacthes||[]).concat(pMacthes||[]).concat([/\[/g, /\]/g, /\(/g, /\)/g ]).forEach(e => {
@@ -253,8 +264,9 @@ function oneInsideOne(s1, s2){
 function checkIfDownload(text, allFiles){
     var status = 0;
     let similarTitle;
+    text = text.toLowerCase();
     for (var ii = 0; ii < allFiles.length; ii++) {
-      const e = allFiles[ii];
+      let e = allFiles[ii].toLowerCase();
       if(isOnlyDigit(e) || isOnlyDigit(text)){
           continue;
       }
@@ -303,12 +315,14 @@ const SAME_AUTHOR = 20;
 
 function onLoad(dom) {
     const res = JSON.parse(dom.responseText);
-    const nodes = Array.prototype.slice.call(document.getElementsByClassName("gl4t glname glink"));
-
+    const nodes = Array.prototype.slice.call(document.getElementsByClassName("gl1t"));
     const {allFiles, goodAuthors, otherAuthors } =  res;
 
     nodes.forEach(e => {
-            const text = e.textContent;
+        try{
+            const subNode = e.getElementsByClassName("gl4t")[0];
+            const thumbnailNode = e.getElementsByTagName("img")[0];
+            const text = subNode.textContent;
 
             if(text.includes("翻訳") || text.includes("翻译")){
                 return;
@@ -317,25 +331,27 @@ function onLoad(dom) {
             const r =  parse(text);
             const {status, similarTitle} = checkIfDownload(text, allFiles);
             if(status === IS_IN_PC){
-                e.style.color =  "#61ef47"; //"green";
-                e.title = "明确已经下载过了";
+                subNode.style.color =  "#61ef47"; //"green";
+                subNode.title = "明确已经下载过了";
             } else if(status === LIKELY_IN_PC){
-                e.style.color = "#efd41b"; //"yellow";
-                e.title = `电脑里的“${similarTitle}”和这本好像一样`;
+                subNode.style.color = "#efd41b"; //"yellow";
+                subNode.title = `电脑里的“${similarTitle}”和这本好像一样`;
             }else if(status === SAME_AUTHOR){
-                e.style.color = "#ef8787"; // "red";
+                subNode.style.color = "#ef8787"; // "red";
                 let authortimes = goodAuthors[r.author]||0 + otherAuthors[r.author]||0;
                 let grouptimes = goodAuthors[r.group]||0 + otherAuthors[r.group]||0;
                 if(authortimes > grouptimes){
-                    e.title = `下载同样作者“${r.author}”的书 ${authortimes}次`;
+                    subNode.title = `下载同样作者“${r.author}”的书 ${authortimes}次`;
                 }else{
-                    e.title = `下载同样社团“${r.group}”的书 ${grouptimes}次`;
+                    subNode.title = `下载同样社团“${r.group}”的书 ${grouptimes}次`;
                 }
             }
-
             if(status){
-                e.style.fontWeight = 600;
+                subNode.style.fontWeight = 600;
             }
+        }catch(e){
+            console.error(e);
+        }
     });
 }
 

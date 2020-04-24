@@ -430,8 +430,10 @@ export default class OneBook extends Component {
     const width = dom.clientWidth;
     const height = dom.clientHeight;
 
+    const upperRange = 300;  //use the fixed upper range is more comportable
+
     const posX = x > width/2;
-    const posY = y > height/2;
+    const posY = y > upperRange;
 
     if(posX){
       if(posY){
