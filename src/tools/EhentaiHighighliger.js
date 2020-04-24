@@ -230,6 +230,20 @@ function parse(str) {
 }
 //--------------
 
+function isSimilar(s1, s2){
+    if(!s1 && !s2){
+        return true;
+    }else if(s1 && s2){
+        return (s1.includes(s2) || s2.includes(s1)) && Math.abs(s1.length - s2.length) < 3;
+    }else{
+        return true;
+    }
+}
+
+function isSame(s1, s2){
+    return s1 && s2 && s1 === s2;
+}
+
 function checkIfDownload(text, allFiles){
     var status = 0;
     for (var ii = 0; ii < allFiles.length; ii++) {
@@ -242,8 +256,13 @@ function checkIfDownload(text, allFiles){
         const r2 = parse(e);
 
         if(r1 && r2){
-            if( (r1.author && r2.author && r1.author === r2.author) || 
-                (r1.group && r2.group && r1.group === r2.group)){
+            const isSameAuthor = isSame(r1.author, r2.author);
+            const isSameGroup = isSame(r1.group, r2.group);
+
+            const isSimilarAuthor = isSimilar(r1.author, r2.author);
+            const isSimilarGroup = isSimilar(r1.group, r2.group);
+
+            if( (isSameAuthor && isSimilarGroup) || (isSameGroup && isSimilarAuthor) ){
                 status =  SAME_AUTHOR;
                 if(r1.title === r2.title){
                     status = IS_IN_PC;
@@ -275,14 +294,18 @@ function onLoad(dom) {
           const r =  parse(text);
           const status = checkIfDownload(text, allFiles);
           if(status === IS_IN_PC){
-            e.style.color = "green";
+            e.style.color =  "#61ef47"; //"green";
             e.title = "明确已经下载过了";
+            e.style.fontWeight = 600;
           } else if(status === LIKELY_IN_PC){
-            e.style.color = "yellow";
+            e.style.color = "#efd41b"; //"yellow";
             e.title = "可能下载过了";
+            e.style.fontWeight = 600;
           }else if(status === SAME_AUTHOR){
-            e.style.color = "red";
-            e.title = "下载同样作者的书";
+            e.style.color = "#ef8787"; // "red";
+            const times = goodAuthors[r.author]||0 + otherAuthors[r.author]||0;
+            e.title = `下载同样作者的书 ${times}次`;
+            e.style.fontWeight = 600;
           }
     });
 }

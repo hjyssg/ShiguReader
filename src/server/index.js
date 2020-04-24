@@ -329,7 +329,7 @@ function getGoodAndOtherSet(){
 
     return {
         set,
-        other
+        otherSet
     }
 }
 
