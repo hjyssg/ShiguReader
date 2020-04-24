@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name			EhentaiLight配合Shigureader
-// @grant       GM.xmlHttpRequest
 // @grant       GM_xmlhttpRequest
+// @grant       GM_addStyle
 // @connect     localhost
 // @namespace       Aji47
 // @version			0.0.1
@@ -230,11 +230,12 @@ function parse(str) {
 }
 //--------------
 
-function isSimilar(s1, s2){
+function isSimilar(s1, s2, distance){
+    distance = distance || 3;
     if(!s1 && !s2){
         return true;
     }else if(s1 && s2){
-        return oneInsideOne(s1, s2) && Math.abs(s1.length - s2.length) < 3;
+        return oneInsideOne(s1, s2) && Math.abs(s1.length - s2.length) < distance;
     }else{
         return true;
     }
@@ -260,7 +261,7 @@ function checkIfDownload(text, allFiles){
       if(e === text){
         status = IS_IN_PC;
         break;
-      } else if(oneInsideOne(text, e)){
+      } else if(oneInsideOne(text, e) && isSimilar(text, e, 8)){
         status = Math.max(status, LIKELY_IN_PC);
         similarTitle = e;
       }else{
@@ -306,23 +307,23 @@ function onLoad(dom) {
     const {allFiles, goodAuthors, otherAuthors } =  res;
 
     nodes.forEach(e => {
-          const text = e.textContent;
-          const r =  parse(text);
-          const {status, similarTitle} = checkIfDownload(text, allFiles);
-          if(status === IS_IN_PC){
-            e.style.color =  "#61ef47"; //"green";
-            e.title = "明确已经下载过了";
-            e.style.fontWeight = 600;
-          } else if(status === LIKELY_IN_PC){
-            e.style.color = "#efd41b"; //"yellow";
-            e.title = `电脑里的“${similarTitle}”和这本好像一样`;
-            e.style.fontWeight = 600;
-          }else if(status === SAME_AUTHOR){
-            e.style.color = "#ef8787"; // "red";
-            const times = goodAuthors[r.author]||0 + otherAuthors[r.author]||0;
-            e.title = `下载同样作者的书 ${times}次`;
-            e.style.fontWeight = 600;
-          }
+            const text = e.textContent;
+            const r =  parse(text);
+            const {status, similarTitle} = checkIfDownload(text, allFiles);
+            if(status === IS_IN_PC){
+                e.style.color =  "#61ef47"; //"green";
+                e.title = "明确已经下载过了";
+                e.style.fontWeight = 600;
+            } else if(status === LIKELY_IN_PC){
+                e.style.color = "#efd41b"; //"yellow";
+                e.title = `电脑里的“${similarTitle}”和这本好像一样`;
+                e.style.fontWeight = 600;
+            }else if(status === SAME_AUTHOR){
+                e.style.color = "#ef8787"; // "red";
+                const times = goodAuthors[r.author]||0 + otherAuthors[r.author]||0;
+                e.title = `下载同样作者的书 ${times}次`;
+                e.style.fontWeight = 600;
+            }
     });
 }
 
@@ -331,7 +332,8 @@ function appendLink(fileTitleDom, text){
     link.textContent = `Search ${text} in ShiguReader`;
     link.style.display = "block";
     fileTitleDom.append(link);
-    link.target="_blank"
+    link.target = "_blank"
+    link.className ="shigureader_link";
     link.href = "http://localhost:3000/search/" + text;
 }
 
@@ -362,10 +364,23 @@ function main() {
             }else if(r.group){
                 appendLink(fileTitleDom, r.group);
             }
-        }else{
+
+            if(r.title){
+               appendLink(fileTitleDom, r.title);
+            }
+        } else {
             appendLink(fileTitleDom, title);
         }
     }
-  }
-  
-  main()
+}
+
+// .shigureader_link {
+//     font-size: 12px;
+//     text-decoration:none;
+//     &:hover{
+//         color: #b0f3ff
+//     }
+// }
+GM_addStyle(".shigureader_link {   font-size: 12px;   text-decoration: none;} .shigureader_link:hover {    color: #b0f3ff;} ");
+
+main();
