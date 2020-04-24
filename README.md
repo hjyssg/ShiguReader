@@ -109,6 +109,10 @@ npm run dev
 windows语言设置:
 ![unicode setting](screenshot/unicode-setting.png)
 
+##### 和tamper monkey一起使用
+    把EhentaiHighighliger.js添加到tamper monkey。
+    在你上绅士网的时候，该脚本会通过与后端服务器通信。帮助你知道文件下载过与否。
+
 ##### 热键
 漫画页面  
 enter: 全屏  
