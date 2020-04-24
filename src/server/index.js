@@ -7,7 +7,6 @@ const execa = require('execa');
 const pfs = require('promise-fs');
 const dateFormat = require('dateformat');
 const winston = require("winston");
-var cors = require('cors');
 const fileChangeHandler = require("./fileChangeHandler");
 
 const Constant = require("../constant");
