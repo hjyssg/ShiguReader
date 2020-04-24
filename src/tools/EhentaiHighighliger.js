@@ -320,8 +320,13 @@ function onLoad(dom) {
                 e.style.fontWeight = 600;
             }else if(status === SAME_AUTHOR){
                 e.style.color = "#ef8787"; // "red";
-                const times = goodAuthors[r.author]||0 + otherAuthors[r.author]||0;
-                e.title = `下载同样作者的书 ${times}次`;
+                let authortimes = goodAuthors[r.author]||0 + otherAuthors[r.author]||0;
+                let grouptimes = goodAuthors[r.group]||0 + otherAuthors[r.group]||0;
+                if(authortimes > 0){
+                    e.title = `下载同样作者“${r.author}”的书 ${authortimes}次`;
+                }else{
+                    e.title = `下载同样社团“${r.group}”的书 ${grouptimes}次`;
+                }
                 e.style.fontWeight = 600;
             }
     });
