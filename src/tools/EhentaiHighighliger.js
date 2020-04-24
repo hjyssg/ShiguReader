@@ -322,7 +322,7 @@ function onLoad(dom) {
                 e.style.color = "#ef8787"; // "red";
                 let authortimes = goodAuthors[r.author]||0 + otherAuthors[r.author]||0;
                 let grouptimes = goodAuthors[r.group]||0 + otherAuthors[r.group]||0;
-                if(authortimes > 0){
+                if(authortimes > grouptimes){
                     e.title = `下载同样作者“${r.author}”的书 ${authortimes}次`;
                 }else{
                     e.title = `下载同样社团“${r.group}”的书 ${grouptimes}次`;
