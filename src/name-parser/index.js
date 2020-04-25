@@ -224,6 +224,11 @@ function parse(str) {
         author = null;
     }
 
+    if(!author && !group){
+        localCache[str] = "NO_EXIST";
+        return;
+    }
+
     let comiket = null;
     tags.forEach(e => {
         if(includesWithoutCase(ALL_COMIC_TAGS, e)){
@@ -247,11 +252,6 @@ function parse(str) {
     (bMacthes||[]).concat(pMacthes||[]).concat([/\[/g, /\]/g, /\(/g, /\)/g ]).forEach(e => {
         title = title.replace(e, "");
     })
-
-    if(!author && !group){
-        localCache[str] = "NO_EXIST";
-        return;
-    }
 
     const result = {
         author, tags, comiket, type, group, title

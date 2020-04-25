@@ -206,6 +206,11 @@ function parse(str) {
         author = null;
     }
 
+    if(!author && !group){
+        localCache[str] = "NO_EXIST";
+        return;
+    }
+
     let comiket = null;
     tags.forEach(e => {
         if(includesWithoutCase(ALL_COMIC_TAGS, e)){
@@ -229,11 +234,6 @@ function parse(str) {
     (bMacthes||[]).concat(pMacthes||[]).concat([/\[/g, /\]/g, /\(/g, /\)/g ]).forEach(e => {
         title = title.replace(e, "");
     })
-
-    if(!author && !group){
-        localCache[str] = "NO_EXIST";
-        return;
-    }
 
     const result = {
         author, tags, comiket, type, group, title
@@ -267,7 +267,7 @@ const IS_IN_PC = 100;
 const LIKELY_IN_PC = 70;
 const SAME_AUTHOR = 20;
 
-function checkIfDownload(text, allFileInLowerCase, goodAuthors, otherAuthors, authorTable){
+function checkIfDownload(text, allFileInLowerCase, authorTable){
     var status = 0;
     let similarTitle;
     text = text.toLowerCase();
@@ -332,17 +332,20 @@ function checkIfDownload(text, allFileInLowerCase, goodAuthors, otherAuthors, au
     }
 }
 
-
-
 const time1 = new Date().getTime();
 
 function onLoad(dom) {
-    const time2 = new Date().getTime();
-    console.log((time2 - time1)/1000, "to load");
+    // const time2 = new Date().getTime();
+    // console.log((time2 - time1)/1000, "to load");
 
+    sessionStorage.setItem('responseText',  dom.responseText);
+    sessionStorage.setItem('lastResTime', getCurrentTime());
     const res = JSON.parse(dom.responseText);
+    highlightThumbnail(res.allFiles);
+}
+
+function highlightThumbnail(allFiles){
     const nodes = Array.prototype.slice.call(document.getElementsByClassName("gl1t"));
-    const {allFiles, goodAuthors, otherAuthors } =  res;
     const allFileInLowerCase = allFiles.map(e => e.toLowerCase());
 
     const authorTable = {};
@@ -354,8 +357,8 @@ function onLoad(dom) {
         }
     });
 
-    const time25 = new Date().getTime();
-    console.log((time25 - time2)/1000, "to parse name");
+    // const time25 = new Date().getTime();
+    // console.log((time25 - time2)/1000, "to parse name");
 
     nodes.forEach(e => {
         try{
@@ -367,7 +370,7 @@ function onLoad(dom) {
                 return;
             }
             const r =  parse(text);
-            const {status, similarTitle} = checkIfDownload(text, allFileInLowerCase, goodAuthors, otherAuthors, authorTable);
+            const {status, similarTitle} = checkIfDownload(text, allFileInLowerCase, authorTable);
             e.status = status || 0;
             if(status === IS_IN_PC){
                 subNode.style.color =  "#61ef47"; //"green";
@@ -378,13 +381,8 @@ function onLoad(dom) {
                 e.style.background = "#212121";
             }else if(status === SAME_AUTHOR){
                 subNode.style.color = "#ef8787"; // "red";
-                let authortimes = goodAuthors[r.author]||0 + otherAuthors[r.author]||0;
-                let grouptimes = goodAuthors[r.group]||0 + otherAuthors[r.group]||0;
-                if(authortimes > grouptimes){
-                    thumbnailNode.title = `下载同样作者“${r.author}”的书 ${authortimes}次`;
-                }else{
-                    thumbnailNode.title = `下载同样社团“${r.group}”的书 ${grouptimes}次`;
-                }
+                let authortimes = authorTable[r.author.toLowerCase()].length; 
+                thumbnailNode.title = `下载同样作者“${r.author}”的书 ${authortimes}次`;
                 e.style.background = "#111111"
             }
             if(status){
@@ -402,8 +400,8 @@ function onLoad(dom) {
     parentRoot.innerHTML = '';
     nodes.forEach(e => parentRoot.appendChild(e));
 
-    const time3 = new Date().getTime();
-    console.log((time3 - time25)/1000, "to change dom");
+    // const time3 = new Date().getTime();
+    // console.log((time3 - time25)/1000, "to change dom");
 }
 
 function appendLink(fileTitleDom, text){
@@ -416,14 +414,26 @@ function appendLink(fileTitleDom, text){
     link.href = "http://localhost:3000/search/" + text;
 }
 
+function getCurrentTime(){
+    return new Date().getTime();
+}
+
 function main() {
-    //annote file table
-    var api = 'http://localhost:8080/api/exhentaiApi';
-    GM_xmlhttpRequest({
-        method: "GET",
-        url:api,
-        onload: onLoad
-    });
+    const responseText = sessionStorage.getItem('responseText');
+    const lastResTime = sessionStorage.getItem('lastResTime');
+    const EXPIRE_TIME = 1000*60*2;
+    if(responseText && lastResTime && ( getCurrentTime() - (+lastResTime) < EXPIRE_TIME )){
+        const res = JSON.parse(responseText);
+        highlightThumbnail(res.allFiles);
+    }else{
+          //annote file table
+        var api = 'http://localhost:8080/api/exhentaiApi';
+        GM_xmlhttpRequest({
+            method: "GET",
+            url:api,
+            onload: onLoad
+        });
+    }
 
     //add shigureader search link  
     let fileTitleDom = document.getElementById("gj");

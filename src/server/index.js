@@ -282,11 +282,8 @@ app.get('/api/exhentaiApi', function (req, res) {
         return path.basename(e, path.extname(e)).trim();
     });
 
-    const result = getGoodAndOtherSet();
     hentaiCache = {
-        allFiles: allfiles,
-        goodAuthors: result.set,
-        otherAuthors: result.otherSet
+        allFiles: allfiles
     }
     res.send(hentaiCache); 
 })
