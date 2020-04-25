@@ -35,7 +35,12 @@ const not_author_but_tag = [
 ]
 
 const convertTable = {};
-const localCache = {};
+let localCache = {};
+const tempCache = sessionStorage.getItem("localCache");
+if(tempCache){
+    localCache =  JSON.parse(tempCache);
+}
+
 
 const ALL_COMIC_TAGS = [];
 const comiket_tags = [];
@@ -141,7 +146,7 @@ function toLowerCase(list, str){
 }
 
 function parse(str) {
-    if (!str) {
+    if (!str || localCache[str] === "NO_EXIST") {
       return null;
     }
 
@@ -156,7 +161,8 @@ function parse(str) {
     const hasP = (pMacthes && pMacthes.length > 0);
 
     if(!hasB && !hasP){
-        return null;
+        localCache[str] = "NO_EXIST";
+        return;
     }
 
     let tags = [];
@@ -205,6 +211,11 @@ function parse(str) {
         author = null;
     }
 
+    if(!author && !group){
+        localCache[str] = "NO_EXIST";
+        return;
+    }
+
     let comiket = null;
     tags.forEach(e => {
         if(includesWithoutCase(ALL_COMIC_TAGS, e)){
@@ -225,13 +236,10 @@ function parse(str) {
     type = type || "etc";
 
     let title = str;
-    (bMacthes||[]).concat(pMacthes||[]).concat([/\[/g, /\]/g, /\(/g, /\)/g ]).forEach(e => {
+    (bMacthes||[]).concat( pMacthes||[], tags||[], [/\[/g, /\]/g, /\(/g, /\)/g ]).forEach(e => {
         title = title.replace(e, "");
     })
-
-    if(!author && !group){
-        return;
-    }
+    title = title.trim();
 
     const result = {
         author, tags, comiket, type, group, title
@@ -261,90 +269,132 @@ function oneInsideOne(s1, s2){
   return s1 && s2 && (s1.includes(s2) || s2.includes(s1));
 }
 
-function checkIfDownload(text, allFiles){
+const IS_IN_PC = 100;
+const LIKELY_IN_PC = 70;
+const SAME_AUTHOR = 20;
+
+function checkIfDownload(text, allFileInLowerCase, authorTable){
     var status = 0;
     let similarTitle;
     text = text.toLowerCase();
-    for (var ii = 0; ii < allFiles.length; ii++) {
-      let e = allFiles[ii].toLowerCase();
-      if(isOnlyDigit(e) || isOnlyDigit(text)){
-          continue;
-      }
+    let r1 = parse(text);
+    //use author as index to find
+    if(r1 && r1.author){
+        if(!authorTable[r1.author]){
+            //totally unknown author
+            return {
+                status, 
+                similarTitle
+            };
+        } else {
+            status = SAME_AUTHOR;
+            let breakLoop = false;
+            authorTable[r1.author].forEach(e => {
+                if(breakLoop){
+                    return;
+                }
 
-      if(e === text){
-        status = IS_IN_PC;
-        break;
-      } else if(oneInsideOne(text, e) && isSimilar(text, e, 8)){
-        status = Math.max(status, LIKELY_IN_PC);
-        similarTitle = e;
-      }else{
-        const r1 = parse(text);
-        const r2 = parse(e);
-
-        if(r1 && r2){
-            const isSameAuthor = isSame(r1.author, r2.author);
-            const isSameGroup = isSame(r1.group, r2.group);
-
-            const isSimilarAuthor = isSimilar(r1.author, r2.author);
-            const isSimilarGroup = isSimilar(r1.group, r2.group);
-
-            if( (isSameAuthor && isSimilarGroup) || (isSameGroup && isSimilarAuthor) ){
-                status = Math.max(status,  SAME_AUTHOR);
-                if(r1.title === r2.title){
-                    status = Math.max(status, IS_IN_PC);
+                r1 = parse(text);
+                const r2 = parse(e);
+          
+                const isSimilarGroup = isSimilar(r1.group, r2.group);
+        
+                if(isSimilarGroup){
+                    if(r1.title === r2.title){
+                        status = Math.max(status, IS_IN_PC);
+                        breakLoop = true;
+                    }else if(oneInsideOne(r1.title, r2.title)){
+                        status = LIKELY_IN_PC;
+                        similarTitle = e;
+                    }
+                }
+            })
+        }
+    }else{
+        //pure dull
+        if(status < LIKELY_IN_PC){
+            for (var ii = 0; ii < allFileInLowerCase.length; ii++) {
+                let e = allFileInLowerCase[ii];
+                if(isOnlyDigit(e)){
+                    continue;
+                }
+    
+                if(e === text){
+                    status = IS_IN_PC;
                     break;
-                }else if(oneInsideOne(r1.title, r2.title)){
-                    status = LIKELY_IN_PC;
-                    similarTitle = e;
+                }
+          
+                if(isSimilar(text, e, 8)){
+                  status = Math.max(status, LIKELY_IN_PC);
+                  similarTitle = e;
                 }
             }
         }
-      }
-    };
+    }
+
     return {
         status, 
         similarTitle
     }
 }
 
-
-
-const IS_IN_PC = 100;
-const LIKELY_IN_PC = 70;
-const SAME_AUTHOR = 20;
+const time1 = new Date().getTime();
 
 function onLoad(dom) {
+    // const time2 = new Date().getTime();
+    // console.log((time2 - time1)/1000, "to load");
+
+    sessionStorage.setItem('responseText',  dom.responseText);
+    sessionStorage.setItem('lastResTime', getCurrentTime());
     const res = JSON.parse(dom.responseText);
+    highlightThumbnail(res.allFiles);
+}
+
+function highlightThumbnail(allFiles){
     const nodes = Array.prototype.slice.call(document.getElementsByClassName("gl1t"));
-    const {allFiles, goodAuthors, otherAuthors } =  res;
+    if(!nodes  || nodes.length === 0) {
+        return;
+    }
+    const allFileInLowerCase = allFiles.map(e => e.toLowerCase());
+
+    const authorTable = {};
+    allFileInLowerCase.forEach(e => {
+        const r =  parse(e);
+        if(r && r.author){
+            authorTable[r.author] = authorTable[r.author]||[];
+            authorTable[r.author].push(e);
+        }
+    });
+
+    sessionStorage.setItem("localCache", JSON.stringify(localCache));
+
+    // const time25 = new Date().getTime();
+    // console.log((time25 - time2)/1000, "to parse name");
 
     nodes.forEach(e => {
         try{
             const subNode = e.getElementsByClassName("gl4t")[0];
             const thumbnailNode = e.getElementsByTagName("img")[0];
             const text = subNode.textContent;
-
+            e.status = 0;
             if(text.includes("翻訳") || text.includes("翻译")){
                 return;
             }
-
             const r =  parse(text);
-            const {status, similarTitle} = checkIfDownload(text, allFiles);
+            const {status, similarTitle} = checkIfDownload(text, allFileInLowerCase, authorTable);
+            e.status = status || 0;
             if(status === IS_IN_PC){
                 subNode.style.color =  "#61ef47"; //"green";
-                subNode.title = "明确已经下载过了";
+                thumbnailNode.title = "明确已经下载过了";
             } else if(status === LIKELY_IN_PC){
                 subNode.style.color = "#efd41b"; //"yellow";
-                subNode.title = `电脑里的“${similarTitle}”和这本好像一样`;
+                thumbnailNode.title = `电脑里的“${similarTitle}”和这本好像一样`;
+                e.style.background = "#212121";
             }else if(status === SAME_AUTHOR){
                 subNode.style.color = "#ef8787"; // "red";
-                let authortimes = goodAuthors[r.author]||0 + otherAuthors[r.author]||0;
-                let grouptimes = goodAuthors[r.group]||0 + otherAuthors[r.group]||0;
-                if(authortimes > grouptimes){
-                    subNode.title = `下载同样作者“${r.author}”的书 ${authortimes}次`;
-                }else{
-                    subNode.title = `下载同样社团“${r.group}”的书 ${grouptimes}次`;
-                }
+                let authortimes = authorTable[r.author.toLowerCase()].length; 
+                thumbnailNode.title = `下载同样作者“${r.author}”的书 ${authortimes}次`;
+                e.style.background = "#111111"
             }
             if(status){
                 subNode.style.fontWeight = 600;
@@ -353,6 +403,16 @@ function onLoad(dom) {
             console.error(e);
         }
     });
+
+    //sort by its status
+    //and replace the orginal nodes
+    nodes.sort((a, b) =>{return  a.status - b.status;})
+    const parentRoot = nodes[0].parentElement;
+    parentRoot.innerHTML = '';
+    nodes.forEach(e => parentRoot.appendChild(e));
+
+    // const time3 = new Date().getTime();
+    // console.log((time3 - time25)/1000, "to change dom");
 }
 
 function appendLink(fileTitleDom, text){
@@ -365,15 +425,26 @@ function appendLink(fileTitleDom, text){
     link.href = "http://localhost:3000/search/" + text;
 }
 
-  
+function getCurrentTime(){
+    return new Date().getTime();
+}
+
 function main() {
-    //annote file table
-    var api = 'http://localhost:8080/api/exhentaiApi';
-    GM_xmlhttpRequest({
-        method: "GET",
-        url:api,
-        onload: onLoad
-    });
+    const responseText = sessionStorage.getItem('responseText');
+    const lastResTime = sessionStorage.getItem('lastResTime');
+    const EXPIRE_TIME = 1000*60*2;
+    if(responseText && lastResTime && ( getCurrentTime() - (+lastResTime) < EXPIRE_TIME )){
+        const res = JSON.parse(responseText);
+        highlightThumbnail(res.allFiles);
+    }else{
+          //annote file table
+        var api = 'http://localhost:8080/api/exhentaiApi';
+        GM_xmlhttpRequest({
+            method: "GET",
+            url:api,
+            onload: onLoad
+        });
+    }
 
     //add shigureader search link  
     let fileTitleDom = document.getElementById("gj");

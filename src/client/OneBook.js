@@ -436,17 +436,9 @@ export default class OneBook extends Component {
     const posY = y > upperRange;
 
     if(posX){
-      if(posY){
-        this.next();
-      }else{
-        this.prev();
-      }
+      this.next();
     }else{
-      if(posY){
-        this.prev();
-      }else{
-        this.next();
-      }
+      this.prev();
     }
 
     event.preventDefault();
@@ -592,6 +584,7 @@ export default class OneBook extends Component {
         {this.renderTags()}
         {this.renderToolbar()}
         {this.renderNextPrevButton()}
+        {this.renderSecondBar()}
 
         {isContentBelow && content}
       </div>

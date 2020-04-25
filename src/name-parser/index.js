@@ -154,7 +154,7 @@ function toLowerCase(list, str){
 }
 
 function parse(str) {
-    if (!str || !isCompress(str)) {
+    if (!str || !isCompress(str) || localCache[str] === "NO_EXIST") {
       return null;
     }
 
@@ -169,7 +169,8 @@ function parse(str) {
     const hasP = (pMacthes && pMacthes.length > 0);
 
     if(!hasB && !hasP){
-        return null;
+        localCache[str] = "NO_EXIST";
+        return;
     }
 
     let tags = [];
@@ -223,6 +224,11 @@ function parse(str) {
         author = null;
     }
 
+    if(!author && !group){
+        localCache[str] = "NO_EXIST";
+        return;
+    }
+
     let comiket = null;
     tags.forEach(e => {
         if(includesWithoutCase(ALL_COMIC_TAGS, e)){
@@ -243,13 +249,10 @@ function parse(str) {
     type = type || "etc";
 
     let title = str;
-    (bMacthes||[]).concat(pMacthes||[]).concat([/\[/g, /\]/g, /\(/g, /\)/g ]).forEach(e => {
+    (bMacthes||[]).concat( pMacthes||[], tags||[], [/\[/g, /\]/g, /\(/g, /\)/g ]).forEach(e => {
         title = title.replace(e, "");
     })
-
-    if(!author && !group){
-        return;
-    }
+    title = title.trim();
 
     const result = {
         author, tags, comiket, type, group, title
