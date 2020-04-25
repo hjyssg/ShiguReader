@@ -596,6 +596,8 @@ function get7zipOption(fileName, outputPath, one){
     }
 }
 
+const extractlimit = pLimit(2);
+
 async function extractThumbnailFromZip(fileName, res, mode, counter) {
     if(!util.isCompress(fileName)){
         return;
@@ -638,6 +640,12 @@ async function extractThumbnailFromZip(fileName, res, mode, counter) {
             let temp = path.join(outputPath, path.basename(tempOne));
             temp = turnPathSepToWebSep(temp);
             sendImage(temp);
+
+            if(isPregenerateMode){
+                counter.minCounter++;
+                counter.counter++;
+                console.log("[extractThumbnailFromZip] already exist", fileName);
+            }
         }
         return;
     }
@@ -664,7 +672,7 @@ async function extractThumbnailFromZip(fileName, res, mode, counter) {
 
         //Overwrite mode: -aos	Skip extracting of existing files.
         const opt = get7zipOption(fileName, outputPath, one);
-        const {stderrForThumbnail} = await execa(sevenZip, opt);
+        const {stderrForThumbnail} = await extractlimit(() => execa(sevenZip, opt));
         if (!stderrForThumbnail) {
             // send path to client
             let temp = path.join(outputPath, path.basename(one));
@@ -676,13 +684,13 @@ async function extractThumbnailFromZip(fileName, res, mode, counter) {
             minifyImageFile(outputPath, path.basename(one), (err, info) => { 
                 if(isPregenerateMode){
                     counter.minCounter++;
-                    console.log("[extractThumbnailFromZip] get minized thumbnail", counter.minCounter);
+                    console.log("[extractThumbnailFromZip] get minized thumbnail", fileName,  counter.minCounter);
                 }
              });
 
             if(isPregenerateMode){
                 counter.counter++;
-                console.log("[extractThumbnailFromZip] pre-generate", counter.counter, "/", counter.total);
+                console.log("[extractThumbnailFromZip] pre-generate", fileName, counter.counter, "/", counter.total);
             }
         } else {
             console.error("[extractThumbnailFromZip extract exec failed]", code);
@@ -701,8 +709,13 @@ app.post('/api/pregenerateThumbnails', (req, res) => {
     if(!path){
         return;
     }
+
+    let totalFiles = db.allFiles.filter(isCompress);
+    if(path !== "All_Pathes"){
+        totalFiles = db.allFiles.filter(e => e.includes(path));
+    }
+
     // const totalFiles = !path ? db.allFiles : db.allFiles.filter(e => e.includes(path));
-    const totalFiles = db.allFiles.filter(e => e.includes(path));
     let counter = {counter: 1, total: totalFiles.length, minCounter: 1};
     totalFiles.forEach(fileName =>{
         extractThumbnailFromZip(fileName, res, "pre-generate", counter);
