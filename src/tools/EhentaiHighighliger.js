@@ -263,68 +263,76 @@ function oneInsideOne(s1, s2){
   return s1 && s2 && (s1.includes(s2) || s2.includes(s1));
 }
 
-function checkIfDownload(text, allFileInLowerCase, goodAuthors, otherAuthors){
+const IS_IN_PC = 100;
+const LIKELY_IN_PC = 70;
+const SAME_AUTHOR = 20;
+
+function checkIfDownload(text, allFileInLowerCase, goodAuthors, otherAuthors, authorTable){
     var status = 0;
     let similarTitle;
+    text = text.toLowerCase();
     let r1 = parse(text);
-    if(r1 && r1.author && !goodAuthors[r1.author] && !otherAuthors[r1.author]){
-        //totally unknown author
-        return {
-            status, 
-            similarTitle
-        };
+    //use author as index to find
+    if(r1 && r1.author){
+        if(!authorTable[r1.author]){
+            //totally unknown author
+            return {
+                status, 
+                similarTitle
+            };
+        } else {
+            status = SAME_AUTHOR;
+            let breakLoop = false;
+            authorTable[r1.author].forEach(e => {
+                if(breakLoop){
+                    return;
+                }
+
+                r1 = parse(text);
+                const r2 = parse(e);
+          
+                const isSimilarGroup = isSimilar(r1.group, r2.group);
+        
+                if(isSimilarGroup){
+                    if(r1.title === r2.title){
+                        status = Math.max(status, IS_IN_PC);
+                        breakLoop = true;
+                    }else if(oneInsideOne(r1.title, r2.title)){
+                        status = LIKELY_IN_PC;
+                        similarTitle = e;
+                    }
+                }
+            })
+        }
+    }else{
+        //pure dull
+        if(status < LIKELY_IN_PC){
+            for (var ii = 0; ii < allFileInLowerCase.length; ii++) {
+                let e = allFileInLowerCase[ii];
+                if(isOnlyDigit(e)){
+                    continue;
+                }
+    
+                if(e === text){
+                    status = IS_IN_PC;
+                    break;
+                }
+          
+                if(isSimilar(text, e, 8)){
+                  status = Math.max(status, LIKELY_IN_PC);
+                  similarTitle = e;
+                }
+            }
+        }
     }
 
-    text = text.toLowerCase();
-    for (var ii = 0; ii < allFileInLowerCase.length; ii++) {
-        let e = allFileInLowerCase[ii];
-        if(isOnlyDigit(e)){
-            continue;
-        }
-  
-        if(e === text){
-          status = IS_IN_PC;
-          break;
-        }
-        
-        r1 = parse(text);
-        const r2 = parse(e);
-  
-        if(r1 && r2){
-            const isSameAuthor = isSame(r1.author, r2.author);
-            const isSameGroup = isSame(r1.group, r2.group);
-  
-            if(!isSameAuthor && !isSameGroup){
-                continue;
-           }
-  
-          const isSimilarAuthor = isSimilar(r1.author, r2.author);
-          const isSimilarGroup = isSimilar(r1.group, r2.group);
-  
-          if((isSameAuthor && isSimilarGroup) || (isSameGroup && isSimilarAuthor) ){
-              status = Math.max(status,  SAME_AUTHOR);
-              if(r1.title === r2.title){
-                  status = Math.max(status, IS_IN_PC);
-                  break;
-              }else if(oneInsideOne(r1.title, r2.title)){
-                  status = LIKELY_IN_PC;
-                  similarTitle = e;
-              }
-          }
-        }else if(isSimilar(text, e, 8)){
-          status = Math.max(status, LIKELY_IN_PC);
-          similarTitle = e;
-        }
-    };
     return {
         status, 
         similarTitle
     }
 }
 
-const IS_IN_PC = 100;
-const LIKELY_IN_PC = 70;
-const SAME_AUTHOR = 20;
+
 
 const time1 = new Date().getTime();
 
@@ -337,6 +345,18 @@ function onLoad(dom) {
     const {allFiles, goodAuthors, otherAuthors } =  res;
     const allFileInLowerCase = allFiles.map(e => e.toLowerCase());
 
+    const authorTable = {};
+    allFileInLowerCase.forEach(e => {
+        const r =  parse(e);
+        if(r && r.author){
+            authorTable[r.author] = authorTable[r.author]||[];
+            authorTable[r.author].push(e);
+        }
+    });
+
+    const time25 = new Date().getTime();
+    console.log((time25 - time2)/1000, "to parse name");
+
     nodes.forEach(e => {
         try{
             const subNode = e.getElementsByClassName("gl4t")[0];
@@ -347,7 +367,7 @@ function onLoad(dom) {
                 return;
             }
             const r =  parse(text);
-            const {status, similarTitle} = checkIfDownload(text, allFileInLowerCase, goodAuthors, otherAuthors);
+            const {status, similarTitle} = checkIfDownload(text, allFileInLowerCase, goodAuthors, otherAuthors, authorTable);
             e.status = status || 0;
             if(status === IS_IN_PC){
                 subNode.style.color =  "#61ef47"; //"green";
@@ -383,7 +403,7 @@ function onLoad(dom) {
     nodes.forEach(e => parentRoot.appendChild(e));
 
     const time3 = new Date().getTime();
-    console.log((time3 - time2)/1000, "to change dom");
+    console.log((time3 - time25)/1000, "to change dom");
 }
 
 function appendLink(fileTitleDom, text){
@@ -396,8 +416,6 @@ function appendLink(fileTitleDom, text){
     link.href = "http://localhost:3000/search/" + text;
 }
 
-
-  
 function main() {
     //annote file table
     var api = 'http://localhost:8080/api/exhentaiApi';
