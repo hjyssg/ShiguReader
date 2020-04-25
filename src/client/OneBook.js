@@ -584,6 +584,7 @@ export default class OneBook extends Component {
         {this.renderTags()}
         {this.renderToolbar()}
         {this.renderNextPrevButton()}
+        {this.renderSecondBar()}
 
         {isContentBelow && content}
       </div>

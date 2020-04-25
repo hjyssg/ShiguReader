@@ -35,7 +35,12 @@ const not_author_but_tag = [
 ]
 
 const convertTable = {};
-const localCache = {};
+let localCache = {};
+const tempCache = sessionStorage.getItem("localCache");
+if(tempCache){
+    localCache =  JSON.parse(tempCache);
+}
+
 
 const ALL_COMIC_TAGS = [];
 const comiket_tags = [];
@@ -360,6 +365,8 @@ function highlightThumbnail(allFiles){
             authorTable[r.author].push(e);
         }
     });
+
+    sessionStorage.setItem("localCache", JSON.stringify(localCache));
 
     // const time25 = new Date().getTime();
     // console.log((time25 - time2)/1000, "to parse name");
