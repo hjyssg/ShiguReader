@@ -217,11 +217,15 @@ function setUpFileWatch(){
         stats.isDirectory = stats.isDirectory();
 
         db.fileToInfo[path] = stats;
+
+        hentaiCache = null;
     };
 
     const deleteCallBack = path => {
         const index = db.allFiles.indexOf(path);
         db.allFiles[index] = "";
+
+        hentaiCache = null;
     };
 
     watcher
@@ -265,20 +269,26 @@ function setUpFileWatch(){
         });
 }
 
-
+let hentaiCache;
 // http://localhost:8080/api/exhentaiApi
 app.get('/api/exhentaiApi', function (req, res) {
+    if(hentaiCache){
+        res.send(hentaiCache); 
+        return;
+    }
+
     let allfiles = db.allFiles.filter(isCompress);
     allfiles = allfiles.map(e => {
         return path.basename(e, path.extname(e)).trim();
     });
 
     const result = getGoodAndOtherSet();
-    res.send({
+    hentaiCache = {
         allFiles: allfiles,
         goodAuthors: result.set,
         otherAuthors: result.otherSet
-    }); 
+    }
+    res.send(hentaiCache); 
 })
 
 //-------------------------Get info ----------------------

@@ -141,7 +141,7 @@ function toLowerCase(list, str){
 }
 
 function parse(str) {
-    if (!str) {
+    if (!str || localCache[str] === "NO_EXIST") {
       return null;
     }
 
@@ -156,7 +156,8 @@ function parse(str) {
     const hasP = (pMacthes && pMacthes.length > 0);
 
     if(!hasB && !hasP){
-        return null;
+        localCache[str] = "NO_EXIST";
+        return;
     }
 
     let tags = [];
@@ -230,6 +231,7 @@ function parse(str) {
     })
 
     if(!author && !group){
+        localCache[str] = "NO_EXIST";
         return;
     }
 
@@ -261,53 +263,64 @@ function oneInsideOne(s1, s2){
   return s1 && s2 && (s1.includes(s2) || s2.includes(s1));
 }
 
-function checkIfDownload(text, allFiles){
+function checkIfDownload(text, allFileInLowerCase, goodAuthors, otherAuthors){
     var status = 0;
     let similarTitle;
+    let r1 = parse(text);
+    if(r1 && r1.author && !goodAuthors[r1.author] && !otherAuthors[r1.author]){
+        //totally unknown author
+        return {
+            status, 
+            similarTitle
+        };
+    }
+
     text = text.toLowerCase();
-    for (var ii = 0; ii < allFiles.length; ii++) {
-      let e = allFiles[ii].toLowerCase();
-      if(isOnlyDigit(e) || isOnlyDigit(text)){
-          continue;
-      }
-
-      if(e === text){
-        status = IS_IN_PC;
-        break;
-      } else if(oneInsideOne(text, e) && isSimilar(text, e, 8)){
-        status = Math.max(status, LIKELY_IN_PC);
-        similarTitle = e;
-      }else{
-        const r1 = parse(text);
+    for (var ii = 0; ii < allFileInLowerCase.length; ii++) {
+        let e = allFileInLowerCase[ii];
+        if(isOnlyDigit(e)){
+            continue;
+        }
+  
+        if(e === text){
+          status = IS_IN_PC;
+          break;
+        }
+        
+        r1 = parse(text);
         const r2 = parse(e);
-
+  
         if(r1 && r2){
             const isSameAuthor = isSame(r1.author, r2.author);
             const isSameGroup = isSame(r1.group, r2.group);
-
-            const isSimilarAuthor = isSimilar(r1.author, r2.author);
-            const isSimilarGroup = isSimilar(r1.group, r2.group);
-
-            if( (isSameAuthor && isSimilarGroup) || (isSameGroup && isSimilarAuthor) ){
-                status = Math.max(status,  SAME_AUTHOR);
-                if(r1.title === r2.title){
-                    status = Math.max(status, IS_IN_PC);
-                    break;
-                }else if(oneInsideOne(r1.title, r2.title)){
-                    status = LIKELY_IN_PC;
-                    similarTitle = e;
-                }
-            }
+  
+            if(!isSameAuthor && !isSameGroup){
+                continue;
+           }
+  
+          const isSimilarAuthor = isSimilar(r1.author, r2.author);
+          const isSimilarGroup = isSimilar(r1.group, r2.group);
+  
+          if((isSameAuthor && isSimilarGroup) || (isSameGroup && isSimilarAuthor) ){
+              status = Math.max(status,  SAME_AUTHOR);
+              if(r1.title === r2.title){
+                  status = Math.max(status, IS_IN_PC);
+                  break;
+              }else if(oneInsideOne(r1.title, r2.title)){
+                  status = LIKELY_IN_PC;
+                  similarTitle = e;
+              }
+          }
+        }else if(isSimilar(text, e, 8)){
+          status = Math.max(status, LIKELY_IN_PC);
+          similarTitle = e;
         }
-      }
     };
     return {
         status, 
         similarTitle
     }
 }
-
-
 
 const IS_IN_PC = 100;
 const LIKELY_IN_PC = 70;
@@ -322,6 +335,7 @@ function onLoad(dom) {
     const res = JSON.parse(dom.responseText);
     const nodes = Array.prototype.slice.call(document.getElementsByClassName("gl1t"));
     const {allFiles, goodAuthors, otherAuthors } =  res;
+    const allFileInLowerCase = allFiles.map(e => e.toLowerCase());
 
     nodes.forEach(e => {
         try{
@@ -333,7 +347,7 @@ function onLoad(dom) {
                 return;
             }
             const r =  parse(text);
-            const {status, similarTitle} = checkIfDownload(text, allFiles);
+            const {status, similarTitle} = checkIfDownload(text, allFileInLowerCase, goodAuthors, otherAuthors);
             e.status = status || 0;
             if(status === IS_IN_PC){
                 subNode.style.color =  "#61ef47"; //"green";

@@ -154,7 +154,7 @@ function toLowerCase(list, str){
 }
 
 function parse(str) {
-    if (!str || !isCompress(str)) {
+    if (!str || !isCompress(str) || localCache[str] === "NO_EXIST") {
       return null;
     }
 
@@ -169,7 +169,8 @@ function parse(str) {
     const hasP = (pMacthes && pMacthes.length > 0);
 
     if(!hasB && !hasP){
-        return null;
+        localCache[str] = "NO_EXIST";
+        return;
     }
 
     let tags = [];
@@ -248,6 +249,7 @@ function parse(str) {
     })
 
     if(!author && !group){
+        localCache[str] = "NO_EXIST";
         return;
     }
 
