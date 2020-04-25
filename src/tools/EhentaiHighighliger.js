@@ -347,6 +347,9 @@ function onLoad(dom) {
 
 function highlightThumbnail(allFiles){
     const nodes = Array.prototype.slice.call(document.getElementsByClassName("gl1t"));
+    if(!nodes  || nodes.length === 0) {
+        return;
+    }
     const allFileInLowerCase = allFiles.map(e => e.toLowerCase());
 
     const authorTable = {};
