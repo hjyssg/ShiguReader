@@ -231,9 +231,10 @@ function parse(str) {
     type = type || "etc";
 
     let title = str;
-    (bMacthes||[]).concat(pMacthes||[]).concat([/\[/g, /\]/g, /\(/g, /\)/g ]).forEach(e => {
+    (bMacthes||[]).concat( pMacthes||[], tags||[], [/\[/g, /\]/g, /\(/g, /\)/g ]).forEach(e => {
         title = title.replace(e, "");
     })
+    title = title.trim();
 
     const result = {
         author, tags, comiket, type, group, title
