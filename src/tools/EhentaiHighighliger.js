@@ -313,7 +313,12 @@ const IS_IN_PC = 100;
 const LIKELY_IN_PC = 70;
 const SAME_AUTHOR = 20;
 
+const time1 = new Date().getTime();
+
 function onLoad(dom) {
+    const time2 = new Date().getTime();
+    console.log((time2 - time1)/1000, "to load");
+
     const res = JSON.parse(dom.responseText);
     const nodes = Array.prototype.slice.call(document.getElementsByClassName("gl1t"));
     const {allFiles, goodAuthors, otherAuthors } =  res;
@@ -323,28 +328,30 @@ function onLoad(dom) {
             const subNode = e.getElementsByClassName("gl4t")[0];
             const thumbnailNode = e.getElementsByTagName("img")[0];
             const text = subNode.textContent;
-
+            e.status = 0;
             if(text.includes("翻訳") || text.includes("翻译")){
                 return;
             }
-
             const r =  parse(text);
             const {status, similarTitle} = checkIfDownload(text, allFiles);
+            e.status = status || 0;
             if(status === IS_IN_PC){
                 subNode.style.color =  "#61ef47"; //"green";
-                subNode.title = "明确已经下载过了";
+                thumbnailNode.title = "明确已经下载过了";
             } else if(status === LIKELY_IN_PC){
                 subNode.style.color = "#efd41b"; //"yellow";
-                subNode.title = `电脑里的“${similarTitle}”和这本好像一样`;
+                thumbnailNode.title = `电脑里的“${similarTitle}”和这本好像一样`;
+                e.style.background = "#212121";
             }else if(status === SAME_AUTHOR){
                 subNode.style.color = "#ef8787"; // "red";
                 let authortimes = goodAuthors[r.author]||0 + otherAuthors[r.author]||0;
                 let grouptimes = goodAuthors[r.group]||0 + otherAuthors[r.group]||0;
                 if(authortimes > grouptimes){
-                    subNode.title = `下载同样作者“${r.author}”的书 ${authortimes}次`;
+                    thumbnailNode.title = `下载同样作者“${r.author}”的书 ${authortimes}次`;
                 }else{
-                    subNode.title = `下载同样社团“${r.group}”的书 ${grouptimes}次`;
+                    thumbnailNode.title = `下载同样社团“${r.group}”的书 ${grouptimes}次`;
                 }
+                e.style.background = "#111111"
             }
             if(status){
                 subNode.style.fontWeight = 600;
@@ -353,6 +360,16 @@ function onLoad(dom) {
             console.error(e);
         }
     });
+
+    //sort by its status
+    //and replace the orginal nodes
+    nodes.sort((a, b) =>{return  a.status - b.status;})
+    const parentRoot = nodes[0].parentElement;
+    parentRoot.innerHTML = '';
+    nodes.forEach(e => parentRoot.appendChild(e));
+
+    const time3 = new Date().getTime();
+    console.log((time3 - time2)/1000, "to change dom");
 }
 
 function appendLink(fileTitleDom, text){
@@ -364,6 +381,7 @@ function appendLink(fileTitleDom, text){
     link.className ="shigureader_link";
     link.href = "http://localhost:3000/search/" + text;
 }
+
 
   
 function main() {
