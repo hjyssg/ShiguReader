@@ -680,18 +680,18 @@ async function extractThumbnailFromZip(fileName, res, mode, counter) {
             sendImage(temp);
             updateZipDb(files.length);
 
-            function logForPre(prefix, counter, total){
+            function logForPre(prefix, counter, total, printSpeed){
                 console.log(`${prefix} ${counter}/${total}`,  fileName);
                 const time2 = getCurrentTime();
                 const timeUsed = (time2 - pregenBeginTime)/1000;
-                console.log(`${prefix} ${(timeUsed /counter).toFixed(2)} seconds per file`)
+                printSpeed && console.log(`${prefix} ${(timeUsed /counter).toFixed(2)} seconds per file`)
             }
 
             const minifyImageFile = require("../tools/minifyImageFile").minifyImageFile;
             minifyImageFile(outputPath, path.basename(one), (err, info) => { 
                 if(isPregenerateMode){
                     counter.minCounter++;
-                    logForPre("[pre-generate minify] ", counter.minCounter, counter.total);
+                    logForPre("[pre-generate minify] ", counter.minCounter, counter.total, true);
                 }
              });
 
@@ -705,6 +705,7 @@ async function extractThumbnailFromZip(fileName, res, mode, counter) {
         }
     } catch(e) {
         console.error("[extractThumbnailFromZip] exception", e);
+        logger.error("[extractThumbnailFromZip] exception", e);
         handleFail();
     }
 }
@@ -749,6 +750,7 @@ app.post('/api/firstImage', async (req, res) => {
     extractThumbnailFromZip(fileName, res);
 });
 
+const extractBooklimit = pLimit(2);
 app.post('/api/extract', async (req, res) => {
     const hashFile = db.hashTable[(req.body && req.body.hash)];
     let fileName = hashFile ||  req.body && req.body.fileName;
@@ -792,7 +794,7 @@ app.post('/api/extract', async (req, res) => {
     (async () => {
         try{
             const opt = get7zipOption(fileName, outputPath);
-            const {stdout, stderr} = await execa(sevenZip, opt);
+            const {stdout, stderr} = await extractBooklimit(() => {execa(sevenZip, opt)});
             if (!stderr) {
                 fs.readdir(outputPath, (error, results) => {
                     const temp = generateContentUrl(results, outputPath);
@@ -805,6 +807,7 @@ app.post('/api/extract', async (req, res) => {
         } catch (e){
             res.sendStatus(500);
             console.error('[/api/extract] exit: ', e);
+            logger.error('[/api/extract] exit: ', e);
         }
     })();
 });
