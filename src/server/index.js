@@ -794,7 +794,7 @@ app.post('/api/extract', async (req, res) => {
     (async () => {
         try{
             const opt = get7zipOption(fileName, outputPath);
-            const {stdout, stderr} = await extractBooklimit(() => {execa(sevenZip, opt)});
+            const stderr = await extractBooklimit(() => {execa(sevenZip, opt)});
             if (!stderr) {
                 fs.readdir(outputPath, (error, results) => {
                     const temp = generateContentUrl(results, outputPath);
