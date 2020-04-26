@@ -37,6 +37,10 @@ export default class LoadingImage extends Component {
     const api = (mode === "author" || mode === "tag") ? Constant.TAG_THUMBNAIL_PATH_API :  '/api/firstImage';
     const body = {};
 
+    if(this.isThumbnailAvaible()){
+      return;
+    }
+
     if(mode === "author" || mode === "tag"){
       body[mode] = fileName;
     }else{
@@ -58,7 +62,7 @@ export default class LoadingImage extends Component {
   }
 
   Error(){
-    if(!this.isTotalFailed()){
+    if(!this.tryEnoughRequest()){
       this.setState({
         url: null,
         failed: this.state.failed+1
@@ -68,8 +72,12 @@ export default class LoadingImage extends Component {
     }
   }
 
-  isTotalFailed(){
+  tryEnoughRequest(){
     return this.state.failed > 2;
+  }
+
+  isThumbnailAvaible(){
+    return this.state.url !== "NOT_THUMBNAIL_AVAILABLE";
   }
 
   render() {
@@ -79,7 +87,7 @@ export default class LoadingImage extends Component {
       "empty-block fas fa-file-archive": !this.state.url
     });
 
-   if (this.state.url) {
+   if (this.state.url && this.isThumbnailAvaible()) {
       content = (<img key={fileName} ref={e=>{this.dom = e && e.node}} 
                       className={className} src={this.state.url} title={title || fileName} 
                       onError={this.Error.bind(this)} 

@@ -416,15 +416,22 @@ app.get('/api/video/:hash', async (req, res) => {
   })
 
 //----------------get folder contents
-function getThumbnails(files){
+function getThumbnails(filePathes){
     const thumbnails = {};
-    files.forEach(fileName => {
-        const outputPath = getOutputPath(cachePath, fileName);
+    const contentInfo = zip_content_db.getData("/");
+    
+    filePathes.forEach(filePath => {
+        const outputPath = getOutputPath(cachePath, filePath);
         let cacheFiles = getCache(outputPath);
         cacheFiles = (cacheFiles && cacheFiles.files) || [];
         const thumb = util.chooseThumbnailImage(cacheFiles);
         if(thumb){
-            thumbnails[fileName] = fullPathToUrl(thumb);
+            thumbnails[filePath] = fullPathToUrl(thumb);
+        }else{
+            const pageNum = contentInfo[filePath];
+            if(pageNum === "NOT_THUMBNAIL_AVAILABLE" || pageNum === 0){
+                thumbnails[filePath] = "NOT_THUMBNAIL_AVAILABLE";
+            }
         }
     }); 
     return thumbnails;
@@ -478,8 +485,8 @@ app.post('/api/lsDir', async (req, res) => {
 
     const _dirs = util.array_unique(dirs);
     result = { dirs: _dirs, 
-               files, path: 
-               dir, 
+               files, 
+               path: dir, 
                fileInfos: infos, 
                thumbnails: getThumbnails(files)};
     res.send(result);
@@ -630,7 +637,7 @@ async function extractThumbnailFromZip(filePath, res, mode, counter) {
 
     function handleFail(){
         sendable && res.sendStatus(404);
-        updateZipDb(0);
+        updateZipDb("NOT_THUMBNAIL_AVAILABLE");
         if(isPregenerateMode){
             counter.total--;
         }
