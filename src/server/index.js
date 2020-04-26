@@ -215,6 +215,8 @@ function setUpFileWatch(){
 
         db.fileToInfo[path] = stats;
 
+        extractThumbnailFromZip(path);
+
         hentaiCache = null;
     };
 
@@ -596,13 +598,14 @@ function get7zipOption(filePath, outputPath, one){
 const pLimit = require('p-limit');
 const limit = pLimit(1);
 const extractlimit = pLimit(1);
+//the only required parameter is filePath
 async function extractThumbnailFromZip(filePath, res, mode, counter) {
     if(!util.isCompress(filePath)){
         return;
     }
 
     const isPregenerateMode = mode === "pre-generate";
-    const sendable = !isPregenerateMode;
+    const sendable = !isPregenerateMode && res;
 
     const outputPath = getOutputPath(cachePath, filePath);
  
