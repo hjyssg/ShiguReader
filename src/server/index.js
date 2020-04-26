@@ -596,15 +596,15 @@ function get7zipOption(fileName, outputPath, one){
 const pLimit = require('p-limit');
 const limit = pLimit(1);
 const extractlimit = pLimit(1);
-async function extractThumbnailFromZip(fileName, res, mode, counter) {
-    if(!util.isCompress(fileName)){
+async function extractThumbnailFromZip(filePath, res, mode, counter) {
+    if(!util.isCompress(filePath)){
         return;
     }
 
     const isPregenerateMode = mode === "pre-generate";
     const sendable = !isPregenerateMode;
 
-    const outputPath = getOutputPath(cachePath, fileName);
+    const outputPath = getOutputPath(cachePath, filePath);
  
     function sendImage(img){
         let ext = path.extname(img);
@@ -619,7 +619,7 @@ async function extractThumbnailFromZip(fileName, res, mode, counter) {
 
     function updateZipDb(pageNum){
         const contentInfo = zip_content_db.getData("/");
-        contentInfo[fileName] = {
+        contentInfo[filePath] = {
             pageNum: pageNum
         };
         zip_content_db.push("/", contentInfo);
@@ -644,7 +644,7 @@ async function extractThumbnailFromZip(fileName, res, mode, counter) {
 
             if(isPregenerateMode){
                 counter.total--;
-                console.log("[extractThumbnailFromZip] already exist", fileName);
+                console.log("[extractThumbnailFromZip] already exist", filePath);
             }
         }
         return;
@@ -652,7 +652,7 @@ async function extractThumbnailFromZip(fileName, res, mode, counter) {
 
     try{
         //https://superuser.com/questions/1020232/list-zip-files-contents-using-7zip-command-line-with-non-verbose-machine-friend
-        let {stdout, stderr} = await limit(() => execa(sevenZip, ['l', '-r', '-ba' ,'-slt', fileName]));
+        let {stdout, stderr} = await limit(() => execa(sevenZip, ['l', '-r', '-ba' ,'-slt', filePath]));
         const text = stdout;
         
         if (!text) {
@@ -665,13 +665,13 @@ async function extractThumbnailFromZip(fileName, res, mode, counter) {
         const one = util.chooseThumbnailImage(files);
         
         if (!one) {
-            console.log("[extractThumbnailFromZip]", fileName,  "no image file from output");
+            console.log("[extractThumbnailFromZip]", filePath,  "no image file from output");
             handleFail();
             return;
         }
 
         //Overwrite mode: -aos	Skip extracting of existing files.
-        const opt = get7zipOption(fileName, outputPath, one);
+        const opt = get7zipOption(filePath, outputPath, one);
         const {stderrForThumbnail} = await extractlimit(() => execa(sevenZip, opt));
         if (!stderrForThumbnail) {
             // send path to client
@@ -681,7 +681,7 @@ async function extractThumbnailFromZip(fileName, res, mode, counter) {
             updateZipDb(files.length);
 
             function logForPre(prefix, counter, total, printSpeed){
-                console.log(`${prefix} ${counter}/${total}`,  fileName);
+                console.log(`${prefix} ${counter}/${total}`,  filePath);
                 const time2 = getCurrentTime();
                 const timeUsed = (time2 - pregenBeginTime)/1000;
                 printSpeed && console.log(`${prefix} ${(timeUsed /counter).toFixed(2)} seconds per file`)
@@ -733,38 +733,38 @@ app.post('/api/pregenerateThumbnails', (req, res) => {
 
     // const totalFiles = !path ? db.allFiles : db.allFiles.filter(e => e.includes(path));
     let counter = {counter: 1, total: totalFiles.length, minCounter: 1};
-    totalFiles.forEach(fileName =>{
-        extractThumbnailFromZip(fileName, res, "pre-generate", counter);
+    totalFiles.forEach(filePath =>{
+        extractThumbnailFromZip(filePath, res, "pre-generate", counter);
     })
 });
 
 
 //! !need to set windows console to utf8
 app.post('/api/firstImage', async (req, res) => {
-    const fileName = req.body && req.body.fileName;
+    const filePath = req.body && req.body.filePath;
 
-    if (!fileName || !(await isExist(fileName))) {
+    if (!filePath || !(await isExist(filePath))) {
         res.sendStatus(404);
         return;
     }
-    extractThumbnailFromZip(fileName, res);
+    extractThumbnailFromZip(filePath, res);
 });
 
 app.post('/api/extract', async (req, res) => {
     const hashFile = db.hashTable[(req.body && req.body.hash)];
-    let fileName = hashFile ||  req.body && req.body.fileName;
-    if (!fileName) {
+    let filePath = hashFile ||  req.body && req.body.filePath;
+    if (!filePath) {
         res.sendStatus(404);
         return;
     }
 
-    if(!(await isExist(fileName))){
+    if(!(await isExist(filePath))){
         //maybe the file move to other location
-        const baseName = path.basename(fileName);
+        const baseName = path.basename(filePath);
         //todo loop is slow
         const isSomewhere = db.allFiles.some(e => {
             if(e.endsWith(baseName)){
-                fileName = e;
+                filePath = e;
                 return true;
             }
         });
@@ -775,29 +775,29 @@ app.post('/api/extract', async (req, res) => {
         }
     }
     
-    const stat = await pfs.stat(fileName);
+    const stat = await pfs.stat(filePath);
 
     function sendBack(files, dirs, musicFiles, path, stat){
         const tempFiles =  util.filterHiddenFile(files);
         res.send({ files: tempFiles, dirs, musicFiles,path, stat });
     }
 
-    const outputPath = getOutputPath(cachePath, fileName);
+    const outputPath = getOutputPath(cachePath, filePath);
     const temp = getCache(outputPath);
     //TODO: should use pageNum
     if (temp && temp.files.length > 10) {
-        sendBack(temp.files, temp.dirs, temp.musicFiles, fileName, stat);
+        sendBack(temp.files, temp.dirs, temp.musicFiles, filePath, stat);
         return;
     }
 
     (async () => {
         try{
-            const opt = get7zipOption(fileName, outputPath);
+            const opt = get7zipOption(filePath, outputPath);
             const { stderr } = await execa(sevenZip, opt);
             if (!stderr) {
                 fs.readdir(outputPath, (error, results) => {
                     const temp = generateContentUrl(results, outputPath);
-                    sendBack(temp.files, temp.dirs, temp.musicFiles, fileName, stat);
+                    sendBack(temp.files, temp.dirs, temp.musicFiles, filePath, stat);
                 });
             } else {
                 res.sendStatus(500);

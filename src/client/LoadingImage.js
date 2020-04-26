@@ -40,7 +40,7 @@ export default class LoadingImage extends Component {
     if(mode === "author" || mode === "tag"){
       body[mode] = fileName;
     }else{
-      body["fileName"] = fileName;
+      body["filePath"] = fileName;
     }
 
     this.loading = true;

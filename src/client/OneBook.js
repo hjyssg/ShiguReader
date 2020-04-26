@@ -219,7 +219,7 @@ export default class OneBook extends Component {
   }
   
   displayFile(file){
-    Sender.post("/api/extract", {fileName: this.getPathFromLocalStorage(),   hash: this.getHash() }, res => {
+    Sender.post("/api/extract", {filePath: this.getPathFromLocalStorage(),   hash: this.getHash() }, res => {
       this.res = res;
       if (!res.failed) {
         this.loadedHash = this.getHash();
