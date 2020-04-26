@@ -628,6 +628,9 @@ async function extractThumbnailFromZip(fileName, res, mode, counter) {
     function handleFail(){
         sendable && res.sendStatus(404);
         updateZipDb(0);
+        if(isPregenerateMode){
+            counter.total--;
+        }
     }
 
     //check if there is compress thumbnail  e.g thumbnail--001.jpg
@@ -688,7 +691,7 @@ async function extractThumbnailFromZip(fileName, res, mode, counter) {
             minifyImageFile(outputPath, path.basename(one), (err, info) => { 
                 if(isPregenerateMode){
                     counter.minCounter++;
-                    logForPre("[pre-generate minify]", counter.minCounter, counter.total);
+                    logForPre("[pre-generate minify] ", counter.minCounter, counter.total);
                 }
              });
 
