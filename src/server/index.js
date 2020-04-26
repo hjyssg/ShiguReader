@@ -750,7 +750,6 @@ app.post('/api/firstImage', async (req, res) => {
     extractThumbnailFromZip(fileName, res);
 });
 
-const extractBooklimit = pLimit(2);
 app.post('/api/extract', async (req, res) => {
     const hashFile = db.hashTable[(req.body && req.body.hash)];
     let fileName = hashFile ||  req.body && req.body.fileName;
@@ -794,7 +793,7 @@ app.post('/api/extract', async (req, res) => {
     (async () => {
         try{
             const opt = get7zipOption(fileName, outputPath);
-            const stderr = await extractBooklimit(() => {execa(sevenZip, opt)});
+            const { stderr } = await execa(sevenZip, opt);
             if (!stderr) {
                 fs.readdir(outputPath, (error, results) => {
                     const temp = generateContentUrl(results, outputPath);
