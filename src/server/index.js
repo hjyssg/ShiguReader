@@ -583,13 +583,13 @@ function read7zOutput(data) {
     return files;
 }
 
-function get7zipOption(fileName, outputPath, one){
+function get7zipOption(filePath, outputPath, one){
     //https://sevenzip.osdn.jp/chm/cmdline/commands/extract.htm
     //e make folder as one level
     if(one){
-        return ['e', fileName, `-o${outputPath}`, one, "-aos"];
+        return ['e', filePath, `-o${outputPath}`, one, "-aos"];
     }else{
-        return ['e', fileName, `-o${outputPath}`, "-aos"];
+        return ['e', filePath, `-o${outputPath}`, "-aos"];
     }
 }
 
