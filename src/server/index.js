@@ -30,7 +30,7 @@ const rootPath = pathUtil.getRootPath();
 const cache_folder_name = userConfig.cache_folder_name;
 const cachePath = path.join(rootPath, cache_folder_name);
 let logPath = path.join(rootPath, userConfig.workspace_name, "log");
-logPath = path.join(logPath, dateFormat(new Date(), "isoDate"))+ ".log";
+logPath = path.join(logPath, dateFormat(new Date(), "isoDateTime"))+ ".log";
 let file_db_path =  path.join(rootPath,  userConfig.workspace_name, "shigureader_local_file_info");
 
 
