@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import notAvailable from './images/not-available.png';
 import Sender from './Sender';
 const Constant = require("../constant");
 const classNames = require('classnames');
