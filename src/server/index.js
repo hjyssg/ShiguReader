@@ -515,7 +515,7 @@ function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
 
     // let end = (new Date).getTime();
     // console.log((end - beg)/1000, "to search");
-    return { files, tag, author, fileInfos };
+    return { files, tag, author, fileInfos, thumbnails: getThumbnails(files) };
 }
 
 // three para 1.hash 2.mode 3.text
