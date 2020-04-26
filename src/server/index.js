@@ -173,6 +173,18 @@ async function init() {
 
     console.log("There are",db.allFiles.length, "files");
 
+    console.log("----------scan cache------------");
+    const cache_results = fileiterator([cachePath], { 
+        filter: isImage, 
+        doLog: true
+    });
+
+    (cache_results.pathes||[]).forEach(p => {
+        const fp =  getCacheFp(p);
+        db.cacheTable[fp] = db.cacheTable[fp] || [];
+        db.cacheTable[fp].push(path.basename(p));
+    })
+
     setUpFileWatch();
     const port = isProduction? 3000: 8080;
     const server = app.listen(port, () => {
@@ -195,6 +207,11 @@ function shouldWatch(p){
 
 function shouldIgnore(p){
     return !shouldWatch(p);
+}
+
+function getCacheFp(p){
+    const result =  path.dirname(p);
+    return path.basename(result);
 }
 
 function setUpFileWatch(){
@@ -240,7 +257,8 @@ function setUpFileWatch(){
     const cacheWatcher = chokidar.watch(cache_folder_name, {
         ignored: shouldIgnore,
         persistent: true,
-        ignorePermissionErrors: true
+        ignorePermissionErrors: true,
+        ignoreInitial: true,
     });
 
     cacheWatcher
@@ -249,10 +267,7 @@ function setUpFileWatch(){
             db.cacheTable[fp] = undefined;
         });
 
-    function getCacheFp(p){
-        const result =  path.dirname(p);
-        return path.basename(result);
-    }
+
 
     cacheWatcher
         .on('add', p => {
