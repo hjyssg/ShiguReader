@@ -404,13 +404,15 @@ function highlightThumbnail(allFiles){
         }
     });
 
-    //sort by its status
-    //and replace the orginal nodes
-    nodes.sort((a, b) =>{return  b.status - a.status;})
-    const parentRoot = nodes[0].parentElement;
-    parentRoot.innerHTML = '';
-    nodes.forEach(e => parentRoot.appendChild(e));
-
+    //only sort the home page
+    if(window.location.pathname === "/"){
+        //sort by its status
+        //and replace the orginal nodes
+        nodes.sort((a, b) =>{return  b.status - a.status;})
+        const parentRoot = nodes[0].parentElement;
+        parentRoot.innerHTML = '';
+        nodes.forEach(e => parentRoot.appendChild(e));
+    }
     // const time3 = new Date().getTime();
     // console.log((time3 - time25)/1000, "to change dom");
 }
