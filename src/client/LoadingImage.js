@@ -76,7 +76,7 @@ export default class LoadingImage extends Component {
   }
 
   isThumbnailAvaible(){
-    return this.state.url !== "NOT_THUMBNAIL_AVAILABLE";
+    return this.state.url && this.state.url !== "NOT_THUMBNAIL_AVAILABLE";
   }
 
   render() {
