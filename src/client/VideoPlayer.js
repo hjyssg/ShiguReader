@@ -1,9 +1,9 @@
 import React, { Component } from 'react';
 import _ from 'underscore';
 import './style/VideoPlayer.scss';
-const filesizeUitl = require('filesize');
 import ClickAndCopyText from './subcomponent/ClickAndCopyText';
 import FileChangeToolbar from './subcomponent/FileChangeToolbar';
+const util = require("../util");
 
 export default class VideoPlayer extends Component {
   constructor(props) {
@@ -18,8 +18,9 @@ export default class VideoPlayer extends Component {
 
   render() {
     const fn = window.localStorage && window.localStorage.getItem(this.getHash());
-    //temp
     const url = "http://localhost:8080/api/video/"+this.getHash();
+    document.title = util.getFn(fn);
+
     return (<div className="video-player-page">
               <div className="video-player-container">
                 <video id="videoPlayer" controls> 

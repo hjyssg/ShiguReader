@@ -8,7 +8,6 @@ const userConfig = require('../user-config');
 // const nameParser = require('../name-parser');
 // const filesizeUitl = require('filesize');
 // import CenterSpinner from './subcomponent/CenterSpinner';
-// import ErrorPage from './ErrorPage';
 import ReactDOM from 'react-dom';
 import Swal from 'sweetalert2';
 import RadioButtonGroup from './subcomponent/RadioButtonGroup';
