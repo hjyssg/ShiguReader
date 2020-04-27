@@ -9,9 +9,9 @@
 ![screenshot-03](screenshot/03.png)
 
 ##### Demo Video
-
-[iPhone使用](https://www.bilibili.com/video/BV1xt4y1U73L/)  
+[iPad使用](https://www.bilibili.com/video/BV1Mt4y1m7qU)  
 [PC使用](https://www.bilibili.com/video/BV1t64y1u729/)
+[iPhone使用](https://www.bilibili.com/video/BV1xt4y1U73L/)  
 
 ##### Features
 

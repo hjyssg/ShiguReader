@@ -92,14 +92,15 @@ export default class ExplorerPage extends Component {
                this.props.match.params.number;
     }
 
-    getMode(){
-        if(this.props.match.params.tag){
+    getMode(props){
+        const _props = props || this.props;
+        if(_props.match.params.tag){
             return MODE_TAG;
-        } else if(this.props.match.params.author) {
+        } else if(_props.match.params.author) {
             return MODE_AUTHOR;
-        } else if(this.props.match.params.number) {
+        } else if(_props.match.params.number) {
             return MODE_EXPLORER;
-        } else if(this.props.match.params.search) {
+        } else if(_props.match.params.search) {
             return MODE_SEARCH;
         } else {
             return MODE_HOME;
@@ -142,13 +143,28 @@ export default class ExplorerPage extends Component {
         });
     }
     
-    componentDidUpdate() {
-        this.askServer();
+    componentDidUpdate(prevProps, prevState) {
+        //when path changes, does not show previous path's content 
+        const differentMode = this.getMode() !== this.getMode(prevProps);
+        const pathChanged = this.getMode() === MODE_EXPLORER && this.path && this.path !== this.getPathFromLocalStorage();
+        if(differentMode || pathChanged ){
+            this.loadedHash = "";
+            this.videoFiles = []
+            this.files = [];
+            this.dirs = [];
+            this.path = this.getPathFromLocalStorage() || "";
+            this.tag = "";
+            this.author = "";
+            this.fileInfos = {};
+            this.thumbnails = {};
+            this.res = ""
+            this.forceUpdate();
+            this.askServer();
+        }
     }
 
     handleRes(res){
         if (!res.failed) {
-            this.loadedHash = this.getHash();
             let {dirs, files, path, tag, author, fileInfos, thumbnails} = res;
             this.loadedHash = this.getHash();
             files = files || [];

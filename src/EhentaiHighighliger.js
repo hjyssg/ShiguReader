@@ -36,7 +36,7 @@ const not_author_but_tag = [
 
 const convertTable = {};
 let localCache = {};
-const tempCache = sessionStorage.getItem("localCache");
+const tempCache = localStorage.getItem("localCache");
 if(tempCache){
     localCache =  JSON.parse(tempCache);
 }
@@ -344,8 +344,8 @@ function onLoad(dom) {
     // const time2 = new Date().getTime();
     // console.log((time2 - time1)/1000, "to load");
 
-    sessionStorage.setItem('responseText',  dom.responseText);
-    sessionStorage.setItem('lastResTime', getCurrentTime());
+    localStorage.setItem('responseText',  dom.responseText);
+    localStorage.setItem('lastResTime', getCurrentTime());
     const res = JSON.parse(dom.responseText);
     highlightThumbnail(res.allFiles);
 }
@@ -366,7 +366,7 @@ function highlightThumbnail(allFiles){
         }
     });
 
-    sessionStorage.setItem("localCache", JSON.stringify(localCache));
+    localStorage.setItem("localCache", JSON.stringify(localCache));
 
     // const time25 = new Date().getTime();
     // console.log((time25 - time2)/1000, "to parse name");
@@ -406,7 +406,7 @@ function highlightThumbnail(allFiles){
 
     //sort by its status
     //and replace the orginal nodes
-    nodes.sort((a, b) =>{return  a.status - b.status;})
+    nodes.sort((a, b) =>{return  b.status - a.status;})
     const parentRoot = nodes[0].parentElement;
     parentRoot.innerHTML = '';
     nodes.forEach(e => parentRoot.appendChild(e));
@@ -429,9 +429,17 @@ function getCurrentTime(){
     return new Date().getTime();
 }
 
+function onTimeout(){
+    const responseText = localStorage.getItem('responseText');
+    if(responseText){
+        const res = JSON.parse(responseText);
+        highlightThumbnail(res.allFiles);
+    }
+}
+
 function main() {
-    const responseText = sessionStorage.getItem('responseText');
-    const lastResTime = sessionStorage.getItem('lastResTime');
+    const responseText = localStorage.getItem('responseText');
+    const lastResTime = localStorage.getItem('lastResTime');
     const EXPIRE_TIME = 1000*60*2;
     if(responseText && lastResTime && ( getCurrentTime() - (+lastResTime) < EXPIRE_TIME )){
         const res = JSON.parse(responseText);
@@ -442,7 +450,9 @@ function main() {
         GM_xmlhttpRequest({
             method: "GET",
             url:api,
-            onload: onLoad
+            onload: onLoad,
+            onerror: onTimeout,
+            ontimeout: onTimeout
         });
     }
 

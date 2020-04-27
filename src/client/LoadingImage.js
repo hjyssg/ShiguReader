@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import notAvailable from './images/not-available.png';
 import Sender from './Sender';
 const Constant = require("../constant");
 const classNames = require('classnames');
@@ -37,10 +36,14 @@ export default class LoadingImage extends Component {
     const api = (mode === "author" || mode === "tag") ? Constant.TAG_THUMBNAIL_PATH_API :  '/api/firstImage';
     const body = {};
 
+    if(this.isThumbnailAvaible()){
+      return;
+    }
+
     if(mode === "author" || mode === "tag"){
       body[mode] = fileName;
     }else{
-      body["fileName"] = fileName;
+      body["filePath"] = fileName;
     }
 
     this.loading = true;
@@ -58,7 +61,7 @@ export default class LoadingImage extends Component {
   }
 
   Error(){
-    if(!this.isTotalFailed()){
+    if(!this.tryEnoughRequest()){
       this.setState({
         url: null,
         failed: this.state.failed+1
@@ -68,18 +71,22 @@ export default class LoadingImage extends Component {
     }
   }
 
-  isTotalFailed(){
+  tryEnoughRequest(){
     return this.state.failed > 2;
+  }
+
+  isThumbnailAvaible(){
+    return this.state.url && this.state.url !== "NOT_THUMBNAIL_AVAILABLE";
   }
 
   render() {
     let content;
     const {className, fileName, url, bottomOffet, topOffet, title, isThumbnail, onReceiveUrl, ...others} = this.props;
     const cn = classNames("loading-image", className,{
-      "empty-block fas fa-file-archive": !this.state.url
+      "empty-block fas fa-file-archive": !this.state.url || this.state.url === "NOT_THUMBNAIL_AVAILABLE"
     });
 
-   if (this.state.url) {
+   if (this.state.url && this.isThumbnailAvaible()) {
       content = (<img key={fileName} ref={e=>{this.dom = e && e.node}} 
                       className={className} src={this.state.url} title={title || fileName} 
                       onError={this.Error.bind(this)} 

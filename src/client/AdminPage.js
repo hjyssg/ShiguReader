@@ -67,14 +67,15 @@ export default class AdminPage extends Component {
 
     render(){
         document.title = "Admin"
+        const folder_list = userConfig.folder_list.concat("All_Pathes");
 
         return (
             <div className="admin-container container">
                 <div className="admin-section">
                     <div className="admin-section-title"> Pregenerate Thumbnail</div>
                     <div className="admin-section-content">
-                        <RadioButtonGroup checked={userConfig.folder_list.indexOf(this.state.prePath)} 
-                                        options={userConfig.folder_list} name="pregenerate" onChange={this.onPathChange.bind(this)}/>
+                        <RadioButtonGroup checked={folder_list.indexOf(this.state.prePath)} 
+                                        options={folder_list} name="pregenerate" onChange={this.onPathChange.bind(this)}/>
                         <input className="aji-path-intput" ref={pathInput => this.pathInputRef = pathInput} />
                         <div className="submit" onClick={this.onPrenerate.bind(this)}>Submit</div>
                     </div>

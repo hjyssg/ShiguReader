@@ -7,8 +7,16 @@ const JsonDB = require('node-json-db').JsonDB;
 const Config = require('node-json-db/dist/lib/JsonDBConfig').Config;
 
 module.exports = function (folders, config) {
-    const db = new JsonDB(new Config(config.db_path, true, true, '/'));
-    const result = {pathes: [], infos: db.getData("/") };
+    const hasDb = !!config.db_path;
+    const db = hasDb && new JsonDB(new Config(config.db_path, true, true, '/'));
+    let infos;
+    try{
+        infos =  hasDb && db.getData("/");
+    }catch (e){
+        console.error("[file-iterator]",e)
+    }
+   
+    const result = {pathes: [], infos: infos||{} };
     config.visited = {};
     folders.forEach((src) => {
         if(fs.existsSync(src)){
@@ -22,7 +30,11 @@ module.exports = function (folders, config) {
     });
     delete config.visited;
 
-    db.push("/", result.infos);
+    try{
+        hasDb && db.push("/", result.infos);
+    }catch (e){
+        console.error("[file-iterator]",e)
+    }
     return result;
 };
 
@@ -56,7 +68,7 @@ function iterate (p, config, result, depth) {
                 return;
             }
 
-            if(config && config.doLog &&  result.pathes.length % 500 === 0){
+            if(config && config.doLog &&  result.pathes.length % 2000 === 0){
                 console.log("[file-iterator] scan:", result.pathes.length);
             }
             result.pathes.push(p);
