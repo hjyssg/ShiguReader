@@ -436,6 +436,10 @@ function getThumbnails(filePathes){
     const contentInfo = zip_content_db.getData("/");
     
     filePathes.forEach(filePath => {
+        if(!isCompress(filePath)){
+            return;
+        }
+
         const outputPath = getOutputPath(cachePath, filePath);
         let cacheFiles = getCache(outputPath);
         cacheFiles = (cacheFiles && cacheFiles.files) || [];
@@ -443,7 +447,7 @@ function getThumbnails(filePathes){
         if(thumb){
             thumbnails[filePath] = fullPathToUrl(thumb);
         }else{
-            const pageNum = contentInfo[filePath];
+            const pageNum = contentInfo[filePath] && contentInfo[filePath].pageNum;
             if(pageNum === "NOT_THUMBNAIL_AVAILABLE" || pageNum === 0){
                 thumbnails[filePath] = "NOT_THUMBNAIL_AVAILABLE";
             }

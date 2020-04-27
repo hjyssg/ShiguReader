@@ -83,7 +83,7 @@ export default class LoadingImage extends Component {
     let content;
     const {className, fileName, url, bottomOffet, topOffet, title, isThumbnail, onReceiveUrl, ...others} = this.props;
     const cn = classNames("loading-image", className,{
-      "empty-block fas fa-file-archive": !this.state.url
+      "empty-block fas fa-file-archive": !this.state.url || this.state.url === "NOT_THUMBNAIL_AVAILABLE"
     });
 
    if (this.state.url && this.isThumbnailAvaible()) {
