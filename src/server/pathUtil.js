@@ -65,7 +65,7 @@ function isDirectParent(parent, filePath){
     return parentPath === parent;
 }
 
-function isSubDirectory(parent, child) {
+function isSub(parent, child) {
     if(child.length > parent.length && child.startsWith(parent)){
         let parentPath = path.resolve(child, "..");
         while(true){
@@ -81,6 +81,7 @@ function isSubDirectory(parent, child) {
             parentPath = newparentPath;
         }
     }
+    return false;
 }
 
 module.exports = {
@@ -91,5 +92,5 @@ module.exports = {
     getRootPath,
     isExist,
     isDirectParent,
-    isSubDirectory
+    isSub
 };

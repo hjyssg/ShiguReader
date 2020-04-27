@@ -6,12 +6,12 @@ const minifyImageFile = require("./minifyImageFile");
 
 let counter = 0;
 const pathUtil = require("../server/pathUtil");
-const {  isSubDirectory } = pathUtil;
+const {  isSub } = pathUtil;
 
 const show_error = false;
 
 function del(file, cachePath){
-    if(isSubDirectory(cachePath, file)){
+    if(isSub(cachePath, file)){
         rimraf(file, (err) =>{
             if(err){
                 // try{

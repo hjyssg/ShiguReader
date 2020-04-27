@@ -22,7 +22,7 @@ const {
         generateContentUrl,
         isExist,
         isDirectParent,
-        isSubDirectory
+        isSub
 } = pathUtil;
 const { isImage, isCompress, isMusic, isVideo } = util;
 
@@ -466,16 +466,17 @@ app.post('/api/lsDir', async (req, res) => {
         return;
     }
 
+    const time1 = getCurrentTime();
     let result;
     const files = [];
     const dirs = [];
     const infos = {};
     const oneLevel = !isRecursive;
-    db.allFiles.forEach(p => {
-        if(p && isSubDirectory(dir, p)){
-            const singleInfo = db.fileToInfo[p];
-            if(oneLevel && !isDirectParent(dir, p)){
-                let itsParent = path.resolve(p, "..");
+    db.allFiles.forEach(pp => {
+        if(pp && isSub(dir, pp)){
+            const singleInfo = db.fileToInfo[pp];
+            if(oneLevel && !isDirectParent(dir, pp)){
+                let itsParent = path.resolve(pp, "..");
    
                 //for example
                 //the dir is     F:/git 
@@ -494,15 +495,20 @@ app.post('/api/lsDir', async (req, res) => {
                 return;
             }
 
-            const ext = path.extname(p).toLowerCase();
+            const ext = path.extname(pp).toLowerCase();
             if (isSupportedFile(ext)){
-                files.push(p);
-                infos[p] = singleInfo;
+                files.push(pp);
+                infos[pp] = singleInfo;
             }
         }
     })
 
     const _dirs = util.array_unique(dirs);
+
+    const time2 = getCurrentTime();
+    const timeUsed = (time2 - time1)/1000;
+    // console.log(timeUsed, "to LsDir")
+
     result = { dirs: _dirs, 
                files, 
                path: dir, 
