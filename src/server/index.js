@@ -518,6 +518,17 @@ app.post('/api/lsDir', async (req, res) => {
 });
 
 //---------------------------SEARCH API------------------
+function isEqual(s1, s2){
+    return s1 && s2 && s1.toLowerCase() === s2.toLowerCase();
+}
+
+function isSimilar(s1, s2, distance){
+    if(s1 && s2){
+        return s1.toLowerCase().includes(s2.toLowerCase()) && Math.abs(s1.length - s2.length) < 3;
+    }
+
+    return false;
+}
 
 function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
     // let beg = (new Date).getTime()
@@ -529,7 +540,8 @@ function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
         const info = db.fileToInfo[e];
         const result = (author || tag) && nameParser.parse(e);
         //sometimes there are mulitple authors for one book
-        if (result && author &&  (result.author === author || (author.length >= MIN_AUTHOR_TEXT_LENGTH && result.author &&  result.author.includes(author)) || result.group === author )) {
+        if (result && author &&  
+            (isEqual(result.author, author) || isEqual(result.group, author) || (author.length >= MIN_AUTHOR_TEXT_LENGTH && isSimilar(result.author, author)) )) {
             files.push(e);
             fileInfos[e] = info;
         } else if (result && tag && result.tags.indexOf(tag) > -1) {
