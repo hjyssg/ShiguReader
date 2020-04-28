@@ -43,14 +43,17 @@ git clone https://github.com/hjyssg/ShiguReader
 # 手动修改设置
 # 用任意文本编辑器手动修改src/user-config.js用户文件设置  
 
-## 日志 2020/03/07
-## windows的默认cmd 有时不好用，建议使用Git Bash 
+## 重要:windows用户必须的额外步骤：
+## 因为windows的默认cmd很不好用
+## 请前往 https://git-scm.com/ 安装git顺便安装上git bash
+## 然后以下命令行都请使用Git Bash 
 
 # 命令行进入文件夹。比如
 # cd F:\ShiguReader
 
 # 安装依赖
 # 最近gitub可能被墙， 所以用taobao的源。
+# install会比较慢，要耐心
 npm install --registry=http://registry.npm.taobao.org
 
 # install中途要是node-sass报错
