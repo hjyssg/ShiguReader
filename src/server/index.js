@@ -522,8 +522,10 @@ function isEqual(s1, s2){
     return s1 && s2 && s1.toLowerCase() === s2.toLowerCase();
 }
 
-function isSimilar(s1, s2, distance){
-    if(s1 && s2){
+
+function isSimilar(s1, s2){
+    const MIN_AUTHOR_TEXT_LENGTH = 3;
+    if(s1 && s2 && s2 > MIN_AUTHOR_TEXT_LENGTH){
         return s1.toLowerCase().includes(s2.toLowerCase()) && Math.abs(s1.length - s2.length) < 3;
     }
 
@@ -532,24 +534,23 @@ function isSimilar(s1, s2, distance){
 
 function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
     // let beg = (new Date).getTime()
-    const MIN_AUTHOR_TEXT_LENGTH = 3;
     const files = [];
     const fileInfos = {};
     for (let ii = 0; ii < db.allFiles.length; ii++) {
-        const e = db.allFiles[ii];
-        const info = db.fileToInfo[e];
-        const result = (author || tag) && nameParser.parse(e);
+        const path = db.allFiles[ii];
+        const info = db.fileToInfo[path];
+        const result = (author || tag) && nameParser.parse(path);
         //sometimes there are mulitple authors for one book
         if (result && author &&  
-            (isEqual(result.author, author) || isEqual(result.group, author) || (author.length >= MIN_AUTHOR_TEXT_LENGTH && isSimilar(result.author, author)) )) {
-            files.push(e);
-            fileInfos[e] = info;
+            (isEqual(result.author, author) || isEqual(result.group, author) || isSimilar(result.author, author))) {
+            files.push(path);
+            fileInfos[path] = info;
         } else if (result && tag && result.tags.indexOf(tag) > -1) {
-            files.push(e);
-            fileInfos[e] = info;
+            files.push(path);
+            fileInfos[path] = info;
         }else if (text && e.toLowerCase().indexOf(text.toLowerCase()) > -1) {
-            files.push(e);
-            fileInfos[e] = info;
+            files.push(path);
+            fileInfos[path] = info;
         }
 
         if (onlyNeedFew && files.length > 5) {
