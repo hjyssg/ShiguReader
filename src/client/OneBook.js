@@ -83,7 +83,7 @@ export default class OneBook extends Component {
   }
 
   adjustImageSizeAfterResize(){
-    this.applyHeightToImage(this.getMaxHeight());
+    this.adjustImageSize();
   }
 
   getMaxHeight(){
@@ -494,13 +494,26 @@ export default class OneBook extends Component {
   renderTags(){
     const result = nameParser.parse(_.getFn(this.state.path));
     const author = result && result.author;
+    const group = result && result.group;
     let tags = (result && result.tags)||[];
-    //temp
-    tags = author? tags.concat(author): tags;
+    if(author && group && group !== author){
+      tags = tags.concat(group);
+    }
+    if(author){
+      tags = tags.concat(author);
+    }
     
-    const tagDivs = tags.length > 0 && tags.map((tag)=>{
+    const tagDivs = tags.map((tag)=>{
       const tagHash = stringHash(tag);
-      let url = tag === author? ("/author/" + tagHash) : ("/tag/" + tagHash);
+      let url;
+      if(tag === author){
+        url = "/author/" + tagHash;
+      }else if(tag === group){
+        url = "/search/" + tag;
+      }else{
+        url = "/tag/" + tagHash;
+      }
+      
       url += "#sortOrder=" + Constant.SORT_BY_FOLDER;
       return (<div key={tag} className="one-book-foot-author" >
                 <Link  target="_blank" to={url}  key={tag}>{tag}</Link>
