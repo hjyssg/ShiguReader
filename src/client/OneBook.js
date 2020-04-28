@@ -27,6 +27,7 @@ const getUrl = util.getUrl;
 const Constant = require("../constant");
 
 const MIN_HEIGHT = 400;
+const MIN_WIDTH = 400;
 const userConfig = require('../user-config');
 
 export default class OneBook extends Component {
@@ -104,7 +105,7 @@ export default class OneBook extends Component {
      return window.screen.width;
     }
     const result = isNaN(window.innerWidth) ? window.clientWidth : window.innerWidth;
-    return result - 10;
+    return result - 50;
   }
 
   adjustImageSize(){
@@ -114,8 +115,8 @@ export default class OneBook extends Component {
 
     this.loadedImage = this.state.index;
     const imageDom = ReactDOM.findDOMNode(this.imgRef);
-    this.imgHeight = imageDom.clientHeight;
-    this.imgWidth = imageDom.clientWidth
+    this.imgHeight = imageDom.naturalHeight; 
+    this.imgWidth =  imageDom.naturalWidth; 
 
     //display img's real px number
     const dimDom = document.getElementsByClassName("dimension-tag")[0];
@@ -136,29 +137,38 @@ export default class OneBook extends Component {
       this.applyWidthToImage(maxWidth);
     }else if(heighthRatio > 1) {
       this.applyHeightToImage(maxHeight);
+    }else if(this.imgHeight < MIN_HEIGHT){
+      this.applyHeightToImage(MIN_HEIGHT);
+    }else if(this.imgWidth < MIN_WIDTH){
+      this.applyWidthToImage(this.MIN_WIDTH);
     }
-
-    // if(this.imgHeight < MIN_HEIGHT){
-    //   this.applyHeightToImage(MIN_HEIGHT);
-    // }
   }
+
 
 
   applyWidthToImage(width){
-    this.imgWidth = width;
-    const MIN_WIDTH = 400;
-    width = Math.max(width, MIN_WIDTH);
-
     let imageDom = ReactDOM.findDOMNode(this.imgRef);
-    imageDom && imageDom.setAttribute("width", width);
+    if(width < MIN_WIDTH || !imageDom){
+      return;
+    }
+
+    this.imgHeight = (width/this.imgWidth) * this.imgHeight;
+    this.imgWidth = width;
+
+    imageDom.setAttribute("width", this.imgWidth);
+    imageDom.setAttribute("height", this.imgHeight);
   }
 
   applyHeightToImage(height){
-    this.imgHeight = height;
-    height = Math.max(height, MIN_HEIGHT);
-
     let imageDom = ReactDOM.findDOMNode(this.imgRef);
-    imageDom && imageDom.setAttribute("height", height);
+    if(height < MIN_HEIGHT || !imageDom){
+      return;
+    }
+    this.imgWidth = (height/this.imgHeight) * this.imgWidth;
+    this.imgHeight = height;
+
+    imageDom.setAttribute("height", this.imgHeight);
+    imageDom.setAttribute("width", this.imgWidth);
 
     this.makeTwoImageSameHeight();
   }
