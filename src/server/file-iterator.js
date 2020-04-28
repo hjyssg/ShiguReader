@@ -60,9 +60,9 @@ function iterate (p, config, result, depth) {
     if(config.visited[p]){
         return;
     }
-    const stat = result.infos[p] || getStat(p, config);
-    result.infos[p] = stat;
     try {
+        const stat = result.infos[p] || getStat(p, config);
+        result.infos[p] = stat;
         if (stat.isFile) {
             if (config && config.filter && !config.filter(p)) {
                 return;
@@ -79,7 +79,7 @@ function iterate (p, config, result, depth) {
             });
         }
     } catch (e) {
-        console.error(e);
+        console.error("[file-iterator]",e);
     } finally{
         config.visited[p] = true;
     }
