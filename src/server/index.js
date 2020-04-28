@@ -548,7 +548,7 @@ function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
         } else if (result && tag && result.tags.indexOf(tag) > -1) {
             files.push(path);
             fileInfos[path] = info;
-        }else if (text && e.toLowerCase().indexOf(text.toLowerCase()) > -1) {
+        }else if (text && path.toLowerCase().indexOf(text.toLowerCase()) > -1) {
             files.push(path);
             fileInfos[path] = info;
         }
