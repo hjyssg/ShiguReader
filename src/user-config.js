@@ -51,15 +51,11 @@ const workspace_name = module.exports.workspace_name = "workspace";
 
 const cache_folder_name= module.exports.cache_folder_name = "cache";
 
+//ipad iphone上面看漫画是一页一张图，还是一次显示全部整本的全部图片
 module.exports.onebook_only_image_per_page = true;
 
-module.exports.folder_list = module.exports.home_pathes.concat(module.exports.good_folder, module.exports.not_good_folder);
-
-if(!module.exports.home_pathes && module.exports.home_pathes.length === 0) {
-    throw "need home_pathes"
-}
-
 //delete or move to recyle bin
+//删除操作是真的彻底删除还是丢进回收站
 module.exports.move_file_to_recyle = true;
 
 //wehter to use meaningful file name in cache folder
@@ -71,3 +67,9 @@ module.exports.keep_clip = false;
 
 //in MB
 module.exports.oversized_image_size = 4;
+
+module.exports.folder_list = module.exports.home_pathes.concat(module.exports.good_folder, module.exports.not_good_folder);
+
+if(!module.exports.home_pathes && module.exports.home_pathes.length === 0) {
+    throw "need home_pathes"
+}
