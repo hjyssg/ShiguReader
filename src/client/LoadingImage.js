@@ -26,7 +26,7 @@ export default class LoadingImage extends Component {
   }
 
   onChange(){
-    if(!this.state.url & !this.loading){
+    if(!this.isThumbnailAvaible() & !this.loading){
         this.requestThumbnail()
     }
   }
