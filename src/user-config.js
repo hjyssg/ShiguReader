@@ -10,7 +10,8 @@ module.exports.home_pathes = ["T:\\迅雷下载", "D:\\_Happy_Lesson", "D:\\_Hap
                                 "D:\\_Happy_Lesson\\_Going_to_sort", "E:\\_Temp_Music", "E:\\_temp_comic", "D:\\_AV"];
 
 /** 
- * OPTIONAL where to move file
+ * OPTIONAL where to move goods files  
+ * 可选 手动漫画整理的时候，你想把喜欢的漫画移动到的位置
  */
 const now = new Date();
 const y = now.getFullYear();
@@ -20,16 +21,22 @@ const fd = "good_"+ [y, mm, "01"].join("_");
 module.exports.good_folder = "D:\\_Happy_Lesson\\_Going_to_sort\\_good\\"+fd;
 
 /** 
- * OPTIONAL all good folders
+ * OPTIONAL all good folders  
+ * 可选 喜欢的漫画的根目录，这个文件夹可以会用来判断你喜欢什么作评
  */
 module.exports.good_folder_root = "D:\\_Happy_Lesson\\_Going_to_sort\\_good"
 
 
 /**
  * OPTIONAL where to move file
+ * 可选 手动漫画整理的时候，你想把不怎么喜欢的漫画移动到的位置
  */
 module.exports.not_good_folder = "D:\\_Happy_Lesson\\_Going_to_sort\\_Compressed_"+ y;
 
+/**
+ * OPTIONAL where to move file
+ * 可选 手动漫画整理的时候，你可以移动的其他位置
+ */
 module.exports.additional_folder = [
     "D:\\_Happy_Lesson\\_Going_to_sort\\non-h",
     "D:\\_AV\\_Picture",
@@ -38,9 +45,7 @@ module.exports.additional_folder = [
 
 
 //----------------- below section used by developer-----------------------------
-module.exports.path_will_scan = module.exports.home_pathes.concat(module.exports.good_folder);
-
-const path = require('path');
+module.exports.path_will_scan = module.exports.home_pathes.concat(module.exports.good_folder, module.exports.not_good_folder);
 
 const workspace_name = module.exports.workspace_name = "workspace";
 
@@ -51,7 +56,7 @@ module.exports.onebook_only_image_per_page = true;
 module.exports.folder_list = module.exports.home_pathes.concat(module.exports.good_folder, module.exports.not_good_folder);
 
 if(!module.exports.home_pathes && module.exports.home_pathes.length === 0) {
-    throw "need home paths"
+    throw "need home_pathes"
 }
 
 //delete or move to recyle bin
@@ -60,12 +65,6 @@ module.exports.move_file_to_recyle = true;
 //wehter to use meaningful file name in cache folder
 //or encode they by hash function
 module.exports.readable_cache_folder_name = true;
-
-// when the server extracting an image from a zip as its thumbnail,
-// this number decides if it will uncompress all the content to cache folder or only a few files.
-// For small files, it is faster to uncompress all the content
-// For big files, it is better to get its content list and only uncompress a few contents
-module.exports.full_extract_for_thumbnail_size = 40;
 
 //in MB
 module.exports.oversized_image_size = 4;

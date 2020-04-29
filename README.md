@@ -70,7 +70,7 @@ npm run dev
 # 然后在移动设备的浏览器上 http://pc的ip地址:3000/
 
 # 打开网页以后，就可以用了。
-# 如果你很在意页面加载速度，前往Admin页面Pregenerate Thumbnail。可以大幅度提高页面加载速度。
+# 如果你对页面加载速度不满意，前往Admin页面Pregenerate Thumbnail。可以大幅度提高页面加载速度。
 ```
 
 ###### English

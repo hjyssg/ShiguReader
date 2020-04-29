@@ -5,6 +5,7 @@ const fs = require("fs");
 const _ = require("underscore");
 const JsonDB = require('node-json-db').JsonDB;
 const Config = require('node-json-db/dist/lib/JsonDBConfig').Config;
+const userConfig = require('../user-config');
 
 module.exports = function (folders, config) {
     const hasDb = !!config.db_path;
@@ -25,6 +26,11 @@ module.exports = function (folders, config) {
                 throw "only source folder path";
             } else {
                 iterate(src, config, result, 0);
+            }
+        }else{
+            if(userConfig.home_pathes.includes(src)){
+                console.error(`[file-iterator] ${src} does not exist! Please check you user-config.js home_pathes`);
+                console.error(`[file-iterator] ${src} 不存在! 检查一下你user-config.js的home_pathes`);
             }
         }
     });
