@@ -14,12 +14,20 @@ export default class ChartPage extends Component {
     constructor(prop) {
         super(prop);
         this.failedTimes = 0;
+        this.state = {};
     }
 
     componentDidMount() {
         if(this.failedTimes < 3) {
             Sender.get("/api/allInfo", res => {
                 this.handleRes(res);
+            });
+
+            Sender.get('/api/getGoodAuthorNames', res =>{
+                this.setState({
+                    goodAuthors: res.goodAuthors,
+                    otherAuthors: res.otherAuthors
+                })
             });
         }
     }
@@ -209,6 +217,70 @@ export default class ChartPage extends Component {
                 </div>)
     }
 
+    renderGoodBadDistribution(){
+        const {goodAuthors, otherAuthors} = this.state;
+
+        const data = {
+            labels : []
+        };
+
+
+        const segment = 0.1;
+
+        for(let ii = 0; ii < 1/segment; ii++){
+            data.labels.push(ii * segment);
+        }
+
+        if(goodAuthors && otherAuthors){
+            let allAuthors = _.keys(goodAuthors).concat(_.keys(otherAuthors));
+            allAuthors = util.array_unique(allAuthors);
+            const value = [];
+
+            allAuthors.forEach(aa => {
+                const good = goodAuthors[aa] || 0;
+                const other = otherAuthors[aa] || 0;
+                let pp = good/(good+other);
+                pp = pp.toFixed(2);
+
+                for(let ii = 0; ii < data.labels.length; ii++){
+                    const segmentBeg = data.labels[ii];
+                    const segmentEnd = segmentBeg + segment;
+
+                    if(segmentBeg <= pp && pp < segmentEnd ){
+                        value[ii] = value[ii] || 0;
+                        value[ii]++;
+                        break;
+                    }
+                }
+            });
+
+            const opt = {
+                maintainAspectRatio: false,
+                legend: {
+                    position: "right"
+                }
+            };
+
+            data.datasets = [{
+                type: 'bar',
+                label: 'good/(good+other) distribution',
+                backgroundColor: "#15c69a",
+                data:  value
+              }]
+
+            return (
+                <div className="individual-chart-container">
+                  <Bar
+                    data={data}
+                    width={800}
+                    height={200}
+                    options={opt}
+                  />
+                </div>
+              );
+        }
+    }
+
     render(){
         document.title = "Chart"
 
@@ -226,6 +298,7 @@ export default class ChartPage extends Component {
                     {this.rendeTimeChart()}
                     {this.renderComiketChart()}
                     {this.renderPieChart()}
+                    {/* {this.renderGoodBadDistribution()} */}
                 </div>)
         }
     }
