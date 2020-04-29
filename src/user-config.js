@@ -66,5 +66,8 @@ module.exports.move_file_to_recyle = true;
 //or encode they by hash function
 module.exports.readable_cache_folder_name = true;
 
+//漫画阅读中两页clip在一起以后，翻页是不是还要接着拼在一起
+module.exports.keep_clip = false;
+
 //in MB
 module.exports.oversized_image_size = 4;

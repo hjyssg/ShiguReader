@@ -36,7 +36,8 @@ export default class OneBook extends Component {
     this.state = {
       files: [],
       musicFiles: [],
-      index: this.getInitIndex()
+      index: this.getInitIndex(),
+      clipWithPrev: "no-clip"
     };
     this.failTimes = 0;
   }
@@ -263,10 +264,10 @@ export default class OneBook extends Component {
   handleKeyDown(event) {
     const key = event.key.toLowerCase();
     if (key === "arrowright" || key === "d" || key === "l") {
-      this.changePage(this.state.index + 1);
+      this.next();
       event.preventDefault();
     } else if (key === "arrowleft" || key === "a" || key === "j") {
-      this.changePage(this.state.index - 1);
+      this.prev();
       event.preventDefault();
     } else if (key === "+" || key === "=" ) {
       this.onwheel({wheelDelta: 1})
@@ -276,16 +277,14 @@ export default class OneBook extends Component {
   }
 
   doClipWithPrev(){
-    let next;
-
-    if(!this.state.clipWithPrev){
-      next = "right";
-    }else{
-      next = this.state.clipWithPrev === "right"? "left" : "right";
+    const clipOrder = ["no-clip", "right", "left"];
+    let index = clipOrder.indexOf(this.state.clipWithPrev)+1;
+    if(index >= clipOrder.length){
+      index = 0;
     }
 
     this.setState({
-      clipWithPrev: next
+      clipWithPrev: clipOrder[index]
     })
   }
   
@@ -307,9 +306,13 @@ export default class OneBook extends Component {
         autoclose: 3000
       });
     }else{
-      this.setState({ index: index, clipWithPrev: undefined });
+      if(!userConfig.keep_clip){
+        this.setState({ clipWithPrev: undefined });
+      }
+      this.setState({ index: index});
       this.setIndex(index);
       this.rotateImg(0);
+
 
       // //https://stackoverflow.com/questions/4210798/how-to-scroll-to-top-of-page-with-javascript-jquery
       // document.body.scrollTop = document.documentElement.scrollTop = 0;
@@ -318,11 +321,16 @@ export default class OneBook extends Component {
     }
   }
   
+  
   next(event) {
     if(this.state.files.length <= 1){
       return;
     }
-    let index = this.state.index + 1;
+
+    const jump =  this.shouldclipWithPrev()? 2 : 1;
+    let index = this.state.index + jump;
+    index = Math.min(this.getLastIndex(), index);
+
     this.changePage(index, event);
   }
   
@@ -330,7 +338,9 @@ export default class OneBook extends Component {
     if(this.state.files.length <= 1){
       return;
     }
-    let index = this.state.index - 1;
+    const jump =  this.shouldclipWithPrev()? 2 : 1;
+    let index = this.state.index - jump;
+    index = Math.max(0, index);
     this.changePage(index, event);
   }
   
@@ -376,6 +386,10 @@ export default class OneBook extends Component {
     }
   }
 
+  shouldclipWithPrev(){
+    return this.state.index > 0 && (this.state.clipWithPrev === "left" || this.state.clipWithPrev === "right");
+  }
+
   renderImage(){
     const { files, index, clipWithPrev } = this.state;
     if(!_.isPad()){
@@ -383,7 +397,7 @@ export default class OneBook extends Component {
         "has-music": this.hasMusic()
       });
 
-      const prevImg =  clipWithPrev &&  <img  className={cn} src={getUrl(files[index-1])} alt="book-image"
+      const prevImg = this.shouldclipWithPrev() &&  <img  className={cn} src={getUrl(files[index-1])} alt="book-image"
                                           ref={img => this.prevImgRef = img}
                                           onLoad={this.makeTwoImageSameHeight.bind(this)}
                                           index={index-1}

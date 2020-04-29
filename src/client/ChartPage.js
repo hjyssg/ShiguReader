@@ -223,10 +223,10 @@ export default class ChartPage extends Component {
         const data = {
             labels : []
         };
-        const segment = 0.1;
+        const segment = 0.05;
 
         for(let ii = 0; ii < 1/segment; ii++){
-            data.labels.push(ii * segment);
+            data.labels.push((ii * segment));
         }
 
         if(goodAuthors && otherAuthors){
