@@ -176,7 +176,8 @@ export default class OneBook extends Component {
 
   onwheel(e){
     const CHANGE_RATE = 1.05;
-    this.applyHeightToImage(e.wheelDelta > 0?  this.imgHeight * CHANGE_RATE : this.imgHeight / CHANGE_RATE);
+    const delta = -e.deltaY || e.wheelDelta;
+    this.applyHeightToImage(delta > 0?  this.imgHeight * CHANGE_RATE : this.imgHeight / CHANGE_RATE);
     e.preventDefault && e.preventDefault();
   }
 
