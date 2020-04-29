@@ -223,8 +223,6 @@ export default class ChartPage extends Component {
         const data = {
             labels : []
         };
-
-
         const segment = 0.1;
 
         for(let ii = 0; ii < 1/segment; ii++){
@@ -234,7 +232,7 @@ export default class ChartPage extends Component {
         if(goodAuthors && otherAuthors){
             let allAuthors = _.keys(goodAuthors).concat(_.keys(otherAuthors));
             allAuthors = util.array_unique(allAuthors);
-            const value = [];
+            let value = [];
 
             allAuthors.forEach(aa => {
                 const good = goodAuthors[aa] || 0;
@@ -254,6 +252,10 @@ export default class ChartPage extends Component {
                 }
             });
 
+            data.labels = data.labels.slice(1);
+            value = value.slice(1);
+            console.log(value);
+
             const opt = {
                 maintainAspectRatio: false,
                 legend: {
@@ -262,15 +264,16 @@ export default class ChartPage extends Component {
             };
 
             data.datasets = [{
-                type: 'bar',
+                type: 'line',
                 label: 'good/(good+other) distribution',
                 backgroundColor: "#15c69a",
-                data:  value
+                data:  value,
+                fill: false,
               }]
 
             return (
                 <div className="individual-chart-container">
-                  <Bar
+                  <Line
                     data={data}
                     width={800}
                     height={200}
@@ -298,7 +301,7 @@ export default class ChartPage extends Component {
                     {this.rendeTimeChart()}
                     {this.renderComiketChart()}
                     {this.renderPieChart()}
-                    {/* {this.renderGoodBadDistribution()} */}
+                    {this.renderGoodBadDistribution()}
                 </div>)
         }
     }
