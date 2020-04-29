@@ -298,6 +298,11 @@ function checkIfDownload(text, allFileInLowerCase, authorTable){
                 const r2 = parse(e);
           
                 const isSimilarGroup = isSimilar(r1.group, r2.group);
+
+                //e.g one is c97, the other is c96. cannot be the same 
+                if(r1.comiket && r2.comiket && r1.comiket !== r2.comiket ){
+                    return;
+                }
         
                 if(isSimilarGroup){
                     if(r1.title === r2.title){
