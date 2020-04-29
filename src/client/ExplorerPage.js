@@ -52,8 +52,8 @@ export default class ExplorerPage extends Component {
         return this.state.noThumbnail? 40 :  util.getPerPageItemNumber();
     }
 
-    getInitState(){
-        const parsed = queryString.parse(location.hash);
+    getInitState(reset){
+        const parsed = reset? {} : queryString.parse(location.hash);
         const pageIndex = parseInt(parsed.pageIndex) || 1;
         const isRecursive = !!(parsed.isRecursive === "true");
         const sortOrder = parsed.sortOrder || SORT_BY_DATE;
@@ -156,8 +156,9 @@ export default class ExplorerPage extends Component {
             this.author = "";
             this.fileInfos = {};
             this.thumbnails = {};
-            this.res = ""
-            this.forceUpdate();
+            this.res = "";
+            //init state
+            this.setStateAndSetHash(this.getInitState(true));
             this.askServer();
         }
     }
