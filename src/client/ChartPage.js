@@ -10,6 +10,8 @@ import ErrorPage from './ErrorPage';
 import {Bar, Pie, Line} from 'react-chartjs-2';
 const clientUtil = require("./clientUtil");
 const { getDir, getFn } = clientUtil;
+const util = require("../util");
+const {isCompress, array_unique} = util;
 
 
 export default class ChartPage extends Component {

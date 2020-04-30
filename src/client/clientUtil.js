@@ -43,6 +43,6 @@ module.exports.stringHash = function (str) {
     return result;
 };
 
-module.exports.sortFileName = function(files){
+module.exports.sortFileNames = function(files){
     util._sortFileNames(files, getFnWithoutExtention);
 }
