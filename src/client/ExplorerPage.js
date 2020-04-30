@@ -23,7 +23,7 @@ const classNames = require('classnames');
 const Constant = require("../constant");
 const clientUtil = require("./clientUtil");
 const { getDir, getFn, getPerPageItemNumber, stringHash } = clientUtil;
-
+const { isVideo, isCompress } = util;
 
 const { SORT_BY_DATE, 
         SORT_BY_DATE_REVERSE,
