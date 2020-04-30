@@ -15,6 +15,8 @@ const nameParser = require('../name-parser');
 const userConfig = require('../user-config');
 const util = require("../util");
 const pathUtil = require("./pathUtil");
+const serverUtil = require("./serverUtil");
+
 const {
         fullPathToUrl,
         getOutputPath,
@@ -443,7 +445,7 @@ function getThumbnails(filePathes){
         const outputPath = getOutputPath(cachePath, filePath);
         let cacheFiles = getCache(outputPath);
         cacheFiles = (cacheFiles && cacheFiles.files) || [];
-        const thumb = util.chooseThumbnailImage(cacheFiles);
+        const thumb = serverUtil.chooseThumbnailImage(cacheFiles);
         if(thumb){
             thumbnails[filePath] = fullPathToUrl(thumb);
         }else{
@@ -597,7 +599,7 @@ app.post(Constant.TAG_THUMBNAIL_PATH_API, (req, res) => {
     }
 
     const { files } = searchByTagAndAuthor(tag, author, null, true);
-    chosendFileName = util.chooseOneZipForOneTag(files);
+    chosendFileName = serverUtil.chooseOneZipForOneTag(files);
     if(!chosendFileName){
         res.sendStatus(404);
         return;
@@ -685,7 +687,7 @@ async function extractThumbnailFromZip(filePath, res, mode, counter) {
     //check if there is compress thumbnail  e.g thumbnail--001.jpg
     const cacheFiles = getCache(outputPath);
     if (cacheFiles && cacheFiles.files.length > 0) {
-        const tempOne =  util.chooseThumbnailImage(cacheFiles.files);
+        const tempOne =  serverUtil.chooseThumbnailImage(cacheFiles.files);
         if(util.isCompressedThumbnail(tempOne)){
             let temp = path.join(outputPath, path.basename(tempOne));
             temp = turnPathSepToWebSep(temp);
@@ -711,7 +713,7 @@ async function extractThumbnailFromZip(filePath, res, mode, counter) {
         }
 
         const files = read7zOutput(text);
-        const one = util.chooseThumbnailImage(files);
+        const one = serverUtil.chooseThumbnailImage(files);
         
         if (!one) {
             console.log("[extractThumbnailFromZip]", filePath,  "no image file from output");
@@ -827,7 +829,7 @@ app.post('/api/extract', async (req, res) => {
     const stat = await pfs.stat(filePath);
 
     function sendBack(files, dirs, musicFiles, path, stat){
-        const tempFiles =  util.filterHiddenFile(files);
+        const tempFiles =  serverUtil.filterHiddenFile(files);
         res.send({ files: tempFiles, dirs, musicFiles,path, stat });
     }
 

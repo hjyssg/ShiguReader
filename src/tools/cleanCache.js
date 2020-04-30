@@ -7,6 +7,7 @@ const minifyImageFile = require("./minifyImageFile");
 let counter = 0;
 const pathUtil = require("../server/pathUtil");
 const {  isSub } = pathUtil;
+const serverUtil = require("../server/serverUtil");
 
 const show_error = false;
 
@@ -60,7 +61,7 @@ function _clean(cachePath, minized){
                 del(p1, cachePath);
             }else if(stat.isDirectory()){
                 let subfiles = fs.readdirSync(p1);
-                const thumbnail = util.chooseThumbnailImage(subfiles);
+                const thumbnail = serverUtil.chooseThumbnailImage(subfiles);
                 //only thumbnail
                 for(let ii = 0; ii < subfiles.length; ii++){
                     const fileName = subfiles[ii];

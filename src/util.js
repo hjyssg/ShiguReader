@@ -41,15 +41,7 @@ module.exports.canBeCompressed = function(fn){
     return compressable.some((e) => fn.toLowerCase().endsWith(e));
 }
 
-module.exports.chooseThumbnailImage = function(files){
-    let tempFiles = files.filter(isImage);
-    tempFiles = filterHiddenFile(tempFiles);
-    sortFileNames(tempFiles);
-    const compressed = tempFiles.filter(isCompressedThumbnail);
-    return compressed[0] || tempFiles[0];
-}
-
-//get parent
+//-----------------------------used by client-------------------------
 module.exports.getDir = function (fn) {
     if (!fn) { return ""; }
     const tokens = fn.split('\\');
@@ -69,10 +61,12 @@ const getFnWithoutExtention = module.exports.getFnWithoutExtention = function (f
     return getFn(fn, seperator).split(".")[0];
 };
 
-//used by client
+
 module.exports.getUrl = function (fn){
     return "../" + fn;
 }
+//--------------------------------------------------
+
 
 const sortFileNames = module.exports.sortFileNames = function (files) {
     const fileIndexs =  files.map(e => getFnWithoutExtention(e));
@@ -83,25 +77,6 @@ const sortFileNames = module.exports.sortFileNames = function (files) {
       files.sort((a, b) => a.localeCompare(b));
     }
 };
-
-const filterHiddenFile = module.exports.filterHiddenFile =function(files){
-    return files.filter(f => {
-        const temp = getFn(f, "/");
-        return temp && temp[0] !== ".";
-    })
-}
-
-module.exports.chooseOneZipForOneTag = function(files){
-    const _files = files.filter(e => {
-        if(e.includes("アニメ")){
-            return false;
-        }
-        return true;
-    });
-    let tempFiles =  _files.filter(isCompress);
-    tempFiles = filterHiddenFile(tempFiles);
-    return tempFiles[0];
-}
 
 module.exports.chooseOneThumbnailForOneTag = function(files){
     return files && files[0];
