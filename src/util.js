@@ -41,14 +41,12 @@ module.exports.canBeCompressed = function(fn){
     return compressable.some((e) => fn.toLowerCase().endsWith(e));
 }
 
-//todo duplicate
-const getFnWithoutExtention = module.exports.getFnWithoutExtention = function (fn, seperator) {
-    seperator = seperator || "/"
-    if (!fn) { return ""; }
-    return getFn(fn, seperator).split(".")[0];
-};
+//todo duplicate----------
+ module.exports._sortFileNames = function (files, getFnWithoutExtention) {
+    if(!getFnWithoutExtention){
+        throw "no getFnWithoutExtention";
+    }
 
-const sortFileNames = module.exports.sortFileNames = function (files) {
     const fileIndexs =  files.map(e => getFnWithoutExtention(e));
 
     if(fileIndexs.every(isOnlyDigit)){

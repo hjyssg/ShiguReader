@@ -1,9 +1,7 @@
 import React, { Component } from 'react';
 import '../style/Breadcrumb.scss';
 import { Link } from 'react-router-dom';
-const util = require("../../util");
 const classNames = require('classnames');
-const util = require("../../util");
 const clientUtil = require("../clientUtil");
 const { getDir, getFn, stringHash } = clientUtil;
 

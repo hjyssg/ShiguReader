@@ -1,3 +1,5 @@
+const util = require("../util");
+
 module.exports.getDir = function (fn) {
     if (!fn) { return ""; }
     const tokens = fn.split('\\');
@@ -15,7 +17,7 @@ module.exports.getUrl = function (fn){
     return "../" + fn;
 }
 
-const getFnWithoutExtention = module.exports.getFnWithoutExtention = function (fn, seperator) {
+const getFnWithoutExtention = function (fn, seperator) {
     seperator = seperator || "/"
     if (!fn) { return ""; }
     return getFn(fn, seperator).split(".")[0];
@@ -40,3 +42,7 @@ module.exports.stringHash = function (str) {
     window.localStorage && window.localStorage.setItem(result, str)
     return result;
 };
+
+module.exports.sortFileName = function(files){
+    util._sortFileNames(files, getFnWithoutExtention);
+}

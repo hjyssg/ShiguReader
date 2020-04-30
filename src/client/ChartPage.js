@@ -3,12 +3,12 @@ import PropTypes from 'prop-types';
 import './style/ChartPage.scss';
 import Sender from './Sender';
 import _ from "underscore";
-const util = require("../util");
 const nameParser = require('../name-parser');
 const filesizeUitl = require('filesize');
 import CenterSpinner from './subcomponent/CenterSpinner';
 import ErrorPage from './ErrorPage';
 import {Bar, Pie, Line} from 'react-chartjs-2';
+const clientUtil = require("./clientUtil");
 const { getDir, getFn } = clientUtil;
 
 

@@ -28,7 +28,7 @@ const MIN_HEIGHT = 400;
 const MIN_WIDTH = 400;
 const userConfig = require('../user-config');
 const clientUtil = require("./clientUtil");
-const { getDir, getFn, isPad, stringHash, getUrl } = clientUtil;
+const { getDir, getFn, isPad, stringHash, getUrl, sortFileNames } = clientUtil;
 
 export default class OneBook extends Component {
   constructor(props) {
@@ -244,9 +244,9 @@ export default class OneBook extends Component {
         //or 1.jpg, 2.jpg 3.jpg 1.jpg
         //the sort is trigger
 
-        util.sortFileNames(files);
+        sortFileNames(files);
         let musicFiles = res.musicFiles || [];
-        util.sortFileNames(musicFiles);
+        sortFileNames(musicFiles);
         this.setState({ files, musicFiles, path:res.path, fileStat: res.stat });
 
         this.bindUserInteraction();
