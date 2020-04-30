@@ -10,8 +10,8 @@
 
 ##### Demo Video
 [iPad使用](https://www.bilibili.com/video/BV1Mt4y1m7qU)  
-[PC使用](https://www.bilibili.com/video/BV1t64y1u729/)
-[iPhone使用](https://www.bilibili.com/video/BV1xt4y1U73L/)  
+[PC使用](https://www.bilibili.com/video/BV1t64y1u729/)   
+[iPhone使用](https://www.bilibili.com/video/BV1xt4y1U73L/)     
 
 ##### Features
 
@@ -44,8 +44,8 @@ git clone https://github.com/hjyssg/ShiguReader
 # 用任意文本编辑器手动修改src/user-config.js用户文件设置  
 
 ## 重要:windows用户必须的额外步骤：
-## 因为windows的默认cmd很不好用
-## 请前往 https://git-scm.com/ 安装git顺便安装上git bash
+## 因为windows的默认cmd很不好用，用了极有可能启动不了。
+## 请前往 https://git-scm.com/ 安装git顺便安装上Git Bash 
 ## 然后以下命令行都请使用Git Bash 
 
 # 命令行进入文件夹。比如
@@ -118,8 +118,8 @@ windows语言设置:
 
 ##### FAQ
     问： 想问下如果想更新该如何做呢，只要重新克隆一份最新的覆盖就行了？还是说要再走一遍流程?   
-    答： 如果是用git的话 npm install 然后npm run dev。
-         如果没用git 重新走一遍
+    答： 如果是用git的话，拉(pull)最新的代码。然后重新修改一下user-config。然后npm install 然后npm run dev。
+         如果没用git，重新走一遍全部流程。
 
 
 
