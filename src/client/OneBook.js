@@ -279,14 +279,23 @@ export default class OneBook extends Component {
 
   doClipWithPrev(){
     const clipOrder = ["no-clip", "right", "left"];
-    let index = clipOrder.indexOf(this.state.clipWithPrev)+1;
-    if(index >= clipOrder.length){
-      index = 0;
+    let next = clipOrder.indexOf(this.state.clipWithPrev)+1;
+    if(next >= clipOrder.length){
+      next = 0;
     }
 
-    this.setState({
-      clipWithPrev: clipOrder[index]
-    })
+    next = clipOrder[next];
+
+    if(this.state.index === 0 && next !== "no-clip"){
+      this.setState({
+        clipWithPrev: next,
+        index: 1
+      });
+    }else{
+      this.setState({
+        clipWithPrev: next
+      });
+    }
   }
   
   getLastIndex(){
@@ -563,7 +572,7 @@ export default class OneBook extends Component {
       return;
     }
     return (<div className="one-book-second-toolbar">
-              {this.state.index > 0 && <div className="clip-with-prev-button fas fa-arrows-alt-h" onClick={this.doClipWithPrev.bind(this)} title="clip with prev image"></div>}
+              <div className="clip-with-prev-button fas fa-arrows-alt-h" onClick={this.doClipWithPrev.bind(this)} title="clip with prev image"></div>
               <div className="fas fa-sync-alt rotate-button" title="rotate image" onClick={this.rotateImg.bind(this)}></div>
             </div>);
   }
