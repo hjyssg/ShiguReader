@@ -116,6 +116,13 @@ windows语言设置:
     把EhentaiHighighliger.js添加到tamper monkey。
     在你上绅士网的时候，该脚本会通过与后端服务器通信。帮助你知道文件下载过与否。
 
+##### FAQ
+    问： 想问下如果想更新该如何做呢，只要重新克隆一份最新的覆盖就行了？还是说要再走一遍流程?   
+    答： 如果是用git的话 npm install 然后npm run dev。
+         如果没用git 重新走一遍
+
+
+
 ##### 热键
 漫画页面  
 enter: 全屏  
