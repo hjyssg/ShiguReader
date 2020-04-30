@@ -24,7 +24,7 @@ module.exports.chooseOneZipForOneTag = function(files){
     return tempFiles[0];
 }
 
-const sortFileName = function(files){
+const sortFileNames = function(files){
     util._sortFileNames(files, e => path.basename(e, path.extname(e)));
 }
 
