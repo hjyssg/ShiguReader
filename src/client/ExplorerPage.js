@@ -15,14 +15,15 @@ import CenterSpinner from './subcomponent/CenterSpinner';
 const util = require("../util");
 const filesizeUitl = require('filesize');
 const queryString = require('query-string');
-const stringHash = util.stringHash;
 import RadioButtonGroup from './subcomponent/RadioButtonGroup';
 import Breadcrumb from './subcomponent/Breadcrumb';
 import Checkbox from './subcomponent/Checkbox';
 const nameParser = require('../name-parser');
 const classNames = require('classnames');
-
 const Constant = require("../constant");
+const clientUtil = require("./clientUtil");
+const { getDir, getFn, getPerPageItemNumber, stringHash } = clientUtil;
+
 
 const { SORT_BY_DATE, 
         SORT_BY_DATE_REVERSE,
@@ -49,7 +50,7 @@ export default class ExplorerPage extends Component {
     }
 
     getNumPerPage(){
-        return this.state.noThumbnail? 40 :  util.getPerPageItemNumber();
+        return this.state.noThumbnail? 40 :  getPerPageItemNumber();
     }
 
     getInitState(reset){
@@ -168,8 +169,8 @@ export default class ExplorerPage extends Component {
             let {dirs, files, path, tag, author, fileInfos, thumbnails} = res;
             this.loadedHash = this.getHash();
             files = files || [];
-            this.videoFiles = files.filter(util.isVideo) || []
-            this.files = files.filter(util.isCompress) || [];
+            this.videoFiles = files.filter(isVideo) || []
+            this.files = files.filter(isCompress) || [];
             this.dirs = dirs || [];
             this.path = path || "";
             this.tag = tag || "";
@@ -265,8 +266,8 @@ export default class ExplorerPage extends Component {
     sortFiles(files, sortOrder){
         //-------sort algo
         const byFn = (a, b) => {
-            const ap = util.getFn(a);
-            const bp = util.getFn(b);
+            const ap = getFn(a);
+            const bp = getFn(b);
             return ap.localeCompare(bp);
         }
 
@@ -278,8 +279,8 @@ export default class ExplorerPage extends Component {
             });
         }else if(sortOrder === SORT_BY_FOLDER){
             files.sort((a, b) => {
-                const ad = util.getDir(a);
-                const bd = util.getDir(b);
+                const ad = getDir(a);
+                const bd = getDir(b);
                 if(ad !== bd){
                     return ad.localeCompare(bd);
                 } else {
@@ -311,8 +312,8 @@ export default class ExplorerPage extends Component {
                     return comprTime(fileTimeA, fileTimeB);
                 }else{
 
-                    const pA = nameParser.parse(util.getFn(a));
-                    const pB = nameParser.parse(util.getFn(b));
+                    const pA = nameParser.parse(getFn(a));
+                    const pB = nameParser.parse(getFn(b));
     
                     let aboutTimeA = pA && nameParser.getDateFromTags(pA.tags);
                     let aboutTimeB = pB && nameParser.getDateFromTags(pB.tags);
@@ -414,7 +415,7 @@ export default class ExplorerPage extends Component {
         //and tag
         let breadcrumbCount = 0;
         const zipfileItems = files.map((item, index) => {
-            const text = _.getFn(item);
+            const text = getFn(item);
             const pathHash = stringHash(item);
             const toUrl =  '/onebook/' + pathHash;
 
@@ -427,9 +428,9 @@ export default class ExplorerPage extends Component {
             if(sortOrder === SORT_BY_FOLDER && 
                 (this.getMode() === MODE_AUTHOR || this.getMode() === MODE_TAG || this.getMode() === MODE_SEARCH )){
                 const prev = files[index - 1];
-                if(!prev || util.getDir(prev) !== util.getDir(item)){
+                if(!prev || getDir(prev) !== getDir(item)){
                     seperator = (<div className="col-12"  key={item+"---seperator"}> 
-                                 <Breadcrumb path={util.getDir(item)} className={breadcrumbCount > 0? "not-first-breadcrumb": "" }/>
+                                 <Breadcrumb path={getDir(item)} className={breadcrumbCount > 0? "not-first-breadcrumb": "" }/>
                                  </div>);
                     breadcrumbCount++;
                 }
@@ -717,7 +718,7 @@ export default class ExplorerPage extends Component {
         const tag2Freq = {};
 
         files.forEach(e => {
-            const result = nameParser.parse(_.getFn(e));
+            const result = nameParser.parse(getFn(e));
             let tags = (result && result.tags)||[];
 
             tags.forEach(t => {

@@ -12,10 +12,13 @@ import Pagination from 'rc-pagination';
 import { Redirect } from 'react-router-dom';
 const nameParser = require('../name-parser');
 
-
 const util = require("../util");
-const stringHash = util.stringHash;
+const clientUtil = require("./clientUtil");
+const { getDir, getFn, getPerPageItemNumber, stringHash } = clientUtil;
 
+const chooseOneThumbnailForOneTag = function(files){
+  return files && files[0];
+}
 
 function addOne(table, key) {
   if(!key){
@@ -43,7 +46,7 @@ export default class TagPage extends Component {
   constructor(prop) {
     super(prop);
     this.state = { tags: [], sortByNumber: true };
-    this.perPage = util.getPerPageItemNumber();
+    this.perPage = getPerPageItemNumber();
   }
 
   get pageIndex(){
@@ -74,7 +77,7 @@ export default class TagPage extends Component {
     const tagToFiles = {};
 
     allFiles.forEach((filePath) => {
-        const fileName = util.getFn(filePath);
+        const fileName = getFn(filePath);
         const result = nameParser.parse(fileName);
         if (result) {
             const fileThumbnail = allThumbnails[filePath];
@@ -144,7 +147,7 @@ export default class TagPage extends Component {
       const itemText = `${tag} (${items[tag]})`;
       const tagHash = stringHash(tag);
       const url = this.isAuthorMode()? ("/author/" + tagHash) :  ("/tag/" + tagHash);
-      const thumbnailUrl = util.chooseOneThumbnailForOneTag(tagToThumbnail[tag]);
+      const thumbnailUrl = chooseOneThumbnailForOneTag(tagToThumbnail[tag]);
 
       return  (<div key={tag} className="col-sm-6 col-md-4 col-lg-3 tag-page-list-item">
                     <div className={"tag-cell"}>

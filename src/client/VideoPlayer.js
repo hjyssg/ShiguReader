@@ -4,6 +4,8 @@ import './style/VideoPlayer.scss';
 import ClickAndCopyText from './subcomponent/ClickAndCopyText';
 import FileChangeToolbar from './subcomponent/FileChangeToolbar';
 const util = require("../util");
+const clientUtil = require("./clientUtil");
+const { getDir, getFn } = clientUtil;
 
 export default class VideoPlayer extends Component {
   constructor(props) {
@@ -19,7 +21,7 @@ export default class VideoPlayer extends Component {
   render() {
     const fn = window.localStorage && window.localStorage.getItem(this.getHash());
     const url = "http://localhost:8080/api/video/"+this.getHash();
-    document.title = util.getFn(fn);
+    document.title = getFn(fn);
 
     return (<div className="video-player-page">
               <div className="video-player-container">

@@ -3,7 +3,8 @@ import PropTypes from 'prop-types';
 import './style/MusicPlayer.scss';
 const classNames = require('classnames');
 const util = require("../util");
-const getUrl = util.getUrl;
+const clientUtil = require("./clientUtil");
+const { getDir, getFn, getUrl } = clientUtil;
 
 export default class MusicPlayer extends Component {
     constructor(prop) {
@@ -39,7 +40,7 @@ export default class MusicPlayer extends Component {
             const cn = classNames("aji-music-player-item", {
                 "aji-music-player-active  fas fa-volume-up": ii === index
             })
-            return (<div key={e} className={cn} onClick={this.handleIndexChange.bind(this, ii)}> {util.getFn(e, "/")} </div>)
+            return (<div key={e} className={cn} onClick={this.handleIndexChange.bind(this, ii)}> {getFn(e, "/")} </div>)
         });
 
         if(audioFiles.length === 0){

@@ -4,6 +4,8 @@ import PropTypes from 'prop-types';
 var classNames = require('classnames');
 import Spinner from './Spinner';
 const util = require("../../util");
+const clientUtil = require("../clientUtil");
+const { getDir, getFn } = clientUtil;
 
 export default class CenterSpinner extends Component {
      render(){
@@ -11,8 +13,8 @@ export default class CenterSpinner extends Component {
         if(this.props.text){
           if(this.props.splitFilePath){
             text = <div className="title">
-                      <div>{util.getFn(this.props.text)}</div>
-                      <div>{util.getDir(this.props.text)}></div>
+                      <div>{getFn(this.props.text)}</div>
+                      <div>{getDir(this.props.text)}></div>
                   </div>
           }else{
             text = <div className="title">{this.props.text}</div>

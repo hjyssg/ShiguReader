@@ -10,6 +10,8 @@ import '../style/FileChangeToolbar.scss';
 import Dropdown from "./Dropdown";
 import DropdownItem from "./DropdownItem";
 const util = require("../../util");
+const clientUtil = require("../clientUtil");
+const { getDir, getFn } = clientUtil;
 
 export default class FileChangeToolbar extends Component {
     static defaultProps = {
@@ -132,7 +134,7 @@ export default class FileChangeToolbar extends Component {
         return userConfig.additional_folder.map((e, index) =>{
             const dd = (<div tabIndex="0"  className="letter-button"  key={index}
             title={"Move to " + e}
-            onClick={this.handleClose.bind(this, e)}> {util.getFn(e)[0]} </div>);
+            onClick={this.handleClose.bind(this, e)}> {getFn(e)[0]} </div>);
 
             if(showAllButtons){
                 return dd;
