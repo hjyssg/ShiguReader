@@ -30,6 +30,10 @@ const userConfig = require('../user-config');
 const clientUtil = require("./clientUtil");
 const { getDir, getFn, isPad, stringHash, getUrl, sortFileNames } = clientUtil;
 
+const NO_TWO_PAGE = "no_clip";
+const TWO_PAGE_LEFT = "left";
+const TWO_PAGE_RIGHT = "right";
+
 export default class OneBook extends Component {
   constructor(props) {
     super(props);
@@ -37,7 +41,7 @@ export default class OneBook extends Component {
       files: [],
       musicFiles: [],
       index: this.getInitIndex(),
-      twoPageMode: "no-clip"
+      twoPageMode: NO_TWO_PAGE
     };
     this.failTimes = 0;
   }
@@ -217,7 +221,7 @@ export default class OneBook extends Component {
   }
 
   makeTwoImageSameHeight(){
-    if(this.state.twoPageMode){
+    if(this.shouldTwoPageMode()){
       let imageDom = ReactDOM.findDOMNode(this.nextImgRef);
       imageDom && imageDom.setAttribute("height", this.imgDomHeight);
     }
@@ -313,14 +317,13 @@ export default class OneBook extends Component {
   }
 
   toggleTwoPageMode(){
-    const clipOrder = ["no-clip", "right", "left"];
+    const clipOrder = [NO_TWO_PAGE, TWO_PAGE_RIGHT, TWO_PAGE_LEFT];
     let next = clipOrder.indexOf(this.state.twoPageMode)+1;
     if(next >= clipOrder.length){
       next = 0;
     }
-    next = clipOrder[next];
     this.setState({
-      twoPageMode: next
+      twoPageMode: clipOrder[next]
     });
   }
   
@@ -343,7 +346,7 @@ export default class OneBook extends Component {
       });
     }else{
       if(!userConfig.keep_clip){
-        this.setState({ twoPageMode: undefined });
+        this.setState({ twoPageMode: NO_TWO_PAGE });
       }
       this.setState({ index: index});
       this.setIndex(index);
@@ -423,7 +426,7 @@ export default class OneBook extends Component {
   }
 
   shouldTwoPageMode(){
-    return this.state.index < this.getLastIndex() && (this.state.twoPageMode === "left" || this.state.twoPageMode === "right");
+    return this.state.index < this.getLastIndex() && (this.state.twoPageMode === TWO_PAGE_LEFT || this.state.twoPageMode === TWO_PAGE_RIGHT);
   }
 
   renderImage(){
@@ -442,13 +445,13 @@ export default class OneBook extends Component {
       // {index < files.length-1 &&  <link rel="preload" href={getUrl(files[index+1])} as="image" /> }
       // {index > 0 && <link rel="preload" href={getUrl(files[index-1])} as="image" />}
       return (<React.Fragment>
-              { twoPageMode === "right" &&  nextImg }
+              { twoPageMode === TWO_PAGE_RIGHT &&  nextImg }
               <img  className={cn} src={getUrl(files[index])} alt="book-image"
                            ref={img => this.imgRef = img}
                            onLoad={this.adjustImageSize.bind(this)}
                            index={index}
                            />
-              { twoPageMode === "left" &&  nextImg }
+              { twoPageMode === TWO_PAGE_LEFT &&  nextImg }
               </React.Fragment>);    
     } else {
       let images;
