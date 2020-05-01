@@ -116,8 +116,11 @@ export default class OneBook extends Component {
 
     this.loadedImage = this.state.index;
     const imageDom = ReactDOM.findDOMNode(this.imgRef);
-    this.imgHeight = imageDom.naturalHeight; 
-    this.imgWidth =  imageDom.naturalWidth; 
+    this.imgDomHeight = imageDom.clientHeight; 
+    this.imgDomWidth =  imageDom.clientWidth; 
+    this.imgTrueHeight = imageDom.naturalHeight;
+    this.imgTrueWidth = imageDom.naturalWidth;
+
 
     //display img's real px number
     const dimDom = document.getElementsByClassName("dimension-tag")[0];
@@ -130,61 +133,90 @@ export default class OneBook extends Component {
     const maxHeight = this.getMaxHeight();
     const maxWidth = this.getMaxWidth();
 
-    const widthRatio = this.imgWidth / maxWidth;
-    const heighthRatio = this.imgHeight / maxHeight;
+    const widthRatio = this.imgDomWidth / maxWidth;
+    const heighthRatio = this.imgDomHeight / maxHeight;
 
-    //only need to adjust one dimension
-    if(widthRatio > 1 && widthRatio > heighthRatio){
+    const naturalhwRatio = this.imgTrueHeight/this.imgTrueWidth;
+    const domHwRatio = this.imgDomHeight / this.imgDomWidth;
+
+    if(Math.abs(naturalhwRatio - domHwRatio) > 0.05) {  
+      //float error, so do not use === here
+      //the ratio cannot display the full image
+      
+      //make sure both width and height 
+      let newHeight = Math.min(imageDom.naturalHeight, maxHeight);
+      newHeight = Math.max(newHeight, MIN_HEIGHT);
+      this.applyHeightToImage(newHeight);
+
+      let newWidth = Math.min(imageDom.naturalWidth, maxWidth);
+      newWidth = Math.max(newWidth, MIN_WIDTH);
+      this.applyWidthToImage(newWidth);
+
+    }else if(widthRatio > 1 && widthRatio > heighthRatio){
+      //too wide
       this.applyWidthToImage(maxWidth);
     }else if(heighthRatio > 1) {
+      //too high
       this.applyHeightToImage(maxHeight);
-    }else if(this.imgHeight < MIN_HEIGHT){
+    }else if(this.imgDomHeight < MIN_HEIGHT){
+      //too short
       this.applyHeightToImage(MIN_HEIGHT);
-    }else if(this.imgWidth < MIN_WIDTH){
-      this.applyWidthToImage(this.MIN_WIDTH);
+    }else if(this.imgDomWidth < MIN_WIDTH){
+      //too narrow
+      this.applyWidthToImage(MIN_WIDTH);
     }
   }
 
-
-
   applyWidthToImage(width){
-    let imageDom = ReactDOM.findDOMNode(this.imgRef);
-    if(width < MIN_WIDTH || !imageDom){
+    if(width < MIN_WIDTH){
       return;
     }
 
-    this.imgHeight = (width/this.imgWidth) * this.imgHeight;
-    this.imgWidth = width;
-
-    imageDom.setAttribute("width", this.imgWidth);
-    imageDom.setAttribute("height", this.imgHeight);
+    const newH = (width/this.imgTrueWidth) * this.imgTrueHeight;
+    if(newH > this.getMaxHeight()){
+      return;
+    }
+ 
+    this.applyHWToImage(newH, width);
   }
 
   applyHeightToImage(height){
-    let imageDom = ReactDOM.findDOMNode(this.imgRef);
-    if(height < MIN_HEIGHT || !imageDom){
+    if(height < MIN_HEIGHT ){
       return;
     }
-    this.imgWidth = (height/this.imgHeight) * this.imgWidth;
-    this.imgHeight = height;
-
-    imageDom.setAttribute("height", this.imgHeight);
-    imageDom.setAttribute("width", this.imgWidth);
-
+    const newW = (height/this.imgTrueHeight) * this.imgTrueWidth;
+    if(newW > this.getMaxWidth()){
+      return;
+    }
+    this.applyHWToImage(height, newW);
     this.makeTwoImageSameHeight();
+  }
+
+  applyHWToImage(height, width){
+    let imageDom = ReactDOM.findDOMNode(this.imgRef);
+    if(!imageDom){
+      return;
+    }
+
+    this.imgDomWidth = width;
+    this.imgDomHeight = height;
+
+    imageDom.setAttribute("height", this.imgDomHeight);
+    imageDom.setAttribute("width", this.imgDomWidth);
+
   }
 
   onwheel(e){
     const CHANGE_RATE = 1.05;
     const delta = -e.deltaY || e.wheelDelta;
-    this.applyHeightToImage(delta > 0?  this.imgHeight * CHANGE_RATE : this.imgHeight / CHANGE_RATE);
+    this.applyHeightToImage(delta > 0?  this.imgDomHeight * CHANGE_RATE : this.imgDomHeight / CHANGE_RATE);
     e.preventDefault && e.preventDefault();
   }
 
   makeTwoImageSameHeight(){
     if(this.state.clipWithPrev){
       let imageDom = ReactDOM.findDOMNode(this.prevImgRef);
-      imageDom && imageDom.setAttribute("height", this.imgHeight);
+      imageDom && imageDom.setAttribute("height", this.imgDomHeight);
     }
   }
 
@@ -208,7 +240,7 @@ export default class OneBook extends Component {
     }
 
     const imageDom = ReactDOM.findDOMNode(this.wrapperRef);
-    this.imgHeight = imageDom.clientHeight;
+    this.imgDomHeight = imageDom.clientHeight;
     imageDom.addEventListener("wheel", this.onwheel.bind(this), {passive: false} );
 
     const that = this;
