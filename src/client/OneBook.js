@@ -37,7 +37,7 @@ export default class OneBook extends Component {
       files: [],
       musicFiles: [],
       index: this.getInitIndex(),
-      clipWithPrev: "no-clip"
+      twoPageMode: "no-clip"
     };
     this.failTimes = 0;
   }
@@ -217,7 +217,7 @@ export default class OneBook extends Component {
   }
 
   makeTwoImageSameHeight(){
-    if(this.state.clipWithPrev){
+    if(this.state.twoPageMode){
       let imageDom = ReactDOM.findDOMNode(this.prevImgRef);
       imageDom && imageDom.setAttribute("height", this.imgDomHeight);
     }
@@ -312,25 +312,16 @@ export default class OneBook extends Component {
     }
   }
 
-  doClipWithPrev(){
+  toggleTwoPageMode(){
     const clipOrder = ["no-clip", "right", "left"];
-    let next = clipOrder.indexOf(this.state.clipWithPrev)+1;
+    let next = clipOrder.indexOf(this.state.twoPageMode)+1;
     if(next >= clipOrder.length){
       next = 0;
     }
-
     next = clipOrder[next];
-
-    if(this.state.index === 0 && next !== "no-clip"){
-      this.setState({
-        clipWithPrev: next,
-        index: 1
-      });
-    }else{
-      this.setState({
-        clipWithPrev: next
-      });
-    }
+    this.setState({
+      twoPageMode: next
+    });
   }
   
   getLastIndex(){
@@ -352,7 +343,7 @@ export default class OneBook extends Component {
       });
     }else{
       if(!userConfig.keep_clip){
-        this.setState({ clipWithPrev: undefined });
+        this.setState({ twoPageMode: undefined });
       }
       this.setState({ index: index});
       this.setIndex(index);
@@ -372,7 +363,7 @@ export default class OneBook extends Component {
       return;
     }
 
-    const jump =  this.shouldclipWithPrev()? 2 : 1;
+    const jump = userConfig.keep_clip && this.shouldTwoPageMode()? 2 : 1;
     let index = this.state.index + jump;
     index = Math.min(this.getLastIndex(), index);
 
@@ -383,7 +374,7 @@ export default class OneBook extends Component {
     if(this.state.files.length <= 1){
       return;
     }
-    const jump =  this.shouldclipWithPrev()? 2 : 1;
+    const jump = userConfig.keep_clip && this.shouldTwoPageMode()? 2 : 1;
     let index = this.state.index - jump;
     index = Math.max(0, index);
     this.changePage(index, event);
@@ -431,32 +422,33 @@ export default class OneBook extends Component {
     }
   }
 
-  shouldclipWithPrev(){
-    return this.state.index > 0 && (this.state.clipWithPrev === "left" || this.state.clipWithPrev === "right");
+  shouldTwoPageMode(){
+    return this.state.index < this.getLastIndex() && (this.state.twoPageMode === "left" || this.state.twoPageMode === "right");
   }
 
   renderImage(){
-    const { files, index, clipWithPrev } = this.state;
+    const { files, index, twoPageMode } = this.state;
     if(!isPad()){
       const cn = classNames("one-book-image", {
         "has-music": this.hasMusic()
       });
 
-      const prevImg = this.shouldclipWithPrev() &&  <img  className={cn} src={getUrl(files[index-1])} alt="book-image"
-                                          ref={img => this.prevImgRef = img}
+      const nextImg = this.shouldTwoPageMode() &&  <img  className={cn} src={getUrl(files[index+1])} alt="book-image"
+                                          ref={img => this.nextImgRef = img}
                                           onLoad={this.makeTwoImageSameHeight.bind(this)}
-                                          index={index-1}
+                                          index={index+1}
                                         />;
+
+      // {index < files.length-1 &&  <link rel="preload" href={getUrl(files[index+1])} as="image" /> }
+      // {index > 0 && <link rel="preload" href={getUrl(files[index-1])} as="image" />}
       return (<React.Fragment>
-              { clipWithPrev === "right" &&  prevImg }
+              { twoPageMode === "right" &&  nextImg }
               <img  className={cn} src={getUrl(files[index])} alt="book-image"
                            ref={img => this.imgRef = img}
                            onLoad={this.adjustImageSize.bind(this)}
                            index={index}
                            />
-              { clipWithPrev === "left" &&  prevImg }
-              {index < files.length-1 &&  <link rel="preload" href={getUrl(files[index+1])} as="image" /> }
-              {index > 0 && <link rel="preload" href={getUrl(files[index-1])} as="image" />}
+              { twoPageMode === "left" &&  nextImg }
               </React.Fragment>);    
     } else {
       let images;
@@ -607,7 +599,7 @@ export default class OneBook extends Component {
       return;
     }
     return (<div className="one-book-second-toolbar">
-              <div className="clip-with-prev-button fas fa-arrows-alt-h" onClick={this.doClipWithPrev.bind(this)} title="clip with prev image"></div>
+              <div className="clip-with-prev-button fas fa-arrows-alt-h" onClick={this.toggleTwoPageMode.bind(this)} title="two page mode"></div>
               <div className="fas fa-sync-alt rotate-button" title="rotate image" onClick={this.rotateImg.bind(this)}></div>
             </div>);
   }
@@ -644,7 +636,7 @@ export default class OneBook extends Component {
     const wraperCn = classNames("one-book-wrapper", {
       "full-screen": screenfull.isFullscreen,
       "has-music": this.hasMusic(),
-      "clip-with-prev": this.state.clipWithPrev
+      "clip-with-prev": this.state.twoPageMode
     });
 
     const content = (<div className={wraperCn} ref={wrapper => this.wrapperRef = wrapper}>
