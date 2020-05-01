@@ -33,8 +33,6 @@
 ###### 中文
 
 ```bash
-# 拍了一个安装教学视频 https://www.bilibili.com/video/BV1Eg4y1z7M3
-# 没有任何命令行经验的建议看一下
 # 不要跳过下面任何一个步骤
 
 # 没有nodejs,麻烦先安装nodejs https://nodejs.org/
