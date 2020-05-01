@@ -38,6 +38,7 @@
 # 没有nodejs,麻烦先安装nodejs https://nodejs.org/
 
 # 把代码clone或者github右上角下载到本地
+# 建议所放的硬盘至少还有10GB的空间。因为本程序需要缓存。
 git clone https://github.com/hjyssg/ShiguReader
 
 # 手动修改设置
@@ -71,6 +72,10 @@ npm run dev
 
 # 打开网页以后，就可以用了。
 # 如果你对页面加载速度不满意，前往Admin页面Pregenerate Thumbnail。可以大幅度提高页面加载速度。
+
+# 如果用了一段时间，缓存占了太多空间。
+# 手动去到admin页面点clean cache清除缓存。
+# 不要在文件夹直接删掉整个缓存文件夹，程序可能会出问题。
 ```
 
 ###### English
