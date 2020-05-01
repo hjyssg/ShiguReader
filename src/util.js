@@ -68,10 +68,3 @@ module.exports.array_unique = function(arr){
     });
     return result;
 }
-
-module.exports.attach = function (obj) {
-    obj.isImage = module.exports.isImage;
-    obj.isCompress = module.exports.isCompress;
-    obj.isMusic = module.exports.isMusic;
-}
-
