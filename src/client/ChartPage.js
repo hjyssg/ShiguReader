@@ -3,12 +3,16 @@ import PropTypes from 'prop-types';
 import './style/ChartPage.scss';
 import Sender from './Sender';
 import _ from "underscore";
-const util = require("../util");
 const nameParser = require('../name-parser');
 const filesizeUitl = require('filesize');
 import CenterSpinner from './subcomponent/CenterSpinner';
 import ErrorPage from './ErrorPage';
 import {Bar, Pie, Line} from 'react-chartjs-2';
+const clientUtil = require("./clientUtil");
+const { getDir, getFn } = clientUtil;
+const util = require("../util");
+const {isCompress, array_unique} = util;
+
 
 export default class ChartPage extends Component {
     constructor(prop) {
@@ -52,7 +56,7 @@ export default class ChartPage extends Component {
         const byComiket = {}; //c91 -> 350
         const tagByComiket = {}; // c95 -> kankore -> 201
         this.files.forEach(e => {
-            const result = nameParser.parse(util.getFn(e));
+            const result = nameParser.parse(getFn(e));
             if(result && result.comiket){
                 let cc = result.comiket;
                 byComiket[cc] = byComiket[cc] || 0;
@@ -118,7 +122,7 @@ export default class ChartPage extends Component {
         const byTime = {}; //time -> 300. 
         this.files.forEach(e => {
             const fileInfo = this.fileToInfo[e];
-            const pA = nameParser.parse(util.getFn(e));
+            const pA = nameParser.parse(getFn(e));
             let aboutTimeA = pA && nameParser.getDateFromTags(pA.tags);
             aboutTimeA = aboutTimeA && aboutTimeA.getTime();
             aboutTimeA = aboutTimeA || fileInfo.mtime;
@@ -164,7 +168,7 @@ export default class ChartPage extends Component {
     renderPieChart(){
         const byType = {}; //doujin -> 300. 
         this.files.forEach(e => {
-            const result = nameParser.parse(util.getFn(e));
+            const result = nameParser.parse(getFn(e));
             if(result &&  result.type){
                 const type = result.type;
                 byType[type] = byType[type] || 0;
@@ -206,7 +210,7 @@ export default class ChartPage extends Component {
         let total = 0;
         let num = 0;
         this.files.forEach(e => {
-            if(util.isCompress(e)){
+            if(isCompress(e)){
                 total += this.fileToInfo[e].size;
                 num++;
             }
@@ -231,7 +235,7 @@ export default class ChartPage extends Component {
 
         if(goodAuthors && otherAuthors){
             let allAuthors = _.keys(goodAuthors).concat(_.keys(otherAuthors));
-            allAuthors = util.array_unique(allAuthors);
+            allAuthors = array_unique(allAuthors);
             let value = [];
 
             allAuthors.forEach(aa => {

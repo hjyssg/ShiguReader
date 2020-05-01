@@ -20,15 +20,15 @@ import "./style/BigColumnButton.scss";
 
 const util = require("../util");
 const queryString = require('query-string');
-const stringHash = util.stringHash;
 const filesizeUitl = require('filesize');
 import screenfull from 'screenfull';
-const getUrl = util.getUrl;
 const Constant = require("../constant");
 
 const MIN_HEIGHT = 400;
 const MIN_WIDTH = 400;
 const userConfig = require('../user-config');
+const clientUtil = require("./clientUtil");
+const { getDir, getFn, isPad, stringHash, getUrl, sortFileNames } = clientUtil;
 
 export default class OneBook extends Component {
   constructor(props) {
@@ -61,7 +61,7 @@ export default class OneBook extends Component {
       this.displayFile(file);
     }
 
-    if(!_.isPad ()){
+    if(!isPad ()){
       screenfull.onchange(()=> {
         this.forceUpdate();
       });
@@ -88,7 +88,7 @@ export default class OneBook extends Component {
   }
 
   getMaxHeight(){
-    if(_.isPad()){
+    if(isPad()){
       return window.screen.height - 10;
      }
 
@@ -102,7 +102,7 @@ export default class OneBook extends Component {
   }
 
   getMaxWidth(){
-    if(_.isPad()){
+    if(isPad()){
      return window.screen.width;
     }
     const result = isNaN(window.innerWidth) ? window.clientWidth : window.innerWidth;
@@ -110,7 +110,7 @@ export default class OneBook extends Component {
   }
 
   adjustImageSize(){
-    if(_.isPad()){
+    if(isPad()){
       return;
     }
 
@@ -203,7 +203,7 @@ export default class OneBook extends Component {
   bindUserInteraction(){
     document.addEventListener('keydown', this.handleKeyDown.bind(this));
 
-    if(this.hasMusic() || _.isPad()){
+    if(this.hasMusic() || isPad()){
       return;
     }
 
@@ -244,9 +244,9 @@ export default class OneBook extends Component {
         //or 1.jpg, 2.jpg 3.jpg 1.jpg
         //the sort is trigger
 
-        util.sortFileNames(files);
+        sortFileNames(files);
         let musicFiles = res.musicFiles || [];
-        util.sortFileNames(musicFiles);
+        sortFileNames(musicFiles);
         this.setState({ files, musicFiles, path:res.path, fileStat: res.stat });
 
         this.bindUserInteraction();
@@ -359,7 +359,7 @@ export default class OneBook extends Component {
   }
 
   renderPagination() {
-    if(_.isPad()){ return; }
+    if(isPad()){ return; }
     const { files, index } = this.state;
     const isLast = index+1 === files.length;
     const text = (index+1) + "/" + files.length;
@@ -375,7 +375,7 @@ export default class OneBook extends Component {
       const size = filesizeUitl(fileStat.size, {base: 2});
       const avg = filesizeUitl(fileStat.size/files.length, {base: 2});
       const mTime = dateFormat(fileStat.mtime, "isoDate");
-      const title = util.getFn(files[index], "/" );
+      const title = getFn(files[index], "/" );
       const dim = "";  //change by dom operation
       const titles = [
         "Modify Time",
@@ -389,7 +389,7 @@ export default class OneBook extends Component {
                     <div className={titles[ii] ==="Dimensions"? "dimension-tag": ""} 
                       key={e+ii} style={{marginLeft:"15px"}} title={titles[ii]}> {e} 
                     </div>);
-      const mobilePageNum = _.isPad() && (
+      const mobilePageNum = isPad() && (
         <div  style={{marginLeft:"15px"}} > {`${index+1}/${files.length}`}  </div>
       )
       return <div className={"one-book-file-stat"}>{texts} {mobilePageNum} </div>
@@ -402,7 +402,7 @@ export default class OneBook extends Component {
 
   renderImage(){
     const { files, index, clipWithPrev } = this.state;
-    if(!_.isPad()){
+    if(!isPad()){
       const cn = classNames("one-book-image", {
         "has-music": this.hasMusic()
       });
@@ -483,7 +483,7 @@ export default class OneBook extends Component {
       return;
     }
 
-    const parentPath = _.getDir(this.state.path);
+    const parentPath = getDir(this.state.path);
     const parentHash = stringHash(parentPath);
     const toUrl = ('/explorer/'+ parentHash);
     
@@ -497,7 +497,7 @@ export default class OneBook extends Component {
     if (!this.state.path) {
       return;
     }
-    const toolbar = !_.isPad() &&
+    const toolbar = !isPad() &&
   (<FileChangeToolbar showAllButtons className="one-book-toolbar" file={this.state.path} popPosition={"top-center"}/>);
     return toolbar;
   }
@@ -516,7 +516,7 @@ export default class OneBook extends Component {
   }
 
   renderTags(){
-    const result = nameParser.parse(_.getFn(this.state.path));
+    const result = nameParser.parse(getFn(this.state.path));
     const author = result && result.author;
     const group = result && result.group;
     let tags = (result && result.tags)||[];
@@ -555,7 +555,7 @@ export default class OneBook extends Component {
   }
 
   renderNextPrevButton(){
-    if(_.isPad()){
+    if(isPad()){
       return;
     }
 
@@ -568,7 +568,7 @@ export default class OneBook extends Component {
   }
 
   renderSecondBar(){
-    if(_.isPad()){
+    if(isPad()){
       return;
     }
     return (<div className="one-book-second-toolbar">
@@ -599,9 +599,9 @@ export default class OneBook extends Component {
     }
     
     if(this.state.path){
-      document.title = _.getFn(this.state.path);
+      document.title = getFn(this.state.path);
 
-      if(_.isPad() && index > 0){
+      if(isPad() && index > 0){
         document.title = index.toString() + " " +  document.title;
       }
     }
@@ -617,14 +617,14 @@ export default class OneBook extends Component {
                       {this.renderMusicPlayer()}
     </div>);
 
-    const isContentBelow = _.isPad() && !userConfig.onebook_only_image_per_page;
+    const isContentBelow = isPad() && !userConfig.onebook_only_image_per_page;
 
     return (  
       <div className="one-book-container">
         {!isContentBelow && content}
         <div className="one-book-title" >
             {this.renderPath()} 
-            <ClickAndCopyText text={_.getFn(this.state.path)} />
+            <ClickAndCopyText text={getFn(this.state.path)} />
         </div>
         {this.renderPagination()}
         {this.renderFileSizeAndTime()}

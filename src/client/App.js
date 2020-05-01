@@ -9,11 +9,6 @@ import TagPage from "./TagPage";
 import ChartPage from "./ChartPage";
 import AdminPage from "./AdminPage";
 import { Switch, Route, Link, Redirect } from 'react-router-dom';
-
-
-import _ from "underscore";
-const util = require("../util");
-util.attach(_);
 import screenfull from 'screenfull';
 
 // http://localhost:3000/

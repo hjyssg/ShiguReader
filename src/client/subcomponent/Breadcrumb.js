@@ -1,9 +1,9 @@
 import React, { Component } from 'react';
 import '../style/Breadcrumb.scss';
 import { Link } from 'react-router-dom';
-const util = require("../../util");
-const stringHash = util.stringHash;
 const classNames = require('classnames');
+const clientUtil = require("../clientUtil");
+const { getDir, getFn, stringHash } = clientUtil;
 
 
 export default class Breadcrumb extends Component {
