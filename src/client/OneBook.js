@@ -330,30 +330,16 @@ export default class OneBook extends Component {
   changePage(index, event) {
     event && event.preventDefault();
     event && event.stopPropagation();
-
-    const lastIndex = this.getLastIndex();
-    if (index < 0) {
-      //do nothing
-    } else if (index > lastIndex) {
-      spop({
-        template: 'Last Page',
-        position: 'top-right',
-        autoclose: 3000
-      });
-    }else{
-      if(!userConfig.keep_clip){
-        this.setState({ twoPageMode: NO_TWO_PAGE });
-      }
-      this.setState({ index: index});
-      this.setIndex(index);
-      this.rotateImg(0);
-
-
-      // //https://stackoverflow.com/questions/4210798/how-to-scroll-to-top-of-page-with-javascript-jquery
-      // document.body.scrollTop = document.documentElement.scrollTop = 0;
-
-      $(window).scrollTop(0);
+    if(!userConfig.keep_clip){
+      this.setState({ twoPageMode: NO_TWO_PAGE });
     }
+    this.setState({ index: index});
+    this.setIndex(index);
+    this.rotateImg(0);
+
+    // //https://stackoverflow.com/questions/4210798/how-to-scroll-to-top-of-page-with-javascript-jquery
+    // document.body.scrollTop = document.documentElement.scrollTop = 0;
+    $(window).scrollTop(0);
   }
   
   
@@ -364,8 +350,9 @@ export default class OneBook extends Component {
 
     const jump = userConfig.keep_clip && this.shouldTwoPageMode()? 2 : 1;
     let index = this.state.index + jump;
-    index = Math.min(this.getLastIndex(), index);
-
+    if(index > this.getLastIndex()){
+      index = 0;
+    }
     this.changePage(index, event);
   }
   
@@ -375,7 +362,9 @@ export default class OneBook extends Component {
     }
     const jump = userConfig.keep_clip && this.shouldTwoPageMode()? 2 : 1;
     let index = this.state.index - jump;
-    index = Math.max(0, index);
+    if(index < 0){
+      index = this.getLastIndex();
+    }
     this.changePage(index, event);
   }
   
@@ -438,8 +427,9 @@ export default class OneBook extends Component {
                                           index={index+1}
                                         />;
 
-      // {index < files.length-1 &&  <link rel="preload" href={getUrl(files[index+1])} as="image" /> }
-      // {index > 0 && <link rel="preload" href={getUrl(files[index-1])} as="image" />}
+      const preload =  index < files.length-1 &&  <link rel="preload" href={getUrl(files[index+1])} as="image" /> ;
+      const preload2 = index > 0 && <link rel="preload" href={getUrl(files[index-1])} as="image" />;
+
       return (<React.Fragment>
               { twoPageMode === TWO_PAGE_RIGHT &&  nextImg }
               <img  className={cn} src={getUrl(files[index])} alt="book-image"
@@ -448,6 +438,8 @@ export default class OneBook extends Component {
                            index={index}
                            />
               { twoPageMode === TWO_PAGE_LEFT &&  nextImg }
+              {preload}
+              {preload2}
               </React.Fragment>);    
     } else {
       let images;
