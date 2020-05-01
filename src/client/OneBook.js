@@ -590,7 +590,7 @@ export default class OneBook extends Component {
       return;
     }
     return (<div className="one-book-second-toolbar">
-              <div className="clip-with-prev-button fas fa-arrows-alt-h" onClick={this.toggleTwoPageMode.bind(this)} title="two page mode"></div>
+              <div className="two-page-mode-button fas fa-arrows-alt-h" onClick={this.toggleTwoPageMode.bind(this)} title="two page mode"></div>
               <div className="fas fa-sync-alt rotate-button" title="rotate image" onClick={this.rotateImg.bind(this)}></div>
             </div>);
   }
@@ -627,7 +627,7 @@ export default class OneBook extends Component {
     const wraperCn = classNames("one-book-wrapper", {
       "full-screen": screenfull.isFullscreen,
       "has-music": this.hasMusic(),
-      "clip-with-prev": this.state.twoPageMode
+      "two-page-mode": this.shouldTwoPageMode()
     });
 
     const content = (<div className={wraperCn} ref={wrapper => this.wrapperRef = wrapper}>
