@@ -30,6 +30,10 @@ const userConfig = require('../user-config');
 const clientUtil = require("./clientUtil");
 const { getDir, getFn, isPad, stringHash, getUrl, sortFileNames } = clientUtil;
 
+const NO_TWO_PAGE = "no_clip";
+const TWO_PAGE_LEFT = "left";
+const TWO_PAGE_RIGHT = "right";
+
 export default class OneBook extends Component {
   constructor(props) {
     super(props);
@@ -37,7 +41,7 @@ export default class OneBook extends Component {
       files: [],
       musicFiles: [],
       index: this.getInitIndex(),
-      clipWithPrev: "no-clip"
+      twoPageMode: NO_TWO_PAGE
     };
     this.failTimes = 0;
   }
@@ -116,8 +120,11 @@ export default class OneBook extends Component {
 
     this.loadedImage = this.state.index;
     const imageDom = ReactDOM.findDOMNode(this.imgRef);
-    this.imgHeight = imageDom.naturalHeight; 
-    this.imgWidth =  imageDom.naturalWidth; 
+    this.imgDomHeight = imageDom.clientHeight; 
+    this.imgDomWidth =  imageDom.clientWidth; 
+    this.imgTrueHeight = imageDom.naturalHeight;
+    this.imgTrueWidth = imageDom.naturalWidth;
+
 
     //display img's real px number
     const dimDom = document.getElementsByClassName("dimension-tag")[0];
@@ -130,61 +137,93 @@ export default class OneBook extends Component {
     const maxHeight = this.getMaxHeight();
     const maxWidth = this.getMaxWidth();
 
-    const widthRatio = this.imgWidth / maxWidth;
-    const heighthRatio = this.imgHeight / maxHeight;
+    const widthRatio = this.imgDomWidth / maxWidth;
+    const heighthRatio = this.imgDomHeight / maxHeight;
 
-    //only need to adjust one dimension
-    if(widthRatio > 1 && widthRatio > heighthRatio){
+    const naturalhwRatio = this.imgTrueHeight/this.imgTrueWidth;
+    const domHwRatio = this.imgDomHeight / this.imgDomWidth;
+
+    if(Math.abs(naturalhwRatio - domHwRatio) > 0.05) {  
+      //float error, so do not use === here
+      //the ratio cannot display the full image
+      
+      //make sure both width and height 
+      let newHeight = Math.min(imageDom.naturalHeight, maxHeight);
+      newHeight = Math.max(newHeight, MIN_HEIGHT);
+      this.applyHeightToImage(newHeight);
+
+      let newWidth = Math.min(imageDom.naturalWidth, maxWidth);
+      newWidth = Math.max(newWidth, MIN_WIDTH);
+      this.applyWidthToImage(newWidth);
+
+    }else if(widthRatio > 1 && widthRatio > heighthRatio){
+      //too wide
       this.applyWidthToImage(maxWidth);
     }else if(heighthRatio > 1) {
+      //too high
       this.applyHeightToImage(maxHeight);
-    }else if(this.imgHeight < MIN_HEIGHT){
+    }else if(this.imgDomHeight < MIN_HEIGHT){
+      //too short
       this.applyHeightToImage(MIN_HEIGHT);
-    }else if(this.imgWidth < MIN_WIDTH){
-      this.applyWidthToImage(this.MIN_WIDTH);
+    }else if(this.imgDomWidth < MIN_WIDTH){
+      //too narrow
+      this.applyWidthToImage(MIN_WIDTH);
     }
   }
 
-
+  //always check min_width, min_height
+  //only check max_width, max_height when change page or reload
 
   applyWidthToImage(width){
-    let imageDom = ReactDOM.findDOMNode(this.imgRef);
-    if(width < MIN_WIDTH || !imageDom){
+    if(width < MIN_WIDTH){
       return;
     }
 
-    this.imgHeight = (width/this.imgWidth) * this.imgHeight;
-    this.imgWidth = width;
-
-    imageDom.setAttribute("width", this.imgWidth);
-    imageDom.setAttribute("height", this.imgHeight);
+    const newH = (width/this.imgTrueWidth) * this.imgTrueHeight;
+    if(newH > this.getMaxHeight() || newH < MIN_HEIGHT){
+      return;
+    }
+ 
+    this.applyHWToImage(newH, width);
   }
 
-  applyHeightToImage(height){
-    let imageDom = ReactDOM.findDOMNode(this.imgRef);
-    if(height < MIN_HEIGHT || !imageDom){
+  applyHeightToImage(height, skipMaxChecking){
+    if(height < MIN_HEIGHT ){
       return;
     }
-    this.imgWidth = (height/this.imgHeight) * this.imgWidth;
-    this.imgHeight = height;
-
-    imageDom.setAttribute("height", this.imgHeight);
-    imageDom.setAttribute("width", this.imgWidth);
-
+    const newW = (height/this.imgTrueHeight) * this.imgTrueWidth;
+    if((!skipMaxChecking && newW > this.getMaxWidth()) || newW < MIN_WIDTH){
+      return;
+    }
+    this.applyHWToImage(height, newW);
     this.makeTwoImageSameHeight();
+  }
+
+  applyHWToImage(height, width){
+    let imageDom = ReactDOM.findDOMNode(this.imgRef);
+    if(!imageDom){
+      return;
+    }
+
+    this.imgDomWidth = width;
+    this.imgDomHeight = height;
+
+    imageDom.setAttribute("height", this.imgDomHeight);
+    imageDom.setAttribute("width", this.imgDomWidth);
   }
 
   onwheel(e){
     const CHANGE_RATE = 1.05;
     const delta = -e.deltaY || e.wheelDelta;
-    this.applyHeightToImage(delta > 0?  this.imgHeight * CHANGE_RATE : this.imgHeight / CHANGE_RATE);
+    const newHeight = delta > 0?  this.imgDomHeight * CHANGE_RATE : this.imgDomHeight / CHANGE_RATE;
+    this.applyHeightToImage(newHeight, true);
     e.preventDefault && e.preventDefault();
   }
 
   makeTwoImageSameHeight(){
-    if(this.state.clipWithPrev){
-      let imageDom = ReactDOM.findDOMNode(this.prevImgRef);
-      imageDom && imageDom.setAttribute("height", this.imgHeight);
+    if(this.shouldTwoPageMode()){
+      let imageDom = ReactDOM.findDOMNode(this.nextImgRef);
+      imageDom && imageDom.setAttribute("height", this.imgDomHeight);
     }
   }
 
@@ -208,7 +247,7 @@ export default class OneBook extends Component {
     }
 
     const imageDom = ReactDOM.findDOMNode(this.wrapperRef);
-    this.imgHeight = imageDom.clientHeight;
+    this.imgDomHeight = imageDom.clientHeight;
     imageDom.addEventListener("wheel", this.onwheel.bind(this), {passive: false} );
 
     const that = this;
@@ -277,25 +316,15 @@ export default class OneBook extends Component {
     }
   }
 
-  doClipWithPrev(){
-    const clipOrder = ["no-clip", "right", "left"];
-    let next = clipOrder.indexOf(this.state.clipWithPrev)+1;
+  toggleTwoPageMode(){
+    const clipOrder = [NO_TWO_PAGE, TWO_PAGE_RIGHT, TWO_PAGE_LEFT];
+    let next = clipOrder.indexOf(this.state.twoPageMode)+1;
     if(next >= clipOrder.length){
       next = 0;
     }
-
-    next = clipOrder[next];
-
-    if(this.state.index === 0 && next !== "no-clip"){
-      this.setState({
-        clipWithPrev: next,
-        index: 1
-      });
-    }else{
-      this.setState({
-        clipWithPrev: next
-      });
-    }
+    this.setState({
+      twoPageMode: clipOrder[next]
+    });
   }
   
   getLastIndex(){
@@ -317,7 +346,7 @@ export default class OneBook extends Component {
       });
     }else{
       if(!userConfig.keep_clip){
-        this.setState({ clipWithPrev: undefined });
+        this.setState({ twoPageMode: NO_TWO_PAGE });
       }
       this.setState({ index: index});
       this.setIndex(index);
@@ -337,7 +366,7 @@ export default class OneBook extends Component {
       return;
     }
 
-    const jump =  this.shouldclipWithPrev()? 2 : 1;
+    const jump = userConfig.keep_clip && this.shouldTwoPageMode()? 2 : 1;
     let index = this.state.index + jump;
     index = Math.min(this.getLastIndex(), index);
 
@@ -348,7 +377,7 @@ export default class OneBook extends Component {
     if(this.state.files.length <= 1){
       return;
     }
-    const jump =  this.shouldclipWithPrev()? 2 : 1;
+    const jump = userConfig.keep_clip && this.shouldTwoPageMode()? 2 : 1;
     let index = this.state.index - jump;
     index = Math.max(0, index);
     this.changePage(index, event);
@@ -396,32 +425,33 @@ export default class OneBook extends Component {
     }
   }
 
-  shouldclipWithPrev(){
-    return this.state.index > 0 && (this.state.clipWithPrev === "left" || this.state.clipWithPrev === "right");
+  shouldTwoPageMode(){
+    return this.state.index < this.getLastIndex() && (this.state.twoPageMode === TWO_PAGE_LEFT || this.state.twoPageMode === TWO_PAGE_RIGHT);
   }
 
   renderImage(){
-    const { files, index, clipWithPrev } = this.state;
+    const { files, index, twoPageMode } = this.state;
     if(!isPad()){
       const cn = classNames("one-book-image", {
         "has-music": this.hasMusic()
       });
 
-      const prevImg = this.shouldclipWithPrev() &&  <img  className={cn} src={getUrl(files[index-1])} alt="book-image"
-                                          ref={img => this.prevImgRef = img}
+      const nextImg = this.shouldTwoPageMode() &&  <img  className={cn} src={getUrl(files[index+1])} alt="book-image"
+                                          ref={img => this.nextImgRef = img}
                                           onLoad={this.makeTwoImageSameHeight.bind(this)}
-                                          index={index-1}
+                                          index={index+1}
                                         />;
+
+      // {index < files.length-1 &&  <link rel="preload" href={getUrl(files[index+1])} as="image" /> }
+      // {index > 0 && <link rel="preload" href={getUrl(files[index-1])} as="image" />}
       return (<React.Fragment>
-              { clipWithPrev === "right" &&  prevImg }
+              { twoPageMode === TWO_PAGE_RIGHT &&  nextImg }
               <img  className={cn} src={getUrl(files[index])} alt="book-image"
                            ref={img => this.imgRef = img}
                            onLoad={this.adjustImageSize.bind(this)}
                            index={index}
                            />
-              { clipWithPrev === "left" &&  prevImg }
-              {index < files.length-1 &&  <link rel="preload" href={getUrl(files[index+1])} as="image" /> }
-              {index > 0 && <link rel="preload" href={getUrl(files[index-1])} as="image" />}
+              { twoPageMode === TWO_PAGE_LEFT &&  nextImg }
               </React.Fragment>);    
     } else {
       let images;
@@ -572,7 +602,7 @@ export default class OneBook extends Component {
       return;
     }
     return (<div className="one-book-second-toolbar">
-              <div className="clip-with-prev-button fas fa-arrows-alt-h" onClick={this.doClipWithPrev.bind(this)} title="clip with prev image"></div>
+              <div className="clip-with-prev-button fas fa-arrows-alt-h" onClick={this.toggleTwoPageMode.bind(this)} title="two page mode"></div>
               <div className="fas fa-sync-alt rotate-button" title="rotate image" onClick={this.rotateImg.bind(this)}></div>
             </div>);
   }
@@ -609,7 +639,7 @@ export default class OneBook extends Component {
     const wraperCn = classNames("one-book-wrapper", {
       "full-screen": screenfull.isFullscreen,
       "has-music": this.hasMusic(),
-      "clip-with-prev": this.state.clipWithPrev
+      "clip-with-prev": this.state.twoPageMode
     });
 
     const content = (<div className={wraperCn} ref={wrapper => this.wrapperRef = wrapper}>
