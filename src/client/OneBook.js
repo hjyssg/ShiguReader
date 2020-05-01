@@ -146,58 +146,53 @@ export default class OneBook extends Component {
     if(Math.abs(naturalhwRatio - domHwRatio) > 0.05) {  
       //float error, so do not use === here
       //the ratio cannot display the full image
-      
-      //make sure both width and height 
-      let newHeight = Math.min(imageDom.naturalHeight, maxHeight);
-      newHeight = Math.max(newHeight, MIN_HEIGHT);
-      this.applyHeightToImage(newHeight);
-
-      let newWidth = Math.min(imageDom.naturalWidth, maxWidth);
-      newWidth = Math.max(newWidth, MIN_WIDTH);
-      this.applyWidthToImage(newWidth);
-
-    }else if(widthRatio > 1 && widthRatio > heighthRatio){
+      this.pickBestHw();
+    }else if(widthRatio > 1){
       //too wide
-      this.applyWidthToImage(maxWidth);
+      this.pickBestHw();
     }else if(heighthRatio > 1) {
       //too high
-      this.applyHeightToImage(maxHeight);
+      this.pickBestHw();
     }else if(this.imgDomHeight < MIN_HEIGHT){
       //too short
-      this.applyHeightToImage(MIN_HEIGHT);
+      this.pickBestHw();
     }else if(this.imgDomWidth < MIN_WIDTH){
       //too narrow
-      this.applyWidthToImage(MIN_WIDTH);
+      this.pickBestHw();
     }
   }
 
-  //always check min_width, min_height
-  //only check max_width, max_height when change page or reload
+  pickBestHw(){
+    const maxHeight = this.getMaxHeight();
+    const maxWidth = this.getMaxWidth();
 
-  applyWidthToImage(width){
-    if(width < MIN_WIDTH){
-      return;
-    }
+    //make sure both width and height 
+    let newHeight = Math.min(this.imgTrueHeight, maxHeight);
+    newHeight = Math.max(newHeight, MIN_HEIGHT);
+    const calculatedWidth =  newHeight/this.imgTrueHeight * this.imgTrueWidth;
+    const set1 = [newHeight, calculatedWidth];
 
-    const newH = (width/this.imgTrueWidth) * this.imgTrueHeight;
-    if(newH > this.getMaxHeight() || newH < MIN_HEIGHT){
-      return;
-    }
- 
-    this.applyHWToImage(newH, width);
-  }
+    let newWidth = Math.min(this.imgTrueWidth, maxWidth);
+    newWidth = Math.max(newWidth, MIN_WIDTH);
+    const calculatedHeight =  newWidth/this.imgTrueWidth * this.imgTrueHeight;
+    const set2 =  [calculatedHeight, newWidth];
 
-  applyHeightToImage(height, skipMaxChecking){
-    if(height < MIN_HEIGHT ){
-      return;
+    //I would rather small than bigger
+    //max dimension is more important than min dimension
+    if(set1[0] <= maxHeight && set1[1] <= maxWidth){
+      this.applyHWSetToImage(set1);
+    }else if(set2[0] <= maxHeight && set2[1] <= maxWidth){
+      this.applyHWSetToImage(set2);
+    }else if(set1[0] <= maxHeight){
+      this.applyHWSetToImage(set1);
+    }else{
+      this.applyHWSetToImage(set2);
     }
-    const newW = (height/this.imgTrueHeight) * this.imgTrueWidth;
-    if((!skipMaxChecking && newW > this.getMaxWidth()) || newW < MIN_WIDTH){
-      return;
-    }
-    this.applyHWToImage(height, newW);
-    this.makeTwoImageSameHeight();
-  }
+ }
+
+ applyHWSetToImage(set){
+  this.applyHWToImage(set[0], set[1]);
+ }
 
   applyHWToImage(height, width){
     let imageDom = ReactDOM.findDOMNode(this.imgRef);
@@ -216,7 +211,8 @@ export default class OneBook extends Component {
     const CHANGE_RATE = 1.05;
     const delta = -e.deltaY || e.wheelDelta;
     const newHeight = delta > 0?  this.imgDomHeight * CHANGE_RATE : this.imgDomHeight / CHANGE_RATE;
-    this.applyHeightToImage(newHeight, true);
+    const newWidth = newHeight/this.imgTrueHeight * this.imgTrueWidth;
+    this.applyHWToImage(newHeight, newWidth);
     e.preventDefault && e.preventDefault();
   }
 
