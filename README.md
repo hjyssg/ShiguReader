@@ -60,6 +60,9 @@ npm install --registry=http://registry.npm.taobao.org
 # install中途要是node-sass报错
 # 看一下issue页面。有解决办法
 
+# 重要：*nix以及Mac用户，需要自己用命令行安装7zip。并添加到cmd的path上。
+# nix需要用户自己安装7zip，并加到cmd路径下。
+
 # 启动服务器
 # 会有点慢，差不多一两分钟。耐心
 npm run dev
