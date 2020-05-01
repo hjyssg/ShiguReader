@@ -173,7 +173,7 @@ export default class OneBook extends Component {
     }
 
     const newH = (width/this.imgTrueWidth) * this.imgTrueHeight;
-    if(newH > this.getMaxHeight()){
+    if(newH > this.getMaxHeight() || newH < MIN_HEIGHT){
       return;
     }
  
@@ -185,7 +185,7 @@ export default class OneBook extends Component {
       return;
     }
     const newW = (height/this.imgTrueHeight) * this.imgTrueWidth;
-    if(newW > this.getMaxWidth()){
+    if(newW > this.getMaxWidth() || newW < MIN_WIDTH){
       return;
     }
     this.applyHWToImage(height, newW);
@@ -203,7 +203,6 @@ export default class OneBook extends Component {
 
     imageDom.setAttribute("height", this.imgDomHeight);
     imageDom.setAttribute("width", this.imgDomWidth);
-
   }
 
   onwheel(e){
