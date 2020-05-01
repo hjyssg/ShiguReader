@@ -218,7 +218,7 @@ export default class OneBook extends Component {
 
   makeTwoImageSameHeight(){
     if(this.state.twoPageMode){
-      let imageDom = ReactDOM.findDOMNode(this.prevImgRef);
+      let imageDom = ReactDOM.findDOMNode(this.nextImgRef);
       imageDom && imageDom.setAttribute("height", this.imgDomHeight);
     }
   }
