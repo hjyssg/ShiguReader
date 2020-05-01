@@ -167,6 +167,9 @@ export default class OneBook extends Component {
     }
   }
 
+  //always check min_width, min_height
+  //only check max_width, max_height when change page or reload
+
   applyWidthToImage(width){
     if(width < MIN_WIDTH){
       return;
@@ -180,12 +183,12 @@ export default class OneBook extends Component {
     this.applyHWToImage(newH, width);
   }
 
-  applyHeightToImage(height){
+  applyHeightToImage(height, skipMaxChecking){
     if(height < MIN_HEIGHT ){
       return;
     }
     const newW = (height/this.imgTrueHeight) * this.imgTrueWidth;
-    if(newW > this.getMaxWidth() || newW < MIN_WIDTH){
+    if((!skipMaxChecking && newW > this.getMaxWidth()) || newW < MIN_WIDTH){
       return;
     }
     this.applyHWToImage(height, newW);
@@ -208,7 +211,8 @@ export default class OneBook extends Component {
   onwheel(e){
     const CHANGE_RATE = 1.05;
     const delta = -e.deltaY || e.wheelDelta;
-    this.applyHeightToImage(delta > 0?  this.imgDomHeight * CHANGE_RATE : this.imgDomHeight / CHANGE_RATE);
+    const newHeight = delta > 0?  this.imgDomHeight * CHANGE_RATE : this.imgDomHeight / CHANGE_RATE;
+    this.applyHeightToImage(newHeight, true);
     e.preventDefault && e.preventDefault();
   }
 
