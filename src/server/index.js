@@ -76,8 +76,12 @@ const logger = winston.createLogger({
   });
 
 
-function isSupportedFile(e){
+function isDisplayableInExplorer(e){
     return isCompress(e) || isVideo(e);
+}
+
+function isDisplayableInOnebook(e){
+    return isImage(e)||isMusic(e);
 }
 
 function updateTagHash(str){
@@ -99,6 +103,8 @@ const db = {
     allFiles : [],
     //file path to file stats
     fileToInfo: {},
+    //cache path to file stats
+    cacheToInfo: {},
     //a list of cache files folder -> files
     cacheTable: {},
     //hash to any string
@@ -143,7 +149,7 @@ async function init() {
 
     console.log("scanning local files");
 
-    const filter = (e) => {return isSupportedFile(e);};
+    const filter = (e) => {return isDisplayableInExplorer(e);};
     let beg = (new Date).getTime()
     const results = fileiterator(userConfig.path_will_scan, { 
         filter:filter, 
@@ -158,7 +164,7 @@ async function init() {
     for (let i = 0; i < results.pathes.length; i++) {
         const p = results.pathes[i];
         const ext = path.extname(p).toLowerCase();
-        if (!ext ||  isSupportedFile(ext)) {
+        if (!ext ||  isDisplayableInExplorer(ext)) {
             arr.push(p);
 
             db.hashTable[stringHash(p)] = p;
@@ -180,7 +186,9 @@ async function init() {
         const fp =  getCacheFp(p);
         db.cacheTable[fp] = db.cacheTable[fp] || [];
         db.cacheTable[fp].push(path.basename(p));
-    })
+    });
+
+    db.cacheToInfo = cache_results.infos;
 
     setUpFileWatch();
     const port = isProduction? 3000: 8080;
@@ -196,7 +204,7 @@ async function init() {
 
 function shouldWatch(p){
     const ext = path.extname(p).toLowerCase();
-    if (!ext ||  isSupportedFile(ext) || isMusic(ext) ||isImage(ext)) {
+    if (!ext ||  isDisplayableInExplorer(ext) || isMusic(ext) ||isImage(ext)) {
         return true;
     }
     return false;
@@ -235,7 +243,7 @@ function setUpFileWatch(){
     const deleteCallBack = path => {
         const index = db.allFiles.indexOf(path);
         db.allFiles[index] = "";
-
+        db.fileToInfo[path] = "";
         hentaiCache = null;
     };
 
@@ -265,16 +273,22 @@ function setUpFileWatch(){
 
 
     cacheWatcher
-        .on('add', p => {
+        .on('add', (p, stats) => {
             const fp =  getCacheFp(p);
             db.cacheTable[fp] = db.cacheTable[fp] || [];
             db.cacheTable[fp].push(path.basename(p));
+
+            stats.isFile = stats.isFile();
+            stats.isDir = stats.isDirectory();
+            db.cacheToInfo[p] = stats;
         })
         .on('unlink', p => {
             const fp =  getCacheFp(p);
             db.cacheTable[fp] = db.cacheTable[fp] || [];
             const index = db.cacheTable[fp].indexOf(path.basename(p));
             db.cacheTable[fp].splice(index, 1);
+
+            db.cacheToInfo[p] = "";
         });
 }
 
@@ -298,6 +312,23 @@ app.get('/api/exhentaiApi', function (req, res) {
 })
 
 //-------------------------Get info ----------------------
+app.get('/api/cacheInfo', (req, res) => {
+    const _ = require('underscore');
+    const cacheFiles =  _.keys(db.cacheToInfo);
+    let totalSize = 0;
+
+    cacheFiles.forEach(e => {
+        totalSize += db.cacheToInfo[e].size;
+    })
+
+    res.send({
+        totalSize: totalSize,
+        cacheNum: cacheFiles.length
+    })
+});
+
+
+
 app.get('/api/allInfo', (req, res) => {
     const tempfileToInfo = {};
     const allFiles = [];
@@ -492,7 +523,7 @@ app.post('/api/lsDir', async (req, res) => {
             }
 
             const ext = path.extname(pp).toLowerCase();
-            if (isSupportedFile(ext)){
+            if (isDisplayableInExplorer(ext)){
                 files.push(pp);
                 infos[pp] = singleInfo;
             }
@@ -860,7 +891,8 @@ app.post('/api/extract', async (req, res) => {
     (async () => {
         const full_extract_max = 10;
         try{
-            const files = await listZipContent(filePath).filter(e => isImage(e)||isMusic(e));
+            let files = await listZipContent(filePath);
+            files = files.filter(e => isDisplayableInOnebook(e));
             if(files.length === 0){
                res.sendStatus(500);
                console.error(`[/api/extract] ${filePath} has no content`);
