@@ -226,9 +226,7 @@ function setUpFileWatch(){
         db.hashTable[stringHash(path)] = path;
         stats.isFile = stats.isFile();
         stats.isDir = stats.isDirectory();
-
         db.fileToInfo[path] = stats;
-
         extractThumbnailFromZip(path);
 
         hentaiCache = null;

@@ -42,6 +42,7 @@ function getStat(p, config){
     result.isDir = stat.isDirectory();
     result.mtimeMs = stat.mtimeMs;
     result.mtime = stat.mtime;
+    result.size = stat.size;
     return result;
 }
 
