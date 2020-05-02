@@ -812,6 +812,9 @@ app.post('/api/extract', async (req, res) => {
         return;
     }
 
+    //todo: record the timestamp of each request
+    //when cleaning cache, if the file is read recently, dont clean its cache
+
     if(!(await isExist(filePath))){
         //maybe the file move to other location
         const baseName = path.basename(filePath);
@@ -854,8 +857,8 @@ app.post('/api/extract', async (req, res) => {
             const opt = get7zipOption(filePath, outputPath);
             const { stderr } = await execa(sevenZip, opt);
             if (!stderr) {
-                fs.readdir(outputPath, (error, results) => {
-                    const temp = generateContentUrl(results, outputPath);
+                fs.readdir(outputPath, (error, pathes) => {
+                    const temp = generateContentUrl(pathes, outputPath);
                     sendBack(temp.files, temp.dirs, temp.musicFiles, filePath, stat);
                 });
             } else {

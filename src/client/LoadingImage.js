@@ -25,8 +25,20 @@ export default class LoadingImage extends Component {
     this.isUnmounted = true;
   }
 
+  shouldAskUrl(){
+    if(!this.state.url){
+      return true
+    }else{
+      if(this.state.url === "NOT_THUMBNAIL_AVAILABLE"){
+        return false;
+      }else{
+        return false;
+      }
+    }
+  }
+
   onChange(){
-    if(!this.isThumbnailAvaible() & !this.loading){
+    if(this.shouldAskUrl() & !this.loading){
         this.requestThumbnail()
     }
   }
@@ -35,10 +47,6 @@ export default class LoadingImage extends Component {
     const { mode, fileName } = this.props;
     const api = (mode === "author" || mode === "tag") ? Constant.TAG_THUMBNAIL_PATH_API :  '/api/firstImage';
     const body = {};
-
-    if(this.isThumbnailAvaible()){
-      return;
-    }
 
     if(mode === "author" || mode === "tag"){
       body[mode] = fileName;
@@ -83,10 +91,10 @@ export default class LoadingImage extends Component {
     let content;
     const {className, fileName, url, bottomOffet, topOffet, title, isThumbnail, onReceiveUrl, ...others} = this.props;
     const cn = classNames("loading-image", className,{
-      "empty-block fas fa-file-archive": !this.state.url || this.state.url === "NOT_THUMBNAIL_AVAILABLE"
+      "empty-block fas fa-file-archive": !this.isThumbnailAvaible()
     });
 
-   if (this.state.url && this.isThumbnailAvaible()) {
+   if (this.isThumbnailAvaible()) {
       content = (<img key={fileName} ref={e=>{this.dom = e && e.node}} 
                       className={className} src={this.state.url} title={title || fileName} 
                       onError={this.Error.bind(this)} 
