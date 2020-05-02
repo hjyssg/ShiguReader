@@ -964,7 +964,7 @@ function doCacheClean(config){
     }
 }
 
-app.get('/api/cleanCache', (req, res) => {
+app.post('/api/cleanCache', (req, res) => {
     const minized = req.body && req.body.minized;
 
     const allowFileNames =  db.allFiles.map(filePath => {

@@ -23,10 +23,14 @@ export default class AdminPage extends Component {
 
     componentDidMount() {
         if(this.failedTimes < 3) {
-            Sender.get("/api/cacheInfo", res => {
-                this.handleRes(res);
-            });
+            this.askCacheInfo();
         }
+    }
+
+    askCacheInfo(){
+        Sender.get("/api/cacheInfo", res => {
+            this.handleRes(res);
+        });
     }
 
     handleRes(res){
@@ -77,13 +81,8 @@ export default class AdminPage extends Component {
             cancelButtonText: 'No'
         }).then((result) => {
             if (result.value === true) {
-                const req = {
-                    minized: minized
-                }
-                Sender.get('/api/cleanCache', req, res =>{
-                    Sender.get("/api/cacheInfo", res => {
-                        this.handleRes(res);
-                    });
+                Sender.simplePost('/api/cleanCache', {}, res =>{
+                    this.askCacheInfo()
                 });
             } 
         });
