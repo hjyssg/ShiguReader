@@ -668,6 +668,9 @@ async function extractThumbnailFromZip(filePath, res, mode, counter) {
         })
     }
 
+    //only update zip db
+    //do not use zip db's information
+    //in case previous info is changed or wrong
     function updateZipDb(pageNum){
         const contentInfo = zip_content_db.getData("/");
         contentInfo[filePath] = {
@@ -826,11 +829,16 @@ app.post('/api/extract', async (req, res) => {
         }
     }
     
+    const time1 = getCurrentTime();
     const stat = await pfs.stat(filePath);
 
     function sendBack(files, dirs, musicFiles, path, stat){
         const tempFiles =  serverUtil.filterHiddenFile(files);
         res.send({ files: tempFiles, dirs, musicFiles,path, stat });
+
+        const time2 = getCurrentTime();
+        const timeUsed = (time2 - time1);
+        console.log(`[/api/extract] uncompress file: ${timeUsed}ms   ${tempFiles.length}  ${stat.size}byte `);
     }
 
     const outputPath = getOutputPath(cachePath, filePath);
