@@ -898,7 +898,6 @@ app.post('/api/extract', async (req, res) => {
 
     (async () => {
         const full_extract_max = 10;
-
         try{
             const files = await listZipContent(filePath);
             if(files.length === 0){
@@ -951,8 +950,6 @@ app.post('/api/extract', async (req, res) => {
                     res.sendStatus(500);
                     console.error('[/api/extract] exit: ', stderr);
                 }
-
-
             }
        } catch (e){
             res.sendStatus(500);

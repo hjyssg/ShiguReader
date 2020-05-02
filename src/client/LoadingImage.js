@@ -30,7 +30,7 @@ export default class LoadingImage extends Component {
       return true
     }else{
       if(this.state.url === "NOT_THUMBNAIL_AVAILABLE"){
-        return false;
+        return this.isAuthorTagMode();
       }else{
         return false;
       }
@@ -43,12 +43,17 @@ export default class LoadingImage extends Component {
     }
   }
 
+  isAuthorTagMode(){
+    const { mode} = this.props;
+    return mode === "author" || mode === "tag";
+  }
+
   requestThumbnail(){
     const { mode, fileName } = this.props;
-    const api = (mode === "author" || mode === "tag") ? Constant.TAG_THUMBNAIL_PATH_API :  '/api/firstImage';
+    const api = (this.isAuthorTagMode()) ? Constant.TAG_THUMBNAIL_PATH_API :  '/api/firstImage';
     const body = {};
 
-    if(mode === "author" || mode === "tag"){
+    if(this.isAuthorTagMode()){
       body[mode] = fileName;
     }else{
       body["filePath"] = fileName;
