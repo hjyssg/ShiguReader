@@ -269,7 +269,7 @@ export default class OneBook extends Component {
   }
   
   displayFile(file){
-    Sender.post("/api/extract", {filePath: this.getPathFromLocalStorage(),   hash: this.getHash() }, res => {
+    Sender.post("/api/extract", {filePath: this.getPathFromLocalStorage(),   hash: this.getHash(), startIndex: this.state.index||0 }, res => {
       this.res = res;
       if (!res.failed) {
         this.loadedHash = this.getHash();
@@ -431,7 +431,6 @@ export default class OneBook extends Component {
                                         />;
 
       const preload =  index < files.length-1 &&  <link rel="preload" href={getUrl(files[index+1])} as="image" /> ;
-      const preload2 = index > 0 && <link rel="preload" href={getUrl(files[index-1])} as="image" />;
 
       return (<React.Fragment>
               { twoPageMode === TWO_PAGE_RIGHT &&  nextImg }
@@ -442,7 +441,6 @@ export default class OneBook extends Component {
                            />
               { twoPageMode === TWO_PAGE_LEFT &&  nextImg }
               {preload}
-              {preload2}
               </React.Fragment>);    
     } else {
       let images;
