@@ -894,7 +894,9 @@ app.post('/api/extract', async (req, res) => {
                 let beg = startIndex - PREV_SPACE;
                 let end = startIndex + full_extract_max - PREV_SPACE;
                 const firstRange = arraySlice(files, beg, end);
-                const secondRange = arraySlice(files, end, beg);
+                const secondRange = files.filter(e => {
+                    return !firstRange.includes(e);
+                })
 
                 //dev checking
                 if(firstRange.length + secondRange.length !== files.length){
