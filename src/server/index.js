@@ -645,7 +645,16 @@ async function listZipContent(filePath){
     }
 
     const files = read7zOutput(text);
+    updateZipDb(filePath, files.length);
     return files;
+}
+
+function updateZipDb(filePath, pageNum){
+    const contentInfo = zip_content_db.getData("/");
+    contentInfo[filePath] = {
+        pageNum: pageNum
+    };
+    zip_content_db.push("/", contentInfo);
 }
 
 const pLimit = require('p-limit');
@@ -676,17 +685,9 @@ async function extractThumbnailFromZip(filePath, res, mode, counter) {
     //only update zip db
     //do not use zip db's information
     //in case previous info is changed or wrong
-    function updateZipDb(pageNum){
-        const contentInfo = zip_content_db.getData("/");
-        contentInfo[filePath] = {
-            pageNum: pageNum
-        };
-        zip_content_db.push("/", contentInfo);
-    }
 
     function handleFail(){
         sendable && res.sendStatus(404);
-        updateZipDb("NOT_THUMBNAIL_AVAILABLE");
         if(isPregenerateMode){
             counter.total--;
         }
@@ -711,20 +712,12 @@ async function extractThumbnailFromZip(filePath, res, mode, counter) {
 
     try{
         const files = await listZipContent(filePath);
-        if(files.length === 0){
-            console.error("[extractThumbnailFromZip]", "no text");
-            handleFail && handleFail();
-        }
-
         const one = serverUtil.chooseThumbnailImage(files);
-        
-        if (!one) {
-            console.log("[extractThumbnailFromZip]", filePath,  "no image file from output");
+        if(!one){
+            console.error("[extractThumbnailFromZip] no thumbnail for ", filePath);
             handleFail();
-            return;
         }
 
-        //Overwrite mode: -aos	Skip extracting of existing files.
         const opt = get7zipOption(filePath, outputPath, one);
         const {stderrForThumbnail} = await extractlimit(() => execa(sevenZip, opt));
         if (!stderrForThumbnail) {
@@ -732,7 +725,6 @@ async function extractThumbnailFromZip(filePath, res, mode, counter) {
             let temp = path.join(outputPath, path.basename(one));
             temp = turnPathSepToWebSep(temp);
             sendImage(temp);
-            updateZipDb(files.length);
 
             function logForPre(prefix, counter, total, printSpeed){
                 console.log(`${prefix} ${counter}/${total}`,  filePath);
