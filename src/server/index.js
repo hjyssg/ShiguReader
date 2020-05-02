@@ -811,7 +811,7 @@ app.post('/api/firstImage', async (req, res) => {
     extractThumbnailFromZip(filePath, res);
 });
 
-async function extractAll(filePath, outputPath, sendBack, res){
+async function extractAll(filePath, outputPath, sendBack, res, stat){
     const opt = get7zipOption(filePath, outputPath);
     const { stderr } = await execa(sevenZip, opt);
     if (!stderr) {
@@ -837,7 +837,7 @@ app.post('/api/extract', async (req, res) => {
 
     //todo: record the timestamp of each request
     //when cleaning cache, if the file is read recently, dont clean its cache
-    
+
     if(!(await isExist(filePath))){
         //maybe the file move to other location
         const baseName = path.basename(filePath);
@@ -883,7 +883,7 @@ app.post('/api/extract', async (req, res) => {
 
             let hasNoImage = files.some(e => !isImage(e));
             if(hasNoImage || files.length <= full_extract_max){
-                extractAll(filePath, outputPath, sendBack, res)
+                extractAll(filePath, outputPath, sendBack, res, stat);
             }else{
                 //spit one zip into two uncompress task
                 //so user can have a quicker response time
