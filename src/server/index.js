@@ -26,7 +26,7 @@ const {
         isDirectParent,
         isSub
 } = pathUtil;
-const { isImage, isCompress, isMusic, isVideo } = util;
+const { isImage, isCompress, isMusic, isVideo, arraySlice } = util;
 
 const rootPath = pathUtil.getRootPath();
 const cache_folder_name = userConfig.cache_folder_name;
@@ -812,25 +812,6 @@ app.post('/api/firstImage', async (req, res) => {
 });
 
 
-function arraySlice(arr, beg, end){
-    const len = arr.length;
-    let _beg = beg >= 0? beg : len + beg;
-    let _end = end >= 0? end : len + end;
-
-    let result = [];
-    if(beg >= 0 && end >= 0){
-        //normal
-        result = arr.slice(beg, end);
-    }else if(beg < 0 && end > 0){
-        result = arr.slice(_beg).concat(arr.slice(0, end));
-    }else if(beg >= 0 && end < 0){
-        result = arr.slice(beg, _end);
-    }else{
-        throw "wrf dude"
-    }
-    return result;
-}
-
 app.post('/api/extract', async (req, res) => {
     const hashFile = db.hashTable[(req.body && req.body.hash)];
     let filePath = hashFile ||  req.body && req.body.filePath;
@@ -840,10 +821,8 @@ app.post('/api/extract', async (req, res) => {
         return;
     }
 
-
     //todo: record the timestamp of each request
     //when cleaning cache, if the file is read recently, dont clean its cache
-
     if(!(await isExist(filePath))){
         //maybe the file move to other location
         const baseName = path.basename(filePath);
@@ -872,8 +851,8 @@ app.post('/api/extract', async (req, res) => {
     const outputPath = getOutputPath(cachePath, filePath);
     const temp = getCache(outputPath);
     //TODO: should use pageNum
-    const total_page_null = 15;
-    if (temp && temp.files.length > total_page_null) {
+    const total_page_num = 15;
+    if (temp && temp.files.length > total_page_num) {
         sendBack(temp.files, temp.dirs, temp.musicFiles, filePath, stat);
         return;
     }
@@ -885,10 +864,9 @@ app.post('/api/extract', async (req, res) => {
             fs.readdir(outputPath, (error, pathes) => {
                 const temp = generateContentUrl(pathes, outputPath);
                 sendBack(temp.files, temp.dirs, temp.musicFiles, filePath, stat);
-
-                const time2 = getCurrentTime();
-                const timeUsed = (time2 - time1);
-                console.log(`[/api/extract]  ${filePath} ${timeUsed}ms ${(stat.size/(1000*1000)).toFixed(2)}MB `);
+                // const time2 = getCurrentTime();
+                // const timeUsed = (time2 - time1);
+                // console.log(`[/api/extract]  ${filePath} ${timeUsed}ms ${(stat.size/(1000*1000)).toFixed(2)}MB `);
             });
         } else {
             res.sendStatus(500);
