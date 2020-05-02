@@ -26,6 +26,7 @@ const getOutputPath = function (cachePath, zipFn) {
     }else{
         outputFolder = outputFolder.replace(/[`~!@#$%^&*()_|+\-=?;:'",.<>/]/gi, '');
     }
+    outputFolder = outputFolder.trim();
     return path.join(cachePath, outputFolder);
 }
 

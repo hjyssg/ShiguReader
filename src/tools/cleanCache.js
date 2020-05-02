@@ -38,7 +38,7 @@ function del(file, cachePath){
     }
 }
 
-function cleanCache(cachePath, minized){
+function cleanCache(cachePath, config){
     if(!fs.existsSync(cachePath)){
         err = fs.mkdir(cachePath, (err) => {
             if (err){
@@ -46,31 +46,35 @@ function cleanCache(cachePath, minized){
             }
           });
     } else {
-        _clean(cachePath, minized);
+        _clean(cachePath, config);
     }
 }
 
-function _clean(cachePath, minized){
+function _clean(cachePath, config){
     const folders1 = fs.readdirSync(cachePath);
     //check each file/dir in level 1
-    folders1.forEach(p1 => {
+    folders1.forEach(fPath => {
         try {
-            p1 = path.resolve(cachePath, p1);
-            const stat = fs.statSync(p1);
+            fPath = path.resolve(cachePath, fPath);
+            const stat = fs.statSync(fPath);
             if (stat.isFile()) {
-                del(p1, cachePath);
+                del(fPath, cachePath);
             }else if(stat.isDirectory()){
-                let subfiles = fs.readdirSync(p1);
+                const fileName = path.basename(fPath);
+                if(config && config.allowFileNames && !config.allowFileNames.includes(fileName)){
+                    del(fPath, cachePath);
+                }
+                let subfiles = fs.readdirSync(fPath);
                 const thumbnail = serverUtil.chooseThumbnailImage(subfiles);
                 //only thumbnail
                 for(let ii = 0; ii < subfiles.length; ii++){
-                    const fileName = subfiles[ii];
-                    const filePath = path.resolve(p1, fileName);
+                    const subfileName = subfiles[ii];
+                    const filePath = path.resolve(fPath, subfileName);
 
                     //compress first image to standard thumbnail
-                    if(fileName === thumbnail){
-                        if(minized){
-                            minifyImageFile(p1, fileName, (err, info) => { 
+                    if(subfileName === thumbnail){
+                        if(config.minized){
+                            minifyImageFile(fPath, subfileName, (err, info) => { 
                                 if(!err){
                                     del(filePath, cachePath);
                                 }

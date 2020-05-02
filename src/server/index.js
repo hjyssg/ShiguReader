@@ -864,10 +864,10 @@ app.post('/api/extract', async (req, res) => {
 
 //-----------------------------cache---------------------
 
-function doCacheClean(minized){
+function doCacheClean(config){
     const cleanCache = require("../tools/cleanCache");
     try{
-        cleanCache.cleanCache(cachePath, minized);
+        cleanCache.cleanCache(cachePath, config);
     }catch(e){
         console.error(e);
     }
@@ -875,7 +875,14 @@ function doCacheClean(minized){
 
 app.get('/api/cleanCache', (req, res) => {
     const minized = req.body && req.body.minized;
-    doCacheClean(minized);
+
+    const allowFileNames =  db.allFiles.map(filePath => {
+        let outputPath = getOutputPath(cachePath, filePath);
+        outputPath = path.basename(outputPath);
+        return outputPath;
+    })
+
+    doCacheClean({minized: minized, allowFileNames: allowFileNames});
 });
 
 if(isProduction){
