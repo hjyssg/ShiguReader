@@ -643,6 +643,18 @@ function get7zipOption(filePath, outputPath, one){
     }
 }
 
+async function listZipContent(filePath){
+    //https://superuser.com/questions/1020232/list-zip-files-contents-using-7zip-command-line-with-non-verbose-machine-friend
+    let {stdout, stderr} = await limit(() => execa(sevenZip, ['l', '-r', '-ba' ,'-slt', filePath]));
+    const text = stdout;
+    if (!text) {
+        return [];
+    }
+
+    const files = read7zOutput(text);
+    return files;
+}
+
 const pLimit = require('p-limit');
 const limit = pLimit(1);
 const extractlimit = pLimit(1);
@@ -705,17 +717,12 @@ async function extractThumbnailFromZip(filePath, res, mode, counter) {
     }
 
     try{
-        //https://superuser.com/questions/1020232/list-zip-files-contents-using-7zip-command-line-with-non-verbose-machine-friend
-        let {stdout, stderr} = await limit(() => execa(sevenZip, ['l', '-r', '-ba' ,'-slt', filePath]));
-        const text = stdout;
-        
-        if (!text) {
-            console.error("[extractThumbnailFromZip]", "no text");
-            handleFail();
-            return;
+        const files = await listZipContent(filePath);
+        if(files.length === 0){
+            console.error("[listZipContent]", "no text");
+            handleFail && handleFail();
         }
 
-        const files = read7zOutput(text);
         const one = serverUtil.chooseThumbnailImage(files);
         
         if (!one) {
@@ -841,7 +848,7 @@ app.post('/api/extract', async (req, res) => {
 
         const time2 = getCurrentTime();
         const timeUsed = (time2 - time1);
-        console.log(`[/api/extract] uncompress file: ${timeUsed}ms   ${tempFiles.length}  ${stat.size}byte `);
+        console.log(`[/api/extract] uncompress file: ${timeUsed}ms ${(stat.size/(1000*1000)).toFixed(2)}MB `);
     }
 
     const outputPath = getOutputPath(cachePath, filePath);
