@@ -796,8 +796,8 @@ app.post('/api/firstImage', async (req, res) => {
     extractThumbnailFromZip(filePath, res);
 });
 
-async function extractAll(filePath, outputPath, sendBack, res, stat){
-    const opt = get7zipOption(filePath, outputPath);
+async function extractAll(filePath, outputPath, files, sendBack, res, stat){
+    const opt = get7zipOption(filePath, outputPath, files);
     const { stderr } = await execa(sevenZip, opt);
     if (!stderr) {
         sendBack && fs.readdir(outputPath, (error, pathes) => {
@@ -860,15 +860,15 @@ app.post('/api/extract', async (req, res) => {
     (async () => {
         const full_extract_max = 10;
         try{
-            const files = await listZipContent(filePath);
+            const files = await listZipContent(filePath).filter(e => isImage(e)||isMusic(e));
             if(files.length === 0){
                res.sendStatus(500);
                console.error(`[/api/extract] ${filePath} has no content`);
             }
 
-            let hasNoImage = files.some(e => !isImage(e));
-            if(hasNoImage || files.length <= full_extract_max){
-                extractAll(filePath, outputPath, sendBack, res, stat);
+            let hasMusic = files.some(e => isMusic(e));
+            if(hasMusic || files.length <= full_extract_max){
+                extractAll(filePath, outputPath, files, sendBack, res, stat);
             }else{
                 //spit one zip into two uncompress task
                 //so user can have a quicker response time
