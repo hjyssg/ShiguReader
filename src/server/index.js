@@ -33,13 +33,10 @@ const cache_folder_name = userConfig.cache_folder_name;
 const cachePath = path.join(rootPath, cache_folder_name);
 let logPath = path.join(rootPath, userConfig.workspace_name, "log");
 logPath = path.join(logPath, dateFormat(new Date(), "yyyy-mm-dd-hh-mm"))+ ".log";
-let file_db_path =  path.join(rootPath,  userConfig.workspace_name, "shigureader_local_file_info");
-
 
 const JsonDB = require('node-json-db').JsonDB;
 const Config = require('node-json-db/dist/lib/JsonDBConfig').Config;
-let zip_content_db_path =  path.join(rootPath,  userConfig.workspace_name, "shigureader_zip_file_content_info");
-
+let zip_content_db_path =  path.join(rootPath,  userConfig.workspace_name, "zip_info");
 const zip_content_db = new JsonDB(new Config(zip_content_db_path, true, true, '/'));
 
 // console.log("process.argv", process.argv);
@@ -51,7 +48,6 @@ console.log("__filename", __filename);
 console.log("__dirname", __dirname);
 console.log("rootPath", rootPath);
 console.log("log path:", logPath);
-console.log("file_db_path", file_db_path);
 
 const isWin = process.platform === "win32";
 let sevenZip;
@@ -151,8 +147,7 @@ async function init() {
     let beg = (new Date).getTime()
     const results = fileiterator(userConfig.path_will_scan, { 
         filter:filter, 
-        doLog: true,
-        db_path: file_db_path
+        doLog: true
     });
     results.pathes = results.pathes.concat(userConfig.home_pathes);
     let end = (new Date).getTime();
@@ -230,7 +225,7 @@ function setUpFileWatch(){
         updateTagHash(path);
         db.hashTable[stringHash(path)] = path;
         stats.isFile = stats.isFile();
-        stats.isDirectory = stats.isDirectory();
+        stats.isDir = stats.isDirectory();
 
         db.fileToInfo[path] = stats;
 

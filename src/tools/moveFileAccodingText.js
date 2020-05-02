@@ -16,13 +16,13 @@ function moveFilseAccodingText(p){
             const fullPath = path.resolve(p, singlePath);
             const stat = fs.statSync(fullPath);
 
-            if (stat.isFile) {
+            if (stat.isFile()) {
                 //!!! js handle japanese not 100% good
                 if(array.includes(singlePath)){
                     console.log(fullPath);
                     fs.renameSync(fullPath, path.join(moveDest, singlePath));
                 }
-            }else if(stat.isDirectory){
+            }else if(stat.isDirectory()){
                 moveFilseAccodingText(fullPath)
             }
         }catch(e){
