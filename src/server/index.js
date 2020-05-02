@@ -811,6 +811,20 @@ app.post('/api/firstImage', async (req, res) => {
     extractThumbnailFromZip(filePath, res);
 });
 
+async function extractAll(filePath, outputPath, sendBack, res){
+    const opt = get7zipOption(filePath, outputPath);
+    const { stderr } = await execa(sevenZip, opt);
+    if (!stderr) {
+        sendBack && fs.readdir(outputPath, (error, pathes) => {
+            const temp = generateContentUrl(pathes, outputPath);
+            sendBack(temp.files, temp.dirs, temp.musicFiles, filePath, stat);
+        });
+    } else {
+        res && res.sendStatus(500);
+        console.error('[extractAll] exit: ', stderr);
+    }
+}
+
 
 app.post('/api/extract', async (req, res) => {
     const hashFile = db.hashTable[(req.body && req.body.hash)];
@@ -823,6 +837,7 @@ app.post('/api/extract', async (req, res) => {
 
     //todo: record the timestamp of each request
     //when cleaning cache, if the file is read recently, dont clean its cache
+    
     if(!(await isExist(filePath))){
         //maybe the file move to other location
         const baseName = path.basename(filePath);
@@ -857,23 +872,6 @@ app.post('/api/extract', async (req, res) => {
         return;
     }
 
-    async function extractAll(){
-        const opt = get7zipOption(filePath, outputPath);
-        const { stderr } = await execa(sevenZip, opt);
-        if (!stderr) {
-            fs.readdir(outputPath, (error, pathes) => {
-                const temp = generateContentUrl(pathes, outputPath);
-                sendBack(temp.files, temp.dirs, temp.musicFiles, filePath, stat);
-                // const time2 = getCurrentTime();
-                // const timeUsed = (time2 - time1);
-                // console.log(`[/api/extract]  ${filePath} ${timeUsed}ms ${(stat.size/(1000*1000)).toFixed(2)}MB `);
-            });
-        } else {
-            res.sendStatus(500);
-            console.error('[/api/extract] exit: ', stderr);
-        }
-    }
-
     (async () => {
         const full_extract_max = 10;
         try{
@@ -885,7 +883,7 @@ app.post('/api/extract', async (req, res) => {
 
             let hasNoImage = files.some(e => !isImage(e));
             if(hasNoImage || files.length <= full_extract_max){
-                extractAll();
+                extractAll(filePath, outputPath, sendBack, res)
             }else{
                 //spit one zip into two uncompress task
                 //so user can have a quicker response time
