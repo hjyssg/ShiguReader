@@ -99,9 +99,9 @@ export default class AdminPage extends Component {
         if(size){
             cacheInfo = 
             <div className="cache-info">
-                <div className="cache-info-row">{`total size: ${size} MB`} </div>
+                <div className="cache-info-row">{`total size: ${size}`} </div>
                 <div className="cache-info-row">{`${cacheNum-thumbnailNum} files can be deleted` } </div>
-                <div className="cache-info-row">{`${thumbnailNum} minified thumbnails should not be deleted`} </div>
+                <div className="cache-info-row">{`${thumbnailNum} minified thumbnails should be reserved`} </div>
             </div>
         }
 
@@ -119,10 +119,10 @@ export default class AdminPage extends Component {
 
                 <div className="admin-section">
                     <div className="admin-section-title" title="only keep thumbnail and delete other files"> Clean Cache</div>
-                    <div className="admin-section-text" > only keep thumbnails and delete other files</div>
                     {cacheInfo}
                     <div className="admin-section-content">
                         <div className="submit" onClick={this.cleanCache.bind(this)}>clean</div>
+                        <span className="admin-section-text" > only keep thumbnails and delete other files</span>
                         {/* <div className="submit" onClick={this.cleanCache.bind(this, "minized")}>clean and make thumbnail file smaller to save distk space</div> */}
                     </div>
                 </div>
