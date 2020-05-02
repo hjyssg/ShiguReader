@@ -120,6 +120,9 @@ export default class OneBook extends Component {
 
     this.loadedImage = this.state.index;
     const imageDom = ReactDOM.findDOMNode(this.imgRef);
+    if(!imageDom){
+      return;
+    }
     this.imgDomHeight = imageDom.clientHeight; 
     this.imgDomWidth =  imageDom.clientWidth; 
     this.imgTrueHeight = imageDom.naturalHeight;
