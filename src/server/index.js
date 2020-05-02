@@ -316,7 +316,7 @@ app.get('/api/cacheInfo', (req, res) => {
     const cacheFiles =  _.keys(db.cacheToInfo).filter(isDisplayableInOnebook);
     let totalSize = 0;
 
-    const thumbnailNum = cacheFiles.filter(isCompressedThumbnail).length;
+    const thumbnailNum = cacheFiles.filter(util.isCompressedThumbnail).length;
 
     cacheFiles.forEach(e => {
         totalSize += db.cacheToInfo[e].size;
