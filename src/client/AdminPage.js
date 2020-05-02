@@ -81,7 +81,9 @@ export default class AdminPage extends Component {
                     minized: minized
                 }
                 Sender.get('/api/cleanCache', req, res =>{
-                    console.log(res)
+                    Sender.get("/api/cacheInfo", res => {
+                        this.handleRes(res);
+                    });
                 });
             } 
         });

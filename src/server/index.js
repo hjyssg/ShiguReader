@@ -287,8 +287,7 @@ function setUpFileWatch(){
             db.cacheTable[fp] = db.cacheTable[fp] || [];
             const index = db.cacheTable[fp].indexOf(path.basename(p));
             db.cacheTable[fp].splice(index, 1);
-
-            db.cacheToInfo[p] = "";
+            delete db.cacheToInfo[p];
         });
 }
 
@@ -314,7 +313,7 @@ app.get('/api/exhentaiApi', function (req, res) {
 //-------------------------Get info ----------------------
 app.get('/api/cacheInfo', (req, res) => {
     const _ = require('underscore');
-    const cacheFiles =  _.keys(db.cacheToInfo);
+    const cacheFiles =  _.keys(db.cacheToInfo).filter(isDisplayableInOnebook);
     let totalSize = 0;
 
     cacheFiles.forEach(e => {
@@ -974,7 +973,11 @@ app.get('/api/cleanCache', (req, res) => {
         return outputPath;
     })
 
-    doCacheClean({minized: minized, allowFileNames: allowFileNames});
+    function afterClean() {
+        res.sendStatus(200);
+    }
+
+    doCacheClean({minized: minized, allowFileNames: allowFileNames, afterClean: afterClean});
 });
 
 if(isProduction){
