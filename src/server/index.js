@@ -26,7 +26,7 @@ const {
         isDirectParent,
         isSub
 } = pathUtil;
-const { isImage, isCompress, isMusic, isVideo } = util;
+const { isImage, isCompress, isMusic, isVideo, arraySlice } = util;
 
 const rootPath = pathUtil.getRootPath();
 const cache_folder_name = userConfig.cache_folder_name;
@@ -625,7 +625,7 @@ function read7zOutput(data) {
         if(tokens.length === 2){
             const key = tokens[0];
             const value = tokens[1].trim();
-            if(key.toLowerCase() === "path" && isImage(value)){
+            if(key.toLowerCase() === "path"){
                 files.push(value);
             }
         }
@@ -633,11 +633,11 @@ function read7zOutput(data) {
     return files;
 }
 
-function get7zipOption(filePath, outputPath, one){
+function get7zipOption(filePath, outputPath, file_specifier){
     //https://sevenzip.osdn.jp/chm/cmdline/commands/extract.htm
     //e make folder as one level
-    if(one){
-        return ['e', filePath, `-o${outputPath}`, one, "-aos"];
+    if(file_specifier){
+        return ['e', filePath, `-o${outputPath}`].concat(file_specifier, "-aos");
     }else{
         return ['e', filePath, `-o${outputPath}`, "-aos"];
     }
@@ -719,7 +719,7 @@ async function extractThumbnailFromZip(filePath, res, mode, counter) {
     try{
         const files = await listZipContent(filePath);
         if(files.length === 0){
-            console.error("[listZipContent]", "no text");
+            console.error("[extractThumbnailFromZip]", "no text");
             handleFail && handleFail();
         }
 
@@ -811,9 +811,25 @@ app.post('/api/firstImage', async (req, res) => {
     extractThumbnailFromZip(filePath, res);
 });
 
+async function extractAll(filePath, outputPath, sendBack, res, stat){
+    const opt = get7zipOption(filePath, outputPath);
+    const { stderr } = await execa(sevenZip, opt);
+    if (!stderr) {
+        sendBack && fs.readdir(outputPath, (error, pathes) => {
+            const temp = generateContentUrl(pathes, outputPath);
+            sendBack(temp.files, temp.dirs, temp.musicFiles, filePath, stat);
+        });
+    } else {
+        res && res.sendStatus(500);
+        console.error('[extractAll] exit: ', stderr);
+    }
+}
+
+
 app.post('/api/extract', async (req, res) => {
     const hashFile = db.hashTable[(req.body && req.body.hash)];
     let filePath = hashFile ||  req.body && req.body.filePath;
+    const startIndex = (req.body && req.body.startIndex) || 0;
     if (!filePath) {
         res.sendStatus(404);
         return;
@@ -845,34 +861,75 @@ app.post('/api/extract', async (req, res) => {
     function sendBack(files, dirs, musicFiles, path, stat){
         const tempFiles =  serverUtil.filterHiddenFile(files);
         res.send({ files: tempFiles, dirs, musicFiles,path, stat });
-
-        const time2 = getCurrentTime();
-        const timeUsed = (time2 - time1);
-        console.log(`[/api/extract] uncompress file: ${timeUsed}ms ${(stat.size/(1000*1000)).toFixed(2)}MB `);
     }
 
     const outputPath = getOutputPath(cachePath, filePath);
     const temp = getCache(outputPath);
     //TODO: should use pageNum
-    if (temp && temp.files.length > 10) {
+    const total_page_num = 15;
+    if (temp && temp.files.length > total_page_num) {
         sendBack(temp.files, temp.dirs, temp.musicFiles, filePath, stat);
         return;
     }
 
     (async () => {
+        const full_extract_max = 10;
         try{
-            const opt = get7zipOption(filePath, outputPath);
-            const { stderr } = await execa(sevenZip, opt);
-            if (!stderr) {
-                fs.readdir(outputPath, (error, pathes) => {
-                    const temp = generateContentUrl(pathes, outputPath);
-                    sendBack(temp.files, temp.dirs, temp.musicFiles, filePath, stat);
-                });
-            } else {
-                res.sendStatus(500);
-                console.error('[/api/extract] exit: ', stderr);
+            const files = await listZipContent(filePath);
+            if(files.length === 0){
+               res.sendStatus(500);
+               console.error(`[/api/extract] ${filePath} has no content`);
             }
-        } catch (e){
+
+            let hasNoImage = files.some(e => !isImage(e));
+            if(hasNoImage || files.length <= full_extract_max){
+                extractAll(filePath, outputPath, sendBack, res, stat);
+            }else{
+                //spit one zip into two uncompress task
+                //so user can have a quicker response time
+                serverUtil.sortFileNames(files); 
+                //choose range wisely
+                const PREV_SPACE = 2;
+                //cut the array into 3 parts
+                let beg = startIndex - PREV_SPACE;
+                let end = startIndex + full_extract_max - PREV_SPACE;
+                const firstRange = arraySlice(files, beg, end);
+                const secondRange = files.filter(e => {
+                    return !firstRange.includes(e);
+                })
+
+                //dev checking
+                if(firstRange.length + secondRange.length !== files.length){
+                    debugger
+                    throw "arraySlice wrong";
+                }
+
+                const opt = get7zipOption(filePath, outputPath, firstRange);
+                const { stderr } = await execa(sevenZip, opt);
+
+                if (!stderr) {
+                    const temp = generateContentUrl(files, outputPath);
+                    sendBack(temp.files, temp.dirs, temp.musicFiles, filePath, stat);
+                    const time2 = getCurrentTime();
+                    const timeUsed = (time2 - time1);
+                    console.log(`[/api/extract] FIRST PART UNZIP ${filePath} : ${timeUsed}ms`);
+
+                    //let quitely unzip second part
+                    const opt = get7zipOption(filePath, outputPath, secondRange);
+                    const { stderr2 } = await execa(sevenZip, opt);
+                    if(stderr2){
+                        console.error('[/api/extract] second range exit: ', stderr2);  
+                    }else{
+                        const time3 = getCurrentTime();
+                        const timeUsed = (time3 - time2);
+                        console.log(`[/api/extract] Second PART UNZIP ${filePath} : ${timeUsed}ms`);
+                    }
+                } else {
+                    res.sendStatus(500);
+                    console.error('[/api/extract] exit: ', stderr);
+                }
+            }
+       } catch (e){
             res.sendStatus(500);
             console.error('[/api/extract] exit: ', e);
             logger.error('[/api/extract] exit: ', e);

@@ -208,6 +208,8 @@ export default class OneBook extends Component {
 
     imageDom.setAttribute("height", this.imgDomHeight);
     imageDom.setAttribute("width", this.imgDomWidth);
+
+    this.makeTwoImageSameHeight();
   }
 
   onwheel(e){
@@ -269,7 +271,7 @@ export default class OneBook extends Component {
   }
   
   displayFile(file){
-    Sender.post("/api/extract", {filePath: this.getPathFromLocalStorage(),   hash: this.getHash() }, res => {
+    Sender.post("/api/extract", {filePath: this.getPathFromLocalStorage(),   hash: this.getHash(), startIndex: this.state.index||0 }, res => {
       this.res = res;
       if (!res.failed) {
         this.loadedHash = this.getHash();
@@ -417,6 +419,11 @@ export default class OneBook extends Component {
     return this.state.index < this.getLastIndex() && (this.state.twoPageMode === TWO_PAGE_LEFT || this.state.twoPageMode === TWO_PAGE_RIGHT);
   }
 
+  onError(){
+    //todo
+    //maybe display a center spin
+  }
+
   renderImage(){
     const { files, index, twoPageMode } = this.state;
     if(!isPad()){
@@ -431,7 +438,6 @@ export default class OneBook extends Component {
                                         />;
 
       const preload =  index < files.length-1 &&  <link rel="preload" href={getUrl(files[index+1])} as="image" /> ;
-      const preload2 = index > 0 && <link rel="preload" href={getUrl(files[index-1])} as="image" />;
 
       return (<React.Fragment>
               { twoPageMode === TWO_PAGE_RIGHT &&  nextImg }
@@ -439,10 +445,10 @@ export default class OneBook extends Component {
                            ref={img => this.imgRef = img}
                            onLoad={this.adjustImageSize.bind(this)}
                            index={index}
+                           onError={this.onError.bind(this)}
                            />
               { twoPageMode === TWO_PAGE_LEFT &&  nextImg }
               {preload}
-              {preload2}
               </React.Fragment>);    
     } else {
       let images;
@@ -455,6 +461,7 @@ export default class OneBook extends Component {
                         onClick={this.onClickMobileOneImageContainer.bind(this)}> 
                 <img className={cn} 
                   ref={(img) =>  this.imgRef = img}
+                  onError={this.onError.bind(this)}
                   src={getUrl(files[index])}  />
                </div>);
       }else{

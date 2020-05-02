@@ -68,3 +68,22 @@ module.exports.array_unique = function(arr){
     });
     return result;
 }
+
+module.exports.arraySlice = function(arr, beg, end){
+    const len = arr.length;
+    let _beg = beg >= 0? beg : len + beg;
+    let _end = end >= 0? end : len + end;
+
+    let result = [];
+    if(beg >= 0 && end >= 0){
+        //normal
+        result = arr.slice(beg, end);
+    }else if(beg < 0 && end > 0){
+        result = arr.slice(_beg).concat(arr.slice(0, end));
+    }else if(beg >= 0 && end < 0){
+        result = arr.slice(beg, _end);
+    }else{
+        throw "wrf dude"
+    }
+    return result;
+}
