@@ -68,7 +68,7 @@ export default class LoadingImage extends Component {
     });
   }
 
-  Error(){
+  onError(){
     if(!this.tryEnoughRequest()){
       this.setState({
         url: null,
@@ -97,7 +97,7 @@ export default class LoadingImage extends Component {
    if (this.isThumbnailAvaible()) {
       content = (<img key={fileName} ref={e=>{this.dom = e && e.node}} 
                       className={className} src={this.state.url} title={title || fileName} 
-                      onError={this.Error.bind(this)} 
+                      onError={this.onError.bind(this)} 
                       {...others}/>);
     } else {
       content = (<div key={fileName} className={cn}  title={title || fileName} {...others}/>);

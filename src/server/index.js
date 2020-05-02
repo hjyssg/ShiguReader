@@ -921,6 +921,12 @@ app.post('/api/extract', async (req, res) => {
                 const firstRange = arraySlice(files, beg, end);
                 const secondRange = arraySlice(files, end, beg);
 
+                //dev checking
+                if(firstRange.length + secondRange.length !== files.length){
+                    debugger
+                    throw "arraySlice wrong";
+                }
+
                 const opt = get7zipOption(filePath, outputPath, firstRange);
                 const { stderr } = await execa(sevenZip, opt);
 
@@ -929,13 +935,17 @@ app.post('/api/extract', async (req, res) => {
                     sendBack(temp.files, temp.dirs, temp.musicFiles, filePath, stat);
                     const time2 = getCurrentTime();
                     const timeUsed = (time2 - time1);
-                    console.log(`[/api/extract] FIRST PART UNZIP ${filePath} : ${timeUsed}ms ${(stat.size/(1000*1000)).toFixed(2)}MB `);
+                    console.log(`[/api/extract] FIRST PART UNZIP ${filePath} : ${timeUsed}ms`);
 
                     //let quitely unzip second part
                     const opt = get7zipOption(filePath, outputPath, secondRange);
                     const { stderr2 } = await execa(sevenZip, opt);
                     if(stderr2){
                         console.error('[/api/extract] second range exit: ', stderr2);  
+                    }else{
+                        const time3 = getCurrentTime();
+                        const timeUsed = (time3 - time2);
+                        console.log(`[/api/extract] Second PART UNZIP ${filePath} : ${timeUsed}ms`);
                     }
                 } else {
                     res.sendStatus(500);

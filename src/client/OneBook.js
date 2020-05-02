@@ -417,6 +417,11 @@ export default class OneBook extends Component {
     return this.state.index < this.getLastIndex() && (this.state.twoPageMode === TWO_PAGE_LEFT || this.state.twoPageMode === TWO_PAGE_RIGHT);
   }
 
+  onError(){
+    //todo
+    //maybe display a center spin
+  }
+
   renderImage(){
     const { files, index, twoPageMode } = this.state;
     if(!isPad()){
@@ -438,6 +443,7 @@ export default class OneBook extends Component {
                            ref={img => this.imgRef = img}
                            onLoad={this.adjustImageSize.bind(this)}
                            index={index}
+                           onError={this.onError.bind(this)}
                            />
               { twoPageMode === TWO_PAGE_LEFT &&  nextImg }
               {preload}
@@ -453,6 +459,7 @@ export default class OneBook extends Component {
                         onClick={this.onClickMobileOneImageContainer.bind(this)}> 
                 <img className={cn} 
                   ref={(img) =>  this.imgRef = img}
+                  onError={this.onError.bind(this)}
                   src={getUrl(files[index])}  />
                </div>);
       }else{
