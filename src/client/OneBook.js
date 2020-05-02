@@ -208,6 +208,8 @@ export default class OneBook extends Component {
 
     imageDom.setAttribute("height", this.imgDomHeight);
     imageDom.setAttribute("width", this.imgDomWidth);
+
+    this.makeTwoImageSameHeight();
   }
 
   onwheel(e){
