@@ -51,6 +51,10 @@ module.exports.sortFileNames = function(files){
     util._sortFileNames(files, getFnWithoutExtention);
 }
 
+module.exports.isLocalHost = function(){
+    return location.hostname.includes("localhost");
+}
+
 module.exports.isAuthorized = function(){
     if(location.hostname.includes("localhost")){
         return true;

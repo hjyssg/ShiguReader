@@ -20,7 +20,7 @@ export default class VideoPlayer extends Component {
 
   render() {
     const fn = getPathFromLocalStorage(this.getHash());
-    const url = "http://localhost:8080/api/video/"+this.getHash();
+    const url = "/api/video/"+this.getHash();
     document.title = getFn(fn);
 
     return (<div className="video-player-page">
