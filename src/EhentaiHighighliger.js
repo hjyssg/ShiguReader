@@ -31,7 +31,8 @@ const not_author_but_tag = [
     "DL版",
     "よろず",
     "成年コミック",
-    "Pixiv"
+    "Pixiv",
+    "アーティスト"
 ]
 
 const convertTable = {};
