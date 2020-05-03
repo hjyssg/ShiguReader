@@ -1,12 +1,13 @@
 # ShiguReader
 
-通过Chrome或者iPad轻松阅读本地漫画。
+通过Chrome或者iPad轻松阅读电脑的漫画，以及观看视频。
 
 ##### Screenshot
 
-![screenshot-01](screenshot/01.png)
-![screenshot-02](screenshot/02.png)
-![screenshot-03](screenshot/03.png)
+![screenshot-01](screenshot/01.png){:height="50%" width="50%"}
+![screenshot-02](screenshot/02.png){:height="50%" width="50%"}
+![screenshot-03](screenshot/03.png){:height="50%" width="50%"}
+![screenshot-03](screenshot/04.png){:height="50%" width="50%"}
 
 ##### Demo Video
 [iPad使用](https://www.bilibili.com/video/BV1Mt4y1m7qU)  
@@ -26,6 +27,12 @@
 * 配色和旧版熊猫网的一模一样，亲切熟悉。
 * 服务器端支持windows和*nix。*nix需要用户自己安装7zip，并加到cmd路径下。
 * 客户端支持除IE和Edge的主流浏览器。比如电脑的Chrome和iPad的safari。
+
+
+### 支持格式
+
+支持的压缩包取决于7ZIp。常见的zip，rar，7zi都支持
+图片和视频的支持格式由浏览器决定。常见的mp4，avi支持
 
 
 ##### Quick Start
