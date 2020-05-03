@@ -53,7 +53,9 @@
 
   .one-book-title {
     color: #f1f1f1;
-    display: flex;
+    @media screen and (min-width: 850px) {
+      display: flex;
+    }
   }
 
   .one-book-path{

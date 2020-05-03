@@ -87,3 +87,9 @@ module.exports.arraySlice = function(arr, beg, end){
     }
     return result;
 }
+
+
+
+module.exports.getCurrentTime = function(){
+    return new Date().getTime();
+}

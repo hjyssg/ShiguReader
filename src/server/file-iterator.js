@@ -3,21 +3,11 @@
 const path = require('path');
 const fs = require("fs");
 const _ = require("underscore");
-const JsonDB = require('node-json-db').JsonDB;
-const Config = require('node-json-db/dist/lib/JsonDBConfig').Config;
+
 const userConfig = require('../user-config');
 
 module.exports = function (folders, config) {
-    const hasDb = !!config.db_path;
-    const db = hasDb && new JsonDB(new Config(config.db_path, true, true, '/'));
-    let infos;
-    try{
-        infos =  hasDb && db.getData("/");
-    }catch (e){
-        console.error("[file-iterator]",e)
-    }
-   
-    const result = {pathes: [], infos: infos||{} };
+    const result = {pathes: [], infos: {}};
     config.visited = {};
     folders.forEach((src) => {
         if(fs.existsSync(src)){
@@ -35,12 +25,6 @@ module.exports = function (folders, config) {
         }
     });
     delete config.visited;
-
-    try{
-        hasDb && db.push("/", result.infos);
-    }catch (e){
-        console.error("[file-iterator]",e)
-    }
     return result;
 };
 
@@ -53,13 +37,13 @@ function isLegalDepth(depth, config) {
 
 function getStat(p, config){
     const stat = fs.statSync(p);
-    //for jsonify
-    stat.isFile = stat.isFile();
-    stat.isDirectory = stat.isDirectory();
-    // if(config.getExtraInfo){
-    //     stat.extra = config.getExtraInfo(p, stat);
-    // }
-    return stat;
+    const result = {};
+    result.isFile = stat.isFile();
+    result.isDir = stat.isDirectory();
+    result.mtimeMs = stat.mtimeMs;
+    result.mtime = stat.mtime;
+    result.size = stat.size;
+    return result;
 }
 
 function iterate (p, config, result, depth) {
@@ -67,7 +51,7 @@ function iterate (p, config, result, depth) {
         return;
     }
     try {
-        const stat = result.infos[p] || getStat(p, config);
+        const stat = getStat(p, config);
         result.infos[p] = stat;
         if (stat.isFile) {
             if (config && config.filter && !config.filter(p)) {
@@ -78,7 +62,7 @@ function iterate (p, config, result, depth) {
                 console.log("[file-iterator] scan:", result.pathes.length);
             }
             result.pathes.push(p);
-        } else if (stat.isDirectory && isLegalDepth(depth + 1, config)) {
+        } else if (stat.isDir && isLegalDepth(depth + 1, config)) {
             fs.readdirSync(p).forEach((e) => {
                 e = path.join(p, e);
                 iterate(e, config, result, depth + 1);

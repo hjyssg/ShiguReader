@@ -26,20 +26,17 @@ const {
         isDirectParent,
         isSub
 } = pathUtil;
-const { isImage, isCompress, isMusic, isVideo, arraySlice } = util;
+const { isImage, isCompress, isMusic, isVideo, arraySlice, getCurrentTime } = util;
 
 const rootPath = pathUtil.getRootPath();
 const cache_folder_name = userConfig.cache_folder_name;
 const cachePath = path.join(rootPath, cache_folder_name);
 let logPath = path.join(rootPath, userConfig.workspace_name, "log");
 logPath = path.join(logPath, dateFormat(new Date(), "yyyy-mm-dd-hh-mm"))+ ".log";
-let file_db_path =  path.join(rootPath,  userConfig.workspace_name, "shigureader_local_file_info");
-
 
 const JsonDB = require('node-json-db').JsonDB;
 const Config = require('node-json-db/dist/lib/JsonDBConfig').Config;
-let zip_content_db_path =  path.join(rootPath,  userConfig.workspace_name, "shigureader_zip_file_content_info");
-
+let zip_content_db_path =  path.join(rootPath,  userConfig.workspace_name, "zip_info");
 const zip_content_db = new JsonDB(new Config(zip_content_db_path, true, true, '/'));
 
 // console.log("process.argv", process.argv);
@@ -51,7 +48,6 @@ console.log("__filename", __filename);
 console.log("__dirname", __dirname);
 console.log("rootPath", rootPath);
 console.log("log path:", logPath);
-console.log("file_db_path", file_db_path);
 
 const isWin = process.platform === "win32";
 let sevenZip;
@@ -80,8 +76,12 @@ const logger = winston.createLogger({
   });
 
 
-function isSupportedFile(e){
+function isDisplayableInExplorer(e){
     return isCompress(e) || isVideo(e);
+}
+
+function isDisplayableInOnebook(e){
+    return isImage(e)||isMusic(e);
 }
 
 function updateTagHash(str){
@@ -103,6 +103,8 @@ const db = {
     allFiles : [],
     //file path to file stats
     fileToInfo: {},
+    //cache path to file stats
+    cacheToInfo: {},
     //a list of cache files folder -> files
     cacheTable: {},
     //hash to any string
@@ -147,12 +149,11 @@ async function init() {
 
     console.log("scanning local files");
 
-    const filter = (e) => {return isSupportedFile(e);};
+    const filter = (e) => {return isDisplayableInExplorer(e);};
     let beg = (new Date).getTime()
     const results = fileiterator(userConfig.path_will_scan, { 
         filter:filter, 
-        doLog: true,
-        db_path: file_db_path
+        doLog: true
     });
     results.pathes = results.pathes.concat(userConfig.home_pathes);
     let end = (new Date).getTime();
@@ -163,7 +164,7 @@ async function init() {
     for (let i = 0; i < results.pathes.length; i++) {
         const p = results.pathes[i];
         const ext = path.extname(p).toLowerCase();
-        if (!ext ||  isSupportedFile(ext)) {
+        if (!ext ||  isDisplayableInExplorer(ext)) {
             arr.push(p);
 
             db.hashTable[stringHash(p)] = p;
@@ -185,7 +186,9 @@ async function init() {
         const fp =  getCacheFp(p);
         db.cacheTable[fp] = db.cacheTable[fp] || [];
         db.cacheTable[fp].push(path.basename(p));
-    })
+    });
+
+    db.cacheToInfo = cache_results.infos;
 
     setUpFileWatch();
     const port = isProduction? 3000: 8080;
@@ -201,7 +204,7 @@ async function init() {
 
 function shouldWatch(p){
     const ext = path.extname(p).toLowerCase();
-    if (!ext ||  isSupportedFile(ext) || isMusic(ext) ||isImage(ext)) {
+    if (!ext ||  isDisplayableInExplorer(ext) || isMusic(ext) ||isImage(ext)) {
         return true;
     }
     return false;
@@ -230,10 +233,8 @@ function setUpFileWatch(){
         updateTagHash(path);
         db.hashTable[stringHash(path)] = path;
         stats.isFile = stats.isFile();
-        stats.isDirectory = stats.isDirectory();
-
+        stats.isDir = stats.isDirectory();
         db.fileToInfo[path] = stats;
-
         extractThumbnailFromZip(path);
 
         hentaiCache = null;
@@ -242,7 +243,7 @@ function setUpFileWatch(){
     const deleteCallBack = path => {
         const index = db.allFiles.indexOf(path);
         db.allFiles[index] = "";
-
+        db.fileToInfo[path] = "";
         hentaiCache = null;
     };
 
@@ -272,16 +273,21 @@ function setUpFileWatch(){
 
 
     cacheWatcher
-        .on('add', p => {
+        .on('add', (p, stats) => {
             const fp =  getCacheFp(p);
             db.cacheTable[fp] = db.cacheTable[fp] || [];
             db.cacheTable[fp].push(path.basename(p));
+
+            stats.isFile = stats.isFile();
+            stats.isDir = stats.isDirectory();
+            db.cacheToInfo[p] = stats;
         })
         .on('unlink', p => {
             const fp =  getCacheFp(p);
             db.cacheTable[fp] = db.cacheTable[fp] || [];
             const index = db.cacheTable[fp].indexOf(path.basename(p));
             db.cacheTable[fp].splice(index, 1);
+            delete db.cacheToInfo[p];
         });
 }
 
@@ -305,6 +311,26 @@ app.get('/api/exhentaiApi', function (req, res) {
 })
 
 //-------------------------Get info ----------------------
+app.get('/api/cacheInfo', (req, res) => {
+    const _ = require('underscore');
+    const cacheFiles =  _.keys(db.cacheToInfo).filter(isDisplayableInOnebook);
+    let totalSize = 0;
+
+    const thumbnailNum = cacheFiles.filter(util.isCompressedThumbnail).length;
+
+    cacheFiles.forEach(e => {
+        totalSize += db.cacheToInfo[e].size;
+    })
+
+    res.send({
+        totalSize: totalSize,
+        thumbnailNum,
+        cacheNum: cacheFiles.length
+    })
+});
+
+
+
 app.get('/api/allInfo', (req, res) => {
     const tempfileToInfo = {};
     const allFiles = [];
@@ -499,7 +525,7 @@ app.post('/api/lsDir', async (req, res) => {
             }
 
             const ext = path.extname(pp).toLowerCase();
-            if (isSupportedFile(ext)){
+            if (isDisplayableInExplorer(ext)){
                 files.push(pp);
                 infos[pp] = singleInfo;
             }
@@ -652,7 +678,16 @@ async function listZipContent(filePath){
     }
 
     const files = read7zOutput(text);
+    updateZipDb(filePath, files.length);
     return files;
+}
+
+function updateZipDb(filePath, pageNum){
+    const contentInfo = zip_content_db.getData("/");
+    contentInfo[filePath] = {
+        pageNum: pageNum
+    };
+    zip_content_db.push("/", contentInfo);
 }
 
 const pLimit = require('p-limit');
@@ -683,17 +718,9 @@ async function extractThumbnailFromZip(filePath, res, mode, counter) {
     //only update zip db
     //do not use zip db's information
     //in case previous info is changed or wrong
-    function updateZipDb(pageNum){
-        const contentInfo = zip_content_db.getData("/");
-        contentInfo[filePath] = {
-            pageNum: pageNum
-        };
-        zip_content_db.push("/", contentInfo);
-    }
 
     function handleFail(){
         sendable && res.sendStatus(404);
-        updateZipDb("NOT_THUMBNAIL_AVAILABLE");
         if(isPregenerateMode){
             counter.total--;
         }
@@ -718,20 +745,12 @@ async function extractThumbnailFromZip(filePath, res, mode, counter) {
 
     try{
         const files = await listZipContent(filePath);
-        if(files.length === 0){
-            console.error("[extractThumbnailFromZip]", "no text");
-            handleFail && handleFail();
-        }
-
         const one = serverUtil.chooseThumbnailImage(files);
-        
-        if (!one) {
-            console.log("[extractThumbnailFromZip]", filePath,  "no image file from output");
+        if(!one){
+            console.error("[extractThumbnailFromZip] no thumbnail for ", filePath);
             handleFail();
-            return;
         }
 
-        //Overwrite mode: -aos	Skip extracting of existing files.
         const opt = get7zipOption(filePath, outputPath, one);
         const {stderrForThumbnail} = await extractlimit(() => execa(sevenZip, opt));
         if (!stderrForThumbnail) {
@@ -739,7 +758,6 @@ async function extractThumbnailFromZip(filePath, res, mode, counter) {
             let temp = path.join(outputPath, path.basename(one));
             temp = turnPathSepToWebSep(temp);
             sendImage(temp);
-            updateZipDb(files.length);
 
             function logForPre(prefix, counter, total, printSpeed){
                 console.log(`${prefix} ${counter}/${total}`,  filePath);
@@ -769,10 +787,6 @@ async function extractThumbnailFromZip(filePath, res, mode, counter) {
         logger.error("[extractThumbnailFromZip] exception", e);
         handleFail();
     }
-}
-
-function getCurrentTime(){
-    return new Date().getTime();
 }
 
 let pregenBeginTime;
@@ -811,8 +825,8 @@ app.post('/api/firstImage', async (req, res) => {
     extractThumbnailFromZip(filePath, res);
 });
 
-async function extractAll(filePath, outputPath, sendBack, res, stat){
-    const opt = get7zipOption(filePath, outputPath);
+async function extractAll(filePath, outputPath, files, sendBack, res, stat){
+    const opt = get7zipOption(filePath, outputPath, files);
     const { stderr } = await execa(sevenZip, opt);
     if (!stderr) {
         sendBack && fs.readdir(outputPath, (error, pathes) => {
@@ -875,15 +889,16 @@ app.post('/api/extract', async (req, res) => {
     (async () => {
         const full_extract_max = 10;
         try{
-            const files = await listZipContent(filePath);
+            let files = await listZipContent(filePath);
+            files = files.filter(e => isDisplayableInOnebook(e));
             if(files.length === 0){
                res.sendStatus(500);
                console.error(`[/api/extract] ${filePath} has no content`);
             }
 
-            let hasNoImage = files.some(e => !isImage(e));
-            if(hasNoImage || files.length <= full_extract_max){
-                extractAll(filePath, outputPath, sendBack, res, stat);
+            let hasMusic = files.some(e => isMusic(e));
+            if(hasMusic || files.length <= full_extract_max){
+                extractAll(filePath, outputPath, files, sendBack, res, stat);
             }else{
                 //spit one zip into two uncompress task
                 //so user can have a quicker response time
@@ -948,7 +963,7 @@ function doCacheClean(config){
     }
 }
 
-app.get('/api/cleanCache', (req, res) => {
+app.post('/api/cleanCache', (req, res) => {
     const minized = req.body && req.body.minized;
 
     const allowFileNames =  db.allFiles.map(filePath => {
@@ -957,7 +972,11 @@ app.get('/api/cleanCache', (req, res) => {
         return outputPath;
     })
 
-    doCacheClean({minized: minized, allowFileNames: allowFileNames});
+    function afterClean() {
+        res.sendStatus(200);
+    }
+
+    doCacheClean({minized: minized, allowFileNames: allowFileNames, afterClean: afterClean});
 });
 
 if(isProduction){

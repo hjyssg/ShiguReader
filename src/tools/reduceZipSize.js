@@ -22,6 +22,7 @@ if(isWin){
 // "imagemin-jpeg-recompress": "^6.0.0",
 // "imagemin-jpegtran": "^6.0.0",
 // "imagemin-mozjpeg": "^8.0.0"
+// jpegtran
 
 const isExist = async (path) => {
     try{

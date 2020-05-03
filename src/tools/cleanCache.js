@@ -91,6 +91,7 @@ function _clean(cachePath, config){
         }
     });
     console.log("[cache clean] done");
+    config.afterClean &&  config.afterClean();
 }
 
 module.exports.cleanCache = cleanCache;

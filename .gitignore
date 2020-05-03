@@ -8,3 +8,5 @@ shigureader_zip_file_content_info.json
 unzip_cache
 compress_cache
 executables
+file_info.json
+zip_info.json
