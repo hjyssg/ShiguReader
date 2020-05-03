@@ -150,7 +150,7 @@ export default class FileChangeToolbar extends Component {
         const {file, className, header, showAllButtons} = this.props;
         const cn = classNames("file-change-tool-bar", className);
 
-        if(!location.hostname.includes("localhost")){
+        if(!clientUtil.isAuthorized()){
             return  <div className={cn} ></div>;
         }
 

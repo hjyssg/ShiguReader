@@ -68,6 +68,11 @@ module.exports.keep_clip = false;
 //in MB
 module.exports.oversized_image_size = 4;
 
+//非localhost的机器想移动删除文件，需要在admin输出密码才可以获得权限
+//并不是高明的安全机制
+//注：Shigureader设计实现，只考虑在LAN情况下的性能和安全性。
+module.exports.file_change_password = "2020";
+
 module.exports.folder_list = module.exports.home_pathes.concat(module.exports.good_folder, module.exports.not_good_folder);
 
 if(!module.exports.home_pathes && module.exports.home_pathes.length === 0) {

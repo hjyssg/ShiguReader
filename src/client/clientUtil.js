@@ -50,3 +50,14 @@ module.exports.getPathFromLocalStorage = function(hash){
 module.exports.sortFileNames = function(files){
     util._sortFileNames(files, getFnWithoutExtention);
 }
+
+module.exports.isAuthorized = function(){
+    if(location.hostname.includes("localhost")){
+        return true;
+    }else{
+        const Cookie = require("js-cookie");
+        const userConfig = require('../user-config');
+        const password =  Cookie.get('password');
+        return userConfig.file_change_password === password;
+    }
+}

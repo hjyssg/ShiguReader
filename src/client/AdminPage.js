@@ -119,6 +119,33 @@ export default class AdminPage extends Component {
         </div>)
     }
 
+    setPasswordCookie(){
+        const pathInput = ReactDOM.findDOMNode(this.passwordInputRef);
+        const text = pathInput.value || "";
+        Cookie.set("password", text, { expires: 3 });
+        this.forceUpdate();
+    }
+
+    renderPasswordInput(){
+        let content;
+        if(clientUtil.isAuthorized()){
+            content = (<div className="admin-section-title"> You are authorized to move/delete files. </div>)
+        }else{
+            content = (<React.Fragment>
+                        <div className="admin-section-title">Type password to move/delete file </div>
+                         {password && <div> wrong password </div>}
+                        <input className="aji-path-intput" ref={pathInput => this.passwordInputRef = pathInput}
+                                    placeholder="...type here"  onChange={this.setPasswordCookie.bind(this)}/>
+                        </React.Fragment>);
+        }
+
+        return (
+            <div className="admin-section">
+                {content}
+            </div>
+        )
+    }
+
     render(){
         document.title = "Admin"
         const folder_list = userConfig.folder_list.concat("All_Pathes");
@@ -138,6 +165,8 @@ export default class AdminPage extends Component {
 
         return (
             <div className="admin-container container">
+                {this.renderPasswordInput()}
+
                 <div className="admin-section">
                     <div className="admin-section-title"> Pregenerate Thumbnail</div>
                     <div className="admin-section-content">

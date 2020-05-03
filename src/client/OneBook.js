@@ -11,7 +11,6 @@ import './style/OneBook.scss';
 import ErrorPage from './ErrorPage';
 import CenterSpinner from './subcomponent/CenterSpinner';
 import ClickAndCopyText from './subcomponent/ClickAndCopyText';
-const spop  = require("./subcomponent/spop");
 import FileChangeToolbar from './subcomponent/FileChangeToolbar';
 import LoadingImage from './LoadingImage';
 import MusicPlayer from './MusicPlayer';
