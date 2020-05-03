@@ -26,7 +26,7 @@ const {
         isDirectParent,
         isSub
 } = pathUtil;
-const { isImage, isCompress, isMusic, isVideo, arraySlice } = util;
+const { isImage, isCompress, isMusic, isVideo, arraySlice, getCurrentTime } = util;
 
 const rootPath = pathUtil.getRootPath();
 const cache_folder_name = userConfig.cache_folder_name;
@@ -787,10 +787,6 @@ async function extractThumbnailFromZip(filePath, res, mode, counter) {
         logger.error("[extractThumbnailFromZip] exception", e);
         handleFail();
     }
-}
-
-function getCurrentTime(){
-    return new Date().getTime();
 }
 
 let pregenBeginTime;

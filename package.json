@@ -36,6 +36,7 @@
     "filesize": "^4.1.2",
     "jpegtran": "^1.0.6",
     "jquery": "^3.4.1",
+    "js-cookie": "^2.2.1",
     "node-json-db": "^1.0.3",
     "p-limit": "^2.1.0",
     "promise-fs": "^2.1.1",

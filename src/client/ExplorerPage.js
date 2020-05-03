@@ -207,9 +207,14 @@ export default class ExplorerPage extends Component {
         });
     }
 
+    getPathFromLocalStorage(){
+        const hash = this.getHash();
+        return clientUtil.getPathFromLocalStorage(hash);
+    }
+
     requestSearch(mode) {
         Sender.post(Constant.SEARCH_API, { hash: this.getHash(), 
-                                    text: window.localStorage && window.localStorage.getItem(this.getHash()),
+                                    text: this.getPathFromLocalStorage(),
                                     mode: this.getMode()}, res => {
             this.handleRes(res);
         });
@@ -258,10 +263,6 @@ export default class ExplorerPage extends Component {
         return files.slice((this.state.pageIndex-1) * this.getNumPerPage(), (this.state.pageIndex) * this.getNumPerPage());
     }
 
-    getPathFromLocalStorage(){
-        const hash = this.getHash();
-        return window.localStorage && window.localStorage.getItem(hash);
-    }
 
     sortFiles(files, sortOrder){
         //-------sort algo
@@ -816,6 +817,5 @@ ExplorerPage.propTypes = {
     files: PropTypes.array,
     openBookFunc: PropTypes.func,
     openDirFunc: PropTypes.func,
-    cookies: PropTypes.any,
     filterText: PropTypes.string
 };

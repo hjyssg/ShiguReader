@@ -5,7 +5,7 @@ import ClickAndCopyText from './subcomponent/ClickAndCopyText';
 import FileChangeToolbar from './subcomponent/FileChangeToolbar';
 const util = require("../util");
 const clientUtil = require("./clientUtil");
-const { getDir, getFn } = clientUtil;
+const { getDir, getFn, getPathFromLocalStorage } = clientUtil;
 
 export default class VideoPlayer extends Component {
   constructor(props) {
@@ -19,7 +19,7 @@ export default class VideoPlayer extends Component {
   }
 
   render() {
-    const fn = window.localStorage && window.localStorage.getItem(this.getHash());
+    const fn = getPathFromLocalStorage(this.getHash());
     const url = "http://localhost:8080/api/video/"+this.getHash();
     document.title = getFn(fn);
 

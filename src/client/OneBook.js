@@ -24,6 +24,8 @@ const filesizeUitl = require('filesize');
 import screenfull from 'screenfull';
 const Constant = require("../constant");
 
+import Cookie from "js-cookie";
+
 const MIN_HEIGHT = 400;
 const MIN_WIDTH = 400;
 const userConfig = require('../user-config');
@@ -60,9 +62,11 @@ export default class OneBook extends Component {
   }
   
   componentDidMount() {
-    const file = this.getHash();
-    if(file && this.loadedHash !== file && this.failTimes < 3){
-      this.displayFile(file);
+    const fileHash = this.getHash();
+    Cookie.set(util.getCurrentTime(), fileHash)
+
+    if(fileHash && this.loadedHash !== fileHash && this.failTimes < 3){
+      this.displayFile(fileHash);
     }
 
     if(!isPad ()){
@@ -579,7 +583,7 @@ export default class OneBook extends Component {
 
   getPathFromLocalStorage(){
     const hash = this.getHash();
-    return window.localStorage && window.localStorage.getItem(hash);
+    return clientUtil.getPathFromLocalStorage(hash);
   }
 
   renderNextPrevButton(){

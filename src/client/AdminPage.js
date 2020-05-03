@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import './style/AdminPage.scss';
 import Sender from './Sender';
 const userConfig = require('../user-config');
-// import _ from "underscore";
+import _ from "underscore";
 // const util = require("../util");
 // const nameParser = require('../name-parser');
 // const filesizeUitl = require('filesize');
@@ -12,6 +12,10 @@ import ReactDOM from 'react-dom';
 import Swal from 'sweetalert2';
 import RadioButtonGroup from './subcomponent/RadioButtonGroup';
 const filesizeUitl = require('filesize');
+import Cookie from "js-cookie";
+const clientUtil = require("./clientUtil");
+const { getPathFromLocalStorage } = clientUtil;
+import { Link } from 'react-router-dom';
 
 
 export default class AdminPage extends Component {
@@ -88,6 +92,37 @@ export default class AdminPage extends Component {
         });
     }
 
+    renderHistory(){
+        const timeToFileHash = Cookie.get();
+        const times = _.keys(timeToFileHash);
+        times.sort((a, b) => (a -b));
+
+        const visited = {};
+
+        const history = times.map(t => {
+            const hash = timeToFileHash[t];
+            const fileName =  getPathFromLocalStorage(hash);
+            if(!hash || visited[hash] || !fileName){
+                return;
+            }
+            visited[hash] = true;
+            const toUrl =  '/onebook/' + hash;
+            return (
+            <Link to={toUrl}  key={hash} className={""}>
+                <div className="history-one-line-list-item" key={fileName}>
+                    <i className="fas fa-book"></i>
+                    <span className="history-one-line-list-item-text">{fileName}</span>
+                </div>
+            </Link>);
+        });
+
+        return (
+        <div className="history-section admin-section">
+            <div className="admin-section-title"> Recent  Read</div>
+            {history}
+        </div>)
+    }
+
     render(){
         document.title = "Admin"
         const folder_list = userConfig.folder_list.concat("All_Pathes");
@@ -126,6 +161,9 @@ export default class AdminPage extends Component {
                         {/* <div className="submit" onClick={this.cleanCache.bind(this, "minized")}>clean and make thumbnail file smaller to save distk space</div> */}
                     </div>
                 </div>
+
+
+                {this.renderHistory()}
 
                 <div className="author-link"> 
                         <a className="fab fa-github" title="Aji47's Github" href="https://github.com/hjyssg/ShiguReader" target="_blank"> Created By Aji47 </a> 

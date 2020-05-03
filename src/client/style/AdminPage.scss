@@ -53,13 +53,18 @@
       }
 
       .author-link{
-        position: absolute;
-        right: 20px;
-        bottom: 20px;
-
+        margin-top: 10px;
+        margin-bottom: 10px;
         a {
           color: white;
           font-size: 1.2rem;
+        }
+      }
+
+
+      .history-section {
+        .history-one-line-list-item-text {
+          color: white;
         }
       }
 }
