@@ -50,5 +50,3 @@ module.exports.getPathFromLocalStorage = function(hash){
 module.exports.sortFileNames = function(files){
     util._sortFileNames(files, getFnWithoutExtention);
 }
-
-

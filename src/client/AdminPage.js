@@ -2,20 +2,16 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import './style/AdminPage.scss';
 import Sender from './Sender';
-const userConfig = require('../user-config');
 import _ from "underscore";
-// const util = require("../util");
-// const nameParser = require('../name-parser');
-// const filesizeUitl = require('filesize');
-// import CenterSpinner from './subcomponent/CenterSpinner';
 import ReactDOM from 'react-dom';
 import Swal from 'sweetalert2';
+import Cookie from "js-cookie";
+import { Link } from 'react-router-dom';
+const userConfig = require('../user-config');
 import RadioButtonGroup from './subcomponent/RadioButtonGroup';
 const filesizeUitl = require('filesize');
-import Cookie from "js-cookie";
 const clientUtil = require("./clientUtil");
 const { getPathFromLocalStorage } = clientUtil;
-import { Link } from 'react-router-dom';
 const dateFormat = require('dateformat');
 
 export default class AdminPage extends Component {
@@ -162,9 +158,7 @@ export default class AdminPage extends Component {
                     </div>
                 </div>
 
-
                 {this.renderHistory()}
-
                 <div className="author-link"> 
                         <a className="fab fa-github" title="Aji47's Github" href="https://github.com/hjyssg/ShiguReader" target="_blank"> Created By Aji47 </a> 
                 </div>
