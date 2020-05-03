@@ -1,14 +1,13 @@
 {
   "name": "ShiguReader",
-  "version": "1.1.4",
+  "version": "1.2.6",
   "description": "local comic reader",
   "main": "src/server/index.js",
   "bin": "src/server/index.js",
   "pkg": {
     "assets": [
       "dist/**/*",
-      "fontawesome-free-5.7.2-web/**/*",
-      "src/7zip/**/*"
+      "resource/*"
     ]
   },
   "scripts": {
