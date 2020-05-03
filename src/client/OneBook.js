@@ -63,7 +63,7 @@ export default class OneBook extends Component {
   
   componentDidMount() {
     const fileHash = this.getHash();
-    Cookie.set(util.getCurrentTime(), fileHash)
+    Cookie.set(util.getCurrentTime(), fileHash, { expires: 7 })
 
     if(fileHash && this.loadedHash !== fileHash && this.failTimes < 3){
       this.displayFile(fileHash);

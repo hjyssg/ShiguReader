@@ -63,8 +63,13 @@
 
 
       .history-section {
-        .history-one-line-list-item-text {
+        .history-link{
           color: white;
+          .history-one-line-list-item {
+            .date-text {
+              margin-right: 10px;
+            }
+          }
         }
       }
 }

@@ -16,7 +16,7 @@ import Cookie from "js-cookie";
 const clientUtil = require("./clientUtil");
 const { getPathFromLocalStorage } = clientUtil;
 import { Link } from 'react-router-dom';
-
+const dateFormat = require('dateformat');
 
 export default class AdminPage extends Component {
     constructor(prop) {
@@ -98,7 +98,6 @@ export default class AdminPage extends Component {
         times.sort((a, b) => (a -b));
 
         const visited = {};
-
         const history = times.map(t => {
             const hash = timeToFileHash[t];
             const fileName =  getPathFromLocalStorage(hash);
@@ -107,18 +106,19 @@ export default class AdminPage extends Component {
             }
             visited[hash] = true;
             const toUrl =  '/onebook/' + hash;
+            const timeStr = dateFormat(new Date(+t), "mm-dd hh:MM");
             return (
-            <Link to={toUrl}  key={hash} className={""}>
+            <Link to={toUrl}  key={hash} className={"history-link"}>
                 <div className="history-one-line-list-item" key={fileName}>
-                    <i className="fas fa-book"></i>
-                    <span className="history-one-line-list-item-text">{fileName}</span>
+                    <span className="date-text"> {timeStr} </span>
+                    <span className="file-text"> {fileName}</span>
                 </div>
             </Link>);
         });
 
         return (
         <div className="history-section admin-section">
-            <div className="admin-section-title"> Recent  Read</div>
+            <div className="admin-section-title"> Recent Read</div>
             {history}
         </div>)
     }
