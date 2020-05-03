@@ -1,11 +1,18 @@
 .video-player-page{
     .video-player-container{
-        max-width: 100%;
-        max-height: 100%;
-
         display: flex;
         justify-content: center;
         align-content: center;
+
+        #videoPlayer{ 
+            @media screen and (max-width: 1000px) {
+                width: calc(100% - 50px);
+            }
+
+            @media screen and (min-width: 1000px) {
+                width: 1000px;
+            }
+        }
     }
 
     .video-title{
