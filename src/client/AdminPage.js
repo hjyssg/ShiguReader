@@ -119,9 +119,14 @@ export default class AdminPage extends Component {
         </div>)
     }
 
-    setPasswordCookie(){
+    getPasswordInput(){
         const pathInput = ReactDOM.findDOMNode(this.passwordInputRef);
-        const text = pathInput.value || "";
+        const text = (pathInput && pathInput.value) || "";
+        return text;
+    }
+
+    setPasswordCookie(){
+        const text = this.getPasswordInput();
         Cookie.set("password", text, { expires: 3 });
         this.forceUpdate();
     }
@@ -133,7 +138,7 @@ export default class AdminPage extends Component {
         }else{
             content = (<React.Fragment>
                         <div className="admin-section-title">Type password to move/delete file </div>
-                         {password && <div> wrong password </div>}
+                         {this.getPasswordInput() && <div> wrong password </div>}
                         <input className="aji-path-intput" ref={pathInput => this.passwordInputRef = pathInput}
                                     placeholder="...type here"  onChange={this.setPasswordCookie.bind(this)}/>
                         </React.Fragment>);
