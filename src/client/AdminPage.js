@@ -11,7 +11,7 @@ const userConfig = require('../user-config');
 import RadioButtonGroup from './subcomponent/RadioButtonGroup';
 const filesizeUitl = require('filesize');
 const clientUtil = require("./clientUtil");
-const { getPathFromLocalStorage } = clientUtil;
+const { getPathFromLocalStorage, getFn } = clientUtil;
 const dateFormat = require('dateformat');
 
 export default class AdminPage extends Component {
@@ -96,8 +96,8 @@ export default class AdminPage extends Component {
         const visited = {};
         const history = times.map(t => {
             const hash = timeToFileHash[t];
-            const fileName =  getPathFromLocalStorage(hash);
-            if(!hash || visited[hash] || !fileName){
+            const filePath =  getPathFromLocalStorage(hash);
+            if(!hash || visited[hash] || !filePath){
                 return;
             }
             visited[hash] = true;
@@ -105,9 +105,9 @@ export default class AdminPage extends Component {
             const timeStr = dateFormat(new Date(+t), "mm-dd hh:MM");
             return (
             <Link to={toUrl}  key={hash} className={"history-link"}>
-                <div className="history-one-line-list-item" key={fileName}>
+                <div className="history-one-line-list-item" key={filePath}>
                     <span className="date-text"> {timeStr} </span>
-                    <span className="file-text"> {fileName}</span>
+                    <span className="file-text" title={filePath}> {getFn(filePath)}</span>
                 </div>
             </Link>);
         });

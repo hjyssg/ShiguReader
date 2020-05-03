@@ -62,8 +62,6 @@ export default class OneBook extends Component {
   
   componentDidMount() {
     const fileHash = this.getHash();
-    Cookie.set(util.getCurrentTime(), fileHash, { expires: 7 })
-
     if(fileHash && this.loadedHash !== fileHash && this.failTimes < 3){
       this.displayFile(fileHash);
     }
@@ -291,6 +289,8 @@ export default class OneBook extends Component {
         let musicFiles = res.musicFiles || [];
         sortFileNames(musicFiles);
         this.setState({ files, musicFiles, path:res.path, fileStat: res.stat });
+
+        Cookie.set(util.getCurrentTime(), this.loadedHash, { expires: 7 })
 
         this.bindUserInteraction();
       }else{
