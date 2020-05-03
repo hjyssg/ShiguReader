@@ -53,8 +53,17 @@
 
   .one-book-title {
     color: #f1f1f1;
-    @media screen and (min-width: 850px) {
-      display: flex;
+    display: flex;
+
+    @media screen and (max-width: 850px) {
+      flex-direction: column-reverse;
+      justify-content: center;
+      align-items: center;
+
+      .one-book-path,
+      .click-and-copy-text {
+        font-size: 13px;
+      }
     }
   }
 
