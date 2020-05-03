@@ -90,45 +90,6 @@ export default class FileChangeToolbar extends Component {
         }
     };
 
-    // copyToClipboard(path, mode){
-    //     //https://stackoverflow.com/questions/49236100/copy-text-from-span-to-clipboard
-    //     var textArea = document.createElement("textarea");
-    //     if(mode === "delete"){
-    //         textArea.value = "DEL /f \"" +  path + "\"";
-    //     } else if(mode === "good"){
-    //         textArea.value = "MOVE \"" +  path + "\"" + "  \"" + userConfig.good_folder +"\"";
-    //     }else if(mode === "not_good"){
-    //         textArea.value = "MOVE \"" +  path + "\"" + "   \"" + userConfig.not_good_folder +"\"";
-    //     }
-
-    //     document.body.appendChild(textArea);
-    //     textArea.select();
-    //     document.execCommand("Copy");
-    //     textArea.remove();
-    
-    //     spop({
-    //       template: 'Copied to Clipboard',
-    //       position: 'bottom-right',
-    //       autoclose: 3000
-    //     });
-    // }
-
-    // renderDirectChange(){
-    //     const { anchorEl } = this.state;
-    //         return (<div>
-    //                 <button onClick={this.handleClick} className="fas fa-arrow-right" title="directly move"/>
-    //                 <Menu
-    //                 id="simple-menu"
-    //                 anchorEl={anchorEl}
-    //                 open={Boolean(anchorEl)}
-    //                 onClose={this.handleClose}
-    //                 >
-    //                     <MenuItem onClick={this.handleClose.bind(this, userConfig.good_folder)}>{"Move to " + userConfig.good_folder}</MenuItem>
-    //                     <MenuItem onClick={this.handleClose.bind(this, userConfig.not_good_folder)}>{"Move to " + userConfig.not_good_folder}</MenuItem>
-    //                 </Menu>
-    //         </div>);
-    // }
-
     getDropdownItems(){
         const {showAllButtons} = this.props;
         return userConfig.additional_folder.map((e, index) =>{
