@@ -49,9 +49,14 @@ console.log("__dirname", __dirname);
 console.log("rootPath", rootPath);
 console.log("log path:", logPath);
 
-const isWin = process.platform === "win32";
+var isLinux = require('is-linux'),
+    isOsx = require('is-osx'),
+    isWindows = require('is-windows'),
+    cp = require('child_process');
+
+
 let sevenZip;
-if(isWin){
+if(isWindows()){
     const sevenZipPath = path.join(process.cwd(), "resource/7zip");
     sevenZip = require(sevenZipPath)['7z'];
     console.log("sevenZipPath", sevenZipPath);
@@ -138,7 +143,7 @@ const portConfig = require('../port_config');
 const {http_port, dev_express_port } = portConfig;
 
 async function init() {
-    if(isWin){
+    if(isWindows()){
         const {stdout, stderr} = await execa("chcp");
         console.log("[chcp]", stdout);
         const r = new RegExp("\\d+");
@@ -991,6 +996,30 @@ app.post('/api/cleanCache', (req, res) => {
     }
 
     doCacheClean({minized: minized, allowFileNames: allowFileNames, afterClean: afterClean});
+});
+
+//---------------------------
+function shutdown (cb) {
+    //modify https://github.com/hemanth/power-off/
+    let cmd = '';
+
+    if(isLinux() || isOsx()) {
+        cmd = 'sudo shutdown -h now';
+    } else if(isWindows()) {
+        cmd = 'shutdown /s /p /s';
+    } else {
+        throw new Error('Unknown OS!');
+    }
+
+    cp.exec(cmd, function (err, stdout, stderr) {
+        cb && cb(err, stdout, stderr);
+    });
+};
+
+
+app.post('/api/shutdownServer', function (req, res) {
+    shutdown();
+    res.sendStatus(200);
 });
 
 if(isProduction){

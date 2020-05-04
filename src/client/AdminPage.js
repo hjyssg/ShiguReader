@@ -151,6 +151,31 @@ export default class AdminPage extends Component {
         )
     }
 
+    onclickShutDown(){
+        Swal.fire({
+            title: "Remote Shutdown",
+            text:  "Do you want to shut down your computer?",
+            showCancelButton: true,
+            confirmButtonText: 'Yes',
+            cancelButtonText: 'No'
+        }).then((result) => {
+            if (result.value === true) {
+                Sender.post('/api/shutdownServer', {}, res =>{
+                    //send another request  to check if shut down?
+                    alert("You computer is shut down");
+                });
+            } 
+        });
+    }
+
+    renderRemoteShutDown(){
+        if(clientUtil.isLocalHost() || !clientUtil.isAuthorized()){
+            return;
+        }
+
+       return <button onClick={this.onclickShutDown.bind(this)}> Recomote shutdown </button>;
+    }
+
     render(){
         document.title = "Admin"
         const folder_list = userConfig.folder_list.concat("All_Pathes");
@@ -171,6 +196,7 @@ export default class AdminPage extends Component {
         return (
             <div className="admin-container container">
                 {this.renderPasswordInput()}
+                {this.renderRemoteShutDown()}
 
                 <div className="admin-section">
                     <div className="admin-section-title"> Pregenerate Thumbnail</div>

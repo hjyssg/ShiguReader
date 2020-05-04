@@ -52,7 +52,10 @@
     "trash": "^6.1.1",
     "underscore": "^1.9.1",
     "whatwg-fetch": "^3.0.0",
-    "winston": "^3.2.1"
+    "winston": "^3.2.1",
+    "is-linux": "^1.0.1",
+    "is-osx": "^1.0.2",
+    "is-windows": "^1.0.0"
   },
   "devDependencies": {
     "@babel/core": "^7.0.0",
