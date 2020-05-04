@@ -7,6 +7,7 @@ const pfs = require('promise-fs');
 const fs = require('fs');
 const execa = require('execa');
 const userConfig = require('../user-config');
+const isWindows = require('is-windows')
 
 
 //handle move file, delete file
@@ -28,7 +29,8 @@ module.exports.init = function(app, logger){
                     err = await pfs.mkdir(dest);
                 }
                 if (!err) {
-                    const {stdout, stderr} = await execa("move", [src, dest]);
+                    const cmdStr = isWindows()? "move" : "mv";
+                    const {stdout, stderr} = await execa(cmdStr, [src, dest]);
                     err = stderr;
                     // err = await pfs.rename(src, dest);
                 }
