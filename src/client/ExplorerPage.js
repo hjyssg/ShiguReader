@@ -117,17 +117,28 @@ export default class ExplorerPage extends Component {
         }
     }
 
+    requestHomePagePathes() {
+        Sender.post("/api/homePagePath", { }, res => {
+            this.handleRes(res);
+        });
+    }
+    
+
     askServer(){
-        const hash = this.getHash();
-        if (hash && this.loadedHash !== hash && this.failedTimes < 3) {
-            if(this.getMode() === MODE_TAG){
-                this.requestSearch();
-            } else if(this.getMode() === MODE_AUTHOR){
-                this.requestSearch();
-            } else if (this.getMode() === MODE_SEARCH){
-                this.requestTextSearch();
-            } else {
-                this.requestLsDir();
+        if(this.getMode() === MODE_HOME){
+            this.requestHomePagePathes();
+        } else{
+            const hash = this.getHash();
+            if (hash && this.loadedHash !== hash && this.failedTimes < 3) {
+                if(this.getMode() === MODE_TAG){
+                    this.requestSearch();
+                } else if(this.getMode() === MODE_AUTHOR){
+                    this.requestSearch();
+                } else if (this.getMode() === MODE_SEARCH){
+                    this.requestTextSearch();
+                } else {
+                    this.requestLsDir();
+                }
             }
         }
     }
@@ -227,7 +238,7 @@ export default class ExplorerPage extends Component {
     }
     
     getFilteredFiles(){
-        let files = this.files;
+        let files = this.files || [];
         const goodSet = this.state.goodAuthors;
         const otherSet = this.state.otherAuthors;
         if(this.state.filterByGoodAuthorName && goodSet && otherSet){
@@ -361,16 +372,9 @@ export default class ExplorerPage extends Component {
 
     renderFileList() {
         const { sortOrder, showVideo } = this.state;
-        let dirs, files, videos;
-        if(!this.getHash()) {
-            dirs = userConfig.path_will_scan;
-            files = [];
-            videos = [];
-        } else {
-            dirs = this.dirs;
-            videos = this.videoFiles;
-            files = this.getFilteredFiles();
-        }
+        let dirs = this.dirs||[];
+        let videos = this.videoFiles || [];
+        let files = this.getFilteredFiles();
 
         try {
             this.sortFiles(files, sortOrder);

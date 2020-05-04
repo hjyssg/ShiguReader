@@ -478,6 +478,25 @@ app.get('/api/video/:hash', async (req, res) => {
   })
 
 //----------------get folder contents
+app.post('/api/homePagePath', function (req, res) {
+    let homepathes = userConfig.path_will_scan;
+    //check if pathes really exist
+    homepathes = homepathes.filter(e => {
+       //there is file in the folder
+       return db.allFiles.some(fp => (fp.length > e.length && fp.includes(e)));
+    });
+
+    if(homepathes.length === 0){
+        console.error("Please check userConfig.js home_pathes");
+        res.sendStatus(404);
+    }else{
+        res.send({
+            dirs: homepathes
+        })
+    }
+});
+
+
 function getThumbnails(filePathes){
     const thumbnails = {};
     const contentInfo = zip_content_db.getData("/");
