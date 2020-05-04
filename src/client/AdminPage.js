@@ -112,7 +112,7 @@ export default class AdminPage extends Component {
     renderHistory(){
         const timeToFileHash = Cookie.get();
         const times = _.keys(timeToFileHash);
-        times.sort((a, b) => (a -b));
+        times.sort((a, b) => (b -a)); //newer before old 
 
         const visited = {};
         const history = times.map(t => {

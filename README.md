@@ -134,7 +134,7 @@ windows语言设置:
 
 ##### FAQ
     问： 想问下如果想更新该如何做呢，只要重新克隆一份最新的覆盖就行了？还是说要再走一遍流程?   
-    答： 如果是用git的话，拉(pull)最新的代码。然后重新修改一下user-config。然后npm install 然后npm run dev。
+    答： 如果是用git的话，拉(pull)最新的代码。重新修改一下用户配置，npm install 最后npm run dev。
          如果没用git，重新走一遍全部流程。  
 
     问： 默认的端口被占用了，怎么办？
