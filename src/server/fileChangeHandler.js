@@ -28,7 +28,7 @@ module.exports.init = function(app, logger){
                     err = await pfs.mkdir(dest);
                 }
                 if (!err) {
-                    const {stdout, stderr} = await execa("move", [src, dest]);
+                    const {stdout, stderr} = await execa("mv", [src, dest]);
                     err = stderr;
                     // err = await pfs.rename(src, dest);
                 }
