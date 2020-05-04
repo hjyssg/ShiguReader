@@ -196,7 +196,6 @@ export default class AdminPage extends Component {
         return (
             <div className="admin-container container">
                 {this.renderPasswordInput()}
-                {this.renderRemoteShutDown()}
 
                 <div className="admin-section">
                     <div className="admin-section-title"> Pregenerate Thumbnail</div>
@@ -219,6 +218,9 @@ export default class AdminPage extends Component {
                 </div>
 
                 {this.renderHistory()}
+
+                {this.renderRemoteShutDown()}
+
                 <div className="author-link"> 
                         <a className="fab fa-github" title="Aji47's Github" href="https://github.com/hjyssg/ShiguReader" target="_blank"> Created By Aji47 </a> 
                 </div>
