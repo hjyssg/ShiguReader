@@ -34,16 +34,20 @@ const cachePath = path.join(rootPath, cache_folder_name);
 let logPath = path.join(rootPath, userConfig.workspace_name, "log");
 logPath = path.join(logPath, dateFormat(new Date(), "yyyy-mm-dd-hh-mm"))+ ".log";
 
+//set up json DB
 const JsonDB = require('node-json-db').JsonDB;
 const Config = require('node-json-db/dist/lib/JsonDBConfig').Config;
 let zip_content_db_path =  path.join(rootPath,  userConfig.workspace_name, "zip_info");
 const zip_content_db = new JsonDB(new Config(zip_content_db_path, true, true, '/'));
 
+//set up user path
 const path_config_path = path.join(rootPath, "src", "path-config");
 let home_pathes = fs.readFileSync(path_config_path).toString().split('\n');
 home_pathes = home_pathes
                .map(e => e.trim().replace(/\n|\r/g, ""))
-               .filter(pp =>{ return pp && pp.length > 0 && !pp.startsWith("#");})
+               .filter(pp =>{ return pp && pp.length > 0 && !pp.startsWith("#");});
+const getDownloadsFolder = require('downloads-folder');
+home_pathes.push(getDownloadsFolder());
 const path_will_scan = home_pathes.concat(userConfig.good_folder, userConfig.good_folder_root, userConfig.not_good_folder);
 
 // console.log("process.argv", process.argv);
