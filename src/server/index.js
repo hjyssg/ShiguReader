@@ -134,6 +134,9 @@ function getCache(outputPath) {
     return null;
 }
 
+const portConfig = require('../port_config');
+const {http_port, dev_express_port } = portConfig;
+
 async function init() {
     if(isWin){
         const {stdout, stderr} = await execa("chcp");
@@ -191,13 +194,13 @@ async function init() {
     db.cacheToInfo = cache_results.infos;
 
     setUpFileWatch();
-    const port = isProduction? 3000: 8080;
+    const port = isProduction? http_port: dev_express_port;
     const server = app.listen(port, () => {
         console.log("----------------------------------------------------------------");
-        console.log(`Listening on port ${port}`);
+        console.log(`Express Server listening on port ${port}`);
         console.log("init done");
         console.log("You can open ShiguReader from Browser now!");
-        console.log(`http://localhost:3000`);
+        console.log(`http://localhost:`+ http_port);
         console.log("----------------------------------------------------------------");
     });
 }

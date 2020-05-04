@@ -4,6 +4,10 @@ const CleanWebpackPlugin = require('clean-webpack-plugin');
 
 const outputDirectory = 'dist';
 
+const portConfig = require('./src/port_config');
+const {http_port, dev_express_port } = portConfig;
+
+
 module.exports = {
   entry: ['babel-polyfill', './src/client/index.js'],
   output: {
@@ -37,14 +41,14 @@ module.exports = {
     ]
   },
   devServer: {
-    port: 3000,
+    port: http_port,
     open: false,
     host: '0.0.0.0',
     disableHostCheck: true,
     historyApiFallback: true,
     publicPath: "/",
     proxy: {
-      '/api': 'http://localhost:8080'
+      '/api': `http://localhost:${dev_express_port}`
     }
   },
   plugins: [
