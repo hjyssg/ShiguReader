@@ -1006,12 +1006,13 @@ function shutdown (cb) {
     if(isLinux() || isOsx()) {
         cmd = 'sudo shutdown -h now';
     } else if(isWindows()) {
-        cmd = 'shutdown /s /p /s';
+        cmd = 'shutdown /s /f';
     } else {
         throw new Error('Unknown OS!');
     }
 
     cp.exec(cmd, function (err, stdout, stderr) {
+        logger.info("[shutdown]")
         cb && cb(err, stdout, stderr);
     });
 };
