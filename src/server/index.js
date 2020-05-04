@@ -1012,7 +1012,7 @@ function shutdown (cb) {
     }
 
     cp.exec(cmd, function (err, stdout, stderr) {
-        logger.info("[shutdown]")
+        logger.info("[shutdown]", getCurrentTime());
         cb && cb(err, stdout, stderr);
     });
 };
