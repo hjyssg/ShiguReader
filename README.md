@@ -75,11 +75,8 @@ npm install --registry=http://registry.npm.taobao.org
 # 会有点慢，差不多一两分钟。耐心
 npm run dev
 
-# 打开 http://localhost:3000/
-
-# 如果要在iphone ipad等移动设备看漫画
-# 用cmd的ipconfig得到pc的ip地址
-# 然后在移动设备的浏览器上 http://pc的ip地址:3000/
+# 打开 cmd显示的地址
+# 如果要在iphone ipad等移动设备看漫画，可以直接扫描cmd上面的二维码就可以打开网页了
 
 # 打开网页以后，就可以用了。
 # 如果你对页面加载速度不满意，前往Admin页面Pregenerate Thumbnail。可以大幅度提高页面加载速度。
@@ -113,12 +110,7 @@ npm install
 # Start development server
 npm run dev
 
-# open http://localhost:3000/
-
-# If you want to open it on your iPhone, iPad or other mobile device 
-# in cmd, ipconfig
-# find your pc LAN ip address
-# In your mobile device browser, open  http://pc_ip_address:3000/
+# open the link shown on the console
 ```
 
 ##### 注意事项

@@ -16,6 +16,8 @@ const userConfig = require('../user-config');
 const util = require("../util");
 const pathUtil = require("./pathUtil");
 const serverUtil = require("./serverUtil");
+const internalIp = require('internal-ip');
+const qrcode = require('qrcode-terminal');
 
 const {
         fullPathToUrl,
@@ -213,12 +215,19 @@ async function init() {
 
     setUpFileWatch();
     const port = isProduction? http_port: dev_express_port;
-    const server = app.listen(port, () => {
+    
+    const server = app.listen(port, async () => {
+        const lanIP = await internalIp.v4();
+        const mobileAddress = `http://${lanIP}:${http_port}`;
+
         console.log("----------------------------------------------------------------");
         console.log(`Express Server listening on port ${port}`);
         console.log("init done");
         console.log("You can open ShiguReader from Browser now!");
-        console.log(`http://localhost:`+ http_port);
+        console.log(`http://localhost:${http_port}`);
+        console.log(mobileAddress);
+        console.log("Scan the QR code to open on Mobile devices")
+        qrcode.generate(mobileAddress);
         console.log("----------------------------------------------------------------");
     });
 }
