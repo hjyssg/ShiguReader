@@ -4,7 +4,7 @@ const CleanWebpackPlugin = require('clean-webpack-plugin');
 
 const outputDirectory = 'dist';
 
-const portConfig = require('./src/port_config');
+const portConfig = require('./src/port-config');
 const {http_port, dev_express_port } = portConfig;
 
 

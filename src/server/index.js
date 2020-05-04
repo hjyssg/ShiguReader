@@ -39,8 +39,8 @@ const Config = require('node-json-db/dist/lib/JsonDBConfig').Config;
 let zip_content_db_path =  path.join(rootPath,  userConfig.workspace_name, "zip_info");
 const zip_content_db = new JsonDB(new Config(zip_content_db_path, true, true, '/'));
 
-const path_config_path = path.join(rootPath, "src", "path_config");
-let home_pathes = fs.readFileSync(path_config_path).toString().split('\n');
+const path-config_path = path.join(rootPath, "src", "path-config");
+let home_pathes = fs.readFileSync(path-config_path).toString().split('\n');
 home_pathes = home_pathes
                .map(e => e.trim().replace(/\n|\r/g, ""))
                .filter(pp =>{ return pp && pp.length > 0 && !pp.startsWith("#");})
@@ -148,7 +148,7 @@ function getCache(outputPath) {
     return null;
 }
 
-const portConfig = require('../port_config');
+const portConfig = require('../port-config');
 const {http_port, dev_express_port } = portConfig;
 
 async function init() {

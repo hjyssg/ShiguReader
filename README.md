@@ -49,8 +49,8 @@
 git clone https://github.com/hjyssg/ShiguReader
 
 # 手动修改用户文件路径设置
-# 用任意文本编辑器手动修改src/path_config和src/user-config.js
-# path_config一定需要修改
+# 用任意文本编辑器手动修改src/path-config和src/user-config.js
+# path-config一定需要修改
 # user-config.js看情况
 
 ## 重要:windows用户必须的额外步骤：
@@ -98,7 +98,7 @@ npm run dev
 git clone https://github.com/hjyssg/ShiguReader
 
 ## change user config
-## modify src/path_config  src/user-config.js accoding to your own comic files location
+## modify src/path-config  src/user-config.js accoding to your own comic files location
 
 ## 2020/03/07
 ## windows default cmd is not working
@@ -138,7 +138,7 @@ windows语言设置:
          如果没用git，重新走一遍全部流程。  
 
     问： 默认的端口被占用了，怎么办？
-    答： 改port_config.js
+    答： 改port-config.js
 
 
 
