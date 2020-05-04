@@ -48,8 +48,10 @@
 # 建议所放的硬盘至少还有10GB的空间。因为本程序需要缓存。
 git clone https://github.com/hjyssg/ShiguReader
 
-# 手动修改设置
-# 用任意文本编辑器手动修改src/path_config 和 src/user-config.js 用户文件设置  
+# 手动修改用户文件路径设置
+# 用任意文本编辑器手动修改src/path_config和src/user-config.js
+# path_config一定需要修改
+# user-config.js看情况
 
 ## 重要:windows用户必须的额外步骤：
 ## 因为windows的默认cmd很不好用，用了极有可能启动不了。
