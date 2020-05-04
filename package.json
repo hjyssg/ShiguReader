@@ -32,6 +32,9 @@
     "execa": "^1.0.0",
     "express": "^4.16.3",
     "filesize": "^4.1.2",
+    "is-linux": "^1.0.1",
+    "is-osx": "^1.0.2",
+    "is-windows": "^1.0.0",
     "jquery": "^3.5.0",
     "js-cookie": "^2.2.1",
     "node-json-db": "^1.0.3",
@@ -52,10 +55,7 @@
     "trash": "^6.1.1",
     "underscore": "^1.9.1",
     "whatwg-fetch": "^3.0.0",
-    "winston": "^3.2.1",
-    "is-linux": "^1.0.1",
-    "is-osx": "^1.0.2",
-    "is-windows": "^1.0.0"
+    "winston": "^3.2.1"
   },
   "devDependencies": {
     "@babel/core": "^7.0.0",

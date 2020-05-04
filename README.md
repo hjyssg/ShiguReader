@@ -49,7 +49,7 @@
 git clone https://github.com/hjyssg/ShiguReader
 
 # 手动修改设置
-# 用任意文本编辑器手动修改src/user-config.js用户文件设置  
+# 用任意文本编辑器手动修改src/path_config 和 src/user-config.js 用户文件设置  
 
 ## 重要:windows用户必须的额外步骤：
 ## 因为windows的默认cmd很不好用，用了极有可能启动不了。
@@ -96,7 +96,7 @@ npm run dev
 git clone https://github.com/hjyssg/ShiguReader
 
 ## change user config
-## modify src/user-config.js accoding to your own comic files location
+## modify src/path_config  src/user-config.js accoding to your own comic files location
 
 ## 2020/03/07
 ## windows default cmd is not working

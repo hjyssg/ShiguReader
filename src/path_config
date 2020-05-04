@@ -1,0 +1,14 @@
+
+# MUST Where ShiguReader will scan files 
+# 这项必须修改
+# 修改成本地存放漫画zip的路径
+# 我懒得分开config文件，下面的happy_lesson都是我的文件夹名。你们改成自己的文件夹路径。比如 D:\\ERO 都可以
+
+
+T:\迅雷下载
+D:\_Happy_Lesson
+D:\_Happy_Lesson\_Unread
+D:\_Happy_Lesson\_Going_to_sort
+E:\_Temp_Music
+E:\_temp_comic
+D:\_AV

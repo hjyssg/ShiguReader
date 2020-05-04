@@ -39,6 +39,13 @@ const Config = require('node-json-db/dist/lib/JsonDBConfig').Config;
 let zip_content_db_path =  path.join(rootPath,  userConfig.workspace_name, "zip_info");
 const zip_content_db = new JsonDB(new Config(zip_content_db_path, true, true, '/'));
 
+const path_config_path = path.join(rootPath, "src", "path_config");
+let home_pathes = fs.readFileSync(path_config_path).toString().split('\n');
+home_pathes = home_pathes
+               .map(e => e.trim().replace(/\n|\r/g, ""))
+               .filter(pp =>{ return pp && pp.length > 0 && !pp.startsWith("#");})
+const path_will_scan = home_pathes.concat(userConfig.good_folder, userConfig.good_folder_root, userConfig.not_good_folder);
+
 // console.log("process.argv", process.argv);
 const isProduction = process.argv.includes("--production");
 
@@ -48,6 +55,8 @@ console.log("__filename", __filename);
 console.log("__dirname", __dirname);
 console.log("rootPath", rootPath);
 console.log("log path:", logPath);
+console.table("path_will_scan:", path_will_scan);
+
 
 var isLinux = require('is-linux'),
     isOsx = require('is-osx'),
@@ -159,11 +168,11 @@ async function init() {
 
     const filter = (e) => {return isDisplayableInExplorer(e);};
     let beg = (new Date).getTime()
-    const results = fileiterator(userConfig.path_will_scan, { 
+    const results = fileiterator(path_will_scan, { 
         filter:filter, 
         doLog: true
     });
-    results.pathes = results.pathes.concat(userConfig.home_pathes);
+    results.pathes = results.pathes.concat(home_pathes);
     let end = (new Date).getTime();
     console.log(`${(end - beg)/1000}s  to read local dirs`);
     console.log("Analyzing local files");
@@ -228,7 +237,7 @@ function getCacheFp(p){
 }
 
 function setUpFileWatch(){
-    const watcher = chokidar.watch(userConfig.home_pathes, {
+    const watcher = chokidar.watch(home_pathes, {
         ignored: shouldIgnore,
         ignoreInitial: true,
         persistent: true,
@@ -479,7 +488,7 @@ app.get('/api/video/:hash', async (req, res) => {
 
 //----------------get folder contents
 app.post('/api/homePagePath', function (req, res) {
-    let homepathes = userConfig.path_will_scan;
+    let homepathes = path_will_scan;
     //check if pathes really exist
     homepathes = homepathes.filter(e => {
        //there is file in the folder

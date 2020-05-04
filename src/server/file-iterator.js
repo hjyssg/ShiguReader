@@ -18,10 +18,8 @@ module.exports = function (folders, config) {
                 iterate(src, config, result, 0);
             }
         }else{
-            if(userConfig.home_pathes.includes(src)){
-                console.error(`[file-iterator] ${src} does not exist! Please check you user-config.js home_pathes`);
-                console.error(`[file-iterator] ${src} 不存在! 检查一下你user-config.js的home_pathes`);
-            }
+            console.error(`[file-iterator] ${src} does not exist! Please check you path_config and user-config.js`);
+            console.error(`[file-iterator] ${src} 不存在! 检查一下你的path_config和user-config.js`);
         }
     });
     delete config.visited;

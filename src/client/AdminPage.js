@@ -18,22 +18,30 @@ export default class AdminPage extends Component {
     constructor(prop) {
         super(prop);
         this.failedTimes = 0;
-        this.state = { prePath : userConfig.folder_list[0] };
+        this.state = { prePath : null, dirs: [] };
     }
 
     componentDidMount() {
         if(this.failedTimes < 3) {
             this.askCacheInfo();
+            this.requestHomePagePathes();
         }
+
     }
 
-    askCacheInfo(){
-        Sender.get("/api/cacheInfo", res => {
+    requestHomePagePathes() {
+        Sender.post("/api/homePagePath", { }, res => {
             this.handleRes(res);
         });
     }
 
-    handleRes(res){
+    askCacheInfo(){
+        Sender.get("/api/cacheInfo", res => {
+            this.handleCacheRes(res);
+        });
+    }
+
+    handleCacheRes(res){
         if (!res.failed) {
             let { totalSize, cacheNum, thumbnailNum } = res;
             this.setState({totalSize, cacheNum, thumbnailNum})
@@ -42,6 +50,19 @@ export default class AdminPage extends Component {
         }
         this.res = res;
         this.forceUpdate();
+    }
+
+    handleRes(res){
+        if (!res.failed) {
+            let {dirs} = res;
+            this.setState({
+                dirs: dirs || []
+            })
+        }else{
+            this.res = res;
+            this.failedTimes++;
+            this.forceUpdate();
+        }
     }
 
 
@@ -178,7 +199,7 @@ export default class AdminPage extends Component {
 
     render(){
         document.title = "Admin"
-        const folder_list = userConfig.folder_list.concat("All_Pathes");
+        const folder_list = this.state.dirs.concat("All_Pathes");
 
         const { totalSize, cacheNum, thumbnailNum } = this.state
         const size = totalSize && filesizeUitl(totalSize, {base: 2});

@@ -1,14 +1,5 @@
 'use strict';
 
-/**
- * MUST Where ShiguReader will scan files 
- * 这项必须修改
- * 修改成本地存放漫画zip的路径
- * 我懒得分开config文件，下面的happy_lesson都是我的文件夹名。你们改成自己的文件夹路径。比如 D:\\ERO 都可以
- */
-module.exports.home_pathes = ["T:\\迅雷下载", "D:\\_Happy_Lesson", "D:\\_Happy_Lesson\\_Unread", 
-                                "D:\\_Happy_Lesson\\_Going_to_sort", "E:\\_Temp_Music", "E:\\_temp_comic", "D:\\_AV"];
-
 /** 
  * OPTIONAL where to move goods files  
  * 可选 手动漫画整理的时候，你想把喜欢的漫画移动到的位置
@@ -45,7 +36,6 @@ module.exports.additional_folder = [
 
 
 //----------------- below section used by developer-----------------------------
-module.exports.path_will_scan = module.exports.home_pathes.concat(module.exports.good_folder, module.exports.not_good_folder);
 
 const workspace_name = module.exports.workspace_name = "workspace";
 
@@ -72,9 +62,3 @@ module.exports.oversized_image_size = 4;
 //并不是高明的安全机制
 //注：Shigureader设计实现，只考虑在LAN情况下的性能和安全性。
 module.exports.file_change_password = "2020";
-
-module.exports.folder_list = module.exports.home_pathes.concat(module.exports.good_folder, module.exports.not_good_folder);
-
-if(!module.exports.home_pathes && module.exports.home_pathes.length === 0) {
-    throw "need home_pathes"
-}
