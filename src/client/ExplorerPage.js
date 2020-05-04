@@ -177,7 +177,7 @@ export default class ExplorerPage extends Component {
 
     handleRes(res){
         if (!res.failed) {
-            let {dirs, files, path, tag, author, fileInfos, thumbnails} = res;
+            let {dirs, files, path, tag, author, fileInfos, thumbnails, pageNums} = res;
             this.loadedHash = this.getHash();
             files = files || [];
             this.videoFiles = files.filter(isVideo) || []
@@ -188,6 +188,7 @@ export default class ExplorerPage extends Component {
             this.author = author || "";
             this.fileInfos = fileInfos || {};
             this.thumbnails = thumbnails || {};
+            this.pageNums = pageNums || {};
             this.res = res;
 
             if(this.videoFiles.length > 0){
@@ -248,6 +249,17 @@ export default class ExplorerPage extends Component {
                      return e;
                  }
              })
+         }
+
+         if(this.state.filterByOversizeImage ){
+            files = files.filter(e => {
+                const pageNum =  this.pageNums[e] || 0;
+                const stats = this.fileInfos[e];
+                const size = stats && stats.size;
+                if(pageNum > 0 && size/pageNum/1000/1000 > userConfig.oversized_image_size){
+                    return e;
+                }
+            })
          }
 
          if(this.state.filterByFirstTime && goodSet && otherSet){
@@ -683,11 +695,11 @@ export default class ExplorerPage extends Component {
         });
     };
 
-    // toggleOversizeImage(){
-    //     this.setStateAndSetHash({
-    //         filterByOversizeImage: !this.state.filterByOversizeImage
-    //     });
-    // };
+    toggleOversizeImage(){
+        this.setStateAndSetHash({
+            filterByOversizeImage: !this.state.filterByOversizeImage
+        });
+    };
 
     toggleFirstTime(){
         this.setStateAndSetHash({
@@ -764,11 +776,10 @@ export default class ExplorerPage extends Component {
                         </Checkbox> );       
         }   
 
-        // const st2 = `image size bigger than ${userConfig.oversized_image_size} MB` ;
-
-        // let checkbox2 = (<Checkbox  onChange={this.toggleOversizeImage.bind(this)} checked={this.state.filterByOversizeImage}>
-        //                            {st2}   
-        //                     </Checkbox> ); 
+        const st2 = `image size bigger than ${userConfig.oversized_image_size} MB` ;
+        let checkbox2 = (<Checkbox  onChange={this.toggleOversizeImage.bind(this)} checked={this.state.filterByOversizeImage}>
+                                   {st2}   
+                            </Checkbox> ); 
 
         const st3 = `first time` ;
 
@@ -789,6 +800,7 @@ export default class ExplorerPage extends Component {
                             onChange={this.onSortChange.bind(this)}/>
                     <div className="side-menu-radio-title"> Special Filter </div>
                     {checkbox}
+                    {checkbox2}
                     {checkbox3}
                     {info}
                     {tagInfos}

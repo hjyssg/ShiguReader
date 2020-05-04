@@ -531,6 +531,25 @@ function getThumbnails(filePathes){
     return thumbnails;
 }
 
+function getPageNumbers(filePathes){
+    const pageNums = {};
+    const contentInfo = zip_content_db.getData("/");
+    
+    filePathes.forEach(filePath => {
+        if(!isCompress(filePath)){
+            return;
+        }
+        const pageNum = contentInfo[filePath] && contentInfo[filePath].pageNum;
+        if(pageNum === "NOT_THUMBNAIL_AVAILABLE" || pageNum === 0){
+            pageNums[filePath] = 0;
+        }else{
+            pageNums[filePath] = +pageNum;
+        }
+
+    }); 
+    return pageNums;
+}
+
 app.post('/api/lsDir', async (req, res) => {
     const hashdir = db.hashTable[(req.body && req.body.hash)];
     const dir = hashdir|| req.body && req.body.dir;
@@ -589,7 +608,9 @@ app.post('/api/lsDir', async (req, res) => {
                files, 
                path: dir, 
                fileInfos: infos, 
-               thumbnails: getThumbnails(files)};
+               thumbnails: getThumbnails(files),
+               pageNums: getPageNumbers(files)
+            };
     res.send(result);
 });
 
