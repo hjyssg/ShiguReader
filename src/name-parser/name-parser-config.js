@@ -4,8 +4,13 @@ module.exports.same_tags = [
     ["ラブライブ!サンシャイン!!", "ブライブ！ サンシャイン!!"],
     ["Fate⁄Grand Order", "Fate／Grand Order", "FateGrand Order", "Fate Grand Order", "FGO"],
     ["オリジナル", "Original"],
-    ["東方Projec","東方"],
+    ["東方Project","東方","Touhou Project"],
     ["アイドルマスター", "アイマス", "THE iDOLM@STER"],
+    ["アイドルマスター シンデレラガールズ", "THE IDOLM@STER CINDERELLA GIRLS","アイドルマスターシンデレラガールズ"],
+    ["アイドルマスター ミリオンライブ!","アイドルマスターミリオンライブ!"],
+    ["アズールレーン","Azur Lane"],
+    ["ガールズ&パンツァー","Girls und Panzer"],
+    ["プリンセスコネクト!ReDive","プリンセスコネクト!Re:Dive","プリンセスコネクト!Re：Dive","プリンセスコネクト!Re Dive"]
 ];
 
 module.exports.not_author_but_tag = [
@@ -15,5 +20,6 @@ module.exports.not_author_but_tag = [
     "よろず",
     "成年コミック",
     "Pixiv",
-    "アーティスト"
+    "アーティスト",
+    "雑誌"
 ]
