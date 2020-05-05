@@ -630,8 +630,8 @@ export default class OneBook extends Component {
       document.title = getFn(this.state.path);
 
       if(isPad() && index > 0){
-        const text = (index+1) + "/" + files.length;
-        document.title = text + " " +  document.title;
+        const _text = `${index+1}/${files.length}`;
+        document.title = _text + " " +  document.title;
       }
     }
 
