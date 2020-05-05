@@ -129,7 +129,6 @@ export default class OneBook extends Component {
     this.imgTrueHeight = imageDom.naturalHeight;
     this.imgTrueWidth = imageDom.naturalWidth;
 
-
     //display img's real px number
     const dimDom = document.getElementsByClassName("dimension-tag")[0];
     dimDom.textContent = `${imageDom.naturalWidth}×${imageDom.naturalHeight}`;
@@ -192,11 +191,11 @@ export default class OneBook extends Component {
     }else{
       this.applyHWSetToImage(set2);
     }
- }
+  }
 
- applyHWSetToImage(set){
-  this.applyHWToImage(set[0], set[1]);
- }
+  applyHWSetToImage(set){
+    this.applyHWToImage(set[0], set[1]);
+  }
 
   applyHWToImage(height, width){
     let imageDom = ReactDOM.findDOMNode(this.imgRef);
@@ -489,8 +488,7 @@ export default class OneBook extends Component {
     var x = event.pageX;
     var y = event.pageY;
 
-    console.log(y);
-
+    // console.log(y);
     const dom = ReactDOM.findDOMNode(this.imgContainerRef);
     const width = dom.clientWidth;
     const height = dom.clientHeight;
@@ -632,7 +630,8 @@ export default class OneBook extends Component {
       document.title = getFn(this.state.path);
 
       if(isPad() && index > 0){
-        document.title = index.toString() + " " +  document.title;
+        const text = (index+1) + "/" + files.length;
+        document.title = text + " " +  document.title;
       }
     }
 

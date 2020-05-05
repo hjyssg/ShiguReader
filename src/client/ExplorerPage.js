@@ -678,7 +678,7 @@ export default class ExplorerPage extends Component {
         this.setStateAndSetHash({sortOrder: e})
     }
 
-    toggleSideMenu(event){
+    toggleSideMenu(){
         this.setState({anchorSideMenu: !this.state.anchorSideMenu})
     }
 
