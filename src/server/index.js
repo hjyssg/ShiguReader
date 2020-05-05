@@ -222,11 +222,10 @@ async function init() {
 
         console.log("----------------------------------------------------------------");
         console.log(`Express Server listening on port ${port}`);
-        console.log("init done");
         console.log("You can open ShiguReader from Browser now!");
         console.log(`http://localhost:${http_port}`);
         console.log(mobileAddress);
-        console.log("Scan the QR code to open on Mobile devices")
+        console.log("Scan the QR code to open on mobile devices")
         qrcode.generate(mobileAddress);
         console.log("----------------------------------------------------------------");
     });
