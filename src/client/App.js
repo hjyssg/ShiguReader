@@ -10,6 +10,8 @@ import ChartPage from "./ChartPage";
 import AdminPage from "./AdminPage";
 import { Switch, Route, Link, Redirect } from 'react-router-dom';
 import screenfull from 'screenfull';
+const clientUtil = require("./clientUtil");
+const { cleanSearchStr } = clientUtil;
 
 // http://localhost:3000/
 class App extends Component {
@@ -102,7 +104,7 @@ class App extends Component {
     render() {
         // document.title = this.getWebTitle();
         if(this.searchText){
-            const path = "/search/" + this.searchText;
+            const path = "/search/" + cleanSearchStr(this.searchText);
             this.searchText = "";
             return (<Redirect
                 to={{

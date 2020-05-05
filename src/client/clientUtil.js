@@ -65,3 +65,12 @@ module.exports.isAuthorized = function(){
         return userConfig.file_change_password === password;
     }
 }
+
+module.exports.cleanSearchStr = function(str){
+    // search/ケマオ9% will break everything
+    // it is too troublesome to do everything in url encoding 
+    //FYI, the doujin that make me release this is   (C98) [ケマオ9% (おな丸)] 鹿島とぱっこぱこ・弐 愛情は鹿島の胸に。 (艦隊これくしょん -艦これ-)
+
+    //  "1233%123123%%".replace(/(%)+$/g, "")   =>  "1233%123123" 
+    return  str && str.replace(/(%)+$/g, "")
+}

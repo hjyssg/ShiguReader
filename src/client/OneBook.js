@@ -29,7 +29,7 @@ const MIN_HEIGHT = 400;
 const MIN_WIDTH = 400;
 const userConfig = require('../user-config');
 const clientUtil = require("./clientUtil");
-const { getDir, getFn, isPad, stringHash, getUrl, sortFileNames } = clientUtil;
+const { getDir, getFn, isPad, stringHash, getUrl, sortFileNames, cleanSearchStr } = clientUtil;
 
 const NO_TWO_PAGE = "no_clip";
 const TWO_PAGE_LEFT = "left";
@@ -561,7 +561,7 @@ export default class OneBook extends Component {
       if(tag === author){
         url = "/author/" + tagHash;
       }else if(tag === group){
-        url = "/search/" + tag;
+        url = "/search/" + cleanSearchStr(tag);
       }else{
         url = "/tag/" + tagHash;
       }
