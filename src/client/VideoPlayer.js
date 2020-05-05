@@ -7,6 +7,7 @@ const util = require("../util");
 const clientUtil = require("./clientUtil");
 const { getDir, getFn, getPathFromLocalStorage } = clientUtil;
 
+
 export default class VideoPlayer extends Component {
   constructor(props) {
     super(props);
@@ -18,19 +19,36 @@ export default class VideoPlayer extends Component {
     return this.props.match.params.number;
   }
 
+  onError(e){
+    // console.log();
+    this.setState({
+      hasError: true
+    })
+  }
+
   render() {
     const fn = getPathFromLocalStorage(this.getHash());
-    const url = "/api/video/"+this.getHash();
+    const url = "/api/video/" + this.getHash();
     document.title = getFn(fn);
+    const {hasError} = this.state;
+    //use bootstrap classname util 
+    if(hasError || !fn){
+      return (<div className="container"> 
+          <div className="alert alert-warning col-6" role="alert"> Video Not Found </div>
+        </div>
+      )
+    }
 
     return (<div className="video-player-page">
               <div className="video-player-container">
                 <video id="videoPlayer" controls> 
-                  <source src={url} type="video/mp4" />
+                  <source src={url} type="video/mp4" onError={this.onError.bind(this)} />
                 </video>
               </div>
-             <div className="video-title">  <ClickAndCopyText  text={fn} /> </div>
-            <FileChangeToolbar showAllButtons className="video-toolbar" file={fn} popPosition={"top-center"}/>
+              <div className="video-title"> 
+                <ClickAndCopyText text={fn} /> 
+              </div>
+              <FileChangeToolbar showAllButtons className="video-toolbar" file={fn} popPosition={"top-center"}/>
             </div>
             );
   } 
