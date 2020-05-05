@@ -59,6 +59,7 @@ if(isWindows()){
     const getDownloadsFolder = require('downloads-folder');
     home_pathes.push(getDownloadsFolder());
 }else{
+    //downloads-folder cause error on unix
     home_pathes.push(`${process.env.HOME}/Downloads`);
 }
 
@@ -74,8 +75,6 @@ console.log("__dirname", __dirname);
 console.log("rootPath", rootPath);
 console.log("log path:", logPath);
 console.table("path_will_scan:", path_will_scan);
-
-
 
 let sevenZip;
 if(isWindows()){
