@@ -528,8 +528,7 @@ export default class OneBook extends Component {
     if (!this.state.path) {
       return;
     }
-    const toolbar = !isPad() &&
-  (<FileChangeToolbar showAllButtons className="one-book-toolbar" file={this.state.path} popPosition={"top-center"}/>);
+    const toolbar = <FileChangeToolbar showAllButtons className="one-book-toolbar" file={this.state.path} popPosition={"top-center"}/>;
     return toolbar;
   }
 

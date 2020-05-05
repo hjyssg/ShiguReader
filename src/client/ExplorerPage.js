@@ -213,7 +213,7 @@ export default class ExplorerPage extends Component {
         }
     }
 
-    requestTextSearch(mode) {
+    requestTextSearch() {
         Sender.post(Constant.SEARCH_API, { text: this.props.match.params.search,  mode: this.getMode()}, res => {
             this.handleRes(res);
         });
@@ -224,7 +224,7 @@ export default class ExplorerPage extends Component {
         return clientUtil.getPathFromLocalStorage(hash);
     }
 
-    requestSearch(mode) {
+    requestSearch() {
         Sender.post(Constant.SEARCH_API, { hash: this.getHash(), 
                                     text: this.getPathFromLocalStorage(),
                                     mode: this.getMode()}, res => {
@@ -405,7 +405,8 @@ export default class ExplorerPage extends Component {
         const dirItems = dirs.map((item) =>  {
             const pathHash = stringHash(item);
             const toUrl =('/explorer/'+ pathHash);
-            const result =  this.getOneLineListItem(<i className="far fa-folder"></i>, item);
+            const text = this.getMode() === MODE_HOME ? item: getFn(item);
+            const result =  this.getOneLineListItem(<i className="far fa-folder"></i>, text);
             return  <Link to={toUrl}  key={item}>{result}</Link>;
         });
 
@@ -415,12 +416,8 @@ export default class ExplorerPage extends Component {
                 videoItems = videos.map((item) =>  {
                    const pathHash = stringHash(item);
                    const toUrl =('/videoPlayer/'+ pathHash);
-                   const result =  (
-                       <li className="explorer-one-line-list-item" key={item}>
-                       <i className="far fa-file-video"></i>
-                       <span className="explorer-one-line-list-item">{item}</span>
-                       </li>
-                   );
+                   const text = getFn(item);
+                   const result = this.getOneLineListItem(<i className="far fa-file-video"></i>, text);
                    return  <Link to={toUrl}  key={item}>{result}</Link>;
                });
         }
