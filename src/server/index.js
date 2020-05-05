@@ -835,6 +835,7 @@ async function extractThumbnailFromZip(filePath, res, mode, counter) {
         if(!one){
             console.error("[extractThumbnailFromZip] no thumbnail for ", filePath);
             handleFail();
+            return;
         }
 
         const opt = get7zipOption(filePath, outputPath, one);
@@ -869,8 +870,8 @@ async function extractThumbnailFromZip(filePath, res, mode, counter) {
             handleFail();
         }
     } catch(e) {
-        console.error("[extractThumbnailFromZip] exception", e);
-        logger.error("[extractThumbnailFromZip] exception", e);
+        console.error("[extractThumbnailFromZip] exception", filePath,  e);
+        logger.error("[extractThumbnailFromZip] exception", filePath,  e);
         handleFail();
     }
 }
