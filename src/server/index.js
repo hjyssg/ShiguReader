@@ -43,13 +43,25 @@ let zip_content_db_path =  path.join(rootPath,  userConfig.workspace_name, "zip_
 const zip_content_db = new JsonDB(new Config(zip_content_db_path, true, true, '/'));
 
 //set up user path
+
+var isLinux = require('is-linux'),
+    isOsx = require('is-osx'),
+    isWindows = require('is-windows'),
+    cp = require('child_process');
+
 const path_config_path = path.join(rootPath, "src", "path-config");
 let home_pathes = fs.readFileSync(path_config_path).toString().split('\n');
 home_pathes = home_pathes
                .map(e => e.trim().replace(/\n|\r/g, ""))
                .filter(pp =>{ return pp && pp.length > 0 && !pp.startsWith("#");});
-const getDownloadsFolder = require('downloads-folder');
-home_pathes.push(getDownloadsFolder());
+
+if(isWindows()){
+    const getDownloadsFolder = require('downloads-folder');
+    home_pathes.push(getDownloadsFolder());
+}else{
+    home_pathes.push(`${process.env.HOME}/Downloads`);
+}
+
 const path_will_scan = home_pathes.concat(userConfig.good_folder, userConfig.good_folder_root, userConfig.not_good_folder);
 
 // console.log("process.argv", process.argv);
@@ -63,11 +75,6 @@ console.log("rootPath", rootPath);
 console.log("log path:", logPath);
 console.table("path_will_scan:", path_will_scan);
 
-
-var isLinux = require('is-linux'),
-    isOsx = require('is-osx'),
-    isWindows = require('is-windows'),
-    cp = require('child_process');
 
 
 let sevenZip;
