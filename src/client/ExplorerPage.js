@@ -242,7 +242,9 @@ export default class ExplorerPage extends Component {
         let files = this.files || [];
         const goodSet = this.state.goodAuthors;
         const otherSet = this.state.otherAuthors;
-        if(this.state.filterByGoodAuthorName && goodSet && otherSet){
+        const {filterByGoodAuthorName, filterByOversizeImage, filterByFirstTime, filterByHasMusic} = this.state;
+
+        if(filterByGoodAuthorName && goodSet && otherSet){
             files = files.filter(e => {
                 const temp = nameParser.parse(e);
                 if(temp && temp.author && goodSet[temp.author] && goodSet[temp.author] > GOOD_STANDARD){
@@ -251,7 +253,7 @@ export default class ExplorerPage extends Component {
             })
         }
 
-        if(this.state.filterByOversizeImage){
+        if(filterByOversizeImage){
            files = files.filter(e => {
                if(this.zipInfo[e]){
                    const pageNum =  this.zipInfo[e].pageNum || 0;
@@ -264,7 +266,7 @@ export default class ExplorerPage extends Component {
            })
         }
 
-        if(this.state.filterByFirstTime && goodSet && otherSet){
+        if(filterByFirstTime && goodSet && otherSet){
             files = files.filter(e => {
                 const temp = nameParser.parse(e);
                 if(temp && temp.author && ((goodSet[temp.author]||0) + (otherSet[temp.author]||0)) <= 1){
@@ -274,7 +276,7 @@ export default class ExplorerPage extends Component {
             })
         }
 
-        if(this.state.filterByHasMusic){
+        if(filterByHasMusic){
             files = files.filter(e => {
                 if(this.zipInfo[e]){
                     const musicNum =  this.zipInfo[e].musicNum || 0;
@@ -285,14 +287,36 @@ export default class ExplorerPage extends Component {
             })
         }
 
-
-        var filterText = this.state.filterText && this.state.filterText.toLowerCase();
+        const filterText = this.state.filterText && this.state.filterText.toLowerCase();
         if(filterText){
             return files.filter(e => {
                 return e.toLowerCase().indexOf(filterText) > -1;
             });
         }else{
             return files;
+        }
+    }
+
+    getFilteredVideos(){
+        if(!this.state.showVideo){
+            return [];
+        }
+
+        const {filterByGoodAuthorName, filterByOversizeImage, filterByFirstTime, filterByHasMusic} = this.state;
+        let videoFiles;
+        if(filterByGoodAuthorName || filterByOversizeImage || filterByFirstTime || filterByHasMusic){
+            videoFiles = [];
+        }else{
+            videoFiles =  this.videoFiles || []
+        }
+
+        const filterText = this.state.filterText && this.state.filterText.toLowerCase();
+        if(filterText){
+            return videoFiles.filter(e => {
+                return e.toLowerCase().indexOf(filterText) > -1;
+            });
+        }else{
+            return videoFiles;
         }
     }
 
@@ -397,9 +421,9 @@ export default class ExplorerPage extends Component {
     }
 
     renderFileList() {
-        const { sortOrder, showVideo } = this.state;
+        const { sortOrder } = this.state;
         let dirs = this.dirs||[];
-        let videos = this.videoFiles || [];
+        let videos = this.getFilteredVideos();
         let files = this.getFilteredFiles();
 
         try {
@@ -424,17 +448,13 @@ export default class ExplorerPage extends Component {
             return  <Link to={toUrl}  key={item}>{result}</Link>;
         });
 
-        let videoItems;
-
-        if(showVideo){
-                videoItems = videos.map((item) =>  {
-                   const pathHash = stringHash(item);
-                   const toUrl =('/videoPlayer/'+ pathHash);
-                   const text = getFn(item);
-                   const result = this.getOneLineListItem(<i className="far fa-file-video"></i>, text);
-                   return  <Link to={toUrl}  key={item}>{result}</Link>;
-               });
-        }
+        let videoItems = videos.map((item) =>  {
+            const pathHash = stringHash(item);
+            const toUrl =('/videoPlayer/'+ pathHash);
+            const text = getFn(item);
+            const result = this.getOneLineListItem(<i className="far fa-file-video"></i>, text);
+            return  <Link to={toUrl}  key={item}>{result}</Link>;
+        });
 
         //! !todo if the file is already an image file
         files = this.getFileInPage(files);
@@ -502,14 +522,9 @@ export default class ExplorerPage extends Component {
                 <ul className={"dir-list container"}>
                     {dirItems}
                 </ul>
-
-                {
-                    showVideo &&  
-                    (<ul className={"dir-list container"}>
-                        {videoItems}
-                    </ul>)
-                }
-
+                <ul className={"dir-list container"}>
+                    {videoItems}
+                </ul>
                 {this.renderPagination()}
                 <div className={"file-grid container"}>
                     <div className={rowCn}>
@@ -599,8 +614,11 @@ export default class ExplorerPage extends Component {
 
             return (<div className="container explorer-top">
                         <div className="row">
-                        <Breadcrumb path={this.path} className="col-12 col-md-10 col-xl-11" /> 
-                        <div className="file-count col-6 col-md-2 col-xl-1">{this.getFilteredFiles().length + " files"} </div>
+                            <Breadcrumb path={this.path} className="col-12" /> 
+                        </div>
+                        <div className="row">
+                            <div className="file-count col-6">{this.getFilteredFiles().length + " compressed files"} </div>
+                            <div className="file-count col-6">{this.getFilteredVideos().length + " video files"} </div>
                         </div>
                         {topButtons}
                     </div>);
