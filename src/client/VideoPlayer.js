@@ -6,7 +6,7 @@ import FileChangeToolbar from './subcomponent/FileChangeToolbar';
 const util = require("../util");
 const clientUtil = require("./clientUtil");
 const { getDir, getFn, getPathFromLocalStorage } = clientUtil;
-
+const namePicker = require("../human-name-picker");
 
 export default class VideoPlayer extends Component {
   constructor(props) {
@@ -28,6 +28,11 @@ export default class VideoPlayer extends Component {
 
   renderDownloadLink(){
     return (<a href={"/api/download/"+this.getHash()}><i className="fa fa-fw fa-download"></i></a>);
+  }
+
+  renderTag(){
+    const fn = getFn(getPathFromLocalStorage(this.getHash()));
+    console.log(namePicker.parse(fn));
   }
 
   render() {
@@ -53,7 +58,7 @@ export default class VideoPlayer extends Component {
                 <ClickAndCopyText text={fn} />  {this.renderDownloadLink()}
               </div>
               <FileChangeToolbar showAllButtons className="video-toolbar" file={fn} popPosition={"top-center"}/>
-              
+              {this.renderTag()}
             </div>
             );
   } 
