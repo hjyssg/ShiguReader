@@ -461,12 +461,24 @@ app.get('/api/tag', (req, res) => {
     res.send({ tags, authors });
 });
 
+//------------------download------------
+app.get('/api/download/:hash', async (req, res) => {
+    const filepath = db.hashTable[req.params.hash];
+
+    if (!filepath || !(await isExist(filepath))) {
+        console.error("[/api/download]", filepath, "does not exist");
+        res.sendStatus(404);
+        return;
+    }
+    res.download(filepath); // Set disposition and send it.
+});
+
 //----------------for video streaming
 app.get('/api/video/:hash', async (req, res) => {
     const filepath = db.hashTable[req.params.hash];
 
     if (!filepath || !(await isExist(filepath))) {
-        console.error(filepath, "does not exist");
+        console.error("[/api/video]", filepath, "does not exist");
         res.sendStatus(404);
         return;
     }

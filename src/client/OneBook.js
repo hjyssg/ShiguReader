@@ -24,6 +24,7 @@ import screenfull from 'screenfull';
 const Constant = require("../constant");
 
 import Cookie from "js-cookie";
+import { isLocalHost } from './clientUtil';
 
 const MIN_HEIGHT = 400;
 const MIN_WIDTH = 400;
@@ -596,13 +597,22 @@ export default class OneBook extends Component {
   }
 
   renderSecondBar(){
-    if(isPad()){
-      return;
+    let content;
+    if(!isPad()){
+      content = (
+      <React.Fragment>
+          <div className="two-page-mode-button fas fa-arrows-alt-h" onClick={this.toggleTwoPageMode.bind(this)} title="two page mode"></div>
+          <div className="fas fa-sync-alt rotate-button" title="rotate image" onClick={this.rotateImg.bind(this)}></div>
+      </React.Fragment>);
     }
     return (<div className="one-book-second-toolbar">
-              <div className="two-page-mode-button fas fa-arrows-alt-h" onClick={this.toggleTwoPageMode.bind(this)} title="two page mode"></div>
-              <div className="fas fa-sync-alt rotate-button" title="rotate image" onClick={this.rotateImg.bind(this)}></div>
+              {content}
+              {this.renderDownloadLink()}
             </div>);
+  }
+
+  renderDownloadLink(){
+    return (<a href={"/api/download/"+this.getHash()}><i className="fa fa-fw fa-download"></i></a>);
   }
 
   render() {
@@ -661,7 +671,6 @@ export default class OneBook extends Component {
         {this.renderToolbar()}
         {this.renderNextPrevButton()}
         {this.renderSecondBar()}
-
         {isContentBelow && content}
       </div>
     );

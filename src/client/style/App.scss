@@ -45,10 +45,21 @@ a {
   background-color: #4f535b;
   min-height: 100vh;
 
+  
   .fas{
     color: #DDDDDD;
     &::before{
       padding-right: 5px;
+    }
+  }
+
+
+  .fa-download {
+    color: #DDDDDD;
+    margin-left: 10px;
+
+    &:hover{
+      color: rgb(221, 221, 221);
     }
   }
 

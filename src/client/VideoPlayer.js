@@ -26,6 +26,10 @@ export default class VideoPlayer extends Component {
     })
   }
 
+  renderDownloadLink(){
+    return (<a href={"/api/download/"+this.getHash()}><i className="fa fa-fw fa-download"></i></a>);
+  }
+
   render() {
     const fn = getPathFromLocalStorage(this.getHash());
     const url = "/api/video/" + this.getHash();
@@ -46,9 +50,10 @@ export default class VideoPlayer extends Component {
                 </video>
               </div>
               <div className="video-title"> 
-                <ClickAndCopyText text={fn} /> 
+                <ClickAndCopyText text={fn} />  {this.renderDownloadLink()}
               </div>
               <FileChangeToolbar showAllButtons className="video-toolbar" file={fn} popPosition={"top-center"}/>
+              
             </div>
             );
   } 
