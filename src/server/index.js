@@ -10,7 +10,6 @@ const winston = require("winston");
 const fileChangeHandler = require("./fileChangeHandler");
 const _ = require('underscore');
 
-
 const Constant = require("../constant");
 const fileiterator = require('./file-iterator');
 const nameParser = require('../name-parser');
@@ -45,7 +44,6 @@ let zip_content_db_path =  path.join(rootPath,  userConfig.workspace_name, "zip_
 const zip_content_db = new JsonDB(new Config(zip_content_db_path, true, true, '/'));
 
 //set up user path
-
 var isLinux = require('is-linux'),
     isOsx = require('is-osx'),
     isWindows = require('is-windows'),
@@ -76,7 +74,6 @@ console.log("__filename", __filename);
 console.log("__dirname", __dirname);
 console.log("rootPath", rootPath);
 console.log("log path:", logPath);
-console.table("path_will_scan:", path_will_scan);
 
 let sevenZip;
 if(isWindows()){
@@ -221,19 +218,19 @@ async function init() {
 
     db.cacheToInfo = cache_results.infos;
 
-    setUpFileWatch();
-    const port = isProduction? http_port: dev_express_port;
+    const {watcher, cacheWatcher} = setUpFileWatch();
 
     const server = app.listen(port, async () => {
+        const port = isProduction? http_port: dev_express_port;
         const lanIP = await internalIp.v4();
         const mobileAddress = `http://${lanIP}:${http_port}`;
-
         console.log("----------------------------------------------------------------");
+        console.log(dateFormat(new Date(), "yyyy-mm-dd hh:mm"));
         console.log(`Express Server listening on port ${port}`);
         console.log("You can open ShiguReader from Browser now!");
         console.log(`http://localhost:${http_port}`);
         console.log(mobileAddress);
-        console.log("Scan the QR code to open on mobile devices")
+        console.log("Scan the QR code to open on mobile devices");
         qrcode.generate(mobileAddress);
         console.log("----------------------------------------------------------------");
     }).on('error', (error)=>{
@@ -330,6 +327,11 @@ function setUpFileWatch(){
             db.cacheTable[fp].splice(index, 1);
             delete db.cacheToInfo[p];
         });
+
+    return {
+        watcher,
+        cacheWatcher
+    };
 }
 
 let hentaiCache;
