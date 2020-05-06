@@ -237,6 +237,10 @@ export default class ExplorerPage extends Component {
             this.handleRes(res);
         });
     }
+
+    getPageNum(fp){
+       return (this.zipInfo[fp] && this.zipInfo[fp].pageNum) || 0;
+    }
     
     getFilteredFiles(){
         let files = this.files || [];
@@ -256,7 +260,7 @@ export default class ExplorerPage extends Component {
         if(filterByOversizeImage){
            files = files.filter(e => {
                if(this.zipInfo[e]){
-                   const pageNum =  this.zipInfo[e].pageNum || 0;
+                   const pageNum = getPageNum(e);
                    const stats = this.fileInfos[e];
                    const size = stats && stats.size;
                    if(pageNum > 0 && size/pageNum/1000/1000 > userConfig.oversized_image_size){
@@ -504,7 +508,11 @@ export default class ExplorerPage extends Component {
                                     onReceiveUrl={url => {this.thumbnails[item] = url;}} 
                                     />
                         </Link>
-                        <FileChangeToolbar header={fileSize} file={item} />
+                        <div className="file-info-row">
+                            <span>{fileSize}</span>
+                            <span>{`${this.getPageNum(item)} pages`}</span>
+                        </div>
+                        <FileChangeToolbar file={item} />
                     </div>
                 </div>);
             }

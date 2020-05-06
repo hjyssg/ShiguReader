@@ -155,7 +155,7 @@
   }
 
   .file-cell {
-    height: 280px;
+    // height: 290px;
     border: 1px solid #34353b;
     border-radius: 9px;
     background: #43464e;
@@ -166,6 +166,17 @@
     justify-content: start;
     align-items: center;
     overflow: hidden;
+  }
+
+  .file-info-row {
+    color:#DDDDDD;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    width: 100%;
+    padding-left: 30px;
+    padding-right: 30px;
+    font-size: 12.5px;
   }
 
   .file-cell-inner {
@@ -180,6 +191,7 @@
       line-height: 1em;
       height: 2em;       /* height is 2x line-height, so two lines will display */
       overflow: hidden;
+      margin-bottom: 5px;
     }
   
     .file-cell-thumbnail {
