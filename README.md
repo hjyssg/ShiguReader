@@ -31,8 +31,8 @@
 
 ### 支持格式
 
-支持的压缩包取决于7ZIp。常见的zip，rar，7zi都支持
-图片和视频的支持格式由浏览器决定。常见的mp4，avi支持
+支持的压缩包取决于[7Zip](https://www.7-zip.org/)。常见的zip、rar、7zi都支持。
+图片和视频的支持格式取决于浏览器。图片常见的jpg、png、png，视频常见的mp4、avi都是支持的。
 
 
 ##### Quick Start

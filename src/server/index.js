@@ -766,7 +766,7 @@ async function listZipContent(filePath){
     //https://superuser.com/questions/1020232/list-zip-files-contents-using-7zip-command-line-with-non-verbose-machine-friend
     let {stdout, stderr} = await limit(() => execa(sevenZip, ['l', '-r', '-ba' ,'-slt', filePath]));
     const text = stdout;
-    if (!text) {
+    if (!text || stderr) {
         return [];
     }
 
@@ -799,6 +799,7 @@ async function extractThumbnailFromZip(filePath, res, mode, counter) {
     const isPregenerateMode = mode === "pre-generate";
     const sendable = !isPregenerateMode && res;
     const outputPath = getOutputPath(cachePath, filePath);
+    let files;
  
     function sendImage(img){
         let ext = path.extname(img);
@@ -825,7 +826,7 @@ async function extractThumbnailFromZip(filePath, res, mode, counter) {
     //in case previous info is changed or wrong
     if(isPregenerateMode){
         //in pregenerate mode, it always updates db content
-        await listZipContent(filePath)
+        files = await listZipContent(filePath);
     }
 
     //check if there is compress thumbnail  e.g thumbnail--001.jpg
@@ -846,7 +847,9 @@ async function extractThumbnailFromZip(filePath, res, mode, counter) {
     }
 
     try{
-        const files = await listZipContent(filePath);
+        if(!files){
+            files = await listZipContent(filePath);
+        } 
         const one = serverUtil.chooseThumbnailImage(files);
         if(!one){
             console.error("[extractThumbnailFromZip] no thumbnail for ", filePath);
