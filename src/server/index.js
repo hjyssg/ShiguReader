@@ -221,7 +221,7 @@ async function init() {
 
     setUpFileWatch();
     const port = isProduction? http_port: dev_express_port;
-    
+
     const server = app.listen(port, async () => {
         const lanIP = await internalIp.v4();
         const mobileAddress = `http://${lanIP}:${http_port}`;
@@ -234,6 +234,12 @@ async function init() {
         console.log("Scan the QR code to open on mobile devices")
         qrcode.generate(mobileAddress);
         console.log("----------------------------------------------------------------");
+    }).on('error', (error)=>{
+        logger.error("[Server Init]", error.message);
+        console.error("[Server Init]", error.message);
+
+        //exit the current program
+        setTimeout(()=> process.exit(22), 500);
     });
 }
 
