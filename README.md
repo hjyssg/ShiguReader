@@ -110,7 +110,7 @@ npm install
 # Start development server
 npm run dev
 
-# open the link shown on the console
+# open the link shown on the cmd
 ```
 
 ##### 注意事项
@@ -119,6 +119,11 @@ npm run dev
 
 windows语言设置:
 ![unicode setting](screenshot/unicode-setting.png)
+
+##### 安全性
+ShiguReader只设计为LAN(局域网)内使用，开放到外网非常不安全。
+而且性能也是纯粹为家庭用户使用设计的。
+
 
 ##### 和tamper monkey一起使用
     把EhentaiHighighliger.js添加到tamper monkey。
@@ -134,8 +139,6 @@ windows语言设置:
 
     问： 默认的端口被占用了，怎么办？
     答： 改port-config.js
-
-
 
 ##### 热键
 漫画页面  
