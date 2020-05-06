@@ -219,9 +219,8 @@ async function init() {
     db.cacheToInfo = cache_results.infos;
 
     const {watcher, cacheWatcher} = setUpFileWatch();
-
+    const port = isProduction? http_port: dev_express_port;
     const server = app.listen(port, async () => {
-        const port = isProduction? http_port: dev_express_port;
         const lanIP = await internalIp.v4();
         const mobileAddress = `http://${lanIP}:${http_port}`;
         console.log("----------------------------------------------------------------");
