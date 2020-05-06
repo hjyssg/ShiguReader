@@ -41,7 +41,9 @@ export default class FileChangeToolbar extends Component {
                         spop({
                             style: "success",
                             template: 'Deleted ' + this.props.file,
-                            position:  this.props.popPosition
+                            position:  this.props.popPosition,
+                            autoclose: 3000
+
                         });
                     }else{
                         spop({
@@ -74,7 +76,8 @@ export default class FileChangeToolbar extends Component {
                             spop({
                                 style: "success",
                                 template: template, // ['Moved', this.props.file, "to", path, 'Successfully'].join(" "),
-                                position:  this.props.popPosition
+                                position:  this.props.popPosition,
+                                autoclose: 3000
                             });
                         }else{
                             spop({
