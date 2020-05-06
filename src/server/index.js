@@ -555,23 +555,24 @@ function getThumbnails(filePathes){
     return thumbnails;
 }
 
-function getPageNumbers(filePathes){
-    const pageNums = {};
+function getZipInfo(filePathes){
+    const fpToInfo = {};
     const contentInfo = zip_content_db.getData("/");
     
     filePathes.forEach(filePath => {
-        if(!isCompress(filePath)){
-            return;
-        }
-        const pageNum = contentInfo[filePath] && contentInfo[filePath].pageNum;
-        if(pageNum === "NOT_THUMBNAIL_AVAILABLE" || pageNum === 0){
-            pageNums[filePath] = 0;
-        }else{
-            pageNums[filePath] = +pageNum;
-        }
+        if(isCompress(filePath) && contentInfo[filePath]){
+            let pageNum = contentInfo[filePath].pageNum;
+            pageNum = pageNum === "NOT_THUMBNAIL_AVAILABLE"? 0 : pageNum;
 
+            const entry = {
+                pageNum,
+                musicNum: contentInfo[filePath].musicNum || 0
+            }
+
+            fpToInfo[filePath] = entry;
+        }
     }); 
-    return pageNums;
+    return fpToInfo;
 }
 
 app.post('/api/lsDir', async (req, res) => {
@@ -633,7 +634,7 @@ app.post('/api/lsDir', async (req, res) => {
                path: dir, 
                fileInfos: infos, 
                thumbnails: getThumbnails(files),
-               pageNums: getPageNumbers(files)
+               zipInfo: getZipInfo(files)
             };
     res.send(result);
 });
@@ -770,14 +771,18 @@ async function listZipContent(filePath){
     }
 
     const files = read7zOutput(text);
-    updateZipDb(filePath, files.length);
+    const imgFiles = files.filter(isImage);
+    const musicFiles = files.filter(isMusic)
+
+    updateZipDb(filePath, imgFiles.length, musicFiles.length);
     return files;
 }
 
-function updateZipDb(filePath, pageNum){
+function updateZipDb(filePath, pageNum, musicNum){
     const contentInfo = zip_content_db.getData("/");
     contentInfo[filePath] = {
-        pageNum: pageNum
+        pageNum: pageNum,
+        musicNum: musicNum
     };
     zip_content_db.push("/", contentInfo);
 }
@@ -793,7 +798,6 @@ async function extractThumbnailFromZip(filePath, res, mode, counter) {
 
     const isPregenerateMode = mode === "pre-generate";
     const sendable = !isPregenerateMode && res;
-
     const outputPath = getOutputPath(cachePath, filePath);
  
     function sendImage(img){
@@ -807,15 +811,21 @@ async function extractThumbnailFromZip(filePath, res, mode, counter) {
         })
     }
 
-    //only update zip db
-    //do not use zip db's information
-    //in case previous info is changed or wrong
+
 
     function handleFail(){
         sendable && res.sendStatus(404);
         if(isPregenerateMode){
             counter.total--;
         }
+    }
+
+    //only update zip db
+    //do not use zip db's information
+    //in case previous info is changed or wrong
+    if(isPregenerateMode){
+        //in pregenerate mode, it always updates db content
+        await listZipContent(filePath)
     }
 
     //check if there is compress thumbnail  e.g thumbnail--001.jpg

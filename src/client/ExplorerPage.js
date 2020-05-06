@@ -177,7 +177,7 @@ export default class ExplorerPage extends Component {
 
     handleRes(res){
         if (!res.failed) {
-            let {dirs, files, path, tag, author, fileInfos, thumbnails, pageNums} = res;
+            let {dirs, files, path, tag, author, fileInfos, thumbnails, zipInfo} = res;
             this.loadedHash = this.getHash();
             files = files || [];
             this.videoFiles = files.filter(isVideo) || []
@@ -188,7 +188,7 @@ export default class ExplorerPage extends Component {
             this.author = author || "";
             this.fileInfos = fileInfos || {};
             this.thumbnails = thumbnails || {};
-            this.pageNums = pageNums || {};
+            this.zipInfo = zipInfo || {};
             this.res = res;
 
             if(this.videoFiles.length > 0){
@@ -243,26 +243,28 @@ export default class ExplorerPage extends Component {
         const goodSet = this.state.goodAuthors;
         const otherSet = this.state.otherAuthors;
         if(this.state.filterByGoodAuthorName && goodSet && otherSet){
-             files = files.filter(e => {
-                 const temp = nameParser.parse(e);
-                 if(temp && temp.author && goodSet[temp.author] && goodSet[temp.author] > GOOD_STANDARD){
-                     return e;
-                 }
-             })
-         }
-
-         if(this.state.filterByOversizeImage ){
             files = files.filter(e => {
-                const pageNum =  this.pageNums[e] || 0;
-                const stats = this.fileInfos[e];
-                const size = stats && stats.size;
-                if(pageNum > 0 && size/pageNum/1000/1000 > userConfig.oversized_image_size){
+                const temp = nameParser.parse(e);
+                if(temp && temp.author && goodSet[temp.author] && goodSet[temp.author] > GOOD_STANDARD){
                     return e;
                 }
             })
-         }
+        }
 
-         if(this.state.filterByFirstTime && goodSet && otherSet){
+        if(this.state.filterByOversizeImage){
+           files = files.filter(e => {
+               if(this.zipInfo[e]){
+                   const pageNum =  this.zipInfo[e].pageNum || 0;
+                   const stats = this.fileInfos[e];
+                   const size = stats && stats.size;
+                   if(pageNum > 0 && size/pageNum/1000/1000 > userConfig.oversized_image_size){
+                       return e;
+                   }
+               }
+           })
+        }
+
+        if(this.state.filterByFirstTime && goodSet && otherSet){
             files = files.filter(e => {
                 const temp = nameParser.parse(e);
                 if(temp && temp.author && ((goodSet[temp.author]||0) + (otherSet[temp.author]||0)) <= 1){
@@ -270,7 +272,19 @@ export default class ExplorerPage extends Component {
                     return e;
                 }
             })
-         }
+        }
+
+        if(this.state.filterByHasMusic){
+            files = files.filter(e => {
+                if(this.zipInfo[e]){
+                    const musicNum =  this.zipInfo[e].musicNum || 0;
+                    if(musicNum > 0){
+                        return e;
+                    }
+                }
+            })
+        }
+
 
         var filterText = this.state.filterText && this.state.filterText.toLowerCase();
         if(filterText){
@@ -704,6 +718,12 @@ export default class ExplorerPage extends Component {
         });
     }
 
+    toggleHasMusic(){
+        this.setStateAndSetHash({
+            filterByHasMusic: !this.state.filterByHasMusic
+        });
+    }
+
     renderSideMenu(){
         const SORT_OPTIONS = [
             SORT_BY_DATE,
@@ -763,6 +783,27 @@ export default class ExplorerPage extends Component {
 
         tagInfos.unshift(showAll);
 
+        if(this.getMode() !== MODE_HOME){
+            const cn = classNames("side-menu", "side-menu-click-layer", {
+                anchorSideMenu: this.state.anchorSideMenu
+            });
+
+            return (<div className={cn}>
+                    <div className="side-menu-radio-title"> File Order </div>
+                    <RadioButtonGroup 
+                            checked={SORT_OPTIONS.indexOf(this.state.sortOrder)} 
+                            options={SORT_OPTIONS} name="explorer-sort-order" 
+                            onChange={this.onSortChange.bind(this)}/>
+                    <div className="side-menu-radio-title"> Special Filter </div>
+                    {this.renderSpecialFilter()}
+                    {info}
+                    {tagInfos}
+                </div>)
+        }
+    }
+
+    renderSpecialFilter(){
+        
         //no one pay me, I am not going to improve the ui
         let checkbox;
         if(this.state.goodAuthors){
@@ -779,30 +820,21 @@ export default class ExplorerPage extends Component {
                             </Checkbox> ); 
 
         const st3 = `first time` ;
-
         let checkbox3 = (<Checkbox  onChange={this.toggleFirstTime.bind(this)} checked={this.state.filterByFirstTime}>
                                    {st3}   
                             </Checkbox> ); 
 
-        if(this.getMode() !== MODE_HOME){
-            const cn = classNames("side-menu", "side-menu-click-layer", {
-                anchorSideMenu: this.state.anchorSideMenu
-            });
-
-            return (<div className={cn}>
-                    <div className="side-menu-radio-title"> File Order </div>
-                    <RadioButtonGroup 
-                            checked={SORT_OPTIONS.indexOf(this.state.sortOrder)} 
-                            options={SORT_OPTIONS} name="explorer-sort-order" 
-                            onChange={this.onSortChange.bind(this)}/>
-                    <div className="side-menu-radio-title"> Special Filter </div>
-                    {checkbox}
-                    {checkbox2}
-                    {checkbox3}
-                    {info}
-                    {tagInfos}
-                </div>)
-        }
+        const st4 = `has music` ;
+        let checkbox4 = (<Checkbox  onChange={this.toggleHasMusic.bind(this)} checked={this.state.filterByHasMusic}>
+                                {st4}   
+                            </Checkbox> ); 
+        return (
+        <React.Fragment>
+            {checkbox}
+            {checkbox2}
+            {checkbox3}
+            {checkbox4}
+        </React.Fragment>);
     }
 
     render() {
