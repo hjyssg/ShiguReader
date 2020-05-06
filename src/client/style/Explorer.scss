@@ -178,6 +178,11 @@
     padding-right: 30px;
     font-size: 12.5px;
   }
+  .explorer-file-change-toolbar{
+    margin-top: 5px;
+    padding-left: 15px;
+    padding-right: 15px;
+  }
 
   .file-cell-inner {
     padding-bottom: 5px;
@@ -202,6 +207,7 @@
       object-fit: scale-down;
       margin: auto;
       text-align:center;
+      border-radius: 2px;
     }
 
     .empty-block{

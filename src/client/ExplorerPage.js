@@ -495,11 +495,17 @@ export default class ExplorerPage extends Component {
                         {this.getOneLineListItem(<i className="fas fa-book"></i>, text)}
                         </Link>)
             }else{
+                const fl = text.length;
+                const cellTitleCn = classNames("file-cell-title",{
+                    "f-s-12": fl > 30,
+                    "f-s-14": fl <= 30
+                });
+
                 zipItem = (
                 <div key={item} className={"col-sm-6 col-md-4 col-lg-3 file-out-cell"}>
                     <div className="file-cell">
                         <Link  target="_blank" to={toUrl}  key={item} className={"file-cell-inner"}>
-                            <center className={"file-cell-title"} title={text}>{text}</center>
+                            <center className={cellTitleCn} title={text}>{text}</center>
                             <LoadingImage 
                                     isThumbnail 
                                     className={"file-cell-thumbnail"} 
@@ -512,7 +518,7 @@ export default class ExplorerPage extends Component {
                             <span>{fileSize}</span>
                             <span>{`${this.getPageNum(item)} pages`}</span>
                         </div>
-                        <FileChangeToolbar file={item} />
+                        <FileChangeToolbar className="explorer-file-change-toolbar" file={item} />
                     </div>
                 </div>);
             }
