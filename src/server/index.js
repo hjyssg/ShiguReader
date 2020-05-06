@@ -8,6 +8,8 @@ const pfs = require('promise-fs');
 const dateFormat = require('dateformat');
 const winston = require("winston");
 const fileChangeHandler = require("./fileChangeHandler");
+const _ = require('underscore');
+
 
 const Constant = require("../constant");
 const fileiterator = require('./file-iterator');
@@ -351,7 +353,6 @@ app.get('/api/exhentaiApi', function (req, res) {
 
 //-------------------------Get info ----------------------
 app.get('/api/cacheInfo', (req, res) => {
-    const _ = require('underscore');
     const cacheFiles =  _.keys(db.cacheToInfo).filter(isDisplayableInOnebook);
     let totalSize = 0;
 
@@ -754,7 +755,17 @@ function get7zipOption(filePath, outputPath, file_specifier){
     //https://sevenzip.osdn.jp/chm/cmdline/commands/extract.htm
     //e make folder as one level
     if(file_specifier){
-        return ['e', filePath, `-o${outputPath}`].concat(file_specifier, "-aos");
+        let specifier =  _.isArray(file_specifier)? file_specifier : [file_specifier];
+        specifier = specifier.map(e => {
+            //-0018.jpg will break 7zip
+            if(e.startsWith("-")){
+                return "*" + e.slice(1);
+            }else{
+                return e;
+            }
+        })
+
+        return ['e', filePath, `-o${outputPath}`].concat(specifier, "-aos");
     }else{
         return ['e', filePath, `-o${outputPath}`, "-aos"];
     }
@@ -1019,7 +1030,6 @@ app.post('/api/extract', async (req, res) => {
 
                 //dev checking
                 if(firstRange.length + secondRange.length !== files.length){
-                    debugger
                     throw "arraySlice wrong";
                 }
 
