@@ -121,9 +121,8 @@ windows语言设置:
 ![unicode setting](screenshot/unicode-setting.png)
 
 ##### 安全性
-ShiguReader只设计为LAN(局域网)内使用，开放到外网非常不安全。
-而且性能也是纯粹为家庭用户使用设计的。
-
+ShiguReader的使用场景是LAN(局域网)，开放到外网非常不安全。
+而且功能和性能也是纯粹为家庭用户使用设计的。
 
 ##### 和tamper monkey一起使用
     把EhentaiHighighliger.js添加到tamper monkey。

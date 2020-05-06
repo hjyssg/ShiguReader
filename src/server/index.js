@@ -151,7 +151,7 @@ app.use(express.json());
 fileChangeHandler.init(app, logger);
 
 //  outputPath is the folder name
-function getCache(outputPath) {
+function getCacheFiles(outputPath) {
     //in-memory is fast
     const single_cache_folder = path.basename(outputPath);
     if(db.cacheTable[single_cache_folder] && db.cacheTable[single_cache_folder].length > 0){
@@ -310,8 +310,6 @@ function setUpFileWatch(){
             const fp =  path.dirname(p);
             db.cacheTable[fp] = undefined;
         });
-
-
 
     cacheWatcher
         .on('add', (p, stats) => {
@@ -540,7 +538,7 @@ function getThumbnails(filePathes){
         }
 
         const outputPath = getOutputPath(cachePath, filePath);
-        let cacheFiles = getCache(outputPath);
+        let cacheFiles = getCacheFiles(outputPath);
         cacheFiles = (cacheFiles && cacheFiles.files) || [];
         const thumb = serverUtil.chooseThumbnailImage(cacheFiles);
         if(thumb){
@@ -830,7 +828,7 @@ async function extractThumbnailFromZip(filePath, res, mode, counter) {
     }
 
     //check if there is compress thumbnail  e.g thumbnail--001.jpg
-    const cacheFiles = getCache(outputPath);
+    const cacheFiles = getCacheFiles(outputPath);
     if (cacheFiles && cacheFiles.files.length > 0) {
         const tempOne =  serverUtil.chooseThumbnailImage(cacheFiles.files);
         if(util.isCompressedThumbnail(tempOne)){
@@ -984,7 +982,7 @@ app.post('/api/extract', async (req, res) => {
     }
 
     const outputPath = getOutputPath(cachePath, filePath);
-    const temp = getCache(outputPath);
+    const temp = getCacheFiles(outputPath);
     //TODO: should use pageNum
     const total_page_num = 15;
     if (temp && temp.files.length > total_page_num) {
