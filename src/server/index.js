@@ -967,6 +967,23 @@ async function extractAll(filePath, outputPath, files, sendBack, res, stat){
     }
 }
 
+async function extractByRange(filePath, outputPath, range){
+    try{
+        //let quitely unzip second part
+        //todo: need to cut into parts
+        //when range is too large, will cause error
+        const opt = get7zipOption(filePath, outputPath, range);
+        const { stderr } = await execa(sevenZip, opt);
+        if(stderr){
+            console.error('[extractByRange] second range exit: ', stderr);  
+            logger.error('[extractByRange] second range exit: ', e);
+        }
+    }catch (e){
+        console.error('[extractByRange] second range exit: ', e);
+        logger.error('[extractByRange] second range exit: ', e);
+    }
+}
+
 
 app.post('/api/extract', async (req, res) => {
     const hashFile = db.hashTable[(req.body && req.body.hash)];
@@ -1058,21 +1075,7 @@ app.post('/api/extract', async (req, res) => {
                     const timeUsed = (time2 - time1);
                     console.log(`[/api/extract] FIRST PART UNZIP ${filePath} : ${timeUsed}ms`);
 
-                    try{
-                        //let quitely unzip second part
-                        const opt = get7zipOption(filePath, outputPath, secondRange);
-                        const { stderr2 } = await execa(sevenZip, opt);
-                        if(stderr2){
-                            console.error('[/api/extract] second range exit: ', stderr2);  
-                        }else{
-                            const time3 = getCurrentTime();
-                            const timeUsed = (time3 - time2);
-                            console.log(`[/api/extract] Second PART UNZIP ${filePath} : ${timeUsed}ms`);
-                        }
-                    }catch (e){
-                        console.error('[/api/extract] second range exit: ', e);
-                        logger.error('[/api/extract] second range exit: ', e);
-                    }
+                    extractByRange(filePath, outputPath, secondRange)
                 } else {
                     res.sendStatus(500);
                     console.error('[/api/extract] exit: ', stderr);
