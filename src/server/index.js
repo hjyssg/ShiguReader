@@ -821,8 +821,8 @@ async function listZipContent(filePath){
         updateZipDb(filePath, imgFiles.length, musicFiles.length);
         return files;
     }catch(e){
-        logger.error("[listZipContent]", filePath);
-        console.error("[listZipContent]", filePath);
+        logger.error("[listZipContent]", filePath, e);
+        console.error("[listZipContent]", filePath, e);
         return [];
     }
 }
@@ -901,7 +901,7 @@ async function extractThumbnailFromZip(filePath, res, mode, counter) {
         } 
         const one = serverUtil.chooseThumbnailImage(files);
         if(!one){
-            console.error("[extractThumbnailFromZip] no thumbnail for ", filePath);
+            // console.error("[extractThumbnailFromZip] no thumbnail for ", filePath);
             handleFail();
             return;
         }
@@ -931,7 +931,7 @@ async function extractThumbnailFromZip(filePath, res, mode, counter) {
 
             if(isPregenerateMode){
                 counter.counter++;
-                logForPre("[pre-generate extract]", counter.counter, counter.total);
+                // logForPre("[pre-generate extract]", counter.counter, counter.total);
             }
         } else {
             console.error("[extractThumbnailFromZip extract exec failed]", code);
