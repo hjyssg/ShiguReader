@@ -25,6 +25,7 @@ const Constant = require("../constant");
 
 import Cookie from "js-cookie";
 import { isLocalHost } from './clientUtil';
+import { array_unique } from '../util';
 
 const MIN_HEIGHT = 400;
 const MIN_WIDTH = 400;
@@ -45,7 +46,6 @@ export default class OneBook extends Component {
       index: this.getInitIndex(),
       twoPageMode: NO_TWO_PAGE
     };
-    this.failTimes = 0;
   }
 
   getInitIndex(){
@@ -63,7 +63,7 @@ export default class OneBook extends Component {
   
   componentDidMount() {
     const fileHash = this.getHash();
-    if(fileHash && this.loadedHash !== fileHash && this.failTimes < 3){
+    if(fileHash && this.loadedHash !== fileHash ){
       this.displayFile(fileHash);
     }
 
@@ -76,10 +76,6 @@ export default class OneBook extends Component {
     window.addEventListener("resize", this.adjustImageSizeAfterResize.bind(this));
   }
   
-  componentDidUpdate() {
-    this.componentDidMount();
-  }
-
   updateScrollPos(e) {
     // $('html').css('cursor', 'row-resize');
     // console.log(this.clickY, e.pageY, this.clickY - e.pageY );
@@ -294,7 +290,6 @@ export default class OneBook extends Component {
 
         this.bindUserInteraction();
       }else{
-        this.failTimes++;
         this.forceUpdate();
       }
     });
@@ -549,43 +544,53 @@ export default class OneBook extends Component {
     const dirName = getBaseName(getDir(this.state.path));
     const result = nameParser.parse(fn);
     let tagDivs;
-    if(!result){
-      if(fn.includes(dirName)){
-        tagDivs = [dirName].map(tag => {
-          const url = "/search/" + cleanSearchStr(tag);
-          return (<div key={tag} className="one-book-foot-author" >
-                    <Link  target="_blank" to={url}  key={tag}>{tag}</Link>
-                  </div>);
-        });
-      }
-    }else{
-      const author =  result.author;
-      const group = result.group;
-      let tags = result.tags||[];
+    let tags;
+    let author;
+    let originalTags;
+    let group;
+
+
+    if(result){
+      author =  result.author;
+      group = result.group;
+      originalTags = result.tags||[];
+      tags = originalTags;
       if(author && group && group !== author){
         tags = tags.concat(group);
       }
       if(author){
         tags = tags.concat(author);
       }
-
-      tagDivs = tags.map( tag => {
-        const tagHash = stringHash(tag);
-        let url;
-        if(tag === author){
-          url = "/author/" + tagHash;
-        }else if(tag === group){
-          url = "/search/" + cleanSearchStr(tag);
-        }else{
-          url = "/tag/" + tagHash;
-        }
-        
-        url += "#sortOrder=" + Constant.SORT_BY_FOLDER;
-        return (<div key={tag} className="one-book-foot-author" >
-                  <Link  target="_blank" to={url}  key={tag}>{tag}</Link>
-                </div>);
-      })
     }
+
+    if(fn.includes(dirName)){
+      tags = tags || [];
+      tags.push(dirName);
+    }
+
+    tags = tags || [];
+    tags = array_unique(tags);
+
+    tagDivs = tags.map( tag => {
+      const tagHash = stringHash(tag);
+      let url;
+      if(tag === author){
+        url = "/author/" + tagHash;
+      }else if(originalTags.includes(tag)){
+        url = "/tag/" + tagHash;
+      }else{
+        url = "/search/" + cleanSearchStr(tag);
+      }
+      
+      url += "#sortOrder=" + Constant.SORT_BY_FOLDER;
+      return (<div key={tag} className="one-book-foot-author" >
+                <Link  target="_blank" to={url}  key={tag}>{tag}</Link>
+              </div>);
+    })
+
+
+
+
     return (<div className="one-book-tags">
             {tagDivs}
           </div>);

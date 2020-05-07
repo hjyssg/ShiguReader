@@ -8,7 +8,7 @@ const { getDir, getBaseName, getPathFromLocalStorage, cleanSearchStr } = clientU
 const namePicker = require("../human-name-picker");
 import { Link } from 'react-router-dom';
 import { array_unique } from '../util';
-
+const nameParser = require('../name-parser');
 
 export default class VideoPlayer extends Component {
   constructor(props) {
@@ -38,7 +38,19 @@ export default class VideoPlayer extends Component {
     const dirName = getBaseName(getDir(filePath));
     const tags1 = namePicker.parse(fn) || [];
     const tags2 = namePicker.parse(dirName) || []; 
-    const tags = array_unique(tags1.concat(tags2));
+    let tags = tags1.concat(tags2);
+
+    const result = nameParser.parse(fn);
+
+    if(result){
+      [result.author].concat(result.tags).forEach(value => {
+        if(value){
+          tags = tags.concat(value);
+        }
+      })
+    }
+
+    tags = array_unique(tags);
     
     if(tags){
       const tagDoms = tags.map(tag => {

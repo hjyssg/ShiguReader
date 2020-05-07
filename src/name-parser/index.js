@@ -3,8 +3,6 @@ const same_tags = config.same_tags;
 const not_author_but_tag = config.not_author_but_tag;
 const char_names = require("./character-names");
 const convertTable = {};
-const util = require("../util");
-const isCompress = util.isCompress;
 
 
 const localCache = {};
@@ -154,7 +152,7 @@ function toLowerCase(list, str){
 }
 
 function parse(str) {
-    if (!str || !isCompress(str) || localCache[str] === "NO_EXIST") {
+    if (!str || localCache[str] === "NO_EXIST") {
       return null;
     }
 
