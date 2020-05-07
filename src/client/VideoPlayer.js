@@ -3,10 +3,12 @@ import _ from 'underscore';
 import './style/VideoPlayer.scss';
 import ClickAndCopyText from './subcomponent/ClickAndCopyText';
 import FileChangeToolbar from './subcomponent/FileChangeToolbar';
-const util = require("../util");
 const clientUtil = require("./clientUtil");
-const { getDir, getFn, getPathFromLocalStorage } = clientUtil;
+const { getDir, getFn, getPathFromLocalStorage, cleanSearchStr } = clientUtil;
 const namePicker = require("../human-name-picker");
+import { Link } from 'react-router-dom';
+import { array_unique } from '../util';
+
 
 export default class VideoPlayer extends Component {
   constructor(props) {
@@ -31,8 +33,21 @@ export default class VideoPlayer extends Component {
   }
 
   renderTag(){
-    const fn = getFn(getPathFromLocalStorage(this.getHash()));
-    console.log(namePicker.parse(fn));
+    const filePath = getPathFromLocalStorage(this.getHash());
+    const fn = getFn(filePath);
+    const dirName = getDir(filePath)
+    const tags1 = namePicker.parse(fn) || [];
+    const tags2 = namePicker.parse(dirName) || []; 
+    const tags = array_unique(tags1.concat(tags2));
+    
+    if(tags){
+      const tagDoms = tags.map(tag => {
+          const url = "/search/" + cleanSearchStr(tag);
+          return (<Link  target="_blank" to={url}  key={tag}>{tag}</Link>)
+      });
+
+      return (<div className="video-tag-row">  {tagDoms} </div>);
+    }
   }
 
   render() {

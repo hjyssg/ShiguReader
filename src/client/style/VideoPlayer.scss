@@ -27,6 +27,16 @@
         color: #f1f1f1;
     }
 
+    .video-tag-row {
+        margin-top: 10px;
+        display: flex;
+        justify-content: center;
+        align-content: center;
+        a{
+            color: #f1f1f1;
+        }
+    }
+
     .video-toolbar{
         display: flex;
         justify-content: center;
@@ -34,7 +44,7 @@
 
         margin-left: auto;
         margin-right: auto;
-        margin-top: 20px;
+        margin-top: 10px;
         font-size: 20px;
 
         .aji-dropdown-item{

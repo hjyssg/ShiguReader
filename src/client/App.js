@@ -84,10 +84,8 @@ class App extends Component {
             <Route path='/authorPage/:index' render={renderAuthorPage}/>
             <Route path='/videoPlayer/:number' render={renderVideo}/>
 
-
             <Route path='/chart' render={renderChartPage}/>
             <Route path='/admin' render={renderAdminPage}/>
-            
 
         </Switch>
         );
