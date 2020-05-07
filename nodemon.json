@@ -1,3 +1,7 @@
 {
-  "watch": ["src/server/"]
+  "watch": ["src/server/", 
+            "src/util.js", 
+            "src/port-config.js", 
+            "src/user-config.js", 
+            "src/path-config"]
 }
