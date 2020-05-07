@@ -12,6 +12,16 @@ function getContainSubstring(strArr, str){
     return result;
 }
 
+function getStartWithSubstring(strArr, str){
+    let result;
+    strArr.some(entry => {
+        if(str.startsWith(entry)){
+            result = entry;
+        }
+    });
+    return result;
+}
+
 const localCache = {};
 function parse(str) {
     if (!str || localCache[str] === "NO_EXIST") {
@@ -33,7 +43,7 @@ function parse(str) {
         if(nameEntry){
             result.push(nameEntry);
         }else{
-            let familyName = getContainSubstring(family_names, tt);
+            let familyName = getStartWithSubstring(family_names, tt);
             //check the substring
             const firstName = tt.replace(familyName, "");
             if(firstName.length > 4){
