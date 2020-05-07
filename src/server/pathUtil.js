@@ -18,18 +18,6 @@ const fullPathToUrl = function (img){
     return turnPathSepToWebSep("..\\"+ path.relative(rootPath, fullpath));
 }
 
-const getOutputPath = function (cachePath, zipFn) {
-    let outputFolder;
-    outputFolder = path.basename(zipFn, path.extname(zipFn));
-    if(!userConfig.readable_cache_folder_name){
-        outputFolder = stringHash(zipFn).toString();
-    }else{
-        outputFolder = outputFolder.replace(/[`~!@#$%^&*()_|+\-=?;:'",.<>/]/gi, '');
-    }
-    outputFolder = outputFolder.trim();
-    return path.join(cachePath, outputFolder);
-}
-
 const turnPathSepToWebSep = function (fn) {
     return fn.replace(new RegExp(`\\${  path.sep}`, 'g'), '/');
 }
@@ -87,7 +75,6 @@ function isSub(parent, child) {
 
 module.exports = {
     fullPathToUrl,
-    getOutputPath,
     turnPathSepToWebSep,
     generateContentUrl,
     getRootPath,

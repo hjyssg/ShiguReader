@@ -22,7 +22,6 @@ const qrcode = require('qrcode-terminal');
 
 const {
         fullPathToUrl,
-        getOutputPath,
         turnPathSepToWebSep,
         generateContentUrl,
         isExist,
@@ -120,6 +119,24 @@ function updateTagHash(str){
             db.hashTable[stringHash(result.author)] = result.author;
         }
     }
+}
+
+const getCacheOutputPath = function (cachePath, zipFilePath) {
+    let outputFolder;
+    outputFolder = path.basename(zipFilePath, path.extname(zipFilePath));
+    if(!userConfig.readable_cache_folder_name){
+        outputFolder = stringHash(zipFilePath).toString();
+    }else{
+        outputFolder = outputFolder.replace(/[`~!@#$%^&*()_|+\-=?;:'",.<>/]/gi, '');
+    }
+    outputFolder = outputFolder.trim();
+
+    const stat = db.fileToInfo[zipFilePath];
+    const mdate = new Date(stat.mtimeMs);
+    const mstr = dateFormat(mdate, "yyyy-mm-dd");
+    const fstr = (stat.size/1000/1000).toFixed();
+    outputFolder = outputFolder+ `${mstr} ${fstr} `;
+    return path.join(cachePath, outputFolder);
 }
 
 const app = express();
@@ -551,7 +568,7 @@ function getThumbnails(filePathes){
             return;
         }
 
-        const outputPath = getOutputPath(cachePath, filePath);
+        const outputPath = getCacheOutputPath(cachePath, filePath);
         let cacheFiles = getCacheFiles(outputPath);
         cacheFiles = (cacheFiles && cacheFiles.files) || [];
         const thumb = serverUtil.chooseThumbnailImage(cacheFiles);
@@ -820,7 +837,7 @@ async function extractThumbnailFromZip(filePath, res, mode, counter) {
 
     const isPregenerateMode = mode === "pre-generate";
     const sendable = !isPregenerateMode && res;
-    const outputPath = getOutputPath(cachePath, filePath);
+    const outputPath = getCacheOutputPath(cachePath, filePath);
     let files;
  
     function sendImage(img){
@@ -1022,7 +1039,7 @@ app.post('/api/extract', async (req, res) => {
         res.send({ files: tempFiles, dirs, musicFiles,path, stat });
     }
 
-    const outputPath = getOutputPath(cachePath, filePath);
+    const outputPath = getCacheOutputPath(cachePath, filePath);
     const temp = getCacheFiles(outputPath);
 
     const contentInfo = zip_content_db.getData("/");
@@ -1104,7 +1121,7 @@ app.post('/api/cleanCache', (req, res) => {
     const minized = req.body && req.body.minized;
 
     const allowFileNames =  db.allFiles.map(filePath => {
-        let outputPath = getOutputPath(cachePath, filePath);
+        let outputPath = getCacheOutputPath(cachePath, filePath);
         outputPath = path.basename(outputPath);
         return outputPath;
     })
