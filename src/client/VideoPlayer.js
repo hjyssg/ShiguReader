@@ -43,7 +43,7 @@ export default class VideoPlayer extends Component {
     if(tags){
       const tagDoms = tags.map(tag => {
           const url = "/search/" + cleanSearchStr(tag);
-          return (<Link  target="_blank" to={url}  key={tag}>{tag}</Link>)
+          return (<Link className="video-tag"  target="_blank" to={url}  key={tag}>{tag}</Link>)
       });
 
       return (<div className="video-tag-row">  {tagDoms} </div>);
