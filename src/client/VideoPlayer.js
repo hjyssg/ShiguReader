@@ -35,7 +35,7 @@ export default class VideoPlayer extends Component {
   renderTag(){
     const filePath = getPathFromLocalStorage(this.getHash());
     const fn = getFn(filePath);
-    const dirName = getDir(filePath)
+    const dirName = getFn(getDir(filePath));
     const tags1 = namePicker.parse(fn) || [];
     const tags2 = namePicker.parse(dirName) || []; 
     const tags = array_unique(tags1.concat(tags2));
