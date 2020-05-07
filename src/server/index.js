@@ -132,6 +132,10 @@ const getCacheOutputPath = function (cachePath, zipFilePath) {
     outputFolder = outputFolder.trim();
 
     const stat = db.fileToInfo[zipFilePath];
+    if(!stat){
+        throw "no stat"+zipFilePath
+    }
+
     const mdate = new Date(stat.mtimeMs);
     const mstr = dateFormat(mdate, "yyyy-mm-dd");
     const fstr = (stat.size/1000/1000).toFixed();
@@ -802,19 +806,25 @@ function get7zipOption(filePath, outputPath, file_specifier){
 }
 
 async function listZipContent(filePath){
-    //https://superuser.com/questions/1020232/list-zip-files-contents-using-7zip-command-line-with-non-verbose-machine-friend
-    let {stdout, stderr} = await limit(() => execa(sevenZip, ['l', '-r', '-ba' ,'-slt', filePath]));
-    const text = stdout;
-    if (!text || stderr) {
+    try{
+        //https://superuser.com/questions/1020232/list-zip-files-contents-using-7zip-command-line-with-non-verbose-machine-friend
+        let {stdout, stderr} = await limit(() => execa(sevenZip, ['l', '-r', '-ba' ,'-slt', filePath]));
+        const text = stdout;
+        if (!text || stderr) {
+            return [];
+        }
+
+        const files = read7zOutput(text);
+        const imgFiles = files.filter(isImage);
+        const musicFiles = files.filter(isMusic)
+
+        updateZipDb(filePath, imgFiles.length, musicFiles.length);
+        return files;
+    }catch(e){
+        logger.error("[listZipContent]", filePath);
+        console.error("[listZipContent]", filePath);
         return [];
     }
-
-    const files = read7zOutput(text);
-    const imgFiles = files.filter(isImage);
-    const musicFiles = files.filter(isMusic)
-
-    updateZipDb(filePath, imgFiles.length, musicFiles.length);
-    return files;
 }
 
 function updateZipDb(filePath, pageNum, musicNum){
