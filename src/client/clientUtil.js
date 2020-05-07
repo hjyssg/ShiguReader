@@ -7,7 +7,7 @@ module.exports.getDir = function (fn) {
 };
 
 // '\' is for browser path
-const getFn = module.exports.getFn = function (fn, seperator) {
+const getBaseName = module.exports.getBaseName = function (fn, seperator) {
     if (!fn) { return ""; }
     const tokens = seperator? fn.split(seperator) : fn.split('\\');
     return tokens[tokens.length - 1];
@@ -17,10 +17,10 @@ module.exports.getUrl = function (fn){
     return "../" + fn;
 }
 
-const getFnWithoutExtention = function (fn, seperator) {
+const getBaseNameWithoutExtention = function (fn, seperator) {
     seperator = seperator || "/"
     if (!fn) { return ""; }
-    return getFn(fn, seperator).split(".")[0];
+    return getBaseName(fn, seperator).split(".")[0];
 };
 
 const isPad = module.exports.isPad = function(){
@@ -48,7 +48,7 @@ module.exports.getPathFromLocalStorage = function(hash){
 }
 
 module.exports.sortFileNames = function(files){
-    util._sortFileNames(files, getFnWithoutExtention);
+    util._sortFileNames(files, getBaseNameWithoutExtention);
 }
 
 module.exports.isLocalHost = function(){

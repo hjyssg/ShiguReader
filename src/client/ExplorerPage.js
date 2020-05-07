@@ -22,7 +22,7 @@ const nameParser = require('../name-parser');
 const classNames = require('classnames');
 const Constant = require("../constant");
 const clientUtil = require("./clientUtil");
-const { getDir, getFn, getPerPageItemNumber, stringHash } = clientUtil;
+const { getDir, getBaseName, getPerPageItemNumber, stringHash } = clientUtil;
 const { isVideo, isCompress } = util;
 
 const { SORT_BY_DATE, 
@@ -332,8 +332,8 @@ export default class ExplorerPage extends Component {
     sortFiles(files, sortOrder){
         //-------sort algo
         const byFn = (a, b) => {
-            const ap = getFn(a);
-            const bp = getFn(b);
+            const ap = getBaseName(a);
+            const bp = getBaseName(b);
             return ap.localeCompare(bp);
         }
 
@@ -378,8 +378,8 @@ export default class ExplorerPage extends Component {
                     return comprTime(fileTimeA, fileTimeB);
                 }else{
 
-                    const pA = nameParser.parse(getFn(a));
-                    const pB = nameParser.parse(getFn(b));
+                    const pA = nameParser.parse(getBaseName(a));
+                    const pB = nameParser.parse(getBaseName(b));
     
                     let aboutTimeA = pA && nameParser.getDateFromTags(pA.tags);
                     let aboutTimeB = pB && nameParser.getDateFromTags(pB.tags);
@@ -447,7 +447,7 @@ export default class ExplorerPage extends Component {
         const dirItems = dirs.map((item) =>  {
             const pathHash = stringHash(item);
             const toUrl =('/explorer/'+ pathHash);
-            const text = this.getMode() === MODE_HOME ? item: getFn(item);
+            const text = this.getMode() === MODE_HOME ? item: getBaseName(item);
             const result =  this.getOneLineListItem(<i className="far fa-folder"></i>, text);
             return  <Link to={toUrl}  key={item}>{result}</Link>;
         });
@@ -455,7 +455,7 @@ export default class ExplorerPage extends Component {
         let videoItems = videos.map((item) =>  {
             const pathHash = stringHash(item);
             const toUrl =('/videoPlayer/'+ pathHash);
-            const text = getFn(item);
+            const text = getBaseName(item);
             const result = this.getOneLineListItem(<i className="far fa-file-video"></i>, text);
             return  <Link to={toUrl}  key={item}>{result}</Link>;
         });
@@ -467,7 +467,7 @@ export default class ExplorerPage extends Component {
         //and tag
         let breadcrumbCount = 0;
         const zipfileItems = files.map((item, index) => {
-            const text = getFn(item);
+            const text = getBaseName(item);
             const pathHash = stringHash(item);
             const toUrl =  '/onebook/' + pathHash;
 
@@ -784,7 +784,7 @@ export default class ExplorerPage extends Component {
         const tag2Freq = {};
 
         files.forEach(e => {
-            const result = nameParser.parse(getFn(e));
+            const result = nameParser.parse(getBaseName(e));
             let tags = (result && result.tags)||[];
 
             tags.forEach(t => {

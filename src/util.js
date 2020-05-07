@@ -42,15 +42,15 @@ module.exports.canBeCompressed = function(fn){
 }
 
 //todo duplicate----------
- module.exports._sortFileNames = function (files, getFnWithoutExtention) {
-    if(!getFnWithoutExtention){
-        throw "no getFnWithoutExtention";
+ module.exports._sortFileNames = function (files, getBaseNameWithoutExtention) {
+    if(!getBaseNameWithoutExtention){
+        throw "no getBaseNameWithoutExtention";
     }
 
-    const fileIndexs =  files.map(e => getFnWithoutExtention(e));
+    const fileIndexs =  files.map(e => getBaseNameWithoutExtention(e));
 
     if(fileIndexs.every(isOnlyDigit)){
-      files.sort((a, b) =>  {return parseInt(getFnWithoutExtention(a)) - parseInt(getFnWithoutExtention(b)) });
+      files.sort((a, b) =>  {return parseInt(getBaseNameWithoutExtention(a)) - parseInt(getBaseNameWithoutExtention(b)) });
     } else {
       files.sort((a, b) => a.localeCompare(b));
     }

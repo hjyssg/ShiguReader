@@ -30,7 +30,7 @@ const MIN_HEIGHT = 400;
 const MIN_WIDTH = 400;
 const userConfig = require('../user-config');
 const clientUtil = require("./clientUtil");
-const { getDir, getFn, isPad, stringHash, getUrl, sortFileNames, cleanSearchStr } = clientUtil;
+const { getDir, getBaseName, isPad, stringHash, getUrl, sortFileNames, cleanSearchStr } = clientUtil;
 
 const NO_TWO_PAGE = "no_clip";
 const TWO_PAGE_LEFT = "left";
@@ -397,7 +397,7 @@ export default class OneBook extends Component {
       const size = filesizeUitl(fileStat.size, {base: 2});
       const avg = filesizeUitl(fileStat.size/files.length, {base: 2});
       const mTime = dateFormat(fileStat.mtime, "isoDate");
-      const title = getFn(files[index], "/" );
+      const title = getBaseName(files[index], "/" );
       const dim = "";  //change by dom operation
       const titles = [
         "Modify Time",
@@ -545,8 +545,8 @@ export default class OneBook extends Component {
   }
 
   renderTags(){
-    const fn = getFn(this.state.path);
-    const dirName = getFn(getDir(this.state.path));
+    const fn = getBaseName(this.state.path);
+    const dirName = getBaseName(getDir(this.state.path));
     const result = nameParser.parse(fn);
     let tagDivs;
     if(!result){
@@ -650,7 +650,7 @@ export default class OneBook extends Component {
     }
     
     if(this.state.path){
-      document.title = getFn(this.state.path);
+      document.title = getBaseName(this.state.path);
 
       if(isPad() && index > 0){
         const _text = `${index+1}/${files.length}`;
@@ -675,7 +675,7 @@ export default class OneBook extends Component {
       <div className="one-book-container">
         {!isContentBelow && content}
         <div className="one-book-title" >
-            <ClickAndCopyText text={getFn(this.state.path)} />
+            <ClickAndCopyText text={getBaseName(this.state.path)} />
             {this.renderPath()} 
         </div>
         {this.renderPagination()}

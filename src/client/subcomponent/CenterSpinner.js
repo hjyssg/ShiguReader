@@ -5,7 +5,7 @@ var classNames = require('classnames');
 import Spinner from './Spinner';
 const util = require("../../util");
 const clientUtil = require("../clientUtil");
-const { getDir, getFn } = clientUtil;
+const { getDir, getBaseName } = clientUtil;
 
 export default class CenterSpinner extends Component {
      render(){
@@ -13,7 +13,7 @@ export default class CenterSpinner extends Component {
         if(this.props.text){
           if(this.props.splitFilePath){
             text = <div className="title">
-                      <div>{getFn(this.props.text)}</div>
+                      <div>{getBaseName(this.props.text)}</div>
                       <div>{getDir(this.props.text)}></div>
                   </div>
           }else{

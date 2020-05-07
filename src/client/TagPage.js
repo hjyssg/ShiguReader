@@ -14,7 +14,7 @@ const nameParser = require('../name-parser');
 
 const util = require("../util");
 const clientUtil = require("./clientUtil");
-const { getDir, getFn, getPerPageItemNumber, stringHash } = clientUtil;
+const { getDir, getBaseName, getPerPageItemNumber, stringHash } = clientUtil;
 
 const chooseOneThumbnailForOneTag = function(files){
   return files && files[0];
@@ -77,7 +77,7 @@ export default class TagPage extends Component {
     const tagToFiles = {};
 
     allFiles.forEach((filePath) => {
-        const fileName = getFn(filePath);
+        const fileName = getBaseName(filePath);
         const result = nameParser.parse(fileName);
         if (result) {
             const fileThumbnail = allThumbnails[filePath];

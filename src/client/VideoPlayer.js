@@ -4,7 +4,7 @@ import './style/VideoPlayer.scss';
 import ClickAndCopyText from './subcomponent/ClickAndCopyText';
 import FileChangeToolbar from './subcomponent/FileChangeToolbar';
 const clientUtil = require("./clientUtil");
-const { getDir, getFn, getPathFromLocalStorage, cleanSearchStr } = clientUtil;
+const { getDir, getBaseName, getPathFromLocalStorage, cleanSearchStr } = clientUtil;
 const namePicker = require("../human-name-picker");
 import { Link } from 'react-router-dom';
 import { array_unique } from '../util';
@@ -34,8 +34,8 @@ export default class VideoPlayer extends Component {
 
   renderTag(){
     const filePath = getPathFromLocalStorage(this.getHash());
-    const fn = getFn(filePath);
-    const dirName = getFn(getDir(filePath));
+    const fn = getBaseName(filePath);
+    const dirName = getBaseName(getDir(filePath));
     const tags1 = namePicker.parse(fn) || [];
     const tags2 = namePicker.parse(dirName) || []; 
     const tags = array_unique(tags1.concat(tags2));
@@ -53,7 +53,7 @@ export default class VideoPlayer extends Component {
   render() {
     const fn = getPathFromLocalStorage(this.getHash());
     const url = "/api/video/" + this.getHash();
-    document.title = getFn(fn);
+    document.title = getBaseName(fn);
     const {hasError} = this.state;
     //use bootstrap classname util 
     if(hasError || !fn){
