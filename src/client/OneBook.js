@@ -576,7 +576,7 @@ export default class OneBook extends Component {
       let url;
       if(tag === author){
         url = "/author/" + tagHash;
-      }else if(originalTags.includes(tag)){
+      }else if(originalTags && originalTags.includes(tag)){
         url = "/tag/" + tagHash;
       }else{
         url = "/search/" + cleanSearchStr(tag);
