@@ -35,7 +35,7 @@ const rootPath = pathUtil.getRootPath();
 const cache_folder_name = userConfig.cache_folder_name;
 const cachePath = path.join(rootPath, cache_folder_name);
 let logPath = path.join(rootPath, userConfig.workspace_name, "log");
-logPath = path.join(logPath, dateFormat(new Date(), "yyyy-mm-dd-hh-mm"))+ ".log";
+logPath = path.join(logPath, dateFormat(new Date(), "yyyy-mm-dd hh-MM"))+ ".log";
 
 //set up json DB
 const JsonDB = require('node-json-db').JsonDB;
@@ -224,7 +224,7 @@ async function init() {
         const lanIP = await internalIp.v4();
         const mobileAddress = `http://${lanIP}:${http_port}`;
         console.log("----------------------------------------------------------------");
-        console.log(dateFormat(new Date(), "yyyy-mm-dd hh:mm"));
+        console.log(dateFormat(new Date(), "yyyy-mm-dd hh:MM"));
         console.log(`Express Server listening on port ${port}`);
         console.log("You can open ShiguReader from Browser now!");
         console.log(`http://localhost:${http_port}`);
@@ -1007,9 +1007,11 @@ app.post('/api/extract', async (req, res) => {
 
     const outputPath = getOutputPath(cachePath, filePath);
     const temp = getCacheFiles(outputPath);
-    //TODO: should use pageNum
-    const total_page_num = 15;
-    if (temp && temp.files.length > total_page_num) {
+
+    const contentInfo = zip_content_db.getData("/");
+    let pageNum = contentInfo[filePath] && contentInfo[filePath].pageNum;
+    pageNum = pageNum === "NOT_THUMBNAIL_AVAILABLE"? 0 : pageNum;
+    if (pageNum > 0 &&  temp && temp.files.length >= pageNum) {
         sendBack(temp.files, temp.dirs, temp.musicFiles, filePath, stat);
         return;
     }
@@ -1056,15 +1058,20 @@ app.post('/api/extract', async (req, res) => {
                     const timeUsed = (time2 - time1);
                     console.log(`[/api/extract] FIRST PART UNZIP ${filePath} : ${timeUsed}ms`);
 
-                    //let quitely unzip second part
-                    const opt = get7zipOption(filePath, outputPath, secondRange);
-                    const { stderr2 } = await execa(sevenZip, opt);
-                    if(stderr2){
-                        console.error('[/api/extract] second range exit: ', stderr2);  
-                    }else{
-                        const time3 = getCurrentTime();
-                        const timeUsed = (time3 - time2);
-                        console.log(`[/api/extract] Second PART UNZIP ${filePath} : ${timeUsed}ms`);
+                    try{
+                        //let quitely unzip second part
+                        const opt = get7zipOption(filePath, outputPath, secondRange);
+                        const { stderr2 } = await execa(sevenZip, opt);
+                        if(stderr2){
+                            console.error('[/api/extract] second range exit: ', stderr2);  
+                        }else{
+                            const time3 = getCurrentTime();
+                            const timeUsed = (time3 - time2);
+                            console.log(`[/api/extract] Second PART UNZIP ${filePath} : ${timeUsed}ms`);
+                        }
+                    }catch (e){
+                        console.error('[/api/extract] second range exit: ', e);
+                        logger.error('[/api/extract] second range exit: ', e);
                     }
                 } else {
                     res.sendStatus(500);

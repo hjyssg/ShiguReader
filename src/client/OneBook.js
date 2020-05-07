@@ -588,9 +588,6 @@ export default class OneBook extends Component {
               </div>);
     })
 
-
-
-
     return (<div className="one-book-tags">
             {tagDivs}
           </div>);
