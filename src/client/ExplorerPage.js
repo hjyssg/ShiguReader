@@ -85,11 +85,12 @@ export default class ExplorerPage extends Component {
         this.setStateAndSetHash({ pageIndex: index});
     }
 
-    getHash() {
-        return this.props.match.params.tag || 
-               this.props.match.params.author ||
-               this.props.match.params.search ||
-               this.props.match.params.number;
+    getHash(props) {
+        const _props = props || this.props;
+        return _props.match.params.tag || 
+               _props.match.params.author ||
+               _props.match.params.search ||
+               _props.match.params.number;
     }
 
     getMode(props){
@@ -156,14 +157,17 @@ export default class ExplorerPage extends Component {
     
     componentDidUpdate(prevProps, prevState) {
         //when path changes, does not show previous path's content 
-        const differentMode = this.getMode() !== this.getMode(prevProps);
-        const pathChanged = this.getMode() === MODE_EXPLORER && this.path && this.path !== this.getPathFromLocalStorage();
+        const prevMode = this.getMode(prevProps);
+        const prevHash = this.getHash(prevProps);
+        const differentMode = this.getMode() !== prevMode;
+        const sameMode = !differentMode;
+        const pathChanged = !!(sameMode && this.getHash() !== prevHash );
         if(differentMode || pathChanged ){
             this.loadedHash = "";
             this.videoFiles = []
             this.files = [];
             this.dirs = [];
-            this.path = this.getPathFromLocalStorage() || "";
+            this.path = this.getPathFromLocalStorage()
             this.tag = "";
             this.author = "";
             this.fileInfos = {};
@@ -221,7 +225,7 @@ export default class ExplorerPage extends Component {
 
     getPathFromLocalStorage(){
         const hash = this.getHash();
-        return clientUtil.getPathFromLocalStorage(hash);
+        return clientUtil.getPathFromLocalStorage(hash) || "";
     }
 
     requestSearch() {
