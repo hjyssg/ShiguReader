@@ -1,6 +1,6 @@
 module.exports.same_tags = [
     ["艦これ","艦隊これくしょん", "艦隊これくしょん-艦これ-", "艦隊これくしょん -艦これ-","艦隊これくしょん -艦これ", "Kantai Collection -KanColle-", "Kantai Collection"],
-    ["ラブライブ!","ラブライブ! School idol project","ラブライブ"],
+    ["ラブライブ!","ラブライブ! School idol project","ラブライブ","Love Live!"],
     ["ラブライブ!サンシャイン!!", "ブライブ！ サンシャイン!!"],
     ["Fate⁄Grand Order", "Fate／Grand Order", "FateGrand Order", "Fate Grand Order", "FGO"],
     ["オリジナル", "Original"],
