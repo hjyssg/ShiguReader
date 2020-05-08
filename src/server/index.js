@@ -585,6 +585,14 @@ function getPageNum(contentInfo, filePath){
     }
 }
 
+function getMusicNum(contentInfo, filePath){
+    if(contentInfo[filePath]){
+        return +(contentInfo[filePath].musicNum) || 0;
+    }else{
+        return 0;
+    }
+}
+
 function getThumbnails(filePathes){
     const thumbnails = {};
     const contentInfo = zip_content_db.getData("/");
@@ -616,8 +624,8 @@ function getZipInfo(filePathes){
     
     filePathes.forEach(filePath => {
         if(isCompress(filePath) && contentInfo[filePath]){
-            let pageNum = contentInfo[filePath].pageNum || 0;
-            const musicNum = contentInfo[filePath].musicNum || 0;
+            let pageNum = getPageNum(contentInfo, filePath);
+            const musicNum = getMusicNum(contentInfo, filePath);
 
             const entry = {
                 pageNum,
@@ -1079,7 +1087,9 @@ app.post('/api/extract', async (req, res) => {
 
     const contentInfo = zip_content_db.getData("/");
     const pageNum = getPageNum(contentInfo, filePath); 
-    if (pageNum > 0 &&  temp && temp.files.length >= pageNum) {
+    const musicNum = getMusicNum(contentInfo, filePath);
+    const totalNum = pageNum + musicNum;
+    if (totalNum > 0 &&  temp && temp.files.length >= totalNum) {
         sendBack(temp.files, temp.dirs, temp.musicFiles, filePath, stat);
         return;
     }
