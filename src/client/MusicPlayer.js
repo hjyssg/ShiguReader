@@ -14,15 +14,23 @@ export default class MusicPlayer extends Component {
         };
     }
 
-    componentDidUpdate(){
+    bindEvent(){
         const that = this;
         this.refs.audio.addEventListener('ended', () => {
-            const next = that.state.index + 1;
+            let next = that.state.index + 1;
             if(next === that.props.audioFiles.length){
                 next = 0;
             }
             that.handleIndexChange(next);
         });
+    }
+
+    componentDidMount(){
+        this.bindEvent();
+    }
+
+    componentDidUpdate(){
+
     }
 
     handleIndexChange(index){
