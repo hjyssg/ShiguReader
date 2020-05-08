@@ -41,6 +41,10 @@ const { MODE_TAG,
 
 const GOOD_STANDARD = 2;
 
+function parse(str){
+    return nameParser.parse(getBaseName(str));
+}
+
 export default class ExplorerPage extends Component {
     constructor(prop) {
         super(prop);
@@ -254,7 +258,7 @@ export default class ExplorerPage extends Component {
 
         if(filterByGoodAuthorName && goodSet && otherSet){
             files = files.filter(e => {
-                const temp = nameParser.parse(e);
+                const temp = parse(e);
                 if(temp && temp.author && goodSet[temp.author] && goodSet[temp.author] > GOOD_STANDARD){
                     return e;
                 }
@@ -276,7 +280,7 @@ export default class ExplorerPage extends Component {
 
         if(filterByFirstTime && goodSet && otherSet){
             files = files.filter(e => {
-                const temp = nameParser.parse(e);
+                const temp = parse(e);
                 if(temp && temp.author && ((goodSet[temp.author]||0) + (otherSet[temp.author]||0)) <= 1){
                     
                     return e;
@@ -382,8 +386,8 @@ export default class ExplorerPage extends Component {
                     return comprTime(fileTimeA, fileTimeB);
                 }else{
 
-                    const pA = nameParser.parse(getBaseName(a));
-                    const pB = nameParser.parse(getBaseName(b));
+                    const pA = parse(a);
+                    const pB = parse(b);
     
                     let aboutTimeA = pA && nameParser.getDateFromTags(pA.tags);
                     let aboutTimeB = pB && nameParser.getDateFromTags(pB.tags);
@@ -788,7 +792,7 @@ export default class ExplorerPage extends Component {
         const tag2Freq = {};
 
         files.forEach(e => {
-            const result = nameParser.parse(getBaseName(e));
+            const result = parse(e);
             let tags = (result && result.tags)||[];
 
             tags.forEach(t => {

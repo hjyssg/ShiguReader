@@ -112,6 +112,8 @@ function parse(str){
     return nameParser.parse(path.basename(str, path.extname(str)));
 }
 
+const includesWithoutCase =  nameParser.includesWithoutCase;
+
 function updateTagHash(str){
     const result = parse(str);
     if(result){
@@ -227,13 +229,10 @@ async function init() {
     console.log(`${(end - beg)/1000}s  to read local dirs`);
     console.log("Analyzing local files");
     
-    const arr = [];
     for (let i = 0; i < results.pathes.length; i++) {
         const p = results.pathes[i];
         const ext = path.extname(p).toLowerCase();
         if (!ext ||  isDisplayableInExplorer(ext)) {
-            arr.push(p);
-
             db.hashTable[stringHash(p)] = p;
             updateTagHash(p);
         }
@@ -578,6 +577,13 @@ app.post('/api/homePagePath', function (req, res) {
     }
 });
 
+function getPageNum(contentInfo, filePath){
+    if(contentInfo[filePath]){
+        return +(contentInfo[filePath].pageNum) || 0;
+    }else{
+        return 0;
+    }
+}
 
 function getThumbnails(filePathes){
     const thumbnails = {};
@@ -594,9 +600,9 @@ function getThumbnails(filePathes){
         const thumb = serverUtil.chooseThumbnailImage(cacheFiles);
         if(thumb){
             thumbnails[filePath] = fullPathToUrl(thumb);
-        }else{
-            const pageNum = contentInfo[filePath] && contentInfo[filePath].pageNum;
-            if(pageNum === "NOT_THUMBNAIL_AVAILABLE" || pageNum === 0){
+        }else if(contentInfo[filePath]){
+            const pageNum = getPageNum(contentInfo, filePath);
+            if(pageNum === 0){
                 thumbnails[filePath] = "NOT_THUMBNAIL_AVAILABLE";
             }
         }
@@ -610,12 +616,12 @@ function getZipInfo(filePathes){
     
     filePathes.forEach(filePath => {
         if(isCompress(filePath) && contentInfo[filePath]){
-            let pageNum = contentInfo[filePath].pageNum;
-            pageNum = pageNum === "NOT_THUMBNAIL_AVAILABLE"? 0 : pageNum;
+            let pageNum = contentInfo[filePath].pageNum || 0;
+            const musicNum = contentInfo[filePath].musicNum || 0;
 
             const entry = {
                 pageNum,
-                musicNum: contentInfo[filePath].musicNum || 0
+                musicNum
             }
 
             fpToInfo[filePath] = entry;
@@ -720,7 +726,7 @@ function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
             (isEqual(result.author, author) || isEqual(result.group, author) || isSimilar(result.author, author))) {
             files.push(path);
             fileInfos[path] = info;
-        } else if (result && tag && nameParser.includesWithoutCase(result.tags, tag)) {
+        } else if (result && tag && includesWithoutCase(result.tags, tag)) {
             files.push(path);
             fileInfos[path] = info;
         }else if (text && path.toLowerCase().indexOf(text.toLowerCase()) > -1) {
@@ -1072,8 +1078,7 @@ app.post('/api/extract', async (req, res) => {
     const temp = getCacheFiles(outputPath);
 
     const contentInfo = zip_content_db.getData("/");
-    let pageNum = contentInfo[filePath] && contentInfo[filePath].pageNum;
-    pageNum = pageNum === "NOT_THUMBNAIL_AVAILABLE"? 0 : pageNum;
+    const pageNum = getPageNum(contentInfo, filePath); 
     if (pageNum > 0 &&  temp && temp.files.length >= pageNum) {
         sendBack(temp.files, temp.dirs, temp.musicFiles, filePath, stat);
         return;

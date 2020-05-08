@@ -13,6 +13,9 @@ const { getDir, getBaseName } = clientUtil;
 const util = require("../util");
 const {isCompress, array_unique} = util;
 
+function parse(str){
+    return nameParser.parse(getBaseName(str));
+}
 
 export default class ChartPage extends Component {
     constructor(prop) {
@@ -56,7 +59,7 @@ export default class ChartPage extends Component {
         const byComiket = {}; //c91 -> 350
         const tagByComiket = {}; // c95 -> kankore -> 201
         this.files.forEach(e => {
-            const result = nameParser.parse(getBaseName(e));
+            const result = parse(e);
             if(result && result.comiket){
                 let cc = result.comiket;
                 byComiket[cc] = byComiket[cc] || 0;
@@ -122,7 +125,7 @@ export default class ChartPage extends Component {
         const byTime = {}; //time -> 300. 
         this.files.forEach(e => {
             const fileInfo = this.fileToInfo[e];
-            const pA = nameParser.parse(getBaseName(e));
+            const pA = parse(e);
             let aboutTimeA = pA && nameParser.getDateFromTags(pA.tags);
             aboutTimeA = aboutTimeA && aboutTimeA.getTime();
             aboutTimeA = aboutTimeA || fileInfo.mtime;
@@ -168,7 +171,7 @@ export default class ChartPage extends Component {
     renderPieChart(){
         const byType = {}; //doujin -> 300. 
         this.files.forEach(e => {
-            const result = nameParser.parse(getBaseName(e));
+            const result = parse(e);
             if(result &&  result.type){
                 const type = result.type;
                 byType[type] = byType[type] || 0;

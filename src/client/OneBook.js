@@ -549,7 +549,6 @@ export default class OneBook extends Component {
     let originalTags;
     let group;
 
-
     if(result){
       author =  result.author;
       group = result.group;
