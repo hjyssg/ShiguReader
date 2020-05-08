@@ -140,8 +140,9 @@ const getCacheOutputPath = function (cachePath, zipFilePath) {
     let stat = db.fileToInfo[zipFilePath];
     if(!stat){
         //should have  stat in fileToInfo
+        //chokidar is not reliable 
         console.warn("[getCacheOutputPath] no stat", zipFilePath);
-        stat = fs.statSync(filePath);
+        stat = fs.statSync(zipFilePath);
     }
 
     const mdate = new Date(stat.mtimeMs);
@@ -893,8 +894,6 @@ async function extractThumbnailFromZip(filePath, res, mode, counter) {
             url: fullPathToUrl(img)
         })
     }
-
-
 
     function handleFail(){
         sendable && res.sendStatus(404);
