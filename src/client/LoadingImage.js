@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import Sender from './Sender';
 const Constant = require("../constant");
 const classNames = require('classnames');
+import "./style/LoadingImage.scss"
 
 export default class LoadingImage extends Component {
   constructor(props) {
