@@ -205,7 +205,14 @@ async function init() {
 
     console.log("scanning local files");
 
-    const filter = (e) => {return isDisplayableInExplorer(e);};
+    const filter = (e, stat) => {
+        const minSize = 1000 * 10;
+        if(stat.size < minSize){
+            return false;
+        }
+        
+        return isDisplayableInExplorer(e);
+    };
     let beg = (new Date).getTime()
     const results = fileiterator(path_will_scan, { 
         filter:filter, 

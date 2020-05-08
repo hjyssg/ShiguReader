@@ -52,7 +52,7 @@ function iterate (p, config, result, depth) {
         const stat = getStat(p, config);
         result.infos[p] = stat;
         if (stat.isFile) {
-            if (config && config.filter && !config.filter(p)) {
+            if (config && config.filter && !config.filter(p, stat)) {
                 return;
             }
 
