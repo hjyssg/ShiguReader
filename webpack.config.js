@@ -33,7 +33,12 @@ module.exports = {
         loader: 'url-loader?limit=100000'
       },{
         test: /\.scss$/,
-        use: ["style-loader", "css-loader", "sass-loader"]
+        use: ["style-loader", "css-loader", {
+          loader: 'sass-loader',
+          options: {
+            implementation: require('dart-sass'),
+          },
+        }]
       },{
         test: /\.less$/,
         use: ["style-loader" ,"css-loader", "less-loader"]
