@@ -703,8 +703,12 @@ function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
     // let beg = (new Date).getTime()
     const files = [];
     const fileInfos = {};
-    for (let ii = 0; ii < getAllFilePathes().length; ii++) {
-        const path = getAllFilePathes()[ii];
+    let _break;
+    getAllFilePathes().forEach(path => {
+        if(_break){
+            return;
+        }
+
         const info = db.fileToInfo[path];
         const result = (author || tag) && nameParser.parse(path);
         //sometimes there are mulitple authors for one book
@@ -721,10 +725,10 @@ function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
         }
 
         if (onlyNeedFew && files.length > 5) {
-            break;
+            _break = true;
         }
-    }
-
+    });
+   
     // let end = (new Date).getTime();
     // console.log((end - beg)/1000, "to search");
     return { files, tag, author, fileInfos, thumbnails: getThumbnails(files) };
@@ -966,14 +970,14 @@ app.post('/api/pregenerateThumbnails', (req, res) => {
         return;
     }
 
-    let totalFiles = getAllFilePathes().filter(isCompress);
+    const allfiles = getAllFilePathes();
+    let totalFiles = allfiles.filter(isCompress);
     if(path !== "All_Pathes"){
-        totalFiles = getAllFilePathes().filter(e => e.includes(path));
+        totalFiles = allfiles.filter(e => e.includes(path));
     }
 
     pregenBeginTime = getCurrentTime();
 
-    // const totalFiles = !path ? getAllFilePathes() : getAllFilePathes().filter(e => e.includes(path));
     let counter = {counter: 1, total: totalFiles.length, minCounter: 1};
     totalFiles.forEach(filePath =>{
         extractThumbnailFromZip(filePath, res, "pre-generate", counter);
