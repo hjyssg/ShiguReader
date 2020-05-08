@@ -147,17 +147,22 @@ const getCacheOutputPath = function (cachePath, zipFilePath) {
 
 const app = express();
 const db = {
-    //a list of all files
-    allFiles : [],
     //file path to file stats
     fileToInfo: {},
-    //cache path to file stats
-    cacheToInfo: {},
-    //a list of cache files folder -> files
-    cacheTable: {},
     //hash to any string
     hashTable: {},
 };
+
+const cacheDb = {
+    //a list of cache files folder -> files
+    folderToFiles: {},
+    //cache path to file stats
+    cacheFileToInfo: {}
+}
+
+function getAllFilePathes(){
+    return _.keys(db.fileToInfo);
+}
 
 app.use(express.static('dist', {
     maxAge: (1000*3600).toString()
@@ -176,8 +181,8 @@ fileChangeHandler.init(app, logger);
 function getCacheFiles(outputPath) {
     //in-memory is fast
     const single_cache_folder = path.basename(outputPath);
-    if(db.cacheTable[single_cache_folder] && db.cacheTable[single_cache_folder].length > 0){
-        return generateContentUrl(db.cacheTable[single_cache_folder], outputPath);
+    if(cacheDb.folderToFiles[single_cache_folder] && cacheDb.folderToFiles[single_cache_folder].length > 0){
+        return generateContentUrl(cacheDb.folderToFiles[single_cache_folder], outputPath);
     }
     return null;
 }
@@ -222,10 +227,9 @@ async function init() {
             updateTagHash(p);
         }
     }
-    db.allFiles = arr || [];
     db.fileToInfo = results.infos;
 
-    console.log("There are",db.allFiles.length, "files");
+    console.log("There are",getAllFilePathes().length, "files");
 
     console.log("----------scan cache------------");
     const cache_results = fileiterator([cachePath], { 
@@ -235,11 +239,11 @@ async function init() {
 
     (cache_results.pathes||[]).forEach(p => {
         const fp =  getDirName(p);
-        db.cacheTable[fp] = db.cacheTable[fp] || [];
-        db.cacheTable[fp].push(path.basename(p));
+        cacheDb.folderToFiles[fp] = cacheDb.folderToFiles[fp] || [];
+        cacheDb.folderToFiles[fp].push(path.basename(p));
     });
 
-    db.cacheToInfo = cache_results.infos;
+    cacheDb.cacheFileToInfo = cache_results.infos;
 
     const {watcher, cacheWatcher} = setUpFileWatch();
     const port = isProduction? http_port: dev_express_port;
@@ -281,6 +285,8 @@ function getDirName(p){
     return path.basename(result);
 }
 
+
+
 function setUpFileWatch(){
     const watcher = chokidar.watch(home_pathes, {
         ignored: shouldIgnore,
@@ -290,8 +296,6 @@ function setUpFileWatch(){
     });
 
     const addCallBack = (path, stats) => {
-        db.allFiles.push(path);
-
         updateTagHash(path);
         db.hashTable[stringHash(path)] = path;
         stats.isFile = stats.isFile();
@@ -303,8 +307,6 @@ function setUpFileWatch(){
     };
 
     const deleteCallBack = path => {
-        const index = db.allFiles.indexOf(path);
-        db.allFiles[index] = "";
         db.fileToInfo[path] = "";
         hentaiCache = null;
     };
@@ -329,25 +331,26 @@ function setUpFileWatch(){
     cacheWatcher
         .on('unlinkDir', p => {
             const fp =  path.dirname(p);
-            db.cacheTable[fp] = undefined;
+            cacheDb.folderToFiles[fp] = undefined;
         });
 
     cacheWatcher
         .on('add', (p, stats) => {
             const fp =  getDirName(p);
-            db.cacheTable[fp] = db.cacheTable[fp] || [];
-            db.cacheTable[fp].push(path.basename(p));
+            cacheDb.folderToFiles[fp] = cacheDb.folderToFiles[fp] || [];
+            cacheDb.folderToFiles[fp].push(path.basename(p));
 
             stats.isFile = stats.isFile();
             stats.isDir = stats.isDirectory();
-            db.cacheToInfo[p] = stats;
+            cacheDb.cacheFileToInfo[p] = stats;
         })
         .on('unlink', p => {
             const fp =  getDirName(p);
-            db.cacheTable[fp] = db.cacheTable[fp] || [];
-            const index = db.cacheTable[fp].indexOf(path.basename(p));
-            db.cacheTable[fp].splice(index, 1);
-            delete db.cacheToInfo[p];
+            cacheDb.folderToFiles[fp] = cacheDb.folderToFiles[fp] || [];
+            const index = cacheDb.folderToFiles[fp].indexOf(path.basename(p));
+            cacheDb.folderToFiles[fp].splice(index, 1);
+
+            delete cacheDb.cacheFileToInfo[p];
         });
 
     return {
@@ -364,7 +367,7 @@ app.get('/api/exhentaiApi', function (req, res) {
         return;
     }
 
-    let allfiles = db.allFiles.filter(isCompress);
+    let allfiles = getAllFilePathes().filter(isCompress);
     allfiles = allfiles.map(e => {
         return path.basename(e, path.extname(e)).trim();
     });
@@ -377,13 +380,13 @@ app.get('/api/exhentaiApi', function (req, res) {
 
 //-------------------------Get info ----------------------
 app.get('/api/cacheInfo', (req, res) => {
-    const cacheFiles =  _.keys(db.cacheToInfo).filter(isDisplayableInOnebook);
+    const cacheFiles =  _.keys(cacheDb.cacheFileToInfo).filter(isDisplayableInOnebook);
     let totalSize = 0;
 
     const thumbnailNum = cacheFiles.filter(util.isCompressedThumbnail).length;
 
     cacheFiles.forEach(e => {
-        totalSize += db.cacheToInfo[e].size;
+        totalSize += cacheDb.cacheFileToInfo[e].size;
     })
 
     res.send({
@@ -399,7 +402,7 @@ app.get('/api/allInfo', (req, res) => {
     const tempfileToInfo = {};
     const allFiles = [];
     // let beg = (new Date).getTime()
-    db.allFiles.forEach(e => {
+    getAllFilePathes().forEach(e => {
         if(util.isCompress(e)){
             tempfileToInfo[e] = {
                 size: db.fileToInfo[e].size,
@@ -424,7 +427,7 @@ app.get('/api/allInfo', (req, res) => {
 function getGoodAndOtherSet(){
     const set = {};
     const otherSet = {};
-    db.allFiles.forEach(p => {
+    getAllFilePathes().forEach(p => {
         const ext = path.extname(p).toLowerCase();
         if(isCompress(ext)){
             const temp = nameParser.parse(p);
@@ -471,7 +474,7 @@ app.get('/api/tag', (req, res) => {
 
     const tags = {};
     const authors = {};
-    db.allFiles.forEach((e) => {
+    getAllFilePathes().forEach((e) => {
         e = path.basename(e);
         const result = nameParser.parse(e);
         if (result) {
@@ -551,7 +554,7 @@ app.post('/api/homePagePath', function (req, res) {
     //check if pathes really exist
     homepathes = homepathes.filter(e => {
        //there is file in the folder
-       return db.allFiles.some(fp => (fp.length > e.length && fp.includes(e)));
+       return getAllFilePathes().some(fp => (fp.length > e.length && fp.includes(e)));
     });
 
     if(homepathes.length === 0){
@@ -627,7 +630,7 @@ app.post('/api/lsDir', async (req, res) => {
     const dirs = [];
     const infos = {};
     const oneLevel = !isRecursive;
-    db.allFiles.forEach(pp => {
+    getAllFilePathes().forEach(pp => {
         if(pp && isSub(dir, pp)){
             const singleInfo = db.fileToInfo[pp];
             if(oneLevel && !isDirectParent(dir, pp)){
@@ -693,8 +696,8 @@ function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
     // let beg = (new Date).getTime()
     const files = [];
     const fileInfos = {};
-    for (let ii = 0; ii < db.allFiles.length; ii++) {
-        const path = db.allFiles[ii];
+    for (let ii = 0; ii < getAllFilePathes().length; ii++) {
+        const path = getAllFilePathes()[ii];
         const info = db.fileToInfo[path];
         const result = (author || tag) && nameParser.parse(path);
         //sometimes there are mulitple authors for one book
@@ -956,14 +959,14 @@ app.post('/api/pregenerateThumbnails', (req, res) => {
         return;
     }
 
-    let totalFiles = db.allFiles.filter(isCompress);
+    let totalFiles = getAllFilePathes().filter(isCompress);
     if(path !== "All_Pathes"){
-        totalFiles = db.allFiles.filter(e => e.includes(path));
+        totalFiles = getAllFilePathes().filter(e => e.includes(path));
     }
 
     pregenBeginTime = getCurrentTime();
 
-    // const totalFiles = !path ? db.allFiles : db.allFiles.filter(e => e.includes(path));
+    // const totalFiles = !path ? getAllFilePathes() : getAllFilePathes().filter(e => e.includes(path));
     let counter = {counter: 1, total: totalFiles.length, minCounter: 1};
     totalFiles.forEach(filePath =>{
         extractThumbnailFromZip(filePath, res, "pre-generate", counter);
@@ -1030,7 +1033,7 @@ app.post('/api/extract', async (req, res) => {
         //maybe the file move to other location
         const baseName = path.basename(filePath);
         //todo loop is slow
-        const isSomewhere = db.allFiles.some(e => {
+        const isSomewhere = getAllFilePathes().some(e => {
             if(e.endsWith(baseName)){
                 filePath = e;
                 return true;
@@ -1132,7 +1135,7 @@ function doCacheClean(config){
 app.post('/api/cleanCache', (req, res) => {
     const minized = req.body && req.body.minized;
 
-    const allowFileNames =  db.allFiles.map(filePath => {
+    const allowFileNames =  getAllFilePathes().map(filePath => {
         let outputPath = getCacheOutputPath(cachePath, filePath);
         outputPath = path.basename(outputPath);
         return outputPath;
