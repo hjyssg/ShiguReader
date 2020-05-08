@@ -264,3 +264,4 @@ module.exports.parse = parse;
 module.exports.isOnlyDigit = isOnlyDigit;
 module.exports.ALL_COMIC_TAGS = ALL_COMIC_TAGS;
 module.exports.getDateFromTags = getDateFromTags;
+module.exports.includesWithoutCase = includesWithoutCase;

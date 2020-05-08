@@ -108,8 +108,12 @@ function isDisplayableInOnebook(e){
     return isImage(e)||isMusic(e);
 }
 
+function parse(str){
+    return nameParser.parse(path.basename(str, path.extname(str)));
+}
+
 function updateTagHash(str){
-    const result = nameParser.parse(str);
+    const result = parse(str);
     if(result){
         result.tags.forEach(tag => {
             db.hashTable[stringHash(tag)] = tag;
@@ -437,7 +441,7 @@ function getGoodAndOtherSet(){
     getAllFilePathes().forEach(p => {
         const ext = path.extname(p).toLowerCase();
         if(isCompress(ext)){
-            const temp = nameParser.parse(p);
+            const temp = parse(p);
             const name = temp && temp.author;
             if(name){
                 if(p && p.startsWith(userConfig.good_folder_root)){
@@ -483,7 +487,7 @@ app.get('/api/tag', (req, res) => {
     const authors = {};
     getAllFilePathes().forEach((e) => {
         e = path.basename(e);
-        const result = nameParser.parse(e);
+        const result = parse(e);
         if (result) {
             addOne(authors, result.author);
             result.tags.forEach(tag => addOne(tags, tag));
@@ -710,13 +714,13 @@ function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
         }
 
         const info = db.fileToInfo[path];
-        const result = (author || tag) && nameParser.parse(path);
+        const result = (author || tag) && parse(path);
         //sometimes there are mulitple authors for one book
         if (result && author &&  
             (isEqual(result.author, author) || isEqual(result.group, author) || isSimilar(result.author, author))) {
             files.push(path);
             fileInfos[path] = info;
-        } else if (result && tag && result.tags.indexOf(tag) > -1) {
+        } else if (result && tag && nameParser.includesWithoutCase(result.tags, tag)) {
             files.push(path);
             fileInfos[path] = info;
         }else if (text && path.toLowerCase().indexOf(text.toLowerCase()) > -1) {
@@ -737,23 +741,22 @@ function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
 // three para 1.hash 2.mode 3.text
 app.post(Constant.SEARCH_API, (req, res) => {
     const mode = req.body && req.body.mode;
-    const hashTag =  db.hashTable[(req.body && req.body.hash)];
+    const textParam = req.body && req.body.text;
+    const hashTag =  db.hashTable[(req.body && req.body.hash)] || textParam;
     const { MODE_TAG,
             MODE_AUTHOR,
             MODE_SEARCH
             } = Constant;
 
-
     const tag =  mode === MODE_TAG && hashTag;
     const author =  mode === MODE_AUTHOR && hashTag;
-    const text = mode === MODE_SEARCH && req.body && req.body.text;
+    const text = mode === MODE_SEARCH && textParam;
 
     if (!author && !tag && !text) {
         res.sendStatus(404);
-        return;
+    }else{
+        res.send(searchByTagAndAuthor(tag, author, text));
     }
-
-    res.send(searchByTagAndAuthor(tag, author, text));
 });
 
 //-----------------thumbnail related-----------------------------------
