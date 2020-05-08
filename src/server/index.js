@@ -138,18 +138,17 @@ const getCacheOutputPath = function (cachePath, zipFilePath) {
     outputFolder = outputFolder.trim();
 
     let stat = db.fileToInfo[zipFilePath];
-    if(!stat){
-        //should have  stat in fileToInfo
-        //chokidar is not reliable 
+    if (!stat) {
+        //should have stat in fileToInfo
+        //but chokidar is not reliable
+        //getCacheOutputPath comes before chokidar callback
         console.warn("[getCacheOutputPath] no stat", zipFilePath);
-        stat = fs.statSync(zipFilePath);
-        addStatToDb(zipFilePath, stat);
+    } else {
+        const mdate = new Date(stat.mtimeMs);
+        const mstr = dateFormat(mdate, "yyyy-mm-dd");
+        const fstr = (stat.size/1000/1000).toFixed();
+        outputFolder = outputFolder+ `${mstr} ${fstr} `;
     }
-
-    const mdate = new Date(stat.mtimeMs);
-    const mstr = dateFormat(mdate, "yyyy-mm-dd");
-    const fstr = (stat.size/1000/1000).toFixed();
-    outputFolder = outputFolder+ `${mstr} ${fstr} `;
     return path.join(cachePath, outputFolder);
 }
 
@@ -321,12 +320,11 @@ function setUpFileWatch(){
         db.hashTable[stringHash(path)] = path;
         addStatToDb(path, stats);
         extractThumbnailFromZip(path);
-
         hentaiCache = null;
     };
 
     const deleteCallBack = path => {
-        db.fileToInfo[path] = "";
+        delete db.fileToInfo[path];
         hentaiCache = null;
     };
 
