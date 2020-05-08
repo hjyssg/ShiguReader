@@ -131,9 +131,11 @@ const getCacheOutputPath = function (cachePath, zipFilePath) {
     }
     outputFolder = outputFolder.trim();
 
-    const stat = db.fileToInfo[zipFilePath];
+    let stat = db.fileToInfo[zipFilePath];
     if(!stat){
-        throw "no stat"+zipFilePath
+        //should have  stat in fileToInfo
+        console.warn("[getCacheOutputPath] no stat", zipFilePath);
+        stat = fs.statSync(filePath);
     }
 
     const mdate = new Date(stat.mtimeMs);
@@ -232,7 +234,7 @@ async function init() {
     });
 
     (cache_results.pathes||[]).forEach(p => {
-        const fp =  getCacheFp(p);
+        const fp =  getDirName(p);
         db.cacheTable[fp] = db.cacheTable[fp] || [];
         db.cacheTable[fp].push(path.basename(p));
     });
@@ -274,7 +276,7 @@ function shouldIgnore(p){
     return !shouldWatch(p);
 }
 
-function getCacheFp(p){
+function getDirName(p){
     const result =  path.dirname(p);
     return path.basename(result);
 }
@@ -332,7 +334,7 @@ function setUpFileWatch(){
 
     cacheWatcher
         .on('add', (p, stats) => {
-            const fp =  getCacheFp(p);
+            const fp =  getDirName(p);
             db.cacheTable[fp] = db.cacheTable[fp] || [];
             db.cacheTable[fp].push(path.basename(p));
 
@@ -341,7 +343,7 @@ function setUpFileWatch(){
             db.cacheToInfo[p] = stats;
         })
         .on('unlink', p => {
-            const fp =  getCacheFp(p);
+            const fp =  getDirName(p);
             db.cacheTable[fp] = db.cacheTable[fp] || [];
             const index = db.cacheTable[fp].indexOf(path.basename(p));
             db.cacheTable[fp].splice(index, 1);
