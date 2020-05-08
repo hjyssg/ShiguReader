@@ -33,7 +33,7 @@ function isLegalDepth(depth, config) {
     return true;
 }
 
-function getStat(p, config){
+function getStat(p){
     const stat = fs.statSync(p);
     const result = {};
     result.isFile = stat.isFile();

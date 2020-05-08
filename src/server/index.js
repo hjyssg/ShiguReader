@@ -143,6 +143,7 @@ const getCacheOutputPath = function (cachePath, zipFilePath) {
         //chokidar is not reliable 
         console.warn("[getCacheOutputPath] no stat", zipFilePath);
         stat = fs.statSync(zipFilePath);
+        addStatToDb(zipFilePath, stat);
     }
 
     const mdate = new Date(stat.mtimeMs);
@@ -296,7 +297,16 @@ function getDirName(p){
     return path.basename(result);
 }
 
-
+//!! same as file-iterator getStat()
+function addStatToDb(path, stat){
+    const result = {};
+    result.isFile = stat.isFile();
+    result.isDir = stat.isDirectory();
+    result.mtimeMs = stat.mtimeMs;
+    result.mtime = stat.mtime;
+    result.size = stat.size;
+    db.fileToInfo[path] = result;
+}
 
 function setUpFileWatch(){
     const watcher = chokidar.watch(home_pathes, {
@@ -309,9 +319,7 @@ function setUpFileWatch(){
     const addCallBack = (path, stats) => {
         updateTagHash(path);
         db.hashTable[stringHash(path)] = path;
-        stats.isFile = stats.isFile();
-        stats.isDir = stats.isDirectory();
-        db.fileToInfo[path] = stats;
+        addStatToDb(path, stats);
         extractThumbnailFromZip(path);
 
         hentaiCache = null;
