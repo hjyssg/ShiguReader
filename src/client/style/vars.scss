@@ -1,1 +1,32 @@
 $white_one: #DDDDDD;
+$white_two: #313131;
+
+$bacground_level_one: #4f535b;
+$bacground_level_two: #43464e;
+
+$dark_orange: rgba(218, 101, 58, 0.774);
+
+@mixin file_cell_common {
+    background: $bacground_level_two;
+    border: 1px solid #34353b;
+    border-radius: 9px;
+    overflow: hidden;  
+}
+
+@mixin hover_effect {
+    color: #313131;
+    background: white;
+}
+
+@mixin second_hover_effect {
+    color: #34353b;
+}
+
+@mixin third_hover_effect {
+    color: $dark_orange !important;
+}
+
+@mixin fourth_hover_effect {
+    background-color: $dark_orange;
+    @include hover_effect;
+}

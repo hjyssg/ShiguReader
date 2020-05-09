@@ -48,30 +48,30 @@
         border: 2px solid #8d8d8d;
         border-radius: 3px;
         font-size: 9pt;
-      }
+    }
       
-      .submit:hover{
-        border: 1px solid rgba(224, 184, 184, 0.712);
+    .submit:hover{
+      @include hover_effect;
+    }
+
+    .author-link{
+      margin-top: 10px;
+      margin-bottom: 10px;
+      a {
+        color: $white_one;
+        font-size: 1.2rem;
       }
-
-      .author-link{
-        margin-top: 10px;
-        margin-bottom: 10px;
-        a {
-          color: $white_one;
-          font-size: 1.2rem;
-        }
-      }
+    }
 
 
-      .history-section {
-        .history-link{
-          color: $white_one;
-          .history-one-line-list-item {
-            .date-text {
-              margin-right: 10px;
-            }
+    .history-section {
+      .history-link{
+        color: $white_one;
+        .history-one-line-list-item {
+          .date-text {
+            margin-right: 10px;
           }
         }
       }
+    }
 }

@@ -122,7 +122,6 @@
 
   .explorer-one-line-list-item {
     text-align: left !important;
-    background-color: #4f535b;
 
     display: flex;
     align-items: center;
@@ -157,17 +156,15 @@
   }
 
   .file-cell {
-    // height: 290px;
-    border: 1px solid #34353b;
-    border-radius: 9px;
-    background: #43464e;
+
+    @include file_cell_common;
+
     padding-top:5px;
     padding-bottom: 10px;
     display: flex;
     flex-flow:column;
     justify-content: start;
     align-items: center;
-    overflow: hidden;
   }
 
   .file-info-row {

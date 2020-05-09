@@ -34,11 +34,8 @@
     padding-bottom: 10px;
    
     .tag-cell{
-      height:260px;
-      background: #43464e;
-      overflow: hidden;
-      border: 1px solid #34353b;
-      border-radius: 9px;
+      height: 260px;
+      @include file_cell_common;
       padding-left: 15px;
       padding-right: 15px;
       padding-bottom: 10px;

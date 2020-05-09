@@ -1,13 +1,9 @@
 @import "vars.scss";
 
-@mixin onHover {
-  background-color: chocolate;
-  color: ivory;
-  cursor: pointer;
-}
+
 
 .one-book-nothing-available{
-  color: #e6eff3;
+  color: $white_one;
   font-size: 2rem;
 }
 
@@ -34,8 +30,8 @@
     }
   }
 
-  .fs-toggle-button{
-    color: #e6eff3;
+  .fs-toggle-button {
+    color: $white_one;
     background-color: transparent;
     border: 0;
     margin-left: 10px;
@@ -45,7 +41,7 @@
     font-size: 1.5rem;
 
     &:hover{
-      color: #bbe1f1;
+      @include second_hover_effect;
     }
   }
 
@@ -68,16 +64,6 @@
     box-shadow: 0 2px 4px 0 rgba(0,0,0,0.16),0 2px 10px 0 rgba(0,0,0,0.12)!important;
     z-index: 10;
     object-fit: cover;
-
-    &.has-music{
-      // max-height: 450px;
-    }
-  }
-
-  .full-screen {
-    .one-book-image{
-      // max-height: 1060px;
-    }
   }
 
   .mobile-one-book-container {
@@ -132,8 +118,10 @@
     margin-right: 10px;
   }
 
-  .one-book-foot-author:hover{
-    @include onHover();
+  .one-book-foot-author{
+    &:hover{
+      @include fourth_hover_effect();
+    }
   }
 
   .one-book-foot-index-number {
@@ -145,7 +133,7 @@
     font-weight: 600;
 
     &.is-last {
-      color: orange;
+      color: $dark_orange;
     }
   }
 
@@ -173,7 +161,7 @@
       display: inline-flex;
   
       &:hover{
-       @include onHover();
+       @include fourth_hover_effect();
       }
     }
   
@@ -181,7 +169,7 @@
       font-size: 1.5rem;
       margin-left: 10px;
       &:hover{
-        @include onHover();
+        @include fourth_hover_effect();
        }
     }
   }

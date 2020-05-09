@@ -18,7 +18,7 @@
         overflow-x: visible;
 
         &:hover {
-            color: rgb(251, 147, 147);
+            @include third_hover_effect;
         }
 
         &.aji-music-player-active {

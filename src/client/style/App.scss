@@ -9,6 +9,7 @@
 body {
   text-align: center;
   margin: auto;
+  color: $white_one;
 }
 
 a {
@@ -21,7 +22,7 @@ a {
 }
 
 .location-title {
-  color: rgb(215, 235, 255);
+  color: $white_one;
   font-size: 1rem;
   font-weight: 700;
   margin-bottom: 10px;
@@ -31,20 +32,14 @@ a {
       cursor: pointer;
       
       &:hover{
-        color: #34353b;
+        @include hover_effect;
       }
   }
 }
 
 
-// @media screen and (min-width: 1300px) {
-//   .container {
-//       max-width: 1280px !important;
-//   }
-// }
-
 .app-container {
-  background-color: #4f535b;
+  background-color: $bacground_level_one;
   min-height: 100vh;
 
   
@@ -55,13 +50,12 @@ a {
     }
   }
 
-
   .fa-download {
     color: $white_one;
     margin-left: 10px;
 
     &:hover{
-      color: rgb(221, 221, 221);
+      @include hover_effect;
     }
   }
 
@@ -84,9 +78,9 @@ a {
         font-size: 17px;
 
         &:hover {
-          background-color: rgb(221, 221, 221);
+          @include hover_effect;
           i {
-            color: midnightblue;
+            @include hover_effect;
           }
         }
       }
@@ -122,8 +116,7 @@ a {
         margin-left: 1px;
 
         &:hover{
-          color: $white_one;
-          background-color: #34353b;
+          @include hover_effect;
         }
       }
     }
@@ -197,8 +190,7 @@ a {
  .click-and-copy-text {
   cursor: copy;
   &:hover{
-    background: greenyellow;
-    color: black;
+    @include hover_effect;
   }
 }
 

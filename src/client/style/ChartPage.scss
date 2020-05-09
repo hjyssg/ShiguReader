@@ -3,6 +3,16 @@
 .chart-container{
     background: antiquewhite;;
     padding-top: 10px;
+    padding-bottom: 10px;
+
+    .chart-radio-button-group{
+        display: flex;
+        margin-top: 10px;
+    
+        .radio-button {
+            margin-right: 10px;
+        }
+    }
 
     .total-info{
         padding-top: 10px;
@@ -14,15 +24,6 @@
         padding-top: 10px;
     }
 
-    .chart-radio-button-group{
-        display: flex;
-        margin-top: 10px;
-
-        .radio-button {
-            margin-right: 10px;
-        }
-    }
-
     .aji-table{
         td,
         th{
@@ -31,4 +32,5 @@
         }
     }
 }
+
 

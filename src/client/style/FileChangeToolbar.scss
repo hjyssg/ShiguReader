@@ -16,7 +16,7 @@
     cursor: pointer;
 
     &:hover{
-      color: orangered !important;
+      @include third_hover_effect;
     }
   }
 

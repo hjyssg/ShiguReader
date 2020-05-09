@@ -31,9 +31,10 @@
     content: "/\00a0";
   }
 
-  .breadcrumb-item a:hover {
-    color: #01447e;
-    text-decoration: underline;
+  .breadcrumb-item  {
+    &:not(.current):hover{
+      text-decoration: underline;
+    }
   }
 }
 
@@ -41,7 +42,7 @@
   background-color: #eee
 }
 
-.top-button-gropus{
+.top-button-gropus {
   color: gray;
   position: relative;
   margin-bottom: 1rem;
@@ -56,10 +57,9 @@
     }
     
     &:hover{
-      color: #34353b;
-
+      @include second_hover_effect;
       .fas {
-        color: #34353b;
+        @include second_hover_effect;
       }
     }
   }

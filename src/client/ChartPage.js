@@ -358,10 +358,10 @@ export default class ChartPage extends Component {
         } else if(this.isFailedLoading()) {
             return <ErrorPage res={this.res.res}/>;
         } else if(this.getFilterFiles().length < too_few){
-            return (<center style={{paddingTop: "100px"}}> 
+            return ( <div className="chart-container container">
                         {radioGroup}
-                        <div className="alert alert-info col-6" role="alert" > {`Less than ${too_few} files`} </div>
-                    </center>);
+                        <div className="alert alert-info" role="alert" > {`Less than ${too_few} files`} </div>
+                    </div>);
         }else{ 
             return (
                 <div className="chart-container container">

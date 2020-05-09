@@ -46,6 +46,6 @@
   cursor: pointer;
 
   &:hover{
-    color: orangered !important;
+    @include hover_effect;
   }
 }
