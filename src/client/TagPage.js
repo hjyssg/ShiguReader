@@ -10,6 +10,7 @@ import ErrorPage from './ErrorPage';
 import CenterSpinner from './subcomponent/CenterSpinner';
 import Pagination from 'rc-pagination';
 import { Redirect } from 'react-router-dom';
+import { isCompress } from '../util';
 const nameParser = require('../name-parser');
 
 const util = require("../util");
@@ -58,7 +59,7 @@ export default class TagPage extends Component {
       return;
     }
 
-    Sender.get('/api/allInfo', res => {
+    Sender.post('/api/allInfo', { needThumbnail: true}, res => {
       if (!res.failed) {
         this.setItems(res);
         this.setState({ loaded: true });
@@ -70,11 +71,12 @@ export default class TagPage extends Component {
   }
   
   setItems(res){
-    const { allFiles = [], allThumbnails = {} } = res;
+    const { fileToInfo = {}, allThumbnails = {} } = res;
     const tags = {};
     const authors = {};
     const authorToFiles = {};
     const tagToFiles = {};
+    const allFiles = _.keys(fileToInfo).filter(isCompress);
 
     allFiles.forEach((filePath) => {
         const fileName = getBaseName(filePath);

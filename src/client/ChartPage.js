@@ -12,6 +12,9 @@ const clientUtil = require("./clientUtil");
 const {  getBaseName } = clientUtil;
 const util = require("../util");
 const {isCompress, array_unique} = util;
+import RadioButtonGroup from './subcomponent/RadioButtonGroup';
+import { isVideo } from '../util';
+
 
 function parse(str){
     return nameParser.parse(getBaseName(str));
@@ -21,12 +24,12 @@ export default class ChartPage extends Component {
     constructor(prop) {
         super(prop);
         this.failedTimes = 0;
-        this.state = {};
+        this.state = {fileType: "compressed"};
     }
 
     componentDidMount() {
         if(this.failedTimes < 3) {
-            Sender.get("/api/allInfo", res => {
+            Sender.post("/api/allInfo", {}, res => {
                 this.handleRes(res);
             });
 
@@ -55,10 +58,19 @@ export default class ChartPage extends Component {
         return this.res && this.res.failed;
     }
 
+    getFilterFiles(){
+        const func =  this.isShowingVideoChart()? isVideo : isCompress;
+        return  this.files.filter(func);
+    }
+
+    isShowingVideoChart(){
+        return this.state.fileType === "video";
+    }
+
     renderComiketChart(){
         const byComiket = {}; //c91 -> 350
         const tagByComiket = {}; // c95 -> kankore -> 201
-        this.files.forEach(e => {
+        this.getFilterFiles().forEach(e => {
             const result = parse(e);
             if(result && result.comiket){
                 let cc = result.comiket;
@@ -123,7 +135,7 @@ export default class ChartPage extends Component {
 
     rendeTimeChart(){
         const byTime = {}; //time -> 300. 
-        this.files.forEach(e => {
+        this.getFilterFiles().forEach(e => {
             const fileInfo = this.fileToInfo[e];
             const pA = parse(e);
             let aboutTimeA = pA && nameParser.getDateFromTags(pA.tags);
@@ -170,7 +182,7 @@ export default class ChartPage extends Component {
 
     renderPieChart(){
         const byType = {}; //doujin -> 300. 
-        this.files.forEach(e => {
+        this.getFilterFiles().forEach(e => {
             const result = parse(e);
             if(result &&  result.type){
                 const type = result.type;
@@ -211,15 +223,13 @@ export default class ChartPage extends Component {
 
     getTotalSize(){
         let total = 0;
-        let num = 0;
-        this.files.forEach(e => {
-            if(isCompress(e)){
-                total += this.fileToInfo[e].size;
-                num++;
-            }
+        const files = this.getFilterFiles();
+        const num = files.length;
+        files.forEach(e => {
+           total += this.fileToInfo[e].size;
         })
         return (<div className="total-info"> 
-                     <div>{`There are ${num} files`}</div>
+                     <div>{`There are ${num} ${this.state.fileType} files`}</div>
                      <div>{`Total: ${filesizeUitl(total, {base: 2})}`}</div>
                 </div>)
     }
@@ -290,23 +300,41 @@ export default class ChartPage extends Component {
               );
         }
     }
+    
+    onFileTypeChange(e){
+        this.setState({
+            fileType: e
+        });
+    }
 
     render(){
         document.title = "Chart"
         const too_few = 50;
 
+        const FILE_OPTIONS = [
+          "video",
+          "compressed"
+        ];
+
+        const radioGroup = <RadioButtonGroup 
+                            className="chart-radio-button-group"
+                            checked={FILE_OPTIONS.indexOf(this.state.fileType)} 
+                            options={FILE_OPTIONS} 
+                            onChange={this.onFileTypeChange.bind(this)}/>
+
         if (!this.res) {
             return (<CenterSpinner/>);
         } else if(this.isFailedLoading()) {
             return <ErrorPage res={this.res.res}/>;
-        } else if(this.files.length < too_few){
+        } else if(this.getFilterFiles().length < too_few){
             return (<center style={{paddingTop: "100px"}}> 
+                        {radioGroup}
                         <div className="alert alert-info col-6" role="alert" > {`Less than ${too_few} files`} </div>
                     </center>);
-        }else{
-            
+        }else{ 
             return (
                 <div className="chart-container container">
+                    {radioGroup}
                     {this.getTotalSize()}
                     {this.rendeTimeChart()}
                     {this.renderComiketChart()}

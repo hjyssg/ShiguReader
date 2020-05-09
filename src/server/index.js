@@ -431,29 +431,29 @@ app.post("/api/singleFileInfo", async (req, res) => {
     });
 });
 
-app.get('/api/allInfo', (req, res) => {
-    const tempfileToInfo = {};
-    const allFiles = [];
-    // let beg = (new Date).getTime()
-    getAllFilePathes().forEach(e => {
-        if(util.isCompress(e)){
-            tempfileToInfo[e] = {
-                size: db.fileToInfo[e].size,
-                mtime:  db.fileToInfo[e].mtime
-            };
-            allFiles.push(e);
-        }
-    })
+app.post('/api/allInfo', (req, res) => {
+    const needThumbnail = req.body && req.body.needThumbnail;
 
-    const allThumbnails = getThumbnails(allFiles);
+    // const tempfileToInfo = {};
+    // const allFiles = [];
+    // getAllFilePathes().forEach(e => {
+    //     if(util.isCompress(e)){
+    //         tempfileToInfo[e] = {
+    //             size: db.fileToInfo[e].size,
+    //             mtime:  db.fileToInfo[e].mtime
+    //         };
+    //         allFiles.push(e);
+    //     }
+    // })
 
-    // let end = (new Date).getTime();
-    // console.log((end - beg)/1000, "to search");
+    let allThumbnails = {};
+    if(needThumbnail){
+        allThumbnails = getThumbnails(getAllFilePathes());
+    }
 
     res.send({
-        fileToInfo: tempfileToInfo,
-        allFiles,
-        allThumbnails
+        fileToInfo: db.fileToInfo,
+        allThumbnails: allThumbnails
     }); 
 });
 
