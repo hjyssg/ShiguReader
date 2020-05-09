@@ -8,17 +8,13 @@
 }
 
 .one-book-container {
-  display: flex !important;
-  justify-content: center !important;
-  align-items: center;
+  @include flex_center_display;
   flex-flow: column;
   padding-bottom: 20px;
 
   .one-book-wrapper {
     margin-top: 5px;
-    display: flex !important;
-    justify-content: center !important;
-    align-items: center;
+    @include flex_center_display;
     flex-flow: column;
 
     &.two-page-mode{
@@ -70,9 +66,7 @@
     width: 100%;
 
     .mobile-one-book-image_array-container{
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      @include flex_center_display;
       margin-bottom: 30px;
       margin-left: 5px;
       margin-right: 5px;
@@ -84,9 +78,7 @@
     }
 
     .mobile-single-image-container{
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      @include flex_center_display;
       margin-bottom: 30px;
       margin-left: 5px;
       margin-right: 5px;
@@ -150,9 +142,7 @@
   }
 
   .one-book-second-toolbar {
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    @include flex_center_display;
     margin-top: 5px;
     
     .two-page-mode-button {
@@ -177,10 +167,8 @@
 
 .one-book-title {
   color: $white_one;
-  display: flex;
   flex-direction: column;
-  justify-content: center;
-  align-items: center;
+  @include flex_center_display;
 
   a {
     color: $white_one !important;
@@ -191,9 +179,7 @@
   color: $white_one;
   font-weight: 400;
   margin-right: 10px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  @include flex_center_display;
 
   a {
     color: $white_one !important;

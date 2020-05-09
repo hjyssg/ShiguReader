@@ -40,9 +40,7 @@
 
 //can be use independently
 .aji-dropdown-item {
-  display: flex;
-  align-items: center;  
-  justify-content: center;
+  @include flex_center_display;
   cursor: pointer;
 
   &:hover{

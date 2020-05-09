@@ -1,8 +1,8 @@
+@import "vars.scss";
+
 .empty-block {
   width: 180px;
   margin-top: 10px;
   font-size: 80px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  @include flex_center_display;
 }

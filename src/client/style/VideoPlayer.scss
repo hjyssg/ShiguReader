@@ -2,9 +2,7 @@
 
 .video-player-page{
     .video-player-container{
-        display: flex;
-        justify-content: center;
-        align-content: center;
+        @include flex_center_display;
 
         #videoPlayer{ 
             @media screen and (max-width: 1000px) {
@@ -18,9 +16,7 @@
     }
 
     .video-title{
-        display: flex;
-        justify-content: center;
-        align-content: center;
+        @include flex_center_display;
         flex-direction: column;
       
         margin-top: 10px;
@@ -30,9 +26,7 @@
 
     .video-tag-row {
         margin-top: 5px;
-        display: flex;
-        justify-content: center;
-        align-content: center;
+        @include flex_center_display;
 
         .video-tag{
             margin-left: 10px;
@@ -41,9 +35,7 @@
     }
 
     .video-toolbar{
-        display: flex;
-        justify-content: center;
-        align-content: center;
+        @include flex_center_display;
 
         margin-left: auto;
         margin-right: auto;
@@ -55,9 +47,7 @@
     }
 
     .video-file-info-row{
-        display: flex;
-        justify-content: center;
-        align-content: center;
+        @include flex_center_display;
 
         margin-left: auto;
         margin-right: auto;

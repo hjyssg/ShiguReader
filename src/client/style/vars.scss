@@ -30,3 +30,9 @@ $dark_orange: rgba(218, 101, 58, 0.774);
     background-color: $dark_orange;
     @include hover_effect;
 }
+
+@mixin  flex_center_display {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}

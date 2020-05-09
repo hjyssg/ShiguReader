@@ -106,9 +106,7 @@ a {
         margin-top: 8px;
         cursor: pointer;
         border-radius: 0px;
-        display: flex;
-        justify-content: center;
-        align-items: center;
+        @include flex_center_display;
         background-color: #a7a7a7;
         padding-left: 5px;
         padding-right: 5px;
@@ -131,11 +129,9 @@ a {
 
 
 .loading-container {
-  display: flex;
   width: 100%;
   height: 100%;
-  justify-content: center;
-  align-items: center;
+  @include flex_center_display;
 
   .loading-inner {
     margin-top: 100px;
@@ -169,9 +165,7 @@ a {
   width: 40px !important;
   
   a {
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    @include flex_center_display;
     width: 100%;
     height: 100%;
     font-size: 20px !important;
