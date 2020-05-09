@@ -112,7 +112,33 @@ npm run dev
 
 # open the link shown on the cmd
 ```
+##### DOCKER 使用方法
+有两种方法
+1. 选择手动打包
 
+```
+切换到目录
+cd ShiguReader
+
+按自己需求修改 src/user-config.js 中的四项
+module.exports.good_folder = ""
+module.exports.good_folder_root = ""
+module.exports.not_good_folder = "";
+module.exports.additional_folder = [""];
+
+
+# 用 --build-arg http_proxy=http://[ip]:[port] 设置网络代理可以加快打包速度
+docker build -t 自定义镜像名字 .
+```
+2. 也可以尝试demo，只能看，整理起来会报错因为没有修改 src/user-config.js 文件
+```
+docker pull liwufan/shigureader
+docker run -d -p hostport:3000 -v comicpath:/data shigureader
+
+# hostport 是主机要开放的端口
+# comicpath 是要扫描的文件目录
+
+```
 ##### 注意事项
 当src/user-config.js的module.exports.readable_cache_folder_name = true的时候
 你可能需要如下设置。但有s1坛友反映会导致其他非unicode软件乱码。
