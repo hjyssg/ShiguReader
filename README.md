@@ -127,6 +127,18 @@ npm run dev
 
 # open the link shown on the cmd
 ```
+
+##### 注意事项
+当src/user-config.js的module.exports.readable_cache_folder_name = true的时候
+你可能需要如下设置。但有s1坛友反映会导致其他非unicode软件乱码。
+
+windows语言设置:
+![unicode setting](screenshot/unicode-setting.png)
+
+##### 安全性
+ShiguReader的使用场景是LAN(局域网)，开放到外网非常不安全。
+而且功能和性能也是纯粹为家庭用户使用设计的。
+
 ##### DOCKER 使用方法
 有两种方法
 1. 选择手动打包
@@ -135,7 +147,7 @@ npm run dev
 切换到目录
 cd ShiguReader
 
-按自己需求修改 src/user-config.js 中的四项
+按自己需求修改src/path-config和src/user-config.js 中的四项
 module.exports.good_folder = ""
 module.exports.good_folder_root = ""
 module.exports.not_good_folder = "";
@@ -154,16 +166,6 @@ docker run -d -p hostport:3000 -v comicpath:/data shigureader
 # comicpath 是要扫描的文件目录
 
 ```
-##### 注意事项
-当src/user-config.js的module.exports.readable_cache_folder_name = true的时候
-你可能需要如下设置。但有s1坛友反映会导致其他非unicode软件乱码。
-
-windows语言设置:
-![unicode setting](screenshot/unicode-setting.png)
-
-##### 安全性
-ShiguReader的使用场景是LAN(局域网)，开放到外网非常不安全。
-而且功能和性能也是纯粹为家庭用户使用设计的。
 
 ##### 和tamper monkey一起使用
     把EhentaiHighighliger.js添加到tamper monkey。

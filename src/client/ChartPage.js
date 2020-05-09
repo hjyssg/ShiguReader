@@ -16,8 +16,6 @@ import RadioButtonGroup from './subcomponent/RadioButtonGroup';
 import { isVideo } from '../util';
 import Accordion from './subcomponent/Accordion';
 
-
-
 function parse(str){
     return nameParser.parse(getBaseName(str));
 }
