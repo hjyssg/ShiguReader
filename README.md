@@ -156,15 +156,20 @@ module.exports.additional_folder = [""];
 
 # 用 --build-arg http_proxy=http://[ip]:[port] 设置网络代理可以加快打包速度
 docker build -t 自定义镜像名字 .
+docker run -d -p hostport:3000 -v comicpath:/data 自定义镜像名字
+
 ```
-2. 也可以尝试demo，只能看，整理起来会报错因为没有修改 src/user-config.js 文件
+2. 也可以尝试demo
+
+这种方法默认只能看。整理归纳起来会报错，因为我没有修改过 src/user-config.js 文件。
+在容器运行以后 docker exec 容器id bash，然后手动修改 src/user-config.js 文件，可以解决无法归纳的问题。
+
 ```
 docker pull liwufan/shigureader
-docker run -d -p hostport:3000 -v comicpath:/data shigureader
+docker run -d -p hostport:3000 -v comicpath:/data liwufan/shigureader
 
 # hostport 是主机要开放的端口
 # comicpath 是要扫描的文件目录
-
 ```
 
 ##### 和tamper monkey一起使用
