@@ -20,6 +20,26 @@ function parse(str){
     return nameParser.parse(getBaseName(str));
 }
 
+function renderTable(labels, values){
+    const tableHeader = (<thead><tr>
+        <th scope="col">name</th>
+        <th scope="col">number</th>
+        </tr></thead>);
+
+        const rows = labels.map((e, index) => {
+            return (<tr key={index}><th scope="row">{e}</th><td>{values[index]}</td></tr>);
+        });
+
+    return (
+        <table className="table aji-table">
+            {tableHeader}
+            <tbody>
+                {rows}
+            </tbody>
+        </table>
+    );
+}
+
 export default class ChartPage extends Component {
     constructor(prop) {
         super(prop);
@@ -68,6 +88,10 @@ export default class ChartPage extends Component {
     }
 
     renderComiketChart(){
+        if(this.isShowingVideoChart()){
+            return;
+        }
+
         const byComiket = {}; //c91 -> 350
         const tagByComiket = {}; // c95 -> kankore -> 201
         this.getFilterFiles().forEach(e => {
@@ -87,48 +111,48 @@ export default class ChartPage extends Component {
             }
         })
 
-        const data = {};
-        data.labels = nameParser.ALL_COMIC_TAGS;
-        const value = [];
-        nameParser.ALL_COMIC_TAGS.forEach(e => {
-            value.push(byComiket[e]);
-        })
+        let labels = nameParser.ALL_COMIC_TAGS;
+        let values = [];
+        labels.forEach((e, index )=> {
+            const vv = byComiket[e]; 
+            values.push(vv);
 
+            if(!vv){
+                labels[index] = undefined;
+            }
+        });
+
+        labels = labels.filter(e => !!e);
+        values = values.filter(e => !!e);
+
+        const data = {};
+        data.labels = labels;
         data.datasets = [{
             type: 'bar',
             label: 'by comiket',
             backgroundColor: "#15c69a",
-            data:  value
+            data:  values
           }]
-
-        // console.log(tagByComiket);
-        // console.table(tagByComiket);
 
         const opt = {
             maintainAspectRatio: false,
             legend: {
                 position: "right"
             }
-            // scales: {
-            //   xAxes: [{
-            //     stacked: true
-            //   }],
-            //   yAxes: [{
-            //     stacked: true
-            //   }]
-            // }
-          };
+        };
 
         //add big tag
-
         return (
             <div className="individual-chart-container">
-              <Bar
-                data={data}
-                width={800}
-                height={200}
-                options={opt}
-              />
+                <div>
+                <Bar
+                    data={data}
+                    width={800}
+                    height={200}
+                    options={opt}
+                />
+                </div>
+                {renderTable(labels, values)}
             </div>
           );
     }
@@ -221,7 +245,7 @@ export default class ChartPage extends Component {
 
     }
 
-    getTotalSize(){
+    renderTotalSize(){
         let total = 0;
         const files = this.getFilterFiles();
         const num = files.length;
@@ -271,7 +295,7 @@ export default class ChartPage extends Component {
 
             data.labels = data.labels.slice(1);
             value = value.slice(1);
-            console.log(value);
+            // console.log(value);
 
             const opt = {
                 maintainAspectRatio: false,
@@ -335,7 +359,7 @@ export default class ChartPage extends Component {
             return (
                 <div className="chart-container container">
                     {radioGroup}
-                    {this.getTotalSize()}
+                    {this.renderTotalSize()}
                     {this.rendeTimeChart()}
                     {this.renderComiketChart()}
                     {this.renderPieChart()}
