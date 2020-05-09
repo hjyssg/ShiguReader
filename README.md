@@ -140,26 +140,6 @@ ShiguReader的使用场景是LAN(局域网)，开放到外网非常不安全。
 而且功能和性能也是纯粹为家庭用户使用设计的。
 
 ##### DOCKER 使用方法
-有两种方法
-1. 选择手动打包
-
-```
-切换到目录
-cd ShiguReader
-
-按自己需求修改src/path-config和src/user-config.js
-
-可以参照 path-config-docker 和 user-config-docker.js 里面的内容自行决定
-
-# 用 --build-arg http_proxy=http://[ip]:[port] 设置网络代理可以加快打包速度
-docker build -t 自定义镜像 .
-docker run -d -p 3000:3000 -v comicpath:/data 自定义镜像
-
-```
-2. 也可以尝试demo
-
-在容器运行以后 docker exec 容器id bash 自定义配置
-
 ```
 docker pull liwufan/shigureader
 docker run -d -p hostport:3000 -v comicpath:/data liwufan/shigureader
@@ -167,6 +147,11 @@ docker run -d -p hostport:3000 -v comicpath:/data liwufan/shigureader
 # hostport 是主机要开放的端口
 # comicpath 是要扫描的文件目录
 ```
+
+
+
+有问题阅读 ![docker配置说明](https://github.com/hjyssg/ShiguReader/blob/dev/dockerguide.md)
+
 
 ##### 和tamper monkey一起使用
     把EhentaiHighighliger.js添加到tamper monkey。
