@@ -113,7 +113,7 @@ export default class ChartPage extends Component {
             }
         })
 
-        let labels = nameParser.ALL_COMIC_TAGS;
+        let labels = nameParser.ALL_COMIC_TAGS.slice();
         let values = [];
         labels.forEach((e, index )=> {
             const vv = byComiket[e]; 
@@ -207,6 +207,10 @@ export default class ChartPage extends Component {
     }
 
     renderPieChart(){
+        if(this.isShowingVideoChart()){
+            return;
+        }
+
         const byType = {}; //doujin -> 300. 
         this.getFilterFiles().forEach(e => {
             const result = parse(e);
@@ -261,8 +265,11 @@ export default class ChartPage extends Component {
     }
 
     renderGoodBadDistribution(){
-        const {goodAuthors, otherAuthors} = this.state;
+        if(this.isShowingVideoChart()){
+            return;
+        }
 
+        const {goodAuthors, otherAuthors} = this.state;
         const data = {
             labels : []
         };
