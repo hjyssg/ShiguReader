@@ -10,3 +10,4 @@ compress_cache
 executables
 file_info.json
 zip_info.json
+.DS_Store
