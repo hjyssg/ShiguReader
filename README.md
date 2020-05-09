@@ -147,22 +147,18 @@ ShiguReader的使用场景是LAN(局域网)，开放到外网非常不安全。
 切换到目录
 cd ShiguReader
 
-按自己需求修改src/path-config和src/user-config.js 中的四项
-module.exports.good_folder = ""
-module.exports.good_folder_root = ""
-module.exports.not_good_folder = "";
-module.exports.additional_folder = [""];
+按自己需求修改src/path-config和src/user-config.js
 
+可以参照 path-config-docker 和 user-config-docker.js 里面的内容自行决定
 
 # 用 --build-arg http_proxy=http://[ip]:[port] 设置网络代理可以加快打包速度
-docker build -t 自定义镜像名字 .
-docker run -d -p hostport:3000 -v comicpath:/data 自定义镜像名字
+docker build -t 自定义镜像 .
+docker run -d -p 3000:3000 -v comicpath:/data 自定义镜像
 
 ```
 2. 也可以尝试demo
 
-这种方法默认只能看。整理归纳起来会报错，因为我没有修改过 src/user-config.js 文件。
-在容器运行以后 docker exec 容器id bash，然后手动修改 src/user-config.js 文件，可以解决无法归纳的问题。
+在容器运行以后 docker exec 容器id bash 自定义配置
 
 ```
 docker pull liwufan/shigureader
