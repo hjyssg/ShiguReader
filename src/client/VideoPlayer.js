@@ -1,20 +1,38 @@
 import React, { Component } from 'react';
 import _ from 'underscore';
+const filesizeUitl = require('filesize');
 import './style/VideoPlayer.scss';
 import ClickAndCopyText from './subcomponent/ClickAndCopyText';
 import FileChangeToolbar from './subcomponent/FileChangeToolbar';
 const clientUtil = require("./clientUtil");
-const { getDir, getBaseName, getPathFromLocalStorage, cleanSearchStr } = clientUtil;
+const { getDir, getBaseName, getPathFromLocalStorage, cleanSearchStr, stringHash } = clientUtil;
 const namePicker = require("../human-name-picker");
 import { Link } from 'react-router-dom';
 import { array_unique } from '../util';
 const nameParser = require('../name-parser');
+import Sender from './Sender';
+const dateFormat = require('dateformat');
 
 export default class VideoPlayer extends Component {
   constructor(props) {
     super(props);
     this.state = {
     };
+  }
+
+  componentDidMount(){
+    const filePath = getPathFromLocalStorage(this.getHash());
+    if(filePath){
+      Sender.post("/api/singleFileInfo", {filePath}, res => {
+        if(!res.failed){
+          const {stat} = res;
+          this.setState({stat})
+        }else{
+          this.res = res;
+          this.onError();
+        } 
+      });
+    }
   }
 
   getHash(){
@@ -31,7 +49,7 @@ export default class VideoPlayer extends Component {
   renderDownloadLink(){
     return (<a href={"/api/download/"+this.getHash()}><i className="fa fa-fw fa-download"></i></a>);
   }
-
+  
   renderTag(){
     const filePath = getPathFromLocalStorage(this.getHash());
     const fn = getBaseName(filePath);
@@ -62,26 +80,42 @@ export default class VideoPlayer extends Component {
     }
   }
 
+  renderPath() {
+    const filePath = getPathFromLocalStorage(this.getHash());
+    const parentPath = getDir(filePath);
+    const parentHash = stringHash(parentPath);
+    const toUrl = ('/explorer/'+ parentHash);
+    
+    return (
+      <div className="one-book-path">
+        <Link to={toUrl}>{parentPath} </Link>
+      </div>);
+  }
+
   render() {
-    const fn = getPathFromLocalStorage(this.getHash());
+    const filePath = getPathFromLocalStorage(this.getHash());
     const url = "/api/download/" + this.getHash();
-    document.title = getBaseName(fn);
-    const {hasError} = this.state;
+    const fileName = getBaseName(filePath);
+    document.title = fileName;
+    const {hasError, stat} = this.state;
     //use bootstrap classname util 
-    const videoTitle = fn && (<div className="video-title"> 
-                          <ClickAndCopyText text={fn} />  {this.renderDownloadLink()}
+    const videoTitle = filePath && (<div className="video-title"> 
+                          <center> <ClickAndCopyText text={fileName} />  {this.renderDownloadLink()} </center>
+                          {this.renderPath()}
                          </div>);
 
 
-    if(hasError || !fn){
-      const infoStr= hasError? "Uneble to Play Video" : "Video Not Found";
-
+    if(hasError || !filePath){
+      const infoStr=  (!filePath || this.res.res.status === 404 )? "Video Not Found": "Uneble to Play Video";
       return (<div className="container"> 
           <div className="alert alert-warning col-6" role="alert">{infoStr}</div>
           {videoTitle}
         </div>
       )
     }
+    
+    const fileSize = stat && filesizeUitl(stat.size, {base: 2});
+    const mTime = stat &&  dateFormat(stat.mTime, "isoDate");
 
     return (<div className="video-player-page">
               <div className="video-player-container">
@@ -90,7 +124,11 @@ export default class VideoPlayer extends Component {
                 </video>
               </div>
               {videoTitle}
-              <FileChangeToolbar showAllButtons className="video-toolbar" file={fn} popPosition={"top-center"}/>
+              <div className="video-file-info-row">
+                <span>{fileSize}</span>
+                <span style={{marginLeft: "10px"}}> {mTime} </span>
+              </div>
+              <FileChangeToolbar showAllButtons className="video-toolbar" file={filePath} popPosition={"top-center"}/>
               {this.renderTag()}
             </div>
             );

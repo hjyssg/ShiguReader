@@ -19,9 +19,8 @@
         display: flex;
         justify-content: center;
         align-content: center;
-
-        margin-left: auto;
-        margin-right: auto;
+        flex-direction: column;
+      
         margin-top: 10px;
         font-size: 14px;
         color: #f1f1f1;
@@ -51,5 +50,17 @@
         .aji-dropdown-item{
             font-size: 28px;
         }
+    }
+
+    .video-file-info-row{
+        display: flex;
+        justify-content: center;
+        align-content: center;
+
+        margin-left: auto;
+        margin-right: auto;
+        font-size: 15px;
+
+        color: #f1f1f1;
     }
 }

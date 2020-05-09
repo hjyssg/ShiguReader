@@ -413,7 +413,23 @@ app.get('/api/cacheInfo', (req, res) => {
     })
 });
 
+app.post("/api/singleFileInfo", async (req, res) => {
+    const filePath = (req.body && req.body.filePath);
 
+    if (!filePath || !(await isExist(filePath))) {
+        res.sendStatus(404);
+        return;
+    }
+
+    let stat =  db.fileToInfo[filePath];
+    if(!stat){
+        stat = await pfs.stat(filePath);
+    }
+
+    res.send({
+        stat
+    });
+});
 
 app.get('/api/allInfo', (req, res) => {
     const tempfileToInfo = {};
@@ -515,7 +531,6 @@ app.get('/api/download/:hash', async (req, res) => {
     }
     res.download(filepath); // Set disposition and send it.
 });
-
 
 //----------------get folder contents
 app.post('/api/homePagePath', function (req, res) {
