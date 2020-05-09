@@ -14,6 +14,8 @@ const util = require("../util");
 const {isCompress, array_unique} = util;
 import RadioButtonGroup from './subcomponent/RadioButtonGroup';
 import { isVideo } from '../util';
+import Accordion from './subcomponent/Accordion';
+
 
 
 function parse(str){
@@ -152,7 +154,7 @@ export default class ChartPage extends Component {
                     options={opt}
                 />
                 </div>
-                {renderTable(labels, values)}
+                <Accordion header="toggle chart"  body={renderTable(labels, values)} />
             </div>
           );
     }
