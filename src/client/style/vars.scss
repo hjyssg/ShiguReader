@@ -1,5 +1,5 @@
 $white_one: #DDDDDD;
-$white_two: #313131;
+$black_two: #313131;
 
 $bacground_level_one: #4f535b;
 $bacground_level_two: #43464e;
@@ -35,4 +35,14 @@ $dark_orange: rgba(218, 101, 58, 0.774);
     display: flex;
     justify-content: center;
     align-items: center;
+}
+
+
+@mixin common_sub_container {
+    background: rgb(231, 218, 190);;
+    color : $black_two;
+
+    a {
+        color : $black_two;
+    }
 }

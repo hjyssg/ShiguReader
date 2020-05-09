@@ -1,7 +1,8 @@
 @import "vars.scss";
 
 .chart-container{
-    background: antiquewhite;;
+    @include common_sub_container;
+
     padding-top: 10px;
     padding-bottom: 10px;
 
@@ -16,7 +17,6 @@
 
     .total-info{
         padding-top: 10px;
-        color : black;
     }
 
     .individual-chart-container{

@@ -2,21 +2,18 @@
 
 .admin-container{
     padding-top: 20px;
-    background: #737780;
-    border: 1px solid #000000;
     min-height: 800px;
-    color: $white_one;
     position: relative;
+
+    @include common_sub_container;
 
     .admin-section{
       .admin-section-title {
-        color: $white_one;
         font-size: 20px;
         font-weight: 600;
       }
 
       .admin-section-text {
-        color: $white_one;
         font-size: 15px;
         font-weight: 600;
       }
@@ -40,7 +37,6 @@
         cursor: pointer;
         display: inline-flex;
         align-items: center;
-        color: $white_one;
         background-color: #34353b;
         min-height: 26px;
         padding: 1px 5px 2px;
@@ -48,25 +44,23 @@
         border: 2px solid #8d8d8d;
         border-radius: 3px;
         font-size: 9pt;
+        color: $white_one;
+
+        &:hover{
+          @include hover_effect;
+        }
     }
       
-    .submit:hover{
-      @include hover_effect;
-    }
-
     .author-link{
       margin-top: 10px;
       margin-bottom: 10px;
       a {
-        color: $white_one;
         font-size: 1.2rem;
       }
     }
 
-
     .history-section {
       .history-link{
-        color: $white_one;
         .history-one-line-list-item {
           .date-text {
             margin-right: 10px;
