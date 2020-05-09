@@ -1024,7 +1024,7 @@ async function extractAll(filePath, outputPath, files, sendBack, res, stat){
     if (!stderr) {
         sendBack && fs.readdir(outputPath, (error, pathes) => {
             const temp = generateContentUrl(pathes, outputPath);
-            sendBack(temp.files, temp.dirs, temp.musicFiles, filePath, stat);
+            sendBack(temp.files, temp.musicFiles, filePath, stat);
         });
     } else {
         res && res.sendStatus(500);
@@ -1082,21 +1082,25 @@ app.post('/api/extract', async (req, res) => {
     const time1 = getCurrentTime();
     const stat = await pfs.stat(filePath);
 
-    function sendBack(files, dirs, musicFiles, path, stat){
+    function sendBack(files, musicFiles, path, stat){
         const tempFiles =  serverUtil.filterHiddenFile(files);
-        res.send({ files: tempFiles, dirs, musicFiles,path, stat });
+        res.send({ files: tempFiles, musicFiles,path, stat });
     }
 
     const outputPath = getCacheOutputPath(cachePath, filePath);
     const temp = getCacheFiles(outputPath);
 
     const contentInfo = zip_content_db.getData("/");
-    const pageNum = getPageNum(contentInfo, filePath); 
-    const musicNum = getMusicNum(contentInfo, filePath);
-    const totalNum = pageNum + musicNum;
-    if (totalNum > 0 &&  temp && temp.files.length >= totalNum) {
-        sendBack(temp.files, temp.dirs, temp.musicFiles, filePath, stat);
-        return;
+    if(contentInfo[filePath]){
+        const pageNum = getPageNum(contentInfo, filePath); 
+        const musicNum = getMusicNum(contentInfo, filePath);
+        const totalNum = pageNum + musicNum;
+        if (totalNum > 0 &&  temp && temp.files.length >= totalNum) {
+            sendBack(temp.files, temp.musicFiles, filePath, stat);
+            return;
+        }else if(totalNum === 0){
+            sendBack([], [], filePath, stat );
+        }
     }
 
     (async () => {
@@ -1136,7 +1140,7 @@ app.post('/api/extract', async (req, res) => {
 
                 if (!stderr) {
                     const temp = generateContentUrl(files, outputPath);
-                    sendBack(temp.files, temp.dirs, temp.musicFiles, filePath, stat);
+                    sendBack(temp.files, temp.musicFiles, filePath, stat);
                     const time2 = getCurrentTime();
                     const timeUsed = (time2 - time1);
                     console.log(`[/api/extract] FIRST PART UNZIP ${filePath} : ${timeUsed}ms`);

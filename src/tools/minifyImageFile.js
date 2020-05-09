@@ -5,7 +5,9 @@ const sharp = require('sharp');
 
 function minifyImageFile(p1, fileName, callback){
     try{
-        if(!util.isCompressedThumbnail(fileName) && util.canBeCompressed(fileName)){
+        //sharp is difficult to install, because GFW
+        //but the server runs without it anyway
+        if(sharp && !util.isCompressedThumbnail(fileName) && util.canBeCompressed(fileName)){
             const outputName = util.getCompressedThumbnailFileName(fileName);
             const outputPath = path.resolve(p1, outputName);
             const THUMB_WIDTH = 250; 
@@ -19,7 +21,7 @@ function minifyImageFile(p1, fileName, callback){
             }
     } catch(e) {
         console.error("[minifyImageFile] exception", e);
-        handleFail();
+        callback && callback(err, info);
     }
 }
 

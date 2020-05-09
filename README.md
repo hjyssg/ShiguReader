@@ -62,12 +62,25 @@ git clone https://github.com/hjyssg/ShiguReader
 # cd F:\ShiguReader
 
 # 安装依赖
-# 最近gitub可能被墙， 所以用taobao的源。
-# install会比较慢，要耐心
+# 如果人在墙外，只需要
+npm install 
+
+# 否则因为有依赖包要从github下载，可能会卡住。
+# 给出以下几种尝试方式。
+# 第1种 指定--registry
 npm install --registry=http://registry.npm.taobao.org
 
-# install中途要是node-sass报错
-# 看一下issue页面。有解决办法
+# 第2种 使用cnpm
+npm install -g cnpm --registry=https://registry.npm.taobao.org
+#cmd输入以上命令就可以了，然后输入
+cnpm install 
+
+# 第3种 设置registry
+npm config set registry https://registry.npm.taobao.org
+# 后续的install等命令还是通过npm运作
+
+# 安装成功会显示类似
+# added 100 package from 100 contributor in 200s
 
 # 重要：*nix以及Mac用户，需要自己用命令行安装7zip。并添加到cmd的path上。
 
@@ -106,6 +119,8 @@ cd ShiguReader
 
 # Install dependencies
 npm install
+
+# for *nix people, please install 7zip on your own
 
 # Start development server
 npm run dev
