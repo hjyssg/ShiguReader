@@ -21,6 +21,8 @@ for(let index = 2; index < 20; index++){
     ALL_COMIC_TAGS.push(`COMIC1☆${index}`);
 }
 
+const tag_to_date_table = {};
+
 //for sort algo, not very accurate
 function getDateFromTags(tags){
   if(!tags || tags.length === 0){
@@ -34,7 +36,9 @@ function getDateFromTags(tags){
   let year;
   let month;
   if(tag){
-    if(comiket_tags.includes(tag)){
+    if (tag_to_date_table[tag]) {
+        result = tag_to_date_table[tag];
+    } else if(comiket_tags.includes(tag)) {
         tag = tag.replace("C", "");
         num = parseInt(tag);
         year = Math.floor(num /2) + 1971;
@@ -42,10 +46,10 @@ function getDateFromTags(tags){
         month = isSummer? 8 : 11;
         const day = isSummer? 10: 28;
         result = new Date(year, month, day);
-    }else if(comic_star_tags.includes(tag)){
+        tag_to_date_table[tag] = result;
+    } else if(comic_star_tags.includes(tag)) {
         tag = tag.replace("COMIC1☆", "");
         num = parseInt(tag);
-
         if(num <= 10){
             //once per year
             result = new Date(2006+num, 3, 30);
@@ -55,6 +59,7 @@ function getDateFromTags(tags){
             month = num % 2 === 0? 10 : 4;
             result = new Date(year, month, 30);
         }
+        tag_to_date_table[tag] = result;
     }
   }
 
