@@ -9,7 +9,7 @@ import CenterSpinner from './subcomponent/CenterSpinner';
 import ErrorPage from './ErrorPage';
 import {Bar, Pie, Line} from 'react-chartjs-2';
 const clientUtil = require("./clientUtil");
-const { getDir, getBaseName } = clientUtil;
+const {  getBaseName } = clientUtil;
 const util = require("../util");
 const {isCompress, array_unique} = util;
 
@@ -293,13 +293,16 @@ export default class ChartPage extends Component {
 
     render(){
         document.title = "Chart"
+        const too_few = 50;
 
         if (!this.res) {
             return (<CenterSpinner/>);
         } else if(this.isFailedLoading()) {
             return <ErrorPage res={this.res.res}/>;
-        } else if(this.files.length <100){
-            return (<div>Too few file </div>)
+        } else if(this.files.length < too_few){
+            return (<center style={{paddingTop: "100px"}}> 
+                        <div className="alert alert-info col-6" role="alert" > {`Less than ${too_few} files`} </div>
+                    </center>);
         }else{
             
             return (

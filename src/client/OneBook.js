@@ -655,7 +655,7 @@ export default class OneBook extends Component {
       if(this.res && !this.refs.failed){
         return (<h3>
                   <center style={{paddingTop: "200px"}}> 
-                  <div className="alert alert-warning col-6" role="alert" > No image or music file </div>
+                    <div className="alert alert-warning col-6" role="alert" > No image or music file </div>
                     {bookTitle}
                   </center>
                 </h3>);

@@ -117,11 +117,18 @@ export default class TagPage extends Component {
   renderTagList() {
     const {
       tags = [],
-      authors = []
+      authors = [],
+      loaded
     } = this.state;
 
-    if (_.isEmpty(tags) && _.isEmpty(authors)) {
-      return (<CenterSpinner/>);
+    if ( _.isEmpty(tags) && _.isEmpty(authors)) {
+      if(loaded){
+        return (<center style={{paddingTop: "100px"}}> 
+                    <div className="alert alert-info col-6" role="alert" > {`No Content`} </div>
+                </center>);
+      }else{
+        return (<CenterSpinner/>);
+      }
     }
 
     const items = this.getItems();
