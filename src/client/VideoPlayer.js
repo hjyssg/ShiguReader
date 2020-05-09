@@ -64,13 +64,21 @@ export default class VideoPlayer extends Component {
 
   render() {
     const fn = getPathFromLocalStorage(this.getHash());
-    const url = "/api/video/" + this.getHash();
+    const url = "/api/download/" + this.getHash();
     document.title = getBaseName(fn);
     const {hasError} = this.state;
     //use bootstrap classname util 
+    const videoTitle = fn && (<div className="video-title"> 
+                          <ClickAndCopyText text={fn} />  {this.renderDownloadLink()}
+                         </div>);
+
+
     if(hasError || !fn){
+      const infoStr= hasError? "Uneble to Play Video" : "Video Not Found";
+
       return (<div className="container"> 
-          <div className="alert alert-warning col-6" role="alert"> Video Not Found </div>
+          <div className="alert alert-warning col-6" role="alert">{infoStr}</div>
+          {videoTitle}
         </div>
       )
     }
@@ -81,9 +89,7 @@ export default class VideoPlayer extends Component {
                   <source src={url} type="video/mp4" onError={this.onError.bind(this)} />
                 </video>
               </div>
-              <div className="video-title"> 
-                <ClickAndCopyText text={fn} />  {this.renderDownloadLink()}
-              </div>
+              {videoTitle}
               <FileChangeToolbar showAllButtons className="video-toolbar" file={fn} popPosition={"top-center"}/>
               {this.renderTag()}
             </div>
