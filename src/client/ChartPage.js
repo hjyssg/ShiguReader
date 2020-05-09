@@ -80,7 +80,7 @@ export default class ChartPage extends Component {
 
     getFilterFiles(){
         const func =  this.isShowingVideoChart()? isVideo : isCompress;
-        return  this.files.filter(func);
+        return  (this.files || []).filter(func);
     }
 
     isShowingVideoChart(){
@@ -340,12 +340,15 @@ export default class ChartPage extends Component {
 
     render(){
         document.title = "Chart"
-        const too_few = 50;
+        const too_few = 30;
 
         const FILE_OPTIONS = [
           "video",
           "compressed"
         ];
+
+        const files = this.getFilterFiles();
+        const {fileType} = this.state;
 
         const radioGroup = <RadioButtonGroup 
                             className="chart-radio-button-group"
@@ -357,10 +360,13 @@ export default class ChartPage extends Component {
             return (<CenterSpinner/>);
         } else if(this.isFailedLoading()) {
             return <ErrorPage res={this.res.res}/>;
-        } else if(this.getFilterFiles().length < too_few){
+        } else if(files.length < too_few){
             return ( <div className="chart-container container">
                         {radioGroup}
-                        <div className="alert alert-info" role="alert" > {`Less than ${too_few} files`} </div>
+                        <div className="alert alert-info" role="alert" > 
+                             <div>{`There are only ${files.length} ${fileType} files.`} </div> 
+                             <div>Unable to render chart</div>
+                        </div>
                     </div>);
         }else{ 
             return (
