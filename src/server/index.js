@@ -630,32 +630,27 @@ app.post('/api/lsDir', async (req, res) => {
     const infos = {};
     const oneLevel = !isRecursive;
     getAllFilePathes().forEach(pp => {
-        if(pp && isSub(dir, pp)){
-            const singleInfo = db.fileToInfo[pp];
+        if(pp && isDisplayableInExplorer(pp) && isSub(dir, pp)){
+            //add file's parent
             if(oneLevel && !isDirectParent(dir, pp)){
                 let itsParent = path.resolve(pp, "..");
    
                 //for example
                 //the dir is     F:/git 
                 //the file is    F:/git/a/b/1.zip
-                //add            F:/git/a
+                //add folder           F:/git/a
                 let counter = 0;
                 while(!isDirectParent(dir, itsParent)){
                     itsParent = path.resolve(itsParent, "..");
                     counter++;
 
-                    if(counter > 200){
-                        throw "[lsdir] while loop"
-                    }
+                    //assert
+                    if(counter > 200){ throw "[lsdir] while loop" }
                 }
                 dirs.push(itsParent);
-                return;
-            }
-
-            const ext = path.extname(pp).toLowerCase();
-            if (isDisplayableInExplorer(ext)){
+            }else{
                 files.push(pp);
-                infos[pp] = singleInfo;
+                infos[pp] = db.fileToInfo[pp]
             }
         }
     })
