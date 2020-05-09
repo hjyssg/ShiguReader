@@ -245,6 +245,10 @@ export default class OneBook extends Component {
     }
 
     const imageDom = ReactDOM.findDOMNode(this.wrapperRef);
+    if(!imageDom){
+      return;
+    }
+
     this.imgDomHeight = imageDom.clientHeight;
     imageDom.addEventListener("wheel", this.onwheel.bind(this), {passive: false} );
 
@@ -284,11 +288,11 @@ export default class OneBook extends Component {
         sortFileNames(files);
         let musicFiles = res.musicFiles || [];
         sortFileNames(musicFiles);
-        this.setState({ files, musicFiles, path:res.path, fileStat: res.stat });
-
+        this.setState({ files, musicFiles, path:res.path, fileStat: res.stat}, 
+                       () => { this.bindUserInteraction()});
+        //used by recent read in admin page
         Cookie.set(util.getCurrentTime(), this.loadedHash, { expires: 7 })
 
-        this.bindUserInteraction();
       }else{
         this.forceUpdate();
       }
@@ -642,9 +646,19 @@ export default class OneBook extends Component {
     }
     
     const { files, index } = this.state;
+    const bookTitle = (<div className="one-book-title" >
+                          <ClickAndCopyText text={getBaseName(this.state.path)} />
+                          {this.renderPath()} 
+                      </div>);
+
     if (_.isEmpty(files)) {
       if(this.res && !this.refs.failed){
-        return <h3><center>no content files</center></h3>;
+        return (<h3>
+                  <center style={{paddingTop: "200px"}}> 
+                  <div className="alert alert-warning col-6" role="alert" > No image or music file </div>
+                    {bookTitle}
+                  </center>
+                </h3>);
       } else {
         return (<CenterSpinner text={this.getPathFromLocalStorage()} splitFilePath/>);
       } 
@@ -675,10 +689,7 @@ export default class OneBook extends Component {
     return (  
       <div className="one-book-container">
         {!isContentBelow && content}
-        <div className="one-book-title" >
-            <ClickAndCopyText text={getBaseName(this.state.path)} />
-            {this.renderPath()} 
-        </div>
+        {bookTitle}
         {this.renderPagination()}
         {this.renderFileSizeAndTime()}
         {this.renderTags()}

@@ -51,23 +51,6 @@
     list-style: none;
   }
 
-  .one-book-title {
-    color: #f1f1f1;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-  }
-
-  .one-book-path{
-    color: #f1f1f1;
-    font-weight: 400;
-    margin-right: 10px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
-
   a {
     color: #DDDDDD !important;
   }
@@ -199,5 +182,26 @@
         @include onHover();
        }
     }
+  }
+}
+
+.one-book-title {
+  color: #f1f1f1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
+  .one-book-path{
+    color: #f1f1f1;
+    font-weight: 400;
+    margin-right: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  a {
+    color: #DDDDDD !important;
   }
 }
