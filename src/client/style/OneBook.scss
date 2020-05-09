@@ -145,21 +145,13 @@
     @include flex_center_display;
     margin-top: 5px;
     
-    .two-page-mode-button {
-      color: $white_one;
-      font-size: 1.5rem;
-      display: inline-flex;
-  
-      &:hover{
-       @include fourth_hover_effect();
-      }
-    }
-  
+    .fa-download,
+    .two-page-mode-button,
     .rotate-button{
       font-size: 1.5rem;
       margin-left: 10px;
       &:hover{
-        @include fourth_hover_effect();
+        @include third_hover_effect();
        }
     }
   }

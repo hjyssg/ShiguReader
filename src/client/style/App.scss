@@ -14,11 +14,10 @@ body {
 
 a {
   color: $white_one;
-}
 
-.path-highlight{
-  color:red;
-  font-weight: 700;
+  &:hover{
+    color: unset;
+  }
 }
 
 .location-title {
@@ -42,7 +41,6 @@ a {
   background-color: $bacground_level_one;
   min-height: 100vh;
 
-  
   .fas{
     color: $white_one;
     &::before{
@@ -125,81 +123,4 @@ a {
      }
     }
   }
-}
-
-
-.loading-container {
-  width: 100%;
-  height: 100%;
-  @include flex_center_display;
-
-  .loading-inner {
-    margin-top: 100px;
-    text-align: center;
-    font-size: 2rem;
-    color: $white_one;
-
-    .title {
-      color: $white_one;
-    }
-  }
-}
-
-.rc-pagination {
-  display: flex;
-  justify-content: center;
-}
-
-.rc-pagination-item {
-  min-width: 40px !important;
-
-  &.rc-pagination-item-active{
-    font-weight: 600;
-  }
-}
-
-.rc-pagination-prev,
-.rc-pagination-next,
-.rc-pagination-item {
-  height: 40px !important;
-  width: 40px !important;
-  
-  a {
-    @include flex_center_display;
-    width: 100%;
-    height: 100%;
-    font-size: 20px !important;
-  }
-}
-
-
-
-@media screen and (max-width: 700px) {
-  .rc-pagination-options{
-    display: none;
-  }
- }
-
-
- .click-and-copy-text {
-  cursor: copy;
-  &:hover{
-    @include hover_effect;
-  }
-}
-
-.f-s-10{
-  font-size: 10px;
-}
-.f-s-11{
-  font-size: 11px;
-}
-.f-s-12{
-  font-size: 12px;
-}
-.f-s-14{
-  font-size: 14px;
-}
-.f-s-16{
-  font-size: 16px;
 }

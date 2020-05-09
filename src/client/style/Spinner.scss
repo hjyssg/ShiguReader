@@ -1,5 +1,22 @@
 @import "vars.scss";
 
+.loading-container {
+  width: 100%;
+  height: 100%;
+  @include flex_center_display;
+
+  .loading-inner {
+    margin-top: 100px;
+    text-align: center;
+    font-size: 2rem;
+    color: $white_one;
+
+    .title {
+      color: $white_one;
+    }
+  }
+}
+
 .lds-spinner {
     color: official;
     display: inline-block;

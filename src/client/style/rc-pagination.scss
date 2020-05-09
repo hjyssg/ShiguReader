@@ -345,3 +345,40 @@
 .rc-pagination-options-quick-jumper{
   color: $white_one;
 }
+
+
+//-----------------------------------------------
+.rc-pagination {
+  display: flex;
+  justify-content: center;
+}
+
+.rc-pagination-item {
+  min-width: 40px !important;
+
+  &.rc-pagination-item-active{
+    font-weight: 600;
+  }
+}
+
+.rc-pagination-prev,
+.rc-pagination-next,
+.rc-pagination-item {
+  height: 40px !important;
+  width: 40px !important;
+  
+  a {
+    @include flex_center_display;
+    width: 100%;
+    height: 100%;
+    font-size: 20px !important;
+  }
+}
+
+@media screen and (max-width: 700px) {
+  .rc-pagination-options{
+    display: none;
+  }
+ }
+
+//--------------------------

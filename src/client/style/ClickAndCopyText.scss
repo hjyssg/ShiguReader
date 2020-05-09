@@ -1,0 +1,8 @@
+@import "vars.scss";
+
+.click-and-copy-text {
+  cursor: copy;
+  &:hover{
+    @include third_hover_effect();
+  }
+}
