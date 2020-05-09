@@ -1,3 +1,5 @@
+@import "vars.scss";
+
 .side-menu {
   box-sizing: border-box;
   height: 100%; /* 100% Full-height */
@@ -43,7 +45,7 @@
 
   .side-menu-folder-small-info{
     padding-bottom: 5px;
-    border-bottom: #DDDDDD solid 1px;
+    border-bottom: $white_one solid 1px;
     margin-bottom: 5px;
   }
 
@@ -96,7 +98,7 @@
 }
 
 .explorer-external-link{
-  color: #DDDDDD !important;
+  color: $white_one !important;
 }
 
 .explorer-container{
@@ -107,7 +109,7 @@
   }
 
   a {
-    color: #DDDDDD !important;
+    color: $white_one !important;
   }
 
   .dir-list {
@@ -142,7 +144,7 @@
     }
 
     padding-left: 5px;
-    color:#DDDDDD;
+    color:$white_one;
 
     .far,
     .fas {
@@ -169,7 +171,7 @@
   }
 
   .file-info-row {
-    color:#DDDDDD;
+    color:$white_one;
     display: flex;
     justify-content: space-between;
     align-items: flex-start;

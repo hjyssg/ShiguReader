@@ -1,3 +1,5 @@
+@import "vars.scss";
+
 .aji-music-player {
     width: 100%;
     border-radius: 2px;
@@ -10,7 +12,7 @@
     }
 
     .aji-music-player-item {
-        color: #DDDDDD;
+        color: $white_one;
         cursor: pointer;
         margin-bottom: 10px;
         overflow-x: visible;

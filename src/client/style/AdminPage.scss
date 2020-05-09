@@ -1,20 +1,22 @@
+@import "vars.scss";
+
 .admin-container{
     padding-top: 20px;
     background: #737780;
     border: 1px solid #000000;
     min-height: 800px;
-    color: #f1f1f1;
+    color: $white_one;
     position: relative;
 
     .admin-section{
       .admin-section-title {
-        color: #f1f1f1;
+        color: $white_one;
         font-size: 20px;
         font-weight: 600;
       }
 
       .admin-section-text {
-        color: #f1f1f1;
+        color: $white_one;
         font-size: 15px;
         font-weight: 600;
       }
@@ -38,7 +40,7 @@
         cursor: pointer;
         display: inline-flex;
         align-items: center;
-        color: #f1f1f1;
+        color: $white_one;
         background-color: #34353b;
         min-height: 26px;
         padding: 1px 5px 2px;
@@ -56,7 +58,7 @@
         margin-top: 10px;
         margin-bottom: 10px;
         a {
-          color: white;
+          color: $white_one;
           font-size: 1.2rem;
         }
       }
@@ -64,7 +66,7 @@
 
       .history-section {
         .history-link{
-          color: white;
+          color: $white_one;
           .history-one-line-list-item {
             .date-text {
               margin-right: 10px;

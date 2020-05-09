@@ -1,3 +1,5 @@
+@import "vars.scss";
+
 .video-player-page{
     .video-player-container{
         display: flex;
@@ -23,7 +25,7 @@
       
         margin-top: 10px;
         font-size: 14px;
-        color: #f1f1f1;
+        color: $white_one;
     }
 
     .video-tag-row {
@@ -34,7 +36,7 @@
 
         .video-tag{
             margin-left: 10px;
-            color: #f1f1f1;
+            color: $white_one;
         }
     }
 
@@ -61,6 +63,6 @@
         margin-right: auto;
         font-size: 15px;
 
-        color: #f1f1f1;
+        color: $white_one;
     }
 }

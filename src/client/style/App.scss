@@ -1,3 +1,5 @@
+@import "vars.scss";
+
 #root {
   @media screen and (max-width: 500px) {
     min-width: 500px;
@@ -10,7 +12,7 @@ body {
 }
 
 a {
-  color: #DDDDDD;
+  color: $white_one;
 }
 
 .path-highlight{
@@ -47,7 +49,7 @@ a {
 
   
   .fas{
-    color: #DDDDDD;
+    color: $white_one;
     &::before{
       padding-right: 5px;
     }
@@ -55,7 +57,7 @@ a {
 
 
   .fa-download {
-    color: #DDDDDD;
+    color: $white_one;
     margin-left: 10px;
 
     &:hover{
@@ -120,7 +122,7 @@ a {
         margin-left: 1px;
 
         &:hover{
-          color: white;
+          color: $white_one;
           background-color: #34353b;
         }
       }
@@ -146,10 +148,10 @@ a {
     margin-top: 100px;
     text-align: center;
     font-size: 2rem;
-    color: #DDDDDD;
+    color: $white_one;
 
     .title {
-      color: white;
+      color: $white_one;
     }
   }
 }

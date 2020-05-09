@@ -1,3 +1,5 @@
+@import "vars.scss";
+
 .tag-page-loading {
   text-align: center;
   font-size: 3rem;
@@ -14,7 +16,7 @@
   }
 
   .tag-page-list-item-link {
-    color: white;
+    color: $white_one;
     margin-top: 0.25rem;
     margin-bottom: 0.25rem;
 

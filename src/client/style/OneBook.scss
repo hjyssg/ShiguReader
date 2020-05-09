@@ -1,3 +1,5 @@
+@import "vars.scss";
+
 @mixin onHover {
   background-color: chocolate;
   color: ivory;
@@ -52,7 +54,7 @@
   }
 
   a {
-    color: #DDDDDD !important;
+    color: $white_one !important;
   }
 
   .one-book-image-li {
@@ -139,7 +141,7 @@
     position: fixed;
     right: 20px;
     bottom: 20px;
-    color: #DDDDDD;
+    color: $white_one;
     font-weight: 600;
 
     &.is-last {
@@ -154,7 +156,7 @@
   }
 
   .one-book-file-stat{
-    color: #f1f1f1;
+    color: $white_one;
     font-size: 1rem;
     display: flex;
   }
@@ -166,7 +168,7 @@
     margin-top: 5px;
     
     .two-page-mode-button {
-      color: #f1f1f1;
+      color: $white_one;
       font-size: 1.5rem;
       display: inline-flex;
   
@@ -186,19 +188,19 @@
 }
 
 .one-book-title {
-  color: #f1f1f1;
+  color: $white_one;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
 
   a {
-    color: #DDDDDD !important;
+    color: $white_one !important;
   }
 }
 
 .one-book-path{
-  color: #f1f1f1;
+  color: $white_one;
   font-weight: 400;
   margin-right: 10px;
   display: flex;
@@ -206,6 +208,6 @@
   align-items: center;
 
   a {
-    color: #DDDDDD !important;
+    color: $white_one !important;
   }
 }
