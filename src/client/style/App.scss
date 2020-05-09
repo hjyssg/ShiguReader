@@ -80,12 +80,12 @@ a {
         padding: 14px 16px;
         text-decoration: none;
         font-size: 17px;
-      }
 
-      a:hover {
-        background-color: rgb(221, 221, 221);
-        i{
-          color: midnightblue;
+        &:hover {
+          background-color: rgb(221, 221, 221);
+          i {
+            color: midnightblue;
+          }
         }
       }
     }
