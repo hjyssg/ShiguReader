@@ -10,32 +10,31 @@
 
   .aji-dropdown-menu{
     display: none;
-
     margin-top: 2px;
-    padding: 5px;
     z-index: 999;
-
     bottom: 25px;
     left: -10px;
-
-    width: 100%;
-
     position: absolute;
+    border: 1px solid $font_color_white_one;
+    background: $bacground_level_three;
+
+    .aji-dropdown-item {
+      min-width: 30px;
+      color: $font_color_white_one;
+
+      &:not(:last-child){
+        border-bottom: 1px solid $font_color_white_one;
+      }
+    }
   }
 
   &.open {
     .aji-dropdown-menu{
-      display: inline-flex;
-      flex-direction: column;
+      display: block;
     }
   }
 
-  .aji-dropdown-item {
-    min-width: 30px;
-    border: 1px solid $font_color_white_one;
-    background: #1c1e20;
-    color: $font_color_white_one;
-  }
+
 }
 
 //can be use independently
