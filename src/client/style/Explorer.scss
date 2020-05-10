@@ -1,55 +1,54 @@
+@import "vars.scss";
+
 .side-menu {
   box-sizing: border-box;
-  height: 100%; /* 100% Full-height */
+  height: 100%; 
   width: 250px; 
   opacity: 0;
   padding-left: 20px;
-  transition: width 0.01s;
-  animation: all 0.5s;
-
-  &.anchorSideMenu,
-  &:hover{
-    padding-top: 40px; 
-    padding-left: 20px;
-    padding-right: 10px;
-    opacity: 1;
-  }
+  transition: width 1s;
+  animation: all 1s;
 
   @media screen and (max-width: 1600px) {
     display: none
   }
 
+  &.anchorSideMenu,
+  &:hover{
+    padding-top: 10px; 
+    padding-left: 20px;
+    padding-right: 10px;
+    opacity: 1;
+  }
+
+
   &.anchorSideMenu {
     display: block !important;
   }
 
-  position: fixed; /* Stay in place */
-  z-index: 1; /* Stay on top */
-  top: 0; /* Stay at the top */
-  left: 0;
   background-color: #99a2b5; /* Black*/
   overflow-x: hidden; /* Disable horizontal scroll */
  
-  .side-menu-radio-title{
-    color: #1d5be2;
+  .side-menu-radio-title {
+    color: #0f2452;
     font-size: 15px;
+    font-weight: 500;
+    margin-bottom: 5px;
   }
 
   .radio-button {
     font-weight: 600px;
     font-size: 17px;
-    color: #eff4ff;
-  }
-
-  .side-menu-folder-small-info{
-    padding-bottom: 5px;
-    border-bottom: #DDDDDD solid 1px;
-    margin-bottom: 5px;
+    color: $font_color_white_one;
   }
 
   .side-menu-single-tag{
+    &.side-menu-single-tag-all{
+      border-top: $font_color_white_one solid 1px;
+    }
+
     cursor: pointer;
-    color: #eff4ff;
+    color: $font_color_white_one;
 
     &:hover{
       color: #43464e;
@@ -83,6 +82,7 @@
     .explorer-one-line-list-item{
       padding-left: 16px;
     }
+    
   }
 
   &.mode_home {
@@ -93,10 +93,14 @@
       }
     }
   }
+
+  &.anchorSideMenu{
+    display: flex;
+  }
 }
 
 .explorer-external-link{
-  color: #DDDDDD !important;
+  color: $font_color_white_one !important;
 }
 
 .explorer-container{
@@ -107,7 +111,7 @@
   }
 
   a {
-    color: #DDDDDD !important;
+    color: $font_color_white_one !important;
   }
 
   .dir-list {
@@ -120,7 +124,6 @@
 
   .explorer-one-line-list-item {
     text-align: left !important;
-    background-color: #4f535b;
 
     display: flex;
     align-items: center;
@@ -142,7 +145,7 @@
     }
 
     padding-left: 5px;
-    color:#DDDDDD;
+    color:$font_color_white_one;
 
     .far,
     .fas {
@@ -155,21 +158,19 @@
   }
 
   .file-cell {
-    // height: 290px;
-    border: 1px solid #34353b;
-    border-radius: 9px;
-    background: #43464e;
+
+    @include file_cell_common;
+
     padding-top:5px;
     padding-bottom: 10px;
     display: flex;
     flex-flow:column;
     justify-content: start;
     align-items: center;
-    overflow: hidden;
   }
 
   .file-info-row {
-    color:#DDDDDD;
+    color:$font_color_white_one;
     display: flex;
     justify-content: space-between;
     align-items: flex-start;

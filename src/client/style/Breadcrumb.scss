@@ -1,7 +1,8 @@
+@import "vars.scss";
+
 .explorer-breadcrumb {
   padding: 8px 16px;
   list-style: none;
-  background-color: #eee;
   margin-bottom: 0px;
 
   .breadcrumb-item {
@@ -12,68 +13,60 @@
       font-size: 15px;
     }
 
-    color: #007bff !important;
+    color: $font_color_white_one;
     text-decoration: none;
     background-color: transparent;
     -webkit-text-decoration-skip: objects;
-
-    &.current{
-      color: #34353b;
-    }
   }
 
   .breadcrumb-item+.breadcrumb-item:before {
     padding-left: 4px;
     padding-right: 4px;
     color: black;
+    font-weight: 600;
     content: "/\00a0";
   }
 
-  .breadcrumb-item a:hover {
-    color: #01447e;
-    text-decoration: underline;
+  .breadcrumb-item  {
+    &:not(.current):hover{
+      text-decoration: underline;
+    }
   }
 }
 
-.explorer-top{
-  background-color: #eee
-}
-
-.top-button-gropus{
-  color: gray;
+.top-button-gropus {
+  color: $font_color_white_one;
   position: relative;
   margin-bottom: 1rem;
   padding-bottom: 6px;
+}
 
-  .exp-top-button {
-    cursor: pointer;
-    color: gray;
+.exp-top-button {
+  cursor: pointer;
+  color: $font_color_white_one;
 
-    .fas {
-      color: gray;
-    }
-    
-    &:hover{
-      color: #34353b;
-
-      .fas {
-        color: #34353b;
-      }
-    }
+  .fas {
+    color: $font_color_white_one;
   }
-
-  @media screen and (max-width: 800px) {
-    .file-count,
-    .exp-top-button {
-      font-size: 10px;
+  
+  &:hover{
+    @include second_hover_effect;
+    .fas {
+      @include second_hover_effect;
     }
   }
 }
-
 
 .file-count {
   display: flex;
   align-items: center;
   justify-content: flex-start;
-  color: gray;
+  color: $font_color_white_one;
+}
+
+@media screen and (max-width: 800px) {
+  .file-count,
+  .exp-top-button {
+    font-size: 12px;
+  }
 }

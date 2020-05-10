@@ -1,5 +1,7 @@
+@import "vars.scss";
+
 .aji-checkbox{
-  color: #eff4ff;
+  color: $font_color_white_one;
   cursor: pointer;
 
   white-space: nowrap;

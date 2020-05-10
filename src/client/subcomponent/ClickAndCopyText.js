@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import '../style/Spinner.scss';
+import '../style/ClickAndCopyText.scss';
 import PropTypes from 'prop-types';
 var classNames = require('classnames');
 const spop  = require("./spop");

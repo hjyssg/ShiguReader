@@ -1,8 +1,8 @@
+@import "vars.scss";
+
 .video-player-page{
     .video-player-container{
-        display: flex;
-        justify-content: center;
-        align-content: center;
+        @include flex_center_display;
 
         #videoPlayer{ 
             @media screen and (max-width: 1000px) {
@@ -16,32 +16,26 @@
     }
 
     .video-title{
-        display: flex;
-        justify-content: center;
-        align-content: center;
+        @include flex_center_display;
         flex-direction: column;
       
         margin-top: 10px;
         font-size: 14px;
-        color: #f1f1f1;
+        color: $font_color_white_one;
     }
 
     .video-tag-row {
         margin-top: 5px;
-        display: flex;
-        justify-content: center;
-        align-content: center;
+        @include flex_center_display;
 
         .video-tag{
             margin-left: 10px;
-            color: #f1f1f1;
+            color: $font_color_white_one;
         }
     }
 
     .video-toolbar{
-        display: flex;
-        justify-content: center;
-        align-content: center;
+        @include flex_center_display;
 
         margin-left: auto;
         margin-right: auto;
@@ -53,14 +47,12 @@
     }
 
     .video-file-info-row{
-        display: flex;
-        justify-content: center;
-        align-content: center;
+        @include flex_center_display;
 
         margin-left: auto;
         margin-right: auto;
         font-size: 15px;
 
-        color: #f1f1f1;
+        color: $font_color_white_one;
     }
 }

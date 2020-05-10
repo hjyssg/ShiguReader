@@ -136,7 +136,9 @@ export default class AdminPage extends Component {
         return (
         <div className="history-section admin-section">
             <div className="admin-section-title"> Recent Read</div>
-            {history}
+            <div className="admin-section-content">
+                {history}
+            </div>
         </div>)
     }
 
@@ -224,17 +226,17 @@ export default class AdminPage extends Component {
                         <RadioButtonGroup checked={folder_list.indexOf(this.state.prePath)} 
                                         options={folder_list} name="pregenerate" onChange={this.onPathChange.bind(this)}/>
                         <input className="aji-path-intput" ref={pathInput => this.pathInputRef = pathInput} placeholder="...or any other path"/>
-                        <div className="submit" onClick={this.onPrenerate.bind(this)}>Submit</div>
+                        <div className="submit-button" onClick={this.onPrenerate.bind(this)}>Submit</div>
                     </div>
                 </div>
 
                 <div className="admin-section">
                     <div className="admin-section-title" title="only keep thumbnail and delete other files"> Clean Cache</div>
-                    {cacheInfo}
                     <div className="admin-section-content">
-                        <div className="submit" onClick={this.cleanCache.bind(this)}>clean</div>
+                        {cacheInfo}
+                        <div className="submit-button" onClick={this.cleanCache.bind(this)}>clean</div>
                         <span className="admin-section-text" > only keep thumbnails and delete other files</span>
-                        {/* <div className="submit" onClick={this.cleanCache.bind(this, "minized")}>clean and make thumbnail file smaller to save distk space</div> */}
+                        {/* <div className="submit-button" onClick={this.cleanCache.bind(this, "minized")}>clean and make thumbnail file smaller to save distk space</div> */}
                     </div>
                 </div>
 

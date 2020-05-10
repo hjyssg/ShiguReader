@@ -1,24 +1,27 @@
+@import "vars.scss";
+
 .chart-container{
-    background: antiquewhite;;
+    @include common_sub_container;
+
     padding-top: 10px;
+    padding-bottom: 10px;
+
+    .chart-radio-button-group{
+        display: flex;
+        margin-top: 10px;
+    
+        .radio-button {
+            margin-right: 10px;
+        }
+    }
 
     .total-info{
         padding-top: 10px;
-        color : black;
     }
 
     .individual-chart-container{
         border-top: 1px gray solid;
         padding-top: 10px;
-    }
-
-    .chart-radio-button-group{
-        display: flex;
-        margin-top: 10px;
-
-        .radio-button {
-            margin-right: 10px;
-        }
     }
 
     .aji-table{
@@ -29,4 +32,5 @@
         }
     }
 }
+
 

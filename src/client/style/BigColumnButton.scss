@@ -1,3 +1,5 @@
+@import "vars.scss";
+
 $zoom-width: 10%;
 
 .big-column-button {
@@ -18,9 +20,7 @@ $zoom-width: 10%;
     height: 100%;
     z-index: 10;
 
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    @include flex_center_display;
 
     opacity: 0;
     animation: all 0.5s;
