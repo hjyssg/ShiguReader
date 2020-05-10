@@ -3,7 +3,7 @@
 
 
 .one-book-nothing-available{
-  color: $white_one;
+  color: $font_color_white_one;
   font-size: 2rem;
 }
 
@@ -27,7 +27,7 @@
   }
 
   .fs-toggle-button {
-    color: $white_one;
+    color: $font_color_white_one;
     background-color: transparent;
     border: 0;
     margin-left: 10px;
@@ -46,7 +46,7 @@
   }
 
   a {
-    color: $white_one !important;
+    color: $font_color_white_one !important;
   }
 
   .one-book-image-li {
@@ -123,11 +123,11 @@
     position: fixed;
     right: 20px;
     bottom: 20px;
-    color: $white_one;
+    color: $font_color_white_one;
     font-weight: 600;
 
     &.is-last {
-      color: $dark_orange;
+      color: $font_dark_orange;
     }
   }
 
@@ -138,7 +138,7 @@
   }
 
   .one-book-file-stat{
-    color: $white_one;
+    color: $font_color_white_one;
     font-size: 1rem;
     display: flex;
   }
@@ -160,22 +160,22 @@
 }
 
 .one-book-title {
-  color: $white_one;
+  color: $font_color_white_one;
   flex-direction: column;
   @include flex_center_display;
 
   a {
-    color: $white_one !important;
+    color: $font_color_white_one !important;
   }
 }
 
 .one-book-path{
-  color: $white_one;
+  color: $font_color_white_one;
   font-weight: 400;
   margin-right: 10px;
   @include flex_center_display;
 
   a {
-    color: $white_one !important;
+    color: $font_color_white_one !important;
   }
 }

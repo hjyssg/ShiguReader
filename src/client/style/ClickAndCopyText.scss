@@ -2,6 +2,7 @@
 
 .click-and-copy-text {
   cursor: copy;
+  @include flex_center_display;
   &:hover{
     @include third_hover_effect();
   }

@@ -42,16 +42,16 @@
   .radio-button {
     font-weight: 600px;
     font-size: 17px;
-    color: $white_one;
+    color: $font_color_white_one;
   }
 
   .side-menu-single-tag{
     &.side-menu-single-tag-all{
-      border-top: $white_one solid 1px;
+      border-top: $font_color_white_one solid 1px;
     }
 
     cursor: pointer;
-    color: $white_one;
+    color: $font_color_white_one;
 
     &:hover{
       color: #43464e;
@@ -98,7 +98,7 @@
 }
 
 .explorer-external-link{
-  color: $white_one !important;
+  color: $font_color_white_one !important;
 }
 
 .explorer-container{
@@ -109,7 +109,7 @@
   }
 
   a {
-    color: $white_one !important;
+    color: $font_color_white_one !important;
   }
 
   .dir-list {
@@ -143,7 +143,7 @@
     }
 
     padding-left: 5px;
-    color:$white_one;
+    color:$font_color_white_one;
 
     .far,
     .fas {
@@ -168,7 +168,7 @@
   }
 
   .file-info-row {
-    color:$white_one;
+    color:$font_color_white_one;
     display: flex;
     justify-content: space-between;
     align-items: flex-start;

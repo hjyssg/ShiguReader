@@ -13,7 +13,7 @@
       font-size: 15px;
     }
 
-    color: $white_one;
+    color: $font_color_white_one;
     text-decoration: none;
     background-color: transparent;
     -webkit-text-decoration-skip: objects;
@@ -35,7 +35,7 @@
 }
 
 .top-button-gropus {
-  color: $white_one;
+  color: $font_color_white_one;
   position: relative;
   margin-bottom: 1rem;
   padding-bottom: 6px;
@@ -43,10 +43,10 @@
 
 .exp-top-button {
   cursor: pointer;
-  color: $white_one;
+  color: $font_color_white_one;
 
   .fas {
-    color: $white_one;
+    color: $font_color_white_one;
   }
   
   &:hover{
@@ -61,7 +61,7 @@
   display: flex;
   align-items: center;
   justify-content: flex-start;
-  color: $white_one;
+  color: $font_color_white_one;
 }
 
 @media screen and (max-width: 800px) {
