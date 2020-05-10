@@ -492,7 +492,7 @@ export default class ExplorerPage extends Component {
                 const prev = files[index - 1];
                 if(!prev || getDir(prev) !== getDir(item)){
                     seperator = (<div className="col-12"  key={item+"---seperator"}> 
-                                 <Breadcrumb path={getDir(item)} className={breadcrumbCount > 0? "not-first-breadcrumb": "" }/>
+                                 <Breadcrumb  path={getDir(item)} className={breadcrumbCount > 0? "not-first-breadcrumb folder-seperator": "folder-seperator" }/>
                                  </div>);
                     breadcrumbCount++;
                 }
@@ -595,13 +595,15 @@ export default class ExplorerPage extends Component {
     }
 
     renderShowVideoButton(){
-        const text2 = this.state.showVideo? "hide video" : "show video";
-        return (
-            <span className="show-video-button exp-top-button" onClick={this.toggleShowVideo.bind(this)}> 
-            <span className="fas fa-video" />
-            <span> {text2} </span>
-            </span>
-        );
+        if(this.videoFiles && this.videoFiles.length > 0){
+            const text2 = this.state.showVideo? "hide video" : "show video";
+            return (
+                <span className="show-video-button exp-top-button" onClick={this.toggleShowVideo.bind(this)}> 
+                <span className="fas fa-video" />
+                <span> {text2} </span>
+                </span>
+            );
+        }
     }
 
     renderLevelButton(){

@@ -25,9 +25,7 @@ export default class Breadcrumb extends Component {
             }
         }
 
-        
         const cn =  classNames("explorer-breadcrumb", className);
-
         return   (<ul className={cn}>{pathList}{right}</ul>);
     }
 }

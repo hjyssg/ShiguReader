@@ -41,7 +41,7 @@
   }
 }
 
-.explorer-external-link{
+.explorer-external-link {
   color: $font_color_white_one !important;
 }
 
@@ -152,6 +152,11 @@
       text-align:center;
       border-radius: 2px;
     }
+  }
+
+  .folder-seperator{
+    border: 2px solid $border-color-black;
+    border-radius: 2px;
   }
 }
 
