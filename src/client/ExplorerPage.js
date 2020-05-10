@@ -653,9 +653,9 @@ export default class ExplorerPage extends Component {
                         </div>
                         <div className="row">
 
-                            <div className="file-count col-6 col-md-4">{filesizeUitl(totalSize, {base: 2})} </div>
-                            <div className="file-count col-6 col-md-4">{this.getFilteredFiles().length + " compressed files"} </div>
-                            <div className="file-count col-6 col-md-4">{this.getFilteredVideos().length + " video files"} </div>
+                            <div className="file-count col-6 col-md-4"><i class="fas fa-hdd"/>{filesizeUitl(totalSize, {base: 2})} </div>
+                            <div className="file-count col-6 col-md-4"><i class="fas fa-file-archive"/>{this.getFilteredFiles().length + " compressed files"} </div>
+                            <div className="file-count col-6 col-md-4"><i class="fas fa-film"/>{this.getFilteredVideos().length + " video files"} </div>
                         </div>
                         {topButtons}
                     </div>);
@@ -826,18 +826,19 @@ export default class ExplorerPage extends Component {
         })
 
         const tagInfos = tags.slice(0, 30).map(t => {
-            return (<div className="side-menu-single-tag" onClick={() => this.setFilterText(t)} key={t}>
+            return (<div className="side-menu-single-tag col-3" onClick={() => this.setFilterText(t)} key={t}>
                         {t}<span>({tag2Freq[t]})</span> 
                     </div>);
         });
 
 
         const showAll = (
-        <div className="side-menu-single-tag side-menu-single-tag-all" onClick={() => this.setFilterText("")} key={"side-menu-single-tag-all"}>
+        <div className="side-menu-single-tag col-3" onClick={() => this.setFilterText("")} key={"side-menu-single-tag-all"}>
             All
         </div>);
 
         tagInfos.unshift(showAll);
+        const tagContainer = (<div className="exp-tag-container row">{tagInfos} </div>);
 
         if(this.getMode() !== MODE_HOME){
             const cn = classNames("side-menu container", {
@@ -853,7 +854,7 @@ export default class ExplorerPage extends Component {
                             onChange={this.onSortChange.bind(this)}/>
                     <div className="side-menu-radio-title"> Special Filter </div>
                     {this.renderSpecialFilter()}
-                    {/* {tagInfos} */}
+                    {tagContainer}
                 </div>)
         }
     }

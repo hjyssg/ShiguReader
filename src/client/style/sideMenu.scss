@@ -4,16 +4,16 @@
   transition: width 1s;
   animation: all 1s;
   display: none;
+  background-color: #99a2b5; /* Black*/
+  overflow-x: hidden; /* Disable horizontal scroll */
 
   &.anchorSideMenu{
     padding-top: 10px; 
-    padding-left: 20px;
+    padding-left: 10px;
     padding-right: 10px;
+    padding-bottom: 10px;
     display: block;
   }
-
-  background-color: #99a2b5; /* Black*/
-  overflow-x: hidden; /* Disable horizontal scroll */
  
   .side-menu-radio-title {
     color: #0f2452;
@@ -33,18 +33,21 @@
     color: $font_color_white_one;
   }
 
+  .exp-tag-container{
+    border-top: $font_color_white_one solid 1px;
 
-  .side-menu-single-tag{
-    &.side-menu-single-tag-all{
-      border-top: $font_color_white_one solid 1px;
-    }
-
-    cursor: pointer;
-    color: $font_color_white_one;
-
-    &:hover{
-      color: #43464e;
-      font-weight: bold;
+    .side-menu-single-tag{
+      cursor: pointer;
+      color: $font_color_white_one;
+      font-size: 10px;
+      margin-bottom: 5px;
+  
+      &:hover{
+        color: #43464e;
+        font-weight: bold;
+      }
     }
   }
+
+
 }
