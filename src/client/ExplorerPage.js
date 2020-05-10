@@ -588,7 +588,7 @@ export default class ExplorerPage extends Component {
     renderToggleThumbNailButton(){
         const text2 = this.state.noThumbnail? "Show Thumbnail" : "File Name Only";
         return (
-           <span className="thumbnail-button exp-top-button" onClick={this.toggleThumbNail.bind(this)}>
+           <span key="thumbnail-button" className="thumbnail-button exp-top-button" onClick={this.toggleThumbNail.bind(this)}>
                 <span className="fas fa-book" /> <span>{text2} </span> 
             </span>
         );
@@ -614,11 +614,10 @@ export default class ExplorerPage extends Component {
      );
     }
 
-    
     renderToggleMenuButton(){
         const text = "toggle side menu"
         return (
-           <span className="toggle-side-menu-button exp-top-button" onClick={this.toggleSideMenu.bind(this)}> 
+           <span key="toggle-side-menu-button" className="toggle-side-menu-button exp-top-button" onClick={this.toggleSideMenu.bind(this)}> 
            <span className="fas fa-ellipsis-h" />
            <span> {text} </span>
            </span>
@@ -632,7 +631,6 @@ export default class ExplorerPage extends Component {
                          <span> chart </span>
                     </Link>)
         }
-            
     }
 
     getExplorerToolbar(){
@@ -692,13 +690,11 @@ export default class ExplorerPage extends Component {
             }
 
             const videoButuon = isSearchMode &&  this.renderShowVideoButton();
-            const menuButton = isSearchMode && this.renderToggleMenuButton();
 
             return (<center className={"location-title"}>
                         <a className="explorer-external-link" target="_blank" href={link} title={title}>{this.getTitle()} </a>
                         {btn}
                         {videoButuon}
-                        {menuButton}
                     </center>);
         } 
     }
