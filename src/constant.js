@@ -12,7 +12,7 @@ module.exports.SORT_FROM_SMALL = "From Small file size";
 module.exports.SORT_FROM_BIG = "From Big file size";
 module.exports.SORT_BY_FOLDER = "By folder name";
 module.exports.SORT_BY_FILENAME = "By filename";
-module.exports.SORT_RANDOMLY = "Randomly";
+module.exports.SORT_RANDOMLY = "Random";
  
 //todo 
 module.exports.TAG_THUMBNAIL_PATH_API  = "/api/tagFirstImagePath";
