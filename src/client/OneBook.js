@@ -300,7 +300,7 @@ export default class OneBook extends Component {
   }
   
   componentWillUnmount() {
-    document && document.removeEventListener("keydown", this.handleKeyDown.bind(this));
+    document.removeEventListener("keydown", this.handleKeyDown.bind(this));
     window && window.removeEventListener("resize", this.adjustImageSizeAfterResize.bind(this));
   }
   

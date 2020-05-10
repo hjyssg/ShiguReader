@@ -89,6 +89,20 @@ export default class ExplorerPage extends Component {
         this.setStateAndSetHash({ pageIndex: index});
     }
 
+    next(){
+        if(this.pagination && this.pagination.hasNext()){
+            let next = this.state.pageIndex+1;
+            this.handlePageChange(next);
+        }
+    }
+
+    prev(){
+        if(this.pagination && this.pagination.hasPrev()){
+            let next = this.state.pageIndex-1;
+            this.handlePageChange(next);
+        }
+    }
+
     getHash(props) {
         const _props = props || this.props;
         return _props.match.params.tag || 
@@ -151,12 +165,22 @@ export default class ExplorerPage extends Component {
     componentDidMount() {
         this.askServer();
 
+        this.bindUserInteraction();
+
         Sender.get('/api/getGoodAuthorNames', res =>{
             this.setState({
                 goodAuthors: res.goodAuthors,
                 otherAuthors: res.otherAuthors
             })
         });
+    }
+
+    bindUserInteraction(){
+        document.addEventListener('keydown', this.handleKeyDown.bind(this));
+    }
+
+    componentWillUnmount(){
+        document.removeEventListener("keydown", this.handleKeyDown.bind(this));
     }
     
     componentDidUpdate(prevProps, prevState) {
@@ -225,6 +249,17 @@ export default class ExplorerPage extends Component {
         Sender.post(Constant.SEARCH_API, { text: this.props.match.params.search,  mode: this.getMode()}, res => {
             this.handleRes(res);
         });
+    }
+
+    handleKeyDown(event) {
+        const key = event.key.toLowerCase();
+        if (key === "arrowright" || key === "d" || key === "l") {
+          this.next();
+          event.preventDefault();
+        } else if (key === "arrowleft" || key === "a" || key === "j") {
+          this.prev();
+          event.preventDefault();
+        }
     }
 
     getPathFromLocalStorage(){
@@ -711,7 +746,8 @@ export default class ExplorerPage extends Component {
         }
     
         const that =this;
-        return (<Pagination current={this.state.pageIndex}  
+        return (<Pagination ref={ref => this.pagination = ref}
+                            current={this.state.pageIndex}  
                             pageSize={this.getNumPerPage()}
                             showQuickJumper={{goButton: true}}
                             total={fileLength} 

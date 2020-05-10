@@ -46,7 +46,7 @@ function addToArray(table, key, value){
 export default class TagPage extends Component {
   constructor(prop) {
     super(prop);
-    this.state = { tags: [], sortByNumber: true };
+    this.state = { tags: [], sortByNumber: true, pageIndex: 1 };
     this.perPage = getPerPageItemNumber();
   }
 
@@ -59,6 +59,8 @@ export default class TagPage extends Component {
       return;
     }
 
+    this.bindUserInteraction();
+
     Sender.post('/api/allInfo', { needThumbnail: true}, res => {
       if (!res.failed) {
         this.setItems(res);
@@ -68,6 +70,25 @@ export default class TagPage extends Component {
         this.forceUpdate();
       }
     });
+  }
+
+  bindUserInteraction(){
+      document.addEventListener('keydown', this.handleKeyDown.bind(this));
+  }
+
+  componentWillUnmount(){
+      document.removeEventListener("keydown", this.handleKeyDown.bind(this));
+  }
+
+  handleKeyDown(event) {
+    const key = event.key.toLowerCase();
+    if (key === "arrowright" || key === "d" || key === "l") {
+      this.next();
+      event.preventDefault();
+    } else if (key === "arrowleft" || key === "a" || key === "j") {
+      this.prev();
+      event.preventDefault();
+    }
   }
   
   setItems(res){
@@ -196,7 +217,23 @@ export default class TagPage extends Component {
     const temp = this.props.mode === "tag"? "/tagPage/": "/authorPage/";
     const path = temp + index;
     this.redirect = path;
-    this.forceUpdate();
+    this.setState({
+      pageIndex: index
+    });
+  }
+
+  next(){
+    if(this.pagination && this.pagination.hasNext()){
+        let next = this.state.pageIndex+1;
+        this.handlePageChange(next);
+    }
+  }
+
+  prev(){
+      if(this.pagination && this.pagination.hasPrev()){
+          let next = this.state.pageIndex-1;
+          this.handlePageChange(next);
+      }
   }
 
   renderPagination(){
@@ -205,6 +242,7 @@ export default class TagPage extends Component {
     }
 
     return (<Pagination current={this.pageIndex}  
+                        ref={ref => this.pagination = ref}
                         pageSize={this.perPage}
                         total={this.getItemLength()} 
                         showQuickJumper={{goButton: true}}
