@@ -100,7 +100,7 @@ export default class VideoPlayer extends Component {
     const {hasError, stat} = this.state;
     //use bootstrap classname util 
     const videoTitle = filePath && (<div className="video-title"> 
-                          <center> <ClickAndCopyText text={fileName} />  {this.renderDownloadLink()} </center>
+                          <center> <ClickAndCopyText text={fileName} className="inline-display" />  {this.renderDownloadLink()} </center>
                           {this.renderPath()}
                          </div>);
 
