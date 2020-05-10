@@ -119,7 +119,7 @@ class App extends Component {
 
         const topNav = !isOneBook && (
             <div className="app-top-topnav container">
-                <div className="links row">
+                <div className="app-page-links row">
                     <Link to='/'><i className="fas fa-home">Home</i></Link>
                     <Link to='/authorPage/1'><i className="fas fa-pen">Authors</i></Link>
                     <Link to='/tagPage/1'><i className="fas fa-tags">Tags</i></Link>

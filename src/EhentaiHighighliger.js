@@ -32,7 +32,9 @@ const not_author_but_tag = [
     "よろず",
     "成年コミック",
     "Pixiv",
-    "アーティスト"
+    "アーティスト",
+    "雑誌",
+    "English"
 ]
 
 const convertTable = {};

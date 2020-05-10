@@ -21,5 +21,6 @@ module.exports.not_author_but_tag = [
     "成年コミック",
     "Pixiv",
     "アーティスト",
-    "雑誌"
+    "雑誌",
+    "English"
 ]

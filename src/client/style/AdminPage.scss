@@ -1,8 +1,6 @@
 @import "vars.scss";
 
 .admin-container{
-    padding-top: 20px;
-    min-height: 800px;
     position: relative;
 
     @include common_sub_container;
@@ -23,11 +21,15 @@
         margin: 8px auto 10px 10px;
         clear: both;
 
-        .aji-path-intput{
+        .admin-intput{
           display: block;
           margin-left: 2px;
           margin-bottom: 5px;
           width: 500px;
+
+          @media screen and (max-width: 550px) {
+            width: 300px;
+          }
         }
       }
 

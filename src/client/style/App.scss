@@ -35,6 +35,7 @@ a {
 .app-container {
   background-color: $bacground_level_one;
   min-height: 100vh;
+  padding-bottom: 50px;
 
   .fas{
     color: $font_color_white_one;
@@ -59,7 +60,7 @@ a {
       margin-bottom: 20px;
     }
 
-    .links {
+    .app-page-links {
       float: left;
       display: inline-flex;
 
@@ -70,10 +71,12 @@ a {
         text-decoration: none;
         font-size: 17px;
 
-        &:hover {
-          @include hover_effect;
-          i {
+        @media screen and (min-width: 1000px) {
+          &:hover {
             @include hover_effect;
+            i {
+              @include hover_effect;
+            }
           }
         }
       }
@@ -82,7 +85,7 @@ a {
     .search-bar{
       @media screen and (min-width: 1000px) {
         float: right;
-        margin-bottom: 25px;
+        margin-bottom: 10px;
       }
 
       display: inline-flex;
@@ -91,7 +94,7 @@ a {
         border: none;
         margin-top: 8px;
         font-size: 17px;
-        border-radius: 0px;
+        border-radius: 2px;
       }
 
       .filter-button,
@@ -103,17 +106,21 @@ a {
         background-color: #a7a7a7;
         padding-left: 5px;
         padding-right: 5px;
-        border: 1px rgba(224, 194, 194, 0.726) solid;
         margin-left: 1px;
 
         &:hover{
           @include hover_effect;
         }
       }
+
+      .search-button{
+        border-right: 1px $border-color-black solid;
+        border-left: 1px $border-color-black solid;
+      }
     }
 
     @media screen and (max-width: 600px) {
-     .links, .search-bar{
+     .app-page-links, .search-bar{
       float: none;
      }
     }

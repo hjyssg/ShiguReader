@@ -9,9 +9,11 @@ $background_orange_white: rgb(231, 218, 190);
 
 $font_dark_orange: #da653a;
 
+$border-color-black: #616161;
+
 @mixin file_cell_common {
     background: $bacground_level_two;
-    border: 1px solid #616161;
+    border: 1px solid $border-color-black;
     border-radius: 9px;
     overflow: hidden;  
 }
@@ -40,6 +42,10 @@ $font_dark_orange: #da653a;
 @mixin common_sub_container {
     background: $background_orange_white;
     color : $font_color_black_two;
+    padding-bottom: 20px;
+    padding-top: 20px;
+    min-height: 800px;
+
 
     a {
         color : $font_color_black_two;

@@ -3,9 +3,6 @@
 .chart-container{
     @include common_sub_container;
 
-    padding-top: 10px;
-    padding-bottom: 10px;
-
     .chart-radio-button-group{
         display: flex;
         margin-top: 10px;

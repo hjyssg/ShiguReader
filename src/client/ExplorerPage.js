@@ -639,9 +639,9 @@ export default class ExplorerPage extends Component {
             const totalSize = this.getTotalFileSize();
             let topButtons = (
             <div className="top-button-gropus row">
-                    <div className="file-count col-6 col-md-4"><i class="fas fa-hdd"/>{filesizeUitl(totalSize, {base: 2})} </div>
-                    <div className="file-count col-6 col-md-4"><i class="fas fa-file-archive"/>{this.getFilteredFiles().length + " compressed files"} </div>
-                    <div className="file-count col-6 col-md-4"><i class="fas fa-film"/>{this.getFilteredVideos().length + " video files"} </div>
+                    <div className="file-count col-6 col-md-4"><i className="fas fa-hdd"/>{filesizeUitl(totalSize, {base: 2})} </div>
+                    <div className="file-count col-6 col-md-4"><i className="fas fa-file-archive"/>{this.getFilteredFiles().length + " compressed files"} </div>
+                    <div className="file-count col-6 col-md-4"><i className="fas fa-film"/>{this.getFilteredVideos().length + " video files"} </div>
                     <div className="col-6 col-md-4"> {this.renderToggleThumbNailButton()} </div>
                     <div className="col-6 col-md-4"> {this.renderLevelButton()} </div>
                     <div className="col-6 col-md-4"> {this.renderShowVideoButton()} </div>

@@ -161,9 +161,11 @@ export default class AdminPage extends Component {
         }else{
             content = (<React.Fragment>
                         <div className="admin-section-title">Type password to move/delete file </div>
+                        <div className="admin-section-content">
                          {this.getPasswordInput() && <div> wrong password </div>}
-                        <input className="aji-path-intput" ref={pathInput => this.passwordInputRef = pathInput}
+                        <input className="admin-intput" ref={pathInput => this.passwordInputRef = pathInput}
                                     placeholder="...type here"  onChange={this.setPasswordCookie.bind(this)}/>
+                        </div>
                         </React.Fragment>);
         }
 
@@ -225,7 +227,7 @@ export default class AdminPage extends Component {
                     <div className="admin-section-content">
                         <RadioButtonGroup checked={folder_list.indexOf(this.state.prePath)} 
                                         options={folder_list} name="pregenerate" onChange={this.onPathChange.bind(this)}/>
-                        <input className="aji-path-intput" ref={pathInput => this.pathInputRef = pathInput} placeholder="...or any other path"/>
+                        <input className="admin-intput" ref={pathInput => this.pathInputRef = pathInput} placeholder="...or any other path"/>
                         <div className="submit-button" onClick={this.onPrenerate.bind(this)}>Submit</div>
                     </div>
                 </div>
