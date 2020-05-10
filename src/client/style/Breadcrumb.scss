@@ -3,7 +3,6 @@
 .explorer-breadcrumb {
   padding: 8px 16px;
   list-style: none;
-  background-color: #eee;
   margin-bottom: 0px;
 
   .breadcrumb-item {
@@ -14,20 +13,17 @@
       font-size: 15px;
     }
 
-    color: #007bff !important;
+    color: $white_one;
     text-decoration: none;
     background-color: transparent;
     -webkit-text-decoration-skip: objects;
-
-    &.current{
-      color: #34353b;
-    }
   }
 
   .breadcrumb-item+.breadcrumb-item:before {
     padding-left: 4px;
     padding-right: 4px;
     color: black;
+    font-weight: 600;
     content: "/\00a0";
   }
 
@@ -38,44 +34,39 @@
   }
 }
 
-.explorer-top{
-  background-color: #eee
-}
-
 .top-button-gropus {
-  color: gray;
+  color: $white_one;
   position: relative;
   margin-bottom: 1rem;
   padding-bottom: 6px;
+}
 
-  .exp-top-button {
-    cursor: pointer;
-    color: gray;
+.exp-top-button {
+  cursor: pointer;
+  color: $white_one;
 
-    .fas {
-      color: gray;
-    }
-    
-    &:hover{
-      @include second_hover_effect;
-      .fas {
-        @include second_hover_effect;
-      }
-    }
+  .fas {
+    color: $white_one;
   }
-
-  @media screen and (max-width: 800px) {
-    .file-count,
-    .exp-top-button {
-      font-size: 10px;
+  
+  &:hover{
+    @include second_hover_effect;
+    .fas {
+      @include second_hover_effect;
     }
   }
 }
-
 
 .file-count {
   display: flex;
   align-items: center;
   justify-content: flex-start;
-  color: gray;
+  color: $white_one;
+}
+
+@media screen and (max-width: 800px) {
+  .file-count,
+  .exp-top-button {
+    font-size: 12px;
+  }
 }

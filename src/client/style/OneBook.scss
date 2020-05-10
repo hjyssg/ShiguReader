@@ -112,7 +112,9 @@
 
   .one-book-foot-author{
     &:hover{
-      @include fourth_hover_effect();
+      a{
+        @include third_hover_effect;
+      }
     }
   }
 

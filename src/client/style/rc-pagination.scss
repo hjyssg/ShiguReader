@@ -381,4 +381,19 @@
   }
  }
 
+.rc-pagination-options{
+  display: flex;
+  align-items: center;
+}
+
+.rc-pagination-options-quick-jumper{
+  height: 35px;
+
+  input,
+  button {
+    border-radius: 2px;
+    height: 35px;
+  }
+}
+
 //--------------------------

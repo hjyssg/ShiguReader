@@ -28,11 +28,6 @@ a {
 
   .exp-top-button {
       margin-left: 60px;
-      cursor: pointer;
-      
-      &:hover{
-        @include hover_effect;
-      }
   }
 }
 

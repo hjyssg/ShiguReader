@@ -1,7 +1,7 @@
 @import "vars.scss";
 
 .aji-dropdown{
-  color: #eff4ff;
+  color: $white_one;
   cursor: pointer;
   position: relative;
   height: 16px;
@@ -32,9 +32,9 @@
 
   .aji-dropdown-item {
     min-width: 30px;
-    border: 1px solid #eff4ff;
+    border: 1px solid $white_one;
     background: #1c1e20;
-    color: #eff4ff;
+    color: $white_one;
   }
 }
 

@@ -634,13 +634,17 @@ export default class ExplorerPage extends Component {
                     <div className="col-6 col-md-3 d-flex flex-xl-row-reverse" > {this.renderToggleMenuButton()} </div>  
             </div>);
 
-            return (<div className="container explorer-top">
+            const totalSize = this.getTotalFileSize();
+
+            return (<div className="container explorer-top-bar-container">
                         <div className="row">
                             <Breadcrumb path={this.path} className="col-12" /> 
                         </div>
                         <div className="row">
-                            <div className="file-count col-6">{this.getFilteredFiles().length + " compressed files"} </div>
-                            <div className="file-count col-6">{this.getFilteredVideos().length + " video files"} </div>
+
+                        <div className="file-count col-6 col-md-3">{filesizeUitl(totalSize, {base: 2})} </div>
+                            <div className="file-count col-6 col-md-3">{this.getFilteredFiles().length + " compressed files"} </div>
+                            <div className="file-count col-6 col-md-3">{this.getFilteredVideos().length + " video files"} </div>
                         </div>
                         {topButtons}
                     </div>);
@@ -764,6 +768,17 @@ export default class ExplorerPage extends Component {
         });
     }
 
+    getTotalFileSize(){
+        const files = this.getFilteredFiles() || [];
+        let totalSize = 0;
+        files.forEach(e => {
+            if(this.fileInfos[e]){
+                totalSize += this.fileInfos[e].size;
+            }
+        });
+        return totalSize;
+    }
+
     renderSideMenu(){
         const SORT_OPTIONS = [
             SORT_BY_DATE,
@@ -779,18 +794,8 @@ export default class ExplorerPage extends Component {
 
         SORT_OPTIONS.push(SORT_RANDOMLY);
 
-        let info;
-        const files = this.getFilteredFiles() || [];
-        let totalSize = 0;
-        files.forEach(e => {
-            if(this.fileInfos[e]){
-                totalSize += this.fileInfos[e].size;
-            }
-        });
-        info = <div className="side-menu-folder-small-info">{filesizeUitl(totalSize, {base: 2})} </div>
-
         const tag2Freq = {};
-
+        const files = this.getFilteredFiles();
         files.forEach(e => {
             const result = parse(e);
             let tags = (result && result.tags)||[];
@@ -817,7 +822,7 @@ export default class ExplorerPage extends Component {
 
 
         const showAll = (
-        <div className="side-menu-single-tag" onClick={() => this.setFilterText("")} key={"----null------"}>
+        <div className="side-menu-single-tag side-menu-single-tag-all" onClick={() => this.setFilterText("")} key={"side-menu-single-tag-all"}>
             All
         </div>);
 
@@ -836,7 +841,6 @@ export default class ExplorerPage extends Component {
                             onChange={this.onSortChange.bind(this)}/>
                     <div className="side-menu-radio-title"> Special Filter </div>
                     {this.renderSpecialFilter()}
-                    {info}
                     {tagInfos}
                 </div>)
         }

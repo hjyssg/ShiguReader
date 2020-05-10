@@ -1,35 +1,36 @@
 $white_one: #DDDDDD;
-$black_two: #313131;
+$white_two: #EEEEEE;
+
+$hover_font_color_black_one: #212121;
 
 $bacground_level_one: #4f535b;
 $bacground_level_two: #43464e;
+$bacground_level_three: #666b7a;
+$background_orange_white: rgb(231, 218, 190);
 
 $dark_orange: rgba(218, 101, 58, 0.774);
+$display_font_black_one: #414141;
 
 @mixin file_cell_common {
     background: $bacground_level_two;
-    border: 1px solid #34353b;
+    border: 1px solid #616161;
     border-radius: 9px;
     overflow: hidden;  
 }
 
 @mixin hover_effect {
-    color: #313131;
-    background: white;
+    color: $hover_font_color_black_one;
+    background: $white_one;
 }
 
 @mixin second_hover_effect {
-    color: #34353b;
-}
-
-@mixin third_hover_effect {
-    color: $dark_orange !important;
+    color: $hover_font_color_black_one;
     background: unset;
 }
 
-@mixin fourth_hover_effect {
-    background-color: $dark_orange;
-    @include hover_effect;
+@mixin third_hover_effect {
+    color: $dark_orange;
+    background: unset;
 }
 
 @mixin  flex_center_display {
@@ -38,13 +39,12 @@ $dark_orange: rgba(218, 101, 58, 0.774);
     align-items: center;
 }
 
-
 @mixin common_sub_container {
-    background: rgb(231, 218, 190);;
-    color : $black_two;
+    background: $background_orange_white;
+    color : $display_font_black_one;
 
     a {
-        color : $black_two;
+        color : $display_font_black_one;
     }
 }
 
