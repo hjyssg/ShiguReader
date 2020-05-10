@@ -636,8 +636,12 @@ export default class ExplorerPage extends Component {
     getExplorerToolbar(){
         const mode = this.getMode();
         if(mode === MODE_EXPLORER && this.path){
-            const topButtons = (
+            const totalSize = this.getTotalFileSize();
+            let topButtons = (
             <div className="top-button-gropus row">
+                    <div className="file-count col-6 col-md-4"><i class="fas fa-hdd"/>{filesizeUitl(totalSize, {base: 2})} </div>
+                    <div className="file-count col-6 col-md-4"><i class="fas fa-file-archive"/>{this.getFilteredFiles().length + " compressed files"} </div>
+                    <div className="file-count col-6 col-md-4"><i class="fas fa-film"/>{this.getFilteredVideos().length + " video files"} </div>
                     <div className="col-6 col-md-4"> {this.renderToggleThumbNailButton()} </div>
                     <div className="col-6 col-md-4"> {this.renderLevelButton()} </div>
                     <div className="col-6 col-md-4"> {this.renderShowVideoButton()} </div>
@@ -645,17 +649,9 @@ export default class ExplorerPage extends Component {
                     <div className="col-6 col-md-4"> {this.renderChartButton()} </div>
             </div>);
 
-            const totalSize = this.getTotalFileSize();
-
             return (<div className="container explorer-top-bar-container">
                         <div className="row">
                             <Breadcrumb path={this.path} className="col-12" /> 
-                        </div>
-                        <div className="row">
-
-                            <div className="file-count col-6 col-md-4"><i class="fas fa-hdd"/>{filesizeUitl(totalSize, {base: 2})} </div>
-                            <div className="file-count col-6 col-md-4"><i class="fas fa-file-archive"/>{this.getFilteredFiles().length + " compressed files"} </div>
-                            <div className="file-count col-6 col-md-4"><i class="fas fa-film"/>{this.getFilteredVideos().length + " video files"} </div>
                         </div>
                         {topButtons}
                     </div>);
@@ -690,7 +686,7 @@ export default class ExplorerPage extends Component {
 
             let btn;
             if(this.getMode() === MODE_AUTHOR || this.getMode() === MODE_TAG || this.getMode() === MODE_SEARCH){
-                btn = this.renderToggleThumbNailButton();
+                btn = [this.renderToggleThumbNailButton(), this.renderToggleMenuButton()] ;
             }
 
             const videoButuon = isSearchMode &&  this.renderShowVideoButton();
