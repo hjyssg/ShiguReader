@@ -78,9 +78,25 @@ export default class ChartPage extends Component {
         return this.res && this.res.failed;
     }
 
+    getHash() {
+        return this.props.match.params.number;
+    }
+
+    getPathFromLocalStorage(){
+        const hash = this.getHash();
+        return clientUtil.getPathFromLocalStorage(hash) || "";
+    }
+
     getFilterFiles(){
         const func =  this.isShowingVideoChart()? isVideo : isCompress;
-        return  (this.files || []).filter(func);
+        const fp = this.getPathFromLocalStorage();
+        const result = (this.files || []).filter(e => {
+            if(fp && !e.startsWith(fp)){
+                return false;
+            }
+            return func(e);
+        });
+        return result;
     }
 
     isShowingVideoChart(){
@@ -350,6 +366,8 @@ export default class ChartPage extends Component {
         const files = this.getFilterFiles();
         const {fileType} = this.state;
 
+        const filePath = <div>{this.getPathFromLocalStorage() }</div>; 
+
         const radioGroup = <RadioButtonGroup 
                             className="chart-radio-button-group"
                             checked={FILE_OPTIONS.indexOf(this.state.fileType)} 
@@ -362,6 +380,7 @@ export default class ChartPage extends Component {
             return <ErrorPage res={this.res.res}/>;
         } else if(files.length < too_few){
             return ( <div className="chart-container container">
+                        {filePath}
                         {radioGroup}
                         <div className="alert alert-info" role="alert" > 
                              <div>{`There are only ${files.length} ${fileType} files.`} </div> 
@@ -371,6 +390,7 @@ export default class ChartPage extends Component {
         }else{ 
             return (
                 <div className="chart-container container">
+                    {filePath}
                     {radioGroup}
                     {this.renderTotalSize()}
                     {this.rendeTimeChart()}

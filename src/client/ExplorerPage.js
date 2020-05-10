@@ -621,17 +621,28 @@ export default class ExplorerPage extends Component {
            <span> {text} </span>
            </span>
         );
-       }
+    }
+
+    renderChartButton(){
+        if(this.getMode() === MODE_EXPLORER){
+            return (<Link target="_blank" className="exp-top-button" to={'/chart/'+this.getHash()}>  
+                         <span className="fas fa-chart-line" /> 
+                         <span> chart </span>
+                    </Link>)
+        }
+            
+    }
 
     getExplorerToolbar(){
         const mode = this.getMode();
         if(mode === MODE_EXPLORER && this.path){
             const topButtons = (
             <div className="top-button-gropus row">
-                    <div className="col-6 col-md-3"> {this.renderToggleThumbNailButton()} </div>
-                    <div className="col-6 col-md-3"> {this.renderLevelButton()} </div>
-                    <div className="col-6 col-md-3"> {this.renderShowVideoButton()} </div>
-                    <div className="col-6 col-md-3 d-flex flex-xl-row-reverse" > {this.renderToggleMenuButton()} </div>  
+                    <div className="col-6 col-md-4"> {this.renderToggleThumbNailButton()} </div>
+                    <div className="col-6 col-md-4"> {this.renderLevelButton()} </div>
+                    <div className="col-6 col-md-4"> {this.renderShowVideoButton()} </div>
+                    <div className="col-6 col-md-4 " > {this.renderToggleMenuButton()} </div>  
+                    <div className="col-6 col-md-4"> {this.renderChartButton()} </div>
             </div>);
 
             const totalSize = this.getTotalFileSize();
@@ -642,9 +653,9 @@ export default class ExplorerPage extends Component {
                         </div>
                         <div className="row">
 
-                        <div className="file-count col-6 col-md-3">{filesizeUitl(totalSize, {base: 2})} </div>
-                            <div className="file-count col-6 col-md-3">{this.getFilteredFiles().length + " compressed files"} </div>
-                            <div className="file-count col-6 col-md-3">{this.getFilteredVideos().length + " video files"} </div>
+                            <div className="file-count col-6 col-md-4">{filesizeUitl(totalSize, {base: 2})} </div>
+                            <div className="file-count col-6 col-md-4">{this.getFilteredFiles().length + " compressed files"} </div>
+                            <div className="file-count col-6 col-md-4">{this.getFilteredVideos().length + " video files"} </div>
                         </div>
                         {topButtons}
                     </div>);
