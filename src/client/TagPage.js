@@ -17,9 +17,6 @@ const util = require("../util");
 const clientUtil = require("./clientUtil");
 const { getDir, getBaseName, getPerPageItemNumber, stringHash } = clientUtil;
 
-const chooseOneThumbnailForOneTag = function(files){
-  return files && files[0];
-}
 
 function addOne(table, key) {
   if(!key){
@@ -90,6 +87,11 @@ export default class TagPage extends Component {
       event.preventDefault();
     }
   }
+
+  chooseOneThumbnailForOneTag = function(files){
+    nameParser.sort_file_by_time(files, this.fileToInfo, getBaseName, true, false);
+    return this.allThumbnails[files[0]];
+  }
   
   setItems(res){
     const { fileToInfo = {}, allThumbnails = {} } = res;
@@ -98,17 +100,18 @@ export default class TagPage extends Component {
     const authorToFiles = {};
     const tagToFiles = {};
     const allFiles = _.keys(fileToInfo).filter(isCompress);
+    this.fileToInfo = fileToInfo;
+    this.allThumbnails = allThumbnails;
 
     allFiles.forEach((filePath) => {
         const fileName = getBaseName(filePath);
         const result = nameParser.parse(fileName);
         if (result) {
-            const fileThumbnail = allThumbnails[filePath];
             addOne(authors, result.author);
-            addToArray(authorToFiles, result.author, fileThumbnail );
+            addToArray(authorToFiles, result.author, filePath );
             result.tags.forEach(tag => {
               addOne(tags, tag);
-              addToArray(tagToFiles, tag, fileThumbnail);
+              addToArray(tagToFiles, tag, filePath);
             });
         }
     });
@@ -125,10 +128,6 @@ export default class TagPage extends Component {
     return this.isAuthorMode()? this.state.authors : this.state.tags;
   }
 
-  getThumbnails(){
-    return this.isAuthorMode()? this.state.authorToFiles : this.state.tagToFiles;
-  }
-
   getItemLength(){
     return _.keys(this.getItems()).length
   }
@@ -141,7 +140,9 @@ export default class TagPage extends Component {
     const {
       tags = [],
       authors = [],
-      loaded
+      loaded,
+      authorToFiles,
+      tagToFiles
     } = this.state;
 
     if ( _.isEmpty(tags) && _.isEmpty(authors)) {
@@ -157,7 +158,6 @@ export default class TagPage extends Component {
     const items = this.getItems();
     let keys = _.keys(items);
 
-    const tagToThumbnail = this.getThumbnails();
 
     if(this.state.sortByNumber){
       keys.sort((a, b) => items[b] - items[a]);
@@ -172,12 +172,13 @@ export default class TagPage extends Component {
     }
 
     keys = keys.slice((this.pageIndex-1) * this.perPage, this.pageIndex * this.perPage);
+    const t2Files = this.isAuthorMode()? authorToFiles : tagToFiles;
 
     const tagItems = keys.map((tag) => {
       const itemText = `${tag} (${items[tag]})`;
       const tagHash = stringHash(tag);
       const url = this.isAuthorMode()? ("/author/" + tagHash) :  ("/tag/" + tagHash);
-      const thumbnailUrl = chooseOneThumbnailForOneTag(tagToThumbnail[tag]);
+      const thumbnailUrl = this.chooseOneThumbnailForOneTag(t2Files[tag]);
 
       return  (<div key={tag} className="col-sm-6 col-md-4 col-lg-3 tag-page-list-item">
                     <div className={"tag-cell"}>

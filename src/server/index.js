@@ -34,7 +34,7 @@ const rootPath = pathUtil.getRootPath();
 const cache_folder_name = userConfig.cache_folder_name;
 const cachePath = path.join(rootPath, cache_folder_name);
 let logPath = path.join(rootPath, userConfig.workspace_name, "log");
-logPath = path.join(logPath, dateFormat(new Date(), "yyyy-mm-dd hh-MM"))+ ".log";
+logPath = path.join(logPath, dateFormat(new Date(), "yyyy-mm-dd HH-MM"))+ ".log";
 
 //set up json DB
 const JsonDB = require('node-json-db').JsonDB;
@@ -262,7 +262,7 @@ async function init() {
         const lanIP = await internalIp.v4();
         const mobileAddress = `http://${lanIP}:${http_port}`;
         console.log("----------------------------------------------------------------");
-        console.log(dateFormat(new Date(), "yyyy-mm-dd hh:MM"));
+        console.log(dateFormat(new Date(), "yyyy-mm-dd HH:MM"));
         console.log(`Express Server listening on port ${port}`);
         console.log("You can open ShiguReader from Browser now!");
         console.log(`http://localhost:${http_port}`);
@@ -753,7 +753,7 @@ app.post(Constant.TAG_THUMBNAIL_PATH_API, (req, res) => {
     }
 
     const { files } = searchByTagAndAuthor(tag, author, null, true);
-    chosendFileName = serverUtil.chooseOneZipForOneTag(files);
+    chosendFileName = serverUtil.chooseOneZipForOneTag(files, db.fileToInfo);
     if(!chosendFileName){
         res.sendStatus(404);
         return;

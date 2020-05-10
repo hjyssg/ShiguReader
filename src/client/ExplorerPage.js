@@ -397,42 +397,9 @@ export default class ExplorerPage extends Component {
                 }
             });
         }else if (sortOrder === SORT_BY_DATE ||  sortOrder === SORT_BY_DATE_REVERSE){
-            files.sort((a, b) => {
-               
-
-                const fileTimeA = (this.fileInfos[a] && this.fileInfos[a].mtimeMs) || Infinity;
-                const fileTimeB = (this.fileInfos[b] && this.fileInfos[b].mtimeMs) || Infinity;
-
-                function comprTime(at, bt){
-                    let result;
-                    if(sortOrder === SORT_BY_DATE_REVERSE){
-                        result = at - bt;
-                    }else{
-                        result = bt - at;
-                    }
-
-                    if(result === 0){
-                        result = byFn(a, b);
-                    }
-                    return result;
-                }
-
-                if(this.getMode() === MODE_EXPLORER){
-                    return comprTime(fileTimeA, fileTimeB);
-                }else{
-
-                    const pA = parse(a);
-                    const pB = parse(b);
-    
-                    let aboutTimeA = pA && nameParser.getDateFromTags(pA.tags);
-                    let aboutTimeB = pB && nameParser.getDateFromTags(pB.tags);
-    
-                    aboutTimeA = aboutTimeA && aboutTimeA.getTime();
-                    aboutTimeB = aboutTimeB && aboutTimeB.getTime();
-
-                    return comprTime(aboutTimeA || fileTimeA, aboutTimeB || fileTimeB);
-                }
-            });
+            const reverse = sortOrder === SORT_BY_DATE_REVERSE;
+            const onlyBymTime = this.getMode() === MODE_EXPLORER;
+            nameParser.sort_file_by_time(files, this.fileInfos, getBaseName, reverse, onlyBymTime);
         } else if (sortOrder === SORT_FROM_BIG || sortOrder === SORT_FROM_SMALL){
             files.sort((a, b) => {
                 const ass = (this.fileInfos[a] && this.fileInfos[a].size) || 0;
