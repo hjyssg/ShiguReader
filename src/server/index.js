@@ -618,7 +618,7 @@ app.post('/api/lsDir', async (req, res) => {
     const isRecursive = req.body && req.body.isRecursive;
 
     if (!dir || !(await isExist(dir))) {
-        console.error(dir, "does not exist");
+        console.error("[/api/lsDir]", dir, "does not exist");
         res.sendStatus(404);
         return;
     }

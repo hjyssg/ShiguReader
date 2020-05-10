@@ -10,7 +10,7 @@ import ErrorPage from './ErrorPage';
 import CenterSpinner from './subcomponent/CenterSpinner';
 import Pagination from 'rc-pagination';
 import { Redirect } from 'react-router-dom';
-import { isCompress } from '../util';
+import { isCompress, isImage } from '../util';
 const nameParser = require('../name-parser');
 
 const util = require("../util");
@@ -90,7 +90,17 @@ export default class TagPage extends Component {
 
   chooseOneThumbnailForOneTag = function(files){
     nameParser.sort_file_by_time(files, this.fileToInfo, getBaseName, false, false);
-    return this.allThumbnails[files[0]];
+
+    let result;
+    files.some(e => {
+      const thumbnail = this.allThumbnails[e];
+      if(thumbnail && isImage(thumbnail)){
+        result = thumbnail;
+        return true;
+      }
+    });
+
+    return result;
   }
   
   setItems(res){
