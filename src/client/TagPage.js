@@ -89,7 +89,7 @@ export default class TagPage extends Component {
   }
 
   chooseOneThumbnailForOneTag = function(files){
-    nameParser.sort_file_by_time(files, this.fileToInfo, getBaseName, true, false);
+    nameParser.sort_file_by_time(files, this.fileToInfo, getBaseName, false, false);
     return this.allThumbnails[files[0]];
   }
   
@@ -177,6 +177,7 @@ export default class TagPage extends Component {
     const tagItems = keys.map((tag) => {
       const itemText = `${tag} (${items[tag]})`;
       const tagHash = stringHash(tag);
+
       const url = this.isAuthorMode()? ("/author/" + tagHash) :  ("/tag/" + tagHash);
       const thumbnailUrl = this.chooseOneThumbnailForOneTag(t2Files[tag]);
 

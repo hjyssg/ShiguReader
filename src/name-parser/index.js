@@ -267,16 +267,16 @@ function parse(str) {
 
 
 
-module.exports.sort_file_by_time = function(files, fileInfos, getBaseName, reverseOrder, onlyMtime){
+module.exports.sort_file_by_time = function(files, fileInfos, getBaseName, fromEarly, onlyMtime){
     const byFn = (a, b) => {
         const ap = getBaseName(a);
         const bp = getBaseName(b);
         return ap.localeCompare(bp);
     }
     
-    function comprTime(at, bt, a, b, reverseOrder){
+    function comprTime(at, bt, a, b, fromEarly){
         let result;
-        if(reverseOrder){
+        if(fromEarly){
             result = at - bt;
         }else{
             result = bt - at;
@@ -295,7 +295,7 @@ module.exports.sort_file_by_time = function(files, fileInfos, getBaseName, rever
         const fileTimeB = (fileInfos[b] && fileInfos[b].mtimeMs) || Infinity;
 
         if(onlyMtime){
-            return comprTime(fileTimeA, fileTimeB, a, b, reverseOrder);
+            return comprTime(fileTimeA, fileTimeB, a, b, fromEarly);
         }else{
             const pA = parse(a);
             const pB = parse(b);
@@ -309,7 +309,7 @@ module.exports.sort_file_by_time = function(files, fileInfos, getBaseName, rever
             const t1 = aboutTimeA || fileTimeA;
             const t2 = aboutTimeB || fileTimeB;
 
-            return comprTime(t1, t2, a, b, reverseOrder);
+            return comprTime(t1, t2, a, b, fromEarly);
         }
     });
 }

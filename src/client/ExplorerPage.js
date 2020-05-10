@@ -25,8 +25,8 @@ const clientUtil = require("./clientUtil");
 const { getDir, getBaseName, getPerPageItemNumber, stringHash } = clientUtil;
 const { isVideo, isCompress } = util;
 
-const { SORT_BY_DATE, 
-        SORT_BY_DATE_REVERSE,
+const { SORT_FROM_LATEST, 
+        SORT_FROM_EARLY,
         SORT_BY_FOLDER,
         SORT_BY_FILENAME,
         SORT_FROM_SMALL,
@@ -61,7 +61,7 @@ export default class ExplorerPage extends Component {
         const parsed = reset? {} : queryString.parse(location.hash);
         const pageIndex = parseInt(parsed.pageIndex) || 1;
         const isRecursive = !!(parsed.isRecursive === "true");
-        const sortOrder = parsed.sortOrder || SORT_BY_DATE;
+        const sortOrder = parsed.sortOrder || SORT_FROM_LATEST;
         const showVideo = !!(parsed.showVideo === "true");
     
         return {
@@ -396,10 +396,10 @@ export default class ExplorerPage extends Component {
                     return byFn(a, b)
                 }
             });
-        }else if (sortOrder === SORT_BY_DATE ||  sortOrder === SORT_BY_DATE_REVERSE){
-            const reverse = sortOrder === SORT_BY_DATE_REVERSE;
+        }else if (sortOrder === SORT_FROM_LATEST ||  sortOrder === SORT_FROM_EARLY){
+            const fromEarly = sortOrder === SORT_FROM_EARLY;
             const onlyBymTime = this.getMode() === MODE_EXPLORER;
-            nameParser.sort_file_by_time(files, this.fileInfos, getBaseName, reverse, onlyBymTime);
+            nameParser.sort_file_by_time(files, this.fileInfos, getBaseName, fromEarly, onlyBymTime);
         } else if (sortOrder === SORT_FROM_BIG || sortOrder === SORT_FROM_SMALL){
             files.sort((a, b) => {
                 const ass = (this.fileInfos[a] && this.fileInfos[a].size) || 0;
@@ -791,8 +791,8 @@ export default class ExplorerPage extends Component {
 
     renderSideMenu(){
         const SORT_OPTIONS = [
-            SORT_BY_DATE,
-            SORT_BY_DATE_REVERSE,
+            SORT_FROM_LATEST,
+            SORT_FROM_EARLY,
             SORT_FROM_BIG,
             SORT_FROM_SMALL,
             SORT_BY_FILENAME
