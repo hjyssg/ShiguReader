@@ -426,11 +426,11 @@ export default class ExplorerPage extends Component {
         this.isAlreadyRandom = inRandom;
     }
 
-    getOneLineListItem(icon, item, title){
+    getOneLineListItem(icon, fileName, filePath){
         return (
-        <li className="explorer-one-line-list-item" key={item} title={title}>
+        <li className="explorer-one-line-list-item" key={fileName} title={filePath}>
         {icon}
-        <span className="explorer-one-line-list-item-text">{item}</span>
+        <span className="explorer-one-line-list-item-text">{fileName}</span>
         </li>);
     }
 
@@ -777,7 +777,8 @@ export default class ExplorerPage extends Component {
     }
 
     getTotalFileSize(){
-        const files = this.getFilteredFiles() || [];
+        let files = this.getFilteredFiles() || [];
+        files = files.concat(this.videoFiles)
         let totalSize = 0;
         files.forEach(e => {
             if(this.fileInfos[e]){
