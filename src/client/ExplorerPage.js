@@ -282,7 +282,11 @@ export default class ExplorerPage extends Component {
     }
 
     getPageNum(fp){
-       return (this.zipInfo[fp] && this.zipInfo[fp].pageNum) || 0;
+       return +(this.zipInfo[fp] && this.zipInfo[fp].pageNum) || 0;
+    }
+
+    getMusicNum(fp){
+        return +(this.zipInfo[fp] && this.zipInfo[fp].musicNum) || 0;
     }
     
     getFilteredFiles(){
@@ -510,6 +514,12 @@ export default class ExplorerPage extends Component {
                     "f-s-14": fl <= 30
                 });
 
+                const musicNum = this.getMusicNum(item);
+
+                const fileInfoRowCn = classNames("file-info-row", {
+                    "less-padding": musicNum > 0
+                })
+
                 zipItem = (
                 <div key={item} className={"col-sm-6 col-md-4 col-lg-3 file-out-cell"}>
                     <div className="file-cell">
@@ -523,9 +533,10 @@ export default class ExplorerPage extends Component {
                                     onReceiveUrl={url => {this.thumbnails[item] = url;}} 
                                     />
                         </Link>
-                        <div className="file-info-row">
+                        <div className={fileInfoRowCn}>
                             <span>{fileSize}</span>
                             <span>{`${this.getPageNum(item)} pages`}</span>
+                            {musicNum > 0 && <span>{`${musicNum} songs`}</span>}
                         </div>
                         <FileChangeToolbar className="explorer-file-change-toolbar" file={item} />
                     </div>
