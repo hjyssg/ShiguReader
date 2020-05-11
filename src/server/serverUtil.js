@@ -23,7 +23,7 @@ module.exports.chooseOneZipForOneTag = function(files, fileToInfo){
         }
         return true;
     });
-    nameParser.sort_file_by_time(files, fileToInfo, getBaseName, true, false);
+    nameParser.sort_file_by_time(_files, fileToInfo, getBaseName, false, false);
     return _files[0];
 }
 
