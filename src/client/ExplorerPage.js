@@ -371,7 +371,6 @@ export default class ExplorerPage extends Component {
         return files.slice((this.state.pageIndex-1) * this.getNumPerPage(), (this.state.pageIndex) * this.getNumPerPage());
     }
 
-
     sortFiles(files, sortOrder){
         //-------sort algo
         const byFn = (a, b) => {
@@ -641,9 +640,9 @@ export default class ExplorerPage extends Component {
             const totalSize = this.getTotalFileSize();
             let topButtons = (
             <div className="top-button-gropus row">
-                    <div className="file-count col-6 col-md-4"><i className="fas fa-hdd"/>{filesizeUitl(totalSize, {base: 2})} </div>
                     <div className="file-count col-6 col-md-4"><i className="fas fa-file-archive"/>{this.getFilteredFiles().length + " compressed files"} </div>
                     <div className="file-count col-6 col-md-4"><i className="fas fa-film"/>{this.getFilteredVideos().length + " video files"} </div>
+                    <div className="file-count col-6 col-md-4"><i className="fas fa-hdd"/>{filesizeUitl(totalSize, {base: 2})} </div>
                     <div className="col-6 col-md-4"> {this.renderToggleThumbNailButton()} </div>
                     <div className="col-6 col-md-4"> {this.renderLevelButton()} </div>
                     <div className="col-6 col-md-4"> {this.renderShowVideoButton()} </div>
@@ -777,8 +776,8 @@ export default class ExplorerPage extends Component {
     }
 
     getTotalFileSize(){
-        let files = this.getFilteredFiles() || [];
-        files = files.concat(this.videoFiles)
+        let files = this.getFilteredFiles();
+        files = files.concat(this.getFilteredVideos())
         let totalSize = 0;
         files.forEach(e => {
             if(this.fileInfos[e]){
