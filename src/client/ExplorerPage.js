@@ -25,8 +25,8 @@ const clientUtil = require("./clientUtil");
 const { getDir, getBaseName, getPerPageItemNumber, stringHash } = clientUtil;
 const { isVideo, isCompress } = util;
 
-const { SORT_BY_DATE, 
-        SORT_BY_DATE_REVERSE,
+const { SORT_FROM_LATEST, 
+        SORT_FROM_EARLY,
         SORT_BY_FOLDER,
         SORT_BY_FILENAME,
         SORT_FROM_SMALL,
@@ -61,7 +61,7 @@ export default class ExplorerPage extends Component {
         const parsed = reset? {} : queryString.parse(location.hash);
         const pageIndex = parseInt(parsed.pageIndex) || 1;
         const isRecursive = !!(parsed.isRecursive === "true");
-        const sortOrder = parsed.sortOrder || SORT_BY_DATE;
+        const sortOrder = parsed.sortOrder || SORT_FROM_LATEST;
         const showVideo = !!(parsed.showVideo === "true");
     
         return {
@@ -396,43 +396,10 @@ export default class ExplorerPage extends Component {
                     return byFn(a, b)
                 }
             });
-        }else if (sortOrder === SORT_BY_DATE ||  sortOrder === SORT_BY_DATE_REVERSE){
-            files.sort((a, b) => {
-               
-
-                const fileTimeA = (this.fileInfos[a] && this.fileInfos[a].mtimeMs) || Infinity;
-                const fileTimeB = (this.fileInfos[b] && this.fileInfos[b].mtimeMs) || Infinity;
-
-                function comprTime(at, bt){
-                    let result;
-                    if(sortOrder === SORT_BY_DATE_REVERSE){
-                        result = at - bt;
-                    }else{
-                        result = bt - at;
-                    }
-
-                    if(result === 0){
-                        result = byFn(a, b);
-                    }
-                    return result;
-                }
-
-                if(this.getMode() === MODE_EXPLORER){
-                    return comprTime(fileTimeA, fileTimeB);
-                }else{
-
-                    const pA = parse(a);
-                    const pB = parse(b);
-    
-                    let aboutTimeA = pA && nameParser.getDateFromTags(pA.tags);
-                    let aboutTimeB = pB && nameParser.getDateFromTags(pB.tags);
-    
-                    aboutTimeA = aboutTimeA && aboutTimeA.getTime();
-                    aboutTimeB = aboutTimeB && aboutTimeB.getTime();
-
-                    return comprTime(aboutTimeA || fileTimeA, aboutTimeB || fileTimeB);
-                }
-            });
+        }else if (sortOrder === SORT_FROM_LATEST ||  sortOrder === SORT_FROM_EARLY){
+            const fromEarly = sortOrder === SORT_FROM_EARLY;
+            const onlyBymTime = this.getMode() === MODE_EXPLORER;
+            nameParser.sort_file_by_time(files, this.fileInfos, getBaseName, fromEarly, onlyBymTime);
         } else if (sortOrder === SORT_FROM_BIG || sortOrder === SORT_FROM_SMALL){
             files.sort((a, b) => {
                 const ass = (this.fileInfos[a] && this.fileInfos[a].size) || 0;
@@ -525,7 +492,7 @@ export default class ExplorerPage extends Component {
                 const prev = files[index - 1];
                 if(!prev || getDir(prev) !== getDir(item)){
                     seperator = (<div className="col-12"  key={item+"---seperator"}> 
-                                 <Breadcrumb path={getDir(item)} className={breadcrumbCount > 0? "not-first-breadcrumb": "" }/>
+                                 <Breadcrumb  path={getDir(item)} className={breadcrumbCount > 0? "not-first-breadcrumb folder-seperator": "folder-seperator" }/>
                                  </div>);
                     breadcrumbCount++;
                 }
@@ -621,20 +588,22 @@ export default class ExplorerPage extends Component {
     renderToggleThumbNailButton(){
         const text2 = this.state.noThumbnail? "Show Thumbnail" : "File Name Only";
         return (
-           <span className="thumbnail-button exp-top-button" onClick={this.toggleThumbNail.bind(this)}>
+           <span key="thumbnail-button" className="thumbnail-button exp-top-button" onClick={this.toggleThumbNail.bind(this)}>
                 <span className="fas fa-book" /> <span>{text2} </span> 
             </span>
         );
     }
 
     renderShowVideoButton(){
-        const text2 = this.state.showVideo? "hide video" : "show video";
-        return (
-            <span className="show-video-button exp-top-button" onClick={this.toggleShowVideo.bind(this)}> 
-            <span className="fas fa-video" />
-            <span> {text2} </span>
-            </span>
-        );
+        if(this.videoFiles && this.videoFiles.length > 0){
+            const text2 = this.state.showVideo? "hide video" : "show video";
+            return (
+                <span className="show-video-button exp-top-button" onClick={this.toggleShowVideo.bind(this)}> 
+                <span className="fas fa-video" />
+                <span> {text2} </span>
+                </span>
+            );
+        }
     }
 
     renderLevelButton(){
@@ -647,11 +616,10 @@ export default class ExplorerPage extends Component {
      );
     }
 
-    
     renderToggleMenuButton(){
         const text = "toggle side menu"
         return (
-           <span className="toggle-side-menu-button exp-top-button" onClick={this.toggleSideMenu.bind(this)}> 
+           <span key="toggle-side-menu-button" className="toggle-side-menu-button exp-top-button" onClick={this.toggleSideMenu.bind(this)}> 
            <span className="fas fa-ellipsis-h" />
            <span> {text} </span>
            </span>
@@ -665,7 +633,6 @@ export default class ExplorerPage extends Component {
                          <span> chart </span>
                     </Link>)
         }
-            
     }
 
     getExplorerToolbar(){
@@ -725,13 +692,11 @@ export default class ExplorerPage extends Component {
             }
 
             const videoButuon = isSearchMode &&  this.renderShowVideoButton();
-            const menuButton = isSearchMode && this.renderToggleMenuButton();
 
             return (<center className={"location-title"}>
                         <a className="explorer-external-link" target="_blank" href={link} title={title}>{this.getTitle()} </a>
                         {btn}
                         {videoButuon}
-                        {menuButton}
                     </center>);
         } 
     }
@@ -824,8 +789,8 @@ export default class ExplorerPage extends Component {
 
     renderSideMenu(){
         const SORT_OPTIONS = [
-            SORT_BY_DATE,
-            SORT_BY_DATE_REVERSE,
+            SORT_FROM_LATEST,
+            SORT_FROM_EARLY,
             SORT_FROM_BIG,
             SORT_FROM_SMALL,
             SORT_BY_FILENAME

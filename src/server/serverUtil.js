@@ -1,9 +1,8 @@
 const util = require("../util");
 const path = require('path');
+const nameParser = require('../name-parser');
 
 const { isImage, isCompress, isCompressedThumbnail } = util;
-
-
 
 const filterHiddenFile = module.exports.filterHiddenFile =function(files){
     return files.filter(f => {
@@ -12,16 +11,24 @@ const filterHiddenFile = module.exports.filterHiddenFile =function(files){
     })
 }
 
-module.exports.chooseOneZipForOneTag = function(files){
+function isHiddenFile(f){
+    const temp =  path.basename(f);
+    return temp && temp[0] === ".";
+}
+
+module.exports.chooseOneZipForOneTag = function(files, fileToInfo){
     const _files = files.filter(e => {
-        if(e.includes("アニメ")){
+        if(e.includes("アニメ") || !isCompress(e) || isHiddenFile(e)){
             return false;
         }
         return true;
     });
-    let tempFiles =  _files.filter(isCompress);
-    tempFiles = filterHiddenFile(tempFiles);
-    return tempFiles[0];
+    nameParser.sort_file_by_time(_files, fileToInfo, getBaseName, false, false);
+    return _files[0];
+}
+
+function getBaseName(e){
+    return  path.basename(e);
 }
 
 const sortFileNames = module.exports.sortFileNames = function(files){

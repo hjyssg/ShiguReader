@@ -14,7 +14,7 @@ $border-color-black: #616161;
 @mixin file_cell_common {
     background: $bacground_level_two;
     border: 1px solid $border-color-black;
-    border-radius: 9px;
+    border-radius: 5px;
     overflow: hidden;  
 }
 
@@ -45,7 +45,6 @@ $border-color-black: #616161;
     padding-bottom: 20px;
     padding-top: 20px;
     min-height: 800px;
-
 
     a {
         color : $font_color_black_two;
