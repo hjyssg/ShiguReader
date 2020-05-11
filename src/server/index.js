@@ -1053,11 +1053,15 @@ app.post('/api/extract', async (req, res) => {
     const temp = getCacheFiles(outputPath);
 
     const contentInfo = zip_content_db.getData("/");
-    if(contentInfo[filePath]){
+    if(contentInfo[filePath] && temp ){
         const pageNum = getPageNum(contentInfo, filePath); 
         const musicNum = getMusicNum(contentInfo, filePath);
         const totalNum = pageNum + musicNum;
-        if (totalNum > 0 &&  temp && temp.files.length >= totalNum) {
+        const _files = (temp.files||[]).filter(e => {
+            return !util.isCompressedThumbnail(e);
+        });
+
+        if (totalNum > 0 &&  _files.length >= totalNum) {
             sendBack(temp.files, temp.musicFiles, filePath, stat);
             return;
         }else if(totalNum === 0){
