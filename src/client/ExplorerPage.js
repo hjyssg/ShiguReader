@@ -426,9 +426,9 @@ export default class ExplorerPage extends Component {
         this.isAlreadyRandom = inRandom;
     }
 
-    getOneLineListItem(icon, item){
+    getOneLineListItem(icon, item, title){
         return (
-        <li className="explorer-one-line-list-item" key={item}>
+        <li className="explorer-one-line-list-item" key={item} title={title}>
         {icon}
         <span className="explorer-one-line-list-item-text">{item}</span>
         </li>);
@@ -458,7 +458,7 @@ export default class ExplorerPage extends Component {
             const pathHash = stringHash(item);
             const toUrl =('/explorer/'+ pathHash);
             const text = this.getMode() === MODE_HOME ? item: getBaseName(item);
-            const result =  this.getOneLineListItem(<i className="far fa-folder"></i>, text);
+            const result =  this.getOneLineListItem(<i className="far fa-folder"></i>, text, item);
             return  <Link to={toUrl}  key={item}>{result}</Link>;
         });
 
@@ -466,7 +466,7 @@ export default class ExplorerPage extends Component {
             const pathHash = stringHash(item);
             const toUrl =('/videoPlayer/'+ pathHash);
             const text = getBaseName(item);
-            const result = this.getOneLineListItem(<i className="far fa-file-video"></i>, text);
+            const result = this.getOneLineListItem(<i className="far fa-file-video"></i>, text, item);
             return  <Link to={toUrl}  key={item}>{result}</Link>;
         });
 
@@ -502,7 +502,7 @@ export default class ExplorerPage extends Component {
 
             if(this.state.noThumbnail){
                 zipItem = (<Link to={toUrl}  key={item} className={""}>
-                        {this.getOneLineListItem(<i className="fas fa-book"></i>, text)}
+                        {this.getOneLineListItem(<i className="fas fa-book"></i>, text, item)}
                         </Link>)
             }else{
                 const fl = text.length;
