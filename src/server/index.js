@@ -7,7 +7,7 @@ const execa = require('execa');
 const pfs = require('promise-fs');
 const dateFormat = require('dateformat');
 const winston = require("winston");
-const fileChangeHandler = require("./routes/fileChangeHandler");
+
 const _ = require('underscore');
 
 const Constant = require("../constant");
@@ -185,7 +185,6 @@ app.use(express.json());
 
 // fileChangeHandler.init(app, logger);
 
-app.use(fileChangeHandler);
 
 //  outputPath is the folder name
 function getCacheFiles(outputPath) {
@@ -1157,40 +1156,11 @@ app.post('/api/cleanCache', (req, res) => {
 });
 
 //---------------------------
-function shutdown (cb) {
-    //modify https://github.com/hemanth/power-off/
-    let cmd = '';
 
-    if(isLinux() || isOsx()) {
-        cmd = 'sudo shutdown -h now';
-    } else if(isWindows()) {
-        cmd = 'shutdown /s /f';
-    } else {
-        throw new Error('Unknown OS!');
-    }
+const moveOrDelete = require("./routes/moveOrDelete");
+app.use(moveOrDelete);
 
-    cp.exec(cmd, function (err, stdout, stderr) {
-        logger.info("[shutdown]", getCurrentTime());
-        cb && cb(err, stdout, stderr);
-    });
-};
-
-
-app.post('/api/shutdownServer', function (req, res) {
-    shutdown();
-    res.sendStatus(200);
-});
-
-if(isProduction){
-    const history = require('connect-history-api-fallback');
-    app.use(history({
-        verbose: true,
-    }));
-
-    app.get('/index.html', (req, res) => {
-        const as = path.resolve(__dirname, "..", "..", 'dist', 'index.html');
-        res.sendFile(as);
-    })
-}
+const shutdown = require("./routes/shutdown");
+app.use(shutdown);
 
 init();

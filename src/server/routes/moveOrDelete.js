@@ -12,6 +12,7 @@ const isWindows = require('is-windows');
 const express = require('express');
 const router = express.Router();
 const serverUtil = require("../serverUtil");
+const logger = serverUtil.common.logger;
 
 
 router.post('/api/moveFile', (req, res) => {
@@ -37,7 +38,7 @@ router.post('/api/moveFile', (req, res) => {
             }
 
             if(!err){
-                serverUtil.common.logger.info(`[MOVE] ${src} to ${dest}`);
+                logger.info(`[MOVE] ${src} to ${dest}`);
                 res.sendStatus(200);
             }else{
                 console.error(err);
@@ -63,7 +64,7 @@ router.post('/api/deleteFile', async (req, res) => {
         await trash([src]);
         if(!(await isExist(src))){
           res.sendStatus(200);
-          serverUtil.common.logger.info(`[DELETE] ${src}`);
+          logger.info(`[DELETE] ${src}`);
         } else{
           console.error(err);
           res.sendStatus(404);
@@ -75,7 +76,7 @@ router.post('/api/deleteFile', async (req, res) => {
                 res.sendStatus(404);
             }else{
                 res.sendStatus(200);
-                serverUtil.common.logger.info(`[DELETE] ${src}`);
+                logger.info(`[DELETE] ${src}`);
             }
         });
     }
