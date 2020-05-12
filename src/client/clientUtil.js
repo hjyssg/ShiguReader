@@ -13,11 +13,11 @@ const getBaseName = module.exports.getBaseName = function (fn, seperator) {
     return tokens[tokens.length - 1];
 };
 
-module.exports.getUrl = function (fn){
-    return "../" + encodeURIComponent(fn);
+module.exports.getUrl = function (url){
+    return "../" + encodeFileUrl(url);
 }
 
-module.exports.encodeFileUrl = function(url){
+const encodeFileUrl = module.exports.encodeFileUrl = function(url){
     const ii = url.lastIndexOf('/')+1;
     const result =  url.substring(0, ii) + encodeURIComponent(url.substring(ii));
     return result;
