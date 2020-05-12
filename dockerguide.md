@@ -2,7 +2,7 @@
 
 ## 修改 src/path-config
 
-把 path-config 的路径修改为
+把 path-config 的文件路径修改为
 > /data
 
 ## 设置 src/user-config.js 整理文件的路径
@@ -26,5 +26,12 @@ module.exports.additional_folder = [
 
 
 ## Q&A
-    Q：我想直接拉取镜像，再修改文件怎么办？
-    A：docker exec 容器id bash，用文本编辑器修改 /usr/src/app 里的配置文件
+Q：我想直接拉取镜像，再修改文件怎么办？
+
+A：docker exec 容器id，用文本编辑器修改 /usr/src/app 里的配置文件
+
+Q：如何更新最新镜像？
+
+A：镜像分两个分支
+- latest 是根据 [推送版本](https://github.com/hjyssg/ShiguReader/releases) 手动更新的，更新时间不定
+- nightly 是每晚合并最新代码自动生成的
