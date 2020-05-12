@@ -168,6 +168,8 @@ const cacheDb = {
     cacheFileToInfo: {}
 }
 
+serverUtil.common.hashTable = db.hashTable;
+
 function getAllFilePathes(){
     return _.keys(db.fileToInfo);
 }
@@ -521,18 +523,6 @@ app.get('/api/tag', (req, res) => {
         updateTagHash(e);
     });
     res.send({ tags, authors });
-});
-
-//------------------download------------
-app.get('/api/download/:hash', async (req, res) => {
-    const filepath = db.hashTable[req.params.hash];
-
-    if (!filepath || !(await isExist(filepath))) {
-        console.error("[/api/download]", filepath, "does not exist");
-        res.sendStatus(404);
-        return;
-    }
-    res.download(filepath); // Set disposition and send it.
 });
 
 //----------------get folder contents
@@ -1078,7 +1068,7 @@ app.post('/api/extract', async (req, res) => {
             let files = await listZipContent(filePath);
             files = files.filter(e => isDisplayableInOnebook(e));
             if(files.length === 0){
-               res.sendStatus(500);
+               res.sendStatus(404);
                console.error(`[/api/extract] ${filePath} has no content`);
             }
 
@@ -1162,5 +1152,8 @@ app.use(moveOrDelete);
 
 const shutdown = require("./routes/shutdown");
 app.use(shutdown);
+
+const download = require("./routes/download");
+app.use(download);
 
 init();
