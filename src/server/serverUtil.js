@@ -43,3 +43,4 @@ module.exports.chooseThumbnailImage = function(files){
     return compressed[0] || tempFiles[0];
 }
 
+module.exports.common = {};

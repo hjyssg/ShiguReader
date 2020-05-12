@@ -7,7 +7,7 @@ const execa = require('execa');
 const pfs = require('promise-fs');
 const dateFormat = require('dateformat');
 const winston = require("winston");
-const fileChangeHandler = require("./fileChangeHandler");
+const fileChangeHandler = require("./routes/fileChangeHandler");
 const _ = require('underscore');
 
 const Constant = require("../constant");
@@ -87,7 +87,6 @@ if(isWindows()){
 
 console.log("----------------------");
 
-
 const logger = winston.createLogger({
     transports: [
       new winston.transports.Console(),
@@ -98,6 +97,8 @@ const logger = winston.createLogger({
         }})
     ]
   });
+
+serverUtil.common.logger = logger;
 
 
 function isDisplayableInExplorer(e){
@@ -182,7 +183,9 @@ app.use(express.static(rootPath, {
 //  https://stackoverflow.com/questions/10005939/how-do-i-consume-the-json-post-data-in-an-express-application
 app.use(express.json());
 
-fileChangeHandler.init(app, logger);
+// fileChangeHandler.init(app, logger);
+
+app.use(fileChangeHandler);
 
 //  outputPath is the folder name
 function getCacheFiles(outputPath) {
