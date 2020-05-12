@@ -129,8 +129,8 @@ npm run dev
 ```
 
 ##### 注意事项
-当src/user-config.js的module.exports.readable_cache_folder_name = true的时候
-你可能需要如下设置。但有s1坛友反映会导致其他非unicode软件乱码。
+如果部分文件名带汉字日语假名的图片加载不出来，你可能需要如下语言设置。
+但有s1坛友反映会导致其他非unicode软件乱码。
 
 windows语言设置:
 ![unicode setting](screenshot/unicode-setting.png)
