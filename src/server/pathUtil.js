@@ -26,15 +26,17 @@ const generateContentUrl = function (pathes, outputPath) {
     const files = [];
     const dirs = [];
     const musicFiles = [];
-    const base = path.basename(outputPath);
-    for (let i = 0; i < pathes.length; i++) {
-        const p = path.basename(pathes[i]);
-        let temp = path.join(cache_folder_name, base, p);
-        temp = turnPathSepToWebSep(temp);
-        if (isImage(p)) {
-            files.push(temp);
-        }else if(isMusic(p)){
-            musicFiles.push(temp);
+    if(pathes){
+        const base = path.basename(outputPath);
+        for (let i = 0; i < pathes.length; i++) {
+            const p = path.basename(pathes[i]);
+            let temp = path.join(cache_folder_name, base, p);
+            temp = turnPathSepToWebSep(temp);
+            if (isImage(p)) {
+                files.push(temp);
+            }else if(isMusic(p)){
+                musicFiles.push(temp);
+            }
         }
     }
     return { files, dirs, musicFiles };

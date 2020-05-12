@@ -281,14 +281,12 @@ module.exports.sort_file_by_time = function(files, fileInfos, getBaseName, fromE
         }else{
             result = bt - at;
         }
-    
+        
         if(result === 0){
             result = byFn(a, b);
         }
-    
         return result;
     }
-
 
     files.sort((a, b) => {
         const fileTimeA = (fileInfos[a] && fileInfos[a].mtimeMs) || Infinity;

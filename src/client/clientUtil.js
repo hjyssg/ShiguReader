@@ -14,7 +14,13 @@ const getBaseName = module.exports.getBaseName = function (fn, seperator) {
 };
 
 module.exports.getUrl = function (fn){
-    return "../" + fn;
+    return "../" + encodeURIComponent(fn);
+}
+
+module.exports.encodeFileUrl = function(url){
+    const ii = url.lastIndexOf('/')+1;
+    const result =  url.substring(0, ii) + encodeURIComponent(url.substring(ii));
+    return result;
 }
 
 const getBaseNameWithoutExtention = function (fn, seperator) {

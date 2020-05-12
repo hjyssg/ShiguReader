@@ -4,6 +4,10 @@ import Sender from './Sender';
 const Constant = require("../constant");
 const classNames = require('classnames');
 import "./style/LoadingImage.scss"
+const clientUtil = require("./clientUtil");
+const { encodeFileUrl } = clientUtil;
+
+
 
 export default class LoadingImage extends Component {
   constructor(props) {
@@ -102,7 +106,7 @@ export default class LoadingImage extends Component {
 
    if (this.isThumbnailAvaible()) {
       content = (<img key={fileName} ref={e=>{this.dom = e && e.node}} 
-                      className={className} src={this.state.url} title={title || fileName} 
+                      className={className} src={encodeFileUrl(this.state.url)} title={title || fileName} 
                       onError={this.onError.bind(this)} 
                       {...others}/>);
     } else {
