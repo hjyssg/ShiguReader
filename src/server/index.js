@@ -28,6 +28,7 @@ const {
         isSub
 } = pathUtil;
 const { isImage, isCompress, isMusic, isVideo, arraySlice, getCurrentTime, isDisplayableInExplorer, isDisplayableInOnebook } = util;
+const {getDirName, parse} = serverUtil;
 
 const rootPath = pathUtil.getRootPath();
 const cache_folder_name = userConfig.cache_folder_name;
@@ -90,9 +91,7 @@ const loggerModel = require("./models/logger");
 loggerModel.init(logPath);
 const logger = loggerModel.logger;
 
-function parse(str){
-    return nameParser.parse(path.basename(str, path.extname(str)));
-}
+
 
 const includesWithoutCase =  nameParser.includesWithoutCase;
 
@@ -272,11 +271,6 @@ function shouldIgnore(p){
     return !shouldWatch(p);
 }
 
-function getDirName(p){
-    const result =  path.dirname(p);
-    return path.basename(result);
-}
-
 //!! same as file-iterator getStat()
 function addStatToDb(path, stat){
     const result = {};
@@ -387,38 +381,6 @@ app.post('/api/allInfo', (req, res) => {
     }); 
 });
 
-function getGoodAndOtherSet(){
-    const set = {};
-    const otherSet = {};
-    getAllFilePathes().forEach(p => {
-        const ext = path.extname(p).toLowerCase();
-        if(isCompress(ext)){
-            const temp = parse(p);
-            const name = temp && temp.author;
-            if(name){
-                if(p && p.startsWith(userConfig.good_folder_root)){
-                    set[name] = set[name]? set[name]+1: 1;
-                }else{
-                    otherSet[name] = otherSet[name]? otherSet[name]+1: 1;
-                }
-            }
-        }
-    });
-
-    return {
-        set,
-        otherSet
-    }
-}
-
-app.get('/api/getGoodAuthorNames',async (req, res) => {
-    const result = getGoodAndOtherSet();
-
-    res.send({
-        goodAuthors: result.set,
-        otherAuthors: result.otherSet
-    });
-});
 
 /*
 *  deprecated we move the logic to frontend
@@ -994,6 +956,9 @@ app.post('/api/extract', async (req, res) => {
 
 const lsdir = require("./routes/lsdir");
 app.use(lsdir);
+
+const getGoodAuthorNames = require("./routes/getGoodAuthorNames");
+app.use(getGoodAuthorNames);
 
 const moveOrDelete = require("./routes/moveOrDelete");
 app.use(moveOrDelete);

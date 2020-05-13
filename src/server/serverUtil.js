@@ -31,6 +31,11 @@ function getBaseName(e){
     return  path.basename(e);
 }
 
+module.exports.getDirName = function(p){
+    const result =  path.dirname(p);
+    return path.basename(result);
+}
+
 const sortFileNames = module.exports.sortFileNames = function(files){
     util._sortFileNames(files, e => path.basename(e, path.extname(e)));
 }
@@ -41,6 +46,10 @@ module.exports.chooseThumbnailImage = function(files){
     sortFileNames(tempFiles);
     const compressed = tempFiles.filter(isCompressedThumbnail);
     return compressed[0] || tempFiles[0];
+}
+
+module.exports.parse = function(str){
+    return nameParser.parse(path.basename(str, path.extname(str)));
 }
 
 module.exports.common = {};
