@@ -1,15 +1,11 @@
 
-const pathUtil = require("../pathUtil");
-const { isExist } = pathUtil;
 const express = require('express');
 const router = express.Router();
-const serverUtil = require("../serverUtil");
 const db = require("../models/db");
 const getAllFilePathes = db.getAllFilePathes;
 const util = require("../../util");
-const { isCompress, isMusic, isVideo, arraySlice, getCurrentTime } = util;
+const { isCompress } = util;
 const path = require('path');
-
 
 // http://localhost:8080/api/exhentaiApi
 router.get('/api/exhentaiApi', function (req, res) {

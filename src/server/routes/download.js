@@ -1,12 +1,8 @@
 
 const pathUtil = require("../pathUtil");
-const {
-        isExist
-} = pathUtil;
-
+const { isExist } = pathUtil;
 const express = require('express');
 const router = express.Router();
-const serverUtil = require("../serverUtil");
 const db = require("../models/db");
 
 //------------------download------------

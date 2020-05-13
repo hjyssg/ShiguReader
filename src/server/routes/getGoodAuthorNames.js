@@ -10,8 +10,6 @@ const path = require('path');
 const userConfig = require('../../user-config');
 const serverUtil = require("../serverUtil");
 
-
-
 function getGoodAndOtherSet(){
     const set = {};
     const otherSet = {};

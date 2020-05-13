@@ -8,12 +8,9 @@ const fs = require('fs');
 const execa = require('execa');
 const userConfig = require('../../user-config');
 const isWindows = require('is-windows');
-
 const express = require('express');
 const router = express.Router();
-const serverUtil = require("../serverUtil");
 const logger = require("../models/logger").logger;
-
 
 router.post('/api/moveFile', (req, res) => {
     const src = req.body && req.body.src;

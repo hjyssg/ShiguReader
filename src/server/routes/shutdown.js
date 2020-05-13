@@ -1,13 +1,9 @@
 
 const pathUtil = require("../pathUtil");
-const {
-        isExist
-} = pathUtil;
+const { isExist } = pathUtil;
 const isWindows = require('is-windows');
-
 const express = require('express');
 const router = express.Router();
-const serverUtil = require("../serverUtil");
 const logger = require("../models/logger").logger;
 
 function shutdown (cb) {

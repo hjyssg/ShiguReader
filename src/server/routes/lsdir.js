@@ -1,9 +1,6 @@
 
 const pathUtil = require("../pathUtil");
 const {
-    fullPathToUrl,
-    turnPathSepToWebSep,
-    generateContentUrl,
     isExist,
     isDirectParent,
     isSub
@@ -14,7 +11,7 @@ const serverUtil = require("../serverUtil");
 const db = require("../models/db");
 const getAllFilePathes = db.getAllFilePathes;
 const util = require("../../util");
-const { isCompress, isMusic, isVideo, arraySlice, getCurrentTime, isDisplayableInExplorer } = util;
+const { getCurrentTime, isDisplayableInExplorer } = util;
 const path = require('path');
 
 const getZipInfo = serverUtil.common.getZipInfo;

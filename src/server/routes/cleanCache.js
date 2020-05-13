@@ -1,14 +1,11 @@
 
-const pathUtil = require("../pathUtil");
 const express = require('express');
 const router = express.Router();
 const serverUtil = require("../serverUtil");
 const db = require("../models/db");
 const getAllFilePathes = db.getAllFilePathes;
-const util = require("../../util");
 const path = require('path');
 const getCacheOutputPath = serverUtil.common.getCacheOutputPath;
-
 const cachePath = serverUtil.common.cachePath;
 
 function doCacheClean(config){
