@@ -3,11 +3,10 @@ const pathUtil = require("../pathUtil");
 const { isExist } = pathUtil;
 const express = require('express');
 const router = express.Router();
-const serverUtil = require("../serverUtil");
 const db = require("../models/db");
 const getAllFilePathes = db.getAllFilePathes;
-const util = require("../util");
-const { isImage, isCompress, isMusic, isVideo, arraySlice, getCurrentTime } = util;
+const util = require("../../util");
+const { isCompress } = util;
 const path = require('path');
 
 

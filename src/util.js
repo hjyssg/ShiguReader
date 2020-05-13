@@ -19,11 +19,11 @@ const isCompress = module.exports.isCompress = function (fn) {
     return compressTypes.some((e) => fn.toLowerCase().endsWith(e));
 };
 
-module.exports.isMusic = function(fn){
+const isMusic = module.exports.isMusic = function(fn){
     return musicTypes.some((e) => fn.toLowerCase().endsWith(e));
 }
 
-module.exports.isVideo = function(fn){
+const isVideo = module.exports.isVideo = function(fn){
     return videoTypes.some((e) => fn.toLowerCase().endsWith(e));
 }
 
@@ -90,4 +90,12 @@ module.exports.arraySlice = function(arr, beg, end){
 
 module.exports.getCurrentTime = function(){
     return new Date().getTime();
+}
+
+module.exports.isDisplayableInExplorer = function(e){
+    return isCompress(e) || isVideo(e);
+}
+
+module.exports.isDisplayableInOnebook = function(e){
+    return isImage(e)||isMusic(e);
 }

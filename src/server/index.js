@@ -27,7 +27,7 @@ const {
         isDirectParent,
         isSub
 } = pathUtil;
-const { isImage, isCompress, isMusic, isVideo, arraySlice, getCurrentTime } = util;
+const { isImage, isCompress, isMusic, isVideo, arraySlice, getCurrentTime, isDisplayableInExplorer, isDisplayableInOnebook } = util;
 
 const rootPath = pathUtil.getRootPath();
 const cache_folder_name = userConfig.cache_folder_name;
@@ -89,15 +89,6 @@ console.log("----------------------");
 const loggerModel = require("./models/logger");
 loggerModel.init(logPath);
 const logger = loggerModel.logger;
-
-
-function isDisplayableInExplorer(e){
-    return isCompress(e) || isVideo(e);
-}
-
-function isDisplayableInOnebook(e){
-    return isImage(e)||isMusic(e);
-}
 
 function parse(str){
     return nameParser.parse(path.basename(str, path.extname(str)));
@@ -377,24 +368,6 @@ app.get('/api/cacheInfo', (req, res) => {
         thumbnailNum,
         cacheNum: cacheFiles.length
     })
-});
-
-app.post("/api/singleFileInfo", async (req, res) => {
-    const filePath = (req.body && req.body.filePath);
-
-    if (!filePath || !(await isExist(filePath))) {
-        res.sendStatus(404);
-        return;
-    }
-
-    let stat =  db.getFileToInfo()[filePath];
-    if(!stat){
-        stat = await pfs.stat(filePath);
-    }
-
-    res.send({
-        stat
-    });
 });
 
 app.post('/api/allInfo', (req, res) => {
@@ -1108,5 +1081,8 @@ app.use(download);
 
 const hentaiApi = require("./routes/hentaiApi");
 app.use(hentaiApi);
+
+const singleFileInfo = require("./routes/singleFileInfo");
+app.use(singleFileInfo);
 
 init();
