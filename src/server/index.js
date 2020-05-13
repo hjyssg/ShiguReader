@@ -307,12 +307,10 @@ function setUpFileWatch(){
         db.hashTable[stringHash(path)] = path;
         addStatToDb(path, stats);
         extractThumbnailFromZip(path);
-        hentaiCache = null;
     };
 
     const deleteCallBack = path => {
         delete db.getFileToInfo()[path];
-        hentaiCache = null;
     };
 
     watcher
@@ -362,25 +360,6 @@ function setUpFileWatch(){
         cacheWatcher
     };
 }
-
-let hentaiCache;
-// http://localhost:8080/api/exhentaiApi
-app.get('/api/exhentaiApi', function (req, res) {
-    if(hentaiCache){
-        res.send(hentaiCache); 
-        return;
-    }
-
-    let allfiles = getAllFilePathes().filter(isCompress);
-    allfiles = allfiles.map(e => {
-        return path.basename(e, path.extname(e)).trim();
-    });
-
-    hentaiCache = {
-        allFiles: allfiles
-    }
-    res.send(hentaiCache); 
-})
 
 //-------------------------Get info ----------------------
 app.get('/api/cacheInfo', (req, res) => {
@@ -1126,5 +1105,8 @@ app.use(shutdown);
 
 const download = require("./routes/download");
 app.use(download);
+
+const hentaiApi = require("./routes/hentaiApi");
+app.use(hentaiApi);
 
 init();
