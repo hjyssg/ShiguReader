@@ -9,6 +9,8 @@ const util = require("../../util");
 const path = require('path');
 const getCacheOutputPath = serverUtil.common.getCacheOutputPath;
 
+const cachePath = serverUtil.common.cachePath;
+
 function doCacheClean(config){
     const cleanCache = require("../../tools/cleanCache");
     try{

@@ -135,6 +135,7 @@ const getCacheOutputPath = function (cachePath, zipFilePath) {
 }
 
 serverUtil.common.getCacheOutputPath = getCacheOutputPath;
+serverUtil.common.cachePath = cachePath;
 
 const app = express();
 
