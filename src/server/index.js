@@ -358,21 +358,6 @@ app.get('/api/cacheInfo', (req, res) => {
     })
 });
 
-app.post('/api/allInfo', (req, res) => {
-    const needThumbnail = req.body && req.body.needThumbnail;
-
-    let allThumbnails = {};
-    if(needThumbnail){
-        allThumbnails = getThumbnails(getAllFilePathes());
-    }
-
-    res.send({
-        fileToInfo: fileToInfo,
-        allThumbnails: allThumbnails
-    }); 
-});
-
-
 //----------------get folder contents
 
 function getPageNum(contentInfo, filePath){
@@ -910,6 +895,9 @@ app.use(moveOrDelete);
 
 const download = require("./routes/download");
 app.use(download);
+
+const AllInfo = require("./routes/AllInfo");
+app.use(AllInfo);
 
 const singleFileInfo = require("./routes/singleFileInfo");
 app.use(singleFileInfo);
