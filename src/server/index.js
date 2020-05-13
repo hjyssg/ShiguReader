@@ -993,6 +993,7 @@ app.post('/api/extract', async (req, res) => {
             if(files.length === 0){
                res.sendStatus(404);
                console.error(`[/api/extract] ${filePath} has no content`);
+               return;
             }
 
             let hasMusic = files.some(e => isMusic(e));
