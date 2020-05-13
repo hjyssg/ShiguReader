@@ -134,6 +134,8 @@ const getCacheOutputPath = function (cachePath, zipFilePath) {
     return path.join(cachePath, outputFolder);
 }
 
+serverUtil.common.getCacheOutputPath = getCacheOutputPath;
+
 const app = express();
 
 const db = require("./models/db");
@@ -986,35 +988,8 @@ app.post('/api/extract', async (req, res) => {
     })();
 });
 
-//-----------------------------cache---------------------
-
-function doCacheClean(config){
-    const cleanCache = require("../tools/cleanCache");
-    try{
-        cleanCache.cleanCache(cachePath, config);
-    }catch(e){
-        console.error(e);
-    }
-}
-
-app.post('/api/cleanCache', (req, res) => {
-    const minized = req.body && req.body.minized;
-
-    const allowFileNames =  getAllFilePathes().map(filePath => {
-        let outputPath = getCacheOutputPath(cachePath, filePath);
-        outputPath = path.basename(outputPath);
-        return outputPath;
-    })
-
-    function afterClean() {
-        res.sendStatus(200);
-    }
-
-    doCacheClean({minized: minized, allowFileNames: allowFileNames, afterClean: afterClean});
-});
 
 //---------------------------
-
 
 const lsdir = require("./routes/lsdir");
 app.use(lsdir);
@@ -1033,5 +1008,8 @@ app.use(hentaiApi);
 
 const singleFileInfo = require("./routes/singleFileInfo");
 app.use(singleFileInfo);
+
+const cleanCache = require("./routes/cleanCache");
+app.use(cleanCache);
 
 init();
