@@ -16,6 +16,9 @@ import RadioButtonGroup from './subcomponent/RadioButtonGroup';
 import { isVideo } from '../util';
 import Accordion from './subcomponent/Accordion';
 
+const BY_YEAR = "by year";
+const BY_QUARTER = "by quarter";
+
 function parse(str){
     return nameParser.parse(getBaseName(str));
 }
@@ -44,7 +47,7 @@ export default class ChartPage extends Component {
     constructor(prop) {
         super(prop);
         this.failedTimes = 0;
-        this.state = {fileType: "compressed"};
+        this.state = {fileType: "compressed", timeType: BY_YEAR};
     }
 
     componentDidMount() {
@@ -174,6 +177,8 @@ export default class ChartPage extends Component {
     }
 
     rendeTimeChart(){
+        const { timeType } = this.state;
+
         const byTime = {}; //time -> 300. 
         this.getFilterFiles().forEach(e => {
             const fileInfo = this.fileToInfo[e];
@@ -183,18 +188,23 @@ export default class ChartPage extends Component {
             aboutTimeA = aboutTimeA || fileInfo.mtime;
 
             const t  = new Date(aboutTimeA);
-            const tLabel = t.getFullYear();
+            const month = t.getMonth();
+            const quarter = Math.floor(month/3)+1;
+            
+            let tLabel = timeType === BY_QUARTER? `${t.getFullYear()}-Q${quarter} `: t.getFullYear();
+
             byTime[tLabel] = byTime[tLabel] || 0;
             byTime[tLabel]++;
         });
 
         const data = {};
         data.labels = _.keys(byTime);
-        const value = _.values(byTime);
+        data.labels.sort();
+        const value = data.labels.map(e => byTime[e]);
 
         data.datasets = [{
             type: 'line',
-            label: 'by year',
+            label: this.state.timeType,
             backgroundColor: "orange",
             fill: false,
             showLine: true,
@@ -202,8 +212,16 @@ export default class ChartPage extends Component {
             data:  value
           }];
 
+          const TIME_OPITIONS = [BY_YEAR, BY_QUARTER]
+
           return (
             <div className="individual-chart-container">
+             <RadioButtonGroup 
+                            className="chart-radio-button-group"
+                            checked={TIME_OPITIONS.indexOf(this.state.timeType)} 
+                            options={TIME_OPITIONS} 
+                            onChange={this.onTimeTypeChange.bind(this)}/>
+
               <Line
                 className="type-time-chart"
                 data={data}
@@ -353,6 +371,13 @@ export default class ChartPage extends Component {
             fileType: e
         });
     }
+
+    onTimeTypeChange(e){
+        this.setState({
+            timeType: e
+        });
+    }   
+
 
     render(){
         document.title = "Chart"
