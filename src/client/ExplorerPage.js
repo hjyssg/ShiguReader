@@ -252,14 +252,15 @@ export default class ExplorerPage extends Component {
     }
 
     handleKeyDown(event) {
-        const key = event.key.toLowerCase();
-        if (key === "arrowright" || key === "d" || key === "l") {
-          this.next();
-          event.preventDefault();
-        } else if (key === "arrowleft" || key === "a" || key === "j") {
-          this.prev();
-          event.preventDefault();
-        }
+        //this cause input wont work 
+        // const key = event.key.toLowerCase();
+        // if (key === "arrowright" || key === "d" || key === "l") {
+        //   this.next();
+        //   event.preventDefault();
+        // } else if (key === "arrowleft" || key === "a" || key === "j") {
+        //   this.prev();
+        //   event.preventDefault();
+        // }
     }
 
     getPathFromLocalStorage(){
