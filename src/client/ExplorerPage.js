@@ -22,7 +22,7 @@ const nameParser = require('../name-parser');
 const classNames = require('classnames');
 const Constant = require("../constant");
 const clientUtil = require("./clientUtil");
-const { getDir, getBaseName, getPerPageItemNumber, stringHash } = clientUtil;
+const { getDir, getBaseName, getPerPageItemNumber, stringHash, isSearchInputTextTyping } = clientUtil;
 const { isVideo, isCompress } = util;
 
 const { SORT_FROM_LATEST, 
@@ -253,14 +253,18 @@ export default class ExplorerPage extends Component {
 
     handleKeyDown(event) {
         //this cause input wont work 
-        // const key = event.key.toLowerCase();
-        // if (key === "arrowright" || key === "d" || key === "l") {
-        //   this.next();
-        //   event.preventDefault();
-        // } else if (key === "arrowleft" || key === "a" || key === "j") {
-        //   this.prev();
-        //   event.preventDefault();
-        // }
+        if(isSearchInputTextTyping()){
+            return;
+        }
+
+        const key = event.key.toLowerCase();
+        if (key === "arrowright" || key === "d" || key === "l") {
+          this.next();
+          event.preventDefault();
+        } else if (key === "arrowleft" || key === "a" || key === "j") {
+          this.prev();
+          event.preventDefault();
+        }
     }
 
     getPathFromLocalStorage(){
