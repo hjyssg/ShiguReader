@@ -6,8 +6,10 @@ const chokidar = require('chokidar');
 const execa = require('execa');
 const pfs = require('promise-fs');
 const dateFormat = require('dateformat');
-
 const _ = require('underscore');
+const isWindows = require('is-windows');
+const internalIp = require('internal-ip');
+const qrcode = require('qrcode-terminal');
 
 const Constant = require("../constant");
 const fileiterator = require('./file-iterator');
@@ -16,20 +18,18 @@ const userConfig = require('../user-config');
 const util = require("../util");
 const pathUtil = require("./pathUtil");
 const serverUtil = require("./serverUtil");
-const internalIp = require('internal-ip');
-const qrcode = require('qrcode-terminal');
+
 
 const {
         fullPathToUrl,
         turnPathSepToWebSep,
         generateContentUrl,
         isExist,
-        isDirectParent,
-        isSub
 } = pathUtil;
 const { isImage, isCompress, isMusic, isVideo, arraySlice, getCurrentTime, isDisplayableInExplorer, isDisplayableInOnebook } = util;
 const {getDirName, parse} = serverUtil;
 
+//set up path
 const rootPath = pathUtil.getRootPath();
 const cache_folder_name = userConfig.cache_folder_name;
 const cachePath = path.join(rootPath, cache_folder_name);
@@ -43,17 +43,12 @@ let zip_content_db_path =  path.join(rootPath,  userConfig.workspace_name, "zip_
 const zip_content_db = new JsonDB(new Config(zip_content_db_path, true, true, '/'));
 
 //set up user path
-var isLinux = require('is-linux'),
-    isOsx = require('is-osx'),
-    isWindows = require('is-windows'),
-    cp = require('child_process');
-
+let home_pathes;
 const path_config_path = path.join(rootPath, "src", "path-config");
-let home_pathes = fs.readFileSync(path_config_path).toString().split('\n');
+home_pathes = fs.readFileSync(path_config_path).toString().split('\n');
 home_pathes = home_pathes
-               .map(e => e.trim().replace(/\n|\r/g, ""))
-               .filter(pp =>{ return pp && pp.length > 0 && !pp.startsWith("#");});
-
+            .map(e => e.trim().replace(/\n|\r/g, ""))
+            .filter(pp =>{ return pp && pp.length > 0 && !pp.startsWith("#");});
 if(isWindows()){
     const getDownloadsFolder = require('downloads-folder');
     home_pathes.push(getDownloadsFolder());
@@ -61,10 +56,9 @@ if(isWindows()){
     //downloads-folder cause error on unix
     home_pathes.push(`${process.env.HOME}/Downloads`);
 }
-
 const path_will_scan = home_pathes.concat(userConfig.good_folder, userConfig.good_folder_root, userConfig.not_good_folder);
+serverUtil.common.path_will_scan = path_will_scan;
 
-// console.log("process.argv", process.argv);
 const isProduction = process.argv.includes("--production");
 
 console.log("--------------------");
@@ -90,7 +84,6 @@ console.log("----------------------");
 const loggerModel = require("./models/logger");
 loggerModel.init(logPath);
 const logger = loggerModel.logger;
-
 
 
 const includesWithoutCase =  nameParser.includesWithoutCase;
@@ -158,8 +151,6 @@ app.use(express.static(rootPath, {
 //  to consume json request body
 //  https://stackoverflow.com/questions/10005939/how-do-i-consume-the-json-post-data-in-an-express-application
 app.use(express.json());
-
-// fileChangeHandler.init(app, logger);
 
 
 //  outputPath is the folder name
@@ -382,55 +373,7 @@ app.post('/api/allInfo', (req, res) => {
 });
 
 
-/*
-*  deprecated we move the logic to frontend
-*/
-app.get('/api/tag', (req, res) => {
-    function addOne(table, key) {
-        if(!key){
-            return;
-        }
-        if (!table[key]) {
-            table[key] = 1;
-        } else {
-            table[key] = table[key] + 1;
-        }
-    }
-
-    const tags = {};
-    const authors = {};
-    getAllFilePathes().forEach((e) => {
-        e = path.basename(e);
-        const result = parse(e);
-        if (result) {
-            addOne(authors, result.author);
-            result.tags.forEach(tag => addOne(tags, tag));
-        }
-
-        updateTagHash(e);
-    });
-    res.send({ tags, authors });
-});
-
 //----------------get folder contents
-app.post('/api/homePagePath', function (req, res) {
-    let homepathes = path_will_scan;
-    //check if pathes really exist
-    const allfp = getAllFilePathes();
-    homepathes = homepathes.filter(e => {
-       //there is file in the folder
-       return allfp.some(fp => (fp.length > e.length && fp.includes(e)));
-    });
-
-    if(homepathes.length === 0){
-        console.error("Please check userConfig.js home_pathes");
-        res.sendStatus(404);
-    }else{
-        res.send({
-            dirs: homepathes
-        })
-    }
-});
 
 function getPageNum(contentInfo, filePath){
     if(contentInfo[filePath]){
@@ -953,6 +896,8 @@ app.post('/api/extract', async (req, res) => {
 
 
 //---------------------------
+const homePagePath = require("./routes/homePagePath");
+app.use(homePagePath);
 
 const lsdir = require("./routes/lsdir");
 app.use(lsdir);
@@ -963,19 +908,19 @@ app.use(getGoodAuthorNames);
 const moveOrDelete = require("./routes/moveOrDelete");
 app.use(moveOrDelete);
 
-const shutdown = require("./routes/shutdown");
-app.use(shutdown);
-
 const download = require("./routes/download");
 app.use(download);
-
-const hentaiApi = require("./routes/hentaiApi");
-app.use(hentaiApi);
 
 const singleFileInfo = require("./routes/singleFileInfo");
 app.use(singleFileInfo);
 
+const hentaiApi = require("./routes/hentaiApi");
+app.use(hentaiApi);
+
 const cleanCache = require("./routes/cleanCache");
 app.use(cleanCache);
+
+const shutdown = require("./routes/shutdown");
+app.use(shutdown);
 
 init();
