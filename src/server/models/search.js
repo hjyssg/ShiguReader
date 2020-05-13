@@ -5,6 +5,9 @@ const db = require("../models/db");
 const getAllFilePathes = db.getAllFilePathes;
 const util = require("../../util");
 const path = require('path');
+const parse = serverUtil.parse;
+const nameParser = require('../../name-parser');
+const includesWithoutCase =  nameParser.includesWithoutCase;
 
 function isEqual(s1, s2){
     return s1 && s2 && s1.toLowerCase() === s2.toLowerCase();

@@ -13,7 +13,6 @@ const qrcode = require('qrcode-terminal');
 
 const Constant = require("../constant");
 const fileiterator = require('./file-iterator');
-const nameParser = require('../name-parser');
 const userConfig = require('../user-config');
 const util = require("../util");
 const pathUtil = require("./pathUtil");
@@ -84,9 +83,6 @@ console.log("----------------------");
 const loggerModel = require("./models/logger");
 loggerModel.init(logPath);
 const logger = loggerModel.logger;
-
-
-const includesWithoutCase =  nameParser.includesWithoutCase;
 
 function updateTagHash(str){
     const result = parse(str);
