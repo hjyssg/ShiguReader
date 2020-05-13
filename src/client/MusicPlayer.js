@@ -42,7 +42,7 @@ export default class MusicPlayer extends Component {
     }
 
     render(){
-        const {audioFiles} = this.props;
+        const {audioFiles, className} = this.props;
         const {index} = this.state;
         const audioItems = audioFiles.map((e, ii) => {
             const cn = classNames("aji-music-player-item", {
@@ -56,8 +56,11 @@ export default class MusicPlayer extends Component {
         }
 
         //https://stackoverflow.com/questions/43577182/react-js-audio-src-is-updating-on-setstate-but-the-audio-playing-doesnt-chang
+
+        const totalCn = classNames("aji-music-player", className);
+        
         return (
-                <div className="aji-music-player">
+                <div className={totalCn}>
                     <div className="aji-music-items">
                         {audioItems}
                     </div>

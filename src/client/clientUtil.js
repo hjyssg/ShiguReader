@@ -80,3 +80,13 @@ module.exports.cleanSearchStr = function(str){
     //  "1233%123123%%".replace(/(%)+$/g, "")   =>  "1233%123123" 
     return  str && str.replace(/(%)+$/g, "")
 }
+
+module.exports.getSearchInputText = function(){
+    const input = document.getElementsByClassName('search-input');
+    return input[0] && input[0].value || "";
+}
+
+module.exports.isSearchInputTextTyping = function(){
+    const input = document.getElementsByClassName('search-input');
+    return input[0] && input[0] === document.activeElement;
+}

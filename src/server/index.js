@@ -6,30 +6,29 @@ const chokidar = require('chokidar');
 const execa = require('execa');
 const pfs = require('promise-fs');
 const dateFormat = require('dateformat');
-const winston = require("winston");
-const fileChangeHandler = require("./fileChangeHandler");
 const _ = require('underscore');
+const isWindows = require('is-windows');
+const internalIp = require('internal-ip');
+const qrcode = require('qrcode-terminal');
 
 const Constant = require("../constant");
 const fileiterator = require('./file-iterator');
-const nameParser = require('../name-parser');
 const userConfig = require('../user-config');
 const util = require("../util");
 const pathUtil = require("./pathUtil");
 const serverUtil = require("./serverUtil");
-const internalIp = require('internal-ip');
-const qrcode = require('qrcode-terminal');
+
 
 const {
         fullPathToUrl,
         turnPathSepToWebSep,
         generateContentUrl,
         isExist,
-        isDirectParent,
-        isSub
 } = pathUtil;
-const { isImage, isCompress, isMusic, isVideo, arraySlice, getCurrentTime } = util;
+const { isImage, isCompress, isMusic, isVideo, arraySlice, getCurrentTime, isDisplayableInExplorer, isDisplayableInOnebook } = util;
+const {getDirName, parse} = serverUtil;
 
+//set up path
 const rootPath = pathUtil.getRootPath();
 const cache_folder_name = userConfig.cache_folder_name;
 const cachePath = path.join(rootPath, cache_folder_name);
@@ -43,17 +42,12 @@ let zip_content_db_path =  path.join(rootPath,  userConfig.workspace_name, "zip_
 const zip_content_db = new JsonDB(new Config(zip_content_db_path, true, true, '/'));
 
 //set up user path
-var isLinux = require('is-linux'),
-    isOsx = require('is-osx'),
-    isWindows = require('is-windows'),
-    cp = require('child_process');
-
+let home_pathes;
 const path_config_path = path.join(rootPath, "src", "path-config");
-let home_pathes = fs.readFileSync(path_config_path).toString().split('\n');
+home_pathes = fs.readFileSync(path_config_path).toString().split('\n');
 home_pathes = home_pathes
-               .map(e => e.trim().replace(/\n|\r/g, ""))
-               .filter(pp =>{ return pp && pp.length > 0 && !pp.startsWith("#");});
-
+            .map(e => e.trim().replace(/\n|\r/g, ""))
+            .filter(pp =>{ return pp && pp.length > 0 && !pp.startsWith("#");});
 if(isWindows()){
     const getDownloadsFolder = require('downloads-folder');
     home_pathes.push(getDownloadsFolder());
@@ -61,10 +55,9 @@ if(isWindows()){
     //downloads-folder cause error on unix
     home_pathes.push(`${process.env.HOME}/Downloads`);
 }
-
 const path_will_scan = home_pathes.concat(userConfig.good_folder, userConfig.good_folder_root, userConfig.not_good_folder);
+serverUtil.common.path_will_scan = path_will_scan;
 
-// console.log("process.argv", process.argv);
 const isProduction = process.argv.includes("--production");
 
 console.log("--------------------");
@@ -87,32 +80,9 @@ if(isWindows()){
 
 console.log("----------------------");
 
-
-const logger = winston.createLogger({
-    transports: [
-      new winston.transports.Console(),
-      new winston.transports.File({ 
-        filename: logPath, 
-        formatter: function(params) {
-            return params.message ? params.message : "";
-        }})
-    ]
-  });
-
-
-function isDisplayableInExplorer(e){
-    return isCompress(e) || isVideo(e);
-}
-
-function isDisplayableInOnebook(e){
-    return isImage(e)||isMusic(e);
-}
-
-function parse(str){
-    return nameParser.parse(path.basename(str, path.extname(str)));
-}
-
-const includesWithoutCase =  nameParser.includesWithoutCase;
+const loggerModel = require("./models/logger");
+loggerModel.init(logPath);
+const logger = loggerModel.logger;
 
 function updateTagHash(str){
     const result = parse(str);
@@ -137,7 +107,7 @@ const getCacheOutputPath = function (cachePath, zipFilePath) {
     }
     outputFolder = outputFolder.trim();
 
-    let stat = db.fileToInfo[zipFilePath];
+    let stat = db.getFileToInfo()[zipFilePath];
     if (!stat) {
         //should have stat in fileToInfo
         //but chokidar is not reliable
@@ -152,23 +122,19 @@ const getCacheOutputPath = function (cachePath, zipFilePath) {
     return path.join(cachePath, outputFolder);
 }
 
+serverUtil.common.getCacheOutputPath = getCacheOutputPath;
+serverUtil.common.cachePath = cachePath;
+
 const app = express();
-const db = {
-    //file path to file stats
-    fileToInfo: {},
-    //hash to any string
-    hashTable: {},
-};
+
+const db = require("./models/db");
+const getAllFilePathes = db.getAllFilePathes;
 
 const cacheDb = {
     //a list of cache files folder -> files
     folderToFiles: {},
     //cache path to file stats
     cacheFileToInfo: {}
-}
-
-function getAllFilePathes(){
-    return _.keys(db.fileToInfo);
 }
 
 app.use(express.static('dist', {
@@ -182,7 +148,6 @@ app.use(express.static(rootPath, {
 //  https://stackoverflow.com/questions/10005939/how-do-i-consume-the-json-post-data-in-an-express-application
 app.use(express.json());
 
-fileChangeHandler.init(app, logger);
 
 //  outputPath is the folder name
 function getCacheFiles(outputPath) {
@@ -239,7 +204,8 @@ async function init() {
             updateTagHash(p);
         }
     }
-    db.fileToInfo = results.infos;
+
+    db.setFileToInfo(results.infos);
 
     console.log("There are",getAllFilePathes().length, "files");
 
@@ -292,11 +258,6 @@ function shouldIgnore(p){
     return !shouldWatch(p);
 }
 
-function getDirName(p){
-    const result =  path.dirname(p);
-    return path.basename(result);
-}
-
 //!! same as file-iterator getStat()
 function addStatToDb(path, stat){
     const result = {};
@@ -305,7 +266,7 @@ function addStatToDb(path, stat){
     result.mtimeMs = stat.mtimeMs;
     result.mtime = stat.mtime;
     result.size = stat.size;
-    db.fileToInfo[path] = result;
+    db.getFileToInfo()[path] = result;
 }
 
 function setUpFileWatch(){
@@ -321,12 +282,10 @@ function setUpFileWatch(){
         db.hashTable[stringHash(path)] = path;
         addStatToDb(path, stats);
         extractThumbnailFromZip(path);
-        hentaiCache = null;
     };
 
     const deleteCallBack = path => {
-        delete db.fileToInfo[path];
-        hentaiCache = null;
+        delete db.getFileToInfo()[path];
     };
 
     watcher
@@ -377,25 +336,6 @@ function setUpFileWatch(){
     };
 }
 
-let hentaiCache;
-// http://localhost:8080/api/exhentaiApi
-app.get('/api/exhentaiApi', function (req, res) {
-    if(hentaiCache){
-        res.send(hentaiCache); 
-        return;
-    }
-
-    let allfiles = getAllFilePathes().filter(isCompress);
-    allfiles = allfiles.map(e => {
-        return path.basename(e, path.extname(e)).trim();
-    });
-
-    hentaiCache = {
-        allFiles: allfiles
-    }
-    res.send(hentaiCache); 
-})
-
 //-------------------------Get info ----------------------
 app.get('/api/cacheInfo', (req, res) => {
     const cacheFiles =  _.keys(cacheDb.cacheFileToInfo).filter(isDisplayableInOnebook);
@@ -414,143 +354,7 @@ app.get('/api/cacheInfo', (req, res) => {
     })
 });
 
-app.post("/api/singleFileInfo", async (req, res) => {
-    const filePath = (req.body && req.body.filePath);
-
-    if (!filePath || !(await isExist(filePath))) {
-        res.sendStatus(404);
-        return;
-    }
-
-    let stat =  db.fileToInfo[filePath];
-    if(!stat){
-        stat = await pfs.stat(filePath);
-    }
-
-    res.send({
-        stat
-    });
-});
-
-app.post('/api/allInfo', (req, res) => {
-    const needThumbnail = req.body && req.body.needThumbnail;
-
-    // const tempfileToInfo = {};
-    // const allFiles = [];
-    // getAllFilePathes().forEach(e => {
-    //     if(util.isCompress(e)){
-    //         tempfileToInfo[e] = {
-    //             size: db.fileToInfo[e].size,
-    //             mtime:  db.fileToInfo[e].mtime
-    //         };
-    //         allFiles.push(e);
-    //     }
-    // })
-
-    let allThumbnails = {};
-    if(needThumbnail){
-        allThumbnails = getThumbnails(getAllFilePathes());
-    }
-
-    res.send({
-        fileToInfo: db.fileToInfo,
-        allThumbnails: allThumbnails
-    }); 
-});
-
-function getGoodAndOtherSet(){
-    const set = {};
-    const otherSet = {};
-    getAllFilePathes().forEach(p => {
-        const ext = path.extname(p).toLowerCase();
-        if(isCompress(ext)){
-            const temp = parse(p);
-            const name = temp && temp.author;
-            if(name){
-                if(p && p.startsWith(userConfig.good_folder_root)){
-                    set[name] = set[name]? set[name]+1: 1;
-                }else{
-                    otherSet[name] = otherSet[name]? otherSet[name]+1: 1;
-                }
-            }
-        }
-    });
-
-    return {
-        set,
-        otherSet
-    }
-}
-
-app.get('/api/getGoodAuthorNames',async (req, res) => {
-    const result = getGoodAndOtherSet();
-
-    res.send({
-        goodAuthors: result.set,
-        otherAuthors: result.otherSet
-    });
-});
-
-/*
-*  deprecated we move the logic to frontend
-*/
-app.get('/api/tag', (req, res) => {
-    function addOne(table, key) {
-        if(!key){
-            return;
-        }
-        if (!table[key]) {
-            table[key] = 1;
-        } else {
-            table[key] = table[key] + 1;
-        }
-    }
-
-    const tags = {};
-    const authors = {};
-    getAllFilePathes().forEach((e) => {
-        e = path.basename(e);
-        const result = parse(e);
-        if (result) {
-            addOne(authors, result.author);
-            result.tags.forEach(tag => addOne(tags, tag));
-        }
-
-        updateTagHash(e);
-    });
-    res.send({ tags, authors });
-});
-
-//------------------download------------
-app.get('/api/download/:hash', async (req, res) => {
-    const filepath = db.hashTable[req.params.hash];
-
-    if (!filepath || !(await isExist(filepath))) {
-        console.error("[/api/download]", filepath, "does not exist");
-        res.sendStatus(404);
-        return;
-    }
-    res.download(filepath); // Set disposition and send it.
-});
-
 //----------------get folder contents
-app.post('/api/homePagePath', function (req, res) {
-    let homepathes = path_will_scan;
-    //check if pathes really exist
-    homepathes = homepathes.filter(e => {
-       //there is file in the folder
-       return getAllFilePathes().some(fp => (fp.length > e.length && fp.includes(e)));
-    });
-
-    if(homepathes.length === 0){
-        console.error("Please check userConfig.js home_pathes");
-        res.sendStatus(404);
-    }else{
-        res.send({
-            dirs: homepathes
-        })
-    }
-});
 
 function getPageNum(contentInfo, filePath){
     if(contentInfo[filePath]){
@@ -613,114 +417,11 @@ function getZipInfo(filePathes){
     return fpToInfo;
 }
 
-app.post('/api/lsDir', async (req, res) => {
-    const hashdir = db.hashTable[(req.body && req.body.hash)];
-    const dir = hashdir|| req.body && req.body.dir;
-    const isRecursive = req.body && req.body.isRecursive;
-
-    if (!dir || !(await isExist(dir))) {
-        console.error("[/api/lsDir]", dir, "does not exist");
-        res.sendStatus(404);
-        return;
-    }
-
-    const time1 = getCurrentTime();
-    let result;
-    const files = [];
-    const dirs = [];
-    const infos = {};
-    const oneLevel = !isRecursive;
-    getAllFilePathes().forEach(pp => {
-        if(pp && isDisplayableInExplorer(pp) && isSub(dir, pp)){
-            //add file's parent
-            if(oneLevel && !isDirectParent(dir, pp)){
-                let itsParent = path.resolve(pp, "..");
-   
-                //for example
-                //the dir is     F:/git 
-                //the file is    F:/git/a/b/1.zip
-                //add folder           F:/git/a
-                let counter = 0;
-                while(!isDirectParent(dir, itsParent)){
-                    itsParent = path.resolve(itsParent, "..");
-                    counter++;
-
-                    //assert
-                    if(counter > 200){ throw "[lsdir] while loop" }
-                }
-                dirs.push(itsParent);
-            }else{
-                files.push(pp);
-                infos[pp] = db.fileToInfo[pp]
-            }
-        }
-    })
-
-    const _dirs = util.array_unique(dirs);
-
-    const time2 = getCurrentTime();
-    const timeUsed = (time2 - time1)/1000;
-    // console.log(timeUsed, "to LsDir")
-
-    result = { dirs: _dirs, 
-               files, 
-               path: dir, 
-               fileInfos: infos, 
-               thumbnails: getThumbnails(files),
-               zipInfo: getZipInfo(files)
-            };
-    res.send(result);
-});
+serverUtil.common.getZipInfo = getZipInfo;
+serverUtil.common.getThumbnails = getThumbnails;
 
 //---------------------------SEARCH API------------------
-function isEqual(s1, s2){
-    return s1 && s2 && s1.toLowerCase() === s2.toLowerCase();
-}
-
-
-function isSimilar(s1, s2){
-    const MIN_AUTHOR_TEXT_LENGTH = 3;
-    if(s1 && s2 && s2 > MIN_AUTHOR_TEXT_LENGTH){
-        return s1.toLowerCase().includes(s2.toLowerCase()) && Math.abs(s1.length - s2.length) < 3;
-    }
-
-    return false;
-}
-
-function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
-    // let beg = (new Date).getTime()
-    const files = [];
-    const fileInfos = {};
-    let _break;
-    getAllFilePathes().forEach(path => {
-        if(_break){
-            return;
-        }
-
-        const info = db.fileToInfo[path];
-        const result = (author || tag) && parse(path);
-        //sometimes there are mulitple authors for one book
-        if (result && author &&  
-            (isEqual(result.author, author) || isEqual(result.group, author) || isSimilar(result.author, author))) {
-            files.push(path);
-            fileInfos[path] = info;
-        } else if (result && tag && includesWithoutCase(result.tags, tag)) {
-            files.push(path);
-            fileInfos[path] = info;
-        }else if (text && path.toLowerCase().indexOf(text.toLowerCase()) > -1) {
-            files.push(path);
-            fileInfos[path] = info;
-        }
-
-        if (onlyNeedFew && files.length > 5) {
-            _break = true;
-        }
-    });
-   
-    // let end = (new Date).getTime();
-    // console.log((end - beg)/1000, "to search");
-    return { files, tag, author, fileInfos, thumbnails: getThumbnails(files), zipInfo: getZipInfo(files) };
-}
+const searchByTagAndAuthor = require("./models/search");
 
 // three para 1.hash 2.mode 3.text
 app.post(Constant.SEARCH_API, (req, res) => {
@@ -754,7 +455,7 @@ app.post(Constant.TAG_THUMBNAIL_PATH_API, (req, res) => {
     }
 
     const { files } = searchByTagAndAuthor(tag, author, null, true);
-    chosendFileName = serverUtil.chooseOneZipForOneTag(files, db.fileToInfo);
+    chosendFileName = serverUtil.chooseOneZipForOneTag(files, fileToInfo);
     if(!chosendFileName){
         res.sendStatus(404);
         return;
@@ -1076,8 +777,9 @@ app.post('/api/extract', async (req, res) => {
             let files = await listZipContent(filePath);
             files = files.filter(e => isDisplayableInOnebook(e));
             if(files.length === 0){
-               res.sendStatus(500);
+               res.sendStatus(404);
                console.error(`[/api/extract] ${filePath} has no content`);
+               return;
             }
 
             let hasMusic = files.some(e => isMusic(e));
@@ -1126,68 +828,36 @@ app.post('/api/extract', async (req, res) => {
     })();
 });
 
-//-----------------------------cache---------------------
-
-function doCacheClean(config){
-    const cleanCache = require("../tools/cleanCache");
-    try{
-        cleanCache.cleanCache(cachePath, config);
-    }catch(e){
-        console.error(e);
-    }
-}
-
-app.post('/api/cleanCache', (req, res) => {
-    const minized = req.body && req.body.minized;
-
-    const allowFileNames =  getAllFilePathes().map(filePath => {
-        let outputPath = getCacheOutputPath(cachePath, filePath);
-        outputPath = path.basename(outputPath);
-        return outputPath;
-    })
-
-    function afterClean() {
-        res.sendStatus(200);
-    }
-
-    doCacheClean({minized: minized, allowFileNames: allowFileNames, afterClean: afterClean});
-});
 
 //---------------------------
-function shutdown (cb) {
-    //modify https://github.com/hemanth/power-off/
-    let cmd = '';
+const homePagePath = require("./routes/homePagePath");
+app.use(homePagePath);
 
-    if(isLinux() || isOsx()) {
-        cmd = 'sudo shutdown -h now';
-    } else if(isWindows()) {
-        cmd = 'shutdown /s /f';
-    } else {
-        throw new Error('Unknown OS!');
-    }
+const lsdir = require("./routes/lsdir");
+app.use(lsdir);
 
-    cp.exec(cmd, function (err, stdout, stderr) {
-        logger.info("[shutdown]", getCurrentTime());
-        cb && cb(err, stdout, stderr);
-    });
-};
+const getGoodAuthorNames = require("./routes/getGoodAuthorNames");
+app.use(getGoodAuthorNames);
 
+const moveOrDelete = require("./routes/moveOrDelete");
+app.use(moveOrDelete);
 
-app.post('/api/shutdownServer', function (req, res) {
-    shutdown();
-    res.sendStatus(200);
-});
+const download = require("./routes/download");
+app.use(download);
 
-if(isProduction){
-    const history = require('connect-history-api-fallback');
-    app.use(history({
-        verbose: true,
-    }));
+const AllInfo = require("./routes/AllInfo");
+app.use(AllInfo);
 
-    app.get('/index.html', (req, res) => {
-        const as = path.resolve(__dirname, "..", "..", 'dist', 'index.html');
-        res.sendFile(as);
-    })
-}
+const singleFileInfo = require("./routes/singleFileInfo");
+app.use(singleFileInfo);
+
+const hentaiApi = require("./routes/hentaiApi");
+app.use(hentaiApi);
+
+const cleanCache = require("./routes/cleanCache");
+app.use(cleanCache);
+
+const shutdown = require("./routes/shutdown");
+app.use(shutdown);
 
 init();

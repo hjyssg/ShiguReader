@@ -428,6 +428,10 @@ export default class OneBook extends Component {
 
   renderImage(){
     const { files, index, twoPageMode } = this.state;
+    if(!this.hasImage()){
+      return;
+    }
+
     if(!isPad()){
       const cn = classNames("one-book-image", {
         "has-music": this.hasMusic()
@@ -535,11 +539,19 @@ export default class OneBook extends Component {
     return musicFiles.length > 0;
   }
 
+  hasImage(){
+    return this.state.files.length > 0;
+  }
+
   renderMusicPlayer(){
     if(this.hasMusic()){
       const {musicFiles} = this.state;
 
-      return <MusicPlayer  audioFiles={musicFiles} />;
+      const cn = classNames({
+        "only-music": !this.hasImage()
+      })
+
+      return <MusicPlayer className={cn}  audioFiles={musicFiles} />;
     }
   }
 
@@ -647,13 +659,13 @@ export default class OneBook extends Component {
       return <ErrorPage res={this.res.res} userText={userText}/>;
     }
     
-    const { files, index } = this.state;
+    const { files, index, musicFiles } = this.state;
     const bookTitle = (<div className="one-book-title" >
                           <ClickAndCopyText text={getBaseName(this.state.path)} />
                           {this.renderPath()} 
                       </div>);
 
-    if (_.isEmpty(files)) {
+    if (_.isEmpty(files) && _.isEmpty(musicFiles)) {
       if(this.res && !this.refs.failed){
         return (<h3>
                   <center style={{paddingTop: "200px"}}> 

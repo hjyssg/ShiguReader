@@ -12,6 +12,10 @@
   flex-flow: column;
   padding-bottom: 20px;
 
+  .only-music{
+    margin-top: 20px;
+  }
+
   .one-book-wrapper {
     margin-top: 5px;
     @include flex_center_display;

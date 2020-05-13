@@ -2,7 +2,6 @@ const fs = require('fs');
 const path = require('path');
 const rimraf = require("./rimraf");
 const util = require("../util");
-const minifyImageFile = require("./minifyImageFile");
 
 let counter = 0;
 const pathUtil = require("../server/pathUtil");
@@ -74,6 +73,7 @@ function _clean(cachePath, config){
                     //compress first image to standard thumbnail
                     if(subfileName === thumbnail){
                         if(config.minized){
+                            const minifyImageFile = require("./minifyImageFile");
                             minifyImageFile(fPath, subfileName, (err, info) => { 
                                 if(!err){
                                     del(filePath, cachePath);

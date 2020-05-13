@@ -11,7 +11,7 @@ import AdminPage from "./AdminPage";
 import { Switch, Route, Link, Redirect } from 'react-router-dom';
 import screenfull from 'screenfull';
 const clientUtil = require("./clientUtil");
-const { cleanSearchStr } = clientUtil;
+const { cleanSearchStr, getSearchInputText } = clientUtil;
 
 // http://localhost:3000/
 class App extends Component {
@@ -32,7 +32,7 @@ class App extends Component {
     handleKeyDown(event) {
         const key = event.key.toLowerCase();
          if(key === "enter"){
-            if(this.getSearchInputText().length === 0){
+            if(getSearchInputText().length === 0){
                 screenfull.toggle();
             }else{
                 this.onSearchClick();
@@ -40,13 +40,8 @@ class App extends Component {
         }
     }
 
-    getSearchInputText(){
-        const input = document.getElementsByClassName('search-input');
-        return input[0] && input[0].value || "";
-    }
-
     onSearchClick(event) {
-        this.searchText = this.getSearchInputText();
+        this.searchText = getSearchInputText();
         if(this.searchText.trim){
             this.searchText = this.searchText.trim();
         }
@@ -54,7 +49,7 @@ class App extends Component {
     }
 
     onFilterClick(event){
-        this.filterText = this.getSearchInputText();;
+        this.filterText = getSearchInputText();;
         this.forceUpdate();
     }
     
