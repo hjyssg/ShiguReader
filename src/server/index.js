@@ -860,4 +860,16 @@ app.use(cleanCache);
 const shutdown = require("./routes/shutdown");
 app.use(shutdown);
 
+if(isProduction){
+    const history = require('connect-history-api-fallback');
+    app.use(history({
+        verbose: true,
+    }));
+
+    app.get('/index.html', (req, res) => {
+        const as = path.resolve(__dirname, "..", "..", 'dist', 'index.html');
+        res.sendFile(as);
+    })
+}
+
 init();
