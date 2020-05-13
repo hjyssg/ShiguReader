@@ -8,7 +8,7 @@ const isWindows = require('is-windows');
 const express = require('express');
 const router = express.Router();
 const serverUtil = require("../serverUtil");
-const logger = serverUtil.common.logger;
+const logger = require("../models/logger").logger;
 
 function shutdown (cb) {
     //modify https://github.com/hemanth/power-off/

@@ -6,7 +6,6 @@ const chokidar = require('chokidar');
 const execa = require('execa');
 const pfs = require('promise-fs');
 const dateFormat = require('dateformat');
-const winston = require("winston");
 
 const _ = require('underscore');
 
@@ -87,18 +86,9 @@ if(isWindows()){
 
 console.log("----------------------");
 
-const logger = winston.createLogger({
-    transports: [
-      new winston.transports.Console(),
-      new winston.transports.File({ 
-        filename: logPath, 
-        formatter: function(params) {
-            return params.message ? params.message : "";
-        }})
-    ]
-  });
-
-serverUtil.common.logger = logger;
+const loggerModel = require("./models/logger");
+loggerModel.init(logPath);
+const logger = loggerModel.logger;
 
 
 function isDisplayableInExplorer(e){
@@ -138,7 +128,7 @@ const getCacheOutputPath = function (cachePath, zipFilePath) {
     }
     outputFolder = outputFolder.trim();
 
-    let stat = db.fileToInfo[zipFilePath];
+    let stat = db.getFileToInfo()[zipFilePath];
     if (!stat) {
         //should have stat in fileToInfo
         //but chokidar is not reliable
@@ -154,24 +144,15 @@ const getCacheOutputPath = function (cachePath, zipFilePath) {
 }
 
 const app = express();
-const db = {
-    //file path to file stats
-    fileToInfo: {},
-    //hash to any string
-    hashTable: {},
-};
+
+const db = require("./models/db");
+const getAllFilePathes = db.getAllFilePathes;
 
 const cacheDb = {
     //a list of cache files folder -> files
     folderToFiles: {},
     //cache path to file stats
     cacheFileToInfo: {}
-}
-
-serverUtil.common.hashTable = db.hashTable;
-
-function getAllFilePathes(){
-    return _.keys(db.fileToInfo);
 }
 
 app.use(express.static('dist', {
@@ -243,7 +224,8 @@ async function init() {
             updateTagHash(p);
         }
     }
-    db.fileToInfo = results.infos;
+
+    db.setFileToInfo(results.infos);
 
     console.log("There are",getAllFilePathes().length, "files");
 
@@ -309,7 +291,7 @@ function addStatToDb(path, stat){
     result.mtimeMs = stat.mtimeMs;
     result.mtime = stat.mtime;
     result.size = stat.size;
-    db.fileToInfo[path] = result;
+    db.getFileToInfo()[path] = result;
 }
 
 function setUpFileWatch(){
@@ -329,7 +311,7 @@ function setUpFileWatch(){
     };
 
     const deleteCallBack = path => {
-        delete db.fileToInfo[path];
+        delete db.getFileToInfo()[path];
         hentaiCache = null;
     };
 
@@ -426,7 +408,7 @@ app.post("/api/singleFileInfo", async (req, res) => {
         return;
     }
 
-    let stat =  db.fileToInfo[filePath];
+    let stat =  db.getFileToInfo()[filePath];
     if(!stat){
         stat = await pfs.stat(filePath);
     }
@@ -439,25 +421,13 @@ app.post("/api/singleFileInfo", async (req, res) => {
 app.post('/api/allInfo', (req, res) => {
     const needThumbnail = req.body && req.body.needThumbnail;
 
-    // const tempfileToInfo = {};
-    // const allFiles = [];
-    // getAllFilePathes().forEach(e => {
-    //     if(util.isCompress(e)){
-    //         tempfileToInfo[e] = {
-    //             size: db.fileToInfo[e].size,
-    //             mtime:  db.fileToInfo[e].mtime
-    //         };
-    //         allFiles.push(e);
-    //     }
-    // })
-
     let allThumbnails = {};
     if(needThumbnail){
         allThumbnails = getThumbnails(getAllFilePathes());
     }
 
     res.send({
-        fileToInfo: db.fileToInfo,
+        fileToInfo: fileToInfo,
         allThumbnails: allThumbnails
     }); 
 });
@@ -529,9 +499,10 @@ app.get('/api/tag', (req, res) => {
 app.post('/api/homePagePath', function (req, res) {
     let homepathes = path_will_scan;
     //check if pathes really exist
+    const allfp = getAllFilePathes();
     homepathes = homepathes.filter(e => {
        //there is file in the folder
-       return getAllFilePathes().some(fp => (fp.length > e.length && fp.includes(e)));
+       return allfp.some(fp => (fp.length > e.length && fp.includes(e)));
     });
 
     if(homepathes.length === 0){
@@ -643,7 +614,7 @@ app.post('/api/lsDir', async (req, res) => {
                 dirs.push(itsParent);
             }else{
                 files.push(pp);
-                infos[pp] = db.fileToInfo[pp]
+                infos[pp] = db.getFileToInfo()[pp]
             }
         }
     })
@@ -689,7 +660,7 @@ function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
             return;
         }
 
-        const info = db.fileToInfo[path];
+        const info = db.getFileToInfo()[path];
         const result = (author || tag) && parse(path);
         //sometimes there are mulitple authors for one book
         if (result && author &&  
@@ -746,7 +717,7 @@ app.post(Constant.TAG_THUMBNAIL_PATH_API, (req, res) => {
     }
 
     const { files } = searchByTagAndAuthor(tag, author, null, true);
-    chosendFileName = serverUtil.chooseOneZipForOneTag(files, db.fileToInfo);
+    chosendFileName = serverUtil.chooseOneZipForOneTag(files, fileToInfo);
     if(!chosendFileName){
         res.sendStatus(404);
         return;

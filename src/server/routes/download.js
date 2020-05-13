@@ -7,11 +7,11 @@ const {
 const express = require('express');
 const router = express.Router();
 const serverUtil = require("../serverUtil");
-const hashTable = serverUtil.common.hashTable;
+const db = require("../models/db");
 
 //------------------download------------
 router.get('/api/download/:hash', async (req, res) => {
-    const filepath = hashTable[req.params.hash];
+    const filepath = db.hashTable[req.params.hash];
 
     if (!filepath || !(await isExist(filepath))) {
         console.error("[/api/download]", filepath, "does not exist");
