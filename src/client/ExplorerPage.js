@@ -279,7 +279,7 @@ export default class ExplorerPage extends Component {
 
     requestSearch() {
         Sender.post(Constant.SEARCH_API, { hash: this.getHash(), 
-                                    text: this.getPathFromLocalStorage(),
+                                    text: this.getPathFromLocalStorage()||this.getHash(),
                                     mode: this.getMode()}, res => {
             this.handleRes(res);
         });

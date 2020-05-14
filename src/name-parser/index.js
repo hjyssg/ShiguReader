@@ -147,7 +147,7 @@ function includesWithoutCase(list, str){
     if(!str){
         return false;
     }
-    list = list.map(e => e.toLowerCase());
+    list = (list||[]).map(e => e.toLowerCase());
     str = str.toLowerCase();
     return list.includes(str);
 }
@@ -257,8 +257,10 @@ function parse(str) {
     })
     title = title.trim();
 
+    const authors = author && author.includes("、")? author.split("、") : null;
+
     const result = {
-        author, tags, comiket, type, group, title
+        author, tags, comiket, type, group, title, authors
     };
 
     localCache[str] = result;

@@ -423,15 +423,13 @@ serverUtil.common.getThumbnails = getThumbnails;
 //---------------------------SEARCH API------------------
 const searchByTagAndAuthor = require("./models/search");
 
+const { MODE_TAG,  MODE_AUTHOR,  MODE_SEARCH } = Constant;
+
 // three para 1.hash 2.mode 3.text
 app.post(Constant.SEARCH_API, (req, res) => {
     const mode = req.body && req.body.mode;
     const textParam = req.body && req.body.text;
     const hashTag =  db.hashTable[(req.body && req.body.hash)] || textParam;
-    const { MODE_TAG,
-            MODE_AUTHOR,
-            MODE_SEARCH
-            } = Constant;
 
     const tag =  mode === MODE_TAG && hashTag;
     const author =  mode === MODE_AUTHOR && hashTag;

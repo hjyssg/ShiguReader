@@ -564,17 +564,24 @@ export default class OneBook extends Component {
     let author;
     let originalTags;
     let group;
+    let authors;
 
     if(result){
       author =  result.author;
       group = result.group;
       originalTags = result.tags||[];
       tags = originalTags;
-      if(author && group && group !== author){
-        tags = tags.concat(group);
-      }
-      if(author){
-        tags = tags.concat(author);
+      authors = result.authors;
+
+      if(authors){
+        tags = tags.concat(group, authors);
+      } else {
+        if(author && group && group !== author){
+          tags = tags.concat(group);
+        }
+        if(author){
+          tags = tags.concat(author);
+        }
       }
     }
 
@@ -589,7 +596,9 @@ export default class OneBook extends Component {
     tagDivs = tags.map( tag => {
       const tagHash = stringHash(tag);
       let url;
-      if(tag === author){
+      if(authors && authors.includes(tag)){
+        url = "/author/" + tag;
+      } else if(tag === author){
         url = "/author/" + tagHash;
       }else if(originalTags && originalTags.includes(tag)){
         url = "/tag/" + tagHash;
