@@ -65,7 +65,7 @@ export default class ExplorerPage extends Component {
         const isRecursive = !!(parsed.isRecursive === "true");
         const sortOrder = parsed.sortOrder || SORT_FROM_LATEST;
         const showVideo = !!(parsed.showVideo === "true");
-    
+        
         return {
             anchorSideMenu: false,
             pageIndex,
@@ -74,6 +74,9 @@ export default class ExplorerPage extends Component {
             showVideo,
             filterByGoodAuthorName: parsed.filterByGoodAuthorName === "true",
             filterByFirstTime: parsed.filterByFirstTime === "true",
+            filterByHasMusic: parsed.filterByHasMusic === "true",
+            filterByOversizeImage: parsed.filterByOversizeImage === "true",
+            filterText: parsed.filterText || "",
             noThumbnail: parsed.noThumbnail === "true"
         }
     }
