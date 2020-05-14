@@ -1,6 +1,8 @@
 # ShiguReader
 
-通过Chrome或者iPad轻松阅读电脑的漫画，以及观看视频。
+通过Chrome或者iPad轻松阅读整理漫画，播放音乐，以及观看视频。
+
+English(https://github.com/hjyssg/ShiguReader/blob/dev/README_English.md)
 
 ##### Screenshot
 
@@ -8,6 +10,9 @@
 ![screenshot-02](screenshot/02.png)
 ![screenshot-03](screenshot/03.png)
 ![screenshot-04](screenshot/04.png)
+![screenshot-05](screenshot/05.png)
+![screenshot-06](screenshot/06.png)
+
 
 ##### Demo Video
 [iPad使用](https://www.bilibili.com/video/BV1Mt4y1m7qU)  
@@ -16,23 +21,23 @@
 
 ##### Features
 
-* 看电脑文件夹里面每个zip包的封面,方便阅览。
-* 把子文件夹的文件都展示在一个页面。
+* 显示每个漫画zip包的封面,方便阅览。
 * 提供各种排序和筛选。比如，C97的文件排在C96的文件之前。
-* 看特定作者或者同人类型的全部文件。分析这些文件分别在哪些文件夹。
-* 提供移动删除文件功能。方便看完删或者移动。
-* 全局统计文件大小，各时期的文件数量。
-* 支持手机和平板。不需要USB接线，手机不需要安装任何东西，任意浏览器直接可以阅读。
-* 播放zip文件里的音乐文件。
+* 展示特定作者或者同人类型的全部文件。
+* 移动删除文件功能。
+* 播放压缩包里的音乐文件。
+* 播放视频。并显示对应标签。
+* 统计图表。统计文件大小，各时期的文件数量。
 * 配色和旧版熊猫网的一模一样，亲切熟悉。
-* 服务器端支持windows和*nix。*nix需要用户自己安装7zip，并加到cmd路径下。
-* 客户端支持除IE和Edge的主流浏览器。比如电脑的Chrome和iPad的safari。
+* 服务器端支持windows和*nix。
+* 客户端支持除IE和Edge的主流浏览器。比如电脑的Chrome和iPad的safari。不需要USB接线，手机不需要安装任何东西，任意浏览器直接可以阅读。
 
 
 ### 支持格式
 
-支持的压缩包取决于[7Zip](https://www.7-zip.org/)。常见的zip、rar、7zi都支持。
-图片和视频的支持格式取决于浏览器。图片常见的jpg、png、png，视频常见的mp4、avi都是支持的。
+支持的压缩包取决于[7Zip](https://www.7-zip.org/)。常见的zip、rar、7zi都支持。  
+图片、音乐和视频的支持格式取决于浏览器。图片常见的jpg、png、png，视频常见的mp4、avi都是支持的。音乐支持mp3、wav。  
+具体可以看src/util.js
 
 
 ##### Quick Start
@@ -97,35 +102,6 @@ npm run dev
 # 如果用了一段时间，缓存占了太多空间。
 # 手动去到admin页面点clean cache清除缓存。
 # 尽量不要在文件夹直接删掉整个缓存文件夹，那样之前生成的缩略图就全部没了。
-```
-
-###### English
-
-```bash
-# If you do not have nodejs installed, please go to https://nodejs.org/
-
-# Clone the repository or download
-git clone https://github.com/hjyssg/ShiguReader
-
-## change user config
-## modify src/path-config  src/user-config.js accoding to your own comic files location
-
-## 2020/03/07
-## windows default cmd is not working
-## Please use Git Bash 
-
-# Go inside the directory
-cd ShiguReader
-
-# Install dependencies
-npm install
-
-# for *nix people, please install 7zip on your own
-
-# Start development server
-npm run dev
-
-# open the link shown on the cmd
 ```
 
 ##### 注意事项
