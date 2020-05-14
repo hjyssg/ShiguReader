@@ -694,22 +694,32 @@ async function extractAll(filePath, outputPath, files, sendBack, res, stat){
     }
 }
 
-async function extractByRange(filePath, outputPath, range){
+async function extractByRange(filePath, outputPath, range, callback){
     try{
-        //let quitely unzip second part
-        //todo: need to cut into parts
-        //when range is too large, will cause error
-        const opt = get7zipOption(filePath, outputPath, range);
-        const { stderr } = await execa(sevenZip, opt);
-        if(stderr){
-            console.error('[extractByRange] second range exit: ', stderr);  
-            logger.error('[extractByRange] second range exit: ', e);
+        //quitely unzip second part
+        const DISTANCE = 200;
+        let ii = 0;
+
+        while(ii < range.length){
+            //cut into parts
+            //when range is too large, will cause OS level error
+            let subRange = range.slice(ii, ii+DISTANCE);
+            let opt = get7zipOption(filePath, outputPath, subRange);
+            let { stderr } = await execa(sevenZip, opt);
+            if(stderr){
+                console.error('[extractByRange] exit: ', stderr);  
+                logger.error('[extractByRange] exit: ', stderr);
+                break;
+            }
+            ii = ii+DISTANCE;
         }
     }catch (e){
-        console.error('[extractByRange] second range exit: ', e);
-        logger.error('[extractByRange] second range exit: ', e);
+        console.error('[extractByRange] exit: ', e);
+        logger.error('[extractByRange] exit: ', e);
     }
 }
+
+
 
 
 app.post('/api/extract', async (req, res) => {
@@ -811,7 +821,7 @@ app.post('/api/extract', async (req, res) => {
                     const time2 = getCurrentTime();
                     const timeUsed = (time2 - time1);
                     console.log(`[/api/extract] FIRST PART UNZIP ${filePath} : ${timeUsed}ms`);
-
+                    
                     extractByRange(filePath, outputPath, secondRange)
                 } else {
                     res.sendStatus(500);
