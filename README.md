@@ -2,7 +2,7 @@
 
 通过Chrome或者iPad轻松阅读整理漫画，播放音乐，以及观看视频。
 
-![English](https://github.com/hjyssg/ShiguReader/blob/dev/README_English.md)
+[English](https://github.com/hjyssg/ShiguReader/blob/dev/README_English.md)
 
 ##### Screenshot
 
