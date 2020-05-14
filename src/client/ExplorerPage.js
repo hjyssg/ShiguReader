@@ -29,8 +29,10 @@ const { SORT_FROM_LATEST,
         SORT_FROM_EARLY,
         SORT_BY_FOLDER,
         SORT_BY_FILENAME,
-        SORT_FROM_SMALL,
-        SORT_FROM_BIG,
+        SORT_FROM_SMALL_FILE_SIZE,
+        SORT_FROM_BIG_FILE_SIZE,
+        SORT_FROM_SMALL_PAGE_SIZE,
+        SORT_FROM_BIG_PAGE_SIZE,
         SORT_RANDOMLY } =  Constant;
 
 const { MODE_TAG,
@@ -286,8 +288,21 @@ export default class ExplorerPage extends Component {
         });
     }
 
+
+    getFileSize(e){
+        return (this.fileInfos[e] && this.fileInfos[e].size) || 0;
+    }
+
     getPageNum(fp){
        return +(this.zipInfo[fp] && this.zipInfo[fp].pageNum) || 0;
+    }
+
+    getPageAvgSize(e){
+        const pageNum = this.getPageNum(e)+this.getMusicNum(e);
+        if(pageNum === 0){
+            return -Infinity;
+        }
+        return this.getFileSize(e)/pageNum;
     }
 
     getMusicNum(fp){
@@ -312,10 +327,7 @@ export default class ExplorerPage extends Component {
         if(filterByOversizeImage){
            files = files.filter(e => {
                if(this.zipInfo[e]){
-                   const pageNum = this.getPageNum(e);
-                   const stats = this.fileInfos[e];
-                   const size = stats && stats.size;
-                   if(pageNum > 0 && size/pageNum/1000/1000 > userConfig.oversized_image_size){
+                   if(this.getPageAvgSize(e)/1000/1000 > userConfig.oversized_image_size){
                        return e;
                    }
                }
@@ -408,12 +420,26 @@ export default class ExplorerPage extends Component {
             const fromEarly = sortOrder === SORT_FROM_EARLY;
             const onlyBymTime = this.getMode() === MODE_EXPLORER;
             nameParser.sort_file_by_time(files, this.fileInfos, getBaseName, fromEarly, onlyBymTime);
-        } else if (sortOrder === SORT_FROM_BIG || sortOrder === SORT_FROM_SMALL){
+        } else if (sortOrder === SORT_FROM_BIG_FILE_SIZE || sortOrder === SORT_FROM_SMALL_FILE_SIZE){
             files.sort((a, b) => {
-                const ass = (this.fileInfos[a] && this.fileInfos[a].size) || 0;
-                const bs =  (this.fileInfos[b] && this.fileInfos[b].size) || 0;
+                const ass = this.getFileSize(a)
+                const bs =  this.getFileSize(b);
                 if(ass !== bs){
-                    if(sortOrder === SORT_FROM_SMALL){
+                    if(sortOrder === SORT_FROM_SMALL_FILE_SIZE){
+                        return ass - bs;
+                    }else{
+                        return bs - ass;
+                    }
+                }else{
+                    return byFn(a, b);
+                }
+            });
+        } else if (sortOrder === SORT_FROM_SMALL_PAGE_SIZE || sortOrder === SORT_FROM_BIG_PAGE_SIZE){
+            files.sort((a, b) => {
+                const ass = this.getPageAvgSize(a);
+                const bs =  this.getPageAvgSize(b);
+                if(ass !== bs){
+                    if(sortOrder === SORT_FROM_SMALL_PAGE_SIZE){
                         return ass - bs;
                     }else{
                         return bs - ass;
@@ -807,8 +833,10 @@ export default class ExplorerPage extends Component {
         const SORT_OPTIONS = [
             SORT_FROM_LATEST,
             SORT_FROM_EARLY,
-            SORT_FROM_BIG,
-            SORT_FROM_SMALL,
+            SORT_FROM_BIG_FILE_SIZE,
+            SORT_FROM_SMALL_FILE_SIZE,
+            SORT_FROM_BIG_PAGE_SIZE,
+            SORT_FROM_SMALL_PAGE_SIZE,
             SORT_BY_FILENAME
         ];
 
