@@ -171,7 +171,7 @@ export default class ChartPage extends Component {
                     options={opt}
                 />
                 </div>
-                <Accordion header="toggle chart"  body={renderTable(labels, values)} />
+                <Accordion header="Toggle Table"  body={renderTable(labels, values)} />
             </div>
           );
     }
