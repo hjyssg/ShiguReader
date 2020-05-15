@@ -416,9 +416,9 @@ export default class ExplorerPage extends Component {
                 return dir;
             });
         }else if (sortOrder === SORT_FROM_LATEST ||  sortOrder === SORT_FROM_EARLY){
-            const fromEarly = sortOrder === SORT_FROM_EARLY;
-            const onlyBymTime = this.getMode() === MODE_EXPLORER;
-            files = sortUtil.sort_file_by_time(files, this.fileInfos, getBaseName, fromEarly, onlyBymTime);
+            const ifFromEarly = sortOrder === SORT_FROM_EARLY;
+            const ifOnlyBymTime = this.getMode() === MODE_EXPLORER;
+            files = sortUtil.sort_file_by_time(files, this.fileInfos, getBaseName, ifFromEarly, ifOnlyBymTime);
         } else if (sortOrder === SORT_FROM_BIG_FILE_SIZE || sortOrder === SORT_FROM_SMALL_FILE_SIZE){
             files = _.sortBy(files, e => {
                 const size =  this.getFileSize(e);
