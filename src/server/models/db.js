@@ -39,6 +39,14 @@ const getFileToInfo = module.exports.getFileToInfo = function(){
     return db.fileToInfo;
 }
 
+module.exports.getCacheFileToInfo = function(){
+    return cacheDb.cacheFileToInfo;
+}
+
+module.exports.getAllCacheFilePathes = function(){
+    return _.keys(cacheDb.cacheFileToInfo);
+}
+
 module.exports.initFileToInfo = function(obj){
     db.fileToInfo = obj;
     getAllFilePathes().forEach(e => {

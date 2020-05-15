@@ -84,21 +84,16 @@ const logger = loggerModel.logger;
 const db = require("./models/db");
 const {getAllFilePathes, getCacheFiles, getCacheOutputPath} = db;
 
-
 const app = express();
-
 app.use(express.static('dist', {
     maxAge: (1000*3600).toString()
 }));
 app.use(express.static(rootPath, {
     maxAge: (1000*3600*24).toString() // uses milliseconds per docs
 }));
-
 //  to consume json request body
 //  https://stackoverflow.com/questions/10005939/how-do-i-consume-the-json-post-data-in-an-express-application
 app.use(express.json());
-
-
 
 const portConfig = require('../port-config');
 const {http_port, dev_express_port } = portConfig;
@@ -686,6 +681,9 @@ app.use(hentaiApi);
 
 const cleanCache = require("./routes/cleanCache");
 app.use(cleanCache);
+
+const CacheInfo = require("./routes/CacheInfo");
+app.use(CacheInfo);
 
 const shutdown = require("./routes/shutdown");
 app.use(shutdown);

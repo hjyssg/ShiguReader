@@ -1,21 +1,19 @@
 
 const express = require('express');
 const router = express.Router();
-const serverUtil = require("../serverUtil");
 const db = require("../models/db");
-const getAllFilePathes = db.getAllFilePathes;
-const path = require('path');
-const getCacheOutputPath = db.getCacheOutputPath;
-const cachePath = serverUtil.common.cachePath;
+const util = require("../../util");
+const { isDisplayableInOnebook, isCompressedThumbnail } = util;
 
 router.get('/api/cacheInfo', (req, res) => {
-    const cacheFiles =  _.keys(cacheDb.cacheFileToInfo).filter(isDisplayableInOnebook);
+    const cacheFileToInfo = db.getCacheFileToInfo();
+    const cacheFiles =  db.getAllCacheFilePathes().filter(isDisplayableInOnebook);
     let totalSize = 0;
 
-    const thumbnailNum = cacheFiles.filter(util.isCompressedThumbnail).length;
+    const thumbnailNum = cacheFiles.filter(isCompressedThumbnail).length;
 
     cacheFiles.forEach(e => {
-        totalSize += cacheDb.cacheFileToInfo[e].size;
+        totalSize += cacheFileToInfo[e].size;
     })
 
     res.send({
