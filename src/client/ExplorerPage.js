@@ -410,46 +410,23 @@ export default class ExplorerPage extends Component {
                 return byFn(a, b);
             });
         }else if(sortOrder === SORT_BY_FOLDER){
-            files.sort((a, b) => {
-                const ad = getDir(a);
-                const bd = getDir(b);
-                if(ad !== bd){
-                    return ad.localeCompare(bd);
-                } else {
-                    return byFn(a, b)
-                }
+            files = _.sortBy(files, e => {
+                const dir =  getDir(e);
+                return dir;
             });
         }else if (sortOrder === SORT_FROM_LATEST ||  sortOrder === SORT_FROM_EARLY){
             const fromEarly = sortOrder === SORT_FROM_EARLY;
             const onlyBymTime = this.getMode() === MODE_EXPLORER;
             nameParser.sort_file_by_time(files, this.fileInfos, getBaseName, fromEarly, onlyBymTime);
         } else if (sortOrder === SORT_FROM_BIG_FILE_SIZE || sortOrder === SORT_FROM_SMALL_FILE_SIZE){
-            files.sort((a, b) => {
-                const ass = this.getFileSize(a)
-                const bs =  this.getFileSize(b);
-                if(ass !== bs){
-                    if(sortOrder === SORT_FROM_SMALL_FILE_SIZE){
-                        return ass - bs;
-                    }else{
-                        return bs - ass;
-                    }
-                }else{
-                    return byFn(a, b);
-                }
+            files = _.sortBy(files, e => {
+                const size =  this.getFileSize(e);
+                return sortOrder === SORT_FROM_SMALL_FILE_SIZE? size: -size;
             });
         } else if (sortOrder === SORT_FROM_SMALL_PAGE_SIZE || sortOrder === SORT_FROM_BIG_PAGE_SIZE){
-            files.sort((a, b) => {
-                const ass = this.getPageAvgSize(a);
-                const bs =  this.getPageAvgSize(b);
-                if(ass !== bs){
-                    if(sortOrder === SORT_FROM_SMALL_PAGE_SIZE){
-                        return ass - bs;
-                    }else{
-                        return bs - ass;
-                    }
-                }else{
-                    return byFn(a, b);
-                }
+            files = _.sortBy(files, e => {
+                const size =  this.getPageAvgSize(e);
+                return sortOrder === SORT_FROM_SMALL_PAGE_SIZE? size: -size;
             });
         } else if (sortOrder === SORT_RANDOMLY){
             if(!this.isAlreadyRandom){
