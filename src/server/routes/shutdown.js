@@ -6,6 +6,10 @@ const express = require('express');
 const router = express.Router();
 const logger = require("../models/logger").logger;
 
+const isLinux = require("is-linux")
+const isOsx = require("is-osx");
+const cp = require('child_process');
+
 function shutdown (cb) {
     //modify https://github.com/hemanth/power-off/
     let cmd = '';
