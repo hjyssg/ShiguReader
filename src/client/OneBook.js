@@ -55,16 +55,13 @@ export default class OneBook extends Component {
     location.hash = queryString.stringify({index});
   }
 
-  getHash(props){
+  getTextFromQuery(props){
       const _props = props || this.props;
       return queryString.parse(_props.location.search)["p"] ||  "";
   }
   
   componentDidMount() {
-    const fileHash = this.getHash();
-    if(fileHash && this.loadedHash !== fileHash ){
-      this.displayFile(fileHash);
-    }
+    this.displayFile();
 
     if(!isPad ()){
       screenfull.onchange(()=> {
@@ -270,11 +267,10 @@ export default class OneBook extends Component {
     });
   }
   
-  displayFile(file){
-    Sender.post("/api/extract", {filePath: this.getHash(), startIndex: this.state.index||0 }, res => {
+  displayFile(){
+    Sender.post("/api/extract", {filePath: this.getTextFromQuery(), startIndex: this.state.index||0 }, res => {
       this.res = res;
       if (!res.failed) {
-        this.loadedHash = this.getHash();
         let files = res.files || [];
         files = files.filter(e => {
           return !util.isCompressedThumbnail(e);
@@ -290,7 +286,7 @@ export default class OneBook extends Component {
         this.setState({ files, musicFiles, path:res.path, fileStat: res.stat}, 
                        () => { this.bindUserInteraction()});
         //used by recent read in admin page
-        Cookie.set(util.getCurrentTime(), this.loadedHash, { expires: 7 })
+        Cookie.set(util.getCurrentTime(), this.getTextFromQuery(), { expires: 7 })
 
       }else{
         this.forceUpdate();
@@ -644,13 +640,13 @@ export default class OneBook extends Component {
   }
 
   renderDownloadLink(){
-    return (<a href={clientUtil.getDownloadLink(this.getHash())}><i className="fa fa-fw fa-download"></i></a>);
+    return (<a href={clientUtil.getDownloadLink(this.getTextFromQuery())}><i className="fa fa-fw fa-download"></i></a>);
   }
 
   render() {
     if (this.isFailedLoading()) { 
       let userText;
-      const fp = this.getHash();
+      const fp = this.getTextFromQuery();
       if(fp){
         if(this.res.res.status === 404){
           userText = `Does not find ${fp}.`;
@@ -676,7 +672,7 @@ export default class OneBook extends Component {
                   </center>
                 </h3>);
       } else {
-        return (<CenterSpinner text={this.getHash()} splitFilePath/>);
+        return (<CenterSpinner text={this.getTextFromQuery()} splitFilePath/>);
       } 
     }
     

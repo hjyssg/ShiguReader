@@ -15,7 +15,7 @@ const nameParser = require('../name-parser');
 
 const util = require("../util");
 const clientUtil = require("./clientUtil");
-const { getDir, getBaseName, getPerPageItemNumber, stringHash } = clientUtil;
+const { getDir, getBaseName, getPerPageItemNumber, } = clientUtil;
 const sortUtil = require("../common/sortUtil");
 
 

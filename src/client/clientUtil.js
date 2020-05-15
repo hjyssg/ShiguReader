@@ -42,10 +42,6 @@ module.exports.getPerPageItemNumber = function() {
     }
 }
 
-module.exports.getPathFromLocalStorage = function(hash){
-    return window.localStorage && window.localStorage.getItem(hash);
-}
-
 module.exports.sortFileNames = function(files){
     util._sortFileNames(files, getBaseNameWithoutExtention);
 }

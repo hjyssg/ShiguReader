@@ -22,7 +22,7 @@ const nameParser = require('../name-parser');
 const classNames = require('classnames');
 const Constant = require("../constant");
 const clientUtil = require("./clientUtil");
-const { getDir, getBaseName, getPerPageItemNumber, stringHash, isSearchInputTextTyping } = clientUtil;
+const { getDir, getBaseName, getPerPageItemNumber, isSearchInputTextTyping } = clientUtil;
 const { isVideo, isCompress } = util;
 const sortUtil = require("../common/sortUtil");
 
@@ -131,7 +131,7 @@ export default class ExplorerPage extends Component {
         return queryString.parse(_props.location.search)["t"] ||  "";
     }
 
-    getHash(props) {
+    getTextFromQuery(props) {
         const _props = props || this.props;
         return this.getTagFromQuery(_props) || 
                this.getAuthorFromQuery(_props)||
@@ -176,7 +176,7 @@ export default class ExplorerPage extends Component {
         if(this.getMode() === MODE_HOME){
             this.requestHomePagePathes();
         } else{
-            const hash = this.getHash();
+            const hash = this.getTextFromQuery();
             if (hash && this.loadedHash !== hash && this.failedTimes < 3) {
                 if(this.getMode() === MODE_TAG){
                     this.requestSearch();
@@ -215,10 +215,10 @@ export default class ExplorerPage extends Component {
     componentDidUpdate(prevProps, prevState) {
         //when path changes, does not show previous path's content 
         const prevMode = this.getMode(prevProps);
-        const prevHash = this.getHash(prevProps);
+        const prevHash = this.getTextFromQuery(prevProps);
         const differentMode = this.getMode() !== prevMode;
         const sameMode = !differentMode;
-        const pathChanged = !!(sameMode && this.getHash() !== prevHash );
+        const pathChanged = !!(sameMode && this.getTextFromQuery() !== prevHash );
         if(differentMode || pathChanged ){
             this.loadedHash = "";
             this.videoFiles = []
@@ -238,7 +238,7 @@ export default class ExplorerPage extends Component {
     handleRes(res){
         if (!res.failed) {
             let {dirs, files, path, tag, author, fileInfos, thumbnails, zipInfo} = res;
-            this.loadedHash = this.getHash();
+            this.loadedHash = this.getTextFromQuery();
             files = files || [];
             this.videoFiles = files.filter(isVideo) || []
             this.files = files.filter(isCompress) || [];
@@ -295,14 +295,14 @@ export default class ExplorerPage extends Component {
     }
 
     requestSearch() {
-        Sender.post(Constant.SEARCH_API, { text: this.getHash(),
+        Sender.post(Constant.SEARCH_API, { text: this.getTextFromQuery(),
                                     mode: this.getMode()}, res => {
             this.handleRes(res);
         });
     }
     
     requestLsDir() {
-        Sender.lsDir({ dir: this.getHash(), isRecursive: this.state.isRecursive }, res => {
+        Sender.lsDir({ dir: this.getTextFromQuery(), isRecursive: this.state.isRecursive }, res => {
             this.handleRes(res);
         });
     }
@@ -477,7 +477,7 @@ export default class ExplorerPage extends Component {
         
         if (_.isEmpty(dirs) && _.isEmpty(files) && _.isEmpty(videos)) {
             if(!this.res){
-                return (<CenterSpinner text={this.getHash()}/>);
+                return (<CenterSpinner text={this.getTextFromQuery()}/>);
             }else{
                 return <center className="one-book-nothing-available">Nothing Available</center>;
             }
@@ -661,7 +661,7 @@ export default class ExplorerPage extends Component {
 
     renderChartButton(){
         if(this.getMode() === MODE_EXPLORER){
-            return (<Link target="_blank" className="exp-top-button" to={'/chart/?p='+this.getHash()}>  
+            return (<Link target="_blank" className="exp-top-button" to={'/chart/?p='+this.getTextFromQuery()}>  
                          <span className="fas fa-chart-line" /> 
                          <span> chart </span>
                     </Link>)
@@ -704,7 +704,7 @@ export default class ExplorerPage extends Component {
         } else if(this.author && mode === MODE_AUTHOR) {
             return "Author: " + this.author + fn;
         } else if(mode === MODE_SEARCH){
-            return "Search Result: " + this.getHash() + fn;
+            return "Search Result: " + this.getTextFromQuery() + fn;
         }
     }
 
@@ -712,7 +712,7 @@ export default class ExplorerPage extends Component {
         let searchable = this.tag || this.author;
         const isSearchMode = this.getMode() === MODE_SEARCH;
         if(isSearchMode){
-            searchable = this.getHash();
+            searchable = this.getTextFromQuery();
         }
 
         if(searchable){
@@ -765,7 +765,7 @@ export default class ExplorerPage extends Component {
         if(mode === MODE_HOME){
             document.title = "ShiguReader";
         }else{
-            document.title = this.getHash()|| "ShiguReader";
+            document.title = this.getTextFromQuery()|| "ShiguReader";
         }
     }
 

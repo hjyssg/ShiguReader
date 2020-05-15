@@ -1,6 +1,5 @@
 const path = require('path');
 const userConfig = require('../user-config');
-const stringHash = require("string-hash");
 const util = require("../util");
 
 const isImage = util.isImage;

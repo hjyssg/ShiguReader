@@ -5,7 +5,7 @@ import './style/VideoPlayer.scss';
 import ClickAndCopyText from './subcomponent/ClickAndCopyText';
 import FileChangeToolbar from './subcomponent/FileChangeToolbar';
 const clientUtil = require("./clientUtil");
-const { getDir, getBaseName, getPathFromLocalStorage } = clientUtil;
+const { getDir, getBaseName } = clientUtil;
 const namePicker = require("../human-name-picker");
 import { Link } from 'react-router-dom';
 const nameParser = require('../name-parser');
@@ -22,7 +22,7 @@ export default class VideoPlayer extends Component {
   }
 
   componentDidMount(){
-    const filePath = this.getHash();
+    const filePath = this.getTextFromQuery();
     if(filePath){
       Sender.post("/api/singleFileInfo", {filePath}, res => {
         if(!res.failed){
@@ -36,7 +36,7 @@ export default class VideoPlayer extends Component {
     }
   }
 
-  getHash(props){
+  getTextFromQuery(props){
       //may allow tag author in future
       const _props = props || this.props;
       return queryString.parse(_props.location.search)["p"] ||  "";
@@ -50,11 +50,11 @@ export default class VideoPlayer extends Component {
   }
 
   renderDownloadLink(){
-    return (<a href={clientUtil.getDownloadLink(this.getHash())}><i className="fa fa-fw fa-download"></i></a>);
+    return (<a href={clientUtil.getDownloadLink(this.getTextFromQuery())}><i className="fa fa-fw fa-download"></i></a>);
   }
   
   renderTag(){
-    const filePath = this.getHash();
+    const filePath = this.getTextFromQuery();
     const fn = getBaseName(filePath);
     const dirName = getBaseName(getDir(filePath));
     const tags1 = namePicker.parse(fn) || [];
@@ -84,7 +84,7 @@ export default class VideoPlayer extends Component {
   }
 
   renderPath() {
-    const filePath = this.getHash();
+    const filePath = this.getTextFromQuery();
     const parentPath = getDir(filePath);
     const toUrl = clientUtil.getExplorerLink(parentPath);
     
@@ -95,8 +95,8 @@ export default class VideoPlayer extends Component {
   }
 
   render() {
-    const filePath = this.getHash();
-    const url = clientUtil.getDownloadLink(this.getHash());
+    const filePath = this.getTextFromQuery();
+    const url = clientUtil.getDownloadLink(this.getTextFromQuery());
     const fileName = getBaseName(filePath);
     document.title = fileName;
     const {hasError, stat} = this.state;

@@ -84,17 +84,9 @@ const loggerModel = require("./models/logger");
 loggerModel.init(logPath);
 const logger = loggerModel.logger;
 
-function updateTagHash(str){
-    const result = parse(str);
-    if(result){
-        result.tags.forEach(tag => {
-            db.hashTable[stringHash(tag)] = tag;
-        });
-
-        if(result.author){
-            db.hashTable[stringHash(result.author)] = result.author;
-        }
-    }
+function preParse(str){
+    //will save in memory
+    parse(str);
 }
 
 const getCacheOutputPath = function (cachePath, zipFilePath) {
@@ -200,8 +192,7 @@ async function init() {
         const p = results.pathes[i];
         const ext = path.extname(p).toLowerCase();
         if (!ext ||  isDisplayableInExplorer(ext)) {
-            db.hashTable[stringHash(p)] = p;
-            updateTagHash(p);
+            preParse(p);
         }
     }
 
@@ -278,8 +269,7 @@ function setUpFileWatch(){
     });
 
     const addCallBack = (path, stats) => {
-        updateTagHash(path);
-        db.hashTable[stringHash(path)] = path;
+        preParse(path);
         addStatToDb(path, stats);
         extractThumbnailFromZip(path);
     };
@@ -425,7 +415,7 @@ const searchByTagAndAuthor = require("./models/search");
 
 const { MODE_TAG,  MODE_AUTHOR,  MODE_SEARCH } = Constant;
 
-// three para 1.hash 2.mode 3.text
+// three para 1.mode 2.text
 app.post(Constant.SEARCH_API, (req, res) => {
     const mode = req.body && req.body.mode;
     const textParam = req.body && req.body.text;
@@ -722,8 +712,7 @@ async function extractByRange(filePath, outputPath, range, callback){
 
 
 app.post('/api/extract', async (req, res) => {
-    const hashFile = db.hashTable[(req.body && req.body.hash)];
-    let filePath = hashFile ||  req.body && req.body.filePath;
+    let filePath =  req.body && req.body.filePath;
     const startIndex = (req.body && req.body.startIndex) || 0;
     if (!filePath) {
         res.sendStatus(404);

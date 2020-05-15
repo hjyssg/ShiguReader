@@ -11,7 +11,7 @@ const userConfig = require('../user-config');
 import RadioButtonGroup from './subcomponent/RadioButtonGroup';
 const filesizeUitl = require('filesize');
 const clientUtil = require("./clientUtil");
-const { getPathFromLocalStorage, getBaseName } = clientUtil;
+const { getBaseName } = clientUtil;
 const dateFormat = require('dateformat');
 
 export default class AdminPage extends Component {
@@ -110,22 +110,21 @@ export default class AdminPage extends Component {
     }
 
     renderHistory(){
-        const timeToFileHash = Cookie.get();
-        const times = _.keys(timeToFileHash);
+        const timeToFile = Cookie.get();
+        const times = _.keys(timeToFile);
         times.sort((a, b) => (b -a)); //newer before old 
 
         const visited = {};
         const history = times.map(t => {
-            const hash = timeToFileHash[t];
-            const filePath =  getPathFromLocalStorage(hash);
-            if(!hash || visited[hash] || !filePath){
+            const filePath =  timeToFile[t];
+            if(visited[filePath] || !filePath){
                 return;
             }
-            visited[hash] = true;
+            visited[filePath] = true;
             const toUrl =  clientUtil.getOneBookLink(filePath);
             const timeStr = dateFormat(new Date(+t), "mm-dd hh:MM");
             return (
-            <Link to={toUrl}  key={hash} className={"history-link"}>
+            <Link to={toUrl}  key={filePath} className={"history-link"}>
                 <div className="history-one-line-list-item" key={filePath}>
                     <span className="date-text"> {timeStr} </span>
                     <span className="file-text" title={filePath}> {getBaseName(filePath)}</span>

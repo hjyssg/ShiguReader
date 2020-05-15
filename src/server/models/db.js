@@ -2,12 +2,9 @@ const _ = require('underscore');
 
 const db = {
     //file path to file stats
-    fileToInfo: {},
-    //hash to any string
-    hashTable: {},
+    fileToInfo: {}
 };
 
-module.exports.hashTable = db.hashTable;
 
 module.exports.getAllFilePathes = function(){
     return _.keys(db.fileToInfo);

@@ -93,7 +93,7 @@ export default class ChartPage extends Component {
         return this.res && this.res.failed;
     }
 
-    getHash(props) {
+    getTextFromQuery(props) {
         //may allow tag author in future
         const _props = props || this.props;
         return queryString.parse(_props.location.search)["p"] ||  "";
@@ -101,7 +101,7 @@ export default class ChartPage extends Component {
 
     getFilterFiles(){
         const func =  this.isShowingVideoChart()? isVideo : isCompress;
-        const fp = this.getHash();
+        const fp = this.getTextFromQuery();
         const result = (this.files || []).filter(e => {
             if(fp && !e.startsWith(fp)){
                 return false;
@@ -376,7 +376,7 @@ export default class ChartPage extends Component {
         const files = this.getFilterFiles();
         const {fileType} = this.state;
 
-        const filePath = <div>{this.getHash() }</div>; 
+        const filePath = <div>{this.getTextFromQuery() }</div>; 
 
         const radioGroup = <RadioButtonGroup 
                             className="chart-radio-button-group"
