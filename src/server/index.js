@@ -1,8 +1,6 @@
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
-const stringHash = require("string-hash");
-const chokidar = require('chokidar');
 const execa = require('execa');
 const pfs = require('promise-fs');
 const dateFormat = require('dateformat');
@@ -18,7 +16,6 @@ const util = require("../util");
 const pathUtil = require("./pathUtil");
 const serverUtil = require("./serverUtil");
 
-
 const {
         fullPathToUrl,
         turnPathSepToWebSep,
@@ -26,7 +23,6 @@ const {
         isExist,
 } = pathUtil;
 const { isImage, isCompress, isMusic, isVideo, arraySlice, getCurrentTime, isDisplayableInExplorer, isDisplayableInOnebook } = util;
-const {getDirName, parse} = serverUtil;
 
 //set up path
 const rootPath = pathUtil.getRootPath();
@@ -86,50 +82,15 @@ const loggerModel = require("./models/logger");
 loggerModel.init(logPath);
 const logger = loggerModel.logger;
 
-function preParse(str){
-    //will save in memory
-    parse(str);
-}
-
-const getCacheOutputPath = function (cachePath, zipFilePath) {
-    let outputFolder;
-    outputFolder = path.basename(zipFilePath, path.extname(zipFilePath));
-    if(!userConfig.readable_cache_folder_name){
-        outputFolder = stringHash(zipFilePath).toString();
-    }else{
-        outputFolder = outputFolder.replace(/[`~!@#$%^&*()_|+\-=?;:'",.<>/]/gi, '');
-    }
-    outputFolder = outputFolder.trim();
-
-    let stat = db.getFileToInfo()[zipFilePath];
-    if (!stat) {
-        //should have stat in fileToInfo
-        //but chokidar is not reliable
-        //getCacheOutputPath comes before chokidar callback
-        console.warn("[getCacheOutputPath] no stat", zipFilePath);
-    } else {
-        const mdate = new Date(stat.mtimeMs);
-        const mstr = dateFormat(mdate, "yyyy-mm-dd");
-        const fstr = (stat.size/1000/1000).toFixed();
-        outputFolder = outputFolder+ `${mstr} ${fstr} `;
-    }
-    return path.join(cachePath, outputFolder);
-}
+const db = require("./models/db");
+const getAllFilePathes = db.getAllFilePathes;
+const getCacheFiles = db.getCacheFiles;
+const getCacheOutputPath = db.getCacheOutputPath;
 
 serverUtil.common.getCacheOutputPath = getCacheOutputPath;
 serverUtil.common.cachePath = cachePath;
 
 const app = express();
-
-const db = require("./models/db");
-const getAllFilePathes = db.getAllFilePathes;
-
-const cacheDb = {
-    //a list of cache files folder -> files
-    folderToFiles: {},
-    //cache path to file stats
-    cacheFileToInfo: {}
-}
 
 app.use(express.static('dist', {
     maxAge: (1000*3600).toString()
@@ -143,15 +104,6 @@ app.use(express.static(rootPath, {
 app.use(express.json());
 
 
-//  outputPath is the folder name
-function getCacheFiles(outputPath) {
-    //in-memory is fast
-    const single_cache_folder = path.basename(outputPath);
-    if(cacheDb.folderToFiles[single_cache_folder] && cacheDb.folderToFiles[single_cache_folder].length > 0){
-        return generateContentUrl(cacheDb.folderToFiles[single_cache_folder], outputPath);
-    }
-    return null;
-}
 
 const portConfig = require('../port-config');
 const {http_port, dev_express_port } = portConfig;
@@ -177,7 +129,6 @@ async function init() {
         if(stat.size < minSize){
             return false;
         }
-        
         return isDisplayableInExplorer(e);
     };
     let beg = (new Date).getTime()
@@ -190,17 +141,9 @@ async function init() {
     console.log(`${(end - beg)/1000}s  to read local dirs`);
     console.log("Analyzing local files");
     
-    for (let i = 0; i < results.pathes.length; i++) {
-        const p = results.pathes[i];
-        const ext = path.extname(p).toLowerCase();
-        if (!ext ||  isDisplayableInExplorer(ext)) {
-            preParse(p);
-        }
-    }
-
     db.setFileToInfo(results.infos);
 
-    console.log("There are",getAllFilePathes().length, "files");
+    console.log("There are", getAllFilePathes().length, "files");
 
     console.log("----------scan cache------------");
     const cache_results = fileiterator([cachePath], { 
@@ -208,15 +151,9 @@ async function init() {
         doLog: true
     });
 
-    (cache_results.pathes||[]).forEach(p => {
-        const fp =  getDirName(p);
-        cacheDb.folderToFiles[fp] = cacheDb.folderToFiles[fp] || [];
-        cacheDb.folderToFiles[fp].push(path.basename(p));
-    });
+    db.addPathesToCache(cache_results.pathes, cache_results.infos);
+    db.setUpFileWatch(home_pathes, cache_folder_name);
 
-    cacheDb.cacheFileToInfo = cache_results.infos;
-
-    const {watcher, cacheWatcher} = setUpFileWatch();
     const port = isProduction? http_port: dev_express_port;
     const server = app.listen(port, async () => {
         const lanIP = await internalIp.v4();
@@ -238,113 +175,6 @@ async function init() {
         setTimeout(()=> process.exit(22), 500);
     });
 }
-
-function shouldWatch(p){
-    const ext = path.extname(p).toLowerCase();
-    if (!ext ||  isDisplayableInExplorer(ext) || isMusic(ext) ||isImage(ext)) {
-        return true;
-    }
-    return false;
-}
-
-function shouldIgnore(p){
-    return !shouldWatch(p);
-}
-
-//!! same as file-iterator getStat()
-function addStatToDb(path, stat){
-    const result = {};
-    result.isFile = stat.isFile();
-    result.isDir = stat.isDirectory();
-    result.mtimeMs = stat.mtimeMs;
-    result.mtime = stat.mtime;
-    result.size = stat.size;
-    db.getFileToInfo()[path] = result;
-}
-
-function setUpFileWatch(){
-    const watcher = chokidar.watch(home_pathes, {
-        ignored: shouldIgnore,
-        ignoreInitial: true,
-        persistent: true,
-        ignorePermissionErrors: true
-    });
-
-    const addCallBack = (path, stats) => {
-        preParse(path);
-        addStatToDb(path, stats);
-        extractThumbnailFromZip(path);
-    };
-
-    const deleteCallBack = path => {
-        delete db.getFileToInfo()[path];
-    };
-
-    watcher
-        .on('add', addCallBack)
-        .on('unlink', deleteCallBack);
-    
-    // More possible events.
-    watcher
-        .on('addDir', addCallBack)
-        .on('unlinkDir', deleteCallBack);
-
-    //also for cache files
-    const cacheWatcher = chokidar.watch(cache_folder_name, {
-        ignored: shouldIgnore,
-        persistent: true,
-        ignorePermissionErrors: true,
-        ignoreInitial: true,
-    });
-
-    cacheWatcher
-        .on('unlinkDir', p => {
-            const fp =  path.dirname(p);
-            cacheDb.folderToFiles[fp] = undefined;
-        });
-
-    cacheWatcher
-        .on('add', (p, stats) => {
-            const fp =  getDirName(p);
-            cacheDb.folderToFiles[fp] = cacheDb.folderToFiles[fp] || [];
-            cacheDb.folderToFiles[fp].push(path.basename(p));
-
-            stats.isFile = stats.isFile();
-            stats.isDir = stats.isDirectory();
-            cacheDb.cacheFileToInfo[p] = stats;
-        })
-        .on('unlink', p => {
-            const fp =  getDirName(p);
-            cacheDb.folderToFiles[fp] = cacheDb.folderToFiles[fp] || [];
-            const index = cacheDb.folderToFiles[fp].indexOf(path.basename(p));
-            cacheDb.folderToFiles[fp].splice(index, 1);
-
-            delete cacheDb.cacheFileToInfo[p];
-        });
-
-    return {
-        watcher,
-        cacheWatcher
-    };
-}
-
-//-------------------------Get info ----------------------
-app.get('/api/cacheInfo', (req, res) => {
-    const cacheFiles =  _.keys(cacheDb.cacheFileToInfo).filter(isDisplayableInOnebook);
-    let totalSize = 0;
-
-    const thumbnailNum = cacheFiles.filter(util.isCompressedThumbnail).length;
-
-    cacheFiles.forEach(e => {
-        totalSize += cacheDb.cacheFileToInfo[e].size;
-    })
-
-    res.send({
-        totalSize: totalSize,
-        thumbnailNum,
-        cacheNum: cacheFiles.length
-    })
-});
 
 //----------------get folder contents
 
