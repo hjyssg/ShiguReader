@@ -11,7 +11,7 @@ import {Bar, Pie, Line} from 'react-chartjs-2';
 const clientUtil = require("./clientUtil");
 const {  getBaseName } = clientUtil;
 const util = require("../util");
-const {isCompress, array_unique} = util;
+const {isCompress} = util;
 import RadioButtonGroup from './subcomponent/RadioButtonGroup';
 import { isVideo } from '../util';
 import Accordion from './subcomponent/Accordion';
@@ -299,7 +299,7 @@ export default class ChartPage extends Component {
 
         if(goodAuthors && otherAuthors){
             let allAuthors = _.keys(goodAuthors).concat(_.keys(otherAuthors));
-            allAuthors = array_unique(allAuthors);
+            allAuthors = _.uniq(allAuthors);
             let value = [];
 
             allAuthors.forEach(aa => {

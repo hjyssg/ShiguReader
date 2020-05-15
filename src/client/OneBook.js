@@ -25,7 +25,6 @@ const Constant = require("../constant");
 
 import Cookie from "js-cookie";
 import { isLocalHost } from './clientUtil';
-import { array_unique } from '../util';
 
 const MIN_HEIGHT = 400;
 const MIN_WIDTH = 400;
@@ -591,7 +590,7 @@ export default class OneBook extends Component {
     }
 
     tags = tags || [];
-    tags = array_unique(tags);
+    tags = _.uniq(tags);
 
     tagDivs = tags.map( tag => {
       const tagHash = stringHash(tag);

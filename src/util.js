@@ -56,19 +56,6 @@ module.exports.canBeCompressed = function(fn){
     }
 };
 
-
-module.exports.array_unique = function(arr){
-    const result = [];
-    const marked = {};
-    (arr || []).forEach(e => {
-        if(!marked[e]){
-            result.push(e);
-            marked[e] = true;
-        }
-    });
-    return result;
-}
-
 module.exports.arraySlice = function(arr, beg, end){
     const len = arr.length;
     let _beg = beg >= 0? beg : len + beg;

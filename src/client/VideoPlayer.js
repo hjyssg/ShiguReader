@@ -8,7 +8,6 @@ const clientUtil = require("./clientUtil");
 const { getDir, getBaseName, getPathFromLocalStorage, cleanSearchStr, stringHash } = clientUtil;
 const namePicker = require("../human-name-picker");
 import { Link } from 'react-router-dom';
-import { array_unique } from '../util';
 const nameParser = require('../name-parser');
 import Sender from './Sender';
 const dateFormat = require('dateformat');
@@ -68,7 +67,7 @@ export default class VideoPlayer extends Component {
       })
     }
 
-    tags = array_unique(tags);
+    tags = _.uniq(tags);
     
     if(tags){
       const tagDoms = tags.map(tag => {
