@@ -11,6 +11,8 @@ import { Link } from 'react-router-dom';
 const nameParser = require('../name-parser');
 import Sender from './Sender';
 const dateFormat = require('dateformat');
+const queryString = require('query-string');
+
 
 export default class VideoPlayer extends Component {
   constructor(props) {
@@ -20,7 +22,7 @@ export default class VideoPlayer extends Component {
   }
 
   componentDidMount(){
-    const filePath = getPathFromLocalStorage(this.getHash());
+    const filePath = this.getHash();
     if(filePath){
       Sender.post("/api/singleFileInfo", {filePath}, res => {
         if(!res.failed){
@@ -34,8 +36,10 @@ export default class VideoPlayer extends Component {
     }
   }
 
-  getHash(){
-    return this.props.match.params.number;
+  getHash(props){
+      //may allow tag author in future
+      const _props = props || this.props;
+      return queryString.parse(_props.location.search)["p"] ||  "";
   }
 
   onError(e){
@@ -46,11 +50,11 @@ export default class VideoPlayer extends Component {
   }
 
   renderDownloadLink(){
-    return (<a href={"/api/download/"+this.getHash()}><i className="fa fa-fw fa-download"></i></a>);
+    return (<a href={clientUtil.getDownloadLink(this.getHash())}><i className="fa fa-fw fa-download"></i></a>);
   }
   
   renderTag(){
-    const filePath = getPathFromLocalStorage(this.getHash());
+    const filePath = this.getHash();
     const fn = getBaseName(filePath);
     const dirName = getBaseName(getDir(filePath));
     const tags1 = namePicker.parse(fn) || [];
@@ -80,7 +84,7 @@ export default class VideoPlayer extends Component {
   }
 
   renderPath() {
-    const filePath = getPathFromLocalStorage(this.getHash());
+    const filePath = this.getHash();
     const parentPath = getDir(filePath);
     const toUrl = clientUtil.getExplorerLink(parentPath);
     
@@ -91,8 +95,8 @@ export default class VideoPlayer extends Component {
   }
 
   render() {
-    const filePath = getPathFromLocalStorage(this.getHash());
-    const url = "/api/download/" + this.getHash();
+    const filePath = this.getHash();
+    const url = clientUtil.getDownloadLink(this.getHash());
     const fileName = getBaseName(filePath);
     document.title = fileName;
     const {hasError, stat} = this.state;

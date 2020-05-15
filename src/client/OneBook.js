@@ -29,7 +29,7 @@ const MIN_HEIGHT = 400;
 const MIN_WIDTH = 400;
 const userConfig = require('../user-config');
 const clientUtil = require("./clientUtil");
-const { getDir, getBaseName, isPad, stringHash, getUrl, sortFileNames } = clientUtil;
+const { getDir, getBaseName, isPad, getUrl, sortFileNames } = clientUtil;
 
 const NO_TWO_PAGE = "no_clip";
 const TWO_PAGE_LEFT = "left";
@@ -55,8 +55,9 @@ export default class OneBook extends Component {
     location.hash = queryString.stringify({index});
   }
 
-  getHash(){
-    return this.props.match.params.number;
+  getHash(props){
+      const _props = props || this.props;
+      return queryString.parse(_props.location.search)["p"] ||  "";
   }
   
   componentDidMount() {
@@ -270,7 +271,7 @@ export default class OneBook extends Component {
   }
   
   displayFile(file){
-    Sender.post("/api/extract", {filePath: this.getPathFromLocalStorage(),   hash: this.getHash(), startIndex: this.state.index||0 }, res => {
+    Sender.post("/api/extract", {filePath: this.getHash(), startIndex: this.state.index||0 }, res => {
       this.res = res;
       if (!res.failed) {
         this.loadedHash = this.getHash();
@@ -613,10 +614,6 @@ export default class OneBook extends Component {
           </div>);
   }
 
-  getPathFromLocalStorage(){
-    const hash = this.getHash();
-    return clientUtil.getPathFromLocalStorage(hash);
-  }
 
   renderNextPrevButton(){
     if(isPad()){
@@ -647,13 +644,13 @@ export default class OneBook extends Component {
   }
 
   renderDownloadLink(){
-    return (<a href={"/api/download/"+this.getHash()}><i className="fa fa-fw fa-download"></i></a>);
+    return (<a href={clientUtil.getDownloadLink(this.getHash())}><i className="fa fa-fw fa-download"></i></a>);
   }
 
   render() {
     if (this.isFailedLoading()) { 
       let userText;
-      const fp = this.getPathFromLocalStorage();
+      const fp = this.getHash();
       if(fp){
         if(this.res.res.status === 404){
           userText = `Does not find ${fp}.`;
@@ -679,7 +676,7 @@ export default class OneBook extends Component {
                   </center>
                 </h3>);
       } else {
-        return (<CenterSpinner text={this.getPathFromLocalStorage()} splitFilePath/>);
+        return (<CenterSpinner text={this.getHash()} splitFilePath/>);
       } 
     }
     

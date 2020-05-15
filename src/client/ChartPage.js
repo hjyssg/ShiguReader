@@ -15,6 +15,8 @@ const {isCompress} = util;
 import RadioButtonGroup from './subcomponent/RadioButtonGroup';
 import { isVideo } from '../util';
 import Accordion from './subcomponent/Accordion';
+const queryString = require('query-string');
+
 
 const BY_YEAR = "by year";
 const BY_QUARTER = "by quarter";
@@ -91,18 +93,15 @@ export default class ChartPage extends Component {
         return this.res && this.res.failed;
     }
 
-    getHash() {
-        return this.props.match.params.number;
-    }
-
-    getPathFromLocalStorage(){
-        const hash = this.getHash();
-        return clientUtil.getPathFromLocalStorage(hash) || "";
+    getHash(props) {
+        //may allow tag author in future
+        const _props = props || this.props;
+        return queryString.parse(_props.location.search)["p"] ||  "";
     }
 
     getFilterFiles(){
         const func =  this.isShowingVideoChart()? isVideo : isCompress;
-        const fp = this.getPathFromLocalStorage();
+        const fp = this.getHash();
         const result = (this.files || []).filter(e => {
             if(fp && !e.startsWith(fp)){
                 return false;
@@ -377,7 +376,7 @@ export default class ChartPage extends Component {
         const files = this.getFilterFiles();
         const {fileType} = this.state;
 
-        const filePath = <div>{this.getPathFromLocalStorage() }</div>; 
+        const filePath = <div>{this.getHash() }</div>; 
 
         const radioGroup = <RadioButtonGroup 
                             className="chart-radio-button-group"

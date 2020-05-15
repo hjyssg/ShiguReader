@@ -122,7 +122,7 @@ export default class AdminPage extends Component {
                 return;
             }
             visited[hash] = true;
-            const toUrl =  '/onebook/' + hash;
+            const toUrl =  clientUtil.getOneBookLink(filePath);
             const timeStr = dateFormat(new Date(+t), "mm-dd hh:MM");
             return (
             <Link to={toUrl}  key={hash} className={"history-link"}>

@@ -74,13 +74,12 @@ class App extends Component {
             <Route path='/author/' render={renderExplorer}/>
             <Route path='/search/' render={renderExplorer}/>
 
-            <Route path='/onebook/:number' render={renderOneBook}/>
+            <Route path='/onebook/' render={renderOneBook}/>
             <Route path='/tagPage/:index' render={renderTagPage}/>
             <Route path='/authorPage/:index' render={renderAuthorPage}/>
-            <Route path='/videoPlayer/:number' render={renderVideo}/>
+            <Route path='/videoPlayer/' render={renderVideo}/>
 
-            <Route path='/chart/:number' render={renderChartPage}/>
-            <Route path='/chart' render={renderChartPage}/>
+            <Route path='/chart/' render={renderChartPage}/>
             <Route path='/admin' render={renderAdminPage}/>
 
         </Switch>

@@ -6,9 +6,8 @@ const router = express.Router();
 const db = require("../models/db");
 
 //------------------download------------
-router.get('/api/download/:hash', async (req, res) => {
-    const filepath = db.hashTable[req.params.hash];
-
+router.get('/api/download/', async (req, res) => {
+    const filepath = req.query.p;
     if (!filepath || !(await isExist(filepath))) {
         console.error("[/api/download]", filepath, "does not exist");
         res.sendStatus(404);

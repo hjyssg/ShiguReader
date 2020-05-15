@@ -186,8 +186,6 @@ export default class TagPage extends Component {
 
     const tagItems = keys.map((tag) => {
       const itemText = `${tag} (${items[tag]})`;
-      const tagHash = stringHash(tag);
-
       const url = this.isAuthorMode()? clientUtil.getAuthorLink(tag) :  clientUtil.getTagLink(tag);
       const thumbnailUrl = this.chooseOneThumbnailForOneTag(t2Files[tag]);
 

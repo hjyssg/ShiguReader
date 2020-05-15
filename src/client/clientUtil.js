@@ -42,13 +42,6 @@ module.exports.getPerPageItemNumber = function() {
     }
 }
 
-module.exports.stringHash = function (str) {
-    const stringHash = require("string-hash");
-    const  result = stringHash(str);
-    window.localStorage && window.localStorage.setItem(result, str)
-    return result;
-};
-
 module.exports.getPathFromLocalStorage = function(hash){
     return window.localStorage && window.localStorage.getItem(hash);
 }
@@ -106,3 +99,16 @@ module.exports.getTagLink = function(path){
 module.exports.getAuthorLink = function(path){
     return"/author/?a=" + path;
 }
+
+module.exports.getOneBookLink = function(path){
+    return "/onebook/?p=" + path;
+}
+
+module.exports.getVideoPlayerLink = function(path){
+    return "/videoPlayer/?p=" + path;
+}
+
+module.exports.getDownloadLink = function(path){
+    return "/api/download/?p=" + path;
+}
+

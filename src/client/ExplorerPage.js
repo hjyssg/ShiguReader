@@ -491,8 +491,7 @@ export default class ExplorerPage extends Component {
         });
 
         let videoItems = videos.map((item) =>  {
-            const pathHash = stringHash(item);
-            const toUrl =('/videoPlayer/'+ pathHash);
+            const toUrl = clientUtil.getVideoPlayerLink(item);
             const text = getBaseName(item);
             const result = this.getOneLineListItem(<i className="far fa-file-video"></i>, text, item);
             return  <Link to={toUrl}  key={item}>{result}</Link>;
@@ -506,8 +505,7 @@ export default class ExplorerPage extends Component {
         let breadcrumbCount = 0;
         const zipfileItems = files.map((item, index) => {
             const text = getBaseName(item);
-            const pathHash = stringHash(item);
-            const toUrl =  '/onebook/' + pathHash;
+            const toUrl =  clientUtil.getOneBookLink(item);
 
             //todo
             const stats = this.fileInfos[item];
@@ -663,7 +661,7 @@ export default class ExplorerPage extends Component {
 
     renderChartButton(){
         if(this.getMode() === MODE_EXPLORER){
-            return (<Link target="_blank" className="exp-top-button" to={'/chart/'+this.getHash()}>  
+            return (<Link target="_blank" className="exp-top-button" to={'/chart/?p='+this.getHash()}>  
                          <span className="fas fa-chart-line" /> 
                          <span> chart </span>
                     </Link>)
