@@ -23,6 +23,16 @@ function parse(str){
     return nameParser.parse(getBaseName(str));
 }
 
+function getKeyAndValues(keyToValueTable){
+    const keys = _.keys(keyToValueTable);
+    keys.sort();
+    const values = keys.map(e => keyToValueTable[e]);
+    return {
+        keys,
+        values
+    }
+}
+
 function renderTable(labels, values){
     const tableHeader = (<thead><tr>
         <th scope="col">name</th>
@@ -111,41 +121,25 @@ export default class ChartPage extends Component {
             return;
         }
 
-        const byComiket = {}; //c91 -> 350
-        const tagByComiket = {}; // c95 -> kankore -> 201
-        this.getFilterFiles().forEach(e => {
+        const byComiket = _.countBy(this.getFilterFiles(), e=> {
             const result = parse(e);
             if(result && result.comiket){
                 let cc = result.comiket;
-                byComiket[cc] = byComiket[cc] || 0;
-                byComiket[cc]++;
-
-                tagByComiket[cc] = tagByComiket[cc] || {};
-                result.tags.forEach(tag => {
-                    if(tag !== cc && tag !== "同人誌"){
-                        tagByComiket[cc][tag] = tagByComiket[cc][tag] || 0;
-                        tagByComiket[cc][tag]++;
-                    }
-                })
-            }
-        })
-
-        let labels = nameParser.ALL_COMIC_TAGS.slice();
-        let values = [];
-        labels.forEach((e, index )=> {
-            const vv = byComiket[e]; 
-            values.push(vv);
-
-            if(!vv){
-                labels[index] = undefined;
+                return cc.toUpperCase();
+            }else {
+                return "etc";
             }
         });
 
-        labels = labels.filter(e => !!e);
-        values = values.filter(e => !!e);
-
         const data = {};
-        data.labels = labels;
+        let {values, keys} =  getKeyAndValues(byComiket)
+
+
+        const index = keys.indexOf("etc");
+        keys.splice(index, 1);
+        values.splice(index, 1)
+        data.labels = keys;
+
         data.datasets = [{
             type: 'bar',
             label: 'by comiket',
@@ -171,7 +165,7 @@ export default class ChartPage extends Component {
                     options={opt}
                 />
                 </div>
-                <Accordion header="Toggle Table"  body={renderTable(labels, values)} />
+                <Accordion header="Toggle Table"  body={renderTable(data.labels, values)} />
             </div>
           );
     }
@@ -179,8 +173,7 @@ export default class ChartPage extends Component {
     rendeTimeChart(){
         const { timeType } = this.state;
 
-        const byTime = {}; //time -> 300. 
-        this.getFilterFiles().forEach(e => {
+        const byTime = _.countBy(this.getFilterFiles(), e=> {
             const fileInfo = this.fileToInfo[e];
             const pA = parse(e);
             let aboutTimeA = pA && nameParser.getDateFromTags(pA.tags);
@@ -190,18 +183,14 @@ export default class ChartPage extends Component {
             const t  = new Date(aboutTimeA);
             const month = t.getMonth();
             const quarter = Math.floor(month/3)+1;
-            
-            let tLabel = timeType === BY_QUARTER? `${t.getFullYear()}-Q${quarter} `: t.getFullYear();
 
-            byTime[tLabel] = byTime[tLabel] || 0;
-            byTime[tLabel]++;
+            let tLabel = timeType === BY_QUARTER? `${t.getFullYear()}-Q${quarter} `: t.getFullYear();
+            return tLabel;
         });
 
         const data = {};
-        data.labels = _.keys(byTime);
-        data.labels.sort();
-        const value = data.labels.map(e => byTime[e]);
-
+        const {values, keys} =  getKeyAndValues(byTime)
+        data.labels = keys;
         data.datasets = [{
             type: 'line',
             label: this.state.timeType,
@@ -209,10 +198,10 @@ export default class ChartPage extends Component {
             fill: false,
             showLine: true,
             tension: 0,
-            data:  value
+            data:  values
           }];
 
-          const TIME_OPITIONS = [BY_YEAR, BY_QUARTER]
+        const TIME_OPITIONS = [BY_YEAR, BY_QUARTER]
 
           return (
             <div className="individual-chart-container">
@@ -243,25 +232,22 @@ export default class ChartPage extends Component {
             return;
         }
 
-        const byType = {}; //doujin -> 300. 
-        this.getFilterFiles().forEach(e => {
+        const byType  = _.countBy(this.getFilterFiles(), e=> {
             const result = parse(e);
             if(result &&  result.type){
-                const type = result.type;
-                byType[type] = byType[type] || 0;
-                byType[type]++;
+                return result.type;
             }
+            return "etc"
         });
 
         const data = {};
-        data.labels = _.keys(byType);
-        const value = _.values(byType);
-
+        const {values, keys} =  getKeyAndValues(byType)
+        data.labels = keys;
         data.datasets = [{
             type: 'pie',
             label: 'by type',
             backgroundColor: ["aqua", "blue", "orange", "yellow","green", "lime", "pink"],
-            data:  value
+            data:  values
           }];
 
           return (
