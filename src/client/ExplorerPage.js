@@ -113,7 +113,7 @@ export default class ExplorerPage extends Component {
         // https://en.wikipedia.org/wiki/URL
         // e.g ?s=apple
         const _props = props || this.props;
-        return queryString.parse(_props.location.search)["s"] ||  _props.match.params.search || ""
+        return queryString.parse(_props.location.search)["s"] ||  _props.match.params.search || "";
     }
 
     getHash(props) {
