@@ -286,6 +286,7 @@ export default class OneBook extends Component {
         this.setState({ files, musicFiles, path:res.path, fileStat: res.stat}, 
                        () => { this.bindUserInteraction()});
         //used by recent read in admin page
+        //!!! 413 error. if the cookie become too big
         Cookie.set(util.getCurrentTime(), this.getTextFromQuery(), { expires: 7 })
 
       }else{
