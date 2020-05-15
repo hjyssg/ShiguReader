@@ -70,9 +70,8 @@ class App extends Component {
         <Switch>
             <Route exact path='/' render={renderExplorer}/>
             <Route path='/explorer/:number' render={renderExplorer}/>
-            <Route path='/tag/:tag' render={renderExplorer}/>
-            <Route path='/author/:author' render={renderExplorer}/>
-            <Route path='/search/:search' render={renderExplorer}/>
+            <Route path='/tag/' render={renderExplorer}/>
+            <Route path='/author/' render={renderExplorer}/>
             <Route path='/search/' render={renderExplorer}/>
 
             <Route path='/onebook/:number' render={renderOneBook}/>

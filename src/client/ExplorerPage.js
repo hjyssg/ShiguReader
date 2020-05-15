@@ -113,26 +113,37 @@ export default class ExplorerPage extends Component {
         // https://en.wikipedia.org/wiki/URL
         // e.g ?s=apple
         const _props = props || this.props;
-        return queryString.parse(_props.location.search)["s"] ||  _props.match.params.search || "";
+        return queryString.parse(_props.location.search)["s"] ||  "";
+    }
+
+    getAuthorFromQuery(props){
+        const _props = props || this.props;
+        return queryString.parse(_props.location.search)["a"] || "";
+    }
+
+    getTagFromQuery(props){
+        const _props = props || this.props;
+        return queryString.parse(_props.location.search)["t"] ||  "";
     }
 
     getHash(props) {
         const _props = props || this.props;
-        return _props.match.params.tag || 
-               _props.match.params.author ||
+        return this.getTagFromQuery(_props) || 
+               this.getAuthorFromQuery(_props)||
                this.getSearchTextFromQuery(_props) ||
                _props.match.params.number;
     }
 
     getMode(props){
         const _props = props || this.props;
-        if(_props.match.params.tag){
+        const pathname = _props.location.pathname;
+        if(pathname.includes("/tag/")){
             return MODE_TAG;
-        } else if(_props.match.params.author) {
+        } else if(pathname.includes("/author/")) {
             return MODE_AUTHOR;
         } else if(_props.match.params.number) {
             return MODE_EXPLORER;
-        } else if(_props.location.pathname.includes("/search/")) {
+        } else if(pathname.includes("/search/")) {
             return MODE_SEARCH;
         } else {
             return MODE_HOME;

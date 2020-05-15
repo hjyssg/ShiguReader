@@ -593,14 +593,13 @@ export default class OneBook extends Component {
     tags = _.uniq(tags);
 
     tagDivs = tags.map( tag => {
-      const tagHash = stringHash(tag);
       let url;
       if(authors && authors.includes(tag)){
-        url = "/author/" + tag;
+        url = "/author/?a=" + tag;
       } else if(tag === author){
-        url = "/author/" + tagHash;
+        url = "/author/?a=" + tag;
       }else if(originalTags && originalTags.includes(tag)){
-        url = "/tag/" + tagHash;
+        url = "/tag/?t=" + tag;
       }else{
         url = "/search/?s=" + tag;
       }
