@@ -366,13 +366,11 @@
 .rc-pagination-item {
   height: 40px !important;
   width: 40px !important;
-  
-  a {
-    @include flex_center_display;
-    width: 100%;
-    height: 100%;
-    font-size: 20px !important;
-  }
+  color: $font_color_white_one;
+  @include flex_center_display;
+  width: 100%;
+  height: 100%;
+  font-size: 20px !important;
 }
 
 @media screen and (max-width: 700px) {

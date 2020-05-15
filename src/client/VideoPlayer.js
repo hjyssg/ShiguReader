@@ -5,7 +5,7 @@ import './style/VideoPlayer.scss';
 import ClickAndCopyText from './subcomponent/ClickAndCopyText';
 import FileChangeToolbar from './subcomponent/FileChangeToolbar';
 const clientUtil = require("./clientUtil");
-const { getDir, getBaseName, getPathFromLocalStorage, stringHash } = clientUtil;
+const { getDir, getBaseName, getPathFromLocalStorage } = clientUtil;
 const namePicker = require("../human-name-picker");
 import { Link } from 'react-router-dom';
 const nameParser = require('../name-parser');
@@ -71,7 +71,7 @@ export default class VideoPlayer extends Component {
     
     if(tags){
       const tagDoms = tags.map(tag => {
-          const url = "/search/?s=" + tag;
+          const url =  clientUtil.getSearhLink(tag);
           return (<Link className="video-tag"  target="_blank" to={url}  key={tag}>{tag}</Link>)
       });
 
@@ -82,8 +82,7 @@ export default class VideoPlayer extends Component {
   renderPath() {
     const filePath = getPathFromLocalStorage(this.getHash());
     const parentPath = getDir(filePath);
-    const parentHash = stringHash(parentPath);
-    const toUrl = ('/explorer/'+ parentHash);
+    const toUrl = clientUtil.getExplorerLink(parentPath);
     
     return (
       <div className="one-book-path">

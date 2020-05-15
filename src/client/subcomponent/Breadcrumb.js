@@ -3,7 +3,6 @@ import '../style/Breadcrumb.scss';
 import { Link } from 'react-router-dom';
 const classNames = require('classnames');
 const clientUtil = require("../clientUtil");
-const { getDir, getBaseName, stringHash } = clientUtil;
 
 
 export default class Breadcrumb extends Component {
@@ -19,8 +18,7 @@ export default class Breadcrumb extends Component {
                 //last one not link
                 pathList.push(<div key={item} className={"breadcrumb-item current"}>{pathes[ii]} </div>);
             }else{
-                const pathHash = stringHash(item);
-                const toUrl =('/explorer/'+ pathHash);
+                const toUrl = clientUtil.getExplorerLink(item);
                 pathList.push(<Link to={toUrl}  key={item} className={"breadcrumb-item"}>{pathes[ii]}</Link>);
             }
         }

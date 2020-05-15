@@ -69,7 +69,7 @@ class App extends Component {
         const result = (
         <Switch>
             <Route exact path='/' render={renderExplorer}/>
-            <Route path='/explorer/:number' render={renderExplorer}/>
+            <Route path='/explorer/' render={renderExplorer}/>
             <Route path='/tag/' render={renderExplorer}/>
             <Route path='/author/' render={renderExplorer}/>
             <Route path='/search/' render={renderExplorer}/>
@@ -98,7 +98,7 @@ class App extends Component {
     render() {
         // document.title = this.getWebTitle();
         if(this.searchText){
-            const path = "/search/?s=" + this.searchText;
+            const path = clientUtil.getSearhLink(this.searchText);
             this.searchText = "";
             return (<Redirect
                 to={{

@@ -24,7 +24,6 @@ import screenfull from 'screenfull';
 const Constant = require("../constant");
 
 import Cookie from "js-cookie";
-import { isLocalHost } from './clientUtil';
 
 const MIN_HEIGHT = 400;
 const MIN_WIDTH = 400;
@@ -516,8 +515,7 @@ export default class OneBook extends Component {
     }
 
     const parentPath = getDir(this.state.path);
-    const parentHash = stringHash(parentPath);
-    const toUrl = ('/explorer/'+ parentHash);
+    const toUrl = clientUtil.getExplorerLink(parentPath);
     
     return (
       <div className="one-book-path">
@@ -595,13 +593,13 @@ export default class OneBook extends Component {
     tagDivs = tags.map( tag => {
       let url;
       if(authors && authors.includes(tag)){
-        url = "/author/?a=" + tag;
+        url = clientUtil.getAuthorLink(tag);
       } else if(tag === author){
-        url = "/author/?a=" + tag;
+        url = clientUtil.getAuthorLink(tag);
       }else if(originalTags && originalTags.includes(tag)){
-        url = "/tag/?t=" + tag;
+        url = clientUtil.getTagLink(tag);
       }else{
-        url = "/search/?s=" + tag;
+        url =  clientUtil.getSearhLink(tag);
       }
       
       url += "#sortOrder=" + Constant.SORT_BY_FOLDER;

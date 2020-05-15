@@ -90,3 +90,19 @@ module.exports.isSearchInputTextTyping = function(){
     const input = document.getElementsByClassName('search-input');
     return input[0] && input[0] === document.activeElement;
 }
+
+module.exports.getExplorerLink = function(path){
+    return '/explorer/?p='+ path;
+}
+
+module.exports.getSearhLink = function(path){
+    return"/search/?s=" + path;
+}
+
+module.exports.getTagLink = function(path){
+    return"/tag/?t=" + path;
+}
+
+module.exports.getAuthorLink = function(path){
+    return"/author/?a=" + path;
+}

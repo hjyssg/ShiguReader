@@ -20,8 +20,7 @@ const _ = require('underscore');
 
 
 router.post('/api/lsDir', async (req, res) => {
-    const hashdir = db.hashTable[(req.body && req.body.hash)];
-    const dir = hashdir|| req.body && req.body.dir;
+    const dir = req.body && req.body.dir;
     const isRecursive = req.body && req.body.isRecursive;
 
     if (!dir || !(await isExist(dir))) {

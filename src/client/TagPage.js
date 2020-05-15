@@ -188,7 +188,7 @@ export default class TagPage extends Component {
       const itemText = `${tag} (${items[tag]})`;
       const tagHash = stringHash(tag);
 
-      const url = this.isAuthorMode()? ("/author/?a=" + tag) :  ("/tag/?t=" + tag);
+      const url = this.isAuthorMode()? clientUtil.getAuthorLink(tag) :  clientUtil.getTagLink(tag);
       const thumbnailUrl = this.chooseOneThumbnailForOneTag(t2Files[tag]);
 
       return  (<div key={tag} className="col-sm-6 col-md-4 col-lg-3 tag-page-list-item">
@@ -260,10 +260,7 @@ export default class TagPage extends Component {
                         showQuickJumper={{goButton: true}}
                         itemRender={(item, type) =>{
                           if(type === "page"){
-                              let url = location.pathname.split("/");
-                              url[2] = item;
-                              url = url.join("/");
-                              return  <Link to={url}  >{item}</Link>;
+                              return  <div>{item}</div>;
                           }else if(type === "prev" || type === "next"){
                               return <a className="rc-pagination-item-link" />
                           }

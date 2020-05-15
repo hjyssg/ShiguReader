@@ -109,6 +109,11 @@ export default class ExplorerPage extends Component {
         }
     }
 
+    getPathFromQuery(props){
+        const _props = props || this.props;
+        return queryString.parse(_props.location.search)["p"] ||  "";
+    }
+
     getSearchTextFromQuery(props){
         // https://en.wikipedia.org/wiki/URL
         // e.g ?s=apple
@@ -131,7 +136,7 @@ export default class ExplorerPage extends Component {
         return this.getTagFromQuery(_props) || 
                this.getAuthorFromQuery(_props)||
                this.getSearchTextFromQuery(_props) ||
-               _props.match.params.number;
+               this.getPathFromQuery(_props);
     }
 
     getMode(props){
@@ -141,7 +146,7 @@ export default class ExplorerPage extends Component {
             return MODE_TAG;
         } else if(pathname.includes("/author/")) {
             return MODE_AUTHOR;
-        } else if(_props.match.params.number) {
+        } else if(pathname.includes("/explorer/")) {
             return MODE_EXPLORER;
         } else if(pathname.includes("/search/")) {
             return MODE_SEARCH;
@@ -219,7 +224,6 @@ export default class ExplorerPage extends Component {
             this.videoFiles = []
             this.files = [];
             this.dirs = [];
-            this.path = this.getPathFromLocalStorage()
             this.tag = "";
             this.author = "";
             this.fileInfos = {};
@@ -239,7 +243,6 @@ export default class ExplorerPage extends Component {
             this.videoFiles = files.filter(isVideo) || []
             this.files = files.filter(isCompress) || [];
             this.dirs = dirs || [];
-            this.path = path || "";
             this.tag = tag || "";
             this.author = author || "";
             this.fileInfos = fileInfos || {};
@@ -291,21 +294,15 @@ export default class ExplorerPage extends Component {
         }
     }
 
-    getPathFromLocalStorage(){
-        const hash = this.getHash();
-        return clientUtil.getPathFromLocalStorage(hash) || "";
-    }
-
     requestSearch() {
-        Sender.post(Constant.SEARCH_API, { hash: this.getHash(), 
-                                    text: this.getPathFromLocalStorage()||this.getHash(),
+        Sender.post(Constant.SEARCH_API, { text: this.getHash(),
                                     mode: this.getMode()}, res => {
             this.handleRes(res);
         });
     }
     
     requestLsDir() {
-        Sender.lsDir({ hash: this.getHash(), dir: this.getPathFromLocalStorage(), isRecursive: this.state.isRecursive }, res => {
+        Sender.lsDir({ dir: this.getHash(), isRecursive: this.state.isRecursive }, res => {
             this.handleRes(res);
         });
     }
@@ -480,15 +477,14 @@ export default class ExplorerPage extends Component {
         
         if (_.isEmpty(dirs) && _.isEmpty(files) && _.isEmpty(videos)) {
             if(!this.res){
-                return (<CenterSpinner text={this.getPathFromLocalStorage()}/>);
+                return (<CenterSpinner text={this.getHash()}/>);
             }else{
                 return <center className="one-book-nothing-available">Nothing Available</center>;
             }
         } 
         
         const dirItems = dirs.map((item) =>  {
-            const pathHash = stringHash(item);
-            const toUrl =('/explorer/'+ pathHash);
+            const toUrl = clientUtil.getExplorerLink(item);
             const text = this.getMode() === MODE_HOME ? item: getBaseName(item);
             const result =  this.getOneLineListItem(<i className="far fa-folder"></i>, text, item);
             return  <Link to={toUrl}  key={item}>{result}</Link>;
@@ -676,7 +672,7 @@ export default class ExplorerPage extends Component {
 
     getExplorerToolbar(){
         const mode = this.getMode();
-        if(mode === MODE_EXPLORER && this.path){
+        if(mode === MODE_EXPLORER && this.getPathFromQuery()){
             const totalSize = this.getTotalFileSize();
             let topButtons = (
             <div className="top-button-gropus row">
@@ -692,7 +688,7 @@ export default class ExplorerPage extends Component {
 
             return (<div className="container explorer-top-bar-container">
                         <div className="row">
-                            <Breadcrumb path={this.path} className="col-12" /> 
+                            <Breadcrumb path={this.getPathFromQuery()} className="col-12" /> 
                         </div>
                         {topButtons}
                     </div>);
@@ -757,11 +753,7 @@ export default class ExplorerPage extends Component {
                             total={fileLength} 
                             itemRender={(item, type) =>{
                                 if(type === "page"){
-                                    let hash =  that.getHash();
-                                    const obj = Object.assign({}, this.state);
-                                    obj.pageIndex = item;
-                                    hash += "#" + queryString.stringify(obj);
-                                    return  <Link to={hash}  >{item}</Link>;
+                                    return  <div>{item}</div>;
                                 }else if(type === "prev" || type === "next"){
                                     return <a className="rc-pagination-item-link" />
                                 }
@@ -775,7 +767,7 @@ export default class ExplorerPage extends Component {
         if(mode === MODE_HOME){
             document.title = "ShiguReader";
         }else{
-            document.title = this.tag||this.author||this.path||this.getSearchTextFromQuery()|| "ShiguReader";
+            document.title = this.getHash()|| "ShiguReader";
         }
     }
 

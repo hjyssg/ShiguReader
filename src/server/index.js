@@ -429,10 +429,9 @@ const { MODE_TAG,  MODE_AUTHOR,  MODE_SEARCH } = Constant;
 app.post(Constant.SEARCH_API, (req, res) => {
     const mode = req.body && req.body.mode;
     const textParam = req.body && req.body.text;
-    const hashTag =  db.hashTable[(req.body && req.body.hash)] || textParam;
 
-    const tag =  mode === MODE_TAG && hashTag;
-    const author =  mode === MODE_AUTHOR && hashTag;
+    const tag =  mode === MODE_TAG && textParam;
+    const author =  mode === MODE_AUTHOR && textParam;
     const text = mode === MODE_SEARCH && textParam;
 
     if (!author && !tag && !text) {
