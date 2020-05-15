@@ -11,7 +11,7 @@ import AdminPage from "./AdminPage";
 import { Switch, Route, Link, Redirect } from 'react-router-dom';
 import screenfull from 'screenfull';
 const clientUtil = require("./clientUtil");
-const { cleanSearchStr, getSearchInputText } = clientUtil;
+const { getSearchInputText } = clientUtil;
 
 // http://localhost:3000/
 class App extends Component {
@@ -73,6 +73,7 @@ class App extends Component {
             <Route path='/tag/:tag' render={renderExplorer}/>
             <Route path='/author/:author' render={renderExplorer}/>
             <Route path='/search/:search' render={renderExplorer}/>
+            <Route path='/search/' render={renderExplorer}/>
 
             <Route path='/onebook/:number' render={renderOneBook}/>
             <Route path='/tagPage/:index' render={renderTagPage}/>
@@ -98,7 +99,7 @@ class App extends Component {
     render() {
         // document.title = this.getWebTitle();
         if(this.searchText){
-            const path = "/search/" + cleanSearchStr(this.searchText);
+            const path = "/search/?s=" + this.searchText;
             this.searchText = "";
             return (<Redirect
                 to={{

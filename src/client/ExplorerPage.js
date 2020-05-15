@@ -109,11 +109,18 @@ export default class ExplorerPage extends Component {
         }
     }
 
+    getSearchTextFromQuery(props){
+        // https://en.wikipedia.org/wiki/URL
+        // e.g ?s=apple
+        const _props = props || this.props;
+        return queryString.parse(_props.location.search)["s"] ||  _props.match.params.search || ""
+    }
+
     getHash(props) {
         const _props = props || this.props;
         return _props.match.params.tag || 
                _props.match.params.author ||
-               _props.match.params.search ||
+               this.getSearchTextFromQuery(_props) ||
                _props.match.params.number;
     }
 
@@ -125,7 +132,7 @@ export default class ExplorerPage extends Component {
             return MODE_AUTHOR;
         } else if(_props.match.params.number) {
             return MODE_EXPLORER;
-        } else if(_props.match.params.search) {
+        } else if(_props.location.pathname.includes("/search/")) {
             return MODE_SEARCH;
         } else {
             return MODE_HOME;
@@ -252,7 +259,7 @@ export default class ExplorerPage extends Component {
     }
 
     requestTextSearch() {
-        Sender.post(Constant.SEARCH_API, { text: this.props.match.params.search,  mode: this.getMode()}, res => {
+        Sender.post(Constant.SEARCH_API, { text: this.getSearchTextFromQuery(),  mode: this.getMode()}, res => {
             this.handleRes(res);
         });
     }
@@ -757,7 +764,7 @@ export default class ExplorerPage extends Component {
         if(mode === MODE_HOME){
             document.title = "ShiguReader";
         }else{
-            document.title = this.tag||this.author||this.path||this.props.match.params.search|| "ShiguReader";
+            document.title = this.tag||this.author||this.path||this.getSearchTextFromQuery()|| "ShiguReader";
         }
     }
 

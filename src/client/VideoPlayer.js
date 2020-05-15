@@ -5,7 +5,7 @@ import './style/VideoPlayer.scss';
 import ClickAndCopyText from './subcomponent/ClickAndCopyText';
 import FileChangeToolbar from './subcomponent/FileChangeToolbar';
 const clientUtil = require("./clientUtil");
-const { getDir, getBaseName, getPathFromLocalStorage, cleanSearchStr, stringHash } = clientUtil;
+const { getDir, getBaseName, getPathFromLocalStorage, stringHash } = clientUtil;
 const namePicker = require("../human-name-picker");
 import { Link } from 'react-router-dom';
 const nameParser = require('../name-parser');
@@ -71,7 +71,7 @@ export default class VideoPlayer extends Component {
     
     if(tags){
       const tagDoms = tags.map(tag => {
-          const url = "/search/" + cleanSearchStr(tag);
+          const url = "/search/?s=" + tag;
           return (<Link className="video-tag"  target="_blank" to={url}  key={tag}>{tag}</Link>)
       });
 

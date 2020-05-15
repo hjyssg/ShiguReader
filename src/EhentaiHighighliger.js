@@ -432,7 +432,7 @@ function appendLink(fileTitleDom, text){
     fileTitleDom.append(link);
     link.target = "_blank"
     link.className ="shigureader_link";
-    link.href = "http://localhost:3000/search/" + text;
+    link.href = "http://localhost:3000/search/?s=" + text;
 }
 
 function getCurrentTime(){
