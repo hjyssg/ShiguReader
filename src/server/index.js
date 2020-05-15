@@ -199,27 +199,6 @@ serverUtil.common.getCacheOutputPath = getCacheOutputPath;
 serverUtil.common.cachePath = cachePath;
 serverUtil.common.getThumbnails = getThumbnails;
 
-//---------------------------SEARCH API------------------
-const searchByTagAndAuthor = require("./models/search");
-
-const { MODE_TAG,  MODE_AUTHOR,  MODE_SEARCH } = Constant;
-
-// three para 1.mode 2.text
-app.post(Constant.SEARCH_API, (req, res) => {
-    const mode = req.body && req.body.mode;
-    const textParam = req.body && req.body.text;
-
-    const tag =  mode === MODE_TAG && textParam;
-    const author =  mode === MODE_AUTHOR && textParam;
-    const text = mode === MODE_SEARCH && textParam;
-
-    if (!author && !tag && !text) {
-        res.sendStatus(404);
-    }else{
-        res.send(searchByTagAndAuthor(tag, author, text));
-    }
-});
-
 //-----------------thumbnail related-----------------------------------
 
 app.post(Constant.TAG_THUMBNAIL_PATH_API, (req, res) => {
@@ -621,6 +600,9 @@ app.use(moveOrDelete);
 
 const download = require("./routes/download");
 app.use(download);
+
+const search = require("./routes/search");
+app.use(search);
 
 const AllInfo = require("./routes/AllInfo");
 app.use(AllInfo);
