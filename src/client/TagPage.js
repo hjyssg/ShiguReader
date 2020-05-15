@@ -16,6 +16,7 @@ const nameParser = require('../name-parser');
 const util = require("../util");
 const clientUtil = require("./clientUtil");
 const { getDir, getBaseName, getPerPageItemNumber, stringHash } = clientUtil;
+const sortUtil = require("../common/sortUtil");
 
 
 function addOne(table, key) {
@@ -89,8 +90,7 @@ export default class TagPage extends Component {
   }
 
   chooseOneThumbnailForOneTag = function(files){
-    nameParser.sort_file_by_time(files, this.fileToInfo, getBaseName, false, false);
-
+    files = sortUtil.sort_file_by_time(files, this.fileToInfo, getBaseName, false, false);
     let result;
     files.some(e => {
       const thumbnail = this.allThumbnails[e];

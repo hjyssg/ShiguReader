@@ -269,52 +269,6 @@ function parse(str) {
 
 
 
-module.exports.sort_file_by_time = function(files, fileInfos, getBaseName, fromEarly, onlyMtime){
-    const byFn = (a, b) => {
-        const ap = getBaseName(a);
-        const bp = getBaseName(b);
-        return ap.localeCompare(bp);
-    }
-    
-    function comprTime(at, bt, a, b, fromEarly){
-        let result;
-        if(fromEarly){
-            result = at - bt;
-        }else{
-            result = bt - at;
-        }
-        
-        if(result === 0){
-            result = byFn(a, b);
-        }
-        return result;
-    }
-
-    files.sort((a, b) => {
-        const fileTimeA = (fileInfos[a] && fileInfos[a].mtimeMs) || Infinity;
-        const fileTimeB = (fileInfos[b] && fileInfos[b].mtimeMs) || Infinity;
-
-        if(onlyMtime){
-            return comprTime(fileTimeA, fileTimeB, a, b, fromEarly);
-        }else{
-            const pA = parse(a);
-            const pB = parse(b);
-
-            let aboutTimeA = pA && getDateFromTags(pA.tags);
-            let aboutTimeB = pB && getDateFromTags(pB.tags);
-
-            aboutTimeA = aboutTimeA && aboutTimeA.getTime();
-            aboutTimeB = aboutTimeB && aboutTimeB.getTime();
-
-            const t1 = aboutTimeA || fileTimeA;
-            const t2 = aboutTimeB || fileTimeB;
-
-            return comprTime(t1, t2, a, b, fromEarly);
-        }
-    });
-}
-
-
 module.exports.parse = parse;
 module.exports.isOnlyDigit = isOnlyDigit;
 module.exports.ALL_COMIC_TAGS = ALL_COMIC_TAGS;

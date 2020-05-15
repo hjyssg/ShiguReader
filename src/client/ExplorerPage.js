@@ -24,6 +24,7 @@ const Constant = require("../constant");
 const clientUtil = require("./clientUtil");
 const { getDir, getBaseName, getPerPageItemNumber, stringHash, isSearchInputTextTyping } = clientUtil;
 const { isVideo, isCompress } = util;
+const sortUtil = require("../common/sortUtil");
 
 const { SORT_FROM_LATEST, 
         SORT_FROM_EARLY,
@@ -417,7 +418,7 @@ export default class ExplorerPage extends Component {
         }else if (sortOrder === SORT_FROM_LATEST ||  sortOrder === SORT_FROM_EARLY){
             const fromEarly = sortOrder === SORT_FROM_EARLY;
             const onlyBymTime = this.getMode() === MODE_EXPLORER;
-            nameParser.sort_file_by_time(files, this.fileInfos, getBaseName, fromEarly, onlyBymTime);
+            files = sortUtil.sort_file_by_time(files, this.fileInfos, getBaseName, fromEarly, onlyBymTime);
         } else if (sortOrder === SORT_FROM_BIG_FILE_SIZE || sortOrder === SORT_FROM_SMALL_FILE_SIZE){
             files = _.sortBy(files, e => {
                 const size =  this.getFileSize(e);
