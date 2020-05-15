@@ -227,7 +227,7 @@ export default class OneBook extends Component {
   rotateImg(newAngle){
     let imageDom = ReactDOM.findDOMNode(this.imgRef);
     if(imageDom){
-      if(typeof newAngle === "number"){ 
+      if(_.isNumber(newAngle)){ 
         this.rotateAngle = newAngle;
       }else{
         this.rotateAngle = (this.rotateAngle||0) + 90;

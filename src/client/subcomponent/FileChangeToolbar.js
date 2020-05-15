@@ -12,6 +12,8 @@ import DropdownItem from "./DropdownItem";
 const util = require("../../util");
 const clientUtil = require("../clientUtil");
 const { getDir, getBaseName } = clientUtil;
+import _ from 'underscore';
+
 
 export default class FileChangeToolbar extends Component {
     static defaultProps = {
@@ -61,7 +63,7 @@ export default class FileChangeToolbar extends Component {
     handleClose = (path) => {
         this.setState({ anchorEl: null });
 
-        if(typeof path === "string"){
+        if(_.isString(path)){
             Swal.fire({
                 html: 'Do you want to move this file to <span class="path-highlight">'+  path +"</span>",
                 showCancelButton: true,

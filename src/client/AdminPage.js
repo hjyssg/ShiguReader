@@ -90,7 +90,7 @@ export default class AdminPage extends Component {
 
     onPathChange(e){
         this.setState({
-            prePath : typeof e === "string"? e :  e.target.value
+            prePath : _.isString(e)? e :  e.target.value
         })
     }
 
