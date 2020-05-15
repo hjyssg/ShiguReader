@@ -48,6 +48,8 @@ home_pathes = fs.readFileSync(path_config_path).toString().split('\n');
 home_pathes = home_pathes
             .map(e => e.trim().replace(/\n|\r/g, ""))
             .filter(pp =>{ return pp && pp.length > 0 && !pp.startsWith("#");});
+home_pathes = _.uniq(home_pathes);
+
 if(isWindows()){
     const getDownloadsFolder = require('downloads-folder');
     home_pathes.push(getDownloadsFolder());
