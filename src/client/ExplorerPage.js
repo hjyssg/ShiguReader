@@ -453,14 +453,13 @@ export default class ExplorerPage extends Component {
             });
         } else if (sortOrder === SORT_RANDOMLY){
             if(!this.isAlreadyRandom){
-                files.sort((a, b) => {
-                    return Math.random() - 0.5;
-                });
+                files = _.shuffle(files);
             }
             inRandom = true;
         }
 
         this.isAlreadyRandom = inRandom;
+        return files;
     }
 
     getOneLineListItem(icon, fileName, filePath){
@@ -478,7 +477,7 @@ export default class ExplorerPage extends Component {
         let files = this.getFilteredFiles();
 
         try {
-            this.sortFiles(files, sortOrder);
+            files = this.sortFiles(files, sortOrder);
         }catch(e){
             console.error(e);
         }
