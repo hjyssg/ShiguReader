@@ -5,10 +5,11 @@ const util = require("../../util");
 const { isCompress } = util;
 
 let zip_content_db;
-let AllInfo = zip_content_db.getData("/");
+let root_data;
 
 module.exports.init = function(path){
     zip_content_db = new JsonDB(new Config(path, true, true, '/'));
+    root_data = zip_content_db.getData("/");
 }
 
 const has = module.exports.has = function(filePath){
@@ -16,7 +17,7 @@ const has = module.exports.has = function(filePath){
 }
 
 function getData(filePath){
-    return AllInfo[filePath];
+    return root_data[filePath];
 }
 
 const getPageNum = module.exports.getPageNum = function(filePath){
@@ -59,11 +60,11 @@ module.exports.getZipInfo = function(filePathes){
 
 
 module.exports.updateZipDb = function(filePath, pageNum, musicNum){
-    const newAllInfo = zip_content_db.getData("/");
-    newAllInfo[filePath] = {
+    const newroot_data = zip_content_db.getData("/");
+    newroot_data[filePath] = {
         pageNum: pageNum,
         musicNum: musicNum
     };
-    AllInfo = newAllInfo;
-    zip_content_db.push("/", newAllInfo);
+    root_data = newroot_data;
+    zip_content_db.push("/", newroot_data);
 }
