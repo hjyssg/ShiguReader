@@ -13,7 +13,7 @@ const getBaseName = module.exports.getBaseName = function (fn, seperator) {
     return tokens[tokens.length - 1];
 };
 
-module.exports.getUrl = function (url){
+module.exports.getFileUrl = function (url){
     return "../" + encodeFileUrl(url);
 }
 

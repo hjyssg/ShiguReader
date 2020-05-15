@@ -29,7 +29,7 @@ const MIN_HEIGHT = 400;
 const MIN_WIDTH = 400;
 const userConfig = require('../user-config');
 const clientUtil = require("./clientUtil");
-const { getDir, getBaseName, isPad, getUrl, sortFileNames } = clientUtil;
+const { getDir, getBaseName, isPad, getFileUrl, sortFileNames } = clientUtil;
 
 const NO_TWO_PAGE = "no_clip";
 const TWO_PAGE_LEFT = "left";
@@ -432,17 +432,17 @@ export default class OneBook extends Component {
         "has-music": this.hasMusic()
       });
 
-      const nextImg = this.shouldTwoPageMode() &&  <img  className={cn} src={getUrl(files[index+1])} alt="book-image"
+      const nextImg = this.shouldTwoPageMode() &&  <img  className={cn} src={getFileUrl(files[index+1])} alt="book-image"
                                           ref={img => this.nextImgRef = img}
                                           onLoad={this.makeTwoImageSameHeight.bind(this)}
                                           index={index+1}
                                         />;
 
-      const preload =  index < files.length-1 &&  <link rel="preload" href={getUrl(files[index+1])} as="image" /> ;
+      const preload =  index < files.length-1 &&  <link rel="preload" href={getFileUrl(files[index+1])} as="image" /> ;
 
       return (<React.Fragment>
               { twoPageMode === TWO_PAGE_RIGHT &&  nextImg }
-              <img  className={cn} src={getUrl(files[index])} alt="book-image"
+              <img  className={cn} src={getFileUrl(files[index])} alt="book-image"
                            ref={img => this.imgRef = img}
                            onLoad={this.adjustImageSize.bind(this)}
                            index={index}
@@ -463,7 +463,7 @@ export default class OneBook extends Component {
                 <img className={cn} 
                   ref={(img) =>  this.imgRef = img}
                   onError={this.onError.bind(this)}
-                  src={getUrl(files[index])}  />
+                  src={getFileUrl(files[index])}  />
                </div>);
       }else{
         images =files.map(file => {
@@ -471,7 +471,7 @@ export default class OneBook extends Component {
                       <LoadingImage className={"mobile-one-book-image"} 
                                bottomOffet={-4000}
                                topOffet={-3000}
-                               url={getUrl(file)} 
+                               url={getFileUrl(file)} 
                                key={file}/> 
                   </div>);
         });
