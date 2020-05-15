@@ -5,7 +5,7 @@ const serverUtil = require("../serverUtil");
 const db = require("../models/db");
 const getAllFilePathes = db.getAllFilePathes;
 const path = require('path');
-const getCacheOutputPath = serverUtil.common.getCacheOutputPath;
+const getCacheOutputPath = db.getCacheOutputPath;
 const cachePath = serverUtil.common.cachePath;
 
 router.get('/api/cacheInfo', (req, res) => {

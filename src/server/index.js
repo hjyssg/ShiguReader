@@ -54,7 +54,6 @@ if(isWindows()){
     home_pathes.push(`${process.env.HOME}/Downloads`);
 }
 const path_will_scan = home_pathes.concat(userConfig.good_folder, userConfig.good_folder_root, userConfig.not_good_folder);
-serverUtil.common.path_will_scan = path_will_scan;
 
 const isProduction = process.argv.includes("--production");
 
@@ -83,12 +82,8 @@ loggerModel.init(logPath);
 const logger = loggerModel.logger;
 
 const db = require("./models/db");
-const getAllFilePathes = db.getAllFilePathes;
-const getCacheFiles = db.getCacheFiles;
-const getCacheOutputPath = db.getCacheOutputPath;
+const {getAllFilePathes, getCacheFiles, getCacheOutputPath} = db;
 
-serverUtil.common.getCacheOutputPath = getCacheOutputPath;
-serverUtil.common.cachePath = cachePath;
 
 const app = express();
 
@@ -141,7 +136,7 @@ async function init() {
     console.log(`${(end - beg)/1000}s  to read local dirs`);
     console.log("Analyzing local files");
     
-    db.setFileToInfo(results.infos);
+    db.initFileToInfo(results.infos);
 
     console.log("There are", getAllFilePathes().length, "files");
 
@@ -151,7 +146,7 @@ async function init() {
         doLog: true
     });
 
-    db.addPathesToCache(cache_results.pathes, cache_results.infos);
+    db.initCacheDb(cache_results.pathes, cache_results.infos);
     db.setUpFileWatch(home_pathes, cache_folder_name);
 
     const port = isProduction? http_port: dev_express_port;
@@ -239,6 +234,9 @@ function getZipInfo(filePathes){
     return fpToInfo;
 }
 
+serverUtil.common.path_will_scan = path_will_scan;
+serverUtil.common.getCacheOutputPath = getCacheOutputPath;
+serverUtil.common.cachePath = cachePath;
 serverUtil.common.getZipInfo = getZipInfo;
 serverUtil.common.getThumbnails = getThumbnails;
 

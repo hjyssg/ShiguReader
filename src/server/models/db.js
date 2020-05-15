@@ -1,5 +1,7 @@
 const _ = require('underscore');
 const chokidar = require('chokidar');
+const dateFormat = require('dateformat');
+
 const pathUtil = require("../pathUtil");
 const stringHash = require("string-hash");
 const path = require('path');
@@ -22,25 +24,22 @@ const db = {
     fileToInfo: {}
 };
 
-const cacheDb = {
+const cacheDb = module.exports.cacheDb = {
     //a list of cache files folder -> files
     folderToFiles: {},
     //cache path to file stats
     cacheFileToInfo: {}
 }
 
-
-module.exports.cacheDb = cacheDb;
-
 const getAllFilePathes = module.exports.getAllFilePathes = function(){
     return _.keys(db.fileToInfo);
 };
 
-module.exports.getFileToInfo = function(){
+const getFileToInfo = module.exports.getFileToInfo = function(){
     return db.fileToInfo;
 }
 
-module.exports.setFileToInfo = function(obj){
+module.exports.initFileToInfo = function(obj){
     db.fileToInfo = obj;
     getAllFilePathes().forEach(e => {
         const fp = path.basename(e);
@@ -49,6 +48,17 @@ module.exports.setFileToInfo = function(obj){
         }
     })
 }
+
+module.exports.initCacheDb = function(pathes, infos){
+    (pathes||[]).forEach(p => {
+        const fp =  getDirName(p);
+        cacheDb.folderToFiles[fp] = cacheDb.folderToFiles[fp] || [];
+        cacheDb.folderToFiles[fp].push(path.basename(p));
+    });
+    
+    cacheDb.cacheFileToInfo = infos;
+}
+
 
 function shouldWatch(p){
     const ext = path.extname(p).toLowerCase();
@@ -145,15 +155,6 @@ module.exports.setUpFileWatch = function(home_pathes, cache_folder_name){
     };
 }
 
-module.exports.addPathesToCache = function(pathes, infos){
-    (pathes||[]).forEach(p => {
-        const fp =  getDirName(p);
-        cacheDb.folderToFiles[fp] = cacheDb.folderToFiles[fp] || [];
-        cacheDb.folderToFiles[fp].push(path.basename(p));
-    });
-    
-    cacheDb.cacheFileToInfo = infos;
-}
 
 
 //  outputPath is the folder name
