@@ -7,6 +7,8 @@ const path = require('path');
 const parse = serverUtil.parse;
 const nameParser = require('../../name-parser');
 const includesWithoutCase =  nameParser.includesWithoutCase;
+const zipInfoDb = require("../models/zipInfoDb");
+const { getZipInfo }  = zipInfoDb;
 
 function isEqual(s1, s2){
     return s1 && s2 && s1.toLowerCase() === s2.toLowerCase();
@@ -65,9 +67,7 @@ function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
    
     // let end = (new Date).getTime();
     // console.log((end - beg)/1000, "to search");
-    const getZipInfo = serverUtil.common.getZipInfo;
     const getThumbnails = serverUtil.common.getThumbnails;
-
     return { files, tag, author, fileInfos, thumbnails: getThumbnails(files), zipInfo: getZipInfo(files) };
 }
 

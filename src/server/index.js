@@ -32,15 +32,16 @@ let logPath = path.join(rootPath, userConfig.workspace_name, "log");
 logPath = path.join(logPath, dateFormat(new Date(), "yyyy-mm-dd HH-MM"))+ ".log";
 
 //set up json DB
-const JsonDB = require('node-json-db').JsonDB;
-const Config = require('node-json-db/dist/lib/JsonDBConfig').Config;
+const zipInfoDb = require("./models/zipInfoDb");
 let zip_content_db_path =  path.join(rootPath,  userConfig.workspace_name, "zip_info");
-const zip_content_db = new JsonDB(new Config(zip_content_db_path, true, true, '/'));
+zipInfoDb.init(zip_content_db_path);
+const { getPageNum, getMusicNum, updateZipDb }  = zipInfoDb;
 
 //set up user path
 let home_pathes;
 const path_config_path = path.join(rootPath, "src", "path-config");
-home_pathes = fs.readFileSync(path_config_path).toString().split('\n');
+//read text file 
+home_pathes = fs.readFileSync(path_config_path).toString().split('\n'); 
 home_pathes = home_pathes
             .map(e => e.trim().replace(/\n|\r/g, ""))
             .filter(pp =>{ return pp && pp.length > 0 && !pp.startsWith("#");});
@@ -168,25 +169,8 @@ async function init() {
 
 //----------------get folder contents
 
-function getPageNum(contentInfo, filePath){
-    if(contentInfo[filePath]){
-        return +(contentInfo[filePath].pageNum) || 0;
-    }else{
-        return 0;
-    }
-}
-
-function getMusicNum(contentInfo, filePath){
-    if(contentInfo[filePath]){
-        return +(contentInfo[filePath].musicNum) || 0;
-    }else{
-        return 0;
-    }
-}
-
 function getThumbnails(filePathes){
     const thumbnails = {};
-    const contentInfo = zip_content_db.getData("/");
     
     filePathes.forEach(filePath => {
         if(!isCompress(filePath)){
@@ -199,8 +183,8 @@ function getThumbnails(filePathes){
         const thumb = serverUtil.chooseThumbnailImage(cacheFiles);
         if(thumb){
             thumbnails[filePath] = fullPathToUrl(thumb);
-        }else if(contentInfo[filePath]){
-            const pageNum = getPageNum(contentInfo, filePath);
+        }else if(zipInfoDb.has(filePath)){
+            const pageNum = getPageNum(filePath);
             if(pageNum === 0){
                 thumbnails[filePath] = "NOT_THUMBNAIL_AVAILABLE";
             }
@@ -209,30 +193,10 @@ function getThumbnails(filePathes){
     return thumbnails;
 }
 
-function getZipInfo(filePathes){
-    const fpToInfo = {};
-    const contentInfo = zip_content_db.getData("/");
-    
-    filePathes.forEach(filePath => {
-        if(isCompress(filePath) && contentInfo[filePath]){
-            let pageNum = getPageNum(contentInfo, filePath);
-            const musicNum = getMusicNum(contentInfo, filePath);
-
-            const entry = {
-                pageNum,
-                musicNum
-            }
-
-            fpToInfo[filePath] = entry;
-        }
-    }); 
-    return fpToInfo;
-}
 
 serverUtil.common.path_will_scan = path_will_scan;
 serverUtil.common.getCacheOutputPath = getCacheOutputPath;
 serverUtil.common.cachePath = cachePath;
-serverUtil.common.getZipInfo = getZipInfo;
 serverUtil.common.getThumbnails = getThumbnails;
 
 //---------------------------SEARCH API------------------
@@ -343,14 +307,6 @@ async function listZipContent(filePath){
     }
 }
 
-function updateZipDb(filePath, pageNum, musicNum){
-    const contentInfo = zip_content_db.getData("/");
-    contentInfo[filePath] = {
-        pageNum: pageNum,
-        musicNum: musicNum
-    };
-    zip_content_db.push("/", contentInfo);
-}
 
 const pLimit = require('p-limit');
 const limit = pLimit(1);
@@ -533,9 +489,6 @@ async function extractByRange(filePath, outputPath, range, callback){
     }
 }
 
-
-
-
 app.post('/api/extract', async (req, res) => {
     let filePath =  req.body && req.body.filePath;
     const startIndex = (req.body && req.body.startIndex) || 0;
@@ -579,10 +532,9 @@ app.post('/api/extract', async (req, res) => {
     const outputPath = getCacheOutputPath(cachePath, filePath);
     const temp = getCacheFiles(outputPath);
 
-    const contentInfo = zip_content_db.getData("/");
-    if(contentInfo[filePath] && temp ){
-        const pageNum = getPageNum(contentInfo, filePath); 
-        const musicNum = getMusicNum(contentInfo, filePath);
+    if(zipInfoDb.has(filePath)  && temp ){
+        const pageNum = getPageNum(filePath); 
+        const musicNum = getMusicNum(filePath);
         const totalNum = pageNum + musicNum;
         const _files = (temp.files||[]).filter(e => {
             return !util.isCompressedThumbnail(e);
