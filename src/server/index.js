@@ -519,6 +519,9 @@ app.use(CacheInfo);
 const shutdown = require("./routes/shutdown");
 app.use(shutdown);
 
+const minifyZip = require("./routes/minifyZip");
+app.use(minifyZip);
+
 if(isProduction){
     const history = require('connect-history-api-fallback');
     app.use(history({

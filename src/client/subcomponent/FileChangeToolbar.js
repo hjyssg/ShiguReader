@@ -28,6 +28,37 @@ export default class FileChangeToolbar extends Component {
         this.setState({ anchorEl: event.currentTarget });
     }
 
+    handleMinifyZip(){
+        Swal.fire({
+            title: "Minify Zip",
+            text: 'Do you want to Minify Zip?' ,
+            showCancelButton: true,
+            confirmButtonText: 'Yes',
+            cancelButtonText: 'No'
+        }).then((result) => {
+            if (result.value === true) {
+                Sender.simplePost("/api/minifyZip", {filePath: this.props.file}, res => {
+                    // if (!res.failed) {
+                    //     spop({
+                    //         style: "success",
+                    //         template: 'Deleted ' + this.props.file,
+                    //         position:  this.props.popPosition,
+                    //         autoclose: 3000
+
+                    //     });
+                    // }else{
+                    //     spop({
+                    //         style: "error",
+                    //         template: 'Failed to delete',
+                    //         position:  this.props.popPosition,
+                    //         autoclose: 60000
+                    //     });
+                    // }
+                });
+            } 
+        });
+    }
+
     handleDelete(){
         this.setState({ anchorEl: null });
         Swal.fire({
@@ -130,6 +161,9 @@ export default class FileChangeToolbar extends Component {
         return (
             <div className={cn} >
                 {header && <span className="file-change-tool-bar-header">{header}</span>}
+                <div tabIndex="0" className="fas fa-hand-scissors"
+                                title="minify zip"
+                                onClick={this.handleMinifyZip.bind(this)}></div>
                 <div tabIndex="0" className="fas fa-trash-alt"
                                 title="Copy Del"
                                 onClick={this.handleDelete.bind(this)}></div>
