@@ -37,7 +37,7 @@ zipInfoDb.init(zip_content_db_path);
 const { getPageNum, getMusicNum, updateZipDb }  = zipInfoDb;
 
 const sevenZipHelp = require("./sevenZipHelp");
-const { sevenZip, get7zipOption , listZipContent, extractAll, extractByRange }= sevenZipHelp;
+const { get7zipOption , listZipContent, extractAll, extractByRange }= sevenZipHelp;
 
 
 //set up user path
@@ -433,7 +433,13 @@ app.post('/api/extract', async (req, res) => {
 
             let hasMusic = files.some(e => isMusic(e));
             if(hasMusic || files.length <= full_extract_max){
-                extractAll(filePath, outputPath, sendBack, res, stat);
+                const { pathes, error } = await extractAll(filePath, outputPath);
+                if(!error && pathes){
+                    const temp = generateContentUrl(pathes, outputPath);
+                    sendBack(temp.files, temp.musicFiles, filePath, stat);
+                } else {
+                    res.sendStatus(404);
+                }
             }else{
                 //spit one zip into two uncompress task
                 //so user can have a quicker response time

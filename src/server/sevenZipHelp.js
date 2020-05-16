@@ -124,16 +124,23 @@ module.exports.extractByRange = async function(filePath, outputPath, range){
         return error;
     }
 }
-module.exports.extractAll = async function(filePath, outputPath, sendBack, res, stat){
+module.exports.extractAll = async function(filePath, outputPath){
     const opt = get7zipOption(filePath, outputPath);
-    const { stderr } = await execa(sevenZip, opt);
-    if (!stderr) {
-        sendBack && fs.readdir(outputPath, (error, pathes) => {
-            const temp = generateContentUrl(pathes, outputPath);
-            sendBack(temp.files, temp.musicFiles, filePath, stat);
-        });
-    } else {
-        res && res.sendStatus(500);
-        console.error('[extractAll] exit: ', stderr);
+    let error, pathes
+    try{
+        const { stderr } = await execa(sevenZip, opt);
+        if (!stderr) {
+            pathes = await pfs.readdir(outputPath);
+            // const temp = generateContentUrl(pathes, outputPath);
+            // sendBack(temp.files, temp.musicFiles, filePath, stat);
+        } else {
+            error = stderr;
+        }
+    } catch (e) {
+        error = e;
+        console.error('[extractAll] exit: ', e);
+        logger.error('[extractAll] exit: ', e);
+    } finally{
+        return {error, pathes}
     }
 }
