@@ -25,4 +25,4 @@ function minifyImageFile(p1, fileName, callback){
     }
 }
 
-module.exports.minifyImageFile = minifyImageFile;
+module.exports = minifyImageFile;

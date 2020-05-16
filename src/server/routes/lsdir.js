@@ -13,8 +13,8 @@ const getAllFilePathes = db.getAllFilePathes;
 const util = require("../../util");
 const { getCurrentTime, isDisplayableInExplorer } = util;
 const path = require('path');
-
-const getZipInfo = serverUtil.common.getZipInfo;
+const zipInfoDb = require("../models/zipInfoDb");
+const { getZipInfo }  = zipInfoDb;
 const getThumbnails = serverUtil.common.getThumbnails;
 const _ = require('underscore');
 

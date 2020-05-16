@@ -1,8 +1,6 @@
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
-const stringHash = require("string-hash");
-const chokidar = require('chokidar');
 const execa = require('execa');
 const pfs = require('promise-fs');
 const dateFormat = require('dateformat');
@@ -18,15 +16,12 @@ const util = require("../util");
 const pathUtil = require("./pathUtil");
 const serverUtil = require("./serverUtil");
 
-
 const {
         fullPathToUrl,
-        turnPathSepToWebSep,
         generateContentUrl,
         isExist,
 } = pathUtil;
 const { isImage, isCompress, isMusic, isVideo, arraySlice, getCurrentTime, isDisplayableInExplorer, isDisplayableInOnebook } = util;
-const {getDirName, parse} = serverUtil;
 
 //set up path
 const rootPath = pathUtil.getRootPath();
@@ -36,15 +31,20 @@ let logPath = path.join(rootPath, userConfig.workspace_name, "log");
 logPath = path.join(logPath, dateFormat(new Date(), "yyyy-mm-dd HH-MM"))+ ".log";
 
 //set up json DB
-const JsonDB = require('node-json-db').JsonDB;
-const Config = require('node-json-db/dist/lib/JsonDBConfig').Config;
+const zipInfoDb = require("./models/zipInfoDb");
 let zip_content_db_path =  path.join(rootPath,  userConfig.workspace_name, "zip_info");
-const zip_content_db = new JsonDB(new Config(zip_content_db_path, true, true, '/'));
+zipInfoDb.init(zip_content_db_path);
+const { getPageNum, getMusicNum, updateZipDb }  = zipInfoDb;
+
+const sevenZipHelp = require("./sevenZipHelp");
+const { sevenZip, get7zipOption , listZipContent, extractAll, extractByRange }= sevenZipHelp;
+
 
 //set up user path
 let home_pathes;
 const path_config_path = path.join(rootPath, "src", "path-config");
-home_pathes = fs.readFileSync(path_config_path).toString().split('\n');
+//read text file 
+home_pathes = fs.readFileSync(path_config_path).toString().split('\n'); 
 home_pathes = home_pathes
             .map(e => e.trim().replace(/\n|\r/g, ""))
             .filter(pp =>{ return pp && pp.length > 0 && !pp.startsWith("#");});
@@ -58,7 +58,6 @@ if(isWindows()){
     home_pathes.push(`${process.env.HOME}/Downloads`);
 }
 const path_will_scan = home_pathes.concat(userConfig.good_folder, userConfig.good_folder_root, userConfig.not_good_folder);
-serverUtil.common.path_will_scan = path_will_scan;
 
 const isProduction = process.argv.includes("--production");
 
@@ -69,89 +68,25 @@ console.log("__dirname", __dirname);
 console.log("rootPath", rootPath);
 console.log("log path:", logPath);
 
-let sevenZip;
-if(isWindows()){
-    const sevenZipPath = path.join(process.cwd(), "resource/7zip");
-    sevenZip = require(sevenZipPath)['7z'];
-    console.log("sevenZipPath", sevenZipPath);
-}else{
-    //assume linux/mac people already install it by cmd
-    //https://superuser.com/questions/548349/how-can-i-install-7zip-so-i-can-run-it-from-terminal-on-os-x
-    sevenZip = "7z";
-}
-
 console.log("----------------------");
 
 const loggerModel = require("./models/logger");
 loggerModel.init(logPath);
 const logger = loggerModel.logger;
 
-function preParse(str){
-    //will save in memory
-    parse(str);
-}
-
-const getCacheOutputPath = function (cachePath, zipFilePath) {
-    let outputFolder;
-    outputFolder = path.basename(zipFilePath, path.extname(zipFilePath));
-    if(!userConfig.readable_cache_folder_name){
-        outputFolder = stringHash(zipFilePath).toString();
-    }else{
-        outputFolder = outputFolder.replace(/[`~!@#$%^&*()_|+\-=?;:'",.<>/]/gi, '');
-    }
-    outputFolder = outputFolder.trim();
-
-    let stat = db.getFileToInfo()[zipFilePath];
-    if (!stat) {
-        //should have stat in fileToInfo
-        //but chokidar is not reliable
-        //getCacheOutputPath comes before chokidar callback
-        console.warn("[getCacheOutputPath] no stat", zipFilePath);
-    } else {
-        const mdate = new Date(stat.mtimeMs);
-        const mstr = dateFormat(mdate, "yyyy-mm-dd");
-        const fstr = (stat.size/1000/1000).toFixed();
-        outputFolder = outputFolder+ `${mstr} ${fstr} `;
-    }
-    return path.join(cachePath, outputFolder);
-}
-
-serverUtil.common.getCacheOutputPath = getCacheOutputPath;
-serverUtil.common.cachePath = cachePath;
+const db = require("./models/db");
+const {getAllFilePathes, getCacheFiles, getCacheOutputPath} = db;
 
 const app = express();
-
-const db = require("./models/db");
-const getAllFilePathes = db.getAllFilePathes;
-
-const cacheDb = {
-    //a list of cache files folder -> files
-    folderToFiles: {},
-    //cache path to file stats
-    cacheFileToInfo: {}
-}
-
 app.use(express.static('dist', {
     maxAge: (1000*3600).toString()
 }));
 app.use(express.static(rootPath, {
     maxAge: (1000*3600*24).toString() // uses milliseconds per docs
 }));
-
 //  to consume json request body
 //  https://stackoverflow.com/questions/10005939/how-do-i-consume-the-json-post-data-in-an-express-application
 app.use(express.json());
-
-
-//  outputPath is the folder name
-function getCacheFiles(outputPath) {
-    //in-memory is fast
-    const single_cache_folder = path.basename(outputPath);
-    if(cacheDb.folderToFiles[single_cache_folder] && cacheDb.folderToFiles[single_cache_folder].length > 0){
-        return generateContentUrl(cacheDb.folderToFiles[single_cache_folder], outputPath);
-    }
-    return null;
-}
 
 const portConfig = require('../port-config');
 const {http_port, dev_express_port } = portConfig;
@@ -177,7 +112,6 @@ async function init() {
         if(stat.size < minSize){
             return false;
         }
-        
         return isDisplayableInExplorer(e);
     };
     let beg = (new Date).getTime()
@@ -190,17 +124,9 @@ async function init() {
     console.log(`${(end - beg)/1000}s  to read local dirs`);
     console.log("Analyzing local files");
     
-    for (let i = 0; i < results.pathes.length; i++) {
-        const p = results.pathes[i];
-        const ext = path.extname(p).toLowerCase();
-        if (!ext ||  isDisplayableInExplorer(ext)) {
-            preParse(p);
-        }
-    }
+    db.initFileToInfo(results.infos);
 
-    db.setFileToInfo(results.infos);
-
-    console.log("There are",getAllFilePathes().length, "files");
+    console.log("There are", getAllFilePathes().length, "files");
 
     console.log("----------scan cache------------");
     const cache_results = fileiterator([cachePath], { 
@@ -208,15 +134,9 @@ async function init() {
         doLog: true
     });
 
-    (cache_results.pathes||[]).forEach(p => {
-        const fp =  getDirName(p);
-        cacheDb.folderToFiles[fp] = cacheDb.folderToFiles[fp] || [];
-        cacheDb.folderToFiles[fp].push(path.basename(p));
-    });
+    db.initCacheDb(cache_results.pathes, cache_results.infos);
+    db.setUpFileWatch(home_pathes, cache_folder_name);
 
-    cacheDb.cacheFileToInfo = cache_results.infos;
-
-    const {watcher, cacheWatcher} = setUpFileWatch();
     const port = isProduction? http_port: dev_express_port;
     const server = app.listen(port, async () => {
         const lanIP = await internalIp.v4();
@@ -239,134 +159,10 @@ async function init() {
     });
 }
 
-function shouldWatch(p){
-    const ext = path.extname(p).toLowerCase();
-    if (!ext ||  isDisplayableInExplorer(ext) || isMusic(ext) ||isImage(ext)) {
-        return true;
-    }
-    return false;
-}
-
-function shouldIgnore(p){
-    return !shouldWatch(p);
-}
-
-//!! same as file-iterator getStat()
-function addStatToDb(path, stat){
-    const result = {};
-    result.isFile = stat.isFile();
-    result.isDir = stat.isDirectory();
-    result.mtimeMs = stat.mtimeMs;
-    result.mtime = stat.mtime;
-    result.size = stat.size;
-    db.getFileToInfo()[path] = result;
-}
-
-function setUpFileWatch(){
-    const watcher = chokidar.watch(home_pathes, {
-        ignored: shouldIgnore,
-        ignoreInitial: true,
-        persistent: true,
-        ignorePermissionErrors: true
-    });
-
-    const addCallBack = (path, stats) => {
-        preParse(path);
-        addStatToDb(path, stats);
-        extractThumbnailFromZip(path);
-    };
-
-    const deleteCallBack = path => {
-        delete db.getFileToInfo()[path];
-    };
-
-    watcher
-        .on('add', addCallBack)
-        .on('unlink', deleteCallBack);
-    
-    // More possible events.
-    watcher
-        .on('addDir', addCallBack)
-        .on('unlinkDir', deleteCallBack);
-
-    //also for cache files
-    const cacheWatcher = chokidar.watch(cache_folder_name, {
-        ignored: shouldIgnore,
-        persistent: true,
-        ignorePermissionErrors: true,
-        ignoreInitial: true,
-    });
-
-    cacheWatcher
-        .on('unlinkDir', p => {
-            const fp =  path.dirname(p);
-            cacheDb.folderToFiles[fp] = undefined;
-        });
-
-    cacheWatcher
-        .on('add', (p, stats) => {
-            const fp =  getDirName(p);
-            cacheDb.folderToFiles[fp] = cacheDb.folderToFiles[fp] || [];
-            cacheDb.folderToFiles[fp].push(path.basename(p));
-
-            stats.isFile = stats.isFile();
-            stats.isDir = stats.isDirectory();
-            cacheDb.cacheFileToInfo[p] = stats;
-        })
-        .on('unlink', p => {
-            const fp =  getDirName(p);
-            cacheDb.folderToFiles[fp] = cacheDb.folderToFiles[fp] || [];
-            const index = cacheDb.folderToFiles[fp].indexOf(path.basename(p));
-            cacheDb.folderToFiles[fp].splice(index, 1);
-
-            delete cacheDb.cacheFileToInfo[p];
-        });
-
-    return {
-        watcher,
-        cacheWatcher
-    };
-}
-
-//-------------------------Get info ----------------------
-app.get('/api/cacheInfo', (req, res) => {
-    const cacheFiles =  _.keys(cacheDb.cacheFileToInfo).filter(isDisplayableInOnebook);
-    let totalSize = 0;
-
-    const thumbnailNum = cacheFiles.filter(util.isCompressedThumbnail).length;
-
-    cacheFiles.forEach(e => {
-        totalSize += cacheDb.cacheFileToInfo[e].size;
-    })
-
-    res.send({
-        totalSize: totalSize,
-        thumbnailNum,
-        cacheNum: cacheFiles.length
-    })
-});
-
 //----------------get folder contents
-
-function getPageNum(contentInfo, filePath){
-    if(contentInfo[filePath]){
-        return +(contentInfo[filePath].pageNum) || 0;
-    }else{
-        return 0;
-    }
-}
-
-function getMusicNum(contentInfo, filePath){
-    if(contentInfo[filePath]){
-        return +(contentInfo[filePath].musicNum) || 0;
-    }else{
-        return 0;
-    }
-}
 
 function getThumbnails(filePathes){
     const thumbnails = {};
-    const contentInfo = zip_content_db.getData("/");
     
     filePathes.forEach(filePath => {
         if(!isCompress(filePath)){
@@ -379,8 +175,8 @@ function getThumbnails(filePathes){
         const thumb = serverUtil.chooseThumbnailImage(cacheFiles);
         if(thumb){
             thumbnails[filePath] = fullPathToUrl(thumb);
-        }else if(contentInfo[filePath]){
-            const pageNum = getPageNum(contentInfo, filePath);
+        }else if(zipInfoDb.has(filePath)){
+            const pageNum = getPageNum(filePath);
             if(pageNum === 0){
                 thumbnails[filePath] = "NOT_THUMBNAIL_AVAILABLE";
             }
@@ -389,49 +185,11 @@ function getThumbnails(filePathes){
     return thumbnails;
 }
 
-function getZipInfo(filePathes){
-    const fpToInfo = {};
-    const contentInfo = zip_content_db.getData("/");
-    
-    filePathes.forEach(filePath => {
-        if(isCompress(filePath) && contentInfo[filePath]){
-            let pageNum = getPageNum(contentInfo, filePath);
-            const musicNum = getMusicNum(contentInfo, filePath);
 
-            const entry = {
-                pageNum,
-                musicNum
-            }
-
-            fpToInfo[filePath] = entry;
-        }
-    }); 
-    return fpToInfo;
-}
-
-serverUtil.common.getZipInfo = getZipInfo;
+serverUtil.common.path_will_scan = path_will_scan;
+serverUtil.common.getCacheOutputPath = getCacheOutputPath;
+serverUtil.common.cachePath = cachePath;
 serverUtil.common.getThumbnails = getThumbnails;
-
-//---------------------------SEARCH API------------------
-const searchByTagAndAuthor = require("./models/search");
-
-const { MODE_TAG,  MODE_AUTHOR,  MODE_SEARCH } = Constant;
-
-// three para 1.mode 2.text
-app.post(Constant.SEARCH_API, (req, res) => {
-    const mode = req.body && req.body.mode;
-    const textParam = req.body && req.body.text;
-
-    const tag =  mode === MODE_TAG && textParam;
-    const author =  mode === MODE_AUTHOR && textParam;
-    const text = mode === MODE_SEARCH && textParam;
-
-    if (!author && !tag && !text) {
-        res.sendStatus(404);
-    }else{
-        res.send(searchByTagAndAuthor(tag, author, text));
-    }
-});
 
 //-----------------thumbnail related-----------------------------------
 
@@ -453,87 +211,28 @@ app.post(Constant.TAG_THUMBNAIL_PATH_API, (req, res) => {
     extractThumbnailFromZip(chosendFileName, res);
 });
 
-function read7zOutput(data) {
-    const lines = data && data.split("\n");
-    const files = [];
-    for (let ii = 0; ii < lines.length; ii++) {
-        let line = lines[ii].trim();
-        let tokens = line.split(" = ");
-        // an example 
-        // Path = 041.jpg
-        // Folder = -
-        // Size = 1917111
-        // Packed Size = 1865172
-        // Modified = 2020-04-03 17:29:52
-        // Created = 2020-04-03 17:29:52
-        // Accessed = 2020-04-03 17:29:52
-        if(tokens.length === 2){
-            const key = tokens[0];
-            const value = tokens[1].trim();
-            if(key.toLowerCase() === "path"){
-                files.push(value);
-            }
-        }
+function logForPre(prefix, config, filePath) {
+    const {minCounter, total} = config;
+    console.log(`${prefix} ${minCounter}/${total}  ${filePath}`);
+    const time2 = getCurrentTime();
+    const timeUsed = (time2 - config.pregenBeginTime)/1000;
+    if(minCounter > 0){
+        const secPerFile = timeUsed /minCounter;
+        const remainTime = (total - minCounter) * secPerFile/60;
+        console.log(`${prefix} ${(secPerFile).toFixed(2)} seconds per file`);
+        console.log(`${prefix} ${remainTime.toFixed(2)} minutes before finish`);
     }
-    return files;
-}
-
-function get7zipOption(filePath, outputPath, file_specifier){
-    //https://sevenzip.osdn.jp/chm/cmdline/commands/extract.htm
-    //e make folder as one level
-    if(file_specifier){
-        let specifier =  _.isArray(file_specifier)? file_specifier : [file_specifier];
-        specifier = specifier.map(e => {
-            //-0018.jpg will break 7zip
-            if(e.startsWith("-")){
-                return "*" + e.slice(1);
-            }else{
-                return e;
-            }
-        })
-
-        return ['e', filePath, `-o${outputPath}`].concat(specifier, "-aos");
-    }else{
-        return ['e', filePath, `-o${outputPath}`, "-aos"];
+    if(minCounter >= total){
+        console.log('[pregenerate] done');
     }
 }
 
-async function listZipContent(filePath){
-    try{
-        //https://superuser.com/questions/1020232/list-zip-files-contents-using-7zip-command-line-with-non-verbose-machine-friend
-        let {stdout, stderr} = await limit(() => execa(sevenZip, ['l', '-r', '-ba' ,'-slt', filePath]));
-        const text = stdout;
-        if (!text || stderr) {
-            return [];
-        }
-
-        const files = read7zOutput(text);
-        const imgFiles = files.filter(isImage);
-        const musicFiles = files.filter(isMusic)
-
-        updateZipDb(filePath, imgFiles.length, musicFiles.length);
-        return files;
-    }catch(e){
-        logger.error("[listZipContent]", filePath, e);
-        console.error("[listZipContent]", filePath, e);
-        return [];
-    }
-}
-
-function updateZipDb(filePath, pageNum, musicNum){
-    const contentInfo = zip_content_db.getData("/");
-    contentInfo[filePath] = {
-        pageNum: pageNum,
-        musicNum: musicNum
-    };
-    zip_content_db.push("/", contentInfo);
-}
 
 const pLimit = require('p-limit');
-const limit = pLimit(1);
 const extractlimit = pLimit(1);
+const minifyImageFile = require("../tools/minifyImageFile");
 //the only required parameter is filePath
-async function extractThumbnailFromZip(filePath, res, mode, counter) {
+async function extractThumbnailFromZip(filePath, res, mode, config) {
     if(!util.isCompress(filePath)){
         return;
     }
@@ -557,8 +256,17 @@ async function extractThumbnailFromZip(filePath, res, mode, counter) {
     function handleFail(){
         sendable && res.sendStatus(404);
         if(isPregenerateMode){
-            counter.total--;
+            config.total--;
         }
+    }
+
+    function minify(one){
+        minifyImageFile(outputPath, path.basename(one), (err, info) => { 
+            if(isPregenerateMode){
+                config.minCounter++;
+                logForPre("[pre-generate minify] ", config, filePath );
+            }
+         });
     }
 
     //only update zip db
@@ -575,67 +283,47 @@ async function extractThumbnailFromZip(filePath, res, mode, counter) {
         const tempOne =  serverUtil.chooseThumbnailImage(cacheFiles.files);
         if(util.isCompressedThumbnail(tempOne)){
             let temp = path.join(outputPath, path.basename(tempOne));
-            temp = turnPathSepToWebSep(temp);
             sendImage(temp);
-
             if(isPregenerateMode){
-                counter.total--;
-                console.log("[extractThumbnailFromZip] already exist", filePath);
+                config.minCounter++;
+                logForPre("[pre-generate minify] ", config, filePath);
             }
+        } else if(isPregenerateMode){
+            minify(tempOne);
         }
-        return;
-    }
-
-    try{
-        if(!files){
-            files = await listZipContent(filePath);
-        } 
-        const one = serverUtil.chooseThumbnailImage(files);
-        if(!one){
-            // console.error("[extractThumbnailFromZip] no thumbnail for ", filePath);
-            handleFail();
-            return;
-        }
-
-        const opt = get7zipOption(filePath, outputPath, one);
-        const {stderrForThumbnail} = await extractlimit(() => execa(sevenZip, opt));
-        if (!stderrForThumbnail) {
-            // send path to client
-            let temp = path.join(outputPath, path.basename(one));
-            temp = turnPathSepToWebSep(temp);
-            sendImage(temp);
-
-            function logForPre(prefix, counter, total, printSpeed){
-                console.log(`${prefix} ${counter}/${total}`,  filePath);
-                const time2 = getCurrentTime();
-                const timeUsed = (time2 - pregenBeginTime)/1000;
-                printSpeed && console.log(`${prefix} ${(timeUsed /counter).toFixed(2)} seconds per file`)
-            }
-
-            const minifyImageFile = require("../tools/minifyImageFile").minifyImageFile;
-            minifyImageFile(outputPath, path.basename(one), (err, info) => { 
-                if(isPregenerateMode){
-                    counter.minCounter++;
-                    logForPre("[pre-generate minify] ", counter.minCounter, counter.total, true);
+    } else {
+        //do the extract
+        try{
+            if(!files){
+                files = await listZipContent(filePath);
+            } 
+            const one = serverUtil.chooseThumbnailImage(files);
+            if(!one){
+                // console.error("[extractThumbnailFromZip] no thumbnail for ", filePath);
+                handleFail();
+            } else {
+                const stderrForThumbnail = await  extractByRange(filePath, outputPath, [one])
+                if (!stderrForThumbnail) {
+                    // send path to client
+                    let temp = path.join(outputPath, path.basename(one));
+                    sendImage(temp);
+                    minify(one)
+                    if(isPregenerateMode){
+                        config.counter++;
+                    }
+                } else {
+                    console.error("[extractThumbnailFromZip extract exec failed]", code);
+                    handleFail();
                 }
-             });
-
-            if(isPregenerateMode){
-                counter.counter++;
-                // logForPre("[pre-generate extract]", counter.counter, counter.total);
             }
-        } else {
-            console.error("[extractThumbnailFromZip extract exec failed]", code);
+        } catch(e) {
+            console.error("[extractThumbnailFromZip] exception", filePath,  e);
+            logger.error("[extractThumbnailFromZip] exception", filePath,  e);
             handleFail();
         }
-    } catch(e) {
-        console.error("[extractThumbnailFromZip] exception", filePath,  e);
-        logger.error("[extractThumbnailFromZip] exception", filePath,  e);
-        handleFail();
     }
 }
 
-let pregenBeginTime;
 
 //  a huge back ground task 
 //  it generate all thumbnail and will be slow
@@ -648,14 +336,15 @@ app.post('/api/pregenerateThumbnails', (req, res) => {
     const allfiles = getAllFilePathes();
     let totalFiles = allfiles.filter(isCompress);
     if(path !== "All_Pathes"){
-        totalFiles = allfiles.filter(e => e.includes(path));
+        totalFiles = totalFiles.filter(e => e.includes(path));
     }
 
-    pregenBeginTime = getCurrentTime();
-
-    let counter = {counter: 1, total: totalFiles.length, minCounter: 1};
+    let config = {counter: 0, 
+                  minCounter: 0,
+                  total: totalFiles.length, 
+                  pregenBeginTime: getCurrentTime()};
     totalFiles.forEach(filePath =>{
-        extractThumbnailFromZip(filePath, res, "pre-generate", counter);
+        extractThumbnailFromZip(filePath, res, "pre-generate", config);
     })
 });
 
@@ -670,48 +359,6 @@ app.post('/api/firstImage', async (req, res) => {
     }
     extractThumbnailFromZip(filePath, res);
 });
-
-async function extractAll(filePath, outputPath, files, sendBack, res, stat){
-    const opt = get7zipOption(filePath, outputPath, files);
-    const { stderr } = await execa(sevenZip, opt);
-    if (!stderr) {
-        sendBack && fs.readdir(outputPath, (error, pathes) => {
-            const temp = generateContentUrl(pathes, outputPath);
-            sendBack(temp.files, temp.musicFiles, filePath, stat);
-        });
-    } else {
-        res && res.sendStatus(500);
-        console.error('[extractAll] exit: ', stderr);
-    }
-}
-
-async function extractByRange(filePath, outputPath, range, callback){
-    try{
-        //quitely unzip second part
-        const DISTANCE = 200;
-        let ii = 0;
-
-        while(ii < range.length){
-            //cut into parts
-            //when range is too large, will cause OS level error
-            let subRange = range.slice(ii, ii+DISTANCE);
-            let opt = get7zipOption(filePath, outputPath, subRange);
-            let { stderr } = await execa(sevenZip, opt);
-            if(stderr){
-                console.error('[extractByRange] exit: ', stderr);  
-                logger.error('[extractByRange] exit: ', stderr);
-                break;
-            }
-            ii = ii+DISTANCE;
-        }
-    }catch (e){
-        console.error('[extractByRange] exit: ', e);
-        logger.error('[extractByRange] exit: ', e);
-    }
-}
-
-
-
 
 app.post('/api/extract', async (req, res) => {
     let filePath =  req.body && req.body.filePath;
@@ -756,10 +403,9 @@ app.post('/api/extract', async (req, res) => {
     const outputPath = getCacheOutputPath(cachePath, filePath);
     const temp = getCacheFiles(outputPath);
 
-    const contentInfo = zip_content_db.getData("/");
-    if(contentInfo[filePath] && temp ){
-        const pageNum = getPageNum(contentInfo, filePath); 
-        const musicNum = getMusicNum(contentInfo, filePath);
+    if(zipInfoDb.has(filePath)  && temp ){
+        const pageNum = getPageNum(filePath); 
+        const musicNum = getMusicNum(filePath);
         const totalNum = pageNum + musicNum;
         const _files = (temp.files||[]).filter(e => {
             return !util.isCompressedThumbnail(e);
@@ -770,6 +416,7 @@ app.post('/api/extract', async (req, res) => {
             return;
         }else if(totalNum === 0){
             sendBack([], [], filePath, stat );
+            return;
         }
     }
 
@@ -786,7 +433,7 @@ app.post('/api/extract', async (req, res) => {
 
             let hasMusic = files.some(e => isMusic(e));
             if(hasMusic || files.length <= full_extract_max){
-                extractAll(filePath, outputPath, files, sendBack, res, stat);
+                extractAll(filePath, outputPath, sendBack, res, stat);
             }else{
                 //spit one zip into two uncompress task
                 //so user can have a quicker response time
@@ -806,9 +453,7 @@ app.post('/api/extract', async (req, res) => {
                     throw "arraySlice wrong";
                 }
 
-                const opt = get7zipOption(filePath, outputPath, firstRange);
-                const { stderr } = await execa(sevenZip, opt);
-
+                let stderr = await extractByRange(filePath, outputPath, firstRange)
                 if (!stderr) {
                     const temp = generateContentUrl(files, outputPath);
                     sendBack(temp.files, temp.musicFiles, filePath, stat);
@@ -847,6 +492,9 @@ app.use(moveOrDelete);
 const download = require("./routes/download");
 app.use(download);
 
+const search = require("./routes/search");
+app.use(search);
+
 const AllInfo = require("./routes/AllInfo");
 app.use(AllInfo);
 
@@ -858,6 +506,9 @@ app.use(hentaiApi);
 
 const cleanCache = require("./routes/cleanCache");
 app.use(cleanCache);
+
+const CacheInfo = require("./routes/CacheInfo");
+app.use(CacheInfo);
 
 const shutdown = require("./routes/shutdown");
 app.use(shutdown);
