@@ -1,30 +1,43 @@
-const JsonDB = require('node-json-db').JsonDB;
-const Config = require('node-json-db/dist/lib/JsonDBConfig').Config;
+const loki = require("lokijs");
 
 const util = require("../../util");
 const { isCompress } = util;
 
+let loki_db;
 let zip_content_db;
-let root_data;
+
+const _ = require('underscore');
+
 
 module.exports.init = function(path){
-    const autoSave = true;
-    const humanReadable = true;
-    zip_content_db = new JsonDB(new Config(path, autoSave, humanReadable, '/'));
-    root_data = zip_content_db.getData("/");
+    loki_db = new loki(path, {
+        autoload: true,
+        autoloadCallback : databaseInitialize,
+        autosave: true, 
+        autosaveInterval: 4000
+    });
+}
+
+// implement the autoloadback referenced in loki constructor
+function databaseInitialize() {
+    zip_content_db = loki_db.getCollection("zipInfo");
+    if (zip_content_db === null) {
+      zip_content_db = loki_db.addCollection("zipInfo", { indices: ['filePath'] });
+    }
 }
 
 const has = module.exports.has = function(filePath){
-    return !!getData(filePath);
+    const data = getData(filePath);
+    return !!data;
 }
 
 function getData(filePath){
-    return root_data[filePath];
+    return zip_content_db.findOne({filePath: filePath});
 }
 
 const getPageNum = module.exports.getPageNum = function(filePath){
-    const contentInfo = getData(filePath);
-    if(contentInfo){
+    if(has(filePath)){
+        const contentInfo = getData(filePath);
         return +(contentInfo.pageNum) || 0;
     }else{
         return 0;
@@ -32,8 +45,8 @@ const getPageNum = module.exports.getPageNum = function(filePath){
 }
 
 const getMusicNum = module.exports.getMusicNum = function(filePath){
-    const contentInfo = getData(filePath);
-    if(contentInfo){
+    if(has(filePath)){
+        const contentInfo = getData(filePath);
         return +(contentInfo.musicNum) || 0;
     }else{
         return 0;
@@ -62,12 +75,18 @@ module.exports.getZipInfo = function(filePathes){
 
 
 module.exports.updateZipDb = function(filePath, pageNum, musicNum){
-    const newroot_data = zip_content_db.getData("/");
-    newroot_data[filePath] = {
-        pageNum: pageNum,
-        musicNum: musicNum
-    };
-    root_data = newroot_data;
     //!!bug if shut the down the program, all data will be lost
-    zip_content_db.push("/", newroot_data);
+    if(has(filePath)){
+        let data = getData(filePath);
+        data.filePath = filePath;
+        data.pageNum = pageNum;
+        data.musicNum = musicNum;
+        zip_content_db.update(data);
+    }else{
+        zip_content_db.insert({
+            filePath,
+            pageNum,
+            musicNum
+        });
+    }
 }

@@ -20,6 +20,8 @@ note：
 react route的匹配是greedy，需要加个exact标签。真tmd坑。
 react-cookie谁做的，改cookie会setState然后重画。坑得妈都不认识了。
 
+node-json-db对path有要求。存起来不方便。然后push的时候，要是关闭程序直接丢失全部数据。坑死了。
+
 介绍
 App.js 最外面那层，使用react route切换page
 Explorer显示文件夹文件，或者显示tag模式下的文件
