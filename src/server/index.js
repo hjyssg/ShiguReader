@@ -211,13 +211,15 @@ app.post(Constant.TAG_THUMBNAIL_PATH_API, (req, res) => {
     extractThumbnailFromZip(chosendFileName, res);
 });
 
-function logForPre(prefix, counter, total, printSpeed){
-    console.log(`${prefix} ${counter}/${total}`,  filePath);
+function logForPre(prefix, config, filePath) {
+    const {minCounter, total} = config;
+    console.log(`${prefix} ${minCounter}/${total}  ${filePath}`);
     const time2 = getCurrentTime();
     const timeUsed = (time2 - config.pregenBeginTime)/1000;
-    printSpeed && console.log(`${prefix} ${(timeUsed /counter).toFixed(2)} seconds per file`);
-
-    if(counter >= total){
+    if(minCounter > 0){
+        console.log(`${prefix} ${(timeUsed /minCounter).toFixed(2)} seconds per file`);
+    }
+    if(minCounter >= total){
         console.log('[pregenerate] done');
     }
 }
@@ -259,7 +261,7 @@ async function extractThumbnailFromZip(filePath, res, mode, config) {
         minifyImageFile(outputPath, path.basename(one), (err, info) => { 
             if(isPregenerateMode){
                 config.minCounter++;
-                logForPre("[pre-generate minify] ", config.minCounter, config.total, true);
+                logForPre("[pre-generate minify] ", config, filePath );
             }
          });
     }
@@ -280,8 +282,9 @@ async function extractThumbnailFromZip(filePath, res, mode, config) {
             let temp = path.join(outputPath, path.basename(tempOne));
             sendImage(temp);
             if(isPregenerateMode){
-                config.total--;
-                console.log("[extractThumbnailFromZip] already exist", filePath);
+                config.minCounter++;
+                // console.log("[pre-generate minify] already exist", filePath);
+                logForPre("[pre-generate minify] ", config, filePath);
             }
         } else if(isPregenerateMode){
             minify(tempOne);
