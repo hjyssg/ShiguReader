@@ -27,7 +27,7 @@ const MIN_HEIGHT = 400;
 const MIN_WIDTH = 400;
 const userConfig = require('../user-config');
 const clientUtil = require("./clientUtil");
-const { getDir, getBaseName, isPad, getFileUrl, sortFileNames } = clientUtil;
+const { getDir, getBaseName, isMobile, getFileUrl, sortFileNames } = clientUtil;
 
 const NO_TWO_PAGE = "no_clip";
 const TWO_PAGE_LEFT = "left";
@@ -61,7 +61,7 @@ export default class OneBook extends Component {
   componentDidMount() {
     this.displayFile();
 
-    if(!isPad ()){
+    if(!isMobile ()){
       screenfull.onchange(()=> {
         this.forceUpdate();
       });
@@ -84,7 +84,7 @@ export default class OneBook extends Component {
   }
 
   getMaxHeight(){
-    if(isPad()){
+    if(isMobile()){
       return window.screen.height - 10;
      }
 
@@ -98,7 +98,7 @@ export default class OneBook extends Component {
   }
 
   getMaxWidth(){
-    if(isPad()){
+    if(isMobile()){
      return window.screen.width;
     }
     const result = isNaN(window.innerWidth) ? window.clientWidth : window.innerWidth;
@@ -106,7 +106,7 @@ export default class OneBook extends Component {
   }
 
   adjustImageSize(){
-    if(isPad()){
+    if(isMobile()){
       return;
     }
 
@@ -234,7 +234,7 @@ export default class OneBook extends Component {
   bindUserInteraction(){
     document.addEventListener('keydown', this.handleKeyDown.bind(this));
 
-    if(this.hasMusic() || isPad()){
+    if(this.hasMusic() || isMobile()){
       return;
     }
 
@@ -371,7 +371,7 @@ export default class OneBook extends Component {
   }
 
   renderPagination() {
-    if(isPad()){ return; }
+    if(isMobile()){ return; }
     const { files, index } = this.state;
     const isLast = index+1 === files.length;
     const text = (index+1) + "/" + files.length;
@@ -401,7 +401,7 @@ export default class OneBook extends Component {
                     <div className={titles[ii] ==="Dimensions"? "dimension-tag": ""} 
                       key={e+ii} style={{marginLeft:"15px"}} title={titles[ii]}> {e} 
                     </div>);
-      const mobilePageNum = isPad() && (
+      const mobilePageNum = isMobile() && (
         <div  style={{marginLeft:"15px"}} > {`${index+1}/${files.length}`}  </div>
       )
       return <div className={"one-book-file-stat"}>{texts} {mobilePageNum} </div>
@@ -423,7 +423,7 @@ export default class OneBook extends Component {
       return;
     }
 
-    if(!isPad()){
+    if(!isMobile()){
       const cn = classNames("one-book-image", {
         "has-music": this.hasMusic()
       });
@@ -608,7 +608,7 @@ export default class OneBook extends Component {
 
 
   renderNextPrevButton(){
-    if(isPad()){
+    if(isMobile()){
       return;
     }
 
@@ -622,7 +622,7 @@ export default class OneBook extends Component {
 
   renderSecondBar(){
     let content;
-    if(!isPad()){
+    if(!isMobile()){
       content = (
       <React.Fragment>
           <div className="two-page-mode-button fas fa-arrows-alt-h" onClick={this.toggleTwoPageMode.bind(this)} title="two page mode"></div>
@@ -675,7 +675,7 @@ export default class OneBook extends Component {
     if(this.state.path){
       document.title = getBaseName(this.state.path);
 
-      if(isPad() && index > 0){
+      if(isMobile() && index > 0){
         const _text = `${index+1}/${files.length}`;
         document.title = _text + " " +  document.title;
       }
@@ -692,7 +692,7 @@ export default class OneBook extends Component {
                       {this.renderMusicPlayer()}
     </div>);
 
-    const isContentBelow = isPad() && !userConfig.onebook_only_image_per_page;
+    const isContentBelow = isMobile() && !userConfig.onebook_only_image_per_page;
 
     return (  
       <div className="one-book-container">

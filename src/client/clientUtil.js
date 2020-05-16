@@ -1,6 +1,6 @@
 const util = require("../util");
 const Cookie =require("js-cookie");
-const _ =require("underscore");
+const _ = require("underscore");
 
 module.exports.getDir = function (fn) {
     if (!fn) { return ""; }
@@ -31,13 +31,18 @@ const getBaseNameWithoutExtention = function (fn, seperator) {
     return getBaseName(fn, seperator).split(".")[0];
 };
 
-const isPad = module.exports.isPad = function(){
+module.exports.isIOS = function(){
     // https://stackoverflow.com/questions/9038625/detect-if-device-is-ios
     return /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
 }
 
+const isMobile = module.exports.isMobile = function(){
+    // https://stackoverflow.com/questions/9038625/detect-if-device-is-ios
+    return /Mobi/.test(navigator.userAgent) && !window.MSStream;
+}
+
 module.exports.getPerPageItemNumber = function() {
-    if(isPad()){
+    if(isMobile()){
         return 3 * 6;
     }else{
         return 4 * 5;

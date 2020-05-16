@@ -36,7 +36,7 @@ export default class ClickAndCopyText extends Component {
     textArea.value = this.props.text;
     document.body.appendChild(textArea);
 
-    if(clientUtil.isPad()){
+    if(clientUtil.isIOS()){
       iosCopyToClipboard(textArea)
     }else{
       textArea.select();

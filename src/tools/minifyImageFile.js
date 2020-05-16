@@ -1,12 +1,12 @@
 const fs = require('fs');
 const path = require('path');
 const util = require("../util");
-const sharp = require('sharp');
 
 function minifyImageFile(p1, fileName, callback){
     try{
         //sharp is difficult to install, because GFW
         //but the server runs without it anyway
+        const sharp = require('sharp');
         if(sharp && !util.isCompressedThumbnail(fileName) && util.canBeCompressed(fileName)){
             const outputName = util.getCompressedThumbnailFileName(fileName);
             const outputPath = path.resolve(p1, outputName);
