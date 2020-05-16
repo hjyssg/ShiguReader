@@ -211,6 +211,17 @@ app.post(Constant.TAG_THUMBNAIL_PATH_API, (req, res) => {
     extractThumbnailFromZip(chosendFileName, res);
 });
 
+function logForPre(prefix, counter, total, printSpeed){
+    console.log(`${prefix} ${counter}/${total}`,  filePath);
+    const time2 = getCurrentTime();
+    const timeUsed = (time2 - config.pregenBeginTime)/1000;
+    printSpeed && console.log(`${prefix} ${(timeUsed /counter).toFixed(2)} seconds per file`);
+
+    if(counter >= total){
+        console.log('[pregenerate] done');
+    }
+}
+
 
 const pLimit = require('p-limit');
 const extractlimit = pLimit(1);
@@ -242,13 +253,6 @@ async function extractThumbnailFromZip(filePath, res, mode, config) {
         if(isPregenerateMode){
             config.total--;
         }
-    }
-
-    function logForPre(prefix, counter, total, printSpeed){
-        console.log(`${prefix} ${counter}/${total}`,  filePath);
-        const time2 = getCurrentTime();
-        const timeUsed = (time2 - config.pregenBeginTime)/1000;
-        printSpeed && console.log(`${prefix} ${(timeUsed /counter).toFixed(2)} seconds per file`)
     }
 
     function minify(one){
@@ -301,7 +305,6 @@ async function extractThumbnailFromZip(filePath, res, mode, config) {
                     minify(one)
                     if(isPregenerateMode){
                         config.counter++;
-                        // logForPre("[pre-generate extract]", config.counter, config.total);
                     }
                 } else {
                     console.error("[extractThumbnailFromZip extract exec failed]", code);
@@ -331,7 +334,10 @@ app.post('/api/pregenerateThumbnails', (req, res) => {
         totalFiles = totalFiles.filter(e => e.includes(path));
     }
 
-    let config = {counter: 1, total: totalFiles.length, minCounter: 1, pregenBeginTime: getCurrentTime()};
+    let config = {counter: 0, 
+                  minCounter: 0,
+                  total: totalFiles.length, 
+                  pregenBeginTime: getCurrentTime()};
     totalFiles.forEach(filePath =>{
         extractThumbnailFromZip(filePath, res, "pre-generate", config);
     })
@@ -348,8 +354,6 @@ app.post('/api/firstImage', async (req, res) => {
     }
     extractThumbnailFromZip(filePath, res);
 });
-
-
 
 app.post('/api/extract', async (req, res) => {
     let filePath =  req.body && req.body.filePath;
