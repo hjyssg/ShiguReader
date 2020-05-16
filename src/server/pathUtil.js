@@ -12,6 +12,7 @@ const getRootPath = function(){
     return rootPath;
 }
 
+//for thumbnail url
 const fullPathToUrl = function (img){
     const fullpath = path.resolve(img);
     return turnPathSepToWebSep("..\\"+ path.relative(rootPath, fullpath));
@@ -21,6 +22,7 @@ const turnPathSepToWebSep = function (fn) {
     return fn.replace(new RegExp(`\\${  path.sep}`, 'g'), '/');
 }
 
+//for zip inside image and music files
 const generateContentUrl = function (pathes, outputPath) {
     const files = [];
     const dirs = [];
@@ -76,7 +78,6 @@ function isSub(parent, child) {
 
 module.exports = {
     fullPathToUrl,
-    turnPathSepToWebSep,
     generateContentUrl,
     getRootPath,
     isExist,

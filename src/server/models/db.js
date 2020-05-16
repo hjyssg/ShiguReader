@@ -11,12 +11,7 @@ const userConfig = require('../../user-config');
 
 const {getDirName} = serverUtil;
 const { isImage, isCompress, isMusic, isDisplayableInExplorer, isDisplayableInOnebook } = util;
-const {
-    fullPathToUrl,
-    turnPathSepToWebSep,
-    generateContentUrl,
-    isExist,
-} = pathUtil;
+const {   generateContentUrl } = pathUtil;
 
 
 const db = {
@@ -108,7 +103,6 @@ module.exports.setUpFileWatch = function(home_pathes, cache_folder_name){
     const addCallBack = (path, stats) => {
         preParse(path);
         addStatToDb(path, stats);
-        extractThumbnailFromZip(path);
     };
 
     const deleteCallBack = path => {

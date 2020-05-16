@@ -18,7 +18,6 @@ const serverUtil = require("./serverUtil");
 
 const {
         fullPathToUrl,
-        turnPathSepToWebSep,
         generateContentUrl,
         isExist,
 } = pathUtil;
@@ -258,7 +257,7 @@ async function extractThumbnailFromZip(filePath, res, mode, counter) {
         const tempOne =  serverUtil.chooseThumbnailImage(cacheFiles.files);
         if(util.isCompressedThumbnail(tempOne)){
             let temp = path.join(outputPath, path.basename(tempOne));
-            temp = turnPathSepToWebSep(temp);
+          
             sendImage(temp);
 
             if(isPregenerateMode){
@@ -277,38 +276,36 @@ async function extractThumbnailFromZip(filePath, res, mode, counter) {
         if(!one){
             // console.error("[extractThumbnailFromZip] no thumbnail for ", filePath);
             handleFail();
-            return;
-        }
-
-        const  stderrForThumbnail = await  extractByRange(filePath, outputPath, [one])
-        if (!stderrForThumbnail) {
-            // send path to client
-            let temp = path.join(outputPath, path.basename(one));
-            temp = turnPathSepToWebSep(temp);
-            sendImage(temp);
-
-            function logForPre(prefix, counter, total, printSpeed){
-                console.log(`${prefix} ${counter}/${total}`,  filePath);
-                const time2 = getCurrentTime();
-                const timeUsed = (time2 - pregenBeginTime)/1000;
-                printSpeed && console.log(`${prefix} ${(timeUsed /counter).toFixed(2)} seconds per file`)
-            }
-
-            const minifyImageFile = require("../tools/minifyImageFile").minifyImageFile;
-            minifyImageFile(outputPath, path.basename(one), (err, info) => { 
-                if(isPregenerateMode){
-                    counter.minCounter++;
-                    logForPre("[pre-generate minify] ", counter.minCounter, counter.total, true);
-                }
-             });
-
-            if(isPregenerateMode){
-                counter.counter++;
-                // logForPre("[pre-generate extract]", counter.counter, counter.total);
-            }
         } else {
-            console.error("[extractThumbnailFromZip extract exec failed]", code);
-            handleFail();
+            const stderrForThumbnail = await  extractByRange(filePath, outputPath, [one])
+            if (!stderrForThumbnail) {
+                // send path to client
+                let temp = path.join(outputPath, path.basename(one));
+                sendImage(temp);
+    
+                function logForPre(prefix, counter, total, printSpeed){
+                    console.log(`${prefix} ${counter}/${total}`,  filePath);
+                    const time2 = getCurrentTime();
+                    const timeUsed = (time2 - pregenBeginTime)/1000;
+                    printSpeed && console.log(`${prefix} ${(timeUsed /counter).toFixed(2)} seconds per file`)
+                }
+    
+                const minifyImageFile = require("../tools/minifyImageFile");
+                minifyImageFile(outputPath, path.basename(one), (err, info) => { 
+                    if(isPregenerateMode){
+                        counter.minCounter++;
+                        logForPre("[pre-generate minify] ", counter.minCounter, counter.total, true);
+                    }
+                 });
+    
+                if(isPregenerateMode){
+                    counter.counter++;
+                    // logForPre("[pre-generate extract]", counter.counter, counter.total);
+                }
+            } else {
+                console.error("[extractThumbnailFromZip extract exec failed]", code);
+                handleFail();
+            }
         }
     } catch(e) {
         console.error("[extractThumbnailFromZip] exception", filePath,  e);
