@@ -1,4 +1,6 @@
 const util = require("../util");
+const Cookie =require("js-cookie");
+const _ =require("underscore");
 
 module.exports.getDir = function (fn) {
     if (!fn) { return ""; }
@@ -108,3 +110,48 @@ module.exports.getDownloadLink = function(path){
     return "/api/download/?p=" + path;
 }
 
+function stringHash (str) {
+    const stringHash = require("string-hash");
+    const  result = stringHash(str);
+    window.localStorage && window.localStorage.setItem(result, str)
+    return result;
+};
+
+function getPathFromLocalStorage(hash){
+    return window.localStorage && window.localStorage.getItem(hash);
+}
+
+const cookie_expire_days = 5;
+
+module.exports.saveFilePathToCookie = function(path){
+        //!!! 413 error. if the cookie become too big
+        const now = util.getCurrentTime();
+        const hash = stringHash(path);
+        Cookie.set(now, hash, { expires: cookie_expire_days })
+}
+
+module.exports.getHistoryFromCookie = function(){
+    const timeToHash = Cookie.get();
+    let times = _.keys(timeToHash);
+    times = _.sortBy(times);
+
+    const visited = {};
+    const history = [];
+    
+    times.forEach(t => {
+        const hash =  timeToHash[t];
+        const filePath = getPathFromLocalStorage(hash);
+        if(visited[filePath] || !filePath){
+            return;
+        }
+        visited[filePath] = true;
+        try{
+            const time = new Date(+t);
+            history.push([time, filePath])
+        }catch{
+            //cookie may be dirty
+        }
+    });
+
+    return history;
+}

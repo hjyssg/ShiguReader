@@ -23,8 +23,6 @@ const filesizeUitl = require('filesize');
 import screenfull from 'screenfull';
 const Constant = require("../constant");
 
-import Cookie from "js-cookie";
-
 const MIN_HEIGHT = 400;
 const MIN_WIDTH = 400;
 const userConfig = require('../user-config');
@@ -285,10 +283,7 @@ export default class OneBook extends Component {
         sortFileNames(musicFiles);
         this.setState({ files, musicFiles, path:res.path, fileStat: res.stat}, 
                        () => { this.bindUserInteraction()});
-        //used by recent read in admin page
-        //!!! 413 error. if the cookie become too big
-        Cookie.set(util.getCurrentTime(), this.getTextFromQuery(), { expires: 7 })
-
+        clientUtil.saveFilePathToCookie(this.getTextFromQuery());
       }else{
         this.forceUpdate();
       }
