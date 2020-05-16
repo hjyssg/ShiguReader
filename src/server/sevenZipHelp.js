@@ -9,8 +9,9 @@ const zipInfoDb = require("./models/zipInfoDb");
 const { updateZipDb }  = zipInfoDb;
 const logger = require("./models/logger").logger;
 const util = require("../util");
+const pathUtil = require("./pathUtil");
 const { isImage, isCompress, isMusic, isVideo, arraySlice, getCurrentTime, isDisplayableInExplorer, isDisplayableInOnebook } = util;
-
+const { generateContentUrl } = pathUtil;
 
 let sevenZip;
 if(isWindows()){
