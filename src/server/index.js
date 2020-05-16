@@ -214,8 +214,9 @@ app.post(Constant.TAG_THUMBNAIL_PATH_API, (req, res) => {
 
 const pLimit = require('p-limit');
 const extractlimit = pLimit(1);
+const minifyImageFile = require("../tools/minifyImageFile");
 //the only required parameter is filePath
-async function extractThumbnailFromZip(filePath, res, mode, counter) {
+async function extractThumbnailFromZip(filePath, res, mode, config) {
     if(!util.isCompress(filePath)){
         return;
     }
@@ -239,8 +240,24 @@ async function extractThumbnailFromZip(filePath, res, mode, counter) {
     function handleFail(){
         sendable && res.sendStatus(404);
         if(isPregenerateMode){
-            counter.total--;
+            config.total--;
         }
+    }
+
+    function logForPre(prefix, counter, total, printSpeed){
+        console.log(`${prefix} ${counter}/${total}`,  filePath);
+        const time2 = getCurrentTime();
+        const timeUsed = (time2 - config.pregenBeginTime)/1000;
+        printSpeed && console.log(`${prefix} ${(timeUsed /counter).toFixed(2)} seconds per file`)
+    }
+
+    function minify(one){
+        minifyImageFile(outputPath, path.basename(one), (err, info) => { 
+            if(isPregenerateMode){
+                config.minCounter++;
+                logForPre("[pre-generate minify] ", config.minCounter, config.total, true);
+            }
+         });
     }
 
     //only update zip db
@@ -257,64 +274,48 @@ async function extractThumbnailFromZip(filePath, res, mode, counter) {
         const tempOne =  serverUtil.chooseThumbnailImage(cacheFiles.files);
         if(util.isCompressedThumbnail(tempOne)){
             let temp = path.join(outputPath, path.basename(tempOne));
-          
             sendImage(temp);
-
             if(isPregenerateMode){
-                counter.total--;
+                config.total--;
                 console.log("[extractThumbnailFromZip] already exist", filePath);
             }
+        } else if(isPregenerateMode){
+            minify(tempOne);
         }
-        return;
-    }
-
-    try{
-        if(!files){
-            files = await listZipContent(filePath);
-        } 
-        const one = serverUtil.chooseThumbnailImage(files);
-        if(!one){
-            // console.error("[extractThumbnailFromZip] no thumbnail for ", filePath);
-            handleFail();
-        } else {
-            const stderrForThumbnail = await  extractByRange(filePath, outputPath, [one])
-            if (!stderrForThumbnail) {
-                // send path to client
-                let temp = path.join(outputPath, path.basename(one));
-                sendImage(temp);
-    
-                function logForPre(prefix, counter, total, printSpeed){
-                    console.log(`${prefix} ${counter}/${total}`,  filePath);
-                    const time2 = getCurrentTime();
-                    const timeUsed = (time2 - pregenBeginTime)/1000;
-                    printSpeed && console.log(`${prefix} ${(timeUsed /counter).toFixed(2)} seconds per file`)
-                }
-    
-                const minifyImageFile = require("../tools/minifyImageFile");
-                minifyImageFile(outputPath, path.basename(one), (err, info) => { 
-                    if(isPregenerateMode){
-                        counter.minCounter++;
-                        logForPre("[pre-generate minify] ", counter.minCounter, counter.total, true);
-                    }
-                 });
-    
-                if(isPregenerateMode){
-                    counter.counter++;
-                    // logForPre("[pre-generate extract]", counter.counter, counter.total);
-                }
-            } else {
-                console.error("[extractThumbnailFromZip extract exec failed]", code);
+    } else {
+        //do the extract
+        try{
+            if(!files){
+                files = await listZipContent(filePath);
+            } 
+            const one = serverUtil.chooseThumbnailImage(files);
+            if(!one){
+                // console.error("[extractThumbnailFromZip] no thumbnail for ", filePath);
                 handleFail();
+            } else {
+                const stderrForThumbnail = await  extractByRange(filePath, outputPath, [one])
+                if (!stderrForThumbnail) {
+                    // send path to client
+                    let temp = path.join(outputPath, path.basename(one));
+                    sendImage(temp);
+                    minify(one)
+                    if(isPregenerateMode){
+                        config.counter++;
+                        // logForPre("[pre-generate extract]", config.counter, config.total);
+                    }
+                } else {
+                    console.error("[extractThumbnailFromZip extract exec failed]", code);
+                    handleFail();
+                }
             }
+        } catch(e) {
+            console.error("[extractThumbnailFromZip] exception", filePath,  e);
+            logger.error("[extractThumbnailFromZip] exception", filePath,  e);
+            handleFail();
         }
-    } catch(e) {
-        console.error("[extractThumbnailFromZip] exception", filePath,  e);
-        logger.error("[extractThumbnailFromZip] exception", filePath,  e);
-        handleFail();
     }
 }
 
-let pregenBeginTime;
 
 //  a huge back ground task 
 //  it generate all thumbnail and will be slow
@@ -327,14 +328,12 @@ app.post('/api/pregenerateThumbnails', (req, res) => {
     const allfiles = getAllFilePathes();
     let totalFiles = allfiles.filter(isCompress);
     if(path !== "All_Pathes"){
-        totalFiles = allfiles.filter(e => e.includes(path));
+        totalFiles = totalFiles.filter(e => e.includes(path));
     }
 
-    pregenBeginTime = getCurrentTime();
-
-    let counter = {counter: 1, total: totalFiles.length, minCounter: 1};
+    let config = {counter: 1, total: totalFiles.length, minCounter: 1, pregenBeginTime: getCurrentTime()};
     totalFiles.forEach(filePath =>{
-        extractThumbnailFromZip(filePath, res, "pre-generate", counter);
+        extractThumbnailFromZip(filePath, res, "pre-generate", config);
     })
 });
 
@@ -408,6 +407,7 @@ app.post('/api/extract', async (req, res) => {
             return;
         }else if(totalNum === 0){
             sendBack([], [], filePath, stat );
+            return;
         }
     }
 
