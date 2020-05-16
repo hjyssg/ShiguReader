@@ -8,7 +8,9 @@ let zip_content_db;
 let root_data;
 
 module.exports.init = function(path){
-    zip_content_db = new JsonDB(new Config(path, true, true, '/'));
+    const autoSave = true;
+    const humanReadable = true;
+    zip_content_db = new JsonDB(new Config(path, autoSave, humanReadable, '/'));
     root_data = zip_content_db.getData("/");
 }
 
@@ -66,5 +68,6 @@ module.exports.updateZipDb = function(filePath, pageNum, musicNum){
         musicNum: musicNum
     };
     root_data = newroot_data;
+    //!!bug if shut the down the program, all data will be lost
     zip_content_db.push("/", newroot_data);
 }
