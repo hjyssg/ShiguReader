@@ -218,7 +218,7 @@ function logForPre(prefix, config, filePath) {
     const timeUsed = (time2 - config.pregenBeginTime)/1000;
     if(minCounter > 0){
         const secPerFile = timeUsed /minCounter;
-        const remainTime = (total - minCounter)/secPerFile/60;
+        const remainTime = (total - minCounter) * secPerFile/60;
         console.log(`${prefix} ${(secPerFile).toFixed(2)} seconds per file`);
         console.log(`${prefix} ${remainTime.toFixed(2)} minutes before finish`);
     }
