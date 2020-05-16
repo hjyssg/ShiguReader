@@ -283,7 +283,6 @@ async function extractThumbnailFromZip(filePath, res, mode, config) {
             sendImage(temp);
             if(isPregenerateMode){
                 config.minCounter++;
-                // console.log("[pre-generate minify] already exist", filePath);
                 logForPre("[pre-generate minify] ", config, filePath);
             }
         } else if(isPregenerateMode){
