@@ -37,6 +37,10 @@ let zip_content_db_path =  path.join(rootPath,  userConfig.workspace_name, "zip_
 zipInfoDb.init(zip_content_db_path);
 const { getPageNum, getMusicNum, updateZipDb }  = zipInfoDb;
 
+const sevenZipHelp = require("./sevenZipHelp");
+const { sevenZip, get7zipOption , listZipContent, extractAll, extractByRange }= sevenZipHelp;
+
+
 //set up user path
 let home_pathes;
 const path_config_path = path.join(rootPath, "src", "path-config");
@@ -64,17 +68,6 @@ console.log("__filename", __filename);
 console.log("__dirname", __dirname);
 console.log("rootPath", rootPath);
 console.log("log path:", logPath);
-
-let sevenZip;
-if(isWindows()){
-    const sevenZipPath = path.join(process.cwd(), "resource/7zip");
-    sevenZip = require(sevenZipPath)['7z'];
-    console.log("sevenZipPath", sevenZipPath);
-}else{
-    //assume linux/mac people already install it by cmd
-    //https://superuser.com/questions/548349/how-can-i-install-7zip-so-i-can-run-it-from-terminal-on-os-x
-    sevenZip = "7z";
-}
 
 console.log("----------------------");
 
@@ -219,76 +212,8 @@ app.post(Constant.TAG_THUMBNAIL_PATH_API, (req, res) => {
     extractThumbnailFromZip(chosendFileName, res);
 });
 
-function read7zOutput(data) {
-    const lines = data && data.split("\n");
-    const files = [];
-    for (let ii = 0; ii < lines.length; ii++) {
-        let line = lines[ii].trim();
-        let tokens = line.split(" = ");
-        // an example 
-        // Path = 041.jpg
-        // Folder = -
-        // Size = 1917111
-        // Packed Size = 1865172
-        // Modified = 2020-04-03 17:29:52
-        // Created = 2020-04-03 17:29:52
-        // Accessed = 2020-04-03 17:29:52
-        if(tokens.length === 2){
-            const key = tokens[0];
-            const value = tokens[1].trim();
-            if(key.toLowerCase() === "path"){
-                files.push(value);
-            }
-        }
-    }
-    return files;
-}
-
-function get7zipOption(filePath, outputPath, file_specifier){
-    //https://sevenzip.osdn.jp/chm/cmdline/commands/extract.htm
-    //e make folder as one level
-    if(file_specifier){
-        let specifier =  _.isArray(file_specifier)? file_specifier : [file_specifier];
-        specifier = specifier.map(e => {
-            //-0018.jpg will break 7zip
-            if(e.startsWith("-")){
-                return "*" + e.slice(1);
-            }else{
-                return e;
-            }
-        })
-
-        return ['e', filePath, `-o${outputPath}`].concat(specifier, "-aos");
-    }else{
-        return ['e', filePath, `-o${outputPath}`, "-aos"];
-    }
-}
-
-async function listZipContent(filePath){
-    try{
-        //https://superuser.com/questions/1020232/list-zip-files-contents-using-7zip-command-line-with-non-verbose-machine-friend
-        let {stdout, stderr} = await limit(() => execa(sevenZip, ['l', '-r', '-ba' ,'-slt', filePath]));
-        const text = stdout;
-        if (!text || stderr) {
-            return [];
-        }
-
-        const files = read7zOutput(text);
-        const imgFiles = files.filter(isImage);
-        const musicFiles = files.filter(isMusic)
-
-        updateZipDb(filePath, imgFiles.length, musicFiles.length);
-        return files;
-    }catch(e){
-        logger.error("[listZipContent]", filePath, e);
-        console.error("[listZipContent]", filePath, e);
-        return [];
-    }
-}
-
 
 const pLimit = require('p-limit');
-const limit = pLimit(1);
 const extractlimit = pLimit(1);
 //the only required parameter is filePath
 async function extractThumbnailFromZip(filePath, res, mode, counter) {
@@ -355,8 +280,7 @@ async function extractThumbnailFromZip(filePath, res, mode, counter) {
             return;
         }
 
-        const opt = get7zipOption(filePath, outputPath, one);
-        const {stderrForThumbnail} = await extractlimit(() => execa(sevenZip, opt));
+        const  stderrForThumbnail = await  extractByRange(filePath, outputPath, [one])
         if (!stderrForThumbnail) {
             // send path to client
             let temp = path.join(outputPath, path.basename(one));
@@ -429,44 +353,7 @@ app.post('/api/firstImage', async (req, res) => {
     extractThumbnailFromZip(filePath, res);
 });
 
-async function extractAll(filePath, outputPath, files, sendBack, res, stat){
-    const opt = get7zipOption(filePath, outputPath, files);
-    const { stderr } = await execa(sevenZip, opt);
-    if (!stderr) {
-        sendBack && fs.readdir(outputPath, (error, pathes) => {
-            const temp = generateContentUrl(pathes, outputPath);
-            sendBack(temp.files, temp.musicFiles, filePath, stat);
-        });
-    } else {
-        res && res.sendStatus(500);
-        console.error('[extractAll] exit: ', stderr);
-    }
-}
 
-async function extractByRange(filePath, outputPath, range, callback){
-    try{
-        //quitely unzip second part
-        const DISTANCE = 200;
-        let ii = 0;
-
-        while(ii < range.length){
-            //cut into parts
-            //when range is too large, will cause OS level error
-            let subRange = range.slice(ii, ii+DISTANCE);
-            let opt = get7zipOption(filePath, outputPath, subRange);
-            let { stderr } = await execa(sevenZip, opt);
-            if(stderr){
-                console.error('[extractByRange] exit: ', stderr);  
-                logger.error('[extractByRange] exit: ', stderr);
-                break;
-            }
-            ii = ii+DISTANCE;
-        }
-    }catch (e){
-        console.error('[extractByRange] exit: ', e);
-        logger.error('[extractByRange] exit: ', e);
-    }
-}
 
 app.post('/api/extract', async (req, res) => {
     let filePath =  req.body && req.body.filePath;
@@ -540,7 +427,7 @@ app.post('/api/extract', async (req, res) => {
 
             let hasMusic = files.some(e => isMusic(e));
             if(hasMusic || files.length <= full_extract_max){
-                extractAll(filePath, outputPath, files, sendBack, res, stat);
+                extractAll(filePath, outputPath, sendBack, res, stat);
             }else{
                 //spit one zip into two uncompress task
                 //so user can have a quicker response time
@@ -560,9 +447,7 @@ app.post('/api/extract', async (req, res) => {
                     throw "arraySlice wrong";
                 }
 
-                const opt = get7zipOption(filePath, outputPath, firstRange);
-                const { stderr } = await execa(sevenZip, opt);
-
+                let stderr = await extractByRange(filePath, outputPath, firstRange)
                 if (!stderr) {
                     const temp = generateContentUrl(files, outputPath);
                     sendBack(temp.files, temp.musicFiles, filePath, stat);
