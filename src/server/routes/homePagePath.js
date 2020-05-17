@@ -12,7 +12,7 @@ router.post('/api/homePagePath', function (req, res) {
     const allfp = getAllFilePathes();
     homepathes = homepathes.filter(e => {
        //there is file in the folder
-       return allfp.some(fp => (fp.length > e.length && fp.includes(e)));
+       return e && allfp.some(fp => (fp.length > e.length && fp.includes(e)));
     });
 
     if(homepathes.length === 0){

@@ -9,6 +9,9 @@ const getCacheOutputPath = db.getCacheOutputPath;
 const cachePath = serverUtil.common.cachePath;
 const  imageMagickHelp = require("../imageMagickHelp");
 
+const pathUtil = require("../pathUtil");
+const { isExist } = pathUtil;
+
 // const pLimit = require('p-limit');
 // const extractlimit = pLimit(1);
 
@@ -24,6 +27,11 @@ router.post('/api/minifyZipQue', (req, res) => {
 
 router.post('/api/minifyZip', async (req, res) => {
     const filePath = req.body && req.body.filePath;
+
+    if (!filePath || !(await isExist(filePath)) || minifyZipQue.includes(filePath)  ) {
+        res.sendStatus(404);
+    }
+
     minifyZipQue.push(filePath);
     await imageMagickHelp.minifyOneFile(filePath);
     minifyZipQue.shift();

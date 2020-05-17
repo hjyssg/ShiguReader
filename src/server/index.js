@@ -34,10 +34,10 @@ logPath = path.join(logPath, dateFormat(new Date(), "yyyy-mm-dd HH-MM"))+ ".log"
 const zipInfoDb = require("./models/zipInfoDb");
 let zip_content_db_path =  path.join(rootPath,  userConfig.workspace_name, "zip_info");
 zipInfoDb.init(zip_content_db_path);
-const { getPageNum, getMusicNum, updateZipDb }  = zipInfoDb;
+const { getPageNum, getMusicNum }  = zipInfoDb;
 
 const sevenZipHelp = require("./sevenZipHelp");
-const { get7zipOption , listZipContent, extractAll, extractByRange }= sevenZipHelp;
+const { listZipContent, extractAll, extractByRange }= sevenZipHelp;
 
 
 //set up user path
@@ -276,7 +276,7 @@ async function extractThumbnailFromZip(filePath, res, mode, config) {
     //in case previous info is changed or wrong
     if(isPregenerateMode){
         //in pregenerate mode, it always updates db content
-        files = await listZipContent(filePath);
+        files = await listZipContent(filePath).files;
     }
 
     //check if there is compress thumbnail  e.g thumbnail--001.jpg
@@ -297,7 +297,7 @@ async function extractThumbnailFromZip(filePath, res, mode, config) {
         //do the extract
         try{
             if(!files){
-                files = await listZipContent(filePath);
+                files = await listZipContent(filePath).files;
             } 
             const one = serverUtil.chooseThumbnailImage(files);
             if(!one){
@@ -425,7 +425,7 @@ app.post('/api/extract', async (req, res) => {
     (async () => {
         const full_extract_max = 10;
         try{
-            let files = await listZipContent(filePath);
+            let { files, fileInfos } = await listZipContent(filePath);
             files = files.filter(e => isDisplayableInOnebook(e));
             if(files.length === 0){
                res.sendStatus(404);
