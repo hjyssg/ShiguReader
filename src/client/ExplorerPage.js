@@ -316,12 +316,16 @@ export default class ExplorerPage extends Component {
        return +(this.zipInfo[fp] && this.zipInfo[fp].pageNum) || 0;
     }
 
+    getTotalImgSize(fp){
+       return +(this.zipInfo[fp] && this.zipInfo[fp].totalImgSize) || 0;
+    }
+
     getPageAvgSize(e){
-        const pageNum = this.getPageNum(e)+this.getMusicNum(e);
+        const pageNum = this.getPageNum(e);
         if(pageNum === 0){
             return -Infinity;
         }
-        return this.getFileSize(e)/pageNum;
+        return this.getTotalImgSize(e)/pageNum;
     }
 
     getMusicNum(fp){

@@ -73,10 +73,12 @@ module.exports.getZipInfo = function(filePathes){
         if(isCompress(filePath) && has(filePath)){
             let pageNum = getPageNum(filePath);
             const musicNum = getMusicNum(filePath);
+            const totalImgSize = getTotalImgSize(filePath);
 
             const entry = {
                 pageNum,
-                musicNum
+                musicNum,
+                totalImgSize
             }
 
             fpToInfo[filePath] = entry;
