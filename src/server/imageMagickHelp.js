@@ -42,12 +42,14 @@ module.exports.minifyOneFile = async function(filePath){
     let minifyOutputPath;
     try{
         const oldStat = await pfs.stat(filePath);
-        const { files, fileInfos } = await listZipContent(filePath);
+        const oldTemp = await listZipContent(filePath);
+        const oldFiles = oldTemp.files;
+        const oldFileInfos = oldTemp.fileInfos;
         //check all content is image
-        const convertable = files.every((e, ii) => {
+        const convertable = oldFiles.every((e, ii) => {
             if(isImage(e)){
                 return true;
-            }else if(fileInfos[ii].Folder === "+"){
+            }else if(oldFileInfos[ii].Folder === "+"){
                 return true
             }else{
                 return false;
@@ -62,8 +64,8 @@ module.exports.minifyOneFile = async function(filePath){
         //do a brand new extract 
         const bookName = path.basename(filePath, path.extname(filePath)) 
         const convertSpace = path.join(getRootPath(), userConfig.workspace_name, img_convert_cache);
-        extractOutputPath = path.join(convertable , bookName+"-original");
-        minifyOutputPath = path.join(convertable , bookName);
+        extractOutputPath = path.join(convertSpace, bookName+"-original");
+        minifyOutputPath = path.join(convertSpace, bookName);
 
         if(!(await isExist(minifyOutputPath))){
             const mdkirErr = await pfs.mkdir(minifyOutputPath, { recursive: true});
@@ -77,7 +79,7 @@ module.exports.minifyOneFile = async function(filePath){
         if(error){
             logFail(filePath, error)
         } else {
-            checkWithOriginalFiles(pathes, files);
+            checkWithOriginalFiles(pathes, oldFiles);
 
             console.log("-----begin convert images into webp--------------")
             const _pathes = pathes.filter(isImage);
@@ -108,7 +110,7 @@ module.exports.minifyOneFile = async function(filePath){
             if(!stderr){
                 const temp = await listZipContent(resultZipPath);
                 const filesInNewZip = temp.files;
-                checkWithOriginalFiles(filesInNewZip, files, ()=> { deleteCache(resultZipPath)});
+                checkWithOriginalFiles(filesInNewZip, oldFiles, ()=> { deleteCache(resultZipPath)});
 
                 const newStat = await pfs.stat(resultZipPath);
                 console.log("[magick] convertion done", filePath);
