@@ -49,7 +49,7 @@ module.exports.minifyOneFile = async function(filePath){
         const convertable = oldFiles.every((e, ii) => {
             if(isImage(e)){
                 return true;
-            }else if(oldFileInfos[ii].Folder === "+"){
+            }else if(oldFileInfos[ii].folder === "+"){
                 return true
             }else{
                 return false;

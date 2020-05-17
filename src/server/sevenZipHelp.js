@@ -47,12 +47,13 @@ function read7zOutput(data) {
             if(tokens.length === 2){
                 const key = tokens[0];
                 const value = tokens[1].trim();
-                if(key.toLowerCase() === "path"){
+                const lkey = key.toLowerCase();
+                if(lkey === "path"){
                     currentInfo && fileInfos.push(currentInfo); 
                     files.push(value);
                     currentInfo = {};
                 }else {
-                    currentInfo[key] = value;
+                    currentInfo[lkey] = value;
                 }
             }
         }
