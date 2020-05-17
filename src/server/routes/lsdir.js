@@ -56,7 +56,7 @@ router.post('/api/lsDir', async (req, res) => {
                 dirs.push(itsParent);
             }else{
                 files.push(pp);
-                infos[pp] = db.getFileToInfo()[pp]
+                infos[pp] = db.getFileToInfo(pp);
             }
         }
     })

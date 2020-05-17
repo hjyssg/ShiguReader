@@ -14,7 +14,7 @@ router.post("/api/singleFileInfo", async (req, res) => {
         return;
     }
 
-    let stat =  db.getFileToInfo()[filePath];
+    let stat =  db.getFileToInfo(filePath);
     if(!stat){
         stat = await pfs.stat(filePath);
     }

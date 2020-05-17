@@ -34,7 +34,7 @@ const has = module.exports.has = function(filePath){
 }
 
 function getData(filePath){
-    return zip_content_db.findOne({filePath: filePath});
+    return zip_content_db && zip_content_db.findOne({filePath: filePath});
 }
 
 //how many image files
