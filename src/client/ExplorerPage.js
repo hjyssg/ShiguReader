@@ -118,7 +118,11 @@ export default class ExplorerPage extends Component {
         // https://en.wikipedia.org/wiki/URL
         // e.g ?s=apple
         const _props = props || this.props;
-        return queryString.parse(_props.location.search)["s"] ||  "";
+        if(this.getMode(_props) === MODE_SEARCH){
+            let str =  _props.location.search || _props.location.pathname;
+            str = str.replace("/search/?", "")
+            return queryString.parse(str)["s"] ||  "";
+        }
     }
 
     getAuthorFromQuery(props){
