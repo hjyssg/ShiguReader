@@ -33,13 +33,16 @@ router.post('/api/minifyZip', async (req, res) => {
 
     if (!filePath || !(await isExist(filePath)) || minifyZipQue.includes(filePath)  ) {
         res.sendStatus(404);
+    }else{
+        //add to queue
+        //it takes long time
+        res.sendStatus(200);
     }
 
     minifyZipQue.push(filePath);
     await limit(() => imageMagickHelp.minifyOneFile(filePath));
     minifyZipQue.shift();
 
-    res.sendStatus(200);
 });
 
 module.exports = router;

@@ -36,7 +36,7 @@ async function convertImage(imgFilePath, outputImgName){
     }
 }
 
-
+//ONLY KEEP THE CORRECT FILES IN FOLDER AFTER EVERYTHING
 module.exports.minifyOneFile = async function(filePath){
     let extractOutputPath;
     let minifyOutputPath;
@@ -45,7 +45,8 @@ module.exports.minifyOneFile = async function(filePath){
         const oldTemp = await listZipContent(filePath);
         const oldFiles = oldTemp.files;
         const oldFileInfos = oldTemp.fileInfos;
-        //check all content is image
+        //check all content is image or folder
+        //gif is not allowed
         const convertable = oldFiles.every((e, ii) => {
             if(e && isImage(e) && !isGif(e)){
                 return true;
@@ -81,7 +82,8 @@ module.exports.minifyOneFile = async function(filePath){
         } else {
             checkExtractAllWithOriginalFiles(pathes, oldFiles);
 
-            console.log("-----begin convert images into webp--------------")
+            console.log("-----begin convert images into webp--------------");
+            console.log(filePath);
             const _pathes = pathes.filter(isImage);
             const total = _pathes.length;
             let converterError;
@@ -120,33 +122,34 @@ module.exports.minifyOneFile = async function(filePath){
             //zip into a new zip file
             //todo: The process cannot access the file because it is being used by another process
             let {stdout, stderr, resultZipPath} = await sevenZipHelp.zipOneFolder(minifyOutputPath);
-            if(!stderr){
+            if(stderr){
+                deleteCache(resultZipPath);
+            }else{
                 const temp = await listZipContent(resultZipPath);
                 const filesInNewZip = temp.files;
                 if(checkNewZipWithOriginalFiles(filesInNewZip, oldFiles)){
                     console.error("filesInNewZip is missing files");
-                    // deleteCache(resultZipPath);
-                    return;
-                }
-
-                const newStat = await pfs.stat(resultZipPath);
-                console.log("[magick] convertion done", filePath);
-                console.log("original size",filesizeUitl(oldStat.size, {base: 2}));
-                console.log("new size", filesizeUitl(newStat.size, {base: 2}));
-
-                const reducePercentage = (100 - newStat.size/oldStat.size * 100).toFixed(2);
-                console.log(`size reduce ${reducePercentage}%`);
-
-                if(reducePercentage < 10){
-                    console.log("not a useful work. abandon");
                     deleteCache(resultZipPath);
                 }else{
-                    //manually let file have the same modify time
-                    const error  = await pfs.utimes(resultZipPath, oldStat.atime , oldStat.mtime);
-                    if(error){
-                        logFail(filePath, "pfs.utimes failed");
-                    } else {
-                        console.log("output file is at", convertSpace);
+                    const newStat = await pfs.stat(resultZipPath);
+                    console.log("[magick] convertion done", filePath);
+                    console.log("original size",filesizeUitl(oldStat.size, {base: 2}));
+                    console.log("new size", filesizeUitl(newStat.size, {base: 2}));
+
+                    const reducePercentage = (100 - newStat.size/oldStat.size * 100).toFixed(2);
+                    console.log(`size reduce ${reducePercentage}%`);
+
+                    if(reducePercentage < 10){
+                        console.log("not a useful work. abandon");
+                        deleteCache(resultZipPath);
+                    }else{
+                        //manually let file have the same modify time
+                        const error  = await pfs.utimes(resultZipPath, oldStat.atime , oldStat.mtime);
+                        if(error){
+                            logFail(filePath, "pfs.utimes failed");
+                        } else {
+                            console.log("output file is at", convertSpace);
+                        }
                     }
                 }
             }
@@ -155,8 +158,8 @@ module.exports.minifyOneFile = async function(filePath){
         logFail(filePath, e);
     } finally {
         //maybe let user to delete file manually?
-        // deleteCache(extractOutputPath);
-        // deleteCache(minifyOutputPath);
+        deleteCache(extractOutputPath);
+        deleteCache(minifyOutputPath);
         console.log("------------------------------");
     }
 }
@@ -174,14 +177,14 @@ function deleteCache(filePath){
 function checkExtractAllWithOriginalFiles(newFiles, files, callback){
     if(!newFiles){
         callback && callback();
-        throw "missing files";
+        throw "[ExtractAll] missing files";
     }
 
     const expect_file_names = files.filter(isImage).map(e => path.basename(e)).sort();
     const resulted_file_names =  newFiles.filter(isImage).map(e => path.basename(e)).sort();
     if(!_.isEqual(resulted_file_names, expect_file_names)){
         callback && callback();
-        throw "missing files";
+        throw "[ExtractAll] missing files";
     }
 }
 
