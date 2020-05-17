@@ -20,6 +20,7 @@ const {
         fullPathToUrl,
         generateContentUrl,
         isExist,
+        getHomePath
 } = pathUtil;
 const { isImage, isCompress, isMusic, isVideo, arraySlice, getCurrentTime, isDisplayableInExplorer, isDisplayableInOnebook } = util;
 
@@ -29,40 +30,11 @@ const cache_folder_name = userConfig.cache_folder_name;
 const cachePath = path.join(rootPath, cache_folder_name);
 let logPath = path.join(rootPath, userConfig.workspace_name, "log");
 logPath = path.join(logPath, dateFormat(new Date(), "yyyy-mm-dd HH-MM"))+ ".log";
-
-//set up json DB
-const zipInfoDb = require("./models/zipInfoDb");
-let zip_content_db_path =  path.join(rootPath,  userConfig.workspace_name, "zip_info");
-zipInfoDb.init(zip_content_db_path);
-const { getPageNum, getMusicNum }  = zipInfoDb;
-
-const sevenZipHelp = require("./sevenZipHelp");
-const { listZipContent, extractAll, extractByRange }= sevenZipHelp;
-
 const imgConvertFolder = path.join(rootPath, userConfig.workspace_name,  userConfig.img_convert_cache);
 
 //set up user path
-let home_pathes;
-const path_config_path = path.join(rootPath, "src", "path-config");
-//read text file 
-home_pathes = fs.readFileSync(path_config_path).toString().split('\n'); 
-home_pathes = home_pathes
-            .map(e => e.trim().replace(/\n|\r/g, ""))
-            .filter(pp =>{ return pp && pp.length > 0 && !pp.startsWith("#");});
-home_pathes.push(imgConvertFolder);
-home_pathes = _.uniq(home_pathes);
-if(home_pathes.length === 0){
-    if(isWindows()){
-        const getDownloadsFolder = require('downloads-folder');
-        home_pathes.push(getDownloadsFolder());
-    }else{
-        //downloads-folder cause error on unix
-        home_pathes.push(`${process.env.HOME}/Downloads`);
-    }
-}
-
+let home_pathes = getHomePath(imgConvertFolder);
 const path_will_scan = home_pathes.concat(userConfig.good_folder, userConfig.good_folder_root, userConfig.not_good_folder);
-
 const isProduction = process.argv.includes("--production");
 
 console.log("--------------------");
@@ -71,12 +43,21 @@ console.log("__filename", __filename);
 console.log("__dirname", __dirname);
 console.log("rootPath", rootPath);
 console.log("log path:", logPath);
-
 console.log("----------------------");
 
 const loggerModel = require("./models/logger");
 loggerModel.init(logPath);
 const logger = loggerModel.logger;
+
+//set up json DB
+const zipInfoDb = require("./models/zipInfoDb");
+let zip_content_db_path =  path.join(rootPath,  userConfig.workspace_name, "zip_info");
+zipInfoDb.init(zip_content_db_path);
+const { getPageNum, getMusicNum }  = zipInfoDb;
+
+
+const sevenZipHelp = require("./sevenZipHelp");
+const { listZipContent, extractAll, extractByRange }= sevenZipHelp;
 
 const db = require("./models/db");
 const {getAllFilePathes, getCacheFiles, getCacheOutputPath} = db;

@@ -5,7 +5,7 @@ const _ = require('underscore');
 const logger = require("./models/logger").logger;
 const util = require("../util");
 const pathUtil = require("./pathUtil");
-const { isImage } = util;
+const { isImage, getCurrentTime } = util;
 
 const sevenZipHelp = require("./sevenZipHelp");
 const { listZipContent, extractAll }= sevenZipHelp;
@@ -29,7 +29,7 @@ function logFail(filePath, e){
 
 async function convertImage(imgFilePath, outputImgName){
     try{
-        let {stdout, stderr} = await execa("magick", [imgFilePath, "-strip", "EXIF", "-quality", img_convert_quality, outputImgName ]);
+        let {stdout, stderr} = await execa("magick", [imgFilePath, "-strip", "-quality", img_convert_quality, outputImgName ]);
         return {stdout, stderr};
     }catch(e){
         logFail("[convertImage]", e);
@@ -85,6 +85,7 @@ module.exports.minifyOneFile = async function(filePath){
             const _pathes = pathes.filter(isImage);
             const total = _pathes.length;
             let converterError;
+            const beginTime = getCurrentTime();
             for(let ii = 0; ii < total; ii++){
                 const fname = _pathes[ii];
                 const imgFilePath = path.resolve(extractOutputPath, fname);
@@ -92,12 +93,20 @@ module.exports.minifyOneFile = async function(filePath){
                 //  magick 1.jpeg   50 1.webp
                 const name = path.basename(fname, path.extname(fname)) + img_convert_dest_type;
                 const outputImgName = path.resolve(minifyOutputPath, name);
-                let {stdout, stderr} = convertImage(imgFilePath, outputImgName);
-                console.log(`[magick] ${ii+1}/${total}`);
+                let {stdout, stderr} = await convertImage(imgFilePath, outputImgName);
                 if (stderr) {
                     converterError = stderr;
                     break;
-                } 
+                }else{
+                    const timeSpent = getCurrentTime() - beginTime;
+                    const timePerImg = timeSpent/(ii+1)/1000; // in second
+                    const remaintime = (total - ii) * timePerImg;
+                    if(ii+1 < total){
+                        console.log(`[magick] ${ii+1}/${total} ${(timePerImg/1000).toFixed()} second per file. ${remaintime.toFixed()} before finish`);
+                    }else {
+                        console.log("[magick] finish convertion")
+                    }
+                }
             }
   
             if(converterError){
@@ -130,7 +139,7 @@ module.exports.minifyOneFile = async function(filePath){
                     if(error){
                         logFail(filePath, "pfs.utimes failed");
                     } else {
-                        console.log("output file is at",convertSpace);
+                        console.log("output file is at", convertSpace);
                     }
                 }
             }
