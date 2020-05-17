@@ -25,6 +25,9 @@ router.post('/api/minifyZipQue', (req, res) => {
     })
 })
 
+const pLimit = require('p-limit');
+const limit = pLimit(1);
+
 router.post('/api/minifyZip', async (req, res) => {
     const filePath = req.body && req.body.filePath;
 
@@ -33,7 +36,7 @@ router.post('/api/minifyZip', async (req, res) => {
     }
 
     minifyZipQue.push(filePath);
-    await imageMagickHelp.minifyOneFile(filePath);
+    await limit(() => imageMagickHelp.minifyOneFile(filePath));
     minifyZipQue.shift();
 });
 

@@ -37,9 +37,11 @@ module.exports.additional_folder = [
 
 //----------------- below section used by developer-----------------------------
 
-const workspace_name = module.exports.workspace_name = "workspace";
+module.exports.workspace_name = "workspace";
+ 
+module.exports.cache_folder_name = "cache";
 
-const cache_folder_name= module.exports.cache_folder_name = "cache";
+module.exports.img_convert_cache = "image_convert_cache"
 
 //ipad iphone上面看漫画是一页一张图，还是一次显示全部整本的全部图片
 module.exports.onebook_only_image_per_page = true;

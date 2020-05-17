@@ -17,12 +17,12 @@ const filesizeUitl = require('filesize');
 
 const rimraf = require("../tools/rimraf");
 
-const { workspace_name} = userConfig;
+const { img_convert_cache } = userConfig;
 
 
 function logFail(filePath, e){
-    logger.error("[minifyOneFile] cannot ", filePath, e);
-    console.error("[minifyOneFile] cannot ", filePath, e);
+    logger.error("[minifyOneFile]", filePath, e);
+    console.error("[minifyOneFile]", filePath, e);
 }
 
 //https://imagemagick.org/script/download.php#windows
@@ -61,11 +61,11 @@ module.exports.minifyOneFile = async function(filePath){
         
         //do a brand new extract 
         const bookName = path.basename(filePath, path.extname(filePath)) 
-        extractOutputPath = path.join(getRootPath(), workspace_name, "imageMagick_cache" , bookName+"-original");
-        minifyOutputPath = path.join(getRootPath(), workspace_name, "imageMagick_cache" , bookName);
+        extractOutputPath = path.join(getRootPath(), userConfig.workspace_name, img_convert_cache , bookName+"-original");
+        minifyOutputPath = path.join(getRootPath(), userConfig.workspace_name, img_convert_cache , bookName);
 
         if(!(await isExist(minifyOutputPath))){
-            const mdkirErr = await pfs.mkdir(minifyOutputPath);
+            const mdkirErr = await pfs.mkdir(minifyOutputPath, { recursive: true});
             if(mdkirErr){
                 logFail(filePath, mdkirErr);
                 return;
@@ -76,19 +76,7 @@ module.exports.minifyOneFile = async function(filePath){
         if(error){
             logFail(filePath, error)
         } else {
-            //see if extract success
-            //be really careful about data 
-            if(pathes.length !== files.length){
-                logFail(filePath, "extract all missing files")
-                return;
-            }
-            const expect_file_names = files.map(e => path.basename(e)).sort();
-            const resulted_file_names =  pathes.map(e => path.basename(e)).sort();
-            if(!_.isEqual(resulted_file_names, expect_file_names)){
-                logFail(filePath, "extract all missing files");
-                return;
-            }
-        
+            checkWithOriginalFiles(pathes, files);
 
             console.log("-----begin convert images into webp--------------")
             const _pathes = pathes.filter(isImage);
@@ -117,6 +105,10 @@ module.exports.minifyOneFile = async function(filePath){
             //zip into a new zip file
             let {stdout, stderr, resultZipPath} = await sevenZipHelp.zipOneFolder(minifyOutputPath);
             if(!stderr){
+                const temp = await listZipContent(resultZipPath);
+                const filesInNewZip = temp.files;
+                checkWithOriginalFiles(filesInNewZip, files, ()=> { deleteCache(resultZipPath)});
+
                 const newStat = await pfs.stat(resultZipPath);
                 console.log("[magick] convertion done", filePath);
                 console.log("original size",filesizeUitl(oldStat.size, {base: 2}));
@@ -130,20 +122,24 @@ module.exports.minifyOneFile = async function(filePath){
                     deleteCache(resultZipPath);
                 }else{
                     //manually let file have the same modify time
+                    const error  = await pfs.utimes(resultZipPath, oldStat.atime , oldStat.mtime);
+                    if(error){
+                        logFail(filePath, "pfs.utimes failed");
+                    }
+                    //not sure if this is good or not
+                    //todo:??
                     // rename the old file with postfix "-has-minified"
-                    //move the new file into the same folder as the old one
-            
-                    // err = await pfs.rename(src, dest);
-            
-                    //let user to decide if delete them or not
+                    // move the new file into the same folder as the old one
+                    // let user to decide if delete them or not
                 }
             }
         } 
     } catch(e) {
-        logFail(filePath, e)
+        logFail(filePath, e);
     } finally {
         deleteCache(extractOutputPath);
         deleteCache(minifyOutputPath);
+        console.log("------------------------------");
     }
 }
 
@@ -154,5 +150,20 @@ function deleteCache(filePath){
                 console.error("[clean imageMagickHelp]", filePath, err);
             }
         });
+    }
+}
+
+function checkWithOriginalFiles(newFiles, files, callback){
+    if(!newFiles || newFiles.length !== files.length){
+        callback && callback();
+        throw "missing files";
+    }
+
+
+    const expect_file_names = files.map(e => path.basename(e)).sort();
+    const resulted_file_names =  newFiles.map(e => path.basename(e)).sort();
+    if(!_.isEqual(resulted_file_names, expect_file_names)){
+        callback && callback();
+        throw "missing files";
     }
 }

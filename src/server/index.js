@@ -39,6 +39,7 @@ const { getPageNum, getMusicNum }  = zipInfoDb;
 const sevenZipHelp = require("./sevenZipHelp");
 const { listZipContent, extractAll, extractByRange }= sevenZipHelp;
 
+const imgConvertFolder = path.join(rootPath, userConfig.workspace_name,  userConfig.img_convert_cache);
 
 //set up user path
 let home_pathes;
@@ -48,6 +49,7 @@ home_pathes = fs.readFileSync(path_config_path).toString().split('\n');
 home_pathes = home_pathes
             .map(e => e.trim().replace(/\n|\r/g, ""))
             .filter(pp =>{ return pp && pp.length > 0 && !pp.startsWith("#");});
+home_pathes.push(imgConvertFolder);
 home_pathes = _.uniq(home_pathes);
 if(home_pathes.length === 0){
     if(isWindows()){
