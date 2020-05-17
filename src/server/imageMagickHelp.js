@@ -106,6 +106,7 @@ module.exports.minifyOneFile = async function(filePath){
             }
     
             //zip into a new zip file
+            //todo: The process cannot access the file because it is being used by another process
             let {stdout, stderr, resultZipPath} = await sevenZipHelp.zipOneFolder(minifyOutputPath);
             if(!stderr){
                 const temp = await listZipContent(resultZipPath);
@@ -137,8 +138,9 @@ module.exports.minifyOneFile = async function(filePath){
     } catch(e) {
         logFail(filePath, e);
     } finally {
-        deleteCache(extractOutputPath);
-        deleteCache(minifyOutputPath);
+        //maybe let user to delete file manually?
+        // deleteCache(extractOutputPath);
+        // deleteCache(minifyOutputPath);
         console.log("------------------------------");
     }
 }
