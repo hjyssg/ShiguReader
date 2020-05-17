@@ -244,7 +244,7 @@ async function extractThumbnailFromZip(filePath, res, mode, config) {
     const isPregenerateMode = mode === "pre-generate";
     const sendable = !isPregenerateMode && res;
     const outputPath = getCacheOutputPath(cachePath, filePath);
-    let files;
+    let files, temp;
  
     function sendImage(img){
         let ext = path.extname(img);
@@ -278,7 +278,8 @@ async function extractThumbnailFromZip(filePath, res, mode, config) {
     //in case previous info is changed or wrong
     if(isPregenerateMode){
         //in pregenerate mode, it always updates db content
-        files = await listZipContent(filePath).files;
+        temp = await listZipContent(filePath);
+        files = temp.files;
     }
 
     //check if there is compress thumbnail  e.g thumbnail--001.jpg
@@ -299,7 +300,8 @@ async function extractThumbnailFromZip(filePath, res, mode, config) {
         //do the extract
         try{
             if(!files){
-                files = await listZipContent(filePath).files;
+                temp = await listZipContent(filePath);
+                files = temp.files;
             } 
             const one = serverUtil.chooseThumbnailImage(files);
             if(!one){
