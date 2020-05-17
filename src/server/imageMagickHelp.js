@@ -17,7 +17,7 @@ const filesizeUitl = require('filesize');
 
 const rimraf = require("../tools/rimraf");
 
-const { img_convert_cache, img_convert_quality } = userConfig;
+const { img_convert_cache, img_convert_quality, img_convert_dest_type } = userConfig;
 
 
 function logFail(filePath, e){
@@ -90,7 +90,7 @@ module.exports.minifyOneFile = async function(filePath){
                 const imgFilePath = path.resolve(extractOutputPath, fname);
                 //use imageMagik to convert 
                 //  magick 1.jpeg   50 1.webp
-                const name = path.basename(fname, path.extname(fname)) + ".webp";
+                const name = path.basename(fname, path.extname(fname)) + img_convert_dest_type;
                 const outputImgName = path.resolve(minifyOutputPath, name);
                 let {stdout, stderr} = convertImage(imgFilePath, outputImgName);
                 console.log(`[magick] ${ii+1}/${total}`);

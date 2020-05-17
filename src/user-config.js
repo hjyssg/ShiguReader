@@ -68,3 +68,6 @@ module.exports.file_change_password = "2020";
 //压缩图片的时候用的参数
 //传给magick用的
 module.exports.img_convert_quality = 50;
+
+//which output file 
+module.exports.img_convert_dest_type = ".webp";
