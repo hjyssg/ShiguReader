@@ -5,7 +5,7 @@ const _ = require('underscore');
 const logger = require("./models/logger").logger;
 const util = require("../util");
 const pathUtil = require("./pathUtil");
-const { isImage, getCurrentTime } = util;
+const { isImage, getCurrentTime, isGif } = util;
 
 const sevenZipHelp = require("./sevenZipHelp");
 const { listZipContent, extractAll }= sevenZipHelp;
@@ -47,7 +47,7 @@ module.exports.minifyOneFile = async function(filePath){
         const oldFileInfos = oldTemp.fileInfos;
         //check all content is image
         const convertable = oldFiles.every((e, ii) => {
-            if(isImage(e)){
+            if(e && isImage(e) && !isGif(e)){
                 return true;
             }else if(oldFileInfos[ii].folder === "+"){
                 return true
