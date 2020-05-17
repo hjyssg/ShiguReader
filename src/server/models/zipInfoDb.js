@@ -24,6 +24,8 @@ function databaseInitialize() {
     if (zip_content_db === null) {
       zip_content_db = loki_db.addCollection("zipInfo", { indices: ['filePath'] });
     }
+    var entryCount = zip_content_db.count();
+    console.log("[zipInfoDb] number of entries in database : " + entryCount);
 }
 
 const has = module.exports.has = function(filePath){
