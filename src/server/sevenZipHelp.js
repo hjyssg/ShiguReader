@@ -144,3 +144,9 @@ module.exports.extractAll = async function(filePath, outputPath){
         return {error, pathes}
     }
 }
+
+module.exports.zipOneFolder = async function(folderPath){
+    const resultZipPath = `${folderPath}.zip`;
+    const {stdout, stderr} = await execa(sevenZip,  ["a", resultZipPath,  `${folderPath}\\*`] );
+    return {stdout, stderr, resultZipPath};
+}

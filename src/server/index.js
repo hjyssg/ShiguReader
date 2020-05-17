@@ -49,14 +49,16 @@ home_pathes = home_pathes
             .map(e => e.trim().replace(/\n|\r/g, ""))
             .filter(pp =>{ return pp && pp.length > 0 && !pp.startsWith("#");});
 home_pathes = _.uniq(home_pathes);
-
-if(isWindows()){
-    const getDownloadsFolder = require('downloads-folder');
-    home_pathes.push(getDownloadsFolder());
-}else{
-    //downloads-folder cause error on unix
-    home_pathes.push(`${process.env.HOME}/Downloads`);
+if(home_pathes.length === 0){
+    if(isWindows()){
+        const getDownloadsFolder = require('downloads-folder');
+        home_pathes.push(getDownloadsFolder());
+    }else{
+        //downloads-folder cause error on unix
+        home_pathes.push(`${process.env.HOME}/Downloads`);
+    }
 }
+
 const path_will_scan = home_pathes.concat(userConfig.good_folder, userConfig.good_folder_root, userConfig.not_good_folder);
 
 const isProduction = process.argv.includes("--production");
