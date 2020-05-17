@@ -64,3 +64,7 @@ module.exports.oversized_image_size = 4;
 //并不是高明的安全机制
 //注：Shigureader设计实现，只考虑在LAN情况下的性能和安全性。
 module.exports.file_change_password = "2020";
+
+//压缩图片的时候用的参数
+//传给magick用的
+module.exports.img_convert_quality = 50;

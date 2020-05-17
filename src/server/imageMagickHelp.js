@@ -17,7 +17,7 @@ const filesizeUitl = require('filesize');
 
 const rimraf = require("../tools/rimraf");
 
-const { img_convert_cache } = userConfig;
+const { img_convert_cache, img_convert_quality } = userConfig;
 
 
 function logFail(filePath, e){
@@ -29,7 +29,7 @@ function logFail(filePath, e){
 
 async function convertImage(imgFilePath, outputImgName){
     try{
-        let {stdout, stderr} = await execa("magick", [imgFilePath, "-strip", "EXIF", "-quality", 50, outputImgName ]);
+        let {stdout, stderr} = await execa("magick", [imgFilePath, "-strip", "EXIF", "-quality", img_convert_quality, outputImgName ]);
         return {stdout, stderr};
     }catch(e){
         logFail("[convertImage]", e);
