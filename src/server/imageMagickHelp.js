@@ -106,6 +106,7 @@ module.exports.minifyOneFile = async function(filePath){
             let {stdout, stderr, resultZipPath} = await sevenZipHelp.zipOneFolder(minifyOutputPath);
             if(!stderr){
                 const temp = await listZipContent(resultZipPath);
+                const filesInNewZip = temp.files;
                 checkWithOriginalFiles(filesInNewZip, files, ()=> { deleteCache(resultZipPath)});
 
                 const newStat = await pfs.stat(resultZipPath);
@@ -125,11 +126,6 @@ module.exports.minifyOneFile = async function(filePath){
                     if(error){
                         logFail(filePath, "pfs.utimes failed");
                     }
-                    //not sure if this is good or not
-                    //todo:??
-                    // rename the old file with postfix "-has-minified"
-                    // move the new file into the same folder as the old one
-                    // let user to decide if delete them or not
                 }
             }
         } 
