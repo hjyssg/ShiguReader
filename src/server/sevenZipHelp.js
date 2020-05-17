@@ -95,7 +95,7 @@ module.exports.listZipContent = async function (filePath){
         let {stdout, stderr} = await limit(() => execa(sevenZip, ['l', '-r', '-ba' ,'-slt', filePath]));
         const text = stdout;
         if (!text || stderr) {
-            return [];
+            return { files:[], fileInfos:[] };
         }
 
         const {files, fileInfos }= read7zOutput(text);
@@ -119,7 +119,7 @@ module.exports.listZipContent = async function (filePath){
     }catch(e){
         logger.error("[listZipContent]", filePath, e);
         console.error("[listZipContent]", filePath, e);
-        return [];
+        return { files:[], fileInfos:[] };
     }
 }
 

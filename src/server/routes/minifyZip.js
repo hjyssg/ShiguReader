@@ -38,6 +38,8 @@ router.post('/api/minifyZip', async (req, res) => {
     minifyZipQue.push(filePath);
     await limit(() => imageMagickHelp.minifyOneFile(filePath));
     minifyZipQue.shift();
+
+    res.sendStatus(200);
 });
 
 module.exports = router;
