@@ -123,7 +123,7 @@ module.exports.minifyOneFile = async function(filePath){
                 console.log("new size", filesizeUitl(newStat.size, {base: 2}));
 
                 const reducePercentage = (100 - newStat.size/oldStat.size * 100).toFixed(2);
-                console.log(reducePercentage);
+                console.log(`size reduce ${reducePercentage}%`);
 
                 if(reducePercentage < 10){
                     console.log("not a useful work. abandon");
@@ -148,9 +148,11 @@ module.exports.minifyOneFile = async function(filePath){
 }
 
 function deleteCache(filePath){
-    rimraf(filePath, (err) =>{ 
-        if(err){
-            console.error("[clean imageMagickHelp]", filePath, err);
-        }
-    });
+    if(filePath){
+        rimraf(filePath, (err) =>{ 
+            if(err){
+                console.error("[clean imageMagickHelp]", filePath, err);
+            }
+        });
+    }
 }
