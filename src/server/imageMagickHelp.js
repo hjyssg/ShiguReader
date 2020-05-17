@@ -106,7 +106,6 @@ module.exports.minifyOneFile = async function(filePath){
             let {stdout, stderr, resultZipPath} = await sevenZipHelp.zipOneFolder(minifyOutputPath);
             if(!stderr){
                 const temp = await listZipContent(resultZipPath);
-                const filesInNewZip = temp.files;
                 checkWithOriginalFiles(filesInNewZip, files, ()=> { deleteCache(resultZipPath)});
 
                 const newStat = await pfs.stat(resultZipPath);
@@ -154,14 +153,13 @@ function deleteCache(filePath){
 }
 
 function checkWithOriginalFiles(newFiles, files, callback){
-    if(!newFiles || newFiles.length !== files.length){
+    if(!newFiles){
         callback && callback();
         throw "missing files";
     }
 
-
-    const expect_file_names = files.map(e => path.basename(e)).sort();
-    const resulted_file_names =  newFiles.map(e => path.basename(e)).sort();
+    const expect_file_names = files.filter(isImage).map(e => path.basename(e)).sort();
+    const resulted_file_names =  newFiles.filter(isImage).map(e => path.basename(e)).sort();
     if(!_.isEqual(resulted_file_names, expect_file_names)){
         callback && callback();
         throw "missing files";
