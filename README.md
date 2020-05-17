@@ -120,6 +120,7 @@ ShiguReader的使用场景是LAN(局域网)，开放到外网非常不安全。
 现在有的漫画，24页640MB。为此添加了压缩包内图片压缩功能。
 自行手动到[imagemagick](https://imagemagick.org)下载安装imagemagick。
 安装后，自行确认可否在cmd使用magick命令。然后就可以通过网页来启动压缩程序了。
+压缩完的文件默认在workspace\image_convert_cache。
 
 ##### DOCKER 使用方法
 ```

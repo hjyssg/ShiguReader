@@ -29,7 +29,7 @@ function logFail(filePath, e){
 
 async function convertImage(imgFilePath, outputImgName){
     try{
-        let {stdout, stderr} = await execa("magick", [imgFilePath, "-quality", 50, outputImgName ]);
+        let {stdout, stderr} = await execa("magick", [imgFilePath, "-strip", "EXIF", "-quality", 50, outputImgName ]);
         return {stdout, stderr};
     }catch(e){
         logFail("[convertImage]", e);
