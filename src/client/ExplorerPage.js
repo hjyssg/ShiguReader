@@ -317,7 +317,7 @@ export default class ExplorerPage extends Component {
     }
 
     getTotalImgSize(fp){
-       return +(this.zipInfo[fp] && this.zipInfo[fp].totalImgSize) || 0;
+       return +(this.zipInfo[fp] && this.zipInfo[fp].totalImgSize) || this.getFileSize(e);
     }
 
     getPageAvgSize(e){
