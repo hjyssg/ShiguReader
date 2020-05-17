@@ -79,7 +79,7 @@ module.exports.minifyOneFile = async function(filePath){
         if(error){
             logFail(filePath, error)
         } else {
-            checkWithOriginalFiles(pathes, oldFiles);
+            checkExtractAllWithOriginalFiles(pathes, oldFiles);
 
             console.log("-----begin convert images into webp--------------")
             const _pathes = pathes.filter(isImage);
@@ -102,9 +102,12 @@ module.exports.minifyOneFile = async function(filePath){
                     const timePerImg = timeSpent/(ii+1)/1000; // in second
                     const remaintime = (total - ii) * timePerImg;
                     if(ii+1 < total){
-                        console.log(`[magick] ${ii+1}/${total} ${(timePerImg/1000).toFixed()} second per file. ${remaintime.toFixed()} before finish`);
-                    }else {
-                        console.log("[magick] finish convertion")
+                        console.log(`[magick] ${ii+1}/${total} ${(timePerImg).toFixed()} second per file`);
+                        console.log(`${remaintime.toFixed()} second before finish`)
+                    }
+                    else {
+                        console.log(`[magick] ${ii+1}/${total}`);
+                        // console.log("[magick] finish convertion. going to check if there is any error")
                     }
                 }
             }
@@ -120,7 +123,11 @@ module.exports.minifyOneFile = async function(filePath){
             if(!stderr){
                 const temp = await listZipContent(resultZipPath);
                 const filesInNewZip = temp.files;
-                checkWithOriginalFiles(filesInNewZip, oldFiles, ()=> { deleteCache(resultZipPath)});
+                if(checkNewZipWithOriginalFiles(filesInNewZip, oldFiles)){
+                    console.error("filesInNewZip is missing files");
+                    // deleteCache(resultZipPath);
+                    return;
+                }
 
                 const newStat = await pfs.stat(resultZipPath);
                 console.log("[magick] convertion done", filePath);
@@ -164,7 +171,7 @@ function deleteCache(filePath){
     }
 }
 
-function checkWithOriginalFiles(newFiles, files, callback){
+function checkExtractAllWithOriginalFiles(newFiles, files, callback){
     if(!newFiles){
         callback && callback();
         throw "missing files";
@@ -175,5 +182,21 @@ function checkWithOriginalFiles(newFiles, files, callback){
     if(!_.isEqual(resulted_file_names, expect_file_names)){
         callback && callback();
         throw "missing files";
+    }
+}
+
+function getFn(e){
+    return path.basename(e, path.extname(e));
+}
+
+function checkNewZipWithOriginalFiles(newFiles, files){
+    if(!newFiles){
+        return true;
+    }
+
+    const expect_file_names = files.filter(isImage).map(getFn).sort();
+    const resulted_file_names =  newFiles.filter(isImage).map(getFn).sort();
+    if(!_.isEqual(resulted_file_names, expect_file_names)){
+        return true;
     }
 }
