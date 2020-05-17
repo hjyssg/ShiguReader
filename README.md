@@ -115,6 +115,12 @@ windows语言设置:
 ShiguReader的使用场景是LAN(局域网)，开放到外网非常不安全。
 而且功能和性能也是纯粹为家庭用户使用设计的。
 
+##### 压缩包内图片压缩功能
+
+现在有的漫画，24页640MB。为此添加了压缩包内图片压缩功能。
+自行手动到[imagemagick](https://imagemagick.org)下载安装imagemagick。
+安装后，自行确认可否在cmd使用magick命令。然后就可以通过网页来启动压缩程序了。
+
 ##### DOCKER 使用方法
 ```
 docker pull liwufan/shigureader
@@ -123,8 +129,6 @@ docker run -d -p hostport:3000 -v comicpath:/data liwufan/shigureader
 # hostport 是主机要开放的端口
 # comicpath 是要扫描的文件目录
 ```
-
-
 
 有问题阅读 ![docker配置说明](https://github.com/hjyssg/ShiguReader/blob/dev/dockerguide.md)
 

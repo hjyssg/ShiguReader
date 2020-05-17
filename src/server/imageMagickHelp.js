@@ -61,8 +61,9 @@ module.exports.minifyOneFile = async function(filePath){
         
         //do a brand new extract 
         const bookName = path.basename(filePath, path.extname(filePath)) 
-        extractOutputPath = path.join(getRootPath(), userConfig.workspace_name, img_convert_cache , bookName+"-original");
-        minifyOutputPath = path.join(getRootPath(), userConfig.workspace_name, img_convert_cache , bookName);
+        const convertSpace = path.join(getRootPath(), userConfig.workspace_name, img_convert_cache);
+        extractOutputPath = path.join(convertable , bookName+"-original");
+        minifyOutputPath = path.join(convertable , bookName);
 
         if(!(await isExist(minifyOutputPath))){
             const mdkirErr = await pfs.mkdir(minifyOutputPath, { recursive: true});
@@ -125,6 +126,8 @@ module.exports.minifyOneFile = async function(filePath){
                     const error  = await pfs.utimes(resultZipPath, oldStat.atime , oldStat.mtime);
                     if(error){
                         logFail(filePath, "pfs.utimes failed");
+                    } else {
+                        console.log("output file is at",convertSpace);
                     }
                 }
             }
