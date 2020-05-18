@@ -130,8 +130,7 @@ docker run -d -p hostport:3000 -v comicpath:/data liwufan/shigureader
 # hostport 是主机要开放的端口
 # comicpath 是要扫描的文件目录
 ```
-
-有问题阅读 ![docker配置说明](https://github.com/hjyssg/ShiguReader/blob/dev/dockerguide.md)
+有问题阅读 [docker配置说明](https://github.com/hjyssg/ShiguReader/blob/dev/dockerguide.md)
 
 
 ##### 和tamper monkey一起使用
