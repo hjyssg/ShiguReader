@@ -307,7 +307,6 @@ async function extractThumbnailFromZip(filePath, res, mode, config) {
             }
         } catch(e) {
             console.error("[extractThumbnailFromZip] exception", filePath,  e);
-            logger.error("[extractThumbnailFromZip] exception", filePath,  e);
             handleFail();
         }
     }
@@ -466,7 +465,6 @@ app.post('/api/extract', async (req, res) => {
        } catch (e){
             res.sendStatus(500);
             console.error('[/api/extract] exit: ', e);
-            logger.error('[/api/extract] exit: ', e);
         }
     })();
 });
