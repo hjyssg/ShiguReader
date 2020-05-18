@@ -118,6 +118,7 @@ module.exports.deleteFromDb = function(path){
 
 //!! same as file-iterator getStat()
 module.exports.updateStatToCacheDb =  function(p, stats){
+    const {folderToFiles, cacheFileToInfo} = cacheDb;
     const fp =  getDirName(p);
     folderToFiles[fp] = folderToFiles[fp] || [];
     folderToFiles[fp].push(path.basename(p));
@@ -126,6 +127,7 @@ module.exports.updateStatToCacheDb =  function(p, stats){
 }
 
 module.exports.deleteFromCacheDb = function(p){
+    const {folderToFiles, cacheFileToInfo} = cacheDb;
     const fp =  getDirName(p);
     if(folderToFiles[fp]){
         const index = folderToFiles[fp].indexOf(path.basename(p));
