@@ -124,7 +124,7 @@ module.exports.listZipContentAndUpdateDb = async function (filePath){
     }catch(e){
         logger.error("[listZipContentAndUpdateDb]", filePath, e);
         return { files:[], fileInfos:[] };
-    }finally{
+    } finally {
         LIST_QUEUE[filePath] = null;
     }
 }
