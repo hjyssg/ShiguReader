@@ -132,8 +132,8 @@ module.exports.minifyOneFile = async function(filePath){
                 const timePerImg = timeSpent/(ii+1)/1000; // in second
                 const remaintime = (total - ii) * timePerImg;
                 if(ii+1 < total){
-                    console.log(`${ii+1}/${total} ${(timePerImg).toFixed()} second per file`);
-                    console.log(`${remaintime.toFixed()} second before finish`)
+                    console.log(`${ii+1}/${total} ${(timePerImg).toFixed(2)} second per file`);
+                    console.log(`${remaintime.toFixed(2)} second before finish`)
                 }
                 else {
                     console.log(`${ii+1}/${total}`);

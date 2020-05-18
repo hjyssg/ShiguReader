@@ -89,15 +89,18 @@ const get7zipOption = module.exports.get7zipOption = function(filePath, outputPa
     }
 }
 
+const LIST_QUEUE = {};
 const limit = pLimit(1);
 module.exports.listZipContentAndUpdateDb = async function (filePath){
     try{
         //https://superuser.com/questions/1020232/list-zip-files-contents-using-7zip-command-line-with-non-verbose-machine-friend
         let {stdout, stderr} = await limit(() => execa(sevenZip, ['l', '-r', '-ba' ,'-slt', filePath]));
         const text = stdout;
-        if (!text || stderr) {
+        if (!text || stderr || LIST_QUEUE[filePath]) {
             return { files:[], fileInfos:[] };
         }
+
+        LIST_QUEUE[filePath] = true;
 
         const {files, fileInfos }= read7zOutput(text);
         const musicFiles = files.filter(isMusic);
@@ -121,6 +124,8 @@ module.exports.listZipContentAndUpdateDb = async function (filePath){
     }catch(e){
         logger.error("[listZipContentAndUpdateDb]", filePath, e);
         return { files:[], fileInfos:[] };
+    }finally{
+        LIST_QUEUE[filePath] = null;
     }
 }
 
