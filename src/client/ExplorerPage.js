@@ -328,10 +328,12 @@ export default class ExplorerPage extends Component {
     }
 
     //may not be reliable
-    getPageAvgSize(e){
+    getPageAvgSize(e, forDisplay){
         const pageNum = this.getPageNum(e);
         if(pageNum === 0){
-            return -Infinity;
+            //one for display
+            //one for sort 
+            return forDisplay? 0 : -Infinity;
         }
 
         //choose the min
@@ -534,7 +536,7 @@ export default class ExplorerPage extends Component {
             const fileSize = this.getFileSize(item);
             const fileSizeStr = fileSize && filesizeUitl(fileSize, {base: 2});
 
-            const avgSize = this.getPageAvgSize(item);
+            const avgSize = this.getPageAvgSize(item, "for-dispaly");
             const avgSizeStr = avgSize && filesizeUitl(avgSize, {base: 2});
 
             let seperator;
