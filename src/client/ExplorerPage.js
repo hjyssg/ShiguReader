@@ -311,7 +311,8 @@ export default class ExplorerPage extends Component {
         });
     }
 
-
+    //comes from file db.
+    //may not be reliable
     getFileSize(e){
         return (this.fileInfos[e] && this.fileInfos[e].size) || 0;
     }
@@ -320,16 +321,19 @@ export default class ExplorerPage extends Component {
        return +(this.zipInfo[fp] && this.zipInfo[fp].pageNum) || 0;
     }
 
+    //comes from zipInfo libray, may not be reliable
+    //because sometimes, filename dont chane but the size change 
     getTotalImgSize(fp){
-       return +(this.zipInfo[fp] && this.zipInfo[fp].totalImgSize) || this.getFileSize(fp);
+       return +(this.zipInfo[fp] && this.zipInfo[fp].totalImgSize) || 0;
     }
 
+    //may not be reliable
     getPageAvgSize(e){
         const pageNum = this.getPageNum(e);
         if(pageNum === 0){
             return -Infinity;
         }
-        return this.getTotalImgSize(e)/pageNum;
+        return Math.min(this.getTotalImgSize(e), this.getFileSize(e))/pageNum;
     }
 
     getMusicNum(fp){
