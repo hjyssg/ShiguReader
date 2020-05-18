@@ -159,12 +159,13 @@ export default class FileChangeToolbar extends Component {
             additional = <Dropdown>{this.getDropdownItems()}</Dropdown>;
         }
 
+        const showMinifyZip = util.isCompress(file) && !hasMusic;
 
 
         return (
             <div className={cn} >
                 {header && <span className="file-change-tool-bar-header">{header}</span>}
-                { !hasMusic && 
+                { showMinifyZip && 
                 <div tabIndex="0" className="fas fa-hand-scissors"
                                 title="minify zip"
                                 onClick={this.handleMinifyZip.bind(this)}></div>
