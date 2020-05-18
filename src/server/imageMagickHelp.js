@@ -8,7 +8,7 @@ const pathUtil = require("./pathUtil");
 const { isImage, getCurrentTime, isGif } = util;
 
 const sevenZipHelp = require("./sevenZipHelp");
-const { listZipContent, extractAll }= sevenZipHelp;
+const { listZipContentAndUpdateDb, extractAll }= sevenZipHelp;
 
 const { isExist, getRootPath } = pathUtil;
 
@@ -20,7 +20,9 @@ const rimraf = require("../tools/rimraf");
 const serverUtil = require("./serverUtil");
 const getStat = serverUtil.common.getStat;
 
-const { img_convert_cache, img_convert_quality, img_convert_dest_type, img_reduce_resolution_threshold, img_reduce_resolution_dimension } = userConfig;
+const { img_convert_cache, img_convert_quality, img_convert_dest_type, 
+        img_reduce_resolution_threshold, img_reduce_resolution_dimension,
+        img_convert_min } = userConfig;
 
 
 function logFail(filePath, e){
@@ -33,7 +35,7 @@ async function convertImage(imgFilePath, outputImgName, oldAvgImgSize){
     try{
         let opt;
 
-        if(oldAvgImgSize > img_reduce_resolution_threshold*1024*1024){
+        if(oldAvgImgSize > img_reduce_resolution_threshold){
             opt = [imgFilePath, "-strip", "-quality", img_convert_quality, "-resize", `${img_reduce_resolution_dimension}\>`, outputImgName ]
         }else{
             opt = [imgFilePath, "-strip", "-quality", img_convert_quality, outputImgName ]
@@ -68,13 +70,13 @@ module.exports.minifyOneFile = async function(filePath){
     let minifyOutputPath;
     try{
         const oldStat = await getStat(filePath);
-        const oldTemp = await listZipContent(filePath);
+        const oldTemp = await listZipContentAndUpdateDb(filePath);
         const oldFiles = oldTemp.files;
         const oldInfos = oldTemp.info;
         const oldFileInfos = oldTemp.fileInfos;
         const oldAvgImgSize  = oldInfos.avgImgSize;
 
-        if(!isConertable(oldFiles, oldFileInfos)){
+        if( oldAvgImgSize < img_convert_min || !isConertable(oldFiles, oldFileInfos)){
             logFail(filePath, "not convertable");
             return;
         }
@@ -132,8 +134,8 @@ module.exports.minifyOneFile = async function(filePath){
                 const timePerImg = timeSpent/(ii+1)/1000; // in second
                 const remaintime = (total - ii) * timePerImg;
                 if(ii+1 < total){
-                    console.log(`${ii+1}/${total} ${(timePerImg).toFixed()} second per file`);
-                    console.log(`${remaintime.toFixed()} second before finish`)
+                    console.log(`${ii+1}/${total} ${(timePerImg).toFixed(2)} second per file`);
+                    console.log(`${remaintime.toFixed(2)} second before finish`)
                 }
                 else {
                     console.log(`${ii+1}/${total}`);
@@ -156,7 +158,7 @@ module.exports.minifyOneFile = async function(filePath){
             return;
         }
 
-        const temp = await listZipContent(resultZipPath);
+        const temp = await listZipContentAndUpdateDb(resultZipPath);
         const filesInNewZip = temp.files;
         if(checkNewZipWithOriginalFiles(filesInNewZip, oldFiles)){
             logFail(filePath, "filesInNewZip is missing files");

@@ -36,3 +36,6 @@ zip info db使用file path
 手动update databse最合理。
 
 list7zipcontent其实也不是很贵。要不自动更新？
+
+后端用了比较粗糙的MVC结果。
+route里面的是view，model里面的是data，server/index.js是controller。

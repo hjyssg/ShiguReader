@@ -49,14 +49,15 @@ const logger = require("./logger");
 const zipInfoDb = require("./models/zipInfoDb");
 let zip_content_db_path =  path.join(rootPath,  userConfig.workspace_name, "zip_info");
 zipInfoDb.init(zip_content_db_path);
-const { getPageNum, getMusicNum }  = zipInfoDb;
+const { getPageNum, getMusicNum, deleteFromZipDb }  = zipInfoDb;
 
 
 const sevenZipHelp = require("./sevenZipHelp");
-const { listZipContent, extractAll, extractByRange }= sevenZipHelp;
+const { listZipContentAndUpdateDb, extractAll, extractByRange }= sevenZipHelp;
 
 const db = require("./models/db");
-const { getAllFilePathes, getCacheFiles, getCacheOutputPath, updateStatToDb} = db;
+const { getAllFilePathes, getCacheFiles, getCacheOutputPath, 
+        updateStatToDb, deleteFromDb , updateStatToCacheDb, deleteFromCacheDb} = db;
 
 const app = express();
 app.use(express.static('dist', {
@@ -116,7 +117,7 @@ async function init() {
     });
 
     db.initCacheDb(cache_results.pathes, cache_results.infos);
-    db.setUpFileWatch(home_pathes, cache_folder_name);
+    setUpFileWatch(home_pathes, cache_folder_name);
 
     const port = isProduction? http_port: dev_express_port;
     const server = app.listen(port, async () => {
@@ -139,7 +140,89 @@ async function init() {
     });
 }
 
-//----------------get folder contents
+function shouldWatchForOne(p){
+    const ext = path.extname(p).toLowerCase();
+    return !ext ||  isDisplayableInExplorer(ext);
+}
+
+function shouldIgnoreForOne(p){
+    return !shouldWatchForOne(p);
+}
+
+function shouldIgnoreForCache(p){
+    return !shouldWatchForCache(p);
+}
+
+function shouldWatchForCache(p){
+    const ext = path.extname(p).toLowerCase();
+    return !ext ||  isDisplayableInOnebook(ext)
+}
+
+
+const chokidar = require('chokidar');
+function setUpFileWatch (home_pathes, cache_folder_name){
+    //watch file change 
+    //update two database
+    const watcher = chokidar.watch(home_pathes, {
+        ignored: shouldIgnoreForOne,
+        ignoreInitial: true,
+        persistent: true,
+        ignorePermissionErrors: true
+    });
+
+    const addCallBack = (path, stats) => {
+        serverUtil.parse(path);
+        updateStatToDb(path, stats);
+        
+        if(isCompress(path) && stats.size > 1*1024*1024){
+            listZipContentAndUpdateDb(path);
+        }
+    };
+
+    const deleteCallBack = path => {
+        deleteFromDb(path);
+        deleteFromZipDb(path);
+    };
+
+    watcher
+        .on('add', addCallBack)
+        .on('change', addCallBack)
+        .on('unlink', deleteCallBack);
+    
+    // More possible events.
+    watcher
+        .on('addDir', addCallBack)
+        .on('unlinkDir', deleteCallBack);
+
+    //also for cache files
+    const cacheWatcher = chokidar.watch(cache_folder_name, {
+        ignored: shouldIgnoreForCache,
+        persistent: true,
+        ignorePermissionErrors: true,
+        ignoreInitial: true,
+    });
+
+    cacheWatcher
+        .on('unlinkDir', p => {
+            //todo 
+            const fp =  path.dirname(p);
+            db.cacheDb.folderToFiles[fp];
+        });
+
+    cacheWatcher
+        .on('add', (p, stats) => {
+            updateStatToCacheDb(p, stats);
+        })
+        .on('unlink', p => {
+            deleteFromCacheDb(p);
+        });
+
+    return {
+        watcher,
+        cacheWatcher
+    };
+}
+
 
 function getThumbnails(filePathes){
     const thumbnails = {};
@@ -189,7 +272,7 @@ app.post(Constant.TAG_THUMBNAIL_PATH_API, (req, res) => {
     }
 
     const { files } = searchByTagAndAuthor(tag, author, null, true);
-    chosendFileName = serverUtil.chooseOneZipForOneTag(files, fileToInfo);
+    chosendFileName = serverUtil.chooseOneZipForOneTag(files, db.getFileToInfo());
     if(!chosendFileName){
         res.sendStatus(404);
         return;
@@ -216,8 +299,7 @@ function logForPre(prefix, config, filePath) {
 
 
 const pLimit = require('p-limit');
-const extractlimit = pLimit(1);
-const minifyImageFile = require("../tools/minifyImageFile");
+const thumbnailGenerator = require("../tools/thumbnailGenerator");
 //the only required parameter is filePath
 async function extractThumbnailFromZip(filePath, res, mode, config) {
     if(!util.isCompress(filePath)){
@@ -248,7 +330,7 @@ async function extractThumbnailFromZip(filePath, res, mode, config) {
     }
 
     function minify(one){
-        minifyImageFile(outputPath, path.basename(one), (err, info) => { 
+        thumbnailGenerator(outputPath, path.basename(one), (err, info) => { 
             if(isPregenerateMode){
                 config.minCounter++;
                 logForPre("[pre-generate minify] ", config, filePath );
@@ -261,7 +343,7 @@ async function extractThumbnailFromZip(filePath, res, mode, config) {
     //in case previous info is changed or wrong
     if(isPregenerateMode){
         //in pregenerate mode, it always updates db content
-        temp = await listZipContent(filePath);
+        temp = await listZipContentAndUpdateDb(filePath);
         files = temp.files;
     }
 
@@ -283,7 +365,7 @@ async function extractThumbnailFromZip(filePath, res, mode, config) {
         //do the extract
         try{
             if(!files){
-                temp = await listZipContent(filePath);
+                temp = await listZipContentAndUpdateDb(filePath);
                 files = temp.files;
             } 
             const one = serverUtil.chooseThumbnailImage(files);
@@ -412,7 +494,7 @@ app.post('/api/extract', async (req, res) => {
     (async () => {
         const full_extract_max = 10;
         try{
-            let { files, fileInfos } = await listZipContent(filePath);
+            let { files, fileInfos } = await listZipContentAndUpdateDb(filePath);
             files = files.filter(e => isDisplayableInOnebook(e));
             if(files.length === 0){
                res.sendStatus(404);

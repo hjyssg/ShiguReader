@@ -73,8 +73,8 @@ function _clean(cachePath, config){
                     //compress first image to standard thumbnail
                     if(subfileName === thumbnail){
                         if(config.minized){
-                            const minifyImageFile = require("./minifyImageFile");
-                            minifyImageFile(fPath, subfileName, (err, info) => { 
+                            const thumbnailGenerator = require("./thumbnailGenerator");
+                            thumbnailGenerator(fPath, subfileName, (err, info) => { 
                                 if(!err){
                                     del(filePath, cachePath);
                                 }
