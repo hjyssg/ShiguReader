@@ -11,7 +11,10 @@ const userConfig = require('../../user-config');
 
 const {getDirName} = serverUtil;
 const { isImage, isCompress, isMusic, isDisplayableInExplorer, isDisplayableInOnebook } = util;
-const {   generateContentUrl } = pathUtil;
+const { generateContentUrl } = pathUtil;
+
+const sevenZipHelp = require("../sevenZipHelp");
+const { listZipContent }= sevenZipHelp;
 
 
 const db = {
@@ -75,14 +78,7 @@ function shouldWatchForCache(p){
     return false;
 }
 
-function shouldIgnoreForCache(p){
-    return !shouldWatchForCache(p);
-}
 
-function preParse(str){
-    //will save in memory
-    serverUtil.parse(str);
-}
 
 //!! same as file-iterator getStat()
 const updateStatToDb = module.exports.updateStatToDb = function(path, stat){
@@ -107,9 +103,16 @@ function shouldIgnoreForOne(p){
     return !shouldWatchForOne(p);
 }
 
+function shouldIgnoreForCache(p){
+    return !shouldWatchForCache(p);
+}
+
+function preParse(str){
+    //will save in memory
+    serverUtil.parse(str);
+}
 
 module.exports.setUpFileWatch = function(home_pathes, cache_folder_name){
-    //todo ignore image
     const watcher = chokidar.watch(home_pathes, {
         ignored: shouldIgnoreForOne,
         ignoreInitial: true,
@@ -120,6 +123,10 @@ module.exports.setUpFileWatch = function(home_pathes, cache_folder_name){
     const addCallBack = (path, stats) => {
         preParse(path);
         updateStatToDb(path, stats);
+        
+        if(isCompress(path) && stats.size > 1*1024*1024){
+            listZipContent(path);
+        }
     };
 
     const deleteCallBack = path => {
@@ -129,6 +136,7 @@ module.exports.setUpFileWatch = function(home_pathes, cache_folder_name){
 
     watcher
         .on('add', addCallBack)
+        .on('change', addCallBack)
         .on('unlink', deleteCallBack);
     
     // More possible events.
