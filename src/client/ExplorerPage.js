@@ -516,8 +516,8 @@ export default class ExplorerPage extends Component {
             const toUrl =  clientUtil.getOneBookLink(item);
 
             //todo
-            const stats = this.fileInfos[item];
-            const fileSize = stats && filesizeUitl(stats.size, {base: 2});
+            const size = this.getFileSize(item) || this.getTotalImgSize(item);
+            const fileSize = size && filesizeUitl(size, {base: 2});
 
             let seperator;
 
@@ -679,7 +679,7 @@ export default class ExplorerPage extends Component {
     getExplorerToolbar(){
         const mode = this.getMode();
         if(mode === MODE_EXPLORER && this.getPathFromQuery()){
-            const totalSize = this.getTotalFileSize();
+            const totalSize = this.getAllFileSize();
             let topButtons = (
             <div className="top-button-gropus row">
                     <div className="file-count col-6 col-md-4"><i className="fas fa-file-archive"/>{this.getFilteredFiles().length + " compressed files"} </div>
@@ -813,7 +813,7 @@ export default class ExplorerPage extends Component {
         });
     }
 
-    getTotalFileSize(){
+    getAllFileSize(){
         let files = this.getFilteredFiles();
         files = files.concat(this.getFilteredVideos())
         let totalSize = 0;

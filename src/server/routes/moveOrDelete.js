@@ -56,26 +56,31 @@ router.post('/api/deleteFile', async (req, res) => {
         return;
     }
 
-    if(userConfig.move_file_to_recyle){
-        const trash = require('trash');
-        await trash([src]);
-        if(!(await isExist(src))){
-          res.sendStatus(200);
-          logger.info(`[DELETE] ${src}`);
-        } else{
-          console.error(err);
-          res.sendStatus(404);
-       }
-    }else{
-        fs.unlink(src, (err) => {
-            if (err){
-                console.error(err);
-                res.sendStatus(404);
-            }else{
-                res.sendStatus(200);
-                logger.info(`[DELETE] ${src}`);
-            }
-        });
+    try{
+        if(userConfig.move_file_to_recyle){
+            const trash = require('trash');
+            await trash([src]);
+            if(!(await isExist(src))){
+            res.sendStatus(200);
+            logger.info(`[DELETE] ${src}`);
+            } else{
+            console.error(err);
+            res.sendStatus(404);
+        }
+        }else{
+            fs.unlink(src, (err) => {
+                if (err){
+                    console.error(err);
+                    res.sendStatus(404);
+                }else{
+                    res.sendStatus(200);
+                    logger.info(`[DELETE] ${src}`);
+                }
+            });
+        }
+    } catch(e) {
+        console.error(err);
+        res.sendStatus(404);
     }
 });
 

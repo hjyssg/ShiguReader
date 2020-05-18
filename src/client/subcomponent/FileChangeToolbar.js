@@ -29,31 +29,32 @@ export default class FileChangeToolbar extends Component {
     }
 
     handleMinifyZip(){
+        const { file } = this.props;
         Swal.fire({
             title: "Minify Zip",
-            text: 'Do you want to Minify Zip?' ,
+            text: 'Do you want to minify the file?' ,
             showCancelButton: true,
             confirmButtonText: 'Yes',
             cancelButtonText: 'No'
         }).then((result) => {
             if (result.value === true) {
-                Sender.simplePost("/api/minifyZip", {filePath: this.props.file}, res => {
-                    // if (!res.failed) {
-                    //     spop({
-                    //         style: "success",
-                    //         template: 'Deleted ' + this.props.file,
-                    //         position:  this.props.popPosition,
-                    //         autoclose: 3000
+                Sender.simplePost("/api/minifyZip", {filePath: file}, res => {
+                    if (!res.failed) {
+                        spop({
+                            style: "success",
+                            template: `${file} is added to the task queue`,
+                            position:  this.props.popPosition,
+                            autoclose: 3000
 
-                    //     });
-                    // }else{
-                    //     spop({
-                    //         style: "error",
-                    //         template: 'Failed to delete',
-                    //         position:  this.props.popPosition,
-                    //         autoclose: 60000
-                    //     });
-                    // }
+                        });
+                    }else{
+                        spop({
+                            style: "error",
+                            template: `Not able to minify ${file}`,
+                            position:  this.props.popPosition,
+                            autoclose: 60000
+                        });
+                    }
                 });
             } 
         });

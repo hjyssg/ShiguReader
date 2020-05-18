@@ -160,8 +160,6 @@ module.exports.extractAll = async function(filePath, outputPath){
         const { stderr } = await execa(sevenZip, opt);
         if (!stderr) {
             pathes = await pfs.readdir(outputPath);
-            // const temp = generateContentUrl(pathes, outputPath);
-            // sendBack(temp.files, temp.musicFiles, filePath, stat);
         } else {
             error = stderr;
         }
