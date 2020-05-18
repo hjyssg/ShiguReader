@@ -85,7 +85,7 @@ function preParse(str){
 }
 
 //!! same as file-iterator getStat()
-function addStatToDb(path, stat){
+const updateStatToDb = module.exports.updateStatToDb = function(path, stat){
     const result = {};
     result.isFile = stat.isFile();
     result.isDir = stat.isDirectory();
@@ -106,7 +106,7 @@ module.exports.setUpFileWatch = function(home_pathes, cache_folder_name){
 
     const addCallBack = (path, stats) => {
         preParse(path);
-        addStatToDb(path, stats);
+        updateStatToDb(path, stats);
     };
 
     const deleteCallBack = path => {

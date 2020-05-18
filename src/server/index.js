@@ -60,7 +60,7 @@ const sevenZipHelp = require("./sevenZipHelp");
 const { listZipContent, extractAll, extractByRange }= sevenZipHelp;
 
 const db = require("./models/db");
-const {getAllFilePathes, getCacheFiles, getCacheOutputPath} = db;
+const { getAllFilePathes, getCacheFiles, getCacheOutputPath, updateStatToDb} = db;
 
 const app = express();
 app.use(express.static('dist', {
@@ -170,11 +170,18 @@ function getThumbnails(filePathes){
     return thumbnails;
 }
 
+async function getStat(filePath){
+    const stat = await pfs.stat(filePath);
+    updateStatToDb(filePath, stat);
+    return stat;
+}
+
 
 serverUtil.common.path_will_scan = path_will_scan;
 serverUtil.common.getCacheOutputPath = getCacheOutputPath;
 serverUtil.common.cachePath = cachePath;
 serverUtil.common.getThumbnails = getThumbnails;
+serverUtil.common.getStat = getStat;
 
 //-----------------thumbnail related-----------------------------------
 
@@ -380,7 +387,8 @@ app.post('/api/extract', async (req, res) => {
     }
     
     const time1 = getCurrentTime();
-    const stat = await pfs.stat(filePath);
+    const stat = await getStat((filePath);
+ 
 
     function sendBack(files, musicFiles, path, stat){
         const tempFiles =  serverUtil.filterHiddenFile(files);

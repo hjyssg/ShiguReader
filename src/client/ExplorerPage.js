@@ -516,8 +516,10 @@ export default class ExplorerPage extends Component {
             const toUrl =  clientUtil.getOneBookLink(item);
 
             //todo
-            const size = this.getFileSize(item) || this.getTotalImgSize(item);
-            const fileSize = size && filesizeUitl(size, {base: 2});
+            const fileSize = this.getFileSize(item);
+            const totalImageSize = this.getTotalImgSize(item);
+            const size = fileSize === 0? totalImageSize : fileSize;
+            const fileSizeStr = size && filesizeUitl(size, {base: 2});
 
             let seperator;
 
@@ -565,7 +567,7 @@ export default class ExplorerPage extends Component {
                                     />
                         </Link>
                         <div className={fileInfoRowCn}>
-                            <span>{fileSize}</span>
+                            <span>{fileSizeStr}</span>
                             <span>{`${this.getPageNum(item)} pages`}</span>
                             {musicNum > 0 && <span>{`${musicNum} songs`}</span>}
                         </div>

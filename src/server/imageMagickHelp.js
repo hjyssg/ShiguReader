@@ -17,6 +17,9 @@ const filesizeUitl = require('filesize');
 
 const rimraf = require("../tools/rimraf");
 
+const serverUtil = require("./serverUtil");
+const getStat = serverUtil.common.getStat;
+
 const { img_convert_cache, img_convert_quality, img_convert_dest_type, img_reduce_resolution_threshold, img_reduce_resolution_dimension } = userConfig;
 
 
@@ -49,7 +52,7 @@ module.exports.minifyOneFile = async function(filePath){
     let extractOutputPath;
     let minifyOutputPath;
     try{
-        const oldStat = await pfs.stat(filePath);
+        const oldStat = await getStat(filePath);
         const oldTemp = await listZipContent(filePath);
         const oldFiles = oldTemp.files;
         const oldInfos = oldTemp.info;
@@ -141,7 +144,7 @@ module.exports.minifyOneFile = async function(filePath){
                     console.error("filesInNewZip is missing files");
                     deleteCache(resultZipPath);
                 }else{
-                    const newStat = await pfs.stat(resultZipPath);
+                    const newStat = await getStat(resultZipPath);
                     console.log("[magick] convertion done", filePath);
                     console.log("original size",filesizeUitl(oldStat.size, {base: 2}));
                     console.log("new size", filesizeUitl(newStat.size, {base: 2}));
