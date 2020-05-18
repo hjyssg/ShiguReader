@@ -387,7 +387,7 @@ app.post('/api/extract', async (req, res) => {
     }
     
     const time1 = getCurrentTime();
-    const stat = await getStat((filePath);
+    const stat = await getStat(filePath);
  
 
     function sendBack(files, musicFiles, path, stat){

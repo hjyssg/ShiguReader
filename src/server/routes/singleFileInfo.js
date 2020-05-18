@@ -4,7 +4,7 @@ const { isExist } = pathUtil;
 const express = require('express');
 const router = express.Router();
 const db = require("../models/db");
-const serverUtil = require("./serverUtil");
+const serverUtil = require("../serverUtil");
 const getStat = serverUtil.common.getStat;
 
 router.post("/api/singleFileInfo", async (req, res) => {
