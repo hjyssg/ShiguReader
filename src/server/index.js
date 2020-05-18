@@ -299,8 +299,7 @@ function logForPre(prefix, config, filePath) {
 
 
 const pLimit = require('p-limit');
-const extractlimit = pLimit(1);
-const minifyImageFile = require("../tools/minifyImageFile");
+const thumbnailGenerator = require("../tools/thumbnailGenerator");
 //the only required parameter is filePath
 async function extractThumbnailFromZip(filePath, res, mode, config) {
     if(!util.isCompress(filePath)){
@@ -331,7 +330,7 @@ async function extractThumbnailFromZip(filePath, res, mode, config) {
     }
 
     function minify(one){
-        minifyImageFile(outputPath, path.basename(one), (err, info) => { 
+        thumbnailGenerator(outputPath, path.basename(one), (err, info) => { 
             if(isPregenerateMode){
                 config.minCounter++;
                 logForPre("[pre-generate minify] ", config, filePath );
