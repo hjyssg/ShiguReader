@@ -21,6 +21,7 @@ VOLUME /data
 #网页端口
 EXPOSE 8080
 EXPOSE 3000
-RUN chmod -R 777 ./
+RUN chown -R node /usr/src/app
+USER node
 #启用服务
 CMD [ "npm", "run","dev" ]

@@ -25,7 +25,9 @@ router.post('/api/moveFile', (req, res) => {
         try{
             let err;
             if(!(await isExist(dest))){
-                err = await pfs.mkdir(dest);
+                err = await pfs.mkdir(dest, {recursive: true});
+
+
             }
             if (!err) {
                 const cmdStr = isWindows()? "move" : "mv";
