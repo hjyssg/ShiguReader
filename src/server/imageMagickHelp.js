@@ -20,7 +20,9 @@ const rimraf = require("../tools/rimraf");
 const serverUtil = require("./serverUtil");
 const getStat = serverUtil.common.getStat;
 
-const { img_convert_cache, img_convert_quality, img_convert_dest_type, img_reduce_resolution_threshold, img_reduce_resolution_dimension } = userConfig;
+const { img_convert_cache, img_convert_quality, img_convert_dest_type, 
+        img_reduce_resolution_threshold, img_reduce_resolution_dimension,
+        img_convert_min } = userConfig;
 
 
 function logFail(filePath, e){
@@ -33,7 +35,7 @@ async function convertImage(imgFilePath, outputImgName, oldAvgImgSize){
     try{
         let opt;
 
-        if(oldAvgImgSize > img_reduce_resolution_threshold*1024*1024){
+        if(oldAvgImgSize > img_reduce_resolution_threshold){
             opt = [imgFilePath, "-strip", "-quality", img_convert_quality, "-resize", `${img_reduce_resolution_dimension}\>`, outputImgName ]
         }else{
             opt = [imgFilePath, "-strip", "-quality", img_convert_quality, outputImgName ]
@@ -74,7 +76,7 @@ module.exports.minifyOneFile = async function(filePath){
         const oldFileInfos = oldTemp.fileInfos;
         const oldAvgImgSize  = oldInfos.avgImgSize;
 
-        if(!isConertable(oldFiles, oldFileInfos)){
+        if( oldAvgImgSize < img_convert_min || !isConertable(oldFiles, oldFileInfos)){
             logFail(filePath, "not convertable");
             return;
         }
