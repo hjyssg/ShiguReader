@@ -10,7 +10,7 @@ const userConfig = require('../../user-config');
 const isWindows = require('is-windows');
 const express = require('express');
 const router = express.Router();
-const logger = require("../models/logger").logger;
+const logger = require("../logger");
 
 router.post('/api/moveFile', (req, res) => {
     const src = req.body && req.body.src;

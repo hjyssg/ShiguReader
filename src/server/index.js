@@ -1,5 +1,4 @@
 const express = require('express');
-const fs = require('fs');
 const path = require('path');
 const execa = require('execa');
 const pfs = require('promise-fs');
@@ -22,14 +21,13 @@ const {
         isExist,
         getHomePath
 } = pathUtil;
-const { isImage, isCompress, isMusic, isVideo, arraySlice, getCurrentTime, isDisplayableInExplorer, isDisplayableInOnebook } = util;
+const { isImage, isCompress, isMusic, arraySlice, getCurrentTime, isDisplayableInExplorer, isDisplayableInOnebook } = util;
 
 //set up path
 const rootPath = pathUtil.getRootPath();
 const cache_folder_name = userConfig.cache_folder_name;
 const cachePath = path.join(rootPath, cache_folder_name);
-let logPath = path.join(rootPath, userConfig.workspace_name, "log");
-logPath = path.join(logPath, dateFormat(new Date(), "yyyy-mm-dd HH-MM"))+ ".log";
+
 const imgConvertFolder = path.join(rootPath, userConfig.workspace_name,  userConfig.img_convert_cache);
 
 //set up user path
@@ -37,17 +35,15 @@ let home_pathes = getHomePath(imgConvertFolder);
 const path_will_scan = home_pathes.concat(userConfig.good_folder, userConfig.good_folder_root, userConfig.not_good_folder);
 const isProduction = process.argv.includes("--production");
 
-console.log("--------------------");
-console.log("process.cwd()", process.cwd());
-console.log("__filename", __filename);
-console.log("__dirname", __dirname);
-console.log("rootPath", rootPath);
-console.log("log path:", logPath);
-console.log("----------------------");
+// console.log("--------------------");
+// console.log("process.cwd()", process.cwd());
+// console.log("__filename", __filename);
+// console.log("__dirname", __dirname);
+// console.log("rootPath", rootPath);
+// console.log("----------------------");
 
-const loggerModel = require("./models/logger");
-loggerModel.init(logPath);
-const logger = loggerModel.logger;
+const logger = require("./logger");
+
 
 //set up json DB
 const zipInfoDb = require("./models/zipInfoDb");
