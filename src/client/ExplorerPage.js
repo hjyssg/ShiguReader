@@ -333,7 +333,18 @@ export default class ExplorerPage extends Component {
         if(pageNum === 0){
             return -Infinity;
         }
-        return Math.min(this.getTotalImgSize(e), this.getFileSize(e))/pageNum;
+
+        //choose the min
+        //but can not be 0
+        let total;
+
+        if(this.getFileSize(e) === 0){
+            total = this.getTotalImgSize(e);
+        }else{
+            total = Math.min(this.getFileSize(e), this.getTotalImgSize(e))
+        }
+
+        return total/pageNum;
     }
 
     getMusicNum(fp){
