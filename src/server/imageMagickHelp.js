@@ -25,7 +25,6 @@ const { img_convert_cache, img_convert_quality, img_convert_dest_type, img_reduc
 
 function logFail(filePath, e){
     logger.error("[imageMagickHelp]]", filePath, e);
-    console.error("[imageMagickHelp]]", filePath, e);
 }
 
 //https://imagemagick.org/script/download.php#windows

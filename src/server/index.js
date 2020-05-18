@@ -133,7 +133,6 @@ async function init() {
         console.log("----------------------------------------------------------------");
     }).on('error', (error)=>{
         logger.error("[Server Init]", error.message);
-        console.error("[Server Init]", error.message);
 
         //exit the current program
         setTimeout(()=> process.exit(22), 500);

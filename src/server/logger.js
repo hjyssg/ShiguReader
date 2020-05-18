@@ -8,9 +8,8 @@ const rootPath = pathUtil.getRootPath();
 let logPath = path.join(rootPath, userConfig.workspace_name, "log");
 logPath = path.join(logPath, dateFormat(new Date(), "yyyy-mm-dd HH-MM"))+ ".log";
 
-module.exports = winston.createLogger({
+const _log = winston.createLogger({
     transports: [
-      new (winston.transports.Console)(),
       new winston.transports.File({ 
         filename: logPath, 
         formatter: function(params) {
@@ -18,4 +17,14 @@ module.exports = winston.createLogger({
         }})
     ]
 });
+
+module.exports.error = function(...args){
+    _log.error(...args);
+    console.error(...args);
+}
+
+module.exports.info = function(...args){
+    _log.info(...args);
+    console.log(...args);
+}
 

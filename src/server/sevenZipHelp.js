@@ -120,7 +120,6 @@ module.exports.listZipContent = async function (filePath){
         return { files, fileInfos, info };
     }catch(e){
         logger.error("[listZipContent]", filePath, e);
-        console.error("[listZipContent]", filePath, e);
         return { files:[], fileInfos:[] };
     }
 }
@@ -140,7 +139,6 @@ module.exports.extractByRange = async function(filePath, outputPath, range){
             let { stderr } = await execa(sevenZip, opt);
             if(stderr){
                 error = stderr;
-                console.error('[extractByRange] exit: ', stderr);  
                 logger.error('[extractByRange] exit: ', stderr);
                 break;
             }
@@ -148,7 +146,6 @@ module.exports.extractByRange = async function(filePath, outputPath, range){
         }
     }catch (e){
         error = e;
-        console.error('[extractByRange] exit: ', e);
         logger.error('[extractByRange] exit: ', e);
     }finally{
         return error;
@@ -166,7 +163,6 @@ module.exports.extractAll = async function(filePath, outputPath){
         }
     } catch (e) {
         error = e;
-        console.error('[extractAll] exit: ', e);
         logger.error('[extractAll] exit: ', e);
     } finally{
         return {error, pathes}

@@ -61,12 +61,12 @@ router.post('/api/deleteFile', async (req, res) => {
             const trash = require('trash');
             await trash([src]);
             if(!(await isExist(src))){
-            res.sendStatus(200);
-            logger.info(`[DELETE] ${src}`);
-            } else{
-            console.error(err);
-            res.sendStatus(404);
-        }
+                res.sendStatus(200);
+                logger.info(`[DELETE] ${src}`);
+            } else {
+                //missing is delete
+                res.sendStatus(200);
+            }
         }else{
             fs.unlink(src, (err) => {
                 if (err){
@@ -79,7 +79,7 @@ router.post('/api/deleteFile', async (req, res) => {
             });
         }
     } catch(e) {
-        console.error(err);
+        console.error(e);
         res.sendStatus(404);
     }
 });
