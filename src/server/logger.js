@@ -10,7 +10,7 @@ logPath = path.join(logPath, dateFormat(new Date(), "yyyy-mm-dd HH-MM"))+ ".log"
 
 module.exports = winston.createLogger({
     transports: [
-      new winston.transports.Console(),
+      new (winston.transports.Console)(),
       new winston.transports.File({ 
         filename: logPath, 
         formatter: function(params) {

@@ -532,7 +532,6 @@ export default class ExplorerPage extends Component {
             const text = getBaseName(item);
             const toUrl =  clientUtil.getOneBookLink(item);
 
-            //todo
             const fileSize = this.getFileSize(item);
             const fileSizeStr = fileSize && filesizeUitl(fileSize, {base: 2});
 

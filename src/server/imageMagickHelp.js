@@ -24,8 +24,8 @@ const { img_convert_cache, img_convert_quality, img_convert_dest_type, img_reduc
 
 
 function logFail(filePath, e){
-    logger.error("[minifyOneFile]", filePath, e);
-    console.error("[minifyOneFile]", filePath, e);
+    logger.error("[imageMagickHelp]]", filePath, e);
+    console.error("[imageMagickHelp]]", filePath, e);
 }
 
 //https://imagemagick.org/script/download.php#windows
@@ -47,6 +47,22 @@ async function convertImage(imgFilePath, outputImgName, oldAvgImgSize){
     }
 }
 
+function isConertable(oldFiles, oldFileInfos){
+    //check all content is image or folder
+    //gif is not allowed
+    const convertable = oldFiles.every((e, ii) => {
+        if(e && isImage(e) && !isGif(e)){
+            return true;
+        }else if(oldFileInfos[ii].folder === "+"){
+            return true
+        }else{
+            return false;
+        }
+    })
+
+    return convertable;
+}
+
 //ONLY KEEP THE CORRECT FILES IN FOLDER AFTER EVERYTHING
 module.exports.minifyOneFile = async function(filePath){
     let extractOutputPath;
@@ -58,115 +74,117 @@ module.exports.minifyOneFile = async function(filePath){
         const oldInfos = oldTemp.info;
         const oldAvgImgSize  = oldInfos.avgImgSize;
 
-        //check all content is image or folder
-        //gif is not allowed
-        const convertable = oldFiles.every((e, ii) => {
-            if(e && isImage(e) && !isGif(e)){
-                return true;
-            }else if(oldFileInfos[ii].folder === "+"){
-                return true
-            }else{
-                return false;
-            }
-        })
-
-        if(!convertable){
-            logFail(filePath);
+        if(!isConertable(oldFiles, oldFileInfos)){
+            logFail(filePath, "not convertable");
             return;
         }
         
-        //do a brand new extract 
+        //one folder for extract
+        //one for minify image
         const bookName = path.basename(filePath, path.extname(filePath)) 
         const convertSpace = path.join(getRootPath(), userConfig.workspace_name, img_convert_cache);
         extractOutputPath = path.join(convertSpace, bookName+"-original");
         minifyOutputPath = path.join(convertSpace, bookName);
 
+        //mkdir for output
         if(!(await isExist(minifyOutputPath))){
             const mdkirErr = await pfs.mkdir(minifyOutputPath, { recursive: true});
             if(mdkirErr){
-                logFail(filePath, mdkirErr);
+                logFail(filePath, "cannot create output folder");
                 return;
             }
         }
 
+        //do a brand new extract 
         const { pathes, error } = await extractAll(filePath, extractOutputPath);
-        if(error){
-            logFail(filePath, error)
-        } else {
-            checkExtractAllWithOriginalFiles(pathes, oldFiles);
-
-            console.log("-----begin convert images into webp--------------");
-            console.log(filePath);
-            const _pathes = pathes.filter(isImage);
-            const total = _pathes.length;
-            let converterError;
-            const beginTime = getCurrentTime();
-            for(let ii = 0; ii < total; ii++){
-                const fname = _pathes[ii];
-                const imgFilePath = path.resolve(extractOutputPath, fname);
-                //use imageMagik to convert 
-                //  magick 1.jpeg   50 1.webp
-                const name = path.basename(fname, path.extname(fname)) + img_convert_dest_type;
-                const outputImgName = path.resolve(minifyOutputPath, name);
-                let {stdout, stderr} = await convertImage(imgFilePath, outputImgName, oldAvgImgSize);
-                if (stderr) {
-                    converterError = stderr;
-                    break;
-                }else{
-                    const timeSpent = getCurrentTime() - beginTime;
-                    const timePerImg = timeSpent/(ii+1)/1000; // in second
-                    const remaintime = (total - ii) * timePerImg;
-                    if(ii+1 < total){
-                        console.log(`[magick] ${ii+1}/${total} ${(timePerImg).toFixed()} second per file`);
-                        console.log(`${remaintime.toFixed()} second before finish`)
-                    }
-                    else {
-                        console.log(`[magick] ${ii+1}/${total}`);
-                        // console.log("[magick] finish convertion. going to check if there is any error")
-                    }
-                }
-            }
-  
-            if(converterError){
-                logFail(filePath, converterError);
-                return;
-            }
-    
-            //zip into a new zip file
-            //todo: The process cannot access the file because it is being used by another process
-            let {stdout, stderr, resultZipPath} = await sevenZipHelp.zipOneFolder(minifyOutputPath);
-            if(stderr){
-                deleteCache(resultZipPath);
-            }else{
-                const temp = await listZipContent(resultZipPath);
-                const filesInNewZip = temp.files;
-                if(checkNewZipWithOriginalFiles(filesInNewZip, oldFiles)){
-                    console.error("filesInNewZip is missing files");
-                    deleteCache(resultZipPath);
-                }else{
-                    const newStat = await getStat(resultZipPath);
-                    console.log("[magick] convertion done", filePath);
-                    console.log("original size",filesizeUitl(oldStat.size, {base: 2}));
-                    console.log("new size", filesizeUitl(newStat.size, {base: 2}));
-
-                    const reducePercentage = (100 - newStat.size/oldStat.size * 100).toFixed(2);
-                    console.log(`size reduce ${reducePercentage}%`);
-
-                    if(reducePercentage < 10){
-                        console.log("not a useful work. abandon");
-                        deleteCache(resultZipPath);
-                    }else{
-                        //manually let file have the same modify time
-                        const error  = await pfs.utimes(resultZipPath, oldStat.atime , oldStat.mtime);
-                        if(error){
-                            logFail(filePath, "pfs.utimes failed");
-                        } else {
-                            console.log("output file is at", convertSpace);
-                        }
-                    }
-                }
-            }
+        if (error) {
+            logFail(filePath, "failed to extractAll", error);
+            return;
         } 
+        
+
+        if (checkExtractAllWithOriginalFiles(pathes, oldFiles)){
+            logFail(filePath,"checkExtractAllWithOriginalFiles");
+            return;
+        }
+        console.log("-----begin images convertion --------------");
+        console.log(filePath);
+        const _pathes = pathes.filter(isImage);
+        const total = _pathes.length;
+        let converterError;
+        const beginTime = getCurrentTime();
+
+        //convert one by one
+        for(let ii = 0; ii < total; ii++){
+            const fname = _pathes[ii];
+            const imgFilePath = path.resolve(extractOutputPath, fname);
+            //use imageMagik to convert 
+            //  magick 1.jpeg   50 1.webp
+            const name = path.basename(fname, path.extname(fname)) + img_convert_dest_type;
+            const outputImgName = path.resolve(minifyOutputPath, name);
+            let {stdout, stderr} = await convertImage(imgFilePath, outputImgName, oldAvgImgSize);
+            if (stderr) {
+                converterError = stderr;
+                break;
+            }else{
+                const timeSpent = getCurrentTime() - beginTime;
+                const timePerImg = timeSpent/(ii+1)/1000; // in second
+                const remaintime = (total - ii) * timePerImg;
+                if(ii+1 < total){
+                    console.log(`${ii+1}/${total} ${(timePerImg).toFixed()} second per file`);
+                    console.log(`${remaintime.toFixed()} second before finish`)
+                }
+                else {
+                    console.log(`${ii+1}/${total}`);
+                    // console.log("finish convertion. going to check if there is any error")
+                }
+            }
+        }
+
+        if(converterError){
+            logFail(filePath, converterError);
+            return;
+        }
+
+        //zip into a new zip file
+        //todo: The process cannot access the file because it is being used by another process
+        let {stdout, stderr, resultZipPath} = await sevenZipHelp.zipOneFolder(minifyOutputPath);
+        if(stderr){
+            logFail(filePath, "sevenZipHelp.zipOneFolder fail");
+            deleteCache(resultZipPath);
+            return;
+        }
+
+        const temp = await listZipContent(resultZipPath);
+        const filesInNewZip = temp.files;
+        if(checkNewZipWithOriginalFiles(filesInNewZip, oldFiles)){
+            logFail(filePath, "filesInNewZip is missing files");
+            deleteCache(resultZipPath);
+            return;
+        }
+        const newStat = await getStat(resultZipPath);
+        console.log("convertion done", filePath);
+        console.log("original size",filesizeUitl(oldStat.size, {base: 2}));
+        console.log("new size", filesizeUitl(newStat.size, {base: 2}));
+
+        const reducePercentage = (100 - newStat.size/oldStat.size * 100).toFixed(2);
+        console.log(`size reduce ${reducePercentage}%`);
+
+        const userful_percent = 20;
+
+        if(reducePercentage < userful_percent){
+            logFail(filePath, "not a useful work. abandon");
+            deleteCache(resultZipPath);
+        }else{
+            //manually let file have the same modify time
+            const error  = await pfs.utimes(resultZipPath, oldStat.atime , oldStat.mtime);
+            if(error){
+                logFail(filePath, "pfs.utimes failed");
+                deleteCache(resultZipPath);
+            } else {
+                console.log("output file is at", convertSpace);
+            }
+        }
     } catch(e) {
         logFail(filePath, e);
     } finally {
@@ -187,17 +205,15 @@ function deleteCache(filePath){
     }
 }
 
-function checkExtractAllWithOriginalFiles(newFiles, files, callback){
+function checkExtractAllWithOriginalFiles(newFiles, files){
     if(!newFiles){
-        callback && callback();
-        throw "[ExtractAll] missing files";
+        return true;
     }
 
     const expect_file_names = files.filter(isImage).map(e => path.basename(e)).sort();
     const resulted_file_names =  newFiles.filter(isImage).map(e => path.basename(e)).sort();
     if(!_.isEqual(resulted_file_names, expect_file_names)){
-        callback && callback();
-        throw "[ExtractAll] missing files";
+        return true;
     }
 }
 
