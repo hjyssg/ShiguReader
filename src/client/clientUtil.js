@@ -88,31 +88,31 @@ module.exports.isSearchInputTextTyping = function(){
 }
 
 module.exports.getExplorerLink = function(path){
-    return '/explorer/?p='+ path;
+    return '/explorer/?p='+ encodeURIComponent(path);
 }
 
 module.exports.getSearhLink = function(path){
-    return"/search/?s=" + path;
+    return"/search/?s=" + encodeURIComponent(path);
 }
 
 module.exports.getTagLink = function(path){
-    return"/tag/?t=" + path;
+    return"/tag/?t=" + encodeURIComponent(path);
 }
 
 module.exports.getAuthorLink = function(path){
-    return"/author/?a=" + path;
+    return"/author/?a=" + encodeURIComponent(path);
 }
 
 module.exports.getOneBookLink = function(path){
-    return "/onebook/?p=" + path;
+    return "/onebook/?p=" + encodeURIComponent(path);
 }
 
 module.exports.getVideoPlayerLink = function(path){
-    return "/videoPlayer/?p=" + path;
+    return "/videoPlayer/?p=" + encodeURIComponent(path);
 }
 
 module.exports.getDownloadLink = function(path){
-    return "/api/download/?p=" + path;
+    return "/api/download/?p=" + encodeURIComponent(path);
 }
 
 function stringHash (str) {
