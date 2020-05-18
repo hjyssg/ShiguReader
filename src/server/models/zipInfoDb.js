@@ -89,6 +89,16 @@ module.exports.getZipInfo = function(filePathes){
     return fpToInfo;
 }
 
+module.exports.deleteFromZipDb = function(filePath){
+    if(!zip_content_db){
+        return;
+    }
+
+    if(has(filePath)){
+        let data = getData(filePath);
+        data.remove();
+    }
+}
 
 module.exports.updateZipDb = function(filePath, info){
     if(!zip_content_db){

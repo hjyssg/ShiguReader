@@ -8,7 +8,7 @@ const pathUtil = require("./pathUtil");
 const { isImage, getCurrentTime, isGif } = util;
 
 const sevenZipHelp = require("./sevenZipHelp");
-const { listZipContent, extractAll }= sevenZipHelp;
+const { listZipContentAndUpdateDb, extractAll }= sevenZipHelp;
 
 const { isExist, getRootPath } = pathUtil;
 
@@ -68,7 +68,7 @@ module.exports.minifyOneFile = async function(filePath){
     let minifyOutputPath;
     try{
         const oldStat = await getStat(filePath);
-        const oldTemp = await listZipContent(filePath);
+        const oldTemp = await listZipContentAndUpdateDb(filePath);
         const oldFiles = oldTemp.files;
         const oldInfos = oldTemp.info;
         const oldFileInfos = oldTemp.fileInfos;
@@ -156,7 +156,7 @@ module.exports.minifyOneFile = async function(filePath){
             return;
         }
 
-        const temp = await listZipContent(resultZipPath);
+        const temp = await listZipContentAndUpdateDb(resultZipPath);
         const filesInNewZip = temp.files;
         if(checkNewZipWithOriginalFiles(filesInNewZip, oldFiles)){
             logFail(filePath, "filesInNewZip is missing files");

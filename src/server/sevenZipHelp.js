@@ -90,7 +90,7 @@ const get7zipOption = module.exports.get7zipOption = function(filePath, outputPa
 }
 
 const limit = pLimit(1);
-module.exports.listZipContent = async function (filePath){
+module.exports.listZipContentAndUpdateDb = async function (filePath){
     try{
         //https://superuser.com/questions/1020232/list-zip-files-contents-using-7zip-command-line-with-non-verbose-machine-friend
         let {stdout, stderr} = await limit(() => execa(sevenZip, ['l', '-r', '-ba' ,'-slt', filePath]));
@@ -119,7 +119,7 @@ module.exports.listZipContent = async function (filePath){
         updateZipDb(filePath, info);
         return { files, fileInfos, info };
     }catch(e){
-        logger.error("[listZipContent]", filePath, e);
+        logger.error("[listZipContentAndUpdateDb]", filePath, e);
         return { files:[], fileInfos:[] };
     }
 }

@@ -1,5 +1,4 @@
 const _ = require('underscore');
-const chokidar = require('chokidar');
 const dateFormat = require('dateformat');
 
 const pathUtil = require("../pathUtil");
@@ -14,8 +13,6 @@ const { isImage, isCompress, isMusic, isDisplayableInExplorer, isDisplayableInOn
 const { generateContentUrl } = pathUtil;
 
 const sevenZipHelp = require("../sevenZipHelp");
-const { listZipContent }= sevenZipHelp;
-
 
 const db = {
     //file path to file stats
@@ -54,7 +51,7 @@ module.exports.initFileToInfo = function(obj){
     getAllFilePathes().forEach(e => {
         const fp = path.basename(e);
         if (isDisplayableInExplorer(fp)) {
-            preParse(fp);
+            serverUtil.parse(fp);
         }
     })
 }
@@ -68,122 +65,6 @@ module.exports.initCacheDb = function(pathes, infos){
     
     cacheDb.cacheFileToInfo = infos;
 }
-
-
-function shouldWatchForCache(p){
-    const ext = path.extname(p).toLowerCase();
-    if (!ext ||  isDisplayableInOnebook(ext)) {
-        return true;
-    }
-    return false;
-}
-
-
-
-//!! same as file-iterator getStat()
-const updateStatToDb = module.exports.updateStatToDb = function(path, stat){
-    const result = {};
-    result.isFile = stat.isFile();
-    result.isDir = stat.isDirectory();
-    result.mtimeMs = stat.mtimeMs;
-    result.mtime = stat.mtime;
-    result.size = stat.size;
-    db.fileToInfo[path] = result;
-}
-
-function shouldWatchForOne(p){
-    const ext = path.extname(p).toLowerCase();
-    if (!ext ||  isDisplayableInExplorer(ext) ) {
-        return true;
-    }
-    return false;
-}
-
-function shouldIgnoreForOne(p){
-    return !shouldWatchForOne(p);
-}
-
-function shouldIgnoreForCache(p){
-    return !shouldWatchForCache(p);
-}
-
-function preParse(str){
-    //will save in memory
-    serverUtil.parse(str);
-}
-
-module.exports.setUpFileWatch = function(home_pathes, cache_folder_name){
-    const watcher = chokidar.watch(home_pathes, {
-        ignored: shouldIgnoreForOne,
-        ignoreInitial: true,
-        persistent: true,
-        ignorePermissionErrors: true
-    });
-
-    const addCallBack = (path, stats) => {
-        preParse(path);
-        updateStatToDb(path, stats);
-        
-        if(isCompress(path) && stats.size > 1*1024*1024){
-            listZipContent(path);
-        }
-    };
-
-    const deleteCallBack = path => {
-        //update dn
-        delete db.fileToInfo[path];
-    };
-
-    watcher
-        .on('add', addCallBack)
-        .on('change', addCallBack)
-        .on('unlink', deleteCallBack);
-    
-    // More possible events.
-    watcher
-        .on('addDir', addCallBack)
-        .on('unlinkDir', deleteCallBack);
-
-    //also for cache files
-    const cacheWatcher = chokidar.watch(cache_folder_name, {
-        ignored: shouldIgnoreForCache,
-        persistent: true,
-        ignorePermissionErrors: true,
-        ignoreInitial: true,
-    });
-
-    cacheWatcher
-        .on('unlinkDir', p => {
-            const fp =  path.dirname(p);
-            cacheDb.folderToFiles[fp] = undefined;
-        });
-
-    cacheWatcher
-        .on('add', (p, stats) => {
-            const fp =  getDirName(p);
-            cacheDb.folderToFiles[fp] = cacheDb.folderToFiles[fp] || [];
-            cacheDb.folderToFiles[fp].push(path.basename(p));
-
-            stats.isFile = stats.isFile();
-            stats.isDir = stats.isDirectory();
-            cacheDb.cacheFileToInfo[p] = stats;
-        })
-        .on('unlink', p => {
-            const fp =  getDirName(p);
-            cacheDb.folderToFiles[fp] = cacheDb.folderToFiles[fp] || [];
-            const index = cacheDb.folderToFiles[fp].indexOf(path.basename(p));
-            cacheDb.folderToFiles[fp].splice(index, 1);
-
-            delete cacheDb.cacheFileToInfo[p];
-        });
-
-    return {
-        watcher,
-        cacheWatcher
-    };
-}
-
-
 
 //  outputPath is the folder name
 module.exports.getCacheFiles = function(outputPath) {
@@ -218,4 +99,37 @@ module.exports.getCacheOutputPath = function (cachePath, zipFilePath) {
         outputFolder = outputFolder+ `${mstr} ${fstr} `;
     }
     return path.join(cachePath, outputFolder);
+}
+
+//!! same as file-iterator getStat()
+module.exports.updateStatToDb =  function(path, stat){
+    const result = {};
+    result.isFile = stat.isFile();
+    result.isDir = stat.isDirectory();
+    result.mtimeMs = stat.mtimeMs;
+    result.mtime = stat.mtime;
+    result.size = stat.size;
+    db.fileToInfo[path] = result;
+}
+
+module.exports.deleteFromDb = function(path){
+    delete db.fileToInfo[path];
+}
+
+//!! same as file-iterator getStat()
+module.exports.updateStatToCacheDb =  function(p, stats){
+    const fp =  getDirName(p);
+    folderToFiles[fp] = folderToFiles[fp] || [];
+    folderToFiles[fp].push(path.basename(p));
+
+    cacheFileToInfo[p] = stats;
+}
+
+module.exports.deleteFromCacheDb = function(p){
+    const fp =  getDirName(p);
+    if(folderToFiles[fp]){
+        const index = folderToFiles[fp].indexOf(path.basename(p));
+        folderToFiles[fp].splice(index, 1);
+    }
+    delete cacheFileToInfo[p];
 }
