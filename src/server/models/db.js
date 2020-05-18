@@ -92,7 +92,7 @@ function addStatToDb(path, stat){
     result.mtimeMs = stat.mtimeMs;
     result.mtime = stat.mtime;
     result.size = stat.size;
-    getFileToInfo(path) = result;
+    db.fileToInfo[path] = result;
 }
 
 
