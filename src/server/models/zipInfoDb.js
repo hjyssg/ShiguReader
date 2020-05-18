@@ -96,7 +96,7 @@ module.exports.deleteFromZipDb = function(filePath){
 
     if(has(filePath)){
         let data = getData(filePath);
-        data.remove();
+        zip_content_db.remove(data);
     }
 }
 
