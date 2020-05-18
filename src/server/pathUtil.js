@@ -1,6 +1,8 @@
 const path = require('path');
 const userConfig = require('../user-config');
 const util = require("../util");
+const fs = require('fs');
+const _ = require('underscore');
 
 const isImage = util.isImage;
 const isMusic = util.isMusic;
@@ -76,11 +78,33 @@ function isSub(parent, child) {
     return false;
 }
 
+function getHomePath(imgConvertFolder){
+    const path_config_path = path.join(getRootPath(), "src", "path-config");
+    //read text file 
+    let results = fs.readFileSync(path_config_path).toString().split('\n'); 
+    results = results
+                .map(e => e.trim().replace(/\n|\r/g, ""))
+                .filter(pp =>{ return pp && pp.length > 0 && !pp.startsWith("#");});
+    results.push(imgConvertFolder);
+    results = _.uniq(results);
+    if(results.length === 0){
+        if(isWindows()){
+            const getDownloadsFolder = require('downloads-folder');
+            results.push(getDownloadsFolder());
+        }else{
+            //downloads-folder cause error on unix
+            results.push(`${process.env.HOME}/Downloads`);
+        }
+    }
+    return results;
+}
+
 module.exports = {
     fullPathToUrl,
     generateContentUrl,
     getRootPath,
     isExist,
     isDirectParent,
-    isSub
+    isSub,
+    getHomePath
 };

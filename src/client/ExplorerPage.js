@@ -118,7 +118,11 @@ export default class ExplorerPage extends Component {
         // https://en.wikipedia.org/wiki/URL
         // e.g ?s=apple
         const _props = props || this.props;
-        return queryString.parse(_props.location.search)["s"] ||  "";
+        if(this.getMode(_props) === MODE_SEARCH){
+            let str =  _props.location.search || _props.location.pathname;
+            str = str.replace("/search/?", "")
+            return queryString.parse(str)["s"] ||  "";
+        }
     }
 
     getAuthorFromQuery(props){
@@ -307,7 +311,8 @@ export default class ExplorerPage extends Component {
         });
     }
 
-
+    //comes from file db.
+    //may not be reliable
     getFileSize(e){
         return (this.fileInfos[e] && this.fileInfos[e].size) || 0;
     }
@@ -316,12 +321,32 @@ export default class ExplorerPage extends Component {
        return +(this.zipInfo[fp] && this.zipInfo[fp].pageNum) || 0;
     }
 
-    getPageAvgSize(e){
-        const pageNum = this.getPageNum(e)+this.getMusicNum(e);
+    //comes from zipInfo libray, may not be reliable
+    //because sometimes, filename dont chane but the size change 
+    getTotalImgSize(fp){
+       return +(this.zipInfo[fp] && this.zipInfo[fp].totalImgSize) || 0;
+    }
+
+    //may not be reliable
+    getPageAvgSize(e, forDisplay){
+        const pageNum = this.getPageNum(e);
         if(pageNum === 0){
-            return -Infinity;
+            //one for display
+            //one for sort 
+            return forDisplay? 0 : -Infinity;
         }
-        return this.getFileSize(e)/pageNum;
+
+        //choose the min
+        //but can not be 0
+        let total;
+
+        if(this.getFileSize(e) === 0){
+            total = this.getTotalImgSize(e);
+        }else{
+            total = Math.min(this.getFileSize(e), this.getTotalImgSize(e))
+        }
+
+        return total/pageNum;
     }
 
     getMusicNum(fp){
@@ -508,8 +533,11 @@ export default class ExplorerPage extends Component {
             const toUrl =  clientUtil.getOneBookLink(item);
 
             //todo
-            const stats = this.fileInfos[item];
-            const fileSize = stats && filesizeUitl(stats.size, {base: 2});
+            const fileSize = this.getFileSize(item);
+            const fileSizeStr = fileSize && filesizeUitl(fileSize, {base: 2});
+
+            const avgSize = this.getPageAvgSize(item, "for-dispaly");
+            const avgSizeStr = avgSize && filesizeUitl(avgSize, {base: 2});
 
             let seperator;
 
@@ -538,9 +566,10 @@ export default class ExplorerPage extends Component {
                 });
 
                 const musicNum = this.getMusicNum(item);
+                const hasMusic = musicNum > 0;
 
                 const fileInfoRowCn = classNames("file-info-row", {
-                    "less-padding": musicNum > 0
+                    "less-padding": hasMusic
                 })
 
                 zipItem = (
@@ -557,11 +586,12 @@ export default class ExplorerPage extends Component {
                                     />
                         </Link>
                         <div className={fileInfoRowCn}>
-                            <span>{fileSize}</span>
+                            <span title="file size">{fileSizeStr}</span>
                             <span>{`${this.getPageNum(item)} pages`}</span>
-                            {musicNum > 0 && <span>{`${musicNum} songs`}</span>}
+                            {hasMusic && <span>{`${musicNum} songs`}</span>}
+                            <span title="average img size"> {avgSizeStr} </span>
                         </div>
-                        <FileChangeToolbar className="explorer-file-change-toolbar" file={item} />
+                        <FileChangeToolbar hasMusic={hasMusic} className="explorer-file-change-toolbar" file={item} />
                     </div>
                 </div>);
             }
@@ -671,7 +701,7 @@ export default class ExplorerPage extends Component {
     getExplorerToolbar(){
         const mode = this.getMode();
         if(mode === MODE_EXPLORER && this.getPathFromQuery()){
-            const totalSize = this.getTotalFileSize();
+            const totalSize = this.getAllFileSize();
             let topButtons = (
             <div className="top-button-gropus row">
                     <div className="file-count col-6 col-md-4"><i className="fas fa-file-archive"/>{this.getFilteredFiles().length + " compressed files"} </div>
@@ -805,7 +835,7 @@ export default class ExplorerPage extends Component {
         });
     }
 
-    getTotalFileSize(){
+    getAllFileSize(){
         let files = this.getFilteredFiles();
         files = files.concat(this.getFilteredVideos())
         let totalSize = 0;

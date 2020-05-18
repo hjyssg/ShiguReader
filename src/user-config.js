@@ -37,9 +37,11 @@ module.exports.additional_folder = [
 
 //----------------- below section used by developer-----------------------------
 
-const workspace_name = module.exports.workspace_name = "workspace";
+module.exports.workspace_name = "workspace";
+ 
+module.exports.cache_folder_name = "cache";
 
-const cache_folder_name= module.exports.cache_folder_name = "cache";
+module.exports.img_convert_cache = "image_convert_cache"
 
 //ipad iphone上面看漫画是一页一张图，还是一次显示全部整本的全部图片
 module.exports.onebook_only_image_per_page = true;
@@ -62,3 +64,19 @@ module.exports.oversized_image_size = 4;
 //并不是高明的安全机制
 //注：Shigureader设计实现，只考虑在LAN情况下的性能和安全性。
 module.exports.file_change_password = "2020";
+
+//压缩图片的时候用的参数
+//传给magick用的
+module.exports.img_convert_quality = 60;
+
+//which output file 
+module.exports.img_convert_dest_type = ".jpg";
+
+//超过这个大小，再转换的时候同时压低分辨率。
+//现在太多漫画，扫描出来一来4000*6000。完全没有必要
+module.exports.img_reduce_resolution_threshold = 6; //in MB
+
+//Only Shrink Larger Images ('>' flag)
+//参考资料:http://www.imagemagick.org/Usage/resize/#shrink
+//不必担心，会保持比例，高宽都低于规定的比例。
+module.exports.img_reduce_resolution_dimension = "2800x2800";

@@ -4,7 +4,8 @@ const { isExist } = pathUtil;
 const express = require('express');
 const router = express.Router();
 const db = require("../models/db");
-const pfs = require('promise-fs');
+const serverUtil = require("../serverUtil");
+const getStat = serverUtil.common.getStat;
 
 router.post("/api/singleFileInfo", async (req, res) => {
     const filePath = (req.body && req.body.filePath);
@@ -14,9 +15,9 @@ router.post("/api/singleFileInfo", async (req, res) => {
         return;
     }
 
-    let stat =  db.getFileToInfo()[filePath];
+    let stat =  db.getFileToInfo(filePath);
     if(!stat){
-        stat = await pfs.stat(filePath);
+        stat = await getStat(filePath);
     }
 
     res.send({

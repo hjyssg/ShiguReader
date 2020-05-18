@@ -11,4 +11,7 @@ executables
 file_info.json
 zip_info.json
 zip_info
+zip_info~
 .DS_Store
+imageMagick_cache
+image_convert_cache

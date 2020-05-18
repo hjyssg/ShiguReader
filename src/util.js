@@ -11,6 +11,10 @@ function isOnlyDigit(str){
     return str.match(/^[0-9]+$/) != null
 }
 
+module.exports.isGif= function (fn) {
+    return fn.toLowerCase().endsWith(".gif");
+};
+
 const isImage = module.exports.isImage = function (fn) {
     return imageTypes.some((e) => fn.toLowerCase().endsWith(e));
 };

@@ -26,3 +26,7 @@ node-json-db对path有要求。存起来不方便。然后push的时候，要是
 App.js 最外面那层，使用react route切换page
 Explorer显示文件夹文件，或者显示tag模式下的文件
 TagPage显示tag列表或者作者列表
+
+
+1. chokidar不是百分百可靠
+2. 磁盘系统IO很贵。每次做的时候顺带更新数据库。

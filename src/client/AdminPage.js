@@ -216,7 +216,7 @@ export default class AdminPage extends Component {
                 {this.renderPasswordInput()}
 
                 <div className="admin-section">
-                    <div className="admin-section-title"> Pregenerate Thumbnail</div>
+                    <div className="admin-section-title"> Pregenerate Thumbnail and Update Internal Database</div>
                     <div className="admin-section-content">
                         <RadioButtonGroup checked={folder_list.indexOf(this.state.prePath)} 
                                         options={folder_list} name="pregenerate" onChange={this.onPathChange.bind(this)}/>

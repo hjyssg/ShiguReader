@@ -30,8 +30,12 @@ const getAllFilePathes = module.exports.getAllFilePathes = function(){
     return _.keys(db.fileToInfo);
 };
 
-const getFileToInfo = module.exports.getFileToInfo = function(){
-    return db.fileToInfo;
+const getFileToInfo = module.exports.getFileToInfo = function(filePath){
+    if(filePath){
+        return db.fileToInfo[filePath];
+    }else{
+        return db.fileToInfo;
+    }
 }
 
 module.exports.getCacheFileToInfo = function(){
@@ -81,14 +85,14 @@ function preParse(str){
 }
 
 //!! same as file-iterator getStat()
-function addStatToDb(path, stat){
+const updateStatToDb = module.exports.updateStatToDb = function(path, stat){
     const result = {};
     result.isFile = stat.isFile();
     result.isDir = stat.isDirectory();
     result.mtimeMs = stat.mtimeMs;
     result.mtime = stat.mtime;
     result.size = stat.size;
-    getFileToInfo()[path] = result;
+    db.fileToInfo[path] = result;
 }
 
 
@@ -102,11 +106,11 @@ module.exports.setUpFileWatch = function(home_pathes, cache_folder_name){
 
     const addCallBack = (path, stats) => {
         preParse(path);
-        addStatToDb(path, stats);
+        updateStatToDb(path, stats);
     };
 
     const deleteCallBack = path => {
-        delete getFileToInfo()[path];
+        delete db.fileToInfo[path];
     };
 
     watcher
@@ -179,7 +183,7 @@ module.exports.getCacheOutputPath = function (cachePath, zipFilePath) {
     }
     outputFolder = outputFolder.trim();
 
-    let stat = getFileToInfo()[zipFilePath];
+    let stat = getFileToInfo(zipFilePath);
     if (!stat) {
         //should have stat in fileToInfo
         //but chokidar is not reliable

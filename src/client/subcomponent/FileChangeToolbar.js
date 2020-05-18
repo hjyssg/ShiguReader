@@ -28,6 +28,38 @@ export default class FileChangeToolbar extends Component {
         this.setState({ anchorEl: event.currentTarget });
     }
 
+    handleMinifyZip(){
+        const { file } = this.props;
+        Swal.fire({
+            title: "Minify Zip",
+            text: 'Do you want to minify the file?' ,
+            showCancelButton: true,
+            confirmButtonText: 'Yes',
+            cancelButtonText: 'No'
+        }).then((result) => {
+            if (result.value === true) {
+                Sender.simplePost("/api/minifyZip", {filePath: file}, res => {
+                    if (!res.failed) {
+                        spop({
+                            style: "info",
+                            template: `${file} is added to the task queue`,
+                            position:  this.props.popPosition,
+                            autoclose: 3000
+
+                        });
+                    }else{
+                        spop({
+                            style: "error",
+                            template: `Not able to minify ${file}`,
+                            position:  this.props.popPosition,
+                            autoclose: 60000
+                        });
+                    }
+                });
+            } 
+        });
+    }
+
     handleDelete(){
         this.setState({ anchorEl: null });
         Swal.fire({
@@ -113,7 +145,7 @@ export default class FileChangeToolbar extends Component {
     }
 
     render(){
-        const {file, className, header, showAllButtons} = this.props;
+        const {file, className, header, showAllButtons, hasMusic} = this.props;
         const cn = classNames("file-change-tool-bar", className);
 
         if(!clientUtil.isAuthorized()){
@@ -127,9 +159,17 @@ export default class FileChangeToolbar extends Component {
             additional = <Dropdown>{this.getDropdownItems()}</Dropdown>;
         }
 
+        const showMinifyZip = util.isCompress(file) && !hasMusic;
+
+
         return (
             <div className={cn} >
                 {header && <span className="file-change-tool-bar-header">{header}</span>}
+                { showMinifyZip && 
+                <div tabIndex="0" className="fas fa-hand-scissors"
+                                title="minify zip"
+                                onClick={this.handleMinifyZip.bind(this)}></div>
+                }
                 <div tabIndex="0" className="fas fa-trash-alt"
                                 title="Copy Del"
                                 onClick={this.handleDelete.bind(this)}></div>

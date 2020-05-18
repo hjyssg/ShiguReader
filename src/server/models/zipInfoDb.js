@@ -24,6 +24,8 @@ function databaseInitialize() {
     if (zip_content_db === null) {
       zip_content_db = loki_db.addCollection("zipInfo", { indices: ['filePath'] });
     }
+    var entryCount = zip_content_db.count();
+    console.log("[zipInfoDb] number of entries in database : " + entryCount);
 }
 
 const has = module.exports.has = function(filePath){
@@ -32,9 +34,10 @@ const has = module.exports.has = function(filePath){
 }
 
 function getData(filePath){
-    return zip_content_db.findOne({filePath: filePath});
+    return zip_content_db && zip_content_db.findOne({filePath: filePath});
 }
 
+//how many image files
 const getPageNum = module.exports.getPageNum = function(filePath){
     if(has(filePath)){
         const contentInfo = getData(filePath);
@@ -44,10 +47,21 @@ const getPageNum = module.exports.getPageNum = function(filePath){
     }
 }
 
+//how many music files
 const getMusicNum = module.exports.getMusicNum = function(filePath){
     if(has(filePath)){
         const contentInfo = getData(filePath);
         return +(contentInfo.musicNum) || 0;
+    }else{
+        return 0;
+    }
+}
+
+//get image file in total
+const getTotalImgSize= module.exports.getTotalImgSize = function(filePath){
+    if(has(filePath)){
+        const contentInfo = getData(filePath);
+        return +(contentInfo.totalImgSize) || 0;
     }else{
         return 0;
     }
@@ -61,10 +75,12 @@ module.exports.getZipInfo = function(filePathes){
         if(isCompress(filePath) && has(filePath)){
             let pageNum = getPageNum(filePath);
             const musicNum = getMusicNum(filePath);
+            const totalImgSize = getTotalImgSize(filePath);
 
             const entry = {
                 pageNum,
-                musicNum
+                musicNum,
+                totalImgSize
             }
 
             fpToInfo[filePath] = entry;
@@ -74,18 +90,22 @@ module.exports.getZipInfo = function(filePathes){
 }
 
 
-module.exports.updateZipDb = function(filePath, pageNum, musicNum){
+module.exports.updateZipDb = function(filePath, info){
+    const { pageNum, musicNum, totalImgSize } = info;
+
     //!!bug if shut the down the program, all data will be lost
     if(has(filePath)){
         let data = getData(filePath);
         data.filePath = filePath;
         data.pageNum = pageNum;
         data.musicNum = musicNum;
+        data.totalImgSize = totalImgSize;
         zip_content_db.update(data);
     }else{
         zip_content_db.insert({
             filePath,
             pageNum,
+            totalImgSize,
             musicNum
         });
     }

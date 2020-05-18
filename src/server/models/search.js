@@ -34,7 +34,7 @@ function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
             return;
         }
 
-        const info = db.getFileToInfo()[path];
+        const info = db.getFileToInfo(path);
         const result = (author || tag) && parse(path);
         //sometimes there are mulitple authors for one book
         let canAdd = false;
