@@ -145,7 +145,7 @@ export default class FileChangeToolbar extends Component {
     }
 
     render(){
-        const {file, className, header, showAllButtons} = this.props;
+        const {file, className, header, showAllButtons, hasMusic} = this.props;
         const cn = classNames("file-change-tool-bar", className);
 
         if(!clientUtil.isAuthorized()){
@@ -159,12 +159,16 @@ export default class FileChangeToolbar extends Component {
             additional = <Dropdown>{this.getDropdownItems()}</Dropdown>;
         }
 
+
+
         return (
             <div className={cn} >
                 {header && <span className="file-change-tool-bar-header">{header}</span>}
+                { !hasMusic && 
                 <div tabIndex="0" className="fas fa-hand-scissors"
                                 title="minify zip"
                                 onClick={this.handleMinifyZip.bind(this)}></div>
+                }
                 <div tabIndex="0" className="fas fa-trash-alt"
                                 title="Copy Del"
                                 onClick={this.handleDelete.bind(this)}></div>

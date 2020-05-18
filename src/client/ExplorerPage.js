@@ -564,9 +564,10 @@ export default class ExplorerPage extends Component {
                 });
 
                 const musicNum = this.getMusicNum(item);
+                const hasMusic = musicNum > 0;
 
                 const fileInfoRowCn = classNames("file-info-row", {
-                    "less-padding": musicNum > 0
+                    "less-padding": hasMusic
                 })
 
                 zipItem = (
@@ -585,10 +586,10 @@ export default class ExplorerPage extends Component {
                         <div className={fileInfoRowCn}>
                             <span title="file size">{fileSizeStr}</span>
                             <span>{`${this.getPageNum(item)} pages`}</span>
-                            {musicNum > 0 && <span>{`${musicNum} songs`}</span>}
+                            {hasMusic && <span>{`${musicNum} songs`}</span>}
                             <span title="average img size"> {avgSizeStr} </span>
                         </div>
-                        <FileChangeToolbar className="explorer-file-change-toolbar" file={item} />
+                        <FileChangeToolbar hasMusic={hasMusic} className="explorer-file-change-toolbar" file={item} />
                     </div>
                 </div>);
             }
