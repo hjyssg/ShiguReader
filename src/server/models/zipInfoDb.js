@@ -91,6 +91,10 @@ module.exports.getZipInfo = function(filePathes){
 
 
 module.exports.updateZipDb = function(filePath, info){
+    if(!zip_content_db){
+        return;
+    }
+
     const { pageNum, musicNum, totalImgSize } = info;
 
     //!!bug if shut the down the program, all data will be lost

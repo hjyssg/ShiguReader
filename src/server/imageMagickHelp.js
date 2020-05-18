@@ -71,6 +71,7 @@ module.exports.minifyOneFile = async function(filePath){
         const oldTemp = await listZipContent(filePath);
         const oldFiles = oldTemp.files;
         const oldInfos = oldTemp.info;
+        const oldFileInfos = oldTemp.fileInfos;
         const oldAvgImgSize  = oldInfos.avgImgSize;
 
         if(!isConertable(oldFiles, oldFileInfos)){
@@ -80,8 +81,9 @@ module.exports.minifyOneFile = async function(filePath){
         
         //one folder for extract
         //one for minify image
-        const bookName = path.basename(filePath, path.extname(filePath)) 
-        const convertSpace = path.join(getRootPath(), userConfig.workspace_name, img_convert_cache);
+        const bookName = path.basename(filePath, path.extname(filePath));
+        const subfoldername = `from ${path.basename(path.dirname(filePath))}`
+        const convertSpace = path.join(getRootPath(), userConfig.workspace_name, img_convert_cache, subfoldername);
         extractOutputPath = path.join(convertSpace, bookName+"-original");
         minifyOutputPath = path.join(convertSpace, bookName);
 
