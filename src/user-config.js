@@ -67,10 +67,10 @@ module.exports.file_change_password = "2020";
 
 //压缩图片的时候用的参数
 //传给magick用的
-module.exports.img_convert_quality = 50;
+module.exports.img_convert_quality = 55;
 
 //which output file 
-module.exports.img_convert_dest_type = ".webp";
+module.exports.img_convert_dest_type = ".jpg";
 
 //超过这个大小，再转换的时候同时压低分辨率。
 //现在太多漫画，扫描出来一来4000*6000。完全没有必要
