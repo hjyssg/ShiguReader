@@ -3,7 +3,7 @@ const express = require('express');
 const router = express.Router();
 const serverUtil = require("../serverUtil");
 const db = require("../models/db");
-const getAllFilePathes = db.getAllFilePathes;
+const { getAllFilePathes } = db;;
 const path_will_scan = serverUtil.common.path_will_scan;
 
 router.post('/api/homePagePath', function (req, res) {

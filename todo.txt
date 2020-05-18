@@ -30,3 +30,9 @@ TagPage显示tag列表或者作者列表
 
 1. chokidar不是百分百可靠
 2. 磁盘系统IO很贵。每次做的时候顺带更新数据库。
+
+zip info db使用file path
+现在替换了同名文件，里面存的数据还是之前的。导致显示的avg page size还是旧的。没有好的修理方法。
+手动update databse最合理。
+
+list7zipcontent其实也不是很贵。要不自动更新？

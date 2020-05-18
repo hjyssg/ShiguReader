@@ -67,16 +67,16 @@ module.exports.initCacheDb = function(pathes, infos){
 }
 
 
-function shouldWatch(p){
+function shouldWatchForCache(p){
     const ext = path.extname(p).toLowerCase();
-    if (!ext ||  isDisplayableInExplorer(ext) || isMusic(ext) ||isImage(ext)) {
+    if (!ext ||  isDisplayableInOnebook(ext)) {
         return true;
     }
     return false;
 }
 
-function shouldIgnore(p){
-    return !shouldWatch(p);
+function shouldIgnoreForCache(p){
+    return !shouldWatchForCache(p);
 }
 
 function preParse(str){
@@ -95,10 +95,23 @@ const updateStatToDb = module.exports.updateStatToDb = function(path, stat){
     db.fileToInfo[path] = result;
 }
 
+function shouldWatchForOne(p){
+    const ext = path.extname(p).toLowerCase();
+    if (!ext ||  isDisplayableInExplorer(ext) ) {
+        return true;
+    }
+    return false;
+}
+
+function shouldIgnoreForOne(p){
+    return !shouldWatchForOne(p);
+}
+
 
 module.exports.setUpFileWatch = function(home_pathes, cache_folder_name){
+    //todo ignore image
     const watcher = chokidar.watch(home_pathes, {
-        ignored: shouldIgnore,
+        ignored: shouldIgnoreForOne,
         ignoreInitial: true,
         persistent: true,
         ignorePermissionErrors: true
@@ -110,6 +123,7 @@ module.exports.setUpFileWatch = function(home_pathes, cache_folder_name){
     };
 
     const deleteCallBack = path => {
+        //update dn
         delete db.fileToInfo[path];
     };
 
@@ -124,7 +138,7 @@ module.exports.setUpFileWatch = function(home_pathes, cache_folder_name){
 
     //also for cache files
     const cacheWatcher = chokidar.watch(cache_folder_name, {
-        ignored: shouldIgnore,
+        ignored: shouldIgnoreForCache,
         persistent: true,
         ignorePermissionErrors: true,
         ignoreInitial: true,

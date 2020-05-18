@@ -371,7 +371,7 @@ export default class ExplorerPage extends Component {
         if(filterByOversizeImage){
            files = files.filter(e => {
                if(this.zipInfo[e]){
-                   if(this.getPageAvgSize(e)/1000/1000 > userConfig.oversized_image_size){
+                   if(this.getPageAvgSize(e)/1024/1024 > userConfig.oversized_image_size){
                        return e;
                    }
                }

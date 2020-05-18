@@ -1,7 +1,7 @@
 
 const serverUtil = require("../serverUtil");
 const db = require("../models/db");
-const getAllFilePathes = db.getAllFilePathes;
+const { getAllFilePathes } = db;;
 const util = require("../../util");
 const path = require('path');
 const parse = serverUtil.parse;
