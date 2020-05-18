@@ -41,7 +41,7 @@ export default class FileChangeToolbar extends Component {
                 Sender.simplePost("/api/minifyZip", {filePath: file}, res => {
                     if (!res.failed) {
                         spop({
-                            style: "success",
+                            style: "info",
                             template: `${file} is added to the task queue`,
                             position:  this.props.popPosition,
                             autoclose: 3000

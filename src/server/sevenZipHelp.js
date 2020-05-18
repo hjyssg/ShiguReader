@@ -113,10 +113,11 @@ module.exports.listZipContent = async function (filePath){
 
         const info =  { pageNum: totalImgNum,
                         totalImgSize,
+                        avgImgSize: totalImgSize/totalImgNum,
                         musicNum: musicFiles.length};
 
         updateZipDb(filePath, info);
-        return { files, fileInfos };
+        return { files, fileInfos, info };
     }catch(e){
         logger.error("[listZipContent]", filePath, e);
         console.error("[listZipContent]", filePath, e);

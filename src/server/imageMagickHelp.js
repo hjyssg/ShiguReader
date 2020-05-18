@@ -17,7 +17,7 @@ const filesizeUitl = require('filesize');
 
 const rimraf = require("../tools/rimraf");
 
-const { img_convert_cache, img_convert_quality, img_convert_dest_type } = userConfig;
+const { img_convert_cache, img_convert_quality, img_convert_dest_type, img_reduce_resolution_threshold, img_reduce_resolution_dimension } = userConfig;
 
 
 function logFail(filePath, e){
@@ -27,9 +27,17 @@ function logFail(filePath, e){
 
 //https://imagemagick.org/script/download.php#windows
 
-async function convertImage(imgFilePath, outputImgName){
+async function convertImage(imgFilePath, outputImgName, oldAvgImgSize){
     try{
-        let {stdout, stderr} = await execa("magick", [imgFilePath, "-strip", "-quality", img_convert_quality, outputImgName ]);
+        let opt;
+
+        if(oldAvgImgSize > img_reduce_resolution_threshold*1024*1024){
+            opt = [imgFilePath, "-strip", "-quality", img_convert_quality, "-resize", `${img_reduce_resolution_dimension}\>`, outputImgName ]
+        }else{
+            opt = [imgFilePath, "-strip", "-quality", img_convert_quality, outputImgName ]
+        }
+
+        let {stdout, stderr} = await execa("magick", opt);
         return {stdout, stderr};
     }catch(e){
         logFail("[convertImage]", e);
@@ -44,7 +52,9 @@ module.exports.minifyOneFile = async function(filePath){
         const oldStat = await pfs.stat(filePath);
         const oldTemp = await listZipContent(filePath);
         const oldFiles = oldTemp.files;
-        const oldFileInfos = oldTemp.fileInfos;
+        const oldInfos = oldTemp.info;
+        const oldAvgImgSize  = oldInfos.avgImgSize;
+
         //check all content is image or folder
         //gif is not allowed
         const convertable = oldFiles.every((e, ii) => {
@@ -95,7 +105,7 @@ module.exports.minifyOneFile = async function(filePath){
                 //  magick 1.jpeg   50 1.webp
                 const name = path.basename(fname, path.extname(fname)) + img_convert_dest_type;
                 const outputImgName = path.resolve(minifyOutputPath, name);
-                let {stdout, stderr} = await convertImage(imgFilePath, outputImgName);
+                let {stdout, stderr} = await convertImage(imgFilePath, outputImgName, oldAvgImgSize);
                 if (stderr) {
                     converterError = stderr;
                     break;
