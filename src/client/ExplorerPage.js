@@ -532,9 +532,10 @@ export default class ExplorerPage extends Component {
 
             //todo
             const fileSize = this.getFileSize(item);
-            const totalImageSize = this.getTotalImgSize(item);
-            const size = fileSize === 0? totalImageSize : fileSize;
-            const fileSizeStr = size && filesizeUitl(size, {base: 2});
+            const fileSizeStr = fileSize && filesizeUitl(fileSize, {base: 2});
+
+            const avgSize = this.getPageAvgSize(item);
+            const avgSizeStr = avgSize && filesizeUitl(avgSize, {base: 2});
 
             let seperator;
 
@@ -582,9 +583,10 @@ export default class ExplorerPage extends Component {
                                     />
                         </Link>
                         <div className={fileInfoRowCn}>
-                            <span>{fileSizeStr}</span>
+                            <span title="file size">{fileSizeStr}</span>
                             <span>{`${this.getPageNum(item)} pages`}</span>
                             {musicNum > 0 && <span>{`${musicNum} songs`}</span>}
+                            <span title="average img size"> {avgSizeStr} </span>
                         </div>
                         <FileChangeToolbar className="explorer-file-change-toolbar" file={item} />
                     </div>
