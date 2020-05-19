@@ -2,8 +2,6 @@
 const serverUtil = require("../serverUtil");
 const db = require("../models/db");
 const { getAllFilePathes } = db;;
-const util = global.requireUtil();
-const path = require('path');
 const parse = serverUtil.parse;
 const nameParser = require('../../name-parser');
 const includesWithoutCase =  nameParser.includesWithoutCase;

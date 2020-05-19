@@ -18,7 +18,7 @@ const queryString = require('query-string');
 import RadioButtonGroup from './subcomponent/RadioButtonGroup';
 import Breadcrumb from './subcomponent/Breadcrumb';
 import Checkbox from './subcomponent/Checkbox';
-const nameParser = require('../name-parser');
+const nameParser = require('@name-parser');
 const classNames = require('classnames');
 const Constant = require("@common/constant");
 const clientUtil = require("./clientUtil");

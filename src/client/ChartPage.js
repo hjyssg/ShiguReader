@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import './style/ChartPage.scss';
 import Sender from './Sender';
 import _ from "underscore";
-const nameParser = require('../name-parser');
+const nameParser = require('@name-parser');
 const filesizeUitl = require('filesize');
 import CenterSpinner from './subcomponent/CenterSpinner';
 import ErrorPage from './ErrorPage';

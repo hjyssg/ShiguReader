@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import _ from 'underscore';
-const nameParser = require('../name-parser');
+const nameParser = require('@name-parser');
 const classNames = require('classnames');
 const dateFormat = require('dateformat');
 import ReactDOM from 'react-dom';
