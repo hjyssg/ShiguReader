@@ -8,7 +8,8 @@ const portConfig = require('./src/port-config');
 const {http_port, dev_express_port } = portConfig;
 
 
-module.exports = {
+
+const config = {
   entry: ['babel-polyfill', './src/client/index.js'],
   output: {
     path: path.join(__dirname, outputDirectory),
@@ -64,3 +65,15 @@ module.exports = {
     })
   ]
 };
+
+config.resolve = {
+  alias: {
+    "@common_util": path.resolve(__dirname, 'src/util.js'),
+  }
+}
+
+module.exports = config;
+
+console.log("---------------------")
+console.log(config.resolve)
+console.log("---------------------")

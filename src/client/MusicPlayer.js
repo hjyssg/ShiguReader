@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import './style/MusicPlayer.scss';
 const classNames = require('classnames');
-const util = require("../util");
+const util = require("@common_util");
 const clientUtil = require("./clientUtil");
 const { getDir, getBaseName, getFileUrl } = clientUtil;
 

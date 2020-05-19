@@ -3,7 +3,7 @@ import '../style/Spinner.scss';
 import PropTypes from 'prop-types';
 var classNames = require('classnames');
 import Spinner from './Spinner';
-const util = require("../../util");
+const util = require("@common_util");
 const clientUtil = require("../clientUtil");
 const { getDir, getBaseName } = clientUtil;
 

@@ -3,7 +3,6 @@ import '../style/ClickAndCopyText.scss';
 import PropTypes from 'prop-types';
 var classNames = require('classnames');
 const spop  = require("./spop");
-const util = require("../../util");
 const clientUtil = require("../clientUtil");
 
 

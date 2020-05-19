@@ -1,5 +1,5 @@
-const util = require("../util");
-const Cookie =require("js-cookie");
+const util = require("@common_util");
+const Cookie = require("js-cookie");
 const _ = require("underscore");
 
 module.exports.getDir = function (fn) {

@@ -9,7 +9,7 @@ import Sender from '../Sender';
 import '../style/FileChangeToolbar.scss';
 import Dropdown from "./Dropdown";
 import DropdownItem from "./DropdownItem";
-const util = require("../../util");
+const util = require("@common_util");
 const clientUtil = require("../clientUtil");
 const { getDir, getBaseName } = clientUtil;
 import _ from 'underscore';

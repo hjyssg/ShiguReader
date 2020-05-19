@@ -10,10 +10,10 @@ import ErrorPage from './ErrorPage';
 import {Bar, Pie, Line} from 'react-chartjs-2';
 const clientUtil = require("./clientUtil");
 const {  getBaseName } = clientUtil;
-const util = require("../util");
+const util = require("@common_util");
 const {isCompress} = util;
 import RadioButtonGroup from './subcomponent/RadioButtonGroup';
-import { isVideo } from '../util';
+const { isVideo } = util;
 import Accordion from './subcomponent/Accordion';
 const queryString = require('query-string');
 
