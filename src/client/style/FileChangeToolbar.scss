@@ -15,12 +15,18 @@
   justify-content: space-between;
   align-items: center;
   width: 100%;
-  
-  .letter-button,
-  .fas{
+
+  .bigFont{
+    .fa, .letter-button, .fas{
+      font-size: 14px;
+    }
+  }
+
+
+  .fa, .letter-button, .fas{
     margin-left: 5px;
     cursor: pointer;
-
+    font-size: 12px;
     &:hover{
       @include third_hover_effect;
     }

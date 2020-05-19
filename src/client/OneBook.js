@@ -520,7 +520,7 @@ export default class OneBook extends Component {
     if (!this.state.path) {
       return;
     }
-    const toolbar = <FileChangeToolbar showAllButtons className="one-book-toolbar" file={this.state.path} popPosition={"top-center"}/>;
+    const toolbar = <FileChangeToolbar bigFont={true} showAllButtons className="one-book-toolbar" file={this.state.path} popPosition={"top-center"}/>;
     return toolbar;
   }
 
@@ -631,13 +631,10 @@ export default class OneBook extends Component {
     }
     return (<div className="one-book-second-toolbar">
               {content}
-              {this.renderDownloadLink()}
             </div>);
   }
 
-  renderDownloadLink(){
-    return (<a href={clientUtil.getDownloadLink(this.getTextFromQuery())}><i className="fa fa-fw fa-download"></i></a>);
-  }
+ 
 
   render() {
     if (this.isFailedLoading()) { 

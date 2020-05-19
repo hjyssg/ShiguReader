@@ -48,10 +48,6 @@ export default class VideoPlayer extends Component {
       hasError: true
     })
   }
-
-  renderDownloadLink(){
-    return (<a href={clientUtil.getDownloadLink(this.getTextFromQuery())}><i className="fa fa-fw fa-download"></i></a>);
-  }
   
   renderTag(){
     const filePath = this.getTextFromQuery();
@@ -102,7 +98,7 @@ export default class VideoPlayer extends Component {
     const {hasError, stat} = this.state;
     //use bootstrap classname util 
     const videoTitle = filePath && (<div className="video-title"> 
-                          <center> <ClickAndCopyText text={fileName} className="inline-display" />  {this.renderDownloadLink()} </center>
+                          <center> <ClickAndCopyText text={fileName} className="inline-display" /></center>
                           {this.renderPath()}
                          </div>);
 

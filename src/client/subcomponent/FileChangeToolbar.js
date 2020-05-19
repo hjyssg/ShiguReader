@@ -11,7 +11,7 @@ import Dropdown from "./Dropdown";
 import DropdownItem from "./DropdownItem";
 const util = require("@common/util");
 const clientUtil = require("../clientUtil");
-const { getDir, getBaseName } = clientUtil;
+const { getDir, getBaseName, getDownloadLink } = clientUtil;
 import _ from 'underscore';
 
 
@@ -144,9 +144,15 @@ export default class FileChangeToolbar extends Component {
         });
     }
 
+    renderDownloadLink(){
+        return (<a className="fa fa-fw fa-download" href={clientUtil.getDownloadLink(this.props.file)} />);
+    }
+
     render(){
-        const {file, className, header, showAllButtons, hasMusic} = this.props;
-        const cn = classNames("file-change-tool-bar", className);
+        const {file, className, header, showAllButtons, hasMusic, bigFont} = this.props;
+        const cn = classNames("file-change-tool-bar", className, {
+            bigFont: bigFont
+        });
 
         if(!clientUtil.isAuthorized()){
             return  <div className={cn} ></div>;
@@ -179,6 +185,7 @@ export default class FileChangeToolbar extends Component {
                 <div tabIndex="0"  className="fas fa-times"
                                 title={"Move to " + userConfig.not_good_folder}
                                 onClick={this.handleClose.bind(this, userConfig.not_good_folder)}></div>
+                {this.renderDownloadLink()}
                 {additional}
             </div>
         )
