@@ -138,13 +138,12 @@
   .one-book-toolbar {
     width: 200px;
     font-size: 1.5rem;
-    display: inline-flex;
   }
 
   .one-book-file-stat{
     color: $font_color_white_one;
-    font-size: 1rem;
     display: flex;
+    font-size: 14px;
   }
 
   .one-book-second-toolbar {
@@ -154,7 +153,7 @@
     .fa-download,
     .two-page-mode-button,
     .rotate-button{
-      font-size: 1.5rem;
+      font-size: 14px;
       margin-left: 10px;
       &:hover{
         @include third_hover_effect();
@@ -167,6 +166,7 @@
   color: $font_color_white_one;
   flex-direction: column;
   @include flex_center_display;
+  font-size: 14px;
 
   a {
     color: $font_color_white_one !important;

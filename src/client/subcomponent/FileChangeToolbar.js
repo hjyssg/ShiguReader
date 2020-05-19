@@ -127,14 +127,19 @@ export default class FileChangeToolbar extends Component {
         }
     };
 
+    isShowAllButtons(){
+        const { additional_folder } = userConfig;
+        return this.props.showAllButtons || additional_folder.length <= 3;
+    }
+
     getDropdownItems(){
-        const {showAllButtons} = this.props;
-        return userConfig.additional_folder.map((e, index) =>{
+        const { additional_folder } = userConfig;
+        return additional_folder.map((e, index) =>{
             const dd = (<div tabIndex="0"  className="letter-button"  key={index}
             title={"Move to " + e}
-            onClick={this.handleClose.bind(this, e)}> {getBaseName(e)[0]} </div>);
+            onClick={this.handleClose.bind(this, e)}> {getBaseName(e).slice(0, 2)} </div>);
 
-            if(showAllButtons){
+            if(this.isShowAllButtons()){
                 return dd;
             }else{
                 return  (<DropdownItem key={index}>
@@ -148,6 +153,15 @@ export default class FileChangeToolbar extends Component {
         return (<a className="fa fa-fw fa-download" href={clientUtil.getDownloadLink(this.props.file)} />);
     }
 
+    renderMinifyZipButton(){
+        const {file, className, header, showAllButtons, hasMusic, bigFont} = this.props;
+        const showMinifyZip = util.isCompress(file) && !hasMusic;
+        if(showMinifyZip){
+            return ( <div tabIndex="0" className="fas fa-hand-scissors"  title="minify zip"
+                      onClick={this.handleMinifyZip.bind(this)}></div>)
+        }
+    }
+
     render(){
         const {file, className, header, showAllButtons, hasMusic, bigFont} = this.props;
         const cn = classNames("file-change-tool-bar", className, {
@@ -159,34 +173,34 @@ export default class FileChangeToolbar extends Component {
         }
 
         let additional;
-        if(showAllButtons){
+        if(this.isShowAllButtons()){
             additional = this.getDropdownItems();
         }else{
             additional = <Dropdown>{this.getDropdownItems()}</Dropdown>;
         }
 
-        const showMinifyZip = util.isCompress(file) && !hasMusic;
+       
 
 
         return (
             <div className={cn} >
                 {header && <span className="file-change-tool-bar-header">{header}</span>}
-                { showMinifyZip && 
-                <div tabIndex="0" className="fas fa-hand-scissors"
-                                title="minify zip"
-                                onClick={this.handleMinifyZip.bind(this)}></div>
-                }
-                <div tabIndex="0" className="fas fa-trash-alt"
-                                title="Copy Del"
-                                onClick={this.handleDelete.bind(this)}></div>
-                <div tabIndex="0"  className="fas fa-check"
-                                title={"Move to " + userConfig.good_folder}
-                                onClick={this.handleClose.bind(this, userConfig.good_folder)}></div>
-                <div tabIndex="0"  className="fas fa-times"
-                                title={"Move to " + userConfig.not_good_folder}
-                                onClick={this.handleClose.bind(this, userConfig.not_good_folder)}></div>
-                {this.renderDownloadLink()}
-                {additional}
+                <div className="tool-bar-row">
+                    <div tabIndex="0" className="fas fa-trash-alt"
+                                    title="Copy Del"
+                                    onClick={this.handleDelete.bind(this)}></div>
+                    <div tabIndex="0"  className="fas fa-check"
+                                    title={"Move to " + userConfig.good_folder}
+                                    onClick={this.handleClose.bind(this, userConfig.good_folder)}></div>
+                    <div tabIndex="0"  className="fas fa-times"
+                                    title={"Move to " + userConfig.not_good_folder}
+                                    onClick={this.handleClose.bind(this, userConfig.not_good_folder)}></div>
+                </div>
+                <div className="tool-bar-row second">
+                    {this.renderDownloadLink()}
+                    {this.renderMinifyZipButton()}
+                    {additional}
+                </div>
             </div>
         )
      }
