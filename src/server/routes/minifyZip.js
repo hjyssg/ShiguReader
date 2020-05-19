@@ -5,6 +5,7 @@ const imageMagickHelp = require("../imageMagickHelp");
 const pathUtil = require("../pathUtil");
 const { isExist } = pathUtil;
 const filesizeUitl = require('filesize');
+const logger = require("../logger");
 
 const count = {
     processed: 0,

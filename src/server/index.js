@@ -455,10 +455,10 @@ app.post('/api/extract', async (req, res) => {
 
     if(!(await isExist(filePath))){
         //maybe the file move to other location
-        const baseName = path.basename(filePath);
+        const fn = path.basename(filePath);
         //todo loop is slow
         const isSomewhere = getAllFilePathes().some(e => {
-            if(e.endsWith(baseName)){
+            if(path.basename(e) = fn){
                 filePath = e;
                 return true;
             }
