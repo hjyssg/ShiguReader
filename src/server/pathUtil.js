@@ -81,22 +81,27 @@ function isSub(parent, child) {
 function getHomePath(imgConvertFolder){
     const path_config_path = path.join(getRootPath(), "src", "path-config");
     //read text file 
-    let results = fs.readFileSync(path_config_path).toString().split('\n'); 
-    results = results
+    let home_pathes = fs.readFileSync(path_config_path).toString().split('\n'); 
+    home_pathes = home_pathes
                 .map(e => e.trim().replace(/\n|\r/g, ""))
                 .filter(pp =>{ return pp && pp.length > 0 && !pp.startsWith("#");});
-    results.push(imgConvertFolder);
-    results = _.uniq(results);
-    if(results.length === 0){
+    home_pathes.push(imgConvertFolder);
+    home_pathes = _.uniq(home_pathes);
+    if(home_pathes.length === 0){
         if(isWindows()){
             const getDownloadsFolder = require('downloads-folder');
-            results.push(getDownloadsFolder());
+            home_pathes.push(getDownloadsFolder());
         }else{
             //downloads-folder cause error on unix
-            results.push(`${process.env.HOME}/Downloads`);
+            home_pathes.push(`${process.env.HOME}/Downloads`);
         }
     }
-    return results;
+
+    path_will_scan = home_pathes.concat(userConfig.good_folder, userConfig.good_folder_root, userConfig.not_good_folder)
+    return {
+        home_pathes,
+        path_will_scan
+    };
 }
 
 module.exports = {

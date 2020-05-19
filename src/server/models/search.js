@@ -7,6 +7,9 @@ const nameParser = require('../../name-parser');
 const includesWithoutCase =  nameParser.includesWithoutCase;
 const zipInfoDb = require("../models/zipInfoDb");
 const { getZipInfo }  = zipInfoDb;
+const util = global.requireUtil();
+const path = require('path');
+
 
 function isEqual(s1, s2){
     return s1 && s2 && s1.toLowerCase() === s2.toLowerCase();
@@ -26,14 +29,15 @@ function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
     const files = [];
     const fileInfos = {};
     let _break;
-    const textInLowCase = text && text.toLowerCase();
-    getAllFilePathes().forEach(path => {
-        if(_break){
+    let textInLowCase = text && text.toLowerCase();
+
+    getAllFilePathes().forEach(filePath => {
+        if(_break || !util.isDisplayableInExplorer(filePath)){
             return;
         }
 
-        const info = db.getFileToInfo(path);
-        const result = (author || tag) && parse(path);
+        const info = db.getFileToInfo(filePath);
+        const result = (author || tag) && parse(filePath);
         //sometimes there are mulitple authors for one book
         let canAdd = false;
 
@@ -48,14 +52,19 @@ function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
         }
 
         if(!canAdd){
-            if (textInLowCase && path.toLowerCase().includes(textInLowCase)) {
+            //pick part of filePath to search
+            let matchPath = filePath.toLowerCase();
+            const parent = path.basename(path.dirname(matchPath));
+            matchPath = path.join(parent, path.basename(matchPath));
+
+            if (textInLowCase && matchPath.includes(textInLowCase)) {
                 canAdd = true;
             }
         }
 
         if(canAdd){
-            files.push(path);
-            fileInfos[path] = info;
+            files.push(filePath);
+            fileInfos[filePath] = info;
         }
 
         if (onlyNeedFew && files.length > 5) {

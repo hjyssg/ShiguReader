@@ -27,15 +27,9 @@ const fileiterator = require('./file-iterator');
 const pathUtil = require("./pathUtil");
 const serverUtil = require("./serverUtil");
 
-
-
-const {
-        fullPathToUrl,
-        generateContentUrl,
-        isExist,
-        getHomePath
-} = pathUtil;
-const { isImage, isCompress, isMusic, arraySlice, getCurrentTime, isDisplayableInExplorer, isDisplayableInOnebook } = util;
+const { fullPathToUrl, generateContentUrl, isExist,  getHomePath } = pathUtil;
+const { isImage, isCompress, isMusic, arraySlice, 
+        getCurrentTime, isDisplayableInExplorer, isDisplayableInOnebook } = util;
 
 //set up path
 const rootPath = pathUtil.getRootPath();
@@ -45,8 +39,7 @@ const cachePath = path.join(rootPath, cache_folder_name);
 const imgConvertFolder = path.join(rootPath, userConfig.workspace_name,  userConfig.img_convert_cache);
 
 //set up user path
-let home_pathes = getHomePath(imgConvertFolder);
-const path_will_scan = home_pathes.concat(userConfig.good_folder, userConfig.good_folder_root, userConfig.not_good_folder);
+let { home_pathes, path_will_scan } = getHomePath(imgConvertFolder);
 const isProduction = process.argv.includes("--production");
 
 // console.log("--------------------");
