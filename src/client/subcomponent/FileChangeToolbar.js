@@ -20,19 +20,11 @@ export default class FileChangeToolbar extends Component {
         popPosition: "bottom-center"
     }
 
-    state = {
-        anchorEl: null,
-    };
-    
-    handleClick = event => {
-        this.setState({ anchorEl: event.currentTarget });
-    }
-
     handleMinifyZip(){
         const { file } = this.props;
         Swal.fire({
             title: "Minify Zip",
-            text: 'Do you want to minify the file?' ,
+            text: `Do you want to minify ${file}?`,
             showCancelButton: true,
             confirmButtonText: 'Yes',
             cancelButtonText: 'No'
@@ -61,16 +53,16 @@ export default class FileChangeToolbar extends Component {
     }
 
     handleDelete(){
-        this.setState({ anchorEl: null });
+        const { file } = this.props;
         Swal.fire({
             title: "Delete",
-            text: 'Do you want to delete this file?' ,
+            text: `Do you want to delete ${file}?` ,
             showCancelButton: true,
             confirmButtonText: 'Yes',
             cancelButtonText: 'No'
         }).then((result) => {
             if (result.value === true) {
-                Sender.simplePost("/api/deleteFile", {src: this.props.file}, res => {
+                Sender.simplePost("/api/deleteFile", {src: file}, res => {
                     if (!res.failed) {
                         spop({
                             style: "success",
@@ -93,7 +85,6 @@ export default class FileChangeToolbar extends Component {
     }
 
     handleClose = (path) => {
-        this.setState({ anchorEl: null });
 
         if(_.isString(path)){
             Swal.fire({
