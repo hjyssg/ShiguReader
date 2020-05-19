@@ -297,8 +297,7 @@ function logForPre(prefix, config, filePath) {
     if(minCounter > 0){
         const secPerFile = timeUsed /minCounter;
         const remainTime = (total - minCounter) * secPerFile/60;
-        console.log(`${prefix} ${(secPerFile).toFixed(2)} seconds per file`);
-        console.log(`${prefix} ${remainTime.toFixed(2)} minutes before finish`);
+        console.log(`${prefix} ${(secPerFile).toFixed(2)} seconds per file.       ${prefix} ${remainTime.toFixed(2)} minutes before finish`);
     }
     if(minCounter >= total){
         console.log('[pregenerate] done');
