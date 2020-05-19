@@ -5,7 +5,7 @@ const unzip_cache = "unzip_cache";
 const compress_cache = "compress_cache";
 const pfs = require('promise-fs');
 
-const util = require("../util");
+const util = global.requireUtil();
 const isWin = process.platform === "win32";
 let sevenZip;
 if(isWin){

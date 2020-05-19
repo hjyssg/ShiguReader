@@ -5,7 +5,7 @@ const pathUtil = require("../pathUtil");
 const stringHash = require("string-hash");
 const path = require('path');
 const serverUtil = require("../serverUtil");
-const util = require("../../util");
+const util = global.requireUtil();
 const userConfig = require('../../user-config');
 
 const {getDirName} = serverUtil;

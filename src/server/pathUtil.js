@@ -1,6 +1,6 @@
 const path = require('path');
 const userConfig = require('../user-config');
-const util = require("../util");
+const util = global.requireUtil();
 const fs = require('fs');
 const _ = require('underscore');
 

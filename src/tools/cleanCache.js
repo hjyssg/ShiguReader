@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const rimraf = require("./rimraf");
-const util = require("../util");
+const util = global.requireUtil();
 
 let counter = 0;
 const pathUtil = require("../server/pathUtil");

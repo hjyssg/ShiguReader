@@ -2,7 +2,7 @@
 const express = require('express');
 const router = express.Router();
 const db = require("../models/db");
-const util = require("../../util");
+const util = global.requireUtil();
 const { isDisplayableInOnebook, isCompressedThumbnail } = util;
 
 router.get('/api/cacheInfo', (req, res) => {

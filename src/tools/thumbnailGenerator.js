@@ -1,6 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-const util = require("../util");
+const util = global.requireUtil();
 
 function thumbnailGenerator(p1, fileName, callback){
     try{

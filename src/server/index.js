@@ -8,12 +8,18 @@ const isWindows = require('is-windows');
 const internalIp = require('internal-ip');
 const qrcode = require('qrcode-terminal');
 
+const util = require("../common/util");
+global.requireUtil = function(name) {
+    return require("../common/util")
+};
+
 const Constant = require("../constant");
 const fileiterator = require('./file-iterator');
 const userConfig = require('../user-config');
-const util = require("../util");
 const pathUtil = require("./pathUtil");
 const serverUtil = require("./serverUtil");
+
+
 
 const {
         fullPathToUrl,

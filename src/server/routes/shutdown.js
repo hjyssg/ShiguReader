@@ -8,7 +8,7 @@ const logger = require("../logger");
 const isLinux = require("is-linux")
 const isOsx = require("is-osx");
 const cp = require('child_process');
-const util = require("../../util");
+const util = global.requireUtil();
 const { getCurrentTime} = util;
 
 function shutdown (cb) {

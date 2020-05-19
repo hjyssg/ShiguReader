@@ -1,6 +1,6 @@
 const loki = require("lokijs");
 
-const util = require("../../util");
+const util = global.requireUtil();
 const { isCompress } = util;
 
 let loki_db;

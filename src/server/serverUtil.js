@@ -1,4 +1,4 @@
-const util = require("../util");
+const util = global.requireUtil();
 const path = require('path');
 const nameParser = require('../name-parser');
 const sortUtil = require("../common/sortUtil");
