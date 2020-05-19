@@ -1,7 +1,6 @@
 {
   "watch": ["src/server/", 
-            "src/util.js", 
-            "src/port-config.js", 
-            "src/user-config.js", 
+            "src/common/", 
+            "src/config/", 
             "src/path-config"]
 }
