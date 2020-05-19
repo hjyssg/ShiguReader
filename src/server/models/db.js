@@ -6,7 +6,7 @@ const stringHash = require("string-hash");
 const path = require('path');
 const serverUtil = require("../serverUtil");
 const util = global.requireUtil();
-const userConfig = require('../../user-config');
+const userConfig = global.requireUserConfig();
 
 const {getDirName} = serverUtil;
 const { isImage, isCompress, isMusic, isDisplayableInExplorer, isDisplayableInOnebook } = util;

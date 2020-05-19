@@ -7,7 +7,7 @@ import LoadingImage from './LoadingImage';
 import Sender from './Sender';
 import { Link } from 'react-router-dom';
 
-const userConfig = require('../user-config');
+const userConfig = require('@config/user-config');
 import ErrorPage from './ErrorPage';
 import Pagination from 'rc-pagination';
 import FileChangeToolbar from './subcomponent/FileChangeToolbar';

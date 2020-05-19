@@ -7,7 +7,7 @@ const { getAllFilePathes } = db;;
 const util = global.requireUtil();
 const { isCompress } = util;
 const path = require('path');
-const userConfig = require('../../user-config');
+const userConfig = global.requireUserConfig();
 const serverUtil = require("../serverUtil");
 
 function getGoodAndOtherSet(){

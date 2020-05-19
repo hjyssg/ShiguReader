@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import '../style/Spinner.scss';
 const spop  = require("./spop");
-const userConfig = require('../../user-config');
+const userConfig = require('@config/user-config');
 import PropTypes from 'prop-types';
 var classNames = require('classnames');
 import Swal from 'sweetalert2';

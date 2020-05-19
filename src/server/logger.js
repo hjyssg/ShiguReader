@@ -2,7 +2,7 @@ const winston = require("winston");
 const dateFormat = require('dateformat');
 const path = require('path');
 const pathUtil = require("./pathUtil");
-const userConfig = require('../user-config');
+const userConfig = global.requireUserConfig();
 
 const rootPath = pathUtil.getRootPath();
 let logPath = path.join(rootPath, userConfig.workspace_name, "log");

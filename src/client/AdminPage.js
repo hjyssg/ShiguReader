@@ -7,7 +7,6 @@ import ReactDOM from 'react-dom';
 import Swal from 'sweetalert2';
 import Cookie from "js-cookie";
 import { Link } from 'react-router-dom';
-const userConfig = require('../user-config');
 import RadioButtonGroup from './subcomponent/RadioButtonGroup';
 const filesizeUitl = require('filesize');
 const clientUtil = require("./clientUtil");

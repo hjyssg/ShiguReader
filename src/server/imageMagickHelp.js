@@ -12,7 +12,7 @@ const { listZipContentAndUpdateDb, extractAll }= sevenZipHelp;
 
 const { isExist, getRootPath } = pathUtil;
 
-const userConfig = require('../user-config');
+const userConfig = global.requireUserConfig();
 const filesizeUitl = require('filesize');
 
 const rimraf = require("../tools/rimraf");

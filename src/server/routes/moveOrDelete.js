@@ -6,7 +6,7 @@ const {
 const pfs = require('promise-fs');
 const fs = require('fs');
 const execa = require('execa');
-const userConfig = require('../../user-config');
+const userConfig = global.requireUserConfig();
 const isWindows = require('is-windows');
 const express = require('express');
 const router = express.Router();

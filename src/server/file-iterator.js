@@ -4,8 +4,6 @@ const path = require('path');
 const fs = require("fs");
 const _ = require("underscore");
 
-const userConfig = require('../user-config');
-
 module.exports = function (folders, config) {
     const result = {pathes: [], infos: {}};
     config.visited = {};

@@ -62,7 +62,7 @@ module.exports.isAuthorized = function(){
         return true;
     }else{
         const Cookie = require("js-cookie");
-        const userConfig = require('../user-config');
+        const userConfig = require('@config/user-config');
         const password =  Cookie.get('password');
         return userConfig.file_change_password === password;
     }

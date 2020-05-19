@@ -25,7 +25,7 @@ const Constant = require("../constant");
 
 const MIN_HEIGHT = 400;
 const MIN_WIDTH = 400;
-const userConfig = require('../user-config');
+const userConfig = require('@config/user-config');
 const clientUtil = require("./clientUtil");
 const { getDir, getBaseName, isMobile, getFileUrl, sortFileNames } = clientUtil;
 

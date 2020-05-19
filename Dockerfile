@@ -14,7 +14,7 @@ COPY . .
 RUN npm install 
 
 # /data 是漫画文件的目录, 也就是 src/path-config 里面设置的路径。 容器需要把主机里的目录挂载到这个路径让程序读取。
-# 修改 src/user-config.js 内的 module.exports.good_folder 到 /data 目录下, 比如 /data/good /data/bad
+# 修改 src/config/user-config.js 内的 module.exports.good_folder 到 /data 目录下, 比如 /data/good /data/bad
 # docker实例，只有权限读取 /data 下挂载的文件
 VOLUME /data
 

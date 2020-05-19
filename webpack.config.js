@@ -69,6 +69,7 @@ const config = {
 config.resolve = {
   alias: {
     "@common": path.resolve(__dirname, 'src/common/'),
+    "@config": path.resolve(__dirname, 'src/config/'),
   }
 }
 

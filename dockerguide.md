@@ -5,7 +5,7 @@
 把 path-config 的文件路径修改为
 > /data
 
-## 设置 src/user-config.js 整理文件的路径
+## 设置 src/config/user-config.js 整理文件的路径
 这是镜像中使用的默认配置，可以按照实际情况修改路径
 ```
 const fd =  [y, mm, "01"].join("_");
