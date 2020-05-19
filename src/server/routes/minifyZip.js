@@ -40,7 +40,7 @@ router.post('/api/minifyZip', async (req, res) => {
         const { oldSize, newSize,  saveSpace  } = temp;
         count.processed++
         count.saveSpace += saveSpace;
-        logger.info("total space save:",  filesizeUitl(count.saveSpace, {base: 2}))
+        logger.info("[/api/minifyZip] total space save:",  filesizeUitl(count.saveSpace, {base: 2}))
       }
     }catch(e){
         logger.error("[/api/minifyZip]", e);
