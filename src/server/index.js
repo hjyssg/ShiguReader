@@ -84,7 +84,7 @@ app.use(express.static(rootPath, {
 //  https://stackoverflow.com/questions/10005939/how-do-i-consume-the-json-post-data-in-an-express-application
 app.use(express.json());
 
-const portConfig = require('../port-config');
+const portConfig = require('../config/port-config');
 const {http_port, dev_express_port } = portConfig;
 
 async function init() {
