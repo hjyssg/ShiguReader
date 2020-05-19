@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import Sender from './Sender';
-const Constant = require("../constant");
+const Constant = require("@common/constant");
 const classNames = require('classnames');
 import "./style/LoadingImage.scss"
 const clientUtil = require("./clientUtil");
@@ -55,7 +55,7 @@ export default class LoadingImage extends Component {
 
   requestThumbnail(){
     const { mode, fileName } = this.props;
-    const api = (this.isAuthorTagMode()) ? Constant.TAG_THUMBNAIL_PATH_API :  '/api/firstImage';
+    const api = (this.isAuthorTagMode()) ? "/api/tagFirstImagePath" :  '/api/firstImage';
     const body = {};
 
     if(this.isAuthorTagMode()){

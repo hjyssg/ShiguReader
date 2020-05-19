@@ -8,18 +8,21 @@ const isWindows = require('is-windows');
 const internalIp = require('internal-ip');
 const qrcode = require('qrcode-terminal');
 
-global.requireUtil = function(name) {
+global.requireUtil = function(e) {
     return require("../common/util")
 };
 
-global.requireUserConfig = function(name) {
+global.requireUserConfig = function() {
     return require("../config/user-config")
 };
+
+global.requireConstant = function(){
+    return require("../common/constant");
+}
 
 const userConfig = global.requireUserConfig();
 const util = global.requireUtil();
 
-const Constant = require("../constant");
 const fileiterator = require('./file-iterator');
 const pathUtil = require("./pathUtil");
 const serverUtil = require("./serverUtil");
@@ -274,7 +277,7 @@ serverUtil.common.getStat = getStat;
 
 //-----------------thumbnail related-----------------------------------
 
-app.post(Constant.TAG_THUMBNAIL_PATH_API, (req, res) => {
+app.post("/api/tagFirstImagePath", (req, res) => {
     const author = req.body && req.body.author;
     const tag = req.body && req.body.tag;
     if (!author && !tag) {

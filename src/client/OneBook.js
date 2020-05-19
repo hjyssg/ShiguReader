@@ -21,7 +21,7 @@ const util = require("@common/util");
 const queryString = require('query-string');
 const filesizeUitl = require('filesize');
 import screenfull from 'screenfull';
-const Constant = require("../constant");
+const Constant = require("@common/constant");
 
 const MIN_HEIGHT = 400;
 const MIN_WIDTH = 400;

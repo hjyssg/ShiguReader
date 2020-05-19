@@ -1,11 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const searchByTagAndAuthor = require("../models/search");
-const Constant = require("../../constant");
-const { MODE_TAG,  MODE_AUTHOR,  MODE_SEARCH, SEARCH_API } = Constant;
+const Constant = global.requireConstant();
+const { MODE_TAG,  MODE_AUTHOR, MODE_SEARCH } = Constant;
 
 // three para 1.mode 2.text
-router.post(SEARCH_API, (req, res) => {
+router.post("/api/search", (req, res) => {
     const mode = req.body && req.body.mode;
     const textParam = req.body && req.body.text;
 

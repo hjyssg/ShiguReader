@@ -17,5 +17,4 @@ module.exports.SORT_BY_FILENAME = "By filename";
 module.exports.SORT_RANDOMLY = "Random";
  
 //todo 
-module.exports.TAG_THUMBNAIL_PATH_API  = "/api/tagFirstImagePath";
 module.exports.SEARCH_API = "/api/search";

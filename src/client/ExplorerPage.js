@@ -20,7 +20,7 @@ import Breadcrumb from './subcomponent/Breadcrumb';
 import Checkbox from './subcomponent/Checkbox';
 const nameParser = require('../name-parser');
 const classNames = require('classnames');
-const Constant = require("../constant");
+const Constant = require("@common/constant");
 const clientUtil = require("./clientUtil");
 const { getDir, getBaseName, getPerPageItemNumber, isSearchInputTextTyping } = clientUtil;
 const { isVideo, isCompress } = util;
@@ -277,7 +277,7 @@ export default class ExplorerPage extends Component {
     }
 
     requestTextSearch() {
-        Sender.post(Constant.SEARCH_API, { text: this.getSearchTextFromQuery(),  mode: this.getMode()}, res => {
+        Sender.post("/api/search", { text: this.getSearchTextFromQuery(),  mode: this.getMode()}, res => {
             this.handleRes(res);
         });
     }
@@ -299,7 +299,7 @@ export default class ExplorerPage extends Component {
     }
 
     requestSearch() {
-        Sender.post(Constant.SEARCH_API, { text: this.getTextFromQuery(),
+        Sender.post("/api/search", { text: this.getTextFromQuery(),
                                     mode: this.getMode()}, res => {
             this.handleRes(res);
         });
