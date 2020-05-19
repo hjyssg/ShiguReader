@@ -1,7 +1,6 @@
 const fs = require('fs');
 const path = require('path');
 const rimraf = require("./rimraf");
-const util = global.requireUtil();
 
 let counter = 0;
 const pathUtil = require("../server/pathUtil");
@@ -38,6 +37,7 @@ function del(file, cachePath){
 }
 
 function cleanCache(cachePath, config){
+    counter = 0
     if(!fs.existsSync(cachePath)){
         err = fs.mkdir(cachePath, (err) => {
             if (err){
