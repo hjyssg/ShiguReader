@@ -134,8 +134,7 @@ module.exports.minifyOneFile = async function(filePath){
                 const timePerImg = timeSpent/(ii+1)/1000; // in second
                 const remaintime = (total - ii) * timePerImg;
                 if(ii+1 < total){
-                    console.log(`${ii+1}/${total} ${(timePerImg).toFixed(2)} second per file`);
-                    console.log(`${remaintime.toFixed(2)} second before finish`)
+                    console.log(`${ii+1}/${total}      ${(timePerImg).toFixed(2)} second per file      ${remaintime.toFixed(2)} second before finish`);
                 }
                 else {
                     console.log(`${ii+1}/${total}`);
@@ -166,16 +165,13 @@ module.exports.minifyOneFile = async function(filePath){
             return;
         }
         const newStat = await getStat(resultZipPath);
-        console.log("convertion done", filePath);
-        console.log("original size",filesizeUitl(oldStat.size, {base: 2}));
-        console.log("new size", filesizeUitl(newStat.size, {base: 2}));
-
+ 
         const reducePercentage = (100 - newStat.size/oldStat.size * 100).toFixed(2);
-        console.log(`size reduce ${reducePercentage}%`);
 
         const userful_percent = 20;
 
         if(reducePercentage < userful_percent){
+            console.log(`size reduce ${reducePercentage}%`);
             logFail(filePath, "not a useful work. abandon");
             deleteCache(resultZipPath);
         }else{
@@ -185,7 +181,17 @@ module.exports.minifyOneFile = async function(filePath){
                 logFail(filePath, "pfs.utimes failed");
                 deleteCache(resultZipPath);
             } else {
+                logger.info("convertion done", filePath);
+                console.log("original size",filesizeUitl(oldStat.size, {base: 2}));
+                console.log("new size", filesizeUitl(newStat.size, {base: 2}));
+                console.log(`size reduce ${reducePercentage}%`);
                 console.log("output file is at", convertSpace);
+
+                return {
+                    oldSize: oldStat.size,
+                    newSize: newStat.size,
+                    saveSpace: (oldStat.size - newStat.size)
+                }
             }
         }
     } catch(e) {

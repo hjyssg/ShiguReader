@@ -4,8 +4,12 @@ const router = express.Router();
 const imageMagickHelp = require("../imageMagickHelp");
 const pathUtil = require("../pathUtil");
 const { isExist } = pathUtil;
+const filesizeUitl = require('filesize');
 
-
+const count = {
+    processed: 0,
+    saveSpace: 0
+};
 const minifyZipQue = [];
 router.post('/api/minifyZipQue', (req, res) => {
     res.send({
@@ -29,11 +33,21 @@ router.post('/api/minifyZip', async (req, res) => {
 
     minifyZipQue.push(filePath);
     try{
-        await limit(() => imageMagickHelp.minifyOneFile(filePath));
+      const temp = await limit(() => imageMagickHelp.minifyOneFile(filePath));
+      if(temp){
+        //only success will return result
+        const { oldSize, newSize,  saveSpace  } = temp;
+        count.processed++
+        count.saveSpace += saveSpace;
+        logger.info("total space save:",  filesizeUitl(count.saveSpace, {base: 2}))
+      }
     }catch(e){
-        console.error("[/api/minifyZip]", e);
+        logger.error("[/api/minifyZip]", e);
     }finally{
         minifyZipQue.shift();
+        if(minifyZipQue.length === 0){
+            console.log("[/api/minifyZip] the task queue is now empty");
+        }
     }
 });
 

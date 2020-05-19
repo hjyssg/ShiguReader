@@ -67,7 +67,7 @@ module.exports.file_change_password = "2020";
 
 //压缩图片的时候用的参数
 //传给magick用的
-module.exports.img_convert_quality = 60;
+module.exports.img_convert_quality = 65;
 
 //which output file 
 module.exports.img_convert_dest_type = ".jpg";
