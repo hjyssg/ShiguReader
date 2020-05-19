@@ -68,7 +68,7 @@ const config = {
 
 config.resolve = {
   alias: {
-    "@common_util": path.resolve(__dirname, 'src/util.js'),
+    "@common": path.resolve(__dirname, 'src/common/'),
   }
 }
 

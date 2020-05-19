@@ -12,7 +12,7 @@ import ErrorPage from './ErrorPage';
 import Pagination from 'rc-pagination';
 import FileChangeToolbar from './subcomponent/FileChangeToolbar';
 import CenterSpinner from './subcomponent/CenterSpinner';
-const util = require("@common_util");
+const util = require("@common/util");
 const filesizeUitl = require('filesize');
 const queryString = require('query-string');
 import RadioButtonGroup from './subcomponent/RadioButtonGroup';

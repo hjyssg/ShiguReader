@@ -17,7 +17,7 @@ import MusicPlayer from './MusicPlayer';
 import $ from 'jquery'
 import "./style/BigColumnButton.scss";
 
-const util = require("@common_util");
+const util = require("@common/util");
 const queryString = require('query-string');
 const filesizeUitl = require('filesize');
 import screenfull from 'screenfull';

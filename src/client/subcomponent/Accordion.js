@@ -1,6 +1,6 @@
 
 import '../style/Accordion.scss';
-const util = require("@common_util");
+const util = require("@common/util");
 import {Collapse} from 'react-collapse';
 import React, { Component } from 'react';
 var classNames = require('classnames');

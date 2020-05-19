@@ -1,4 +1,4 @@
-const util = require("@common_util");
+const util = require("@common/util");
 const Cookie = require("js-cookie");
 const _ = require("underscore");
 

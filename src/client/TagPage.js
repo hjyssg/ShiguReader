@@ -10,10 +10,10 @@ import ErrorPage from './ErrorPage';
 import CenterSpinner from './subcomponent/CenterSpinner';
 import Pagination from 'rc-pagination';
 import { Redirect } from 'react-router-dom';
-import { isCompress, isImage } from '@common_util';
+import { isCompress, isImage } from '@common/util';
 const nameParser = require('../name-parser');
 
-const util = require("@common_util");
+const util = require("@common/util");
 const clientUtil = require("./clientUtil");
 const { getDir, getBaseName, getPerPageItemNumber, } = clientUtil;
 const sortUtil = require("../common/sortUtil");
