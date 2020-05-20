@@ -35,7 +35,7 @@ export default class FileChangeToolbar extends Component {
                     if (!res.failed) {
                         spop({
                             style: "info",
-                            template: `done`,
+                            template: `overwrite done`,
                             position:  this.props.popPosition,
                             autoclose: 3000
 
@@ -43,7 +43,7 @@ export default class FileChangeToolbar extends Component {
                     }else{
                         spop({
                             style: "error",
-                            template: `failed`,
+                            template: `overwrite failed`,
                             position:  this.props.popPosition,
                             autoclose: 60000
                         });
@@ -98,7 +98,7 @@ export default class FileChangeToolbar extends Component {
                 Sender.simplePost("/api/deleteFile", {src: file}, res => {
                     if (!res.failed) {
                         spop({
-                            style: "success",
+                            style: "Delete success",
                             template: 'Deleted ' + this.props.file,
                             position:  this.props.popPosition,
                             autoclose: 3000
@@ -132,7 +132,7 @@ export default class FileChangeToolbar extends Component {
                     Sender.simplePost("/api/moveFile", {src: this.props.file, dest: path}, res => {
                         if (!res.failed) {
                             spop({
-                                style: "success",
+                                style: "move success",
                                 template: template, // ['Moved', this.props.file, "to", path, 'Successfully'].join(" "),
                                 position:  this.props.popPosition,
                                 autoclose: 3000
@@ -196,7 +196,7 @@ export default class FileChangeToolbar extends Component {
         const {file, hasMusic} = this.props;
         const showMinifyZip = util.isCompress(file) && !hasMusic;
         if(showMinifyZip && this.isInMinifiedFolder()){
-            return ( <div tabIndex="0" className="fas fa-wrench"  title="overwrite the original file"
+            return ( <div tabIndex="0" className="fas fa-cut"  title="overwrite the original file"
                       onClick={this.handleOverwrite.bind(this)}></div>)
         }
     }
