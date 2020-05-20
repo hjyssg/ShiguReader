@@ -29,17 +29,17 @@ const sortUtil = require("../common/sortUtil");
 const AdminUtil = require("./AdminUtil");
 
 
-const { SORT_FROM_LATEST, 
-        SORT_FROM_EARLY,
+const { TIME_DOWN, 
+        TIME_UP,
         SORT_BY_FOLDER,
-        SORT_BY_FILENAME_UP,
-        SORT_BY_FILENAME_DOWN,
-        SORT_FROM_SMALL_FILE_SIZE,
-        SORT_FROM_BIG_FILE_SIZE,
-        SORT_FROM_SMALL_PAGE_SIZE,
-        SORT_FROM_BIG_PAGE_SIZE,
-        SORT_FROM_SMALL_PAGE_NUMBER,
-        SORT_FROM_BIG_PAGE_NUMBER,
+        FILENAME_UP,
+        FILENAME_DOWN,
+        FILE_SIZE_UP,
+        FILE_SIZE_DOWN,
+        AVG_PAGE_SIZE_UP,
+        AVG_PAGE_SIZE_DOWN,
+        PAGE_NUMBER_UP,
+        PAGE_NUMBER_DOWN,
         SORT_RANDOMLY } =  Constant;
 
 const { MODE_TAG,
@@ -70,7 +70,7 @@ export default class ExplorerPage extends Component {
         const parsed = reset? {} : queryString.parse(location.hash);
         const pageIndex = parseInt(parsed.pageIndex) || 1;
         const isRecursive = !!(parsed.isRecursive === "true");
-        const sortOrder = parsed.sortOrder || SORT_FROM_LATEST;
+        const sortOrder = parsed.sortOrder || TIME_DOWN;
         const showVideo = !!(parsed.showVideo === "true");
         
         return {
@@ -455,12 +455,14 @@ export default class ExplorerPage extends Component {
             return ap.localeCompare(bp);
         }
 
-        if(sortOrder  === SORT_BY_FILENAME_UP || sortOrder === SORT_BY_FILENAME_DOWN){
+        if (sortOrder.includes(SORT_RANDOMLY)){
+            files = _.shuffle(files);
+        }else if(sortOrder  === FILENAME_UP || sortOrder === FILENAME_DOWN){
             files.sort((a, b) => {
                 return byFn(a, b);
             });
 
-            if(sortOrder === SORT_BY_FILENAME_DOWN){
+            if(sortOrder === FILENAME_DOWN){
                 files.reverse();
             }
         }else if(sortOrder === SORT_BY_FOLDER){
@@ -468,27 +470,25 @@ export default class ExplorerPage extends Component {
                 const dir =  getDir(e);
                 return dir;
             });
-        }else if (sortOrder === SORT_FROM_LATEST ||  sortOrder === SORT_FROM_EARLY){
-            const ifFromEarly = sortOrder === SORT_FROM_EARLY;
+        }else if (sortOrder === TIME_DOWN ||  sortOrder === TIME_UP){
+            const ifFromEarly = sortOrder === TIME_UP;
             const ifOnlyBymTime = this.getMode() === MODE_EXPLORER;
             files = sortUtil.sort_file_by_time(files, this.fileInfos, getBaseName, ifFromEarly, ifOnlyBymTime);
-        } else if (sortOrder === SORT_FROM_BIG_FILE_SIZE || sortOrder === SORT_FROM_SMALL_FILE_SIZE){
+        } else if (sortOrder === FILE_SIZE_DOWN || sortOrder === FILE_SIZE_UP){
             files = _.sortBy(files, e => {
                 const size =  this.getFileSize(e);
-                return sortOrder === SORT_FROM_SMALL_FILE_SIZE? size: -size;
+                return sortOrder.includes("_up")? size: -size;
             });
-        } else if (sortOrder === SORT_FROM_SMALL_PAGE_SIZE || sortOrder === SORT_FROM_BIG_PAGE_SIZE){
+        } else if (sortOrder === AVG_PAGE_SIZE_UP || sortOrder === AVG_PAGE_SIZE_DOWN){
             files = _.sortBy(files, e => {
                 const size =  this.getPageAvgSize(e);
-                return sortOrder === SORT_FROM_SMALL_PAGE_SIZE? size: -size;
+                return sortOrder.includes("_up")? size: -size;
             });
-        } else if (sortOrder === SORT_FROM_SMALL_PAGE_NUMBER || sortOrder === SORT_FROM_BIG_PAGE_NUMBER){
+        } else if (sortOrder === PAGE_NUMBER_UP || sortOrder === PAGE_NUMBER_DOWN){
             files = _.sortBy(files, e => {
                 const size =  this.getPageNum(e);
-                return sortOrder === SORT_FROM_SMALL_PAGE_NUMBER? size: -size;
+                return sortOrder.includes("_up")? size: -size;
             });
-        } else if (sortOrder.includes(SORT_RANDOMLY)){
-                files = _.shuffle(files);
         }
 
         return files;
@@ -933,11 +933,14 @@ export default class ExplorerPage extends Component {
 
     renderSortHeader(){
         const sortOptions = Constant.SORT_OPTIONS;
-
         let radiogroup;
 
-        if(this.getMode() !== MODE_EXPLORER){
-            const RADIO_SORT_OPTIONS  = SORT_BY_FOLDER;
+        if(this.getMode() === MODE_HOME){
+            return;
+        }
+
+        if(this.getMode() !== MODE_EXPLORER && this.getMode() == MODE_HOME){
+            const RADIO_SORT_OPTIONS  = [SORT_BY_FOLDER];
 
             radiogroup = (<RadioButtonGroup  
             className="sort-radio-button-group"

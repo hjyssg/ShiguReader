@@ -15,20 +15,20 @@ module.exports.SORT_OPTIONS = [
     "random"
 ];
 
-module.exports.SORT_FROM_LATEST = "time_down";
-module.exports.SORT_FROM_EARLY = "time_up";
+module.exports.TIME_DOWN = "time_down";
+module.exports.TIME_UP = "time_up";
 
-module.exports.SORT_FROM_BIG_FILE_SIZE = "file size_down";
-module.exports.SORT_FROM_SMALL_FILE_SIZE = "file size_up";
+module.exports.FILE_SIZE_DOWN = "file size_down";
+module.exports.FILE_SIZE_UP = "file size_up";
 
-module.exports.SORT_FROM_SMALL_PAGE_SIZE = "avg page size_up";
-module.exports.SORT_FROM_BIG_PAGE_SIZE = "avg page size_down";
+module.exports.AVG_PAGE_SIZE_UP = "avg page size_up";
+module.exports.AVG_PAGE_SIZE_DOWN = "avg page size_down";
 
-module.exports.SORT_FROM_SMALL_PAGE_NUMBER = "page number_up";
-module.exports.SORT_FROM_BIG_PAGE_NUMBER = "page number_down";
+module.exports.PAGE_NUMBER_UP = "page number_up";
+module.exports.PAGE_NUMBER_DOWN = "page number_down";
 
-module.exports.SORT_BY_FILENAME_UP = "file name_up";
-module.exports.SORT_BY_FILENAME_DOWN = "file name_down";
+module.exports.FILENAME_UP = "file name_up";
+module.exports.FILENAME_DOWN = "file name_down";
 
 module.exports.SORT_BY_FOLDER = "By folder name";
 module.exports.SORT_RANDOMLY = "random";
