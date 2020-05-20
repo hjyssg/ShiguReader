@@ -12,6 +12,7 @@ const filesizeUitl = require('filesize');
 const clientUtil = require("./clientUtil");
 const { getBaseName } = clientUtil;
 const dateFormat = require('dateformat');
+const AdminUtil = require("./AdminUtil");
 
 export default class AdminPage extends Component {
     constructor(prop) {
@@ -79,23 +80,7 @@ export default class AdminPage extends Component {
     onPrenerate(){
         const pathInput = ReactDOM.findDOMNode(this.pathInputRef);
         const path = pathInput.value || this.state.prePath;
-
-        Swal.fire({
-            title: "Pregenerate Thumbnail",
-            text:  path,
-            showCancelButton: true,
-            confirmButtonText: 'Yes',
-            cancelButtonText: 'No'
-        }).then((result) => {
-            if (result.value === true) {
-                const reqB = {
-                    path: path
-                }
-                Sender.post('/api/pregenerateThumbnails', reqB, res =>{
-                    console.log(res)
-                });
-            } 
-        });
+        AdminUtil.askPregenerate(path);
     }
 
     onPathChange(e){

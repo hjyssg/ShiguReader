@@ -25,6 +25,8 @@ const clientUtil = require("./clientUtil");
 const { getDir, getBaseName, getPerPageItemNumber, isSearchInputTextTyping } = clientUtil;
 const { isVideo, isCompress } = util;
 const sortUtil = require("../common/sortUtil");
+const AdminUtil = require("./AdminUtil");
+
 
 const { SORT_FROM_LATEST, 
         SORT_FROM_EARLY,
@@ -707,6 +709,18 @@ export default class ExplorerPage extends Component {
                          <span className="fas fa-chart-line" /> 
                          <span> chart </span>
                     </Link>)
+        }
+    }
+
+    renderChartButton(){
+        if(this.getMode() === MODE_EXPLORER){
+            const text = "generate thumbnail"
+            return (
+               <span key="thumbnail-button" className="thumbnail-button exp-top-button" onClick={()=>AdminUtil.askPregenerate(this.getPathFromQuery())}> 
+               <span className="fas fa-tools" />
+               <span> {text} </span>
+               </span>
+            );
         }
     }
 
