@@ -311,6 +311,7 @@ export default class ExplorerPage extends Component {
         });
     }
 
+
     //comes from file db.
     //may not be reliable
     getFileSize(e){
@@ -319,6 +320,10 @@ export default class ExplorerPage extends Component {
 
     getPageNum(fp){
        return +(this.zipInfo[fp] && this.zipInfo[fp].pageNum) || 0;
+    }
+
+    hasZipInfo(fp){
+       return !!this.zipInfo[fp];
     }
 
     //comes from zipInfo libray, may not be reliable
@@ -566,6 +571,7 @@ export default class ExplorerPage extends Component {
                     "f-s-14": fl <= 30
                 });
 
+                const hasZipInfo = this.hasZipInfo(item);
                 const musicNum = this.getMusicNum(item);
                 const hasMusic = musicNum > 0;
 
@@ -588,9 +594,9 @@ export default class ExplorerPage extends Component {
                         </Link>
                         <div className={fileInfoRowCn}>
                             <span title="file size">{fileSizeStr}</span>
-                            <span>{`${this.getPageNum(item)} pages`}</span>
-                            {hasMusic && <span>{`${musicNum} songs`}</span>}
-                            <span title="average img size"> {avgSizeStr} </span>
+                            {hasZipInfo  &&  <span>{`${this.getPageNum(item)} pages`}</span>}
+                            {hasMusic    &&  <span>{`${musicNum} songs`}</span>}
+                            {hasZipInfo  &&  <span title="average img size"> {avgSizeStr} </span>}
                         </div>
                         <FileChangeToolbar hasMusic={hasMusic} className="explorer-file-change-toolbar" file={item} />
                     </div>
