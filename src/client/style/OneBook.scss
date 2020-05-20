@@ -5,6 +5,12 @@
 .one-book-nothing-available{
   color: $font_color_white_one;
   font-size: 2rem;
+  @include flex_center_display;
+
+  .alert{
+    padding-left:  100px;
+    padding-right: 100px;
+  }
 }
 
 .one-book-container {

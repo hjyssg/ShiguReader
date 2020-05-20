@@ -78,16 +78,20 @@ function isSub(parent, child) {
     return false;
 }
 
-function getHomePath(imgConvertFolder){
+function getHomePath(){
     const path_config_path = path.join(getRootPath(), "src", "path-config");
     //read text file 
     let home_pathes = fs.readFileSync(path_config_path).toString().split('\n'); 
     home_pathes = home_pathes
                 .map(e => e.trim().replace(/\n|\r/g, ""))
                 .filter(pp =>{ return pp && pp.length > 0 && !pp.startsWith("#");});
-    home_pathes.push(imgConvertFolder);
+
+    //add one more
+    home_pathes.push(getImgConverterCachePath());
     home_pathes = _.uniq(home_pathes);
-    if(home_pathes.length === 0){
+
+    //does not show 
+    if(home_pathes.length === 1){
         if(isWindows()){
             const getDownloadsFolder = require('downloads-folder');
             home_pathes.push(getDownloadsFolder());
@@ -104,6 +108,11 @@ function getHomePath(imgConvertFolder){
     };
 }
 
+function getImgConverterCachePath(){
+    const imgConvertFolder = path.join(getRootPath(), userConfig.workspace_name,  userConfig.img_convert_cache);
+    return imgConvertFolder;
+}
+
 module.exports = {
     fullPathToUrl,
     generateContentUrl,
@@ -111,5 +120,6 @@ module.exports = {
     isExist,
     isDirectParent,
     isSub,
-    getHomePath
+    getHomePath,
+    getImgConverterCachePath
 };

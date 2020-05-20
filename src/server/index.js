@@ -36,10 +36,9 @@ const rootPath = pathUtil.getRootPath();
 const cache_folder_name = userConfig.cache_folder_name;
 const cachePath = path.join(rootPath, cache_folder_name);
 
-const imgConvertFolder = path.join(rootPath, userConfig.workspace_name,  userConfig.img_convert_cache);
 
 //set up user path
-let { home_pathes, path_will_scan } = getHomePath(imgConvertFolder);
+let { home_pathes, path_will_scan } = getHomePath();
 const isProduction = process.argv.includes("--production");
 
 // console.log("--------------------");

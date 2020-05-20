@@ -10,7 +10,7 @@ const { isImage, getCurrentTime, isGif } = util;
 const sevenZipHelp = require("./sevenZipHelp");
 const { listZipContentAndUpdateDb, extractAll }= sevenZipHelp;
 
-const { isExist, getRootPath } = pathUtil;
+const { isExist, getRootPath, getImgConverterCachePath } = pathUtil;
 
 const userConfig = global.requireUserConfig();
 const filesizeUitl = require('filesize');
@@ -20,7 +20,7 @@ const rimraf = require("../tools/rimraf");
 const serverUtil = require("./serverUtil");
 const getStat = serverUtil.common.getStat;
 
-const { img_convert_cache, img_convert_quality, img_convert_dest_type, 
+const { img_convert_quality, img_convert_dest_type, 
         img_reduce_resolution_threshold, img_reduce_resolution_dimension,
         img_convert_min } = userConfig;
 
@@ -85,7 +85,7 @@ module.exports.minifyOneFile = async function(filePath){
         //one for minify image
         const bookName = path.basename(filePath, path.extname(filePath));
         const subfoldername = `from ${path.basename(path.dirname(filePath))}`
-        const convertSpace = path.join(getRootPath(), userConfig.workspace_name, img_convert_cache, subfoldername);
+        const convertSpace = path.join(getImgConverterCachePath(), subfoldername);
         extractOutputPath = path.join(convertSpace, bookName+"-original");
         minifyOutputPath = path.join(convertSpace, bookName);
 

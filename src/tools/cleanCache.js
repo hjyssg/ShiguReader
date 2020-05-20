@@ -64,25 +64,29 @@ function _clean(cachePath, config){
                     del(fPath, cachePath);
                 }
                 let subfiles = fs.readdirSync(fPath);
-                const thumbnail = serverUtil.chooseThumbnailImage(subfiles);
-                //only thumbnail
-                for(let ii = 0; ii < subfiles.length; ii++){
-                    const subfileName = subfiles[ii];
-                    const filePath = path.resolve(fPath, subfileName);
-
-                    //compress first image to standard thumbnail
-                    if(subfileName === thumbnail){
-                        if(config.minized){
-                            const thumbnailGenerator = require("./thumbnailGenerator");
-                            thumbnailGenerator(fPath, subfileName, (err, info) => { 
-                                if(!err){
-                                    del(filePath, cachePath);
-                                }
-                             });
+                if(subfiles.length === 0){
+                    del(fPath, cachePath);
+                } else {
+                    const thumbnail = serverUtil.chooseThumbnailImage(subfiles);
+                    //only thumbnail
+                    for(let ii = 0; ii < subfiles.length; ii++){
+                        const subfileName = subfiles[ii];
+                        const filePath = path.resolve(fPath, subfileName);
+    
+                        //compress first image to standard thumbnail
+                        if(subfileName === thumbnail){
+                            if(config.minized){
+                                const thumbnailGenerator = require("./thumbnailGenerator");
+                                thumbnailGenerator(fPath, subfileName, (err, info) => { 
+                                    if(!err){
+                                        del(filePath, cachePath);
+                                    }
+                                 });
+                            }
+                        }else{
+                            //del the rest
+                            del(filePath, cachePath);
                         }
-                    }else{
-                        //del the rest
-                        del(filePath, cachePath);
                     }
                 }
             }

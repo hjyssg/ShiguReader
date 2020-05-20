@@ -504,7 +504,9 @@ export default class ExplorerPage extends Component {
             if(!this.res){
                 return (<CenterSpinner text={this.getTextFromQuery()}/>);
             }else{
-                return <center className="one-book-nothing-available">Nothing Available</center>;
+                return (<div className="one-book-nothing-available">
+                            <div className="alert alert-secondary" role="alert">    Empty Folder </div>
+                        </div>);
             }
         } 
         

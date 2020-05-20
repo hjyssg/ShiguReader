@@ -11,7 +11,7 @@ const logger = require("./logger");
 const util = global.requireUtil();
 const pathUtil = require("./pathUtil");
 const { isImage, isCompress, isMusic, isVideo, arraySlice, getCurrentTime, isDisplayableInExplorer, isDisplayableInOnebook } = util;
-const { generateContentUrl } = pathUtil;
+const { generateContentUrl, isExist } = pathUtil;
 
 let sevenZip;
 if(isWindows()){
@@ -92,12 +92,18 @@ const get7zipOption = module.exports.get7zipOption = function(filePath, outputPa
 const LIST_QUEUE = {};
 const limit = pLimit(1);
 module.exports.listZipContentAndUpdateDb = async function (filePath){
+    const emptyResult = { files:[], fileInfos:[], info: {} };
+
     try{
+        if(!(await isExist(filePath))){
+            return emptyResult;
+        }
+
         //https://superuser.com/questions/1020232/list-zip-files-contents-using-7zip-command-line-with-non-verbose-machine-friend
         let {stdout, stderr} = await limit(() => execa(sevenZip, ['l', '-r', '-ba' ,'-slt', filePath]));
         const text = stdout;
         if (!text || stderr || LIST_QUEUE[filePath]) {
-            return { files:[], fileInfos:[] };
+            return emptyResult;
         }
 
         LIST_QUEUE[filePath] = true;
@@ -123,7 +129,7 @@ module.exports.listZipContentAndUpdateDb = async function (filePath){
         return { files, fileInfos, info };
     }catch(e){
         logger.error("[listZipContentAndUpdateDb]", filePath, e);
-        return { files:[], fileInfos:[] };
+        return emptyResult;
     } finally {
         LIST_QUEUE[filePath] = null;
     }

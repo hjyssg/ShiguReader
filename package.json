@@ -30,6 +30,7 @@
     "connect-history-api-fallback": "^1.6.0",
     "dart-sass": "^1.25.0",
     "dateformat": "^3.0.3",
+    "delete-empty": "^3.0.0",
     "downloads-folder": "^1.0.3",
     "execa": "^1.0.0",
     "express": "^4.16.3",

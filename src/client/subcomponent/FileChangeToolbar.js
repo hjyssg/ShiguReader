@@ -191,7 +191,6 @@ export default class FileChangeToolbar extends Component {
         return file && file.includes(userConfig.img_convert_cache);
     }
 
-
     renderOverwriteButton(){
         const {file, hasMusic} = this.props;
         const showMinifyZip = util.isCompress(file) && !hasMusic;
