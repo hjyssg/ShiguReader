@@ -628,6 +628,11 @@ export default class ExplorerPage extends Component {
     }
 
     toggleRecursively(){
+        this.videoFiles = []
+        this.files = [];
+        this.dirs = [];
+        this.res = null;
+
         this.setStateAndSetHash({
             pageIndex: 1,
             isRecursive: !this.state.isRecursive
