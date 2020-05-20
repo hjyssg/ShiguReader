@@ -70,14 +70,14 @@ router.post('/api/overwrite', async (req, res) =>  {
     }
 
     if(originalFilePath){
-        logger.info("[overwrite]", originalFilePath, filePath);
         //do the overwrite 
         await trash(originalFilePath);
         const {stdout, stderr} =  move(filePath, originalFilePath);
-
         if(!stderr){
+            logger.info("[overwrite]", "\n", originalFilePath,  "\n", filePath);
             res.sendStatus(200);
         }else{
+            logger.error("[overwrite]", "fail at", filePath);
             res.sendStatus(500);
 
         }
