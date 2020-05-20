@@ -4,7 +4,7 @@
   transition: width 1s;
   animation: all 1s;
   display: none;
-  background-color: #99a2b5; /* Black*/
+  background-color: #99a2b5; 
   overflow-x: hidden; /* Disable horizontal scroll */
 
   &.anchorSideMenu{
@@ -22,8 +22,7 @@
     margin-bottom: 5px;
   }
 
-  .speical-checkbox-container,
-  .sort-radio-button-group{
+  .speical-checkbox-container {
     display: flex;
   }
 

@@ -16,6 +16,7 @@ const util = require("@common/util");
 const filesizeUitl = require('filesize');
 const queryString = require('query-string');
 import RadioButtonGroup from './subcomponent/RadioButtonGroup';
+import SortHeader from './subcomponent/SortHeader';
 import Breadcrumb from './subcomponent/Breadcrumb';
 import Checkbox from './subcomponent/Checkbox';
 const nameParser = require('@name-parser');
@@ -36,6 +37,8 @@ const { SORT_FROM_LATEST,
         SORT_FROM_BIG_FILE_SIZE,
         SORT_FROM_SMALL_PAGE_SIZE,
         SORT_FROM_BIG_PAGE_SIZE,
+        SORT_FROM_SMALL_PAGE_NUMBER,
+        SORT_FROM_BIG_PAGE_NUMBER,
         SORT_RANDOMLY } =  Constant;
 
 const { MODE_TAG,
@@ -476,6 +479,11 @@ export default class ExplorerPage extends Component {
                 const size =  this.getPageAvgSize(e);
                 return sortOrder === SORT_FROM_SMALL_PAGE_SIZE? size: -size;
             });
+        } else if (sortOrder === SORT_FROM_SMALL_PAGE_NUMBER || sortOrder === SORT_FROM_BIG_PAGE_NUMBER){
+            files = _.sortBy(files, e => {
+                const size =  this.getPageNum(e);
+                return sortOrder === SORT_FROM_SMALL_PAGE_NUMBER? size: -size;
+            });
         } else if (sortOrder === SORT_RANDOMLY){
             if(!this.isAlreadyRandom){
                 files = _.shuffle(files);
@@ -622,6 +630,7 @@ export default class ExplorerPage extends Component {
                     {videoItems}
                 </ul>
                 {this.renderPagination()}
+                {this.renderSortHeader()}
                 <div className={"file-grid container"}>
                     <div className={rowCn}>
                         {zipfileItems}
@@ -874,22 +883,6 @@ export default class ExplorerPage extends Component {
     }
 
     renderSideMenu(){
-        const SORT_OPTIONS = [
-            SORT_FROM_LATEST,
-            SORT_FROM_EARLY,
-            SORT_FROM_BIG_FILE_SIZE,
-            SORT_FROM_SMALL_FILE_SIZE,
-            SORT_FROM_BIG_PAGE_SIZE,
-            SORT_FROM_SMALL_PAGE_SIZE,
-            SORT_BY_FILENAME
-        ];
-
-        if(this.getMode() !== MODE_EXPLORER){
-            SORT_OPTIONS.push(SORT_BY_FOLDER);
-        }
-
-        SORT_OPTIONS.push(SORT_RANDOMLY);
-
         const tag2Freq = {};
         const files = this.getFilteredFiles();
         files.forEach(e => {
@@ -930,13 +923,8 @@ export default class ExplorerPage extends Component {
                 anchorSideMenu: this.state.anchorSideMenu
             });
 
+       
             return (<div className={cn}>
-                    <div className="side-menu-radio-title"> File Order </div>
-                    <RadioButtonGroup  
-                            className="sort-radio-button-group"
-                            checked={SORT_OPTIONS.indexOf(this.state.sortOrder)} 
-                            options={SORT_OPTIONS} name="explorer-sort-order" 
-                            onChange={this.onSortChange.bind(this)}/>
                     <div className="side-menu-radio-title"> Special Filter </div>
                     {this.renderSpecialFilter()}
                     {tagContainer}
@@ -944,8 +932,31 @@ export default class ExplorerPage extends Component {
         }
     }
 
+    renderSortHeader(){
+        const sortOptions = Constant.SORT_OPTIONS;
+
+        const RADIO_SORT_OPTIONS = [
+            SORT_BY_FILENAME
+        ];
+
+        if(this.getMode() !== MODE_EXPLORER){
+            RADIO_SORT_OPTIONS.push(SORT_BY_FOLDER);
+        }
+
+        RADIO_SORT_OPTIONS.push(SORT_RANDOMLY);
+
+
+       return (<div className="flex-center-display-container sort-header-container container"> 
+            <SortHeader options={sortOptions} value={this.state.sortOrder} onChange={this.onSortChange.bind(this)} />
+            <RadioButtonGroup  
+                    className="sort-radio-button-group"
+                    checked={RADIO_SORT_OPTIONS.indexOf(this.state.sortOrder)} 
+                    options={RADIO_SORT_OPTIONS} name="explorer-sort-order" 
+                    onChange={this.onSortChange.bind(this)}/>
+            </div>);
+    }
+
     renderSpecialFilter(){
-        
         //no one pay me, I am not going to improve the ui
         let checkbox;
         if(this.state.goodAuthors){
