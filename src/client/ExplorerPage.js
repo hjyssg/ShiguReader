@@ -31,7 +31,8 @@ const AdminUtil = require("./AdminUtil");
 
 const { TIME_DOWN, 
         TIME_UP,
-        SORT_BY_FOLDER,
+        BY_FOLDER_DOWN,
+        BY_FOLDER_UP,
         FILENAME_UP,
         FILENAME_DOWN,
         FILE_SIZE_UP,
@@ -465,11 +466,15 @@ export default class ExplorerPage extends Component {
             if(sortOrder === FILENAME_DOWN){
                 files.reverse();
             }
-        }else if(sortOrder === SORT_BY_FOLDER){
+        }else if(sortOrder === BY_FOLDER_UP || sortOrder === BY_FOLDER_DOWN){
             files = _.sortBy(files, e => {
                 const dir =  getDir(e);
                 return dir;
             });
+
+            if(sortOrder === BY_FOLDER_DOWN){
+                files.reverse();
+            }
         }else if (sortOrder === TIME_DOWN ||  sortOrder === TIME_UP){
             const ifFromEarly = sortOrder === TIME_UP;
             const ifOnlyBymTime = this.getMode() === MODE_EXPLORER;
@@ -555,8 +560,8 @@ export default class ExplorerPage extends Component {
             const avgSizeStr = avgSize && filesizeUitl(avgSize, {base: 2});
 
             let seperator;
-
-            if(sortOrder === SORT_BY_FOLDER && 
+ 
+            if((sortOrder === BY_FOLDER_DOWN || sortOrder === BY_FOLDER_UP  ) &&
                 (this.getMode() === MODE_AUTHOR || this.getMode() === MODE_TAG || this.getMode() === MODE_SEARCH )){
                 const prev = files[index - 1];
                 if(!prev || getDir(prev) !== getDir(item)){
@@ -932,30 +937,18 @@ export default class ExplorerPage extends Component {
     }
 
     renderSortHeader(){
-        const sortOptions = Constant.SORT_OPTIONS;
-        let radiogroup;
-
         if(this.getMode() === MODE_HOME){
             return;
         }
 
-        if(this.getMode() !== MODE_EXPLORER && this.getMode() == MODE_HOME){
-            const RADIO_SORT_OPTIONS  = [SORT_BY_FOLDER];
+        let sortOptions = Constant.SORT_OPTIONS;
 
-            radiogroup = (<RadioButtonGroup  
-            className="sort-radio-button-group"
-            checked={RADIO_SORT_OPTIONS.indexOf(this.state.sortOrder)} 
-            options={RADIO_SORT_OPTIONS} name="explorer-sort-order" 
-            onChange={this.onSortChange.bind(this)}/>)
+        if(this.getMode() !== MODE_EXPLORER ){
+            sortOptions = sortOptions.concat("by folder name");
         }
 
-        const cn = classNames({
-            "less-space": !!radiogroup
-        })
-
-       return (<div className="flex-center-display-container sort-header-container container"> 
-            <SortHeader className={cn} options={sortOptions} value={this.state.sortOrder} onChange={this.onSortChange.bind(this)} />
-            {radiogroup}
+        return (<div className="flex-center-display-container sort-header-container container"> 
+            <SortHeader  options={sortOptions} value={this.state.sortOrder} onChange={this.onSortChange.bind(this)} />
             </div>);
     }
 

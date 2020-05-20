@@ -30,5 +30,6 @@ module.exports.PAGE_NUMBER_DOWN = "page number_down";
 module.exports.FILENAME_UP = "file name_up";
 module.exports.FILENAME_DOWN = "file name_down";
 
-module.exports.SORT_BY_FOLDER = "By folder name";
+module.exports.BY_FOLDER_DOWN = "by folder name_down";
+module.exports.BY_FOLDER_UP = "by folder name_up";
 module.exports.SORT_RANDOMLY = "random";
