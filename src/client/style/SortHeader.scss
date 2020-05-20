@@ -11,16 +11,21 @@
   .sort-header {
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: space-between;
+    margin-left: 10px;
+    margin-right: 10px;
+
+    width: 100%;
+    &.less-space{
+      width: 80%;
+    }
   
-    .sort-item{
-      margin-right: 20px;
+    .sort-item {
       color: $font_color_white_one;
       background: unset;
       font-size: 14px;
       cursor: pointer;
-      @include flex_center_display;
-  
+      vertical-align: baseline;
       &:hover{
         @include third_hover_effect;
       }
@@ -29,13 +34,12 @@
   
   .sort-radio-button-group{
     display: flex;
-    font-size: 14px;
     color: $font_color_white_one;
   
     .radio-button{
+      font-size: 14px;
       margin-right: 20px;
       margin-bottom: 0px;
-      @include flex_center_display;
     }
   }
 }

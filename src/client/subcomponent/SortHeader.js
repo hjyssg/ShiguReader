@@ -32,7 +32,7 @@ export default class SortHeader extends Component {
             return (<div key={e} className="sort-item" onClick={()=>onChange(next)}> {icon} {e} </div>)
         })
 
-        return (<div className="sort-header">{items}</div>)
+        return (<div className={classNames("sort-header", className)}>{items}</div>)
 
     }
 }

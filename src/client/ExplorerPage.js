@@ -32,7 +32,8 @@ const AdminUtil = require("./AdminUtil");
 const { SORT_FROM_LATEST, 
         SORT_FROM_EARLY,
         SORT_BY_FOLDER,
-        SORT_BY_FILENAME,
+        SORT_BY_FILENAME_UP,
+        SORT_BY_FILENAME_DOWN,
         SORT_FROM_SMALL_FILE_SIZE,
         SORT_FROM_BIG_FILE_SIZE,
         SORT_FROM_SMALL_PAGE_SIZE,
@@ -454,12 +455,14 @@ export default class ExplorerPage extends Component {
             return ap.localeCompare(bp);
         }
 
-        let inRandom = false;
-
-        if(sortOrder  === SORT_BY_FILENAME){
+        if(sortOrder  === SORT_BY_FILENAME_UP || sortOrder === SORT_BY_FILENAME_DOWN){
             files.sort((a, b) => {
                 return byFn(a, b);
             });
+
+            if(sortOrder === SORT_BY_FILENAME_DOWN){
+                files.reverse();
+            }
         }else if(sortOrder === SORT_BY_FOLDER){
             files = _.sortBy(files, e => {
                 const dir =  getDir(e);
@@ -484,14 +487,10 @@ export default class ExplorerPage extends Component {
                 const size =  this.getPageNum(e);
                 return sortOrder === SORT_FROM_SMALL_PAGE_NUMBER? size: -size;
             });
-        } else if (sortOrder === SORT_RANDOMLY){
-            if(!this.isAlreadyRandom){
+        } else if (sortOrder.includes(SORT_RANDOMLY)){
                 files = _.shuffle(files);
-            }
-            inRandom = true;
         }
 
-        this.isAlreadyRandom = inRandom;
         return files;
     }
 
@@ -935,24 +934,25 @@ export default class ExplorerPage extends Component {
     renderSortHeader(){
         const sortOptions = Constant.SORT_OPTIONS;
 
-        const RADIO_SORT_OPTIONS = [
-            SORT_BY_FILENAME
-        ];
+        let radiogroup;
 
         if(this.getMode() !== MODE_EXPLORER){
-            RADIO_SORT_OPTIONS.push(SORT_BY_FOLDER);
+            const RADIO_SORT_OPTIONS  = SORT_BY_FOLDER;
+
+            radiogroup = (<RadioButtonGroup  
+            className="sort-radio-button-group"
+            checked={RADIO_SORT_OPTIONS.indexOf(this.state.sortOrder)} 
+            options={RADIO_SORT_OPTIONS} name="explorer-sort-order" 
+            onChange={this.onSortChange.bind(this)}/>)
         }
 
-        RADIO_SORT_OPTIONS.push(SORT_RANDOMLY);
-
+        const cn = classNames({
+            "less-space": !!radiogroup
+        })
 
        return (<div className="flex-center-display-container sort-header-container container"> 
-            <SortHeader options={sortOptions} value={this.state.sortOrder} onChange={this.onSortChange.bind(this)} />
-            <RadioButtonGroup  
-                    className="sort-radio-button-group"
-                    checked={RADIO_SORT_OPTIONS.indexOf(this.state.sortOrder)} 
-                    options={RADIO_SORT_OPTIONS} name="explorer-sort-order" 
-                    onChange={this.onSortChange.bind(this)}/>
+            <SortHeader className={cn} options={sortOptions} value={this.state.sortOrder} onChange={this.onSortChange.bind(this)} />
+            {radiogroup}
             </div>);
     }
 
