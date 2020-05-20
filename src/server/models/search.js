@@ -1,7 +1,7 @@
 
 const serverUtil = require("../serverUtil");
 const db = require("../models/db");
-const { getAllFilePathes } = db;;
+const { getAllFilePathes } = db;
 const parse = serverUtil.parse;
 const nameParser = require('../../name-parser');
 const includesWithoutCase =  nameParser.includesWithoutCase;

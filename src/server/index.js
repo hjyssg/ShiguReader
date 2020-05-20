@@ -457,7 +457,7 @@ app.post('/api/extract', async (req, res) => {
         const fn = path.basename(filePath);
         //todo loop is slow
         const isSomewhere = getAllFilePathes().some(e => {
-            if(path.basename(e) = fn){
+            if(path.basename(e) === fn){
                 filePath = e;
                 return true;
             }

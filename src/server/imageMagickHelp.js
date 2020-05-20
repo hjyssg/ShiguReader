@@ -106,8 +106,8 @@ module.exports.minifyOneFile = async function(filePath){
         } 
         
 
-        if (checkExtractAllWithOriginalFiles(pathes, oldFiles)){
-            logFail(filePath,"checkExtractAllWithOriginalFiles");
+        if (!isExtractAllSameWithOriginalFiles(pathes, oldFiles)){
+            logFail(filePath,"ExtractAll Different than Original Files");
             return;
         }
         console.log("-----begin images convertion --------------");
@@ -159,7 +159,7 @@ module.exports.minifyOneFile = async function(filePath){
 
         const temp = await listZipContentAndUpdateDb(resultZipPath);
         const filesInNewZip = temp.files;
-        if(checkNewZipWithOriginalFiles(filesInNewZip, oldFiles)){
+        if(!isNewZipSameWithOriginalFiles(filesInNewZip, oldFiles)){
             logFail(filePath, "filesInNewZip is missing files");
             deleteCache(resultZipPath);
             return;
@@ -214,30 +214,26 @@ function deleteCache(filePath){
     }
 }
 
-function checkExtractAllWithOriginalFiles(newFiles, files){
+function isExtractAllSameWithOriginalFiles(newFiles, files){
     if(!newFiles){
-        return true;
+        return false;
     }
 
     const expect_file_names = files.filter(isImage).map(e => path.basename(e)).sort();
     const resulted_file_names =  newFiles.filter(isImage).map(e => path.basename(e)).sort();
-    if(!_.isEqual(resulted_file_names, expect_file_names)){
-        return true;
-    }
+    return _.isEqual(resulted_file_names, expect_file_names);
 }
 
 function getFn(e){
     return path.basename(e, path.extname(e));
 }
 
-function checkNewZipWithOriginalFiles(newFiles, files){
+const isNewZipSameWithOriginalFiles = module.exports.isNewZipSameWithOriginalFiles = function (newFiles, files){
     if(!newFiles){
-        return true;
+        return false;
     }
 
     const expect_file_names = files.filter(isImage).map(getFn).sort();
     const resulted_file_names =  newFiles.filter(isImage).map(getFn).sort();
-    if(!_.isEqual(resulted_file_names, expect_file_names)){
-        return true;
-    }
+    return _.isEqual(resulted_file_names, expect_file_names)
 }

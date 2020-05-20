@@ -20,6 +20,39 @@ export default class FileChangeToolbar extends Component {
         popPosition: "bottom-center"
     }
 
+
+    handleOverwrite(){
+        const { file } = this.props;
+        Swal.fire({
+            title: "Minify Zip",
+            text: `Do you want to overwrite overwrite the old file with the minified file?`,
+            showCancelButton: true,
+            confirmButtonText: 'Yes',
+            cancelButtonText: 'No'
+        }).then((result) => {
+            if (result.value === true) {
+                Sender.simplePost("/api/overwrite", {filePath: file}, res => {
+                    if (!res.failed) {
+                        spop({
+                            style: "info",
+                            template: `done`,
+                            position:  this.props.popPosition,
+                            autoclose: 3000
+
+                        });
+                    }else{
+                        spop({
+                            style: "error",
+                            template: `failed`,
+                            position:  this.props.popPosition,
+                            autoclose: 60000
+                        });
+                    }
+                });
+            } 
+        });
+    }
+
     handleMinifyZip(){
         const { file } = this.props;
         Swal.fire({
@@ -147,9 +180,24 @@ export default class FileChangeToolbar extends Component {
     renderMinifyZipButton(){
         const {file, className, header, showAllButtons, hasMusic, bigFont} = this.props;
         const showMinifyZip = util.isCompress(file) && !hasMusic;
-        if(showMinifyZip){
+        if(showMinifyZip && !this.isInMinifiedFolder()){
             return ( <div tabIndex="0" className="fas fa-hand-scissors"  title="minify zip"
                       onClick={this.handleMinifyZip.bind(this)}></div>)
+        }
+    }
+
+    isInMinifiedFolder(){
+        const { file } = this.props;
+        return file && file.includes(userConfig.img_convert_cache);
+    }
+
+
+    renderOverwriteButton(){
+        const {file, hasMusic} = this.props;
+        const showMinifyZip = util.isCompress(file) && !hasMusic;
+        if(showMinifyZip && this.isInMinifiedFolder()){
+            return ( <div tabIndex="0" className="fas fa-wrench"  title="overwrite the original file"
+                      onClick={this.handleOverwrite.bind(this)}></div>)
         }
     }
 
@@ -170,9 +218,6 @@ export default class FileChangeToolbar extends Component {
             additional = <Dropdown>{this.getDropdownItems()}</Dropdown>;
         }
 
-       
-
-
         return (
             <div className={cn} >
                 {header && <span className="file-change-tool-bar-header">{header}</span>}
@@ -190,6 +235,7 @@ export default class FileChangeToolbar extends Component {
                 <div className="tool-bar-row second">
                     {this.renderDownloadLink()}
                     {this.renderMinifyZipButton()}
+                    {this.renderOverwriteButton()}
                     {additional}
                 </div>
             </div>
