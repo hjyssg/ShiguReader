@@ -12,7 +12,7 @@ const filterHiddenFile = module.exports.filterHiddenFile =function(files){
     })
 }
 
-function isHiddenFile(f){
+const isHiddenFile = module.exports.isHiddenFile = function(f){
     const temp =  path.basename(f);
     return temp && temp[0] === ".";
 }

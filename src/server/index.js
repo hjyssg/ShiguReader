@@ -95,30 +95,23 @@ async function init() {
 
     console.log("scanning local files");
 
-    const filter = (e, stat) => {
-        const minSize = 1000 * 10;
-        if(stat.size < minSize){
-            return false;
-        }
-        return isDisplayableInExplorer(e);
-    };
+ 
     let beg = (new Date).getTime()
     const results = fileiterator(path_will_scan, { 
-        filter:filter, 
+        filter: filterForOne, 
         doLog: true
     });
     results.pathes = results.pathes.concat(home_pathes);
     let end = (new Date).getTime();
     console.log(`${(end - beg)/1000}s  to read local dirs`);
     console.log("Analyzing local files");
-    
     db.initFileToInfo(results.infos);
-
     console.log("There are", getAllFilePathes().length, "files");
+
 
     console.log("----------scan cache------------");
     const cache_results = fileiterator([cachePath], { 
-        filter: isImage, 
+        filter: cacheFilter, 
         doLog: true
     });
 
@@ -146,20 +139,35 @@ async function init() {
     });
 }
 
+const filterForOne = (e) => {
+    return isDisplayableInExplorer(e) && !serverUtil.isHiddenFile(e);
+};
+
 function shouldWatchForOne(p){
+    if(serverUtil.isHiddenFile(p)){
+        return false;
+    }
     const ext = path.extname(p).toLowerCase();
-    return !ext ||  isDisplayableInExplorer(ext);
+    return  !ext ||  isDisplayableInExplorer(ext);
 }
 
 function shouldIgnoreForOne(p){
     return !shouldWatchForOne(p);
 }
 
+const cacheFilter = (e) => {
+    return isDisplayableInOnebook(e) && !serverUtil.isHiddenFile(e);
+};
+
+
 function shouldIgnoreForCache(p){
     return !shouldWatchForCache(p);
 }
 
 function shouldWatchForCache(p){
+    if(serverUtil.isHiddenFile(p)){
+        return false;
+    }
     const ext = path.extname(p).toLowerCase();
     return !ext ||  isDisplayableInOnebook(ext)
 }
