@@ -102,30 +102,32 @@ export default class VideoPlayer extends Component {
                           {this.renderPath()}
                          </div>);
 
+  const fileSize = stat && filesizeUitl(stat.size, {base: 2});
+  const mTime = stat &&  dateFormat(stat.mTime, "isoDate");
 
+  const videoFileInfo = (stat && <div className="video-file-info-row">
+                          <span>{fileSize}</span>
+                          <span style={{marginLeft: "10px"}}> {mTime} </span>
+                        </div>);
+
+    let content;
     if(hasError || !filePath){
       const infoStr=  (!filePath || (this.res && this.res.res.status === 404) )? "Video Not Found": "Unable to Play Video";
-      return (<div className="container"> 
-          <div className="alert alert-warning col-6" role="alert">{infoStr}</div>
-          {videoTitle}
+      content = (<div className="flex-center-display-container">  <div className="alert alert-warning col-6" role="alert">{infoStr}</div> </div>);
+    }else{
+      content = (
+        <div className="video-player-container">
+          <video id="videoPlayer" controls> 
+            <source src={url} type="video/mp4" onError={this.onError.bind(this)} />
+          </video>
         </div>
-      )
+      );
     }
-    
-    const fileSize = stat && filesizeUitl(stat.size, {base: 2});
-    const mTime = stat &&  dateFormat(stat.mTime, "isoDate");
 
     return (<div className="video-player-page">
-              <div className="video-player-container">
-                <video id="videoPlayer" controls> 
-                  <source src={url} type="video/mp4" onError={this.onError.bind(this)} />
-                </video>
-              </div>
+              {content}
               {videoTitle}
-              <div className="video-file-info-row">
-                <span>{fileSize}</span>
-                <span style={{marginLeft: "10px"}}> {mTime} </span>
-              </div>
+              {videoFileInfo}
               <FileChangeToolbar showAllButtons className="video-toolbar" file={filePath} popPosition={"top-center"}/>
               {this.renderTag()}
             </div>

@@ -39,6 +39,10 @@ $border-color-black: #616161;
     align-items: center;
 }
 
+.flex-center-display-container {
+    @include flex_center_display;
+}
+
 @mixin common_sub_container {
     background: $background_orange_white;
     color : $font_color_black_two;
