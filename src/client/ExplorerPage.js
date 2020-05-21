@@ -947,7 +947,7 @@ export default class ExplorerPage extends Component {
             sortOptions = sortOptions.concat("by folder name");
         }
 
-        return (<div className="flex-center-display-container sort-header-container container"> 
+        return (<div className="sort-header-container container"> 
             <SortHeader  options={sortOptions} value={this.state.sortOrder} onChange={this.onSortChange.bind(this)} />
             </div>);
     }

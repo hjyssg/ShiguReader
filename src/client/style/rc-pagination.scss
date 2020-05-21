@@ -361,6 +361,8 @@
   }
 }
 
+.rc-pagination-jump-prev,
+.rc-pagination-jump-next,
 .rc-pagination-prev,
 .rc-pagination-next,
 .rc-pagination-item {
@@ -371,6 +373,19 @@
   width: 100%;
   height: 100%;
   font-size: 20px !important;
+}
+
+
+.rc-pagination-jump-prev,
+.rc-pagination-jump-next {
+  &:hover{
+    &::after{
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+    }
+  }
 }
 
 @media screen and (max-width: 700px) {
