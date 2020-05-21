@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
 import '../style/Spinner.scss';
-const spop  = require("./spop");
 const userConfig = require('@config/user-config');
 import PropTypes from 'prop-types';
 var classNames = require('classnames');
@@ -13,7 +12,41 @@ const util = require("@common/util");
 const clientUtil = require("../clientUtil");
 const { getDir, getBaseName, getDownloadLink } = clientUtil;
 import _ from 'underscore';
+import { toast } from 'react-toastify';
 
+const toastConfig = {
+    position: "top-right",
+    autoClose: 5*1000,
+    hideProgressBar: true,
+    closeOnClick: true,
+    pauseOnHover: true,
+    draggable: true,
+    progress: false
+};
+
+function pop(file, res, postFix){
+    const isFailed = res.failed
+    const message = isFailed? `fail to ${postFix} ${file}` : `${postFix} successfully`;
+    const cn = isFailed? "a-error": "a-success";
+    const badge = isFailed? (<span className="badge badge-danger">Error</span>) :
+                           (<span className="badge badge-success">Success</span>)
+
+
+    let divContent = (
+    <div className="toast" role="alert" aria-live="assertive" aria-atomic="true">
+        <div className="toast-header">
+            {badge}
+            <strong className="mr-auto">{postFix.toUpperCase()}</strong>
+        </div>
+        <div className="toast-body">
+            <div>{getDir(file)} </div>
+            <div>{getBaseName(file)} </div>
+        </div>
+    </div>);
+    
+    toast(divContent, toastConfig)
+
+}
 
 export default class FileChangeToolbar extends Component {
     static defaultProps = {
@@ -32,22 +65,7 @@ export default class FileChangeToolbar extends Component {
         }).then((result) => {
             if (result.value === true) {
                 Sender.simplePost("/api/overwrite", {filePath: file}, res => {
-                    if (!res.failed) {
-                        spop({
-                            style: "info",
-                            template: `overwrite done`,
-                            position:  this.props.popPosition,
-                            autoclose: 3000
-
-                        });
-                    }else{
-                        spop({
-                            style: "error",
-                            template: `overwrite failed`,
-                            position:  this.props.popPosition,
-                            autoclose: 60000
-                        });
-                    }
+                    pop(file, res, "overwrite");
                 });
             } 
         });
@@ -64,22 +82,7 @@ export default class FileChangeToolbar extends Component {
         }).then((result) => {
             if (result.value === true) {
                 Sender.simplePost("/api/minifyZip", {filePath: file}, res => {
-                    if (!res.failed) {
-                        spop({
-                            style: "info",
-                            template: `${file} is added to the task queue`,
-                            position:  this.props.popPosition,
-                            autoclose: 3000
-
-                        });
-                    }else{
-                        spop({
-                            style: "error",
-                            template: `Not able to minify ${file}`,
-                            position:  this.props.popPosition,
-                            autoclose: 60000
-                        });
-                    }
+                    pop(file, res, "added to the task queue");
                 });
             } 
         });
@@ -96,29 +99,14 @@ export default class FileChangeToolbar extends Component {
         }).then((result) => {
             if (result.value === true) {
                 Sender.simplePost("/api/deleteFile", {src: file}, res => {
-                    if (!res.failed) {
-                        spop({
-                            style: "Delete success",
-                            template: 'Deleted ' + this.props.file,
-                            position:  this.props.popPosition,
-                            autoclose: 3000
-
-                        });
-                    }else{
-                        spop({
-                            style: "error",
-                            template: 'Failed to delete',
-                            position:  this.props.popPosition,
-                            autoclose: 60000
-                        });
-                    }
+                    pop(file, res, "delete");
                 });
             } 
         });
     }
 
-    handleClose = (path) => {
-
+    handleMove = (path) => {
+        const { file } = this.props;
         if(_.isString(path)){
             Swal.fire({
                 html: 'Do you want to move this file to <span class="path-highlight">'+  path +"</span>",
@@ -127,24 +115,8 @@ export default class FileChangeToolbar extends Component {
                 cancelButtonText: 'No'
             }).then((result) => {
                 if (result.value === true) {
-                    const template = "Moved " + this.props.file +  "  to  " + path;
-
                     Sender.simplePost("/api/moveFile", {src: this.props.file, dest: path}, res => {
-                        if (!res.failed) {
-                            spop({
-                                style: "move success",
-                                template: template, // ['Moved', this.props.file, "to", path, 'Successfully'].join(" "),
-                                position:  this.props.popPosition,
-                                autoclose: 3000
-                            });
-                        }else{
-                            spop({
-                                style: "error",
-                                template: 'Failed to Move',
-                                position:  this.props.popPosition,
-                                autoclose: 3000
-                            });
-                        }
+                        pop(file, res, "move");
                     });
                 } 
             });
@@ -161,7 +133,7 @@ export default class FileChangeToolbar extends Component {
         return additional_folder.map((e, index) =>{
             const dd = (<div tabIndex="0"  className="letter-button"  key={index}
             title={"Move to " + e}
-            onClick={this.handleClose.bind(this, e)}> {getBaseName(e).slice(0, 2)} </div>);
+            onClick={this.handleMove.bind(this, e)}> {getBaseName(e).slice(0, 2)} </div>);
 
             if(this.isShowAllButtons()){
                 return dd;
@@ -226,10 +198,10 @@ export default class FileChangeToolbar extends Component {
                                     onClick={this.handleDelete.bind(this)}></div>
                     <div tabIndex="0"  className="fas fa-check"
                                     title={"Move to " + userConfig.good_folder}
-                                    onClick={this.handleClose.bind(this, userConfig.good_folder)}></div>
+                                    onClick={this.handleMove.bind(this, userConfig.good_folder)}></div>
                     <div tabIndex="0"  className="fas fa-times"
                                     title={"Move to " + userConfig.not_good_folder}
-                                    onClick={this.handleClose.bind(this, userConfig.not_good_folder)}></div>
+                                    onClick={this.handleMove.bind(this, userConfig.not_good_folder)}></div>
                 </div>
                 <div className="tool-bar-row second">
                     {this.renderDownloadLink()}

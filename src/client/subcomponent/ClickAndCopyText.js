@@ -2,8 +2,8 @@ import React, { Component } from 'react';
 import '../style/ClickAndCopyText.scss';
 import PropTypes from 'prop-types';
 var classNames = require('classnames');
-const spop  = require("./spop");
 const clientUtil = require("../clientUtil");
+import { toast } from 'react-toastify';
 
 
 function iosCopyToClipboard(el) {
@@ -42,11 +42,16 @@ export default class ClickAndCopyText extends Component {
       document.execCommand("Copy");
     }
     textArea.remove();
-    spop({
-      template: 'Copied to Clipboard',
-      position: 'bottom-right',
-      autoclose: 3000
-    });
+
+    toast('Copied to Clipboard', {
+      className: "one-line-toast",
+      position: "top-right",
+      autoClose: 3 * 1000,
+      hideProgressBar: true,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true
+    })
   }
 
 

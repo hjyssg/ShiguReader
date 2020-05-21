@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import './style/App.scss';
-import './style/spop.scss';
+import './style/_toast.scss';
 import './style/rc-pagination.scss';
 import ExplorerPage from "./ExplorerPage";
 import OneBook from "./OneBook";
@@ -12,6 +12,8 @@ import { Switch, Route, Link, Redirect } from 'react-router-dom';
 import screenfull from 'screenfull';
 const clientUtil = require("./clientUtil");
 const { getSearchInputText } = clientUtil;
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 // http://localhost:3000/
 class App extends Component {
@@ -133,6 +135,7 @@ class App extends Component {
             <div className="app-container">
             {topNav}
             {this.RenderSubComponent()}
+            <ToastContainer />
             </div>
         );
     }

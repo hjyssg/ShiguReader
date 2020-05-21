@@ -1,0 +1,28 @@
+.Toastify__toast-body{
+  margin-top: 0px !important;
+  margin-bottom: 0px !important;
+  font-size: 14px;
+
+  .toast-header{
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgba(0,0,0,.05);
+    .badge{
+      margin-right: 10px;
+    }
+  }
+
+  .toast-body{
+    padding-top: 10px;
+    padding-bottom: 10px;
+    font-size:  11px;
+  }
+}
+
+.Toastify__close-button{
+  position: fixed;
+  right: 10px;
+}
+
+.one-line-toast {
+  min-height: unset !important;
+}
