@@ -9,13 +9,12 @@ import { Link } from 'react-router-dom';
 
 const userConfig = require('@config/user-config');
 import ErrorPage from './ErrorPage';
-import Pagination from 'rc-pagination';
 import FileChangeToolbar from './subcomponent/FileChangeToolbar';
 import CenterSpinner from './subcomponent/CenterSpinner';
 const util = require("@common/util");
 const filesizeUitl = require('filesize');
 const queryString = require('query-string');
-import RadioButtonGroup from './subcomponent/RadioButtonGroup';
+import Pagination from './subcomponent/Pagination';
 import SortHeader from './subcomponent/SortHeader';
 import Breadcrumb from './subcomponent/Breadcrumb';
 import Checkbox from './subcomponent/Checkbox';
@@ -27,7 +26,6 @@ const { getDir, getBaseName, getPerPageItemNumber, isSearchInputTextTyping } = c
 const { isVideo, isCompress } = util;
 const sortUtil = require("../common/sortUtil");
 const AdminUtil = require("./AdminUtil");
-
 
 const { TIME_DOWN, 
         TIME_UP,
@@ -808,25 +806,12 @@ export default class ExplorerPage extends Component {
             return;
         }
         const fileLength = this.getFilteredFiles().length;
-        if(fileLength === 0){
-          return;
-        }
-    
-        const that =this;
-        return (<Pagination ref={ref => this.pagination = ref}
-                            current={this.state.pageIndex}  
-                            pageSize={this.getNumPerPage()}
-                            showQuickJumper={{goButton: true}}
-                            total={fileLength} 
-                            itemRender={(item, type) =>{
-                                if(type === "page"){
-                                    return  <div>{item}</div>;
-                                }else if(type === "prev" || type === "next"){
-                                    return <a className="rc-pagination-item-link" />
-                                }
-                            }}
+        return (<div className="container"><Pagination ref={ref => this.pagination = ref}
+                            currentPage={this.state.pageIndex}  
+                            itemPerPage={this.getNumPerPage()}
+                            totalItemNum={fileLength} 
                             onChange={this.handlePageChange.bind(this)} 
-                            />);
+                            /></div>);
     }
 
     setWebTitle(){

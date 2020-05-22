@@ -1,0 +1,22 @@
+@import "vars.scss";
+
+.pagination{
+    border-radius: 2px;
+    font-weight: 500;
+
+    .ellipsis{
+        cursor: unset;
+    }
+
+    .page-jump{
+        display: flex;
+        align-items: center;
+        background-color: white;
+        padding-left: 20px;
+        padding-right: 20px;
+        input {
+            width: 40px;
+        }
+    }
+}
+

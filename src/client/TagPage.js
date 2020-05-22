@@ -8,7 +8,7 @@ import './style/TagPage.scss';
 import { Link } from 'react-router-dom';
 import ErrorPage from './ErrorPage';
 import CenterSpinner from './subcomponent/CenterSpinner';
-import Pagination from 'rc-pagination';
+import Pagination from './subcomponent/Pagination';
 import { Redirect } from 'react-router-dom';
 import { isCompress, isImage } from '@common/util';
 const nameParser = require('@name-parser');
@@ -247,23 +247,13 @@ export default class TagPage extends Component {
   }
 
   renderPagination(){
-    if(this.getItemLength() === 0){
-      return;
-    }
-
-    return (<Pagination current={this.pageIndex}  
-                        ref={ref => this.pagination = ref}
-                        pageSize={this.perPage}
-                        total={this.getItemLength()} 
-                        showQuickJumper={{goButton: true}}
-                        itemRender={(item, type) =>{
-                          if(type === "page"){
-                              return  <div>{item}</div>;
-                          }else if(type === "prev" || type === "next"){
-                              return <a className="rc-pagination-item-link" />
-                          }
-                        }}
-                        onChange={this.handlePageChange.bind(this)} />);
+    return (<div className="container">
+              <Pagination ref={ref => this.pagination = ref}
+              currentPage={this.state.pageIndex}  
+              itemPerPage={this.perPage}
+              totalItemNum={this.getItemLength()} 
+              onChange={this.handlePageChange.bind(this)} 
+              /></div>);
   }
 
   render() {
