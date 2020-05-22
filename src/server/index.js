@@ -7,6 +7,7 @@ const _ = require('underscore');
 const isWindows = require('is-windows');
 const internalIp = require('internal-ip');
 const qrcode = require('qrcode-terminal');
+const searchByTagAndAuthor = require("../models/search");
 
 global.requireUtil = function(e) {
     return require("../common/util")
