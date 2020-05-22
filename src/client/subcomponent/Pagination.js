@@ -66,7 +66,7 @@ export default class Pagination extends Component {
   
       const {textValue} = this.state;
   
-      const BUFFER_SIZE = 3; //the items will 1 + BUFFER_SIZE*2
+      const BUFFER_SIZE = window.screen.width < 750? 2 : 4; //the items will 1 + BUFFER_SIZE*2
       const totalPage = this.getTotalPage();
   
       if(totalPage <= 1){
@@ -112,7 +112,7 @@ export default class Pagination extends Component {
       const itemDoms = contentList.map((e, ii) => {
         const isEllipsis = e === "...";
         const cn = classNames("pagination-item page-link",{
-          active: ii === currentPage,
+          active: e === currentPage,
           "disabled": isEllipsis
         })
         return (<li className={cn} key={ii+e} onClick={isEllipsis? ()=>{} : this.onChange}> {e} </li>)

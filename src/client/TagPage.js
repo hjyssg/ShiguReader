@@ -247,7 +247,7 @@ export default class TagPage extends Component {
   }
 
   renderPagination(){
-    return (<div className="container">
+    return (<div className="pagination-container">
               <Pagination ref={ref => this.pagination = ref}
               currentPage={this.state.pageIndex}  
               itemPerPage={this.perPage}

@@ -1,21 +1,40 @@
 @import "vars.scss";
 
+.pagination-container {
+    @include flex_center_display
+}
+
 .pagination{
     border-radius: 2px;
     font-weight: 500;
+    margin-bottom: 10px;
 
-    .ellipsis{
-        cursor: unset;
+    .fa-ellipsis-h{
+        color: #212529;
     }
+
+    .pagination-item{
+        &.disabled {
+            cursor: auto;
+            color: #212529;
+        }
+
+        &.active {
+            color: #fff;
+            background-color: #007bff;
+            border-color: #007bff;
+        }
+    }   
 
     .page-jump{
         display: flex;
         align-items: center;
         background-color: white;
-        padding-left: 20px;
-        padding-right: 20px;
+        color: #007bff;
+        padding-left: 10px;
+        padding-right: 10px;
         input {
-            width: 40px;
+            width: 30px;
         }
     }
 }

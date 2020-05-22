@@ -806,7 +806,8 @@ export default class ExplorerPage extends Component {
             return;
         }
         const fileLength = this.getFilteredFiles().length;
-        return (<div className="container"><Pagination ref={ref => this.pagination = ref}
+        return (<div className="pagination-container">
+                            <Pagination ref={ref => this.pagination = ref}
                             currentPage={this.state.pageIndex}  
                             itemPerPage={this.getNumPerPage()}
                             totalItemNum={fileLength} 
