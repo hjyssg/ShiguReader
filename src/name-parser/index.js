@@ -1,28 +1,82 @@
 const config = require("./name-parser-config");
 const same_tags = config.same_tags;
 const not_author_but_tag = config.not_author_but_tag;
-const char_names = require("./character-names");
-const convertTable = {};
+let char_names = require("./character-names");
 
+const book_types = [
+    "同人音声",
+    "成年コミック",
+    "一般コミック",
+    "同人CG集",
+    "ゲームCG",
+    "画集"
+]
 
 const localCache = {};
 
-const ALL_COMIC_TAGS = [];
-const comiket_tags = [];
-const comic_star_tags = [];
-for(let index = 65; index < 100; index++){
-    comiket_tags.push(`C${index}`);
-    ALL_COMIC_TAGS.push(`C${index}`);
+function init(){
+    let comiket_tags = [];
+    let comic_star_tags = [];
+    for(let index = 65; index < 100; index++){
+        comiket_tags.push(`C${index}`);
+    }
+    
+    comic_star_tags.push("COMIC1");
+    for(let index = 2; index < 20; index++){
+        comic_star_tags.push(`COMIC1☆${index}`)
+    }
+
+    let all_comic_tags = comiket_tags.concat(comic_star_tags);
+
+    const all_comic_tags_table = {}
+    all_comic_tags.forEach(e => {
+        all_comic_tags_table[e.toLowerCase()] = true;
+    });
+
+    const book_type_table = {};
+    book_types.forEach(e => {
+        book_type_table[e.toLowerCase()] = true;
+    })
+
+    const not_author_but_tag_table = {};
+    not_author_but_tag.forEach(e => {
+        not_author_but_tag_table[e.toLowerCase()] = true;
+    })
+
+
+    //--------------------------------------------
+    const convert_table = {};
+    same_tags.forEach(row => {
+        for(let ii = 1; ii < row.length; ii++){
+            convert_table[row[ii]] = row[0];
+        }
+    });
+
+
+    //------------------------------------
+    return {
+        all_comic_tags,
+        all_comic_tags_table,
+        book_type_table,
+        not_author_but_tag_table,
+        comiket_tags,
+        comic_star_tags,
+        convert_table
+    }
 }
 
-ALL_COMIC_TAGS.push("COMIC1");
-for(let index = 2; index < 20; index++){
-    comic_star_tags.push(`COMIC1☆${index}`)
-    ALL_COMIC_TAGS.push(`COMIC1☆${index}`);
-}
+const {
+    all_comic_tags,
+    all_comic_tags_table,
+    not_author_but_tag_table,
+    book_type_table,
+    comiket_tags,
+    comic_star_tags,
+    convert_table
+} = init();
+
 
 const tag_to_date_table = {};
-
 function getDateFromParse(str){
     const pp = parse(str);
     let result;
@@ -42,7 +96,7 @@ function getDateFromTags(tags){
       return null;
   }
 
-  const _tags =  tags.filter(e => ALL_COMIC_TAGS.includes(e));
+  const _tags =  tags.filter(e => all_comic_tags.includes(e));
   let tag = _tags && _tags[0];
   let result = null;
   let num;
@@ -79,16 +133,9 @@ function getDateFromTags(tags){
   return result;
 }
 
-same_tags.forEach(row => {
-    for(let ii = 1; ii < row.length; ii++){
-        convertTable[row[ii]] = row[0];
-    }
-});
 
-char_names.sort((a, b) => (b.length - a.length))
-
-let pReg = /\((.*?)\)/g  
-let bReg = /\[(.*?)\]/g ;
+let pReg = /\((.*?)\)/g;
+let bReg = /\[(.*?)\]/g;
 
 function isOnlyDigit(str){
     return str.match(/^[0-9]+$/) != null
@@ -115,7 +162,7 @@ function convertYearString(str) {
     return y;
 }
 
-function isDate(str) {
+function isStrDate(str) {
     if (str && str.length === 6) {
         const y = parseInt(str.slice(0, 2));
         const m = parseInt(str.slice(2, 4));
@@ -153,17 +200,6 @@ function match(reg, str){
     return result;
 }
 
-const NEED_GROUP = false;
-
-const _TYPES_ = [
-    "同人音声",
-    "成年コミック",
-    "一般コミック",
-    "同人CG集",
-    "ゲームCG",
-    "画集"
-]
-
 function includesWithoutCase(list, str){
     if(!str){
         return false;
@@ -173,8 +209,29 @@ function includesWithoutCase(list, str){
     return list.includes(str);
 }
 
-function toLowerCase(list, str){
-    return list.map(e => e.toLowerCase());
+function getTypeAndComiket(tags, group){
+    let comiket;
+    let type;
+    tags.forEach(e => {
+        e = e.toLowerCase();
+        if(all_comic_tags_table[e]){
+            comiket = e;
+        }else if(book_type_table[e]){
+            type = e;
+        }
+    })
+
+    if(!type){
+        if(comiket|| group){
+            type = "Doujin";
+        }else{
+            type = "etc";
+        }
+    }
+
+    return {
+        comiket, type
+    }
 }
 
 function getTag(str, pMacthes, author){
@@ -195,8 +252,8 @@ function getTag(str, pMacthes, author){
     })
 
     tags = tags.map(e => {
-        if(convertTable[e]){
-            return convertTable[e];
+        if(convert_table[e]){
+            return convert_table[e];
         }
         return e;
     })
@@ -213,8 +270,8 @@ function parse(str) {
         return localCache[str];
     }
 
-    const bMacthes =  match(bReg, str);
-    const pMacthes = match(pReg, str);
+    const bMacthes =  match(bReg, str); //[]
+    const pMacthes = match(pReg, str);  //()
 
     const hasB = (bMacthes && bMacthes.length > 0);
     const hasP = (pMacthes && pMacthes.length > 0);
@@ -232,7 +289,7 @@ function parse(str) {
     if (bMacthes && bMacthes.length > 0) {
         for (let ii = 0; ii < bMacthes.length; ii++) {
             let token = bMacthes[ii].trim();
-            if(isOnlyDigit(token) && isDate(token)){
+            if(isOnlyDigit(token) && isStrDate(token)){
                 dateTag = token;
             } else {
                 //  [真珠貝(武田弘光)]
@@ -247,7 +304,7 @@ function parse(str) {
 
     let tags = getTag(str, pMacthes, author);
 
-    if(includesWithoutCase(not_author_but_tag, author)){
+    if(author && not_author_but_tag_table[author.toLowerCase()]){
         tags.push(author);
         author = null;
     }
@@ -257,24 +314,7 @@ function parse(str) {
         return;
     }
 
-    let comiket = null;
-    tags.forEach(e => {
-        if(includesWithoutCase(ALL_COMIC_TAGS, e)){
-            comiket = e;
-        }
-    })
-
-    let type;
-    _TYPES_.forEach(t => {
-        if(includesWithoutCase(tags, t)){
-            type = t;
-        }
-    });
-
-    if(!type && (comiket|| group)){
-        type = "Doujin";
-    }
-    type = type || "etc";
+    const { comiket, type } = getTypeAndComiket(tags, group);
 
     let title = str;
     (bMacthes||[]).concat( pMacthes||[], tags||[], [/\[/g, /\]/g, /\(/g, /\)/g ]).forEach(e => {
@@ -296,7 +336,7 @@ function parse(str) {
 
 module.exports.parse = parse;
 module.exports.isOnlyDigit = isOnlyDigit;
-module.exports.ALL_COMIC_TAGS = ALL_COMIC_TAGS;
+module.exports.all_comic_tags = all_comic_tags;
 module.exports.getDateFromTags = getDateFromTags;
 module.exports.includesWithoutCase = includesWithoutCase;
 module.exports.getDateFromParse = getDateFromParse;

@@ -238,4 +238,4 @@ module.exports =[
 "ことり",
 
 "エルフ"
-];
+].filter(e => e.length > 1);

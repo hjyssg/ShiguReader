@@ -4,11 +4,19 @@ const db = require("../models/db");
 const { getAllFilePathes } = db;
 const parse = serverUtil.parse;
 const nameParser = require('../../name-parser');
-const includesWithoutCase =  nameParser.includesWithoutCase;
 const zipInfoDb = require("../models/zipInfoDb");
 const { getZipInfo }  = zipInfoDb;
 const util = global.requireUtil();
 const path = require('path');
+
+function includesWithoutCase(list, str){
+    if(!str){
+        return false;
+    }
+    list = (list||[]).map(e => e.toLowerCase());
+    str = str.toLowerCase();
+    return list.includes(str);
+}
 
 
 function isEqual(s1, s2){
