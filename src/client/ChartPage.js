@@ -17,6 +17,13 @@ const { isVideo } = util;
 import Accordion from './subcomponent/Accordion';
 const queryString = require('query-string');
 
+const Constant = require("@common/constant");
+
+const { MODE_TAG,
+        MODE_AUTHOR,
+        MODE_SEARCH,
+        MODE_EXPLORER} = Constant;
+
 
 const BY_YEAR = "by year";
 const BY_QUARTER = "by quarter";
@@ -93,20 +100,56 @@ export default class ChartPage extends Component {
         return this.res && this.res.failed;
     }
 
+    getMode(props){
+        const _props = props || this.props;
+        const obj = queryString.parse(_props.location.search);
+
+        if(obj.a){
+            return MODE_AUTHOR;
+        }else if(obj.p){
+            return MODE_EXPLORER;
+        }else if(obj.t){
+            return MODE_TAG;
+        }else if(obj.s){
+            return MODE_SEARCH;
+        }
+    }
+
     getTextFromQuery(props) {
         //may allow tag author in future
         const _props = props || this.props;
-        return queryString.parse(_props.location.search)["p"] ||  "";
+        const obj = queryString.parse(_props.location.search);
+        return obj.a || obj.p || obj.t || obj.s ||  "";
     }
 
     getFilterFiles(){
-        const func =  this.isShowingVideoChart()? isVideo : isCompress;
-        const fp = this.getTextFromQuery();
+        const fileTypeFilter =  this.isShowingVideoChart()? isVideo : isCompress;
+        const text = this.getTextFromQuery();
+        const mode = this.getMode();
         const result = (this.files || []).filter(e => {
-            if(fp && !e.startsWith(fp)){
+            if(!fileTypeFilter(e)){
                 return false;
             }
-            return func(e);
+
+            let result = true;
+            // todo: this logic is similar to back end search
+            // but not the same
+            // should the same code 
+            if(text){
+                if(mode === MODE_EXPLORER){
+                    result = e.startsWith(text);
+                }else if(mode === MODE_AUTHOR){
+                    const temp = parse(e);
+                    result = temp && temp.author === text;
+                }else if(mode === MODE_SEARCH){
+                    result = e.includes(text);
+                }else if(mode === MODE_TAG){
+                    const temp = parse(e);
+                    result = temp && temp.tags.includes(text);
+                }
+            }
+
+            return result;
         });
         return result;
     }

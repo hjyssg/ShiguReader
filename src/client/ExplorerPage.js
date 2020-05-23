@@ -711,12 +711,17 @@ export default class ExplorerPage extends Component {
     }
 
     renderChartButton(){
-        if(this.getMode() === MODE_EXPLORER){
-            return (<Link target="_blank" className="exp-top-button" to={'/chart/?p='+this.getTextFromQuery()}>  
-                         <span className="fas fa-chart-line" /> 
-                         <span> chart </span>
-                    </Link>)
-        }
+        const table = {}
+        table[MODE_AUTHOR] = "/chart/?a=";
+        table[MODE_EXPLORER] = "/chart/?p=";
+        table[MODE_SEARCH] = "/chart/?s=";
+        table[MODE_TAG] = "/chart/?t=";
+
+
+        return (<Link target="_blank" className="exp-top-button" to={table[this.getMode()]+this.getTextFromQuery()}>  
+                        <span className="fas fa-chart-line" /> 
+                        <span> chart </span>
+                </Link>)
     }
 
     renderPregenerateButton(){
@@ -744,6 +749,10 @@ export default class ExplorerPage extends Component {
 
     getExplorerToolbar(){
         const mode = this.getMode();
+        if(mode === MODE_HOME){
+            return;
+        }
+
         const isExplorer = mode === MODE_EXPLORER && this.getPathFromQuery();
         let topButtons = (
         <div className="top-button-gropus row">
