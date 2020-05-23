@@ -28,10 +28,13 @@ const MIN_WIDTH = 400;
 const userConfig = require('@config/user-config');
 const clientUtil = require("./clientUtil");
 const { getDir, getBaseName, isMobile, getFileUrl, sortFileNames } = clientUtil;
+const namePicker = require("../human-name-picker");
+
 
 const NO_TWO_PAGE = "no_clip";
 const TWO_PAGE_LEFT = "left";
 const TWO_PAGE_RIGHT = "right";
+
 
 export default class OneBook extends Component {
   constructor(props) {
@@ -581,6 +584,9 @@ export default class OneBook extends Component {
     }
 
     tags = tags || [];
+    if(this.hasMusic()){
+      tags = tags.concat(namePicker.parse(fn));
+    }
     tags = _.uniq(tags);
 
     tagDivs = tags.map( tag => {

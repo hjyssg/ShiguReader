@@ -921,7 +921,7 @@ export default class ExplorerPage extends Component {
     }
 
     renderSortHeader(){
-        if(this.getMode() === MODE_HOME){
+        if(this.getMode() === MODE_HOME || this.getFilteredFiles().length === 0){
             return;
         }
 
