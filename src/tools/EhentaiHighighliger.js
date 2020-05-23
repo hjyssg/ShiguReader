@@ -273,11 +273,6 @@ function getTag(str, pMacthes, author){
         tags.splice(tags.indexOf(author), 1);
     }
 
-    const names = char_name_regex && str.match(char_name_regex);
-    names && names.forEach(e => {
-        tags.push(e);
-    })
-
     tags = tags.map(e => {
         return convert_table[e] || e;
     })
@@ -488,8 +483,6 @@ function highlightThumbnail(allFiles){
             authorTable[r.author].push(e);
         }
     });
-
-    localStorage.setItem("localCache", JSON.stringify(localCache));
 
     // const time25 = new Date().getTime();
     // console.log((time25 - time2)/1000, "to parse name");
