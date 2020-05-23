@@ -546,8 +546,8 @@ export default class OneBook extends Component {
   }
 
   renderTags(){
-    const fn = getBaseName(this.state.path);
-    const dirName = getBaseName(getDir(this.state.path));
+    const fn = getBaseName(this.getTextFromQuery());
+    const dirName = getBaseName(getDir(this.getTextFromQuery()));
     const result = nameParser.parse(fn);
     let tagDivs;
     let tags;
@@ -662,6 +662,8 @@ export default class OneBook extends Component {
                   <center style={{paddingTop: "200px"}}> 
                     <div className="alert alert-warning col-6" role="alert" > No image or music file </div>
                     {bookTitle}
+                    {this.renderTags()}
+                    {this.renderToolbar()}
                   </center>
                 </h3>);
       } else {

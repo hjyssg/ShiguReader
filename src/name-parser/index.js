@@ -302,12 +302,12 @@ function parse(str) {
         }
     }
 
-    if(!author && !group){
+    tags = tags.concat(getTag(str, pMacthes, author));
+    if(!author && !group && tags.length === 0){
         localCache[str] = "NO_EXIST";
         return;
     }
 
-    tags = tags.concat(getTag(str, pMacthes, author));
     const { comiket, type } = getTypeAndComiket(tags, group);
 
     let title = str;
