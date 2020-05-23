@@ -181,7 +181,7 @@ export default class TagPage extends Component {
       keys.sort((a, b) => items[b] - items[a]);
     }
 
-    var filterText = this.props.filterText && this.props.filterText.toLowerCase();
+    var filterText = _.isString(this.props.filterText) && this.props.filterText.toLowerCase();
     if(filterText){
       keys =  keys.filter(e => {
             return e.toLowerCase().indexOf(filterText) > -1;

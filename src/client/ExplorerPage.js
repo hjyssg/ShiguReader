@@ -166,7 +166,7 @@ export default class ExplorerPage extends Component {
     }
 
     componentWillReceiveProps(nextProps){
-        if(nextProps.filterText){
+        if(_.isString(nextProps.filterText)){
             this.handlePageChange(1);
 
             this.setState({
@@ -410,7 +410,7 @@ export default class ExplorerPage extends Component {
             })
         }
 
-        const filterText = this.state.filterText && this.state.filterText.toLowerCase();
+        const filterText = _.isString(this.state.filterText) && this.state.filterText.toLowerCase();
         if(filterText){
             return files.filter(e => {
                 return e.toLowerCase().indexOf(filterText) > -1;

@@ -114,11 +114,14 @@ class App extends Component {
                 }}/>);
         }
 
-        const isHome =  window.location.pathname === "/";
-        const isOneBook = window.location.pathname.includes("/onebook");
-        const isExplorer = window.location.pathname.includes("/explorer");
-        const isTag = window.location.pathname.includes("/tagPage");
-        const isAuthor = window.location.pathname.includes("/author");
+        const path = window.location.pathname;
+        const isHome =  path === "/";
+        const isOneBook = path.includes("/onebook");
+        const isExplorer = path.includes("/explorer");
+        const isTag = path.includes("/tagPage");
+        const isAuthor = path.includes("/author");
+        const isSearch = path.includes("/search");
+
 
         const topNav = !isOneBook && (
             <div className="app-top-topnav container">
@@ -132,7 +135,7 @@ class App extends Component {
                 <div className="search-bar">
                     <input className="search-input" type="text" placeholder="Search.." onKeyDown={this.onSearchKeydown.bind(this)}/>
                     <div  onClick={this.onSearchClick.bind(this)} title="Search" className="fa fa-search search-button" />
-                    {(isExplorer || isTag || isAuthor)  && 
+                    {(isExplorer || isTag || isAuthor || isSearch)  && 
                     <div  onClick={this.onFilterClick.bind(this)} title="Filter Files" className="fa fa-filter filter-button"/>}
                 </div>
             </div>
