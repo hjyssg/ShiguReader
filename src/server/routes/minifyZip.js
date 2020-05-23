@@ -36,7 +36,7 @@ const limit = pLimit(1);
 
 router.post('/api/overwrite', async (req, res) =>  {
     const filePath = req.body && req.body.filePath;
-    const fn = path.basename(filePath);
+    const fn = path.basename(filePath, path.extname(filePath));
 
     if (!filePath || !(await isExist(filePath)) || minifyZipQue.includes(filePath)  ) {
         res.sendStatus(404);
@@ -54,7 +54,7 @@ router.post('/api/overwrite', async (req, res) =>  {
     for(let ii = 0; ii < allPath.length; ii++){
         let pp = allPath[ii];
         if(util.isCompress(pp)){
-            let ppFn = path.basename(pp);
+            let ppFn = path.basename(pp, path.extname(pp));
 
             if(pp !== filePath && ppFn === fn){
                 const oldTemp = await listZipContentAndUpdateDb(pp);

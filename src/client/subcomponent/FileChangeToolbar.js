@@ -57,7 +57,7 @@ export default class FileChangeToolbar extends Component {
     handleOverwrite(){
         const { file } = this.props;
         Swal.fire({
-            title: "Minify Zip",
+            title: "Overwrite",
             text: `Do you want to overwrite overwrite the old file with the minified file?`,
             showCancelButton: true,
             confirmButtonText: 'Yes',

@@ -578,7 +578,8 @@ export default class OneBook extends Component {
       Alltags = Alltags.concat(originalTags);
     }
 
-    if(fn.includes(dirName)){
+    //the folder name can be be the author name
+    if(fn.includes(dirName) && !author){
       Alltags.push(dirName);
     }
 
