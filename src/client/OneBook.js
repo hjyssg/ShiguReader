@@ -585,7 +585,7 @@ export default class OneBook extends Component {
 
     tags = tags || [];
     if(this.hasMusic()){
-      tags = tags.concat(namePicker.parse(fn));
+      tags = tags.concat(namePicker.pick(fn));
     }
     tags = _.uniq(tags);
 

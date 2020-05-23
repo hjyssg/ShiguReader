@@ -10,7 +10,7 @@ const family_name_regex = new RegExp(family_names.join("|"));
 
 
 const localCache = {};
-function parse(str) {
+function pick(str) {
     if (!str || localCache[str] === "NO_EXIST") {
       return null;
     }
@@ -55,4 +55,4 @@ function parse(str) {
     return result;
 }
 
-module.exports.parse = parse;
+module.exports.pick = pick;
