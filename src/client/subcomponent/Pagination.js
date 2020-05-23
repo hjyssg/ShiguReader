@@ -66,7 +66,7 @@ export default class Pagination extends Component {
   
       const {textValue} = this.state;
   
-      const BUFFER_SIZE = window.screen.width < 750? 2 : 4; //the items will 1 + BUFFER_SIZE*2
+      const BUFFER_SIZE = window.screen.width < 750? 2 : 5; //the items will 1 + BUFFER_SIZE*2
       const totalPage = this.getTotalPage();
   
       if(totalPage <= 1){

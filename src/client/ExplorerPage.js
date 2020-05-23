@@ -723,7 +723,7 @@ export default class ExplorerPage extends Component {
         }
     }
 
-    renderChartButton(){
+    renderPregenerateButton(){
         if(this.getMode() === MODE_EXPLORER){
             const text = "generate thumbnail"
             return (
@@ -749,6 +749,7 @@ export default class ExplorerPage extends Component {
                     <div className="col-6 col-md-4"> {this.renderShowVideoButton()} </div>
                     <div className="col-6 col-md-4 " > {this.renderToggleMenuButton()} </div>  
                     <div className="col-6 col-md-4"> {this.renderChartButton()} </div>
+                    <div className="col-6 col-md-4"> {this.renderPregenerateButton()} </div>
             </div>);
 
             return (<div className="container explorer-top-bar-container">
