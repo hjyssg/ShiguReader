@@ -283,7 +283,7 @@ function parse(str) {
         for (let ii = 0; ii < bMacthes.length; ii++) {
             let token = bMacthes[ii].trim();
             const tt = token.toLowerCase();
-            const nextCharIndex = str.indexOf(bMacthes[ii]) + bMacthes[ii].length + 2; 
+            const nextCharIndex = str.indexOf(bMacthes[ii]) + bMacthes[ii].length + 1; 
             const nextChar = str[nextCharIndex];
 
             if (token.length === 6 && isOnlyDigit(token) && isStrDate(token)) {
@@ -296,16 +296,16 @@ function parse(str) {
                 //e.g KI-RecenT SP02 NATURALCORDE [DL版].zip
                 // [DL版] is not auhor name
                 tags.push(token);
-            } else {
+            } else if(!author) {
                 //  [真珠貝(武田弘光)]
                 const temp = getAuthorName(token);
                 if(!not_author_but_tag_table[temp.name]){
                     //e.g よろず is not author
                     author = temp.name;
                 }
-
                 group = temp.group;
-                break;
+            }else{
+                tags.push(token);
             }
         }
     }
