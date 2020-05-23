@@ -1,0 +1,32 @@
+note：
+react route的匹配是greedy，需要加个exact标签。真tmd坑。
+react-cookie谁做的，改cookie会setState然后重画。坑得妈都不认识了。
+node-json-db对path有要求。存起来不方便。然后push的时候，要是关闭程序直接丢失全部数据。坑死了。
+
+组件：
+App.js 最外面那层，使用react route切换page
+Explorer显示文件夹文件，或者显示tag模式下的文件
+TagPage显示tag列表或者作者列表
+
+后端：
+MVC。
+route里面的是view，model里面的是data，server/index.js是controller。
+1. chokidar不是百分百可靠
+2. 磁盘系统IO很贵。每次做的时候顺带更新数据库。
+
+zip info db使用file path
+现在替换了同名文件，里面存的数据还是之前的。导致显示的avg page size还是旧的。没有好的修理方法。
+手动update databse最合理。
+
+
+
+Project历史:
+原型是大学刚毕业用java写的 https://github.com/hjyssg/ACGSort
+但这个只能移动整理文件。不能阅读，也没有管理的UI。
+整理完反而都懒得去看了。但这个里面的文件名Parsing给给了之后很大的启示。
+
+之后又尝试写 https://github.com/hjyssg/OtaSort替换掉最初的Java版本。思路不对，写不出来。
+工作几年后改用React，积累了经验。重头开始写这个带UI的ShiguReader。
+
+多次迭代以后，积累了经验。前后端都用JS的一个好处就是业务逻辑代码可以给前后端共用。
+先写出可以工作的版本，然后逐渐重构代码，提高可读性。提高可读性之后，代码就很好扩展。不断加新功能。
