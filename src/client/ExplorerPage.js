@@ -681,15 +681,13 @@ export default class ExplorerPage extends Component {
     }
 
     renderShowVideoButton(){
-        if(this.videoFiles && this.videoFiles.length > 0){
-            const text2 = this.state.showVideo? "hide video" : "show video";
-            return (
-                <span className="show-video-button exp-top-button" onClick={this.toggleShowVideo.bind(this)}> 
-                <span className="fas fa-video" />
-                <span> {text2} </span>
-                </span>
-            );
-        }
+        const text2 = this.state.showVideo? "hide video" : "show video";
+        return (
+            <span className="show-video-button exp-top-button" onClick={this.toggleShowVideo.bind(this)}> 
+            <span className="fas fa-video" />
+            <span> {text2} </span>
+            </span>
+        );
     }
 
     renderLevelButton(){
@@ -733,44 +731,56 @@ export default class ExplorerPage extends Component {
         }
     }
 
+    renderFileCount(){
+        const totalSize = this.getAllFileSize();
+        return (
+            <React.Fragment>
+            <div className="file-count col-6 col-md-4"><i className="fas fa-file-archive"/>{this.getFilteredFiles().length + " compressed files"} </div>
+            <div className="file-count col-6 col-md-4"><i className="fas fa-film"/>{this.getFilteredVideos().length + " video files"} </div>
+            <div className="file-count col-6 col-md-4"><i className="fas fa-hdd"/>{filesizeUitl(totalSize, {base: 2})} </div>
+            </React.Fragment>
+        );
+    }
+
     getExplorerToolbar(){
         const mode = this.getMode();
-        if(mode === MODE_EXPLORER && this.getPathFromQuery()){
-            const totalSize = this.getAllFileSize();
-            let topButtons = (
-            <div className="top-button-gropus row">
-                    <div className="file-count col-6 col-md-4"><i className="fas fa-file-archive"/>{this.getFilteredFiles().length + " compressed files"} </div>
-                    <div className="file-count col-6 col-md-4"><i className="fas fa-film"/>{this.getFilteredVideos().length + " video files"} </div>
-                    <div className="file-count col-6 col-md-4"><i className="fas fa-hdd"/>{filesizeUitl(totalSize, {base: 2})} </div>
-                    <div className="col-6 col-md-4"> {this.renderToggleThumbNailButton()} </div>
-                    <div className="col-6 col-md-4"> {this.renderLevelButton()} </div>
-                    <div className="col-6 col-md-4"> {this.renderShowVideoButton()} </div>
-                    <div className="col-6 col-md-4 " > {this.renderToggleMenuButton()} </div>  
-                    <div className="col-6 col-md-4"> {this.renderChartButton()} </div>
-                    <div className="col-6 col-md-4"> {this.renderPregenerateButton()} </div>
-            </div>);
+        const isExplorer = mode === MODE_EXPLORER && this.getPathFromQuery();
+        let topButtons = (
+        <div className="top-button-gropus row">
+                {this.renderFileCount()}
+                {this.getFilteredFiles().length > 0 && 
+                    <div className="col-6 col-md-4"> {this.renderToggleThumbNailButton()} </div>}
+                {isExplorer && 
+                    <div className="col-6 col-md-4"> {this.renderLevelButton()} </div> }
+                {this.getFilteredVideos().length > 0 && 
+                    <div className="col-6 col-md-4"> {this.renderShowVideoButton()} </div>}
+                <div className="col-6 col-md-4 " > {this.renderToggleMenuButton()} </div>  
+                <div className="col-6 col-md-4"> {this.renderChartButton()} </div>
+                {isExplorer && 
+                    <div className="col-6 col-md-4"> {this.renderPregenerateButton()} </div>}
+        </div>);
 
-            return (<div className="container explorer-top-bar-container">
-                        <div className="row">
-                            <Breadcrumb path={this.getPathFromQuery()} className="col-12" /> 
-                        </div>
-                        {topButtons}
-                    </div>);
-        }
+        const breadcrumb = isExplorer && ( <div className="row">
+        <Breadcrumb path={this.getPathFromQuery()} className="col-12" />
+        </div>);
+
+        return (<div className="container explorer-top-bar-container">
+                    {breadcrumb}
+                    {topButtons}
+                </div>);
     }
 
     getTitle(){
         const mode = this.getMode();
-        const fn = " (" + (this.files||[]).length + ")";
 
         if(mode === MODE_HOME){
             return "";
         }else if(this.tag && mode === MODE_TAG) {
-            return "Tag: " + this.tag + fn;
+            return "Tag: " + this.tag;
         } else if(this.author && mode === MODE_AUTHOR) {
-            return "Author: " + this.author + fn;
+            return "Author: " + this.author;
         } else if(mode === MODE_SEARCH){
-            return "Search Result: " + this.getTextFromQuery() + fn;
+            return "Search Result: " + this.getTextFromQuery();
         }
     }
 
@@ -790,12 +800,8 @@ export default class ExplorerPage extends Component {
                 btn = [this.renderToggleThumbNailButton(), this.renderToggleMenuButton()] ;
             }
 
-            const videoButuon = isSearchMode &&  this.renderShowVideoButton();
-
             return (<center className={"location-title"}>
                         <a className="explorer-external-link" target="_blank" href={link} title={title}>{this.getTitle()} </a>
-                        {btn}
-                        {videoButuon}
                     </center>);
         } 
     }
