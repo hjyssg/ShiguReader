@@ -174,8 +174,7 @@ export default class ChartPage extends Component {
 
         const byTime = _.countBy(this.getFilterFiles(), e=> {
             const fileInfo = this.fileToInfo[e];
-            const pA = parse(e);
-            let aboutTimeA = pA && nameParser.getDateFromTags(pA.tags);
+            let aboutTimeA = nameParser.getDateFromParse(getBaseName(e));
             aboutTimeA = aboutTimeA && aboutTimeA.getTime();
             aboutTimeA = aboutTimeA || fileInfo.mtime;
 

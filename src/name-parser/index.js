@@ -23,6 +23,19 @@ for(let index = 2; index < 20; index++){
 
 const tag_to_date_table = {};
 
+function getDateFromParse(str){
+    const pp = parse(str);
+    let result;
+    if(pp){
+        if(pp.dateTags[0]){
+            result = getDateFrom(pp.dateTags[0]);
+        }else{
+            result = getDateFromTags(pp.tags)
+        }
+    }
+    return result;
+}
+
 //for sort algo, not very accurate
 function getDateFromTags(tags){
   if(!tags || tags.length === 0){
@@ -79,6 +92,22 @@ let bReg = /\[(.*?)\]/g ;
 
 function isOnlyDigit(str){
     return str.match(/^[0-9]+$/) != null
+}
+
+function getDateFrom(str){
+    let y = parseInt(str.slice(0, 2));
+    let m = parseInt(str.slice(2, 4));
+    let d = parseInt(str.slice(4, 6));
+
+    if(y > 80){
+        y = 1900 + y;
+    }else{
+        y = 2000 + y;
+    }
+
+    m = m - 1;
+
+    return new Date(y, m, d);
 }
 
 function isDate(str) {
@@ -156,50 +185,8 @@ function toLowerCase(list, str){
     return list.map(e => e.toLowerCase());
 }
 
-function parse(str) {
-    if (!str || localCache[str] === "NO_EXIST") {
-      return null;
-    }
-
-    if(localCache[str]){
-        return localCache[str];
-    }
-
-    const bMacthes =  match(bReg, str);
-    const pMacthes = match(pReg, str);
-
-    const hasB = (bMacthes && bMacthes.length > 0);
-    const hasP = (pMacthes && pMacthes.length > 0);
-
-    if(!hasB && !hasP){
-        localCache[str] = "NO_EXIST";
-        return;
-    }
-
+function getTag(str, pMacthes, author){
     let tags = [];
-    let author = null;
-    let group = null;
-
-    // looking for author, avoid 6 year digit
-    if (bMacthes && bMacthes.length > 0) {
-        for (let ii = 0; ii < bMacthes.length; ii++) {
-            let token = bMacthes[ii].trim();
-            if(isOnlyDigit(token)){
-                if (isDate(token)) {
-                    token = convertYearString(token);
-                    tags.push(token);
-                }
-            } else {
-                //  [真珠貝(武田弘光)]
-                const temp = getAuthorName(token);
-                author = temp.name;
-                // NEED_GROUP && temp.group && tags.push(temp.group);
-                group = temp.group;
-                break;
-            }
-        }
-    }
-
     if (pMacthes && pMacthes.length > 0) {
         tags = tags.concat(pMacthes);
         tags = tags.filter(e=> {return !isOnlyDigit(e)});
@@ -221,6 +208,55 @@ function parse(str) {
         }
         return e;
     })
+
+    return tags;
+}
+
+function parse(str) {
+    if (!str || localCache[str] === "NO_EXIST") {
+      return null;
+    }
+
+    if(localCache[str]){
+        return localCache[str];
+    }
+
+    const bMacthes =  match(bReg, str);
+    const pMacthes = match(pReg, str);
+
+    const hasB = (bMacthes && bMacthes.length > 0);
+    const hasP = (pMacthes && pMacthes.length > 0);
+
+    if(!hasB && !hasP){
+        localCache[str] = "NO_EXIST";
+        return;
+    }
+
+    let author = null;
+    let group = null;
+    let dateTags = [];
+
+    // looking for author, avoid 6 year digit
+    if (bMacthes && bMacthes.length > 0) {
+        for (let ii = 0; ii < bMacthes.length; ii++) {
+            let token = bMacthes[ii].trim();
+            if(isOnlyDigit(token)){
+                if (isDate(token)) {
+                    token = convertYearString(token);
+                    dateTags.push(token);
+                }
+            } else {
+                //  [真珠貝(武田弘光)]
+                const temp = getAuthorName(token);
+                author = temp.name;
+                // NEED_GROUP && temp.group && tags.push(temp.group);
+                group = temp.group;
+                break;
+            }
+        }
+    }
+
+    let tags = getTag(str, pMacthes, author);
 
     if(includesWithoutCase(not_author_but_tag, author)){
         tags.push(author);
@@ -260,7 +296,7 @@ function parse(str) {
     const authors = author && author.includes("、")? author.split("、") : null;
 
     const result = {
-        author, tags, comiket, type, group, title, authors
+       dateTags, author, tags, comiket, type, group, title, authors
     };
 
     localCache[str] = result;
@@ -274,3 +310,4 @@ module.exports.isOnlyDigit = isOnlyDigit;
 module.exports.ALL_COMIC_TAGS = ALL_COMIC_TAGS;
 module.exports.getDateFromTags = getDateFromTags;
 module.exports.includesWithoutCase = includesWithoutCase;
+module.exports.getDateFromParse = getDateFromParse;
