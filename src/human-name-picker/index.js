@@ -24,7 +24,7 @@ function parse(str) {
     //I dont use NLP library, because 
     //1.their size is too big
     //2. they cut a fullname into last name and meaningless substr
-    let tokens = str.split(/[ \dA-Za-z.,\/#!$%\^&＆\*;:{}=\-_`~()\[\]\–-、｀～？！＠@、。／『』「」；’：｜＝＋]/).filter(e => !!e);
+    let tokens = str.split(/[ \dA-Za-z.,\/#!$%\^&＆\*;:{}=\-_`~()\[\]\–-、｀～？！＠@、。／『』「」；’：・｜＝＋]/).filter(e => !!e);
     tokens.forEach(tt => {
         const nameEntry = tt.match(name_regex);
         // const nameEntry = getContainSubstring(name_entris, tt);
