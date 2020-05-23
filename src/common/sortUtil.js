@@ -7,7 +7,7 @@ module.exports.sort_file_by_time = function(files, fileInfos, getBaeName, fromEa
         if(onlyMtime){
             return fromEarly ? fileTimeA: -fileTimeA;
         }else{
-            const aboutTimeA = nameParser.getDateFromParse(getBaeName(a));
+            let aboutTimeA = nameParser.getDateFromParse(getBaeName(a));
             aboutTimeA = aboutTimeA && aboutTimeA.getTime();
             const t1 = aboutTimeA || fileTimeA;
             return fromEarly ? t1: -t1;
