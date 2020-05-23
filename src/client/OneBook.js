@@ -553,7 +553,7 @@ export default class OneBook extends Component {
     const dirName = getBaseName(getDir(this.getTextFromQuery()));
     const result = nameParser.parse(fn);
     let tagDivs;
-    let tags;
+    let Alltags = [];
     let author;
     let originalTags;
     let group;
@@ -563,33 +563,32 @@ export default class OneBook extends Component {
       author =  result.author;
       group = result.group;
       originalTags = result.tags||[];
-      tags = originalTags;
       authors = result.authors;
 
-      if(authors){
-        tags = tags.concat(group, authors);
-      } else {
-        if(author && group && group !== author){
-          tags = tags.concat(group);
-        }
-        if(author){
-          tags = tags.concat(author);
-        }
+      if(group){
+        Alltags.push(group);
       }
+
+      if(authors){
+        Alltags = Alltags.concat(authors);
+      } else if(author){
+        Alltags.push(author);
+      }
+
+      Alltags = Alltags.concat(originalTags);
     }
 
     if(fn.includes(dirName)){
-      tags = tags || [];
-      tags.push(dirName);
+      Alltags.push(dirName);
     }
 
-    tags = tags || [];
+    
     if(this.hasMusic()){
-      tags = tags.concat(namePicker.pick(fn));
+      Alltags = Alltags.concat(namePicker.pick(fn));
     }
-    tags = _.uniq(tags);
+    Alltags = _.uniq(Alltags);
 
-    tagDivs = tags.map( tag => {
+    tagDivs = Alltags.map( tag => {
       let url;
       if(authors && authors.includes(tag)){
         url = clientUtil.getAuthorLink(tag);

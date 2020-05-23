@@ -237,8 +237,6 @@ function match(reg, str){
     return result;
 }
 
-
-
 function getTypeAndComiket(tags, group){
     let comiket;
     let type;
@@ -274,6 +272,11 @@ function getTag(str, pMacthes, author){
     if(author && tags.indexOf(author) >= 0){
         tags.splice(tags.indexOf(author), 1);
     }
+
+    const names = char_name_regex && str.match(char_name_regex);
+    names && names.forEach(e => {
+        tags.push(e);
+    })
 
     tags = tags.map(e => {
         return convert_table[e] || e;
@@ -312,31 +315,39 @@ function parse(str) {
         for (let ii = 0; ii < bMacthes.length; ii++) {
             let token = bMacthes[ii].trim();
             const tt = token.toLowerCase();
+            const nextCharIndex = str.indexOf(bMacthes[ii]) + bMacthes[ii].length + 2; 
+            const nextChar = str[nextCharIndex];
+
             if (token.length === 6 && isOnlyDigit(token) && isStrDate(token)) {
                 //e.g 190214
                 dateTag = token;
             } else if (not_author_but_tag_table[tt]){
+                //e.g pixiv is not author
+                tags.push(token);
+            } else if (nextChar === "." || nextCharIndex >= str.length){
+                //e.g KI-RecenT SP02 NATURALCORDE [DL版].zip
+                // [DL版] is not auhor name
                 tags.push(token);
             } else {
                 //  [真珠貝(武田弘光)]
                 const temp = getAuthorName(token);
-                if(not_author_but_tag_table[temp.name]){
-                    tags.push(temp.name);
-                }else{
+                if(!not_author_but_tag_table[temp.name]){
+                    //e.g よろず is not author
                     author = temp.name;
                 }
+
                 group = temp.group;
                 break;
             }
         }
     }
 
-    if(!author && !group){
+    tags = tags.concat(getTag(str, pMacthes, author));
+    if(!author && !group && tags.length === 0){
         localCache[str] = "NO_EXIST";
         return;
     }
 
-    tags = tags.concat(getTag(str, pMacthes, author));
     const { comiket, type } = getTypeAndComiket(tags, group);
 
     let title = str;
