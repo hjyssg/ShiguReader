@@ -31,15 +31,22 @@ class App extends Component {
         document.removeEventListener("keydown", this.handleKeyDown.bind(this));
     }
 
-    handleKeyDown(event) {
-        const key = event.key.toLowerCase();
-         if(key === "enter"){
-            if(getSearchInputText().length === 0){
+    handleKeyDown(e) {
+         if(e.which === 13 || e.keyCode === 13){
+            //enter key
+            if(event.target.tagName !== "INPUT"){
                 screenfull.toggle();
-            }else{
-                this.onSearchClick();
             }
         }
+    }
+
+    onSearchKeydown(e){
+        if (e.which === 13 || e.keyCode === 13) {
+            //enter key
+            this.onSearchClick();
+            e.preventDefault();
+            e.stopPropagation();
+          }
     }
 
     onSearchClick(event) {
@@ -123,7 +130,7 @@ class App extends Component {
                     <Link to='/admin'><i className="fas fa-tools">Admin</i></Link>
                 </div>
                 <div className="search-bar">
-                    <input className="search-input" type="text" placeholder="Search.."/>
+                    <input className="search-input" type="text" placeholder="Search.." onKeyDown={this.onSearchKeydown.bind(this)}/>
                     <div  onClick={this.onSearchClick.bind(this)} title="Search" className="fa fa-search search-button" />
                     {(isExplorer || isTag || isAuthor)  && 
                     <div  onClick={this.onFilterClick.bind(this)} title="Filter Files" className="fa fa-filter filter-button"/>}
