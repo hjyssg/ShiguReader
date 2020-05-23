@@ -200,14 +200,7 @@ function match(reg, str){
     return result;
 }
 
-function includesWithoutCase(list, str){
-    if(!str){
-        return false;
-    }
-    list = (list||[]).map(e => e.toLowerCase());
-    str = str.toLowerCase();
-    return list.includes(str);
-}
+
 
 function getTypeAndComiket(tags, group){
     let comiket;
@@ -241,21 +234,18 @@ function getTag(str, pMacthes, author){
         tags = tags.filter(e=> {return !isOnlyDigit(e)});
     }
 
-    if(tags.indexOf(author) >= 0){
+    if(author && tags.indexOf(author) >= 0){
         tags.splice(tags.indexOf(author), 1);
     }
 
     char_names.forEach(name => {
-        if(str.indexOf(name) > -1 && (author||"").indexOf(name) === -1 ){
+        if(str.includes(name)){
             tags.push(name);
         }
     })
 
     tags = tags.map(e => {
-        if(convert_table[e]){
-            return convert_table[e];
-        }
-        return e;
+        return convert_table[e] || e;
     })
 
     return tags;
@@ -284,13 +274,18 @@ function parse(str) {
     let author = null;
     let group = null;
     let dateTag;
+    let tags = [];
 
     // looking for author, avoid 6 year digit
     if (bMacthes && bMacthes.length > 0) {
         for (let ii = 0; ii < bMacthes.length; ii++) {
             let token = bMacthes[ii].trim();
-            if(isOnlyDigit(token) && isStrDate(token)){
+            const tt = token.toLowerCase();
+            if (token.length === 6 && isOnlyDigit(token) && isStrDate(token)) {
+                //e.g 190214
                 dateTag = token;
+            } else if (not_author_but_tag_table[tt]){
+                tags.push(token);
             } else {
                 //  [真珠貝(武田弘光)]
                 const temp = getAuthorName(token);
@@ -302,18 +297,12 @@ function parse(str) {
         }
     }
 
-    let tags = getTag(str, pMacthes, author);
-
-    if(author && not_author_but_tag_table[author.toLowerCase()]){
-        tags.push(author);
-        author = null;
-    }
-
     if(!author && !group){
         localCache[str] = "NO_EXIST";
         return;
     }
 
+    tags = tags.concat(getTag(str, pMacthes, author));
     const { comiket, type } = getTypeAndComiket(tags, group);
 
     let title = str;
@@ -332,11 +321,8 @@ function parse(str) {
     return result;
 }
 
-
-
 module.exports.parse = parse;
 module.exports.isOnlyDigit = isOnlyDigit;
 module.exports.all_comic_tags = all_comic_tags;
 module.exports.getDateFromTags = getDateFromTags;
-module.exports.includesWithoutCase = includesWithoutCase;
 module.exports.getDateFromParse = getDateFromParse;
