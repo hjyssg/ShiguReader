@@ -42,11 +42,17 @@ const sortFileNames = module.exports.sortFileNames = function(files){
 }
 
 module.exports.chooseThumbnailImage = function(files){
-    let tempFiles = files.filter(isImage);
-    tempFiles = filterHiddenFile(tempFiles);
-    sortFileNames(tempFiles);
-    const compressed = tempFiles.filter(isCompressedThumbnail);
-    return compressed[0] || tempFiles[0];
+    if(files.length === 0){
+        return null;
+    }
+    const compressed = files.filter(isCompressedThumbnail);
+    if(compressed[0]){
+        return compressed[0];
+    }else{
+        let tempFiles = files.filter(e => isImage(e) && !isHiddenFile(e));
+        sortFileNames(tempFiles);
+        return tempFiles[0];
+    }
 }
 
 module.exports.parse = function(str){

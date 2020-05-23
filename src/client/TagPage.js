@@ -10,7 +10,7 @@ import ErrorPage from './ErrorPage';
 import CenterSpinner from './subcomponent/CenterSpinner';
 import Pagination from './subcomponent/Pagination';
 import { Redirect } from 'react-router-dom';
-import { isCompress, isImage } from '@common/util';
+import { isCompress, isImage, getCurrentTime } from '@common/util';
 const nameParser = require('@name-parser');
 
 const util = require("@common/util");
@@ -109,11 +109,13 @@ export default class TagPage extends Component {
     const authors = {};
     const authorToFiles = {};
     const tagToFiles = {};
-    const allFiles = _.keys(fileToInfo).filter(isCompress);
     this.fileToInfo = fileToInfo;
     this.allThumbnails = allThumbnails;
 
-    allFiles.forEach((filePath) => {
+    const beginTime = getCurrentTime();
+
+    for(let filePath in fileToInfo){
+      if(fileToInfo.hasOwnProperty(filePath) && isCompress(filePath)){
         const fileName = getBaseName(filePath);
         const result = nameParser.parse(fileName);
         if (result) {
@@ -124,7 +126,11 @@ export default class TagPage extends Component {
               addToArray(tagToFiles, tag, filePath);
             });
         }
-    });
+      }
+    }
+
+    const timeSpent = getCurrentTime() - beginTime;
+    // console.log(timeSpent)
 
     this.setState({
       tags,
