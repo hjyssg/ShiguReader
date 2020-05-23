@@ -27,8 +27,8 @@ function getDateFromParse(str){
     const pp = parse(str);
     let result;
     if(pp){
-        if(pp.dateTags[0]){
-            result = getDateFrom(pp.dateTags[0]);
+        if(pp.dateTag){
+            result = getDateFromStr(pp.dateTag);
         }else{
             result = getDateFromTags(pp.tags)
         }
@@ -94,20 +94,25 @@ function isOnlyDigit(str){
     return str.match(/^[0-9]+$/) != null
 }
 
-function getDateFrom(str){
-    let y = parseInt(str.slice(0, 2));
+function getDateFromStr(str){
+    let y = convertYearString(str);
     let m = parseInt(str.slice(2, 4));
     let d = parseInt(str.slice(4, 6));
 
-    if(y > 80){
+    m = m - 1;
+    return new Date(y, m, d);
+}
+
+function convertYearString(str) {
+    let y =  parseInt(str.slice(0, 2));
+
+    if (y > 80) {
         y = 1900 + y;
-    }else{
+    }else {
         y = 2000 + y;
     }
 
-    m = m - 1;
-
-    return new Date(y, m, d);
+    return y;
 }
 
 function isDate(str) {
@@ -122,19 +127,6 @@ function isDate(str) {
         return !invalid;
     }
     return false;
-}
-
-function convertYearString(str) {
-    let y =  parseInt(str.slice(0, 2));
-    const m = str.slice(2, 4);
-
-    if (y > 80) {
-        y = 1900 + y;
-    }else {
-        y = 2000 + y;
-    }
-
-    return y + "/" + m;
 }
 
 function getAuthorName(str){
@@ -234,17 +226,14 @@ function parse(str) {
 
     let author = null;
     let group = null;
-    let dateTags = [];
+    let dateTag;
 
     // looking for author, avoid 6 year digit
     if (bMacthes && bMacthes.length > 0) {
         for (let ii = 0; ii < bMacthes.length; ii++) {
             let token = bMacthes[ii].trim();
-            if(isOnlyDigit(token)){
-                if (isDate(token)) {
-                    token = convertYearString(token);
-                    dateTags.push(token);
-                }
+            if(isOnlyDigit(token) && isDate(token)){
+                dateTag = token;
             } else {
                 //  [真珠貝(武田弘光)]
                 const temp = getAuthorName(token);
@@ -296,7 +285,7 @@ function parse(str) {
     const authors = author && author.includes("、")? author.split("、") : null;
 
     const result = {
-       dateTags, author, tags, comiket, type, group, title, authors
+       dateTag, author, tags, comiket, type, group, title, authors
     };
 
     localCache[str] = result;
