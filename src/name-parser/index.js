@@ -3,6 +3,8 @@ const same_tags = config.same_tags;
 const not_author_but_tag = config.not_author_but_tag;
 let char_names = require("./character-names");
 
+const char_name_regex = new RegExp(char_names.join("|"));
+
 const book_types = [
     "同人音声",
     "同人ソフト",
@@ -240,10 +242,9 @@ function getTag(str, pMacthes, author){
         tags.splice(tags.indexOf(author), 1);
     }
 
-    char_names.forEach(name => {
-        if(str.includes(name)){
-            tags.push(name);
-        }
+    const names = str.match(char_name_regex);
+    names && names.forEach(e => {
+        tags.push(e);
     })
 
     tags = tags.map(e => {
