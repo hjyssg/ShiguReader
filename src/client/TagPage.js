@@ -9,6 +9,7 @@ import { Link } from 'react-router-dom';
 import ErrorPage from './ErrorPage';
 import CenterSpinner from './subcomponent/CenterSpinner';
 import Pagination from './subcomponent/Pagination';
+import FileCellTitle from './subcomponent/FileCellTitle';
 import { Redirect } from 'react-router-dom';
 import { isCompress, isImage, getCurrentTime } from '@common/util';
 const nameParser = require('@name-parser');
@@ -195,16 +196,12 @@ export default class TagPage extends Component {
       const itemText = `${tag} (${items[tag]})`;
       const url = this.isAuthorMode()? clientUtil.getAuthorLink(tag) :  clientUtil.getTagLink(tag);
       const thumbnailUrl = this.chooseOneThumbnailForOneTag(t2Files[tag]);
-      const fl = itemText.length;
-      const cellTitleCn = classNames("file-cell-title",{
-        "f-s-12": fl > 30,
-        "f-s-14": fl <= 30
-    });
+    
 
       return  (<div key={tag} className="col-sm-6 col-md-4 col-lg-3 tag-page-list-item">
                     <div className={"tag-cell"}>
                       <Link target="_blank" className="tag-page-list-item-link" to={url}  key={tag}>
-                        <center className={cellTitleCn}>{itemText}</center>
+                        <FileCellTitle str={itemText}/>
                         <LoadingImage isThumbnail 
                                       className="tag-page-thumbnail" fileName={tag} 
                                       mode={this.props.mode} 

@@ -17,6 +17,7 @@ const queryString = require('query-string');
 import Pagination from './subcomponent/Pagination';
 import SortHeader from './subcomponent/SortHeader';
 import Breadcrumb from './subcomponent/Breadcrumb';
+import FileCellTitle from './subcomponent/FileCellTitle';
 import Checkbox from './subcomponent/Checkbox';
 const nameParser = require('@name-parser');
 const classNames = require('classnames');
@@ -577,11 +578,7 @@ export default class ExplorerPage extends Component {
                         {this.getOneLineListItem(<i className="fas fa-book"></i>, text, item)}
                         </Link>)
             }else{
-                const fl = text.length;
-                const cellTitleCn = classNames("file-cell-title",{
-                    "f-s-12": fl > 30,
-                    "f-s-14": fl <= 30
-                });
+               
 
                 const hasZipInfo = this.hasZipInfo(item);
                 const musicNum = this.getMusicNum(item);
@@ -595,7 +592,7 @@ export default class ExplorerPage extends Component {
                 <div key={item} className={"col-sm-6 col-md-4 col-lg-3 file-out-cell"}>
                     <div className="file-cell">
                         <Link  target="_blank" to={toUrl}  key={item} className={"file-cell-inner"}>
-                            <center className={cellTitleCn} title={text}>{text}</center>
+                            <FileCellTitle str={text}/>
                             <LoadingImage 
                                     isThumbnail 
                                     className={"file-cell-thumbnail"} 
