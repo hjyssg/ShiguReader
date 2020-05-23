@@ -7,7 +7,6 @@ const _ = require('underscore');
 const isWindows = require('is-windows');
 const internalIp = require('internal-ip');
 const qrcode = require('qrcode-terminal');
-const searchByTagAndAuthor = require("../models/search");
 
 global.requireUtil = function(e) {
     return require("../common/util")
@@ -50,6 +49,8 @@ const isProduction = process.argv.includes("--production");
 // console.log("----------------------");
 
 const logger = require("./logger");
+
+const searchByTagAndAuthor = require("./models/search");
 
 
 //set up json DB
