@@ -1,8 +1,7 @@
 const config = require("./name-parser-config");
 const same_tags = config.same_tags;
 const not_author_but_tag = config.not_author_but_tag;
-let char_names = require("./character-names");
-
+const char_names = require("./character-names");
 const char_name_regex = new RegExp(char_names.join("|"));
 
 const book_types = [
@@ -203,8 +202,6 @@ function match(reg, str){
     }
     return result;
 }
-
-
 
 function getTypeAndComiket(tags, group){
     let comiket;
