@@ -22,5 +22,6 @@ module.exports.not_author_but_tag = [
     "Pixiv",
     "アーティスト",
     "雑誌",
-    "English"
+    "English",
+    "320K"
 ]

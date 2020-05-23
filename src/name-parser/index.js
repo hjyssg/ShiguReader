@@ -5,9 +5,11 @@ let char_names = require("./character-names");
 
 const book_types = [
     "同人音声",
+    "同人ソフト",
+    "同人CG集",
+    "同人ゲーム",
     "成年コミック",
     "一般コミック",
-    "同人CG集",
     "ゲームCG",
     "画集"
 ]
