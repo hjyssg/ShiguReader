@@ -2,25 +2,12 @@ const config = require("./jp-family-name");
 let family_names = config.family_names;
 let name_entris = config.name_entris;
 
-function getContainSubstring(strArr, str){
-    let result;
-    strArr.some(entry => {
-        if(str.includes(entry)){
-            result = entry;
-        }
-    });
-    return result;
-}
+//https://stackoverflow.com/questions/5582574/how-to-check-if-a-string-contains-text-from-an-array-of-substrings-in-javascript
+const name_regex = new RegExp(name_entris.join("|"));
 
-function getStartWithSubstring(strArr, str){
-    let result;
-    strArr.some(entry => {
-        if(str.startsWith(entry)){
-            result = entry;
-        }
-    });
-    return result;
-}
+const family_name_regex = new RegExp(family_names.join("|"));
+
+
 
 const localCache = {};
 function parse(str) {
@@ -37,20 +24,24 @@ function parse(str) {
     //I dont use NLP library, because 
     //1.their size is too big
     //2. they cut a fullname into last name and meaningless substr
-    let tokens = str.split(/[ \dA-Za-z.,\/#!$%\^&\*;:{}=\-_`~()\[\]\–-、｀～？！、。「」；’：｜＝＋]/).filter(e => !!e);
+    let tokens = str.split(/[ \dA-Za-z.,\/#!$%\^&＆\*;:{}=\-_`~()\[\]\–-、｀～？！＠@、。「」；’：｜＝＋]/).filter(e => !!e);
     tokens.forEach(tt => {
-        const nameEntry = getContainSubstring(name_entris, tt);
+        const nameEntry = tt.match(name_regex);
+        // const nameEntry = getContainSubstring(name_entris, tt);
         if(nameEntry){
-            result.push(nameEntry);
+            nameEntry.forEach(e => {
+                result.push(e);
+            })
         }else{
-            let familyName = getStartWithSubstring(family_names, tt);
-            //check the substring
-            const firstName = tt.replace(familyName, "");
-            if(firstName.length > 4){
-                familyName = false;
-            }
-            if(familyName){
-                result.push(tt);
+            let familyName = tt.match(family_name_regex);
+            if(familyName && familyName.index === 0){
+                familyName.forEach(e => {
+                    //check the substring
+                    const firstName = tt.replace(familyName, "");
+                    if(firstName.length < 4){
+                        result.push(tt);
+                    }
+                })
             }
         }
     })
