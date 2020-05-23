@@ -140,13 +140,6 @@
     align-items: center;
     overflow: hidden;
 
-    .file-cell-title {
-      line-height: 1em;
-      height: 2em;       /* height is 2x line-height, so two lines will display */
-      overflow: hidden;
-      margin-bottom: 5px;
-    }
-  
     .file-cell-thumbnail {
       margin: 0.2rem 1rem;
       padding: 0px !important;
@@ -165,3 +158,9 @@
   }
 }
 
+.file-cell-title {
+  line-height: 1em;
+  height: 2em;       /* height is 2x line-height, so two lines will display */
+  overflow: hidden;
+  margin-bottom: 5px;
+}
