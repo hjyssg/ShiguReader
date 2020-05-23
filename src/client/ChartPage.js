@@ -27,6 +27,7 @@ const { MODE_TAG,
 
 const BY_YEAR = "by year";
 const BY_QUARTER = "by quarter";
+const BY_MONTH = "by month";
 
 function parse(str){
     return nameParser.parse(getBaseName(str));
@@ -225,7 +226,14 @@ export default class ChartPage extends Component {
             const month = t.getMonth();
             const quarter = Math.floor(month/3)+1;
 
-            let tLabel = timeType === BY_QUARTER? `${t.getFullYear()}-Q${quarter} `: t.getFullYear();
+            let tLabel;
+            if(timeType === BY_QUARTER){
+                tLabel = `${t.getFullYear()}-Q${quarter}`;
+            }else if(timeType === BY_MONTH){
+                tLabel = `${t.getFullYear()}-${t.getMonth()+1}`;
+            }else{
+                tLabel = t.getFullYear();;
+            }
             return tLabel;
         });
 
@@ -242,7 +250,7 @@ export default class ChartPage extends Component {
             data:  values
           }];
 
-        const TIME_OPITIONS = [BY_YEAR, BY_QUARTER]
+        const TIME_OPITIONS = [BY_YEAR, BY_QUARTER, BY_MONTH]
 
           return (
             <div className="individual-chart-container">
