@@ -12,6 +12,7 @@
   },
   "scripts": {
     "build": "webpack --mode production",
+    "start-production": "node src/server/index.js --production",
     "start": "npm run build && node src/server/index.js --production",
     "client": "webpack-dev-server --mode development --devtool inline-source-map --hot",
     "server": "nodemon src/server/index.js",
