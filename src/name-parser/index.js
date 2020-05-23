@@ -291,8 +291,11 @@ function parse(str) {
             } else {
                 //  [真珠貝(武田弘光)]
                 const temp = getAuthorName(token);
-                author = temp.name;
-                // NEED_GROUP && temp.group && tags.push(temp.group);
+                if(not_author_but_tag_table[temp.name]){
+                    tags.push(temp.name);
+                }else{
+                    author = temp.name;
+                }
                 group = temp.group;
                 break;
             }
