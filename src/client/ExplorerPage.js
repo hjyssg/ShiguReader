@@ -716,9 +716,12 @@ export default class ExplorerPage extends Component {
         table[MODE_EXPLORER] = "/chart/?p=";
         table[MODE_SEARCH] = "/chart/?s=";
         table[MODE_TAG] = "/chart/?t=";
+        let link = table[this.getMode()]+this.getTextFromQuery();
+        if(this.state.isRecursive){
+            link += "&isRecursive=true"
+        }
 
-
-        return (<Link target="_blank" className="exp-top-button" to={table[this.getMode()]+this.getTextFromQuery()}>  
+        return (<Link target="_blank" className="exp-top-button" to={link}>  
                         <span className="fas fa-chart-line" /> 
                         <span> chart </span>
                 </Link>)

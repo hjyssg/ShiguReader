@@ -72,7 +72,27 @@ export default class ChartPage extends Component {
 
     componentDidMount() {
         if(this.failedTimes < 3) {
-            Sender.post("/api/allInfo", {}, res => {
+            let api;
+            let body;
+            const mode = this.getMode();
+            if(mode === MODE_EXPLORER){
+                api = '/api/lsDir';
+                body = {
+                    dir: this.getTextFromQuery(),
+                    isRecursive: this.isRecursive()
+                }
+            }else if(mode){
+                api = "/api/search";
+                body = {
+                    text: this.getTextFromQuery(),
+                    mode: mode
+                }
+            }else{
+                api = "/api/allInfo";
+                body = {};
+            }
+
+            Sender.post(api, body, res => {
                 this.handleRes(res);
             });
 
@@ -87,9 +107,9 @@ export default class ChartPage extends Component {
 
     handleRes(res){
         if (!res.failed) {
-            let { fileToInfo } = res;
-            this.fileToInfo = fileToInfo || {};
-            this.files = _.keys(this.fileToInfo) || [];
+            let { fileToInfo, fileInfos, files } = res;
+            this.fileToInfo = fileInfos || fileToInfo || {};
+            this.files = files || _.keys(this.fileToInfo) || [];
         }else{
             this.failedTimes++;
         }
@@ -123,34 +143,17 @@ export default class ChartPage extends Component {
         return obj.a || obj.p || obj.t || obj.s ||  "";
     }
 
+    isRecursive(props) {
+        //may allow tag author in future
+        const _props = props || this.props;
+        const obj = queryString.parse(_props.location.search);
+        return obj.isRecursive;
+    }
+
     getFilterFiles(){
         const fileTypeFilter =  this.isShowingVideoChart()? isVideo : isCompress;
-        const text = this.getTextFromQuery();
-        const mode = this.getMode();
         const result = (this.files || []).filter(e => {
-            if(!fileTypeFilter(e)){
-                return false;
-            }
-
-            let result = true;
-            // todo: this logic is similar to back end search
-            // but not the same
-            // should the same code 
-            if(text){
-                if(mode === MODE_EXPLORER){
-                    result = e.startsWith(text);
-                }else if(mode === MODE_AUTHOR){
-                    const temp = parse(e);
-                    result = temp && temp.author === text;
-                }else if(mode === MODE_SEARCH){
-                    result = e.includes(text);
-                }else if(mode === MODE_TAG){
-                    const temp = parse(e);
-                    result = temp && temp.tags.includes(text);
-                }
-            }
-
-            return result;
+            return fileTypeFilter(e);
         });
         return result;
     }
@@ -218,6 +221,7 @@ export default class ChartPage extends Component {
 
         const byTime = _.countBy(this.getFilterFiles(), e=> {
             const fileInfo = this.fileToInfo[e];
+            //todo use choose use string time or only mtime
             let aboutTimeA = nameParser.getDateFromParse(getBaseName(e));
             aboutTimeA = aboutTimeA && aboutTimeA.getTime();
             aboutTimeA = aboutTimeA || fileInfo.mtime;
@@ -425,8 +429,20 @@ export default class ChartPage extends Component {
 
         const files = this.getFilterFiles();
         const {fileType} = this.state;
+        const mode = this.getMode();
 
-        const filePath = <div>{this.getTextFromQuery() }</div>; 
+        let str = this.getTextFromQuery();
+        if(this.isRecursive()){
+            str = `${str} And Subfolder's Files`
+        } else if (mode === MODE_AUTHOR){
+            str = `Author: ${str}`
+        } else if (mode === MODE_TAG){
+            str = `Tag: ${str}`
+        } else if (mode === MODE_SEARCH){
+            str = `Search: ${str}`
+        }
+
+        const filePath = <div>{str}</div>; 
 
         const radioGroup = <RadioButtonGroup 
                             className="chart-radio-button-group"
