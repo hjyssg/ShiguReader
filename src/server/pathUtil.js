@@ -59,21 +59,22 @@ function isDirectParent(parent, filePath){
     return parentPath === parent;
 }
 
-function isSub(parent, child) {
+function isSub(parent, child, pTokens) {
     if(child.length > parent.length && child.startsWith(parent)){
-        let parentPath = path.resolve(child, "..");
-        while(true){
-            if(parentPath === parent){
-                return true;
-            }
+        pTokens = pTokens || parent.split(path.sep);
+        const cTokens = child.split(path.sep);
+        
+        // return pTokens.every((e, index) => {
+        //     return e === cTokens[index];
+        // })
 
-            const newparentPath = path.resolve(parentPath, "..");
-            if(newparentPath === parentPath){
-                //go to the top
-                return false;
-            }
-            parentPath = newparentPath;
-        }
+        //because we already use startsWith
+        //we do not need to compare every piece
+        //we only compare one piece
+        const index = pTokens.length-1;  
+        //its direct parent's name
+        return cTokens[index] === pTokens[index];
+
     }
     return false;
 }

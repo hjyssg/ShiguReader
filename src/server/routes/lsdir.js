@@ -35,25 +35,21 @@ router.post('/api/lsDir', async (req, res) => {
     const dirs = [];
     const infos = {};
     const oneLevel = !isRecursive;
+    const pTokens = dir.split(path.sep);
+    const plength = pTokens.length;
+
     getAllFilePathes().forEach(pp => {
-        if(pp && isDisplayableInExplorer(pp) && isSub(dir, pp)){
-            //add file's parent
+        if(pp && isDisplayableInExplorer(pp) && isSub(dir, pp, pTokens)){
+            //add file's parent dir
+            //because we do not track dir in the server
             if(oneLevel && !isDirectParent(dir, pp)){
-                let itsParent = path.resolve(pp, "..");
-   
                 //for example
                 //the dir is     F:/git 
                 //the file is    F:/git/a/b/1.zip
                 //add folder           F:/git/a
-                let counter = 0;
-                while(!isDirectParent(dir, itsParent)){
-                    itsParent = path.resolve(itsParent, "..");
-                    counter++;
-
-                    //assert
-                    if(counter > 200){ throw "[lsdir] while loop" }
-                }
-                dirs.push(itsParent);
+                const cTokens = pp.split(path.sep);
+                let itsParent = pTokens.concat(cTokens[plength]);
+                dirs.push(itsParent.join(path.sep));
             }else{
                 files.push(pp);
                 infos[pp] = db.getFileToInfo(pp);
@@ -65,7 +61,7 @@ router.post('/api/lsDir', async (req, res) => {
 
     const time2 = getCurrentTime();
     const timeUsed = (time2 - time1)/1000;
-    // console.log(timeUsed, "to LsDir")
+    console.log(timeUsed, "to LsDir")
 
     result = { dirs: _dirs, 
                files, 
