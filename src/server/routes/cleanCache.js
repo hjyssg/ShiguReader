@@ -38,7 +38,7 @@ router.post('/api/cleanCache', (req, res) => {
 
     //delete empty folder
     deleteEmpty(pathUtil.getImgConverterCachePath(), (err, deleted) => {
-        if(!err){
+        if(err){
             console.error(err); 
         }
     });
