@@ -7,6 +7,13 @@ const musicTypes = [".mp3", ".wav", ".m4a", ".wma", ".flac", ".ogg", ".m4p", ".m
 const videoTypes = [".mp4", ".3gp", ".avi", ".mov", 
                     ".mp4", ".m4v", ".m4a", ".mkv",  ".webm" ];
 
+//ends with
+const imageTypesRegex = new RegExp("("+ imageTypes.join("|") + ")$");
+const compressTypesRegex = new RegExp("("+ compressTypes.join("|") + ")$");
+const musicTypesRegex = new RegExp("("+ musicTypes.join("|") + ")$");
+const videoTypesRegex = new RegExp("("+ videoTypes.join("|") + ")$");
+
+
 function isOnlyDigit(str){
     return str.match(/^[0-9]+$/) != null
 }
@@ -16,24 +23,24 @@ module.exports.isGif= function (fn) {
 };
 
 const isImage = module.exports.isImage = function (fn) {
-    return imageTypes.some((e) => fn.toLowerCase().endsWith(e));
+    return fn.toLowerCase().match(imageTypesRegex);
 };
 
 const isCompress = module.exports.isCompress = function (fn) {
-    return compressTypes.some((e) => fn.toLowerCase().endsWith(e));
+    return fn.toLowerCase().match(compressTypesRegex);
 };
 
 const isMusic = module.exports.isMusic = function(fn){
-    return musicTypes.some((e) => fn.toLowerCase().endsWith(e));
+    return fn.toLowerCase().match(musicTypesRegex);
 }
 
 const isVideo = module.exports.isVideo = function(fn){
-    return videoTypes.some((e) => fn.toLowerCase().endsWith(e));
+    return fn.toLowerCase().match(videoTypesRegex);
 }
 
 const THUMBNAIL_FLAG = "thumbnail--";
 const isCompressedThumbnail = module.exports.isCompressedThumbnail = function(filename){
-    return filename && filename.includes(THUMBNAIL_FLAG);
+    return filename && filename.startsWith(THUMBNAIL_FLAG);
 }
 
 module.exports.getCompressedThumbnailFileName = function(filename){
