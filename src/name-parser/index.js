@@ -334,8 +334,23 @@ function parse(str) {
     return result;
 }
 
+function parseMusicTitle(str){
+    // [161109] TVアニメ「ラブライブ！サンシャイン!!」挿入歌シングル3「想いよひとつになれ／MIRAI TICKET」／Aqours [320K].zip
+    //[180727]TVアニメ『音楽少女』OPテーマ「永遠少年」／小倉唯[320K].rar
+    let jpbReg = /「(.*?)」/g;
+    const macthes =  match(jpbReg, str) || [];
+
+    let jpbReg2 = /『(.*?)』/g;
+    const macthes2 =  match(jpbReg2, str) || [];
+
+    return (macthes.concat(macthes2)).map(e => {
+       return e.trim();
+    })
+}
+
 module.exports.parse = parse;
 module.exports.isOnlyDigit = isOnlyDigit;
 module.exports.all_comic_tags = all_comic_tags;
 module.exports.getDateFromTags = getDateFromTags;
 module.exports.getDateFromParse = getDateFromParse;
+module.exports.parseMusicTitle = parseMusicTitle;

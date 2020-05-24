@@ -585,7 +585,7 @@ export default class OneBook extends Component {
 
     
     if(this.hasMusic()){
-      Alltags = Alltags.concat(namePicker.pick(fn)||[]);
+      Alltags = Alltags.concat(namePicker.pick(fn)||[], nameParser.parseMusicTitle(fn));
     }
     Alltags = _.uniq(Alltags);
 
