@@ -28,6 +28,7 @@ const { MODE_TAG,
 const BY_YEAR = "by year";
 const BY_QUARTER = "by quarter";
 const BY_MONTH = "by month";
+const BY_DAY = "by day";
 
 function parse(str){
     return nameParser.parse(getBaseName(str));
@@ -195,8 +196,10 @@ export default class ChartPage extends Component {
 
 
         const index = keys.indexOf("etc");
-        keys.splice(index, 1);
-        values.splice(index, 1)
+        if(index > -1){
+            keys.splice(index, 1);
+            values.splice(index, 1)
+        }
         data.labels = keys;
 
         data.datasets = [{
@@ -250,7 +253,9 @@ export default class ChartPage extends Component {
             const quarter = Math.floor(month/3)+1;
 
             let tLabel;
-            if(timeType === BY_QUARTER){
+            if(timeType === BY_DAY){
+                tLabel = `${t.getFullYear()}-${t.getMonth()+1}-${t.getDate()}`;
+            }else if(timeType === BY_QUARTER){
                 tLabel = `${t.getFullYear()}-Q${quarter}`;
             }else if(timeType === BY_MONTH){
                 tLabel = `${t.getFullYear()}-${t.getMonth()+1}`;
@@ -280,7 +285,7 @@ export default class ChartPage extends Component {
             data:  values
           }];
 
-        const TIME_OPITIONS = [BY_YEAR, BY_QUARTER, BY_MONTH];
+        const TIME_OPITIONS = [BY_YEAR, BY_QUARTER, BY_MONTH, BY_DAY];
         const VALUE_OPTIONS = [VALUE_COUNT, VALUE_FILESIZE];
         const TIME_SOURCE_OPTIONS = [BY_MTIME, BY_TAG_TIME]
 
