@@ -63,11 +63,24 @@ function renderTable(labels, values){
     );
 }
 
+const VALUE_COUNT = "value: count";
+const VALUE_FILESIZE = "value: file size in MB";
+
+const BY_MTIME = "by mtime";
+const BY_TAG_TIME = "by tag time";
+
+
+
 export default class ChartPage extends Component {
     constructor(prop) {
         super(prop);
         this.failedTimes = 0;
-        this.state = {fileType: "compressed", timeType: BY_YEAR};
+        this.state = {
+            fileType: "compressed", 
+            timeType: BY_YEAR,
+            timeSourceType: BY_TAG_TIME,
+            valueType: VALUE_COUNT
+        };
     }
 
     componentDidMount() {
@@ -217,15 +230,21 @@ export default class ChartPage extends Component {
     }
 
     rendeTimeChart(){
-        const { timeType } = this.state;
+        const { timeType, valueType, timeSourceType } = this.state;
+        const byTime = {};
 
-        const byTime = _.countBy(this.getFilterFiles(), e=> {
+        this.getFilterFiles().forEach(e=> {
             const fileInfo = this.fileToInfo[e];
             //todo use choose use string time or only mtime
-            let aboutTimeA = nameParser.getDateFromParse(getBaseName(e));
-            aboutTimeA = aboutTimeA && aboutTimeA.getTime();
-            aboutTimeA = aboutTimeA || fileInfo.mtime;
-
+            let aboutTimeA;
+            if(timeSourceType === BY_TAG_TIME){
+                aboutTimeA = nameParser.getDateFromParse(getBaseName(e));
+                aboutTimeA = aboutTimeA && aboutTimeA.getTime();
+                aboutTimeA = aboutTimeA || fileInfo.mtime;
+            }else{
+                aboutTimeA = fileInfo.mtime;
+            }
+   
             const t  = new Date(aboutTimeA);
             const month = t.getMonth();
             const quarter = Math.floor(month/3)+1;
@@ -238,7 +257,14 @@ export default class ChartPage extends Component {
             }else{
                 tLabel = t.getFullYear();;
             }
-            return tLabel;
+
+            if(valueType === VALUE_COUNT){
+                byTime[tLabel] = byTime[tLabel] || 0;
+                byTime[tLabel]++;
+            }else if(valueType === VALUE_FILESIZE){
+                byTime[tLabel] = byTime[tLabel] || 0;
+                byTime[tLabel] += (fileInfo.size||0) / 1024 /1024; //byte to MB
+            }
         });
 
         const data = {};
@@ -254,28 +280,41 @@ export default class ChartPage extends Component {
             data:  values
           }];
 
-        const TIME_OPITIONS = [BY_YEAR, BY_QUARTER, BY_MONTH]
+        const TIME_OPITIONS = [BY_YEAR, BY_QUARTER, BY_MONTH];
+        const VALUE_OPTIONS = [VALUE_COUNT, VALUE_FILESIZE];
+        const TIME_SOURCE_OPTIONS = [BY_MTIME, BY_TAG_TIME]
 
           return (
             <div className="individual-chart-container">
-             <RadioButtonGroup 
+                <RadioButtonGroup 
                             className="chart-radio-button-group"
-                            checked={TIME_OPITIONS.indexOf(this.state.timeType)} 
+                            checked={TIME_OPITIONS.indexOf(timeType)} 
                             options={TIME_OPITIONS} 
                             onChange={this.onTimeTypeChange.bind(this)}/>
+                <RadioButtonGroup 
+                            className="chart-radio-button-group"
+                            checked={VALUE_OPTIONS.indexOf(valueType)} 
+                            options={VALUE_OPTIONS} 
+                            onChange={this.onValueTypeChange.bind(this)}/>
+                <RadioButtonGroup 
+                            className="chart-radio-button-group"
+                            checked={TIME_SOURCE_OPTIONS.indexOf(timeSourceType)} 
+                            options={TIME_SOURCE_OPTIONS} 
+                            onChange={this.onTimeSourceTypeChange.bind(this)}/>
 
-              <Line
-                className="type-time-chart"
-                data={data}
-                width={800}
-                height={200}
-                options={{
-                    maintainAspectRatio: false,
-                    legend: {
-                        position: "right"
-                    }
-                }}
-              />
+                <div>
+                    <Line
+                    className="type-time-chart"
+                    data={data}
+                    width={800}
+                    height={300}
+                    options={{
+                        maintainAspectRatio: false,
+                        legend: {
+                            position: "right"
+                        }
+                    }}/>
+              </div>
             </div>
           );
     }
@@ -417,10 +456,22 @@ export default class ChartPage extends Component {
         });
     }   
 
+    onValueTypeChange(e){
+        this.setState({
+            valueType: e
+        });
+    }   
+
+    onTimeSourceTypeChange(e){
+        this.setState({
+            timeSourceType: e
+        });
+    }   
+
 
     render(){
         document.title = "Chart"
-        const too_few = 30;
+        const too_few = 1; // 30;
 
         const FILE_OPTIONS = [
           "video",
