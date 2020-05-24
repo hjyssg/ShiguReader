@@ -1,7 +1,7 @@
 
 const serverUtil = require("../serverUtil");
 const db = require("../models/db");
-const { getAllFilePathes } = db;
+const { loopEachFileInfo } = db;
 const parse = serverUtil.parse;
 const nameParser = require('../../name-parser');
 const zipInfoDb = require("../models/zipInfoDb");
@@ -39,7 +39,7 @@ function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
     let _break;
     let textInLowCase = text && text.toLowerCase();
 
-    getAllFilePathes().forEach(filePath => {
+    loopEachFileInfo(filePath => {
         if(_break || !util.isDisplayableInExplorer(filePath)){
             return;
         }

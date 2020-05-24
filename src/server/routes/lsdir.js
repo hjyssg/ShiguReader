@@ -9,7 +9,7 @@ const express = require('express');
 const router = express.Router();
 const serverUtil = require("../serverUtil");
 const db = require("../models/db");
-const { getAllFilePathes } = db;;
+const { loopEachFileInfo } = db;;
 const util = global.requireUtil();
 const { getCurrentTime, isDisplayableInExplorer } = util;
 const path = require('path');
@@ -38,7 +38,9 @@ router.post('/api/lsDir', async (req, res) => {
     const pTokens = dir.split(path.sep);
     const plength = pTokens.length;
 
-    getAllFilePathes().forEach(pp => {
+    
+
+    loopEachFileInfo((pp, fileInfo) => {
         if(pp && isDisplayableInExplorer(pp) && isSub(dir, pp, pTokens)){
             //add file's parent dir
             //because we do not track dir in the server
@@ -52,7 +54,7 @@ router.post('/api/lsDir', async (req, res) => {
                 dirs.push(itsParent.join(path.sep));
             }else{
                 files.push(pp);
-                infos[pp] = db.getFileToInfo(pp);
+                infos[pp] = fileInfo;
             }
         }
     })

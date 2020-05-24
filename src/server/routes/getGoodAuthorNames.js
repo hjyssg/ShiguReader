@@ -3,7 +3,7 @@
 const express = require('express');
 const router = express.Router();
 const db = require("../models/db");
-const { getAllFilePathes } = db;;
+const { loopEachFileInfo } = db;;
 const util = global.requireUtil();
 const { isCompress } = util;
 const path = require('path');
@@ -13,13 +13,12 @@ const serverUtil = require("../serverUtil");
 function getGoodAndOtherSet(){
     const set = {};
     const otherSet = {};
-    getAllFilePathes().forEach(p => {
-        const ext = path.extname(p).toLowerCase();
-        if(isCompress(ext)){
+    loopEachFileInfo(p => {
+        if(isCompress(p)){
             const temp = serverUtil.parse(p);
             const name = temp && temp.author;
             if(name){
-                if(p && p.startsWith(userConfig.good_folder_root)){
+                if(p.startsWith(userConfig.good_folder_root)){
                     set[name] = set[name]? set[name]+1: 1;
                 }else{
                     otherSet[name] = otherSet[name]? otherSet[name]+1: 1;

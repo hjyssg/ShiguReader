@@ -30,6 +30,14 @@ const getAllFilePathes = module.exports.getAllFilePathes = function(){
     return _.keys(db.fileToInfo);
 };
 
+const loopEachFileInfo = module.exports.loopEachFileInfo = function(callback){
+    for(let filePath in db.fileToInfo){
+        if(db.fileToInfo.hasOwnProperty(filePath)){
+            callback(filePath, db.fileToInfo[filePath]);
+        }
+    }
+}
+
 const getFileToInfo = module.exports.getFileToInfo = function(filePath){
     if(filePath){
         return db.fileToInfo[filePath];
@@ -48,7 +56,7 @@ module.exports.getAllCacheFilePathes = function(){
 
 module.exports.initFileToInfo = function(obj){
     db.fileToInfo = obj;
-    getAllFilePathes().forEach(e => {
+    loopEachFileInfo(e => {
         const fp = path.basename(e);
         if (isDisplayableInExplorer(fp)) {
             serverUtil.parse(fp);
