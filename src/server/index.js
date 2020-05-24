@@ -191,7 +191,11 @@ function setUpFileWatch (home_pathes, cache_folder_name){
         updateStatToDb(path, stats);
         
         if(isCompress(path) && stats.size > 1*1024*1024){
-            listZipContentAndUpdateDb(path);
+            //do it slowly to avoid the file used by the other process
+            //this way is cheap than the really detection
+            setTimeout(()=>{
+                listZipContentAndUpdateDb(path);
+            }, 3000);
         }
     };
 

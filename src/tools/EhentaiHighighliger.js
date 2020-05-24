@@ -505,12 +505,12 @@ function highlightThumbnail(allFiles){
             } else if(status === LIKELY_IN_PC){
                 subNode.style.color = "#efd41b"; //"yellow";
                 thumbnailNode.title = `电脑里的“${similarTitle}”和这本好像一样`;
-                e.style.background = "#212121";
+                // e.style.background = "#212121";
             }else if(status === SAME_AUTHOR){
                 subNode.style.color = "#ef8787"; // "red";
                 let authortimes = authorTable[r.author.toLowerCase()].length; 
                 thumbnailNode.title = `下载同样作者“${r.author}”的书 ${authortimes}次`;
-                e.style.background = "#111111"
+                // e.style.background = "#111111"
             }
             if(status){
                 subNode.style.fontWeight = 600;
