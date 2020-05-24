@@ -58,9 +58,11 @@ module.exports.canBeCompressed = function(fn){
         throw "no getBaseNameWithoutExtention";
     }
 
-    const fileIndexs =  files.map(e => getBaseNameWithoutExtention(e));
+    const isAllDigit =  files.every(e => {
+        return isOnlyDigit(getBaseNameWithoutExtention(e))
+    });
 
-    if(fileIndexs.every(isOnlyDigit)){
+    if(isAllDigit){
       files.sort((a, b) =>  {return parseInt(getBaseNameWithoutExtention(a)) - parseInt(getBaseNameWithoutExtention(b)) });
     } else {
       files.sort((a, b) => a.localeCompare(b));
