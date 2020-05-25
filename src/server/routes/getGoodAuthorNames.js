@@ -6,7 +6,6 @@ const db = require("../models/db");
 const { loopEachFileInfo } = db;;
 const util = global.requireUtil();
 const { isCompress } = util;
-const path = require('path');
 const userConfig = global.requireUserConfig();
 const serverUtil = require("../serverUtil");
 

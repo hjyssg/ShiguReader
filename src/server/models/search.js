@@ -3,7 +3,6 @@ const serverUtil = require("../serverUtil");
 const db = require("../models/db");
 const { loopEachFileInfo } = db;
 const parse = serverUtil.parse;
-const nameParser = require('../../name-parser');
 const zipInfoDb = require("../models/zipInfoDb");
 const { getZipInfo }  = zipInfoDb;
 const util = global.requireUtil();

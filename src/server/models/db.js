@@ -12,8 +12,6 @@ const {getDirName} = serverUtil;
 const { isImage, isCompress, isMusic, isDisplayableInExplorer, isDisplayableInOnebook } = util;
 const { generateContentUrl } = pathUtil;
 
-const sevenZipHelp = require("../sevenZipHelp");
-
 const db = {
     //file path to file stats
     fileToInfo: {}

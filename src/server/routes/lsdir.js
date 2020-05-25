@@ -61,7 +61,7 @@ router.post('/api/lsDir', async (req, res) => {
 
     const time2 = getCurrentTime();
     const timeUsed = (time2 - time1)/1000;
-    console.log(timeUsed, "to LsDir")
+    // console.log(timeUsed, "to LsDir")
 
     result = { dirs: _dirs, 
                files, 

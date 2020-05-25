@@ -3,7 +3,6 @@ const pathUtil = require("../pathUtil");
 const { isExist } = pathUtil;
 const express = require('express');
 const router = express.Router();
-const db = require("../models/db");
 
 //------------------download------------
 router.get('/api/download/', async (req, res) => {
