@@ -38,8 +38,6 @@ router.post('/api/lsDir', async (req, res) => {
     const pTokens = dir.split(path.sep);
     const plength = pTokens.length;
 
-    
-
     loopEachFileInfo((pp, fileInfo) => {
         if(pp && isDisplayableInExplorer(pp) && isSub(dir, pp, pTokens)){
             //add file's parent dir
