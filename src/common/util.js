@@ -39,8 +39,9 @@ const isVideo = module.exports.isVideo = function(fn){
 }
 
 const THUMBNAIL_FLAG = "thumbnail--";
-const isCompressedThumbnail = module.exports.isCompressedThumbnail = function(filename){
-    return filename && filename.startsWith(THUMBNAIL_FLAG);
+const isCompressedThumbnail = module.exports.isCompressedThumbnail = function(filePath){
+    //used by many places
+    return filePath && filePath.includes(THUMBNAIL_FLAG);
 }
 
 module.exports.getCompressedThumbnailFileName = function(filename){
