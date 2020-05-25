@@ -193,15 +193,15 @@ export default class FileChangeToolbar extends Component {
             <div className={cn} >
                 {header && <span className="file-change-tool-bar-header">{header}</span>}
                 <div className="tool-bar-row">
-                    <div tabIndex="0" className="fas fa-trash-alt"
-                                    title="Copy Del"
-                                    onClick={this.handleDelete.bind(this)}></div>
                     <div tabIndex="0"  className="fas fa-check"
                                     title={"Move to " + userConfig.good_folder}
                                     onClick={this.handleMove.bind(this, userConfig.good_folder)}></div>
                     <div tabIndex="0"  className="fas fa-times"
                                     title={"Move to " + userConfig.not_good_folder}
                                     onClick={this.handleMove.bind(this, userConfig.not_good_folder)}></div>
+                    <div tabIndex="0" className="fas fa-trash-alt"
+                                    title="Copy Del"
+                                    onClick={this.handleDelete.bind(this)}></div>
                 </div>
                 <div className="tool-bar-row second">
                     {this.renderDownloadLink()}
