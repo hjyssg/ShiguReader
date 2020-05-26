@@ -34,6 +34,10 @@
     &:not(.has-music){
       width: 100%;
     }
+
+    .aji-music-player{
+      max-width: 80%;
+    }
   }
 
   .fs-toggle-button {
@@ -109,8 +113,7 @@
         }
 
         &.has-music {
-          max-width: 500px;
-          max-height: 500px;
+          max-height: 600px;
         }
       }
     }
