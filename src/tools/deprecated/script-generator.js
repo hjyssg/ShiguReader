@@ -17,7 +17,7 @@ function iterate (p, config, result, depth) {
     fs.readdirSync(p).forEach((e, ii) => {
         const stat = getStat(p, config);
         const fp = path.join(p, e);
-        if(stat.isDirectory){
+        if(stat.isDirectory()){
             console.log("7z.exe a", `"${e}.zip"  "${fp}\\*" `, )
         }
         if(ii%5 === 0){

@@ -166,7 +166,7 @@ export default class ExplorerPage extends Component {
     }
 
     componentWillReceiveProps(nextProps){
-        if(_.isString(nextProps.filterText)){
+        if(_.isString(nextProps.filterText) && nextProps.filterText !== this.state.filterText){
             this.handlePageChange(1);
 
             this.setState({
