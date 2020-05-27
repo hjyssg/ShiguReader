@@ -48,7 +48,6 @@ function iterate (p, config, result, depth) {
     }
     try {
         const stat = getStat(p, config);
-        result.infos[p] = stat;
         if (stat.isFile) {
             if (config && config.filter && !config.filter(p, stat)) {
                 return;
@@ -57,6 +56,7 @@ function iterate (p, config, result, depth) {
             if(config && config.doLog &&  result.pathes.length % 2000 === 0){
                 console.log("[file-iterator] scan:", result.pathes.length);
             }
+            result.infos[p] = stat;
             result.pathes.push(p);
         } else if (stat.isDir && isLegalDepth(depth + 1, config)) {
             fs.readdirSync(p).forEach((e) => {
