@@ -7,6 +7,8 @@ const zipInfoDb = require("../models/zipInfoDb");
 const { getZipInfo }  = zipInfoDb;
 const util = global.requireUtil();
 const path = require('path');
+const _ = require('underscore');
+
 
 function includesWithoutCase(list, str){
     if(!str){
@@ -33,10 +35,10 @@ function isSimilar(s1, s2){
 
 function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
     // let beg = (new Date).getTime()
-    const files = [];
     const fileInfos = {};
     let _break;
     let textInLowCase = text && text.toLowerCase();
+    let count = 0;
 
     loopEachFileInfo(filePath => {
         if(_break || !util.isDisplayableInExplorer(filePath)){
@@ -69,11 +71,11 @@ function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
         }
 
         if(canAdd){
-            files.push(filePath);
             fileInfos[filePath] = db.getFileToInfo(filePath);
+            count++;
         }
 
-        if (onlyNeedFew && files.length > 5) {
+        if (onlyNeedFew && count > 5) {
             _break = true;
         }
     });
@@ -81,7 +83,8 @@ function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
     // let end = (new Date).getTime();
     // console.log((end - beg)/1000, "to search");
     const getThumbnails = serverUtil.common.getThumbnails;
-    return { files, tag, author, fileInfos, thumbnails: getThumbnails(files), zipInfo: getZipInfo(files) };
+    const files = _.keys(fileInfos);
+    return { tag, author, fileInfos, thumbnails: getThumbnails(files), zipInfo: getZipInfo(files) };
 }
 
 module.exports = searchByTagAndAuthor;

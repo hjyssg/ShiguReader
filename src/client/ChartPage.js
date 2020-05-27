@@ -121,9 +121,9 @@ export default class ChartPage extends Component {
 
     handleRes(res){
         if (!res.failed) {
-            let { fileToInfo, fileInfos, files } = res;
+            let { fileToInfo, fileInfos } = res;
             this.fileToInfo = fileInfos || fileToInfo || {};
-            this.files = files || _.keys(this.fileToInfo) || [];
+            this.files = _.keys(this.fileToInfo) || [];
         }else{
             this.failedTimes++;
         }

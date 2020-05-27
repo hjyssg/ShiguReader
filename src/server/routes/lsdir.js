@@ -31,9 +31,8 @@ router.post('/api/lsDir', async (req, res) => {
 
     const time1 = getCurrentTime();
     let result;
-    const files = [];
     const dirs = [];
-    const infos = {};
+    const fileInfos = {};
     const oneLevel = !isRecursive;
     const pTokens = dir.split(path.sep);
     const plength = pTokens.length;
@@ -51,8 +50,7 @@ router.post('/api/lsDir', async (req, res) => {
                 let itsParent = pTokens.concat(cTokens[plength]);
                 dirs.push(itsParent.join(path.sep));
             }else{
-                files.push(pp);
-                infos[pp] = fileInfo;
+                fileInfos[pp] = fileInfo;
             }
         }
     })
@@ -63,10 +61,11 @@ router.post('/api/lsDir', async (req, res) => {
     const timeUsed = (time2 - time1)/1000;
     // console.log(timeUsed, "to LsDir")
 
+    const files = _.keys(fileInfos);
+
     result = { dirs: _dirs, 
-               files, 
                path: dir, 
-               fileInfos: infos, 
+               fileInfos, 
                thumbnails: getThumbnails(files),
                zipInfo: getZipInfo(files)
             };

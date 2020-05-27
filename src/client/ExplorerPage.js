@@ -238,7 +238,7 @@ export default class ExplorerPage extends Component {
             this.author = "";
             this.fileInfos = {};
             this.thumbnails = {};
-            this.res = "";
+            this.res = null;
             //init state
             this.setStateAndSetHash(this.getInitState(true));
             this.askServer();
@@ -247,15 +247,15 @@ export default class ExplorerPage extends Component {
 
     handleRes(res){
         if (!res.failed) {
-            let {dirs, files, path, tag, author, fileInfos, thumbnails, zipInfo} = res;
+            let {dirs, path, tag, author, fileInfos, thumbnails, zipInfo} = res;
             this.loadedHash = this.getTextFromQuery();
-            files = files || [];
-            this.videoFiles = files.filter(isVideo) || []
-            this.files = files.filter(isCompress) || [];
+            this.fileInfos = fileInfos || {};
+            const files = _.keys(this.fileInfos) || [];
+            this.videoFiles = files.filter(isVideo);
+            this.files = files.filter(isCompress);
             this.dirs = dirs || [];
             this.tag = tag || "";
             this.author = author || "";
-            this.fileInfos = fileInfos || {};
             this.thumbnails = thumbnails || {};
             this.zipInfo = zipInfo || {};
             this.res = res;
