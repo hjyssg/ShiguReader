@@ -605,7 +605,6 @@ export default class OneBook extends Component {
         url =  clientUtil.getSearhLink(tag);
       }
       
-      url += "#sortOrder=" + Constant.SORT_BY_FOLDER;
       return (<div key={tag} className="one-book-foot-author" >
                 <Link  target="_blank" to={url}  key={tag}>{tag}</Link>
               </div>);
