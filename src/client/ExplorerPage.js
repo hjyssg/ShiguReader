@@ -247,7 +247,7 @@ export default class ExplorerPage extends Component {
 
     handleRes(res){
         if (!res.failed) {
-            let {dirs, path, tag, author, fileInfos, thumbnails, zipInfo} = res;
+            let {dirs, tag, author, fileInfos, thumbnails, zipInfo} = res;
             this.loadedHash = this.getTextFromQuery();
             this.fileInfos = fileInfos || {};
             const files = _.keys(this.fileInfos) || [];

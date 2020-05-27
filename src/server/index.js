@@ -118,7 +118,7 @@ async function init() {
     });
 
     db.initCacheDb(cache_results.pathes, cache_results.infos);
-    setUpFileWatch(home_pathes, cache_folder_name);
+    setUpFileWatch();
 
     const port = isProduction? http_port: dev_express_port;
     const server = app.listen(port, async () => {
@@ -176,10 +176,10 @@ function shouldWatchForCache(p){
 
 
 const chokidar = require('chokidar');
-function setUpFileWatch (home_pathes, cache_folder_name){
+function setUpFileWatch (){
     //watch file change 
     //update two database
-    const watcher = chokidar.watch(home_pathes, {
+    const watcher = chokidar.watch(path_will_scan, {
         ignored: shouldIgnoreForOne,
         ignoreInitial: true,
         persistent: true,
@@ -215,7 +215,7 @@ function setUpFileWatch (home_pathes, cache_folder_name){
         .on('unlinkDir', deleteCallBack);
 
     //also for cache files
-    const cacheWatcher = chokidar.watch(cache_folder_name, {
+    const cacheWatcher = chokidar.watch(cachePath, {
         ignored: shouldIgnoreForCache,
         persistent: true,
         ignorePermissionErrors: true,
