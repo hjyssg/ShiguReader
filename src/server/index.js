@@ -26,6 +26,7 @@ const util = global.requireUtil();
 const fileiterator = require('./file-iterator');
 const pathUtil = require("./pathUtil");
 const serverUtil = require("./serverUtil");
+const { isHiddenFile } = serverUtil;
 
 const { fullPathToUrl, generateContentUrl, isExist,  getHomePath } = pathUtil;
 const { isImage, isCompress, isMusic, arraySlice, 
@@ -57,7 +58,7 @@ const searchByTagAndAuthor = require("./models/search");
 const zipInfoDb = require("./models/zipInfoDb");
 let zip_content_db_path =  path.join(rootPath,  userConfig.workspace_name, "zip_info");
 zipInfoDb.init(zip_content_db_path);
-const { getPageNum, getMusicNum, deleteFromZipDb }  = zipInfoDb;
+const { getPageNum, getMusicNum, deleteFromZipDb, getZipInfo }  = zipInfoDb;
 
 
 const sevenZipHelp = require("./sevenZipHelp");
@@ -142,11 +143,11 @@ async function init() {
 }
 
 const filterForOne = (e) => {
-    return isDisplayableInExplorer(e) && !serverUtil.isHiddenFile(e);
+    return isDisplayableInExplorer(e) && !isHiddenFile(e);
 };
 
 function shouldWatchForOne(p){
-    if(serverUtil.isHiddenFile(p)){
+    if(isHiddenFile(p)){
         return false;
     }
     const ext = path.extname(p).toLowerCase();
@@ -158,7 +159,7 @@ function shouldIgnoreForOne(p){
 }
 
 const cacheFilter = (e) => {
-    return isDisplayableInOnebook(e) && !serverUtil.isHiddenFile(e);
+    return isDisplayableInOnebook(e) && !isHiddenFile(e);
 };
 
 
@@ -167,7 +168,7 @@ function shouldIgnoreForCache(p){
 }
 
 function shouldWatchForCache(p){
-    if(serverUtil.isHiddenFile(p)){
+    if(isHiddenFile(p)){
         return false;
     }
     const ext = path.extname(p).toLowerCase();
@@ -487,8 +488,15 @@ app.post('/api/extract', async (req, res) => {
  
 
     function sendBack(files, musicFiles, path, stat){
-        const tempFiles =  serverUtil.filterHiddenFile(files);
-        res.send({ files: tempFiles, musicFiles,path, stat });
+        const tempFiles =  files.filter(e => {
+            return !util.isCompressedThumbnail(e) && !isHiddenFile(e);
+          })
+  ;
+        let zipInfo;
+        if(tempFiles.length > 0){
+            zipInfo = getZipInfo([path])[path];
+        }
+        res.send({ files: tempFiles, musicFiles, path, stat, zipInfo });
     }
 
     const outputPath = getCacheOutputPath(cachePath, filePath);

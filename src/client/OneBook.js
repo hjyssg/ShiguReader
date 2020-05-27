@@ -62,7 +62,7 @@ export default class OneBook extends Component {
   }
   
   componentDidMount() {
-    this.displayFile();
+    this.sendExtract();
 
     if(!isMobile ()){
       screenfull.onchange(()=> {
@@ -268,23 +268,20 @@ export default class OneBook extends Component {
     });
   }
   
-  displayFile(){
+  sendExtract(){
     Sender.post("/api/extract", {filePath: this.getTextFromQuery(), startIndex: this.state.index||0 }, res => {
       this.res = res;
       if (!res.failed) {
-        let files = res.files || [];
-        files = files.filter(e => {
-          return !util.isCompressedThumbnail(e);
-        })
+        let {zipInfo, path, stat, files,  musicFiles } = res;
+        files = files || [];
+        musicFiles = musicFiles || [];
 
         //files name can be 001.jpg, 002.jpg, 011.jpg, 012.jpg
         //or 1.jpg, 2.jpg 3.jpg 1.jpg
-        //the sort is trigger
-
         sortFileNames(files);
-        let musicFiles = res.musicFiles || [];
         sortFileNames(musicFiles);
-        this.setState({ files, musicFiles, path:res.path, fileStat: res.stat}, 
+
+        this.setState({ files, musicFiles, path, fileStat: stat, zipInfo}, 
                        () => { this.bindUserInteraction()});
         clientUtil.saveFilePathToCookie(this.getTextFromQuery());
       }else{
@@ -385,10 +382,17 @@ export default class OneBook extends Component {
   }
 
   renderFileSizeAndTime(){
-    const {fileStat,  files, index } = this.state;
+    const {fileStat,  files, index, zipInfo } = this.state;
     if (fileStat) {
+      let avgFileSize;
+      if(zipInfo){
+        avgFileSize = zipInfo.totalImgSize / zipInfo.pageNum;
+      }else{
+        avgFileSize = fileStat.size/files.length;
+      }
+
       const size = filesizeUitl(fileStat.size, {base: 2});
-      const avg = filesizeUitl(fileStat.size/files.length, {base: 2});
+      const avg = filesizeUitl(avgFileSize, {base: 2});
       const mTime = dateFormat(fileStat.mtime, "isoDate");
       const title = getBaseName(files[index], "/" );
       const dim = "";  //change by dom operation
