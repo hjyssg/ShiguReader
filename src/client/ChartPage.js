@@ -176,12 +176,12 @@ export default class ChartPage extends Component {
         return this.state.fileType === "video";
     }
 
-    renderComiketChart(){
+    renderComiketChart(filtererFiles){
         if(this.isShowingVideoChart()){
             return;
         }
 
-        const byComiket = _.countBy(this.getFilterFiles(), e=> {
+        const byComiket = _.countBy(filtererFiles, e=> {
             const result = parse(e);
             if(result && result.comiket){
                 let cc = result.comiket;
@@ -232,11 +232,11 @@ export default class ChartPage extends Component {
           );
     }
 
-    rendeTimeChart(){
+    rendeTimeChart(filtererFiles){
         const { timeType, valueType, timeSourceType } = this.state;
         const byTime = {};
 
-        this.getFilterFiles().forEach(e=> {
+        filtererFiles.forEach(e=> {
             const fileInfo = this.fileToInfo[e];
             //todo use choose use string time or only mtime
             let aboutTimeA;
@@ -324,12 +324,12 @@ export default class ChartPage extends Component {
           );
     }
 
-    renderPieChart(){
+    renderPieChart(filtererFiles){
         if(this.isShowingVideoChart()){
             return;
         }
 
-        const byType  = _.countBy(this.getFilterFiles(), e=> {
+        const byType  = _.countBy(filtererFiles, e=> {
             const result = parse(e);
             if(result &&  result.type){
                 return result.type;
@@ -366,9 +366,9 @@ export default class ChartPage extends Component {
 
     }
 
-    renderTotalSize(){
+    renderTotalSize(filtererFiles){
         let total = 0;
-        const files = this.getFilterFiles();
+        const files = filtererFiles;
         const num = files.length;
         files.forEach(e => {
            total += this.fileToInfo[e].size;
@@ -483,7 +483,7 @@ export default class ChartPage extends Component {
           "compressed"
         ];
 
-        const files = this.getFilterFiles();
+        const filtererFiles = this.getFilterFiles();
         const {fileType} = this.state;
         const mode = this.getMode();
 
@@ -510,12 +510,12 @@ export default class ChartPage extends Component {
             return (<CenterSpinner/>);
         } else if(this.isFailedLoading()) {
             return <ErrorPage res={this.res.res}/>;
-        } else if(files.length < too_few){
+        } else if(filtererFiles.length < too_few){
             return ( <div className="chart-container container">
                         {filePath}
                         {radioGroup}
                         <div className="alert alert-info" role="alert" > 
-                             <div>{`There are only ${files.length} ${fileType} files.`} </div> 
+                             <div>{`There are only ${filtererFiless.length} ${fileType} files.`} </div> 
                              <div>Unable to render chart</div>
                         </div>
                     </div>);
@@ -524,11 +524,11 @@ export default class ChartPage extends Component {
                 <div className="chart-container container">
                     {filePath}
                     {radioGroup}
-                    {this.renderTotalSize()}
-                    {this.rendeTimeChart()}
-                    {this.renderComiketChart()}
-                    {this.renderPieChart()}
-                    {this.renderGoodBadDistribution()}
+                    {this.renderTotalSize(filtererFiles)}
+                    {this.rendeTimeChart(filtererFiles)}
+                    {this.renderComiketChart(filtererFiles)}
+                    {this.renderPieChart(filtererFiles)}
+                    {this.renderGoodBadDistribution(filtererFiles)}
                 </div>)
         }
     }

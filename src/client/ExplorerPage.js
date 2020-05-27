@@ -506,11 +506,11 @@ export default class ExplorerPage extends Component {
         </li>);
     }
 
-    renderFileList() {
+    renderFileList(filteredFiles, filteredVideos) {
         const { sortOrder } = this.state;
         let dirs = this.dirs||[];
-        let videos = this.getFilteredVideos();
-        let files = this.getFilteredFiles();
+        let videos = filteredVideos;
+        let files = filteredFiles ;
 
         try {
             files = this.sortFiles(files, sortOrder);
@@ -580,7 +580,6 @@ export default class ExplorerPage extends Component {
                         {this.getOneLineListItem(<i className="fas fa-book"></i>, text, item)}
                         </Link>)
             }else{
-               
 
                 const hasZipInfo = this.hasZipInfo(item);
                 const musicNum = this.getMusicNum(item);
@@ -630,7 +629,7 @@ export default class ExplorerPage extends Component {
                 <ul className={"dir-list container"}>
                     {videoItems}
                 </ul>
-                {this.renderPagination()}
+                {this.renderPagination(filteredFiles, filteredVideos)}
                 {this.renderSortHeader()}
                 <div className={"file-grid container"}>
                     <div className={rowCn}>
@@ -740,18 +739,18 @@ export default class ExplorerPage extends Component {
         }
     }
 
-    renderFileCount(){
-        const totalSize = this.getAllFileSize();
+    renderFileCount(filteredFiles, filteredVideos){
+        const totalSize = this.getAllFileSize(filteredFiles, filteredVideos);
         return (
             <React.Fragment>
-            <div className="file-count col-6 col-md-4"><i className="fas fa-file-archive"/>{this.getFilteredFiles().length + " compressed files"} </div>
-            <div className="file-count col-6 col-md-4"><i className="fas fa-film"/>{this.getFilteredVideos().length + " video files"} </div>
+            <div className="file-count col-6 col-md-4"><i className="fas fa-file-archive"/>{filteredFiles.length + " compressed files"} </div>
+            <div className="file-count col-6 col-md-4"><i className="fas fa-film"/>{filteredVideos.length + " video files"} </div>
             <div className="file-count col-6 col-md-4"><i className="fas fa-hdd"/>{filesizeUitl(totalSize, {base: 2})} </div>
             </React.Fragment>
         );
     }
 
-    getExplorerToolbar(){
+    getExplorerToolbar(filteredFiles, filteredVideos){
         const mode = this.getMode();
         if(mode === MODE_HOME){
             return;
@@ -760,12 +759,12 @@ export default class ExplorerPage extends Component {
         const isExplorer = mode === MODE_EXPLORER && this.getPathFromQuery();
         let topButtons = (
         <div className="top-button-gropus row">
-                {this.renderFileCount()}
-                {this.getFilteredFiles().length > 0 && 
+                {this.renderFileCount(filteredFiles, filteredVideos)}
+                {filteredFiles.length > 0 && 
                     <div className="col-6 col-md-4"> {this.renderToggleThumbNailButton()} </div>}
                 {isExplorer && 
                     <div className="col-6 col-md-4"> {this.renderLevelButton()} </div> }
-                {this.getFilteredVideos().length > 0 && 
+                {filteredVideos.length > 0 && 
                     <div className="col-6 col-md-4"> {this.renderShowVideoButton()} </div>}
                 <div className="col-6 col-md-4 " > {this.renderToggleMenuButton()} </div>  
                 <div className="col-6 col-md-4"> {this.renderChartButton()} </div>
@@ -819,11 +818,11 @@ export default class ExplorerPage extends Component {
         } 
     }
 
-    renderPagination(){
+    renderPagination(filteredFiles, filteredVideos){
         if(this.getMode() === MODE_HOME){
             return;
         }
-        const fileLength = this.getFilteredFiles().length;
+        const fileLength = filteredFiles.length;
         return (<div className="pagination-container">
                             <Pagination ref={ref => this.pagination = ref}
                             currentPage={this.state.pageIndex}  
@@ -878,9 +877,9 @@ export default class ExplorerPage extends Component {
         });
     }
 
-    getAllFileSize(){
-        let files = this.getFilteredFiles();
-        files = files.concat(this.getFilteredVideos())
+    getAllFileSize(filteredFiles, filteredVideos){
+        let files = filteredFiles;
+        files = files.concat(filteredVideos)
         let totalSize = 0;
         files.forEach(e => {
             if(this.fileInfos[e]){
@@ -890,10 +889,9 @@ export default class ExplorerPage extends Component {
         return totalSize;
     }
 
-    renderSideMenu(){
+    renderSideMenu(filteredFiles, filteredVideos){
         const tag2Freq = {};
-        const files = this.getFilteredFiles();
-        files.forEach(e => {
+        filteredFiles.forEach(e => {
             const result = parse(e);
             let tags = (result && result.tags)||[];
 
@@ -997,14 +995,17 @@ export default class ExplorerPage extends Component {
             return <ErrorPage res={this.res.res}/>;
         }
 
+        const filteredFiles = this.getFilteredFiles();
+        const filteredVideos =  this.getFilteredVideos();
+
         const cn = classNames("explorer-container-out", this.getMode().replace(" ", "_"));
 
         return (<div className={cn} >
             {this.getLinkToEhentai()}
-            {this.getExplorerToolbar()}
-            {this.renderSideMenu()}
-            {this.renderFileList()}
-            {this.renderPagination()}
+            {this.getExplorerToolbar(filteredFiles, filteredVideos)}
+            {this.renderSideMenu(filteredFiles, filteredVideos)}
+            {this.renderFileList(filteredFiles, filteredVideos)}
+            {this.renderPagination(filteredFiles, filteredVideos)}
             </div>
         );
     }
