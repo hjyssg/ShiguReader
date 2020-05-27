@@ -21,7 +21,7 @@ export default class ErrorPage extends Component {
                 <h2>{text}</h2>
                 {/* <a href="#">Go To Homepage</a> */}
             </div>
-            <h4>{userText}</h4>
+            <div className="error-user-text">{userText}</div>
         </div>);
      }
 }
