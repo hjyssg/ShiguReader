@@ -50,10 +50,6 @@ export default class TagPage extends Component {
     this.perPage = getPerPageItemNumber();
   }
 
-  get pageIndex(){
-    return +this.props.match.params.index;
-  }
-
   componentDidMount() {
     if (this.state.loaded) {
       return;
@@ -160,7 +156,8 @@ export default class TagPage extends Component {
       authors = [],
       loaded,
       authorToFiles,
-      tagToFiles
+      tagToFiles,
+      pageIndex
     } = this.state;
 
     if ( _.isEmpty(tags) && _.isEmpty(authors)) {
@@ -189,7 +186,7 @@ export default class TagPage extends Component {
       keys.sort((a, b) => a.localeCompare(b));
     }
 
-    keys = keys.slice((this.pageIndex-1) * this.perPage, this.pageIndex * this.perPage);
+    keys = keys.slice((pageIndex-1) * this.perPage, pageIndex * this.perPage);
     const t2Files = this.isAuthorMode()? authorToFiles : tagToFiles;
 
     const tagItems = keys.map((tag) => {
