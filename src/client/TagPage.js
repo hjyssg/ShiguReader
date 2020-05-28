@@ -46,7 +46,9 @@ function addToArray(table, key, value){
 export default class TagPage extends Component {
   constructor(prop) {
     super(prop);
-    this.state = { tags: [], sortByNumber: true, pageIndex: 1 };
+    this.state = { tags: [], 
+                   sortByNumber: true,
+                   pageIndex: (+this.props.match.params.index) || 1 };
     this.perPage = getPerPageItemNumber();
   }
 
