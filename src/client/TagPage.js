@@ -52,6 +52,13 @@ export default class TagPage extends Component {
     this.perPage = getPerPageItemNumber();
   }
 
+  componentWillReceiveProps(nextProps){
+    if(this.props.mode !== nextProps.mode){
+      this.setState({pageIndex: 1})
+    }
+  }
+
+
   componentDidMount() {
     if (this.state.loaded) {
       return;
