@@ -45,18 +45,22 @@ router.post('/api/lsDir', async (req, res) => {
 
     results.forEach(obj => {
         const pp = obj.filePath;
-        //add file's parent dir
-        //because we do not track dir in the server
-        if(oneLevel && !isDirectParent(dir, pp)){
-            //for example
-            //the dir is     F:/git 
-            //the file is    F:/git/a/b/1.zip
-            //add folder           F:/git/a
-            const cTokens = pp.split(path.sep);
-            let itsParent = pTokens.concat(cTokens[plength]);
-            dirs.push(itsParent.join(path.sep));
-        }else{
+        if(isRecursive){
             fileInfos[pp] = getFileToInfo(pp);
+        }else {
+            if(isDirectParent(dir, pp)){
+                fileInfos[pp] = getFileToInfo(pp);
+            }else{
+                //add file's parent dir
+                //because we do not track dir in the server
+                //for example
+                //the dir is     F:/git 
+                //the file is    F:/git/a/b/1.zip
+                //add folder           F:/git/a
+                const cTokens = pp.split(path.sep);
+                let itsParent = pTokens.concat(cTokens[plength]);
+                dirs.push(itsParent.join(path.sep));
+            }
         }
     })
 
