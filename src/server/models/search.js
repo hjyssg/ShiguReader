@@ -22,7 +22,8 @@ function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
     }else if(author){
         const reg = escapeRegExp(author);
         results = getFileCollection().chain()
-                      .find({'author': { '$regex' : reg }, isDisplayableInExplorer: true });
+                      .find({'$or': [{'author': { '$regex' : reg }}, {'group': { '$regex' : reg }}], 
+                      isDisplayableInExplorer: true });
     }else if(tag){
         const reg = escapeRegExp(tag);
         results = getFileCollection().chain()
