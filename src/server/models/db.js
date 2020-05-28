@@ -12,11 +12,15 @@ const {getDirName} = serverUtil;
 const { isImage, isCompress, isMusic, isDisplayableInExplorer, isDisplayableInOnebook } = util;
 const { generateContentUrl } = pathUtil;
 
+const nameParser = require('../../name-parser');
+const namePicker = require("../../human-name-picker");
+
 const loki = require("lokijs");
 const file_db = new loki();
-const file_collection = file_db.addCollection("fileTable", 
-    { indices: ['filePath', "fileName", "tags", "authors"],
-    unique: ['filePath'] }  );
+const file_collection = file_db.addCollection("fileTable", { 
+    indices: ['filePath', "fileName", "tags", "authors"],
+    unique: ['filePath'] 
+});
 
 const db = {
     //file path to file stats
@@ -80,9 +84,6 @@ const deleteFromFileDb = function(filePath){
         file_collection.remove(data);
     }
 }
-
-const nameParser = require('../../name-parser');
-const namePicker = require("../../human-name-picker");
 
 
 
