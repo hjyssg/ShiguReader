@@ -88,12 +88,13 @@ const namePicker = require("../../human-name-picker");
 
 const updateFileDb = function(filePath){
     const fileName = path.basename(filePath);
-
     
     let data = getData(filePath) || {};
+    data.filePath = filePath;
     data.isDisplayableInExplorer = isDisplayableInExplorer(filePath);
-    
     data.fileName  = fileName;
+
+    //set up tags
     const temp = nameParser.parse(fileName) || {};
     const nameTags = namePicker.pick(fileName)||[];
     const tags1 = temp.tags || [];
