@@ -85,7 +85,7 @@ const deleteFromFileDb = function(filePath){
     }
 }
 
-
+const sep = module.exports.strSep = "-----";
 
 const updateFileDb = function(filePath){
     const fileName = path.basename(filePath);
@@ -102,9 +102,8 @@ const updateFileDb = function(filePath){
     const musisTags = nameParser.parseMusicTitle(fileName)||[];
     let tags = _.uniq(tags1.concat(nameTags, musisTags));
 
-    const sep = "  ";
     data.tags = tags.join(sep);
-    data.author = (temp.authors && temp.authors.join(sep)) || temp.author || temp.group || "";
+    data.author = (temp.authors && temp.authors.join(sep)) || temp.author || "";
 
     if(has(filePath)){
         file_collection.update(data);
