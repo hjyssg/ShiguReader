@@ -66,7 +66,7 @@ const { listZipContentAndUpdateDb, extractAll, extractByRange }= sevenZipHelp;
 
 const db = require("./models/db");
 const { getAllFilePathes, getCacheFiles, getCacheOutputPath, 
-        updateStatToDb, deleteFromDb , updateStatToCacheDb, deleteFromCacheDb} = db;
+        updateStatToDb, deleteFromDb , updateStatToCacheDb, deleteFromCacheDb, getFileCollection} = db;
 
 const app = express();
 app.use(express.static('dist', {
@@ -470,14 +470,10 @@ app.post('/api/extract', async (req, res) => {
         //maybe the file move to other location
         const fn = path.basename(filePath);
         //todo loop is slow
-        const isSomewhere = getAllFilePathes().some(e => {
-            if(path.basename(e) === fn){
-                filePath = e;
-                return true;
-            }
-        });
-
-        if(!isSomewhere){
+        const sameFnObj = getFileCollection().findOne({fileName: fn });
+        if(sameFnObj){
+            filePath = sameFnObj.filePath;
+        } else {
             res.sendStatus(404);
             return;
         }

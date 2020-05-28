@@ -30,7 +30,7 @@ const cacheDb = module.exports.cacheDb = {
     cacheFileToInfo: {}
 }
 
-const getAllFilePathes = module.exports.getAllFilePathes = function(){
+module.exports.getAllFilePathes = function(){
     return _.keys(db.fileToInfo);
 };
 
@@ -66,7 +66,7 @@ module.exports.initFileToInfo = function(obj){
 }
 
 function getData(filePath){
-    file_collection.findOne({filePath: filePath});
+    return file_collection.findOne({filePath: filePath});
 }
 
 const has = module.exports.has = function(filePath){
