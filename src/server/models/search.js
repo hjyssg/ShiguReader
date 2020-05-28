@@ -35,7 +35,7 @@ function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
     })
 
     let end = (new Date).getTime();
-    console.log((end - beg)/1000, "to search");
+    // console.log((end - beg)/1000, "to search");
 
     const getThumbnails = serverUtil.common.getThumbnails;
     const files = _.keys(fileInfos);
