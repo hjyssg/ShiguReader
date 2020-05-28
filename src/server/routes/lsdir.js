@@ -33,7 +33,6 @@ router.post('/api/lsDir', async (req, res) => {
     let result;
     const dirs = [];
     const fileInfos = {};
-    const oneLevel = !isRecursive;
     const pTokens = dir.split(path.sep);
     const plength = pTokens.length;
 
