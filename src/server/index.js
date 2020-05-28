@@ -293,7 +293,8 @@ app.post("/api/tagFirstImagePath", (req, res) => {
     }
 
     const onlyNeedFew = true;
-    const { files } = searchByTagAndAuthor(tag, author, null, onlyNeedFew);
+    const { fileInfos } = searchByTagAndAuthor(tag, author, null, onlyNeedFew);
+    const files = _.keys(fileInfos);
     chosendFileName = serverUtil.chooseOneZipForOneTag(files, db.getFileToInfo());
     if(!chosendFileName){
         res.sendStatus(404);

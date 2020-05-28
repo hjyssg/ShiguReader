@@ -17,19 +17,23 @@ function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
     let results;
     if(text){
         const reg = escapeRegExp(text);
-        results = getFileCollection()
+        results = getFileCollection().chain()
                       .find({'fileName': { '$regex' : reg }, isDisplayableInExplorer: true });
     }else if(author){
         const reg = escapeRegExp(author);
-        results = getFileCollection()
+        results = getFileCollection().chain()
                       .find({'author': { '$regex' : reg }, isDisplayableInExplorer: true });
     }else if(tag){
         const reg = escapeRegExp(tag);
-        results = getFileCollection()
+        results = getFileCollection().chain()
                       .find({'tags': { '$regex' : reg }, isDisplayableInExplorer: true });
     }
 
-    results.forEach(obj => {
+    if(onlyNeedFew){
+        results = results.limit(5);
+    }
+
+    results.data().forEach(obj => {
         const pp = obj.filePath;
         fileInfos[pp] = db.getFileToInfo(pp);
     })
