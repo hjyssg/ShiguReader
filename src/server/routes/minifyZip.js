@@ -7,7 +7,7 @@ const { isExist } = pathUtil;
 const filesizeUitl = require('filesize');
 const logger = require("../logger");
 const db = require("../models/db");
-const { getAllFilePathes } = db;
+const { getFileCollection } = db;
 const path = require('path');
 
 const serverUtil = require("../serverUtil");
@@ -36,7 +36,6 @@ const limit = pLimit(1);
 
 router.post('/api/overwrite', async (req, res) =>  {
     const filePath = req.body && req.body.filePath;
-    const fn = path.basename(filePath, path.extname(filePath));
 
     if (!filePath || !(await isExist(filePath)) || minifyZipQue.includes(filePath)  ) {
         res.sendStatus(404);
@@ -49,22 +48,29 @@ router.post('/api/overwrite', async (req, res) =>  {
     //fint the original file
     let originalFilePath;
 
-    const allPath = getAllFilePathes();
+    const fn = path.basename(filePath, path.extname(filePath));
+    const reg = util.escapeRegExp(fn);
+    const allPath = getFileCollection()
+                    .chain()
+                    .find({'fileName': { '$regex' : reg }, isDisplayableInExplorer: true })
+                    .where(obj => {
+                        const pp = obj.filePath;
+                        return util.isCompress(pp) && pp !== filePath;
+                    })
+                    .data()
+                    .map(obj => obj.filePath);
 
     for(let ii = 0; ii < allPath.length; ii++){
         let pp = allPath[ii];
-        if(util.isCompress(pp)){
-            let ppFn = path.basename(pp, path.extname(pp));
+        let ppFn = path.basename(pp, path.extname(pp));
+        if( ppFn === fn){
+            const oldTemp = await listZipContentAndUpdateDb(pp);
+            const oldFileImgs = oldTemp.files;
+            const oldFileStat = await getStat(pp);
 
-            if(pp !== filePath && ppFn === fn){
-                const oldTemp = await listZipContentAndUpdateDb(pp);
-                const oldFileImgs = oldTemp.files;
-                const oldFileStat = await getStat(pp);
-
-                if(oldFileStat.size > newFileStat.size && imageMagickHelp.isNewZipSameWithOriginalFiles(newFileImgs, oldFileImgs)){
-                    originalFilePath = pp;
-                    break;
-                }
+            if(oldFileStat.size > newFileStat.size && imageMagickHelp.isNewZipSameWithOriginalFiles(newFileImgs, oldFileImgs)){
+                originalFilePath = pp;
+                break;
             }
         }
     }

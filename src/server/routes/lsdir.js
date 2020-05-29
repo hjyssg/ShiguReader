@@ -9,9 +9,9 @@ const express = require('express');
 const router = express.Router();
 const serverUtil = require("../serverUtil");
 const db = require("../models/db");
-const { loopEachFileInfo } = db;;
+const { loopEachFileInfo, getFileCollection, getFileToInfo } = db;;
 const util = global.requireUtil();
-const { getCurrentTime, isDisplayableInExplorer } = util;
+const { getCurrentTime, isDisplayableInExplorer, escapeRegExp } = util;
 const path = require('path');
 const zipInfoDb = require("../models/zipInfoDb");
 const { getZipInfo }  = zipInfoDb;
@@ -33,15 +33,25 @@ router.post('/api/lsDir', async (req, res) => {
     let result;
     const dirs = [];
     const fileInfos = {};
-    const oneLevel = !isRecursive;
     const pTokens = dir.split(path.sep);
     const plength = pTokens.length;
 
-    loopEachFileInfo((pp, fileInfo) => {
-        if(pp && isDisplayableInExplorer(pp) && isSub(dir, pp, pTokens)){
-            //add file's parent dir
-            //because we do not track dir in the server
-            if(oneLevel && !isDirectParent(dir, pp)){
+    const reg = escapeRegExp(dir);
+    const results = getFileCollection()
+                  .chain()
+                  .find({'filePath': { '$regex' : reg }, isDisplayableInExplorer: true })
+                  .where(obj => isSub(dir, obj.filePath)).data();
+
+    results.forEach(obj => {
+        const pp = obj.filePath;
+        if(isRecursive){
+            fileInfos[pp] = getFileToInfo(pp);
+        }else {
+            if(isDirectParent(dir, pp)){
+                fileInfos[pp] = getFileToInfo(pp);
+            }else{
+                //add file's parent dir
+                //because we do not track dir in the server
                 //for example
                 //the dir is     F:/git 
                 //the file is    F:/git/a/b/1.zip
@@ -49,19 +59,16 @@ router.post('/api/lsDir', async (req, res) => {
                 const cTokens = pp.split(path.sep);
                 let itsParent = pTokens.concat(cTokens[plength]);
                 dirs.push(itsParent.join(path.sep));
-            }else{
-                fileInfos[pp] = fileInfo;
             }
         }
     })
-
-    const _dirs = _.uniq(dirs);
 
     const time2 = getCurrentTime();
     const timeUsed = (time2 - time1)/1000;
     // console.log(timeUsed, "to LsDir")
 
     const files = _.keys(fileInfos);
+    const _dirs = _.uniq(dirs);
 
     result = { dirs: _dirs, 
                path: dir, 

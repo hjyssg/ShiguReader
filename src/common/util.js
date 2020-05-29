@@ -23,19 +23,19 @@ module.exports.isGif= function (fn) {
 };
 
 const isImage = module.exports.isImage = function (fn) {
-    return fn.toLowerCase().match(imageTypesRegex);
+    return !!fn.toLowerCase().match(imageTypesRegex);
 };
 
 const isCompress = module.exports.isCompress = function (fn) {
-    return fn.toLowerCase().match(compressTypesRegex);
+    return !!fn.toLowerCase().match(compressTypesRegex);
 };
 
 const isMusic = module.exports.isMusic = function(fn){
-    return fn.toLowerCase().match(musicTypesRegex);
+    return !!fn.toLowerCase().match(musicTypesRegex);
 }
 
 const isVideo = module.exports.isVideo = function(fn){
-    return fn.toLowerCase().match(videoTypesRegex);
+    return !!fn.toLowerCase().match(videoTypesRegex);
 }
 
 const THUMBNAIL_FLAG = "thumbnail--";
@@ -99,4 +99,10 @@ module.exports.isDisplayableInExplorer = function(e){
 
 module.exports.isDisplayableInOnebook = function(e){
     return isImage(e)||isMusic(e);
+}
+
+module.exports.escapeRegExp = function(string) {
+    const str = string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
+    var reg = new RegExp(str, 'i');
+    return reg;
 }

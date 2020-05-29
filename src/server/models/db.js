@@ -12,6 +12,16 @@ const {getDirName} = serverUtil;
 const { isImage, isCompress, isMusic, isDisplayableInExplorer, isDisplayableInOnebook } = util;
 const { generateContentUrl } = pathUtil;
 
+const nameParser = require('../../name-parser');
+const namePicker = require("../../human-name-picker");
+
+const loki = require("lokijs");
+const file_db = new loki();
+const file_collection = file_db.addCollection("fileTable", { 
+    indices: ['filePath', "fileName", "tags", "authors"],
+    unique: ['filePath'] 
+});
+
 const db = {
     //file path to file stats
     fileToInfo: {}
@@ -24,7 +34,7 @@ const cacheDb = module.exports.cacheDb = {
     cacheFileToInfo: {}
 }
 
-const getAllFilePathes = module.exports.getAllFilePathes = function(){
+module.exports.getAllFilePathes = function(){
     return _.keys(db.fileToInfo);
 };
 
@@ -55,12 +65,78 @@ module.exports.getAllCacheFilePathes = function(){
 module.exports.initFileToInfo = function(obj){
     db.fileToInfo = obj;
     loopEachFileInfo(e => {
-        const fp = path.basename(e);
-        if (isDisplayableInExplorer(fp)) {
-            serverUtil.parse(fp);
-        }
+        updateFileDb(e)
     })
 }
+
+function getData(filePath){
+    return file_collection.findOne({filePath: filePath});
+}
+
+const has = module.exports.has = function(filePath){
+    const data = getData(filePath);
+    return !!data;
+}
+
+const deleteFromFileDb = function(filePath){
+    if(has(filePath)){
+        let data = getData(filePath);
+        file_collection.remove(data);
+    }
+}
+
+const sep = module.exports.strSep = "-----";
+
+const updateFileDb = function(filePath){
+    const fileName = path.basename(filePath);
+    
+    let data = getData(filePath) || {};
+    data.filePath = filePath;
+    data.isDisplayableInExplorer = isDisplayableInExplorer(filePath);
+    data.fileName  = fileName;
+
+    //set up tags
+    const temp = nameParser.parse(fileName) || {};
+    const nameTags = namePicker.pick(fileName)||[];
+    const tags1 = temp.tags || [];
+    const musisTags = nameParser.parseMusicTitle(fileName)||[];
+    let tags = _.uniq(tags1.concat(nameTags, musisTags));
+
+    data.tags = tags.join(sep);
+    data.author = (temp.authors && temp.authors.join(sep)) || temp.author || "";
+    data.group = temp.group;
+
+    if(has(filePath)){
+        file_collection.update(data);
+    }else{
+        file_collection.insert(data);
+    }
+}
+
+module.exports.getFileCollection = function(){
+    return file_collection;
+}
+
+
+//!! same as file-iterator getStat()
+module.exports.updateStatToDb =  function(path, stat){
+    const result = {};
+    result.isFile = stat.isFile();
+    result.isDir = stat.isDirectory();
+    result.mtimeMs = stat.mtimeMs;
+    result.mtime = stat.mtime;
+    result.size = stat.size;
+    db.fileToInfo[path] = result;
+
+    updateFileDb(path);
+}
+
+module.exports.deleteFromDb = function(path){
+    delete db.fileToInfo[path];
+    deleteFromFileDb(path);
+}
+
+//---------------------------------------------cache db---------------------
 
 module.exports.initCacheDb = function(pathes, infos){
     (pathes||[]).forEach(p => {
@@ -105,21 +181,6 @@ module.exports.getCacheOutputPath = function (cachePath, zipFilePath) {
         outputFolder = outputFolder+ `${mstr} ${fstr} `;
     }
     return path.join(cachePath, outputFolder);
-}
-
-//!! same as file-iterator getStat()
-module.exports.updateStatToDb =  function(path, stat){
-    const result = {};
-    result.isFile = stat.isFile();
-    result.isDir = stat.isDirectory();
-    result.mtimeMs = stat.mtimeMs;
-    result.mtime = stat.mtime;
-    result.size = stat.size;
-    db.fileToInfo[path] = result;
-}
-
-module.exports.deleteFromDb = function(path){
-    delete db.fileToInfo[path];
 }
 
 //!! same as file-iterator getStat()
