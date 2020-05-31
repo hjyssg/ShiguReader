@@ -87,6 +87,7 @@ module.exports.search = async function (folders, config) {
         }
     }
 
+    result.pathes = _.uniq(result.pathes);
     return result;
 };
 
