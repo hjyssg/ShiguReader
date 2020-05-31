@@ -128,7 +128,7 @@ async function init() {
 
 
     console.log("----------scan cache------------");
-    const cache_results = await scanFolder([cachePath], { 
+    const cache_results = fileiterator([cachePath], { 
         filter: cacheFilter, 
         doLog: true
     });

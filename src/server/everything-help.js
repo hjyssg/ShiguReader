@@ -29,7 +29,9 @@ module.exports.isSupported = function(){
 async function searchSinglePath(path, config,  result){
     try{
         //only files
-        const {stdout, stderr} = await execa("es.exe", ["-csv", "-size",  "-dm", "/a-d", "-p", path])
+        // const {stdout, stderr} = await execa("es.exe", ["-csv", "-size",  "-dm", "/a-d", "-p", path]);
+        const {stdout, stderr} = await execa("es.exe", ["-csv", "-size",  "-dm", "-p", path]);
+
         if(!stderr && stdout){
             const lines = stdout.split("\n");
             
@@ -54,21 +56,36 @@ async function searchSinglePath(path, config,  result){
                         return;
                     }
 
+                    if(config && config.doLog &&  result.pathes.length % 2000 === 0){
+                        console.log("[everything-help] scan:", result.pathes.length);
+                    }
+
                     result.infos[p] = stat;
                     result.pathes.push(p);
                 }
             })
         }
-    }
-    catch(e){
-        console.error("[searchSinglePath] searchSinglePath", e);
+    } catch(e){
+        console.error("[everything-help] searchSinglePath", e);
     } 
 }
 
 module.exports.search = async function (folders, config) {
-    const result = {infos: {}, pathes: [] };
-
-    await searchSinglePath(folders[0], config, result);
+    const result = {pathes: [], infos: {}};
+    for(let ii = 0; ii < folders.length; ii++){
+        const src = folders[ii];
+        if(fs.existsSync(src)){
+            const stat = fs.statSync(src);
+            if (stat.isFile()) {
+                throw "only source folder path";
+            } else {
+                await searchSinglePath(src, config, result);
+            }
+        }else{
+            console.error(`[file-iterator] ${src} does not exist! Please check you path-config and user-config.js`);
+            console.error(`[file-iterator] ${src} 不存在! 检查一下你的path-config和user-config.js`);
+        }
+    }
 
     return result;
 };
