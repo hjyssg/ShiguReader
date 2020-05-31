@@ -114,9 +114,12 @@ async function init() {
     let beg = (new Date).getTime();
     await everythingHelp.init();
 
+    const {imageTypes, compressTypes,  musicTypes, videoTypes } = util.getTypeTable();
+
     const results = await scanFolder(path_will_scan, { 
         filter: filterForOne, 
-        doLog: true
+        doLog: true,
+        types: compressTypes.concat(videoTypes)
     });
 
     results.pathes = results.pathes.concat(home_pathes);

@@ -27,10 +27,12 @@ module.exports.isSupported = function(){
 }
 
 async function searchSinglePath(path, config,  result){
+    const reg =  config.types.map(e => e.replace(".", "")).join("|");
+
     try{
         //only files
-        // const {stdout, stderr} = await execa("es.exe", ["-csv", "-size",  "-dm", "/a-d", "-p", path]);
-        const {stdout, stderr} = await execa("es.exe", ["-csv", "-size",  "-dm", "-p", path]);
+        const {stdout, stderr} = await execa("es.exe", ["-csv", "-size",  "-dm", "/a-d", "-p", path, "-r", reg]);
+        // const {stdout, stderr} = await execa("es.exe", ["-csv", "-size",  "-dm", "-p", path]);
 
         if(!stderr && stdout){
             const lines = stdout.split("\n");

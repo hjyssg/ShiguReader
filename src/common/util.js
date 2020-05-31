@@ -14,9 +14,20 @@ const musicTypesRegex = new RegExp("("+ musicTypes.join("|") + ")$");
 const videoTypesRegex = new RegExp("("+ videoTypes.join("|") + ")$");
 
 
+
 function isOnlyDigit(str){
     return str.match(/^[0-9]+$/) != null
 }
+
+module.exports.getTypeTable = function(){
+    return {
+        imageTypes, 
+        compressTypes,
+        musicTypes,
+        videoTypes 
+    }
+}
+
 
 module.exports.isGif= function (fn) {
     return fn.toLowerCase().endsWith(".gif");
