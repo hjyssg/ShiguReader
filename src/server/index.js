@@ -68,6 +68,8 @@ const db = require("./models/db");
 const { getAllFilePathes, getCacheFiles, getCacheOutputPath, 
         updateStatToDb, deleteFromDb , updateStatToCacheDb, deleteFromCacheDb, getFileCollection} = db;
 
+const everythingHelp = require('./everything-help');
+
 const app = express();
 app.use(express.static('dist', {
     maxAge: (1000*3600).toString()
@@ -81,6 +83,16 @@ app.use(express.json());
 
 const portConfig = require('../config/port-config');
 const {http_port, dev_express_port } = portConfig;
+
+async function scanFolder(folders, config){
+    let results;
+    if(everythingHelp.isSupported()){
+        results = await everythingHelp.search(folders, config);
+    }else{
+        results = fileiterator(folders, config);
+    }
+    return results;
+}
 
 async function init() {
     if(isWindows()){
@@ -99,11 +111,14 @@ async function init() {
     console.log("scanning local files");
 
  
-    let beg = (new Date).getTime()
-    const results = fileiterator(path_will_scan, { 
+    let beg = (new Date).getTime();
+    await everythingHelp.init();
+
+    const results = await scanFolder(path_will_scan, { 
         filter: filterForOne, 
         doLog: true
     });
+
     results.pathes = results.pathes.concat(home_pathes);
     let end = (new Date).getTime();
     console.log(`${(end - beg)/1000}s  to read local dirs`);
@@ -113,7 +128,7 @@ async function init() {
 
 
     console.log("----------scan cache------------");
-    const cache_results = fileiterator([cachePath], { 
+    const cache_results = await scanFolder([cachePath], { 
         filter: cacheFilter, 
         doLog: true
     });
