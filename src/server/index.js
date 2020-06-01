@@ -623,7 +623,7 @@ app.use(minifyZip);
 if(isProduction){
     const history = require('connect-history-api-fallback');
     app.use(history({
-        verbose: true,
+        // verbose: true,
     }));
 
     app.get('/index.html', (req, res) => {
