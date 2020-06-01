@@ -100,23 +100,26 @@ async function init() {
 
  
     let beg = (new Date).getTime()
-    const results = fileiterator(path_will_scan, { 
+    const results = await fileiterator(path_will_scan, { 
         filter: filterForOne, 
         doLog: true
     });
     results.pathes = results.pathes.concat(home_pathes);
-    let end = (new Date).getTime();
-    console.log(`${(end - beg)/1000}s  to read local dirs`);
+    let end1 = (new Date).getTime();
+    console.log(`${(end1 - beg)/1000}s  to read local dirs`);
     console.log("Analyzing local files");
     db.initFileToInfo(results.infos);
     console.log("There are", getAllFilePathes().length, "files");
 
 
     console.log("----------scan cache------------");
-    const cache_results = fileiterator([cachePath], { 
+    const cache_results = await fileiterator([cachePath], { 
         filter: cacheFilter, 
         doLog: true
     });
+
+    let end2 = (new Date).getTime();
+    console.log(`${(end2 - end1)/1000}s  to read cache dirs`);
 
     db.initCacheDb(cache_results.pathes, cache_results.infos);
     setUpFileWatch();

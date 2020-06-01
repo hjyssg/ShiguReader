@@ -1,25 +1,26 @@
 
 
 const path = require('path');
-const fs = require("fs");
 const _ = require("underscore");
+const pfs = require('promise-fs');
 
-module.exports = function (folders, config) {
+module.exports = async function (folders, config) {
     const result = {pathes: [], infos: {}};
     config.visited = {};
-    folders.forEach((src) => {
-        if(fs.existsSync(src)){
-            const stat = fs.statSync(src);
+    for(let ii = 0; ii < folders.length; ii++){
+        const src = folders[ii];
+        if(await pfs.existsSync(src)){
+            const stat = await pfs.statSync(src);
             if (stat.isFile()) {
                 throw "only source folder path";
             } else {
-                iterate(src, config, result, 0);
+                await iterate(src, config, result, 0);
             }
         }else{
             console.error(`[file-iterator] ${src} does not exist! Please check you path-config and user-config.js`);
             console.error(`[file-iterator] ${src} 不存在! 检查一下你的path-config和user-config.js`);
         }
-    });
+    }
     delete config.visited;
     return result;
 };
@@ -31,8 +32,8 @@ function isLegalDepth(depth, config) {
     return true;
 }
 
-function getStat(p){
-    const stat = fs.statSync(p);
+async function getStat(p){
+    const stat = await pfs.statSync(p);
     const result = {};
     result.isFile = stat.isFile();
     result.isDir = stat.isDirectory();
@@ -42,12 +43,12 @@ function getStat(p){
     return result;
 }
 
-function iterate (p, config, result, depth) {
+async function iterate (p, config, result, depth) {
     if(config.visited[p]){
         return;
     }
     try {
-        const stat = getStat(p, config);
+        const stat = await getStat(p, config);
         if (stat.isFile) {
             if (config && config.filter && !config.filter(p, stat)) {
                 return;
@@ -59,10 +60,12 @@ function iterate (p, config, result, depth) {
             result.infos[p] = stat;
             result.pathes.push(p);
         } else if (stat.isDir && isLegalDepth(depth + 1, config)) {
-            fs.readdirSync(p).forEach((e) => {
+            const pathes = await pfs.readdir(p);
+            for(let ii = 0; ii < pathes.length; ii++){
+                e = pathes[ii];
                 e = path.join(p, e);
-                iterate(e, config, result, depth + 1);
-            });
+                await iterate(e, config, result, depth + 1);
+            }
         }
     } catch (e) {
         console.error("[file-iterator]",e);
