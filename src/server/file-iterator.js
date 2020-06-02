@@ -50,17 +50,25 @@ async function iterate (p, config, result, depth) {
     try {
         const stat = await getStat(p, config);
         if (stat.isFile) {
-            if (config && config.filter && !config.filter(p, stat)) {
-                return;
-            }
-
-            if(config && config.doLog &&  result.pathes.length % 2000 === 0){
+            if(config && config.doLog &&  result.pathes.length % 500 === 0){
                 console.log("[file-iterator] scan:", result.pathes.length);
             }
             result.infos[p] = stat;
             result.pathes.push(p);
         } else if (stat.isDir && isLegalDepth(depth + 1, config)) {
-            const pathes = await pfs.readdir(p);
+            let pathes = await pfs.readdir(p);
+            pathes = _.sortBy(pathes, e => {
+                if(path.extname(e)){
+                    return 0;
+                }else{
+                    return 1;
+                }
+            });
+
+            if (config.filter) {
+                pathes = pathes.filter(config.filter);
+            }
+
             for(let ii = 0; ii < pathes.length; ii++){
                 e = pathes[ii];
                 e = path.join(p, e);

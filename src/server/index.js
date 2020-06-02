@@ -101,7 +101,7 @@ async function init() {
  
     let beg = (new Date).getTime()
     const results = await fileiterator(path_will_scan, { 
-        filter: filterForOne, 
+        filter: shouldWatchForOne, 
         doLog: true
     });
     results.pathes = results.pathes.concat(home_pathes);
@@ -114,7 +114,7 @@ async function init() {
 
     console.log("----------scan cache------------");
     const cache_results = await fileiterator([cachePath], { 
-        filter: cacheFilter, 
+        filter: shouldWatchForCache, 
         doLog: true
     });
 
@@ -145,9 +145,6 @@ async function init() {
     });
 }
 
-const filterForOne = (e) => {
-    return isDisplayableInExplorer(e) && !isHiddenFile(e);
-};
 
 function shouldWatchForOne(p){
     if(isHiddenFile(p)){
@@ -160,11 +157,6 @@ function shouldWatchForOne(p){
 function shouldIgnoreForOne(p){
     return !shouldWatchForOne(p);
 }
-
-const cacheFilter = (e) => {
-    return isDisplayableInOnebook(e) && !isHiddenFile(e);
-};
-
 
 function shouldIgnoreForCache(p){
     return !shouldWatchForCache(p);
