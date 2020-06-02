@@ -2,16 +2,16 @@ const fs = require('fs');
 const path = require('path');
 const util = global.requireUtil();
 
-function thumbnailGenerator(p1, fileName, callback){
+const THUMB_WIDTH = 250; 
+function thumbnailGenerator(thumbnailFolderPath, imgFolder, fileName, callback){
     try{
         //sharp is difficult to install, because GFW
         //but the server runs without it anyway
         const sharp = require('sharp');
         if(sharp && !util.isCompressedThumbnail(fileName) && util.canBeCompressed(fileName)){
-            const outputName = util.getCompressedThumbnailFileName(fileName);
-            const outputPath = path.resolve(p1, outputName);
-            const THUMB_WIDTH = 250; 
-            const filePath = path.resolve(p1, fileName);
+            const outputName = path.basename(imgFolder);
+            const outputPath = path.resolve(thumbnailFolderPath, outputName)+".jpg";
+            const filePath = path.resolve(imgFolder, fileName);
 
             sharp(filePath)
             .resize(THUMB_WIDTH)

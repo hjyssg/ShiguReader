@@ -34,8 +34,9 @@ const { isImage, isCompress, isMusic, arraySlice,
 
 //set up path
 const rootPath = pathUtil.getRootPath();
-const cache_folder_name = userConfig.cache_folder_name;
+const { cache_folder_name, thumbnail_folder_name } = userConfig
 const cachePath = path.join(rootPath, cache_folder_name);
+const thumbnailFolderPath = path.join(rootPath, thumbnail_folder_name);
 
 
 //set up user path
@@ -82,6 +83,8 @@ app.use(express.json());
 const portConfig = require('../config/port-config');
 const {http_port, dev_express_port } = portConfig;
 
+let thumbnailDb;
+
 async function init() {
     if(isWindows()){
         const {stdout, stderr} = await execa("chcp");
@@ -96,9 +99,15 @@ async function init() {
         }
     }
 
+    if(!(await isExist(thumbnailFolderPath))){
+        const mdkirErr = await pfs.mkdir(thumbnailFolderPath, { recursive: true});
+        if(mdkirErr){
+            throw "thumbnailFolderPath";
+        }
+    }
+
     console.log("scanning local files");
 
- 
     let beg = (new Date).getTime()
     const results = await fileiterator(path_will_scan, { 
         filter: shouldWatchForOne, 
@@ -120,8 +129,19 @@ async function init() {
 
     let end2 = (new Date).getTime();
     console.log(`${(end2 - end1)/1000}s  to read cache dirs`);
-
     db.initCacheDb(cache_results.pathes, cache_results.infos);
+
+    console.log("----------scan thumbnail------------");
+    const thumbnail_results = await fileiterator([thumbnailFolderPath], { 
+        filter: isImage, 
+        doNotNeedInfo: true,
+        doLog: true
+    });
+
+    let end3 = (new Date).getTime();
+    console.log(`${(end2 - end2)/1000}s  to read thumbnail dirs`);
+    thumbnailDb = thumbnail_results.pathes;
+
     setUpFileWatch();
 
     const port = isProduction? http_port: dev_express_port;
@@ -233,6 +253,25 @@ function setUpFileWatch (){
             deleteFromCacheDb(p);
         });
 
+    // also thumbnail
+    const thumbnailWatch = chokidar.watch(thumbnailFolderPath, {
+        persistent: true,
+        ignorePermissionErrors: true,
+        ignoreInitial: true,
+    });
+
+
+    thumbnailWatch
+        .on('add', (p) => {
+            thumbnailDb.push(p);
+        })
+        .on('unlink', p => {
+            const index = thumbnailDb.indexOf(p);
+            if(index > -1){
+                thumbnailDb.splice(index, 1);
+            }
+        });
+
     return {
         watcher,
         cacheWatcher
@@ -314,6 +353,11 @@ function logForPre(prefix, config, filePath) {
     }
 }
 
+function getThumbnailFromThumbnailFolder(outputPath){
+    const dirname = path.basename(outputPath);
+    return thumbnailDb.filter(e => e.startWith(dirname))[0];
+}
+
 
 const pLimit = require('p-limit');
 const thumbnailGenerator = require("../tools/thumbnailGenerator");
@@ -347,7 +391,7 @@ async function extractThumbnailFromZip(filePath, res, mode, config) {
     }
 
     function minify(one){
-        thumbnailGenerator(outputPath, path.basename(one), (err, info) => { 
+        thumbnailGenerator(thumbnailFolderPath, outputPath, path.basename(one), (err, info) => { 
             if(isPregenerateMode){
                 config.minCounter++;
                 logForPre("[pre-generate minify] ", config, filePath );
@@ -364,19 +408,12 @@ async function extractThumbnailFromZip(filePath, res, mode, config) {
         files = temp.files;
     }
 
-    //check if there is compress thumbnail  e.g thumbnail--001.jpg
-    const cacheFiles = getCacheFiles(outputPath);
-    if (cacheFiles && cacheFiles.files.length > 0) {
-        const tempOne =  serverUtil.chooseThumbnailImage(cacheFiles.files);
-        if(util.isCompressedThumbnail(tempOne)){
-            let temp = path.join(outputPath, path.basename(tempOne));
-            sendImage(temp);
-            if(isPregenerateMode){
-                config.minCounter++;
-                logForPre("[pre-generate minify] ", config, filePath);
-            }
-        } else if(isPregenerateMode){
-            minify(tempOne);
+    const thumbnail = getThumbnailFromThumbnailFolder(outputPath);
+    if (thumbnail) {
+        sendImage(thumbnail);
+        if(isPregenerateMode){
+            config.minCounter++;
+            logForPre("[pre-generate minify] ", config, filePath);
         }
     } else {
         //do the extract
