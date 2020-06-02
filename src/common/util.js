@@ -38,19 +38,10 @@ const isVideo = module.exports.isVideo = function(fn){
     return !!fn.toLowerCase().match(videoTypesRegex);
 }
 
-const THUMBNAIL_FLAG = "thumbnail--";
-const isCompressedThumbnail = module.exports.isCompressedThumbnail = function(filePath){
-    //used by many places
-    return filePath && filePath.includes(THUMBNAIL_FLAG);
-}
-
-module.exports.getCompressedThumbnailFileName = function(filename){
-    return THUMBNAIL_FLAG + filename;
-}
-
 const compressable = ["jpg", "jpeg", ".png",  ".gif"]
 module.exports.canBeCompressed = function(fn){
-    return compressable.some((e) => fn.toLowerCase().endsWith(e));
+    const fnl = fn.toLowerCase();
+    return compressable.some((e) => fnl.endsWith(e));
 }
 
 //todo duplicate----------

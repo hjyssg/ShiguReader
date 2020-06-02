@@ -8,7 +8,7 @@ function thumbnailGenerator(thumbnailFolderPath, imgFolder, fileName, callback){
         //sharp is difficult to install, because GFW
         //but the server runs without it anyway
         const sharp = require('sharp');
-        if(sharp && !util.isCompressedThumbnail(fileName) && util.canBeCompressed(fileName)){
+        if(sharp  && util.canBeCompressed(fileName)){
             const outputName = path.basename(imgFolder);
             const outputPath = path.resolve(thumbnailFolderPath, outputName)+".jpg";
             const filePath = path.resolve(imgFolder, fileName);

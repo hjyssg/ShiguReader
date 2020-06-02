@@ -54,8 +54,8 @@ export default class AdminPage extends Component {
 
     handleCacheRes(res){
         if (!res.failed) {
-            let { totalSize, cacheNum, thumbnailNum } = res;
-            this.setState({totalSize, cacheNum, thumbnailNum})
+            let { totalSize, cacheNum } = res;
+            this.setState({totalSize, cacheNum})
         }else{
             this.failedTimes++;
         }
@@ -215,7 +215,7 @@ export default class AdminPage extends Component {
         document.title = "Admin"
         const folder_list = this.state.dirs.concat("All_Pathes");
 
-        const { totalSize, cacheNum, thumbnailNum } = this.state
+        const { totalSize, cacheNum } = this.state
         const size = totalSize && filesizeUitl(totalSize, {base: 2});
         let cacheInfo;
 
@@ -223,8 +223,7 @@ export default class AdminPage extends Component {
             cacheInfo = 
             <div className="cache-info">
                 <div className="cache-info-row">{`total size: ${size}`} </div>
-                <div className="cache-info-row">{`${cacheNum-thumbnailNum} files can be deleted` } </div>
-                <div className="cache-info-row">{`${thumbnailNum} minified thumbnails should be reserved`} </div>
+                <div className="cache-info-row">{`${cacheNum} files can be deleted` } </div>
             </div>
         }
 

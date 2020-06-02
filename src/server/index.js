@@ -83,7 +83,7 @@ app.use(express.json());
 const portConfig = require('../config/port-config');
 const {http_port, dev_express_port } = portConfig;
 
-let thumbnailDb;
+let thumbnailDb = {};
 
 async function init() {
     if(isWindows()){
@@ -140,7 +140,7 @@ async function init() {
 
     let end3 = (new Date).getTime();
     console.log(`${(end2 - end2)/1000}s  to read thumbnail dirs`);
-    thumbnailDb = thumbnail_results.pathes;
+    initThumbnailDb(thumbnail_results.pathes);
 
     setUpFileWatch();
 
@@ -163,6 +163,27 @@ async function init() {
         //exit the current program
         setTimeout(()=> process.exit(22), 500);
     });
+}
+
+function addToThumbnailDb(filePath){
+    const key = path.basename(filePath, path.extname(filePath));
+    thumbnailDb[key] = filePath;
+}
+
+function removeFromThumbnailDb(filePath){
+    const key = path.basename(filePath, path.extname(filePath));
+    thumbnailDb[key] = undefined;
+}
+
+function initThumbnailDb(filePath){
+    filePath.forEach(e => {
+        addToThumbnailDb(e);
+    })
+}
+
+function getThumbnailFromThumbnailFolder(outputPath){
+    const key = path.basename(outputPath);
+    return thumbnailDb[key];
 }
 
 
@@ -263,13 +284,10 @@ function setUpFileWatch (){
 
     thumbnailWatch
         .on('add', (p) => {
-            thumbnailDb.push(p);
+            addToThumbnailDb(p);
         })
         .on('unlink', p => {
-            const index = thumbnailDb.indexOf(p);
-            if(index > -1){
-                thumbnailDb.splice(index, 1);
-            }
+            removeFromThumbnailDb(p)
         });
 
     return {
@@ -288,15 +306,20 @@ function getThumbnails(filePathes){
         }
 
         const outputPath = getCacheOutputPath(cachePath, filePath);
-        let cacheFiles = getCacheFiles(outputPath);
-        cacheFiles = (cacheFiles && cacheFiles.files) || [];
-        const thumb = serverUtil.chooseThumbnailImage(cacheFiles);
+        let thumb = getThumbnailFromThumbnailFolder(outputPath);
         if(thumb){
             thumbnails[filePath] = fullPathToUrl(thumb);
-        }else if(zipInfoDb.has(filePath)){
-            const pageNum = getPageNum(filePath);
-            if(pageNum === 0){
-                thumbnails[filePath] = "NOT_THUMBNAIL_AVAILABLE";
+        }else{
+            let cacheFiles = getCacheFiles(outputPath);
+            cacheFiles = (cacheFiles && cacheFiles.files) || [];
+            thumb = serverUtil.chooseThumbnailImage(cacheFiles);
+            if(thumb){
+                thumbnails[filePath] = fullPathToUrl(thumb);
+            }else if(zipInfoDb.has(filePath)){
+                const pageNum = getPageNum(filePath);
+                if(pageNum === 0){
+                    thumbnails[filePath] = "NOT_THUMBNAIL_AVAILABLE";
+                }
             }
         }
     }); 
@@ -352,12 +375,6 @@ function logForPre(prefix, config, filePath) {
         console.log('[pregenerate] done');
     }
 }
-
-function getThumbnailFromThumbnailFolder(outputPath){
-    const dirname = path.basename(outputPath);
-    return thumbnailDb.filter(e => e.startWith(dirname))[0];
-}
-
 
 const pLimit = require('p-limit');
 const thumbnailGenerator = require("../tools/thumbnailGenerator");
@@ -518,7 +535,7 @@ app.post('/api/extract', async (req, res) => {
 
     function sendBack(files, musicFiles, path, stat){
         const tempFiles =  files.filter(e => {
-            return !util.isCompressedThumbnail(e) && !isHiddenFile(e);
+            return !isHiddenFile(e);
           })
   ;
         let zipInfo;
@@ -535,9 +552,7 @@ app.post('/api/extract', async (req, res) => {
         const pageNum = getPageNum(filePath); 
         const musicNum = getMusicNum(filePath);
         const totalNum = pageNum + musicNum;
-        const _files = (temp.files||[]).filter(e => {
-            return !util.isCompressedThumbnail(e);
-        });
+        const _files = temp.files||[];
 
         if (totalNum > 0 &&  _files.length >= totalNum) {
             sendBack(temp.files, temp.musicFiles, filePath, stat);
