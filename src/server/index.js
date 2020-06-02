@@ -186,6 +186,9 @@ function getThumbnailFromThumbnailFolder(outputPath){
     return thumbnailDb[key];
 }
 
+function getThumbCount(){
+    return _.keys(thumbnailDb).length;
+}
 
 function shouldWatchForOne(p){
     if(isHiddenFile(p)){
@@ -468,7 +471,7 @@ async function extractThumbnailFromZip(filePath, res, mode, config) {
 
 //  a huge back ground task 
 //  it generate all thumbnail and will be slow
-app.post('/api/pregenerateThumbnails', (req, res) => {
+app.post('/api/pregenerateThumbnails', async (req, res) => {
     let path = req.body && req.body.path;
     if(!path){
         return;
@@ -484,9 +487,17 @@ app.post('/api/pregenerateThumbnails', (req, res) => {
                   minCounter: 0,
                   total: totalFiles.length, 
                   pregenBeginTime: getCurrentTime()};
-    totalFiles.forEach(filePath =>{
-        extractThumbnailFromZip(filePath, res, "pre-generate", config);
-    })
+
+    
+    const thumbnailNum = getThumbCount();
+    if(thumbnailNum / totalFiles.length > 0.3){
+        totalFiles = _.shuffle(totalFiles);
+    }
+
+    for(let ii = 0; ii < totalFiles.length; ii++){
+        const filePath = totalFiles[ii];
+        await extractThumbnailFromZip(filePath, null, "pre-generate", config);
+    }
 });
 
 
