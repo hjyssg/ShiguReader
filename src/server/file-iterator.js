@@ -12,7 +12,7 @@ module.exports = async function (folders, config) {
         if(await pfs.existsSync(src)){
             const stat = await pfs.statSync(src);
             if (stat.isFile()) {
-                throw "only source folder path";
+                throw "[file-iterator] only source folder path";
             } else {
                 await iterate(src, config, result, 0);
             }
@@ -43,36 +43,38 @@ async function getStat(p){
     return result;
 }
 
-async function iterate (p, config, result, depth) {
+async function iterate (p, config, result, depth, isFile) {
     if(config.visited[p]){
         return;
     }
     try {
-        const stat = await getStat(p, config);
-        if (stat.isFile) {
+        if(isFile){
+            const stat =  await getStat(p, config);
             if(config && config.doLog &&  result.pathes.length % 500 === 0){
                 console.log("[file-iterator] scan:", result.pathes.length);
             }
             result.infos[p] = stat;
             result.pathes.push(p);
-        } else if (stat.isDir && isLegalDepth(depth + 1, config)) {
-            let pathes = await pfs.readdir(p);
+        } else if (isLegalDepth(depth + 1, config)) {
+            let pathes = await pfs.readdir(p, {withFileTypes: true });
+            //iterate all file
             pathes = _.sortBy(pathes, e => {
-                if(path.extname(e)){
+                if(e.isFile()){
                     return 0;
                 }else{
                     return 1;
                 }
             });
 
-            if (config.filter) {
-                pathes = pathes.filter(config.filter);
-            }
-
             for(let ii = 0; ii < pathes.length; ii++){
-                e = pathes[ii];
-                e = path.join(p, e);
-                await iterate(e, config, result, depth + 1);
+                const obj = pathes[ii];
+                const e = obj.name;
+                if (config.filter && !config.filter(e)) {
+                    continue;
+                }
+
+                const fp = path.join(p, e);
+                await iterate(fp, config, result, depth + 1, obj.isFile());
             }
         }
     } catch (e) {
