@@ -31,14 +31,13 @@ function logFail(filePath, e){
 
 //https://imagemagick.org/script/download.php#windows
 
-async function convertImage(imgFilePath, outputImgName, oldAvgImgSize){
+async function convertImage(imgFilePath, outputImgPath, oldAvgImgSize){
     try{
         let opt;
-
         if(oldAvgImgSize > img_reduce_resolution_threshold){
-            opt = [imgFilePath, "-strip", "-quality", img_convert_quality, "-resize", `${img_reduce_resolution_dimension}\>`, outputImgName ]
+            opt = [imgFilePath, "-strip", "-quality", img_convert_quality, "-resize", `${img_reduce_resolution_dimension}\>`, outputImgPath ];
         }else{
-            opt = [imgFilePath, "-strip", "-quality", img_convert_quality, outputImgName ]
+            opt = [imgFilePath, "-strip", "-quality", img_convert_quality, outputImgPath ];
         }
 
         let {stdout, stderr} = await execa("magick", opt);
@@ -124,8 +123,8 @@ module.exports.minifyOneFile = async function(filePath){
             //use imageMagik to convert 
             //  magick 1.jpeg   50 1.webp
             const name = path.basename(fname, path.extname(fname)) + img_convert_dest_type;
-            const outputImgName = path.resolve(minifyOutputPath, name);
-            let {stdout, stderr} = await convertImage(imgFilePath, outputImgName, oldAvgImgSize);
+            const outputImgPath = path.resolve(minifyOutputPath, name);
+            let {stdout, stderr} = await convertImage(imgFilePath, outputImgPath, oldAvgImgSize);
             if (stderr) {
                 converterError = stderr;
                 break;

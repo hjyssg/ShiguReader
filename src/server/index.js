@@ -410,8 +410,8 @@ async function extractThumbnailFromZip(filePath, res, mode, config) {
         }
     }
 
-    function minify(one){
-        thumbnailGenerator(thumbnailFolderPath, outputPath, path.basename(one), (err, info) => { 
+    async function minify(one){
+        await thumbnailGenerator(thumbnailFolderPath, outputPath, path.basename(one), (err, info) => { 
             if(isPregenerateMode){
                 config.minCounter++;
                 logForPre("[pre-generate minify] ", config, filePath );
@@ -447,12 +447,12 @@ async function extractThumbnailFromZip(filePath, res, mode, config) {
                 // console.error("[extractThumbnailFromZip] no thumbnail for ", filePath);
                 handleFail();
             } else {
-                const stderrForThumbnail = await  extractByRange(filePath, outputPath, [one])
+                const stderrForThumbnail = await extractByRange(filePath, outputPath, [one])
                 if (!stderrForThumbnail) {
                     // send path to client
                     let temp = path.join(outputPath, path.basename(one));
                     sendImage(temp);
-                    minify(one)
+                    await minify(one)
                     if(isPregenerateMode){
                         config.counter++;
                     }
@@ -496,7 +496,7 @@ app.post('/api/pregenerateThumbnails', async (req, res) => {
 
     for(let ii = 0; ii < totalFiles.length; ii++){
         const filePath = totalFiles[ii];
-        await extractThumbnailFromZip(filePath, null, "pre-generate", config);
+        extractThumbnailFromZip(filePath, null, "pre-generate", config);
     }
 });
 
