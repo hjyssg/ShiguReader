@@ -757,6 +757,10 @@ export default class ExplorerPage extends Component {
         }
 
         const isExplorer = mode === MODE_EXPLORER && this.getPathFromQuery();
+        const isTag = mode === MODE_TAG;
+        const isAuthor = mode == MODE_AUTHOR;
+        const url =  clientUtil.getSearhLink(this.getTextFromQuery());
+
         let topButtons = (
         <div className="top-button-gropus row">
                 {this.renderFileCount(filteredFiles, filteredVideos)}
@@ -770,6 +774,15 @@ export default class ExplorerPage extends Component {
                 <div className="col-6 col-md-4"> {this.renderChartButton()} </div>
                 {isExplorer && 
                     <div className="col-6 col-md-4"> {this.renderPregenerateButton()} </div>}
+                {
+                    (isTag || isAuthor) && 
+                    <div className="col-6 col-md-4"> 
+                       <Link className="exp-top-button"  target="_blank" to={url} >
+                            <span className="fab fa-searchengin" /> 
+                            <span>Search by Text </span>
+                        </Link>
+                    </div>
+                }
         </div>);
 
         const breadcrumb = isExplorer && ( <div className="row">
