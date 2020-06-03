@@ -188,13 +188,14 @@ function isStrDate(str) {
         invalid = invalid || (d < 0 || d > 30);
         return !invalid;
     }
-    return false;
+
+    return isFullStrDate(str);
 }
 
-const fullDateReg = /\d{4}-\d{2}-\d{2}/
+const fullDateReg = /\d{4}-\d{1,2}-\d{2}/
 function isFullStrDate(str){
     //e.g 2014-04-01
-    return !!str.match(fullDateReg);
+    return !!(str && str.match(fullDateReg));
 }
 
 function getAuthorName(str){
@@ -250,7 +251,7 @@ function getTag(str, pMacthes, author){
     let tags = [];
     if (pMacthes && pMacthes.length > 0) {
         tags = tags.concat(pMacthes);
-        tags = tags.filter(e=> {return !isOnlyDigit(e)});
+        tags = tags.filter(e=> {return !isOnlyDigit(e) && !isFullStrDate(e)   });
     }
 
     if(author && tags.indexOf(author) >= 0){
@@ -302,9 +303,7 @@ function parse(str) {
             const nextCharIndex = str.indexOf(bMacthes[ii]) + bMacthes[ii].length + 1; 
             const nextChar = str[nextCharIndex];
 
-            if(isFullStrDate(token)){
-                dateTag = token;
-            } else if (token.length === 6 && isOnlyDigit(token) && isStrDate(token)) {
+            if (isStrDate(token)) {
                 //e.g 190214
                 dateTag = token;
             } else if (not_author_but_tag_table[tt]){
