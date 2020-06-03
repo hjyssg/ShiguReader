@@ -22,10 +22,11 @@ function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
     }else if(author){
         const reg = escapeRegExp(author);
         results = getFileCollection().chain()
-                      .find({'$or': [{'author': { '$regex' : reg }}, {'group': { '$regex' : reg }}], 
+                      .find({'$or': [{'authors': { '$regex' : reg }}, {'group': { '$regex' : reg }}], 
                       isDisplayableInExplorer: true })
                       .where(obj => {
-                        return obj.author === author || obj.group === author;
+                        const result = parse(obj.fileName);
+                        return result.author === author || result.group === author || (result.authors && result.authors.includes(author));
                       });
     }else if(tag){
         const reg = escapeRegExp(tag);

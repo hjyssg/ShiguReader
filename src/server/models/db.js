@@ -103,7 +103,7 @@ const updateFileDb = function(filePath){
     let tags = _.uniq(tags1.concat(nameTags, musisTags));
 
     data.tags = tags.join(sep);
-    data.author = (temp.authors && temp.authors.join(sep)) || temp.author || "";
+    data.authors = (temp.authors && temp.authors.join(sep)) || temp.author || "";
     data.group = temp.group;
 
     if(has(filePath)){
