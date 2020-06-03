@@ -126,8 +126,12 @@ export default class TagPage extends Component {
         const fileName = getBaseName(filePath);
         const result = nameParser.parse(fileName);
         if (result) {
-            addOne(authors, result.author);
-            addToArray(authorToFiles, result.author, filePath );
+          
+            (result.authors||[]).forEach(author => {
+              addOne(authors, author);
+              addToArray(authorToFiles, author, filePath );
+            })
+
             result.tags.forEach(tag => {
               addOne(tags, tag);
               addToArray(tagToFiles, tag, filePath);

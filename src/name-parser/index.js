@@ -342,7 +342,8 @@ function parse(str) {
     })
     title = title.trim();
 
-    const authors = author && author.includes("、")? author.split("、") : null;
+    
+    const authors = author && author.split(/,|、/).map(e => e.trim()) ;
 
     const result = {
        dateTag, author, tags, comiket, type, group, title, authors

@@ -557,47 +557,38 @@ export default class OneBook extends Component {
     const dirName = getBaseName(getDir(this.getTextFromQuery()));
     const result = nameParser.parse(fn);
     let tagDivs;
-    let Alltags = [];
-    let author;
+    let allTags = [];
     let originalTags;
     let group;
     let authors;
 
     if(result){
-      author =  result.author;
       group = result.group;
-      originalTags = result.tags||[];
+      originalTags = result.tags;
       authors = result.authors;
 
       if(group){
-        Alltags.push(group);
+        allTags.push(group);
       }
-
       if(authors){
-        Alltags = Alltags.concat(authors);
-      } else if(author){
-        Alltags.push(author);
+        allTags = allTags.concat(authors);
       }
-
-      Alltags = Alltags.concat(originalTags);
+      allTags = allTags.concat(originalTags);
     }
 
     //the folder name can be be the author name
-    if(fn.includes(dirName) && !author){
-      Alltags.push(dirName);
+    if(fn.includes(dirName) && !authors){
+      allTags.push(dirName);
     }
 
-    
     if(this.hasMusic()){
-      Alltags = Alltags.concat(namePicker.pick(fn)||[], nameParser.parseMusicTitle(fn));
+      allTags = allTags.concat(namePicker.pick(fn)||[], nameParser.parseMusicTitle(fn));
     }
-    Alltags = _.uniq(Alltags);
+    allTags = _.uniq(allTags);
 
-    tagDivs = Alltags.map( tag => {
+    tagDivs = allTags.map( tag => {
       let url;
       if(authors && authors.includes(tag)){
-        url = clientUtil.getAuthorLink(tag);
-      } else if(tag === author){
         url = clientUtil.getAuthorLink(tag);
       }else if(originalTags && originalTags.includes(tag)){
         url = clientUtil.getTagLink(tag);
