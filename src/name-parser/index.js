@@ -251,7 +251,7 @@ function getTag(str, pMacthes, author){
     let tags = [];
     if (pMacthes && pMacthes.length > 0) {
         tags = tags.concat(pMacthes);
-        tags = tags.filter(e=> {return !isOnlyDigit(e) && !isFullStrDate(e)   });
+        tags = tags.filter(e=> {return !isOnlyDigit(e) && !isStrDate(e)   });
     }
 
     if(author && tags.indexOf(author) >= 0){
