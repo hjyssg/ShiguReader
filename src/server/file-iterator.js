@@ -49,11 +49,13 @@ async function iterate (p, config, result, depth, isFile) {
     }
     try {
         if(isFile){
-            const stat =  await getStat(p, config);
             if(config && config.doLog &&  result.pathes.length % 500 === 0){
                 console.log("[file-iterator] scan:", result.pathes.length);
             }
-            result.infos[p] = stat;
+            if(!config.doNotNeedInfo){
+                const stat =  await getStat(p, config);
+                result.infos[p] = stat;
+            }
             result.pathes.push(p);
         } else if (isLegalDepth(depth + 1, config)) {
             let pathes = await pfs.readdir(p, {withFileTypes: true });

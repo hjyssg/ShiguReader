@@ -41,6 +41,8 @@ module.exports.workspace_name = "workspace";
  
 module.exports.cache_folder_name = "cache";
 
+module.exports.thumbnail_folder_name = "thumbnails";
+
 module.exports.img_convert_cache = "image_convert_cache"
 
 //ipad iphone上面看漫画是一页一张图，还是一次显示全部整本的全部图片

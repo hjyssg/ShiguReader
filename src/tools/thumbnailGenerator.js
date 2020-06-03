@@ -1,27 +1,21 @@
 const fs = require('fs');
 const path = require('path');
 const util = global.requireUtil();
+const execa = require('execa');
 
-function thumbnailGenerator(p1, fileName, callback){
+async function thumbnailGenerator(thumbnailFolderPath, imgFolder, fileName, callback){
     try{
-        //sharp is difficult to install, because GFW
-        //but the server runs without it anyway
-        const sharp = require('sharp');
-        if(sharp && !util.isCompressedThumbnail(fileName) && util.canBeCompressed(fileName)){
-            const outputName = util.getCompressedThumbnailFileName(fileName);
-            const outputPath = path.resolve(p1, outputName);
-            const THUMB_WIDTH = 250; 
-            const filePath = path.resolve(p1, fileName);
-
-            sharp(filePath)
-            .resize(THUMB_WIDTH)
-            .toFile(outputPath, (err, info) => { 
-                callback && callback(err, info);
-            });
-            }
+        if(util.canBeCompressed(fileName)){
+            const outputName = path.basename(imgFolder);
+            const outputPath = path.resolve(thumbnailFolderPath, outputName)+".jpg";
+            const filePath = path.resolve(imgFolder, fileName);
+            const opt = [filePath, "-strip", "-resize", `280x354\>`, outputPath ]
+            let {stdout, stderr} = await execa("magick", opt);
+            return {stdout, stderr};
+        }
     } catch(e) {
         console.error("[thumbnailGenerator] exception", e);
-        callback && callback(err, info);
+        callback && callback(e, info);
     }
 }
 

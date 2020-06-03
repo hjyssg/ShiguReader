@@ -176,9 +176,9 @@ module.exports.getCacheOutputPath = function (cachePath, zipFilePath) {
         console.warn("[getCacheOutputPath] no stat", zipFilePath);
     } else {
         const mdate = new Date(stat.mtimeMs);
-        const mstr = dateFormat(mdate, "yyyy-mm-dd");
+        const mstr = mdate.getTime();
         const fstr = (stat.size/1000/1000).toFixed();
-        outputFolder = outputFolder+ `${mstr} ${fstr} `;
+        outputFolder = outputFolder+ `${mstr} ${fstr}`;
     }
     return path.join(cachePath, outputFolder);
 }

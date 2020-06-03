@@ -34,8 +34,9 @@ const { isImage, isCompress, isMusic, arraySlice,
 
 //set up path
 const rootPath = pathUtil.getRootPath();
-const cache_folder_name = userConfig.cache_folder_name;
+const { cache_folder_name, thumbnail_folder_name } = userConfig
 const cachePath = path.join(rootPath, cache_folder_name);
+const thumbnailFolderPath = path.join(rootPath, thumbnail_folder_name);
 
 
 //set up user path
@@ -82,6 +83,8 @@ app.use(express.json());
 const portConfig = require('../config/port-config');
 const {http_port, dev_express_port } = portConfig;
 
+let thumbnailDb = {};
+
 async function init() {
     if(isWindows()){
         const {stdout, stderr} = await execa("chcp");
@@ -96,9 +99,15 @@ async function init() {
         }
     }
 
+    if(!(await isExist(thumbnailFolderPath))){
+        const mdkirErr = await pfs.mkdir(thumbnailFolderPath, { recursive: true});
+        if(mdkirErr){
+            throw "thumbnailFolderPath";
+        }
+    }
+
     console.log("scanning local files");
 
- 
     let beg = (new Date).getTime()
     const results = await fileiterator(path_will_scan, { 
         filter: shouldWatchForOne, 
@@ -120,8 +129,19 @@ async function init() {
 
     let end2 = (new Date).getTime();
     console.log(`${(end2 - end1)/1000}s  to read cache dirs`);
-
     db.initCacheDb(cache_results.pathes, cache_results.infos);
+
+    console.log("----------scan thumbnail------------");
+    const thumbnail_results = await fileiterator([thumbnailFolderPath], { 
+        filter: isImage, 
+        doNotNeedInfo: true,
+        doLog: true
+    });
+
+    let end3 = (new Date).getTime();
+    console.log(`${(end2 - end2)/1000}s  to read thumbnail dirs`);
+    initThumbnailDb(thumbnail_results.pathes);
+
     setUpFileWatch();
 
     const port = isProduction? http_port: dev_express_port;
@@ -145,6 +165,30 @@ async function init() {
     });
 }
 
+function addToThumbnailDb(filePath){
+    const key = path.basename(filePath, path.extname(filePath));
+    thumbnailDb[key] = filePath;
+}
+
+function removeFromThumbnailDb(filePath){
+    const key = path.basename(filePath, path.extname(filePath));
+    thumbnailDb[key] = undefined;
+}
+
+function initThumbnailDb(filePath){
+    filePath.forEach(e => {
+        addToThumbnailDb(e);
+    })
+}
+
+function getThumbnailFromThumbnailFolder(outputPath){
+    const key = path.basename(outputPath);
+    return thumbnailDb[key];
+}
+
+function getThumbCount(){
+    return _.keys(thumbnailDb).length;
+}
 
 function shouldWatchForOne(p){
     if(isHiddenFile(p)){
@@ -233,6 +277,22 @@ function setUpFileWatch (){
             deleteFromCacheDb(p);
         });
 
+    // also thumbnail
+    const thumbnailWatch = chokidar.watch(thumbnailFolderPath, {
+        persistent: true,
+        ignorePermissionErrors: true,
+        ignoreInitial: true,
+    });
+
+
+    thumbnailWatch
+        .on('add', (p) => {
+            addToThumbnailDb(p);
+        })
+        .on('unlink', p => {
+            removeFromThumbnailDb(p)
+        });
+
     return {
         watcher,
         cacheWatcher
@@ -249,15 +309,20 @@ function getThumbnails(filePathes){
         }
 
         const outputPath = getCacheOutputPath(cachePath, filePath);
-        let cacheFiles = getCacheFiles(outputPath);
-        cacheFiles = (cacheFiles && cacheFiles.files) || [];
-        const thumb = serverUtil.chooseThumbnailImage(cacheFiles);
+        let thumb = getThumbnailFromThumbnailFolder(outputPath);
         if(thumb){
             thumbnails[filePath] = fullPathToUrl(thumb);
-        }else if(zipInfoDb.has(filePath)){
-            const pageNum = getPageNum(filePath);
-            if(pageNum === 0){
-                thumbnails[filePath] = "NOT_THUMBNAIL_AVAILABLE";
+        }else{
+            let cacheFiles = getCacheFiles(outputPath);
+            cacheFiles = (cacheFiles && cacheFiles.files) || [];
+            thumb = serverUtil.chooseThumbnailImage(cacheFiles);
+            if(thumb){
+                thumbnails[filePath] = fullPathToUrl(thumb);
+            }else if(zipInfoDb.has(filePath)){
+                const pageNum = getPageNum(filePath);
+                if(pageNum === 0){
+                    thumbnails[filePath] = "NOT_THUMBNAIL_AVAILABLE";
+                }
             }
         }
     }); 
@@ -314,7 +379,6 @@ function logForPre(prefix, config, filePath) {
     }
 }
 
-
 const pLimit = require('p-limit');
 const thumbnailGenerator = require("../tools/thumbnailGenerator");
 //the only required parameter is filePath
@@ -346,8 +410,8 @@ async function extractThumbnailFromZip(filePath, res, mode, config) {
         }
     }
 
-    function minify(one){
-        thumbnailGenerator(outputPath, path.basename(one), (err, info) => { 
+    async function minify(one){
+        await thumbnailGenerator(thumbnailFolderPath, outputPath, path.basename(one), (err, info) => { 
             if(isPregenerateMode){
                 config.minCounter++;
                 logForPre("[pre-generate minify] ", config, filePath );
@@ -364,19 +428,12 @@ async function extractThumbnailFromZip(filePath, res, mode, config) {
         files = temp.files;
     }
 
-    //check if there is compress thumbnail  e.g thumbnail--001.jpg
-    const cacheFiles = getCacheFiles(outputPath);
-    if (cacheFiles && cacheFiles.files.length > 0) {
-        const tempOne =  serverUtil.chooseThumbnailImage(cacheFiles.files);
-        if(util.isCompressedThumbnail(tempOne)){
-            let temp = path.join(outputPath, path.basename(tempOne));
-            sendImage(temp);
-            if(isPregenerateMode){
-                config.minCounter++;
-                logForPre("[pre-generate minify] ", config, filePath);
-            }
-        } else if(isPregenerateMode){
-            minify(tempOne);
+    const thumbnail = getThumbnailFromThumbnailFolder(outputPath);
+    if (thumbnail) {
+        sendImage(thumbnail);
+        if(isPregenerateMode){
+            config.minCounter++;
+            logForPre("[pre-generate minify] ", config, filePath);
         }
     } else {
         //do the extract
@@ -390,12 +447,12 @@ async function extractThumbnailFromZip(filePath, res, mode, config) {
                 // console.error("[extractThumbnailFromZip] no thumbnail for ", filePath);
                 handleFail();
             } else {
-                const stderrForThumbnail = await  extractByRange(filePath, outputPath, [one])
+                const stderrForThumbnail = await extractByRange(filePath, outputPath, [one])
                 if (!stderrForThumbnail) {
                     // send path to client
                     let temp = path.join(outputPath, path.basename(one));
                     sendImage(temp);
-                    minify(one)
+                    await minify(one)
                     if(isPregenerateMode){
                         config.counter++;
                     }
@@ -414,7 +471,7 @@ async function extractThumbnailFromZip(filePath, res, mode, config) {
 
 //  a huge back ground task 
 //  it generate all thumbnail and will be slow
-app.post('/api/pregenerateThumbnails', (req, res) => {
+app.post('/api/pregenerateThumbnails', async (req, res) => {
     let path = req.body && req.body.path;
     if(!path){
         return;
@@ -430,9 +487,17 @@ app.post('/api/pregenerateThumbnails', (req, res) => {
                   minCounter: 0,
                   total: totalFiles.length, 
                   pregenBeginTime: getCurrentTime()};
-    totalFiles.forEach(filePath =>{
-        extractThumbnailFromZip(filePath, res, "pre-generate", config);
-    })
+
+    
+    const thumbnailNum = getThumbCount();
+    if(thumbnailNum / totalFiles.length > 0.3){
+        totalFiles = _.shuffle(totalFiles);
+    }
+
+    for(let ii = 0; ii < totalFiles.length; ii++){
+        const filePath = totalFiles[ii];
+        extractThumbnailFromZip(filePath, null, "pre-generate", config);
+    }
 });
 
 
@@ -481,7 +546,7 @@ app.post('/api/extract', async (req, res) => {
 
     function sendBack(files, musicFiles, path, stat){
         const tempFiles =  files.filter(e => {
-            return !util.isCompressedThumbnail(e) && !isHiddenFile(e);
+            return !isHiddenFile(e);
           })
   ;
         let zipInfo;
@@ -498,9 +563,7 @@ app.post('/api/extract', async (req, res) => {
         const pageNum = getPageNum(filePath); 
         const musicNum = getMusicNum(filePath);
         const totalNum = pageNum + musicNum;
-        const _files = (temp.files||[]).filter(e => {
-            return !util.isCompressedThumbnail(e);
-        });
+        const _files = temp.files||[];
 
         if (totalNum > 0 &&  _files.length >= totalNum) {
             sendBack(temp.files, temp.musicFiles, filePath, stat);

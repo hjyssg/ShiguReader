@@ -55,41 +55,7 @@ function _clean(cachePath, config){
     folders1.forEach(fPath => {
         try {
             fPath = path.resolve(cachePath, fPath);
-            const stat = fs.statSync(fPath);
-            if (stat.isFile()) {
-                del(fPath, cachePath);
-            }else if(stat.isDirectory()){
-                const fileName = path.basename(fPath);
-                if(config && config.allowFileNames && !config.allowFileNames.includes(fileName)){
-                    del(fPath, cachePath);
-                }
-                let subfiles = fs.readdirSync(fPath);
-                if(subfiles.length === 0){
-                    del(fPath, cachePath);
-                } else {
-                    const thumbnail = serverUtil.chooseThumbnailImage(subfiles);
-                    //only thumbnail
-                    for(let ii = 0; ii < subfiles.length; ii++){
-                        const subfileName = subfiles[ii];
-                        const filePath = path.resolve(fPath, subfileName);
-    
-                        //compress first image to standard thumbnail
-                        if(subfileName === thumbnail){
-                            if(config.minized){
-                                const thumbnailGenerator = require("./thumbnailGenerator");
-                                thumbnailGenerator(fPath, subfileName, (err, info) => { 
-                                    if(!err){
-                                        del(filePath, cachePath);
-                                    }
-                                 });
-                            }
-                        }else{
-                            //del the rest
-                            del(filePath, cachePath);
-                        }
-                    }
-                }
-            }
+            del(fPath, cachePath);
         }catch(e){
             show_error && console.error("[cache clean] error",e);
         }
