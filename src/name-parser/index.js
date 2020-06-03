@@ -147,12 +147,22 @@ function isOnlyDigit(str){
 }
 
 function getDateFromStr(str){
-    let y = convertYearString(str);
-    let m = parseInt(str.slice(2, 4));
-    let d = parseInt(str.slice(4, 6));
+    if(isFullStrDate(str)){
+        const tokens = str.split("-");
+        let y = parseInt(tokens[0]);
+        let m = parseInt(tokens[1]);
+        let d = parseInt(tokens[2]);
 
-    m = m - 1;
-    return new Date(y, m, d);
+        m = m - 1;
+        return new Date(y, m, d);
+    }else{
+        let y = convertYearString(str);
+        let m = parseInt(str.slice(2, 4));
+        let d = parseInt(str.slice(4, 6));
+    
+        m = m - 1;
+        return new Date(y, m, d);
+    }
 }
 
 function convertYearString(str) {
@@ -178,7 +188,14 @@ function isStrDate(str) {
         invalid = invalid || (d < 0 || d > 30);
         return !invalid;
     }
-    return false;
+
+    return isFullStrDate(str);
+}
+
+const fullDateReg = /\d{4}-\d{1,2}-\d{2}/
+function isFullStrDate(str){
+    //e.g 2014-04-01
+    return !!(str && str.match(fullDateReg));
 }
 
 function getAuthorName(str){
@@ -234,7 +251,7 @@ function getTag(str, pMacthes, author){
     let tags = [];
     if (pMacthes && pMacthes.length > 0) {
         tags = tags.concat(pMacthes);
-        tags = tags.filter(e=> {return !isOnlyDigit(e)});
+        tags = tags.filter(e=> {return !isOnlyDigit(e) && !isStrDate(e)   });
     }
 
     if(author && tags.indexOf(author) >= 0){
@@ -286,7 +303,7 @@ function parse(str) {
             const nextCharIndex = str.indexOf(bMacthes[ii]) + bMacthes[ii].length + 1; 
             const nextChar = str[nextCharIndex];
 
-            if (token.length === 6 && isOnlyDigit(token) && isStrDate(token)) {
+            if (isStrDate(token)) {
                 //e.g 190214
                 dateTag = token;
             } else if (not_author_but_tag_table[tt]){
@@ -311,6 +328,7 @@ function parse(str) {
     }
 
     tags = tags.concat(getTag(str, pMacthes, author));
+    tags = tags.filter(e => e.length > 1);
     if(!author && !group && tags.length === 0){
         localCache[str] = "NO_EXIST";
         return;
@@ -324,7 +342,8 @@ function parse(str) {
     })
     title = title.trim();
 
-    const authors = author && author.includes("、")? author.split("、") : null;
+    
+    const authors = author && author.split(/,|、/).map(e => e.trim()) ;
 
     const result = {
        dateTag, author, tags, comiket, type, group, title, authors
