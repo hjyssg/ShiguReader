@@ -138,15 +138,15 @@ module.exports.deleteFromDb = function(path){
 
 //---------------------------------------------cache db---------------------
 
-module.exports.initCacheDb = function(pathes, infos){
-    (pathes||[]).forEach(p => {
-        const fp =  getDirName(p);
-        cacheDb.folderToFiles[fp] = cacheDb.folderToFiles[fp] || [];
-        cacheDb.folderToFiles[fp].push(path.basename(p));
-    });
+// module.exports.initCacheDb = function(pathes, infos){
+//     (pathes||[]).forEach(p => {
+//         const fp =  getDirName(p);
+//         cacheDb.folderToFiles[fp] = cacheDb.folderToFiles[fp] || [];
+//         cacheDb.folderToFiles[fp].push(path.basename(p));
+//     });
     
-    cacheDb.cacheFileToInfo = infos;
-}
+//     cacheDb.cacheFileToInfo = infos;
+// }
 
 //  outputPath is the folder name
 module.exports.getCacheFiles = function(outputPath) {

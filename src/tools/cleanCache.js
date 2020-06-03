@@ -4,8 +4,7 @@ const rimraf = require("./rimraf");
 
 let counter = 0;
 const pathUtil = require("../server/pathUtil");
-const {  isSub } = pathUtil;
-const serverUtil = require("../server/serverUtil");
+const { isSub } = pathUtil;
 
 const show_error = false;
 
@@ -13,22 +12,12 @@ function del(file, cachePath){
     if(isSub(cachePath, file)){
         rimraf(file, (err) =>{
             if(err){
-                // try{
-                //     const stat = fs.statSync(file);
-                //     if(stat.isFile()){
-                //         fs.unlinkSync(file);
-                //     } else {
-                //         fs.rmdirSync(file);
-                //     }
-                // }catch(e){
-                //     console.error(file, e);
-                // }
                 show_error && console.error("[cache clean]", err);
             }
         });
 
         counter++;
-        if(counter % 20 === 0){
+        if(counter % 500 === 0){
             console.log("[cache clean] delete:", counter);
         }
     } else {
@@ -37,6 +26,7 @@ function del(file, cachePath){
 }
 
 function cleanCache(cachePath, config){
+    config = config || {};
     counter = 0
     if(!fs.existsSync(cachePath)){
         err = fs.mkdir(cachePath, (err) => {

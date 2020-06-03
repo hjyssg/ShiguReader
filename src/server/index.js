@@ -85,6 +85,15 @@ const {http_port, dev_express_port } = portConfig;
 
 let thumbnailDb = {};
 
+async function mkdir(path){
+    if(!(await isExist(path))){
+        const mdkirErr = await pfs.mkdir(path, { recursive: true});
+        if(mdkirErr){
+            throw "fail to mkdir", path;
+        }
+    }
+}
+
 async function init() {
     if(isWindows()){
         const {stdout, stderr} = await execa("chcp");
@@ -99,12 +108,11 @@ async function init() {
         }
     }
 
-    if(!(await isExist(thumbnailFolderPath))){
-        const mdkirErr = await pfs.mkdir(thumbnailFolderPath, { recursive: true});
-        if(mdkirErr){
-            throw "thumbnailFolderPath";
-        }
-    }
+    await mkdir(thumbnailFolderPath);
+    await mkdir(cachePath);
+
+    const cleanCache = require("../tools/cleanCache");
+    cleanCache.cleanCache(cachePath);
 
     console.log("scanning local files");
 
@@ -120,16 +128,16 @@ async function init() {
     db.initFileToInfo(results.infos);
     console.log("There are", getAllFilePathes().length, "files");
 
+    // console.log("----------scan cache------------");
+    // const cache_results = await fileiterator([cachePath], { 
+    //     filter: shouldWatchForCache, 
+    //     doLog: true
+    // });
 
-    console.log("----------scan cache------------");
-    const cache_results = await fileiterator([cachePath], { 
-        filter: shouldWatchForCache, 
-        doLog: true
-    });
+    // let end2 = (new Date).getTime();
+    // console.log(`${(end2 - end1)/1000}s  to read cache dirs`);
+    // db.initCacheDb(cache_results.pathes, cache_results.infos);
 
-    let end2 = (new Date).getTime();
-    console.log(`${(end2 - end1)/1000}s  to read cache dirs`);
-    db.initCacheDb(cache_results.pathes, cache_results.infos);
 
     console.log("----------scan thumbnail------------");
     const thumbnail_results = await fileiterator([thumbnailFolderPath], { 
@@ -139,7 +147,7 @@ async function init() {
     });
 
     let end3 = (new Date).getTime();
-    console.log(`${(end2 - end2)/1000}s  to read thumbnail dirs`);
+    console.log(`${(end3 - end1)/1000}s  to read thumbnail dirs`);
     initThumbnailDb(thumbnail_results.pathes);
 
     setUpFileWatch();
@@ -168,11 +176,6 @@ async function init() {
 function addToThumbnailDb(filePath){
     const key = path.basename(filePath, path.extname(filePath));
     thumbnailDb[key] = filePath;
-}
-
-function removeFromThumbnailDb(filePath){
-    const key = path.basename(filePath, path.extname(filePath));
-    thumbnailDb[key] = undefined;
 }
 
 function initThumbnailDb(filePath){
@@ -275,22 +278,6 @@ function setUpFileWatch (){
         })
         .on('unlink', p => {
             deleteFromCacheDb(p);
-        });
-
-    // also thumbnail
-    const thumbnailWatch = chokidar.watch(thumbnailFolderPath, {
-        persistent: true,
-        ignorePermissionErrors: true,
-        ignoreInitial: true,
-    });
-
-
-    thumbnailWatch
-        .on('add', (p) => {
-            addToThumbnailDb(p);
-        })
-        .on('unlink', p => {
-            removeFromThumbnailDb(p)
         });
 
     return {
@@ -411,12 +398,14 @@ async function extractThumbnailFromZip(filePath, res, mode, config) {
     }
 
     async function minify(one){
-        await thumbnailGenerator(thumbnailFolderPath, outputPath, path.basename(one), (err, info) => { 
+        const outputFilePath = await thumbnailGenerator(thumbnailFolderPath, outputPath, path.basename(one));
+        if(outputFilePath){
+            addToThumbnailDb(outputFilePath);
             if(isPregenerateMode){
                 config.minCounter++;
                 logForPre("[pre-generate minify] ", config, filePath );
             }
-         });
+         }
     }
 
     //only update zip db
