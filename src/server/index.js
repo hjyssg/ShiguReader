@@ -398,14 +398,13 @@ async function extractThumbnailFromZip(filePath, res, mode, config) {
     }
 
     async function minify(one){
-        const outputFilePath = await thumbnailGenerator(thumbnailFolderPath, outputPath, path.basename(one), (err, info) => { 
+        const outputFilePath = await thumbnailGenerator(thumbnailFolderPath, outputPath, path.basename(one));
+        if(outputFilePath){
+            addToThumbnailDb(outputFilePath);
             if(isPregenerateMode){
                 config.minCounter++;
                 logForPre("[pre-generate minify] ", config, filePath );
             }
-         });
-         if(outputFilePath){
-             addToThumbnailDb(outputFilePath);
          }
     }
 
