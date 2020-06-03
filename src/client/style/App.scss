@@ -70,7 +70,7 @@ a {
         text-align: center;
         padding: 14px 16px;
         text-decoration: none;
-        font-size: 17px;
+        font-size: 15px;
 
         @media screen and (min-width: 1000px) {
           &:hover {
@@ -90,12 +90,14 @@ a {
       }
 
       display: inline-flex;
-      input[type=text] {
+
+      .search-input {
         padding: 6px;
         border: none;
         margin-top: 8px;
         font-size: 17px;
         border-radius: 2px;
+        width: 350px;
       }
 
       .filter-button,
