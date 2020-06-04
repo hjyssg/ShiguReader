@@ -140,15 +140,12 @@ async function init() {
 
 
     console.log("----------scan thumbnail------------");
-    const thumbnail_results = await fileiterator([thumbnailFolderPath], { 
-        filter: isImage, 
-        doNotNeedInfo: true,
-        doLog: true
-    });
+    let thumbnail_pathes = await pfs.readdir(thumbnailFolderPath);
+    thumbnail_pathes = thumbnail_pathes.filter(isImage);
 
     let end3 = (new Date).getTime();
     console.log(`${(end3 - end1)/1000}s  to read thumbnail dirs`);
-    initThumbnailDb(thumbnail_results.pathes);
+    initThumbnailDb(thumbnail_pathes);
 
     setUpFileWatch();
 
