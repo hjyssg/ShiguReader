@@ -141,7 +141,7 @@ async function init() {
 
     console.log("----------scan thumbnail------------");
     let thumbnail_pathes = await pfs.readdir(thumbnailFolderPath);
-    thumbnail_pathes = thumbnail_pathes.filter(isImage);
+    thumbnail_pathes = thumbnail_pathes.filter(isImage).map(e => path.resolve(thumbnailFolderPath, e));
 
     let end3 = (new Date).getTime();
     console.log(`${(end3 - end1)/1000}s  to read thumbnail dirs`);
