@@ -270,6 +270,8 @@ function getTag(str, pMacthes, author){
     return tags;
 }
 
+const DLsiteReg = /RJ\d+/;
+
 function parse(str) {
     if (!str || localCache[str] === "NO_EXIST") {
       return null;
@@ -303,7 +305,10 @@ function parse(str) {
             const nextCharIndex = str.indexOf(bMacthes[ii]) + bMacthes[ii].length + 1; 
             const nextChar = str[nextCharIndex];
 
-            if (isStrDate(token)) {
+            if(token.match(DLsiteReg)){
+                //DLsite tag is not author
+                continue;
+            }else if (isStrDate(token)) {
                 //e.g 190214
                 dateTag = token;
             } else if (not_author_but_tag_table[tt]){
