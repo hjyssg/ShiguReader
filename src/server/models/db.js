@@ -104,7 +104,7 @@ const updateFileDb = function(filePath){
 
     data.tags = tags.join(sep);
     data.authors = (temp.authors && temp.authors.join(sep)) || temp.author || "";
-    data.group = temp.group;
+    data.group = temp.group || "";
 
     if(has(filePath)){
         file_collection.update(data);
