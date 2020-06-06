@@ -31,9 +31,10 @@ function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
                         const result = parse(obj.fileName);
                         const pass =  result.author === author || result.group === author || (result.authors && result.authors.includes(author));
                         if(pass && result.group){
-                            groups.push(result.group);
                             //find out which group this author belong
+                            groups.push(result.group);
                         }
+                        return pass;
                       });
 
         if(groups.length > 0){
