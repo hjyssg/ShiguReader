@@ -1,14 +1,11 @@
 # 基于node:alpine
 FROM node:alpine
 # 安装 node-sass 需要 python build-base，解压工具 p7zip
-RUN apk add --update-cache python build-base imagemagick p7zip
+RUN apk add --no-cache python build-base imagemagick p7zip
 
 # js文件存放目录
 WORKDIR /usr/src/app
-
-#打包复制js代码
-COPY package*.json ./
-COPY . .
+COPY package.json ./
 
 #安装node依赖
 RUN npm install 
@@ -19,9 +16,11 @@ RUN npm install
 VOLUME /data
 
 #网页端口
-EXPOSE 8080
 EXPOSE 3000
+
+#安装程序
+COPY . .
+RUN mkdir thumbnails cache
 RUN chown -R node /usr/src/app
 USER node
-#启用服务
 CMD [ "npm", "run","dev" ]
