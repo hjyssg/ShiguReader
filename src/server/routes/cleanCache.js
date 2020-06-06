@@ -2,7 +2,7 @@
 const express = require('express');
 const router = express.Router();
 const serverUtil = require("../serverUtil");
-const cachePath = serverUtil.common.cachePath;
+const cachePath = global.cachePath;
 const pathUtil = require("../pathUtil");
 
 const deleteEmpty = require('delete-empty');

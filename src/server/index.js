@@ -37,10 +37,11 @@ const rootPath = pathUtil.getRootPath();
 const { cache_folder_name, thumbnail_folder_name } = userConfig
 const cachePath = path.join(rootPath, cache_folder_name);
 const thumbnailFolderPath = path.join(rootPath, thumbnail_folder_name);
+global.cachePath = cachePath;
 
 
 //set up user path
-let { home_pathes, path_will_scan } = getHomePath();
+
 const isProduction = process.argv.includes("--production");
 
 // console.log("--------------------");
@@ -111,6 +112,9 @@ async function init() {
     await mkdir(thumbnailFolderPath);
     await mkdir(cachePath);
 
+    let { home_pathes, path_will_scan } = await getHomePath();
+    global.path_will_scan = path_will_scan;
+
     const cleanCache = require("../tools/cleanCache");
     cleanCache.cleanCache(cachePath);
 
@@ -147,7 +151,7 @@ async function init() {
     console.log(`${(end3 - end1)/1000}s  to read thumbnail dirs`);
     initThumbnailDb(thumbnail_pathes);
 
-    setUpFileWatch();
+    setUpFileWatch(path_will_scan);
 
     const port = isProduction? http_port: dev_express_port;
     const server = app.listen(port, async () => {
@@ -216,7 +220,7 @@ function shouldWatchForCache(p){
 
 
 const chokidar = require('chokidar');
-function setUpFileWatch (){
+function setUpFileWatch (path_will_scan){
     //watch file change 
     //update two database
     const watcher = chokidar.watch(path_will_scan, {
@@ -320,9 +324,7 @@ async function getStat(filePath){
 }
 
 
-serverUtil.common.path_will_scan = path_will_scan;
 serverUtil.common.getCacheOutputPath = getCacheOutputPath;
-serverUtil.common.cachePath = cachePath;
 serverUtil.common.getThumbnails = getThumbnails;
 serverUtil.common.getStat = getStat;
 

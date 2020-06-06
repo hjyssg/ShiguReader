@@ -4,12 +4,11 @@ const router = express.Router();
 const serverUtil = require("../serverUtil");
 const db = require("../models/db");
 const { getFileCollection } = db;;
-const path_will_scan = serverUtil.common.path_will_scan;
 const util = global.requireUtil();
 const {escapeRegExp} = util;
 
 router.post('/api/homePagePath', function (req, res) {
-    let result = path_will_scan;
+    let result = global.path_will_scan;
     result = result.filter(e => {
         if(e){
             const reg = escapeRegExp(e);
@@ -19,7 +18,7 @@ router.post('/api/homePagePath', function (req, res) {
     });
 
     if(result.length === 0){
-        console.error("Please check userConfig.js home_pathes");
+        console.error("Please check path-config");
         res.sendStatus(404);
     }else{
         res.send({

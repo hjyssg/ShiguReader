@@ -2,6 +2,7 @@ const path = require('path');
 const userConfig = global.requireUserConfig();
 const util = global.requireUtil();
 const fs = require('fs');
+const isWindows = require('is-windows');
 const _ = require('underscore');
 
 const isImage = util.isImage;
@@ -63,7 +64,18 @@ function isSub(parent, child) {
     return child.length > parent.length && child.startsWith(parent)  && child[parent.length] === path.sep;
 }
 
-function getHomePath(){
+async function filterNonExist(pathes){
+    for(let ii = 0; ii < pathes.length; ii++){
+        const e = pathes[ii];
+        if(!(await isExist(e))){
+            pathes[ii] = null;
+        }
+    }
+
+    return pathes.filter(e => !!e);
+}
+
+async function getHomePath(){
     const path_config_path = path.join(getRootPath(), "src", "path-config");
     //read text file 
     let home_pathes = fs.readFileSync(path_config_path).toString().split('\n'); 
@@ -72,11 +84,10 @@ function getHomePath(){
                 .filter(pp =>{ return pp && pp.length > 0 && !pp.startsWith("#");});
 
     //add one more
-    home_pathes.push(getImgConverterCachePath());
     home_pathes = _.uniq(home_pathes);
+    home_pathes = await filterNonExist(home_pathes);
 
-    //does not show 
-    if(home_pathes.length === 1){
+    if(home_pathes.length === 0){
         if(isWindows()){
             const getDownloadsFolder = require('downloads-folder');
             home_pathes.push(getDownloadsFolder());
@@ -85,8 +96,12 @@ function getHomePath(){
             home_pathes.push(`${process.env.HOME}/Downloads`);
         }
     }
+    home_pathes.push(getImgConverterCachePath());
 
-    path_will_scan = home_pathes.concat(userConfig.good_folder, userConfig.good_folder_root, userConfig.not_good_folder)
+
+    path_will_scan = home_pathes.concat(userConfig.good_folder, userConfig.good_folder_root, userConfig.not_good_folder);
+    path_will_scan = await filterNonExist(path_will_scan);
+
     return {
         home_pathes,
         path_will_scan
