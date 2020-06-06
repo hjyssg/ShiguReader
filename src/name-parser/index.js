@@ -199,7 +199,7 @@ function isFullStrDate(str){
 }
 
 function getAuthorName(str){
-    var macthes = str.match(/(.*?)\s*\((.*?)\)/);
+    var macthes = str.match(/^(.*?)\s*\((.*?)\)$/);
     if(macthes && macthes.length > 0){
         return {
             group: macthes[1].trim(),
@@ -343,7 +343,7 @@ function parse(str) {
     title = title.trim();
 
     
-    const authors = author && author.split(/,|、/).map(e => e.trim()) ;
+    const authors = author && author.split(/,|、|&/).map(e => e.trim()) ;
 
     const result = {
        dateTag, author, tags, comiket, type, group, title, authors
