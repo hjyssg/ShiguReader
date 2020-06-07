@@ -3,7 +3,7 @@ const express = require('express');
 const router = express.Router();
 const serverUtil = require("../serverUtil");
 const db = require("../models/db");
-const { getFileCollection } = db;;
+const { getFileCollection } = db;
 const util = global.requireUtil();
 const {escapeRegExp} = util;
 

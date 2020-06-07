@@ -38,7 +38,8 @@ function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
                       });
 
         if(groups.length > 0){
-            groups = _.sortBy(groups, e => e.length);
+            const byFeq = _.countBy(groups, e => e);
+            groups = _.sortBy(_.keys(byFeq), e => -byFeq[e]);
             const reg2 = escapeRegExp(groups[0]);
             extraResults = getFileCollection().find({'authors': { '$regex' : reg2 }, 
                                                      'group': {'$len': 0 }, 
@@ -56,7 +57,8 @@ function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
         results = results.limit(5);
     }
 
-    const finalResult = results.data().concat(extraResults);
+    let finalResult = (results && results.data())||[];
+    finalResult = finalResult.concat(extraResults);
 
     finalResult.forEach(obj => {
         const pp = obj.filePath;

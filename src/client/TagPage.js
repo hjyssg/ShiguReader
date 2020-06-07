@@ -120,16 +120,29 @@ export default class TagPage extends Component {
     this.allThumbnails = allThumbnails;
 
     const beginTime = getCurrentTime();
+    const groupSet = {};
+
+    for(let filePath in fileToInfo){
+      if(fileToInfo.hasOwnProperty(filePath) && isCompress(filePath)){
+        const fileName = getBaseName(filePath);
+        const result = nameParser.parse(fileName);
+        if (result && result.group) {
+          groupSet[result.group] = true;
+        }
+      }
+    }
 
     for(let filePath in fileToInfo){
       if(fileToInfo.hasOwnProperty(filePath) && isCompress(filePath)){
         const fileName = getBaseName(filePath);
         const result = nameParser.parse(fileName);
         if (result) {
-          
             (result.authors||[]).forEach(author => {
-              addOne(authors, author);
-              addToArray(authorToFiles, author, filePath );
+              //some author is actually group, fake author
+              if(!groupSet[author]){
+                addOne(authors, author);
+                addToArray(authorToFiles, author, filePath );
+              }
             })
 
             result.tags.forEach(tag => {

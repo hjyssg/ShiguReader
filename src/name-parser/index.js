@@ -185,7 +185,7 @@ function isStrDate(str) {
 
         let invalid = y > 30 && y < 80;
         invalid = invalid || (m < 0 || m > 12);
-        invalid = invalid || (d < 0 || d > 30);
+        invalid = invalid || (d < 0 || d > 31);
         return !invalid;
     }
 
@@ -199,7 +199,7 @@ function isFullStrDate(str){
 }
 
 function getAuthorName(str){
-    var macthes = str.match(/(.*?)\s*\((.*?)\)/);
+    var macthes = str.match(/^(.*?)\s*\((.*?)\)$/);
     if(macthes && macthes.length > 0){
         return {
             group: macthes[1].trim(),
@@ -270,6 +270,8 @@ function getTag(str, pMacthes, author){
     return tags;
 }
 
+const DLsiteReg = /RJ\d+/;
+
 function parse(str) {
     if (!str || localCache[str] === "NO_EXIST") {
       return null;
@@ -303,7 +305,10 @@ function parse(str) {
             const nextCharIndex = str.indexOf(bMacthes[ii]) + bMacthes[ii].length + 1; 
             const nextChar = str[nextCharIndex];
 
-            if (isStrDate(token)) {
+            if(token.match(DLsiteReg)){
+                //DLsite tag is not author
+                continue;
+            }else if (isStrDate(token)) {
                 //e.g 190214
                 dateTag = token;
             } else if (not_author_but_tag_table[tt]){
@@ -343,7 +348,7 @@ function parse(str) {
     title = title.trim();
 
     
-    const authors = author && author.split(/,|、/).map(e => e.trim()) ;
+    const authors = author && author.split(/,|、|&/).map(e => e.trim()) ;
 
     const result = {
        dateTag, author, tags, comiket, type, group, title, authors
