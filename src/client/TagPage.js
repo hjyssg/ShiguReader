@@ -180,7 +180,7 @@ export default class TagPage extends Component {
     } = this.state;
 
     const items = this.getItems() || [];
-    let keys = _.keys(items).filter(e => items[e] > 1);
+    let keys = _.keys(items);
 
     if (sortOrder.includes(SORT_RANDOMLY)){
       keys = _.shuffle(keys);
