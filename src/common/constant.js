@@ -16,7 +16,7 @@ module.exports.SORT_OPTIONS = [
 ];
 
 module.exports.TAG_SORT_OPTIONS = [
-    "file  number",
+    "file number",
     "name",
     "random"
 ];
