@@ -50,7 +50,7 @@
 
 # 没有nodejs,麻烦先安装nodejs https://nodejs.org/
 
-# 到[imagemagick](https://imagemagick.org)下载安装imagemagick。
+# 到 https://imagemagick.org 下载安装imagemagick。
 
 # 把代码clone或者github右上角下载到本地
 # 建议所放的硬盘至少还有10GB的空间。因为本程序需要缓存。
@@ -100,10 +100,11 @@ npm run dev
 # 如果要在iphone ipad等移动设备看漫画，可以直接扫描cmd上面的二维码就可以打开网页了
 
 # 打开网页以后，就可以用了。
-# 如果你对页面加载速度不满意，前往Admin页面Pregenerate Thumbnail。可以大幅度提高页面加载速度。
+# 如果你对页面加载速度不满意，前往Admin页面Pregenerate Thumbnail。可以大幅度提高页面加载速度。强烈推荐。
 
 # 如果用了一段时间，缓存占了太多空间。
-# 手动去到admin页面点clean cache清除缓存。或者直接删除cache文件夹也没事。
+# 可以手动去到admin页面点clean cache清除缓存。或者直接删除cache文件夹也没事。
+# 重启服务器也会清楚缓存
 ```
 
 ##### 注意事项
@@ -152,13 +153,16 @@ docker run -d -p hostport:3000 -v comicpath:/data liwufan/shigureader
          2.别的软件已经把端口占了的话，改port-config.js。
     
     问：怎么关闭服务器？
-    答：cmd上ctrl+c就好了。
+    答：cmd上ctrl+c就好了。或者直接把cmd关了也没事。
+
+    问：电脑可以打开使用，可是手机扫了二维码打不开。怎么办
+    答：先确认手机是不是和电脑在同一个局域网下。如果是，还打不开。那可能是电脑防火墙设置问题，自行网上搜索。
 
 ##### 热键
 漫画页面  
 enter: 全屏  
 AD和左右方向键: 翻页  
-+- 缩放  
++- 缩放图片 
 
 ##### 联系方式
-qq 398355565
+QQ： 398355565

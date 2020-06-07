@@ -21,7 +21,7 @@ Read Comic/Play Music and Video on all platform
 ```bash
 # If you do not have nodejs installed, please go to https://nodejs.org/
 
-# install[imagemagick](https://imagemagick.org)
+# install imagemagick  from https://imagemagick.org
 
 # Clone the repository or download
 git clone https://github.com/hjyssg/ShiguReader
