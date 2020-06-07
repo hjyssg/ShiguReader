@@ -181,7 +181,7 @@ function convertYearString(str) {
 const dreg1 = /\d{6}/;
 const dreg2 = /\d{2}-\d{2}-\d{2}/;
 const dreg3 = /\d{4}年\d{1,2}月\d{1,2}日/;
-
+const dreg4 = /\d{4}年\d{1,2}月号/;
 
 
 function isStrDate(str) {
@@ -197,6 +197,8 @@ function isStrDate(str) {
     }else if(str.match(dreg2)){
         return true;
     }else if(str.match(dreg3)){
+        return true;
+    }else if(str.match(dreg4)){
         return true;
     }
 
