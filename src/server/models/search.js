@@ -10,7 +10,8 @@ const {escapeRegExp} = util;
 const path = require('path');
 const _ = require('underscore');
 
-function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
+function searchByTagAndAuthor(tag, author, text, config) {
+    config = config || {};
     let beg = (new Date).getTime()
     const fileInfos = {};
 
@@ -53,7 +54,7 @@ function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
                       .find({'tags': { '$regex' : reg }, isDisplayableInExplorer: true });
     }
 
-    if(onlyNeedFew){
+    if(config.onlyNeedFew){
         results = results.limit(5);
     }
 
@@ -70,7 +71,12 @@ function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
 
     const getThumbnails = serverUtil.common.getThumbnails;
     const files = _.keys(fileInfos);
-    return { tag, author, fileInfos, thumbnails: getThumbnails(files), zipInfo: getZipInfo(files) };
+
+    if(config.onlyFileInfo){
+        return { tag, author, fileInfos }
+    }else{
+        return { tag, author, fileInfos, thumbnails: getThumbnails(files), zipInfo: getZipInfo(files) };
+    }
 }
 
 module.exports = searchByTagAndAuthor;

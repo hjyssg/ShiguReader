@@ -46,7 +46,7 @@ router.post("/api/getAllAuthors", (req, res) => {
         if(index % 100 === 0){
             console.log("[api/getAllAuthors]:", index);
         }
-        authorTable[author] = searchByTagAndAuthor("", author, "");
+        authorTable[author] = searchByTagAndAuthor("", author, "", {onlyFileInfo: true});
     })
 
     const time2 = getCurrentTime();
