@@ -185,7 +185,7 @@ function isStrDate(str) {
 
         let invalid = y > 30 && y < 80;
         invalid = invalid || (m < 0 || m > 12);
-        invalid = invalid || (d < 0 || d > 30);
+        invalid = invalid || (d < 0 || d > 31);
         return !invalid;
     }
 

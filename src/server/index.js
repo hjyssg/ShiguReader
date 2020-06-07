@@ -645,6 +645,9 @@ app.use(search);
 const AllInfo = require("./routes/AllInfo");
 app.use(AllInfo);
 
+const getAllAuhors = require("./routes/getAllAuhors");
+app.use(getAllAuhors);
+
 const singleFileInfo = require("./routes/singleFileInfo");
 app.use(singleFileInfo);
 

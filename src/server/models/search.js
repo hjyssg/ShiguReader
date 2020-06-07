@@ -57,7 +57,8 @@ function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
         results = results.limit(5);
     }
 
-    const finalResult = results.data().concat(extraResults);
+    let finalResult = (results && results.data())||[];
+    finalResult = finalResult.concat(extraResults);
 
     finalResult.forEach(obj => {
         const pp = obj.filePath;
