@@ -14,11 +14,21 @@ import { Redirect } from 'react-router-dom';
 import { isCompress, isImage, getCurrentTime } from '@common/util';
 const nameParser = require('@name-parser');
 const classNames = require('classnames');
+import SortHeader from './subcomponent/SortHeader';
+const Constant = require("@common/constant");
 
 const util = require("@common/util");
 const clientUtil = require("./clientUtil");
 const { getDir, getBaseName, getPerPageItemNumber, } = clientUtil;
 const sortUtil = require("../common/sortUtil");
+
+const {
+  FILE_NUMBER_DOWN,
+  FILE_NUMBER_UP,
+  NAME_UP,
+  NAME_DOWN,
+  SORT_RANDOMLY
+} = Constant;
 
 
 function addOne(table, key) {
@@ -47,7 +57,7 @@ export default class TagPage extends Component {
   constructor(prop) {
     super(prop);
     this.state = { tags: [], 
-                   sortByNumber: true,
+                  sortOrder: FILE_NUMBER_DOWN,
                    pageIndex: (+this.props.match.params.index) || 1 };
     this.perPage = getPerPageItemNumber();
   }
@@ -164,26 +174,60 @@ export default class TagPage extends Component {
     })
   }
 
-  getItems(){
-    return this.isAuthorMode()? this.state.authors : this.state.tags;
+  getFilteterItems(){
+    const {
+      sortOrder
+    } = this.state;
+
+    let { filterText } = this.props;
+
+    const items = this.getItems() || [];
+    let keys = _.keys(items);
+
+    if(_.isString(filterText)){
+      filterText = filterText.toLowerCase();
+      keys =  keys.filter(e => {
+            return e.toLowerCase().indexOf(filterText) > -1;
+      });
+    }
+
+    if (sortOrder.includes(SORT_RANDOMLY)){
+      keys = _.shuffle(keys);
+    } else if(sortOrder === FILE_NUMBER_DOWN || sortOrder === FILE_NUMBER_UP){
+      keys = _.sortBy(keys, a => -items[a]);
+
+      if(sortOrder === FILE_NUMBER_UP){
+        keys.reverse();
+      }
+    }else if(sortOrder === NAME_DOWN || sortOrder === NAME_UP){
+      keys.sort((a, b) => {
+          return a.localeCompare(b);
+      });
+
+      if(sortOrder === NAME_DOWN){
+          keys.reverse();
+      }
+    }
+    return keys;
   }
 
-  getItemLength(){
-    return _.keys(this.getItems()).length
+  getItems(){
+    return this.isAuthorMode()? this.state.authors : this.state.tags;
   }
 
   isAuthorMode(){
     return this.props.mode === "author";
   }
 
-  renderTagList() {
+  renderTagList(keys) {
     const {
       tags = [],
       authors = [],
       loaded,
       authorToFiles,
       tagToFiles,
-      pageIndex
+      pageIndex,
+      sortOrder
     } = this.state;
 
     if ( _.isEmpty(tags) && _.isEmpty(authors)) {
@@ -197,21 +241,6 @@ export default class TagPage extends Component {
     }
 
     const items = this.getItems();
-    let keys = _.keys(items);
-
-
-    if(this.state.sortByNumber){
-      keys.sort((a, b) => items[b] - items[a]);
-    }
-
-    var filterText = _.isString(this.props.filterText) && this.props.filterText.toLowerCase();
-    if(filterText){
-      keys =  keys.filter(e => {
-            return e.toLowerCase().indexOf(filterText) > -1;
-      });
-      keys.sort((a, b) => a.localeCompare(b));
-    }
-
     keys = keys.slice((pageIndex-1) * this.perPage, pageIndex * this.perPage);
     const t2Files = this.isAuthorMode()? authorToFiles : tagToFiles;
 
@@ -247,9 +276,9 @@ export default class TagPage extends Component {
     return this.res && this.res.failed;
   }
 
-  getTitle(){
+  getTitle(keys){
     let text = this.props.mode === "tag"? "By Tags" : "By Authors";
-    return text + " (" + this.getItemLength() + ")";
+    return text + " (" + keys.length + ")";
   }
 
   handlePageChange(index){
@@ -278,14 +307,25 @@ export default class TagPage extends Component {
       }
   }
 
-  renderPagination(){
+  renderPagination(keys){
     return (<div className="pagination-container">
               <Pagination ref={ref => this.pagination = ref}
               currentPage={this.state.pageIndex}  
               itemPerPage={this.perPage}
-              totalItemNum={this.getItemLength()} 
+              totalItemNum={keys.length} 
               onChange={this.handlePageChange.bind(this)} 
               /></div>);
+  }
+
+  onSortChange(e){
+    this.setState({sortOrder: e})
+  }
+
+  renderSortHeader(){
+    let sortOptions = Constant.TAG_SORT_OPTIONS;
+    return (<div className="sort-header-container container"> 
+        <SortHeader  options={sortOptions} value={this.state.sortOrder} onChange={this.onSortChange.bind(this)} />
+        </div>);
   }
 
   render() {
@@ -304,12 +344,15 @@ export default class TagPage extends Component {
 
     document.title = this.isAuthorMode()? "Authors" : "Tags"; 
 
+    const keys = this.getFilteterItems();
+
     return (
       <div className="tag-container">
-        <center className="location-title">{this.getTitle()}</center>
-        {this.renderPagination()}
-        {this.renderTagList()}
-        {this.renderPagination()}
+        <center className="location-title">{this.getTitle(keys)}</center>
+        {this.renderPagination(keys)}
+        {this.renderSortHeader()}
+        {this.renderTagList(keys)}
+        {this.renderPagination(keys)}
       </div>
     );
   }

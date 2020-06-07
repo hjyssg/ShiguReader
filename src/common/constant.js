@@ -15,6 +15,19 @@ module.exports.SORT_OPTIONS = [
     "random"
 ];
 
+module.exports.TAG_SORT_OPTIONS = [
+    "file number",
+    "name",
+    "random"
+];
+
+module.exports.FILE_NUMBER_DOWN = "file number_down";
+module.exports.FILE_NUMBER_UP = "file number_up";
+
+module.exports.NAME_UP = "name_up";
+module.exports.NAME_DOWN = "name_down";
+
+
 module.exports.TIME_DOWN = "time_down";
 module.exports.TIME_UP = "time_up";
 
