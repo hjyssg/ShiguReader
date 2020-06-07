@@ -99,7 +99,7 @@
       overflow: scroll;
 
       @media screen and (min-height: 600px) {
-        min-height: 600px;;
+        min-height: 600px;
       }
 
       .mobile-single-image{
@@ -109,7 +109,7 @@
         max-height: 900px; 
 
         @media screen and (max-height: 800px) {
-          max-height: 600px;;
+          max-height: 600px;
         }
 
         &.has-music {
