@@ -174,40 +174,12 @@ export default class TagPage extends Component {
     })
   }
 
-  getItems(){
-    return this.isAuthorMode()? this.state.authors : this.state.tags;
-  }
-
-  getItemLength(){
-    return _.keys(this.getItems()).length
-  }
-
-  isAuthorMode(){
-    return this.props.mode === "author";
-  }
-
-  renderTagList() {
+  getFilteterItems(){
     const {
-      tags = [],
-      authors = [],
-      loaded,
-      authorToFiles,
-      tagToFiles,
-      pageIndex,
       sortOrder
     } = this.state;
 
-    if ( _.isEmpty(tags) && _.isEmpty(authors)) {
-      if(loaded){
-        return (<center style={{paddingTop: "100px"}}> 
-                    <div className="alert alert-info col-6" role="alert" > {`No Content`} </div>
-                </center>);
-      }else{
-        return (<CenterSpinner/>);
-      }
-    }
-
-    const items = this.getItems();
+    const items = this.getItems() || [];
     let keys = _.keys(items);
 
     if (sortOrder.includes(SORT_RANDOMLY)){
@@ -237,6 +209,39 @@ export default class TagPage extends Component {
       keys.sort((a, b) => a.localeCompare(b));
     }
 
+    return keys;
+  }
+
+  getItems(){
+    return this.isAuthorMode()? this.state.authors : this.state.tags;
+  }
+
+  isAuthorMode(){
+    return this.props.mode === "author";
+  }
+
+  renderTagList(keys) {
+    const {
+      tags = [],
+      authors = [],
+      loaded,
+      authorToFiles,
+      tagToFiles,
+      pageIndex,
+      sortOrder
+    } = this.state;
+
+    if ( _.isEmpty(tags) && _.isEmpty(authors)) {
+      if(loaded){
+        return (<center style={{paddingTop: "100px"}}> 
+                    <div className="alert alert-info col-6" role="alert" > {`No Content`} </div>
+                </center>);
+      }else{
+        return (<CenterSpinner/>);
+      }
+    }
+
+    const items = this.getItems();
     keys = keys.slice((pageIndex-1) * this.perPage, pageIndex * this.perPage);
     const t2Files = this.isAuthorMode()? authorToFiles : tagToFiles;
 
@@ -272,9 +277,9 @@ export default class TagPage extends Component {
     return this.res && this.res.failed;
   }
 
-  getTitle(){
+  getTitle(keys){
     let text = this.props.mode === "tag"? "By Tags" : "By Authors";
-    return text + " (" + this.getItemLength() + ")";
+    return text + " (" + keys.length + ")";
   }
 
   handlePageChange(index){
@@ -303,12 +308,12 @@ export default class TagPage extends Component {
       }
   }
 
-  renderPagination(){
+  renderPagination(keys){
     return (<div className="pagination-container">
               <Pagination ref={ref => this.pagination = ref}
               currentPage={this.state.pageIndex}  
               itemPerPage={this.perPage}
-              totalItemNum={this.getItemLength()} 
+              totalItemNum={keys.length} 
               onChange={this.handlePageChange.bind(this)} 
               /></div>);
   }
@@ -340,13 +345,15 @@ export default class TagPage extends Component {
 
     document.title = this.isAuthorMode()? "Authors" : "Tags"; 
 
+    const keys = this.getFilteterItems();
+
     return (
       <div className="tag-container">
-        <center className="location-title">{this.getTitle()}</center>
-        {this.renderPagination()}
+        <center className="location-title">{this.getTitle(keys)}</center>
+        {this.renderPagination(keys)}
         {this.renderSortHeader()}
-        {this.renderTagList()}
-        {this.renderPagination()}
+        {this.renderTagList(keys)}
+        {this.renderPagination(keys)}
       </div>
     );
   }
