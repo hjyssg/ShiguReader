@@ -346,7 +346,15 @@ function parse(str) {
         }
     }
 
+    const tseperator = /,|、/;
     tags = tags.concat(getTag(str, pMacthes, author));
+    let tempTags = [];
+    tags.forEach(t => {
+        t.split(tseperator).forEach(token => {
+            tempTags.push(token);
+        })
+    })
+    tags = tempTags;
     tags = tags.filter(e => e.length > 1);
     if(!author && !group && tags.length === 0){
         localCache[str] = "NO_EXIST";
@@ -361,8 +369,8 @@ function parse(str) {
     })
     title = title.trim();
 
-    
-    const authors = author && author.split(/,|、|&/).map(e => e.trim()) ;
+    const seperator = /,|、|&|＆/;
+    const authors = author && author.split(seperator).map(e => e.trim()) ;
 
     const result = {
        dateTag, author, tags, comiket, type, group, title, authors
