@@ -179,13 +179,21 @@ export default class TagPage extends Component {
       sortOrder
     } = this.state;
 
+    let { filterText } = this.props;
+
     const items = this.getItems() || [];
     let keys = _.keys(items);
+
+    if(_.isString(filterText)){
+      filterText = filterText.toLowerCase();
+      keys =  keys.filter(e => {
+            return e.toLowerCase().indexOf(filterText) > -1;
+      });
+    }
 
     if (sortOrder.includes(SORT_RANDOMLY)){
       keys = _.shuffle(keys);
     } else if(sortOrder === FILE_NUMBER_DOWN || sortOrder === FILE_NUMBER_UP){
-      keys.sort((a, b) => items[b] - items[a]);
       keys = _.sortBy(keys, a => -items[a]);
 
       if(sortOrder === FILE_NUMBER_UP){
@@ -200,15 +208,6 @@ export default class TagPage extends Component {
           keys.reverse();
       }
     }
-
-    var filterText = _.isString(this.props.filterText) && this.props.filterText.toLowerCase();
-    if(filterText){
-      keys =  keys.filter(e => {
-            return e.toLowerCase().indexOf(filterText) > -1;
-      });
-      keys.sort((a, b) => a.localeCompare(b));
-    }
-
     return keys;
   }
 
