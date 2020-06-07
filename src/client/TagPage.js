@@ -66,7 +66,17 @@ export default class TagPage extends Component {
 
     this.bindUserInteraction();
 
-    Sender.post('/api/allInfo', { needThumbnail: true}, res => {
+    // Sender.post('/api/allInfo', { needThumbnail: true}, res => {
+    //   if (!res.failed) {
+    //     this.setItems(res);
+    //     this.setState({ loaded: true });
+    //   } else {
+    //     this.res = res;
+    //     this.forceUpdate();
+    //   }
+    // });
+
+    Sender.post('/api/getAllAuthors', { needThumbnail: true}, res => {
       if (!res.failed) {
         this.setItems(res);
         this.setState({ loaded: true });

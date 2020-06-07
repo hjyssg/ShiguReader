@@ -260,7 +260,7 @@ export default class ChartPage extends Component {
             }else if(timeType === BY_MONTH){
                 tLabel = `${t.getFullYear()}-${t.getMonth()+1}`;
             }else{
-                tLabel = t.getFullYear();;
+                tLabel = t.getFullYear();
             }
 
             if(valueType === VALUE_COUNT){

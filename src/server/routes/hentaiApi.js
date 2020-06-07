@@ -2,7 +2,7 @@
 const express = require('express');
 const router = express.Router();
 const db = require("../models/db");
-const { getAllFilePathes } = db;;
+const { getAllFilePathes } = db;
 const util = global.requireUtil();
 const { isCompress } = util;
 const path = require('path');

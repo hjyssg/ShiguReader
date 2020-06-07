@@ -153,6 +153,9 @@ async function init() {
 
     setUpFileWatch(path_will_scan);
 
+    console.log("-------init author db---------------");
+    initAuthorDb();
+
     const port = isProduction? http_port: dev_express_port;
     const server = app.listen(port, async () => {
         const lanIP = await internalIp.v4();
@@ -321,6 +324,75 @@ async function getStat(filePath){
     const stat = await pfs.stat(filePath);
     updateStatToDb(filePath, stat);
     return stat;
+}
+
+function initAuthorDb(){
+    const pathes =  getAllFilePathes().filter(isCompress);
+    const groupSet = {};
+    pathes.forEach(filePath => {
+        const result = serverUtil.parse(filePath);
+        if (result && result.group) {
+            groupSet[result.group] = true;
+        }
+    })
+    
+    const authorSets = {};
+    pathes.forEach(filePath => {
+        const result = serverUtil.parse(filePath);
+        if (result) {
+            (result.authors||[]).forEach(author => {
+                //some author is actually group, fake author
+                if(!groupSet[author]){
+                authorSets[author] = true;
+                }
+            })
+        }
+    })
+
+    const authors = _.keys(authorSets);
+    const authorTable = {};
+
+    const time1 = getCurrentTime();
+
+    authors.forEach((author, index) => {
+        if(index % 500 === 0){
+            console.log("[initAuthorDb]:", index);
+        }
+        authorTable[author] = searchByTagAndAuthor("", author, "", {onlyFileInfo: true}).fileInfos;
+    })
+
+    const time2 = getCurrentTime();
+    let timeUsed = (time2 - time1);
+    console.log(`[initAuthorDb] author ${timeUsed}ms`);
+
+
+    //------------init tag ----------------
+    const tagSets = {};
+    pathes.forEach(filePath => {
+        const result = serverUtil.parse(filePath);
+        if (result) {
+            result.tags.forEach(tag => {
+                tagSets[tag] = true;
+            });
+        }
+    });
+
+    const tags = _.keys(tagSets);
+    const tagTable = {}
+    tags.forEach((tag, index) => {
+        if(index % 500 === 0){
+            console.log("[initAuthorDb]:", index);
+        }
+        tagTable[tag] = searchByTagAndAuthor(tag, "", "", {onlyFileInfo: true}).fileInfos;
+    })
+
+    const time3 = getCurrentTime();
+    timeUsed = (time3 - time2);
+    console.log(`[initAuthorDb] tag ${timeUsed}ms`);
+
+    global.authorTable = authorTable;
+    global.tagTable = tagTable;
+
 }
 
 
@@ -644,8 +716,8 @@ app.use(search);
 const AllInfo = require("./routes/AllInfo");
 app.use(AllInfo);
 
-const getAllAuhors = require("./routes/getAllAuhors");
-app.use(getAllAuhors);
+const getAllAuhorsAndTag = require("./routes/getAllAuhorsAndTag");
+app.use(getAllAuhorsAndTag);
 
 const singleFileInfo = require("./routes/singleFileInfo");
 app.use(singleFileInfo);

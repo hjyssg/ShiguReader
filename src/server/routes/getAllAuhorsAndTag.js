@@ -1,23 +1,23 @@
-
 const express = require('express');
 const router = express.Router();
-const serverUtil = require("../serverUtil");
+const util = global.requireUtil();
+
 const db = require("../models/db");
 const { getAllFilePathes } = db;
+const serverUtil = require("../serverUtil");
 const getThumbnails = serverUtil.common.getThumbnails;
 
-router.post('/api/allInfo', (req, res) => {
-    const needThumbnail = req.body && req.body.needThumbnail;
 
-    let allThumbnails = {};
-    if(needThumbnail){
+// three para 1.mode 2.text
+router.post("/api/getAllAuhorsAndTag", (req, res) => {
+
         allThumbnails = getThumbnails(getAllFilePathes());
-    }
 
     res.send({
-        fileToInfo: db.getFileToInfo(),
-        allThumbnails: allThumbnails
-    }); 
+        authorTable: global.authorTable,
+        tagTable: global.tagTable,
+        allThumbnails
+    });
 });
 
 module.exports = router;

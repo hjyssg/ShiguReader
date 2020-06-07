@@ -3,7 +3,7 @@
 const express = require('express');
 const router = express.Router();
 const db = require("../models/db");
-const { loopEachFileInfo } = db;;
+const { loopEachFileInfo } = db;
 const util = global.requireUtil();
 const { isCompress } = util;
 const userConfig = global.requireUserConfig();

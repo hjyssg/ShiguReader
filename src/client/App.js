@@ -58,7 +58,7 @@ class App extends Component {
     }
 
     onFilterClick(event){
-        this.filterText = getSearchInputText();;
+        this.filterText = getSearchInputText();
         this.forceUpdate();
     }
     

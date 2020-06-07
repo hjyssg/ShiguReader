@@ -47,4 +47,4 @@ class Dropdown extends Component {
 }
 
 
-export default enhanceWithClickOutside(Dropdown);;
+export default enhanceWithClickOutside(Dropdown);
