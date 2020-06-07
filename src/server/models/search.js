@@ -50,7 +50,11 @@ function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
     }else if(tag){
         const reg = escapeRegExp(tag);
         results = getFileCollection().chain()
-                      .find({'tags': { '$regex' : reg }, isDisplayableInExplorer: true });
+                      .find({'tags': { '$regex' : reg }, isDisplayableInExplorer: true })
+                      .where(obj => {
+                        const result = parse(obj.fileName);
+                        return result.tags.some(e => tag === e);
+                      });
     }
 
     if(onlyNeedFew){

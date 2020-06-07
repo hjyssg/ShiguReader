@@ -177,8 +177,15 @@ function convertYearString(str) {
     return y;
 }
 
+
+const dreg1 = /\d{6}/;
+const dreg2 = /\d{2}-\d{2}-\d{2}/;
+const dreg3 = /\d{4}年\d{1，2}月\d{2}日/;
+
+
+
 function isStrDate(str) {
-    if (str && str.length === 6) {
+    if (str && str.length === 6 && str.match(dreg1)) {
         const y = parseInt(str.slice(0, 2));
         const m = parseInt(str.slice(2, 4));
         const d = parseInt(str.slice(4, 6));
@@ -187,12 +194,17 @@ function isStrDate(str) {
         invalid = invalid || (m < 0 || m > 12);
         invalid = invalid || (d < 0 || d > 31);
         return !invalid;
+    }else if(str.match(dreg2)){
+        return true;
+    }else if(str.match(dreg3)){
+        return true;
     }
 
     return isFullStrDate(str);
 }
 
-const fullDateReg = /\d{4}-\d{1,2}-\d{2}/
+const fullDateReg = /\d{4}-\d{1,2}-\d{2}/;
+
 function isFullStrDate(str){
     //e.g 2014-04-01
     return !!(str && str.match(fullDateReg));
