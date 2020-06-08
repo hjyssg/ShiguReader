@@ -141,7 +141,8 @@ export default class TagPage extends Component {
         const fileName = getBaseName(filePath);
         const result = nameParser.parse(fileName);
         if (result && result.group) {
-          groupSet[result.group] = true;
+          const group = result.group.toLowerCase();
+          groupSet[group] = true;
         }
       }
     }
@@ -153,6 +154,7 @@ export default class TagPage extends Component {
         if (result) {
             (result.authors||[]).forEach(author => {
               //some author is actually group, fake author
+              author = author.toLowerCase();
               if(!groupSet[author]){
                 addOne(authors, author);
                 addToArray(authorToFiles, author, filePath );
@@ -160,6 +162,7 @@ export default class TagPage extends Component {
             })
 
             result.tags.forEach(tag => {
+              tag = tag.toLowerCase();
               addOne(tags, tag);
               addToArray(tagToFiles, tag, filePath);
             });
@@ -230,8 +233,7 @@ export default class TagPage extends Component {
       loaded,
       authorToFiles,
       tagToFiles,
-      pageIndex,
-      sortOrder
+      pageIndex
     } = this.state;
 
     if ( _.isEmpty(tags) && _.isEmpty(authors)) {
@@ -247,9 +249,27 @@ export default class TagPage extends Component {
     const items = this.getItems();
     keys = keys.slice((pageIndex-1) * this.perPage, pageIndex * this.perPage);
     const t2Files = this.isAuthorMode()? authorToFiles : tagToFiles;
+    const isAuthorMode = this.isAuthorMode();
+    const kk = isAuthorMode? "authors" : "tags";
+
 
     const tagItems = keys.map((tag) => {
-      const itemText = `${tag} (${items[tag]})`;
+
+      //because the tag is stored as lowercase
+      //we need to find the correct spelling
+      let strArr = [];
+      t2Files[tag].forEach(filePath => {
+        const fileName = getBaseName(filePath);
+        const result = nameParser.parse(fileName);
+        result[kk].forEach(vv => strArr.push(vv));
+      });
+
+      strArr = strArr.filter(e => e.toLowerCase() === tag.toLowerCase());
+      const byFeq = _.countBy(strArr, e => e);
+      strArr = _.sortBy(_.keys(byFeq), e => -byFeq[e]);
+      const displayTag = strArr[0];
+
+      const itemText = `${displayTag} (${items[tag]})`;
       const url = this.isAuthorMode()? clientUtil.getAuthorLink(tag) :  clientUtil.getTagLink(tag);
       const thumbnailUrl = this.chooseOneThumbnailForOneTag(t2Files[tag]);
     

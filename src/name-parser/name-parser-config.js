@@ -27,7 +27,7 @@ module.exports.same_tag_regs_table = {
     "To LOVEる": [/To.*LOVEる/i],
     "魔法少女まどか☆マギカ": [/まどか.*マギカ/],
     "アイカツ!": [/アイカツ!/],
-    "エヴァンゲリオン": [/エヴァンゲリオン/, /エヴァ/, /Evangelion/]
+    "エヴァンゲリオン": [/エヴァンゲリオン/, /^エヴァ$/, /Evangelion/]
 }
 
 module.exports.not_author_but_tag = [
