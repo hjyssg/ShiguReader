@@ -18,7 +18,6 @@ import SortHeader from './subcomponent/SortHeader';
 const Constant = require("@common/constant");
 const queryString = require('query-string');
 
-
 const util = require("@common/util");
 const clientUtil = require("./clientUtil");
 const { getDir, getBaseName, getPerPageItemNumber, isSearchInputTextTyping } = clientUtil;
@@ -31,6 +30,8 @@ const {
   NAME_DOWN,
   SORT_RANDOMLY
 } = Constant;
+
+const useless_tag_regex = /DL版|同人誌|別スキャン|修正版|^エロ|digital/i;
 
 
 function addOne(table, key) {
@@ -199,6 +200,9 @@ setStateAndSetHash(state, callback){
             })
 
             result.tags.forEach(tag => {
+              if(tag.match(useless_tag_regex)){
+                return;
+              }
               tag = toKey(tag);
               addOne(tags, tag);
               addToArray(tagToFiles, tag, filePath);
