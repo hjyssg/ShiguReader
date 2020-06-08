@@ -269,7 +269,7 @@ function getTypeAndComiket(tags, group){
     }
 }
 
-function getTag(str, tags, pMacthes, author){
+function getTag(tags, pMacthes, author){
     tags = tags || [];
     if (pMacthes && pMacthes.length > 0) {
         tags = tags.concat(pMacthes);
@@ -279,11 +279,6 @@ function getTag(str, tags, pMacthes, author){
     if(author && tags.indexOf(author) >= 0){
         tags.splice(tags.indexOf(author), 1);
     }
-
-    const names = char_name_regex && str.match(char_name_regex);
-    names && names.forEach(e => {
-        tags.push(e);
-    })
 
     const tseperator = /,|、/;
     const tempTags = [];
@@ -375,7 +370,7 @@ function parse(str) {
         }
     }
 
-    tags = getTag(str, tags, pMacthes, author);
+    tags = getTag(tags, pMacthes, author);
     const { comiket, type } = getTypeAndComiket(tags, group);
 
     if(comiket){
@@ -395,6 +390,11 @@ function parse(str) {
 
     const seperator = /,|、|&|＆/;
     const authors = author && author.split(seperator).map(e => e.trim()) ;
+
+    const names = char_name_regex && title.match(char_name_regex);
+    names && names.forEach(e => {
+        tags.push(e);
+    })
 
     const result = {
        dateTag, author, tags, comiket, type, group, title, authors
