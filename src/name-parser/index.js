@@ -32,7 +32,8 @@ const reg_list = [comicket_reg, comic_star_reg, love_live_event_reg,
                  comitea_reg, sankuri_reg, reitaisai_reg,
                  tora_reg, komitore_reg, /みみけっと.*\d+/, 
                  /コミトレ.*\d+/, /FF\d+/, /iDOL SURVIVAL.*\d/i, 
-                 /SC\d+/, /コミコミ.*\d/, /ふたけっと.*\d/];
+                 /SC\d+/, /コミコミ.*\d/, /ふたけっと.*\d/,
+                /ファータグランデ騎空祭/];
 
 function belongToEvent(e){
     return reg_list.some(reg => e.match(reg));
