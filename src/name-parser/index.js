@@ -5,7 +5,7 @@ const not_author_but_tag = config.not_author_but_tag;
 const char_names = require("./character-names");
 //https://stackoverflow.com/questions/5582574/how-to-check-if-a-string-contains-text-from-an-array-of-substrings-in-javascript
 const char_name_regex = new RegExp(char_names.join("|"));
-
+const not_author_but_tag_regex =  new RegExp(not_author_but_tag.join("|"), "i");
 
 const book_types = [
     "同人音声",
@@ -16,7 +16,9 @@ const book_types = [
     "一般コミック",
     "ゲームCG",
     "画集"
-]
+];
+
+const book_type_regex = new RegExp(book_types.join("|"), "i");
 
 const localCache = {};
 
@@ -40,17 +42,6 @@ function belongToEvent(e){
 }
 
 function init(){
-    const book_type_table = {};
-    book_types.forEach(e => {
-        book_type_table[e.toLowerCase()] = true;
-    })
-
-    const not_author_but_tag_table = {};
-    not_author_but_tag.forEach(e => {
-        not_author_but_tag_table[e.toLowerCase()] = true;
-    })
-
-
     //--------------------------------------------
     const tag_convert_table = {};
     same_tags.forEach(row => {
@@ -79,8 +70,6 @@ function init(){
 
     //------------------------------------
     return {
-        not_author_but_tag_table,
-        book_type_table,
         tag_convert_table,
         same_tag_reg_to_common_name,
         same_tag_reg_array
@@ -88,8 +77,6 @@ function init(){
 }
 
 const {
-    not_author_but_tag_table,
-    book_type_table,
     tag_convert_table,
     same_tag_reg_to_common_name,
     same_tag_reg_array
@@ -258,7 +245,7 @@ function getTypeAndComiket(tags, group){
     tags.forEach(e => {
         if(belongToEvent(e)){
             comiket = e;
-        }else if(book_type_table[e]){
+        }else if(e.match(book_type_regex)){
             type = e;
         }
     })
@@ -360,7 +347,7 @@ function parse(str) {
             }else if (isStrDate(token)) {
                 //e.g 190214
                 dateTag = token;
-            } else if (not_author_but_tag_table[tt]){
+            } else if (tt.match(not_author_but_tag_regex)){
                 //e.g pixiv is not author
                 tags.push(token);
             } else if (nextChar === "." || nextCharIndex >= str.length){
@@ -370,7 +357,7 @@ function parse(str) {
             } else if(!author) {
                 //  [真珠貝(武田弘光)]
                 const temp = getAuthorName(token);
-                if(!not_author_but_tag_table[temp.name]){
+                if(temp.name && !temp.name.match(not_author_but_tag_regex)){
                     //e.g よろず is not author
                     author = temp.name;
                 }
