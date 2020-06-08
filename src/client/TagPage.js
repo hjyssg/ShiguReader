@@ -138,7 +138,7 @@ export default class TagPage extends Component {
 
     function toKey(Str){
       //todo romanization kanji
-      return str.toLowerCase().replace(/-| /, "");
+      return str.toLowerCase().replace(/-| |\!/, "");
     }
 
     for(let filePath in fileToInfo){

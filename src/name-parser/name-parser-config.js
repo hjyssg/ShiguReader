@@ -9,7 +9,7 @@ module.exports.same_tags = [
 
 module.exports.same_tag_regs_table = {
     "Kanon": [/カノン|Kanon/i],
-    "艦これ": [/艦これ/, /艦隊これくしょん/, /Kantai Collection/i, /KanColle/i],
+    "艦これ": [/艦これ|舰これ/, /艦隊これくしょん/, /Kantai Collection/i, /KanColle/i],
     "ラブライブ!" : [/Love Live/i, /ラブライブ/i],
     "プリンセスコネクト!Re:Dive": [/プリンセスコネクト.*Re.*Dive/i],
     "Fate⁄Grand Order": [/Fate.*Grand.*Order/i, /FGO/],
@@ -40,11 +40,18 @@ module.exports.same_tag_regs_table = {
     "ご注文はうさぎですか": [/ご注文はうさぎですか/],
     "ソードアート・オンライン": [/ソードアート.*オンライン/],
     "ダンガンロンパ": [/ダンガンロンパ/],
-    "ドラゴンクエスト": [/ドラゴンクエスト/]
+    "ドラゴンクエスト": [/ドラゴンクエスト/],
+    "ファイナルファンタジー": [/ファイナルファンタジー/],
+    "咲 -Saki-": [/咲.*Saki.*/i],
+    "咲-Saki- 阿知賀編": [/咲.*Saki.*阿知賀編/i],
+    "聖剣伝説": [/聖剣伝説/],
+    "閃乱カグラ": [/閃乱カグラ/],
+    "魔法少女リリカルなのは": [/魔法少女リリカルなのは.*/]
 }
 
 module.exports.not_author_but_tag = [
     "同人音声",
+    "同人誌",
     "アンソロジー",
     "DL版",
     "よろず",
