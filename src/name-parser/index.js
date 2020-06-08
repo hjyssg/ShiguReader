@@ -65,10 +65,11 @@ function init(){
         if(same_tag_regs_table.hasOwnProperty(tag)){
             const reg_array = same_tag_regs_table[tag];
 
-            reg_array.forEach(r => {
-                same_tag_reg_array.push(r);
-                same_tag_reg_to_common_name[r] = tag;
-            })
+            const big_pre_join = reg_array.map(e =>e.source)
+            const r =  new RegExp(big_pre_join.join("|"), 'i')
+
+            same_tag_reg_array.push(r);
+            same_tag_reg_to_common_name[r] = tag;
         }
     }
 
