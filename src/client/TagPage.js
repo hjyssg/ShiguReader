@@ -63,7 +63,7 @@ export default class TagPage extends Component {
   }
 
   componentWillReceiveProps(nextProps){
-    if(this.props.mode !== nextProps.mode){
+    if(this.props.mode !== nextProps.mode || this.props.filterText !== nextProps.filterText){
       this.setState({pageIndex: 1})
     }
   }

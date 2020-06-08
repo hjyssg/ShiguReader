@@ -26,8 +26,9 @@ const love_live_event_reg = /^僕らのラブライブ!/i;
 const comitea_reg = /^コミティア\d/;
 const sankuri_reg = /^サンクリ\d+/;
 const reitaisai_reg = /^例大祭\d+/;
-const tora_reg = /^とら祭り\d/;
-const reg_list = [comicket_reg, comic_star_reg, love_live_event_reg, comitea_reg, sankuri_reg, reitaisai_reg, tora_reg];
+const tora_reg = /^とら祭り\d+/;
+const komitore_reg = /^こみトレ\d+/;
+const reg_list = [comicket_reg, comic_star_reg, love_live_event_reg, comitea_reg, sankuri_reg, reitaisai_reg, tora_reg, komitore_reg];
 
 function belongToEvent(e){
     return reg_list.some(reg => e.match(reg));
@@ -304,7 +305,9 @@ function getTag(tags, pMacthes, author){
         return e;
     })
 
-    tags = tags.filter(e => e.length > 1);
+    tags = tags
+        .map(e => e.trim())
+        .filter(e => e.length > 1);
     return tags;
 }
 
