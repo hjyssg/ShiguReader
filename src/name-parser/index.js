@@ -18,7 +18,7 @@ const book_types = [
     "画集"
 ];
 
-const book_type_regex = new RegExp(book_types.join("|"), "i");
+const book_type_regex = new RegExp(book_types.map(e => `(${e})`).join("|"), "i");
 
 const localCache = {};
 
@@ -246,7 +246,7 @@ function getTypeAndComiket(tags, group){
         if(belongToEvent(e)){
             comiket = e;
         }else if(e.match(book_type_regex)){
-            type = e;
+            type = e.match(book_type_regex)[0];
         }
     })
 

@@ -343,7 +343,7 @@ export default class ChartPage extends Component {
         data.datasets = [{
             type: 'pie',
             label: 'by type',
-            backgroundColor: ["aqua", "blue", "orange", "yellow","green", "lime", "pink"],
+            backgroundColor: ["#586185", "#23395B", "#406E8E", "#8EA8C3","#CBF7ED", "#726a95", "#709fb0", "#a0c1b8", "#f4ebc1"],
             data:  values
           }];
 
