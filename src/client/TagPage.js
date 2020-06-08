@@ -137,8 +137,9 @@ export default class TagPage extends Component {
     const groupSet = {};
 
     function toKey(str){
-      //todo romanization kanji
-      return str.toLowerCase().replace(/-| |\!/, "");
+      return str.toLowerCase();
+      //.replace(/-| |\!/, "") will also done in server side 
+      //or the search will be wrong
     }
 
     for(let filePath in fileToInfo){
