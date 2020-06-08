@@ -16,6 +16,8 @@ const nameParser = require('@name-parser');
 const classNames = require('classnames');
 import SortHeader from './subcomponent/SortHeader';
 const Constant = require("@common/constant");
+const queryString = require('query-string');
+
 
 const util = require("@common/util");
 const clientUtil = require("./clientUtil");
@@ -56,18 +58,47 @@ function addToArray(table, key, value){
 export default class TagPage extends Component {
   constructor(prop) {
     super(prop);
-    this.state = { tags: [], 
-                  sortOrder: FILE_NUMBER_DOWN,
-                   pageIndex: (+this.props.match.params.index) || 1 };
+    this.state = this.getInitState();
     this.perPage = getPerPageItemNumber();
   }
 
-  componentWillReceiveProps(nextProps){
-    if(this.props.mode !== nextProps.mode || this.props.filterText !== nextProps.filterText){
-      this.setState({pageIndex: 1})
-    }
+  getInitState(reset){
+    const parsed = reset? {} : queryString.parse(location.hash);
+    const pageIndex = parseInt(parsed.pageIndex) || 1;
+    const sortOrder = parsed.sortOrder || FILE_NUMBER_DOWN;
+    
+      return {
+          tags: [],
+          authors: [],
+          pageIndex,
+          sortOrder,
+          filterText: parsed.filterText || "",
+      }
   }
 
+setStateAndSetHash(state, callback){
+  const obj = Object.assign({}, this.state, state);
+  const obj2 = {};
+  ["pageIndex", "sortOrder", "filterText"].forEach(key => {
+    obj2[key] = obj[key];
+  })
+
+  location.hash = queryString.stringify(obj2);
+  this.setState(state, callback);
+}
+
+  componentWillReceiveProps(nextProps){
+    if(this.props.mode !== nextProps.mode){
+      this.setStateAndSetHash({pageIndex: 1, filterText: ""})
+    }
+
+    if(_.isString(nextProps.filterText) && nextProps.filterText !== this.state.filterText){
+      this.setStateAndSetHash({
+          pageIndex: 1,
+          filterText: nextProps.filterText
+      })
+    }
+  }
 
   componentDidMount() {
     if (this.state.loaded) {
@@ -189,18 +220,18 @@ export default class TagPage extends Component {
 
   getFilteterItems(){
     const {
-      sortOrder
+      sortOrder,
+      filterText
     } = this.state;
 
-    let { filterText } = this.props;
 
     const items = this.getItems() || [];
     let keys = _.keys(items);
 
     if(_.isString(filterText)){
-      filterText = filterText.toLowerCase();
+      let _text = filterText.toLowerCase();
       keys =  keys.filter(e => {
-            return e.toLowerCase().indexOf(filterText) > -1;
+            return e.toLowerCase().indexOf(_text) > -1;
       });
     }
 
@@ -315,10 +346,12 @@ export default class TagPage extends Component {
     if(window.event && window.event.ctrlKey){
       return;
     }
-    const temp = this.props.mode === "tag"? "/tagPage/": "/authorPage/";
-    const path = temp + index;
-    this.redirect = path;
-    this.setState({
+
+    // const temp = this.props.mode === "tag"? "/tagPage/": "/authorPage/";
+    // const path = temp + index;
+    // this.redirect = path;
+
+    this.setStateAndSetHash({
       pageIndex: index
     });
   }
@@ -348,7 +381,7 @@ export default class TagPage extends Component {
   }
 
   onSortChange(e){
-    this.setState({sortOrder: e})
+    this.setStateAndSetHash({sortOrder: e})
   }
 
   renderSortHeader(){
@@ -359,14 +392,14 @@ export default class TagPage extends Component {
   }
 
   render() {
-    if(this.redirect){
-      const path = this.redirect;
-      this.redirect = "";
-      return (<Redirect
-        to={{
-            pathname: path,
-      }}/>);
-    }
+    // if(this.redirect){
+    //   const path = this.redirect;
+    //   this.redirect = "";
+    //   return (<Redirect
+    //     to={{
+    //         pathname: path,
+    //   }}/>);
+    // }
 
     if (this.isFailedLoading()) {
       return <ErrorPage res={this.res.res}/>;

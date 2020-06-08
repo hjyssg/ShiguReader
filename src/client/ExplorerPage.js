@@ -90,7 +90,21 @@ export default class ExplorerPage extends Component {
 
     setStateAndSetHash(state, callback){
         const obj = Object.assign({}, this.state, state);
-        location.hash = queryString.stringify(obj);
+
+        const obj2 = {};
+        ["pageIndex",
+        "isRecursive", 
+        "sortOrder", 
+        "showVideo", 
+        "filterByGoodAuthorName",
+        "filterByFirstTime",
+        "filterByHasMusic",
+        "filterByOversizeImage",
+        "filterText",
+        "noThumbnail"].forEach(key => {
+          obj2[key] = obj[key];
+        })
+        location.hash = queryString.stringify(obj2);
         this.setState(state, callback);
     }
 
