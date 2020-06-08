@@ -84,8 +84,8 @@ class App extends Component {
             <Route path='/search/' render={renderExplorer}/>
 
             <Route path='/onebook/' render={renderOneBook}/>
-            <Route path='/tagPage/:index' render={renderTagPage}/>
-            <Route path='/authorPage/:index' render={renderAuthorPage}/>
+            <Route path='/tagPage/' render={renderTagPage}/>
+            <Route path='/authorPage/' render={renderAuthorPage}/>
             <Route path='/videoPlayer/' render={renderVideo}/>
 
             <Route path='/chart/' render={renderChartPage}/>
@@ -127,8 +127,8 @@ class App extends Component {
             <div className="app-top-topnav container">
                 <div className="app-page-links row">
                     <Link to='/'><i className="fas fa-home">Home</i></Link>
-                    <Link to='/authorPage/1'><i className="fas fa-pen">Authors</i></Link>
-                    <Link to='/tagPage/1'><i className="fas fa-tags">Tags</i></Link>
+                    <Link to='/authorPage/'><i className="fas fa-pen">Authors</i></Link>
+                    <Link to='/tagPage/'><i className="fas fa-tags">Tags</i></Link>
                     <Link to='/chart'><i className="fas fa-chart-bar">Chart</i></Link>
                     <Link to='/admin'><i className="fas fa-tools">Admin</i></Link>
                 </div>

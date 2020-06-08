@@ -5,7 +5,7 @@ const not_author_but_tag = config.not_author_but_tag;
 const char_names = require("./character-names");
 //https://stackoverflow.com/questions/5582574/how-to-check-if-a-string-contains-text-from-an-array-of-substrings-in-javascript
 const char_name_regex = new RegExp(char_names.join("|"));
-
+const not_author_but_tag_regex =  new RegExp(not_author_but_tag.join("|"), "i");
 
 const book_types = [
     "同人音声",
@@ -16,38 +16,32 @@ const book_types = [
     "一般コミック",
     "ゲームCG",
     "画集"
-]
+];
+
+const book_type_regex = new RegExp(book_types.join("|"), "i");
 
 const localCache = {};
 
 const comicket_reg = /^C\d{2}$/i;
 const comic_star_reg = /^COMIC1☆\d{1,2}$/i;
 const love_live_event_reg = /^僕らのラブライブ!/i;
-const comitea_reg = /^コミティア\d/;
-const sankuri_reg = /^サンクリ\d+/;
-const reitaisai_reg = /^例大祭\d+/;
-const tora_reg = /^とら祭り\d+/;
-const komitore_reg = /^こみトレ\d+/;
+const comitea_reg = /^コミティア.*\d/;
+const sankuri_reg = /^サンクリ.*\d+/;
+const reitaisai_reg = /^例大祭.*\d+/;
+const tora_reg = /^とら祭り.*\d+/;
+const komitore_reg = /^こみトレ.*\d+/;
 const reg_list = [comicket_reg, comic_star_reg, love_live_event_reg,
                  comitea_reg, sankuri_reg, reitaisai_reg,
-                 tora_reg, komitore_reg, /みみけっと\d+/, /コミトレ\d+/];
+                 tora_reg, komitore_reg, /みみけっと.*\d+/, 
+                 /コミトレ.*\d+/, /FF\d+/, /iDOL SURVIVAL.*\d/i, 
+                 /SC\d+/, /コミコミ.*\d/, /ふたけっと.*\d/,
+                /ファータグランデ騎空祭/, /歌姫庭園/, /紅楼夢/];
 
 function belongToEvent(e){
     return reg_list.some(reg => e.match(reg));
 }
 
 function init(){
-    const book_type_table = {};
-    book_types.forEach(e => {
-        book_type_table[e.toLowerCase()] = true;
-    })
-
-    const not_author_but_tag_table = {};
-    not_author_but_tag.forEach(e => {
-        not_author_but_tag_table[e.toLowerCase()] = true;
-    })
-
-
     //--------------------------------------------
     const tag_convert_table = {};
     same_tags.forEach(row => {
@@ -62,10 +56,11 @@ function init(){
         if(same_tag_regs_table.hasOwnProperty(tag)){
             const reg_array = same_tag_regs_table[tag];
 
-            reg_array.forEach(r => {
-                same_tag_reg_array.push(r);
-                same_tag_reg_to_common_name[r] = tag;
-            })
+            const big_pre_join = reg_array.map(e =>e.source)
+            const r =  new RegExp(big_pre_join.join("|"), 'i')
+
+            same_tag_reg_array.push(r);
+            same_tag_reg_to_common_name[r] = tag;
         }
     }
 
@@ -75,8 +70,6 @@ function init(){
 
     //------------------------------------
     return {
-        not_author_but_tag_table,
-        book_type_table,
         tag_convert_table,
         same_tag_reg_to_common_name,
         same_tag_reg_array
@@ -84,8 +77,6 @@ function init(){
 }
 
 const {
-    not_author_but_tag_table,
-    book_type_table,
     tag_convert_table,
     same_tag_reg_to_common_name,
     same_tag_reg_array
@@ -254,7 +245,7 @@ function getTypeAndComiket(tags, group){
     tags.forEach(e => {
         if(belongToEvent(e)){
             comiket = e;
-        }else if(book_type_table[e]){
+        }else if(e.match(book_type_regex)){
             type = e;
         }
     })
@@ -348,13 +339,15 @@ function parse(str) {
             const nextCharIndex = str.indexOf(bMacthes[ii]) + bMacthes[ii].length + 1; 
             const nextChar = str[nextCharIndex];
 
-            if(token.match(DLsiteReg)){
+            if(belongToEvent(token)){
+                tags.push(token);
+            }else if(token.match(DLsiteReg)){
                 //DLsite tag is not author
                 continue;
             }else if (isStrDate(token)) {
                 //e.g 190214
                 dateTag = token;
-            } else if (not_author_but_tag_table[tt]){
+            } else if (tt.match(not_author_but_tag_regex)){
                 //e.g pixiv is not author
                 tags.push(token);
             } else if (nextChar === "." || nextCharIndex >= str.length){
@@ -364,7 +357,7 @@ function parse(str) {
             } else if(!author) {
                 //  [真珠貝(武田弘光)]
                 const temp = getAuthorName(token);
-                if(!not_author_but_tag_table[temp.name]){
+                if(temp.name && !temp.name.match(not_author_but_tag_regex)){
                     //e.g よろず is not author
                     author = temp.name;
                 }
@@ -376,7 +369,7 @@ function parse(str) {
     }
 
     tags = getTag(tags, pMacthes, author);
-    const { comiket, type } = getTypeAndComiket(tags, group);
+    let { comiket, type } = getTypeAndComiket(tags, group);
 
     if(comiket){
         tags = tags.filter(e => e != comiket);

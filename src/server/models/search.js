@@ -10,6 +10,12 @@ const {escapeRegExp} = util;
 const path = require('path');
 const _ = require('underscore');
 
+function isEqual(a, b){
+    a = a || "";
+    b = b || "";
+    return a.toLowerCase() === b.toLowerCase();
+}
+
 function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
     let beg = (new Date).getTime()
     const fileInfos = {};
@@ -29,7 +35,7 @@ function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
                       isDisplayableInExplorer: true })
                       .where(obj => {
                         const result = parse(obj.fileName);
-                        const pass =  result.author === author || result.group === author || (result.authors && result.authors.includes(author));
+                        const pass =  isEqual(result.author, author) || isEqual(result.group, author) || (result.authors && result.authors.includes(author));
                         if(pass && result.group){
                             //find out which group this author belong
                             groups.push(result.group);
@@ -44,15 +50,13 @@ function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
                                                      'group': {'$len': 0 }, 
                                                      isDisplayableInExplorer: true });
         }
-
-        
     }else if(tag){
         const reg = escapeRegExp(tag);
         results = getFileCollection().chain()
                       .find({'tags': { '$regex' : reg }, isDisplayableInExplorer: true })
                       .where(obj => {
                         const result = parse(obj.fileName);
-                        return result.tags.some(e => tag === e);
+                        return result.tags.some(e => isEqual(tag, e));
                       });
     }
 
