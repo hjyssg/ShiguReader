@@ -19,25 +19,18 @@ const book_types = [
 
 const localCache = {};
 
+const comicket_reg = /^C\d{2}$/i;
+const comic_star_reg = /^COMIC1☆\d{2}$/i;
+const love_live_event_reg = /^僕らのラブライブ!/i;
+const comitea_reg = /^コミティア\d/;
+const sankuri_reg = /^サンクリ\d+/;
+const reg_list = [comicket_reg, comic_star_reg, love_live_event_reg, comitea_reg, sankuri_reg];
+
+function belongToEvent(e){
+    return reg_list.some(reg => e.match(reg));
+}
+
 function init(){
-    let comiket_tags = [];
-    let comic_star_tags = [];
-    for(let index = 65; index < 100; index++){
-        comiket_tags.push(`C${index}`);
-    }
-    
-    comic_star_tags.push("COMIC1");
-    for(let index = 2; index < 20; index++){
-        comic_star_tags.push(`COMIC1☆${index}`)
-    }
-
-    let all_comic_tags = comiket_tags.concat(comic_star_tags);
-
-    const all_comic_tags_table = {}
-    all_comic_tags.forEach(e => {
-        all_comic_tags_table[e.toLowerCase()] = true;
-    });
-
     const book_type_table = {};
     book_types.forEach(e => {
         book_type_table[e.toLowerCase()] = true;
@@ -60,23 +53,15 @@ function init(){
 
     //------------------------------------
     return {
-        all_comic_tags,
-        all_comic_tags_table,
-        book_type_table,
         not_author_but_tag_table,
-        comiket_tags,
-        comic_star_tags,
+        book_type_table,
         convert_table
     }
 }
 
 const {
-    all_comic_tags,
-    all_comic_tags_table,
     not_author_but_tag_table,
     book_type_table,
-    comiket_tags,
-    comic_star_tags,
     convert_table
 } = init();
 
@@ -101,7 +86,7 @@ function getDateFromTags(tags){
       return null;
   }
 
-  const _tags =  tags.filter(e => all_comic_tags.includes(e));
+  const _tags =  tags.filter(e => belongToEvent(e));
   let tag = _tags && _tags[0];
   let result = null;
   let num;
@@ -110,7 +95,7 @@ function getDateFromTags(tags){
   if(tag){
     if (tag_to_date_table[tag]) {
         result = tag_to_date_table[tag];
-    } else if(comiket_tags.includes(tag)) {
+    } else if(tag.match(comicket_reg)) {
         tag = tag.replace("C", "");
         num = parseInt(tag);
         year = Math.floor(num /2) + 1971;
@@ -119,7 +104,7 @@ function getDateFromTags(tags){
         const day = isSummer? 10: 28;
         result = new Date(year, month, day);
         tag_to_date_table[tag] = result;
-    } else if(comic_star_tags.includes(tag)) {
+    } else if(tag.match(comic_star_reg)) {
         tag = tag.replace("COMIC1☆", "");
         num = parseInt(tag);
         if(num <= 10){
@@ -239,9 +224,9 @@ function match(reg, str){
 function getTypeAndComiket(tags, group){
     let comiket;
     let type;
+
     tags.forEach(e => {
-        e = e.toLowerCase();
-        if(all_comic_tags_table[e]){
+        if(belongToEvent(e)){
             comiket = e;
         }else if(book_type_table[e]){
             type = e;
@@ -396,7 +381,6 @@ function parseMusicTitle(str){
 
 module.exports.parse = parse;
 module.exports.isOnlyDigit = isOnlyDigit;
-module.exports.all_comic_tags = all_comic_tags;
 module.exports.getDateFromTags = getDateFromTags;
 module.exports.getDateFromParse = getDateFromParse;
 module.exports.parseMusicTitle = parseMusicTitle;
