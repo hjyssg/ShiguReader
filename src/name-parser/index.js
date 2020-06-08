@@ -350,7 +350,9 @@ function parse(str) {
             const nextCharIndex = str.indexOf(bMacthes[ii]) + bMacthes[ii].length + 1; 
             const nextChar = str[nextCharIndex];
 
-            if(token.match(DLsiteReg)){
+            if(belongToEvent(token)){
+                tags.push(token);
+            }else if(token.match(DLsiteReg)){
                 //DLsite tag is not author
                 continue;
             }else if (isStrDate(token)) {
@@ -378,7 +380,7 @@ function parse(str) {
     }
 
     tags = getTag(tags, pMacthes, author);
-    const { comiket, type } = getTypeAndComiket(tags, group);
+    let { comiket, type } = getTypeAndComiket(tags, group);
 
     if(comiket){
         tags = tags.filter(e => e != comiket);
