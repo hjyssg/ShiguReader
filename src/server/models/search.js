@@ -11,6 +11,8 @@ const path = require('path');
 const _ = require('underscore');
 
 function isEqual(a, b){
+    a = a || "";
+    b = b || "";
     return a.toLowerCase() === b.toLowerCase();
 }
 
