@@ -37,8 +37,10 @@ const reg_list = [comicket_reg, comic_star_reg, love_live_event_reg,
                  /SC\d+/, /コミコミ.*\d/, /ふたけっと.*\d/,
                 /ファータグランデ騎空祭/, /歌姫庭園/, /紅楼夢/];
 
+const event_reg = new RegExp(reg_list.map(e => e.source).join("|"), "i");
+
 function belongToEvent(e){
-    return reg_list.some(reg => e.match(reg));
+    return e.match(event_reg);
 }
 
 function init(){
