@@ -136,12 +136,17 @@ export default class TagPage extends Component {
     const beginTime = getCurrentTime();
     const groupSet = {};
 
+    function toKey(Str){
+      //todo romanization kanji
+      return str.toLowerCase().replace(/-| /, "");
+    }
+
     for(let filePath in fileToInfo){
       if(fileToInfo.hasOwnProperty(filePath) && isCompress(filePath)){
         const fileName = getBaseName(filePath);
         const result = nameParser.parse(fileName);
         if (result && result.group) {
-          const group = result.group.toLowerCase();
+          const group = toKey(result.group);
           groupSet[group] = true;
         }
       }
@@ -154,7 +159,7 @@ export default class TagPage extends Component {
         if (result) {
             (result.authors||[]).forEach(author => {
               //some author is actually group, fake author
-              author = author.toLowerCase();
+              author = toKey(author);
               if(!groupSet[author]){
                 addOne(authors, author);
                 addToArray(authorToFiles, author, filePath );
@@ -162,7 +167,7 @@ export default class TagPage extends Component {
             })
 
             result.tags.forEach(tag => {
-              tag = tag.toLowerCase();
+              tag = toKey(tag);
               addOne(tags, tag);
               addToArray(tagToFiles, tag, filePath);
             });

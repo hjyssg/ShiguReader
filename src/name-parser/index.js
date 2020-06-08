@@ -23,14 +23,16 @@ const localCache = {};
 const comicket_reg = /^C\d{2}$/i;
 const comic_star_reg = /^COMIC1☆\d{1,2}$/i;
 const love_live_event_reg = /^僕らのラブライブ!/i;
-const comitea_reg = /^コミティア\d/;
-const sankuri_reg = /^サンクリ\d+/;
-const reitaisai_reg = /^例大祭\d+/;
-const tora_reg = /^とら祭り\d+/;
-const komitore_reg = /^こみトレ\d+/;
+const comitea_reg = /^コミティア.*\d/;
+const sankuri_reg = /^サンクリ.*\d+/;
+const reitaisai_reg = /^例大祭.*\d+/;
+const tora_reg = /^とら祭り.*\d+/;
+const komitore_reg = /^こみトレ.*\d+/;
 const reg_list = [comicket_reg, comic_star_reg, love_live_event_reg,
                  comitea_reg, sankuri_reg, reitaisai_reg,
-                 tora_reg, komitore_reg, /みみけっと\d+/, /コミトレ\d+/];
+                 tora_reg, komitore_reg, /みみけっと.*\d+/, 
+                 /コミトレ.*\d+/, /FF\d+/, /iDOL SURVIVAL.*\d/i, 
+                 /SC\d+/, /コミコミ.*\d/];
 
 function belongToEvent(e){
     return reg_list.some(reg => e.match(reg));

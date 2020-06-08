@@ -8,7 +8,8 @@ module.exports.same_tags = [
 ];
 
 module.exports.same_tag_regs_table = {
-    "艦これ": [/艦これ/, /艦隊これくしょん/],
+    "Kanon": [/カノン|Kanon/i],
+    "艦これ": [/艦これ/, /艦隊これくしょん/, /Kantai Collection/i, /KanColle/i],
     "ラブライブ!" : [/Love Live/i, /ラブライブ/i],
     "プリンセスコネクト!Re:Dive": [/プリンセスコネクト.*Re.*Dive/i],
     "Fate⁄Grand Order": [/Fate.*Grand.*Order/i, /FGO/],
@@ -17,17 +18,29 @@ module.exports.same_tag_regs_table = {
     "Fate/hollow ataraxia": [/Fate.*hollow.*at/i],
     "Fate/Extra": [/Fate.*Extra/i],
     "Fate/EXTELLA": [/Fate.*EXTELLA/i],
-    "Fate/kaleid liner プリズマ☆イリヤ": [/Fate.*kaleid.*liner.*プリズマ.*イリヤ/i, /Fate.*kaleid.*liner/, /プリズマ.*イリヤ/],
-    "アイドルマスター": [/アイドルマスタ/i, /IDOL.*M@STER/i, /idol.*master/],
+    "Fate/kaleid liner プリズマ☆イリヤ": [/Fate.*kaleid.*liner.*プリズマ.*イリヤ/i, /Fate.*kaleid.*liner/i, /プリズマ.*イリヤ/],
+    "アイドルマスター": [/アイドルマスタ/i, /IDOL.*M@STER/i, /idol.*master/i],
     "アイドルマスター シンデレラガールズ": [/アイドルマスター.*シンデレラガールズ/i, /IDOLM@STER.*CINDERELLA.*GIRLS/i],
     "アイドルマスター ミリオンライブ": [/アイドルマスター.*ミリオン/, /ミリオンライブ/],
     "アイドルマスター シャイニーカラーズ": [/アイドルマスター.*シャイニーカラーズ/],
-    "けいおん": [/けいおん/],
+    "けいおん": [/けいおん/, /K-ON/i],
     "プリキュア": [/プリキュア/],
-    "To LOVEる": [/To.*LOVEる/i],
+    "To LOVEる": [/To.*LOVEる/i, /To.*LOVE.*ru/i],
     "魔法少女まどか☆マギカ": [/まどか.*マギカ/],
-    "アイカツ!": [/アイカツ!/],
-    "エヴァンゲリオン": [/エヴァンゲリオン/, /^エヴァ$/, /Evangelion/]
+    "アイカツ!": [/アイカツ.*/],
+    "エヴァンゲリオン": [/エヴァンゲリオン/, /^エヴァ$/, /Evangelion/i],
+    "Angel Beats": [/Angel.*Beats.*/i, /エンジェル.*ビーツ/],
+    "Dead Or Alive": [/Dead Or Alive/i, /デッド.*オア.*アライヴ/],
+    "IS ＜インフィニット・ストラトス＞": [/IS.*インフィニット.*ストラトス.*/, /インフィニット.*ストラトス/],
+    "D.C～ダ・カーポ": [/D\.C\./i, /ダ.*カーポ/],
+    "Dog Days": [/Dog.*Days.*/i],
+    "Dream C Club": [/Dream.*C.*Club/i],
+    "ガンダム ":[/ガンダム|gundam/i],
+    "コードギアス": [/コードギアス/],
+    "ご注文はうさぎですか": [/ご注文はうさぎですか/],
+    "ソードアート・オンライン": [/ソードアート.*オンライン/],
+    "ダンガンロンパ": [/ダンガンロンパ/],
+    "ドラゴンクエスト": [/ドラゴンクエスト/]
 }
 
 module.exports.not_author_but_tag = [
