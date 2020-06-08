@@ -12,8 +12,14 @@ module.exports.same_tags = [
 module.exports.same_tag_regs_table = {
     "艦これ": [/艦これ/, /艦隊これくしょん/],
     "ラブライブ!" : [/Love Live/i, /ラブライブ/i],
-    "Fate⁄Grand Order": [/Fate.Grand.Order/i, /FGO/],
-    "プリンセスコネクト!Re:Dive": [/プリンセスコネクト.Re.Dive/i]
+    "プリンセスコネクト!Re:Dive": [/プリンセスコネクト.*Re.*Dive/i],
+    "Fate⁄Grand Order": [/Fate.*Grand.*Order/i, /FGO/],
+    "Fate⁄Stay Night": [/Fate.*Stay.*Night/i],
+    "Fate⁄Zero": [/Fate.*Zero/i],
+    "Fate/hollow ataraxia": [/Fate.*hollow.*at/i],
+    "Fate/Extra": [/Fate.*Extra/i],
+    "Fate/EXTELLA": [/Fate.*EXTELLA/i],
+    "Fate/kaleid liner プリズマ☆イリヤ": [/Fate.*kaleid.*liner.*プリズマ.*イリヤ/i, /Fate.*kaleid.*liner/, /プリズマ.*イリヤ/ ]
 }
 
 module.exports.not_author_but_tag = [

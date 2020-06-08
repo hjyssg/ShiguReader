@@ -110,6 +110,7 @@ a {
         padding-left: 5px;
         padding-right: 5px;
         margin-left: 1px;
+        width: 50px;
 
         &:hover{
           @include hover_effect;

@@ -269,11 +269,11 @@ function getTypeAndComiket(tags, group){
     }
 }
 
-function getTag(str, pMacthes, author){
-    let tags = [];
+function getTag(str, tags, pMacthes, author){
+    tags = tags || [];
     if (pMacthes && pMacthes.length > 0) {
         tags = tags.concat(pMacthes);
-        tags = tags.filter(e=> {return !isOnlyDigit(e) && !isStrDate(e)   });
+        tags = tags.filter(e=> { return !isOnlyDigit(e) && !isStrDate(e) });
     }
 
     if(author && tags.indexOf(author) >= 0){
@@ -284,6 +284,15 @@ function getTag(str, pMacthes, author){
     names && names.forEach(e => {
         tags.push(e);
     })
+
+    const tseperator = /,|、/;
+    const tempTags = [];
+    tags.forEach(t => {
+        t.split(tseperator).forEach(token => {
+            tempTags.push(token);
+        })
+    })
+    tags = tempTags;
 
     tags = tags.map(e => {
         if(tag_convert_table[e]){
@@ -300,6 +309,7 @@ function getTag(str, pMacthes, author){
         return e;
     })
 
+    tags = tags.filter(e => e.length > 1);
     return tags;
 }
 
@@ -365,16 +375,7 @@ function parse(str) {
         }
     }
 
-    const tseperator = /,|、/;
-    tags = tags.concat(getTag(str, pMacthes, author));
-    let tempTags = [];
-    tags.forEach(t => {
-        t.split(tseperator).forEach(token => {
-            tempTags.push(token);
-        })
-    })
-    tags = tempTags;
-    tags = tags.filter(e => e.length > 1);
+    tags = getTag(str, tags, pMacthes, author);
     const { comiket, type } = getTypeAndComiket(tags, group);
 
     if(comiket){
