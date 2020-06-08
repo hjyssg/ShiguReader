@@ -559,17 +559,20 @@ export default class OneBook extends Component {
     let tagDivs;
     let allTags = [];
     let originalTags;
-    let group;
     let authors;
 
     if(result){
-      group = result.group;
       originalTags = result.tags;
       authors = result.authors;
 
-      if(group){
-        allTags.push(group);
+      if(result.comiket){
+        allTags.push(result.comiket);
       }
+
+      if(result.group){
+        allTags.push(result.group);
+      }
+      
       if(authors){
         allTags = allTags.concat(authors);
       }

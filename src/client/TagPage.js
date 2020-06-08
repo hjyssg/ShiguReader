@@ -19,7 +19,7 @@ const Constant = require("@common/constant");
 
 const util = require("@common/util");
 const clientUtil = require("./clientUtil");
-const { getDir, getBaseName, getPerPageItemNumber, } = clientUtil;
+const { getDir, getBaseName, getPerPageItemNumber, isSearchInputTextTyping } = clientUtil;
 const sortUtil = require("../common/sortUtil");
 
 const {
@@ -96,6 +96,10 @@ export default class TagPage extends Component {
   }
 
   handleKeyDown(event) {
+    //this cause input wont work 
+    if(isSearchInputTextTyping()){
+      return;
+    }
     const key = event.key.toLowerCase();
     if (key === "arrowright" || key === "d" || key === "l") {
       this.next();

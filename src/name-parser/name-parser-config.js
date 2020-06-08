@@ -1,8 +1,5 @@
 module.exports.same_tags = [
-    ["艦これ","艦隊これくしょん", "艦隊これくしょん-艦これ-", "艦隊これくしょん -艦これ-","艦隊これくしょん -艦これ", "Kantai Collection -KanColle-", "Kantai Collection"],
-    ["ラブライブ!","ラブライブ! School idol project","ラブライブ","Love Live!"],
     ["ラブライブ!サンシャイン!!", "ブライブ！ サンシャイン!!"],
-    ["Fate⁄Grand Order", "Fate／Grand Order", "FateGrand Order", "Fate Grand Order", "FGO", "FATE GRAND ORDER"],
     ["オリジナル", "Original"],
     ["東方Project","東方","Touhou Project"],
     ["アイドルマスター", "アイマス", "THE iDOLM@STER"],
@@ -10,8 +7,14 @@ module.exports.same_tags = [
     ["アイドルマスター ミリオンライブ!","アイドルマスターミリオンライブ!"],
     ["アズールレーン","Azur Lane"],
     ["ガールズ&パンツァー","Girls und Panzer"],
-    ["プリンセスコネクト!ReDive","プリンセスコネクト!Re:Dive","プリンセスコネクト!Re：Dive","プリンセスコネクト!Re Dive"]
 ];
+
+module.exports.same_tag_regs_table = {
+    "艦これ": [/艦これ/, /艦隊これくしょん/],
+    "ラブライブ!" : [/Love Live/i, /ラブライブ/i],
+    "Fate⁄Grand Order": [/Fate.Grand.Order/i, /FGO/],
+    "プリンセスコネクト!Re:Dive": [/プリンセスコネクト.Re.Dive/i]
+}
 
 module.exports.not_author_but_tag = [
     "同人音声",

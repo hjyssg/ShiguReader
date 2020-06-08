@@ -99,6 +99,7 @@ const updateFileDb = function(filePath){
     const temp = nameParser.parse(fileName) || {};
     const nameTags = namePicker.pick(fileName)||[];
     const tags1 = temp.tags || [];
+    temp.comiket && tags1.concat(temp.comiket);
     const musisTags = nameParser.parseMusicTitle(fileName)||[];
     let tags = _.uniq(tags1.concat(nameTags, musisTags));
 

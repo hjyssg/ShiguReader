@@ -1,5 +1,6 @@
 const config = require("./name-parser-config");
 const same_tags = config.same_tags;
+const same_tag_regs_table = config.same_tag_regs_table;
 const not_author_but_tag = config.not_author_but_tag;
 const char_names = require("./character-names");
 //https://stackoverflow.com/questions/5582574/how-to-check-if-a-string-contains-text-from-an-array-of-substrings-in-javascript
@@ -20,11 +21,13 @@ const book_types = [
 const localCache = {};
 
 const comicket_reg = /^C\d{2}$/i;
-const comic_star_reg = /^COMIC1☆\d{2}$/i;
+const comic_star_reg = /^COMIC1☆\d{1,2}$/i;
 const love_live_event_reg = /^僕らのラブライブ!/i;
 const comitea_reg = /^コミティア\d/;
 const sankuri_reg = /^サンクリ\d+/;
-const reg_list = [comicket_reg, comic_star_reg, love_live_event_reg, comitea_reg, sankuri_reg];
+const reitaisai_reg = /^例大祭\d+/;
+const tora_reg = /^とら祭り\d/;
+const reg_list = [comicket_reg, comic_star_reg, love_live_event_reg, comitea_reg, sankuri_reg, reitaisai_reg, tora_reg];
 
 function belongToEvent(e){
     return reg_list.some(reg => e.match(reg));
@@ -43,26 +46,46 @@ function init(){
 
 
     //--------------------------------------------
-    const convert_table = {};
+    const tag_convert_table = {};
     same_tags.forEach(row => {
         for(let ii = 1; ii < row.length; ii++){
-            convert_table[row[ii]] = row[0];
+            tag_convert_table[row[ii]] = row[0];
         }
     });
 
+    const same_tag_reg_to_common_name = {};
+    const same_tag_reg_array = [];
+    for(let tag in same_tag_regs_table){
+        if(same_tag_regs_table.hasOwnProperty(tag)){
+            const reg_array = same_tag_regs_table[tag];
+
+            reg_array.forEach(r => {
+                same_tag_reg_array.push(r);
+                same_tag_reg_to_common_name[r] = tag;
+            })
+        }
+    }
+
+    same_tag_reg_array.sort((r1, r2) => {
+        return r2.toString().length - r1.toString().length
+    });
 
     //------------------------------------
     return {
         not_author_but_tag_table,
         book_type_table,
-        convert_table
+        tag_convert_table,
+        same_tag_reg_to_common_name,
+        same_tag_reg_array
     }
 }
 
 const {
     not_author_but_tag_table,
     book_type_table,
-    convert_table
+    tag_convert_table,
+    same_tag_reg_to_common_name,
+    same_tag_reg_array
 } = init();
 
 
@@ -263,7 +286,18 @@ function getTag(str, pMacthes, author){
     })
 
     tags = tags.map(e => {
-        return convert_table[e] || e;
+        if(tag_convert_table[e]){
+            return tag_convert_table[e]
+        }
+
+        for(let ii = 0; ii < same_tag_reg_array.length; ii++){
+            const r = same_tag_reg_array[ii];
+            if(e.match(r)){
+                return same_tag_reg_to_common_name[r]
+            }
+        }
+    
+        return e;
     })
 
     return tags;
@@ -341,12 +375,16 @@ function parse(str) {
     })
     tags = tempTags;
     tags = tags.filter(e => e.length > 1);
+    const { comiket, type } = getTypeAndComiket(tags, group);
+
+    if(comiket){
+        tags = tags.filter(e => e != comiket);
+    }
+
     if(!author && !group && tags.length === 0){
         localCache[str] = "NO_EXIST";
         return;
     }
-
-    const { comiket, type } = getTypeAndComiket(tags, group);
 
     let title = str;
     (bMacthes||[]).concat( pMacthes||[], tags||[], [/\[/g, /\]/g, /\(/g, /\)/g ]).forEach(e => {
