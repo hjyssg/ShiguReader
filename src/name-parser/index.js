@@ -28,7 +28,9 @@ const sankuri_reg = /^サンクリ\d+/;
 const reitaisai_reg = /^例大祭\d+/;
 const tora_reg = /^とら祭り\d+/;
 const komitore_reg = /^こみトレ\d+/;
-const reg_list = [comicket_reg, comic_star_reg, love_live_event_reg, comitea_reg, sankuri_reg, reitaisai_reg, tora_reg, komitore_reg];
+const reg_list = [comicket_reg, comic_star_reg, love_live_event_reg,
+                 comitea_reg, sankuri_reg, reitaisai_reg,
+                 tora_reg, komitore_reg, /みみけっと\d+/, /コミトレ\d+/];
 
 function belongToEvent(e){
     return reg_list.some(reg => e.match(reg));
