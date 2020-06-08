@@ -136,7 +136,7 @@ export default class TagPage extends Component {
     const beginTime = getCurrentTime();
     const groupSet = {};
 
-    function toKey(Str){
+    function toKey(str){
       //todo romanization kanji
       return str.toLowerCase().replace(/-| |\!/, "");
     }
