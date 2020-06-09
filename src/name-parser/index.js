@@ -8,13 +8,16 @@ const not_author_but_tag_regex =  new RegExp(not_author_but_tag.join("|"), "i");
 
 const book_types = [
     "同人音声",
+    "同人催眠音声",
     "同人ソフト",
     "同人CG集",
     "同人ゲーム",
     "成年コミック",
     "一般コミック",
     "ゲームCG",
-    "画集"
+    "イラスト集",
+    "画集",
+    "雑誌 "
 ];
 const book_type_regex = new RegExp(book_types.map(e => `(${e})`).join("|"), "i");
 
@@ -326,7 +329,7 @@ function parse(str) {
     });
 
     tags = tags
-    .map(e => e.trim())
+    .map(e => e.trim().replace(" ", ""))
     .filter(e => e.length > 1);
 
     tags = tags.map(e => {
