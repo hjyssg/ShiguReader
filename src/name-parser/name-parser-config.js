@@ -1,8 +1,8 @@
 module.exports.same_tag_regs_table = {
-    "東方Project":[/東方/,/Touhou Project/, /東方project/],
+    "東方Project":[/^東方$/,/Touhou\s*Project/, /東方project/],
     "オリジナル": [/^Original$/],
     "Kanon": [/カノン|Kanon/],
-    "艦これ": [/艦これ|舰これ/, /艦隊これくしょん/, /Kantai Collection/, /KanColle/],
+    "艦これ": [/艦これ|舰これ/, /艦隊これくしょん/, /Kantai\s*Collection/, /KanColle/],
     "ラブライブ!" : [/Love Live/, /ラブライブ/],
     "ラブライブ!サンシャイン!!": [/ラブライブ.*サンシャイン.*/],
     "プリンセスコネクト!Re:Dive": [/プリンセスコネクト.*Re.*Dive/],
@@ -42,11 +42,11 @@ module.exports.same_tag_regs_table = {
     "咲-Saki- 阿知賀編": [/咲.*Saki.*阿知賀編/],
     "聖剣伝説": [/聖剣伝説/],
     "閃乱カグラ": [/閃乱カグラ/],
-    "魔法少女リリカルなのは": [/魔法少女リリカルなのは.*/],
+    "魔法少女リリカルなのは": [/魔法少女リリカルなのは.*|Nanoha$|^なのは$/],
     "キング・オブ・ファイター": [/キング\.オブ\.ファイター/, /^KOF$/],
     "ファイアーエムブレム": [/ファイアーエムブレム/],
     "ファンタシースター": [/ファンタシースター/],
-    "To Heart 2":[/To.*Heart.*2/]
+    "To Heart 2":[/To.*Heart.*2|トゥハート2/]
 }
 
 module.exports.not_author_but_tag = [

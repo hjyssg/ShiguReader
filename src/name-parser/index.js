@@ -16,8 +16,9 @@ const book_types = [
     "一般コミック",
     "ゲームCG",
     "イラスト集",
+    "アンソロジー",
     "画集",
-    "雑誌 "
+    "雑誌"
 ];
 const book_type_regex = new RegExp(book_types.map(e => `(${e})`).join("|"), "i");
 
@@ -57,7 +58,8 @@ const reg_list = [comicket_reg, comic_star_reg, love_live_event_reg,
                  tora_reg, komitore_reg, /みみけっと.*\d+/, 
                  /コミトレ.*\d+/, /FF\d+/, /iDOL SURVIVAL.*\d/i, 
                  /SC\d+/, /コミコミ.*\d/, /ふたけっと.*\d/,
-                /ファータグランデ騎空祭/, /歌姫庭園/, /紅楼夢/, /CSP\d/];
+                /ファータグランデ騎空祭/, /歌姫庭園/, /紅楼夢/, 
+                /CSP\d/, /CC大阪\d/];
 
 const event_reg = new RegExp(reg_list.map(e => e.source).join("|"), "i");
 
@@ -164,7 +166,8 @@ const dreg2 = /(\d{2})-(\d{2})-(\d{2})/;
 const dreg3 = /(\d{4})-(\d{1,2})-(\d{2})/;
 const dreg4 = /(\d{4})年(\d{1,2})月号/;
 const dreg5 = /(\d{4})年(\d{1,2})月(\d{1,2})日/;
-const date_reg = new RegExp([dreg1, dreg2, dreg3, dreg4, dreg5].map(e => e.source).join("|"), "i");
+const dreg6 = /(\d{4})\.(\d{1,2})\.(\d{1,2})/;
+const date_reg = new RegExp([dreg1, dreg2, dreg3, dreg4, dreg5, dreg6].map(e => e.source).join("|"), "i");
 function isStrDate(str) {
     if(str.match(date_reg)){
         const dd = getDateFromStr(str);
@@ -201,7 +204,7 @@ function isNotAuthor(str){
     return str.match(not_author_but_tag_regex);
 }
 
-const useless_tag = /RJ\d+|DL版|別スキャン^エロ|^digital$/i;
+const useless_tag = /RJ\d+|DL版|別スキャン^エロ|^digital$|^\d+p|^\d+$/i;
 function isUselessTag(str){
     return !!str.match(useless_tag)
 }
@@ -216,8 +219,9 @@ function findMaxStr(arr){
     return res;
 }
 
-let pReg = /\((.*?)\)/g;
-let bReg = /\[(.*?)\]/g;
+const pReg = /\((.*?)\)/g;
+const bReg = /\[(.*?)\]/g;
+const seperator = /,|、|&|＆/;
 
 function parse(str) {
     if (!str || localCache[str] === "NO_EXIST") {
@@ -240,14 +244,14 @@ function parse(str) {
     }
 
     let author;
-    let authors;
+    let authors = [];
     let group;
     let dateTag;
     let comiket;
     let type;
     let tags = [];
 
-    function isOtherTag(token){
+    function isOtherInfo(token){
         let result = false;
         if(isBookType(token)){
             type = getBookType(token);
@@ -273,7 +277,7 @@ function parse(str) {
             const nextCharIndex = str.indexOf(bMacthes[ii]) + bMacthes[ii].length + 1; 
             const nextChar = str[nextCharIndex];
 
-            if(isOtherTag(token)){
+            if(isOtherInfo(token)){
                 continue;
             }  if (isNotAuthor(tt)){
                 //e.g pixiv is not author
@@ -288,8 +292,7 @@ function parse(str) {
                 if(temp.name && !isNotAuthor(temp.name)){
                     //e.g よろず is not author
                     author = temp.name;
-                    const seperator = /,|、|&|＆/;
-                    authors = author && author.split(seperator).map(e => e.trim()) ;
+                    authors = author.split(seperator).map(e => e.trim()) ;
                 }
                 group = temp.group;
             }else{
@@ -311,17 +314,14 @@ function parse(str) {
     })
     tags = tempTags;
 
-    if(author && tags.indexOf(author) >= 0){
-        tags.splice(tags.indexOf(author), 1);
-    }
+    tags = tags.map(e => e.trim());
 
     tags = tags.filter(e=> {
-        return !isOtherTag(e)
+        return  e.length > 1 && !isOtherInfo(e) && authors.indexOf(e) === -1 && e !== author;
     });
 
     tags = tags
-    .map(e => e.trim().replace(" ", ""))
-    .filter(e => e.length > 1);
+    .map(e => e.replace(" ", ""))
 
     tags = tags.map(e => {
         const converts = [];
