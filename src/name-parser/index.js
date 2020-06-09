@@ -29,6 +29,19 @@ function getBookType(str){
     return str.match(book_type_regex)[0];
 }
 
+const same_tag_matrix = [];
+for(let tag in same_tag_regs_table){
+    if(same_tag_regs_table.hasOwnProperty(tag)){
+        const big_pre_join = same_tag_regs_table[tag].map(e =>e.source)
+        const r =  new RegExp(big_pre_join.join("|"), 'i')
+        const row = [r, tag];
+        same_tag_matrix.push(row);
+    }
+}
+same_tag_matrix.sort((r1, r2) => {
+    return r2[1].length - r1[1].length
+});
+
 const localCache = {};
 
 const comicket_reg = /^C\d{2}$/i;
@@ -44,44 +57,13 @@ const reg_list = [comicket_reg, comic_star_reg, love_live_event_reg,
                  tora_reg, komitore_reg, /みみけっと.*\d+/, 
                  /コミトレ.*\d+/, /FF\d+/, /iDOL SURVIVAL.*\d/i, 
                  /SC\d+/, /コミコミ.*\d/, /ふたけっと.*\d/,
-                /ファータグランデ騎空祭/, /歌姫庭園/, /紅楼夢/];
+                /ファータグランデ騎空祭/, /歌姫庭園/, /紅楼夢/, /CSP\d/];
 
 const event_reg = new RegExp(reg_list.map(e => e.source).join("|"), "i");
 
 function belongToEvent(e){
     return e.match(event_reg);
 }
-
-function init(){
-    const same_tag_reg_to_common_name = {};
-    const same_tag_reg_array = [];
-    for(let tag in same_tag_regs_table){
-        if(same_tag_regs_table.hasOwnProperty(tag)){
-            const reg_array = same_tag_regs_table[tag];
-
-            const big_pre_join = reg_array.map(e =>e.source)
-            const r =  new RegExp(big_pre_join.join("|"), 'i')
-
-            same_tag_reg_array.push(r);
-            same_tag_reg_to_common_name[r] = tag;
-        }
-    }
-
-    same_tag_reg_array.sort((r1, r2) => {
-        return r2.toString().length - r1.toString().length
-    });
-
-    //------------------------------------
-    return {
-        same_tag_reg_to_common_name,
-        same_tag_reg_array
-    }
-}
-
-const {
-    same_tag_reg_to_common_name,
-    same_tag_reg_array
-} = init();
 
 
 const comiket_to_date_table = {};
@@ -224,6 +206,15 @@ function isUselessTag(str){
     return !!str.match(useless_tag)
 }
 
+function findMaxStr(arr){
+    let res = arr[0];
+    arr.forEach(e => {
+        if(e.length > res.length){
+            res = e;
+        }
+    })
+    return res;
+}
 
 let pReg = /\((.*?)\)/g;
 let bReg = /\[(.*?)\]/g;
@@ -333,13 +324,20 @@ function parse(str) {
     .filter(e => e.length > 1);
 
     tags = tags.map(e => {
-        for(let ii = 0; ii < same_tag_reg_array.length; ii++){
-            const r = same_tag_reg_array[ii];
+        const converts = [];
+        for(let ii = 0; ii < same_tag_matrix.length; ii++){
+            const row = same_tag_matrix[ii];
+            const r = row[0];
             if(e.match(r)){
-                return same_tag_reg_to_common_name[r]
+                converts.push(row[1]);
             }
         }
-        return e;
+
+        if(converts.length > 0){
+            return findMaxStr(converts);
+        }else{
+            return e;
+        }
     })
 
     if(!type){
