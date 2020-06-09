@@ -101,17 +101,19 @@ function getDateFromParse(str){
 
 //for sort algo, not very accurate
 function getDateFromTags(tags){
-  if(!tags || tags.length === 0){
-      return null;
-  }
+    if(!tags || tags.length === 0){
+        return null;
+    }
 
-  const _tags =  tags.filter(e => belongToEvent(e));
-  let tag = _tags && _tags[0];
-  let result = null;
-  let num;
-  let year;
-  let month;
-  if(tag){
+    const _tags =  tags.filter(e => belongToEvent(e));
+    let tag = _tags[0];
+    if(!tag){  return; }
+
+    let result = null;
+    let num;
+    let year;
+    let month;
+    
     if (tag_to_date_table[tag]) {
         result = tag_to_date_table[tag];
     } else if(tag.match(comicket_reg)) {
@@ -122,7 +124,7 @@ function getDateFromTags(tags){
         month = isSummer? 8 : 11;
         const day = isSummer? 10: 28;
         result = new Date(year, month, day);
-        tag_to_date_table[tag] = result;
+        
     } else if(tag.match(comic_star_reg)) {
         tag = tag.replace("COMIC1☆", "");
         num = parseInt(tag);
@@ -135,86 +137,55 @@ function getDateFromTags(tags){
             month = num % 2 === 0? 10 : 4;
             result = new Date(year, month, 30);
         }
+    }
+
+    if(result){
         tag_to_date_table[tag] = result;
     }
-  }
 
   return result;
 }
 
 
-let pReg = /\((.*?)\)/g;
-let bReg = /\[(.*?)\]/g;
+
 
 function isOnlyDigit(str){
     return str.match(/^[0-9]+$/) != null
 }
 
 function getDateFromStr(str){
-    if(isFullStrDate(str)){
-        const tokens = str.split("-");
-        let y = parseInt(tokens[0]);
-        let m = parseInt(tokens[1]);
-        let d = parseInt(tokens[2]);
-
-        m = m - 1;
-        return new Date(y, m, d);
-    }else{
-        let y = convertYearString(str);
-        let m = parseInt(str.slice(2, 4));
-        let d = parseInt(str.slice(4, 6));
-    
-        m = m - 1;
-        return new Date(y, m, d);
-    }
+    const mresult =  str.match(date_Reg);
+    let [wm, y, m, d] = mresult;
+    y = convertYearString(y);
+    m = parseInt(m);
+    d = parseInt(d);
+    m = m - 1;
+    return new Date(y, m, d);
 }
 
 function convertYearString(str) {
-    let y =  parseInt(str.slice(0, 2));
-
-    if (y > 80) {
-        y = 1900 + y;
-    }else {
-        y = 2000 + y;
+    if(y.length === 2){
+        y =  parseInt(y);
+        if (y > 80) {
+            y = 1900 + y;
+        }else {
+            y = 2000 + y;
+        }
     }
-
-    return y;
+    return y =  parseInt(y);;
 }
 
 
-const dreg1 = /\d{6}/;
-const dreg2 = /\d{2}-\d{2}-\d{2}/;
-const dreg3 = /\d{4}年\d{1,2}月\d{1,2}日/;
-const dreg4 = /\d{4}年\d{1,2}月号/;
-
-
+const dreg1 = /(\d{2})(\d{2})(\d{2})/;
+const dreg2 = /(\d{2})-(\d{2})-(\d{2})/;
+const dreg3 = /(\d{4})-(\d{1,2})-(\d{2})/;
+const dreg4 = /(\d{4})年(\d{1,2})月号/;
+const dreg5 = /(\d{4})年(\d{1,2})月(\d{1,2})日/;
+const date_Reg = new RegExp([dreg1, dreg2, dreg3, dreg4, dreg5].map(e => e.source).join("|"), "i");
 function isStrDate(str) {
-    if (str && str.length === 6 && str.match(dreg1)) {
-        const y = parseInt(str.slice(0, 2));
-        const m = parseInt(str.slice(2, 4));
-        const d = parseInt(str.slice(4, 6));
-
-        let invalid = y > 30 && y < 80;
-        invalid = invalid || (m < 0 || m > 12);
-        invalid = invalid || (d < 0 || d > 31);
-        return !invalid;
-    }else if(str.match(dreg2)){
-        return true;
-    }else if(str.match(dreg3)){
-        return true;
-    }else if(str.match(dreg4)){
-        return true;
-    }
-
-    return isFullStrDate(str);
+    return !!str.match(date_Reg);
 }
 
-const fullDateReg = /\d{4}-\d{1,2}-\d{2}/;
-
-function isFullStrDate(str){
-    //e.g 2014-04-01
-    return !!(str && str.match(fullDateReg));
-}
 
 function getAuthorName(str){
     var macthes = str.match(/^(.*?)\s*\((.*?)\)$/);
@@ -307,6 +278,8 @@ function getTag(tags, pMacthes, author){
 }
 
 const DLsiteReg = /RJ\d+/;
+let pReg = /\((.*?)\)/g;
+let bReg = /\[(.*?)\]/g;
 
 function parse(str) {
     if (!str || localCache[str] === "NO_EXIST") {
