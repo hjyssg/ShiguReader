@@ -55,8 +55,8 @@ function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
         results = getFileCollection().chain()
                       .find({'tags': { '$regex' : reg }, isDisplayableInExplorer: true })
                       .where(obj => {
-                        const result = parse(obj.fileName);
-                        return result.tags.some(e => isEqual(tag, e));
+                        const tagArr = obj.tags.split(serverUtil.sep);
+                        return tagArr.some(e => isEqual(tag, e));
                       });
     }
 

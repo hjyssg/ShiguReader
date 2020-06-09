@@ -675,7 +675,8 @@ export default class ExplorerPage extends Component {
 
     toggleThumbNail(){
         this.setStateAndSetHash({
-            noThumbnail: !this.state.noThumbnail
+            noThumbnail: !this.state.noThumbnail,
+            pageIndex: 1
         })
     }
 
