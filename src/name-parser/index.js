@@ -251,6 +251,24 @@ function parse(str) {
     let type;
     let tags = [];
 
+    function isOtherTag(token){
+        let result = false;
+        if(isBookType(token)){
+            type = getBookType(token);
+            result = true;
+        }else if(isUselessTag(token)){
+            //nothing
+            result = true;
+        } else if(belongToEvent(token)){
+            comiket = token;
+            result = true;
+        }else if (isStrDate(token)) {
+            dateTag = token;  //e.g 190214
+            result = true;
+        }
+        return result;
+    }
+
     // looking for author, avoid 6 year digit
     if (bMacthes && bMacthes.length > 0) {
         for (let ii = 0; ii < bMacthes.length; ii++) {
@@ -259,16 +277,9 @@ function parse(str) {
             const nextCharIndex = str.indexOf(bMacthes[ii]) + bMacthes[ii].length + 1; 
             const nextChar = str[nextCharIndex];
 
-            if(isBookType(token)){
-                type = getBookType(token)
-            }else if(isUselessTag(token)){
-                continue;  //DLsite tag is not author
-            } else if(belongToEvent(token)){
-                comiket = token;
-            }else if (isStrDate(token)) {
-                //e.g 190214
-                dateTag = token;
-            } else if (isNotAuthor(tt)){
+            if(isOtherTag(token)){
+                continue;
+            }  if (isNotAuthor(tt)){
                 //e.g pixiv is not author
                 tags.push(token);
             } else if (nextChar === "." || nextCharIndex >= str.length){
@@ -308,20 +319,13 @@ function parse(str) {
         tags.splice(tags.indexOf(author), 1);
     }
 
-    tags = tags.filter(token=> {
-        if(isBookType(token)){
-            type = getBookType(token)
-        }else if(isUselessTag(token)){
-            return;
-        } else if(belongToEvent(token)){
-            comiket = token;
-        }else if (isStrDate(token)) {
-            //e.g 190214
-            dateTag = token;
-        }else{
-            return true;
-        }
+    tags = tags.filter(e=> {
+        return !isOtherTag(e)
     });
+
+    tags = tags
+    .map(e => e.trim())
+    .filter(e => e.length > 1);
 
     tags = tags.map(e => {
         if(tag_convert_table[e]){
@@ -337,9 +341,7 @@ function parse(str) {
         return e;
     })
 
-    tags = tags
-        .map(e => e.trim())
-        .filter(e => e.length > 1);
+
 
     if(!type){
         if(comiket|| group){
