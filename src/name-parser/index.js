@@ -59,7 +59,7 @@ const reg_list = [comicket_reg, comic_star_reg, love_live_event_reg,
                  /コミトレ.*\d+/, /FF\d+/, /iDOL SURVIVAL.*\d/i, 
                  /SC\d+/, /コミコミ.*\d/, /ふたけっと.*\d/,
                 /ファータグランデ騎空祭/, /歌姫庭園/, /紅楼夢/, 
-                /CSP\d/, /CC大阪\d/];
+                /CSP\d/, /CC大阪\d/, /COMITIA\d/];
 
 const event_reg = new RegExp(reg_list.map(e => e.source).join("|"), "i");
 
