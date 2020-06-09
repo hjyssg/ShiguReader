@@ -1,5 +1,4 @@
 const config = require("./name-parser-config");
-const same_tags = config.same_tags;
 const same_tag_regs_table = config.same_tag_regs_table;
 const not_author_but_tag = config.not_author_but_tag;
 const char_names = require("./character-names");
@@ -51,14 +50,6 @@ function belongToEvent(e){
 }
 
 function init(){
-    //--------------------------------------------
-    const tag_convert_table = {};
-    same_tags.forEach(row => {
-        for(let ii = 1; ii < row.length; ii++){
-            tag_convert_table[row[ii]] = row[0];
-        }
-    });
-
     const same_tag_reg_to_common_name = {};
     const same_tag_reg_array = [];
     for(let tag in same_tag_regs_table){
@@ -79,62 +70,52 @@ function init(){
 
     //------------------------------------
     return {
-        tag_convert_table,
         same_tag_reg_to_common_name,
         same_tag_reg_array
     }
 }
 
 const {
-    tag_convert_table,
     same_tag_reg_to_common_name,
     same_tag_reg_array
 } = init();
 
 
-const tag_to_date_table = {};
+const comiket_to_date_table = {};
 function getDateFromParse(str){
     const pp = parse(str);
     let result;
     if(pp){
         if(pp.dateTag){
             result = getDateFromStr(pp.dateTag);
-        }else{
-            result = getDateFromTags(pp.tags)
+        }else if(pp.comiket){
+            result = getDateFromComiket(pp.comiket)
         }
     }
     return result;
 }
 
 //for sort algo, not very accurate
-function getDateFromTags(tags){
-    if(!tags || tags.length === 0){
-        return null;
-    }
-
-    const _tags =  tags.filter(e => belongToEvent(e));
-    let tag = _tags[0];
-    if(!tag){  return; }
-
+function getDateFromComiket(comiket){
     let result = null;
     let num;
     let year;
     let month;
     
-    if (tag_to_date_table[tag]) {
-        result = tag_to_date_table[tag];
-    } else if(tag.match(comicket_reg)) {
-        tag = tag.replace("C", "");
-        num = parseInt(tag);
+    if (comiket_to_date_table[comiket]) {
+        result = comiket_to_date_table[comiket];
+    } else if(comiket.match(comicket_reg)) {
+        comiket = comiket.replace("C", "");
+        num = parseInt(comiket);
         year = Math.floor(num /2) + 1971;
         const isSummer = num % 2 === 0;
         month = isSummer? 8 : 11;
         const day = isSummer? 10: 28;
         result = new Date(year, month, day);
         
-    } else if(tag.match(comic_star_reg)) {
-        tag = tag.replace("COMIC1☆", "");
-        num = parseInt(tag);
+    } else if(comiket.match(comic_star_reg)) {
+        comiket = comiket.replace("COMIC1☆", "");
+        num = parseInt(comiket);
         if(num <= 10){
             //once per year
             result = new Date(2006+num, 3, 30);
@@ -147,7 +128,7 @@ function getDateFromTags(tags){
     }
 
     if(result){
-        tag_to_date_table[tag] = result;
+        comiket_to_date_table[comiket] = result;
     }
 
   return result;
@@ -328,10 +309,6 @@ function parse(str) {
     .filter(e => e.length > 1);
 
     tags = tags.map(e => {
-        if(tag_convert_table[e]){
-            return tag_convert_table[e]
-        }
-
         for(let ii = 0; ii < same_tag_reg_array.length; ii++){
             const r = same_tag_reg_array[ii];
             if(e.match(r)){
@@ -340,8 +317,6 @@ function parse(str) {
         }
         return e;
     })
-
-
 
     if(!type){
         if(comiket|| group){
@@ -393,7 +368,6 @@ function parseMusicTitle(str){
 }
 
 module.exports.parse = parse;
-module.exports.isOnlyDigit = isOnlyDigit;
-module.exports.getDateFromTags = getDateFromTags;
+module.exports.getDateFromComiket = getDateFromComiket;
 module.exports.getDateFromParse = getDateFromParse;
 module.exports.parseMusicTitle = parseMusicTitle;

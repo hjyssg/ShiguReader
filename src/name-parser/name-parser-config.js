@@ -1,16 +1,10 @@
-module.exports.same_tags = [
-    ["ラブライブ!サンシャイン!!", "ブライブ！ サンシャイン!!"],
-    ["オリジナル", "Original"],
-    ["東方Project","東方","Touhou Project", "東方project"],
-    ["アイドルマスター", "アイマス", ],
-    ["アズールレーン","Azur Lane"],
-    ["ガールズ&パンツァー","Girls und Panzer"],
-];
-
 module.exports.same_tag_regs_table = {
+    "東方Project":[/東方/,/Touhou Project/, /東方project/],
+    "オリジナル": [/^Original$/],
     "Kanon": [/カノン|Kanon/],
     "艦これ": [/艦これ|舰これ/, /艦隊これくしょん/, /Kantai Collection/, /KanColle/],
     "ラブライブ!" : [/Love Live/, /ラブライブ/],
+    "ラブライブ!サンシャイン!!": [/ラブライブ.*サンシャイン.*/],
     "プリンセスコネクト!Re:Dive": [/プリンセスコネクト.*Re.*Dive/],
     "Fate⁄Grand Order": [/Fate.*Grand.*Order/, /FGO/],
     "Fate⁄Stay Night": [/Fate.*Stay.*Night/],
@@ -19,10 +13,12 @@ module.exports.same_tag_regs_table = {
     "Fate/Extra": [/Fate.*Extra/],
     "Fate/EXTELLA": [/Fate.*EXTELLA/],
     "Fate/kaleid liner プリズマ☆イリヤ": [/Fate.*kaleid.*liner.*プリズマ.*イリヤ/, /Fate.*kaleid.*liner/, /プリズマ.*イリヤ/],
-    "アイドルマスター": [/アイドルマスタ/, /DOL.*M@STER/, /dol.*master/],
+    "アイドルマスター": [/アイドルマスタ/, /DOL.*M@STER/, /dol.*master/, /アイマス/],
     "アイドルマスター シンデレラガールズ": [/アイドルマスター.*シンデレラガールズ/, /DOLM@STER.*CINDERELLA.*GIRLS/],
     "アイドルマスター ミリオンライブ": [/アイドルマスター.*ミリオン/, /ミリオンライブ/],
     "アイドルマスター シャイニーカラーズ": [/アイドルマスター.*シャイニーカラーズ/],
+    "アズールレーン": [/Azur Lane/],
+    "ガールズ&パンツァー": [/Girls.*nd.*Panzer/],
     "けいおん": [/けいおん/, /K-ON/],
     "プリキュア": [/プリキュア/],
     "To LOVEる": [/To.*LOVEる/, /To.*LOVE.*ru/],
