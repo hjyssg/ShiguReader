@@ -135,35 +135,56 @@ function getDateFromComiket(comiket){
 }
 
 function getDateFromStr(str){
-    const mresult =  str.match(date_Reg);
-    let [wm, y, m, d] = mresult;
-    y = convertYearString(y);
-    m = parseInt(m)-1;
-    d = parseInt(d)||1;
-    return new Date(y, m, d);
+    const mresult =  str.match(date_reg);
+    if(mresult){
+        let [wm, y, m, d] = mresult.filter(e => !!e);
+        y = convertYearString(y);
+        m = parseInt(m)-1;
+        d = parseInt(d)||1;
+
+        if(m < 0 || m > 11){
+            return undefined;
+        }else if(d < 1 || d > 31){
+            return undefined;
+        }
+
+        return new Date(y, m, d);
+    }
 }
 
-function convertYearString(str) {
+function convertYearString(y) {
     if(y.length === 2){
         y =  parseInt(y);
-        if (y > 80) {
+        if (y > 70) {
             y = 1900 + y;
         }else {
             y = 2000 + y;
         }
+    }else{
+        y =  parseInt(y)
     }
-    return y =  parseInt(y);;
+
+    return y;
 }
 
+
+function isDateValid(date) {
+    // An invalid date object returns NaN for getTime() and NaN is the only
+    // object not strictly equal to itself.
+    return date.getTime() === date.getTime();
+};  
 
 const dreg1 = /(\d{2})(\d{2})(\d{2})/;
 const dreg2 = /(\d{2})-(\d{2})-(\d{2})/;
 const dreg3 = /(\d{4})-(\d{1,2})-(\d{2})/;
 const dreg4 = /(\d{4})年(\d{1,2})月号/;
 const dreg5 = /(\d{4})年(\d{1,2})月(\d{1,2})日/;
-const date_Reg = new RegExp([dreg1, dreg2, dreg3, dreg4, dreg5].map(e => e.source).join("|"), "i");
+const date_reg = new RegExp([dreg1, dreg2, dreg3, dreg4, dreg5].map(e => e.source).join("|"), "i");
 function isStrDate(str) {
-    return !!str.match(date_Reg);
+    if(str.match(date_reg)){
+        const dd = getDateFromStr(str);
+        return !!(dd && isDateValid(dd));
+    }
 }
 
 
