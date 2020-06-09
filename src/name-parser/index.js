@@ -99,7 +99,6 @@ function getDateFromComiket(comiket){
         month = isSummer? 8 : 11;
         const day = isSummer? 10: 28;
         result = new Date(year, month, day);
-        
     } else if(comiket.match(comic_star_reg)) {
         comiket = comiket.replace("COMIC1☆", "");
         num = parseInt(comiket);
@@ -117,8 +116,7 @@ function getDateFromComiket(comiket){
     if(result){
         comiket_to_date_table[comiket] = result;
     }
-
-  return result;
+    return result;
 }
 
 function getDateFromStr(str){
@@ -176,7 +174,7 @@ function isStrDate(str) {
 }
 
 
-function getAuthorName(str){
+function getGroupAndName(str){
     var macthes = str.match(/^(.*?)\s*\((.*?)\)$/);
     if(macthes && macthes.length > 0){
         return {
@@ -288,7 +286,7 @@ function parse(str) {
                 tags.push(token);
             } else if(!author) {
                 //  [真珠貝(武田弘光)]
-                const temp = getAuthorName(token);
+                const temp = getGroupAndName(token);
                 if(temp.name && !isNotAuthor(temp.name)){
                     //e.g よろず is not author
                     author = temp.name;
@@ -301,10 +299,12 @@ function parse(str) {
         }
     }
 
+    //---------------handle tags
     if (pMacthes && pMacthes.length > 0) {
         tags = tags.concat(pMacthes);
     }
 
+    //seperate
     const tseperator = /,|、/;
     const tempTags = [];
     tags.forEach(t => {
@@ -323,6 +323,7 @@ function parse(str) {
     tags = tags
     .map(e => e.replace(" ", ""))
 
+    //tag reducing
     tags = tags.map(e => {
         const converts = [];
         for(let ii = 0; ii < same_tag_matrix.length; ii++){
@@ -353,22 +354,21 @@ function parse(str) {
         return;
     }
 
+    //get title
     let title = str;
     (bMacthes||[]).concat( pMacthes||[], tags||[], [/\[/g, /\]/g, /\(/g, /\)/g ]).forEach(e => {
         title = title.replace(e, "");
     })
     title = title.trim();
 
+    //get character names
     const names = char_name_regex && title.match(char_name_regex);
     names && names.forEach(e => {
         tags.push(e);
     })
 
     const result = {
-       dateTag, group, author, authors, tags, comiket, type, title,
-    //    get author(){
-    //        return this.authors.join(",")
-    //    }
+       dateTag, group, author, authors, tags, comiket, type, title
     };
 
     localCache[str] = result;
