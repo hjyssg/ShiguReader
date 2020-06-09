@@ -219,7 +219,12 @@ function isNotAuthor(str){
     return str.match(not_author_but_tag_regex);
 }
 
-const DLsiteReg = /RJ\d+/;
+const useless_tag = /RJ\d+|DL版|別スキャン^エロ|^digital$/i;
+function isUselessTag(str){
+    return !!str.match(useless_tag)
+}
+
+
 let pReg = /\((.*?)\)/g;
 let bReg = /\[(.*?)\]/g;
 
@@ -261,7 +266,7 @@ function parse(str) {
 
             if(isBookType(token)){
                 type = getBookType(token)
-            }else if(token.match(DLsiteReg)){
+            }else if(isUselessTag(token)){
                 continue;  //DLsite tag is not author
             } else if(belongToEvent(token)){
                 comiket = token;
@@ -308,11 +313,11 @@ function parse(str) {
         tags.splice(tags.indexOf(author), 1);
     }
 
-    tags = tags.filter(e=> {
+    tags = tags.filter(token=> {
         if(isBookType(token)){
             type = getBookType(token)
-        }else if(token.match(DLsiteReg)){
-            continue;  //DLsite tag is not author
+        }else if(isUselessTag(token)){
+            return;
         } else if(belongToEvent(token)){
             comiket = token;
         }else if (isStrDate(token)) {
