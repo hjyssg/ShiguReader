@@ -161,9 +161,8 @@ function getDateFromStr(str){
     const mresult =  str.match(date_Reg);
     let [wm, y, m, d] = mresult;
     y = convertYearString(y);
-    m = parseInt(m);
-    d = parseInt(d);
-    m = m - 1;
+    m = parseInt(m)-1;
+    d = parseInt(d)||1;
     return new Date(y, m, d);
 }
 
