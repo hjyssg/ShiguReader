@@ -31,7 +31,7 @@ const {
   SORT_RANDOMLY
 } = Constant;
 
-const useless_tag_regex = /DL版|同人誌|別スキャン|修正版|^エロ|^digital$/i;
+const useless_tag_regex = /DL版|同人誌|別スキャン|修正版|^エロ|^digital$|^JPG|^PNG|ページ補足/i;
 
 
 function addOne(table, key) {

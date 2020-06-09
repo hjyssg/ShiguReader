@@ -1,5 +1,4 @@
 const config = require("./name-parser-config");
-const same_tags = config.same_tags;
 const same_tag_regs_table = config.same_tag_regs_table;
 const not_author_but_tag = config.not_author_but_tag;
 const char_names = require("./character-names");
@@ -9,16 +8,40 @@ const not_author_but_tag_regex =  new RegExp(not_author_but_tag.join("|"), "i");
 
 const book_types = [
     "同人音声",
+    "同人催眠音声",
     "同人ソフト",
     "同人CG集",
     "同人ゲーム",
     "成年コミック",
     "一般コミック",
     "ゲームCG",
-    "画集"
+    "イラスト集",
+    "アンソロジー",
+    "画集",
+    "雑誌"
 ];
+const book_type_regex = new RegExp(book_types.map(e => `(${e})`).join("|"), "i");
 
-const book_type_regex = new RegExp(book_types.join("|"), "i");
+function isBookType(str){
+    return !!str.match(book_type_regex);
+}
+
+function getBookType(str){
+    return str.match(book_type_regex)[0];
+}
+
+const same_tag_matrix = [];
+for(let tag in same_tag_regs_table){
+    if(same_tag_regs_table.hasOwnProperty(tag)){
+        const big_pre_join = same_tag_regs_table[tag].map(e =>e.source)
+        const r =  new RegExp(big_pre_join.join("|"), 'i')
+        const row = [r, tag];
+        same_tag_matrix.push(row);
+    }
+}
+same_tag_matrix.sort((r1, r2) => {
+    return r2[1].length - r1[1].length
+});
 
 const localCache = {};
 
@@ -35,95 +58,51 @@ const reg_list = [comicket_reg, comic_star_reg, love_live_event_reg,
                  tora_reg, komitore_reg, /みみけっと.*\d+/, 
                  /コミトレ.*\d+/, /FF\d+/, /iDOL SURVIVAL.*\d/i, 
                  /SC\d+/, /コミコミ.*\d/, /ふたけっと.*\d/,
-                /ファータグランデ騎空祭/, /歌姫庭園/, /紅楼夢/];
+                /ファータグランデ騎空祭/, /歌姫庭園/, /紅楼夢/, 
+                /CSP\d/, /CC大阪\d/];
+
+const event_reg = new RegExp(reg_list.map(e => e.source).join("|"), "i");
 
 function belongToEvent(e){
-    return reg_list.some(reg => e.match(reg));
+    return e.match(event_reg);
 }
 
-function init(){
-    //--------------------------------------------
-    const tag_convert_table = {};
-    same_tags.forEach(row => {
-        for(let ii = 1; ii < row.length; ii++){
-            tag_convert_table[row[ii]] = row[0];
-        }
-    });
 
-    const same_tag_reg_to_common_name = {};
-    const same_tag_reg_array = [];
-    for(let tag in same_tag_regs_table){
-        if(same_tag_regs_table.hasOwnProperty(tag)){
-            const reg_array = same_tag_regs_table[tag];
-
-            const big_pre_join = reg_array.map(e =>e.source)
-            const r =  new RegExp(big_pre_join.join("|"), 'i')
-
-            same_tag_reg_array.push(r);
-            same_tag_reg_to_common_name[r] = tag;
-        }
-    }
-
-    same_tag_reg_array.sort((r1, r2) => {
-        return r2.toString().length - r1.toString().length
-    });
-
-    //------------------------------------
-    return {
-        tag_convert_table,
-        same_tag_reg_to_common_name,
-        same_tag_reg_array
-    }
-}
-
-const {
-    tag_convert_table,
-    same_tag_reg_to_common_name,
-    same_tag_reg_array
-} = init();
-
-
-const tag_to_date_table = {};
+const comiket_to_date_table = {};
 function getDateFromParse(str){
     const pp = parse(str);
     let result;
     if(pp){
         if(pp.dateTag){
             result = getDateFromStr(pp.dateTag);
-        }else{
-            result = getDateFromTags(pp.tags)
+        }else if(pp.comiket){
+            result = getDateFromComiket(pp.comiket)
         }
     }
     return result;
 }
 
 //for sort algo, not very accurate
-function getDateFromTags(tags){
-  if(!tags || tags.length === 0){
-      return null;
-  }
-
-  const _tags =  tags.filter(e => belongToEvent(e));
-  let tag = _tags && _tags[0];
-  let result = null;
-  let num;
-  let year;
-  let month;
-  if(tag){
-    if (tag_to_date_table[tag]) {
-        result = tag_to_date_table[tag];
-    } else if(tag.match(comicket_reg)) {
-        tag = tag.replace("C", "");
-        num = parseInt(tag);
+function getDateFromComiket(comiket){
+    let result = null;
+    let num;
+    let year;
+    let month;
+    
+    if (comiket_to_date_table[comiket]) {
+        result = comiket_to_date_table[comiket];
+    } else if(comiket.match(comicket_reg)) {
+        comiket = comiket.replace("C", "");
+        num = parseInt(comiket);
         year = Math.floor(num /2) + 1971;
         const isSummer = num % 2 === 0;
         month = isSummer? 8 : 11;
         const day = isSummer? 10: 28;
         result = new Date(year, month, day);
-        tag_to_date_table[tag] = result;
-    } else if(tag.match(comic_star_reg)) {
-        tag = tag.replace("COMIC1☆", "");
-        num = parseInt(tag);
+        
+    } else if(comiket.match(comic_star_reg)) {
+        comiket = comiket.replace("COMIC1☆", "");
+        num = parseInt(comiket);
         if(num <= 10){
             //once per year
             result = new Date(2006+num, 3, 30);
@@ -133,86 +112,69 @@ function getDateFromTags(tags){
             month = num % 2 === 0? 10 : 4;
             result = new Date(year, month, 30);
         }
-        tag_to_date_table[tag] = result;
     }
-  }
+
+    if(result){
+        comiket_to_date_table[comiket] = result;
+    }
 
   return result;
 }
 
-
-let pReg = /\((.*?)\)/g;
-let bReg = /\[(.*?)\]/g;
-
-function isOnlyDigit(str){
-    return str.match(/^[0-9]+$/) != null
-}
-
 function getDateFromStr(str){
-    if(isFullStrDate(str)){
-        const tokens = str.split("-");
-        let y = parseInt(tokens[0]);
-        let m = parseInt(tokens[1]);
-        let d = parseInt(tokens[2]);
+    const mresult =  str.match(date_reg);
+    if(mresult){
+        let [wm, y, m, d] = mresult.filter(e => !!e);
+        y = convertYearString(y);
+        m = parseInt(m)-1;
+        d = parseInt(d)||1;
 
-        m = m - 1;
-        return new Date(y, m, d);
-    }else{
-        let y = convertYearString(str);
-        let m = parseInt(str.slice(2, 4));
-        let d = parseInt(str.slice(4, 6));
-    
-        m = m - 1;
+        if(m < 0 || m > 11){
+            return undefined;
+        }else if(d < 1 || d > 31){
+            return undefined;
+        }
+
         return new Date(y, m, d);
     }
 }
 
-function convertYearString(str) {
-    let y =  parseInt(str.slice(0, 2));
-
-    if (y > 80) {
-        y = 1900 + y;
-    }else {
-        y = 2000 + y;
+function convertYearString(y) {
+    if(y.length === 2){
+        y =  parseInt(y);
+        if (y > 70) {
+            y = 1900 + y;
+        }else {
+            y = 2000 + y;
+        }
+    }else{
+        y =  parseInt(y)
     }
 
     return y;
 }
 
 
-const dreg1 = /\d{6}/;
-const dreg2 = /\d{2}-\d{2}-\d{2}/;
-const dreg3 = /\d{4}年\d{1,2}月\d{1,2}日/;
-const dreg4 = /\d{4}年\d{1,2}月号/;
+function isDateValid(date) {
+    // An invalid date object returns NaN for getTime() and NaN is the only
+    // object not strictly equal to itself.
+    return date.getTime() === date.getTime();
+};  
 
-
+const dreg1 = /(\d{2})(\d{2})(\d{2})/;
+const dreg2 = /(\d{2})-(\d{2})-(\d{2})/;
+const dreg3 = /(\d{4})-(\d{1,2})-(\d{2})/;
+const dreg4 = /(\d{4})年(\d{1,2})月号/;
+const dreg5 = /(\d{4})年(\d{1,2})月(\d{1,2})日/;
+const dreg6 = /(\d{4})\.(\d{1,2})\.(\d{1,2})/;
+const date_reg = new RegExp([dreg1, dreg2, dreg3, dreg4, dreg5, dreg6].map(e => e.source).join("|"), "i");
 function isStrDate(str) {
-    if (str && str.length === 6 && str.match(dreg1)) {
-        const y = parseInt(str.slice(0, 2));
-        const m = parseInt(str.slice(2, 4));
-        const d = parseInt(str.slice(4, 6));
-
-        let invalid = y > 30 && y < 80;
-        invalid = invalid || (m < 0 || m > 12);
-        invalid = invalid || (d < 0 || d > 31);
-        return !invalid;
-    }else if(str.match(dreg2)){
-        return true;
-    }else if(str.match(dreg3)){
-        return true;
-    }else if(str.match(dreg4)){
-        return true;
+    if(str.match(date_reg)){
+        const dd = getDateFromStr(str);
+        return !!(dd && isDateValid(dd));
     }
-
-    return isFullStrDate(str);
 }
 
-const fullDateReg = /\d{4}-\d{1,2}-\d{2}/;
-
-function isFullStrDate(str){
-    //e.g 2014-04-01
-    return !!(str && str.match(fullDateReg));
-}
 
 function getAuthorName(str){
     var macthes = str.match(/^(.*?)\s*\((.*?)\)$/);
@@ -238,73 +200,28 @@ function match(reg, str){
     return result;
 }
 
-function getTypeAndComiket(tags, group){
-    let comiket;
-    let type;
-
-    tags.forEach(e => {
-        if(belongToEvent(e)){
-            comiket = e;
-        }else if(e.match(book_type_regex)){
-            type = e;
-        }
-    })
-
-    if(!type){
-        if(comiket|| group){
-            type = "Doujin";
-        }else{
-            type = "etc";
-        }
-    }
-
-    return {
-        comiket, type
-    }
+function isNotAuthor(str){
+    return str.match(not_author_but_tag_regex);
 }
 
-function getTag(tags, pMacthes, author){
-    tags = tags || [];
-    if (pMacthes && pMacthes.length > 0) {
-        tags = tags.concat(pMacthes);
-        tags = tags.filter(e=> { return !isOnlyDigit(e) && !isStrDate(e) });
-    }
-
-    if(author && tags.indexOf(author) >= 0){
-        tags.splice(tags.indexOf(author), 1);
-    }
-
-    const tseperator = /,|、/;
-    const tempTags = [];
-    tags.forEach(t => {
-        t.split(tseperator).forEach(token => {
-            tempTags.push(token);
-        })
-    })
-    tags = tempTags;
-
-    tags = tags.map(e => {
-        if(tag_convert_table[e]){
-            return tag_convert_table[e]
-        }
-
-        for(let ii = 0; ii < same_tag_reg_array.length; ii++){
-            const r = same_tag_reg_array[ii];
-            if(e.match(r)){
-                return same_tag_reg_to_common_name[r]
-            }
-        }
-    
-        return e;
-    })
-
-    tags = tags
-        .map(e => e.trim())
-        .filter(e => e.length > 1);
-    return tags;
+const useless_tag = /RJ\d+|DL版|別スキャン^エロ|^digital$|^\d+p|^\d+$/i;
+function isUselessTag(str){
+    return !!str.match(useless_tag)
 }
 
-const DLsiteReg = /RJ\d+/;
+function findMaxStr(arr){
+    let res = arr[0];
+    arr.forEach(e => {
+        if(e.length > res.length){
+            res = e;
+        }
+    })
+    return res;
+}
+
+const pReg = /\((.*?)\)/g;
+const bReg = /\[(.*?)\]/g;
+const seperator = /,|、|&|＆/;
 
 function parse(str) {
     if (!str || localCache[str] === "NO_EXIST") {
@@ -326,10 +243,31 @@ function parse(str) {
         return;
     }
 
-    let author = null;
-    let group = null;
+    let author;
+    let authors = [];
+    let group;
     let dateTag;
+    let comiket;
+    let type;
     let tags = [];
+
+    function isOtherInfo(token){
+        let result = false;
+        if(isBookType(token)){
+            type = getBookType(token);
+            result = true;
+        }else if(isUselessTag(token)){
+            //nothing
+            result = true;
+        } else if(belongToEvent(token)){
+            comiket = token;
+            result = true;
+        }else if (isStrDate(token)) {
+            dateTag = token;  //e.g 190214
+            result = true;
+        }
+        return result;
+    }
 
     // looking for author, avoid 6 year digit
     if (bMacthes && bMacthes.length > 0) {
@@ -339,15 +277,9 @@ function parse(str) {
             const nextCharIndex = str.indexOf(bMacthes[ii]) + bMacthes[ii].length + 1; 
             const nextChar = str[nextCharIndex];
 
-            if(belongToEvent(token)){
-                tags.push(token);
-            }else if(token.match(DLsiteReg)){
-                //DLsite tag is not author
+            if(isOtherInfo(token)){
                 continue;
-            }else if (isStrDate(token)) {
-                //e.g 190214
-                dateTag = token;
-            } else if (tt.match(not_author_but_tag_regex)){
+            }  if (isNotAuthor(tt)){
                 //e.g pixiv is not author
                 tags.push(token);
             } else if (nextChar === "." || nextCharIndex >= str.length){
@@ -357,9 +289,10 @@ function parse(str) {
             } else if(!author) {
                 //  [真珠貝(武田弘光)]
                 const temp = getAuthorName(token);
-                if(temp.name && !temp.name.match(not_author_but_tag_regex)){
+                if(temp.name && !isNotAuthor(temp.name)){
                     //e.g よろず is not author
                     author = temp.name;
+                    authors = author.split(seperator).map(e => e.trim()) ;
                 }
                 group = temp.group;
             }else{
@@ -368,11 +301,51 @@ function parse(str) {
         }
     }
 
-    tags = getTag(tags, pMacthes, author);
-    let { comiket, type } = getTypeAndComiket(tags, group);
+    if (pMacthes && pMacthes.length > 0) {
+        tags = tags.concat(pMacthes);
+    }
 
-    if(comiket){
-        tags = tags.filter(e => e != comiket);
+    const tseperator = /,|、/;
+    const tempTags = [];
+    tags.forEach(t => {
+        t.split(tseperator).forEach(token => {
+            tempTags.push(token);
+        })
+    })
+    tags = tempTags;
+
+    tags = tags.map(e => e.trim());
+
+    tags = tags.filter(e=> {
+        return  e.length > 1 && !isOtherInfo(e) && authors.indexOf(e) === -1 && e !== author;
+    });
+
+    tags = tags
+    .map(e => e.replace(" ", ""))
+
+    tags = tags.map(e => {
+        const converts = [];
+        for(let ii = 0; ii < same_tag_matrix.length; ii++){
+            const row = same_tag_matrix[ii];
+            const r = row[0];
+            if(e.match(r)){
+                converts.push(row[1]);
+            }
+        }
+
+        if(converts.length > 0){
+            return findMaxStr(converts);
+        }else{
+            return e;
+        }
+    })
+
+    if(!type){
+        if(comiket|| group){
+            type = "Doujin";
+        }else{
+            type = "etc";
+        }
     }
 
     if(!author && !group && tags.length === 0){
@@ -386,16 +359,16 @@ function parse(str) {
     })
     title = title.trim();
 
-    const seperator = /,|、|&|＆/;
-    const authors = author && author.split(seperator).map(e => e.trim()) ;
-
     const names = char_name_regex && title.match(char_name_regex);
     names && names.forEach(e => {
         tags.push(e);
     })
 
     const result = {
-       dateTag, author, tags, comiket, type, group, title, authors
+       dateTag, group, author, authors, tags, comiket, type, title,
+    //    get author(){
+    //        return this.authors.join(",")
+    //    }
     };
 
     localCache[str] = result;
@@ -417,7 +390,6 @@ function parseMusicTitle(str){
 }
 
 module.exports.parse = parse;
-module.exports.isOnlyDigit = isOnlyDigit;
-module.exports.getDateFromTags = getDateFromTags;
+module.exports.getDateFromComiket = getDateFromComiket;
 module.exports.getDateFromParse = getDateFromParse;
 module.exports.parseMusicTitle = parseMusicTitle;
