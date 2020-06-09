@@ -17,8 +17,15 @@ const book_types = [
     "ゲームCG",
     "画集"
 ];
-
 const book_type_regex = new RegExp(book_types.map(e => `(${e})`).join("|"), "i");
+
+function isBookType(str){
+    return !!str.match(book_type_regex);
+}
+
+function getBookType(str){
+    return str.match(book_type_regex)[0];
+}
 
 const localCache = {};
 
@@ -146,9 +153,6 @@ function getDateFromTags(tags){
   return result;
 }
 
-
-
-
 function isOnlyDigit(str){
     return str.match(/^[0-9]+$/) != null
 }
@@ -211,70 +215,8 @@ function match(reg, str){
     return result;
 }
 
-function getTypeAndComiket(tags, group){
-    let comiket;
-    let type;
-
-    tags.forEach(e => {
-        if(belongToEvent(e)){
-            comiket = e;
-        }else if(e.match(book_type_regex)){
-            type = e.match(book_type_regex)[0];
-        }
-    })
-
-    if(!type){
-        if(comiket|| group){
-            type = "Doujin";
-        }else{
-            type = "etc";
-        }
-    }
-
-    return {
-        comiket, type
-    }
-}
-
-function getTag(tags, pMacthes, author){
-    tags = tags || [];
-    if (pMacthes && pMacthes.length > 0) {
-        tags = tags.concat(pMacthes);
-        tags = tags.filter(e=> { return !isOnlyDigit(e) && !isStrDate(e) });
-    }
-
-    if(author && tags.indexOf(author) >= 0){
-        tags.splice(tags.indexOf(author), 1);
-    }
-
-    const tseperator = /,|、/;
-    const tempTags = [];
-    tags.forEach(t => {
-        t.split(tseperator).forEach(token => {
-            tempTags.push(token);
-        })
-    })
-    tags = tempTags;
-
-    tags = tags.map(e => {
-        if(tag_convert_table[e]){
-            return tag_convert_table[e]
-        }
-
-        for(let ii = 0; ii < same_tag_reg_array.length; ii++){
-            const r = same_tag_reg_array[ii];
-            if(e.match(r)){
-                return same_tag_reg_to_common_name[r]
-            }
-        }
-    
-        return e;
-    })
-
-    tags = tags
-        .map(e => e.trim())
-        .filter(e => e.length > 1);
-    return tags;
+function isNotAuthor(str){
+    return str.match(not_author_but_tag_regex);
 }
 
 const DLsiteReg = /RJ\d+/;
@@ -301,9 +243,12 @@ function parse(str) {
         return;
     }
 
-    let author = null;
-    let group = null;
+    let author;
+    let authors;
+    let group;
     let dateTag;
+    let comiket;
+    let type;
     let tags = [];
 
     // looking for author, avoid 6 year digit
@@ -314,15 +259,16 @@ function parse(str) {
             const nextCharIndex = str.indexOf(bMacthes[ii]) + bMacthes[ii].length + 1; 
             const nextChar = str[nextCharIndex];
 
-            if(belongToEvent(token)){
-                tags.push(token);
+            if(isBookType(token)){
+                type = getBookType(token)
             }else if(token.match(DLsiteReg)){
-                //DLsite tag is not author
-                continue;
+                continue;  //DLsite tag is not author
+            } else if(belongToEvent(token)){
+                comiket = token;
             }else if (isStrDate(token)) {
                 //e.g 190214
                 dateTag = token;
-            } else if (tt.match(not_author_but_tag_regex)){
+            } else if (isNotAuthor(tt)){
                 //e.g pixiv is not author
                 tags.push(token);
             } else if (nextChar === "." || nextCharIndex >= str.length){
@@ -332,9 +278,11 @@ function parse(str) {
             } else if(!author) {
                 //  [真珠貝(武田弘光)]
                 const temp = getAuthorName(token);
-                if(temp.name && !temp.name.match(not_author_but_tag_regex)){
+                if(temp.name && !isNotAuthor(temp.name)){
                     //e.g よろず is not author
                     author = temp.name;
+                    const seperator = /,|、|&|＆/;
+                    authors = author && author.split(seperator).map(e => e.trim()) ;
                 }
                 group = temp.group;
             }else{
@@ -343,11 +291,62 @@ function parse(str) {
         }
     }
 
-    tags = getTag(tags, pMacthes, author);
-    let { comiket, type } = getTypeAndComiket(tags, group);
+    if (pMacthes && pMacthes.length > 0) {
+        tags = tags.concat(pMacthes);
+    }
 
-    if(comiket){
-        tags = tags.filter(e => e != comiket);
+    const tseperator = /,|、/;
+    const tempTags = [];
+    tags.forEach(t => {
+        t.split(tseperator).forEach(token => {
+            tempTags.push(token);
+        })
+    })
+    tags = tempTags;
+
+    if(author && tags.indexOf(author) >= 0){
+        tags.splice(tags.indexOf(author), 1);
+    }
+
+    tags = tags.filter(e=> {
+        if(isBookType(token)){
+            type = getBookType(token)
+        }else if(token.match(DLsiteReg)){
+            continue;  //DLsite tag is not author
+        } else if(belongToEvent(token)){
+            comiket = token;
+        }else if (isStrDate(token)) {
+            //e.g 190214
+            dateTag = token;
+        }else{
+            return true;
+        }
+    });
+
+    tags = tags.map(e => {
+        if(tag_convert_table[e]){
+            return tag_convert_table[e]
+        }
+
+        for(let ii = 0; ii < same_tag_reg_array.length; ii++){
+            const r = same_tag_reg_array[ii];
+            if(e.match(r)){
+                return same_tag_reg_to_common_name[r]
+            }
+        }
+        return e;
+    })
+
+    tags = tags
+        .map(e => e.trim())
+        .filter(e => e.length > 1);
+
+    if(!type){
+        if(comiket|| group){
+            type = "Doujin";
+        }else{
+            type = "etc";
+        }
     }
 
     if(!author && !group && tags.length === 0){
@@ -361,16 +360,16 @@ function parse(str) {
     })
     title = title.trim();
 
-    const seperator = /,|、|&|＆/;
-    const authors = author && author.split(seperator).map(e => e.trim()) ;
-
     const names = char_name_regex && title.match(char_name_regex);
     names && names.forEach(e => {
         tags.push(e);
     })
 
     const result = {
-       dateTag, author, tags, comiket, type, group, title, authors
+       dateTag, group, author, authors, tags, comiket, type, title,
+    //    get author(){
+    //        return this.authors.join(",")
+    //    }
     };
 
     localCache[str] = result;
