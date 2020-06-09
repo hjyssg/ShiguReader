@@ -153,10 +153,6 @@ function getDateFromTags(tags){
   return result;
 }
 
-function isOnlyDigit(str){
-    return str.match(/^[0-9]+$/) != null
-}
-
 function getDateFromStr(str){
     const mresult =  str.match(date_Reg);
     let [wm, y, m, d] = mresult;
