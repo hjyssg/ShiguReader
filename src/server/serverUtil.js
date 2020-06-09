@@ -55,4 +55,6 @@ module.exports.parse = function(str){
     return nameParser.parse(path.basename(str, path.extname(str)));
 }
 
+module.exports.sep = "--=|=--";
+
 module.exports.common = {};

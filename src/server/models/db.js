@@ -85,7 +85,7 @@ const deleteFromFileDb = function(filePath){
     }
 }
 
-const sep = module.exports.strSep = "-----";
+const sep = serverUtil.sep;
 
 const updateFileDb = function(filePath){
     const fileName = path.basename(filePath);
