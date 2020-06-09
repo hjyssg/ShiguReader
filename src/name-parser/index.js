@@ -321,7 +321,7 @@ function parse(str) {
     });
 
     tags = tags
-    .map(e => e.replace(" ", "").replace("！", "!").replace("？", "?"))
+    .map(e => e.replace(/ |。/g, "").replace(/！/g, "!").replace(/？/g, "?"))
 
     //tag reducing
     tags = tags.map(e => {
