@@ -9,7 +9,7 @@ const { getZipInfo }  = zipInfoDb;
 const pathUtil = require("../pathUtil");
 const { isExist,  isDirectParent, isSub } = pathUtil;
 const nameParser = require('../../name-parser');
-const { useless_tag_regex } =  util;
+const { useless_tag_regex, getCurrentTime } =  util;
 
 const userConfig = global.requireUserConfig();
 const {good_folder_root} = userConfig;
@@ -122,7 +122,7 @@ function init(){
     var predictions = new Array();
 
     //going to generate training date
-    _.shuffle(filePathes).slice(0, 3000).forEach(filePath =>{
+    _.shuffle(filePathes).forEach(filePath =>{
         const feature = getFeature(filePath);
         // console.log(feature);
 
@@ -141,9 +141,11 @@ function init(){
       };
     
    
-    
+    const beginTime = getCurrentTime();
     var classifier = new RFClassifier(options);
     classifier.train(trainingSet, predictions);
+    const timeSpent = getCurrentTime() - beginTime;
+    console.log(timeSpent, "to train")
 
     const tt = 50;
     let count = 0;
