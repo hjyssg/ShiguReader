@@ -131,12 +131,11 @@ function init(){
         }
     });
 
-    var trainingSet = new Array();
-    var predictions = new Array();
+    var inputSet = new Array();
+    var outputSet = new Array();
 
     //going to generate training date
-    const kk = 10000;
-    const sets = _.shuffle(filePathes).slice(0, kk);
+    const sets = _.shuffle(filePathes);
     sets.forEach(filePath =>{
         const feature = getFeature(filePath);
         // console.log(feature);
@@ -144,45 +143,43 @@ function init(){
         const isGood = isSub(good_folder_root, filePath);
         const y = isGood? 1: 0;
 
-        trainingSet.push(feature);
-        predictions.push(y);
+        inputSet.push(feature);
+        outputSet.push(y);
     });
 
-    var options = {
-        seed: 2,
-        maxFeatures: 0.8,
-        replacement: true,
-        nEstimators: 25
-      };
-    
     console.log("-----machine learning----")
     const beginTime = getCurrentTime();
 
+    const totalLength = inputSet.length;
+    const valid_length = 200;
+    const sep = totalLength - valid_length;
+    const trainingSet = inputSet.slice(0, sep);
+    const trainingOutput = outputSet.slice(0, sep);
+
     const by = require('ml-naivebayes');
     var classifier = new by.GaussianNB();
-
-    // var classifier = new RFClassifier(options);
-    classifier.train(trainingSet, predictions);
+    classifier.train(trainingSet, trainingOutput);
 
 
     const timeSpent = getCurrentTime() - beginTime;
-    console.log(timeSpent, "to train for", kk, "data");
+    console.log(`${timeSpent}ms to train for ${trainingSet.length} data`);
 
-    const GOOD_STANDARD = 2;
-    const tt = 100;
+    const GOOD_STANDARD = 1;
     let naivecount = 0;
     let count = 0;
-    for(let ii = 0; ii < tt; ii++){
-        const index = Math.floor(Math.random() * kk);
-        const x = trainingSet[index];
-        const expected = predictions[index];
+
+    const validInput = inputSet.slice(sep);
+    const validOutput = outputSet.slice(sep);
+    for(let ii = 0; ii < validInput.length; ii++){
+        const x = validInput[ii];
+        const expected = validOutput[ii];
 
         let result = classifier.predict([x]);
         if(result[0] === expected ){
             count++;
         }
 
-        const fp = sets[index];
+        const fp = sets[ii];
         const fn = path.basename(fp);
         result = nameParser.parse(fn);
         let guess = false;
@@ -203,8 +200,8 @@ function init(){
         }
     }
 
-    console.log(count, "/", tt);
-    console.log(naivecount, "/", tt);
+    console.log("machine learn:",count, "/", validInput.length);
+    console.log("code algo", naivecount, "/", validInput.length);
 
 }
 
