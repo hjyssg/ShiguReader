@@ -14,6 +14,9 @@ const { useless_tag_regex } =  util;
 const userConfig = global.requireUserConfig();
 const {good_folder_root} = userConfig;
 
+const forest = require("ml-random-forest");
+const RFClassifier = forest.RandomForestClassifier;
+
 const not_good_pattern = "D:\\_Happy_Lesson\\_Going_to_sort\\_Compressed";
 
 function toKey(str){
@@ -115,6 +118,8 @@ function init(){
         }
     });
 
+    demo();
+
     var trainingSet = new Array();
     var predictions = new Array();
 
@@ -124,11 +129,57 @@ function init(){
         // console.log(feature);
 
         const isGood = isSub(good_folder_root, filePath);
-        const y = isGood? 1: -1;
+        const y = isGood? 10: 0;
 
-        trainingSet.push(trainingSet);
+        trainingSet.push(feature);
         predictions.push(y);
     });
+
+    var options = {
+        seed: 2,
+        maxFeatures: 0.8,
+        replacement: true,
+        nEstimators: 25
+      };
+    
+   
+    
+    var classifier = new RFClassifier(options);
+    classifier.train(trainingSet, predictions);
+
+    for(let ii = 0; ii < 30; ii++){
+        const index = ii * 150;
+        const x = trainingSet[index];
+        const expected =  predictions;
+
+        const result = classifier.predict(x);
+        console.log(result);
+    }
 }
+
+function demo(){
+    const IrisDataset = require('ml-dataset-iris');
+   
+
+    var trainingSet = IrisDataset.getNumbers();
+    var predictions = IrisDataset.getClasses().map((elem) =>
+    IrisDataset.getDistinctClasses().indexOf(elem)
+    );
+
+    var options = {
+        seed: 3,
+        maxFeatures: 0.8,
+        replacement: true,
+        nEstimators: 25
+      };
+      
+      var classifier = new RFClassifier(options);
+      classifier.train(trainingSet, predictions);
+      var result = classifier.predict(trainingSet);
+      console.log(result);
+
+}
+
+
 
 module.exports.init = init;
