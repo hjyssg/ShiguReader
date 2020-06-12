@@ -17,6 +17,15 @@ const {good_folder_root} = userConfig;
 const forest = require("ml-random-forest");
 const RFClassifier = forest.RandomForestClassifier;
 
+//random forest training is so slow
+// #data	 time in ms
+// 1000	  2000
+// 1500	  5331
+// 2500	  12999
+// 3000	  18535
+// 4000	  35000
+
+
 const not_good_pattern = "D:\\_Happy_Lesson\\_Going_to_sort\\_Compressed";
 
 function toKey(str){
@@ -198,29 +207,5 @@ function init(){
     console.log(naivecount, "/", tt);
 
 }
-
-function demo(){
-    const IrisDataset = require('ml-dataset-iris');
-
-    var trainingSet = IrisDataset.getNumbers();
-    var predictions = IrisDataset.getClasses().map((elem) =>
-    IrisDataset.getDistinctClasses().indexOf(elem)
-    );
-
-    var options = {
-        seed: 3,
-        maxFeatures: 0.8,
-        replacement: true,
-        nEstimators: 25
-      };
-      
-      var classifier = new RFClassifier(options);
-      classifier.train(trainingSet, predictions);
-      var result = classifier.predict(trainingSet);
-    //   console.log(result);
-
-}
-
-
 
 module.exports.init = init;
