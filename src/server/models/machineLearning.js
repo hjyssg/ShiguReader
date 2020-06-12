@@ -58,7 +58,9 @@ function getFeature(filePath){
         (result && result.authors||[]).forEach(author => {
             //some author is actually group, fake author
             author = toKey(author);
-            authorNum = (authorToFiles[author] || []).length;
+            let subfiles = authorToFiles[author] || [];
+            subfiles = subfiles.filter(e => isSub(good_folder_root, e));
+            authorNum = subfiles.length;
         })
     
         result.tags.forEach(tag => {
@@ -66,7 +68,9 @@ function getFeature(filePath){
               return;
             }
             tag = toKey(tag);
-            tagNum = (tagToFiles[tag] || []).length;
+            let subfiles = tagToFiles[tag] || [];
+            subfiles = subfiles.filter(e => isSub(good_folder_root, e));
+            tagNum = subfiles.length;
         });
     }
 
@@ -156,7 +160,7 @@ function init(){
     console.log(timeSpent, "to train for", kk, "data");
 
     const GOOD_STANDARD = 2;
-    const tt = 50;
+    const tt = 100;
     let naivecount = 0;
     let count = 0;
     for(let ii = 0; ii < tt; ii++){
@@ -178,7 +182,9 @@ function init(){
               //some author is actually group, fake author
               author = toKey(author);
               if(!groupSet[author]){
-                guess = authorToFiles[author].length > GOOD_STANDARD? 1: 0;
+                  let subfiles = authorToFiles[author] || [];
+                  subfiles = subfiles.filter(e => isSub(good_folder_root, e))
+                  guess = subfiles.length > GOOD_STANDARD? 1: 0;
               }
             })
         }
