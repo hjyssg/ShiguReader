@@ -134,6 +134,9 @@ function init(){
     var inputSet = new Array();
     var outputSet = new Array();
 
+    const _GOOD = 1;
+    const _NOT_GOOD = 0;
+
     //going to generate training date
     const sets = _.shuffle(filePathes);
     sets.forEach(filePath =>{
@@ -141,7 +144,7 @@ function init(){
         // console.log(feature);
 
         const isGood = isSub(good_folder_root, filePath);
-        const y = isGood? 1: 0;
+        const y = isGood? _GOOD: _NOT_GOOD;
 
         inputSet.push(feature);
         outputSet.push(y);
@@ -173,14 +176,18 @@ function init(){
     for(let ii = 0; ii < validInput.length; ii++){
         const x = validInput[ii];
         const expected = validOutput[ii];
+        const fp = sets[ii];
+        const fn = path.basename(fp);
 
         let result = classifier.predict([x]);
         if(result[0] === expected ){
             count++;
         }
+        // else{
+        //     console.log("bayes error",fn, result[0], expected)
+        // }
 
-        const fp = sets[ii];
-        const fn = path.basename(fp);
+        
         result = nameParser.parse(fn);
         let guess = false;
         if (result) {
@@ -190,7 +197,7 @@ function init(){
               if(!groupSet[author]){
                   let subfiles = authorToFiles[author] || [];
                   subfiles = subfiles.filter(e => isSub(good_folder_root, e))
-                  guess = subfiles.length > GOOD_STANDARD? 1: 0;
+                  guess = subfiles.length > GOOD_STANDARD? _GOOD: _NOT_GOOD;
               }
             })
         }
@@ -198,6 +205,9 @@ function init(){
         if(guess === expected){
             naivecount++;
         }
+        // else{
+        //     console.log("by code algo",fn, guess, expected)
+        // }
     }
 
     console.log("machine learn:",count, "/", validInput.length);
