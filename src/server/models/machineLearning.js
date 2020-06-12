@@ -122,12 +122,14 @@ function init(){
     var predictions = new Array();
 
     //going to generate training date
-    _.shuffle(filePathes).forEach(filePath =>{
+    const kk = 10000;
+    const sets = _.shuffle(filePathes).slice(0, kk);
+    sets.forEach(filePath =>{
         const feature = getFeature(filePath);
         // console.log(feature);
 
         const isGood = isSub(good_folder_root, filePath);
-        const y = isGood? 10: 0;
+        const y = isGood? 1: 0;
 
         trainingSet.push(feature);
         predictions.push(y);
@@ -140,32 +142,59 @@ function init(){
         nEstimators: 25
       };
     
-   
+    console.log("-----machine learning----")
     const beginTime = getCurrentTime();
-    var classifier = new RFClassifier(options);
-    classifier.train(trainingSet, predictions);
-    const timeSpent = getCurrentTime() - beginTime;
-    console.log(timeSpent, "to train")
 
+    const by = require('ml-naivebayes');
+    var classifier = new by.GaussianNB();
+
+    // var classifier = new RFClassifier(options);
+    classifier.train(trainingSet, predictions);
+
+
+    const timeSpent = getCurrentTime() - beginTime;
+    console.log(timeSpent, "to train for", kk, "data");
+
+    const GOOD_STANDARD = 2;
     const tt = 50;
+    let naivecount = 0;
     let count = 0;
     for(let ii = 0; ii < tt; ii++){
-        const index = Math.floor(Math.random() * 2000);
+        const index = Math.floor(Math.random() * kk);
         const x = trainingSet[index];
-        const expected =  predictions[index];
+        const expected = predictions[index];
 
-        const result = classifier.predict([x]);
+        let result = classifier.predict([x]);
         if(result[0] === expected ){
             count++;
+        }
+
+        const fp = sets[index];
+        const fn = path.basename(fp);
+        result = nameParser.parse(fn);
+        let guess = false;
+        if (result) {
+            (result.authors||[]).forEach(author => {
+              //some author is actually group, fake author
+              author = toKey(author);
+              if(!groupSet[author]){
+                guess = authorToFiles[author].length > GOOD_STANDARD? 1: 0;
+              }
+            })
+        }
+
+        if(guess === expected){
+            naivecount++;
         }
     }
 
     console.log(count, "/", tt);
+    console.log(naivecount, "/", tt);
+
 }
 
 function demo(){
     const IrisDataset = require('ml-dataset-iris');
-   
 
     var trainingSet = IrisDataset.getNumbers();
     var predictions = IrisDataset.getClasses().map((elem) =>
