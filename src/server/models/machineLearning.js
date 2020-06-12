@@ -118,13 +118,11 @@ function init(){
         }
     });
 
-    demo();
-
     var trainingSet = new Array();
     var predictions = new Array();
 
     //going to generate training date
-    filePathes.forEach(filePath =>{
+    _.shuffle(filePathes).slice(0, 3000).forEach(filePath =>{
         const feature = getFeature(filePath);
         // console.log(feature);
 
@@ -147,14 +145,20 @@ function init(){
     var classifier = new RFClassifier(options);
     classifier.train(trainingSet, predictions);
 
-    for(let ii = 0; ii < 30; ii++){
-        const index = ii * 150;
+    const tt = 50;
+    let count = 0;
+    for(let ii = 0; ii < tt; ii++){
+        const index = Math.floor(Math.random() * 2000);
         const x = trainingSet[index];
-        const expected =  predictions;
+        const expected =  predictions[index];
 
-        const result = classifier.predict(x);
-        console.log(result);
+        const result = classifier.predict([x]);
+        if(result[0] === expected ){
+            count++;
+        }
     }
+
+    console.log(count, "/", tt);
 }
 
 function demo(){
@@ -176,7 +180,7 @@ function demo(){
       var classifier = new RFClassifier(options);
       classifier.train(trainingSet, predictions);
       var result = classifier.predict(trainingSet);
-      console.log(result);
+    //   console.log(result);
 
 }
 
