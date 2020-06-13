@@ -57,16 +57,17 @@ function getFeature(filePath){
 
     const result = nameParser.parse(fileName);
 
-    let authorNum = [0, 0];
-    let tagNum = [0, 0];
-
+    let authorNum = 0;
+    let tagNum = 0;
+    
     if(result){
+        //特征值的选取和个人喜好关系很大
+        //需要参考自己的经验
         (result && result.authors||[]).forEach(author => {
             //some author is actually group, fake author
             author = toKey(author);
             let subfiles = authorToFiles[author] || [];
-            let goods = getSubInGoodRoot(subfiles);
-            authorNum = [goods.length, subfiles.length - goods.length];
+            authorNum = Math.max(subfiles.length, authorNum);
         })
     
         result.tags.forEach(tag => {
@@ -76,7 +77,7 @@ function getFeature(filePath){
             tag = toKey(tag);
             let subfiles = tagToFiles[tag] || [];
             let goods = getSubInGoodRoot(subfiles);
-            tagNum = [goods.length, subfiles.length - goods.length];
+            tagNum = Math.max(goods.length, tagNum);
         });
     }
 
@@ -162,8 +163,6 @@ function init(){
         outputSet.push(y);
     });
 
-
-
     inputSet.forEach((row) => {
         row.forEach((col, jj) =>{
             let min = min_row[jj] || Infinity;
@@ -172,11 +171,8 @@ function init(){
             max_row[jj] = Math.max(col, max);
         })
     })
-
  
-
     inputSet = inputSet.map(row=> linearScale(row))
-
     console.log("-----machine learning----")
     const beginTime = getCurrentTime();
 
@@ -208,16 +204,10 @@ function init(){
         const fp = validFilePathes[ii];
         const fn = path.basename(fp);
 
-        // const feature = getFeature(fp);
-        // console.log(x.join(","), "========" , feature.join(","))
-
         let result = bayes.predict([x]);
         if(result[0] === expected ){
             count++;
         }
-        // else{
-        //     console.log("bayes error",fn, result[0], expected)
-        // }
         
         result = nameParser.parse(fn);
         let guess = false;
@@ -236,13 +226,10 @@ function init(){
         if(guess === expected){
             naivecount++;
         }
-        // else{
-        //     console.log("by code algo",fn, guess, expected)
-        // }
     }
 
-    console.log(`machine learn ${count/validInput.length*100}%`);
-    console.log(`code algo ${naivecount/validInput.length*100}%`);
+    console.log(`naivebayes: ${count/validInput.length*100}%`);
+    console.log(`good_folder_root algo: ${naivecount/validInput.length*100}%`);
 }
 
 function getSubInGoodRoot(filePathes){
