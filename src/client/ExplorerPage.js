@@ -83,6 +83,7 @@ export default class ExplorerPage extends Component {
             filterByFirstTime: parsed.filterByFirstTime === "true",
             filterByHasMusic: parsed.filterByHasMusic === "true",
             filterByOversizeImage: parsed.filterByOversizeImage === "true",
+            filterByGuess: parsed.filterByGuess === true,
             filterText: parsed.filterText || "",
             noThumbnail: parsed.noThumbnail === "true"
         }
@@ -100,6 +101,7 @@ export default class ExplorerPage extends Component {
         "filterByFirstTime",
         "filterByHasMusic",
         "filterByOversizeImage",
+        "filterByGuess",
         "filterText",
         "noThumbnail"].forEach(key => {
           obj2[key] = obj[key];
@@ -272,6 +274,7 @@ export default class ExplorerPage extends Component {
             this.author = author || "";
             this.thumbnails = thumbnails || {};
             this.zipInfo = zipInfo || {};
+            this.guessIfUserLike = guessIfUserLike || {};
             this.res = res;
 
             if(this.videoFiles.length > 0){
@@ -382,7 +385,8 @@ export default class ExplorerPage extends Component {
         let files = this.files || [];
         const goodSet = this.state.goodAuthors;
         const otherSet = this.state.otherAuthors;
-        const {filterByGoodAuthorName, filterByOversizeImage, filterByFirstTime, filterByHasMusic} = this.state;
+        const guessIfUserLike = this.guessIfUserLike;
+        const {filterByGoodAuthorName, filterByOversizeImage, filterByGuess, filterByFirstTime, filterByHasMusic} = this.state;
 
         if(filterByGoodAuthorName && goodSet && otherSet){
             files = files.filter(e => {
@@ -391,6 +395,12 @@ export default class ExplorerPage extends Component {
                     return e;
                 }
             })
+        }
+
+        if(filterByGuess){
+            files = files.filter(e => {
+               return guessIfUserLike[e]
+            });
         }
 
         if(filterByOversizeImage){
@@ -441,7 +451,7 @@ export default class ExplorerPage extends Component {
 
         const {filterByGoodAuthorName, filterByOversizeImage, filterByFirstTime, filterByHasMusic} = this.state;
         let videoFiles;
-        if(filterByGoodAuthorName || filterByOversizeImage || filterByFirstTime || filterByHasMusic){
+        if(filterByGoodAuthorName || filterByOversizeImage || filterByGuess || filterByFirstTime || filterByHasMusic){
             videoFiles = [];
         }else{
             videoFiles =  this.videoFiles || []
@@ -893,6 +903,12 @@ export default class ExplorerPage extends Component {
         });
     };
 
+    toggleGuess(){
+        this.setStateAndSetHash({
+            filterByGuess: !this.state.filterByGuess
+        });
+    };
+
     toggleFirstTime(){
         this.setStateAndSetHash({
             filterByFirstTime: !this.state.filterByFirstTime
@@ -993,6 +1009,11 @@ export default class ExplorerPage extends Component {
                         </Checkbox> );       
         }   
 
+        const st5 = `Guess you like` ;
+        let checkbox5 = (<Checkbox  onChange={this.toggleGuess.bind(this)} checked={this.state.filterByGuess}>
+                                   {st5}   
+                            </Checkbox> ); 
+
         const st2 = `image size bigger than ${userConfig.oversized_image_size} MB` ;
         let checkbox2 = (<Checkbox  onChange={this.toggleOversizeImage.bind(this)} checked={this.state.filterByOversizeImage}>
                                    {st2}   
@@ -1010,6 +1031,7 @@ export default class ExplorerPage extends Component {
         return (
         <div className="speical-checkbox-container">
             {checkbox}
+            {checkbox5}
             {checkbox2}
             {checkbox3}
             {checkbox4}

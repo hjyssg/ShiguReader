@@ -59,17 +59,16 @@ function getFeature(filePath){
     const fileName = path.basename(filePath);
     const result = nameParser.parse(fileName);
 
-
-    let authorNum = 0;
-    let tagNum = 0;
+    let authorNum = [0, 0];
+    let tagNum = [0, 0];
 
     if(result){
         (result && result.authors||[]).forEach(author => {
             //some author is actually group, fake author
             author = toKey(author);
             let subfiles = authorToFiles[author] || [];
-            subfiles = subfiles.filter(e => isSub(good_folder_root, e));
-            authorNum = subfiles.length;
+            let goods = getSubInGoodRoot(subfiles);
+            authorNum = [goods.length, subfiles.length - goods.length];
         })
     
         result.tags.forEach(tag => {
@@ -78,15 +77,15 @@ function getFeature(filePath){
             }
             tag = toKey(tag);
             let subfiles = tagToFiles[tag] || [];
-            subfiles = subfiles.filter(e => isSub(good_folder_root, e));
-            tagNum = subfiles.length;
+            let goods = getSubInGoodRoot(subfiles);
+            tagNum = [goods.length, subfiles.length - goods.length];
         });
     }
 
     // authorNum /= 100;
     // tagNum = tagNum/100;
 
-    return [pageNumber, year, authorNum, tagNum];
+    return [pageNumber, year].concat(authorNum, tagNum);
 }
 
 const authorToFiles = {};
@@ -163,20 +162,22 @@ function init(){
     var classifier = new by.GaussianNB();
     classifier.train(trainingSet, trainingOutput);
 
-
     const timeSpent = getCurrentTime() - beginTime;
     console.log(`${timeSpent}ms to train for ${trainingSet.length} data`);
 
+
+    //do the validation
     const GOOD_STANDARD = 1;
     let naivecount = 0;
     let count = 0;
 
     const validInput = inputSet.slice(sep);
     const validOutput = outputSet.slice(sep);
+    const validFilePathes =  filePathes.slice(sep);
     for(let ii = 0; ii < validInput.length; ii++){
         const x = validInput[ii];
         const expected = validOutput[ii];
-        const fp = sets[ii];
+        const fp = validFilePathes[ii];
         const fn = path.basename(fp);
 
         let result = classifier.predict([x]);
@@ -186,19 +187,18 @@ function init(){
         // else{
         //     console.log("bayes error",fn, result[0], expected)
         // }
-
         
         result = nameParser.parse(fn);
         let guess = false;
         if (result) {
             (result.authors||[]).forEach(author => {
-              //some author is actually group, fake author
-              author = toKey(author);
-              if(!groupSet[author]){
-                  let subfiles = authorToFiles[author] || [];
-                  subfiles = subfiles.filter(e => isSub(good_folder_root, e))
-                  guess = subfiles.length > GOOD_STANDARD? _GOOD: _NOT_GOOD;
-              }
+                //some author is actually group, fake author
+               author = toKey(author);
+                if(!groupSet[author]){
+                    let subfiles = authorToFiles[author] || [];
+                    subfiles = getSubInGoodRoot(subfiles);
+                    guess = subfiles.length > GOOD_STANDARD? _GOOD: _NOT_GOOD;
+                }
             })
         }
 
@@ -212,7 +212,20 @@ function init(){
 
     console.log("machine learn:",count, "/", validInput.length);
     console.log("code algo", naivecount, "/", validInput.length);
-
 }
+
+function getSubInGoodRoot(filePathes){
+    return subfilesfilePathes.filter(e => isSub(good_folder_root, e))
+}
+
+function guessIfUserLike(filePathes){
+    const result = {};
+    filePathes.forEach(e => {
+        //predict(e)
+    })
+    return result;
+}
+
+serverUtil.common.guessIfUserLike = guessIfUserLike;
 
 module.exports.init = init;
