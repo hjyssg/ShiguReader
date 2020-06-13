@@ -83,7 +83,7 @@ export default class ExplorerPage extends Component {
             filterByFirstTime: parsed.filterByFirstTime === "true",
             filterByHasMusic: parsed.filterByHasMusic === "true",
             filterByOversizeImage: parsed.filterByOversizeImage === "true",
-            filterByGuess: parsed.filterByGuess === true,
+            filterByGuess: parsed.filterByGuess === "true",
             filterText: parsed.filterText || "",
             noThumbnail: parsed.noThumbnail === "true"
         }

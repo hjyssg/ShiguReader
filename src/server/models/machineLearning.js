@@ -43,18 +43,19 @@ function addToArray(table, key, value){
 }
 
 function getFeature(filePath){
-    const zipInfo = getZipInfo([filePath])[filePath];
+    const fileName = path.basename(filePath);
     const fileInfo = getFileToInfo(filePath);
     const fileTimeA = (fileInfo && fileInfo.mtimeMs) || 0;
-    
-    let year = new Date(fileTimeA).getFullYear();
-    let pageNumber = (zipInfo && zipInfo.pageNum) || 20;
+    let aboutTimeA = nameParser.getDateFromParse(fileName);
+    aboutTimeA = aboutTimeA && aboutTimeA.getTime();
+    let year = new Date(aboutTimeA || fileTimeA).getFullYear();
+    year = (year - 1970)/10;
 
-    //naive scaling
-    // year = (year - 1970)/100;
-    // pageNumber = Math.log10(pageNumber)/3;
+    // page number is not related
+    // const zipInfo = getZipInfo([filePath])[filePath];
+    // let pageNumber = (zipInfo && zipInfo.pageNum) || 20;
+    // pageNumber = Math.log10(pageNumber);
 
-    const fileName = path.basename(filePath);
     const result = nameParser.parse(fileName);
 
     let authorNum = [0, 0];
@@ -83,7 +84,7 @@ function getFeature(filePath){
     // authorNum /= 100;
     // tagNum = tagNum/100;
 
-    return [pageNumber, year].concat(authorNum, tagNum);
+    return [year].concat(authorNum, tagNum);
 }
 
 const authorToFiles = {};
