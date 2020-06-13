@@ -49,9 +49,10 @@ function getFeature(filePath){
     let aboutTimeA = nameParser.getDateFromParse(fileName);
     aboutTimeA = aboutTimeA && aboutTimeA.getTime();
     let year = new Date(aboutTimeA || fileTimeA).getFullYear();
-    year = (year - 1970)/10;
+    // year = (year - 1970)/10;
 
     // page number is not related
+    // 算法特别重视页数，但实际页数是很不重要的参数
     // const zipInfo = getZipInfo([filePath])[filePath];
     // let pageNumber = (zipInfo && zipInfo.pageNum) || 20;
     // pageNumber = Math.log10(pageNumber);
@@ -94,6 +95,14 @@ const MIN_FILES_FOR_INIT = 5000;
 const _GOOD = 1;
 const _NOT_GOOD = 0;
 let bayes;
+let min_row = [];
+let max_row = [];
+
+function linearScale(feature){
+    return feature.map((val, ii) => {
+        return (val - min_row[ii])/(max_row[ii] - min_row[ii])
+    })
+}
 
 
 function init(){
@@ -155,11 +164,26 @@ function init(){
         outputSet.push(y);
     });
 
+
+
+    inputSet.forEach((row) => {
+        row.forEach((col, jj) =>{
+            let min = min_row[jj] || Infinity;
+            let max = max_row[jj] || -Infinity;
+            min_row[jj] = Math.min(col, min);
+            max_row[jj] = Math.max(col, max);
+        })
+    })
+
+ 
+
+    inputSet = inputSet.map(row=> linearScale(row))
+
     console.log("-----machine learning----")
     const beginTime = getCurrentTime();
 
     const totalLength = inputSet.length;
-    const valid_length = 200;
+    const valid_length = 100;
     const sep = totalLength - valid_length;
     const trainingSet = inputSet.slice(0, sep);
     const trainingOutput = outputSet.slice(0, sep);
@@ -230,7 +254,7 @@ function getSubInGoodRoot(filePathes){
 function guessIfUserLike(filePathes){
     const result = {};
     filePathes.forEach(e => {
-        const feature = getFeature(e);
+        const feature = linearScale(getFeature(e));
         const prediction = bayes.predict([feature])[0];
         if(prediction === _GOOD){
             result[e] = true;
