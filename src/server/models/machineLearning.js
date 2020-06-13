@@ -24,7 +24,6 @@ const {good_folder_root} = userConfig;
 // 3000	  18535
 // 4000	  35000
 
-
 const not_good_pattern = "D:\\_Happy_Lesson\\_Going_to_sort\\_Compressed";
 
 function toKey(str){
@@ -91,6 +90,10 @@ const authorToFiles = {};
 const tagToFiles = {};
 
 const MIN_FILES_FOR_INIT = 5000;
+const _GOOD = 1;
+const _NOT_GOOD = 0;
+let bayes;
+
 
 function init(){
     const filePathes = getAllFilePathes().filter(util.isCompress)
@@ -138,9 +141,6 @@ function init(){
     var inputSet = new Array();
     var outputSet = new Array();
 
-    const _GOOD = 1;
-    const _NOT_GOOD = 0;
-
     //going to generate training date
     const sets = _.shuffle(filePathes);
     sets.forEach(filePath =>{
@@ -164,8 +164,8 @@ function init(){
     const trainingOutput = outputSet.slice(0, sep);
 
     const by = require('ml-naivebayes');
-    var classifier = new by.GaussianNB();
-    classifier.train(trainingSet, trainingOutput);
+    bayes = new by.GaussianNB();
+    bayes.train(trainingSet, trainingOutput);
 
     const timeSpent = getCurrentTime() - beginTime;
     console.log(`${timeSpent}ms to train for ${trainingSet.length} data`);
@@ -178,14 +178,17 @@ function init(){
 
     const validInput = inputSet.slice(sep);
     const validOutput = outputSet.slice(sep);
-    const validFilePathes =  filePathes.slice(sep);
+    const validFilePathes =  sets.slice(sep);
     for(let ii = 0; ii < validInput.length; ii++){
         const x = validInput[ii];
         const expected = validOutput[ii];
         const fp = validFilePathes[ii];
         const fn = path.basename(fp);
 
-        let result = classifier.predict([x]);
+        // const feature = getFeature(fp);
+        // console.log(x.join(","), "========" , feature.join(","))
+
+        let result = bayes.predict([x]);
         if(result[0] === expected ){
             count++;
         }
@@ -220,13 +223,17 @@ function init(){
 }
 
 function getSubInGoodRoot(filePathes){
-    return subfilesfilePathes.filter(e => isSub(good_folder_root, e))
+    return filePathes.filter(e => isSub(good_folder_root, e))
 }
 
 function guessIfUserLike(filePathes){
     const result = {};
     filePathes.forEach(e => {
-        //predict(e)
+        const feature = getFeature(e);
+        const prediction = bayes.predict([feature])[0];
+        if(prediction === _GOOD){
+            result[e] = true;
+        }
     })
     return result;
 }
