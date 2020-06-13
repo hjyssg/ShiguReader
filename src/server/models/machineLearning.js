@@ -4,15 +4,15 @@ const db = require("./db");
 const { getAllFilePathes, getFileToInfo } = db;
 const util = global.requireUtil();
 const path = require("path");
-const zipInfoDb = require("./zipInfoDb");
-const { getZipInfo }  = zipInfoDb;
+// const zipInfoDb = require("./zipInfoDb");
+// const { getZipInfo }  = zipInfoDb;
 const pathUtil = require("../pathUtil");
-const { isExist,  isDirectParent, isSub } = pathUtil;
+const { isSub } = pathUtil;
 const nameParser = require('../../name-parser');
 const { useless_tag_regex, getCurrentTime } =  util;
 
 const userConfig = global.requireUserConfig();
-const {good_folder_root} = userConfig;
+const { good_folder_root, not_good_folder_root} = userConfig;
 
 // const forest = require("ml-random-forest");
 // const RFClassifier = forest.RandomForestClassifier;
@@ -23,8 +23,6 @@ const {good_folder_root} = userConfig;
 // 2500	  12999
 // 3000	  18535
 // 4000	  35000
-
-const not_good_pattern = "D:\\_Happy_Lesson\\_Going_to_sort\\_Compressed";
 
 function toKey(str){
     return str.toLowerCase().replace(/-| |\!/, "");
@@ -108,7 +106,7 @@ function linearScale(feature){
 function init(){
     const filePathes = getAllFilePathes().filter(util.isCompress)
     .filter(e => {
-        return isSub(good_folder_root, e) || e.startsWith(not_good_pattern);
+        return isSub(good_folder_root, e) || isSub(not_good_folder_root, e);
     });
 
     if(filePathes.length < MIN_FILES_FOR_INIT){
@@ -183,7 +181,7 @@ function init(){
     const beginTime = getCurrentTime();
 
     const totalLength = inputSet.length;
-    const valid_length = 100;
+    const valid_length = 50;
     const sep = totalLength - valid_length;
     const trainingSet = inputSet.slice(0, sep);
     const trainingOutput = outputSet.slice(0, sep);
@@ -243,8 +241,8 @@ function init(){
         // }
     }
 
-    console.log(`machine learn ${count/validInput.length}`);
-    console.log(`code algo ${naivecount/validInput.length}`);
+    console.log(`machine learn ${count/validInput.length*100}%`);
+    console.log(`code algo ${naivecount/validInput.length*100}%`);
 }
 
 function getSubInGoodRoot(filePathes){
