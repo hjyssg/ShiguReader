@@ -90,11 +90,17 @@ function getFeature(filePath){
 const authorToFiles = {};
 const tagToFiles = {};
 
+const MIN_FILES_FOR_INIT = 5000;
+
 function init(){
     const filePathes = getAllFilePathes().filter(util.isCompress)
     .filter(e => {
         return isSub(good_folder_root, e) || e.startsWith(not_good_pattern);
     });
+
+    if(filePathes.length < MIN_FILES_FOR_INIT){
+        return;
+    }
 
     const groupSet = {};
 
@@ -209,8 +215,8 @@ function init(){
         // }
     }
 
-    console.log("machine learn:",count, "/", validInput.length);
-    console.log("code algo", naivecount, "/", validInput.length);
+    console.log(`machine learn ${count/validInput.length}`);
+    console.log(`code algo ${naivecount/validInput.length}`);
 }
 
 function getSubInGoodRoot(filePathes){
