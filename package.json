@@ -45,7 +45,6 @@
     "lokijs": "^1.5.8",
     "ml-dataset-iris": "^1.1.1",
     "ml-naivebayes": "^4.0.0",
-    "ml-random-forest": "^2.0.1",
     "p-limit": "^2.1.0",
     "promise-fs": "^2.1.1",
     "prop-types": "^15.6.2",

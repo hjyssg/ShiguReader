@@ -14,9 +14,8 @@ const { useless_tag_regex, getCurrentTime } =  util;
 const userConfig = global.requireUserConfig();
 const {good_folder_root} = userConfig;
 
-const forest = require("ml-random-forest");
-const RFClassifier = forest.RandomForestClassifier;
-
+// const forest = require("ml-random-forest");
+// const RFClassifier = forest.RandomForestClassifier;
 //random forest training is so slow
 // #data	 time in ms
 // 1000	  2000
