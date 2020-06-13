@@ -24,6 +24,9 @@ const { good_folder_root, not_good_folder_root} = userConfig;
 // 3000	  18535
 // 4000	  35000
 
+//svm莫名其妙output只有一种
+//调参数 太麻烦 需要回头看书研究
+
 function toKey(str){
     return str.toLowerCase().replace(/-| |\!/, "");
     //or the search will be wrong
@@ -103,7 +106,6 @@ function linearScale(feature){
     })
 }
 
-
 function init(){
     const filePathes = getAllFilePathes().filter(util.isCompress)
     .filter(e => {
@@ -173,7 +175,7 @@ function init(){
     })
  
     inputSet = inputSet.map(row=> linearScale(row))
-    console.log("-----machine learning----")
+    console.log("-----machine learning---------")
     const beginTime = getCurrentTime();
 
     const totalLength = inputSet.length;
@@ -228,8 +230,8 @@ function init(){
         }
     }
 
-    console.log(`naivebayes: ${count/validInput.length*100}%`);
-    console.log(`good_folder_root algo: ${naivecount/validInput.length*100}%`);
+    console.log(`naivebayes accuracy: ${count/validInput.length*100}%`);
+    console.log(`good_folder_root algo  accuracy: ${naivecount/validInput.length*100}%`);
 }
 
 function getSubInGoodRoot(filePathes){
