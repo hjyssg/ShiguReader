@@ -252,10 +252,12 @@ function getSubInGoodRoot(filePathes){
 function guessIfUserLike(filePathes){
     const result = {};
     filePathes.forEach(e => {
-        const feature = linearScale(getFeature(e));
-        const prediction = bayes.predict([feature])[0];
-        if(prediction === _GOOD){
-            result[e] = true;
+        if(util.isCompress(e)){
+            const feature = linearScale(getFeature(e));
+            const prediction = bayes.predict([feature])[0];
+            if(prediction === _GOOD){
+                result[e] = true;
+            }
         }
     })
     return result;
