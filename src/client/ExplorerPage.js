@@ -263,7 +263,7 @@ export default class ExplorerPage extends Component {
 
     handleRes(res){
         if (!res.failed) {
-            let {dirs, tag, author, fileInfos, thumbnails, zipInfo} = res;
+            let {dirs, tag, author, fileInfos, thumbnails, zipInfo, guessIfUserLike} = res;
             this.loadedHash = this.getTextFromQuery();
             this.fileInfos = fileInfos || {};
             const files = _.keys(this.fileInfos) || [];
@@ -449,7 +449,7 @@ export default class ExplorerPage extends Component {
             return [];
         }
 
-        const {filterByGoodAuthorName, filterByOversizeImage, filterByFirstTime, filterByHasMusic} = this.state;
+        const { filterByGoodAuthorName, filterByOversizeImage, filterByGuess, filterByFirstTime, filterByHasMusic} = this.state;
         let videoFiles;
         if(filterByGoodAuthorName || filterByOversizeImage || filterByGuess || filterByFirstTime || filterByHasMusic){
             videoFiles = [];
