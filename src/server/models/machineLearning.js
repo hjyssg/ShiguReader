@@ -2,15 +2,12 @@ const _ = require('underscore');
 const serverUtil = require("../serverUtil");
 const db = require("./db");
 const { getAllFilePathes, getFileToInfo } = db;
-const util = global.requireUtil();
 const path = require("path");
-// const zipInfoDb = require("./zipInfoDb");
-// const { getZipInfo }  = zipInfoDb;
 const pathUtil = require("../pathUtil");
 const { isSub } = pathUtil;
 const nameParser = require('../../name-parser');
+const util = global.requireUtil();
 const { useless_tag_regex, getCurrentTime } =  util;
-
 const userConfig = global.requireUserConfig();
 const { good_folder_root, not_good_folder_root} = userConfig;
 
@@ -30,7 +27,7 @@ const { good_folder_root, not_good_folder_root} = userConfig;
 function toKey(str){
     return str.toLowerCase().replace(/-| |\!/, "");
     //or the search will be wrong
-  }
+}
 
 function addToArray(table, key, value){
     if(!key || !value){
@@ -50,7 +47,6 @@ function getFeature(filePath){
     let aboutTimeA = nameParser.getDateFromParse(fileName);
     aboutTimeA = aboutTimeA && aboutTimeA.getTime();
     let year = new Date(aboutTimeA || fileTimeA).getFullYear();
-    // year = (year - 1970)/10;
 
     // page number is not related
     // 算法特别重视页数，但实际页数是很不重要的参数
@@ -83,9 +79,6 @@ function getFeature(filePath){
             tagNum = Math.max(goods.length, tagNum);
         });
     }
-
-    // authorNum /= 100;
-    // tagNum = tagNum/100;
 
     return [year].concat(authorNum, tagNum);
 }
@@ -156,7 +149,6 @@ function init(){
     const sets = _.shuffle(filePathes);
     sets.forEach(filePath =>{
         const feature = getFeature(filePath);
-        // console.log(feature);
 
         const isGood = isSub(good_folder_root, filePath);
         const y = isGood? _GOOD: _NOT_GOOD;

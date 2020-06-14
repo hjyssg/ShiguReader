@@ -43,7 +43,6 @@
     "jquery": "^3.5.0",
     "js-cookie": "^2.2.1",
     "lokijs": "^1.5.8",
-    "ml-dataset-iris": "^1.1.1",
     "ml-naivebayes": "^4.0.0",
     "p-limit": "^2.1.0",
     "promise-fs": "^2.1.1",
