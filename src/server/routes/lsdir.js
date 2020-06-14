@@ -15,7 +15,7 @@ const { getCurrentTime, isDisplayableInExplorer, escapeRegExp } = util;
 const path = require('path');
 const zipInfoDb = require("../models/zipInfoDb");
 const { getZipInfo }  = zipInfoDb;
-const getThumbnails = serverUtil.common.getThumbnails;
+const { getThumbnails } = serverUtil.common;
 const _ = require('underscore');
 
 
@@ -74,7 +74,8 @@ router.post('/api/lsDir', async (req, res) => {
                path: dir, 
                fileInfos, 
                thumbnails: getThumbnails(files),
-               zipInfo: getZipInfo(files)
+               zipInfo: getZipInfo(files),
+               guessIfUserLike: serverUtil.common.guessIfUserLike(files)
             };
     res.send(result);
 });

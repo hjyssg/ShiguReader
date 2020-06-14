@@ -153,6 +153,9 @@ async function init() {
 
     setUpFileWatch(path_will_scan);
 
+    const machineLearning = require("./models/machineLearning");
+    machineLearning.init();
+
     const port = isProduction? http_port: dev_express_port;
     const server = app.listen(port, async () => {
         const lanIP = await internalIp.v4();
