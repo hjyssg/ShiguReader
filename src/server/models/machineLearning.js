@@ -90,6 +90,7 @@ const MIN_FILES_FOR_INIT = 5000;
 const _GOOD = 1;
 const _NOT_GOOD = 0;
 let bayes;
+let classifier;
 let min_row = [];
 let max_row = [];
 
@@ -171,7 +172,7 @@ function init(){
     const beginTime = getCurrentTime();
 
     const totalLength = inputSet.length;
-    const valid_length = 50;
+    const valid_length = 100;
     const sep = totalLength - valid_length;
     const trainingSet = inputSet.slice(0, sep);
     const trainingOutput = outputSet.slice(0, sep);
@@ -181,13 +182,24 @@ function init(){
     bayes.train(trainingSet, trainingOutput);
 
     const timeSpent = getCurrentTime() - beginTime;
-    console.log(`${timeSpent}ms to train for ${trainingSet.length} data`);
+    // console.log(`${timeSpent}ms to train for ${trainingSet.length} data`);
 
+
+    const DTClassifier = require('ml-cart').DecisionTreeClassifier;
+    var options = {
+        gainFunction: 'gini',
+        maxDepth: 10,
+        minNumSamples: 3
+      };
+      
+    classifier = new DTClassifier(options);
+    classifier.train(trainingSet, trainingOutput);
 
     //do the validation
     const GOOD_STANDARD = 1;
     let naivecount = 0;
     let count = 0;
+    let treeCount = 0;
 
     const validInput = inputSet.slice(sep);
     const validOutput = outputSet.slice(sep);
@@ -201,6 +213,11 @@ function init(){
         let result = bayes.predict([x]);
         if(result[0] === expected ){
             count++;
+        }
+
+        const  res2 =  classifier.predict([x]);
+        if(res2[0] === expected){
+            treeCount++;
         }
         
         result = nameParser.parse(fn);
@@ -223,6 +240,7 @@ function init(){
     }
 
     console.log(`naivebayes accuracy: ${count/validInput.length*100}%`);
+    console.log(`decision tree accuracy: ${treeCount/validInput.length*100}%`);
     console.log(`good_folder_root algo  accuracy: ${naivecount/validInput.length*100}%`);
 }
 
@@ -235,7 +253,7 @@ function guessIfUserLike(filePathes){
     filePathes.forEach(e => {
         if(util.isCompress(e)){
             const feature = linearScale(getFeature(e));
-            const prediction = bayes.predict([feature])[0];
+            const prediction = classifier.predict([feature])[0];
             if(prediction === _GOOD){
                 result[e] = true;
             }
