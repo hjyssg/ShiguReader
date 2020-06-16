@@ -53,7 +53,7 @@ const isProduction = process.argv.includes("--production");
 
 const logger = require("./logger");
 
-const searchByTagAndAuthor = require("./models/search");
+const searchByTagAndAuthor = require("./models/searchUtil");
 
 
 //set up json DB
@@ -155,7 +155,7 @@ async function init() {
 
     const machineLearning = require("./models/machineLearning");
     machineLearning.init();
-
+   
     const port = isProduction? http_port: dev_express_port;
     const server = app.listen(port, async () => {
         const lanIP = await internalIp.v4();
