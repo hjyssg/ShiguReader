@@ -7,11 +7,15 @@ const musicTypes = [".mp3", ".wav", ".m4a", ".wma", ".flac", ".ogg", ".m4p", ".m
 const videoTypes = [".mp4", ".3gp", ".avi", ".mov", 
                     ".mp4", ".m4v", ".m4a", ".mkv",  ".webm" ];
 
+function escapeDot(arr){
+    return arr.map(e => e.replace(".", "\\."))
+}
+
 //ends with
-const imageTypesRegex = new RegExp("("+ imageTypes.join("|") + ")$");
-const compressTypesRegex = new RegExp("("+ compressTypes.join("|") + ")$");
-const musicTypesRegex = new RegExp("("+ musicTypes.join("|") + ")$");
-const videoTypesRegex = new RegExp("("+ videoTypes.join("|") + ")$");
+const imageTypesRegex = new RegExp("("+ escapeDot(imageTypes).join("|") + ")$");
+const compressTypesRegex = new RegExp("("+ escapeDot(compressTypes).join("|") + ")$");
+const musicTypesRegex = new RegExp("("+ escapeDot(musicTypes).join("|") + ")$");
+const videoTypesRegex = new RegExp("("+ escapeDot(videoTypes).join("|") + ")$");
 
 
 function isOnlyDigit(str){
