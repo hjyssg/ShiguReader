@@ -565,7 +565,7 @@ export default class ExplorerPage extends Component {
             const toUrl = clientUtil.getVideoPlayerLink(item);
             const text = getBaseName(item);
             const result = this.getOneLineListItem(<i className="far fa-file-video"></i>, text, item);
-            return  <Link to={toUrl}  key={item}>{result}</Link>;
+            return  <Link target="_blank" to={toUrl}  key={item}>{result}</Link>;
         });
 
         //! !todo if the file is already an image file
