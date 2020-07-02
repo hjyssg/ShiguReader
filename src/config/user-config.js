@@ -51,6 +51,7 @@ module.exports.thumbnail_folder_name = "thumbnails";
 
 module.exports.img_convert_cache = "image_convert_cache"
 
+//show one page, or show all pages at once
 //ipad iphone上面看漫画是一页一张图，还是一次显示全部整本的全部图片
 module.exports.onebook_only_image_per_page = true;
 
@@ -63,6 +64,7 @@ module.exports.move_file_to_recyle = true;
 module.exports.readable_cache_folder_name = true;
 
 //漫画阅读中两页clip在一起以后，翻页是不是还要接着拼在一起
+//wether to clip page
 module.exports.keep_clip = false;
 
 //in MB
@@ -71,10 +73,12 @@ module.exports.oversized_image_size = 4;
 //非localhost的机器想移动删除文件，需要在admin输出密码才可以获得权限
 //并不是高明的安全机制
 //注：Shigureader设计实现，只考虑在LAN情况下的性能和安全性。
+//Naive password when access remotely
 module.exports.file_change_password = "2020";
 
 //压缩图片的时候用的参数
 //传给magick用的
+//For magick compress output quality
 module.exports.img_convert_quality = 65;
 
 //which output file 
