@@ -1,6 +1,17 @@
 # ShiguReader
 
-Read Comic/Play Music and Video on all platform
+Read Comic/Play Music and Video on all platforms
+
+* view the thumbnails of zip/rar/7zip files
+* sort/search files
+* re-compress images to save disk space
+* move/delete files
+* play music files inside compressed files
+* play mp4/mkv/avi files
+* show statistics chart of all collections
+* same color theme as exh**tai
+* server runs on Windows/*nix
+* client runs on any modern browser(except IE)
 
 ##### Screenshot
 
@@ -13,10 +24,6 @@ Read Comic/Play Music and Video on all platform
 
 
 ##### Quick Start
-
-```
-
-###### English
 
 ```bash
 # If you do not have nodejs installed, please go to https://nodejs.org/
@@ -44,6 +51,8 @@ npm install
 npm run dev
 
 # open the link shown on the git bash
+
 ```
 
 
+If you have any question, just write the question in Github Issue
