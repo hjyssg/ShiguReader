@@ -236,7 +236,7 @@ function guessIfUserLike(filePathes){
     const result = {};
     //https://github.com/hjyssg/ShiguReader/issues/81 
     //也不说怎么重现。下次我想收钱
-    if(bayes.predict){
+    try{
         filePathes.forEach(e => {
             if(util.isCompress(e)){
                 const feature = linearScale(getFeature(e));
@@ -246,8 +246,11 @@ function guessIfUserLike(filePathes){
                 }
             }
         })
+    }catch(e){
+
+    }finally{
+        return result;
     }
-    return result;
 }
 
 serverUtil.common.guessIfUserLike = guessIfUserLike;
