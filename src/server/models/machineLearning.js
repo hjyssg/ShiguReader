@@ -66,7 +66,9 @@ function getFeature(filePath){
             //some author is actually group, fake author
             author = toKey(author);
             let subfiles = authorToFiles[author] || [];
-            authorNum = Math.max(subfiles.length, authorNum);
+            const goods = getSubInGoodRoot(subfiles).length;
+            const normal =  subfiles.length - goods;
+            authorNum = Math.max((goods * 10 + normal), authorNum);
         })
     
         result.tags.forEach(tag => {
@@ -232,15 +234,19 @@ function getSubInGoodRoot(filePathes){
 
 function guessIfUserLike(filePathes){
     const result = {};
-    filePathes.forEach(e => {
-        if(util.isCompress(e)){
-            const feature = linearScale(getFeature(e));
-            const prediction = bayes.predict([feature])[0];
-            if(prediction === _GOOD){
-                result[e] = true;
+    //https://github.com/hjyssg/ShiguReader/issues/81 
+    //也不说怎么重现。下次我想收钱
+    if(bayes.predict){
+        filePathes.forEach(e => {
+            if(util.isCompress(e)){
+                const feature = linearScale(getFeature(e));
+                const prediction = bayes.predict([feature])[0];
+                if(prediction === _GOOD){
+                    result[e] = true;
+                }
             }
-        }
-    })
+        })
+    }
     return result;
 }
 
