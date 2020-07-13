@@ -200,7 +200,7 @@ export default class FileChangeToolbar extends Component {
                                     title={"Move to " + userConfig.not_good_folder}
                                     onClick={this.handleMove.bind(this, userConfig.not_good_folder)}></div>
                     <div tabIndex="0" className="fas fa-trash-alt"
-                                    title="Copy Del"
+                                    title="Del"
                                     onClick={this.handleDelete.bind(this)}></div>
                 </div>
                 <div className="tool-bar-row second">

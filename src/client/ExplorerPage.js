@@ -345,6 +345,14 @@ export default class ExplorerPage extends Component {
        return +(this.zipInfo[fp] && this.zipInfo[fp].pageNum) || 0;
     }
 
+    getAllFilePageNum(filteredFiles){
+        let count = 0;
+        filteredFiles.forEach(e => {
+            count += this.getPageNum(e);
+        });
+        return count;
+    }
+
     hasZipInfo(fp){
        return !!this.zipInfo[fp];
     }
@@ -766,9 +774,11 @@ export default class ExplorerPage extends Component {
 
     renderFileCount(filteredFiles, filteredVideos){
         const totalSize = this.getAllFileSize(filteredFiles, filteredVideos);
+        const totalPageNum = this.getAllFilePageNum(filteredFiles);
         return (
             <React.Fragment>
             <div className="file-count col-6 col-md-4"><i className="fas fa-file-archive"/>{filteredFiles.length + " compressed files"} </div>
+            <div className="file-count col-6 col-md-4"><i className="fas fa-paperclip"/>{totalPageNum + " pages"} </div>
             <div className="file-count col-6 col-md-4"><i className="fas fa-film"/>{filteredVideos.length + " video files"} </div>
             <div className="file-count col-6 col-md-4"><i className="fas fa-hdd"/>{filesizeUitl(totalSize, {base: 2})} </div>
             </React.Fragment>
