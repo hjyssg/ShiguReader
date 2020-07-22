@@ -773,14 +773,17 @@ export default class ExplorerPage extends Component {
     }
 
     renderFileCount(filteredFiles, filteredVideos){
-        const totalSize = this.getAllFileSize(filteredFiles, filteredVideos);
+        const totalZipSize = this.getAllFileSize(filteredFiles);
+        const totalVideoSize = this.getAllFileSize(filteredVideos);
+        const totalSize = totalZipSize + totalVideoSize;
+        const title = `${filesizeUitl(totalZipSize,2)} zips and ${filesizeUitl(totalVideoSize,2)} videos`
         const totalPageNum = this.getAllFilePageNum(filteredFiles);
         return (
             <React.Fragment>
             <div className="file-count col-6 col-md-4"><i className="fas fa-file-archive"/>{filteredFiles.length + " compressed files"} </div>
             <div className="file-count col-6 col-md-4"><i className="fas fa-paperclip"/>{totalPageNum + " pages"} </div>
             <div className="file-count col-6 col-md-4"><i className="fas fa-film"/>{filteredVideos.length + " video files"} </div>
-            <div className="file-count col-6 col-md-4"><i className="fas fa-hdd"/>{filesizeUitl(totalSize, {base: 2})} </div>
+            <div className="file-count col-6 col-md-4" title={title}><i className="fas fa-hdd"/>{filesizeUitl(totalSize, {base: 2})} </div>
             </React.Fragment>
         );
     }
@@ -931,9 +934,7 @@ export default class ExplorerPage extends Component {
         });
     }
 
-    getAllFileSize(filteredFiles, filteredVideos){
-        let files = filteredFiles;
-        files = files.concat(filteredVideos)
+    getAllFileSize(files){
         let totalSize = 0;
         files.forEach(e => {
             if(this.fileInfos[e]){
