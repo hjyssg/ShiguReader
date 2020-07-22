@@ -13,6 +13,11 @@ Read Comic/Play Music and Video on all platforms
 * server runs on Windows/*nix
 * client runs on any modern browser(except IE)
 
+
+
+##### Demo Video
+[demo video](https://youtu.be/nV24b6X6eeI)  
+
 ##### Screenshot
 
 ![screenshot-01](screenshot/01.png)
