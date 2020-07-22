@@ -179,7 +179,7 @@ export default class FileChangeToolbar extends Component {
         });
 
         if(!clientUtil.isAuthorized()){
-            return  <div className={cn} ></div>;
+            return  <div className={cn} > {this.renderDownloadLink()}</div>;
         }
 
         let additional;
