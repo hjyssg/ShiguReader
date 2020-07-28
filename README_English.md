@@ -60,4 +60,4 @@ npm run dev
 ```
 
 
-If you have any question, just write the question in Github Issue
+If you have any question, just post in Github Issue

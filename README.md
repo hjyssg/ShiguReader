@@ -165,6 +165,5 @@ enter: 全屏
 AD和左右方向键: 翻页  
 +- 缩放图片 
 
-##### 联系方式
-QQ： 398355565
-或者直接github issue问我
+##### 认真看这个readme 还是有问题的话
+直接在github issue问
