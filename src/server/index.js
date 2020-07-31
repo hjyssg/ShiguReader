@@ -5,7 +5,6 @@ const pfs = require('promise-fs');
 const dateFormat = require('dateformat');
 const _ = require('underscore');
 const isWindows = require('is-windows');
-const internalIp = require('internal-ip');
 const qrcode = require('qrcode-terminal');
 
 global.requireUtil = function(e) {
@@ -158,16 +157,22 @@ async function init() {
    
     const port = isProduction? http_port: dev_express_port;
     const server = app.listen(port, async () => {
-        const lanIP = await internalIp.v4();
-        const mobileAddress = `http://${lanIP}:${http_port}`;
         console.log("----------------------------------------------------------------");
         console.log(dateFormat(new Date(), "yyyy-mm-dd HH:MM"));
         console.log(`Express Server listening on port ${port}`);
         console.log("You can open ShiguReader from Browser now!");
         console.log(`http://localhost:${http_port}`);
-        console.log(mobileAddress);
-        console.log("Scan the QR code to open on mobile devices");
-        qrcode.generate(mobileAddress);
+        
+        try{
+            const internalIp = require('internal-ip');
+            const lanIP = await internalIp.v4();
+            const mobileAddress = `http://${lanIP}:${http_port}`;
+            console.log(mobileAddress);
+            console.log("Scan the QR code to open on mobile devices");
+            qrcode.generate(mobileAddress);
+        }catch(e){
+        
+        }
         console.log("----------------------------------------------------------------");
     }).on('error', (error)=>{
         logger.error("[Server Init]", error.message);
