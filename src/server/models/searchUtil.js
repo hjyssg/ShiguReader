@@ -22,10 +22,19 @@ function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
 
     let results;
     let extraResults = [];
+    let dirResults;
     if(text){
+        const textInLowerCase = text.toLowerCase();
         const reg = escapeRegExp(text);
         results = getFileCollection().chain()
                       .find({'fileName': { '$regex' : reg }, isDisplayableInExplorer: true });
+
+        dirResults = getFileCollection().chain()
+                      .find({'filePath': { '$regex' : reg }, isDisplayableInExplorer: true })
+                      .where(obj => {
+                          const fp =  path.dirname(obj.filePath);
+                          return fp.toLowerCase().includes(textInLowerCase);
+                      }).data();
     }else if(author){
         const reg = escapeRegExp(author);
         let groups = [];
@@ -72,12 +81,18 @@ function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
         fileInfos[pp] = db.getFileToInfo(pp);
     })
 
+    let _dirs = dirResults && dirResults.map(obj =>{
+        const parentPath = path.resolve(obj.filePath, "..");
+        return parentPath;
+    });
+    _dirs = _dirs && _.unique(_dirs);
+
     let end = (new Date).getTime();
     // console.log((end - beg)/1000, "to search");
 
     const getThumbnails = serverUtil.common.getThumbnails;
     const files = _.keys(fileInfos);
-    return { tag, author, fileInfos, thumbnails: getThumbnails(files), zipInfo: getZipInfo(files) };
+    return { tag, author, fileInfos, dirs: _dirs, thumbnails: getThumbnails(files), zipInfo: getZipInfo(files) };
 }
 
 module.exports = searchByTagAndAuthor;
