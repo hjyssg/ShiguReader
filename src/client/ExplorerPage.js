@@ -254,6 +254,8 @@ export default class ExplorerPage extends Component {
             this.author = "";
             this.fileInfos = {};
             this.thumbnails = {};
+            this.fakeZips = {};
+            this.fakeZipInfo = {};
             this.res = null;
             //init state
             this.setStateAndSetHash(this.getInitState(true));
@@ -338,15 +340,21 @@ export default class ExplorerPage extends Component {
         });
     }
 
-
     //comes from file db.
     //may not be reliable
     getFileSize(e){
         if(this.fakeZipInfo[e]){
             return this.fakeZipInfo[e].size;
         }
-
         return (this.fileInfos[e] && this.fileInfos[e].size) || 0;
+    }
+
+    getAllFileSize(files){
+        let totalSize = 0;
+        files.forEach(e => {
+            totalSize += this.getFileSize(e);
+        });
+        return totalSize;
     }
 
     getPageNum(fp){
@@ -960,16 +968,6 @@ export default class ExplorerPage extends Component {
         this.setStateAndSetHash({
             filterByHasMusic: !this.state.filterByHasMusic
         });
-    }
-
-    getAllFileSize(files){
-        let totalSize = 0;
-        files.forEach(e => {
-            if(this.fileInfos[e]){
-                totalSize += this.fileInfos[e].size;
-            }
-        });
-        return totalSize;
     }
 
     renderSideMenu(filteredFiles, filteredVideos){
