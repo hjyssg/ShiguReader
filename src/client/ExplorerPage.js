@@ -379,6 +379,9 @@ export default class ExplorerPage extends Component {
     //comes from zipInfo libray, may not be reliable
     //because sometimes, filename dont chane but the size change 
     getTotalImgSize(fp){
+        if(this.fakeZips[fp]){
+            return this.fakeZipInfo[fp].imgSize;
+        }
        return +(this.zipInfo[fp] && this.zipInfo[fp].totalImgSize) || 0;
     }
 
@@ -640,6 +643,7 @@ export default class ExplorerPage extends Component {
                 const musicNum = this.getMusicNum(item);
                 const isFakeZip = !!this.fakeZips[item];
                 const hasMusic = musicNum > 0;
+                const pageNum = this.getPageNum(item);
 
                 const fileInfoRowCn = classNames("file-info-row", {
                     "less-padding": hasMusic
@@ -672,9 +676,9 @@ export default class ExplorerPage extends Component {
                         </Link>
                         <div className={fileInfoRowCn}>
                             <span title="file size">{fileSizeStr}</span>
-                            {(hasZipInfo || isFakeZip)  &&  <span>{`${this.getPageNum(item)} pages`}</span>}
-                            {hasMusic    &&  <span>{`${musicNum} songs`}</span>}
-                            {hasZipInfo  &&  <span title="average img size"> {avgSizeStr} </span>}
+                            {(hasZipInfo || isFakeZip)  &&  <span>{`${pageNum} pages`}</span>}
+                            {hasMusic  &&  <span>{`${musicNum} songs`}</span>}
+                            <span title="average img size"> {avgSizeStr} </span>
                         </div>
                         <FileChangeToolbar isFolder={isFakeZip} hasMusic={hasMusic} className="explorer-file-change-toolbar" file={item} />
                     </div>
