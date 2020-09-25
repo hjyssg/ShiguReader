@@ -630,11 +630,12 @@ export default class ExplorerPage extends Component {
                     "less-padding": hasMusic
                 })
 
-                let thumbnailurl = this.thumbnails[item];
+                let thumbnailurl;
                 if(isFakeZip){
                     //todo sort and choose
-                    clientUtil.sortFileNames(this.fakeZips[item])
-                    const tp = this.fakeZips[item][0];
+                    const _imgs = this.fakeZips[item].filter(isImage);
+                    clientUtil.sortFileNames(_imgs)
+                    const tp = _imgs[0];
                     thumbnailurl = clientUtil.getDownloadLink(tp);
                 }else{
                     thumbnailurl = this.thumbnails[item];
@@ -655,7 +656,7 @@ export default class ExplorerPage extends Component {
                                     />
                         </Link>
                         <div className={fileInfoRowCn}>
-                            <span title="file size">{fileSizeStr}</span>
+                            {!isFakeZip && <span title="file size">{fileSizeStr}</span>}
                             {(hasZipInfo || isFakeZip)  &&  <span>{`${this.getPageNum(item)} pages`}</span>}
                             {hasMusic    &&  <span>{`${musicNum} songs`}</span>}
                             {hasZipInfo  &&  <span title="average img size"> {avgSizeStr} </span>}
