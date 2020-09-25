@@ -63,10 +63,10 @@ npm run dev
 ```
 
 ##### Safety
-ShiguReader is not safe when it can be accessed from the public IP. The server code is not prepared for any cyber attack.
+ShiguReader is not safe when being accessed from the public IP. The server is not prepared for any cyber attack.
 
-If you just want to read comic or watch anime when you are not at home, you can just download files into you tablet.
-For example, my ipad has VLC for video and ComicGlass for comic. I download file in Chrome browser and save them to my app. So I can read comic when going outside.
+If you just want to read comic or watch anime when going outside, you can just download files into you tablet.
+For example, my ipad has VLC for video and ComicGlass for comic. I download file in Chrome browser and save them to the apps.
 
 ##### How to use on NAS
 

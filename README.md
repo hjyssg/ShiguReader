@@ -140,7 +140,7 @@ docker run -d -p hostport:3000 -v comicpath:/data liwufan/shigureader
 
 ##### NAS 使用方法
 
-[热心人总结的]](https://github.com/hjyssg/ShiguReader/issues/90)
+[热心人总结的](https://github.com/hjyssg/ShiguReader/issues/90)
 
 
 ##### 和tamper monkey一起使用
