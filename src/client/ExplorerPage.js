@@ -263,7 +263,7 @@ export default class ExplorerPage extends Component {
 
     handleRes(res){
         if (!res.failed) {
-            let {dirs, tag, author, fileInfos, thumbnails, zipInfo, fakeZips,  guessIfUserLike} = res;
+            let {dirs, tag, author, fileInfos, thumbnails, zipInfo, fakeZips, fakeZipInfo,  guessIfUserLike} = res;
             this.loadedHash = this.getTextFromQuery();
             this.fileInfos = fileInfos || {};
             const files = _.keys(this.fileInfos) || [];
@@ -275,8 +275,11 @@ export default class ExplorerPage extends Component {
             this.thumbnails = thumbnails || {};
             this.zipInfo = zipInfo || {};
             this.guessIfUserLike = guessIfUserLike || {};
-            this.fakeZips = fakeZips;
+            this.fakeZips = fakeZips || {};
+            this.fakeZipInfo = fakeZipInfo || {};
             this.res = res;
+
+            this.allfileInfos = _.extend({}, this.fileInfos, this.fakeZipInfo);
 
             if(this.videoFiles.length > 0){
                 this.setStateAndSetHash({
@@ -339,6 +342,10 @@ export default class ExplorerPage extends Component {
     //comes from file db.
     //may not be reliable
     getFileSize(e){
+        if(this.fakeZipInfo[e]){
+            return this.fakeZipInfo[e].size;
+        }
+
         return (this.fileInfos[e] && this.fileInfos[e].size) || 0;
     }
 
@@ -517,7 +524,7 @@ export default class ExplorerPage extends Component {
         }else if (sortOrder === TIME_DOWN ||  sortOrder === TIME_UP){
             const ifFromEarly = sortOrder === TIME_UP;
             const ifOnlyBymTime = this.getMode() === MODE_EXPLORER;
-            files = sortUtil.sort_file_by_time(files, this.fileInfos, getBaseName, ifFromEarly, ifOnlyBymTime);
+            files = sortUtil.sort_file_by_time(files, this.allfileInfos, getBaseName, ifFromEarly, ifOnlyBymTime);
         } else if (sortOrder === FILE_SIZE_DOWN || sortOrder === FILE_SIZE_UP){
             files = _.sortBy(files, e => {
                 const size =  this.getFileSize(e);
@@ -656,7 +663,7 @@ export default class ExplorerPage extends Component {
                                     />
                         </Link>
                         <div className={fileInfoRowCn}>
-                            {!isFakeZip && <span title="file size">{fileSizeStr}</span>}
+                            <span title="file size">{fileSizeStr}</span>
                             {(hasZipInfo || isFakeZip)  &&  <span>{`${this.getPageNum(item)} pages`}</span>}
                             {hasMusic    &&  <span>{`${musicNum} songs`}</span>}
                             {hasZipInfo  &&  <span title="average img size"> {avgSizeStr} </span>}

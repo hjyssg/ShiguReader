@@ -9,7 +9,7 @@ const express = require('express');
 const router = express.Router();
 const serverUtil = require("../serverUtil");
 const db = require("../models/db");
-const { loopEachFileInfo, getFileCollection, getFileToInfo } = db;
+const { loopEachFileInfo, getFileCollection, getFileToInfo, getFakeZipInfo } = db;
 const util = global.requireUtil();
 const { getCurrentTime, isDisplayableInExplorer, escapeRegExp, isImage, isMusic } = util;
 const path = require('path');
@@ -33,7 +33,7 @@ router.post('/api/lsDir', async (req, res) => {
     const time1 = getCurrentTime();
     let result;
     const dirs = [];
-    const fileInfos = {};
+    let fileInfos = {};
     const pTokens = dir.split(path.sep);
     const plength = pTokens.length;
 
@@ -99,9 +99,7 @@ router.post('/api/lsDir', async (req, res) => {
         }
     })
 
-    // _.keys(fake_zip_results).forEach(key => {
-    //     sortFileNames(fake_zip_results[key])
-    // })
+    const fakeZipInfo = getFakeZipInfo(fakeZips);
 
     const time2 = getCurrentTime();
     const timeUsed = (time2 - time1)/1000;
@@ -110,9 +108,11 @@ router.post('/api/lsDir', async (req, res) => {
     const files = _.keys(fileInfos);
     const _dirs = _.uniq(dirs);
 
+
     result = { dirs: _dirs, 
                path: dir, 
                fileInfos, 
+               fakeZipInfo,
                fakeZips,
                thumbnails: getThumbnails(files),
                zipInfo: getZipInfo(files),

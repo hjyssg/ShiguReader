@@ -140,6 +140,30 @@ module.exports.deleteFromDb = function(path){
     deleteFromFileDb(path);
 }
 
+module.exports.getFakeZipInfo = function(fakeZips){
+    const fakeZipInfo = {} ;
+    _.keys(fakeZips).forEach(folder => {
+        const files = fakeZips[folder];
+        const len = files.length;
+        let  mtimeMs = 0, size = 0;
+        files.forEach(file => {
+            const tempInfo = getFileToInfo(file);
+            mtimeMs += tempInfo.mtimeMs/len;
+            size += tempInfo.size;
+        })
+
+        //!! same as file-iterator getStat()
+        fakeZipInfo[folder] = {
+            isFile: false,
+            isDir: true,
+            mtimeMs,
+            size
+        };
+    })
+
+    return fakeZipInfo;
+}
+
 //---------------------------------------------cache db---------------------
 
 // module.exports.initCacheDb = function(pathes, infos){

@@ -1,7 +1,7 @@
 
 const serverUtil = require("../serverUtil");
 const db = require("../models/db");
-const { getFileCollection } = db;
+const { getFileCollection, getFakeZipInfo } = db;
 const parse = serverUtil.parse;
 const zipInfoDb = require("../models/zipInfoDb");
 const { getZipInfo }  = zipInfoDb;
@@ -104,9 +104,11 @@ function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
     let end = (new Date).getTime();
     // console.log((end - beg)/1000, "to search");
 
+    const fakeZipInfo = getFakeZipInfo(fakeZips);
+
     const getThumbnails = serverUtil.common.getThumbnails;
     const files = _.keys(fileInfos);
-    return { tag, author, fileInfos, fakeZips, dirs: _dirs, thumbnails: getThumbnails(files), zipInfo: getZipInfo(files) };
+    return { tag, author, fileInfos, fakeZips, fakeZipInfo, dirs: _dirs, thumbnails: getThumbnails(files), zipInfo: getZipInfo(files) };
 }
 
 module.exports = searchByTagAndAuthor;
