@@ -82,7 +82,7 @@ AD and left right arrow key: go to next/previous page
     Q： I can open the webpage, but it is empty or 404.
     A: Please check your path-config file
 
-    Q：Why English Read is much less than Chinese readme?
+    Q：Why English Readme is much less than Chinese Readme?
     A: I received more questions from Chinese community. But I do provide enough information here.
 
 
