@@ -136,7 +136,14 @@ router.post('/api/listFolderContent', async (req, res) => {
     .find({'filePath': { '$regex' : reg }, isDisplayableInOnebook: true })
     .data();
 
-    const _files = fake_zip_results.map(e => e.filePath);
+    const _files = [];
+    
+    fake_zip_results.forEach(e =>{
+        const pp = e.filePath;
+        if(isDirectParent(filePath, pp)){
+            _files.push(pp);
+        }
+    } );
 
     const files = _files.filter(isImage)
     const musicFiles = _files.filter(isMusic);
