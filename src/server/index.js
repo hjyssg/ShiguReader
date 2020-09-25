@@ -202,11 +202,20 @@ function getThumbCount(){
     return _.keys(thumbnailDb).length;
 }
 
+function getExt(p){
+    const ext = path.extname(p).toLowerCase();
+    if(ext && /^\.[a-zA-z0-9]*$/.test(ext)){
+        return ext;
+    }else{
+        return "";
+    }
+}
+
 function shouldWatchForOne(p){
     if(isHiddenFile(p)){
         return false;
     }
-    const ext = path.extname(p).toLowerCase();
+    const ext = getExt(p);
     return  !ext ||  isDisplayableInExplorer(ext) ||  isDisplayableInOnebook(ext);
 }
 
@@ -222,7 +231,7 @@ function shouldWatchForCache(p){
     if(isHiddenFile(p)){
         return false;
     }
-    const ext = path.extname(p).toLowerCase();
+    const ext = getExt(p);
     return !ext ||  isDisplayableInOnebook(ext);
 }
 
