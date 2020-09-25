@@ -33,6 +33,7 @@
 * 配色和旧版熊猫网的一模一样，亲切熟悉。
 * 服务器端支持windows和*nix。
 * 客户端支持除IE和Edge的主流浏览器。比如电脑的Chrome和iPad的safari。不需要USB接线，手机不需要安装任何东西，任意浏览器直接可以阅读。
+* 直接浏览文件夹的图片 <- New
 
 
 ### 支持格式
@@ -137,6 +138,11 @@ docker run -d -p hostport:3000 -v comicpath:/data liwufan/shigureader
 有问题阅读 [docker配置说明](https://github.com/hjyssg/ShiguReader/blob/dev/dockerguide.md)
 
 
+##### NAS 使用方法
+
+[热心人总结的]](https://github.com/hjyssg/ShiguReader/issues/90)
+
+
 ##### 和tamper monkey一起使用
     把EhentaiHighighliger.js添加到tamper monkey。
     在你上绅士网的时候，该脚本会通过与后端服务器通信。帮助你知道文件下载过与否。
@@ -163,7 +169,7 @@ docker run -d -p hostport:3000 -v comicpath:/data liwufan/shigureader
 漫画页面  
 enter: 全屏  
 AD和左右方向键: 翻页  
-+- 缩放图片 
++-: 缩放图片 
 
 ##### 认真看这个readme 还是有问题的话
 直接在github issue问
