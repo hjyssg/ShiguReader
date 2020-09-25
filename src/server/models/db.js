@@ -93,14 +93,17 @@ const updateFileDb = function(filePath){
     let data = getData(filePath) || {};
     data.filePath = filePath;
     data.isDisplayableInExplorer = isDisplayableInExplorer(filePath);
+    data.isDisplayableInOnebook = isDisplayableInOnebook(filePath);
     data.fileName  = fileName;
 
     //set up tags
-    const temp = nameParser.parse(fileName) || {};
-    const nameTags = namePicker.pick(fileName)||[];
+    const str = data.isDisplayableInExplorer? fileName : getDirName(filePath);
+
+    const temp = nameParser.parse(str) || {};
+    const nameTags = namePicker.pick(str)||[];
     const tags1 = temp.tags || [];
     temp.comiket && tags1.concat(temp.comiket);
-    const musisTags = nameParser.parseMusicTitle(fileName)||[];
+    const musisTags = nameParser.parseMusicTitle(str)||[];
     let tags = _.uniq(tags1.concat(nameTags, musisTags));
 
     data.tags = tags.join(sep);

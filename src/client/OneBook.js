@@ -269,7 +269,15 @@ export default class OneBook extends Component {
   }
   
   sendExtract(){
-    Sender.post("/api/extract", {filePath: this.getTextFromQuery(), startIndex: this.state.index||0 }, res => {
+    const fp = this.getTextFromQuery();
+    const api = util.isCompress(fp)? "/api/extract" : "/api/listFolderContent"
+
+    Sender.post(api, {filePath: this.getTextFromQuery(), startIndex: this.state.index||0 }, res => {
+        this.handleRes(res);
+    });
+  }
+
+  handleRes(res){
       this.res = res;
       if (!res.failed) {
         let {zipInfo, path, stat, files,  musicFiles } = res;
@@ -284,10 +292,9 @@ export default class OneBook extends Component {
         this.setState({ files, musicFiles, path, fileStat: stat, zipInfo}, 
                        () => { this.bindUserInteraction()});
         clientUtil.saveFilePathToCookie(this.getTextFromQuery());
-      }else{
+      } else {
         this.forceUpdate();
       }
-    });
   }
   
   componentWillUnmount() {

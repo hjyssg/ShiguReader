@@ -207,7 +207,7 @@ function shouldWatchForOne(p){
         return false;
     }
     const ext = path.extname(p).toLowerCase();
-    return  !ext ||  isDisplayableInExplorer(ext);
+    return  !ext ||  isDisplayableInExplorer(ext) ||  isDisplayableInOnebook(ext);
 }
 
 function shouldIgnoreForOne(p){
@@ -223,7 +223,7 @@ function shouldWatchForCache(p){
         return false;
     }
     const ext = path.extname(p).toLowerCase();
-    return !ext ||  isDisplayableInOnebook(ext)
+    return !ext ||  isDisplayableInOnebook(ext);
 }
 
 

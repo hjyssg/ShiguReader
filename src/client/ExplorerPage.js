@@ -263,7 +263,7 @@ export default class ExplorerPage extends Component {
 
     handleRes(res){
         if (!res.failed) {
-            let {dirs, tag, author, fileInfos, thumbnails, zipInfo, guessIfUserLike} = res;
+            let {dirs, tag, author, fileInfos, thumbnails, zipInfo, fakeZips,  guessIfUserLike} = res;
             this.loadedHash = this.getTextFromQuery();
             this.fileInfos = fileInfos || {};
             const files = _.keys(this.fileInfos) || [];
@@ -275,6 +275,7 @@ export default class ExplorerPage extends Component {
             this.thumbnails = thumbnails || {};
             this.zipInfo = zipInfo || {};
             this.guessIfUserLike = guessIfUserLike || {};
+            this.fakeZips = fakeZips;
             this.res = res;
 
             if(this.videoFiles.length > 0){
@@ -391,6 +392,7 @@ export default class ExplorerPage extends Component {
     
     getFilteredFiles(){
         let files = this.files || [];
+        files = files.concat(_.keys(this.fakeZips))
         const goodSet = this.state.goodAuthors;
         const otherSet = this.state.otherAuthors;
         const guessIfUserLike = this.guessIfUserLike;
@@ -542,7 +544,8 @@ export default class ExplorerPage extends Component {
         const { sortOrder } = this.state;
         let dirs = this.dirs||[];
         let videos = filteredVideos;
-        let files = filteredFiles ;
+        let files = filteredFiles;
+        const fakeZips = this.fakeZips;
 
         try {
             files = this.sortFiles(files, sortOrder);
@@ -621,16 +624,27 @@ export default class ExplorerPage extends Component {
                     "less-padding": hasMusic
                 })
 
+                let thumbnailurl = this.thumbnails[item];
+                const isFakeZip = this.fakeZips[item];
+                if(isFakeZip){
+                    //todo sort and choose
+                    const tp = this.fakeZips[item][0];
+                    thumbnailurl = clientUtil.getDownloadLink(tp);
+                }else{
+                    thumbnailurl = this.thumbnails[item];
+                }
+
                 zipItem = (
                 <div key={item} className={"col-sm-6 col-md-4 col-lg-3 file-out-cell"}>
                     <div className="file-cell">
                         <Link  target="_blank" to={toUrl}  key={item} className={"file-cell-inner"}>
                             <FileCellTitle str={text}/>
                             <LoadingImage 
+                                    asSimpleImage={isFakeZip}
                                     isThumbnail 
                                     className={"file-cell-thumbnail"} 
                                     title={item} fileName={item}   
-                                    url={this.thumbnails[item]}
+                                    url={thumbnailurl}
                                     onReceiveUrl={url => {this.thumbnails[item] = url;}} 
                                     />
                         </Link>

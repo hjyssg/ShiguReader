@@ -11,11 +11,12 @@ const serverUtil = require("../serverUtil");
 const db = require("../models/db");
 const { loopEachFileInfo, getFileCollection, getFileToInfo } = db;
 const util = global.requireUtil();
-const { getCurrentTime, isDisplayableInExplorer, escapeRegExp } = util;
+const { getCurrentTime, isDisplayableInExplorer, escapeRegExp, isImage, isMusic } = util;
 const path = require('path');
 const zipInfoDb = require("../models/zipInfoDb");
 const { getZipInfo }  = zipInfoDb;
 const { getThumbnails } = serverUtil.common;
+const { getDirName } = serverUtil;
 const _ = require('underscore');
 
 
@@ -63,6 +64,41 @@ router.post('/api/lsDir', async (req, res) => {
         }
     })
 
+    const fake_zip_results = getFileCollection()
+    .chain()
+    .find({'filePath': { '$regex' : reg }, isDisplayableInOnebook: true })
+    .where(obj => isSub(dir, obj.filePath)).data();
+
+    const fakeZips = {};
+
+    fake_zip_results.forEach(obj => {
+        //reduce by its parent folder
+        const pp = path.dirname(obj.filePath);
+        if(isRecursive){
+            fakeZips[pp] = fakeZips[pp] || [];
+            fakeZips[pp].push(obj.filePath);
+        }else {
+            if(isDirectParent(dir, pp)){
+                fakeZips[pp] = fakeZips[pp] || [];
+                fakeZips[pp].push(obj.filePath);
+            }else{
+                //add file's parent dir
+                //because we do not track dir in the server
+                //for example
+                //the dir is     F:/git 
+                //the file is    F:/git/a/b/1.zip
+                //add folder           F:/git/a
+                const cTokens = pp.split(path.sep);
+                let itsParent = pTokens.concat(cTokens[plength]);
+                dirs.push(itsParent.join(path.sep));
+            }
+        }
+    })
+
+    // _.keys(fake_zip_results).forEach(key => {
+    //     sortFileNames(fake_zip_results[key])
+    // })
+
     const time2 = getCurrentTime();
     const timeUsed = (time2 - time1)/1000;
     // console.log(timeUsed, "to LsDir")
@@ -73,10 +109,35 @@ router.post('/api/lsDir', async (req, res) => {
     result = { dirs: _dirs, 
                path: dir, 
                fileInfos, 
+               fakeZips,
                thumbnails: getThumbnails(files),
                zipInfo: getZipInfo(files),
                guessIfUserLike: serverUtil.common.guessIfUserLike(files)
             };
+    res.send(result);
+});
+
+router.post('/api/listFolderContent', async (req, res) => {
+    let filePath =  req.body && req.body.filePath;
+    if (!filePath) {
+        console.error("[/api/listFolderContent]", filePath, "does not exist");
+        res.sendStatus(404);
+        return;
+    }
+
+    let result;
+    const reg = escapeRegExp(filePath);
+    const fake_zip_results = getFileCollection()
+    .chain()
+    .find({'filePath': { '$regex' : reg }, isDisplayableInOnebook: true })
+    .data();
+
+    const _files = fake_zip_results.map(e => e.filePath);
+
+    const files = _files.filter(isImage)
+    const musicFiles = _files.filter(isMusic);
+
+    result = { zipInfo : {}, path: filePath, stat: {}, files,  musicFiles };
     res.send(result);
 });
 
