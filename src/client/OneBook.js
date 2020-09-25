@@ -545,9 +545,17 @@ export default class OneBook extends Component {
 
     const parentPath = getDir(this.state.path);
     const toUrl = clientUtil.getExplorerLink(parentPath);
+
+    let link2;
+    if(this.isFakeZip()){
+      const dir = this.getTextFromQuery();
+      const toDirUrl = clientUtil.getExplorerLink(dir);
+      link2 = (<Link to={toDirUrl}>{dir} </Link>)
+    }
     
     return (
       <div className="one-book-path">
+        {link2}
         <Link to={toUrl}>{parentPath} </Link>
       </div>);
   }

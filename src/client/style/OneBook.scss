@@ -192,6 +192,7 @@
   font-weight: 400;
   margin-right: 10px;
   @include flex_center_display;
+  flex-direction: column;
 
   a {
     color: $font_color_white_one !important;
