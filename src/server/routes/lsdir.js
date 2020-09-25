@@ -43,23 +43,31 @@ router.post('/api/lsDir', async (req, res) => {
                   .find({'filePath': { '$regex' : reg }, isDisplayableInExplorer: true })
                   .where(obj => isSub(dir, obj.filePath)).data();
 
+    function addParent(pp){
+        //add file's parent dir
+        //because we do not track dir in the server
+        //for example
+        //the dir is     F:/git 
+        //the file is    F:/git/a/b/1.zip
+        //add folder           F:/git/a
+        const cTokens = pp.split(path.sep);
+        let itsParent = pTokens.concat(cTokens[plength]);
+        const np = itsParent.join(path.sep);
+        dirs.push(np);
+    }
+
     results.forEach(obj => {
         const pp = obj.filePath;
+        if(pp === dir){
+            return;
+        }
         if(isRecursive){
             fileInfos[pp] = getFileToInfo(pp);
         }else {
             if(isDirectParent(dir, pp)){
                 fileInfos[pp] = getFileToInfo(pp);
             }else{
-                //add file's parent dir
-                //because we do not track dir in the server
-                //for example
-                //the dir is     F:/git 
-                //the file is    F:/git/a/b/1.zip
-                //add folder           F:/git/a
-                const cTokens = pp.split(path.sep);
-                let itsParent = pTokens.concat(cTokens[plength]);
-                dirs.push(itsParent.join(path.sep));
+                addParent(pp);
             }
         }
     })
@@ -74,6 +82,10 @@ router.post('/api/lsDir', async (req, res) => {
     fake_zip_results.forEach(obj => {
         //reduce by its parent folder
         const pp = path.dirname(obj.filePath);
+        if(pp === dir){
+            return;
+        }
+
         if(isRecursive){
             fakeZips[pp] = fakeZips[pp] || [];
             fakeZips[pp].push(obj.filePath);
@@ -82,15 +94,7 @@ router.post('/api/lsDir', async (req, res) => {
                 fakeZips[pp] = fakeZips[pp] || [];
                 fakeZips[pp].push(obj.filePath);
             }else{
-                //add file's parent dir
-                //because we do not track dir in the server
-                //for example
-                //the dir is     F:/git 
-                //the file is    F:/git/a/b/1.zip
-                //add folder           F:/git/a
-                const cTokens = pp.split(path.sep);
-                let itsParent = pTokens.concat(cTokens[plength]);
-                dirs.push(itsParent.join(path.sep));
+                addParent(pp);
             }
         }
     })
