@@ -395,10 +395,6 @@ export default class OneBook extends Component {
   }
 
   renderFileSizeAndTime(){
-    if(this.isFakeZip()){
-      return;
-    }
-
     const {fileStat,  files, index, zipInfo } = this.state;
     if (fileStat) {
       let avgFileSize;

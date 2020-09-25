@@ -141,7 +141,15 @@ router.post('/api/listFolderContent', async (req, res) => {
     const files = _files.filter(isImage)
     const musicFiles = _files.filter(isMusic);
 
-    result = { zipInfo : {}, path: filePath, stat: {}, files,  musicFiles };
+    const mapping = {};
+    mapping[filePath] = _files;
+    const info = getFakeZipInfo(mapping)[filePath];
+
+    //ugly code here
+    result = { zipInfo : info, 
+                stat: info, 
+                path: filePath, 
+                files,  musicFiles };
     res.send(result);
 });
 

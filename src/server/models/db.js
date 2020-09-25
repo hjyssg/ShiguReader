@@ -145,14 +145,17 @@ module.exports.getFakeZipInfo = function(fakeZips){
     _.keys(fakeZips).forEach(folder => {
         const files = fakeZips[folder];
         const len = files.length;
-        let  mtimeMs = 0, size = 0, imgSize = 0;
+        let  mtimeMs = 0, size = 0, totalImgSize = 0, pageNum = 0, musicNum = 0;
         files.forEach(file => {
             const tempInfo = getFileToInfo(file);
             mtimeMs += tempInfo.mtimeMs/len;
             size += tempInfo.size;
 
             if(isImage(file)){
-                imgSize += tempInfo.size
+                totalImgSize += tempInfo.size;
+                pageNum++;
+            }else if(isMusic(file)){
+                musicNum++;
             }
         })
 
@@ -161,8 +164,11 @@ module.exports.getFakeZipInfo = function(fakeZips){
             isFile: false,
             isDir: true,
             mtimeMs,
+            mtime: mtimeMs,
             size,
-            imgSize
+            totalImgSize,
+            pageNum, 
+            musicNum
         };
     })
 

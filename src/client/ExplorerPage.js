@@ -380,7 +380,7 @@ export default class ExplorerPage extends Component {
     //because sometimes, filename dont chane but the size change 
     getTotalImgSize(fp){
         if(this.fakeZips[fp]){
-            return this.fakeZipInfo[fp].imgSize;
+            return this.fakeZipInfo[fp].totalImgSize;
         }
        return +(this.zipInfo[fp] && this.zipInfo[fp].totalImgSize) || 0;
     }
