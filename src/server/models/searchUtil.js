@@ -23,6 +23,7 @@ function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
     let results;
     let extraResults = [];
     let dirResults;
+    let fakeZips = {};
     if(text){
         const textInLowerCase = text.toLowerCase();
         const reg = escapeRegExp(text);
@@ -35,6 +36,19 @@ function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
                           const fp =  path.dirname(obj.filePath);
                           return fp.toLowerCase().includes(textInLowerCase);
                       }).data();
+        
+        const fake_zip_results = getFileCollection()
+                      .chain()
+                      .find({'filePath': { '$regex' : reg }, isDisplayableInOnebook: true })
+                      .data();
+        
+        fake_zip_results.forEach(obj => {
+            //reduce by its parent folder
+            const pp = path.dirname(obj.filePath);
+            fakeZips[pp] = fakeZips[pp] || [];
+            fakeZips[pp].push(obj.filePath);
+        })
+
     }else if(author){
         const reg = escapeRegExp(author);
         let groups = [];
@@ -92,7 +106,7 @@ function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
 
     const getThumbnails = serverUtil.common.getThumbnails;
     const files = _.keys(fileInfos);
-    return { tag, author, fileInfos, dirs: _dirs, thumbnails: getThumbnails(files), zipInfo: getZipInfo(files) };
+    return { tag, author, fileInfos, fakeZips, dirs: _dirs, thumbnails: getThumbnails(files), zipInfo: getZipInfo(files) };
 }
 
 module.exports = searchByTagAndAuthor;
