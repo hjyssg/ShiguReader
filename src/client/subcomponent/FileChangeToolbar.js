@@ -173,10 +173,14 @@ export default class FileChangeToolbar extends Component {
     }
 
     render(){
-        const {file, className, header, showAllButtons, hasMusic, bigFont} = this.props;
+        const {file, className, header, showAllButtons, hasMusic, bigFont, isFolder} = this.props;
         const cn = classNames("file-change-tool-bar", className, {
             bigFont: bigFont
         });
+
+        if(isFolder){
+            return null;
+        }
 
         if(!clientUtil.isAuthorized()){
             return  <div className={cn} > {this.renderDownloadLink()}</div>;

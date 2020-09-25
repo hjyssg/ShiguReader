@@ -125,7 +125,9 @@ export default class OneBook extends Component {
 
     //display img's real px number
     const dimDom = document.getElementsByClassName("dimension-tag")[0];
-    dimDom.textContent = `${imageDom.naturalWidth}×${imageDom.naturalHeight}`;
+    if(dimDom){
+      dimDom.textContent = `${imageDom.naturalWidth}×${imageDom.naturalHeight}`;
+    }
 
     this.clicked = false;
     this.clickY = 0;
@@ -267,12 +269,16 @@ export default class OneBook extends Component {
       }
     });
   }
+
+  isFakeZip(){
+    return !util.isCompress(this.getTextFromQuery())
+  }
   
   sendExtract(){
     const fp = this.getTextFromQuery();
-    const api = util.isCompress(fp)? "/api/extract" : "/api/listFolderContent"
+    const api = this.isFakeZip()?  "/api/listFolderContent" : "/api/extract";
 
-    Sender.post(api, {filePath: this.getTextFromQuery(), startIndex: this.state.index||0 }, res => {
+    Sender.post(api, {filePath: fp, startIndex: this.state.index||0 }, res => {
         this.handleRes(res);
     });
   }
@@ -389,6 +395,10 @@ export default class OneBook extends Component {
   }
 
   renderFileSizeAndTime(){
+    if(this.isFakeZip()){
+      return;
+    }
+
     const {fileStat,  files, index, zipInfo } = this.state;
     if (fileStat) {
       let avgFileSize;
@@ -431,6 +441,18 @@ export default class OneBook extends Component {
     //maybe display a center spin
   }
 
+  _getFileUrl(url){
+    if(!url){
+      return "";
+    }
+
+    if(this.isFakeZip()){
+      return clientUtil.getDownloadLink(url);
+    }else{
+      return getFileUrl(url);
+    }
+  }
+
   renderImage(){
     const { files, index, twoPageMode } = this.state;
     if(!this.hasImage()){
@@ -442,17 +464,17 @@ export default class OneBook extends Component {
         "has-music": this.hasMusic()
       });
 
-      const nextImg = this.shouldTwoPageMode() &&  <img  className={cn} src={getFileUrl(files[index+1])} alt="book-image"
+      const nextImg = this.shouldTwoPageMode() &&  <img  className={cn} src={this._getFileUrl(files[index+1])} alt="book-image"
                                           ref={img => this.nextImgRef = img}
                                           onLoad={this.makeTwoImageSameHeight.bind(this)}
                                           index={index+1}
                                         />;
 
-      const preload =  index < files.length-1 &&  <link rel="preload" href={getFileUrl(files[index+1])} as="image" /> ;
+      const preload =  index < files.length-1 &&  <link rel="preload" href={this._getFileUrl(files[index-1])} as="image" /> ;
 
       return (<React.Fragment>
               { twoPageMode === TWO_PAGE_RIGHT &&  nextImg }
-              <img  className={cn} src={getFileUrl(files[index])} alt="book-image"
+              <img  className={cn} src={this._getFileUrl(files[index])} alt="book-image"
                            ref={img => this.imgRef = img}
                            onLoad={this.adjustImageSize.bind(this)}
                            index={index}
@@ -473,7 +495,7 @@ export default class OneBook extends Component {
                 <img className={cn} 
                   ref={(img) =>  this.imgRef = img}
                   onError={this.onError.bind(this)}
-                  src={getFileUrl(files[index])}  />
+                  src={this._getFileUrl(files[index])}  />
                </div>);
       }else{
         images =files.map(file => {
@@ -481,7 +503,7 @@ export default class OneBook extends Component {
                       <LoadingImage className={"mobile-one-book-image"} 
                                bottomOffet={-4000}
                                topOffet={-3000}
-                               url={getFileUrl(file)} 
+                               url={this._getFileUrl(file)} 
                                key={file}/> 
                   </div>);
         });
@@ -534,7 +556,7 @@ export default class OneBook extends Component {
     if (!this.state.path) {
       return;
     }
-    const toolbar = <FileChangeToolbar bigFont={true} showAllButtons className="one-book-toolbar" file={this.state.path} popPosition={"top-center"}/>;
+    const toolbar = <FileChangeToolbar isFolder={this.isFakeZip()} bigFont={true} showAllButtons className="one-book-toolbar" file={this.state.path} popPosition={"top-center"}/>;
     return toolbar;
   }
 
@@ -549,7 +571,11 @@ export default class OneBook extends Component {
 
   renderMusicPlayer(){
     if(this.hasMusic()){
-      const {musicFiles} = this.state;
+      let { musicFiles } = this.state;
+
+      // if(this.isFakeZip()){
+      //   musicFiles = musicFiles.map(e => clientUtil.getDownloadLink(e));
+      // }
 
       const cn = classNames({
         "only-music": !this.hasImage()

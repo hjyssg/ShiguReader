@@ -24,7 +24,7 @@ const classNames = require('classnames');
 const Constant = require("@common/constant");
 const clientUtil = require("./clientUtil");
 const { getDir, getBaseName, getPerPageItemNumber, isSearchInputTextTyping } = clientUtil;
-const { isVideo, isCompress } = util;
+const { isVideo, isCompress, isImage, isMusic } = util;
 const sortUtil = require("../common/sortUtil");
 const AdminUtil = require("./AdminUtil");
 
@@ -343,7 +343,10 @@ export default class ExplorerPage extends Component {
     }
 
     getPageNum(fp){
-       return +(this.zipInfo[fp] && this.zipInfo[fp].pageNum) || 0;
+        if(this.fakeZips[fp]){
+            return this.fakeZips[fp].filter(isImage).length;
+        }
+        return +(this.zipInfo[fp] && this.zipInfo[fp].pageNum) || 0;
     }
 
     getAllFilePageNum(filteredFiles){
@@ -387,6 +390,9 @@ export default class ExplorerPage extends Component {
     }
 
     getMusicNum(fp){
+        if(this.fakeZips[fp]){
+            return this.fakeZips[fp].filter(isMusic).length;
+        }
         return +(this.zipInfo[fp] && this.zipInfo[fp].musicNum) || 0;
     }
     
@@ -545,7 +551,6 @@ export default class ExplorerPage extends Component {
         let dirs = this.dirs||[];
         let videos = filteredVideos;
         let files = filteredFiles;
-        const fakeZips = this.fakeZips;
 
         try {
             files = this.sortFiles(files, sortOrder);
@@ -618,6 +623,7 @@ export default class ExplorerPage extends Component {
 
                 const hasZipInfo = this.hasZipInfo(item);
                 const musicNum = this.getMusicNum(item);
+                const isFakeZip = !!this.fakeZips[item];
                 const hasMusic = musicNum > 0;
 
                 const fileInfoRowCn = classNames("file-info-row", {
@@ -625,9 +631,9 @@ export default class ExplorerPage extends Component {
                 })
 
                 let thumbnailurl = this.thumbnails[item];
-                const isFakeZip = this.fakeZips[item];
                 if(isFakeZip){
                     //todo sort and choose
+                    clientUtil.sortFileNames(this.fakeZips[item])
                     const tp = this.fakeZips[item][0];
                     thumbnailurl = clientUtil.getDownloadLink(tp);
                 }else{
@@ -650,11 +656,11 @@ export default class ExplorerPage extends Component {
                         </Link>
                         <div className={fileInfoRowCn}>
                             <span title="file size">{fileSizeStr}</span>
-                            {hasZipInfo  &&  <span>{`${this.getPageNum(item)} pages`}</span>}
+                            {(hasZipInfo || isFakeZip)  &&  <span>{`${this.getPageNum(item)} pages`}</span>}
                             {hasMusic    &&  <span>{`${musicNum} songs`}</span>}
                             {hasZipInfo  &&  <span title="average img size"> {avgSizeStr} </span>}
                         </div>
-                        <FileChangeToolbar hasMusic={hasMusic} className="explorer-file-change-toolbar" file={item} />
+                        <FileChangeToolbar isFolder={isFakeZip} hasMusic={hasMusic} className="explorer-file-change-toolbar" file={item} />
                     </div>
                 </div>);
             }
