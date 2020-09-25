@@ -581,7 +581,7 @@ export default class OneBook extends Component {
         "only-music": !this.hasImage()
       })
 
-      return <MusicPlayer className={cn}  audioFiles={musicFiles} />;
+      return <MusicPlayer className={cn}  audioFiles={musicFiles} filePathAsUrl/>;
     }
   }
 
