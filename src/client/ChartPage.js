@@ -476,7 +476,7 @@ export default class ChartPage extends Component {
 
     render(){
         document.title = "Chart"
-        const too_few = 1; // 30;
+        const too_few = 5; // 30;
 
         const FILE_OPTIONS = [
           "video",
@@ -515,7 +515,7 @@ export default class ChartPage extends Component {
                         {filePath}
                         {radioGroup}
                         <div className="alert alert-info" role="alert" > 
-                             <div>{`There are only ${filtererFiless.length} ${fileType} files.`} </div> 
+                             <div>{`There are only ${filtererFiles.length} ${fileType} files.`} </div> 
                              <div>Unable to render chart</div>
                         </div>
                     </div>);
