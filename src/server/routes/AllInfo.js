@@ -5,17 +5,25 @@ const serverUtil = require("../serverUtil");
 const db = require("../models/db");
 const { getAllFilePathes } = db;
 const getThumbnails = serverUtil.common.getThumbnails;
+const util = global.requireUtil();
+const { isDisplayableInExplorer } = util;
 
 router.post('/api/allInfo', (req, res) => {
     const needThumbnail = req.body && req.body.needThumbnail;
 
     let allThumbnails = {};
+    const files = getAllFilePathes().filter(isDisplayableInExplorer);
     if(needThumbnail){
-        allThumbnails = getThumbnails(getAllFilePathes());
+        allThumbnails = getThumbnails(files);
     }
 
+    const fileToInfo = {};
+    files.forEach(e => {
+        fileToInfo[e] = db.getFileToInfo(e);
+    })
+
     res.send({
-        fileToInfo: db.getFileToInfo(),
+        fileToInfo: fileToInfo,
         allThumbnails: allThumbnails
     }); 
 });

@@ -41,8 +41,20 @@ export default class MusicPlayer extends Component {
        });
     }
 
+    _getFileUrl(url){
+        if(!url){
+          return "";
+        }
+    
+        if(this.props.filePathAsUrl){
+          return clientUtil.getDownloadLink(url);
+        }else{
+          return getFileUrl(url);
+        }
+      }
+
     render(){
-        const {audioFiles, className} = this.props;
+        const {audioFiles, className, filePathAsUrl} = this.props;
         const {index} = this.state;
         const audioItems = audioFiles.map((e, ii) => {
             const cn = classNames("aji-music-player-item", {
@@ -65,7 +77,7 @@ export default class MusicPlayer extends Component {
                         {audioItems}
                     </div>
                     <audio className="aji-music-player-control" controls ref="audio">
-                        <source src={getFileUrl(audioFiles[index])} />
+                        <source src={this._getFileUrl(audioFiles[index])} />
                     </audio>
                 </div>
         )

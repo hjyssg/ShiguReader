@@ -1,11 +1,10 @@
 import React, { Component } from 'react';
 import _ from 'underscore';
-const filesizeUitl = require('filesize');
 import './style/VideoPlayer.scss';
 import ClickAndCopyText from './subcomponent/ClickAndCopyText';
 import FileChangeToolbar from './subcomponent/FileChangeToolbar';
 const clientUtil = require("./clientUtil");
-const { getDir, getBaseName } = clientUtil;
+const { getDir, getBaseName, filesizeUitl } = clientUtil;
 const namePicker = require("../human-name-picker");
 import { Link } from 'react-router-dom';
 const nameParser = require('@name-parser');
@@ -102,7 +101,7 @@ export default class VideoPlayer extends Component {
                           {this.renderPath()}
                          </div>);
 
-  const fileSize = stat && filesizeUitl(stat.size, {base: 2});
+  const fileSize = stat && filesizeUitl(stat.size);
   const mTime = stat &&  dateFormat(stat.mTime, "isoDate");
 
   const videoFileInfo = (stat && <div className="video-file-info-row">

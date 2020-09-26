@@ -93,14 +93,17 @@ const updateFileDb = function(filePath){
     let data = getData(filePath) || {};
     data.filePath = filePath;
     data.isDisplayableInExplorer = isDisplayableInExplorer(filePath);
+    data.isDisplayableInOnebook = isDisplayableInOnebook(filePath);
     data.fileName  = fileName;
 
     //set up tags
-    const temp = nameParser.parse(fileName) || {};
-    const nameTags = namePicker.pick(fileName)||[];
+    const str = data.isDisplayableInExplorer? fileName : getDirName(filePath);
+
+    const temp = nameParser.parse(str) || {};
+    const nameTags = namePicker.pick(str)||[];
     const tags1 = temp.tags || [];
     temp.comiket && tags1.concat(temp.comiket);
-    const musisTags = nameParser.parseMusicTitle(fileName)||[];
+    const musisTags = nameParser.parseMusicTitle(str)||[];
     let tags = _.uniq(tags1.concat(nameTags, musisTags));
 
     data.tags = tags.join(sep);
@@ -135,6 +138,41 @@ module.exports.updateStatToDb =  function(path, stat){
 module.exports.deleteFromDb = function(path){
     delete db.fileToInfo[path];
     deleteFromFileDb(path);
+}
+
+module.exports.getImgFolderInfo = function(imgFolders){
+    const imgFolderInfo = {} ;
+    _.keys(imgFolders).forEach(folder => {
+        const files = imgFolders[folder];
+        const len = files.length;
+        let  mtimeMs = 0, size = 0, totalImgSize = 0, pageNum = 0, musicNum = 0;
+        files.forEach(file => {
+            const tempInfo = getFileToInfo(file);
+            mtimeMs += tempInfo.mtimeMs/len;
+            size += tempInfo.size;
+
+            if(isImage(file)){
+                totalImgSize += tempInfo.size;
+                pageNum++;
+            }else if(isMusic(file)){
+                musicNum++;
+            }
+        })
+
+        //!! same as file-iterator getStat()
+        imgFolderInfo[folder] = {
+            isFile: false,
+            isDir: true,
+            mtimeMs,
+            mtime: mtimeMs,
+            size,
+            totalImgSize,
+            pageNum, 
+            musicNum
+        };
+    })
+
+    return imgFolderInfo;
 }
 
 //---------------------------------------------cache db---------------------

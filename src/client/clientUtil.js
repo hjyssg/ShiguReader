@@ -1,6 +1,15 @@
 const util = require("@common/util");
 const Cookie = require("js-cookie");
 const _ = require("underscore");
+const filesizeUitl = require('filesize');
+
+module.exports.filesizeUitl = function(num){
+    if(isNaN(num)){
+        return "";
+    }
+
+    return filesizeUitl(num, {base: 2});
+}
 
 module.exports.getDir = function (fn) {
     if (!fn) { return ""; }
@@ -20,6 +29,9 @@ module.exports.getFileUrl = function (url){
 }
 
 const encodeFileUrl = module.exports.encodeFileUrl = function(url){
+    if(!url){
+        return "";
+    }
     const ii = url.lastIndexOf('/')+1;
     const result =  url.substring(0, ii) + encodeURIComponent(url.substring(ii));
     return result;

@@ -31,6 +31,9 @@ export default class LoadingImage extends Component {
   }
 
   shouldAskUrl(){
+    if(this.props.asSimpleImage){
+      return false;
+    }
     if(!this.state.url){
       return true
     }else{
@@ -99,14 +102,17 @@ export default class LoadingImage extends Component {
 
   render() {
     let content;
-    const {className, fileName, url, bottomOffet, topOffet, title, isThumbnail, onReceiveUrl, ...others} = this.props;
+    const {className, fileName, url, bottomOffet, topOffet, title, isThumbnail, onReceiveUrl, asSimpleImage,  ...others} = this.props;
+
     const cn = classNames("loading-image", className,{
       "empty-block fas fa-file-archive": !this.isThumbnailAvaible()
     });
 
+    const _url = asSimpleImage? url : encodeFileUrl(this.state.url);
+
    if (this.isThumbnailAvaible()) {
       content = (<img key={fileName} ref={e=>{this.dom = e && e.node}} 
-                      className={className} src={encodeFileUrl(this.state.url)} title={title || fileName} 
+                      className={className} src={_url} title={title || fileName} 
                       onError={this.onError.bind(this)} 
                       {...others}/>);
     } else {

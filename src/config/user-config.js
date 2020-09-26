@@ -95,3 +95,10 @@ module.exports.img_convert_min = 2.5*1024*1024; //in MB
 //参考资料:http://www.imagemagick.org/Usage/resize/#shrink
 //不必担心，会保持比例，高宽都低于规定的比例。
 module.exports.img_reduce_resolution_dimension = "2800x2800";
+
+//uses can view folder that has images as a zip
+//so users do not have zip their manga
+//But this may cause more Memory usage
+//可以阅读文件夹的图片，就不需要打包成zip
+//但可能用很多内存
+module.exports.view_img_folder = true;

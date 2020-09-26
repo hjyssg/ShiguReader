@@ -8,7 +8,6 @@ import Swal from 'sweetalert2';
 import Cookie from "js-cookie";
 import { Link } from 'react-router-dom';
 import RadioButtonGroup from './subcomponent/RadioButtonGroup';
-const filesizeUitl = require('filesize');
 const clientUtil = require("./clientUtil");
 const { getBaseName } = clientUtil;
 const dateFormat = require('dateformat');
@@ -216,7 +215,7 @@ export default class AdminPage extends Component {
         const folder_list = this.state.dirs.concat("All_Pathes");
 
         const { totalSize, cacheNum } = this.state
-        const size = totalSize && filesizeUitl(totalSize, {base: 2});
+        const size = totalSize && clientUtil.filesizeUitl(totalSize);
         let cacheInfo;
 
         if(size){

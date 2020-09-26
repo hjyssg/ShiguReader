@@ -1,7 +1,7 @@
 
 const serverUtil = require("../serverUtil");
 const db = require("../models/db");
-const { getFileCollection } = db;
+const { getFileCollection, getImgFolderInfo } = db;
 const parse = serverUtil.parse;
 const zipInfoDb = require("../models/zipInfoDb");
 const { getZipInfo }  = zipInfoDb;
@@ -23,6 +23,7 @@ function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
     let results;
     let extraResults = [];
     let dirResults;
+    let imgFolders = {};
     if(text){
         const textInLowerCase = text.toLowerCase();
         const reg = escapeRegExp(text);
@@ -35,6 +36,18 @@ function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
                           const fp =  path.dirname(obj.filePath);
                           return fp.toLowerCase().includes(textInLowerCase);
                       }).data();
+        
+        const img_files_results = getFileCollection()
+                      .chain()
+                      .find({'filePath': { '$regex' : reg }, isDisplayableInOnebook: true })
+                      .data();
+        
+        img_files_results.forEach(obj => {
+            //reduce by its parent folder
+            const pp = path.dirname(obj.filePath);
+            imgFolders[pp] = imgFolders[pp] || [];
+            imgFolders[pp].push(obj.filePath);
+        });
     }else if(author){
         const reg = escapeRegExp(author);
         let groups = [];
@@ -90,9 +103,13 @@ function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
     let end = (new Date).getTime();
     // console.log((end - beg)/1000, "to search");
 
+    const imgFolderInfo = getImgFolderInfo(imgFolders);
+
     const getThumbnails = serverUtil.common.getThumbnails;
     const files = _.keys(fileInfos);
-    return { tag, author, fileInfos, dirs: _dirs, thumbnails: getThumbnails(files), zipInfo: getZipInfo(files) };
+    return { tag, author, fileInfos, 
+             imgFolders, imgFolderInfo, 
+             dirs: _dirs, thumbnails: getThumbnails(files), zipInfo: getZipInfo(files) };
 }
 
 module.exports = searchByTagAndAuthor;
