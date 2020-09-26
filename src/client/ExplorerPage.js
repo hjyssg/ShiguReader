@@ -716,10 +716,15 @@ export default class ExplorerPage extends Component {
     }
 
     toggleRecursively(){
+        //reset same as componentDidUpdate()
         this.videoFiles = []
         this.files = [];
         this.dirs = [];
         this.res = null;
+        this.fileInfos = {};
+        this.thumbnails = {};
+        this.imgFolders = {};
+        this.imgFolderInfo = {};
 
         this.setStateAndSetHash({
             pageIndex: 1,
