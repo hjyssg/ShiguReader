@@ -37,7 +37,7 @@ const encodeFileUrl = module.exports.encodeFileUrl = function(url){
     return result;
 }
 
-const getBaseNameWithoutExtention = function (fn, seperator) {
+const getBaseNameWithoutExtention = module.exports.getBaseNameWithoutExtention = function (fn, seperator) {
     seperator = seperator || "/"
     if (!fn) { return ""; }
     return getBaseName(fn, seperator).split(".")[0];

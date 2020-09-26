@@ -1,9 +1,18 @@
 @import "vars.scss";
 
-.click-and-copy-text {
-  cursor: copy;
-  @include flex_center_display;
-  &:hover{
-    @include third_hover_effect();
+
+
+.aji-file-name{
+  .click-and-copy-text {
+    cursor: copy;
+    @include flex_center_display;
+    &:hover{
+      @include third_hover_effect();
+    }
+  }
+
+  .embed-link {
+    // font-weight: 500;
+    color: #bdf0cb !important;
   }
 }

@@ -8,7 +8,6 @@ const name_regex = new RegExp(name_entris.join("|"));
 const family_name_regex = new RegExp(family_names.join("|"));
 
 
-
 const localCache = {};
 function pick(str) {
     if (!str || localCache[str] === "NO_EXIST") {
@@ -24,7 +23,8 @@ function pick(str) {
     //I dont use NLP library, because 
     //1.their size is too big
     //2. they cut a fullname into last name and meaningless substr
-    let tokens = str.split(/[ \dA-Za-z.,\/#!$%\^&＆\*;:{}=\-_`~()\[\]\–-、｀～？！＠@、。／『』「」；’：・｜＝＋]/).filter(e => !!e);
+    const sep = /[ \dA-Za-z.,\/#!$%\^&＆\*;:{}=\-_`~()\[\]\–-、｀～？！＠@、。／『』「」；’：・｜＝＋]/;
+    let tokens = splitBySpace(str, sep);
     tokens.forEach(tt => {
         const nameEntry = tt.match(name_regex);
         // const nameEntry = getContainSubstring(name_entris, tt);
@@ -55,4 +55,8 @@ function pick(str) {
     return result;
 }
 
+const splitBySpace = module.exports.splitBySpace = function(str, sep) {
+    sep = sep || /[ \.,\/#!$%\^&＆\*;:{}=\-_`~()\[\]\–-、｀～？！＠@、。／『』「」；’：・｜＝＋]/;
+    return str.split(sep).filter(e => !!e)
+}
 module.exports.pick = pick;
