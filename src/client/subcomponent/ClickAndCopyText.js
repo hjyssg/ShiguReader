@@ -87,12 +87,12 @@ export default class ClickAndCopyText extends Component {
     }else{
       const nameTags = namePicker.pick(text)||[];
       allTags = allTags.concat(nameTags);
-
-      if(nameTags.length === 0){
-        let lessTags = namePicker.splitBySpace(text);
-        allTags = allTags.concat(lessTags);
-      }
     }
+
+    //less meaningful
+    let lessTags = namePicker.splitBySpace(text);
+    lessTags = lessTags.filter(e => !allTags.includes(e));
+    allTags = allTags.concat(lessTags);
 
     allTags = _.uniq(allTags);
     //sort by its index
@@ -115,11 +115,11 @@ export default class ClickAndCopyText extends Component {
       for(let jj = ii+1; jj < allTags.length; jj++){
         const t2 = allTags[jj];
         if(t1.includes(t2)){
-          // if(lessTags.includes(t1)){
-          //   willRemove[t1] = true;
-          // }else{
-          //   willRemove[t2] = true;
-          // }
+          if(lessTags.includes(t1)){
+            willRemove[t1] = true;
+          }else{
+            willRemove[t2] = true;
+          }
 
           willRemove[t2] = true;
         }
@@ -146,7 +146,14 @@ export default class ClickAndCopyText extends Component {
         }else{
           url = clientUtil.getSearhLink(tag);
         }
-        const link = <a className="embed-link"  target="_blank" href={url}  key={tag}>{tag}</a>;
+
+        const lsLessImportant = lessTags.includes(tag);
+
+        const cn = classNames("embed-link", {
+          "with-color": !lsLessImportant
+        });
+
+        const link = <a className={cn}  target="_blank" href={url}  key={tag}>{tag}</a>;
         formatArr.push(link);
       }else{
         formatArr.push(token);
@@ -159,11 +166,11 @@ export default class ClickAndCopyText extends Component {
   
   render(){
     const { text, className, isVideo, ...others } = this.props;
-    const cn = classNames("click-and-copy-text", className, "fas fa-copy")
+    const cn2 = classNames("click-and-copy-text", className, "fas fa-copy")
     return(
     <span className="aji-file-name">
       {this.getText()}
-    <span onClick={this.onTitleClick.bind(this)} className={cn}/>
+      <span onClick={this.onTitleClick.bind(this)} className={cn2}/>
     </span>)
   }
 }

@@ -12,7 +12,11 @@
   }
 
   .embed-link {
+    color: #DDDDDD !important;
+    
+    &.with-color{
+      color: #bdf0cb !important;
+    }
     // font-weight: 500;
-    color: #bdf0cb !important;
   }
 }
