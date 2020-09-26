@@ -9,9 +9,6 @@ const nameParser = require('@name-parser');
 import _ from 'underscore';
 
 
-
-
-
 function iosCopyToClipboard(el) {
   //https://stackoverflow.com/questions/34045777/copy-to-clipboard-using-javascript-in-ios/34046084
   var oldContentEditable = el.contentEditable,
