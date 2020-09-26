@@ -57,6 +57,11 @@ function pick(str) {
 
 const splitBySpace = module.exports.splitBySpace = function(str, sep) {
     sep = sep || /[ \.,\/#!$%\^&＆\*;:{}=\-_`~()\[\]\–-、｀～？！＠@、。／『』「」；’：・｜＝＋]/;
-    return str.split(sep).filter(e => !!e)
+    const res = str.split(sep).filter(e => !!e);
+    if(res.length === 1){
+        return [];
+    }
+    return res;
+
 }
 module.exports.pick = pick;

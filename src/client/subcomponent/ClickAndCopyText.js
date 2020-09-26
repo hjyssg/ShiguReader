@@ -85,20 +85,16 @@ export default class ClickAndCopyText extends Component {
       }
       allTags = allTags.concat(originalTags);
     }else{
-      let lessTags = namePicker.splitBySpace(text);
-      // lessTags = lessTags.filter(e => {
-      //   if(pResult && pResult.title && pResult.title.includes(e)  &&  e.length > pResult.title.length -3 ){
-      //     return false;
-      //   }
-      //   return true;
-      // })
-      allTags = allTags.concat(lessTags);
+      const nameTags = namePicker.pick(text)||[];
+      allTags = allTags.concat(nameTags);
+
+      if(nameTags.length === 0){
+        let lessTags = namePicker.splitBySpace(text);
+        allTags = allTags.concat(lessTags);
+      }
     }
 
-    const nameTags = namePicker.pick(text)||[];
-    allTags = allTags.concat(nameTags);
     allTags = _.uniq(allTags);
-
     //sort by its index
     const tagIndexes = {};
     allTags.forEach(tag => {
