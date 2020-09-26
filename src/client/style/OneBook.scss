@@ -182,6 +182,15 @@
   @include flex_center_display;
   font-size: 14px;
 
+  .small-box{
+    flex-direction: row;
+    @include flex_center_display;
+
+    .folder-link{
+      margin-right: 10px;
+    }
+  }
+
   a {
     color: $font_color_white_one !important;
   }
