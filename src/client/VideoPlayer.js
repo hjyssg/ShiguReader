@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import _ from 'underscore';
 import './style/VideoPlayer.scss';
-import ClickAndCopyText from './subcomponent/ClickAndCopyText';
+import FileNameDiv from './subcomponent/FileNameDiv';
 import FileChangeToolbar from './subcomponent/FileChangeToolbar';
 const clientUtil = require("./clientUtil");
 const { getDir, getBaseName, filesizeUitl } = clientUtil;
@@ -50,22 +50,8 @@ export default class VideoPlayer extends Component {
   
   renderTag(){
     const filePath = this.getTextFromQuery();
-    const fn = getBaseName(filePath);
     const dirName = getBaseName(getDir(filePath));
-    const tags1 = namePicker.pick(fn) || [];
-    const tags2 = namePicker.pick(dirName) || []; 
-    let tags = tags1.concat(tags2);
-
-    const result = nameParser.parse(fn);
-
-    if(result){
-      [result.author].concat(result.tags).forEach(value => {
-        if(value){
-          tags = tags.concat(value);
-        }
-      })
-    }
-
+    let tags = namePicker.pick(dirName) || []; 
     tags = _.uniq(tags);
     
     if(tags){
@@ -97,7 +83,7 @@ export default class VideoPlayer extends Component {
     const {hasError, stat} = this.state;
     //use bootstrap classname util 
     const videoTitle = filePath && (<div className="video-title"> 
-                          <center> <ClickAndCopyText text={fileName} className="inline-display" /></center>
+                          <center> <FileNameDiv filename={fileName} className="inline-display" /></center>
                           {this.renderPath()}
                          </div>);
 

@@ -37,10 +37,17 @@ const encodeFileUrl = module.exports.encodeFileUrl = function(url){
     return result;
 }
 
-const getBaseNameWithoutExtention = function (fn, seperator) {
+const getBaseNameWithoutExtention = module.exports.getBaseNameWithoutExtention = function (fn, seperator) {
     seperator = seperator || "/"
-    if (!fn) { return ""; }
-    return getBaseName(fn, seperator).split(".")[0];
+    if (!fn) { 
+        return ""; 
+    }
+    const tokens = getBaseName(fn, seperator).split(".");
+    if(tokens.length < 2){
+        return fn;
+    }else{
+        return tokens.slice(0, tokens.length - 1).join(".");
+    }
 };
 
 module.exports.isIOS = function(){
@@ -135,6 +142,7 @@ module.exports.getVideoPlayerLink = function(path){
 }
 
 module.exports.getDownloadLink = function(path){
+    if(!path){ return ""; }
     return "/api/download/?p=" + encodeURIComponent(path);
 }
 

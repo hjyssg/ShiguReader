@@ -10,7 +10,7 @@ import Sender from './Sender';
 import './style/OneBook.scss';
 import ErrorPage from './ErrorPage';
 import CenterSpinner from './subcomponent/CenterSpinner';
-import ClickAndCopyText from './subcomponent/ClickAndCopyText';
+import FileNameDiv from './subcomponent/FileNameDiv';
 import FileChangeToolbar from './subcomponent/FileChangeToolbar';
 import LoadingImage from './LoadingImage';
 import MusicPlayer from './MusicPlayer';
@@ -291,6 +291,7 @@ export default class OneBook extends Component {
 
         //files name can be 001.jpg, 002.jpg, 011.jpg, 012.jpg
         //or 1.jpg, 2.jpg 3.jpg 1.jpg
+        //todo: the sort is wrong for imgFolder
         sortFileNames(files);
         sortFileNames(musicFiles);
 
@@ -406,7 +407,8 @@ export default class OneBook extends Component {
       const size = filesizeUitl(fileStat.size);
       const avg = filesizeUitl(avgFileSize);
       const mTime = dateFormat(fileStat.mtime, "isoDate");
-      const title = getBaseName(files[index], "/" );
+      const sep = this.isImgFolder()? "\\" : "/"; 
+      const title = getBaseName(files[index], sep );
       const dim = "";  //change by dom operation
       const titles = [
         "Modify Time",
@@ -541,6 +543,13 @@ export default class OneBook extends Component {
     const parentPath = getDir(this.state.path);
     const toUrl = clientUtil.getExplorerLink(parentPath);
 
+    // let link2;
+    // if(this.isImgFolder()){
+    //   const dir = this.getTextFromQuery();
+    //   const toDirUrl = clientUtil.getExplorerLink(dir);
+    //   link2 = (<Link to={toDirUrl} className="folder-link"> <div className="far fa-folder"/></Link>)
+    // }
+
     return (
       <div className="one-book-path">
         <Link to={toUrl}>{parentPath} </Link>
@@ -583,58 +592,18 @@ export default class OneBook extends Component {
   renderTags(){
     const fn = getBaseName(this.getTextFromQuery());
     const dirName = getBaseName(getDir(this.getTextFromQuery()));
-    const result = nameParser.parse(fn);
-    let tagDivs;
-    let allTags = [];
-    let originalTags;
-    let authors;
-
-    if(result){
-      originalTags = result.tags;
-      authors = result.authors;
-
-      if(result.comiket){
-        allTags.push(result.comiket);
-      }
-
-      if(result.group){
-        allTags.push(result.group);
-      }
-      
-      if(authors){
-        allTags = allTags.concat(authors);
-      }
-      allTags = allTags.concat(originalTags);
-    }
 
     //the folder name can be be the author name
-    if(fn.includes(dirName) && !authors){
-      allTags.push(dirName);
+    if(fn.includes(dirName)){
+      const tag = dirName;
+      const url =  clientUtil.getSearhLink(tag);
+      let tagDiv = (<div key={tag} className="one-book-foot-author" >
+                    <Link  target="_blank" to={url}  key={tag}>{tag}</Link>
+                </div>);
+      return (<div className="one-book-tags">{tagDiv}</div>);
+    }else{
+      return null;
     }
-
-    if(this.hasMusic()){
-      allTags = allTags.concat(namePicker.pick(fn)||[], nameParser.parseMusicTitle(fn));
-    }
-    allTags = _.uniq(allTags);
-
-    tagDivs = allTags.map( tag => {
-      let url;
-      if(authors && authors.includes(tag)){
-        url = clientUtil.getAuthorLink(tag);
-      }else if(originalTags && originalTags.includes(tag)){
-        url = clientUtil.getTagLink(tag);
-      }else{
-        url =  clientUtil.getSearhLink(tag);
-      }
-      
-      return (<div key={tag} className="one-book-foot-author" >
-                <Link  target="_blank" to={url}  key={tag}>{tag}</Link>
-              </div>);
-    })
-
-    return (<div className="one-book-tags">
-            {tagDivs}
-          </div>);
   }
 
 
@@ -665,8 +634,6 @@ export default class OneBook extends Component {
             </div>);
   }
 
- 
-
   render() {
     if (this.isFailedLoading()) { 
       let userText;
@@ -681,17 +648,9 @@ export default class OneBook extends Component {
       return <ErrorPage res={this.res.res} userText={userText}/>;
     }
 
-    let link2;
-    if(this.isImgFolder()){
-      const dir = this.getTextFromQuery();
-      const toDirUrl = clientUtil.getExplorerLink(dir);
-      link2 = (<Link to={toDirUrl} className="folder-link"> <div className="far fa-folder"/></Link>)
-    }
-    
-    
     const { files, index, musicFiles } = this.state;
     const bookTitle = (<div className="one-book-title" >
-                          <div className="small-box"> {link2} <ClickAndCopyText text={getBaseName(this.state.path)} />  </div>
+                           <FileNameDiv filename={getBaseName(this.state.path)} />
                           {this.renderPath()} 
                       </div>);
 
