@@ -102,3 +102,9 @@ module.exports.img_reduce_resolution_dimension = "2800x2800";
 //可以阅读文件夹的图片，就不需要打包成zip
 //但可能用很多内存
 module.exports.view_img_folder = true;
+
+
+//global password
+//when set, user need to enter password to use ShiguReader
+//全局密码，设置以后用户必须输入密码才能打开网站
+module.exports.home_password = ""

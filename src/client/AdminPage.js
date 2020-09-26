@@ -148,7 +148,7 @@ export default class AdminPage extends Component {
             content = (<div className="admin-section-title"> You are authorized to move/delete files. </div>)
         }else{
             content = (<React.Fragment>
-                        <div className="admin-section-title">Type password to move/delete file </div>
+                        <div className="admin-section-title">Enter password to move/delete file </div>
                         <div className="admin-section-content">
                         <input className="admin-intput" ref={pathInput => this.passwordInputRef = pathInput}
                                     placeholder="...type here"  onChange={this.setPasswordCookie.bind(this)}/>

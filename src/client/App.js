@@ -13,6 +13,8 @@ import screenfull from 'screenfull';
 const clientUtil = require("./clientUtil");
 const { getSearchInputText } = clientUtil;
 import { ToastContainer } from 'react-toastify';
+import ReactDOM from 'react-dom';
+import Cookie from "js-cookie";
 import 'react-toastify/dist/ReactToastify.css';
 
 // http://localhost:3000/
@@ -102,8 +104,40 @@ class App extends Component {
         // You can also log the error to an error reporting service
         console.error(error, info);
     }
+
+    getPasswordInput(){
+        const pathInput = ReactDOM.findDOMNode(this.passwordInputRef);
+        const text = (pathInput && pathInput.value) || "";
+        return text;
+    }
+
+    setPasswordCookie(){
+        const text = this.getPasswordInput();
+        Cookie.set("home-password", text, { expires: 3 });
+        this.forceUpdate();
+    }
+
+    renderPasswordInput(){
+        let content = (<React.Fragment>
+                        <div className="admin-section-title">Enter password to use Shigureader</div>
+                        <div className="admin-section-content">
+                        <input className="admin-intput" ref={pathInput => this.passwordInputRef = pathInput}
+                                    placeholder="...type here"  onChange={this.setPasswordCookie.bind(this)}/>
+                        </div>
+                        </React.Fragment>);
+
+        return (
+            <div className="home-admin-section">
+                {content}
+            </div>
+        )
+    }
     
     render() {
+        if(!clientUtil.isAllowedToEnter()){
+            return this.renderPasswordInput();
+        }
+
         // document.title = this.getWebTitle();
         if(this.searchText){
             const path = clientUtil.getSearhLink(this.searchText);

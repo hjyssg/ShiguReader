@@ -80,6 +80,17 @@ module.exports.isAuthorized = function(){
     }
 }
 
+module.exports.isAllowedToEnter = function(){
+    const userConfig = require('@config/user-config');
+    if(!userConfig.home_password){
+        return true;
+    }
+
+    const Cookie = require("js-cookie");
+    const password =  Cookie.get('home-password');
+    return userConfig.home_password === password;
+}
+
 // module.exports.cleanSearchStr = function(str){
 //     // search/ケマオ9% will break everything
 //     // it is too troublesome to do everything in url encoding 

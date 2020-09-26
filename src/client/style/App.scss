@@ -130,3 +130,14 @@ a {
     }
   }
 }
+
+//https://stackoverflow.com/questions/31217268/center-div-on-the-middle-of-screen
+.home-admin-section{
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  margin-top: -50px;
+  margin-left: -50px;
+  width: 300px;
+  height: 200px;
+}
