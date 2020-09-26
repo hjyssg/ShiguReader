@@ -108,3 +108,6 @@ module.exports.view_img_folder = true;
 //when set, user need to enter password to use ShiguReader
 //全局密码，设置以后用户必须输入密码才能打开网站
 module.exports.home_password = ""
+
+//do not display a zip if it has no image files or music files
+module.exports.filter_empty_zip = true;

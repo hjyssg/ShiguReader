@@ -469,12 +469,22 @@ export default class ExplorerPage extends Component {
 
         const filterText = _.isString(this.state.filterText) && this.state.filterText.toLowerCase();
         if(filterText){
-            return files.filter(e => {
+            files = files.filter(e => {
                 return e.toLowerCase().indexOf(filterText) > -1;
             });
-        }else{
-            return files;
         }
+
+        if(userConfig.filter_empty_zip){
+            files = files.filter(e => {
+                if(this.hasZipInfo(e)){
+                    if(this.getMusicNum(e) === 0 && this.getPageNum(e) === 0){
+                        return false;
+                    }
+                }
+                return true;
+            });
+        }
+        return files;
     }
 
     getFilteredVideos(){
