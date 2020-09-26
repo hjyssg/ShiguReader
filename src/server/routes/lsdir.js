@@ -9,7 +9,7 @@ const express = require('express');
 const router = express.Router();
 const serverUtil = require("../serverUtil");
 const db = require("../models/db");
-const { loopEachFileInfo, getFileCollection, getFileToInfo, getFakeZipInfo } = db;
+const { loopEachFileInfo, getFileCollection, getFileToInfo, getImgFolderInfo } = db;
 const util = global.requireUtil();
 const { getCurrentTime, isDisplayableInExplorer, escapeRegExp, isImage, isMusic } = util;
 const path = require('path');
@@ -72,14 +72,14 @@ router.post('/api/lsDir', async (req, res) => {
         }
     })
 
-    const fake_zip_results = getFileCollection()
+    const img_files_results = getFileCollection()
     .chain()
     .find({'filePath': { '$regex' : reg }, isDisplayableInOnebook: true })
     .where(obj => isSub(dir, obj.filePath)).data();
 
-    const fakeZips = {};
+    const imgFolders = {};
 
-    fake_zip_results.forEach(obj => {
+    img_files_results.forEach(obj => {
         //reduce by its parent folder
         const pp = path.dirname(obj.filePath);
         if(pp === dir){
@@ -87,19 +87,19 @@ router.post('/api/lsDir', async (req, res) => {
         }
 
         if(isRecursive){
-            fakeZips[pp] = fakeZips[pp] || [];
-            fakeZips[pp].push(obj.filePath);
+            imgFolders[pp] = imgFolders[pp] || [];
+            imgFolders[pp].push(obj.filePath);
         }else {
             if(isDirectParent(dir, pp)){
-                fakeZips[pp] = fakeZips[pp] || [];
-                fakeZips[pp].push(obj.filePath);
+                imgFolders[pp] = imgFolders[pp] || [];
+                imgFolders[pp].push(obj.filePath);
             }else{
                 addParent(pp);
             }
         }
     })
 
-    const fakeZipInfo = getFakeZipInfo(fakeZips);
+    const imgFolderInfo = getImgFolderInfo(imgFolders);
 
     const time2 = getCurrentTime();
     const timeUsed = (time2 - time1)/1000;
@@ -112,8 +112,8 @@ router.post('/api/lsDir', async (req, res) => {
     result = { dirs: _dirs, 
                path: dir, 
                fileInfos, 
-               fakeZipInfo,
-               fakeZips,
+               imgFolderInfo,
+               imgFolders,
                thumbnails: getThumbnails(files),
                zipInfo: getZipInfo(files),
                guessIfUserLike: serverUtil.common.guessIfUserLike(files)
@@ -150,7 +150,7 @@ router.post('/api/listFolderContent', async (req, res) => {
 
     const mapping = {};
     mapping[filePath] = _files;
-    const info = getFakeZipInfo(mapping)[filePath];
+    const info = getImgFolderInfo(mapping)[filePath];
 
     //ugly code here
     result = { zipInfo : info, 

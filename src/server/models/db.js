@@ -140,10 +140,10 @@ module.exports.deleteFromDb = function(path){
     deleteFromFileDb(path);
 }
 
-module.exports.getFakeZipInfo = function(fakeZips){
-    const fakeZipInfo = {} ;
-    _.keys(fakeZips).forEach(folder => {
-        const files = fakeZips[folder];
+module.exports.getImgFolderInfo = function(imgFolders){
+    const imgFolderInfo = {} ;
+    _.keys(imgFolders).forEach(folder => {
+        const files = imgFolders[folder];
         const len = files.length;
         let  mtimeMs = 0, size = 0, totalImgSize = 0, pageNum = 0, musicNum = 0;
         files.forEach(file => {
@@ -160,7 +160,7 @@ module.exports.getFakeZipInfo = function(fakeZips){
         })
 
         //!! same as file-iterator getStat()
-        fakeZipInfo[folder] = {
+        imgFolderInfo[folder] = {
             isFile: false,
             isDir: true,
             mtimeMs,
@@ -172,7 +172,7 @@ module.exports.getFakeZipInfo = function(fakeZips){
         };
     })
 
-    return fakeZipInfo;
+    return imgFolderInfo;
 }
 
 //---------------------------------------------cache db---------------------

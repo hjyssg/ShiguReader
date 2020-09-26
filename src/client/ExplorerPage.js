@@ -254,8 +254,8 @@ export default class ExplorerPage extends Component {
             this.author = "";
             this.fileInfos = {};
             this.thumbnails = {};
-            this.fakeZips = {};
-            this.fakeZipInfo = {};
+            this.imgFolders = {};
+            this.imgFolderInfo = {};
             this.res = null;
             //init state
             this.setStateAndSetHash(this.getInitState(true));
@@ -265,7 +265,7 @@ export default class ExplorerPage extends Component {
 
     handleRes(res){
         if (!res.failed) {
-            let {dirs, tag, author, fileInfos, thumbnails, zipInfo, fakeZips, fakeZipInfo,  guessIfUserLike} = res;
+            let {dirs, tag, author, fileInfos, thumbnails, zipInfo, imgFolders, imgFolderInfo,  guessIfUserLike} = res;
             this.loadedHash = this.getTextFromQuery();
             this.fileInfos = fileInfos || {};
             const files = _.keys(this.fileInfos) || [];
@@ -277,11 +277,11 @@ export default class ExplorerPage extends Component {
             this.thumbnails = thumbnails || {};
             this.zipInfo = zipInfo || {};
             this.guessIfUserLike = guessIfUserLike || {};
-            this.fakeZips = fakeZips || {};
-            this.fakeZipInfo = fakeZipInfo || {};
+            this.imgFolders = imgFolders || {};
+            this.imgFolderInfo = imgFolderInfo || {};
             this.res = res;
 
-            this.allfileInfos = _.extend({}, this.fileInfos, this.fakeZipInfo);
+            this.allfileInfos = _.extend({}, this.fileInfos, this.imgFolderInfo);
 
             if(this.videoFiles.length > 0){
                 this.setStateAndSetHash({
@@ -343,8 +343,8 @@ export default class ExplorerPage extends Component {
     //comes from file db.
     //may not be reliable
     getFileSize(e){
-        if(this.fakeZipInfo[e]){
-            return this.fakeZipInfo[e].size;
+        if(this.imgFolderInfo[e]){
+            return this.imgFolderInfo[e].size;
         }
         return (this.fileInfos[e] && this.fileInfos[e].size) || 0;
     }
@@ -358,8 +358,8 @@ export default class ExplorerPage extends Component {
     }
 
     getPageNum(fp){
-        if(this.fakeZips[fp]){
-            return this.fakeZips[fp].filter(isImage).length;
+        if(this.imgFolders[fp]){
+            return this.imgFolders[fp].filter(isImage).length;
         }
         return +(this.zipInfo[fp] && this.zipInfo[fp].pageNum) || 0;
     }
@@ -379,8 +379,8 @@ export default class ExplorerPage extends Component {
     //comes from zipInfo libray, may not be reliable
     //because sometimes, filename dont chane but the size change 
     getTotalImgSize(fp){
-        if(this.fakeZips[fp]){
-            return this.fakeZipInfo[fp].totalImgSize;
+        if(this.imgFolders[fp]){
+            return this.imgFolderInfo[fp].totalImgSize;
         }
        return +(this.zipInfo[fp] && this.zipInfo[fp].totalImgSize) || 0;
     }
@@ -408,15 +408,15 @@ export default class ExplorerPage extends Component {
     }
 
     getMusicNum(fp){
-        if(this.fakeZips[fp]){
-            return this.fakeZips[fp].filter(isMusic).length;
+        if(this.imgFolders[fp]){
+            return this.imgFolders[fp].filter(isMusic).length;
         }
         return +(this.zipInfo[fp] && this.zipInfo[fp].musicNum) || 0;
     }
     
     getFilteredFiles(){
         let files = this.files || [];
-        files = files.concat(_.keys(this.fakeZips))
+        files = files.concat(_.keys(this.imgFolders))
         const goodSet = this.state.goodAuthors;
         const otherSet = this.state.otherAuthors;
         const guessIfUserLike = this.guessIfUserLike;
@@ -641,7 +641,7 @@ export default class ExplorerPage extends Component {
 
                 const hasZipInfo = this.hasZipInfo(item);
                 const musicNum = this.getMusicNum(item);
-                const isFakeZip = !!this.fakeZips[item];
+                const isImgFolder = !!this.imgFolders[item];
                 const hasMusic = musicNum > 0;
                 const pageNum = this.getPageNum(item);
 
@@ -650,9 +650,9 @@ export default class ExplorerPage extends Component {
                 })
 
                 let thumbnailurl;
-                if(isFakeZip){
+                if(isImgFolder){
                     //todo sort and choose
-                    const _imgs = this.fakeZips[item].filter(isImage);
+                    const _imgs = this.imgFolders[item].filter(isImage);
                     clientUtil.sortFileNames(_imgs)
                     const tp = _imgs[0];
                     thumbnailurl = clientUtil.getDownloadLink(tp);
@@ -666,7 +666,7 @@ export default class ExplorerPage extends Component {
                         <Link  target="_blank" to={toUrl}  key={item} className={"file-cell-inner"}>
                             <FileCellTitle str={text}/>
                             <LoadingImage 
-                                    asSimpleImage={isFakeZip}
+                                    asSimpleImage={isImgFolder}
                                     isThumbnail 
                                     className={"file-cell-thumbnail"} 
                                     title={item} fileName={item}   
@@ -676,11 +676,11 @@ export default class ExplorerPage extends Component {
                         </Link>
                         <div className={fileInfoRowCn}>
                             <span title="file size">{fileSizeStr}</span>
-                            {(hasZipInfo || isFakeZip)  &&  <span>{`${pageNum} pages`}</span>}
+                            {(hasZipInfo || isImgFolder)  &&  <span>{`${pageNum} pages`}</span>}
                             {hasMusic  &&  <span>{`${musicNum} songs`}</span>}
                             <span title="average img size"> {avgSizeStr} </span>
                         </div>
-                        <FileChangeToolbar isFolder={isFakeZip} hasMusic={hasMusic} className="explorer-file-change-toolbar" file={item} />
+                        <FileChangeToolbar isFolder={isImgFolder} hasMusic={hasMusic} className="explorer-file-change-toolbar" file={item} />
                     </div>
                 </div>);
             }

@@ -33,7 +33,7 @@ const { isImage, isCompress, isMusic, arraySlice,
 
 //set up path
 const rootPath = pathUtil.getRootPath();
-const { cache_folder_name, thumbnail_folder_name } = userConfig
+const { cache_folder_name, thumbnail_folder_name, view_img_folder } = userConfig
 const cachePath = path.join(rootPath, cache_folder_name);
 const thumbnailFolderPath = path.join(rootPath, thumbnail_folder_name);
 global.cachePath = cachePath;
@@ -121,7 +121,7 @@ async function init() {
 
     let beg = (new Date).getTime()
     const results = await fileiterator(path_will_scan, { 
-        filter: shouldWatchForOne, 
+        filter: shouldWatchForNormal, 
         doLog: true
     });
     results.pathes = results.pathes.concat(home_pathes);
@@ -212,16 +212,24 @@ function getExt(p){
     }
 }
 
-function shouldWatchForOne(p){
+//this function which files will be scanned and watched by ShiguReader
+function shouldWatchForNormal(p){
     if(isHiddenFile(p)){
         return false;
     }
     const ext = getExt(p);
-    return  !ext ||  isDisplayableInExplorer(ext) ||  isDisplayableInOnebook(ext);
+    //not accurate, but performance is good. access each file is very slow
+    const isFolder = !ext; 
+    let result = isFolder  ||  isDisplayableInExplorer(ext);
+
+    if(view_img_folder){
+        result = result ||  isDisplayableInOnebook(ext)
+    }
+    return  result;
 }
 
-function shouldIgnoreForOne(p){
-    return !shouldWatchForOne(p);
+function shouldIgnoreForNormal(p){
+    return !shouldWatchForNormal(p);
 }
 
 function shouldIgnoreForCache(p){
@@ -242,7 +250,7 @@ function setUpFileWatch (path_will_scan){
     //watch file change 
     //update two database
     const watcher = chokidar.watch(path_will_scan, {
-        ignored: shouldIgnoreForOne,
+        ignored: shouldIgnoreForNormal,
         ignoreInitial: true,
         persistent: true,
         ignorePermissionErrors: true

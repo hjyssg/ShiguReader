@@ -270,13 +270,13 @@ export default class OneBook extends Component {
     });
   }
 
-  isFakeZip(){
+  isImgFolder(){
     return !util.isCompress(this.getTextFromQuery())
   }
   
   sendExtract(){
     const fp = this.getTextFromQuery();
-    const api = this.isFakeZip()?  "/api/listFolderContent" : "/api/extract";
+    const api = this.isImgFolder()?  "/api/listFolderContent" : "/api/extract";
 
     Sender.post(api, {filePath: fp, startIndex: this.state.index||0 }, res => {
         this.handleRes(res);
@@ -442,7 +442,7 @@ export default class OneBook extends Component {
       return "";
     }
 
-    if(this.isFakeZip()){
+    if(this.isImgFolder()){
       return clientUtil.getDownloadLink(url);
     }else{
       return getFileUrl(url);
@@ -543,7 +543,7 @@ export default class OneBook extends Component {
     const toUrl = clientUtil.getExplorerLink(parentPath);
 
     let link2;
-    if(this.isFakeZip()){
+    if(this.isImgFolder()){
       const dir = this.getTextFromQuery();
       const toDirUrl = clientUtil.getExplorerLink(dir);
       link2 = (<Link to={toDirUrl}>{dir} </Link>)
@@ -560,7 +560,7 @@ export default class OneBook extends Component {
     if (!this.state.path) {
       return;
     }
-    const toolbar = <FileChangeToolbar isFolder={this.isFakeZip()} bigFont={true} showAllButtons className="one-book-toolbar" file={this.state.path} popPosition={"top-center"}/>;
+    const toolbar = <FileChangeToolbar isFolder={this.isImgFolder()} bigFont={true} showAllButtons className="one-book-toolbar" file={this.state.path} popPosition={"top-center"}/>;
     return toolbar;
   }
 
@@ -577,7 +577,7 @@ export default class OneBook extends Component {
     if(this.hasMusic()){
       let { musicFiles } = this.state;
 
-      // if(this.isFakeZip()){
+      // if(this.isImgFolder()){
       //   musicFiles = musicFiles.map(e => clientUtil.getDownloadLink(e));
       // }
 
