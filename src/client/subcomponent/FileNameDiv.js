@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import '../style/ClickAndCopyText.scss';
+import '../style/FileNameDiv.scss';
 import PropTypes from 'prop-types';
 var classNames = require('classnames');
 const clientUtil = require("../clientUtil");
@@ -31,7 +31,7 @@ function iosCopyToClipboard(el) {
   document.execCommand('copy');
 }
 
-export default class ClickAndCopyText extends Component {
+export default class FileNameDiv extends Component {
   onTitleClick(){
     //https://stackoverflow.com/questions/49236100/copy-text-from-span-to-clipboard
     var textArea = document.createElement("textarea");
@@ -190,6 +190,6 @@ export default class ClickAndCopyText extends Component {
   }
 }
 
-ClickAndCopyText.propTypes = { 
+FileNameDiv.propTypes = { 
   filename: PropTypes.string
 };

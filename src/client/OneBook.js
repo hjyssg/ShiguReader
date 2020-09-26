@@ -10,7 +10,7 @@ import Sender from './Sender';
 import './style/OneBook.scss';
 import ErrorPage from './ErrorPage';
 import CenterSpinner from './subcomponent/CenterSpinner';
-import ClickAndCopyText from './subcomponent/ClickAndCopyText';
+import FileNameDiv from './subcomponent/FileNameDiv';
 import FileChangeToolbar from './subcomponent/FileChangeToolbar';
 import LoadingImage from './LoadingImage';
 import MusicPlayer from './MusicPlayer';
@@ -649,7 +649,7 @@ export default class OneBook extends Component {
 
     const { files, index, musicFiles } = this.state;
     const bookTitle = (<div className="one-book-title" >
-                           <ClickAndCopyText filename={getBaseName(this.state.path)} />
+                           <FileNameDiv filename={getBaseName(this.state.path)} />
                           {this.renderPath()} 
                       </div>);
 

@@ -39,9 +39,15 @@ const encodeFileUrl = module.exports.encodeFileUrl = function(url){
 
 const getBaseNameWithoutExtention = module.exports.getBaseNameWithoutExtention = function (fn, seperator) {
     seperator = seperator || "/"
-    if (!fn) { return ""; }
+    if (!fn) { 
+        return ""; 
+    }
     const tokens = getBaseName(fn, seperator).split(".");
-    return tokens.slice(0, tokens.length - 1).join(".");
+    if(tokens.length < 2){
+        return fn;
+    }else{
+        return tokens.slice(0, tokens.length - 1).join(".");
+    }
 };
 
 module.exports.isIOS = function(){

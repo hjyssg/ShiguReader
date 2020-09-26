@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import _ from 'underscore';
 import './style/VideoPlayer.scss';
-import ClickAndCopyText from './subcomponent/ClickAndCopyText';
+import FileNameDiv from './subcomponent/FileNameDiv';
 import FileChangeToolbar from './subcomponent/FileChangeToolbar';
 const clientUtil = require("./clientUtil");
 const { getDir, getBaseName, filesizeUitl } = clientUtil;
@@ -83,7 +83,7 @@ export default class VideoPlayer extends Component {
     const {hasError, stat} = this.state;
     //use bootstrap classname util 
     const videoTitle = filePath && (<div className="video-title"> 
-                          <center> <ClickAndCopyText filename={fileName} className="inline-display" /></center>
+                          <center> <FileNameDiv filename={fileName} className="inline-display" /></center>
                           {this.renderPath()}
                          </div>);
 
