@@ -50,22 +50,8 @@ export default class VideoPlayer extends Component {
   
   renderTag(){
     const filePath = this.getTextFromQuery();
-    const fn = getBaseName(filePath);
     const dirName = getBaseName(getDir(filePath));
-    const tags1 = namePicker.pick(fn) || [];
-    const tags2 = namePicker.pick(dirName) || []; 
-    let tags = tags1.concat(tags2);
-
-    const result = nameParser.parse(fn);
-
-    if(result){
-      [result.author].concat(result.tags).forEach(value => {
-        if(value){
-          tags = tags.concat(value);
-        }
-      })
-    }
-
+    let tags = namePicker.pick(dirName) || []; 
     tags = _.uniq(tags);
     
     if(tags){

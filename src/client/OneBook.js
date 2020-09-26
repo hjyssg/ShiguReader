@@ -583,39 +583,13 @@ export default class OneBook extends Component {
   renderTags(){
     const fn = getBaseName(this.getTextFromQuery());
     const dirName = getBaseName(getDir(this.getTextFromQuery()));
-    const result = nameParser.parse(fn);
     let tagDivs;
     let allTags = [];
-    let originalTags;
-    let authors;
-
-    if(result){
-      originalTags = result.tags;
-      authors = result.authors;
-
-      if(result.comiket){
-        allTags.push(result.comiket);
-      }
-
-      if(result.group){
-        allTags.push(result.group);
-      }
-      
-      if(authors){
-        allTags = allTags.concat(authors);
-      }
-      allTags = allTags.concat(originalTags);
-    }
 
     //the folder name can be be the author name
-    if(fn.includes(dirName) && !authors){
+    if(fn.includes(dirName)){
       allTags.push(dirName);
     }
-
-    if(this.hasMusic()){
-      allTags = allTags.concat(namePicker.pick(fn)||[], nameParser.parseMusicTitle(fn));
-    }
-    allTags = _.uniq(allTags);
 
     tagDivs = allTags.map( tag => {
       let url;
