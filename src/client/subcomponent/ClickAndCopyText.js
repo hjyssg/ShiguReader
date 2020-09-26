@@ -61,8 +61,10 @@ export default class ClickAndCopyText extends Component {
   }
 
   getText(){
-    const text = clientUtil.getBaseNameWithoutExtention(this.props.text);
-    // const dirName = getBaseName(getDir(this.getTextFromQuery()));
+    const filename = this.props.filename;
+    const text = clientUtil.getBaseNameWithoutExtention(filename);
+    const extension = filename.replace(text, "");
+
     const pResult = nameParser.parse(text);
     let allTags = [];
     let originalTags;
@@ -94,7 +96,9 @@ export default class ClickAndCopyText extends Component {
     lessTags = lessTags.filter(e => !allTags.includes(e));
     allTags = allTags.concat(lessTags);
 
+    //unique
     allTags = _.uniq(allTags);
+
     //sort by its index
     const tagIndexes = {};
     allTags.forEach(tag => {
@@ -148,7 +152,6 @@ export default class ClickAndCopyText extends Component {
         }
 
         const lsLessImportant = lessTags.includes(tag);
-
         const cn = classNames("embed-link", {
           "with-color": !lsLessImportant
         });
@@ -158,14 +161,17 @@ export default class ClickAndCopyText extends Component {
       }else{
         formatArr.push(token);
       }
-    })
+    });
 
-    const tagInfo = {};
+    if(extension){
+      formatArr.push(extension);
+    }
+
     return <span> {formatArr} </span>
   }
   
   render(){
-    const { text, className, isVideo, ...others } = this.props;
+    const { filename, className, isVideo, ...others } = this.props;
     const cn2 = classNames("click-and-copy-text", className, "fas fa-copy")
     return(
     <span className="aji-file-name">
@@ -176,5 +182,5 @@ export default class ClickAndCopyText extends Component {
 }
 
 ClickAndCopyText.propTypes = { 
-  text: PropTypes.string
+  filename: PropTypes.string
 };

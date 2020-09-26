@@ -541,6 +541,13 @@ export default class OneBook extends Component {
     const parentPath = getDir(this.state.path);
     const toUrl = clientUtil.getExplorerLink(parentPath);
 
+    // let link2;
+    // if(this.isImgFolder()){
+    //   const dir = this.getTextFromQuery();
+    //   const toDirUrl = clientUtil.getExplorerLink(dir);
+    //   link2 = (<Link to={toDirUrl} className="folder-link"> <div className="far fa-folder"/></Link>)
+    // }
+
     return (
       <div className="one-book-path">
         <Link to={toUrl}>{parentPath} </Link>
@@ -583,32 +590,18 @@ export default class OneBook extends Component {
   renderTags(){
     const fn = getBaseName(this.getTextFromQuery());
     const dirName = getBaseName(getDir(this.getTextFromQuery()));
-    let tagDivs;
-    let allTags = [];
 
     //the folder name can be be the author name
     if(fn.includes(dirName)){
-      allTags.push(dirName);
+      const tag = dirName;
+      const url =  clientUtil.getSearhLink(tag);
+      let tagDiv = (<div key={tag} className="one-book-foot-author" >
+                    <Link  target="_blank" to={url}  key={tag}>{tag}</Link>
+                </div>);
+      return (<div className="one-book-tags">{tagDiv}</div>);
+    }else{
+      return null;
     }
-
-    tagDivs = allTags.map( tag => {
-      let url;
-      if(authors && authors.includes(tag)){
-        url = clientUtil.getAuthorLink(tag);
-      }else if(originalTags && originalTags.includes(tag)){
-        url = clientUtil.getTagLink(tag);
-      }else{
-        url =  clientUtil.getSearhLink(tag);
-      }
-      
-      return (<div key={tag} className="one-book-foot-author" >
-                <Link  target="_blank" to={url}  key={tag}>{tag}</Link>
-              </div>);
-    })
-
-    return (<div className="one-book-tags">
-            {tagDivs}
-          </div>);
   }
 
 
@@ -639,8 +632,6 @@ export default class OneBook extends Component {
             </div>);
   }
 
- 
-
   render() {
     if (this.isFailedLoading()) { 
       let userText;
@@ -655,17 +646,9 @@ export default class OneBook extends Component {
       return <ErrorPage res={this.res.res} userText={userText}/>;
     }
 
-    let link2;
-    if(this.isImgFolder()){
-      const dir = this.getTextFromQuery();
-      const toDirUrl = clientUtil.getExplorerLink(dir);
-      link2 = (<Link to={toDirUrl} className="folder-link"> <div className="far fa-folder"/></Link>)
-    }
-    
-    
     const { files, index, musicFiles } = this.state;
     const bookTitle = (<div className="one-book-title" >
-                          <div className="small-box"> {link2} <ClickAndCopyText text={getBaseName(this.state.path)} />  </div>
+                           <ClickAndCopyText filename={getBaseName(this.state.path)} />
                           {this.renderPath()} 
                       </div>);
 

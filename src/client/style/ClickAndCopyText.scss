@@ -6,6 +6,8 @@
   .click-and-copy-text {
     cursor: copy;
     @include flex_center_display;
+    display: inline-flex;
+    margin-left: 5px;
     &:hover{
       @include third_hover_effect();
     }
@@ -13,9 +15,10 @@
 
   .embed-link {
     color: #DDDDDD !important;
-    
+ 
     &.with-color{
-      color: #bdf0cb !important;
+      color: rgb(114, 161, 236)d !important;
+      font-weight: 600;
     }
     // font-weight: 500;
   }
