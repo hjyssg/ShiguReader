@@ -142,6 +142,7 @@ module.exports.getVideoPlayerLink = function(path){
 }
 
 module.exports.getDownloadLink = function(path){
+    if(!path){ return ""; }
     return "/api/download/?p=" + encodeURIComponent(path);
 }
 

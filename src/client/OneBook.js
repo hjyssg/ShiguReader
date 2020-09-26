@@ -291,6 +291,7 @@ export default class OneBook extends Component {
 
         //files name can be 001.jpg, 002.jpg, 011.jpg, 012.jpg
         //or 1.jpg, 2.jpg 3.jpg 1.jpg
+        //todo: the sort is wrong for imgFolder
         sortFileNames(files);
         sortFileNames(musicFiles);
 
