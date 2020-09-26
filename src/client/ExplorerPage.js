@@ -650,7 +650,6 @@ export default class ExplorerPage extends Component {
 
                 let thumbnailurl;
                 if(isImgFolder){
-                    //todo sort and choose
                     const _imgs = this.imgFolders[item].filter(isImage);
                     clientUtil.sortFileNames(_imgs)
                     const tp = _imgs[0];
