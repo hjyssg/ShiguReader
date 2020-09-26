@@ -65,6 +65,7 @@ export default class ClickAndCopyText extends Component {
     const pResult = nameParser.parse(text);
     let allTags = [];
     let originalTags = [];
+    let pTags = [];
     let authors;
 
     if(pResult){
@@ -82,7 +83,9 @@ export default class ClickAndCopyText extends Component {
       if(authors){
         allTags = allTags.concat(authors);
       }
+
       allTags = allTags.concat(originalTags);
+      pTags = allTags.slice();
     }
     let nameTags = namePicker.pick(text)||[];
     allTags = allTags.concat(nameTags);
@@ -107,7 +110,7 @@ export default class ClickAndCopyText extends Component {
     });
 
     function getPriority(str){
-      if(originalTags.includes(str)){
+      if(pTags.includes(str)){
         return 4;
       }else if(nameTags.includes(str)){
         return 3;
