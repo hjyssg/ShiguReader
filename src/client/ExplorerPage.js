@@ -12,7 +12,6 @@ import ErrorPage from './ErrorPage';
 import FileChangeToolbar from './subcomponent/FileChangeToolbar';
 import CenterSpinner from './subcomponent/CenterSpinner';
 const util = require("@common/util");
-const filesizeUitl = require('filesize');
 const queryString = require('query-string');
 import Pagination from './subcomponent/Pagination';
 import SortHeader from './subcomponent/SortHeader';
@@ -23,7 +22,7 @@ const nameParser = require('@name-parser');
 const classNames = require('classnames');
 const Constant = require("@common/constant");
 const clientUtil = require("./clientUtil");
-const { getDir, getBaseName, getPerPageItemNumber, isSearchInputTextTyping } = clientUtil;
+const { getDir, getBaseName, getPerPageItemNumber, isSearchInputTextTyping, filesizeUitl } = clientUtil;
 const { isVideo, isCompress, isImage, isMusic } = util;
 const sortUtil = require("../common/sortUtil");
 const AdminUtil = require("./AdminUtil");
@@ -613,10 +612,10 @@ export default class ExplorerPage extends Component {
             const toUrl =  clientUtil.getOneBookLink(item);
 
             const fileSize = this.getFileSize(item);
-            const fileSizeStr = fileSize && filesizeUitl(fileSize, {base: 2});
+            const fileSizeStr = fileSize && filesizeUitl(fileSize);
 
             const avgSize = this.getPageAvgSize(item, "for-dispaly");
-            const avgSizeStr = avgSize && filesizeUitl(avgSize, {base: 2});
+            const avgSizeStr = avgSize && filesizeUitl(avgSize);
 
             let seperator;
  
@@ -816,14 +815,14 @@ export default class ExplorerPage extends Component {
         const totalZipSize = this.getAllFileSize(filteredFiles);
         const totalVideoSize = this.getAllFileSize(filteredVideos);
         const totalSize = totalZipSize + totalVideoSize;
-        const title = `${filesizeUitl(totalZipSize,2)} zips and ${filesizeUitl(totalVideoSize,2)} videos`
+        const title = `${filesizeUitl(totalZipSize)} zips and ${filesizeUitl(totalVideoSize)} videos`
         const totalPageNum = this.getAllFilePageNum(filteredFiles);
         return (
             <React.Fragment>
             <div className="file-count col-6 col-md-4"><i className="fas fa-file-archive"/>{filteredFiles.length + " compressed files"} </div>
             <div className="file-count col-6 col-md-4"><i className="fas fa-paperclip"/>{totalPageNum + " pages"} </div>
             <div className="file-count col-6 col-md-4"><i className="fas fa-film"/>{filteredVideos.length + " video files"} </div>
-            <div className="file-count col-6 col-md-4" title={title}><i className="fas fa-hdd"/>{filesizeUitl(totalSize, {base: 2})} </div>
+            <div className="file-count col-6 col-md-4" title={title}><i className="fas fa-hdd"/>{filesizeUitl(totalSize)} </div>
             </React.Fragment>
         );
     }

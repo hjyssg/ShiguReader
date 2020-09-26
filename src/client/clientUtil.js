@@ -1,6 +1,15 @@
 const util = require("@common/util");
 const Cookie = require("js-cookie");
 const _ = require("underscore");
+const filesizeUitl = require('filesize');
+
+module.exports.filesizeUitl = function(num){
+    if(isNaN(num)){
+        return "";
+    }
+
+    return filesizeUitl(num, {base: 2});
+}
 
 module.exports.getDir = function (fn) {
     if (!fn) { return ""; }

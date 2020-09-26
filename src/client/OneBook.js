@@ -19,7 +19,6 @@ import "./style/BigColumnButton.scss";
 
 const util = require("@common/util");
 const queryString = require('query-string');
-const filesizeUitl = require('filesize');
 import screenfull from 'screenfull';
 const Constant = require("@common/constant");
 
@@ -27,7 +26,7 @@ const MIN_HEIGHT = 400;
 const MIN_WIDTH = 400;
 const userConfig = require('@config/user-config');
 const clientUtil = require("./clientUtil");
-const { getDir, getBaseName, isMobile, getFileUrl, sortFileNames } = clientUtil;
+const { getDir, getBaseName, isMobile, getFileUrl, sortFileNames, filesizeUitl } = clientUtil;
 const namePicker = require("../human-name-picker");
 
 
@@ -404,8 +403,8 @@ export default class OneBook extends Component {
         avgFileSize = fileStat.size/files.length;
       }
 
-      const size = filesizeUitl(fileStat.size, {base: 2});
-      const avg = filesizeUitl(avgFileSize, {base: 2});
+      const size = filesizeUitl(fileStat.size);
+      const avg = filesizeUitl(avgFileSize);
       const mTime = dateFormat(fileStat.mtime, "isoDate");
       const title = getBaseName(files[index], "/" );
       const dim = "";  //change by dom operation

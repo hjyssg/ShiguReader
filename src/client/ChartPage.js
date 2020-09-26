@@ -4,7 +4,6 @@ import './style/ChartPage.scss';
 import Sender from './Sender';
 import _ from "underscore";
 const nameParser = require('@name-parser');
-const filesizeUitl = require('filesize');
 import CenterSpinner from './subcomponent/CenterSpinner';
 import ErrorPage from './ErrorPage';
 import {Bar, Pie, Line} from 'react-chartjs-2';
@@ -375,7 +374,7 @@ export default class ChartPage extends Component {
         })
         return (<div className="total-info"> 
                      <div>{`There are ${num} ${this.state.fileType} files`}</div>
-                     <div>{`Total: ${filesizeUitl(total, {base: 2})}`}</div>
+                     <div>{`Total: ${clientUtil.filesizeUitl(total)}`}</div>
                 </div>)
     }
 
