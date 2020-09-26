@@ -35,7 +35,7 @@ export default class ClickAndCopyText extends Component {
   onTitleClick(){
     //https://stackoverflow.com/questions/49236100/copy-text-from-span-to-clipboard
     var textArea = document.createElement("textarea");
-    textArea.value = this.props.text;
+    textArea.value = this.props.filename;
     document.body.appendChild(textArea);
 
     if(clientUtil.isIOS()){
@@ -64,7 +64,7 @@ export default class ClickAndCopyText extends Component {
 
     const pResult = nameParser.parse(text);
     let allTags = [];
-    let originalTags;
+    let originalTags = [];
     let authors;
 
     if(pResult){
@@ -83,10 +83,10 @@ export default class ClickAndCopyText extends Component {
         allTags = allTags.concat(authors);
       }
       allTags = allTags.concat(originalTags);
-    }else{
-      const nameTags = namePicker.pick(text)||[];
-      allTags = allTags.concat(nameTags);
     }
+    let nameTags = namePicker.pick(text)||[];
+    allTags = allTags.concat(nameTags);
+    
 
     //less meaningful
     let lessTags = namePicker.splitBySpace(text);
@@ -106,6 +106,16 @@ export default class ClickAndCopyText extends Component {
       return tagIndexes[tag];
     });
 
+    function getPriority(str){
+      if(originalTags.includes(str)){
+        return 4;
+      }else if(nameTags.includes(str)){
+        return 3;
+      }else{
+        return 1;
+      }
+    }
+
     //tag1 may include tag2. remove the short one
     const willRemove = {};
     for(let ii = 0; ii < allTags.length; ii++){
@@ -116,13 +126,13 @@ export default class ClickAndCopyText extends Component {
       for(let jj = ii+1; jj < allTags.length; jj++){
         const t2 = allTags[jj];
         if(t1.includes(t2)){
-          if(lessTags.includes(t1)){
+          const p1 = getPriority(t1);
+          const p2 = getPriority(t2);
+          if(p1 < p2){
             willRemove[t1] = true;
           }else{
             willRemove[t2] = true;
           }
-
-          willRemove[t2] = true;
         }
       }
     }
@@ -148,9 +158,8 @@ export default class ClickAndCopyText extends Component {
           url = clientUtil.getSearhLink(tag);
         }
 
-        const lsLessImportant = lessTags.includes(tag);
         const cn = classNames("embed-link", {
-          "with-color": !lsLessImportant
+          "with-color": getPriority(tag) > 1
         });
 
         const link = <a className={cn}  target="_blank" href={url}  key={tag}>{tag}</a>;
