@@ -121,10 +121,10 @@ router.post('/api/lsDir', async (req, res) => {
     res.send(result);
 });
 
-router.post('/api/listFolderContent', async (req, res) => {
+router.post('/api/listImageFolderContent', async (req, res) => {
     let filePath =  req.body && req.body.filePath;
     if (!filePath) {
-        console.error("[/api/listFolderContent]", filePath, "does not exist");
+        console.error("[/api/listImageFolderContent]", filePath, "does not exist");
         res.sendStatus(404);
         return;
     }

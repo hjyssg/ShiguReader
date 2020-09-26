@@ -1,9 +1,11 @@
 
 # MUST: Where ShiguReader will scan compressed files and video
 # Just replace with theme with your own folder path
+# '#' at the line's begining means comment
 # 修改成本地存放漫画zip和视频的路径
 # 这是普通文本，直接把路径粘贴进来就好了
 # 下面是我自己用的，删掉粘贴上你们自己的就好了。
+# 开头是#号的文字会为注释，会被无视
 
 T:\迅雷下载
 D:\_Happy_Lesson	
@@ -14,3 +16,11 @@ E:\_temp_comic
 D:\_AV	
 F:\_Anime2
 D:\BaiduNetdiskDownload
+
+# NOTE Do not end the path with a slash   
+# C:\Users\hjy\Downloads\ won't work
+# C:\Users\hjy\Downloads\ works
+
+# 路径结尾不要带斜杠
+# C:\Users\hjy\Downloads\ 读取不了
+# C:\Users\hjy\Downloads 可以
