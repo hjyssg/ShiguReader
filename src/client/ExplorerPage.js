@@ -14,6 +14,7 @@ import CenterSpinner from './subcomponent/CenterSpinner';
 const util = require("@common/util");
 const queryString = require('query-string');
 import Pagination from './subcomponent/Pagination';
+import ItemsContainer from './subcomponent/ItemsContainer';
 import SortHeader from './subcomponent/SortHeader';
 import Breadcrumb from './subcomponent/Breadcrumb';
 import FileCellTitle from './subcomponent/FileCellTitle';
@@ -703,12 +704,8 @@ export default class ExplorerPage extends Component {
 
         return (
             <div className={"explorer-container"}>
-                <ul className={"dir-list container"}>
-                    {dirItems}
-                </ul>
-                <ul className={"dir-list container"}>
-                    {videoItems}
-                </ul>
+                <ItemsContainer items={dirItems} neverCollapse/>
+                <ItemsContainer items={videoItems} />
                 {this.renderPagination(filteredFiles, filteredVideos)}
                 {this.renderSortHeader()}
                 <div className={"file-grid container"}>

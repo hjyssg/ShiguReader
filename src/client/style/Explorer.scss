@@ -58,6 +58,14 @@
 
   .dir-list {
     list-style: none;
+
+    .item-container-expand-button{
+      cursor: pointer;
+      margin-left: 2px;
+      font-size: 12px;
+      width: 100%;
+      text-align: center;
+    }
   }
 
   .file-list{
