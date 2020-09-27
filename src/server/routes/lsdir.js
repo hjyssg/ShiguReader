@@ -11,7 +11,7 @@ const serverUtil = require("../serverUtil");
 const db = require("../models/db");
 const { loopEachFileInfo, getFileCollection, getFileToInfo, getImgFolderInfo } = db;
 const util = global.requireUtil();
-const { getCurrentTime, isDisplayableInExplorer, escapeRegExp, isImage, isMusic } = util;
+const { getCurrentTime, isDisplayableInExplorer, escapeRegExp, isImage, isMusic, isCompress } = util;
 const path = require('path');
 const zipInfoDb = require("../models/zipInfoDb");
 const { getZipInfo }  = zipInfoDb;
@@ -158,6 +158,51 @@ router.post('/api/listImageFolderContent', async (req, res) => {
                 path: filePath, 
                 files,  musicFiles };
     res.send(result);
+});
+
+
+
+router.get('/api/comic_glass', async (req, res) => {
+    // const dir = req.query.p;
+    const dir = "T:\\迅雷下载"
+
+    // if (!dir || !(await isExist(dir))) {
+    //     console.error("[/api/lsDir]", dir, "does not exist");
+    //     res.sendStatus(404);
+    //     return;
+    // }
+
+    const time1 = getCurrentTime();
+    let fileInfos = {};
+    const reg = escapeRegExp(dir);
+    let results = getFileCollection()
+                  .chain()
+                  .find({'filePath': { '$regex' : reg }, isDisplayableInExplorer: true })
+                  .where(obj => isSub(dir, obj.filePath)).data();
+
+    let ii = 0;
+
+    results.forEach(obj => {
+        const pp = obj.filePath;
+        // if(pp === dir ){
+        //     return;
+        // }
+        if(isDirectParent(dir, pp) && util.isCompress(pp) && ii < 10){
+            fileInfos[pp] = getFileToInfo(pp); 
+            ii++;
+        }
+    })
+
+    //same format as https://comicglass.net/book/
+    let str = ""// `${dir} has ${_.keys(fileInfos)} files`;
+    _.keys(fileInfos).forEach(fp => {
+        ///api/download/ is not accepted, comic glass wont know it is file
+        const url =  encodeURIComponent(fp)
+        const info = fileInfos[fp];
+        const second = Math.floor(info.mtimeMs/1000)
+        str += `<a href="${url}" booksize="${info.size}" bookdate="${second}">${path.basename(fp)}</a><br/> `
+    })
+    res.send(str);
 });
 
 module.exports = router;
