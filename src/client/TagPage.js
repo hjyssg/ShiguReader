@@ -60,7 +60,7 @@ export default class TagPage extends Component {
   constructor(prop) {
     super(prop);
     this.state = this.getInitState();
-    this.perPage = getPerPageItemNumber();
+    
   }
 
   getInitState(reset){
@@ -69,6 +69,7 @@ export default class TagPage extends Component {
     const sortOrder = parsed.sortOrder || FILE_NUMBER_DOWN;
     
       return {
+          perPageItemNum: getPerPageItemNumber(),
           tags: [],
           authors: [],
           pageIndex,
@@ -288,7 +289,7 @@ setStateAndSetHash(state, callback){
     }
 
     const items = this.getItems();
-    keys = keys.slice((pageIndex-1) * this.perPage, pageIndex * this.perPage);
+    keys = keys.slice((pageIndex-1) * this.state.perPageItemNum, pageIndex * this.state.perPageItemNum);
     const t2Files = this.isAuthorMode()? authorToFiles : tagToFiles;
     const isAuthorMode = this.isAuthorMode();
     const kk = isAuthorMode? "authors" : "tags";
@@ -374,13 +375,22 @@ setStateAndSetHash(state, callback){
       }
   }
 
+  toggleItemNum(){
+    let nv = this.state.perPageItemNum + 12;
+    nv = Math.min(nv, 60); 
+    this.setStateAndSetHash({
+        perPageItemNum: nv
+    })
+}
+
   renderPagination(keys){
     return (<div className="pagination-container">
               <Pagination ref={ref => this.pagination = ref}
               currentPage={this.state.pageIndex}  
-              itemPerPage={this.perPage}
+              itemPerPage={this.state.perPageItemNum}
               totalItemNum={keys.length} 
               onChange={this.handlePageChange.bind(this)} 
+              onExtraButtonClick={this.toggleItemNum.bind(this)}
               /></div>);
   }
 

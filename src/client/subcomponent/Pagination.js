@@ -55,6 +55,7 @@ export default class Pagination extends Component {
         totalItemNum,
         onChange,
         className,
+        onExtraButtonClick
       } = this.props
   
       const {textValue} = this.state;
@@ -81,8 +82,6 @@ export default class Pagination extends Component {
         const toRight = BUFFER_SIZE - (left - currentPage);
         right = Math.max(currentPage - BUFFER_SIZE - toRight, 1);
       }
-  
-  
   
       let contentList = [1];
       if(right > 2){
@@ -133,12 +132,19 @@ export default class Pagination extends Component {
           />
           <div>{`/${totalPage}`}</div>
         </div>)
-  
+
+        const extraButton = (<div className="pagination-extra-button" 
+                                  onClick={onExtraButtonClick} 
+                                  title="click to show more"> 
+          {`${itemPerPage} per page`}  
+        </div>)
+
       return (<ul className="pagination">
                 {prevButton}
                 {itemDoms}
                 {nextButton}
                 {pageInput}
+                {extraButton}
               </ul>);
     }
   }

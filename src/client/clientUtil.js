@@ -64,7 +64,7 @@ module.exports.getPerPageItemNumber = function() {
     if(isMobile()){
         return 3 * 6;
     }else{
-        return 4 * 5;
+        return 4 * 6;
     }
 }
 

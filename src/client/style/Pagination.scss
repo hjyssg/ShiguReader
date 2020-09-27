@@ -37,5 +37,18 @@
             width: 35px;
         }
     }
+
+    .pagination-extra-button{
+        display: flex;
+        align-items: center;
+        background-color: white;
+        color: #007bff;
+        padding-left: 10px;
+        padding-right: 10px;
+        cursor: pointer;
+        font-size: 11px;
+
+        border-left: 1px solid #dee2e6;
+    }
 }
 

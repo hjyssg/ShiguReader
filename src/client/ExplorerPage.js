@@ -63,7 +63,7 @@ export default class ExplorerPage extends Component {
     }
 
     getNumPerPage(){
-        return this.state.noThumbnail? 40 :  getPerPageItemNumber();
+        return this.state.perPageItemNum; // this.state.noThumbnail? 40 :  this.state.perPageItemNum;
     }
 
     getInitState(reset){
@@ -74,6 +74,7 @@ export default class ExplorerPage extends Component {
         const showVideo = !!(parsed.showVideo === "true");
         
         return {
+            perPageItemNum: getPerPageItemNumber(),
             anchorSideMenu: false,
             pageIndex,
             isRecursive,
@@ -919,10 +920,19 @@ export default class ExplorerPage extends Component {
         } 
     }
 
+    toggleItemNum(){
+        let nv = this.state.perPageItemNum + 12;
+        nv = Math.min(nv, 108); 
+        this.setStateAndSetHash({
+            perPageItemNum: nv
+        })
+    }
+
     renderPagination(filteredFiles, filteredVideos){
         if(this.getMode() === MODE_HOME){
             return;
         }
+ 
         const fileLength = filteredFiles.length;
         return (<div className="pagination-container">
                             <Pagination ref={ref => this.pagination = ref}
@@ -930,6 +940,7 @@ export default class ExplorerPage extends Component {
                             itemPerPage={this.getNumPerPage()}
                             totalItemNum={fileLength} 
                             onChange={this.handlePageChange.bind(this)} 
+                            onExtraButtonClick={this.toggleItemNum.bind(this)}
                             /></div>);
     }
 
@@ -956,7 +967,8 @@ export default class ExplorerPage extends Component {
 
     toggleGoodAuthor(){
         this.setStateAndSetHash({
-            filterByGoodAuthorName: !this.state.filterByGoodAuthorName
+            filterByGoodAuthorName: !this.state.filterByGoodAuthorName,
+            pageIndex: 1
         });
     };
 
@@ -968,19 +980,22 @@ export default class ExplorerPage extends Component {
 
     toggleGuess(){
         this.setStateAndSetHash({
-            filterByGuess: !this.state.filterByGuess
+            filterByGuess: !this.state.filterByGuess,
+            pageIndex: 1
         });
     };
 
     toggleFirstTime(){
         this.setStateAndSetHash({
-            filterByFirstTime: !this.state.filterByFirstTime
+            filterByFirstTime: !this.state.filterByFirstTime,
+            pageIndex: 1
         });
     }
 
     toggleHasMusic(){
         this.setStateAndSetHash({
-            filterByHasMusic: !this.state.filterByHasMusic
+            filterByHasMusic: !this.state.filterByHasMusic,
+            pageIndex: 1
         });
     }
 
