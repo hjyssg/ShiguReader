@@ -36,18 +36,6 @@ function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
                           const fp =  path.dirname(obj.filePath);
                           return fp.toLowerCase().includes(textInLowerCase);
                       }).data();
-        
-        const img_files_results = getFileCollection()
-                      .chain()
-                      .find({'filePath': { '$regex' : reg }, isDisplayableInOnebook: true })
-                      .data();
-        
-        img_files_results.forEach(obj => {
-            //reduce by its parent folder
-            const pp = path.dirname(obj.filePath);
-            imgFolders[pp] = imgFolders[pp] || [];
-            imgFolders[pp].push(obj.filePath);
-        });
     }else if(author){
         const reg = escapeRegExp(author);
         let groups = [];
@@ -81,6 +69,20 @@ function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
                         return tagArr.some(e => isEqual(tag, e));
                       });
     }
+    
+    const text2 =  tag || author || text;
+    const reg2 = escapeRegExp(text2);
+    const img_files_results = getFileCollection()
+                        .chain()
+                        .find({'filePath': { '$regex' : reg2 }, isDisplayableInOnebook: true })
+                        .data();
+
+    img_files_results.forEach(obj => {
+        //reduce by its parent folder
+        const pp = path.dirname(obj.filePath);
+        imgFolders[pp] = imgFolders[pp] || [];
+        imgFolders[pp].push(obj.filePath);
+        });
 
     if(onlyNeedFew){
         results = results.limit(5);
