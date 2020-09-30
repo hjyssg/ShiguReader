@@ -924,7 +924,8 @@ export default class ExplorerPage extends Component {
         let nv = this.state.perPageItemNum + 12;
         nv = Math.min(nv, 108); 
         this.setStateAndSetHash({
-            perPageItemNum: nv
+            perPageItemNum: nv,
+            pageIndex: Math.min(Math.ceil(this.getFilteredFiles().length/nv), this.state.pageIndex)
         })
     }
 
