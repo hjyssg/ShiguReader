@@ -536,7 +536,7 @@ export default class OneBook extends Component {
   }
 
   renderOverviewLink() {
-    if (!this.state.path) {
+    if (!this.state.path || !this.hasImage()) {
       return;
     }
 

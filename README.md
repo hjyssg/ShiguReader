@@ -9,6 +9,7 @@
 
 ![screenshot-01](screenshot/01.png)
 ![screenshot-02](screenshot/02.png)
+![screenshot-02](screenshot/02.5.png)
 ![screenshot-03](screenshot/03.png)
 ![screenshot-04](screenshot/04.png)
 ![screenshot-05](screenshot/05.png)

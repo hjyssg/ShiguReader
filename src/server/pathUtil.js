@@ -102,7 +102,6 @@ async function getHomePath(){
         }
     })
 
-
     path_will_scan  = path_will_scan.concat(userConfig.good_folder, userConfig.good_folder_root, userConfig.not_good_folder);
     path_will_scan.push(getImgConverterCachePath());
 

@@ -8,7 +8,6 @@ import './style/OneBook.scss';
 import ErrorPage from './ErrorPage';
 import CenterSpinner from './subcomponent/CenterSpinner';
 import FileNameDiv from './subcomponent/FileNameDiv';
-import FileChangeToolbar from './subcomponent/FileChangeToolbar';
 import ReactDOM from 'react-dom';
 
 const VisibilitySensor = require('react-visibility-sensor').default;
@@ -20,7 +19,6 @@ const clientUtil = require("./clientUtil");
 const { getDir, getBaseName, isMobile, getFileUrl, sortFileNames, filesizeUitl } = clientUtil;
 
 class SmartImage extends Component {
-
   constructor(props) {
     super(props);
     this.state = {
@@ -29,6 +27,10 @@ class SmartImage extends Component {
   }
 
   onChange (isVisible) {
+    if(this.state.isVisible && !isVisible){
+      return;
+    }
+
     this.setState({
       isVisible
     })
@@ -52,7 +54,7 @@ class SmartImage extends Component {
     return (
       <VisibilitySensor offset={{bottom: -150}} partialVisibility={true}  onChange={this.onChange.bind(this)}>
         <div className="col-sm-6 col-md-3 col-3 a-with-padding" key={url}>
-          <Link to={toUrl}  className="obov-link">
+          <Link to={toUrl} target="_blank" className="obov-link">
               {content}
           </Link>
           </div>
@@ -67,19 +69,10 @@ export default class OneBook extends Component {
     super(props);
     this.state = {
       files: [],
-      musicFiles: [],
-      index: this.getInitIndex(),
+      musicFiles: []
     };
   }
 
-  getInitIndex(){
-    const parsed = queryString.parse(location.hash);
-    return parseInt(parsed.index) || 0;
-  }
-
-  setIndex(index){
-    location.hash = queryString.stringify({index});
-  }
 
   getTextFromQuery(props){
       const _props = props || this.props;
@@ -98,7 +91,7 @@ export default class OneBook extends Component {
     const fp = this.getTextFromQuery();
     const api = this.isImgFolder()?  "/api/listImageFolderContent" : "/api/extract";
 
-    Sender.post(api, {filePath: fp, startIndex: this.state.index||0 }, res => {
+    Sender.post(api, {filePath: fp, startIndex: 0 }, res => {
         this.handleRes(res);
     });
   }
@@ -160,16 +153,10 @@ export default class OneBook extends Component {
     const parentPath = getDir(this.state.path);
     const toUrl = clientUtil.getExplorerLink(parentPath);
 
-
     return (
       <div className="one-book-path">
         <Link to={toUrl}>{parentPath} </Link>
       </div>);
-  }
-
-  hasMusic(){
-    const {musicFiles} = this.state;
-    return musicFiles.length > 0;
   }
 
   hasImage(){
