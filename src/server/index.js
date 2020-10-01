@@ -198,7 +198,8 @@ function getThumbCount(){
 function getExt(p){
     const ext = path.extname(p).toLowerCase();
     //xxx NO.003 xxx is not meaningful extension
-    if(ext && /^\.[a-zA-z0-9]*$/.test(ext)){
+    //extension string should be alphabet(may with digit), but not only digit
+    if(ext && /^\.[a-zA-z0-9]*$/.test(ext) && !/^\.[0-9]*$/.test(ext)){
         return ext;
     }else{
         return "";
