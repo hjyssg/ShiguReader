@@ -81,7 +81,7 @@ async function getHomePath(){
     let pathes = fs.readFileSync(path_config_path).toString().split('\n'); 
     pathes = pathes
                 .map(e => e.trim().replace(/\n|\r/g, ""))
-                .filter(pp =>{ return pp && pp.length > 0 && !pp.startsWith("#");});
+                .filter(pp =>{ return pp && pp.length > 0 && !pp.startsWith("#") && !pp.startsWith(";") ;});
 
     //add one more
     pathes = _.uniq(pathes);
