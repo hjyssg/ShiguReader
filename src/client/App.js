@@ -4,6 +4,7 @@ import './style/_toast.scss';
 import './style/rc-pagination.scss';
 import ExplorerPage from "./ExplorerPage";
 import OneBook from "./OneBook";
+import OneBookOverview from "./OneBookOverview";
 import VideoPlayer from "./VideoPlayer";
 import TagPage from "./TagPage";
 import ChartPage from "./ChartPage";
@@ -66,6 +67,8 @@ class App extends Component {
     
     RenderSubComponent() {
         const renderOneBook = (props) => { return (<OneBook {...props}/>)};
+        const renderOneBookOverview = (props) => { return (<OneBookOverview {...props}/>)};
+
         const renderVideo = (props) => { return (<VideoPlayer {...props}/>)};
 
         const renderExplorer = (props) => { return (<ExplorerPage  {...props} filterText={this.filterText}  />)};
@@ -86,6 +89,8 @@ class App extends Component {
             <Route path='/search/' render={renderExplorer}/>
 
             <Route path='/onebook/' render={renderOneBook}/>
+            <Route path='/onebookOverview/' render={renderOneBookOverview}/>
+
             <Route path='/tagPage/' render={renderTagPage}/>
             <Route path='/authorPage/' render={renderAuthorPage}/>
             <Route path='/videoPlayer/' render={renderVideo}/>

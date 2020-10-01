@@ -137,6 +137,11 @@ module.exports.getOneBookLink = function(path){
     return "/onebook/?p=" + encodeURIComponent(path);
 }
 
+module.exports.getOneBookOverviewLink = function(path){
+    return "/onebookOverview/?p=" + encodeURIComponent(path);
+}
+
+
 module.exports.getVideoPlayerLink = function(path){
     return "/videoPlayer/?p=" + encodeURIComponent(path);
 }

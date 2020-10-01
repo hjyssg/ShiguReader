@@ -535,6 +535,19 @@ export default class OneBook extends Component {
     event.preventDefault();
   }
 
+  renderOverviewLink() {
+    if (!this.state.path) {
+      return;
+    }
+
+    const toUrl = clientUtil.getOneBookOverviewLink(this.state.path);
+
+    return (
+      <div className="one-book-overview-path">
+        <Link to={toUrl}> overview </Link>
+      </div>);
+  }
+
   renderPath() {
     if (!this.state.path) {
       return;
@@ -702,6 +715,7 @@ export default class OneBook extends Component {
         {this.renderNextPrevButton()}
         {this.renderSecondBar()}
         {isContentBelow && content}
+        {this.renderOverviewLink()}
       </div>
     );
   }
