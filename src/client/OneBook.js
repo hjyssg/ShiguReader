@@ -12,7 +12,6 @@ import ErrorPage from './ErrorPage';
 import CenterSpinner from './subcomponent/CenterSpinner';
 import FileNameDiv from './subcomponent/FileNameDiv';
 import FileChangeToolbar from './subcomponent/FileChangeToolbar';
-import LoadingImage from './LoadingImage';
 import MusicPlayer from './MusicPlayer';
 import $ from 'jquery'
 import "./style/BigColumnButton.scss";
@@ -482,30 +481,17 @@ export default class OneBook extends Component {
               </React.Fragment>);    
     } else {
       let images;
-      if(userConfig.onebook_only_image_per_page){
-        const cn = classNames("mobile-single-image", {
-          "has-music": this.hasMusic()
-        });
-        images = (<div className="mobile-single-image-container" 
-                        ref={(e) =>  this.imgContainerRef = e}
-                        onClick={this.onClickMobileOneImageContainer.bind(this)}> 
-                <img className={cn} 
-                  ref={(img) =>  this.imgRef = img}
-                  onError={this.onError.bind(this)}
-                  src={this._getFileUrl(files[index])}  />
-               </div>);
-      }else{
-        images =files.map(file => {
-          return (<div key={file} className="mobile-one-book-image_array-container"> 
-                      <LoadingImage className={"mobile-one-book-image"} 
-                               bottomOffet={-4000}
-                               topOffet={-3000}
-                               url={this._getFileUrl(file)} 
-                               key={file}/> 
-                  </div>);
-        });
-      }
-
+      const cn = classNames("mobile-single-image", {
+        "has-music": this.hasMusic()
+      });
+      images = (<div className="mobile-single-image-container" 
+                      ref={(e) =>  this.imgContainerRef = e}
+                      onClick={this.onClickMobileOneImageContainer.bind(this)}> 
+              <img className={cn} 
+                ref={(img) =>  this.imgRef = img}
+                onError={this.onError.bind(this)}
+                src={this._getFileUrl(files[index])}  />
+              </div>);
       return (<div className="mobile-one-book-container">
                 {images}
             </div>);
@@ -541,10 +527,12 @@ export default class OneBook extends Component {
     }
 
     const toUrl = clientUtil.getOneBookOverviewLink(this.state.path);
+    const toUrl2 = clientUtil.getOneBookWaterfallLink(this.state.path);
 
     return (
       <div className="one-book-overview-path">
         <Link to={toUrl}> overview </Link>
+        <Link to={toUrl2}> waterfall </Link>
       </div>);
   }
 
@@ -702,11 +690,10 @@ export default class OneBook extends Component {
                       {this.renderMusicPlayer()}
     </div>);
 
-    const isContentBelow = isMobile() && !userConfig.onebook_only_image_per_page;
 
     return (  
       <div className="one-book-container">
-        {!isContentBelow && content}
+        {content}
         {bookTitle}
         {this.renderPagination()}
         {this.renderFileSizeAndTime()}
@@ -714,7 +701,6 @@ export default class OneBook extends Component {
         {this.renderToolbar()}
         {this.renderNextPrevButton()}
         {this.renderSecondBar()}
-        {isContentBelow && content}
         {this.renderOverviewLink()}
       </div>
     );

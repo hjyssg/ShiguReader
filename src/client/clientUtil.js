@@ -141,6 +141,9 @@ module.exports.getOneBookOverviewLink = function(path){
     return "/onebookOverview/?p=" + encodeURIComponent(path);
 }
 
+module.exports.getOneBookWaterfallLink = function(path){
+    return "/onebookWaterfall/?p=" + encodeURIComponent(path);
+}
 
 module.exports.getVideoPlayerLink = function(path){
     return "/videoPlayer/?p=" + encodeURIComponent(path);

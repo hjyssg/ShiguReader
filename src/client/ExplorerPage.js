@@ -621,9 +621,7 @@ export default class ExplorerPage extends Component {
         let breadcrumbCount = 0;
         const zipfileItems = files.map((item, index) => {
             const text = getBaseName(item);
-
-            // const avgSizeReal = this.getPageAvgSize(item);
-            const toUrl = clientUtil.isLocalHost()? clientUtil.getOneBookOverviewLink(item) : clientUtil.getOneBookLink(item);
+            const toUrl =  clientUtil.getOneBookLink(item);
 
             const fileSize = this.getFileSize(item);
             const fileSizeStr = fileSize && filesizeUitl(fileSize);

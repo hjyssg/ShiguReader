@@ -5,6 +5,7 @@ import './style/rc-pagination.scss';
 import ExplorerPage from "./ExplorerPage";
 import OneBook from "./OneBook";
 import OneBookOverview from "./OneBookOverview";
+import OneBookWaterfall from "./OneBookWaterfall";
 import VideoPlayer from "./VideoPlayer";
 import TagPage from "./TagPage";
 import ChartPage from "./ChartPage";
@@ -68,6 +69,8 @@ class App extends Component {
     RenderSubComponent() {
         const renderOneBook = (props) => { return (<OneBook {...props}/>)};
         const renderOneBookOverview = (props) => { return (<OneBookOverview {...props}/>)};
+        const renderOneBookWaterfall = (props) => { return (<OneBookWaterfall {...props}/>)};
+
 
         const renderVideo = (props) => { return (<VideoPlayer {...props}/>)};
 
@@ -90,6 +93,8 @@ class App extends Component {
 
             <Route path='/onebook/' render={renderOneBook}/>
             <Route path='/onebookOverview/' render={renderOneBookOverview}/>
+            <Route path='/onebookWaterfall/' render={renderOneBookWaterfall}/>
+
 
             <Route path='/tagPage/' render={renderTagPage}/>
             <Route path='/authorPage/' render={renderAuthorPage}/>

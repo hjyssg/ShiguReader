@@ -79,13 +79,14 @@
   .mobile-one-book-container {
     width: 100%;
 
-    .mobile-one-book-image_array-container{
+    .one-book-waterfall-div{
       @include flex_center_display;
       margin-bottom: 30px;
       margin-left: 5px;
       margin-right: 5px;
 
-      .mobile-one-book-image {
+      .one-book-waterfall-image {
+        max-height: 90vh;
         max-width: 98%;
         object-fit: cover;
       }

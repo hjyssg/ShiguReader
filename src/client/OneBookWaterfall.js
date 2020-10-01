@@ -1,6 +1,9 @@
 import React, { Component } from 'react';
 import _ from 'underscore';
+const nameParser = require('@name-parser');
 const classNames = require('classnames');
+const dateFormat = require('dateformat');
+import ReactDOM from 'react-dom';
 
 import { Link } from 'react-router-dom';
 import Sender from './Sender';
@@ -8,71 +11,28 @@ import './style/OneBook.scss';
 import ErrorPage from './ErrorPage';
 import CenterSpinner from './subcomponent/CenterSpinner';
 import FileNameDiv from './subcomponent/FileNameDiv';
-import ReactDOM from 'react-dom';
 
-const VisibilitySensor = require('react-visibility-sensor').default;
 const util = require("@common/util");
 const queryString = require('query-string');
+import screenfull from 'screenfull';
 const Constant = require("@common/constant");
 
+const userConfig = require('@config/user-config');
 const clientUtil = require("./clientUtil");
 const { getDir, getBaseName, isMobile, getFileUrl, sortFileNames, filesizeUitl } = clientUtil;
+import LoadingImage from './LoadingImage';
 
-class SmartImage extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      isVisible: false
-    };
-  }
-
-  onChange (isVisible) {
-    if(this.state.isVisible && !isVisible){
-      return;
-    }
-
-    this.setState({
-      isVisible
-    })
-  }
-
-  render(){
-    const { url, index, fp } = this.props;
-    const { isVisible } = this.state;
-
-    let content;
-    if(isVisible){
-      content = (<img className="single-img-cell"
-        src={url} 
-        title={index} />)
-    }else{
-      content = <div className="place-holder single-img-cell" title={index}/>
-    }
-
-    const toUrl =  clientUtil.getOneBookLink(fp) + "#index=" + index;
-
-    return (
-      <VisibilitySensor offset={{bottom: -150}} partialVisibility={true}  onChange={this.onChange.bind(this)}>
-        <div className="col-lg-3 col-md-4 col-6 a-with-padding" key={url}>
-          <Link to={toUrl} target="_blank" className="obov-link">
-              {content}
-          </Link>
-          </div>
-      </VisibilitySensor>
-    )
-  }
-}
+//maybe combine with renderOneBookOverview into one file
 
 
-export default class OneBookOverview extends Component {
+export default class OneBookWaterfall extends Component {
   constructor(props) {
     super(props);
     this.state = {
       files: [],
-      musicFiles: []
+      musicFiles: [],
     };
   }
-
 
   getTextFromQuery(props){
       const _props = props || this.props;
@@ -81,6 +41,12 @@ export default class OneBookOverview extends Component {
   
   componentDidMount() {
     this.sendExtract();
+
+    if(!isMobile ()){
+      screenfull.onchange(()=> {
+        this.forceUpdate();
+      });
+     }
   }
 
   isImgFolder(){
@@ -99,7 +65,7 @@ export default class OneBookOverview extends Component {
   handleRes(res){
       this.res = res;
       if (!res.failed) {
-        let { zipInfo, path, stat, files,  musicFiles } = res;
+        let {zipInfo, path, stat, files,  musicFiles } = res;
         files = files || [];
         musicFiles = musicFiles || [];
 
@@ -110,13 +76,19 @@ export default class OneBookOverview extends Component {
         sortFileNames(musicFiles);
 
         this.setState({ files, musicFiles, path, fileStat: stat, zipInfo});
+        clientUtil.saveFilePathToCookie(this.getTextFromQuery());
       } else {
         this.forceUpdate();
       }
   }
-
+  
   isFailedLoading(){
     return this.res && this.res.failed;
+  }
+
+  onError(){
+    //todo
+    //maybe display a center spin
   }
 
   _getFileUrl(url){
@@ -131,18 +103,25 @@ export default class OneBookOverview extends Component {
     }
   }
 
-  renderImageGrid(){
+  renderImage(){
     const { files } = this.state;
     if(!this.hasImage()){
       return;
     }
-
-    const fp = this.getTextFromQuery();
-
-    const images = files
-    .map(e => this._getFileUrl(e))
-    .map((e, ii) => <SmartImage url={e} index={ii} fp={fp}/>);
-    return images;
+    let images =files.map((file, index) => {
+      return (<div key={file} className="one-book-waterfall-div"> 
+                  <LoadingImage className={"one-book-waterfall-image"} 
+                           bottomOffet={-4000}
+                           topOffet={-3000}
+                           title={index}
+                           url={this._getFileUrl(file)} 
+                           asSimpleImage
+                           key={file}/> 
+              </div>);
+    });
+    return (<div className="mobile-one-book-container">
+              {images}
+          </div>);
   }
 
   renderPath() {
@@ -177,7 +156,7 @@ export default class OneBookOverview extends Component {
       return <ErrorPage res={this.res.res} userText={userText}/>;
     }
 
-    const { files, index, musicFiles } = this.state;
+    const { files, musicFiles } = this.state;
     const bookTitle = (<div className="one-book-title" >
                            <FileNameDiv filename={getBaseName(this.state.path)} />
                           {this.renderPath()} 
@@ -202,16 +181,23 @@ export default class OneBookOverview extends Component {
       document.title = getBaseName(this.state.path);
     }
 
+    const wraperCn = classNames("one-book-wrapper", {
+      "full-screen": screenfull.isFullscreen,
+    });
+
+    const content = (<div className={wraperCn} ref={wrapper => this.wrapperRef = wrapper}>
+                      {this.renderImage()}
+    </div>);
+
+
     return (  
-      <div className="one-book-overview-container container">
+      <div className="one-book-container">
         {bookTitle}
-       <div className="row">
-        {this.renderImageGrid()}
-        </div>
+        {content}
       </div>
     );
   }
 }
 
-OneBookOverview.propTypes = {
+OneBookWaterfall.propTypes = {
 };

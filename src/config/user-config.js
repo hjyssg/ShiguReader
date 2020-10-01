@@ -51,10 +51,6 @@ module.exports.thumbnail_folder_name = "thumbnails";
 
 module.exports.img_convert_cache = "image_convert_cache"
 
-//show one page, or show all pages at once
-//ipad iphone上面看漫画是一页一张图，还是一次显示全部整本的全部图片
-module.exports.onebook_only_image_per_page = true;
-
 //delete or move to recyle bin
 //删除操作是真的彻底删除还是丢进回收站
 module.exports.move_file_to_recyle = true;
