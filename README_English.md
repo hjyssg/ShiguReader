@@ -42,7 +42,7 @@ Read Comic/Play Music and Video on all platforms
 git clone https://github.com/hjyssg/ShiguReader
 
 ## change user config
-## modify src/path-config  src/user-config.js accoding to your own comic files location
+## modify src/path-config.ini  src/user-config.js accoding to your own comic files location
 
 ## windows default cmd is not working
 ## Please install Git and Git Bash  https://git-scm.com/
@@ -80,7 +80,7 @@ AD and left right arrow key: go to next/previous page
 
 ##### FAQ
     Q： I can open the webpage, but it is empty or 404.
-    A: Please check your path-config file
+    A: Please check your path-config.ini file
 
     Q：Why English Readme is much less than Chinese Readme?
     A: I received more questions from Chinese community. But I do provide enough information here.

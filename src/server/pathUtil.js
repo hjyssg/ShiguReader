@@ -76,35 +76,56 @@ async function filterNonExist(pathes){
 }
 
 async function getHomePath(){
-    const path_config_path = path.join(getRootPath(), "src", "path-config");
+    const path_config_path = path.join(getRootPath(), "src", "path-config.ini");
     //read text file 
-    let home_pathes = fs.readFileSync(path_config_path).toString().split('\n'); 
-    home_pathes = home_pathes
+    let pathes = fs.readFileSync(path_config_path).toString().split('\n'); 
+    pathes = pathes
                 .map(e => e.trim().replace(/\n|\r/g, ""))
                 .filter(pp =>{ return pp && pp.length > 0 && !pp.startsWith("#");});
 
     //add one more
-    home_pathes = _.uniq(home_pathes);
-    home_pathes = await filterNonExist(home_pathes);
+    pathes = _.uniq(pathes);
+    
+    let path_will_scan = [];
+    let path_not_watch = [];
+    let onlyScan = false;
+    pathes.forEach(line => {
+        if(line.includes("ONLY_SCAN_ONCE")){
+            onlyScan = true;
+        }else if(line.includes("SCAN_AND_MONITOR_CHANGE")){
+            onlyScan = false;
+        }else{
+            path_will_scan.push(line);
+            if(onlyScan){
+                path_not_watch.push(line);
+            }
+        }
+    })
 
-    if(home_pathes.length === 0){
+
+    path_will_scan  = path_will_scan.concat(userConfig.good_folder, userConfig.good_folder_root, userConfig.not_good_folder);
+    path_will_scan.push(getImgConverterCachePath());
+
+    if(path_will_scan.length === 0){
         if(isWindows()){
             const getDownloadsFolder = require('downloads-folder');
-            home_pathes.push(getDownloadsFolder());
+            path_will_scan.push(getDownloadsFolder());
         }else{
             //downloads-folder cause error on unix
-            home_pathes.push(`${process.env.HOME}/Downloads`);
+            path_will_scan.push(`${process.env.HOME}/Downloads`);
         }
     }
-    home_pathes.push(getImgConverterCachePath());
 
-
-    path_will_scan = home_pathes.concat(userConfig.good_folder, userConfig.good_folder_root, userConfig.not_good_folder);
+    path_will_scan = _.uniq(path_will_scan);
     path_will_scan = await filterNonExist(path_will_scan);
+
+    home_pathes = path_will_scan;
+    const path_will_watch = path_will_scan.filter(e => !path_not_watch.includes(e));
 
     return {
         home_pathes,
-        path_will_scan
+        path_will_scan,
+        path_will_watch
     };
 }
 

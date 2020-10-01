@@ -17,8 +17,8 @@ module.exports = async function (folders, config) {
                 await iterate(src, config, result, 0);
             }
         }else{
-            console.error(`[file-iterator] ${src} does not exist! Please check you path-config and user-config.js`);
-            console.error(`[file-iterator] ${src} 不存在! 检查一下你的path-config和user-config.js`);
+            console.error(`[file-iterator] ${src} does not exist! Please check you path-config.ini and user-config.js`);
+            console.error(`[file-iterator] ${src} 不存在! 检查一下你的path-config.ini和user-config.js`);
         }
     }
     delete config.visited;

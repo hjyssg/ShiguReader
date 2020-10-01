@@ -1,4 +1,3 @@
-
 const pathUtil = require("../pathUtil");
 const {
     isExist,
@@ -21,13 +20,18 @@ const _ = require('underscore');
 
 
 router.post('/api/lsDir', async (req, res) => {
-    const dir = req.body && req.body.dir;
+    let dir = req.body && req.body.dir;
     const isRecursive = req.body && req.body.isRecursive;
 
     if (!dir || !(await isExist(dir))) {
         console.error("[/api/lsDir]", dir, "does not exist");
         res.sendStatus(404);
         return;
+    }
+
+    //remove '\' at the end
+    if(dir.length > 2 && dir[dir.length-1] === path.sep){
+        dir = dir.slice(0, dir.length -1)
     }
 
     const time1 = getCurrentTime();

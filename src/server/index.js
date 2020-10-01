@@ -111,7 +111,7 @@ async function init() {
     await mkdir(thumbnailFolderPath);
     await mkdir(cachePath);
 
-    let { home_pathes, path_will_scan } = await getHomePath();
+    let { home_pathes, path_will_scan, path_will_watch } = await getHomePath();
     global.path_will_scan = path_will_scan;
 
     const cleanCache = require("../tools/cleanCache");
@@ -126,31 +126,24 @@ async function init() {
     });
     results.pathes = results.pathes.concat(home_pathes);
     let end1 = (new Date).getTime();
-    console.log(`${(end1 - beg)/1000}s  to read local dirs`);
+    console.log(`${(end1 - beg)/1000}s to read local dirs`);
+
+
     console.log("Analyzing local files");
     db.initFileToInfo(results.infos);
     console.log("There are", getAllFilePathes().length, "files");
-
-    // console.log("----------scan cache------------");
-    // const cache_results = await fileiterator([cachePath], { 
-    //     filter: shouldWatchForCache, 
-    //     doLog: true
-    // });
-
-    // let end2 = (new Date).getTime();
-    // console.log(`${(end2 - end1)/1000}s  to read cache dirs`);
-    // db.initCacheDb(cache_results.pathes, cache_results.infos);
-
+    let end3 = (new Date).getTime();
+    console.log(`${(end3 - end1)/1000}s to analyze local files`);
 
     console.log("----------scan thumbnail------------");
+    end1 = (new Date).getTime();
     let thumbnail_pathes = await pfs.readdir(thumbnailFolderPath);
     thumbnail_pathes = thumbnail_pathes.filter(isImage).map(e => path.resolve(thumbnailFolderPath, e));
-
-    let end3 = (new Date).getTime();
+    end3 = (new Date).getTime();
     console.log(`${(end3 - end1)/1000}s  to read thumbnail dirs`);
     initThumbnailDb(thumbnail_pathes);
 
-    setUpFileWatch(path_will_scan);
+    setUpFileWatch(path_will_watch);
 
     const machineLearning = require("./models/machineLearning");
     machineLearning.init();
@@ -247,6 +240,8 @@ function shouldWatchForCache(p){
 
 const chokidar = require('chokidar');
 function setUpFileWatch (path_will_scan){
+    return;
+
     //watch file change 
     //update two database
     const watcher = chokidar.watch(path_will_scan, {

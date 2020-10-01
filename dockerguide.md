@@ -1,8 +1,8 @@
 # Docker指南
 
-## 修改 src/path-config
+## 修改 src/path-config.ini
 
-把 path-config 的文件路径修改为
+把 path-config.ini 的文件路径修改为
 > /data
 
 ## 设置 src/config/user-config.js 整理文件的路径

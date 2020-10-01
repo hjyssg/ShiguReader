@@ -18,7 +18,7 @@ router.post('/api/homePagePath', function (req, res) {
     });
 
     if(result.length === 0){
-        console.error("Please check path-config");
+        console.error("Please check path-config.ini");
         res.sendStatus(404);
     }else{
         res.send({

@@ -59,8 +59,8 @@
 git clone https://github.com/hjyssg/ShiguReader
 
 # 手动修改用户文件路径设置
-# 用任意文本编辑器手动修改src/path-config和src/config/user-config.js
-# path-config一定需要修改
+# 用任意文本编辑器手动修改src/path-config.ini和src/config/user-config.js
+# path-config.ini一定需要修改
 # user-config.js看情况
 
 ## 重要:windows用户必须的额外步骤：
@@ -149,7 +149,7 @@ docker run -d -p hostport:3000 -v comicpath:/data liwufan/shigureader
 
 ##### FAQ
     问： 网页能打开, 但是文件夹打开是空的或者404？
-    答： 请认真检查path-config的地址有没有写错。
+    答： 请认真检查path-config.ini的地址有没有写错。
 
     问： 想问下如果想更新该如何做呢，只要重新克隆一份最新的覆盖就行了？还是说要再走一遍流程?   
     答： 如果是用git的话，拉(pull)最新的代码。重新修改一下用户配置，npm install 最后npm run dev。
