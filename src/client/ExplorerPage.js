@@ -621,7 +621,9 @@ export default class ExplorerPage extends Component {
         let breadcrumbCount = 0;
         const zipfileItems = files.map((item, index) => {
             const text = getBaseName(item);
-            const toUrl =  clientUtil.getOneBookLink(item);
+
+            // const avgSizeReal = this.getPageAvgSize(item);
+            const toUrl = clientUtil.isLocalHost()? clientUtil.getOneBookOverviewLink(item) : clientUtil.getOneBookLink(item);
 
             const fileSize = this.getFileSize(item);
             const fileSizeStr = fileSize && filesizeUitl(fileSize);
@@ -1040,7 +1042,6 @@ export default class ExplorerPage extends Component {
                 anchorSideMenu: this.state.anchorSideMenu
             });
 
-       
             return (<div className={cn}>
                     <div className="side-menu-radio-title"> Special Filter </div>
                     {this.renderSpecialFilter()}

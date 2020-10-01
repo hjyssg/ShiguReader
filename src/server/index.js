@@ -240,8 +240,6 @@ function shouldWatchForCache(p){
 
 const chokidar = require('chokidar');
 function setUpFileWatch (path_will_scan){
-    return;
-
     //watch file change 
     //update two database
     const watcher = chokidar.watch(path_will_scan, {

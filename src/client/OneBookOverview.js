@@ -53,7 +53,7 @@ class SmartImage extends Component {
 
     return (
       <VisibilitySensor offset={{bottom: -150}} partialVisibility={true}  onChange={this.onChange.bind(this)}>
-        <div className="col-sm-6 col-md-3 col-3 a-with-padding" key={url}>
+        <div className="col-lg-3 col-md-4 col-6 a-with-padding" key={url}>
           <Link to={toUrl} target="_blank" className="obov-link">
               {content}
           </Link>
