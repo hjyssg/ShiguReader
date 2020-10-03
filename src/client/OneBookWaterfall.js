@@ -103,11 +103,23 @@ export default class OneBookWaterfall extends Component {
     }
   }
 
+  getMaxHeight(){
+    if(isMobile()){
+      return window.screen.height - 10;
+     }
+
+    let maxHeight = isNaN(window.innerHeight) ? window.clientHeight : window.innerHeight;
+    return maxHeight - 10;
+  }
+
   renderImage(){
     const { files } = this.state;
     if(!this.hasImage()){
       return;
     }
+
+    const maxHeight = this.getMaxHeight();
+
     let images =files.map((file, index) => {
       return (<div key={file} className="one-book-waterfall-div"> 
                   <LoadingImage className={"one-book-waterfall-image"} 
@@ -116,7 +128,9 @@ export default class OneBookWaterfall extends Component {
                            title={index}
                            url={this._getFileUrl(file)} 
                            asSimpleImage
-                           key={file}/> 
+                           key={file}
+                           style={{maxHeight: maxHeight}}
+                           /> 
               </div>);
     });
     return (<div className="mobile-one-book-container">
