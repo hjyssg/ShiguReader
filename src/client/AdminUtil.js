@@ -1,7 +1,7 @@
 import Swal from 'sweetalert2';
 import Sender from './Sender';
 
-const askPregenerate = function(path){
+const askPregenerate = function(path, fastUpdateMode){
     Swal.fire({
         title: "Pregenerate Thumbnail",
         text:  path,
@@ -11,7 +11,8 @@ const askPregenerate = function(path){
     }).then((result) => {
         if (result.value === true) {
             const reqBoby = {
-                path: path
+                path: path,
+                fastUpdateMode: fastUpdateMode
             }
             Sender.post('/api/pregenerateThumbnails', reqBoby, res =>{
                 console.log(res)
