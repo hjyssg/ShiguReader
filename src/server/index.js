@@ -145,9 +145,13 @@ async function init() {
 
     setUpFileWatch(path_will_watch);
 
-    const machineLearning = require("./models/machineLearning");
-    machineLearning.init();
-   
+    try{
+        const machineLearning = require("./models/machineLearning");
+        machineLearning.init();
+    }catch(e){
+        console.error(e);
+    }
+
     const port = isProduction? http_port: dev_express_port;
     const server = app.listen(port, async () => {
         console.log("----------------------------------------------------------------");

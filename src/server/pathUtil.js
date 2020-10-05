@@ -61,7 +61,7 @@ function isDirectParent(parent, filePath){
 }
 
 function isSub(parent, child) {
-    return child.length > parent.length && child.startsWith(parent)  && child[parent.length] === path.sep;
+    return parent && child && child.length > parent.length && child.startsWith(parent)  && child[parent.length] === path.sep;
 }
 
 async function filterNonExist(pathes){
