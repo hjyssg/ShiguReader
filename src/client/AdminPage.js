@@ -106,20 +106,60 @@ export default class AdminPage extends Component {
     renderHistory(){
         const history = clientUtil.getHistoryFromCookie();
 
-        const historyDom = history.map(e => {
-            const timeStr = dateFormat(e[0], "mm-dd hh:MM");
-            const filePath = e[1];
-            const toUrl =  clientUtil.getOneBookLink(filePath);
+       const groupByDay =  _.groupBy(history, e => {
+            let d = new Date(e[0].getTime());
+            d.setHours(0);
+            d.setMinutes(0);
+            d.setSeconds(0);
+            d.setMilliseconds(0);
+            return d.getTime();
+        });
+
+        const historyDom =  _.keys(groupByDay).map(key => {
+            debugger
+            const timeStr = dateFormat(new Date(parseInt(key)), "dddd, mmmm dS, yyyy");
+            let items = groupByDay[key];
+
+            items = _.sortBy(items, e => e[0].getTime());
+
+            const dayHistory = items.map(e => {
+                const filePath = e[1];
+                const toUrl =  clientUtil.getOneBookLink(filePath);
+    
+                return (
+                    <Link to={toUrl}  key={filePath} className={"history-link"}>
+                        <div className="history-one-line-list-item" key={filePath}>
+                            <span className="file-text" title={filePath}> {getBaseName(filePath)}</span>
+                        </div>
+                    </Link>);
+    
+            })
 
             return (
-                <Link to={toUrl}  key={filePath} className={"history-link"}>
-                    <div className="history-one-line-list-item" key={filePath}>
-                        <span className="date-text"> {timeStr} </span>
-                        <span className="file-text" title={filePath}> {getBaseName(filePath)}</span>
+                <div className="history-day-section">
+                    <div className="date-text">
+                         <span>{timeStr}</span>
+                        <span>{`${items.length} items`}</span> 
                     </div>
-                </Link>);
-
+                    {dayHistory}
+                </div>
+            )
         })
+
+        // const historyDom = history.map(e => {
+        //     const timeStr = dateFormat(e[0], "mm-dd hh:MM");
+        //     const filePath = e[1];
+        //     const toUrl =  clientUtil.getOneBookLink(filePath);
+
+        //     return (
+        //         <Link to={toUrl}  key={filePath} className={"history-link"}>
+        //             <div className="history-one-line-list-item" key={filePath}>
+        //                 <span className="date-text"> {timeStr} </span>
+        //                 <span className="file-text" title={filePath}> {getBaseName(filePath)}</span>
+        //             </div>
+        //         </Link>);
+
+        // })
         
         return (
         <div className="history-section admin-section">
