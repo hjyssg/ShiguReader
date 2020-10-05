@@ -71,10 +71,15 @@ function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
     }
     
     const text2 =  tag || author || text;
+    const text2InLowerCase = text2.toLowerCase();
     const reg2 = escapeRegExp(text2);
     const img_files_results = getFileCollection()
                         .chain()
                         .find({'filePath': { '$regex' : reg2 }, isDisplayableInOnebook: true })
+                        .where(obj =>{
+                            const fp =  path.dirname(obj.filePath);
+                            return fp.toLowerCase().includes(text2InLowerCase);
+                        })
                         .data();
 
     img_files_results.forEach(obj => {
