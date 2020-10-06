@@ -42,6 +42,26 @@ const isVideo = module.exports.isVideo = function(fn){
     return !!fn.toLowerCase().match(videoTypesRegex);
 }
 
+const companyNames = "ABP ATFB AVOP CPDE CSCT DASD EBOD FDGD GANA GGG HND HNDS ID IPX IPZ KAWD LCBD LXVS MDS MIDE MIMK MIRD MUKC NHDTA PGD PPPD PPT REBDB SDDE SHKD SNIS SOE SSNI STAR TEK TONY TPRO TSDV WANZ WAT YRZ ZUKO DAP";
+const avRegex = new RegExp(companyNames.split(" ").filter(e => e.length > 1).map(e => `${e}\\d{3}`).join("|"));
+
+module.exports.isAv = function(fn){
+    if(!isVideo(fn)){
+        return false;
+    }
+
+    //example ABP-265
+    if(/[A-Za-z]{2,}-\d{3}/.test(fn)){
+        return true;
+    }
+
+    //ABP264
+    const fnUp = fn.toUpperCase();
+    if(avRegex.test(fnUp)){
+        return true;
+    }
+}
+
 const compressable = ["jpg", "jpeg", ".png",  ".gif"]
 module.exports.canBeCompressed = function(fn){
     const fnl = fn.toLowerCase();

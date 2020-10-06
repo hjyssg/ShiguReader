@@ -606,12 +606,35 @@ export default class ExplorerPage extends Component {
             return  <Link to={toUrl}  key={item}>{result}</Link>;
         });
 
-        let videoItems = videos.map((item) =>  {
-            const toUrl = clientUtil.getVideoPlayerLink(item);
+        //seperate av from others
+        const groupByVideoType =  _.groupBy(videos, item => {
             const text = getBaseName(item);
-            const result = this.getOneLineListItem(<i className="far fa-file-video"></i>, text, item);
-            return  <Link target="_blank" to={toUrl}  key={item}>{result}</Link>;
-        });
+            return util.isAv(text)? "av": "other";
+        }) || {};
+
+        //todo duplicate code below
+        let normalVideos = [];
+        
+        if(groupByVideoType["other"]){
+            normalVideos = groupByVideoType["other"].map((item) =>  {
+                const toUrl = clientUtil.getVideoPlayerLink(item);
+                const text = getBaseName(item);
+                const result = this.getOneLineListItem(<i className="far fa-file-video"></i>, text, item);
+                return  <Link target="_blank" to={toUrl}  key={item}>{result}</Link>;
+            });
+        }
+        
+        let avVideos = [];
+        if(groupByVideoType["av"]){
+            avVideos = groupByVideoType["av"].map((item) =>  {
+                const toUrl = clientUtil.getVideoPlayerLink(item);
+                const text = getBaseName(item);
+                const result = this.getOneLineListItem(<i className="far fa-file-video av-color"></i>, text, item);
+                return  <Link target="_blank" to={toUrl}  key={item}>{result}</Link>;
+            });
+        }
+
+
 
         //! !todo if the file is already an image file
         files = this.getFileInPage(files);
@@ -706,7 +729,8 @@ export default class ExplorerPage extends Component {
         return (
             <div className={"explorer-container"}>
                 <ItemsContainer items={dirItems} neverCollapse/>
-                <ItemsContainer items={videoItems} />
+                <ItemsContainer items={normalVideos} />
+                <ItemsContainer items={avVideos} />
                 {this.renderPagination(filteredFiles, filteredVideos)}
                 {this.renderSortHeader()}
                 <div className={"file-grid container"}>
