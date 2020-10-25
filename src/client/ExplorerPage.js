@@ -1044,7 +1044,7 @@ export default class ExplorerPage extends Component {
             return tag2Freq[b] - tag2Freq[a];
         })
 
-        const tagInfos = tags.slice(0, 30).map(t => {
+        const tagInfos = tags.map(t => {
             return (<div className="side-menu-single-tag col-3" onClick={() => this.setFilterText(t)} key={t}>
                         {t}<span>({tag2Freq[t]})</span> 
                     </div>);

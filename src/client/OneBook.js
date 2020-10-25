@@ -382,6 +382,19 @@ export default class OneBook extends Component {
     return this.res && this.res.failed;
   }
 
+  onClickPagination(event){
+    let index = prompt("Which page to go ");
+    index = parseInt(index);
+    if(_.isNumber(index) && !isNaN(index)){
+      //the real index 
+      index  = index-1;
+      if(index > this.getLastIndex()){
+        index = this.getLastIndex();
+      }
+      this.changePage(index, event);
+    }
+  }
+
   renderPagination() {
     if(isMobile()){ return; }
     const { files, index } = this.state;
@@ -422,7 +435,7 @@ export default class OneBook extends Component {
                       key={e+ii} style={{marginLeft:"15px"}} title={titles[ii]}> {e} 
                     </div>);
       const mobilePageNum = isMobile() && (
-        <div  style={{marginLeft:"15px"}} > {`${index+1}/${files.length}`}  </div>
+        <div onClick={this.onClickPagination.bind(this)} style={{marginLeft:"15px"}} > {`${index+1}/${files.length}`}  </div>
       )
       return <div className={"one-book-file-stat"}>{texts} {mobilePageNum} </div>
     }
