@@ -58,7 +58,7 @@ export default class FileChangeToolbar extends Component {
         const { file } = this.props;
         Swal.fire({
             title: "Overwrite",
-            text: `Do you want to overwrite overwrite the old file with the minified file?`,
+            text: `Overwrite overwrite the old file with the minified file?`,
             showCancelButton: true,
             confirmButtonText: 'Yes',
             cancelButtonText: 'No'
@@ -75,7 +75,7 @@ export default class FileChangeToolbar extends Component {
         const { file } = this.props;
         Swal.fire({
             title: "Minify Zip",
-            text: `Do you want to minify ${file}?`,
+            text: `Minify ${file}?`,
             showCancelButton: true,
             confirmButtonText: 'Yes',
             cancelButtonText: 'No'
@@ -92,7 +92,7 @@ export default class FileChangeToolbar extends Component {
         const { file } = this.props;
         Swal.fire({
             title: "Delete",
-            text: `Do you want to delete ${file}?` ,
+            text: `Delete ${file}?` ,
             showCancelButton: true,
             confirmButtonText: 'Yes',
             cancelButtonText: 'No'
@@ -109,7 +109,7 @@ export default class FileChangeToolbar extends Component {
         const { file } = this.props;
         if(_.isString(path)){
             Swal.fire({
-                html: 'Do you want to move this file to <span class="path-highlight">'+  path +"</span>",
+                html: 'Move this file to <span class="path-highlight">'+  path +"</span>",
                 showCancelButton: true,
                 confirmButtonText: 'Yes',
                 cancelButtonText: 'No'
@@ -172,6 +172,31 @@ export default class FileChangeToolbar extends Component {
         }
     }
 
+    renderRenameButton(){
+        return ( <div tabIndex="0" className="fas fa-pen"  title="rename file"
+                      onClick={this.handleRename.bind(this)}></div>)
+        
+    }
+
+    handleRename(){
+        const {file, path} = this.props;
+        let dest = prompt("Raname or Move", file);
+        if(dest){
+            Swal.fire({
+                html: 'Rename this file to <span class="path-highlight">'+ dest +"</span>",
+                showCancelButton: true,
+                confirmButtonText: 'Yes',
+                cancelButtonText: 'No'
+            }).then((result) => {
+                if (result.value === true) {
+                    Sender.simplePost("/api/renameFile", {src: file, dest}, res => {
+                        pop(file, res, "rename");
+                    });
+                } 
+            });
+        }
+    }
+
     render(){
         const {file, className, header, showAllButtons, hasMusic, bigFont, isFolder} = this.props;
         const cn = classNames("file-change-tool-bar", className, {
@@ -211,6 +236,7 @@ export default class FileChangeToolbar extends Component {
                     {this.renderDownloadLink()}
                     {this.renderMinifyZipButton()}
                     {this.renderOverwriteButton()}
+                    {this.renderRenameButton()}
                     {additional}
                 </div>
             </div>

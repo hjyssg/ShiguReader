@@ -11,6 +11,35 @@ const isWindows = require('is-windows');
 const express = require('express');
 const router = express.Router();
 const logger = require("../logger");
+const path = require('path');
+
+
+router.post('/api/renameFile', (req, res) => {
+    const src = req.body && req.body.src;
+    const dest = req.body && req.body.dest;
+
+    if(!src || !dest){
+        res.sendStatus(404);
+        return;
+    }
+
+    (async () =>{
+        try{
+            let err = await pfs.rename(src, dest);
+
+            if(!err){
+                logger.info(`[rename] ${src} to ${dest}`);
+                res.sendStatus(200);
+            }else{
+                console.error(err);
+                res.sendStatus(404);
+            }
+        }catch(e){
+            console.error(e);
+            res.sendStatus(404);
+        }
+    })();
+});
 
 router.post('/api/moveFile', (req, res) => {
     const src = req.body && req.body.src;
