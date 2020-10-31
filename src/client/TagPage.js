@@ -33,6 +33,20 @@ const {
 
 const { useless_tag_regex } =  util;
 
+//https://stackoverflow.com/questions/3665115/how-to-create-a-file-in-memory-for-user-to-download-but-not-through-server
+function download(filename, text) {
+  var element = document.createElement('a');
+  element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+  element.setAttribute('download', filename);
+
+  element.style.display = 'none';
+  document.body.appendChild(element);
+
+  element.click();
+
+  document.body.removeChild(element);
+}
+
 
 function addOne(table, key) {
   if(!key){
@@ -270,8 +284,8 @@ setStateAndSetHash(state, callback){
 
   renderTagList(keys) {
     const {
-      tags = [],
-      authors = [],
+      tags = {},
+      authors = {},
       loaded,
       authorToFiles,
       tagToFiles,
@@ -405,6 +419,17 @@ setStateAndSetHash(state, callback){
         </div>);
   }
 
+  createFileAndDownload(){
+    const keys = this.getFilteterItems();
+    download("keys.txt", keys.join("\n"));
+  }
+
+  renderDownloadButton(){
+    return (<div > 
+      <div onClick={this.createFileAndDownload.bind(this)}> download author txt </div>
+    </div>);
+  }
+
   render() {
     // if(this.redirect){
     //   const path = this.redirect;
@@ -430,6 +455,7 @@ setStateAndSetHash(state, callback){
         {this.renderSortHeader()}
         {this.renderTagList(keys)}
         {this.renderPagination(keys)}
+        {/* {this.renderDownloadButton(keys)}; */}
       </div>
     );
   }

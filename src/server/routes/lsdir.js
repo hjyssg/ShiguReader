@@ -19,6 +19,23 @@ const { getDirName } = serverUtil;
 const _ = require('underscore');
 
 
+router.post('/api/listFolderOnly', async (req, res) => {
+    let dir = req.body && req.body.dir;
+
+    if (!dir || !(await isExist(dir))) {
+        console.error("[/api/lsDir]", dir, "does not exist");
+        res.sendStatus(404);
+        return;
+    }
+
+    let pathes = await pfs.readdir(p, {withFileTypes: true });
+
+    res.send({
+        pathes
+    });
+});
+
+
 router.post('/api/lsDir', async (req, res) => {
     let dir = req.body && req.body.dir;
     const isRecursive = req.body && req.body.isRecursive;
