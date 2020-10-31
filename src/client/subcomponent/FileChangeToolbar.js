@@ -179,9 +179,9 @@ export default class FileChangeToolbar extends Component {
     }
 
     handleRename(){
-        const {file, path} = this.props;
+        const {file} = this.props;
         let dest = prompt("Raname or Move", file);
-        if(dest){
+        if(dest && file !== dest){
             Swal.fire({
                 html: 'Rename this file to <span class="path-highlight">'+ dest +"</span>",
                 showCancelButton: true,

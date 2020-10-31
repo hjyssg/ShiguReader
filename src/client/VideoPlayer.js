@@ -88,7 +88,7 @@ export default class VideoPlayer extends Component {
                          </div>);
 
   const fileSize = stat && filesizeUitl(stat.size);
-  const mTime = stat &&  dateFormat(stat.mTime, "isoDate");
+  const mTime = stat &&  dateFormat(stat.mtime, "isoDate");
 
   const videoFileInfo = (stat && <div className="video-file-info-row">
                           <span>{fileSize}</span>
