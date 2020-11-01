@@ -65,7 +65,8 @@ function read7zOutput(data) {
         }
         return {files, fileInfos};
     }catch(e){
-        console.error("[read7zOutput]", e)
+        // console.error("[read7zOutput]", e)
+        logger.error('[read7zOutput] exit: ', e);
     }
 }
 

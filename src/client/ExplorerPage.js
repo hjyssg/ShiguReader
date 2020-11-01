@@ -1055,7 +1055,7 @@ export default class ExplorerPage extends Component {
 
     renderSideMenu(filteredFiles, filteredVideos){
         const tag2Freq = {};
-        const isType = {};
+        const type2Freq = {};
 
         filteredFiles.forEach(e => {
             const result = parse(e);
@@ -1067,8 +1067,8 @@ export default class ExplorerPage extends Component {
                 }
 
                 if(result.type){
-                    tags.push(result.type);
-                    isType[result.type] = true;
+                    type2Freq[result.type] = type2Freq[result.type] || 0;
+                    type2Freq[result.type]++;
                 }
             }
             
@@ -1081,40 +1081,53 @@ export default class ExplorerPage extends Component {
         });
 
         let tags = _.keys(tag2Freq);
-
-       tags.sort((a, b) => {
+        tags.sort((a, b) => {
             return tag2Freq[b] - tag2Freq[a];
         })
 
+        let types = _.keys(type2Freq);
+        types.sort((a, b) => {
+            return type2Freq[b] - type2Freq[a];
+        })
+
         const tagInfos = tags.map(t => {
-            return (<div className="side-menu-single-tag col-3" onClick={() => {
-                    if(isType[t]){
-                        this.setFilterType(t)
-                    } else {
-                        this.setFilterText(t)
-                    }
-                }}
+            return (<div className="side-menu-single-tag col-3" onClick={() =>  this.setFilterText(t)}
                 key={t}>
                 {t}<span>({tag2Freq[t]})</span> 
                     </div>);
         });
 
+        const typeInfos = types.map(t => {
+            return (<div className="side-menu-single-tag col-3 type-tag" onClick={() => this.setFilterType(t)}
+                key={t}>
+                {t}<span>({type2Freq[t]})</span> 
+                    </div>);
+        });
 
-        const showAll = (
-        <div className="side-menu-single-tag col-3" onClick={() =>{ 
-            this.setFilterText(""); 
-            this.setFilterType("")
-        }}
-            key={"side-menu-single-tag-all"}>
-            Back to All
-        </div>);
+
+        let showAll;
+
+        const {filterText, filterType} = this.state;
 
         //!!duplicate code here. need to fix
-        if( (_.isString(this.state.filterText) && this.state.filterText) || 
-         (_.isString(this.state.filterType) && this.state.filterType)  ){
-            tagInfos.unshift(showAll);
+        if( (_.isString(filterText) && filterText) || 
+         (_.isString(filterType) && filterType)  ){
+            // tagInfos.unshift(showAll);
+
+            showAll = (
+                <div className="side-menu-single-tag col-3" onClick={() =>{ 
+                    this.setFilterText(""); 
+                    this.setFilterType("")
+                }}
+                    key={"side-menu-single-tag-all"}>
+                    Back to All
+                </div>);
         }
-        const tagContainer = (<div className="exp-tag-container row">{tagInfos} </div>);
+        const tagContainer = (<div className="exp-tag-container row">
+            {showAll}
+            {typeInfos}
+            {tagInfos} 
+        </div>);
 
         if(this.getMode() !== MODE_HOME){
             const cn = classNames("side-menu container", {
@@ -1124,6 +1137,10 @@ export default class ExplorerPage extends Component {
             return (<div className={cn}>
                     <div className="side-menu-radio-title"> Special Filter </div>
                     {this.renderSpecialFilter()}
+                    <div className="row info-row">
+                        <div className="col-3">{`filterText: ${filterText||"-"}`} </div>
+                        <div className="col-3">{`filterType: ${filterType||"-"}`} </div>
+                     </div>
                     {tagContainer}
                 </div>)
         }

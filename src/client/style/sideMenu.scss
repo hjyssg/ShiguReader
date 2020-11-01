@@ -32,7 +32,13 @@
     color: $font_color_white_one;
   }
 
-  .exp-tag-container{
+  .info-row{
+    color: $font_color_white_one;
+    font-size: 10px;
+    margin-bottom: 5px;
+  }
+
+  .exp-tag-container {
     border-top: $font_color_white_one solid 1px;
 
     .side-menu-single-tag{
@@ -40,6 +46,10 @@
       color: $font_color_white_one;
       font-size: 10px;
       margin-bottom: 5px;
+
+      &.type-tag {
+        color: #c9ffd5;
+      }
   
       &:hover{
         color: #43464e;
