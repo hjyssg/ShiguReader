@@ -14,6 +14,7 @@ module.exports = async function (folders, config) {
             if (stat.isFile()) {
                 throw "[file-iterator] only source folder path";
             } else {
+                console.log("[file-iterator] begin:", src);
                 await iterate(src, config, result, 0);
             }
         }else{

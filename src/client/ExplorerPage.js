@@ -86,6 +86,7 @@ export default class ExplorerPage extends Component {
             filterByOversizeImage: parsed.filterByOversizeImage === "true",
             filterByGuess: parsed.filterByGuess === "true",
             filterText: parsed.filterText || "",
+            filterType: parsed.filterType || "",
             noThumbnail: parsed.noThumbnail === "true"
         }
     }
@@ -104,6 +105,7 @@ export default class ExplorerPage extends Component {
         "filterByOversizeImage",
         "filterByGuess",
         "filterText",
+        "filterType",
         "noThumbnail"].forEach(key => {
           obj2[key] = obj[key];
         })
@@ -190,6 +192,8 @@ export default class ExplorerPage extends Component {
                 filterText: nextProps.filterText
             })
         }
+
+        //filterType ??
     }
 
     requestHomePagePathes() {
@@ -473,6 +477,14 @@ export default class ExplorerPage extends Component {
         if(filterText){
             files = files.filter(e => {
                 return e.toLowerCase().indexOf(filterText) > -1;
+            });
+        }
+
+        const filterType = _.isString(this.state.filterType) && this.state.filterType;
+        if(filterType){
+            files = files.filter(e => {
+                const result = parse(e);                
+                return result && result.type === filterType;
             });
         }
 
@@ -1003,6 +1015,10 @@ export default class ExplorerPage extends Component {
         this.setStateAndSetHash({filterText: text, pageIndex: 1});
     }
 
+    setFilterType(text){
+        this.setStateAndSetHash({filterType: text, pageIndex: 1});
+    }
+
     toggleGoodAuthor(){
         this.setStateAndSetHash({
             filterByGoodAuthorName: !this.state.filterByGoodAuthorName,
@@ -1039,10 +1055,23 @@ export default class ExplorerPage extends Component {
 
     renderSideMenu(filteredFiles, filteredVideos){
         const tag2Freq = {};
+        const isType = {};
+
         filteredFiles.forEach(e => {
             const result = parse(e);
-            let tags = (result && result.tags)||[];
+            let tags = [];
 
+            if(result){
+                if(result.tags){
+                    tags = result.tags;
+                }
+
+                if(result.type){
+                    tags.push(result.type);
+                    isType[result.type] = true;
+                }
+            }
+            
             tags.forEach(t => {
                 if(t.length > 1){
                     tag2Freq[t] = tag2Freq[t] || 0;
@@ -1058,18 +1087,33 @@ export default class ExplorerPage extends Component {
         })
 
         const tagInfos = tags.map(t => {
-            return (<div className="side-menu-single-tag col-3" onClick={() => this.setFilterText(t)} key={t}>
-                        {t}<span>({tag2Freq[t]})</span> 
+            return (<div className="side-menu-single-tag col-3" onClick={() => {
+                    if(isType[t]){
+                        this.setFilterType(t)
+                    } else {
+                        this.setFilterText(t)
+                    }
+                }}
+                key={t}>
+                {t}<span>({tag2Freq[t]})</span> 
                     </div>);
         });
 
 
         const showAll = (
-        <div className="side-menu-single-tag col-3" onClick={() => this.setFilterText("")} key={"side-menu-single-tag-all"}>
-            All
+        <div className="side-menu-single-tag col-3" onClick={() =>{ 
+            this.setFilterText(""); 
+            this.setFilterType("")
+        }}
+            key={"side-menu-single-tag-all"}>
+            Back to All
         </div>);
 
-        tagInfos.unshift(showAll);
+        //!!duplicate code here. need to fix
+        if( (_.isString(this.state.filterText) && this.state.filterText) || 
+         (_.isString(this.state.filterType) && this.state.filterType)  ){
+            tagInfos.unshift(showAll);
+        }
         const tagContainer = (<div className="exp-tag-container row">{tagInfos} </div>);
 
         if(this.getMode() !== MODE_HOME){
