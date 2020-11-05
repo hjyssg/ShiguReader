@@ -2,6 +2,8 @@
 // @name			EhentaiLight配合Shigureader
 // @grant       GM_xmlhttpRequest
 // @grant       GM_addStyle
+// @grant       GM_getValue
+// @grant       GM_setValue
 // @connect     localhost
 // @namespace       Aji47
 // @version			0.0.1
@@ -462,8 +464,8 @@ function onLoad(dom) {
     // const time2 = new Date().getTime();
     // console.log((time2 - time1)/1000, "to load");
 
-    localStorage.setItem('responseText',  dom.responseText);
-    localStorage.setItem('lastResTime', getCurrentTime());
+    GM_setValue('responseText',  dom.responseText);
+    GM_setValue('lastResTime', getCurrentTime());
     const res = JSON.parse(dom.responseText);
     highlightThumbnail(res.allFiles);
 }
@@ -548,7 +550,7 @@ function getCurrentTime(){
 }
 
 function onTimeout(){
-    const responseText = localStorage.getItem('responseText');
+    const responseText = GM_getValue('responseText');
     if(responseText){
         const res = JSON.parse(responseText);
         highlightThumbnail(res.allFiles);
@@ -556,8 +558,8 @@ function onTimeout(){
 }
 
 function main() {
-    const responseText = localStorage.getItem('responseText');
-    const lastResTime = localStorage.getItem('lastResTime');
+    const responseText = GM_getValue('responseText');
+    const lastResTime = GM_getValue('lastResTime');
     const EXPIRE_TIME = 1000*60*2;
     if(responseText && lastResTime && ( getCurrentTime() - (+lastResTime) < EXPIRE_TIME )){
         const res = JSON.parse(responseText);
