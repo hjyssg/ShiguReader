@@ -143,6 +143,8 @@ module.exports.extractByRange = async function(filePath, outputPath, range){
         const DISTANCE = 200;
         let ii = 0;
 
+        let count = 0;
+
         while(ii < range.length){
             //cut into parts
             //when range is too large, will cause OS level error
@@ -155,6 +157,13 @@ module.exports.extractByRange = async function(filePath, outputPath, range){
                 break;
             }
             ii = ii+DISTANCE;
+
+            count++;
+
+            if(count > 100){
+                console.log("-----------warning-----------");
+                debugger
+            }
         }
     }catch (e){
         error = e;

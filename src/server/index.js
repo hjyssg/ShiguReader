@@ -566,8 +566,7 @@ app.post('/api/extract', async (req, res) => {
     function sendBack(files, musicFiles, path, stat){
         const tempFiles =  files.filter(e => {
             return !isHiddenFile(e);
-          })
-  ;
+          });
         let zipInfo;
         if(tempFiles.length > 0){
             zipInfo = getZipInfo([path])[path];
@@ -640,7 +639,7 @@ app.post('/api/extract', async (req, res) => {
                     const timeUsed = (time2 - time1);
                     console.log(`[/api/extract] FIRST PART UNZIP ${filePath} : ${timeUsed}ms`);
                     
-                    extractByRange(filePath, outputPath, secondRange)
+                    await extractByRange(filePath, outputPath, secondRange)
                 } else {
                     res.sendStatus(500);
                     console.error('[/api/extract] exit: ', stderr);
