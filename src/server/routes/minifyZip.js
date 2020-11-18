@@ -32,7 +32,7 @@ router.post('/api/minifyZipQue', (req, res) => {
 })
 
 const pLimit = require('p-limit');
-const limit = pLimit(1);
+const limit = pLimit(2);
 
 router.post('/api/overwrite', async (req, res) =>  {
     const filePath = req.body && req.body.filePath;

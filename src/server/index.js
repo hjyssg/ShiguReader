@@ -389,7 +389,6 @@ function logForPre(prefix, config, filePath) {
     }
 }
 
-const pLimit = require('p-limit');
 const thumbnailGenerator = require("../tools/thumbnailGenerator");
 //the only required parameter is filePath
 async function extractThumbnailFromZip(filePath, res, mode, config) {
