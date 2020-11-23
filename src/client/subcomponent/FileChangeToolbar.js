@@ -89,7 +89,7 @@ export default class FileChangeToolbar extends Component {
     }
 
     handleDelete(){
-        const { file } = this.props;
+        const { file, isFolder } = this.props;
         Swal.fire({
             title: "Delete",
             text: `Delete ${file}?` ,
@@ -98,9 +98,14 @@ export default class FileChangeToolbar extends Component {
             cancelButtonText: 'No'
         }).then((result) => {
             if (result.value === true) {
-                Sender.simplePost("/api/deleteFile", {src: file}, res => {
-                    pop(file, res, "delete");
-                });
+                if(isFolder){
+                    //send different request
+
+                }else{
+                    Sender.simplePost("/api/deleteFile", {src: file}, res => {
+                        pop(file, res, "delete");
+                    });
+                }
             } 
         });
     }
@@ -197,6 +202,14 @@ export default class FileChangeToolbar extends Component {
         }
     }
 
+    renderDeleteButton(){
+        return (
+            <div tabIndex="0" className="fas fa-trash-alt"
+            title="Del"
+            onClick={this.handleDelete.bind(this)}></div>
+        );
+    }
+
     render(){
         const {file, className, header, showAllButtons, hasMusic, bigFont, isFolder} = this.props;
         const cn = classNames("file-change-tool-bar", className, {
@@ -204,7 +217,14 @@ export default class FileChangeToolbar extends Component {
         });
 
         if(isFolder){
-            return null;
+            //todo: compress to zip button
+            return (
+            <div className={cn} >
+            {header && <span className="file-change-tool-bar-header">{header}</span>}
+            <div className="tool-bar-row">
+                {this.renderDeleteButton()}
+            </div>
+            </div>);
         }
 
         if(!clientUtil.isAuthorized()){
@@ -228,9 +248,7 @@ export default class FileChangeToolbar extends Component {
                     <div tabIndex="0"  className="fas fa-times"
                                     title={"Move to " + userConfig.not_good_folder}
                                     onClick={this.handleMove.bind(this, userConfig.not_good_folder)}></div>
-                    <div tabIndex="0" className="fas fa-trash-alt"
-                                    title="Del"
-                                    onClick={this.handleDelete.bind(this)}></div>
+                    {this.renderDeleteButton()}
                 </div>
                 <div className="tool-bar-row second">
                     {this.renderDownloadLink()}
