@@ -161,9 +161,12 @@
       margin: auto;
       text-align:center;
       border-radius: 2px;
-
-      &.less-width{
+      margin-top: 20px;
+      
+      &.less-width {
         max-width: 90%;
+        height: 200px;
+        margin-top: 0px;
       }
     }
   }
@@ -191,16 +194,16 @@
   position: relative;
   background-color: #f3cf4b;
   border-radius: 0 5px 5px 5px;
-  // box-shadow: 4px 4px 7px rgba(0, 0, 0, 0.59);
+  box-shadow: 4px 4px 7px rgba(0, 0, 0, 0.59);
 
   &::before{
     content: '';
-    width: 50%;
-    height: 12px;
+    width: 40%;
+    height: 10px;
     border-radius: 0 5px 0 0;
     background-color: #f3cf4b;
     position: absolute;
-    top: -12px;
+    top: -10px;
     left: 0px;
   }
 }
