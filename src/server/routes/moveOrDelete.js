@@ -18,6 +18,10 @@ const { isImage, isCompress, isMusic, arraySlice, isDisplayableInOnebook } = uti
 
 const sevenZipHelp = require("../sevenZipHelp");
 
+function getReason(e){
+    return e.stderr || e.message || e;
+}
+
 
 router.post('/api/renameFile', (req, res) => {
     const src = req.body && req.body.src;
@@ -37,11 +41,11 @@ router.post('/api/renameFile', (req, res) => {
                 res.sendStatus(200);
             }else{
                 console.error(err);
-                res.status(500).send(err);
+                res.status(500).send(getReason(err));
             }
         }catch(err){
             console.error(err);
-            res.status(500).send(err);
+            res.status(500).send(getReason(err));
         }
     })();
 });
@@ -75,11 +79,11 @@ router.post('/api/moveFile', (req, res) => {
                 res.sendStatus(200);
             }else{
                 console.error(err);
-                res.status(500).send(err);
+                res.status(500).send(getReason(err));
             }
         }catch(e){
             console.error(e);
-            res.status(500).send(e);
+            res.status(500).send(getReason(e));
         }
     })();
 });
@@ -107,7 +111,7 @@ router.post('/api/deleteFile', async (req, res) => {
             fs.unlink(src, (err) => {
                 if (err){
                     console.error(err);
-                    res.status(500).send(err);
+                    res.status(500).send(getReason(err));
                 }else{
                     res.sendStatus(200);
                     logger.info(`[DELETE] ${src}`);
@@ -116,7 +120,7 @@ router.post('/api/deleteFile', async (req, res) => {
         }
     } catch(e) {
         console.error(e);
-        res.status(500).send(e);
+        res.status(500).send(getReason(e));
     }
 });
 
@@ -160,7 +164,7 @@ router.post('/api/deleteFolder', async (req, res) => {
             fs.unlink(src, (err) => {
                 if (err){
                     console.error(err);
-                    res.status(500).send(err);
+                    res.status(500).send(getReason(err));
                 }else{
                     res.sendStatus(200);
                     logger.info(`[DELETE] ${src}`);
@@ -169,7 +173,7 @@ router.post('/api/deleteFolder', async (req, res) => {
         }
     } catch(e) {
         console.error(e);
-        res.status(500).send(e);
+        res.status(500).send(getReason(e));
     }
 });
 
@@ -198,7 +202,7 @@ router.post('/api/zipFolder', async (req, res) => {
         }
     } catch(e) {
         console.error(e);
-        res.status(500).send(e);
+        res.status(500).send("fail to zip");
     }
 });
 

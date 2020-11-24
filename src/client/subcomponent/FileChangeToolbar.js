@@ -16,7 +16,7 @@ import { toast } from 'react-toastify';
 
 const toastConfig = {
     position: "top-right",
-    autoClose: 5*100000,
+    autoClose: 5*1000,
     hideProgressBar: true,
     closeOnClick: true,
     pauseOnHover: true,
@@ -46,9 +46,9 @@ function pop(file, res, postFix){
                 <div>{getBaseName(file)} </div>
             </div>
             
-            {reason && (
+            {isFailed && reason && (
                 <div className="toast-body">
-                    <div>{reason}</div>
+                    <div className="fail-reason-text">{reason}</div>
                 </div>
             )}
         </div>);
