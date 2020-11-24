@@ -705,19 +705,30 @@ export default class ExplorerPage extends Component {
                     thumbnailurl = this.thumbnails[item];
                 }
 
+                const thumbnailCn = classNames("file-cell-thumbnail",{
+                    "less-width": isImgFolder
+                });
+
+                let imgDiv = <LoadingImage 
+                asSimpleImage={isImgFolder}
+                isThumbnail 
+                className={thumbnailCn} 
+                title={item} fileName={item}   
+                url={thumbnailurl}
+                onReceiveUrl={url => {this.thumbnails[item] = url;}} 
+                />;
+
+                if(isImgFolder){
+                    imgDiv = (<div className="folder-effect"> {imgDiv} </div>)
+                }
+
+
                 zipItem = (
                 <div key={item} className={"col-sm-6 col-md-4 col-lg-3 file-out-cell"}>
                     <div className="file-cell">
                         <Link  target="_blank" to={toUrl}  key={item} className={"file-cell-inner"}>
                             <FileCellTitle str={text}/>
-                            <LoadingImage 
-                                    asSimpleImage={isImgFolder}
-                                    isThumbnail 
-                                    className={"file-cell-thumbnail"} 
-                                    title={item} fileName={item}   
-                                    url={thumbnailurl}
-                                    onReceiveUrl={url => {this.thumbnails[item] = url;}} 
-                                    />
+                            {imgDiv}
                         </Link>
                         <div className={fileInfoRowCn}>
                             <span title="file size">{fileSizeStr}</span>
