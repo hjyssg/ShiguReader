@@ -179,8 +179,6 @@ router.post('/api/zipFolder', async (req, res) => {
         return;
     }
 
-    debugger
-
     if(! (await isSimpleFolder(src))){
         res.sendStatus(404);
         return;
