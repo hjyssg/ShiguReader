@@ -113,6 +113,26 @@ export default class FileChangeToolbar extends Component {
         });
     }
 
+
+    handleZip(){
+        const { file, isFolder } = this.props;
+        Swal.fire({
+            title: "Zip",
+            text: `Zip ${file}?` ,
+            showCancelButton: true,
+            confirmButtonText: 'Yes',
+            cancelButtonText: 'No'
+        }).then((result) => {
+            if (result.value === true && isFolder) {
+                Sender.simplePost("/api/zipFolder", {src: file}, res => {
+                    pop(file, res, "zip folder");
+                });
+            } 
+        });
+    }
+
+
+
     handleMove = (path) => {
         const { file } = this.props;
         if(_.isString(path)){
@@ -213,6 +233,14 @@ export default class FileChangeToolbar extends Component {
         );
     }
 
+    renderZipButton(){
+        return (
+            <div tabIndex="0" className="fas fa-file-archive"
+            title="Zip Folder"
+            onClick={this.handleZip.bind(this)}></div>
+        );
+    }
+
     render(){
         const {file, className, header, showAllButtons, hasMusic, bigFont, isFolder} = this.props;
         const cn = classNames("file-change-tool-bar", className, {
@@ -225,6 +253,7 @@ export default class FileChangeToolbar extends Component {
             <div className={cn} >
             {header && <span className="file-change-tool-bar-header">{header}</span>}
             <div className="tool-bar-row">
+                {this.renderZipButton()}
                 {this.renderDeleteButton()}
             </div>
             </div>);

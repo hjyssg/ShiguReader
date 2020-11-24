@@ -16,6 +16,8 @@ const path = require('path');
 const util = global.requireUtil();
 const { isImage, isCompress, isMusic, arraySlice, isDisplayableInOnebook } = util;
 
+const sevenZipHelp = require("../sevenZipHelp");
+
 
 router.post('/api/renameFile', (req, res) => {
     const src = req.body && req.body.src;
@@ -119,6 +121,13 @@ router.post('/api/deleteFile', async (req, res) => {
 });
 
 
+async function isSimpleFolder(src){
+    let content_pathes = await pfs.readdir(src);
+    const otherTypes = content_pathes.filter(e => !isDisplayableInOnebook(e));
+
+    return otherTypes.length === 0;
+}
+
 router.post('/api/deleteFolder', async (req, res) => {
     const src = req.body && req.body.src;
 
@@ -127,10 +136,8 @@ router.post('/api/deleteFolder', async (req, res) => {
         return;
     }
 
-    let content_pathes = await pfs.readdir(src);
-    const otherTypes = content_pathes.filter(e => !isDisplayableInOnebook(e));
-    if(otherTypes.length > 0){
-        res.sendStatus(400);
+    if(!(await isSimpleFolder(src))){
+        res.sendStatus(404);
         return;
     }
 
@@ -157,6 +164,37 @@ router.post('/api/deleteFolder', async (req, res) => {
                     logger.info(`[DELETE] ${src}`);
                 }
             });
+        }
+    } catch(e) {
+        console.error(e);
+        res.sendStatus(404);
+    }
+});
+
+router.post('/api/zipFolder', async (req, res) => {
+    const src = req.body && req.body.src;
+
+    if(!src || !(await isExist(src))){
+        res.sendStatus(404);
+        return;
+    }
+
+    debugger
+
+    if(! (await isSimpleFolder(src))){
+        res.sendStatus(404);
+        return;
+    }
+
+
+    try{
+        let {stdout, stderr, resultZipPath} = await sevenZipHelp.zipOneFolder(src);
+        if(stderr){
+            //todo
+            res.sendStatus(404);
+        }else{
+            res.sendStatus(200);
+            logger.info(`[zipFolder] ${src}`);
         }
     } catch(e) {
         console.error(e);
