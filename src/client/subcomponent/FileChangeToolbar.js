@@ -100,6 +100,9 @@ export default class FileChangeToolbar extends Component {
             if (result.value === true) {
                 if(isFolder){
                     //send different request
+                    Sender.simplePost("/api/deleteFolder", {src: file}, res => {
+                        pop(file, res, "delete");
+                    });
 
                 }else{
                     Sender.simplePost("/api/deleteFile", {src: file}, res => {

@@ -13,6 +13,9 @@ const router = express.Router();
 const logger = require("../logger");
 const path = require('path');
 
+const util = global.requireUtil();
+const { isImage, isCompress, isMusic, arraySlice, isDisplayableInOnebook } = util;
+
 
 router.post('/api/renameFile', (req, res) => {
     const src = req.body && req.body.src;
@@ -116,5 +119,49 @@ router.post('/api/deleteFile', async (req, res) => {
 });
 
 
+router.post('/api/deleteFolder', async (req, res) => {
+    const src = req.body && req.body.src;
+
+    if(!src || !(await isExist(src))){
+        res.sendStatus(404);
+        return;
+    }
+
+    let content_pathes = await pfs.readdir(src);
+    const otherTypes = content_pathes.filter(e => !isDisplayableInOnebook(e));
+    if(otherTypes.length > 0){
+        res.sendStatus(400);
+        return;
+    }
+
+    //below is duplicate code as /api/deleteFile
+    //need to improve
+    try{
+        if(userConfig.move_file_to_recyle){
+            const trash = require('trash');
+            await trash([src]);
+            if(!(await isExist(src))){
+                res.sendStatus(200);
+                logger.info(`[DELETE] ${src}`);
+            } else {
+                //missing is delete
+                res.sendStatus(200);
+            }
+        }else{
+            fs.unlink(src, (err) => {
+                if (err){
+                    console.error(err);
+                    res.sendStatus(404);
+                }else{
+                    res.sendStatus(200);
+                    logger.info(`[DELETE] ${src}`);
+                }
+            });
+        }
+    } catch(e) {
+        console.error(e);
+        res.sendStatus(404);
+    }
+});
 
 module.exports = router;
