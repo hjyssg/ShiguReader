@@ -706,7 +706,7 @@ export default class ExplorerPage extends Component {
                 }
 
                 const thumbnailCn = classNames("file-cell-thumbnail",{
-                    "less-width": isImgFolder
+                    "as-folder-thumbnail": isImgFolder
                 });
 
                 let imgDiv = <LoadingImage 

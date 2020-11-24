@@ -128,6 +128,8 @@ async function isSimpleFolder(src){
     return otherTypes.length === 0;
 }
 
+const _folder_waring_ = "This folder is not a simple img/music folder";
+
 router.post('/api/deleteFolder', async (req, res) => {
     const src = req.body && req.body.src;
 
@@ -137,7 +139,7 @@ router.post('/api/deleteFolder', async (req, res) => {
     }
 
     if(!(await isSimpleFolder(src))){
-        res.sendStatus(404);
+        res.status(500).send(_folder_waring_);
         return;
     }
 
@@ -180,7 +182,7 @@ router.post('/api/zipFolder', async (req, res) => {
     }
 
     if(! (await isSimpleFolder(src))){
-        res.sendStatus(404);
+        res.status(500).send(_folder_waring_);
         return;
     }
 
