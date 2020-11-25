@@ -14,16 +14,6 @@ const { getDir, getBaseName, getDownloadLink } = clientUtil;
 import _ from 'underscore';
 import { toast } from 'react-toastify';
 
-const toastConfig = {
-    position: "top-right",
-    autoClose: 5*1000,
-    hideProgressBar: true,
-    closeOnClick: true,
-    pauseOnHover: true,
-    draggable: true,
-    progress: false
-};
-
 function pop(file, res, postFix){
     const reason = res.text;
 
@@ -51,6 +41,17 @@ function pop(file, res, postFix){
             </div>
         )}
     </div>);
+
+    const toastConfig = {
+        position: "top-right",
+        autoClose: res.failed? 10*1000: 5*1000,
+        hideProgressBar: true,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: false
+    };
+
     
     toast(divContent, toastConfig)
 }
