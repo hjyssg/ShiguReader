@@ -85,11 +85,10 @@ router.post('/api/overwrite', async (req, res) =>  {
             res.sendStatus(200);
         }else{
             logger.error("[overwrite]", "fail at", filePath);
-            res.sendStatus(500);
-
+            res.status(500).send("fail to overwite original file");
         }
     }else{
-        res.sendStatus(404);
+        res.status(500).send("fail to find original file");
     }
 })
 

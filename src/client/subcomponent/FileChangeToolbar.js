@@ -25,27 +25,38 @@ const toastConfig = {
 };
 
 function pop(file, res, postFix){
-    const isFailed = res.failed
-    const message = isFailed? `fail to ${postFix} ${file}` : `${postFix} successfully`;
-    const cn = isFailed? "a-error": "a-success";
-    const badge = isFailed? (<span className="badge badge-danger">Error</span>) :
-                           (<span className="badge badge-success">Success</span>)
+    (async ()=>{
+        const reason = await res.text();
 
-
-    let divContent = (
-    <div className="toast" role="alert" aria-live="assertive" aria-atomic="true">
-        <div className="toast-header">
-            {badge}
-            <strong className="mr-auto">{postFix.toUpperCase()}</strong>
-        </div>
-        <div className="toast-body">
-            <div>{getDir(file)} </div>
-            <div>{getBaseName(file)} </div>
-        </div>
-    </div>);
+        const isFailed = res.failed
+        const message = isFailed? `fail to ${postFix} ${file}` : `${postFix} successfully`;
+        const cn = isFailed? "a-error": "a-success";
+        const badge = isFailed? (<span className="badge badge-danger">Error</span>) :
+                               (<span className="badge badge-success">Success</span>)
     
-    toast(divContent, toastConfig)
+    
+        let divContent = (
+        <div className="toast" role="alert" aria-live="assertive" aria-atomic="true">
+            <div className="toast-header">
+                {badge}
+                <strong className="mr-auto">{postFix.toUpperCase()}</strong>
+            </div>
+            <div className="toast-body">
+                <div>{getDir(file)} </div>
+                <div>{getBaseName(file)} </div>
+            </div>
+            
+            {isFailed && reason && (
+                <div className="toast-body">
+                    <div className="fail-reason-text">{reason}</div>
+                </div>
+            )}
+        </div>);
+        
+        toast(divContent, toastConfig)
 
+
+    })();
 }
 
 export default class FileChangeToolbar extends Component {
@@ -100,6 +111,9 @@ export default class FileChangeToolbar extends Component {
             if (result.value === true) {
                 if(isFolder){
                     //send different request
+                    Sender.simplePost("/api/deleteFolder", {src: file}, res => {
+                        pop(file, res, "delete");
+                    });
 
                 }else{
                     Sender.simplePost("/api/deleteFile", {src: file}, res => {
@@ -109,6 +123,26 @@ export default class FileChangeToolbar extends Component {
             } 
         });
     }
+
+
+    handleZip(){
+        const { file, isFolder } = this.props;
+        Swal.fire({
+            title: "Zip",
+            text: `Zip ${file}?` ,
+            showCancelButton: true,
+            confirmButtonText: 'Yes',
+            cancelButtonText: 'No'
+        }).then((result) => {
+            if (result.value === true && isFolder) {
+                Sender.simplePost("/api/zipFolder", {src: file}, res => {
+                    pop(file, res, "zip folder");
+                });
+            } 
+        });
+    }
+
+
 
     handleMove = (path) => {
         const { file } = this.props;
@@ -210,6 +244,14 @@ export default class FileChangeToolbar extends Component {
         );
     }
 
+    renderZipButton(){
+        return (
+            <div tabIndex="0" className="fas fa-file-archive"
+            title="Zip Folder"
+            onClick={this.handleZip.bind(this)}></div>
+        );
+    }
+
     render(){
         const {file, className, header, showAllButtons, hasMusic, bigFont, isFolder} = this.props;
         const cn = classNames("file-change-tool-bar", className, {
@@ -222,6 +264,7 @@ export default class FileChangeToolbar extends Component {
             <div className={cn} >
             {header && <span className="file-change-tool-bar-header">{header}</span>}
             <div className="tool-bar-row">
+                {this.renderZipButton()}
                 {this.renderDeleteButton()}
             </div>
             </div>);

@@ -161,6 +161,13 @@
       margin: auto;
       text-align:center;
       border-radius: 2px;
+      margin-top: 20px;
+      
+      &.as-folder-thumbnail {
+        max-width: 90%;
+        height: 200px;
+        margin-top: 0px;
+      }
     }
   }
 
@@ -175,4 +182,32 @@
   height: 2em;       /* height is 2x line-height, so two lines will display */
   overflow: hidden;
   margin-bottom: 5px;
+}
+
+
+
+//https://stackoverflow.com/questions/15857006/drawing-a-folder-icon-with-css
+.folder-effect {
+  display: flex;
+  margin: 0 auto;
+  margin-top: 20px;
+  position: relative;
+  background-color: #f3cf4b;
+  border-radius: 0 5px 5px 5px;
+  box-shadow: 4px 4px 7px rgba(0, 0, 0, 0.59);
+
+  &::before{
+    content: '';
+    width: 40%;
+    height: 10px;
+    border-radius: 0 5px 0 0;
+    background-color: #f3cf4b;
+    position: absolute;
+    top: -10px;
+    left: 0px;
+  }
+}
+
+.fail-reason-text{
+  color: rgb(128, 16, 16);
 }
