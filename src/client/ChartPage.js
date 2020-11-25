@@ -109,7 +109,7 @@ export default class ChartPage extends Component {
                 this.handleRes(res);
             });
 
-            Sender.get('/api/getGoodAuthorNames', res =>{
+            Sender.post('/api/getGoodAuthorNames', res =>{
                 this.setState({
                     goodAuthors: res.goodAuthors,
                     otherAuthors: res.otherAuthors

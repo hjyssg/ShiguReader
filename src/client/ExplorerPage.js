@@ -227,7 +227,7 @@ export default class ExplorerPage extends Component {
 
         this.bindUserInteraction();
 
-        Sender.get('/api/getGoodAuthorNames', res =>{
+        Sender.post('/api/getGoodAuthorNames', res =>{
             this.setState({
                 goodAuthors: res.goodAuthors,
                 otherAuthors: res.otherAuthors

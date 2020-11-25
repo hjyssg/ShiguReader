@@ -7,7 +7,7 @@ function isSuccess(res){
     return res.status === 200 || res.status === 304
 }
 
-_.resHandle = function (res) {
+function resHandle (res) {
     if (isSuccess(res)) {
         return res.json();
     }else{
@@ -19,41 +19,54 @@ _.resHandle = function (res) {
 //server will return status code and text
 //not json
 Sender.simplePost = function (api, body, callback) {
-    fetch(api, {
-        method: 'POST',
-        headers: {
-            Accept: 'application/json',
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(body)
-    })
-    .then(res => {
-        if(!(isSuccess(res))){
+    (async ()=>{
+
+        const res = await  fetch(api, {
+            method: 'POST',
+            headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(body)
+        });
+
+        if(isSuccess(res)){
+           callback({
+                failed: false
+           });
+        }else{
             res.failed = true;
+            const text = await res.text();
+            res.text = text;
+            callback(res);
         }
-        return res;
-    }).then(callback);;
+    })();
 };
 
 //server will return json
 Sender.post = function (api, body, callback) {
-    fetch(api, {
-        method: 'POST',
-        headers: {
-            Accept: 'application/json',
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(body)
-    })
-    .then(_.resHandle)
-    .then(callback);
+    (async ()=>{
+
+       const res = await  fetch(api, {
+            method: 'POST',
+            headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(body)
+        });
+
+        if(isSuccess(res)){
+           const json = await res.json();
+           callback(json);
+        }else{
+            res.failed = true;
+            callback(res);
+        }
+
+    })();
 };
 
-Sender.get = function (api, callback) {
-    fetch(api)
-    .then(_.resHandle)
-    .then(callback);
-};
 
 Sender.lsDir = function (body, callback) {
     Sender.post('/api/lsDir', body, callback);
