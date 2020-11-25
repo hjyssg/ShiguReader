@@ -1,4 +1,3 @@
-
 const pathUtil = require("../pathUtil");
 const {
         isExist
@@ -36,13 +35,10 @@ router.post('/api/renameFile', (req, res) => {
         try{
             let err = await pfs.rename(src, dest);
 
-            if(!err){
-                logger.info(`[rename] ${src} to ${dest}`);
-                res.sendStatus(200);
-            }else{
-                console.error(err);
-                res.status(500).send(getReason(err));
-            }
+            if(err){ throw err; }
+
+            logger.info(`[rename] ${src} to ${dest}`);
+            res.sendStatus(200);
         }catch(err){
             console.error(err);
             res.status(500).send(getReason(err));
@@ -64,29 +60,44 @@ router.post('/api/moveFile', (req, res) => {
             let err;
             if(!(await isExist(dest))){
                 err = await pfs.mkdir(dest, {recursive: true});
-
-
-            }
-            if (!err) {
-                const cmdStr = isWindows()? "move" : "mv";
-                const {stdout, stderr} = await execa(cmdStr, [src, dest]);
-                err = stderr;
-                // err = await pfs.rename(src, dest);
             }
 
-            if(!err){
-                logger.info(`[MOVE] ${src} to ${dest}`);
-                res.sendStatus(200);
-            }else{
-                console.error(err);
-                res.status(500).send(getReason(err));
-            }
-        }catch(e){
-            console.error(e);
-            res.status(500).send(getReason(e));
+            if(err){ throw "fail to create dest folder";}
+
+            const cmdStr = isWindows()? "move" : "mv";
+            const {stdout, stderr} = await execa(cmdStr, [src, dest]);
+            err = stderr;
+
+            if(err){ throw err;}
+         
+            logger.info(`[MOVE] ${src} to ${dest}`);
+            res.sendStatus(200);
+        }catch(err){
+            console.error(err);
+            res.status(500).send(getReason(err));
         }
     })();
 });
+
+async function deleteThing(src){
+   if(userConfig.move_file_to_recyle){
+        const trash = require('trash');
+        await trash([src]);
+    }else{
+        const err = await pfs.unlink(src) 
+        if (err){ throw err; }
+    }
+}
+
+async function isSimpleFolder(src){
+    let content_pathes = await pfs.readdir(src);
+    const otherTypes = content_pathes.filter(e => !isDisplayableInOnebook(e));
+
+    return otherTypes.length === 0;
+}
+
+const _folder_waring_ = "This folder is not a one-level img/music folder";
+const file_occupy_warning = "File may be used by another process"
 
 router.post('/api/deleteFile', async (req, res) => {
     const src = req.body && req.body.src;
@@ -97,42 +108,15 @@ router.post('/api/deleteFile', async (req, res) => {
     }
 
     try{
-        if(userConfig.move_file_to_recyle){
-            const trash = require('trash');
-            await trash([src]);
-            if(!(await isExist(src))){
-                res.sendStatus(200);
-                logger.info(`[DELETE] ${src}`);
-            } else {
-                //missing is delete
-                res.sendStatus(200);
-            }
-        }else{
-            fs.unlink(src, (err) => {
-                if (err){
-                    console.error(err);
-                    res.status(500).send(getReason(err));
-                }else{
-                    res.sendStatus(200);
-                    logger.info(`[DELETE] ${src}`);
-                }
-            });
-        }
+        await deleteThing(src);
+        res.sendStatus(200);
+        logger.info(`[DELETE] ${src}`);
     } catch(e) {
         console.error(e);
-        res.status(500).send(getReason(e));
+        res.status(500).send(file_occupy_warning);
     }
 });
 
-
-async function isSimpleFolder(src){
-    let content_pathes = await pfs.readdir(src);
-    const otherTypes = content_pathes.filter(e => !isDisplayableInOnebook(e));
-
-    return otherTypes.length === 0;
-}
-
-const _folder_waring_ = "This folder is not a simple img/music folder";
 
 router.post('/api/deleteFolder', async (req, res) => {
     const src = req.body && req.body.src;
@@ -150,30 +134,12 @@ router.post('/api/deleteFolder', async (req, res) => {
     //below is duplicate code as /api/deleteFile
     //need to improve
     try{
-        if(userConfig.move_file_to_recyle){
-            const trash = require('trash');
-            await trash([src]);
-            if(!(await isExist(src))){
-                res.sendStatus(200);
-                logger.info(`[DELETE] ${src}`);
-            } else {
-                //missing is delete
-                res.sendStatus(200);
-            }
-        }else{
-            fs.unlink(src, (err) => {
-                if (err){
-                    console.error(err);
-                    res.status(500).send(getReason(err));
-                }else{
-                    res.sendStatus(200);
-                    logger.info(`[DELETE] ${src}`);
-                }
-            });
-        }
+        await deleteThing(src);
+        res.sendStatus(200);
+        logger.info(`[DELETE] ${src}`);
     } catch(e) {
         console.error(e);
-        res.status(500).send(getReason(e));
+        res.status(500).send(file_occupy_warning);
     }
 });
 
@@ -194,12 +160,10 @@ router.post('/api/zipFolder', async (req, res) => {
     try{
         let {stdout, stderr, resultZipPath} = await sevenZipHelp.zipOneFolder(src);
         if(stderr){
-            //todo
-            res.status(500).send("fail to zip");
-        }else{
-            res.sendStatus(200);
-            logger.info(`[zipFolder] ${src}`);
+            throw stderr;
         }
+        res.sendStatus(200);
+        logger.info(`[zipFolder] ${src}`);
     } catch(e) {
         console.error(e);
         res.status(500).send("fail to zip");
@@ -207,3 +171,4 @@ router.post('/api/zipFolder', async (req, res) => {
 });
 
 module.exports = router;
+
