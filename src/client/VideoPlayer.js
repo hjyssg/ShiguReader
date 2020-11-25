@@ -97,7 +97,7 @@ export default class VideoPlayer extends Component {
 
     let content;
     if(hasError || !filePath){
-      const infoStr=  (!filePath || (this.res && this.res.res.status === 404) )? "Video Not Found": "Unable to Play Video";
+      const infoStr=  (!filePath || (this.res && this.res.status === 404) )? "Video Not Found": "Unable to Play Video";
       content = (<div className="flex-center-display-container">  <div className="alert alert-warning col-6" role="alert">{infoStr}</div> </div>);
     }else{
       content = (

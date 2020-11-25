@@ -1217,7 +1217,7 @@ export default class ExplorerPage extends Component {
         this.setWebTitle();
 
         if (this.isFailedLoading()) {
-            return <ErrorPage res={this.res.res}/>;
+            return <ErrorPage res={this.res}/>;
         }
 
         const filteredFiles = this.getFilteredFiles();

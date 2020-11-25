@@ -508,7 +508,7 @@ export default class ChartPage extends Component {
         if (!this.res) {
             return (<CenterSpinner/>);
         } else if(this.isFailedLoading()) {
-            return <ErrorPage res={this.res.res}/>;
+            return <ErrorPage res={this.res}/>;
         } else if(filtererFiles.length < too_few){
             return ( <div className="chart-container container">
                         {filePath}

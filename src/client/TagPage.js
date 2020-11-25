@@ -441,7 +441,7 @@ setStateAndSetHash(state, callback){
     // }
 
     if (this.isFailedLoading()) {
-      return <ErrorPage res={this.res.res}/>;
+      return <ErrorPage res={this.res}/>;
     }
 
     document.title = this.isAuthorMode()? "Authors" : "Tags"; 

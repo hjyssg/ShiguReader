@@ -650,16 +650,8 @@ export default class OneBook extends Component {
 
   render() {
     if (this.isFailedLoading()) { 
-      let userText;
       const fp = this.getTextFromQuery();
-      if(fp){
-        if(this.res.res.status === 404){
-          userText = `Does not find ${fp}.`;
-        } else if (this.res.res.status === 500){
-          userText = `${fp} is a broken file`;
-        }
-      }
-      return <ErrorPage res={this.res.res} userText={userText}/>;
+      return <ErrorPage res={this.res} filePath={fp}/>;
     }
 
     const { files, index, musicFiles } = this.state;

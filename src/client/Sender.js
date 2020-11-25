@@ -3,14 +3,21 @@ import 'whatwg-fetch';
 
 const Sender = {};
 
+function isSuccess(res){
+    return res.status === 200 || res.status === 304
+}
+
 _.resHandle = function (res) {
-    if (res.status === 200 || res.status === 304) {
+    if (isSuccess(res)) {
         return res.json();
+    }else{
+        res.failed = true;
+        return res;
     }
-    console.error('[failed]', res.status, res.statusText);
-    return { failed: true, res };
 };
 
+//server will return status code and text
+//not json
 Sender.simplePost = function (api, body, callback) {
     fetch(api, {
         method: 'POST',
@@ -21,13 +28,14 @@ Sender.simplePost = function (api, body, callback) {
         body: JSON.stringify(body)
     })
     .then(res => {
-        if(!(res.status === 200 || res.status === 304)){
+        if(!(isSuccess(res))){
             res.failed = true;
         }
-        callback(res);
-    });
+        return res;
+    }).then(callback);;
 };
 
+//server will return json
 Sender.post = function (api, body, callback) {
     fetch(api, {
         method: 'POST',
