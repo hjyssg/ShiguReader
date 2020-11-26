@@ -164,17 +164,17 @@ router.post('/api/getEhentaiMetaData', async (req, res) => {
 });
 
 //this search combine into exist tag search
-function searchByTag(tag){
+global.searchByTag = function(tag){
+    //todo: this algo is draft, need to improve
     const reg = escapeRegExp(tag);
     let sResults = ehentai_collection
     .chain()
     .find({'_raw_tags': { '$regex' : reg }})
     // .where(obj => isSub(dir, obj.filePath))
     .data(); 
+
   
-  
-    //only return file really in the local hdd
-    console.log(sResults);
+   return sResults;
 }
 
 module.exports = router;

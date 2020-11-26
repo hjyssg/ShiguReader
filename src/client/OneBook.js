@@ -681,11 +681,11 @@ export default class OneBook extends Component {
           const subtagDivs =  subtags.map(tt => {
             const url =  clientUtil.getTagLink(tt);
             let tagDiv = (<div key={tt} className="ehentai-tag-link" >
-                          <Link  target="_blank" to={url}  key={tt}>{tt}</Link>
-                      </div>);
+                            <Link  target="_blank" to={url}  key={tt}>{tt}</Link>
+                          </div>);
             return tagDiv;
           })
-          return (<div className="ehentai-tag-row">{subtagDivs}</div>);
+          return (<div key={e} className="ehentai-tag-row">{subtagDivs}</div>);
         }
       })
     }

@@ -16,60 +16,8 @@ function isEqual(a, b){
     return a.toLowerCase() === b.toLowerCase();
 }
 
-function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
-    let beg = (new Date).getTime()
-    const fileInfos = {};
-
-    let results;
-    let extraResults = [];
-    let dirResults;
+function searchImgFolder(tag, author, text){
     let imgFolders = {};
-    if(text){
-        const textInLowerCase = text.toLowerCase();
-        const reg = escapeRegExp(text);
-        results = getFileCollection().chain()
-                      .find({'fileName': { '$regex' : reg }, isDisplayableInExplorer: true });
-
-        dirResults = getFileCollection().chain()
-                      .find({'filePath': { '$regex' : reg }, isDisplayableInExplorer: true })
-                      .where(obj => {
-                          const fp =  path.dirname(obj.filePath);
-                          return fp.toLowerCase().includes(textInLowerCase);
-                      }).data();
-    }else if(author){
-        const reg = escapeRegExp(author);
-        let groups = [];
-
-        results = getFileCollection().chain()
-                      .find({'$or': [{'authors': { '$regex' : reg }}, {'group': { '$regex' : reg }}], 
-                      isDisplayableInExplorer: true })
-                      .where(obj => {
-                        const result = parse(obj.fileName);
-                        const pass =  isEqual(result.author, author) || isEqual(result.group, author) || (result.authors && result.authors.includes(author));
-                        if(pass && result.group){
-                            //find out which group this author belong
-                            groups.push(result.group);
-                        }
-                        return pass;
-                      });
-
-        if(groups.length > 0){
-            const byFeq = _.countBy(groups, e => e);
-            groups = _.sortBy(_.keys(byFeq), e => -byFeq[e]);
-            extraResults = getFileCollection().find({'authors': groups[0] , 
-                                                     'group': {'$len': 0 }, 
-                                                     isDisplayableInExplorer: true });
-        }
-    }else if(tag){
-        const reg = escapeRegExp(tag);
-        results = getFileCollection().chain()
-                      .find({'tags': { '$regex' : reg }, isDisplayableInExplorer: true })
-                      .where(obj => {
-                        const tagArr = obj.tags.split(serverUtil.sep);
-                        return tagArr.some(e => isEqual(tag, e));
-                      });
-    }
-    
     const text2 =  tag || author || text;
     const text2InLowerCase = text2.toLowerCase();
     const reg2 = escapeRegExp(text2);
@@ -89,12 +37,104 @@ function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
         imgFolders[pp].push(obj.filePath);
         });
 
-    if(onlyNeedFew){
-        results = results.limit(5);
-    }
+    return imgFolders;
+}
 
-    let finalResult = (results && results.data())||[];
-    finalResult = finalResult.concat(extraResults);
+function searchByText(text){
+    const fileCollection = getFileCollection();
+
+    const textInLowerCase = text.toLowerCase();
+    const reg = escapeRegExp(text);
+    let results = fileCollection.chain()
+                  .find({'fileName': { '$regex' : reg }, isDisplayableInExplorer: true });
+
+    let dirResults = fileCollection.chain()
+                  .find({'filePath': { '$regex' : reg }, isDisplayableInExplorer: true })
+                  .where(obj => {
+                      const fp =  path.dirname(obj.filePath);
+                      return fp.toLowerCase().includes(textInLowerCase);
+                  }).data();
+
+    finalResult = (results && results.data())||[];
+
+    return {
+        finalResult,
+        dirResults
+    }
+}
+
+function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
+    let beg = (new Date).getTime()
+    const fileInfos = {};
+
+    let dirResults;
+    let finalResult;
+    const fileCollection = getFileCollection();
+
+    if(text){
+        let temp = searchByText(text);
+        finalResult = temp.finalResult;
+        dirResults = temp.finalResult;
+    }else if(author){
+        const reg = escapeRegExp(author);
+        let groups = [];
+
+        results = fileCollection.chain()
+                      .find({'$or': [{'authors': { '$regex' : reg }}, {'group': { '$regex' : reg }}], 
+                      isDisplayableInExplorer: true })
+                      .where(obj => {
+                        const result = parse(obj.fileName);
+                        const pass =  isEqual(result.author, author) || isEqual(result.group, author) || (result.authors && result.authors.includes(author));
+                        if(pass && result.group){
+                            //find out which group this author belong
+                            groups.push(result.group);
+                        }
+                        return pass;
+                      });
+
+        let extraResults = [];
+        if(groups.length > 0){
+            const byFeq = _.countBy(groups, e => e);
+            groups = _.sortBy(_.keys(byFeq), e => -byFeq[e]);
+            extraResults = fileCollection.find({'authors': groups[0] , 
+                                                     'group': {'$len': 0 }, 
+                                                     isDisplayableInExplorer: true });
+        }
+
+        finalResult = (results && results.data())||[];
+        finalResult = finalResult.concat(extraResults);
+
+    }else if(tag){
+        const reg = escapeRegExp(tag);
+        results = fileCollection.chain()
+                      .find({'tags': { '$regex' : reg }, isDisplayableInExplorer: true })
+                      .where(obj => {
+                        const tagArr = obj.tags.split(serverUtil.sep);
+                        return tagArr.some(e => isEqual(tag, e));
+                      });
+
+        finalResult = (results && results.data())||[];
+
+        let ehentaiResults = global.searchByTag(tag);
+        if(ehentaiResults && ehentaiResults.length > 0){
+            //use ehentai data to find local files
+            ehentaiResults.forEach(e => {
+                const fn = e['title_jpn'];
+                const parseObj = parse(fn);
+                if(parseObj){
+                    let temp = searchByText(parseObj.title);
+                    const tempResult = temp.finalResult;
+
+                    if(tempResult && tempResult.length > 0){
+                        finalResult = finalResult.concat(tempResult);
+                    }
+                }
+            })
+        }
+    }
+    // if(onlyNeedFew){
+    //     results = results.limit(5);
+    // }
 
     finalResult.forEach(obj => {
         const pp = obj.filePath;
@@ -110,6 +150,7 @@ function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
     let end = (new Date).getTime();
     // console.log((end - beg)/1000, "to search");
 
+    const imgFolders = searchImgFolder(tag, author, text)
     const imgFolderInfo = getImgFolderInfo(imgFolders);
 
     const getThumbnails = serverUtil.common.getThumbnails;
