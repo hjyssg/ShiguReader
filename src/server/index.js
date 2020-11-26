@@ -692,6 +692,10 @@ app.use(shutdown);
 const minifyZip = require("./routes/minifyZip");
 app.use(minifyZip);
 
+const ehentaiMetadata = require("./routes/ehentaiMetadata") ;
+app.use(ehentaiMetadata);
+
+
 if(isProduction){
     const history = require('connect-history-api-fallback');
     app.use(history({

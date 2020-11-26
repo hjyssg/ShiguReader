@@ -1,4 +1,3 @@
-import _ from "underscore";
 import 'whatwg-fetch';
 
 const Sender = {};
