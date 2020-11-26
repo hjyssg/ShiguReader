@@ -6,6 +6,14 @@ const express = require('express');
 const router = express.Router();
 const path = require('path');
 
+const serverUtil = require("../serverUtil");
+const parse = serverUtil.parse;
+
+function isEqual(a, b){
+    a = a || "";
+    b = b || "";
+    return a.toLowerCase() === b.toLowerCase();
+}
 
 const jsonfile = require('jsonfile');
 const loki = require("lokijs");
@@ -67,6 +75,7 @@ function extractEntry(entry){
 }
 
 async function readJson(filePath){
+  let end1 = (new Date).getTime();
   try{
     if(!(await isExist(filePath))){
         return;
@@ -81,13 +90,19 @@ async function readJson(filePath){
         const entry = extractEntry(obj[key]);
         ehentai_collection.insert(entry)
         ii++;
+        if(ii % 10000 === 0){
+            console.log("[ehentaiMetadata] loading:", ii);
+        }
       }
-    } 
+    }
   }catch(error){
     console.error(error)
   }finally{
     //release memory
     obj = null;
+    let end3 = (new Date).getTime();
+    console.log("[ehentaiMetadata] number of entries in database :", ehentai_collection.count())
+    console.log(`${(end3 - end1)/1000}s to load ehentai database`);
   }
 }
 
@@ -102,13 +117,33 @@ readJson(_file_);
 
 
 function searchOneBook (searchWord){
-  const reg = escapeRegExp(searchWord);
-  let sResults = ehentai_collection
+    let reg, sResults;
+
+    reg = escapeRegExp(searchWord);
+    sResults = ehentai_collection
                 .chain()
                 .find({'title_jpn': { '$regex' : reg }})
-                // .where(obj => isSub(dir, obj.filePath))
                 .data();
-  console.log(sResults);
+
+    if(!sResults || sResults.length === 0){
+        const parseObj = parse(searchWord);
+        if(parseObj){
+            reg = escapeRegExp(parseObj.author);
+            sResults = ehentai_collection
+            .chain()
+            .find({'title_jpn': { '$regex' : reg }})
+            .where(obj => {
+                if(obj['title_jpn'].includes(parseObj.title)){
+                    return true;
+                }
+            })
+            .data();
+        }
+    }
+   
+    if(sResults && sResults.length > 0){
+        return sResults;
+    }
 }
 
 router.post('/api/getEhentaiMetaData', async (req, res) => {
@@ -119,6 +154,7 @@ router.post('/api/getEhentaiMetaData', async (req, res) => {
         return;
     }
 
+    const searchWord = path.basename(filePath, path.extname(filePath));
     const sResult = searchOneBook(searchWord)
     if(!sResult){
       res.sendStatus(404)

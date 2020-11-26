@@ -46,7 +46,7 @@ export default class AdminPage extends Component {
     }
 
     askCacheInfo(){
-        Sender.post("/api/cacheInfo", res => {
+        Sender.post("/api/cacheInfo", {}, res => {
             this.handleCacheRes(res);
         });
     }

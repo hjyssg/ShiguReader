@@ -6,13 +6,18 @@ function isSuccess(res){
     return res.status === 200 || res.status === 304
 }
 
-function resHandle (res) {
-    if (isSuccess(res)) {
-        return res.json();
-    }else{
-        res.failed = true;
-        return res;
-    }
+Sender.postWithPromise = async function (api, body) {
+    const res = await  fetch(api, {
+        method: 'POST',
+        headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(body)
+    });
+
+    res.failed = !isSuccess(res);
+    return res;
 };
 
 //server will return status code and text
