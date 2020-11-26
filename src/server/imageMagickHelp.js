@@ -75,6 +75,7 @@ module.exports.minifyOneFile = async function(filePath){
         const oldFileInfos = oldTemp.fileInfos;
         const oldAvgImgSize  = oldInfos.avgImgSize;
 
+        //todo need to return this message to client
         if( oldAvgImgSize < img_convert_min || !isConertable(oldFiles, oldFileInfos)){
             logFail(filePath, "not convertable");
             return;

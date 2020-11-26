@@ -14,49 +14,46 @@ const { getDir, getBaseName, getDownloadLink } = clientUtil;
 import _ from 'underscore';
 import { toast } from 'react-toastify';
 
-const toastConfig = {
-    position: "top-right",
-    autoClose: 5*1000,
-    hideProgressBar: true,
-    closeOnClick: true,
-    pauseOnHover: true,
-    draggable: true,
-    progress: false
-};
-
 function pop(file, res, postFix){
-    (async ()=>{
-        const reason = await res.text();
+    const reason = res.text;
 
-        const isFailed = res.failed
-        const message = isFailed? `fail to ${postFix} ${file}` : `${postFix} successfully`;
-        const cn = isFailed? "a-error": "a-success";
-        const badge = isFailed? (<span className="badge badge-danger">Error</span>) :
-                               (<span className="badge badge-success">Success</span>)
-    
-    
-        let divContent = (
-        <div className="toast" role="alert" aria-live="assertive" aria-atomic="true">
-            <div className="toast-header">
-                {badge}
-                <strong className="mr-auto">{postFix.toUpperCase()}</strong>
-            </div>
-            <div className="toast-body">
-                <div>{getDir(file)} </div>
-                <div>{getBaseName(file)} </div>
-            </div>
-            
-            {isFailed && reason && (
-                <div className="toast-body">
-                    <div className="fail-reason-text">{reason}</div>
-                </div>
-            )}
-        </div>);
+    const isFailed = res.failed
+    const message = isFailed? `fail to ${postFix} ${file}` : `${postFix} successfully`;
+    const cn = isFailed? "a-error": "a-success";
+    const badge = isFailed? (<span className="badge badge-danger">Error</span>) :
+                            (<span className="badge badge-success">Success</span>)
+
+
+    let divContent = (
+    <div className="toast" role="alert" aria-live="assertive" aria-atomic="true">
+        <div className="toast-header">
+            {badge}
+            <strong className="mr-auto">{postFix.toUpperCase()}</strong>
+        </div>
+        <div className="toast-body">
+            <div>{getDir(file)} </div>
+            <div>{getBaseName(file)} </div>
+        </div>
         
-        toast(divContent, toastConfig)
+        {isFailed && reason && (
+            <div className="toast-body">
+                <div className="fail-reason-text">{reason}</div>
+            </div>
+        )}
+    </div>);
 
+    const toastConfig = {
+        position: "top-right",
+        autoClose: res.failed? 10*1000: 5*1000,
+        hideProgressBar: true,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: false
+    };
 
-    })();
+    
+    toast(divContent, toastConfig)
 }
 
 export default class FileChangeToolbar extends Component {

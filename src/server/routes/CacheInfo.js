@@ -5,7 +5,7 @@ const db = require("../models/db");
 const util = global.requireUtil();
 const { isDisplayableInOnebook } = util;
 
-router.get('/api/cacheInfo', (req, res) => {
+router.post('/api/cacheInfo', (req, res) => {
     const cacheFileToInfo = db.getCacheFileToInfo();
     const cacheFiles =  db.getAllCacheFilePathes().filter(isDisplayableInOnebook);
     let totalSize = 0;

@@ -32,7 +32,7 @@ function getGoodAndOtherSet(){
     }
 }
 
-router.get('/api/getGoodAuthorNames',async (req, res) => {
+router.post('/api/getGoodAuthorNames',async (req, res) => {
     const result = getGoodAndOtherSet();
 
     res.send({

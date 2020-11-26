@@ -227,7 +227,7 @@ export default class ExplorerPage extends Component {
 
         this.bindUserInteraction();
 
-        Sender.get('/api/getGoodAuthorNames', res =>{
+        Sender.post('/api/getGoodAuthorNames', res =>{
             this.setState({
                 goodAuthors: res.goodAuthors,
                 otherAuthors: res.otherAuthors
@@ -1217,7 +1217,7 @@ export default class ExplorerPage extends Component {
         this.setWebTitle();
 
         if (this.isFailedLoading()) {
-            return <ErrorPage res={this.res.res}/>;
+            return <ErrorPage res={this.res}/>;
         }
 
         const filteredFiles = this.getFilteredFiles();

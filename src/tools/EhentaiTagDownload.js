@@ -135,7 +135,6 @@ async function doMainTask() {
                 const res = await GM_xmlhttpRequestPromise(data);
 
                 await sleep(1000);
-                // JSON.parse(res.responseText)
                 data.gidlist = [];
                 const str = JSON.stringify(JSON.parse(res.responseText));
                 download(getCurrentTime(), str);
