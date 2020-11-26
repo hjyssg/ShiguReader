@@ -96,6 +96,8 @@ async function readJson(filePath){
       }
     }
 
+    //这个和file collection进行join的key标注？
+
   }catch(error){
     console.error(error)
   }finally{
@@ -128,7 +130,7 @@ function searchOneBook (searchWord){
 
     if(!sResults || sResults.length === 0){
         const parseObj = parse(searchWord);
-        if(parseObj){
+        if(parseObj && parseObj.author){
             reg = escapeRegExp(parseObj.author);
             sResults = ehentai_collection
             .chain()
