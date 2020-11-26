@@ -115,22 +115,28 @@ function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
 
         finalResult = (results && results.data())||[];
 
-        let ehentaiResults = global.searchByTag(tag);
-        if(ehentaiResults && ehentaiResults.length > 0){
+        //需要把数据ehentai的tag直接加到file_collection里面
+        // let ehentaiResults = global.searchByTag(tag);
+        // if(ehentaiResults && ehentaiResults.length > 0){
+            //tag search result is very huge
+            // e.g 50k result for ahegao
+            //so we iterate each file will be fast
+           
+           
             //use ehentai data to find local files
-            ehentaiResults.forEach(e => {
-                const fn = e['title_jpn'];
-                const parseObj = parse(fn);
-                if(parseObj){
-                    let temp = searchByText(parseObj.title);
-                    const tempResult = temp.finalResult;
+            // ehentaiResults.forEach(e => {
+            //     const fn = e['title_jpn'];
+            //     const parseObj = parse(fn);
+            //     if(parseObj){
+            //         let temp = searchByText(parseObj.title);
+            //         const tempResult = temp.finalResult;
 
-                    if(tempResult && tempResult.length > 0){
-                        finalResult = finalResult.concat(tempResult);
-                    }
-                }
-            })
-        }
+            //         if(tempResult && tempResult.length > 0){
+            //             finalResult = finalResult.concat(tempResult);
+            //         }
+            //     }
+            // })
+        // }
     }
     // if(onlyNeedFew){
     //     results = results.limit(5);

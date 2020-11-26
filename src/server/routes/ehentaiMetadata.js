@@ -95,6 +95,7 @@ async function readJson(filePath){
         }
       }
     }
+
   }catch(error){
     console.error(error)
   }finally{
@@ -172,8 +173,6 @@ global.searchByTag = function(tag){
     .find({'_raw_tags': { '$regex' : reg }})
     // .where(obj => isSub(dir, obj.filePath))
     .data(); 
-
-  
    return sResults;
 }
 
