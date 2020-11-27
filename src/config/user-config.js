@@ -63,34 +63,47 @@ module.exports.readable_cache_folder_name = true;
 //wether to clip page
 module.exports.keep_clip = false;
 
-//in MB
-module.exports.oversized_image_size = 4;
-
 //非localhost的机器想移动删除文件，需要在admin输出密码才可以获得权限
 //并不是高明的安全机制
 //注：Shigureader设计实现，只考虑在LAN情况下的性能和安全性。
 //Naive password when access remotely
 module.exports.file_change_password = "2020";
 
-//压缩图片的时候用的参数
-//传给magick用的
-//For magick compress output quality
-module.exports.img_convert_quality = 65;
+//----------------------------image compress parameter-------------------------------------------------
 
-//which output file 
-module.exports.img_convert_dest_type = ".jpg";
+//in MB, only for website UI display
+module.exports.oversized_image_size = 4;
+
+// the algo is as following
+// size <= img_convert_min_threshold: do not minify
+// img_convert_min_threshold < size < img_convert_huge_threshold: image compress
+// img_convert_huge_threshold <= size: image compress and reduce resolution
+
+//压缩图片的时候用的参数 传给magick用的
+//magick compress output quality for huge file
+module.exports.img_convert_quality = 60;
+
+//magick compress output quality for middle-size file
+module.exports.img_convert_quality_for_middle_size_file = 70;
 
 //超过这个大小，再转换的时候同时压低分辨率。
 //现在太多漫画，扫描出来一来4000*6000。完全没有必要
-module.exports.img_reduce_resolution_threshold = 6*1024*1024 ; //in MB
+module.exports.img_convert_huge_threshold = 6 ; //in MB
 
 //小于这个大小，没有转换的必要
-module.exports.img_convert_min = 2.5*1024*1024; //in MB
+module.exports.img_convert_min_threshold = 1.5; //in MB
 
-//Only Shrink Larger Images ('>' flag)
+// output file format
+module.exports.img_convert_dest_type = ".jpg";
+
+//Only Shrink huge Images ('>' flag)
 //参考资料:http://www.imagemagick.org/Usage/resize/#shrink
 //不必担心，会保持比例，高宽都低于规定的比例。
 module.exports.img_reduce_resolution_dimension = "2800x2800";
+
+
+
+//---------------------------------------------------------------------------------------
 
 //uses can view folder that has images as a zip
 //so users do not have zip their manga

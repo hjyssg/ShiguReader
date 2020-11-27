@@ -20,9 +20,13 @@ const rimraf = require("../tools/rimraf");
 const serverUtil = require("./serverUtil");
 const getStat = serverUtil.common.getStat;
 
-const { img_convert_quality, img_convert_dest_type, 
-        img_reduce_resolution_threshold, img_reduce_resolution_dimension,
-        img_convert_min } = userConfig;
+let { img_convert_quality, img_convert_dest_type, 
+        img_convert_huge_threshold, img_reduce_resolution_dimension,
+        img_convert_min_threshold, img_convert_quality_for_middle_size_file } = userConfig;
+
+img_convert_huge_threshold *= 1024*1024;
+img_convert_min_threshold *= 1024*1024;
+
 
 
 function logFail(filePath, e){
@@ -41,14 +45,13 @@ execa("magick")
 
 //https://imagemagick.org/script/download.php#windows
 
-async function convertImage(imgFilePath, outputImgPath, oldAvgImgSize){
+async function convertImage(imgFilePath, outputImgPath, oldImgSize){
     try{
         let opt;
-
-        if(oldAvgImgSize > img_reduce_resolution_threshold){
+        if(oldImgSize > img_convert_huge_threshold){
             opt = [imgFilePath, "-strip", "-quality", img_convert_quality, "-resize", `${img_reduce_resolution_dimension}\>`, outputImgPath ];
         }else{
-            opt = [imgFilePath, "-strip", "-quality", img_convert_quality, outputImgPath ];
+            opt = [imgFilePath, "-strip", "-quality", img_convert_quality_for_middle_size_file, outputImgPath ];
         }
 
         let {stdout, stderr} = await execa("magick", opt);
@@ -63,29 +66,7 @@ module.exports.isConertable = async function(filePath){
         return "No magick";
     }
 
-    const oldStat = await getStat(filePath);
-    const oldTemp = await listZipContentAndUpdateDb(filePath);
-    const oldFiles = oldTemp.files;
-    const oldInfos = oldTemp.info;
-    const oldFileInfos = oldTemp.fileInfos;
-    const oldAvgImgSize  = oldInfos.avgImgSize;
-
-    // if(oldAvgImgSize < img_convert_min){
-    //     return false;
-    // }
-
-    //check all content is image or folder
-    //gif is not allowed
     let text = "no_problem";
-    
-    oldFiles.forEach((e, ii) => {
-        if(isGif(e)){
-            text = "has gif";
-        } else if(!isImage(e) && oldFileInfos[ii].folder !== "+"){
-            text = "has non-image";
-        }
-    })
-
     return text;
 }
 
@@ -97,10 +78,6 @@ module.exports.minifyOneFile = async function(filePath){
         const oldStat = await getStat(filePath);
         const oldTemp = await listZipContentAndUpdateDb(filePath);
         const oldFiles = oldTemp.files;
-        const oldInfos = oldTemp.info;
-        const oldFileInfos = oldTemp.fileInfos;
-        const oldAvgImgSize  = oldInfos.avgImgSize;
-
 
         //one folder for extract
         //one for minify image
@@ -133,7 +110,7 @@ module.exports.minifyOneFile = async function(filePath){
         }
         console.log("-----begin images convertion --------------");
         console.log(filePath);
-        const _pathes = pathes.filter(isImage);
+        const _pathes = pathes;
         const total = _pathes.length;
         let converterError;
         const beginTime = getCurrentTime();
@@ -141,36 +118,41 @@ module.exports.minifyOneFile = async function(filePath){
         //convert one by one
         for(let ii = 0; ii < total; ii++){
             const fname = _pathes[ii];
+            const fp = path.resolve(extractOutputPath, fname);
+            try{
+                const stat = await pfs.stat(fp);
+                const oldSize = stat.size;
+                let simplyCopy = !isImage(fname) || isGif(fname);
+                simplyCopy = simplyCopy || (isImage(fname)  && oldSize < img_convert_min_threshold)
 
-        // const stat = await pfs.stat(p);
-        // const oldImgSize =    stat.size;
-        // if(isImage(e) && !isGif(e) &&  oldImgSize > img_reduce_resolution_threshold){
-        //  
-        // path.basename(imgFilePath)
-        //    const e = pfs.copyFile(imgFilePath, outputImgPath);
-        // }
+                if(simplyCopy){
+                    const outputImgPath = path.resolve(minifyOutputPath, fname);
+                    //this copy file does not create folder and isnot recursive
+                    await pfs.copyFile(fp, outputImgPath);
+                }else{
+                    //use imageMagik to convert 
+                    //  magick 1.jpeg   50 1.webp
+                    const name = path.basename(fname, path.extname(fname)) + img_convert_dest_type;
+                    const outputImgPath = path.resolve(minifyOutputPath, name);
+                    let {stdout, stderr} = await convertImage(fp, outputImgPath, oldSize);
+                    if (stderr) {
+                        throw stderr;
+                    }
+                    
+                    const timeSpent = getCurrentTime() - beginTime;
+                    const timePerImg = timeSpent/(ii+1)/1000; // in second
+                    const remaintime = (total - ii) * timePerImg;
+                    if(ii+1 < total){
+                        console.log(`${ii+1}/${total}      ${(timePerImg).toFixed(2)} second per file   ${remaintime.toFixed(2)} second before finish`);
+                    } else {
+                        console.log(`${ii+1}/${total}`);
+                        // console.log("finish convertion. going to check if there is any error")
+                    }
+                }
 
-
-            const imgFilePath = path.resolve(extractOutputPath, fname);
-            //use imageMagik to convert 
-            //  magick 1.jpeg   50 1.webp
-            const name = path.basename(fname, path.extname(fname)) + img_convert_dest_type;
-            const outputImgPath = path.resolve(minifyOutputPath, name);
-            let {stdout, stderr} = await convertImage(imgFilePath, outputImgPath, oldAvgImgSize);
-            if (stderr) {
-                converterError = stderr;
+            }catch(err){
+                converterError = err;
                 break;
-            }else{
-                const timeSpent = getCurrentTime() - beginTime;
-                const timePerImg = timeSpent/(ii+1)/1000; // in second
-                const remaintime = (total - ii) * timePerImg;
-                if(ii+1 < total){
-                    console.log(`${ii+1}/${total}      ${(timePerImg).toFixed(2)} second per file      ${remaintime.toFixed(2)} second before finish`);
-                }
-                else {
-                    console.log(`${ii+1}/${total}`);
-                    // console.log("finish convertion. going to check if there is any error")
-                }
             }
         }
 
