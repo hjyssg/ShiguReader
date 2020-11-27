@@ -365,6 +365,106 @@ function parse(str) {
 
 //--------------
 
+// https://stackoverflow.com/questions/11919065/sort-an-array-by-the-levenshtein-distance-with-best-performance-in-javascript
+function editDistance(s, t) {
+    if (s === t) {
+        return 0;
+    }
+    var n = s.length, m = t.length;
+    if (n === 0 || m === 0) {
+        return n + m;
+    }
+    var x = 0, y, a, b, c, d, g, h, k;
+    var p = new Array(n);
+    for (y = 0; y < n;) {
+        p[y] = ++y;
+    }
+
+    for (; (x + 3) < m; x += 4) {
+        var e1 = t.charCodeAt(x);
+        var e2 = t.charCodeAt(x + 1);
+        var e3 = t.charCodeAt(x + 2);
+        var e4 = t.charCodeAt(x + 3);
+        c = x;
+        b = x + 1;
+        d = x + 2;
+        g = x + 3;
+        h = x + 4;
+        for (y = 0; y < n; y++) {
+            k = s.charCodeAt(y);
+            a = p[y];
+            if (a < c || b < c) {
+                c = (a > b ? b + 1 : a + 1);
+            }
+            else {
+                if (e1 !== k) {
+                    c++;
+                }
+            }
+
+            if (c < b || d < b) {
+                b = (c > d ? d + 1 : c + 1);
+            }
+            else {
+                if (e2 !== k) {
+                    b++;
+                }
+            }
+
+            if (b < d || g < d) {
+                d = (b > g ? g + 1 : b + 1);
+            }
+            else {
+                if (e3 !== k) {
+                    d++;
+                }
+            }
+
+            if (d < g || h < g) {
+                g = (d > h ? h + 1 : d + 1);
+            }
+            else {
+                if (e4 !== k) {
+                    g++;
+                }
+            }
+            p[y] = h = g;
+            g = d;
+            d = b;
+            b = c;
+            c = a;
+        }
+    }
+
+    for (; x < m;) {
+        var e = t.charCodeAt(x);
+        c = x;
+        d = ++x;
+        for (y = 0; y < n; y++) {
+            a = p[y];
+            if (a < c || d < c) {
+                d = (a > d ? d + 1 : a + 1);
+            }
+            else {
+                if (e !== s.charCodeAt(y)) {
+                    d = c + 1;
+                }
+                else {
+                    d = c;
+                }
+            }
+            p[y] = d;
+            c = a;
+        }
+        h = d;
+    }
+
+    return h;
+}
+console.assert(editDistance("tozanbu", "tozan:bu") === 1)
+console.assert(editDistance("tozan；bu", "tozan:bu") === 1)
+//---------------------
+
 function isSimilar(s1, s2, distance){
     distance = distance || 3;
     if(!s1 && !s2){
@@ -372,7 +472,7 @@ function isSimilar(s1, s2, distance){
     }else if(s1 && s2){
         return oneInsideOne(s1, s2) && Math.abs(s1.length - s2.length) < distance;
     }else{
-        return true;
+        return false;
     }
 }
 
@@ -412,7 +512,13 @@ function checkIfDownload(text, allFileInLowerCase, authorTable){
                 r1 = parse(text);
                 const r2 = parse(e);
           
-                const isSimilarGroup = isSimilar(r1.group, r2.group);
+                let isSimilarGroup;
+                
+                if((r1.group && !r2.group) || (!r1.group && r2.group)){
+                    isSimilarGroup = true;
+                }else{
+                    isSimilarGroup = isSimilar(r1.group, r2.group) || editDistance(r1.group, r2.group) < 2;
+                }
 
                 //e.g one is c97, the other is c96. cannot be the same 
                 if(r1.comiket && r2.comiket && r1.comiket !== r2.comiket ){
@@ -420,7 +526,7 @@ function checkIfDownload(text, allFileInLowerCase, authorTable){
                 }
         
                 if(isSimilarGroup){
-                    if(r1.title === r2.title){
+                    if(r1.title === r2.title || editDistance(r1.title, r2.title) < 3){
                         status = Math.max(status, IS_IN_PC);
                         breakLoop = true;
                     }else if(oneInsideOne(r1.title, r2.title)){
@@ -444,7 +550,7 @@ function checkIfDownload(text, allFileInLowerCase, authorTable){
                     break;
                 }
           
-                if(isSimilar(text, e, 8)){
+                if(isSimilar(text, e, 5)){
                   status = Math.max(status, LIKELY_IN_PC);
                   similarTitle = e;
                 }
