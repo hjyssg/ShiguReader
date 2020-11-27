@@ -22,61 +22,57 @@ function getReason(e){
 }
 
 
-router.post('/api/renameFile', (req, res) => {
+router.post('/api/renameFile', async (req, res) => {
     const src = req.body && req.body.src;
     const dest = req.body && req.body.dest;
 
     if(!src || !dest){
-        res.sendStatus(404);
+        res.send({failed: true, reason: "No parameter"});
         return;
     }
 
-    (async () =>{
-        try{
-            let err = await pfs.rename(src, dest);
+    try{
+        let err = await pfs.rename(src, dest);
 
-            if(err){ throw err; }
+        if(err){ throw err; }
 
-            logger.info(`[rename] ${src} to ${dest}`);
-            res.sendStatus(200);
-        }catch(err){
-            console.error(err);
-            res.status(500).send(getReason(err));
-        }
-    })();
+        logger.info(`[rename] ${src} to ${dest}`);
+        res.send({failed: false});
+    }catch(err){
+        console.error(err);
+        res.send({reason:getReason(err), failed: true});
+    }
 });
 
-router.post('/api/moveFile', (req, res) => {
+router.post('/api/moveFile', async (req, res) => {
     const src = req.body && req.body.src;
     const dest = req.body && req.body.dest;
 
     if(!src || !dest){
-        res.sendStatus(404);
+        res.send({failed: true, reason: "No parameter"});
         return;
     }
 
-    (async () =>{
-        try{
-            let err;
-            if(!(await isExist(dest))){
-                err = await pfs.mkdir(dest, {recursive: true});
-            }
-
-            if(err){ throw "fail to create dest folder";}
-
-            const cmdStr = isWindows()? "move" : "mv";
-            const {stdout, stderr} = await execa(cmdStr, [src, dest]);
-            err = stderr;
-
-            if(err){ throw err;}
-         
-            logger.info(`[MOVE] ${src} to ${dest}`);
-            res.sendStatus(200);
-        }catch(err){
-            console.error(err);
-            res.status(500).send(getReason(err));
+    try{
+        let err;
+        if(!(await isExist(dest))){
+            err = await pfs.mkdir(dest, {recursive: true});
         }
-    })();
+
+        if(err){ throw "fail to create dest folder";}
+
+        const cmdStr = isWindows()? "move" : "mv";
+        const {stdout, stderr} = await execa(cmdStr, [src, dest]);
+        err = stderr;
+
+        if(err){ throw err;}
+        
+        logger.info(`[MOVE] ${src} to ${dest}`);
+        res.send({failed: false});
+    }catch(err){
+        console.error(err);
+        res.send({reason:getReason(err), failed: true});
+    }
 });
 
 async function deleteThing(src){
@@ -103,17 +99,17 @@ router.post('/api/deleteFile', async (req, res) => {
     const src = req.body && req.body.src;
 
     if(!src || !(await isExist(src))){
-        res.sendStatus(404);
+        res.send({failed: true, reason: "NOT FOUND"});
         return;
     }
 
     try{
         await deleteThing(src);
-        res.sendStatus(200);
+        res.send({failed: false});
         logger.info(`[DELETE] ${src}`);
     } catch(e) {
         console.error(e);
-        res.status(500).send(file_occupy_warning);
+        res.send({reason:file_occupy_warning, failed: true});
     }
 });
 
@@ -122,12 +118,12 @@ router.post('/api/deleteFolder', async (req, res) => {
     const src = req.body && req.body.src;
 
     if(!src || !(await isExist(src))){
-        res.sendStatus(404);
+        res.send({failed: true, reason: "NOT FOUND"});
         return;
     }
 
     if(!(await isSimpleFolder(src))){
-        res.status(500).send(_folder_waring_);
+        res.send({reason:_folder_waring_, failed: true});
         return;
     }
 
@@ -135,11 +131,11 @@ router.post('/api/deleteFolder', async (req, res) => {
     //need to improve
     try{
         await deleteThing(src);
-        res.sendStatus(200);
+        res.send({failed: false});
         logger.info(`[DELETE] ${src}`);
     } catch(e) {
         console.error(e);
-        res.status(500).send(file_occupy_warning);
+        res.send({reason:file_occupy_warning, failed: true});
     }
 });
 
@@ -147,12 +143,12 @@ router.post('/api/zipFolder', async (req, res) => {
     const src = req.body && req.body.src;
 
     if(!src || !(await isExist(src))){
-        res.sendStatus(404);
+        res.send({failed: true, reason: "NOT FOUND"});
         return;
     }
 
     if(! (await isSimpleFolder(src))){
-        res.status(500).send(_folder_waring_);
+        res.send({reason:_folder_waring_, failed: true});
         return;
     }
 
@@ -162,11 +158,11 @@ router.post('/api/zipFolder', async (req, res) => {
         if(stderr){
             throw stderr;
         }
-        res.sendStatus(200);
+        res.send({failed: false});
         logger.info(`[zipFolder] ${src}`);
     } catch(e) {
         console.error(e);
-        res.status(500).send("fail to zip");
+        res.send({reason:"fail to zip", failed: true});
     }
 });
 

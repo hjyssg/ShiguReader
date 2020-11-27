@@ -196,38 +196,34 @@ export default class ExplorerPage extends Component {
         //filterType ??
     }
 
-    requestHomePagePathes() {
-        Sender.post("/api/homePagePath", { }, res => {
-            this.handleRes(res);
-        });
-    }
-    
-
-    askServer(){
+    async askServer(){
+        let  res;
         if(this.getMode() === MODE_HOME){
-            this.requestHomePagePathes();
+            res = await Sender.postWithPromise("/api/homePagePath", {});
         } else{
             const hash = this.getTextFromQuery();
             if (hash && this.loadedHash !== hash && this.failedTimes < 3) {
                 if(this.getMode() === MODE_TAG){
-                    this.requestSearch();
+                    res = await  Sender.postWithPromise("/api/search", { text: this.getTextFromQuery(), mode: this.getMode()})
                 } else if(this.getMode() === MODE_AUTHOR){
-                    this.requestSearch();
+                    res = await  Sender.postWithPromise("/api/search", { text: this.getTextFromQuery(), mode: this.getMode()})
                 } else if (this.getMode() === MODE_SEARCH){
-                    this.requestTextSearch();
+                    res = await  Sender.postWithPromise("/api/search", { text: this.getSearchTextFromQuery(), mode: this.getMode()})
                 } else {
-                    this.requestLsDir();
+                    res = await Sender.postWithPromise('/api/lsDir', { dir: this.getTextFromQuery(), isRecursive: this.state.isRecursive });
                 }
             }
         }
+        res && this.handleRes(res);
     }
 
+  
     componentDidMount() {
         this.askServer();
 
         this.bindUserInteraction();
 
-        Sender.post('/api/getGoodAuthorNames', res =>{
+        Sender.postWithPromise('/api/getGoodAuthorNames', {}, res =>{
             this.setState({
                 goodAuthors: res.goodAuthors,
                 otherAuthors: res.otherAuthors
@@ -269,8 +265,8 @@ export default class ExplorerPage extends Component {
     }
 
     handleRes(res){
-        if (!res.failed) {
-            let {dirs, tag, author, fileInfos, thumbnails, zipInfo, imgFolders, imgFolderInfo,  guessIfUserLike} = res;
+        if (!res.isFailed()) {
+            let {dirs, tag, author, fileInfos, thumbnails, zipInfo, imgFolders, imgFolderInfo,  guessIfUserLike} = res.json;
             this.loadedHash = this.getTextFromQuery();
             this.fileInfos = fileInfos || {};
             const files = _.keys(this.fileInfos) || [];
@@ -310,11 +306,7 @@ export default class ExplorerPage extends Component {
         }
     }
 
-    requestTextSearch() {
-        Sender.post("/api/search", { text: this.getSearchTextFromQuery(),  mode: this.getMode()}, res => {
-            this.handleRes(res);
-        });
-    }
+
 
     handleKeyDown(event) {
         //this cause input wont work 
@@ -330,19 +322,6 @@ export default class ExplorerPage extends Component {
           this.prev();
           event.preventDefault();
         }
-    }
-
-    requestSearch() {
-        Sender.post("/api/search", { text: this.getTextFromQuery(),
-                                    mode: this.getMode()}, res => {
-            this.handleRes(res);
-        });
-    }
-    
-    requestLsDir() {
-        Sender.lsDir({ dir: this.getTextFromQuery(), isRecursive: this.state.isRecursive }, res => {
-            this.handleRes(res);
-        });
     }
 
     //comes from file db.
@@ -766,7 +745,7 @@ export default class ExplorerPage extends Component {
     }
     
     isFailedLoading(){
-        return this.res && this.res.failed;
+        return this.res && this.res.isFailed();
     }
 
     toggleRecursively(){
@@ -785,7 +764,11 @@ export default class ExplorerPage extends Component {
             isRecursive: !this.state.isRecursive
         }, ()=>{
             this.failedTimes = 0;
-            this.requestLsDir();
+            // this.requestLsDir();
+            (async ()=>{
+                let res = await Sender.postWithPromise('/api/lsDir', { dir: this.getTextFromQuery(), isRecursive: this.state.isRecursive });
+                this.handleRes(res);
+            })();
         })
     }
 

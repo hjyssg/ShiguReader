@@ -29,11 +29,22 @@ function logFail(filePath, e){
     logger.error("[imageMagickHelp]]", filePath, e);
 }
 
+global._has_magick_ = true;
+execa("magick")
+.then(() => {})
+.catch(e => {
+    global._has_magick_ = false;
+    console.log("Did not install magick")
+});
+
+
+
 //https://imagemagick.org/script/download.php#windows
 
 async function convertImage(imgFilePath, outputImgPath, oldAvgImgSize){
     try{
         let opt;
+
         if(oldAvgImgSize > img_reduce_resolution_threshold){
             opt = [imgFilePath, "-strip", "-quality", img_convert_quality, "-resize", `${img_reduce_resolution_dimension}\>`, outputImgPath ];
         }else{
@@ -47,20 +58,35 @@ async function convertImage(imgFilePath, outputImgPath, oldAvgImgSize){
     }
 }
 
-function isConertable(oldFiles, oldFileInfos){
+module.exports.isConertable = async function(filePath){
+    if(!global._has_magick_){
+        return "No magick";
+    }
+
+    const oldStat = await getStat(filePath);
+    const oldTemp = await listZipContentAndUpdateDb(filePath);
+    const oldFiles = oldTemp.files;
+    const oldInfos = oldTemp.info;
+    const oldFileInfos = oldTemp.fileInfos;
+    const oldAvgImgSize  = oldInfos.avgImgSize;
+
+    // if(oldAvgImgSize < img_convert_min){
+    //     return false;
+    // }
+
     //check all content is image or folder
     //gif is not allowed
-    const convertable = oldFiles.every((e, ii) => {
-        if(e && isImage(e) && !isGif(e)){
-            return true;
-        }else if(oldFileInfos[ii].folder === "+"){
-            return true
-        }else{
-            return false;
+    let text = "no_problem";
+    
+    oldFiles.forEach((e, ii) => {
+        if(isGif(e)){
+            text = "has gif";
+        } else if(!isImage(e) && oldFileInfos[ii].folder !== "+"){
+            text = "has non-image";
         }
     })
 
-    return convertable;
+    return text;
 }
 
 //ONLY KEEP THE CORRECT FILES IN FOLDER AFTER EVERYTHING
@@ -75,12 +101,7 @@ module.exports.minifyOneFile = async function(filePath){
         const oldFileInfos = oldTemp.fileInfos;
         const oldAvgImgSize  = oldInfos.avgImgSize;
 
-        //todo need to return this message to client
-        if( oldAvgImgSize < img_convert_min || !isConertable(oldFiles, oldFileInfos)){
-            logFail(filePath, "not convertable");
-            return;
-        }
-        
+
         //one folder for extract
         //one for minify image
         const bookName = path.basename(filePath, path.extname(filePath));
@@ -120,6 +141,16 @@ module.exports.minifyOneFile = async function(filePath){
         //convert one by one
         for(let ii = 0; ii < total; ii++){
             const fname = _pathes[ii];
+
+        // const stat = await pfs.stat(p);
+        // const oldImgSize =    stat.size;
+        // if(isImage(e) && !isGif(e) &&  oldImgSize > img_reduce_resolution_threshold){
+        //  
+        // path.basename(imgFilePath)
+        //    const e = pfs.copyFile(imgFilePath, outputImgPath);
+        // }
+
+
             const imgFilePath = path.resolve(extractOutputPath, fname);
             //use imageMagik to convert 
             //  magick 1.jpeg   50 1.webp

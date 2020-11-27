@@ -72,11 +72,12 @@ export default class LoadingImage extends Component {
       if(this.isUnmounted){
         return;
       }
-      if (res.failed) {
+      if (res.isFailed()) {
         this.setState({ failed: this.state.failed+1 }); 
       }else{
-        this.props.onReceiveUrl && this.props.onReceiveUrl(res.url);
-        this.setState({ url: res.url }); 
+        const url = res.json.url
+        this.props.onReceiveUrl && this.props.onReceiveUrl(url);
+        this.setState({ url }); 
       }
     });
   }

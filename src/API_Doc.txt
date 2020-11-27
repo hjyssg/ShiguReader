@@ -1,0 +1,15 @@
+All communication between server and client is done by HTTP POST. 
+
+POST Only, Not GET.
+Server should always return a json. Not matter fail or success. 
+
+
+JSON format
+
+    failed | boolean |  indicate wehter the request success or not
+    reason | string  |  explanation when fail
+
+
+
+
+The only exception is  /api/download/  that GET

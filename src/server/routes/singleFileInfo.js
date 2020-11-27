@@ -11,7 +11,7 @@ router.post("/api/singleFileInfo", async (req, res) => {
     const filePath = (req.body && req.body.filePath);
 
     if (!filePath || !(await isExist(filePath))) {
-        res.sendStatus(404);
+        res.send({failed: true, reason: "NOT FOUND"});
         return;
     }
 
@@ -26,3 +26,4 @@ router.post("/api/singleFileInfo", async (req, res) => {
 });
 
 module.exports = router;
+

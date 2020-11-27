@@ -358,7 +358,7 @@ app.post("/api/tagFirstImagePath", (req, res) => {
     const author = req.body && req.body.author;
     const tag = req.body && req.body.tag;
     if (!author && !tag) {
-        res.sendStatus(404);
+        res.send({failed: true, reason: "No Parameter"});
         return;
     }
 
@@ -367,7 +367,7 @@ app.post("/api/tagFirstImagePath", (req, res) => {
     const files = _.keys(fileInfos);
     chosendFileName = serverUtil.chooseOneZipForOneTag(files, db.getFileToInfo());
     if(!chosendFileName){
-        res.sendStatus(404);
+        res.send({failed: true, reason: "No file found"});
         return;
     }
 
@@ -412,8 +412,9 @@ async function extractThumbnailFromZip(filePath, res, mode, config) {
         })
     }
 
-    function handleFail(){
-        sendable && res.sendStatus(404);
+    function handleFail(reason){
+        reason = reason || "NOT FOUND";
+        sendable && res.send({failed: true, reason: reason});
         if(isPregenerateMode){
             config.total--;
         }
@@ -460,7 +461,7 @@ async function extractThumbnailFromZip(filePath, res, mode, config) {
             const one = serverUtil.chooseThumbnailImage(files);
             if(!one){
                 // console.error("[extractThumbnailFromZip] no thumbnail for ", filePath);
-                handleFail();
+                handleFail("no img in file");
             } else {
                 const stderrForThumbnail = await extractByRange(filePath, outputPath, [one])
                 if (!stderrForThumbnail) {
@@ -473,12 +474,12 @@ async function extractThumbnailFromZip(filePath, res, mode, config) {
                     }
                 } else {
                     console.error("[extractThumbnailFromZip extract exec failed]", code);
-                    handleFail();
+                    handleFail("extract exec failed");
                 }
             }
         } catch(e) {
             console.error("[extractThumbnailFromZip] exception", filePath,  e);
-            handleFail();
+            handleFail(e);
         }
     }
 }
@@ -524,7 +525,7 @@ app.post('/api/firstImage', async (req, res) => {
     const filePath = req.body && req.body.filePath;
 
     if (!filePath || !(await isExist(filePath))) {
-        res.sendStatus(404);
+        res.send({failed: true, reason: "NOT FOUND"});
         return;
     }
     extractThumbnailFromZip(filePath, res);
@@ -534,7 +535,7 @@ app.post('/api/extract', async (req, res) => {
     let filePath =  req.body && req.body.filePath;
     const startIndex = (req.body && req.body.startIndex) || 0;
     if (!filePath) {
-        res.sendStatus(404);
+        res.send({failed: true, reason: "No parameter"});
         return;
     }
 
@@ -553,7 +554,7 @@ app.post('/api/extract', async (req, res) => {
         if(sameFnObj){
             filePath = sameFnObj.filePath;
         } else {
-            res.sendStatus(404);
+            res.send({failed: true, reason: "NOT FOUND"});
             return;
         }
     }
@@ -597,7 +598,7 @@ app.post('/api/extract', async (req, res) => {
             let { files, fileInfos } = await listZipContentAndUpdateDb(filePath);
             files = files.filter(e => isDisplayableInOnebook(e));
             if(files.length === 0){
-               res.sendStatus(404);
+               res.send({failed: true, reason: "has no content"});
                console.error(`[/api/extract] ${filePath} has no content`);
                return;
             }
@@ -609,7 +610,7 @@ app.post('/api/extract', async (req, res) => {
                     const temp = generateContentUrl(pathes, outputPath);
                     sendBack(temp.files, temp.musicFiles, filePath, stat);
                 } else {
-                    res.sendStatus(404);
+                    res.send({failed: true, reason: "fail to extract"});
                 }
             }else{
                 //spit one zip into two uncompress task
@@ -640,12 +641,12 @@ app.post('/api/extract', async (req, res) => {
                     
                     await extractByRange(filePath, outputPath, secondRange)
                 } else {
-                    res.sendStatus(500);
+                    res.send({failed: true, reason: stderr});
                     console.error('[/api/extract] exit: ', stderr);
                 }
             }
        } catch (e){
-            res.sendStatus(500);
+            res.send({failed: true, reason: e});
             console.error('[/api/extract] exit: ', e);
         }
     })();
@@ -691,6 +692,10 @@ app.use(shutdown);
 
 const minifyZip = require("./routes/minifyZip");
 app.use(minifyZip);
+
+const ehentaiMetadata = require("./routes/ehentaiMetadata") ;
+app.use(ehentaiMetadata);
+
 
 if(isProduction){
     const history = require('connect-history-api-fallback');
