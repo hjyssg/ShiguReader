@@ -246,6 +246,7 @@ const isNewZipSameWithOriginalFiles = module.exports.isNewZipSameWithOriginalFil
         return false;
     }
 
+    //todo: need to check if other type files are missing
     const expect_file_names = files.filter(isImage).map(getFn).sort();
     const resulted_file_names =  newFiles.filter(isImage).map(getFn).sort();
     return _.isEqual(resulted_file_names, expect_file_names)
