@@ -652,6 +652,14 @@ app.post('/api/extract', async (req, res) => {
     })();
 });
 
+app.post('/api/getGeneralInfo', (req, res) => {
+    let os = isWindows()? "windows": "linux";
+    res.send({
+        server_os: os,
+        file_path_sep: path.sep
+    })
+});
+
 
 //---------------------------
 const homePagePath = require("./routes/homePagePath");

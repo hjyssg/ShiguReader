@@ -60,7 +60,7 @@ export default class MusicPlayer extends Component {
             const cn = classNames("aji-music-player-item", {
                 "aji-music-player-active  fas fa-volume-up": ii === index
             })
-            return (<div key={e} className={cn} onClick={this.handleIndexChange.bind(this, ii)}> {getBaseName(e, "/")} </div>)
+            return (<div key={e} className={cn} onClick={this.handleIndexChange.bind(this, ii)}> {getBaseName(e)} </div>)
         });
 
         if(audioFiles.length === 0){

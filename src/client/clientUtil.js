@@ -17,10 +17,21 @@ module.exports.getDir = function (fn) {
     return tokens.slice(0, tokens.length - 1).join('\\');
 };
 
-// '\' is for browser path
-const getBaseName = module.exports.getBaseName = function (fn, seperator) {
-    if (!fn) { return ""; }
-    const tokens = seperator? fn.split(seperator) : fn.split('\\');
+const getBaseName = module.exports.getBaseName = function (fp) {
+    if(arguments.length > 1){
+        throw "getBaseName error"
+    }
+
+    if (!fp) { return ""; }
+
+    // this function will take file path/or web url
+    // so it need to decide seperator will be used
+    let seperator = "/";  //   / is used by linux and web url
+    if(fp.match(/[A-Za-z]:\\/)){
+        //match windows path
+        seperator = "\\";
+    }
+    const tokens = fp.split(seperator);
     return tokens[tokens.length - 1];
 };
 
@@ -37,12 +48,11 @@ const encodeFileUrl = module.exports.encodeFileUrl = function(url){
     return result;
 }
 
-const getBaseNameWithoutExtention = module.exports.getBaseNameWithoutExtention = function (fn, seperator) {
-    seperator = seperator || "/"
+const getBaseNameWithoutExtention = module.exports.getBaseNameWithoutExtention = function (fn) {
     if (!fn) { 
         return ""; 
     }
-    const tokens = getBaseName(fn, seperator).split(".");
+    const tokens = getBaseName(fn).split(".");
     if(tokens.length < 2){
         return fn;
     }else{
