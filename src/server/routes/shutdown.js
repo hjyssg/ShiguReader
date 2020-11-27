@@ -31,7 +31,7 @@ function shutdown (cb) {
 
 router.post('/api/shutdownServer', function (req, res) {
     shutdown();
-    res.sendStatus(200);
+    res.send({failed: false});
 });
 
 module.exports = router;

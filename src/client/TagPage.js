@@ -124,7 +124,7 @@ setStateAndSetHash(state, callback){
     this.bindUserInteraction();
 
     Sender.post('/api/allInfo', { needThumbnail: true}, res => {
-      if (!res.failed) {
+      if (!res.isFailed()) {
         this.setItems(res);
         this.setState({ loaded: true });
       } else {
@@ -172,7 +172,7 @@ setStateAndSetHash(state, callback){
   }
   
   setItems(res){
-    const { fileToInfo = {}, allThumbnails = {} } = res;
+    const { fileToInfo = {}, allThumbnails = {} } = res.json;
     const tags = {};
     const authors = {};
     const authorToFiles = {};
@@ -353,7 +353,7 @@ setStateAndSetHash(state, callback){
   }
 
   isFailedLoading(){
-    return this.res && this.res.failed;
+    return this.res && this.res.isFailed();
   }
 
   getTitle(keys){

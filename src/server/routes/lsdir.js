@@ -24,7 +24,7 @@ router.post('/api/listFolderOnly', async (req, res) => {
 
     if (!dir || !(await isExist(dir))) {
         console.error("[/api/lsDir]", dir, "does not exist");
-        res.sendStatus(404);
+        res.send({failed: true, reason: "NOT FOUND"});
         return;
     }
 
@@ -42,7 +42,7 @@ router.post('/api/lsDir', async (req, res) => {
 
     if (!dir || !(await isExist(dir))) {
         console.error("[/api/lsDir]", dir, "does not exist");
-        res.sendStatus(404);
+        res.send({failed: true, reason: "NOT FOUND"});
         return;
     }
 
@@ -146,7 +146,7 @@ router.post('/api/listImageFolderContent', async (req, res) => {
     let filePath =  req.body && req.body.filePath;
     if (!filePath) {
         console.error("[/api/listImageFolderContent]", filePath, "does not exist");
-        res.sendStatus(404);
+        res.send({failed: true, reason: "NOT FOUND"});
         return;
     }
 

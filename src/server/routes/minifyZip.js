@@ -37,8 +37,12 @@ const limit = pLimit(2);
 router.post('/api/overwrite', async (req, res) =>  {
     const filePath = req.body && req.body.filePath;
 
-    if (!filePath || !(await isExist(filePath)) || minifyZipQue.includes(filePath)  ) {
-        res.sendStatus(404);
+    if (!filePath || !(await isExist(filePath)) ) {
+        res.send({failed: true, reason: "NOT FOUND"});
+    }
+
+    if(minifyZipQue.includes(filePath)){
+        res.send({failed: true, reason: "still in minify queue"});
     }
 
     const newFileStat = await getStat(filePath);
@@ -82,25 +86,41 @@ router.post('/api/overwrite', async (req, res) =>  {
         const {stdout, stderr} =  move(filePath, newPath);
         if(!stderr){
             logger.info("[overwrite]", "\n", originalFilePath,  "\n", filePath);
-            res.sendStatus(200);
+            res.send({failed: false});
         }else{
             logger.error("[overwrite]", "fail at", filePath);
-            res.status(500).send("fail to overwite original file");
+            res.send({reason: "fail to overwite original file", failed: true});
         }
     }else{
-        res.status(500).send("fail to find original file");
+        res.send({reason:"fail to find original file", failed: true});
     }
 })
+
+router.post('/api/isAbleToMinify', async (req, res) => {
+    const filePath = req.body && req.body.filePath;
+
+    if (!filePath || !(await isExist(filePath)) ) {
+        res.send({failed: true, reason: "NOT FOUND"});
+    }
+
+    let text = await imageMagickHelp.isConertable(filePath);
+    if(text === "no_problem"){
+        res.send({failed: false})
+    }else{
+        res.send({failed: true, reason: text})
+    }
+
+});
 
 router.post('/api/minifyZip', async (req, res) => {
     const filePath = req.body && req.body.filePath;
 
     if (!filePath || !(await isExist(filePath)) || minifyZipQue.includes(filePath)  ) {
-        res.sendStatus(404);
+        res.send({failed: true, reason: "NOT FOUND"});
     }else{
         //add to queue
         //it takes long time
-        res.sendStatus(200);
+        res.send({failed: false});
     }
 
     minifyZipQue.push(filePath);

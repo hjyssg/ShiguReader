@@ -15,9 +15,8 @@ import _ from 'underscore';
 import { toast } from 'react-toastify';
 
 function pop(file, res, postFix){
-    const reason = res.text;
-
-    const isFailed = res.failed
+    const reason = res.json.reason;
+    const isFailed = res.isFailed()
     const message = isFailed? `fail to ${postFix} ${file}` : `${postFix} successfully`;
     const cn = isFailed? "a-error": "a-success";
     const badge = isFailed? (<span className="badge badge-danger">Error</span>) :
@@ -44,7 +43,7 @@ function pop(file, res, postFix){
 
     const toastConfig = {
         position: "top-right",
-        autoClose: res.failed? 10*1000: 5*1000,
+        autoClose: res.isFailed()? 10*1000: 5*1000,
         hideProgressBar: true,
         closeOnClick: true,
         pauseOnHover: true,
@@ -72,7 +71,7 @@ export default class FileChangeToolbar extends Component {
             cancelButtonText: 'No'
         }).then((result) => {
             if (result.value === true) {
-                Sender.simplePost("/api/overwrite", {filePath: file}, res => {
+                Sender.post("/api/overwrite", {filePath: file}, res => {
                     pop(file, res, "overwrite");
                 });
             } 
@@ -87,11 +86,16 @@ export default class FileChangeToolbar extends Component {
             showCancelButton: true,
             confirmButtonText: 'Yes',
             cancelButtonText: 'No'
-        }).then((result) => {
+        }).then(async (result) => {
             if (result.value === true) {
-                Sender.simplePost("/api/minifyZip", {filePath: file}, res => {
-                    pop(file, res, "added to the task queue");
-                });
+                let res = await Sender.postWithPromise('/api/isAbleToMinify', {filePath: file});
+                if(res.isFailed()){
+                    pop(file, res, "Not able to minify");
+                }else{
+                    Sender.post("/api/minifyZip", {filePath: file}, res => {
+                        pop(file, res, "added to the task queue");
+                    });
+                }
             } 
         });
     }
@@ -108,12 +112,12 @@ export default class FileChangeToolbar extends Component {
             if (result.value === true) {
                 if(isFolder){
                     //send different request
-                    Sender.simplePost("/api/deleteFolder", {src: file}, res => {
+                    Sender.post("/api/deleteFolder", {src: file}, res => {
                         pop(file, res, "delete");
                     });
 
                 }else{
-                    Sender.simplePost("/api/deleteFile", {src: file}, res => {
+                    Sender.post("/api/deleteFile", {src: file}, res => {
                         pop(file, res, "delete");
                     });
                 }
@@ -132,7 +136,7 @@ export default class FileChangeToolbar extends Component {
             cancelButtonText: 'No'
         }).then((result) => {
             if (result.value === true && isFolder) {
-                Sender.simplePost("/api/zipFolder", {src: file}, res => {
+                Sender.post("/api/zipFolder", {src: file}, res => {
                     pop(file, res, "zip folder");
                 });
             } 
@@ -151,7 +155,7 @@ export default class FileChangeToolbar extends Component {
                 cancelButtonText: 'No'
             }).then((result) => {
                 if (result.value === true) {
-                    Sender.simplePost("/api/moveFile", {src: this.props.file, dest: path}, res => {
+                    Sender.post("/api/moveFile", {src: this.props.file, dest: path}, res => {
                         pop(file, res, "move");
                     });
                 } 
@@ -225,7 +229,7 @@ export default class FileChangeToolbar extends Component {
                 cancelButtonText: 'No'
             }).then((result) => {
                 if (result.value === true) {
-                    Sender.simplePost("/api/renameFile", {src: file, dest}, res => {
+                    Sender.post("/api/renameFile", {src: file, dest}, res => {
                         pop(file, res, "rename");
                     });
                 } 

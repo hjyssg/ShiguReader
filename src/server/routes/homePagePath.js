@@ -19,7 +19,7 @@ router.post('/api/homePagePath', function (req, res) {
 
     if(result.length === 0){
         console.error("Please check path-config.ini");
-        res.sendStatus(404);
+        res.send({failed: true, reason: "path-config.ini has no path"});
     }else{
         res.send({
             dirs: result

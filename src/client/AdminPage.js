@@ -30,8 +30,8 @@ export default class AdminPage extends Component {
 
     askMinifyQueue(){
         Sender.post("/api/minifyZipQue", { }, res => {
-            if (!res.failed) {
-                let { minifyZipQue } = res;
+            if (!res.isFailed()) {
+                let { minifyZipQue } = res.json;
                 this.setState({minifyZipQue})
             }else{
                 this.failedTimes++;
@@ -52,8 +52,8 @@ export default class AdminPage extends Component {
     }
 
     handleCacheRes(res){
-        if (!res.failed) {
-            let { totalSize, cacheNum } = res;
+        if (!res.isFailed()) {
+            let { totalSize, cacheNum } = res.json;
             this.setState({totalSize, cacheNum})
         }else{
             this.failedTimes++;
@@ -63,8 +63,8 @@ export default class AdminPage extends Component {
     }
 
     handleRes(res){
-        if (!res.failed) {
-            let {dirs} = res;
+        if (!res.isFailed()) {
+            let {dirs} = res.json;
             this.setState({
                 dirs: dirs || []
             })
@@ -96,7 +96,7 @@ export default class AdminPage extends Component {
             cancelButtonText: 'No'
         }).then((result) => {
             if (result.value === true) {
-                Sender.simplePost('/api/cleanCache', {}, res =>{
+                Sender.post('/api/cleanCache', {}, res =>{
                     this.askCacheInfo()
                 });
             } 
@@ -116,7 +116,6 @@ export default class AdminPage extends Component {
         });
 
         const historyDom =  _.keys(groupByDay).map(key => {
-            debugger
             const timeStr = dateFormat(new Date(parseInt(key)), "dddd, mmmm dS, yyyy");
             let items = groupByDay[key];
 

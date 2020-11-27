@@ -14,7 +14,7 @@ router.post("/api/search", (req, res) => {
     const text = mode === MODE_SEARCH && textParam;
 
     if (!author && !tag && !text) {
-        res.sendStatus(404);
+        res.send({failed: true, reason: "No parameter"});
     }else{
         res.send(searchByTagAndAuthor(tag, author, text));
     }

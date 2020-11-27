@@ -98,8 +98,8 @@ export default class OneBookOverview extends Component {
 
   handleRes(res){
       this.res = res;
-      if (!res.failed) {
-        let { zipInfo, path, stat, files,  musicFiles } = res;
+      if (!res.isFailed()) {
+        let { zipInfo, path, stat, files,  musicFiles } = res.json;
         files = files || [];
         musicFiles = musicFiles || [];
 
@@ -116,7 +116,7 @@ export default class OneBookOverview extends Component {
   }
 
   isFailedLoading(){
-    return this.res && this.res.failed;
+    return this.res && this.res.isFailed();
   }
 
   _getFileUrl(url){

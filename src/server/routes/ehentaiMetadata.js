@@ -153,14 +153,14 @@ router.post('/api/getEhentaiMetaData', async (req, res) => {
     let filePath = req.body && req.body.filePath;
 
     if (!filePath) {
-        res.sendStatus(404);
+        res.send({failed: true, reason: "No parameter"});
         return;
     }
 
     const searchWord = path.basename(filePath, path.extname(filePath));
     const sResult = searchOneBook(searchWord)
     if(!sResult){
-      res.sendStatus(404)
+      res.send({failed: true, reason: "NOT FOUND"})
     }else{
       res.send(sResult);
     }

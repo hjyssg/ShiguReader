@@ -282,10 +282,9 @@ export default class OneBook extends Component {
 
 
         let res2 = await Sender.postWithPromise("/api/getEhentaiMetaData", {filePath: fp});
-         if(!res2.failed){
-            res2 = await res2.json();
+        if(!res2.isFailed()){
             this.setState({
-                ehentai_metadata: res2
+                ehentai_metadata: res2.json
             })
          }
 
@@ -296,9 +295,8 @@ export default class OneBook extends Component {
 
   async handleRes(res){
       this.res = res;
-      if (!res.failed) {
-        res = await res.json();
-        let {zipInfo, path, stat, files,  musicFiles } = res;
+      if (!res.isFailed()) {
+        let {zipInfo, path, stat, files,  musicFiles } = res.json;
         files = files || [];
         musicFiles = musicFiles || [];
 
@@ -393,7 +391,7 @@ export default class OneBook extends Component {
   }
   
   isFailedLoading(){
-    return this.res && this.res.failed;
+    return this.res && this.res.isFailed();
   }
 
   onClickPagination(event){

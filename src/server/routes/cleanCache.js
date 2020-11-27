@@ -18,7 +18,7 @@ function doCacheClean(config){
 
 router.post('/api/cleanCache', (req, res) => {
     function afterClean() {
-        res.sendStatus(200);
+        res.send({failed: false});
     }
 
     doCacheClean({afterClean: afterClean});
