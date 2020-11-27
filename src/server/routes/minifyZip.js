@@ -113,11 +113,13 @@ router.post('/api/isAbleToMinify', async (req, res) => {
 });
 
 router.post('/api/minifyZip', async (req, res) => {
-    const filePath = req.body && req.body.filePath;
+    const filePath = req.body && req.body.filePath; 
 
-    if (!filePath || !(await isExist(filePath)) || minifyZipQue.includes(filePath)  ) {
+    if (!filePath || !(await isExist(filePath))) {
         res.send({failed: true, reason: "NOT FOUND"});
-    }else{
+    }else if(minifyZipQue.includes(filePath)){
+        res.send({failed: true, reason: "Already in the minify queue"});
+    } else{
         //add to queue
         //it takes long time
         res.send({failed: false});
