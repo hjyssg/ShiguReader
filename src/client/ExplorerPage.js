@@ -196,29 +196,25 @@ export default class ExplorerPage extends Component {
         //filterType ??
     }
 
- 
-
-    askServer(){
-        (async () => {
-            let  res;
-            if(this.getMode() === MODE_HOME){
-                res = await Sender.postWithPromise("/api/homePagePath", {});
-            } else{
-                const hash = this.getTextFromQuery();
-                if (hash && this.loadedHash !== hash && this.failedTimes < 3) {
-                    if(this.getMode() === MODE_TAG){
-                        res = await  Sender.postWithPromise("/api/search", { text: this.getTextFromQuery(), mode: this.getMode()})
-                    } else if(this.getMode() === MODE_AUTHOR){
-                        res = await  Sender.postWithPromise("/api/search", { text: this.getTextFromQuery(), mode: this.getMode()})
-                    } else if (this.getMode() === MODE_SEARCH){
-                        res = await  Sender.postWithPromise("/api/search", { text: this.getSearchTextFromQuery(), mode: this.getMode()})
-                    } else {
-                        res = await Sender.postWithPromise('/api/lsDir', { dir: this.getTextFromQuery(), isRecursive: this.state.isRecursive });
-                    }
+    async askServer(){
+        let  res;
+        if(this.getMode() === MODE_HOME){
+            res = await Sender.postWithPromise("/api/homePagePath", {});
+        } else{
+            const hash = this.getTextFromQuery();
+            if (hash && this.loadedHash !== hash && this.failedTimes < 3) {
+                if(this.getMode() === MODE_TAG){
+                    res = await  Sender.postWithPromise("/api/search", { text: this.getTextFromQuery(), mode: this.getMode()})
+                } else if(this.getMode() === MODE_AUTHOR){
+                    res = await  Sender.postWithPromise("/api/search", { text: this.getTextFromQuery(), mode: this.getMode()})
+                } else if (this.getMode() === MODE_SEARCH){
+                    res = await  Sender.postWithPromise("/api/search", { text: this.getSearchTextFromQuery(), mode: this.getMode()})
+                } else {
+                    res = await Sender.postWithPromise('/api/lsDir', { dir: this.getTextFromQuery(), isRecursive: this.state.isRecursive });
                 }
             }
-            res && this.handleRes(res);
-        })();
+        }
+        res && this.handleRes(res);
     }
 
   

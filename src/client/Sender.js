@@ -29,26 +29,22 @@ Sender.postWithPromise = async function (api, body) {
 
 
 //server will return json
-Sender.post = function (api, body, callback) {
+Sender.post = async function (api, body, callback) {
     if(!callback){
         throw "no callback function"
     }
 
-    (async ()=>{
-
-       const res = await  fetch(api, {
-            method: 'POST',
-            headers: {
-                Accept: 'application/json',
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(body)
-        });
-
-        res.json = await res.json()
-        attachFunc(res);
-        callback(res);
-    })();
+    const res = await  fetch(api, {
+        method: 'POST',
+        headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(body)
+    });
+    res.json = await res.json()
+    attachFunc(res);
+    callback(res);
 };
 
 export default Sender;

@@ -272,25 +272,18 @@ export default class OneBook extends Component {
     return !util.isCompress(this.getTextFromQuery())
   }
   
-  sendExtract(){
-    (async ()=>{
-        const fp = this.getTextFromQuery();
-        const api = this.isImgFolder()?  "/api/listImageFolderContent" : "/api/extract";
-
-        let res = await Sender.postWithPromise(api, {filePath: fp, startIndex: this.state.index||0 });
-        this.handleRes(res);
-
-
-        let res2 = await Sender.postWithPromise("/api/getEhentaiMetaData", {filePath: fp});
-        if(!res2.isFailed()){
-            this.setState({
-                ehentai_metadata: res2.json
-            })
-         }
-
-         //todo change render code to display this tags
-
-    })();
+  async sendExtract(){
+      const fp = this.getTextFromQuery();
+      const api = this.isImgFolder()?  "/api/listImageFolderContent" : "/api/extract";
+      let res = await Sender.postWithPromise(api, {filePath: fp, startIndex: this.state.index||0 });
+      this.handleRes(res);
+      
+      let res2 = await Sender.postWithPromise("/api/getEhentaiMetaData", {filePath: fp});
+      if(!res2.isFailed()){
+          this.setState({
+              ehentai_metadata: res2.json
+          })
+        }
   }
 
   async handleRes(res){

@@ -22,7 +22,7 @@ function getReason(e){
 }
 
 
-router.post('/api/renameFile', (req, res) => {
+router.post('/api/renameFile', async (req, res) => {
     const src = req.body && req.body.src;
     const dest = req.body && req.body.dest;
 
@@ -31,22 +31,20 @@ router.post('/api/renameFile', (req, res) => {
         return;
     }
 
-    (async () =>{
-        try{
-            let err = await pfs.rename(src, dest);
+    try{
+        let err = await pfs.rename(src, dest);
 
-            if(err){ throw err; }
+        if(err){ throw err; }
 
-            logger.info(`[rename] ${src} to ${dest}`);
-            res.send({failed: false});
-        }catch(err){
-            console.error(err);
-            res.send({reason:getReason(err), failed: true});
-        }
-    })();
+        logger.info(`[rename] ${src} to ${dest}`);
+        res.send({failed: false});
+    }catch(err){
+        console.error(err);
+        res.send({reason:getReason(err), failed: true});
+    }
 });
 
-router.post('/api/moveFile', (req, res) => {
+router.post('/api/moveFile', async (req, res) => {
     const src = req.body && req.body.src;
     const dest = req.body && req.body.dest;
 
@@ -55,28 +53,26 @@ router.post('/api/moveFile', (req, res) => {
         return;
     }
 
-    (async () =>{
-        try{
-            let err;
-            if(!(await isExist(dest))){
-                err = await pfs.mkdir(dest, {recursive: true});
-            }
-
-            if(err){ throw "fail to create dest folder";}
-
-            const cmdStr = isWindows()? "move" : "mv";
-            const {stdout, stderr} = await execa(cmdStr, [src, dest]);
-            err = stderr;
-
-            if(err){ throw err;}
-         
-            logger.info(`[MOVE] ${src} to ${dest}`);
-            res.send({failed: false});
-        }catch(err){
-            console.error(err);
-            res.send({reason:getReason(err), failed: true});
+    try{
+        let err;
+        if(!(await isExist(dest))){
+            err = await pfs.mkdir(dest, {recursive: true});
         }
-    })();
+
+        if(err){ throw "fail to create dest folder";}
+
+        const cmdStr = isWindows()? "move" : "mv";
+        const {stdout, stderr} = await execa(cmdStr, [src, dest]);
+        err = stderr;
+
+        if(err){ throw err;}
+        
+        logger.info(`[MOVE] ${src} to ${dest}`);
+        res.send({failed: false});
+    }catch(err){
+        console.error(err);
+        res.send({reason:getReason(err), failed: true});
+    }
 });
 
 async function deleteThing(src){
