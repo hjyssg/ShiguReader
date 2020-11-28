@@ -1,7 +1,7 @@
 {
   "name": "ShiguReader",
-  "version": "1.3.3",
-  "description": "local comic reader",
+  "version": "1.4.2",
+  "description": "All-in-one solution for local doujin/anime/music file",
   "main": "src/server/index.js",
   "bin": "src/server/index.js",
   "pkg": {
