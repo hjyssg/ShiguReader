@@ -6,15 +6,17 @@
 // @grant       GM_setValue
 // @connect     localhost
 // @namespace       Aji47
-// @version         0.0.1
+// @version         0.0.2
 // @description
 // @author        Aji47
 // @include       *://exhentai.org/*
 // @include       *://g.e-hentai.org/*
 // @include       *://e-hentai.org/*
-// @require      https://raw.githubusercontent.com/hjyssg/ShiguReader/edit_distance/src/name-parser/all_in_one/index.js
+// @require      https://raw.githubusercontent.com/hjyssg/ShiguReader/lokijs_for_EhentaiHighighliger/src/name-parser/all_in_one/index.js
 // @require https://cdnjs.cloudflare.com/ajax/libs/lokijs/1.5.11/lokijs.min.js
 // ==/UserScript==
+
+//tamper monkey自动缓存require脚本，随便改一下版本号就可以更新
 
 console.assert = console.assert || (() => {});
 
@@ -47,7 +49,7 @@ function isTwoBookTheSame(fn1, fn2){
     }
 
     let result = SAME_AUTHOR;
-    //e.g one is c97, the other is c96. cannot be the same 
+    //e.g one is c97, the other is c96. cannot be the same
     if(r1.comiket && r2.comiket && r1.comiket !== r2.comiket ){
         return result;
     }
@@ -58,13 +60,13 @@ function isTwoBookTheSame(fn1, fn2){
     if((group1 && !group2) || (!group1 && group2)){
         isSimilarGroup = true;
     }else{
-        isSimilarGroup = isSimilar(group1, group2);
+        isSimilarGroup = isHighlySimilar(group1, group2);
     }
 
     if(isSimilarGroup){
         let title1 = _clean(r1.title);
         let title2 = _clean(r2.title);
-        if(title1 === title2 || isSimilar(title1, title2)){
+        if(title1 === title2 || isHighlySimilar(title1, title2)){
             result = IS_IN_PC;
         }else if(oneInsideOne(title1, title2)){
             result = LIKELY_IN_PC;
@@ -75,15 +77,14 @@ function isTwoBookTheSame(fn1, fn2){
 
 //------------------------------------------------------
 
-function checkIfDownload(text, allFileInLowerCase, authorTable){
+function checkIfDownload(text){
     var status = 0;
     let similarTitle;
-    text = text.toLowerCase();
     let r1 = parse(text);
     if(r1 && r1.author){
         //use author as index to find
-        let books = authorTable.get(r1.author);
-        if(books){
+        let books = getByAuthor(r1.author).map(e => e.fileName);
+        if(books && books.length > 0){
             status = SAME_AUTHOR;
             for(let ii = 0; ii < books.length; ii++){
                 let fn2 =  books[ii];
@@ -91,35 +92,33 @@ function checkIfDownload(text, allFileInLowerCase, authorTable){
                 if(status === LIKELY_IN_PC){
                     similarTitle = fn2;
                 }
-    
+
                 if(status === IS_IN_PC){
                     break;
                 }
             }
         }
     }else{
-        //pure dumm iteration, brute force search
-        text = _clean(text);
-        for (var ii = 0; ii < allFileInLowerCase.length; ii++) {
-            let e = _clean(allFileInLowerCase[ii]);
-            if(isOnlyDigit(e)){
-                continue;
+        const _text = _clean(text);
+        let reg = escapeRegExp(_text);
+        let books =  file_collection.chain()
+            .find({'_filename_': { '$regex' : reg }})
+            .data();
+
+        books.forEach(e => {
+            if(e._filename_ === _text){
+                status = IS_IN_PC;
             }
 
-            if(e === text){
-                status = IS_IN_PC;
-                break;
-            }
-        
-            if(status < LIKELY_IN_PC && isSimilar(text, e)){
+            if(status < LIKELY_IN_PC && isHighlySimilar(e._filename_, _text)){
                 status = Math.max(status, LIKELY_IN_PC);
                 similarTitle = e;
             }
-        }
+        })
     }
 
     return {
-        status, 
+        status,
         similarTitle
     }
 }
@@ -143,31 +142,37 @@ function onLoad(dom) {
     highlightThumbnail(res.allFiles);
 }
 
+const file_db = new loki();
+const file_collection = file_db.addCollection("file_collection");
+
+escapeRegExp = function(string) {
+    const str = string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
+    var reg = new RegExp(str, 'i');
+    return reg;
+}
+
+function getByAuthor(key){
+    key = _clean(key);
+    let reg = escapeRegExp(key);
+    return file_collection.chain()
+        .find({'_author_': { '$regex' : reg }})
+        .data();
+}
 
 function highlightThumbnail(allFiles){
     const nodes = Array.prototype.slice.call(document.getElementsByClassName("gl1t"));
     if(!nodes  || nodes.length === 0) {
         return;
     }
-    const allFileInLowerCase = allFiles.map(e => e.toLowerCase());
 
-    const authorTable = {};
-    authorTable.get = key => {
-        key = _clean(key);
-        return authorTable[key];
-    }
-
-    authorTable.push = (key, value) => {
-        key = _clean(key);
-        authorTable[key] = authorTable[key] || [];
-        authorTable[key].push(value);
-    }
-
-    allFileInLowerCase.forEach(e => {
-        const r =  parse(e);
-        if(r && r.author){
-            authorTable.push(r.author, e);
-        }
+    allFiles.forEach(e => {
+        const r =  parse(e) || {};
+        file_collection.insert({
+            fileName: e,
+            _author_: _clean(r.author),
+            _filename_: _clean(e),
+            title: r.title
+        })
     });
 
     // const time25 = new Date().getTime();
@@ -183,7 +188,7 @@ function highlightThumbnail(allFiles){
                 return;
             }
             const r =  parse(text);
-            const {status, similarTitle} = checkIfDownload(text, allFileInLowerCase, authorTable);
+            const {status, similarTitle} = checkIfDownload(text);
             e.status = status || 0;
             if(status === IS_IN_PC){
                 subNode.style.color =  "#61ef47"; //"green";
@@ -194,8 +199,8 @@ function highlightThumbnail(allFiles){
                 // e.style.background = "#212121";
             }else if(status === SAME_AUTHOR){
                 subNode.style.color = "#ef8787"; // "red";
-                let authortimes = authorTable.get(r.author.toLowerCase()).length; 
-                thumbnailNode.title = `下载同样作者“${r.author}”的书 ${authortimes}次`;
+                // let authortimes = getByAuthor(r.author.toLowerCase()).length;
+                // thumbnailNode.title = `下载同样作者“${r.author}”的书 ${authortimes}次`;
                 // e.style.background = "#111111"
             }
             if(status){
@@ -251,7 +256,7 @@ function main() {
         });
     }
 
-    //add shigureader search link  
+    //add shigureader search link
     let fileTitleDom = document.getElementById("gj");
     let title = fileTitleDom && fileTitleDom.textContent;
 
