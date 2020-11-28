@@ -6,14 +6,19 @@
 // @grant       GM_setValue
 // @connect     localhost
 // @namespace       Aji47
-// @version         0.0.1
+// @version         0.0.3
 // @description
 // @author        Aji47
 // @include       *://exhentai.org/*
 // @include       *://g.e-hentai.org/*
 // @include       *://e-hentai.org/*
-// @require      https://raw.githubusercontent.com/hjyssg/ShiguReader/edit_distance/src/name-parser/all_in_one/index.js
+// @require      https://raw.githubusercontent.com/hjyssg/ShiguReader/lokijs_for_EhentaiHighighliger/src/name-parser/all_in_one/index.js
+// @require      https://cdnjs.cloudflare.com/ajax/libs/lokijs/1.5.11/lokijs.min.js
 // ==/UserScript==
+
+//tamper monkey自动缓存require脚本，随便改一下版本号就可以更新
+
+console.assert = console.assert || (() => {});
 
 //-------------------------------
 function oneInsideOne(s1, s2){
@@ -44,7 +49,7 @@ function isTwoBookTheSame(fn1, fn2){
     }
 
     let result = SAME_AUTHOR;
-    //e.g one is c97, the other is c96. cannot be the same 
+    //e.g one is c97, the other is c96. cannot be the same
     if(r1.comiket && r2.comiket && r1.comiket !== r2.comiket ){
         return result;
     }
@@ -55,13 +60,13 @@ function isTwoBookTheSame(fn1, fn2){
     if((group1 && !group2) || (!group1 && group2)){
         isSimilarGroup = true;
     }else{
-        isSimilarGroup = isSimilar(group1, group2);
+        isSimilarGroup = isHighlySimilar(group1, group2);
     }
 
     if(isSimilarGroup){
         let title1 = _clean(r1.title);
         let title2 = _clean(r2.title);
-        if(title1 === title2 || isSimilar(title1, title2)){
+        if(title1 === title2 || isHighlySimilar(title1, title2)){
             result = IS_IN_PC;
         }else if(oneInsideOne(title1, title2)){
             result = LIKELY_IN_PC;
@@ -72,51 +77,66 @@ function isTwoBookTheSame(fn1, fn2){
 
 //------------------------------------------------------
 
-function checkIfDownload(text, allFileInLowerCase, authorTable){
+function checkIfDownload(text, pageNum){
     var status = 0;
     let similarTitle;
-    text = text.toLowerCase();
     let r1 = parse(text);
+
+    function comparePageNum(book, pageNum){
+        if(!isNaN(book.pageNum) && Math.abs(book.pageNum - pageNum) >= 5){
+            return true;
+        }
+        return false;
+    }
+
     if(r1 && r1.author){
         //use author as index to find
-        let books = authorTable.get(r1.author);
-        if(books){
+        let books = getByAuthor(r1.author);
+
+        if(books && books.length > 0){
             status = SAME_AUTHOR;
             for(let ii = 0; ii < books.length; ii++){
-                let fn2 =  books[ii];
+                const book = books[ii];
+                if(comparePageNum(book, pageNum)){
+                    continue;
+                }
+
+                let fn2 =  book.fileName;
                 status = Math.max(status, isTwoBookTheSame(text, fn2));
                 if(status === LIKELY_IN_PC){
                     similarTitle = fn2;
                 }
-    
+
                 if(status === IS_IN_PC){
                     break;
                 }
             }
         }
     }else{
-        //pure dumm iteration, brute force search
-        text = _clean(text);
-        for (var ii = 0; ii < allFileInLowerCase.length; ii++) {
-            let e = _clean(allFileInLowerCase[ii]);
-            if(isOnlyDigit(e)){
-                continue;
+        const _text = _clean(text);
+        let reg = escapeRegExp(_text);
+        let books =  file_collection.chain()
+            .find({'_filename_': { '$regex' : reg }})
+            .data();
+
+        books.forEach(e => {
+            if(comparePageNum(e, pageNum)){
+                return;
             }
 
-            if(e === text){
+            if(e._filename_ === _text){
                 status = IS_IN_PC;
-                break;
             }
-        
-            if(status < LIKELY_IN_PC && isSimilar(text, e)){
+
+            if(status < LIKELY_IN_PC && isHighlySimilar(e._filename_, _text)){
                 status = Math.max(status, LIKELY_IN_PC);
                 similarTitle = e;
             }
-        }
+        })
     }
 
     return {
-        status, 
+        status,
         similarTitle
     }
 }
@@ -133,39 +153,52 @@ const time1 = new Date().getTime();
 function onLoad(dom) {
     // const time2 = new Date().getTime();
     // console.log((time2 - time1)/1000, "to load");
-
     GM_setValue('responseText',  dom.responseText);
     GM_setValue('lastResTime', getCurrentTime());
     const res = JSON.parse(dom.responseText);
     highlightThumbnail(res.allFiles);
 }
 
+const file_db = new loki();
+const file_collection = file_db.addCollection("file_collection");
+
+escapeRegExp = function(string) {
+    const str = string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
+    var reg = new RegExp(str, 'i');
+    return reg;
+}
+
+function getByAuthor(key){
+    key = _clean(key);
+    let reg = escapeRegExp(key);
+    return file_collection.chain()
+        .find({'_author_': { '$regex' : reg }})
+        .where(obj => {
+            return isHighlySimilar(obj['_author_'], key);
+        })
+        .data();
+}
 
 function highlightThumbnail(allFiles){
     const nodes = Array.prototype.slice.call(document.getElementsByClassName("gl1t"));
     if(!nodes  || nodes.length === 0) {
         return;
     }
-    const allFileInLowerCase = allFiles.map(e => e.toLowerCase());
 
-    const authorTable = {};
-    authorTable.get = key => {
-        key = _clean(key);
-        return authorTable[key];
-    }
 
-    authorTable.push = (key, value) => {
-        key = _clean(key);
-        authorTable[key] = authorTable[key] || [];
-        authorTable[key].push(value);
-    }
-
-    allFileInLowerCase.forEach(e => {
-        const r =  parse(e);
-        if(r && r.author){
-            authorTable.push(r.author, e);
+    for(let e in allFiles){
+        if (allFiles.hasOwnProperty(e)){
+            const r =  parse(e) || {};
+            const value = allFiles[e];
+            file_collection.insert({
+                fileName: e,
+                _author_: _clean(r.author),
+                _filename_: _clean(e),
+                title: r.title,
+                pageNum: parseInt(value.pageNum)
+            })
         }
-    });
+    }
 
     // const time25 = new Date().getTime();
     // console.log((time25 - time2)/1000, "to parse name");
@@ -175,25 +208,27 @@ function highlightThumbnail(allFiles){
             const subNode = e.getElementsByClassName("gl4t")[0];
             const thumbnailNode = e.getElementsByTagName("img")[0];
             const text = subNode.textContent;
+
+            const pageNumDiv = e.querySelector(".gl5t").children[1].children[1];
+            const pageNum =parseInt(pageNumDiv.textContent.split(" ")[0]);
+
             e.status = 0;
             if(text.includes("翻訳") || text.includes("翻译")){
                 return;
             }
             const r =  parse(text);
-            const {status, similarTitle} = checkIfDownload(text, allFileInLowerCase, authorTable);
+            const {status, similarTitle} = checkIfDownload(text, pageNum);
             e.status = status || 0;
             if(status === IS_IN_PC){
-                subNode.style.color =  "#61ef47"; //"green";
+                subNode.style.color =  "#61ef47"; 
                 thumbnailNode.title = "明确已经下载过了";
             } else if(status === LIKELY_IN_PC){
-                subNode.style.color = "#efd41b"; //"yellow";
+                subNode.style.color = "#efd41b";
                 thumbnailNode.title = `电脑里的“${similarTitle}”和这本好像一样`;
-                // e.style.background = "#212121";
             }else if(status === SAME_AUTHOR){
-                subNode.style.color = "#ef8787"; // "red";
-                let authortimes = authorTable.get(r.author.toLowerCase()).length; 
+                subNode.style.color = "#ef8787"; 
+                let authortimes = getByAuthor(r.author).length;
                 thumbnailNode.title = `下载同样作者“${r.author}”的书 ${authortimes}次`;
-                // e.style.background = "#111111"
             }
             if(status){
                 subNode.style.fontWeight = 600;
@@ -248,7 +283,7 @@ function main() {
         });
     }
 
-    //add shigureader search link  
+    //add shigureader search link
     let fileTitleDom = document.getElementById("gj");
     let title = fileTitleDom && fileTitleDom.textContent;
 

@@ -467,7 +467,7 @@ console.assert(editDistance("tozanbu", "tozan:bu") === 1)
 console.assert(editDistance("tozan；bu", "tozan:bu") === 1)
 //---------------------
 
-function isSimilar(s1, s2){
+function isHighlySimilar(s1, s2){
     if(!s1 && !s2){
         return true;
     }else if(s1 && s2){
@@ -480,13 +480,13 @@ function isSimilar(s1, s2){
     }
 }
 
-console.assert(isSimilar("tozanbu", "tozan:bu"))
-console.assert(isSimilar("tobu", "to:bu"))
-console.assert(isSimilar("12ab", "12abc")) 
+console.assert(isHighlySimilar("tozanbu", "tozan:bu"))
+console.assert(isHighlySimilar("tobu", "to:bu"))
+console.assert(isHighlySimilar("12ab", "12abc")) 
 
-console.assert(isSimilar("時雨露出×野外2", "白露型時雨露出×野外2") === false) ;
-console.assert(isSimilar("12a", "13a") === false) 
-console.assert(isSimilar("12", "ab") === false)
+console.assert(isHighlySimilar("時雨露出×野外2", "白露型時雨露出×野外2") === false) ;
+console.assert(isHighlySimilar("12a", "13a") === false) 
+console.assert(isHighlySimilar("12", "ab") === false)
 
 
 function isSame(s1, s2){
@@ -539,13 +539,13 @@ function checkIfDownload(text, allFileInLowerCase, authorTable){
                 if((group1 && !group2) || (!group1 && group2)){
                     isSimilarGroup = true;
                 }else{
-                    isSimilarGroup = isSimilar(group1, group2);
+                    isSimilarGroup = isHighlySimilar(group1, group2);
                 }
 
                 if(isSimilarGroup){
                     let title1 = _clean(r1.title);
                     let title2 = _clean(r2.title);
-                    if(title1 === title2 || isSimilar(title1, title2)){
+                    if(title1 === title2 || isHighlySimilar(title1, title2)){
                         status = Math.max(status, IS_IN_PC);
                         break;
                     }else if(oneInsideOne(title1, title2)){
@@ -569,7 +569,7 @@ function checkIfDownload(text, allFileInLowerCase, authorTable){
                 break;
             }
         
-            if(status < LIKELY_IN_PC && isSimilar(text, e)){
+            if(status < LIKELY_IN_PC && isHighlySimilar(text, e)){
                 status = Math.max(status, LIKELY_IN_PC);
                 similarTitle = e;
             }
