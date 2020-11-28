@@ -7,7 +7,7 @@
 // @grant       GM_getResourceText
 // @connect     localhost
 // @namespace       Aji47
-// @version         0.0.2
+// @version         0.0.21
 // @description
 // @author        Aji47
 // @include       *://exhentai.org/*
@@ -233,11 +233,11 @@ function highlightThumbnail(allFiles){
             } else if(status === LIKELY_IN_PC){
                 subNode.style.color = "#efd41b";
                 // addAttachTooltipNode(thumbnailNode, `电脑里的“${similarTitles}”和这本好像一样`);
-                addAttachTooltipNode(thumbnailNode.parentElement, similarTitles, "电脑里面好像有");
+                addAttachTooltipNode(thumbnailNode, similarTitles, "电脑里面好像有");
             }else if(status === SAME_AUTHOR){
                 subNode.style.color = "#ef8787"; 
                 const fns = getByAuthor(r.author).map(e => e.fileName);
-                addAttachTooltipNode(thumbnailNode.parentElement, fns, `下载同样作者“${r.author}”的书 ${fns.length}次`);
+                addAttachTooltipNode(thumbnailNode, fns, `下载同样作者“${r.author}”的书 ${fns.length}次`);
             }
             if(status){
                 subNode.style.fontWeight = 600;
@@ -251,7 +251,9 @@ function highlightThumbnail(allFiles){
     // console.log((time3 - time25)/1000, "to change dom");
 }
 
-function addAttachTooltipNode(node, textArr, title){
+function addAttachTooltipNode(thumbnailNode, textArr, title){
+    const node = thumbnailNode.parentElement.parentElement
+
     let tooltip = document.createElement('div');
     tooltip.className = "aji-tooltip";
     node.appendChild(tooltip);
@@ -263,7 +265,9 @@ function addAttachTooltipNode(node, textArr, title){
 
     textArr.forEach(e => {
         let listItem = document.createElement('div');
+        listItem.className = "aji-tooltip-list-item"
         listItem.textContent = e;
+        listItem.title = e;
         tooltip.appendChild(listItem);
     });
 }
