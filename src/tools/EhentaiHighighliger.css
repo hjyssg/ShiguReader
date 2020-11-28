@@ -1,0 +1,8 @@
+ .shigureader_link {
+     font-size: 12px;
+     text-decoration:none;
+ }
+
+.shigureader_link:hover {
+        color: #b0f3ff
+}

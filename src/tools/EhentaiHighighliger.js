@@ -4,6 +4,7 @@
 // @grant       GM_addStyle
 // @grant       GM_getValue
 // @grant       GM_setValue
+// @grant       GM_getResourceText
 // @connect     localhost
 // @namespace       Aji47
 // @version         0.0.3
@@ -14,9 +15,14 @@
 // @include       *://e-hentai.org/*
 // @require      https://raw.githubusercontent.com/hjyssg/ShiguReader/lokijs_for_EhentaiHighighliger/src/name-parser/all_in_one/index.js
 // @require      https://cdnjs.cloudflare.com/ajax/libs/lokijs/1.5.11/lokijs.min.js
+// @resource     customCSS  https://raw.githubusercontent.com/hjyssg/ShiguReader/dev/src/tools/EhentaiHighighliger.css
 // ==/UserScript==
 
 //tamper monkey自动缓存require脚本，随便改一下版本号就可以更新
+
+var newCSS = GM_getResourceText ("customCSS");
+GM_addStyle (newCSS);
+
 
 console.assert = console.assert || (() => {});
 
@@ -79,7 +85,7 @@ function isTwoBookTheSame(fn1, fn2){
 
 function checkIfDownload(text, pageNum){
     var status = 0;
-    let similarTitle;
+    let similarTitles = [];
     let r1 = parse(text);
 
     function comparePageNum(book, pageNum){
@@ -104,7 +110,9 @@ function checkIfDownload(text, pageNum){
                 let fn2 =  book.fileName;
                 status = Math.max(status, isTwoBookTheSame(text, fn2));
                 if(status === LIKELY_IN_PC){
-                    similarTitle = fn2;
+                    similarTitles.push(fn2);
+                    //todo pick the most similar 
+                    //or show all
                 }
 
                 if(status === IS_IN_PC){
@@ -130,14 +138,14 @@ function checkIfDownload(text, pageNum){
 
             if(status < LIKELY_IN_PC && isHighlySimilar(e._filename_, _text)){
                 status = Math.max(status, LIKELY_IN_PC);
-                similarTitle = e;
+                similarTitles.push(e);
             }
         })
     }
 
     return {
         status,
-        similarTitle
+        similarTitles
     }
 }
 
@@ -217,18 +225,18 @@ function highlightThumbnail(allFiles){
                 return;
             }
             const r =  parse(text);
-            const {status, similarTitle} = checkIfDownload(text, pageNum);
+            const {status, similarTitles} = checkIfDownload(text, pageNum);
             e.status = status || 0;
             if(status === IS_IN_PC){
                 subNode.style.color =  "#61ef47"; 
-                thumbnailNode.title = "明确已经下载过了";
+                 addAttachTooltipNode(e, "明确已经下载过了");
             } else if(status === LIKELY_IN_PC){
                 subNode.style.color = "#efd41b";
-                thumbnailNode.title = `电脑里的“${similarTitle}”和这本好像一样`;
+                 addAttachTooltipNode(e, `电脑里的“${similarTitles}”和这本好像一样`);
             }else if(status === SAME_AUTHOR){
                 subNode.style.color = "#ef8787"; 
                 let authortimes = getByAuthor(r.author).length;
-                thumbnailNode.title = `下载同样作者“${r.author}”的书 ${authortimes}次`;
+                 addAttachTooltipNode(e, `下载同样作者“${r.author}”的书 ${authortimes}次`);
             }
             if(status){
                 subNode.style.fontWeight = 600;
@@ -241,6 +249,23 @@ function highlightThumbnail(allFiles){
     // const time3 = new Date().getTime();
     // console.log((time3 - time25)/1000, "to change dom");
 }
+
+function addAttachTooltipNode(node, text, cssObj){
+    const defaultCSS = { position: 'fixed', top: '7%', left:'50%', 'z-index': 3, 
+    "background-color": "#57cff7", "color": "white",
+    "padding": "10px", "border": "0px",
+    "font-size": "1rem","font-weight": "bold" }
+    cssObj = Object.assign(defaultCSS, cssObj || {} )
+    let button = document.createElement('button');
+    let btnStyle = button.style
+    node.appendChild(button)
+    
+    button.innerHTML = text;
+    btnStyle.position = 'fixed';
+    Object.keys(cssObj).forEach(key => btnStyle[key] = cssObj[key]);
+    return button;
+}
+
 
 function appendLink(fileTitleDom, text){
     var link = document.createElement("a");
@@ -310,24 +335,5 @@ function main() {
     }
 }
 
-// .shigureader_link {
-//     font-size: 12px;
-//     text-decoration:none;
-//     &:hover{
-//         color: #b0f3ff
-//     }
-// }
-GM_addStyle(".shigureader_link {   font-size: 12px;   text-decoration: none;} .shigureader_link:hover {    color: #b0f3ff;} ");
-
-// [title]:hover:after{
-//     content: attr(title);
-//     background:white;
-//     color: rgb(27, 25, 25);
-//     font-size: 20px;
-//     padding: 5px;
-//     border-radius:5px;
-//     border:1px solid;
-//     z-index: 100;
-//   }
 
 main();
