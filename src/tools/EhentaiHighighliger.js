@@ -173,6 +173,9 @@ function getByAuthor(key){
     let reg = escapeRegExp(key);
     return file_collection.chain()
         .find({'_author_': { '$regex' : reg }})
+        .where(obj => {
+            return isHighlySimilar(obj['_author_'], key);
+        })
         .data();
 }
 
