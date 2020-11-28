@@ -15,13 +15,69 @@
 // @include       *://e-hentai.org/*
 // @require      https://raw.githubusercontent.com/hjyssg/ShiguReader/lokijs_for_EhentaiHighighliger/src/name-parser/all_in_one/index.js
 // @require      https://cdnjs.cloudflare.com/ajax/libs/lokijs/1.5.11/lokijs.min.js
-// @resource     customCSS  https://raw.githubusercontent.com/hjyssg/ShiguReader/dev/src/tools/EhentaiHighighliger.css
 // ==/UserScript==
 
 //tamper monkey自动缓存require脚本，随便改一下版本号就可以更新
 
-var newCSS = GM_getResourceText ("customCSS");
-GM_addStyle (newCSS);
+GM_addStyle (`
+.shigureader_link {
+    font-size: 12px;
+    text-decoration:none; }
+
+.shigureader_link:hover {
+       color: #b0f3ff
+}
+
+.aji-tooltip {
+   z-index: 3;
+   visibility: hidden;
+
+   height: 300px;
+   width: 500px;
+
+   position: fixed;
+   top: 50%;
+   left: 50%;
+   margin-top: -150px;
+   margin-left: -250px;
+
+   display: flex;
+   flex-direction: column;
+   overflow-y: scroll;
+   overflow-x: hidden;
+
+   opacity: 0.95;
+   background-color: #777372;
+   box-shadow: 3px 3px 3px rgba(0, 0, 0, 0.59);
+   color: rgb(168, 165, 165);
+   padding: 10px;
+   border: 0px;
+   font-size: 12px;
+}
+
+.aji-tooltip-list-item {
+   white-space: nowrap;
+   text-overflow: ellipsis;
+}
+
+.aji-tooltip-title{
+   border-bottom: 1px black solid;
+   margin-bottom: 5px;
+   font-weight: bold;
+}
+
+.aji-tooltip-button {
+    height: 20px;
+    width: 20px;
+    background: transparent;
+    box-shadow: none;
+    outline: none;
+    border: 1px white solid;
+    color: white;
+}
+
+`);
+
 
 
 console.assert = console.assert || (() => {});
@@ -232,12 +288,14 @@ function highlightThumbnail(allFiles){
                 thumbnailNode.title =  "明确已经下载过了";
             } else if(status === LIKELY_IN_PC){
                 subNode.style.color = "#efd41b";
-                // addAttachTooltipNode(thumbnailNode, `电脑里的“${similarTitles}”和这本好像一样`);
-                addAttachTooltipNode(thumbnailNode, similarTitles, "电脑里面好像有");
+                thumbnailNode.title = "电脑里面好像有"
+                addAttachTooltipNode(e, similarTitles, thumbnailNode.title);
             }else if(status === SAME_AUTHOR){
                 subNode.style.color = "#ef8787"; 
                 const fns = getByAuthor(r.author).map(e => e.fileName);
-                addAttachTooltipNode(thumbnailNode, fns, `下载同样作者“${r.author}”的书 ${fns.length}次`);
+                thumbnailNode.title = `下载同样作者“${r.author}”的书 ${fns.length}次`
+                // addAttachTooltipNode(e, fns, thumbnailNode.title);
+                appendLink(e, r.author, "asIcon")
             }
             if(status){
                 subNode.style.fontWeight = 600;
@@ -251,12 +309,18 @@ function highlightThumbnail(allFiles){
     // console.log((time3 - time25)/1000, "to change dom");
 }
 
-function addAttachTooltipNode(thumbnailNode, textArr, title){
-    const node = thumbnailNode.parentElement.parentElement
+function addAttachTooltipNode(node, textArr, title){
+    // const node = thumbnailNode.parentElement.parentElement
+
+    const button = document.createElement('button');
+    button.className="aji-tooltip-button"
+    button.innerHTML = "?";
+    button.position = "relative";
+    node.appendChild(button);
 
     let tooltip = document.createElement('div');
     tooltip.className = "aji-tooltip";
-    node.appendChild(tooltip);
+    button.appendChild(tooltip);
 
     let titleDiv = document.createElement('div');
     titleDiv.className = "aji-tooltip-title";
@@ -272,9 +336,15 @@ function addAttachTooltipNode(thumbnailNode, textArr, title){
     });
 }
 
-function appendLink(fileTitleDom, text){
+function appendLink(fileTitleDom, text, asIcon){
     var link = document.createElement("a");
-    link.textContent = `Search ${text} in ShiguReader`;
+
+    if(asIcon){
+        link.textContent = "🔍";
+    }else{
+        link.textContent = `Search ${text} in ShiguReader`;
+    }
+
     link.style.display = "block";
     fileTitleDom.append(link);
     link.target = "_blank"

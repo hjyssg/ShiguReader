@@ -1,0 +1,57 @@
+.shigureader_link {
+    font-size: 12px;
+    text-decoration:none; }
+
+.shigureader_link:hover {
+       color: #b0f3ff
+}
+
+.aji-tooltip {
+   z-index: 3;
+   visibility: hidden;
+
+   height: 300px;
+   width: 500px;
+
+   position: fixed;
+   top: 50%;
+   left: 50%;
+   margin-top: -150px;
+   margin-left: -250px;
+
+   display: flex;
+   flex-direction: column;
+   overflow-y: scroll;
+   overflow-x: hidden;
+
+  
+
+   opacity: 0.95;
+   background-color: #777372;
+   box-shadow: 3px 3px 3px rgba(0, 0, 0, 0.59);
+   color: rgb(168, 165, 165);
+   padding: 10px;
+   border: 0px;
+   font-size: 12px;
+}
+
+.aji-tooltip-list-item {
+   white-space: nowrap;
+   text-overflow: ellipsis;
+}
+
+.aji-tooltip-title{
+   border-bottom: 1px black solid;
+   margin-bottom: 5px;
+   font-weight: bold;
+}
+
+.aji-tooltip-button {
+    height: 20px;
+    width: 20px;
+    background: transparent;
+    box-shadow: none;
+    outline: none;
+    border: 1px white solid;
+    color: white;
+}
