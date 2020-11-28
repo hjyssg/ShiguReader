@@ -17,6 +17,10 @@
 
 //用于tempermonkey
 
+function isOnlyDigit(str){
+    return str.match(/^[0-9]+$/) != null
+}
+
 function isSame(s1, s2){
     return s1 && s2 && s1 === s2;
 }
