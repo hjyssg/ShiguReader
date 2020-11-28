@@ -1,3 +1,7 @@
+console.assert = console.assert || (() => {});
+
+//--------------------------
+
 const same_tag_regs_table = {
     "東方Project":[/^東方$/,/Touhou\s*Project/, /東方project/],
     "オリジナル": [/^Original$/],
@@ -786,9 +790,9 @@ function editDistance(s, t) {
     return h;
 }
 
-console.assert(editDistance("abc", "b") === 2)
-console.assert(editDistance("tozanbu", "tozan:bu") === 1)
-console.assert(editDistance("tozan；bu", "tozan:bu") === 1)
+console.assert(editDistance("abc", "b") === 2);
+console.assert(editDistance("tozanbu", "tozan:bu") === 1);
+console.assert(editDistance("tozan；bu", "tozan:bu") === 1);
 //---------------------
 
 function isSimilar(s1, s2){
@@ -804,12 +808,12 @@ function isSimilar(s1, s2){
     }
 }
 
-console.assert(isSimilar("tozanbu", "tozan:bu"))
-console.assert(isSimilar("tobu", "to:bu"))
-console.assert(isSimilar("12ab", "12abc")) 
+console.assert(isSimilar("tozanbu", "tozan:bu"));
+console.assert(isSimilar("tobu", "to:bu"));
+console.assert(isSimilar("12ab", "12abc"));
 
 console.assert(isSimilar("時雨露出×野外2", "白露型時雨露出×野外2") === false) ;
-console.assert(isSimilar("12a", "13a") === false) 
-console.assert(isSimilar("12", "ab") === false)
+console.assert(isSimilar("12a", "13a") === false);
+console.assert(isSimilar("12", "ab") === false);
 
 

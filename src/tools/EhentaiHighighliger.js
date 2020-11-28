@@ -13,7 +13,10 @@
 // @include       *://g.e-hentai.org/*
 // @include       *://e-hentai.org/*
 // @require      https://raw.githubusercontent.com/hjyssg/ShiguReader/edit_distance/src/name-parser/all_in_one/index.js
+// @require https://cdnjs.cloudflare.com/ajax/libs/lokijs/1.5.11/lokijs.min.js
 // ==/UserScript==
+
+console.assert = console.assert || (() => {});
 
 //-------------------------------
 function oneInsideOne(s1, s2){
