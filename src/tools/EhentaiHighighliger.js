@@ -15,75 +15,80 @@
 // @require      https://raw.githubusercontent.com/hjyssg/ShiguReader/edit_distance/src/name-parser/all_in_one/index.js
 // ==/UserScript==
 
-//用于tempermonkey
-
-function isOnlyDigit(str){
-    return str.match(/^[0-9]+$/) != null
-}
-
-function isSame(s1, s2){
-    return s1 && s2 && s1 === s2;
-}
-
+//-------------------------------
 function oneInsideOne(s1, s2){
-  return s1 && s2 && (s1.includes(s2) || s2.includes(s1));
+    return s1 && s2 && (s1.includes(s2) || s2.includes(s1));
 }
-
-const IS_IN_PC = 100;
-const LIKELY_IN_PC = 70;
-const SAME_AUTHOR = 20;
 
 const puReg = /[ \.,\/#!$%\^&＆\*;:{}=\-_`~()\[\]\–-、｀～？！＠@、。／『』「」；’：・｜＝＋￥：？]/g
 function _clean(str){
     return str && str.replaceAll(puReg, "");
 }
 
+const IS_IN_PC = 100;
+const LIKELY_IN_PC = 70;
+const SAME_AUTHOR = 20;
+const TOTALLY_DIFFERENT = 0;
+
+function isTwoBookTheSame(fn1, fn2){
+    fn1 = fn1.toLowerCase();
+    fn2 = fn2.toLowerCase();
+
+    const r1 = parse(fn1);
+    const r2 = parse(fn2);
+
+    if(r1.author !== r2.author){
+        return TOTALLY_DIFFERENT;
+    }
+
+    let result = SAME_AUTHOR;
+    //e.g one is c97, the other is c96. cannot be the same 
+    if(r1.comiket && r2.comiket && r1.comiket !== r2.comiket ){
+        return result;
+    }
+
+    let isSimilarGroup;
+    let group1 = _clean(r1.group);
+    let group2 = _clean(r2.group);
+    if((group1 && !group2) || (!group1 && group2)){
+        isSimilarGroup = true;
+    }else{
+        isSimilarGroup = isSimilar(group1, group2);
+    }
+
+    if(isSimilarGroup){
+        let title1 = _clean(r1.title);
+        let title2 = _clean(r2.title);
+        if(title1 === title2 || isSimilar(title1, title2)){
+            result = IS_IN_PC;
+        }else if(oneInsideOne(title1, title2)){
+            result = LIKELY_IN_PC;
+        }
+    }
+    return result;
+}
+
+//------------------------------------------------------
+
 function checkIfDownload(text, allFileInLowerCase, authorTable){
     var status = 0;
     let similarTitle;
     text = text.toLowerCase();
     let r1 = parse(text);
-    //use author as index to find
     if(r1 && r1.author){
-        if(!authorTable[r1.author]){
-            //totally unknown author
-            return {
-                status, 
-                similarTitle
-            };
-        } else {
+        //use author as index to find
+        let books = authorTable.get(r1.author);
+        if(books){
             status = SAME_AUTHOR;
-
-            for(let ii = 0; ii < authorTable[r1.author].length; ii++){
-                let e =  authorTable[r1.author][ii];
-
-                r1 = parse(text);
-                const r2 = parse(e);
-
-                //e.g one is c97, the other is c96. cannot be the same 
-                if(r1.comiket && r2.comiket && r1.comiket !== r2.comiket ){
-                    continue;
+            for(let ii = 0; ii < books.length; ii++){
+                let fn2 =  books[ii];
+                status = Math.max(status, isTwoBookTheSame(text, fn2));
+                if(status === LIKELY_IN_PC){
+                    similarTitle = fn2;
                 }
-          
-                let isSimilarGroup;
-                let group1 = _clean(r1.group);
-                let group2 = _clean(r2.group);
-                if((group1 && !group2) || (!group1 && group2)){
-                    isSimilarGroup = true;
-                }else{
-                    isSimilarGroup = isSimilar(group1, group2);
-                }
-
-                if(isSimilarGroup){
-                    let title1 = _clean(r1.title);
-                    let title2 = _clean(r2.title);
-                    if(title1 === title2 || isSimilar(title1, title2)){
-                        status = Math.max(status, IS_IN_PC);
-                        break;
-                    }else if(oneInsideOne(title1, title2)){
-                        status = LIKELY_IN_PC;
-                        similarTitle = e;
-                    }
+    
+                if(status === IS_IN_PC){
+                    break;
                 }
             }
         }
@@ -114,6 +119,11 @@ function checkIfDownload(text, allFileInLowerCase, authorTable){
     }
 }
 
+function isOnlyDigit(str){
+    return str.match(/^[0-9]+$/) != null
+}
+
+
 //--------------------------------------------------------------
 
 const time1 = new Date().getTime();
@@ -128,6 +138,7 @@ function onLoad(dom) {
     highlightThumbnail(res.allFiles);
 }
 
+
 function highlightThumbnail(allFiles){
     const nodes = Array.prototype.slice.call(document.getElementsByClassName("gl1t"));
     if(!nodes  || nodes.length === 0) {
@@ -136,11 +147,21 @@ function highlightThumbnail(allFiles){
     const allFileInLowerCase = allFiles.map(e => e.toLowerCase());
 
     const authorTable = {};
+    authorTable.get = key => {
+        key = _clean(key);
+        return authorTable[key];
+    }
+
+    authorTable.push = (key, value) => {
+        key = _clean(key);
+        authorTable[key] = authorTable[key] || [];
+        authorTable[key].push(value);
+    }
+
     allFileInLowerCase.forEach(e => {
         const r =  parse(e);
         if(r && r.author){
-            authorTable[r.author] = authorTable[r.author]||[];
-            authorTable[r.author].push(e);
+            authorTable.push(r.author, e);
         }
     });
 
@@ -168,7 +189,7 @@ function highlightThumbnail(allFiles){
                 // e.style.background = "#212121";
             }else if(status === SAME_AUTHOR){
                 subNode.style.color = "#ef8787"; // "red";
-                let authortimes = authorTable[r.author.toLowerCase()].length; 
+                let authortimes = authorTable.get(r.author.toLowerCase()).length; 
                 thumbnailNode.title = `下载同样作者“${r.author}”的书 ${authortimes}次`;
                 // e.style.background = "#111111"
             }
@@ -180,15 +201,6 @@ function highlightThumbnail(allFiles){
         }
     });
 
-    //only sort the home page
-    // if(window.location.pathname === "/"){
-    //     //sort by its status
-    //     //and replace the orginal nodes
-    //     nodes.sort((a, b) =>{return  b.status - a.status;})
-    //     const parentRoot = nodes[0].parentElement;
-    //     parentRoot.innerHTML = '';
-    //     nodes.forEach(e => parentRoot.appendChild(e));
-    // }
     // const time3 = new Date().getTime();
     // console.log((time3 - time25)/1000, "to change dom");
 }
