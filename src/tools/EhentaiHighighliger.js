@@ -461,20 +461,33 @@ function editDistance(s, t) {
 
     return h;
 }
+
+console.assert(editDistance("abc", "b") === 2)
 console.assert(editDistance("tozanbu", "tozan:bu") === 1)
 console.assert(editDistance("tozan；bu", "tozan:bu") === 1)
 //---------------------
 
-function isSimilar(s1, s2, distance){
-    distance = distance || 3;
+function isSimilar(s1, s2){
     if(!s1 && !s2){
         return true;
     }else if(s1 && s2){
-        return oneInsideOne(s1, s2) && Math.abs(s1.length - s2.length) < distance;
+        const distance = editDistance(s1, s2);
+        const avgLen = (s1.length + s2.length)/2;
+        const ratio = distance/(Math.ceil(avgLen));
+        return ratio <= 0.2;
     }else{
         return false;
     }
 }
+
+console.assert(isSimilar("tozanbu", "tozan:bu"))
+console.assert(isSimilar("tobu", "to:bu"))
+console.assert(isSimilar("12ab", "12abc")) 
+
+console.assert(isSimilar("時雨露出×野外2", "白露型時雨露出×野外2") === false) ;
+console.assert(isSimilar("12a", "13a") === false) 
+console.assert(isSimilar("12", "ab") === false)
+
 
 function isSame(s1, s2){
     return s1 && s2 && s1 === s2;
@@ -487,6 +500,11 @@ function oneInsideOne(s1, s2){
 const IS_IN_PC = 100;
 const LIKELY_IN_PC = 70;
 const SAME_AUTHOR = 20;
+
+const puReg = /[ \.,\/#!$%\^&＆\*;:{}=\-_`~()\[\]\–-、｀～？！＠@、。／『』「」；’：・｜＝＋￥：？]/g
+function _clean(str){
+    return str && str.replaceAll(puReg, "");
+}
 
 function checkIfDownload(text, allFileInLowerCase, authorTable){
     var status = 0;
@@ -503,57 +521,57 @@ function checkIfDownload(text, allFileInLowerCase, authorTable){
             };
         } else {
             status = SAME_AUTHOR;
-            let breakLoop = false;
-            authorTable[r1.author].forEach(e => {
-                if(breakLoop){
-                    return;
-                }
+
+            for(let ii = 0; ii < authorTable[r1.author].length; ii++){
+                let e =  authorTable[r1.author][ii];
 
                 r1 = parse(text);
                 const r2 = parse(e);
-          
-                let isSimilarGroup;
-                
-                if((r1.group && !r2.group) || (!r1.group && r2.group)){
-                    isSimilarGroup = true;
-                }else{
-                    isSimilarGroup = isSimilar(r1.group, r2.group) || editDistance(r1.group, r2.group) < 2;
-                }
 
                 //e.g one is c97, the other is c96. cannot be the same 
                 if(r1.comiket && r2.comiket && r1.comiket !== r2.comiket ){
-                    return;
+                    continue;
                 }
-        
+          
+                let isSimilarGroup;
+                let group1 = _clean(r1.group);
+                let group2 = _clean(r2.group);
+                if((group1 && !group2) || (!group1 && group2)){
+                    isSimilarGroup = true;
+                }else{
+                    isSimilarGroup = isSimilar(group1, group2);
+                }
+
                 if(isSimilarGroup){
-                    if(r1.title === r2.title || editDistance(r1.title, r2.title) < 3){
+                    let title1 = _clean(r1.title);
+                    let title2 = _clean(r2.title);
+                    if(title1 === title2 || isSimilar(title1, title2)){
                         status = Math.max(status, IS_IN_PC);
-                        breakLoop = true;
-                    }else if(oneInsideOne(r1.title, r2.title)){
+                        break;
+                    }else if(oneInsideOne(title1, title2)){
                         status = LIKELY_IN_PC;
                         similarTitle = e;
                     }
                 }
-            })
+            }
         }
     }else{
-        //pure dull
-        if(status < LIKELY_IN_PC){
-            for (var ii = 0; ii < allFileInLowerCase.length; ii++) {
-                let e = allFileInLowerCase[ii];
-                if(isOnlyDigit(e)){
-                    continue;
-                }
-    
-                if(e === text){
-                    status = IS_IN_PC;
-                    break;
-                }
-          
-                if(isSimilar(text, e, 5)){
-                  status = Math.max(status, LIKELY_IN_PC);
-                  similarTitle = e;
-                }
+        //pure dumm iteration, brute force search
+        text = _clean(text);
+        for (var ii = 0; ii < allFileInLowerCase.length; ii++) {
+            let e = _clean(allFileInLowerCase[ii]);
+            if(isOnlyDigit(e)){
+                continue;
+            }
+
+            if(e === text){
+                status = IS_IN_PC;
+                break;
+            }
+        
+            if(status < LIKELY_IN_PC && isSimilar(text, e)){
+                status = Math.max(status, LIKELY_IN_PC);
+                similarTitle = e;
             }
         }
     }
@@ -563,6 +581,8 @@ function checkIfDownload(text, allFileInLowerCase, authorTable){
         similarTitle
     }
 }
+
+//--------------------------------------------------------------
 
 const time1 = new Date().getTime();
 
