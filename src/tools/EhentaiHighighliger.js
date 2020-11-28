@@ -77,17 +77,31 @@ function isTwoBookTheSame(fn1, fn2){
 
 //------------------------------------------------------
 
-function checkIfDownload(text){
+function checkIfDownload(text, pageNum){
     var status = 0;
     let similarTitle;
     let r1 = parse(text);
+
+    function comparePageNum(book, pageNum){
+        if(!isNaN(book.pageNum) && Math.abs(book.pageNum - pageNum) > 5){
+            return true;
+        }
+        return false;
+    }
+
     if(r1 && r1.author){
         //use author as index to find
-        let books = getByAuthor(r1.author).map(e => e.fileName);
+        let books = getByAuthor(r1.author);
+
         if(books && books.length > 0){
             status = SAME_AUTHOR;
             for(let ii = 0; ii < books.length; ii++){
-                let fn2 =  books[ii];
+                const book = books[ii];
+                if(comparePageNum(book, pageNum)){
+                    continue;
+                }
+
+                let fn2 =  book.fileName;
                 status = Math.max(status, isTwoBookTheSame(text, fn2));
                 if(status === LIKELY_IN_PC){
                     similarTitle = fn2;
@@ -106,6 +120,10 @@ function checkIfDownload(text){
             .data();
 
         books.forEach(e => {
+            if(comparePageNum(e, pageNum)){
+                return;
+            }
+
             if(e._filename_ === _text){
                 status = IS_IN_PC;
             }
@@ -164,15 +182,19 @@ function highlightThumbnail(allFiles){
         return;
     }
 
-    allFiles.forEach(e => {
-        const r =  parse(e) || {};
-        file_collection.insert({
-            fileName: e,
-            _author_: _clean(r.author),
-            _filename_: _clean(e),
-            title: r.title
-        })
-    });
+
+    for(let e in allFiles){
+        if (allFiles.hasOwnProperty(e)){
+            const r =  parse(e) || {};
+            file_collection.insert({
+                fileName: e,
+                _author_: _clean(r.author),
+                _filename_: _clean(e),
+                title: r.title,
+                pageNum: parseInt(allFiles[e].pageNum)
+            })
+        }
+    }
 
     // const time25 = new Date().getTime();
     // console.log((time25 - time2)/1000, "to parse name");
@@ -182,12 +204,16 @@ function highlightThumbnail(allFiles){
             const subNode = e.getElementsByClassName("gl4t")[0];
             const thumbnailNode = e.getElementsByTagName("img")[0];
             const text = subNode.textContent;
+
+            const pageNumDiv = e.querySelector(".gl5t").children[1].children[1];
+            const pageNum =parseInt(pageNumDiv.textContent.split(" ")[0]);
+
             e.status = 0;
             if(text.includes("翻訳") || text.includes("翻译")){
                 return;
             }
             const r =  parse(text);
-            const {status, similarTitle} = checkIfDownload(text);
+            const {status, similarTitle} = checkIfDownload(text, pageNum);
             e.status = status || 0;
             if(status === IS_IN_PC){
                 subNode.style.color =  "#61ef47"; 
