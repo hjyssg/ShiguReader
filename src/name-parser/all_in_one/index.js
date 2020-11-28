@@ -1,5 +1,4 @@
-const config = {};
-config.same_tag_regs_table = {
+const same_tag_regs_table = {
     "東方Project":[/^東方$/,/Touhou\s*Project/, /東方project/],
     "オリジナル": [/^Original$/],
     "Kanon": [/カノン|Kanon/],
@@ -48,7 +47,7 @@ config.same_tag_regs_table = {
     "To Heart 2":[/To.*Heart.*2|トゥハート2/]
 }
 
-config.not_author_but_tag = [
+const not_author_but_tag = [
     "同人音声",
     "同人誌",
     "アンソロジー",
@@ -63,8 +62,6 @@ config.not_author_but_tag = [
     "320K"
 ]
 
-const same_tag_regs_table = config.same_tag_regs_table;
-const not_author_but_tag = config.not_author_but_tag;
 const char_names = [
     //kankore  http://dunkel.halfmoon.jp/kancolle/
     "長門",
@@ -309,72 +306,6 @@ const char_names = [
 //https://stackoverflow.com/questions/5582574/how-to-check-if-a-string-contains-text-from-an-array-of-substrings-in-javascript
 const char_name_regex = new RegExp(char_names.join("|"));
 const not_author_but_tag_regex =  new RegExp(not_author_but_tag.join("|"), "i");
-
-
-module.exports.same_tag_regs_table = {
-    "東方Project":[/^東方$/,/Touhou\s*Project/, /東方project/],
-    "オリジナル": [/^Original$/],
-    "Kanon": [/カノン|Kanon/],
-    "艦これ": [/艦これ|舰これ/, /艦隊これくしょん/, /Kantai\s*Collection/, /KanColle/],
-    "ラブライブ!" : [/Love Live/, /ラブライブ/],
-    "ラブライブ!サンシャイン!!": [/ラブライブ.*サンシャイン.*/],
-    "プリンセスコネクト!Re:Dive": [/プリンセスコネクト.*Re.*Dive/],
-    "Fate／Grand Order": [/Fate.*Grand.*Order/, /FGO/],
-    "Fate／Stay Night": [/Fate.*Stay.*Night/],
-    "Fate／Zero": [/Fate.*Zero/],
-    "Fate／kaleid liner プリズマ☆イリヤ": [/Fate.*kaleid.*liner.*プリズマ.*イリヤ/, /Fate.*kaleid.*liner/, /プリズマ.*イリヤ/],
-    "Fate": [/^Fate\s*／*\w+/],
-    "アイドルマスター": [/アイドルマスタ/, /DOL.*M@STER/, /dol.*master/, /アイマス/],
-    "アイドルマスター シンデレラガールズ": [/アイドルマスター.*シンデレラガールズ/, /DOLM@STER.*CINDERELLA.*GIRLS/],
-    "アイドルマスター ミリオンライブ": [/アイドルマスター.*ミリオン/, /ミリオンライブ/],
-    "アイドルマスター シャイニーカラーズ": [/アイドルマスター.*シャイニーカラーズ/],
-    "アズールレーン": [/Azur Lane/],
-    "ガールズ&パンツァー": [/Girls.*nd.*Panzer/],
-    "けいおん": [/けいおん/, /K-ON/],
-    "プリキュア": [/プリキュア/],
-    "To LOVEる": [/To.*LOVEる/, /To.*LOVE.*ru/],
-    "魔法少女まどか☆マギカ": [/まどか.*マギカ|PuellaMagiMadoka/],
-    "アイカツ!": [/アイカツ.*/],
-    "エヴァンゲリオン": [/エヴァンゲリオン/, /^エヴァ$/, /Evangelion/],
-    "Angel Beats": [/Angel.*Beats.*/, /エンジェル.*ビーツ/],
-    "Dead Or Alive": [/Dead Or Alive/, /デッド.*オア.*アライヴ/, /DEADorALIVE/],
-    "IS ＜インフィニット・ストラトス＞": [/S.*インフィニット.*ストラトス.*/, /インフィニット.*ストラトス/],
-    "D.C～ダ・カーポ": [/D\.C\./, /ダ.*カーポ/],
-    "Dog Days": [/Dog.*Days.*/],
-    "Dream C Club": [/Dream.*C.*Club/],
-    "ガンダム ":[/ガンダム|gundam/],
-    "コードギアス": [/コードギアス/],
-    "ご注文はうさぎですか": [/ご注文はうさぎですか/],
-    "ソードアート・オンライン": [/ソードアート.*オンライン/, /Sword\s*Art\s*Online/],
-    "ダンガンロンパ": [/ダンガンロンパ/],
-    "ドラゴンクエスト": [/ドラゴンクエスト/, /Dragon\s*Quest/],
-    "ファイナルファンタジー": [/ファイナルファンタジー|FinalFantasy/],
-    "咲 -Saki-": [/咲.*Saki.*/],
-    "咲-Saki- 阿知賀編": [/咲.*Saki.*阿知賀編/],
-    "聖剣伝説": [/聖剣伝説/],
-    "閃乱カグラ": [/閃乱カグラ/],
-    "魔法少女リリカルなのは": [/魔法少女リリカルなのは.*|Nanoha$|^なのは$/],
-    "キング・オブ・ファイター": [/キング\.オブ\.ファイター/, /^KOF$/],
-    "ファイアーエムブレム": [/ファイアーエムブレム/],
-    "ファンタシースター": [/ファンタシースター|PhantasyStar/],
-    "To Heart 2":[/To.*Heart.*2|トゥハート2/]
-}
-
-module.exports.not_author_but_tag = [
-    "同人音声",
-    "同人誌",
-    "アンソロジー",
-    "DL版",
-    "よろず",
-    "成年コミック",
-    "Pixiv",
-    "アーティスト",
-    "雑誌",
-    "English",
-    "Chinese",
-    "320K"
-]
-
 
 const book_types = [
     "同人音声",
