@@ -25,6 +25,8 @@ function _clean(str){
     return str && str.replaceAll(puReg, "");
 }
 
+console.assert(_clean("和泉、れいぜい") === _clean("和泉, れいぜい"))
+
 const IS_IN_PC = 100;
 const LIKELY_IN_PC = 70;
 const SAME_AUTHOR = 20;
@@ -37,7 +39,7 @@ function isTwoBookTheSame(fn1, fn2){
     const r1 = parse(fn1);
     const r2 = parse(fn2);
 
-    if(r1.author !== r2.author){
+    if(_clean(r1.author) !== _clean(r2.author)){
         return TOTALLY_DIFFERENT;
     }
 
