@@ -495,9 +495,23 @@ function isHighlySimilar(s1, s2){
     if(!s1 && !s2){
         return true;
     }else if(s1 && s2){
+        const digitTokens1 = s1.match(/\d+/g);
+        const digitTokens2 = s2.match(/\d+/g);
+
+        if(digitTokens1 && digitTokens2){
+            if(digitTokens1.length !== digitTokens2.length || 
+                digitTokens1.join() !== digitTokens2.join()){
+                return false;
+            }
+        }else if(digitTokens1 && !digitTokens2){
+            return false;
+        }else if(!digitTokens1 && digitTokens2){
+            return false;
+        }
         const distance = editDistance(s1, s2);
         const avgLen = (s1.length + s2.length)/2;
         const ratio = distance/(Math.ceil(avgLen));
+
         return ratio <= 0.2;
     }else{
         return false;
@@ -509,8 +523,12 @@ console.assert(isHighlySimilar("tobu", "to:bu"))
 console.assert(isHighlySimilar("12ab", "12abc")) 
 
 console.assert(isHighlySimilar("時雨露出×野外2", "白露型時雨露出×野外2") === false) ;
-console.assert(isHighlySimilar("12a", "13a") === false) 
-console.assert(isHighlySimilar("12", "ab") === false)
+console.assert(isHighlySimilar("12a", "13a") === false);
+console.assert(isHighlySimilar("12", "ab") === false);
+
+//this one is difficult
+console.assert(isHighlySimilar("サソワレマスター1", "サソワレマスター2") === false);
+console.assert(isHighlySimilar("サソワレマスター2", "サソワレマスター3") === false);
 
 module.exports.isHighlySimilar = isHighlySimilar;
 module.exports.parse = parse;
