@@ -83,7 +83,7 @@ function checkIfDownload(text, pageNum){
     let r1 = parse(text);
 
     function comparePageNum(book, pageNum){
-        if(!isNaN(book.pageNum) && Math.abs(book.pageNum - pageNum) > 5){
+        if(!isNaN(book.pageNum) && Math.abs(book.pageNum - pageNum) >= 5){
             return true;
         }
         return false;
@@ -186,12 +186,13 @@ function highlightThumbnail(allFiles){
     for(let e in allFiles){
         if (allFiles.hasOwnProperty(e)){
             const r =  parse(e) || {};
+            const value = allFiles[e];
             file_collection.insert({
                 fileName: e,
                 _author_: _clean(r.author),
                 _filename_: _clean(e),
                 title: r.title,
-                pageNum: parseInt(allFiles[e].pageNum)
+                pageNum: parseInt(value.pageNum)
             })
         }
     }
