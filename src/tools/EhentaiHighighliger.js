@@ -13,7 +13,7 @@
 // @include       *://exhentai.org/*
 // @include       *://g.e-hentai.org/*
 // @include       *://e-hentai.org/*
-// @require      https://raw.githubusercontent.com/hjyssg/ShiguReader/lokijs_for_EhentaiHighighliger/src/name-parser/all_in_one/index.js
+// @require      https://raw.githubusercontent.com/hjyssg/ShiguReader/dev/src/name-parser/all_in_one/index.js
 // @require      https://cdnjs.cloudflare.com/ajax/libs/lokijs/1.5.11/lokijs.min.js
 // ==/UserScript==
 

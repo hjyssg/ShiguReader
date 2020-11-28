@@ -834,8 +834,4 @@ console.assert(isHighlySimilar("12", "ab") === false);
 console.assert(isHighlySimilar("サソワレマスター1", "サソワレマスター2") === false);
 console.assert(isHighlySimilar("サソワレマスター2", "サソワレマスター3") === false);
 
-module.exports.isHighlySimilar = isHighlySimilar;
-module.exports.parse = parse;
-module.exports.getDateFromComiket = getDateFromComiket;
-module.exports.getDateFromParse = getDateFromParse;
-module.exports.parseMusicTitle = parseMusicTitle;
+
