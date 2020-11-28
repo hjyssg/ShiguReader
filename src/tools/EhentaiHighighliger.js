@@ -22,58 +22,16 @@
 GM_addStyle (`
 .shigureader_link {
     font-size: 12px;
-    text-decoration:none; }
+    text-decoration:none;
+    text-align: center;
+}
 
 .shigureader_link:hover {
        color: #b0f3ff
 }
 
-.aji-tooltip {
-   z-index: 3;
-   visibility: hidden;
-
-   height: 300px;
-   width: 500px;
-
-   position: fixed;
-   top: 50%;
-   left: 50%;
-   margin-top: -150px;
-   margin-left: -250px;
-
-   display: flex;
-   flex-direction: column;
-   overflow-y: scroll;
-   overflow-x: hidden;
-
-   opacity: 0.95;
-   background-color: #777372;
-   box-shadow: 3px 3px 3px rgba(0, 0, 0, 0.59);
-   color: rgb(168, 165, 165);
-   padding: 10px;
-   border: 0px;
-   font-size: 12px;
-}
-
-.aji-tooltip-list-item {
-   white-space: nowrap;
-   text-overflow: ellipsis;
-}
-
-.aji-tooltip-title{
-   border-bottom: 1px black solid;
-   margin-bottom: 5px;
-   font-weight: bold;
-}
-
-.aji-tooltip-button {
-    height: 20px;
-    width: 20px;
-    background: transparent;
-    box-shadow: none;
-    outline: none;
-    border: 1px white solid;
-    color: white;
+.gl1t {
+    position: relative;
 }
 
 `);
@@ -288,14 +246,15 @@ function highlightThumbnail(allFiles){
                 thumbnailNode.title =  "明确已经下载过了";
             } else if(status === LIKELY_IN_PC){
                 subNode.style.color = "#efd41b";
-                thumbnailNode.title = "电脑里面好像有"
-                addAttachTooltipNode(e, similarTitles, thumbnailNode.title);
+                thumbnailNode.title = "电脑里面好像有";
+                const searchWord = r ? (r.author || r.title): text;
+                appendLink(e, searchWord)
+
             }else if(status === SAME_AUTHOR){
                 subNode.style.color = "#ef8787"; 
                 const fns = getByAuthor(r.author).map(e => e.fileName);
                 thumbnailNode.title = `下载同样作者“${r.author}”的书 ${fns.length}次`
-                // addAttachTooltipNode(e, fns, thumbnailNode.title);
-                appendLink(e, r.author, "asIcon")
+                appendLink(e, r.author)
             }
             if(status){
                 subNode.style.fontWeight = 600;
@@ -307,33 +266,6 @@ function highlightThumbnail(allFiles){
 
     // const time3 = new Date().getTime();
     // console.log((time3 - time25)/1000, "to change dom");
-}
-
-function addAttachTooltipNode(node, textArr, title){
-    // const node = thumbnailNode.parentElement.parentElement
-
-    const button = document.createElement('button');
-    button.className="aji-tooltip-button"
-    button.innerHTML = "?";
-    button.position = "relative";
-    node.appendChild(button);
-
-    let tooltip = document.createElement('div');
-    tooltip.className = "aji-tooltip";
-    button.appendChild(tooltip);
-
-    let titleDiv = document.createElement('div');
-    titleDiv.className = "aji-tooltip-title";
-    titleDiv.textContent = title;
-    tooltip.appendChild(titleDiv);
-
-    textArr.forEach(e => {
-        let listItem = document.createElement('div');
-        listItem.className = "aji-tooltip-list-item"
-        listItem.textContent = e;
-        listItem.title = e;
-        tooltip.appendChild(listItem);
-    });
 }
 
 function appendLink(fileTitleDom, text, asIcon){
