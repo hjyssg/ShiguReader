@@ -6,14 +6,14 @@
 // @grant       GM_setValue
 // @connect     localhost
 // @namespace       Aji47
-// @version         0.0.2
+// @version         0.0.3
 // @description
 // @author        Aji47
 // @include       *://exhentai.org/*
 // @include       *://g.e-hentai.org/*
 // @include       *://e-hentai.org/*
 // @require      https://raw.githubusercontent.com/hjyssg/ShiguReader/lokijs_for_EhentaiHighighliger/src/name-parser/all_in_one/index.js
-// @require https://cdnjs.cloudflare.com/ajax/libs/lokijs/1.5.11/lokijs.min.js
+// @require      https://cdnjs.cloudflare.com/ajax/libs/lokijs/1.5.11/lokijs.min.js
 // ==/UserScript==
 
 //tamper monkey自动缓存require脚本，随便改一下版本号就可以更新
@@ -135,7 +135,6 @@ const time1 = new Date().getTime();
 function onLoad(dom) {
     // const time2 = new Date().getTime();
     // console.log((time2 - time1)/1000, "to load");
-
     GM_setValue('responseText',  dom.responseText);
     GM_setValue('lastResTime', getCurrentTime());
     const res = JSON.parse(dom.responseText);
@@ -191,17 +190,15 @@ function highlightThumbnail(allFiles){
             const {status, similarTitle} = checkIfDownload(text);
             e.status = status || 0;
             if(status === IS_IN_PC){
-                subNode.style.color =  "#61ef47"; //"green";
+                subNode.style.color =  "#61ef47"; 
                 thumbnailNode.title = "明确已经下载过了";
             } else if(status === LIKELY_IN_PC){
-                subNode.style.color = "#efd41b"; //"yellow";
+                subNode.style.color = "#efd41b";
                 thumbnailNode.title = `电脑里的“${similarTitle}”和这本好像一样`;
-                // e.style.background = "#212121";
             }else if(status === SAME_AUTHOR){
-                subNode.style.color = "#ef8787"; // "red";
-                // let authortimes = getByAuthor(r.author.toLowerCase()).length;
-                // thumbnailNode.title = `下载同样作者“${r.author}”的书 ${authortimes}次`;
-                // e.style.background = "#111111"
+                subNode.style.color = "#ef8787"; 
+                let authortimes = getByAuthor(r.author).length;
+                thumbnailNode.title = `下载同样作者“${r.author}”的书 ${authortimes}次`;
             }
             if(status){
                 subNode.style.fontWeight = 600;
