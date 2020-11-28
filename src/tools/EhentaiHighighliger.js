@@ -193,11 +193,12 @@ function isOnlyDigit(str){
 
 //--------------------------------------------------------------
 
-const time1 = new Date().getTime();
+const begTime = new Date().getTime();
+let time2;
 
 function onLoad(dom) {
-    // const time2 = new Date().getTime();
-    // console.log((time2 - time1)/1000, "to load");
+    time2 = new Date().getTime();
+    console.log((time2 - begTime)/1000, "to load");
     GM_setValue('responseText',  dom.responseText);
     GM_setValue('lastResTime', getCurrentTime());
     const res = JSON.parse(dom.responseText);
@@ -245,8 +246,8 @@ function highlightThumbnail(allFiles){
         }
     }
 
-    // const time25 = new Date().getTime();
-    // console.log((time25 - time2)/1000, "to parse name");
+    const timeMiddle2 = new Date().getTime();
+    console.log((timeMiddle2 - time2)/1000, "to parse name");
 
     nodes.forEach(e => {
         try{
@@ -293,8 +294,10 @@ function highlightThumbnail(allFiles){
         }
     });
 
-    // const time3 = new Date().getTime();
-    // console.log((time3 - time25)/1000, "to change dom");
+    const finishTime = new Date().getTime();
+    console.log((finishTime - timeMiddle2)/1000, "to finish algo and change dom");
+
+    console.log((finishTime - begTime)/1000, "for any time");
 }
 
 function appendLink(fileTitleDom, text, asIcon){
@@ -320,6 +323,8 @@ function getCurrentTime(){
 function onTimeout(){
     const responseText = GM_getValue('responseText');
     if(responseText){
+        time2 = new Date().getTime();
+        console.log((time2 - begTime)/1000, "to load");
         const res = JSON.parse(responseText);
         highlightThumbnail(res.allFiles);
     }
