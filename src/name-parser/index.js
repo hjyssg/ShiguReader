@@ -491,23 +491,30 @@ console.assert(editDistance("tozanbu", "tozan:bu") === 1)
 console.assert(editDistance("tozan；bu", "tozan:bu") === 1)
 //---------------------
 
+function compareInternalDigit(s1, s2){
+    const digitTokens1 = s1.match(/\d+/g);
+    const digitTokens2 = s2.match(/\d+/g);
+    if(digitTokens1 && digitTokens2){
+        if(digitTokens1.length !== digitTokens2.length || 
+            digitTokens1.join() !== digitTokens2.join()){
+            return false;
+        }
+    }else if(digitTokens1 && !digitTokens2){
+        return false;
+    }else if(!digitTokens1 && digitTokens2){
+        return false;
+    }
+    return true;
+}
+
 function isHighlySimilar(s1, s2){
     if(!s1 && !s2){
         return true;
     }else if(s1 && s2){
-        const digitTokens1 = s1.match(/\d+/g);
-        const digitTokens2 = s2.match(/\d+/g);
-
-        if(digitTokens1 && digitTokens2){
-            if(digitTokens1.length !== digitTokens2.length || 
-                digitTokens1.join() !== digitTokens2.join()){
-                return false;
-            }
-        }else if(digitTokens1 && !digitTokens2){
-            return false;
-        }else if(!digitTokens1 && digitTokens2){
+        if(!compareInternalDigit(s1, s2)){
             return false;
         }
+
         const distance = editDistance(s1, s2);
         const avgLen = (s1.length + s2.length)/2;
         const ratio = distance/(Math.ceil(avgLen));

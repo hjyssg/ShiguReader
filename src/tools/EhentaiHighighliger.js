@@ -96,6 +96,23 @@ function isTwoBookTheSame(fn1, fn2){
 }
 
 //------------------------------------------------------
+function compareInternalDigit(s1, s2){
+    const digitTokens1 = s1.match(/\d+/g);
+    const digitTokens2 = s2.match(/\d+/g);
+    if(digitTokens1 && digitTokens2){
+        if(digitTokens1.length !== digitTokens2.length || 
+            digitTokens1.join() !== digitTokens2.join()){
+            return false;
+        }
+    }else if(digitTokens1 && !digitTokens2){
+        return false;
+    }else if(!digitTokens1 && digitTokens2){
+        return false;
+    }
+    return true;
+}
+
+//------
 
 function checkIfDownload(text, pageNum){
     var status = 0;
@@ -122,6 +139,12 @@ function checkIfDownload(text, pageNum){
                 }
 
                 let fn2 =  book.fileName;
+                const r2 = parse(fn2)
+
+                if(!compareInternalDigit(r1.title, r2.title)){
+                    continue;
+                }
+
                 status = Math.max(status, isTwoBookTheSame(text, fn2));
                 if(status === LIKELY_IN_PC){
                     similarTitles.push(fn2);
