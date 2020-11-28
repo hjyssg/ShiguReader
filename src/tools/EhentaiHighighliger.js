@@ -247,16 +247,22 @@ function highlightThumbnail(allFiles){
             } else if(status === LIKELY_IN_PC){
                 subNode.style.color = "#efd41b";
                 thumbnailNode.title = "电脑里面好像有";
-                const searchWord = r ? (r.author || r.title): text;
-                appendLink(e, searchWord)
-
             }else if(status === SAME_AUTHOR){
                 subNode.style.color = "#ef8787"; 
                 const fns = getByAuthor(r.author).map(e => e.fileName);
                 thumbnailNode.title = `下载同样作者“${r.author}”的书 ${fns.length}次`
-                appendLink(e, r.author)
             }
+
             if(status){
+                if(r){
+                    appendLink(e, r.author);
+                    if(status >= LIKELY_IN_PC){
+                        appendLink(e, r.title);
+                    }
+                }else{
+                    appendLink(e, text);
+                }
+
                 subNode.style.fontWeight = 600;
             }
         }catch(e){
