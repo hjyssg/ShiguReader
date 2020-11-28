@@ -7,7 +7,7 @@
 // @grant       GM_getResourceText
 // @connect     localhost
 // @namespace       Aji47
-// @version         0.0.31
+// @version         0.0.2
 // @description
 // @author        Aji47
 // @include       *://exhentai.org/*
@@ -229,14 +229,15 @@ function highlightThumbnail(allFiles){
             e.status = status || 0;
             if(status === IS_IN_PC){
                 subNode.style.color =  "#61ef47"; 
-                 addAttachTooltipNode(e, "明确已经下载过了");
+                thumbnailNode.title =  "明确已经下载过了";
             } else if(status === LIKELY_IN_PC){
                 subNode.style.color = "#efd41b";
-                 addAttachTooltipNode(e, `电脑里的“${similarTitles}”和这本好像一样`);
+                // addAttachTooltipNode(thumbnailNode, `电脑里的“${similarTitles}”和这本好像一样`);
+                addAttachTooltipNode(thumbnailNode.parentElement, similarTitles, "电脑里面好像有");
             }else if(status === SAME_AUTHOR){
                 subNode.style.color = "#ef8787"; 
-                let authortimes = getByAuthor(r.author).length;
-                 addAttachTooltipNode(e, `下载同样作者“${r.author}”的书 ${authortimes}次`);
+                const fns = getByAuthor(r.author).map(e => e.fileName);
+                addAttachTooltipNode(thumbnailNode.parentElement, fns, `下载同样作者“${r.author}”的书 ${fns.length}次`);
             }
             if(status){
                 subNode.style.fontWeight = 600;
@@ -250,23 +251,22 @@ function highlightThumbnail(allFiles){
     // console.log((time3 - time25)/1000, "to change dom");
 }
 
-function addAttachTooltipNode(node, message){
-    let tooltip = document.createElement('tooltip');
-    let btnStyle = tooltip.style
-    node.appendChild(tooltip)
-    
-    tooltip.className = "aji-tooltip"
-    
-    if(typeof message === "string"){
-        tooltip.innerHTML = message;
-    } else {
+function addAttachTooltipNode(node, textArr, title){
+    let tooltip = document.createElement('div');
+    tooltip.className = "aji-tooltip";
+    node.appendChild(tooltip);
 
-    }
+    let titleDiv = document.createElement('div');
+    titleDiv.className = "aji-tooltip-title";
+    titleDiv.textContent = title;
+    tooltip.appendChild(titleDiv);
 
-    btnStyle.position = 'fixed';
-    return tooltip;
+    textArr.forEach(e => {
+        let listItem = document.createElement('div');
+        listItem.textContent = e;
+        tooltip.appendChild(listItem);
+    });
 }
-
 
 function appendLink(fileTitleDom, text){
     var link = document.createElement("a");

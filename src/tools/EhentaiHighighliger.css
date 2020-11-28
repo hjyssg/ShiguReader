@@ -1,24 +1,30 @@
- .shigureader_link {
+.shigureader_link {
      font-size: 12px;
-     text-decoration:none;
- }
+     text-decoration:none; }
 
 .shigureader_link:hover {
         color: #b0f3ff
 }
 
 .aji-tooltip {
-    top: 7%;
-    left: 50%;
+    visibility: hidden;
+    position: absolute;
     z-index: 3;
-    background-color: #57cff7;
-    color: white;
+
+    display: flex;
+
+    height: 300px;
+    width: 300px;
+
+    opacity: 0.95;
+    background-color: #777372;
+    box-shadow: 3px 3px 3px rgba(0, 0, 0, 0.59);
+    color: rgb(168, 165, 165);
     padding: 10px;
     border: 0px;
     font-size: 12px;
-    visibility: hidden;
 }
 
 .gl1t:hover .aji-tooltip {
     visibility: visible;
-  }
+}
