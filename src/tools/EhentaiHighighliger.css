@@ -6,3 +6,19 @@
 .shigureader_link:hover {
         color: #b0f3ff
 }
+
+.aji-tooltip {
+    top: 7%;
+    left: 50%;
+    z-index: 3;
+    background-color: #57cff7;
+    color: white;
+    padding: 10px;
+    border: 0px;
+    font-size: 12px;
+    visibility: hidden;
+}
+
+.gl1t:hover .aji-tooltip {
+    visibility: visible;
+  }

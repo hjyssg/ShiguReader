@@ -7,7 +7,7 @@
 // @grant       GM_getResourceText
 // @connect     localhost
 // @namespace       Aji47
-// @version         0.0.3
+// @version         0.0.31
 // @description
 // @author        Aji47
 // @include       *://exhentai.org/*
@@ -250,20 +250,21 @@ function highlightThumbnail(allFiles){
     // console.log((time3 - time25)/1000, "to change dom");
 }
 
-function addAttachTooltipNode(node, text, cssObj){
-    const defaultCSS = { position: 'fixed', top: '7%', left:'50%', 'z-index': 3, 
-    "background-color": "#57cff7", "color": "white",
-    "padding": "10px", "border": "0px",
-    "font-size": "1rem","font-weight": "bold" }
-    cssObj = Object.assign(defaultCSS, cssObj || {} )
-    let button = document.createElement('button');
-    let btnStyle = button.style
-    node.appendChild(button)
+function addAttachTooltipNode(node, message){
+    let tooltip = document.createElement('tooltip');
+    let btnStyle = tooltip.style
+    node.appendChild(tooltip)
     
-    button.innerHTML = text;
+    tooltip.className = "aji-tooltip"
+    
+    if(typeof message === "string"){
+        tooltip.innerHTML = message;
+    } else {
+
+    }
+
     btnStyle.position = 'fixed';
-    Object.keys(cssObj).forEach(key => btnStyle[key] = cssObj[key]);
-    return button;
+    return tooltip;
 }
 
 
