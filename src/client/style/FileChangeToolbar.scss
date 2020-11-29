@@ -56,6 +56,7 @@
 
 .ReactModal__Overlay--after-open{
   @include flex_center_display;
+  z-index: 10;
   background-color: rgb(39 35 35 / 80%) !important;
 }
 

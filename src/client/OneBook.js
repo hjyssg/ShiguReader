@@ -578,7 +578,7 @@ export default class OneBook extends Component {
     if (!this.state.path) {
       return;
     }
-    const toolbar = <FileChangeToolbar isFolder={this.isImgFolder()} bigFont={true} showAllButtons className="one-book-toolbar" file={this.state.path} popPosition={"top-center"}/>;
+    const toolbar = <FileChangeToolbar isFolder={this.isImgFolder()} bigFont={true} className="one-book-toolbar" file={this.state.path} popPosition={"top-center"}/>;
     return toolbar;
   }
 

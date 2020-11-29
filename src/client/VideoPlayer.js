@@ -113,7 +113,7 @@ export default class VideoPlayer extends Component {
               {content}
               {videoTitle}
               {videoFileInfo}
-              <FileChangeToolbar showAllButtons className="video-toolbar" file={filePath} popPosition={"top-center"}/>
+              <FileChangeToolbar className="video-toolbar" file={filePath} popPosition={"top-center"}/>
               {this.renderTag()}
             </div>
             );

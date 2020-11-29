@@ -15,6 +15,7 @@ import _ from 'underscore';
 import { toast } from 'react-toastify';
 import Modal from 'react-modal';
 import ReactDOM from 'react-dom';
+const { not_good_folder, good_folder, additional_folder } = userConfig;
 
 function pop(file, res, postFix){
     const reason = res.json.reason;
@@ -183,14 +184,9 @@ export default class FileChangeToolbar extends Component {
         }
     };
 
-    isShowAllButtons(){
-        const { additional_folder } = userConfig;
-        return this.props.showAllButtons || additional_folder.length <= 3;
-    }
-
     getDropdownItems(){
-        const { additional_folder } = userConfig;
-        return additional_folder.map((e, index) =>{
+        const arr = additional_folder.concat([good_folder, not_good_folder]);
+        return arr.map((e, index) =>{
             const onClick = () => {
                 this.handleCloseModal();
                 this.handleMove(e)
@@ -211,7 +207,7 @@ export default class FileChangeToolbar extends Component {
     }
 
     renderMinifyZipButton(){
-        const {file, className, header, showAllButtons, hasMusic, bigFont} = this.props;
+        const {file, className, header,  hasMusic, bigFont} = this.props;
         const showMinifyZip = util.isCompress(file) && !hasMusic;
         if(showMinifyZip && !this.isInMinifiedFolder()){
             return ( <div tabIndex="0" className="fas fa-hand-scissors"  title="minify zip"
@@ -290,7 +286,7 @@ export default class FileChangeToolbar extends Component {
     }
 
     render(){
-        const {file, className, header, showAllButtons, hasMusic, bigFont, isFolder} = this.props;
+        const {file, className, header, hasMusic, bigFont, isFolder} = this.props;
         const cn = classNames("file-change-tool-bar", className, {
             bigFont: bigFont
         });
@@ -315,11 +311,11 @@ export default class FileChangeToolbar extends Component {
                 {header && <span className="file-change-tool-bar-header">{header}</span>}
                 <div className="tool-bar-row">
                     <div tabIndex="0"  className="fas fa-check"
-                                    title={"Move to " + userConfig.good_folder}
-                                    onClick={this.handleMove.bind(this, userConfig.good_folder)}></div>
+                                    title={"Move to " + good_folder}
+                                    onClick={this.handleMove.bind(this, good_folder)}></div>
                     <div tabIndex="0"  className="fas fa-times"
-                                    title={"Move to " + userConfig.not_good_folder}
-                                    onClick={this.handleMove.bind(this, userConfig.not_good_folder)}></div>
+                                    title={"Move to " + not_good_folder}
+                                    onClick={this.handleMove.bind(this, not_good_folder)}></div>
                     {this.renderDeleteButton()}
                 </div>
                 <div className="tool-bar-row second">
