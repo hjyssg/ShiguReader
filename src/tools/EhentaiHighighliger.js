@@ -266,7 +266,7 @@ function highlightThumbnail(allFiles){
             }else if(status === SAME_AUTHOR){
                 subNode.style.color = "#ef8787"; 
                 const fns = getByAuthor(r.author).map(e => e.fileName);
-                addTooltip(thumbnailNode, `下载同样作者“${r.author}”的书 ${fns.length}次`, fns)
+                addTooltip(thumbnailNode, `下载同样作者“${r.author}”的书 ${fns.length}次`, fns, "same_author")
             }
 
             if(status){
@@ -292,14 +292,27 @@ function highlightThumbnail(allFiles){
     console.log((finishTime - begTime)/1000, "for any time");
 }
 
-function addTooltip(node, title, arr){
-    arr.sort();
+function addTooltip(node, title, books, same_author){
+    books.sort();
     //indent
-    arr = arr.map((e, ii) => "  " + (ii+1) + ".  " + e);
-    if(arr.length > 25){
-        arr = arr.slice(0, 10).concat("...");
+    books = books.map((e, ii) => {
+        let tt =  ii+1;
+        if(tt < 10){
+            tt = "0"+tt;
+        }
+        const t1 = "  " + tt + ".  ";
+        return t1 + e;
+
+        // if(same_author){
+        //     const pObj = parse(e);
+        //     return t1 + (pObj.comiket||"") + pObj.title + "(" + pObj.tags + ")";
+        // }else{
+        // }
+    });
+    if(books.length > 25){
+        books = books.slice(0, 10).concat("...");
     }
-    node.title = [title, "  ", ].concat(arr).join("\n");;
+    node.title = [title, "  ", ].concat(books).join("\n");;
 }
 
 function appendLink(fileTitleDom, text, asIcon){
