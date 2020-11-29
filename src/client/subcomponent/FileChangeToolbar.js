@@ -283,7 +283,7 @@ export default class FileChangeToolbar extends Component {
                 className="file-change-toolbar-move-modal"
                 onRequestClose={this.handleCloseModal.bind(this)}
                 >
-                
+                <div className="title"> Move Destination </div>
                 {this.getDropdownItems()}
             </Modal>
         );

@@ -37,7 +37,9 @@ module.exports.not_good_folder_root = "D:\\_Happy_Lesson\\_Going_to_sort\\_not_g
 module.exports.additional_folder = [
     "D:\\_Happy_Lesson\\_Going_to_sort\\non-h",
     "D:\\_AV\\_Picture",
-    "D:\\cache"
+    "D:\_AV",
+    "E:\\_Temp_Music",
+    "E:\\_temp_comic",
 ];
 
 
