@@ -17,3 +17,4 @@ imageMagick_cache
 image_convert_cache
 thumbnails
 gdata.json
+temp_json_info.json

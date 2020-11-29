@@ -85,6 +85,10 @@ const {http_port, dev_express_port } = portConfig;
 
 let thumbnailDb = {};
 
+const jsonfile = require('jsonfile');
+let temp_json_path =  path.join(rootPath,  userConfig.workspace_name, "temp_json_info.json");
+
+
 async function mkdir(path){
     if(!(await isExist(path))){
         const mdkirErr = await pfs.mkdir(path, { recursive: true});
@@ -108,6 +112,13 @@ async function init() {
         }
     }
 
+    let previous_history_obj;
+    try{
+        previous_history_obj= await jsonfile.readFile(temp_json_path)
+    }catch(e){
+        //do nothing since this is trivial
+    }
+
     await mkdir(thumbnailFolderPath);
     await mkdir(cachePath);
 
@@ -119,21 +130,34 @@ async function init() {
 
     console.log("scanning local files");
 
+    const estimated_total = previous_history_obj &&  
+                            _.isEqual(previous_history_obj.path_will_scan, path_will_scan) && 
+                            previous_history_obj.total_count;
+
     let beg = (new Date).getTime()
     const results = await fileiterator(path_will_scan, { 
         filter: shouldWatchForNormal, 
-        doLog: true
+        doLog: true,
+        estimated_total
     });
     results.pathes = results.pathes.concat(home_pathes);
     let end1 = (new Date).getTime();
     console.log(`${(end1 - beg)/1000}s to read local dirs`);
 
-
+   
     console.log("Analyzing local files");
     db.initFileToInfo(results.infos);
-    console.log("There are", getAllFilePathes().length, "files");
+    const total_count =  getAllFilePathes().length;
+    console.log("There are", total_count, "files");
     let end3 = (new Date).getTime();
     console.log(`${(end3 - end1)/1000}s to analyze local files`);
+
+    try{
+        previous_history_obj = {  total_count, path_will_scan  };
+        await jsonfile.writeFile(temp_json_path, previous_history_obj);
+    }catch(e){
+        //nothing
+    }
 
     console.log("----------scan thumbnail------------");
     end1 = (new Date).getTime();

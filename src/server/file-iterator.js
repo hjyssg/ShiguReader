@@ -50,8 +50,14 @@ async function iterate (p, config, result, depth, isFile) {
     }
     try {
         if(isFile){
-            if(config && config.doLog &&  result.pathes.length % 500 === 0){
-                console.log("[file-iterator] scan:", result.pathes.length);
+            const currentLen = result.pathes.length;
+            if(config && config.doLog &&  currentLen % 500 === 0){
+
+                if(config.estimated_total){
+                    console.log("[file-iterator] scan:", currentLen, `  ${(currentLen/config.estimated_total*100).toFixed(2)}%`);
+                }else{
+                    console.log("[file-iterator] scan:", currentLen);
+                }
             }
             if(!config.doNotNeedInfo){
                 const stat =  await getStat(p, config);

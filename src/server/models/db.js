@@ -65,10 +65,12 @@ module.exports.getAllCacheFilePathes = function(){
 module.exports.initFileToInfo = function(obj){
     db.fileToInfo = obj;
 
+    const total = _.keys(obj).length;
+
     let ii = 0;
     loopEachFileInfo(e => {
         if(ii % 500 === 0){
-            console.log("[db initFileToInfo]:", ii);
+            console.log("[db initFileToInfo]:", ii, `  ${(ii/total*100).toFixed(2)}%`);
         }
         ii++;
         updateFileDb(e)
