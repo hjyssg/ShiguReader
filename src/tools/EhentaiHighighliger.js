@@ -321,7 +321,9 @@ function appendLink(fileTitleDom, text, asIcon){
 
 
 
-function GM_xmlhttpRequest_promise(method, api, ){
+function GM_xmlhttpRequest_promise(method, api){
+    //tamper monkey have bug
+    //timeout do not work
     return new Promise((resolve, reject) => {
         GM_xmlhttpRequest({
             method: method,
@@ -342,7 +344,11 @@ function GM_xmlhttpRequest_promise(method, api, ){
 async function main() {
     const responseText = GM_getValue('responseText');
     const lastResTime = GM_getValue('lastResTime');
-    const EXPIRE_TIME = 0 //1000*60*2;
+    const EXPIRE_TIME = 1000*60*2;
+
+    //detect if the server if running
+    // const isServerRunningRes = await GM_xmlhttpRequest_promise("POST", 'http://localhost:8080/api/getGeneralInfo', 1000);
+
     if(responseText && lastResTime && ( getCurrentTime() - (+lastResTime) < EXPIRE_TIME )){
         time2 = getCurrentTime();
         const res = JSON.parse(responseText);
