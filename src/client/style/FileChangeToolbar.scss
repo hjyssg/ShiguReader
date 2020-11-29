@@ -61,18 +61,31 @@
 }
 
 .file-change-toolbar-move-modal {
-  background: white;
+  background: #929292;
   max-width: 600px;
-  padding-bottom: 15px;
+  padding-bottom: 10px;
   padding-top: 10px;
-  padding-left: 20px;
-  padding-right: 20px;
+  padding-left: 10px;
+  padding-right: 10px;
 
   border-radius: 4px;
   font-size: 12px;
 
+  .section {
+    background: white;
+    padding: 5px;
+    border-radius: 2px;
 
-  .aji-file-name{
+    &.with-bottom-margin{
+      margin-bottom: 5px;
+    }
+  }
+
+  .file-dir-name{
+    margin-bottom: 5px;
+  }
+
+  .aji-file-name {
     margin-bottom: 10px;
     display: block;
 
@@ -81,18 +94,18 @@
     }
   }
 
-  .title{
-    font-weight: 600;
+  .title {
+    // font-weight: 600;
     color: #414141;
-    margin-bottom: 5px;
+    margin-bottom: 2px;
   }
 
-  .modal-list-item{
+  .modal-list-item {
     cursor: pointer;
-    font-size: 14px;
+    font-size: 11px;
     color: $font_color_black_two;
     margin-bottom: 2px;
-    &:hover{
+    &:hover {
       @include third_hover_effect;
     }
   }

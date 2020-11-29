@@ -270,6 +270,7 @@ export default class FileChangeToolbar extends Component {
     }
 
     renderMoveModal(){
+        const filePath = this.props.file;
         return (
             <Modal 
                 isOpen={this.state.showModal}
@@ -277,11 +278,16 @@ export default class FileChangeToolbar extends Component {
                 contentLabel="Move to which path"
                 className="file-change-toolbar-move-modal"
                 onRequestClose={this.handleCloseModal.bind(this)}
-                >
+                >   
+                <div className="section with-bottom-margin">
+                 <div className="file-dir-name">{getDir(filePath)} </div>
+                 <FileNameDiv className="file-name-title" filename={getBaseName(filePath)} />
+                </div>
 
-                 <FileNameDiv className="file-name-title" filename={getBaseName(this.props.file)} />
-                <div className="title"> Move Destination </div>
-                {this.getDropdownItems()}
+                 <div className="section">
+                    <div className="title"> Move To: </div>
+                    {this.getDropdownItems()}
+                </div>
             </Modal>
         );
     }
