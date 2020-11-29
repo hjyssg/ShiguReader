@@ -192,10 +192,12 @@ function isOnlyDigit(str){
 
 
 //--------------------------------------------------------------
+function getCurrentTime(){
+    return new Date().getTime();
+}
 
-const begTime = new Date().getTime();
+const begTime = getCurrentTime();
 let time2;
-
 const file_db = new loki();
 const file_collection = file_db.addCollection("file_collection");
 
@@ -236,7 +238,7 @@ function highlightThumbnail(allFiles){
         }
     }
 
-    const timeMiddle2 = new Date().getTime();
+    const timeMiddle2 = getCurrentTime();
     console.log((timeMiddle2 - time2)/1000, "to parse name");
 
     nodes.forEach(e => {
@@ -284,7 +286,7 @@ function highlightThumbnail(allFiles){
         }
     });
 
-    const finishTime = new Date().getTime();
+    const finishTime = getCurrentTime();
     console.log((finishTime - timeMiddle2)/1000, "to finish algo and change dom");
 
     console.log((finishTime - begTime)/1000, "for any time");
@@ -316,46 +318,57 @@ function appendLink(fileTitleDom, text, asIcon){
     link.href = "http://localhost:3000/search/?s=" + text;
 }
 
-function getCurrentTime(){
-    return new Date().getTime();
+
+
+
+function GM_xmlhttpRequest_promise(method, api, ){
+    return new Promise((resolve, reject) => {
+        GM_xmlhttpRequest({
+            method: method,
+            url:api,
+            onload: res =>{
+                resolve(res);
+            },
+            onTimeout: ()=> {
+                resolve();
+            },
+            onerror: ()=> {
+                resolve();
+            }
+        });
+      })
 }
 
-function onLoad(dom) {
-    time2 = new Date().getTime();
-    console.log((time2 - begTime)/1000, "to load");
-    GM_setValue('responseText',  dom.responseText);
-    GM_setValue('lastResTime', getCurrentTime());
-    const res = JSON.parse(dom.responseText);
-    highlightThumbnail(res.allFiles);
-}
-
-function onTimeout(){
-    const responseText = GM_getValue('responseText');
-    if(responseText){
-        time2 = new Date().getTime();
-        console.log((time2 - begTime)/1000, "to timeout");
-        const res = JSON.parse(responseText);
-        highlightThumbnail(res.allFiles);
-    }
-}
-
-function main() {
+async function main() {
     const responseText = GM_getValue('responseText');
     const lastResTime = GM_getValue('lastResTime');
-    const EXPIRE_TIME = 1000*60*2;
+    const EXPIRE_TIME = 0 //1000*60*2;
     if(responseText && lastResTime && ( getCurrentTime() - (+lastResTime) < EXPIRE_TIME )){
+        time2 = getCurrentTime();
         const res = JSON.parse(responseText);
         highlightThumbnail(res.allFiles);
     }else{
           //annote file table
         var api = 'http://localhost:8080/api/exhentaiApi';
-        GM_xmlhttpRequest({
-            method: "GET",
-            url:api,
-            onload: onLoad,
-            onerror: onTimeout,
-            ontimeout: onTimeout
-        });
+        const res = await GM_xmlhttpRequest_promise("GET", api);
+        time2 = getCurrentTime();
+        if(res){
+            console.log((time2 - begTime)/1000, "to load");
+            GM_setValue('lastResTime', getCurrentTime());
+
+            const text = res.responseText;
+            GM_setValue('responseText',  text);
+            const json = JSON.parse(text);
+            highlightThumbnail(json.allFiles);
+
+        } else {
+            console.log((time2 - begTime)/1000, "to timeout");
+            const responseText = GM_getValue('responseText');
+            if(responseText){
+                const res = JSON.parse(responseText);
+                highlightThumbnail(res.allFiles);
+            }
+        }
     }
 
     //add shigureader search link
