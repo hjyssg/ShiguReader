@@ -6,8 +6,6 @@ var classNames = require('classnames');
 import Swal from 'sweetalert2';
 import Sender from '../Sender';
 import '../style/FileChangeToolbar.scss';
-import Dropdown from "./Dropdown";
-import DropdownItem from "./DropdownItem";
 const util = require("@common/util");
 const clientUtil = require("../clientUtil");
 const { getDir, getBaseName, getDownloadLink } = clientUtil;
@@ -16,6 +14,7 @@ import { toast } from 'react-toastify';
 import Modal from 'react-modal';
 import ReactDOM from 'react-dom';
 const { not_good_folder, good_folder, additional_folder } = userConfig;
+import FileNameDiv from './FileNameDiv';
 
 function pop(file, res, postFix){
     const reason = res.json.reason;
@@ -279,6 +278,8 @@ export default class FileChangeToolbar extends Component {
                 className="file-change-toolbar-move-modal"
                 onRequestClose={this.handleCloseModal.bind(this)}
                 >
+
+                 <FileNameDiv className="file-name-title" filename={getBaseName(this.props.file)} />
                 <div className="title"> Move Destination </div>
                 {this.getDropdownItems()}
             </Modal>
