@@ -583,7 +583,7 @@ export default class ExplorerPage extends Component {
             if(!this.res){
                 return (<CenterSpinner text={this.getTextFromQuery()}/>);
             }else{
-                const str = this.getMode() === MODE_EXPLORER? "Empty Folder" : "Empty Result";
+                const str = this.getMode() === MODE_EXPLORER? "0 Folder 0 Zip 0 Video" : "Empty Result";
                 return (<div className="one-book-nothing-available">
                             <div className="alert alert-secondary" role="alert">{str}</div>
                         </div>);

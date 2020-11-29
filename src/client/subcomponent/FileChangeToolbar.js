@@ -15,6 +15,8 @@ import Modal from 'react-modal';
 import ReactDOM from 'react-dom';
 const { not_good_folder, good_folder, additional_folder } = userConfig;
 import FileNameDiv from './FileNameDiv';
+import { Link } from 'react-router-dom';
+
 
 function pop(file, res, postFix){
     const reason = res.json.reason;
@@ -269,8 +271,21 @@ export default class FileChangeToolbar extends Component {
         );
     }
 
+    isImgFolder(){
+        return !util.isCompress(this.props.file)
+    }
+
     renderMoveModal(){
         const filePath = this.props.file;
+
+        let explorerLink;
+        if(this.isImgFolder()){
+            const toUrl = clientUtil.getExplorerLink(filePath);
+            explorerLink =  ( <div className="section"> 
+                                <Link target="_blank" to={toUrl} >open in explorer</Link> 
+                            </div>);
+        }
+
         return (
             <Modal 
                 isOpen={this.state.showModal}
@@ -288,7 +303,18 @@ export default class FileChangeToolbar extends Component {
                     <div className="title"> Move To: </div>
                     {this.getDropdownItems()}
                 </div>
+
+                {explorerLink}
             </Modal>
+        );
+    }
+
+    renderModalButton(){
+        return (
+            <div tabIndex="0" className="fas fa-bars" 
+            title="open move-path windows"  
+            onClick={this.handleOpenModal.bind(this)}>
+            </div>
         );
     }
 
@@ -304,8 +330,11 @@ export default class FileChangeToolbar extends Component {
             {header && <span className="file-change-tool-bar-header">{header}</span>}
             <div className="tool-bar-row">
                 {this.renderZipButton()}
+                {this.renderModalButton()}
                 {this.renderDeleteButton()}
             </div>
+
+            {this.renderMoveModal()}  
             </div>);
         }
 
@@ -330,11 +359,7 @@ export default class FileChangeToolbar extends Component {
                     {this.renderMinifyZipButton()}
                     {this.renderOverwriteButton()}
                     {this.renderRenameButton()}
-
-                    <div tabIndex="0" className="fas fa-bars" 
-                        title="open move-path windows"  
-                        onClick={this.handleOpenModal.bind(this)}>
-                    </div>
+                    {this.renderModalButton()}
                 </div>
 
                 {this.renderMoveModal()}   
