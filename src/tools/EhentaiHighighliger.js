@@ -231,7 +231,6 @@ function highlightThumbnail(allFiles){
         return;
     }
 
-
     for(let e in allFiles){
         if (allFiles.hasOwnProperty(e)){
             const r =  parse(e) || {};
@@ -270,11 +269,11 @@ function highlightThumbnail(allFiles){
                 thumbnailNode.title =  "明确已经下载过了";
             } else if(status === LIKELY_IN_PC){
                 subNode.style.color = "#efd41b";
-                thumbnailNode.title = "电脑里面好像有";
+                addTooltip(thumbnailNode, "电脑里面好像有", similarTitles)
             }else if(status === SAME_AUTHOR){
                 subNode.style.color = "#ef8787"; 
                 const fns = getByAuthor(r.author).map(e => e.fileName);
-                thumbnailNode.title = `下载同样作者“${r.author}”的书 ${fns.length}次`
+                addTooltip(thumbnailNode, `下载同样作者“${r.author}”的书 ${fns.length}次`, fns)
             }
 
             if(status){
@@ -298,6 +297,16 @@ function highlightThumbnail(allFiles){
     console.log((finishTime - timeMiddle2)/1000, "to finish algo and change dom");
 
     console.log((finishTime - begTime)/1000, "for any time");
+}
+
+function addTooltip(node, title, arr){
+    arr.sort();
+    //indent
+    arr = arr.map(e => "   " + e);
+    if(arr.length > 25){
+        arr = arr.slice(0, 10).concat("...");
+    }
+    node.title = [title, "  ", ].concat(arr).join("\n");;
 }
 
 function appendLink(fileTitleDom, text, asIcon){
