@@ -4,8 +4,8 @@ import './style/ErrorPage.scss';
 
 export default class ErrorPage extends Component {
      render(){
-        const {status, statusText} = this.props.res;
-        const {filePath} = this.props;
+        let {filePath, res} = this.props;
+        let {status, statusText} = res;
 
         let text;
 
@@ -15,13 +15,17 @@ export default class ErrorPage extends Component {
             text = `Could not find ${filePath}.`;
         } else if (status === 500 && filePath){
             text = `${filePath} is a broken file`;
+        } else if(res.isFailed()){
+            status = "ERROR"
+            statusText = res.json.reason;
+            text = filePath;
         }
 
         return (
         <div id="notfound" className="error-page-container">
             <div className="notfound">
                 <div className="notfound-404">
-                    <h1>{status}</h1>
+                    {status}
                 </div>
                 <h2>{statusText}</h2>
                 {/* <a href="#">Go To Homepage</a> */}
