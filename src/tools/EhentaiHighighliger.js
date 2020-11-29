@@ -196,15 +196,6 @@ function isOnlyDigit(str){
 const begTime = new Date().getTime();
 let time2;
 
-function onLoad(dom) {
-    time2 = new Date().getTime();
-    console.log((time2 - begTime)/1000, "to load");
-    GM_setValue('responseText',  dom.responseText);
-    GM_setValue('lastResTime', getCurrentTime());
-    const res = JSON.parse(dom.responseText);
-    highlightThumbnail(res.allFiles);
-}
-
 const file_db = new loki();
 const file_collection = file_db.addCollection("file_collection");
 
@@ -302,7 +293,7 @@ function highlightThumbnail(allFiles){
 function addTooltip(node, title, arr){
     arr.sort();
     //indent
-    arr = arr.map(e => "   " + e);
+    arr = arr.map((e, ii) => "  " + (ii+1) + ".  " + e);
     if(arr.length > 25){
         arr = arr.slice(0, 10).concat("...");
     }
@@ -329,11 +320,20 @@ function getCurrentTime(){
     return new Date().getTime();
 }
 
+function onLoad(dom) {
+    time2 = new Date().getTime();
+    console.log((time2 - begTime)/1000, "to load");
+    GM_setValue('responseText',  dom.responseText);
+    GM_setValue('lastResTime', getCurrentTime());
+    const res = JSON.parse(dom.responseText);
+    highlightThumbnail(res.allFiles);
+}
+
 function onTimeout(){
     const responseText = GM_getValue('responseText');
     if(responseText){
         time2 = new Date().getTime();
-        console.log((time2 - begTime)/1000, "to load");
+        console.log((time2 - begTime)/1000, "to timeout");
         const res = JSON.parse(responseText);
         highlightThumbnail(res.allFiles);
     }
