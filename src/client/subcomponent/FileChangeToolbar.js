@@ -13,6 +13,8 @@ const clientUtil = require("../clientUtil");
 const { getDir, getBaseName, getDownloadLink } = clientUtil;
 import _ from 'underscore';
 import { toast } from 'react-toastify';
+import Modal from 'react-modal';
+import ReactDOM from 'react-dom';
 
 function pop(file, res, postFix){
     const reason = res.json.reason;
@@ -60,6 +62,24 @@ export default class FileChangeToolbar extends Component {
         popPosition: "bottom-center"
     }
 
+    constructor () {
+        super();
+        this.state = {
+          showModal: false
+        };
+      }
+      
+      handleOpenModal (event) {
+        event && event.preventDefault();
+        event && event.stopPropagation();
+        this.setState({ showModal: true });
+      }
+      
+      handleCloseModal (event) {
+        event && event.preventDefault();
+        event && event.stopPropagation();
+        this.setState({ showModal: false });
+      }
 
     handleOverwrite(){
         const { file } = this.props;
@@ -171,17 +191,18 @@ export default class FileChangeToolbar extends Component {
     getDropdownItems(){
         const { additional_folder } = userConfig;
         return additional_folder.map((e, index) =>{
-            const dd = (<div tabIndex="0"  className="letter-button"  key={index}
-            title={"Move to " + e}
-            onClick={this.handleMove.bind(this, e)}> {getBaseName(e).slice(0, 2)} </div>);
-
-            if(this.isShowAllButtons()){
-                return dd;
-            }else{
-                return  (<DropdownItem key={index}>
-                    {dd}
-                </DropdownItem>);
+            const onClick = () => {
+                this.handleCloseModal();
+                this.handleMove(e)
             }
+
+            const dd = (<div tabIndex="0" 
+                                className="modal-list-item"  key={index}
+                                title={"Move to " + e}
+                                onClick={onClick}> 
+                                    {e} 
+                            </div>);
+            return dd;
         });
     }
 
@@ -253,6 +274,21 @@ export default class FileChangeToolbar extends Component {
         );
     }
 
+    renderMoveModal(){
+        return (
+            <Modal 
+                isOpen={this.state.showModal}
+                ariaHideApp={false}
+                contentLabel="Move to which path"
+                className="file-change-toolbar-move-modal"
+                onRequestClose={this.handleCloseModal.bind(this)}
+                >
+                
+                {this.getDropdownItems()}
+            </Modal>
+        );
+    }
+
     render(){
         const {file, className, header, showAllButtons, hasMusic, bigFont, isFolder} = this.props;
         const cn = classNames("file-change-tool-bar", className, {
@@ -260,7 +296,6 @@ export default class FileChangeToolbar extends Component {
         });
 
         if(isFolder){
-            //todo: compress to zip button
             return (
             <div className={cn} >
             {header && <span className="file-change-tool-bar-header">{header}</span>}
@@ -273,13 +308,6 @@ export default class FileChangeToolbar extends Component {
 
         if(!clientUtil.isAuthorized()){
             return  <div className={cn} > {this.renderDownloadLink()}</div>;
-        }
-
-        let additional;
-        if(this.isShowAllButtons()){
-            additional = this.getDropdownItems();
-        }else{
-            additional = <Dropdown>{this.getDropdownItems()}</Dropdown>;
         }
 
         return (
@@ -299,8 +327,14 @@ export default class FileChangeToolbar extends Component {
                     {this.renderMinifyZipButton()}
                     {this.renderOverwriteButton()}
                     {this.renderRenameButton()}
-                    {additional}
+
+                    <div tabIndex="0" className="fas fa-bars" 
+                        title="open move-path windows"  
+                        onClick={this.handleOpenModal.bind(this)}>
+                    </div>
                 </div>
+
+                {this.renderMoveModal()}   
             </div>
         )
      }

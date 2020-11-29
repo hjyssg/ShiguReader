@@ -25,13 +25,13 @@
   }
 
   &.bigFont{
-    .fa, .letter-button, .fas{
+    .fa, .fas{
       font-size: 14px;
     }
   }
 
 
-  .fa, .letter-button, .fas{
+  .fa, .fas{
     margin-left: 5px;
     cursor: pointer;
     font-size: 12px;
@@ -51,3 +51,27 @@
     font-size: 16px;
   }
 }
+
+//------------------move modal--------------
+
+.ReactModal__Overlay--after-open{
+  @include flex_center_display;
+
+}
+
+.file-change-toolbar-move-modal{
+  background: $bacground_level_two;
+  max-width: 500px;
+  padding: 20px;
+  border-radius: 4px;
+
+  .modal-list-item{
+    cursor: pointer;
+    font-size: 14px;
+    color:  $font_color_white_one;
+    &:hover{
+      @include third_hover_effect;
+    }
+  }
+}
+
