@@ -121,6 +121,8 @@ async function init() {
 
     await mkdir(thumbnailFolderPath);
     await mkdir(cachePath);
+    await mkdir(pathUtil.getImgConverterCachePath());
+    await mkdir(pathUtil.getZipOutputCachePath());
 
     let { home_pathes, path_will_scan, path_will_watch } = await getHomePath();
     global.path_will_scan = path_will_scan;

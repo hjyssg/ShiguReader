@@ -104,6 +104,8 @@ async function getHomePath(){
 
     path_will_scan  = path_will_scan.concat(userConfig.good_folder, userConfig.good_folder_root, userConfig.not_good_folder);
     path_will_scan.push(getImgConverterCachePath());
+    path_will_scan.push(getZipOutputCachePath());
+
 
     if(path_will_scan.length === 0){
         if(isWindows()){
@@ -133,6 +135,10 @@ function getImgConverterCachePath(){
     return imgConvertFolder;
 }
 
+function getZipOutputCachePath(){
+    return path.join(getRootPath(), userConfig.workspace_name,  userConfig.zip_output_cache);
+}
+
 module.exports = {
     fullPathToUrl,
     generateContentUrl,
@@ -141,5 +147,6 @@ module.exports = {
     isDirectParent,
     isSub,
     getHomePath,
-    getImgConverterCachePath
+    getImgConverterCachePath,
+    getZipOutputCachePath
 };

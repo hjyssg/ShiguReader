@@ -53,6 +53,8 @@ module.exports.thumbnail_folder_name = "thumbnails";
 
 module.exports.img_convert_cache = "image_convert_cache"
 
+module.exports.zip_output_cache = "zip_output";
+
 //delete or move to recyle bin
 //删除操作是真的彻底删除还是丢进回收站
 module.exports.move_file_to_recyle = true;

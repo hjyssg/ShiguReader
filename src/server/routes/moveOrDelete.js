@@ -1,6 +1,7 @@
 const pathUtil = require("../pathUtil");
 const {
-        isExist
+        isExist,
+        getZipOutputCachePath
 } = pathUtil;
 const pfs = require('promise-fs');
 const fs = require('fs');
@@ -152,9 +153,10 @@ router.post('/api/zipFolder', async (req, res) => {
         return;
     }
 
-
+    const outputRoot = getZipOutputCachePath();        
+    const _resultZipPath =  path.resolve(outputRoot, path.basename(src)+".zip");
     try{
-        let {stdout, stderr, resultZipPath} = await sevenZipHelp.zipOneFolder(src);
+        let {stdout, stderr, resultZipPath} = await sevenZipHelp.zipOneFolder(src, _resultZipPath);
         if(stderr){
             throw stderr;
         }

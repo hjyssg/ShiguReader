@@ -15,6 +15,7 @@ zip_info~
 .DS_Store
 imageMagick_cache
 image_convert_cache
+zip_output
 thumbnails
 gdata.json
 temp_json_info.json
