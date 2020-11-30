@@ -63,7 +63,7 @@ async function convertImage(imgFilePath, outputImgPath, oldImgSize){
 
 module.exports.isConertable = async function(filePath){
     if(!global._has_magick_){
-        return "No magick";
+        return "No magick installed";
     }
 
     let text = "no_problem";
