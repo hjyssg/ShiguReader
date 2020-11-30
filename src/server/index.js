@@ -89,11 +89,17 @@ const jsonfile = require('jsonfile');
 let temp_json_path =  path.join(rootPath,  userConfig.workspace_name, "temp_json_info.json");
 
 
-async function mkdir(path){
+async function mkdir(path, quiet){
     if(!(await isExist(path))){
-        const mdkirErr = await pfs.mkdir(path, { recursive: true});
-        if(mdkirErr){
-            throw "fail to mkdir", path;
+        try {
+            const err = await pfs.mkdir(path, { recursive: true});
+            if(err){
+                throw err;
+            }
+        }catch(err){
+            if(!quiet){
+                throw err;
+            }
         }
     }
 }
@@ -119,10 +125,18 @@ async function init() {
         //do nothing since this is trivial
     }
 
+    //统一mkdir
     await mkdir(thumbnailFolderPath);
     await mkdir(cachePath);
     await mkdir(pathUtil.getImgConverterCachePath());
     await mkdir(pathUtil.getZipOutputCachePath());
+
+    const mkdirArr = userConfig.additional_folder.concat([userConfig.good_folder, userConfig.not_good_folder_root]);
+    for(let ii = 0; ii < mkdirArr.length; ii++){
+        const fp = mkdirArr[ii];
+        await mkdir(fp, "quiet");
+    }
+
 
     let { home_pathes, path_will_scan, path_will_watch } = await getHomePath();
     global.path_will_scan = path_will_scan;
