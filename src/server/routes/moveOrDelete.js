@@ -158,7 +158,7 @@ router.post('/api/zipFolder', async (req, res) => {
         if(stderr){
             throw stderr;
         }
-        res.send({failed: false});
+        res.send({failed: false, resultZipPath});
         logger.info(`[zipFolder] ${src}`);
     } catch(e) {
         console.error(e);

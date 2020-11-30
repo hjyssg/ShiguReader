@@ -18,7 +18,7 @@ import FileNameDiv from './FileNameDiv';
 import { Link } from 'react-router-dom';
 
 
-function pop(file, res, postFix){
+function pop(file, res, postFix, extraDiv){
     const reason = res.json.reason;
     const isFailed = res.isFailed()
     const message = isFailed? `fail to ${postFix} ${file}` : `${postFix} successfully`;
@@ -43,11 +43,13 @@ function pop(file, res, postFix){
                 <div className="fail-reason-text">{reason}</div>
             </div>
         )}
+
+        {extraDiv}
     </div>);
 
     const toastConfig = {
         position: "top-right",
-        autoClose: res.isFailed()? 10*1000: 5*1000,
+        autoClose: (res.isFailed() || extraDiv)? 10*1000: 5*1000,
         hideProgressBar: true,
         closeOnClick: true,
         pauseOnHover: true,
@@ -159,7 +161,17 @@ export default class FileChangeToolbar extends Component {
         }).then((result) => {
             if (result.value === true && isFolder) {
                 Sender.post("/api/zipFolder", {src: file}, res => {
-                    pop(file, res, "zip folder");
+                    let extraDiv;
+                    if(!res.isFailed()){
+                        const zipPath = res.json.resultZipPath;
+                        const toUrl =  clientUtil.getOneBookLink(zipPath);
+                        extraDiv = (
+                            <Link to={toUrl}  className={"result-zip-path"} target="_blank">
+                               {zipPath}
+                            </Link>);
+                    }
+
+                    pop(file, res, "zip folder", extraDiv);
                 });
             } 
         });
