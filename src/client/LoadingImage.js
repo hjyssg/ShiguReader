@@ -103,11 +103,18 @@ export default class LoadingImage extends Component {
 
   render() {
     let content;
-    const {className, fileName, url, bottomOffet, topOffet, title, isThumbnail, onReceiveUrl, asSimpleImage, style,   ...others} = this.props;
+    const {className, fileName, url, bottomOffet, topOffet, title, isThumbnail, onReceiveUrl, asSimpleImage, style, musicNum,  ...others} = this.props;
 
-    const cn = classNames("loading-image", className,{
-      "empty-block fas fa-file-archive": !this.isThumbnailAvaible()
+    const empty_icon_cn = musicNum > 0? " fas fa-music" : " fas fa-file-archive";
+
+    let cn = classNames("loading-image", className,{
+      "empty-block": !this.isThumbnailAvaible()
     });
+
+    if(!this.isThumbnailAvaible()){
+      cn += empty_icon_cn;
+    }
+
 
     const _url = asSimpleImage? url : encodeFileUrl(this.state.url);
 

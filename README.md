@@ -53,7 +53,8 @@
 
 # 没有nodejs,麻烦先安装nodejs https://nodejs.org/
 
-# 到 https://imagemagick.org 下载安装imagemagick。
+# 到 https://imagemagick.org 下载安装imagemagick。 
+# imagemagick是用来压缩图片的。不安装也没事，但强烈建议安装。
 
 # 把代码clone或者github右上角下载到本地
 # 建议所放的硬盘至少还有10GB的空间。因为本程序需要缓存。

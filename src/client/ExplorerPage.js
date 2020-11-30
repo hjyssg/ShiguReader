@@ -694,6 +694,7 @@ export default class ExplorerPage extends Component {
                 className={thumbnailCn} 
                 title={item} fileName={item}   
                 url={thumbnailurl}
+                musicNum={musicNum}
                 onReceiveUrl={url => {this.thumbnails[item] = url;}} 
                 />;
 
