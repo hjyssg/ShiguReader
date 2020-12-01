@@ -732,7 +732,7 @@ export default class ExplorerPage extends Component {
         return (
             <div className={"explorer-container"}>
                 <ItemsContainer items={dirItems} neverCollapse/>
-                <ItemsContainer items={normalVideos} />
+                <ItemsContainer className="video-list" items={normalVideos} />
                 <ItemsContainer items={avVideos} />
                 {this.renderPagination(filteredFiles, filteredVideos)}
                 {this.renderSortHeader()}
