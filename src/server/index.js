@@ -696,7 +696,8 @@ app.post('/api/getGeneralInfo', (req, res) => {
     let os = isWindows()? "windows": "linux";
     res.send({
         server_os: os,
-        file_path_sep: path.sep
+        file_path_sep: path.sep,
+        user_config: userConfig
     })
 });
 

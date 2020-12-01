@@ -19,6 +19,7 @@ import ReactDOM from 'react-dom';
 import Cookie from "js-cookie";
 import 'react-toastify/dist/ReactToastify.css';
 import { GlobalContext } from './globalContext'
+import Sender from './Sender';
 
 
 // http://localhost:3000/
@@ -27,6 +28,14 @@ class App extends Component {
     constructor(props) {
         super(props);
         this.state = {};
+
+        Sender.post('/api/getGeneralInfo', {}, res => {
+            if(!res.isFailed()){
+                this.setState({
+                    context: res.json
+                })
+            }
+        });
     }
 
     componentDidMount(){
@@ -188,7 +197,7 @@ class App extends Component {
         );
         
         return (
-            <GlobalContext.Provider value={{}}>
+            <GlobalContext.Provider value={this.state.context}>
                 <div className="app-container">
                 {topNav}
                 {this.RenderSubComponent()}
