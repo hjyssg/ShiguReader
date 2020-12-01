@@ -27,12 +27,12 @@ export default class ItemsContainer extends Component {
       
         if(neverCollapse || items.length <= TOO_MUCH ){
             return (
-                <ul className={"dir-list container"}>
+                <ul className={classNames("dir-list container", className)}>
                     {items}
                 </ul>);
         }else{
             const _items = open ? items: items.slice(0, TOO_MUCH);
-            const cn = classNames("item-container-expand-button", {
+            const cn = classNames("item-container-expand-button", className, {
                 "fas fa-arrow-down":  !open, 
                 "fas fa-arrow-up":  open, 
             });

@@ -13,9 +13,22 @@ import _ from 'underscore';
 import { toast } from 'react-toastify';
 import Modal from 'react-modal';
 import ReactDOM from 'react-dom';
-const { not_good_folder, good_folder, additional_folder } = userConfig;
 import FileNameDiv from './FileNameDiv';
 import { Link } from 'react-router-dom';
+import { GlobalContext } from '../globalContext'
+
+function getExtraDiv(res){
+    let extraDiv;
+    if(!res.isFailed()){
+        const newPath = res.json.dest;
+        const toUrl =  clientUtil.getOneBookLink(newPath);
+        extraDiv = (
+            <Link to={toUrl}  className={"result-zip-path"} target="_blank">
+               {newPath}
+            </Link>);
+    }
+    return extraDiv;
+}
 
 
 function pop(file, res, postFix, extraDiv){
@@ -161,16 +174,7 @@ export default class FileChangeToolbar extends Component {
         }).then((result) => {
             if (result.value === true && isFolder) {
                 Sender.post("/api/zipFolder", {src: file}, res => {
-                    let extraDiv;
-                    if(!res.isFailed()){
-                        const zipPath = res.json.resultZipPath;
-                        const toUrl =  clientUtil.getOneBookLink(zipPath);
-                        extraDiv = (
-                            <Link to={toUrl}  className={"result-zip-path"} target="_blank">
-                               {zipPath}
-                            </Link>);
-                    }
-
+                    let extraDiv = getExtraDiv(res);
                     pop(file, res, "zip folder", extraDiv);
                 });
             } 
@@ -190,15 +194,37 @@ export default class FileChangeToolbar extends Component {
             }).then((result) => {
                 if (result.value === true) {
                     Sender.post("/api/moveFile", {src: this.props.file, dest: path}, res => {
-                        pop(file, res, "move");
+                        let extraDiv = getExtraDiv(res);
+                        pop(file, res, "move", extraDiv);
                     });
                 } 
             });
         }
     };
 
+    
+    handleRename(){
+        const {file} = this.props;
+        let dest = prompt("Raname or Move", file);
+        if(dest && file !== dest){
+            Swal.fire({
+                html: 'Rename this file to <span class="path-highlight">'+ dest +"</span>",
+                showCancelButton: true,
+                confirmButtonText: 'Yes',
+                cancelButtonText: 'No'
+            }).then((result) => {
+                if (result.value === true) {
+                    Sender.post("/api/renameFile", {src: file, dest}, res => {
+                        let extraDiv = getExtraDiv(res);
+                        pop(file, res, "rename", extraDiv);
+                    });
+                } 
+            });
+        }
+    }
+
     getDropdownItems(){
-        const arr = additional_folder.concat([good_folder, not_good_folder]);
+        const arr = this.context.additional_folder || [];
         return arr.map((e, index) =>{
             const onClick = () => {
                 this.handleCloseModal();
@@ -221,7 +247,7 @@ export default class FileChangeToolbar extends Component {
 
     renderMinifyZipButton(){
         const {file, className, header,  hasMusic, bigFont} = this.props;
-        const showMinifyZip = util.isCompress(file) && !hasMusic;
+        const showMinifyZip = util.isCompress(file);
         if(showMinifyZip && !this.isInMinifiedFolder()){
             return ( <div tabIndex="0" className="fas fa-hand-scissors"  title="minify zip"
                       onClick={this.handleMinifyZip.bind(this)}></div>)
@@ -243,29 +269,11 @@ export default class FileChangeToolbar extends Component {
     }
 
     renderRenameButton(){
-        return ( <div tabIndex="0" className="fas fa-pen"  title="rename file"
+        return ( <div tabIndex="0" className="fas fa-pen raname-button"  title="rename file"
                       onClick={this.handleRename.bind(this)}></div>)
         
     }
 
-    handleRename(){
-        const {file} = this.props;
-        let dest = prompt("Raname or Move", file);
-        if(dest && file !== dest){
-            Swal.fire({
-                html: 'Rename this file to <span class="path-highlight">'+ dest +"</span>",
-                showCancelButton: true,
-                confirmButtonText: 'Yes',
-                cancelButtonText: 'No'
-            }).then((result) => {
-                if (result.value === true) {
-                    Sender.post("/api/renameFile", {src: file, dest}, res => {
-                        pop(file, res, "rename");
-                    });
-                } 
-            });
-        }
-    }
 
     renderDeleteButton(){
         return (
@@ -293,7 +301,7 @@ export default class FileChangeToolbar extends Component {
         let explorerLink;
         if(this.isImgFolder()){
             const toUrl = clientUtil.getExplorerLink(filePath);
-            explorerLink =  ( <div className="section"> 
+            explorerLink =  ( <div className="section with-bottom-margin"> 
                                 <Link target="_blank" to={toUrl} >open in explorer</Link> 
                             </div>);
         }
@@ -311,12 +319,17 @@ export default class FileChangeToolbar extends Component {
                  <FileNameDiv className="file-name-title" filename={getBaseName(filePath)} />
                 </div>
 
-                 <div className="section">
+                 <div className="section with-bottom-margin">
                     <div className="title"> Move To: </div>
                     {this.getDropdownItems()}
                 </div>
 
                 {explorerLink}
+
+                <div className="section">
+                    <div className="title">Rename or Move: </div>
+                    {this.renderRenameButton()}
+                </div>
             </Modal>
         );
     }
@@ -330,55 +343,69 @@ export default class FileChangeToolbar extends Component {
         );
     }
 
+    renderMoveGoodBadButton(){
+        const { good_folder , not_good_folder, additional_folder } = this.context ;
+
+        return (
+            <React.Fragment>
+                     {good_folder && 
+                     <div tabIndex="0"  className="fas fa-check"
+                                    title={"Move to " + good_folder}
+                                    onClick={this.handleMove.bind(this, good_folder)}></div> }
+                    {not_good_folder && 
+                    <div tabIndex="0"  className="fas fa-times"
+                                    title={"Move to " + not_good_folder}
+                                    onClick={this.handleMove.bind(this, not_good_folder)}></div>}
+            </React.Fragment>
+        )
+    }
+
     render(){
         const {file, className, header, hasMusic, bigFont, isFolder} = this.props;
         const cn = classNames("file-change-tool-bar", className, {
             bigFont: bigFont
         });
 
-        if(isFolder){
-            return (
-            <div className={cn} >
-            {header && <span className="file-change-tool-bar-header">{header}</span>}
-            <div className="tool-bar-row">
-                {this.renderZipButton()}
-                {this.renderModalButton()}
-                {this.renderDeleteButton()}
-            </div>
-
-            {this.renderMoveModal()}  
-            </div>);
-        }
-
         if(!clientUtil.isAuthorized()){
             return  <div className={cn} > {this.renderDownloadLink()}</div>;
+        }
+
+        let secondRow;
+
+        if(isFolder){
+            secondRow = (
+                <div className="tool-bar-row second">
+                    {this.renderZipButton()}
+                    {this.renderModalButton()}
+                </div>
+            );
+        }else{
+            secondRow = (
+                <div className="tool-bar-row second">
+                        {this.renderDownloadLink()}
+                        {this.renderMinifyZipButton()}
+                        {this.renderOverwriteButton()}
+                        {this.renderModalButton()}
+                    </div>
+            );
         }
 
         return (
             <div className={cn} >
                 {header && <span className="file-change-tool-bar-header">{header}</span>}
                 <div className="tool-bar-row">
-                    <div tabIndex="0"  className="fas fa-check"
-                                    title={"Move to " + good_folder}
-                                    onClick={this.handleMove.bind(this, good_folder)}></div>
-                    <div tabIndex="0"  className="fas fa-times"
-                                    title={"Move to " + not_good_folder}
-                                    onClick={this.handleMove.bind(this, not_good_folder)}></div>
+                    {this.renderMoveGoodBadButton()}
                     {this.renderDeleteButton()}
                 </div>
-                <div className="tool-bar-row second">
-                    {this.renderDownloadLink()}
-                    {this.renderMinifyZipButton()}
-                    {this.renderOverwriteButton()}
-                    {this.renderRenameButton()}
-                    {this.renderModalButton()}
-                </div>
-
+                {secondRow}
                 {this.renderMoveModal()}   
             </div>
         )
+
      }
 }
+
+FileChangeToolbar.contextType = GlobalContext;
 
 FileChangeToolbar.propTypes = {
     file: PropTypes.string,

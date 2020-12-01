@@ -692,12 +692,23 @@ app.post('/api/extract', async (req, res) => {
     })();
 });
 
-app.post('/api/getGeneralInfo', (req, res) => {
+app.post('/api/getGeneralInfo', async (req, res) => {
     let os = isWindows()? "windows": "linux";
-    res.send({
-        server_os: os,
-        file_path_sep: path.sep
-    })
+
+    const result = {
+      server_os: os,
+       file_path_sep: path.sep
+    };
+
+    let folderArr = [userConfig.good_folder, userConfig.not_good_folder].concat(userConfig.additional_folder);
+    folderArr = await pathUtil.filterNonExist(folderArr);
+
+
+    result.good_folder = folderArr.includes(userConfig.good_folder)? userConfig.good_folder : "";
+    result.not_good_folder = folderArr.includes(userConfig.not_good_folder)?  userConfig.not_good_folder : "";
+    result.additional_folder = folderArr;
+
+    res.send(result)
 });
 
 
