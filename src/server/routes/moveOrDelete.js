@@ -38,7 +38,7 @@ router.post('/api/renameFile', async (req, res) => {
         if(err){ throw err; }
 
         logger.info(`[rename] ${src} to ${dest}`);
-        res.send({failed: false});
+        res.send({failed: false, dest});
     }catch(err){
         console.error(err);
         res.send({reason:getReason(err), failed: true});
@@ -47,7 +47,7 @@ router.post('/api/renameFile', async (req, res) => {
 
 router.post('/api/moveFile', async (req, res) => {
     const src = req.body && req.body.src;
-    const dest = req.body && req.body.dest;
+    let dest = req.body && req.body.dest;
 
     if(!src || !dest){
         res.send({failed: true, reason: "No parameter"});
@@ -69,7 +69,9 @@ router.post('/api/moveFile', async (req, res) => {
         if(err){ throw err;}
         
         logger.info(`[MOVE] ${src} to ${dest}`);
-        res.send({failed: false});
+
+        dest = path.resolve(dest, path.basename(src));
+        res.send({failed: false, dest});
     }catch(err){
         console.error(err);
         res.send({reason:getReason(err), failed: true});
@@ -160,7 +162,7 @@ router.post('/api/zipFolder', async (req, res) => {
         if(stderr){
             throw stderr;
         }
-        res.send({failed: false, resultZipPath});
+        res.send({failed: false, dest: resultZipPath});
         logger.info(`[zipFolder] ${src}`);
     } catch(e) {
         console.error(e);

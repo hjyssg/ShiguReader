@@ -198,7 +198,7 @@ class App extends Component {
         );
         
         return (
-            <GlobalContext.Provider value={this.state.context}>
+            <GlobalContext.Provider value={(this.state.context || {})}>
                 <div className="app-container">
                 {topNav}
                 {this.RenderSubComponent()}

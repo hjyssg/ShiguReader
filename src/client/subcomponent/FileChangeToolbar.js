@@ -17,6 +17,18 @@ import FileNameDiv from './FileNameDiv';
 import { Link } from 'react-router-dom';
 import { GlobalContext } from '../globalContext'
 
+function getExtraDiv(res){
+    let extraDiv;
+    if(!res.isFailed()){
+        const newPath = res.json.dest;
+        const toUrl =  clientUtil.getOneBookLink(newPath);
+        extraDiv = (
+            <Link to={toUrl}  className={"result-zip-path"} target="_blank">
+               {newPath}
+            </Link>);
+    }
+    return extraDiv;
+}
 
 
 function pop(file, res, postFix, extraDiv){
@@ -162,16 +174,7 @@ export default class FileChangeToolbar extends Component {
         }).then((result) => {
             if (result.value === true && isFolder) {
                 Sender.post("/api/zipFolder", {src: file}, res => {
-                    let extraDiv;
-                    if(!res.isFailed()){
-                        const zipPath = res.json.resultZipPath;
-                        const toUrl =  clientUtil.getOneBookLink(zipPath);
-                        extraDiv = (
-                            <Link to={toUrl}  className={"result-zip-path"} target="_blank">
-                               {zipPath}
-                            </Link>);
-                    }
-
+                    let extraDiv = getExtraDiv(res);
                     pop(file, res, "zip folder", extraDiv);
                 });
             } 
@@ -191,12 +194,34 @@ export default class FileChangeToolbar extends Component {
             }).then((result) => {
                 if (result.value === true) {
                     Sender.post("/api/moveFile", {src: this.props.file, dest: path}, res => {
-                        pop(file, res, "move");
+                        let extraDiv = getExtraDiv(res);
+                        pop(file, res, "move", extraDiv);
                     });
                 } 
             });
         }
     };
+
+    
+    handleRename(){
+        const {file} = this.props;
+        let dest = prompt("Raname or Move", file);
+        if(dest && file !== dest){
+            Swal.fire({
+                html: 'Rename this file to <span class="path-highlight">'+ dest +"</span>",
+                showCancelButton: true,
+                confirmButtonText: 'Yes',
+                cancelButtonText: 'No'
+            }).then((result) => {
+                if (result.value === true) {
+                    Sender.post("/api/renameFile", {src: file, dest}, res => {
+                        let extraDiv = getExtraDiv(res);
+                        pop(file, res, "rename", extraDiv);
+                    });
+                } 
+            });
+        }
+    }
 
     getDropdownItems(){
         const arr = this.context.additional_folder || [];
@@ -249,24 +274,6 @@ export default class FileChangeToolbar extends Component {
         
     }
 
-    handleRename(){
-        const {file} = this.props;
-        let dest = prompt("Raname or Move", file);
-        if(dest && file !== dest){
-            Swal.fire({
-                html: 'Rename this file to <span class="path-highlight">'+ dest +"</span>",
-                showCancelButton: true,
-                confirmButtonText: 'Yes',
-                cancelButtonText: 'No'
-            }).then((result) => {
-                if (result.value === true) {
-                    Sender.post("/api/renameFile", {src: file, dest}, res => {
-                        pop(file, res, "rename");
-                    });
-                } 
-            });
-        }
-    }
 
     renderDeleteButton(){
         return (
@@ -337,7 +344,7 @@ export default class FileChangeToolbar extends Component {
     }
 
     renderMoveGoodBadButton(){
-        const { good_folder , not_good_folder, additional_folder } = this.context;
+        const { good_folder , not_good_folder, additional_folder } = this.context ;
 
         return (
             <React.Fragment>
