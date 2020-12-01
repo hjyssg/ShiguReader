@@ -13,9 +13,10 @@ import _ from 'underscore';
 import { toast } from 'react-toastify';
 import Modal from 'react-modal';
 import ReactDOM from 'react-dom';
-const { not_good_folder, good_folder, additional_folder } = userConfig;
 import FileNameDiv from './FileNameDiv';
 import { Link } from 'react-router-dom';
+import { GlobalContext } from '../globalContext'
+
 
 
 function pop(file, res, postFix, extraDiv){
@@ -198,7 +199,7 @@ export default class FileChangeToolbar extends Component {
     };
 
     getDropdownItems(){
-        const arr = additional_folder.concat([good_folder, not_good_folder]);
+        const arr = this.context.additional_folder || [];
         return arr.map((e, index) =>{
             const onClick = () => {
                 this.handleCloseModal();
@@ -330,11 +331,30 @@ export default class FileChangeToolbar extends Component {
         );
     }
 
+    renderMoveGoodBadButton(){
+        const { good_folder , not_good_folder, additional_folder } = this.context;
+
+        return (
+            <React.Fragment>
+                     {good_folder && 
+                     <div tabIndex="0"  className="fas fa-check"
+                                    title={"Move to " + good_folder}
+                                    onClick={this.handleMove.bind(this, good_folder)}></div> }
+                    {not_good_folder && 
+                    <div tabIndex="0"  className="fas fa-times"
+                                    title={"Move to " + not_good_folder}
+                                    onClick={this.handleMove.bind(this, not_good_folder)}></div>}
+            </React.Fragment>
+        )
+    }
+
     render(){
         const {file, className, header, hasMusic, bigFont, isFolder} = this.props;
         const cn = classNames("file-change-tool-bar", className, {
             bigFont: bigFont
         });
+
+        const { good_folder , not_good_folder, additional_folder } = this.context;
 
         if(isFolder){
             return (
@@ -358,12 +378,7 @@ export default class FileChangeToolbar extends Component {
             <div className={cn} >
                 {header && <span className="file-change-tool-bar-header">{header}</span>}
                 <div className="tool-bar-row">
-                    <div tabIndex="0"  className="fas fa-check"
-                                    title={"Move to " + good_folder}
-                                    onClick={this.handleMove.bind(this, good_folder)}></div>
-                    <div tabIndex="0"  className="fas fa-times"
-                                    title={"Move to " + not_good_folder}
-                                    onClick={this.handleMove.bind(this, not_good_folder)}></div>
+                    {this.renderMoveGoodBadButton()}
                     {this.renderDeleteButton()}
                 </div>
                 <div className="tool-bar-row second">
@@ -379,6 +394,8 @@ export default class FileChangeToolbar extends Component {
         )
      }
 }
+
+FileChangeToolbar.contextType = GlobalContext;
 
 FileChangeToolbar.propTypes = {
     file: PropTypes.string,

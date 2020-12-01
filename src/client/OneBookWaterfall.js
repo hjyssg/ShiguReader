@@ -17,7 +17,6 @@ const queryString = require('query-string');
 import screenfull from 'screenfull';
 const Constant = require("@common/constant");
 
-const userConfig = require('@config/user-config');
 const clientUtil = require("./clientUtil");
 const { getDir, getBaseName, isMobile, getFileUrl, sortFileNames, filesizeUitl } = clientUtil;
 import LoadingImage from './LoadingImage';

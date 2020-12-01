@@ -29,6 +29,7 @@ class App extends Component {
         super(props);
         this.state = {};
 
+        //todo save result to session storage
         Sender.post('/api/getGeneralInfo', {}, res => {
             if(!res.isFailed()){
                 this.setState({

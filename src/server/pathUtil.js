@@ -143,6 +143,7 @@ module.exports = {
     fullPathToUrl,
     generateContentUrl,
     getRootPath,
+    filterNonExist,
     isExist,
     isDirectParent,
     isSub,
