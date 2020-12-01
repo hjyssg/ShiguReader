@@ -18,6 +18,8 @@ import { ToastContainer } from 'react-toastify';
 import ReactDOM from 'react-dom';
 import Cookie from "js-cookie";
 import 'react-toastify/dist/ReactToastify.css';
+import { GlobalContext } from './globalContext'
+
 
 // http://localhost:3000/
 class App extends Component {
@@ -186,11 +188,13 @@ class App extends Component {
         );
         
         return (
-            <div className="app-container">
-            {topNav}
-            {this.RenderSubComponent()}
-            <ToastContainer />
-            </div>
+            <GlobalContext.Provider value={{}}>
+                <div className="app-container">
+                {topNav}
+                {this.RenderSubComponent()}
+                <ToastContainer />
+                </div>
+            </GlobalContext.Provider>
         );
     }
 }

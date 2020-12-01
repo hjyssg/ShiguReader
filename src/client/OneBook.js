@@ -27,6 +27,7 @@ const userConfig = require('@config/user-config');
 const clientUtil = require("./clientUtil");
 const { getDir, getBaseName, isMobile, getFileUrl, sortFileNames, filesizeUitl } = clientUtil;
 const namePicker = require("../human-name-picker");
+import { GlobalContext } from './globalContext'
 
 
 const NO_TWO_PAGE = "no_clip";
@@ -746,5 +747,6 @@ export default class OneBook extends Component {
   }
 }
 
+OneBook.contextType = GlobalContext;
 OneBook.propTypes = {
 };
