@@ -9,7 +9,7 @@ const y = now.getFullYear();
 let mm = now.getMonth()+1;
 mm = ( mm < 10 ) ? ( "0" + ( mm ).toString() ) : ( mm ).toString();
 const fd = "good_"+ [y, mm, "01"].join("_");
-module.exports.good_folder = "D:\\_Happy_Lesson\\_Going_to_sort\\_good\\"+fd;
+module.exports.good_folder = "C:\\Users\\hjyss\\Downloads";
 
 
 /**
@@ -22,7 +22,7 @@ module.exports.not_good_folder = "D:\\_Happy_Lesson\\_Going_to_sort\\_not_good\\
  * OPTIONAL all good folders  
  * 可选 喜欢的漫画的根目录，这个文件夹会用来判断你的喜好
  */
-module.exports.good_folder_root = "D:\\_Happy_Lesson\\_Going_to_sort\\_good"
+module.exports.good_folder_root = ""
 
 /** 
  * OPTIONAL all good folders  

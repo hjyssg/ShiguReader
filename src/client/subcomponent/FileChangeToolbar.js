@@ -222,7 +222,7 @@ export default class FileChangeToolbar extends Component {
 
     renderMinifyZipButton(){
         const {file, className, header,  hasMusic, bigFont} = this.props;
-        const showMinifyZip = util.isCompress(file) && !hasMusic;
+        const showMinifyZip = util.isCompress(file);
         if(showMinifyZip && !this.isInMinifiedFolder()){
             return ( <div tabIndex="0" className="fas fa-hand-scissors"  title="minify zip"
                       onClick={this.handleMinifyZip.bind(this)}></div>)
@@ -244,7 +244,7 @@ export default class FileChangeToolbar extends Component {
     }
 
     renderRenameButton(){
-        return ( <div tabIndex="0" className="fas fa-pen"  title="rename file"
+        return ( <div tabIndex="0" className="fas fa-pen raname-button"  title="rename file"
                       onClick={this.handleRename.bind(this)}></div>)
         
     }
@@ -294,7 +294,7 @@ export default class FileChangeToolbar extends Component {
         let explorerLink;
         if(this.isImgFolder()){
             const toUrl = clientUtil.getExplorerLink(filePath);
-            explorerLink =  ( <div className="section"> 
+            explorerLink =  ( <div className="section with-bottom-margin"> 
                                 <Link target="_blank" to={toUrl} >open in explorer</Link> 
                             </div>);
         }
@@ -312,12 +312,17 @@ export default class FileChangeToolbar extends Component {
                  <FileNameDiv className="file-name-title" filename={getBaseName(filePath)} />
                 </div>
 
-                 <div className="section">
+                 <div className="section with-bottom-margin">
                     <div className="title"> Move To: </div>
                     {this.getDropdownItems()}
                 </div>
 
                 {explorerLink}
+
+                <div className="section">
+                    <div className="title">Rename or Move: </div>
+                    {this.renderRenameButton()}
+                </div>
             </Modal>
         );
     }
@@ -354,24 +359,28 @@ export default class FileChangeToolbar extends Component {
             bigFont: bigFont
         });
 
-        const { good_folder , not_good_folder, additional_folder } = this.context;
-
-        if(isFolder){
-            return (
-            <div className={cn} >
-            {header && <span className="file-change-tool-bar-header">{header}</span>}
-            <div className="tool-bar-row">
-                {this.renderZipButton()}
-                {this.renderModalButton()}
-                {this.renderDeleteButton()}
-            </div>
-
-            {this.renderMoveModal()}  
-            </div>);
-        }
-
         if(!clientUtil.isAuthorized()){
             return  <div className={cn} > {this.renderDownloadLink()}</div>;
+        }
+
+        let secondRow;
+
+        if(isFolder){
+            secondRow = (
+                <div className="tool-bar-row second">
+                    {this.renderZipButton()}
+                    {this.renderModalButton()}
+                </div>
+            );
+        }else{
+            secondRow = (
+                <div className="tool-bar-row second">
+                        {this.renderDownloadLink()}
+                        {this.renderMinifyZipButton()}
+                        {this.renderOverwriteButton()}
+                        {this.renderModalButton()}
+                    </div>
+            );
         }
 
         return (
@@ -381,17 +390,11 @@ export default class FileChangeToolbar extends Component {
                     {this.renderMoveGoodBadButton()}
                     {this.renderDeleteButton()}
                 </div>
-                <div className="tool-bar-row second">
-                    {this.renderDownloadLink()}
-                    {this.renderMinifyZipButton()}
-                    {this.renderOverwriteButton()}
-                    {this.renderRenameButton()}
-                    {this.renderModalButton()}
-                </div>
-
+                {secondRow}
                 {this.renderMoveModal()}   
             </div>
         )
+
      }
 }
 
