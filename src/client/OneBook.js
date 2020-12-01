@@ -63,8 +63,6 @@ export default class OneBook extends Component {
   componentDidMount() {
     this.sendExtract();
 
-    
-
     if(!isMobile ()){
       screenfull.onchange(()=> {
         this.forceUpdate();
@@ -685,8 +683,6 @@ export default class OneBook extends Component {
   }
 
   render() {
-    console.log(this.context);
-
     if (this.isFailedLoading()) { 
       const fp = this.getTextFromQuery();
       return <ErrorPage res={this.res} filePath={fp}/>;
