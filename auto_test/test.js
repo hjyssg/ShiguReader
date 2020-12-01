@@ -4,6 +4,13 @@ const { expect }  = require('chai');
 
 const prefix_s = "test_screenshot/";
 
+let screen_shot_count = 1; 
+async function screenshot(page, fileName){
+    const fn = screen_shot_count + " " + fileName;
+    await page.screenshot({path: prefix_s + fn});
+
+    screen_shot_count++;
+}
 
 describe('ShiguReader Render Testing', function(){
 
@@ -30,6 +37,12 @@ describe('ShiguReader Render Testing', function(){
 
     beforeEach(async function() {
         page = await browser.newPage();
+
+        await page.setViewport({
+            width: 1000,
+            height: 2000
+          });
+          
     });
 
     afterEach(async function() {
@@ -40,13 +53,13 @@ describe('ShiguReader Render Testing', function(){
         await page.goto("http://localhost:3000/");
         const title = await page.title();
         expect(title).to.eql('ShiguReader');
-        await page.screenshot({path: prefix_s +'home.png'});
+        await screenshot(page, 'home.png');
     });
 
 
     it('tag page', async function() {
         await page.goto("http://localhost:3000/tagPage/");
-        await page.screenshot({path: prefix_s + 'tag page.png'});
+        await screenshot(page, 'tag page.png');
 
 
         // const title = await page.title();
@@ -55,7 +68,7 @@ describe('ShiguReader Render Testing', function(){
 
     it('authorPage', async function() {
         await page.goto("http://localhost:3000/authorPage/");
-        await page.screenshot({path: prefix_s + 'authorPage.png'});
+        await screenshot(page, 'authorPage.png');
 
         // const title = await page.title();
         // expect(title).to.eql('ShiguReader');
@@ -64,7 +77,7 @@ describe('ShiguReader Render Testing', function(){
 
     it('chart', async function() {
         await page.goto("http://localhost:3000/chart");
-        await page.screenshot({path: prefix_s + 'chart.png'});
+        await screenshot(page, 'chart.png');
 
         // const title = await page.title();
         // expect(title).to.eql('ShiguReader');
@@ -73,7 +86,7 @@ describe('ShiguReader Render Testing', function(){
 
     it('admin', async function() {
         await page.goto("http://localhost:3000/admin");
-        await page.screenshot({path: prefix_s + 'admin.png'});
+        await screenshot(page, 'admin.png');
 
         // const title = await page.title();
         // expect(title).to.eql('ShiguReader');
