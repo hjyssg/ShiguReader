@@ -150,12 +150,19 @@ async function init() {
                             _.isEqual(previous_history_obj.path_will_scan, path_will_scan) && 
                             previous_history_obj.total_count;
 
-    let beg = (new Date).getTime()
-    const results = await fileiterator(path_will_scan, { 
+    let beg = (new Date).getTime();
+
+    const everything_connector = require("../tools/everything_connector");
+    const scan_otption = { 
         filter: shouldWatchForNormal, 
         doLog: true,
-        estimated_total
-    });
+        estimated_total,
+        port: userConfig.everything_http_server_port
+    };
+    let results = isWindows() && await everything_connector.getAllFileinPath(path_will_scan, scan_otption);
+    if(!results){
+        results = await fileiterator(path_will_scan, scan_otption);
+    }
     results.pathes = results.pathes.concat(home_pathes);
     let end1 = (new Date).getTime();
     console.log(`${(end1 - beg)/1000}s to read local dirs`);

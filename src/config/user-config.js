@@ -73,6 +73,10 @@ module.exports.keep_clip = false;
 //Naive password when access remotely
 module.exports.file_change_password = "2020";
 
+//If you use Everything
+//you can enable its http server, ShiguReader will use its data and increase performance
+module.exports.everything_http_server_port = "5001"
+
 //----------------------------image compress parameter-------------------------------------------------
 
 //in MB, only for website UI display
