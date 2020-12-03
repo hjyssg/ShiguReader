@@ -571,7 +571,9 @@ app.post('/api/pregenerateThumbnails', async (req, res) => {
         totalFiles = _.shuffle(totalFiles);
     }
 
-    res.send({failed: false})
+    res.send({failed: false});
+
+    console.log("begin pregenerateThumbnails")
 
     try{
         for(let ii = 0; ii < totalFiles.length; ii++){

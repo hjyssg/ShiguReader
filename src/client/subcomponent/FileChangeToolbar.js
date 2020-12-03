@@ -71,7 +71,7 @@ function pop(file, res, postFix, extraDiv){
     };
 
     
-    toast(divContent, toastConfig)
+    toast(divContent, toastConfig);
 }
 
 export default class FileChangeToolbar extends Component {
