@@ -17,8 +17,9 @@ const namePicker = require("../../human-name-picker");
 
 const loki = require("lokijs");
 const file_db = new loki();
-const file_collection = file_db.addCollection("fileTable", { 
-    indices: ['filePath', "fileName", "tags", "authors"],
+const file_collection = file_db.addCollection("fileTable", {
+    //warning too many indices will dramatically slow down insert/update 
+    // indices: ['filePath', "fileName", "tags", "authors"],
     unique: ['filePath'] 
 });
 
