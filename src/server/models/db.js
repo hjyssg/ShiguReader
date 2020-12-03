@@ -68,12 +68,19 @@ module.exports.initFileToInfo = function(obj){
     const total = _.keys(obj).length;
 
     let ii = 0;
+    const set = {};
     loopEachFileInfo(e => {
-        if(ii % 500 === 0){
+        if(ii % 1000 === 0){
             console.log("[db initFileToInfo]:", ii, `  ${(ii/total*100).toFixed(2)}%`);
         }
         ii++;
-        updateFileDb(e)
+
+        if(set[e]){
+            return;
+        }
+
+        set[e] = true;
+        updateFileDb(e, "insert")
     })
 }
 
@@ -95,10 +102,10 @@ const deleteFromFileDb = function(filePath){
 
 const sep = serverUtil.sep;
 
-const updateFileDb = function(filePath){
+const updateFileDb = function(filePath, insert){
     const fileName = path.basename(filePath);
     
-    let data = getData(filePath) || {};
+    let data = insert? {} : (getData(filePath) || {});
     data.filePath = filePath;
     data.isDisplayableInExplorer = isDisplayableInExplorer(filePath);
     data.isDisplayableInOnebook = isDisplayableInOnebook(filePath);
@@ -118,10 +125,11 @@ const updateFileDb = function(filePath){
     data.authors = (temp.authors && temp.authors.join(sep)) || temp.author || "";
     data.group = temp.group || "";
 
-    if(has(filePath)){
-        file_collection.update(data);
-    }else{
+    if(insert || !has(filePath)){
         file_collection.insert(data);
+
+    }else{
+        file_collection.update(data);
     }
 }
 
