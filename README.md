@@ -53,7 +53,7 @@
 
 # 没有nodejs,麻烦先安装nodejs https://nodejs.org/
 
-# 到 https://imagemagick.org 下载安装imagemagick。 
+# 到 https://imagemagick.org 下载安装image magick。 
 # imagemagick是用来压缩图片的。不安装也没事，但强烈建议安装。
 
 # 把代码clone或者github右上角下载到本地
@@ -110,6 +110,14 @@ npm run dev
 # 可以手动去到admin页面点clean cache清除缓存。或者直接删除cache文件夹也没事。
 # 重启服务器也会清楚缓存
 ```
+
+| software      | must have | note                           |
+|---------------|-----------|--------------------------------|
+| node.js       | yes       |                                |
+| image magick  | no        | nice to have                |
+| sevenzip      | *         | Windows does not need to install. Must have for *nix    |
+| everything    | no        | nice to have for Windows    |
+| git bash      | *         | must have for Windows, no for *nix |
 
 ##### 注意事项
 如果部分文件名带汉字日语假名的图片加载不出来，你可能需要如下语言设置。
