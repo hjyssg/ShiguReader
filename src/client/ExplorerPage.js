@@ -598,7 +598,7 @@ export default class ExplorerPage extends Component {
             const toUrl = clientUtil.getExplorerLink(item);
             const text = this.getMode() === MODE_HOME ? item: getBaseName(item);
             const result =  this.getOneLineListItem(<i className="far fa-folder"></i>, text, item);
-            return  <Link target="_blank" to={toUrl}  key={item}>{result}</Link>;
+            return  <Link to={toUrl}  key={item}>{result}</Link>;
         });
 
         //seperate av from others
