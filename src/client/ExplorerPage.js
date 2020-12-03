@@ -572,6 +572,10 @@ export default class ExplorerPage extends Component {
         let videos = filteredVideos;
         let files = filteredFiles;
 
+        if(this.getMode() !== MODE_HOME){
+            dirs.sort();
+        }
+
         try {
             files = this.sortFiles(files, sortOrder);
             videos = this.sortFiles(videos, sortOrder);
@@ -594,7 +598,7 @@ export default class ExplorerPage extends Component {
             const toUrl = clientUtil.getExplorerLink(item);
             const text = this.getMode() === MODE_HOME ? item: getBaseName(item);
             const result =  this.getOneLineListItem(<i className="far fa-folder"></i>, text, item);
-            return  <Link target="_blank" to={toUrl}  key={item}>{result}</Link>;
+            return  <Link to={toUrl}  key={item}>{result}</Link>;
         });
 
         //seperate av from others

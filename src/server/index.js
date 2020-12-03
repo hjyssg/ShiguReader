@@ -150,12 +150,21 @@ async function init() {
                             _.isEqual(previous_history_obj.path_will_scan, path_will_scan) && 
                             previous_history_obj.total_count;
 
-    let beg = (new Date).getTime()
-    const results = await fileiterator(path_will_scan, { 
+    let beg = (new Date).getTime();
+
+    const everything_connector = require("../tools/everything_connector");
+    const scan_otption = { 
         filter: shouldWatchForNormal, 
         doLog: true,
-        estimated_total
-    });
+        estimated_total,
+        port: userConfig.everything_http_server_port
+    };
+    let results = userConfig.everything_http_server_port && 
+                    isWindows() && 
+                    await everything_connector.getAllFileinPath(path_will_scan, scan_otption);
+    if(!results){
+        results = await fileiterator(path_will_scan, scan_otption);
+    }
     results.pathes = results.pathes.concat(home_pathes);
     let end1 = (new Date).getTime();
     console.log(`${(end1 - beg)/1000}s to read local dirs`);
@@ -394,7 +403,7 @@ serverUtil.common.getStat = getStat;
 
 //-----------------thumbnail related-----------------------------------
 
-app.post("/api/tagFirstImagePath", (req, res) => {
+app.post("/api/tagFirstImagePath", async (req, res) => {
     const author = req.body && req.body.author;
     const tag = req.body && req.body.tag;
     if (!author && !tag) {
@@ -513,7 +522,7 @@ async function extractThumbnailFromZip(filePath, res, mode, config) {
                         config.counter++;
                     }
                 } else {
-                    console.error("[extractThumbnailFromZip extract exec failed]", code);
+                    console.error("[extractThumbnailFromZip extract exec failed]", stderrForThumbnail);
                     handleFail("extract exec failed");
                 }
             }
@@ -527,11 +536,20 @@ async function extractThumbnailFromZip(filePath, res, mode, config) {
 
 //  a huge back ground task 
 //  it generate all thumbnail and will be slow
+
+let pregenerateThumbnails_lock = false;
+
 app.post('/api/pregenerateThumbnails', async (req, res) => {
     let path = req.body && req.body.path;
     if(!path){
+        res.send({failed: true, reason: "NOT PATH"});
+        return;
+    }else if(pregenerateThumbnails_lock){
+        res.send({failed: true, reason: "Already Running"});
         return;
     }
+
+    pregenerateThumbnails_lock = true;
 
     const fastUpdateMode = req.body && req.body.fastUpdateMode;
 
@@ -553,9 +571,17 @@ app.post('/api/pregenerateThumbnails', async (req, res) => {
         totalFiles = _.shuffle(totalFiles);
     }
 
-    for(let ii = 0; ii < totalFiles.length; ii++){
-        const filePath = totalFiles[ii];
-        extractThumbnailFromZip(filePath, null, "pre-generate", config);
+    res.send({failed: false})
+
+    try{
+        for(let ii = 0; ii < totalFiles.length; ii++){
+            const filePath = totalFiles[ii];
+            await extractThumbnailFromZip(filePath, null, "pre-generate", config);
+        }
+    }catch(e){
+
+    }finally{
+        pregenerateThumbnails_lock = false;
     }
 });
 

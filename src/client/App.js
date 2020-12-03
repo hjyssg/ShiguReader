@@ -29,14 +29,26 @@ class App extends Component {
         super(props);
         this.state = {};
 
-        //todo save result to session storage
-        Sender.post('/api/getGeneralInfo', {}, res => {
-            if(!res.isFailed()){
-                this.setState({
-                    context: res.json
-                })
-            }
-        });
+        let data = sessionStorage.getItem('GeneralInfo');
+        if(data){
+            this.setState({
+                context: JSON.parse(data)
+            });
+        }else{
+            //save result to session storage
+            Sender.post('/api/getGeneralInfo', {}, res => {
+                if(!res.isFailed()){
+                    let data = res.json;
+                    this.setState({
+                        context: data
+                    });
+                    sessionStorage.setItem('GeneralInfo', JSON.stringify(data));
+                }
+            });
+        }
+
+
+  
     }
 
     componentDidMount(){

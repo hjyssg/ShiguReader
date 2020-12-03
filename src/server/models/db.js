@@ -17,8 +17,10 @@ const namePicker = require("../../human-name-picker");
 
 const loki = require("lokijs");
 const file_db = new loki();
-const file_collection = file_db.addCollection("fileTable", { 
-    indices: ['filePath', "fileName", "tags", "authors"],
+const file_collection = file_db.addCollection("fileTable", {
+    //warning too many indices will dramatically slow down insert/update 
+    indices: ['filePath', "fileName"],
+    // indices: ['filePath', "fileName", "tags", "authors"],
     unique: ['filePath'] 
 });
 
@@ -68,12 +70,19 @@ module.exports.initFileToInfo = function(obj){
     const total = _.keys(obj).length;
 
     let ii = 0;
+    const set = {};
     loopEachFileInfo(e => {
-        if(ii % 500 === 0){
+        if(ii % 1000 === 0){
             console.log("[db initFileToInfo]:", ii, `  ${(ii/total*100).toFixed(2)}%`);
         }
         ii++;
-        updateFileDb(e)
+
+        if(set[e]){
+            return;
+        }
+
+        set[e] = true;
+        updateFileDb(e, "insert")
     })
 }
 
@@ -95,10 +104,10 @@ const deleteFromFileDb = function(filePath){
 
 const sep = serverUtil.sep;
 
-const updateFileDb = function(filePath){
+const updateFileDb = function(filePath, insert){
     const fileName = path.basename(filePath);
     
-    let data = getData(filePath) || {};
+    let data = insert? {} : (getData(filePath) || {});
     data.filePath = filePath;
     data.isDisplayableInExplorer = isDisplayableInExplorer(filePath);
     data.isDisplayableInOnebook = isDisplayableInOnebook(filePath);
@@ -118,10 +127,11 @@ const updateFileDb = function(filePath){
     data.authors = (temp.authors && temp.authors.join(sep)) || temp.author || "";
     data.group = temp.group || "";
 
-    if(has(filePath)){
-        file_collection.update(data);
-    }else{
+    if(insert || !has(filePath)){
         file_collection.insert(data);
+
+    }else{
+        file_collection.update(data);
     }
 }
 
@@ -223,7 +233,11 @@ module.exports.getCacheOutputPath = function (cachePath, zipFilePath) {
         console.warn("[getCacheOutputPath] no stat", zipFilePath);
     } else {
         const mdate = new Date(stat.mtimeMs);
-        const mstr = mdate.getTime();
+        mdate.setMilliseconds(0);
+        mdate.setSeconds(0);
+        mdate.setMinutes(0);
+        mdate.setHours(0);
+        const mstr = dateFormat(mdate, "yyyy-mm-dd") // mdate.getTime();
         const fstr = (stat.size/1000/1000).toFixed();
         outputFolder = outputFolder+ `${mstr} ${fstr}`;
     }
