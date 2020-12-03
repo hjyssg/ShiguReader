@@ -38,8 +38,10 @@
 
     .submit-button {
         cursor: pointer;
-        display: inline-flex;
+        display: flex;
         align-items: center;
+        justify-content: center;
+        width: 300px;
         background-color: $bacground_level_one; 
         min-height: 26px;
         padding: 1px 5px 2px;
@@ -47,6 +49,7 @@
         border-radius: 3px;
         font-size: 9pt;
         color: $font_color_white_one;
+        margin-bottom: 10px;
 
         &:hover{
           @include hover_effect;
