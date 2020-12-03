@@ -401,7 +401,7 @@ serverUtil.common.getStat = getStat;
 
 //-----------------thumbnail related-----------------------------------
 
-app.post("/api/tagFirstImagePath", (req, res) => {
+app.post("/api/tagFirstImagePath", async (req, res) => {
     const author = req.body && req.body.author;
     const tag = req.body && req.body.tag;
     if (!author && !tag) {
@@ -418,7 +418,7 @@ app.post("/api/tagFirstImagePath", (req, res) => {
         return;
     }
 
-    extractThumbnailFromZip(chosendFileName, res);
+    await extractThumbnailFromZip(chosendFileName, res);
 });
 
 function logForPre(prefix, config, filePath) {
@@ -562,7 +562,7 @@ app.post('/api/pregenerateThumbnails', async (req, res) => {
 
     for(let ii = 0; ii < totalFiles.length; ii++){
         const filePath = totalFiles[ii];
-        extractThumbnailFromZip(filePath, null, "pre-generate", config);
+        await extractThumbnailFromZip(filePath, null, "pre-generate", config);
     }
 });
 
@@ -575,7 +575,7 @@ app.post('/api/firstImage', async (req, res) => {
         res.send({failed: true, reason: "NOT FOUND"});
         return;
     }
-    extractThumbnailFromZip(filePath, res);
+    await extractThumbnailFromZip(filePath, res);
 });
 
 app.post('/api/extract', async (req, res) => {

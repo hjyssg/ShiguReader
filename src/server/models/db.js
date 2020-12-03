@@ -223,6 +223,10 @@ module.exports.getCacheOutputPath = function (cachePath, zipFilePath) {
         console.warn("[getCacheOutputPath] no stat", zipFilePath);
     } else {
         const mdate = new Date(stat.mtimeMs);
+        mdate.setMilliseconds(0);
+        mdate.setSeconds(0);
+        mdate.setMinutes(0);
+        mdate.setHours(0);
         const mstr = mdate.getTime();
         const fstr = (stat.size/1000/1000).toFixed();
         outputFolder = outputFolder+ `${mstr} ${fstr}`;
