@@ -534,11 +534,18 @@ async function extractThumbnailFromZip(filePath, res, mode, config) {
 
 //  a huge back ground task 
 //  it generate all thumbnail and will be slow
+
+let pregenerateThumbnails_lock = false;
+
 app.post('/api/pregenerateThumbnails', async (req, res) => {
     let path = req.body && req.body.path;
     if(!path){
-        return;
+        res.send({failed: true, reason: "NOT PATH"});
+    }else if(pregenerateThumbnails_lock){
+        res.send({failed: true, reason: "Already Running"});
     }
+
+    pregenerateThumbnails_lock = true;
 
     const fastUpdateMode = req.body && req.body.fastUpdateMode;
 
@@ -560,9 +567,17 @@ app.post('/api/pregenerateThumbnails', async (req, res) => {
         totalFiles = _.shuffle(totalFiles);
     }
 
-    for(let ii = 0; ii < totalFiles.length; ii++){
-        const filePath = totalFiles[ii];
-        await extractThumbnailFromZip(filePath, null, "pre-generate", config);
+    res.send({failed: false})
+
+    try{
+        for(let ii = 0; ii < totalFiles.length; ii++){
+            const filePath = totalFiles[ii];
+            await extractThumbnailFromZip(filePath, null, "pre-generate", config);
+        }
+    }catch(e){
+
+    }finally{
+        pregenerateThumbnails_lock = false;
     }
 });
 
