@@ -572,7 +572,9 @@ export default class ExplorerPage extends Component {
         let videos = filteredVideos;
         let files = filteredFiles;
 
-        dirs.sort();
+        if(this.getMode() !== MODE_HOME){
+            dirs.sort();
+        }
 
         try {
             files = this.sortFiles(files, sortOrder);
