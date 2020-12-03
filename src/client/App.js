@@ -29,11 +29,12 @@ class App extends Component {
         super(props);
         this.state = {};
 
+        // let data = Cookie.get('GeneralInfo');
         let data = sessionStorage.getItem('GeneralInfo');
         if(data){
-            this.setState({
+            this.state = {
                 context: JSON.parse(data)
-            });
+            };
         }else{
             //save result to session storage
             Sender.post('/api/getGeneralInfo', {}, res => {
@@ -43,12 +44,10 @@ class App extends Component {
                         context: data
                     });
                     sessionStorage.setItem('GeneralInfo', JSON.stringify(data));
+                    // Cookie.set('GeneralInfo', JSON.stringify(data), { expires: 1/(24/3) });
                 }
             });
         }
-
-
-  
     }
 
     componentDidMount(){

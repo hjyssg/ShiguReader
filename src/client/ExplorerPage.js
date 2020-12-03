@@ -629,8 +629,6 @@ export default class ExplorerPage extends Component {
             });
         }
 
-
-
         //! !todo if the file is already an image file
         files = this.getFileInPage(files);
 
