@@ -541,8 +541,10 @@ app.post('/api/pregenerateThumbnails', async (req, res) => {
     let path = req.body && req.body.path;
     if(!path){
         res.send({failed: true, reason: "NOT PATH"});
+        return;
     }else if(pregenerateThumbnails_lock){
         res.send({failed: true, reason: "Already Running"});
+        return;
     }
 
     pregenerateThumbnails_lock = true;
