@@ -227,7 +227,7 @@ module.exports.getCacheOutputPath = function (cachePath, zipFilePath) {
         mdate.setSeconds(0);
         mdate.setMinutes(0);
         mdate.setHours(0);
-        const mstr = mdate.getTime();
+        const mstr = dateFormat(mdate, "yyyy-mm-dd") // mdate.getTime();
         const fstr = (stat.size/1000/1000).toFixed();
         outputFolder = outputFolder+ `${mstr} ${fstr}`;
     }

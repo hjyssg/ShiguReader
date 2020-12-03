@@ -418,7 +418,7 @@ app.post("/api/tagFirstImagePath", async (req, res) => {
         return;
     }
 
-    await extractThumbnailFromZip(chosendFileName, res);
+    extractThumbnailFromZip(chosendFileName, res);
 });
 
 function logForPre(prefix, config, filePath) {
@@ -575,7 +575,7 @@ app.post('/api/firstImage', async (req, res) => {
         res.send({failed: true, reason: "NOT FOUND"});
         return;
     }
-    await extractThumbnailFromZip(filePath, res);
+    extractThumbnailFromZip(filePath, res);
 });
 
 app.post('/api/extract', async (req, res) => {
