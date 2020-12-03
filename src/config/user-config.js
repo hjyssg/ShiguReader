@@ -67,6 +67,10 @@ module.exports.readable_cache_folder_name = true;
 //wether to clip page
 module.exports.keep_clip = false;
 
+//漫画阅读中调整图片大小以后，翻页是不是还要保存
+//wether to save resize Ratio
+module.exports.keep_ratio = false;
+
 //非localhost的机器想移动删除文件，需要在admin输出密码才可以获得权限
 //并不是高明的安全机制
 //注：Shigureader设计实现，只考虑在LAN情况下的性能和安全性。

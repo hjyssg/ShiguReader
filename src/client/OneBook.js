@@ -29,6 +29,7 @@ const { getDir, getBaseName, isMobile, getFileUrl, sortFileNames, filesizeUitl }
 const namePicker = require("../human-name-picker");
 import { GlobalContext } from './globalContext'
 
+var savedRatio=null;
 
 const NO_TWO_PAGE = "no_clip";
 const TWO_PAGE_LEFT = "left";
@@ -189,7 +190,11 @@ export default class OneBook extends Component {
   }
 
   applyHWSetToImage(set){
-    this.applyHWToImage(set[0], set[1]);
+    if(savedRatio&&userConfig.keep_ratio){
+      this.applyHWToImage(set[0]*savedRatio, set[1]*savedRatio);
+    }else{
+      this.applyHWToImage(set[0], set[1]);
+    }
   }
 
   applyHWToImage(height, width){
@@ -212,6 +217,7 @@ export default class OneBook extends Component {
     const delta = -e.deltaY || e.wheelDelta;
     const newHeight = delta > 0?  this.imgDomHeight * CHANGE_RATE : this.imgDomHeight / CHANGE_RATE;
     const newWidth = newHeight/this.imgTrueHeight * this.imgTrueWidth;
+    savedRatio=newHeight/this.getMaxHeight();
     this.applyHWToImage(newHeight, newWidth);
     e.preventDefault && e.preventDefault();
   }
