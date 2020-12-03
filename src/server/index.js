@@ -520,7 +520,7 @@ async function extractThumbnailFromZip(filePath, res, mode, config) {
                         config.counter++;
                     }
                 } else {
-                    console.error("[extractThumbnailFromZip extract exec failed]", code);
+                    console.error("[extractThumbnailFromZip extract exec failed]", stderrForThumbnail);
                     handleFail("extract exec failed");
                 }
             }
