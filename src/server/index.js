@@ -335,7 +335,7 @@ function setUpFileWatch (path_will_scan){
         .on('unlinkDir', deleteCallBack);
 
     //todo: it takes 3 min to get ready for 130k files
-    watcher.on('ready', () => console.log('Initial scan complete. Ready for changes'))
+    watcher.on('ready', () => console.log('[chokidar] Initial scan complete.'))
 
     //also for cache files
     const cacheWatcher = chokidar.watch(cachePath, {
