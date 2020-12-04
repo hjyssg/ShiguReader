@@ -24,7 +24,6 @@ function getGoodAndOtherSet(){
     .where(obj => {
         // const temp = serverUtil.parse(p);
         // const name = temp && temp.author;
-
         const authors = obj.authors.split(sep);
         const name = authors[0];
         if(name){
@@ -38,7 +37,7 @@ function getGoodAndOtherSet(){
     });
     
     let end2 = (new Date).getTime();
-    console.log(`${(end2 - beg)/1000}s to getGoodAndOtherSet`);
+    // console.log(`${(end2 - beg)/1000}s to getGoodAndOtherSet`);
 
     return {
         set,
