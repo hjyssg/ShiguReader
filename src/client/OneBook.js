@@ -29,8 +29,6 @@ const { getDir, getBaseName, isMobile, getFileUrl, sortFileNames, filesizeUitl }
 const namePicker = require("../human-name-picker");
 import { GlobalContext } from './globalContext'
 
-var savedRatio=null;
-
 const NO_TWO_PAGE = "no_clip";
 const TWO_PAGE_LEFT = "left";
 const TWO_PAGE_RIGHT = "right";
@@ -43,7 +41,8 @@ export default class OneBook extends Component {
       files: [],
       musicFiles: [],
       index: this.getInitIndex(),
-      twoPageMode: NO_TWO_PAGE
+      twoPageMode: NO_TWO_PAGE,
+      zoom_scale:null
     };
   }
 
@@ -190,8 +189,8 @@ export default class OneBook extends Component {
   }
 
   applyHWSetToImage(set){
-    if(savedRatio&&userConfig.keep_ratio){
-      this.applyHWToImage(set[0]*savedRatio, set[1]*savedRatio);
+    if(this.state.zoom_scale&&userConfig.keep_zoom_scale){
+      this.applyHWToImage(set[0]*this.state.zoom_scale, set[1]*this.state.zoom_scale);
     }else{
       this.applyHWToImage(set[0], set[1]);
     }
@@ -217,7 +216,7 @@ export default class OneBook extends Component {
     const delta = -e.deltaY || e.wheelDelta;
     const newHeight = delta > 0?  this.imgDomHeight * CHANGE_RATE : this.imgDomHeight / CHANGE_RATE;
     const newWidth = newHeight/this.imgTrueHeight * this.imgTrueWidth;
-    savedRatio=newHeight/this.getMaxHeight();
+    this.state.zoom_scale=newHeight/this.getMaxHeight();
     this.applyHWToImage(newHeight, newWidth);
     e.preventDefault && e.preventDefault();
   }
