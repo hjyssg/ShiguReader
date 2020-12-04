@@ -53,8 +53,8 @@ export default class AdminPage extends Component {
 
     handleCacheRes(res){
         if (!res.isFailed()) {
-            let { totalSize, cacheNum } = res.json;
-            this.setState({totalSize, cacheNum})
+            let { totalSize, cacheNum, thumbCount } = res.json;
+            this.setState({totalSize, cacheNum, thumbCount})
         }else{
             this.failedTimes++;
         }
@@ -253,7 +253,7 @@ export default class AdminPage extends Component {
         document.title = "Admin"
         const folder_list = this.state.dirs.concat("All_Pathes");
 
-        const { totalSize, cacheNum } = this.state
+        const { totalSize, cacheNum, thumbCount } = this.state
         const size = totalSize && clientUtil.filesizeUitl(totalSize);
         let cacheInfo;
 
@@ -271,6 +271,7 @@ export default class AdminPage extends Component {
 
                 <div className="admin-section">
                     <div className="admin-section-title"> Pregenerate Thumbnail and Update Internal Database</div>
+                    <div className="admin-section-title"> {`${thumbCount||0} thumbnail exsiting` } </div>
                     <div className="admin-section-content">
                         <RadioButtonGroup checked={folder_list.indexOf(this.state.prePath)} 
                                         options={folder_list} name="pregenerate" onChange={this.onPathChange.bind(this)}/>

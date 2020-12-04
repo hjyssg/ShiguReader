@@ -248,6 +248,8 @@ function getThumbCount(){
     return _.keys(thumbnailDb).length;
 }
 
+global.getThumbCount = getThumbCount;
+
 function getExt(p){
     const ext = path.extname(p).toLowerCase();
     //xxx NO.003 xxx is not meaningful extension

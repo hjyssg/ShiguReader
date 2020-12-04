@@ -15,6 +15,7 @@ router.post('/api/cacheInfo', (req, res) => {
     })
 
     res.send({
+        thumbCount: global.getThumbCount(),
         totalSize: totalSize,
         cacheNum: cacheFiles.length
     })
