@@ -6,7 +6,7 @@ const parse = serverUtil.parse;
 const zipInfoDb = require("../models/zipInfoDb");
 const { getZipInfo }  = zipInfoDb;
 const util = global.requireUtil();
-const {escapeRegExp} = util;
+const { escapeRegExp } = util;
 const path = require('path');
 const _ = require('underscore');
 

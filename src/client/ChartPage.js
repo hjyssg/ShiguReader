@@ -110,10 +110,12 @@ export default class ChartPage extends Component {
             });
 
             Sender.post('/api/getGoodAuthorNames', {}, res =>{
-                this.setState({
-                    goodAuthors: res.goodAuthors,
-                    otherAuthors: res.otherAuthors
-                })
+                if(!res.isFailed()){
+                    this.setState({
+                        goodAuthors: res.json.goodAuthors,
+                        otherAuthors: res.json.otherAuthors
+                    })
+                }
             });
         }
     }

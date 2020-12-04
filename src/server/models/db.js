@@ -40,7 +40,7 @@ module.exports.getAllFilePathes = function(){
     return _.keys(db.fileToInfo);
 };
 
-const loopEachFileInfo = module.exports.loopEachFileInfo = function(callback){
+const loopEachFileInfo = function(callback){
     for(let filePath in db.fileToInfo){
         if(db.fileToInfo.hasOwnProperty(filePath)){
             callback(filePath, db.fileToInfo[filePath]);

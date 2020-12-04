@@ -3,36 +3,42 @@
 const express = require('express');
 const router = express.Router();
 const db = require("../models/db");
-const { loopEachFileInfo } = db;
+const { getFileCollection } = db;
 const util = global.requireUtil();
-const { isCompress } = util;
+const { isCompress, escapeRegExp } = util;
 const userConfig = global.requireUserConfig();
 const serverUtil = require("../serverUtil");
 
 function getGoodAndOtherSet(){
     let beg = (new Date).getTime();
 
-    //todo this takes 0.15s
-    //too slow
+    let set = {};
+    let otherSet = {};
+    const sep = serverUtil.sep;
 
-    const set = {};
-    const otherSet = {};
-    loopEachFileInfo(p => {
-        if(isCompress(p)){
-            const temp = serverUtil.parse(p);
-            const name = temp && temp.author;
-            if(name){
-                if(p.startsWith(userConfig.good_folder_root)){
-                    set[name] = set[name]? set[name]+1: 1;
-                }else{
-                    otherSet[name] = otherSet[name]? otherSet[name]+1: 1;
-                }
+    const reg = escapeRegExp(userConfig.good_folder_root);
+
+    getFileCollection()
+    .chain()
+    .find({isDisplayableInExplorer: true })
+    .where(obj => {
+        // const temp = serverUtil.parse(p);
+        // const name = temp && temp.author;
+
+        const authors = obj.authors.split(sep);
+        const name = authors[0];
+        if(name){
+            if(obj.filePath.match(reg)){
+                set[name] = set[name]? set[name]+1: 1;
+            }else{
+                otherSet[name] = otherSet[name]? otherSet[name]+1: 1;
             }
         }
+        return false;
     });
-
-    let end1 = (new Date).getTime();
-    console.log(`${(end1 - beg)/1000}s to getGoodAndOtherSet`);
+    
+    let end2 = (new Date).getTime();
+    console.log(`${(end2 - beg)/1000}s to getGoodAndOtherSet`);
 
     return {
         set,

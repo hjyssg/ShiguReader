@@ -223,11 +223,13 @@ export default class ExplorerPage extends Component {
 
         this.bindUserInteraction();
 
-        Sender.postWithPromise('/api/getGoodAuthorNames', {}, res =>{
-            this.setState({
-                goodAuthors: res.goodAuthors,
-                otherAuthors: res.otherAuthors
-            })
+        Sender.post('/api/getGoodAuthorNames', {}, res =>{
+            if(!res.isFailed()){
+                this.setState({
+                    goodAuthors: res.json.goodAuthors,
+                    otherAuthors: res.json.otherAuthors
+                })
+            }
         });
     }
 
