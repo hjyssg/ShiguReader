@@ -192,6 +192,7 @@ async function init() {
     console.log(`${(end3 - end1)/1000}s  to read thumbnail dirs`);
     initThumbnailDb(thumbnail_pathes);
 
+    //todo: chokidar will slow the server down very much when it init async
     setUpFileWatch(path_will_watch);
 
     try{
