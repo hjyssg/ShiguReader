@@ -271,7 +271,7 @@ export default class AdminPage extends Component {
 
                 <div className="admin-section">
                     <div className="admin-section-title"> Pregenerate Thumbnail and Update Internal Database</div>
-                    <div className="admin-section-title"> {`${thumbCount||0} thumbnail exsiting` } </div>
+                    <div className=""> {` There are ${thumbCount||0} thumbnail exsiting` } </div>
                     <div className="admin-section-content">
                         <RadioButtonGroup checked={folder_list.indexOf(this.state.prePath)} 
                                         options={folder_list} name="pregenerate" onChange={this.onPathChange.bind(this)}/>

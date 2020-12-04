@@ -10,6 +10,11 @@ const userConfig = global.requireUserConfig();
 const serverUtil = require("../serverUtil");
 
 function getGoodAndOtherSet(){
+    let beg = (new Date).getTime();
+
+    //todo this takes 0.15s
+    //too slow
+
     const set = {};
     const otherSet = {};
     loopEachFileInfo(p => {
@@ -25,6 +30,9 @@ function getGoodAndOtherSet(){
             }
         }
     });
+
+    let end1 = (new Date).getTime();
+    console.log(`${(end1 - beg)/1000}s to getGoodAndOtherSet`);
 
     return {
         set,

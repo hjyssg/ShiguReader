@@ -29,7 +29,7 @@ const { isHiddenFile } = serverUtil;
 
 const { fullPathToUrl, generateContentUrl, isExist,  getHomePath } = pathUtil;
 const { isImage, isCompress, isMusic, arraySlice, 
-        getCurrentTime, isDisplayableInExplorer, isDisplayableInOnebook } = util;
+        getCurrentTime, isDisplayableInExplorer, isDisplayableInOnebook, escapeRegExp } = util;
 
 //set up path
 const rootPath = pathUtil.getRootPath();
@@ -731,8 +731,15 @@ app.post('/api/getGeneralInfo', async (req, res) => {
     };
 
     let folderArr = [userConfig.good_folder, userConfig.not_good_folder].concat(userConfig.additional_folder);
-    folderArr = await pathUtil.filterNonExist(folderArr);
 
+    //dulicate code as /api/homePagePath
+    folderArr = folderArr.filter(e => {
+        if(e){
+            const reg = escapeRegExp(e);
+            //check if pathes really exist by checking there is file in the folder
+            return !!getFileCollection().findOne({'filePath': { '$regex' : reg }, isDisplayableInExplorer: true });
+        }
+    })
 
     result.good_folder = folderArr.includes(userConfig.good_folder)? userConfig.good_folder : "";
     result.not_good_folder = folderArr.includes(userConfig.not_good_folder)?  userConfig.not_good_folder : "";

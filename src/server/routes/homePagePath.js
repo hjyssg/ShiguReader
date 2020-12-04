@@ -8,6 +8,7 @@ const util = global.requireUtil();
 const {escapeRegExp} = util;
 
 router.post('/api/homePagePath', function (req, res) {
+    let beg = (new Date).getTime();
     let result = global.path_will_scan;
     result = result.filter(e => {
         if(e){
@@ -25,5 +26,8 @@ router.post('/api/homePagePath', function (req, res) {
             dirs: result
         })
     }
+
+    let end1 = (new Date).getTime();
+    console.log(`${(end1 - beg)/1000}s to /api/homePagePath`);
 });
 module.exports = router;
