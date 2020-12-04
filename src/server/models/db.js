@@ -40,13 +40,7 @@ module.exports.getAllFilePathes = function(){
     return _.keys(db.fileToInfo);
 };
 
-const loopEachFileInfo = function(callback){
-    for(let filePath in db.fileToInfo){
-        if(db.fileToInfo.hasOwnProperty(filePath)){
-            callback(filePath, db.fileToInfo[filePath]);
-        }
-    }
-}
+
 
 const getFileToInfo = module.exports.getFileToInfo = function(filePath){
     if(filePath){
@@ -66,24 +60,23 @@ module.exports.getAllCacheFilePathes = function(){
 
 module.exports.initFileToInfo = function(obj){
     db.fileToInfo = obj;
+    const keys = _.keys(obj);
+    const total = keys.length;
+    const two_percent = Math.floor(2*total/100);
 
-    const total = _.keys(obj).length;
-
-    let ii = 0;
     const set = {};
-    loopEachFileInfo(e => {
-        if(ii % 1000 === 0){
-            console.log("[db initFileToInfo]:", ii, `  ${(ii/total*100).toFixed(2)}%`);
-        }
-        ii++;
-
+    for(let ii = 0; ii < total; ii++){
+        const e = keys[ii];
         if(set[e]){
             return;
+        }
+        if(ii % two_percent === 0){
+            console.log("[db initFileToInfo]:", ii, `  ${(ii/total*100).toFixed(2)}%`);
         }
 
         set[e] = true;
         updateFileDb(e, "insert")
-    })
+    }
 }
 
 function getData(filePath){
