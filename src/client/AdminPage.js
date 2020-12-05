@@ -251,7 +251,8 @@ export default class AdminPage extends Component {
 
     render(){
         document.title = "Admin"
-        const folder_list = this.state.dirs.concat("All_Pathes");
+        let folder_list = this.state.dirs.slice();
+        folder_list.unshift("All_Pathes");
 
         const { totalSize, cacheNum, thumbCount } = this.state
         const size = totalSize && clientUtil.filesizeUitl(totalSize);
@@ -271,8 +272,8 @@ export default class AdminPage extends Component {
 
                 <div className="admin-section">
                     <div className="admin-section-title"> Pregenerate Thumbnail and Update Internal Database</div>
-                    <div className=""> {` There are ${thumbCount||0} thumbnail exsiting` } </div>
                     <div className="admin-section-content">
+                        <div className=""> {`thumbnail: ${thumbCount||0}` } </div>
                         <RadioButtonGroup checked={folder_list.indexOf(this.state.prePath)} 
                                         options={folder_list} name="pregenerate" onChange={this.onPathChange.bind(this)}/>
                         <input className="admin-intput" ref={pathInput => this.pathInputRef = pathInput} placeholder="...or any other path"/>

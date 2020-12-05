@@ -28,6 +28,6 @@ router.post('/api/homePagePath', function (req, res) {
     }
 
     let end1 = (new Date).getTime();
-    console.log(`${(end1 - beg)/1000}s to /api/homePagePath`);
+    // console.log(`${(end1 - beg)/1000}s to /api/homePagePath`);
 });
 module.exports = router;
