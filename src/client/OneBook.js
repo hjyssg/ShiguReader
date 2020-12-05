@@ -38,6 +38,9 @@ const TWO_PAGE_RIGHT = "right";
 export default class OneBook extends Component {
   constructor(props) {
     super(props);
+
+    this.zoom_scale = null;
+
     this.state = {
       files: [],
       musicFiles: [],
@@ -121,6 +124,11 @@ export default class OneBook extends Component {
     this.imgDomWidth =  imageDom.clientWidth; 
     this.imgTrueHeight = imageDom.naturalHeight;
     this.imgTrueWidth = imageDom.naturalWidth;
+
+    if(this.zoom_scale && userConfig.keep_zoom_scale){
+      this.applyHWToImage((this.imgTrueHeight  * this.zoom_scale), (this.imgTrueWidth * this.zoom_scale));
+      return;
+    }
 
     //display img's real px number
     const dimDom = document.getElementsByClassName("dimension-tag")[0];
@@ -212,6 +220,9 @@ export default class OneBook extends Component {
     const delta = -e.deltaY || e.wheelDelta;
     const newHeight = delta > 0?  this.imgDomHeight * CHANGE_RATE : this.imgDomHeight / CHANGE_RATE;
     const newWidth = newHeight/this.imgTrueHeight * this.imgTrueWidth;
+
+    this.zoom_scale = newHeight / this.imgTrueHeight;
+
     this.applyHWToImage(newHeight, newWidth);
     e.preventDefault && e.preventDefault();
   }
