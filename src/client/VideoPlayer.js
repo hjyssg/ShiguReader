@@ -75,6 +75,14 @@ export default class VideoPlayer extends Component {
       </div>);
   }
 
+  onLoadedMetadata(){
+    const hh = this.videoRef.videoHeight; // returns the intrinsic height of the video
+    const ww = this.videoRef.videoWidth; 
+    if(hh > ww){
+      this.videoRef.className = "vertical-video"
+    }
+  }
+
   render() {
     const filePath = this.getTextFromQuery();
     const url = clientUtil.getDownloadLink(this.getTextFromQuery());
@@ -102,8 +110,8 @@ export default class VideoPlayer extends Component {
     }else{
       content = (
         <div className="video-player-container">
-          <video id="videoPlayer" controls> 
-            <source src={url} type="video/mp4" onError={this.onError.bind(this)} />
+          <video id="videoPlayer"  ref={(e) =>  this.videoRef = e} controls  onLoadedMetadata={this.onLoadedMetadata.bind(this)}> 
+            <source src={url} type="video/mp4" onError={this.onError.bind(this)}/>
           </video>
         </div>
       );
