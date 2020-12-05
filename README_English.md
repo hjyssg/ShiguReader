@@ -35,7 +35,8 @@ Read Comic/Play Music and Video on all platforms
 ##### Quick Start
 
 ```bash
-# If you do not have nodejs installed, please go to https://nodejs.org/
+# If you do not have Node.js installed, please go to https://nodejs.org/
+# Node.js 14 is recommended
 
 # install imagemagick  from https://imagemagick.org
 
@@ -65,7 +66,7 @@ npm run dev
 
 | software      | must have | note                           |
 |---------------|-----------|--------------------------------|
-| node.js       | yes       |                                |
+| Node.js       | yes       |                                |
 | image magick  | no        | nice to have                |
 | sevenzip      | *         | Windows does not need to install. Must have for *nix    |
 | everything    | no        | nice to have for Windows    |

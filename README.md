@@ -51,7 +51,7 @@
 ```bash
 # 不要跳过下面任何一个步骤
 
-# 没有nodejs,麻烦先安装nodejs https://nodejs.org/
+# 没有Node.js 14,麻烦先安装nodejs https://nodejs.org/
 
 # 到 https://imagemagick.org 下载安装image magick。 
 # imagemagick是用来压缩图片的。不安装也没事，但强烈建议安装。
@@ -113,7 +113,7 @@ npm run dev
 
 | software      | must have | note                           |
 |---------------|-----------|--------------------------------|
-| node.js       | yes       |                                |
+| Node.js       | yes       |                                |
 | image magick  | no        | nice to have                |
 | sevenzip      | *         | Windows does not need to install. Must have for *nix    |
 | everything    | no        | nice to have for Windows    |
