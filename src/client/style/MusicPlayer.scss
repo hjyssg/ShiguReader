@@ -15,7 +15,13 @@
         color: $font_color_white_one;
         cursor: pointer;
         margin-bottom: 10px;
-        overflow-x: visible;
+        // overflow-x: visible;
+
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        flex-shrink: 1;
+        font-size: 12px;
 
         &:hover {
             @include third_hover_effect;
