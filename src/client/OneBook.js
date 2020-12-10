@@ -350,18 +350,16 @@ export default class OneBook extends Component {
   }
   
   hideSpinner(){
-    this._beginLoading = false;
+    clearTimeout(this._spinner_timer);
     document.querySelector(".one-book-img-load-spinner").classList.remove("show");
   }
   
   showSpinner(){
-    this._beginLoading = true;
     //debounce
-    setTimeout(()=>{
-      if(this._beginLoading){
-        document.querySelector(".one-book-img-load-spinner").classList.add("show");
-      }
-    }, 300);
+    clearTimeout(this._spinner_timer);
+    this._spinner_timer =  setTimeout(()=>{
+      document.querySelector(".one-book-img-load-spinner").classList.add("show");
+    }, 900);
   }
 
   changePage(index, event) {
