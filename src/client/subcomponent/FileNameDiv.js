@@ -92,8 +92,7 @@ export default class FileNameDiv extends Component {
     
 
     //less meaningful
-    //todo: use jpn tokenizer, replace this line below with server tokens
-    let lessTags = (mecab_tokens && mecab_tokens.length > 1)? mecab_tokens  : namePicker.splitBySpace(text);
+    let lessTags = (mecab_tokens && mecab_tokens.length > 1)? mecab_tokens : namePicker.splitBySpace(text);
     lessTags = lessTags.filter(e => !allTags.includes(e));
     allTags = allTags.concat(lessTags);
 
