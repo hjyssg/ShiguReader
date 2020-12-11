@@ -68,9 +68,10 @@ npm run dev
 |---------------|-----------|--------------------------------|
 | Node.js       | yes       |                                |
 | image magick  | no        | nice to have                |
-| sevenzip      | *         | Windows does not need to install. Must have for *nix    |
+| 7-Zip         | *         | Windows does not need to install. Must have for *nix    |
 | everything    | no        | nice to have for Windows    |
 | git bash      | *         | must have for Windows, no for *nix |
+| MeCab         | no        | nice to have |
 
 ##### Safety
 ShiguReader is not safe when being accessed from the public IP. The server is not prepared for any cyber attack.

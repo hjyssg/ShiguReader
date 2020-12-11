@@ -58,7 +58,7 @@ export default class FileNameDiv extends Component {
   }
 
   getText(){
-    const filename = this.props.filename;
+    const { filename, mecab_tokens }= this.props;
     const text = clientUtil.getBaseNameWithoutExtention(filename);
     const extension = filename.replace(text, "");
 
@@ -93,7 +93,7 @@ export default class FileNameDiv extends Component {
 
     //less meaningful
     //todo: use jpn tokenizer, replace this line below with server tokens
-    let lessTags = namePicker.splitBySpace(text);
+    let lessTags = mecab_tokens || namePicker.splitBySpace(text);
     lessTags = lessTags.filter(e => !allTags.includes(e));
     allTags = allTags.concat(lessTags);
 

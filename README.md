@@ -114,10 +114,11 @@ npm run dev
 | software      | must have | note                           |
 |---------------|-----------|--------------------------------|
 | Node.js       | yes       |                                |
-| image magick  | no        | nice to have                |
-| sevenzip      | *         | Windows does not need to install. Must have for *nix    |
-| everything    | no        | nice to have for Windows    |
+| image magick  | no        | nice to have                 |
+| 7-Zip      | *         | Windows does not need to install. Must have for *nix    |
+| everything    | no        | nice to have for Windows. Not available for *nix    |
 | git bash      | *         | must have for Windows, no for *nix |
+| MeCab         | no        | nice to have |
 
 ##### 注意事项
 如果部分文件名带汉字日语假名的图片加载不出来，你可能需要如下语言设置。

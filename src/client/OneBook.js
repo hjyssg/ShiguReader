@@ -296,7 +296,7 @@ export default class OneBook extends Component {
   async handleRes(res){
       this.res = res;
       if (!res.isFailed()) {
-        let {zipInfo, path, stat, files,  musicFiles } = res.json;
+        let {zipInfo, path, stat, files,  musicFiles, mecab_tokens } = res.json;
         files = files || [];
         musicFiles = musicFiles || [];
 
@@ -306,7 +306,7 @@ export default class OneBook extends Component {
         sortFileNames(files);
         sortFileNames(musicFiles);
 
-        this.setState({ files, musicFiles, path, fileStat: stat, zipInfo}, 
+        this.setState({ files, musicFiles, path, fileStat: stat, zipInfo, mecab_tokens}, 
                        () => { this.bindUserInteraction()});
         clientUtil.saveFilePathToCookie(this.getTextFromQuery());
       } else {
@@ -720,9 +720,9 @@ export default class OneBook extends Component {
       return <ErrorPage res={this.res} filePath={fp}/>;
     }
 
-    const { files, index, musicFiles, ehentai_metadata } = this.state;
+    const { files, index, musicFiles, ehentai_metadata, mecab_tokens } = this.state;
     const bookTitle = (<div className="one-book-title" >
-                           <FileNameDiv filename={getBaseName(this.state.path)} />
+                           <FileNameDiv mecab_tokens={mecab_tokens} filename={getBaseName(this.state.path)} />
                           {this.renderPath()} 
                       </div>);
 

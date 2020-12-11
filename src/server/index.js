@@ -202,6 +202,8 @@ async function init() {
         console.error(e);
     }
 
+    initMecab();
+
     const port = isProduction? http_port: dev_express_port;
     const server = app.listen(port, async () => {
         console.log("----------------------------------------------------------------");
@@ -364,6 +366,72 @@ function setUpFileWatch (path_will_scan){
         watcher,
         cacheWatcher
     };
+}
+
+function initMecab(){
+    let parseAsync;
+    try{
+        const MeCab = require('mecab-async');
+        const mecab = new MeCab();
+        const _util = require('util');
+        parseAsync = _util.promisify(mecab.parse).bind(mecab);
+    }catch(e){
+        //nothing
+    }
+
+    global.mecab_getTokens = async (str) => {
+        let result = [];
+        try{
+            if(parseAsync){
+                //pre-processing of the str
+                str = path.basename(str, path.extname(str));
+                let pObj = serverUtil.parse(str);
+                if(pObj && pObj.title){
+                    str = pObj.title;
+                }
+
+                //do the Mecab
+                let tokens = await parseAsync(str);
+                // console.log(tokens);
+
+                //handle the tokens
+                tokens = tokens
+                .filter(row => {
+                    return ["名詞", "動詞"].includes(row[1]) ;
+                })
+                .map(row => row[0]);
+
+                //[apple, c, b, k, llll, p, p, p] 
+                // => 
+                // [apple, cbk, llll, ppp] 
+                let acToken = "";
+                const len = tokens.length;
+                let ii = 0;
+                while(ii < len){
+                    let tempToken = tokens[ii];
+                    if(tempToken.length > 1){
+                        if(acToken.length > 1){
+                            result.push(acToken);
+                        }
+                        result.push(tempToken)
+                        acToken = "";
+                    } else if(tempToken.length === 1){
+                        acToken += tempToken;
+                    }
+                    ii++;
+                }
+                //the last token
+                if(acToken.length > 1){
+                    result.push(acToken);
+                }
+            }
+        }catch(e){
+            //nothing 
+            console.warn(e);
+        }finally{
+            return result;
+        }
+    }
 }
 
 
@@ -637,7 +705,7 @@ app.post('/api/extract', async (req, res) => {
     const stat = await getStat(filePath);
  
 
-    function sendBack(files, musicFiles, path, stat){
+    async function sendBack(files, musicFiles, path, stat){
         const tempFiles =  files.filter(e => {
             return !isHiddenFile(e);
           });
@@ -645,7 +713,10 @@ app.post('/api/extract', async (req, res) => {
         if(tempFiles.length > 0){
             zipInfo = getZipInfo([path])[path];
         }
-        res.send({ files: tempFiles, musicFiles, path, stat, zipInfo });
+
+        const mecab_tokens = await global.mecab_getTokens(path);
+
+        res.send({ files: tempFiles, musicFiles, path, stat, zipInfo, mecab_tokens });
     }
 
     const outputPath = getCacheOutputPath(cachePath, filePath);
