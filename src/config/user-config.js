@@ -79,12 +79,10 @@ config.keep_zoom_scale = false;
 //Naive password when access remotely
 config.file_change_password = "2020";
 
-//-------------------------------experimental feature 
-
-//实验性功能
+//-------------------------------experimental feature  实验性功能
 //If you use Everything
 //you can enable its http server, ShiguReader will use its data and increase performance
-config.everything_http_server_port = "5001"
+config.everything_http_server_port = ""
 
 //----------------------------image compress parameter-------------------------------------------------
 

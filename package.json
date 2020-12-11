@@ -1,6 +1,6 @@
 {
   "name": "ShiguReader",
-  "version": "1.4.2",
+  "version": "1.5.0",
   "description": "All-in-one solution for local doujin/anime/music file",
   "main": "src/server/index.js",
   "bin": "src/server/index.js",
