@@ -368,7 +368,7 @@ function setUpFileWatch(path_will_scan) {
     };
 }
 
-function initMecab() {
+async function initMecab() {
     let parseAsync;
     try {
         const MeCab = require('mecab-async');
