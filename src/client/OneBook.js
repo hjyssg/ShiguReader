@@ -461,9 +461,9 @@ export default class OneBook extends Component {
                     <div className={titles[ii] ==="Dimensions"? "dimension-tag": ""} 
                       key={e+ii} style={{marginLeft:"15px"}} title={titles[ii]}> {e} 
                     </div>);
-      const mobilePageNum = isMobile() && (
-        <div onClick={this.onClickPagination.bind(this)} style={{marginLeft:"15px"}} > {`${index+1}/${files.length}`}  </div>
-      )
+      const mobilePageNum = (<div className="mobile-page-num" 
+                            onClick={this.onClickPagination.bind(this)} > 
+                              {`${index+1}/${files.length}`}  </div>)
       return <div className={"one-book-file-stat"}>{texts} {mobilePageNum} </div>
     }
   }

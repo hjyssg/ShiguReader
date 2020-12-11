@@ -125,11 +125,11 @@
     justify-content: flex-start;
   }
 
-  .one-book-tags div{
+  .one-book-tags div {
     margin-right: 10px;
   }
 
-  .one-book-foot-author{
+  .one-book-foot-author {
     &:hover{
       a{
         @include third_hover_effect;
@@ -159,6 +159,15 @@
     color: $font_color_white_one;
     display: flex;
     font-size: 14px;
+
+    .mobile-page-num{
+      cursor: pointer;
+      margin-left: 15px;
+
+      &:hover {
+        @include third_hover_effect;
+      }
+    }
   }
 
   .one-book-second-toolbar {
@@ -209,8 +218,6 @@
   }
 }
 
-
-
 .one-book-overview-container {
   .one-book-title{
     padding-top: 10px;
@@ -248,7 +255,7 @@
 }
 
 
-.one-book-img-load-spinner{
+.one-book-img-load-spinner {
   display: none;
 
 
