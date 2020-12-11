@@ -425,11 +425,7 @@ export default class ExplorerPage extends Component {
 
         if(filterByOversizeImage){
            files = files.filter(e => {
-               if(this.zipInfo[e]){
-                   if(this.getPageAvgSize(e)/1024/1024 > userConfig.oversized_image_size){
-                       return e;
-                   }
-               }
+                return this.getPageAvgSize(e)/1024/1024 > userConfig.oversized_image_size
            })
         }
 
@@ -445,12 +441,7 @@ export default class ExplorerPage extends Component {
 
         if(filterByHasMusic){
             files = files.filter(e => {
-                if(this.zipInfo[e]){
-                    const musicNum =  this.zipInfo[e].musicNum || 0;
-                    if(musicNum > 0){
-                        return e;
-                    }
-                }
+                return this.getMusicNum(e) > 0;
             })
         }
 
