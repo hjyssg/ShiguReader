@@ -9,6 +9,7 @@ import { Link } from 'react-router-dom';
 import Sender from './Sender';
 import './style/OneBook.scss';
 import ErrorPage from './ErrorPage';
+import Spinner from './subcomponent/Spinner';
 import CenterSpinner from './subcomponent/CenterSpinner';
 import FileNameDiv from './subcomponent/FileNameDiv';
 import FileChangeToolbar from './subcomponent/FileChangeToolbar';
@@ -29,11 +30,9 @@ const { getDir, getBaseName, isMobile, getFileUrl, sortFileNames, filesizeUitl }
 const namePicker = require("../human-name-picker");
 import { GlobalContext } from './globalContext'
 
-
 const NO_TWO_PAGE = "no_clip";
 const TWO_PAGE_LEFT = "left";
 const TWO_PAGE_RIGHT = "right";
-
 
 export default class OneBook extends Component {
   constructor(props) {
@@ -72,7 +71,7 @@ export default class OneBook extends Component {
       });
      }
 
-    window.addEventListener("resize", this.adjustImageSizeAfterResize.bind(this));
+    window.addEventListener("resize", this.adjustImageSize.bind(this));
   }
   
   updateScrollPos(e) {
@@ -82,10 +81,6 @@ export default class OneBook extends Component {
     let change = $(window).scrollTop() + (this.clickY - e.pageY) * ADJUSTER;
     $(window).scrollTop(change);
     // console.log(change)
-  }
-
-  adjustImageSizeAfterResize(){
-    this.adjustImageSize();
   }
 
   getMaxHeight(){
@@ -321,7 +316,7 @@ export default class OneBook extends Component {
   
   componentWillUnmount() {
     document.removeEventListener("keydown", this.handleKeyDown.bind(this));
-    window && window.removeEventListener("resize", this.adjustImageSizeAfterResize.bind(this));
+    window && window.removeEventListener("resize", this.adjustImageSize.bind(this));
   }
   
   handleKeyDown(event) {
@@ -353,6 +348,19 @@ export default class OneBook extends Component {
   getLastIndex(){
     return (this.state.files || []).length - 1;
   }
+  
+  hideSpinner(){
+    clearTimeout(this._spinner_timer);
+    document.querySelector(".one-book-img-load-spinner").classList.remove("show");
+  }
+  
+  showSpinner(){
+    //debounce
+    clearTimeout(this._spinner_timer);
+    this._spinner_timer =  setTimeout(()=>{
+      document.querySelector(".one-book-img-load-spinner").classList.add("show");
+    }, 500);
+  }
 
   changePage(index, event) {
     event && event.preventDefault();
@@ -360,6 +368,9 @@ export default class OneBook extends Component {
     if(!userConfig.keep_clip){
       this.setState({ twoPageMode: NO_TWO_PAGE });
     }
+
+    this.showSpinner();
+
     this.setState({ index: index});
     this.setIndex(index);
     this.rotateImg(0);
@@ -463,6 +474,13 @@ export default class OneBook extends Component {
 
   onImageError(){
     this.imgRef.src = "../resource/error_loading.png";
+    this.hideSpinner()
+  }
+
+  onImgLoad(){
+    this.hideSpinner();
+
+    this.adjustImageSize();
   }
 
   _getFileUrl(url){
@@ -497,12 +515,14 @@ export default class OneBook extends Component {
       const preload =  index < files.length-1 &&  <link rel="preload" href={this._getFileUrl(files[index-1])} as="image" /> ;
 
       return (<React.Fragment>
+              <Spinner className="one-book-img-load-spinner" />
               { twoPageMode === TWO_PAGE_RIGHT &&  nextImg }
               <img  className={cn} src={this._getFileUrl(files[index])} alt="book-image"
                            ref={img => this.imgRef = img}
-                           onLoad={this.adjustImageSize.bind(this)}
                            index={index}
                            onError={this.onImageError.bind(this)}
+                           onLoad={this.onImgLoad.bind(this)}
+
                            />
               { twoPageMode === TWO_PAGE_LEFT &&  nextImg }
               {preload}
@@ -518,9 +538,11 @@ export default class OneBook extends Component {
               <img className={cn} 
                 ref={(img) =>  this.imgRef = img}
                 onError={this.onImageError.bind(this)}
+                onLoad={this.onImgLoad.bind(this)}
                 src={this._getFileUrl(files[index])}  />
               </div>);
       return (<div className="mobile-one-book-container">
+                <Spinner className="one-book-img-load-spinner" />
                 {images}
             </div>);
     }
