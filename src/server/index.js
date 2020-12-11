@@ -375,8 +375,9 @@ function initMecab() {
         const mecab = new MeCab();
         const _util = require('util');
         parseAsync = _util.promisify(mecab.parse).bind(mecab);
+        const testTokens = await parseAsync("うちの娘の為ならば、俺はもしかしたら魔王も倒せるかもしれない");
     } catch (e) {
-        //nothing
+        parseAsync = null;
     }
 
     global.mecab_getTokens = async (str) => {
@@ -426,7 +427,6 @@ function initMecab() {
                 }
             }
         } catch (e) {
-            //nothing 
             console.warn(e);
         } finally {
             return result;
