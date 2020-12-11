@@ -4,17 +4,18 @@
   transition: width 1s;
   animation: all 1s;
   display: none;
-  background-color: #99a2b5; 
-  overflow-x: hidden; /* Disable horizontal scroll */
+  background-color: #99a2b5;
+  overflow-x: hidden;
+  /* Disable horizontal scroll */
 
-  &.anchorSideMenu{
-    padding-top: 10px; 
+  &.anchorSideMenu {
+    padding-top: 10px;
     padding-left: 10px;
     padding-right: 10px;
     padding-bottom: 10px;
     display: block;
   }
- 
+
   .side-menu-radio-title {
     color: #0f2452;
     font-size: 15px;
@@ -27,12 +28,12 @@
   }
 
   .aji-checkbox,
-  .radio-button{
+  .radio-button {
     margin-right: 10px;
     color: $font_color_white_one;
   }
 
-  .info-row{
+  .info-row {
     color: $font_color_white_one;
     font-size: 10px;
     margin-bottom: 5px;
@@ -41,7 +42,7 @@
   .exp-tag-container {
     border-top: $font_color_white_one solid 1px;
 
-    .side-menu-single-tag{
+    .side-menu-single-tag {
       cursor: pointer;
       color: $font_color_white_one;
       font-size: 10px;
@@ -50,8 +51,8 @@
       &.type-tag {
         color: #c9ffd5;
       }
-  
-      &:hover{
+
+      &:hover {
         color: #43464e;
         font-weight: bold;
       }

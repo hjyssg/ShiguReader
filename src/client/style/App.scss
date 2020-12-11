@@ -15,7 +15,7 @@ body {
 a {
   color: $font_color_white_one;
 
-  &:hover{
+  &:hover {
     color: unset;
   }
 }
@@ -27,7 +27,7 @@ a {
   margin-bottom: 10px;
 
   .exp-top-button {
-      margin-left: 20px;
+    margin-left: 20px;
   }
 }
 
@@ -38,9 +38,10 @@ a {
   padding-bottom: 50px;
 
   .fab,
-  .fas{
+  .fas {
     color: $font_color_white_one;
-    &::before{
+
+    &::before {
       padding-right: 5px;
     }
   }
@@ -49,7 +50,7 @@ a {
     color: $font_color_white_one;
     margin-left: 10px;
 
-    &:hover{
+    &:hover {
       @include hover_effect;
     }
   }
@@ -75,6 +76,7 @@ a {
         @media screen and (min-width: 1000px) {
           &:hover {
             @include hover_effect;
+
             i {
               @include hover_effect;
             }
@@ -83,7 +85,7 @@ a {
       }
     }
 
-    .search-bar{
+    .search-bar {
       @media screen and (min-width: 1000px) {
         float: right;
         margin-bottom: 10px;
@@ -112,27 +114,29 @@ a {
         margin-left: 1px;
         width: 50px;
 
-        &:hover{
+        &:hover {
           @include hover_effect;
         }
       }
 
-      .search-button{
+      .search-button {
         border-right: 1px $border-color-black solid;
         border-left: 1px $border-color-black solid;
       }
     }
 
     @media screen and (max-width: 600px) {
-     .app-page-links, .search-bar{
-      float: none;
-     }
+
+      .app-page-links,
+      .search-bar {
+        float: none;
+      }
     }
   }
 }
 
 //https://stackoverflow.com/questions/31217268/center-div-on-the-middle-of-screen
-.home-admin-section{
+.home-admin-section {
   position: absolute;
   top: 50%;
   left: 50%;

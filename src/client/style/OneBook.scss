@@ -2,13 +2,13 @@
 
 
 
-.one-book-nothing-available{
+.one-book-nothing-available {
   color: $font_color_white_one;
   font-size: 2rem;
   @include flex_center_display;
 
-  .alert{
-    padding-left:  100px;
+  .alert {
+    padding-left: 100px;
     padding-right: 100px;
   }
 }
@@ -18,7 +18,7 @@
   flex-flow: column;
   padding-bottom: 20px;
 
-  .only-music{
+  .only-music {
     margin-top: 20px;
     min-width: 300px;
   }
@@ -28,15 +28,15 @@
     @include flex_center_display;
     flex-flow: column;
 
-    &.two-page-mode{
+    &.two-page-mode {
       flex-flow: row;
     }
-    
-    &:not(.has-music){
+
+    &:not(.has-music) {
       width: 100%;
     }
 
-    .aji-music-player{
+    .aji-music-player {
       max-width: 80%;
     }
   }
@@ -51,7 +51,7 @@
     cursor: pointer;
     font-size: 1.5rem;
 
-    &:hover{
+    &:hover {
       @include second_hover_effect;
     }
   }
@@ -65,14 +65,14 @@
   }
 
   .one-book-image-li {
-    padding-top:10px;
+    padding-top: 10px;
     margin-right: auto;
     margin-left: auto;
   }
 
   .one-book-image {
     margin-bottom: 0.5rem;
-    box-shadow: 0 2px 4px 0 rgba(0,0,0,0.16),0 2px 10px 0 rgba(0,0,0,0.12)!important;
+    box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.16), 0 2px 10px 0 rgba(0, 0, 0, 0.12) !important;
     z-index: 10;
     object-fit: cover;
   }
@@ -80,7 +80,7 @@
   .mobile-one-book-container {
     width: 100%;
 
-    .one-book-waterfall-div{
+    .one-book-waterfall-div {
       @include flex_center_display;
       margin-bottom: 30px;
       margin-left: 5px;
@@ -92,7 +92,7 @@
       }
     }
 
-    .mobile-single-image-container{
+    .mobile-single-image-container {
       @include flex_center_display;
       margin-bottom: 30px;
       margin-left: 5px;
@@ -103,11 +103,11 @@
         min-height: 600px;
       }
 
-      .mobile-single-image{
+      .mobile-single-image {
         object-fit: cover;
         //note: 100vh does not work
         max-width: 100%;
-        max-height: 900px; 
+        max-height: 900px;
 
         @media screen and (max-height: 800px) {
           max-height: 600px;
@@ -130,8 +130,8 @@
   }
 
   .one-book-foot-author {
-    &:hover{
-      a{
+    &:hover {
+      a {
         @include third_hover_effect;
       }
     }
@@ -155,12 +155,12 @@
     font-size: 1.5rem;
   }
 
-  .one-book-file-stat{
+  .one-book-file-stat {
     color: $font_color_white_one;
     display: flex;
     font-size: 14px;
 
-    .mobile-page-num{
+    .mobile-page-num {
       cursor: pointer;
       margin-left: 15px;
 
@@ -173,15 +173,16 @@
   .one-book-second-toolbar {
     @include flex_center_display;
     margin-top: 5px;
-    
+
     .fa-download,
     .two-page-mode-button,
-    .rotate-button{
+    .rotate-button {
       font-size: 14px;
       margin-left: 10px;
-      &:hover{
+
+      &:hover {
         @include third_hover_effect();
-       }
+      }
     }
   }
 }
@@ -192,11 +193,11 @@
   @include flex_center_display;
   font-size: 14px;
 
-  .small-box{
+  .small-box {
     flex-direction: row;
     @include flex_center_display;
 
-    .folder-link{
+    .folder-link {
       margin-right: 10px;
     }
   }
@@ -206,7 +207,7 @@
   }
 }
 
-.one-book-path{
+.one-book-path {
   color: $font_color_white_one;
   font-weight: 400;
   margin-right: 10px;
@@ -219,37 +220,37 @@
 }
 
 .one-book-overview-container {
-  .one-book-title{
+  .one-book-title {
     padding-top: 10px;
     padding-bottom: 10px;
   }
 
-  .a-with-padding{
+  .a-with-padding {
     padding-bottom: 20px;
     padding-left: 10px;
     padding-right: 10px;
 
-    .obov-link{
+    .obov-link {
       display: block;
     }
 
-    .single-img-cell{
+    .single-img-cell {
       height: 280px;
       object-fit: scale-down;
       max-width: calc(100% - 10px);
     }
 
-    .place-holder{
+    .place-holder {
       background: white;
     }
   }
 }
 
 
-.ehentai-tag-row{
+.ehentai-tag-row {
   display: flex;
 
-  .ehentai-tag-link{
+  .ehentai-tag-link {
     margin-left: 5px;
   }
 }
@@ -270,7 +271,7 @@
     height: 100%;
     align-items: center;
     justify-content: center;
-  
+
     //https://stackoverflow.com/questions/1009753/pass-mouse-events-through-absolutely-positioned-element
     pointer-events: none;
   }

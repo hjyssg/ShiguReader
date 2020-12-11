@@ -14,7 +14,7 @@ $border-color-black: #616161;
     background: $bacground_level_two;
     border: 1px solid $border-color-black;
     border-radius: 5px;
-    overflow: hidden;  
+    overflow: hidden;
 }
 
 @mixin hover_effect {
@@ -44,35 +44,40 @@ $border-color-black: #616161;
 
 @mixin common_sub_container {
     background: $background_orange_white;
-    color : $font_color_black_two;
+    color: $font_color_black_two;
     padding-bottom: 20px;
     padding-top: 20px;
     min-height: 800px;
 
     a {
-        color : $font_color_black_two;
+        color: $font_color_black_two;
     }
 }
 
-.f-s-10{
+.f-s-10 {
     font-size: 10px;
 }
+
 .f-s-11 {
     font-size: 11px;
 }
-.f-s-12{
+
+.f-s-12 {
     font-size: 12px;
 }
-.f-s-14{
+
+.f-s-14 {
     font-size: 14px;
 }
-.f-s-15{
+
+.f-s-15 {
     font-size: 14px;
 }
-.f-s-16{
+
+.f-s-16 {
     font-size: 16px;
 }
 
-*:focus{
+*:focus {
     outline: 0px;
 }

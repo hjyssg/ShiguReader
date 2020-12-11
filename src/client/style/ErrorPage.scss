@@ -1,6 +1,6 @@
 @import "vars.scss";
 
-.error-page-container{
+.error-page-container {
   position: fixed;
   top: 30%;
   left: 20%;
@@ -8,7 +8,7 @@
 
   * {
     -webkit-box-sizing: border-box;
-            box-sizing: border-box;
+    box-sizing: border-box;
   }
 
   #notfound {
@@ -21,8 +21,8 @@
     left: 50%;
     top: 50%;
     -webkit-transform: translate(-50%, -50%);
-        -ms-transform: translate(-50%, -50%);
-            transform: translate(-50%, -50%);
+    -ms-transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%);
   }
 
   .notfound {
@@ -96,6 +96,7 @@
       height: 110px;
       line-height: 110px;
     }
+
     .notfound .notfound-404 {
       font-size: 100px;
     }

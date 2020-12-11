@@ -9,22 +9,23 @@
   top: 50%;
 }
 
-.explorer-container-out{
+.explorer-container-out {
+
   &.mode_search,
   &.mode_tag,
-  &.mode_author{
+  &.mode_author {
     .explorer-breadcrumb {
       margin-bottom: 5px;
     }
 
-    .not-first-breadcrumb{
+    .not-first-breadcrumb {
       margin-top: 10px;
     }
 
-    .explorer-one-line-list-item{
+    .explorer-one-line-list-item {
       padding-left: 16px;
     }
-    
+
   }
 
   &.mode_home {
@@ -36,7 +37,7 @@
     }
   }
 
-  &.anchorSideMenu{
+  &.anchorSideMenu {
     display: flex;
   }
 }
@@ -45,7 +46,7 @@
   color: $font_color_white_one !important;
 }
 
-.explorer-container{
+.explorer-container {
   padding-bottom: 30px;
 
   .fa-folder {
@@ -59,7 +60,7 @@
   .dir-list {
     list-style: none;
 
-    .item-container-expand-button{
+    .item-container-expand-button {
       cursor: pointer;
       margin-left: 2px;
       font-size: 12px;
@@ -68,7 +69,7 @@
     }
   }
 
-  .file-list{
+  .file-list {
     text-align: left !important;
   }
 
@@ -91,7 +92,7 @@
     }
 
     @media only screen and (max-width: 1100px) {
-        font-size: 12px;
+      font-size: 12px;
     }
 
     padding-left: 5px;
@@ -99,10 +100,10 @@
 
     .far,
     .fas {
-      margin-right: 5px; 
+      margin-right: 5px;
     }
 
-    .av-color{
+    .av-color {
       color: #abc0eb;
     }
   }
@@ -115,16 +116,16 @@
 
     @include file_cell_common;
 
-    padding-top:5px;
+    padding-top: 5px;
     padding-bottom: 10px;
     display: flex;
-    flex-flow:column;
+    flex-flow: column;
     justify-content: start;
     align-items: center;
   }
 
   .file-info-row {
-    color:$font_color_white_one;
+    color: $font_color_white_one;
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
@@ -133,12 +134,13 @@
     padding-right: 15px;
     font-size: 12.5px;
 
-    &.less-padding{
+    &.less-padding {
       padding-left: 5px;
       padding-right: 5px;
     }
   }
-  .explorer-file-change-toolbar{
+
+  .explorer-file-change-toolbar {
     margin-top: 5px;
     padding-left: 15px;
     padding-right: 15px;
@@ -147,7 +149,7 @@
   .file-cell-inner {
     padding-bottom: 5px;
     display: flex;
-    flex-flow:column;
+    flex-flow: column;
     justify-content: start;
     align-items: center;
     overflow: hidden;
@@ -155,14 +157,14 @@
     .file-cell-thumbnail {
       margin: 0.2rem 1rem;
       padding: 0px !important;
-      max-width:100%;
+      max-width: 100%;
       height: 205px;
       object-fit: scale-down;
       margin: auto;
-      text-align:center;
+      text-align: center;
       border-radius: 2px;
       margin-top: 20px;
-      
+
       &.as-folder-thumbnail {
         max-width: 90%;
         height: 200px;
@@ -171,7 +173,7 @@
     }
   }
 
-  .folder-seperator{
+  .folder-seperator {
     border: 2px solid $border-color-black;
     border-radius: 2px;
   }
@@ -179,7 +181,8 @@
 
 .file-cell-title {
   line-height: 1em;
-  height: 2em;       /* height is 2x line-height, so two lines will display */
+  height: 2em;
+  /* height is 2x line-height, so two lines will display */
   overflow: hidden;
   margin-bottom: 5px;
 }
@@ -196,7 +199,7 @@
   border-radius: 0 5px 5px 5px;
   box-shadow: 4px 4px 7px rgba(0, 0, 0, 0.59);
 
-  &::before{
+  &::before {
     content: '';
     width: 40%;
     height: 10px;
@@ -208,6 +211,6 @@
   }
 }
 
-.fail-reason-text{
+.fail-reason-text {
   color: rgb(128, 16, 16);
 }
