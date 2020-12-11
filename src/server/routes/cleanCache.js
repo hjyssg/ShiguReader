@@ -7,26 +7,26 @@ const pathUtil = require("../pathUtil");
 
 const deleteEmpty = require('delete-empty');
 
-function doCacheClean(config){
+function doCacheClean(config) {
     const cleanCache = require("../../tools/cleanCache");
-    try{
+    try {
         cleanCache.cleanCache(cachePath, config);
-    }catch(e){
+    } catch (e) {
         console.error(e);
     }
 }
 
 router.post('/api/cleanCache', (req, res) => {
     function afterClean() {
-        res.send({failed: false});
+        res.send({ failed: false });
     }
 
-    doCacheClean({afterClean: afterClean});
+    doCacheClean({ afterClean: afterClean });
 
     //delete empty folder
     deleteEmpty(pathUtil.getImgConverterCachePath(), (err, deleted) => {
-        if(err){
-            console.error(err); 
+        if (err) {
+            console.error(err);
         }
     });
 });

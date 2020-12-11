@@ -7,15 +7,15 @@ const _ = require('underscore');
 const isWindows = require('is-windows');
 const qrcode = require('qrcode-terminal');
 
-global.requireUtil = function(e) {
+global.requireUtil = function (e) {
     return require("../common/util")
 };
 
-global.requireUserConfig = function() {
+global.requireUserConfig = function () {
     return require("../config/user-config")
 };
 
-global.requireConstant = function(){
+global.requireConstant = function () {
     return require("../common/constant");
 }
 
@@ -27,9 +27,9 @@ const pathUtil = require("./pathUtil");
 const serverUtil = require("./serverUtil");
 const { isHiddenFile } = serverUtil;
 
-const { fullPathToUrl, generateContentUrl, isExist,  getHomePath } = pathUtil;
-const { isImage, isCompress, isMusic, arraySlice, 
-        getCurrentTime, isDisplayableInExplorer, isDisplayableInOnebook, escapeRegExp } = util;
+const { fullPathToUrl, generateContentUrl, isExist, getHomePath } = pathUtil;
+const { isImage, isCompress, isMusic, arraySlice,
+    getCurrentTime, isDisplayableInExplorer, isDisplayableInOnebook, escapeRegExp } = util;
 
 //set up path
 const rootPath = pathUtil.getRootPath();
@@ -57,47 +57,47 @@ const searchByTagAndAuthor = require("./models/searchUtil");
 
 //set up json DB
 const zipInfoDb = require("./models/zipInfoDb");
-let zip_content_db_path =  path.join(rootPath,  userConfig.workspace_name, "zip_info");
+let zip_content_db_path = path.join(rootPath, userConfig.workspace_name, "zip_info");
 zipInfoDb.init(zip_content_db_path);
-const { getPageNum, getMusicNum, deleteFromZipDb, getZipInfo }  = zipInfoDb;
+const { getPageNum, getMusicNum, deleteFromZipDb, getZipInfo } = zipInfoDb;
 
 
 const sevenZipHelp = require("./sevenZipHelp");
-const { listZipContentAndUpdateDb, extractAll, extractByRange }= sevenZipHelp;
+const { listZipContentAndUpdateDb, extractAll, extractByRange } = sevenZipHelp;
 
 const db = require("./models/db");
-const { getAllFilePathes, getCacheFiles, getCacheOutputPath, 
-        updateStatToDb, deleteFromDb , updateStatToCacheDb, deleteFromCacheDb, getFileCollection} = db;
+const { getAllFilePathes, getCacheFiles, getCacheOutputPath,
+    updateStatToDb, deleteFromDb, updateStatToCacheDb, deleteFromCacheDb, getFileCollection } = db;
 
 const app = express();
 app.use(express.static('dist', {
-    maxAge: (1000*3600).toString()
+    maxAge: (1000 * 3600).toString()
 }));
 app.use(express.static(rootPath, {
-    maxAge: (1000*3600*24).toString() // uses milliseconds per docs
+    maxAge: (1000 * 3600 * 24).toString() // uses milliseconds per docs
 }));
 //  to consume json request body
 //  https://stackoverflow.com/questions/10005939/how-do-i-consume-the-json-post-data-in-an-express-application
 app.use(express.json());
 
 const portConfig = require('../config/port-config');
-const {http_port, dev_express_port } = portConfig;
+const { http_port, dev_express_port } = portConfig;
 
 let thumbnailDb = {};
 
 const jsonfile = require('jsonfile');
-let temp_json_path =  path.join(rootPath,  userConfig.workspace_name, "temp_json_info.json");
+let temp_json_path = path.join(rootPath, userConfig.workspace_name, "temp_json_info.json");
 
 
-async function mkdir(path, quiet){
-    if(!(await isExist(path))){
+async function mkdir(path, quiet) {
+    if (!(await isExist(path))) {
         try {
-            const err = await pfs.mkdir(path, { recursive: true});
-            if(err){
+            const err = await pfs.mkdir(path, { recursive: true });
+            if (err) {
                 throw err;
             }
-        }catch(err){
-            if(!quiet){
+        } catch (err) {
+            if (!quiet) {
                 throw err;
             }
         }
@@ -105,13 +105,13 @@ async function mkdir(path, quiet){
 }
 
 async function init() {
-    if(isWindows()){
-        const {stdout, stderr} = await execa("chcp");
+    if (isWindows()) {
+        const { stdout, stderr } = await execa("chcp");
         console.log("[chcp]", stdout);
         const r = new RegExp("\\d+");
         const m = r.exec(stdout);
         const charset = parseInt(m && m[0]);
-    
+
         if (charset !== 65001) {
             console.error("Please switch you console encoding to utf8 in windows language setting");
             userConfig.readable_cache_folder_name = false;
@@ -119,9 +119,9 @@ async function init() {
     }
 
     let previous_history_obj;
-    try{
-        previous_history_obj= await jsonfile.readFile(temp_json_path)
-    }catch(e){
+    try {
+        previous_history_obj = await jsonfile.readFile(temp_json_path)
+    } catch (e) {
         //do nothing since this is trivial
     }
 
@@ -132,7 +132,7 @@ async function init() {
     await mkdir(pathUtil.getZipOutputCachePath());
 
     const mkdirArr = userConfig.additional_folder.concat([userConfig.good_folder, userConfig.not_good_folder_root]);
-    for(let ii = 0; ii < mkdirArr.length; ii++){
+    for (let ii = 0; ii < mkdirArr.length; ii++) {
         const fp = mkdirArr[ii];
         await mkdir(fp, "quiet");
     }
@@ -146,41 +146,41 @@ async function init() {
 
     console.log("scanning local files");
 
-    const estimated_total = previous_history_obj &&  
-                            _.isEqual(previous_history_obj.path_will_scan, path_will_scan) && 
-                            previous_history_obj.total_count;
+    const estimated_total = previous_history_obj &&
+        _.isEqual(previous_history_obj.path_will_scan, path_will_scan) &&
+        previous_history_obj.total_count;
 
     let beg = (new Date).getTime();
 
     const everything_connector = require("../tools/everything_connector");
-    const scan_otption = { 
-        filter: shouldWatchForNormal, 
+    const scan_otption = {
+        filter: shouldWatchForNormal,
         doLog: true,
         estimated_total,
         port: userConfig.everything_http_server_port
     };
-    let results = userConfig.everything_http_server_port && 
-                    isWindows() && 
-                    await everything_connector.getAllFileinPath(path_will_scan, scan_otption);
-    if(!results){
+    let results = userConfig.everything_http_server_port &&
+        isWindows() &&
+        await everything_connector.getAllFileinPath(path_will_scan, scan_otption);
+    if (!results) {
         results = await fileiterator(path_will_scan, scan_otption);
     }
     results.pathes = results.pathes.concat(home_pathes);
     let end1 = (new Date).getTime();
-    console.log(`${(end1 - beg)/1000}s to read local dirs`);
+    console.log(`${(end1 - beg) / 1000}s to read local dirs`);
 
-   
+
     console.log("Analyzing local files");
     db.initFileToInfo(results.infos);
-    const total_count =  getAllFilePathes().length;
+    const total_count = getAllFilePathes().length;
     console.log("There are", total_count, "files");
     let end3 = (new Date).getTime();
-    console.log(`${(end3 - end1)/1000}s to analyze local files`);
+    console.log(`${(end3 - end1) / 1000}s to analyze local files`);
 
-    try{
-        previous_history_obj = {  total_count, path_will_scan  };
+    try {
+        previous_history_obj = { total_count, path_will_scan };
         await jsonfile.writeFile(temp_json_path, previous_history_obj);
-    }catch(e){
+    } catch (e) {
         //nothing
     }
 
@@ -189,116 +189,116 @@ async function init() {
     let thumbnail_pathes = await pfs.readdir(thumbnailFolderPath);
     thumbnail_pathes = thumbnail_pathes.filter(isImage).map(e => path.resolve(thumbnailFolderPath, e));
     end3 = (new Date).getTime();
-    console.log(`${(end3 - end1)/1000}s  to read thumbnail dirs`);
+    console.log(`${(end3 - end1) / 1000}s  to read thumbnail dirs`);
     initThumbnailDb(thumbnail_pathes);
 
     //todo: chokidar will slow the server down very much when it init async
     setUpFileWatch(path_will_watch);
 
-    try{
+    try {
         const machineLearning = require("./models/machineLearning");
         machineLearning.init();
-    }catch(e){
+    } catch (e) {
         console.error(e);
     }
 
     initMecab();
 
-    const port = isProduction? http_port: dev_express_port;
+    const port = isProduction ? http_port : dev_express_port;
     const server = app.listen(port, async () => {
         console.log("----------------------------------------------------------------");
         console.log(dateFormat(new Date(), "yyyy-mm-dd HH:MM"));
         console.log(`Express Server listening on port ${port}`);
         console.log("You can open ShiguReader from Browser now!");
         console.log(`http://localhost:${http_port}`);
-        
-        try{
+
+        try {
             const internalIp = require('internal-ip');
             const lanIP = await internalIp.v4();
             const mobileAddress = `http://${lanIP}:${http_port}`;
             console.log(mobileAddress);
             console.log("Scan the QR code to open on mobile devices");
             qrcode.generate(mobileAddress);
-        }catch(e){
-        
+        } catch (e) {
+
         }
         console.log("----------------------------------------------------------------");
-    }).on('error', (error)=>{
+    }).on('error', (error) => {
         logger.error("[Server Init]", error.message);
 
         //exit the current program
-        setTimeout(()=> process.exit(22), 500);
+        setTimeout(() => process.exit(22), 500);
     });
 }
 
-function addToThumbnailDb(filePath){
+function addToThumbnailDb(filePath) {
     const key = path.basename(filePath, path.extname(filePath));
     thumbnailDb[key] = filePath;
 }
 
-function initThumbnailDb(filePath){
+function initThumbnailDb(filePath) {
     filePath.forEach(e => {
         addToThumbnailDb(e);
     })
 }
 
-function getThumbnailFromThumbnailFolder(outputPath){
+function getThumbnailFromThumbnailFolder(outputPath) {
     const key = path.basename(outputPath);
     return thumbnailDb[key];
 }
 
-function getThumbCount(){
+function getThumbCount() {
     return _.keys(thumbnailDb).length;
 }
 
 global.getThumbCount = getThumbCount;
 
-function getExt(p){
+function getExt(p) {
     const ext = path.extname(p).toLowerCase();
     //xxx NO.003 xxx is not meaningful extension
     //extension string should be alphabet(may with digit), but not only digit
-    if(ext && /^\.[a-zA-z0-9]*$/.test(ext) && !/^\.[0-9]*$/.test(ext)){
+    if (ext && /^\.[a-zA-z0-9]*$/.test(ext) && !/^\.[0-9]*$/.test(ext)) {
         return ext;
-    }else{
+    } else {
         return "";
     }
 }
 
 //this function which files will be scanned and watched by ShiguReader
-function shouldWatchForNormal(p){
-    if(isHiddenFile(p)){
+function shouldWatchForNormal(p) {
+    if (isHiddenFile(p)) {
         return false;
     }
     const ext = getExt(p);
     //not accurate, but performance is good. access each file is very slow
-    const isFolder = !ext; 
-    let result = isFolder  ||  isDisplayableInExplorer(ext);
+    const isFolder = !ext;
+    let result = isFolder || isDisplayableInExplorer(ext);
 
-    if(view_img_folder){
-        result = result ||  isDisplayableInOnebook(ext)
+    if (view_img_folder) {
+        result = result || isDisplayableInOnebook(ext)
     }
-    return  result;
+    return result;
 }
 
-function shouldIgnoreForNormal(p){
+function shouldIgnoreForNormal(p) {
     return !shouldWatchForNormal(p);
 }
 
-function shouldIgnoreForCache(p){
+function shouldIgnoreForCache(p) {
     return !shouldWatchForCache(p);
 }
 
-function shouldWatchForCache(p){
-    if(isHiddenFile(p)){
+function shouldWatchForCache(p) {
+    if (isHiddenFile(p)) {
         return false;
     }
     const ext = getExt(p);
-    return !ext ||  isDisplayableInOnebook(ext);
+    return !ext || isDisplayableInOnebook(ext);
 }
 
 
 const chokidar = require('chokidar');
-function setUpFileWatch (path_will_scan){
+function setUpFileWatch(path_will_scan) {
     //watch file change 
     //update two database
     const watcher = chokidar.watch(path_will_scan, {
@@ -311,11 +311,11 @@ function setUpFileWatch (path_will_scan){
     const addCallBack = (path, stats) => {
         serverUtil.parse(path);
         updateStatToDb(path, stats);
-        
-        if(isCompress(path) && stats.size > 1*1024*1024){
+
+        if (isCompress(path) && stats.size > 1 * 1024 * 1024) {
             //do it slowly to avoid the file used by the other process
             //this way is cheap than the really detection
-            setTimeout(()=>{
+            setTimeout(() => {
                 listZipContentAndUpdateDb(path);
             }, 3000);
         }
@@ -330,7 +330,7 @@ function setUpFileWatch (path_will_scan){
         .on('add', addCallBack)
         .on('change', addCallBack)
         .on('unlink', deleteCallBack);
-    
+
     // More possible events.
     watcher
         .on('addDir', addCallBack)
@@ -350,7 +350,7 @@ function setUpFileWatch (path_will_scan){
     cacheWatcher
         .on('unlinkDir', p => {
             //todo 
-            const fp =  path.dirname(p);
+            const fp = path.dirname(p);
             db.cacheDb.folderToFiles[fp];
         });
 
@@ -368,25 +368,25 @@ function setUpFileWatch (path_will_scan){
     };
 }
 
-function initMecab(){
+function initMecab() {
     let parseAsync;
-    try{
+    try {
         const MeCab = require('mecab-async');
         const mecab = new MeCab();
         const _util = require('util');
         parseAsync = _util.promisify(mecab.parse).bind(mecab);
-    }catch(e){
+    } catch (e) {
         //nothing
     }
 
     global.mecab_getTokens = async (str) => {
         let result = [];
-        try{
-            if(parseAsync){
+        try {
+            if (parseAsync) {
                 //pre-processing of the str
                 str = path.basename(str, path.extname(str));
                 let pObj = serverUtil.parse(str);
-                if(pObj && pObj.title){
+                if (pObj && pObj.title) {
                     str = pObj.title;
                 }
 
@@ -396,10 +396,10 @@ function initMecab(){
 
                 //handle the tokens
                 tokens = tokens
-                .filter(row => {
-                    return ["名詞", "動詞"].includes(row[1]) ;
-                })
-                .map(row => row[0]);
+                    .filter(row => {
+                        return ["名詞", "動詞"].includes(row[1]);
+                    })
+                    .map(row => row[0]);
 
                 //[apple, c, b, k, llll, p, p, p] 
                 // => 
@@ -407,64 +407,64 @@ function initMecab(){
                 let acToken = "";
                 const len = tokens.length;
                 let ii = 0;
-                while(ii < len){
+                while (ii < len) {
                     let tempToken = tokens[ii];
-                    if(tempToken.length > 1){
-                        if(acToken.length > 1){
+                    if (tempToken.length > 1) {
+                        if (acToken.length > 1) {
                             result.push(acToken);
                         }
                         result.push(tempToken)
                         acToken = "";
-                    } else if(tempToken.length === 1){
+                    } else if (tempToken.length === 1) {
                         acToken += tempToken;
                     }
                     ii++;
                 }
                 //the last token
-                if(acToken.length > 1){
+                if (acToken.length > 1) {
                     result.push(acToken);
                 }
             }
-        }catch(e){
+        } catch (e) {
             //nothing 
             console.warn(e);
-        }finally{
+        } finally {
             return result;
         }
     }
 }
 
 
-function getThumbnails(filePathes){
+function getThumbnails(filePathes) {
     const thumbnails = {};
-    
+
     filePathes.forEach(filePath => {
-        if(!isCompress(filePath)){
+        if (!isCompress(filePath)) {
             return;
         }
 
         const outputPath = getCacheOutputPath(cachePath, filePath);
         let thumb = getThumbnailFromThumbnailFolder(outputPath);
-        if(thumb){
+        if (thumb) {
             thumbnails[filePath] = fullPathToUrl(thumb);
-        }else{
+        } else {
             let cacheFiles = getCacheFiles(outputPath);
             cacheFiles = (cacheFiles && cacheFiles.files) || [];
             thumb = serverUtil.chooseThumbnailImage(cacheFiles);
-            if(thumb){
+            if (thumb) {
                 thumbnails[filePath] = fullPathToUrl(thumb);
-            }else if(zipInfoDb.has(filePath)){
+            } else if (zipInfoDb.has(filePath)) {
                 const pageNum = getPageNum(filePath);
-                if(pageNum === 0){
+                if (pageNum === 0) {
                     thumbnails[filePath] = "NOT_THUMBNAIL_AVAILABLE";
                 }
             }
         }
-    }); 
+    });
     return thumbnails;
 }
 
-async function getStat(filePath){
+async function getStat(filePath) {
     const stat = await pfs.stat(filePath);
     updateStatToDb(filePath, stat);
     return stat;
@@ -481,7 +481,7 @@ app.post("/api/tagFirstImagePath", async (req, res) => {
     const author = req.body && req.body.author;
     const tag = req.body && req.body.tag;
     if (!author && !tag) {
-        res.send({failed: true, reason: "No Parameter"});
+        res.send({ failed: true, reason: "No Parameter" });
         return;
     }
 
@@ -489,8 +489,8 @@ app.post("/api/tagFirstImagePath", async (req, res) => {
     const { fileInfos } = searchByTagAndAuthor(tag, author, null, onlyNeedFew);
     const files = _.keys(fileInfos);
     chosendFileName = serverUtil.chooseOneZipForOneTag(files, db.getFileToInfo());
-    if(!chosendFileName){
-        res.send({failed: true, reason: "No file found"});
+    if (!chosendFileName) {
+        res.send({ failed: true, reason: "No file found" });
         return;
     }
 
@@ -498,16 +498,16 @@ app.post("/api/tagFirstImagePath", async (req, res) => {
 });
 
 function logForPre(prefix, config, filePath) {
-    const {minCounter, total} = config;
+    const { minCounter, total } = config;
     console.log(`${prefix} ${minCounter}/${total}  ${filePath}`);
     const time2 = getCurrentTime();
-    const timeUsed = (time2 - config.pregenBeginTime)/1000;
-    if(minCounter > 0){
-        const secPerFile = timeUsed /minCounter;
-        const remainTime = (total - minCounter) * secPerFile/60;
+    const timeUsed = (time2 - config.pregenBeginTime) / 1000;
+    if (minCounter > 0) {
+        const secPerFile = timeUsed / minCounter;
+        const remainTime = (total - minCounter) * secPerFile / 60;
         console.log(`${prefix} ${(secPerFile).toFixed(2)} seconds per file.     ${remainTime.toFixed(2)} minutes before finish`);
     }
-    if(minCounter >= total){
+    if (minCounter >= total) {
         console.log('[pregenerate] done');
     }
 }
@@ -515,7 +515,7 @@ function logForPre(prefix, config, filePath) {
 const thumbnailGenerator = require("../tools/thumbnailGenerator");
 //the only required parameter is filePath
 async function extractThumbnailFromZip(filePath, res, mode, config) {
-    if(!util.isCompress(filePath)){
+    if (!util.isCompress(filePath)) {
         return;
     }
 
@@ -523,8 +523,8 @@ async function extractThumbnailFromZip(filePath, res, mode, config) {
     const sendable = !isPregenerateMode && res;
     const outputPath = getCacheOutputPath(cachePath, filePath);
     let files, temp;
- 
-    function sendImage(img){
+
+    function sendImage(img) {
         let ext = path.extname(img);
         ext = ext.slice(1);
         // !send by image. no able to use cache
@@ -535,32 +535,32 @@ async function extractThumbnailFromZip(filePath, res, mode, config) {
         })
     }
 
-    function handleFail(reason){
+    function handleFail(reason) {
         reason = reason || "NOT FOUND";
-        sendable && res.send({failed: true, reason: reason});
-        if(isPregenerateMode){
+        sendable && res.send({ failed: true, reason: reason });
+        if (isPregenerateMode) {
             config.total--;
         }
     }
 
-    async function minify(one){
+    async function minify(one) {
         const outputFilePath = await thumbnailGenerator(thumbnailFolderPath, outputPath, path.basename(one));
-        if(outputFilePath){
+        if (outputFilePath) {
             addToThumbnailDb(outputFilePath);
-            if(isPregenerateMode){
+            if (isPregenerateMode) {
                 config.minCounter++;
-                logForPre("[pre-generate minify] ", config, filePath );
+                logForPre("[pre-generate minify] ", config, filePath);
             }
-         }
+        }
     }
 
     //only update zip db
     //do not use zip db's information
     //in case previous info is changed or wrong
-    if(isPregenerateMode){
-        if(config.fastUpdateMode && zipInfoDb.has(filePath)){
+    if (isPregenerateMode) {
+        if (config.fastUpdateMode && zipInfoDb.has(filePath)) {
             //skip
-        }else{
+        } else {
             //in pregenerate mode, it always updates db content
             temp = await listZipContentAndUpdateDb(filePath);
             files = temp.files;
@@ -570,19 +570,19 @@ async function extractThumbnailFromZip(filePath, res, mode, config) {
     const thumbnail = getThumbnailFromThumbnailFolder(outputPath);
     if (thumbnail) {
         sendImage(thumbnail);
-        if(isPregenerateMode){
+        if (isPregenerateMode) {
             config.minCounter++;
             logForPre("[pre-generate minify] ", config, filePath);
         }
     } else {
         //do the extract
-        try{
-            if(!files){
+        try {
+            if (!files) {
                 temp = await listZipContentAndUpdateDb(filePath);
                 files = temp.files;
-            } 
+            }
             const one = serverUtil.chooseThumbnailImage(files);
-            if(!one){
+            if (!one) {
                 // console.error("[extractThumbnailFromZip] no thumbnail for ", filePath);
                 handleFail("no img in file");
             } else {
@@ -592,7 +592,7 @@ async function extractThumbnailFromZip(filePath, res, mode, config) {
                     let temp = path.join(outputPath, path.basename(one));
                     sendImage(temp);
                     await minify(one)
-                    if(isPregenerateMode){
+                    if (isPregenerateMode) {
                         config.counter++;
                     }
                 } else {
@@ -600,8 +600,8 @@ async function extractThumbnailFromZip(filePath, res, mode, config) {
                     handleFail("extract exec failed");
                 }
             }
-        } catch(e) {
-            console.error("[extractThumbnailFromZip] exception", filePath,  e);
+        } catch (e) {
+            console.error("[extractThumbnailFromZip] exception", filePath, e);
             handleFail(e);
         }
     }
@@ -615,11 +615,11 @@ let pregenerateThumbnails_lock = false;
 
 app.post('/api/pregenerateThumbnails', async (req, res) => {
     let path = req.body && req.body.path;
-    if(!path){
-        res.send({failed: true, reason: "NOT PATH"});
+    if (!path) {
+        res.send({ failed: true, reason: "NOT PATH" });
         return;
-    }else if(pregenerateThumbnails_lock){
-        res.send({failed: true, reason: "Already Running"});
+    } else if (pregenerateThumbnails_lock) {
+        res.send({ failed: true, reason: "Already Running" });
         return;
     }
 
@@ -629,34 +629,36 @@ app.post('/api/pregenerateThumbnails', async (req, res) => {
 
     const allfiles = getAllFilePathes();
     let totalFiles = allfiles.filter(isCompress);
-    if(path !== "All_Pathes"){
+    if (path !== "All_Pathes") {
         totalFiles = totalFiles.filter(e => e.includes(path));
     }
 
-    let config = {counter: 0, 
-                  minCounter: 0,
-                  total: totalFiles.length, 
-                  fastUpdateMode,
-                  pregenBeginTime: getCurrentTime()};
+    let config = {
+        counter: 0,
+        minCounter: 0,
+        total: totalFiles.length,
+        fastUpdateMode,
+        pregenBeginTime: getCurrentTime()
+    };
 
-    
+
     const thumbnailNum = getThumbCount();
-    if(thumbnailNum / totalFiles.length > 0.3){
+    if (thumbnailNum / totalFiles.length > 0.3) {
         totalFiles = _.shuffle(totalFiles);
     }
 
-    res.send({failed: false});
+    res.send({ failed: false });
 
     console.log("begin pregenerateThumbnails")
 
-    try{
-        for(let ii = 0; ii < totalFiles.length; ii++){
+    try {
+        for (let ii = 0; ii < totalFiles.length; ii++) {
             const filePath = totalFiles[ii];
             await extractThumbnailFromZip(filePath, null, "pre-generate", config);
         }
-    }catch(e){
+    } catch (e) {
 
-    }finally{
+    } finally {
         pregenerateThumbnails_lock = false;
     }
 });
@@ -667,17 +669,17 @@ app.post('/api/firstImage', async (req, res) => {
     const filePath = req.body && req.body.filePath;
 
     if (!filePath || !(await isExist(filePath))) {
-        res.send({failed: true, reason: "NOT FOUND"});
+        res.send({ failed: true, reason: "NOT FOUND" });
         return;
     }
     extractThumbnailFromZip(filePath, res);
 });
 
 app.post('/api/extract', async (req, res) => {
-    let filePath =  req.body && req.body.filePath;
+    let filePath = req.body && req.body.filePath;
     const startIndex = (req.body && req.body.startIndex) || 0;
     if (!filePath) {
-        res.send({failed: true, reason: "No parameter"});
+        res.send({ failed: true, reason: "No parameter" });
         return;
     }
 
@@ -688,29 +690,29 @@ app.post('/api/extract', async (req, res) => {
     //todo: record the timestamp of each request
     //when cleaning cache, if the file is read recently, dont clean its cache
 
-    if(!(await isExist(filePath))){
+    if (!(await isExist(filePath))) {
         //maybe the file move to other location
         const fn = path.basename(filePath);
         //todo loop is slow
-        const sameFnObj = getFileCollection().findOne({fileName: fn });
-        if(sameFnObj){
+        const sameFnObj = getFileCollection().findOne({ fileName: fn });
+        if (sameFnObj) {
             filePath = sameFnObj.filePath;
         } else {
-            res.send({failed: true, reason: "NOT FOUND"});
+            res.send({ failed: true, reason: "NOT FOUND" });
             return;
         }
     }
-    
+
     const time1 = getCurrentTime();
     const stat = await getStat(filePath);
- 
 
-    async function sendBack(files, musicFiles, path, stat){
-        const tempFiles =  files.filter(e => {
+
+    async function sendBack(files, musicFiles, path, stat) {
+        const tempFiles = files.filter(e => {
             return !isHiddenFile(e);
-          });
+        });
         let zipInfo;
-        if(tempFiles.length > 0){
+        if (tempFiles.length > 0) {
             zipInfo = getZipInfo([path])[path];
         }
 
@@ -722,45 +724,45 @@ app.post('/api/extract', async (req, res) => {
     const outputPath = getCacheOutputPath(cachePath, filePath);
     const temp = getCacheFiles(outputPath);
 
-    if(zipInfoDb.has(filePath)  && temp ){
-        const pageNum = getPageNum(filePath); 
+    if (zipInfoDb.has(filePath) && temp) {
+        const pageNum = getPageNum(filePath);
         const musicNum = getMusicNum(filePath);
         const totalNum = pageNum + musicNum;
-        const _files = temp.files||[];
+        const _files = temp.files || [];
 
-        if (totalNum > 0 &&  _files.length >= totalNum) {
+        if (totalNum > 0 && _files.length >= totalNum) {
             sendBack(temp.files, temp.musicFiles, filePath, stat);
             return;
-        }else if(totalNum === 0){
-            sendBack([], [], filePath, stat );
+        } else if (totalNum === 0) {
+            sendBack([], [], filePath, stat);
             return;
         }
     }
 
     (async () => {
         const full_extract_max = 10;
-        try{
+        try {
             let { files, fileInfos } = await listZipContentAndUpdateDb(filePath);
             files = files.filter(e => isDisplayableInOnebook(e));
-            if(files.length === 0){
-               res.send({failed: true, reason: "has no content"});
-               console.error(`[/api/extract] ${filePath} has no content`);
-               return;
+            if (files.length === 0) {
+                res.send({ failed: true, reason: "has no content" });
+                console.error(`[/api/extract] ${filePath} has no content`);
+                return;
             }
 
             let hasMusic = files.some(e => isMusic(e));
-            if(hasMusic || files.length <= full_extract_max){
+            if (hasMusic || files.length <= full_extract_max) {
                 const { pathes, error } = await extractAll(filePath, outputPath);
-                if(!error && pathes){
+                if (!error && pathes) {
                     const temp = generateContentUrl(pathes, outputPath);
                     sendBack(temp.files, temp.musicFiles, filePath, stat);
                 } else {
-                    res.send({failed: true, reason: "fail to extract"});
+                    res.send({ failed: true, reason: "fail to extract" });
                 }
-            }else{
+            } else {
                 //spit one zip into two uncompress task
                 //so user can have a quicker response time
-                serverUtil.sortFileNames(files); 
+                serverUtil.sortFileNames(files);
                 //choose range wisely
                 const PREV_SPACE = 2;
                 //cut the array into 3 parts
@@ -772,7 +774,7 @@ app.post('/api/extract', async (req, res) => {
                 })
 
                 //dev checking
-                if(firstRange.length + secondRange.length !== files.length){
+                if (firstRange.length + secondRange.length !== files.length) {
                     throw "arraySlice wrong";
                 }
 
@@ -783,41 +785,41 @@ app.post('/api/extract', async (req, res) => {
                     const time2 = getCurrentTime();
                     const timeUsed = (time2 - time1);
                     console.log(`[/api/extract] FIRST PART UNZIP ${filePath} : ${timeUsed}ms`);
-                    
+
                     await extractByRange(filePath, outputPath, secondRange)
                 } else {
-                    res.send({failed: true, reason: stderr});
+                    res.send({ failed: true, reason: stderr });
                     console.error('[/api/extract] exit: ', stderr);
                 }
             }
-       } catch (e){
-            res.send({failed: true, reason: e});
+        } catch (e) {
+            res.send({ failed: true, reason: e });
             console.error('[/api/extract] exit: ', e);
         }
     })();
 });
 
 app.post('/api/getGeneralInfo', async (req, res) => {
-    let os = isWindows()? "windows": "linux";
+    let os = isWindows() ? "windows" : "linux";
 
     const result = {
-      server_os: os,
-       file_path_sep: path.sep
+        server_os: os,
+        file_path_sep: path.sep
     };
 
     let folderArr = [userConfig.good_folder, userConfig.not_good_folder].concat(userConfig.additional_folder);
 
     //dulicate code as /api/homePagePath
     folderArr = folderArr.filter(e => {
-        if(e){
+        if (e) {
             const reg = escapeRegExp(e);
             //check if pathes really exist by checking there is file in the folder
-            return !!getFileCollection().findOne({'filePath': { '$regex' : reg }, isDisplayableInExplorer: true });
+            return !!getFileCollection().findOne({ 'filePath': { '$regex': reg }, isDisplayableInExplorer: true });
         }
     })
 
-    result.good_folder = folderArr.includes(userConfig.good_folder)? userConfig.good_folder : "";
-    result.not_good_folder = folderArr.includes(userConfig.not_good_folder)?  userConfig.not_good_folder : "";
+    result.good_folder = folderArr.includes(userConfig.good_folder) ? userConfig.good_folder : "";
+    result.not_good_folder = folderArr.includes(userConfig.not_good_folder) ? userConfig.not_good_folder : "";
     result.additional_folder = folderArr;
 
     res.send(result)
@@ -864,11 +866,11 @@ app.use(shutdown);
 const minifyZip = require("./routes/minifyZip");
 app.use(minifyZip);
 
-const ehentaiMetadata = require("./routes/ehentaiMetadata") ;
+const ehentaiMetadata = require("./routes/ehentaiMetadata");
 app.use(ehentaiMetadata);
 
 
-if(isProduction){
+if (isProduction) {
     const history = require('connect-history-api-fallback');
     app.use(history({
         // verbose: true,

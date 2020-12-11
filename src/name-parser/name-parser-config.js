@@ -1,9 +1,9 @@
 module.exports.same_tag_regs_table = {
-    "東方Project":[/^東方$/,/Touhou\s*Project/, /東方project/],
+    "東方Project": [/^東方$/, /Touhou\s*Project/, /東方project/],
     "オリジナル": [/^Original$/],
     "Kanon": [/カノン|Kanon/],
     "艦これ": [/艦これ|舰これ/, /艦隊これくしょん/, /Kantai\s*Collection/, /KanColle/],
-    "ラブライブ!" : [/Love Live/, /ラブライブ/],
+    "ラブライブ!": [/Love Live/, /ラブライブ/],
     "ラブライブ!サンシャイン!!": [/ラブライブ.*サンシャイン.*/],
     "プリンセスコネクト!Re:Dive": [/プリンセスコネクト.*Re.*Dive/],
     "Fate／Grand Order": [/Fate.*Grand.*Order/, /FGO/],
@@ -29,7 +29,7 @@ module.exports.same_tag_regs_table = {
     "D.C～ダ・カーポ": [/D\.C\./, /ダ.*カーポ/],
     "Dog Days": [/Dog.*Days.*/],
     "Dream C Club": [/Dream.*C.*Club/],
-    "ガンダム ":[/ガンダム|gundam/],
+    "ガンダム ": [/ガンダム|gundam/],
     "コードギアス": [/コードギアス/],
     "ご注文はうさぎですか": [/ご注文はうさぎですか/],
     "ソードアート・オンライン": [/ソードアート.*オンライン/, /Sword\s*Art\s*Online/],
@@ -44,7 +44,7 @@ module.exports.same_tag_regs_table = {
     "キング・オブ・ファイター": [/キング\.オブ\.ファイター/, /^KOF$/],
     "ファイアーエムブレム": [/ファイアーエムブレム/],
     "ファンタシースター": [/ファンタシースター|PhantasyStar/],
-    "To Heart 2":[/To.*Heart.*2|トゥハート2/]
+    "To Heart 2": [/To.*Heart.*2|トゥハート2/]
 }
 
 module.exports.not_author_but_tag = [

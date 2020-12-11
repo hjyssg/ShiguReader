@@ -33,108 +33,108 @@ export default class OneBookWaterfall extends Component {
     };
   }
 
-  getTextFromQuery(props){
-      const _props = props || this.props;
-      return queryString.parse(_props.location.search)["p"] ||  "";
+  getTextFromQuery(props) {
+    const _props = props || this.props;
+    return queryString.parse(_props.location.search)["p"] || "";
   }
-  
+
   componentDidMount() {
     this.sendExtract();
 
-    if(!isMobile ()){
-      screenfull.onchange(()=> {
+    if (!isMobile()) {
+      screenfull.onchange(() => {
         this.forceUpdate();
       });
-     }
+    }
   }
 
-  isImgFolder(){
+  isImgFolder() {
     return !util.isCompress(this.getTextFromQuery())
   }
-  
-  sendExtract(){
-    const fp = this.getTextFromQuery();
-    const api = this.isImgFolder()?  "/api/listImageFolderContent" : "/api/extract";
 
-    Sender.post(api, {filePath: fp, startIndex: 0 }, res => {
-        this.handleRes(res);
+  sendExtract() {
+    const fp = this.getTextFromQuery();
+    const api = this.isImgFolder() ? "/api/listImageFolderContent" : "/api/extract";
+
+    Sender.post(api, { filePath: fp, startIndex: 0 }, res => {
+      this.handleRes(res);
     });
   }
 
-  handleRes(res){
-      this.res = res;
-      if (!res.isFailed()) {
-        let {zipInfo, path, stat, files,  musicFiles } = res.json;
-        files = files || [];
-        musicFiles = musicFiles || [];
+  handleRes(res) {
+    this.res = res;
+    if (!res.isFailed()) {
+      let { zipInfo, path, stat, files, musicFiles } = res.json;
+      files = files || [];
+      musicFiles = musicFiles || [];
 
-        //files name can be 001.jpg, 002.jpg, 011.jpg, 012.jpg
-        //or 1.jpg, 2.jpg 3.jpg 1.jpg
-        //todo: the sort is wrong for imgFolder
-        sortFileNames(files);
-        sortFileNames(musicFiles);
+      //files name can be 001.jpg, 002.jpg, 011.jpg, 012.jpg
+      //or 1.jpg, 2.jpg 3.jpg 1.jpg
+      //todo: the sort is wrong for imgFolder
+      sortFileNames(files);
+      sortFileNames(musicFiles);
 
-        this.setState({ files, musicFiles, path, fileStat: stat, zipInfo});
-        clientUtil.saveFilePathToCookie(this.getTextFromQuery());
-      } else {
-        this.forceUpdate();
-      }
+      this.setState({ files, musicFiles, path, fileStat: stat, zipInfo });
+      clientUtil.saveFilePathToCookie(this.getTextFromQuery());
+    } else {
+      this.forceUpdate();
+    }
   }
-  
-  isFailedLoading(){
+
+  isFailedLoading() {
     return this.res && this.res.isFailed();
   }
 
-  onError(){
+  onError() {
     //todo
     //maybe display a center spin
   }
 
-  _getFileUrl(url){
-    if(!url){
+  _getFileUrl(url) {
+    if (!url) {
       return "";
     }
 
-    if(this.isImgFolder()){
+    if (this.isImgFolder()) {
       return clientUtil.getDownloadLink(url);
-    }else{
+    } else {
       return getFileUrl(url);
     }
   }
 
-  getMaxHeight(){
-    if(isMobile()){
+  getMaxHeight() {
+    if (isMobile()) {
       return window.screen.height - 10;
-     }
+    }
 
     let maxHeight = isNaN(window.innerHeight) ? window.clientHeight : window.innerHeight;
     return maxHeight - 10;
   }
 
-  renderImage(){
+  renderImage() {
     const { files } = this.state;
-    if(!this.hasImage()){
+    if (!this.hasImage()) {
       return;
     }
 
     const maxHeight = this.getMaxHeight();
 
-    let images =files.map((file, index) => {
-      return (<div key={file} className="one-book-waterfall-div"> 
-                  <LoadingImage className={"one-book-waterfall-image"} 
-                           bottomOffet={-4000}
-                           topOffet={-3000}
-                           title={index}
-                           url={this._getFileUrl(file)} 
-                           asSimpleImage
-                           key={file}
-                           style={{maxHeight: maxHeight}}
-                           /> 
-              </div>);
+    let images = files.map((file, index) => {
+      return (<div key={file} className="one-book-waterfall-div">
+        <LoadingImage className={"one-book-waterfall-image"}
+          bottomOffet={-4000}
+          topOffet={-3000}
+          title={index}
+          url={this._getFileUrl(file)}
+          asSimpleImage
+          key={file}
+          style={{ maxHeight: maxHeight }}
+        />
+      </div>);
     });
     return (<div className="mobile-one-book-container">
-              {images}
-          </div>);
+      {images}
+    </div>);
   }
 
   renderPath() {
@@ -151,38 +151,38 @@ export default class OneBookWaterfall extends Component {
       </div>);
   }
 
-  hasImage(){
+  hasImage() {
     return this.state.files.length > 0;
   }
 
   render() {
-    if (this.isFailedLoading()) { 
+    if (this.isFailedLoading()) {
       const fp = this.getTextFromQuery();
-      return <ErrorPage res={this.res} filePath={fp}/>;
+      return <ErrorPage res={this.res} filePath={fp} />;
     }
 
     const { files, musicFiles } = this.state;
     const bookTitle = (<div className="one-book-title" >
-                           <FileNameDiv filename={getBaseName(this.state.path)} />
-                          {this.renderPath()} 
-                      </div>);
+      <FileNameDiv filename={getBaseName(this.state.path)} />
+      {this.renderPath()}
+    </div>);
 
     if (_.isEmpty(files) && _.isEmpty(musicFiles)) {
-      if(this.res && !this.refs.failed){
+      if (this.res && !this.refs.failed) {
         return (<h3>
-                  <center style={{paddingTop: "200px"}}> 
-                    <div className="alert alert-warning col-6" role="alert" > No image or music file </div>
-                    {bookTitle}
-                    {this.renderTags()}
-                    {this.renderToolbar()}
-                  </center>
-                </h3>);
+          <center style={{ paddingTop: "200px" }}>
+            <div className="alert alert-warning col-6" role="alert" > No image or music file </div>
+            {bookTitle}
+            {this.renderTags()}
+            {this.renderToolbar()}
+          </center>
+        </h3>);
       } else {
-        return (<CenterSpinner text={this.getTextFromQuery()} splitFilePath/>);
-      } 
+        return (<CenterSpinner text={this.getTextFromQuery()} splitFilePath />);
+      }
     }
-    
-    if(this.state.path){
+
+    if (this.state.path) {
       document.title = getBaseName(this.state.path);
     }
 
@@ -191,11 +191,11 @@ export default class OneBookWaterfall extends Component {
     });
 
     const content = (<div className={wraperCn} ref={wrapper => this.wrapperRef = wrapper}>
-                      {this.renderImage()}
+      {this.renderImage()}
     </div>);
 
 
-    return (  
+    return (
       <div className="one-book-container">
         {bookTitle}
         {content}

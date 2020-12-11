@@ -11,12 +11,12 @@ router.post("/api/singleFileInfo", async (req, res) => {
     const filePath = (req.body && req.body.filePath);
 
     if (!filePath || !(await isExist(filePath))) {
-        res.send({failed: true, reason: "NOT FOUND"});
+        res.send({ failed: true, reason: "NOT FOUND" });
         return;
     }
 
-    let stat =  db.getFileToInfo(filePath);
-    if(!stat){
+    let stat = db.getFileToInfo(filePath);
+    if (!stat) {
         stat = await getStat(filePath);
     }
 

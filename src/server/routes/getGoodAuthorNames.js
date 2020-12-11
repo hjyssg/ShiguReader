@@ -9,7 +9,7 @@ const { isCompress, escapeRegExp } = util;
 const userConfig = global.requireUserConfig();
 const serverUtil = require("../serverUtil");
 
-function getGoodAndOtherSet(){
+function getGoodAndOtherSet() {
     let beg = (new Date).getTime();
 
     let set = {};
@@ -19,23 +19,23 @@ function getGoodAndOtherSet(){
     const reg = escapeRegExp(userConfig.good_folder_root);
 
     getFileCollection()
-    .chain()
-    .find({isDisplayableInExplorer: true })
-    .where(obj => {
-        // const temp = serverUtil.parse(p);
-        // const name = temp && temp.author;
-        const authors = obj.authors.split(sep);
-        const name = authors[0];
-        if(name){
-            if(obj.filePath.match(reg)){
-                set[name] = set[name]? set[name]+1: 1;
-            }else{
-                otherSet[name] = otherSet[name]? otherSet[name]+1: 1;
+        .chain()
+        .find({ isDisplayableInExplorer: true })
+        .where(obj => {
+            // const temp = serverUtil.parse(p);
+            // const name = temp && temp.author;
+            const authors = obj.authors.split(sep);
+            const name = authors[0];
+            if (name) {
+                if (obj.filePath.match(reg)) {
+                    set[name] = set[name] ? set[name] + 1 : 1;
+                } else {
+                    otherSet[name] = otherSet[name] ? otherSet[name] + 1 : 1;
+                }
             }
-        }
-        return false;
-    });
-    
+            return false;
+        });
+
     let end2 = (new Date).getTime();
     // console.log(`${(end2 - beg)/1000}s to getGoodAndOtherSet`);
 
@@ -45,7 +45,7 @@ function getGoodAndOtherSet(){
     }
 }
 
-router.post('/api/getGoodAuthorNames',async (req, res) => {
+router.post('/api/getGoodAuthorNames', async (req, res) => {
     const result = getGoodAndOtherSet();
 
     res.send({

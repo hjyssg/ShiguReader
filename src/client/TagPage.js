@@ -31,7 +31,7 @@ const {
   SORT_RANDOMLY
 } = Constant;
 
-const { useless_tag_regex } =  util;
+const { useless_tag_regex } = util;
 
 //https://stackoverflow.com/questions/3665115/how-to-create-a-file-in-memory-for-user-to-download-but-not-through-server
 function download(filename, text) {
@@ -49,24 +49,24 @@ function download(filename, text) {
 
 
 function addOne(table, key) {
-  if(!key){
-      return;
-  }
-  if (!table[key]) {
-      table[key] = 1;
-  } else {
-      table[key] = table[key] + 1;
-  }
-}
-
-function addToArray(table, key, value){
-  if(!key || !value){
+  if (!key) {
     return;
   }
   if (!table[key]) {
-      table[key] = [value];
+    table[key] = 1;
   } else {
-      table[key].push(value);
+    table[key] = table[key] + 1;
+  }
+}
+
+function addToArray(table, key, value) {
+  if (!key || !value) {
+    return;
+  }
+  if (!table[key]) {
+    table[key] = [value];
+  } else {
+    table[key].push(value);
   }
 }
 
@@ -74,44 +74,44 @@ export default class TagPage extends Component {
   constructor(prop) {
     super(prop);
     this.state = this.getInitState();
-    
+
   }
 
-  getInitState(reset){
-    const parsed = reset? {} : queryString.parse(location.hash);
+  getInitState(reset) {
+    const parsed = reset ? {} : queryString.parse(location.hash);
     const pageIndex = parseInt(parsed.pageIndex) || 1;
     const sortOrder = parsed.sortOrder || FILE_NUMBER_DOWN;
-    
-      return {
-          perPageItemNum: getPerPageItemNumber(),
-          tags: [],
-          authors: [],
-          pageIndex,
-          sortOrder,
-          filterText: parsed.filterText || "",
-      }
+
+    return {
+      perPageItemNum: getPerPageItemNumber(),
+      tags: [],
+      authors: [],
+      pageIndex,
+      sortOrder,
+      filterText: parsed.filterText || "",
+    }
   }
 
-setStateAndSetHash(state, callback){
-  const obj = Object.assign({}, this.state, state);
-  const obj2 = {};
-  ["pageIndex", "sortOrder", "filterText"].forEach(key => {
-    obj2[key] = obj[key];
-  })
+  setStateAndSetHash(state, callback) {
+    const obj = Object.assign({}, this.state, state);
+    const obj2 = {};
+    ["pageIndex", "sortOrder", "filterText"].forEach(key => {
+      obj2[key] = obj[key];
+    })
 
-  location.hash = queryString.stringify(obj2);
-  this.setState(state, callback);
-}
+    location.hash = queryString.stringify(obj2);
+    this.setState(state, callback);
+  }
 
-  componentWillReceiveProps(nextProps){
-    if(this.props.mode !== nextProps.mode){
-      this.setStateAndSetHash({pageIndex: 1, filterText: ""})
+  componentWillReceiveProps(nextProps) {
+    if (this.props.mode !== nextProps.mode) {
+      this.setStateAndSetHash({ pageIndex: 1, filterText: "" })
     }
 
-    if(_.isString(nextProps.filterText) && nextProps.filterText !== this.state.filterText){
+    if (_.isString(nextProps.filterText) && nextProps.filterText !== this.state.filterText) {
       this.setStateAndSetHash({
-          pageIndex: 1,
-          filterText: nextProps.filterText
+        pageIndex: 1,
+        filterText: nextProps.filterText
       })
     }
   }
@@ -123,7 +123,7 @@ setStateAndSetHash(state, callback){
 
     this.bindUserInteraction();
 
-    Sender.post('/api/allInfo', { needThumbnail: true}, res => {
+    Sender.post('/api/allInfo', { needThumbnail: true }, res => {
       if (!res.isFailed()) {
         this.setItems(res);
         this.setState({ loaded: true });
@@ -134,17 +134,17 @@ setStateAndSetHash(state, callback){
     });
   }
 
-  bindUserInteraction(){
-      document.addEventListener('keydown', this.handleKeyDown.bind(this));
+  bindUserInteraction() {
+    document.addEventListener('keydown', this.handleKeyDown.bind(this));
   }
 
-  componentWillUnmount(){
-      document.removeEventListener("keydown", this.handleKeyDown.bind(this));
+  componentWillUnmount() {
+    document.removeEventListener("keydown", this.handleKeyDown.bind(this));
   }
 
   handleKeyDown(event) {
     //this cause input wont work 
-    if(isSearchInputTextTyping()){
+    if (isSearchInputTextTyping()) {
       return;
     }
     const key = event.key.toLowerCase();
@@ -157,12 +157,12 @@ setStateAndSetHash(state, callback){
     }
   }
 
-  chooseOneThumbnailForOneTag = function(files){
+  chooseOneThumbnailForOneTag = function (files) {
     files = sortUtil.sort_file_by_time(files, this.fileToInfo, getBaseName, false, false);
     let result;
     files.some(e => {
       const thumbnail = this.allThumbnails[e];
-      if(thumbnail && isImage(thumbnail)){
+      if (thumbnail && isImage(thumbnail)) {
         result = thumbnail;
         return true;
       }
@@ -170,8 +170,8 @@ setStateAndSetHash(state, callback){
 
     return result;
   }
-  
-  setItems(res){
+
+  setItems(res) {
     const { fileToInfo = {}, allThumbnails = {} } = res.json;
     const tags = {};
     const authors = {};
@@ -183,14 +183,14 @@ setStateAndSetHash(state, callback){
     const beginTime = getCurrentTime();
     const groupSet = {};
 
-    function toKey(str){
+    function toKey(str) {
       return str.toLowerCase();
       //.replace(/-| |\!/, "") will also done in server side 
       //or the search will be wrong
     }
 
-    for(let filePath in fileToInfo){
-      if(fileToInfo.hasOwnProperty(filePath) && isCompress(filePath)){
+    for (let filePath in fileToInfo) {
+      if (fileToInfo.hasOwnProperty(filePath) && isCompress(filePath)) {
         const fileName = getBaseName(filePath);
         const result = nameParser.parse(fileName);
         if (result && result.group) {
@@ -200,28 +200,28 @@ setStateAndSetHash(state, callback){
       }
     }
 
-    for(let filePath in fileToInfo){
-      if(fileToInfo.hasOwnProperty(filePath) && isCompress(filePath)){
+    for (let filePath in fileToInfo) {
+      if (fileToInfo.hasOwnProperty(filePath) && isCompress(filePath)) {
         const fileName = getBaseName(filePath);
         const result = nameParser.parse(fileName);
         if (result) {
-            (result.authors||[]).forEach(author => {
-              //some author is actually group, fake author
-              author = toKey(author);
-              if(!groupSet[author]){
-                addOne(authors, author);
-                addToArray(authorToFiles, author, filePath );
-              }
-            })
+          (result.authors || []).forEach(author => {
+            //some author is actually group, fake author
+            author = toKey(author);
+            if (!groupSet[author]) {
+              addOne(authors, author);
+              addToArray(authorToFiles, author, filePath);
+            }
+          })
 
-            result.tags.forEach(tag => {
-              if(tag.match(useless_tag_regex)){
-                return;
-              }
-              tag = toKey(tag);
-              addOne(tags, tag);
-              addToArray(tagToFiles, tag, filePath);
-            });
+          result.tags.forEach(tag => {
+            if (tag.match(useless_tag_regex)) {
+              return;
+            }
+            tag = toKey(tag);
+            addOne(tags, tag);
+            addToArray(tagToFiles, tag, filePath);
+          });
         }
       }
     }
@@ -237,7 +237,7 @@ setStateAndSetHash(state, callback){
     })
   }
 
-  getFilteterItems(){
+  getFilteterItems() {
     const {
       sortOrder,
       filterText
@@ -247,38 +247,38 @@ setStateAndSetHash(state, callback){
     const items = this.getItems() || [];
     let keys = _.keys(items);
 
-    if(_.isString(filterText)){
+    if (_.isString(filterText)) {
       let _text = filterText.toLowerCase();
-      keys =  keys.filter(e => {
-            return e.toLowerCase().indexOf(_text) > -1;
+      keys = keys.filter(e => {
+        return e.toLowerCase().indexOf(_text) > -1;
       });
     }
 
-    if (sortOrder.includes(SORT_RANDOMLY)){
+    if (sortOrder.includes(SORT_RANDOMLY)) {
       keys = _.shuffle(keys);
-    } else if(sortOrder === FILE_NUMBER_DOWN || sortOrder === FILE_NUMBER_UP){
+    } else if (sortOrder === FILE_NUMBER_DOWN || sortOrder === FILE_NUMBER_UP) {
       keys = _.sortBy(keys, a => -items[a]);
 
-      if(sortOrder === FILE_NUMBER_UP){
+      if (sortOrder === FILE_NUMBER_UP) {
         keys.reverse();
       }
-    }else if(sortOrder === NAME_DOWN || sortOrder === NAME_UP){
+    } else if (sortOrder === NAME_DOWN || sortOrder === NAME_UP) {
       keys.sort((a, b) => {
-          return a.localeCompare(b);
+        return a.localeCompare(b);
       });
 
-      if(sortOrder === NAME_DOWN){
-          keys.reverse();
+      if (sortOrder === NAME_DOWN) {
+        keys.reverse();
       }
     }
     return keys;
   }
 
-  getItems(){
-    return this.isAuthorMode()? this.state.authors : this.state.tags;
+  getItems() {
+    return this.isAuthorMode() ? this.state.authors : this.state.tags;
   }
 
-  isAuthorMode(){
+  isAuthorMode() {
     return this.props.mode === "author";
   }
 
@@ -292,21 +292,21 @@ setStateAndSetHash(state, callback){
       pageIndex
     } = this.state;
 
-    if ( _.isEmpty(tags) && _.isEmpty(authors)) {
-      if(loaded){
-        return (<center style={{paddingTop: "100px"}}> 
-                    <div className="alert alert-info col-6" role="alert" > {`No Content`} </div>
-                </center>);
-      }else{
-        return (<CenterSpinner/>);
+    if (_.isEmpty(tags) && _.isEmpty(authors)) {
+      if (loaded) {
+        return (<center style={{ paddingTop: "100px" }}>
+          <div className="alert alert-info col-6" role="alert" > {`No Content`} </div>
+        </center>);
+      } else {
+        return (<CenterSpinner />);
       }
     }
 
     const items = this.getItems();
-    keys = keys.slice((pageIndex-1) * this.state.perPageItemNum, pageIndex * this.state.perPageItemNum);
-    const t2Files = this.isAuthorMode()? authorToFiles : tagToFiles;
+    keys = keys.slice((pageIndex - 1) * this.state.perPageItemNum, pageIndex * this.state.perPageItemNum);
+    const t2Files = this.isAuthorMode() ? authorToFiles : tagToFiles;
     const isAuthorMode = this.isAuthorMode();
-    const kk = isAuthorMode? "authors" : "tags";
+    const kk = isAuthorMode ? "authors" : "tags";
 
 
     const tagItems = keys.map((tag) => {
@@ -326,43 +326,43 @@ setStateAndSetHash(state, callback){
       const displayTag = strArr[0];
 
       const itemText = `${displayTag} (${items[tag]})`;
-      const url = this.isAuthorMode()? clientUtil.getAuthorLink(tag) :  clientUtil.getTagLink(tag);
+      const url = this.isAuthorMode() ? clientUtil.getAuthorLink(tag) : clientUtil.getTagLink(tag);
       const thumbnailUrl = this.chooseOneThumbnailForOneTag(t2Files[tag]);
-    
 
-      return  (<div key={tag} className="col-sm-6 col-md-4 col-lg-3 tag-page-list-item">
-                    <div className={"tag-cell"}>
-                      <Link target="_blank" className="tag-page-list-item-link" to={url}  key={tag}>
-                        <FileCellTitle str={itemText}/>
-                        <LoadingImage isThumbnail 
-                                      className="tag-page-thumbnail" fileName={tag} 
-                                      mode={this.props.mode} 
-                                      url={thumbnailUrl} />
-                      </Link>
-                    </div>
-                  </div>);
-      });
+
+      return (<div key={tag} className="col-sm-6 col-md-4 col-lg-3 tag-page-list-item">
+        <div className={"tag-cell"}>
+          <Link target="_blank" className="tag-page-list-item-link" to={url} key={tag}>
+            <FileCellTitle str={itemText} />
+            <LoadingImage isThumbnail
+              className="tag-page-thumbnail" fileName={tag}
+              mode={this.props.mode}
+              url={thumbnailUrl} />
+          </Link>
+        </div>
+      </div>);
+    });
 
     return (
       <div className="tag-page-list-group container">
         <div className="row">
-        {tagItems}
+          {tagItems}
         </div>
       </div>
     );
   }
 
-  isFailedLoading(){
+  isFailedLoading() {
     return this.res && this.res.isFailed();
   }
 
-  getTitle(keys){
-    let text = this.props.mode === "tag"? "By Tags" : "By Authors";
+  getTitle(keys) {
+    let text = this.props.mode === "tag" ? "By Tags" : "By Authors";
     return text + " (" + keys.length + ")";
   }
 
-  handlePageChange(index){
-    if(window.event && window.event.ctrlKey){
+  handlePageChange(index) {
+    if (window.event && window.event.ctrlKey) {
       return;
     }
 
@@ -375,57 +375,57 @@ setStateAndSetHash(state, callback){
     });
   }
 
-  next(){
-    if(this.pagination && this.pagination.hasNext()){
-        let next = this.state.pageIndex+1;
-        this.handlePageChange(next);
+  next() {
+    if (this.pagination && this.pagination.hasNext()) {
+      let next = this.state.pageIndex + 1;
+      this.handlePageChange(next);
     }
   }
 
-  prev(){
-      if(this.pagination && this.pagination.hasPrev()){
-          let next = this.state.pageIndex-1;
-          this.handlePageChange(next);
-      }
+  prev() {
+    if (this.pagination && this.pagination.hasPrev()) {
+      let next = this.state.pageIndex - 1;
+      this.handlePageChange(next);
+    }
   }
 
-  toggleItemNum(){
+  toggleItemNum() {
     let nv = this.state.perPageItemNum + 12;
-    nv = Math.min(nv, 60); 
+    nv = Math.min(nv, 60);
     this.setStateAndSetHash({
-        perPageItemNum: nv
+      perPageItemNum: nv
     })
-}
+  }
 
-  renderPagination(keys){
+  renderPagination(keys) {
     return (<div className="pagination-container">
-              <Pagination ref={ref => this.pagination = ref}
-              currentPage={this.state.pageIndex}  
-              itemPerPage={this.state.perPageItemNum}
-              totalItemNum={keys.length} 
-              onChange={this.handlePageChange.bind(this)} 
-              onExtraButtonClick={this.toggleItemNum.bind(this)}
-              /></div>);
+      <Pagination ref={ref => this.pagination = ref}
+        currentPage={this.state.pageIndex}
+        itemPerPage={this.state.perPageItemNum}
+        totalItemNum={keys.length}
+        onChange={this.handlePageChange.bind(this)}
+        onExtraButtonClick={this.toggleItemNum.bind(this)}
+      /></div>);
   }
 
-  onSortChange(e){
-    this.setStateAndSetHash({sortOrder: e})
+  onSortChange(e) {
+    this.setStateAndSetHash({ sortOrder: e })
   }
 
-  renderSortHeader(){
+  renderSortHeader() {
     let sortOptions = Constant.TAG_SORT_OPTIONS;
-    return (<div className="sort-header-container container"> 
-        <SortHeader  options={sortOptions} value={this.state.sortOrder} onChange={this.onSortChange.bind(this)} />
-        </div>);
+    return (<div className="sort-header-container container">
+      <SortHeader options={sortOptions} value={this.state.sortOrder} onChange={this.onSortChange.bind(this)} />
+    </div>);
   }
 
-  createFileAndDownload(){
+  createFileAndDownload() {
     const keys = this.getFilteterItems();
     download("keys.txt", keys.join("\n"));
   }
 
-  renderDownloadButton(){
-    return (<div > 
+  renderDownloadButton() {
+    return (<div >
       <div onClick={this.createFileAndDownload.bind(this)}> download author txt </div>
     </div>);
   }
@@ -441,10 +441,10 @@ setStateAndSetHash(state, callback){
     // }
 
     if (this.isFailedLoading()) {
-      return <ErrorPage res={this.res}/>;
+      return <ErrorPage res={this.res} />;
     }
 
-    document.title = this.isAuthorMode()? "Authors" : "Tags"; 
+    document.title = this.isAuthorMode() ? "Authors" : "Tags";
 
     const keys = this.getFilteterItems();
 

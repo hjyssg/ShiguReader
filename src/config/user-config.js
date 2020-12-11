@@ -8,17 +8,17 @@ const config = {};
  */
 const now = new Date();
 const y = now.getFullYear();
-let mm = now.getMonth()+1;
-mm = ( mm < 10 ) ? ( "0" + ( mm ).toString() ) : ( mm ).toString();
-const fd = "good_"+ [y, mm, "01"].join("_");
-config.good_folder = "D:\\_Happy_Lesson\\_Going_to_sort\\_good\\"+fd;
+let mm = now.getMonth() + 1;
+mm = (mm < 10) ? ("0" + (mm).toString()) : (mm).toString();
+const fd = "good_" + [y, mm, "01"].join("_");
+config.good_folder = "D:\\_Happy_Lesson\\_Going_to_sort\\_good\\" + fd;
 
 
 /**
  * OPTIONAL where to move file
  * 可选 手动漫画整理的时候，你想把不怎么喜欢的漫画移动到的位置
  */
-config.not_good_folder = "D:\\_Happy_Lesson\\_Going_to_sort\\_not_good\\_Compressed_"+ y;
+config.not_good_folder = "D:\\_Happy_Lesson\\_Going_to_sort\\_not_good\\_Compressed_" + y;
 
 /** 
  * OPTIONAL all good folders  
@@ -48,7 +48,7 @@ config.additional_folder = [
 //----------------- below section used by developer-----------------------------
 
 config.workspace_name = "workspace";
- 
+
 config.cache_folder_name = "cache";
 
 config.thumbnail_folder_name = "thumbnails";
@@ -105,7 +105,7 @@ config.img_convert_quality_for_middle_size_file = 70;
 
 //超过这个大小，再转换的时候同时压低分辨率。
 //现在太多漫画，扫描出来一来4000*6000。完全没有必要
-config.img_convert_huge_threshold = 6 ; //in MB
+config.img_convert_huge_threshold = 6; //in MB
 
 //小于这个大小，没有转换的必要
 config.img_convert_min_threshold = 1.5; //in MB

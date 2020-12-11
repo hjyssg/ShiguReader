@@ -7,7 +7,7 @@ const { isDisplayableInOnebook } = util;
 
 router.post('/api/cacheInfo', (req, res) => {
     const cacheFileToInfo = db.getCacheFileToInfo();
-    const cacheFiles =  db.getAllCacheFilePathes().filter(isDisplayableInOnebook);
+    const cacheFiles = db.getAllCacheFilePathes().filter(isDisplayableInOnebook);
     let totalSize = 0;
 
     cacheFiles.forEach(e => {

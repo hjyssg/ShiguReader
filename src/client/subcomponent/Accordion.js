@@ -1,28 +1,26 @@
 
 import '../style/Accordion.scss';
 const util = require("@common/util");
-import {Collapse} from 'react-collapse';
+import { Collapse } from 'react-collapse';
 import React, { Component } from 'react';
 var classNames = require('classnames');
 
-
 export default class Accordion extends Component {
     static defaultProps = {
-       
     }
 
     state = {
         open: false
     };
 
-    toggleState(){
+    toggleState() {
         this.setState({
             open: !this.state.open
         })
     }
 
-    render(){
-        const {className, header, body} = this.props;
+    render() {
+        const { className, header, body } = this.props;
         const cn = classNames("aji-accordion", className);
 
         return (
@@ -33,9 +31,9 @@ export default class Accordion extends Component {
                 </Collapse>
             </div>
         )
-     }
+    }
 }
 
 Accordion.propTypes = {
- 
+
 };

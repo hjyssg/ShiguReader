@@ -12,8 +12,8 @@ import _ from 'underscore';
 function iosCopyToClipboard(el) {
   //https://stackoverflow.com/questions/34045777/copy-to-clipboard-using-javascript-in-ios/34046084
   var oldContentEditable = el.contentEditable,
-      oldReadOnly = el.readOnly,
-      range = document.createRange();
+    oldReadOnly = el.readOnly,
+    range = document.createRange();
 
   el.contentEditable = true;
   el.readOnly = false;
@@ -32,15 +32,15 @@ function iosCopyToClipboard(el) {
 }
 
 export default class FileNameDiv extends Component {
-  onTitleClick(){
+  onTitleClick() {
     //https://stackoverflow.com/questions/49236100/copy-text-from-span-to-clipboard
     var textArea = document.createElement("textarea");
     textArea.value = this.props.filename;
     document.body.appendChild(textArea);
 
-    if(clientUtil.isIOS()){
+    if (clientUtil.isIOS()) {
       iosCopyToClipboard(textArea)
-    }else{
+    } else {
       textArea.select();
       document.execCommand("Copy");
     }
@@ -57,8 +57,8 @@ export default class FileNameDiv extends Component {
     })
   }
 
-  getText(){
-    const { filename, mecab_tokens }= this.props;
+  getText() {
+    const { filename, mecab_tokens } = this.props;
     const text = clientUtil.getBaseNameWithoutExtention(filename);
     const extension = filename.replace(text, "");
 
@@ -68,31 +68,31 @@ export default class FileNameDiv extends Component {
     let pTags = [];
     let authors;
 
-    if(pResult){
+    if (pResult) {
       originalTags = pResult.tags;
       authors = pResult.authors;
 
-      if(pResult.comiket){
+      if (pResult.comiket) {
         allTags.push(pResult.comiket);
       }
 
-      if(pResult.group){
+      if (pResult.group) {
         allTags.push(pResult.group);
       }
-      
-      if(authors){
+
+      if (authors) {
         allTags = allTags.concat(authors);
       }
 
       allTags = allTags.concat(originalTags);
       pTags = allTags.slice();
     }
-    let nameTags = namePicker.pick(text)||[];
+    let nameTags = namePicker.pick(text) || [];
     allTags = allTags.concat(nameTags);
-    
+
 
     //less meaningful
-    let lessTags = (mecab_tokens && mecab_tokens.length > 1)? mecab_tokens : namePicker.splitBySpace(text);
+    let lessTags = (mecab_tokens && mecab_tokens.length > 1) ? mecab_tokens : namePicker.splitBySpace(text);
     lessTags = lessTags.filter(e => !allTags.includes(e));
     allTags = allTags.concat(lessTags);
 
@@ -109,31 +109,31 @@ export default class FileNameDiv extends Component {
       return tagIndexes[tag];
     });
 
-    function getPriority(str){
-      if(pTags.includes(str)){
+    function getPriority(str) {
+      if (pTags.includes(str)) {
         return 4;
-      }else if(nameTags.includes(str)){
+      } else if (nameTags.includes(str)) {
         return 3;
-      }else{
+      } else {
         return 1;
       }
     }
 
     //tag1 may include tag2. remove the short one
     const willRemove = {};
-    for(let ii = 0; ii < allTags.length; ii++){
+    for (let ii = 0; ii < allTags.length; ii++) {
       const t1 = allTags[ii];
-      if(willRemove[t1]){
+      if (willRemove[t1]) {
         continue;
       }
-      for(let jj = ii+1; jj < allTags.length; jj++){
+      for (let jj = ii + 1; jj < allTags.length; jj++) {
         const t2 = allTags[jj];
-        if(t1.includes(t2)){
+        if (t1.includes(t2)) {
           const p1 = getPriority(t1);
           const p2 = getPriority(t2);
-          if(p1 < p2){
+          if (p1 < p2) {
             willRemove[t1] = true;
-          }else{
+          } else {
             willRemove[t2] = true;
           }
         }
@@ -145,19 +145,19 @@ export default class FileNameDiv extends Component {
     const SEP = "||__SEP__||"
     allTags.forEach(tag => {
       //https://stackoverflow.com/questions/4514144/js-string-split-without-removing-the-delimiters
-      const tempHolder = SEP+tag+SEP;
+      const tempHolder = SEP + tag + SEP;
       tempText = tempText.replace(tag, tempHolder)
     })
     const formatArr = [];
     tempText.split(SEP).map(token => {
-      if( allTags.includes(token)){
+      if (allTags.includes(token)) {
         const tag = token;
         let url;
-        if(authors && authors.includes(tag)){
+        if (authors && authors.includes(tag)) {
           url = clientUtil.getAuthorLink(tag);
-        }else if(originalTags && originalTags.includes(tag)){
+        } else if (originalTags && originalTags.includes(tag)) {
           url = clientUtil.getTagLink(tag);
-        }else{
+        } else {
           url = clientUtil.getSearhLink(tag);
         }
 
@@ -165,31 +165,31 @@ export default class FileNameDiv extends Component {
           "with-color": getPriority(tag) > 1
         });
 
-        const link = <a className={cn}  target="_blank" href={url}  key={tag}>{tag}</a>;
+        const link = <a className={cn} target="_blank" href={url} key={tag}>{tag}</a>;
         formatArr.push(link);
-      }else{
+      } else {
         formatArr.push(token);
       }
     });
 
-    if(extension){
+    if (extension) {
       formatArr.push(extension);
     }
 
     return <span> {formatArr} </span>
   }
-  
-  render(){
+
+  render() {
     const { filename, className, isVideo, ...others } = this.props;
     const cn2 = classNames("click-and-copy-text", className, "fas fa-copy")
-    return(
-    <span className="aji-file-name">
-      {this.getText()}
-      <span onClick={this.onTitleClick.bind(this)} className={cn2}/>
-    </span>)
+    return (
+      <span className="aji-file-name">
+        {this.getText()}
+        <span onClick={this.onTitleClick.bind(this)} className={cn2} />
+      </span>)
   }
 }
 
-FileNameDiv.propTypes = { 
+FileNameDiv.propTypes = {
   filename: PropTypes.string
 };
