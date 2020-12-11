@@ -27,7 +27,7 @@ export default class CenterSpinner extends Component {
             {text}
             <div>is Loading</div>
           </div>
-        </div>)；
+        </div>)
   }
 }
 
