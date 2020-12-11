@@ -9,15 +9,15 @@ const isLinux = require("is-linux")
 const isOsx = require("is-osx");
 const cp = require('child_process');
 const util = global.requireUtil();
-const { getCurrentTime} = util;
+const { getCurrentTime } = util;
 
-function shutdown (cb) {
+function shutdown(cb) {
     //modify https://github.com/hemanth/power-off/
     let cmd = '';
 
-    if(isLinux() || isOsx()) {
+    if (isLinux() || isOsx()) {
         cmd = 'sudo shutdown -h now';
-    } else if(isWindows()) {
+    } else if (isWindows()) {
         cmd = 'shutdown /s /f';
     } else {
         throw new Error('Unknown OS!');
@@ -31,7 +31,7 @@ function shutdown (cb) {
 
 router.post('/api/shutdownServer', function (req, res) {
     shutdown();
-    res.send({failed: false});
+    res.send({ failed: false });
 });
 
 module.exports = router;

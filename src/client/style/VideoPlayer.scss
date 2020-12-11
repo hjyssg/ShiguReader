@@ -1,11 +1,11 @@
 @import "vars.scss";
 
-.video-player-page{
-    .video-player-container{
+.video-player-page {
+    .video-player-container {
         @include flex_center_display;
 
         //horizontal
-        #videoPlayer:not(.vertical-video){ 
+        #videoPlayer:not(.vertical-video) {
             @media screen and (max-width: 1000px) {
                 width: calc(100% - 50px);
             }
@@ -27,15 +27,15 @@
         }
     }
 
-    .video-title{
+    .video-title {
         @include flex_center_display;
         flex-direction: column;
-      
+
         margin-top: 10px;
         font-size: 14px;
         color: $font_color_white_one;
 
-        .inline-display{
+        .inline-display {
             display: inline;
         }
     }
@@ -44,25 +44,25 @@
         margin-top: 5px;
         @include flex_center_display;
 
-        .video-tag{
+        .video-tag {
             margin-left: 10px;
             color: $font_color_white_one;
         }
     }
 
-    .video-toolbar{
+    .video-toolbar {
         @include flex_center_display;
 
         margin-left: auto;
         margin-right: auto;
         font-size: 15px;
 
-        .aji-dropdown-item{
+        .aji-dropdown-item {
             font-size: 28px;
         }
     }
 
-    .video-file-info-row{
+    .video-file-info-row {
         @include flex_center_display;
 
         margin-left: auto;

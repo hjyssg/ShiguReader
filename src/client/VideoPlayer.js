@@ -20,44 +20,44 @@ export default class VideoPlayer extends Component {
     };
   }
 
-  componentDidMount(){
+  componentDidMount() {
     const filePath = this.getTextFromQuery();
-    if(filePath){
+    if (filePath) {
       Sender.post("/api/singleFileInfo", { filePath }, res => {
-        if(!res.isFailed()){
-          const { stat, mecab_tokens} = res.json;
-          this.setState({stat, mecab_tokens})
-        }else{
+        if (!res.isFailed()) {
+          const { stat, mecab_tokens } = res.json;
+          this.setState({ stat, mecab_tokens })
+        } else {
           this.res = res;
           this.onError();
-        } 
+        }
       });
     }
   }
 
-  getTextFromQuery(props){
-      //may allow tag author in future
-      const _props = props || this.props;
-      return queryString.parse(_props.location.search)["p"] ||  "";
+  getTextFromQuery(props) {
+    //may allow tag author in future
+    const _props = props || this.props;
+    return queryString.parse(_props.location.search)["p"] || "";
   }
 
-  onError(e){
+  onError(e) {
     // console.log();
     this.setState({
       hasError: true
     })
   }
-  
-  renderTag(){
+
+  renderTag() {
     const filePath = this.getTextFromQuery();
     const dirName = getBaseName(getDir(filePath));
-    let tags = namePicker.pick(dirName) || []; 
+    let tags = namePicker.pick(dirName) || [];
     tags = _.uniq(tags);
-    
-    if(tags){
+
+    if (tags) {
       const tagDoms = tags.map(tag => {
-          const url =  clientUtil.getSearhLink(tag);
-          return (<Link className="video-tag"  target="_blank" to={url}  key={tag}>{tag}</Link>)
+        const url = clientUtil.getSearhLink(tag);
+        return (<Link className="video-tag" target="_blank" to={url} key={tag}>{tag}</Link>)
       });
 
       return (<div className="video-tag-row">  {tagDoms} </div>);
@@ -68,17 +68,17 @@ export default class VideoPlayer extends Component {
     const filePath = this.getTextFromQuery();
     const parentPath = getDir(filePath);
     const toUrl = clientUtil.getExplorerLink(parentPath);
-    
+
     return (
       <div className="one-book-path">
         <Link to={toUrl}>{parentPath} </Link>
       </div>);
   }
 
-  onLoadedMetadata(){
+  onLoadedMetadata() {
     const hh = this.videoRef.videoHeight; // returns the intrinsic height of the video
-    const ww = this.videoRef.videoWidth; 
-    if(hh > ww){
+    const ww = this.videoRef.videoWidth;
+    if (hh > ww) {
       this.videoRef.className = "vertical-video"
     }
   }
@@ -88,44 +88,44 @@ export default class VideoPlayer extends Component {
     const url = clientUtil.getDownloadLink(this.getTextFromQuery());
     const fileName = getBaseName(filePath);
     document.title = fileName;
-    const {hasError, stat, mecab_tokens} = this.state;
+    const { hasError, stat, mecab_tokens } = this.state;
     //use bootstrap classname util 
-    const videoTitle = filePath && (<div className="video-title"> 
-                          <center> <FileNameDiv mecab_tokens={mecab_tokens} filename={fileName} className="inline-display" /></center>
-                          {this.renderPath()}
-                         </div>);
+    const videoTitle = filePath && (<div className="video-title">
+      <center> <FileNameDiv mecab_tokens={mecab_tokens} filename={fileName} className="inline-display" /></center>
+      {this.renderPath()}
+    </div>);
 
-  const fileSize = stat && filesizeUitl(stat.size);
-  const mTime = stat &&  dateFormat(stat.mtime, "isoDate");
+    const fileSize = stat && filesizeUitl(stat.size);
+    const mTime = stat && dateFormat(stat.mtime, "isoDate");
 
-  const videoFileInfo = (stat && <div className="video-file-info-row">
-                          <span>{fileSize}</span>
-                          <span style={{marginLeft: "10px"}}> {mTime} </span>
-                        </div>);
+    const videoFileInfo = (stat && <div className="video-file-info-row">
+      <span>{fileSize}</span>
+      <span style={{ marginLeft: "10px" }}> {mTime} </span>
+    </div>);
 
     let content;
-    if(hasError || !filePath){
-      const infoStr=  (!filePath || (this.res && this.res.status === 404) )? "Video Not Found": "Unable to Play Video";
+    if (hasError || !filePath) {
+      const infoStr = (!filePath || (this.res && this.res.status === 404)) ? "Video Not Found" : "Unable to Play Video";
       content = (<div className="flex-center-display-container">  <div className="alert alert-warning col-6" role="alert">{infoStr}</div> </div>);
-    }else{
+    } else {
       content = (
         <div className="video-player-container">
-          <video id="videoPlayer"  ref={(e) =>  this.videoRef = e} controls  onLoadedMetadata={this.onLoadedMetadata.bind(this)}> 
-            <source src={url} type="video/mp4" onError={this.onError.bind(this)}/>
+          <video id="videoPlayer" ref={(e) => this.videoRef = e} controls onLoadedMetadata={this.onLoadedMetadata.bind(this)}>
+            <source src={url} type="video/mp4" onError={this.onError.bind(this)} />
           </video>
         </div>
       );
     }
 
     return (<div className="video-player-page">
-              {content}
-              {videoTitle}
-              {videoFileInfo}
-              <FileChangeToolbar className="video-toolbar" file={filePath} popPosition={"top-center"}/>
-              {this.renderTag()}
-            </div>
-            );
-  } 
+      {content}
+      {videoTitle}
+      {videoFileInfo}
+      <FileChangeToolbar className="video-toolbar" file={filePath} popPosition={"top-center"} />
+      {this.renderTag()}
+    </div>
+    );
+  }
 }
 
 VideoPlayer.propTypes = {

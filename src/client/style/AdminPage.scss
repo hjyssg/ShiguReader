@@ -1,94 +1,95 @@
 @import "vars.scss";
 
-.admin-container{
-    position: relative;
+.admin-container {
+  position: relative;
 
-    @include common_sub_container;
+  @include common_sub_container;
 
-    .admin-section{
-      font-size: 13px;
+  .admin-section {
+    font-size: 13px;
 
-      .admin-section-title {
-        font-weight: 600;
-      }
+    .admin-section-title {
+      font-weight: 600;
+    }
 
-      .admin-section-text {
-        font-size: 15px;
-        font-weight: 600;
-      }
+    .admin-section-text {
+      font-size: 15px;
+      font-weight: 600;
+    }
 
-      .admin-section-content {
-        margin: 8px auto 10px 10px;
-        clear: both;
+    .admin-section-content {
+      margin: 8px auto 10px 10px;
+      clear: both;
 
-        .admin-intput{
-          display: block;
-          margin-left: 2px;
-          margin-bottom: 5px;
-          width: 500px;
+      .admin-intput {
+        display: block;
+        margin-left: 2px;
+        margin-bottom: 5px;
+        width: 500px;
 
-          @media screen and (max-width: 550px) {
-            width: 300px;
-          }
+        @media screen and (max-width: 550px) {
+          width: 300px;
         }
       }
+    }
 
+    margin-bottom: 20px;
+  }
+
+  .submit-button {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 300px;
+    background-color: $bacground_level_one;
+    min-height: 26px;
+    padding: 1px 5px 2px;
+    margin: 0 2px;
+    border-radius: 3px;
+    font-size: 9pt;
+    color: $font_color_white_one;
+    margin-bottom: 10px;
+
+    &:hover {
+      @include hover_effect;
+    }
+  }
+
+  .author-link {
+    margin-top: 10px;
+    margin-bottom: 10px;
+
+    a {
+      font-size: 1.2rem;
+      color: $font_color_black_two;
+    }
+  }
+
+  .history-section {
+    .history-day-section {
       margin-bottom: 20px;
-    }
 
-    .submit-button {
-        cursor: pointer;
+      .date-text {
+        font-weight: 600;
+        border-top: 1px #414141 solid;
+        border-bottom: 1px #414141 solid;
+
         display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 300px;
-        background-color: $bacground_level_one; 
-        min-height: 26px;
-        padding: 1px 5px 2px;
-        margin: 0 2px;
-        border-radius: 3px;
-        font-size: 9pt;
-        color: $font_color_white_one;
-        margin-bottom: 10px;
+        justify-content: space-between;
 
-        &:hover{
-          @include hover_effect;
-        }
-    }
-      
-    .author-link{
-      margin-top: 10px;
-      margin-bottom: 10px;
-      a {
-        font-size: 1.2rem;
-        color: $font_color_black_two;
+        padding-left: 5px;
+        padding-right: 10px;
+        padding-top: 5px;
+        padding-bottom: 5px;
+        margin-bottom: 5px;
       }
     }
 
-    .history-section {
-      .history-day-section{
-        margin-bottom: 20px;
-
-        .date-text {
-          font-weight: 600;
-          border-top: 1px #414141 solid;
-          border-bottom: 1px #414141 solid;
-  
-          display: flex;
-          justify-content: space-between;
-          
-          padding-left: 5px;
-          padding-right: 10px;
-          padding-top: 5px;
-          padding-bottom: 5px;
-          margin-bottom: 5px;
-        }
-      }
-
-      .history-link{
-        .history-one-line-list-item {
-          padding-left: 5px;
-        }
+    .history-link {
+      .history-one-line-list-item {
+        padding-left: 5px;
       }
     }
+  }
 }

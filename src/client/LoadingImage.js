@@ -19,112 +19,112 @@ export default class LoadingImage extends Component {
   }
 
   componentDidMount() {
-    if(this.props.isThumbnail){
-      setTimeout(()=>{
+    if (this.props.isThumbnail) {
+      setTimeout(() => {
         this.onChange(true)
       }, 0);
     }
   }
 
-  componentWillUnmount(){
+  componentWillUnmount() {
     this.isUnmounted = true;
   }
 
-  shouldAskUrl(){
-    if(this.props.asSimpleImage){
+  shouldAskUrl() {
+    if (this.props.asSimpleImage) {
       return false;
     }
-    if(!this.state.url){
+    if (!this.state.url) {
       return true
-    }else{
-      if(this.state.url === "NOT_THUMBNAIL_AVAILABLE"){
+    } else {
+      if (this.state.url === "NOT_THUMBNAIL_AVAILABLE") {
         return this.isAuthorTagMode();
-      }else{
+      } else {
         return false;
       }
     }
   }
 
-  onChange(){
-    if(this.shouldAskUrl() & !this.loading){
-        this.requestThumbnail()
+  onChange() {
+    if (this.shouldAskUrl() & !this.loading) {
+      this.requestThumbnail()
     }
   }
 
-  isAuthorTagMode(){
-    const { mode} = this.props;
+  isAuthorTagMode() {
+    const { mode } = this.props;
     return mode === "author" || mode === "tag";
   }
 
-  requestThumbnail(){
+  requestThumbnail() {
     const { mode, fileName } = this.props;
-    const api = (this.isAuthorTagMode()) ? "/api/tagFirstImagePath" :  '/api/firstImage';
+    const api = (this.isAuthorTagMode()) ? "/api/tagFirstImagePath" : '/api/firstImage';
     const body = {};
 
-    if(this.isAuthorTagMode()){
+    if (this.isAuthorTagMode()) {
       body[mode] = fileName;
-    }else{
+    } else {
       body["filePath"] = fileName;
     }
 
     this.loading = true;
     Sender.post(api, body, res => {
-      if(this.isUnmounted){
+      if (this.isUnmounted) {
         return;
       }
       if (res.isFailed()) {
-        this.setState({ failed: this.state.failed+1 }); 
-      }else{
+        this.setState({ failed: this.state.failed + 1 });
+      } else {
         const url = res.json.url
         this.props.onReceiveUrl && this.props.onReceiveUrl(url);
-        this.setState({ url }); 
+        this.setState({ url });
       }
     });
   }
 
-  onError(){
-    if(!this.tryEnoughRequest()){
+  onError() {
+    if (!this.tryEnoughRequest()) {
       this.setState({
         url: null,
-        failed: this.state.failed+1
-      }, ()=> {
+        failed: this.state.failed + 1
+      }, () => {
         this.requestThumbnail()
       });
     }
   }
 
-  tryEnoughRequest(){
+  tryEnoughRequest() {
     return this.state.failed > 2;
   }
 
-  isThumbnailAvaible(){
+  isThumbnailAvaible() {
     return this.state.url && this.state.url !== "NOT_THUMBNAIL_AVAILABLE";
   }
 
   render() {
     let content;
-    const {className, fileName, url, bottomOffet, topOffet, title, isThumbnail, onReceiveUrl, asSimpleImage, style, musicNum,  ...others} = this.props;
+    const { className, fileName, url, bottomOffet, topOffet, title, isThumbnail, onReceiveUrl, asSimpleImage, style, musicNum, ...others } = this.props;
 
-    const empty_icon_cn = musicNum > 0? " fas fa-music" : " fas fa-file-archive";
+    const empty_icon_cn = musicNum > 0 ? " fas fa-music" : " fas fa-file-archive";
 
-    let cn = classNames("loading-image", className,{
+    let cn = classNames("loading-image", className, {
       "empty-block": !this.isThumbnailAvaible()
     });
 
-    if(!this.isThumbnailAvaible()){
+    if (!this.isThumbnailAvaible()) {
       cn += empty_icon_cn;
     }
 
 
-    const _url = asSimpleImage? url : encodeFileUrl(this.state.url);
+    const _url = asSimpleImage ? url : encodeFileUrl(this.state.url);
 
-   if (this.isThumbnailAvaible()) {
-      content = (<img style={style} key={fileName} ref={e=>{this.dom = e && e.node}} 
-                      className={className} src={_url} title={title || fileName} 
-                      onError={this.onError.bind(this)} 
-                      {...others}/>);
+    if (this.isThumbnailAvaible()) {
+      content = (<img style={style} key={fileName} ref={e => { this.dom = e && e.node }}
+        className={className} src={_url} title={title || fileName}
+        onError={this.onError.bind(this)}
+        {...others} />);
     } else {
-      content = (<div key={fileName} className={cn}  title={title || fileName} {...others}/>);
+      content = (<div key={fileName} className={cn} title={title || fileName} {...others} />);
     }
 
     return content;

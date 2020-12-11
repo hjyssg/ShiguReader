@@ -4,16 +4,16 @@
     @include flex_center_display
 }
 
-.pagination{
+.pagination {
     border-radius: 2px;
     font-weight: 500;
     margin-bottom: 10px;
 
-    .fa-ellipsis-h{
+    .fa-ellipsis-h {
         color: #212529;
     }
 
-    .pagination-item{
+    .pagination-item {
         &.disabled {
             cursor: auto;
             color: #212529;
@@ -24,21 +24,22 @@
             background-color: #007bff;
             border-color: #007bff;
         }
-    }   
+    }
 
-    .page-jump{
+    .page-jump {
         display: flex;
         align-items: center;
         background-color: white;
         color: #007bff;
         padding-left: 10px;
         padding-right: 10px;
+
         input {
             width: 35px;
         }
     }
 
-    .pagination-extra-button{
+    .pagination-extra-button {
         display: flex;
         align-items: center;
         background-color: white;
@@ -51,4 +52,3 @@
         border-left: 1px solid #dee2e6;
     }
 }
-

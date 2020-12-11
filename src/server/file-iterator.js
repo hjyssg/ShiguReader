@@ -5,11 +5,11 @@ const _ = require("underscore");
 const pfs = require('promise-fs');
 
 module.exports = async function (folders, config) {
-    const result = {pathes: [], infos: {}};
+    const result = { pathes: [], infos: {} };
     config.visited = {};
-    for(let ii = 0; ii < folders.length; ii++){
+    for (let ii = 0; ii < folders.length; ii++) {
         const src = folders[ii];
-        if(await pfs.existsSync(src)){
+        if (await pfs.existsSync(src)) {
             const stat = await pfs.statSync(src);
             if (stat.isFile()) {
                 throw "[file-iterator] only source folder path";
@@ -17,7 +17,7 @@ module.exports = async function (folders, config) {
                 console.log("[file-iterator] begin:", src);
                 await iterate(src, config, result, 0);
             }
-        }else{
+        } else {
             console.error(`[file-iterator] ${src} does not exist! Please check you path-config.ini and user-config.js`);
             console.error(`[file-iterator] ${src} 不存在! 检查一下你的path-config.ini和user-config.js`);
         }
@@ -33,7 +33,7 @@ function isLegalDepth(depth, config) {
     return true;
 }
 
-async function getStat(p){
+async function getStat(p) {
     const stat = await pfs.statSync(p);
     const result = {};
     result.isFile = stat.isFile();
@@ -44,38 +44,38 @@ async function getStat(p){
     return result;
 }
 
-async function iterate (p, config, result, depth, isFile) {
-    if(config.visited[p]){
+async function iterate(p, config, result, depth, isFile) {
+    if (config.visited[p]) {
         return;
     }
     try {
-        if(isFile){
+        if (isFile) {
             const currentLen = result.pathes.length;
-            if(config && config.doLog &&  currentLen % 500 === 0){
+            if (config && config.doLog && currentLen % 500 === 0) {
 
-                if(config.estimated_total){
-                    console.log("[file-iterator] scan:", currentLen, `  ${(currentLen/config.estimated_total*100).toFixed(2)}%`);
-                }else{
+                if (config.estimated_total) {
+                    console.log("[file-iterator] scan:", currentLen, `  ${(currentLen / config.estimated_total * 100).toFixed(2)}%`);
+                } else {
                     console.log("[file-iterator] scan:", currentLen);
                 }
             }
-            if(!config.doNotNeedInfo){
-                const stat =  await getStat(p, config);
+            if (!config.doNotNeedInfo) {
+                const stat = await getStat(p, config);
                 result.infos[p] = stat;
             }
             result.pathes.push(p);
         } else if (isLegalDepth(depth + 1, config)) {
-            let pathes = await pfs.readdir(p, {withFileTypes: true });
+            let pathes = await pfs.readdir(p, { withFileTypes: true });
             //iterate all file
             pathes = _.sortBy(pathes, e => {
-                if(e.isFile()){
+                if (e.isFile()) {
                     return 0;
-                }else{
+                } else {
                     return 1;
                 }
             });
 
-            for(let ii = 0; ii < pathes.length; ii++){
+            for (let ii = 0; ii < pathes.length; ii++) {
                 const obj = pathes[ii];
                 const e = obj.name;
                 if (config.filter && !config.filter(e)) {
@@ -87,8 +87,8 @@ async function iterate (p, config, result, depth, isFile) {
             }
         }
     } catch (e) {
-        console.error("[file-iterator]",e);
-    } finally{
+        console.error("[file-iterator]", e);
+    } finally {
         config.visited[p] = true;
     }
 }

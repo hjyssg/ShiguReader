@@ -13,7 +13,7 @@ router.post('/api/allInfo', (req, res) => {
 
     let allThumbnails = {};
     const files = getAllFilePathes().filter(isDisplayableInExplorer);
-    if(needThumbnail){
+    if (needThumbnail) {
         allThumbnails = getThumbnails(files);
     }
 
@@ -25,7 +25,7 @@ router.post('/api/allInfo', (req, res) => {
     res.send({
         fileToInfo: fileToInfo,
         allThumbnails: allThumbnails
-    }); 
+    });
 });
 
 module.exports = router;

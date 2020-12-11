@@ -8,8 +8,8 @@
   top: 50%;
 }
 
-.tag-container{
-  .tag-page-list-group{
+.tag-container {
+  .tag-page-list-group {
     list-style: none;
   }
 
@@ -19,7 +19,7 @@
     margin-bottom: 0.25rem;
 
     display: flex;
-    flex-flow:column;
+    flex-flow: column;
     justify-content: start;
     align-items: center;
   }
@@ -30,8 +30,8 @@
 
   .tag-page-list-item {
     padding-bottom: 10px;
-   
-    .tag-cell{
+
+    .tag-cell {
       height: 260px;
       @include file_cell_common;
       padding-left: 15px;

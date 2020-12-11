@@ -7,12 +7,12 @@ const classNames = require('classnames');
 
 export default class SortHeader extends Component {
     static defaultProps = {
-        
+
     };
 
-    render(){
-        const {options, onChange, value, className} = this.props;
-        
+    render() {
+        const { options, onChange, value, className } = this.props;
+
         // <i class="fas fa-arrow-up"></i>
         // <i class="fas fa-sort-down"></i>
         const token = value.split("_");
@@ -21,15 +21,15 @@ export default class SortHeader extends Component {
 
         const items = options.map(e => {
             let icon;
-            if(e === key){
-                if(isUp){
+            if (e === key) {
+                if (isUp) {
                     icon = <i className="fas fa-arrow-up"></i>;
-                }else{
+                } else {
                     icon = <i className="fas fa-arrow-down"></i>;
                 }
             }
-            const next = `${e}_${(isUp? "down": "up")}`;
-            return (<div key={e} className="sort-item" onClick={()=>onChange(next)}> {icon} {e} </div>)
+            const next = `${e}_${(isUp ? "down" : "up")}`;
+            return (<div key={e} className="sort-item" onClick={() => onChange(next)}> {icon} {e} </div>)
         })
 
         return (<div className={classNames("sort-header", className)}>{items}</div>)

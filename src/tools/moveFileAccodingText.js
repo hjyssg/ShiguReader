@@ -4,12 +4,12 @@ const path = require('path');
 
 //temp var
 const textFilePath = "C:\\Users\\hjy\\Dropbox\\_Diary\\fap\\good_2017_02_04.txt";
-const searchPath =  "D:\\_Happy_Lesson\\_Going_to_sort";
+const searchPath = "D:\\_Happy_Lesson\\_Going_to_sort";
 const moveDest = "D:\\temp";
 
 var array = fs.readFileSync(textFilePath, 'utf-8').toString().split('\n');
 
-function moveFilseAccodingText(p){
+function moveFilseAccodingText(p) {
     const subs = fs.readdirSync(p);
     subs.forEach(singlePath => {
         try {
@@ -18,14 +18,14 @@ function moveFilseAccodingText(p){
 
             if (stat.isFile()) {
                 //!!! js handle japanese not 100% good
-                if(array.includes(singlePath)){
+                if (array.includes(singlePath)) {
                     console.log(fullPath);
                     fs.renameSync(fullPath, path.join(moveDest, singlePath));
                 }
-            }else if(stat.isDirectory()){
+            } else if (stat.isDirectory()) {
                 moveFilseAccodingText(fullPath)
             }
-        }catch(e){
+        } catch (e) {
             console.error(e);
         }
     });

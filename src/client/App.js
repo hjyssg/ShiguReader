@@ -24,21 +24,21 @@ import Sender from './Sender';
 
 // http://localhost:3000/
 class App extends Component {
-    
+
     constructor(props) {
         super(props);
         this.state = {};
 
         // let data = Cookie.get('GeneralInfo');
         let data = sessionStorage.getItem('GeneralInfo');
-        if(data){
+        if (data) {
             this.state = {
                 context: JSON.parse(data)
             };
-        }else{
+        } else {
             //save result to session storage
             Sender.post('/api/getGeneralInfo', {}, res => {
-                if(!res.isFailed()){
+                if (!res.isFailed()) {
                     let data = res.json;
                     this.setState({
                         context: data
@@ -50,7 +50,7 @@ class App extends Component {
         }
     }
 
-    componentDidMount(){
+    componentDidMount() {
         document.addEventListener('keydown', this.handleKeyDown.bind(this));
     }
 
@@ -59,74 +59,73 @@ class App extends Component {
     }
 
     handleKeyDown(e) {
-         if(e.which === 13 || e.keyCode === 13){
+        if (e.which === 13 || e.keyCode === 13) {
             //enter key
-            if(event.target.tagName !== "INPUT"){
+            if (event.target.tagName !== "INPUT") {
                 screenfull.toggle();
             }
         }
     }
 
-    onSearchKeydown(e){
+    onSearchKeydown(e) {
         if (e.which === 13 || e.keyCode === 13) {
             //enter key
             this.onSearchClick();
             e.preventDefault();
             e.stopPropagation();
-          }
+        }
     }
 
     onSearchClick(event) {
         this.searchText = getSearchInputText();
-        if(this.searchText.trim){
+        if (this.searchText.trim) {
             this.searchText = this.searchText.trim();
         }
         this.forceUpdate();
     }
 
-    onFilterClick(event){
+    onFilterClick(event) {
         this.filterText = getSearchInputText();
         this.forceUpdate();
     }
-    
+
     RenderSubComponent() {
-        const renderOneBook = (props) => { return (<OneBook {...props}/>)};
-        const renderOneBookOverview = (props) => { return (<OneBookOverview {...props}/>)};
-        const renderOneBookWaterfall = (props) => { return (<OneBookWaterfall {...props}/>)};
+        const renderOneBook = (props) => { return (<OneBook {...props} />) };
+        const renderOneBookOverview = (props) => { return (<OneBookOverview {...props} />) };
+        const renderOneBookWaterfall = (props) => { return (<OneBookWaterfall {...props} />) };
 
+        const renderVideo = (props) => { return (<VideoPlayer {...props} />) };
 
-        const renderVideo = (props) => { return (<VideoPlayer {...props}/>)};
+        const renderExplorer = (props) => { return (<ExplorerPage  {...props} filterText={this.filterText} />) };
 
-        const renderExplorer = (props) => { return (<ExplorerPage  {...props} filterText={this.filterText}  />)};
+        const renderTagPage = (props) => { return (<TagPage mode="tag" filterText={this.filterText} {...props} />) };
+        const renderAuthorPage = (props) => { return (<TagPage mode="author" filterText={this.filterText} {...props} />) };
 
-        const renderTagPage = (props) => { return (<TagPage mode="tag" filterText={this.filterText} {...props}/>)};
-        const renderAuthorPage = (props) => { return (<TagPage mode="author" filterText={this.filterText} {...props}/>)}; 
-        
-        const renderChartPage = (props) =>  { return (<ChartPage {...props}/>)}; 
+        const renderChartPage = (props) => { return (<ChartPage {...props} />) };
 
-        const renderAdminPage = (props) =>  { return (<AdminPage {...props}/>)}; 
+        const renderAdminPage = (props) => { return (<AdminPage {...props} />) };
 
         const result = (
-        <Switch>
-            <Route exact path='/' render={renderExplorer}/>
-            <Route path='/explorer/' render={renderExplorer}/>
-            <Route path='/tag/' render={renderExplorer}/>
-            <Route path='/author/' render={renderExplorer}/>
-            <Route path='/search/' render={renderExplorer}/>
+            <Switch>
+                <Route exact path='/' render={renderExplorer} />
+                <Route path='/explorer/' render={renderExplorer} />
+                <Route path='/tag/' render={renderExplorer} />
+                <Route path='/author/' render={renderExplorer} />
+                <Route path='/search/' render={renderExplorer} />
 
-            <Route path='/onebook/' render={renderOneBook}/>
-            <Route path='/onebookOverview/' render={renderOneBookOverview}/>
-            <Route path='/onebookWaterfall/' render={renderOneBookWaterfall}/>
+                <Route path='/onebook/' render={renderOneBook} />
+                <Route path='/onebookOverview/' render={renderOneBookOverview} />
+                <Route path='/onebookWaterfall/' render={renderOneBookWaterfall} />
 
 
-            <Route path='/tagPage/' render={renderTagPage}/>
-            <Route path='/authorPage/' render={renderAuthorPage}/>
-            <Route path='/videoPlayer/' render={renderVideo}/>
+                <Route path='/tagPage/' render={renderTagPage} />
+                <Route path='/authorPage/' render={renderAuthorPage} />
+                <Route path='/videoPlayer/' render={renderVideo} />
 
-            <Route path='/chart/' render={renderChartPage}/>
-            <Route path='/admin' render={renderAdminPage}/>
+                <Route path='/chart/' render={renderChartPage} />
+                <Route path='/admin' render={renderAdminPage} />
 
-        </Switch>
+            </Switch>
         );
         return result;
     }
@@ -138,26 +137,26 @@ class App extends Component {
         console.error(error, info);
     }
 
-    getPasswordInput(){
+    getPasswordInput() {
         const pathInput = ReactDOM.findDOMNode(this.passwordInputRef);
         const text = (pathInput && pathInput.value) || "";
         return text;
     }
 
-    setPasswordCookie(){
+    setPasswordCookie() {
         const text = this.getPasswordInput();
         Cookie.set("home-password", text, { expires: 3 });
         this.forceUpdate();
     }
 
-    renderPasswordInput(){
+    renderPasswordInput() {
         let content = (<React.Fragment>
-                        <div className="admin-section-title">Enter password to use Shigureader</div>
-                        <div className="admin-section-content">
-                        <input className="admin-intput" ref={pathInput => this.passwordInputRef = pathInput}
-                                    placeholder="...type here"  onChange={this.setPasswordCookie.bind(this)}/>
-                        </div>
-                        </React.Fragment>);
+            <div className="admin-section-title">Enter password to use Shigureader</div>
+            <div className="admin-section-content">
+                <input className="admin-intput" ref={pathInput => this.passwordInputRef = pathInput}
+                    placeholder="...type here" onChange={this.setPasswordCookie.bind(this)} />
+            </div>
+        </React.Fragment>);
 
         return (
             <div className="home-admin-section">
@@ -165,24 +164,24 @@ class App extends Component {
             </div>
         )
     }
-    
+
     render() {
-        if(!clientUtil.isAllowedToEnter()){
+        if (!clientUtil.isAllowedToEnter()) {
             return this.renderPasswordInput();
         }
 
         // document.title = this.getWebTitle();
-        if(this.searchText){
+        if (this.searchText) {
             const path = clientUtil.getSearhLink(this.searchText);
             this.searchText = "";
             return (<Redirect
                 to={{
                     pathname: path,
-                }}/>);
+                }} />);
         }
 
         const path = window.location.pathname;
-        const isHome =  path === "/";
+        const isHome = path === "/";
         const isOneBook = path.includes("/onebook");
         const isExplorer = path.includes("/explorer");
         const isTag = path.includes("/tagPage");
@@ -200,20 +199,20 @@ class App extends Component {
                     <Link to='/admin'><i className="fas fa-tools">Admin</i></Link>
                 </div>
                 <div className="search-bar">
-                    <input className="search-input" type="text" placeholder="Search.." onKeyDown={this.onSearchKeydown.bind(this)}/>
-                    <div  onClick={this.onSearchClick.bind(this)} title="Search" className="fa fa-search search-button" />
-                    {(isExplorer || isTag || isAuthor || isSearch)  && 
-                    <div  onClick={this.onFilterClick.bind(this)} title="Filter Files" className="fa fa-filter filter-button"/>}
+                    <input className="search-input" type="text" placeholder="Search.." onKeyDown={this.onSearchKeydown.bind(this)} />
+                    <div onClick={this.onSearchClick.bind(this)} title="Search" className="fa fa-search search-button" />
+                    {(isExplorer || isTag || isAuthor || isSearch) &&
+                        <div onClick={this.onFilterClick.bind(this)} title="Filter Files" className="fa fa-filter filter-button" />}
                 </div>
             </div>
         );
-        
+
         return (
             <GlobalContext.Provider value={(this.state.context || {})}>
                 <div className="app-container">
-                {topNav}
-                {this.RenderSubComponent()}
-                <ToastContainer />
+                    {topNav}
+                    {this.RenderSubComponent()}
+                    <ToastContainer />
                 </div>
             </GlobalContext.Provider>
         );
@@ -221,7 +220,7 @@ class App extends Component {
 }
 
 App.propTypes = {
-    
+
 };
 
 export default App;

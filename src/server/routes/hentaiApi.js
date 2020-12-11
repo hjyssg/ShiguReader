@@ -12,7 +12,7 @@ router.get('/api/exhentaiApi', function (req, res) {
     let allFiles = getAllFilePathes().filter(isCompress);
 
     const zipInfoDb = require("../models/zipInfoDb");
-    const { getZipInfo }  = zipInfoDb;
+    const { getZipInfo } = zipInfoDb;
     const zipInfo = getZipInfo(allFiles);
 
     const result = {};
@@ -23,7 +23,7 @@ router.get('/api/exhentaiApi', function (req, res) {
 
     res.send({
         allFiles: result
-    }); 
+    });
 })
 
 module.exports = router;

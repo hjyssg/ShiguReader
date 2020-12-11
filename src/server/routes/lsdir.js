@@ -13,7 +13,7 @@ const util = global.requireUtil();
 const { getCurrentTime, isDisplayableInExplorer, escapeRegExp, isImage, isMusic } = util;
 const path = require('path');
 const zipInfoDb = require("../models/zipInfoDb");
-const { getZipInfo }  = zipInfoDb;
+const { getZipInfo } = zipInfoDb;
 const { getThumbnails } = serverUtil.common;
 const { getDirName } = serverUtil;
 const _ = require('underscore');
@@ -24,11 +24,11 @@ router.post('/api/listFolderOnly', async (req, res) => {
 
     if (!dir || !(await isExist(dir))) {
         console.error("[/api/lsDir]", dir, "does not exist");
-        res.send({failed: true, reason: "NOT FOUND"});
+        res.send({ failed: true, reason: "NOT FOUND" });
         return;
     }
 
-    let pathes = await pfs.readdir(p, {withFileTypes: true });
+    let pathes = await pfs.readdir(p, { withFileTypes: true });
 
     res.send({
         pathes
@@ -42,13 +42,13 @@ router.post('/api/lsDir', async (req, res) => {
 
     if (!dir || !(await isExist(dir))) {
         console.error("[/api/lsDir]", dir, "does not exist");
-        res.send({failed: true, reason: "NOT FOUND"});
+        res.send({ failed: true, reason: "NOT FOUND" });
         return;
     }
 
     //remove '\' at the end
-    if(dir.length > 2 && dir[dir.length-1] === path.sep){
-        dir = dir.slice(0, dir.length -1)
+    if (dir.length > 2 && dir[dir.length - 1] === path.sep) {
+        dir = dir.slice(0, dir.length - 1)
     }
 
     const time1 = getCurrentTime();
@@ -60,11 +60,11 @@ router.post('/api/lsDir', async (req, res) => {
 
     const reg = escapeRegExp(dir);
     const results = getFileCollection()
-                  .chain()
-                  .find({'filePath': { '$regex' : reg }, isDisplayableInExplorer: true })
-                  .where(obj => isSub(dir, obj.filePath)).data();
+        .chain()
+        .find({ 'filePath': { '$regex': reg }, isDisplayableInExplorer: true })
+        .where(obj => isSub(dir, obj.filePath)).data();
 
-    function addParent(pp){
+    function addParent(pp) {
         //add file's parent dir
         //because we do not track dir in the server
         //for example
@@ -79,42 +79,42 @@ router.post('/api/lsDir', async (req, res) => {
 
     results.forEach(obj => {
         const pp = obj.filePath;
-        if(pp === dir){
+        if (pp === dir) {
             return;
         }
-        if(isRecursive){
+        if (isRecursive) {
             fileInfos[pp] = getFileToInfo(pp);
-        }else {
-            if(isDirectParent(dir, pp)){
+        } else {
+            if (isDirectParent(dir, pp)) {
                 fileInfos[pp] = getFileToInfo(pp);
-            }else{
+            } else {
                 addParent(pp);
             }
         }
     })
 
     const img_files_results = getFileCollection()
-    .chain()
-    .find({'filePath': { '$regex' : reg }, isDisplayableInOnebook: true })
-    .where(obj => isSub(dir, obj.filePath)).data();
+        .chain()
+        .find({ 'filePath': { '$regex': reg }, isDisplayableInOnebook: true })
+        .where(obj => isSub(dir, obj.filePath)).data();
 
     const imgFolders = {};
 
     img_files_results.forEach(obj => {
         //reduce by its parent folder
         const pp = path.dirname(obj.filePath);
-        if(pp === dir){
+        if (pp === dir) {
             return;
         }
 
-        if(isRecursive){
+        if (isRecursive) {
             imgFolders[pp] = imgFolders[pp] || [];
             imgFolders[pp].push(obj.filePath);
-        }else {
-            if(isDirectParent(dir, pp)){
+        } else {
+            if (isDirectParent(dir, pp)) {
                 imgFolders[pp] = imgFolders[pp] || [];
                 imgFolders[pp].push(obj.filePath);
-            }else{
+            } else {
                 addParent(pp);
             }
         }
@@ -123,48 +123,49 @@ router.post('/api/lsDir', async (req, res) => {
     const imgFolderInfo = getImgFolderInfo(imgFolders);
 
     const time2 = getCurrentTime();
-    const timeUsed = (time2 - time1)/1000;
+    const timeUsed = (time2 - time1) / 1000;
     // console.log(timeUsed, "to LsDir")
 
     const files = _.keys(fileInfos);
     const _dirs = _.uniq(dirs);
 
 
-    result = { dirs: _dirs, 
-               path: dir, 
-               fileInfos, 
-               imgFolderInfo,
-               imgFolders,
-               thumbnails: getThumbnails(files),
-               zipInfo: getZipInfo(files),
-               guessIfUserLike: serverUtil.common.guessIfUserLike(files)
-            };
+    result = {
+        dirs: _dirs,
+        path: dir,
+        fileInfos,
+        imgFolderInfo,
+        imgFolders,
+        thumbnails: getThumbnails(files),
+        zipInfo: getZipInfo(files),
+        guessIfUserLike: serverUtil.common.guessIfUserLike(files)
+    };
     res.send(result);
 });
 
 router.post('/api/listImageFolderContent', async (req, res) => {
-    let filePath =  req.body && req.body.filePath;
+    let filePath = req.body && req.body.filePath;
     if (!filePath) {
         console.error("[/api/listImageFolderContent]", filePath, "does not exist");
-        res.send({failed: true, reason: "NOT FOUND"});
+        res.send({ failed: true, reason: "NOT FOUND" });
         return;
     }
 
     let result;
     const reg = escapeRegExp(filePath);
     const fake_zip_results = getFileCollection()
-    .chain()
-    .find({'filePath': { '$regex' : reg }, isDisplayableInOnebook: true })
-    .data();
+        .chain()
+        .find({ 'filePath': { '$regex': reg }, isDisplayableInOnebook: true })
+        .data();
 
     const _files = [];
-    
-    fake_zip_results.forEach(e =>{
+
+    fake_zip_results.forEach(e => {
         const pp = e.filePath;
-        if(isDirectParent(filePath, pp)){
+        if (isDirectParent(filePath, pp)) {
             _files.push(pp);
         }
-    } );
+    });
 
     const files = _files.filter(isImage)
     const musicFiles = _files.filter(isMusic);
@@ -174,10 +175,12 @@ router.post('/api/listImageFolderContent', async (req, res) => {
     const info = getImgFolderInfo(mapping)[filePath];
 
     //ugly code here
-    result = { zipInfo : info, 
-                stat: info, 
-                path: filePath, 
-                files,  musicFiles };
+    result = {
+        zipInfo: info,
+        stat: info,
+        path: filePath,
+        files, musicFiles
+    };
     res.send(result);
 });
 

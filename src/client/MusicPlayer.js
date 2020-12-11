@@ -14,48 +14,48 @@ export default class MusicPlayer extends Component {
         };
     }
 
-    bindEvent(){
+    bindEvent() {
         const that = this;
         this.refs.audio.addEventListener('ended', () => {
             let next = that.state.index + 1;
-            if(next === that.props.audioFiles.length){
+            if (next === that.props.audioFiles.length) {
                 next = 0;
             }
             that.handleIndexChange(next);
         });
     }
 
-    componentDidMount(){
+    componentDidMount() {
         this.bindEvent();
     }
 
-    componentDidUpdate(){
+    componentDidUpdate() {
 
     }
 
-    handleIndexChange(index){
-        this.setState({index},() => {
+    handleIndexChange(index) {
+        this.setState({ index }, () => {
             this.refs.audio.pause();
             this.refs.audio.load();
             this.refs.audio.play();
-       });
+        });
     }
 
-    _getFileUrl(url){
-        if(!url){
-          return "";
+    _getFileUrl(url) {
+        if (!url) {
+            return "";
         }
-    
-        if(this.props.filePathAsUrl){
-          return clientUtil.getDownloadLink(url);
-        }else{
-          return getFileUrl(url);
-        }
-      }
 
-    render(){
-        const {audioFiles, className, filePathAsUrl} = this.props;
-        const {index} = this.state;
+        if (this.props.filePathAsUrl) {
+            return clientUtil.getDownloadLink(url);
+        } else {
+            return getFileUrl(url);
+        }
+    }
+
+    render() {
+        const { audioFiles, className, filePathAsUrl } = this.props;
+        const { index } = this.state;
         const audioItems = audioFiles.map((e, ii) => {
             const cn = classNames("aji-music-player-item", {
                 "aji-music-player-active  fas fa-volume-up": ii === index
@@ -63,23 +63,23 @@ export default class MusicPlayer extends Component {
             return (<div key={e} className={cn} onClick={this.handleIndexChange.bind(this, ii)} title={getBaseName(e)}> {getBaseName(e)} </div>)
         });
 
-        if(audioFiles.length === 0){
+        if (audioFiles.length === 0) {
             return (<div> NO AUDIO FILES </div>);
         }
 
         //https://stackoverflow.com/questions/43577182/react-js-audio-src-is-updating-on-setstate-but-the-audio-playing-doesnt-chang
 
         const totalCn = classNames("aji-music-player", className);
-        
+
         return (
-                <div className={totalCn}>
-                    <div className="aji-music-items">
-                        {audioItems}
-                    </div>
-                    <audio className="aji-music-player-control" controls ref="audio">
-                        <source src={this._getFileUrl(audioFiles[index])} />
-                    </audio>
+            <div className={totalCn}>
+                <div className="aji-music-items">
+                    {audioItems}
                 </div>
+                <audio className="aji-music-player-control" controls ref="audio">
+                    <source src={this._getFileUrl(audioFiles[index])} />
+                </audio>
+            </div>
         )
     }
 }

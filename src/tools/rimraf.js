@@ -19,7 +19,7 @@ var timeout = 0
 
 var isWindows = (process.platform === "win32")
 
-function defaults (options) {
+function defaults(options) {
   var methods = [
     'unlink',
     'chmod',
@@ -28,7 +28,7 @@ function defaults (options) {
     'rmdir',
     'readdir'
   ]
-  methods.forEach(function(m) {
+  methods.forEach(function (m) {
     options[m] = options[m] || fs[m]
     m = m + 'Sync'
     options[m] = options[m] || fs[m]
@@ -43,7 +43,7 @@ function defaults (options) {
   options.glob = options.glob || defaultGlobOpts
 }
 
-function rimraf (p, options, cb) {
+function rimraf(p, options, cb) {
   if (typeof options === 'function') {
     cb = options
     options = {}
@@ -71,13 +71,13 @@ function rimraf (p, options, cb) {
     glob(p, options.glob, afterGlob)
   })
 
-  function next (er) {
+  function next(er) {
     errState = errState || er
     if (--n === 0)
       cb(errState)
   }
 
-  function afterGlob (er, results) {
+  function afterGlob(er, results) {
     if (er)
       return cb(er)
 
@@ -86,11 +86,11 @@ function rimraf (p, options, cb) {
       return cb()
 
     results.forEach(function (p) {
-      rimraf_(p, options, function CB (er) {
+      rimraf_(p, options, function CB(er) {
         if (er) {
           if ((er.code === "EBUSY" || er.code === "ENOTEMPTY" || er.code === "EPERM") &&
-              busyTries < options.maxBusyTries) {
-            busyTries ++
+            busyTries < options.maxBusyTries) {
+            busyTries++
             var time = busyTries * 100
             // try again, with the same exact callback as this one.
             return setTimeout(function () {
@@ -102,7 +102,7 @@ function rimraf (p, options, cb) {
           if (er.code === "EMFILE" && timeout < options.emfileWait) {
             return setTimeout(function () {
               rimraf_(p, options, CB)
-            }, timeout ++)
+            }, timeout++)
           }
 
           // already gone
@@ -127,7 +127,7 @@ function rimraf (p, options, cb) {
 //
 // If anyone ever complains about this, then I guess the strategy could
 // be made configurable somehow.  But until then, YAGNI.
-function rimraf_ (p, options, cb) {
+function rimraf_(p, options, cb) {
   assert(p)
   assert(options)
   assert(typeof cb === 'function')
@@ -161,7 +161,7 @@ function rimraf_ (p, options, cb) {
   })
 }
 
-function fixWinEPERM (p, options, er, cb) {
+function fixWinEPERM(p, options, er, cb) {
   assert(p)
   assert(options)
   assert(typeof cb === 'function')
@@ -172,7 +172,7 @@ function fixWinEPERM (p, options, er, cb) {
     if (er2)
       cb(er2.code === "ENOENT" ? null : er)
     else
-      options.stat(p, function(er3, stats) {
+      options.stat(p, function (er3, stats) {
         if (er3)
           cb(er3.code === "ENOENT" ? null : er)
         else if (stats.isDirectory())
@@ -183,7 +183,7 @@ function fixWinEPERM (p, options, er, cb) {
   })
 }
 
-function fixWinEPERMSync (p, options, er) {
+function fixWinEPERMSync(p, options, er) {
   assert(p)
   assert(options)
   if (er)
@@ -213,7 +213,7 @@ function fixWinEPERMSync (p, options, er) {
     options.unlinkSync(p)
 }
 
-function rmdir (p, options, originalEr, cb) {
+function rmdir(p, options, originalEr, cb) {
   assert(p)
   assert(options)
   if (originalEr)
@@ -261,7 +261,7 @@ function rmkids(p, options, cb) {
 // this looks simpler, and is strictly *faster*, but will
 // tie up the JavaScript thread and fail on excessively
 // deep directory trees.
-function rimrafSync (p, options) {
+function rimrafSync(p, options) {
   options = options || {}
   defaults(options)
 
@@ -319,7 +319,7 @@ function rimrafSync (p, options) {
   }
 }
 
-function rmdirSync (p, options, originalEr) {
+function rmdirSync(p, options, originalEr) {
   assert(p)
   assert(options)
   if (originalEr)
@@ -337,7 +337,7 @@ function rmdirSync (p, options, originalEr) {
   }
 }
 
-function rmkidsSync (p, options) {
+function rmkidsSync(p, options) {
   assert(p)
   assert(options)
   options.readdirSync(p).forEach(function (f) {

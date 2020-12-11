@@ -48,32 +48,32 @@ export default class OneBook extends Component {
     };
   }
 
-  getInitIndex(){
+  getInitIndex() {
     const parsed = queryString.parse(location.hash);
     return parseInt(parsed.index) || 0;
   }
 
-  setIndex(index){
-    location.hash = queryString.stringify({index});
+  setIndex(index) {
+    location.hash = queryString.stringify({ index });
   }
 
-  getTextFromQuery(props){
-      const _props = props || this.props;
-      return queryString.parse(_props.location.search)["p"] ||  "";
+  getTextFromQuery(props) {
+    const _props = props || this.props;
+    return queryString.parse(_props.location.search)["p"] || "";
   }
-  
+
   componentDidMount() {
     this.sendExtract();
 
-    if(!isMobile ()){
-      screenfull.onchange(()=> {
+    if (!isMobile()) {
+      screenfull.onchange(() => {
         this.forceUpdate();
       });
-     }
+    }
 
     window.addEventListener("resize", this.adjustImageSize.bind(this));
   }
-  
+
   updateScrollPos(e) {
     // $('html').css('cursor', 'row-resize');
     // console.log(this.clickY, e.pageY, this.clickY - e.pageY );
@@ -83,13 +83,13 @@ export default class OneBook extends Component {
     // console.log(change)
   }
 
-  getMaxHeight(){
-    if(isMobile()){
+  getMaxHeight() {
+    if (isMobile()) {
       return window.screen.height - 10;
-     }
+    }
 
     let maxHeight = 952;
-    if (this.hasMusic()){
+    if (this.hasMusic()) {
       maxHeight = 450;
     } else {
       maxHeight = isNaN(window.innerHeight) ? window.clientHeight : window.innerHeight;
@@ -97,37 +97,37 @@ export default class OneBook extends Component {
     return maxHeight - 10;
   }
 
-  getMaxWidth(){
-    if(isMobile()){
-     return window.screen.width;
+  getMaxWidth() {
+    if (isMobile()) {
+      return window.screen.width;
     }
     const result = isNaN(window.innerWidth) ? window.clientWidth : window.innerWidth;
     return result - 50;
   }
 
-  adjustImageSize(){
-    if(isMobile()){
+  adjustImageSize() {
+    if (isMobile()) {
       return;
     }
 
     this.loadedImage = this.state.index;
     const imageDom = ReactDOM.findDOMNode(this.imgRef);
-    if(!imageDom){
+    if (!imageDom) {
       return;
     }
-    this.imgDomHeight = imageDom.clientHeight; 
-    this.imgDomWidth =  imageDom.clientWidth; 
+    this.imgDomHeight = imageDom.clientHeight;
+    this.imgDomWidth = imageDom.clientWidth;
     this.imgTrueHeight = imageDom.naturalHeight;
     this.imgTrueWidth = imageDom.naturalWidth;
 
-    if(this.zoom_scale && userConfig.keep_zoom_scale){
-      this.applyHWToImage((this.imgTrueHeight  * this.zoom_scale), (this.imgTrueWidth * this.zoom_scale));
+    if (this.zoom_scale && userConfig.keep_zoom_scale) {
+      this.applyHWToImage((this.imgTrueHeight * this.zoom_scale), (this.imgTrueWidth * this.zoom_scale));
       return;
     }
 
     //display img's real px number
     const dimDom = document.getElementsByClassName("dimension-tag")[0];
-    if(dimDom){
+    if (dimDom) {
       dimDom.textContent = `${imageDom.naturalWidth}×${imageDom.naturalHeight}`;
     }
 
@@ -141,63 +141,63 @@ export default class OneBook extends Component {
     const widthRatio = this.imgDomWidth / maxWidth;
     const heighthRatio = this.imgDomHeight / maxHeight;
 
-    const naturalhwRatio = this.imgTrueHeight/this.imgTrueWidth;
+    const naturalhwRatio = this.imgTrueHeight / this.imgTrueWidth;
     const domHwRatio = this.imgDomHeight / this.imgDomWidth;
 
-    if(Math.abs(naturalhwRatio - domHwRatio) > 0.05) {  
+    if (Math.abs(naturalhwRatio - domHwRatio) > 0.05) {
       //float error, so do not use === here
       //the ratio cannot display the full image
       this.pickBestHw();
-    }else if(widthRatio > 1){
+    } else if (widthRatio > 1) {
       //too wide
       this.pickBestHw();
-    }else if(heighthRatio > 1) {
+    } else if (heighthRatio > 1) {
       //too high
       this.pickBestHw();
-    }else if(this.imgDomHeight < MIN_HEIGHT){
+    } else if (this.imgDomHeight < MIN_HEIGHT) {
       //too short
       this.pickBestHw();
-    }else if(this.imgDomWidth < MIN_WIDTH){
+    } else if (this.imgDomWidth < MIN_WIDTH) {
       //too narrow
       this.pickBestHw();
     }
   }
 
-  pickBestHw(){
+  pickBestHw() {
     const maxHeight = this.getMaxHeight();
     const maxWidth = this.getMaxWidth();
 
     //make sure both width and height 
     let newHeight = Math.min(this.imgTrueHeight, maxHeight);
     newHeight = Math.max(newHeight, MIN_HEIGHT);
-    const calculatedWidth =  newHeight/this.imgTrueHeight * this.imgTrueWidth;
+    const calculatedWidth = newHeight / this.imgTrueHeight * this.imgTrueWidth;
     const set1 = [newHeight, calculatedWidth];
 
     let newWidth = Math.min(this.imgTrueWidth, maxWidth);
     newWidth = Math.max(newWidth, MIN_WIDTH);
-    const calculatedHeight =  newWidth/this.imgTrueWidth * this.imgTrueHeight;
-    const set2 =  [calculatedHeight, newWidth];
+    const calculatedHeight = newWidth / this.imgTrueWidth * this.imgTrueHeight;
+    const set2 = [calculatedHeight, newWidth];
 
     //I would rather small than bigger
     //max dimension is more important than min dimension
-    if(set1[0] <= maxHeight && set1[1] <= maxWidth){
+    if (set1[0] <= maxHeight && set1[1] <= maxWidth) {
       this.applyHWSetToImage(set1);
-    }else if(set2[0] <= maxHeight && set2[1] <= maxWidth){
+    } else if (set2[0] <= maxHeight && set2[1] <= maxWidth) {
       this.applyHWSetToImage(set2);
-    }else if(set1[0] <= maxHeight){
+    } else if (set1[0] <= maxHeight) {
       this.applyHWSetToImage(set1);
-    }else{
+    } else {
       this.applyHWSetToImage(set2);
     }
   }
 
-  applyHWSetToImage(set){
+  applyHWSetToImage(set) {
     this.applyHWToImage(set[0], set[1]);
   }
 
-  applyHWToImage(height, width){
+  applyHWToImage(height, width) {
     let imageDom = ReactDOM.findDOMNode(this.imgRef);
-    if(!imageDom){
+    if (!imageDom) {
       return;
     }
 
@@ -210,11 +210,11 @@ export default class OneBook extends Component {
     this.makeTwoImageSameHeight();
   }
 
-  onwheel(e){
+  onwheel(e) {
     const CHANGE_RATE = 1.05;
     const delta = -e.deltaY || e.wheelDelta;
-    const newHeight = delta > 0?  this.imgDomHeight * CHANGE_RATE : this.imgDomHeight / CHANGE_RATE;
-    const newWidth = newHeight/this.imgTrueHeight * this.imgTrueWidth;
+    const newHeight = delta > 0 ? this.imgDomHeight * CHANGE_RATE : this.imgDomHeight / CHANGE_RATE;
+    const newWidth = newHeight / this.imgTrueHeight * this.imgTrueWidth;
 
     this.zoom_scale = newHeight / this.imgTrueHeight;
 
@@ -222,103 +222,103 @@ export default class OneBook extends Component {
     e.preventDefault && e.preventDefault();
   }
 
-  makeTwoImageSameHeight(){
-    if(this.shouldTwoPageMode()){
+  makeTwoImageSameHeight() {
+    if (this.shouldTwoPageMode()) {
       let imageDom = ReactDOM.findDOMNode(this.nextImgRef);
       imageDom && imageDom.setAttribute("height", this.imgDomHeight);
     }
   }
 
-  rotateImg(newAngle){
+  rotateImg(newAngle) {
     let imageDom = ReactDOM.findDOMNode(this.imgRef);
-    if(imageDom){
-      if(_.isNumber(newAngle)){ 
+    if (imageDom) {
+      if (_.isNumber(newAngle)) {
         this.rotateAngle = newAngle;
-      }else{
-        this.rotateAngle = (this.rotateAngle||0) + 90;
+      } else {
+        this.rotateAngle = (this.rotateAngle || 0) + 90;
       }
       imageDom.setAttribute("style", "transform: rotate(" + this.rotateAngle + "deg)");
     }
   }
 
-  bindUserInteraction(){
+  bindUserInteraction() {
     document.addEventListener('keydown', this.handleKeyDown.bind(this));
 
-    if(this.hasMusic() || isMobile()){
+    if (this.hasMusic() || isMobile()) {
       return;
     }
 
     const imageDom = ReactDOM.findDOMNode(this.wrapperRef);
-    if(!imageDom){
+    if (!imageDom) {
       return;
     }
 
     this.imgDomHeight = imageDom.clientHeight;
-    imageDom.addEventListener("wheel", this.onwheel.bind(this), {passive: false} );
+    imageDom.addEventListener("wheel", this.onwheel.bind(this), { passive: false });
 
     const that = this;
     $(imageDom).on({
-      'mousemove': function(e) {
-          that.clicked && that.updateScrollPos(e);
-          e.preventDefault();
+      'mousemove': function (e) {
+        that.clicked && that.updateScrollPos(e);
+        e.preventDefault();
       },
-      'mousedown': function(e) {
-          that.clicked = true;
-          that.clickY = e.pageY;
-          e.preventDefault();
+      'mousedown': function (e) {
+        that.clicked = true;
+        that.clickY = e.pageY;
+        e.preventDefault();
       },
-      'mouseup': function(e) {
-          that.clicked = false;
-          // $('html').css('cursor', 'auto');
-          e.preventDefault();
+      'mouseup': function (e) {
+        that.clicked = false;
+        // $('html').css('cursor', 'auto');
+        e.preventDefault();
       }
     });
   }
 
-  isImgFolder(){
+  isImgFolder() {
     return !util.isCompress(this.getTextFromQuery())
   }
-  
-  async sendExtract(){
-      const fp = this.getTextFromQuery();
-      const api = this.isImgFolder()?  "/api/listImageFolderContent" : "/api/extract";
-      let res = await Sender.postWithPromise(api, {filePath: fp, startIndex: this.state.index||0 });
-      this.handleRes(res);
-      
-      let res2 = await Sender.postWithPromise("/api/getEhentaiMetaData", {filePath: fp});
-      if(!res2.isFailed()){
-          this.setState({
-              ehentai_metadata: res2.json
-          })
-        }
+
+  async sendExtract() {
+    const fp = this.getTextFromQuery();
+    const api = this.isImgFolder() ? "/api/listImageFolderContent" : "/api/extract";
+    let res = await Sender.postWithPromise(api, { filePath: fp, startIndex: this.state.index || 0 });
+    this.handleRes(res);
+
+    let res2 = await Sender.postWithPromise("/api/getEhentaiMetaData", { filePath: fp });
+    if (!res2.isFailed()) {
+      this.setState({
+        ehentai_metadata: res2.json
+      })
+    }
   }
 
-  async handleRes(res){
-      this.res = res;
-      if (!res.isFailed()) {
-        let {zipInfo, path, stat, files,  musicFiles, mecab_tokens } = res.json;
-        files = files || [];
-        musicFiles = musicFiles || [];
+  async handleRes(res) {
+    this.res = res;
+    if (!res.isFailed()) {
+      let { zipInfo, path, stat, files, musicFiles, mecab_tokens } = res.json;
+      files = files || [];
+      musicFiles = musicFiles || [];
 
-        //files name can be 001.jpg, 002.jpg, 011.jpg, 012.jpg
-        //or 1.jpg, 2.jpg 3.jpg 1.jpg
-        //todo: the sort is wrong for imgFolder
-        sortFileNames(files);
-        sortFileNames(musicFiles);
+      //files name can be 001.jpg, 002.jpg, 011.jpg, 012.jpg
+      //or 1.jpg, 2.jpg 3.jpg 1.jpg
+      //todo: the sort is wrong for imgFolder
+      sortFileNames(files);
+      sortFileNames(musicFiles);
 
-        this.setState({ files, musicFiles, path, fileStat: stat, zipInfo, mecab_tokens}, 
-                       () => { this.bindUserInteraction()});
-        clientUtil.saveFilePathToCookie(this.getTextFromQuery());
-      } else {
-        this.forceUpdate();
-      }
+      this.setState({ files, musicFiles, path, fileStat: stat, zipInfo, mecab_tokens },
+        () => { this.bindUserInteraction() });
+      clientUtil.saveFilePathToCookie(this.getTextFromQuery());
+    } else {
+      this.forceUpdate();
+    }
   }
-  
+
   componentWillUnmount() {
     document.removeEventListener("keydown", this.handleKeyDown.bind(this));
     window && window.removeEventListener("resize", this.adjustImageSize.bind(this));
   }
-  
+
   handleKeyDown(event) {
     const key = event.key.toLowerCase();
     if (key === "arrowright" || key === "d" || key === "l") {
@@ -327,37 +327,37 @@ export default class OneBook extends Component {
     } else if (key === "arrowleft" || key === "a" || key === "j") {
       this.prev();
       event.preventDefault();
-    } else if (key === "+" || key === "=" ) {
-      this.onwheel({wheelDelta: 1})
-    } else if (key === "-" ) {
-      this.onwheel({wheelDelta: -1})
+    } else if (key === "+" || key === "=") {
+      this.onwheel({ wheelDelta: 1 })
+    } else if (key === "-") {
+      this.onwheel({ wheelDelta: -1 })
     }
   }
 
-  toggleTwoPageMode(){
+  toggleTwoPageMode() {
     const clipOrder = [NO_TWO_PAGE, TWO_PAGE_RIGHT, TWO_PAGE_LEFT];
-    let next = clipOrder.indexOf(this.state.twoPageMode)+1;
-    if(next >= clipOrder.length){
+    let next = clipOrder.indexOf(this.state.twoPageMode) + 1;
+    if (next >= clipOrder.length) {
       next = 0;
     }
     this.setState({
       twoPageMode: clipOrder[next]
     });
   }
-  
-  getLastIndex(){
+
+  getLastIndex() {
     return (this.state.files || []).length - 1;
   }
-  
-  hideSpinner(){
+
+  hideSpinner() {
     clearTimeout(this._spinner_timer);
     document.querySelector(".one-book-img-load-spinner").classList.remove("show");
   }
-  
-  showSpinner(){
+
+  showSpinner() {
     //debounce
     clearTimeout(this._spinner_timer);
-    this._spinner_timer =  setTimeout(()=>{
+    this._spinner_timer = setTimeout(() => {
       document.querySelector(".one-book-img-load-spinner").classList.add("show");
     }, 500);
   }
@@ -365,13 +365,13 @@ export default class OneBook extends Component {
   changePage(index, event) {
     event && event.preventDefault();
     event && event.stopPropagation();
-    if(!userConfig.keep_clip){
+    if (!userConfig.keep_clip) {
       this.setState({ twoPageMode: NO_TWO_PAGE });
     }
 
     this.showSpinner();
 
-    this.setState({ index: index});
+    this.setState({ index: index });
     this.setIndex(index);
     this.rotateImg(0);
 
@@ -379,44 +379,44 @@ export default class OneBook extends Component {
     // document.body.scrollTop = document.documentElement.scrollTop = 0;
     $(window).scrollTop(0);
   }
-  
-  
+
+
   next(event) {
-    if(this.state.files.length <= 1){
+    if (this.state.files.length <= 1) {
       return;
     }
 
-    const jump = userConfig.keep_clip && this.shouldTwoPageMode()? 2 : 1;
+    const jump = userConfig.keep_clip && this.shouldTwoPageMode() ? 2 : 1;
     let index = this.state.index + jump;
-    if(index > this.getLastIndex()){
+    if (index > this.getLastIndex()) {
       index = 0;
     }
     this.changePage(index, event);
   }
-  
+
   prev(event) {
-    if(this.state.files.length <= 1){
+    if (this.state.files.length <= 1) {
       return;
     }
-    const jump = userConfig.keep_clip && this.shouldTwoPageMode()? 2 : 1;
+    const jump = userConfig.keep_clip && this.shouldTwoPageMode() ? 2 : 1;
     let index = this.state.index - jump;
-    if(index < 0){
+    if (index < 0) {
       index = this.getLastIndex();
     }
     this.changePage(index, event);
   }
-  
-  isFailedLoading(){
+
+  isFailedLoading() {
     return this.res && this.res.isFailed();
   }
 
-  onClickPagination(event){
+  onClickPagination(event) {
     let index = prompt("Which page to go ");
     index = parseInt(index);
-    if(_.isNumber(index) && !isNaN(index)){
+    if (_.isNumber(index) && !isNaN(index)) {
       //the real index 
-      index  = index-1;
-      if(index > this.getLastIndex()){
+      index = index - 1;
+      if (index > this.getLastIndex()) {
         index = this.getLastIndex();
       }
       this.changePage(index, event);
@@ -424,24 +424,24 @@ export default class OneBook extends Component {
   }
 
   renderPagination() {
-    if(isMobile()){ return; }
+    if (isMobile()) { return; }
     const { files, index } = this.state;
-    const isLast = index+1 === files.length;
-    const text = (index+1) + "/" + files.length;
+    const isLast = index + 1 === files.length;
+    const text = (index + 1) + "/" + files.length;
     const cn = classNames("one-book-foot-index-number", {
       "is-last": isLast
     })
     return <div className={cn}>{text}</div>;
   }
 
-  renderFileSizeAndTime(){
-    const {fileStat,  files, index, zipInfo } = this.state;
+  renderFileSizeAndTime() {
+    const { fileStat, files, index, zipInfo } = this.state;
     if (fileStat) {
       let avgFileSize;
-      if(zipInfo){
+      if (zipInfo) {
         avgFileSize = zipInfo.totalImgSize / zipInfo.pageNum;
-      }else{
-        avgFileSize = fileStat.size/files.length;
+      } else {
+        avgFileSize = fileStat.size / files.length;
       }
 
       const size = filesizeUitl(fileStat.size);
@@ -457,98 +457,98 @@ export default class OneBook extends Component {
         "Dimensions"
       ];
 
-      const texts = [mTime, size, title, avg, dim].map((e, ii) => 
-                    <div className={titles[ii] ==="Dimensions"? "dimension-tag": ""} 
-                      key={e+ii} style={{marginLeft:"15px"}} title={titles[ii]}> {e} 
-                    </div>);
-      const mobilePageNum = (<div className="mobile-page-num" 
-                            onClick={this.onClickPagination.bind(this)} > 
-                              {`${index+1}/${files.length}`}  </div>)
+      const texts = [mTime, size, title, avg, dim].map((e, ii) =>
+        <div className={titles[ii] === "Dimensions" ? "dimension-tag" : ""}
+          key={e + ii} style={{ marginLeft: "15px" }} title={titles[ii]}> {e}
+        </div>);
+      const mobilePageNum = (<div className="mobile-page-num"
+        onClick={this.onClickPagination.bind(this)} >
+        {`${index + 1}/${files.length}`}  </div>)
       return <div className={"one-book-file-stat"}>{texts} {mobilePageNum} </div>
     }
   }
 
-  shouldTwoPageMode(){
+  shouldTwoPageMode() {
     return this.state.index < this.getLastIndex() && (this.state.twoPageMode === TWO_PAGE_LEFT || this.state.twoPageMode === TWO_PAGE_RIGHT);
   }
 
-  onImageError(){
+  onImageError() {
     this.imgRef.src = "../resource/error_loading.png";
     this.hideSpinner()
   }
 
-  onImgLoad(){
+  onImgLoad() {
     this.hideSpinner();
 
     this.adjustImageSize();
   }
 
-  _getFileUrl(url){
-    if(!url){
+  _getFileUrl(url) {
+    if (!url) {
       return "";
     }
 
-    if(this.isImgFolder()){
+    if (this.isImgFolder()) {
       return clientUtil.getDownloadLink(url);
-    }else{
+    } else {
       return getFileUrl(url);
     }
   }
 
-  renderImage(){
+  renderImage() {
     const { files, index, twoPageMode } = this.state;
-    if(!this.hasImage()){
+    if (!this.hasImage()) {
       return;
     }
 
-    if(!isMobile()){
+    if (!isMobile()) {
       const cn = classNames("one-book-image", {
         "has-music": this.hasMusic()
       });
 
-      const nextImg = this.shouldTwoPageMode() &&  <img  className={cn} src={this._getFileUrl(files[index+1])} alt="book-image"
-                                          ref={img => this.nextImgRef = img}
-                                          onLoad={this.makeTwoImageSameHeight.bind(this)}
-                                          index={index+1}
-                                        />;
+      const nextImg = this.shouldTwoPageMode() && <img className={cn} src={this._getFileUrl(files[index + 1])} alt="book-image"
+        ref={img => this.nextImgRef = img}
+        onLoad={this.makeTwoImageSameHeight.bind(this)}
+        index={index + 1}
+      />;
 
-      const preload =  index < files.length-1 &&  <link rel="preload" href={this._getFileUrl(files[index-1])} as="image" /> ;
+      const preload = index < files.length - 1 && <link rel="preload" href={this._getFileUrl(files[index - 1])} as="image" />;
 
       return (<React.Fragment>
-              <Spinner className="one-book-img-load-spinner" />
-              { twoPageMode === TWO_PAGE_RIGHT &&  nextImg }
-              <img  className={cn} src={this._getFileUrl(files[index])} alt="book-image"
-                           ref={img => this.imgRef = img}
-                           index={index}
-                           onError={this.onImageError.bind(this)}
-                           onLoad={this.onImgLoad.bind(this)}
+        <Spinner className="one-book-img-load-spinner" />
+        {twoPageMode === TWO_PAGE_RIGHT && nextImg}
+        <img className={cn} src={this._getFileUrl(files[index])} alt="book-image"
+          ref={img => this.imgRef = img}
+          index={index}
+          onError={this.onImageError.bind(this)}
+          onLoad={this.onImgLoad.bind(this)}
 
-                           />
-              { twoPageMode === TWO_PAGE_LEFT &&  nextImg }
-              {preload}
-              </React.Fragment>);    
+        />
+        {twoPageMode === TWO_PAGE_LEFT && nextImg}
+        {preload}
+      </React.Fragment>);
     } else {
       let images;
       const cn = classNames("mobile-single-image", {
         "has-music": this.hasMusic()
       });
-      images = (<div className="mobile-single-image-container" 
-                      ref={(e) =>  this.imgContainerRef = e}
-                      onClick={this.onClickMobileOneImageContainer.bind(this)}> 
-              <img className={cn} 
-                ref={(img) =>  this.imgRef = img}
-                onError={this.onImageError.bind(this)}
-                onLoad={this.onImgLoad.bind(this)}
-                src={this._getFileUrl(files[index])}  />
-              </div>);
+      images = (<div className="mobile-single-image-container"
+        ref={(e) => this.imgContainerRef = e}
+        onClick={this.onClickMobileOneImageContainer.bind(this)}>
+        <img className={cn}
+          ref={(img) => this.imgRef = img}
+          onError={this.onImageError.bind(this)}
+          onLoad={this.onImgLoad.bind(this)}
+          src={this._getFileUrl(files[index])} />
+      </div>);
       return (<div className="mobile-one-book-container">
-                <Spinner className="one-book-img-load-spinner" />
-                {images}
-            </div>);
+        <Spinner className="one-book-img-load-spinner" />
+        {images}
+      </div>);
     }
   }
 
-  onClickMobileOneImageContainer(event){
+  onClickMobileOneImageContainer(event) {
     var x = event.pageX;
     var y = event.pageY;
 
@@ -559,12 +559,12 @@ export default class OneBook extends Component {
 
     const upperRange = 300;  //use the fixed upper range is more comportable
 
-    const posX = x > width/2;
+    const posX = x > width / 2;
     const posY = y > upperRange;
 
-    if(posX){
+    if (posX) {
       this.next();
-    }else{
+    } else {
       this.prev();
     }
 
@@ -607,25 +607,25 @@ export default class OneBook extends Component {
       </div>);
   }
 
-  renderToolbar(){
+  renderToolbar() {
     if (!this.state.path) {
       return;
     }
-    const toolbar = <FileChangeToolbar isFolder={this.isImgFolder()} bigFont={true} className="one-book-toolbar" file={this.state.path} popPosition={"top-center"}/>;
+    const toolbar = <FileChangeToolbar isFolder={this.isImgFolder()} bigFont={true} className="one-book-toolbar" file={this.state.path} popPosition={"top-center"} />;
     return toolbar;
   }
 
-  hasMusic(){
-    const {musicFiles} = this.state;
+  hasMusic() {
+    const { musicFiles } = this.state;
     return musicFiles.length > 0;
   }
 
-  hasImage(){
+  hasImage() {
     return this.state.files.length > 0;
   }
 
-  renderMusicPlayer(){
-    if(this.hasMusic()){
+  renderMusicPlayer() {
+    if (this.hasMusic()) {
       let { musicFiles } = this.state;
 
       // if(this.isImgFolder()){
@@ -636,30 +636,30 @@ export default class OneBook extends Component {
         "only-music": !this.hasImage()
       })
 
-      return <MusicPlayer className={cn}  audioFiles={musicFiles} filePathAsUrl/>;
+      return <MusicPlayer className={cn} audioFiles={musicFiles} filePathAsUrl />;
     }
   }
 
-  renderTags(){
+  renderTags() {
     const fn = getBaseName(this.getTextFromQuery());
     const dirName = getBaseName(getDir(this.getTextFromQuery()));
 
     //the folder name can be be the author name
-    if(fn.includes(dirName)){
+    if (fn.includes(dirName)) {
       const tag = dirName;
-      const url =  clientUtil.getSearhLink(tag);
+      const url = clientUtil.getSearhLink(tag);
       let tagDiv = (<div key={tag} className="one-book-foot-author" >
-                    <Link  target="_blank" to={url}  key={tag}>{tag}</Link>
-                </div>);
+        <Link target="_blank" to={url} key={tag}>{tag}</Link>
+      </div>);
       return (<div className="one-book-tags">{tagDiv}</div>);
-    }else{
+    } else {
       return null;
     }
   }
 
 
-  renderNextPrevButton(){
-    if(isMobile()){
+  renderNextPrevButton() {
+    if (isMobile()) {
       return;
     }
 
@@ -671,23 +671,23 @@ export default class OneBook extends Component {
     );
   }
 
-  renderSecondBar(){
+  renderSecondBar() {
     let content;
-    if(!isMobile()){
+    if (!isMobile()) {
       content = (
-      <React.Fragment>
+        <React.Fragment>
           <div className="two-page-mode-button fas fa-arrows-alt-h" onClick={this.toggleTwoPageMode.bind(this)} title="two page mode"></div>
           <div className="fas fa-sync-alt rotate-button" title="rotate image" onClick={this.rotateImg.bind(this)}></div>
-      </React.Fragment>);
+        </React.Fragment>);
     }
     return (<div className="one-book-second-toolbar">
-              {content}
-            </div>);
+      {content}
+    </div>);
   }
 
-  renderEhentaiTag(){
+  renderEhentaiTag() {
     const { files, index, musicFiles, ehentai_metadata } = this.state;
-    if(ehentai_metadata && ehentai_metadata.length > 0){
+    if (ehentai_metadata && ehentai_metadata.length > 0) {
       console.log(ehentai_metadata);
 
       //temp
@@ -700,12 +700,12 @@ export default class OneBook extends Component {
 
       return display_tags.map(e => {
         const subtags = entry[e];
-        if(subtags && subtags.length > 0){
-          const subtagDivs =  subtags.map(tt => {
-            const url =  clientUtil.getTagLink(tt);
+        if (subtags && subtags.length > 0) {
+          const subtagDivs = subtags.map(tt => {
+            const url = clientUtil.getTagLink(tt);
             let tagDiv = (<div key={tt} className="ehentai-tag-link" >
-                            <Link  target="_blank" to={url}  key={tt}>{tt}</Link>
-                          </div>);
+              <Link target="_blank" to={url} key={tt}>{tt}</Link>
+            </div>);
             return tagDiv;
           })
           return (<div key={e} className="ehentai-tag-row">{subtagDivs}</div>);
@@ -715,38 +715,38 @@ export default class OneBook extends Component {
   }
 
   render() {
-    if (this.isFailedLoading()) { 
+    if (this.isFailedLoading()) {
       const fp = this.getTextFromQuery();
-      return <ErrorPage res={this.res} filePath={fp}/>;
+      return <ErrorPage res={this.res} filePath={fp} />;
     }
 
     const { files, index, musicFiles, ehentai_metadata, mecab_tokens } = this.state;
     const bookTitle = (<div className="one-book-title" >
-                           <FileNameDiv mecab_tokens={mecab_tokens} filename={getBaseName(this.state.path)} />
-                          {this.renderPath()} 
-                      </div>);
+      <FileNameDiv mecab_tokens={mecab_tokens} filename={getBaseName(this.state.path)} />
+      {this.renderPath()}
+    </div>);
 
     if (_.isEmpty(files) && _.isEmpty(musicFiles)) {
-      if(this.res && !this.refs.failed){
+      if (this.res && !this.refs.failed) {
         return (<h3>
-                  <center style={{paddingTop: "200px"}}> 
-                    <div className="alert alert-warning col-6" role="alert" > No image or music file </div>
-                    {bookTitle}
-                    {this.renderTags()}
-                    {this.renderToolbar()}
-                  </center>
-                </h3>);
+          <center style={{ paddingTop: "200px" }}>
+            <div className="alert alert-warning col-6" role="alert" > No image or music file </div>
+            {bookTitle}
+            {this.renderTags()}
+            {this.renderToolbar()}
+          </center>
+        </h3>);
       } else {
-        return (<CenterSpinner text={this.getTextFromQuery()} splitFilePath/>);
-      } 
+        return (<CenterSpinner text={this.getTextFromQuery()} splitFilePath />);
+      }
     }
-    
-    if(this.state.path){
+
+    if (this.state.path) {
       document.title = getBaseName(this.state.path);
 
-      if(isMobile() && index > 0){
-        const _text = `${index+1}/${files.length}`;
-        document.title = _text + " " +  document.title;
+      if (isMobile() && index > 0) {
+        const _text = `${index + 1}/${files.length}`;
+        document.title = _text + " " + document.title;
       }
     }
 
@@ -757,12 +757,12 @@ export default class OneBook extends Component {
     });
 
     const content = (<div className={wraperCn} ref={wrapper => this.wrapperRef = wrapper}>
-                      {this.renderImage()}
-                      {this.renderMusicPlayer()}
+      {this.renderImage()}
+      {this.renderMusicPlayer()}
     </div>);
 
 
-    return (  
+    return (
       <div className="one-book-container">
         {content}
         {bookTitle}
