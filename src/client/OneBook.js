@@ -359,7 +359,7 @@ export default class OneBook extends Component {
     clearTimeout(this._spinner_timer);
     this._spinner_timer =  setTimeout(()=>{
       document.querySelector(".one-book-img-load-spinner").classList.add("show");
-    }, 900);
+    }, 500);
   }
 
   changePage(index, event) {
@@ -542,6 +542,7 @@ export default class OneBook extends Component {
                 src={this._getFileUrl(files[index])}  />
               </div>);
       return (<div className="mobile-one-book-container">
+                <Spinner className="one-book-img-load-spinner" />
                 {images}
             </div>);
     }
