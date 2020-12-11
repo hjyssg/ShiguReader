@@ -20,8 +20,11 @@ router.post("/api/singleFileInfo", async (req, res) => {
         stat = await getStat(filePath);
     }
 
+    const mecab_tokens = await global.mecab_getTokens(filePath);
+
     res.send({
-        stat
+        stat,
+        mecab_tokens
     });
 });
 

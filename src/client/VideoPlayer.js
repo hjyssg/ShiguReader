@@ -25,8 +25,8 @@ export default class VideoPlayer extends Component {
     if(filePath){
       Sender.post("/api/singleFileInfo", { filePath }, res => {
         if(!res.isFailed()){
-          const {stat} = res.json;
-          this.setState({stat})
+          const { stat, mecab_tokens} = res.json;
+          this.setState({stat, mecab_tokens})
         }else{
           this.res = res;
           this.onError();
@@ -88,10 +88,10 @@ export default class VideoPlayer extends Component {
     const url = clientUtil.getDownloadLink(this.getTextFromQuery());
     const fileName = getBaseName(filePath);
     document.title = fileName;
-    const {hasError, stat} = this.state;
+    const {hasError, stat, mecab_tokens} = this.state;
     //use bootstrap classname util 
     const videoTitle = filePath && (<div className="video-title"> 
-                          <center> <FileNameDiv filename={fileName} className="inline-display" /></center>
+                          <center> <FileNameDiv mecab_tokens={mecab_tokens} filename={fileName} className="inline-display" /></center>
                           {this.renderPath()}
                          </div>);
 
