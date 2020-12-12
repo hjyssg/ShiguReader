@@ -19,6 +19,7 @@ import SortHeader from './subcomponent/SortHeader';
 import Breadcrumb from './subcomponent/Breadcrumb';
 import FileCellTitle from './subcomponent/FileCellTitle';
 import Checkbox from './subcomponent/Checkbox';
+import { getFileUrl } from './clientUtil';
 const nameParser = require('@name-parser');
 const classNames = require('classnames');
 const Constant = require("@common/constant");
@@ -599,11 +600,8 @@ export default class ExplorerPage extends Component {
                 const result = this.getOneLineListItem(<i className="far fa-folder"></i>, text, item);
                 // const link =  <Link to={toUrl} key={item}>{result}</Link>;
 
-                let thumbnailurl = this.dirThumbnails[item] || "";
-                if(!thumbnailurl.includes("/thumbnails/")){
-                    thumbnailurl = clientUtil.getDownloadLink(thumbnailurl);
-                }
-
+                let thumbnailurl = getFileUrl(this.dirThumbnails[item] || "");
+          
                 const thumbnailCn = classNames("file-cell-thumbnail", "as-folder-thumbnail" );
     
                 let imgDiv = <LoadingImage

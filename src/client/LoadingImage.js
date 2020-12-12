@@ -7,8 +7,6 @@ import "./style/LoadingImage.scss"
 const clientUtil = require("./clientUtil");
 const { encodeFileUrl } = clientUtil;
 
-
-
 export default class LoadingImage extends Component {
   constructor(props) {
     super(props);
@@ -103,7 +101,8 @@ export default class LoadingImage extends Component {
 
   render() {
     let content;
-    const { className, fileName, url, bottomOffet, topOffet, title, isThumbnail, onReceiveUrl, asSimpleImage, style, musicNum, ...others } = this.props;
+    const { className, fileName, url, bottomOffet, topOffet, title, 
+           isThumbnail, onReceiveUrl, asSimpleImage, style, musicNum, ...others } = this.props;
 
     const empty_icon_cn = musicNum > 0 ? " fas fa-music" : " fas fa-file-archive";
 

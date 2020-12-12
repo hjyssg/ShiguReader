@@ -36,7 +36,15 @@ const getBaseName = module.exports.getBaseName = function (fp) {
 };
 
 module.exports.getFileUrl = function (url) {
-    return "../" + encodeFileUrl(url);
+    if (!url) {
+        return "";
+    }
+  
+    if (!url.includes("/thumbnails/")) {
+        return getDownloadLink(url);
+    } else {
+        return "../" + encodeFileUrl(url);
+    }
 }
 
 const encodeFileUrl = module.exports.encodeFileUrl = function (url) {
@@ -159,7 +167,7 @@ module.exports.getVideoPlayerLink = function (path) {
     return "/videoPlayer/?p=" + encodeURIComponent(path);
 }
 
-module.exports.getDownloadLink = function (path) {
+const getDownloadLink = module.exports.getDownloadLink = function (path) {
     if (!path) { return ""; }
     return "/api/download/?p=" + encodeURIComponent(path);
 }
