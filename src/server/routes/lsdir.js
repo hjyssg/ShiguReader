@@ -10,7 +10,7 @@ const serverUtil = require("../serverUtil");
 const db = require("../models/db");
 const { getFileCollection, getFileToInfo, getImgFolderInfo } = db;
 const util = global.requireUtil();
-const { getCurrentTime, isDisplayableInExplorer, escapeRegExp, isImage, isMusic } = util;
+const { getCurrentTime, isDisplayableInExplorer, escapeRegExp, isImage, isMusic, isCompress } = util;
 const path = require('path');
 const zipInfoDb = require("../models/zipInfoDb");
 const { getZipInfo } = zipInfoDb;
@@ -64,6 +64,9 @@ router.post('/api/lsDir', async (req, res) => {
         .find({ 'filePath': { '$regex': reg }, isDisplayableInExplorer: true })
         .where(obj => isSub(dir, obj.filePath)).data();
 
+    //dir -> its file
+    const dirToFiles = {};
+
     function addParent(pp) {
         //add file's parent dir
         //because we do not track dir in the server
@@ -75,6 +78,11 @@ router.post('/api/lsDir', async (req, res) => {
         let itsParent = pTokens.concat(cTokens[plength]);
         const np = itsParent.join(path.sep);
         dirs.push(np);
+
+        if(isCompress(pp)){
+            dirToFiles[np] = dirToFiles[np] || [];
+            dirToFiles[np].push(pp);
+        }
     }
 
     results.forEach(obj => {
@@ -130,6 +138,24 @@ router.post('/api/lsDir', async (req, res) => {
     const _dirs = _.uniq(dirs);
 
 
+    const dirThumbnails = {};
+    dirs.map(dirPath => {
+        const files = dirToFiles[dirPath];
+        //todo? use 0 for now
+        if(files && files.length > 0){
+            let thumbnail;
+            let ii = 0;
+            while(!thumbnail && ii < files.length){
+                let tf = files[ii];
+                thumbnail = getThumbnails([tf])[tf];
+                ii++;
+            }
+            if(thumbnail){
+                dirThumbnails[dirPath] =  thumbnail;
+            }
+        }
+    })
+
     result = {
         dirs: _dirs,
         path: dir,
@@ -137,6 +163,7 @@ router.post('/api/lsDir', async (req, res) => {
         imgFolderInfo,
         imgFolders,
         thumbnails: getThumbnails(files),
+        dirThumbnails,
         zipInfo: getZipInfo(files),
         guessIfUserLike: serverUtil.common.guessIfUserLike(files)
     };
