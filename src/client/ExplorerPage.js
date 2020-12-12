@@ -599,7 +599,11 @@ export default class ExplorerPage extends Component {
                 const result = this.getOneLineListItem(<i className="far fa-folder"></i>, text, item);
                 // const link =  <Link to={toUrl} key={item}>{result}</Link>;
 
-                const thumbnailurl = this.dirThumbnails[item] || "";
+                let thumbnailurl = this.dirThumbnails[item] || "";
+                if(!thumbnailurl.includes("/thumbnails/")){
+                    thumbnailurl = clientUtil.getDownloadLink(thumbnailurl);
+                }
+
                 const thumbnailCn = classNames("file-cell-thumbnail", "as-folder-thumbnail" );
     
                 let imgDiv = <LoadingImage
