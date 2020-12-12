@@ -110,11 +110,9 @@ export default class OneBookWaterfall extends Component {
     let images = files.map((file, index) => {
       return (<div key={file} className="one-book-waterfall-div">
         <LoadingImage className={"one-book-waterfall-image"}
-          bottomOffet={-4000}
-          topOffet={-3000}
           title={index}
           url={getFileUrl(file)}
-          asSimpleImage
+          onlyUseURL
           key={file}
           style={{ maxHeight: maxHeight }}
         />

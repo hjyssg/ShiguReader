@@ -6,12 +6,14 @@ const classNames = require('classnames');
 import "./style/LoadingImage.scss"
 const clientUtil = require("./clientUtil");
 const { encodeFileUrl } = clientUtil;
+const util = require("@common/util");
 
+// 需要是isThumbnail && onlyUseURL && 同时初始的url不好用，才会去api request
 export default class LoadingImage extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      failed: 0,
+      fail_time: 0,
       url: props.url
     };
   }
@@ -29,11 +31,10 @@ export default class LoadingImage extends Component {
   }
 
   shouldAskUrl() {
-    if (this.props.asSimpleImage) {
+    if(this.props.onlyUseURL){
       return false;
-    }
-    if (!this.state.url) {
-      return true
+    }else if (!this.state.url) {
+      return true;
     } else {
       if (this.state.url === "NOT_THUMBNAIL_AVAILABLE") {
         return this.isAuthorTagMode();
@@ -71,7 +72,7 @@ export default class LoadingImage extends Component {
         return;
       }
       if (res.isFailed()) {
-        this.setState({ failed: this.state.failed + 1 });
+        this.setState({ fail_time: this.state.fail_time + 1 });
       } else {
         const url = res.json.url
         this.props.onReceiveUrl && this.props.onReceiveUrl(url);
@@ -84,7 +85,7 @@ export default class LoadingImage extends Component {
     if (!this.tryEnoughRequest()) {
       this.setState({
         url: null,
-        failed: this.state.failed + 1
+        fail_time: this.state.fail_time + 1
       }, () => {
         this.requestThumbnail()
       });
@@ -92,32 +93,39 @@ export default class LoadingImage extends Component {
   }
 
   tryEnoughRequest() {
-    return this.state.failed > 2;
+    return this.state.fail_time > 2;
   }
 
-  isThumbnailAvaible() {
+  isUrlAvaible() {
     return this.state.url && this.state.url !== "NOT_THUMBNAIL_AVAILABLE";
   }
 
   render() {
     let content;
-    const { className, fileName, url, bottomOffet, topOffet, title, 
-           isThumbnail, onReceiveUrl, asSimpleImage, style, musicNum, ...others } = this.props;
+    const { className, style, fileName, url, title, 
+             isThumbnail, onlyUseURL, mode, onReceiveUrl,
+              musicNum, ...others } = this.props;
 
-    const empty_icon_cn = musicNum > 0 ? " fas fa-music" : " fas fa-file-archive";
+    let empty_icon_cn = "";
+    if(musicNum > 0){
+      empty_icon_cn = " fas fa-music"
+    }else if(fileName && util.isCompress(fileName)){
+      empty_icon_cn = " fas fa-file-archive"
+    }else {
+      empty_icon_cn = " far fa-folder"
+    }
 
     let cn = classNames("loading-image", className, {
-      "empty-block": !this.isThumbnailAvaible()
+      "empty-block": !this.isUrlAvaible()
     });
 
-    if (!this.isThumbnailAvaible()) {
+    if (!this.isUrlAvaible() && empty_icon_cn) {
       cn += empty_icon_cn;
     }
 
+    const _url = onlyUseURL ? url : encodeFileUrl(this.state.url);
 
-    const _url = asSimpleImage ? url : encodeFileUrl(this.state.url);
-
-    if (this.isThumbnailAvaible()) {
+    if (this.isUrlAvaible()) {
       content = (<img style={style} key={fileName} ref={e => { this.dom = e && e.node }}
         className={className} src={_url} title={title || fileName}
         onError={this.onError.bind(this)}
@@ -135,7 +143,5 @@ LoadingImage.propTypes = {
   className: PropTypes.string,
   mode: PropTypes.string,
   url: PropTypes.string,   //predefined url, not request from this component,
-  bottomOffet: PropTypes.number,
-  topOffet: PropTypes.number,
   onChange: PropTypes.func
 };

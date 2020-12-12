@@ -36,11 +36,11 @@ const getBaseName = module.exports.getBaseName = function (fp) {
 };
 
 module.exports.getFileUrl = function (url) {
-    if (!url) {
+    if (!url || url === "NOT_THUMBNAIL_AVAILABLE") {
         return "";
     }
   
-    if (!url.includes("/thumbnails/")) {
+    if (!url.includes("/thumbnails/") && !url.includes("/cache/") ) {
         return getDownloadLink(url);
     } else {
         return "../" + encodeFileUrl(url);

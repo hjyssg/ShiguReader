@@ -131,7 +131,7 @@ export default class OneBookOverview extends Component {
 
     const images = files
       .map(e => getFileUrl(e))
-      .map((e, ii) => <SmartImage url={e} index={ii} fp={fp} />);
+      .map((e, ii) => <SmartImage key={e} url={e} index={ii} fp={fp} />);
     return images;
   }
 
