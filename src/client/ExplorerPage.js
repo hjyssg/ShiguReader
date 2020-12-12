@@ -912,7 +912,7 @@ export default class ExplorerPage extends Component {
         if (this.getMode() === MODE_EXPLORER) {
             const text = "generate thumbnail"
             return (
-                <span key="thumbnail-button" className="thumbnail-button exp-top-button" onClick={() => AdminUtil.askPregenerate(this.getPathFromQuery())}>
+                <span key="thumbnail-button" className="thumbnail-button exp-top-button" onClick={() => AdminUtil.askPregenerate(this.getPathFromQuery(), true)}>
                     <span className="fas fa-tools" />
                     <span> {text} </span>
                 </span>

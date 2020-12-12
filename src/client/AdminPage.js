@@ -75,7 +75,6 @@ export default class AdminPage extends Component {
         }
     }
 
-
     onPrenerate(fastUpdateMode) {
         const pathInput = ReactDOM.findDOMNode(this.pathInputRef);
         const path = pathInput.value || this.state.prePath;

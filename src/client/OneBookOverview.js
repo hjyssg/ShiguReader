@@ -119,8 +119,6 @@ export default class OneBookOverview extends Component {
     return this.res && this.res.isFailed();
   }
 
-
-
   renderImageGrid() {
     const { files } = this.state;
     if (!this.hasImage()) {
