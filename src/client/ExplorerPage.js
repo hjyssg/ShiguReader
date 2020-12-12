@@ -108,7 +108,8 @@ export default class ExplorerPage extends Component {
             "filterByGuess",
             "filterText",
             "filterType",
-            "noThumbnail"].forEach(key => {
+            "noThumbnail",
+            "showFolderThumbnail"].forEach(key => {
                 obj2[key] = obj[key];
             })
         location.hash = queryString.stringify(obj2);

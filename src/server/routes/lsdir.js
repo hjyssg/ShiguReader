@@ -79,7 +79,7 @@ router.post('/api/lsDir', async (req, res) => {
         const np = itsParent.join(path.sep);
         dirs.push(np);
 
-        if(isCompress(pp)){
+        if(isCompress(pp) || isImage(pp)){
             dirToFiles[np] = dirToFiles[np] || [];
             dirToFiles[np].push(pp);
         }
@@ -139,7 +139,7 @@ router.post('/api/lsDir', async (req, res) => {
 
 
     const dirThumbnails = {};
-    dirs.map(dirPath => {
+    _dirs.map(dirPath => {
         const files = dirToFiles[dirPath];
         //todo? use 0 for now
         if(files && files.length > 0){
@@ -147,6 +147,12 @@ router.post('/api/lsDir', async (req, res) => {
             let ii = 0;
             while(!thumbnail && ii < files.length){
                 let tf = files[ii];
+
+                if(isImage(tf)){
+                    thumbnail = tf;
+                    break;
+                }
+
                 thumbnail = getThumbnails([tf])[tf];
                 ii++;
             }
