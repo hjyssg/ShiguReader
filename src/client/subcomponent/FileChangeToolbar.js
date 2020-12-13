@@ -362,7 +362,7 @@ export default class FileChangeToolbar extends Component {
     render() {
         const { file, className, header, hasMusic, bigFont, isFolder } = this.props;
         const cn = classNames("file-change-tool-bar", className, {
-            bigFont: bigFont
+            bigFont: bigFont || clientUtil.isMobile(),
         });
 
         if (!clientUtil.isAuthorized()) {

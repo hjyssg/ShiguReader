@@ -24,15 +24,6 @@
     }
   }
 
-  &.bigFont {
-
-    .fa,
-    .fas {
-      font-size: 14px;
-    }
-  }
-
-
   .fa,
   .fas {
     margin-left: 5px;
@@ -44,10 +35,16 @@
     }
   }
 
-  .fa-arrow-right {
-    background: transparent;
-    border: 0px;
-    padding: 0px;
+  &.bigFont {
+    .tool-bar-row {
+      margin-top: 15px;
+      margin-bottom: 10px;
+    }
+
+    .fa, 
+    .fas {
+      font-size: 18px;
+    }
   }
 
   .file-change-tool-bar-header {
