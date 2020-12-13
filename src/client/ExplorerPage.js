@@ -113,7 +113,8 @@ export default class ExplorerPage extends Component {
             "showFolderThumbnail"].forEach(key => {
                 obj2[key] = obj[key];
             })
-        location.hash = queryString.stringify(obj2);
+        
+        clientUtil.replaceUrlHash(queryString.stringify(obj2))
         this.setState(state, callback);
     }
 

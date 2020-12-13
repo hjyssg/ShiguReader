@@ -217,3 +217,9 @@ module.exports.getHistoryFromCookie = function () {
 
     return history;
 }
+
+module.exports.replaceUrlHash = function(newHash){
+    // console.assert((location.origin + location.pathname + location.search + location.hash) === location.href, "[replaceUrlHash] url error")
+    const newUrl = location.href.replace(location.hash, "#" + newHash);
+    location.replace(newUrl);
+}
