@@ -54,7 +54,7 @@ export default class OneBook extends Component {
   }
 
   setIndex(index) {
-    location.hash = queryString.stringify({ index });
+    clientUtil.replaceUrlHash(queryString.stringify({ index }));
   }
 
   getTextFromQuery(props) {
