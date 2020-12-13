@@ -58,9 +58,11 @@ router.post('/api/moveFile', async (req, res) => {
         let err;
         if (!(await isExist(dest))) {
             err = await pfs.mkdir(dest, { recursive: true });
+            if (err instanceof Error) {
+             throw "fail to create dest folder"; 
+            }
         }
 
-        if (err) { throw "fail to create dest folder"; }
 
         const cmdStr = isWindows() ? "move" : "mv";
         const { stdout, stderr } = await execa(cmdStr, [src, dest]);

@@ -93,7 +93,7 @@ async function mkdir(path, quiet) {
     if (!(await isExist(path))) {
         try {
             const err = await pfs.mkdir(path, { recursive: true });
-            if (err) {
+            if (err instanceof Error) {
                 throw err;
             }
         } catch (err) {

@@ -30,7 +30,7 @@ function cleanCache(cachePath, config) {
     counter = 0
     if (!fs.existsSync(cachePath)) {
         err = fs.mkdir(cachePath, (err) => {
-            if (err) {
+            if (err instanceof Error) {
                 throw err;
             }
         });

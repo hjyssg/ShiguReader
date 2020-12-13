@@ -30,7 +30,7 @@ img_convert_min_threshold *= 1024 * 1024;
 
 
 function logFail(filePath, e) {
-    logger.error("[imageMagickHelp]]", filePath, e);
+    logger.error("[imageMagickHelp]", filePath, e);
 }
 
 global._has_magick_ = true;
@@ -90,8 +90,8 @@ module.exports.minifyOneFile = async function (filePath) {
         //mkdir for output
         if (!(await isExist(minifyOutputPath))) {
             const mdkirErr = await pfs.mkdir(minifyOutputPath, { recursive: true });
-            if (mdkirErr) {
-                logFail(filePath, "cannot create output folder");
+            if (mdkirErr instanceof Error) {
+                logFail(minifyOutputPath, "cannot create output folder");
                 return;
             }
         }
