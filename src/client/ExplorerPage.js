@@ -596,12 +596,8 @@ export default class ExplorerPage extends Component {
         if(showFolderThumbnail){
             dirItems = dirs.map((item) => {
                 const toUrl = clientUtil.getExplorerLink(item);
-                const text = this.getMode() === MODE_HOME ? item : getBaseName(item);
-                const result = this.getOneLineListItem(<i className="far fa-folder"></i>, text, item);
-                // const link =  <Link to={toUrl} key={item}>{result}</Link>;
-
+                const text =  getBaseName(item);
                 let thumbnailurl = getFileUrl(this.dirThumbnails[item]);
-          
                 const thumbnailCn = classNames("file-cell-thumbnail", "as-folder-thumbnail" );
     
                 let imgDiv = <LoadingImage
@@ -844,7 +840,7 @@ export default class ExplorerPage extends Component {
     }
 
     renderToggleThumbNailButton() {
-        const text2 = this.state.noThumbnail ? "Show Thumbnail" : "File Name Only";
+        const text2 = this.state.noThumbnail ? "Show File as Thumbnail" : "File Name Only";
         return (
             <span key="thumbnail-button" className="thumbnail-button exp-top-button" onClick={this.toggleThumbNail.bind(this)}>
                 <span className="fas fa-book" /> <span>{text2} </span>
@@ -950,15 +946,13 @@ export default class ExplorerPage extends Component {
         let topButtons = (
             <div className="top-button-gropus row">
                 {this.renderFileCount(filteredFiles, filteredVideos)}
-                {<div className="col-6 col-md-4"> {this.renderToggleFolferThumbNailButton()} </div> }
-                {filteredFiles.length > 0 &&
-                    <div className="col-6 col-md-4"> {this.renderToggleThumbNailButton()} </div>}
+                <div className="col-6 col-md-4"> {this.renderToggleFolferThumbNailButton()} </div>
+                <div className="col-6 col-md-4"> {this.renderToggleThumbNailButton()} </div>
+                <div className="col-6 col-md-4"> {this.renderShowVideoButton()} </div>
+                
+                <div className="col-6 col-md-4"> {this.renderChartButton()} </div>
                 {isExplorer &&
                     <div className="col-6 col-md-4"> {this.renderLevelButton()} </div>}
-                {filteredVideos.length > 0 &&
-                    <div className="col-6 col-md-4"> {this.renderShowVideoButton()} </div>}
-                <div className="col-6 col-md-4 " > {this.renderToggleMenuButton()} </div>
-                <div className="col-6 col-md-4"> {this.renderChartButton()} </div>
                 {isExplorer &&
                     <div className="col-6 col-md-4"> {this.renderPregenerateButton()} </div>}
                 {
@@ -970,6 +964,7 @@ export default class ExplorerPage extends Component {
                         </Link>
                     </div>
                 }
+                <div className="col-6 col-md-4 " > {this.renderToggleMenuButton()} </div>
             </div>);
 
         const breadcrumb = isExplorer && (<div className="row">
@@ -1009,7 +1004,7 @@ export default class ExplorerPage extends Component {
 
             let btn;
             if (this.getMode() === MODE_AUTHOR || this.getMode() === MODE_TAG || this.getMode() === MODE_SEARCH) {
-                btn = [this.renderToggleThumbNailButton(), this.renderToggleMenuButton()];
+                btn = [this.renderToggleThumbNailButton(), this.renderToggleFolferThumbNailButton(), this.renderToggleMenuButton()];
             }
 
             return (<center className={"location-title"}>
