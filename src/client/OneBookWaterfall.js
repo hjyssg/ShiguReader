@@ -19,7 +19,42 @@ const Constant = require("@common/constant");
 
 const clientUtil = require("./clientUtil");
 const { getDir, getBaseName, isMobile, getFileUrl, sortFileNames, filesizeUitl } = clientUtil;
-import LoadingImage from './LoadingImage';
+const VisibilitySensor = require('react-visibility-sensor').default;
+
+class SmartImage extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      isVisible: props.visible || false
+    };
+  }
+
+  onChange(isVisible) {
+    if (this.state.isVisible && !isVisible) {
+      return;
+    }
+
+    this.setState({
+      isVisible
+    })
+  }
+
+  render() {
+    const { url, index, style } = this.props;
+    const { isVisible } = this.state;
+
+    let content = (<img className="one-book-waterfall-image"
+        src={isVisible? url : ""}
+        title={index}
+        style={style} />)
+
+    return (
+      <VisibilitySensor offset={{ bottom: -150 }} partialVisibility={true} onChange={this.onChange.bind(this)}>
+            {content}
+      </VisibilitySensor>
+    )
+  }
+}
 
 //maybe combine with renderOneBookOverview into one file
 
@@ -109,11 +144,10 @@ export default class OneBookWaterfall extends Component {
 
     let images = files.map((file, index) => {
       return (<div key={file} className="one-book-waterfall-div">
-        <LoadingImage className={"one-book-waterfall-image"}
-          title={index}
+        <SmartImage 
+          visible={index < 3}
           url={getFileUrl(file)}
-          onlyUseURL
-          key={file}
+          index={index}
           style={{ maxHeight: maxHeight }}
         />
       </div>);
