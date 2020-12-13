@@ -90,18 +90,6 @@ export default class OneBookWaterfall extends Component {
     //maybe display a center spin
   }
 
-  _getFileUrl(url) {
-    if (!url) {
-      return "";
-    }
-
-    if (this.isImgFolder()) {
-      return clientUtil.getDownloadLink(url);
-    } else {
-      return getFileUrl(url);
-    }
-  }
-
   getMaxHeight() {
     if (isMobile()) {
       return window.screen.height - 10;
@@ -122,11 +110,9 @@ export default class OneBookWaterfall extends Component {
     let images = files.map((file, index) => {
       return (<div key={file} className="one-book-waterfall-div">
         <LoadingImage className={"one-book-waterfall-image"}
-          bottomOffet={-4000}
-          topOffet={-3000}
           title={index}
-          url={this._getFileUrl(file)}
-          asSimpleImage
+          url={getFileUrl(file)}
+          onlyUseURL
           key={file}
           style={{ maxHeight: maxHeight }}
         />

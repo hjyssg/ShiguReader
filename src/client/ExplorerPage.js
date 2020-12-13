@@ -19,6 +19,7 @@ import SortHeader from './subcomponent/SortHeader';
 import Breadcrumb from './subcomponent/Breadcrumb';
 import FileCellTitle from './subcomponent/FileCellTitle';
 import Checkbox from './subcomponent/Checkbox';
+import { getFileUrl } from './clientUtil';
 const nameParser = require('@name-parser');
 const classNames = require('classnames');
 const Constant = require("@common/constant");
@@ -72,6 +73,7 @@ export default class ExplorerPage extends Component {
         const isRecursive = !!(parsed.isRecursive === "true");
         const sortOrder = parsed.sortOrder || TIME_DOWN;
         const showVideo = !!(parsed.showVideo === "true");
+        const showFolderThumbnail = !!(parsed.showFolderThumbnail == "true");
 
         return {
             perPageItemNum: getPerPageItemNumber(),
@@ -80,6 +82,7 @@ export default class ExplorerPage extends Component {
             isRecursive,
             sortOrder,
             showVideo,
+            showFolderThumbnail,
             filterByGoodAuthorName: parsed.filterByGoodAuthorName === "true",
             filterByFirstTime: parsed.filterByFirstTime === "true",
             filterByHasMusic: parsed.filterByHasMusic === "true",
@@ -106,7 +109,8 @@ export default class ExplorerPage extends Component {
             "filterByGuess",
             "filterText",
             "filterType",
-            "noThumbnail"].forEach(key => {
+            "noThumbnail",
+            "showFolderThumbnail"].forEach(key => {
                 obj2[key] = obj[key];
             })
         location.hash = queryString.stringify(obj2);
@@ -268,7 +272,7 @@ export default class ExplorerPage extends Component {
 
     handleRes(res) {
         if (!res.isFailed()) {
-            let { dirs, tag, author, fileInfos, thumbnails, zipInfo, imgFolders, imgFolderInfo, guessIfUserLike } = res.json;
+            let { dirs, tag, author, fileInfos, thumbnails, dirThumbnails, zipInfo, imgFolders, imgFolderInfo, guessIfUserLike } = res.json;
             this.loadedHash = this.getTextFromQuery();
             this.fileInfos = fileInfos || {};
             const files = _.keys(this.fileInfos) || [];
@@ -278,6 +282,7 @@ export default class ExplorerPage extends Component {
             this.tag = tag || "";
             this.author = author || "";
             this.thumbnails = thumbnails || {};
+            this.dirThumbnails = dirThumbnails;
             this.zipInfo = zipInfo || {};
             this.guessIfUserLike = guessIfUserLike || {};
             this.imgFolders = imgFolders || {};
@@ -560,7 +565,7 @@ export default class ExplorerPage extends Component {
     }
 
     renderFileList(filteredFiles, filteredVideos) {
-        const { sortOrder } = this.state;
+        const { sortOrder, showFolderThumbnail } = this.state;
         let dirs = this.dirs || [];
         let videos = filteredVideos;
         let files = filteredFiles;
@@ -587,12 +592,40 @@ export default class ExplorerPage extends Component {
             }
         }
 
-        const dirItems = dirs.map((item) => {
-            const toUrl = clientUtil.getExplorerLink(item);
-            const text = this.getMode() === MODE_HOME ? item : getBaseName(item);
-            const result = this.getOneLineListItem(<i className="far fa-folder"></i>, text, item);
-            return <Link to={toUrl} key={item}>{result}</Link>;
-        });
+        let dirItems; 
+        if(showFolderThumbnail){
+            dirItems = dirs.map((item) => {
+                const toUrl = clientUtil.getExplorerLink(item);
+                const text =  getBaseName(item);
+                let thumbnailurl = getFileUrl(this.dirThumbnails[item]);
+                const thumbnailCn = classNames("file-cell-thumbnail", "as-folder-thumbnail" );
+    
+                let imgDiv = <LoadingImage
+                    onlyUseURL={true}
+                    isThumbnail
+                    className={thumbnailCn}
+                    title={item} fileName={item}
+                    url={thumbnailurl}
+                />;
+
+                 return (
+                    <div key={item} className={"col-sm-6 col-md-4 col-lg-3 file-out-cell"}>
+                    <div className="file-cell">
+                        <Link target="_blank" to={toUrl} key={item} className={"file-cell-inner"}>
+                            <FileCellTitle str={text} />
+                            <div className="folder-effect"> {imgDiv} </div>
+                        </Link>
+                    </div>
+                </div>);
+            });
+        }else{
+            dirItems = dirs.map((item) => {
+                const toUrl = clientUtil.getExplorerLink(item);
+                const text = this.getMode() === MODE_HOME ? item : getBaseName(item);
+                const result = this.getOneLineListItem(<i className="far fa-folder"></i>, text, item);
+                return <Link to={toUrl} key={item}>{result}</Link>;
+            });
+        }
 
         //seperate av from others
         const groupByVideoType = _.groupBy(videos, item => {
@@ -684,7 +717,7 @@ export default class ExplorerPage extends Component {
                 });
 
                 let imgDiv = <LoadingImage
-                    asSimpleImage={isImgFolder}
+                    onlyUseURL={isImgFolder}
                     isThumbnail
                     className={thumbnailCn}
                     title={item} fileName={item}
@@ -696,7 +729,6 @@ export default class ExplorerPage extends Component {
                 if (isImgFolder) {
                     imgDiv = (<div className="folder-effect"> {imgDiv} </div>)
                 }
-
 
                 zipItem = (
                     <div key={item} className={"col-sm-6 col-md-4 col-lg-3 file-out-cell"}>
@@ -726,7 +758,14 @@ export default class ExplorerPage extends Component {
 
         return (
             <div className={"explorer-container"}>
-                <ItemsContainer items={dirItems} neverCollapse />
+                {!showFolderThumbnail && <ItemsContainer items={dirItems} neverCollapse /> }
+                {showFolderThumbnail && 
+                    <div className={"file-grid container"}>
+                    <div className={"row"}>
+                        {dirItems}
+                        </div>
+                    </div>
+                }
                 <ItemsContainer className="video-list" items={normalVideos} />
                 <ItemsContainer items={avVideos} />
                 {this.renderPagination(filteredFiles, filteredVideos)}
@@ -788,6 +827,12 @@ export default class ExplorerPage extends Component {
         }
     }
 
+    toggleFolderThumbNail() {
+        this.setStateAndSetHash({
+            showFolderThumbnail: !this.state.showFolderThumbnail
+        })
+    }
+
     toggleShowVideo() {
         this.setStateAndSetHash({
             showVideo: !this.state.showVideo
@@ -795,9 +840,18 @@ export default class ExplorerPage extends Component {
     }
 
     renderToggleThumbNailButton() {
-        const text2 = this.state.noThumbnail ? "Show Thumbnail" : "File Name Only";
+        const text2 = this.state.noThumbnail ? "Show File as Thumbnail" : "File Name Only";
         return (
             <span key="thumbnail-button" className="thumbnail-button exp-top-button" onClick={this.toggleThumbNail.bind(this)}>
+                <span className="fas fa-book" /> <span>{text2} </span>
+            </span>
+        );
+    }
+
+    renderToggleFolferThumbNailButton() {
+        const text2 = this.state.showFolderThumbnail ? "Show Folder as Thumbnail" : "Folder Name Only";
+        return (
+            <span key="folder-thumbnail-button" className="thumbnail-button exp-top-button" onClick={this.toggleFolderThumbNail.bind(this)}>
                 <span className="fas fa-book" /> <span>{text2} </span>
             </span>
         );
@@ -854,7 +908,7 @@ export default class ExplorerPage extends Component {
         if (this.getMode() === MODE_EXPLORER) {
             const text = "generate thumbnail"
             return (
-                <span key="thumbnail-button" className="thumbnail-button exp-top-button" onClick={() => AdminUtil.askPregenerate(this.getPathFromQuery())}>
+                <span key="thumbnail-button" className="thumbnail-button exp-top-button" onClick={() => AdminUtil.askPregenerate(this.getPathFromQuery(), true)}>
                     <span className="fas fa-tools" />
                     <span> {text} </span>
                 </span>
@@ -892,14 +946,13 @@ export default class ExplorerPage extends Component {
         let topButtons = (
             <div className="top-button-gropus row">
                 {this.renderFileCount(filteredFiles, filteredVideos)}
-                {filteredFiles.length > 0 &&
-                    <div className="col-6 col-md-4"> {this.renderToggleThumbNailButton()} </div>}
+                <div className="col-6 col-md-4"> {this.renderToggleFolferThumbNailButton()} </div>
+                <div className="col-6 col-md-4"> {this.renderToggleThumbNailButton()} </div>
+                <div className="col-6 col-md-4"> {this.renderShowVideoButton()} </div>
+                
+                <div className="col-6 col-md-4"> {this.renderChartButton()} </div>
                 {isExplorer &&
                     <div className="col-6 col-md-4"> {this.renderLevelButton()} </div>}
-                {filteredVideos.length > 0 &&
-                    <div className="col-6 col-md-4"> {this.renderShowVideoButton()} </div>}
-                <div className="col-6 col-md-4 " > {this.renderToggleMenuButton()} </div>
-                <div className="col-6 col-md-4"> {this.renderChartButton()} </div>
                 {isExplorer &&
                     <div className="col-6 col-md-4"> {this.renderPregenerateButton()} </div>}
                 {
@@ -911,6 +964,7 @@ export default class ExplorerPage extends Component {
                         </Link>
                     </div>
                 }
+                <div className="col-6 col-md-4 " > {this.renderToggleMenuButton()} </div>
             </div>);
 
         const breadcrumb = isExplorer && (<div className="row">
@@ -950,7 +1004,7 @@ export default class ExplorerPage extends Component {
 
             let btn;
             if (this.getMode() === MODE_AUTHOR || this.getMode() === MODE_TAG || this.getMode() === MODE_SEARCH) {
-                btn = [this.renderToggleThumbNailButton(), this.renderToggleMenuButton()];
+                btn = [this.renderToggleThumbNailButton(), this.renderToggleFolferThumbNailButton(), this.renderToggleMenuButton()];
             }
 
             return (<center className={"location-title"}>

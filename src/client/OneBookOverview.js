@@ -119,18 +119,6 @@ export default class OneBookOverview extends Component {
     return this.res && this.res.isFailed();
   }
 
-  _getFileUrl(url) {
-    if (!url) {
-      return "";
-    }
-
-    if (this.isImgFolder()) {
-      return clientUtil.getDownloadLink(url);
-    } else {
-      return getFileUrl(url);
-    }
-  }
-
   renderImageGrid() {
     const { files } = this.state;
     if (!this.hasImage()) {
@@ -140,8 +128,8 @@ export default class OneBookOverview extends Component {
     const fp = this.getTextFromQuery();
 
     const images = files
-      .map(e => this._getFileUrl(e))
-      .map((e, ii) => <SmartImage url={e} index={ii} fp={fp} />);
+      .map(e => getFileUrl(e))
+      .map((e, ii) => <SmartImage key={e} url={e} index={ii} fp={fp} />);
     return images;
   }
 

@@ -483,18 +483,6 @@ export default class OneBook extends Component {
     this.adjustImageSize();
   }
 
-  _getFileUrl(url) {
-    if (!url) {
-      return "";
-    }
-
-    if (this.isImgFolder()) {
-      return clientUtil.getDownloadLink(url);
-    } else {
-      return getFileUrl(url);
-    }
-  }
-
   renderImage() {
     const { files, index, twoPageMode } = this.state;
     if (!this.hasImage()) {
@@ -506,18 +494,18 @@ export default class OneBook extends Component {
         "has-music": this.hasMusic()
       });
 
-      const nextImg = this.shouldTwoPageMode() && <img className={cn} src={this._getFileUrl(files[index + 1])} alt="book-image"
+      const nextImg = this.shouldTwoPageMode() && <img className={cn} src={getFileUrl(files[index + 1])} alt="book-image"
         ref={img => this.nextImgRef = img}
         onLoad={this.makeTwoImageSameHeight.bind(this)}
         index={index + 1}
       />;
 
-      const preload = index < files.length - 1 && <link rel="preload" href={this._getFileUrl(files[index - 1])} as="image" />;
+      const preload = index < files.length - 1 && <link rel="preload" href={getFileUrl(files[index - 1])} as="image" />;
 
       return (<React.Fragment>
         <Spinner className="one-book-img-load-spinner" />
         {twoPageMode === TWO_PAGE_RIGHT && nextImg}
-        <img className={cn} src={this._getFileUrl(files[index])} alt="book-image"
+        <img className={cn} src={getFileUrl(files[index])} alt="book-image"
           ref={img => this.imgRef = img}
           index={index}
           onError={this.onImageError.bind(this)}
@@ -539,7 +527,7 @@ export default class OneBook extends Component {
           ref={(img) => this.imgRef = img}
           onError={this.onImageError.bind(this)}
           onLoad={this.onImgLoad.bind(this)}
-          src={this._getFileUrl(files[index])} />
+          src={getFileUrl(files[index])} />
       </div>);
       return (<div className="mobile-one-book-container">
         <Spinner className="one-book-img-load-spinner" />
@@ -628,15 +616,11 @@ export default class OneBook extends Component {
     if (this.hasMusic()) {
       let { musicFiles } = this.state;
 
-      // if(this.isImgFolder()){
-      //   musicFiles = musicFiles.map(e => clientUtil.getDownloadLink(e));
-      // }
-
       const cn = classNames({
         "only-music": !this.hasImage()
       })
 
-      return <MusicPlayer className={cn} audioFiles={musicFiles} filePathAsUrl />;
+      return <MusicPlayer className={cn} audioFiles={musicFiles} />;
     }
   }
 
