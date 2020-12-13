@@ -3,7 +3,6 @@
   "version": "1.5.0",
   "description": "All-in-one solution for local doujin/anime/music file",
   "repository": "hjyssg/ShiguReader",
-  "license": "MIT",
   "main": "src/server/index.js",
   "bin": "src/server/index.js",
   "pkg": {
@@ -24,7 +23,7 @@
     "pkg": "npm run build && pkg package.json -t host --out-dir executables"
   },
   "author": "aji47",
-  "license": "",
+  "license": "MIT",
   "dependencies": {
     "babel-polyfill": "^6.26.0",
     "chart.js": "^2.7.3",
