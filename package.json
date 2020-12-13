@@ -2,6 +2,8 @@
   "name": "ShiguReader",
   "version": "1.5.0",
   "description": "All-in-one solution for local doujin/anime/music file",
+  "repository": "hjyssg/ShiguReader",
+  "license": "MIT",
   "main": "src/server/index.js",
   "bin": "src/server/index.js",
   "pkg": {
