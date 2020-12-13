@@ -58,12 +58,17 @@
   }
 }
 
-.file-count {
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  color: $font_color_white_one;
+.file-count-row{
+  padding-bottom: 8px;
+  .file-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-start;
+    margin-right: 20px;
+    color: $font_color_white_one;
+  }
 }
+
 
 @media screen and (max-width: 800px) {
 

@@ -840,7 +840,7 @@ export default class ExplorerPage extends Component {
     }
 
     renderToggleThumbNailButton() {
-        const text2 = this.state.noThumbnail ? "Show File as Thumbnail" : "File Name Only";
+        const text2 = this.state.noThumbnail ? "File Name Only" : "Show File as Thumbnail";
         return (
             <span key="thumbnail-button" className="thumbnail-button exp-top-button" onClick={this.toggleThumbNail.bind(this)}>
                 <span className="fas fa-book" /> <span>{text2} </span>
@@ -849,7 +849,7 @@ export default class ExplorerPage extends Component {
     }
 
     renderToggleFolferThumbNailButton() {
-        const text2 = this.state.showFolderThumbnail ? "Show Folder as Thumbnail" : "Folder Name Only";
+        const text2 = this.state.showFolderThumbnail ? "Folder Name Only" : "Show Folder as Thumbnail";
         return (
             <span key="folder-thumbnail-button" className="thumbnail-button exp-top-button" onClick={this.toggleFolderThumbNail.bind(this)}>
                 <span className="fas fa-book" /> <span>{text2} </span>
@@ -858,7 +858,7 @@ export default class ExplorerPage extends Component {
     }
 
     renderShowVideoButton() {
-        const text2 = this.state.showVideo ? "hide video" : "show video";
+        const text2 = this.state.showVideo ? "Hide video" : "Show video";
         return (
             <span className="show-video-button exp-top-button" onClick={this.toggleShowVideo.bind(this)}>
                 <span className="fas fa-video" />
@@ -878,7 +878,7 @@ export default class ExplorerPage extends Component {
     }
 
     renderToggleMenuButton() {
-        const text = "toggle side menu"
+        const text = "Toggle Menu"
         return (
             <span key="toggle-side-menu-button" className="toggle-side-menu-button exp-top-button" onClick={this.toggleSideMenu.bind(this)}>
                 <span className="fas fa-ellipsis-h" />
@@ -900,13 +900,13 @@ export default class ExplorerPage extends Component {
 
         return (<Link target="_blank" className="exp-top-button" to={link}>
             <span className="fas fa-chart-line" />
-            <span> chart </span>
+            <span> Chart </span>
         </Link>)
     }
 
     renderPregenerateButton() {
         if (this.getMode() === MODE_EXPLORER) {
-            const text = "generate thumbnail"
+            const text = "Generate thumbnail"
             return (
                 <span key="thumbnail-button" className="thumbnail-button exp-top-button" onClick={() => AdminUtil.askPregenerate(this.getPathFromQuery(), true)}>
                     <span className="fas fa-tools" />
@@ -923,12 +923,14 @@ export default class ExplorerPage extends Component {
         const title = `${filesizeUitl(totalZipSize)} zips and ${filesizeUitl(totalVideoSize)} videos`
         const totalPageNum = this.getAllFilePageNum(filteredFiles);
         return (
-            <React.Fragment>
-                <div className="file-count col-6 col-md-4"><i className="fas fa-file-archive" />{filteredFiles.length + " compressed files"} </div>
-                <div className="file-count col-6 col-md-4"><i className="fas fa-paperclip" />{totalPageNum + " pages"} </div>
-                <div className="file-count col-6 col-md-4"><i className="fas fa-film" />{filteredVideos.length + " video files"} </div>
-                <div className="file-count col-6 col-md-4" title={title}><i className="fas fa-hdd" />{filesizeUitl(totalSize)} </div>
-            </React.Fragment>
+            <div className="row">
+                <div className="col-12 file-count-row">
+                    <div className="file-count">{"Zip: " + filteredFiles.length} </div>
+                    <div className="file-count">{"Page: " + totalPageNum } </div>
+                    <div className="file-count">{"Video: " + filteredVideos.length } </div>
+                    <div className="file-count" title={title}>{"Total: " + filesizeUitl(totalSize)} </div>
+                </div>
+            </div>
         );
     }
 
@@ -945,7 +947,6 @@ export default class ExplorerPage extends Component {
 
         let topButtons = (
             <div className="top-button-gropus row">
-                {this.renderFileCount(filteredFiles, filteredVideos)}
                 <div className="col-6 col-md-4"> {this.renderToggleFolferThumbNailButton()} </div>
                 <div className="col-6 col-md-4"> {this.renderToggleThumbNailButton()} </div>
                 <div className="col-6 col-md-4"> {this.renderShowVideoButton()} </div>
@@ -973,6 +974,7 @@ export default class ExplorerPage extends Component {
 
         return (<div className="container explorer-top-bar-container">
             {breadcrumb}
+            {this.renderFileCount(filteredFiles, filteredVideos)}
             {topButtons}
         </div>);
     }
