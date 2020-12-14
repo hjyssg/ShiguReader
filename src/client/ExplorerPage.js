@@ -708,9 +708,9 @@ export default class ExplorerPage extends Component {
                     const _imgs = this.imgFolders[item].filter(isImage);
                     clientUtil.sortFileNames(_imgs)
                     const tp = _imgs[0];
-                    thumbnailurl = clientUtil.getDownloadLink(tp);
+                    thumbnailurl = getFileUrl(tp);
                 } else {
-                    thumbnailurl = this.thumbnails[item];
+                    thumbnailurl = getFileUrl(this.thumbnails[item]);
                 }
 
                 const thumbnailCn = classNames("file-cell-thumbnail", {
