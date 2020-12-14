@@ -174,11 +174,13 @@
     @include flex_center_display;
     margin-top: 5px;
 
-    .fa-download,
+    div:first-child {
+      margin-right: 30px;
+    }
+
     .two-page-mode-button,
     .rotate-button {
-      font-size: 14px;
-      margin-left: 10px;
+      font-size: 18px;
 
       &:hover {
         @include third_hover_effect();
@@ -277,7 +279,10 @@
 
 
 .one-book-overview-path {
+  a {
+    font-size: 20px; 
+  }
   a:first-child {
-    margin-right: 20px;
+    margin-right: 30px;
   }
 }
