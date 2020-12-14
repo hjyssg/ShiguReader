@@ -5,8 +5,7 @@ const fs = require('fs');
 const isWindows = require('is-windows');
 const _ = require('underscore');
 
-const isImage = util.isImage;
-const isMusic = util.isMusic;
+const { isImage, isMusic, isVideo } = util;
 const cache_folder_name = userConfig.cache_folder_name;
 const pfs = require('promise-fs');
 
@@ -30,6 +29,7 @@ const generateContentUrl = function (pathes, outputPath) {
     const files = [];
     const dirs = [];
     const musicFiles = [];
+    const videoFiles = [];
     if (pathes) {
         const base = path.basename(outputPath);
         for (let i = 0; i < pathes.length; i++) {
@@ -40,10 +40,12 @@ const generateContentUrl = function (pathes, outputPath) {
                 files.push(temp);
             } else if (isMusic(p)) {
                 musicFiles.push(temp);
+            } else if(isVideo(p)){
+                videoFiles.push(temp);
             }
         }
     }
-    return { files, dirs, musicFiles };
+    return { files, dirs, musicFiles, videoFiles };
 }
 
 const isExist = async (path) => {

@@ -10,7 +10,7 @@ const logger = require("./logger");
 const util = global.requireUtil();
 const pathUtil = require("./pathUtil");
 const { isImage, isCompress, isMusic, isVideo, arraySlice, getCurrentTime, isDisplayableInExplorer, isDisplayableInOnebook } = util;
-const { generateContentUrl, isExist } = pathUtil;
+const { isExist } = pathUtil;
 
 let sevenZip;
 if (isWindows()) {
@@ -177,11 +177,10 @@ module.exports.extractAll = async function (filePath, outputPath) {
     let error, pathes
     try {
         const { stderr } = await execa(sevenZip, opt);
-        if (!stderr) {
-            pathes = await pfs.readdir(outputPath);
-        } else {
-            error = stderr;
-        }
+        if (stderr) {
+            throw stderr;
+        } 
+        pathes = await pfs.readdir(outputPath);
     } catch (e) {
         error = e;
         logger.error('[extractAll] exit: ', e);
