@@ -174,11 +174,13 @@
     @include flex_center_display;
     margin-top: 5px;
 
-    .fa-download,
+    div:first-child {
+      margin-right: 30px;
+    }
+
     .two-page-mode-button,
     .rotate-button {
-      font-size: 14px;
-      margin-left: 10px;
+      font-size: 18px;
 
       &:hover {
         @include third_hover_effect();
@@ -262,11 +264,9 @@
 
   &.show {
     display: flex;
-
     position: absolute;
     top: 0px;
     z-index: 100;
-    background: #80808094;
     width: 100%;
     height: 100%;
     align-items: center;
@@ -274,5 +274,15 @@
 
     //https://stackoverflow.com/questions/1009753/pass-mouse-events-through-absolutely-positioned-element
     pointer-events: none;
+  }
+}
+
+
+.one-book-overview-path {
+  a {
+    font-size: 20px; 
+  }
+  a:first-child {
+    margin-right: 30px;
   }
 }
