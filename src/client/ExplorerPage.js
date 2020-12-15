@@ -612,7 +612,7 @@ export default class ExplorerPage extends Component {
                  return (
                     <div key={item} className={"col-sm-6 col-md-4 col-lg-3 file-out-cell"}>
                     <div className="file-cell">
-                        <Link target="_blank" to={toUrl} key={item} className={"file-cell-inner"}>
+                        <Link to={toUrl} key={item} className={"file-cell-inner"}>
                             <FileCellTitle str={text} />
                             <div className="folder-effect"> {imgDiv} </div>
                         </Link>
