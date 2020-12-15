@@ -18,7 +18,7 @@ const getRootPath = function () {
 //for thumbnail url
 const fullPathToUrl = function (img) {
     const fullpath = path.resolve(img);
-    return turnPathSepToWebSep("..\\" + path.relative(rootPath, fullpath));
+    return turnPathSepToWebSep(path.relative(rootPath, fullpath));
 }
 
 const turnPathSepToWebSep = function (fn) {

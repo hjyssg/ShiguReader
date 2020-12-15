@@ -5,7 +5,6 @@ const Constant = require("@common/constant");
 const classNames = require('classnames');
 import "./style/LoadingImage.scss"
 const clientUtil = require("./clientUtil");
-const { encodeFileUrl } = clientUtil;
 const util = require("@common/util");
 
 // 需要是isThumbnail && onlyUseURL && 同时初始的url不好用，才会去api request
@@ -74,7 +73,7 @@ export default class LoadingImage extends Component {
       if (res.isFailed()) {
         this.setState({ fail_time: this.state.fail_time + 1 });
       } else {
-        const url = res.json.url
+        const url = clientUtil.getFileUrl(res.json.url);
         this.props.onReceiveUrl && this.props.onReceiveUrl(url);
         this.setState({ url });
       }
@@ -123,7 +122,7 @@ export default class LoadingImage extends Component {
       cn += empty_icon_cn;
     }
 
-    const _url = onlyUseURL ? url : encodeFileUrl(this.state.url);
+    const _url = this.state.url;
 
     if (this.isUrlAvaible()) {
       content = (<img style={style} key={fileName} ref={e => { this.dom = e && e.node }}
