@@ -30,6 +30,15 @@
     cursor: pointer;
     font-size: 12px;
 
+    //download is a 
+    //lazy copy-and-paste code here
+    &.fa-download{
+      &:hover {
+        @include third_hover_effect;
+        color: $font_dark_orange !important;
+      }
+    }
+
     &:hover {
       @include third_hover_effect;
     }

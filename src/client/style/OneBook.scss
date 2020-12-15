@@ -286,3 +286,18 @@
     margin-right: 30px;
   }
 }
+
+.one-book-video-container{
+  .video-link{
+
+    &:hover {
+      .video-link-text {
+        text-decoration: underline;
+      }
+    }
+
+    .video-link-text {
+      margin-left: 10px;
+    }
+  }
+}

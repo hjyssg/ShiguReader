@@ -10,7 +10,7 @@ const serverUtil = require("../serverUtil");
 const db = require("../models/db");
 const { getFileCollection, getFileToInfo, getImgFolderInfo } = db;
 const util = global.requireUtil();
-const { getCurrentTime, isDisplayableInExplorer, escapeRegExp, isImage, isMusic, isCompress } = util;
+const { getCurrentTime, isDisplayableInExplorer, escapeRegExp, isImage, isMusic, isCompress, isVideo } = util;
 const path = require('path');
 const zipInfoDb = require("../models/zipInfoDb");
 const { getZipInfo } = zipInfoDb;
@@ -190,7 +190,7 @@ router.post('/api/listImageFolderContent', async (req, res) => {
     const reg = escapeRegExp(filePath);
     const fake_zip_results = getFileCollection()
         .chain()
-        .find({ 'filePath': { '$regex': reg }, isDisplayableInOnebook: true })
+        .find({ 'filePath': { '$regex': reg } })
         .data();
 
     const _files = [];
@@ -204,6 +204,7 @@ router.post('/api/listImageFolderContent', async (req, res) => {
 
     const files = _files.filter(isImage)
     const musicFiles = _files.filter(isMusic);
+    const videoFiles = _files.filter(isVideo) 
 
     const mapping = {};
     mapping[filePath] = _files;
@@ -214,7 +215,7 @@ router.post('/api/listImageFolderContent', async (req, res) => {
         zipInfo: info,
         stat: info,
         path: filePath,
-        files, musicFiles
+        files, musicFiles, videoFiles
     };
     res.send(result);
 });

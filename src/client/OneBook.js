@@ -296,17 +296,19 @@ export default class OneBook extends Component {
   async handleRes(res) {
     this.res = res;
     if (!res.isFailed()) {
-      let { zipInfo, path, stat, files, musicFiles, mecab_tokens } = res.json;
+      let { zipInfo, path, stat, files, musicFiles, videoFiles, mecab_tokens } = res.json;
       files = files || [];
       musicFiles = musicFiles || [];
+      videoFiles = videoFiles || [];
 
       //files name can be 001.jpg, 002.jpg, 011.jpg, 012.jpg
       //or 1.jpg, 2.jpg 3.jpg 1.jpg
       //todo: the sort is wrong for imgFolder
       sortFileNames(files);
       sortFileNames(musicFiles);
+      sortFileNames(videoFiles);
 
-      this.setState({ files, musicFiles, path, fileStat: stat, zipInfo, mecab_tokens },
+      this.setState({ files, musicFiles, videoFiles, path, fileStat: stat, zipInfo, mecab_tokens },
         () => { this.bindUserInteraction() });
       clientUtil.saveFilePathToCookie(this.getTextFromQuery());
     } else {
@@ -698,6 +700,18 @@ export default class OneBook extends Component {
     }
   }
 
+  renderVideoLink(){
+    const { videoFiles } = this.state;
+
+    const videos = videoFiles.map((item) => {
+      const toUrl = clientUtil.getVideoPlayerLink(item);
+      const text =  <span className="video-link-text">{ getBaseName(item)} </span>;
+      const result = <i className="far fa-file-video">{text}</i>;
+      return <Link className="video-link" target="_blank" to={toUrl} key={item}>{result}</Link>;
+    });
+    return <div className="one-book-video-container">{videos} </div>
+  }
+
   render() {
     if (this.isFailedLoading()) {
       const fp = this.getTextFromQuery();
@@ -758,6 +772,7 @@ export default class OneBook extends Component {
         {this.renderSecondBar()}
         {this.renderOverviewLink()}
         {this.renderEhentaiTag()}
+        {this.renderVideoLink()}
       </div>
     );
   }

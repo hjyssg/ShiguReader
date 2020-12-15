@@ -28,7 +28,7 @@ const serverUtil = require("./serverUtil");
 const { isHiddenFile } = serverUtil;
 
 const { fullPathToUrl, generateContentUrl, isExist, getHomePath } = pathUtil;
-const { isImage, isCompress, isMusic, arraySlice,
+const { isImage, isCompress, isVideo, isMusic, arraySlice,
     getCurrentTime, isDisplayableInExplorer, isDisplayableInOnebook, escapeRegExp } = util;
 
 //set up path
@@ -293,7 +293,7 @@ function shouldWatchForCache(p) {
         return false;
     }
     const ext = getExt(p);
-    return !ext || isDisplayableInOnebook(ext);
+    return !ext || isDisplayableInOnebook(ext) || isVideo(ext);
 }
 
 
@@ -693,7 +693,6 @@ app.post('/api/extract', async (req, res) => {
     if (!(await isExist(filePath))) {
         //maybe the file move to other location
         const fn = path.basename(filePath);
-        //todo loop is slow
         const sameFnObj = getFileCollection().findOne({ fileName: fn });
         if (sameFnObj) {
             filePath = sameFnObj.filePath;
@@ -706,8 +705,9 @@ app.post('/api/extract', async (req, res) => {
     const time1 = getCurrentTime();
     const stat = await getStat(filePath);
 
+    async function sendBack(contentObj, path, stat) {
+        const {files, musicFiles, videoFiles } = contentObj
 
-    async function sendBack(files, musicFiles, path, stat) {
         const tempFiles = files.filter(e => {
             return !isHiddenFile(e);
         });
@@ -718,7 +718,7 @@ app.post('/api/extract', async (req, res) => {
 
         const mecab_tokens = await global.mecab_getTokens(path);
 
-        res.send({ files: tempFiles, musicFiles, path, stat, zipInfo, mecab_tokens });
+        res.send({ files: tempFiles, musicFiles, videoFiles, path, stat, zipInfo, mecab_tokens });
     }
 
     const outputPath = getCacheOutputPath(cachePath, filePath);
@@ -731,10 +731,10 @@ app.post('/api/extract', async (req, res) => {
         const _files = temp.files || [];
 
         if (totalNum > 0 && _files.length >= totalNum) {
-            sendBack(temp.files, temp.musicFiles, filePath, stat);
+            sendBack(temp, filePath, stat);
             return;
         } else if (totalNum === 0) {
-            sendBack([], [], filePath, stat);
+            sendBack({}, filePath, stat);
             return;
         }
     }
@@ -743,21 +743,21 @@ app.post('/api/extract', async (req, res) => {
         const full_extract_max = 10;
         try {
             let { files, fileInfos } = await listZipContentAndUpdateDb(filePath);
+            let hasMusic = files.some(e => isMusic(e));
+            let hasVideo = files.some(e => isVideo(e));
             files = files.filter(e => isDisplayableInOnebook(e));
             if (files.length === 0) {
-                res.send({ failed: true, reason: "has no content" });
-                console.error(`[/api/extract] ${filePath} has no content`);
-                return;
+                throw `${filePath} has no content`
             }
-
-            let hasMusic = files.some(e => isMusic(e));
-            if (hasMusic || files.length <= full_extract_max) {
+    
+            //todo: music/video may be huge and will be slow
+            if (hasMusic || hasVideo || files.length <= full_extract_max) {
                 const { pathes, error } = await extractAll(filePath, outputPath);
                 if (!error && pathes) {
                     const temp = generateContentUrl(pathes, outputPath);
-                    sendBack(temp.files, temp.musicFiles, filePath, stat);
+                    sendBack(temp, filePath, stat);
                 } else {
-                    res.send({ failed: true, reason: "fail to extract" });
+                   throw "fail to extract"
                 }
             } else {
                 //spit one zip into two uncompress task
@@ -781,15 +781,14 @@ app.post('/api/extract', async (req, res) => {
                 let stderr = await extractByRange(filePath, outputPath, firstRange)
                 if (!stderr) {
                     const temp = generateContentUrl(files, outputPath);
-                    sendBack(temp.files, temp.musicFiles, filePath, stat);
+                    sendBack(temp, filePath, stat);
                     const time2 = getCurrentTime();
                     const timeUsed = (time2 - time1);
                     console.log(`[/api/extract] FIRST PART UNZIP ${filePath} : ${timeUsed}ms`);
 
                     await extractByRange(filePath, outputPath, secondRange)
                 } else {
-                    res.send({ failed: true, reason: stderr });
-                    console.error('[/api/extract] exit: ', stderr);
+                    throw stderr;
                 }
             }
         } catch (e) {
