@@ -119,8 +119,8 @@ async function getHomePath() {
     const fContent2 = fs.readFileSync(move_path_config_path);
     const moveObj = parse_aji_path_config(fContent2, ["GOOD_FOLDER_ROOT", "NOT_GOOD_FOLDER_ROOT", "ADDITIONAL_FOLDER"]);
 
-    global.good_folder_root = moveObj[0];
-    global.not_good_folder_root= moveObj[1];
+    global.good_folder_root = moveObj[0][0];
+    global.not_good_folder_root= moveObj[1][0];
     global.additional_folder = moveObj[2]
 
     //less freedom for more noob-friendly
@@ -129,8 +129,10 @@ async function getHomePath() {
     let mm = now.getMonth() + 1;
     mm = (mm < 10) ? ("0" + (mm).toString()) : (mm).toString();
     const fd = "good_" + [y, mm, "01"].join("_");
-    global.good_folder = path.resolve(userConfig.good_folder, fd);
-    global.not_good_folder = path.resolve(global.not_good_folder_root, "_Compressed_" + y);
+    global.good_folder = path.resolve(global.good_folder_root, fd);
+
+    const fd2 = "_Compressed_" + y;
+    global.not_good_folder = path.resolve(global.not_good_folder_root, fd2);
 
     path_will_scan = path_will_scan.concat(global.good_folder, global.good_folder_root, global.not_good_folder);
     path_will_scan = await filterNonExist(path_will_scan);
