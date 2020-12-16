@@ -9,10 +9,14 @@ const { isImage, isMusic, isVideo } = util;
 const cache_folder_name = userConfig.cache_folder_name;
 const pfs = require('promise-fs');
 
-const rootPath = path.join(__dirname, "..", "..");
+const rootPath = process.cwd() // path.join(__dirname, "..", "..");
 const getRootPath = function () {
     return rootPath;
 }
+
+let a = process.cwd()
+
+console.log(rootPath, a);
 
 //for thumbnail url
 const fullPathToUrl = function (img) {
@@ -78,7 +82,7 @@ async function filterNonExist(pathes) {
 }
 
 async function getHomePath() {
-    const path_config_path = path.join(getRootPath(), "src", "path-config.ini");
+    const path_config_path = path.join(getRootPath(), "path-config.ini");
     //read text file 
     let pathes = fs.readFileSync(path_config_path).toString().split('\n');
     pathes = pathes

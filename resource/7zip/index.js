@@ -2,7 +2,7 @@ var resolve = require('path').resolve
 var bin = require('./package').bin
 
 module.exports = map_obj(bin, function(v){
-  return resolve(__dirname, v)
+  return resolve(process.cwd(), v)
 })
 
 function map_obj(obj, fn){

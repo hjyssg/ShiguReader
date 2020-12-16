@@ -61,7 +61,7 @@
 git clone https://github.com/hjyssg/ShiguReader
 
 # 手动修改用户文件路径设置
-# 用任意文本编辑器手动修改src/path-config.ini和src/config/user-config.js
+# 用任意文本编辑器手动修改path-config.ini和src/config/user-config.js
 # path-config.ini一定需要修改
 # user-config.js看情况
 

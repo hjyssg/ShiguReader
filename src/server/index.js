@@ -41,14 +41,14 @@ global.cachePath = cachePath;
 
 //set up user path
 
-const isProduction = process.argv.includes("--production");
+const isProduction = true// process.argv.includes("--production");
 
-// console.log("--------------------");
-// console.log("process.cwd()", process.cwd());
-// console.log("__filename", __filename);
-// console.log("__dirname", __dirname);
-// console.log("rootPath", rootPath);
-// console.log("----------------------");
+console.log("------path helper--------------");
+console.log("process.cwd()", process.cwd());
+console.log("__filename", __filename);
+console.log("__dirname", __dirname);
+console.log("rootPath", rootPath);
+console.log("----------------------");
 
 const logger = require("./logger");
 
@@ -872,11 +872,11 @@ app.use(ehentaiMetadata);
 if (isProduction) {
     const history = require('connect-history-api-fallback');
     app.use(history({
-        // verbose: true,
+        verbose: true
     }));
 
     app.get('/index.html', (req, res) => {
-        const as = path.resolve(__dirname, "..", "..", 'dist', 'index.html');
+        const as = path.resolve(process.cwd(), 'dist', 'index.html');
         res.sendFile(as);
     })
 }

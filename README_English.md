@@ -44,7 +44,7 @@ Read Comic/Play Music and Video on all platforms
 git clone https://github.com/hjyssg/ShiguReader
 
 ## change user config
-## modify src/path-config.ini  src/user-config.js accoding to your own comic files location
+## modify path-config.ini  src/user-config.js accoding to your own comic files location
 
 ## Windows default cmd is not working
 ## Please install Git and Git Bash  https://git-scm.com/
