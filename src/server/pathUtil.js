@@ -81,40 +81,58 @@ async function filterNonExist(pathes) {
     return pathes.filter(e => !!e);
 }
 
-function parse_aji_path_config(fileContent, sep1, sep2){
+function parse_aji_path_config(fileContent, sepArr){
     let pathes = fileContent.toString().split('\n');
     pathes = pathes
         .map(e => e.trim().replace(/\n|\r/g, ""))
         .filter(pp => { return pp && pp.length > 0 && !pp.startsWith("#") && !pp.startsWith(";"); });
-
-    //add one more
     pathes = _.uniq(pathes);
 
+    const indexArr = sepArr.map(sep =>  {
+       return pathes.findIndex(e => e.includes(sep));
+    })
 
-    let partOne = [], partTwo = [];
-
-    const index1 = pathes.findIndex(e => e.includes(sep1));
-    const index2 = pathes.findIndex(e => e.includes(sep2));
-
-    partOne = pathes.slice(index1+1, index2);
-    partTwo = pathes.slice(index2);
-
-    return {
-        partOne,
-        partTwo
+    const result = [];
+    for(let ii = 0; ii < indexArr.length; ii++){
+        const curIndex = indexArr[ii];
+        const nextIndex = indexArr[ii+1];
+        let part;
+        if(nextIndex){
+            part = pathes.slice(curIndex+1, nextIndex)
+        }else {
+            part = pathes.slice(curIndex+1);
+        }
+        result.push(part);
     }
 
-
-
+    return result;
 }
 
 async function getHomePath() {
     const path_config_path = path.join(getRootPath(), "path-config.ini");
+    const fContent1 = fs.readFileSync(path_config_path);
+    const pathObj = parse_aji_path_config(fContent1, ["SCAN_AND_MONITOR_CHANGE", "ONLY_SCAN_ONCE"]);
+    let path_will_scan = pathObj[0].concat(pathObj[1]);
+    let path_not_watch = pathObj[1];
 
-    const { partOne, partTwo} = parse_aji_path_config(fs.readFileSync(path_config_path), "SCAN_AND_MONITOR_CHANGE", "ONLY_SCAN_ONCE");
-    let path_will_scan = partOne.concat(partTwo);
-    let path_not_watch = partOne;
-    path_will_scan = path_will_scan.concat(userConfig.good_folder, userConfig.good_folder_root, userConfig.not_good_folder);
+    const move_path_config_path = path.join(getRootPath(), "move-path-config.ini");
+    const fContent2 = fs.readFileSync(move_path_config_path);
+    const moveObj = parse_aji_path_config(fContent2, ["GOOD_FOLDER_ROOT", "NOT_GOOD_FOLDER_ROOT", "ADDITIONAL_FOLDER"]);
+
+    global.good_folder_root = moveObj[0];
+    global.not_good_folder_root= moveObj[1];
+    global.additional_folder = moveObj[2]
+
+    //less freedom for more noob-friendly
+    const now = new Date();
+    const y = now.getFullYear();
+    let mm = now.getMonth() + 1;
+    mm = (mm < 10) ? ("0" + (mm).toString()) : (mm).toString();
+    const fd = "good_" + [y, mm, "01"].join("_");
+    global.good_folder = path.resolve(userConfig.good_folder, fd);
+    global.not_good_folder = path.resolve(global.not_good_folder_root, "_Compressed_" + y);
+
+    path_will_scan = path_will_scan.concat(global.good_folder, global.good_folder_root, global.not_good_folder);
     path_will_scan = await filterNonExist(path_will_scan);
 
     //if user options, choose test samples

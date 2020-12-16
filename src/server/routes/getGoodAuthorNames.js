@@ -16,7 +16,7 @@ function getGoodAndOtherSet() {
     let otherSet = {};
     const sep = serverUtil.sep;
 
-    const reg = escapeRegExp(userConfig.good_folder_root);
+    const reg = escapeRegExp(global.good_folder_root);
 
     getFileCollection()
         .chain()

@@ -125,20 +125,20 @@ async function init() {
         //do nothing since this is trivial
     }
 
+    let { home_pathes, path_will_scan, path_will_watch } = await getHomePath();
+
     //统一mkdir
     await mkdir(thumbnailFolderPath);
     await mkdir(cachePath);
     await mkdir(pathUtil.getImgConverterCachePath());
     await mkdir(pathUtil.getZipOutputCachePath());
 
-    const mkdirArr = userConfig.additional_folder.concat([userConfig.good_folder, userConfig.not_good_folder_root]);
+    const mkdirArr = [].concat([global.good_folder, global.not_good_folder_root, global.additional_folder]);
     for (let ii = 0; ii < mkdirArr.length; ii++) {
         const fp = mkdirArr[ii];
         await mkdir(fp, "quiet");
     }
 
-
-    let { home_pathes, path_will_scan, path_will_watch } = await getHomePath();
     global.path_will_scan = path_will_scan;
 
     const cleanCache = require("../tools/cleanCache");
@@ -807,7 +807,7 @@ app.post('/api/getGeneralInfo', async (req, res) => {
         file_path_sep: path.sep
     };
 
-    let folderArr = [userConfig.good_folder, userConfig.not_good_folder].concat(userConfig.additional_folder);
+    let folderArr = [global.good_folder, global.not_good_folder].concat(global.additional_folder);
 
     //dulicate code as /api/homePagePath
     folderArr = folderArr.filter(e => {
@@ -818,8 +818,8 @@ app.post('/api/getGeneralInfo', async (req, res) => {
         }
     })
 
-    result.good_folder = folderArr.includes(userConfig.good_folder) ? userConfig.good_folder : "";
-    result.not_good_folder = folderArr.includes(userConfig.not_good_folder) ? userConfig.not_good_folder : "";
+    result.good_folder = folderArr.includes(global.good_folder) ? global.good_folder : "";
+    result.not_good_folder = folderArr.includes(global.not_good_folder) ? global.not_good_folder : "";
     result.additional_folder = folderArr;
 
     res.send(result)
