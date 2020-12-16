@@ -81,10 +81,8 @@ async function filterNonExist(pathes) {
     return pathes.filter(e => !!e);
 }
 
-async function getHomePath() {
-    const path_config_path = path.join(getRootPath(), "path-config.ini");
-    //read text file 
-    let pathes = fs.readFileSync(path_config_path).toString().split('\n');
+function parse_aji_path_config(fileContent, sep1, sep2){
+    let pathes = fileContent.toString().split('\n');
     pathes = pathes
         .map(e => e.trim().replace(/\n|\r/g, ""))
         .filter(pp => { return pp && pp.length > 0 && !pp.startsWith("#") && !pp.startsWith(";"); });
@@ -92,22 +90,30 @@ async function getHomePath() {
     //add one more
     pathes = _.uniq(pathes);
 
-    let path_will_scan = [];
-    let path_not_watch = [];
-    let onlyScan = false;
-    pathes.forEach(line => {
-        if (line.includes("ONLY_SCAN_ONCE")) {
-            onlyScan = true;
-        } else if (line.includes("SCAN_AND_MONITOR_CHANGE")) {
-            onlyScan = false;
-        } else {
-            path_will_scan.push(line);
-            if (onlyScan) {
-                path_not_watch.push(line);
-            }
-        }
-    })
 
+    let partOne = [], partTwo = [];
+
+    const index1 = pathes.findIndex(e => e.includes(sep1));
+    const index2 = pathes.findIndex(e => e.includes(sep2));
+
+    partOne = pathes.slice(index1+1, index2);
+    partTwo = pathes.slice(index2);
+
+    return {
+        partOne,
+        partTwo
+    }
+
+
+
+}
+
+async function getHomePath() {
+    const path_config_path = path.join(getRootPath(), "path-config.ini");
+
+    const { partOne, partTwo} = parse_aji_path_config(fs.readFileSync(path_config_path), "SCAN_AND_MONITOR_CHANGE", "ONLY_SCAN_ONCE");
+    let path_will_scan = partOne.concat(partTwo);
+    let path_not_watch = partOne;
     path_will_scan = path_will_scan.concat(userConfig.good_folder, userConfig.good_folder_root, userConfig.not_good_folder);
     path_will_scan = await filterNonExist(path_will_scan);
 

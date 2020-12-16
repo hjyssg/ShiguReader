@@ -195,12 +195,13 @@ async function init() {
     //todo: chokidar will slow the server down very much when it init async
     setUpFileWatch(path_will_watch);
 
-    try {
-        const machineLearning = require("./models/machineLearning");
-        machineLearning.init();
-    } catch (e) {
-        console.error(e);
-    }
+    // useless
+    // try {
+    //     const machineLearning = require("./models/machineLearning");
+    //     machineLearning.init();
+    // } catch (e) {
+    //     console.error(e);
+    // }
 
     initMecab();
 

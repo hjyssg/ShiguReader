@@ -173,7 +173,7 @@ router.post('/api/lsDir', async (req, res) => {
         thumbnails: getThumbnails(files),
         dirThumbnails,
         zipInfo: getZipInfo(files),
-        guessIfUserLike: serverUtil.common.guessIfUserLike(files)
+        // guessIfUserLike: serverUtil.common.guessIfUserLike(files)
     };
     res.send(result);
 });
