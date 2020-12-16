@@ -14,7 +14,7 @@ https://github.com/vercel/pkg/issues/765
 
 e.g fetched-v14.4.0-win-x64
 
-pkg src/server/index.js --targets win-x64
+pkg src/server/index.js --targets win-x64  --output ShiguReader.exe
 
 测试后端服务器
 curl -X POST http://localhost:8080/api/homePagePath
@@ -35,7 +35,12 @@ curl -X POST http://localhost:8080/api/homePagePath
 7zip莫名其妙要移动最上层  
 改F:\ShiguReader\resource\7zip\index.js 
 
-打开onebook会显示404？
+打开onebook会显示404 -> 莫名其妙又没事了
+
+修改exe的icon
+    http://www.angusj.com/resourcehacker/
+    -》改完exe就打不开了
+
 
 
 
