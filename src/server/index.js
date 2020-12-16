@@ -806,7 +806,8 @@ app.post('/api/getGeneralInfo', async (req, res) => {
 
     const result = {
         server_os: os,
-        file_path_sep: path.sep
+        file_path_sep: path.sep,
+        has_magick: global._has_magick_
     };
 
     let folderArr = [global.good_folder, global.not_good_folder].concat(global.additional_folder);
