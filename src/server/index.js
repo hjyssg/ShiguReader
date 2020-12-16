@@ -41,9 +41,11 @@ global.cachePath = cachePath;
 
 //set up user path
 
-const isProduction = true// process.argv.includes("--production");
+const isDev = process.argv.includes("--dev");
+const isProduction =!isDev;
 
 console.log("------path helper--------------");
+console.log("isProduction", isProduction)
 console.log("process.cwd()", process.cwd());
 console.log("__filename", __filename);
 console.log("__dirname", __dirname);

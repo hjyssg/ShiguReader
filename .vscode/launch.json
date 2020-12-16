@@ -25,7 +25,10 @@
             "type": "node",
             "request": "launch",
             "name": "server",
-            "program": "${workspaceFolder}\\src\\server\\index.js"
+            "program": "${workspaceFolder}\\src\\server\\index.js",
+            "args": [
+                "--dev"
+            ]
         }
     ]
 }

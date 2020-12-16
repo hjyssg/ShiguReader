@@ -23,6 +23,7 @@ curl -X POST http://localhost:8080/api/homePagePath
 
 需要flag
     --production 或者代码build时候就是build
+    -》改成开发时候用--dev 平时不用
 
 
 手动移动asset文件 这样可以避免pkg path的坑
@@ -31,7 +32,8 @@ curl -X POST http://localhost:8080/api/homePagePath
     public
     resource
 
-7zip莫名其妙要移动最上层  先不管
+7zip莫名其妙要移动最上层  
+改F:\ShiguReader\resource\7zip\index.js 
 
 打开onebook会显示404？
 
