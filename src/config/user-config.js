@@ -30,11 +30,6 @@ config.keep_clip = false;
 //wether to keep zoom scale
 config.keep_zoom_scale = false;
 
-//-------------------------------experimental feature  实验性功能
-//If you use Everything
-//you can enable its http server, ShiguReader will use its data and increase performance
-config.everything_http_server_port = ""
-
 //----------------------------image compress parameter-------------------------------------------------
 
 //in MB, only for website UI display

@@ -172,9 +172,9 @@ async function init() {
         filter: shouldWatchForNormal,
         doLog: true,
         estimated_total,
-        port: userConfig.everything_http_server_port
+        port: global.etc_config.everything_http_server_port
     };
-    let results = userConfig.everything_http_server_port &&
+    let results = global.etc_config.everything_http_server_port &&
         isWindows() &&
         await everything_connector.getAllFileinPath(path_will_scan, scan_otption);
     if (!results) {
