@@ -244,7 +244,8 @@ export default class AdminPage extends Component {
     }
 
     renderRemoteShutDown() {
-        if (clientUtil.isLocalHost() || !clientUtil.isAuthorized()) {
+        const { etc_config } = this.context;
+        if (clientUtil.isLocalHost() || !clientUtil.isAuthorized(etc_config)) {
             return;
         }
 
@@ -294,9 +295,7 @@ export default class AdminPage extends Component {
                 </div>
 
                 {this.renderHistory()}
-
                 {this.renderMinifyQueue()}
-
                 {this.renderRemoteShutDown()}
 
                 <div className="author-link">
