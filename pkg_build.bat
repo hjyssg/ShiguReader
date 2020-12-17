@@ -1,5 +1,5 @@
-npm run build
-pkg src/server/index.js --targets win-x64  --output ShiguReader.exe
+npm run build && pkg src/server/index.js --targets win-x64  --output ShiguReader.exe
+
 
 cd ..
 mkdir ShiguReader_Portable

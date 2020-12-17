@@ -49,6 +49,10 @@
     修改ini文件，然后点击ShiguReader.exe
     其他系统或者开发者需要参考[Readme_Env_Setup](https://github.com/hjyssg/ShiguReader/blob/dev/Readme_Env_Setup.md)
 
+### 第三方依赖
+    不安装也没事。但都强烈建议安装
+    https://imagemagick.org image magick 用来压缩图片的
+
 
 ##### 注意事项
 如果部分文件名带汉字日语假名的图片加载不出来，你可能需要如下语言设置。

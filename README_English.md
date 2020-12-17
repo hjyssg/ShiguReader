@@ -37,6 +37,10 @@ Read Comic/Play Music and Video on all platforms
     Modify ini，then click ShiguReader.exe
     For *nix people and developer, please refer to [Readme_Env_Setup](https://github.com/hjyssg/ShiguReader/blob/dev/Readme_Env_Setup.md)
 
+### Third Party Dependency
+    It is nice to have, but fine without it
+    install imagemagick  from https://imagemagick.org
+
 
 ##### Safety
 ShiguReader is not safe when being accessed from the public IP. The server is not prepared for any cyber attack.
