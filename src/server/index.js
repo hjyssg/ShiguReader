@@ -821,24 +821,13 @@ app.post('/api/getGeneralInfo', async (req, res) => {
         server_os: os,
         file_path_sep: path.sep,
         has_magick: global._has_magick_,
-        etc_config: global.etc_config
+
+        etc_config: global.etc_config,
+
+        good_folder: global.good_folder,
+        not_good_folder: global.not_good_folder,
+        additional_folder: global.additional_folder
     };
-
-    let folderArr = [global.good_folder, global.not_good_folder].concat(global.additional_folder);
-
-    //dulicate code as /api/homePagePath
-    folderArr = folderArr.filter(e => {
-        if (e) {
-            const reg = escapeRegExp(e);
-            //check if pathes really exist by checking there is file in the folder
-            return !!getFileCollection().findOne({ 'filePath': { '$regex': reg }, isDisplayableInExplorer: true });
-        }
-    })
-
-    result.good_folder = folderArr.includes(global.good_folder) ? global.good_folder : "";
-    result.not_good_folder = folderArr.includes(global.not_good_folder) ? global.not_good_folder : "";
-    result.additional_folder = folderArr;
-
     res.send(result)
 });
 
