@@ -16,7 +16,7 @@ function getGoodAndOtherSet() {
     let otherSet = {};
     const sep = serverUtil.sep;
 
-    const reg = escapeRegExp(userConfig.good_folder_root);
+    const reg = global.good_folder_root && escapeRegExp(global.good_folder_root);
 
     getFileCollection()
         .chain()
@@ -27,7 +27,7 @@ function getGoodAndOtherSet() {
             const authors = obj.authors.split(sep);
             const name = authors[0];
             if (name) {
-                if (obj.filePath.match(reg)) {
+                if (reg && obj.filePath.match(reg)) {
                     set[name] = set[name] ? set[name] + 1 : 1;
                 } else {
                     otherSet[name] = otherSet[name] ? otherSet[name] + 1 : 1;

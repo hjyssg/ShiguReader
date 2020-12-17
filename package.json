@@ -4,19 +4,12 @@
   "description": "All-in-one solution for local doujin/anime/music file",
   "repository": "hjyssg/ShiguReader",
   "main": "src/server/index.js",
-  "bin": "src/server/index.js",
-  "pkg": {
-    "assets": [
-      "dist/**/*",
-      "resource/*"
-    ]
-  },
   "scripts": {
     "build": "webpack --mode production",
-    "start-production": "node src/server/index.js --production",
-    "start": "npm run build && node src/server/index.js --production",
+    "start-production": "node src/server/index.js",
+    "start": "npm run build && node src/server/index.js",
     "client": "webpack-dev-server --mode development --devtool inline-source-map --hot",
-    "server": "nodemon src/server/index.js",
+    "server": "nodemon src/server/index.js --dev",
     "dev": "concurrently \"npm run server\" \"npm run client\"",
     "flow": "flow",
     "test": "mocha .\\src\\test",
@@ -37,6 +30,7 @@
     "execa": "^1.0.0",
     "express": "^4.16.3",
     "filesize": "^4.1.2",
+    "ini": "^2.0.0",
     "internal-ip": "^6.0.0",
     "is-linux": "^1.0.1",
     "is-osx": "^1.0.2",
@@ -46,7 +40,6 @@
     "jsonfile": "^6.1.0",
     "lokijs": "^1.5.8",
     "mecab-async": "^0.1.2",
-    "ml-naivebayes": "^4.0.0",
     "p-limit": "^2.1.0",
     "promise-fs": "^2.1.1",
     "prop-types": "^15.6.2",

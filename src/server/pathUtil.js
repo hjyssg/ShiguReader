@@ -4,12 +4,14 @@ const util = global.requireUtil();
 const fs = require('fs');
 const isWindows = require('is-windows');
 const _ = require('underscore');
+const ini = require('ini');
+
 
 const { isImage, isMusic, isVideo } = util;
 const cache_folder_name = userConfig.cache_folder_name;
 const pfs = require('promise-fs');
 
-const rootPath = path.join(__dirname, "..", "..");
+const rootPath = process.cwd() // path.join(__dirname, "..", "..");
 const getRootPath = function () {
     return rootPath;
 }
@@ -77,34 +79,63 @@ async function filterNonExist(pathes) {
     return pathes.filter(e => !!e);
 }
 
+// function parse_aji_path_config(fileContent, sepArr){
+//     let pathes = fileContent.toString().split('\n');
+//     pathes = pathes
+//         .map(e => e.trim().replace(/\n|\r/g, ""))
+//         .filter(pp => { return pp && pp.length > 0 && !pp.startsWith("#") && !pp.startsWith(";"); });
+//     pathes = _.uniq(pathes);
+
+//     const indexArr = sepArr.map(sep =>  {
+//        return pathes.findIndex(e => e.includes(sep));
+//     })
+
+//     const result = [];
+//     for(let ii = 0; ii < indexArr.length; ii++){
+//         const curIndex = indexArr[ii];
+//         const nextIndex = indexArr[ii+1];
+//         let part;
+//         if(nextIndex){
+//             part = pathes.slice(curIndex+1, nextIndex)
+//         }else {
+//             part = pathes.slice(curIndex+1);
+//         }
+//         result.push(part);
+//     }
+
+//     return result;
+// }
+
 async function getHomePath() {
-    const path_config_path = path.join(getRootPath(), "src", "path-config.ini");
-    //read text file 
-    let pathes = fs.readFileSync(path_config_path).toString().split('\n');
-    pathes = pathes
-        .map(e => e.trim().replace(/\n|\r/g, ""))
-        .filter(pp => { return pp && pp.length > 0 && !pp.startsWith("#") && !pp.startsWith(";"); });
+    const path_config_path = path.join(getRootPath(), "path-config.ini");
+    const fContent1 = fs.readFileSync(path_config_path).toString();
 
-    //add one more
-    pathes = _.uniq(pathes);
+    const path_config = ini.parse(fContent1);
+    const {scan_and_watch_path, only_scan_path} = path_config
+    let path_will_scan = [].concat(scan_and_watch_path, only_scan_path);
 
-    let path_will_scan = [];
-    let path_not_watch = [];
-    let onlyScan = false;
-    pathes.forEach(line => {
-        if (line.includes("ONLY_SCAN_ONCE")) {
-            onlyScan = true;
-        } else if (line.includes("SCAN_AND_MONITOR_CHANGE")) {
-            onlyScan = false;
-        } else {
-            path_will_scan.push(line);
-            if (onlyScan) {
-                path_not_watch.push(line);
-            }
-        }
-    })
+    const move_path_config_path = path.join(getRootPath(), "move-path-config.ini");
+    const fContent2 = fs.readFileSync(move_path_config_path).toString();
+    const moveObj = ini.parse(fContent2);
+    global.good_folder_root = moveObj.good_folder_root;
+    global.not_good_folder_root= moveObj.not_good_folder_root;
+    global.additional_folder = moveObj.additional_folder;
 
-    path_will_scan = path_will_scan.concat(userConfig.good_folder, userConfig.good_folder_root, userConfig.not_good_folder);
+    //less freedom for more noob-friendly
+
+    //add good folder
+    const now = new Date();
+    const y = now.getFullYear();
+    let mm = now.getMonth() + 1;
+    mm = (mm < 10) ? ("0" + (mm).toString()) : (mm).toString();
+    const fd = "good_" + [y, mm, "01"].join("_");
+    global.good_folder = global.good_folder_root && path.resolve(global.good_folder_root, fd);
+
+    //add not good folder
+    const fd2 = "not_good_" + y;
+    global.not_good_folder = global.not_good_folder_root && path.resolve(global.not_good_folder_root, fd2);
+
+    path_will_scan = path_will_scan.concat(global.good_folder, global.good_folder_root, global.not_good_folder);
     path_will_scan = await filterNonExist(path_will_scan);
 
     //if user options, choose test samples
@@ -132,7 +163,7 @@ async function getHomePath() {
     path_will_scan = await filterNonExist(path_will_scan);
 
     home_pathes = path_will_scan;
-    const path_will_watch = path_will_scan.filter(e => !path_not_watch.includes(e));
+    const path_will_watch = path_will_scan.filter(e => !only_scan_path.includes(e));
 
     return {
         home_pathes,

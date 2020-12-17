@@ -245,6 +245,11 @@ export default class FileChangeToolbar extends Component {
     }
 
     renderMinifyZipButton() {
+        const { has_magick } = this.context;
+        if(!has_magick){
+            return;
+        }
+
         const { file, className, header, hasMusic, bigFont } = this.props;
         const showMinifyZip = util.isCompress(file);
         if (showMinifyZip && !this.isInMinifiedFolder()) {
@@ -365,7 +370,9 @@ export default class FileChangeToolbar extends Component {
             bigFont: bigFont || clientUtil.isMobile(),
         });
 
-        if (!clientUtil.isAuthorized()) {
+        const { etc_config } = this.context;
+
+        if (!clientUtil.isAuthorized(etc_config)) {
             return <div className={cn} > {this.renderDownloadLink()}</div>;
         }
 

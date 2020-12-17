@@ -14,7 +14,7 @@ const { isExist } = pathUtil;
 
 let sevenZip;
 if (isWindows()) {
-    const sevenZipPath = path.join(process.cwd(), "resource/7zip");
+    const sevenZipPath = path.join(pathUtil.getRootPath(), "resource", "7zip");
     sevenZip = require(sevenZipPath)['7z'];
     console.log("sevenZipPath", sevenZipPath);
 } else {

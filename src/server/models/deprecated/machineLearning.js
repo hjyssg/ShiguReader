@@ -178,6 +178,7 @@ function init(){
     const trainingSet = inputSet.slice(0, sep);
     const trainingOutput = outputSet.slice(0, sep);
 
+    //    "ml-naivebayes": "^4.0.0",
     const by = require('ml-naivebayes');
     bayes = new by.GaussianNB();
     bayes.train(trainingSet, trainingOutput);

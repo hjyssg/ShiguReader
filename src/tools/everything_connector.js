@@ -1,12 +1,13 @@
 
 const path = require('path');
-var rp = require('request-promise');
 const _ = require('underscore');
 
 
 // https://www.voidtools.com/forum/viewtopic.php?f=2&t=8703&p=29464&hilit=http+path#p29464
 module.exports.getAllFileinPath = async function (fpArr, config) {
     try {
+        const rp = require('request-promise');
+
         const result = {};
         result.infos = {};
         result.pathes = [];

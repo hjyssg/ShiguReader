@@ -6,6 +6,8 @@ const dateFormat = require('dateformat');
 const _ = require('underscore');
 const isWindows = require('is-windows');
 const qrcode = require('qrcode-terminal');
+const fs = require('fs');
+const ini = require('ini');
 
 global.requireUtil = function (e) {
     return require("../common/util")
@@ -41,14 +43,16 @@ global.cachePath = cachePath;
 
 //set up user path
 
-const isProduction = process.argv.includes("--production");
+const isDev = process.argv.includes("--dev");
+const isProduction =!isDev;
 
-// console.log("--------------------");
-// console.log("process.cwd()", process.cwd());
-// console.log("__filename", __filename);
-// console.log("__dirname", __dirname);
-// console.log("rootPath", rootPath);
-// console.log("----------------------");
+console.log("------path helper--------------");
+console.log("isProduction", isProduction)
+console.log("process.cwd()", process.cwd());
+console.log("__filename", __filename);
+console.log("__dirname", __dirname);
+console.log("rootPath", rootPath);
+console.log("----------------------");
 
 const logger = require("./logger");
 
@@ -104,6 +108,17 @@ async function mkdir(path, quiet) {
     }
 }
 
+const etc_config = {};
+
+//read etc config
+try{
+    let fcontent = fs.readFileSync(path.resolve(rootPath, "etc-config.ini"), 'utf-8');
+    etc_config = ini.parse(fcontent);
+}catch(e){
+    //nothing
+    console.warn(e);
+}
+
 async function init() {
     if (isWindows()) {
         const { stdout, stderr } = await execa("chcp");
@@ -125,20 +140,20 @@ async function init() {
         //do nothing since this is trivial
     }
 
+    let { home_pathes, path_will_scan, path_will_watch } = await getHomePath();
+
     //统一mkdir
     await mkdir(thumbnailFolderPath);
     await mkdir(cachePath);
     await mkdir(pathUtil.getImgConverterCachePath());
     await mkdir(pathUtil.getZipOutputCachePath());
 
-    const mkdirArr = userConfig.additional_folder.concat([userConfig.good_folder, userConfig.not_good_folder_root]);
+    const mkdirArr = [].concat([global.good_folder, global.not_good_folder_root, global.additional_folder]);
     for (let ii = 0; ii < mkdirArr.length; ii++) {
         const fp = mkdirArr[ii];
         await mkdir(fp, "quiet");
     }
 
-
-    let { home_pathes, path_will_scan, path_will_watch } = await getHomePath();
     global.path_will_scan = path_will_scan;
 
     const cleanCache = require("../tools/cleanCache");
@@ -157,9 +172,9 @@ async function init() {
         filter: shouldWatchForNormal,
         doLog: true,
         estimated_total,
-        port: userConfig.everything_http_server_port
+        port: etc_config.everything_http_server_port
     };
-    let results = userConfig.everything_http_server_port &&
+    let results = etc_config.everything_http_server_port &&
         isWindows() &&
         await everything_connector.getAllFileinPath(path_will_scan, scan_otption);
     if (!results) {
@@ -195,12 +210,13 @@ async function init() {
     //todo: chokidar will slow the server down very much when it init async
     setUpFileWatch(path_will_watch);
 
-    try {
-        const machineLearning = require("./models/machineLearning");
-        machineLearning.init();
-    } catch (e) {
-        console.error(e);
-    }
+    // useless
+    // try {
+    //     const machineLearning = require("./models/machineLearning");
+    //     machineLearning.init();
+    // } catch (e) {
+    //     console.error(e);
+    // }
 
     initMecab();
 
@@ -803,24 +819,15 @@ app.post('/api/getGeneralInfo', async (req, res) => {
 
     const result = {
         server_os: os,
-        file_path_sep: path.sep
+        file_path_sep: path.sep,
+        has_magick: global._has_magick_,
+
+        etc_config: etc_config,
+
+        good_folder: global.good_folder,
+        not_good_folder: global.not_good_folder,
+        additional_folder: global.additional_folder
     };
-
-    let folderArr = [userConfig.good_folder, userConfig.not_good_folder].concat(userConfig.additional_folder);
-
-    //dulicate code as /api/homePagePath
-    folderArr = folderArr.filter(e => {
-        if (e) {
-            const reg = escapeRegExp(e);
-            //check if pathes really exist by checking there is file in the folder
-            return !!getFileCollection().findOne({ 'filePath': { '$regex': reg }, isDisplayableInExplorer: true });
-        }
-    })
-
-    result.good_folder = folderArr.includes(userConfig.good_folder) ? userConfig.good_folder : "";
-    result.not_good_folder = folderArr.includes(userConfig.not_good_folder) ? userConfig.not_good_folder : "";
-    result.additional_folder = folderArr;
-
     res.send(result)
 });
 
@@ -872,11 +879,11 @@ app.use(ehentaiMetadata);
 if (isProduction) {
     const history = require('connect-history-api-fallback');
     app.use(history({
-        // verbose: true,
+        verbose: true
     }));
 
     app.get('/index.html', (req, res) => {
-        const as = path.resolve(__dirname, "..", "..", 'dist', 'index.html');
+        const as = path.resolve(rootPath, 'dist', 'index.html');
         res.sendFile(as);
     })
 }

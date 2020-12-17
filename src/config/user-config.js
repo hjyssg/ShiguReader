@@ -2,49 +2,6 @@
 
 const config = {};
 
-/** 
- * OPTIONAL where to move goods files  
- * 可选 手动漫画整理的时候，你想把喜欢的漫画移动到的位置
- */
-const now = new Date();
-const y = now.getFullYear();
-let mm = now.getMonth() + 1;
-mm = (mm < 10) ? ("0" + (mm).toString()) : (mm).toString();
-const fd = "good_" + [y, mm, "01"].join("_");
-config.good_folder = "D:\\_Happy_Lesson\\_Going_to_sort\\_good\\" + fd;
-
-
-/**
- * OPTIONAL where to move file
- * 可选 手动漫画整理的时候，你想把不怎么喜欢的漫画移动到的位置
- */
-config.not_good_folder = "D:\\_Happy_Lesson\\_Going_to_sort\\_not_good\\_Compressed_" + y;
-
-/** 
- * OPTIONAL all good folders  
- * 可选 喜欢的漫画的根目录，这个文件夹会用来判断你的喜好
- */
-config.good_folder_root = "D:\\_Happy_Lesson\\_Going_to_sort\\_good"
-
-/** 
- * OPTIONAL all good folders  
- * 可选 不怎么喜欢的漫画的根目录，这个文件夹会用来判断你的喜好
- */
-config.not_good_folder_root = "D:\\_Happy_Lesson\\_Going_to_sort\\_not_good"
-
-/**
- * OPTIONAL where to move file
- * 可选 手动漫画整理的时候，你可以移动的其他位置
- */
-config.additional_folder = [
-    "D:\\_Happy_Lesson\\_Going_to_sort\\non-h",
-    "D:\\_AV\\_Picture",
-    "D:\_AV",
-    "E:\\_Temp_Music",
-    "E:\\_temp_comic",
-];
-
-
 //----------------- below section used by developer-----------------------------
 
 config.workspace_name = "workspace";
@@ -72,17 +29,6 @@ config.keep_clip = false;
 //漫画阅读中调整图片高宽比例以后，翻页是否还要保存
 //wether to keep zoom scale
 config.keep_zoom_scale = false;
-
-//非localhost的机器想移动删除文件，需要在admin输出密码才可以获得权限
-//并不是高明的安全机制
-//注：Shigureader设计实现，只考虑在LAN情况下的性能和安全性。
-//Naive password when access remotely
-config.file_change_password = "2020";
-
-//-------------------------------experimental feature  实验性功能
-//If you use Everything
-//you can enable its http server, ShiguReader will use its data and increase performance
-config.everything_http_server_port = ""
 
 //----------------------------image compress parameter-------------------------------------------------
 
@@ -125,7 +71,6 @@ config.img_reduce_resolution_dimension = "2800x2800";
 //但可能用很多内存
 config.view_img_folder = true;
 
-
 //global password
 //when set, user need to enter password to use ShiguReader
 //全局密码，设置以后用户必须输入密码才能打开网站
@@ -133,7 +78,6 @@ config.home_password = ""
 
 //do not display a zip if it has no image files or music files
 config.filter_empty_zip = true;
-
 
 //------------------------------------------------------------------
 module.exports = config;
