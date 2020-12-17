@@ -108,9 +108,9 @@ async function mkdir(path, quiet) {
     }
 }
 
-const etc_config = {};
 
 //read etc config
+let etc_config = {};
 try{
     let fcontent = fs.readFileSync(path.resolve(rootPath, "etc-config.ini"), 'utf-8');
     etc_config = ini.parse(fcontent);
