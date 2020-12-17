@@ -6,6 +6,8 @@ const dateFormat = require('dateformat');
 const _ = require('underscore');
 const isWindows = require('is-windows');
 const qrcode = require('qrcode-terminal');
+const fs = require('fs');
+const ini = require('ini');
 
 global.requireUtil = function (e) {
     return require("../common/util")
@@ -104,6 +106,17 @@ async function mkdir(path, quiet) {
             }
         }
     }
+}
+
+global.etc_config = {};
+
+//read etc config
+try{
+    let fcontent = fs.readFileSync(path.resolve(rootPath, "etc-config.ini"), 'utf-8');
+    global.etc_config = ini.parse(fcontent);
+}catch(e){
+    //nothing
+    console.warn(e);
 }
 
 async function init() {
@@ -807,7 +820,8 @@ app.post('/api/getGeneralInfo', async (req, res) => {
     const result = {
         server_os: os,
         file_path_sep: path.sep,
-        has_magick: global._has_magick_
+        has_magick: global._has_magick_,
+        etc_config: global.etc_config
     };
 
     let folderArr = [global.good_folder, global.not_good_folder].concat(global.additional_folder);

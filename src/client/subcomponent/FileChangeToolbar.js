@@ -370,7 +370,9 @@ export default class FileChangeToolbar extends Component {
             bigFont: bigFont || clientUtil.isMobile(),
         });
 
-        if (!clientUtil.isAuthorized()) {
+        const { etc_config } = this.context;
+
+        if (!clientUtil.isAuthorized(etc_config)) {
             return <div className={cn} > {this.renderDownloadLink()}</div>;
         }
 

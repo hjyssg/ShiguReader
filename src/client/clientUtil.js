@@ -94,14 +94,13 @@ module.exports.isLocalHost = function () {
     return location.hostname.includes("localhost");
 }
 
-module.exports.isAuthorized = function () {
+module.exports.isAuthorized = function (etc_config) {
     if (location.hostname.includes("localhost")) {
         return true;
     } else {
         const Cookie = require("js-cookie");
-        const userConfig = require('@config/user-config');
         const password = Cookie.get('password');
-        return userConfig.file_change_password === password;
+        return etc_config.remote_file_change_password === password;
     }
 }
 

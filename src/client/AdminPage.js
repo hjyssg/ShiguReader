@@ -12,6 +12,8 @@ const clientUtil = require("./clientUtil");
 const { getBaseName } = clientUtil;
 const dateFormat = require('dateformat');
 const AdminUtil = require("./AdminUtil");
+import { GlobalContext } from './globalContext'
+
 
 export default class AdminPage extends Component {
     constructor(prop) {
@@ -182,7 +184,8 @@ export default class AdminPage extends Component {
 
     renderPasswordInput() {
         let content;
-        if (clientUtil.isAuthorized()) {
+        const { etc_config } = this.context;
+        if (clientUtil.isAuthorized(etc_config)) {
             content = (<div className="admin-section-title"> You are authorized to move/delete files. </div>)
         } else {
             content = (<React.Fragment>
@@ -307,3 +310,5 @@ export default class AdminPage extends Component {
 AdminPage.propTypes = {
     res: PropTypes.object
 };
+
+AdminPage.contextType = GlobalContext;

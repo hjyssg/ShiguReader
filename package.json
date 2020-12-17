@@ -30,6 +30,7 @@
     "execa": "^1.0.0",
     "express": "^4.16.3",
     "filesize": "^4.1.2",
+    "ini": "^2.0.0",
     "internal-ip": "^6.0.0",
     "is-linux": "^1.0.1",
     "is-osx": "^1.0.2",
