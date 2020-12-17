@@ -6,9 +6,9 @@ mkdir ShiguReader_Portable
 
 mv ShiguReader/ShiguReader.exe ShiguReader_Portable 
 
-robocopy ShiguReader/dist ShiguReader_Portable/dist  /e
-robocopy ShiguReader/public ShiguReader_Portable/public /e
-robocopy ShiguReader/resource ShiguReader_Portable/resource /e
+robocopy ShiguReader/dist ShiguReader_Portable/dist  
+robocopy ShiguReader/public ShiguReader_Portable/public 
+robocopy ShiguReader/resource ShiguReader_Portable/resource 
 
 cp ShiguReader/path-config.ini ShiguReader_Portable 
 cp ShiguReader/etc-config.ini ShiguReader_Portable 
