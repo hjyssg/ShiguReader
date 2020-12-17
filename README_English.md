@@ -66,10 +66,10 @@ npm run dev
 
 | software      | must have | note                           |
 |---------------|-----------|--------------------------------|
-| Node.js       | yes       |                                |
-| image magick  | no        | nice to have                |
-| 7-Zip         | *         | Windows does not need to install. Must have for *nix    |
-| everything    | no        | nice to have for Windows    |
+| Node.js       | yes       | version 14 will be good        |
+| image magick  | no        | nice to have                   |
+| 7-Zip      |    *         | Windows does not need to install. Must have for *nix |
+| everything    | no        | nice to have    |
 | git bash      | *         | must have for Windows, no for *nix |
 | MeCab         | no        | nice to have |
 
