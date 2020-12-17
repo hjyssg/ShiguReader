@@ -108,12 +108,12 @@ async function mkdir(path, quiet) {
     }
 }
 
-global.etc_config = {};
+const etc_config = {};
 
 //read etc config
 try{
     let fcontent = fs.readFileSync(path.resolve(rootPath, "etc-config.ini"), 'utf-8');
-    global.etc_config = ini.parse(fcontent);
+    etc_config = ini.parse(fcontent);
 }catch(e){
     //nothing
     console.warn(e);
@@ -172,9 +172,9 @@ async function init() {
         filter: shouldWatchForNormal,
         doLog: true,
         estimated_total,
-        port: global.etc_config.everything_http_server_port
+        port: etc_config.everything_http_server_port
     };
-    let results = global.etc_config.everything_http_server_port &&
+    let results = etc_config.everything_http_server_port &&
         isWindows() &&
         await everything_connector.getAllFileinPath(path_will_scan, scan_otption);
     if (!results) {
@@ -822,7 +822,7 @@ app.post('/api/getGeneralInfo', async (req, res) => {
         file_path_sep: path.sep,
         has_magick: global._has_magick_,
 
-        etc_config: global.etc_config,
+        etc_config: etc_config,
 
         good_folder: global.good_folder,
         not_good_folder: global.not_good_folder,
@@ -883,7 +883,7 @@ if (isProduction) {
     }));
 
     app.get('/index.html', (req, res) => {
-        const as = path.resolve(process.cwd(), 'dist', 'index.html');
+        const as = path.resolve(rootPath, 'dist', 'index.html');
         res.sendFile(as);
     })
 }
