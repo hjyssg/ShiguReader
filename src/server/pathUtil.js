@@ -4,6 +4,8 @@ const util = global.requireUtil();
 const fs = require('fs');
 const isWindows = require('is-windows');
 const _ = require('underscore');
+const ini = require('ini');
+
 
 const { isImage, isMusic, isVideo } = util;
 const cache_folder_name = userConfig.cache_folder_name;
@@ -77,46 +79,47 @@ async function filterNonExist(pathes) {
     return pathes.filter(e => !!e);
 }
 
-function parse_aji_path_config(fileContent, sepArr){
-    let pathes = fileContent.toString().split('\n');
-    pathes = pathes
-        .map(e => e.trim().replace(/\n|\r/g, ""))
-        .filter(pp => { return pp && pp.length > 0 && !pp.startsWith("#") && !pp.startsWith(";"); });
-    pathes = _.uniq(pathes);
+// function parse_aji_path_config(fileContent, sepArr){
+//     let pathes = fileContent.toString().split('\n');
+//     pathes = pathes
+//         .map(e => e.trim().replace(/\n|\r/g, ""))
+//         .filter(pp => { return pp && pp.length > 0 && !pp.startsWith("#") && !pp.startsWith(";"); });
+//     pathes = _.uniq(pathes);
 
-    const indexArr = sepArr.map(sep =>  {
-       return pathes.findIndex(e => e.includes(sep));
-    })
+//     const indexArr = sepArr.map(sep =>  {
+//        return pathes.findIndex(e => e.includes(sep));
+//     })
 
-    const result = [];
-    for(let ii = 0; ii < indexArr.length; ii++){
-        const curIndex = indexArr[ii];
-        const nextIndex = indexArr[ii+1];
-        let part;
-        if(nextIndex){
-            part = pathes.slice(curIndex+1, nextIndex)
-        }else {
-            part = pathes.slice(curIndex+1);
-        }
-        result.push(part);
-    }
+//     const result = [];
+//     for(let ii = 0; ii < indexArr.length; ii++){
+//         const curIndex = indexArr[ii];
+//         const nextIndex = indexArr[ii+1];
+//         let part;
+//         if(nextIndex){
+//             part = pathes.slice(curIndex+1, nextIndex)
+//         }else {
+//             part = pathes.slice(curIndex+1);
+//         }
+//         result.push(part);
+//     }
 
-    return result;
-}
+//     return result;
+// }
 
 async function getHomePath() {
     const path_config_path = path.join(getRootPath(), "path-config.ini");
-    const fContent1 = fs.readFileSync(path_config_path);
-    const pathObj = parse_aji_path_config(fContent1, ["SCAN_AND_MONITOR_CHANGE", "ONLY_SCAN_ONCE"]);
-    let path_will_scan = pathObj[0].concat(pathObj[1]);
-    let path_not_watch = pathObj[1];
+    const fContent1 = fs.readFileSync(path_config_path).toString();
+
+    const path_config = ini.parse(fContent1);
+    const {scan_and_watch_path, only_scan_path} = path_config
+    let path_will_scan = [].concat(scan_and_watch_path, only_scan_path);
 
     const move_path_config_path = path.join(getRootPath(), "move-path-config.ini");
-    const fContent2 = fs.readFileSync(move_path_config_path);
-    const moveObj = parse_aji_path_config(fContent2, ["GOOD_FOLDER_ROOT", "NOT_GOOD_FOLDER_ROOT", "ADDITIONAL_FOLDER"]);
-    global.good_folder_root = moveObj[0][0];
-    global.not_good_folder_root= moveObj[1][0];
-    global.additional_folder = moveObj[2];
+    const fContent2 = fs.readFileSync(move_path_config_path).toString();
+    const moveObj = ini.parse(fContent2);
+    global.good_folder_root = moveObj.good_folder_root;
+    global.not_good_folder_root= moveObj.not_good_folder_root;
+    global.additional_folder = moveObj.additional_folder;
 
     //less freedom for more noob-friendly
 
@@ -160,7 +163,7 @@ async function getHomePath() {
     path_will_scan = await filterNonExist(path_will_scan);
 
     home_pathes = path_will_scan;
-    const path_will_watch = path_will_scan.filter(e => !path_not_watch.includes(e));
+    const path_will_watch = path_will_scan.filter(e => !only_scan_path.includes(e));
 
     return {
         home_pathes,
