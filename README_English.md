@@ -38,7 +38,7 @@ Read Comic/Play Music and Video on all platforms
     For *nix people and developer, please refer to [Readme_Env_Setup](https://github.com/hjyssg/ShiguReader/blob/dev/Readme_Env_Setup.md)
 
 ### Third Party Dependency
-    It is nice to have, but fine without it
+    It is nice to have, but not mandatory
     install imagemagick  from https://imagemagick.org
 
 
