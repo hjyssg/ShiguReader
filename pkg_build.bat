@@ -18,4 +18,7 @@ cp ShiguReader/move-path-config.ini ShiguReader_Portable
 cp ShiguReader/README.md ShiguReader_Portable 
 cp ShiguReader/README_English.md ShiguReader_Portable 
 
-
+一个exe
+两个readme
+三个ini
+三个folder
