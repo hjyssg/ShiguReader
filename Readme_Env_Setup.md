@@ -1,4 +1,4 @@
-##### Quick Start
+##### Dev Environment Setup
 
 ```bash
 # If you do not have Node.js installed, please go to https://nodejs.org/

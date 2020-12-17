@@ -35,8 +35,6 @@
 * 服务器端支持windows和*nix。
 * 客户端支持除IE和Edge的主流浏览器。比如电脑的Chrome和iPad的safari。不需要USB接线，手机不需要安装任何东西，任意浏览器直接可以阅读。
 * 直接浏览文件夹的图片
-* 压缩为exe格式
-
 
 ### 支持格式
 
@@ -45,13 +43,13 @@
 具体可以看src/util.js
 
 ### 使用
-    windows的话，直接下载压缩包解压。
-    修改ini文件，然后点击ShiguReader.exe
-    其他系统或者开发者需要参考[Readme_Env_Setup](https://github.com/hjyssg/ShiguReader/blob/dev/Readme_Env_Setup.md)
+windows的话，直接下载压缩包解压。
+修改ini文件，然后点击ShiguReader.exe
+其他系统或者开发者需要参考[Readme_Env_Setup](https://github.com/hjyssg/ShiguReader/blob/dev/Readme_Env_Setup.md)
 
 ### 第三方依赖
-    不安装也没事。但都强烈建议安装
-    https://imagemagick.org image magick 用来压缩图片的
+不安装也没事。但都强烈建议安装
+https://imagemagick.org image magick 用来压缩图片的
 
 
 ##### 注意事项

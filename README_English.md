@@ -29,18 +29,15 @@ Read Comic/Play Music and Video on all platforms
 * server runs on Windows/*nix
 * client runs on any modern browser(except IE)
 * browse image files in folders 
-* run as Exe
-
 
 ### 使用
-    For windows, downloaded the zip
-    Modify ini，then click ShiguReader.exe
-    For *nix people and developer, please refer to [Readme_Env_Setup](https://github.com/hjyssg/ShiguReader/blob/dev/Readme_Env_Setup.md)
+For windows, downloaded the zip
+Modify ini，then click ShiguReader.exe
+For *nix people and developer, please refer to [Readme_Env_Setup](https://github.com/hjyssg/ShiguReader/blob/dev/Readme_Env_Setup.md)
 
 ### Third Party Dependency
-    It is nice to have, but not mandatory
-    install imagemagick  from https://imagemagick.org
-
+It is nice to have, but not mandatory
+install imagemagick  from https://imagemagick.org
 
 ##### Safety
 ShiguReader is not safe when being accessed from the public IP. The server is not prepared for any cyber attack.
