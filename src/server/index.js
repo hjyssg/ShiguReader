@@ -220,6 +220,9 @@ async function init() {
 
     initMecab();
 
+    const realPhotoDetect = require("./RealPhotoDetect");
+    await realPhotoDetect();
+
     const port = isProduction ? http_port : dev_express_port;
     const server = app.listen(port, async () => {
         console.log("----------------------------------------------------------------");
