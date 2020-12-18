@@ -142,7 +142,9 @@ async function init() {
 
     const realPhotoDetect = require("./RealPhotoDetect");
     await realPhotoDetect.init();
-    await realPhotoDetect.isRealPhotoCollection("F:\\tf_learning");
+    // await realPhotoDetect.isRealPhotoCollection("F:\\tf_learning");
+    // let a1 = await realPhotoDetect.isRealPhotoCollection("C:\\Users\\hjy\\Downloads\\KS - ご注文はオトナココアですか")
+    // let a2 = await realPhotoDetect.isRealPhotoCollection("D:\\_AV\\_Sorted_Picture\\Kuuko\\kuuko update june")
 
     let { home_pathes, path_will_scan, path_will_watch } = await getHomePath();
 
