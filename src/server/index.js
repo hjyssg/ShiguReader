@@ -140,6 +140,9 @@ async function init() {
         //do nothing since this is trivial
     }
 
+    const realPhotoDetect = require("./RealPhotoDetect");
+    await realPhotoDetect.init();
+
     let { home_pathes, path_will_scan, path_will_watch } = await getHomePath();
 
     //统一mkdir
@@ -220,8 +223,7 @@ async function init() {
 
     initMecab();
 
-    const realPhotoDetect = require("./RealPhotoDetect");
-    await realPhotoDetect();
+
 
     const port = isProduction ? http_port : dev_express_port;
     const server = app.listen(port, async () => {
