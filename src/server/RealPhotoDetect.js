@@ -6,93 +6,69 @@ const parse = serverUtil.parse;
 const zipInfoDb = require("./models/zipInfoDb");
 const { getZipInfo } = zipInfoDb;
 const util = global.requireUtil();
-const { escapeRegExp } = util;
+const { isImage, isCompress} = util;
 const path = require('path');
 const _ = require('underscore');
+const pfs = require('promise-fs');
 
 const tf = require('@tensorflow/tfjs-node');
 require('@tensorflow/tfjs-backend-cpu');
 require('@tensorflow/tfjs-backend-webgl');
 
 
-
-
-
 //https://stackoverflow.com/questions/53231699/converting-png-to-tensor-tensorflow-js
-const imageGet = require('get-image-data');
-async function loadLocalImage(filename) {
-//     return new Promise((res,rej)=>{
-//         imageGet(filename, (err, info) => {
-//             if(err){
-//                 rej(err);
-//                 return;
-//             }
-//             debugger
-//             // const image = tf.browser.fromPixels(info.data);
-//             // var buf32 = new Uint32Array(info.data);
-
-//             // info.data = buf32;
-
-//             const image = tf.browser.fromPixels(info)
-//             //   console.log(image, '127');
-//             res(image);
-//         });
-//    });
+const readImageToTensor = async path => { 
+    try{
+        const imageBuffer = await pfs.readFile(path);     
+        //https://js.tensorflow.org/api_node/2.8.1/#node.decodeImage 
+        const tfimage = tf.node.decodeImage(imageBuffer);
+        return tfimage;   
+    } catch(e){
+        console.warn(e);
+        return null;
+    }   
 }
 
-const { createCanvas, loadImage } = require('canvas');
-
-const canvas = createCanvas(200, 200)
-const ctx = canvas.getContext('2d');
-
-loadImage('F:\\tf_learning\\2.jpg').then((image) => {
-    ctx.drawImage(image, 50, 0, 70, 70)
-
-    image2 = tf.browser.fromPixels(ctx)
-
-
-    // console.log('<img src="' + canvas.toDataURL() + '" />')
-
-
-    
-
-})
-
-// loadLocalImage('F:\\tf_learning\\2.jpg');
+let _model_;
 
 async function init(){
     try {
-        // var getImage = require('get-image-data');
-        // const _util = require('util');
-        // const getImageAsync = _util.promisify(getImage);
-
-        //doc website https://js.tensorflow.org/api/0.13.3/#fromPixels
+        //doc website https://js.tensorflow.org/api/0.13.3
 
         //todo: https://codelabs.developers.google.com/codelabs/tensorflowjs-teachablemachine-codelab/index.html#0
-        //  I transfer learning the original model
+        // create transfer learning based on the original model
         const cocoSsd = require('@tensorflow-models/coco-ssd');
-        
-
-        // Looks like you are running TensorFlow.js in Node.js. To speed things up dramatically, install our node backend, which binds to TensorFlow C++, by running npm i @tensorflow/tfjs-node, or npm i @tensorflow/tfjs-node-gpu if you have CUDA. Then call require('@tensorflow/tfjs-node'); (-gpu suffix for CUDA) at the start of your program. Visit https://github.com/tensorflow/tfjs-node for more details.
-
-         // Load the model.
-
         console.log("loading tensor flow data model...........");
-        const model = await cocoSsd.load();
+        _model_ = await cocoSsd.load();
         console.log("finished loading tensor flow data model.");
-
-        // const  data = await getImageAsync('F:\\tf_learning\\2.jpg');
-        let data = await loadLocalImage('F:\\tf_learning\\2.jpg');
-
-        const result = await model.detect(data);
-
-        debugger
-        console.log(result)
-
     }catch(e){
-        debugger
         console.warn(e.message || e);
     }
 }
+
+module.exports.isRealPhotoCollection = async function (filePath){
+    try {
+        if(_model_){
+            let pathes = await pfs.readdir(filePath);
+            pathes = pathes.filter(isImage).map(e => path.resolve(filePath, e));
+            pathes =  _.shuffle(pathes);
+            pathes = pathes.slice(0, 5).sort();
+
+            for(let ii = 0; ii < pathes.length; ii++){
+                const pp = pathes[ii];
+                let data = await  readImageToTensor(pp);
+                if(data){
+                    const result = await _model_.detect(data);
+                    const personIndex = result.findIndex(e => e.class === "person")
+                    console.log(pp, personIndex > -1 );
+                }
+            }
+        }  
+    } catch (error) {
+        debugger
+        console.warn(error);
+    }
+}
+
 
 module.exports.init = init;

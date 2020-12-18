@@ -142,6 +142,7 @@ async function init() {
 
     const realPhotoDetect = require("./RealPhotoDetect");
     await realPhotoDetect.init();
+    await realPhotoDetect.isRealPhotoCollection("F:\\tf_learning");
 
     let { home_pathes, path_will_scan, path_will_watch } = await getHomePath();
 
