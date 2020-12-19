@@ -35,6 +35,39 @@ router.post('/api/listFolderOnly', async (req, res) => {
     });
 });
 
+async function listNoScanDir(dir, res){
+    end1 = (new Date).getTime();
+    // let allFilePath = await pfs.readdir(dir, { withFileTypes: true });
+    let allFilePath = await pfs.readdir(dir);
+    allFilePath = allFilePath.map(e => path.resolve(dir, e));
+    end3 = (new Date).getTime();
+    console.log(`${(end3 - end1) / 1000}s  to read thumbnail dirs`);
+
+    const _dirs = []; //allFilePath.filter();
+    
+    
+    const files = allFilePath.filter(isCompress);
+    const fileInfos = {};
+    files.forEach(e => {
+        fileInfos[e] = {};
+    })
+
+    const  result = {
+        path: dir,
+
+        dirs: _dirs,
+        fileInfos: _files,
+
+        imgFolderInfo: {},
+        imgFolders: {},
+        thumbnails: getThumbnails(files),
+        dirThumbnails: {},
+        zipInfo: getZipInfo(files),
+    };
+
+    res.send(result);
+}
+
 
 router.post('/api/lsDir', async (req, res) => {
     let dir = req.body && req.body.dir;
@@ -165,8 +198,8 @@ router.post('/api/lsDir', async (req, res) => {
     })
 
     result = {
-        dirs: _dirs,
         path: dir,
+        dirs: _dirs,
         fileInfos,
         imgFolderInfo,
         imgFolders,
