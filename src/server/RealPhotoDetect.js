@@ -11,10 +11,8 @@ const path = require('path');
 const _ = require('underscore');
 const pfs = require('promise-fs');
 
-// const tf = require('@tensorflow/tfjs-node');
-const tf = require('@tensorflow/tfjs-node-gpu');
+const tf = require('@tensorflow/tfjs-node');
 require('@tensorflow/tfjs-backend-cpu');
-// require('@tensorflow/tfjs-backend-webgl');
 
 // tfjs-backend-webgl is JS 
 // tfjs-node is cpu 
