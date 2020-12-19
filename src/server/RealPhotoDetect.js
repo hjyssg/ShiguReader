@@ -55,35 +55,34 @@ module.exports.isRealPhotoCollection = async function (filePath) {
             return false;
         }
 
-
         if (_model_) {
             let pathes = await pfs.readdir(filePath);
             pathes = pathes.filter(isImage).map(e => path.resolve(filePath, e));
             pathes = _.shuffle(pathes);
-            pathes = pathes.slice(0, 5).sort();
+            pathes = pathes.slice(0, 3).sort();
             // let beg = (new Date).getTime();
 
             let counter = 0;
             for (let ii = 0; ii < pathes.length; ii++) {
                 const pp = pathes[ii];
-                let data = await readImageToTensor(pp);
-                if (data) {
-                    try{
-                        const result = await _model_.detect(data);
-                        const isPerson = result.findIndex(e => e.class === "person") > -1;
-                        if(isPerson){
-                            counter++;
-                        }
-                    } catch(e) {
-                        console.warn(e);
+                try{
+                    let data = await readImageToTensor(pp);
+                    if (data) {
+                            const result = await _model_.detect(data);
+                            const isPerson = result.findIndex(e => e.class === "person") > -1;
+                            if(isPerson){
+                                counter++;
+                            }
+                            // if(ii % 50 === 0){
+                            //     let end1 = (new Date).getTime();
+                            //     console.log(ii, `${(end1 - beg) / 1000}s `);
+                            // }
                     }
-                    
-                    // if(ii % 50 === 0){
-                    //     let end1 = (new Date).getTime();
-                    //     console.log(ii, `${(end1 - beg) / 1000}s `);
-                    // }
+                } catch(e) {
+                    console.warn(e);
                 }
             }
+            //more than certain percent is real photo, then we say this is a real photo collection
             result = counter > pathes.length * 0.8;
         }
     } catch (error) {
