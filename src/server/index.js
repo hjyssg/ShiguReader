@@ -141,7 +141,6 @@ async function init() {
     }
 
     let { home_pathes, path_will_scan, path_will_watch } = await getHomePath();
-
     //统一mkdir
     await mkdir(thumbnailFolderPath);
     await mkdir(cachePath);
@@ -513,20 +512,7 @@ app.post("/api/tagFirstImagePath", async (req, res) => {
     extractThumbnailFromZip(chosendFileName, res);
 });
 
-function logForPre(prefix, config, filePath) {
-    const { minCounter, total } = config;
-    console.log(`${prefix} ${minCounter}/${total}  ${filePath}`);
-    const time2 = getCurrentTime();
-    const timeUsed = (time2 - config.pregenBeginTime) / 1000;
-    if (minCounter > 0) {
-        const secPerFile = timeUsed / minCounter;
-        const remainTime = (total - minCounter) * secPerFile / 60;
-        console.log(`${prefix} ${(secPerFile).toFixed(2)} seconds per file.     ${remainTime.toFixed(2)} minutes before finish`);
-    }
-    if (minCounter >= total) {
-        console.log('[pregenerate] done');
-    }
-}
+
 
 const thumbnailGenerator = require("../tools/thumbnailGenerator");
 //the only required parameter is filePath
@@ -538,97 +524,61 @@ async function extractThumbnailFromZip(filePath, res, mode, config) {
     const isPregenerateMode = mode === "pre-generate";
     const sendable = !isPregenerateMode && res;
     const outputPath = getCacheOutputPath(cachePath, filePath);
-    let files, temp;
+    let files;
 
     function sendImage(img) {
-        let ext = path.extname(img);
-        ext = ext.slice(1);
-        // !send by image. no able to use cache
-        // sendable && res.setHeader('Content-Type', 'image/' + ext );
-        // sendable && res.sendFile(path.resolve(img));
         sendable && res.send({
             url: fullPathToUrl(img)
         })
     }
 
-    function handleFail(reason) {
-        reason = reason || "NOT FOUND";
-        sendable && res.send({ failed: true, reason: reason });
+    //do the extract
+    try {
+        //only update zip db
+        //do not use zip db's information
+        //in case previous info is changed or wrong
         if (isPregenerateMode) {
-            config.total--;
-        }
-    }
-
-    async function minify(one) {
-        const outputFilePath = await thumbnailGenerator(thumbnailFolderPath, outputPath, path.basename(one));
-        if (outputFilePath) {
-            addToThumbnailDb(outputFilePath);
-            if (isPregenerateMode) {
-                config.minCounter++;
-                logForPre("[pre-generate minify] ", config, filePath);
-            }
-        }
-    }
-
-    //only update zip db
-    //do not use zip db's information
-    //in case previous info is changed or wrong
-    if (isPregenerateMode) {
-        if (config.fastUpdateMode && zipInfoDb.has(filePath)) {
-            //skip
-        } else {
-            //in pregenerate mode, it always updates db content
-            temp = await listZipContentAndUpdateDb(filePath);
-            files = temp.files;
-        }
-    }
-
-    const thumbnail = getThumbnailFromThumbnailFolder(outputPath);
-    if (thumbnail) {
-        sendImage(thumbnail);
-        if (isPregenerateMode) {
-            config.minCounter++;
-            logForPre("[pre-generate minify] ", config, filePath);
-        }
-    } else {
-        //do the extract
-        try {
-            if (!files) {
-                temp = await listZipContentAndUpdateDb(filePath);
-                files = temp.files;
-            }
-            const one = serverUtil.chooseThumbnailImage(files);
-            if (!one) {
-                // console.error("[extractThumbnailFromZip] no thumbnail for ", filePath);
-                handleFail("no img in file");
+            if (config.fastUpdateMode && zipInfoDb.has(filePath)) {
+                //skip
             } else {
-                const stderrForThumbnail = await extractByRange(filePath, outputPath, [one])
-                if (!stderrForThumbnail) {
-                    // send path to client
-                    let temp = path.join(outputPath, path.basename(one));
-                    sendImage(temp);
-                    await minify(one)
-                    if (isPregenerateMode) {
-                        config.counter++;
-                    }
-                } else {
-                    console.error("[extractThumbnailFromZip extract exec failed]", stderrForThumbnail);
-                    handleFail("extract exec failed");
-                }
+                //in pregenerate mode, it always updates db content
+                files = (await listZipContentAndUpdateDb(filePath)).files;
             }
-        } catch (e) {
-            console.error("[extractThumbnailFromZip] exception", filePath, e);
-            handleFail(e);
         }
+
+        const thumbnail = getThumbnailFromThumbnailFolder(outputPath);
+        if (thumbnail) {
+            sendImage(thumbnail);
+        } else {
+            if (!files) {
+                files = (await listZipContentAndUpdateDb(filePath)).files;
+            }
+            const thumb = serverUtil.chooseThumbnailImage(files);
+            if (!thumb) {
+                throw "no img in this file";
+            } 
+            const stderrForThumbnail = await extractByRange(filePath, outputPath, [thumb])
+            if (stderrForThumbnail) {
+                throw "extract exec failed";
+            } 
+            // send path to client
+            let original_thumb = path.join(outputPath, path.basename(thumb));
+            sendImage(original_thumb);
+            const outputFilePath = await thumbnailGenerator(thumbnailFolderPath, outputPath, path.basename(thumb));
+            if (outputFilePath) {
+                addToThumbnailDb(outputFilePath);
+            }
+        }
+    } catch (e) {
+        console.error("[extractThumbnailFromZip] exception", filePath, e);
+        const reason = e || "NOT FOUND";
+        sendable && res.send({ failed: true, reason: reason });
     }
 }
 
-
 //  a huge back ground task 
 //  it generate all thumbnail and will be slow
-
 let pregenerateThumbnails_lock = false;
-
 app.post('/api/pregenerateThumbnails', async (req, res) => {
     let path = req.body && req.body.path;
     if (!path) {
@@ -640,7 +590,6 @@ app.post('/api/pregenerateThumbnails', async (req, res) => {
     }
 
     pregenerateThumbnails_lock = true;
-
     const fastUpdateMode = req.body && req.body.fastUpdateMode;
 
     const allfiles = getAllFilePathes();
@@ -650,13 +599,11 @@ app.post('/api/pregenerateThumbnails', async (req, res) => {
     }
 
     let config = {
-        counter: 0,
-        minCounter: 0,
-        total: totalFiles.length,
-        fastUpdateMode,
-        pregenBeginTime: getCurrentTime()
+        fastUpdateMode
     };
 
+    const pregenBeginTime = getCurrentTime();
+    const total = totalFiles.length;
 
     const thumbnailNum = getThumbCount();
     if (thumbnailNum / totalFiles.length > 0.3) {
@@ -665,17 +612,22 @@ app.post('/api/pregenerateThumbnails', async (req, res) => {
 
     res.send({ failed: false });
 
-    console.log("begin pregenerateThumbnails")
-
     try {
+        console.log("begin pregenerateThumbnails")
         for (let ii = 0; ii < totalFiles.length; ii++) {
             const filePath = totalFiles[ii];
             await extractThumbnailFromZip(filePath, null, "pre-generate", config);
+            const time2 = getCurrentTime();
+            const timeUsed = (time2 - pregenBeginTime) / 1000;
+            const secPerFile = timeUsed / ii;
+            const remainTime = (total - ii) * secPerFile / 60;
+            console.log(`[pre-generate minify]  ${(ii/total*100).toFixed(2)}%   ${(secPerFile).toFixed(2)} sec/file.   ${remainTime.toFixed(2)} mim left`);
         }
     } catch (e) {
 
     } finally {
         pregenerateThumbnails_lock = false;
+        console.log('[pregenerate] done');
     }
 });
 
