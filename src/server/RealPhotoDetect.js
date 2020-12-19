@@ -1,10 +1,8 @@
 
 const serverUtil = require("./serverUtil");
 const db = require("./models/db");
-const { getFileCollection, getImgFolderInfo } = db;
 const parse = serverUtil.parse;
 const zipInfoDb = require("./models/zipInfoDb");
-const { getZipInfo } = zipInfoDb;
 const util = global.requireUtil();
 const { isImage, isCompress } = util;
 const path = require('path');
@@ -51,13 +49,19 @@ async function init() {
 module.exports.isRealPhotoCollection = async function (filePath) {
     let result = false;
     try {
+        //enought to tell from file name
+        const temp = parse(filePath);
+        if(tmep && temp.type && temp.type !== etc){
+            return false;
+        }
+
+
         if (_model_) {
             let pathes = await pfs.readdir(filePath);
             pathes = pathes.filter(isImage).map(e => path.resolve(filePath, e));
             pathes = _.shuffle(pathes);
-            // pathes = pathes.slice(0, 5).sort();
-
-            let beg = (new Date).getTime();
+            pathes = pathes.slice(0, 5).sort();
+            // let beg = (new Date).getTime();
 
             let counter = 0;
             for (let ii = 0; ii < pathes.length; ii++) {
@@ -67,18 +71,17 @@ module.exports.isRealPhotoCollection = async function (filePath) {
                     try{
                         const result = await _model_.detect(data);
                         const isPerson = result.findIndex(e => e.class === "person") > -1;
-                        // console.log(pp, isPerson);
                         if(isPerson){
                             counter++;
                         }
-                    }catch(e){
+                    } catch(e) {
                         console.warn(e);
                     }
                     
-                    if(ii % 50 === 0){
-                        let end1 = (new Date).getTime();
-                        console.log(ii, `${(end1 - beg) / 1000}s `);
-                    }
+                    // if(ii % 50 === 0){
+                    //     let end1 = (new Date).getTime();
+                    //     console.log(ii, `${(end1 - beg) / 1000}s `);
+                    // }
                 }
             }
             result = counter > pathes.length * 0.8;
