@@ -36,8 +36,11 @@
       width: 100%;
     }
 
-    .aji-music-player {
-      max-width: 80%;
+    &.has-music {
+      min-width: 500px;
+      .aji-music-player {
+        max-width: 80%;
+      }
     }
   }
 
@@ -217,6 +220,9 @@
   flex-direction: column;
 
   a {
+    line-height: 1em;
+    height: 2em;
+    max-width: 650px;
     color: $font_color_white_one !important;
   }
 }
