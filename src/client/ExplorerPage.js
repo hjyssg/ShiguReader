@@ -55,6 +55,41 @@ function parse(str) {
     return nameParser.parse(getBaseName(str));
 }
 
+async function highlightCoser() {
+
+    //show busy loader---
+
+    require('@tensorflow/tfjs-backend-cpu');
+    require('@tensorflow/tfjs-backend-webgl');
+    const cocoSsd = require('@tensorflow-models/coco-ssd');
+    const model = await cocoSsd.load();
+
+
+    let imgs = document.querySelectorAll(".file-cell-thumbnail");
+    imgs = Array.from(imgs);
+    const detectArr = imgs.map(img => model.detect(img));
+
+    let detectRes = await Promise.all(detectArr);
+
+    let titles = document.querySelectorAll(".file-cell-title");
+    titles = Array.from(titles);
+    titles = titles.map(e => e.textContent);
+    detectRes = detectRes.map(arr => {
+        const isPerson = arr.findIndex(e => e.class === "person") > -1
+        return isPerson;
+    });
+
+    // console.table(titles)
+    // console.table(result)
+
+    debugger
+
+
+    console.table(_.object(titles, detectRes))
+
+    //disable busy loader
+}
+
 export default class ExplorerPage extends Component {
     constructor(prop) {
         super(prop);
@@ -888,6 +923,16 @@ export default class ExplorerPage extends Component {
         );
     }
 
+    renderRealPhotoButton() {
+        const text = "Highlight Real Photo"
+        return (
+            <span key="real-photo-menu-button" className="real-photo-menu-button exp-top-button" onClick={highlightCoser}>
+                <span className="fas fa-portrait" />
+                <span> {text} </span>
+            </span>
+        );
+    }
+
     renderChartButton() {
         const table = {}
         table[MODE_AUTHOR] = "/chart/?a=";
@@ -966,7 +1011,8 @@ export default class ExplorerPage extends Component {
                         </Link>
                     </div>
                 }
-                <div className="col-6 col-md-4 " > {this.renderToggleMenuButton()} </div>
+                <div className="col-6 col-md-4"> {this.renderRealPhotoButton()}</div>
+                <div className="col-6 col-md-4" > {this.renderToggleMenuButton()} </div>
             </div>);
 
         const breadcrumb = isExplorer && (<div className="row">
