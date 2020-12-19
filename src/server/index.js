@@ -140,8 +140,8 @@ async function init() {
         //do nothing since this is trivial
     }
 
-    const realPhotoDetect = require("./RealPhotoDetect");
-    await realPhotoDetect.init();
+    // const realPhotoDetect = require("./RealPhotoDetect");
+    // await realPhotoDetect.init();
     // await realPhotoDetect.isRealPhotoCollection("F:\\tf_learning");
     // let a1 = await realPhotoDetect.isRealPhotoCollection("C:\\Users\\hjy\\Downloads\\KS - ご注文はオトナココアですか")
     // let a2 = await realPhotoDetect.isRealPhotoCollection("D:\\_AV\\_Sorted_Picture\\Kuuko\\kuuko update june")
@@ -225,8 +225,6 @@ async function init() {
     // }
 
     initMecab();
-
-
 
     const port = isProduction ? http_port : dev_express_port;
     const server = app.listen(port, async () => {
@@ -541,57 +539,51 @@ async function extractThumbnailFromZip(filePath, res, mode, config) {
         })
     }
 
-    //only update zip db
-    //do not use zip db's information
-    //in case previous info is changed or wrong
-    if (isPregenerateMode) {
-        if (config.fastUpdateMode && zipInfoDb.has(filePath)) {
-            //skip
-        } else {
-            //in pregenerate mode, it always updates db content
-            temp = await listZipContentAndUpdateDb(filePath);
-            files = temp.files;
+    //do the extract
+    try {
+        //only update zip db
+        //do not use zip db's information
+        //in case previous info is changed or wrong
+        if (isPregenerateMode) {
+            if (config.fastUpdateMode && zipInfoDb.has(filePath)) {
+                //skip
+            } else {
+                //in pregenerate mode, it always updates db content
+                temp = await listZipContentAndUpdateDb(filePath);
+                files = temp.files;
+            }
         }
-    }
 
-    const thumbnail = getThumbnailFromThumbnailFolder(outputPath);
-    if (thumbnail) {
-        sendImage(thumbnail);
-    } else {
-        //do the extract
-        try {
+        const thumbnail = getThumbnailFromThumbnailFolder(outputPath);
+        if (thumbnail) {
+            sendImage(thumbnail);
+        } else {
             if (!files) {
                 temp = await listZipContentAndUpdateDb(filePath);
                 files = temp.files;
             }
             const thumb = serverUtil.chooseThumbnailImage(files);
             if (!thumb) {
-                // console.error("[extractThumbnailFromZip] no thumbnail for ", filePath);
-                throw "no img in file";
-            } else {
-                const stderrForThumbnail = await extractByRange(filePath, outputPath, [thumb])
-                if (!stderrForThumbnail) {
-                    // send path to client
-                    let temp = path.join(outputPath, path.basename(thumb));
-                    sendImage(temp);
-                    const outputFilePath = await thumbnailGenerator(thumbnailFolderPath, outputPath, path.basename(thumb));
-                    if (outputFilePath) {
-                        addToThumbnailDb(outputFilePath);
-                    }
-                } else {
-                    console.error("[extractThumbnailFromZip extract exec failed]", stderrForThumbnail);
-                    throw "extract exec failed";
-                }
+                throw "no img in this file";
+            } 
+            const stderrForThumbnail = await extractByRange(filePath, outputPath, [thumb])
+            if (stderrForThumbnail) {
+                throw "extract exec failed";
+            } 
+            // send path to client
+            let temp = path.join(outputPath, path.basename(thumb));
+            sendImage(temp);
+            const outputFilePath = await thumbnailGenerator(thumbnailFolderPath, outputPath, path.basename(thumb));
+            if (outputFilePath) {
+                addToThumbnailDb(outputFilePath);
             }
-        } catch (e) {
-            console.error("[extractThumbnailFromZip] exception", filePath, e);
-            const reason = e || "NOT FOUND";
-            sendable && res.send({ failed: true, reason: reason });
         }
+    } catch (e) {
+        console.error("[extractThumbnailFromZip] exception", filePath, e);
+        const reason = e || "NOT FOUND";
+        sendable && res.send({ failed: true, reason: reason });
     }
 }
-
-
 
 //  a huge back ground task 
 //  it generate all thumbnail and will be slow
