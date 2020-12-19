@@ -11,10 +11,14 @@ const path = require('path');
 const _ = require('underscore');
 const pfs = require('promise-fs');
 
-const tf = require('@tensorflow/tfjs-node');
+// const tf = require('@tensorflow/tfjs-node');
+const tf = require('@tensorflow/tfjs-node-gpu');
 require('@tensorflow/tfjs-backend-cpu');
-require('@tensorflow/tfjs-backend-webgl');
+// require('@tensorflow/tfjs-backend-webgl');
 
+// tfjs-backend-webgl is JS 
+// tfjs-node is cpu 
+// tfjs-node-gpu is by gpu 
 
 //https://stackoverflow.com/questions/53231699/converting-png-to-tensor-tensorflow-js
 const readImageToTensor = async path => {
@@ -53,18 +57,29 @@ module.exports.isRealPhotoCollection = async function (filePath) {
             let pathes = await pfs.readdir(filePath);
             pathes = pathes.filter(isImage).map(e => path.resolve(filePath, e));
             pathes = _.shuffle(pathes);
-            pathes = pathes.slice(0, 5).sort();
+            // pathes = pathes.slice(0, 5).sort();
+
+            let beg = (new Date).getTime();
 
             let counter = 0;
             for (let ii = 0; ii < pathes.length; ii++) {
                 const pp = pathes[ii];
                 let data = await readImageToTensor(pp);
                 if (data) {
-                    const result = await _model_.detect(data);
-                    const isPerson = result.findIndex(e => e.class === "person") > -1;
-                    console.log(pp, isPerson);
-                    if(isPerson){
-                        counter++;
+                    try{
+                        const result = await _model_.detect(data);
+                        const isPerson = result.findIndex(e => e.class === "person") > -1;
+                        // console.log(pp, isPerson);
+                        if(isPerson){
+                            counter++;
+                        }
+                    }catch(e){
+                        console.warn(e);
+                    }
+                    
+                    if(ii % 50 === 0){
+                        let end1 = (new Date).getTime();
+                        console.log(ii, `${(end1 - beg) / 1000}s `);
                     }
                 }
             }
