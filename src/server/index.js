@@ -621,7 +621,7 @@ app.post('/api/pregenerateThumbnails', async (req, res) => {
             const timeUsed = (time2 - pregenBeginTime) / 1000;
             const secPerFile = timeUsed / ii;
             const remainTime = (total - ii) * secPerFile / 60;
-            console.log(`[pre-generate minify]  ${(ii/total*100).toFixed(2)}%   ${(secPerFile).toFixed(2)} sec/file.   ${remainTime.toFixed(2)} mim left`);
+            console.log(`[pre-generate minify] total:${total}  ${(ii/total*100).toFixed(2)}%   ${(secPerFile).toFixed(2)} sec/file   ${remainTime.toFixed(2)} mim left`);
         }
     } catch (e) {
 
