@@ -139,12 +139,6 @@ async function getHomePath() {
     path_will_scan = path_will_scan.concat(global.good_folder, global.good_folder_root, global.not_good_folder);
     path_will_scan = await filterNonExist(path_will_scan);
 
-    //if user options, choose test samples
-    // const test_sample_path = path.resolve(rootPath, "test_samples");
-    // if (path_will_scan.length === 0 && (await isExist(test_sample_path))) {
-    //     path_will_scan.push(test_sample_path);
-    // }
-
     path_will_scan.push(getImgConverterCachePath());
     path_will_scan.push(getZipOutputCachePath());
 
