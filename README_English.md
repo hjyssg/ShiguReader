@@ -18,31 +18,38 @@ Read Comic/Play Music and Video on all platforms
 
 ##### Features
 
-* view the thumbnails of zip/rar/7zip files
+* display the thumbnails of zip/rar/7zip files
 * sort/search files
 * re-compress images to save disk space
 * move/delete files
-* play music files inside compressed files
-* play mp4/mkv/avi files
+* play music files that are in the compressed files
+* play mp4/mkv/avi files and display their tags
 * show statistics chart of all collections
 * same color theme as exh**tai
-* server runs on Windows/*nix
-* client runs on any modern browser(except IE)
+* support Windows/*nix servers
+* client can run on any modern browser(except IE/Edge), including mobile phone(no need to install other softwares)
 * browse image files in folders 
 
-### 使用
-For windows, downloaded the zip
-Modify ini，then click ShiguReader.exe
-For *nix people and developer, please refer to [Readme_Env_Setup](https://github.com/hjyssg/ShiguReader/blob/dev/Readme_Env_Setup.md)
+### File Format Support
+
+* Support regular zip/rar/7zip files  
+* Format support of image/video/music files depends on the browser. Support typical jpg,png,png,mp4,avi,mp3,wav files  
+* More details in src/util.js
+
+### Instruction
+
+* For windows, download the zip file
+* Modify ini file, then click the ShiguReader.exe
+* For *nix users and developers, please refer to [Readme_Env_Setup](https://github.com/hjyssg/ShiguReader/blob/dev/Readme_Env_Setup.md)
 
 ### Third Party Dependency
-It is nice to have, but not mandatory
+It is nice to have, but not necessary
 install imagemagick  from https://imagemagick.org
 
 ##### Safety
 ShiguReader is not safe when being accessed from the public IP. The server is not prepared for any cyber attack.
 
-If you just want to read comic or watch anime when going outside, you can just download files into you tablet.
+If you just want to read comic or watch anime when going outside, you can download the files to you tablet.
 For example, my ipad has VLC for video and ComicGlass for comic. I download file in Chrome browser and save them to the apps.
 
 ##### How to use on NAS
@@ -54,6 +61,11 @@ Thanks to [this guy](https://github.com/hjyssg/ShiguReader/issues/90)
 enter: browser enter/quit full screen
 AD and left right arrow key: go to next/previous page
 +-: zoom image
+
+##### Caution
+If you find the images with file name containing Japanese Kanji/Kana, you will need to change the language setting:
+![unicode setting](screenshot/unicode-setting.png)
+But it's also reported that this settimg will cause Mojibake in other softwares using non unicode encoding.
 
 ##### FAQ
     Q： I can open the webpage, but it is empty or 404.
