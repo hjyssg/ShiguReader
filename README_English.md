@@ -65,7 +65,7 @@ AD and left right arrow key: go to next/previous page
 ##### Caution
 If you find the images with file name containing Japanese Kanji/Kana, you will need to change the language setting:
 ![unicode setting](screenshot/unicode-setting.png)
-But it's also reported that this settimg will cause Mojibake in other softwares using non unicode encoding.
+But it's also reported that this setting will cause Mojibake in other softwares using non unicode encoding.
 
 ##### FAQ
     Q： I can open the webpage, but it is empty or 404.
