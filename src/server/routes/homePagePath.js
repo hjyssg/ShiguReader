@@ -19,10 +19,14 @@ if(isWindows()){
 
         hdd_list = stdout.split('\r\r\n')
                 .filter(value => /[A-Za-z]:/.test(value))
-                .map(value => value.trim())
+                .map(value => value.trim());
+
+        //no c drive
+        hdd_list = hdd_list.filter(e => !e.toLocaleLowerCase().startsWith("c"));
+        const getDownloadsFolder = require('downloads-folder');
+        hdd_list.unshift(getDownloadsFolder());
     });
 }
-
 
 router.post('/api/homePagePath', function (req, res) {
     let beg = (new Date).getTime();

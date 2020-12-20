@@ -140,22 +140,10 @@ async function getHomePath() {
     path_will_scan = await filterNonExist(path_will_scan);
 
     //if user options, choose test samples
-    const test_sample_path = path.resolve(rootPath, "test_samples");
-    if (path_will_scan.length === 0 && (await isExist(test_sample_path))) {
-        path_will_scan.push(test_sample_path);
-    }
-
-    //if not test samples, choose user folder
-    if (path_will_scan.length === 0) {
-        if (isWindows()) {
-            const getDownloadsFolder = require('downloads-folder');
-            path_will_scan.push(getDownloadsFolder());
-        } else {
-            //downloads-folder cause error on unix
-            path_will_scan.push(`${process.env.HOME}/Downloads`);
-        }
-    }
-
+    // const test_sample_path = path.resolve(rootPath, "test_samples");
+    // if (path_will_scan.length === 0 && (await isExist(test_sample_path))) {
+    //     path_will_scan.push(test_sample_path);
+    // }
 
     path_will_scan.push(getImgConverterCachePath());
     path_will_scan.push(getZipOutputCachePath());
