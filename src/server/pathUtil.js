@@ -145,10 +145,7 @@ async function getHomePath() {
     path_will_scan = _.uniq(path_will_scan);
     path_will_scan = await filterNonExist(path_will_scan);
 
-    home_pathes = path_will_scan;
-
     return {
-        home_pathes,
         path_will_scan
     };
 }

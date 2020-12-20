@@ -140,7 +140,7 @@ async function init() {
         //do nothing since this is trivial
     }
 
-    let { home_pathes, path_will_scan } = await getHomePath();
+    let { path_will_scan } = await getHomePath();
     //统一mkdir
     await mkdir(thumbnailFolderPath);
     await mkdir(cachePath);
@@ -179,7 +179,7 @@ async function init() {
     if (!results) {
         results = await fileiterator(path_will_scan, scan_otption);
     }
-    results.pathes = results.pathes.concat(home_pathes);
+    results.pathes = results.pathes.concat(path_will_scan);
     let end1 = (new Date).getTime();
     console.log(`${(end1 - beg) / 1000}s to read local dirs`);
 
