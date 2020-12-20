@@ -36,3 +36,5 @@ Project历史:
     init scan 然后一直watch
     init scan 但之后不watch
     不init scan 要的时候才scan
+
+    最后一项 只能在explorer看得到

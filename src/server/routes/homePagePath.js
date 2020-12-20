@@ -6,6 +6,23 @@ const db = require("../models/db");
 const { getFileCollection } = db;
 const util = global.requireUtil();
 const { escapeRegExp } = util;
+const isWindows = require('is-windows');
+
+let hdd_list = [];
+if(isWindows()){
+    //https://stackoverflow.com/questions/15878969/enumerate-system-drives-in-nodejs
+    const child = require('child_process');
+    child.exec('wmic logicaldisk get name', (error, stdout) => {
+        if(error){
+            return;
+        }
+
+        hdd_list = stdout.split('\r\r\n')
+                .filter(value => /[A-Za-z]:/.test(value))
+                .map(value => value.trim())
+    });
+}
+
 
 router.post('/api/homePagePath', function (req, res) {
     let beg = (new Date).getTime();
@@ -23,7 +40,8 @@ router.post('/api/homePagePath', function (req, res) {
         res.send({ failed: true, reason: "path-config.ini has no path" });
     } else {
         res.send({
-            dirs: result
+            dirs: result,
+            hdd_list
         })
     }
 

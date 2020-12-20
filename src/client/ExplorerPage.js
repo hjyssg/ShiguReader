@@ -277,7 +277,7 @@ export default class ExplorerPage extends Component {
 
     handleRes(res) {
         if (!res.isFailed()) {
-            let { dirs, mode, tag, author, fileInfos, thumbnails, dirThumbnails, zipInfo, imgFolders, imgFolderInfo, guessIfUserLike } = res.json;
+            let { dirs, mode, tag, author, fileInfos, thumbnails, dirThumbnails, zipInfo, imgFolders, imgFolderInfo, guessIfUserLike, hdd_list } = res.json;
             this.loadedHash = this.getTextFromQuery();
             this.mode = mode;
             this.fileInfos = fileInfos || {};
@@ -293,6 +293,7 @@ export default class ExplorerPage extends Component {
             this.guessIfUserLike = guessIfUserLike || {};
             this.imgFolders = imgFolders || {};
             this.imgFolderInfo = imgFolderInfo || {};
+            this.hdd_list = hdd_list || [];
             this.res = res;
 
             this.allfileInfos = _.extend({}, this.fileInfos, this.imgFolderInfo);
@@ -633,6 +634,16 @@ export default class ExplorerPage extends Component {
             });
         }
 
+        let hddItems;
+        if (this.getMode() == MODE_HOME) {
+            hddItems = this.hdd_list.map((item) => {
+                const toUrl = clientUtil.getExplorerLink(item);
+                const text = item;
+                const result = this.getOneLineListItem(<i className="far fa-folder"></i>, text, item);
+                return <Link to={toUrl} key={item}>{result}</Link>;
+            });
+        }
+
         //seperate av from others
         const groupByVideoType = _.groupBy(videos, item => {
             const text = getBaseName(item);
@@ -764,6 +775,7 @@ export default class ExplorerPage extends Component {
 
         return (
             <div className={"explorer-container"}>
+                <ItemsContainer items={hddItems} neverCollapse />
                 {!showFolderThumbnail && <ItemsContainer items={dirItems} neverCollapse /> }
                 {showFolderThumbnail && 
                     <div className={"file-grid container"}>
@@ -772,6 +784,8 @@ export default class ExplorerPage extends Component {
                         </div>
                     </div>
                 }
+                
+
                 <ItemsContainer className="video-list" items={normalVideos} />
                 <ItemsContainer items={avVideos} />
                 {this.renderPagination(filteredFiles, filteredVideos)}
@@ -954,7 +968,7 @@ export default class ExplorerPage extends Component {
         const isInfoMode = !this.isLackInfoMode();
 
         const warning = this.isLackInfoMode() && (
-            <div class="alert alert-warning" role="alert">
+            <div className="alert alert-warning" role="alert">
                 {`Warning: ${this.getTextFromQuery()} is not included in path-config.`}
             </div>
         );
