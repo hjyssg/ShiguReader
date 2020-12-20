@@ -30,8 +30,8 @@ if(isWindows()){
 
 router.post('/api/homePagePath', function (req, res) {
     let beg = (new Date).getTime();
-    let result = global.path_will_scan;
-    result = result.filter(e => {
+    let dirs = global.path_will_scan;
+    dirs = dirs.filter(e => {
         if (e) {
             const reg = escapeRegExp(e);
             //check if pathes really exist by checking there is file in the folder
@@ -39,12 +39,11 @@ router.post('/api/homePagePath', function (req, res) {
         }
     });
 
-    if (result.length === 0) {
-        console.error("Please check path-config.ini");
+    if (dirs.length === 0 && hdd_list.length === 0) {
         res.send({ failed: true, reason: "path-config.ini has no path" });
     } else {
         res.send({
-            dirs: result,
+            dirs,
             hdd_list
         })
     }
