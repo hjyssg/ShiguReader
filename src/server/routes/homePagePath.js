@@ -30,7 +30,7 @@ if(isWindows()){
 
 router.post('/api/homePagePath', function (req, res) {
     let beg = (new Date).getTime();
-    let dirs = global.path_will_scan;
+    let dirs = global.scan_path;
     dirs = dirs.filter(e => {
         if (e) {
             const reg = escapeRegExp(e);

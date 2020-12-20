@@ -343,15 +343,12 @@ export default class ExplorerPage extends Component {
     //comes from file db.
     //may not be reliable
     getFileSize(e) {
-        if (this.imgFolderInfo[e]) {
-            return this.imgFolderInfo[e].size || 0;
-        }
-        return (this.fileInfos[e] && this.fileInfos[e].size) || 0;
+        const temp = this.imgFolderInfo[e] || this.fileInfos[e];
+        return (temp && temp.size) || 0;
     }
 
     hasFileSize(e) {
-        const temp = this.imgFolderInfo[e] || this.fileInfos[e];
-        return temp && temp.size;
+        return !!this.getFileSize(e);
     }
 
     getAllFileSize(files) {

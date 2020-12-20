@@ -29,7 +29,7 @@ const pathUtil = require("./pathUtil");
 const serverUtil = require("./serverUtil");
 const { isHiddenFile } = serverUtil;
 
-const { fullPathToUrl, generateContentUrl, isExist, getHomePath } = pathUtil;
+const { fullPathToUrl, generateContentUrl, isExist, getScanPath } = pathUtil;
 const { isImage, isCompress, isVideo, isMusic, arraySlice,
     getCurrentTime, isDisplayableInExplorer, isDisplayableInOnebook, escapeRegExp } = util;
 
@@ -140,20 +140,21 @@ async function init() {
         //do nothing since this is trivial
     }
 
-    let { path_will_scan } = await getHomePath();
+    let { scan_path } = await getScanPath();
     //统一mkdir
     await mkdir(thumbnailFolderPath);
     await mkdir(cachePath);
     await mkdir(pathUtil.getImgConverterCachePath());
     await mkdir(pathUtil.getZipOutputCachePath());
 
-    const mkdirArr = [].concat([global.good_folder, global.not_good_folder_root, path_will_scan]);
+    const mkdirArr = scan_path;
     for (let ii = 0; ii < mkdirArr.length; ii++) {
         const fp = mkdirArr[ii];
         await mkdir(fp, "quiet");
     }
 
-    global.path_will_scan = path_will_scan;
+    scan_path = await pathUtil.filterNonExist(scan_path);
+    global.scan_path = scan_path;
 
     const cleanCache = require("../tools/cleanCache");
     cleanCache.cleanCache(cachePath);
@@ -161,7 +162,7 @@ async function init() {
     console.log("scanning local files");
 
     const estimated_total = previous_history_obj &&
-        _.isEqual(previous_history_obj.path_will_scan, path_will_scan) &&
+        _.isEqual(previous_history_obj.scan_path, scan_path) &&
         previous_history_obj.total_count;
 
     let beg = (new Date).getTime();
@@ -175,11 +176,11 @@ async function init() {
     };
     let results = etc_config.everything_http_server_port &&
         isWindows() &&
-        await everything_connector.getAllFileinPath(path_will_scan, scan_otption);
+        await everything_connector.getAllFileinPath(scan_path, scan_otption);
     if (!results) {
-        results = await fileiterator(path_will_scan, scan_otption);
+        results = await fileiterator(scan_path, scan_otption);
     }
-    results.pathes = results.pathes.concat(path_will_scan);
+    results.pathes = results.pathes.concat(scan_path);
     let end1 = (new Date).getTime();
     console.log(`${(end1 - beg) / 1000}s to read local dirs`);
 
@@ -192,7 +193,7 @@ async function init() {
     console.log(`${(end3 - end1) / 1000}s to analyze local files`);
 
     try {
-        previous_history_obj = { total_count, path_will_scan };
+        previous_history_obj = { total_count, scan_path };
         await jsonfile.writeFile(temp_json_path, previous_history_obj);
     } catch (e) {
         //nothing
@@ -207,7 +208,7 @@ async function init() {
     initThumbnailDb(thumbnail_pathes);
 
     //todo: chokidar will slow the server down very much when it init async
-    setUpFileWatch(path_will_scan);
+    setUpFileWatch(scan_path);
 
     // useless
     // try {
@@ -313,10 +314,10 @@ function shouldWatchForCache(p) {
 
 
 const chokidar = require('chokidar');
-function setUpFileWatch(path_will_scan) {
+function setUpFileWatch(scan_path) {
     //watch file change 
     //update two database
-    const watcher = chokidar.watch(path_will_scan, {
+    const watcher = chokidar.watch(scan_path, {
         ignored: shouldIgnoreForNormal,
         ignoreInitial: true,
         persistent: true,
@@ -778,7 +779,7 @@ app.post('/api/getGeneralInfo', async (req, res) => {
 
         good_folder: global.good_folder,
         not_good_folder: global.not_good_folder,
-        additional_folder: global.path_will_scan
+        additional_folder: global.scan_path
     };
     res.send(result)
 });

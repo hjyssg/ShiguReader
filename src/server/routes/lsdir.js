@@ -106,7 +106,7 @@ async function listNoScanDir(dir, res){
 }
 
 function isAlreadyScan(dir){
-    return global.path_will_scan.some(sp => {
+    return global.scan_path.some(sp => {
         return sp === dir || isSub(sp, dir);
     });
 }

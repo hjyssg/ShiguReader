@@ -106,12 +106,12 @@ async function filterNonExist(pathes) {
 //     return result;
 // }
 
-async function getHomePath() {
+async function getScanPath() {
     const path_config_path = path.join(getRootPath(), "path-config.ini");
     const fContent1 = fs.readFileSync(path_config_path).toString();
 
     const path_config = ini.parse(fContent1);
-    let path_will_scan =  [].concat(path_config.path);
+    let scan_path =  [].concat(path_config.path);
 
     const move_path_config_path = path.join(getRootPath(), "move-path-config.ini");
     const fContent2 = fs.readFileSync(move_path_config_path).toString();
@@ -135,18 +135,16 @@ async function getHomePath() {
     const fd2 = "not_good_" + y;
     global.not_good_folder = not_good_folder_root && path.resolve(not_good_folder_root, fd2);
 
-    path_will_scan = path_will_scan.concat(good_folder, good_folder_root, 
+    scan_path = scan_path.concat(good_folder, good_folder_root, 
                                            not_good_folder_root, not_good_folder);
-    path_will_scan = await filterNonExist(path_will_scan);
 
-    path_will_scan.push(getImgConverterCachePath());
-    path_will_scan.push(getZipOutputCachePath());
+    scan_path.push(getImgConverterCachePath());
+    scan_path.push(getZipOutputCachePath());
 
-    path_will_scan = _.uniq(path_will_scan);
-    path_will_scan = await filterNonExist(path_will_scan);
+    scan_path = _.uniq(scan_path);
 
     return {
-        path_will_scan
+        scan_path
     };
 }
 
@@ -167,7 +165,7 @@ module.exports = {
     isExist,
     isDirectParent,
     isSub,
-    getHomePath,
+    getScanPath,
     getImgConverterCachePath,
     getZipOutputCachePath
 };
