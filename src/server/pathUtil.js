@@ -117,11 +117,10 @@ async function getHomePath() {
     const fContent2 = fs.readFileSync(move_path_config_path).toString();
     const moveObj = ini.parse(fContent2);
 
-    const { good_folder_root, not_good_folder_root, additional_folder} = moveObj;
+    const { good_folder_root, not_good_folder_root} = moveObj;
 
     global.good_folder_root = good_folder_root;
     global.not_good_folder_root= not_good_folder_root;
-    global.additional_folder = additional_folder;
     //less freedom for more noob-friendly
 
     //add good folder
@@ -137,8 +136,7 @@ async function getHomePath() {
     global.not_good_folder = not_good_folder_root && path.resolve(not_good_folder_root, fd2);
 
     path_will_scan = path_will_scan.concat(good_folder, good_folder_root, 
-                                           not_good_folder_root, not_good_folder, 
-                                           additional_folder);
+                                           not_good_folder_root, not_good_folder);
     path_will_scan = await filterNonExist(path_will_scan);
 
     path_will_scan.push(getImgConverterCachePath());

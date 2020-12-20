@@ -348,7 +348,7 @@ export default class FileChangeToolbar extends Component {
     }
 
     renderMoveGoodBadButton() {
-        const { good_folder, not_good_folder, additional_folder } = this.context;
+        const { good_folder, not_good_folder } = this.context;
 
         return (
             <React.Fragment>

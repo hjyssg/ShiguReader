@@ -147,7 +147,7 @@ async function init() {
     await mkdir(pathUtil.getImgConverterCachePath());
     await mkdir(pathUtil.getZipOutputCachePath());
 
-    const mkdirArr = [].concat([global.good_folder, global.not_good_folder_root, global.additional_folder]);
+    const mkdirArr = [].concat([global.good_folder, global.not_good_folder_root, path_will_scan]);
     for (let ii = 0; ii < mkdirArr.length; ii++) {
         const fp = mkdirArr[ii];
         await mkdir(fp, "quiet");
@@ -778,7 +778,7 @@ app.post('/api/getGeneralInfo', async (req, res) => {
 
         good_folder: global.good_folder,
         not_good_folder: global.not_good_folder,
-        additional_folder: global.additional_folder
+        additional_folder: global.path_will_scan
     };
     res.send(result)
 });
