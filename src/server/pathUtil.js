@@ -111,7 +111,8 @@ async function getHomePath() {
     const fContent1 = fs.readFileSync(path_config_path).toString();
 
     const path_config = ini.parse(fContent1);
-    const {scan_and_watch_path, only_scan_path} = path_config
+    let {scan_and_watch_path, only_scan_path} = path_config
+    only_scan_path = only_scan_path || [];
     let path_will_scan = [].concat(scan_and_watch_path, only_scan_path);
 
     const move_path_config_path = path.join(getRootPath(), "move-path-config.ini");

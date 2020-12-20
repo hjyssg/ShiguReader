@@ -271,10 +271,15 @@ export default class ExplorerPage extends Component {
         }
     }
 
+    isLackInfoMode(){
+        return this.mode === "lack_info_mode";
+    }
+
     handleRes(res) {
         if (!res.isFailed()) {
-            let { dirs, tag, author, fileInfos, thumbnails, dirThumbnails, zipInfo, imgFolders, imgFolderInfo, guessIfUserLike } = res.json;
+            let { dirs, mode, tag, author, fileInfos, thumbnails, dirThumbnails, zipInfo, imgFolders, imgFolderInfo, guessIfUserLike } = res.json;
             this.loadedHash = this.getTextFromQuery();
+            this.mode = mode;
             this.fileInfos = fileInfos || {};
             const files = _.keys(this.fileInfos) || [];
             this.videoFiles = files.filter(isVideo);
@@ -946,14 +951,22 @@ export default class ExplorerPage extends Component {
         const isAuthor = mode == MODE_AUTHOR;
         const url = clientUtil.getSearhLink(this.getTextFromQuery());
 
+        const isInfoMode = !this.isLackInfoMode();
+
+        const warning = this.isLackInfoMode() && (
+            <div class="alert alert-warning" role="alert">
+                {`Warning: ${this.getTextFromQuery()} is not included in path-config.`}
+            </div>
+        );
+
         let topButtons = (
             <div className="top-button-gropus row">
                 <div className="col-6 col-md-4"> {this.renderToggleFolferThumbNailButton()} </div>
                 <div className="col-6 col-md-4"> {this.renderToggleThumbNailButton()} </div>
                 <div className="col-6 col-md-4"> {this.renderShowVideoButton()} </div>
                 
-                <div className="col-6 col-md-4"> {this.renderChartButton()} </div>
-                {isExplorer &&
+                {isInfoMode &&  <div className="col-6 col-md-4"> {this.renderChartButton()} </div> }
+                {isExplorer && isInfoMode &&
                     <div className="col-6 col-md-4"> {this.renderLevelButton()} </div>}
                 {isExplorer &&
                     <div className="col-6 col-md-4"> {this.renderPregenerateButton()} </div>}
@@ -975,6 +988,7 @@ export default class ExplorerPage extends Component {
 
         return (<div className="container explorer-top-bar-container">
             {breadcrumb}
+            {warning}
             {this.renderFileCount(filteredFiles, filteredVideos)}
             {topButtons}
         </div>);

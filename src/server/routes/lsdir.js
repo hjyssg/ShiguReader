@@ -17,6 +17,7 @@ const { getZipInfo } = zipInfoDb;
 const { getThumbnails } = serverUtil.common;
 const { getDirName } = serverUtil;
 const _ = require('underscore');
+const pfs = require('promise-fs');
 
 
 router.post('/api/listFolderOnly', async (req, res) => {
@@ -35,31 +36,39 @@ router.post('/api/listFolderOnly', async (req, res) => {
     });
 });
 
+//e.g http://localhost:3000/explorer/?p=F:\_Anime2
 async function listNoScanDir(dir, res){
-    end1 = (new Date).getTime();
-    // let allFilePath = await pfs.readdir(dir, { withFileTypes: true });
-    let allFilePath = await pfs.readdir(dir);
-    allFilePath = allFilePath.map(e => path.resolve(dir, e));
-    end3 = (new Date).getTime();
-    console.log(`${(end3 - end1) / 1000}s  to read thumbnail dirs`);
-
-    const _dirs = []; //allFilePath.filter();
-    
-    
-    const files = allFilePath.filter(isCompress);
+    // one level reading is about 1ms
+    // end1 = (new Date).getTime();
+    let pathes = await pfs.readdir(dir, { withFileTypes: true });
+    // end3 = (new Date).getTime();
+    // console.log(`${(end3 - end1) / 1000}s `);
+    const _dirs = []; 
     const fileInfos = {};
-    files.forEach(e => {
-        fileInfos[e] = {};
-    })
+
+    for (let ii = 0; ii < pathes.length; ii++) {
+        const obj = pathes[ii];
+        const fp = path.join(dir, obj.name);
+        
+        if(obj.isFile() && (isCompress(fp) || isVideo(fp))){
+            fileInfos[fp] = {};
+        }else if(obj.isDirectory()){
+            _dirs.push(fp);
+        }
+    }
+
+    const files = _.keys(fileInfos);
 
     const  result = {
         path: dir,
+        mode: "lack_info_mode",
 
         dirs: _dirs,
-        fileInfos: _files,
+        fileInfos: fileInfos,
 
         imgFolderInfo: {},
         imgFolders: {},
+
         thumbnails: getThumbnails(files),
         dirThumbnails: {},
         zipInfo: getZipInfo(files),
@@ -82,6 +91,16 @@ router.post('/api/lsDir', async (req, res) => {
     //remove '\' at the end
     if (dir.length > 2 && dir[dir.length - 1] === path.sep) {
         dir = dir.slice(0, dir.length - 1)
+    }
+
+
+    const alreayScan = global.path_will_scan.some(sp => {
+        return sp === dir || isSub(sp, dir);
+    });
+
+    if(!alreayScan){
+        await listNoScanDir(dir, res);
+        return;
     }
 
     const time1 = getCurrentTime();
