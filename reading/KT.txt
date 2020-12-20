@@ -32,9 +32,6 @@ Project历史:
 先写出可以工作的版本，然后逐渐重构代码，提高可读性。提高可读性之后，代码就很好扩展。不断加新功能。
 
 
-现在三种lsdir
+现在2种lsdir
     init scan 然后一直watch
-    init scan 但之后不watch
     不init scan 要的时候才scan
-
-    最后一项 只能在explorer看得到
