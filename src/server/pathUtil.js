@@ -116,10 +116,12 @@ async function getHomePath() {
     const move_path_config_path = path.join(getRootPath(), "move-path-config.ini");
     const fContent2 = fs.readFileSync(move_path_config_path).toString();
     const moveObj = ini.parse(fContent2);
-    global.good_folder_root = moveObj.good_folder_root;
-    global.not_good_folder_root= moveObj.not_good_folder_root;
-    global.additional_folder = moveObj.additional_folder;
 
+    const { good_folder_root, not_good_folder_root, additional_folder} = moveObj;
+
+    global.good_folder_root = good_folder_root;
+    global.not_good_folder_root= not_good_folder_root;
+    global.additional_folder = additional_folder;
     //less freedom for more noob-friendly
 
     //add good folder
@@ -128,13 +130,15 @@ async function getHomePath() {
     let mm = now.getMonth() + 1;
     mm = (mm < 10) ? ("0" + (mm).toString()) : (mm).toString();
     const fd = "good_" + [y, mm, "01"].join("_");
-    global.good_folder = global.good_folder_root && path.resolve(global.good_folder_root, fd);
+    global.good_folder = good_folder_root && path.resolve(good_folder_root, fd);
 
     //add not good folder
     const fd2 = "not_good_" + y;
-    global.not_good_folder = global.not_good_folder_root && path.resolve(global.not_good_folder_root, fd2);
+    global.not_good_folder = not_good_folder_root && path.resolve(not_good_folder_root, fd2);
 
-    path_will_scan = path_will_scan.concat(global.good_folder, global.good_folder_root, global.not_good_folder);
+    path_will_scan = path_will_scan.concat(good_folder, good_folder_root, 
+                                           not_good_folder_root, not_good_folder, 
+                                           additional_folder);
     path_will_scan = await filterNonExist(path_will_scan);
 
     path_will_scan.push(getImgConverterCachePath());
