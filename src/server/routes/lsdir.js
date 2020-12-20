@@ -15,9 +15,8 @@ const path = require('path');
 const zipInfoDb = require("../models/zipInfoDb");
 const { getZipInfo } = zipInfoDb;
 const { getThumbnails } = serverUtil.common;
-const { getDirName, isHiddenFile } = serverUtil;
 const _ = require('underscore');
-const pfs = require('promise-fs');
+const readdir = require("../readdir");
 
 
 router.post('/api/listFolderOnly', async (req, res) => {
@@ -29,7 +28,7 @@ router.post('/api/listFolderOnly', async (req, res) => {
         return;
     }
 
-    let pathes = await pfs.readdir(p, { withFileTypes: true });
+    let pathes = await readdir(p, { withFileTypes: true });
 
     res.send({
         pathes
@@ -40,7 +39,7 @@ router.post('/api/listFolderOnly', async (req, res) => {
 async function listNoScanDir(dir, res){
     // one level reading is about 1ms
     end1 = (new Date).getTime();
-    let pathes = await pfs.readdir(dir, { withFileTypes: true });
+    let pathes = await readdir(dir, { withFileTypes: true });
 
     let _dirs = []; 
     const fileInfos = {};
@@ -56,20 +55,11 @@ async function listNoScanDir(dir, res){
         }
     }
 
-    const forbid = ["System Volume Information", "\\\$Recycle.Bin"];
-    const regex = new RegExp(forbid.join("|"), "i");
-
-    console.assert("$Recycle.Bin".match(regex))
-
-    _dirs = _dirs.filter(e => {
-        return !isHiddenFile(e) && !e.match(regex);
-    }); 
-
     const imgFolders = {};
     for(let ii = 0; ii < _dirs.length; ii++){
         try {
             const tempDir = _dirs[ii];
-            let subFnArr = await pfs.readdir(tempDir);
+            let subFnArr = await readdir(tempDir);
             subFnArr = subFnArr.filter(isDisplayableInOnebook);
             let subFpArr = subFnArr.map(e => path.resolve(tempDir, e));
             if(subFnArr.length > 0){
@@ -264,7 +254,7 @@ router.post('/api/listImageFolderContent', async (req, res) => {
     }
 
     if(!isAlreadyScan(filePath)){
-        let subFnArr = await pfs.readdir(filePath);
+        let subFnArr = await readdir(filePath);
         let subFpArr = subFnArr.map(e => path.resolve(filePath, e));
 
         const files = subFpArr.filter(isImage);
