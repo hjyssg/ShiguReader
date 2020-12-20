@@ -9,42 +9,9 @@ const nameParser = require('@name-parser');
 import _ from 'underscore';
 
 
-function iosCopyToClipboard(el) {
-  //https://stackoverflow.com/questions/34045777/copy-to-clipboard-using-javascript-in-ios/34046084
-  var oldContentEditable = el.contentEditable,
-    oldReadOnly = el.readOnly,
-    range = document.createRange();
-
-  el.contentEditable = true;
-  el.readOnly = false;
-  range.selectNodeContents(el);
-
-  var s = window.getSelection();
-  s.removeAllRanges();
-  s.addRange(range);
-
-  el.setSelectionRange(0, 999999); // A big number, to cover anything that could be inside the element.
-
-  el.contentEditable = oldContentEditable;
-  el.readOnly = oldReadOnly;
-
-  document.execCommand('copy');
-}
-
 export default class FileNameDiv extends Component {
   onTitleClick() {
-    //https://stackoverflow.com/questions/49236100/copy-text-from-span-to-clipboard
-    var textArea = document.createElement("textarea");
-    textArea.value = this.props.filename;
-    document.body.appendChild(textArea);
-
-    if (clientUtil.isIOS()) {
-      iosCopyToClipboard(textArea)
-    } else {
-      textArea.select();
-      document.execCommand("Copy");
-    }
-    textArea.remove();
+    clientUtil.CopyToClipboard(this.props.filename);
 
     toast('Copied to Clipboard', {
       className: "one-line-toast",

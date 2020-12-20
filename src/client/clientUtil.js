@@ -68,7 +68,7 @@ const getBaseNameWithoutExtention = module.exports.getBaseNameWithoutExtention =
     }
 };
 
-module.exports.isIOS = function () {
+const isIOS = module.exports.isIOS = function () {
     // https://stackoverflow.com/questions/9038625/detect-if-device-is-ios
     return /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
 }
@@ -221,4 +221,41 @@ module.exports.replaceUrlHash = function(newHash){
     // console.assert((location.origin + location.pathname + location.search + location.hash) === location.href, "[replaceUrlHash] url error")
     const newUrl = location.href.replace(location.hash, "#" + newHash);
     location.replace(newUrl);
+}
+
+function iosCopyToClipboard(el) {
+    //https://stackoverflow.com/questions/34045777/copy-to-clipboard-using-javascript-in-ios/34046084
+    var oldContentEditable = el.contentEditable,
+      oldReadOnly = el.readOnly,
+      range = document.createRange();
+  
+    el.contentEditable = true;
+    el.readOnly = false;
+    range.selectNodeContents(el);
+  
+    var s = window.getSelection();
+    s.removeAllRanges();
+    s.addRange(range);
+  
+    el.setSelectionRange(0, 999999); // A big number, to cover anything that could be inside the element.
+  
+    el.contentEditable = oldContentEditable;
+    el.readOnly = oldReadOnly;
+  
+    document.execCommand('copy');
+  }
+
+module.exports.CopyToClipboard = function(text){
+    //https://stackoverflow.com/questions/49236100/copy-text-from-span-to-clipboard
+    var textArea = document.createElement("textarea");
+    textArea.value = text;
+    document.body.appendChild(textArea);
+
+    if (isIOS()) {
+      iosCopyToClipboard(textArea)
+    } else {
+      textArea.select();
+      document.execCommand("Copy");
+    }
+    textArea.remove();
 }
