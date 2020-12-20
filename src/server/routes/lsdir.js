@@ -58,7 +58,7 @@ async function listNoScanDir(dir, res){
     }
 
     _dirs = _dirs.filter(e => {
-        return !isHiddenFile(e) && !e.includes("$Recycle.Bin);
+        return !isHiddenFile(e) && !e.includes("$Recycle.Bin");
     });
 
     const files = _.keys(fileInfos);
