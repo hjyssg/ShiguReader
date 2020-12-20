@@ -15,7 +15,7 @@ const path = require('path');
 const zipInfoDb = require("../models/zipInfoDb");
 const { getZipInfo } = zipInfoDb;
 const { getThumbnails } = serverUtil.common;
-const { getDirName } = serverUtil;
+const { getDirName, isHiddenFile } = serverUtil;
 const _ = require('underscore');
 const pfs = require('promise-fs');
 
@@ -43,7 +43,7 @@ async function listNoScanDir(dir, res){
     let pathes = await pfs.readdir(dir, { withFileTypes: true });
     // end3 = (new Date).getTime();
     // console.log(`${(end3 - end1) / 1000}s `);
-    const _dirs = []; 
+    let _dirs = []; 
     const fileInfos = {};
 
     for (let ii = 0; ii < pathes.length; ii++) {
@@ -56,6 +56,10 @@ async function listNoScanDir(dir, res){
             _dirs.push(fp);
         }
     }
+
+    _dirs = _dirs.filter(e => {
+        return !isHiddenFile(e) && !e.includes("$Recycle.Bin);
+    });
 
     const files = _.keys(fileInfos);
 

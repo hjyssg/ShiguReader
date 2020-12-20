@@ -637,7 +637,9 @@ export default class ExplorerPage extends Component {
         let hddItems;
         if (this.getMode() == MODE_HOME) {
             hddItems = this.hdd_list.map((item) => {
-                const toUrl = clientUtil.getExplorerLink(item);
+                // const toUrl = clientUtil.getExplorerLink(item);
+                // F: 的时候，会莫名其妙显示shigureader文件夹的内容
+                const toUrl = clientUtil.getExplorerLink(item + "\\\\");
                 const text = item;
                 const result = this.getOneLineListItem(<i className="far fa-folder"></i>, text, item);
                 return <Link to={toUrl} key={item}>{result}</Link>;
@@ -775,7 +777,6 @@ export default class ExplorerPage extends Component {
 
         return (
             <div className={"explorer-container"}>
-                <ItemsContainer items={hddItems} neverCollapse />
                 {!showFolderThumbnail && <ItemsContainer items={dirItems} neverCollapse /> }
                 {showFolderThumbnail && 
                     <div className={"file-grid container"}>
@@ -784,8 +785,7 @@ export default class ExplorerPage extends Component {
                         </div>
                     </div>
                 }
-                
-
+                <ItemsContainer items={hddItems} neverCollapse />
                 <ItemsContainer className="video-list" items={normalVideos} />
                 <ItemsContainer items={avVideos} />
                 {this.renderPagination(filteredFiles, filteredVideos)}
