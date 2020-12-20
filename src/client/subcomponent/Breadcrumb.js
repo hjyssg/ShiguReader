@@ -20,6 +20,7 @@ export default class Breadcrumb extends Component {
             } else {
                 const toUrl = clientUtil.getExplorerLink(item);
                 pathList.push(<Link to={toUrl} key={item} className={"breadcrumb-item"}>{pathes[ii]}</Link>);
+                pathList.push(<div className="breadcrumb-sep">{sep}</div>)
             }
         }
         const cn = classNames("explorer-breadcrumb", className);

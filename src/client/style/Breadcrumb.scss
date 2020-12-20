@@ -6,7 +6,8 @@
   margin-bottom: 0px;
 
   .breadcrumb-item {
-    display: inline;
+    display: inline-flex;
+    align-items: center;
     font-size: 18px;
 
     @media screen and (max-width: 800px) {
@@ -19,12 +20,13 @@
     -webkit-text-decoration-skip: objects;
   }
 
-  .breadcrumb-item+.breadcrumb-item:before {
+  .breadcrumb-sep{
     padding-left: 4px;
     padding-right: 4px;
     color: #DDDDDD;
     font-weight: 600;
-    content: "/\00a0";
+    display: inline-flex;
+    align-items: center;
   }
 
   .breadcrumb-item {
