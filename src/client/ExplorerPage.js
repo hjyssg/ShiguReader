@@ -342,9 +342,14 @@ export default class ExplorerPage extends Component {
     //may not be reliable
     getFileSize(e) {
         if (this.imgFolderInfo[e]) {
-            return this.imgFolderInfo[e].size;
+            return this.imgFolderInfo[e].size || 0;
         }
         return (this.fileInfos[e] && this.fileInfos[e].size) || 0;
+    }
+
+    hasFileSize(e) {
+        const temp = this.imgFolderInfo[e] || this.fileInfos[e];
+        return temp && temp.size;
     }
 
     getAllFileSize(files) {
@@ -384,12 +389,12 @@ export default class ExplorerPage extends Component {
     }
 
     //may not be reliable
-    getPageAvgSize(e, forDisplay) {
+    getPageAvgSize(e) {
         const pageNum = this.getPageNum(e);
         if (pageNum === 0) {
             //one for display
             //one for sort 
-            return forDisplay ? 0 : -Infinity;
+            return -Infinity;
         }
 
         //choose the min
@@ -684,10 +689,10 @@ export default class ExplorerPage extends Component {
             const text = getBaseName(item);
             const toUrl = clientUtil.getOneBookLink(item);
 
-            const fileSize = this.getFileSize(item);
+            const fileSize = this.hasFileSize(item) && this.getFileSize(item);
             const fileSizeStr = fileSize && filesizeUitl(fileSize);
 
-            const avgSize = this.getPageAvgSize(item, "for-dispaly");
+            const avgSize = this.hasFileSize(item) && this.getPageAvgSize(item);
             const avgSizeStr = avgSize && filesizeUitl(avgSize);
 
             let seperator;
