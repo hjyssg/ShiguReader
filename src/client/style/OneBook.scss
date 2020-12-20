@@ -294,8 +294,10 @@
 }
 
 .one-book-video-container{
-  .video-link{
+  display: flex;
+  flex-direction: column;
 
+  .video-link{
     &:hover {
       .video-link-text {
         text-decoration: underline;

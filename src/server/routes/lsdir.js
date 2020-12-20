@@ -10,14 +10,17 @@ const serverUtil = require("../serverUtil");
 const db = require("../models/db");
 const { getFileCollection, getFileToInfo, getImgFolderInfo } = db;
 const util = global.requireUtil();
-const { getCurrentTime, isDisplayableInExplorer, escapeRegExp, isImage, isMusic, isCompress, isVideo } = util;
+const { getCurrentTime, isDisplayableInExplorer, isDisplayableInOnebook, escapeRegExp, isImage, isMusic, isCompress, isVideo } = util;
 const path = require('path');
 const zipInfoDb = require("../models/zipInfoDb");
 const { getZipInfo } = zipInfoDb;
 const { getThumbnails } = serverUtil.common;
-const { getDirName } = serverUtil;
+const { getDirName, isHiddenFile } = serverUtil;
 const _ = require('underscore');
-
+const pfs = require('promise-fs');
+const hidefile = require("hidefile");
+const _util = require('util');
+const isHidden = _util.promisify(hidefile.isHidden);
 
 router.post('/api/listFolderOnly', async (req, res) => {
     let dir = req.body && req.body.dir;
@@ -35,6 +38,79 @@ router.post('/api/listFolderOnly', async (req, res) => {
     });
 });
 
+//e.g http://localhost:3000/explorer/?p=F:\_Anime2
+async function listNoScanDir(dir, res){
+    // one level reading is about 1ms
+    end1 = (new Date).getTime();
+    let pathes = await pfs.readdir(dir, { withFileTypes: true });
+
+    let _dirs = []; 
+    const fileInfos = {};
+
+    for (let ii = 0; ii < pathes.length; ii++) {
+        const obj = pathes[ii];
+        const fp = path.join(dir, obj.name);
+        
+        if(obj.isFile() && (isCompress(fp) || isVideo(fp))){
+            fileInfos[fp] = {};
+        }else if(obj.isDirectory()){
+            _dirs.push(fp);
+        }
+    }
+
+    const forbid = ["System Volume Information", "\\\$Recycle.Bin"];
+    const regex = new RegExp(forbid.join("|"), "i");
+    console.assert("$Recycle.Bin".match(regex))
+    _dirs = _dirs.filter(e => {
+        return !isHiddenFile(e) && !e.match(regex);
+    }); 
+
+    const imgFolders = {};
+    for(let ii = 0; ii < _dirs.length; ii++){
+        try {
+            const tempDir = _dirs[ii];
+            const ff = await isHidden(tempDir);
+            if(ff){
+                continue;
+            }
+            let subFnArr = await pfs.readdir(tempDir);
+            subFnArr = subFnArr.filter(isDisplayableInOnebook);
+            let subFpArr = subFnArr.map(e => path.resolve(tempDir, e));
+            if(subFnArr.length > 0){
+                imgFolders[tempDir] = subFpArr;
+            }
+        }catch(e){
+            console.warn(e);
+        }
+    }
+
+    end3 = (new Date).getTime();
+    console.log(`[listNoScanDir] ${(end3 - end1) / 1000}s `);
+
+    const files = _.keys(fileInfos);
+    const  result = {
+        path: dir,
+        mode: "lack_info_mode",
+
+        dirs: _dirs,
+        fileInfos: fileInfos,
+
+        imgFolderInfo: {},
+        imgFolders,
+
+        thumbnails: getThumbnails(files),
+        dirThumbnails: {},
+        zipInfo: getZipInfo(files),
+    };
+
+    res.send(result);
+}
+
+function isAlreadyScan(dir){
+    return global.path_will_scan.some(sp => {
+        return sp === dir || isSub(sp, dir);
+    });
+}
 
 router.post('/api/lsDir', async (req, res) => {
     let dir = req.body && req.body.dir;
@@ -49,6 +125,11 @@ router.post('/api/lsDir', async (req, res) => {
     //remove '\' at the end
     if (dir.length > 2 && dir[dir.length - 1] === path.sep) {
         dir = dir.slice(0, dir.length - 1)
+    }
+
+    if(!isAlreadyScan(dir)){
+        await listNoScanDir(dir, res);
+        return;
     }
 
     const time1 = getCurrentTime();
@@ -165,8 +246,8 @@ router.post('/api/lsDir', async (req, res) => {
     })
 
     result = {
-        dirs: _dirs,
         path: dir,
+        dirs: _dirs,
         fileInfos,
         imgFolderInfo,
         imgFolders,
@@ -183,6 +264,26 @@ router.post('/api/listImageFolderContent', async (req, res) => {
     if (!filePath) {
         console.error("[/api/listImageFolderContent]", filePath, "does not exist");
         res.send({ failed: true, reason: "NOT FOUND" });
+        return;
+    }
+
+    if(!isAlreadyScan(filePath)){
+        let subFnArr = await pfs.readdir(filePath);
+        let subFpArr = subFnArr.map(e => path.resolve(filePath, e));
+
+        const files = subFpArr.filter(isImage);
+        const musicFiles = subFpArr.filter(isMusic);
+        const videoFiles = subFpArr.filter(isVideo);
+
+        const result = {
+            zipInfo: {},
+            stat: {},
+            path: filePath,
+            files,
+            musicFiles, 
+            videoFiles
+        };
+        res.send(result)
         return;
     }
 

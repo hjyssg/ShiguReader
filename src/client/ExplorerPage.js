@@ -271,10 +271,15 @@ export default class ExplorerPage extends Component {
         }
     }
 
+    isLackInfoMode(){
+        return this.mode === "lack_info_mode";
+    }
+
     handleRes(res) {
         if (!res.isFailed()) {
-            let { dirs, tag, author, fileInfos, thumbnails, dirThumbnails, zipInfo, imgFolders, imgFolderInfo, guessIfUserLike } = res.json;
+            let { dirs, mode, tag, author, fileInfos, thumbnails, dirThumbnails, zipInfo, imgFolders, imgFolderInfo, guessIfUserLike, hdd_list } = res.json;
             this.loadedHash = this.getTextFromQuery();
+            this.mode = mode;
             this.fileInfos = fileInfos || {};
             const files = _.keys(this.fileInfos) || [];
             this.videoFiles = files.filter(isVideo);
@@ -288,6 +293,7 @@ export default class ExplorerPage extends Component {
             this.guessIfUserLike = guessIfUserLike || {};
             this.imgFolders = imgFolders || {};
             this.imgFolderInfo = imgFolderInfo || {};
+            this.hdd_list = hdd_list || [];
             this.res = res;
 
             this.allfileInfos = _.extend({}, this.fileInfos, this.imgFolderInfo);
@@ -336,9 +342,14 @@ export default class ExplorerPage extends Component {
     //may not be reliable
     getFileSize(e) {
         if (this.imgFolderInfo[e]) {
-            return this.imgFolderInfo[e].size;
+            return this.imgFolderInfo[e].size || 0;
         }
         return (this.fileInfos[e] && this.fileInfos[e].size) || 0;
+    }
+
+    hasFileSize(e) {
+        const temp = this.imgFolderInfo[e] || this.fileInfos[e];
+        return temp && temp.size;
     }
 
     getAllFileSize(files) {
@@ -372,18 +383,18 @@ export default class ExplorerPage extends Component {
     //because sometimes, filename dont chane but the size change 
     getTotalImgSize(fp) {
         if (this.imgFolders[fp]) {
-            return this.imgFolderInfo[fp].totalImgSize;
+            return (this.imgFolderInfo[fp] && this.imgFolderInfo[fp].totalImgSize) || 0;
         }
         return +(this.zipInfo[fp] && this.zipInfo[fp].totalImgSize) || 0;
     }
 
     //may not be reliable
-    getPageAvgSize(e, forDisplay) {
+    getPageAvgSize(e) {
         const pageNum = this.getPageNum(e);
         if (pageNum === 0) {
             //one for display
             //one for sort 
-            return forDisplay ? 0 : -Infinity;
+            return -Infinity;
         }
 
         //choose the min
@@ -628,6 +639,18 @@ export default class ExplorerPage extends Component {
             });
         }
 
+        let hddItems;
+        if (this.getMode() == MODE_HOME) {
+            hddItems = this.hdd_list.map((item) => {
+                // const toUrl = clientUtil.getExplorerLink(item);
+                // F: 的时候，会莫名其妙显示shigureader文件夹的内容
+                const toUrl = clientUtil.getExplorerLink(item + "\\\\");
+                const text = item;
+                const result = this.getOneLineListItem(<i className="far fa-folder"></i>, text, item);
+                return <Link to={toUrl} key={item}>{result}</Link>;
+            });
+        }
+
         //seperate av from others
         const groupByVideoType = _.groupBy(videos, item => {
             const text = getBaseName(item);
@@ -666,10 +689,10 @@ export default class ExplorerPage extends Component {
             const text = getBaseName(item);
             const toUrl = clientUtil.getOneBookLink(item);
 
-            const fileSize = this.getFileSize(item);
+            const fileSize = this.hasFileSize(item) && this.getFileSize(item);
             const fileSizeStr = fileSize && filesizeUitl(fileSize);
 
-            const avgSize = this.getPageAvgSize(item, "for-dispaly");
+            const avgSize = this.hasFileSize(item) && this.getPageAvgSize(item);
             const avgSizeStr = avgSize && filesizeUitl(avgSize);
 
             let seperator;
@@ -767,6 +790,7 @@ export default class ExplorerPage extends Component {
                         </div>
                     </div>
                 }
+                <ItemsContainer items={hddItems} neverCollapse />
                 <ItemsContainer className="video-list" items={normalVideos} />
                 <ItemsContainer items={avVideos} />
                 {this.renderPagination(filteredFiles, filteredVideos)}
@@ -946,14 +970,22 @@ export default class ExplorerPage extends Component {
         const isAuthor = mode == MODE_AUTHOR;
         const url = clientUtil.getSearhLink(this.getTextFromQuery());
 
+        const isInfoMode = !this.isLackInfoMode();
+
+        const warning = this.isLackInfoMode() && (
+            <div className="alert alert-warning" role="alert">
+                {`Warning: ${this.getTextFromQuery()} is not included in path-config.`}
+            </div>
+        );
+
         let topButtons = (
             <div className="top-button-gropus row">
                 <div className="col-6 col-md-4"> {this.renderToggleFolferThumbNailButton()} </div>
                 <div className="col-6 col-md-4"> {this.renderToggleThumbNailButton()} </div>
                 <div className="col-6 col-md-4"> {this.renderShowVideoButton()} </div>
                 
-                <div className="col-6 col-md-4"> {this.renderChartButton()} </div>
-                {isExplorer &&
+                {isInfoMode &&  <div className="col-6 col-md-4"> {this.renderChartButton()} </div> }
+                {isExplorer && isInfoMode &&
                     <div className="col-6 col-md-4"> {this.renderLevelButton()} </div>}
                 {isExplorer &&
                     <div className="col-6 col-md-4"> {this.renderPregenerateButton()} </div>}
@@ -975,6 +1007,7 @@ export default class ExplorerPage extends Component {
 
         return (<div className="container explorer-top-bar-container">
             {breadcrumb}
+            {warning}
             {this.renderFileCount(filteredFiles, filteredVideos)}
             {topButtons}
         </div>);
