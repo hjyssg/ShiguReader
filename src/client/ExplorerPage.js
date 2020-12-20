@@ -29,6 +29,8 @@ const { isVideo, isCompress, isImage, isMusic } = util;
 const sortUtil = require("../common/sortUtil");
 const AdminUtil = require("./AdminUtil");
 
+import { GlobalContext } from './globalContext'
+
 const { TIME_DOWN,
     TIME_UP,
     BY_FOLDER_DOWN,
@@ -702,7 +704,7 @@ export default class ExplorerPage extends Component {
                 const prev = files[index - 1];
                 if (!prev || getDir(prev) !== getDir(item)) {
                     seperator = (<div className="col-12" key={item + "---seperator"}>
-                        <Breadcrumb path={getDir(item)} className={breadcrumbCount > 0 ? "not-first-breadcrumb folder-seperator" : "folder-seperator"} />
+                        <Breadcrumb sep={this.context.file_path_sep} path={getDir(item)} className={breadcrumbCount > 0 ? "not-first-breadcrumb folder-seperator" : "folder-seperator"} />
                     </div>);
                     breadcrumbCount++;
                 }
@@ -1002,7 +1004,7 @@ export default class ExplorerPage extends Component {
             </div>);
 
         const breadcrumb = isExplorer && (<div className="row">
-            <Breadcrumb path={this.getPathFromQuery()} className="col-12" />
+            <Breadcrumb sep={this.context.file_path_sep} path={this.getPathFromQuery()} className="col-12" />
         </div>);
 
         return (<div className="container explorer-top-bar-container">
@@ -1312,3 +1314,6 @@ ExplorerPage.propTypes = {
     openDirFunc: PropTypes.func,
     filterText: PropTypes.string
 };
+
+
+ExplorerPage.contextType = GlobalContext;
