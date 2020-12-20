@@ -140,7 +140,7 @@ async function init() {
         //do nothing since this is trivial
     }
 
-    let { home_pathes, path_will_scan, path_will_watch } = await getHomePath();
+    let { home_pathes, path_will_scan } = await getHomePath();
     //统一mkdir
     await mkdir(thumbnailFolderPath);
     await mkdir(cachePath);
@@ -207,7 +207,7 @@ async function init() {
     initThumbnailDb(thumbnail_pathes);
 
     //todo: chokidar will slow the server down very much when it init async
-    setUpFileWatch(path_will_watch);
+    setUpFileWatch(path_will_scan);
 
     // useless
     // try {

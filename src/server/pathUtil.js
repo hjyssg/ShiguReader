@@ -111,9 +111,7 @@ async function getHomePath() {
     const fContent1 = fs.readFileSync(path_config_path).toString();
 
     const path_config = ini.parse(fContent1);
-    let {scan_and_watch_path, only_scan_path} = path_config
-    only_scan_path = only_scan_path || [];
-    let path_will_scan = [].concat(scan_and_watch_path, only_scan_path);
+    let path_will_scan =  [].concat(path_config.path);
 
     const move_path_config_path = path.join(getRootPath(), "move-path-config.ini");
     const fContent2 = fs.readFileSync(move_path_config_path).toString();
@@ -146,12 +144,10 @@ async function getHomePath() {
     path_will_scan = await filterNonExist(path_will_scan);
 
     home_pathes = path_will_scan;
-    const path_will_watch = path_will_scan.filter(e => !only_scan_path.includes(e));
 
     return {
         home_pathes,
-        path_will_scan,
-        path_will_watch
+        path_will_scan
     };
 }
 
