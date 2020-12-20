@@ -11,7 +11,7 @@ const isHiddenFile = function (f) {
 }
 
 
-const forbid = ["System Volume Information", "$Recycle.Bin", "Config.Msi", "$WinREAgent", "Windows"];
+const forbid = ["System Volume Information", "$Recycle.Bin", "Config.Msi", "$WinREAgent", "Windows", "msdownld.tmp"];
 function isForbid(str){
     str = str.toLocaleLowerCase();
     return forbid.some(e => {
