@@ -2,7 +2,6 @@ const fs = require('fs');
 const path = require('path');
 const util = global.requireUtil();
 const execa = require('execa');
-const sharp = require('sharp');
 
 async function thumbnailGenerator(thumbnailFolderPath, imgFolder, fileName) {
     let outputFilePath = null;
@@ -20,10 +19,13 @@ async function thumbnailGenerator(thumbnailFolderPath, imgFolder, fileName) {
                     throw stderr;
                 }
                 outputFilePath = outputPath
-            } else {
-                await sharp(inputFilePath).resize(280, 354).toFile(outputPath);
-                outputFilePath = outputPath;
             }
+            //  else {
+            //    // sharp 不能通过pkg打包进去
+            //     const sharp = require('sharp');
+            //     await sharp(inputFilePath).resize(280, 354).toFile(outputPath);
+            //     outputFilePath = outputPath;
+            // }
         }
     } catch (e) {
         console.error("[thumbnailGenerator] exception", e.stderr);
