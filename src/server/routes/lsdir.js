@@ -18,7 +18,9 @@ const { getThumbnails } = serverUtil.common;
 const { getDirName, isHiddenFile } = serverUtil;
 const _ = require('underscore');
 const pfs = require('promise-fs');
-
+const hidefile = require("hidefile");
+const _util = require('util');
+const isHidden = _util.promisify(hidefile.isHidden);
 
 router.post('/api/listFolderOnly', async (req, res) => {
     let dir = req.body && req.body.dir;
@@ -58,9 +60,7 @@ async function listNoScanDir(dir, res){
 
     const forbid = ["System Volume Information", "\\\$Recycle.Bin"];
     const regex = new RegExp(forbid.join("|"), "i");
-
     console.assert("$Recycle.Bin".match(regex))
-
     _dirs = _dirs.filter(e => {
         return !isHiddenFile(e) && !e.match(regex);
     }); 
@@ -69,6 +69,10 @@ async function listNoScanDir(dir, res){
     for(let ii = 0; ii < _dirs.length; ii++){
         try {
             const tempDir = _dirs[ii];
+            const ff = await isHidden(tempDir);
+            if(ff){
+                continue;
+            }
             let subFnArr = await pfs.readdir(tempDir);
             subFnArr = subFnArr.filter(isDisplayableInOnebook);
             let subFpArr = subFnArr.map(e => path.resolve(tempDir, e));
