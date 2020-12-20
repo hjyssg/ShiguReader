@@ -55,6 +55,19 @@ module.exports.parse = function (str) {
     return nameParser.parse(path.basename(str, path.extname(str)));
 }
 
+
+module.exports.getExt = function(p) {
+    const ext = path.extname(p).toLowerCase();
+    //xxx NO.003 xxx is not meaningful extension
+    //extension string should be alphabet(may with digit), but not only digit
+    if (ext && /^\.[a-zA-z0-9]*$/.test(ext) && !/^\.[0-9]*$/.test(ext)) {
+        return ext;
+    } else {
+        return "";
+    }
+}
+
+
 module.exports.sep = "--=|=--";
 
 module.exports.common = {};

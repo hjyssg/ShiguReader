@@ -39,31 +39,35 @@ router.post('/api/listFolderOnly', async (req, res) => {
 async function listNoScanDir(dir, res){
     // one level reading is about 1ms
     end1 = (new Date).getTime();
-    let pathes = await readdir(dir, { withFileTypes: true });
+
+    // let pathes = await readdir(dir, { withFileTypes: true });  this crashes pkg when scan root folder
+    let pathes = await readdir(dir);
 
     let _dirs = []; 
     const fileInfos = {};
 
     for (let ii = 0; ii < pathes.length; ii++) {
-        const obj = pathes[ii];
-        const fp = path.join(dir, obj.name);
+        const fp = path.join(dir, pathes[ii]);
         
-        if(obj.isFile() && (isCompress(fp) || isVideo(fp))){
+        if(isCompress(fp) || isVideo(fp)){
             fileInfos[fp] = {};
-        }else if(obj.isDirectory()){
-            _dirs.push(fp);
+        }else {
+            const ext = serverUtil.getExt(fp);
+            const isFolder = !ext;
+            if(isFolder){
+                _dirs.push(fp);
+            }
         }
     }
 
     const imgFolders = {};
     const will_remove = {};
     for(let ii = 0; ii < _dirs.length; ii++){
+        const tempDir = _dirs[ii];
         try {
-            const tempDir = _dirs[ii];
             let subArr = await readdir(tempDir, { withFileTypes: true });
             let subFnArr = subArr.filter(e => e.isFile()).map(e => e.name);
             let subFpArr = subFnArr.map(e => path.resolve(tempDir, e));
-            
 
             const sub1 = subFpArr.filter(isDisplayableInOnebook);
             if(sub1.length > 0){
@@ -78,6 +82,7 @@ async function listNoScanDir(dir, res){
             }
         }catch(e){
             console.warn(e);
+            will_remove[tempDir] = true;
         }
     }
 

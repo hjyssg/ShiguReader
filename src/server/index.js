@@ -269,23 +269,14 @@ function getThumbCount() {
 
 global.getThumbCount = getThumbCount;
 
-function getExt(p) {
-    const ext = path.extname(p).toLowerCase();
-    //xxx NO.003 xxx is not meaningful extension
-    //extension string should be alphabet(may with digit), but not only digit
-    if (ext && /^\.[a-zA-z0-9]*$/.test(ext) && !/^\.[0-9]*$/.test(ext)) {
-        return ext;
-    } else {
-        return "";
-    }
-}
+
 
 //this function which files will be scanned and watched by ShiguReader
 function shouldWatchForNormal(p) {
     if (isHiddenFile(p)) {
         return false;
     }
-    const ext = getExt(p);
+    const ext = serverUtil.getExt(p);
     //not accurate, but performance is good. access each file is very slow
     const isFolder = !ext;
     let result = isFolder || isDisplayableInExplorer(ext);
@@ -308,7 +299,7 @@ function shouldWatchForCache(p) {
     if (isHiddenFile(p)) {
         return false;
     }
-    const ext = getExt(p);
+    const ext = serverUtil.getExt(p);
     return !ext || isDisplayableInOnebook(ext) || isVideo(ext);
 }
 
