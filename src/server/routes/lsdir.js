@@ -56,19 +56,32 @@ async function listNoScanDir(dir, res){
     }
 
     const imgFolders = {};
+    const will_remove = {};
     for(let ii = 0; ii < _dirs.length; ii++){
         try {
             const tempDir = _dirs[ii];
-            let subFnArr = await readdir(tempDir);
-            subFnArr = subFnArr.filter(isDisplayableInOnebook);
+            let subArr = await readdir(tempDir, { withFileTypes: true });
+            let subFnArr = subArr.filter(e => e.isFile()).map(e => e.name);
             let subFpArr = subFnArr.map(e => path.resolve(tempDir, e));
-            if(subFnArr.length > 0){
-                imgFolders[tempDir] = subFpArr;
+            
+
+            const sub1 = subFpArr.filter(isDisplayableInOnebook);
+            if(sub1.length > 0){
+                imgFolders[tempDir] = sub1;
+            } 
+
+            let subDirs = subArr.filter(e => e.isDirectory());
+            let sub2 = subFpArr.filter(isDisplayableInExplorer);
+            if(subDirs.length === 0 && sub2.length === 0){
+                //going to remove 
+                will_remove[tempDir] = true;
             }
         }catch(e){
             console.warn(e);
         }
     }
+
+    _dirs = _dirs.filter(e => !will_remove[e]);
 
     end3 = (new Date).getTime();
     console.log(`[listNoScanDir] ${(end3 - end1) / 1000}s `);
