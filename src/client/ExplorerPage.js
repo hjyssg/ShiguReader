@@ -29,6 +29,8 @@ const { isVideo, isCompress, isImage, isMusic } = util;
 const sortUtil = require("../common/sortUtil");
 const AdminUtil = require("./AdminUtil");
 
+import { GlobalContext } from './globalContext'
+
 const { TIME_DOWN,
     TIME_UP,
     BY_FOLDER_DOWN,
@@ -271,10 +273,15 @@ export default class ExplorerPage extends Component {
         }
     }
 
+    isLackInfoMode(){
+        return this.mode === "lack_info_mode";
+    }
+
     handleRes(res) {
         if (!res.isFailed()) {
-            let { dirs, tag, author, fileInfos, thumbnails, dirThumbnails, zipInfo, imgFolders, imgFolderInfo, guessIfUserLike } = res.json;
+            let { dirs, mode, tag, author, fileInfos, thumbnails, dirThumbnails, zipInfo, imgFolders, imgFolderInfo, guessIfUserLike, hdd_list } = res.json;
             this.loadedHash = this.getTextFromQuery();
+            this.mode = mode;
             this.fileInfos = fileInfos || {};
             const files = _.keys(this.fileInfos) || [];
             this.videoFiles = files.filter(isVideo);
@@ -288,6 +295,7 @@ export default class ExplorerPage extends Component {
             this.guessIfUserLike = guessIfUserLike || {};
             this.imgFolders = imgFolders || {};
             this.imgFolderInfo = imgFolderInfo || {};
+            this.hdd_list = hdd_list || [];
             this.res = res;
 
             this.allfileInfos = _.extend({}, this.fileInfos, this.imgFolderInfo);
@@ -335,10 +343,12 @@ export default class ExplorerPage extends Component {
     //comes from file db.
     //may not be reliable
     getFileSize(e) {
-        if (this.imgFolderInfo[e]) {
-            return this.imgFolderInfo[e].size;
-        }
-        return (this.fileInfos[e] && this.fileInfos[e].size) || 0;
+        const temp = this.imgFolderInfo[e] || this.fileInfos[e];
+        return (temp && temp.size) || 0;
+    }
+
+    hasFileSize(e) {
+        return !!this.getFileSize(e);
     }
 
     getAllFileSize(files) {
@@ -372,18 +382,18 @@ export default class ExplorerPage extends Component {
     //because sometimes, filename dont chane but the size change 
     getTotalImgSize(fp) {
         if (this.imgFolders[fp]) {
-            return this.imgFolderInfo[fp].totalImgSize;
+            return (this.imgFolderInfo[fp] && this.imgFolderInfo[fp].totalImgSize) || 0;
         }
         return +(this.zipInfo[fp] && this.zipInfo[fp].totalImgSize) || 0;
     }
 
     //may not be reliable
-    getPageAvgSize(e, forDisplay) {
+    getPageAvgSize(e) {
         const pageNum = this.getPageNum(e);
         if (pageNum === 0) {
             //one for display
             //one for sort 
-            return forDisplay ? 0 : -Infinity;
+            return -Infinity;
         }
 
         //choose the min
@@ -586,7 +596,7 @@ export default class ExplorerPage extends Component {
             if (!this.res) {
                 return (<CenterSpinner text={this.getTextFromQuery()} />);
             } else {
-                const str = this.getMode() === MODE_EXPLORER ? "0 Folder 0 Zip 0 Video" : "Empty Result";
+                const str = this.getMode() === MODE_EXPLORER ? "This folder is empty" : "Empty Result";
                 return (<div className="one-book-nothing-available">
                     <div className="alert alert-secondary" role="alert">{str}</div>
                 </div>);
@@ -623,6 +633,18 @@ export default class ExplorerPage extends Component {
             dirItems = dirs.map((item) => {
                 const toUrl = clientUtil.getExplorerLink(item);
                 const text = this.getMode() === MODE_HOME ? item : getBaseName(item);
+                const result = this.getOneLineListItem(<i className="far fa-folder"></i>, text, item);
+                return <Link to={toUrl} key={item}>{result}</Link>;
+            });
+        }
+
+        let hddItems;
+        if (this.getMode() == MODE_HOME) {
+            hddItems = this.hdd_list.map((item) => {
+                // const toUrl = clientUtil.getExplorerLink(item);
+                // F: 的时候，会莫名其妙显示shigureader文件夹的内容
+                const toUrl = clientUtil.getExplorerLink(item + "\\\\");
+                const text = item;
                 const result = this.getOneLineListItem(<i className="far fa-folder"></i>, text, item);
                 return <Link to={toUrl} key={item}>{result}</Link>;
             });
@@ -666,10 +688,10 @@ export default class ExplorerPage extends Component {
             const text = getBaseName(item);
             const toUrl = clientUtil.getOneBookLink(item);
 
-            const fileSize = this.getFileSize(item);
+            const fileSize = this.hasFileSize(item) && this.getFileSize(item);
             const fileSizeStr = fileSize && filesizeUitl(fileSize);
 
-            const avgSize = this.getPageAvgSize(item, "for-dispaly");
+            const avgSize = this.hasFileSize(item) && this.getPageAvgSize(item);
             const avgSizeStr = avgSize && filesizeUitl(avgSize);
 
             let seperator;
@@ -679,7 +701,7 @@ export default class ExplorerPage extends Component {
                 const prev = files[index - 1];
                 if (!prev || getDir(prev) !== getDir(item)) {
                     seperator = (<div className="col-12" key={item + "---seperator"}>
-                        <Breadcrumb path={getDir(item)} className={breadcrumbCount > 0 ? "not-first-breadcrumb folder-seperator" : "folder-seperator"} />
+                        <Breadcrumb sep={this.context.file_path_sep} path={getDir(item)} className={breadcrumbCount > 0 ? "not-first-breadcrumb folder-seperator" : "folder-seperator"} />
                     </div>);
                     breadcrumbCount++;
                 }
@@ -767,6 +789,7 @@ export default class ExplorerPage extends Component {
                         </div>
                     </div>
                 }
+                <ItemsContainer items={hddItems} neverCollapse />
                 <ItemsContainer className="video-list" items={normalVideos} />
                 <ItemsContainer items={avVideos} />
                 {this.renderPagination(filteredFiles, filteredVideos)}
@@ -946,14 +969,22 @@ export default class ExplorerPage extends Component {
         const isAuthor = mode == MODE_AUTHOR;
         const url = clientUtil.getSearhLink(this.getTextFromQuery());
 
+        const isInfoMode = !this.isLackInfoMode();
+
+        const warning = this.isLackInfoMode() && (
+            <div className="alert alert-warning" role="alert">
+                {`Warning: ${this.getTextFromQuery()} is not included in path-config.`}
+            </div>
+        );
+
         let topButtons = (
             <div className="top-button-gropus row">
                 <div className="col-6 col-md-4"> {this.renderToggleFolferThumbNailButton()} </div>
                 <div className="col-6 col-md-4"> {this.renderToggleThumbNailButton()} </div>
                 <div className="col-6 col-md-4"> {this.renderShowVideoButton()} </div>
                 
-                <div className="col-6 col-md-4"> {this.renderChartButton()} </div>
-                {isExplorer &&
+                {isInfoMode &&  <div className="col-6 col-md-4"> {this.renderChartButton()} </div> }
+                {isExplorer && isInfoMode &&
                     <div className="col-6 col-md-4"> {this.renderLevelButton()} </div>}
                 {isExplorer &&
                     <div className="col-6 col-md-4"> {this.renderPregenerateButton()} </div>}
@@ -970,11 +1001,12 @@ export default class ExplorerPage extends Component {
             </div>);
 
         const breadcrumb = isExplorer && (<div className="row">
-            <Breadcrumb path={this.getPathFromQuery()} className="col-12" />
+            <Breadcrumb sep={this.context.file_path_sep} path={this.getPathFromQuery()} className="col-12" />
         </div>);
 
         return (<div className="container explorer-top-bar-container">
             {breadcrumb}
+            {warning}
             {this.renderFileCount(filteredFiles, filteredVideos)}
             {topButtons}
         </div>);
@@ -1279,3 +1311,6 @@ ExplorerPage.propTypes = {
     openDirFunc: PropTypes.func,
     filterText: PropTypes.string
 };
+
+
+ExplorerPage.contextType = GlobalContext;

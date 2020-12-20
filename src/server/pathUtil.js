@@ -106,21 +106,21 @@ async function filterNonExist(pathes) {
 //     return result;
 // }
 
-async function getHomePath() {
+async function getScanPath() {
     const path_config_path = path.join(getRootPath(), "path-config.ini");
     const fContent1 = fs.readFileSync(path_config_path).toString();
 
     const path_config = ini.parse(fContent1);
-    const {scan_and_watch_path, only_scan_path} = path_config
-    let path_will_scan = [].concat(scan_and_watch_path, only_scan_path);
+    let scan_path =  [].concat(path_config.path);
 
     const move_path_config_path = path.join(getRootPath(), "move-path-config.ini");
     const fContent2 = fs.readFileSync(move_path_config_path).toString();
     const moveObj = ini.parse(fContent2);
-    global.good_folder_root = moveObj.good_folder_root;
-    global.not_good_folder_root= moveObj.not_good_folder_root;
-    global.additional_folder = moveObj.additional_folder;
 
+    const { good_folder_root, not_good_folder_root} = moveObj;
+
+    global.good_folder_root = good_folder_root;
+    global.not_good_folder_root= not_good_folder_root;
     //less freedom for more noob-friendly
 
     //add good folder
@@ -129,46 +129,22 @@ async function getHomePath() {
     let mm = now.getMonth() + 1;
     mm = (mm < 10) ? ("0" + (mm).toString()) : (mm).toString();
     const fd = "good_" + [y, mm, "01"].join("_");
-    global.good_folder = global.good_folder_root && path.resolve(global.good_folder_root, fd);
+    global.good_folder = good_folder_root && path.resolve(good_folder_root, fd);
 
     //add not good folder
     const fd2 = "not_good_" + y;
-    global.not_good_folder = global.not_good_folder_root && path.resolve(global.not_good_folder_root, fd2);
+    global.not_good_folder = not_good_folder_root && path.resolve(not_good_folder_root, fd2);
 
-    path_will_scan = path_will_scan.concat(global.good_folder, global.good_folder_root, global.not_good_folder);
-    path_will_scan = await filterNonExist(path_will_scan);
+    scan_path = scan_path.concat(good_folder, good_folder_root, 
+                                           not_good_folder_root, not_good_folder);
 
-    //if user options, choose test samples
-    const test_sample_path = path.resolve(rootPath, "test_samples");
-    if (path_will_scan.length === 0 && (await isExist(test_sample_path))) {
-        path_will_scan.push(test_sample_path);
-    }
+    scan_path.push(getImgConverterCachePath());
+    scan_path.push(getZipOutputCachePath());
 
-    //if not test samples, choose user folder
-    if (path_will_scan.length === 0) {
-        if (isWindows()) {
-            const getDownloadsFolder = require('downloads-folder');
-            path_will_scan.push(getDownloadsFolder());
-        } else {
-            //downloads-folder cause error on unix
-            path_will_scan.push(`${process.env.HOME}/Downloads`);
-        }
-    }
-
-
-    path_will_scan.push(getImgConverterCachePath());
-    path_will_scan.push(getZipOutputCachePath());
-
-    path_will_scan = _.uniq(path_will_scan);
-    path_will_scan = await filterNonExist(path_will_scan);
-
-    home_pathes = path_will_scan;
-    const path_will_watch = path_will_scan.filter(e => !only_scan_path.includes(e));
+    scan_path = _.uniq(scan_path);
 
     return {
-        home_pathes,
-        path_will_scan,
-        path_will_watch
+        scan_path
     };
 }
 
@@ -189,7 +165,7 @@ module.exports = {
     isExist,
     isDirectParent,
     isSub,
-    getHomePath,
+    getScanPath,
     getImgConverterCachePath,
     getZipOutputCachePath
 };

@@ -60,8 +60,8 @@ class App extends Component {
 
     handleKeyDown(e) {
         if (e.which === 13 || e.keyCode === 13) {
-            //enter key
-            if (event.target.tagName !== "INPUT") {
+            //enter key to toggle 
+            if (e.target.tagName !== "INPUT") {
                 screenfull.toggle();
             }
         }
