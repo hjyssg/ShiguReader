@@ -19,20 +19,19 @@ Read Comic/Play Music and Video on all platforms
 ##### Features
 
 * display the thumbnails of zip/rar/7zip files
-* sort/search files
 * re-compress images to save disk space
 * move/delete files
-* play music files that are in the compressed files
+* play music files that are in the zip/rar/7zip files
 * play mp4/mkv/avi files and display their tags
-* show statistics chart of all collections
+* show statistics chart
 * same color theme as exh**tai
 * support Windows/*nix servers
-* client can run on any modern browser(except IE/Edge), including mobile phone(no need to install other softwares)
-* browse image files in folders 
+* client can run on any modern browser(except IE), including mobile phone and tablet(no need to install any other softwares)
+
 
 ### File Format Support
 
-* Support regular zip/rar/7zip files  
+* Compressed files: zip/rar/7zip files  
 * Format support of image/video/music files depends on the browser. Support typical jpg,png,png,mp4,avi,mp3,wav files  
 * More details in src/util.js
 
@@ -43,7 +42,7 @@ Read Comic/Play Music and Video on all platforms
 * For *nix users and developers, please refer to [Readme_Env_Setup](https://github.com/hjyssg/ShiguReader/blob/dev/Readme_Env_Setup.md)
 
 ### Third Party Dependency
-It is nice to have, but not necessary
+It is nice to have. But ShiguReader can run without it.
 install imagemagick  from https://imagemagick.org
 
 ##### Safety
