@@ -180,8 +180,6 @@ async function init() {
         initThumbnailDb(thumbnail_pathes);
     
     
-        console.log("scanning local files");
-    
         let will_scan = _.sortBy(scan_path, e => e.length); //todo
         for(let ii = 0; ii < will_scan.length; ii++){
             for(let jj = ii+1; jj < will_scan.length; jj++){
@@ -193,9 +191,8 @@ async function init() {
                 }
             }
         }
-        
         will_scan = will_scan.filter(e => e !== "_to_remove_");
-    
+        console.log("---------scanning local files----------------");
         for(let ii = 0; ii < will_scan.length; ii++){
             const pp = will_scan[ii];
             console.log("-----------scan ", pp, "--------------------");
@@ -208,12 +205,13 @@ async function init() {
             let end1 = (new Date).getTime();
             console.log(`${(end1 - beg) / 1000}s to scan ${pp}`);
     
-            // console.log("Analyzing local files");
             db.initFileToInfo(results.infos);
             let end3 = (new Date).getTime();
             console.log(`${(end3 - end1) / 1000}s to analyze ${pp}`);
         }
-    
+        
+        console.log("----------finish all scan----------")
+
         //todo: chokidar will slow the server down very much when it init async
         setUpFileWatch(scan_path);
     
@@ -247,8 +245,6 @@ function getThumbCount() {
 }
 
 global.getThumbCount = getThumbCount;
-
-
 
 //this function which files will be scanned and watched by ShiguReader
 function shouldWatchForNormal(p) {

@@ -59,7 +59,7 @@ module.exports.getAllCacheFilePathes = function () {
 }
 
 module.exports.initFileToInfo = function (obj) {
-    db.fileToInfo = obj;
+    db.fileToInfo = _.extend(db.fileToInfo||{}, obj);
     const keys = _.keys(obj);
     const total = keys.length;
     const percent = Math.floor(25 * total / 100);
