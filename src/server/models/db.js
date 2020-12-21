@@ -62,7 +62,7 @@ module.exports.initFileToInfo = function (obj) {
     db.fileToInfo = obj;
     const keys = _.keys(obj);
     const total = keys.length;
-    const two_percent = Math.floor(2 * total / 100);
+    const percent = Math.floor(25 * total / 100);
 
     const set = {};
     for (let ii = 0; ii < total; ii++) {
@@ -70,7 +70,7 @@ module.exports.initFileToInfo = function (obj) {
         if (set[e]) {
             return;
         }
-        if (ii % two_percent === 0) {
+        if (ii % percent === 0) {
             console.log("[db initFileToInfo]:", ii, `  ${(ii / total * 100).toFixed(2)}%`);
         }
 
@@ -159,6 +159,10 @@ module.exports.getImgFolderInfo = function (imgFolders) {
         let mtimeMs = 0, size = 0, totalImgSize = 0, pageNum = 0, musicNum = 0;
         files.forEach(file => {
             const tempInfo = getFileToInfo(file);
+            if(!tempInfo){
+                return;
+            }
+
             mtimeMs += tempInfo.mtimeMs / len;
             size += tempInfo.size;
 

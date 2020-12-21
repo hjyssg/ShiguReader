@@ -148,92 +148,82 @@ async function init() {
             console.log(mobileAddress);
             console.log("Scan the QR code to open on mobile devices");
             qrcode.generate(mobileAddress);
-        } catch (e) {
-
-        }
+        } catch (e) {  }
+        
         console.log("----------------------------------------------------------------");
+
+        let { scan_path } = await getScanPath();
+        //统一mkdir
+        await mkdir(thumbnailFolderPath);
+        await mkdir(cachePath);
+        await mkdir(pathUtil.getImgConverterCachePath());
+        await mkdir(pathUtil.getZipOutputCachePath());
+    
+        const mkdirArr = scan_path;
+        for (let ii = 0; ii < mkdirArr.length; ii++) {
+            const fp = mkdirArr[ii];
+            await mkdir(fp, "quiet");
+        }
+    
+        scan_path = await pathUtil.filterNonExist(scan_path);
+        global.scan_path = scan_path;
+    
+        const cleanCache = require("../tools/cleanCache");
+        cleanCache.cleanCache(cachePath);
+    
+        console.log("----------scan thumbnail------------");
+        end1 = (new Date).getTime();
+        let thumbnail_pathes = await pfs.readdir(thumbnailFolderPath);
+        thumbnail_pathes = thumbnail_pathes.filter(isImage).map(e => path.resolve(thumbnailFolderPath, e));
+        end3 = (new Date).getTime();
+        console.log(`${(end3 - end1) / 1000}s  to read thumbnail dirs`);
+        initThumbnailDb(thumbnail_pathes);
+    
+    
+        console.log("scanning local files");
+    
+        let will_scan = _.sortBy(scan_path, e => e.length); //todo
+        for(let ii = 0; ii < will_scan.length; ii++){
+            for(let jj = ii+1; jj < will_scan.length; jj++){
+                const p1 = will_scan[ii];
+                const p2 = will_scan[jj];
+    
+                if(pathUtil.isSub(p1, p2)){
+                    will_scan[jj] = "_to_remove_";
+                }
+            }
+        }
+        
+        will_scan = will_scan.filter(e => e !== "_to_remove_");
+    
+        for(let ii = 0; ii < will_scan.length; ii++){
+            const pp = will_scan[ii];
+            console.log("-----------scan ", pp, "--------------------");
+            let beg = (new Date).getTime();
+            const scan_otption = {
+                filter: shouldWatchForNormal,
+                doLog: true
+            };
+            let results = await fileiterator([pp], scan_otption);
+            let end1 = (new Date).getTime();
+            console.log(`${(end1 - beg) / 1000}s to scan ${pp}`);
+    
+            // console.log("Analyzing local files");
+            db.initFileToInfo(results.infos);
+            let end3 = (new Date).getTime();
+            console.log(`${(end3 - end1) / 1000}s to analyze ${pp}`);
+        }
+    
+        //todo: chokidar will slow the server down very much when it init async
+        setUpFileWatch(scan_path);
+    
+        initMecab();
+
     }).on('error', (error) => {
         logger.error("[Server Init]", error.message);
-
         //exit the current program
         process.exit(22);
     });
-
-    let { scan_path } = await getScanPath();
-    //统一mkdir
-    await mkdir(thumbnailFolderPath);
-    await mkdir(cachePath);
-    await mkdir(pathUtil.getImgConverterCachePath());
-    await mkdir(pathUtil.getZipOutputCachePath());
-
-    const mkdirArr = scan_path;
-    for (let ii = 0; ii < mkdirArr.length; ii++) {
-        const fp = mkdirArr[ii];
-        await mkdir(fp, "quiet");
-    }
-
-    scan_path = await pathUtil.filterNonExist(scan_path);
-    global.scan_path = scan_path;
-
-    const cleanCache = require("../tools/cleanCache");
-    cleanCache.cleanCache(cachePath);
-
-    console.log("----------scan thumbnail------------");
-    end1 = (new Date).getTime();
-    let thumbnail_pathes = await pfs.readdir(thumbnailFolderPath);
-    thumbnail_pathes = thumbnail_pathes.filter(isImage).map(e => path.resolve(thumbnailFolderPath, e));
-    end3 = (new Date).getTime();
-    console.log(`${(end3 - end1) / 1000}s  to read thumbnail dirs`);
-    initThumbnailDb(thumbnail_pathes);
-
-
-    console.log("scanning local files");
-
-    let will_scan = _.sortBy(scan_path, e => e.length); //todo
-    for(let ii = 0; ii < will_scan.length; ii++){
-        for(let jj = ii+1; jj < will_scan.length; jj++){
-            const p1 = will_scan[ii];
-            const p2 = will_scan[jj];
-
-            if(pathUtil.isSub(p1, p2)){
-                will_scan[jj] = "_to_remove_";
-            }
-        }
-    }
-    
-    will_scan = will_scan.filter(e => e !== "_to_remove_");
-
-    for(let ii = 0; ii < will_scan.length; ii++){
-        let pp = [will_scan[ii]] ;
-
-        let beg = (new Date).getTime();
-        const everything_connector = require("../tools/everything_connector");
-        const scan_otption = {
-            filter: shouldWatchForNormal,
-            doLog: true,
-            port: etc_config.everything_http_server_port
-        };
-        let results = etc_config.everything_http_server_port &&
-            isWindows() &&
-            await everything_connector.getAllFileinPath(pp, scan_otption);
-        if (!results) {
-            results = await fileiterator(pp, scan_otption);
-        }
-        let end1 = (new Date).getTime();
-        console.log(`${(end1 - beg) / 1000}s to read local dirs`);
-
-        console.log("Analyzing local files");
-        db.initFileToInfo(results.infos);
-        const total_count = getAllFilePathes().length;
-        console.log("There are", total_count, "files");
-        let end3 = (new Date).getTime();
-        console.log(`${(end3 - end1) / 1000}s to analyze local files`);
-    }
-
-    //todo: chokidar will slow the server down very much when it init async
-    setUpFileWatch(scan_path);
-
-    initMecab();
 }
 
 function addToThumbnailDb(filePath) {
