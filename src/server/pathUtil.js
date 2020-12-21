@@ -68,6 +68,8 @@ function isSub(parent, child) {
     return parent && child && child.length > parent.length && child.startsWith(parent) && child[parent.length] === path.sep;
 }
 
+console.assert(isSub("D:\\_Happy_Lesson\\_Going_to_sort\\_not_good\\", "D:\\_Happy_Lesson\\_Going_to_sort\\_not_good\\not_good_2020"))
+
 async function filterNonExist(pathes) {
     for (let ii = 0; ii < pathes.length; ii++) {
         const e = pathes[ii];

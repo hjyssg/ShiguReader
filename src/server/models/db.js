@@ -75,7 +75,7 @@ module.exports.initFileToInfo = function (obj) {
         }
 
         set[e] = true;
-        updateFileDb(e, "insert")
+        updateFileDb(e)
     }
 }
 
