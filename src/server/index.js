@@ -149,9 +149,9 @@ async function init() {
             console.log("Scan the QR code to open on mobile devices");
             qrcode.generate(mobileAddress);
         } catch (e) {  }
-        
-        console.log("----------------------------------------------------------------");
 
+
+        console.log("----------------------------------------------------------------");
         let { scan_path } = await getScanPath();
         //统一mkdir
         await mkdir(thumbnailFolderPath);
@@ -176,9 +176,10 @@ async function init() {
         let thumbnail_pathes = await pfs.readdir(thumbnailFolderPath);
         thumbnail_pathes = thumbnail_pathes.filter(isImage).map(e => path.resolve(thumbnailFolderPath, e));
         end3 = (new Date).getTime();
-        console.log(`${(end3 - end1) / 1000}s  to read thumbnail dirs`);
+        console.log(`[scan thumbnail] ${(end3 - end1) / 1000}s  to read thumbnail dirs`);
         initThumbnailDb(thumbnail_pathes);
-    
+        console.log("--------------------------------")
+        
     
         let will_scan = _.sortBy(scan_path, e => e.length); //todo
         for(let ii = 0; ii < will_scan.length; ii++){
@@ -192,7 +193,9 @@ async function init() {
             }
         }
         will_scan = will_scan.filter(e => e !== "_to_remove_");
-        console.log("---------scanning local files----------------");
+
+        // console.log(will_scan.join("\n"));
+
         for(let ii = 0; ii < will_scan.length; ii++){
             const pp = will_scan[ii];
             console.log("-----------scan ", pp, "--------------------");
@@ -203,20 +206,20 @@ async function init() {
             };
             let results = await fileiterator([pp], scan_otption);
             let end1 = (new Date).getTime();
-            console.log(`${(end1 - beg) / 1000}s to scan ${pp}`);
+            // console.log(`${(end1 - beg) / 1000}s to scan ${pp}`);
     
             db.initFileToInfo(results.infos);
             let end3 = (new Date).getTime();
-            console.log(`${(end3 - end1) / 1000}s to analyze ${pp}`);
+            // console.log(`${(end3 - end1) / 1000}s to analyze ${pp}`);
         }
         
         console.log("----------finish all scan----------")
 
         //todo: chokidar will slow the server down very much when it init async
-        setUpFileWatch(scan_path);
-    
+        setUpFileWatch(will_scan);
+        
+        //
         initMecab();
-
     }).on('error', (error) => {
         logger.error("[Server Init]", error.message);
         //exit the current program
