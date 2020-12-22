@@ -70,7 +70,7 @@ module.exports.getAllFileinPath = async function (fpArr, config) {
 
                 const currentLen = jj;
 
-                if (config && config.doLog && currentLen % 1000 === 0) {
+                if (config && config.doLog && currentLen % 2000 === 0) {
                     // console.log(p)
                     console.log("[everything_connector] scan:", currentLen, `  ${(currentLen / len * 100).toFixed(2)}%`);
                 }

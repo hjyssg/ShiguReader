@@ -44,5 +44,4 @@ npm run dev
 | image magick  | no        | nice to have                   |
 | 7-Zip         | *      | Windows does not need to install. Must have for *nix |
 | git bash      | *         | must have for Windows, no for *nix |
-| everything    | no        | nice to have    |
 | MeCab         | no        | nice to have |
