@@ -250,10 +250,16 @@ function getThumbCount() {
 global.getThumbCount = getThumbCount;
 
 //this function which files will be scanned and watched by ShiguReader
-function shouldWatchForNormal(p) {
+function shouldWatchForNormal(p, stat) {
     if (isHiddenFile(p)) {
-        return false;
+        return false;   
     }
+
+    //if ignore, chokidar wont check its content
+    if(stat && stat.isDirectory()){
+        return true;
+    }
+
     const ext = serverUtil.getExt(p);
     //not accurate, but performance is good. access each file is very slow
     const isFolder = !ext;
@@ -265,18 +271,24 @@ function shouldWatchForNormal(p) {
     return result;
 }
 
-function shouldIgnoreForNormal(p) {
-    return !shouldWatchForNormal(p);
+function shouldIgnoreForNormal(p, stat) {
+    return !shouldWatchForNormal(p, stat);
 }
 
-function shouldIgnoreForCache(p) {
-    return !shouldWatchForCache(p);
+function shouldIgnoreForCache(p, stat) {
+    return !shouldWatchForCache(p, stat);
 }
 
-function shouldWatchForCache(p) {
+function shouldWatchForCache(p, stat) {
     if (isHiddenFile(p)) {
         return false;
     }
+
+    //if ignore, chokidar wont check its content
+    if(stat && stat.isDirectory()){
+        return true;
+    }
+
     const ext = serverUtil.getExt(p);
     return !ext || isDisplayableInOnebook(ext) || isVideo(ext);
 }
@@ -284,6 +296,9 @@ function shouldWatchForCache(p) {
 
 const chokidar = require('chokidar');
 function setUpFileWatch(scan_path) {
+    console.log("[chokidar] begin...");
+    let beg = (new Date).getTime();
+
     //watch file change 
     //update two database
     const watcher = chokidar.watch(scan_path, {
@@ -322,7 +337,10 @@ function setUpFileWatch(scan_path) {
         .on('unlinkDir', deleteCallBack);
 
     //todo: it takes 3 min to get ready for 130k files
-    watcher.on('ready', () => console.log('[chokidar] Initial scan complete.'))
+    watcher.on('ready', () => {
+        let end1 = (new Date).getTime();
+        console.log(`[chokidar] ${(end1 - beg) / 1000}s scan complete.`)
+    })
 
     //also for cache files
     const cacheWatcher = chokidar.watch(cachePath, {
