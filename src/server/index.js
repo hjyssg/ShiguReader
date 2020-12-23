@@ -332,14 +332,13 @@ function setUpFileWatch(scan_path) {
         .on('unlink', deleteCallBack);
 
     // More possible events.
-    // watcher
-    //     .on('addDir', addCallBack)
-    //     .on('unlinkDir', deleteCallBack);
+    watcher
+        .on('addDir', addCallBack)
+        .on('unlinkDir', deleteCallBack);
 
     //todo: it takes 3 min to get ready for 130k files
     watcher.on('ready', () => {
         let end1 = (new Date).getTime();
-        // console.log(`${(end1 - beg) / 1000}s to scan ${pp}`);
         console.log(`[chokidar] ${(end1 - beg) / 1000}s scan complete.`)
     })
 
