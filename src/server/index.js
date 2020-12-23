@@ -170,16 +170,16 @@ async function init() {
     
         const cleanCache = require("../tools/cleanCache");
         cleanCache.cleanCache(cachePath);
+        setUpCacheWatch();
+
+        initMecab();
     
-        console.log("----------scan thumbnail------------");
         end1 = (new Date).getTime();
         let thumbnail_pathes = await pfs.readdir(thumbnailFolderPath);
         thumbnail_pathes = thumbnail_pathes.filter(isImage).map(e => path.resolve(thumbnailFolderPath, e));
         end3 = (new Date).getTime();
         console.log(`[scan thumbnail] ${(end3 - end1) / 1000}s  to read thumbnail dirs`);
         initThumbnailDb(thumbnail_pathes);
-        console.log("--------------------------------")
-        
     
         let will_scan = _.sortBy(scan_path, e => e.length); //todo
         for(let ii = 0; ii < will_scan.length; ii++){
@@ -194,14 +194,9 @@ async function init() {
         }
         will_scan = will_scan.filter(e => e !== "_to_remove_");
 
-        // console.log(will_scan.join("\n"));
-        console.log("----------finish all scan----------")
-
         //todo: chokidar will slow the server down very much when it init async
         setUpFileWatch(will_scan);
-        
-        //
-        initMecab();
+    
     }).on('error', (error) => {
         logger.error("[Server Init]", error.message);
         //exit the current program
@@ -244,8 +239,14 @@ function shouldWatchForNormal(p, stat) {
 
     const ext = serverUtil.getExt(p);
     //not accurate, but performance is good. access each file is very slow
-    const isFolder = !ext;
-    let result = isFolder || isDisplayableInExplorer(ext);
+    let result = !ext || isDisplayableInExplorer(ext);
+
+
+    // if(isImage(p)){
+    //  // no able to detect image delete
+    //     updateStatToDb(p, stat||{});
+    //     return false;
+    // }
 
     if (view_img_folder) {
         result = result || isDisplayableInOnebook(ext)
@@ -273,6 +274,31 @@ function shouldWatchForCache(p, stat) {
 
     const ext = serverUtil.getExt(p);
     return !ext || isDisplayableInOnebook(ext) || isVideo(ext);
+}
+
+function setUpCacheWatch(){
+        //also for cache files
+        const cacheWatcher = chokidar.watch(cachePath, {
+            ignored: shouldIgnoreForCache,
+            persistent: true,
+            ignorePermissionErrors: true,
+            ignoreInitial: true,
+        });
+    
+        cacheWatcher
+            .on('unlinkDir', p => {
+                //todo 
+                const fp = path.dirname(p);
+                db.cacheDb.folderToFiles[fp];
+            });
+    
+        cacheWatcher
+            .on('add', (p, stats) => {
+                updateStatToCacheDb(p, stats);
+            })
+            .on('unlink', p => {
+                deleteFromCacheDb(p);
+            });
 }
 
 
@@ -314,6 +340,8 @@ function setUpFileWatch(scan_path) {
     };
 
     const deleteCallBack = path => {
+        //todo: if folder removed
+        //remove all its child
         deleteFromDb(path);
         deleteFromZipDb(path);
     };
@@ -328,39 +356,15 @@ function setUpFileWatch(scan_path) {
         .on('addDir', addCallBack)
         .on('unlinkDir', deleteCallBack);
 
-    //todo: it takes 3 min to get ready for 130k files
+    //about 1s for 1000 files
     watcher.on('ready', () => {
         is_chokidar_ready = true;
         let end1 = (new Date).getTime();
         console.log(`[chokidar] ${(end1 - beg) / 1000}s scan complete.`)
     })
 
-    //also for cache files
-    const cacheWatcher = chokidar.watch(cachePath, {
-        ignored: shouldIgnoreForCache,
-        persistent: true,
-        ignorePermissionErrors: true,
-        ignoreInitial: true,
-    });
-
-    cacheWatcher
-        .on('unlinkDir', p => {
-            //todo 
-            const fp = path.dirname(p);
-            db.cacheDb.folderToFiles[fp];
-        });
-
-    cacheWatcher
-        .on('add', (p, stats) => {
-            updateStatToCacheDb(p, stats);
-        })
-        .on('unlink', p => {
-            deleteFromCacheDb(p);
-        });
-
     return {
-        watcher,
-        cacheWatcher
+        watcher
     };
 }
 
