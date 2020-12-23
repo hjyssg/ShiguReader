@@ -133,10 +133,10 @@ async function getScanPath() {
     const fContent2 = fs.readFileSync(move_path_config_path).toString();
     const moveObj = ini.parse(fContent2);
 
-    const { good_folder_root, not_good_folder_root} = moveObj;
+    let { good_folder_root, not_good_folder_root} = moveObj;
 
-    global.good_folder_root = good_folder_root;
-    global.not_good_folder_root= not_good_folder_root;
+    global.good_folder_root = good_folder_root || "";
+    global.not_good_folder_root= not_good_folder_root || "";
     //less freedom for more noob-friendly
 
     //add good folder
