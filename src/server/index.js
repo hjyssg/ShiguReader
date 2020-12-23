@@ -195,24 +195,6 @@ async function init() {
         will_scan = will_scan.filter(e => e !== "_to_remove_");
 
         // console.log(will_scan.join("\n"));
-
-        for(let ii = 0; ii < will_scan.length; ii++){
-            const pp = will_scan[ii];
-            console.log("-----------scan ", pp, "--------------------");
-            let beg = (new Date).getTime();
-            const scan_otption = {
-                filter: shouldWatchForNormal,
-                doLog: true
-            };
-            let results = await fileiterator([pp], scan_otption);
-            let end1 = (new Date).getTime();
-            // console.log(`${(end1 - beg) / 1000}s to scan ${pp}`);
-    
-            db.initFileToInfo(results.infos);
-            let end3 = (new Date).getTime();
-            // console.log(`${(end3 - end1) / 1000}s to analyze ${pp}`);
-        }
-        
         console.log("----------finish all scan----------")
 
         //todo: chokidar will slow the server down very much when it init async
@@ -294,6 +276,7 @@ function shouldWatchForCache(p, stat) {
 }
 
 
+let is_chokidar_ready = false;
 const chokidar = require('chokidar');
 function setUpFileWatch(scan_path) {
     console.log("[chokidar] begin...");
@@ -303,21 +286,30 @@ function setUpFileWatch(scan_path) {
     //update two database
     const watcher = chokidar.watch(scan_path, {
         ignored: shouldIgnoreForNormal,
-        ignoreInitial: true,
         persistent: true,
         ignorePermissionErrors: true
     });
+
+    let init_count = 0;
 
     const addCallBack = (path, stats) => {
         serverUtil.parse(path);
         updateStatToDb(path, stats);
 
-        if (isCompress(path) && stats.size > 1 * 1024 * 1024) {
-            //do it slowly to avoid the file used by the other process
-            //this way is cheap than the really detection
-            setTimeout(() => {
-                listZipContentAndUpdateDb(path);
-            }, 3000);
+        if(is_chokidar_ready){
+            if (isCompress(path) && stats.size > 1 * 1024 * 1024) {
+                //do it slowly to avoid the file used by the other process
+                //this way is cheap than the really detection
+                setTimeout(() => {
+                    listZipContentAndUpdateDb(path);
+                }, 3000);
+            }
+        }else{
+            init_count++;
+            if (init_count % 2000 === 0) {
+                let end1 = (new Date).getTime();
+                console.log(`[chokidar] scan: ${(end1 - beg) / 1000}s  ${init_count} ${path}` );
+            }
         }
     };
 
@@ -338,6 +330,7 @@ function setUpFileWatch(scan_path) {
 
     //todo: it takes 3 min to get ready for 130k files
     watcher.on('ready', () => {
+        is_chokidar_ready = true;
         let end1 = (new Date).getTime();
         console.log(`[chokidar] ${(end1 - beg) / 1000}s scan complete.`)
     })
