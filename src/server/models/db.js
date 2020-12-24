@@ -136,8 +136,14 @@ module.exports.getFileCollection = function () {
 //!! same as file-iterator getStat()
 module.exports.updateStatToDb = function (path, stat) {
     const result = {};
-    result.isFile = stat.isFile();
-    result.isDir = stat.isDirectory();
+
+    if(!stat){
+        //happon on mac
+        console.log(path, "has no stat");
+    }
+
+    result.isFile = stat && stat.isFile();
+    result.isDir = stat && stat.isDirectory();
     result.mtimeMs = stat.mtimeMs;
     result.mtime = stat.mtime;
     result.size = stat.size;
