@@ -170,16 +170,16 @@ async function init() {
     
         const cleanCache = require("../tools/cleanCache");
         cleanCache.cleanCache(cachePath);
+        setUpCacheWatch();
+
+        initMecab();
     
-        console.log("----------scan thumbnail------------");
         end1 = (new Date).getTime();
         let thumbnail_pathes = await pfs.readdir(thumbnailFolderPath);
         thumbnail_pathes = thumbnail_pathes.filter(isImage).map(e => path.resolve(thumbnailFolderPath, e));
         end3 = (new Date).getTime();
         console.log(`[scan thumbnail] ${(end3 - end1) / 1000}s  to read thumbnail dirs`);
         initThumbnailDb(thumbnail_pathes);
-        console.log("--------------------------------")
-        
     
         let will_scan = _.sortBy(scan_path, e => e.length); //todo
         for(let ii = 0; ii < will_scan.length; ii++){
@@ -194,32 +194,9 @@ async function init() {
         }
         will_scan = will_scan.filter(e => e !== "_to_remove_");
 
-        // console.log(will_scan.join("\n"));
-
-        for(let ii = 0; ii < will_scan.length; ii++){
-            const pp = will_scan[ii];
-            console.log("-----------scan ", pp, "--------------------");
-            let beg = (new Date).getTime();
-            const scan_otption = {
-                filter: shouldWatchForNormal,
-                doLog: true
-            };
-            let results = await fileiterator([pp], scan_otption);
-            let end1 = (new Date).getTime();
-            // console.log(`${(end1 - beg) / 1000}s to scan ${pp}`);
-    
-            db.initFileToInfo(results.infos);
-            let end3 = (new Date).getTime();
-            // console.log(`${(end3 - end1) / 1000}s to analyze ${pp}`);
-        }
-        
-        console.log("----------finish all scan----------")
-
         //todo: chokidar will slow the server down very much when it init async
         setUpFileWatch(will_scan);
-        
-        //
-        initMecab();
+    
     }).on('error', (error) => {
         logger.error("[Server Init]", error.message);
         //exit the current program
@@ -249,9 +226,25 @@ function getThumbCount() {
 
 global.getThumbCount = getThumbCount;
 
+const junk = require('junk');
+
+const forbid = ["System Volume Information", 
+                "$Recycle.Bin", 
+                "Config.Msi", 
+                "$WinREAgent", 
+                "Windows", 
+                "msdownld.tmp",
+                "node_modules"];
+function isForbid(str){
+    str = str.toLocaleLowerCase();
+    return forbid.some(e => {
+        return  path.basename(str) === e.toLocaleLowerCase();
+    });
+}
+
 //this function which files will be scanned and watched by ShiguReader
 function shouldWatchForNormal(p, stat) {
-    if (isHiddenFile(p)) {
+    if (isHiddenFile(p) || junk.is(p) || isForbid(p)) {
         return false;   
     }
 
@@ -293,7 +286,33 @@ function shouldWatchForCache(p, stat) {
     return !ext || isDisplayableInOnebook(ext) || isVideo(ext);
 }
 
+function setUpCacheWatch(){
+        //also for cache files
+        const cacheWatcher = chokidar.watch(cachePath, {
+            ignored: shouldIgnoreForCache,
+            persistent: true,
+            ignorePermissionErrors: true,
+            ignoreInitial: true,
+        });
+    
+        cacheWatcher
+            .on('unlinkDir', p => {
+                //todo 
+                const fp = path.dirname(p);
+                db.cacheDb.folderToFiles[fp];
+            });
+    
+        cacheWatcher
+            .on('add', (p, stats) => {
+                updateStatToCacheDb(p, stats);
+            })
+            .on('unlink', p => {
+                deleteFromCacheDb(p);
+            });
+}
 
+
+let is_chokidar_ready = false;
 const chokidar = require('chokidar');
 function setUpFileWatch(scan_path) {
     console.log("[chokidar] begin...");
@@ -303,25 +322,37 @@ function setUpFileWatch(scan_path) {
     //update two database
     const watcher = chokidar.watch(scan_path, {
         ignored: shouldIgnoreForNormal,
-        ignoreInitial: true,
         persistent: true,
         ignorePermissionErrors: true
     });
+
+    let init_count = 0;
 
     const addCallBack = (path, stats) => {
         serverUtil.parse(path);
         updateStatToDb(path, stats);
 
-        if (isCompress(path) && stats.size > 1 * 1024 * 1024) {
-            //do it slowly to avoid the file used by the other process
-            //this way is cheap than the really detection
-            setTimeout(() => {
-                listZipContentAndUpdateDb(path);
-            }, 3000);
+        if(is_chokidar_ready){
+            // no very useful
+            // if (isCompress(path) && stats.size > 1 * 1024 * 1024) {
+            //     //do it slowly to avoid the file used by the other process
+            //     //this way is cheap than the really detection
+            //     setTimeout(() => {
+            //         listZipContentAndUpdateDb(path);
+            //     }, 3000);
+            // }
+        }else{
+            init_count++;
+            if (init_count % 2000 === 0) {
+                let end1 = (new Date).getTime();
+                console.log(`[chokidar] scan: ${(end1 - beg) / 1000}s  ${init_count} ${path}` );
+            }
         }
     };
 
     const deleteCallBack = path => {
+        //todo: if folder removed
+        //remove all its child
         deleteFromDb(path);
         deleteFromZipDb(path);
     };
@@ -336,38 +367,15 @@ function setUpFileWatch(scan_path) {
         .on('addDir', addCallBack)
         .on('unlinkDir', deleteCallBack);
 
-    //todo: it takes 3 min to get ready for 130k files
+    //about 1s for 1000 files
     watcher.on('ready', () => {
+        is_chokidar_ready = true;
         let end1 = (new Date).getTime();
         console.log(`[chokidar] ${(end1 - beg) / 1000}s scan complete.`)
     })
 
-    //also for cache files
-    const cacheWatcher = chokidar.watch(cachePath, {
-        ignored: shouldIgnoreForCache,
-        persistent: true,
-        ignorePermissionErrors: true,
-        ignoreInitial: true,
-    });
-
-    cacheWatcher
-        .on('unlinkDir', p => {
-            //todo 
-            const fp = path.dirname(p);
-            db.cacheDb.folderToFiles[fp];
-        });
-
-    cacheWatcher
-        .on('add', (p, stats) => {
-            updateStatToCacheDb(p, stats);
-        })
-        .on('unlink', p => {
-            deleteFromCacheDb(p);
-        });
-
     return {
-        watcher,
-        cacheWatcher
+        watcher
     };
 }
 
