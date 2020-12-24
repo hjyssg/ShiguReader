@@ -249,9 +249,25 @@ function getThumbCount() {
 
 global.getThumbCount = getThumbCount;
 
+const junk = require('junk');
+
+const forbid = ["System Volume Information", 
+                "$Recycle.Bin", 
+                "Config.Msi", 
+                "$WinREAgent", 
+                "Windows", 
+                "msdownld.tmp",
+                "node_modules"];
+function isForbid(str){
+    str = str.toLocaleLowerCase();
+    return forbid.some(e => {
+        return  path.basename(str) === e.toLocaleLowerCase();
+    });
+}
+
 //this function which files will be scanned and watched by ShiguReader
 function shouldWatchForNormal(p, stat) {
-    if (isHiddenFile(p)) {
+    if (isHiddenFile(p) || junk.is(p) || isForbid(p)) {
         return false;   
     }
 
