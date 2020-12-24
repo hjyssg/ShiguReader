@@ -12,6 +12,7 @@ const pathUtil = require("./pathUtil");
 const { isImage, isCompress, isMusic, isVideo, arraySlice, getCurrentTime, isDisplayableInExplorer, isDisplayableInOnebook } = util;
 const { isExist } = pathUtil;
 
+global._has_7zip_ = true;
 let sevenZip;
 if (isWindows()) {
     const sevenZipPath = path.join(pathUtil.getRootPath(), "resource", "7zip");
@@ -21,7 +22,13 @@ if (isWindows()) {
     //assume linux/mac people already install it by cmd
     //https://superuser.com/questions/548349/how-can-i-install-7zip-so-i-can-run-it-from-terminal-on-os-x
     sevenZip = "7z";
-    console.warn("[warning] mac and *nix people need to install 7zip themselves")
+    execa(sevenZip)
+        .then(() => { })
+        .catch(e => {
+            global._has_7zip_ = false;
+            console.warn("[warning] this computer did not install 7z")
+            console.warn("[warning] mac and *nix people need to install 7zip themselves")
+        });
 }
 
 module.exports.sevenZip = sevenZip;
@@ -93,6 +100,9 @@ const get7zipOption = module.exports.get7zipOption = function (filePath, outputP
 const LIST_QUEUE = {};
 module.exports.listZipContentAndUpdateDb = async function (filePath) {
     const emptyResult = { files: [], fileInfos: [], info: {} };
+    if(!global._has_7zip_){
+        throw "this computer did not install 7z"
+    }
 
     try {
         if (!(await isExist(filePath))) {
@@ -138,6 +148,10 @@ module.exports.listZipContentAndUpdateDb = async function (filePath) {
 }
 
 module.exports.extractByRange = async function (filePath, outputPath, range) {
+    if(!global._has_7zip_){
+        throw "this computer did not install 7z"
+    }
+
     let error;
     try {
         //quitely unzip second part
@@ -174,6 +188,10 @@ module.exports.extractByRange = async function (filePath, outputPath, range) {
     }
 }
 module.exports.extractAll = async function (filePath, outputPath) {
+    if(!global._has_7zip_){
+        throw "this computer did not install 7z"
+    }
+
     const opt = get7zipOption(filePath, outputPath);
     let error, pathes
     try {
