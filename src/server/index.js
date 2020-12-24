@@ -333,13 +333,14 @@ function setUpFileWatch(scan_path) {
         updateStatToDb(path, stats);
 
         if(is_chokidar_ready){
-            if (isCompress(path) && stats.size > 1 * 1024 * 1024) {
-                //do it slowly to avoid the file used by the other process
-                //this way is cheap than the really detection
-                setTimeout(() => {
-                    listZipContentAndUpdateDb(path);
-                }, 3000);
-            }
+            // no very useful
+            // if (isCompress(path) && stats.size > 1 * 1024 * 1024) {
+            //     //do it slowly to avoid the file used by the other process
+            //     //this way is cheap than the really detection
+            //     setTimeout(() => {
+            //         listZipContentAndUpdateDb(path);
+            //     }, 3000);
+            // }
         }else{
             init_count++;
             if (init_count % 2000 === 0) {
