@@ -28,6 +28,7 @@ if (isWindows()) {
             global._has_7zip_ = false;
             console.warn("[warning] this computer did not install 7z")
             console.warn("[warning] mac and *nix people need to install 7zip themselves")
+            console.warn("On Debian and Ubuntu install the p7zip-full package.\nOn Mac OSX use Homebrew brew install p7zip")
         });
 }
 

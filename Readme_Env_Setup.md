@@ -7,6 +7,10 @@
 # install imagemagick  from https://imagemagick.org
 # It is nice to have, but is fine without it
 
+# For Mac and *nix, install 7zip by your own
+# If you are Mac user live in China, remember use http proxy 
+# https://www.logcg.com/archives/1617.html
+
 # Clone the repository or download
 git clone https://github.com/hjyssg/ShiguReader
 
