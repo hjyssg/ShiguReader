@@ -132,24 +132,35 @@ module.exports.getFileCollection = function () {
     return file_collection;
 }
 
-
+const pfs = require('promise-fs');
 //!! same as file-iterator getStat()
 module.exports.updateStatToDb = function (path, stat) {
     const result = {};
 
     if(!stat){
-        //happon on mac
-        console.log(path, "has no stat");
+        //seems only happen on mac
+        // console.log(path, "has no stat");
+
+        //todo: mac img folder do not display
+
+        pfs.stat(path).then(stat => {
+            result.isFile = stat.isFile();
+            result.isDir = stat.isDirectory();
+            result.mtimeMs = stat.mtimeMs;
+            result.mtime = stat.mtime;
+            result.size = stat.size;
+            db.fileToInfo[path] = result;
+            updateFileDb(path);
+        });
+    }else{
+        result.isFile = stat.isFile();
+        result.isDir = stat.isDirectory();
+        result.mtimeMs = stat.mtimeMs;
+        result.mtime = stat.mtime;
+        result.size = stat.size;
+        db.fileToInfo[path] = result;
+        updateFileDb(path);
     }
-
-    result.isFile = stat && stat.isFile();
-    result.isDir = stat && stat.isDirectory();
-    result.mtimeMs = stat.mtimeMs;
-    result.mtime = stat.mtime;
-    result.size = stat.size;
-    db.fileToInfo[path] = result;
-
-    updateFileDb(path);
 }
 
 module.exports.deleteFromDb = function (path) {
