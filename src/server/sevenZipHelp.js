@@ -21,6 +21,7 @@ if (isWindows()) {
     //assume linux/mac people already install it by cmd
     //https://superuser.com/questions/548349/how-can-i-install-7zip-so-i-can-run-it-from-terminal-on-os-x
     sevenZip = "7z";
+    console.warn("[warning] mac and *nix people need to install 7zip themselves")
 }
 
 module.exports.sevenZip = sevenZip;
