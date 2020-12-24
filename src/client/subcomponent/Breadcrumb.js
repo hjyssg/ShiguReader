@@ -26,11 +26,15 @@ export default class Breadcrumb extends Component {
         let { path, right, className, sep } = this.props;
         console.assert(sep);
         sep = sep || "\\";
+        const beginWithSep = path.startsWith(sep);
         const pathes = path.split(sep).filter(e => !!e);
         const pathList = [];
         //https://www.w3schools.com/howto/howto_css_breadcrumbs.asp
         for (let ii = 0; ii < pathes.length; ii++) {
             let item = pathes.slice(0, ii + 1).join(sep);
+            if(beginWithSep){
+                item = sep + item;
+            }
             if (ii === pathes.length - 1) {
                 //last one not link
                 pathList.push(<div key={item} className={"breadcrumb-item current"} onClick={this.onClickPath.bind(this)}>{pathes[ii]} </div>);
