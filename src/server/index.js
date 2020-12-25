@@ -497,7 +497,7 @@ app.post("/api/tagFirstImagePath", async (req, res) => {
     }
 
     const onlyNeedFew = true;
-    const { fileInfos } = searchByTagAndAuthor(tag, author, null, onlyNeedFew);
+    const { fileInfos } = await searchByTagAndAuthor(tag, author, null, onlyNeedFew);
     const files = _.keys(fileInfos);
     chosendFileName = serverUtil.chooseOneZipForOneTag(files, db.getFileToInfo());
     if (!chosendFileName) {

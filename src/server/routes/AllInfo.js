@@ -8,6 +8,15 @@ const getThumbnails = serverUtil.common.getThumbnails;
 const util = global.requireUtil();
 const { isDisplayableInExplorer } = util;
 
+    // sqldb.all(`SELECT DISTINCT authors FROM file_table  ORDER BY authors`, [], (err, rows) => {
+    //     if (err) {
+    //       throw err;
+    //     }
+    //     rows.forEach((row) => {
+    //       console.log(row.authors);
+    //     });
+    //   })
+
 router.post('/api/allInfo', (req, res) => {
     const needThumbnail = req.body && req.body.needThumbnail;
 

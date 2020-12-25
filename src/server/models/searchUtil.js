@@ -40,42 +40,53 @@ function searchImgFolder(tag, author, text) {
     return imgFolders;
 }
 
-function searchByText(text) {
-    const fileCollection = getFileCollection();
-
+async function searchByText(text) {
     const textInLowerCase = text.toLowerCase();
     const reg = escapeRegExp(text);
-    let results = fileCollection.chain()
-        .find({ 'fileName': { '$regex': reg }, isDisplayableInExplorer: true });
 
-    let dirResults = fileCollection.chain()
-        .find({ 'filePath': { '$regex': reg }, isDisplayableInExplorer: true })
-        .where(obj => {
-            const fp = path.dirname(obj.filePath);
-            return fp.toLowerCase().includes(textInLowerCase);
-        }).data();
+    const sqldb = db.getSQLDB();
+    let sql = `SELECT * FROM file_table WHERE filePath LIKE ?`;
+    let rows = await sqldb.allSync(sql, [( '%' + text + '%')]);
 
-    finalResult = (results && results.data()) || [];
+    let zipResult = [];
+    let dirResults = [];
+    let imgFolders = {};
+
+    rows.forEach(row => {
+        if(row.isDisplayableInExplorer){
+            zipResult.push(row);
+        }else if(row.isDisplayableInOnebook){
+            const fp = path.dirname(row.filePath);
+            if(fp.toLowerCase().includes(textInLowerCase)){
+                const fp = path.dirname(obj.filePath);
+                imgFolders[fp] = imgFolders[fp] || [];
+                imgFolders[fp].push(obj.filePath);
+            }
+        }else {
+            dirResults.push(row);
+        }
+    })
 
     return {
-        finalResult,
-        dirResults
+        zipResult,
+        dirResults,
+        imgFolders
     }
 }
 
-function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
+async function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
     let beg = (new Date).getTime()
     const fileInfos = {};
 
-    let dirResults;
-    let finalResult;
+ 
     const fileCollection = getFileCollection();
 
-    if (text) {
-        let temp = searchByText(text);
-        finalResult = temp.finalResult;
-        dirResults = temp.finalResult;
-    } else if (author) {
+    let temp = await searchByText(tag || author || text);
+    let zipResult = temp.zipResult;
+    let dirResults = temp.zipResult;
+    const imgFolders = temp.imgFolders;
+
+    if (author) {
         const reg = escapeRegExp(author);
         let groups = [];
 
@@ -105,8 +116,8 @@ function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
             });
         }
 
-        finalResult = (results && results.data()) || [];
-        finalResult = finalResult.concat(extraResults);
+        zipResult = (results && results.data()) || [];
+        zipResult = zipResult.concat(extraResults);
 
     } else if (tag) {
         const reg = escapeRegExp(tag);
@@ -117,36 +128,10 @@ function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
                 return tagArr.some(e => isEqual(tag, e));
             });
 
-        finalResult = (results && results.data()) || [];
-
-        //需要把数据ehentai的tag直接加到file_collection里面
-        // let ehentaiResults = global.searchByTag(tag);
-        // if(ehentaiResults && ehentaiResults.length > 0){
-        //tag search result is very huge
-        // e.g 50k result for ahegao
-        //so we iterate each file will be fast
-
-
-        //use ehentai data to find local files
-        // ehentaiResults.forEach(e => {
-        //     const fn = e['title_jpn'];
-        //     const parseObj = parse(fn);
-        //     if(parseObj){
-        //         let temp = searchByText(parseObj.title);
-        //         const tempResult = temp.finalResult;
-
-        //         if(tempResult && tempResult.length > 0){
-        //             finalResult = finalResult.concat(tempResult);
-        //         }
-        //     }
-        // })
-        // }
+        zipResult = (results && results.data()) || [];
     }
-    // if(onlyNeedFew){
-    //     results = results.limit(5);
-    // }
 
-    finalResult.forEach(obj => {
+    zipResult.forEach(obj => {
         const pp = obj.filePath;
         fileInfos[pp] = db.getFileToInfo(pp);
     })
@@ -160,7 +145,6 @@ function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
     let end = (new Date).getTime();
     // console.log((end - beg)/1000, "to search");
 
-    const imgFolders = searchImgFolder(tag, author, text)
     const imgFolderInfo = getImgFolderInfo(imgFolders);
 
     const getThumbnails = serverUtil.common.getThumbnails;
