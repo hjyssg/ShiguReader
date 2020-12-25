@@ -31,7 +31,6 @@ const {
   SORT_RANDOMLY
 } = Constant;
 
-const { useless_tag_regex } = util;
 
 export default class TagPage extends Component {
   constructor(prop) {
@@ -132,12 +131,11 @@ export default class TagPage extends Component {
 
 
     let items = this.getItems() || [];
-    const key = this.isAuthorMode() ? "authors" : "tags";
 
     if (_.isString(filterText)) {
       let _text = filterText.toLowerCase();
       items = items.filter(e => {
-        return e[key].toLowerCase().indexOf(_text) > -1;
+        return e.tag.toLowerCase().indexOf(_text) > -1;
       });
     }
 
@@ -151,7 +149,7 @@ export default class TagPage extends Component {
       }
     } else if (sortOrder === NAME_DOWN || sortOrder === NAME_UP) {
       items.sort((a, b) => {
-        return a[key].localeCompare(b[key]);
+        return a.tag.localeCompare(b.tag);
       });
 
       if (sortOrder === NAME_DOWN) {
@@ -186,10 +184,9 @@ export default class TagPage extends Component {
     }
 
     items = items.slice((pageIndex - 1) * this.state.perPageItemNum, pageIndex * this.state.perPageItemNum);
-    const isAuthorMode = this.isAuthorMode();
 
     const tagItems = items.map((item) => {
-      const tag = isAuthorMode? item.authors : item.tags;
+      const tag = item.tag;
       const itemText = `${tag} (${item.count})`;
       const url = this.isAuthorMode() ? clientUtil.getAuthorLink(tag) : clientUtil.getTagLink(tag);
       const thumbnailUrl = item.thumbnail && clientUtil.getFileUrl(item.thumbnail);
