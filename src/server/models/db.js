@@ -49,9 +49,10 @@ module.exports.getSQLDB = function(){
 }
 
 function insertToTagTable(filePath, tag, type){
-    if(tag){
-        sqlDb.run("INSERT OR REPLACE INTO tag_table(filePath, tag, type ) values(?, ?, ?)",  filePath, tag, type);
+    if(!tag || tag.match(util.useless_tag_regex)){
+        return;
     }
+    sqlDb.run("INSERT OR REPLACE INTO tag_table(filePath, tag, type ) values(?, ?, ?)",  filePath, tag, type);
 }
 
 const updateFileDb = function (filePath, insert) {
