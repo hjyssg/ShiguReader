@@ -33,43 +33,6 @@ const {
 
 const { useless_tag_regex } = util;
 
-//https://stackoverflow.com/questions/3665115/how-to-create-a-file-in-memory-for-user-to-download-but-not-through-server
-function download(filename, text) {
-  var element = document.createElement('a');
-  element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
-  element.setAttribute('download', filename);
-
-  element.style.display = 'none';
-  document.body.appendChild(element);
-
-  element.click();
-
-  document.body.removeChild(element);
-}
-
-
-function addOne(table, key) {
-  if (!key) {
-    return;
-  }
-  if (!table[key]) {
-    table[key] = 1;
-  } else {
-    table[key] = table[key] + 1;
-  }
-}
-
-function addToArray(table, key, value) {
-  if (!key || !value) {
-    return;
-  }
-  if (!table[key]) {
-    table[key] = [value];
-  } else {
-    table[key].push(value);
-  }
-}
-
 export default class TagPage extends Component {
   constructor(prop) {
     super(prop);
@@ -84,8 +47,8 @@ export default class TagPage extends Component {
 
     return {
       perPageItemNum: getPerPageItemNumber(),
-      tags: [],
-      authors: [],
+      tag_rows: [],
+      author_rows: [],
       pageIndex,
       sortOrder,
       filterText: parsed.filterText || "",
@@ -123,9 +86,12 @@ export default class TagPage extends Component {
 
     this.bindUserInteraction();
 
-    Sender.post('/api/allInfo', { needThumbnail: true }, res => {
+    Sender.post('/api/tagInfo', { needThumbnail: true }, res => {
       if (!res.isFailed()) {
-        this.setItems(res);
+        this.setState({
+          tag_rows: res.json.tag_rows,
+          author_rows: res.json.author_rows
+        })
         this.setState({ loaded: true });
       } else {
         this.res = res;
@@ -157,85 +123,6 @@ export default class TagPage extends Component {
     }
   }
 
-  chooseOneThumbnailForOneTag = function (files) {
-    files = sortUtil.sort_file_by_time(files, this.fileToInfo, getBaseName, false, false);
-    let result;
-    files.some(e => {
-      const thumbnail = this.allThumbnails[e];
-      if (thumbnail && isImage(thumbnail)) {
-        result = thumbnail;
-        return true;
-      }
-    });
-
-    return result;
-  }
-
-  setItems(res) {
-    const { fileToInfo = {}, allThumbnails = {} } = res.json;
-    const tags = {};
-    const authors = {};
-    const authorToFiles = {};
-    const tagToFiles = {};
-    this.fileToInfo = fileToInfo;
-    this.allThumbnails = allThumbnails;
-
-    const beginTime = getCurrentTime();
-    const groupSet = {};
-
-    function toKey(str) {
-      return str.toLowerCase();
-      //.replace(/-| |\!/, "") will also done in server side 
-      //or the search will be wrong
-    }
-
-    for (let filePath in fileToInfo) {
-      if (fileToInfo.hasOwnProperty(filePath) && isCompress(filePath)) {
-        const fileName = getBaseName(filePath);
-        const result = nameParser.parse(fileName);
-        if (result && result.group) {
-          const group = toKey(result.group);
-          groupSet[group] = true;
-        }
-      }
-    }
-
-    for (let filePath in fileToInfo) {
-      if (fileToInfo.hasOwnProperty(filePath) && isCompress(filePath)) {
-        const fileName = getBaseName(filePath);
-        const result = nameParser.parse(fileName);
-        if (result) {
-          (result.authors || []).forEach(author => {
-            //some author is actually group, fake author
-            author = toKey(author);
-            if (!groupSet[author]) {
-              addOne(authors, author);
-              addToArray(authorToFiles, author, filePath);
-            }
-          })
-
-          result.tags.forEach(tag => {
-            if (tag.match(useless_tag_regex)) {
-              return;
-            }
-            tag = toKey(tag);
-            addOne(tags, tag);
-            addToArray(tagToFiles, tag, filePath);
-          });
-        }
-      }
-    }
-
-    const timeSpent = getCurrentTime() - beginTime;
-    // console.log(timeSpent)
-
-    this.setState({
-      tags,
-      authors,
-      authorToFiles,
-      tagToFiles
-    })
-  }
 
   getFilteterItems() {
     const {
@@ -244,55 +131,51 @@ export default class TagPage extends Component {
     } = this.state;
 
 
-    const items = this.getItems() || [];
-    let keys = _.keys(items);
+    let items = this.getItems() || [];
+    const key = this.isAuthorMode() ? "authors" : "tags";
 
     if (_.isString(filterText)) {
       let _text = filterText.toLowerCase();
-      keys = keys.filter(e => {
-        return e.toLowerCase().indexOf(_text) > -1;
+      items = items.filter(e => {
+        return e[key].toLowerCase().indexOf(_text) > -1;
       });
     }
 
     if (sortOrder.includes(SORT_RANDOMLY)) {
-      keys = _.shuffle(keys);
+      items = _.shuffle(items);
     } else if (sortOrder === FILE_NUMBER_DOWN || sortOrder === FILE_NUMBER_UP) {
-      keys = _.sortBy(keys, a => -items[a]);
+      items = _.sortBy(items, a => -items.count);
 
       if (sortOrder === FILE_NUMBER_UP) {
-        keys.reverse();
+        items.reverse();
       }
     } else if (sortOrder === NAME_DOWN || sortOrder === NAME_UP) {
-      keys.sort((a, b) => {
-        return a.localeCompare(b);
+      items.sort((a, b) => {
+        return a[key].localeCompare(b[key]);
       });
 
       if (sortOrder === NAME_DOWN) {
-        keys.reverse();
+        items.reverse();
       }
     }
-    return keys;
+    return items;
   }
 
   getItems() {
-    return this.isAuthorMode() ? this.state.authors : this.state.tags;
+    return this.isAuthorMode() ? this.state.author_rows : this.state.tag_rows;
   }
 
   isAuthorMode() {
     return this.props.mode === "author";
   }
 
-  renderTagList(keys) {
+  renderTagList(items) {
     const {
-      tags = {},
-      authors = {},
       loaded,
-      authorToFiles,
-      tagToFiles,
       pageIndex
     } = this.state;
 
-    if (_.isEmpty(tags) && _.isEmpty(authors)) {
+    if (_.isEmpty(items)) {
       if (loaded) {
         return (<center style={{ paddingTop: "100px" }}>
           <div className="alert alert-info col-6" role="alert" > {`No Content`} </div>
@@ -302,33 +185,14 @@ export default class TagPage extends Component {
       }
     }
 
-    const items = this.getItems();
-    keys = keys.slice((pageIndex - 1) * this.state.perPageItemNum, pageIndex * this.state.perPageItemNum);
-    const t2Files = this.isAuthorMode() ? authorToFiles : tagToFiles;
+    items = items.slice((pageIndex - 1) * this.state.perPageItemNum, pageIndex * this.state.perPageItemNum);
     const isAuthorMode = this.isAuthorMode();
-    const kk = isAuthorMode ? "authors" : "tags";
 
-
-    const tagItems = keys.map((tag) => {
-
-      //because the tag is stored as lowercase
-      //we need to find the correct spelling
-      let strArr = [];
-      t2Files[tag].forEach(filePath => {
-        const fileName = getBaseName(filePath);
-        const result = nameParser.parse(fileName);
-        result[kk].forEach(vv => strArr.push(vv));
-      });
-
-      strArr = strArr.filter(e => e.toLowerCase() === tag.toLowerCase());
-      const byFeq = _.countBy(strArr, e => e);
-      strArr = _.sortBy(_.keys(byFeq), e => -byFeq[e]);
-      const displayTag = strArr[0];
-
-      const itemText = `${displayTag} (${items[tag]})`;
+    const tagItems = items.map((item) => {
+      const tag = isAuthorMode? item.authors : item.tags;
+      const itemText = `${tag} (${item.count})`;
       const url = this.isAuthorMode() ? clientUtil.getAuthorLink(tag) : clientUtil.getTagLink(tag);
-      const thumbnailUrl = clientUtil.getFileUrl(this.chooseOneThumbnailForOneTag(t2Files[tag]));
-
+      const thumbnailUrl = item.thumbnail && clientUtil.getFileUrl(item.thumbnail);
 
       return (<div key={tag} className="col-sm-6 col-md-4 col-lg-3 tag-page-list-item">
         <div className={"tag-cell"}>
@@ -365,10 +229,6 @@ export default class TagPage extends Component {
     if (window.event && window.event.ctrlKey) {
       return;
     }
-
-    // const temp = this.props.mode === "tag"? "/tagPage/": "/authorPage/";
-    // const path = temp + index;
-    // this.redirect = path;
 
     this.setStateAndSetHash({
       pageIndex: index
@@ -419,43 +279,21 @@ export default class TagPage extends Component {
     </div>);
   }
 
-  createFileAndDownload() {
-    const keys = this.getFilteterItems();
-    download("keys.txt", keys.join("\n"));
-  }
-
-  renderDownloadButton() {
-    return (<div >
-      <div onClick={this.createFileAndDownload.bind(this)}> download author txt </div>
-    </div>);
-  }
-
   render() {
-    // if(this.redirect){
-    //   const path = this.redirect;
-    //   this.redirect = "";
-    //   return (<Redirect
-    //     to={{
-    //         pathname: path,
-    //   }}/>);
-    // }
-
     if (this.isFailedLoading()) {
       return <ErrorPage res={this.res} />;
     }
 
     document.title = this.isAuthorMode() ? "Authors" : "Tags";
-
-    const keys = this.getFilteterItems();
+    const items = this.getFilteterItems();
 
     return (
       <div className="tag-container">
-        <center className="location-title">{this.getTitle(keys)}</center>
-        {this.renderPagination(keys)}
+        <center className="location-title">{this.getTitle(items)}</center>
+        {this.renderPagination(items)}
         {this.renderSortHeader()}
-        {this.renderTagList(keys)}
-        {this.renderPagination(keys)}
-        {/* {this.renderDownloadButton(keys)}; */}
+        {this.renderTagList(items)}
+        {this.renderPagination(items)}
       </div>
     );
   }
