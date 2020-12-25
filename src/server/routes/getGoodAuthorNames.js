@@ -3,7 +3,6 @@
 const express = require('express');
 const router = express.Router();
 const db = require("../models/db");
-const { getFileCollection } = db;
 const util = global.requireUtil();
 const { isCompress, escapeRegExp } = util;
 const userConfig = global.requireUserConfig();
@@ -14,29 +13,31 @@ function getGoodAndOtherSet() {
 
     let set = {};
     let otherSet = {};
-    const sep = serverUtil.sep;
+    // const sep = serverUtil.sep;
 
-    const reg = global.good_folder_root && escapeRegExp(global.good_folder_root);
+    // const reg = global.good_folder_root && escapeRegExp(global.good_folder_root);
 
-    getFileCollection()
-        .chain()
-        .find({ isDisplayableInExplorer: true })
-        .where(obj => {
-            // const temp = serverUtil.parse(p);
-            // const name = temp && temp.author;
-            const authors = obj.authors.split(sep);
-            const name = authors[0];
-            if (name) {
-                if (reg && obj.filePath.match(reg)) {
-                    set[name] = set[name] ? set[name] + 1 : 1;
-                } else {
-                    otherSet[name] = otherSet[name] ? otherSet[name] + 1 : 1;
-                }
-            }
-            return false;
-        });
+    //todo sql groupby
 
-    let end2 = (new Date).getTime();
+    // getFileCollection()
+    //     .chain()
+    //     .find({ isDisplayableInExplorer: true })
+    //     .where(obj => {
+    //         // const temp = serverUtil.parse(p);
+    //         // const name = temp && temp.author;
+    //         const authors = obj.authors.split(sep);
+    //         const name = authors[0];
+    //         if (name) {
+    //             if (reg && obj.filePath.match(reg)) {
+    //                 set[name] = set[name] ? set[name] + 1 : 1;
+    //             } else {
+    //                 otherSet[name] = otherSet[name] ? otherSet[name] + 1 : 1;
+    //             }
+    //         }
+    //         return false;
+    //     });
+
+    // let end2 = (new Date).getTime();
     // console.log(`${(end2 - beg)/1000}s to getGoodAndOtherSet`);
 
     return {

@@ -52,6 +52,9 @@ const generateContentUrl = function (pathes, outputPath) {
 
 const isExist = async (path) => {
     try {
+        if(!path){
+            return false;
+        }
         const error = await pfs.access(path);
         return !error;
     } catch (e) {
@@ -88,6 +91,10 @@ if(isWindows()){
 async function filterNonExist(pathes) {
     for (let ii = 0; ii < pathes.length; ii++) {
         const e = pathes[ii];
+        if(!e){
+            pathes[ii] = null;
+        }
+
         if (!(await isExist(e))) {
             pathes[ii] = null;
         }
