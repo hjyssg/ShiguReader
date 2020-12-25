@@ -143,11 +143,10 @@ router.post('/api/lsDir', async (req, res) => {
     const pTokens = dir.split(path.sep);
     const plength = pTokens.length;
 
-    const reg = escapeRegExp(dir);
-    const results = getFileCollection()
-        .chain()
-        .find({ 'filePath': { '$regex': reg }, isDisplayableInExplorer: true })
-        .where(obj => isSub(dir, obj.filePath)).data();
+    const sqldb = db.getSQLDB();
+    let sql = `SELECT * FROM file_table WHERE filePath  LIKE ? AND isDisplayableInExplorer = ?`;
+    let rows = await sqldb.allSync(sql, [(dir+ '%'), true]);
+    rows = rows.filter(obj => isSub(dir, obj.filePath));
 
     //dir -> its file
     const dirToFiles = {};
@@ -167,7 +166,7 @@ router.post('/api/lsDir', async (req, res) => {
         return np;
     }
 
-    results.forEach(obj => {
+    rows.forEach(obj => {
         const pp = obj.filePath;
         if (pp === dir) {
             return;
@@ -185,14 +184,13 @@ router.post('/api/lsDir', async (req, res) => {
         }
     })
 
-    const img_files_results = getFileCollection()
-        .chain()
-        .find({ 'filePath': { '$regex': reg }, isDisplayableInOnebook: true })
-        .where(obj => isSub(dir, obj.filePath)).data();
+    let sql2 = `SELECT * FROM file_table WHERE filePath  LIKE ? AND isDisplayableInOnebook = ?`;
+    let img_files_rows = await sqldb.allSync(sql2, [(dir+ '%'), true]);
+    img_files_rows = img_files_rows.filter(obj => isSub(dir, obj.filePath));
 
     const imgFolders = {};
 
-    img_files_results.forEach(obj => {
+    img_files_rows.forEach(obj => {
         //reduce by its parent folder
         const pp = path.dirname(obj.filePath);
         if (pp === dir) {
@@ -292,11 +290,9 @@ router.post('/api/listImageFolderContent', async (req, res) => {
     }
 
     let result;
-    const reg = escapeRegExp(filePath);
-    const fake_zip_results = getFileCollection()
-        .chain()
-        .find({ 'filePath': { '$regex': reg } })
-        .data();
+    const sqldb = db.getSQLDB();
+    let sql = `SELECT * FROM file_table WHERE filePath  LIKE ?`;
+    let fake_zip_results = await sqldb.allSync(sql, [(dir+ '%'), true]);
 
     const _files = [];
 

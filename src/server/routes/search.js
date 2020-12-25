@@ -5,7 +5,7 @@ const Constant = global.requireConstant();
 const { MODE_TAG, MODE_AUTHOR, MODE_SEARCH } = Constant;
 
 // three para 1.mode 2.text
-router.post("/api/search", (req, res) => {
+router.post("/api/search", async (req, res) => {
     const mode = req.body && req.body.mode;
     const textParam = req.body && req.body.text;
 
@@ -16,7 +16,8 @@ router.post("/api/search", (req, res) => {
     if (!author && !tag && !text) {
         res.send({ failed: true, reason: "No parameter" });
     } else {
-        res.send(searchByTagAndAuthor(tag, author, text));
+        const temp = await searchByTagAndAuthor(tag, author, text);
+        res.send(temp);
     }
 });
 

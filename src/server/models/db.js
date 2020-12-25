@@ -77,14 +77,27 @@ const deleteFromFileDb = function (filePath) {
 
 const sep = serverUtil.sep;
 
+var sqlite3 = require('sqlite3').verbose();
+var db = new sqlite3.Database(':memory:');
+db.run("CREATE TABLE file_table (filePath TEXT, fileName TEXT, isDisplayableInExplorer BOOL, isDisplayableInOnebook BOOL, tags TEXT, authors TEXT, _group TEXT )");
+
+const _util = require('util');
+db.allSync = _util.promisify(db.all).bind(db);
+db.getSync = _util.promisify(db.get).bind(db);
+
+
+module.exports.getSQLDB = function(){
+    return db;
+}
+
 const updateFileDb = function (filePath, insert) {
     const fileName = path.basename(filePath);
 
     let data = insert ? {} : (getData(filePath) || {});
     data.filePath = filePath;
+    data.fileName = fileName;
     data.isDisplayableInExplorer = isDisplayableInExplorer(filePath);
     data.isDisplayableInOnebook = isDisplayableInOnebook(filePath);
-    data.fileName = fileName;
 
     //set up tags
     const str = data.isDisplayableInExplorer ? fileName : getDirName(filePath);
@@ -99,6 +112,13 @@ const updateFileDb = function (filePath, insert) {
     data.tags = tags.join(sep);
     data.authors = (temp.authors && temp.authors.join(sep)) || temp.author || "";
     data.group = temp.group || "";
+
+    // db.run("INSERT INTO file_table VALUES (?)", 
+    // https://www.sqlitetutorial.net/sqlite-nodejs/insert/
+    db.run("INSERT INTO file_table(filePath, fileName, isDisplayableInExplorer, isDisplayableInOnebook, tags, authors, _group ) values(?, ?, ?, ?, ?, ?, ? )", 
+    data.filePath, data.fileName, 
+    data.isDisplayableInExplorer, data.isDisplayableInOnebook, 
+    data.tags, temp.author, temp.group);
 
     if (insert || !has(filePath)) {
         file_collection.insert(data);
@@ -189,15 +209,6 @@ module.exports.getImgFolderInfo = function (imgFolders) {
 
 //---------------------------------------------cache db---------------------
 
-// module.exports.initCacheDb = function(pathes, infos){
-//     (pathes||[]).forEach(p => {
-//         const fp =  getDirName(p);
-//         cacheDb.folderToFiles[fp] = cacheDb.folderToFiles[fp] || [];
-//         cacheDb.folderToFiles[fp].push(path.basename(p));
-//     });
-
-//     cacheDb.cacheFileToInfo = infos;
-// }
 
 //  outputPath is the folder name
 module.exports.getCacheFiles = function (outputPath) {
