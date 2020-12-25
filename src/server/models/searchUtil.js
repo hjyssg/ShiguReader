@@ -94,7 +94,9 @@ async function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
     return {
         tag, author, fileInfos,
         imgFolders, imgFolderInfo,
-        dirs: _dirs, thumbnails: getThumbnails(files), zipInfo: getZipInfo(files)
+        dirs: _dirs, 
+        thumbnails: getThumbnails(files), 
+        zipInfo: getZipInfo(files)
     };
 }
 
