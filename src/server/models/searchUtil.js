@@ -66,7 +66,7 @@ async function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
         //inner joiner then group by
         let sql = `SELECT a.* ` 
         + `FROM file_table AS a INNER JOIN tag_table AS b `
-        + `ON a.filePath = b.filePath AND b.tag LIKE ? AND b.type =?`;
+        + `ON a.filePath = b.filePath AND b.tag LIKE ?`;
         let rows = await sqldb.allSync(sql, [( '%' + _text + '%')]);
         const tag_obj = splitRows(rows, _text);
         zipResult = tag_obj.zipResult;
