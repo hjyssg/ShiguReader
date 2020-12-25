@@ -34,7 +34,7 @@ const getFileToInfo = module.exports.getFileToInfo = function (filePath) {
 
 var sqlite3 = require('sqlite3').verbose();
 var sqlDb = new sqlite3.Database(':memory:');
-sqlDb.run("CREATE TABLE file_table (filePath TEXT NOT NULL PRIMARY KEY, fileName TEXT, " +
+sqlDb.run("CREATE TABLE file_table (filePath TEXT NOT NULL PRIMARY KEY, fileName TEXT, sTime INTEGER, " +
            "isDisplayableInExplorer BOOL, isDisplayableInOnebook BOOL, isCompress BOOL, isFolder BOOL)");
 
 //todo: http://howto.philippkeller.com/2005/04/24/Tags-Database-schemas/
@@ -73,8 +73,8 @@ const updateFileDb = function (filePath, statObj) {
     const nameTags = namePicker.pick(str) || [];
     const tempTags = temp.tags || [];
     tempTags.concat(temp.comiket);
-    const musisTags = nameParser.parseMusicTitle(str) || [];
-    const tags = _.uniq([].concat(tempTags, nameTags, musisTags));
+    const musicTags = nameParser.parseMusicTitle(str) || [];
+    const tags = _.uniq([].concat(tempTags, nameTags, musicTags));
     const authors = temp.authors || [];
     const group = temp.group || "";
 
@@ -88,13 +88,17 @@ const updateFileDb = function (filePath, statObj) {
 
     insertToTagTable(filePath, group, "group")
 
+    let aboutTimeA = nameParser.getDateFromParse(str);
+    aboutTimeA = aboutTimeA && aboutTimeA.getTime();
+    let fileTimeA = statObj.mtimeMs || aboutTimeA;
+
 
     // sqlDb.run("INSERT INTO file_table VALUES (?)", 
     // https://www.sqlitetutorial.net/sqlite-nodejs/insert/
-    sqlDb.run("INSERT OR REPLACE INTO file_table(filePath, fileName, " +
+    sqlDb.run("INSERT OR REPLACE INTO file_table(filePath, fileName, sTime, " +
      "isDisplayableInExplorer, isDisplayableInOnebook, " + 
-     "isCompress, isFolder ) values(?, ?, ?, ?, ?, ?)", 
-    filePath, fileName, 
+     "isCompress, isFolder ) values(?, ?, ?, ?, ?, ?, ?)", 
+    filePath, fileName, fileTimeA,
     isDisplayableInExplorer, isDisplayableInOnebook, isCompress(fileName), statObj.isDir);
 }
 
