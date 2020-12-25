@@ -11,23 +11,21 @@ const { isDisplayableInExplorer } = util;
 router.post('/api/tagInfo', async (req, res) => {
     // const needThumbnail = req.body && req.body.needThumbnail;
 
+
     const sqldb = db.getSQLDB();
-    //GROUP_CONCAT(filePath, ' || ')
-    let sql = `SELECT authors, COUNT(authors) as count, filePath  FROM file_table ` +
-              `GROUP BY authors HAVING isCompress = true ORDER BY count DESC`;
-    let author_rows = await sqldb.allSync(sql);
-    author_rows.forEach(row => {
+
+    //inner joiner then group by
+    let sql = `SELECT a.filePath, b.tag, COUNT(b.tag) as count, b.type` 
+    + `FROM file_table AS a INNER JOIN tag_table AS b `
+    + `ON a.filePath = b.filePath  GROUP BY tag ORDER BY count DESC`;
+    let rows = await sqldb.allSync(sql2);
+
+    rows.forEach(row => {
         row.thumbnail = getThumbnails(row.filePath)
     })
 
-
-    sql = `SELECT tags, COUNT(tags) as count, filePath FROM file_table ` +
-           `GROUP BY tags HAVING isCompress = true ORDER BY count DESC`;
-    let tag_rows = await sqldb.allSync(sql);
-    tag_rows.forEach(row => {
-        row.thumbnail = getThumbnails(row.filePath)
-    })
-
+    const author_rows = row.filter(row => row.type === "author");
+    const tag_rows = row.filter(row => row.type === "tag");
 
     res.send({
         author_rows, 
