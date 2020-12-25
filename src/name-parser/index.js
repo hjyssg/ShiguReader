@@ -375,35 +375,6 @@ function parse(str) {
     return result;
 }
 
-function initAssrt(){
-    function arraysEqual(a, b) {
-        if (a === b) return true;
-        if (a == null || b == null) return false;
-        if (a.length !== b.length){
-            return false;
-        } 
-        for (var i = 0; i < a.length; ++i) {
-            if (a[i] !== b[i]) return false;
-        }
-        return true;
-    }
-
-    let temp = parse("(C89) (同人誌) [にのこや] MAKIPET3 (ラブライブ!)");
-    console.assert(arraysEqual(temp.authors, ["にのこや"]))
-    console.assert(arraysEqual(temp.tags, ["同人誌", "ラブライブ!"]))
-
-    //重要 tag转换！
-    temp = parse("(C80) (同人誌) [サークルARE] 唯ちゃんが俺のファミレスでバイトすることになった件 (K-ON!)");
-    console.assert(arraysEqual(temp.tags, ["同人誌", "けいおん"]))
-
-    // when no author
-    temp = parse("唯ちゃんが俺のファミレスでバイトすることになった件 (K-ON!)");
-    console.assert(arraysEqual(temp.tags, ["けいおん"]))
-    console.assert(arraysEqual(temp.authors, []))
-}
-
-initAssrt();
-
 function parseMusicTitle(str) {
     // [161109] TVアニメ「ラブライブ！サンシャイン!!」挿入歌シングル3「想いよひとつになれ／MIRAI TICKET」／Aqours [320K].zip
     //[180727]TVアニメ『音楽少女』OPテーマ「永遠少年」／小倉唯[320K].rar
@@ -565,6 +536,35 @@ console.assert(isHighlySimilar("12", "ab") === false);
 //this one is difficult
 console.assert(isHighlySimilar("サソワレマスター1", "サソワレマスター2") === false);
 console.assert(isHighlySimilar("サソワレマスター2", "サソワレマスター3") === false);
+
+function arraysEqual(a, b) {
+    if (a === b) return true;
+    if (a == null || b == null) return false;
+    if (a.length !== b.length){
+        return false;
+    } 
+    for (var i = 0; i < a.length; ++i) {
+        if (a[i] !== b[i]) return false;
+    }
+    return true;
+}
+
+function initAssrt(){
+    let temp = parse("(C89) (同人誌) [にのこや] MAKIPET3 (ラブライブ!)");
+    console.assert(arraysEqual(temp.authors, ["にのこや"]))
+    console.assert(arraysEqual(temp.tags, ["同人誌", "ラブライブ!"]))
+
+    //重要 tag转换！
+    temp = parse("(C80) (同人誌) [サークルARE] 唯ちゃんが俺のファミレスでバイトすることになった件 (K-ON!)");
+    console.assert(arraysEqual(temp.tags, ["同人誌", "けいおん"]))
+
+    // when no author
+    temp = parse("唯ちゃんが俺のファミレスでバイトすることになった件 (K-ON!)");
+    console.assert(arraysEqual(temp.tags, ["けいおん"]))
+    console.assert(arraysEqual(temp.authors, []))
+}
+
+initAssrt();
 
 module.exports.isHighlySimilar = isHighlySimilar;
 module.exports.parse = parse;
