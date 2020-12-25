@@ -16,19 +16,10 @@ const nameParser = require('../../name-parser');
 const namePicker = require("../../human-name-picker");
 
 const loki = require("lokijs");
-const file_db = new loki();
-const file_collection = file_db.addCollection("fileTable", {
-    //warning too many indices will dramatically slow down insert/update 
-    indices: ['filePath', "fileName"],
-    // indices: ['filePath', "fileName", "tags", "authors"],
-    unique: ['filePath']
-});
 
 //file path to file stats
 let fileToInfo =  {}
     
-
-
 const cacheDb = module.exports.cacheDb = {
     //a list of cache files folder -> files
     folderToFiles: {},
@@ -59,41 +50,32 @@ module.exports.getAllCacheFilePathes = function () {
 }
 
 
-function getData(filePath) {
-    return file_collection.findOne({ filePath: filePath });
-}
 
-const has = module.exports.has = function (filePath) {
-    const data = getData(filePath);
+
+const has = function (filePath) {
+    const data = getOne(filePath);
     return !!data;
-}
-
-const deleteFromFileDb = function (filePath) {
-    if (has(filePath)) {
-        let data = getData(filePath);
-        file_collection.remove(data);
-    }
 }
 
 const sep = serverUtil.sep;
 
 var sqlite3 = require('sqlite3').verbose();
-var db = new sqlite3.Database(':memory:');
-db.run("CREATE TABLE file_table (filePath TEXT, fileName TEXT, isDisplayableInExplorer BOOL, isDisplayableInOnebook BOOL, tags TEXT, authors TEXT, _group TEXT )");
+var sqlDb = new sqlite3.Database(':memory:');
+sqlDb.run("CREATE TABLE file_table (filePath TEXT NOT NULL PRIMARY KEY, fileName TEXT, isDisplayableInExplorer BOOL, isDisplayableInOnebook BOOL, tags TEXT, authors TEXT, _group TEXT )");
 
 const _util = require('util');
-db.allSync = _util.promisify(db.all).bind(db);
-db.getSync = _util.promisify(db.get).bind(db);
+sqlDb.allSync = _util.promisify(sqlDb.all).bind(sqlDb);
+sqlDb.getSync = _util.promisify(sqlDb.get).bind(sqlDb);
 
 
 module.exports.getSQLDB = function(){
-    return db;
+    return sqlDb;
 }
 
 const updateFileDb = function (filePath, insert) {
     const fileName = path.basename(filePath);
 
-    let data = insert ? {} : (getData(filePath) || {});
+    let data = insert ? {} : (getOne(filePath) || {});
     data.filePath = filePath;
     data.fileName = fileName;
     data.isDisplayableInExplorer = isDisplayableInExplorer(filePath);
@@ -113,23 +95,12 @@ const updateFileDb = function (filePath, insert) {
     data.authors = (temp.authors && temp.authors.join(sep)) || temp.author || "";
     data.group = temp.group || "";
 
-    // db.run("INSERT INTO file_table VALUES (?)", 
+    // sqlDb.run("INSERT INTO file_table VALUES (?)", 
     // https://www.sqlitetutorial.net/sqlite-nodejs/insert/
-    db.run("INSERT INTO file_table(filePath, fileName, isDisplayableInExplorer, isDisplayableInOnebook, tags, authors, _group ) values(?, ?, ?, ?, ?, ?, ? )", 
+    sqlDb.run("INSERT OR REPLACE INTO file_table(filePath, fileName, isDisplayableInExplorer, isDisplayableInOnebook, tags, authors, _group ) values(?, ?, ?, ?, ?, ?, ? )", 
     data.filePath, data.fileName, 
     data.isDisplayableInExplorer, data.isDisplayableInOnebook, 
     data.tags, temp.author, temp.group);
-
-    if (insert || !has(filePath)) {
-        file_collection.insert(data);
-
-    } else {
-        file_collection.update(data);
-    }
-}
-
-module.exports.getFileCollection = function () {
-    return file_collection;
 }
 
 const pfs = require('promise-fs');
@@ -165,7 +136,7 @@ module.exports.updateStatToDb = function (path, stat) {
 
 module.exports.deleteFromDb = function (path) {
     delete fileToInfo[path];
-    deleteFromFileDb(path);
+    sqlDb.run("DELETE FROM file_table where filePath = ?", filePath);
 }
 
 module.exports.getImgFolderInfo = function (imgFolders) {

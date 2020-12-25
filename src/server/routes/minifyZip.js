@@ -7,7 +7,6 @@ const { isExist } = pathUtil;
 const filesizeUitl = require('filesize');
 const logger = require("../logger");
 const db = require("../models/db");
-const { getFileCollection } = db;
 const path = require('path');
 
 const serverUtil = require("../serverUtil");
@@ -53,16 +52,14 @@ router.post('/api/overwrite', async (req, res) => {
     let originalFilePath;
 
     const fn = path.basename(filePath, path.extname(filePath));
-    const reg = util.escapeRegExp(fn);
-    const allPath = getFileCollection()
-        .chain()
-        .find({ 'fileName': { '$regex': reg }, isDisplayableInExplorer: true })
-        .where(obj => {
-            const pp = obj.filePath;
-            return util.isCompress(pp) && pp !== filePath;
-        })
-        .data()
-        .map(obj => obj.filePath);
+    const sqldb = db.getSQLDB();
+    let sql = `SELECT * FROM file_table WHERE fileName LIKE ? AND isDisplayableInExplorer = `;
+    let allPath = await sqldb.allSync(sql, [( '%' + fn + '%'), true]);
+
+    allPath = allPath.filter(obj => {
+        const pp = obj.filePath;
+        return util.isCompress(pp) && pp !== filePath;
+    }).map(obj => obj.filePath)
 
     for (let ii = 0; ii < allPath.length; ii++) {
         let pp = allPath[ii];

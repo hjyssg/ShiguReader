@@ -3,7 +3,7 @@ const express = require('express');
 const router = express.Router();
 const serverUtil = require("../serverUtil");
 const db = require("../models/db");
-const { getFileCollection } = db;
+
 const util = global.requireUtil();
 const { escapeRegExp } = util;
 const isWindows = require('is-windows');
@@ -31,13 +31,13 @@ if(isWindows()){
 router.post('/api/homePagePath', function (req, res) {
     let beg = (new Date).getTime();
     let dirs = global.scan_path;
-    dirs = dirs.filter(e => {
-        if (e) {
-            const reg = escapeRegExp(e);
-            //check if pathes really exist by checking there is file in the folder
-            return !!getFileCollection().findOne({ 'filePath': { '$regex': reg }, isDisplayableInExplorer: true });
-        }
-    });
+    // dirs = dirs.filter(e => {
+    //     if (e) {
+    //         const reg = escapeRegExp(e);
+    //         //check if pathes really exist by checking there is file in the folder
+    //         return !!getFileCollection().findOne({ 'filePath': { '$regex': reg }, isDisplayableInExplorer: true });
+    //     }
+    // });
 
     if (dirs.length === 0 && hdd_list.length === 0) {
         res.send({ failed: true, reason: "path-config.ini has no path" });

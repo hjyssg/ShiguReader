@@ -71,7 +71,7 @@ const { listZipContentAndUpdateDb, extractAll, extractByRange } = sevenZipHelp;
 
 const db = require("./models/db");
 const { getAllFilePathes, getCacheFiles, getCacheOutputPath,
-    updateStatToDb, deleteFromDb, updateStatToCacheDb, deleteFromCacheDb, getFileCollection } = db;
+    updateStatToDb, deleteFromDb, updateStatToCacheDb, deleteFromCacheDb } = db;
 
 const app = express();
 app.use(express.static('dist', {
@@ -94,7 +94,7 @@ let temp_json_path = path.join(rootPath, userConfig.workspace_name, "temp_json_i
 
 
 async function mkdir(path, quiet) {
-    if (!(await isExist(path))) {
+    if (path && !(await isExist(path))) {
         try {
             const err = await pfs.mkdir(path, { recursive: true });
             if (err instanceof Error) {
@@ -657,7 +657,12 @@ app.post('/api/extract', async (req, res) => {
     if (!(await isExist(filePath))) {
         //maybe the file move to other location
         const fn = path.basename(filePath);
-        const sameFnObj = getFileCollection().findOne({ fileName: fn });
+
+        const sqldb = db.getSQLDB();
+        let sql = `SELECT * FROM file_table WHERE fileName LIKE ?`;
+        let rows = await sqldb.getSync(sql, [( '%' + fn + '%')]);
+        sameFnObj = rows && rows[0];
+
         if (sameFnObj) {
             filePath = sameFnObj.filePath;
         } else {
