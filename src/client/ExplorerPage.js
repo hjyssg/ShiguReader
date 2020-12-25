@@ -782,7 +782,7 @@ export default class ExplorerPage extends Component {
 
         return (
             <div className={"explorer-container"}>
-                {!showFolderThumbnail && <ItemsContainer items={dirItems} neverCollapse /> }
+                {!showFolderThumbnail && <ItemsContainer items={dirItems} neverCollapse={this.getMode() === MODE_EXPLORER} /> }
                 {showFolderThumbnail && 
                     <div className={"file-grid container"}>
                     <div className={"row"}>
