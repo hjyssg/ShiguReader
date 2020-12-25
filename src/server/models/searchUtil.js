@@ -32,7 +32,10 @@ function splitRows(rows, text){
                 imgFolders[fp].push(row.filePath);
             }
         }else {
-            dirResults.push(row);
+            const fp = path.dirname(row.filePath);
+            if(fp.toLowerCase().includes(textInLowerCase)){
+                dirResults.push(row);
+            }
         }
     })
 
@@ -56,7 +59,7 @@ async function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
 
     let temp = await searchByText(tag || author || text);
     let zipResult = temp.zipResult;
-    let dirResults = temp.zipResult;
+    let dirResults = temp.dirResults;
     let imgFolders = temp.imgFolders;
 
     if (tag || author) {
