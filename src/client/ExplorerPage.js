@@ -420,8 +420,18 @@ export default class ExplorerPage extends Component {
     getFilteredFiles() {
         let files = this.files || [];
         files = files.concat(_.keys(this.imgFolders))
-        const goodSet = this.state.goodAuthors;
-        const otherSet = this.state.otherAuthors;
+
+        function arrIntoSet(tagArr){
+            let set = {};
+            tagArr && tagArr.forEach(e => {
+                set[e.tag] = e.count;
+            });
+
+            return set;
+        }
+
+        const goodSet = arrIntoSet(this.state.goodAuthors);
+        const otherSet = arrIntoSet(this.state.otherAuthors);
         const guessIfUserLike = this.guessIfUserLike;
         const { filterByGoodAuthorName, filterByOversizeImage, filterByGuess, filterByFirstTime, filterByHasMusic } = this.state;
 
@@ -1258,10 +1268,10 @@ export default class ExplorerPage extends Component {
                         </Checkbox>);
         }
 
-        const st5 = `Guess you like`;
-        let checkbox5 = (<Checkbox onChange={this.toggleGuess.bind(this)} checked={this.state.filterByGuess}>
-            {st5}
-        </Checkbox>);
+        // const st5 = `Guess you like`;
+        // let checkbox5 = (<Checkbox onChange={this.toggleGuess.bind(this)} checked={this.state.filterByGuess}>
+        //     {st5}
+        // </Checkbox>);
 
         const st2 = `image size bigger than ${userConfig.oversized_image_size} MB`;
         let checkbox2 = (<Checkbox onChange={this.toggleOversizeImage.bind(this)} checked={this.state.filterByOversizeImage}>
@@ -1280,7 +1290,6 @@ export default class ExplorerPage extends Component {
         return (
             <div className="speical-checkbox-container">
                 {checkbox}
-                {checkbox5}
                 {checkbox2}
                 {checkbox3}
                 {checkbox4}
