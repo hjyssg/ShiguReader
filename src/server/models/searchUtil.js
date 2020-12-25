@@ -16,14 +16,7 @@ function isEqual(a, b) {
     return a.toLowerCase() === b.toLowerCase();
 }
 
-async function searchByText(text) {
-    const textInLowerCase = text.toLowerCase();
-    const reg = escapeRegExp(text);
-
-    const sqldb = db.getSQLDB();
-    let sql = `SELECT * FROM file_table WHERE filePath LIKE ?`;
-    let rows = await sqldb.allSync(sql, [( '%' + text + '%')]);
-
+function splitRows(rows){
     let zipResult = [];
     let dirResults = [];
     let imgFolders = {};
@@ -50,60 +43,34 @@ async function searchByText(text) {
     }
 }
 
+async function searchByText(text) {
+    const sqldb = db.getSQLDB();
+    let sql = `SELECT * FROM file_table WHERE filePath LIKE ?`;
+    let rows = await sqldb.allSync(sql, [( '%' + text + '%')]);
+    return splitRows(rows);
+}
+
 async function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
     let beg = (new Date).getTime()
     const fileInfos = {};
 
- 
-    // const fileCollection = getFileCollection();
-
     let temp = await searchByText(tag || author || text);
     let zipResult = temp.zipResult;
     let dirResults = temp.zipResult;
-    const imgFolders = temp.imgFolders;
+    let imgFolders = temp.imgFolders;
 
-    if (author) {
-        const reg = escapeRegExp(author);
-        let groups = [];
-
-        // results = fileCollection.chain()
-        //     .find({
-        //         '$or': [{ 'authors': { '$regex': reg } }, { 'group': { '$regex': reg } }],
-        //         isDisplayableInExplorer: true
-        //     })
-        //     .where(obj => {
-        //         const result = parse(obj.fileName);
-        //         const pass = isEqual(result.author, author) || isEqual(result.group, author) || (result.authors && result.authors.includes(author));
-        //         if (pass && result.group) {
-        //             //find out which group this author belong
-        //             groups.push(result.group);
-        //         }
-        //         return pass;
-        //     });
-
-        // let extraResults = [];
-        // if (groups.length > 0) {
-        //     const byFeq = _.countBy(groups, e => e);
-        //     groups = _.sortBy(_.keys(byFeq), e => -byFeq[e]);
-        //     extraResults = fileCollection.find({
-        //         'authors': groups[0],
-        //         'group': { '$len': 0 },
-        //         isDisplayableInExplorer: true
-        //     });
-        // }
-
-        // zipResult = (results && results.data()) || [];
-        // zipResult = zipResult.concat(extraResults);
-
-    } else if (tag) {
-        // const reg = escapeRegExp(tag);
-        // results = fileCollection.chain()
-        //     .find({ 'tags': { '$regex': reg }, isDisplayableInExplorer: true })
-        //     .where(obj => {
-        //         const tagArr = obj.tags.split(serverUtil.sep);
-        //         return tagArr.some(e => isEqual(tag, e));
-        //     });
-        // zipResult = (results && results.data()) || [];
+    if (tag || author) {
+        const sqldb = db.getSQLDB();
+        let t = tag || author;
+        //inner joiner then group by
+        let sql = `SELECT a.* ` 
+        + `FROM file_table AS a INNER JOIN tag_table AS b `
+        + `ON a.filePath = b.filePath AND b.tag LIKE ? AND b.type =?`;
+        let rows = await sqldb.allSync(sql, [( '%' + t + '%')]);
+        const tag_obj = splitRows(rows);
+        zipResult = tag_obj.zipResult;
+        dirResults = tag_obj.zipResult;
+        imgFolders = tag_obj.imgFolders;
     }
 
     zipResult.forEach(obj => {
