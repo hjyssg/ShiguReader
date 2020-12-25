@@ -35,7 +35,7 @@ const getFileToInfo = module.exports.getFileToInfo = function (filePath) {
 var sqlite3 = require('sqlite3').verbose();
 var sqlDb = new sqlite3.Database(':memory:');
 sqlDb.run("CREATE TABLE file_table (filePath TEXT NOT NULL PRIMARY KEY, fileName TEXT, " +
-           "isDisplayableInExplorer BOOL, isDisplayableInOnebook BOOL, isCompress BOOL)");
+           "isDisplayableInExplorer BOOL, isDisplayableInOnebook BOOL, isCompress BOOL, isFolder BOOL)");
 
 //todo: http://howto.philippkeller.com/2005/04/24/Tags-Database-schemas/
 sqlDb.run("CREATE TABLE tag_table (filePath TEXT, tag TEXT, type TEXT )");
@@ -55,8 +55,13 @@ function insertToTagTable(filePath, tag, type){
     sqlDb.run("INSERT OR REPLACE INTO tag_table(filePath, tag, type ) values(?, ?, ?)",  filePath, tag, type);
 }
 
-const updateFileDb = function (filePath, insert) {
+const updateFileDb = function (filePath, statObj) {
     const fileName = path.basename(filePath);
+
+    if(!statObj){
+        console.warn("no statObj");
+        statObj = {};
+    }
 
     const isDisplayableInExplorer = util.isDisplayableInExplorer(filePath);
     const isDisplayableInOnebook = util.isDisplayableInOnebook(filePath);
@@ -88,37 +93,37 @@ const updateFileDb = function (filePath, insert) {
     // https://www.sqlitetutorial.net/sqlite-nodejs/insert/
     sqlDb.run("INSERT OR REPLACE INTO file_table(filePath, fileName, " +
      "isDisplayableInExplorer, isDisplayableInOnebook, " + 
-     "isCompress ) values(?, ?, ?, ?, ?)", 
+     "isCompress, isFolder ) values(?, ?, ?, ?, ?, ?)", 
     filePath, fileName, 
-    isDisplayableInExplorer, isDisplayableInOnebook, isCompress(fileName));
+    isDisplayableInExplorer, isDisplayableInOnebook, isCompress(fileName), statObj.isDir);
 }
 
 const pfs = require('promise-fs');
 //!! same as file-iterator getStat()
 module.exports.updateStatToDb = function (path, stat) {
-    const result = {};
+    const statObj = {};
 
     if(!stat){
         //seems only happen on mac
         // console.log(path, "has no stat");
         //todo: mac img folder do not display
         pfs.stat(path).then(stat => {
-            result.isFile = stat.isFile();
-            result.isDir = stat.isDirectory();
-            result.mtimeMs = stat.mtimeMs;
-            result.mtime = stat.mtime;
-            result.size = stat.size;
-            fileToInfo[path] = result;
-            updateFileDb(path);
+            statObj.isFile = stat.isFile();
+            statObj.isDir = stat.isDirectory();
+            statObj.mtimeMs = stat.mtimeMs;
+            statObj.mtime = stat.mtime;
+            statObj.size = stat.size;
+            fileToInfo[path] = statObj;
+            updateFileDb(path, statObj);
         });
     }else{
-        result.isFile = stat.isFile();
-        result.isDir = stat.isDirectory();
-        result.mtimeMs = stat.mtimeMs;
-        result.mtime = stat.mtime;
-        result.size = stat.size;
-        fileToInfo[path] = result;
-        updateFileDb(path);
+        statObj.isFile = stat.isFile();
+        statObj.isDir = stat.isDirectory();
+        statObj.mtimeMs = stat.mtimeMs;
+        statObj.mtime = stat.mtime;
+        statObj.size = stat.size;
+        fileToInfo[path] = statObj;
+        updateFileDb(path, statObj);
     }
 }
 
