@@ -291,7 +291,7 @@ export default class ExplorerPage extends Component {
             this.tag = tag || "";
             this.author = author || "";
             this.thumbnails = thumbnails || {};
-            this.dirThumbnails = dirThumbnails;
+            this.dirThumbnails = dirThumbnails || {};
             this.zipInfo = zipInfo || {};
             this.guessIfUserLike = guessIfUserLike || {};
             this.imgFolders = imgFolders || {};
