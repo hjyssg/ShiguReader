@@ -13,9 +13,9 @@ router.post('/api/tagInfo', async (req, res) => {
     const sqldb = db.getSQLDB();
 
     //inner joiner then group by
-    let sql = `SELECT a.filePath, b.tag, COUNT(b.tag) as count, b.type ` 
+    let sql = `SELECT a.filePath, max(a.sTime) as maxTime , b.tag, COUNT(b.tag) as count, b.type ` 
     + `FROM file_table AS a INNER JOIN tag_table AS b `
-    + `ON a.filePath = b.filePath AND a.isCompress = true GROUP BY tag ORDER BY count DESC`;
+    + `ON a.filePath = b.filePath AND a.isCompress = true GROUP BY tag HAVING a.sTime = maxTime ORDER BY count DESC`;
 
     //todo: sort by  a.sTime DESC
     let rows = await sqldb.allSync(sql);
