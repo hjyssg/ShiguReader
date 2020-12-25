@@ -24,10 +24,10 @@ const file_collection = file_db.addCollection("fileTable", {
     unique: ['filePath']
 });
 
-const db = {
-    //file path to file stats
-    fileToInfo: {}
-};
+//file path to file stats
+let fileToInfo =  {}
+    
+
 
 const cacheDb = module.exports.cacheDb = {
     //a list of cache files folder -> files
@@ -37,16 +37,16 @@ const cacheDb = module.exports.cacheDb = {
 }
 
 module.exports.getAllFilePathes = function () {
-    return _.keys(db.fileToInfo);
+    return _.keys(fileToInfo);
 };
 
 
 
 const getFileToInfo = module.exports.getFileToInfo = function (filePath) {
     if (filePath) {
-        return db.fileToInfo[filePath];
+        return fileToInfo[filePath];
     } else {
-        return db.fileToInfo;
+        return fileToInfo;
     }
 }
 
@@ -58,26 +58,6 @@ module.exports.getAllCacheFilePathes = function () {
     return _.keys(cacheDb.cacheFileToInfo);
 }
 
-module.exports.initFileToInfo = function (obj) {
-    db.fileToInfo = _.extend(db.fileToInfo||{}, obj);
-    const keys = _.keys(obj);
-    const total = keys.length;
-    const percent = Math.floor(25 * total / 100);
-
-    const set = {};
-    for (let ii = 0; ii < total; ii++) {
-        const e = keys[ii];
-        if (set[e]) {
-            return;
-        }
-        if (ii % percent === 0) {
-            console.log("[db initFileToInfo]:", ii, `  ${(ii / total * 100).toFixed(2)}%`);
-        }
-
-        set[e] = true;
-        updateFileDb(e)
-    }
-}
 
 function getData(filePath) {
     return file_collection.findOne({ filePath: filePath });
@@ -149,7 +129,7 @@ module.exports.updateStatToDb = function (path, stat) {
             result.mtimeMs = stat.mtimeMs;
             result.mtime = stat.mtime;
             result.size = stat.size;
-            db.fileToInfo[path] = result;
+            fileToInfo[path] = result;
             updateFileDb(path);
         });
     }else{
@@ -158,13 +138,13 @@ module.exports.updateStatToDb = function (path, stat) {
         result.mtimeMs = stat.mtimeMs;
         result.mtime = stat.mtime;
         result.size = stat.size;
-        db.fileToInfo[path] = result;
+        fileToInfo[path] = result;
         updateFileDb(path);
     }
 }
 
 module.exports.deleteFromDb = function (path) {
-    delete db.fileToInfo[path];
+    delete fileToInfo[path];
     deleteFromFileDb(path);
 }
 
