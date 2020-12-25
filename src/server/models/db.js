@@ -9,7 +9,7 @@ const util = global.requireUtil();
 const userConfig = global.requireUserConfig();
 
 const { getDirName } = serverUtil;
-const { isImage, isCompress, isMusic, isDisplayableInExplorer, isDisplayableInOnebook } = util;
+const { isImage, isCompress, isMusic } = util;
 const { generateContentUrl } = pathUtil;
 
 const nameParser = require('../../name-parser');
@@ -31,8 +31,6 @@ module.exports.getAllFilePathes = function () {
     return _.keys(fileToInfo);
 };
 
-
-
 const getFileToInfo = module.exports.getFileToInfo = function (filePath) {
     if (filePath) {
         return fileToInfo[filePath];
@@ -47,14 +45,6 @@ module.exports.getCacheFileToInfo = function () {
 
 module.exports.getAllCacheFilePathes = function () {
     return _.keys(cacheDb.cacheFileToInfo);
-}
-
-
-
-
-const has = function (filePath) {
-    const data = getOne(filePath);
-    return !!data;
 }
 
 const sep = serverUtil.sep;
@@ -75,32 +65,29 @@ module.exports.getSQLDB = function(){
 const updateFileDb = function (filePath, insert) {
     const fileName = path.basename(filePath);
 
-    let data = insert ? {} : (getOne(filePath) || {});
-    data.filePath = filePath;
-    data.fileName = fileName;
-    data.isDisplayableInExplorer = isDisplayableInExplorer(filePath);
-    data.isDisplayableInOnebook = isDisplayableInOnebook(filePath);
+    const isDisplayableInExplorer = util.isDisplayableInExplorer(filePath);
+    const isDisplayableInOnebook = util.isDisplayableInOnebook(filePath);
 
     //set up tags
-    const str = data.isDisplayableInExplorer ? fileName : getDirName(filePath);
+    const str = isDisplayableInExplorer ? fileName : getDirName(filePath);
 
     const temp = nameParser.parse(str) || {};
     const nameTags = namePicker.pick(str) || [];
     const tags1 = temp.tags || [];
-    temp.comiket && tags1.concat(temp.comiket);
+    tags1.concat(temp.comiket);
     const musisTags = nameParser.parseMusicTitle(str) || [];
     let tags = _.uniq(tags1.concat(nameTags, musisTags));
 
-    data.tags = tags.join(sep);
-    data.authors = (temp.authors && temp.authors.join(sep)) || temp.author || "";
-    data.group = temp.group || "";
+    tags = tags.join(sep);
+    const authors = (temp.authors && temp.authors.join(sep)) || temp.author || "";
+    const group = temp.group || "";
 
     // sqlDb.run("INSERT INTO file_table VALUES (?)", 
     // https://www.sqlitetutorial.net/sqlite-nodejs/insert/
     sqlDb.run("INSERT OR REPLACE INTO file_table(filePath, fileName, isDisplayableInExplorer, isDisplayableInOnebook, tags, authors, _group ) values(?, ?, ?, ?, ?, ?, ? )", 
-    data.filePath, data.fileName, 
-    data.isDisplayableInExplorer, data.isDisplayableInOnebook, 
-    data.tags, temp.author, temp.group);
+    filePath, fileName, 
+    isDisplayableInExplorer, isDisplayableInOnebook, 
+    tags, authors, group);
 }
 
 const pfs = require('promise-fs');
@@ -136,7 +123,7 @@ module.exports.updateStatToDb = function (path, stat) {
 
 module.exports.deleteFromDb = function (path) {
     delete fileToInfo[path];
-    sqlDb.run("DELETE FROM file_table where filePath = ?", filePath);
+    sqlDb.run("DELETE FROM file_table where filePath = ?", path);
 }
 
 module.exports.getImgFolderInfo = function (imgFolders) {

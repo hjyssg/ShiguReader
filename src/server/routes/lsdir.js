@@ -144,7 +144,7 @@ router.post('/api/lsDir', async (req, res) => {
     const plength = pTokens.length;
 
     const sqldb = db.getSQLDB();
-    let sql = `SELECT * FROM file_table WHERE filePath  LIKE ? AND isDisplayableInExplorer = ?`;
+    let sql = `SELECT * FROM file_table WHERE filePath LIKE ? AND isDisplayableInExplorer = ?`;
     let rows = await sqldb.allSync(sql, [(dir+ '%'), true]);
     rows = rows.filter(obj => isSub(dir, obj.filePath));
 
@@ -184,7 +184,7 @@ router.post('/api/lsDir', async (req, res) => {
         }
     })
 
-    let sql2 = `SELECT * FROM file_table WHERE filePath  LIKE ? AND isDisplayableInOnebook = ?`;
+    let sql2 = `SELECT * FROM file_table WHERE filePath LIKE ? AND isDisplayableInOnebook = ?`;
     let img_files_rows = await sqldb.allSync(sql2, [(dir+ '%'), true]);
     img_files_rows = img_files_rows.filter(obj => isSub(dir, obj.filePath));
 
@@ -216,7 +216,7 @@ router.post('/api/lsDir', async (req, res) => {
 
     const time2 = getCurrentTime();
     const timeUsed = (time2 - time1) / 1000;
-    // console.log(timeUsed, "to LsDir")
+    console.log(timeUsed, "to LsDir")
 
     const files = _.keys(fileInfos);
     const _dirs = _.uniq(dirs);
@@ -291,8 +291,8 @@ router.post('/api/listImageFolderContent', async (req, res) => {
 
     let result;
     const sqldb = db.getSQLDB();
-    let sql = `SELECT * FROM file_table WHERE filePath  LIKE ?`;
-    let fake_zip_results = await sqldb.allSync(sql, [(dir+ '%'), true]);
+    let sql = `SELECT * FROM file_table WHERE filePath LIKE ? AND isDisplayableInOnebook = ?`;
+    let fake_zip_results = await sqldb.allSync(sql, [(filePath+ '%'), true]);
 
     const _files = [];
 

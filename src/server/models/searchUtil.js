@@ -34,9 +34,9 @@ async function searchByText(text) {
         }else if(row.isDisplayableInOnebook){
             const fp = path.dirname(row.filePath);
             if(fp.toLowerCase().includes(textInLowerCase)){
-                const fp = path.dirname(obj.filePath);
+                const fp = path.dirname(row.filePath);
                 imgFolders[fp] = imgFolders[fp] || [];
-                imgFolders[fp].push(obj.filePath);
+                imgFolders[fp].push(row.filePath);
             }
         }else {
             dirResults.push(row);
@@ -118,7 +118,7 @@ async function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
     _dirs = _dirs && _.unique(_dirs);
 
     let end = (new Date).getTime();
-    // console.log((end - beg)/1000, "to search");
+    console.log((end - beg)/1000, "to search");
 
     const imgFolderInfo = getImgFolderInfo(imgFolders);
 
