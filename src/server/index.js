@@ -371,7 +371,9 @@ function setUpFileWatch(scan_path) {
     watcher.on('ready', () => {
         is_chokidar_ready = true;
         let end1 = (new Date).getTime();
-        console.log(`[chokidar] ${(end1 - beg) / 1000}s scan complete.`)
+        console.log(`[chokidar] ${(end1 - beg) / 1000}s scan complete.`);
+        console.log(`-------------------------------------------------`);
+        console.log(`\n\n\n\n\n`);
     })
 
     return {
