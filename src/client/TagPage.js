@@ -327,7 +327,7 @@ export default class TagPage extends Component {
 
       const itemText = `${displayTag} (${items[tag]})`;
       const url = this.isAuthorMode() ? clientUtil.getAuthorLink(tag) : clientUtil.getTagLink(tag);
-      const thumbnailUrl = this.chooseOneThumbnailForOneTag(t2Files[tag]);
+      const thumbnailUrl = clientUtil.getFileUrl(this.chooseOneThumbnailForOneTag(t2Files[tag]));
 
 
       return (<div key={tag} className="col-sm-6 col-md-4 col-lg-3 tag-page-list-item">
