@@ -16,10 +16,11 @@ function isEqual(a, b) {
     return a.toLowerCase() === b.toLowerCase();
 }
 
-function splitRows(rows){
+function splitRows(rows, text){
     let zipResult = [];
     let dirResults = [];
     let imgFolders = {};
+    const textInLowerCase = text.toLowerCase();
 
     rows.forEach(row => {
         if(row.isDisplayableInExplorer){
@@ -47,7 +48,7 @@ async function searchByText(text) {
     const sqldb = db.getSQLDB();
     let sql = `SELECT * FROM file_table WHERE filePath LIKE ?`;
     let rows = await sqldb.allSync(sql, [( '%' + text + '%')]);
-    return splitRows(rows);
+    return splitRows(rows, text);
 }
 
 async function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
@@ -61,13 +62,13 @@ async function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
 
     if (tag || author) {
         const sqldb = db.getSQLDB();
-        let t = tag || author;
+        const _text = tag || author;
         //inner joiner then group by
         let sql = `SELECT a.* ` 
         + `FROM file_table AS a INNER JOIN tag_table AS b `
         + `ON a.filePath = b.filePath AND b.tag LIKE ? AND b.type =?`;
-        let rows = await sqldb.allSync(sql, [( '%' + t + '%')]);
-        const tag_obj = splitRows(rows);
+        let rows = await sqldb.allSync(sql, [( '%' + _text + '%')]);
+        const tag_obj = splitRows(rows, _text);
         zipResult = tag_obj.zipResult;
         dirResults = tag_obj.zipResult;
         imgFolders = tag_obj.imgFolders;
