@@ -68,6 +68,6 @@ module.exports.getExt = function(p) {
 }
 
 
-module.exports.sep = "--=|=--";
+module.exports.sep = ",";
 
 module.exports.common = {};
