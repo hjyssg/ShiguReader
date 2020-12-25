@@ -15,18 +15,10 @@ const { generateContentUrl } = pathUtil;
 const nameParser = require('../../name-parser');
 const namePicker = require("../../human-name-picker");
 
-const loki = require("lokijs");
 
 //file path to file stats
 let fileToInfo =  {}
     
-const cacheDb = module.exports.cacheDb = {
-    //a list of cache files folder -> files
-    folderToFiles: {},
-    //cache path to file stats
-    cacheFileToInfo: {}
-}
-
 module.exports.getAllFilePathes = function () {
     return _.keys(fileToInfo);
 };
@@ -39,29 +31,27 @@ const getFileToInfo = module.exports.getFileToInfo = function (filePath) {
     }
 }
 
-module.exports.getCacheFileToInfo = function () {
-    return cacheDb.cacheFileToInfo;
-}
-
-module.exports.getAllCacheFilePathes = function () {
-    return _.keys(cacheDb.cacheFileToInfo);
-}
-
-const sep = serverUtil.sep;
 
 var sqlite3 = require('sqlite3').verbose();
 var sqlDb = new sqlite3.Database(':memory:');
 sqlDb.run("CREATE TABLE file_table (filePath TEXT NOT NULL PRIMARY KEY, fileName TEXT, " +
-                         "isDisplayableInExplorer BOOL, isDisplayableInOnebook BOOL, isCompress BOOL, " +
-                         "tags TEXT, authors TEXT, _group TEXT )");
+           "isDisplayableInExplorer BOOL, isDisplayableInOnebook BOOL, isCompress BOOL)");
+
+//todo: http://howto.philippkeller.com/2005/04/24/Tags-Database-schemas/
+sqlDb.run("CREATE TABLE tag_table (filePath TEXT, tag TEXT, type TEXT )");
 
 const _util = require('util');
 sqlDb.allSync = _util.promisify(sqlDb.all).bind(sqlDb);
 sqlDb.getSync = _util.promisify(sqlDb.get).bind(sqlDb);
 
-
 module.exports.getSQLDB = function(){
     return sqlDb;
+}
+
+function insertToTagTable(filePath, tag, type){
+    if(tag){
+        sqlDb.run("INSERT OR REPLACE INTO tag_table(filePath, tag, type ) values(?, ?, ?)",  filePath, tag, type);
+    }
 }
 
 const updateFileDb = function (filePath, insert) {
@@ -75,23 +65,31 @@ const updateFileDb = function (filePath, insert) {
 
     const temp = nameParser.parse(str) || {};
     const nameTags = namePicker.pick(str) || [];
-    const tags1 = temp.tags || [];
-    tags1.concat(temp.comiket);
+    const tempTags = temp.tags || [];
+    tempTags.concat(temp.comiket);
     const musisTags = nameParser.parseMusicTitle(str) || [];
-    let tags = _.uniq(tags1.concat(nameTags, musisTags));
-
-    tags = tags.join(sep);
-    const authors = (temp.authors && temp.authors.join(sep)) || temp.author || "";
+    const tags = _.uniq([].concat(tempTags, nameTags, musisTags));
+    const authors = temp.authors || [];
     const group = temp.group || "";
+
+    tags.forEach(t => {
+        insertToTagTable(filePath, t, "tag");
+    })
+
+    authors.forEach(t => {
+        insertToTagTable(filePath, t, "author");
+    })
+
+    insertToTagTable(filePath, group, "group")
+
 
     // sqlDb.run("INSERT INTO file_table VALUES (?)", 
     // https://www.sqlitetutorial.net/sqlite-nodejs/insert/
     sqlDb.run("INSERT OR REPLACE INTO file_table(filePath, fileName, " +
      "isDisplayableInExplorer, isDisplayableInOnebook, " + 
-     "isCompress, tags, authors, _group ) values(?, ?, ?, ?, ?, ?, ?, ?)", 
+     "isCompress ) values(?, ?, ?, ?, ?)", 
     filePath, fileName, 
-    isDisplayableInExplorer, isDisplayableInOnebook, isCompress(fileName),
-    tags, authors, group);
+    isDisplayableInExplorer, isDisplayableInOnebook, isCompress(fileName));
 }
 
 const pfs = require('promise-fs');
@@ -102,9 +100,7 @@ module.exports.updateStatToDb = function (path, stat) {
     if(!stat){
         //seems only happen on mac
         // console.log(path, "has no stat");
-
         //todo: mac img folder do not display
-
         pfs.stat(path).then(stat => {
             result.isFile = stat.isFile();
             result.isDir = stat.isDirectory();
@@ -128,6 +124,8 @@ module.exports.updateStatToDb = function (path, stat) {
 module.exports.deleteFromDb = function (path) {
     delete fileToInfo[path];
     sqlDb.run("DELETE FROM file_table where filePath = ?", path);
+    sqlDb.run("DELETE FROM tag_table where filePath = ?", path);
+
 }
 
 module.exports.getImgFolderInfo = function (imgFolders) {
@@ -170,7 +168,20 @@ module.exports.getImgFolderInfo = function (imgFolders) {
 }
 
 //---------------------------------------------cache db---------------------
+const cacheDb = module.exports.cacheDb = {
+    //a list of cache files folder -> files
+    folderToFiles: {},
+    //cache path to file stats
+    cacheFileToInfo: {}
+}
 
+module.exports.getCacheFileToInfo = function () {
+    return cacheDb.cacheFileToInfo;
+}
+
+module.exports.getAllCacheFilePathes = function () {
+    return _.keys(cacheDb.cacheFileToInfo);
+}
 
 //  outputPath is the folder name
 module.exports.getCacheFiles = function (outputPath) {
