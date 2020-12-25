@@ -669,8 +669,8 @@ app.post('/api/extract', async (req, res) => {
         const fn = path.basename(filePath);
 
         const sqldb = db.getSQLDB();
-        let sql = `SELECT * FROM file_table WHERE fileName LIKE ?`;
-        let rows = await sqldb.getSync(sql, [( '%' + fn + '%')]);
+        let sql = `SELECT * FROM file_table WHERE fileName LIKE ? AND isCompress = ?`;
+        let rows = await sqldb.allSync(sql, [( '%' + fn + '%'), true]);
         sameFnObj = rows && rows[0];
 
         if (sameFnObj) {

@@ -53,7 +53,7 @@ router.post('/api/overwrite', async (req, res) => {
 
     const fn = path.basename(filePath, path.extname(filePath));
     const sqldb = db.getSQLDB();
-    let sql = `SELECT * FROM file_table WHERE fileName LIKE ? AND isDisplayableInExplorer = `;
+    let sql = `SELECT * FROM file_table WHERE fileName LIKE ? AND isCompress = ?`;
     let allPath = await sqldb.allSync(sql, [( '%' + fn + '%'), true]);
 
     allPath = allPath.filter(obj => {
