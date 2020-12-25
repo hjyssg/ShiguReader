@@ -238,7 +238,7 @@ router.post('/api/lsDir', async (req, res) => {
                     break;
                 }
 
-                thumbnail = getThumbnails([tf])[tf];
+                thumbnail = getThumbnails(tf);
                 ii++;
             }
             if(thumbnail){

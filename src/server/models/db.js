@@ -51,7 +51,9 @@ const sep = serverUtil.sep;
 
 var sqlite3 = require('sqlite3').verbose();
 var sqlDb = new sqlite3.Database(':memory:');
-sqlDb.run("CREATE TABLE file_table (filePath TEXT NOT NULL PRIMARY KEY, fileName TEXT, isDisplayableInExplorer BOOL, isDisplayableInOnebook BOOL, tags TEXT, authors TEXT, _group TEXT )");
+sqlDb.run("CREATE TABLE file_table (filePath TEXT NOT NULL PRIMARY KEY, fileName TEXT, " +
+                         "isDisplayableInExplorer BOOL, isDisplayableInOnebook BOOL, isCompress BOOL, " +
+                         "tags TEXT, authors TEXT, _group TEXT )");
 
 const _util = require('util');
 sqlDb.allSync = _util.promisify(sqlDb.all).bind(sqlDb);
@@ -84,9 +86,11 @@ const updateFileDb = function (filePath, insert) {
 
     // sqlDb.run("INSERT INTO file_table VALUES (?)", 
     // https://www.sqlitetutorial.net/sqlite-nodejs/insert/
-    sqlDb.run("INSERT OR REPLACE INTO file_table(filePath, fileName, isDisplayableInExplorer, isDisplayableInOnebook, tags, authors, _group ) values(?, ?, ?, ?, ?, ?, ? )", 
+    sqlDb.run("INSERT OR REPLACE INTO file_table(filePath, fileName, " +
+     "isDisplayableInExplorer, isDisplayableInOnebook, " + 
+     "isCompress, tags, authors, _group ) values(?, ?, ?, ?, ?, ?, ?, ?)", 
     filePath, fileName, 
-    isDisplayableInExplorer, isDisplayableInOnebook, 
+    isDisplayableInExplorer, isDisplayableInOnebook, isCompress(fileName),
     tags, authors, group);
 }
 

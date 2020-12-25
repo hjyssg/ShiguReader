@@ -447,6 +447,10 @@ async function initMecab() {
 
 
 function getThumbnails(filePathes) {
+    if(_.isString(filePathes)){
+        filePathes = [filePathes];
+    }
+
     const thumbnails = {};
 
     filePathes.forEach(filePath => {
@@ -472,6 +476,11 @@ function getThumbnails(filePathes) {
             }
         }
     });
+
+    if(filePathes.length === 1){
+        return thumbnails[filePathes[0]]
+    }
+
     return thumbnails;
 }
 
