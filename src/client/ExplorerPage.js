@@ -63,6 +63,7 @@ export default class ExplorerPage extends Component {
         this.state = this.getInitState();
         this.failedTimes = 0;
         this.files = [];
+        this.dirs = [];
     }
 
     getNumPerPage() {
@@ -577,7 +578,7 @@ export default class ExplorerPage extends Component {
 
     renderFileList(filteredFiles, filteredVideos) {
         const { sortOrder, showFolderThumbnail } = this.state;
-        let dirs = this.dirs || [];
+        let dirs = this.dirs;
         let videos = filteredVideos;
         let files = filteredFiles;
 
@@ -952,6 +953,7 @@ export default class ExplorerPage extends Component {
                     <div className="file-count">{"Zip: " + filteredFiles.length} </div>
                     <div className="file-count">{"Page: " + totalPageNum } </div>
                     <div className="file-count">{"Video: " + filteredVideos.length } </div>
+                    <div className="file-count">{"Folder: " + this.dirs.length } </div>
                     <div className="file-count" title={title}>{"Total: " + filesizeUitl(totalSize)} </div>
                 </div>
             </div>

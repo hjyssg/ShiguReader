@@ -15,7 +15,9 @@ router.post('/api/tagInfo', async (req, res) => {
     //inner joiner then group by
     let sql = `SELECT a.filePath, b.tag, COUNT(b.tag) as count, b.type ` 
     + `FROM file_table AS a INNER JOIN tag_table AS b `
-    + `ON a.filePath = b.filePath AND a.isCompress = true  GROUP BY tag ORDER BY count DESC`;
+    + `ON a.filePath = b.filePath AND a.isCompress = true GROUP BY tag ORDER BY count DESC`;
+
+    //todo: sort by  a.sTime DESC
     let rows = await sqldb.allSync(sql);
 
     rows.forEach(row => {
