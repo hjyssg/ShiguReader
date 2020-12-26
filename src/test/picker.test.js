@@ -13,6 +13,11 @@ describe('name picker', () => {
         s1 = "[LCBD-00601] Riho Iida 飯田里穂 – りほの島、楽園の光 Blu-ray";
         result = picker.pick(s1);
         assert.deepEqual(result,  ["飯田里穂"]);
+
+
+        s1 = " 飯田里穂 – 沙月恵奈 IPX-551 口でするだけなら…浮気じゃないよね？ オンナの口は嘘をつく…口から始まる寝取られ話桃乃木かな";
+        result = picker.pick(s1);
+        assert.deepEqual(result,  ["飯田里穂", "沙月恵奈", "桃乃木かな"]);
     });
 
 });

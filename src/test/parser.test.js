@@ -112,4 +112,36 @@ describe('name parser', () => {
         assert(C85T > C84T);
         assert(C84T > C72T);
     })
+
+    it("test etc", ()=>{
+        let temp = parser.parse("(C89) (同人誌) [にのこや] MAKIPET3 (ラブライブ!)");
+        assert.deepEqual(temp.authors, ["にのこや"])
+        assert.deepEqual(temp.tags, ["同人誌", "ラブライブ!"])
+    
+        //重要 tag转换！
+        temp = parser.parse("(C80) (同人誌) [サークルARE] 唯ちゃんが俺のファミレスでバイトすることになった件 (K-ON!)");
+        assert.deepEqual(temp.tags, ["同人誌", "けいおん"])
+    
+        // when no author
+        temp = parser.parse("唯ちゃんが俺のファミレスでバイトすることになった件 (K-ON!)");
+        assert.deepEqual(temp.tags, ["けいおん"])
+        assert.deepEqual(temp.authors, [])
+    })
+
+
+    it("isHighlySimilar", ()=>{
+        assert(parser.isHighlySimilar("tozanbu", "tozan:bu"))
+        assert(parser.isHighlySimilar("tobu", "to:bu"))
+        assert(parser.isHighlySimilar("12ab", "12abc"))
+        
+        assert(parser.isHighlySimilar("時雨露出×野外2", "白露型時雨露出×野外2") === false);
+        assert(parser.isHighlySimilar("12a", "13a") === false);
+        assert(parser.isHighlySimilar("12", "ab") === false);
+        
+        //this one is difficult
+        assert(parser.isHighlySimilar("サソワレマスター1", "サソワレマスター2") === false);
+        assert(parser.isHighlySimilar("サソワレマスター2", "サソワレマスター3") === false);
+        
+    })
+
 });
