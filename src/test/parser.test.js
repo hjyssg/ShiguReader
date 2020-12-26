@@ -1,5 +1,6 @@
 const assert = require('assert');
-const parser = require("..//name-parser");
+const parser = require("../name-parser");
+
 
 describe('name parser', () => {
     let s1;
@@ -8,13 +9,13 @@ describe('name parser', () => {
 
         s1 = null;
         result = parser.parse(s1);
-        assert.ok(result === null);
+        assert.ok(!result);
 
         s1 = "no thing";
         result = parser.parse(s1);
-        assert.ok(result === null);
+        assert.ok(!result);
 
-        s1 = "[真珠貝] apple  .zip";
+        s1 = "[真珠貝] apple .zip";
         result = parser.parse(s1);
         assert.equal(result.author, "真珠貝");
         assert.deepEqual(result.tags, []);
@@ -34,47 +35,45 @@ describe('name parser', () => {
 
         s1 = "(DOUJIN)(C82) [真珠貝 (武田弘光)] apple (cake).zip";
         result = parser.parse(s1);
-        assert.deepEqual(result.tags.sort(), [ "DOUJIN", "C82", "cake"].sort());
+        assert.deepEqual(result.tags.sort(), [ "DOUJIN", "cake"].sort());
         assert.equal(result.author, "武田弘光");
+        assert.equal(result.comiket, "C82")
 
         s1 = "(DOUJIN)(C82)[真珠貝(武田弘光)]apple(cake).zip";
         result = parser.parse(s1);
-        assert.deepEqual(result.tags.sort(), [ "DOUJIN", "C82", "cake"].sort());
+        assert.deepEqual(result.tags.sort(), [ "DOUJIN", "cake"].sort());
         assert.equal(result.author, "武田弘光");
 
         s1 = "(COMIC1☆9) [橘花屋 (上杉響士郎, 榊ゆいの)] すみません。 (アイドルマスター シンデレラガールズ).zip";
         result = parser.parse(s1);
         assert.equal(result.author, "上杉響士郎, 榊ゆいの");
-        assert.deepEqual(result.tags.sort(),["COMIC1☆9", "アイドルマスター シンデレラガールズ"].sort());
+        assert.deepEqual(result.authors, ["上杉響士郎", "榊ゆいの"]);
+        assert.deepEqual(result.tags, [ "アイドルマスター シンデレラガールズ"]);
+        assert.equal(result.comiket, "COMIC1☆9")
     })
 
 
     it("find name with year tag", ()=>{
         s1 = "[150622](COMIC1☆9) [橘花屋 (上杉響士郎, 榊ゆいの)] すみません。 (アイドルマスター シンデレラガールズ).zip";
         result = parser.parse(s1);
-        assert.deepEqual(result.tags.sort(),["2015/06", "COMIC1☆9", "アイドルマスター シンデレラガールズ"].sort());
-        assert.equal(result.author, "上杉響士郎, 榊ゆいの");
+        assert.equal(result.dateTag, "150622");
     })
 
     it("find author name", ()=>{
         s1 = "(同人ゲームCG) [170428] [ピンポイント] 王女&女騎士Wド下品露出 ～恥辱の見世物奴隷～";
         result = parser.parse(s1);
-        assert.deepEqual(result.tags.sort(),["同人ゲームCG", "2017/04"].sort());
         assert.equal(result.author, "ピンポイント");
 
         s1 = "(ゲームCG) [181207] [DWARFSOFT] ムチムチデカパイマラ喰い魔王様とおんぼろ四畳半同棲生活";
         result = parser.parse(s1);
-        assert.deepEqual(result.tags.sort(),["ゲームCG", "2018/12"].sort());
         assert.equal(result.author, "DWARFSOFT");
 
         s1 = "(一般コミック) [白正男×山戸大輔] テコンダー朴 第01巻-第02巻";
         result = parser.parse(s1);
-        assert.deepEqual(result.tags.sort(),["一般コミック"].sort());
         assert.equal(result.author, "白正男×山戸大輔");
 
         s1 = "(画集) [山戸大輔] うりぼうざっか店 テーマ別画集第3弾「りとるもんすたぁ～」";
         result = parser.parse(s1);
-        assert.deepEqual(result.tags.sort(),["画集"].sort());
         assert.equal(result.author, "山戸大輔");
     });
 
@@ -94,15 +93,15 @@ describe('name parser', () => {
 
     
     it("tag time calculation", ()=>{
-        const C96T = parser.getDateFromTags(["C96"]).getTime();
-        const C95T = parser.getDateFromTags(["C95"]).getTime();
-        const C94T = parser.getDateFromTags(["C94"]).getTime();
-        const C92T = parser.getDateFromTags(["C92"]).getTime();
-        const C91T = parser.getDateFromTags(["C91"]).getTime();
-        const C87T = parser.getDateFromTags(["C87"]).getTime();
-        const C85T = parser.getDateFromTags(["C85"]).getTime();
-        const C84T = parser.getDateFromTags(["C84"]).getTime();
-        const C72T = parser.getDateFromTags(["C72"]).getTime();
+        const C96T = parser.getDateFromParse("(C96)[ fake_author ] apple").getTime();
+        const C95T = parser.getDateFromParse("(C95)[ fake_author ] apple").getTime();
+        const C94T = parser.getDateFromParse("(C94)[ fake_author ] apple").getTime();
+        const C92T = parser.getDateFromParse("(C92)[ fake_author ] apple").getTime();
+        const C91T = parser.getDateFromParse("(C91)[ fake_author ] apple").getTime();
+        const C87T = parser.getDateFromParse("(C87)[ fake_author ] apple").getTime();
+        const C85T = parser.getDateFromParse("(C85)[ fake_author ] apple").getTime();
+        const C84T = parser.getDateFromParse("(C84)[ fake_author ] apple").getTime();
+        const C72T = parser.getDateFromParse("(C72)[ fake_author ] apple").getTime();
 
         assert(C96T > C95T);
         assert(C95T > C91T);

@@ -12,7 +12,7 @@
     "server": "nodemon src/server/index.js --dev",
     "dev": "concurrently \"npm run server\" \"npm run client\"",
     "flow": "flow",
-    "test": "mocha .\\src\\test",
+    "test": "mocha ./src/test",
     "pkg": "npm run build && pkg package.json -t host --out-dir executables"
   },
   "author": "aji47",

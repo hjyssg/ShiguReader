@@ -254,14 +254,14 @@ function parse(str) {
         if (isBookType(token)) {
             type = getBookType(token);
             result = true;
-        } else if (isUselessTag(token)) {
-            //nothing
-            result = true;
         } else if (belongToEvent(token)) {
             comiket = token;
             result = true;
         } else if (isStrDate(token)) {
             dateTag = token;  //e.g 190214
+            result = true;
+        } else if (isUselessTag(token)) {
+            //nothing
             result = true;
         }
         return result;
