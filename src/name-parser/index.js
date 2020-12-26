@@ -525,46 +525,6 @@ function isHighlySimilar(s1, s2) {
     }
 }
 
-console.assert(isHighlySimilar("tozanbu", "tozan:bu"))
-console.assert(isHighlySimilar("tobu", "to:bu"))
-console.assert(isHighlySimilar("12ab", "12abc"))
-
-console.assert(isHighlySimilar("時雨露出×野外2", "白露型時雨露出×野外2") === false);
-console.assert(isHighlySimilar("12a", "13a") === false);
-console.assert(isHighlySimilar("12", "ab") === false);
-
-//this one is difficult
-console.assert(isHighlySimilar("サソワレマスター1", "サソワレマスター2") === false);
-console.assert(isHighlySimilar("サソワレマスター2", "サソワレマスター3") === false);
-
-function arraysEqual(a, b) {
-    if (a === b) return true;
-    if (a == null || b == null) return false;
-    if (a.length !== b.length){
-        return false;
-    } 
-    for (var i = 0; i < a.length; ++i) {
-        if (a[i] !== b[i]) return false;
-    }
-    return true;
-}
-
-function initAssrt(){
-    let temp = parse("(C89) (同人誌) [にのこや] MAKIPET3 (ラブライブ!)");
-    console.assert(arraysEqual(temp.authors, ["にのこや"]))
-    console.assert(arraysEqual(temp.tags, ["同人誌", "ラブライブ!"]))
-
-    //重要 tag转换！
-    temp = parse("(C80) (同人誌) [サークルARE] 唯ちゃんが俺のファミレスでバイトすることになった件 (K-ON!)");
-    console.assert(arraysEqual(temp.tags, ["同人誌", "けいおん"]))
-
-    // when no author
-    temp = parse("唯ちゃんが俺のファミレスでバイトすることになった件 (K-ON!)");
-    console.assert(arraysEqual(temp.tags, ["けいおん"]))
-    console.assert(arraysEqual(temp.authors, []))
-}
-
-initAssrt();
 
 module.exports.isHighlySimilar = isHighlySimilar;
 module.exports.parse = parse;
