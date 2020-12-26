@@ -611,10 +611,10 @@ export default class ExplorerPage extends Component {
                 const str = this.getMode() === MODE_EXPLORER ? "This folder is empty" : "Empty Result";
                 return (
                 <div>
-                    {this.renderSpecialFilter()}
-                <div className="one-book-nothing-available">
-                    <div className="alert alert-secondary" role="alert">{str}</div>
-                </div>
+                    {this.renderFilterMenu()}
+                    <div className="one-book-nothing-available">
+                        <div className="alert alert-secondary" role="alert">{str}</div>
+                    </div>
                 </div>);
             }
         }
@@ -811,7 +811,7 @@ export default class ExplorerPage extends Component {
                 <ItemsContainer className="video-list" items={normalVideos} />
                 <ItemsContainer items={avVideos} />
                 {this.renderPagination(filteredFiles, filteredVideos)}
-                {this.renderSpecialFilter()}
+                {this.renderFilterMenu()}
                 {this.renderSortHeader()}
                 <div className={"file-grid container"}>
                     <div className={rowCn}>
@@ -1128,8 +1128,7 @@ export default class ExplorerPage extends Component {
             filterArr.push(key);
         }
 
-        console.log(filterArr)
-
+        // console.log(filterArr)
         this.setStateAndSetHash({
             filterArr,
             pageIndex: 1
@@ -1250,7 +1249,7 @@ export default class ExplorerPage extends Component {
         </div>);
     }
 
-    renderSpecialFilter() {
+    renderFilterMenu() {
         if(this.getMode() === MODE_HOME){
             return;
         }
