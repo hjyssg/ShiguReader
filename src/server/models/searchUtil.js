@@ -22,18 +22,16 @@ function splitRows(rows, text){
     const textInLowerCase = text.toLowerCase();
 
     rows.forEach(row => {
+        const dirName = path.dirname(row.filePath);
         if(row.isDisplayableInExplorer){
             zipResult.push(row);
         }else if(row.isDisplayableInOnebook){
-            const fp = path.dirname(row.filePath);
-            if(fp.toLowerCase().includes(textInLowerCase)){
-                const fp = path.dirname(row.filePath);
-                imgFolders[fp] = imgFolders[fp] || [];
-                imgFolders[fp].push(row.filePath);
+            if(dirName.toLowerCase().includes(textInLowerCase)){
+                imgFolders[dirName] = imgFolders[dirName] || [];
+                imgFolders[dirName].push(row.filePath);
             }
         }else {
-            const fp = path.dirname(row.filePath);
-            if(fp.toLowerCase().includes(textInLowerCase)){
+            if(dirName.toLowerCase().includes(textInLowerCase)){
                 dirResults.push(row);
             }
         }
@@ -81,11 +79,8 @@ async function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
         fileInfos[pp] = db.getFileToInfo(pp);
     })
 
-    let _dirs = dirResults && dirResults.map(obj => {
-        const parentPath = path.resolve(obj.filePath, "..");
-        return parentPath;
-    });
-    _dirs = _dirs && _.unique(_dirs);
+    let _dirs = dirResults.map(obj => { return obj.filePath; });
+    _dirs = _.unique(_dirs);
 
     let end = (new Date).getTime();
     // console.log((end - beg)/1000, "to search");
