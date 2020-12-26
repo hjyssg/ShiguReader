@@ -12,17 +12,23 @@ async function getGoodAndOtherSet() {
     let beg = (new Date).getTime();
 
     const sqldb = db.getSQLDB();
-    //inner joiner then group by
-    let sql = `SELECT b.tag, COUNT(b.tag) as count ` 
-    + `FROM (SELECT * FROM file_table WHERE filePath LIKE ? AND isCompress = true ) AS a INNER JOIN tag_table AS b `
-    + `ON a.filePath = b.filePath GROUP BY b.tag HAVING b.type = 'author'`;
-    let goodAuthors = await sqldb.allSync(sql, [( '%' + global.good_folder_root + '%')]);
+
+
+    let sql,otherAuthors;
+
+    //join two sub querys then group
+    sql = `SELECT a.tag, COUNT(a.tag) as count ` 
+    + `FROM (SELECT * FROM tag_table WHERE type = 'author') AS a LEFT JOIN `
+    + `(SELECT * FROM file_table WHERE filePath LIKE ? AND isCompress = true ) AS b `
+    + `ON a.filePath = b.filePath GROUP BY a.tag `;
+    goodAuthors = await sqldb.allSync(sql, [( '%' + global.good_folder_root + '%')]);
 
     //the only different is NOT LIKE
-    sql = `SELECT b.tag, COUNT(b.tag) as count ` 
-    + `FROM (SELECT * FROM file_table WHERE filePath NOT LIKE ? AND isCompress = true ) AS a INNER JOIN tag_table AS b `
-    + `ON a.filePath = b.filePath GROUP BY b.tag HAVING b.type = 'author'`;
-    let otherAuthors = await sqldb.allSync(sql, [( '%' + global.good_folder_root + '%')]);
+    sql = `SELECT a.tag, COUNT(a.tag) as count ` 
+    + `FROM (SELECT * FROM tag_table WHERE type = 'author') AS a LEFT JOIN `
+    + `(SELECT * FROM file_table WHERE filePath NOT LIKE ? AND isCompress = true ) AS b `
+    + `ON a.filePath = b.filePath GROUP BY a.tag `;
+    otherAuthors = await sqldb.allSync(sql, [( '%' + global.good_folder_root + '%')]);;
 
     return {
         goodAuthors,
