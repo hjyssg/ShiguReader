@@ -57,6 +57,7 @@ const FILTER_GOOD_AUTHOR = "FILTER_GOOD_AUTHOR";
 const FILTER_OVERSIZE = "FILTER_OVERSIZE";
 const FILTER_FIRST_TIME = "FILTER_FIRST_TIME";
 const FILTER_HAS_MUSIC = "FILTER_HAS_MUSIC";
+const FILTER_IMG_FOLDER = "FILTER_IMG_FOLDER";
 
 function parse(str) {
     return nameParser.parse(getBaseName(str));
@@ -82,6 +83,10 @@ export default class ExplorerPage extends Component {
         const sortOrder = parsed.sortOrder || TIME_DOWN;
         const showVideo = !!(parsed.showVideo === "true");
         const showFolderThumbnail = !!(parsed.showFolderThumbnail == "true");
+        let filterArr = parsed.filterArr || [];
+        if (_.isString(filterArr)) {
+            filterArr = [filterArr];
+        }
 
         return {
             perPageItemNum: getPerPageItemNumber(),
@@ -91,7 +96,7 @@ export default class ExplorerPage extends Component {
             sortOrder,
             showVideo,
             showFolderThumbnail,
-            filterArr: parsed.filterArr || [],
+            filterArr,
             filterText: parsed.filterText || "",
             filterType: parsed.filterType || "",
             noThumbnail: parsed.noThumbnail === "true"
@@ -113,7 +118,7 @@ export default class ExplorerPage extends Component {
             "showFolderThumbnail"].forEach(key => {
                 obj2[key] = obj[key];
             })
-        
+
         clientUtil.replaceUrlHash(queryString.stringify(obj2))
         this.setState(state, callback);
     }
@@ -271,7 +276,7 @@ export default class ExplorerPage extends Component {
         }
     }
 
-    isLackInfoMode(){
+    isLackInfoMode() {
         return this.mode === "lack_info_mode";
     }
 
@@ -418,7 +423,7 @@ export default class ExplorerPage extends Component {
         let files = this.files || [];
         files = files.concat(_.keys(this.imgFolders))
 
-        function arrIntoSet(tagArr){
+        function arrIntoSet(tagArr) {
             let set = {};
             tagArr && tagArr.forEach(e => {
                 set[e.tag] = e.count;
@@ -459,6 +464,12 @@ export default class ExplorerPage extends Component {
         if (this.isOn(FILTER_HAS_MUSIC)) {
             files = files.filter(e => {
                 return this.getMusicNum(e) > 0;
+            })
+        }
+
+        if (this.isOn(FILTER_IMG_FOLDER)) {
+            files = files.filter(e => {
+                return !isCompress(e);
             })
         }
 
@@ -604,14 +615,14 @@ export default class ExplorerPage extends Component {
             }
         }
 
-        let dirItems; 
-        if(showFolderThumbnail){
+        let dirItems;
+        if (showFolderThumbnail) {
             dirItems = dirs.map((item) => {
                 const toUrl = clientUtil.getExplorerLink(item);
-                const text =  getBaseName(item);
+                const text = getBaseName(item);
                 let thumbnailurl = getFileUrl(this.dirThumbnails[item]);
-                const thumbnailCn = classNames("file-cell-thumbnail", "as-folder-thumbnail" );
-    
+                const thumbnailCn = classNames("file-cell-thumbnail", "as-folder-thumbnail");
+
                 let imgDiv = <LoadingImage
                     onlyUseURL={true}
                     isThumbnail
@@ -620,17 +631,17 @@ export default class ExplorerPage extends Component {
                     url={thumbnailurl}
                 />;
 
-                 return (
+                return (
                     <div key={item} className={"col-sm-6 col-md-4 col-lg-3 file-out-cell"}>
-                    <div className="file-cell">
-                        <Link to={toUrl} key={item} className={"file-cell-inner"}>
-                            <FileCellTitle str={text} />
-                            <div className="folder-effect"> {imgDiv} </div>
-                        </Link>
-                    </div>
-                </div>);
+                        <div className="file-cell">
+                            <Link to={toUrl} key={item} className={"file-cell-inner"}>
+                                <FileCellTitle str={text} />
+                                <div className="folder-effect"> {imgDiv} </div>
+                            </Link>
+                        </div>
+                    </div>);
             });
-        }else{
+        } else {
             dirItems = dirs.map((item) => {
                 const toUrl = clientUtil.getExplorerLink(item);
                 const text = this.getMode() === MODE_HOME ? item : getBaseName(item);
@@ -747,8 +758,8 @@ export default class ExplorerPage extends Component {
                     title={item} fileName={item}
                     url={thumbnailurl}
                     musicNum={musicNum}
-                    onReceiveUrl={url => { 
-                        this.thumbnails[item] = url; 
+                    onReceiveUrl={url => {
+                        this.thumbnails[item] = url;
                     }}
                 />;
 
@@ -784,11 +795,11 @@ export default class ExplorerPage extends Component {
 
         return (
             <div className={"explorer-container"}>
-                {!showFolderThumbnail && <ItemsContainer items={dirItems} neverCollapse={this.getMode() === MODE_EXPLORER} /> }
-                {showFolderThumbnail && 
+                {!showFolderThumbnail && <ItemsContainer items={dirItems} neverCollapse={this.getMode() === MODE_EXPLORER} />}
+                {showFolderThumbnail &&
                     <div className={"file-grid container"}>
-                    <div className={"row"}>
-                        {dirItems}
+                        <div className={"row"}>
+                            {dirItems}
                         </div>
                     </div>
                 }
@@ -953,9 +964,9 @@ export default class ExplorerPage extends Component {
             <div className="row">
                 <div className="col-12 file-count-row">
                     <div className="file-count">{"Zip: " + filteredFiles.length} </div>
-                    <div className="file-count">{"Page: " + totalPageNum } </div>
-                    <div className="file-count">{"Video: " + filteredVideos.length } </div>
-                    <div className="file-count">{"Folder: " + this.dirs.length } </div>
+                    <div className="file-count">{"Page: " + totalPageNum} </div>
+                    <div className="file-count">{"Video: " + filteredVideos.length} </div>
+                    <div className="file-count">{"Folder: " + this.dirs.length} </div>
                     <div className="file-count" title={title}>{"Total: " + filesizeUitl(totalSize)} </div>
                 </div>
             </div>
@@ -986,8 +997,8 @@ export default class ExplorerPage extends Component {
                 <div className="col-6 col-md-4"> {this.renderToggleFolferThumbNailButton()} </div>
                 <div className="col-6 col-md-4"> {this.renderToggleThumbNailButton()} </div>
                 <div className="col-6 col-md-4"> {this.renderShowVideoButton()} </div>
-                
-                {isInfoMode &&  <div className="col-6 col-md-4"> {this.renderChartButton()} </div> }
+
+                {isInfoMode && <div className="col-6 col-md-4"> {this.renderChartButton()} </div>}
                 {isExplorer && isInfoMode &&
                     <div className="col-6 col-md-4"> {this.renderLevelButton()} </div>}
                 {isExplorer &&
@@ -1102,22 +1113,25 @@ export default class ExplorerPage extends Component {
         this.setStateAndSetHash({ filterType: text, pageIndex: 1 });
     }
 
-    toggleFilter(key){
+    toggleFilter(key) {
         let filterArr = this.state.filterArr.slice();
         const index = filterArr.indexOf(key)
 
-        if(index > -1){
+        if (index > -1) {
             filterArr.splice(index, 1)
-        }else{
+        } else {
             filterArr.push(key);
         }
+
+        console.log(filterArr)
+
         this.setStateAndSetHash({
             filterArr,
             pageIndex: 1
         });
     }
 
-    isOn(key){
+    isOn(key) {
         return this.state.filterArr.includes(key);
     }
 
@@ -1234,7 +1248,7 @@ export default class ExplorerPage extends Component {
         //no one pay me, I am not going to improve the ui
         let checkbox;
         if (this.state.goodAuthors) {
-            checkbox = (<Checkbox 
+            checkbox = (<Checkbox
                 onChange={this.toggleFilter.bind(this, FILTER_GOOD_AUTHOR)}
                 checked={this.isOn(FILTER_GOOD_AUTHOR)}
                 title={`need to found more than ${GOOD_STANDARD} times in good folder`}>
@@ -1256,12 +1270,18 @@ export default class ExplorerPage extends Component {
         let checkbox4 = (<Checkbox onChange={this.toggleFilter.bind(this, FILTER_HAS_MUSIC)} checked={this.isOn(FILTER_HAS_MUSIC)}>
             {st4}
         </Checkbox>);
+
+        const st5 = `only img folder`;
+        let checkbox5 = (<Checkbox onChange={this.toggleFilter.bind(this, FILTER_IMG_FOLDER)} checked={this.isOn(FILTER_IMG_FOLDER)}>
+            {st5}
+        </Checkbox>);
         return (
             <div className="speical-checkbox-container">
                 {checkbox}
                 {checkbox2}
                 {checkbox3}
                 {checkbox4}
+                {checkbox5}
             </div>);
     }
 
