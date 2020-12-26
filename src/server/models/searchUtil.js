@@ -70,7 +70,7 @@ async function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
         let rows = await sqldb.allSync(sql, [( '%' + _text + '%')]);
         const tag_obj = splitRows(rows, _text);
         zipResult = tag_obj.zipResult;
-        dirResults = tag_obj.zipResult;
+        dirResults = tag_obj.dirResults;
         imgFolders = tag_obj.imgFolders;
     }
 
