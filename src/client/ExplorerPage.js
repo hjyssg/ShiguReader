@@ -53,6 +53,11 @@ const { MODE_TAG,
 
 const GOOD_STANDARD = 2;
 
+const FILTER_GOOD_AUTHOR = "FILTER_GOOD_AUTHOR";
+const FILTER_OVERSIZE = "FILTER_OVERSIZE";
+const FILTER_FIRST_TIME = "FILTER_FIRST_TIME";
+const FILTER_HAS_MUSIC = "FILTER_HAS_MUSIC";
+
 function parse(str) {
     return nameParser.parse(getBaseName(str));
 }
@@ -86,11 +91,7 @@ export default class ExplorerPage extends Component {
             sortOrder,
             showVideo,
             showFolderThumbnail,
-            filterByGoodAuthorName: parsed.filterByGoodAuthorName === "true",
-            filterByFirstTime: parsed.filterByFirstTime === "true",
-            filterByHasMusic: parsed.filterByHasMusic === "true",
-            filterByOversizeImage: parsed.filterByOversizeImage === "true",
-            filterByGuess: parsed.filterByGuess === "true",
+            filterArr: parsed.filterArr || [],
             filterText: parsed.filterText || "",
             filterType: parsed.filterType || "",
             noThumbnail: parsed.noThumbnail === "true"
@@ -105,11 +106,7 @@ export default class ExplorerPage extends Component {
             "isRecursive",
             "sortOrder",
             "showVideo",
-            "filterByGoodAuthorName",
-            "filterByFirstTime",
-            "filterByHasMusic",
-            "filterByOversizeImage",
-            "filterByGuess",
+            "filterArr",
             "filterText",
             "filterType",
             "noThumbnail",
@@ -433,9 +430,8 @@ export default class ExplorerPage extends Component {
         const goodSet = arrIntoSet(this.state.goodAuthors);
         const otherSet = arrIntoSet(this.state.otherAuthors);
         const guessIfUserLike = this.guessIfUserLike;
-        const { filterByGoodAuthorName, filterByOversizeImage, filterByGuess, filterByFirstTime, filterByHasMusic } = this.state;
 
-        if (filterByGoodAuthorName && goodSet && otherSet) {
+        if (this.isOn(FILTER_GOOD_AUTHOR) && goodSet && otherSet) {
             files = files.filter(e => {
                 const temp = parse(e);
                 if (temp && temp.author && goodSet[temp.author] && goodSet[temp.author] > GOOD_STANDARD) {
@@ -444,19 +440,13 @@ export default class ExplorerPage extends Component {
             })
         }
 
-        if (filterByGuess) {
-            files = files.filter(e => {
-                return guessIfUserLike[e]
-            });
-        }
-
-        if (filterByOversizeImage) {
+        if (this.isOn(FILTER_OVERSIZE)) {
             files = files.filter(e => {
                 return this.getPageAvgSize(e) / 1024 / 1024 > userConfig.oversized_image_size
             })
         }
 
-        if (filterByFirstTime && goodSet && otherSet) {
+        if (this.isOn(FILTER_FIRST_TIME) && goodSet && otherSet) {
             files = files.filter(e => {
                 const temp = parse(e);
                 if (temp && temp.author && ((goodSet[temp.author] || 0) + (otherSet[temp.author] || 0)) <= 1) {
@@ -466,7 +456,7 @@ export default class ExplorerPage extends Component {
             })
         }
 
-        if (filterByHasMusic) {
+        if (this.isOn(FILTER_HAS_MUSIC)) {
             files = files.filter(e => {
                 return this.getMusicNum(e) > 0;
             })
@@ -1112,38 +1102,23 @@ export default class ExplorerPage extends Component {
         this.setStateAndSetHash({ filterType: text, pageIndex: 1 });
     }
 
-    toggleGoodAuthor() {
-        this.setStateAndSetHash({
-            filterByGoodAuthorName: !this.state.filterByGoodAuthorName,
-            pageIndex: 1
-        });
-    };
+    toggleFilter(key){
+        let filterArr = this.state.filterArr.slice();
+        const index = filterArr.indexOf(key)
 
-    toggleOversizeImage() {
+        if(index > -1){
+            filterArr.splice(index, 1)
+        }else{
+            filterArr.push(key);
+        }
         this.setStateAndSetHash({
-            filterByOversizeImage: !this.state.filterByOversizeImage
-        });
-    };
-
-    toggleGuess() {
-        this.setStateAndSetHash({
-            filterByGuess: !this.state.filterByGuess,
-            pageIndex: 1
-        });
-    };
-
-    toggleFirstTime() {
-        this.setStateAndSetHash({
-            filterByFirstTime: !this.state.filterByFirstTime,
+            filterArr,
             pageIndex: 1
         });
     }
 
-    toggleHasMusic() {
-        this.setStateAndSetHash({
-            filterByHasMusic: !this.state.filterByHasMusic,
-            pageIndex: 1
-        });
+    isOn(key){
+        return this.state.filterArr.includes(key);
     }
 
     renderSideMenu(filteredFiles, filteredVideos) {
@@ -1259,30 +1234,26 @@ export default class ExplorerPage extends Component {
         //no one pay me, I am not going to improve the ui
         let checkbox;
         if (this.state.goodAuthors) {
-            checkbox = (<Checkbox onChange={this.toggleGoodAuthor.bind(this)}
-                checked={this.state.filterByGoodAuthorName}
+            checkbox = (<Checkbox 
+                onChange={this.toggleFilter.bind(this, FILTER_GOOD_AUTHOR)}
+                checked={this.isOn(FILTER_GOOD_AUTHOR)}
                 title={`need to found more than ${GOOD_STANDARD} times in good folder`}>
                 By good_folder_root
                         </Checkbox>);
         }
 
-        // const st5 = `Guess you like`;
-        // let checkbox5 = (<Checkbox onChange={this.toggleGuess.bind(this)} checked={this.state.filterByGuess}>
-        //     {st5}
-        // </Checkbox>);
-
         const st2 = `image size bigger than ${userConfig.oversized_image_size} MB`;
-        let checkbox2 = (<Checkbox onChange={this.toggleOversizeImage.bind(this)} checked={this.state.filterByOversizeImage}>
+        let checkbox2 = (<Checkbox onChange={this.toggleFilter.bind(this, FILTER_OVERSIZE)} checked={this.isOn(FILTER_OVERSIZE)}>
             {st2}
         </Checkbox>);
 
         const st3 = `first time`;
-        let checkbox3 = (<Checkbox onChange={this.toggleFirstTime.bind(this)} checked={this.state.filterByFirstTime}>
+        let checkbox3 = (<Checkbox onChange={this.toggleFilter.bind(this, FILTER_FIRST_TIME)} checked={this.isOn(FILTER_FIRST_TIME)}>
             {st3}
         </Checkbox>);
 
         const st4 = `has music`;
-        let checkbox4 = (<Checkbox onChange={this.toggleHasMusic.bind(this)} checked={this.state.filterByHasMusic}>
+        let checkbox4 = (<Checkbox onChange={this.toggleFilter.bind(this, FILTER_HAS_MUSIC)} checked={this.isOn(FILTER_HAS_MUSIC)}>
             {st4}
         </Checkbox>);
         return (
