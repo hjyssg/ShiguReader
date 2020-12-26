@@ -750,8 +750,6 @@ export default class ExplorerPage extends Component {
                     "as-folder-thumbnail": isImgFolder
                 });
 
-                const that = this;
-
                 let imgDiv = <LoadingImage
                     onlyUseURL={isImgFolder}
                     isThumbnail
@@ -760,7 +758,7 @@ export default class ExplorerPage extends Component {
                     url={thumbnailurl}
                     musicNum={musicNum}
                     onReceiveUrl={url => { 
-                        that.thumbnails[item] = url; 
+                        this.thumbnails[item] = url; 
                     }}
                 />;
 
