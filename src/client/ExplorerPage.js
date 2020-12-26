@@ -609,8 +609,12 @@ export default class ExplorerPage extends Component {
                 return (<CenterSpinner text={this.getTextFromQuery()} />);
             } else {
                 const str = this.getMode() === MODE_EXPLORER ? "This folder is empty" : "Empty Result";
-                return (<div className="one-book-nothing-available">
+                return (
+                <div>
+                    {this.renderSpecialFilter()}
+                <div className="one-book-nothing-available">
                     <div className="alert alert-secondary" role="alert">{str}</div>
+                </div>
                 </div>);
             }
         }
@@ -807,6 +811,7 @@ export default class ExplorerPage extends Component {
                 <ItemsContainer className="video-list" items={normalVideos} />
                 <ItemsContainer items={avVideos} />
                 {this.renderPagination(filteredFiles, filteredVideos)}
+                {this.renderSpecialFilter()}
                 {this.renderSortHeader()}
                 <div className={"file-grid container"}>
                     <div className={rowCn}>
@@ -1136,6 +1141,10 @@ export default class ExplorerPage extends Component {
     }
 
     renderSideMenu(filteredFiles, filteredVideos) {
+        if (this.getMode() === MODE_HOME) {
+            return;
+        }
+
         const tag2Freq = {};
         const type2Freq = {};
 
@@ -1211,21 +1220,18 @@ export default class ExplorerPage extends Component {
             {tagInfos}
         </div>);
 
-        if (this.getMode() !== MODE_HOME) {
-            const cn = classNames("side-menu container", {
-                anchorSideMenu: this.state.anchorSideMenu
-            });
+        const cn = classNames("side-menu container", {
+            anchorSideMenu: this.state.anchorSideMenu
+        });
 
-            return (<div className={cn}>
-                <div className="side-menu-radio-title"> Special Filter </div>
-                {this.renderSpecialFilter()}
-                <div className="row info-row">
-                    <div className="col-3">{`filterText: ${filterText || "-"}`} </div>
-                    <div className="col-3">{`filterType: ${filterType || "-"}`} </div>
-                </div>
-                {tagContainer}
-            </div>)
-        }
+        return (<div className={cn}>
+            <div className="side-menu-radio-title"> Special Filter </div>
+            <div className="row info-row">
+                <div className="col-3">{`filterText: ${filterText || "-"}`} </div>
+                <div className="col-3">{`filterType: ${filterType || "-"}`} </div>
+            </div>
+            {tagContainer}
+        </div>)
     }
 
     renderSortHeader() {
@@ -1245,6 +1251,10 @@ export default class ExplorerPage extends Component {
     }
 
     renderSpecialFilter() {
+        if(this.getMode() === MODE_HOME){
+            return;
+        }
+
         //no one pay me, I am not going to improve the ui
         let checkbox;
         if (this.state.goodAuthors) {
@@ -1252,31 +1262,31 @@ export default class ExplorerPage extends Component {
                 onChange={this.toggleFilter.bind(this, FILTER_GOOD_AUTHOR)}
                 checked={this.isOn(FILTER_GOOD_AUTHOR)}
                 title={`need to found more than ${GOOD_STANDARD} times in good folder`}>
-                By good_folder_root
+                By Good Folder
                         </Checkbox>);
         }
 
-        const st2 = `image size bigger than ${userConfig.oversized_image_size} MB`;
+        const st2 = `Image > ${userConfig.oversized_image_size} MB`;
         let checkbox2 = (<Checkbox onChange={this.toggleFilter.bind(this, FILTER_OVERSIZE)} checked={this.isOn(FILTER_OVERSIZE)}>
             {st2}
         </Checkbox>);
 
-        const st3 = `first time`;
+        const st3 = `First Time`;
         let checkbox3 = (<Checkbox onChange={this.toggleFilter.bind(this, FILTER_FIRST_TIME)} checked={this.isOn(FILTER_FIRST_TIME)}>
             {st3}
         </Checkbox>);
 
-        const st4 = `has music`;
+        const st4 = `Has Music`;
         let checkbox4 = (<Checkbox onChange={this.toggleFilter.bind(this, FILTER_HAS_MUSIC)} checked={this.isOn(FILTER_HAS_MUSIC)}>
             {st4}
         </Checkbox>);
 
-        const st5 = `only img folder`;
+        const st5 = `Only Image Folder`;
         let checkbox5 = (<Checkbox onChange={this.toggleFilter.bind(this, FILTER_IMG_FOLDER)} checked={this.isOn(FILTER_IMG_FOLDER)}>
             {st5}
         </Checkbox>);
         return (
-            <div className="speical-checkbox-container">
+            <div className="aji-checkbox-container container">
                 {checkbox}
                 {checkbox2}
                 {checkbox3}
