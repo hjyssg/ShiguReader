@@ -394,7 +394,7 @@ export default class ExplorerPage extends Component {
         if (pageNum === 0) {
             //one for display
             //one for sort 
-            return -Infinity;
+            return 0;
         }
 
         //choose the min
