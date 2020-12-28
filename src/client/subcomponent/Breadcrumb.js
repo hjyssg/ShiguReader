@@ -26,9 +26,8 @@ export default class Breadcrumb extends Component {
         console.assert(sep);
         sep = sep || "\\";
         const beginWithSep = path.startsWith(sep);
-        let pathes = path.split(sep).filter(e => !!e);
-        const isLinux = server_os === "linux";
-  
+        const pathes = path.split(sep).filter(e => !!e);
+        
         const pathList = [];
         //https://www.w3schools.com/howto/howto_css_breadcrumbs.asp
         for (let ii = 0; ii < pathes.length; ii++) {
@@ -45,7 +44,8 @@ export default class Breadcrumb extends Component {
                 pathList.push(<div key={ii + "sep"} className="breadcrumb-sep" >{sep}</div>)
             }
         }
-
+        
+        const isLinux = server_os === "linux";
         if(isLinux){
             const toUrl = clientUtil.getExplorerLink("/");
             pathList.unshift(<div key={"root sep"} className="breadcrumb-sep" >{sep}</div>)
