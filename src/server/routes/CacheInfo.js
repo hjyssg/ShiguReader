@@ -11,7 +11,9 @@ router.post('/api/cacheInfo', (req, res) => {
     let totalSize = 0;
 
     cacheFiles.forEach(e => {
-        totalSize += cacheFileToInfo[e].size;
+        if(cacheFileToInfo[e]){
+            totalSize +=  cacheFileToInfo[e].size;
+        }
     })
 
     res.send({
