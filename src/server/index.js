@@ -244,6 +244,11 @@ function isForbid(str){
 
 //this function which files will be scanned and watched by ShiguReader
 function shouldWatchForNormal(p, stat) {
+    //cache is cover by another watch
+    if(p.includes(cachePath)){
+        return false;
+    }
+
     if (isHiddenFile(p) || junk.is(p) || isForbid(p)) {
         return false;   
     }
