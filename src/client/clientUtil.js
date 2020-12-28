@@ -11,9 +11,22 @@ module.exports.filesizeUitl = function (num) {
     return filesizeUitl(num, { base: 2 });
 }
 
-module.exports.getDir = function (fn) {
-    if (!fn) { return ""; }
-    const tokens = fn.split('\\');
+function getSep(fp){
+    //todo: use path_sep from server
+    // this function will take file path/or web url
+    // so it need to decide seperator will be used
+    let seperator = "/";  //   / is used by linux and web url
+    if (fp.match(/[A-Za-z]:\\/)) {
+        //match windows path
+        seperator = "\\";
+    }
+    return seperator;
+}
+
+module.exports.getDir = function (fp) {
+    if (!fp) { return ""; }
+    const seperator = getSep(fp);
+    const tokens = fp.split(seperator);
     return tokens.slice(0, tokens.length - 1).join('\\');
 };
 
@@ -24,13 +37,7 @@ const getBaseName = module.exports.getBaseName = function (fp) {
 
     if (!fp) { return ""; }
 
-    // this function will take file path/or web url
-    // so it need to decide seperator will be used
-    let seperator = "/";  //   / is used by linux and web url
-    if (fp.match(/[A-Za-z]:\\/)) {
-        //match windows path
-        seperator = "\\";
-    }
+    const seperator = getSep(fp);
     const tokens = fp.split(seperator);
     return tokens[tokens.length - 1];
 };
