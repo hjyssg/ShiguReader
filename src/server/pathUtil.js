@@ -86,6 +86,8 @@ function isSub(parent, child) {
 if(isWindows()){
     console.assert(isSub("D:\\_Happy_Lesson\\_Going_to_sort\\_not_good\\", "D:\\_Happy_Lesson\\_Going_to_sort\\_not_good\\not_good_2020"))
     console.assert(isSub("D:\\_Happy_Lesson\\_Going_to_sort\\_not_good", "D:\\_Happy_Lesson\\_Going_to_sort\\_not_good\\not_good_2020"))
+}else{
+    console.assert(isSub("/Users/hjy/", "/Users/hjy/Downloads"))
 }
 
 async function filterNonExist(pathes) {

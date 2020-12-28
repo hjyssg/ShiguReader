@@ -717,7 +717,9 @@ export default class ExplorerPage extends Component {
                 const prev = files[index - 1];
                 if (!prev || getDir(prev) !== getDir(item)) {
                     seperator = (<div className="col-12" key={item + "---seperator"}>
-                        <Breadcrumb sep={this.context.file_path_sep} path={getDir(item)} className={breadcrumbCount > 0 ? "not-first-breadcrumb folder-seperator" : "folder-seperator"} />
+                        <Breadcrumb sep={this.context.file_path_sep} 
+                                    server_os={this.context.server_os} 
+                                    path={getDir(item)} className={breadcrumbCount > 0 ? "not-first-breadcrumb folder-seperator" : "folder-seperator"} />
                     </div>);
                     breadcrumbCount++;
                 }
@@ -1021,7 +1023,9 @@ export default class ExplorerPage extends Component {
             </div>);
 
         const breadcrumb = isExplorer && (<div className="row">
-            <Breadcrumb sep={this.context.file_path_sep} path={this.getPathFromQuery()} className="col-12" />
+            <Breadcrumb sep={this.context.file_path_sep} 
+                        server_os={this.context.server_os} 
+                        path={this.getPathFromQuery()} className="col-12" />
         </div>);
 
         return (<div className="container explorer-top-bar-container">
