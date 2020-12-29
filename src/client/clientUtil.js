@@ -27,7 +27,7 @@ module.exports.getDir = function (fp) {
     if (!fp) { return ""; }
     const seperator = getSep(fp);
     const tokens = fp.split(seperator);
-    return tokens.slice(0, tokens.length - 1).join('\\');
+    return tokens.slice(0, tokens.length - 1).join(seperator);
 };
 
 const getBaseName = module.exports.getBaseName = function (fp) {
