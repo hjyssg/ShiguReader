@@ -109,14 +109,14 @@ export default class ChartPage extends Component {
                 this.handleRes(res);
             });
 
-            Sender.post('/api/getGoodAuthorNames', {}, res => {
-                if (!res.isFailed()) {
-                    this.setState({
-                        goodAuthors: res.json.goodAuthors,
-                        otherAuthors: res.json.otherAuthors
-                    })
-                }
-            });
+            // Sender.post('/api/getGoodAuthorNames', {}, res => {
+            //     if (!res.isFailed()) {
+            //         this.setState({
+            //             goodAuthors: res.json.goodAuthors,
+            //             otherAuthors: res.json.otherAuthors
+            //         })
+            //     }
+            // });
         }
     }
 
@@ -380,75 +380,75 @@ export default class ChartPage extends Component {
         </div>)
     }
 
-    renderGoodBadDistribution() {
-        if (this.isShowingVideoChart()) {
-            return;
-        }
+    // renderGoodBadDistribution() {
+    //     if (this.isShowingVideoChart()) {
+    //         return;
+    //     }
 
-        const { goodAuthors, otherAuthors } = this.state;
-        const data = {
-            labels: []
-        };
-        const segment = 0.05;
+    //     const { goodAuthors, otherAuthors } = this.state;
+    //     const data = {
+    //         labels: []
+    //     };
+    //     const segment = 0.05;
 
-        for (let ii = 0; ii < 1 / segment; ii++) {
-            data.labels.push((ii * segment));
-        }
+    //     for (let ii = 0; ii < 1 / segment; ii++) {
+    //         data.labels.push((ii * segment));
+    //     }
 
-        if (goodAuthors && otherAuthors) {
-            let allAuthors = _.keys(goodAuthors).concat(_.keys(otherAuthors));
-            allAuthors = _.uniq(allAuthors);
-            let value = [];
+    //     if (goodAuthors && otherAuthors) {
+    //         let allAuthors = _.keys(goodAuthors).concat(_.keys(otherAuthors));
+    //         allAuthors = _.uniq(allAuthors);
+    //         let value = [];
 
-            allAuthors.forEach(aa => {
-                const good = goodAuthors[aa] || 0;
-                const other = otherAuthors[aa] || 0;
-                let pp = good / (good + other);
-                pp = pp.toFixed(2);
+    //         allAuthors.forEach(aa => {
+    //             const good = goodAuthors[aa] || 0;
+    //             const other = otherAuthors[aa] || 0;
+    //             let pp = good / (good + other);
+    //             pp = pp.toFixed(2);
 
-                for (let ii = 0; ii < data.labels.length; ii++) {
-                    const segmentBeg = data.labels[ii];
-                    const segmentEnd = segmentBeg + segment;
+    //             for (let ii = 0; ii < data.labels.length; ii++) {
+    //                 const segmentBeg = data.labels[ii];
+    //                 const segmentEnd = segmentBeg + segment;
 
-                    if (segmentBeg <= pp && pp < segmentEnd) {
-                        value[ii] = value[ii] || 0;
-                        value[ii]++;
-                        break;
-                    }
-                }
-            });
+    //                 if (segmentBeg <= pp && pp < segmentEnd) {
+    //                     value[ii] = value[ii] || 0;
+    //                     value[ii]++;
+    //                     break;
+    //                 }
+    //             }
+    //         });
 
-            data.labels = data.labels.slice(1);
-            value = value.slice(1);
-            // console.log(value);
+    //         data.labels = data.labels.slice(1);
+    //         value = value.slice(1);
+    //         // console.log(value);
 
-            const opt = {
-                maintainAspectRatio: false,
-                legend: {
-                    position: "right"
-                }
-            };
+    //         const opt = {
+    //             maintainAspectRatio: false,
+    //             legend: {
+    //                 position: "right"
+    //             }
+    //         };
 
-            data.datasets = [{
-                type: 'line',
-                label: 'good/(good+other) distribution',
-                backgroundColor: "#15c69a",
-                data: value,
-                fill: false,
-            }]
+    //         data.datasets = [{
+    //             type: 'line',
+    //             label: 'good/(good+other) distribution',
+    //             backgroundColor: "#15c69a",
+    //             data: value,
+    //             fill: false,
+    //         }]
 
-            return (
-                <div className="individual-chart-container">
-                    <Line
-                        data={data}
-                        width={800}
-                        height={200}
-                        options={opt}
-                    />
-                </div>
-            );
-        }
-    }
+    //         return (
+    //             <div className="individual-chart-container">
+    //                 <Line
+    //                     data={data}
+    //                     width={800}
+    //                     height={200}
+    //                     options={opt}
+    //                 />
+    //             </div>
+    //         );
+    //     }
+    // }
 
     onFileTypeChange(e) {
         this.setState({

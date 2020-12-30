@@ -236,8 +236,7 @@ export default class ExplorerPage extends Component {
         Sender.post('/api/getGoodAuthorNames', {}, res => {
             if (!res.isFailed()) {
                 this.setState({
-                    goodAuthors: res.json.goodAuthors,
-                    otherAuthors: res.json.otherAuthors
+                    authorInfo: res.json.authorInfo
                 })
             }
         });
@@ -431,15 +430,18 @@ export default class ExplorerPage extends Component {
             return set;
         }
 
-        const goodSet = arrIntoSet(this.state.goodAuthors);
-        const otherSet = arrIntoSet(this.state.otherAuthors);
-   
-
-        if (this.isOn(FILTER_GOOD_AUTHOR) && goodSet && otherSet) {
+  
+        if (this.isOn(FILTER_GOOD_AUTHOR) ) {
             files = files.filter(e => {
                 const temp = parse(e);
-                if (temp && temp.author && goodSet[temp.author] && goodSet[temp.author] > GOOD_STANDARD) {
-                    return e;
+                if (temp && temp.author) {
+                    const info = this.state.authorInfo.filter(e => {
+                        return e.tag === temp.author
+                    });
+
+                    if(info[0] && info[0].good_count  > GOOD_STANDARD){
+                        return true;
+                    }
                 }
             })
         }
@@ -1259,7 +1261,7 @@ export default class ExplorerPage extends Component {
 
         //no one pay me, I am not going to improve the ui
         let checkbox;
-        if (this.state.goodAuthors) {
+        if (this.state.authorInfo) {
             checkbox = (<Checkbox
                 onChange={this.toggleFilter.bind(this, FILTER_GOOD_AUTHOR)}
                 checked={this.isOn(FILTER_GOOD_AUTHOR)}

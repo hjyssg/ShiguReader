@@ -16,23 +16,42 @@ async function getGoodAndOtherSet() {
 
     let sql,otherAuthors;
 
-    //join two sub querys then group
-    sql = `SELECT a.tag, COUNT(a.tag) as count ` 
-    + `FROM (SELECT * FROM tag_table WHERE type = 'author') AS a LEFT JOIN `
-    + `(SELECT * FROM file_table WHERE filePath LIKE ? AND isCompress = true ) AS b `
-    + `ON a.filePath = b.filePath GROUP BY a.tag `;
-    goodAuthors = await sqldb.allSync(sql, [( '%' + global.good_folder_root + '%')]);
+    //for debug
+    let temp;
+    // sql = `SELECT * FROM file_table WHERE filePath LIKE ? AND isCompress = true `
+    // temp = await sqldb.allSync(sql, [( '%' + global.good_folder_root + '%')]);
 
-    //the only different is NOT LIKE
-    sql = `SELECT a.tag, COUNT(a.tag) as count ` 
-    + `FROM (SELECT * FROM tag_table WHERE type = 'author') AS a LEFT JOIN `
-    + `(SELECT * FROM file_table WHERE filePath NOT LIKE ? AND isCompress = true ) AS b `
-    + `ON a.filePath = b.filePath GROUP BY a.tag `;
-    otherAuthors = await sqldb.allSync(sql, [( '%' + global.good_folder_root + '%')]);;
+    // sql = `SELECT * FROM file_table WHERE filePath NOT LIKE ? AND isCompress = true `
+    // temp = await sqldb.allSync(sql, [( '%' + global.good_folder_root + '%')]);
+
+    // sql = `SELECT * FROM tag_table WHERE type = 'author'`
+    // temp = await sqldb.allSync(sql);
+
+    //conditional count
+    sql = `SELECT tag, ` + 
+    `COUNT(CASE WHEN filePath LIKE ? THEN 1 END) AS good_count, ` + 
+    `COUNT(CASE WHEN filePath NOT LIKE ? THEN 1 END) AS bad_count ` + 
+    `FROM tag_table GROUP BY tag HAVING type = 'author'`
+    authorInfo = await sqldb.allSync(sql, [( global.good_folder_root + '%'), ( global.good_folder_root + '%')]);
+
+
+    // JOIN 难用死了，把自己绕进去了
+    // //join two sub querys then group
+    // sql = `SELECT a.tag, COUNT(a.tag) as count, a.filePath ` 
+    // + `FROM (SELECT * FROM tag_table WHERE type = 'author') AS a JOIN `
+    // + `(SELECT * FROM file_table WHERE filePath LIKE ? AND isCompress = true ) AS b `
+    // + `ON a.filePath = b.filePath GROUP BY a.tag `;
+    // goodAuthors = await sqldb.allSync(sql, [( '%' + global.good_folder_root + '%')]);
+
+    // //the only different is NOT LIKE
+    // sql = `SELECT a.tag, COUNT(a.tag) as count ` 
+    // + `FROM (SELECT * FROM tag_table WHERE type = 'author') AS a JOIN `
+    // + `(SELECT * FROM file_table WHERE filePath NOT LIKE ? AND isCompress = true ) AS b `
+    // + `ON a.filePath = b.filePath GROUP BY a.tag `;
+    // otherAuthors = await sqldb.allSync(sql, [( '%' + global.good_folder_root + '%')]);;
 
     return {
-        goodAuthors,
-        otherAuthors
+        authorInfo
     }
 }
 
