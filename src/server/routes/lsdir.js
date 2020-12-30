@@ -262,7 +262,7 @@ router.post('/api/lsDir', async (req, res) => {
 
 router.post('/api/listImageFolderContent', async (req, res) => {
     let filePath = req.body && req.body.filePath;
-    if (!filePath) {
+    if (!filePath || !(await isExist(filePath))) {
         console.error("[/api/listImageFolderContent]", filePath, "does not exist");
         res.send({ failed: true, reason: "NOT FOUND" });
         return;

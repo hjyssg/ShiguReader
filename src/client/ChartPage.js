@@ -529,7 +529,7 @@ export default class ChartPage extends Component {
                     {this.rendeTimeChart(filtererFiles)}
                     {this.renderComiketChart(filtererFiles)}
                     {this.renderPieChart(filtererFiles)}
-                    {this.renderGoodBadDistribution(filtererFiles)}
+                    {/* {this.renderGoodBadDistribution(filtererFiles)} */}
                 </div>)
         }
     }
