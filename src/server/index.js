@@ -656,6 +656,28 @@ app.post('/api/firstImage', async (req, res) => {
     extractThumbnailFromZip(filePath, res);
 });
 
+async function getSameFileName(filePath){
+    if (!(await isExist(filePath))) {
+        //maybe the file move to other location
+        const fn = path.basename(filePath);
+        const dir = path.dirname(filePath);
+
+        const sqldb = db.getSQLDB();
+        let sql = `SELECT * FROM file_table WHERE fileName LIKE ? AND filePath NOT LIke ? AND isCompress = ?`;
+        let rows = await sqldb.allSync(sql, [( '%' + fn + '%'), (dir + '%'), true]);
+        sameFnObj = rows && rows[0];
+
+        if (sameFnObj) {
+            filePath = sameFnObj.filePath;
+            return filePath;
+        } else {
+            filePath = null;
+        }
+    }
+
+    return filePath;
+}
+
 app.post('/api/extract', async (req, res) => {
     let filePath = req.body && req.body.filePath;
     const startIndex = (req.body && req.body.startIndex) || 0;
@@ -670,22 +692,10 @@ app.post('/api/extract', async (req, res) => {
 
     //todo: record the timestamp of each request
     //when cleaning cache, if the file is read recently, dont clean its cache
-
-    if (!(await isExist(filePath))) {
-        //maybe the file move to other location
-        const fn = path.basename(filePath);
-
-        const sqldb = db.getSQLDB();
-        let sql = `SELECT * FROM file_table WHERE fileName LIKE ? AND isCompress = ?`;
-        let rows = await sqldb.allSync(sql, [( '%' + fn + '%'), true]);
-        sameFnObj = rows && rows[0];
-
-        if (sameFnObj) {
-            filePath = sameFnObj.filePath;
-        } else {
-            res.send({ failed: true, reason: "NOT FOUND" });
-            return;
-        }
+    filePath = await getSameFileName(filePath);
+    if (!filePath){
+        res.send({ failed: true, reason: "NOT FOUND" });
+        return;
     }
 
     const time1 = getCurrentTime();
