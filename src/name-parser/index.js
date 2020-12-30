@@ -203,10 +203,15 @@ function isNotAuthor(str) {
     return str.match(not_author_but_tag_regex);
 }
 
-const useless_tag = /RJ\d+|DL版|別スキャン^エロ|^digital$|^\d+p|^\d+$/i;
+const useless_tag = /RJ\d+|DL版|別スキャン^エロ|^digital$|^\d+p$|^\d+$/i;
 function isUselessTag(str) {
     return !!str.match(useless_tag)
 }
+
+console.assert(isUselessTag("123"))
+console.assert(!isUselessTag("666PROTECT (甚六)"))
+console.assert(!isUselessTag("666PROTECT"))
+
 
 function findMaxStr(arr) {
     let res = arr[0];
@@ -525,7 +530,6 @@ function isHighlySimilar(s1, s2) {
         return false;
     }
 }
-
 
 module.exports.isHighlySimilar = isHighlySimilar;
 module.exports.parse = parse;
