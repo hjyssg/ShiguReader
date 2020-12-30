@@ -71,15 +71,15 @@ const updateFileDb = function (filePath, statObj) {
 
     const temp = nameParser.parse(str) || {};
     const nameTags = namePicker.pick(str) || [];
-    const tempTags = temp.tags || [];
-    tempTags.concat(temp.comiket);
     const musicTags = nameParser.parseMusicTitle(str) || [];
-    const tags = _.uniq([].concat(tempTags, nameTags, musicTags));
+    const tags = _.uniq([].concat(temp.tags, temp.comiket , nameTags, musicTags));
     const authors = temp.authors || [];
     const group = temp.group || "";
 
     tags.forEach(t => {
-        insertToTagTable(filePath, t, "tag");
+        if(!authors.includes(t) && group !== t){
+            insertToTagTable(filePath, t, "tag");
+        }
     })
 
     authors.forEach(t => {

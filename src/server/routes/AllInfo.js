@@ -14,18 +14,25 @@ router.post('/api/tagInfo', async (req, res) => {
 
     //inner joiner then group by
     let sql = `SELECT a.filePath, max(a.sTime) as maxTime , b.tag, COUNT(b.tag) as count, b.type ` 
-    + `FROM file_table AS a INNER JOIN tag_table AS b `
-    + `ON a.filePath = b.filePath AND a.isCompress = true GROUP BY tag HAVING a.sTime = maxTime ORDER BY count DESC`;
+    + `FROM (SELECT * FROM tag_table WHERE type = 'author' ) AS b LEFT JOIN `
+    + `(SELECT * FROM file_table where isCompress = true ) AS a `
+    + `ON a.filePath = b.filePath GROUP BY tag HAVING a.sTime = maxTime AND count > 1 ORDER BY count DESC`;
 
     //todo: sort by  a.sTime DESC
-    let rows = await sqldb.allSync(sql);
-
-    rows.forEach(row => {
+    let author_rows = await sqldb.allSync(sql);
+    author_rows.forEach(row => {
         row.thumbnail = getThumbnails(row.filePath)
     })
 
-    const author_rows = rows.filter(row => row.type === "author");
-    const tag_rows = rows.filter(row => row.type === "tag");
+
+    sql = `SELECT a.filePath, max(a.sTime) as maxTime , b.tag, COUNT(b.tag) as count, b.type ` 
+    + `FROM (SELECT * FROM tag_table WHERE type = 'tag') AS b LEFT JOIN `
+    + `(SELECT * FROM file_table where isCompress = true) AS a `
+    + `ON a.filePath = b.filePath GROUP BY tag HAVING a.sTime = maxTime AND count > 1 ORDER BY count DESC`;
+    let tag_rows = await sqldb.allSync(sql);
+    tag_rows.forEach(row => {
+        row.thumbnail = getThumbnails(row.filePath)
+    })
 
     res.send({
         author_rows, 
