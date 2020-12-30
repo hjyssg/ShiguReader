@@ -17,6 +17,8 @@ const classNames = require('classnames');
 import SortHeader from './subcomponent/SortHeader';
 const Constant = require("@common/constant");
 const queryString = require('query-string');
+import Checkbox from './subcomponent/Checkbox';
+
 
 const util = require("@common/util");
 const clientUtil = require("./clientUtil");
@@ -32,6 +34,9 @@ const {
 } = Constant;
 
 
+const FILTER_PARODY = "FILTER_PARODY";
+const FILTER_COMIKET = "FILTER_COMIKET"
+
 export default class TagPage extends Component {
   constructor(prop) {
     super(prop);
@@ -43,6 +48,10 @@ export default class TagPage extends Component {
     const parsed = reset ? {} : queryString.parse(location.hash);
     const pageIndex = parseInt(parsed.pageIndex) || 1;
     const sortOrder = parsed.sortOrder || FILE_NUMBER_DOWN;
+    let filterArr = parsed.filterArr || [FILTER_PARODY];
+    if (_.isString(filterArr)) {
+        filterArr = [ filterArr ];
+    }
 
     return {
       perPageItemNum: getPerPageItemNumber(),
@@ -50,6 +59,7 @@ export default class TagPage extends Component {
       author_rows: [],
       pageIndex,
       sortOrder,
+      filterArr,
       filterText: parsed.filterText || "",
     }
   }
@@ -57,7 +67,7 @@ export default class TagPage extends Component {
   setStateAndSetHash(state, callback) {
     const obj = Object.assign({}, this.state, state);
     const obj2 = {};
-    ["pageIndex", "sortOrder", "filterText"].forEach(key => {
+    ["pageIndex", "sortOrder", "filterText", "filterArr"].forEach(key => {
       obj2[key] = obj[key];
     })
 
@@ -276,6 +286,50 @@ export default class TagPage extends Component {
     </div>);
   }
 
+  toggleFilter(key) {
+      let filterArr = this.state.filterArr.slice();
+      const index = filterArr.indexOf(key)
+
+      if (index > -1) {
+          filterArr.splice(index, 1)
+      } else {
+          filterArr.push(key);
+      }
+
+      // console.log(filterArr)
+      this.setStateAndSetHash({
+          filterArr,
+          pageIndex: 1
+      });
+  }
+
+  isOn(key) {
+    return this.state.filterArr.includes(key);
+  }
+
+  renderFilterMenu() {
+    if(this.isAuthorMode()){
+      return;
+    }
+
+    const st2 = `Parody`;
+    let checkbox2 = (<Checkbox onChange={this.toggleFilter.bind(this, FILTER_PARODY)} checked={this.isOn(FILTER_PARODY)}>
+        {st2}
+    </Checkbox>);
+
+    const st3 = `Comiket`;
+    let checkbox3 = (<Checkbox onChange={this.toggleFilter.bind(this, FILTER_COMIKET)} checked={this.isOn(FILTER_COMIKET)}>
+        {st3}
+    </Checkbox>);
+
+
+    return (
+        <div className="aji-checkbox-container container">
+            {checkbox2}
+            {checkbox3}
+        </div>);
+  }
+
   render() {
     if (this.isFailedLoading()) {
       return <ErrorPage res={this.res} />;
@@ -289,6 +343,7 @@ export default class TagPage extends Component {
         <center className="location-title">{this.getTitle(items)}</center>
         {this.renderPagination(items)}
         {this.renderSortHeader()}
+        {this.renderFilterMenu()}
         {this.renderTagList(items)}
         {this.renderPagination(items)}
       </div>

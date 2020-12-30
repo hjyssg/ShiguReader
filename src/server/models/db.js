@@ -38,7 +38,7 @@ sqlDb.run("CREATE TABLE file_table (filePath TEXT NOT NULL PRIMARY KEY, fileName
            "isDisplayableInExplorer BOOL, isDisplayableInOnebook BOOL, isCompress BOOL, isFolder BOOL)");
 
 //todo: http://howto.philippkeller.com/2005/04/24/Tags-Database-schemas/
-sqlDb.run("CREATE TABLE tag_table (filePath TEXT, tag TEXT, type TEXT )");
+sqlDb.run("CREATE TABLE tag_table (filePath TEXT, tag TEXT, type TEXT, subtype TEXT )");
 
 const _util = require('util');
 sqlDb.allSync = _util.promisify(sqlDb.all).bind(sqlDb);
@@ -48,11 +48,12 @@ module.exports.getSQLDB = function(){
     return sqlDb;
 }
 
-function insertToTagTable(filePath, tag, type){
+function insertToTagTable(filePath, tag, type, subtype){
+    subtype = subtype || "";
     if(!tag || tag.match(util.useless_tag_regex)){
         return;
     }
-    sqlDb.run("INSERT OR REPLACE INTO tag_table(filePath, tag, type ) values(?, ?, ?)",  filePath, tag, type);
+    sqlDb.run("INSERT OR REPLACE INTO tag_table(filePath, tag, type, subtype ) values(?, ?, ?, ?)",  filePath, tag, type, subtype);
 }
 
 const updateFileDb = function (filePath, statObj) {
@@ -78,7 +79,14 @@ const updateFileDb = function (filePath, statObj) {
 
     tags.forEach(t => {
         if(!authors.includes(t) && group !== t){
-            insertToTagTable(filePath, t, "tag");
+
+            //todo: add subtype
+            //e.g comiket, parody
+            if(temp.comiket === t){
+                insertToTagTable(filePath, t, "tag", "comiket");
+            }else{
+                insertToTagTable(filePath, t, "tag");
+            }
         }
     })
 
