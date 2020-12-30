@@ -282,7 +282,7 @@ export default class ExplorerPage extends Component {
 
     handleRes(res) {
         if (!res.isFailed()) {
-            let { dirs, mode, tag, author, fileInfos, thumbnails, dirThumbnails, zipInfo, imgFolders, imgFolderInfo, guessIfUserLike, hdd_list } = res.json;
+            let { dirs, mode, tag, author, fileInfos, thumbnails, dirThumbnails, zipInfo, imgFolders, imgFolderInfo, hdd_list } = res.json;
             this.loadedHash = this.getTextFromQuery();
             this.mode = mode;
             this.fileInfos = fileInfos || {};
@@ -295,7 +295,6 @@ export default class ExplorerPage extends Component {
             this.thumbnails = thumbnails || {};
             this.dirThumbnails = dirThumbnails || {};
             this.zipInfo = zipInfo || {};
-            this.guessIfUserLike = guessIfUserLike || {};
             this.imgFolders = imgFolders || {};
             this.imgFolderInfo = imgFolderInfo || {};
             this.hdd_list = hdd_list || [];
@@ -434,7 +433,7 @@ export default class ExplorerPage extends Component {
 
         const goodSet = arrIntoSet(this.state.goodAuthors);
         const otherSet = arrIntoSet(this.state.otherAuthors);
-        const guessIfUserLike = this.guessIfUserLike;
+   
 
         if (this.isOn(FILTER_GOOD_AUTHOR) && goodSet && otherSet) {
             files = files.filter(e => {

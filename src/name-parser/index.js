@@ -18,7 +18,8 @@ const book_types = [
     "イラスト集",
     "アンソロジー",
     "画集",
-    "雑誌"
+    "雑誌",
+    "18禁ゲーム"
 ];
 const book_type_regex = new RegExp(book_types.map(e => `(${e})`).join("|"), "i");
 
