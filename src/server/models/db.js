@@ -85,7 +85,7 @@ const updateFileDb = function (filePath, statObj) {
             if(temp.comiket === t){
                 insertToTagTable(filePath, t, "tag", "comiket");
             }else{
-                insertToTagTable(filePath, t, "tag");
+                insertToTagTable(filePath, t, "tag", "parody");
             }
         }
     })

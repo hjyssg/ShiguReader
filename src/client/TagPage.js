@@ -142,6 +142,7 @@ export default class TagPage extends Component {
 
     let items = this.getItems() || [];
 
+    //by text
     if (_.isString(filterText)) {
       let _text = filterText.toLowerCase();
       items = items.filter(e => {
@@ -149,6 +150,7 @@ export default class TagPage extends Component {
       });
     }
 
+    //sort
     if (sortOrder.includes(SORT_RANDOMLY)) {
       items = _.shuffle(items);
     } else if (sortOrder === FILE_NUMBER_DOWN || sortOrder === FILE_NUMBER_UP) {
@@ -166,6 +168,19 @@ export default class TagPage extends Component {
         items.reverse();
       }
     }
+
+    if(this.isTagMode()){
+      items = items.filter(e => {
+        if(this.isOn(FILTER_COMIKET) && e.subtype === "comiket"){
+          return true;
+        }
+
+        if(this.isOn(FILTER_PARODY) && e.subtype === "parody"){
+          return true;
+        }
+      });
+    }
+
     return items;
   }
 
@@ -175,6 +190,10 @@ export default class TagPage extends Component {
 
   isAuthorMode() {
     return this.props.mode === "author";
+  }
+
+  isTagMode() {
+    return this.props.mode === "tag";
   }
 
   renderTagList(items) {
@@ -228,7 +247,7 @@ export default class TagPage extends Component {
   }
 
   getTitle(keys) {
-    let text = this.props.mode === "tag" ? "By Tags" : "By Authors";
+    let text = this.isTagMode() ? "By Tags" : "By Authors";
     return text + " (" + keys.length + ")";
   }
 

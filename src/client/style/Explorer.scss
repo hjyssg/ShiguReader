@@ -40,24 +40,6 @@
   &.anchorSideMenu {
     display: flex;
   }
-
-  .aji-checkbox-container {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    .aji-checkbox{
-      display: inline-flex;
-
-      .inner {
-        font-size: 1rem;
-      }
-
-      &:not(:first-child){
-        margin-left: 20px;
-      }
-    }
-  }
 }
 
 .explorer-external-link {
