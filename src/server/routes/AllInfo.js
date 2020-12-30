@@ -4,7 +4,7 @@ const router = express.Router();
 const serverUtil = require("../serverUtil");
 const db = require("../models/db");
 const { getAllFilePathes } = db;
-const getThumbnails = serverUtil.common.getThumbnails;
+const { getThumbnails } = serverUtil.common;
 const util = global.requireUtil();
 const { isDisplayableInExplorer } = util;
 

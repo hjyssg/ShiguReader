@@ -494,14 +494,22 @@ function getThumbnails(filePathes) {
 
 async function getStat(filePath) {
     const stat = await pfs.stat(filePath);
-    updateStatToDb(filePath, stat);
+    if(isAlreadyScan(filePath)){
+        updateStatToDb(filePath, stat);
+    }
     return stat;
 }
 
+function isAlreadyScan(dir){
+    return global.scan_path.some(sp => {
+        return sp === dir || pathUtil.isSub(sp, dir);
+    });
+}
 
 serverUtil.common.getCacheOutputPath = getCacheOutputPath;
 serverUtil.common.getThumbnails = getThumbnails;
 serverUtil.common.getStat = getStat;
+serverUtil.common.isAlreadyScan = isAlreadyScan;
 
 //-----------------thumbnail related-----------------------------------
 

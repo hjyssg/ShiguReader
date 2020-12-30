@@ -87,7 +87,7 @@ async function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
 
     const imgFolderInfo = getImgFolderInfo(imgFolders);
 
-    const getThumbnails = serverUtil.common.getThumbnails;
+    const { getThumbnails } = serverUtil.common;
     const files = _.keys(fileInfos);
     return {
         tag, author, fileInfos,

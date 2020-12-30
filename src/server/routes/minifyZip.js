@@ -10,7 +10,7 @@ const db = require("../models/db");
 const path = require('path');
 
 const serverUtil = require("../serverUtil");
-const getStat = serverUtil.common.getStat;
+const { getStat } = serverUtil.common;
 
 const sevenZipHelp = require("../sevenZipHelp");
 const { listZipContentAndUpdateDb } = sevenZipHelp;

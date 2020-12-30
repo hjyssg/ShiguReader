@@ -5,7 +5,7 @@ const express = require('express');
 const router = express.Router();
 const db = require("../models/db");
 const serverUtil = require("../serverUtil");
-const getStat = serverUtil.common.getStat;
+const { getStat } = serverUtil.common;
 
 router.post("/api/singleFileInfo", async (req, res) => {
     const filePath = (req.body && req.body.filePath);

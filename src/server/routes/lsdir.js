@@ -14,10 +14,9 @@ const { getCurrentTime, isDisplayableInExplorer, isDisplayableInOnebook, escapeR
 const path = require('path');
 const zipInfoDb = require("../models/zipInfoDb");
 const { getZipInfo } = zipInfoDb;
-const { getThumbnails } = serverUtil.common;
+const { getThumbnails, isAlreadyScan } = serverUtil.common;
 const _ = require('underscore');
 const readdir = require("../readdir");
-
 
 router.post('/api/listFolderOnly', async (req, res) => {
     let dir = req.body && req.body.dir;
@@ -110,11 +109,7 @@ async function listNoScanDir(dir, res){
     res.send(result);
 }
 
-function isAlreadyScan(dir){
-    return global.scan_path.some(sp => {
-        return sp === dir || isSub(sp, dir);
-    });
-}
+
 
 router.post('/api/lsDir', async (req, res) => {
     let dir = req.body && req.body.dir;

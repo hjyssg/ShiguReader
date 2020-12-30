@@ -18,7 +18,7 @@ const filesizeUitl = require('filesize');
 const rimraf = require("../tools/rimraf");
 
 const serverUtil = require("./serverUtil");
-const getStat = serverUtil.common.getStat;
+const { getStat } = serverUtil.common;
 
 let { img_convert_quality, img_convert_dest_type,
     img_convert_huge_threshold, img_reduce_resolution_dimension,
