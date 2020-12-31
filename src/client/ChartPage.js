@@ -33,10 +33,22 @@ function parse(str) {
     return nameParser.parse(getBaseName(str));
 }
 
-function getKeyAndValues(keyToValueTable) {
-    const keys = _.keys(keyToValueTable);
-    keys.sort();
-    const values = keys.map(e => keyToValueTable[e]);
+//@param filterFunction(key, value)
+function getKeyAndValues(keyToValueTable, filterFunction) {
+    const tempKeys = _.keys(keyToValueTable);
+    tempKeys.sort();
+    const values = [];
+    let keys = [];
+    tempKeys.forEach(key => {
+        const value = keyToValueTable[key];
+
+        if(filterFunction && !filterFunction(key, value)){
+            return;
+        }
+        values.push(value);
+        keys.push(key);
+    })
+
     return {
         keys,
         values
@@ -193,14 +205,16 @@ export default class ChartPage extends Component {
         });
 
         const data = {};
-        let { values, keys } = getKeyAndValues(byComiket)
-
-
-        const index = keys.indexOf("etc");
-        if (index > -1) {
-            keys.splice(index, 1);
-            values.splice(index, 1)
+        const filterFunction = (key, value) => {
+            if(key === "etc"){
+                return false;
+            }
+            if(value < 50){
+                return false;
+            }
+            return true;
         }
+        let { values, keys } = getKeyAndValues(byComiket, filterFunction)
         data.labels = keys;
 
         data.datasets = [{
@@ -217,6 +231,7 @@ export default class ChartPage extends Component {
             }
         };
 
+        let tableData = getKeyAndValues(byComiket)
         //add big tag
         return (
             <div className="individual-chart-container">
@@ -228,7 +243,7 @@ export default class ChartPage extends Component {
                         options={opt}
                     />
                 </div>
-                <Accordion header="Toggle Table" body={renderTable(data.labels, values)} />
+                <Accordion header="Toggle Table" body={renderTable(tableData.keys, tableData.values)} />
             </div>
         );
     }
