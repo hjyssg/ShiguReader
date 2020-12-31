@@ -111,6 +111,9 @@ describe('name parser', () => {
         assert(C91T > C87T);
         assert(C85T > C84T);
         assert(C84T > C72T);
+
+        const air2 = parser.getDateFromParse("(エアコミケ2) [ちんちん亭 (chin)] 12132").getTime();
+        assert(air2 > C96T);
     })
 
     it("test etc", ()=>{

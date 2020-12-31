@@ -31,6 +31,8 @@ function getBookType(str) {
     return str.match(book_type_regex)[0];
 }
 
+console.assert(getBookType("(18禁ゲームCG)[060929] めがちゅ！") === "18禁ゲーム");
+
 const same_tag_matrix = [];
 for (let tag in same_tag_regs_table) {
     if (same_tag_regs_table.hasOwnProperty(tag)) {
@@ -47,6 +49,7 @@ same_tag_matrix.sort((r1, r2) => {
 const localCache = {};
 
 const comicket_reg = /^C\d{2}$/i;
+const air_comicket_reg = /^エアコミケ\d{1}$/i;
 const comic_star_reg = /^COMIC1☆\d{1,2}$/i;
 const love_live_event_reg = /^僕らのラブライブ!/i;
 const comitea_reg = /^コミティア.*\d/;
@@ -54,7 +57,7 @@ const sankuri_reg = /^サンクリ.*\d+/;
 const reitaisai_reg = /^例大祭.*\d+/;
 const tora_reg = /^とら祭り.*\d+/;
 const komitore_reg = /^こみトレ.*\d+/;
-const reg_list = [comicket_reg, comic_star_reg, love_live_event_reg,
+const reg_list = [comicket_reg, air_comicket_reg, comic_star_reg, love_live_event_reg,
     comitea_reg, sankuri_reg, reitaisai_reg,
     tora_reg, komitore_reg, /みみけっと.*\d+/,
     /コミトレ.*\d+/, /FF\d+/, /iDOL SURVIVAL.*\d/i,
@@ -67,7 +70,6 @@ const event_reg = new RegExp(reg_list.map(e => e.source).join("|"), "i");
 function belongToEvent(e) {
     return e.match(event_reg);
 }
-
 
 const comiket_to_date_table = {};
 function getDateFromParse(str) {
@@ -100,6 +102,14 @@ function getDateFromComiket(comiket) {
         month = isSummer ? 8 : 11;
         const day = isSummer ? 10 : 28;
         result = new Date(year, month, day);
+    } else if (comiket.match(air_comicket_reg)) {
+        comiket = comiket.replace("エアコミケ", "");
+        num = parseInt(comiket);
+        if(num === 1){
+            result = new Date(2020, 7, 30);
+        }else{
+            result = new Date(2020, 11, 30);
+        }
     } else if (comiket.match(comic_star_reg)) {
         comiket = comiket.replace("COMIC1☆", "");
         num = parseInt(comiket);
