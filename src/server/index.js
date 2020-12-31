@@ -133,6 +133,16 @@ async function init() {
         }
     }
 
+    if(isProduction){
+        const indexHtmlPath = path.resolve(rootPath, "dist", "index.html");
+        // console.log(indexHtmlPath)
+        if(!(await isExist(indexHtmlPath))){
+            console.error("No dist\\index.html for producation");
+            console.error("You need to run npm run build");
+            return;
+        }
+    }
+
     const port = isProduction ? http_port : dev_express_port;
     const server = app.listen(port, async () => {
         console.log("----------------------------------------------------------------");
