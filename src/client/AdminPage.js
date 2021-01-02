@@ -13,6 +13,8 @@ const { getBaseName } = clientUtil;
 const dateFormat = require('dateformat');
 const AdminUtil = require("./AdminUtil");
 import { GlobalContext } from './globalContext'
+const util = require("@common/util");
+
 
 
 export default class AdminPage extends Component {
@@ -124,7 +126,9 @@ export default class AdminPage extends Component {
 
             const dayHistory = items.map(e => {
                 const filePath = e[1];
-                const toUrl = clientUtil.getOneBookLink(filePath);
+                const toUrl = util.isVideo(filePath)? 
+                              clientUtil.getVideoPlayerLink(filePath) : 
+                              clientUtil.getOneBookLink(filePath);
 
                 return (
                     <Link to={toUrl} key={filePath} className={"history-link"}>

@@ -11,6 +11,7 @@ const nameParser = require('@name-parser');
 import Sender from './Sender';
 const dateFormat = require('dateformat');
 const queryString = require('query-string');
+const Cookie = require("js-cookie");
 
 
 export default class VideoPlayer extends Component {
@@ -81,6 +82,37 @@ export default class VideoPlayer extends Component {
     if (hh > ww) {
       this.videoRef.className = "vertical-video"
     }
+
+    const filePath = this.getTextFromQuery();
+    clientUtil.saveFilePathToCookie(filePath);
+
+    const previous = parseFloat(Cookie.get(filePath));
+    if(previous > 1 ){
+      //todo: do not work on ios
+      this.videoRef.currentTime =  parseFloat(previous);
+    }
+
+    //record progress into cookie
+    const timer = setInterval(() => {
+      try{
+        Cookie.set(filePath, this.videoRef.currentTime);
+      }catch(e){
+        timer && clearInterval(timer)
+        console.error(e);
+      }
+    }, 500)
+  }
+
+  renderPreviosButton(){
+    //todo: for ios
+    const previous = Cookie.get(filePath);
+    if(!previous){
+      return;
+    }
+
+    this.videoRef.currentTime =  parseFloat(previous);
+    const str = `previos progress: ${previous}s`
+    return <button type="button" class="btn btn-secondary">{str}</button>
   }
 
   render() {
@@ -110,7 +142,8 @@ export default class VideoPlayer extends Component {
     } else {
       content = (
         <div className="video-player-container">
-          <video id="videoPlayer" ref={(e) => this.videoRef = e} controls onLoadedMetadata={this.onLoadedMetadata.bind(this)}>
+          <video id="videoPlayer" ref={(e) => this.videoRef = e} controls 
+                 onLoadedMetadata={this.onLoadedMetadata.bind(this)} >
             <source src={url} type="video/mp4" onError={this.onError.bind(this)} />
           </video>
         </div>
