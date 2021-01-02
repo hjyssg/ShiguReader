@@ -137,8 +137,8 @@ async function init() {
         const indexHtmlPath = path.resolve(rootPath, "dist", "index.html");
         // console.log(indexHtmlPath)
         if(!(await isExist(indexHtmlPath))){
-            console.error("No dist\\index.html for producation");
-            console.error("You need to run npm run build");
+            console.error("[Error] No dist\\index.html for producation");
+            console.error("[Error] You need to run npm run build");
             return;
         }
     }
