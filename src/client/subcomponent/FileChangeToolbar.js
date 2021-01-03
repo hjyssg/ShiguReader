@@ -223,7 +223,14 @@ export default class FileChangeToolbar extends Component {
     }
 
     getDropdownItems() {
-        const arr = this.context.additional_folder || [];
+        let arr = this.context.additional_folder || [];
+        arr = arr.filter(e => {
+            if(e.includes(userConfig.img_convert_cache) || e.includes(userConfig.zip_output_cache)){
+                return false;
+            }
+            return true;
+        })
+
         return arr.map((e, index) => {
             const onClick = () => {
                 this.handleCloseModal();
