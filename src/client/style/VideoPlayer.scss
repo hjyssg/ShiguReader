@@ -5,7 +5,7 @@
         @include flex_center_display;
 
         //horizontal
-        #videoPlayer:not(.vertical-video) {
+        video:not(.vertical-video) {
             @media screen and (max-width: 1000px) {
                 width: calc(100% - 50px);
             }

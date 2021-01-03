@@ -12,7 +12,7 @@ import Sender from './Sender';
 const dateFormat = require('dateformat');
 const queryString = require('query-string');
 const Cookie = require("js-cookie");
-
+import DPlayer from "react-dplayer";
 
 export default class VideoPlayer extends Component {
   constructor(props) {
@@ -76,43 +76,33 @@ export default class VideoPlayer extends Component {
       </div>);
   }
 
-  onLoadedMetadata() {
-    const hh = this.videoRef.videoHeight; // returns the intrinsic height of the video
-    const ww = this.videoRef.videoWidth;
+  onLoad(dp) {
+    this.dp = dp;
+  }
+
+  onTimeupdate(){
+    const filePath = this.getTextFromQuery();
+    try{
+      Cookie.set(filePath, this.dp.video.currentTime);
+    }catch(e){
+      console.error(e);
+    }
+  }
+
+  onLoadedmetadata() {
+    const videoRef = this.dp.video;
+    const hh = videoRef.videoHeight; // returns the intrinsic height of the video
+    const ww = videoRef.videoWidth;
     if (hh > ww) {
-      this.videoRef.className = "vertical-video"
+      videoRef.className = "vertical-video"
     }
 
     const filePath = this.getTextFromQuery();
     clientUtil.saveFilePathToCookie(filePath);
-
     const previous = parseFloat(Cookie.get(filePath));
     if(previous > 1 ){
-      //todo: do not work on ios
-      this.videoRef.currentTime =  parseFloat(previous);
+      this.dp.seek(previous)
     }
-
-    //record progress into cookie
-    const timer = setInterval(() => {
-      try{
-        Cookie.set(filePath, this.videoRef.currentTime);
-      }catch(e){
-        timer && clearInterval(timer)
-        console.error(e);
-      }
-    }, 500)
-  }
-
-  renderPreviosButton(){
-    //todo: for ios
-    const previous = Cookie.get(filePath);
-    if(!previous){
-      return;
-    }
-
-    this.videoRef.currentTime =  parseFloat(previous);
-    const str = `previos progress: ${previous}s`
-    return <button type="button" class="btn btn-secondary">{str}</button>
   }
 
   render() {
@@ -142,10 +132,17 @@ export default class VideoPlayer extends Component {
     } else {
       content = (
         <div className="video-player-container">
-          <video id="videoPlayer" ref={(e) => this.videoRef = e} controls 
-                 onLoadedMetadata={this.onLoadedMetadata.bind(this)} >
-            <source src={url} type="video/mp4" onError={this.onError.bind(this)} />
-          </video>
+          <DPlayer
+                options={{
+                    lang: navigator.language.toLowerCase(),
+                    video:{ url: url},
+                    playbackSpeed:	[0.5, 0.75, 1, 1.125, 1.25, 1.5, 2]
+                }}
+                onLoadedmetadata={this.onLoadedmetadata.bind(this)}
+                onLoad={this.onLoad.bind(this)}
+                onError={this.onError.bind(this)}
+                onTimeupdate={this.onTimeupdate.bind(this)}
+                />
         </div>
       );
     }
