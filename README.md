@@ -1,3 +1,8 @@
+[<img src="https://img.shields.io/github/v/release/hjyssg/ShiguReader?label=latest%20release">](https://github.com/hjyssg/ShiguReader/releases)
+[<img src="https://img.shields.io/github/downloads/hjyssg/ShiguReader/total.svg">](https://github.com/hjyssg/ShiguReader/releases)
+[<img src="https://img.shields.io/docker/v/liwufan/shigureader?label=docker%20version">](https://hub.docker.com/r/liwufan/shigureader)
+[<img src="https://img.shields.io/docker/pulls/liwufan/shigureader.svg">](https://hub.docker.com/r/liwufan/shigureader)
+
 # ShiguReader
 
 [English](https://github.com/hjyssg/ShiguReader/blob/dev/README_English.md)
@@ -5,15 +10,13 @@
 
 通过Chrome或者iPad轻松阅读整理漫画，播放音乐，以及观看视频。
 
-##### Screenshot
+##### Screenshots
 
-![screenshot-01](screenshot/01.png)
-![screenshot-02](screenshot/02.png)
-![screenshot-02](screenshot/02.5.png)
-![screenshot-03](screenshot/03.png)
-![screenshot-04](screenshot/04.png)
-![screenshot-05](screenshot/05.png)
-![screenshot-06](screenshot/06.png)
+|![screenshot-01](screenshot/01.png)|![screenshot-02](screenshot/02.png)|![screenshot-02](screenshot/02.5.png)|
+|---|---|---|
+|![screenshot-03](screenshot/03.png)|![screenshot-04](screenshot/04.png)|![screenshot-05](screenshot/05.png)|
+|![screenshot-06](screenshot/06.png)|||
+
 
 
 ##### Demo Video
@@ -93,18 +96,18 @@ docker run -d -p hostport:3000 -v comicpath:/data liwufan/shigureader
 ##### FAQ
     问： 网页能打开, 但是文件夹打开是空的或者404？
     答： 请认真检查path-config.ini的地址有没有写错。
-
+    
     问： 想问下如果想更新该如何做呢，只要重新克隆一份最新的覆盖就行了？还是说要再走一遍流程?   
     答： 如果是用git的话，拉(pull)最新的代码。重新修改一下用户配置，npm install 最后npm run dev。
          如果没用git，重新走一遍全部流程。  
-
+    
     问： 默认的端口被占用了，怎么办？
     答:  1.看是不是重复启进程了。  
          2.别的软件已经把端口占了的话，改port-config.js。
     
     问：怎么关闭服务器？
     答：cmd上ctrl+c就好了。或者直接把cmd关了也没事。
-
+    
     问：电脑可以打开使用，可是手机扫了二维码打不开。怎么办
     答：先确认手机是不是和电脑在同一个局域网下。如果是，还打不开。那可能是电脑防火墙设置问题，自行网上搜索。
 
