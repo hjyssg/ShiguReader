@@ -102,7 +102,7 @@ export default class FileChangeToolbar extends Component {
         const { file } = this.props;
         Swal.fire({
             title: "Overwrite",
-            text: `Overwrite overwrite the old file with the minified file?`,
+            text: `Replace the old file with the minified file?`,
             showCancelButton: true,
             confirmButtonText: 'Yes',
             cancelButtonText: 'No'
