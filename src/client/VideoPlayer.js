@@ -78,18 +78,9 @@ export default class VideoPlayer extends Component {
 
   onLoad(dp) {
     this.dp = dp;
-    // console.log(dp, dp.video);
-
-    const filePath = this.getTextFromQuery();
-    clientUtil.saveFilePathToCookie(filePath);
-
-
-    const previous = parseFloat(Cookie.get(filePath));
-    if(previous > 1 ){
-      this.dp.seek(previous)
-    }
 
     //record progress into cookie
+    const filePath = this.getTextFromQuery();
     const timer = setInterval(() => {
       try{
         Cookie.set(filePath, dp.video.currentTime);
@@ -98,7 +89,6 @@ export default class VideoPlayer extends Component {
         console.error(e);
       }
     }, 500)
-
   }
 
   onLoadedmetadata() {
@@ -107,6 +97,13 @@ export default class VideoPlayer extends Component {
     const ww = videoRef.videoWidth;
     if (hh > ww) {
       videoRef.className = "vertical-video"
+    }
+
+    const filePath = this.getTextFromQuery();
+    clientUtil.saveFilePathToCookie(filePath);
+    const previous = parseFloat(Cookie.get(filePath));
+    if(previous > 1 ){
+      this.dp.seek(previous)
     }
   }
 
@@ -143,7 +140,6 @@ export default class VideoPlayer extends Component {
                     video:{ url: url},
                     ref: (e) => this.videoRef = e
                 }}
-
                 onLoadedmetadata={this.onLoadedmetadata.bind(this)}
                 onLoad={this.onLoad.bind(this)}
                 onError={this.onError.bind(this)}
