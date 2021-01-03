@@ -137,8 +137,7 @@ export default class VideoPlayer extends Component {
           <DPlayer
                 options={{
                     lang: navigator.language.toLowerCase(),
-                    video:{ url: url},
-                    ref: (e) => this.videoRef = e
+                    video:{ url: url}
                 }}
                 onLoadedmetadata={this.onLoadedmetadata.bind(this)}
                 onLoad={this.onLoad.bind(this)}
