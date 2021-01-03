@@ -1,5 +1,4 @@
 [<img src="https://img.shields.io/github/v/release/hjyssg/ShiguReader?label=latest%20release">](https://github.com/hjyssg/ShiguReader/releases)
-[<img src="https://img.shields.io/github/downloads/hjyssg/ShiguReader/total.svg">](https://github.com/hjyssg/ShiguReader/releases)
 [<img src="https://img.shields.io/docker/v/liwufan/shigureader?label=docker%20version">](https://hub.docker.com/r/liwufan/shigureader)
 [<img src="https://img.shields.io/docker/pulls/liwufan/shigureader.svg">](https://hub.docker.com/r/liwufan/shigureader)
 
@@ -12,10 +11,11 @@
 
 ##### Screenshots
 
-|![screenshot-01](screenshot/01.png)|![screenshot-02](screenshot/02.png)|![screenshot-02](screenshot/02.5.png)|
-|---|---|---|
-|![screenshot-03](screenshot/03.png)|![screenshot-04](screenshot/04.png)|![screenshot-05](screenshot/05.png)|
-|![screenshot-06](screenshot/06.png)|||
+|![screenshot-01](screenshot/01.png)|![screenshot-02](screenshot/02.png)|
+|---|---|
+|![screenshot-02](screenshot/02.5.png)|![screenshot-03](screenshot/03.png)|
+|![screenshot-04](screenshot/04.png)|![screenshot-05](screenshot/05.png)|
+|![screenshot-06](screenshot/06.png)|
 
 
 
