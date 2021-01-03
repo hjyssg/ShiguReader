@@ -118,9 +118,12 @@ module.exports.minifyOneFile = async function (filePath) {
         //convert one by one
         for (let ii = 0; ii < total; ii++) {
             const fname = _pathes[ii];
-            const fp = path.resolve(extractOutputPath, fname);
+            const inputFp = path.resolve(extractOutputPath, fname);
             try {
-                const stat = await pfs.stat(fp);
+                const stat = await pfs.stat(inputFp);
+                if(stat.isDirectory()){
+                    continue;
+                }
                 const oldSize = stat.size;
                 let simplyCopy = !isImage(fname) || isGif(fname);
                 simplyCopy = simplyCopy || (isImage(fname) && oldSize < img_convert_min_threshold)
@@ -128,13 +131,13 @@ module.exports.minifyOneFile = async function (filePath) {
                 if (simplyCopy) {
                     const outputImgPath = path.resolve(minifyOutputPath, fname);
                     //this copy file does not create folder and isnot recursive
-                    await pfs.copyFile(fp, outputImgPath);
+                    await pfs.copyFile(inputFp, outputImgPath);
                 } else {
                     //use imageMagik to convert 
                     //  magick 1.jpeg   50 1.webp
                     const name = path.basename(fname, path.extname(fname)) + img_convert_dest_type;
                     const outputImgPath = path.resolve(minifyOutputPath, name);
-                    let { stdout, stderr } = await convertImage(fp, outputImgPath, oldSize);
+                    let { stdout, stderr } = await convertImage(inputFp, outputImgPath, oldSize);
                     if (stderr) {
                         throw stderr;
                     }
@@ -178,13 +181,11 @@ module.exports.minifyOneFile = async function (filePath) {
             return;
         }
         const newStat = await getStat(resultZipPath);
-
         const reducePercentage = (100 - newStat.size / oldStat.size * 100).toFixed(2);
-
         const userful_percent = 20;
+        console.log(`[imageMagickHelp] size reduce ${reducePercentage}%`);
 
         if (reducePercentage < userful_percent) {
-            console.log(`size reduce ${reducePercentage}%`);
             logFail(filePath, "not a useful work. abandon");
             deleteCache(resultZipPath);
         } else {
@@ -199,7 +200,6 @@ module.exports.minifyOneFile = async function (filePath) {
                 console.log("new size", filesizeUitl(newStat.size, { base: 2 }));
                 console.log(`size reduce ${reducePercentage}%`);
                 console.log("output file is at", convertSpace);
-
                 return {
                     oldSize: oldStat.size,
                     newSize: newStat.size,
