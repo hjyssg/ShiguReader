@@ -51,6 +51,7 @@
     "react-click-outside": "^3.0.1",
     "react-collapse": "^5.0.1",
     "react-dom": "^16.13.1",
+    "react-dplayer": "^0.4.2",
     "react-modal": "^3.12.1",
     "react-router-dom": "^4.3.1",
     "react-toastify": "^6.0.5",
