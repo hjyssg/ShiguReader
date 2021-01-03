@@ -1,39 +1,28 @@
-# Docker指南
+# Docker使用说明
 
-## 修改 path-config.ini
+## 与Windows版本的区别
 
-### 这文件很久没维护了。对应不了当前版本。  2020/12/20
 
-把 path-config.ini 的文件路径修改为
+1. path-config.ini 中的文件路径被修改为了
 > /data
 
-## 设置 src/config/user-config.js 整理文件的路径
-这是镜像中使用的默认配置，可以按照实际情况修改路径
-```
-const fd =  [y, mm, "01"].join("_");
-module.exports.good_folder = "/data/good/"
-module.exports.good_folder_root = "/data/good"
-module.exports.not_good_folder = "/data/sort/"+ y;
-module.exports.additional_folder = [
-	"/data/other"
-];
-```
+这是docker volume 挂载容器内以后的路径。
 
-## 制作镜像
-用 --build-arg http_proxy=http://[ip]:[port] 设置网络代理可以加快打包速度
+2. 因为不支持自定义输出目录，所以图包压缩和文件夹打包这两个功能需要手动下载到本地。否则文件会随着程序更新被docker删除。
 
-> docker build -t 自定义镜像 .
+## 运行方式
+> docker run  -p 3000:3000 -v /path/to/comic:/data -d liwufan/shigureader
 
-> docker run -d -p 3000:3000 -v comicpath:/data 自定义镜像
+- 3000 是默认端口，可以修改为3001:3000 3002:3000 3003:3000 等等
+- /path/to/comic 是漫画保存的目录
 
 
-## Q&A
-Q：我想直接拉取镜像，再修改文件怎么办？
 
-A：docker exec 容器id，用文本编辑器修改 /usr/src/app 里的配置文件
-
-Q：如何更新最新镜像？
+Q：如何更新到最新镜像？
 
 A：镜像分两个分支
 - latest 是根据 [推送版本](https://github.com/hjyssg/ShiguReader/releases) 手动更新的，更新时间不定
 - nightly 是每晚合并最新代码自动生成的
+使用命令下载新版本
+> docker pull liwufan/shigureader:nightly
+
