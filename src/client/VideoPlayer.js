@@ -78,17 +78,15 @@ export default class VideoPlayer extends Component {
 
   onLoad(dp) {
     this.dp = dp;
+  }
 
-    //record progress into cookie
+  onTimeupdate(){
     const filePath = this.getTextFromQuery();
-    const timer = setInterval(() => {
-      try{
-        Cookie.set(filePath, dp.video.currentTime);
-      }catch(e){
-        timer && clearInterval(timer)
-        console.error(e);
-      }
-    }, 500)
+    try{
+      Cookie.set(filePath, this.dp.video.currentTime);
+    }catch(e){
+      console.error(e);
+    }
   }
 
   onLoadedmetadata() {
@@ -142,6 +140,7 @@ export default class VideoPlayer extends Component {
                 onLoadedmetadata={this.onLoadedmetadata.bind(this)}
                 onLoad={this.onLoad.bind(this)}
                 onError={this.onError.bind(this)}
+                onTimeupdate={this.onTimeupdate.bind(this)}
                 />
         </div>
       );
