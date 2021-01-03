@@ -135,7 +135,8 @@ export default class VideoPlayer extends Component {
           <DPlayer
                 options={{
                     lang: navigator.language.toLowerCase(),
-                    video:{ url: url}
+                    video:{ url: url},
+                    playbackSpeed:	[0.5, 0.75, 1, 1.125, 1.25, 1.5, 2]
                 }}
                 onLoadedmetadata={this.onLoadedmetadata.bind(this)}
                 onLoad={this.onLoad.bind(this)}
