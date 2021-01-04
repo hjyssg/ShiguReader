@@ -683,6 +683,13 @@ async function getSameFileName(filePath){
         const sqldb = db.getSQLDB();
         let sql = `SELECT * FROM file_table WHERE fileName LIKE ? AND filePath NOT LIke ? AND isCompress = ?`;
         let rows = await sqldb.allSync(sql, [( '%' + fn + '%'), (dir + '%'), true]);
+
+        if(rows && rows.length > 1){
+            const tempP =  pathUtil.getImgConverterCachePath();
+            rows = rows.filter(e => {
+                return !e.filePath.includes(tempP);
+            })
+        }
         sameFnObj = rows && rows[0];
 
         if (sameFnObj) {
