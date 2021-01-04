@@ -75,8 +75,8 @@ function renderTable(labels, values) {
     );
 }
 
-const VALUE_COUNT = "value: count";
-const VALUE_FILESIZE = "value: file size in MB";
+const VALUE_COUNT = "file number";
+const VALUE_FILESIZE = "file size in GB";
 
 const BY_MTIME = "by mtime";
 const BY_TAG_TIME = "by tag time";
@@ -284,16 +284,21 @@ export default class ChartPage extends Component {
                 byTime[tLabel]++;
             } else if (valueType === VALUE_FILESIZE) {
                 byTime[tLabel] = byTime[tLabel] || 0;
-                byTime[tLabel] += (fileInfo.size || 0) / 1024 / 1024; //byte to MB
+                byTime[tLabel] += (fileInfo.size || 0) / 1024.0 / 1024.0 / 1024.0;
+                byTime[tLabel] = byTime[tLabel]
             }
         });
+
+        _.keys(byTime).forEach(key => {
+            byTime[key] = byTime[key].toFixed(3);
+        })
 
         const data = {};
         const { values, keys } = getKeyAndValues(byTime)
         data.labels = keys;
         data.datasets = [{
             type: 'line',
-            label: this.state.timeType,
+            label: valueType, // this.state.timeType,
             backgroundColor: "orange",
             fill: false,
             showLine: true,
