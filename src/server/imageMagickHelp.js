@@ -146,7 +146,7 @@ module.exports.minifyOneFile = async function (filePath) {
                     const timePerImg = timeSpent / (ii + 1) / 1000; // in second
                     const remaintime = (total - ii) * timePerImg;
                     if (ii + 1 < total) {
-                        console.log(`${ii + 1}/${total}      ${(timePerImg).toFixed(2)} second per file   ${remaintime.toFixed(2)} second before finish`);
+                        console.log(`${ii + 1}/${total}      ${(timePerImg).toFixed(2)}s per file   ${remaintime.toFixed(2)}s left`);
                     } else {
                         console.log(`${ii + 1}/${total}`);
                         // console.log("finish convertion. going to check if there is any error")
@@ -195,7 +195,7 @@ module.exports.minifyOneFile = async function (filePath) {
                 logFail(filePath, "pfs.utimes failed");
                 deleteCache(resultZipPath);
             } else {
-                logger.info("convertion done", filePath);
+                // logger.info("convertion done", filePath);
                 console.log("original size", filesizeUitl(oldStat.size, { base: 2 }));
                 console.log("new size", filesizeUitl(newStat.size, { base: 2 }));
                 console.log(`size reduce ${reducePercentage}%`);
