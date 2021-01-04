@@ -219,7 +219,7 @@ export default class ChartPage extends Component {
 
         data.datasets = [{
             type: 'bar',
-            label: 'by comiket',
+            label: 'file number',
             backgroundColor: "#15c69a",
             data: values
         }]
