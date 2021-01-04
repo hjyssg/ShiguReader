@@ -200,8 +200,10 @@ module.exports.saveFilePathToCookie = function (path) {
 
 module.exports.getHistoryFromCookie = function () {
     const timeToHash = Cookie.get();
-    let times = _.keys(timeToHash);
-    times = _.sortBy(times);
+    let times = _.keys(timeToHash)
+                 .map(e => parseInt(e))
+                 .filter(e => e && e > 0);
+    times = _.sortBy(times).reverse();
 
     const visited = {};
     const history = [];
