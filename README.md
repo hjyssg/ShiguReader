@@ -1,8 +1,9 @@
+
+<h1 align="center">ShiguReader</h1>
+
 [<img src="https://img.shields.io/github/v/release/hjyssg/ShiguReader?label=latest%20release">](https://github.com/hjyssg/ShiguReader/releases)
 [<img src="https://img.shields.io/docker/v/liwufan/shigureader?label=docker%20version">](https://hub.docker.com/r/liwufan/shigureader)
 [<img src="https://img.shields.io/docker/pulls/liwufan/shigureader.svg">](https://hub.docker.com/r/liwufan/shigureader)
-
-# ShiguReader
 
 [English](https://github.com/hjyssg/ShiguReader/blob/dev/README_English.md)
 
@@ -21,6 +22,7 @@
 
 
 ##### Demo Video
+
 [iPad使用](https://www.bilibili.com/video/BV1Mt4y1m7qU)  
 [PC使用](https://www.bilibili.com/video/BV1t64y1u729/)   
 [iPhone使用](https://www.bilibili.com/video/BV1xt4y1U73L/)     
@@ -40,23 +42,26 @@
 * 客户端支持除IE和Edge的主流浏览器。比如电脑的Chrome和iPad的safari。不需要USB接线，手机不需要安装任何东西，任意浏览器直接可以阅读。
 * 直接浏览文件夹的图片
 
-### 支持格式
+##### 支持格式
 
 支持的压缩包取决于[7Zip](https://www.7-zip.org/)。常见的zip、rar、7zi都支持。  
 图片、音乐和视频的支持格式取决于浏览器。图片常见的jpg、png、png，视频常见的mp4、avi都是支持的。音乐支持mp3、wav。  
 具体可以看src/util.js
 
-### 使用
+##### 使用
+
 windows的话，直接下载压缩包解压。
 修改ini文件，然后点击ShiguReader.exe
 其他系统或者开发者需要参考[Readme_Env_Setup](https://github.com/hjyssg/ShiguReader/blob/dev/Readme_Env_Setup.md)
 
-### 第三方依赖
+##### 第三方依赖
+
 不安装也没事。但都强烈建议安装
 https://imagemagick.org image magick 用来压缩图片的
 
 
 ##### 注意事项
+
 如果部分文件名带汉字日语假名的图片加载不出来，你可能需要如下语言设置。
 但有s1坛友反映会导致其他非unicode软件乱码。
 
@@ -64,6 +69,7 @@ windows语言设置:
 ![unicode setting](screenshot/unicode-setting.png)
 
 ##### 安全性
+
 ShiguReader的使用场景是LAN(局域网)，开放到外网非常不安全。
 而且功能和性能也是纯粹为家庭用户使用设计的。
 
@@ -75,6 +81,7 @@ ShiguReader的使用场景是LAN(局域网)，开放到外网非常不安全。
 压缩完的文件默认在workspace\image_convert_cache。
 
 ##### DOCKER 使用方法
+
 ```
 docker pull liwufan/shigureader
 docker run -d -p hostport:3000 -v comicpath:/data liwufan/shigureader
@@ -91,10 +98,12 @@ docker run -d -p hostport:3000 -v comicpath:/data liwufan/shigureader
 
 
 ##### 和tamper monkey一起使用
+
     把EhentaiHighighliger.js添加到tamper monkey。
     在你上绅士网的时候，该脚本会通过与后端服务器通信。帮助你知道文件下载过与否。
 
 ##### FAQ
+
     问： 网页能打开, 但是文件夹打开是空的或者404？
     答： 请认真检查path-config.ini的地址有没有写错。
     
@@ -113,10 +122,12 @@ docker run -d -p hostport:3000 -v comicpath:/data liwufan/shigureader
     答：先确认手机是不是和电脑在同一个局域网下。如果是，还打不开。那可能是电脑防火墙设置问题，自行网上搜索。
 
 ##### 热键
+
 漫画页面  
 enter: 全屏  
 AD和左右方向键: 翻页  
 +-: 缩放图片 
 
 ##### 认真看这个readme 还是有问题的话
+
 直接在github issue问

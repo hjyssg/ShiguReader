@@ -1,9 +1,14 @@
-# ShiguReader
+<h1 align="center">ShiguReader</h1>
+
+[<img src="https://img.shields.io/github/v/release/hjyssg/ShiguReader?label=latest%20release">](https://github.com/hjyssg/ShiguReader/releases)
+[<img src="https://img.shields.io/docker/v/liwufan/shigureader?label=docker%20version">](https://hub.docker.com/r/liwufan/shigureader)
+[<img src="https://img.shields.io/docker/pulls/liwufan/shigureader.svg">](https://hub.docker.com/r/liwufan/shigureader)
 
 Read Comic/Play Music and Video on all platforms
 
 
 ##### Demo Video
+
 [demo video](https://youtu.be/nV24b6X6eeI)  
 
 ##### Screenshot
@@ -29,23 +34,25 @@ Read Comic/Play Music and Video on all platforms
 * client can run on any modern browser(except IE), including mobile phone and tablet(no need to install any other softwares)
 
 
-### File Format Support
+##### File Format Support
 
 * Compressed files: zip/rar/7zip files  
 * Format support of image/video/music files depends on the browser. Support typical jpg,png,png,mp4,avi,mp3,wav files  
 * More details in src/util.js
 
-### Instruction
+##### Instruction
 
 * For windows, download the zip file
 * Modify ini file, then click the ShiguReader.exe
 * For *nix users and developers, please refer to [Readme_Env_Setup](https://github.com/hjyssg/ShiguReader/blob/dev/Readme_Env_Setup.md)
 
-### Third Party Dependency
+##### Third Party Dependency
+
 It is nice to have. But ShiguReader can run without it.
 install imagemagick  from https://imagemagick.org
 
 ##### Safety
+
 ShiguReader is not safe when being accessed from the public IP. The server is not prepared for any cyber attack.
 
 If you just want to read comic or watch anime when going outside, you can download the files to you tablet.
@@ -62,6 +69,7 @@ AD and left right arrow key: go to next/previous page
 +-: zoom image
 
 ##### Caution
+
 If you find the images with file name containing Japanese Kanji/Kana, you will need to change the language setting:
 ![unicode setting](screenshot/unicode-setting.png)
 But it's also reported that this setting will cause Mojibake in other softwares using non unicode encoding.
