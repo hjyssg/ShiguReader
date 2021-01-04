@@ -66,7 +66,18 @@ module.exports.isConertable = async function (filePath) {
         return "No magick installed";
     }
 
-    let text = "no_problem";
+    //check if already exist minfied version
+    //! hard-code here
+    const bookName = path.basename(filePath, path.extname(filePath));
+    const subfoldername = `from_${path.basename(path.dirname(filePath))}`
+    const convertSpace = path.join(getImgConverterCachePath(), subfoldername);
+    const outputFile = path.join(convertSpace, bookName + ".zip");
+
+    if((await isExist(outputFile))){
+        return "already minified"
+    }
+
+    let text = "allow_to_minify";
     return text;
 }
 
@@ -82,7 +93,7 @@ module.exports.minifyOneFile = async function (filePath) {
         //one folder for extract
         //one for minify image
         const bookName = path.basename(filePath, path.extname(filePath));
-        const subfoldername = `from ${path.basename(path.dirname(filePath))}`
+        const subfoldername = `from_${path.basename(path.dirname(filePath))}`
         const convertSpace = path.join(getImgConverterCachePath(), subfoldername);
         extractOutputPath = path.join(convertSpace, bookName + "-original");
         minifyOutputPath = path.join(convertSpace, bookName);
