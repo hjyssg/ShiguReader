@@ -600,7 +600,6 @@ export default class ExplorerPage extends Component {
 
         try {
             files = this.sortFiles(files, sortOrder);
-            videos = this.sortFiles(videos, sortOrder);
         } catch (e) {
             console.error(e);
         }
@@ -670,30 +669,30 @@ export default class ExplorerPage extends Component {
         //seperate av from others
         const groupByVideoType = _.groupBy(videos, item => {
             const text = getBaseName(item);
-            return util.isAv(text) ? "av" : "other";
+            const temp = parse(item);
+
+            if(util.isAv(text)){
+                return "av"
+            }else if(temp && temp.dateTag){
+                return "_date_";
+            }else {
+                return "etc";
+            }
         }) || {};
 
-        //todo duplicate code below
-        let normalVideos = [];
+        //todo av-color
+        const videoDivGroup = _.keys(groupByVideoType).map(key => {
+            let group = groupByVideoType[key];
+            group = this.sortFiles(group, FILENAME_UP);
+            const videoItems =  group.map((item) => {
+                        const toUrl = clientUtil.getVideoPlayerLink(item);
+                        const text = getBaseName(item);
+                        const result = this.getOneLineListItem(<i className="far fa-file-video"></i>, text, item);
+                        return <Link target="_blank" to={toUrl} key={item}>{result}</Link>;
+                    });
+            return <ItemsContainer className="video-list" items={videoItems} />
+        })
 
-        if (groupByVideoType["other"]) {
-            normalVideos = groupByVideoType["other"].map((item) => {
-                const toUrl = clientUtil.getVideoPlayerLink(item);
-                const text = getBaseName(item);
-                const result = this.getOneLineListItem(<i className="far fa-file-video"></i>, text, item);
-                return <Link target="_blank" to={toUrl} key={item}>{result}</Link>;
-            });
-        }
-
-        let avVideos = [];
-        if (groupByVideoType["av"]) {
-            avVideos = groupByVideoType["av"].map((item) => {
-                const toUrl = clientUtil.getVideoPlayerLink(item);
-                const text = getBaseName(item);
-                const result = this.getOneLineListItem(<i className="far fa-file-video av-color"></i>, text, item);
-                return <Link target="_blank" to={toUrl} key={item}>{result}</Link>;
-            });
-        }
 
         //! !todo if the file is already an image file
         files = this.getFileInPage(files);
@@ -709,7 +708,7 @@ export default class ExplorerPage extends Component {
             const fileSizeStr = fileSize && filesizeUitl(fileSize);
 
             const avgSize = this.hasFileSize(item) && this.getPageAvgSize(item);
-            const avgSizeStr = avgSize && filesizeUitl(avgSize);
+            const avgSizeStr = avgSize > 0 && filesizeUitl(avgSize);
 
             let seperator;
 
@@ -782,10 +781,10 @@ export default class ExplorerPage extends Component {
                                 {imgDiv}
                             </Link>
                             <div className={fileInfoRowCn}>
-                                <span title="file size">{fileSizeStr}</span>
+                                {fileSizeStr && <span title="file size">{fileSizeStr}</span>}
                                 {(hasZipInfo || isImgFolder) && <span>{`${pageNum} pages`}</span>}
                                 {hasMusic && <span>{`${musicNum} songs`}</span>}
-                                <span title="average img size"> {avgSizeStr} </span>
+                                {avgSizeStr && <span title="average img size"> {avgSizeStr} </span>}
                             </div>
                             <FileChangeToolbar isFolder={isImgFolder} hasMusic={hasMusic} className="explorer-file-change-toolbar" file={item} />
                         </div>
@@ -811,8 +810,7 @@ export default class ExplorerPage extends Component {
                     </div>
                 }
                 <ItemsContainer items={hddItems} neverCollapse />
-                <ItemsContainer className="video-list" items={normalVideos} />
-                <ItemsContainer items={avVideos} />
+                {videoDivGroup}
                 {this.renderPagination(filteredFiles, filteredVideos)}
                 {this.renderFilterMenu()}
                 {this.renderSortHeader()}
