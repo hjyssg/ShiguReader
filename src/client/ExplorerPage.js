@@ -221,6 +221,18 @@ export default class ExplorerPage extends Component {
                     res = await Sender.postWithPromise("/api/search", { text: this.getSearchTextFromQuery(), mode: this.getMode() })
                 } else {
                     res = await Sender.postWithPromise('/api/lsDir', { dir: this.getTextFromQuery(), isRecursive: this.state.isRecursive });
+
+
+                    const api ="/api/listImageFolderContent"
+                    let res2 = await Sender.postWithPromise(api, { filePath: this.getTextFromQuery() });
+                    let { zipInfo, path, stat, files, musicFiles, videoFiles, mecab_tokens } = res2.json;
+                    files = files || [];
+                    musicFiles = musicFiles || [];
+                    if(files.length > 0 || musicFiles.length > 0){
+                        this.setState({
+                            isImgFolder: true
+                        })
+                    }
                 }
             }
         }
@@ -270,6 +282,10 @@ export default class ExplorerPage extends Component {
             this.imgFolderInfo = {};
             this.res = null;
             //init state
+            this.setState({
+                isImgFolder: false
+            })
+
             this.setStateAndSetHash(this.getInitState(true));
             this.askServer();
         }
@@ -690,7 +706,7 @@ export default class ExplorerPage extends Component {
                         const result = this.getOneLineListItem(<i className="far fa-file-video"></i>, text, item);
                         return <Link target="_blank" to={toUrl} key={item}>{result}</Link>;
                     });
-            return <ItemsContainer className="video-list" items={videoItems} />
+            return <ItemsContainer key={key} className="video-list" items={videoItems} />
         })
 
 
@@ -998,6 +1014,8 @@ export default class ExplorerPage extends Component {
             </div>
         );
 
+        const onebookUrl = clientUtil.getOneBookLink(this.getTextFromQuery());
+
         let topButtons = (
             <div className="top-button-gropus row">
                 <div className="col-6 col-md-4"> {this.renderToggleFolferThumbNailButton()} </div>
@@ -1015,6 +1033,15 @@ export default class ExplorerPage extends Component {
                         <Link className="exp-top-button" target="_blank" to={url} >
                             <span className="fab fa-searchengin" />
                             <span>Search by Text </span>
+                        </Link>
+                    </div>
+                }
+                {
+                    (isExplorer && this.state.isImgFolder) &&
+                    <div className="col-6 col-md-4">
+                        <Link className="exp-top-button warning" target="_blank" to={onebookUrl} >
+                            <span className="fas fa-book-reader" />
+                            <span>Open in Book Mode </span>
                         </Link>
                     </div>
                 }

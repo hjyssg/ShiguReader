@@ -54,9 +54,15 @@
 .exp-top-button {
   cursor: pointer;
   color: $font_color_white_one;
-
   .fas {
     color: $font_color_white_one;
+  }
+
+  &.warning {
+    color: #fd8585;
+    .fas {
+      color: #fd8585;
+    }
   }
 
   &:hover {
