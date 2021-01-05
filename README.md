@@ -20,7 +20,6 @@
 ![screenshot-05](screenshot/05.png)
 ![screenshot-06](screenshot/06.png)
 
-
 ##### Demo Video
 
 [iPad使用](https://www.bilibili.com/video/BV1Mt4y1m7qU)  
@@ -125,7 +124,8 @@ docker run -d -p hostport:3000 -v comicpath:/data liwufan/shigureader
 ##### Donation
 
 想喝奶茶  
-![微信](https://imgur.com/a/IV07qir)
+微信  
+<img alt="微信" src="https://i.imgur.com/4KY4BcN.jpg." data-canonical-src="https://i.imgur.com/4KY4BcN.jpg" height="300px"/>
 
 ##### 热键
 
