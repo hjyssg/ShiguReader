@@ -122,9 +122,9 @@ docker run -d -p hostport:3000 -v comicpath:/data liwufan/shigureader
     答：先确认手机是不是和电脑在同一个局域网下。如果是，还打不开。那可能是电脑防火墙设置问题，自行网上搜索。
 
 
-## Donation
+##### Donation
 
-想喝奶茶
+想喝奶茶  
 [微信](https://imgur.com/a/IV07qir)
 
 
