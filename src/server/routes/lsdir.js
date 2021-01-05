@@ -285,8 +285,8 @@ router.post('/api/listImageFolderContent', async (req, res) => {
 
     let result;
     const sqldb = db.getSQLDB();
-    let sql = `SELECT * FROM file_table WHERE filePath LIKE ? AND isDisplayableInOnebook = ?`;
-    let fake_zip_results = await sqldb.allSync(sql, [(filePath+ '%'), true]);
+    let sql = `SELECT * FROM file_table WHERE filePath LIKE ?`;
+    let fake_zip_results = await sqldb.allSync(sql, [(filePath+ '%')]);
 
     const _files = [];
 
