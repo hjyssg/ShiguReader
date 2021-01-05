@@ -121,6 +121,13 @@ docker run -d -p hostport:3000 -v comicpath:/data liwufan/shigureader
     问：电脑可以打开使用，可是手机扫了二维码打不开。怎么办
     答：先确认手机是不是和电脑在同一个局域网下。如果是，还打不开。那可能是电脑防火墙设置问题，自行网上搜索。
 
+
+## Donation
+
+帮助作者维持开发动力   
+[微信](https://imgur.com/a/IV07qir)
+
+
 ##### 热键
 
 漫画页面  
@@ -131,3 +138,4 @@ AD和左右方向键: 翻页
 ##### 认真看这个readme 还是有问题的话
 
 直接在github issue问
+
