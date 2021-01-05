@@ -131,6 +131,13 @@ module.exports.isAllowedToEnter = function () {
 //     return  str && str.replace(/(%)+$/g, "")
 // }
 
+module.exports.setSearchInputText = function (text) {
+    const input = document.getElementsByClassName('search-input');
+    if(input[0]){
+        input[0].value = text;
+    }  
+}
+
 module.exports.getSearchInputText = function () {
     const input = document.getElementsByClassName('search-input');
     return input[0] && input[0].value || "";
