@@ -305,12 +305,14 @@ router.post('/api/listImageFolderContent', async (req, res) => {
     mapping[filePath] = _files;
     const info = getImgFolderInfo(mapping)[filePath];
 
+    const mecab_tokens = await global.mecab_getTokens(filePath);
+
     //ugly code here
     result = {
         zipInfo: info,
         stat: info,
         path: filePath,
-        files, musicFiles, videoFiles
+        files, musicFiles, videoFiles, mecab_tokens
     };
     res.send(result);
 });
