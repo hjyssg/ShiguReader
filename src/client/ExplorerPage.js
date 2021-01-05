@@ -255,11 +255,12 @@ export default class ExplorerPage extends Component {
     }
 
     bindUserInteraction() {
-        document.addEventListener('keydown', this.handleKeyDown.bind(this));
+        this._handleKeyDown = this.handleKeyDown.bind(this);
+        document.addEventListener('keydown', this._handleKeyDown);
     }
 
     componentWillUnmount() {
-        document.removeEventListener("keydown", this.handleKeyDown.bind(this));
+        document.removeEventListener("keydown", this._handleKeyDown);
     }
 
     componentDidUpdate(prevProps, prevState) {
@@ -338,8 +339,6 @@ export default class ExplorerPage extends Component {
             this.forceUpdate();
         }
     }
-
-
 
     handleKeyDown(event) {
         //this cause input wont work 

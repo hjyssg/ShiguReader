@@ -51,11 +51,12 @@ class App extends Component {
     }
 
     componentDidMount() {
-        document.addEventListener('keydown', this.handleKeyDown.bind(this));
+        this._handleKeyDown = this.handleKeyDown.bind(this);
+        document.addEventListener('keydown', this._handleKeyDown);
     }
 
     componentWillUnmount() {
-        document.removeEventListener("keydown", this.handleKeyDown.bind(this));
+        document.removeEventListener("keydown", this._handleKeyDown);
     }
 
     handleKeyDown(e) {
