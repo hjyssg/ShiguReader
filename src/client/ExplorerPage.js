@@ -261,6 +261,8 @@ export default class ExplorerPage extends Component {
 
     componentWillUnmount() {
         document.removeEventListener("keydown", this._handleKeyDown);
+
+        clientUtil.setSearchInputText("");
     }
 
     componentDidUpdate(prevProps, prevState) {
@@ -289,6 +291,13 @@ export default class ExplorerPage extends Component {
 
             this.setStateAndSetHash(this.getInitState(true));
             this.askServer();
+        }
+
+        if (this.getMode() === MODE_TAG || this.getMode() === MODE_AUTHOR || this.getMode() === MODE_SEARCH) {
+            const text = this.getTextFromQuery();
+            clientUtil.setSearchInputText(text);
+        }else{
+            clientUtil.setSearchInputText("");
         }
     }
 
