@@ -124,7 +124,7 @@ docker run -d -p hostport:3000 -v comicpath:/data liwufan/shigureader
 
 ## Donation
 
-帮助作者维持开发动力   
+想喝奶茶
 [微信](https://imgur.com/a/IV07qir)
 
 
