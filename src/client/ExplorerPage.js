@@ -103,8 +103,12 @@ export default class ExplorerPage extends Component {
     }
 
     setStateAndSetHash(state, callback) {
-        const obj = Object.assign({}, this.state, state);
+        // const time1 = util.getCurrentTime();
 
+        //??? this is slow after handleRes
+        this.setState(state, callback);
+
+        const obj = Object.assign({}, this.state, state);
         const obj2 = {};
         ["pageIndex",
             "isRecursive",
@@ -119,7 +123,10 @@ export default class ExplorerPage extends Component {
             })
 
         clientUtil.replaceUrlHash(queryString.stringify(obj2))
-        this.setState(state, callback);
+
+        // const time2 = util.getCurrentTime();
+        // const timeUsed = (time2 - time1) / 1000;
+        // console.log("[setState] ", timeUsed, "s")
     }
 
     handlePageChange(index) {
@@ -330,7 +337,7 @@ export default class ExplorerPage extends Component {
 
             this.allfileInfos = _.extend({}, this.fileInfos, this.imgFolderInfo);
 
-            if (this.videoFiles.length > 0) {
+            if (this.videoFiles.length > 0 && !this.state.showVideo) {
                 this.setStateAndSetHash({
                     showVideo: true
                 });
