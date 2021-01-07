@@ -86,7 +86,6 @@ const BY_TAG_TIME = "by tag time";
 export default class ChartPage extends Component {
     constructor(prop) {
         super(prop);
-        this.failedTimes = 0;
         this.state = {
             fileType: "compressed",
             timeType: BY_YEAR,
@@ -96,40 +95,38 @@ export default class ChartPage extends Component {
     }
 
     componentDidMount() {
-        if (this.failedTimes < 3) {
-            let api;
-            let body;
-            const mode = this.getMode();
-            if (mode === MODE_EXPLORER) {
-                api = '/api/lsDir';
-                body = {
-                    dir: this.getTextFromQuery(),
-                    isRecursive: this.isRecursive()
-                }
-            } else if (mode) {
-                api = "/api/search";
-                body = {
-                    text: this.getTextFromQuery(),
-                    mode: mode
-                }
-            } else {
-                api = "/api/allInfo";
-                body = {};
+        let api;
+        let body;
+        const mode = this.getMode();
+        if (mode === MODE_EXPLORER) {
+            api = '/api/lsDir';
+            body = {
+                dir: this.getTextFromQuery(),
+                isRecursive: this.isRecursive()
             }
-
-            Sender.post(api, body, res => {
-                this.handleRes(res);
-            });
-
-            // Sender.post('/api/getGoodAuthorNames', {}, res => {
-            //     if (!res.isFailed()) {
-            //         this.setState({
-            //             goodAuthors: res.json.goodAuthors,
-            //             otherAuthors: res.json.otherAuthors
-            //         })
-            //     }
-            // });
+        } else if (mode) {
+            api = "/api/search";
+            body = {
+                text: this.getTextFromQuery(),
+                mode: mode
+            }
+        } else {
+            api = "/api/allInfo";
+            body = {};
         }
+
+        Sender.post(api, body, res => {
+            this.handleRes(res);
+        });
+
+        // Sender.post('/api/getGoodAuthorNames', {}, res => {
+        //     if (!res.isFailed()) {
+        //         this.setState({
+        //             goodAuthors: res.json.goodAuthors,
+        //             otherAuthors: res.json.otherAuthors
+        //         })
+        //     }
+        // });
     }
 
     handleRes(res) {
@@ -137,8 +134,6 @@ export default class ChartPage extends Component {
             let { fileToInfo, fileInfos } = res.json;
             this.fileToInfo = fileInfos || fileToInfo || {};
             this.files = _.keys(this.fileToInfo) || [];
-        } else {
-            this.failedTimes++;
         }
         this.res = res;
         this.forceUpdate();

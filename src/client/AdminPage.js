@@ -20,16 +20,13 @@ const util = require("@common/util");
 export default class AdminPage extends Component {
     constructor(prop) {
         super(prop);
-        this.failedTimes = 0;
         this.state = { prePath: null, dirs: [] };
     }
 
     componentDidMount() {
-        if (this.failedTimes < 3) {
-            this.askCacheInfo();
-            this.requestHomePagePathes();
-            this.askMinifyQueue();
-        }
+        this.askCacheInfo();
+        this.requestHomePagePathes();
+        this.askMinifyQueue();
     }
 
     askMinifyQueue() {
@@ -37,8 +34,6 @@ export default class AdminPage extends Component {
             if (!res.isFailed()) {
                 let { minifyZipQue } = res.json;
                 this.setState({ minifyZipQue })
-            } else {
-                this.failedTimes++;
             }
         });
     }
@@ -59,8 +54,6 @@ export default class AdminPage extends Component {
         if (!res.isFailed()) {
             let { totalSize, cacheNum, thumbCount } = res.json;
             this.setState({ totalSize, cacheNum, thumbCount })
-        } else {
-            this.failedTimes++;
         }
         this.res = res;
         this.forceUpdate();
@@ -74,7 +67,6 @@ export default class AdminPage extends Component {
             })
         } else {
             this.res = res;
-            this.failedTimes++;
             this.forceUpdate();
         }
     }
