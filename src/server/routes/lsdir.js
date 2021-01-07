@@ -139,7 +139,7 @@ router.post('/api/lsDir', async (req, res) => {
     const plength = pTokens.length;
 
     const sqldb = db.getSQLDB();
-    let sql = `SELECT * FROM file_table WHERE filePath LIKE ? AND isDisplayableInExplorer = ?`;
+    let sql = `SELECT filePath FROM file_table WHERE filePath LIKE ? AND isDisplayableInExplorer = ?`;
     let rows = await sqldb.allSync(sql, [(dir+ '%'), true]);
     rows = rows.filter(obj => isSub(dir, obj.filePath));
 
@@ -179,7 +179,7 @@ router.post('/api/lsDir', async (req, res) => {
         }
     })
 
-    let sql2 = `SELECT * FROM file_table WHERE filePath LIKE ? AND isDisplayableInOnebook = ?`;
+    let sql2 = `SELECT filePath FROM file_table WHERE filePath LIKE ? AND isDisplayableInOnebook = ?`;
     let img_files_rows = await sqldb.allSync(sql2, [(dir+ '%'), true]);
     img_files_rows = img_files_rows.filter(obj => isSub(dir, obj.filePath));
 
@@ -211,7 +211,7 @@ router.post('/api/lsDir', async (req, res) => {
 
     const time2 = getCurrentTime();
     const timeUsed = (time2 - time1) / 1000;
-    console.log(timeUsed, "to LsDir")
+    console.log("[/api/LsDir] ", timeUsed, "s")
 
     const files = _.keys(fileInfos);
     const _dirs = _.uniq(dirs);
@@ -257,6 +257,7 @@ router.post('/api/lsDir', async (req, res) => {
 
 router.post('/api/listImageFolderContent', async (req, res) => {
     let filePath = req.body && req.body.filePath;
+    const noMedataInfo = req.body && req.body.noMedataInfo;
     if (!filePath || !(await isExist(filePath))) {
         console.error("[/api/listImageFolderContent]", filePath, "does not exist");
         res.send({ failed: true, reason: "NOT FOUND" });
@@ -285,7 +286,7 @@ router.post('/api/listImageFolderContent', async (req, res) => {
 
     let result;
     const sqldb = db.getSQLDB();
-    let sql = `SELECT * FROM file_table WHERE filePath LIKE ?`;
+    let sql = `SELECT filePath FROM file_table WHERE filePath LIKE ?`;
     let fake_zip_results = await sqldb.allSync(sql, [(filePath+ '%')]);
 
     const _files = [];
@@ -303,9 +304,12 @@ router.post('/api/listImageFolderContent', async (req, res) => {
 
     const mapping = {};
     mapping[filePath] = _files;
-    const info = getImgFolderInfo(mapping)[filePath];
 
-    const mecab_tokens = await global.mecab_getTokens(filePath);
+    let info, mecab_tokens;
+    if(!noMedataInfo){
+        info = getImgFolderInfo(mapping)[filePath];
+        mecab_tokens = await global.mecab_getTokens(filePath);
+    }
 
     //ugly code here
     result = {
