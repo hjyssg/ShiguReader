@@ -1186,7 +1186,7 @@ export default class ExplorerPage extends Component {
     }
 
     renderSideMenu(filteredFiles, filteredVideos) {
-        if (this.getMode() === MODE_HOME) {
+        if (this.getMode() === MODE_HOME || !this.state.anchorSideMenu) {
             return;
         }
 
