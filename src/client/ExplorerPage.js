@@ -224,8 +224,8 @@ export default class ExplorerPage extends Component {
 
 
                     const api ="/api/listImageFolderContent"
-                    let res2 = await Sender.postWithPromise(api, { filePath: this.getTextFromQuery() });
-                    let { zipInfo, path, stat, files, musicFiles, videoFiles, mecab_tokens } = res2.json;
+                    let res2 = await Sender.postWithPromise(api, { filePath: this.getTextFromQuery(), noMedataInfo: true });
+                    let { files, musicFiles, videoFiles } = res2.json;
                     files = files || [];
                     musicFiles = musicFiles || [];
                     if(files.length > 0 || musicFiles.length > 0){
