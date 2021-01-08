@@ -152,12 +152,13 @@ router.post('/api/lsDir', async (req, res) => {
     sql = `CREATE TABLE TEMP_FILE_TABLE AS SELECT * FROM file_table WHERE filePath LIKE ?`;
     await sqldb.runSync(sql, [(dir+ '%')]);
 
-    //todo LIMIT 0, 5 group by
+    //todo: LIMIT 0, 5 group by
     //-------------- dir --------------
     if(!isRecursive){
         sql = `CREATE TABLE TEMP_DIR_TABLE AS SELECT * FROM TEMP_FILE_TABLE WHERE dirPath = ? AND isFolder = true`;
         await sqldb.runSync(sql, [dir]);
 
+        //todo: group_concat is ugly
         // in order to get folder's files, join and then group by
         sql = `SELECT a.filePath, group_concat(b.fileName, '___') as files ` +
               `FROM TEMP_DIR_TABLE AS a LEFT JOIN ` + 
@@ -169,11 +170,14 @@ router.post('/api/lsDir', async (req, res) => {
 
         dirs = rows.map(e => e.filePath);
         rows.forEach(row => {
+            if(!row.files){
+                return;
+            }
             const dirPath = row.filePath;
             const files = row.files.split("___");
-            serverUtil.sortFileNames(files);
             // //todo? use 0 for now
             if(files && files.length > 0){
+                serverUtil.sortFileNames(files);
                 let thumbnail;
                 let ii = 0;
                 while(!thumbnail && ii < files.length){
@@ -227,10 +231,10 @@ router.post('/api/lsDir', async (req, res) => {
     rows.forEach(row => {
         //reduce by its parent folder
         const pp = row.dirPath;;
-        if (pp === dir) {
+        if (pp === dir || !row.files) {
             return;
         }
-        const files = row.files.split("___");
+        const files =  row.files.split("___");
         imgFolders[pp] = files.map(e => path.resolve(pp, e));
     })
 
