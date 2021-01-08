@@ -132,33 +132,77 @@ router.post('/api/lsDir', async (req, res) => {
     }
 
     const time1 = getCurrentTime();
-    let result;
-    const dirs = [];
+    const dirThumbnails = {};
+    let dirs = [];
     let fileInfos = {};
-    const pTokens = dir.split(path.sep);
-    const plength = pTokens.length;
+    let time2, timeUsed;
 
     const sqldb = db.getSQLDB();
-    let sql = `SELECT filePath FROM file_table WHERE filePath LIKE ? AND isDisplayableInExplorer = ?`;
-    let rows = await sqldb.allSync(sql, [(dir+ '%'), true]);
-    rows = rows.filter(obj => isSub(dir, obj.filePath));
 
-    //dir -> its file
-    const dirToFiles = {};
+    let sql, rows;
 
-    function addParent(pp) {
-        //add file's parent dir
-        //because we do not track dir in the server
-        //for example
-        //the dir is     F:/git 
-        //the file is    F:/git/a/b/1.zip
-        //add folder           F:/git/a
-        const cTokens = pp.split(path.sep);
-        let itsParent = pTokens.concat(cTokens[plength]);
-        const np = itsParent.join(path.sep);
-        dirs.push(np);
+    //drop
+    sql = "DROP TABLE IF EXISTS TEMP_FILE_TABLE";
+    await sqldb.runSync(sql);
+    sql = "DROP TABLE IF EXISTS TEMP_DIR_TABLE"
+    await sqldb.runSync(sql);
+    sql = "DROP TABLE IF EXISTS TEMP_IMG_FOLDER"
+    await sqldb.runSync(sql);
 
-        return np;
+    //limit the range only in this dir
+    sql = `CREATE TABLE TEMP_FILE_TABLE AS SELECT * FROM file_table WHERE filePath LIKE ?`;
+    await sqldb.runSync(sql, [(dir+ '%')]);
+
+    //todo LIMIT 0, 5 group by
+    //-------------- dir --------------
+    if(!isRecursive){
+        sql = `CREATE TABLE TEMP_DIR_TABLE AS SELECT * FROM TEMP_FILE_TABLE WHERE dirPath = ? AND isFolder = true`;
+        await sqldb.runSync(sql, [dir]);
+
+        // join and then group by
+        sql = `SELECT a.filePath, group_concat(b.fileName, '___') as files ` +
+              `FROM TEMP_DIR_TABLE AS a LEFT JOIN ` + 
+              `TEMP_FILE_TABLE AS b `+ 
+              `ON a.filePath = b.dirPath ` + 
+              `GROUP by a.fileName `
+              
+        rows = await sqldb.allSync(sql);
+
+        dirs = rows.map(e => e.filePath);
+
+        rows.forEach(row => {
+            const dirPath = row.filePath;
+            const files = row.files.split("___");
+            serverUtil.sortFileNames(files);
+            // //todo? use 0 for now
+            if(files && files.length > 0){
+                let thumbnail;
+                let ii = 0;
+                while(!thumbnail && ii < files.length){
+                    let tf = path.resolve(dirPath, files[ii]);
+    
+                    if(isImage(tf)){
+                        thumbnail = tf;
+                        break;
+                    }
+    
+                    thumbnail = getThumbnails(tf);
+                    ii++;
+                }
+                if(thumbnail){
+                    dirThumbnails[dirPath] =  thumbnail;
+                }
+            }
+        })
+    }
+
+    //-------------------files -----------------
+    if(isRecursive){
+        sql = `SELECT filePath FROM TEMP_FILE_TABLE WHERE isDisplayableInExplorer = true`;
+        rows = await sqldb.allSync(sql);
+    }else{
+        sql = `SELECT filePath FROM TEMP_FILE_TABLE WHERE dirPath = ? AND isDisplayableInExplorer = true`;
+        rows = await sqldb.allSync(sql, [dir]);
     }
 
     rows.forEach(obj => {
@@ -166,85 +210,40 @@ router.post('/api/lsDir', async (req, res) => {
         if (pp === dir) {
             return;
         }
-        if (isRecursive) {
-            fileInfos[pp] = getFileToInfo(pp);
-        } else {
-            if (isDirectParent(dir, pp)) {
-                fileInfos[pp] = getFileToInfo(pp);
-            } else {
-                const np = addParent(pp);
-                dirToFiles[np] = dirToFiles[np] || [];
-                dirToFiles[np].push(pp);
-            }
-        }
+        fileInfos[pp] = getFileToInfo(pp);
     })
 
-    let sql2 = `SELECT filePath FROM file_table WHERE filePath LIKE ? AND isDisplayableInOnebook = ?`;
-    let img_files_rows = await sqldb.allSync(sql2, [(dir+ '%'), true]);
-    img_files_rows = img_files_rows.filter(obj => isSub(dir, obj.filePath));
+    //---------------img folder -----------------
+    sql = `CREATE TABLE TEMP_IMG_FOLDER AS SELECT *, group_concat(fileName, '___') AS files ` +
+    `FROM TEMP_FILE_TABLE WHERE isDisplayableInOnebook = true ` +
+    `GROUP BY dirPath ORDER BY fileName`;
+    await sqldb.runSync(sql);
+    if(isRecursive){
+        sql = `SELECT * FROM TEMP_IMG_FOLDER`;
+        rows = await sqldb.allSync(sql);
+    }else{
+        sql = `SELECT * FROM TEMP_IMG_FOLDER WHERE dirPath = ?`;
+        rows = await sqldb.allSync(sql, [dir]);
+    }
 
     const imgFolders = {};
 
-    img_files_rows.forEach(obj => {
+    rows.forEach(row => {
         //reduce by its parent folder
-        const pp = path.dirname(obj.filePath);
+        const pp = row.filePath;;
         if (pp === dir) {
             return;
         }
-
-        if (isRecursive) {
-            imgFolders[pp] = imgFolders[pp] || [];
-            imgFolders[pp].push(obj.filePath);
-        } else {
-            if (isDirectParent(dir, pp)) {
-                imgFolders[pp] = imgFolders[pp] || [];
-                imgFolders[pp].push(obj.filePath);
-            } else {
-                const np = addParent(pp);
-                dirToFiles[np] = dirToFiles[np] || [];
-                dirToFiles[np].push(obj.filePath);
-            }
-        }
+        const files = row.files.split("___");
+        imgFolders[pp] = files.map(e => path.resolve(pp, e));
     })
 
     const imgFolderInfo = getImgFolderInfo(imgFolders);
-
-    const time2 = getCurrentTime();
-    const timeUsed = (time2 - time1) / 1000;
-    console.log("[/api/LsDir] ", timeUsed, "s")
-
     const files = _.keys(fileInfos);
-    const _dirs = _.uniq(dirs);
-
-
-    const dirThumbnails = {};
-    _dirs.map(dirPath => {
-        const files = dirToFiles[dirPath];
-        serverUtil.sortFileNames(files);
-        //todo? use 0 for now
-        if(files && files.length > 0){
-            let thumbnail;
-            let ii = 0;
-            while(!thumbnail && ii < files.length){
-                let tf = files[ii];
-
-                if(isImage(tf)){
-                    thumbnail = tf;
-                    break;
-                }
-
-                thumbnail = getThumbnails(tf);
-                ii++;
-            }
-            if(thumbnail){
-                dirThumbnails[dirPath] =  thumbnail;
-            }
-        }
-    })
-
-    result = {
+ 
+    const result = {
         path: dir,
-        dirs: _dirs,
+        dirs: dirs,
         fileInfos,
         imgFolderInfo,
         imgFolders,
@@ -252,6 +251,11 @@ router.post('/api/lsDir', async (req, res) => {
         dirThumbnails,
         zipInfo: getZipInfo(files),
     };
+
+    time2 = getCurrentTime();
+    timeUsed = (time2 - time1) / 1000;
+    console.log("[/api/LsDir] ", timeUsed, "s")
+
     res.send(result);
 });
 

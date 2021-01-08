@@ -356,6 +356,7 @@ function setUpFileWatch(scan_path) {
             //         listZipContentAndUpdateDb(path);
             //     }, 3000);
             // }
+            db.createSqlIndex();
         }else{
             init_count++;
             if (init_count % 2000 === 0) {
@@ -464,8 +465,8 @@ async function initMecab() {
 
 
 function getThumbnails(filePathes) {
-    const stringInput = _.isString(filePathes);
-    if(stringInput){
+    const isStringInput = _.isString(filePathes);
+    if(isStringInput){
         filePathes = [filePathes];
     }
 
@@ -495,7 +496,7 @@ function getThumbnails(filePathes) {
         }
     });
 
-    if(stringInput){
+    if(isStringInput){
         return thumbnails[filePathes[0]]
     }
 
@@ -516,7 +517,6 @@ function isAlreadyScan(dir){
     });
 }
 
-serverUtil.common.getCacheOutputPath = getCacheOutputPath;
 serverUtil.common.getThumbnails = getThumbnails;
 serverUtil.common.getStat = getStat;
 serverUtil.common.isAlreadyScan = isAlreadyScan;

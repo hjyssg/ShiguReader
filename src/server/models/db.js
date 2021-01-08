@@ -34,15 +34,16 @@ const getFileToInfo = module.exports.getFileToInfo = function (filePath) {
 
 var sqlite3 = require('sqlite3').verbose();
 var sqlDb = new sqlite3.Database(':memory:');
-sqlDb.run("CREATE TABLE file_table (filePath TEXT NOT NULL PRIMARY KEY, fileName TEXT, sTime INTEGER, " +
+sqlDb.run("CREATE TABLE file_table (filePath TEXT NOT NULL PRIMARY KEY, dirPath TEXT, fileName TEXT, sTime INTEGER, " +
            "isDisplayableInExplorer BOOL, isDisplayableInOnebook BOOL, isCompress BOOL, isFolder BOOL)");
 
 //todo: http://howto.philippkeller.com/2005/04/24/Tags-Database-schemas/
-sqlDb.run("CREATE TABLE tag_table (filePath TEXT, tag TEXT, type TEXT, subtype TEXT )");
+sqlDb.run("CREATE TABLE tag_table (filePath TEXT, tag VARCHAR(50), type VARCHAR(25), subtype VARCHAR(25))");
 
 const _util = require('util');
 sqlDb.allSync = _util.promisify(sqlDb.all).bind(sqlDb);
 sqlDb.getSync = _util.promisify(sqlDb.get).bind(sqlDb);
+sqlDb.runSync = _util.promisify(sqlDb.run).bind(sqlDb);
 
 module.exports.getSQLDB = function(){
     return sqlDb;
@@ -54,6 +55,10 @@ function insertToTagTable(filePath, tag, type, subtype){
         return;
     }
     sqlDb.run("INSERT OR REPLACE INTO tag_table(filePath, tag, type, subtype ) values(?, ?, ?, ?)",  filePath, tag, type, subtype);
+}
+
+module.exports.createSqlIndex = function(){
+    sqlDb.run("CREATE INDEX filePath_index ON file_table (filePath)");
 }
 
 const updateFileDb = function (filePath, statObj) {
@@ -100,13 +105,14 @@ const updateFileDb = function (filePath, statObj) {
     aboutTimeA = aboutTimeA && aboutTimeA.getTime();
     let fileTimeA = statObj.mtimeMs || aboutTimeA;
 
+    const dirPath = path.dirname(filePath);
 
     // sqlDb.run("INSERT INTO file_table VALUES (?)", 
     // https://www.sqlitetutorial.net/sqlite-nodejs/insert/
-    sqlDb.run("INSERT OR REPLACE INTO file_table(filePath, fileName, sTime, " +
+    sqlDb.run("INSERT OR REPLACE INTO file_table(filePath, dirPath, fileName, sTime, " +
      "isDisplayableInExplorer, isDisplayableInOnebook, " + 
-     "isCompress, isFolder ) values(?, ?, ?, ?, ?, ?, ?)", 
-    filePath, fileName, fileTimeA,
+     "isCompress, isFolder ) values(?, ?, ?, ?, ?, ?, ?, ?)", 
+    filePath, dirPath, fileName, fileTimeA,
     isDisplayableInExplorer, isDisplayableInOnebook, isCompress(fileName), statObj.isDir);
 }
 
