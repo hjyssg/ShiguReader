@@ -230,7 +230,7 @@ router.post('/api/lsDir', async (req, res) => {
 
     rows.forEach(row => {
         //reduce by its parent folder
-        const pp = row.filePath;;
+        const pp = row.dirPath;;
         if (pp === dir) {
             return;
         }
