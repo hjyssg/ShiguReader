@@ -138,7 +138,6 @@ router.post('/api/lsDir', async (req, res) => {
     let time2, timeUsed;
 
     const sqldb = db.getSQLDB();
-
     let sql, rows;
 
     //drop
@@ -159,7 +158,7 @@ router.post('/api/lsDir', async (req, res) => {
         sql = `CREATE TABLE TEMP_DIR_TABLE AS SELECT * FROM TEMP_FILE_TABLE WHERE dirPath = ? AND isFolder = true`;
         await sqldb.runSync(sql, [dir]);
 
-        // join and then group by
+        // in order to get folder's files, join and then group by
         sql = `SELECT a.filePath, group_concat(b.fileName, '___') as files ` +
               `FROM TEMP_DIR_TABLE AS a LEFT JOIN ` + 
               `TEMP_FILE_TABLE AS b `+ 
@@ -169,7 +168,6 @@ router.post('/api/lsDir', async (req, res) => {
         rows = await sqldb.allSync(sql);
 
         dirs = rows.map(e => e.filePath);
-
         rows.forEach(row => {
             const dirPath = row.filePath;
             const files = row.files.split("___");
@@ -204,7 +202,6 @@ router.post('/api/lsDir', async (req, res) => {
         sql = `SELECT filePath FROM TEMP_FILE_TABLE WHERE dirPath = ? AND isDisplayableInExplorer = true`;
         rows = await sqldb.allSync(sql, [dir]);
     }
-
     rows.forEach(obj => {
         const pp = obj.filePath;
         if (pp === dir) {
@@ -227,7 +224,6 @@ router.post('/api/lsDir', async (req, res) => {
     }
 
     const imgFolders = {};
-
     rows.forEach(row => {
         //reduce by its parent folder
         const pp = row.dirPath;;
@@ -238,9 +234,9 @@ router.post('/api/lsDir', async (req, res) => {
         imgFolders[pp] = files.map(e => path.resolve(pp, e));
     })
 
+    //-------------get extra info
     const imgFolderInfo = getImgFolderInfo(imgFolders);
     const files = _.keys(fileInfos);
- 
     const result = {
         path: dir,
         dirs: dirs,
