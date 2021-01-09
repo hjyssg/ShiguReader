@@ -165,6 +165,8 @@ router.post('/api/lsDir', async (req, res) => {
 
         let sql, rows;
 
+        const sep = "|---|"
+
         //limit the searching  within this dir
         sql = `CREATE TABLE ${tempFileTable} AS SELECT * FROM file_table WHERE INSTR(filePath, ?) = 1`;
         await sqldb.runSync(sql, [dir]);
@@ -177,7 +179,7 @@ router.post('/api/lsDir', async (req, res) => {
 
             //todo: group_concat is ugly
             // in order to get folder's files, join file_Table and then group by
-            sql = `SELECT a.filePath, group_concat(b.fileName, '___') as files ` +
+            sql = `SELECT a.filePath, group_concat(b.fileName, '${sep}') as files ` +
                 `FROM ${tempDirTable} AS a LEFT JOIN ` + 
                 `${tempFileTable} AS b `+ 
                 `ON a.filePath = b.dirPath ` + 
@@ -191,7 +193,7 @@ router.post('/api/lsDir', async (req, res) => {
                     return;
                 }
                 const dirPath = row.filePath;
-                const files = row.files.split("___");
+                const files = row.files.split(sep);
 
                 dirThumbnails[dirPath] = getThumbnailForFolder(files, dirPath)
             })
@@ -215,7 +217,7 @@ router.post('/api/lsDir', async (req, res) => {
 
         //---------------img folder -----------------
         const imgFolders = {};
-        sql = `SELECT dirPath, group_concat(fileName, '___') AS files ` +
+        sql = `SELECT dirPath, group_concat(fileName, '${sep}') AS files ` +
             `FROM ${tempFileTable} WHERE isDisplayableInOnebook = true ` +
             `GROUP BY dirPath`;
         rows = await sqldb.allSync(sql);
@@ -227,11 +229,15 @@ router.post('/api/lsDir', async (req, res) => {
             if(!isRecursive && !isDirectParent(dir, pp)){
                 return;
             }
-            const files =  row.files.split("___");
+            const files =  row.files.split(sep);
             imgFolders[pp] = files.map(e => path.resolve(pp, e));
         })
 
         //-------------get extra info
+        // time2 = getCurrentTime();
+        // timeUsed = (time2 - time1) / 1000;
+        // console.log("[/api/LsDir] sql time", timeUsed, "s")
+
         const imgFolderInfo = getImgFolderInfo(imgFolders);
         const files = _.keys(fileInfos);
         const result = {
@@ -245,12 +251,10 @@ router.post('/api/lsDir', async (req, res) => {
             zipInfo: getZipInfo(files),
         };
 
-        time2 = getCurrentTime();
-        timeUsed = (time2 - time1) / 1000;
-        console.log("[/api/LsDir] ", timeUsed, "s")
-
+        // const time3 = getCurrentTime();
+        // timeUsed = (time3 - time2) / 1000;
+        // console.log("[/api/LsDir] info look", timeUsed, "s")
         res.send(result);
-
     }catch(e){
 
     }finally {
