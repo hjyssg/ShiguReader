@@ -22,20 +22,24 @@ function splitRows(rows, text){
     const textInLowerCase = text.toLowerCase();
 
     rows.forEach(row => {
-        const dirName = path.dirname(row.filePath);
-        if(row.isDisplayableInExplorer){
+        const dirName = path.basename(row.dirPath);
+        const byDir = dirName.toLowerCase().includes(textInLowerCase);
+        const byFn = row.fileName.toLowerCase().includes(textInLowerCase);
+
+        if(row.isDisplayableInExplorer && (byFn || byDir )){
+            //for file, its name or its dir name
             zipResult.push(row);
-        }else if(row.isDisplayableInOnebook){
-            if(dirName.toLowerCase().includes(textInLowerCase)){
-                imgFolders[dirName] = imgFolders[dirName] || [];
-                imgFolders[dirName].push(row.filePath);
-            }
-        }else {
-            if(dirName.toLowerCase().includes(textInLowerCase)){
-                dirResults.push(row);
-            }
-        }
+        }else if(row.isDisplayableInOnebook && byDir){
+            imgFolders[dirName] = imgFolders[dirName] || [];
+            imgFolders[dirName].push(row.filePath);
+        }else if(row.isFolder && byFn){
+            //folder check its name 
+            dirResults.push(row);
+        } 
     })
+
+    dirResults = dirResults.map(obj => { return obj.filePath; });
+    dirResults = _.unique(dirResults);
 
     return {
         zipResult,
@@ -79,8 +83,7 @@ async function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
         fileInfos[pp] = db.getFileToInfo(pp);
     })
 
-    let _dirs = dirResults.map(obj => { return obj.filePath; });
-    _dirs = _.unique(_dirs);
+   
 
     let end = (new Date).getTime();
     // console.log((end - beg)/1000, "to search");
@@ -92,7 +95,7 @@ async function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
     return {
         tag, author, fileInfos,
         imgFolders, imgFolderInfo,
-        dirs: _dirs, 
+        dirs: dirResults, 
         thumbnails: getThumbnails(files), 
         zipInfo: getZipInfo(files)
     };
