@@ -59,6 +59,7 @@ function insertToTagTable(filePath, tag, type, subtype){
 
 module.exports.createSqlIndex = function(){
     sqlDb.run("CREATE INDEX filePath_index ON file_table (filePath)");
+    sqlDb.run("CREATE INDEX dirPath_index ON file_table (dirPath)");
 }
 
 const updateFileDb = function (filePath, statObj) {
