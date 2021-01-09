@@ -182,7 +182,6 @@ export default class FileChangeToolbar extends Component {
     }
 
 
-
     handleMove = (path) => {
         const { file } = this.props;
         if (_.isString(path)) {
@@ -202,23 +201,46 @@ export default class FileChangeToolbar extends Component {
         }
     };
 
-    handleRename() {
-        const { file } = this.props;
-        let dest = prompt("Raname or Move", file);
-        if (dest && file !== dest) {
-            Swal.fire({
-                html: 'Rename this file to <span class="path-highlight">' + dest + "</span>",
-                showCancelButton: true,
-                confirmButtonText: 'Yes',
-                cancelButtonText: 'No'
-            }).then((result) => {
-                if (result.value === true) {
-                    Sender.post("/api/renameFile", { src: file, dest }, res => {
-                        let extraDiv = getExtraDiv(res);
-                        pop(file, res, "rename", extraDiv);
-                    });
-                }
-            });
+    handleRename(type) {
+        let { file } = this.props;
+
+        const fileName = clientUtil.getBaseName(file);
+        const dirPath = clientUtil.getDir(file);
+
+        const sep = this.context.file_path_sep || "\\";
+        let defaultText;
+        if(type === "move"){
+            //get its dir path
+            defaultText = dirPath;
+        }else if(type === "rename"){
+            //get its file name
+            defaultText = fileName;
+        }
+
+        let dest = prompt(type, defaultText);
+
+        if(type === "move"){
+            //get its dir path
+            this.handleMove(dest);
+            return;
+        }else if(type === "rename"){
+            //get its file name
+            dest = dirPath + sep + dest;
+            if (dest) {
+                Swal.fire({
+                    html: 'Rename this file to <span class="path-highlight">' + dest + "</span>",
+                    showCancelButton: true,
+                    confirmButtonText: 'Yes',
+                    cancelButtonText: 'No'
+                }).then((result) => {
+                    if (result.value === true) {
+                        Sender.post("/api/renameFile", { src: file, dest }, res => {
+                            let extraDiv = getExtraDiv(res);
+                            pop(file, res, "rename", extraDiv);
+                        });
+                    }
+                });
+            }
         }
     }
 
@@ -281,10 +303,15 @@ export default class FileChangeToolbar extends Component {
 
     renderRenameButton() {
         return (<div tabIndex="0" className="fas fa-pen raname-button" title="rename file"
-            onClick={this.handleRename.bind(this)}></div>)
+            onClick={this.handleRename.bind(this, "rename")}></div>)
 
     }
 
+    renderMoveButton() {
+        return (<div tabIndex="0" className="fas fa-pen move-button" title="move file"
+            onClick={this.handleRename.bind(this, "move")}></div>)
+
+    }
 
     renderDeleteButton() {
         return (
@@ -337,9 +364,14 @@ export default class FileChangeToolbar extends Component {
 
                 {explorerLink}
 
-                <div className="section">
-                    <div className="title">Rename or Move: </div>
+                <div className="section with-bottom-margin">
+                    <div className="title">Rename: </div>
                     {this.renderRenameButton()}
+                </div>
+
+                <div className="section">
+                    <div className="title">Move: </div>
+                    {this.renderMoveButton()}
                 </div>
             </Modal>
         );

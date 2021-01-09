@@ -60,7 +60,13 @@ export default class FileNameDiv extends Component {
 
     //less meaningful
     let lessTags = (mecab_tokens && mecab_tokens.length > 1) ? mecab_tokens : namePicker.splitBySpace(text);
-    lessTags = lessTags.filter(e => !allTags.includes(e));
+    lessTags = lessTags.filter(e => {
+      const isUniq =  allTags.every(e2 => {
+        return !e2.includes(e);
+      });
+
+      return isUniq;
+    });
     allTags = allTags.concat(lessTags);
 
     //unique
@@ -70,6 +76,10 @@ export default class FileNameDiv extends Component {
     const tagIndexes = {};
     allTags.forEach(tag => {
       const index = text.indexOf(tag);
+      if(index < 0){
+        //todo
+        //because tag converting, get index is not not so easy
+      }
       tagIndexes[tag] = index;
     });
     allTags = _.sortBy(allTags, tag => {
