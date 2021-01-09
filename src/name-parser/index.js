@@ -336,37 +336,12 @@ function parse(str) {
         return e.length > 1 && !isOtherInfo(e) && authors.indexOf(e) === -1 && e !== author;
     });
 
-    tags = tags
-        .map(e => e.replace(/ |。/g, "").replace(/！/g, "!").replace(/？/g, "?"))
-
-    if (!type) {
-        if (comiket || group) {
-            type = "Doujin";
-        } else {
-            type = "etc";
-        }
-    }
-
-    if (!author && !group && tags.length === 0) {
-        localCache[str] = "NO_EXIST";
-        return;
-    }
-
-    //get title
-    let title = str;
-    (bMacthes || []).concat(pMacthes || [], tags || [], [/\[/g, /\]/g, /\(/g, /\)/g]).forEach(e => {
-        title = title.replace(e, "");
-    })
-    title = title.trim();
-
-    //get character names
-    const names = char_name_regex && title.match(char_name_regex);
-    if(names){
-        tags = tags.concat(names);
-    }
+    let original_tags = tags.slice();
 
     //tag converting
-    const convert_tags  = tags.map(e => {
+    tags = tags
+        .map(e => e.replace(/ |。/g, "").replace(/！/g, "!").replace(/？/g, "?"));
+    tags  = tags.map(e => {
         const converts = [];
         for (let ii = 0; ii < same_tag_matrix.length; ii++) {
             const row = same_tag_matrix[ii];
@@ -383,9 +358,36 @@ function parse(str) {
         }
     })
 
+    if (!type) {
+        if (comiket || group) {
+            type = "Doujin";
+        } else {
+            type = "etc";
+        }
+    }
+
+    if (!author && !group && tags.length === 0) {
+        localCache[str] = "NO_EXIST";
+        return;
+    }
+
+    //get title
+    let title = str;
+    (bMacthes || []).concat(pMacthes || [], original_tags || [], [/\[/g, /\]/g, /\(/g, /\)/g]).forEach(e => {
+        title = title.replace(e, "");
+    })
+    title = title.trim();
+
+    //get character names
+    const names = char_name_regex && title.match(char_name_regex);
+    if(names){
+        tags = tags.concat(names);
+        original_tags = original_tags.concat(names);
+    }
+
     const result = {
         dateTag, group, author, authors, 
-        tags: convert_tags, original_tags: tags, 
+        tags, original_tags, 
         comiket, type, title
     };
 
