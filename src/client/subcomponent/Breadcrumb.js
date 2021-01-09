@@ -1,11 +1,11 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import '../style/Breadcrumb.scss';
 import { Link } from 'react-router-dom';
 const classNames = require('classnames');
 const clientUtil = require("../clientUtil");
 import { toast } from 'react-toastify';
 
-export default class Breadcrumb extends Component {
+export default class Breadcrumb extends PureComponent {
     onClickPath(){
         let { path } = this.props;
         clientUtil.CopyToClipboard(path);
