@@ -46,8 +46,8 @@ function splitRows(rows, text){
 
 async function searchByText(text) {
     const sqldb = db.getSQLDB();
-    let sql = `SELECT * FROM file_table WHERE filePath LIKE ?`;
-    let rows = await sqldb.allSync(sql, [( '%' + text + '%')]);
+    let sql = `SELECT * FROM file_table WHERE INSTR(filePath, ?) > 0`;
+    let rows = await sqldb.allSync(sql, [text]);
     return splitRows(rows, text);
 }
 
@@ -66,8 +66,8 @@ async function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
         //inner joiner then group by
         let sql = `SELECT a.* ` 
         + `FROM file_table AS a INNER JOIN tag_table AS b `
-        + `ON a.filePath = b.filePath AND b.tag LIKE ?`;
-        let rows = await sqldb.allSync(sql, [( '%' + _text + '%')]);
+        + `ON a.filePath = b.filePath AND INSTR(b.tag, ?) > 0`;
+        let rows = await sqldb.allSync(sql, [_text]);
         const tag_obj = splitRows(rows, _text);
         zipResult = tag_obj.zipResult;
         dirResults = tag_obj.dirResults;
