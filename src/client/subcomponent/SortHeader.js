@@ -1,11 +1,11 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import '../style/SortHeader.scss';
 const classNames = require('classnames');
 
 
 //default is 0
 
-export default class SortHeader extends Component {
+export default class SortHeader extends PureComponent {
     static defaultProps = {
 
     };
