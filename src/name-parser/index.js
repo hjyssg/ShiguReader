@@ -339,24 +339,6 @@ function parse(str) {
     tags = tags
         .map(e => e.replace(/ |。/g, "").replace(/！/g, "!").replace(/？/g, "?"))
 
-    //tag reducing
-    tags = tags.map(e => {
-        const converts = [];
-        for (let ii = 0; ii < same_tag_matrix.length; ii++) {
-            const row = same_tag_matrix[ii];
-            const r = row[0];
-            if (e.match(r)) {
-                converts.push(row[1]);
-            }
-        }
-
-        if (converts.length > 0) {
-            return findMaxStr(converts);
-        } else {
-            return e;
-        }
-    })
-
     if (!type) {
         if (comiket || group) {
             type = "Doujin";
@@ -379,12 +361,32 @@ function parse(str) {
 
     //get character names
     const names = char_name_regex && title.match(char_name_regex);
-    names && names.forEach(e => {
-        tags.push(e);
+    if(names){
+        tags = tags.concat(names);
+    }
+
+    //tag converting
+    const convert_tags  = tags.map(e => {
+        const converts = [];
+        for (let ii = 0; ii < same_tag_matrix.length; ii++) {
+            const row = same_tag_matrix[ii];
+            const r = row[0];
+            if (e.match(r)) {
+                converts.push(row[1]);
+            }
+        }
+
+        if (converts.length > 0) {
+            return findMaxStr(converts);
+        } else {
+            return e;
+        }
     })
 
     const result = {
-        dateTag, group, author, authors, tags, comiket, type, title
+        dateTag, group, author, authors, 
+        tags: convert_tags, original_tags: tags, 
+        comiket, type, title
     };
 
     localCache[str] = result;
