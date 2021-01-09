@@ -23,9 +23,8 @@ async function getGoodAndOtherSet() {
         authorInfo = await sqldb.allSync(sql, [global.good_folder_root, global.good_folder_root]);
     }
 
-    let end = (new Date).getTime();
-    console.log(`[/api/getGoodAuthorNames] ${(end - beg) / 1000}s`);
-
+    // let end = (new Date).getTime();
+    // console.log(`[/api/getGoodAuthorNames] ${(end - beg) / 1000}s`);
     return {
         authorInfo
     }
