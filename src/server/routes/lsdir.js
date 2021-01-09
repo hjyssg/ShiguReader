@@ -151,6 +151,7 @@ router.post('/api/lsDir', async (req, res) => {
         return;
     }
 
+    const sqldb = db.getSQLDB();
     const suffix = stringHash(dir);
     const tempFileTable = "TEMP.FILE_TABLE_" + suffix;
     const tempDirTable = "TEMP.DIR_TABLE_" + suffix;
@@ -162,12 +163,11 @@ router.post('/api/lsDir', async (req, res) => {
         let dirs = [];
         let fileInfos = {};
 
-        const sqldb = db.getSQLDB();
         let sql, rows;
 
         //limit the searching  within this dir
-        sql = `CREATE TABLE ${tempFileTable} AS SELECT * FROM file_table WHERE filePath LIKE ?`;
-        await sqldb.runSync(sql, [(dir+ '%')]);
+        sql = `CREATE TABLE ${tempFileTable} AS SELECT * FROM file_table WHERE INSTR(filePath, ?) = 1`;
+        await sqldb.runSync(sql, [dir]);
 
         //todo: LIMIT 0, 5 group by
         //-------------- dir --------------
