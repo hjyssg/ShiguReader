@@ -151,19 +151,19 @@ router.post('/api/lsDir', async (req, res) => {
         return;
     }
 
+    const suffix = stringHash(dir);
+    const tempFileTable = "TEMP.FILE_TABLE_" + suffix;
+    const tempDirTable = "TEMP.DIR_TABLE_" + suffix;
+
     try {
         const time1 = getCurrentTime();
+        let time2, timeUsed;
         const dirThumbnails = {};
         let dirs = [];
         let fileInfos = {};
-        let time2, timeUsed;
 
         const sqldb = db.getSQLDB();
         let sql, rows;
-        const suffix = stringHash(dir);
-
-        const tempFileTable = "TEMP.FILE_TABLE_" + suffix;
-        const tempDirTable = "TEMP.DIR_TABLE_" + suffix;
 
         //limit the searching  within this dir
         sql = `CREATE TABLE ${tempFileTable} AS SELECT * FROM file_table WHERE filePath LIKE ?`;
