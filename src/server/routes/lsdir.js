@@ -293,8 +293,8 @@ router.post('/api/listImageFolderContent', async (req, res) => {
 
     let result;
     const sqldb = db.getSQLDB();
-    let sql = `SELECT filePath FROM file_table WHERE filePath LIKE ?`;
-    let fake_zip_results = await sqldb.allSync(sql, [(filePath+ '%')]);
+    let sql = `SELECT filePath FROM file_table WHERE INSTR(filePath, ?) = 1`;
+    let fake_zip_results = await sqldb.allSync(sql, [filePath]);
 
     const _files = [];
 
