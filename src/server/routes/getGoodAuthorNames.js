@@ -19,7 +19,7 @@ async function getGoodAndOtherSet() {
         sql = `SELECT tag, ` + 
         `COUNT(CASE WHEN filePath LIKE ? THEN 1 END) AS good_count, ` + 
         `COUNT(CASE WHEN filePath NOT LIKE ? THEN 1 END) AS bad_count ` + 
-        `FROM tag_table GROUP BY tag HAVING type = 'author'`;
+        `FROM tag_table WHERE type = 'author' GROUP BY tag`;
         authorInfo = await sqldb.allSync(sql, [( global.good_folder_root + '%'), ( global.good_folder_root + '%')]);
     }
 
