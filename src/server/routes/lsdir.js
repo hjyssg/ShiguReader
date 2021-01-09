@@ -109,7 +109,26 @@ async function listNoScanDir(dir, res){
     res.send(result);
 }
 
+function getThumbnailForFolder(files){
+    if(files && files.length > 0){
+        serverUtil.sortFileNames(files);
+        let thumbnail;
+        let ii = 0;
+        while(!thumbnail && ii < files.length){
+            let tf = path.resolve(dirPath, files[ii]);
 
+            if(isImage(tf)){
+                thumbnail = tf;
+                break;
+            }
+
+            thumbnail = getThumbnails(tf);
+            ii++;
+        }
+
+        return thumbnail;
+    }
+}
 
 router.post('/api/lsDir', async (req, res) => {
     let dir = req.body && req.body.dir;
@@ -175,26 +194,8 @@ router.post('/api/lsDir', async (req, res) => {
             }
             const dirPath = row.filePath;
             const files = row.files.split("___");
-            // //todo? use 0 for now
-            if(files && files.length > 0){
-                serverUtil.sortFileNames(files);
-                let thumbnail;
-                let ii = 0;
-                while(!thumbnail && ii < files.length){
-                    let tf = path.resolve(dirPath, files[ii]);
-    
-                    if(isImage(tf)){
-                        thumbnail = tf;
-                        break;
-                    }
-    
-                    thumbnail = getThumbnails(tf);
-                    ii++;
-                }
-                if(thumbnail){
-                    dirThumbnails[dirPath] =  thumbnail;
-                }
-            }
+
+            dirThumbnails[dirPath] = getThumbnailForFolder(files)
         })
     }
 
