@@ -5,7 +5,7 @@ const imageTypes = [".jpg", ".png", ".jpeg", ".gif", ".bmp", ".webp"];
 const compressTypes = [".zip", ".rar", ".7zip", ".7z"];
 const musicTypes = [".mp3", ".wav", ".m4a", ".wma", ".flac", ".ogg", ".m4p", ".m4a", ".aiff"];
 const videoTypes = [".mp4", ".3gp", ".avi", ".mov",
-    ".mp4", ".m4v", ".m4a", ".mkv", ".webm"];
+    ".mp4", ".m4v", ".m4a", ".mkv", ".webm", ".flv"];
 
 function escapeDot(arr) {
     return arr.map(e => e.replace(".", "\\."))
