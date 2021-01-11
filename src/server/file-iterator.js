@@ -7,6 +7,10 @@ const readdir = require("./readdir");
 
 
 module.exports = async function (folders, config) {
+    if(_.isString(folders)){
+        folders = [folders]
+    }
+
     const result = { pathes: [], infos: {} };
     config.visited = {};
     for (let ii = 0; ii < folders.length; ii++) {
