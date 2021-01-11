@@ -629,6 +629,22 @@ app.post('/api/pregenerateThumbnails', async (req, res) => {
         totalFiles = totalFiles.filter(e => e.includes(path));
     }
 
+    function shouldWatch(p, stat) {
+        if (isHiddenFile(p)) {
+            return false;
+        }
+        const ext = serverUtil.getExt(p);
+        return !ext || isCompress(ext);
+    }
+    
+    if(path && !isAlreadyScan(path)){
+        const { pathes } = await fileiterator(path, {
+            doNotNeedInfo: true,
+            filter: shouldWatch
+        });
+        totalFiles = pathes.filter(isCompress);
+    }
+
     let config = {
         fastUpdateMode
     };

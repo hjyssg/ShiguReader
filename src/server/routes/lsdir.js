@@ -60,6 +60,7 @@ async function listNoScanDir(dir, res){
         }
     }
 
+    const dirThumbnails = {}
     const imgFolders = {};
     const will_remove = {};
     for(let ii = 0; ii < _dirs.length; ii++){
@@ -74,6 +75,9 @@ async function listNoScanDir(dir, res){
                 imgFolders[tempDir] = sub1;
             } 
 
+            dirThumbnails[tempDir] = getThumbnailForFolder(subFnArr , tempDir);
+
+            //remove empty dir
             let subDirs = subArr.filter(e => e.isDirectory());
             let sub2 = subFpArr.filter(isDisplayableInExplorer);
             if(subDirs.length === 0 && sub2.length === 0){
@@ -99,11 +103,11 @@ async function listNoScanDir(dir, res){
         dirs: _dirs,
         fileInfos: fileInfos,
 
-        imgFolderInfo: {},
+        imgFolderInfo:  getImgFolderInfo(imgFolders),
         imgFolders,
 
         thumbnails: getThumbnails(files),
-        dirThumbnails: {},
+        dirThumbnails,
         zipInfo: getZipInfo(files),
     };
 

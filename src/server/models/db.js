@@ -162,15 +162,16 @@ module.exports.getImgFolderInfo = function (imgFolders) {
         let mtimeMs = 0, size = 0, totalImgSize = 0, pageNum = 0, musicNum = 0;
         files.forEach(file => {
             const tempInfo = getFileToInfo(file);
-            if(!tempInfo){
-                return;
+            if(tempInfo){
+                mtimeMs += tempInfo.mtimeMs / len;
+                size += tempInfo.size;
+
+                if (isImage(file)) {
+                    totalImgSize += tempInfo.size;
+                }
             }
 
-            mtimeMs += tempInfo.mtimeMs / len;
-            size += tempInfo.size;
-
             if (isImage(file)) {
-                totalImgSize += tempInfo.size;
                 pageNum++;
             } else if (isMusic(file)) {
                 musicNum++;
@@ -234,7 +235,8 @@ module.exports.getCacheOutputPath = function (cachePath, zipFilePath) {
         //should have stat in fileToInfo
         //but chokidar is not reliable
         //getCacheOutputPath comes before chokidar callback
-        console.warn("[getCacheOutputPath] no stat", zipFilePath);
+        // console.warn("[getCacheOutputPath] no stat", zipFilePath);
+        outputFolder += stringHash(zipFilePath).toString()
     } else {
         const mdate = new Date(stat.mtimeMs);
         mdate.setMilliseconds(0);
