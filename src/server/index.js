@@ -70,7 +70,7 @@ const sevenZipHelp = require("./sevenZipHelp");
 const { listZipContentAndUpdateDb, extractAll, extractByRange } = sevenZipHelp;
 
 const db = require("./models/db");
-const { getAllFilePathes, getCacheFiles, getCacheOutputPath,
+const { getAllFilePathes, getCacheFiles, getCacheOutputFolderPath,
     updateStatToDb, deleteFromDb, updateStatToCacheDb, deleteFromCacheDb } = db;
 
 const app = express();
@@ -477,7 +477,7 @@ function getThumbnails(filePathes) {
             return;
         }
 
-        const outputPath = getCacheOutputPath(cachePath, filePath);
+        const outputPath = getCacheOutputFolderPath(cachePath, filePath);
         let thumb = getThumbnailFromThumbnailFolder(outputPath);
         if (thumb) {
             thumbnails[filePath] = fullPathToUrl(thumb);
@@ -554,7 +554,7 @@ async function extractThumbnailFromZip(filePath, res, mode, config) {
 
     const isPregenerateMode = mode === "pre-generate";
     const sendable = !isPregenerateMode && res;
-    const outputPath = getCacheOutputPath(cachePath, filePath);
+    const outputPath = getCacheOutputFolderPath(cachePath, filePath);
     let files;
 
     function sendImage(img) {
@@ -592,9 +592,11 @@ async function extractThumbnailFromZip(filePath, res, mode, config) {
             if (stderrForThumbnail) {
                 throw "extract exec failed";
             } 
-            // send path to client
+            // send original img path to client as thumbnail
             let original_thumb = path.join(outputPath, path.basename(thumb));
             sendImage(original_thumb);
+
+            //compress into real thumbnail
             const outputFilePath = await thumbnailGenerator(thumbnailFolderPath, outputPath, path.basename(thumb));
             if (outputFilePath) {
                 addToThumbnailDb(outputFilePath);
@@ -758,7 +760,7 @@ app.post('/api/extract', async (req, res) => {
         res.send({ files: tempFiles, musicFiles, videoFiles, path, stat, zipInfo, mecab_tokens });
     }
 
-    const outputPath = getCacheOutputPath(cachePath, filePath);
+    const outputPath = getCacheOutputFolderPath(cachePath, filePath);
     const temp = getCacheFiles(outputPath);
 
     if (zipInfoDb.has(filePath) && temp) {

@@ -220,7 +220,10 @@ module.exports.getCacheFiles = function (outputPath) {
     return null;
 }
 
-module.exports.getCacheOutputPath = function (cachePath, zipFilePath) {
+/*
+*  get cache folder path
+*/
+module.exports.getCacheOutputFolderPath = function (cachePath, zipFilePath) {
     let outputFolder;
     outputFolder = path.basename(zipFilePath, path.extname(zipFilePath));
     if (!userConfig.readable_cache_folder_name) {
@@ -234,8 +237,8 @@ module.exports.getCacheOutputPath = function (cachePath, zipFilePath) {
     if (!stat) {
         //should have stat in fileToInfo
         //but chokidar is not reliable
-        //getCacheOutputPath comes before chokidar callback
-        // console.warn("[getCacheOutputPath] no stat", zipFilePath);
+        //getCacheOutputFolderPath comes before chokidar callback
+        // console.warn("[getCacheOutputFolderPath] no stat", zipFilePath);
         outputFolder += stringHash(zipFilePath).toString()
     } else {
         const mdate = new Date(stat.mtimeMs);
