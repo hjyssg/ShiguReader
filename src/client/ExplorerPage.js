@@ -591,7 +591,7 @@ export default class ExplorerPage extends Component {
             }
         } else if (sortOrder === TIME_DOWN || sortOrder === TIME_UP) {
             const ifFromEarly = sortOrder === TIME_UP;
-            const ifOnlyBymTime = this.getMode() === MODE_EXPLORER;
+            const ifOnlyBymTime = this.getMode() === MODE_EXPLORER && !this.isLackInfoMode();
             files = sortUtil.sort_file_by_time(files, this.allfileInfos, getBaseName, ifFromEarly, ifOnlyBymTime);
         } else if (sortOrder === FILE_SIZE_DOWN || sortOrder === FILE_SIZE_UP) {
             files = _.sortBy(files, e => {
