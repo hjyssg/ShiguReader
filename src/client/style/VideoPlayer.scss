@@ -5,24 +5,28 @@
         @include flex_center_display;
 
         //horizontal
-        // .dplayer-video:not(.vertical-video) {
-        //     @media screen and (max-width: 1000px) {
-        //         width: calc(100% - 50px);
-        //     }
-
-        //     @media screen and (min-width: 1000px) {
-        //         width: 1000px;
-        //     }
-        // }
+        &:not(.vertical-video) {
+            .dplayer{
+                @media screen and (max-width: 1000px) {
+                    width: calc(100% - 50px);
+                }
+    
+                @media screen and (min-width: 1000px) {
+                    width: 1000px;
+                }
+            }
+        }
 
         //else vetical
         .vertical-video {
-            @media screen and (max-height: 1000px) {
-                height: calc(100% - 50px);
-            }
+            .dplayer{
+                @media screen and (max-height: 1000px) {
+                    height: calc(100% - 50px);
+                }
 
-            @media screen and (min-height: 1000px) {
-                height: 1000px;
+                @media screen and (min-height: 1000px) {
+                    height: 1000px;
+                }
             }
         }
     }
