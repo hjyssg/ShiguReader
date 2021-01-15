@@ -463,18 +463,32 @@ export default class ExplorerPage extends Component {
             return set;
         }
 
+        const { authorInfo } = this.state;
 
-        if (this.isOn(FILTER_GOOD_AUTHOR)) {
+        function getCount(fn){
+            const temp = parse(fn);
+            if (temp && temp.author) {
+                const info = authorInfo.filter(e => {
+                    return e.tag === temp.author
+                });
+               return info[0];
+            }
+        }
+
+        if (this.isOn(FILTER_GOOD_AUTHOR) && authorInfo) {
             files = files.filter(e => {
-                const temp = parse(e);
-                if (temp && temp.author) {
-                    const info = this.state.authorInfo.filter(e => {
-                        return e.tag === temp.author
-                    });
+                const count = getCount(e);
+                if (count && count.good_count > GOOD_STANDARD) {
+                    return true;
+                }
+            })
+        }
 
-                    if (info[0] && info[0].good_count > GOOD_STANDARD) {
-                        return true;
-                    }
+        if (this.isOn(FILTER_FIRST_TIME)  && authorInfo) {
+            files = files.filter(e => {
+                const count = getCount(e);
+                if (count && (count.good_count + count.bad_count ) === 1) {
+                    return true;
                 }
             })
         }
@@ -482,16 +496,6 @@ export default class ExplorerPage extends Component {
         if (this.isOn(FILTER_OVERSIZE)) {
             files = files.filter(e => {
                 return this.getPageAvgSize(e) / 1024 / 1024 > userConfig.oversized_image_size
-            })
-        }
-
-        if (this.isOn(FILTER_FIRST_TIME) && goodSet && otherSet) {
-            files = files.filter(e => {
-                const temp = parse(e);
-                if (temp && temp.author && ((goodSet[temp.author] || 0) + (otherSet[temp.author] || 0)) <= 1) {
-
-                    return e;
-                }
             })
         }
 

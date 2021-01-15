@@ -11,7 +11,7 @@ const serverUtil = require("../serverUtil");
 async function getGoodAndOtherSet() {
     let beg = (new Date).getTime();
     let sql;
-    let authorInfo = {};
+    let authorInfo = [];
     const sqldb = db.getSQLDB();
 
     if(global.good_folder_root){
