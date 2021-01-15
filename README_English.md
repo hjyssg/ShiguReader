@@ -81,6 +81,9 @@ But it's also reported that this setting will cause Mojibake in other softwares 
     Q：Why English Readme is much less than Chinese Readme?
     A: I received more questions from Chinese community. But I do provide enough information here.
 
+    Q： What does ShiguReader mean？
+    A： Shigure(しぐれ) + Reader
+
 
 ##### Have any question?
 

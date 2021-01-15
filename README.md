@@ -120,6 +120,10 @@ docker run -d -p hostport:3000 -v comicpath:/data liwufan/shigureader
     问：电脑可以打开使用，可是手机扫了二维码打不开。怎么办
     答：先确认手机是不是和电脑在同一个局域网下。如果是，还打不开。那可能是电脑防火墙设置问题，自行网上搜索。
 
+    问： ShiguReader是啥意思？
+    答： Shigure(しぐれ) + Reader
+
+
 
 ##### Donation
 
