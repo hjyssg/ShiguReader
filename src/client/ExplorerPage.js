@@ -1015,6 +1015,22 @@ export default class ExplorerPage extends Component {
         );
     }
 
+    getBookModeLink(){
+        const onebookUrl = clientUtil.getOneBookLink(this.getTextFromQuery());
+        return (
+            <Link className="exp-top-button warning" target="_blank" to={onebookUrl} >
+            <span className="fas fa-book-reader" />
+            <span>Open in Book Mode </span>
+            </Link>
+        )
+    }
+
+    isImgFolder(){
+        const mode = this.getMode();
+        const isExplorer = mode === MODE_EXPLORER && this.getPathFromQuery();
+        return isExplorer && this.state.isImgFolder;
+    }
+
     getExplorerToolbar(filteredFiles, filteredVideos) {
         const mode = this.getMode();
         if (mode === MODE_HOME) {
@@ -1033,8 +1049,6 @@ export default class ExplorerPage extends Component {
                 {`Warning: ${this.getTextFromQuery()} is not included in path-config.`}
             </div>
         );
-
-        const onebookUrl = clientUtil.getOneBookLink(this.getTextFromQuery());
 
         let topButtons = (
             <div className="top-button-gropus row">
@@ -1056,13 +1070,9 @@ export default class ExplorerPage extends Component {
                         </Link>
                     </div>
                 }
-                {
-                    (isExplorer && this.state.isImgFolder) &&
+                {   this.isImgFolder() &&
                     <div className="col-6 col-md-4">
-                        <Link className="exp-top-button warning" target="_blank" to={onebookUrl} >
-                            <span className="fas fa-book-reader" />
-                            <span>Open in Book Mode </span>
-                        </Link>
+                        {this.getBookModeLink()}
                     </div>
                 }
                 <div className="col-6 col-md-4 " > {this.renderToggleMenuButton()} </div>
