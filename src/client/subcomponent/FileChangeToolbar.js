@@ -118,7 +118,7 @@ export default class FileChangeToolbar extends Component {
     handleMinifyZip() {
         const { file } = this.props;
         Swal.fire({
-            title: "Minify Zip",
+            title: "Minify Image",
             text: `Minify ${file}?`,
             showCancelButton: true,
             confirmButtonText: 'Yes',
@@ -280,9 +280,9 @@ export default class FileChangeToolbar extends Component {
         }
 
         const { file, className, header, hasMusic, bigFont } = this.props;
-        const showMinifyZip = util.isCompress(file);
-        if (showMinifyZip && !this.isInMinifiedFolder()) {
-            return (<div tabIndex="0" className="fas fa-hand-scissors" title="minify zip"
+        // const showMinifyZip = util.isCompress(file);
+        if (!this.isInMinifiedFolder()) {
+            return (<div tabIndex="0" className="fas fa-hand-scissors" title="minify img"
                 onClick={this.handleMinifyZip.bind(this)}></div>)
         }
     }
@@ -419,6 +419,7 @@ export default class FileChangeToolbar extends Component {
         if (isFolder) {
             secondRow = (
                 <div className="tool-bar-row second">
+                    {this.renderMinifyZipButton()}
                     {this.renderZipButton()}
                     {this.renderModalButton()}
                 </div>

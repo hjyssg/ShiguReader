@@ -123,15 +123,20 @@ router.post('/api/minifyZip', async (req, res) => {
     }
 
     minifyZipQue.push(filePath);
-    try {
-        const temp = await limit(() => imageMagickHelp.minifyOneFile(filePath));
-        if (temp) {
-            //only success will return result
-            const { oldSize, newSize, saveSpace } = temp;
-            count.processed++
-            count.saveSpace += saveSpace;
-            logger.info("[/api/minifyZip] total space save:", filesizeUitl(count.saveSpace, { base: 2 }))
-        }
+    try {   
+            let temp;
+            if(util.isCompress(filePath)){
+                temp = await limit(() => imageMagickHelp.minifyOneFile(filePath));
+            }else{
+                temp = await limit(() => imageMagickHelp.minifyFolder(filePath));
+            }
+            if (temp) {
+                //only success will return result
+                const { oldSize, newSize, saveSpace } = temp;
+                count.processed++
+                count.saveSpace += saveSpace;
+                logger.info("[/api/minifyZip] total space save:", filesizeUitl(count.saveSpace, { base: 2 }))
+            }
     } catch (e) {
         logger.error("[/api/minifyZip]", e);
     } finally {

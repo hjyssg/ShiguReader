@@ -81,6 +81,13 @@ module.exports.isConertable = async function (filePath) {
     return text;
 }
 
+function isImgConvertable(fileName, size){
+    return isImage(fileName) && !isGif(fileName) && size > img_convert_min_threshold;
+}
+
+const userful_percent = 20;
+
+
 //ONLY KEEP THE CORRECT FILES IN FOLDER AFTER EVERYTHING
 module.exports.minifyOneFile = async function (filePath) {
     let extractOutputPath;
@@ -136,8 +143,7 @@ module.exports.minifyOneFile = async function (filePath) {
                     continue;
                 }
                 const oldSize = stat.size;
-                let simplyCopy = !isImage(fname) || isGif(fname);
-                simplyCopy = simplyCopy || (isImage(fname) && oldSize < img_convert_min_threshold)
+                let simplyCopy = !isImgConvertable(fname, oldSize)
 
                 if (simplyCopy) {
                     const outputImgPath = path.resolve(minifyOutputPath, fname);
@@ -193,7 +199,6 @@ module.exports.minifyOneFile = async function (filePath) {
         }
         const newStat = await getStat(resultZipPath);
         const reducePercentage = (100 - newStat.size / oldStat.size * 100).toFixed(2);
-        const userful_percent = 20;
         console.log(`[imageMagickHelp] size reduce ${reducePercentage}%`);
 
         if (reducePercentage < userful_percent) {
@@ -265,4 +270,55 @@ const isNewZipSameWithOriginalFiles = module.exports.isNewZipSameWithOriginalFil
     const expect_file_names = files.filter(isFile).map(getFn).sort();
     const resulted_file_names = newFiles.filter(isFile).map(getFn).sort();
     return _.isEqual(resulted_file_names, expect_file_names)
+}
+
+const fileiterator = require('./file-iterator');
+const trash = require('trash');
+module.exports.minifyFolder = async function(filePath){
+    console.log("-----begin images convertion --------------");
+    const { pathes, infos } = await fileiterator(filePath, {
+        filter: util.isImage
+    });
+
+    const sufix =  "_temp_compress.jpg";
+    const total = pathes.length;
+    let saveSpace = 0;
+    for(let ii = 0; ii < pathes.length; ii++){
+        try{
+            const inputFp = pathes[ii];
+            if(inputFp.endsWith(sufix)){
+                continue;
+            }
+            const oldSize = infos[inputFp].size;
+            const dirPath = path.dirname(inputFp);
+            const imgName = path.basename(inputFp, path.extname(inputFp));
+            const outputfn = imgName + sufix;
+            const outputfp = path.resolve(dirPath, outputfn);
+
+            if(isImgConvertable(inputFp, oldSize)){
+                await convertImage(inputFp, outputfp, oldSize);
+
+                const newStat = await getStat(outputfp);
+                const reducePercentage = (100 - newStat.size / oldSize * 100).toFixed(2);
+                if (reducePercentage < userful_percent ||  newStat.size < 1000 ) {
+                    await trash([outputfp]);
+                }else{
+                    //delete input file
+                    await trash([inputFp]);
+                    //rename output to input file
+                    let err = await pfs.rename(outputfp, inputFp);
+                    if (err) { throw err; }
+
+                    saveSpace += (oldSize - newStat.size);
+                }
+            }
+            console.log(`${ii + 1}/${total}`);
+        }catch(e){
+            console.error(e);
+        }
+    }
+
+    return {
+        saveSpace
+    }
 }
