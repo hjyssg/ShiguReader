@@ -10,12 +10,12 @@ function parseResult(json, config){
     json.results.forEach(e => {
         const fp = path.resolve(e.path, e.name);
 
-        if (e.type === "folder" || (!e.name.includes("."))) {
-            result.dirResults.push(fp)
+        if (config.filter && !config.filter(fp, e)) {
             return false;
         }
 
-        if (config.filter && !config.filter(fp)) {
+        if (e.type === "folder") {
+            result.dirResults.push(fp)
             return false;
         }
 

@@ -58,10 +58,15 @@ async function searchOnEverything(text){
 
     const config = {	
         port,
-        filter: (fp) => {
+        filter: (fp, info) => {
             if(fp.includes(cachePath) || fp.includes(thumbnailFolderPath)){
                 return false;
             }
+
+            if(info.type === "folder"){
+                return true;
+            }
+
             if(util.isDisplayableInExplorer(fp)){
                 return true;
             }
