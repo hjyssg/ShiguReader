@@ -54,10 +54,18 @@ async function searchOnEverything(text){
     const everything_connector = require("../../tools/everything_connector");	
     const etc_config = global.etc_config;
     const port = etc_config && etc_config.everything_http_server_port;
+    const {cachePath, thumbnailFolderPath} = global;
 
     const config = {	
         port,
-        filter: util.isDisplayableInExplorer	
+        filter: (fp) => {
+            if(fp.includes(cachePath) || fp.includes(thumbnailFolderPath)){
+                return false;
+            }
+            if(util.isDisplayableInExplorer(fp)){
+                return true;
+            }
+        }
     };
 
     
@@ -77,21 +85,21 @@ async function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
     let beg = (new Date).getTime()
     const fileInfos = {};
 
-    let temp = await searchByText(tag || author || text);
+    const all_text = tag || author || text;
+    let temp = await searchByText(all_text);
     let zipResult = temp.zipResult;
     let dirResults = temp.dirResults;
     let imgFolders = temp.imgFolders;
 
-
-    if (tag || author) {
+    const at_text = tag || author;
+    if (at_text) {
         const sqldb = db.getSQLDB();
-        const _text = tag || author;
         //inner joiner then group by
         let sql = `SELECT a.* ` 
         + `FROM file_table AS a INNER JOIN tag_table AS b `
         + `ON a.filePath = b.filePath AND INSTR(b.tag, ?) > 0`;
-        let rows = await sqldb.allSync(sql, [_text]);
-        const tag_obj = splitRows(rows, _text);
+        let rows = await sqldb.allSync(sql, [at_text]);
+        const tag_obj = splitRows(rows, at_text);
         zipResult = tag_obj.zipResult;
         dirResults = tag_obj.dirResults;
         imgFolders = tag_obj.imgFolders;
@@ -101,13 +109,12 @@ async function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
         const pp = obj.filePath;
         fileInfos[pp] = db.getFileToInfo(pp);
     })
-
    
 
     let end = (new Date).getTime();
     // console.log((end - beg)/1000, "to search");
 
-    let esObj = await searchOnEverything(text);
+    let esObj = await searchOnEverything(all_text);
     if(esObj){
         dirResults = _.uniq(dirResults.concat(esObj.dirResults));
         _.extend(fileInfos, esObj.fileInfos)

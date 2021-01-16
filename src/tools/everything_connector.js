@@ -15,7 +15,7 @@ function parseResult(json, config){
             return false;
         }
 
-        if (config.filter && !config.filter(e.name)) {
+        if (config.filter && !config.filter(fp)) {
             return false;
         }
 

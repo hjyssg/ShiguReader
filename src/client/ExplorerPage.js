@@ -920,7 +920,7 @@ export default class ExplorerPage extends Component {
     }
 
     renderToggleThumbNailButton() {
-        const text2 = this.state.noThumbnail ? "File Name Only" : "Show File as Thumbnail";
+        const text2 = this.state.noThumbnail ? "File Thumbnail" : "File Name Only";
         return (
             <span key="thumbnail-button" className="thumbnail-button exp-top-button" onClick={this.toggleThumbNail.bind(this)}>
                 <span className="fas fa-book" /> <span>{text2} </span>
@@ -929,7 +929,7 @@ export default class ExplorerPage extends Component {
     }
 
     renderToggleFolferThumbNailButton() {
-        const text2 = this.state.showFolderThumbnail ? "Folder Name Only" : "Show Folder as Thumbnail";
+        const text2 = this.state.showFolderThumbnail ? "Folder Name Only" : "Folder Thumbnail";
         return (
             <span key="folder-thumbnail-button" className="thumbnail-button exp-top-button" onClick={this.toggleFolderThumbNail.bind(this)}>
                 <span className="fas fa-book" /> <span>{text2} </span>
