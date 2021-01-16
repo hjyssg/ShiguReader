@@ -615,12 +615,19 @@ export default class OneBook extends Component {
 
   onNewPath(res){
     let newPath = res.json.dest;
-    if(newPath){
-      this.setState({
-        path: newPath
-      });
-    }
-    //todo change url bar
+    const { path } = this.state;
+
+    const oldP = encodeURIComponent(path);
+    const newP = encodeURIComponent(newPath);
+
+    //change url 
+    const newUrl = location.href.replace(oldP, newP);
+    location.replace(newUrl);
+    // if(newPath){
+    //   this.setState({
+    //     path: newPath
+    //   });
+    // }
   }
 
   hasMusic() {
