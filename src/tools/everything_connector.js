@@ -2,6 +2,7 @@
 const path = require('path');
 const _ = require('underscore');
 
+//everthing是根据filename去match的，所以找不了img folder
 function parseResult(json, config){
     const result = {};
     result.fileInfos = {};
