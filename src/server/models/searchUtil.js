@@ -9,6 +9,8 @@ const util = global.requireUtil();
 const path = require('path');
 const _ = require('underscore');
 const isWindows = require('is-windows');
+const pathUtil = require("../pathUtil");
+const { isSub } = pathUtil;
 
 
 function isEqual(a, b) {
@@ -56,10 +58,19 @@ async function searchOnEverything(text){
     const port = etc_config && etc_config.everything_http_server_port;
     const {cachePath, thumbnailFolderPath} = global;
 
+    function isNotAllow(fp){
+        const arr = [cachePath, thumbnailFolderPath ];
+        return arr.some(e => {
+            if(isEqual(fp, e) || isSub(e, fp)){
+                return true;
+            }
+        })
+    }
+
     const config = {	
         port,
         filter: (fp, info) => {
-            if(fp.includes(cachePath) || fp.includes(thumbnailFolderPath)){
+            if(isNotAllow(fp)){
                 return false;
             }
 

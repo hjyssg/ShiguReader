@@ -77,6 +77,11 @@ function removeLastPathSep(pp){
 }
 
 function isSub(parent, child) {
+    if(isWindows()){
+        parent = parent.toLowerCase();
+        child = child.toLowerCase();
+    }
+
     parent = removeLastPathSep(parent);
     child = removeLastPathSep(child);
     return parent && child && child.length > parent.length && child.startsWith(parent) && child[parent.length] === path.sep;
