@@ -8,6 +8,8 @@ const { getZipInfo } = zipInfoDb;
 const util = global.requireUtil();
 const path = require('path');
 const _ = require('underscore');
+const isWindows = require('is-windows');
+
 
 function isEqual(a, b) {
     a = a || "";
@@ -48,6 +50,22 @@ function splitRows(rows, text){
     }
 }
 
+async function searchOnEverything(text){
+    const everything_connector = require("../../tools/everything_connector");	
+    const etc_config = global.etc_config;
+    const port = etc_config && etc_config.everything_http_server_port;
+
+    const config = {	
+        port,
+        filter: util.isDisplayableInExplorer	
+    };
+
+    
+    if(port && isWindows()){
+        return await everything_connector.searchByText(text, config);
+    }
+}
+
 async function searchByText(text) {
     const sqldb = db.getSQLDB();
     let sql = `SELECT * FROM file_table WHERE INSTR(filePath, ?) > 0`;
@@ -63,6 +81,7 @@ async function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
     let zipResult = temp.zipResult;
     let dirResults = temp.dirResults;
     let imgFolders = temp.imgFolders;
+
 
     if (tag || author) {
         const sqldb = db.getSQLDB();
@@ -87,6 +106,13 @@ async function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
 
     let end = (new Date).getTime();
     // console.log((end - beg)/1000, "to search");
+
+    let esObj = await searchOnEverything(text);
+    if(esObj){
+        dirResults = _.uniq(dirResults.concat(esObj.dirResults));
+        _.extend(fileInfos, esObj.fileInfos)
+    }
+
 
     const imgFolderInfo = getImgFolderInfo(imgFolders);
 

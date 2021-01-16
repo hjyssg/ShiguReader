@@ -114,6 +114,7 @@ let etc_config = {};
 try{
     let fcontent = fs.readFileSync(path.resolve(rootPath, "etc-config.ini"), 'utf-8');
     etc_config = ini.parse(fcontent);
+    global.etc_config = etc_config;
 }catch(e){
     //nothing
     console.warn(e);
