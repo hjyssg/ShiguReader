@@ -23,7 +23,7 @@ function getSep(fp){
     return seperator;
 }
 
-module.exports.getDir = function (fp) {
+const getDir = module.exports.getDir = function (fp) {
     if (!fp) { return ""; }
     const seperator = getSep(fp);
     const tokens = fp.split(seperator);
@@ -203,6 +203,37 @@ module.exports.saveFilePathToCookie = function (path) {
     const now = util.getCurrentTime();
     const hash = stringHash(path);
     Cookie.set(now, hash, { expires: cookie_expire_days })
+}
+
+module.exports.getQuickAccess = function(){
+    const countBy = getHistoryCountByFolder();
+    let keyValues = _.pairs(countBy);
+    keyValues =  _.sortBy(keyValues, row => {
+        let [k, count] = row;
+        return -count;
+    })
+
+    keyValues = keyValues.slice(0, 10);
+
+    return keyValues.map(row => {
+        let [k, count] = row;
+        return k;
+    })
+}
+
+const getHistoryCountByFolder = function(){
+    const timeToHash = Cookie.get();
+    const pathes = _.values(timeToHash)
+    .map(hash => {
+        const filePath = getPathFromLocalStorage(hash);
+        return filePath;
+    })
+    .filter(e => !!e)
+    .map(e => {
+        return getDir(e);
+    });
+
+    return _.countBy(pathes)
 }
 
 module.exports.getHistoryFromCookie = function () {

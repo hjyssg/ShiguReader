@@ -691,7 +691,7 @@ export default class ExplorerPage extends Component {
             });
         }
 
-        let hddItems;
+        let hddItems, quickAccess;
         if (this.getMode() == MODE_HOME) {
             hddItems = this.hdd_list.map((item) => {
                 // const toUrl = clientUtil.getExplorerLink(item);
@@ -701,6 +701,17 @@ export default class ExplorerPage extends Component {
                 const result = this.getOneLineListItem(<i className="far fa-folder"></i>, text, item);
                 return <Link to={toUrl} key={item}>{result}</Link>;
             });
+
+            quickAccess = clientUtil.getQuickAccess();
+            quickAccess = quickAccess.filter(e => {
+                return !dirs.includes(e) && !this.hdd_list.includes(e);
+            });
+            quickAccess = quickAccess.map(item => {
+                const toUrl = clientUtil.getExplorerLink(item);
+                const text = item;
+                const result = this.getOneLineListItem(<i className="far fa-folder"></i>, text, item);
+                return <Link to={toUrl} key={item}>{result}</Link>;
+            })
         }
 
         //seperate av from others
@@ -846,6 +857,7 @@ export default class ExplorerPage extends Component {
                         </div>
                     </div>
                 }
+                <ItemsContainer items={quickAccess} neverCollapse />
                 <ItemsContainer items={hddItems} neverCollapse />
                 {videoDivGroup}
                 {this.renderPagination(filteredFiles, filteredVideos)}
