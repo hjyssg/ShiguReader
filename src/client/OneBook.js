@@ -63,7 +63,7 @@ export default class OneBook extends Component {
   }
 
   componentDidMount() {
-    this.sendExtract();
+    this.sendRequest();
 
     if (!isMobile()) {
       screenfull.onchange(() => {
@@ -281,7 +281,7 @@ export default class OneBook extends Component {
     return !util.isCompress(this.getTextFromQuery())
   }
 
-  async sendExtract() {
+  async sendRequest() {
     const fp = this.getTextFromQuery();
     const api = this.isImgFolder() ? "/api/listImageFolderContent" : "/api/extract";
     let res = await Sender.postWithPromise(api, { filePath: fp, startIndex: this.state.index || 0 });
@@ -603,8 +603,24 @@ export default class OneBook extends Component {
     if (!this.state.path) {
       return;
     }
-    const toolbar = <FileChangeToolbar isFolder={this.isImgFolder()} bigFont={true} className="one-book-toolbar" file={this.state.path} popPosition={"top-center"} />;
+    const toolbar = <FileChangeToolbar
+                       isFolder={this.isImgFolder()} 
+                       bigFont={true}
+                       className="one-book-toolbar" 
+                       file={this.state.path} 
+                       popPosition={"top-center"}
+                       onNewPath={this.onNewPath.bind(this)} />;
     return toolbar;
+  }
+
+  onNewPath(res){
+    let newPath = res.json.dest;
+    if(newPath){
+      this.setState({
+        path: newPath
+      });
+    }
+    //todo change url bar
   }
 
   hasMusic() {
@@ -677,7 +693,6 @@ export default class OneBook extends Component {
     const { files, index, musicFiles, ehentai_metadata } = this.state;
     if (ehentai_metadata && ehentai_metadata.length > 0) {
       console.log(ehentai_metadata);
-
       //temp
       const entry = ehentai_metadata[0];
       const display_tags = [

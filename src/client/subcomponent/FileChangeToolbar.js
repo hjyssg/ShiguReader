@@ -31,14 +31,13 @@ function getExtraDiv(res) {
 }
 
 
-function pop(file, res, postFix, extraDiv) {
+function pop(file, res, postFix, extraDiv, callback) {
     const reason = res.json.reason;
     const isFailed = res.isFailed()
     const message = isFailed ? `fail to ${postFix} ${file}` : `${postFix} successfully`;
     const cn = isFailed ? "a-error" : "a-success";
     const badge = isFailed ? (<span className="badge badge-danger">Error</span>) :
         (<span className="badge badge-success">Success</span>)
-
 
     let divContent = (
         <div className="toast" role="alert" aria-live="assertive" aria-atomic="true">
@@ -72,6 +71,10 @@ function pop(file, res, postFix, extraDiv) {
 
 
     toast(divContent, toastConfig);
+
+    if(!isFailed){
+        callback && callback(res)
+    }
 }
 
 export default class FileChangeToolbar extends Component {
@@ -183,7 +186,7 @@ export default class FileChangeToolbar extends Component {
 
 
     handleMove = (path) => {
-        const { file } = this.props;
+        const { file, onNewPath } = this.props;
         if (_.isString(path)) {
             Swal.fire({
                 html: 'Move this file to <span class="path-highlight">' + path + "</span>",
@@ -194,7 +197,7 @@ export default class FileChangeToolbar extends Component {
                 if (result.value === true) {
                     Sender.post("/api/moveFile", { src: this.props.file, dest: path }, res => {
                         let extraDiv = getExtraDiv(res);
-                        pop(file, res, "move", extraDiv);
+                        pop(file, res, "move", extraDiv, onNewPath);
                     });
                 }
             });
@@ -202,7 +205,7 @@ export default class FileChangeToolbar extends Component {
     };
 
     handleRename(type) {
-        let { file } = this.props;
+        let { file, onNewPath } = this.props;
 
         const fileName = clientUtil.getBaseName(file);
         const dirPath = clientUtil.getDir(file);
@@ -236,7 +239,7 @@ export default class FileChangeToolbar extends Component {
                     if (result.value === true) {
                         Sender.post("/api/renameFile", { src: file, dest }, res => {
                             let extraDiv = getExtraDiv(res);
-                            pop(file, res, "rename", extraDiv);
+                            pop(file, res, "rename", extraDiv, onNewPath);
                         });
                     }
                 });

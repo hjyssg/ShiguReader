@@ -276,6 +276,7 @@ const fileiterator = require('./file-iterator');
 const trash = require('trash');
 module.exports.minifyFolder = async function(filePath){
     console.log("-----begin images convertion --------------");
+    //only one level
     const { pathes, infos } = await fileiterator(filePath, {
         filter: util.isImage
     });
