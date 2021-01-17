@@ -57,3 +57,24 @@ module.exports.getQuickAccess = async function(){
     let rows = await sqlDb.allSync("SELECT dirPath, count(dirPath) AS count FROM history_table where time > ? GROUP BY dirPath ORDER BY count DESC", [time]);
     return rows;
 }
+
+module.exports.getFileReadTime = async function(pathes){
+    pathes = pathes || [];
+    const fileNames = pathes.map(e => {
+        return path.basename(e);
+    });
+
+    const joinStr = fileNames.join(" ");
+
+    let sql = "SELECT fileName, MAX(time) as time FROM history_table where INSTR(?, fileName) GROUP BY fileName"
+    let rows = await sqlDb.allSync(sql, [joinStr]);
+
+    const fileNameToReadTime = {};
+
+    rows.forEach(row => {
+        const {fileName, time} = row;
+        fileNameToReadTime[fileName] = time;
+    })
+
+    return fileNameToReadTime;
+}

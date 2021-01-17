@@ -17,14 +17,22 @@ const isHiddenFile = module.exports.isHiddenFile = function (f) {
     return temp && temp[0] === ".";
 }
 
-module.exports.chooseOneZipForOneTag = function (files, fileToInfo) {
+module.exports.chooseOneZipForOneTag = function (files, fileInfos) {
     let _files = files.filter(e => {
         if (e.includes("アニメ") || !isCompress(e) || isHiddenFile(e)) {
             return false;
         }
         return true;
     });
-    _files = sortUtil.sort_file_by_time(_files, fileToInfo, getBaseName, false, false);
+
+    const config = {
+        fileInfos, 
+        getBaeName, 
+        fromEarly: false, 
+        onlyMtime: false
+    }
+
+    _files = sortUtil.sort_file_by_time(_files, config);
     return _files[0];
 }
 
