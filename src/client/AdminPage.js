@@ -144,7 +144,7 @@ export default class AdminPage extends Component {
             })
 
             return (
-                <div className="history-day-section">
+                <div className="history-day-section" key={key}>
                     <div className="date-text">
                         <span>{timeStr}</span>
                         <span>{`${items.length} items`}</span>
@@ -269,13 +269,11 @@ export default class AdminPage extends Component {
         const size = totalSize && clientUtil.filesizeUitl(totalSize);
         let cacheInfo;
 
-        if (size) {
-            cacheInfo =
-                <div className="cache-info">
-                    <div className="cache-info-row">{`total size: ${size}`} </div>
-                    <div className="cache-info-row">{`${cacheNum} files can be deleted`} </div>
-                </div>
-        }
+        cacheInfo =(
+            <div className="cache-info">
+                <div className="cache-info-row">{`cache size: ${size}`} </div>
+                <div className="cache-info-row">{`cache file number: ${cacheNum}`} </div>
+            </div>);
 
         return (
             <div className="admin-container container">
