@@ -620,13 +620,13 @@ export default class OneBook extends Component {
     const newP = encodeURIComponent(newPath);
 
     //change url 
-    const newUrl = location.href.replace(oldP, newP);
-    location.replace(newUrl);
-    // if(newPath){
-    //   this.setState({
-    //     path: newPath
-    //   });
-    // }
+    if(newPath){
+      const newUrl = location.href.replace(oldP, newP);
+      window.history.pushState({}, null, newUrl);
+      this.setState({
+        path: newPath
+      });
+    }
   }
 
   hasMusic() {
