@@ -49,3 +49,11 @@ module.exports.getHistory = async function(){
     let rows = await sqlDb.allSync("SELECT filePath, MAX(time) as time FROM history_table where time > ? GROUP BY filePath", [time]);
     return rows;
 }
+
+const quick_access_day = 10;
+module.exports.getQuickAccess = async function(){
+    let time = util.getCurrentTime();
+    time = time - 1000 * 3600 * 24 * quick_access_day;
+    let rows = await sqlDb.allSync("SELECT dirPath, count(dirPath) AS count FROM history_table where time > ? GROUP BY dirPath ORDER BY count DESC", [time]);
+    return rows;
+}

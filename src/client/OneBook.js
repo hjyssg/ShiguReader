@@ -312,7 +312,6 @@ export default class OneBook extends Component {
 
       this.setState({ files, musicFiles, videoFiles, path, fileStat: stat, zipInfo, mecab_tokens },
         () => { this.bindUserInteraction() });
-      clientUtil.saveFilePathToCookie(this.getTextFromQuery());
     } else {
       this.forceUpdate();
     }

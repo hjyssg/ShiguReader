@@ -110,7 +110,6 @@ export default class OneBookWaterfall extends Component {
       sortFileNames(musicFiles);
 
       this.setState({ files, musicFiles, path, fileStat: stat, zipInfo });
-      clientUtil.saveFilePathToCookie(this.getTextFromQuery());
     } else {
       this.forceUpdate();
     }

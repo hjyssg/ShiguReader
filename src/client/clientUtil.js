@@ -196,45 +196,45 @@ function getPathFromLocalStorage(hash) {
     return window.localStorage && window.localStorage.getItem(hash);
 }
 
-const cookie_expire_days = 5;
+// const cookie_expire_days = 5;
 
-module.exports.saveFilePathToCookie = function (path) {
-    //!!! 413 error. if the cookie become too big
-    const now = util.getCurrentTime();
-    const hash = stringHash(path);
-    Cookie.set(now, hash, { expires: cookie_expire_days })
-}
+// module.exports.saveFilePathToCookie = function (path) {
+//     //!!! 413 error. if the cookie become too big
+//     const now = util.getCurrentTime();
+//     const hash = stringHash(path);
+//     Cookie.set(now, hash, { expires: cookie_expire_days })
+// }
 
-module.exports.getQuickAccess = function(){
-    const countBy = getHistoryCountByFolder();
-    let keyValues = _.pairs(countBy);
-    keyValues =  _.sortBy(keyValues, row => {
-        let [k, count] = row;
-        return -count;
-    })
+// module.exports.getQuickAccess = function(){
+//     const countBy = getHistoryCountByFolder();
+//     let keyValues = _.pairs(countBy);
+//     keyValues =  _.sortBy(keyValues, row => {
+//         let [k, count] = row;
+//         return -count;
+//     })
 
-    keyValues = keyValues.slice(0, 10);
+//     keyValues = keyValues.slice(0, 10);
 
-    return keyValues.map(row => {
-        let [k, count] = row;
-        return k;
-    })
-}
+//     return keyValues.map(row => {
+//         let [k, count] = row;
+//         return k;
+//     })
+// }
 
-const getHistoryCountByFolder = function(){
-    const timeToHash = Cookie.get();
-    const pathes = _.values(timeToHash)
-    .map(hash => {
-        const filePath = getPathFromLocalStorage(hash);
-        return filePath;
-    })
-    .filter(e => !!e)
-    .map(e => {
-        return getDir(e);
-    });
+// const getHistoryCountByFolder = function(){
+//     const timeToHash = Cookie.get();
+//     const pathes = _.values(timeToHash)
+//     .map(hash => {
+//         const filePath = getPathFromLocalStorage(hash);
+//         return filePath;
+//     })
+//     .filter(e => !!e)
+//     .map(e => {
+//         return getDir(e);
+//     });
 
-    return _.countBy(pathes)
-}
+//     return _.countBy(pathes)
+// }
 
 // move to backend
 // module.exports.getHistoryFromCookie = function () {
