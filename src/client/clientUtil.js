@@ -236,33 +236,34 @@ const getHistoryCountByFolder = function(){
     return _.countBy(pathes)
 }
 
-module.exports.getHistoryFromCookie = function () {
-    const timeToHash = Cookie.get();
-    let times = _.keys(timeToHash)
-                 .map(e => parseInt(e))
-                 .filter(e => e && e > 0);
-    times = _.sortBy(times).reverse();
+// move to backend
+// module.exports.getHistoryFromCookie = function () {
+//     const timeToHash = Cookie.get();
+//     let times = _.keys(timeToHash)
+//                  .map(e => parseInt(e))
+//                  .filter(e => e && e > 0);
+//     times = _.sortBy(times).reverse();
 
-    const visited = {};
-    const history = [];
+//     const visited = {};
+//     const history = [];
 
-    times.forEach(t => {
-        const hash = timeToHash[t];
-        const filePath = getPathFromLocalStorage(hash);
-        if (visited[filePath] || !filePath) {
-            return;
-        }
-        visited[filePath] = true;
-        try {
-            const time = new Date(+t);
-            history.push([time, filePath])
-        } catch{
-            //cookie may be dirty
-        }
-    });
+//     times.forEach(t => {
+//         const hash = timeToHash[t];
+//         const filePath = getPathFromLocalStorage(hash);
+//         if (visited[filePath] || !filePath) {
+//             return;
+//         }
+//         visited[filePath] = true;
+//         try {
+//             const time = new Date(+t);
+//             history.push([time, filePath])
+//         } catch{
+//             //cookie may be dirty
+//         }
+//     });
 
-    return history;
-}
+//     return history;
+// }
 
 module.exports.replaceUrlHash = function(newHash){
     // console.assert((location.origin + location.pathname + location.search + location.hash) === location.href, "[replaceUrlHash] url error")

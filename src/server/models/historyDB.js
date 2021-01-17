@@ -46,6 +46,6 @@ const back_days = 5;
 module.exports.getHistory = async function(){
     let time = util.getCurrentTime();
     time = time - 1000 * 3600 * 24 * back_days;
-    let rows = await sqldb.allSync("SELECT filePath, MAX(time) FROM history_table where time > ? GROUP BY filePath", [time]);
+    let rows = await sqlDb.allSync("SELECT filePath, MAX(time) as time FROM history_table where time > ? GROUP BY filePath", [time]);
     return rows;
 }
