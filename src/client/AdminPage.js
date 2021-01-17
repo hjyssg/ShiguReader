@@ -27,6 +27,18 @@ export default class AdminPage extends Component {
         this.askCacheInfo();
         this.requestHomePagePathes();
         this.askMinifyQueue();
+        this.requestHistory();
+    }
+
+    requestHistory() {
+        Sender.post("/api/getHistory", {}, res => {
+            let { history } = res.json;
+            history = history || [];
+            history.forEach(e => {
+                e.time = parseInt(e.time);
+            })
+            this.setState({history})
+        });
     }
 
     askMinifyQueue() {
@@ -99,10 +111,10 @@ export default class AdminPage extends Component {
     }
 
     renderHistory() {
-        const history = clientUtil.getHistoryFromCookie();
+        const { history } = this.state;
 
         const groupByDay = _.groupBy(history, e => {
-            let d = new Date(e[0].getTime());
+            let d = new Date(e.time);
             d.setHours(0);
             d.setMinutes(0);
             d.setSeconds(0);
@@ -114,10 +126,10 @@ export default class AdminPage extends Component {
             const timeStr = dateFormat(new Date(parseInt(key)), "dddd, mmmm dS, yyyy");
             let items = groupByDay[key];
 
-            items = _.sortBy(items, e => e[0].getTime());
+            items = _.sortBy(items, e => -e.time);
 
             const dayHistory = items.map(e => {
-                const filePath = e[1];
+                const filePath = e.filePath;
                 const toUrl = util.isVideo(filePath)? 
                               clientUtil.getVideoPlayerLink(filePath) : 
                               clientUtil.getOneBookLink(filePath);

@@ -98,7 +98,6 @@ export default class VideoPlayer extends Component {
     }
 
     const filePath = this.getTextFromQuery();
-    clientUtil.saveFilePathToCookie(filePath);
     const previous = parseFloat(Cookie.get(filePath));
     if(previous > 1 ){
       this.dp.seek(previous)

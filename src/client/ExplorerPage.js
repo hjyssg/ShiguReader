@@ -317,7 +317,9 @@ export default class ExplorerPage extends Component {
 
     handleRes(res) {
         if (!res.isFailed()) {
-            let { dirs, mode, tag, author, fileInfos, thumbnails, dirThumbnails, zipInfo, imgFolders, imgFolderInfo, hdd_list } = res.json;
+            let { dirs, mode, tag, author, fileInfos, thumbnails,
+                 dirThumbnails, zipInfo, imgFolders, imgFolderInfo, 
+                 hdd_list, quickAccess } = res.json;
             this.loadedHash = this.getTextFromQuery();
             this.mode = mode;
             this.fileInfos = fileInfos || {};
@@ -333,6 +335,7 @@ export default class ExplorerPage extends Component {
             this.imgFolders = imgFolders || {};
             this.imgFolderInfo = imgFolderInfo || {};
             this.hdd_list = hdd_list || [];
+            this.quickAccess = quickAccess || [];
             this.res = res;
 
             this.allfileInfos = _.extend({}, this.fileInfos, this.imgFolderInfo);
@@ -702,7 +705,7 @@ export default class ExplorerPage extends Component {
                 return <Link to={toUrl} key={item}>{result}</Link>;
             });
 
-            quickAccess = clientUtil.getQuickAccess();
+            quickAccess = this.quickAccess;
             quickAccess = quickAccess.filter(e => {
                 return !dirs.includes(e) && !this.hdd_list.includes(e);
             });

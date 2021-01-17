@@ -18,6 +18,8 @@ const { getThumbnails, isAlreadyScan } = serverUtil.common;
 const _ = require('underscore');
 const readdir = require("../readdir");
 const stringHash = require("string-hash");
+const historyDB = require("../models/historyDB");
+
 
 router.post('/api/listFolderOnly', async (req, res) => {
     let dir = req.body && req.body.dir;
@@ -270,6 +272,26 @@ router.post('/api/lsDir', async (req, res) => {
     }
 });
 
+async function listUnscaneImageFolderContent(filePath, res){
+    let subFnArr = await readdir(filePath);
+    let subFpArr = subFnArr.map(e => path.resolve(filePath, e));
+
+    const files = subFpArr.filter(isImage);
+    const musicFiles = subFpArr.filter(isMusic);
+    const videoFiles = subFpArr.filter(isVideo);
+
+    const result = {
+        zipInfo: {},
+        stat: {},
+        path: filePath,
+        files,
+        musicFiles, 
+        videoFiles
+    };
+    res.send(result)
+    historyDB.addOneRecord(filePath);
+}
+
 router.post('/api/listImageFolderContent', async (req, res) => {
     let filePath = req.body && req.body.filePath;
     const noMedataInfo = req.body && req.body.noMedataInfo;
@@ -280,22 +302,7 @@ router.post('/api/listImageFolderContent', async (req, res) => {
     }
 
     if(!isAlreadyScan(filePath)){
-        let subFnArr = await readdir(filePath);
-        let subFpArr = subFnArr.map(e => path.resolve(filePath, e));
-
-        const files = subFpArr.filter(isImage);
-        const musicFiles = subFpArr.filter(isMusic);
-        const videoFiles = subFpArr.filter(isVideo);
-
-        const result = {
-            zipInfo: {},
-            stat: {},
-            path: filePath,
-            files,
-            musicFiles, 
-            videoFiles
-        };
-        res.send(result)
+        await listUnscaneImageFolderContent(filePath, res);
         return;
     }
 
@@ -334,6 +341,7 @@ router.post('/api/listImageFolderContent', async (req, res) => {
         files, musicFiles, videoFiles, mecab_tokens
     };
     res.send(result);
+    historyDB.addOneRecord(filePath);
 });
 
 module.exports = router;

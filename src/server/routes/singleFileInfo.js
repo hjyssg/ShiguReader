@@ -6,6 +6,10 @@ const router = express.Router();
 const db = require("../models/db");
 const serverUtil = require("../serverUtil");
 const { getStat } = serverUtil.common;
+const historyDB = require("../models/historyDB");
+const util = global.requireUtil();
+
+
 
 router.post("/api/singleFileInfo", async (req, res) => {
     const filePath = (req.body && req.body.filePath);
@@ -26,6 +30,10 @@ router.post("/api/singleFileInfo", async (req, res) => {
         stat,
         mecab_tokens
     });
+
+    if(util.isVideo(filePath)){
+        historyDB.addOneRecord(filePath);
+    }
 });
 
 module.exports = router;
