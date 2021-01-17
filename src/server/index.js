@@ -9,6 +9,9 @@ const qrcode = require('qrcode-terminal');
 const fs = require('fs');
 const ini = require('ini');
 
+
+
+
 global.requireUtil = function (e) {
     return require("../common/util")
 };
@@ -31,7 +34,7 @@ const { isHiddenFile } = serverUtil;
 
 const { fullPathToUrl, generateContentUrl, isExist, getScanPath } = pathUtil;
 const { isImage, isCompress, isVideo, isMusic, arraySlice,
-    getCurrentTime, isDisplayableInExplorer, isDisplayableInOnebook, escapeRegExp } = util;
+        getCurrentTime, isDisplayableInExplorer, isDisplayableInOnebook } = util;
 
 //set up path
 const rootPath = pathUtil.getRootPath();
@@ -41,8 +44,8 @@ const thumbnailFolderPath = path.join(rootPath, thumbnail_folder_name);
 global.thumbnailFolderPath = thumbnailFolderPath;
 global.cachePath = cachePath;
 
-const historyDB = require("./models/historyDB");
-
+const thumbnailDb = require("./models/thumbnailDb");
+const historyDb = require("./models/historyDb");
 
 //set up user path
 
@@ -58,9 +61,7 @@ console.log("rootPath", rootPath);
 console.log("----------------------");
 
 const logger = require("./logger");
-
 const searchByTagAndAuthor = require("./models/searchUtil");
-
 
 //set up json DB
 const zipInfoDb = require("./models/zipInfoDb");
@@ -89,11 +90,9 @@ app.use(express.json());
 const portConfig = require('../config/port-config');
 const { http_port, dev_express_port } = portConfig;
 
-let thumbnailDb = {};
 
-const jsonfile = require('jsonfile');
-let temp_json_path = path.join(rootPath, userConfig.workspace_name, "temp_json_info.json");
-
+// const jsonfile = require('jsonfile');
+// let temp_json_path = path.join(rootPath, userConfig.workspace_name, "temp_json_info.json");
 
 async function mkdir(path, quiet) {
     if (path && !(await isExist(path))) {
@@ -192,7 +191,7 @@ async function init() {
         thumbnail_pathes = thumbnail_pathes.filter(isImage).map(e => path.resolve(thumbnailFolderPath, e));
         end3 = (new Date).getTime();
         console.log(`[scan thumbnail] ${(end3 - end1) / 1000}s  to read thumbnail dirs`);
-        initThumbnailDb(thumbnail_pathes);
+        thumbnailDb.init(thumbnail_pathes);
     
         let will_scan = _.sortBy(scan_path, e => e.length); //todo
         for(let ii = 0; ii < will_scan.length; ii++){
@@ -217,27 +216,6 @@ async function init() {
     });
 }
 
-function addToThumbnailDb(filePath) {
-    const key = path.basename(filePath, path.extname(filePath));
-    thumbnailDb[key] = filePath;
-}
-
-function initThumbnailDb(filePath) {
-    filePath.forEach(e => {
-        addToThumbnailDb(e);
-    })
-}
-
-function getThumbnailFromThumbnailFolder(outputPath) {
-    const key = path.basename(outputPath);
-    return thumbnailDb[key];
-}
-
-function getThumbCount() {
-    return _.keys(thumbnailDb).length;
-}
-
-global.getThumbCount = getThumbCount;
 
 const junk = require('junk');
 
@@ -481,7 +459,7 @@ function getThumbnails(filePathes) {
         }
 
         const outputPath = getCacheOutputFolderPath(cachePath, filePath);
-        let thumb = getThumbnailFromThumbnailFolder(outputPath);
+        let thumb = thumbnailDb.getThumbnailFromThumbnailFolder(outputPath);
         if (thumb) {
             thumbnails[filePath] = fullPathToUrl(thumb);
         } else {
@@ -580,7 +558,7 @@ async function extractThumbnailFromZip(filePath, res, mode, config) {
             }
         }
 
-        const thumbnail = getThumbnailFromThumbnailFolder(outputPath);
+        const thumbnail = thumbnailDb.getThumbnailFromThumbnailFolder(outputPath);
         if (thumbnail) {
             sendImage(thumbnail);
         } else {
@@ -602,7 +580,7 @@ async function extractThumbnailFromZip(filePath, res, mode, config) {
             //compress into real thumbnail
             const outputFilePath = await thumbnailGenerator(thumbnailFolderPath, outputPath, path.basename(thumb));
             if (outputFilePath) {
-                addToThumbnailDb(outputFilePath);
+                thumbnailDb.addNewThumbnail(outputFilePath);
             }
         }
     } catch (e) {
@@ -657,7 +635,7 @@ app.post('/api/pregenerateThumbnails', async (req, res) => {
     const pregenBeginTime = getCurrentTime();
     const total = totalFiles.length;
 
-    const thumbnailNum = getThumbCount();
+    const thumbnailNum = thumbnailDb.getThumbCount();
     if (thumbnailNum / totalFiles.length > 0.3) {
         totalFiles = _.shuffle(totalFiles);
     }
@@ -762,7 +740,7 @@ app.post('/api/extract', async (req, res) => {
 
         res.send({ files: tempFiles, musicFiles, videoFiles, path, stat, zipInfo, mecab_tokens });
 
-        historyDB.addOneRecord(filePath)
+        historyDb.addOneRecord(filePath)
     }
 
     const outputPath = getCacheOutputFolderPath(cachePath, filePath);

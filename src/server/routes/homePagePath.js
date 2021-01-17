@@ -6,7 +6,7 @@ const db = require("../models/db");
 
 const util = global.requireUtil();
 const isWindows = require('is-windows');
-const historyDB = require("../models/historyDB");
+const historyDb = require("../models/historyDb");
 
 let hdd_list = [];
 if(isWindows()){
@@ -40,7 +40,7 @@ router.post('/api/homePagePath', async function (req, res) {
     //     }
     // });
 
-    let quickAccess = await  historyDB.getQuickAccess();
+    let quickAccess = await  historyDb.getQuickAccess();
     quickAccess = quickAccess.map(e => e.dirPath).slice(0, 10);
 
     if (dirs.length === 0 && hdd_list.length === 0 && quickAccess.length === 0) {

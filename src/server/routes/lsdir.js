@@ -18,7 +18,7 @@ const { getThumbnails, isAlreadyScan } = serverUtil.common;
 const _ = require('underscore');
 const readdir = require("../readdir");
 const stringHash = require("string-hash");
-const historyDB = require("../models/historyDB");
+const historyDb = require("../models/historyDb");
 
 
 router.post('/api/listFolderOnly', async (req, res) => {
@@ -289,7 +289,7 @@ async function listUnscaneImageFolderContent(filePath, res){
         videoFiles
     };
     res.send(result)
-    historyDB.addOneRecord(filePath);
+    historyDb.addOneRecord(filePath);
 }
 
 router.post('/api/listImageFolderContent', async (req, res) => {
@@ -341,7 +341,7 @@ router.post('/api/listImageFolderContent', async (req, res) => {
         files, musicFiles, videoFiles, mecab_tokens
     };
     res.send(result);
-    historyDB.addOneRecord(filePath);
+    historyDb.addOneRecord(filePath);
 });
 
 module.exports = router;
