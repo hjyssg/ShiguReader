@@ -29,6 +29,13 @@ export default class AdminPage extends Component {
         this.askMinifyQueue();
     }
 
+    requestHistory() {
+        Sender.post("/api/getHistory", {}, res => {
+            // this.handleRes(res);
+            debugger
+        });
+    }
+
     askMinifyQueue() {
         Sender.post("/api/minifyZipQue", {}, res => {
             if (!res.isFailed()) {

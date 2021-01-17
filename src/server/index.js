@@ -41,6 +41,8 @@ const thumbnailFolderPath = path.join(rootPath, thumbnail_folder_name);
 global.thumbnailFolderPath = thumbnailFolderPath;
 global.cachePath = cachePath;
 
+const historyDB = require("./models/historyDB");
+
 
 //set up user path
 
@@ -65,7 +67,6 @@ const zipInfoDb = require("./models/zipInfoDb");
 let zip_content_db_path = path.join(rootPath, userConfig.workspace_name, "zip_info");
 zipInfoDb.init(zip_content_db_path);
 const { getPageNum, getMusicNum, deleteFromZipDb, getZipInfo } = zipInfoDb;
-
 
 const sevenZipHelp = require("./sevenZipHelp");
 const { listZipContentAndUpdateDb, extractAll, extractByRange } = sevenZipHelp;
@@ -760,6 +761,8 @@ app.post('/api/extract', async (req, res) => {
         const mecab_tokens = await global.mecab_getTokens(path);
 
         res.send({ files: tempFiles, musicFiles, videoFiles, path, stat, zipInfo, mecab_tokens });
+
+        historyDB.addOneRecord(filePath)
     }
 
     const outputPath = getCacheOutputFolderPath(cachePath, filePath);
@@ -860,6 +863,9 @@ app.post('/api/getGeneralInfo', async (req, res) => {
 //---------------------------
 const homePagePath = require("./routes/homePagePath");
 app.use(homePagePath);
+
+const getHistory = require("./routes/getHistory");
+app.use(getHistory);
 
 const lsdir = require("./routes/lsdir");
 app.use(lsdir);
