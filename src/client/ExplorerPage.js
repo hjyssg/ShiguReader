@@ -602,7 +602,7 @@ export default class ExplorerPage extends Component {
             const onlyMtime = this.getMode() === MODE_EXPLORER && !this.isLackInfoMode();
             const config = {
                 fileInfos: this.allfileInfos, 
-                getBaeName, 
+                getBaseName, 
                 fromEarly, 
                 onlyMtime,
                 fileNameToReadTime: this.fileNameToReadTime

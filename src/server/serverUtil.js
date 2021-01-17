@@ -27,7 +27,7 @@ module.exports.chooseOneZipForOneTag = function (files, fileInfos) {
 
     const config = {
         fileInfos, 
-        getBaeName, 
+        getBaseName, 
         fromEarly: false, 
         onlyMtime: false
     }
