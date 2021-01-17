@@ -289,7 +289,7 @@ export default class AdminPage extends Component {
                             options={folder_list} name="pregenerate" onChange={this.onPathChange.bind(this)} />
                         <input className="admin-intput" ref={pathInput => this.pathInputRef = pathInput} placeholder="...or any other path" />
                         <div className="submit-button" onClick={this.onPrenerate.bind(this)}>Full Update (Regenerate all data and thumbnail)</div>
-                        <div className="submit-button" onClick={this.onPrenerate.bind(this, true)}>Fast Update (Only generate new file)</div>
+                        <div className="submit-button" onClick={this.onPrenerate.bind(this, true)}>Fast Update (Only generate for new file)</div>
                     </div>
                 </div>
 
