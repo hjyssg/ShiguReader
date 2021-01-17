@@ -185,16 +185,16 @@ const getDownloadLink = module.exports.getDownloadLink = function (path) {
     return "/api/download/?p=" + encodeURIComponent(path);
 }
 
-function stringHash(str) {
-    const stringHash = require("string-hash");
-    const result = stringHash(str);
-    window.localStorage && window.localStorage.setItem(result, str)
-    return result;
-};
+// function stringHash(str) {
+//     const stringHash = require("string-hash");
+//     const result = stringHash(str);
+//     window.localStorage && window.localStorage.setItem(result, str)
+//     return result;
+// };
 
-function getPathFromLocalStorage(hash) {
-    return window.localStorage && window.localStorage.getItem(hash);
-}
+// function getPathFromLocalStorage(hash) {
+//     return window.localStorage && window.localStorage.getItem(hash);
+// }
 
 // const cookie_expire_days = 5;
 
@@ -320,5 +320,5 @@ module.exports.download = function(filename, text) {
     element.click();
   
     document.body.removeChild(element);
-  }
+}
   
