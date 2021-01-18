@@ -221,6 +221,9 @@ export default class FileChangeToolbar extends Component {
         }
 
         let dest = prompt(type, defaultText);
+        if(!dest){
+            return;
+        }
 
         if(type === "move"){
             //get its dir path
