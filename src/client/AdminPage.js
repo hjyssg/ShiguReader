@@ -109,7 +109,10 @@ export default class AdminPage extends Component {
             return d.getTime();
         });
 
-        const historyDom = _.keys(groupByDay).map(key => {
+        let keys = _.keys(groupByDay);
+        keys = _.sortBy(keys, e => -e);
+
+        const historyDom = keys.map(key => {
             const timeStr = dateFormat(new Date(parseInt(key)), "dddd, mmmm dS, yyyy");
             let items = groupByDay[key];
 
