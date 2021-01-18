@@ -11,6 +11,7 @@ const _ = require('underscore');
 const isWindows = require('is-windows');
 const pathUtil = require("../pathUtil");
 const { isSub } = pathUtil;
+const historyDb = require("../models/historyDb");
 
 
 function isEqual(a, b) {
