@@ -8,6 +8,7 @@ module.exports.MODE_EXPLORER = "mode explorer";
 
 module.exports.SORT_OPTIONS = [
     "time",
+    "read time",
     "file size",
     "avg page size",
     "page number",
@@ -30,6 +31,9 @@ module.exports.NAME_DOWN = "name_down";
 
 module.exports.TIME_DOWN = "time_down";
 module.exports.TIME_UP = "time_up";
+
+module.exports.READ_TIME_DOWN = "read time_down";
+module.exports.READ_TIME_UP = "read time_up";
 
 module.exports.FILE_SIZE_DOWN = "file size_down";
 module.exports.FILE_SIZE_UP = "file size_up";

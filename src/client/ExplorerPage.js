@@ -33,6 +33,8 @@ import { GlobalContext } from './globalContext'
 
 const { TIME_DOWN,
     TIME_UP,
+    READ_TIME_DOWN,
+    READ_TIME_UP,
     BY_FOLDER_DOWN,
     BY_FOLDER_UP,
     FILENAME_UP,
@@ -319,7 +321,7 @@ export default class ExplorerPage extends Component {
         if (!res.isFailed()) {
             let { dirs, mode, tag, author, fileInfos, thumbnails,
                  dirThumbnails, zipInfo, imgFolders, imgFolderInfo, 
-                 hdd_list, quickAccess } = res.json;
+                 hdd_list, quickAccess, fileNameToReadTime } = res.json;
             this.loadedHash = this.getTextFromQuery();
             this.mode = mode;
             this.fileInfos = fileInfos || {};
@@ -336,6 +338,7 @@ export default class ExplorerPage extends Component {
             this.imgFolderInfo = imgFolderInfo || {};
             this.hdd_list = hdd_list || [];
             this.quickAccess = quickAccess || [];
+            this.fileNameToReadTime = fileNameToReadTime || {};
             this.res = res;
 
             this.allfileInfos = _.extend({}, this.fileInfos, this.imgFolderInfo);
@@ -597,9 +600,25 @@ export default class ExplorerPage extends Component {
                 files.reverse();
             }
         } else if (sortOrder === TIME_DOWN || sortOrder === TIME_UP) {
-            const ifFromEarly = sortOrder === TIME_UP;
-            const ifOnlyBymTime = this.getMode() === MODE_EXPLORER && !this.isLackInfoMode();
-            files = sortUtil.sort_file_by_time(files, this.allfileInfos, getBaseName, ifFromEarly, ifOnlyBymTime);
+            const ascend = sortOrder === TIME_UP;
+            const onlyByMTime = this.getMode() === MODE_EXPLORER && !this.isLackInfoMode();
+            const config = {
+                fileInfos: this.allfileInfos, 
+                getBaseName, 
+                ascend, 
+                onlyByMTime
+            }
+            files = sortUtil.sort_file_by_time(files, config);
+        } else if (sortOrder === READ_TIME_DOWN || sortOrder === READ_TIME_UP) {
+            const ascend = sortOrder === READ_TIME_UP;
+            const config = {
+                fileInfos: this.allfileInfos, 
+                getBaseName, 
+                ascend, 
+                byReadTime: true,
+                fileNameToReadTime: this.fileNameToReadTime
+            }
+            files = sortUtil.sort_file_by_time(files, config);
         } else if (sortOrder === FILE_SIZE_DOWN || sortOrder === FILE_SIZE_UP) {
             files = _.sortBy(files, e => {
                 const size = this.getFileSize(e);

@@ -98,6 +98,7 @@ async function listNoScanDir(dir, res){
     console.log(`[listNoScanDir] ${(end3 - end1) / 1000}s `);
 
     const files = _.keys(fileInfos);
+    const fileNameToReadTime = await historyDb.getFileReadTime(pathes);
     const  result = {
         path: dir,
         mode: "lack_info_mode",
@@ -111,6 +112,7 @@ async function listNoScanDir(dir, res){
         thumbnails: getThumbnails(files),
         dirThumbnails,
         zipInfo: getZipInfo(files),
+        fileNameToReadTime
     };
 
     res.send(result);
@@ -246,6 +248,9 @@ router.post('/api/lsDir', async (req, res) => {
 
         const imgFolderInfo = getImgFolderInfo(imgFolders);
         const files = _.keys(fileInfos);
+        const all_pathes = [].concat(files, _.keys(imgFolders));
+        const fileNameToReadTime = await historyDb.getFileReadTime(all_pathes);
+        
         const result = {
             path: dir,
             dirs: dirs,
@@ -255,6 +260,7 @@ router.post('/api/lsDir', async (req, res) => {
             thumbnails: getThumbnails(files),
             dirThumbnails,
             zipInfo: getZipInfo(files),
+            fileNameToReadTime
         };
 
         // const time3 = getCurrentTime();
