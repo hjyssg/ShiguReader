@@ -31,7 +31,7 @@ if(isWindows()){
 
 router.post('/api/homePagePath', async function (req, res) {
     let beg = (new Date).getTime();
-    let dirs = global.scan_path;
+    let dirs = global.scan_path || [];
     // dirs = dirs.filter(e => {
     //     if (e) {
     //         const reg = escapeRegExp(e);
@@ -41,7 +41,13 @@ router.post('/api/homePagePath', async function (req, res) {
     // });
 
     let quickAccess = await  historyDb.getQuickAccess();
-    quickAccess = quickAccess.map(e => e.dirPath).slice(0, 10);
+    quickAccess = quickAccess.map(e => e.dirPath);
+    
+    quickAccess = quickAccess.filter(e => {
+        return !dirs.includes(e) && !hdd_list.includes(e);
+    });
+
+    quickAccess = quickAccess.slice(0, 10);
 
     if (dirs.length === 0 && hdd_list.length === 0 && quickAccess.length === 0) {
         res.send({ failed: true, reason: "path-config.ini has no path" });

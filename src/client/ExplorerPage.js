@@ -724,11 +724,7 @@ export default class ExplorerPage extends Component {
                 return <Link to={toUrl} key={item}>{result}</Link>;
             });
 
-            quickAccess = this.quickAccess;
-            quickAccess = quickAccess.filter(e => {
-                return !dirs.includes(e) && !this.hdd_list.includes(e);
-            });
-            quickAccess = quickAccess.map(item => {
+            quickAccess = this.quickAccess.map(item => {
                 const toUrl = clientUtil.getExplorerLink(item);
                 const text = item;
                 const result = this.getOneLineListItem(<i className="far fa-folder"></i>, text, item);
