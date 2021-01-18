@@ -33,6 +33,8 @@ import { GlobalContext } from './globalContext'
 
 const { TIME_DOWN,
     TIME_UP,
+    READ_TIME_DOWN,
+    READ_TIME_UP,
     BY_FOLDER_DOWN,
     BY_FOLDER_UP,
     FILENAME_UP,
@@ -598,13 +600,22 @@ export default class ExplorerPage extends Component {
                 files.reverse();
             }
         } else if (sortOrder === TIME_DOWN || sortOrder === TIME_UP) {
-            const fromEarly = sortOrder === TIME_UP;
-            const onlyMtime = this.getMode() === MODE_EXPLORER && !this.isLackInfoMode();
+            const ascend = sortOrder === TIME_UP;
+            const onlyByMTime = this.getMode() === MODE_EXPLORER && !this.isLackInfoMode();
             const config = {
                 fileInfos: this.allfileInfos, 
                 getBaseName, 
-                fromEarly, 
-                onlyMtime,
+                ascend, 
+                onlyByMTime
+            }
+            files = sortUtil.sort_file_by_time(files, config);
+        } else if (sortOrder === READ_TIME_DOWN || sortOrder === READ_TIME_UP) {
+            const ascend = sortOrder === READ_TIME_UP;
+            const config = {
+                fileInfos: this.allfileInfos, 
+                getBaseName, 
+                ascend, 
+                byReadTime: true,
                 fileNameToReadTime: this.fileNameToReadTime
             }
             files = sortUtil.sort_file_by_time(files, config);

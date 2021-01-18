@@ -27,9 +27,7 @@ module.exports.chooseOneZipForOneTag = function (files, fileInfos) {
 
     const config = {
         fileInfos, 
-        getBaseName, 
-        fromEarly: false, 
-        onlyMtime: false
+        getBaseName
     }
 
     _files = sortUtil.sort_file_by_time(_files, config);

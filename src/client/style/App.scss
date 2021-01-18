@@ -156,7 +156,11 @@ a {
     display: inline-flex;
 
     .inner {
-      font-size: 1rem;
+      font-size: 10px;
+
+      @media screen and (min-width: 800px) {
+        font-size: 1rem;
+      }
     }
 
     &:not(:first-child){

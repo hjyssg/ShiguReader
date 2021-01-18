@@ -6,29 +6,27 @@ const _ = require('underscore');
 // rtime:最近一次的阅读时间
 // tag time:根据文件名推算出来的时间
 module.exports.sort_file_by_time = function (files, config) {
-    const { fileInfos, getBaseName, fromEarly, onlyMtime, fileNameToReadTime } = config;
+    const { fileInfos, getBaseName, ascend, onlyByMTime, byReadTime, fileNameToReadTime } = config;
     return _.sortBy(files, a => {
         const fn = getBaseName(a);
-        let fileTimeA;
 
-        //todo: only be mtime, or mtime + rtime
+        const mTime = fileInfos && fileInfos[a] && parseInt(fileInfos[a].mtimeMs);
+        let tTime = nameParser.getDateFromParse(fn);
+        tTime = tTime && tTime.getTime();
 
-
-
-        if(fileNameToReadTime[fn]){
-            fileTimeA = parseInt(fileNameToReadTime[fn]);
+        let time = -Infinity;
+        //单纯文件夹
+        if(byReadTime){
+            const rTime = fileNameToReadTime &&  fileNameToReadTime[fn] && parseInt(fileNameToReadTime[fn]);
+            time = rTime || mTime || tTime;
+        }else if(onlyByMTime){
+            time = mTime;
         }else{
-            fileTimeA = (fileInfos[a] && fileInfos[a].mtimeMs) || -Infinity;
+            time = mTime || tTime;
         }
-        // console.log(fn, fileTimeA)
-        if (onlyMtime) {
-            return fromEarly ? fileTimeA : -fileTimeA;
-        } else {
-            let aboutTimeA = nameParser.getDateFromParse(fn);
-            aboutTimeA = aboutTimeA && aboutTimeA.getTime();
-            const t1 = aboutTimeA || fileTimeA;
-            return fromEarly ? t1 : -t1;
-        }
+
+        time = time || -Infinity;
+        return ascend ? time : -time;
     })
 }
 
