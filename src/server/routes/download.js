@@ -27,10 +27,10 @@ router.get('/api/download/', async (req, res) => {
             const HUGE_THRESHOLD = 5 * 1000 * 1000;
             if (stat.size > HUGE_THRESHOLD) {
                 const sharp = require('sharp');
-                const outputFn = stringHash(filepath).toString() + ".jpg";
+                const outputFn = stringHash(filepath).toString() + ".webp";
                 const outputPath = path.resolve(global.cachePath, outputFn);
                 if (!(await isExist(outputPath))) {
-                    await sharp(filepath).resize(200, 150).toFile(outputPath);
+                    await sharp(filepath).resize({ height: 280 }).toFile(outputPath);
                 }
                 filepath = outputPath;
             }
