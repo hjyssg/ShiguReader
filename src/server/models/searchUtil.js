@@ -103,6 +103,7 @@ async function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
     const fileInfos = {};
 
     const all_text = tag || author || text;
+    const searchEveryPromise =  searchOnEverything(all_text)
     let temp = await searchByText(all_text);
     let zipResult = temp.zipResult;
     let dirResults = temp.dirResults;
@@ -126,25 +127,21 @@ async function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
         const pp = obj.filePath;
         fileInfos[pp] = db.getFileToInfo(pp);
     })
-   
-
-    let end = (new Date).getTime();
-    // console.log((end - beg)/1000, "to search");
-
-    let esObj = await searchOnEverything(all_text);
-    if(esObj){
-        dirResults = _.uniq(dirResults.concat(esObj.dirResults));
-        _.extend(fileInfos, esObj.fileInfos)
-    }
-
 
     const imgFolderInfo = getImgFolderInfo(imgFolders);
-
     const { getThumbnails } = serverUtil.common;
     const files = _.keys(fileInfos);
     const all_pathes = [].concat(files, _.keys(imgFolders));
     const fileNameToReadTime = await historyDb.getFileReadTime(all_pathes);
 
+    let esObj = await searchEveryPromise;
+    if(esObj){
+        dirResults = _.uniq(dirResults.concat(esObj.dirResults));
+        _.extend(fileInfos, esObj.fileInfos)
+    }
+
+    let end = (new Date).getTime();
+    // console.log((end - beg)/1000, "to search");
     return {
         tag, author, fileInfos,
         imgFolders, imgFolderInfo,
