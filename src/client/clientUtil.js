@@ -182,6 +182,12 @@ module.exports.getVideoPlayerLink = function (path) {
 
 const getDownloadLink = module.exports.getDownloadLink = function (path) {
     if (!path) { return ""; }
+
+    if(path.includes("/api/download/?p")){
+       //loadingImage onReceiveUrl
+       return path;
+    }
+
     return "/api/download/?p=" + encodeURIComponent(path);
 }
 

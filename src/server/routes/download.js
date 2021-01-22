@@ -19,7 +19,7 @@ try{
 
 
 const THUMBNAIL_HUGE_THRESHOLD = 2 * 1000 * 1000;
-const IMG_HUGE_THRESHOLD = 12 * 1000 * 1000;
+const IMG_HUGE_THRESHOLD = 15 * 1000 * 1000;
 
 
 //------------------download------------
