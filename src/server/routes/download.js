@@ -23,10 +23,6 @@ const IMG_HUGE_THRESHOLD = 15 * 1000 * 1000;
 
 
 //------------------download------------
-function isFromLocal(req){
-    return req.ip.includes('127.0.0.1');
-}
-
 router.get('/api/download/', async (req, res) => {
     let filepath = path.resolve(req.query.p);
     let thumbnailMode = req.query.thumbnailMode;
