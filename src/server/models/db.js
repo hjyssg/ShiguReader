@@ -264,7 +264,8 @@ module.exports.updateStatToCacheDb = function (p, stats) {
 }
 
 module.exports.isFileInCache = function(filePath){
-    return !!cacheFileToInfo[p];
+    const { folderToFiles, cacheFileToInfo } = cacheDb;
+    return !!cacheFileToInfo[filePath];
 }
 
 module.exports.deleteFromCacheDb = function (p) {
