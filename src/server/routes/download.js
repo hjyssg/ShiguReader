@@ -10,10 +10,25 @@ const stringHash = require("string-hash");
 const pfs = require('promise-fs');
 const path = require('path');
 
+let sharp;
+try{
+    sharp = require('sharp')
+}catch(e){
+    console.error("did not install sharp", e);
+}
+
+
+const THUMBNAIL_HUGE_THRESHOLD = 2 * 1000 * 1000;
+const IMG_HUGE_THRESHOLD = 15 * 1000 * 1000;
+
 
 //------------------download------------
+function isFromLocal(req){
+    return req.ip.includes('127.0.0.1');
+}
+
 router.get('/api/download/', async (req, res) => {
-    let filepath = req.query.p;
+    let filepath = path.resolve(req.query.p);
     let thumbnailMode = req.query.thumbnailMode;
     if (!filepath || !(await isExist(filepath))) {
         console.error("[/api/download]", filepath, "does not exist");
@@ -22,15 +37,20 @@ router.get('/api/download/', async (req, res) => {
     }
 
     try {
-        if (thumbnailMode && isImage(filepath) ) {
+        if (isImage(filepath) ) {
             const stat = await pfs.statSync(filepath);
-            const HUGE_THRESHOLD = 5 * 1000 * 1000;
-            if (stat.size > HUGE_THRESHOLD) {
-                const sharp = require('sharp');
-                const outputFn = stringHash(filepath).toString() + ".webp";
+            if(thumbnailMode && stat.size > THUMBNAIL_HUGE_THRESHOLD) {
+                const outputFn = stringHash(filepath).toString() + "-thumbnail.webp";
                 const outputPath = path.resolve(global.cachePath, outputFn);
                 if (!(await isExist(outputPath))) {
                     await sharp(filepath).resize({ height: 280 }).toFile(outputPath);
+                }
+                filepath = outputPath;
+            }else if(stat.size > IMG_HUGE_THRESHOLD){
+                const outputFn = stringHash(filepath).toString() + ".webp";
+                const outputPath = path.resolve(global.cachePath, outputFn);
+                if (!(await isExist(outputPath))) {
+                    await sharp(filepath).resize({ height: 2000 }).toFile(outputPath);
                 }
                 filepath = outputPath;
             }
