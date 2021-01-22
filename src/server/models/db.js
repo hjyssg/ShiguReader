@@ -263,6 +263,10 @@ module.exports.updateStatToCacheDb = function (p, stats) {
     cacheFileToInfo[p] = stats;
 }
 
+module.exports.isFileInCache = function(filePath){
+    return !!cacheFileToInfo[p];
+}
+
 module.exports.deleteFromCacheDb = function (p) {
     const { folderToFiles, cacheFileToInfo } = cacheDb;
     const fp = getDirName(p);

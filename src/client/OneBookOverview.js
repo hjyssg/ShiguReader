@@ -52,7 +52,7 @@ class SmartImage extends Component {
     const toUrl = clientUtil.getOneBookLink(fp) + "#index=" + index;
 
     return (
-      <VisibilitySensor offset={{ bottom: -150 }} partialVisibility={true} onChange={this.onChange.bind(this)}>
+      <VisibilitySensor offset={{ bottom: -1200 }} partialVisibility={true} onChange={this.onChange.bind(this)}>
         <div className="col-lg-3 col-md-4 col-6 a-with-padding" key={url}>
           <Link to={toUrl} target="_blank" className="obov-link">
             {content}
