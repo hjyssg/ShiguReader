@@ -7,6 +7,8 @@ const db = require("../models/db");
 const util = global.requireUtil();
 const isWindows = require('is-windows');
 const historyDb = require("../models/historyDb");
+const pathUtil = require("../pathUtil");
+
 
 let hdd_list = [];
 if(isWindows()){
@@ -18,9 +20,8 @@ if(isWindows()){
         }
 
         hdd_list = stdout.split('\r\r\n')
-                .filter(value => /[A-Za-z]:/.test(value))
+                .filter(util.isWindowsPath)
                 .map(value => value.trim());
-
 
         //no c drive
         hdd_list = hdd_list.filter(e => !e.toLocaleLowerCase().startsWith("c"));
@@ -44,7 +45,8 @@ router.post('/api/homePagePath', async function (req, res) {
     quickAccess = quickAccess.map(e => e.dirPath);
     
     quickAccess = quickAccess.filter(e => {
-        return !dirs.includes(e) && !hdd_list.includes(e);
+        const e2 = pathUtil.removeLastPathSep(e);
+        return !dirs.includes(e) && !hdd_list.includes(e) && !dirs.includes(e2) && !hdd_list.includes(e2);
     });
 
     quickAccess = quickAccess.slice(0, 10);

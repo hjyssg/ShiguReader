@@ -171,6 +171,9 @@ async function init() {
         const mkdirArr = scan_path;
         for (let ii = 0; ii < mkdirArr.length; ii++) {
             const fp = mkdirArr[ii];
+            if(!isWindows() && util.isWindowsPath(fp)){
+                continue;
+            }
             await mkdir(fp, "quiet");
         }
     

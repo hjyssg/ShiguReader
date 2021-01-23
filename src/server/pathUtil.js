@@ -198,5 +198,6 @@ module.exports = {
     isSub,
     getScanPath,
     getImgConverterCachePath,
-    getZipOutputCachePath
+    getZipOutputCachePath,
+    removeLastPathSep
 };

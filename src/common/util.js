@@ -123,4 +123,8 @@ module.exports.escapeRegExp = function (string) {
     return reg;
 }
 
+module.exports.isWindowsPath = function(string){
+    return /[A-Za-z]:/.test(string);
+}
+
 module.exports.useless_tag_regex = /DL版|同人誌|別スキャン|修正版|^エロ|^digital$|^JPG|^PNG|ページ補足/i;
