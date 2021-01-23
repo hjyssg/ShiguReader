@@ -14,6 +14,7 @@ const dateFormat = require('dateformat');
 const AdminUtil = require("./AdminUtil");
 import { GlobalContext } from './globalContext'
 const util = require("@common/util");
+const classNames = require('classnames');
 
 
 
@@ -124,10 +125,17 @@ export default class AdminPage extends Component {
                               clientUtil.getVideoPlayerLink(filePath) : 
                               clientUtil.getOneBookLink(filePath);
 
+                const cn = classNames("icon", {
+                    "far fa-file-video": util.isVideo(filePath),
+                    "fas fa-book": util.isCompress(filePath),
+                    "far fa-folder": !util.isVideo(filePath) && !util.isCompress(filePath)
+                });
+
                 return (
                     <Link to={toUrl} key={filePath} className={"history-link"}>
                         <div className="history-one-line-list-item" key={filePath}>
-                            <span className="file-text" title={filePath}> {getBaseName(filePath)}</span>
+                            <span className={cn} /> 
+                            <span className="file-text" title={filePath}> {getBaseName(filePath)||filePath}</span>
                         </div>
                     </Link>);
 

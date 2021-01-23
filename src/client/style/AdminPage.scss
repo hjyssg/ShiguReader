@@ -89,6 +89,15 @@
     .history-link {
       .history-one-line-list-item {
         padding-left: 5px;
+        .icon{
+          color: rgb(116, 173, 0);
+          &.fa-file-video {
+            color: #000769;
+          }
+          &.fa-book {
+            color: #414141;
+          }
+        }
       }
     }
   }
