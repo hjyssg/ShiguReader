@@ -36,7 +36,7 @@ export default class FileNameDiv extends Component {
     let authors;
 
     if (pResult) {
-      originalTags = pResult.tags;
+      originalTags = pResult.original_tags;
       authors = pResult.authors;
 
       if (pResult.comiket) {
@@ -76,10 +76,7 @@ export default class FileNameDiv extends Component {
     const tagIndexes = {};
     allTags.forEach(tag => {
       const index = text.indexOf(tag);
-      if(index < 0){
-        //todo
-        //because tag converting, get index is not not so easy
-      }
+      console.assert(index > 0)
       tagIndexes[tag] = index;
     });
     allTags = _.sortBy(allTags, tag => {

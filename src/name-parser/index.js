@@ -336,11 +336,12 @@ function parse(str) {
         return e.length > 1 && !isOtherInfo(e) && authors.indexOf(e) === -1 && e !== author;
     });
 
-    tags = tags
-        .map(e => e.replace(/ |。/g, "").replace(/！/g, "!").replace(/？/g, "?"))
+    let original_tags = tags.slice();
 
-    //tag reducing
-    tags = tags.map(e => {
+    //tag converting
+    tags = tags
+        .map(e => e.replace(/ |。/g, "").replace(/！/g, "!").replace(/？/g, "?"));
+    tags  = tags.map(e => {
         const converts = [];
         for (let ii = 0; ii < same_tag_matrix.length; ii++) {
             const row = same_tag_matrix[ii];
@@ -372,19 +373,22 @@ function parse(str) {
 
     //get title
     let title = str;
-    (bMacthes || []).concat(pMacthes || [], tags || [], [/\[/g, /\]/g, /\(/g, /\)/g]).forEach(e => {
+    (bMacthes || []).concat(pMacthes || [], original_tags || [], [/\[/g, /\]/g, /\(/g, /\)/g]).forEach(e => {
         title = title.replace(e, "");
     })
     title = title.trim();
 
     //get character names
     const names = char_name_regex && title.match(char_name_regex);
-    names && names.forEach(e => {
-        tags.push(e);
-    })
+    if(names){
+        tags = tags.concat(names);
+        original_tags = original_tags.concat(names);
+    }
 
     const result = {
-        dateTag, group, author, authors, tags, comiket, type, title
+        dateTag, group, author, authors, 
+        tags, original_tags, 
+        comiket, type, title
     };
 
     localCache[str] = result;
