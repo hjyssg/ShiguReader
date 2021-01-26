@@ -28,18 +28,6 @@ export default class AdminPage extends Component {
         this.askCacheInfo();
         this.requestHomePagePathes();
         this.askMinifyQueue();
-        this.requestHistory();
-    }
-
-    requestHistory() {
-        Sender.post("/api/getHistory", {}, res => {
-            let { history } = res.json;
-            history = history || [];
-            history.forEach(e => {
-                e.time = parseInt(e.time);
-            })
-            this.setState({history})
-        });
     }
 
     askMinifyQueue() {
@@ -98,84 +86,6 @@ export default class AdminPage extends Component {
         });
     }
 
-    renderHistory() {
-        const { history } = this.state;
-
-        const groupByDay = _.groupBy(history, e => {
-            let d = new Date(e.time);
-            d.setHours(0);
-            d.setMinutes(0);
-            d.setSeconds(0);
-            d.setMilliseconds(0);
-            return d.getTime();
-        });
-
-        let keys = _.keys(groupByDay);
-        keys = _.sortBy(keys, e => -e);
-
-        const historyDom = keys.map(key => {
-            const timeStr = dateFormat(new Date(parseInt(key)), "dddd, mmmm dS, yyyy");
-            let items = groupByDay[key];
-
-            items = _.sortBy(items, e => -e.time);
-
-            const dayHistory = items.map(e => {
-                const filePath = e.filePath;
-                const toUrl = util.isVideo(filePath)? 
-                              clientUtil.getVideoPlayerLink(filePath) : 
-                              clientUtil.getOneBookLink(filePath);
-
-                const cn = classNames("icon", {
-                    "far fa-file-video": util.isVideo(filePath),
-                    "fas fa-book": util.isCompress(filePath),
-                    "far fa-folder": !util.isVideo(filePath) && !util.isCompress(filePath)
-                });
-
-                return (
-                    <Link to={toUrl} key={filePath} className={"history-link"}>
-                        <div className="history-one-line-list-item" key={filePath}>
-                            <span className={cn} /> 
-                            <span className="file-text" title={filePath}> {getBaseName(filePath)||filePath}</span>
-                        </div>
-                    </Link>);
-
-            })
-
-            return (
-                <div className="history-day-section" key={key}>
-                    <div className="date-text">
-                        <span>{timeStr}</span>
-                        <span>{`${items.length} items`}</span>
-                    </div>
-                    {dayHistory}
-                </div>
-            )
-        })
-
-        // const historyDom = history.map(e => {
-        //     const timeStr = dateFormat(e[0], "mm-dd hh:MM");
-        //     const filePath = e[1];
-        //     const toUrl =  clientUtil.getOneBookLink(filePath);
-
-        //     return (
-        //         <Link to={toUrl}  key={filePath} className={"history-link"}>
-        //             <div className="history-one-line-list-item" key={filePath}>
-        //                 <span className="date-text"> {timeStr} </span>
-        //                 <span className="file-text" title={filePath}> {getBaseName(filePath)}</span>
-        //             </div>
-        //         </Link>);
-
-        // })
-
-        return (
-            <div className="history-section admin-section">
-                <div className="admin-section-title"> Recent Read</div>
-                <div className="admin-section-content">
-                    {historyDom}
-                </div>
-            </div>)
-    }
-
     getPasswordInput() {
         const pathInput = ReactDOM.findDOMNode(this.passwordInputRef);
         const text = (pathInput && pathInput.value) || "";
@@ -226,8 +136,6 @@ export default class AdminPage extends Component {
             }
         });
     }
-
-
 
     renderMinifyQueue() {
         const { minifyZipQue } = this.state;
@@ -298,7 +206,6 @@ export default class AdminPage extends Component {
                     </div>
                 </div>
 
-                {this.renderHistory()}
                 {this.renderMinifyQueue()}
                 {this.renderRemoteShutDown()}
 
@@ -309,9 +216,5 @@ export default class AdminPage extends Component {
 
     }
 }
-
-AdminPage.propTypes = {
-    res: PropTypes.object
-};
 
 AdminPage.contextType = GlobalContext;

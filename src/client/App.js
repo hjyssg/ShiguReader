@@ -10,6 +10,7 @@ import VideoPlayer from "./VideoPlayer";
 import TagPage from "./TagPage";
 import ChartPage from "./ChartPage";
 import AdminPage from "./AdminPage";
+import HistoryPage from "./HistoryPage";
 import { Switch, Route, Link, Redirect } from 'react-router-dom';
 import screenfull from 'screenfull';
 const clientUtil = require("./clientUtil");
@@ -103,7 +104,7 @@ class App extends Component {
         const renderAuthorPage = (props) => { return (<TagPage mode="author" filterText={this.filterText} {...props} />) };
 
         const renderChartPage = (props) => { return (<ChartPage {...props} />) };
-
+        const renderHistoryPage = (props) => { return (<HistoryPage {...props} />) };
         const renderAdminPage = (props) => { return (<AdminPage {...props} />) };
 
         const result = (
@@ -124,6 +125,7 @@ class App extends Component {
                 <Route path='/videoPlayer/' render={renderVideo} />
 
                 <Route path='/chart/' render={renderChartPage} />
+                <Route path='/history/' render={renderHistoryPage} />
                 <Route path='/admin' render={renderAdminPage} />
 
             </Switch>
@@ -197,6 +199,7 @@ class App extends Component {
                     <Link to='/authorPage/'><i className="fas fa-pen">Authors</i></Link>
                     <Link to='/tagPage/'><i className="fas fa-tags">Tags</i></Link>
                     <Link to='/chart'><i className="fas fa-chart-bar">Chart</i></Link>
+                    <Link to='/history'><i className="fas fa-history">History</i></Link>
                     <Link to='/admin'><i className="fas fa-tools">Admin</i></Link>
                 </div>
                 <div className="search-bar">
