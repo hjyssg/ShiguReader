@@ -24,7 +24,7 @@ const nameParser = require('@name-parser');
 const classNames = require('classnames');
 const Constant = require("@common/constant");
 const clientUtil = require("./clientUtil");
-const { getDir, getBaseName, getPerPageItemNumber, isSearchInputTextTyping, filesizeUitl } = clientUtil;
+const { getDir, getBaseName, getPerPageItemNumber, isSearchInputTextTyping, filesizeUitl, sortFileNames } = clientUtil;
 const { isVideo, isCompress, isImage, isMusic } = util;
 const sortUtil = require("../common/sortUtil");
 const AdminUtil = require("./AdminUtil");
@@ -315,6 +315,10 @@ export default class ExplorerPage extends Component {
             this.compressFiles = files.filter(isCompress) || [];
             this.musicFiles = files.filter(isMusic) || [];
             this.imageFiles = files.filter(isImage) || [];
+
+            sortFileNames(this.musicFiles)
+            sortFileNames(this.imageFiles)
+
             
             this.dirs = dirs || [];
             this.tag = tag || "";
@@ -729,8 +733,8 @@ export default class ExplorerPage extends Component {
             return <Link to={toUrl} key={item}>{result}</Link>;
         });
 
-        const imageItems = this.imageFiles.map((item) => {
-            const toUrl = clientUtil.getOneBookLink(this.getTextFromQuery());
+        const imageItems = this.imageFiles.map((item, ii) => {
+            const toUrl = clientUtil.getOneBookLink(this.getTextFromQuery(), ii);
             const text = getBaseName(item);
             const result = this.getOneLineListItem(<i className="fas fa-images"></i>, text, item);
             return <Link to={toUrl} key={item}>{result}</Link>;
@@ -815,7 +819,7 @@ export default class ExplorerPage extends Component {
                 let thumbnailurl;
                 if (isImgFolder) {
                     const _imgs = this.imgFolders[item].filter(isImage);
-                    clientUtil.sortFileNames(_imgs)
+                    sortFileNames(_imgs)
                     const tp = _imgs[0];
                     thumbnailurl = getFileUrl(tp);
                 } else {
