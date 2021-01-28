@@ -164,8 +164,13 @@ module.exports.getAuthorLink = function (path) {
     return "/author/?a=" + encodeURIComponent(path);
 }
 
-module.exports.getOneBookLink = function (path) {
-    return "/onebook/?p=" + encodeURIComponent(path);
+module.exports.getOneBookLink = function (path, index) {
+    let temp = "/onebook/?p=" + encodeURIComponent(path);
+    index = parseInt(index);
+    if(_.isNumber(index)){
+        temp += "#index=" + index;
+    }
+    return temp;
 }
 
 module.exports.getOneBookOverviewLink = function (path) {
