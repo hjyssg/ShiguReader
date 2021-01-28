@@ -246,7 +246,7 @@ router.post('/api/listImageFolderContent', async (req, res) => {
 
         // 各有利弊，选择和其他地方逻辑一致吧
         // _files = _files.map(e => e.filePath);
-        forEach(e => {
+        _files.forEach(e => {
             const pp = e.filePath;
             if (isDirectParent(filePath, pp)) {
                 _files.push(pp);
