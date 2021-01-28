@@ -31,7 +31,9 @@ async function getThumbnailForFolder(files, dirPath){
         }
 
         const thumbnails = await getThumbnails(filePathes);
-        return thumbnails[0];
+        if(thumbnails[0]){
+            return path.resolve(  thumbnails[0].thumbnailFileName)
+        }
     }
 }
 
@@ -101,8 +103,7 @@ router.post('/api/lsDir', async (req, res) => {
                 }
                 const dirPath = row.filePath;
                 const files = row.files.split(sep);
-                console.warn("todo")
-                // dirThumbnails[dirPath] = await getThumbnailForFolder(files, dirPath)
+                dirThumbnails[dirPath] = await getThumbnailForFolder(files, dirPath)
             }
         }
 

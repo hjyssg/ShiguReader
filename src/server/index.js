@@ -391,7 +391,7 @@ async function getThumbnails(filePathes) {
 
     let thumbArrs = await thumbnailDb.getThumbnailArr(filePathes);
     thumbArrs.forEach(row => {
-        thumbnails[row.filePath] = row.thumbArrs;
+        thumbnails[row.filePath] = row.thumbnailFilePath;
     })
 
     filePathes.forEach(filePath => {

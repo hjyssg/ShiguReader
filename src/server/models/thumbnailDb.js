@@ -31,16 +31,28 @@ function init(filePathes) {
     //remove sql table
 }
 
+
+function _add_col(rows){
+    thumbnailFolderPath = global.thumbnailFolderPath;
+    rows.forEach(row => {
+        row.thumbnailFilePath = path.resolve(thumbnailFolderPath, row.thumbnailFileName)
+    })
+    return rows;
+}
+
+//multiple
 async function getThumbnailArr(filePathes){
     const joinStr = filePathes.join(" ");
     sql = `SELECT * FROM  thumbnail_table WHERE INSTR(?, filePath)`;
     let rows = await sqlDb.allSync(sql, [joinStr]);
-    return rows;
+    return _add_col(rows);
 }
 
+//single file
 async function getThumbnail(filePath) {
     sql = `SELECT * FROM  thumbnail_table WHERE filePath = ?`;
-    const rows = await sqlDb.allSync(sql, [filePath]);
+    let rows = await sqlDb.allSync(sql, [filePath]);
+    _add_col(rows)
     return rows[0] && rows[0].thumbnailFileName;
 }
 
