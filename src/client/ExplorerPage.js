@@ -325,7 +325,6 @@ export default class ExplorerPage extends Component {
             sortFileNames(this.musicFiles)
             sortFileNames(this.imageFiles)
 
-            
             this.dirs = dirs || [];
             this.tag = tag || "";
             this.author = author || "";
@@ -786,7 +785,7 @@ export default class ExplorerPage extends Component {
             const fileSize = this.hasFileSize(item) && this.getFileSize(item);
             const fileSizeStr = fileSize && filesizeUitl(fileSize);
 
-            const avgSize = this.hasFileSize(item) && this.getPageAvgSize(item);
+            const avgSize = (this.hasFileSize(item) || this.getTotalImgSize(item) ) && this.getPageAvgSize(item);
             const avgSizeStr = avgSize > 0 && filesizeUitl(avgSize);
 
             let seperator;

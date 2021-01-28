@@ -383,9 +383,12 @@ export default class OneBook extends Component {
     $(window).scrollTop(0);
   }
 
+  getImageLength(){
+    return this.state.imageFiles.length;
+  }
 
   next(event) {
-    if (this.state.imageFiles.length <= 1) {
+    if (this.getImageLength() <= 1) {
       return;
     }
 
@@ -398,7 +401,7 @@ export default class OneBook extends Component {
   }
 
   prev(event) {
-    if (this.state.imageFiles.length <= 1) {
+    if (this.getImageLength() <= 1) {
       return;
     }
     const jump = userConfig.keep_clip && this.shouldTwoPageMode() ? 2 : 1;
@@ -429,8 +432,8 @@ export default class OneBook extends Component {
   renderPagination() {
     if (isMobile()) { return; }
     const { imageFiles, index } = this.state;
-    const isLast = index + 1 === imageFiles.length;
-    const text = (index + 1) + "/" + imageFiles.length;
+    const isLast = index + 1 === this.getImageLength();
+    const text = (index + 1) + "/" + this.getImageLength();
     const cn = classNames("one-book-foot-index-number", {
       "is-last": isLast
     })
@@ -444,7 +447,7 @@ export default class OneBook extends Component {
       if (zipInfo) {
         avgFileSize = zipInfo.totalImgSize / zipInfo.pageNum;
       } else {
-        avgFileSize = fileStat.size / imageFiles.length;
+        avgFileSize = fileStat.size / this.getImageLength();
       }
 
       const size = filesizeUitl(fileStat.size);
@@ -466,7 +469,7 @@ export default class OneBook extends Component {
         </div>);
       const mobilePageNum = (<div className="mobile-page-num"
         onClick={this.onClickPagination.bind(this)} >
-        {`${index + 1}/${imageFiles.length}`}  </div>)
+        {`${index + 1}/${this.getImageLength()}`}  </div>)
       return <div className={"one-book-file-stat"}>{texts} {mobilePageNum} </div>
     }
   }
@@ -503,7 +506,7 @@ export default class OneBook extends Component {
         index={index + 1}
       />;
 
-      const preload = index < imageFiles.length - 1 && <link rel="preload" href={getFileUrl(imageFiles[index - 1])} as="image" />;
+      const preload = index < this.getImageLength() - 1 && <link rel="preload" href={getFileUrl(imageFiles[index - 1])} as="image" />;
 
       return (<React.Fragment>
         <Spinner className="one-book-img-load-spinner" />
@@ -637,7 +640,7 @@ export default class OneBook extends Component {
   }
 
   hasImage() {
-    return this.state.imageFiles.length > 0;
+    return this.getImageLength() > 0;
   }
 
   renderMusicPlayer() {
@@ -756,7 +759,7 @@ export default class OneBook extends Component {
       document.title = getBaseName(this.state.path);
 
       if (isMobile() && index > 0) {
-        const _text = `${index + 1}/${imageFiles.length}`;
+        const _text = `${index + 1}/${this.getImageLength()}`;
         document.title = _text + " " + document.title;
       }
     }
