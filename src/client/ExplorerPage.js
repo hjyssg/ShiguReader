@@ -224,17 +224,6 @@ export default class ExplorerPage extends Component {
             if (hash && this.loadedHash !== hash) {
                 res = await Sender.postWithPromise('/api/lsDir', { dir: this.getTextFromQuery(), isRecursive: this.state.isRecursive });
                 this.handleRes(res);
-
-                const api = "/api/listImageFolderContent"
-                let res2 = await Sender.postWithPromise(api, { filePath: this.getTextFromQuery(), noMedataInfo: true });
-                let { files, musicFiles, videoFiles } = res2.json;
-                files = files || [];
-                musicFiles = musicFiles || [];
-                if (files.length > 0 || musicFiles.length > 0) {
-                    this.setState({
-                        isImgFolder: true
-                    })
-                }
             }
         } else {
             const hash = this.getTextFromQuery();
@@ -296,11 +285,6 @@ export default class ExplorerPage extends Component {
             this.imgFolders = {};
             this.imgFolderInfo = {};
             this.res = null;
-            //init state
-            this.setState({
-                isImgFolder: false
-            })
-
             this.setStateAndSetHash(this.getInitState(true));
             this.askServer();
         }
@@ -1055,11 +1039,7 @@ export default class ExplorerPage extends Component {
         )
     }
 
-    isImgFolder(){
-        const mode = this.getMode();
-        const isExplorer = mode === MODE_EXPLORER && this.getPathFromQuery();
-        return isExplorer && this.state.isImgFolder;
-    }
+
 
     getExplorerToolbar(filteredFiles, filteredVideos) {
         const mode = this.getMode();
@@ -1098,11 +1078,6 @@ export default class ExplorerPage extends Component {
                             <span className="fab fa-searchengin" />
                             <span>Search by Text </span>
                         </Link>
-                    </div>
-                }
-                {   this.isImgFolder() &&
-                    <div className="col-6 col-md-4">
-                        {this.getBookModeLink()}
                     </div>
                 }
                 <div className="col-6 col-md-4 " > {this.renderToggleMenuButton()} </div>

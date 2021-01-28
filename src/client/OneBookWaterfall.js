@@ -18,7 +18,7 @@ import screenfull from 'screenfull';
 const Constant = require("@common/constant");
 
 const clientUtil = require("./clientUtil");
-const { getDir, getBaseName, isMobile, getFileUrl, sortFileNames, filesizeUitl } = clientUtil;
+const { getDir, getBaseName, isMobile, getFileUrl, sortFileNames } = clientUtil;
 const VisibilitySensor = require('react-visibility-sensor').default;
 
 class SmartImage extends Component {
@@ -63,7 +63,7 @@ export default class OneBookWaterfall extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      files: [],
+      imageFiles: [],
       musicFiles: [],
     };
   }
@@ -99,17 +99,17 @@ export default class OneBookWaterfall extends Component {
   handleRes(res) {
     this.res = res;
     if (!res.isFailed()) {
-      let { zipInfo, path, stat, files, musicFiles } = res.json;
-      files = files || [];
+      let { zipInfo, path, stat, imageFiles, musicFiles } = res.json;
+      imageFiles = imageFiles || [];
       musicFiles = musicFiles || [];
 
-      //files name can be 001.jpg, 002.jpg, 011.jpg, 012.jpg
+      //imageFiles name can be 001.jpg, 002.jpg, 011.jpg, 012.jpg
       //or 1.jpg, 2.jpg 3.jpg 1.jpg
       //todo: the sort is wrong for imgFolder
-      sortFileNames(files);
+      sortFileNames(imageFiles);
       sortFileNames(musicFiles);
 
-      this.setState({ files, musicFiles, path, fileStat: stat, zipInfo });
+      this.setState({ imageFiles, musicFiles, path, fileStat: stat, zipInfo });
     } else {
       this.forceUpdate();
     }
@@ -134,14 +134,14 @@ export default class OneBookWaterfall extends Component {
   }
 
   renderImage() {
-    const { files } = this.state;
+    const { imageFiles } = this.state;
     if (!this.hasImage()) {
       return;
     }
 
     const maxHeight = this.getMaxHeight();
 
-    let images = files.map((file, index) => {
+    let images = imageFiles.map((file, index) => {
       return (<div key={file} className="one-book-waterfall-div">
         <SmartImage 
           visible={index < 3}
@@ -171,7 +171,7 @@ export default class OneBookWaterfall extends Component {
   }
 
   hasImage() {
-    return this.state.files.length > 0;
+    return this.state.imageFiles.length > 0;
   }
 
   render() {
@@ -180,13 +180,13 @@ export default class OneBookWaterfall extends Component {
       return <ErrorPage res={this.res} filePath={fp} />;
     }
 
-    const { files, musicFiles } = this.state;
+    const { imageFiles, musicFiles } = this.state;
     const bookTitle = (<div className="one-book-title" >
       <FileNameDiv filename={getBaseName(this.state.path)} />
       {this.renderPath()}
     </div>);
 
-    if (_.isEmpty(files) && _.isEmpty(musicFiles)) {
+    if (_.isEmpty(imageFiles) && _.isEmpty(musicFiles)) {
       if (this.res && !this.refs.failed) {
         return (<h3>
           <center style={{ paddingTop: "200px" }}>

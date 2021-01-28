@@ -41,7 +41,7 @@ export default class OneBook extends Component {
     this.zoom_scale = null;
 
     this.state = {
-      files: [],
+      imageFiles: [],
       musicFiles: [],
       index: this.getInitIndex(),
       twoPageMode: NO_TWO_PAGE
@@ -298,19 +298,19 @@ export default class OneBook extends Component {
   async handleRes(res) {
     this.res = res;
     if (!res.isFailed()) {
-      let { zipInfo, path, stat, files, musicFiles, videoFiles, mecab_tokens } = res.json;
-      files = files || [];
+      let { zipInfo, path, stat, imageFiles, musicFiles, videoFiles, mecab_tokens } = res.json;
+      imageFiles = imageFiles || [];
       musicFiles = musicFiles || [];
       videoFiles = videoFiles || [];
 
       //files name can be 001.jpg, 002.jpg, 011.jpg, 012.jpg
       //or 1.jpg, 2.jpg 3.jpg 1.jpg
       //todo: the sort is wrong for imgFolder
-      sortFileNames(files);
+      sortFileNames(imageFiles);
       sortFileNames(musicFiles);
       sortFileNames(videoFiles);
 
-      this.setState({ files, musicFiles, videoFiles, path, fileStat: stat, zipInfo, mecab_tokens },
+      this.setState({ imageFiles, musicFiles, videoFiles, path, fileStat: stat, zipInfo, mecab_tokens },
         () => { this.bindUserInteraction() });
     } else {
       this.forceUpdate();
@@ -349,7 +349,7 @@ export default class OneBook extends Component {
   }
 
   getLastIndex() {
-    return (this.state.files || []).length - 1;
+    return (this.state.imageFiles || []).length - 1;
   }
 
   hideSpinner() {
@@ -385,7 +385,7 @@ export default class OneBook extends Component {
 
 
   next(event) {
-    if (this.state.files.length <= 1) {
+    if (this.state.imageFiles.length <= 1) {
       return;
     }
 
@@ -398,7 +398,7 @@ export default class OneBook extends Component {
   }
 
   prev(event) {
-    if (this.state.files.length <= 1) {
+    if (this.state.imageFiles.length <= 1) {
       return;
     }
     const jump = userConfig.keep_clip && this.shouldTwoPageMode() ? 2 : 1;
@@ -428,9 +428,9 @@ export default class OneBook extends Component {
 
   renderPagination() {
     if (isMobile()) { return; }
-    const { files, index } = this.state;
-    const isLast = index + 1 === files.length;
-    const text = (index + 1) + "/" + files.length;
+    const { imageFiles, index } = this.state;
+    const isLast = index + 1 === imageFiles.length;
+    const text = (index + 1) + "/" + imageFiles.length;
     const cn = classNames("one-book-foot-index-number", {
       "is-last": isLast
     })
@@ -438,19 +438,19 @@ export default class OneBook extends Component {
   }
 
   renderFileSizeAndTime() {
-    const { fileStat, files, index, zipInfo } = this.state;
+    const { fileStat, imageFiles, index, zipInfo } = this.state;
     if (fileStat) {
       let avgFileSize;
       if (zipInfo) {
         avgFileSize = zipInfo.totalImgSize / zipInfo.pageNum;
       } else {
-        avgFileSize = fileStat.size / files.length;
+        avgFileSize = fileStat.size / imageFiles.length;
       }
 
       const size = filesizeUitl(fileStat.size);
       const avg = filesizeUitl(avgFileSize);
       const mTime = dateFormat(fileStat.mtime, "isoDate");
-      const title = getBaseName(files[index]);
+      const title = getBaseName(imageFiles[index]);
       const dim = "";  //change by dom operation
       const titles = [
         "Modify Time",
@@ -466,7 +466,7 @@ export default class OneBook extends Component {
         </div>);
       const mobilePageNum = (<div className="mobile-page-num"
         onClick={this.onClickPagination.bind(this)} >
-        {`${index + 1}/${files.length}`}  </div>)
+        {`${index + 1}/${imageFiles.length}`}  </div>)
       return <div className={"one-book-file-stat"}>{texts} {mobilePageNum} </div>
     }
   }
@@ -487,7 +487,7 @@ export default class OneBook extends Component {
   }
 
   renderImage() {
-    const { files, index, twoPageMode } = this.state;
+    const { imageFiles, index, twoPageMode } = this.state;
     if (!this.hasImage()) {
       return;
     }
@@ -497,18 +497,18 @@ export default class OneBook extends Component {
         "has-music": this.hasMusic()
       });
 
-      const nextImg = this.shouldTwoPageMode() && <img className={cn} src={getFileUrl(files[index + 1])} alt="book-image"
+      const nextImg = this.shouldTwoPageMode() && <img className={cn} src={getFileUrl(imageFiles[index + 1])} alt="book-image"
         ref={img => this.nextImgRef = img}
         onLoad={this.makeTwoImageSameHeight.bind(this)}
         index={index + 1}
       />;
 
-      const preload = index < files.length - 1 && <link rel="preload" href={getFileUrl(files[index - 1])} as="image" />;
+      const preload = index < imageFiles.length - 1 && <link rel="preload" href={getFileUrl(imageFiles[index - 1])} as="image" />;
 
       return (<React.Fragment>
         <Spinner className="one-book-img-load-spinner" />
         {twoPageMode === TWO_PAGE_RIGHT && nextImg}
-        <img className={cn} src={getFileUrl(files[index])} alt="book-image"
+        <img className={cn} src={getFileUrl(imageFiles[index])} alt="book-image"
           ref={img => this.imgRef = img}
           index={index}
           onError={this.onImageError.bind(this)}
@@ -530,7 +530,7 @@ export default class OneBook extends Component {
           ref={(img) => this.imgRef = img}
           onError={this.onImageError.bind(this)}
           onLoad={this.onImgLoad.bind(this)}
-          src={getFileUrl(files[index])} />
+          src={getFileUrl(imageFiles[index])} />
       </div>);
       return (<div className="mobile-one-book-container">
         <Spinner className="one-book-img-load-spinner" />
@@ -635,7 +635,7 @@ export default class OneBook extends Component {
   }
 
   hasImage() {
-    return this.state.files.length > 0;
+    return this.state.imageFiles.length > 0;
   }
 
   renderMusicPlayer() {
@@ -696,7 +696,7 @@ export default class OneBook extends Component {
   }
 
   renderEhentaiTag() {
-    const { files, index, musicFiles, ehentai_metadata } = this.state;
+    const { imageFiles, index, musicFiles, ehentai_metadata } = this.state;
     if (ehentai_metadata && ehentai_metadata.length > 0) {
       console.log(ehentai_metadata);
       //temp
@@ -741,13 +741,13 @@ export default class OneBook extends Component {
       return <ErrorPage res={this.res} filePath={fp} />;
     }
 
-    const { files, index, musicFiles, ehentai_metadata, mecab_tokens } = this.state;
+    const { imageFiles, index, musicFiles, ehentai_metadata, mecab_tokens } = this.state;
     const bookTitle = (<div className="one-book-title" >
       <FileNameDiv mecab_tokens={mecab_tokens} filename={getBaseName(this.state.path)} />
       {this.renderPath()}
     </div>);
 
-    if (_.isEmpty(files) && _.isEmpty(musicFiles)) {
+    if (_.isEmpty(imageFiles) && _.isEmpty(musicFiles)) {
       if (this.res && !this.refs.failed) {
         return (<h3>
           <center style={{ paddingTop: "200px" }}>
@@ -766,7 +766,7 @@ export default class OneBook extends Component {
       document.title = getBaseName(this.state.path);
 
       if (isMobile() && index > 0) {
-        const _text = `${index + 1}/${files.length}`;
+        const _text = `${index + 1}/${imageFiles.length}`;
         document.title = _text + " " + document.title;
       }
     }

@@ -673,7 +673,7 @@ app.post('/api/extract', async (req, res) => {
 
         const mecab_tokens = await global.mecab_getTokens(path);
 
-        res.send({ files: tempFiles, musicFiles, videoFiles, path, stat, zipInfo, mecab_tokens });
+        res.send({ imageFiles: tempFiles, musicFiles, videoFiles, path, stat, zipInfo, mecab_tokens });
 
         historyDb.addOneRecord(filePath)
     }
