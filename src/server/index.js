@@ -395,15 +395,12 @@ async function getThumbnails(filePathes) {
     })
 
     filePathes.forEach(filePath => {
-        if (!isCompress(filePath)) {
+        if (thumbnails[filePath]) {
             return;
         }
-
-        const outputPath = path.join(cachePath, getHash(filePath));
-        let thumb = thumbnaildb.getThumbnail(filePath);
-        if (thumb) {
-            thumbnails[filePath] = fullPathToUrl(thumb);
-        } else {
+        
+        if(isCompress(filePath)){
+            //get cache file
             let cacheFiles = getCacheFiles(outputPath);
             cacheFiles = (cacheFiles && cacheFiles.files) || [];
             thumb = serverUtil.chooseThumbnailImage(cacheFiles);
