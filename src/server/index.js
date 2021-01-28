@@ -27,7 +27,7 @@ const util = global.requireUtil();
 const fileiterator = require('./file-iterator');
 const pathUtil = require("./pathUtil");
 const serverUtil = require("./serverUtil");
-const { isHiddenFile } = serverUtil;
+const { isHiddenFile, getHash } = serverUtil;
 
 const { fullPathToUrl, generateContentUrl, isExist, getScanPath } = pathUtil;
 const { isImage, isCompress, isVideo, isMusic, arraySlice,
@@ -70,7 +70,7 @@ const sevenZipHelp = require("./sevenZipHelp");
 const { listZipContentAndUpdateDb, extractAll, extractByRange } = sevenZipHelp;
 
 const db = require("./models/db");
-const { getAllFilePathes, getCacheFiles, getCacheOutputFolderPath,
+const { getAllFilePathes, getCacheFiles,
     updateStatToDb, deleteFromDb, updateStatToCacheDb, deleteFromCacheDb } = db;
 
 const app = express();
@@ -353,6 +353,7 @@ function setUpFileWatch(scan_path) {
         //remove all its child
         deleteFromDb(path);
         deleteFromZipDb(path);
+        //todo: delete thumbnail
     };
 
     watcher
@@ -393,8 +394,8 @@ function getThumbnails(filePathes) {
             return;
         }
 
-        const outputPath = getCacheOutputFolderPath(cachePath, filePath);
-        let thumb = thumbnailDb.getThumbnailFromThumbnailFolder(outputPath);
+        const outputPath = path.join(cachePath, getHash(filePath));
+        let thumb = thumbnailDb.get(filePath);
         if (thumb) {
             thumbnails[filePath] = fullPathToUrl(thumb);
         } else {
@@ -470,7 +471,7 @@ async function extractThumbnailFromZip(filePath, res, mode, config) {
 
     const isPregenerateMode = mode === "pre-generate";
     const sendable = !isPregenerateMode && res;
-    const outputPath = getCacheOutputFolderPath(cachePath, filePath);
+    const outputPath = path.join(cachePath, getHash(filePath));
     let files;
 
     function sendImage(img) {
@@ -493,7 +494,7 @@ async function extractThumbnailFromZip(filePath, res, mode, config) {
             }
         }
 
-        const thumbnail = thumbnailDb.getThumbnailFromThumbnailFolder(outputPath);
+        const thumbnail = thumbnailDb.get(filePath);
         if (thumbnail) {
             sendImage(thumbnail);
         } else {
@@ -678,7 +679,7 @@ app.post('/api/extract', async (req, res) => {
         historyDb.addOneRecord(filePath)
     }
 
-    const outputPath = getCacheOutputFolderPath(cachePath, filePath);
+    const outputPath = path.join(cachePath, getHash(filePath));
     const temp = getCacheFiles(outputPath);
 
     if (zipInfoDb.has(filePath) && temp) {

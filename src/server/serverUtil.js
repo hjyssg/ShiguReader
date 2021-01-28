@@ -4,6 +4,30 @@ const nameParser = require('../name-parser');
 const sortUtil = require("../common/sortUtil");
 const { isImage, isCompress } = util;
 
+const stringHash = require("string-hash");
+const userConfig = global.requireUserConfig();
+
+/*
+*  cache folder name and thumbnail file name
+*/
+module.exports.getHash = function (filePath) {
+    let hash;
+    // potential bug:
+    // files that have same name in the same folder, but different 
+    // but the thumbnail can be shared between scan mode and unscanned mode
+    // todo: can be fixed delete thumbnail when file change
+    if (!userConfig.readable_cache_folder_name) {
+        hash = stringHash(filePath).toString();
+    } else {
+        hash = path.basename(filePath, path.extname(filePath));
+        hash = hash.replace(/[`~!@#$%^&*()_|+\-=?;:'",.<>/]/gi, '');
+        hash += "_" + stringHash(filePath).toString()
+    }
+    hash = hash.trim();
+    return hash;
+}
+
+
 
 const filterHiddenFile = module.exports.filterHiddenFile = function (files) {
     return files.filter(f => {

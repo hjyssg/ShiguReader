@@ -1,12 +1,9 @@
 const _ = require('underscore');
-const dateFormat = require('dateformat');
 
 const pathUtil = require("../pathUtil");
-const stringHash = require("string-hash");
 const path = require('path');
 const serverUtil = require("../serverUtil");
 const util = global.requireUtil();
-const userConfig = global.requireUserConfig();
 
 const { getDirName } = serverUtil;
 const { isImage, isCompress, isMusic } = util;
@@ -220,38 +217,7 @@ module.exports.getCacheFiles = function (outputPath) {
     return null;
 }
 
-/*
-*  get cache folder path
-*/
-module.exports.getCacheOutputFolderPath = function (cachePath, zipFilePath) {
-    let outputFolder;
-    outputFolder = path.basename(zipFilePath, path.extname(zipFilePath));
-    if (!userConfig.readable_cache_folder_name) {
-        outputFolder = stringHash(zipFilePath).toString();
-    } else {
-        outputFolder = outputFolder.replace(/[`~!@#$%^&*()_|+\-=?;:'",.<>/]/gi, '');
-    }
-    outputFolder = outputFolder.trim();
 
-    let stat = getFileToInfo(zipFilePath);
-    if (!stat) {
-        //should have stat in fileToInfo
-        //but chokidar is not reliable
-        //getCacheOutputFolderPath comes before chokidar callback
-        // console.warn("[getCacheOutputFolderPath] no stat", zipFilePath);
-        outputFolder += stringHash(zipFilePath).toString()
-    } else {
-        const mdate = new Date(stat.mtimeMs);
-        mdate.setMilliseconds(0);
-        mdate.setSeconds(0);
-        mdate.setMinutes(0);
-        mdate.setHours(0);
-        const mstr = dateFormat(mdate, "yyyy-mm-dd") // mdate.getTime();
-        const fstr = (stat.size / 1000 / 1000).toFixed();
-        outputFolder = outputFolder + `${mstr} ${fstr}`;
-    }
-    return path.join(cachePath, outputFolder);
-}
 
 //!! same as file-iterator getStat()
 module.exports.updateStatToCacheDb = function (p, stats) {
