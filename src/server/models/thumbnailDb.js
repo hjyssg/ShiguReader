@@ -18,7 +18,7 @@ sqlDb.runSync = _util.promisify(sqlDb.run).bind(sqlDb);
 
 function addNewThumbnail(filePath, thumbnailFilePath) {
     const thumbnailFileName = path.basename(thumbnailFilePath);
-    sqlDb.run("INSERT OR REPLACE thumbnail_table(filePath, thumbnailFileName ) values(?, ?)", filePath, thumbnailFileName);
+    sqlDb.run("INSERT OR REPLACE INTO thumbnail_table(filePath, thumbnailFileName ) values(?, ?)", filePath, thumbnailFileName);
 }
 
 function init(filePathes) {
@@ -39,20 +39,15 @@ async function getThumbnailArr(filePathes){
 }
 
 async function getThumbnail(filePath) {
-    // const key = getHash(filePath);
-    // return thumbnailDb[key];
-
-    sql = `SELECT thumbnailFileName FROM  thumbnail_table WHERE filePath = ?`;
-    const rows = await sqldb.allSync(sql, [filePath]);
-
+    sql = `SELECT * FROM  thumbnail_table WHERE filePath = ?`;
+    const rows = await sqlDb.allSync(sql, [filePath]);
     return rows[0] && rows[0].thumbnailFileName;
 }
 
 async function getThumbCount() {
     sql = `SELECT COUNT(*) as count FROM  thumbnail_table`;
-    const rows = await sqldb.allSync(sql);
+    const rows = await sqlDb.allSync(sql);
     return rows[0].count;
-    // return _.keys(thumbnailDb).length;
 }
 
 module.exports = {

@@ -101,7 +101,8 @@ router.post('/api/lsDir', async (req, res) => {
                 }
                 const dirPath = row.filePath;
                 const files = row.files.split(sep);
-                dirThumbnails[dirPath] = await getThumbnailForFolder(files, dirPath)
+                console.warn("todo")
+                // dirThumbnails[dirPath] = await getThumbnailForFolder(files, dirPath)
             }
         }
 
@@ -200,7 +201,7 @@ async function listNoScanDir(filePath){
         fileInfos[e] = {};
     })
 
-    const thumbnails = await getThumbnails(files);
+    const thumbnails = await getThumbnails(compressFiles);
 
     const result = {
         path: filePath,
