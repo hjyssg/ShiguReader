@@ -381,7 +381,7 @@ function setUpFileWatch(scan_path) {
 }
 
 
-function getThumbnails(filePathes) {
+async function getThumbnails(filePathes) {
     const isStringInput = _.isString(filePathes);
     if(isStringInput){
         filePathes = [filePathes];
@@ -389,13 +389,18 @@ function getThumbnails(filePathes) {
 
     const thumbnails = {};
 
+    let thumbArrs = await thumbnaildb.getThumbnailArr(filePathes);
+    thumbArrs.forEach(row => {
+        thumbnails[row.filePath] = row.thumbArrs;
+    })
+
     filePathes.forEach(filePath => {
         if (!isCompress(filePath)) {
             return;
         }
 
         const outputPath = path.join(cachePath, getHash(filePath));
-        let thumb = thumbnailDb.get(filePath);
+        let thumb = thumbnaildb.getThumbnail(filePath);
         if (thumb) {
             thumbnails[filePath] = fullPathToUrl(thumb);
         } else {
@@ -494,7 +499,7 @@ async function extractThumbnailFromZip(filePath, res, mode, config) {
             }
         }
 
-        const thumbnail = thumbnailDb.get(filePath);
+        const thumbnail = await thumbnaildb.getThumbnail(filePath);
         if (thumbnail) {
             sendImage(thumbnail);
         } else {
@@ -516,7 +521,7 @@ async function extractThumbnailFromZip(filePath, res, mode, config) {
             //compress into real thumbnail
             const outputFilePath = await thumbnailGenerator(thumbnailFolderPath, outputPath, path.basename(thumb));
             if (outputFilePath) {
-                thumbnailDb.addNewThumbnail(outputFilePath);
+                thumbnailDb.addNewThumbnail(filePath, outputFilePath);
             }
         }
     } catch (e) {
@@ -571,7 +576,7 @@ app.post('/api/pregenerateThumbnails', async (req, res) => {
     const pregenBeginTime = getCurrentTime();
     const total = totalFiles.length;
 
-    const thumbnailNum = thumbnailDb.getThumbCount();
+    const thumbnailNum = await thumbnailDb.getThumbCount();
     if (thumbnailNum / totalFiles.length > 0.3) {
         totalFiles = _.shuffle(totalFiles);
     }

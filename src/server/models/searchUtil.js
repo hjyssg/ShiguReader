@@ -140,13 +140,15 @@ async function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
         _.extend(fileInfos, esObj.fileInfos)
     }
 
+    const thumbnails = await  getThumbnails(files);
+
     let end = (new Date).getTime();
     // console.log((end - beg)/1000, "to search");
     return {
         tag, author, fileInfos,
         imgFolders, imgFolderInfo,
         dirs: dirResults, 
-        thumbnails: getThumbnails(files), 
+        thumbnails, 
         zipInfo: getZipInfo(files),
         fileNameToReadTime
     };

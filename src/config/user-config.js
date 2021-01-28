@@ -20,7 +20,7 @@ config.move_file_to_recyle = true;
 
 //wehter to use meaningful file name in cache folder
 //or encode they by hash function
-config.readable_cache_folder_name = true;
+config.readable_cache_folder_name = false;
 
 //漫画阅读中两页clip在一起以后，翻页是不是还要接着拼在一起
 //wether to clip page

@@ -26,19 +26,17 @@ function getThumbnailForFolder(files, dirPath){
         serverUtil.sortFileNames(files);
         let thumbnail;
         let ii = 0;
-        while(!thumbnail && ii < files.length){
-            let tf = path.resolve(dirPath, files[ii]);
 
-            if(isImage(tf)){
-                thumbnail = tf;
-                break;
-            }
+        const filePathes = files.map(e => path.resolve(dirPath, e));
+        console.warn("todo");
 
-            thumbnail = getThumbnails(tf);
-            ii++;
-        }
+              //     if(isImage(tf)){
+        //         thumbnail = tf;
+        //         break;
+        //     }
 
-        return thumbnail;
+        const thumbnails = await getThumbnails(filePathes);
+        return thumbnails[0];
     }
 }
 
@@ -154,6 +152,7 @@ router.post('/api/lsDir', async (req, res) => {
         const files = _.keys(fileInfos);
         const all_pathes = [].concat(files, _.keys(imgFolders));
         const fileNameToReadTime = await historyDb.getFileReadTime(all_pathes);
+        const thumbnails = await getThumbnails(files);
         
         const result = {
             path: dir,
@@ -161,7 +160,7 @@ router.post('/api/lsDir', async (req, res) => {
             fileInfos,
             imgFolderInfo,
             imgFolders,
-            thumbnails: getThumbnails(files),
+            thumbnails,
             dirThumbnails,
             zipInfo: getZipInfo(files),
             fileNameToReadTime
@@ -203,6 +202,8 @@ async function listNoScanDir(filePath){
         fileInfos[e] = {};
     })
 
+    const thumbnails = await getThumbnails(files);
+
     const result = {
         path: filePath,
         mode: "lack_info_mode",
@@ -218,7 +219,7 @@ async function listNoScanDir(filePath){
         compressFiles, 
 
         fileInfos: fileInfos,
-        thumbnails: getThumbnails(compressFiles),
+        thumbnails,
         zipInfo: getZipInfo(compressFiles),
         fileNameToReadTime
     };
