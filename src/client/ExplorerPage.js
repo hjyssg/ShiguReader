@@ -266,6 +266,22 @@ export default class ExplorerPage extends Component {
         clientUtil.setSearchInputText("");
     }
 
+    resetParam(){
+        this.loadedHash = "";
+        this.videoFiles = []
+        this.compressFiles = [];
+        this.imageFiles = [];
+        this.musicFiles = [];
+        this.dirs = [];
+        this.tag = "";
+        this.author = "";
+        this.fileInfos = {};
+        this.thumbnails = {};
+        this.imgFolders = {};
+        this.imgFolderInfo = {};
+        this.res = null;
+    }
+
     componentDidUpdate(prevProps, prevState) {
         //when path changes, does not show previous path's content 
         const prevMode = this.getMode(prevProps);
@@ -274,17 +290,7 @@ export default class ExplorerPage extends Component {
         const sameMode = !differentMode;
         const pathChanged = !!(sameMode && this.getTextFromQuery() !== prevHash);
         if (differentMode || pathChanged) {
-            this.loadedHash = "";
-            this.videoFiles = []
-            this.compressFiles = [];
-            this.dirs = [];
-            this.tag = "";
-            this.author = "";
-            this.fileInfos = {};
-            this.thumbnails = {};
-            this.imgFolders = {};
-            this.imgFolderInfo = {};
-            this.res = null;
+            this.resetParam();
             this.setStateAndSetHash(this.getInitState(true));
             this.askServer();
         }
@@ -904,16 +910,7 @@ export default class ExplorerPage extends Component {
     }
 
     toggleRecursively() {
-        //reset same as componentDidUpdate()
-        this.videoFiles = []
-        this.compressFiles = [];
-        this.dirs = [];
-        this.res = null;
-        this.fileInfos = {};
-        this.thumbnails = {};
-        this.imgFolders = {};
-        this.imgFolderInfo = {};
-
+        this.resetParam();
         this.setStateAndSetHash({
             pageIndex: 1,
             isRecursive: !this.state.isRecursive
