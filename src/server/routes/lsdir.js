@@ -184,7 +184,7 @@ router.post('/api/lsDir', async (req, res) => {
 });
 
 
-async function listNoScanDir(filePath, res){
+async function listNoScanDir(filePath){
     let subFnArr = await readdir(filePath);
     let subFpArr = subFnArr.map(e => path.resolve(filePath, e));
     const fileNameToReadTime = await historyDb.getFileReadTime(subFnArr);
@@ -223,7 +223,7 @@ async function listNoScanDir(filePath, res){
         zipInfo: getZipInfo(compressFiles),
         fileNameToReadTime
     };
-    res.send(result)
+    return result;
 }
 
 router.post('/api/listImageFolderContent', async (req, res) => {
@@ -235,45 +235,42 @@ router.post('/api/listImageFolderContent', async (req, res) => {
         return;
     }
 
-    if(!isAlreadyScan(filePath)){
-        await listNoScanDir(filePath, res);
-        historyDb.addOneRecord(filePath);
-        return;
-    }
-
     let result;
-    const sqldb = db.getSQLDB();
-    let sql = `SELECT filePath FROM file_table WHERE INSTR(filePath, ?) = 1`;
-    let _files = await sqldb.allSync(sql, [filePath]);
-    _files = _files.map(e => e.filePath);
+    if(!isAlreadyScan(filePath)){
+        result =  await listNoScanDir(filePath, res);
+    }else{
+        const sqldb = db.getSQLDB();
+        let sql = `SELECT filePath FROM file_table WHERE INSTR(filePath, ?) = 1`;
+        let _files = await sqldb.allSync(sql, [filePath]);
+        _files = _files.map(e => e.filePath);
+        
+        // forEach(e => {
+        //     const pp = e.filePath;
+        //     if (isDirectParent(filePath, pp)) {
+        //         _files.push(pp);
+        //     }
+        // });
     
-    // forEach(e => {
-    //     const pp = e.filePath;
-    //     if (isDirectParent(filePath, pp)) {
-    //         _files.push(pp);
-    //     }
-    // });
-
-    const imageFiles = _files.filter(isImage)
-    const musicFiles = _files.filter(isMusic);
-    const videoFiles = _files.filter(isVideo) 
-
-    const mapping = {};
-    mapping[filePath] = _files;
-
-    let info, mecab_tokens;
-    if(!noMedataInfo){
-        info = getImgFolderInfo(mapping)[filePath];
-        mecab_tokens = await global.mecab_getTokens(filePath);
+        const imageFiles = _files.filter(isImage)
+        const musicFiles = _files.filter(isMusic);
+        const videoFiles = _files.filter(isVideo) 
+    
+        const mapping = {};
+        mapping[filePath] = _files;
+    
+        result = {
+            zipInfo: info,
+            stat: info,
+            path: filePath,
+            imageFiles, musicFiles, videoFiles, 
+        };
     }
 
-    //ugly code here
-    result = {
-        zipInfo: info,
-        stat: info,
-        path: filePath,
-        imageFiles, musicFiles, videoFiles, mecab_tokens
-    };
+    let info;
+    if(result && !noMedataInfo){
+        info = getImgFolderInfo(mapping)[filePath];
+        result.mecab_tokens = await global.mecab_getTokens(filePath);
+    }
     res.send(result);
     historyDb.addOneRecord(filePath);
 });
