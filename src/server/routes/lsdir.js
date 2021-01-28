@@ -60,7 +60,8 @@ router.post('/api/lsDir', async (req, res) => {
     }
 
     if(!isAlreadyScan(dir)){
-        await listNoScanDir(dir, res);
+        const result = await listNoScanDir(dir, res);
+        res.send(result);
         return;
     }
 
@@ -242,14 +243,15 @@ router.post('/api/listImageFolderContent', async (req, res) => {
         const sqldb = db.getSQLDB();
         let sql = `SELECT filePath FROM file_table WHERE INSTR(filePath, ?) = 1`;
         let _files = await sqldb.allSync(sql, [filePath]);
-        _files = _files.map(e => e.filePath);
-        
-        // forEach(e => {
-        //     const pp = e.filePath;
-        //     if (isDirectParent(filePath, pp)) {
-        //         _files.push(pp);
-        //     }
-        // });
+
+        // 各有利弊，选择和其他地方逻辑一致吧
+        // _files = _files.map(e => e.filePath);
+        forEach(e => {
+            const pp = e.filePath;
+            if (isDirectParent(filePath, pp)) {
+                _files.push(pp);
+            }
+        });
     
         const imageFiles = _files.filter(isImage)
         const musicFiles = _files.filter(isMusic);
@@ -257,6 +259,7 @@ router.post('/api/listImageFolderContent', async (req, res) => {
     
         const mapping = {};
         mapping[filePath] = _files;
+        info = getImgFolderInfo(mapping)[filePath];
     
         result = {
             zipInfo: info,
@@ -268,7 +271,6 @@ router.post('/api/listImageFolderContent', async (req, res) => {
 
     let info;
     if(result && !noMedataInfo){
-        info = getImgFolderInfo(mapping)[filePath];
         result.mecab_tokens = await global.mecab_getTokens(filePath);
     }
     res.send(result);
