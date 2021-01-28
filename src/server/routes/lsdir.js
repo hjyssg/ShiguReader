@@ -103,18 +103,6 @@ router.post('/api/lsDir', async (req, res) => {
                 const files = row.files.split(sep);
                 dirThumbnails[dirPath] = await getThumbnailForFolder(files, dirPath)
             }
-
-            rows.forEach(row => {
-                if(!row.files){
-                    return;
-                }
-                const dirPath = row.filePath;
-                const files = row.files.split(sep);
-
-                console.warn("todo")
-
-                // dirThumbnails[dirPath] = getThumbnailForFolder(files, dirPath)
-            })
         }
 
         //-------------------files -----------------
@@ -179,13 +167,15 @@ router.post('/api/lsDir', async (req, res) => {
         // console.log("[/api/LsDir] info look", timeUsed, "s")
         res.send(result);
     }catch(e){
-
+        console.error(e);
+        res.send({ failed: true, reason: e });
     }finally {
         //drop
         sql = `DROP TABLE IF EXISTS ${tempFileTable}`;
         sqldb.run(sql);
         sql = `DROP TABLE IF EXISTS ${tempDirTable}`
         sqldb.run(sql);
+
     }
 });
 

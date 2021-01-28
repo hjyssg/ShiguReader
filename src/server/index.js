@@ -389,7 +389,7 @@ async function getThumbnails(filePathes) {
 
     const thumbnails = {};
 
-    let thumbArrs = await thumbnaildb.getThumbnailArr(filePathes);
+    let thumbArrs = await thumbnailDb.getThumbnailArr(filePathes);
     thumbArrs.forEach(row => {
         thumbnails[row.filePath] = row.thumbArrs;
     })
@@ -401,6 +401,7 @@ async function getThumbnails(filePathes) {
         
         if(isCompress(filePath)){
             //get cache file
+            const outputPath = path.join(cachePath, getHash(filePath));
             let cacheFiles = getCacheFiles(outputPath);
             cacheFiles = (cacheFiles && cacheFiles.files) || [];
             thumb = serverUtil.chooseThumbnailImage(cacheFiles);
@@ -496,7 +497,7 @@ async function extractThumbnailFromZip(filePath, res, mode, config) {
             }
         }
 
-        const thumbnail = await thumbnaildb.getThumbnail(filePath);
+        const thumbnail = await thumbnailDb.getThumbnail(filePath);
         if (thumbnail) {
             sendImage(thumbnail);
         } else {

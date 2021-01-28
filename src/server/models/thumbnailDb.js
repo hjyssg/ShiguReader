@@ -33,7 +33,7 @@ function init(filePathes) {
 
 async function getThumbnailArr(filePathes){
     const joinStr = filePathes.join(" ");
-    sql = `SELECT * FROM  thumbnail_table WHERE INSTR(?, fileName)`;
+    sql = `SELECT * FROM  thumbnail_table WHERE INSTR(?, filePath)`;
     let rows = await sqlDb.allSync(sql, [joinStr]);
     return rows;
 }
