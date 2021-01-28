@@ -326,8 +326,8 @@ export default class ExplorerPage extends Component {
             this.mode = mode;
             this.fileInfos = fileInfos || {};
             const files = _.keys(this.fileInfos) || [];
-            this.videoFiles = files.filter(isVideo);
-            this.files = files.filter(isCompress);
+            this.videoFiles = files.filter(isVideo) || [];
+            this.files = files.filter(isCompress) || [];
             this.dirs = dirs || [];
             this.tag = tag || "";
             this.author = author || "";
@@ -457,7 +457,7 @@ export default class ExplorerPage extends Component {
     }
 
     getFilteredFiles() {
-        let files = this.files || [];
+        let files = this.files;
         files = files.concat(_.keys(this.imgFolders))
 
         function arrIntoSet(tagArr) {
@@ -879,8 +879,8 @@ export default class ExplorerPage extends Component {
                 <ItemsContainer items={hddItems} neverCollapse />
                 {videoDivGroup}
                 {this.renderPagination(filteredFiles, filteredVideos)}
-                {this.renderFilterMenu()}
-                {this.renderSortHeader()}
+                {this.files.length > 0 && this.renderFilterMenu()}
+                {zipfileItems.length > 0 && this.renderSortHeader()}
                 <div className={"file-grid container"}>
                     <div className={rowCn}>
                         {zipfileItems}
