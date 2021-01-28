@@ -21,101 +21,7 @@ const stringHash = require("string-hash");
 const historyDb = require("../models/historyDb");
 
 
-router.post('/api/listFolderOnly', async (req, res) => {
-    let dir = req.body && req.body.dir;
 
-    if (!dir || !(await isExist(dir))) {
-        console.error("[/api/lsDir]", dir, "does not exist");
-        res.send({ failed: true, reason: "NOT FOUND" });
-        return;
-    }
-
-    let pathes = await readdir(p, { withFileTypes: true });
-
-    res.send({
-        pathes
-    });
-});
-
-//e.g http://localhost:3000/explorer/?p=F:\_Anime2
-async function listNoScanDir(dir, res){
-    // one level reading is about 1ms
-    end1 = (new Date).getTime();
-
-    // let pathes = await readdir(dir, { withFileTypes: true });  this crashes pkg when scan root folder
-    let pathes = await readdir(dir);
-
-    let _dirs = []; 
-    const fileInfos = {};
-
-    for (let ii = 0; ii < pathes.length; ii++) {
-        const fp = path.join(dir, pathes[ii]);
-        
-        if(isCompress(fp) || isVideo(fp)){
-            fileInfos[fp] = {};
-        }else {
-            const ext = serverUtil.getExt(fp);
-            const isFolder = !ext;
-            if(isFolder){
-                _dirs.push(fp);
-            }
-        }
-    }
-
-    const dirThumbnails = {}
-    const imgFolders = {};
-    // const will_remove = {};
-    // for(let ii = 0; ii < _dirs.length; ii++){
-    //     const tempDir = _dirs[ii];
-    //     try {
-    //         let subArr = await readdir(tempDir, { withFileTypes: true });
-    //         let subFnArr = subArr.filter(e => e.isFile()).map(e => e.name);
-    //         let subFpArr = subFnArr.map(e => path.resolve(tempDir, e));
-
-    //         const sub1 = subFpArr.filter(isDisplayableInOnebook);
-    //         if(sub1.length > 0){
-    //             imgFolders[tempDir] = sub1;
-    //         } 
-
-    //         dirThumbnails[tempDir] = getThumbnailForFolder(subFnArr , tempDir);
-
-    //         //remove empty dir
-    //         let subDirs = subArr.filter(e => e.isDirectory());
-    //         let sub2 = subFpArr.filter(isDisplayableInExplorer);
-    //         if(subDirs.length === 0 && sub2.length === 0){
-    //             //going to remove 
-    //             will_remove[tempDir] = true;
-    //         }
-    //     }catch(e){
-    //         console.warn(e);
-    //         will_remove[tempDir] = true;
-    //     }
-    // }
-    // _dirs = _dirs.filter(e => !will_remove[e]);
-
-    end3 = (new Date).getTime();
-    console.log(`[listNoScanDir] ${(end3 - end1) / 1000}s `);
-
-    const files = _.keys(fileInfos);
-    const fileNameToReadTime = await historyDb.getFileReadTime(pathes);
-    const  result = {
-        path: dir,
-        mode: "lack_info_mode",
-
-        dirs: _dirs,
-        fileInfos: fileInfos,
-
-        // imgFolderInfo:  getImgFolderInfo(imgFolders),
-        // imgFolders,
-
-        thumbnails: getThumbnails(files),
-        // dirThumbnails,
-        zipInfo: getZipInfo(files),
-        fileNameToReadTime
-    };
-
-    res.send(result);
-}
 
 function getThumbnailForFolder(files, dirPath){
     if(files && files.length > 0){
@@ -277,24 +183,50 @@ router.post('/api/lsDir', async (req, res) => {
     }
 });
 
-async function listUnscaneImageFolderContent(filePath, res){
+
+async function listNoScanDir(filePath, res){
     let subFnArr = await readdir(filePath);
     let subFpArr = subFnArr.map(e => path.resolve(filePath, e));
+    const fileNameToReadTime = await historyDb.getFileReadTime(subFnArr);
 
+    const compressFiles = subFpArr.filter(isCompress);
     const imageFiles = subFpArr.filter(isImage);
     const musicFiles = subFpArr.filter(isMusic);
     const videoFiles = subFpArr.filter(isVideo);
+    const dirs = subFpArr.filter(e => {
+        const ext = serverUtil.getExt(fp);
+        const isFolder = !ext;
+        return isFolder;
+    })
+
+    const fileInfos = {};
+    compressFiles.forEach(e => {
+        fileInfos[e] = {};
+    })
+    videoFiles.forEach(e => {
+        fileInfos[e] = {};
+    })
 
     const result = {
+        path: filePath,
+        mode: "lack_info_mode",
+
         zipInfo: {},
         stat: {},
         path: filePath,
+
+        dirs,
         imageFiles,
         musicFiles, 
-        videoFiles
+        videoFiles,
+        compressFiles, 
+
+        fileInfos: fileInfos,
+        thumbnails: getThumbnails(compressFiles),
+        zipInfo: getZipInfo(compressFiles),
+        fileNameToReadTime
     };
     res.send(result)
-    historyDb.addOneRecord(filePath);
 }
 
 router.post('/api/listImageFolderContent', async (req, res) => {
@@ -307,7 +239,8 @@ router.post('/api/listImageFolderContent', async (req, res) => {
     }
 
     if(!isAlreadyScan(filePath)){
-        await listUnscaneImageFolderContent(filePath, res);
+        await listNoScanDir(filePath, res);
+        historyDb.addOneRecord(filePath);
         return;
     }
 
@@ -324,7 +257,7 @@ router.post('/api/listImageFolderContent', async (req, res) => {
     //     }
     // });
 
-    const files = _files.filter(isImage)
+    const imageFiles = _files.filter(isImage)
     const musicFiles = _files.filter(isMusic);
     const videoFiles = _files.filter(isVideo) 
 
@@ -342,7 +275,7 @@ router.post('/api/listImageFolderContent', async (req, res) => {
         zipInfo: info,
         stat: info,
         path: filePath,
-        files, musicFiles, videoFiles, mecab_tokens
+        imageFiles, musicFiles, videoFiles, mecab_tokens
     };
     res.send(result);
     historyDb.addOneRecord(filePath);
