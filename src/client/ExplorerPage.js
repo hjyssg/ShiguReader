@@ -69,7 +69,7 @@ export default class ExplorerPage extends Component {
     constructor(prop) {
         super(prop);
         this.state = this.getInitState();
-        this.files = [];
+        this.compressFiles = [];
         this.dirs = [];
     }
 
@@ -276,7 +276,7 @@ export default class ExplorerPage extends Component {
         if (differentMode || pathChanged) {
             this.loadedHash = "";
             this.videoFiles = []
-            this.files = [];
+            this.compressFiles = [];
             this.dirs = [];
             this.tag = "";
             this.author = "";
@@ -308,10 +308,14 @@ export default class ExplorerPage extends Component {
                  hdd_list, quickAccess, fileNameToReadTime } = res.json;
             this.loadedHash = this.getTextFromQuery();
             this.mode = mode;
+
             this.fileInfos = fileInfos || {};
             const files = _.keys(this.fileInfos) || [];
             this.videoFiles = files.filter(isVideo) || [];
-            this.files = files.filter(isCompress) || [];
+            this.compressFiles = files.filter(isCompress) || [];
+            this.musicFiles = files.filter(isMusic) || [];
+            this.imageFiles = files.filter(isImage) || [];
+            
             this.dirs = dirs || [];
             this.tag = tag || "";
             this.author = author || "";
@@ -441,7 +445,7 @@ export default class ExplorerPage extends Component {
     }
 
     getFilteredFiles() {
-        let files = this.files;
+        let files = this.compressFiles;
         files = files.concat(_.keys(this.imgFolders))
 
         function arrIntoSet(tagArr) {
@@ -647,7 +651,8 @@ export default class ExplorerPage extends Component {
             console.error(e);
         }
 
-        if (_.isEmpty(dirs) && _.isEmpty(files) && _.isEmpty(videos)) {
+        const isEmpty = [dirs,files, videos, this.musicFiles, this.imageFiles].every(_.isEmpty);
+        if (isEmpty) {
             if (!this.res) {
                 return (<CenterSpinner text={this.getTextFromQuery()} />);
             } else {
@@ -716,6 +721,21 @@ export default class ExplorerPage extends Component {
             })
         }
 
+
+        const musicItems = this.musicFiles.map((item) => {
+            const toUrl = clientUtil.getOneBookLink(this.getTextFromQuery());
+            const text = getBaseName(item);
+            const result = this.getOneLineListItem(<i className="fas fa-volume-up"></i>, text, item);
+            return <Link to={toUrl} key={item}>{result}</Link>;
+        });
+
+        const imageItems = this.imageFiles.map((item) => {
+            const toUrl = clientUtil.getOneBookLink(this.getTextFromQuery());
+            const text = getBaseName(item);
+            const result = this.getOneLineListItem(<i className="fas fa-images"></i>, text, item);
+            return <Link to={toUrl} key={item}>{result}</Link>;
+        });
+        
         //seperate av from others
         const groupByVideoType = _.groupBy(videos, item => {
             const text = getBaseName(item);
@@ -742,7 +762,6 @@ export default class ExplorerPage extends Component {
             });
             return <ItemsContainer key={key} className="video-list" items={videoItems} />
         })
-
 
         //! !todo if the file is already an image file
         files = this.getFileInPage(files);
@@ -861,9 +880,11 @@ export default class ExplorerPage extends Component {
                 }
                 <ItemsContainer items={quickAccess} neverCollapse />
                 <ItemsContainer items={hddItems} neverCollapse />
+                <ItemsContainer items={musicItems} />
+                <ItemsContainer items={imageItems} />
                 {videoDivGroup}
                 {this.renderPagination(filteredFiles, filteredVideos)}
-                {this.files.length > 0 && this.renderFilterMenu()}
+                {this.compressFiles.length > 0 && this.renderFilterMenu()}
                 {zipfileItems.length > 0 && this.renderSortHeader()}
                 <div className={"file-grid container"}>
                     <div className={rowCn}>
@@ -881,7 +902,7 @@ export default class ExplorerPage extends Component {
     toggleRecursively() {
         //reset same as componentDidUpdate()
         this.videoFiles = []
-        this.files = [];
+        this.compressFiles = [];
         this.dirs = [];
         this.res = null;
         this.fileInfos = {};
@@ -1028,18 +1049,6 @@ export default class ExplorerPage extends Component {
             </div>
         );
     }
-
-    getBookModeLink(){
-        const onebookUrl = clientUtil.getOneBookLink(this.getTextFromQuery());
-        return (
-            <Link className="exp-top-button warning" target="_blank" to={onebookUrl} >
-            <span className="fas fa-book-reader" />
-            <span>Open in Book Mode </span>
-            </Link>
-        )
-    }
-
-
 
     getExplorerToolbar(filteredFiles, filteredVideos) {
         const mode = this.getMode();
