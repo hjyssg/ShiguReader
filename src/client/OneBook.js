@@ -298,7 +298,7 @@ export default class OneBook extends Component {
   async handleRes(res) {
     this.res = res;
     if (!res.isFailed()) {
-      let { zipInfo, path, stat, imageFiles, musicFiles, videoFiles, mecab_tokens } = res.json;
+      let { zipInfo, path, stat, imageFiles, musicFiles, videoFiles, mecab_tokens, outputPath } = res.json;
       imageFiles = imageFiles || [];
       musicFiles = musicFiles || [];
       videoFiles = videoFiles || [];
@@ -310,7 +310,7 @@ export default class OneBook extends Component {
       sortFileNames(musicFiles);
       sortFileNames(videoFiles);
 
-      this.setState({ imageFiles, musicFiles, videoFiles, path, fileStat: stat, zipInfo, mecab_tokens },
+      this.setState({ imageFiles, musicFiles, videoFiles, path, fileStat: stat, zipInfo, mecab_tokens, outputPath },
         () => { this.bindUserInteraction() });
     } else {
       this.forceUpdate();
@@ -572,13 +572,13 @@ export default class OneBook extends Component {
 
     const toUrl = clientUtil.getOneBookOverviewLink(this.state.path);
     const toUrl2 = clientUtil.getOneBookWaterfallLink(this.state.path);
-    const toUrl3 = clientUtil.getExplorerLink(this.state.path);
+    const toUrl3 = clientUtil.getExplorerLink(this.state.outputPath || this.state.path);
 
     return (
       <div className="one-book-overview-path">
         <Link to={toUrl}> Overview </Link>
         <Link to={toUrl2}> Waterfall </Link>
-        {this.isImgFolder() && <Link to={toUrl3}> Explorer </Link>}
+        <Link to={toUrl3}> Explorer </Link>
       </div>);
   }
 
