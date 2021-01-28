@@ -569,11 +569,13 @@ export default class OneBook extends Component {
 
     const toUrl = clientUtil.getOneBookOverviewLink(this.state.path);
     const toUrl2 = clientUtil.getOneBookWaterfallLink(this.state.path);
+    const toUrl3 = clientUtil.getExplorerLink(this.state.path);
 
     return (
       <div className="one-book-overview-path">
-        <Link to={toUrl}> overview </Link>
-        <Link to={toUrl2}> waterfall </Link>
+        <Link to={toUrl}> Overview </Link>
+        <Link to={toUrl2}> Waterfall </Link>
+        {this.isImgFolder() && <Link to={toUrl3}> Explorer </Link>}
       </div>);
   }
 
@@ -723,18 +725,6 @@ export default class OneBook extends Component {
     }
   }
 
-  renderVideoLink(){
-    const { videoFiles } = this.state;
-
-    const videos = videoFiles.map((item) => {
-      const toUrl = clientUtil.getVideoPlayerLink(item);
-      const text =  <span className="video-link-text">{ getBaseName(item)} </span>;
-      const result = <i className="far fa-file-video">{text}</i>;
-      return <Link className="video-link" target="_blank" to={toUrl} key={item}>{result}</Link>;
-    });
-    return <div className="one-book-video-container">{videos} </div>
-  }
-
   render() {
     if (this.isFailedLoading()) {
       const fp = this.getTextFromQuery();
@@ -795,7 +785,6 @@ export default class OneBook extends Component {
         {this.renderSecondBar()}
         {this.renderOverviewLink()}
         {this.renderEhentaiTag()}
-        {this.renderVideoLink()}
       </div>
     );
   }

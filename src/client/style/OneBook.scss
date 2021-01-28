@@ -288,7 +288,7 @@
   a {
     font-size: 20px; 
   }
-  a:first-child {
+  a:not(:last-child) {
     margin-right: 30px;
   }
 }

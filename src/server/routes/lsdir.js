@@ -114,10 +114,10 @@ router.post('/api/lsDir', async (req, res) => {
 
         //-------------------files -----------------
         if(isRecursive){
-            sql = `SELECT filePath FROM ${tempFileTable} WHERE isDisplayableInExplorer = true`;
+            sql = `SELECT filePath FROM ${tempFileTable}`;
             rows = await sqldb.allSync(sql);
         }else{
-            sql = `SELECT filePath FROM ${tempFileTable} WHERE dirPath = ? AND isDisplayableInExplorer = true`;
+            sql = `SELECT filePath FROM ${tempFileTable} WHERE dirPath = ?`;
             rows = await sqldb.allSync(sql, [dir]);
         }
         rows.forEach(obj => {
@@ -194,16 +194,13 @@ async function listNoScanDir(filePath, res){
     const musicFiles = subFpArr.filter(isMusic);
     const videoFiles = subFpArr.filter(isVideo);
     const dirs = subFpArr.filter(e => {
-        const ext = serverUtil.getExt(fp);
+        const ext = serverUtil.getExt(e);
         const isFolder = !ext;
         return isFolder;
     })
 
     const fileInfos = {};
-    compressFiles.forEach(e => {
-        fileInfos[e] = {};
-    })
-    videoFiles.forEach(e => {
+    subFpArr.forEach(e => {
         fileInfos[e] = {};
     })
 
