@@ -244,13 +244,10 @@ router.post('/api/listImageFolderContent', async (req, res) => {
         let sql = `SELECT filePath FROM file_table WHERE INSTR(filePath, ?) = 1`;
         let _files = await sqldb.allSync(sql, [filePath]);
 
-        // 各有利弊，选择和其他地方逻辑一致吧
-        // _files = _files.map(e => e.filePath);
-        _files.forEach(e => {
-            const pp = e.filePath;
-            if (isDirectParent(filePath, pp)) {
-                _files.push(pp);
-            }
+        _files = _files.map(e => e.filePath);
+        // 单层或者递归，各有利弊，和其他地方逻辑一致吧
+        _files = _files.filter(pp => {
+            return isDirectParent(filePath, pp)
         });
     
         const imageFiles = _files.filter(isImage)
@@ -259,7 +256,7 @@ router.post('/api/listImageFolderContent', async (req, res) => {
     
         const mapping = {};
         mapping[filePath] = _files;
-        info = getImgFolderInfo(mapping)[filePath];
+        const info = getImgFolderInfo(mapping)[filePath];
     
         result = {
             zipInfo: info,
@@ -269,7 +266,6 @@ router.post('/api/listImageFolderContent', async (req, res) => {
         };
     }
 
-    let info;
     if(result && !noMedataInfo){
         result.mecab_tokens = await global.mecab_getTokens(filePath);
     }
