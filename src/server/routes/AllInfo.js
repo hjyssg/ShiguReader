@@ -18,8 +18,13 @@ router.post('/api/tagInfo', async (req, res) => {
     + `(SELECT * FROM file_table where isCompress = true ) AS a `
     + `ON a.filePath = b.filePath GROUP BY tag HAVING a.sTime = maxTime AND count > 1 ORDER BY count DESC`;
 
+    debugger
+
     //todo: sort by  a.sTime DESC
     let author_rows = await sqldb.allSync(sql);
+
+
+
     author_rows.forEach(row => {
         row.thumbnail = getThumbnails(row.filePath)
     })
@@ -46,7 +51,7 @@ router.post('/api/allInfo', async (req, res) => {
     let allThumbnails = {};
     const files = getAllFilePathes().filter(isDisplayableInExplorer);
     if (needThumbnail) {
-        allThumbnails = getThumbnails(files);
+        allThumbnails = await getThumbnails(files);
     }
 
     const fileToInfo = {};
