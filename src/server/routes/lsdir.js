@@ -21,8 +21,6 @@ const stringHash = require("string-hash");
 const historyDb = require("../models/historyDb");
 
 
-
-
 function getThumbnailForFolder(files, dirPath){
     if(files && files.length > 0){
         serverUtil.sortFileNames(files);

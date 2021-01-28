@@ -1,5 +1,7 @@
 const path = require('path');
 const _ = require('underscore');
+const serverUtil = require("../serverUtil");
+const { getHash } = serverUtil;
 
 
 let thumbnailDb = {};
@@ -15,8 +17,8 @@ function init(filePathes) {
     })
 }
 
-function getThumbnailFromThumbnailFolder(outputPath) {
-    const key = path.basename(outputPath);
+function get(filePath) {
+    const key = getHash(filePath);
     return thumbnailDb[key];
 }
 
@@ -27,6 +29,6 @@ function getThumbCount() {
 module.exports = {
     addNewThumbnail,
     init,
-    getThumbnailFromThumbnailFolder,
+    get,
     getThumbCount,
 };
