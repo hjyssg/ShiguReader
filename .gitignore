@@ -17,6 +17,7 @@ imageMagick_cache
 image_convert_cache
 zip_output
 thumbnails
+thumbnails_2
 gdata.json
 temp_json_info.json
 test_screenshot
