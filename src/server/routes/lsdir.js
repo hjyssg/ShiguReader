@@ -281,7 +281,7 @@ async function listUnscaneImageFolderContent(filePath, res){
     let subFnArr = await readdir(filePath);
     let subFpArr = subFnArr.map(e => path.resolve(filePath, e));
 
-    const files = subFpArr.filter(isImage);
+    const imageFiles = subFpArr.filter(isImage);
     const musicFiles = subFpArr.filter(isMusic);
     const videoFiles = subFpArr.filter(isVideo);
 
@@ -289,7 +289,7 @@ async function listUnscaneImageFolderContent(filePath, res){
         zipInfo: {},
         stat: {},
         path: filePath,
-        files,
+        imageFiles,
         musicFiles, 
         videoFiles
     };
