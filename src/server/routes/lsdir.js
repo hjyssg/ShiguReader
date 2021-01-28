@@ -64,35 +64,34 @@ async function listNoScanDir(dir, res){
 
     const dirThumbnails = {}
     const imgFolders = {};
-    const will_remove = {};
-    for(let ii = 0; ii < _dirs.length; ii++){
-        const tempDir = _dirs[ii];
-        try {
-            let subArr = await readdir(tempDir, { withFileTypes: true });
-            let subFnArr = subArr.filter(e => e.isFile()).map(e => e.name);
-            let subFpArr = subFnArr.map(e => path.resolve(tempDir, e));
+    // const will_remove = {};
+    // for(let ii = 0; ii < _dirs.length; ii++){
+    //     const tempDir = _dirs[ii];
+    //     try {
+    //         let subArr = await readdir(tempDir, { withFileTypes: true });
+    //         let subFnArr = subArr.filter(e => e.isFile()).map(e => e.name);
+    //         let subFpArr = subFnArr.map(e => path.resolve(tempDir, e));
 
-            const sub1 = subFpArr.filter(isDisplayableInOnebook);
-            if(sub1.length > 0){
-                imgFolders[tempDir] = sub1;
-            } 
+    //         const sub1 = subFpArr.filter(isDisplayableInOnebook);
+    //         if(sub1.length > 0){
+    //             imgFolders[tempDir] = sub1;
+    //         } 
 
-            dirThumbnails[tempDir] = getThumbnailForFolder(subFnArr , tempDir);
+    //         dirThumbnails[tempDir] = getThumbnailForFolder(subFnArr , tempDir);
 
-            //remove empty dir
-            let subDirs = subArr.filter(e => e.isDirectory());
-            let sub2 = subFpArr.filter(isDisplayableInExplorer);
-            if(subDirs.length === 0 && sub2.length === 0){
-                //going to remove 
-                will_remove[tempDir] = true;
-            }
-        }catch(e){
-            console.warn(e);
-            will_remove[tempDir] = true;
-        }
-    }
-
-    _dirs = _dirs.filter(e => !will_remove[e]);
+    //         //remove empty dir
+    //         let subDirs = subArr.filter(e => e.isDirectory());
+    //         let sub2 = subFpArr.filter(isDisplayableInExplorer);
+    //         if(subDirs.length === 0 && sub2.length === 0){
+    //             //going to remove 
+    //             will_remove[tempDir] = true;
+    //         }
+    //     }catch(e){
+    //         console.warn(e);
+    //         will_remove[tempDir] = true;
+    //     }
+    // }
+    // _dirs = _dirs.filter(e => !will_remove[e]);
 
     end3 = (new Date).getTime();
     console.log(`[listNoScanDir] ${(end3 - end1) / 1000}s `);
@@ -106,11 +105,11 @@ async function listNoScanDir(dir, res){
         dirs: _dirs,
         fileInfos: fileInfos,
 
-        imgFolderInfo:  getImgFolderInfo(imgFolders),
-        imgFolders,
+        // imgFolderInfo:  getImgFolderInfo(imgFolders),
+        // imgFolders,
 
         thumbnails: getThumbnails(files),
-        dirThumbnails,
+        // dirThumbnails,
         zipInfo: getZipInfo(files),
         fileNameToReadTime
     };
@@ -315,16 +314,15 @@ router.post('/api/listImageFolderContent', async (req, res) => {
     let result;
     const sqldb = db.getSQLDB();
     let sql = `SELECT filePath FROM file_table WHERE INSTR(filePath, ?) = 1`;
-    let fake_zip_results = await sqldb.allSync(sql, [filePath]);
-
-    const _files = [];
-
-    fake_zip_results.forEach(e => {
-        const pp = e.filePath;
-        if (isDirectParent(filePath, pp)) {
-            _files.push(pp);
-        }
-    });
+    let _files = await sqldb.allSync(sql, [filePath]);
+    _files = _files.map(e => e.filePath);
+    
+    // forEach(e => {
+    //     const pp = e.filePath;
+    //     if (isDirectParent(filePath, pp)) {
+    //         _files.push(pp);
+    //     }
+    // });
 
     const files = _files.filter(isImage)
     const musicFiles = _files.filter(isMusic);
