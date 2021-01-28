@@ -21,19 +21,14 @@ const stringHash = require("string-hash");
 const historyDb = require("../models/historyDb");
 
 
-function getThumbnailForFolder(files, dirPath){
+async function getThumbnailForFolder(files, dirPath){
     if(files && files.length > 0){
         serverUtil.sortFileNames(files);
-        let thumbnail;
-        let ii = 0;
-
         const filePathes = files.map(e => path.resolve(dirPath, e));
-        console.warn("todo");
-
-              //     if(isImage(tf)){
-        //         thumbnail = tf;
-        //         break;
-        //     }
+        const imgs = filePathes.filter(isImage);
+        if(imgs[0]){
+            return imgs[0];
+        }
 
         const thumbnails = await getThumbnails(filePathes);
         return thumbnails[0];
@@ -98,6 +93,17 @@ router.post('/api/lsDir', async (req, res) => {
             rows = await sqldb.allSync(sql);
 
             dirs = rows.map(e => e.filePath);
+
+            for(let ii = 0; ii < rows.length; ii++){
+                const row = rows[ii];
+                if(!row.files){
+                    continue;
+                }
+                const dirPath = row.filePath;
+                const files = row.files.split(sep);
+                dirThumbnails[dirPath] = await getThumbnailForFolder(files, dirPath)
+            }
+
             rows.forEach(row => {
                 if(!row.files){
                     return;
@@ -105,7 +111,9 @@ router.post('/api/lsDir', async (req, res) => {
                 const dirPath = row.filePath;
                 const files = row.files.split(sep);
 
-                dirThumbnails[dirPath] = getThumbnailForFolder(files, dirPath)
+                console.warn("todo")
+
+                // dirThumbnails[dirPath] = getThumbnailForFolder(files, dirPath)
             })
         }
 

@@ -18,16 +18,12 @@ router.post('/api/tagInfo', async (req, res) => {
     + `(SELECT * FROM file_table where isCompress = true ) AS a `
     + `ON a.filePath = b.filePath GROUP BY tag HAVING a.sTime = maxTime AND count > 1 ORDER BY count DESC`;
 
-    debugger
+    console.warn("todo")
 
     //todo: sort by  a.sTime DESC
     let author_rows = await sqldb.allSync(sql);
 
-
-
-    author_rows.forEach(row => {
-        row.thumbnail = getThumbnails(row.filePath)
-    })
+ 
 
 
     sql = `SELECT a.filePath, max(a.sTime) as maxTime , b.tag, COUNT(b.tag) as count, b.type, b.subtype ` 
@@ -35,9 +31,12 @@ router.post('/api/tagInfo', async (req, res) => {
     + `(SELECT * FROM file_table where isCompress = true) AS a `
     + `ON a.filePath = b.filePath GROUP BY tag HAVING a.sTime = maxTime AND count > 1 ORDER BY count DESC`;
     let tag_rows = await sqldb.allSync(sql);
-    tag_rows.forEach(row => {
-        row.thumbnail = getThumbnails(row.filePath)
-    })
+    const allRows = [].concat(author_rows, tag_rows);
+
+    for(let ii = 0; ii <  allRows.length; ii++){
+        const row =  allRows[ii];
+        row.thumbnail = await getThumbnails(row.filePath)
+    }
 
     res.send({
         author_rows, 

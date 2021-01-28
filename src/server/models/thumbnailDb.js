@@ -58,6 +58,7 @@ async function getThumbCount() {
 module.exports = {
     addNewThumbnail,
     init,
+    getThumbnailArr,
     getThumbnail,
     getThumbCount,
 };
