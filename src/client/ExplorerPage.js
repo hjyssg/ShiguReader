@@ -69,8 +69,7 @@ export default class ExplorerPage extends Component {
     constructor(prop) {
         super(prop);
         this.state = this.getInitState();
-        this.compressFiles = [];
-        this.dirs = [];
+        this.resetParam();
     }
 
     getNumPerPage() {
@@ -1043,6 +1042,8 @@ export default class ExplorerPage extends Component {
                     <div className="file-count">{"Zip: " + filteredFiles.length} </div>
                     <div className="file-count">{"Page: " + totalPageNum} </div>
                     <div className="file-count">{"Video: " + filteredVideos.length} </div>
+                    <div className="file-count">{"Music: " + this.musicFiles.length} </div>
+                    <div className="file-count">{"Image: " + this.imageFiles.length} </div>
                     <div className="file-count">{"Folder: " + this.dirs.length} </div>
                     <div className="file-count" title={title}>{"Total: " + filesizeUitl(totalSize)} </div>
                 </div>
