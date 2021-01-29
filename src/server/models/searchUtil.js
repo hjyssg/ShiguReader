@@ -1,17 +1,12 @@
 
 const serverUtil = require("../serverUtil");
 const db = require("../models/db");
-// const parse = serverUtil.parse;
-// const zipInfoDb = require("../models/zipInfoDb");
-// const { getZipInfo } = zipInfoDb;
 const util = global.requireUtil();
 const path = require('path');
 const _ = require('underscore');
 const isWindows = require('is-windows');
 const pathUtil = require("../pathUtil");
 const { isSub } = pathUtil;
-// const historyDb = require("../models/historyDb");
-
 
 function isEqual(a, b) {
     a = a || "";

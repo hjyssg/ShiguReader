@@ -50,9 +50,6 @@ function getFeature(filePath){
 
     // page number is not related
     // 算法特别重视页数，但实际页数是很不重要的参数
-    // const zipInfo = getZipInfo([filePath])[filePath];
-    // let pageNumber = (zipInfo && zipInfo.pageNum) || 20;
-    // pageNumber = Math.log10(pageNumber);
 
     const result = nameParser.parse(fileName);
 

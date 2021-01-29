@@ -12,8 +12,7 @@ router.get('/api/exhentaiApi', function (req, res) {
     let allFiles = getAllFilePathes().filter(isCompress);
 
     const zipInfoDb = require("../models/zipInfoDb");
-    const { getZipInfo } = zipInfoDb;
-    const zipInfo = getZipInfo(allFiles);
+    const zipInfo = zipInfoDb.getZipInfo(allFiles);
 
     const result = {};
     allFiles.forEach(e => {

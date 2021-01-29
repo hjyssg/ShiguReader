@@ -1,13 +1,11 @@
 const loki = require("lokijs");
 
 const util = global.requireUtil();
-const { isCompress } = util;
+const { getCurrentTime, isDisplayableInExplorer, isDisplayableInOnebook, isImage, isMusic, isCompress, isVideo } = util;
 
 let loki_db;
 let zip_content_db;
-
 const _ = require('underscore');
-
 
 module.exports.init = function (path) {
     loki_db = new loki(path, {
@@ -57,35 +55,40 @@ const getMusicNum = module.exports.getMusicNum = function (filePath) {
     }
 }
 
-//get image file in total
-const getTotalImgSize = module.exports.getTotalImgSize = function (filePath) {
-    if (has(filePath)) {
-        const contentInfo = getData(filePath);
-        return +(contentInfo.totalImgSize) || 0;
-    } else {
-        return 0;
-    }
-}
-
-
 module.exports.getZipInfo = function (filePathes) {
     const fpToInfo = {};
 
+    const isStringInput = _.isString(filePathes);
+    if(isStringInput){
+        filePathes = [filePathes];
+    }
+
     filePathes.forEach(filePath => {
         if (isCompress(filePath) && has(filePath)) {
-            let pageNum = getPageNum(filePath);
-            const musicNum = getMusicNum(filePath);
-            const totalImgSize = getTotalImgSize(filePath);
+            const contentInfo = getData(filePath);
+
+            const files = contentInfo.files;
+            const pageNum = files.filter(isImage).length;
+            const musicNum = files.filter(isMusic).length;
+            const videoNum = files.filter(isVideo).length;
+            const totalImgSize = +(contentInfo.totalImgSize) || 0;
 
             const entry = {
                 pageNum,
                 musicNum,
+                videoNum,
+                totalNum: files.length,
                 totalImgSize
             }
 
             fpToInfo[filePath] = entry;
         }
     });
+
+    if(isStringInput){
+        return fpToInfo[filePathes[0]]
+    }
+
     return fpToInfo;
 }
 
@@ -105,22 +108,21 @@ module.exports.updateZipDb = function (filePath, info) {
         return;
     }
 
-    const { pageNum, musicNum, totalImgSize } = info;
+    const {  totalImgSize, files } = info;
+    console.assert(files && files.length >= 0);
+
+    const entry = {
+            filePath,
+            totalImgSize,
+            files: files
+    };
 
     //!!bug if shut the down the program, all data will be lost
     if (has(filePath)) {
         let data = getData(filePath);
-        data.filePath = filePath;
-        data.pageNum = pageNum;
-        data.musicNum = musicNum;
-        data.totalImgSize = totalImgSize;
+        data = _.extend(data, entry)
         zip_content_db.update(data);
     } else {
-        zip_content_db.insert({
-            filePath,
-            pageNum,
-            totalImgSize,
-            musicNum
-        });
+        zip_content_db.insert(entry);
     }
 }

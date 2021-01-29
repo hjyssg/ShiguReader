@@ -120,22 +120,17 @@ module.exports.listZipContentAndUpdateDb = async function (filePath) {
         LIST_QUEUE[filePath] = true;
 
         const { files, fileInfos } = read7zOutput(text);
-        const musicFiles = files.filter(isMusic);
 
-        let totalImgNum = 0;
         let totalImgSize = 0;
         files.forEach((e, ii) => {
             if (isImage(e)) {
-                totalImgNum++;
                 totalImgSize += parseFloat(fileInfos[ii].size) || 0;
             }
         })
 
         const info = {
-            pageNum: totalImgNum,
             totalImgSize,
-            avgImgSize: totalImgSize / totalImgNum,
-            musicNum: musicFiles.length
+            files
         };
 
         updateZipDb(filePath, info);
