@@ -176,6 +176,11 @@
     display: flex;
     font-size: 14px;
 
+    .video-num{
+      color: $font_dark_orange;
+      margin-left: 15px;
+    }
+
     .mobile-page-num {
       cursor: pointer;
       margin-left: 15px;
