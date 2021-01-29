@@ -22,13 +22,12 @@ module.exports.addNewThumbnail = function (filePath, thumbnailFilePath) {
 }
 
 module.exports.init = function (filePathes) {
-    // filePathes.forEach(e => {
-    //     addNewThumbnail(e);
-    // })
-
     //todo iterate all thumbnail 
     //if the real file is delete
     //remove sql table
+
+    //todo2: if the thumgbnail is deleted, but sql still keep the record
+
 }
 
 
