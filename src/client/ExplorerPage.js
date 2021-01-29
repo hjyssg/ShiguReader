@@ -730,14 +730,14 @@ export default class ExplorerPage extends Component {
 
 
         const musicItems = this.musicFiles.map((item) => {
-            const toUrl = clientUtil.getOneBookLink(this.getTextFromQuery());
+            const toUrl = clientUtil.getOneBookLink(getDir(item));
             const text = getBaseName(item);
             const result = this.getOneLineListItem(<i className="fas fa-volume-up"></i>, text, item);
             return <Link to={toUrl} key={item}>{result}</Link>;
         });
 
         const imageItems = this.imageFiles.map((item, ii) => {
-            const toUrl = clientUtil.getOneBookLink(this.getTextFromQuery(), ii);
+            const toUrl = clientUtil.getOneBookLink(getDir(item), ii);
             const text = getBaseName(item);
             const result = this.getOneLineListItem(<i className="fas fa-images"></i>, text, item);
             return <Link to={toUrl} key={item}>{result}</Link>;
