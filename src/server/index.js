@@ -465,15 +465,16 @@ async function _decorate(resObj){
     console.assert(fileInfos &&  dirs && imgFolders);
 
     const files = _.keys(fileInfos);
-    resObj.zipInfo = getZipInfo(files);
-
-    let thumbnails = await getThumbnailsForZip(files);
-    let dirThumbnails = await getThumbnailForFolders(dirs);
-    resObj.thumbnails = thumbnails = _.extend(thumbnails, dirThumbnails);
-
     const all_pathes = [].concat(files, _.keys(imgFolders));
-    const fileNameToReadTime = await historyDb.getFileReadTime(all_pathes);
 
+    // let thumbnails = await getThumbnailsForZip(files);
+    // let dirThumbnails = await getThumbnailForFolders(dirs);
+    // const fileNameToReadTime = await historyDb.getFileReadTime(all_pathes);
+    const [thumbnails, dirThumbnails, fileNameToReadTime ] = await Promise.all([getThumbnailsForZip(files),
+                                                                                getThumbnailForFolders(dirs), 
+                                                                                historyDb.getFileReadTime(all_pathes)]);
+    resObj.zipInfo = getZipInfo(files);
+    resObj.thumbnails = _.extend(thumbnails, dirThumbnails);
     resObj.fileNameToReadTime = fileNameToReadTime;
 
     const imgFolderInfo = getImgFolderInfo(imgFolders);
