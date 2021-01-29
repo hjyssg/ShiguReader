@@ -492,7 +492,12 @@ export default class OneBook extends Component {
   renderImage() {
     const { imageFiles, index, twoPageMode } = this.state;
     if (!this.hasImage()) {
-      return;
+
+      if(this.hasMusic()){
+        return (<i className="fas fa-headphones-alt placeholder-for-music"></i>)
+      }else{
+        return;
+      }
     }
 
     if (!isMobile()) {

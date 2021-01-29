@@ -28,6 +28,7 @@
     @include flex_center_display;
     flex-flow: column;
 
+
     &.two-page-mode {
       flex-flow: row;
     }
@@ -38,6 +39,18 @@
 
     &.has-music {
       min-width: 500px;
+
+      //https://w3bits.com/rainbow-text/
+      .placeholder-for-music{
+        margin-top: 50px;
+        font-size: 200px;
+        background-image: linear-gradient(to left, #ffff55, #abffab, #899dff);
+        color: transparent;
+        background-clip: text;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+
       .aji-music-player {
         max-width: 80%;
       }
@@ -309,3 +322,4 @@
     }
   }
 }
+
