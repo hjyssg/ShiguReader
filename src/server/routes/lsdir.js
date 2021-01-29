@@ -117,13 +117,10 @@ router.post('/api/lsDir', async (req, res) => {
         // timeUsed = (time2 - time1) / 1000;
         // console.log("[/api/LsDir] sql time", timeUsed, "s")
 
-        const imgFolderInfo = getImgFolderInfo(imgFolders);
-
         let result = {
             path: dir,
             dirs: dirs,
             fileInfos,
-            imgFolderInfo,
             imgFolders
         };
 
@@ -164,7 +161,7 @@ async function listNoScanDir(filePath){
         fileInfos[e] = {};
     })
 
-    const result = {
+    let result = {
         path: filePath,
         mode: "lack_info_mode",
 

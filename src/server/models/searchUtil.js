@@ -13,6 +13,7 @@ const pathUtil = require("../pathUtil");
 const { isSub } = pathUtil;
 const historyDb = require("../models/historyDb");
 
+const { isAlreadyScan, _decorate } = serverUtil.common;
 
 function isEqual(a, b) {
     a = a || "";
@@ -128,30 +129,25 @@ async function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
         fileInfos[pp] = db.getFileToInfo(pp);
     })
 
-    const imgFolderInfo = getImgFolderInfo(imgFolders);
-    const { getThumbnails } = serverUtil.common;
-    const files = _.keys(fileInfos);
-    const all_pathes = [].concat(files, _.keys(imgFolders));
-    const fileNameToReadTime = await historyDb.getFileReadTime(all_pathes);
-
     let esObj = await searchEveryPromise;
     if(esObj){
         dirResults = _.uniq(dirResults.concat(esObj.dirResults));
         _.extend(fileInfos, esObj.fileInfos)
     }
 
-    const thumbnails = await  getThumbnails(files);
 
     let end = (new Date).getTime();
     // console.log((end - beg)/1000, "to search");
-    return {
-        tag, author, fileInfos,
-        imgFolders, imgFolderInfo,
-        dirs: dirResults, 
-        thumbnails, 
-        zipInfo: getZipInfo(files),
-        fileNameToReadTime
-    };
+    let result = {
+        tag, author, 
+
+        fileInfos,
+        imgFolders, 
+        dirs: dirResults
+    } 
+    result = await _decorate(result);
+
+    return result;
 }
 
 module.exports = searchByTagAndAuthor;

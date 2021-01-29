@@ -381,7 +381,7 @@ function setUpFileWatch(scan_path) {
 }
 
 
-async function getThumbnails(filePathes) {
+async function getThumbnailsForZip(filePathes) {
     const isStringInput = _.isString(filePathes);
     if(isStringInput){
         filePathes = [filePathes];
@@ -462,12 +462,12 @@ function isAlreadyScan(dir){
 
 async function _decorate(resObj){
     const { fileInfos, dirs, imgFolders } = resObj;
-    console.assert(fileInfos &&  dirs && imgFolders)
+    console.assert(fileInfos &&  dirs && imgFolders);
 
     const files = _.keys(fileInfos);
     resObj.zipInfo = getZipInfo(files);
 
-    let thumbnails = await getThumbnails(files);
+    let thumbnails = await getThumbnailsForZip(files);
     let dirThumbnails = await getThumbnailForFolders(dirs);
     resObj.thumbnails = thumbnails = _.extend(thumbnails, dirThumbnails);
 
@@ -475,6 +475,9 @@ async function _decorate(resObj){
     const fileNameToReadTime = await historyDb.getFileReadTime(all_pathes);
 
     resObj.fileNameToReadTime = fileNameToReadTime;
+
+    const imgFolderInfo = getImgFolderInfo(imgFolders);
+    res.imgFolderInfo = imgFolderInfo;
 
     return resObj;
 }
