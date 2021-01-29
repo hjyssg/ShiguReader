@@ -441,7 +441,7 @@ export default class OneBook extends Component {
   }
 
   renderFileSizeAndTime() {
-    const { fileStat, imageFiles, index, zipInfo } = this.state;
+    const { fileStat, imageFiles, index, zipInfo, videoFiles } = this.state;
     if (fileStat) {
       let avgFileSize;
       if (zipInfo) {
@@ -470,7 +470,9 @@ export default class OneBook extends Component {
       const mobilePageNum = (<div className="mobile-page-num"
         onClick={this.onClickPagination.bind(this)} >
         {`${index + 1}/${this.getImageLength()}`}  </div>)
-      return <div className={"one-book-file-stat"}>{texts} {mobilePageNum} </div>
+
+      const videoNum = videoFiles.length > 0 && (<div className="video-num"> {` video: ${videoFiles.length}`}  </div>)
+      return <div className={"one-book-file-stat"}>{texts} {mobilePageNum} {videoNum} </div>
     }
   }
 
