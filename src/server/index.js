@@ -64,7 +64,7 @@ const searchByTagAndAuthor = require("./models/searchUtil");
 const zipInfoDb = require("./models/zipInfoDb");
 let zip_content_db_path = path.join(rootPath, userConfig.workspace_name, "zip_info");
 zipInfoDb.init(zip_content_db_path);
-const { getPageNum, getMusicNum, deleteFromZipDb, getZipInfo } = zipInfoDb;
+const { deleteFromZipDb } = zipInfoDb;
 
 const sevenZipHelp = require("./sevenZipHelp");
 const { listZipContentAndUpdateDb, extractAll, extractByRange } = sevenZipHelp;
@@ -408,7 +408,7 @@ async function getThumbnailsForZip(filePathes) {
             if (thumb) {
                 thumbnails[filePath] = fullPathToUrl(thumb);
             } else if (zipInfoDb.has(filePath)) {
-                const pageNum = getPageNum(filePath);
+                const pageNum = zipInfoDb.getZipInfo(filePath).pageNum;
                 if (pageNum === 0) {
                     thumbnails[filePath] = "NOT_THUMBNAIL_AVAILABLE";
                 }
@@ -473,7 +473,7 @@ async function _decorate(resObj){
     const [thumbnails, dirThumbnails, fileNameToReadTime ] = await Promise.all([getThumbnailsForZip(files),
                                                                                 getThumbnailForFolders(dirs), 
                                                                                 historyDb.getFileReadTime(all_pathes)]);
-    resObj.zipInfo = getZipInfo(files);
+    resObj.zipInfo = zipInfoDb.getZipInfo(files);
     resObj.thumbnails = _.extend(thumbnails, dirThumbnails);
     resObj.fileNameToReadTime = fileNameToReadTime;
 
@@ -721,7 +721,7 @@ app.post('/api/extract', async (req, res) => {
         });
         let zipInfo;
         if (tempFiles.length > 0) {
-            zipInfo = getZipInfo([path])[path];
+            zipInfo = zipInfoDb.getZipInfo(path);
         }
 
         const mecab_tokens = await global.mecab_getTokens(path);
@@ -735,9 +735,8 @@ app.post('/api/extract', async (req, res) => {
     const temp = getCacheFiles(outputPath);
 
     if (zipInfoDb.has(filePath) && temp) {
-        const pageNum = getPageNum(filePath);
-        const musicNum = getMusicNum(filePath);
-        const totalNum = pageNum + musicNum;
+        let tempZipInfo = zipInfoDb.getZipInfo(filePath);
+        const totalNum = tempZipInfo.totalNum;
         const _files = temp.files || [];
 
         if (totalNum > 0 && _files.length >= totalNum) {
