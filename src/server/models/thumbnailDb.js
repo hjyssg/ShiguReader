@@ -4,6 +4,10 @@ const _ = require('underscore');
 const userConfig = global.requireUserConfig();
 
 const pathUtil = require("../pathUtil");
+
+const {
+    isSub
+} = pathUtil;
 const rootPath = pathUtil.getRootPath();
 
 let thumbnail_db_path = path.join(rootPath, userConfig.workspace_name, "thumbnail_sql_db");
@@ -51,6 +55,9 @@ module.exports.getThumbnailArr = async function (filePathes){
 module.exports.getThumbnailForFolder = async function(filePath) {
     sql = `SELECT * FROM  thumbnail_table WHERE INSTR(filePath, ?) > 0`;
     let rows = await sqlDb.allSync(sql, [filePath]);
+    rows = rows.filter(row => {
+        return isSub(filePath, row.filePath)
+    });
     _add_col(rows)
     return rows;
 }
