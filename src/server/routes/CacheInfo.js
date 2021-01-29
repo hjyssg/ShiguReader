@@ -7,7 +7,7 @@ const { isDisplayableInOnebook } = util;
 const thumbnailDb = require("../models/thumbnailDb");
 
 
-router.post('/api/cacheInfo', (req, res) => {
+router.post('/api/cacheInfo', async (req, res) => {
     const cacheFileToInfo = db.getCacheFileToInfo();
     const cacheFiles = db.getAllCacheFilePathes().filter(isDisplayableInOnebook);
     let totalSize = 0;
@@ -17,9 +17,9 @@ router.post('/api/cacheInfo', (req, res) => {
             totalSize +=  cacheFileToInfo[e].size;
         }
     })
-
+    const thumbCount = await thumbnailDb.getThumbCount();
     res.send({
-        thumbCount: thumbnailDb.getThumbCount(),
+        thumbCount,
         totalSize: totalSize,
         cacheNum: cacheFiles.length
     })
