@@ -5,6 +5,9 @@ const userConfig = global.requireUserConfig();
 
 const pathUtil = require("../pathUtil");
 
+const util = global.requireUtil();
+const { isCompress, isVideo } = util;
+
 const {
     isSub
 } = pathUtil;
@@ -46,6 +49,7 @@ function _add_col(rows){
 //multiple
 module.exports.getThumbnailArr = async function (filePathes){
     filePathes = _.isString(filePathes)? [filePathes] : filePathes;
+    filePathes = filePathes.filter(isCompress);
     const joinStr = filePathes.join(" ");
     sql = `SELECT * FROM  thumbnail_table WHERE INSTR(?, filePath) > 0`;
     let rows = await sqlDb.allSync(sql, [joinStr]);
