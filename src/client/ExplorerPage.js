@@ -59,6 +59,7 @@ const FILTER_GOOD_AUTHOR = "FILTER_GOOD_AUTHOR";
 const FILTER_OVERSIZE = "FILTER_OVERSIZE";
 const FILTER_FIRST_TIME = "FILTER_FIRST_TIME";
 const FILTER_HAS_MUSIC = "FILTER_HAS_MUSIC";
+const FILTER_HAS_VIDEO = "FILTER_HAS_VIDEO";
 const FILTER_IMG_FOLDER = "FILTER_IMG_FOLDER";
 
 function parse(str) {
@@ -451,6 +452,13 @@ export default class ExplorerPage extends Component {
         return +(this.zipInfo[fp] && this.zipInfo[fp].musicNum) || 0;
     }
 
+    getVideoNum(fp) {
+        // if (this.imgFolders[fp]) {
+        //     return this.imgFolders[fp].filter(isMusic).length;
+        // }
+        return +(this.zipInfo[fp] && this.zipInfo[fp].videoNum) || 0;
+    }
+
     getFilteredFiles() {
         let files = this.compressFiles;
         files = files.concat(_.keys(this.imgFolders))
@@ -503,6 +511,12 @@ export default class ExplorerPage extends Component {
         if (this.isOn(FILTER_HAS_MUSIC)) {
             files = files.filter(e => {
                 return this.getMusicNum(e) > 0;
+            })
+        }
+
+        if (this.isOn(FILTER_HAS_VIDEO)) {
+            files = files.filter(e => {
+                return this.getVideoNum(e) > 0;
             })
         }
 
@@ -1354,6 +1368,11 @@ export default class ExplorerPage extends Component {
             {st4}
         </Checkbox>);
 
+        const st45 = `Has Video`;
+        let checkbox45 = (<Checkbox onChange={this.toggleFilter.bind(this, FILTER_HAS_VIDEO)} checked={this.isOn(FILTER_HAS_VIDEO)}>
+            {st45}
+        </Checkbox>);
+
         const st5 = `Only Image Folder`;
         let checkbox5 = (<Checkbox onChange={this.toggleFilter.bind(this, FILTER_IMG_FOLDER)} checked={this.isOn(FILTER_IMG_FOLDER)}>
             {st5}
@@ -1364,6 +1383,7 @@ export default class ExplorerPage extends Component {
                 {checkbox2}
                 {checkbox3}
                 {checkbox4}
+                {checkbox45}
                 {checkbox5}
             </div>);
     }

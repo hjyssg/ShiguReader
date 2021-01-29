@@ -28,7 +28,7 @@ async function thumbnailGenerator(thumbnailFolderPath, imgFolder, fileName) {
             // }
         }
     } catch (e) {
-        console.error("[thumbnailGenerator] exception", e.stderr);
+        console.error("[thumbnailGenerator] exception", e);
     } finally {
         return outputFilePath;
     }
