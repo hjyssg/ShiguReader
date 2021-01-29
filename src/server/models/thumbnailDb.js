@@ -1,6 +1,6 @@
 const path = require('path');
 const _ = require('underscore');
-const serverUtil = require("../serverUtil");
+// const serverUtil = require("../serverUtil");
 const userConfig = global.requireUserConfig();
 
 const pathUtil = require("../pathUtil");
@@ -16,12 +16,12 @@ sqlDb.allSync = _util.promisify(sqlDb.all).bind(sqlDb);
 sqlDb.getSync = _util.promisify(sqlDb.get).bind(sqlDb);
 sqlDb.runSync = _util.promisify(sqlDb.run).bind(sqlDb);
 
-function addNewThumbnail(filePath, thumbnailFilePath) {
+module.exports.addNewThumbnail = function (filePath, thumbnailFilePath) {
     const thumbnailFileName = path.basename(thumbnailFilePath);
     sqlDb.run("INSERT OR REPLACE INTO thumbnail_table(filePath, thumbnailFileName ) values(?, ?)", filePath, thumbnailFileName);
 }
 
-function init(filePathes) {
+module.exports.init = function (filePathes) {
     // filePathes.forEach(e => {
     //     addNewThumbnail(e);
     // })
@@ -41,38 +41,22 @@ function _add_col(rows){
 }
 
 //multiple
-async function getThumbnailArr(filePathes){
+module.exports.getThumbnailArr = async function (filePathes){
     const joinStr = filePathes.join(" ");
-    sql = `SELECT * FROM  thumbnail_table WHERE INSTR(?, filePath)`;
+    sql = `SELECT * FROM  thumbnail_table WHERE INSTR(?, filePath) > 0`;
     let rows = await sqlDb.allSync(sql, [joinStr]);
     return _add_col(rows);
 }
 
-//single file
-async function getThumbnail(filePath) {
-    sql = `SELECT * FROM  thumbnail_table WHERE filePath = ?`;
-    let rows = await sqlDb.allSync(sql, [filePath]);
-    _add_col(rows)
-    return rows[0] && rows[0].thumbnailFileName;
-}
-
-async function getThumbnailForFolder(filePath) {
-    sql = `SELECT * FROM  thumbnail_table WHERE INSTR(?, filePath)`;
+module.exports.getThumbnailForFolder = async function(filePath) {
+    sql = `SELECT * FROM  thumbnail_table WHERE INSTR(filePath, ?) > 0`;
     let rows = await sqlDb.allSync(sql, [filePath]);
     _add_col(rows)
     return rows;
 }
 
-async function getThumbCount() {
+module.exports.getThumbCount = async function() {
     sql = `SELECT COUNT(*) as count FROM  thumbnail_table`;
     const rows = await sqlDb.allSync(sql);
     return rows[0].count;
 }
-
-module.exports = {
-    addNewThumbnail,
-    init,
-    getThumbnailArr,
-    getThumbnail,
-    getThumbCount,
-};

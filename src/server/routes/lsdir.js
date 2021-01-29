@@ -12,32 +12,13 @@ const {  getFileToInfo, getImgFolderInfo } = db;
 const util = global.requireUtil();
 const { getCurrentTime, isDisplayableInExplorer, isDisplayableInOnebook, escapeRegExp, isImage, isMusic, isCompress, isVideo } = util;
 const path = require('path');
-const zipInfoDb = require("../models/zipInfoDb");
-const { getZipInfo } = zipInfoDb;
-const { getThumbnails, isAlreadyScan, getThumbnailForFolders } = serverUtil.common;
+// const zipInfoDb = require("../models/zipInfoDb");
+// const { getZipInfo } = zipInfoDb;
+const { isAlreadyScan, _decorate } = serverUtil.common;
 const _ = require('underscore');
 const readdir = require("../readdir");
 const stringHash = require("string-hash");
 const historyDb = require("../models/historyDb");
-
-async function _decorate(resObj){
-    const { fileInfos, dirs, imgFolders } = resObj;
-    console.assert(fileInfos &&  dirs && imgFolders)
-
-    const files = _.keys(fileInfos);
-    resObj.zipInfo = getZipInfo(files);
-
-    let thumbnails = await getThumbnails(files);
-    let dirThumbnails = await getThumbnailForFolders(dirs);
-    resObj.thumbnails = thumbnails = _.extend(thumbnails, dirThumbnails);
-
-    const all_pathes = [].concat(files, _.keys(imgFolders));
-    const fileNameToReadTime = await historyDb.getFileReadTime(all_pathes);
-
-    resObj.fileNameToReadTime = fileNameToReadTime;
-
-    return resObj;
-}
 
 
 router.post('/api/lsDir', async (req, res) => {
@@ -138,7 +119,7 @@ router.post('/api/lsDir', async (req, res) => {
 
         const imgFolderInfo = getImgFolderInfo(imgFolders);
 
-        const result = {
+        let result = {
             path: dir,
             dirs: dirs,
             fileInfos,
@@ -146,10 +127,11 @@ router.post('/api/lsDir', async (req, res) => {
             imgFolders
         };
 
+        result = await _decorate(result);
         // const time3 = getCurrentTime();
         // timeUsed = (time3 - time2) / 1000;
         // console.log("[/api/LsDir] info look", timeUsed, "s")
-        res.send(_decorate(result));
+        res.send(result);
     }catch(e){
         console.error(e);
         res.send({ failed: true, reason: e });
@@ -188,16 +170,17 @@ async function listNoScanDir(filePath){
 
         stat: {},
         path: filePath,
-
         dirs,
+        imgFolders: {},
+        fileInfos,
+
         imageFiles,
         musicFiles, 
         videoFiles,
         compressFiles, 
-
-        fileInfos
     };
-    return _decorate(result);
+    result = await _decorate(result)
+    return result;
 }
 
 router.post('/api/listImageFolderContent', async (req, res) => {
