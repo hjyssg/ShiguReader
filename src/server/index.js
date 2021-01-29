@@ -429,20 +429,21 @@ async function getThumbnailForFolders(filePathes){
 
     for(let ii =0; ii < filePathes.length; ii++){
         const filePath = filePathes[ii];
-        let rows = thumbnailDb.getThumbnailForFolders(filePath)
+        let rows = await thumbnailDb.getThumbnailForFolder(filePath)
         if(rows.length > 0){
             result[filePath] = rows[0].thumbnailFilePath;
             continue;
         }
 
-        let sql = `SELECT filePath FROM file_table WHERE INSTR(?, filePath) AND isDisplayableInOnebook = true`;
+        let sql = `SELECT filePath FROM file_table WHERE INSTR(filePath, ?) > 0 AND isDisplayableInOnebook = true`;
         rows = await sqldb.allSync(sql, [filePath]);
         rows = rows.filter(e => isImage(e.filePath));
         if(rows.length > 0){
-            result[filePath] = rows[0].thumbnailFilePath;
-            continue;
+            result[filePath] = rows[0].filePath;
         }
     }
+
+    return result;
 }
 
 async function getStat(filePath) {
@@ -459,7 +460,27 @@ function isAlreadyScan(dir){
     });
 }
 
-serverUtil.common.getThumbnailForFolders = getThumbnailForFolders;
+async function _decorate(resObj){
+    const { fileInfos, dirs, imgFolders } = resObj;
+    console.assert(fileInfos &&  dirs && imgFolders)
+
+    const files = _.keys(fileInfos);
+    resObj.zipInfo = getZipInfo(files);
+
+    let thumbnails = await getThumbnails(files);
+    let dirThumbnails = await getThumbnailForFolders(dirs);
+    resObj.thumbnails = thumbnails = _.extend(thumbnails, dirThumbnails);
+
+    const all_pathes = [].concat(files, _.keys(imgFolders));
+    const fileNameToReadTime = await historyDb.getFileReadTime(all_pathes);
+
+    resObj.fileNameToReadTime = fileNameToReadTime;
+
+    return resObj;
+}
+
+
+serverUtil.common._decorate = _decorate
 serverUtil.common.getThumbnails = getThumbnails;
 serverUtil.common.getStat = getStat;
 serverUtil.common.isAlreadyScan = isAlreadyScan;
@@ -520,9 +541,9 @@ async function extractThumbnailFromZip(filePath, res, mode, config) {
             }
         }
 
-        const thumbnail = await thumbnailDb.getThumbnail(filePath);
-        if (thumbnail) {
-            sendImage(thumbnail);
+        const thumbnail = await thumbnailDb.getThumbnailArr(filePath);
+        if (thumbnail[0]) {
+            sendImage(thumbnail[0].thumbnailFileName);
         } else {
             if (!files) {
                 files = (await listZipContentAndUpdateDb(filePath)).files;

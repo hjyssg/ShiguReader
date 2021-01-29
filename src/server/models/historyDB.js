@@ -66,7 +66,7 @@ module.exports.getFileReadTime = async function(pathes){
 
     const joinStr = fileNames.join(" ");
 
-    let sql = "SELECT fileName, MAX(time) as time FROM history_table where INSTR(?, fileName) GROUP BY fileName"
+    let sql = "SELECT fileName, MAX(time) as time FROM history_table where INSTR(?, fileName) > 0 GROUP BY fileName"
     let rows = await sqlDb.allSync(sql, [joinStr]);
 
     const fileNameToReadTime = {};
