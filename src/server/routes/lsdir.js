@@ -14,28 +14,31 @@ const { getCurrentTime, isDisplayableInExplorer, isDisplayableInOnebook, escapeR
 const path = require('path');
 const zipInfoDb = require("../models/zipInfoDb");
 const { getZipInfo } = zipInfoDb;
-const { getThumbnails, isAlreadyScan } = serverUtil.common;
+const { getThumbnails, isAlreadyScan, getThumbnailForFolders } = serverUtil.common;
 const _ = require('underscore');
 const readdir = require("../readdir");
 const stringHash = require("string-hash");
 const historyDb = require("../models/historyDb");
 
+async function _decorate(resObj){
+    const { fileInfos, dirs, imgFolders } = resObj;
+    console.assert(fileInfos &&  dirs && imgFolders)
 
-async function getThumbnailForFolder(files, dirPath){
-    if(files && files.length > 0){
-        serverUtil.sortFileNames(files);
-        const filePathes = files.map(e => path.resolve(dirPath, e));
-        const imgs = filePathes.filter(isImage);
-        if(imgs[0]){
-            return imgs[0];
-        }
+    const files = _.keys(fileInfos);
+    resObj.zipInfo = getZipInfo(files);
 
-        const thumbnails = await getThumbnails(filePathes);
-        if(thumbnails[0]){
-            return path.resolve(  thumbnails[0].thumbnailFileName)
-        }
-    }
+    let thumbnails = await getThumbnails(files);
+    let dirThumbnails = await getThumbnailForFolders(dirs);
+    resObj.thumbnails = thumbnails = _.extend(thumbnails, dirThumbnails);
+
+    const all_pathes = [].concat(files, _.keys(imgFolders));
+    const fileNameToReadTime = await historyDb.getFileReadTime(all_pathes);
+
+    resObj.fileNameToReadTime = fileNameToReadTime;
+
+    return resObj;
 }
+
 
 router.post('/api/lsDir', async (req, res) => {
     let dir = req.body && req.body.dir;
@@ -66,7 +69,6 @@ router.post('/api/lsDir', async (req, res) => {
     try {
         const time1 = getCurrentTime();
         let time2, timeUsed;
-        const dirThumbnails = {};
         let dirs = [];
         let fileInfos = {};
 
@@ -91,20 +93,8 @@ router.post('/api/lsDir', async (req, res) => {
                 `${tempFileTable} AS b `+ 
                 `ON a.filePath = b.dirPath ` + 
                 `GROUP by a.fileName `
-                
             rows = await sqldb.allSync(sql);
-
             dirs = rows.map(e => e.filePath);
-
-            for(let ii = 0; ii < rows.length; ii++){
-                const row = rows[ii];
-                if(!row.files){
-                    continue;
-                }
-                const dirPath = row.filePath;
-                const files = row.files.split(sep);
-                dirThumbnails[dirPath] = await getThumbnailForFolder(files, dirPath)
-            }
         }
 
         //-------------------files -----------------
@@ -147,27 +137,19 @@ router.post('/api/lsDir', async (req, res) => {
         // console.log("[/api/LsDir] sql time", timeUsed, "s")
 
         const imgFolderInfo = getImgFolderInfo(imgFolders);
-        const files = _.keys(fileInfos);
-        const all_pathes = [].concat(files, _.keys(imgFolders));
-        const fileNameToReadTime = await historyDb.getFileReadTime(all_pathes);
-        const thumbnails = await getThumbnails(files);
-        
+
         const result = {
             path: dir,
             dirs: dirs,
             fileInfos,
             imgFolderInfo,
-            imgFolders,
-            thumbnails,
-            dirThumbnails,
-            zipInfo: getZipInfo(files),
-            fileNameToReadTime
+            imgFolders
         };
 
         // const time3 = getCurrentTime();
         // timeUsed = (time3 - time2) / 1000;
         // console.log("[/api/LsDir] info look", timeUsed, "s")
-        res.send(result);
+        res.send(_decorate(result));
     }catch(e){
         console.error(e);
         res.send({ failed: true, reason: e });
@@ -177,7 +159,6 @@ router.post('/api/lsDir', async (req, res) => {
         sqldb.run(sql);
         sql = `DROP TABLE IF EXISTS ${tempDirTable}`
         sqldb.run(sql);
-
     }
 });
 
@@ -185,7 +166,6 @@ router.post('/api/lsDir', async (req, res) => {
 async function listNoScanDir(filePath){
     let subFnArr = await readdir(filePath);
     let subFpArr = subFnArr.map(e => path.resolve(filePath, e));
-    const fileNameToReadTime = await historyDb.getFileReadTime(subFnArr);
 
     const compressFiles = subFpArr.filter(isCompress);
     const imageFiles = subFpArr.filter(isImage);
@@ -202,13 +182,10 @@ async function listNoScanDir(filePath){
         fileInfos[e] = {};
     })
 
-    const thumbnails = await getThumbnails(compressFiles);
-
     const result = {
         path: filePath,
         mode: "lack_info_mode",
 
-        zipInfo: {},
         stat: {},
         path: filePath,
 
@@ -218,12 +195,9 @@ async function listNoScanDir(filePath){
         videoFiles,
         compressFiles, 
 
-        fileInfos: fileInfos,
-        thumbnails,
-        zipInfo: getZipInfo(compressFiles),
-        fileNameToReadTime
+        fileInfos
     };
-    return result;
+    return _decorate(result);
 }
 
 router.post('/api/listImageFolderContent', async (req, res) => {

@@ -423,6 +423,28 @@ async function getThumbnails(filePathes) {
     return thumbnails;
 }
 
+async function getThumbnailForFolders(filePathes){
+    const result = {};
+    const sqldb = db.getSQLDB();
+
+    for(let ii =0; ii < filePathes.length; ii++){
+        const filePath = filePathes[ii];
+        let rows = thumbnailDb.getThumbnailForFolders(filePath)
+        if(rows.length > 0){
+            result[filePath] = rows[0].thumbnailFilePath;
+            continue;
+        }
+
+        let sql = `SELECT filePath FROM file_table WHERE INSTR(?, filePath) AND isDisplayableInOnebook = true`;
+        rows = await sqldb.allSync(sql, [filePath]);
+        rows = rows.filter(e => isImage(e.filePath));
+        if(rows.length > 0){
+            result[filePath] = rows[0].thumbnailFilePath;
+            continue;
+        }
+    }
+}
+
 async function getStat(filePath) {
     const stat = await pfs.stat(filePath);
     if(isAlreadyScan(filePath)){
@@ -437,6 +459,7 @@ function isAlreadyScan(dir){
     });
 }
 
+serverUtil.common.getThumbnailForFolders = getThumbnailForFolders;
 serverUtil.common.getThumbnails = getThumbnails;
 serverUtil.common.getStat = getStat;
 serverUtil.common.isAlreadyScan = isAlreadyScan;
@@ -581,23 +604,24 @@ app.post('/api/pregenerateThumbnails', async (req, res) => {
 
     res.send({ failed: false });
 
-    try {
-        console.log("begin pregenerateThumbnails")
-        for (let ii = 0; ii < totalFiles.length; ii++) {
+
+    console.log("begin pregenerateThumbnails")
+    for (let ii = 0; ii < totalFiles.length; ii++) {
+        try {
             const filePath = totalFiles[ii];
             await extractThumbnailFromZip(filePath, null, "pre-generate", config);
-            const time2 = getCurrentTime();
-            const timeUsed = (time2 - pregenBeginTime) / 1000;
-            const secPerFile = timeUsed / ii;
-            const remainTime = (total - ii) * secPerFile / 60;
-            console.log(`[pre-generate minify] total: ${total}   ${(ii/total*100).toFixed(2)}%    ${(secPerFile).toFixed(2)} sec/file    ${remainTime.toFixed(2)} mim left`);
+        }catch(e){
+            console.error(e);
         }
-    } catch (e) {
-
-    } finally {
-        pregenerateThumbnails_lock = false;
-        console.log('[pregenerate] done');
+        const time2 = getCurrentTime();
+        const timeUsed = (time2 - pregenBeginTime) / 1000;
+        const secPerFile = timeUsed / ii;
+        const remainTime = (total - ii) * secPerFile / 60;
+        console.log(`[pre-generate minify] total: ${total}   ${(ii/total*100).toFixed(2)}%    ${(secPerFile).toFixed(2)} sec/file    ${remainTime.toFixed(2)} mim left`);
     }
+
+    pregenerateThumbnails_lock = false;
+    console.log('[pregenerate] done');
 });
 
 
