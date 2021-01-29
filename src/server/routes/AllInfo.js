@@ -22,10 +22,7 @@ router.post('/api/tagInfo', async (req, res) => {
 
     //todo: sort by  a.sTime DESC
     let author_rows = await sqldb.allSync(sql);
-
  
-
-
     sql = `SELECT a.filePath, max(a.sTime) as maxTime , b.tag, COUNT(b.tag) as count, b.type, b.subtype ` 
     + `FROM (SELECT * FROM tag_table WHERE type = 'tag') AS b LEFT JOIN `
     + `(SELECT * FROM file_table where isCompress = true) AS a `
@@ -35,7 +32,7 @@ router.post('/api/tagInfo', async (req, res) => {
 
     for(let ii = 0; ii <  allRows.length; ii++){
         const row =  allRows[ii];
-        row.thumbnail = await getThumbnails(row.filePath)
+        row.thumbnail = await getThumbnailsForZip(row.filePath)
     }
 
     res.send({
@@ -50,7 +47,7 @@ router.post('/api/allInfo', async (req, res) => {
     let allThumbnails = {};
     const files = getAllFilePathes().filter(isDisplayableInExplorer);
     if (needThumbnail) {
-        allThumbnails = await getThumbnails(files);
+        allThumbnails = await getThumbnailsForZip(files);
     }
 
     const fileToInfo = {};
