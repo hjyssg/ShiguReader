@@ -5,7 +5,7 @@ import './style/ErrorPage.scss';
 export default class ErrorPage extends Component {
     render() {
         let { filePath, res } = this.props;
-        let { status, statusText } = res;
+        let { status, statusText } = res || {};
 
         let text;
 
