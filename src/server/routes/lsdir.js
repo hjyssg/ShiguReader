@@ -57,13 +57,13 @@ router.post('/api/lsDir', async (req, res) => {
         const sep = "|---|"
 
         //limit the searching  within this dir
-        sql = `CREATE TABLE ${tempFileTable} AS SELECT * FROM file_table WHERE INSTR(filePath, ?) = 1`;
+        sql = `CREATE TABLE IF NOT EXIST ${tempFileTable} AS SELECT * FROM file_table WHERE INSTR(filePath, ?) = 1`;
         await sqldb.runSync(sql, [dir]);
 
         //todo: LIMIT 0, 5 group by
         //-------------- dir --------------
         if(!isRecursive){
-            sql = `CREATE TABLE ${tempDirTable} AS SELECT * FROM ${tempFileTable} WHERE dirPath = ? AND isFolder = true`;
+            sql = `CREATE TABLE IF NOT EXIST ${tempDirTable} AS SELECT * FROM ${tempFileTable} WHERE dirPath = ? AND isFolder = true`;
             await sqldb.runSync(sql, [dir]);
 
             //todo: group_concat is ugly
