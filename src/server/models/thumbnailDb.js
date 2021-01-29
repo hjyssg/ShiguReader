@@ -56,6 +56,13 @@ async function getThumbnail(filePath) {
     return rows[0] && rows[0].thumbnailFileName;
 }
 
+async function getThumbnailForFolder(filePath) {
+    sql = `SELECT * FROM  thumbnail_table WHERE INSTR(?, filePath)`;
+    let rows = await sqlDb.allSync(sql, [filePath]);
+    _add_col(rows)
+    return rows;
+}
+
 async function getThumbCount() {
     sql = `SELECT COUNT(*) as count FROM  thumbnail_table`;
     const rows = await sqlDb.allSync(sql);

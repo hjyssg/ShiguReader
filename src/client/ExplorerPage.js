@@ -309,7 +309,7 @@ export default class ExplorerPage extends Component {
     handleRes(res) {
         if (!res.isFailed()) {
             let { dirs, mode, tag, author, fileInfos, thumbnails,
-                 dirThumbnails, zipInfo, imgFolders, imgFolderInfo, 
+                 zipInfo, imgFolders, imgFolderInfo, 
                  hdd_list, quickAccess, fileNameToReadTime } = res.json;
             this.loadedHash = this.getTextFromQuery();
             this.mode = mode;
@@ -328,7 +328,6 @@ export default class ExplorerPage extends Component {
             this.tag = tag || "";
             this.author = author || "";
             this.thumbnails = thumbnails || {};
-            this.dirThumbnails = dirThumbnails || {};
             this.zipInfo = zipInfo || {};
             this.imgFolders = imgFolders || {};
             this.imgFolderInfo = imgFolderInfo || {};
@@ -680,7 +679,7 @@ export default class ExplorerPage extends Component {
             dirItems = dirs.map((item) => {
                 const toUrl = clientUtil.getExplorerLink(item);
                 const text = getBaseName(item);
-                let thumbnailurl = getFileUrl(this.dirThumbnails[item]);
+                let thumbnailurl = getFileUrl(this.thumbnails[item]);
                 const thumbnailCn = classNames("file-cell-thumbnail", "as-folder-thumbnail");
 
                 let imgDiv = <LoadingImage
