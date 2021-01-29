@@ -71,7 +71,7 @@ const { listZipContentAndUpdateDb, extractAll, extractByRange } = sevenZipHelp;
 
 const db = require("./models/db");
 const { getAllFilePathes, getCacheFiles,
-    updateStatToDb, deleteFromDb, updateStatToCacheDb, deleteFromCacheDb } = db;
+    updateStatToDb, deleteFromDb, updateStatToCacheDb, deleteFromCacheDb, getImgFolderInfo } = db;
 
 const app = express();
 app.use(express.static('dist', {
@@ -477,14 +477,14 @@ async function _decorate(resObj){
     resObj.fileNameToReadTime = fileNameToReadTime;
 
     const imgFolderInfo = getImgFolderInfo(imgFolders);
-    res.imgFolderInfo = imgFolderInfo;
+    resObj.imgFolderInfo = imgFolderInfo;
 
     return resObj;
 }
 
 
 serverUtil.common._decorate = _decorate
-serverUtil.common.getThumbnails = getThumbnails;
+serverUtil.common.getThumbnailsForZip = getThumbnailsForZip;
 serverUtil.common.getStat = getStat;
 serverUtil.common.isAlreadyScan = isAlreadyScan;
 

@@ -20,7 +20,6 @@ const readdir = require("../readdir");
 const stringHash = require("string-hash");
 const historyDb = require("../models/historyDb");
 
-
 router.post('/api/lsDir', async (req, res) => {
     let dir = req.body && req.body.dir;
     const isRecursive = req.body && req.body.isRecursive;

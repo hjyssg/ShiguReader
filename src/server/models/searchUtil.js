@@ -1,19 +1,17 @@
 
 const serverUtil = require("../serverUtil");
 const db = require("../models/db");
-const { getImgFolderInfo } = db;
-const parse = serverUtil.parse;
-const zipInfoDb = require("../models/zipInfoDb");
-const { getZipInfo } = zipInfoDb;
+// const parse = serverUtil.parse;
+// const zipInfoDb = require("../models/zipInfoDb");
+// const { getZipInfo } = zipInfoDb;
 const util = global.requireUtil();
 const path = require('path');
 const _ = require('underscore');
 const isWindows = require('is-windows');
 const pathUtil = require("../pathUtil");
 const { isSub } = pathUtil;
-const historyDb = require("../models/historyDb");
+// const historyDb = require("../models/historyDb");
 
-const { isAlreadyScan, _decorate } = serverUtil.common;
 
 function isEqual(a, b) {
     a = a || "";
@@ -145,6 +143,8 @@ async function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
         imgFolders, 
         dirs: dirResults
     } 
+
+    const { _decorate } = serverUtil.common;
     result = await _decorate(result);
 
     return result;
