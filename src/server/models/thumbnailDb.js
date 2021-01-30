@@ -36,7 +36,7 @@ module.exports.init = function (filePathes) {
 }
 
 
-function _add_col(rows){
+function _add_col(rows) {
     thumbnailFolderPath = global.thumbnailFolderPath;
     rows.forEach(row => {
         row.thumbnailFilePath = path.resolve(thumbnailFolderPath, row.thumbnailFileName)
@@ -45,17 +45,17 @@ function _add_col(rows){
 }
 
 //multiple
-module.exports.getThumbnailArr = async function (filePathes){
-    filePathes = _.isString(filePathes)? [filePathes] : filePathes;
+module.exports.getThumbnailArr = async function (filePathes) {
+    filePathes = _.isString(filePathes) ? [filePathes] : filePathes;
     filePathes = filePathes.filter(isCompress);
     const joinStr = filePathes.join(" ");
-    sql = `SELECT * FROM  thumbnail_table WHERE INSTR(?, filePath) > 0`;
+    const sql = `SELECT * FROM  thumbnail_table WHERE INSTR(?, filePath) > 0`;
     let rows = await sqlDb.allSync(sql, [joinStr]);
     return _add_col(rows);
 }
 
-module.exports.getThumbnailForFolder = async function(filePath) {
-    sql = `SELECT * FROM  thumbnail_table WHERE INSTR(filePath, ?) > 0`;
+module.exports.getThumbnailForFolder = async function (filePath) {
+    const sql = `SELECT * FROM  thumbnail_table WHERE INSTR(filePath, ?) > 0`;
     let rows = await sqlDb.allSync(sql, [filePath]);
     rows = rows.filter(row => {
         return isSub(filePath, row.filePath)
@@ -64,8 +64,8 @@ module.exports.getThumbnailForFolder = async function(filePath) {
     return rows;
 }
 
-module.exports.getThumbCount = async function() {
-    sql = `SELECT COUNT(*) as count FROM  thumbnail_table`;
+module.exports.getThumbCount = async function () {
+    const sql = `SELECT COUNT(*) as count FROM  thumbnail_table`;
     const rows = await sqlDb.allSync(sql);
     return rows[0].count;
 }
