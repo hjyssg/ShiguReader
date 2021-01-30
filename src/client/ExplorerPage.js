@@ -66,6 +66,14 @@ function parse(str) {
     return nameParser.parse(getBaseName(str));
 }
 
+function getOneLineListItem(icon, fileName, filePath) {
+    return (
+        <li className="explorer-one-line-list-item" key={fileName} title={filePath}>
+            {icon}
+            <span className="explorer-one-line-list-item-text">{fileName}</span>
+        </li>);
+}
+
 export default class ExplorerPage extends Component {
     constructor(prop) {
         super(prop);
@@ -266,7 +274,7 @@ export default class ExplorerPage extends Component {
         clientUtil.setSearchInputText("");
     }
 
-    resetParam(){
+    resetParam() {
         this.loadedHash = "";
         this.videoFiles = []
         this.compressFiles = [];
@@ -310,8 +318,8 @@ export default class ExplorerPage extends Component {
     handleRes(res) {
         if (!res.isFailed()) {
             let { dirs, mode, tag, author, fileInfos, thumbnails,
-                 zipInfo, imgFolders, imgFolderInfo, 
-                 hdd_list, quickAccess, fileNameToReadTime } = res.json;
+                zipInfo, imgFolders, imgFolderInfo,
+                hdd_list, quickAccess, fileNameToReadTime } = res.json;
             this.loadedHash = this.getTextFromQuery();
             this.mode = mode;
 
@@ -474,13 +482,13 @@ export default class ExplorerPage extends Component {
 
         const { authorInfo } = this.state;
 
-        function getCount(fn){
+        function getCount(fn) {
             const temp = parse(fn);
             if (temp && temp.author) {
                 const info = authorInfo.filter(e => {
                     return e.tag === temp.author
                 });
-               return info[0];
+                return info[0];
             }
         }
 
@@ -493,10 +501,10 @@ export default class ExplorerPage extends Component {
             })
         }
 
-        if (this.isOn(FILTER_FIRST_TIME)  && authorInfo) {
+        if (this.isOn(FILTER_FIRST_TIME) && authorInfo) {
             files = files.filter(e => {
                 const count = getCount(e);
-                if (count && (count.good_count + count.bad_count ) === 1) {
+                if (count && (count.good_count + count.bad_count) === 1) {
                     return true;
                 }
             })
@@ -599,31 +607,22 @@ export default class ExplorerPage extends Component {
             if (sortOrder === FILENAME_DOWN) {
                 files.reverse();
             }
-        } else if (sortOrder === BY_FOLDER_UP || sortOrder === BY_FOLDER_DOWN) {
-            files = _.sortBy(files, e => {
-                const dir = getDir(e);
-                return dir;
-            });
-
-            if (sortOrder === BY_FOLDER_DOWN) {
-                files.reverse();
-            }
         } else if (sortOrder === TIME_DOWN || sortOrder === TIME_UP) {
             const ascend = sortOrder === TIME_UP;
             const onlyByMTime = this.getMode() === MODE_EXPLORER && !this.isLackInfoMode();
             const config = {
-                fileInfos: this.allfileInfos, 
-                getBaseName, 
-                ascend, 
+                fileInfos: this.allfileInfos,
+                getBaseName,
+                ascend,
                 onlyByMTime
             }
             files = sortUtil.sort_file_by_time(files, config);
         } else if (sortOrder === READ_TIME_DOWN || sortOrder === READ_TIME_UP) {
             const ascend = sortOrder === READ_TIME_UP;
             const config = {
-                fileInfos: this.allfileInfos, 
-                getBaseName, 
-                ascend, 
+                fileInfos: this.allfileInfos,
+                getBaseName,
+                ascend,
                 byReadTime: true,
                 fileNameToReadTime: this.fileNameToReadTime
             }
@@ -648,13 +647,85 @@ export default class ExplorerPage extends Component {
         return files;
     }
 
-    getOneLineListItem(icon, fileName, filePath) {
-        return (
-            <li className="explorer-one-line-list-item" key={fileName} title={filePath}>
-                {icon}
-                <span className="explorer-one-line-list-item-text">{fileName}</span>
-            </li>);
+    renderSingleZipItem(fp) {
+        const text = getBaseName(fp);
+        const toUrl = clientUtil.getOneBookLink(fp);
+
+        const fileSize = this.hasFileSize(fp) && this.getFileSize(fp);
+        const fileSizeStr = fileSize && filesizeUitl(fileSize);
+
+        const avgSize = (this.hasFileSize(fp) || this.getTotalImgSize(fp)) && this.getPageAvgSize(fp);
+        const avgSizeStr = avgSize > 0 && filesizeUitl(avgSize);
+
+        let zipItem;
+
+        if (this.state.noThumbnail) {
+            zipItem = (<Link to={toUrl} key={fp} className={""}>
+                {getOneLineListItem(<i className="fas fa-book"></i>, text, fp)}
+            </Link>)
+        } else {
+
+            const hasZipInfo = this.hasZipInfo(fp);
+            const musicNum = this.getMusicNum(fp);
+            const isImgFolder = !!this.imgFolders[fp];
+            const hasMusic = musicNum > 0;
+            const pageNum = this.getPageNum(fp);
+
+            const fileInfoRowCn = classNames("file-info-row", {
+                "less-padding": hasMusic
+            })
+
+            let thumbnailurl;
+            if (isImgFolder) {
+                const _imgs = this.imgFolders[fp].filter(isImage);
+                sortFileNames(_imgs)
+                const tp = _imgs[0];
+                thumbnailurl = getFileUrl(tp);
+            } else {
+                thumbnailurl = getFileUrl(this.thumbnails[fp]);
+            }
+
+            const thumbnailCn = classNames("file-cell-thumbnail", {
+                "as-folder-thumbnail": isImgFolder
+            });
+
+            let imgDiv = <LoadingImage
+                onlyUseURL={isImgFolder}
+                isThumbnail
+                className={thumbnailCn}
+                title={fp} fileName={fp}
+                url={thumbnailurl}
+                musicNum={musicNum}
+                onReceiveUrl={url => {
+                    this.thumbnails[fp] = url;
+                }}
+            />;
+
+            if (isImgFolder) {
+                imgDiv = (<div className="folder-effect"> {imgDiv} </div>)
+            }
+
+            zipItem = (
+                <div key={fp} className={"col-sm-6 col-md-4 col-lg-3 file-out-cell"}>
+                    <div className="file-cell">
+                        <Link target="_blank" to={toUrl} key={fp} className={"file-cell-inner"}>
+                            <FileCellTitle str={text} />
+                            {imgDiv}
+                        </Link>
+                        <div className={fileInfoRowCn}>
+                            {fileSizeStr && <span title="file size">{fileSizeStr}</span>}
+                            {(hasZipInfo || isImgFolder) && <span>{`${pageNum} pages`}</span>}
+                            {hasMusic && <span>{`${musicNum} songs`}</span>}
+                            {avgSizeStr && <span title="average img size"> {avgSizeStr} </span>}
+                        </div>
+                        <FileChangeToolbar isFolder={isImgFolder} hasMusic={hasMusic} className="explorer-file-change-toolbar" file={fp} />
+                    </div>
+                </div>);
+        }
+
+        return zipItem;
     }
+
 
     renderFileList(filteredFiles, filteredVideos) {
         const { sortOrder, showFolderThumbnail } = this.state;
@@ -672,7 +743,7 @@ export default class ExplorerPage extends Component {
             console.error(e);
         }
 
-        const isEmpty = [dirs,files, videos, this.musicFiles, this.imageFiles].every(_.isEmpty);
+        const isEmpty = [dirs, files, videos, this.musicFiles, this.imageFiles].every(_.isEmpty);
         if (isEmpty) {
             if (!this.res) {
                 return (<CenterSpinner text={this.getTextFromQuery()} />);
@@ -718,7 +789,7 @@ export default class ExplorerPage extends Component {
             dirItems = dirs.map((item) => {
                 const toUrl = clientUtil.getExplorerLink(item);
                 const text = this.getMode() === MODE_HOME ? item : getBaseName(item);
-                const result = this.getOneLineListItem(<i className="far fa-folder"></i>, text, item);
+                const result = getOneLineListItem(<i className="far fa-folder"></i>, text, item);
                 return <Link to={toUrl} key={item}>{result}</Link>;
             });
         }
@@ -730,14 +801,14 @@ export default class ExplorerPage extends Component {
                 // F: 的时候，会莫名其妙显示shigureader文件夹的内容
                 const toUrl = clientUtil.getExplorerLink(item + "\\\\");
                 const text = item;
-                const result = this.getOneLineListItem(<i className="far fa-folder"></i>, text, item);
+                const result = getOneLineListItem(<i className="far fa-folder"></i>, text, item);
                 return <Link to={toUrl} key={item}>{result}</Link>;
             });
 
             quickAccess = this.quickAccess.map(item => {
                 const toUrl = clientUtil.getExplorerLink(item);
                 const text = item;
-                const result = this.getOneLineListItem(<i className="far fa-folder"></i>, text, item);
+                const result = getOneLineListItem(<i className="far fa-folder"></i>, text, item);
                 return <Link to={toUrl} key={item}>{result}</Link>;
             })
         }
@@ -746,17 +817,17 @@ export default class ExplorerPage extends Component {
         const musicItems = this.musicFiles.map((item) => {
             const toUrl = clientUtil.getOneBookLink(getDir(item));
             const text = getBaseName(item);
-            const result = this.getOneLineListItem(<i className="fas fa-volume-up"></i>, text, item);
+            const result = getOneLineListItem(<i className="fas fa-volume-up"></i>, text, item);
             return <Link to={toUrl} key={item}>{result}</Link>;
         });
 
         const imageItems = this.imageFiles.map((item, ii) => {
             const toUrl = clientUtil.getOneBookLink(getDir(item), ii);
             const text = getBaseName(item);
-            const result = this.getOneLineListItem(<i className="fas fa-images"></i>, text, item);
+            const result = getOneLineListItem(<i className="fas fa-images"></i>, text, item);
             return <Link to={toUrl} key={item}>{result}</Link>;
         });
-        
+
         //seperate av from others
         const groupByVideoType = _.groupBy(videos, item => {
             const text = getBaseName(item);
@@ -778,7 +849,7 @@ export default class ExplorerPage extends Component {
             const videoItems = group.map((item) => {
                 const toUrl = clientUtil.getVideoPlayerLink(item);
                 const text = getBaseName(item);
-                const result = this.getOneLineListItem(<i className="far fa-file-video"></i>, text, item);
+                const result = getOneLineListItem(<i className="far fa-file-video"></i>, text, item);
                 return <Link target="_blank" to={toUrl} key={item}>{result}</Link>;
             });
             return <ItemsContainer key={key} className="video-list" items={videoItems} />
@@ -789,103 +860,36 @@ export default class ExplorerPage extends Component {
 
         //better tooltip to show file size 
         //and tag
-        let breadcrumbCount = 0;
-        const zipfileItems = files.map((item, index) => {
-            const text = getBaseName(item);
-            const toUrl = clientUtil.getOneBookLink(item);
 
-            const fileSize = this.hasFileSize(item) && this.getFileSize(item);
-            const fileSizeStr = fileSize && filesizeUitl(fileSize);
-
-            const avgSize = (this.hasFileSize(item) || this.getTotalImgSize(item) ) && this.getPageAvgSize(item);
-            const avgSizeStr = avgSize > 0 && filesizeUitl(avgSize);
-
-            let seperator;
-
-            if ((sortOrder === BY_FOLDER_DOWN || sortOrder === BY_FOLDER_UP) &&
-                (this.getMode() === MODE_AUTHOR || this.getMode() === MODE_TAG || this.getMode() === MODE_SEARCH)) {
-                const prev = files[index - 1];
-                if (!prev || getDir(prev) !== getDir(item)) {
-                    seperator = (<div className="col-12" key={item + "---seperator"}>
-                        <Breadcrumb sep={this.context.file_path_sep}
-                            server_os={this.context.server_os}
-                            path={getDir(item)} className={breadcrumbCount > 0 ? "not-first-breadcrumb folder-seperator" : "folder-seperator"} />
-                    </div>);
-                    breadcrumbCount++;
-                }
+        let zipfileItems;
+        if (sortOrder === BY_FOLDER_DOWN || sortOrder === BY_FOLDER_UP && 
+            (this.getMode() === MODE_AUTHOR || this.getMode() === MODE_TAG || this.getMode() === MODE_SEARCH)) {
+            const byDir = _.groupBy(files, getDir);
+            let fDirs = _.keys(byDir);
+            sortFileNames(fDirs);
+            if (sortOrder === BY_FOLDER_DOWN) {
+                fDirs.reverse();
             }
 
-            let zipItem;
+            zipfileItems = [];
+            const lastIndex = fDirs.length - 1;
 
-            if (this.state.noThumbnail) {
-                zipItem = (<Link to={toUrl} key={item} className={""}>
-                    {this.getOneLineListItem(<i className="fas fa-book"></i>, text, item)}
-                </Link>)
-            } else {
-
-                const hasZipInfo = this.hasZipInfo(item);
-                const musicNum = this.getMusicNum(item);
-                const isImgFolder = !!this.imgFolders[item];
-                const hasMusic = musicNum > 0;
-                const pageNum = this.getPageNum(item);
-
-                const fileInfoRowCn = classNames("file-info-row", {
-                    "less-padding": hasMusic
-                })
-
-                let thumbnailurl;
-                if (isImgFolder) {
-                    const _imgs = this.imgFolders[item].filter(isImage);
-                    sortFileNames(_imgs)
-                    const tp = _imgs[0];
-                    thumbnailurl = getFileUrl(tp);
-                } else {
-                    thumbnailurl = getFileUrl(this.thumbnails[item]);
-                }
-
-                const thumbnailCn = classNames("file-cell-thumbnail", {
-                    "as-folder-thumbnail": isImgFolder
-                });
-
-                let imgDiv = <LoadingImage
-                    onlyUseURL={isImgFolder}
-                    isThumbnail
-                    className={thumbnailCn}
-                    title={item} fileName={item}
-                    url={thumbnailurl}
-                    musicNum={musicNum}
-                    onReceiveUrl={url => {
-                        this.thumbnails[item] = url;
-                    }}
-                />;
-
-                if (isImgFolder) {
-                    imgDiv = (<div className="folder-effect"> {imgDiv} </div>)
-                }
-
-                zipItem = (
-                    <div key={item} className={"col-sm-6 col-md-4 col-lg-3 file-out-cell"}>
-                        <div className="file-cell">
-                            <Link target="_blank" to={toUrl} key={item} className={"file-cell-inner"}>
-                                <FileCellTitle str={text} />
-                                {imgDiv}
-                            </Link>
-                            <div className={fileInfoRowCn}>
-                                {fileSizeStr && <span title="file size">{fileSizeStr}</span>}
-                                {(hasZipInfo || isImgFolder) && <span>{`${pageNum} pages`}</span>}
-                                {hasMusic && <span>{`${musicNum} songs`}</span>}
-                                {avgSizeStr && <span title="average img size"> {avgSizeStr} </span>}
-                            </div>
-                            <FileChangeToolbar isFolder={isImgFolder} hasMusic={hasMusic} className="explorer-file-change-toolbar" file={item} />
-                        </div>
-                    </div>);
-            }
-
-            return (<React.Fragment key={item}>
-                {seperator}
-                {zipItem}
-            </React.Fragment>);
-        });
+            fDirs.map((dirPath, ii) => {
+                const folderGroup = byDir[dirPath];
+                const seperator = (<div className="col-12" key={dirPath + "---seperator"}>
+                    <Breadcrumb sep={this.context.file_path_sep}
+                        server_os={this.context.server_os}
+                        path={dirPath}
+                        className={ii > 0 ? "not-first-breadcrumb folder-seperator" : "folder-seperator"} 
+                    />
+                </div>);
+                zipfileItems.push(seperator)
+                const zipGroup = folderGroup.map(fp => this.renderSingleZipItem(fp));
+                zipfileItems = zipfileItems.concat(zipGroup);
+            })
+        } else {
+            zipfileItems = files.map(fp => this.renderSingleZipItem(fp));
+        }
 
         const rowCn = this.state.noThumbnail ? "file-list" : "row";
 
@@ -1064,14 +1068,14 @@ export default class ExplorerPage extends Component {
         );
     }
 
-    getBookModeLink(){	
-        const onebookUrl = clientUtil.getOneBookLink(this.getTextFromQuery());	
-        return (	
-            <Link className="exp-top-button" target="_blank" to={onebookUrl} >	
-            <span className="fas fa-book-reader" />	
-            <span>Open in Book Mode </span>	
-            </Link>	
-        )	
+    getBookModeLink() {
+        const onebookUrl = clientUtil.getOneBookLink(this.getTextFromQuery());
+        return (
+            <Link className="exp-top-button" target="_blank" to={onebookUrl} >
+                <span className="fas fa-book-reader" />
+                <span>Open in Book Mode </span>
+            </Link>
+        )
     }
 
     getExplorerToolbar(filteredFiles, filteredVideos) {
