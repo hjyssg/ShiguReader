@@ -1,11 +1,11 @@
 
-const serverUtil = require("../serverUtil");
-const db = require("../models/db");
+const serverUtil = require("./serverUtil");
+const db = require("./models/db");
 const util = global.requireUtil();
 const path = require('path');
 const _ = require('underscore');
 const isWindows = require('is-windows');
-const pathUtil = require("../pathUtil");
+const pathUtil = require("./pathUtil");
 const { isSub } = pathUtil;
 
 function isEqual(a, b) {
@@ -48,7 +48,7 @@ function splitRows(rows, text){
 }
 
 async function searchOnEverything(text){
-    const everything_connector = require("../../tools/everything_connector");	
+    const everything_connector = require("../tools/everything_connector");	
     const etc_config = global.etc_config;
     const port = etc_config && etc_config.everything_http_server_port;
     const {cachePath, thumbnailFolderPath} = global;
