@@ -43,19 +43,20 @@ global.cachePath = cachePath;
 
 const thumbnailDb = require("./models/thumbnailDb");
 const historyDb = require("./models/historyDb");
+const cacheDb = require("./models/cacheDb");
 
 //set up user path
 
 const isDev = process.argv.includes("--dev");
 const isProduction =!isDev;
 
-console.log("------path helper--------------");
-console.log("isProduction", isProduction)
-console.log("process.cwd()", process.cwd());
-console.log("__filename", __filename);
-console.log("__dirname", __dirname);
-console.log("rootPath", rootPath);
-console.log("----------------------");
+// console.log("------path helper--------------");
+// console.log("isProduction", isProduction)
+// console.log("process.cwd()", process.cwd());
+// console.log("__filename", __filename);
+// console.log("__dirname", __dirname);
+// console.log("rootPath", rootPath);
+// console.log("----------------------");
 
 const logger = require("./logger");
 const searchByTagAndAuthor = require("./models/searchUtil");
@@ -64,14 +65,14 @@ const searchByTagAndAuthor = require("./models/searchUtil");
 const zipInfoDb = require("./models/zipInfoDb");
 let zip_content_db_path = path.join(rootPath, userConfig.workspace_name, "zip_info");
 zipInfoDb.init(zip_content_db_path);
-const { deleteFromZipDb } = zipInfoDb;
+
 
 const sevenZipHelp = require("./sevenZipHelp");
 const { listZipContentAndUpdateDb, extractAll, extractByRange } = sevenZipHelp;
 
 const db = require("./models/db");
-const { getAllFilePathes, getCacheFiles,
-    updateStatToDb, deleteFromDb, updateStatToCacheDb, deleteFromCacheDb, getImgFolderInfo } = db;
+const { getAllFilePathes,   updateStatToDb, deleteFromDb, getImgFolderInfo } = db;
+
 
 const app = express();
 app.use(express.static('dist', {
@@ -301,10 +302,10 @@ function setUpCacheWatch(){
     
         cacheWatcher
             .on('add', (p, stats) => {
-                updateStatToCacheDb(p, stats);
+                cacheDb.updateStatToCacheDb(p, stats);
             })
             .on('unlink', p => {
-                deleteFromCacheDb(p);
+                cacheDb.deleteFromCacheDb(p);
             });
 }
 
@@ -352,7 +353,7 @@ function setUpFileWatch(scan_path) {
         //todo: if folder removed
         //remove all its child
         deleteFromDb(path);
-        deleteFromZipDb(path);
+        zipInfoDb.deleteFromZipDb(path);
         //todo: delete thumbnail
     };
 
@@ -402,7 +403,7 @@ async function getThumbnailsForZip(filePathes) {
         if(isCompress(filePath)){
             //get cache file
             const outputPath = path.join(cachePath, getHash(filePath));
-            let cacheFiles = getCacheFiles(outputPath);
+            let cacheFiles = cacheDb.getCacheFiles(outputPath);
             cacheFiles = (cacheFiles && cacheFiles.files) || [];
             thumb = serverUtil.chooseThumbnailImage(cacheFiles);
             if (thumb) {
@@ -732,7 +733,7 @@ app.post('/api/extract', async (req, res) => {
     }
 
     const outputPath = path.join(cachePath, getHash(filePath));
-    const temp = getCacheFiles(outputPath);
+    const temp = cacheDb.getCacheFiles(outputPath);
 
     if (zipInfoDb.has(filePath) && temp) {
         let tempZipInfo = zipInfoDb.getZipInfo(filePath);
