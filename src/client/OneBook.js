@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
 import _ from 'underscore';
-const nameParser = require('@name-parser');
 const classNames = require('classnames');
 const dateFormat = require('dateformat');
 import ReactDOM from 'react-dom';
@@ -20,14 +19,12 @@ import "./style/BigColumnButton.scss";
 const util = require("@common/util");
 const queryString = require('query-string');
 import screenfull from 'screenfull';
-const Constant = require("@common/constant");
 
 const MIN_HEIGHT = 400;
 const MIN_WIDTH = 400;
 const userConfig = require('@config/user-config');
 const clientUtil = require("./clientUtil");
 const { getDir, getBaseName, isMobile, getFileUrl, sortFileNames, filesizeUitl } = clientUtil;
-const namePicker = require("../human-name-picker");
 import { GlobalContext } from './globalContext'
 
 const NO_TWO_PAGE = "no_clip";
@@ -383,7 +380,7 @@ export default class OneBook extends Component {
     $(window).scrollTop(0);
   }
 
-  getImageLength(){
+  getImageLength() {
     return this.state.imageFiles.length;
   }
 
@@ -494,10 +491,9 @@ export default class OneBook extends Component {
   renderImage() {
     const { imageFiles, index, twoPageMode } = this.state;
     if (!this.hasImage()) {
-
-      if(this.hasMusic()){
+      if (this.hasMusic()) {
         return (<i className="fas fa-headphones-alt placeholder-for-music"></i>)
-      }else{
+      } else {
         return;
       }
     }
@@ -615,16 +611,16 @@ export default class OneBook extends Component {
       return;
     }
     const toolbar = <FileChangeToolbar
-                       isFolder={this.isImgFolder()} 
-                       bigFont={true}
-                       className="one-book-toolbar" 
-                       file={this.state.path} 
-                       popPosition={"top-center"}
-                       onNewPath={this.onNewPath.bind(this)} />;
+      isFolder={this.isImgFolder()}
+      bigFont={true}
+      className="one-book-toolbar"
+      file={this.state.path}
+      popPosition={"top-center"}
+      onNewPath={this.onNewPath.bind(this)} />;
     return toolbar;
   }
 
-  onNewPath(res){
+  onNewPath(res) {
     let newPath = res.json.dest;
     const { path } = this.state;
 
@@ -632,7 +628,7 @@ export default class OneBook extends Component {
     const newP = encodeURIComponent(newPath);
 
     //change url 
-    if(newPath){
+    if (newPath) {
       const newUrl = location.href.replace(oldP, newP);
       window.history.pushState({}, null, newUrl);
       this.setState({
