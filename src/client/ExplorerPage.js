@@ -872,8 +872,6 @@ export default class ExplorerPage extends Component {
             }
 
             zipfileItems = [];
-            const lastIndex = fDirs.length - 1;
-
             fDirs.map((dirPath, ii) => {
                 const folderGroup = byDir[dirPath];
                 const seperator = (<div className="col-12" key={dirPath + "---seperator"}>
@@ -930,7 +928,6 @@ export default class ExplorerPage extends Component {
             pageIndex: 1,
             isRecursive: !this.state.isRecursive
         }, () => {
-            // this.requestLsDir();
             (async () => {
                 let res = await Sender.postWithPromise('/api/lsDir', { dir: this.getTextFromQuery(), isRecursive: this.state.isRecursive });
                 this.handleRes(res);
@@ -943,19 +940,8 @@ export default class ExplorerPage extends Component {
         const next = !prev;
 
         this.setStateAndSetHash({
-            noThumbnail: next,
-            pageIndex: 1
+            noThumbnail: next
         })
-
-        if (next) {
-            this.setStateAndSetHash({
-                sortOrder: Constant.FILENAME_DOWN
-            })
-        } else {
-            this.setStateAndSetHash({
-                sortOrder: Constant.TIME_DOWN
-            })
-        }
     }
 
     toggleFolderThumbNail() {
