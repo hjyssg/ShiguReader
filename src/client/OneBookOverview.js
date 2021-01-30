@@ -49,7 +49,7 @@ class SmartImage extends Component {
       content = <div className="place-holder single-img-cell" title={index} />
     }
 
-    const toUrl = clientUtil.getOneBookLink(fp) + "#index=" + index;
+    const toUrl = clientUtil.getOneBookLink(fp, index);
 
     return (
       <VisibilitySensor offset={{ bottom: -1200 }} partialVisibility={true} onChange={this.onChange.bind(this)}>
