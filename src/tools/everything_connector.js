@@ -3,7 +3,7 @@ const path = require('path');
 const _ = require('underscore');
 
 //everthing是根据filename去match的，所以找不了img folder
-function parseResult(json, config){
+function parseResult(json, config) {
     const result = {};
     result.fileInfos = {};
     result.dirResults = [];
@@ -20,21 +20,21 @@ function parseResult(json, config){
             return false;
         }
 
-        if(e.type === "file"){
+        if (e.type === "file") {
             // https://www.voidtools.com/forum/viewtopic.php?t=5427
             //The 18-digit Active Directory timestamps, also named 'Windows NT time format', 'Win32 FILETIME or SYSTEMTIME' or NTFS file time. These are used in Microsoft Active Directory for pwdLastSet, accountExpires, LastLogon, LastLogonTimestamp, and LastPwdSet. The timestamp is the number of 100-nanosecond intervals (1 nanosecond = one billionth of a second) since Jan 1, 1601 UTC.
             const ldap = parseInt(e.date_modified);
             //http://balrob.blogspot.com/2014/04/windows-filetime-to-javascript-date.html
-            var sec = Math.floor(ldap / 10000000);
+            let sec = Math.floor(ldap / 10000000);
             sec -= 11644473600;
-            var datum = new Date(sec * 1000);
-            let mtime = datum.getTime();;
+            let datum = new Date(sec * 1000);
+            let mtime = datum.getTime();
 
             const stat = {
                 isFile: e.type === "file",
                 isDir: e.type === "folder",
                 mtimeMs: mtime,
-                mtime: mtime,
+                mtime,
                 size: parseInt(e.size)
             }
             result.fileInfos[fp] = stat;
@@ -44,20 +44,20 @@ function parseResult(json, config){
     return result;
 }
 
-module.exports.searchByText = async function(text, config){
-    try{
+module.exports.searchByText = async function (text, config) {
+    try {
         const port = config.port;
         const tt = encodeURIComponent(text);
         const uri = `http://localhost:${port}/?search="${tt}"&offset=0&json=1&path_column=1&size_column=1&date_modified_column=1`;
-        
+
         const rp = require('request-promise');
         const json = await rp({
             uri,
             json: true
         });
         return parseResult(json, config);
-    }catch(e){
-        console.error(e);        
+    } catch (e) {
+        console.error(e);
         return null;
     }
 
@@ -84,7 +84,7 @@ module.exports.searchByText = async function(text, config){
 //                 json: true
 //             });
 
-          
+
 //             // _.uniq is super slow for big arr
 //         }
 

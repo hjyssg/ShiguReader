@@ -11,7 +11,10 @@ const { isImage, isMusic, isVideo } = util;
 const cache_folder_name = userConfig.cache_folder_name;
 const pfs = require('promise-fs');
 
-const rootPath = process.cwd() // path.join(__dirname, "..", "..");
+let rootPath = path.resolve(process.cwd()); // path.join(__dirname, "..", "..");
+if (isWindows()) {
+    rootPath = rootPath.charAt(0).toUpperCase() + rootPath.slice(1)
+}
 const getRootPath = function () {
     return rootPath;
 }
@@ -160,11 +163,13 @@ async function getScanPath() {
     let mm = now.getMonth() + 1;
     mm = (mm < 10) ? ("0" + (mm).toString()) : (mm).toString();
     const fd = "good_" + [y, mm, "01"].join("_");
-    global.good_folder = good_folder_root && path.resolve(good_folder_root, fd);
+    const good_folder = good_folder_root && path.resolve(good_folder_root, fd);
+    global.good_folder = good_folder;
 
     //add not good folder
     const fd2 = "not_good_" + y;
-    global.not_good_folder = not_good_folder_root && path.resolve(not_good_folder_root, fd2);
+    const not_good_folder = not_good_folder_root && path.resolve(not_good_folder_root, fd2);
+    global.not_good_folder = not_good_folder;
 
     scan_path = scan_path.concat(good_folder, good_folder_root,
         not_good_folder_root, not_good_folder);
