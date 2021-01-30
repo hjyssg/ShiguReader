@@ -70,12 +70,12 @@ function isDirectParent(parent, filePath) {
     return parentPath === parent;
 }
 
-function removeLastPathSep(pp) {
+function removeLastPathSep(fp) {
     //https://stackoverflow.com/questions/3884632/how-to-get-the-last-character-of-a-string
-    if (pp.slice(-1) === path.sep) {
-        return pp.slice(0, pp.length - 1);
+    if (fp.slice(-1) === path.sep) {
+        return fp.slice(0, fp.length - 1);
     } else {
-        return pp;
+        return fp;
     }
 }
 

@@ -86,11 +86,11 @@ router.post('/api/lsDir', async (req, res) => {
             rows = await sqldb.allSync(sql, [dir]);
         }
         rows.forEach(obj => {
-            const pp = obj.filePath;
-            if (pp === dir) {
+            const fp = obj.filePath;
+            if (fp === dir) {
                 return;
             }
-            fileInfos[pp] = getFileToInfo(pp);
+            fileInfos[fp] = getFileToInfo(fp);
         })
 
         //---------------img folder -----------------
@@ -100,15 +100,15 @@ router.post('/api/lsDir', async (req, res) => {
             `GROUP BY dirPath`;
         rows = await sqldb.allSync(sql);
         rows.forEach(row => {
-            const pp = row.dirPath;
-            if (pp === dir || !row.files) {
+            const fp = row.dirPath;
+            if (fp === dir || !row.files) {
                 return;
             }
-            if (!isRecursive && !isDirectParent(dir, pp)) {
+            if (!isRecursive && !isDirectParent(dir, fp)) {
                 return;
             }
             const files = row.files.split(sep);
-            imgFolders[pp] = files.map(e => path.resolve(pp, e));
+            imgFolders[fp] = files.map(e => path.resolve(fp, e));
         })
 
         //-------------get extra info
@@ -197,8 +197,8 @@ router.post('/api/listImageFolderContent', async (req, res) => {
 
         _files = _files.map(e => e.filePath);
         // 单层或者递归，各有利弊，和其他地方逻辑一致吧
-        _files = _files.filter(pp => {
-            return isDirectParent(filePath, pp)
+        _files = _files.filter(fp => {
+            return isDirectParent(filePath, fp)
         });
 
         const imageFiles = _files.filter(isImage)

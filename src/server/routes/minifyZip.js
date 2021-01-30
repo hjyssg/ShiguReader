@@ -57,20 +57,19 @@ router.post('/api/overwrite', async (req, res) => {
     let allPath = await sqldb.allSync(sql, [('%' + fn + '%')]);
 
     allPath = allPath.filter(obj => {
-        const pp = obj.filePath;
-        return pp !== filePath;
+        return obj.filePath !== filePath;
     }).map(obj => obj.filePath)
 
     for (let ii = 0; ii < allPath.length; ii++) {
-        let pp = allPath[ii];
-        let ppFn = path.basename(pp, path.extname(pp));
+        let fp = allPath[ii];
+        let ppFn = path.basename(fp, path.extname(fp));
         if (ppFn === fn) {
-            const oldTemp = await listZipContentAndUpdateDb(pp);
+            const oldTemp = await listZipContentAndUpdateDb(fp);
             const oldFileImgs = oldTemp.files;
-            const oldFileStat = await getStat(pp);
+            const oldFileStat = await getStat(fp);
 
             if (oldFileStat.size > newFileStat.size && imageMagickHelp.isNewZipSameWithOriginalFiles(newFileImgs, oldFileImgs)) {
-                originalFilePath = pp;
+                originalFilePath = fp;
                 break;
             }
         }

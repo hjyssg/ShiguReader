@@ -105,9 +105,9 @@ function getDateFromComiket(comiket) {
     } else if (comiket.match(air_comicket_reg)) {
         comiket = comiket.replace("エアコミケ", "");
         num = parseInt(comiket);
-        if(num === 1){
+        if (num === 1) {
             result = new Date(2020, 7, 30);
-        }else{
+        } else {
             result = new Date(2020, 11, 30);
         }
     } else if (comiket.match(comic_star_reg)) {
