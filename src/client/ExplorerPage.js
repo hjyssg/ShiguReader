@@ -471,15 +471,6 @@ export default class ExplorerPage extends Component {
         let files = this.compressFiles;
         files = files.concat(_.keys(this.imgFolders))
 
-        function arrIntoSet(tagArr) {
-            let set = {};
-            tagArr && tagArr.forEach(e => {
-                set[e.tag] = e.count;
-            });
-
-            return set;
-        }
-
         const { authorInfo } = this.state;
 
         function getCount(fn) {
@@ -605,6 +596,15 @@ export default class ExplorerPage extends Component {
             });
 
             if (sortOrder === FILENAME_DOWN) {
+                files.reverse();
+            }
+        } else if (sortOrder === BY_FOLDER_UP || sortOrder === BY_FOLDER_DOWN) {
+            files = _.sortBy(files, e => {
+                const dir = getDir(e);
+                return dir;
+            });
+
+            if (sortOrder === BY_FOLDER_DOWN) {
                 files.reverse();
             }
         } else if (sortOrder === TIME_DOWN || sortOrder === TIME_UP) {
@@ -855,11 +855,11 @@ export default class ExplorerPage extends Component {
             return <ItemsContainer key={key} className="video-list" items={videoItems} />
         })
 
-        //! !todo if the file is already an image file
-        files = this.getFileInPage(files);
+        
 
         //better tooltip to show file size 
         //and tag
+        files = this.getFileInPage(files);
 
         let zipfileItems;
         if (sortOrder === BY_FOLDER_DOWN || sortOrder === BY_FOLDER_UP && 
@@ -880,12 +880,14 @@ export default class ExplorerPage extends Component {
                         path={dirPath}
                         className={ii > 0 ? "not-first-breadcrumb folder-seperator" : "folder-seperator"} 
                     />
+                    <div>{`file: ${folderGroup.length}`} </div>
                 </div>);
                 zipfileItems.push(seperator)
                 const zipGroup = folderGroup.map(fp => this.renderSingleZipItem(fp));
                 zipfileItems = zipfileItems.concat(zipGroup);
             })
         } else {
+            //! !todo if the file is already an image file
             zipfileItems = files.map(fp => this.renderSingleZipItem(fp));
         }
 
