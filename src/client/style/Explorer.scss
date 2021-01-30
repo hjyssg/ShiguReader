@@ -176,6 +176,11 @@
   .folder-seperator {
     border: 2px solid $border-color-black;
     border-radius: 2px;
+
+    .extra-div{
+      float: right;
+      color: $font_color_white_one;
+    }
   }
 }
 
