@@ -1,4 +1,3 @@
-const fs = require('fs');
 const path = require('path');
 const execa = require('execa');
 const pfs = require('promise-fs');

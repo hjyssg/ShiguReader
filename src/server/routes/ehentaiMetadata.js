@@ -9,12 +9,6 @@ const path = require('path');
 const serverUtil = require("../serverUtil");
 const parse = serverUtil.parse;
 
-function isEqual(a, b) {
-  a = a || "";
-  b = b || "";
-  return a.toLowerCase() === b.toLowerCase();
-}
-
 const jsonfile = require('jsonfile');
 const loki = require("lokijs");
 const ehentai_db = new loki();

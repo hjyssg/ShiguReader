@@ -1,5 +1,4 @@
 
-const pathUtil = require("../pathUtil");
 const isWindows = require('is-windows');
 const express = require('express');
 const router = express.Router();

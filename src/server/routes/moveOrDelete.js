@@ -4,7 +4,6 @@ const {
     getZipOutputCachePath
 } = pathUtil;
 const pfs = require('promise-fs');
-const fs = require('fs');
 const execa = require('execa');
 const userConfig = global.requireUserConfig();
 const isWindows = require('is-windows');
@@ -14,7 +13,7 @@ const logger = require("../logger");
 const path = require('path');
 
 const util = global.requireUtil();
-const { isImage, isCompress, isMusic, arraySlice, isDisplayableInOnebook } = util;
+const { isImage, isCompress, isMusic, isDisplayableInOnebook } = util;
 
 const serverUtil = require("../serverUtil");
 const { mkdir } = serverUtil;
