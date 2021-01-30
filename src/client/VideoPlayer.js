@@ -7,7 +7,6 @@ const clientUtil = require("./clientUtil");
 const { getDir, getBaseName, filesizeUitl } = clientUtil;
 const namePicker = require("../human-name-picker");
 import { Link } from 'react-router-dom';
-const nameParser = require('@name-parser');
 import Sender from './Sender';
 const dateFormat = require('dateformat');
 const queryString = require('query-string');
