@@ -11,12 +11,17 @@ const isHiddenFile = function (f) {
 
 
 module.exports = async function (fp, option) {
-    let pathes = await pfs.readdir(fp, option);
-    pathes = pathes.filter(e => {
-        if (option && option.withFileTypes) {
-            e = e.name;
-        }
-        return !isHiddenFile(e) && !serverUtil.isForbid(e);
-    });
-    return pathes;
+    try {
+        let pathes = await pfs.readdir(fp, option);
+        pathes = pathes.filter(e => {
+            if (option && option.withFileTypes) {
+                e = e.name;
+            }
+            return !isHiddenFile(e) && !serverUtil.isForbid(e);
+        });
+        return pathes;
+    } catch (e) {
+        console.error(e);
+        return [];
+    }
 }

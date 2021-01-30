@@ -88,6 +88,10 @@ module.exports.parse = function (str) {
 
 module.exports.getExt = function (p) {
     const ext = path.extname(p).toLowerCase();
+    if (ext === ".!ut") {
+        return ext;
+    }
+
     //xxx NO.003 xxx is not meaningful extension
     //extension string should be alphabet(may with digit), but not only digit
     if (ext && /^\.[a-zA-z0-9]*$/.test(ext) && !/^\.[0-9]*$/.test(ext)) {
