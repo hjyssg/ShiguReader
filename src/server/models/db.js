@@ -114,38 +114,26 @@ const updateFileDb = function (filePath, statObj) {
 
 const pfs = require('promise-fs');
 //!! same as file-iterator getStat()
-module.exports.updateStatToDb = function (path, stat) {
+module.exports.updateStatToDb = async function (filePath, stat) {
     const statObj = {};
-
     if (!stat) {
         //seems only happen on mac
-        // console.log(path, "has no stat");
-        //todo: mac img folder do not display
-        pfs.stat(path).then(stat => {
-            statObj.isFile = stat.isFile();
-            statObj.isDir = stat.isDirectory();
-            statObj.mtimeMs = stat.mtimeMs;
-            statObj.mtime = stat.mtime;
-            statObj.size = stat.size;
-            fileToInfo[path] = statObj;
-            updateFileDb(path, statObj);
-        });
-    } else {
-        statObj.isFile = stat.isFile();
-        statObj.isDir = stat.isDirectory();
-        statObj.mtimeMs = stat.mtimeMs;
-        statObj.mtime = stat.mtime;
-        statObj.size = stat.size;
-        fileToInfo[path] = statObj;
-        updateFileDb(path, statObj);
+        stat = await pfs.stat(filePath)
     }
+
+    statObj.isFile = stat.isFile();
+    statObj.isDir = stat.isDirectory();
+    statObj.mtimeMs = stat.mtimeMs;
+    statObj.mtime = stat.mtime;
+    statObj.size = stat.size;
+    fileToInfo[filePath] = statObj;
+    updateFileDb(filePath, statObj);
 }
 
-module.exports.deleteFromDb = function (path) {
-    delete fileToInfo[path];
-    sqlDb.run("DELETE FROM file_table where filePath = ?", path);
-    sqlDb.run("DELETE FROM tag_table where filePath = ?", path);
-
+module.exports.deleteFromDb = function (filePath) {
+    delete fileToInfo[filePath];
+    sqlDb.run("DELETE FROM file_table where filePath = ?", filePath);
+    sqlDb.run("DELETE FROM tag_table where filePath = ?", filePath);
 }
 
 module.exports.getImgFolderInfo = function (imgFolders) {

@@ -119,8 +119,8 @@ async function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
     }
 
     zipResult.forEach(obj => {
-        const pp = obj.filePath;
-        fileInfos[pp] = db.getFileToInfo(pp);
+        const fp = obj.filePath;
+        fileInfos[fp] = db.getFileToInfo(fp);
     })
 
     let esObj = await searchEveryPromise;

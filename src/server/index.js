@@ -38,7 +38,7 @@ global.cachePath = cachePath;
 
 
 const db = require("./models/db");
-const { updateStatToDb, deleteFromDb, getImgFolderInfo } = db;
+const {  deleteFromDb, getImgFolderInfo } = db;
 
 const zipInfoDb = require("./models/zipInfoDb");
 const thumbnailDb = require("./models/thumbnailDb");
@@ -284,25 +284,25 @@ function setUpFileWatch(scan_path) {
 
     let init_count = 0;
 
-    const addCallBack = (pp, stats) => {
-        serverUtil.parse(pp);
-        updateStatToDb(pp, stats);
+    const addCallBack = (fp, stats) => {
+        serverUtil.parse(fp);
+        db.updateStatToDb(fp, stats);
         if (is_chokidar_ready) {
             db.createSqlIndex();
         } else {
             init_count++;
             if (init_count % 2000 === 0) {
                 let end1 = getCurrentTime();
-                console.log(`[chokidar] scan: ${(end1 - beg) / 1000}s  ${init_count} ${pp}`);
+                console.log(`[chokidar] scan: ${(end1 - beg) / 1000}s  ${init_count} ${fp}`);
             }
         }
     };
 
-    const deleteCallBack = pp => {
+    const deleteCallBack = fp => {
         //todo: if folder removed
         //remove all its child
-        deleteFromDb(pp);
-        zipInfoDb.deleteFromZipDb(pp);
+        deleteFromDb(fp);
+        zipInfoDb.deleteFromZipDb(fp);
         //todo: delete thumbnail
     };
 
@@ -415,7 +415,7 @@ async function getThumbnailForFolders(filePathes) {
 async function getStat(filePath) {
     const stat = await pfs.stat(filePath);
     if (isAlreadyScan(filePath)) {
-        updateStatToDb(filePath, stat);
+        db.updateStatToDb(filePath, stat);
     }
     return stat;
 }
@@ -849,3 +849,4 @@ if (isProduction) {
 }
 
 init();
+
