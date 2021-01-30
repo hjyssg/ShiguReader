@@ -36,6 +36,21 @@
     "semi": "off",
     "camelcase": "off",
     "max-len": "off",
-    "import/newline-after-import": "off"
+    "import/newline-after-import": "off",
+    "no-underscore-dangle": "off",
+    "prefer-const": "off",
+    "arrow-body-style":"off",
+    "prefer-template":"off",
+    "object-curly-newline":"off",
+    "operator-linebreak": "off",
+    "global-require":"off",
+    "no-use-before-define":"off",
+    "no-await-in-loop":"off",
+    "no-throw-literal":"off",
+    "no-continue":"off",
+    "consistent-return":"off",
+    "radix":"off",
+    "no-return-await":"off",
+    "no-empty":"off"
   }
 }

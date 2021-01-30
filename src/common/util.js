@@ -119,11 +119,11 @@ module.exports.isDisplayableInOnebook = function (e) {
 
 module.exports.escapeRegExp = function (string) {
     const str = string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
-    var reg = new RegExp(str, 'i');
+    const reg = new RegExp(str, 'i');
     return reg;
 }
 
-module.exports.isWindowsPath = function(string){
+module.exports.isWindowsPath = function (string) {
     return /[A-Za-z]:/.test(string);
 }
 
