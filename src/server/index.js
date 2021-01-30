@@ -97,7 +97,7 @@ try {
 async function init() {
     if (isWindows()) {
         const { stdout, stderr } = await execa("chcp");
-        console.log("[chcp]", stdout);
+        // console.log("[chcp]", stdout);
         const r = new RegExp("\\d+");
         const m = r.exec(stdout);
         const charset = parseInt(m && m[0]);
@@ -828,8 +828,8 @@ app.use(shutdown);
 const minifyZip = require("./routes/minifyZip");
 app.use(minifyZip);
 
-const ehentaiMetadata = require("./routes/ehentaiMetadata");
-app.use(ehentaiMetadata);
+// const ehentaiMetadata = require("./routes/ehentaiMetadata");
+// app.use(ehentaiMetadata);
 
 
 if (isProduction) {
