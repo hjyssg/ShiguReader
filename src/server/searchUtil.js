@@ -7,6 +7,7 @@ const _ = require('underscore');
 const isWindows = require('is-windows');
 const pathUtil = require("./pathUtil");
 const { isSub } = pathUtil;
+const { getCurrentTime } = util;
 
 function isEqual(a, b) {
     a = a || "";
@@ -93,7 +94,7 @@ async function searchByText(text) {
 }
 
 async function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
-    // let beg = (new Date).getTime()
+    // let beg = getCurrentTime()
     const fileInfos = {};
 
     const all_text = tag || author || text;
@@ -129,7 +130,7 @@ async function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
     }
 
 
-    // let end = (new Date).getTime();
+    // let end = getCurrentTime();
     // console.log((end - beg)/1000, "to search");
     let result = {
         tag,

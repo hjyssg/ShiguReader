@@ -56,7 +56,9 @@ function read7zOutput(data) {
                 const value = tokens[1].trim();
                 const lkey = key.toLowerCase();
                 if (lkey === "path") {
-                    currentInfo && fileInfos.push(currentInfo);
+                    if (currentInfo) {
+                        fileInfos.push(currentInfo);
+                    }
                     files.push(value);
                     currentInfo = {};
                 } else {
@@ -66,7 +68,9 @@ function read7zOutput(data) {
         }
 
         //save the last
-        currentInfo && fileInfos.push(currentInfo);
+        if (currentInfo) {
+            fileInfos.push(currentInfo);
+        }
         if (fileInfos.length !== files.length) {
             throw "read7zOutput missing info";
         }
@@ -100,7 +104,7 @@ const get7zipOption = module.exports.get7zipOption = function (filePath, outputP
 const LIST_QUEUE = {};
 module.exports.listZipContentAndUpdateDb = async function (filePath) {
     const emptyResult = { files: [], fileInfos: [], info: {} };
-    if(!global._has_7zip_){
+    if (!global._has_7zip_) {
         throw "this computer did not install 7z"
     }
 
@@ -143,7 +147,7 @@ module.exports.listZipContentAndUpdateDb = async function (filePath) {
 }
 
 module.exports.extractByRange = async function (filePath, outputPath, range) {
-    if(!global._has_7zip_){
+    if (!global._has_7zip_) {
         throw "this computer did not install 7z"
     }
 
@@ -167,13 +171,8 @@ module.exports.extractByRange = async function (filePath, outputPath, range) {
                 break;
             }
             ii = ii + DISTANCE;
-
             count++;
-
-            if (count > 100) {
-                console.log("-----------warning-----------");
-                debugger
-            }
+            console.assert(count < 100);
         }
     } catch (e) {
         error = e;
@@ -183,7 +182,7 @@ module.exports.extractByRange = async function (filePath, outputPath, range) {
     }
 }
 module.exports.extractAll = async function (filePath, outputPath) {
-    if(!global._has_7zip_){
+    if (!global._has_7zip_) {
         throw "this computer did not install 7z"
     }
 
@@ -193,7 +192,7 @@ module.exports.extractAll = async function (filePath, outputPath) {
         const { stderr } = await execa(sevenZip, opt);
         if (stderr) {
             throw stderr;
-        } 
+        }
         pathes = await pfs.readdir(outputPath);
     } catch (e) {
         error = e;

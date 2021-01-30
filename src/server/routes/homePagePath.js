@@ -30,7 +30,7 @@ if (isWindows()) {
 }
 
 router.post('/api/homePagePath', async (req, res) => {
-    let beg = (new Date).getTime();
+    // let beg = (new Date).getTime();
     let dirs = global.scan_path || [];
     // dirs = dirs.filter(e => {
     //     if (e) {
@@ -60,7 +60,7 @@ router.post('/api/homePagePath', async (req, res) => {
         })
     }
 
-    let end1 = (new Date).getTime();
+    // let end1 = (new Date).getTime();
     // console.log(`${(end1 - beg)/1000}s to /api/homePagePath`);
 });
 module.exports = router;
