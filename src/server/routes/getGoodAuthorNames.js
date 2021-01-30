@@ -4,9 +4,9 @@ const express = require('express');
 const router = express.Router();
 const db = require("../models/db");
 const util = global.requireUtil();
-const { isCompress, escapeRegExp } = util;
-const userConfig = global.requireUserConfig();
-const serverUtil = require("../serverUtil");
+// const { isCompress } = util;
+// const userConfig = global.requireUserConfig();
+// const serverUtil = require("../serverUtil");
 
 async function getGoodAndOtherSet() {
     let beg = (new Date).getTime();

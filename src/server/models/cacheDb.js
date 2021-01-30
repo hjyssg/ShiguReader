@@ -2,8 +2,8 @@ const _ = require('underscore');
 
 const pathUtil = require("../pathUtil");
 const path = require('path');
-const serverUtil = require("../serverUtil");
-const util = global.requireUtil();
+// const serverUtil = require("../serverUtil");
+// const util = global.requireUtil();
 
 const { getDirName } = serverUtil;
 const { generateContentUrl } = pathUtil;
