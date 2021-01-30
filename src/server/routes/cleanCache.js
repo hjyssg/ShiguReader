@@ -1,11 +1,11 @@
 
 const express = require('express');
 const router = express.Router();
-const serverUtil = require("../serverUtil");
+// const serverUtil = require("../serverUtil");
 const cachePath = global.cachePath;
+const deleteEmpty = require('delete-empty');
 const pathUtil = require("../pathUtil");
 
-const deleteEmpty = require('delete-empty');
 
 function doCacheClean(config) {
     const cleanCache = require("../../tools/cleanCache");
@@ -21,7 +21,7 @@ router.post('/api/cleanCache', (req, res) => {
         res.send({ failed: false });
     }
 
-    doCacheClean({ afterClean: afterClean });
+    doCacheClean({ afterClean });
 
     //delete empty folder
     deleteEmpty(pathUtil.getImgConverterCachePath(), (err, deleted) => {

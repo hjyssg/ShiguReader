@@ -198,7 +198,7 @@ function getCurrentTime() {
 
 const begTime = getCurrentTime();
 let time2;
-const file_db = new loki();
+const file_db = new Loki();
 const file_collection = file_db.addCollection("file_collection");
 
 escapeRegExp = function (string) {

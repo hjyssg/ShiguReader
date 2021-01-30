@@ -1,8 +1,4 @@
-const pathUtil = require("../pathUtil");
-const {
-    isExist,
-    getZipOutputCachePath
-} = pathUtil;
+const path = require('path');
 const pfs = require('promise-fs');
 const execa = require('execa');
 const userConfig = global.requireUserConfig();
@@ -10,7 +6,12 @@ const isWindows = require('is-windows');
 const express = require('express');
 const router = express.Router();
 const logger = require("../logger");
-const path = require('path');
+
+const pathUtil = require("../pathUtil");
+const {
+    isExist,
+    getZipOutputCachePath
+} = pathUtil;
 
 const util = global.requireUtil();
 const { isImage, isCompress, isMusic, isDisplayableInOnebook } = util;
@@ -61,10 +62,9 @@ router.post('/api/moveFile', async (req, res) => {
         if (!(await isExist(dest))) {
             err = await mkdir(dest);
             if (err instanceof Error) {
-             throw "fail to create dest folder"; 
+                throw "fail to create dest folder";
             }
         }
-
 
         const cmdStr = isWindows() ? "move" : "mv";
         const { stdout, stderr } = await execa(cmdStr, [src, dest]);
@@ -175,4 +175,3 @@ router.post('/api/zipFolder', async (req, res) => {
 });
 
 module.exports = router;
-

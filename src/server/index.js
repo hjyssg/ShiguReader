@@ -26,7 +26,7 @@ const { isHiddenFile, getHash, mkdir } = serverUtil;
 
 const { fullPathToUrl, generateContentUrl, isExist, getScanPath } = pathUtil;
 const { isImage, isCompress, isVideo, isMusic, arraySlice,
-        getCurrentTime, isDisplayableInExplorer, isDisplayableInOnebook } = util;
+    getCurrentTime, isDisplayableInExplorer, isDisplayableInOnebook } = util;
 
 //set up path
 const rootPath = pathUtil.getRootPath();
@@ -47,7 +47,7 @@ const cacheDb = require("./models/cacheDb");
 
 //set up user path
 const isDev = process.argv.includes("--dev");
-const isProduction =!isDev;
+const isProduction = !isDev;
 
 // console.log("------path helper--------------");
 // console.log("isProduction", isProduction)
@@ -83,15 +83,13 @@ const { http_port, dev_express_port } = portConfig;
 // let temp_json_path = path.join(rootPath, userConfig.workspace_name, "temp_json_info.json");
 
 
-
-
 //read etc config
 let etc_config = {};
-try{
+try {
     let fcontent = fs.readFileSync(path.resolve(rootPath, "etc-config.ini"), 'utf-8');
     etc_config = ini.parse(fcontent);
     global.etc_config = etc_config;
-}catch(e){
+} catch (e) {
     //nothing
     console.warn(e);
 }
@@ -110,10 +108,10 @@ async function init() {
         }
     }
 
-    if(isProduction){
+    if (isProduction) {
         const indexHtmlPath = path.resolve(rootPath, "dist", "index.html");
         // console.log(indexHtmlPath)
-        if(!(await isExist(indexHtmlPath))){
+        if (!(await isExist(indexHtmlPath))) {
             console.error("[Error] No dist\\index.html for producation");
             console.error("[Error] You need to run npm run build");
             return;
@@ -135,7 +133,7 @@ async function init() {
             console.log(mobileAddress);
             console.log("Scan the QR code to open on mobile devices");
             qrcode.generate(mobileAddress);
-        } catch (e) {  }
+        } catch (e) { }
 
 
         console.log("----------------------------------------------------------------");
@@ -145,40 +143,40 @@ async function init() {
         await mkdir(cachePath);
         await mkdir(pathUtil.getImgConverterCachePath());
         await mkdir(pathUtil.getZipOutputCachePath());
-    
+
         const mkdirArr = scan_path;
         for (let ii = 0; ii < mkdirArr.length; ii++) {
             const fp = mkdirArr[ii];
-            if(!isWindows() && util.isWindowsPath(fp)){
+            if (!isWindows() && util.isWindowsPath(fp)) {
                 continue;
             }
             await mkdir(fp, "quiet");
         }
-    
+
         scan_path = await pathUtil.filterNonExist(scan_path);
         global.scan_path = scan_path;
-    
+
         const cleanCache = require("../tools/cleanCache");
         cleanCache.cleanCache(cachePath);
         setUpCacheWatch();
 
         const mecabHelper = require("./mecabHelper");
         mecabHelper.init();
-    
-        end1 = (new Date).getTime();
+
+        end1 = getCurrentTime();
         let thumbnail_pathes = await pfs.readdir(thumbnailFolderPath);
         thumbnail_pathes = thumbnail_pathes.filter(isImage).map(e => path.resolve(thumbnailFolderPath, e));
-        end3 = (new Date).getTime();
+        end3 = getCurrentTime();
         console.log(`[scan thumbnail] ${(end3 - end1) / 1000}s  to read thumbnail dirs`);
         thumbnailDb.init(thumbnail_pathes);
-    
+
         let will_scan = _.sortBy(scan_path, e => e.length); //todo
-        for(let ii = 0; ii < will_scan.length; ii++){
-            for(let jj = ii+1; jj < will_scan.length; jj++){
+        for (let ii = 0; ii < will_scan.length; ii++) {
+            for (let jj = ii + 1; jj < will_scan.length; jj++) {
                 const p1 = will_scan[ii];
                 const p2 = will_scan[jj];
-    
-                if(pathUtil.isSub(p1, p2)){
+
+                if (pathUtil.isSub(p1, p2)) {
                     will_scan[jj] = "_to_remove_";
                 }
             }
@@ -187,7 +185,7 @@ async function init() {
 
         //todo: chokidar will slow the server down very much when it init async
         setUpFileWatch(will_scan);
-    
+
     }).on('error', (error) => {
         logger.error("[Server Init]", error.message);
         //exit the current program
@@ -196,35 +194,19 @@ async function init() {
 }
 
 
-const junk = require('junk');
-
-const forbid = ["System Volume Information", 
-                "$Recycle.Bin", 
-                "Config.Msi", 
-                "$WinREAgent", 
-                "Windows", 
-                "msdownld.tmp",
-                "node_modules"];
-function isForbid(str){
-    str = str.toLocaleLowerCase();
-    return forbid.some(e => {
-        return  path.basename(str) === e.toLocaleLowerCase();
-    });
-}
-
 //this function which files will be scanned and watched by ShiguReader
 function shouldWatchForNormal(p, stat) {
     //cache is cover by another watch
-    if(p.includes(cachePath)){
+    if (p.includes(cachePath)) {
         return false;
     }
 
-    if (isHiddenFile(p) || junk.is(p) || isForbid(p)) {
-        return false;   
+    if (isHiddenFile(p) || serverUtil.isForbid(p)) {
+        return false;
     }
 
     //if ignore, chokidar wont check its content
-    if(stat && stat.isDirectory()){
+    if (stat && stat.isDirectory()) {
         return true;
     }
 
@@ -253,7 +235,7 @@ function shouldWatchForCache(p, stat) {
     }
 
     //if ignore, chokidar wont check its content
-    if(stat && stat.isDirectory()){
+    if (stat && stat.isDirectory()) {
         return true;
     }
 
@@ -261,29 +243,29 @@ function shouldWatchForCache(p, stat) {
     return !ext || isDisplayableInOnebook(ext) || isVideo(ext);
 }
 
-function setUpCacheWatch(){
-        //also for cache files
-        const cacheWatcher = chokidar.watch(cachePath, {
-            ignored: shouldIgnoreForCache,
-            persistent: true,
-            ignorePermissionErrors: true,
-            ignoreInitial: true,
+function setUpCacheWatch() {
+    //also for cache files
+    const cacheWatcher = chokidar.watch(cachePath, {
+        ignored: shouldIgnoreForCache,
+        persistent: true,
+        ignorePermissionErrors: true,
+        ignoreInitial: true,
+    });
+
+    cacheWatcher
+        .on('unlinkDir', p => {
+            //todo 
+            const fp = path.dirname(p);
+            db.cacheDb.folderToFiles[fp];
         });
-    
-        cacheWatcher
-            .on('unlinkDir', p => {
-                //todo 
-                const fp = path.dirname(p);
-                db.cacheDb.folderToFiles[fp];
-            });
-    
-        cacheWatcher
-            .on('add', (p, stats) => {
-                cacheDb.updateStatToCacheDb(p, stats);
-            })
-            .on('unlink', p => {
-                cacheDb.deleteFromCacheDb(p);
-            });
+
+    cacheWatcher
+        .on('add', (p, stats) => {
+            cacheDb.updateStatToCacheDb(p, stats);
+        })
+        .on('unlink', p => {
+            cacheDb.deleteFromCacheDb(p);
+        });
 }
 
 
@@ -291,7 +273,7 @@ let is_chokidar_ready = false;
 const chokidar = require('chokidar');
 function setUpFileWatch(scan_path) {
     console.log("[chokidar] begin...");
-    let beg = (new Date).getTime();
+    let beg = getCurrentTime();
 
     //watch file change 
     //update two database
@@ -307,7 +289,7 @@ function setUpFileWatch(scan_path) {
         serverUtil.parse(path);
         updateStatToDb(path, stats);
 
-        if(is_chokidar_ready){
+        if (is_chokidar_ready) {
             // no very useful
             // if (isCompress(path) && stats.size > 1 * 1024 * 1024) {
             //     //do it slowly to avoid the file used by the other process
@@ -317,11 +299,11 @@ function setUpFileWatch(scan_path) {
             //     }, 3000);
             // }
             db.createSqlIndex();
-        }else{
+        } else {
             init_count++;
             if (init_count % 2000 === 0) {
-                let end1 = (new Date).getTime();
-                console.log(`[chokidar] scan: ${(end1 - beg) / 1000}s  ${init_count} ${path}` );
+                let end1 = getCurrentTime();
+                console.log(`[chokidar] scan: ${(end1 - beg) / 1000}s  ${init_count} ${path}`);
             }
         }
     };
@@ -347,7 +329,7 @@ function setUpFileWatch(scan_path) {
     //about 1s for 1000 files
     watcher.on('ready', () => {
         is_chokidar_ready = true;
-        let end1 = (new Date).getTime();
+        let end1 = getCurrentTime();
         console.log(`[chokidar] ${(end1 - beg) / 1000}s scan complete.`);
         console.log(`-------------------------------------------------`);
         console.log(`\n\n\n\n\n`);
@@ -361,7 +343,7 @@ function setUpFileWatch(scan_path) {
 
 async function getThumbnailsForZip(filePathes) {
     const isStringInput = _.isString(filePathes);
-    if(isStringInput){
+    if (isStringInput) {
         filePathes = [filePathes];
     }
 
@@ -376,8 +358,8 @@ async function getThumbnailsForZip(filePathes) {
         if (thumbnails[filePath]) {
             return;
         }
-        
-        if(isCompress(filePath)){
+
+        if (isCompress(filePath)) {
             //get cache file
             const outputPath = path.join(cachePath, getHash(filePath));
             let cacheFiles = cacheDb.getCacheFiles(outputPath);
@@ -394,21 +376,21 @@ async function getThumbnailsForZip(filePathes) {
         }
     });
 
-    if(isStringInput){
+    if (isStringInput) {
         return thumbnails[filePathes[0]]
     }
 
     return thumbnails;
 }
 
-async function getThumbnailForFolders(filePathes){
+async function getThumbnailForFolders(filePathes) {
     const result = {};
     const sqldb = db.getSQLDB();
 
-    for(let ii =0; ii < filePathes.length; ii++){
+    for (let ii = 0; ii < filePathes.length; ii++) {
         const filePath = filePathes[ii];
         let rows = await thumbnailDb.getThumbnailForFolder(filePath)
-        if(rows.length > 0){
+        if (rows.length > 0) {
             result[filePath] = rows[0].thumbnailFilePath;
             continue;
         }
@@ -416,7 +398,7 @@ async function getThumbnailForFolders(filePathes){
         let sql = `SELECT filePath FROM file_table WHERE INSTR(filePath, ?) > 0 AND isDisplayableInOnebook = true`;
         rows = await sqldb.allSync(sql, [filePath]);
         rows = rows.filter(e => isImage(e.filePath));
-        if(rows.length > 0){
+        if (rows.length > 0) {
             result[filePath] = rows[0].filePath;
         }
     }
@@ -426,21 +408,21 @@ async function getThumbnailForFolders(filePathes){
 
 async function getStat(filePath) {
     const stat = await pfs.stat(filePath);
-    if(isAlreadyScan(filePath)){
+    if (isAlreadyScan(filePath)) {
         updateStatToDb(filePath, stat);
     }
     return stat;
 }
 
-function isAlreadyScan(dir){
+function isAlreadyScan(dir) {
     return global.scan_path.some(sp => {
         return sp === dir || pathUtil.isSub(sp, dir);
     });
 }
 
-async function _decorate(resObj){
+async function _decorate(resObj) {
     const { fileInfos, dirs, imgFolders } = resObj;
-    console.assert(fileInfos &&  dirs && imgFolders);
+    console.assert(fileInfos && dirs && imgFolders);
 
     const files = _.keys(fileInfos);
     const all_pathes = [].concat(files, _.keys(imgFolders));
@@ -448,9 +430,9 @@ async function _decorate(resObj){
     // let thumbnails = await getThumbnailsForZip(files);
     // let dirThumbnails = await getThumbnailForFolders(dirs);
     // const fileNameToReadTime = await historyDb.getFileReadTime(all_pathes);
-    const [thumbnails, dirThumbnails, fileNameToReadTime ] = await Promise.all([getThumbnailsForZip(files),
-                                                                                getThumbnailForFolders(dirs), 
-                                                                                historyDb.getFileReadTime(all_pathes)]);
+    const [thumbnails, dirThumbnails, fileNameToReadTime] = await Promise.all([getThumbnailsForZip(files),
+    getThumbnailForFolders(dirs),
+    historyDb.getFileReadTime(all_pathes)]);
     resObj.zipInfo = zipInfoDb.getZipInfo(files);
     resObj.thumbnails = _.extend(thumbnails, dirThumbnails);
     resObj.fileNameToReadTime = fileNameToReadTime;
@@ -533,11 +515,11 @@ async function extractThumbnailFromZip(filePath, res, mode, config) {
             const thumb = serverUtil.chooseThumbnailImage(files);
             if (!thumb) {
                 throw "no img in this file";
-            } 
+            }
             const stderrForThumbnail = await extractByRange(filePath, outputPath, [thumb])
             if (stderrForThumbnail) {
                 throw "extract exec failed";
-            } 
+            }
             // send original img path to client as thumbnail
             let original_thumb = path.join(outputPath, path.basename(thumb));
             sendImage(original_thumb);
@@ -584,8 +566,8 @@ app.post('/api/pregenerateThumbnails', async (req, res) => {
         const ext = serverUtil.getExt(p);
         return !ext || isCompress(ext);
     }
-    
-    if(path && !isAlreadyScan(path)){
+
+    if (path && !isAlreadyScan(path)) {
         const { pathes } = await fileiterator(path, {
             doNotNeedInfo: true,
             filter: shouldWatch
@@ -613,14 +595,14 @@ app.post('/api/pregenerateThumbnails', async (req, res) => {
         try {
             const filePath = totalFiles[ii];
             await extractThumbnailFromZip(filePath, null, "pre-generate", config);
-        }catch(e){
+        } catch (e) {
             console.error(e);
         }
         const time2 = getCurrentTime();
         const timeUsed = (time2 - pregenBeginTime) / 1000;
         const secPerFile = timeUsed / ii;
         const remainTime = (total - ii) * secPerFile / 60;
-        console.log(`[pre-generate minify] total: ${total}   ${(ii/total*100).toFixed(2)}%    ${(secPerFile).toFixed(2)} sec/file    ${remainTime.toFixed(2)} mim left`);
+        console.log(`[pre-generate minify] total: ${total}   ${(ii / total * 100).toFixed(2)}%    ${(secPerFile).toFixed(2)} sec/file    ${remainTime.toFixed(2)} mim left`);
     }
 
     pregenerateThumbnails_lock = false;
@@ -639,7 +621,7 @@ app.post('/api/firstImage', async (req, res) => {
     extractThumbnailFromZip(filePath, res);
 });
 
-async function getSameFileName(filePath){
+async function getSameFileName(filePath) {
     if (!(await isExist(filePath))) {
         //maybe the file move to other location
         const fn = path.basename(filePath);
@@ -647,10 +629,10 @@ async function getSameFileName(filePath){
 
         const sqldb = db.getSQLDB();
         let sql = `SELECT filePath FROM file_table WHERE fileName LIKE ? AND filePath NOT LIke ? AND isCompress = true`;
-        let rows = await sqldb.allSync(sql, [( '%' + fn + '%'), (dir + '%')]);
+        let rows = await sqldb.allSync(sql, [('%' + fn + '%'), (dir + '%')]);
 
-        if(rows && rows.length > 1){
-            const tempP =  pathUtil.getImgConverterCachePath();
+        if (rows && rows.length > 1) {
+            const tempP = pathUtil.getImgConverterCachePath();
             rows = rows.filter(e => {
                 return !e.filePath.includes(tempP);
             })
@@ -683,7 +665,7 @@ app.post('/api/extract', async (req, res) => {
     //todo: record the timestamp of each request
     //when cleaning cache, if the file is read recently, dont clean its cache
     filePath = await getSameFileName(filePath);
-    if (!filePath){
+    if (!filePath) {
         res.send({ failed: true, reason: "NOT FOUND" });
         return;
     }
@@ -692,7 +674,7 @@ app.post('/api/extract', async (req, res) => {
     const stat = await getStat(filePath);
 
     async function sendBack(contentObj, path, stat) {
-        const {files, musicFiles, videoFiles } = contentObj
+        const { files, musicFiles, videoFiles } = contentObj
 
         const tempFiles = files.filter(e => {
             return !isHiddenFile(e);
@@ -736,7 +718,7 @@ app.post('/api/extract', async (req, res) => {
             if (files.length === 0) {
                 throw `${filePath} has no content`
             }
-    
+
             //todo: music/video may be huge and will be slow
             if (hasMusic || hasVideo || files.length <= full_extract_max) {
                 const { pathes, error } = await extractAll(filePath, outputPath);
@@ -744,7 +726,7 @@ app.post('/api/extract', async (req, res) => {
                     const temp = generateContentUrl(pathes, outputPath);
                     sendBack(temp, filePath, stat);
                 } else {
-                   throw "fail to extract"
+                    throw "fail to extract"
                 }
             } else {
                 //spit one zip into two uncompress task
