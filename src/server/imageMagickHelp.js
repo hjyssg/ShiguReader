@@ -107,7 +107,7 @@ module.exports.minifyOneFile = async function (filePath) {
 
         //mkdir for output
         if (!(await isExist(minifyOutputPath))) {
-            const mdkirErr = await pfs.mkdir(minifyOutputPath, { recursive: true });
+            const mdkirErr = await serverUtil.mkdir(minifyOutputPath, { recursive: true });
             if (mdkirErr instanceof Error) {
                 logFail(minifyOutputPath, "cannot create output folder");
                 return;

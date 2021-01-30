@@ -7,14 +7,19 @@ let loki_db;
 let zip_content_db;
 const _ = require('underscore');
 
-module.exports.init = function (path) {
-    loki_db = new loki(path, {
-        autoload: true,
-        autoloadCallback: databaseInitialize,
-        autosave: true,
-        autosaveInterval: 4000
-    });
-}
+const userConfig = global.requireUserConfig();
+const pathUtil = require("../pathUtil");
+const path = require('path');
+
+const rootPath = pathUtil.getRootPath();
+let zip_content_db_path = path.join(rootPath, userConfig.workspace_name, "zip_info");
+
+loki_db = new loki(zip_content_db_path, {
+    autoload: true,
+    autoloadCallback: databaseInitialize,
+    autosave: true,
+    autosaveInterval: 4000
+});
 
 // implement the autoloadback referenced in loki constructor
 function databaseInitialize() {

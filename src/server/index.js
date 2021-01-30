@@ -27,7 +27,7 @@ const util = global.requireUtil();
 const fileiterator = require('./file-iterator');
 const pathUtil = require("./pathUtil");
 const serverUtil = require("./serverUtil");
-const { isHiddenFile, getHash } = serverUtil;
+const { isHiddenFile, getHash, mkdir } = serverUtil;
 
 const { fullPathToUrl, generateContentUrl, isExist, getScanPath } = pathUtil;
 const { isImage, isCompress, isVideo, isMusic, arraySlice,
@@ -41,12 +41,16 @@ const thumbnailFolderPath = path.join(rootPath, thumbnail_folder_name);
 global.thumbnailFolderPath = thumbnailFolderPath;
 global.cachePath = cachePath;
 
+
+const db = require("./models/db");
+const { updateStatToDb, deleteFromDb, getImgFolderInfo } = db;
+
+const zipInfoDb = require("./models/zipInfoDb");
 const thumbnailDb = require("./models/thumbnailDb");
 const historyDb = require("./models/historyDb");
 const cacheDb = require("./models/cacheDb");
 
 //set up user path
-
 const isDev = process.argv.includes("--dev");
 const isProduction =!isDev;
 
@@ -61,17 +65,8 @@ const isProduction =!isDev;
 const logger = require("./logger");
 const searchByTagAndAuthor = require("./models/searchUtil");
 
-//set up json DB
-const zipInfoDb = require("./models/zipInfoDb");
-let zip_content_db_path = path.join(rootPath, userConfig.workspace_name, "zip_info");
-zipInfoDb.init(zip_content_db_path);
-
-
 const sevenZipHelp = require("./sevenZipHelp");
 const { listZipContentAndUpdateDb, extractAll, extractByRange } = sevenZipHelp;
-
-const db = require("./models/db");
-const { getAllFilePathes,   updateStatToDb, deleteFromDb, getImgFolderInfo } = db;
 
 
 const app = express();
@@ -92,20 +87,7 @@ const { http_port, dev_express_port } = portConfig;
 // const jsonfile = require('jsonfile');
 // let temp_json_path = path.join(rootPath, userConfig.workspace_name, "temp_json_info.json");
 
-async function mkdir(path, quiet) {
-    if (path && !(await isExist(path))) {
-        try {
-            const err = await pfs.mkdir(path, { recursive: true });
-            if (err instanceof Error) {
-                throw err;
-            }
-        } catch (err) {
-            if (!quiet) {
-                throw err;
-            }
-        }
-    }
-}
+
 
 
 //read etc config
@@ -594,7 +576,7 @@ app.post('/api/pregenerateThumbnails', async (req, res) => {
     pregenerateThumbnails_lock = true;
     const fastUpdateMode = req.body && req.body.fastUpdateMode;
 
-    const allfiles = getAllFilePathes();
+    const allfiles = db.getAllFilePathes();
     let totalFiles = allfiles.filter(isCompress);
     if (path !== "All_Pathes") {
         totalFiles = totalFiles.filter(e => e.includes(path));

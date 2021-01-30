@@ -97,4 +97,19 @@ module.exports.getExt = function(p) {
     }
 }
 
+module.exports.mkdir = async function (path, quiet) {
+    if (path && !(await isExist(path))) {
+        try {
+            const err = await pfs.mkdir(path, { recursive: true });
+            if (err instanceof Error) {
+                throw err;
+            }
+        } catch (err) {
+            if (!quiet) {
+                throw err;
+            }
+        }
+    }
+}
+
 module.exports.common = {};
