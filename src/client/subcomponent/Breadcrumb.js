@@ -22,7 +22,7 @@ export default class Breadcrumb extends PureComponent {
     }
 
     render() {
-        let { path, right, className, sep, server_os} = this.props;
+        let { path, right, className, sep, server_os, extraDiv} = this.props;
         console.assert(sep);
         sep = sep || "\\";
         const beginWithSep = path.startsWith(sep);
@@ -53,7 +53,7 @@ export default class Breadcrumb extends PureComponent {
         }
 
         const cn = classNames("explorer-breadcrumb", className);
-        return (<ul className={cn}>{pathList}{right}</ul>);
+        return (<ul className={cn}>{pathList}{right}{extraDiv}</ul>);
     }
 }
 

@@ -874,13 +874,15 @@ export default class ExplorerPage extends Component {
             zipfileItems = [];
             fDirs.map((dirPath, ii) => {
                 const folderGroup = byDir[dirPath];
+                const extraDiv = (<div className="extra-div" >{`Zip: ${folderGroup.length}`} </div>);
                 const seperator = (<div className="col-12" key={dirPath + "---seperator"}>
                     <Breadcrumb sep={this.context.file_path_sep}
                         server_os={this.context.server_os}
                         path={dirPath}
                         className={ii > 0 ? "not-first-breadcrumb folder-seperator" : "folder-seperator"} 
+                        extraDiv={extraDiv}
                     />
-                    <div>{`file: ${folderGroup.length}`} </div>
+                    
                 </div>);
                 zipfileItems.push(seperator)
                 const zipGroup = folderGroup.map(fp => this.renderSingleZipItem(fp));
