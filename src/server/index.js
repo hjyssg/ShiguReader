@@ -380,14 +380,18 @@ async function getThumbnailForFolders(filePathes) {
     const result = {};
     const sqldb = db.getSQLDB();
 
+    let end1 = getCurrentTime();
+
+    let promiseArr = filePathes.map(filePath => thumbnailDb.getThumbnailForFolder(filePath));
+    let thumbnailRows = await Promise.all(promiseArr);
+
     for (let ii = 0; ii < filePathes.length; ii++) {
         const filePath = filePathes[ii];
 
         const ext = serverUtil.getExt(filePath);
         console.assert(!ext);
-
-        let rows = await thumbnailDb.getThumbnailForFolder(filePath)
-        if (rows.length > 0) {
+        let rows = thumbnailRows[ii];
+        if (rows && rows[0]) {
             result[filePath] = rows[0].thumbnailFilePath;
             continue;
         }
@@ -402,6 +406,9 @@ async function getThumbnailForFolders(filePathes) {
         }
     }
 
+
+    let end3 = getCurrentTime();
+    console.log(`[getThumbnailForFolders] ${(end3 - end1) / 1000}s`);
     return result;
 }
 
