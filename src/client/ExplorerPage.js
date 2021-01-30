@@ -1064,6 +1064,16 @@ export default class ExplorerPage extends Component {
         );
     }
 
+    getBookModeLink(){	
+        const onebookUrl = clientUtil.getOneBookLink(this.getTextFromQuery());	
+        return (	
+            <Link className="exp-top-button" target="_blank" to={onebookUrl} >	
+            <span className="fas fa-book-reader" />	
+            <span>Open in Book Mode </span>	
+            </Link>	
+        )	
+    }
+
     getExplorerToolbar(filteredFiles, filteredVideos) {
         const mode = this.getMode();
         if (mode === MODE_HOME) {
@@ -1103,6 +1113,7 @@ export default class ExplorerPage extends Component {
                         </Link>
                     </div>
                 }
+                {isExplorer && <div className="col-6 col-md-4"> {this.getBookModeLink()} </div>}
                 <div className="col-6 col-md-4 " > {this.renderToggleMenuButton()} </div>
             </div>);
 
