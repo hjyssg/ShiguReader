@@ -12,7 +12,7 @@ async function thumbnailGenerator(thumbnailFolderPath, imgFolder, fileName) {
             const outputPath = path.resolve(thumbnailFolderPath, outputName) + ".jpg";
             const inputFilePath = path.resolve(imgFolder, fileName);
 
-            if(global._has_magick_){
+            if (global._has_magick_) {
                 const opt = [inputFilePath, "-strip", "-resize", `280x354\>`, outputPath];
                 let { stdout, stderr } = await execa("magick", opt);
                 if (stderr) {
