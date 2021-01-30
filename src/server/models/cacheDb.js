@@ -8,8 +8,6 @@ const util = global.requireUtil();
 const { getDirName } = serverUtil;
 const { generateContentUrl } = pathUtil;
 
-
-
 //---------------------------------------------cache db---------------------
 const cacheDb = module.exports.cacheDb = {
     //a list of cache files folder -> files
@@ -37,7 +35,6 @@ module.exports.getCacheFiles = function (outputPath) {
 }
 
 
-
 //!! same as file-iterator getStat()
 module.exports.updateStatToCacheDb = function (p, stats) {
     const { folderToFiles, cacheFileToInfo } = cacheDb;
@@ -49,8 +46,7 @@ module.exports.updateStatToCacheDb = function (p, stats) {
 }
 
 module.exports.isFileInCache = function(filePath){
-    const { folderToFiles, cacheFileToInfo } = cacheDb;
-    return !!cacheFileToInfo[filePath];
+    return !!cacheDb.cacheFileToInfo[filePath];
 }
 
 module.exports.deleteFromCacheDb = function (p) {

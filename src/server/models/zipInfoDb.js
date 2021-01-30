@@ -14,12 +14,6 @@ const path = require('path');
 const rootPath = pathUtil.getRootPath();
 let zip_content_db_path = path.join(rootPath, userConfig.workspace_name, "zip_info");
 
-loki_db = new loki(zip_content_db_path, {
-    autoload: true,
-    autoloadCallback: databaseInitialize,
-    autosave: true,
-    autosaveInterval: 4000
-});
 
 // implement the autoloadback referenced in loki constructor
 function databaseInitialize() {
@@ -31,33 +25,20 @@ function databaseInitialize() {
     console.log("[zipInfoDb] number of entries in database : " + entryCount);
 }
 
-const has = module.exports.has = function (filePath) {
-    const data = getData(filePath);
-    return !!data;
-}
+loki_db = new loki(zip_content_db_path, {
+    autoload: true,
+    autoloadCallback: databaseInitialize,
+    autosave: true,
+    autosaveInterval: 4000
+});
 
 function getData(filePath) {
     return zip_content_db && zip_content_db.findOne({ filePath: filePath });
 }
 
-//how many image files
-const getPageNum = module.exports.getPageNum = function (filePath) {
-    if (has(filePath)) {
-        const contentInfo = getData(filePath);
-        return +(contentInfo.pageNum) || 0;
-    } else {
-        return 0;
-    }
-}
-
-//how many music files
-const getMusicNum = module.exports.getMusicNum = function (filePath) {
-    if (has(filePath)) {
-        const contentInfo = getData(filePath);
-        return +(contentInfo.musicNum) || 0;
-    } else {
-        return 0;
-    }
+const has = module.exports.has = function (filePath) {
+    const data = getData(filePath);
+    return !!data;
 }
 
 module.exports.getZipInfo = function (filePathes) {
