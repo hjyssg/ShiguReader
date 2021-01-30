@@ -2,9 +2,7 @@ const path = require('path');
 const _ = require('underscore');
 // const serverUtil = require("../serverUtil");
 const userConfig = global.requireUserConfig();
-
 const pathUtil = require("../pathUtil");
-
 const util = global.requireUtil();
 const { isCompress, isVideo } = util;
 

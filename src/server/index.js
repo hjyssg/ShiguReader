@@ -9,17 +9,12 @@ const qrcode = require('qrcode-terminal');
 const fs = require('fs');
 const ini = require('ini');
 
-global.requireUtil = function (e) {
-    return require("../common/util")
-};
+global.requireUtil = () => require("../common/util");
 
-global.requireUserConfig = function () {
-    return require("../config/user-config")
-};
+global.requireUserConfig = () => require("../config/user-config");
 
-global.requireConstant = function () {
-    return require("../common/constant");
-}
+global.requireConstant = () => require("../common/constant");
+
 
 const userConfig = global.requireUserConfig();
 const util = global.requireUtil();

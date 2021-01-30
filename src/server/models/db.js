@@ -1,10 +1,8 @@
 const _ = require('underscore');
-
-const pathUtil = require("../pathUtil");
+// const pathUtil = require("../pathUtil");
 const path = require('path');
 const serverUtil = require("../serverUtil");
 const util = global.requireUtil();
-
 const { getDirName } = serverUtil;
 const { isImage, isCompress, isMusic } = util;
 
@@ -13,7 +11,7 @@ const namePicker = require("../../human-name-picker");
 
 
 //file path to file stats
-let fileToInfo =  {}
+let fileToInfo =  {};
     
 module.exports.getAllFilePathes = function () {
     return _.keys(fileToInfo);

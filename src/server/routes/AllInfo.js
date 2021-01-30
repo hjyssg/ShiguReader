@@ -3,7 +3,7 @@ const express = require('express');
 const router = express.Router();
 const serverUtil = require("../serverUtil");
 const db = require("../models/db");
-const { getThumbnails } = serverUtil.common;
+const { getThumbnailsForZip } = serverUtil.common;
 const util = global.requireUtil();
 const { isDisplayableInExplorer } = util;
 
@@ -16,8 +16,6 @@ router.post('/api/tagInfo', async (req, res) => {
     + `FROM (SELECT * FROM tag_table WHERE type = 'author' ) AS b LEFT JOIN `
     + `(SELECT * FROM file_table where isCompress = true ) AS a `
     + `ON a.filePath = b.filePath GROUP BY tag HAVING a.sTime = maxTime AND count > 1 ORDER BY count DESC`;
-
-    console.warn("todo")
 
     //todo: sort by  a.sTime DESC
     let author_rows = await sqldb.allSync(sql);
