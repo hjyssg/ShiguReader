@@ -163,10 +163,10 @@ async function init() {
         const mecabHelper = require("./mecabHelper");
         mecabHelper.init();
 
-        end1 = getCurrentTime();
+        let end1 = getCurrentTime();
         let thumbnail_pathes = await pfs.readdir(thumbnailFolderPath);
         thumbnail_pathes = thumbnail_pathes.filter(isImage).map(e => path.resolve(thumbnailFolderPath, e));
-        end3 = getCurrentTime();
+        let end3 = getCurrentTime();
         console.log(`[scan thumbnail] ${(end3 - end1) / 1000}s  to read thumbnail dirs`);
         thumbnailDb.init(thumbnail_pathes);
 
@@ -254,7 +254,7 @@ function setUpCacheWatch() {
 
     cacheWatcher
         .on('unlinkDir', p => {
-            //todo 
+            //todo
             const fp = path.dirname(p);
             db.cacheDb.folderToFiles[fp];
         });
