@@ -790,7 +790,7 @@ export default class OneBook extends Component {
         {this.renderNextPrevButton()}
         {this.renderSecondBar()}
         {this.renderOverviewLink()}
-        {this.renderEhentaiTag()}
+        {/* {this.renderEhentaiTag()} */}
       </div>
     );
   }
