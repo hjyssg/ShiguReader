@@ -14,7 +14,8 @@ const rootPath = pathUtil.getRootPath();
 let thumbnail_db_path = path.join(rootPath, userConfig.workspace_name, "thumbnail_sql_db");
 const sqlite3 = require('sqlite3').verbose();
 const sqlDb = new sqlite3.Database(thumbnail_db_path);
-sqlDb.run("CREATE TABLE IF NOT EXISTS thumbnail_table (filePath TEXT, thumbnailFileName TEXT)");
+sqlDb.run("CREATE TABLE IF NOT EXISTS thumbnail_table (filePath TEXT, thumbnailFileName TEXT);");
+sqlDb.run("CREATE INDEX IF NOT EXISTS filePath_index ON thumbnail_table (filePath)");
 
 const _util = require('util');
 sqlDb.allSync = _util.promisify(sqlDb.all).bind(sqlDb);
@@ -48,10 +49,18 @@ function _add_col(rows) {
 module.exports.getThumbnailArr = async function (filePathes) {
     filePathes = _.isString(filePathes) ? [filePathes] : filePathes;
     filePathes = filePathes.filter(isCompress);
-    const joinStr = filePathes.join(" ");
+    // const joinStr = filePathes.join(" ");
     //todo: slow for large number
-    const sql = `SELECT * FROM  thumbnail_table WHERE INSTR(?, filePath) > 0`;
-    let rows = await sqlDb.allSync(sql, [joinStr]);
+    // const sql = `SELECT * FROM  thumbnail_table WHERE INSTR(?, filePath) > 0`;
+    // let rows = await sqlDb.allSync(sql, [joinStr]);
+
+    const promiseArr = filePathes.map(fp => {
+        const sql = `SELECT * FROM  thumbnail_table WHERE filePath = ?`;
+        return sqlDb.getSync(sql, [fp]);
+    })
+
+    let rows =  await Promise.all(promiseArr);
+    rows = rows.filter(e => !!e);
     return _add_col(rows);
 }
 

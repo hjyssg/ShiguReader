@@ -11,8 +11,8 @@ const namePicker = require("../../human-name-picker");
 
 
 //file path to file stats
-const fileToInfo =  {};
-    
+const fileToInfo = {};
+
 module.exports.getAllFilePathes = function () {
     return _.keys(fileToInfo);
 };
@@ -29,7 +29,7 @@ const getFileToInfo = module.exports.getFileToInfo = function (filePath) {
 const sqlite3 = require('sqlite3').verbose();
 const sqlDb = new sqlite3.Database(':memory:');
 sqlDb.run("CREATE TABLE file_table (filePath TEXT NOT NULL PRIMARY KEY, dirPath TEXT, fileName TEXT, sTime INTEGER, " +
-           "isDisplayableInExplorer BOOL, isDisplayableInOnebook BOOL, isCompress BOOL, isFolder BOOL)");
+    "isDisplayableInExplorer BOOL, isDisplayableInOnebook BOOL, isCompress BOOL, isFolder BOOL)");
 
 //todo: http://howto.philippkeller.com/2005/04/24/Tags-Database-schemas/
 sqlDb.run("CREATE TABLE tag_table (filePath TEXT, tag VARCHAR(50), type VARCHAR(25), subtype VARCHAR(25))");
@@ -39,19 +39,19 @@ sqlDb.allSync = _util.promisify(sqlDb.all).bind(sqlDb);
 sqlDb.getSync = _util.promisify(sqlDb.get).bind(sqlDb);
 sqlDb.runSync = _util.promisify(sqlDb.run).bind(sqlDb);
 
-module.exports.getSQLDB = function(){
+module.exports.getSQLDB = function () {
     return sqlDb;
 }
 
-function insertToTagTable(filePath, tag, type, subtype){
+function insertToTagTable(filePath, tag, type, subtype) {
     subtype = subtype || "";
-    if(!tag || tag.match(util.useless_tag_regex)){
+    if (!tag || tag.match(util.useless_tag_regex)) {
         return;
     }
-    sqlDb.run("INSERT OR REPLACE INTO tag_table(filePath, tag, type, subtype ) values(?, ?, ?, ?)",  filePath, tag, type, subtype);
+    sqlDb.run("INSERT OR REPLACE INTO tag_table(filePath, tag, type, subtype ) values(?, ?, ?, ?)", filePath, tag, type, subtype);
 }
 
-module.exports.createSqlIndex = function(){
+module.exports.createSqlIndex = function () {
     sqlDb.run("CREATE INDEX IF NOT EXISTS filePath_index ON file_table (filePath)");
     sqlDb.run("CREATE INDEX IF NOT EXISTS dirPath_index ON file_table (dirPath)");
     sqlDb.run("CREATE INDEX IF NOT EXISTS tag_index ON tag_table (tag)");
@@ -60,7 +60,7 @@ module.exports.createSqlIndex = function(){
 const updateFileDb = function (filePath, statObj) {
     const fileName = path.basename(filePath);
 
-    if(!statObj){
+    if (!statObj) {
         console.warn("no statObj");
         statObj = {};
     }
@@ -74,18 +74,18 @@ const updateFileDb = function (filePath, statObj) {
     const temp = nameParser.parse(str) || {};
     const nameTags = namePicker.pick(str) || [];
     const musicTags = nameParser.parseMusicTitle(str) || [];
-    const tags = _.uniq([].concat(temp.tags, temp.comiket , nameTags, musicTags));
+    const tags = _.uniq([].concat(temp.tags, temp.comiket, nameTags, musicTags));
     const authors = temp.authors || [];
     const group = temp.group || "";
 
     tags.forEach(t => {
-        if(!authors.includes(t) && group !== t){
+        if (!authors.includes(t) && group !== t) {
 
             //todo: add subtype
             //e.g comiket, parody
-            if(temp.comiket === t){
+            if (temp.comiket === t) {
                 insertToTagTable(filePath, t, "tag", "comiket");
-            }else{
+            } else {
                 insertToTagTable(filePath, t, "tag", "parody");
             }
         }
@@ -106,10 +106,10 @@ const updateFileDb = function (filePath, statObj) {
     // sqlDb.run("INSERT INTO file_table VALUES (?)", 
     // https://www.sqlitetutorial.net/sqlite-nodejs/insert/
     sqlDb.run("INSERT OR REPLACE INTO file_table(filePath, dirPath, fileName, sTime, " +
-     "isDisplayableInExplorer, isDisplayableInOnebook, " + 
-     "isCompress, isFolder ) values(?, ?, ?, ?, ?, ?, ?, ?)", 
-    filePath, dirPath, fileName, fileTimeA,
-    isDisplayableInExplorer, isDisplayableInOnebook, isCompress(fileName), statObj.isDir);
+        "isDisplayableInExplorer, isDisplayableInOnebook, " +
+        "isCompress, isFolder ) values(?, ?, ?, ?, ?, ?, ?, ?)",
+        filePath, dirPath, fileName, fileTimeA,
+        isDisplayableInExplorer, isDisplayableInOnebook, isCompress(fileName), statObj.isDir);
 }
 
 const pfs = require('promise-fs');
@@ -117,7 +117,7 @@ const pfs = require('promise-fs');
 module.exports.updateStatToDb = function (path, stat) {
     const statObj = {};
 
-    if(!stat){
+    if (!stat) {
         //seems only happen on mac
         // console.log(path, "has no stat");
         //todo: mac img folder do not display
@@ -130,7 +130,7 @@ module.exports.updateStatToDb = function (path, stat) {
             fileToInfo[path] = statObj;
             updateFileDb(path, statObj);
         });
-    }else{
+    } else {
         statObj.isFile = stat.isFile();
         statObj.isDir = stat.isDirectory();
         statObj.mtimeMs = stat.mtimeMs;
@@ -156,7 +156,7 @@ module.exports.getImgFolderInfo = function (imgFolders) {
         let mtimeMs = 0, size = 0, totalImgSize = 0, pageNum = 0, musicNum = 0;
         files.forEach(file => {
             const tempInfo = getFileToInfo(file);
-            if(tempInfo){
+            if (tempInfo) {
                 mtimeMs += tempInfo.mtimeMs / len;
                 size += tempInfo.size;
 
