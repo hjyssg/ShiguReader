@@ -339,10 +339,13 @@ async function getThumbnailsForZip(filePathes) {
 
     const thumbnails = {};
 
+    let end1 = getCurrentTime();
     let thumbArrs = await thumbnailDb.getThumbnailArr(filePathes);
     thumbArrs.forEach(row => {
         thumbnails[row.filePath] = row.thumbnailFilePath;
     })
+    let end3 = getCurrentTime();
+    console.log(`[getThumbnailsForZip] ${(end3 - end1) / 1000}s`);
 
     filePathes.forEach(filePath => {
         if (thumbnails[filePath]) {
