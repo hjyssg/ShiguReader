@@ -180,6 +180,7 @@
     "spaced-comment": "off",
     "template-curly-spacing": "off",
     "import/first": "off",
-    "no-unused-expressions": "off"
+    "no-unused-expressions": "off",
+    "no-loop-func":"off"
   }
 }
