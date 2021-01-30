@@ -97,8 +97,12 @@ module.exports.getExt = function(p) {
     }
 }
 
+
+const pfs = require('promise-fs');
+const pathUtil = require("./pathUtil");
+
 module.exports.mkdir = async function (path, quiet) {
-    if (path && !(await isExist(path))) {
+    if (path && !(await pathUtil.isExist(path))) {
         try {
             const err = await pfs.mkdir(path, { recursive: true });
             if (err instanceof Error) {

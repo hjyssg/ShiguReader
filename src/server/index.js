@@ -63,7 +63,7 @@ const isProduction =!isDev;
 // console.log("----------------------");
 
 const logger = require("./logger");
-const searchByTagAndAuthor = require("./models/searchUtil");
+const searchByTagAndAuthor = require("./searchUtil");
 
 const sevenZipHelp = require("./sevenZipHelp");
 const { listZipContentAndUpdateDb, extractAll, extractByRange } = sevenZipHelp;
