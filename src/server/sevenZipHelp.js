@@ -16,7 +16,7 @@ let sevenZip;
 if (isWindows()) {
     const sevenZipPath = path.join(pathUtil.getRootPath(), "resource", "7zip");
     sevenZip = require(sevenZipPath)['7z'];
-    console.log("sevenZipPath", sevenZipPath);
+    // console.log("sevenZipPath", sevenZipPath);
 } else {
     //assume linux/mac people already install it by cmd
     //https://superuser.com/questions/548349/how-can-i-install-7zip-so-i-can-run-it-from-terminal-on-os-x

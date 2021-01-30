@@ -284,12 +284,12 @@ export default class OneBook extends Component {
     let res = await Sender.postWithPromise(api, { filePath: fp, startIndex: this.state.index || 0 });
     this.handleRes(res);
 
-    let res2 = await Sender.postWithPromise("/api/getEhentaiMetaData", { filePath: fp });
-    if (!res2.isFailed()) {
-      this.setState({
-        ehentai_metadata: res2.json
-      })
-    }
+    // let res2 = await Sender.postWithPromise("/api/getEhentaiMetaData", { filePath: fp });
+    // if (!res2.isFailed()) {
+    //   this.setState({
+    //     ehentai_metadata: res2.json
+    //   })
+    // }
   }
 
   async handleRes(res) {
@@ -703,33 +703,33 @@ export default class OneBook extends Component {
     </div>);
   }
 
-  renderEhentaiTag() {
-    const { imageFiles, index, musicFiles, ehentai_metadata } = this.state;
-    if (ehentai_metadata && ehentai_metadata.length > 0) {
-      console.log(ehentai_metadata);
-      //temp
-      const entry = ehentai_metadata[0];
-      const display_tags = [
-        "parody",
-        "character",
-        "female",
-      ];
+  // renderEhentaiTag() {
+  //   const { imageFiles, index, musicFiles, ehentai_metadata } = this.state;
+  //   if (ehentai_metadata && ehentai_metadata.length > 0) {
+  //     console.log(ehentai_metadata);
+  //     //temp
+  //     const entry = ehentai_metadata[0];
+  //     const display_tags = [
+  //       "parody",
+  //       "character",
+  //       "female",
+  //     ];
 
-      return display_tags.map(e => {
-        const subtags = entry[e];
-        if (subtags && subtags.length > 0) {
-          const subtagDivs = subtags.map(tt => {
-            const url = clientUtil.getTagLink(tt);
-            let tagDiv = (<div key={tt} className="ehentai-tag-link" >
-              <Link target="_blank" to={url} key={tt}>{tt}</Link>
-            </div>);
-            return tagDiv;
-          })
-          return (<div key={e} className="ehentai-tag-row">{subtagDivs}</div>);
-        }
-      })
-    }
-  }
+  //     return display_tags.map(e => {
+  //       const subtags = entry[e];
+  //       if (subtags && subtags.length > 0) {
+  //         const subtagDivs = subtags.map(tt => {
+  //           const url = clientUtil.getTagLink(tt);
+  //           let tagDiv = (<div key={tt} className="ehentai-tag-link" >
+  //             <Link target="_blank" to={url} key={tt}>{tt}</Link>
+  //           </div>);
+  //           return tagDiv;
+  //         })
+  //         return (<div key={e} className="ehentai-tag-row">{subtagDivs}</div>);
+  //       }
+  //     })
+  //   }
+  // }
 
   render() {
     if (this.isFailedLoading()) {
@@ -737,7 +737,7 @@ export default class OneBook extends Component {
       return <ErrorPage res={this.res} filePath={fp} />;
     }
 
-    const { imageFiles, index, musicFiles, ehentai_metadata, mecab_tokens } = this.state;
+    const { imageFiles, index, musicFiles,  mecab_tokens } = this.state;
     const bookTitle = (<div className="one-book-title" >
       <FileNameDiv mecab_tokens={mecab_tokens} filename={getBaseName(this.state.path)} />
       {this.renderPath()}
