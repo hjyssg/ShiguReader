@@ -12,8 +12,8 @@ const {
 const rootPath = pathUtil.getRootPath();
 
 let thumbnail_db_path = path.join(rootPath, userConfig.workspace_name, "thumbnail_sql_db");
-var sqlite3 = require('sqlite3').verbose();
-var sqlDb = new sqlite3.Database(thumbnail_db_path);
+const sqlite3 = require('sqlite3').verbose();
+const sqlDb = new sqlite3.Database(thumbnail_db_path);
 sqlDb.run("CREATE TABLE IF NOT EXISTS thumbnail_table (filePath TEXT, thumbnailFileName TEXT)");
 
 const _util = require('util');

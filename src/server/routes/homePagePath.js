@@ -1,27 +1,26 @@
 
 const express = require('express');
 const router = express.Router();
-const serverUtil = require("../serverUtil");
-const db = require("../models/db");
-
-const util = global.requireUtil();
+// const serverUtil = require("../serverUtil");
+// const db = require("../models/db");
 const isWindows = require('is-windows');
+const util = global.requireUtil();
 const historyDb = require("../models/historyDb");
 const pathUtil = require("../pathUtil");
 
 
 let hdd_list = [];
-if(isWindows()){
+if (isWindows()) {
     //https://stackoverflow.com/questions/15878969/enumerate-system-drives-in-nodejs
     const child = require('child_process');
     child.exec('wmic logicaldisk get name', (error, stdout) => {
-        if(error){
+        if (error) {
             return;
         }
 
         hdd_list = stdout.split('\r\r\n')
-                .filter(util.isWindowsPath)
-                .map(value => value.trim());
+            .filter(util.isWindowsPath)
+            .map(value => value.trim());
 
         //no c drive
         hdd_list = hdd_list.filter(e => !e.toLocaleLowerCase().startsWith("c"));
@@ -30,7 +29,7 @@ if(isWindows()){
     });
 }
 
-router.post('/api/homePagePath', async function (req, res) {
+router.post('/api/homePagePath', async (req, res) => {
     let beg = (new Date).getTime();
     let dirs = global.scan_path || [];
     // dirs = dirs.filter(e => {
@@ -41,9 +40,9 @@ router.post('/api/homePagePath', async function (req, res) {
     //     }
     // });
 
-    let quickAccess = await  historyDb.getQuickAccess();
+    let quickAccess = await historyDb.getQuickAccess();
     quickAccess = quickAccess.map(e => e.dirPath);
-    
+
     quickAccess = quickAccess.filter(e => {
         const e2 = pathUtil.removeLastPathSep(e);
         return !dirs.includes(e) && !hdd_list.includes(e) && !dirs.includes(e2) && !hdd_list.includes(e2);

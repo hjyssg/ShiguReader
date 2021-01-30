@@ -1,19 +1,19 @@
 
-const pathUtil = require("../pathUtil");
-const { isExist } = pathUtil;
+const stringHash = require("string-hash");
+const pfs = require('promise-fs');
+const path = require('path');
 const express = require('express');
 const router = express.Router();
 const util = global.requireUtil();
 const { isImage, isGif } = util;
 
-const stringHash = require("string-hash");
-const pfs = require('promise-fs');
-const path = require('path');
+const pathUtil = require("../pathUtil");
+const { isExist } = pathUtil;
 
 let sharp;
-try{
+try {
     sharp = require('sharp')
-}catch(e){
+} catch (e) {
     console.error("did not install sharp", e);
 }
 
@@ -37,9 +37,9 @@ router.get('/api/download/', async (req, res) => {
     }
 
     try {
-        if (isImage(filePath) && !isGif(filePath) && thumbnailMode ) {
+        if (isImage(filePath) && !isGif(filePath) && thumbnailMode) {
             const stat = await pfs.statSync(filePath);
-            if(stat.size > THUMBNAIL_HUGE_THRESHOLD) {
+            if (stat.size > THUMBNAIL_HUGE_THRESHOLD) {
                 const outputFn = stringHash(filePath).toString() + "-min.jpg";
                 const outputPath = path.resolve(global.cachePath, outputFn);
                 if (!cacheDb.isFileInCache(outputPath)) {

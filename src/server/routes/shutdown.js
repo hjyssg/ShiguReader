@@ -22,13 +22,15 @@ function shutdown(cb) {
         throw new Error('Unknown OS!');
     }
 
-    cp.exec(cmd, function (err, stdout, stderr) {
+    cp.exec(cmd, (err, stdout, stderr) => {
         logger.info("[shutdown]", getCurrentTime());
-        cb && cb(err, stdout, stderr);
+        if (cb) {
+            cb(err, stdout, stderr);
+        }
     });
-};
+}
 
-router.post('/api/shutdownServer', function (req, res) {
+router.post('/api/shutdownServer', (req, res) => {
     shutdown();
     res.send({ failed: false });
 });

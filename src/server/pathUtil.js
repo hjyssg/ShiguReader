@@ -42,7 +42,7 @@ const generateContentUrl = function (pathes, outputPath) {
                 files.push(temp);
             } else if (isMusic(p)) {
                 musicFiles.push(temp);
-            } else if(isVideo(p)){
+            } else if (isVideo(p)) {
                 videoFiles.push(temp);
             }
         }
@@ -50,12 +50,12 @@ const generateContentUrl = function (pathes, outputPath) {
     return { files, dirs, musicFiles, videoFiles };
 }
 
-const isExist = async (path) => {
+const isExist = async (tempPath) => {
     try {
-        if(!path){
+        if (!tempPath) {
             return false;
         }
-        const error = await pfs.access(path);
+        const error = await pfs.access(tempPath);
         return !error;
     } catch (e) {
         return false;
@@ -67,17 +67,17 @@ function isDirectParent(parent, filePath) {
     return parentPath === parent;
 }
 
-function removeLastPathSep(pp){
+function removeLastPathSep(pp) {
     //https://stackoverflow.com/questions/3884632/how-to-get-the-last-character-of-a-string
-    if(pp.slice(-1) === path.sep){
-        return pp.slice(0, pp.length-1);
-    }else{
+    if (pp.slice(-1) === path.sep) {
+        return pp.slice(0, pp.length - 1);
+    } else {
         return pp;
     }
 }
 
 function isSub(parent, child) {
-    if(isWindows()){
+    if (isWindows()) {
         parent = parent.toLowerCase();
         child = child.toLowerCase();
     }
@@ -88,17 +88,17 @@ function isSub(parent, child) {
     // return parent && child && child.length > parent.length && child.startsWith(parent) && path.dirname(child) === parent;
 }
 
-if(isWindows()){
+if (isWindows()) {
     console.assert(isSub("D:\\_Happy_Lesson\\_Going_to_sort\\_not_good\\", "D:\\_Happy_Lesson\\_Going_to_sort\\_not_good\\not_good_2020"))
     console.assert(isSub("D:\\_Happy_Lesson\\_Going_to_sort\\_not_good", "D:\\_Happy_Lesson\\_Going_to_sort\\_not_good\\not_good_2020"))
-}else{
+} else {
     console.assert(isSub("/Users/hjy/", "/Users/hjy/Downloads"))
 }
 
 async function filterNonExist(pathes) {
     for (let ii = 0; ii < pathes.length; ii++) {
         const e = pathes[ii];
-        if(!e){
+        if (!e) {
             pathes[ii] = null;
         }
 
@@ -142,16 +142,16 @@ async function getScanPath() {
     const fContent1 = fs.readFileSync(path_config_path).toString();
 
     const path_config = ini.parse(fContent1);
-    let scan_path =  [].concat(path_config.path);
+    let scan_path = [].concat(path_config.path);
 
     const move_path_config_path = path.join(getRootPath(), "move-path-config.ini");
     const fContent2 = fs.readFileSync(move_path_config_path).toString();
     const moveObj = ini.parse(fContent2);
 
-    let { good_folder_root, not_good_folder_root} = moveObj;
+    let { good_folder_root, not_good_folder_root } = moveObj;
 
     global.good_folder_root = good_folder_root || "";
-    global.not_good_folder_root= not_good_folder_root || "";
+    global.not_good_folder_root = not_good_folder_root || "";
     //less freedom for more noob-friendly
 
     //add good folder
@@ -166,8 +166,8 @@ async function getScanPath() {
     const fd2 = "not_good_" + y;
     global.not_good_folder = not_good_folder_root && path.resolve(not_good_folder_root, fd2);
 
-    scan_path = scan_path.concat(good_folder, good_folder_root, 
-                                           not_good_folder_root, not_good_folder);
+    scan_path = scan_path.concat(good_folder, good_folder_root,
+        not_good_folder_root, not_good_folder);
 
     scan_path.push(getImgConverterCachePath());
     scan_path.push(getZipOutputCachePath());

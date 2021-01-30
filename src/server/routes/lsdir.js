@@ -1,21 +1,23 @@
+const express = require('express');
+const router = express.Router();
+// const _ = require('underscore');
+const stringHash = require("string-hash");
+const path = require('path');
+
 const pathUtil = require("../pathUtil");
 const {
     isExist,
     isDirectParent,
     isSub
 } = pathUtil;
-const express = require('express');
-const router = express.Router();
+
 const serverUtil = require("../serverUtil");
 const db = require("../models/db");
-const {  getFileToInfo, getImgFolderInfo } = db;
+const { getFileToInfo, getImgFolderInfo } = db;
 const util = global.requireUtil();
-const { getCurrentTime, isDisplayableInExplorer, isDisplayableInOnebook, isImage, isMusic, isCompress, isVideo } = util;
-const path = require('path');
+const { getCurrentTime, isImage, isMusic, isCompress, isVideo } = util;
 const { isAlreadyScan, _decorate } = serverUtil.common;
-const _ = require('underscore');
 const readdir = require("../readdir");
-const stringHash = require("string-hash");
 const historyDb = require("../models/historyDb");
 
 router.post('/api/lsDir', async (req, res) => {
@@ -33,7 +35,7 @@ router.post('/api/lsDir', async (req, res) => {
         dir = dir.slice(0, dir.length - 1)
     }
 
-    if(!isAlreadyScan(dir)){
+    if (!isAlreadyScan(dir)) {
         const result = await listNoScanDir(dir, res);
         res.send(result);
         return;
@@ -60,26 +62,26 @@ router.post('/api/lsDir', async (req, res) => {
 
         //todo: LIMIT 0, 5 group by
         //-------------- dir --------------
-        if(!isRecursive){
+        if (!isRecursive) {
             sql = `CREATE TABLE ${tempDirTable} AS SELECT * FROM ${tempFileTable} WHERE dirPath = ? AND isFolder = true`;
             await sqldb.runSync(sql, [dir]);
 
             //todo: group_concat is ugly
             // in order to get folder's files, join file_Table and then group by
             sql = `SELECT a.filePath, group_concat(b.fileName, '${sep}') as files ` +
-                `FROM ${tempDirTable} AS a LEFT JOIN ` + 
-                `${tempFileTable} AS b `+ 
-                `ON a.filePath = b.dirPath ` + 
+                `FROM ${tempDirTable} AS a LEFT JOIN ` +
+                `${tempFileTable} AS b ` +
+                `ON a.filePath = b.dirPath ` +
                 `GROUP by a.fileName `
             rows = await sqldb.allSync(sql);
             dirs = rows.map(e => e.filePath);
         }
 
         //-------------------files -----------------
-        if(isRecursive){
+        if (isRecursive) {
             sql = `SELECT filePath FROM ${tempFileTable}`;
             rows = await sqldb.allSync(sql);
-        }else{
+        } else {
             sql = `SELECT filePath FROM ${tempFileTable} WHERE dirPath = ?`;
             rows = await sqldb.allSync(sql, [dir]);
         }
@@ -102,10 +104,10 @@ router.post('/api/lsDir', async (req, res) => {
             if (pp === dir || !row.files) {
                 return;
             }
-            if(!isRecursive && !isDirectParent(dir, pp)){
+            if (!isRecursive && !isDirectParent(dir, pp)) {
                 return;
             }
-            const files =  row.files.split(sep);
+            const files = row.files.split(sep);
             imgFolders[pp] = files.map(e => path.resolve(pp, e));
         })
 
@@ -116,7 +118,7 @@ router.post('/api/lsDir', async (req, res) => {
 
         let result = {
             path: dir,
-            dirs: dirs,
+            dirs,
             fileInfos,
             imgFolders
         };
@@ -126,12 +128,12 @@ router.post('/api/lsDir', async (req, res) => {
         // timeUsed = (time3 - time2) / 1000;
         // console.log("[/api/LsDir] info look", timeUsed, "s")
         res.send(result);
-    }catch(e){
+    } catch (e) {
         console.error(e);
         res.send({ failed: true, reason: e });
-    }finally {
+    } finally {
         //drop
-        sql = `DROP TABLE IF EXISTS ${tempFileTable}`;
+        let sql = `DROP TABLE IF EXISTS ${tempFileTable}`;
         sqldb.run(sql);
         sql = `DROP TABLE IF EXISTS ${tempDirTable}`
         sqldb.run(sql);
@@ -139,7 +141,7 @@ router.post('/api/lsDir', async (req, res) => {
 });
 
 
-async function listNoScanDir(filePath){
+async function listNoScanDir(filePath) {
     let subFnArr = await readdir(filePath);
     let subFpArr = subFnArr.map(e => path.resolve(filePath, e));
 
@@ -163,15 +165,14 @@ async function listNoScanDir(filePath){
         mode: "lack_info_mode",
 
         stat: {},
-        path: filePath,
         dirs,
         imgFolders: {},
         fileInfos,
 
         imageFiles,
-        musicFiles, 
+        musicFiles,
         videoFiles,
-        compressFiles, 
+        compressFiles,
     };
     result = await _decorate(result)
     return result;
@@ -187,9 +188,9 @@ router.post('/api/listImageFolderContent', async (req, res) => {
     }
 
     let result;
-    if(!isAlreadyScan(filePath)){
-        result =  await listNoScanDir(filePath, res);
-    }else{
+    if (!isAlreadyScan(filePath)) {
+        result = await listNoScanDir(filePath, res);
+    } else {
         const sqldb = db.getSQLDB();
         let sql = `SELECT filePath FROM file_table WHERE INSTR(filePath, ?) = 1`;
         let _files = await sqldb.allSync(sql, [filePath]);
@@ -199,24 +200,26 @@ router.post('/api/listImageFolderContent', async (req, res) => {
         _files = _files.filter(pp => {
             return isDirectParent(filePath, pp)
         });
-    
+
         const imageFiles = _files.filter(isImage)
         const musicFiles = _files.filter(isMusic);
-        const videoFiles = _files.filter(isVideo) 
-    
+        const videoFiles = _files.filter(isVideo)
+
         const mapping = {};
         mapping[filePath] = _files;
         const info = getImgFolderInfo(mapping)[filePath];
-    
+
         result = {
             zipInfo: info,
             stat: info,
             path: filePath,
-            imageFiles, musicFiles, videoFiles, 
+            imageFiles,
+            musicFiles,
+            videoFiles,
         };
     }
 
-    if(result && !noMedataInfo){
+    if (result && !noMedataInfo) {
         result.mecab_tokens = await global.mecab_getTokens(filePath);
     }
     res.send(result);

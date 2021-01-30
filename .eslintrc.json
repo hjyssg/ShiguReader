@@ -33,6 +33,9 @@
     "class-methods-use-this": "off",
     "no-multi-assign": "off",
     "spaced-comment": "off",
-    "semi": "off"
+    "semi": "off",
+    "camelcase": "off",
+    "max-len": "off",
+    "import/newline-after-import": "off"
   }
 }

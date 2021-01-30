@@ -28,7 +28,6 @@ img_convert_huge_threshold *= 1024 * 1024;
 img_convert_min_threshold *= 1024 * 1024;
 
 
-
 function logFail(filePath, e) {
     logger.error("[imageMagickHelp]", filePath, e);
 }
@@ -40,7 +39,6 @@ execa("magick")
         global._has_magick_ = false;
         console.log("Did not install magick")
     });
-
 
 
 //https://imagemagick.org/script/download.php#windows
@@ -73,7 +71,7 @@ module.exports.isConertable = async function (filePath) {
     const convertSpace = path.join(getImgConverterCachePath(), subfoldername);
     const outputFile = path.join(convertSpace, bookName + ".zip");
 
-    if((await isExist(outputFile))){
+    if ((await isExist(outputFile))) {
         return "already minified"
     }
 
@@ -81,7 +79,7 @@ module.exports.isConertable = async function (filePath) {
     return text;
 }
 
-function isImgConvertable(fileName, size){
+function isImgConvertable(fileName, size) {
     return isImage(fileName) && !isGif(fileName) && size > img_convert_min_threshold;
 }
 
@@ -114,7 +112,7 @@ module.exports.minifyOneFile = async function (filePath) {
             }
         }
 
-        //do a brand new extract 
+        //do a brand new extract
         const { pathes, error } = await extractAll(filePath, extractOutputPath);
         if (error) {
             logFail(filePath, "failed to extractAll", error);
@@ -139,7 +137,7 @@ module.exports.minifyOneFile = async function (filePath) {
             const inputFp = path.resolve(extractOutputPath, fname);
             try {
                 const stat = await pfs.stat(inputFp);
-                if(stat.isDirectory()){
+                if (stat.isDirectory()) {
                     continue;
                 }
                 const oldSize = stat.size;
@@ -206,8 +204,8 @@ module.exports.minifyOneFile = async function (filePath) {
             deleteCache(resultZipPath);
         } else {
             //manually let file have the same modify time
-            const error = await pfs.utimes(resultZipPath, oldStat.atime, oldStat.mtime);
-            if (error) {
+            const error2 = await pfs.utimes(resultZipPath, oldStat.atime, oldStat.mtime);
+            if (error2) {
                 logFail(filePath, "pfs.utimes failed");
                 deleteCache(resultZipPath);
             } else {
@@ -274,20 +272,20 @@ const isNewZipSameWithOriginalFiles = module.exports.isNewZipSameWithOriginalFil
 
 const fileiterator = require('./file-iterator');
 const trash = require('trash');
-module.exports.minifyFolder = async function(filePath){
+module.exports.minifyFolder = async function (filePath) {
     console.log("-----begin images convertion --------------");
     //only one level
     const { pathes, infos } = await fileiterator(filePath, {
         filter: util.isImage
     });
 
-    const sufix =  "_temp_compress.jpg";
+    const sufix = "_temp_compress.jpg";
     const total = pathes.length;
     let saveSpace = 0;
-    for(let ii = 0; ii < pathes.length; ii++){
-        try{
+    for (let ii = 0; ii < pathes.length; ii++) {
+        try {
             const inputFp = pathes[ii];
-            if(inputFp.endsWith(sufix)){
+            if (inputFp.endsWith(sufix)) {
                 continue;
             }
             const oldSize = infos[inputFp].size;
@@ -296,14 +294,14 @@ module.exports.minifyFolder = async function(filePath){
             const outputfn = imgName + sufix;
             const outputfp = path.resolve(dirPath, outputfn);
 
-            if(isImgConvertable(inputFp, oldSize)){
+            if (isImgConvertable(inputFp, oldSize)) {
                 await convertImage(inputFp, outputfp, oldSize);
 
                 const newStat = await getStat(outputfp);
                 const reducePercentage = (100 - newStat.size / oldSize * 100).toFixed(2);
-                if (reducePercentage < userful_percent ||  newStat.size < 1000 ) {
+                if (reducePercentage < userful_percent || newStat.size < 1000) {
                     await trash([outputfp]);
-                }else{
+                } else {
                     //delete input file
                     await trash([inputFp]);
                     //rename output to input file
@@ -314,7 +312,7 @@ module.exports.minifyFolder = async function(filePath){
                 }
             }
             console.log(`${ii + 1}/${total}`);
-        }catch(e){
+        } catch (e) {
             console.error(e);
         }
     }

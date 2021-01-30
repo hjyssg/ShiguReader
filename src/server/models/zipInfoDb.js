@@ -1,16 +1,14 @@
-const loki = require("lokijs");
-
+const Loki = require("lokijs");
 const util = global.requireUtil();
-const { getCurrentTime, isDisplayableInExplorer, isDisplayableInOnebook, isImage, isMusic, isCompress, isVideo } = util;
-
-let loki_db;
-let zip_content_db;
+const { isImage, isMusic, isCompress, isVideo } = util;
 const _ = require('underscore');
 
 const userConfig = global.requireUserConfig();
-const pathUtil = require("../pathUtil");
 const path = require('path');
+const pathUtil = require("../pathUtil");
 
+let loki_db;
+let zip_content_db;
 const rootPath = pathUtil.getRootPath();
 let zip_content_db_path = path.join(rootPath, userConfig.workspace_name, "zip_info");
 
@@ -21,11 +19,11 @@ function databaseInitialize() {
     if (zip_content_db === null) {
         zip_content_db = loki_db.addCollection("zipInfo", { indices: ['filePath'] });
     }
-    var entryCount = zip_content_db.count();
+    const entryCount = zip_content_db.count();
     console.log("[zipInfoDb] number of entries in database : " + entryCount);
 }
 
-loki_db = new loki(zip_content_db_path, {
+loki_db = new Loki(zip_content_db_path, {
     autoload: true,
     autoloadCallback: databaseInitialize,
     autosave: true,
@@ -33,7 +31,7 @@ loki_db = new loki(zip_content_db_path, {
 });
 
 function getData(filePath) {
-    return zip_content_db && zip_content_db.findOne({ filePath: filePath });
+    return zip_content_db && zip_content_db.findOne({ filePath });
 }
 
 const has = module.exports.has = function (filePath) {
@@ -45,7 +43,7 @@ module.exports.getZipInfo = function (filePathes) {
     const fpToInfo = {};
 
     const isStringInput = _.isString(filePathes);
-    if(isStringInput){
+    if (isStringInput) {
         filePathes = [filePathes];
     }
 
@@ -71,7 +69,7 @@ module.exports.getZipInfo = function (filePathes) {
         }
     });
 
-    if(isStringInput){
+    if (isStringInput) {
         return fpToInfo[filePathes[0]]
     }
 
@@ -94,13 +92,13 @@ module.exports.updateZipDb = function (filePath, info) {
         return;
     }
 
-    const {  totalImgSize, files } = info;
+    const { totalImgSize, files } = info;
     console.assert(files && files.length >= 0);
 
     const entry = {
-            filePath,
-            totalImgSize,
-            files: files
+        filePath,
+        totalImgSize,
+        files
     };
 
     //!!bug if shut the down the program, all data will be lost

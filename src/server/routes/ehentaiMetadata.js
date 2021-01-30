@@ -10,8 +10,8 @@ const serverUtil = require("../serverUtil");
 const parse = serverUtil.parse;
 
 const jsonfile = require('jsonfile');
-const loki = require("lokijs");
-const ehentai_db = new loki();
+const Loki = require("lokijs");
+const ehentai_db = new Loki();
 const ehentai_collection = ehentai_db.addCollection("ehentai_metadata", {
   // indices: ["fileName", "tags", "authors"],
   // unique: ['filePath'] 

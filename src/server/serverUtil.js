@@ -1,10 +1,10 @@
 const util = global.requireUtil();
 const path = require('path');
+const stringHash = require("string-hash");
 const nameParser = require('../name-parser');
 const sortUtil = require("../common/sortUtil");
 const { isImage, isCompress } = util;
 
-const stringHash = require("string-hash");
 const userConfig = global.requireUserConfig();
 
 /*
@@ -50,7 +50,7 @@ module.exports.chooseOneZipForOneTag = function (files, fileInfos) {
     });
 
     const config = {
-        fileInfos, 
+        fileInfos,
         getBaseName
     }
 
@@ -86,7 +86,7 @@ module.exports.parse = function (str) {
 }
 
 
-module.exports.getExt = function(p) {
+module.exports.getExt = function (p) {
     const ext = path.extname(p).toLowerCase();
     //xxx NO.003 xxx is not meaningful extension
     //extension string should be alphabet(may with digit), but not only digit
@@ -114,6 +114,21 @@ module.exports.mkdir = async function (path, quiet) {
             }
         }
     }
+}
+
+const forbid = ["System Volume Information",
+    "$Recycle.Bin",
+    "Config.Msi",
+    "$WinREAgent",
+    "Windows",
+    "msdownld.tmp",
+    "node_modules"];
+const junk = require('junk');
+module.exports.isForbid = function (str) {
+    str = str.toLocaleLowerCase();
+    return junk.is(str) || forbid.some(e => {
+        return path.basename(str) === e.toLocaleLowerCase();
+    });
 }
 
 module.exports.common = {};

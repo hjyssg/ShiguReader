@@ -1,13 +1,13 @@
 
+const path = require('path');
+const filesizeUitl = require('filesize');
 const express = require('express');
 const router = express.Router();
 const imageMagickHelp = require("../imageMagickHelp");
 const pathUtil = require("../pathUtil");
 const { isExist } = pathUtil;
-const filesizeUitl = require('filesize');
 const logger = require("../logger");
 const db = require("../models/db");
-const path = require('path');
 
 const serverUtil = require("../serverUtil");
 const { getStat } = serverUtil.common;
@@ -54,7 +54,7 @@ router.post('/api/overwrite', async (req, res) => {
     const fn = path.basename(filePath, path.extname(filePath));
     const sqldb = db.getSQLDB();
     let sql = `SELECT filePath FROM file_table WHERE fileName LIKE ? AND isCompress = true`;
-    let allPath = await sqldb.allSync(sql, [( '%' + fn + '%')]);
+    let allPath = await sqldb.allSync(sql, [('%' + fn + '%')]);
 
     allPath = allPath.filter(obj => {
         const pp = obj.filePath;
@@ -77,7 +77,7 @@ router.post('/api/overwrite', async (req, res) => {
     }
 
     if (originalFilePath) {
-        //do the overwrite 
+        //do the overwrite
         await trash(originalFilePath);
         const newPath = path.join(path.dirname(originalFilePath), path.basename(filePath));
         const { stdout, stderr } = move(filePath, newPath);
@@ -123,20 +123,20 @@ router.post('/api/minifyZip', async (req, res) => {
     }
 
     minifyZipQue.push(filePath);
-    try {   
-            let temp;
-            if(util.isCompress(filePath)){
-                temp = await limit(() => imageMagickHelp.minifyOneFile(filePath));
-            }else{
-                temp = await limit(() => imageMagickHelp.minifyFolder(filePath));
-            }
-            if (temp) {
-                //only success will return result
-                const { oldSize, newSize, saveSpace } = temp;
-                count.processed++
-                count.saveSpace += saveSpace;
-                logger.info("[/api/minifyZip] total space save:", filesizeUitl(count.saveSpace, { base: 2 }))
-            }
+    try {
+        let temp;
+        if (util.isCompress(filePath)) {
+            temp = await limit(() => imageMagickHelp.minifyOneFile(filePath));
+        } else {
+            temp = await limit(() => imageMagickHelp.minifyFolder(filePath));
+        }
+        if (temp) {
+            //only success will return result
+            const { oldSize, newSize, saveSpace } = temp;
+            count.processed++
+            count.saveSpace += saveSpace;
+            logger.info("[/api/minifyZip] total space save:", filesizeUitl(count.saveSpace, { base: 2 }))
+        }
     } catch (e) {
         logger.error("[/api/minifyZip]", e);
     } finally {

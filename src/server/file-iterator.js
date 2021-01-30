@@ -7,7 +7,7 @@ const readdir = require("./readdir");
 
 
 module.exports = async function (folders, config) {
-    if(_.isString(folders)){
+    if (_.isString(folders)) {
         folders = [folders]
     }
 

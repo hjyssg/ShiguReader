@@ -6,7 +6,7 @@ const router = express.Router();
 const historyDb = require("../models/historyDb");
 
 
-router.post('/api/getHistory', async function (req, res) {
+router.post('/api/getHistory', async (req, res) => {
     const history = await historyDb.getHistory();
     res.send({
         history

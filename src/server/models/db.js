@@ -11,7 +11,7 @@ const namePicker = require("../../human-name-picker");
 
 
 //file path to file stats
-let fileToInfo =  {};
+const fileToInfo =  {};
     
 module.exports.getAllFilePathes = function () {
     return _.keys(fileToInfo);
@@ -26,8 +26,8 @@ const getFileToInfo = module.exports.getFileToInfo = function (filePath) {
 }
 
 
-var sqlite3 = require('sqlite3').verbose();
-var sqlDb = new sqlite3.Database(':memory:');
+const sqlite3 = require('sqlite3').verbose();
+const sqlDb = new sqlite3.Database(':memory:');
 sqlDb.run("CREATE TABLE file_table (filePath TEXT NOT NULL PRIMARY KEY, dirPath TEXT, fileName TEXT, sTime INTEGER, " +
            "isDisplayableInExplorer BOOL, isDisplayableInOnebook BOOL, isCompress BOOL, isFolder BOOL)");
 
