@@ -10,6 +10,7 @@ const history_db_path = path.join(rootPath, userConfig.workspace_name, "history_
 const sqlite3 = require('sqlite3').verbose();
 const sqlDb = new sqlite3.Database(history_db_path);
 sqlDb.run("CREATE TABLE IF NOT EXISTS history_table (filePath TEXT, dirPath TEXT, fileName TEXT, time INTEGER)");
+sqlDb.run("CREATE INDEX IF NOT EXISTS fileName_index ON history_table (fileName)");
 
 
 const _util = require('util');
@@ -52,13 +53,18 @@ module.exports.getFileReadTime = async function (pathes) {
         return path.basename(e);
     });
 
-    const joinStr = fileNames.join(" ");
+    // const joinStr = fileNames.join(" ");
+    // let sql = "SELECT fileName, MAX(time) as time FROM history_table where INSTR(?, fileName) > 0 GROUP BY fileName"
+    // let rows = await sqlDb.allSync(sql, [joinStr]);
 
-    let sql = "SELECT fileName, MAX(time) as time FROM history_table where INSTR(?, fileName) > 0 GROUP BY fileName"
-    let rows = await sqlDb.allSync(sql, [joinStr]);
+    const promiseArr = fileNames.map(fp => {
+        const sql = "SELECT fileName, MAX(time) as time FROM history_table where fileName = ? GROUP BY fileName"
+        return sqlDb.getSync(sql, [fp]);
+    })
+    let rows =  await Promise.all(promiseArr);
+    rows = rows.filter(e => !!e);
 
     const fileNameToReadTime = {};
-
     rows.forEach(row => {
         const { fileName, time } = row;
         fileNameToReadTime[fileName] = time;
