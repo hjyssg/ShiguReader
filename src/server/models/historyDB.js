@@ -16,8 +16,6 @@ const userConfig = global.requireUserConfig();
 // const namePicker = require("../../human-name-picker");
 
 const rootPath = pathUtil.getRootPath();
-
-
 let history_db_path = path.join(rootPath, userConfig.workspace_name, "history_sql_db");
 var sqlite3 = require('sqlite3').verbose();
 var sqlDb = new sqlite3.Database(history_db_path);

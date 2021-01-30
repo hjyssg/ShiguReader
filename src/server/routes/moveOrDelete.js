@@ -16,6 +16,9 @@ const path = require('path');
 const util = global.requireUtil();
 const { isImage, isCompress, isMusic, arraySlice, isDisplayableInOnebook } = util;
 
+const serverUtil = require("../serverUtil");
+const { mkdir } = serverUtil;
+
 const sevenZipHelp = require("../sevenZipHelp");
 
 function getReason(e) {
@@ -57,7 +60,7 @@ router.post('/api/moveFile', async (req, res) => {
     try {
         let err;
         if (!(await isExist(dest))) {
-            err = await pfs.mkdir(dest, { recursive: true });
+            err = await mkdir(dest);
             if (err instanceof Error) {
              throw "fail to create dest folder"; 
             }

@@ -1,7 +1,7 @@
 const _ = require('underscore');
 const serverUtil = require("../serverUtil");
 const db = require("./db");
-const { getAllFilePathes, getFileToInfo } = db;
+const { getFileToInfo } = db;
 const path = require("path");
 const pathUtil = require("../pathUtil");
 const { isSub } = pathUtil;
@@ -99,7 +99,7 @@ function linearScale(feature){
 }
 
 function init(){
-    const filePathes = getAllFilePathes().filter(util.isCompress)
+    const filePathes = db.getAllFilePathes().filter(util.isCompress)
     .filter(e => {
         return isSub(good_folder_root, e) || isSub(not_good_folder_root, e);
     });
