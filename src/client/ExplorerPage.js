@@ -31,21 +31,15 @@ const AdminUtil = require("./AdminUtil");
 
 import { GlobalContext } from './globalContext'
 
-const { TIME_DOWN,
-    TIME_UP,
-    READ_TIME_DOWN,
-    READ_TIME_UP,
-    BY_FOLDER_DOWN,
-    BY_FOLDER_UP,
-    FILENAME_UP,
-    FILENAME_DOWN,
-    FILE_SIZE_UP,
-    FILE_SIZE_DOWN,
-    AVG_PAGE_SIZE_UP,
-    AVG_PAGE_SIZE_DOWN,
-    PAGE_NUMBER_UP,
-    PAGE_NUMBER_DOWN,
-    SORT_RANDOMLY } = Constant;
+const { BY_FILE_NUMBER,
+    BY_TIME,
+    BY_READ_TIME,
+    BY_FILE_SIZE,
+    BY_AVG_PAGE_SIZE,
+    BY_PAGE_NUMBER,
+    BY_FILENAME,
+    BY_FOLDER,
+    BY_RANDOM } = Constant;
 
 const { MODE_TAG,
     MODE_HOME,
@@ -82,7 +76,7 @@ export default class ExplorerPage extends Component {
     }
 
     getNumPerPage() {
-        return (this.state.noThumbnail || this.state.sortOrder === BY_FOLDER_DOWN || this.state.sortOrder === BY_FOLDER_UP )? 
+        return (this.state.noThumbnail || this.state.sortOrder === BY_FOLDER || this.state.sortOrder === BY_FOLDER )? 
                 1000 : this.state.perPageItemNum; // this.state.noThumbnail? 40 :  this.state.perPageItemNum;
     }
 
@@ -90,7 +84,8 @@ export default class ExplorerPage extends Component {
         const parsed = reset ? {} : queryString.parse(location.hash);
         const pageIndex = parseInt(parsed.pageIndex) || 1;
         const isRecursive = !!(parsed.isRecursive === "true");
-        const sortOrder = parsed.sortOrder || TIME_DOWN;
+        const sortOrder = parsed.sortOrder || BY_TIME;
+        const isSortAsc = !!(parse.isSortAsc === "true");
         const showVideo = !!(parsed.showVideo === "true");
         const showFolderThumbnail = !!(parsed.showFolderThumbnail == "true");
         let filterArr = parsed.filterArr || [];
@@ -104,6 +99,7 @@ export default class ExplorerPage extends Component {
             pageIndex,
             isRecursive,
             sortOrder,
+            isSortAsc,
             showVideo,
             showFolderThumbnail,
             filterArr,
@@ -115,7 +111,6 @@ export default class ExplorerPage extends Component {
 
     setStateAndSetHash(state, callback) {
         // const time1 = util.getCurrentTime();
-
         //??? this is slow after handleRes
         this.setState(state, callback);
 
@@ -124,6 +119,7 @@ export default class ExplorerPage extends Component {
         ["pageIndex",
             "isRecursive",
             "sortOrder",
+            "isSortAsc",
             "showVideo",
             "filterArr",
             "filterText",
@@ -581,7 +577,7 @@ export default class ExplorerPage extends Component {
         return files.slice((this.state.pageIndex - 1) * this.getNumPerPage(), (this.state.pageIndex) * this.getNumPerPage());
     }
 
-    sortFiles(files, sortOrder) {
+    sortFiles(files, sortOrder, isSortAsc) {
         //-------sort algo
         const byFn = (a, b) => {
             const ap = getBaseName(a);
@@ -589,60 +585,51 @@ export default class ExplorerPage extends Component {
             return ap.localeCompare(bp);
         }
 
-        if (sortOrder.includes(SORT_RANDOMLY)) {
+        if (sortOrder.includes(BY_RANDOM)) {
             files = _.shuffle(files);
-        } else if (sortOrder === FILENAME_UP || sortOrder === FILENAME_DOWN) {
+        } else if (sortOrder === BY_FILENAME) {
             files.sort((a, b) => {
                 return byFn(a, b);
             });
-
-            if (sortOrder === FILENAME_DOWN) {
-                files.reverse();
-            }
-        } else if (sortOrder === BY_FOLDER_UP || sortOrder === BY_FOLDER_DOWN) {
+        } else if (sortOrder === BY_FOLDER) {
             files = _.sortBy(files, e => {
                 const dir = getDir(e);
                 return dir;
             });
-
-            if (sortOrder === BY_FOLDER_DOWN) {
-                files.reverse();
-            }
-        } else if (sortOrder === TIME_DOWN || sortOrder === TIME_UP) {
-            const ascend = sortOrder === TIME_UP;
+        } else if (sortOrder === BY_TIME) {
             const onlyByMTime = this.getMode() === MODE_EXPLORER && !this.isLackInfoMode();
             const config = {
                 fileInfos: this.allfileInfos,
+                ascend: true,
                 getBaseName,
-                ascend,
                 onlyByMTime
             }
             files = sortUtil.sort_file_by_time(files, config);
-        } else if (sortOrder === READ_TIME_DOWN || sortOrder === READ_TIME_UP) {
-            const ascend = sortOrder === READ_TIME_UP;
+        } else if (sortOrder === BY_READ_TIME) {
             const config = {
                 fileInfos: this.allfileInfos,
+                ascend: true,
                 getBaseName,
-                ascend,
                 byReadTime: true,
                 fileNameToReadTime: this.fileNameToReadTime
             }
             files = sortUtil.sort_file_by_time(files, config);
-        } else if (sortOrder === FILE_SIZE_DOWN || sortOrder === FILE_SIZE_UP) {
+        } else if (sortOrder === BY_FILE_SIZE) {
             files = _.sortBy(files, e => {
-                const size = this.getFileSize(e);
-                return sortOrder.includes("_up") ? size : -size;
+                return this.getFileSize(e);
             });
-        } else if (sortOrder === AVG_PAGE_SIZE_UP || sortOrder === AVG_PAGE_SIZE_DOWN) {
+        } else if (sortOrder === BY_AVG_PAGE_SIZE) {
             files = _.sortBy(files, e => {
-                const size = this.getPageAvgSize(e);
-                return sortOrder.includes("_up") ? size : -size;
+                return this.getPageAvgSize(e);
             });
-        } else if (sortOrder === PAGE_NUMBER_UP || sortOrder === PAGE_NUMBER_DOWN) {
+        } else if (sortOrder === BY_PAGE_NUMBER) {
             files = _.sortBy(files, e => {
-                const size = this.getPageNum(e);
-                return sortOrder.includes("_up") ? size : -size;
+                return this.getPageNum(e);
             });
+        }
+
+        if (!isSortAsc) {
+            files.reverse();
         }
 
         return files;
@@ -729,7 +716,7 @@ export default class ExplorerPage extends Component {
 
 
     renderFileList(filteredFiles, filteredVideos) {
-        const { sortOrder, showFolderThumbnail } = this.state;
+        const { sortOrder, isSortAsc , showFolderThumbnail } = this.state;
         let dirs = this.dirs;
         let videos = filteredVideos;
         let files = filteredFiles;
@@ -739,7 +726,7 @@ export default class ExplorerPage extends Component {
         }
 
         try {
-            files = this.sortFiles(files, sortOrder);
+            files = this.sortFiles(files, sortOrder, isSortAsc);
         } catch (e) {
             console.error(e);
         }
@@ -846,7 +833,7 @@ export default class ExplorerPage extends Component {
         //todo av-color
         const videoDivGroup = _.keys(groupByVideoType).map(key => {
             let group = groupByVideoType[key];
-            group = this.sortFiles(group, FILENAME_UP);
+            group = this.sortFiles(group, BY_FILENAME);
             const videoItems = group.map((item) => {
                 const toUrl = clientUtil.getVideoPlayerLink(item);
                 const text = getBaseName(item);
@@ -863,12 +850,12 @@ export default class ExplorerPage extends Component {
         files = this.getFileInPage(files);
 
         let zipfileItems;
-        if (sortOrder === BY_FOLDER_DOWN || sortOrder === BY_FOLDER_UP && 
+        if (sortOrder === BY_FOLDER || sortOrder === BY_FOLDER && 
             (this.getMode() === MODE_AUTHOR || this.getMode() === MODE_TAG || this.getMode() === MODE_SEARCH)) {
             const byDir = _.groupBy(files, getDir);
             let fDirs = _.keys(byDir);
             sortFileNames(fDirs);
-            if (sortOrder === BY_FOLDER_DOWN) {
+            if (sortOrder === BY_FOLDER) {
                 fDirs.reverse();
             }
 
@@ -1196,8 +1183,8 @@ export default class ExplorerPage extends Component {
         }
     }
 
-    onSortChange(e) {
-        this.setStateAndSetHash({ sortOrder: e })
+    onSortChange(sortOrder, isSortAsc) {
+        this.setStateAndSetHash({ sortOrder, isSortAsc })
     }
 
     toggleSideMenu() {
@@ -1335,11 +1322,13 @@ export default class ExplorerPage extends Component {
         let sortOptions = Constant.SORT_OPTIONS;
 
         if (this.getMode() !== MODE_EXPLORER) {
-            sortOptions = sortOptions.concat("by folder name");
+            sortOptions = sortOptions.concat(BY_FOLDER);
         }
 
         return (<div className="sort-header-container container">
-            <SortHeader options={sortOptions} value={this.state.sortOrder} onChange={this.onSortChange.bind(this)} />
+            <SortHeader sortOptions={sortOptions} selected={this.state.sortOrder} 
+                        isSortAsc={this.state.isSortAsc}
+                        onChange={this.onSortChange.bind(this)} />
         </div>);
     }
 

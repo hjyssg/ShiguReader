@@ -16,12 +16,12 @@ module.exports.sort_file_by_time = function (files, config) {
 
         let time = -Infinity;
         //单纯文件夹
-        if(byReadTime){
-            const rTime = fileNameToReadTime &&  fileNameToReadTime[fn] && parseInt(fileNameToReadTime[fn]);
+        if (byReadTime) {
+            const rTime = fileNameToReadTime && fileNameToReadTime[fn] && parseInt(fileNameToReadTime[fn]);
             time = rTime || mTime || tTime;
-        }else if(onlyByMTime){
+        } else if (onlyByMTime) {
             time = mTime;
-        }else{
+        } else {
             time = mTime || tTime;
         }
 
