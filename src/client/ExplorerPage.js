@@ -672,6 +672,7 @@ export default class ExplorerPage extends Component {
             } else {
                 thumbnailurl = getFileUrl(this.thumbnails[fp]);
             }
+            thumbnailurl += "&thumbnailMode=true"
 
             const thumbnailCn = classNames("file-cell-thumbnail", {
                 "as-folder-thumbnail": isImgFolder

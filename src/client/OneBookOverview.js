@@ -8,12 +8,12 @@ import './style/OneBook.scss';
 import ErrorPage from './ErrorPage';
 import CenterSpinner from './subcomponent/CenterSpinner';
 import FileNameDiv from './subcomponent/FileNameDiv';
-import ReactDOM from 'react-dom';
+// import ReactDOM from 'react-dom';
 
 const VisibilitySensor = require('react-visibility-sensor').default;
 const util = require("@common/util");
 const queryString = require('query-string');
-const Constant = require("@common/constant");
+// const Constant = require("@common/constant");
 
 const clientUtil = require("./clientUtil");
 const { getDir, getBaseName, isMobile, getFileUrl, sortFileNames } = clientUtil;
@@ -125,13 +125,13 @@ export default class OneBookOverview extends Component {
     const fp = this.getTextFromQuery();
 
     const images = imageFiles
-      .map(e => {
+      .map((e) => {
         //let url = getFileUrl(e);
         let url = clientUtil.getDownloadLink(e);
         url += "&thumbnailMode=true"
        return url;
       })
-      .map((e, ii) => <SmartImage key={e} url={e} index={ii} fp={fp} />);
+      .map((e, ii) => <SmartImage key={e+ii} url={e} index={ii} fp={fp} />);
     return images;
   }
 
