@@ -369,15 +369,15 @@ export default class FileChangeToolbar extends Component {
                 </div>
 
                 {explorerLink}
-
+                
                 <div className="section with-bottom-margin">
-                    <div className="title">Rename: </div>
-                    {this.renderRenameButton()}
+                    <div className="title">Move: </div>
+                    {this.renderMoveButton()}
                 </div>
 
                 <div className="section">
-                    <div className="title">Move: </div>
-                    {this.renderMoveButton()}
+                    <div className="title">Rename: </div>
+                    {this.renderRenameButton()}
                 </div>
             </Modal>
         );

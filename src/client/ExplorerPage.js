@@ -855,7 +855,7 @@ export default class ExplorerPage extends Component {
             const byDir = _.groupBy(files, getDir);
             let fDirs = _.keys(byDir);
             sortFileNames(fDirs);
-            if (sortOrder === BY_FOLDER) {
+            if (this.state.isSortAsc) {
                 fDirs.reverse();
             }
 
