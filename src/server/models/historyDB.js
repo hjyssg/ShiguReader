@@ -9,7 +9,7 @@ const rootPath = pathUtil.getRootPath();
 const history_db_path = path.join(rootPath, userConfig.workspace_name, "history_sql_db");
 const sqlite3 = require('sqlite3').verbose();
 const sqlDb = new sqlite3.Database(history_db_path);
-sqlDb.run("CREATE TABLE IF NOT EXISTS history_table (filePath TEXT, dirPath TEXT, fileName TEXT, time INTEGER)");
+sqlDb.run("CREATE TABLE IF NOT EXISTS history_table (filePath TEXT NOT NULL, dirPath TEXT, fileName TEXT, time INTEGER)");
 sqlDb.run("CREATE INDEX IF NOT EXISTS fileName_index ON history_table (fileName)");
 
 
