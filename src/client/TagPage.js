@@ -10,27 +10,24 @@ import ErrorPage from './ErrorPage';
 import CenterSpinner from './subcomponent/CenterSpinner';
 import Pagination from './subcomponent/Pagination';
 import FileCellTitle from './subcomponent/FileCellTitle';
-import { Redirect } from 'react-router-dom';
-import { isCompress, isImage, getCurrentTime } from '@common/util';
-const nameParser = require('@name-parser');
-const classNames = require('classnames');
+// import { Redirect } from 'react-router-dom';
+// import { isCompress, isImage, getCurrentTime } from '@common/util';
+// const nameParser = require('@name-parser');
+// const classNames = require('classnames');
 import SortHeader from './subcomponent/SortHeader';
 const Constant = require("@common/constant");
 const queryString = require('query-string');
 import Checkbox from './subcomponent/Checkbox';
-
-
-const util = require("@common/util");
+// const util = require("@common/util");
 const clientUtil = require("./clientUtil");
 const { getDir, getBaseName, getPerPageItemNumber, isSearchInputTextTyping } = clientUtil;
-const sortUtil = require("../common/sortUtil");
+// const sortUtil = require("../common/sortUtil");
 
 const {
   BY_TAG_NAME,
   BY_FILE_NUMBER,
   BY_RANDOM
 } = Constant;
-
 
 const FILTER_PARODY = "FILTER_PARODY";
 const FILTER_COMIKET = "FILTER_COMIKET"
@@ -39,7 +36,6 @@ export default class TagPage extends Component {
   constructor(prop) {
     super(prop);
     this.state = this.getInitState();
-
   }
 
   getInitState(reset) {
