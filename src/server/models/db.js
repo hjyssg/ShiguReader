@@ -32,7 +32,7 @@ sqlDb.run("CREATE TABLE file_table (filePath TEXT NOT NULL PRIMARY KEY, dirPath 
     "isDisplayableInExplorer BOOL, isDisplayableInOnebook BOOL, isCompress BOOL, isFolder BOOL)");
 
 //todo: http://howto.philippkeller.com/2005/04/24/Tags-Database-schemas/
-sqlDb.run("CREATE TABLE tag_table (filePath TEXT, tag VARCHAR(50), type VARCHAR(25), subtype VARCHAR(25))");
+sqlDb.run("CREATE TABLE tag_table (filePath TEXT NOT NULL, tag VARCHAR(50), type VARCHAR(25), subtype VARCHAR(25), isCompress BOOL)");
 
 const _util = require('util');
 sqlDb.allSync = _util.promisify(sqlDb.all).bind(sqlDb);
@@ -48,7 +48,9 @@ function insertToTagTable(filePath, tag, type, subtype) {
     if (!tag || tag.match(util.useless_tag_regex)) {
         return;
     }
-    sqlDb.run("INSERT OR REPLACE INTO tag_table(filePath, tag, type, subtype ) values(?, ?, ?, ?)", filePath, tag, type, subtype);
+    console.assert(!!filePath)
+    sqlDb.run("INSERT OR REPLACE INTO tag_table(filePath, tag, type, subtype, isCompress ) values(?, ?, ?, ?, ?)",
+               filePath, tag, type, subtype, isCompress(filePath));
 }
 
 module.exports.createSqlIndex = function () {
@@ -105,6 +107,7 @@ const updateFileDb = function (filePath, statObj) {
 
     // sqlDb.run("INSERT INTO file_table VALUES (?)", 
     // https://www.sqlitetutorial.net/sqlite-nodejs/insert/
+    console.assert(!!filePath)
     sqlDb.run("INSERT OR REPLACE INTO file_table(filePath, dirPath, fileName, sTime, " +
         "isDisplayableInExplorer, isDisplayableInOnebook, " +
         "isCompress, isFolder ) values(?, ?, ?, ?, ?, ?, ?, ?)",
