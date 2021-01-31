@@ -26,11 +26,9 @@ const { getDir, getBaseName, getPerPageItemNumber, isSearchInputTextTyping } = c
 const sortUtil = require("../common/sortUtil");
 
 const {
-  FILE_NUMBER_DOWN,
-  FILE_NUMBER_UP,
-  NAME_UP,
-  NAME_DOWN,
-  SORT_RANDOMLY
+  BY_TAG_NAME,
+  BY_FILE_NUMBER,
+  BY_RANDOM
 } = Constant;
 
 
@@ -47,7 +45,8 @@ export default class TagPage extends Component {
   getInitState(reset) {
     const parsed = reset ? {} : queryString.parse(location.hash);
     const pageIndex = parseInt(parsed.pageIndex) || 1;
-    const sortOrder = parsed.sortOrder || FILE_NUMBER_DOWN;
+    const sortOrder = parsed.sortOrder || BY_FILE_NUMBER;
+    const isSortAsc = !!(parsed.isSortAsc === "true");
     let filterArr = parsed.filterArr || [FILTER_PARODY];
     if (_.isString(filterArr)) {
         filterArr = [ filterArr ];
@@ -59,6 +58,7 @@ export default class TagPage extends Component {
       author_rows: [],
       pageIndex,
       sortOrder,
+      isSortAsc,
       filterArr,
       filterText: parsed.filterText || "",
     }
@@ -67,7 +67,7 @@ export default class TagPage extends Component {
   setStateAndSetHash(state, callback) {
     const obj = Object.assign({}, this.state, state);
     const obj2 = {};
-    ["pageIndex", "sortOrder", "filterText", "filterArr"].forEach(key => {
+    ["pageIndex", "sortOrder", "isSortAsc", "filterText", "filterArr"].forEach(key => {
       obj2[key] = obj[key];
     })
 
@@ -137,7 +137,8 @@ export default class TagPage extends Component {
   getFilteterItems() {
     const {
       sortOrder,
-      filterText
+      filterText,
+      isSortAsc
     } = this.state;
 
 
@@ -152,22 +153,18 @@ export default class TagPage extends Component {
     }
 
     //sort
-    if (sortOrder.includes(SORT_RANDOMLY)) {
+    if (sortOrder.includes(BY_RANDOM)) {
       items = _.shuffle(items);
-    } else if (sortOrder === FILE_NUMBER_DOWN || sortOrder === FILE_NUMBER_UP) {
-      items = _.sortBy(items, a => -items.count);
-
-      if (sortOrder === FILE_NUMBER_UP) {
-        items.reverse();
-      }
-    } else if (sortOrder === NAME_DOWN || sortOrder === NAME_UP) {
+    } else if (sortOrder === BY_FILE_NUMBER) {
+      items = _.sortBy(items, item => item.count);
+    } else if (sortOrder === BY_TAG_NAME) {
       items.sort((a, b) => {
         return a.tag.localeCompare(b.tag);
       });
+    }
 
-      if (sortOrder === NAME_DOWN) {
-        items.reverse();
-      }
+    if (!isSortAsc) {
+      items.reverse();
     }
 
     if(this.isTagMode()){
@@ -295,14 +292,16 @@ export default class TagPage extends Component {
       /></div>);
   }
 
-  onSortChange(e) {
-    this.setStateAndSetHash({ sortOrder: e })
-  }
+  onSortChange(sortOrder, isSortAsc) {
+    this.setStateAndSetHash({ sortOrder, isSortAsc })
+}
 
   renderSortHeader() {
     let sortOptions = Constant.TAG_SORT_OPTIONS;
     return (<div className="sort-header-container container">
-      <SortHeader options={sortOptions} value={this.state.sortOrder} onChange={this.onSortChange.bind(this)} />
+      <SortHeader sortOptions={sortOptions} selected={this.state.sortOrder} 
+                        isSortAsc={this.state.isSortAsc}
+                        onChange={this.onSortChange.bind(this)} />
     </div>);
   }
 
