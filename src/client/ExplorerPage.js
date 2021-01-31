@@ -76,8 +76,8 @@ export default class ExplorerPage extends Component {
     }
 
     getNumPerPage() {
-        return (this.state.noThumbnail || this.state.sortOrder === BY_FOLDER || this.state.sortOrder === BY_FOLDER )? 
-                1000 : this.state.perPageItemNum; // this.state.noThumbnail? 40 :  this.state.perPageItemNum;
+        return (this.state.noThumbnail || this.state.sortOrder === BY_FOLDER)? 
+                1000 : this.state.perPageItemNum;
     }
 
     getInitState(reset) {
