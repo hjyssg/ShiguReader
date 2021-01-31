@@ -20,14 +20,15 @@ const getRootPath = function () {
 }
 
 //for thumbnail url
-const fullPathToUrl = function (img) {
-    const fullpath = path.resolve(img);
-    return turnPathSepToWebSep(path.relative(rootPath, fullpath));
-}
+// const fullPathToUrl = function (img) {
+//     const fullpath = path.resolve(img);
+//     return fullpath;
+//     // return turnPathSepToWebSep(path.relative(rootPath, fullpath));
+// }
 
-const turnPathSepToWebSep = function (fn) {
-    return fn.replace(new RegExp(`\\${path.sep}`, 'g'), '/');
-}
+// const turnPathSepToWebSep = function (fn) {
+//     return fn.replace(new RegExp(`\\${path.sep}`, 'g'), '/');
+// }
 
 //for zip inside image and music files
 const generateContentUrl = function (pathes, outputPath) {
@@ -39,8 +40,8 @@ const generateContentUrl = function (pathes, outputPath) {
         const base = path.basename(outputPath);
         for (let i = 0; i < pathes.length; i++) {
             const p = path.basename(pathes[i]);
-            let temp = path.join(cache_folder_name, base, p);
-            temp = turnPathSepToWebSep(temp);
+            let temp = path.resolve(cache_folder_name, base, p);
+            // temp = turnPathSepToWebSep(temp);
             if (isImage(p)) {
                 files.push(temp);
             } else if (isMusic(p)) {
@@ -194,7 +195,6 @@ function getZipOutputCachePath() {
 }
 
 module.exports = {
-    fullPathToUrl,
     generateContentUrl,
     getRootPath,
     filterNonExist,
