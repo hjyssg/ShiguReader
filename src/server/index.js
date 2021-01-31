@@ -24,7 +24,7 @@ const pathUtil = require("./pathUtil");
 const serverUtil = require("./serverUtil");
 const { isHiddenFile, getHash, mkdir } = serverUtil;
 
-const { fullPathToUrl, generateContentUrl, isExist, getScanPath, isSub } = pathUtil;
+const { generateContentUrl, isExist, getScanPath, isSub } = pathUtil;
 const { isImage, isCompress, isVideo, isMusic, arraySlice,
     getCurrentTime, isDisplayableInExplorer, isDisplayableInOnebook } = util;
 
@@ -353,14 +353,16 @@ async function getThumbnailsForZip(filePathes) {
         }
 
         if (isCompress(filePath)) {
+            //从cache找thumbnail意义不大
             //get cache file
-            const outputPath = path.join(cachePath, getHash(filePath));
-            let cacheFiles = cacheDb.getCacheFiles(outputPath);
-            cacheFiles = (cacheFiles && cacheFiles.files) || [];
-            let thumb = serverUtil.chooseThumbnailImage(cacheFiles);
-            if (thumb) {
-                thumbnails[filePath] = fullPathToUrl(thumb);
-            } else if (zipInfoDb.has(filePath)) {
+            // const outputPath = path.join(cachePath, getHash(filePath));
+            // let cacheFiles = cacheDb.getCacheFiles(outputPath);
+            // cacheFiles = (cacheFiles && cacheFiles.files) || [];
+            // let thumb = serverUtil.chooseThumbnailImage(cacheFiles);
+            // if (thumb) {
+            //     thumbnails[filePath] = thumb;
+            // } else
+            if (zipInfoDb.has(filePath)) {
                 const pageNum = zipInfoDb.getZipInfo(filePath).pageNum;
                 if (pageNum === 0) {
                     thumbnails[filePath] = "NOT_THUMBNAIL_AVAILABLE";
@@ -489,9 +491,9 @@ async function extractThumbnailFromZip(filePath, res, mode, config) {
     const outputPath = path.join(cachePath, getHash(filePath));
     let files;
 
-    function sendImage(img) {
+    function sendImage(imgFp) {
         sendable && res.send({
-            url: fullPathToUrl(img)
+            url: imgFp
         })
     }
 
