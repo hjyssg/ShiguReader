@@ -189,6 +189,11 @@ module.exports.getVideoPlayerLink = function (path) {
 const getDownloadLink = module.exports.getDownloadLink = function (path) {
     if (!path) { return ""; }
 
+    console.log(path)
+
+
+    return "http://localhost:5001/" + encodeURIComponent(path);
+
     if(path.includes("/api/download/?p")){
        //loadingImage onReceiveUrl
        return path;
