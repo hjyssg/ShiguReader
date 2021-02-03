@@ -488,6 +488,19 @@ export default class OneBook extends Component {
     this.adjustImageSize();
   }
 
+  renderPreload(){
+    const result = [];
+    const { imageFiles, index, twoPageMode } = this.state;
+    const beg = index + 1;
+    const end = Math.min(beg + 4, this.getImageLength())
+
+    for(let ii = beg; ii < end; ii++){
+      const temp =  <link rel="preload" key={ii} href={getFileUrl(imageFiles[ii])} as="image" />
+      result.push(temp);
+    }
+    return result;
+  }
+
   renderImage() {
     const { imageFiles, index, twoPageMode } = this.state;
     if (!this.hasImage()) {
@@ -509,7 +522,7 @@ export default class OneBook extends Component {
         index={index + 1}
       />;
 
-      const preload = index < this.getImageLength() - 1 && <link rel="preload" href={getFileUrl(imageFiles[index - 1])} as="image" />;
+      const preload = this.renderPreload();
 
       return (<React.Fragment>
         <Spinner className="one-book-img-load-spinner" />

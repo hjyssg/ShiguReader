@@ -311,7 +311,7 @@ module.exports.minifyFolder = async function (filePath) {
                     saveSpace += (oldSize - newStat.size);
                 }
             }
-            console.log(`${ii + 1}/${total}`);
+            console.log(`${ii + 1}/${total} ${filePath}`);
         } catch (e) {
             console.error(e);
         }
