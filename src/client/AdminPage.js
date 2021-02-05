@@ -46,6 +46,58 @@ function MinifyZipQueSection(){
         </div>)
 }
 
+function cleanCache(minized) {
+    Swal.fire({
+        title: "Clean Cache",
+        showCancelButton: true,
+        confirmButtonText: 'Yes',
+        cancelButtonText: 'No'
+    }).then((result) => {
+        if (result.value === true) {
+            Sender.post('/api/cleanCache', {}, res => {
+                // this.askCacheInfo()
+            });
+        }
+    });
+}
+
+function CacheSection(){
+    const [totalSize, setTotalSize] = useState(0);
+    const [cacheNum, setCacheNum] = useState(0);
+    const [thumbCount, setThumbCount] = useState(0);
+
+
+    useEffect(() => {
+        Sender.post("/api/cacheInfo", {}, res => {
+            if (!res.isFailed()) {
+                let { totalSize, cacheNum, thumbCount } = res.json;
+                setTotalSize(totalSize);
+                setCacheNum(cacheNum);
+                setThumbCount(thumbCount);
+            }
+        });
+    }, []); 
+
+    const size = totalSize && clientUtil.filesizeUitl(totalSize);
+    let cacheInfo;
+    cacheInfo =(
+        <div className="cache-info">
+            <div className="cache-info-row"> {`thumbnail: ${thumbCount || 0}`} </div>
+            <div className="cache-info-row">{`cache size: ${size}`} </div>
+            <div className="cache-info-row">{`cache file number: ${cacheNum}`} </div>
+        </div>);
+
+    return (
+        <div className="admin-section">
+        <div className="admin-section-title" title="only keep thumbnail and delete other files"> Clean Cache</div>
+        <div className="admin-section-content">
+            {cacheInfo}
+                {/* <div className="submit-button" onClick={cleanCache}>clean</div> */}
+            </div>
+        </div>
+    )
+}
+
 export default class AdminPage extends Component {
     constructor(prop) {
         super(prop);
@@ -53,7 +105,6 @@ export default class AdminPage extends Component {
     }
 
     componentDidMount() {
-        this.askCacheInfo();
         this.requestHomePagePathes();
     }
 
@@ -68,15 +119,6 @@ export default class AdminPage extends Component {
         });
     }
 
-    askCacheInfo() {
-        Sender.post("/api/cacheInfo", {}, res => {
-            if (!res.isFailed()) {
-                let { totalSize, cacheNum, thumbCount } = res.json;
-                this.setState({ totalSize, cacheNum, thumbCount })
-            }
-        });
-    }
-
     onPrenerate(fastUpdateMode) {
         const pathInput = ReactDOM.findDOMNode(this.pathInputRef);
         const path = pathInput.value || this.state.prePath;
@@ -87,21 +129,6 @@ export default class AdminPage extends Component {
         this.setState({
             prePath: _.isString(e) ? e : e.target.value
         })
-    }
-
-    cleanCache(minized) {
-        Swal.fire({
-            title: "Clean Cache",
-            showCancelButton: true,
-            confirmButtonText: 'Yes',
-            cancelButtonText: 'No'
-        }).then((result) => {
-            if (result.value === true) {
-                Sender.post('/api/cleanCache', {}, res => {
-                    this.askCacheInfo()
-                });
-            }
-        });
     }
 
     getPasswordInput() {
@@ -155,8 +182,6 @@ export default class AdminPage extends Component {
         });
     }
 
-  
-
     renderRemoteShutDown() {
         const { etc_config } = this.context;
         if (clientUtil.isLocalHost() || !clientUtil.isAuthorized(etc_config)) {
@@ -171,16 +196,6 @@ export default class AdminPage extends Component {
         let folder_list = this.state.dirs.slice();
         folder_list.unshift("All_Pathes");
 
-        const { totalSize, cacheNum, thumbCount } = this.state
-        const size = totalSize && clientUtil.filesizeUitl(totalSize);
-        let cacheInfo;
-
-        cacheInfo =(
-            <div className="cache-info">
-                <div className="cache-info-row">{`cache size: ${size}`} </div>
-                <div className="cache-info-row">{`cache file number: ${cacheNum}`} </div>
-            </div>);
-
         return (
             <div className="admin-container container">
                 {this.renderPasswordInput()}
@@ -188,7 +203,6 @@ export default class AdminPage extends Component {
                 <div className="admin-section">
                     <div className="admin-section-title"> Pregenerate Thumbnail and Update Internal Database</div>
                     <div className="admin-section-content">
-                        <div className=""> {`thumbnail: ${thumbCount || 0}`} </div>
                         <RadioButtonGroup checked={folder_list.indexOf(this.state.prePath)}
                             options={folder_list} name="pregenerate" onChange={this.onPathChange.bind(this)} />
                         <input className="admin-intput" ref={pathInput => this.pathInputRef = pathInput} placeholder="...or any other path" />
@@ -197,15 +211,8 @@ export default class AdminPage extends Component {
                     </div>
                 </div>
 
-                <div className="admin-section">
-                    <div className="admin-section-title" title="only keep thumbnail and delete other files"> Clean Cache</div>
-                    <div className="admin-section-content">
-                        {cacheInfo}
-                        <div className="submit-button" onClick={this.cleanCache.bind(this)}>clean</div>
-                        {/* <div className="submit-button" onClick={this.cleanCache.bind(this, "minized")}>clean and make thumbnail file smaller to save distk space</div> */}
-                    </div>
-                </div>
 
+                <CacheSection />
                 {this.renderRemoteShutDown()}
                 <MinifyZipQueSection />
 
