@@ -1,22 +1,50 @@
-import React, { Component } from 'react';
-import PropTypes from 'prop-types';
+import React, { Component, useState, useEffect } from 'react';
+// import PropTypes from 'prop-types';
 import './style/AdminPage.scss';
 import Sender from './Sender';
 import _ from "underscore";
 import ReactDOM from 'react-dom';
 import Swal from 'sweetalert2';
 import Cookie from "js-cookie";
-import { Link } from 'react-router-dom';
+// import { Link } from 'react-router-dom';
 import RadioButtonGroup from './subcomponent/RadioButtonGroup';
 const clientUtil = require("./clientUtil");
-const { getBaseName } = clientUtil;
-const dateFormat = require('dateformat');
+// const { getBaseName } = clientUtil;
+// const dateFormat = require('dateformat');
 const AdminUtil = require("./AdminUtil");
 import { GlobalContext } from './globalContext'
-const util = require("@common/util");
+// const util = require("@common/util");
 const classNames = require('classnames');
 
+function MinifyZipQueSection(){
+    const [minifyZipQue, setMinifyZipQue] = useState([]);
 
+    useEffect(() => {
+        Sender.post("/api/minifyZipQue", {}, res => {
+            if (!res.isFailed()) {
+                let { minifyZipQue } = res.json;
+                setMinifyZipQue(minifyZipQue)
+            }
+        });
+    }, []); 
+
+    let items;
+    if (minifyZipQue.length === 0) {
+        items = "Empty Queue"
+    } else {
+        items = minifyZipQue.map(e => {
+            return <div>{e} </div>
+        });
+    }
+
+    return (
+        <div className="admin-section">
+            <div className="admin-section-title"> Zip Minify Queue</div>
+            <div className="admin-section-content">
+                {items}
+            </div>
+        </div>)
+}
 
 export default class AdminPage extends Component {
     constructor(prop) {
@@ -27,16 +55,6 @@ export default class AdminPage extends Component {
     componentDidMount() {
         this.askCacheInfo();
         this.requestHomePagePathes();
-        this.askMinifyQueue();
-    }
-
-    askMinifyQueue() {
-        Sender.post("/api/minifyZipQue", {}, res => {
-            if (!res.isFailed()) {
-                let { minifyZipQue } = res.json;
-                this.setState({ minifyZipQue })
-            }
-        });
     }
 
     requestHomePagePathes() {
@@ -137,25 +155,7 @@ export default class AdminPage extends Component {
         });
     }
 
-    renderMinifyQueue() {
-        const { minifyZipQue } = this.state;
-        let items;
-        if (!minifyZipQue || minifyZipQue.length === 0) {
-            items = "Empty Queue"
-        } else {
-            items = minifyZipQue.map(e => {
-                return <div>{e} </div>
-            });
-        }
-
-        return (
-            <div className="admin-section">
-                <div className="admin-section-title"> Zip Minify Queue</div>
-                <div className="admin-section-content">
-                    {items}
-                </div>
-            </div>)
-    }
+  
 
     renderRemoteShutDown() {
         const { etc_config } = this.context;
@@ -206,8 +206,8 @@ export default class AdminPage extends Component {
                     </div>
                 </div>
 
-                {this.renderMinifyQueue()}
                 {this.renderRemoteShutDown()}
+                <MinifyZipQueSection />
 
                 <div className="author-link">
                     <a className="fab fa-github" title="Aji47's Github" href="https://github.com/hjyssg/ShiguReader" target="_blank"> Created By Aji47 </a>
