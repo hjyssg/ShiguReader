@@ -35,6 +35,12 @@ router.post('/api/renameFile', async (req, res) => {
         return;
     }
 
+    if (!(await isExist(src))) {
+        res.send({ failed: true, reason: src + " is missing" });
+        return;
+    }
+
+
     try {
         let err = await pfs.rename(src, dest);
 
@@ -54,6 +60,11 @@ router.post('/api/moveFile', async (req, res) => {
 
     if (!src || !dest) {
         res.send({ failed: true, reason: "No parameter" });
+        return;
+    }
+
+    if (!(await isExist(src))) {
+        res.send({ failed: true, reason: src + " is missing" });
         return;
     }
 
