@@ -2,15 +2,16 @@
 import React, { Component, useState, useEffect } from 'react';
 // import _ from "underscore";
 import './style/HomePage.scss';
-// import PropTypes from 'prop-types';
 import Sender from './Sender';
 import { Link } from 'react-router-dom';
 
 // const userConfig = require('@config/user-config');
 import ErrorPage from './ErrorPage';
 import CenterSpinner from './subcomponent/CenterSpinner';
-const util = require("@common/util");
 import ItemsContainer from './subcomponent/ItemsContainer';
+
+const util = require("@common/util");
+
 
 const classNames = require('classnames');
 const clientUtil = require("./clientUtil");
