@@ -7,7 +7,8 @@ import _ from "underscore";
 // import Swal from 'sweetalert2';
 // import Cookie from "js-cookie";
 import { Link } from 'react-router-dom';
-// import RadioButtonGroup from './subcomponent/RadioButtonGroup';
+import ErrorPage from './ErrorPage';
+import CenterSpinner from './subcomponent/CenterSpinner';
 const clientUtil = require("./clientUtil");
 const { getBaseName } = clientUtil;
 const dateFormat = require('dateformat');
@@ -95,16 +96,23 @@ export default class HistoryPage extends Component {
             history.forEach(e => {
                 e.time = parseInt(e.time);
             })
-            this.setState({history})
+            this.setState({history, res})
         });
     }
 
     render() {
         document.title = "History"
-        return (
-            <div className="history-container container">
-                {renderHistory(this.state.history)}
-            </div>)
+        const {res} = this.state;
+        if(!res){
+            return (<CenterSpinner />);
+        }else if(res.isFailed()){
+            return <ErrorPage res={res} />;
+        }else{
+            return (
+                <div className="history-container container">
+                    {renderHistory(this.state.history)}
+                </div>)
+        }
     }
 }
 
