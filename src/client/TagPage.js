@@ -57,6 +57,8 @@ export default class TagPage extends Component {
       isSortAsc,
       filterArr,
       filterText: parsed.filterText || "",
+
+      mode: this.props.mode 
     }
   }
 
@@ -71,17 +73,21 @@ export default class TagPage extends Component {
     this.setState(state, callback);
   }
 
-  componentWillReceiveProps(nextProps) {
-    if (this.props.mode !== nextProps.mode) {
-      this.setStateAndSetHash({ pageIndex: 1, filterText: "" })
-    }
 
-    if (_.isString(nextProps.filterText) && nextProps.filterText !== this.state.filterText) {
-      this.setStateAndSetHash({
-        pageIndex: 1,
-        filterText: nextProps.filterText
-      })
+  static getDerivedStateFromProps(nextProps, prevState){
+    if (nextProps.mode && nextProps.mode !== prevState.mode) {
+        return {
+          pageIndex: 1, filterText: ""
+        }
     }
+    
+    if (_.isString(nextProps.filterText) && nextProps.filterText !== prevState) {
+        return {
+            filterText: nextProps.filterText,
+            pageIndex: 1
+        }
+    }
+    return null;
   }
 
   componentDidMount() {

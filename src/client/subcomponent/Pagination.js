@@ -10,10 +10,8 @@ export default class Pagination extends Component {
     }
   }
 
-  componentWillReceiveProps(nextProps) {
-    if (this.props.currentPage !== nextProps.currentPage) {
-      this.setState({ textValue: nextProps.currentPage })
-    }
+  static getDerivedStateFromProps(nextProps, prevState){
+    return { textValue: nextProps.currentPage }
   }
 
   onChange = (e) => {
