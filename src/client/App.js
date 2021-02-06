@@ -11,6 +11,7 @@ import TagPage from "./TagPage";
 import ChartPage from "./ChartPage";
 import AdminPage from "./AdminPage";
 import HistoryPage from "./HistoryPage";
+import HomePage from "./HomePage";
 import { Switch, Route, Link, Redirect } from 'react-router-dom';
 import screenfull from 'screenfull';
 const clientUtil = require("./clientUtil");
@@ -98,6 +99,7 @@ class App extends Component {
 
         const renderVideo = (props) => { return (<VideoPlayer {...props} />) };
 
+        const renderHomePage = (props) => { return (<HomePage {...props} />) };
         const renderExplorer = (props) => { return (<ExplorerPage  {...props} filterText={this.filterText} />) };
 
         const renderTagPage = (props) => { return (<TagPage mode="tag" filterText={this.filterText} {...props} />) };
@@ -109,7 +111,7 @@ class App extends Component {
 
         const result = (
             <Switch>
-                <Route exact path='/' render={renderExplorer} />
+                <Route exact path='/' render={renderHomePage} />
                 <Route path='/explorer/' render={renderExplorer} />
                 <Route path='/tag/' render={renderExplorer} />
                 <Route path='/author/' render={renderExplorer} />
@@ -184,7 +186,6 @@ class App extends Component {
         }
 
         const path = window.location.pathname;
-        const isHome = path === "/";
         const isOneBook = path.includes("/onebook");
         const isExplorer = path.includes("/explorer");
         const isTag = path.includes("/tagPage");
