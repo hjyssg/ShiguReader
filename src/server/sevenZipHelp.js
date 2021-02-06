@@ -114,7 +114,7 @@ module.exports.listZipContentAndUpdateDb = async function (filePath) {
         }
 
         //https://superuser.com/questions/1020232/list-zip-files-contents-using-7zip-command-line-with-non-verbose-machine-friend
-        let { stdout, stderr } = await execa(sevenZip, ['l', '-r', '-ba', '-slt', filePath]);
+        let { stdout, stderr } = await execa(sevenZip, ['l', '-r', '-ba', '-slt', filePath], { timeout: 5000 });
         const text = stdout;
         if (!text || stderr || LIST_QUEUE[filePath]) {
             return emptyResult;
