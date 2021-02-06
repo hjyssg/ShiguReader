@@ -1,7 +1,6 @@
 @import "vars.scss";
-@import "sideMenu.scss";
 
-&.home-page {
+.home-page {
   @media only screen and (min-width: 1200px) {
     .explorer-one-line-list-item {
       font-size: 20px;
