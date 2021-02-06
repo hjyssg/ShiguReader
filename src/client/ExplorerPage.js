@@ -42,7 +42,6 @@ const { BY_FILE_NUMBER,
     BY_RANDOM } = Constant;
 
 const { MODE_TAG,
-    MODE_HOME,
     MODE_AUTHOR,
     MODE_SEARCH,
     MODE_EXPLORER } = Constant;
@@ -202,8 +201,6 @@ export default class ExplorerPage extends Component {
             return MODE_EXPLORER;
         } else if (pathname.includes("/search/")) {
             return MODE_SEARCH;
-        } else {
-            return MODE_HOME;
         }
     }
 
@@ -221,10 +218,7 @@ export default class ExplorerPage extends Component {
 
     async askServer() {
         let res;
-        if (this.getMode() === MODE_HOME) {
-            res = await Sender.postWithPromise("/api/homePagePath", {});
-            this.handleRes(res);
-        } else if (this.getMode() === MODE_EXPLORER) {
+        if (this.getMode() === MODE_EXPLORER) {
             const hash = this.getTextFromQuery();
             if (hash && this.loadedHash !== hash) {
                 res = await Sender.postWithPromise('/api/lsDir', { dir: this.getTextFromQuery(), isRecursive: this.state.isRecursive });
@@ -316,7 +310,7 @@ export default class ExplorerPage extends Component {
         if (!res.isFailed()) {
             let { dirs, mode, tag, author, fileInfos, thumbnails,
                 zipInfo, imgFolders, imgFolderInfo,
-                hdd_list, quickAccess, fileNameToReadTime } = res.json;
+                fileNameToReadTime } = res.json;
             this.loadedHash = this.getTextFromQuery();
             this.mode = mode;
 
@@ -337,8 +331,6 @@ export default class ExplorerPage extends Component {
             this.zipInfo = zipInfo || {};
             this.imgFolders = imgFolders || {};
             this.imgFolderInfo = imgFolderInfo || {};
-            this.hdd_list = hdd_list || [];
-            this.quickAccess = quickAccess || [];
             this.fileNameToReadTime = fileNameToReadTime || {};
             this.res = res;
 
@@ -722,9 +714,7 @@ export default class ExplorerPage extends Component {
         let videos = filteredVideos;
         let files = filteredFiles;
 
-        if (this.getMode() !== MODE_HOME) {
-            dirs.sort();
-        }
+        dirs.sort();
 
         try {
             files = this.sortFiles(files, sortOrder, isSortAsc);
@@ -777,30 +767,13 @@ export default class ExplorerPage extends Component {
         } else {
             dirItems = dirs.map((item) => {
                 const toUrl = clientUtil.getExplorerLink(item);
-                const text = this.getMode() === MODE_HOME ? item : getBaseName(item);
+                const text = getBaseName(item);
                 const result = getOneLineListItem(<i className="far fa-folder"></i>, text, item);
                 return <Link to={toUrl} key={item}>{result}</Link>;
             });
         }
 
-        let hddItems, quickAccess;
-        if (this.getMode() == MODE_HOME) {
-            hddItems = this.hdd_list.map((item) => {
-                // const toUrl = clientUtil.getExplorerLink(item);
-                // F: 的时候，会莫名其妙显示shigureader文件夹的内容
-                const toUrl = clientUtil.getExplorerLink(item + "\\\\");
-                const text = item;
-                const result = getOneLineListItem(<i className="far fa-folder"></i>, text, item);
-                return <Link to={toUrl} key={item}>{result}</Link>;
-            });
-
-            quickAccess = this.quickAccess.map(item => {
-                const toUrl = clientUtil.getExplorerLink(item);
-                const text = item;
-                const result = getOneLineListItem(<i className="far fa-folder"></i>, text, item);
-                return <Link to={toUrl} key={item}>{result}</Link>;
-            })
-        }
+  
 
 
         const musicItems = this.musicFiles.map((item) => {
@@ -894,8 +867,6 @@ export default class ExplorerPage extends Component {
                         </div>
                     </div>
                 }
-                <ItemsContainer items={quickAccess} neverCollapse />
-                <ItemsContainer items={hddItems} neverCollapse />
                 <ItemsContainer items={musicItems} />
                 <ItemsContainer items={imageItems} />
                 {videoDivGroup}
@@ -1059,9 +1030,7 @@ export default class ExplorerPage extends Component {
 
     getExplorerToolbar(filteredFiles, filteredVideos) {
         const mode = this.getMode();
-        if (mode === MODE_HOME) {
-            return;
-        }
+
 
         const isExplorer = mode === MODE_EXPLORER && this.getPathFromQuery();
         const isTag = mode === MODE_TAG;
@@ -1117,9 +1086,7 @@ export default class ExplorerPage extends Component {
     getTitle() {
         const mode = this.getMode();
 
-        if (mode === MODE_HOME) {
-            return "";
-        } else if (this.tag && mode === MODE_TAG) {
+        if (this.tag && mode === MODE_TAG) {
             return "Tag: " + this.tag;
         } else if (this.author && mode === MODE_AUTHOR) {
             return "Author: " + this.author;
@@ -1160,10 +1127,6 @@ export default class ExplorerPage extends Component {
     }
 
     renderPagination(filteredFiles, filteredVideos) {
-        if (this.getMode() === MODE_HOME) {
-            return;
-        }
-
         const fileLength = filteredFiles.length;
         return (<div className="pagination-container">
             <Pagination ref={ref => this.pagination = ref}
@@ -1176,12 +1139,7 @@ export default class ExplorerPage extends Component {
     }
 
     setWebTitle() {
-        const mode = this.getMode();
-        if (mode === MODE_HOME) {
-            document.title = "ShiguReader";
-        } else {
-            document.title = this.getTextFromQuery() || "ShiguReader";
-        }
+        document.title = this.getTextFromQuery() || "ShiguReader";
     }
 
     onSortChange(sortOrder, isSortAsc) {
@@ -1222,7 +1180,7 @@ export default class ExplorerPage extends Component {
     }
 
     renderSideMenu(filteredFiles, filteredVideos) {
-        if (this.getMode() === MODE_HOME || !this.state.anchorSideMenu) {
+        if (!this.state.anchorSideMenu) {
             return;
         }
 
@@ -1316,10 +1274,6 @@ export default class ExplorerPage extends Component {
     }
 
     renderSortHeader() {
-        if (this.getMode() === MODE_HOME) {
-            return;
-        }
-
         let sortOptions = Constant.SORT_OPTIONS;
 
         if (this.getMode() !== MODE_EXPLORER) {
@@ -1334,10 +1288,6 @@ export default class ExplorerPage extends Component {
     }
 
     renderFilterMenu() {
-        if (this.getMode() === MODE_HOME) {
-            return;
-        }
-
         //no one pay me, I am not going to improve the ui
         let checkbox;
         if (this.state.authorInfo) {

@@ -25,16 +25,6 @@
     .explorer-one-line-list-item {
       padding-left: 16px;
     }
-
-  }
-
-  &.mode_home {
-    @media only screen and (min-width: 1200px) {
-      .explorer-one-line-list-item {
-        font-size: 20px;
-        max-width: 1100px;
-      }
-    }
   }
 
   &.anchorSideMenu {
@@ -71,41 +61,6 @@
 
   .file-list {
     text-align: left !important;
-  }
-
-  .explorer-one-line-list-item {
-    text-align: left !important;
-
-    display: flex;
-    align-items: center;
-
-    border-radius: 5px;
-    border: white;
-    border-width: 1px;
-
-    font-size: 1rem;
-    font-weight: bold;
-    color: black;
-
-    @media only screen and (max-width: 500px) {
-      font-size: 10px;
-    }
-
-    @media only screen and (max-width: 1100px) {
-      font-size: 12px;
-    }
-
-    padding-left: 5px;
-    color:$font_color_white_one;
-
-    .far,
-    .fas {
-      margin-right: 5px;
-    }
-
-    .av-color {
-      color: #abc0eb;
-    }
   }
 
   .file-out-cell {
@@ -218,4 +173,39 @@
 
 .fail-reason-text {
   color: rgb(128, 16, 16);
+}
+
+.explorer-one-line-list-item {
+  text-align: left !important;
+
+  display: flex;
+  align-items: center;
+
+  border-radius: 5px;
+  border: white;
+  border-width: 1px;
+
+  font-size: 1rem;
+  font-weight: bold;
+  color: black;
+
+  @media only screen and (max-width: 500px) {
+    font-size: 10px;
+  }
+
+  @media only screen and (max-width: 1100px) {
+    font-size: 12px;
+  }
+
+  padding-left: 5px;
+  color:$font_color_white_one;
+
+  .far,
+  .fas {
+    margin-right: 5px;
+  }
+
+  .av-color {
+    color: #abc0eb;
+  }
 }
