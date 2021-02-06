@@ -58,6 +58,7 @@ export default class TagPage extends Component {
       filterArr,
       filterText: parsed.filterText || "",
 
+      //https://stackoverflow.com/questions/49723019/compare-with-previous-props-in-getderivedstatefromprops
       mode: this.props.mode 
     }
   }
