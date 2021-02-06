@@ -391,7 +391,7 @@ async function getThumbnailForFolders(filePathes) {
         const filePath = filePathes[ii];
 
         const ext = serverUtil.getExt(filePath);
-        console.assert(!ext);
+        // console.assert(!ext);
         let rows = thumbnailRows[ii];
         if (rows && rows[0]) {
             result[filePath] = rows[0].thumbnailFilePath;
