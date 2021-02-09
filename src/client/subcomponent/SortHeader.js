@@ -11,8 +11,12 @@ export default class SortHeader extends PureComponent {
     };
 
     onClick(key){
-        const { onChange, isSortAsc } = this.props;
-        onChange(key, !isSortAsc);
+        const { onChange, isSortAsc, selected } = this.props;
+        let newSortOrder = !isSortAsc;
+        if(key !== selected){
+            newSortOrder = false;
+        }
+        onChange(key, newSortOrder);
     }
 
     render() {
