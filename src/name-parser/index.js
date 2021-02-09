@@ -4,7 +4,7 @@ const not_author_but_tag = config.not_author_but_tag;
 const char_names = require("./character-names");
 //https://stackoverflow.com/questions/5582574/how-to-check-if-a-string-contains-text-from-an-array-of-substrings-in-javascript
 const char_name_regex = new RegExp(char_names.join("|"));
-const not_author_but_tag_regex = new RegExp(not_author_but_tag.join("|"), "i");
+const not_author_but_tag_regex = new RegExp(not_author_but_tag.join("$|") + "$", "i");
 
 const book_types = [
     "同人音声",
