@@ -60,7 +60,10 @@ config.img_convert_dest_type = ".jpg";
 //Only Shrink huge Images ('>' flag)
 //参考资料:http://www.imagemagick.org/Usage/resize/#shrink
 //不必担心，会保持比例，高宽都低于规定的比例。
-config.img_reduce_resolution_dimension = "2800x2800";
+config.img_reduce_resolution_dimension = "4000x4000";
+
+//--------------------------------
+config.file_server_port = "15001";
 
 
 //---------------------------------------------------------------------------------------
