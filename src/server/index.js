@@ -807,8 +807,8 @@ app.use(getGoodAuthorNames);
 const moveOrDelete = require("./routes/moveOrDelete");
 app.use(moveOrDelete);
 
-const download = require("./routes/download");
-app.use(download);
+// const download = require("./routes/download");
+// app.use(download);
 
 const search = require("./routes/search");
 app.use(search);
@@ -837,6 +837,8 @@ app.use(minifyZip);
 // const ehentaiMetadata = require("./routes/ehentaiMetadata");
 // app.use(ehentaiMetadata);
 
+const fileServer = require("./fileServer");
+fileServer.init();
 
 if (isProduction) {
     const history = require('connect-history-api-fallback');

@@ -2,6 +2,8 @@ const util = require("@common/util");
 const Cookie = require("js-cookie");
 const _ = require("underscore");
 const filesizeUitl = require('filesize');
+const userConfig = require('@config/user-config');
+
 
 module.exports.filesizeUitl = function (num) {
     if (isNaN(num)) {
@@ -112,7 +114,6 @@ module.exports.isAuthorized = function (etc_config) {
 }
 
 module.exports.isAllowedToEnter = function () {
-    const userConfig = require('@config/user-config');
     if (!userConfig.home_password) {
         return true;
     }
@@ -193,7 +194,10 @@ const getDownloadLink = module.exports.getDownloadLink = function (path) {
        return path;
     }
 
-    return "/api/download/?p=" + encodeURIComponent(path);
+    let prefix = location.origin.replace(/:\d+/, ":" + userConfig.file_server_port);
+    
+
+    return prefix + "/api/download/?p=" + encodeURIComponent(path);
 }
 
 // function stringHash(str) {
