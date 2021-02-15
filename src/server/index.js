@@ -104,7 +104,8 @@ async function init() {
 
         if (charset !== 65001) {
             console.error("Please switch you console encoding to utf8 in windows language setting");
-            userConfig.readable_cache_folder_name = false;
+            // userConfig.readable_cache_folder_name = false;
+            return;
         }
     }
 
