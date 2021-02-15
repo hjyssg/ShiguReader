@@ -66,8 +66,8 @@ const HomePage = () => {
         return (
             <div className="home-page container">
                  <ItemsContainer items={dirItems}  />
-                 <ItemsContainer items={hddItems} />
                  <ItemsContainer items={quickAccessItems} />
+                 <ItemsContainer items={hddItems} />
             </div>)
     }
 }
