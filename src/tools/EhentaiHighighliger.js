@@ -198,7 +198,7 @@ function getCurrentTime() {
 
 const begTime = getCurrentTime();
 let time2;
-const file_db = new Loki();
+const file_db = new loki();
 const file_collection = file_db.addCollection("file_collection");
 
 escapeRegExp = function (string) {
@@ -354,7 +354,37 @@ function GM_xmlhttpRequest_promise(method, api) {
     })
 }
 
+function addSearchLink() {
+    //add shigureader search link
+    let fileTitleDom = document.getElementById("gj");
+    let title = fileTitleDom && fileTitleDom.textContent;
+
+    if (!title) {
+        fileTitleDom = document.getElementById("gn");
+        title = fileTitleDom && fileTitleDom.textContent;
+    }
+
+    if (title) {
+        const r = parse(title);
+        if (r) {
+            if (r.author) {
+                appendLink(fileTitleDom, r.author);
+            } else if (r.group) {
+                appendLink(fileTitleDom, r.group);
+            }
+
+            if (r.title) {
+                appendLink(fileTitleDom, r.title);
+            }
+        } else {
+            appendLink(fileTitleDom, title);
+        }
+    }
+}
+
 async function main() {
+    addSearchLink();
+
     const responseText = GM_getValue('responseText');
     const lastResTime = GM_getValue('lastResTime');
     const EXPIRE_TIME = 1000 * 60 * 2;
@@ -390,31 +420,7 @@ async function main() {
         }
     }
 
-    //add shigureader search link
-    let fileTitleDom = document.getElementById("gj");
-    let title = fileTitleDom && fileTitleDom.textContent;
 
-    if (!title) {
-        fileTitleDom = document.getElementById("gn");
-        title = fileTitleDom && fileTitleDom.textContent;
-    }
-
-    if (title) {
-        const r = parse(title);
-        if (r) {
-            if (r.author) {
-                appendLink(fileTitleDom, r.author);
-            } else if (r.group) {
-                appendLink(fileTitleDom, r.group);
-            }
-
-            if (r.title) {
-                appendLink(fileTitleDom, r.title);
-            }
-        } else {
-            appendLink(fileTitleDom, title);
-        }
-    }
 }
 
 
