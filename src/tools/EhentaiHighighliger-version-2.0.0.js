@@ -217,7 +217,13 @@ async function highlightThumbnail() {
 
             const books = books_info
                 .filter(e => e.type === "folder" || (e.type === "file" && isCompress(e.name)))
-                .map(e => e.name)
+                .map(e => {
+                    if(e.type === "file"){
+                        return e.name.replace(compressTypesRegex, "");
+                    }else if(e.type === "folder"){
+                        return e.name;
+                    }
+                })
             e.status = 0;
 
             const { status, similarTitles } = checkIfDownload(text, books);
