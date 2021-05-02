@@ -47,17 +47,6 @@
     color: $font_color_white_one !important;
   }
 
-  .dir-list {
-    list-style: none;
-
-    .item-container-expand-button {
-      cursor: pointer;
-      margin-left: 2px;
-      font-size: 12px;
-      width: 100%;
-      text-align: center;
-    }
-  }
 
   .file-list {
     text-align: left !important;
@@ -207,5 +196,24 @@
 
   .av-color {
     color: #abc0eb;
+  }
+}
+
+
+
+.item-container {
+  list-style: none;
+
+  .item-container-expand-button {
+    color: $font_color_white_one;
+    cursor: pointer;
+    padding-left: 14px;
+    font-size: 40px;
+    width: 100%;
+    // text-align: center;
+
+    .arror-icon{
+      font-size: 20px;
+    }
   }
 }
