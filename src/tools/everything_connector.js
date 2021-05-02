@@ -60,6 +60,7 @@ module.exports.searchByText = async function (text, config) {
         console.error(e);
         return null;
     }
+
 }
 
 // // https://www.voidtools.com/forum/viewtopic.php?f=2&t=8703&p=29464&hilit=http+path#p29464
