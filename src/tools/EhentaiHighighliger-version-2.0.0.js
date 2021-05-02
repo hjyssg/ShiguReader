@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name        EhentaiLight配合Shigureader
+// @name        EhentaiLight配合Everything
 // @grant       GM_xmlhttpRequest
 // @grant       GM_addStyle
 // @grant       GM_getValue
@@ -114,31 +114,18 @@ function compareInternalDigit(s1, s2) {
 
 //------
 
-function checkIfDownload(text, pageNum) {
+function checkIfDownload(text, books) {
     var status = 0;
     let similarTitles = [];
     let r1 = parse(text);
 
-    function comparePageNum(book, pageNum) {
-        if (!isNaN(book.pageNum) && Math.abs(book.pageNum - pageNum) >= 5) {
-            return true;
-        }
-        return false;
-    }
-
     if (r1 && r1.author) {
         //use author as index to find
-        let books = getByAuthor(r1.author);
 
         if (books && books.length > 0) {
             status = SAME_AUTHOR;
             for (let ii = 0; ii < books.length; ii++) {
-                const book = books[ii];
-                if (comparePageNum(book, pageNum)) {
-                    continue;
-                }
-
-                let fn2 = book.fileName;
+                const fn2 = books[ii];
                 const r2 = parse(fn2)
 
                 if (!compareInternalDigit(r1.title, r2.title)) {
@@ -158,22 +145,12 @@ function checkIfDownload(text, pageNum) {
             }
         }
     } else {
-        const _text = _clean(text);
-        let reg = escapeRegExp(_text);
-        let books = file_collection.chain()
-            .find({ '_filename_': { '$regex': reg } })
-            .data();
-
         books.forEach(e => {
-            if (comparePageNum(e, pageNum)) {
-                return;
-            }
-
-            if (e._filename_ === _text) {
+            if (e === text) {
                 status = IS_IN_PC;
             }
 
-            if (status < LIKELY_IN_PC && isHighlySimilar(e._filename_, _text)) {
+            if (status < LIKELY_IN_PC && isHighlySimilar(e, text)) {
                 status = Math.max(status, LIKELY_IN_PC);
                 similarTitles.push(e);
             }
@@ -201,61 +178,50 @@ let time2;
 const file_db = new loki();
 const file_collection = file_db.addCollection("file_collection");
 
-escapeRegExp = function (string) {
-    const str = string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
-    var reg = new RegExp(str, 'i');
-    return reg;
-}
-
-function getByAuthor(key) {
-    key = _clean(key);
-    let reg = escapeRegExp(key);
-    return file_collection.chain()
-        .find({ '_author_': { '$regex': reg } })
-        .where(obj => {
-            return isHighlySimilar(obj['_author_'], key);
-        })
-        .data();
-}
-
-function highlightThumbnail(allFiles) {
+async function highlightThumbnail() {
     const nodes = Array.prototype.slice.call(document.getElementsByClassName("gl1t"));
     if (!nodes || nodes.length === 0) {
         return;
     }
 
-    for (let e in allFiles) {
-        if (allFiles.hasOwnProperty(e)) {
-            const r = parse(e) || {};
-            const value = allFiles[e];
-            file_collection.insert({
-                fileName: e,
-                _author_: _clean(r.author),
-                _filename_: _clean(e),
-                title: r.title,
-                pageNum: parseInt(value.pageNum)
-            })
-        }
-    }
-
     const timeMiddle2 = getCurrentTime();
     console.log((timeMiddle2 - time2) / 1000, "to parse name");
 
-    nodes.forEach(e => {
+    for (let index = 0; index < nodes.length; index++) {
+        const e = nodes[index];
         try {
             const subNode = e.getElementsByClassName("gl4t")[0];
             const thumbnailNode = e.getElementsByTagName("img")[0];
-            const text = subNode.textContent;
+            let text = subNode.textContent;
 
-            const pageNumDiv = e.querySelector(".gl5t").children[1].children[1];
-            const pageNum = parseInt(pageNumDiv.textContent.split(" ")[0]);
-
-            e.status = 0;
             if (text.includes("翻訳") || text.includes("翻译")) {
                 return;
             }
-            const r = parse(text);
-            const { status, similarTitles } = checkIfDownload(text, pageNum);
+
+            let r1 = parse(text);
+
+            let _text = text;
+            if(r1){
+                if(r1.author){
+                    _text = r1.author;
+                }else if(r1.title){
+                    _text = r1.title;
+                }
+            }
+            const tt = encodeURIComponent(_text);
+            const uri = `http://localhost:5001/?search="${tt}"&offset=0&json=1&path_column=1&size_column=1&date_modified_column=1`;
+            let res = await GM_xmlhttpRequest_promise("GET", uri);
+
+            res = JSON.parse(res.responseText)
+            const books_info = res.results;
+
+            const books = books_info.filter(e => e.type === "file").map(e => e.name)
+            e.status = 0;
+            
+            debugger
+            const { status, similarTitles } = checkIfDownload(text, books);
+
+
             e.status = status || 0;
             if (status === IS_IN_PC) {
                 subNode.style.color = "#61ef47";
@@ -265,15 +231,14 @@ function highlightThumbnail(allFiles) {
                 addTooltip(thumbnailNode, "电脑里面好像有", similarTitles)
             } else if (status === SAME_AUTHOR) {
                 subNode.style.color = "#ef8787";
-                const fns = getByAuthor(r.author).map(e => e.fileName);
-                addTooltip(thumbnailNode, `下载同样作者“${r.author}”的书 ${fns.length}次`, fns, "same_author")
+                addTooltip(thumbnailNode, `下载同样作者“${r1.author}”的书 ${books.length}次`, books, "same_author")
             }
 
             if (status) {
-                if (r) {
-                    appendLink(e, r.author);
+                if (r1) {
+                    appendLink(e, r1.author);
                     if (status >= LIKELY_IN_PC) {
-                        appendLink(e, r.title);
+                        appendLink(e, r1.title);
                     }
                 } else {
                     appendLink(e, text);
@@ -284,7 +249,9 @@ function highlightThumbnail(allFiles) {
         } catch (e) {
             console.error(e);
         }
-    });
+        
+    }
+
 
     const finishTime = getCurrentTime();
     console.log((finishTime - timeMiddle2) / 1000, "to finish algo and change dom");
@@ -386,44 +353,12 @@ function addSearchLink() {
     }
 }
 
-function getTitleList(){
-    const nodes = Array.prototype.slice.call(document.getElementsByClassName("gl1t"));
-    if (!nodes || nodes.length === 0) {
-        return [];
-    }
-
-    return nodes.map(e => {
-        try {
-            const subNode = e.getElementsByClassName("gl4t")[0];
-            const text = subNode.textContent;
-            return text;
-        } catch {  }
-    })
-}
 
 async function main() {
     addSearchLink();
-    const titleList = getTitleList();
-    if (!titleList || titleList.length === 0) {
-        console.log("EhentaiHighighliger-version-2.0.0 no title")
-        return;
-    }
     //annote file table
-    var api = 'http://localhost:8080/api/exhentaiApi';
-    const res = await GM_xmlhttpRequest_promise("POST", api, JSON.stringify({ titleList: titleList }));
-    time2 = getCurrentTime();
-    if (res) {
-        console.log((time2 - begTime) / 1000, "to load");
-        GM_setValue('lastResTime', getCurrentTime());
 
-        const text = res.responseText;
-        GM_setValue('responseText', text);
-        const json = JSON.parse(text);
-        highlightThumbnail(json.allFiles);
-
-    } else {
-        console.log("EhentaiHighighliger-version-2.0.0 no res")
-    }
+    await highlightThumbnail();
 }
 
 
