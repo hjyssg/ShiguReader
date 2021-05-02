@@ -121,40 +121,37 @@ function checkIfDownload(text, books) {
 
     if (r1 && r1.author) {
         //use author as index to find
-
         if (books && books.length > 0) {
             status = SAME_AUTHOR;
-            for (let ii = 0; ii < books.length; ii++) {
-                const fn2 = books[ii];
-                const r2 = parse(fn2)
+        }
+    }
 
-                if (!compareInternalDigit(r1.title, r2.title)) {
-                    continue;
-                }
+    for (let ii = 0; ii < books.length; ii++) {
+        const fn2 = books[ii];
 
-                status = Math.max(status, isTwoBookTheSame(text, fn2));
-                if (status === LIKELY_IN_PC) {
-                    similarTitles.push(fn2);
-                    //todo pick the most similar 
-                    //or show all
-                }
+        if (fn2 === text) {
+            status = IS_IN_PC;
+        }
 
-                if (status === IS_IN_PC) {
-                    break;
-                }
+        const r2 = parse(fn2)
+
+        if (r2) {
+            if (!compareInternalDigit(r1.title, r2.title)) {
+                continue;
+            }
+
+            status = Math.max(status, isTwoBookTheSame(text, fn2));
+            if (status === LIKELY_IN_PC) {
+                similarTitles.push(fn2);
+                //todo pick the most similar 
+                //or show all
+            }
+        } else {
+            if (status < LIKELY_IN_PC && isHighlySimilar(fn2, text)) {
+                status = Math.max(status, LIKELY_IN_PC);
+                similarTitles.push(fn2);
             }
         }
-    } else {
-        books.forEach(e => {
-            if (e === text) {
-                status = IS_IN_PC;
-            }
-
-            if (status < LIKELY_IN_PC && isHighlySimilar(e, text)) {
-                status = Math.max(status, LIKELY_IN_PC);
-                similarTitles.push(e);
-            }
-        })
     }
 
     return {
@@ -219,8 +216,8 @@ async function highlightThumbnail() {
             const books_info = res.results;
 
             const books = books_info
-                          .filter(e => e.type === "folder" || (e.type === "file" && isCompress(e.name)))
-                          .map(e => e.name)
+                .filter(e => e.type === "folder" || (e.type === "file" && isCompress(e.name)))
+                .map(e => e.name)
             e.status = 0;
 
             const { status, similarTitles } = checkIfDownload(text, books);
