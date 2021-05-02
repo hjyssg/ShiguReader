@@ -20,9 +20,12 @@ export default class SortHeader extends PureComponent {
     }
 
     render() {
-        const { sortOptions, onChange, selected, isSortAsc, className } = this.props;
+        let { sortOptions, onChange, selected, isSortAsc, className } = this.props;
 
-        const items = sortOptions.map(item => {
+        if(!selected){
+            selected = sortOptions[0];
+        }
+        const items = sortOptions.map((item) => {
             let icon;
             if (item === selected) {
                 if (isSortAsc) {

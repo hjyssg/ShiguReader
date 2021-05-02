@@ -10,19 +10,26 @@ export default function ItemsContainer(props) {
 
     if (neverCollapse || items.length <= TOO_MUCH) {
         return (
-            <ul className={classNames("dir-list container", className)}>
+            <ul className={classNames("item-container container", className)}>
                 {items}
             </ul>);
     } else {
         const _items = open ? items : items.slice(0, TOO_MUCH);
         const cn = classNames("item-container-expand-button", className, {
+        });
+
+        const arrowCn = classNames("arror-icon", {
             "fas fa-arrow-down": !open,
             "fas fa-arrow-up": open,
-        });
+        })
+
         return (
-            <ul className={"dir-list container"}>
+            <ul className={"item-container container"}>
                 {_items}
-                <div className={cn} onClick={() => { setOpen(!open) }} > </div>
+                <div className={cn} onClick={() => { setOpen(!open) }} > 
+                    <span>...</span>
+                    <i className={arrowCn} />
+                </div>
             </ul>);
     }
 }
