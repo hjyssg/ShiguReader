@@ -342,6 +342,9 @@ function GM_xmlhttpRequest_promise(method, api, data) {
             method: method,
             url: api,
             data: data,
+            headers:    {
+                "Content-Type": "application/json"
+            },
             onload: res => {
                 resolve(res);
             },
@@ -401,7 +404,7 @@ function getTitleList(){
 async function main() {
     addSearchLink();
     const titleList = getTitleList();
-    if (!nodes || nodes.length === 0) {
+    if (!titleList || titleList.length === 0) {
         console.log("EhentaiHighighliger-version-2.0.0 no title")
         return;
     }
