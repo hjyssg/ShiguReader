@@ -7,8 +7,10 @@ const util = global.requireUtil();
 const { isCompress } = util;
 
 // http://localhost:8080/api/exhentaiApi
-router.get('/api/exhentaiApi', async (req, res) => {
+router.post('/api/exhentaiApi', async (req, res) => {
     let allFiles = db.getAllFilePathes().filter(isCompress);
+    let titleList = req.body && req.body.titleList;
+
 
     const zipInfoDb = require("../models/zipInfoDb");
     const zipInfo = zipInfoDb.getZipInfo(allFiles);
