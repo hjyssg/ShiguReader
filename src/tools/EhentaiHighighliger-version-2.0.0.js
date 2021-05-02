@@ -14,10 +14,11 @@
 // @include       *://g.e-hentai.org/*
 // @include       *://e-hentai.org/*
 // @require      https://raw.githubusercontent.com/hjyssg/ShiguReader/dev/src/name-parser/all_in_one/index.js
-// @require      https://cdnjs.cloudflare.com/ajax/libs/lokijs/1.5.11/lokijs.min.js
 // ==/UserScript==
 
 //tamper monkey自动缓存require脚本，随便改一下版本号就可以更新
+
+const everything_port = 5001;
 
 GM_addStyle(`
 .shigureader_link {
@@ -35,7 +36,6 @@ GM_addStyle(`
 }
 
 `);
-
 
 
 console.assert = console.assert || (() => { });
@@ -115,7 +115,7 @@ function compareInternalDigit(s1, s2) {
 //------
 
 function checkIfDownload(text, books) {
-    var status = 0;
+    let status = 0;
     let similarTitles = [];
     let r1 = parse(text);
 
@@ -163,9 +163,6 @@ function checkIfDownload(text, books) {
     }
 }
 
-function isOnlyDigit(str) {
-    return str.match(/^[0-9]+$/) != null
-}
 
 const compressTypes = [".zip", ".rar", ".7zip", ".7z", ".gzip", ".tar"];
 function escapeDot(arr) {
@@ -183,8 +180,6 @@ function getCurrentTime() {
 
 const begTime = getCurrentTime();
 let time2;
-const file_db = new loki();
-const file_collection = file_db.addCollection("file_collection");
 
 async function highlightThumbnail() {
     const nodes = Array.prototype.slice.call(document.getElementsByClassName("gl1t"));
@@ -209,23 +204,25 @@ async function highlightThumbnail() {
             let r1 = parse(text);
 
             let _text = text;
-            if(r1){
-                if(r1.author){
+            if (r1) {
+                if (r1.author) {
                     _text = r1.author;
-                }else if(r1.title){
+                } else if (r1.title) {
                     _text = r1.title;
                 }
             }
             const tt = encodeURIComponent(_text);
-            const uri = `http://localhost:5001/?search="${tt}"&offset=0&json=1&path_column=1&size_column=1&date_modified_column=1`;
+            const uri = `http://localhost:${everything_port}/?search="${tt}"&offset=0&json=1&path_column=1&size_column=1&date_modified_column=1`;
             let res = await GM_xmlhttpRequest_promise("GET", uri);
 
             res = JSON.parse(res.responseText)
             const books_info = res.results;
 
-            const books = books_info.filter(e => e.type === "file" && isCompress(e.name)).map(e => e.name)
+            const books = books_info
+                          .filter(e => e.type === "folder" || (e.type === "file" && isCompress(e.name)))
+                          .map(e => e.name)
             e.status = 0;
-            
+
             const { status, similarTitles } = checkIfDownload(text, books);
 
             e.status = status || 0;
@@ -249,15 +246,12 @@ async function highlightThumbnail() {
                 } else {
                     appendLink(e, text);
                 }
-
                 subNode.style.fontWeight = 600;
             }
-        } catch (e) {
-            console.error(e);
+        } catch (err) {
+            console.error(err);
         }
-        
     }
-
 
     const finishTime = getCurrentTime();
     console.log((finishTime - timeMiddle2) / 1000, "to finish algo and change dom");
@@ -265,9 +259,8 @@ async function highlightThumbnail() {
     console.log((finishTime - begTime) / 1000, "for any time");
 }
 
-function addTooltip(node, title, books, same_author) {
+function addTooltip(node, title, books) {
     books.sort();
-    //indent
     books = books.map((e, ii) => {
         let tt = ii + 1;
         if (tt < 10) {
@@ -275,22 +268,15 @@ function addTooltip(node, title, books, same_author) {
         }
         const t1 = "  " + tt + ".  ";
         return t1 + e;
-
-        // if(same_author){
-        //     const pObj = parse(e);
-        //     return t1 + (pObj.comiket||"") + pObj.title + "(" + pObj.tags + ")";
-        // }else{
-        // }
     });
     if (books.length > 25) {
         books = books.slice(0, 10).concat("...");
     }
-    node.title = [title, "  ",].concat(books).join("\n");;
+    node.title = [title, "  "].concat(books).join("\n");
 }
 
 function appendLink(fileTitleDom, text, asIcon) {
-    var link = document.createElement("a");
-
+    const link = document.createElement("a");
     if (asIcon) {
         link.textContent = "🔍";
     } else {
@@ -304,9 +290,6 @@ function appendLink(fileTitleDom, text, asIcon) {
     link.href = "http://localhost:3000/search/?s=" + text;
 }
 
-
-
-
 function GM_xmlhttpRequest_promise(method, api, data) {
     //tamper monkey have bug
     //timeout do not work
@@ -314,8 +297,8 @@ function GM_xmlhttpRequest_promise(method, api, data) {
         GM_xmlhttpRequest({
             method: method,
             url: api,
-            data: data,
-            headers:    {
+            data,
+            headers: {
                 "Content-Type": "application/json"
             },
             onload: res => {
@@ -366,6 +349,5 @@ async function main() {
 
     await highlightThumbnail();
 }
-
 
 main();
