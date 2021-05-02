@@ -167,6 +167,14 @@ function isOnlyDigit(str) {
     return str.match(/^[0-9]+$/) != null
 }
 
+const compressTypes = [".zip", ".rar", ".7zip", ".7z", ".gzip", ".tar"];
+function escapeDot(arr) {
+    return arr.map(e => e.replace(".", "\\."))
+}
+const compressTypesRegex = new RegExp("(" + escapeDot(compressTypes).join("|") + ")$");
+const isCompress = function (fn) {
+    return !!fn.toLowerCase().match(compressTypesRegex);
+};
 
 //--------------------------------------------------------------
 function getCurrentTime() {
@@ -215,17 +223,15 @@ async function highlightThumbnail() {
             res = JSON.parse(res.responseText)
             const books_info = res.results;
 
-            const books = books_info.filter(e => e.type === "file").map(e => e.name)
+            const books = books_info.filter(e => e.type === "file" && isCompress(e.name)).map(e => e.name)
             e.status = 0;
             
-            debugger
             const { status, similarTitles } = checkIfDownload(text, books);
-
 
             e.status = status || 0;
             if (status === IS_IN_PC) {
                 subNode.style.color = "#61ef47";
-                thumbnailNode.title = "明确已经下载过了";
+                addTooltip(thumbnailNode, "明确已经下载过了", similarTitles)
             } else if (status === LIKELY_IN_PC) {
                 subNode.style.color = "#efd41b";
                 addTooltip(thumbnailNode, "电脑里面好像有", similarTitles)
@@ -237,9 +243,9 @@ async function highlightThumbnail() {
             if (status) {
                 if (r1) {
                     appendLink(e, r1.author);
-                    if (status >= LIKELY_IN_PC) {
-                        appendLink(e, r1.title);
-                    }
+                    // if (status >= LIKELY_IN_PC) {
+                    //     appendLink(e, r1.title);
+                    // }
                 } else {
                     appendLink(e, text);
                 }
