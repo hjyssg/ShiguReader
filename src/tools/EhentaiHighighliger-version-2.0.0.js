@@ -131,6 +131,8 @@ function checkIfDownload(text, books) {
 
         if (fn2 === text) {
             status = IS_IN_PC;
+            similarTitles.push(fn2);
+            break;
         }
 
         const r2 = parse(fn2)

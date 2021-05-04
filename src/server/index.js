@@ -253,13 +253,6 @@ function setUpCacheWatch() {
     });
 
     cacheWatcher
-        .on('unlinkDir', p => {
-            //todo
-            const fp = path.dirname(p);
-            db.cacheDb.folderToFiles[fp];
-        });
-
-    cacheWatcher
         .on('add', (p, stats) => {
             cacheDb.updateStatToCacheDb(p, stats);
         })
