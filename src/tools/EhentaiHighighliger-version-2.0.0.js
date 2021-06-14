@@ -186,8 +186,8 @@ async function highlightThumbnail() {
         return;
     }
 
-    const timeMiddle2 = getCurrentTime();
-    console.log((timeMiddle2 - time2) / 1000, "to parse name");
+    // const timeMiddle2 = getCurrentTime();
+    // console.log((timeMiddle2 - time2) / 1000, "to parse name");
 
     for (let index = 0; index < nodes.length; index++) {
         const e = nodes[index];
@@ -202,10 +202,12 @@ async function highlightThumbnail() {
 
             let r1 = parse(text);
 
+            let useAuthorSearch = false;
             let _text = text;
             if (r1) {
                 if (r1.author) {
                     _text = r1.author;
+                    useAuthorSearch = true;
                 } else if (r1.title) {
                     _text = r1.title;
                 }
@@ -217,7 +219,7 @@ async function highlightThumbnail() {
             res = JSON.parse(res.responseText)
             const books_info = res.results;
 
-            const books = books_info
+            let books = books_info
                 .filter(e => e.type === "folder" || (e.type === "file" && isCompress(e.name)))
                 .map(e => {
                     if(e.type === "file"){
@@ -227,6 +229,15 @@ async function highlightThumbnail() {
                     }
                 })
             e.status = 0;
+
+            if(useAuthorSearch){
+                books = books.filter(e => {
+                    let rr = parse(e);
+                    if(rr && rr.author && rr.author.includes(_text)){
+                        return true;
+                    }
+                })
+            }
 
             const { status, similarTitles } = checkIfDownload(text, books);
 
