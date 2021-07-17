@@ -19,6 +19,7 @@
 
         //else vetical
         .vertical-video {
+            max-height: 1500px;
             .dplayer{
                 @media screen and (max-height: 1000px) {
                     height: calc(100% - 50px);
