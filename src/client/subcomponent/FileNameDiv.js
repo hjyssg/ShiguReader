@@ -27,7 +27,10 @@ function getText(filename, mecab_tokens) {
     }
 
     if (pResult.group) {
-      allTags.push(pResult.group);
+      const includeAuthor =  authors && authors.length === 1 &&  pResult.group.includes(authors[0]);
+      if(!includeAuthor){
+        allTags.push(pResult.group);
+      }
     }
 
     if (authors) {
@@ -106,7 +109,7 @@ function getText(filename, mecab_tokens) {
   allTags.forEach(tag => {
     //https://stackoverflow.com/questions/4514144/js-string-split-without-removing-the-delimiters
     const tempHolder = SEP + tag + SEP;
-    tempText = tempText.replace(tag, tempHolder)
+    tempText = tempText.replaceAll(tag, tempHolder)
   })
   const formatArr = [];
   tempText.split(SEP).map(token => {
