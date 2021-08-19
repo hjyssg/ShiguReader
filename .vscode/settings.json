@@ -9,6 +9,7 @@
         "**/.DS_Store": true,
         "**/folder_thumbnails": true,
         "**/node_modules": true,
-        "**/thumbnails": true
+        "**/thumbnails": true,
+        "**/cache": true
       }
 }

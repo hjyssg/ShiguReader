@@ -5,30 +5,31 @@
         @include flex_center_display;
 
         //horizontal
-        &:not(.vertical-video) {
-            .dplayer{
-                @media screen and (max-width: 1000px) {
-                    width: calc(100% - 50px);
-                }
+        .horizontal-video {
+            max-width: 1000px;
+            // .dplayer{
+            //     @media screen and (max-width: 1000px) {
+            //         width: calc(100% - 50px);
+            //     }
     
-                @media screen and (min-width: 1000px) {
-                    width: 1000px;
-                }
-            }
+            //     @media screen and (min-width: 1000px) {
+            //         width: 1000px;
+            //     }
+            // }
         }
 
         //else vetical
         .vertical-video {
-            max-height: 1500px;
-            .dplayer{
-                @media screen and (max-height: 1000px) {
-                    height: calc(100% - 50px);
-                }
+            max-height: 800px;
+            // .dplayer{
+            //     @media screen and (max-height: 800px) {
+            //         height: calc(100% - 50px);
+            //     }
 
-                @media screen and (min-height: 1000px) {
-                    height: 1000px;
-                }
-            }
+            //     @media screen and (min-height: 800px) {
+            //         height: 800px;
+            //     }
+            // }
         }
     }
 

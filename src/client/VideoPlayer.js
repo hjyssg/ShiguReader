@@ -94,6 +94,8 @@ export default class VideoPlayer extends Component {
     const ww = videoRef.videoWidth;
     if (hh > ww) {
       videoRef.className = "vertical-video"
+    }else{
+      videoRef.className = "horizontal-video"
     }
 
     const filePath = this.getTextFromQuery();
