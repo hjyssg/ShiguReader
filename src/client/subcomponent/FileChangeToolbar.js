@@ -118,13 +118,19 @@ class MoveMenu extends Component {
 
     render() {
         const { path, dirs } = this.state;
+        const { onPathSelect } = this.props;
 
         const listItems = dirs.map(e => {
-            return <div onClick={this.onPathClick.bind(this, e)}> {e} </div>
+            return (<div key={e} className="move-path-item" >
+             <span className="mv-btn-small" onClick={this.onPathClick.bind(this, e)}>{e}  </span>
+             <span className="mv-btn-small" onClick={()=> {
+                 onPathSelect && onPathSelect(e)
+             }}> select </span>
+             </div>)
         })
 
         return <div>
-            <div> {path} </div>
+            {path && <div className="move-header"> {path} </div>}
             {listItems}
         </div>
     }
@@ -258,7 +264,7 @@ export default class FileChangeToolbar extends Component {
         }
     };
 
-    handleRename(type) {
+    handleRename(type, inputText) {
         let { file, onNewPath } = this.props;
 
         const fileName = clientUtil.getBaseName(file);
@@ -274,7 +280,7 @@ export default class FileChangeToolbar extends Component {
             defaultText = fileName;
         }
 
-        let dest = prompt(type, defaultText);
+        let dest = prompt(type, inputText || defaultText);
         if (!dest) {
             return;
         }
@@ -440,10 +446,9 @@ export default class FileChangeToolbar extends Component {
 
 
         if(mode === "move_menu"){
-            content = (<div> 
-                <div onClick={()=>this.switchMode("default")}> back </div>
-                <MoveMenu />
-                
+            content = (<div className="move_menu_wrap"> 
+                <div className="move_menu-back-btn" onClick={()=>this.switchMode("default")}> back </div>
+                <MoveMenu onPathSelect={(inputText)=>{ this.handleRename("move", inputText) }}/>
             </div>)
         }
 
