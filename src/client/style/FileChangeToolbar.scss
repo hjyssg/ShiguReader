@@ -22,7 +22,27 @@
     padding-top: 2px;
     padding-bottom: 2px;
     border-radius: 3px;
-    margin-bottom: 15px;
+    margin-bottom: 5px;
+  }
+
+  .move-header-two{
+    border: 1px #414141 solid;
+    padding-left: 10px;
+    padding-right: 10px;
+    padding-top: 2px;
+    padding-bottom: 2px;
+    border-radius: 3px;
+    margin-bottom: 5px;
+
+    border: 1px #414141 solid;
+    width: 100px;
+    padding-left: 10px;
+    border-radius: 3px;
+    cursor: pointer;
+
+    &:hover {
+      @include third_hover_effect;
+    }
   }
 
   .move-list-content{
