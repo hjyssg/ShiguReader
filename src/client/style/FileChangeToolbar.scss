@@ -6,16 +6,11 @@
 }
 
 .move_menu_wrap {
-  background: white;
-  padding: 5px;
-  border-radius: 2px;
 
   .move_menu-back-btn {
     border: 1px #414141 solid;
+    width: 60px;
     padding-left: 10px;
-    padding-right: 10px;
-    padding-top: 2px;
-    padding-bottom: 2px;
     border-radius: 3px;
     cursor: pointer;
   }
@@ -27,18 +22,28 @@
     padding-top: 2px;
     padding-bottom: 2px;
     border-radius: 3px;
+    margin-bottom: 15px;
   }
 
-  .move-path-item{
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 5px;
-    border-bottom: 1px solid #414141;
+  .move-list-content{
+    max-height: 500px;
+    overflow-y: scroll;
 
-    .mv-btn-small{
-      cursor: pointer;
-      &:hover{
-        @include third_hover_effect;
+    .move-path-item{
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 5px;
+      border-bottom: 1px solid #414141;
+  
+      .fa-folder {
+        margin-right: 5px;
+      }
+  
+      .mv-btn-small{
+        cursor: pointer;
+        &:hover{
+          @include third_hover_effect;
+        }
       }
     }
   }
