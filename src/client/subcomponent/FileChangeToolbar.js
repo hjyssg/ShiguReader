@@ -84,6 +84,7 @@ class MoveMenu extends Component {
     constructor() {
         super();
         this.state = {
+            prev_path: "",
             path: "",
             dirs: []
         };
@@ -117,20 +118,24 @@ class MoveMenu extends Component {
     }
 
     render() {
-        const { path, dirs } = this.state;
+        const { path, dirs, prev_path } = this.state;
         const { onPathSelect } = this.props;
 
         const listItems = dirs.map(e => {
             return (<div key={e} className="move-path-item" >
-             <span className="mv-btn-small" onClick={this.onPathClick.bind(this, e)}>{e}  </span>
+             <span className="mv-btn-small" onClick={this.onPathClick.bind(this, e)}>
+                <i className="far fa-folder"></i>
+                {e}  
+             </span>
              <span className="mv-btn-small" onClick={()=> {
                  onPathSelect && onPathSelect(e)
              }}> select </span>
              </div>)
         })
 
-        return <div>
-            {path && <div className="move-header"> {path} </div>}
+        return <div className="move-list-content">
+            {path && <div className="move-header"> At {path} </div>}
+            { (prev_path || prev_path === "") && <div> back to parent </div>}
             {listItems}
         </div>
     }
@@ -152,7 +157,7 @@ export default class FileChangeToolbar extends Component {
     handleOpenModal(event) {
         event && event.preventDefault();
         event && event.stopPropagation();
-        this.setState({ showModal: true });
+        this.setState({ showModal: true, mode: "default" });
     }
 
     handleCloseModal(event) {
@@ -447,8 +452,15 @@ export default class FileChangeToolbar extends Component {
 
         if(mode === "move_menu"){
             content = (<div className="move_menu_wrap"> 
-                <div className="move_menu-back-btn" onClick={()=>this.switchMode("default")}> back </div>
+                <div className="section with-bottom-margin">
+                    <div className="move_menu-back-btn" onClick={()=>this.switchMode("default")}>
+                        <i className="fas fa-long-arrow-alt-left"></i> back 
+                    </div>
+                </div>
+
+                <div className="section with-bottom-margin">
                 <MoveMenu onPathSelect={(inputText)=>{ this.handleRename("move", inputText) }}/>
+                </div>
             </div>)
         }
 
