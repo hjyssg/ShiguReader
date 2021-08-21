@@ -84,42 +84,58 @@ class MoveMenu extends Component {
     constructor() {
         super();
         this.state = {
-            prev_path: "",
             path: "",
             dirs: []
         };
     }
 
     componentDidMount() {
-        Sender.postWithPromise("/api/homePagePath", {}).then(res => {
-            if (res.isFailed()) {
-                debugger
-                return;
-            } else {
-                const { dirs, hdd_list, quickAccess } = res.json;
-                this.setState({
-                    dirs: hdd_list
-                })
-            }
-        });
+       this.onPathClick()
     }
 
     async onPathClick(path) {
-        const res = await Sender.postWithPromise("/api/lsDir", { dir: path });
-        if (res.isFailed()) {
-            return;
-        } else {
-            const { dirs } = res.json;
-            this.setState({
-                dirs,
-                path
-            })
+        this.setState({
+            loading: true
+        })
+
+        if(path){
+            const res = await Sender.postWithPromise("/api/lsDir", { dir: path });
+            if (res.isFailed()) {
+                return;
+            } else {
+                const { dirs } = res.json;
+                this.setState({
+                    dirs,
+                    path,
+                    loading: false
+                })
+            }
+        }else{
+            Sender.postWithPromise("/api/homePagePath", {}).then(res => {
+                if (res.isFailed()) {
+                    debugger
+                    return;
+                } else {
+                    const { dirs, hdd_list, quickAccess } = res.json;
+                    this.setState({
+                        dirs: hdd_list,
+                        path: "",
+                        loading: false
+                    })
+                }
+            });
         }
     }
 
     render() {
-        const { path, dirs, prev_path } = this.state;
+        const { path, dirs, loading } = this.state;
         const { onPathSelect } = this.props;
+
+        if(loading){
+            return (<div className="move-list-content">
+                ...
+                </div>)
+        }
 
         const listItems = dirs.map(e => {
             return (<div key={e} className="move-path-item" >
@@ -133,11 +149,27 @@ class MoveMenu extends Component {
              </div>)
         })
 
-        return <div className="move-list-content">
-            {path && <div className="move-header"> At {path} </div>}
-            { (prev_path || prev_path === "") && <div> back to parent </div>}
+        let header;
+
+        if(path){
+            const sep = "\\";
+            const tokens = path.split(sep);
+            const prev_path = tokens.slice(0, tokens.length - 1).join(sep);
+
+            header = (
+                <React.Fragment>
+                <div className="move-header"> At {path} </div>
+                { <div className="move-header-two" onClick={this.onPathClick.bind(this, prev_path || "" )}>  
+                    back to parent 
+                </div>}
+                </React.Fragment>
+            );
+        }
+
+        return (<div className="move-list-content">
+            {header}
             {listItems}
-        </div>
+        </div>)
     }
 }
 
