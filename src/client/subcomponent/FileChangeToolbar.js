@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { Component, useState, useEffect } from 'react';
 import '../style/Spinner.scss';
 const userConfig = require('@config/user-config');
 import PropTypes from 'prop-types';
@@ -72,8 +72,61 @@ function pop(file, res, postFix, extraDiv, callback) {
 
     toast(divContent, toastConfig);
 
-    if(!isFailed){
+    if (!isFailed) {
         callback && callback(res)
+    }
+}
+
+// modal can be replaced with singleton
+// for better coding pattern
+// hook cannot be used in loop
+class MoveMenu extends Component {
+    constructor() {
+        super();
+        this.state = {
+            path: "",
+            dirs: []
+        };
+    }
+
+    componentDidMount() {
+        Sender.postWithPromise("/api/homePagePath", {}).then(res => {
+            if (res.isFailed()) {
+                debugger
+                return;
+            } else {
+                const { dirs, hdd_list, quickAccess } = res.json;
+                this.setState({
+                    dirs: hdd_list
+                })
+            }
+        });
+    }
+
+    async onPathClick(path) {
+        const res = await Sender.postWithPromise("/api/lsDir", { dir: path });
+        if (res.isFailed()) {
+            return;
+        } else {
+            const { dirs } = res.json;
+            this.setState({
+                dirs,
+                path
+            })
+        }
+    }
+
+    render() {
+        const { path, dirs } = this.state;
+
+        const listItems = dirs.map(e => {
+            return <div onClick={this.onPathClick.bind(this, e)}> {e} </div>
+        })
+
+        return <div>
+            <div> {path} </div>
+            {listItems}
+        </div>
     }
 }
 
@@ -85,7 +138,8 @@ export default class FileChangeToolbar extends Component {
     constructor() {
         super();
         this.state = {
-            showModal: false
+            showModal: false,
+            mode: "default"
         };
     }
 
@@ -212,24 +266,24 @@ export default class FileChangeToolbar extends Component {
 
         const sep = this.context.file_path_sep || "\\";
         let defaultText;
-        if(type === "move"){
+        if (type === "move") {
             //get its dir path
             defaultText = dirPath;
-        }else if(type === "rename"){
+        } else if (type === "rename") {
             //get its file name
             defaultText = fileName;
         }
 
         let dest = prompt(type, defaultText);
-        if(!dest){
+        if (!dest) {
             return;
         }
 
-        if(type === "move"){
+        if (type === "move") {
             //get its dir path
             this.handleMove(dest);
             return;
-        }else if(type === "rename"){
+        } else if (type === "rename") {
             //get its file name
             dest = dirPath + sep + dest;
             if (dest) {
@@ -253,7 +307,7 @@ export default class FileChangeToolbar extends Component {
     getDropdownItems() {
         let arr = this.context.additional_folder || [];
         arr = arr.filter(e => {
-            if(e.includes(userConfig.img_convert_cache) || e.includes(userConfig.zip_output_cache)){
+            if (e.includes(userConfig.img_convert_cache) || e.includes(userConfig.zip_output_cache)) {
                 return false;
             }
             return true;
@@ -281,7 +335,7 @@ export default class FileChangeToolbar extends Component {
 
     renderMinifyZipButton() {
         const { has_magick } = this.context;
-        if(!has_magick){
+        if (!has_magick) {
             return;
         }
 
@@ -314,9 +368,17 @@ export default class FileChangeToolbar extends Component {
     }
 
     renderMoveButton() {
-        return (<div tabIndex="0" className="fas fa-pen move-button" title="move file"
-            onClick={this.handleRename.bind(this, "move")}></div>)
+        // return (<div tabIndex="0" className="fas fa-pen move-button" title="move file"
+        //     onClick={this.handleRename.bind(this, "move")}></div>)
 
+        return (<div tabIndex="0" className="fas fa-pen move-button" title="move file"
+            onClick={() => this.switchMode("move_menu")}></div>)
+    }
+
+    switchMode(mode) {
+        this.setState({
+            mode
+        })
     }
 
     renderDeleteButton() {
@@ -339,8 +401,11 @@ export default class FileChangeToolbar extends Component {
         return !util.isCompress(this.props.file)
     }
 
+
+
     renderMoveModal() {
         const filePath = this.props.file;
+        const { mode } = this.state;
 
         let explorerLink;
         if (this.isImgFolder()) {
@@ -348,6 +413,38 @@ export default class FileChangeToolbar extends Component {
             explorerLink = (<div className="section with-bottom-margin">
                 <Link target="_blank" to={toUrl} >open in explorer</Link>
             </div>);
+        }
+
+        let content = (<React.Fragment>
+            <div className="section with-bottom-margin">
+                <div className="file-dir-name">{getDir(filePath)} </div>
+                <FileNameDiv className="file-name-title" filename={getBaseName(filePath)} />
+            </div>
+
+            <div className="section with-bottom-margin">
+                <div className="title"> Move To: </div>
+                {this.getDropdownItems()}
+            </div>
+
+            {explorerLink}
+
+            <div className="section with-bottom-margin">
+                <div className="title">Move: </div>
+                {this.renderMoveButton()}
+            </div>
+
+            <div className="section">
+                <div className="title">Rename: </div>
+                {this.renderRenameButton()}
+            </div></React.Fragment>);
+
+
+        if(mode === "move_menu"){
+            content = (<div> 
+                <div onClick={()=>this.switchMode("default")}> back </div>
+                <MoveMenu />
+                
+            </div>)
         }
 
         return (
@@ -358,27 +455,7 @@ export default class FileChangeToolbar extends Component {
                 className="file-change-toolbar-move-modal"
                 onRequestClose={this.handleCloseModal.bind(this)}
             >
-                <div className="section with-bottom-margin">
-                    <div className="file-dir-name">{getDir(filePath)} </div>
-                    <FileNameDiv className="file-name-title" filename={getBaseName(filePath)} />
-                </div>
-
-                <div className="section with-bottom-margin">
-                    <div className="title"> Move To: </div>
-                    {this.getDropdownItems()}
-                </div>
-
-                {explorerLink}
-                
-                <div className="section with-bottom-margin">
-                    <div className="title">Move: </div>
-                    {this.renderMoveButton()}
-                </div>
-
-                <div className="section">
-                    <div className="title">Rename: </div>
-                    {this.renderRenameButton()}
-                </div>
+                { content  }
             </Modal>
         );
     }
@@ -414,6 +491,8 @@ export default class FileChangeToolbar extends Component {
         const cn = classNames("file-change-tool-bar", className, {
             bigFont: bigFont || clientUtil.isMobile(),
         });
+
+
 
         const { etc_config } = this.context;
         if (!clientUtil.isAuthorized(etc_config)) {
