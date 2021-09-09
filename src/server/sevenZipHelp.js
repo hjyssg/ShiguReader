@@ -10,6 +10,8 @@ const util = global.requireUtil();
 const pathUtil = require("./pathUtil");
 const { isImage, isCompress, isMusic, isVideo, arraySlice, getCurrentTime, isDisplayableInExplorer, isDisplayableInOnebook } = util;
 const { isExist } = pathUtil;
+const iconv = require('iconv-lite');
+
 
 global._has_7zip_ = true;
 let sevenZip;
@@ -113,10 +115,23 @@ module.exports.listZipContentAndUpdateDb = async function (filePath) {
             return emptyResult;
         }
 
+        let text;
+        let _stderr;
+
         //https://superuser.com/questions/1020232/list-zip-files-contents-using-7zip-command-line-with-non-verbose-machine-friend
-        let { stdout, stderr } = await execa(sevenZip, ['l', '-r', '-ba', '-slt', filePath], { timeout: 5000 });
-        const text = stdout;
-        if (!text || stderr || LIST_QUEUE[filePath]) {
+        if(global._cmd_encoding === 65001){
+            let { stdout, stderr } = await execa(sevenZip, ['l', '-r', '-ba', '-slt', filePath], { timeout: 5000 });
+            text = stdout;
+            _stderr = stderr;
+        }else{
+            let { stdout, stderr } = await execa(sevenZip, ['l', '-r', '-ba', '-slt', filePath], { timeout: 5000, encoding: null });
+            // only support chinese os for now
+            stdout = iconv.decode(stdout, 'gbk');
+            text = stdout;
+            _stderr = iconv.decode(stderr, 'gbk');
+        }
+
+        if (!text || _stderr || LIST_QUEUE[filePath]) {
             return emptyResult;
         }
 

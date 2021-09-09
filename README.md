@@ -64,6 +64,8 @@ https://imagemagick.org image magick 用来压缩图片的
 如果部分文件名带汉字日语假名的图片加载不出来，你可能需要如下语言设置。
 但有s1坛友反映会导致其他非unicode软件乱码。
 
+2021/09/09更新 中文系统不再需要这一步操作
+
 windows语言设置:
 ![unicode setting](screenshot/unicode-setting.png)
 

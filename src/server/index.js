@@ -103,10 +103,10 @@ async function init() {
         const charset = parseInt(m && m[0]);
 
         if (charset !== 65001) {
-            console.error("Please switch you console encoding to utf8 in windows language setting");
-            // userConfig.readable_cache_folder_name = false;
-            return;
+            console.error("I recommend you to change console encoding to utf8 in windows language setting");
         }
+
+        global._cmd_encoding = charset;
     }
 
     if (isProduction) {
