@@ -304,6 +304,10 @@ export default class FileChangeToolbar extends Component {
     handleRename(type, inputText) {
         let { file, onNewPath } = this.props;
 
+        if(!_.isString(inputText)){
+            inputText = null;
+        }
+
         const fileName = clientUtil.getBaseName(file);
         const dirPath = clientUtil.getDir(file);
 
