@@ -1,4 +1,4 @@
-const execa = require('execa');
+const execa = require('./own_execa');
 const fs = require('fs');
 const path = require('path');
 const unzip_cache = "unzip_cache";

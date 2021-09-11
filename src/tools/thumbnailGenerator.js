@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const util = global.requireUtil();
-const execa = require('execa');
+const execa = require('../server/own_execa');
 
 async function thumbnailGenerator(thumbnailFolderPath, imgFolder, fileName) {
     let outputFilePath = null;

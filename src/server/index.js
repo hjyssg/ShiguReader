@@ -1,6 +1,6 @@
 const express = require('express');
 const path = require('path');
-const execa = require('execa');
+
 const pfs = require('promise-fs');
 const dateFormat = require('dateformat');
 const _ = require('underscore');
@@ -11,11 +11,12 @@ const ini = require('ini');
 
 global.requireUtil = () => require("../common/util");
 
+
 global.requireUserConfig = () => require("../config/user-config");
 
 global.requireConstant = () => require("../common/constant");
 
-
+const execa = require('./own_execa');
 const userConfig = global.requireUserConfig();
 const util = global.requireUtil();
 
