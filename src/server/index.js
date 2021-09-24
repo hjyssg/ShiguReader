@@ -786,6 +786,17 @@ app.post('/api/getGeneralInfo', async (req, res) => {
 });
 
 
+// // check if login
+// router.use((req, res, next) => {
+//     console.log(req.cookies, req.method, req.url)
+  
+//       if(req.cookies["login_user_id"] || req.method === "POST"){
+//         next();
+//       }else{
+//         res.redirect("/login")
+//       }
+// })
+
 //---------------------------
 const homePagePath = require("./routes/homePagePath");
 app.use(homePagePath);
