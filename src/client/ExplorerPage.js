@@ -616,6 +616,15 @@ export default class ExplorerPage extends Component {
             files = _.sortBy(files, e => {
                 return this.getPageNum(e);
             });
+        }else{
+            const onlyByMTime = this.getMode() === MODE_EXPLORER && !this.isLackInfoMode();
+            const config = {
+                fileInfos: this.allfileInfos,
+                ascend: true,
+                getBaseName,
+                onlyByMTime
+            }
+            files = sortUtil.sort_file_by_time(files, config);
         }
 
         if (!isSortAsc) {
