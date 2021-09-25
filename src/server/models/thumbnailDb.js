@@ -14,8 +14,7 @@ const rootPath = pathUtil.getRootPath();
 let thumbnail_db_path = path.join(rootPath, userConfig.workspace_name, "thumbnail_sql_db");
 const sqlite3 = require('sqlite3').verbose();
 const sqlDb = new sqlite3.Database(thumbnail_db_path);
-sqlDb.run("CREATE TABLE IF NOT EXISTS thumbnail_table (filePath TEXT, thumbnailFileName TEXT);");
-sqlDb.run("CREATE INDEX IF NOT EXISTS filePath_index ON thumbnail_table (filePath)");
+sqlDb.run("CREATE TABLE IF NOT EXISTS thumbnail_table (filePath TEXT, thumbnailFileName TEXT); CREATE INDEX IF NOT EXISTS filePath_index ON thumbnail_table (filePath)");
 
 const _util = require('util');
 sqlDb.allSync = _util.promisify(sqlDb.all).bind(sqlDb);
