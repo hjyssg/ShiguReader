@@ -121,7 +121,6 @@ module.exports.listZipContentAndUpdateDb = async function (filePath) {
         let { stdout, stderr } = await execa(sevenZip, ['l', '-r', '-ba', '-slt', filePath], { timeout: 5000 });
         text = stdout;
         _stderr = stderr;
- 
 
         if (!text || _stderr || LIST_QUEUE[filePath]) {
             return emptyResult;
