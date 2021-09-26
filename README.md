@@ -99,8 +99,8 @@ docker run -d -p hostport:3000 -v comicpath:/data liwufan/shigureader
 
 ##### 和everything一起使用
     
-    这样就可以电脑全局搜索了
-    ![screenshot-07](screenshot/07.png)
+这样就可以电脑全局搜索了   
+![screenshot-07](screenshot/07.png)
 
 ##### 和tamper monkey一起使用
 
