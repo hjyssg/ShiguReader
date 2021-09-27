@@ -20,6 +20,9 @@ Read Comic/Play Music and Video on all platforms
 ![screenshot-04](screenshot/04.png)
 ![screenshot-05](screenshot/05.png)
 ![screenshot-06](screenshot/06.png)
+![screenshot-06](screenshot/08.png)
+
+password is at password-config.js
 
 ##### Features
 

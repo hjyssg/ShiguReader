@@ -19,6 +19,9 @@
 ![screenshot-04](screenshot/04.png)
 ![screenshot-05](screenshot/05.png)
 ![screenshot-06](screenshot/06.png)
+![screenshot-06](screenshot/08.png)
+
+密码在password-config.js
 
 ##### Demo Video
 
