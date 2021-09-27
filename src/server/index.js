@@ -469,7 +469,7 @@ if (isProduction) {
     })
 }
 
-// check if login
+//---------login-----------
 const token_set = {};
 app.post("/api/login", async (req, res) => {
     const password = req.body && req.body.password;
@@ -485,6 +485,14 @@ app.post("/api/login", async (req, res) => {
             failed: true
         });
     }
+})
+
+app.post("/api/logout", async (req, res) => {
+    if(req.cookies && req.cookies["login-token"] && token_set[req.cookies["login-token"]]){
+        delete token_set[req.cookies["login-token"]]
+    }
+    res.cookie('login-token', "")
+    res.send({ failed: false });
 })
 
 
