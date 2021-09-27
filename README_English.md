@@ -79,7 +79,7 @@ But it's also reported that this setting will cause Mojibake in other softwares 
 
 ##### FAQ
     Q： I can open the webpage, but it is empty or 404.
-    A: Please check your path-config.ini file
+    A: Please check your config-path.ini file
 
     Q：Why English Readme is much less than Chinese Readme?
     A: I received more questions from Chinese community. But I do provide enough information here.

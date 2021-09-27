@@ -3,7 +3,7 @@
 ## 与Windows版本的区别
 
 
-1. path-config.ini 中的文件路径被修改为了
+1. config-path.ini 中的文件路径被修改为了
 > /data
 
 这是docker volume 挂载容器内以后的路径。

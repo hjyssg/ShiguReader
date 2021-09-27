@@ -142,13 +142,13 @@ async function filterNonExist(pathes) {
 // }
 
 async function getScanPath() {
-    const path_config_path = path.join(getRootPath(), "path-config.ini");
+    const path_config_path = path.join(getRootPath(), "config-path.ini");
     const fContent1 = fs.readFileSync(path_config_path).toString();
 
     const path_config = ini.parse(fContent1);
     let scan_path = [].concat(path_config.path);
 
-    const move_path_config_path = path.join(getRootPath(), "move-path-config.ini");
+    const move_path_config_path = path.join(getRootPath(), "config-move-path.ini");
     const fContent2 = fs.readFileSync(move_path_config_path).toString();
     const moveObj = ini.parse(fContent2);
 

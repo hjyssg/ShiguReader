@@ -51,7 +51,7 @@ router.post('/api/homePagePath', async (req, res) => {
     quickAccess = quickAccess.slice(0, 10);
 
     if (dirs.length === 0 && hdd_list.length === 0 && quickAccess.length === 0) {
-        res.send({ failed: true, reason: "path-config.ini has no path" });
+        res.send({ failed: true, reason: "config-path.ini has no path" });
     } else {
         res.send({
             dirs,

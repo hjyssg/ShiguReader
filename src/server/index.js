@@ -91,7 +91,7 @@ const { http_port, dev_express_port } = portConfig;
 //read etc config
 let etc_config = {};
 try {
-    let fcontent = fs.readFileSync(path.resolve(rootPath, "etc-config.ini"), 'utf-8');
+    let fcontent = fs.readFileSync(path.resolve(rootPath, "config-etc.ini"), 'utf-8');
     etc_config = ini.parse(fcontent);
     global.etc_config = etc_config;
 } catch (e) {

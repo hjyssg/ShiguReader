@@ -15,9 +15,9 @@
 git clone https://github.com/hjyssg/ShiguReader
 
 ## modify 
-##    path-config.ini  
-##    move-path-config.ini
-##    etc-config.ini
+##    config-path.ini  
+##    config-move-path.ini
+##    config-etc.ini
 #     user-config.js accoding to your own comic files location
 
 ## Windows default cmd is not working

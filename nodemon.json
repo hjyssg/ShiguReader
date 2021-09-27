@@ -2,5 +2,5 @@
   "watch": ["src/server/", 
             "src/common/", 
             "src/config/", 
-            "path-config.ini"]
+            "config-path.ini"]
 }
