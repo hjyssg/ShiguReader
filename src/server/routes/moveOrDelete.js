@@ -1,6 +1,6 @@
 const path = require('path');
 const pfs = require('promise-fs');
-const execa = require('execa');
+const execa = require('../own_execa');
 const userConfig = global.requireUserConfig();
 const isWindows = require('is-windows');
 const express = require('express');

@@ -1,5 +1,5 @@
 const isWindows = require('is-windows');
-const execa = require('execa');
+const execa = require('./own_execa');
 
 module.exports.move = async function (src, dest) {
     const cmdStr = isWindows() ? "move" : "mv";

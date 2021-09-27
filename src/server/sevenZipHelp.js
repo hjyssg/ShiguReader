@@ -1,5 +1,5 @@
 const path = require('path');
-const execa = require('execa');
+const execa = require('./own_execa');
 const pfs = require('promise-fs');
 const _ = require('underscore');
 const isWindows = require('is-windows');
@@ -118,18 +118,9 @@ module.exports.listZipContentAndUpdateDb = async function (filePath) {
         let text;
         let _stderr;
 
-        //https://superuser.com/questions/1020232/list-zip-files-contents-using-7zip-command-line-with-non-verbose-machine-friend
-        if(global._cmd_encoding === 65001){
-            let { stdout, stderr } = await execa(sevenZip, ['l', '-r', '-ba', '-slt', filePath], { timeout: 5000 });
-            text = stdout;
-            _stderr = stderr;
-        }else{
-            let { stdout, stderr } = await execa(sevenZip, ['l', '-r', '-ba', '-slt', filePath], { timeout: 5000, encoding: null });
-            // only support chinese os for now
-            stdout = iconv.decode(stdout, 'gbk');
-            text = stdout;
-            _stderr = iconv.decode(stderr, 'gbk');
-        }
+        let { stdout, stderr } = await execa(sevenZip, ['l', '-r', '-ba', '-slt', filePath], { timeout: 5000 });
+        text = stdout;
+        _stderr = stderr;
 
         if (!text || _stderr || LIST_QUEUE[filePath]) {
             return emptyResult;

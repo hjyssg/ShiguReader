@@ -1,6 +1,6 @@
 const express = require('express');
 const path = require('path');
-const execa = require('execa');
+
 const pfs = require('promise-fs');
 const dateFormat = require('dateformat');
 const _ = require('underscore');
@@ -11,11 +11,12 @@ const ini = require('ini');
 
 global.requireUtil = () => require("../common/util");
 
+
 global.requireUserConfig = () => require("../config/user-config");
 
 global.requireConstant = () => require("../common/constant");
 
-
+const execa = require('./own_execa');
 const userConfig = global.requireUserConfig();
 const util = global.requireUtil();
 
@@ -784,6 +785,17 @@ app.post('/api/getGeneralInfo', async (req, res) => {
     res.send(result)
 });
 
+
+// // check if login
+// router.use((req, res, next) => {
+//     console.log(req.cookies, req.method, req.url)
+  
+//       if(req.cookies["login_user_id"] || req.method === "POST"){
+//         next();
+//       }else{
+//         res.redirect("/login")
+//       }
+// })
 
 //---------------------------
 const homePagePath = require("./routes/homePagePath");
