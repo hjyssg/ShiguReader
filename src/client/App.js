@@ -150,8 +150,11 @@ class App extends Component {
 
     setPasswordCookie() {
         const text = this.getPasswordInput();
-        Cookie.set("home-password", text, { expires: 3 });
-        this.forceUpdate();
+        Sender.post('/api/login', {"password":text}, res => {
+            if (!res.isFailed()) {
+                this.forceUpdate();
+            }
+        });
     }
 
     renderPasswordInput() {

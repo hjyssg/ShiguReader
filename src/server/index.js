@@ -19,6 +19,7 @@ global.requireConstant = () => require("../common/constant");
 const execa = require('./own_execa');
 const userConfig = global.requireUserConfig();
 const util = global.requireUtil();
+const passwordConfig = require("../config/password-config");
 
 const fileiterator = require('./file-iterator');
 const pathUtil = require("./pathUtil");
@@ -75,6 +76,9 @@ app.use(express.static(rootPath, {
 //  to consume json request body
 //  https://stackoverflow.com/questions/10005939/how-do-i-consume-the-json-post-data-in-an-express-application
 app.use(express.json());
+
+var cookieParser = require('cookie-parser')
+app.use(cookieParser())
 
 const portConfig = require('../config/port-config');
 const { http_port, dev_express_port } = portConfig;
@@ -452,6 +456,47 @@ serverUtil.common.getThumbnailsForZip = getThumbnailsForZip;
 serverUtil.common.getStat = getStat;
 serverUtil.common.isAlreadyScan = isAlreadyScan;
 
+//--------------------
+if (isProduction) {
+    const history = require('connect-history-api-fallback');
+    app.use(history({
+        verbose: true
+    }));
+
+    app.get('/index.html', (req, res) => {
+        const as = path.resolve(rootPath, 'dist', 'index.html');
+        res.sendFile(as);
+    })
+}
+
+// check if login
+const token_set = {};
+app.post("/api/login", async (req, res) => {
+    const password = req.body && req.body.password;
+    if(password == passwordConfig.home_password){
+        const token = serverUtil.makeid()
+        token_set[token] = true;
+        res.cookie('login-token', token)
+        res.json({
+            failed: false
+        });
+    }else{
+        res.json({
+            failed: true
+        });
+    }
+})
+
+
+app.use((req, res, next) => {
+    if(req.cookies && req.cookies["login-token"] && token_set[req.cookies["login-token"]]){
+        next();
+    }else{
+        res.cookie('login-token', "")
+        res.send({ failed: true, reason: "no login" });
+    }
+})
+
 //-----------------thumbnail related-----------------------------------
 
 app.post("/api/tagFirstImagePath", async (req, res) => {
@@ -786,18 +831,8 @@ app.post('/api/getGeneralInfo', async (req, res) => {
 });
 
 
-// // check if login
-// router.use((req, res, next) => {
-//     console.log(req.cookies, req.method, req.url)
-  
-//       if(req.cookies["login_user_id"] || req.method === "POST"){
-//         next();
-//       }else{
-//         res.redirect("/login")
-//       }
-// })
 
-//---------------------------
+
 const homePagePath = require("./routes/homePagePath");
 app.use(homePagePath);
 
@@ -846,17 +881,7 @@ app.use(minifyZip);
 const fileServer = require("./fileServer");
 fileServer.init();
 
-if (isProduction) {
-    const history = require('connect-history-api-fallback');
-    app.use(history({
-        verbose: true
-    }));
 
-    app.get('/index.html', (req, res) => {
-        const as = path.resolve(rootPath, 'dist', 'index.html');
-        res.sendFile(as);
-    })
-}
 
 init();
 

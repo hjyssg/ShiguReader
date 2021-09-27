@@ -23,6 +23,7 @@
     "chokidar": "^3.4.3",
     "classnames": "^2.2.6",
     "connect-history-api-fallback": "^1.6.0",
+    "cookie-parser": "^1.4.5",
     "dart-sass": "^1.25.0",
     "dateformat": "^3.0.3",
     "delete-empty": "^3.0.0",

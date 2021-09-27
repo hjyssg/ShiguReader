@@ -114,13 +114,7 @@ module.exports.isAuthorized = function (etc_config) {
 }
 
 module.exports.isAllowedToEnter = function () {
-    if (!userConfig.home_password) {
-        return true;
-    }
-
-    const Cookie = require("js-cookie");
-    const password = Cookie.get('home-password');
-    return userConfig.home_password === password;
+    return !!Cookie.get('login-token');
 }
 
 // module.exports.cleanSearchStr = function(str){
