@@ -159,16 +159,22 @@ class App extends Component {
 
     renderPasswordInput() {
         let content = (<React.Fragment>
-            <div className="admin-section-title">Enter password to use Shigureader</div>
+            <div className="admin-section-title">ShiguReader Login</div>
             <div className="admin-section-content">
-                <input className="admin-intput" ref={pathInput => this.passwordInputRef = pathInput}
-                    placeholder="...type here" onChange={this.setPasswordCookie.bind(this)} />
+                <input className="admin-intput" id="login-input" ref={pathInput => this.passwordInputRef = pathInput}
+                    placeholder="password here..." onChange={this.setPasswordCookie.bind(this)} />
+
+                <div className="author-link">
+                    <a className="fab fa-github" title="Aji47's Github" href="https://github.com/hjyssg/ShiguReader" target="_blank"> Created By Aji47 </a>
+                </div>
             </div>
         </React.Fragment>);
 
         return (
-            <div className="home-admin-section">
-                {content}
+            <div className="app-container login-page">
+                <div className="home-admin-section">
+                    {content}
+                </div>
             </div>
         )
     }
