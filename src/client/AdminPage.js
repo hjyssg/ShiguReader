@@ -98,6 +98,27 @@ function CacheSection(){
     )
 }
 
+function LogoutSection(){
+    function dologout(){
+        Sender.post("/api/logout", {}, res => {
+            if (!res.isFailed()) {
+                window.location.replace("/");
+            }
+        });
+    }
+ 
+    return (
+        <div className="admin-section">
+        <div className="admin-section-title" title="Logout"> Logout</div>
+        <div className="admin-section-content">
+            <a class="btn btn-info" onClick={dologout}>
+            <span class="glyphicon glyphicon-log-out"></span> Log out
+            </a>
+        </div>
+        </div>
+    )
+}
+
 export default class AdminPage extends Component {
     constructor(prop) {
         super(prop);
@@ -215,6 +236,7 @@ export default class AdminPage extends Component {
                 <CacheSection />
                 {this.renderRemoteShutDown()}
                 <MinifyZipQueSection />
+                <LogoutSection />
 
                 <div className="author-link">
                     <a className="fab fa-github" title="Aji47's Github" href="https://github.com/hjyssg/ShiguReader" target="_blank"> Created By Aji47 </a>
