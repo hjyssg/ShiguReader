@@ -476,7 +476,7 @@ app.post("/api/login", async (req, res) => {
     if(password == passwordConfig.home_password){
         const token = serverUtil.makeid()
         token_set[token] = true;
-        res.cookie('login-token', token)
+        res.cookie('login-token', token, {maxAge: 1000 * 3600 * 24 })
         res.json({
             failed: false
         });
@@ -493,7 +493,7 @@ app.use((req, res, next) => {
         next();
     }else{
         res.cookie('login-token', "")
-        res.send({ failed: true, reason: "no login" });
+        res.send({ failed: true, reason: "You need to login" });
     }
 })
 
