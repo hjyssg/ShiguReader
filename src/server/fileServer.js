@@ -49,7 +49,7 @@ app.get('/api/download/', async (req, res) => {
     }
 
     try {
-        if (isImage(filePath) && !isGif(filePath)) {
+        if (sharp && isImage(filePath) && !isGif(filePath)) {
             const stat = await pfs.stat(filePath);
             if (thumbnailMode && stat.size > THUMBNAIL_HUGE_THRESHOLD) {
                 const outputFn = stringHash(filePath).toString() + "-min.jpg";

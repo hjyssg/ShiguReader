@@ -61,7 +61,7 @@
     "request": "^2.88.2",
     "request-promise": "^4.2.6",
     "screenfull": "^4.0.0",
-    "sharp": "^0.26.3",
+    "sharp": "^0.29.1",
     "sqlite3": "^5.0.0",
     "string-hash": "^1.1.3",
     "sweetalert2": "^8.0.7",
