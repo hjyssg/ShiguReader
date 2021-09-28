@@ -68,7 +68,7 @@ app.get('/api/download/', async (req, res) => {
             }
         }
     } catch (e) {
-        console.error(e);
+        console.error("[file server error] during compression",e);
     }
 
     res.download(filePath); // Set disposition and send it.
