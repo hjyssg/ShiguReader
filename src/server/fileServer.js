@@ -29,6 +29,9 @@ try {
     console.error("did not install sharp", e);
 }
 const THUMBNAIL_HUGE_THRESHOLD = 2 * 1000 * 1000;
+const ONEBOOK_HUGE_THRESHOLD = 3 * 1000 * 1000;
+
+
 //------------------download------------
 app.get('/api/download/', async (req, res) => {
     let filePath = path.resolve(req.query.p);
@@ -46,13 +49,20 @@ app.get('/api/download/', async (req, res) => {
     }
 
     try {
-        if (isImage(filePath) && !isGif(filePath) && thumbnailMode) {
+        if (isImage(filePath) && !isGif(filePath)) {
             const stat = await pfs.stat(filePath);
-            if (stat.size > THUMBNAIL_HUGE_THRESHOLD) {
+            if (thumbnailMode && stat.size > THUMBNAIL_HUGE_THRESHOLD) {
                 const outputFn = stringHash(filePath).toString() + "-min.jpg";
                 const outputPath = path.resolve(global.cachePath, outputFn);
                 if (!(await isExist(outputPath))) {
                     await sharp(filePath).resize({ height: 280 }).toFile(outputPath);
+                }
+                filePath = outputPath;
+            }else if(stat.size > ONEBOOK_HUGE_THRESHOLD){
+                const outputFn = stringHash(filePath).toString() + "-min-2.jpg";
+                const outputPath = path.resolve(global.cachePath, outputFn);
+                if (!(await isExist(outputPath))) {
+                    await sharp(filePath).resize({ height: 1980 }).toFile(outputPath);
                 }
                 filePath = outputPath;
             }
