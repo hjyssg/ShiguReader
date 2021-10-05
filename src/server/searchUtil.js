@@ -125,6 +125,18 @@ async function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
 
     let esObj = await searchEveryPromise;
     if (esObj) {
+        //TODO
+        // const parse = serverUtil.parse;
+        // if(author){
+        //     const result = parse(obj.fileName);
+        //     const pass =  isEqual(result.author, author) || 
+        //                   isEqual(result.group, author) || 
+        //                   (result.authors && result.authors.includes(author));
+        //     if(pass && result.group){
+        //         //find out which group this author belong
+        //         groups.push(result.group);
+        //     }
+        // }
         dirResults = _.uniq(dirResults.concat(esObj.dirResults));
         _.extend(fileInfos, esObj.fileInfos)
     }

@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { Component, useState, useEffect } from 'react';
 import _ from 'underscore';
 const classNames = require('classnames');
 const dateFormat = require('dateformat');
@@ -30,6 +30,43 @@ import { GlobalContext } from './globalContext'
 const NO_TWO_PAGE = "no_clip";
 const TWO_PAGE_LEFT = "left";
 const TWO_PAGE_RIGHT = "right";
+
+function OneBookHistorySection(props){
+  const {filePath} = props;
+  const [history, setHistory] = useState([]);
+
+  useEffect(() => {
+      Sender.post("/api/getHistoryByFP", {filePath}, res => {
+          if (!res.isFailed()) {
+              let { history } = res.json;
+              setHistory(history)
+          }
+      });
+  }, []); 
+
+  let items;
+  let length = history.length;
+  if (length === 0) {
+      return "It is first time to read this book";
+  } else {
+      items = history.map(e => {
+          return <div key={e.time}>{dateFormat(e.time, "dddd, mmmm dS, yyyy, h:MM:ss TT") }</div>
+      });
+
+      if(items.length > 10){
+        const middle = (<div> ... </div>);
+        items = items.slice(0, 3).concat(middle, items.slice(length - 4))
+      }
+  }
+
+  return (
+      <div className="one-book-history-section">
+          <div className="one-book-history-section-title"> You have read this {length} times</div>
+          <div className="one-book-history-section-content">
+              {items}
+          </div>
+      </div>)
+}
 
 export default class OneBook extends Component {
   constructor(props) {
@@ -804,6 +841,7 @@ export default class OneBook extends Component {
         {this.renderSecondBar()}
         {this.renderOverviewLink()}
         {/* {this.renderEhentaiTag()} */}
+        <OneBookHistorySection filePath={this.state.path} />
       </div>
     );
   }

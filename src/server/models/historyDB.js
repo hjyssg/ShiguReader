@@ -38,6 +38,12 @@ module.exports.getHistory = async function () {
     return rows;
 }
 
+module.exports.getHistoryByFP = async function (fileName) {
+    let rows = await sqlDb.allSync("SELECT * FROM history_table WHERE fileName = ? ORDER BY time DESC", [fileName]);
+    return rows;
+}
+
+
 const quick_access_day = 10;
 module.exports.getQuickAccess = async function () {
     let time = util.getCurrentTime();
