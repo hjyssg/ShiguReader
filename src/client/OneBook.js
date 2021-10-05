@@ -47,7 +47,7 @@ function OneBookHistorySection(props){
   let items;
   let length = history.length;
   if (length === 0) {
-      return "It is first time to read this book";
+      return <div className="one-book-history-section">"It is first time to read this book"</div>;
   } else {
       items = history.map(e => {
           // return <div key={e.time}>{dateFormat(e.time, "dddd, mmmm dS, yyyy, h:MM:ss TT") }</div>
