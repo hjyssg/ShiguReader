@@ -63,6 +63,13 @@ router.post('/api/moveFile', async (req, res) => {
         return;
     }
 
+    const destFP = path.resolve(dest, path.basename(src));
+    if (await isExist(destFP)) {
+        res.send({ failed: true, reason: `duplicate file already in ${dest}` });
+        return;
+    }
+
+
     if (!(await isExist(src))) {
         res.send({ failed: true, reason: src + " is missing" });
         return;
@@ -85,8 +92,7 @@ router.post('/api/moveFile', async (req, res) => {
 
         logger.info(`[MOVE] ${src} to ${dest}`);
 
-        dest = path.resolve(dest, path.basename(src));
-        res.send({ failed: false, dest });
+        res.send({ failed: false, dest: destFP });
     } catch (err) {
         console.error(err);
         res.send({ reason: getReason(err), failed: true });
