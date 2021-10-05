@@ -129,6 +129,9 @@ async function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
             const parse = serverUtil.parse;
             function checkIfPass(fileName, author){
                 const result = parse(fileName);
+                if(!result){
+                    return false;
+                }
                 const pass =  isEqual(result.author, author) || 
                               isEqual(result.group, author) || 
                               (result.authors && result.authors.includes(author));
