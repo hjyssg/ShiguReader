@@ -21,6 +21,11 @@ export default class ErrorPage extends Component {
             text = `${filePath} is a broken file`;
         }
 
+        // if(statusText === "You need to login"){
+        //     window.location.href = "/"
+        //     return "redirect to login page"
+        // }
+
         return (
             <div id="notfound" className="error-page-container">
                 <div className="notfound">

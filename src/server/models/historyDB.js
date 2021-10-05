@@ -39,6 +39,7 @@ module.exports.getHistory = async function () {
 }
 
 module.exports.getHistoryByFP = async function (fileName) {
+    // 一天算一次
     // let rows1 = await sqlDb.allSync("SELECT filePath, time FROM history_table WHERE fileName = ?", [fileName]);
     let rows = await sqlDb.allSync("SELECT filePath, Max(time) FROM history_table WHERE fileName = ? GROUP BY strftime('%d-%m-%Y', datetime(time/1000, 'unixepoch')) ORDER BY time DESC", [fileName]);
     return rows;
