@@ -235,10 +235,6 @@ export default class ExplorerPage extends Component {
             }
             this.handleRes(res);
         }
-
-        if(this.state.showFolderThumbnail){
-            this.askDirThumbnail();
-        }
     }
 
 
@@ -246,14 +242,6 @@ export default class ExplorerPage extends Component {
         this.askServer();
 
         this.bindUserInteraction();
-
-        Sender.post('/api/getGoodAuthorNames', {}, res => {
-            if (!res.isFailed()) {
-                this.setState({
-                    authorInfo: res.json.authorInfo
-                })
-            }
-        });
     }
 
     bindUserInteraction() {
@@ -363,6 +351,17 @@ export default class ExplorerPage extends Component {
                 }
             });
 
+            Sender.post('/api/getGoodAuthorNames', {}, res => {
+                if (!res.isFailed()) {
+                    this.setState({
+                        authorInfo: res.json.authorInfo
+                    })
+                }
+            });
+
+            if(this.state.showFolderThumbnail){
+                this.askDirThumbnail();
+            }
         } else {
             this.res = res;
             this.forceUpdate();
