@@ -344,7 +344,7 @@ async function getThumbnailsForZip(filePathes) {
         thumbnails[row.filePath] = row.thumbnailFilePath;
     })
     let end3 = getCurrentTime();
-    console.log(`[getThumbnailsForZip] ${(end3 - end1) / 1000}s`);
+    console.log(`[getThumbnailsForZip] ${(end3 - end1) / 1000}s for ${filePathes.length} zips`);
 
     filePathes.forEach(filePath => {
         if (thumbnails[filePath]) {
