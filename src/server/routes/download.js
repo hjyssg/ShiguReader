@@ -17,8 +17,8 @@ try {
     console.error("did not install sharp", e);
 }
 
-const cacheDb = require("../models/cacheDb");
 const THUMBNAIL_HUGE_THRESHOLD = 2 * 1000 * 1000;
+const ONEBOOK_HUGE_THRESHOLD = 3 * 1000 * 1000;
 
 //------------------download------------
 router.get('/api/download/', async (req, res) => {
@@ -30,26 +30,33 @@ router.get('/api/download/', async (req, res) => {
         return;
     }
 
-    if (!cacheDb.isFileInCache(filePath) && !(await isExist(filePath))) {
+    if (!(await isExist(filePath))) {
         console.error("[/api/download]", filePath, "NOT FOUND");
         res.send({ failed: true, reason: "NOT FOUND" });
         return;
     }
 
     try {
-        if (isImage(filePath) && !isGif(filePath) && thumbnailMode) {
+        if (sharp && isImage(filePath) && !isGif(filePath)) {
             const stat = await pfs.stat(filePath);
-            if (stat.size > THUMBNAIL_HUGE_THRESHOLD) {
+            if (thumbnailMode && stat.size > THUMBNAIL_HUGE_THRESHOLD) {
                 const outputFn = stringHash(filePath).toString() + "-min.jpg";
                 const outputPath = path.resolve(global.cachePath, outputFn);
-                if (!cacheDb.isFileInCache(outputPath)) {
+                if (!(await isExist(outputPath))) {
                     await sharp(filePath).resize({ height: 280 }).toFile(outputPath);
+                }
+                filePath = outputPath;
+            }else if(stat.size > ONEBOOK_HUGE_THRESHOLD){
+                const outputFn = stringHash(filePath).toString() + "-min-2.jpg";
+                const outputPath = path.resolve(global.cachePath, outputFn);
+                if (!(await isExist(outputPath))) {
+                    await sharp(filePath).resize({ height: 1980 }).toFile(outputPath);
                 }
                 filePath = outputPath;
             }
         }
     } catch (e) {
-        console.error(e);
+        console.error("[file server error] during compression",e);
     }
 
     res.download(filePath); // Set disposition and send it.

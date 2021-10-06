@@ -452,17 +452,26 @@ serverUtil.common.getStat = getStat;
 serverUtil.common.isAlreadyScan = isAlreadyScan;
 
 //--------------------
-if (isProduction) {
-    const history = require('connect-history-api-fallback');
-    app.use(history({
-        // verbose: true
-    }));
+// if (isProduction) {
+    // const history = require('connect-history-api-fallback');
+    // app.use(history({
+    //     verbose: true
+    // }));
+// }
 
-    app.get('/index.html', (req, res) => {
+
+// http://localhost:3000/explorer/
+// http://localhost:3000/onebook/
+// 前端路由需要redirect到index.html
+//所有api都不需要转发
+app.get('/*', (req, res, next) => {
+    if (req.path.includes("/api/")){
+        next();
+    }else{
         const as = path.resolve(rootPath, 'dist', 'index.html');
         res.sendFile(as);
-    })
-}
+    }
+})
 
 //---------login-----------
 
@@ -877,8 +886,8 @@ app.use(getGoodAuthorNames);
 const moveOrDelete = require("./routes/moveOrDelete");
 app.use(moveOrDelete);
 
-// const download = require("./routes/download");
-// app.use(download);
+const download = require("./routes/download");
+app.use(download);
 
 const search = require("./routes/search");
 app.use(search);
@@ -907,8 +916,12 @@ app.use(minifyZip);
 // const ehentaiMetadata = require("./routes/ehentaiMetadata");
 // app.use(ehentaiMetadata);
 
-const fileServer = require("./fileServer");
-app.use(fileServer);
+// const fileServer = require("./routes/fileServer");
+// app.use(fileServer);
+
+app.post('/*', (req, res) => {
+    res.sendStatus(404);
+})
 
 init();
 
