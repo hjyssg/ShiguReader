@@ -571,7 +571,7 @@ async function extractThumbnailFromZip(filePath, res, mode, config) {
 
         const thumbnail = await thumbnailDb.getThumbnailArr(filePath);
         if (thumbnail[0]) {
-            sendImage(thumbnail[0].thumbnailFileName);
+            sendImage(thumbnail[0].thumbnailFilePath);
         } else {
             if (!files) {
                 files = (await listZipContentAndUpdateDb(filePath)).files;
