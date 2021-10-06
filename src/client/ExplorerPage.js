@@ -359,9 +359,12 @@ export default class ExplorerPage extends Component {
                 }
             });
 
-            if(this.state.showFolderThumbnail){
-                this.askDirThumbnail();
-            }
+            Sender.post("/api/getThumbnailForFolders", { dirs: this.dirs }, res => {
+                if (!res.isFailed()) {
+                    this.thumbnails =  _.extend(this.thumbnails, res.json.dirThumbnails);
+                    this.forceUpdate();
+                }
+            });
         } else {
             this.res = res;
             this.forceUpdate();
@@ -928,24 +931,8 @@ export default class ExplorerPage extends Component {
         })
     }
 
-    async askDirThumbnail(){
-        if(!this._hasDirThumbnails){
-            const res = await Sender.postWithPromise("/api/getThumbnailForFolders", { dirs: this.dirs })
-            if (!res.isFailed()) {
-                this.thumbnails =  _.extend(this.thumbnails, res.json.dirThumbnails);
-                this.forceUpdate();
-            }
-
-            this._hasDirThumbnails = true;
-        }
-    }
-
     async toggleFolderThumbNail() {
         const next = !this.state.showFolderThumbnail;
-
-        if (next){
-            await this.askDirThumbnail();
-        }
 
         this.setStateAndSetHash({
             showFolderThumbnail: next
