@@ -39,7 +39,7 @@ class LoginPage extends Component {
                 <input className="admin-intput" id="login-input" ref={pathInput => this.passwordInputRef = pathInput}
                     placeholder="password here..." onChange={()=> this.setState({errMessage: ""})}   type="password"/>
                 <button onClick={this.setPasswordCookie.bind(this)}> Login </button>
-                <div > {this.state.errMessage} </div>
+                <div id="log-err"> {this.state.errMessage} </div>
                 <div className="author-link">
                     <a className="fab fa-github" title="Aji47's Github" href="https://github.com/hjyssg/ShiguReader" target="_blank"> Created By Aji47 </a>
                 </div>
@@ -48,7 +48,7 @@ class LoginPage extends Component {
 
         return (
             <div className="app-container login-page">
-                <div className="home-admin-section">
+                <div className="log-section">
                     {content}
                 </div>
             </div>
