@@ -254,14 +254,6 @@ export default class ExplorerPage extends Component {
                 })
             }
         });
-
-
-        Sender.post('/api/getFileReadTime', {all_pathes: this.get_all_pathes()}, res => {
-            if (!res.isFailed()) {
-                this.fileNameToReadTime = res.json.fileNameToReadTime || {};
-                this.forceUpdate();
-            }
-        });
     }
 
     bindUserInteraction() {
@@ -363,6 +355,14 @@ export default class ExplorerPage extends Component {
             } else {
                 this.forceUpdate();
             }
+
+            Sender.post('/api/getFileReadTime', {all_pathes: this.get_all_pathes()}, res => {
+                if (!res.isFailed()) {
+                    this.fileNameToReadTime = res.json.fileNameToReadTime || {};
+                    this.forceUpdate();
+                }
+            });
+
         } else {
             this.res = res;
             this.forceUpdate();
