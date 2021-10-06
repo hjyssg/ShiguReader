@@ -12,6 +12,7 @@ import ChartPage from "./ChartPage";
 import AdminPage from "./AdminPage";
 import HistoryPage from "./HistoryPage";
 import HomePage from "./HomePage";
+import LoginPage from "./LoginPage";
 import { Switch, Route, Link, Redirect } from 'react-router-dom';
 import screenfull from 'screenfull';
 const clientUtil = require("./clientUtil");
@@ -55,6 +56,12 @@ class App extends Component {
     componentDidMount() {
         this._handleKeyDown = this.handleKeyDown.bind(this);
         document.addEventListener('keydown', this._handleKeyDown);
+
+        const path = window.location.pathname;
+        const isLogin = path.includes("/login");
+        if (!clientUtil.isAllowedToEnter() && !isLogin) {
+            window.location.href = "/login";
+        }
     }
 
     componentWillUnmount() {
@@ -108,6 +115,8 @@ class App extends Component {
         const renderChartPage = (props) => { return (<ChartPage {...props} />) };
         const renderHistoryPage = (props) => { return (<HistoryPage {...props} />) };
         const renderAdminPage = (props) => { return (<AdminPage {...props} />) };
+        const renderLoginPage = (props) => { return (<LoginPage {...props} />) };
+
 
         const result = (
             <Switch>
@@ -129,7 +138,7 @@ class App extends Component {
                 <Route path='/chart/' render={renderChartPage} />
                 <Route path='/history/' render={renderHistoryPage} />
                 <Route path='/admin' render={renderAdminPage} />
-
+                <Route path='/login' render={renderLoginPage} />
             </Switch>
         );
         return result;
@@ -142,47 +151,7 @@ class App extends Component {
         console.error(error, info);
     }
 
-    getPasswordInput() {
-        const pathInput = ReactDOM.findDOMNode(this.passwordInputRef);
-        const text = (pathInput && pathInput.value) || "";
-        return text;
-    }
-
-    setPasswordCookie() {
-        const text = this.getPasswordInput();
-        Sender.post('/api/login', {"password":text}, res => {
-            if (!res.isFailed()) {
-                this.forceUpdate();
-            }
-        });
-    }
-
-    renderPasswordInput() {
-        let content = (<React.Fragment>
-            <div className="admin-section-title">ShiguReader Login</div>
-            <div className="admin-section-content">
-                <input className="admin-intput" id="login-input" ref={pathInput => this.passwordInputRef = pathInput}
-                    placeholder="password here..." onChange={this.setPasswordCookie.bind(this)} />
-
-                <div className="author-link">
-                    <a className="fab fa-github" title="Aji47's Github" href="https://github.com/hjyssg/ShiguReader" target="_blank"> Created By Aji47 </a>
-                </div>
-            </div>
-        </React.Fragment>);
-
-        return (
-            <div className="app-container login-page">
-                <div className="home-admin-section">
-                    {content}
-                </div>
-            </div>
-        )
-    }
-
     render() {
-        if (!clientUtil.isAllowedToEnter()) {
-            return this.renderPasswordInput();
-        }
 
         // document.title = this.getWebTitle();
         if (this.searchText) {
@@ -200,9 +169,9 @@ class App extends Component {
         const isTag = path.includes("/tagPage");
         const isAuthor = path.includes("/author");
         const isSearch = path.includes("/search");
+        const isLogin = path.includes("/login");
 
-
-        const topNav = !isOneBook && (
+        const topNav = !isOneBook && !isLogin && (
             <div className="app-top-topnav container">
                 <div className="app-page-links row">
                     <Link to='/'><i className="fas fa-home">Home</i></Link>

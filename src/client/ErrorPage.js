@@ -1,6 +1,8 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import './style/ErrorPage.scss';
+import LoginPage from "./LoginPage";
+
 
 export default class ErrorPage extends Component {
     render() {
@@ -21,10 +23,9 @@ export default class ErrorPage extends Component {
             text = `${filePath} is a broken file`;
         }
 
-        // if(statusText === "You need to login"){
-        //     window.location.href = "/"
-        //     return "redirect to login page"
-        // }
+        if(statusText === "You need to login"){
+            return <LoginPage />;
+        }
 
         return (
             <div id="notfound" className="error-page-container">
