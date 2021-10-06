@@ -63,7 +63,7 @@ config.img_convert_dest_type = ".jpg";
 config.img_reduce_resolution_dimension = "4000x4000";
 
 //--------------------------------
-config.file_server_port = "15001";
+// config.file_server_port = "15001";
 
 
 //---------------------------------------------------------------------------------------

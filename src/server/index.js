@@ -908,9 +908,7 @@ app.use(minifyZip);
 // app.use(ehentaiMetadata);
 
 const fileServer = require("./fileServer");
-fileServer.init();
-
-
+app.use(fileServer);
 
 init();
 

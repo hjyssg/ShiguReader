@@ -188,10 +188,9 @@ const getDownloadLink = module.exports.getDownloadLink = function (path) {
        return path;
     }
 
-    let prefix = location.origin.replace(/:\d+/, ":" + userConfig.file_server_port);
-    
-
-    return prefix + "/api/download/?p=" + encodeURIComponent(path);
+    return "/api/download/?p=" + encodeURIComponent(path);
+    // let prefix = location.origin.replace(/:\d+/, ":" + userConfig.file_server_port);
+    // return prefix + "/api/download/?p=" + encodeURIComponent(path);
 }
 
 // function stringHash(str) {

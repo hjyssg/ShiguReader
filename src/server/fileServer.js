@@ -1,5 +1,5 @@
 const express = require('express');
-const app = express();
+// const app = express();
 const userConfig = global.requireUserConfig();
 const stringHash = require("string-hash");
 const pfs = require('promise-fs');
@@ -11,15 +11,17 @@ const { isImage, isGif } = util;
 const pathUtil = require("./pathUtil");
 const { isExist } = pathUtil;
 
-async function init() {
-    const port = userConfig.file_server_port;
-    const server = app.listen(port, async () => {
-        console.log("[file server] on ", port)
-    }).on('error', (error) => {
-        console.error("[file server]", error.message);
-        process.exit(22);
-    });
-}
+// async function init() {
+//     const port = userConfig.file_server_port;
+//     const server = app.listen(port, async () => {
+//         console.log("[file server] on ", port)
+//     }).on('error', (error) => {
+//         console.error("[file server]", error.message);
+//         process.exit(22);
+//     });
+// }
+
+
 
 
 let sharp;
@@ -32,8 +34,10 @@ const THUMBNAIL_HUGE_THRESHOLD = 2 * 1000 * 1000;
 const ONEBOOK_HUGE_THRESHOLD = 3 * 1000 * 1000;
 
 
+const router = express.Router();
+
 //------------------download------------
-app.get('/api/download/', async (req, res) => {
+router.get('/api/download/', async (req, res) => {
     let filePath = path.resolve(req.query.p);
     let thumbnailMode = req.query.thumbnailMode;
     if (!filePath) {
@@ -74,4 +78,5 @@ app.get('/api/download/', async (req, res) => {
     res.download(filePath); // Set disposition and send it.
 });
 
-module.exports.init = init;
+// module.exports.init = init;
+module.exports = router;
