@@ -339,12 +339,14 @@ async function getThumbnailsForZip(filePathes) {
     const thumbnails = {};
 
     let end1 = getCurrentTime();
-    let thumbArrs = await thumbnailDb.getThumbnailArr(filePathes);
+    let thumbArrs = thumbnailDb.getThumbnailArr(filePathes);
+    // let end3 = getCurrentTime();
+    // console.log(`[getThumbnailsForZip] 1111 ${(end3 - end1) / 1000}s for ${filePathes.length} zips`);
     thumbArrs.forEach(row => {
         thumbnails[row.filePath] = row.thumbnailFilePath;
     })
     let end3 = getCurrentTime();
-    console.log(`[getThumbnailsForZip] ${(end3 - end1) / 1000}s for ${filePathes.length} zips`);
+    console.log(`[getThumbnailsForZip] 2222 ${(end3 - end1) / 1000}s for ${filePathes.length} zips`);
 
     filePathes.forEach(filePath => {
         if (thumbnails[filePath]) {
@@ -569,7 +571,7 @@ async function extractThumbnailFromZip(filePath, res, mode, config) {
             }
         }
 
-        const thumbnail = await thumbnailDb.getThumbnailArr(filePath);
+        const thumbnail = thumbnailDb.getThumbnailArr(filePath);
         if (thumbnail[0]) {
             sendImage(thumbnail[0].thumbnailFilePath);
         } else {
