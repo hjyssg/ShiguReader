@@ -437,11 +437,9 @@ async function _decorate(resObj) {
     // let thumbnails = await getThumbnailsForZip(files);
     // let dirThumbnails = await getThumbnailForFolders(dirs);
     // const fileNameToReadTime = await historyDb.getFileReadTime(all_pathes);
-    const [thumbnails, dirThumbnails, fileNameToReadTime] = await Promise.all([getThumbnailsForZip(files),
-    getThumbnailForFolders(dirs),
-    historyDb.getFileReadTime(all_pathes)]);
+    const [thumbnails, fileNameToReadTime] = await Promise.all([getThumbnailsForZip(files),  historyDb.getFileReadTime(all_pathes)]);
     resObj.zipInfo = zipInfoDb.getZipInfo(files);
-    resObj.thumbnails = _.extend(thumbnails, dirThumbnails);
+    resObj.thumbnails = thumbnails;
     resObj.fileNameToReadTime = fileNameToReadTime;
 
     const imgFolderInfo = getImgFolderInfo(imgFolders);
@@ -449,6 +447,8 @@ async function _decorate(resObj) {
 
     return resObj;
 }
+
+
 
 
 serverUtil.common._decorate = _decorate
@@ -506,6 +506,16 @@ app.use((req, res, next) => {
 })
 
 //-----------------thumbnail related-----------------------------------
+app.post("/api/getThumbnailForFolders", async (req, res) => {
+    const dirs = req.body && req.body.dirs;
+    if (!dirs) {
+        res.send({ failed: true, reason: "No Parameter" });
+        return;
+    }
+
+    const dirThumbnails = await getThumbnailForFolders(dirs);
+    res.send({ failed: false, dirThumbnails });
+});
 
 app.post("/api/tagFirstImagePath", async (req, res) => {
     const author = req.body && req.body.author;

@@ -235,6 +235,10 @@ export default class ExplorerPage extends Component {
             }
             this.handleRes(res);
         }
+
+        if(this.state.showFolderThumbnail){
+            this.askDirThumbnail();
+        }
     }
 
 
@@ -915,9 +919,27 @@ export default class ExplorerPage extends Component {
         })
     }
 
-    toggleFolderThumbNail() {
+    async askDirThumbnail(){
+        if(!this._hasDirThumbnails){
+            const res = await Sender.postWithPromise("/api/getThumbnailForFolders", { dirs: this.dirs })
+            if (!res.isFailed()) {
+                this.thumbnails =  _.extend(this.thumbnails, res.json.dirThumbnails);
+                this.forceUpdate();
+            }
+
+            this._hasDirThumbnails = true;
+        }
+    }
+
+    async toggleFolderThumbNail() {
+        const next = !this.state.showFolderThumbnail;
+
+        if (next){
+            await this.askDirThumbnail();
+        }
+
         this.setStateAndSetHash({
-            showFolderThumbnail: !this.state.showFolderThumbnail
+            showFolderThumbnail: next
         })
     }
 
