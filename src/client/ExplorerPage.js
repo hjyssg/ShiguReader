@@ -254,6 +254,14 @@ export default class ExplorerPage extends Component {
                 })
             }
         });
+
+
+        Sender.post('/api/getFileReadTime', {all_pathes: this.get_all_pathes()}, res => {
+            if (!res.isFailed()) {
+                this.fileNameToReadTime = res.json.fileNameToReadTime || {};
+                this.forceUpdate();
+            }
+        });
     }
 
     bindUserInteraction() {
@@ -308,11 +316,14 @@ export default class ExplorerPage extends Component {
         return this.mode === "lack_info_mode";
     }
 
+    get_all_pathes(){
+        return this.dirs.concat( _.keys(this.fileInfos));
+    }
+
     handleRes(res) {
         if (!res.isFailed()) {
             let { dirs, mode, tag, author, fileInfos, thumbnails,
-                zipInfo, imgFolders, imgFolderInfo,
-                fileNameToReadTime } = res.json;
+                zipInfo, imgFolders, imgFolderInfo } = res.json;
             this.loadedHash = this.getTextFromQuery();
             this.mode = mode;
 
@@ -333,7 +344,6 @@ export default class ExplorerPage extends Component {
             this.zipInfo = zipInfo || {};
             this.imgFolders = imgFolders || {};
             this.imgFolderInfo = imgFolderInfo || {};
-            this.fileNameToReadTime = fileNameToReadTime || {};
             this.res = res;
 
             this.allfileInfos = _.extend({}, this.fileInfos, this.imgFolderInfo);

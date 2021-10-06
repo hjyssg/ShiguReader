@@ -1,6 +1,8 @@
 // const _ = require('underscore');
 const path = require('path');
 const util = global.requireUtil();
+const { getCurrentTime } = util;
+
 const pathUtil = require("../pathUtil");
 // const serverUtil = require("../serverUtil");
 
@@ -60,12 +62,14 @@ module.exports.getFileReadTime = async function (pathes) {
         return path.basename(e);
     });
 
+    let end1 = getCurrentTime();
+
     // const joinStr = fileNames.join(" ");
     // let sql = "SELECT fileName, MAX(time) as time FROM history_table where INSTR(?, fileName) > 0 GROUP BY fileName"
     // let rows = await sqlDb.allSync(sql, [joinStr]);
 
     const promiseArr = fileNames.map(fp => {
-        const sql = "SELECT fileName, MAX(time) as time FROM history_table where fileName = ? GROUP BY fileName"
+        const sql = "SELECT fileName, MAX(time) as time, COUNT(time) as count FROM history_table where fileName = ? GROUP BY fileName"
         return sqlDb.getSync(sql, [fp]);
     })
     let rows =  await Promise.all(promiseArr);
@@ -76,6 +80,9 @@ module.exports.getFileReadTime = async function (pathes) {
         const { fileName, time } = row;
         fileNameToReadTime[fileName] = time;
     })
+
+    let end3 = getCurrentTime();
+    console.log(`[getFileReadTime] ${(end3 - end1) / 1000}s for ${rows.length} zips`);
 
     return fileNameToReadTime;
 }

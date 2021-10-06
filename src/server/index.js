@@ -340,13 +340,11 @@ async function getThumbnailsForZip(filePathes) {
 
     let end1 = getCurrentTime();
     let thumbArrs = thumbnailDb.getThumbnailArr(filePathes);
-    // let end3 = getCurrentTime();
-    // console.log(`[getThumbnailsForZip] 1111 ${(end3 - end1) / 1000}s for ${filePathes.length} zips`);
     thumbArrs.forEach(row => {
         thumbnails[row.filePath] = row.thumbnailFilePath;
     })
     let end3 = getCurrentTime();
-    console.log(`[getThumbnailsForZip] 2222 ${(end3 - end1) / 1000}s for ${filePathes.length} zips`);
+    console.log(`[getThumbnailsForZip] ${(end3 - end1) / 1000}s for ${filePathes.length} zips`);
 
     filePathes.forEach(filePath => {
         if (thumbnails[filePath]) {
@@ -434,23 +432,17 @@ async function _decorate(resObj) {
     console.assert(fileInfos && dirs && imgFolders);
 
     const files = _.keys(fileInfos);
-    const all_pathes = [].concat(files, _.keys(imgFolders));
-
+    // const all_pathes = [].concat(files, _.keys(imgFolders));
     // let thumbnails = await getThumbnailsForZip(files);
     // let dirThumbnails = await getThumbnailForFolders(dirs);
     // const fileNameToReadTime = await historyDb.getFileReadTime(all_pathes);
-    const [thumbnails, fileNameToReadTime] = await Promise.all([getThumbnailsForZip(files),  historyDb.getFileReadTime(all_pathes)]);
+    const [thumbnails] = await Promise.all([getThumbnailsForZip(files)]);
     resObj.zipInfo = zipInfoDb.getZipInfo(files);
     resObj.thumbnails = thumbnails;
-    resObj.fileNameToReadTime = fileNameToReadTime;
-
     const imgFolderInfo = getImgFolderInfo(imgFolders);
     resObj.imgFolderInfo = imgFolderInfo;
-
     return resObj;
 }
-
-
 
 
 serverUtil.common._decorate = _decorate
@@ -472,6 +464,11 @@ if (isProduction) {
 }
 
 //---------login-----------
+
+//TODO
+// 疯狂发送请求洪水怎么处理
+// 一个用户10秒最多100个请求？
+
 const token_set = {};
 app.post("/api/login", async (req, res) => {
     const password = req.body && req.body.password;
@@ -517,6 +514,17 @@ app.post("/api/getThumbnailForFolders", async (req, res) => {
 
     const dirThumbnails = await getThumbnailForFolders(dirs);
     res.send({ failed: false, dirThumbnails });
+});
+
+app.post("/api/getFileReadTime", async (req, res) => {
+    const all_pathes = req.body && req.body.all_pathes;
+    if (!all_pathes) {
+        res.send({ failed: true, reason: "No Parameter" });
+        return;
+    }
+
+    const fileNameToReadTime = await historyDb.getFileReadTime(all_pathes);
+    res.send({ failed: false, fileNameToReadTime });
 });
 
 app.post("/api/tagFirstImagePath", async (req, res) => {
