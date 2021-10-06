@@ -73,16 +73,17 @@ app.use(express.static('dist', {
 app.use(express.static(rootPath, {
     maxAge: (1000 * 3600 * 24).toString() // uses milliseconds per docs
 }));
+
 //  to consume json request body
 //  https://stackoverflow.com/questions/10005939/how-do-i-consume-the-json-post-data-in-an-express-application
-app.use(express.json());
+// https://stackoverflow.com/questions/50304779/payloadtoolargeerror-request-entity-too-large?noredirect=1&lq=1
+app.use(express.json({limit: '50mb'}));
 
 var cookieParser = require('cookie-parser')
 app.use(cookieParser())
 
 const portConfig = require('../config/port-config');
 const { http_port, dev_express_port } = portConfig;
-
 
 // const jsonfile = require('jsonfile');
 // let temp_json_path = path.join(rootPath, userConfig.workspace_name, "temp_json_info.json");
