@@ -34,6 +34,7 @@ import { GlobalContext } from './globalContext'
 const { BY_FILE_NUMBER,
     BY_TIME,
     BY_READ_TIME,
+    BY_READ_COUNT,
     BY_FILE_SIZE,
     BY_AVG_PAGE_SIZE,
     BY_PAGE_NUMBER,
@@ -344,9 +345,13 @@ export default class ExplorerPage extends Component {
                 this.forceUpdate();
             }
 
-            Sender.post('/api/getFileReadTime', {all_pathes: this.get_all_pathes()}, res => {
+            Sender.post('/api/getFileHistory', {all_pathes: this.get_all_pathes()}, res => {
                 if (!res.isFailed()) {
-                    this.fileNameToReadTime = res.json.fileNameToReadTime || {};
+                    this.fileNameToHistory = {};
+                    (res.json.fileHistory || {}).forEach(row => {
+                        const { fileName, time, count } = row;
+                        this.fileNameToHistory[fileName] = {time, count};
+                    })
                     this.forceUpdate();
                 }
             });
@@ -617,7 +622,16 @@ export default class ExplorerPage extends Component {
                 ascend: true,
                 getBaseName,
                 byReadTime: true,
-                fileNameToReadTime: this.fileNameToReadTime
+                fileNameToHistory: this.fileNameToHistory
+            }
+            files = sortUtil.sort_file_by_time(files, config);
+        } else if (sortOrder === BY_READ_COUNT) {
+            const config = {
+                fileInfos: this.allfileInfos,
+                ascend: true,
+                getBaseName,
+                byReadCount: true,
+                fileNameToHistory: this.fileNameToHistory
             }
             files = sortUtil.sort_file_by_time(files, config);
         } else if (sortOrder === BY_FILE_SIZE) {

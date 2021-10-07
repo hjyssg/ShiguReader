@@ -56,7 +56,7 @@ module.exports.getQuickAccess = async function () {
     return rows;
 }
 
-module.exports.getFileReadTime = async function (pathes) {
+module.exports.getFileHistory = async function (pathes) {
     pathes = pathes || [];
     const fileNames = pathes.map(e => {
         return path.basename(e);
@@ -75,14 +75,8 @@ module.exports.getFileReadTime = async function (pathes) {
     let rows =  await Promise.all(promiseArr);
     rows = rows.filter(e => !!e);
 
-    const fileNameToReadTime = {};
-    rows.forEach(row => {
-        const { fileName, time } = row;
-        fileNameToReadTime[fileName] = time;
-    })
-
     let end3 = getCurrentTime();
-    console.log(`[getFileReadTime] ${(end3 - end1) / 1000}s for ${rows.length} zips`);
+    console.log(`[getFileHistory] ${(end3 - end1) / 1000}s for ${rows.length} zips`);
 
-    return fileNameToReadTime;
+    return rows;
 }

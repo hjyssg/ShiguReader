@@ -153,7 +153,7 @@ class App extends Component {
 
     render() {
         if (this.state.hasError){
-            return "Front End Critical Error. Please check F12";   
+            return "Critical Error. Please check F12";   
         }
 
         // document.title = this.getWebTitle();

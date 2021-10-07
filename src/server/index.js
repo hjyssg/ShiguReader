@@ -433,11 +433,7 @@ async function _decorate(resObj) {
     console.assert(fileInfos && dirs && imgFolders);
 
     const files = _.keys(fileInfos);
-    // const all_pathes = [].concat(files, _.keys(imgFolders));
-    // let thumbnails = await getThumbnailsForZip(files);
-    // let dirThumbnails = await getThumbnailForFolders(dirs);
-    // const fileNameToReadTime = await historyDb.getFileReadTime(all_pathes);
-    const [thumbnails] = await Promise.all([getThumbnailsForZip(files)]);
+    const thumbnails = await getThumbnailsForZip(files);
     resObj.zipInfo = zipInfoDb.getZipInfo(files);
     resObj.thumbnails = thumbnails;
     const imgFolderInfo = getImgFolderInfo(imgFolders);
@@ -526,15 +522,15 @@ app.post("/api/getThumbnailForFolders", async (req, res) => {
     res.send({ failed: false, dirThumbnails });
 });
 
-app.post("/api/getFileReadTime", async (req, res) => {
+app.post("/api/getFileHistory", async (req, res) => {
     const all_pathes = req.body && req.body.all_pathes;
     if (!all_pathes) {
         res.send({ failed: true, reason: "No Parameter" });
         return;
     }
 
-    const fileNameToReadTime = await historyDb.getFileReadTime(all_pathes);
-    res.send({ failed: false, fileNameToReadTime });
+    const fileHistory = await historyDb.getFileHistory(all_pathes);
+    res.send({ failed: false, fileHistory });
 });
 
 app.post("/api/tagFirstImagePath", async (req, res) => {

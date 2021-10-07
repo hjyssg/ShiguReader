@@ -7,6 +7,7 @@ module.exports.BY_FILE_NUMBER = "file number";
 module.exports.BY_TAG_NAME = "tag name";
 module.exports.BY_TIME = "time";
 module.exports.BY_READ_TIME = "read time";
+module.exports.BY_READ_COUNT = "read count"
 module.exports.BY_FILE_SIZE = "file size";
 module.exports.BY_AVG_PAGE_SIZE = "avg page size";
 module.exports.BY_PAGE_NUMBER = "page number";
@@ -23,6 +24,7 @@ module.exports.TAG_SORT_OPTIONS = [
 module.exports.SORT_OPTIONS = [
     module.exports.BY_TIME,
     module.exports.BY_READ_TIME,
+    module.exports.BY_READ_COUNT,
     module.exports.BY_FILE_SIZE,
     module.exports.BY_AVG_PAGE_SIZE,
     module.exports.BY_PAGE_NUMBER,
