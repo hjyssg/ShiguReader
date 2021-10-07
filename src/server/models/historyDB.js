@@ -76,7 +76,7 @@ module.exports.getFileHistory = async function (pathes) {
     rows = rows.filter(e => !!e);
 
     let end3 = getCurrentTime();
-    console.log(`[getFileHistory] ${(end3 - end1) / 1000}s for ${rows.length} zips`);
+    console.log(`[getFileHistory] ${(end3 - end1) / 1000}s for ${fileNames.length} zips`);
 
     return rows;
 }
