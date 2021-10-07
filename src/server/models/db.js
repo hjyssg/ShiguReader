@@ -28,16 +28,22 @@ const getFileToInfo = module.exports.getFileToInfo = function (filePath) {
 
 const sqlite3 = require('sqlite3').verbose();
 const sqlDb = new sqlite3.Database(':memory:');
-sqlDb.run("CREATE TABLE file_table (filePath TEXT NOT NULL PRIMARY KEY, dirPath TEXT, fileName TEXT, sTime INTEGER, " +
-    "isDisplayableInExplorer BOOL, isDisplayableInOnebook BOOL, isCompress BOOL, isFolder BOOL)");
 
-//todo: http://howto.philippkeller.com/2005/04/24/Tags-Database-schemas/
-sqlDb.run("CREATE TABLE tag_table (filePath TEXT NOT NULL, tag VARCHAR(50), type VARCHAR(25), subtype VARCHAR(25), isCompress BOOL)");
+
 
 const _util = require('util');
 sqlDb.allSync = _util.promisify(sqlDb.all).bind(sqlDb);
 sqlDb.getSync = _util.promisify(sqlDb.get).bind(sqlDb);
 sqlDb.runSync = _util.promisify(sqlDb.run).bind(sqlDb);
+
+module.exports.init = async ()=> {
+    await sqlDb.runSync("CREATE TABLE file_table (filePath TEXT NOT NULL PRIMARY KEY, dirPath TEXT, fileName TEXT, \
+        sTime INTEGER, isDisplayableInExplorer BOOL, isDisplayableInOnebook BOOL, isCompress BOOL, isFolder BOOL);");
+
+    //todo: http://howto.philippkeller.com/2005/04/24/Tags-Database-schemas/
+    await sqlDb.runSync("CREATE TABLE tag_table (filePath TEXT NOT NULL, tag VARCHAR(50), type VARCHAR(25), \
+            subtype VARCHAR(25), isCompress BOOL)");
+}
 
 module.exports.getSQLDB = function () {
     return sqlDb;

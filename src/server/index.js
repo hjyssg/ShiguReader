@@ -125,6 +125,10 @@ async function init() {
         }
     }
 
+    await db.init();
+    await thumbnailDb.init();
+    await historyDb.init();
+
     const port = isProduction ? http_port : dev_express_port;
     const server = app.listen(port, async () => {
         console.log("----------------------------------------------------------------");
