@@ -15,6 +15,10 @@ export default class Pagination extends Component {
   }
 
   onChange = (e) => {
+    if(window.event.ctrlKey){
+      return;
+    }
+    e.preventDefault();
     const { onChange } = this.props;
     const value = typeof e === "number" ? e : parseInt(e.target.textContent.trim());
     onChange && onChange(value);
@@ -52,6 +56,7 @@ export default class Pagination extends Component {
       itemPerPage,
       totalItemNum,
       onChange,
+      linkFunc,
       className,
       onExtraButtonClick
     } = this.props
@@ -101,11 +106,13 @@ export default class Pagination extends Component {
 
     const itemDoms = contentList.map((e, ii) => {
       const isEllipsis = e === "...";
-      const cn = classNames("pagination-item page-link", {
+      const cn = classNames("pagination-item", {
         active: e === currentPage,
         "disabled": isEllipsis
       })
-      return (<li className={cn} key={ii + e} onClick={isEllipsis ? () => { } : this.onChange}> {e} </li>)
+      return (<li className={cn} key={ii + e} > 
+                <a onClick={isEllipsis ? () => { } : this.onChange} href={linkFunc && linkFunc(ii)} >{e} </a>
+              </li>)
     })
 
 

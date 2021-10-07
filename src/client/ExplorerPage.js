@@ -1160,6 +1160,7 @@ export default class ExplorerPage extends Component {
                 totalItemNum={fileLength}
                 onChange={this.handlePageChange.bind(this)}
                 onExtraButtonClick={this.toggleItemNum.bind(this)}
+                linkFunc={clientUtil.linkFunc}
             /></div>);
     }
 

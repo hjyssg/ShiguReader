@@ -3,6 +3,7 @@ const Cookie = require("js-cookie");
 const _ = require("underscore");
 const filesizeUitl = require('filesize');
 const userConfig = require('@config/user-config');
+const queryString = require('query-string');
 
 
 module.exports.filesizeUitl = function (num) {
@@ -272,6 +273,14 @@ const getDownloadLink = module.exports.getDownloadLink = function (path) {
 
 //     return history;
 // }
+
+module.exports.linkFunc = (index)=>{
+    const parsed = queryString.parse(location.hash);
+    parsed.pageIndex = index + 1;
+    const newHash = queryString.stringify(parsed)
+    const newUrl = location.href.replace(location.hash, "#" + newHash);
+    return newUrl
+}
 
 module.exports.replaceUrlHash = function(newHash){
     // console.assert((location.origin + location.pathname + location.search + location.hash) === location.href, "[replaceUrlHash] url error")

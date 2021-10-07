@@ -285,6 +285,7 @@ export default class TagPage extends Component {
   }
 
   renderPagination(keys) {
+
     return (<div className="pagination-container">
       <Pagination ref={ref => this.pagination = ref}
         currentPage={this.state.pageIndex}
@@ -292,6 +293,7 @@ export default class TagPage extends Component {
         totalItemNum={keys.length}
         onChange={this.handlePageChange.bind(this)}
         onExtraButtonClick={this.toggleItemNum.bind(this)}
+        linkFunc={clientUtil.linkFunc}
       /></div>);
   }
 
