@@ -276,7 +276,14 @@ const deleteCallBack = fp => {
     thumbnailDb.deleteThumbnail(fp)
 };
 
+const moveCallBack = async (oldfilePath, newfilePath) => {
+    await thumbnailDb.updateThumbnail(oldfilePath, newfilePath)
+}
+
 serverUtil.common.deleteCallBack = deleteCallBack;
+serverUtil.common.moveCallBack  = moveCallBack ;
+
+
 
 let is_chokidar_ready = false;
 const chokidar = require('chokidar');

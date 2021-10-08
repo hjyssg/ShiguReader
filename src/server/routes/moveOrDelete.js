@@ -49,7 +49,7 @@ router.post('/api/renameFile', async (req, res) => {
         logger.info(`[rename] ${src} to ${dest}`);
         res.send({ failed: false, dest });
 
-        serverUtil.common.deleteCallBack(src);
+        serverUtil.common.moveCallBack(src, dest);
     } catch (err) {
         console.error(err);
         res.send({ reason: getReason(err), failed: true });
@@ -96,7 +96,7 @@ router.post('/api/moveFile', async (req, res) => {
 
         res.send({ failed: false, dest: destFP });
 
-        serverUtil.common.deleteCallBack(src);
+        serverUtil.common.moveCallBack(src, dest);
     } catch (err) {
         console.error(err);
         res.send({ reason: getReason(err), failed: true });

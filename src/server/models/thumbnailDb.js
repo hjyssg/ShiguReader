@@ -51,6 +51,13 @@ async function syncInterbalDict(){
     })
 }
 
+module.exports.updateThumbnail = async function (oldfilePath, newfilePath) {
+    const sql2 = `UPDATE thumbnail_table SET filePath = ? WHERE filePath = ?`;
+    await sqlDb.runSync(sql2, [newfilePath, oldfilePath])
+
+    _internal_dict_[newfilePath] = _internal_dict_[oldfilePath]
+}
+
 module.exports.deleteThumbnail = function (filePath) {
     const sql2 = `DELETE FROM  thumbnail_table WHERE filePath = ?`;
     sqlDb.runSync(sql2, [filePath])
