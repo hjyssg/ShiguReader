@@ -94,7 +94,9 @@ async function clean(){
         }else{
             // console.log("need to keep ", filePath)
         }
-        console.log(ii)
+        if (ii % 1000 === 0) {
+            console.log(`[thumbnail] scan and clean unneeded thumbnails ${ii}`);
+        }
     }
 }
 
