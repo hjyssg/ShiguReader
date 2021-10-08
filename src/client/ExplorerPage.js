@@ -1080,7 +1080,7 @@ export default class ExplorerPage extends Component {
 
         const warning = this.isLackInfoMode() && (
             <div className="alert alert-warning" role="alert">
-                {`Warning: ${this.getTextFromQuery()} is not included in path-config.`}
+                {`Warning: ${this.getTextFromQuery()} is not included in config-path.`}
             </div>
         );
 
