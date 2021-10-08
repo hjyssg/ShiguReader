@@ -48,6 +48,8 @@ router.post('/api/renameFile', async (req, res) => {
 
         logger.info(`[rename] ${src} to ${dest}`);
         res.send({ failed: false, dest });
+
+        serverUtil.common.deleteCallBack(src);
     } catch (err) {
         console.error(err);
         res.send({ reason: getReason(err), failed: true });
@@ -93,6 +95,8 @@ router.post('/api/moveFile', async (req, res) => {
         logger.info(`[MOVE] ${src} to ${dest}`);
 
         res.send({ failed: false, dest: destFP });
+
+        serverUtil.common.deleteCallBack(src);
     } catch (err) {
         console.error(err);
         res.send({ reason: getReason(err), failed: true });
@@ -131,6 +135,8 @@ router.post('/api/deleteFile', async (req, res) => {
         await deleteThing(src);
         res.send({ failed: false });
         logger.info(`[DELETE] ${src}`);
+
+        serverUtil.common.deleteCallBack(src);
     } catch (e) {
         console.error(e);
         res.send({ reason: file_occupy_warning, failed: true });
@@ -171,10 +177,10 @@ router.post('/api/zipFolder', async (req, res) => {
         return;
     }
 
-    if (!(await isSimpleFolder(src))) {
-        res.send({ reason: _folder_waring_, failed: true });
-        return;
-    }
+    // if (!(await isSimpleFolder(src))) {
+    //     res.send({ reason: _folder_waring_, failed: true });
+    //     return;
+    // }
 
     const outputRoot = getZipOutputCachePath();
     const _resultZipPath = path.resolve(outputRoot, path.basename(src) + ".zip");

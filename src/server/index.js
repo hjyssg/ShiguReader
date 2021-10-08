@@ -40,7 +40,6 @@ global.cachePath = cachePath;
 
 
 const db = require("./models/db");
-const {  deleteFromDb, getImgFolderInfo } = db;
 
 const zipInfoDb = require("./models/zipInfoDb");
 const thumbnailDb = require("./models/thumbnailDb");
@@ -271,6 +270,13 @@ function setUpCacheWatch() {
         });
 }
 
+const deleteCallBack = fp => {
+    db.deleteFromDb(fp);
+    zipInfoDb.deleteFromZipDb(fp);
+    thumbnailDb.deleteThumbnail(fp)
+};
+
+serverUtil.common.deleteCallBack = deleteCallBack;
 
 let is_chokidar_ready = false;
 const chokidar = require('chokidar');
@@ -302,13 +308,7 @@ function setUpFileWatch(scan_path) {
         }
     };
 
-    const deleteCallBack = fp => {
-        //todo: if folder removed
-        //remove all its child
-        deleteFromDb(fp);
-        zipInfoDb.deleteFromZipDb(fp);
-        //todo: delete thumbnail
-    };
+
 
     watcher
         .on('add', addCallBack)
@@ -440,7 +440,7 @@ async function _decorate(resObj) {
     const thumbnails = await getThumbnailsForZip(files);
     resObj.zipInfo = zipInfoDb.getZipInfo(files);
     resObj.thumbnails = thumbnails;
-    const imgFolderInfo = getImgFolderInfo(imgFolders);
+    const imgFolderInfo = db.getImgFolderInfo(imgFolders);
     resObj.imgFolderInfo = imgFolderInfo;
     return resObj;
 }

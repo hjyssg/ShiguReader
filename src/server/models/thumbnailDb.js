@@ -23,7 +23,6 @@ module.exports.init = async ()=> {
     CREATE INDEX IF NOT EXISTS filePath_index ON thumbnail_table (filePath)");
     await syncInterbalDict()
 
- 
     await clean();
 }
 
@@ -52,24 +51,49 @@ async function syncInterbalDict(){
     })
 }
 
-async function clean(){
-    //iterate all thumbnail 
-    //if the real file is delete
-    //remove from sql table
+module.exports.deleteThumbnail = function (filePath) {
+    const sql2 = `DELETE FROM  thumbnail_table WHERE filePath = ?`;
+    sqlDb.runSync(sql2, [filePath])
+}
 
-    const sql = `SELECT * FROM  thumbnail_table`;
+async function clean(){
+    const sql = `SELECT * FROM  thumbnail_table ORDER BY filePath`;
     let rows = await sqlDb.allSync(sql)
 
-    for(let ii = 0; ii < rows.length; ii++){
-        const row = rows[ii];
-        const filePath = row.filePath;
+    //if the real file is delete
+    //remove from sql table
+    // for(let ii = 0; ii < rows.length; ii++){
+    //     const row = rows[ii];
+    //     const filePath = row.filePath;
         
-        if (!(await isExist(filePath))) {
-            const sql2 = `DELETE FROM  thumbnail_table WHERE filePath = ?`;
-            await sqlDb.runSync(sql2, [filePath])
-            
-        }
+    //     if (!(await isExist(filePath))) {
+    //         const sql2 = `DELETE FROM  thumbnail_table WHERE filePath = ?`;
+    //         await sqlDb.runSync(sql2, [filePath])
+    //         console.log(filePath)
+    //     }
+    //     console.log(ii)
+    // }
 
+    const pfs = require('promise-fs');
+    const path = require("path")
+    const thumbnailFolderPath = global.thumbnailFolderPath;
+    let thumbnail_pathes = await pfs.readdir(thumbnailFolderPath);
+    thumbnail_pathes = thumbnail_pathes.filter(util.isImage)
+
+    // if the sql row is missing, delete the thumbnail file
+    for(let ii = 0; ii < thumbnail_pathes.length; ii++){
+        const fn = thumbnail_pathes[ii];
+        const filePath = path.resolve(thumbnailFolderPath, fn)
+        
+        const record = rows.filter(row => row.thumbnailFileName == fn);
+
+        if(record.length === 0){
+            // console.log("need to remove ", filePath)
+            const err = await pfs.unlink(filePath)
+            if (err) { throw err; }
+        }else{
+            // console.log("need to keep ", filePath)
+        }
         console.log(ii)
     }
 }
