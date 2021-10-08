@@ -6,9 +6,7 @@ const pathUtil = require("../pathUtil");
 const util = global.requireUtil();
 const { isCompress, isVideo, getCurrentTime } = util;
 
-const {
-    isSub
-} = pathUtil;
+const { isSub, isExist } = pathUtil;
 const rootPath = pathUtil.getRootPath();
 
 let thumbnail_db_path = path.join(rootPath, userConfig.workspace_name, "thumbnail_sql_db");
@@ -25,11 +23,8 @@ module.exports.init = async ()=> {
     CREATE INDEX IF NOT EXISTS filePath_index ON thumbnail_table (filePath)");
     await syncInterbalDict()
 
-     //todo iterate all thumbnail 
-    //if the real file is delete
-    //remove sql table
-
-    //todo2: if the thumgbnail is deleted, but sql still keep the record
+ 
+    await clean();
 }
 
 module.exports.addNewThumbnail = function (filePath, thumbnailFilePath) {
@@ -55,6 +50,28 @@ async function syncInterbalDict(){
     rows.forEach(e => {
         _internal_dict_[e.filePath] = e;
     })
+}
+
+async function clean(){
+    //iterate all thumbnail 
+    //if the real file is delete
+    //remove from sql table
+
+    const sql = `SELECT * FROM  thumbnail_table`;
+    let rows = await sqlDb.allSync(sql)
+
+    for(let ii = 0; ii < rows.length; ii++){
+        const row = rows[ii];
+        const filePath = row.filePath;
+        
+        if (!(await isExist(filePath))) {
+            const sql2 = `DELETE FROM  thumbnail_table WHERE filePath = ?`;
+            await sqlDb.runSync(sql2, [filePath])
+            
+        }
+
+        console.log(ii)
+    }
 }
 
 
