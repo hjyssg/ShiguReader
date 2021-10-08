@@ -273,7 +273,11 @@ export default class OneBook extends Component {
       } else {
         this.rotateAngle = (this.rotateAngle || 0) + 90;
       }
+
+      this.rotateAngle = this.rotateAngle%360;
+
       imageDom.setAttribute("style", "transform: rotate(" + this.rotateAngle + "deg)");
+      //TODO adjust height 
     }
   }
 
