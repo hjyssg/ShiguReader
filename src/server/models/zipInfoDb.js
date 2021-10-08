@@ -39,6 +39,14 @@ const has = module.exports.has = function (filePath) {
     return !!data;
 }
 
+module.exports.updateThumbnail = function(oldfilePath, newfilePath){
+    const data = getData(oldfilePath)
+    if (data){
+        data.filePath = newfilePath;
+        zip_content_db.insert(entry);
+    }
+}
+
 module.exports.getZipInfo = function (filePathes) {
     const fpToInfo = {};
 

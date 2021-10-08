@@ -277,7 +277,8 @@ const deleteCallBack = fp => {
 };
 
 const moveCallBack = async (oldfilePath, newfilePath) => {
-    await thumbnailDb.updateThumbnail(oldfilePath, newfilePath)
+    zipInfoDb.updateThumbnail(oldfilePath, newfilePath);
+    await thumbnailDb.updateThumbnail(oldfilePath, newfilePath);
 }
 
 serverUtil.common.deleteCallBack = deleteCallBack;
