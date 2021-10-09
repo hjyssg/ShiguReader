@@ -42,8 +42,8 @@ const has = module.exports.has = function (filePath) {
 module.exports.updateThumbnail = function(oldfilePath, newfilePath){
     const data = getData(oldfilePath)
     if (data){
-        data.filePath = newfilePath;
-        zip_content_db.insert(entry);
+        const { totalImgSize, files } = data;
+        updateZipDb(newfilePath, { totalImgSize, files })
     }
 }
 
@@ -95,7 +95,7 @@ module.exports.deleteFromZipDb = function (filePath) {
     }
 }
 
-module.exports.updateZipDb = function (filePath, info) {
+const updateZipDb = module.exports.updateZipDb = function (filePath, info) {
     if (!zip_content_db) {
         return;
     }
