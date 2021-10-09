@@ -30,6 +30,22 @@ function getExtraDiv(res) {
     return extraDiv;
 }
 
+const Cookie = require("js-cookie");
+function getTempMovePath(){
+   const data = Cookie.get('temp-move-path');
+   if(data){
+       return JSON.parse(data);
+   }else{
+       return [];
+   }
+}
+
+function saveTempMovePath(filePath){
+    let data = getTempMovePath();
+    data.push(filePath);
+    data = _.uniq(data)
+    Cookie.set('temp-move-path', JSON.stringify(data), { expires: 3 });
+}
 
 function pop(file, res, postFix, extraDiv, callback) {
     const reason = res.json.reason;
@@ -144,7 +160,7 @@ class MoveMenu extends Component {
                 {e}  
              </span>
              <span className="mv-btn-small" onClick={()=> {
-                 onPathSelect && onPathSelect(e)
+                onPathSelect && onPathSelect(e)
              }}> select </span>
              </div>)
         })
@@ -295,6 +311,8 @@ export default class FileChangeToolbar extends Component {
                     Sender.post("/api/moveFile", { src: this.props.file, dest: path }, res => {
                         let extraDiv = getExtraDiv(res);
                         pop(file, res, "move", extraDiv, onNewPath);
+
+                        saveTempMovePath(path)
                     });
                 }
             });
@@ -353,6 +371,10 @@ export default class FileChangeToolbar extends Component {
 
     getDropdownItems() {
         let arr = this.context.additional_folder || [];
+        const tempMovePath = getTempMovePath()
+
+        arr = _.uniq(arr.concat(tempMovePath))
+
         arr = arr.filter(e => {
             if (e.includes(userConfig.img_convert_cache) || e.includes(userConfig.zip_output_cache)) {
                 return false;
@@ -447,7 +469,6 @@ export default class FileChangeToolbar extends Component {
     isImgFolder() {
         return !util.isCompress(this.props.file)
     }
-
 
 
     renderMoveModal() {
