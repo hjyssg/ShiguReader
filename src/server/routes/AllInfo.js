@@ -7,15 +7,17 @@ const { getThumbnailsForZip } = serverUtil.common;
 const util = global.requireUtil();
 const { isDisplayableInExplorer } = util;
 
-router.post('/api/tagInfo', async (req, res) => {
+async function add_col(rows){
+    const thumbnails = await getThumbnailsForZip(rows.map(e => e.filePath))
+    for (let ii = 0; ii < rows.length; ii++) {
+        const row = rows[ii];
+        row.thumbnail = thumbnails[row.filePath];
+    }
+}
+
+router.post('/api/get_authors', async (req, res) => {
     // const needThumbnail = req.body && req.body.needThumbnail;
     const sqldb = db.getSQLDB();
-
-    // let sql1 = `SELECT * FROM tag_table WHERE type = 'author'`
-    // let author_list = await sqldb.allSync(sql1);
-
-    // sql1 = `SELECT * FROM file_table where isCompress = true`
-    // author_list = await sqldb.allSync(sql1);
 
     let sql = `SELECT a.filePath, max(a.sTime) as maxTime , b.tag, COUNT(b.tag) as count, b.type, b.subtype `
         + `FROM (SELECT * FROM tag_table WHERE type = 'author' and isCompress = true) AS b LEFT JOIN `
@@ -23,8 +25,17 @@ router.post('/api/tagInfo', async (req, res) => {
         + `ON a.filePath = b.filePath `
         + `GROUP BY tag HAVING a.sTime = maxTime AND count > 1 ORDER BY count DESC`;
 
-    //todo: sort by  a.sTime DESC
     let author_rows = await sqldb.allSync(sql);
+    await add_col(author_rows);
+
+    res.send({
+        author_rows
+    });
+});
+
+router.post('/api/get_tags', async (req, res) => {
+    // const needThumbnail = req.body && req.body.needThumbnail;
+    const sqldb = db.getSQLDB();
 
     sql = `SELECT a.filePath, max(a.sTime) as maxTime , b.tag, COUNT(b.tag) as count, b.type, b.subtype `
         + `FROM (SELECT * FROM tag_table WHERE type = 'tag' and isCompress = true) AS b LEFT JOIN `
@@ -32,16 +43,10 @@ router.post('/api/tagInfo', async (req, res) => {
         + `ON a.filePath = b.filePath `
         + ` GROUP BY tag HAVING a.sTime = maxTime AND count > 1 ORDER BY count DESC`;
     let tag_rows = await sqldb.allSync(sql);
-    const allRows = [].concat(author_rows, tag_rows);
 
-    const thumbnails = await getThumbnailsForZip(allRows.map(e => e.filePath))
-    for (let ii = 0; ii < allRows.length; ii++) {
-        const row = allRows[ii];
-        row.thumbnail = thumbnails[row.filePath];
-    }
+    await add_col(tag_rows);
 
     res.send({
-        author_rows,
         tag_rows
     });
 });

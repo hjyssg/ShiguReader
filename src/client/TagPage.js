@@ -91,25 +91,49 @@ export default class TagPage extends Component {
     return null;
   }
 
+  async requestAuthors(){
+    let res = await Sender.postWithPromise('/api/get_authors', { needThumbnail: true })
+    if (!res.isFailed()) {
+      this.setState({
+        author_rows: res.json.author_rows
+      })
+      this.setState({ loaded: true });
+    } else {
+      this.res = res;
+      this.forceUpdate();
+    }
+  }
+
+  async requestTags(){
+    let res = await Sender.postWithPromise('/api/get_tags', { needThumbnail: true })
+    if (!res.isFailed()) {
+      this.setState({
+        tag_rows: res.json.tag_rows
+      })
+      this.setState({ loaded: true });
+    } else {
+      this.res = res;
+      this.forceUpdate();
+    }
+  }
+
   componentDidMount() {
     if (this.state.loaded) {
       return;
     }
 
     this.bindUserInteraction();
+    this.askServer();
+  }
 
-    Sender.post('/api/tagInfo', { needThumbnail: true }, res => {
-      if (!res.isFailed()) {
-        this.setState({
-          tag_rows: res.json.tag_rows,
-          author_rows: res.json.author_rows
-        })
-        this.setState({ loaded: true });
-      } else {
-        this.res = res;
-        this.forceUpdate();
-      }
-    });
+  async askServer(){
+    if(this.isAuthorMode()){
+      await this.requestAuthors();
+      await this.requestTags();
+    }else{
+      await this.requestTags();
+      await this.requestAuthors();
+    }
   }
 
   bindUserInteraction() {
