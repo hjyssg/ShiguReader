@@ -59,7 +59,7 @@ const isProduction = !isDev;
 // console.log("----------------------");
 
 const logger = require("./logger");
-const searchByTagAndAuthor = require("./searchUtil");
+const { searchByTagAndAuthor } = require("./searchUtil");
 
 const sevenZipHelp = require("./sevenZipHelp");
 const { listZipContentAndUpdateDb, extractAll, extractByRange } = sevenZipHelp;
@@ -548,7 +548,7 @@ app.post("/api/getFileHistory", async (req, res) => {
     res.send({ failed: false, fileHistory });
 });
 
-app.post("/api/tagFirstImagePath", async (req, res) => {
+app.post("/api/getTagThumbnail", async (req, res) => {
     const author = req.body && req.body.author;
     const tag = req.body && req.body.tag;
     if (!author && !tag) {
@@ -559,6 +559,20 @@ app.post("/api/tagFirstImagePath", async (req, res) => {
     const onlyNeedFew = true;
     const { fileInfos } = await searchByTagAndAuthor(tag, author, null, onlyNeedFew);
     const files = _.keys(fileInfos);
+
+    const thumbnails = await getThumbnailsForZip(files)
+    const oneKey = _.keys(thumbnails).filter(e => {
+        const value = thumbnails[e];
+        return !!value;
+    })[0];
+    const oneThumbnail = oneKey && thumbnails[oneKey];
+    if(oneThumbnail){
+        res.send({
+            url: oneThumbnail
+        })
+        return;
+    }
+
     const chosendFileName = serverUtil.chooseOneZipForOneTag(files, db.getFileToInfo());
     if (!chosendFileName) {
         res.send({ failed: true, reason: "No file found" });
@@ -706,7 +720,7 @@ app.post('/api/pregenerateThumbnails', async (req, res) => {
 
 
 //! !need to set windows console to utf8
-app.post('/api/firstImage', async (req, res) => {
+app.post('/api/getZipThumbnail', async (req, res) => {
     const filePath = req.body && req.body.filePath;
 
     if (!filePath || !(await isExist(filePath))) {
@@ -878,8 +892,6 @@ app.post('/api/getGeneralInfo', async (req, res) => {
     };
     res.send(result)
 });
-
-
 
 
 const homePagePath = require("./routes/homePagePath");

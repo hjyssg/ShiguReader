@@ -56,7 +56,7 @@ export default class LoadingImage extends Component {
 
   requestThumbnail() {
     const { mode, fileName } = this.props;
-    const api = (this.isAuthorTagMode()) ? "/api/tagFirstImagePath" : '/api/firstImage';
+    const api = (this.isAuthorTagMode()) ? "/api/getTagThumbnail" : '/api/getZipThumbnail';
     const body = {};
 
     if (this.isAuthorTagMode()) {

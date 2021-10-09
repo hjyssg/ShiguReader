@@ -21,15 +21,14 @@ class LoginPage extends Component {
         return text;
     }
 
-    setPasswordCookie() {
+    async setPasswordCookie() {
         const text = this.getPasswordInput();
-        Sender.post('/api/login', {"password":text}, res => {
-            if (!res.isFailed()) {
-                window.location.href = "/"
-            }else{
-                this.setState({errMessage: "Wrong Password"});
-            }
-        });
+        const res = await Sender.postWithPromise('/api/login', {"password":text});
+        if (!res.isFailed()) {
+            window.location.href = "/"
+        }else{
+            this.setState({errMessage: "Wrong Password"});
+        }
     }
 
     render() {

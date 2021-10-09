@@ -95,6 +95,10 @@ export default class ChartPage extends Component {
     }
 
     componentDidMount() {
+        this.askServer();
+    }
+
+    async askServer(){
         let api;
         let body;
         const mode = this.getMode();
@@ -115,18 +119,8 @@ export default class ChartPage extends Component {
             body = {};
         }
 
-        Sender.post(api, body, res => {
-            this.handleRes(res);
-        });
-
-        // Sender.post('/api/getGoodAuthorNames', {}, res => {
-        //     if (!res.isFailed()) {
-        //         this.setState({
-        //             goodAuthors: res.json.goodAuthors,
-        //             otherAuthors: res.json.otherAuthors
-        //         })
-        //     }
-        // });
+        const res = await Sender.postWithPromise(api, body);
+        this.handleRes(res);
     }
 
     handleRes(res) {

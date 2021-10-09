@@ -98,7 +98,11 @@ async function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
     const fileInfos = {};
 
     const all_text = tag || author || text;
-    const searchEveryPromise = searchOnEverything(all_text)
+    let searchEveryPromise;
+    if(!onlyNeedFew){
+        searchEveryPromise =  searchOnEverything(all_text);
+    }
+
     let temp = await searchByText(all_text);
     let zipResult = temp.zipResult;
     let dirResults = temp.dirResults;
@@ -123,32 +127,33 @@ async function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
         fileInfos[fp] = db.getFileToInfo(fp);
     })
 
-    let esObj = await searchEveryPromise;
-    if (esObj) {
-        if(author){
-            const parse = serverUtil.parse;
-            function checkIfPass(fileName, author){
-                const result = parse(fileName);
-                if(!result){
-                    return false;
+    if(!onlyNeedFew){
+        let esObj = await searchEveryPromise;
+        if (esObj) {
+            if(author){
+                const parse = serverUtil.parse;
+                function checkIfPass(fileName, author){
+                    const result = parse(fileName);
+                    if(!result){
+                        return false;
+                    }
+                    const pass =  isEqual(result.author, author) || 
+                                  isEqual(result.group, author) || 
+                                  (result.authors && result.authors.includes(author));
+                    return pass;
                 }
-                const pass =  isEqual(result.author, author) || 
-                              isEqual(result.group, author) || 
-                              (result.authors && result.authors.includes(author));
-                return pass;
+    
+                _.keys(esObj.fileInfos).forEach(fileName => {
+                    if(!checkIfPass(fileName, author)){
+                        delete esObj.fileInfos[fileName]
+                    }
+                })
+                esObj.dirResults = esObj.dirResults.filter(e => checkIfPass(e, author))
             }
-
-            _.keys(esObj.fileInfos).forEach(fileName => {
-                if(!checkIfPass(fileName, author)){
-                    delete esObj.fileInfos[fileName]
-                }
-            })
-            esObj.dirResults = esObj.dirResults.filter(e => checkIfPass(e, author))
+            dirResults = _.uniq(dirResults.concat(esObj.dirResults));
+            _.extend(fileInfos, esObj.fileInfos)
         }
-        dirResults = _.uniq(dirResults.concat(esObj.dirResults));
-        _.extend(fileInfos, esObj.fileInfos)
     }
-
 
     // let end = getCurrentTime();
     // console.log((end - beg)/1000, "to search");
@@ -167,4 +172,4 @@ async function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
     return result;
 }
 
-module.exports = searchByTagAndAuthor;
+module.exports.searchByTagAndAuthor = searchByTagAndAuthor;

@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const searchByTagAndAuthor = require("../searchUtil");
+const { searchByTagAndAuthor } = require("../searchUtil");
 const Constant = global.requireConstant();
 const { MODE_TAG, MODE_AUTHOR, MODE_SEARCH } = Constant;
 

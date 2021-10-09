@@ -87,13 +87,11 @@ export default class OneBookOverview extends Component {
     return !util.isCompress(this.getTextFromQuery())
   }
 
-  sendExtract() {
+  async sendExtract() {
     const fp = this.getTextFromQuery();
     const api = this.isImgFolder() ? "/api/listImageFolderContent" : "/api/extract";
-
-    Sender.post(api, { filePath: fp, startIndex: 0 }, res => {
-      this.handleRes(res);
-    });
+    const res = await Sender.postWithPromise(api, { filePath: fp, startIndex: 0 })
+    this.handleRes(res);
   }
 
   handleRes(res) {
