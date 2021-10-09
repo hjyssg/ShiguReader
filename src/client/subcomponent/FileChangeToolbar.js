@@ -43,6 +43,11 @@ function getTempMovePath(){
 function saveTempMovePath(filePath){
     let data = getTempMovePath();
     data.push(filePath);
+
+    if(data.length > 3){
+        data = data.splice(0, 1)
+    }
+
     data = _.uniq(data)
     Cookie.set('temp-move-path', JSON.stringify(data), { expires: 3 });
 }
