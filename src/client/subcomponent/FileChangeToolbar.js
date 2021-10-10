@@ -45,7 +45,7 @@ function saveTempMovePath(filePath){
     data.push(filePath);
 
     if(data.length > 3){
-        data = data.splice(0, 1)
+        data.splice(0, 1)
     }
 
     data = _.uniq(data)
