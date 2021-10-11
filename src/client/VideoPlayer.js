@@ -12,6 +12,8 @@ const dateFormat = require('dateformat');
 const queryString = require('query-string');
 const Cookie = require("js-cookie");
 import DPlayer from "react-dplayer";
+import HistorySection from './subcomponent/HistorySection';
+
 
 export default class VideoPlayer extends Component {
   constructor(props) {
@@ -153,6 +155,9 @@ export default class VideoPlayer extends Component {
       {videoFileInfo}
       <FileChangeToolbar className="video-toolbar" file={filePath} popPosition={"top-center"} />
       {this.renderTag()}
+      <div className="video-history-section">
+        <HistorySection filePath={filePath} />
+      </div>
     </div>
     );
   }

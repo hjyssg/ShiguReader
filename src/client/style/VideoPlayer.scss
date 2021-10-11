@@ -77,4 +77,8 @@
 
         color: $font_color_white_one;
     }
+
+    .video-history-section{
+        @include flex_center_display;
+    }
 }

@@ -12,6 +12,7 @@ import Spinner from './subcomponent/Spinner';
 import CenterSpinner from './subcomponent/CenterSpinner';
 import FileNameDiv from './subcomponent/FileNameDiv';
 import FileChangeToolbar from './subcomponent/FileChangeToolbar';
+import HistorySection from './subcomponent/HistorySection';
 import MusicPlayer from './MusicPlayer';
 import $ from 'jquery'
 import "./style/BigColumnButton.scss";
@@ -31,42 +32,6 @@ const NO_TWO_PAGE = "no_clip";
 const TWO_PAGE_LEFT = "left";
 const TWO_PAGE_RIGHT = "right";
 
-function OneBookHistorySection(props){
-  const {filePath} = props;
-  const [history, setHistory] = useState([]);
-
-  useEffect(async () => {
-      const res = await Sender.postWithPromise("/api/getHistoryByFP", {filePath});
-      if (!res.isFailed()) {
-          let { history } = res.json;
-          setHistory(history)
-      }
-  }, []); 
-
-  let items;
-  let length = history.length;
-  if (length === 0) {
-      return <div className="one-book-history-section">"It is first time to read this book"</div>;
-  } else {
-      items = history.map(e => {
-          // return <div key={e.time}>{dateFormat(e.time, "dddd, mmmm dS, yyyy, h:MM:ss TT") }</div>
-          return <div key={e.time}>{dateFormat(e.time, "mm/dd/yyyy") }</div>
-      });
-
-      if(items.length > 10){
-        const middle = (<div> ... </div>);
-        items = items.slice(0, 3).concat(middle, items.slice(length - 4))
-      }
-  }
-
-  return (
-      <div className="one-book-history-section">
-          <div className="one-book-history-section-title"> You have read this {length} times</div>
-          <div className="one-book-history-section-content">
-              {items}
-          </div>
-      </div>)
-}
 
 export default class OneBook extends Component {
   constructor(props) {
@@ -845,7 +810,7 @@ export default class OneBook extends Component {
         {this.renderSecondBar()}
         {this.renderOverviewLink()}
         {/* {this.renderEhentaiTag()} */}
-        <OneBookHistorySection filePath={this.state.path} />
+        <HistorySection filePath={this.state.path} />
       </div>
     );
   }

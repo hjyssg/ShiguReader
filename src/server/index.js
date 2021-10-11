@@ -768,13 +768,6 @@ app.post('/api/extract', async (req, res) => {
         return;
     }
 
-    if(current_extract_queue[filePath] === "in_progress"){
-        res.send({ failed: true, reason: "extract_in_progress" });
-        return;
-    }
-
-    current_extract_queue[filePath] = "in_progress";
-
     //potential bug:
     // if in one zip there are 01/001.jpg and 01/002.jpg 
     // this will only only extract one, because they overwrite each other
@@ -811,6 +804,7 @@ app.post('/api/extract', async (req, res) => {
     const outputPath = path.join(cachePath, getHash(filePath));
     const temp = cacheDb.getCacheFiles(outputPath);
 
+    // check if alreay unzip
     if (zipInfoDb.has(filePath) && temp) {
         let tempZipInfo = zipInfoDb.getZipInfo(filePath);
         const totalNum = tempZipInfo.totalNum;
@@ -837,6 +831,12 @@ app.post('/api/extract', async (req, res) => {
 
     const full_extract_max = 10;
     try {
+        if(current_extract_queue[filePath] === "in_progress"){
+            res.send({ failed: true, reason: "extract_in_progress" });
+            return;
+        }
+        current_extract_queue[filePath] = "in_progress";
+
         let { files, fileInfos } = await listZipContentAndUpdateDb(filePath);
         let hasMusic = files.some(e => isMusic(e));
         let hasVideo = files.some(e => isVideo(e));
