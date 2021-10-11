@@ -21,18 +21,20 @@ function splitRows(rows, text) {
     let imgFolders = {};
     const textInLowerCase = text.toLowerCase();
 
+    //tag不一定出现在文件名里面
+    //因为tag是经过处理的
+
     rows.forEach(row => {
         const dirName = path.basename(row.dirPath);
-        const byDir = dirName.toLowerCase().includes(textInLowerCase);
-        const byFn = row.fileName.toLowerCase().includes(textInLowerCase);
+        // const byDir = dirName.toLowerCase().includes(textInLowerCase);
+        // const byFn = row.fileName.toLowerCase().includes(textInLowerCase);
 
-        if (row.isDisplayableInExplorer && (byFn || byDir)) {
-            //for file, its name or its dir name
+        if (row.isDisplayableInExplorer) {
             zipResult.push(row);
-        } else if (row.isDisplayableInOnebook && byDir) {
+        } else if (row.isDisplayableInOnebook) {
             imgFolders[dirName] = imgFolders[dirName] || [];
             imgFolders[dirName].push(row.filePath);
-        } else if (row.isFolder && byFn) {
+        } else if (row.isFolder) {
             //folder check its name
             dirResults.push(row);
         }

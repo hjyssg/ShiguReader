@@ -337,7 +337,7 @@ function parse(str) {
     });
 
     tags = tags
-        .map(e => e.replace(/ |。/g, "").replace(/！/g, "!").replace(/？/g, "?"))
+        .map(e => e.replace(/ {2,}/g, " ").replace(/。/g, "").replace(/！/g, "!").replace(/？/g, "?"))
 
     //tag reducing
     tags = tags.map(e => {
