@@ -561,11 +561,7 @@ app.post("/api/getTagThumbnail", async (req, res) => {
     const files = _.keys(fileInfos);
 
     const thumbnails = await getThumbnailsForZip(files)
-    const oneKey = _.keys(thumbnails).filter(e => {
-        const value = thumbnails[e];
-        return !!value;
-    })[0];
-    const oneThumbnail = oneKey && thumbnails[oneKey];
+    const oneThumbnail = _.values(thumbnails)[0];
     if(oneThumbnail){
         res.send({
             url: oneThumbnail
@@ -726,7 +722,6 @@ app.post('/api/pregenerateThumbnails', async (req, res) => {
 });
 
 
-//! !need to set windows console to utf8
 app.post('/api/getZipThumbnail', async (req, res) => {
     const filePath = req.body && req.body.filePath;
 
@@ -734,6 +729,16 @@ app.post('/api/getZipThumbnail', async (req, res) => {
         res.send({ failed: true, reason: "NOT FOUND" });
         return;
     }
+
+    const thumbnails = await getThumbnailsForZip([filePath])
+    const oneThumbnail = _.values(thumbnails)[0];
+    if(oneThumbnail){
+        res.send({
+            url: oneThumbnail
+        })
+        return;
+    }
+
     extractThumbnailFromZip(filePath, res);
 });
 
