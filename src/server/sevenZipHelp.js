@@ -170,11 +170,14 @@ module.exports.extractByRange = async function (filePath, outputPath, range) {
             //when range is too large, will cause OS level error
             let subRange = range.slice(ii, ii + DISTANCE);
             let opt = get7zipOption(filePath, outputPath, subRange);
-            let { stderr } = await execa(sevenZip, opt);
+            let { stderr, stdout } = await execa(sevenZip, opt);
             if (stderr) {
                 error = stderr;
                 logger.error('[extractByRange] exit: ', stderr);
                 break;
+            }
+            if(stdout.includes("No files to process")){
+                throw "need_to_extract_all";
             }
             ii = ii + DISTANCE;
             count++;

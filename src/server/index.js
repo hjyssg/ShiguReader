@@ -759,6 +759,7 @@ async function getSameFileName(filePath) {
     return filePath;
 }
 
+const current_extract_queue = {};
 app.post('/api/extract', async (req, res) => {
     let filePath = req.body && req.body.filePath;
     const startIndex = (req.body && req.body.startIndex) || 0;
@@ -766,6 +767,13 @@ app.post('/api/extract', async (req, res) => {
         res.send({ failed: true, reason: "No parameter" });
         return;
     }
+
+    if(current_extract_queue[filePath] === "in_progress"){
+        res.send({ failed: true, reason: "extract_in_progress" });
+        return;
+    }
+
+    current_extract_queue[filePath] = "in_progress";
 
     //potential bug:
     // if in one zip there are 01/001.jpg and 01/002.jpg 
@@ -817,63 +825,72 @@ app.post('/api/extract', async (req, res) => {
         }
     }
 
-    (async () => {
-        const full_extract_max = 10;
-        try {
-            let { files, fileInfos } = await listZipContentAndUpdateDb(filePath);
-            let hasMusic = files.some(e => isMusic(e));
-            let hasVideo = files.some(e => isVideo(e));
-            files = files.filter(e => isDisplayableInOnebook(e));
-            if (files.length === 0) {
-                throw `${filePath} has no content`
+    async function _extractAll_(){
+        const { pathes, error } = await extractAll(filePath, outputPath);
+        if (!error && pathes) {
+            const temp = generateContentUrl(pathes, outputPath);
+            sendBack(temp, filePath, stat);
+        } else {
+            throw "fail to extract all"
+        }
+    }
+
+    const full_extract_max = 10;
+    try {
+        let { files, fileInfos } = await listZipContentAndUpdateDb(filePath);
+        let hasMusic = files.some(e => isMusic(e));
+        let hasVideo = files.some(e => isVideo(e));
+        files = files.filter(e => isDisplayableInOnebook(e));
+        if (files.length === 0) {
+            throw `${filePath} has no content`
+        }
+
+        //todo: music/video may be huge and will be slow
+        if (hasMusic || hasVideo || files.length <= full_extract_max) {
+            await  _extractAll_()
+        } else {
+            //spit one zip into two uncompress task
+            //so user can have a quicker response time
+            serverUtil.sortFileNames(files);
+            //choose range wisely
+            const PREV_SPACE = 2;
+            //cut the array into 3 parts
+            let beg = startIndex - PREV_SPACE;
+            let end = startIndex + full_extract_max - PREV_SPACE;
+            const firstRange = arraySlice(files, beg, end);
+            const secondRange = files.filter(e => {
+                return !firstRange.includes(e);
+            })
+
+            //dev checking
+            if (firstRange.length + secondRange.length !== files.length) {
+                throw "arraySlice wrong";
             }
 
-            //todo: music/video may be huge and will be slow
-            if (hasMusic || hasVideo || files.length <= full_extract_max) {
-                const { pathes, error } = await extractAll(filePath, outputPath);
-                if (!error && pathes) {
-                    const temp = generateContentUrl(pathes, outputPath);
-                    sendBack(temp, filePath, stat);
-                } else {
-                    throw "fail to extract"
-                }
+            let stderr = await extractByRange(filePath, outputPath, firstRange)
+            if (!stderr) {
+                const temp = generateContentUrl(files, outputPath);
+                sendBack(temp, filePath, stat);
+                const time2 = getCurrentTime();
+                const timeUsed = (time2 - time1);
+                console.log(`[/api/extract] FIRST PART UNZIP ${filePath} : ${timeUsed}ms`);
+
+                await extractByRange(filePath, outputPath, secondRange);
             } else {
-                //spit one zip into two uncompress task
-                //so user can have a quicker response time
-                serverUtil.sortFileNames(files);
-                //choose range wisely
-                const PREV_SPACE = 2;
-                //cut the array into 3 parts
-                let beg = startIndex - PREV_SPACE;
-                let end = startIndex + full_extract_max - PREV_SPACE;
-                const firstRange = arraySlice(files, beg, end);
-                const secondRange = files.filter(e => {
-                    return !firstRange.includes(e);
-                })
-
-                //dev checking
-                if (firstRange.length + secondRange.length !== files.length) {
-                    throw "arraySlice wrong";
-                }
-
-                let stderr = await extractByRange(filePath, outputPath, firstRange)
-                if (!stderr) {
-                    const temp = generateContentUrl(files, outputPath);
-                    sendBack(temp, filePath, stat);
-                    const time2 = getCurrentTime();
-                    const timeUsed = (time2 - time1);
-                    console.log(`[/api/extract] FIRST PART UNZIP ${filePath} : ${timeUsed}ms`);
-
-                    await extractByRange(filePath, outputPath, secondRange)
-                } else {
+                //seven的谜之抽风
+                if(stderr === "need_to_extract_all" && files.length <= 100){
+                   await _extractAll_()
+                }else{
                     throw stderr;
                 }
             }
-        } catch (e) {
-            res.send({ failed: true, reason: e });
-            console.error('[/api/extract] exit: ', e);
         }
-    })();
+    } catch (e) {
+        res.send({ failed: true, reason: e });
+        console.error('[/api/extract] exit: ', e);
+    }finally{
+        current_extract_queue[filePath] = "done"
+    }
 });
 
 app.post('/api/getGeneralInfo', async (req, res) => {
