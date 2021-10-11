@@ -105,23 +105,29 @@ async function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
         searchEveryPromise =  searchOnEverything(all_text);
     }
 
-    let temp = await searchByText(all_text);
-    let zipResult = temp.zipResult;
-    let dirResults = temp.dirResults;
-    let imgFolders = temp.imgFolders;
+    let zipResult;
+    let dirResults;
+    let imgFolders;
 
-    const at_text = tag || author;
-    if (at_text) {
-        const sqldb = db.getSQLDB();
-        //inner joiner then group by
-        let sql = `SELECT a.* `
-            + `FROM file_table AS a INNER JOIN tag_table AS b `
-            + `ON a.filePath = b.filePath AND INSTR(b.tag, ?) > 0`;
-        let rows = await sqldb.allSync(sql, [at_text]);
-        const tag_obj = splitRows(rows, at_text);
-        zipResult = tag_obj.zipResult;
-        dirResults = tag_obj.dirResults;
-        imgFolders = tag_obj.imgFolders;
+    if(text){
+        temp = await searchByText(text);
+        zipResult = temp.zipResult;
+        dirResults = temp.dirResults;
+        imgFolders = temp.imgFolders;
+    } else {
+        const at_text = tag || author;
+        if (at_text) {
+            const sqldb = db.getSQLDB();
+            //inner joiner then group by
+            let sql = `SELECT a.* `
+                + `FROM file_table AS a INNER JOIN tag_table AS b `
+                + `ON a.filePath = b.filePath AND INSTR(b.tag, ?) > 0`;
+            let rows = await sqldb.allSync(sql, [at_text]);
+            const tag_obj = splitRows(rows, at_text);
+            zipResult = tag_obj.zipResult;
+            dirResults = tag_obj.dirResults;
+            imgFolders = tag_obj.imgFolders;
+        }
     }
 
     zipResult.forEach(obj => {
@@ -129,6 +135,7 @@ async function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
         fileInfos[fp] = db.getFileToInfo(fp);
     })
 
+    // filter everything search result
     if(!onlyNeedFew){
         let esObj = await searchEveryPromise;
         if (esObj) {
