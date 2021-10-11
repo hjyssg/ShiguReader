@@ -35,8 +35,18 @@ class LoginPage extends Component {
         let content = (<React.Fragment>
             <div className="admin-section-title">ShiguReader</div>
             <div className="admin-section-content">
-                <input className="admin-intput" id="login-input" ref={pathInput => this.passwordInputRef = pathInput}
-                    placeholder="password here..." onChange={()=> this.setState({errMessage: ""})}   type="password"/>
+                <input className="admin-intput" id="login-input"   type="password"    placeholder="password here..." 
+                    ref={pathInput => this.passwordInputRef = pathInput}
+                    onChange={()=> this.setState({errMessage: ""})}   
+                    onKeyPress={e => {
+                        if (e.which === 13 || e.keyCode === 13) {
+                        //enter key
+                        this.setPasswordCookie();
+                        e.preventDefault();
+                        e.stopPropagation();
+                        }
+                    }}
+                    />
                 <button onClick={this.setPasswordCookie.bind(this)}> Login </button>
                 <div id="log-err"> {this.state.errMessage} </div>
                 <div className="author-link">
