@@ -612,6 +612,13 @@ async function extractThumbnailFromZip(filePath, res, mode, config) {
                 //in pregenerate mode, it always updates db content
                 files = (await listZipContentAndUpdateDb(filePath)).files;
             }
+
+            if (config.fastUpdateMode){
+                const temp = thumbnailDb.getThumbnailArr(filePath);
+                if(temp.length > 0){
+                    return;
+                }
+            }
         }
 
         const thumbnail = thumbnailDb.getThumbnailArr(filePath);
