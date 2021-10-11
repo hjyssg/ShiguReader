@@ -37,6 +37,9 @@ sqlDb.getSync = _util.promisify(sqlDb.get).bind(sqlDb);
 sqlDb.runSync = _util.promisify(sqlDb.run).bind(sqlDb);
 
 module.exports.init = async ()=> {
+    // TODO
+    // 现在图片、zip、文件夹都放这个table 
+    // 需要拆开
     await sqlDb.runSync("CREATE TABLE file_table (filePath TEXT NOT NULL PRIMARY KEY, dirPath TEXT, fileName TEXT, \
         sTime INTEGER, isDisplayableInExplorer BOOL, isDisplayableInOnebook BOOL, isCompress BOOL, isFolder BOOL);");
 
