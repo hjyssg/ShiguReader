@@ -111,7 +111,7 @@ export default class Pagination extends Component {
         "disabled": isEllipsis
       })
       return (<li className={cn} key={ii + e} > 
-                <a onClick={isEllipsis ? () => { } : this.onChange} href={linkFunc && linkFunc(ii)} >{e} </a>
+                <a onClick={isEllipsis ? () => { } : this.onChange} href={linkFunc && !isEllipsis && linkFunc(e-1)} >{e} </a>
               </li>)
     })
 
