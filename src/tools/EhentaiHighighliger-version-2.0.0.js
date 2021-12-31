@@ -180,6 +180,91 @@ function getCurrentTime() {
 const begTime = getCurrentTime();
 let time2;
 
+async function checkNode(e){
+    try {
+        const subNode = e.getElementsByClassName("gl4t")[0];
+        const thumbnailNode = e.getElementsByTagName("img")[0];
+        let text = subNode.textContent;
+
+        if (text.includes("翻訳") || text.includes("翻译")) {
+            return;
+        }
+
+        // console.log("parse "+ text + " " + index);
+        let r1 = parse(text);
+
+        let useAuthorSearch = false;
+        let _text = text;
+        if (r1) {
+            if (r1.author) {
+                _text = r1.author;
+                useAuthorSearch = true;
+            } else if (r1.title) {
+                _text = r1.title;
+            }
+        }
+        const tt = encodeURIComponent(_text);
+        const uri = `http://localhost:${everything_port}/?search="${tt}"&offset=0&json=1&path_column=1&size_column=1&date_modified_column=1`;
+        let res = await GM_xmlhttpRequest_promise("GET", uri);
+
+        res = JSON.parse(res.responseText)
+        const books_info = res.results;
+
+   
+
+        let books = books_info
+            .filter(e => e.type === "folder" || (e.type === "file" && isCompress(e.name)))
+            .map(e => {
+                if(e.type === "file"){
+                    return e.name.replace(compressTypesRegex, "");
+                }else if(e.type === "folder"){
+                    return e.name;
+                }
+            })
+        e.status = 0;
+
+        
+        // console.log(books);
+
+        if(useAuthorSearch){
+            books = books.filter(e => {
+                let rr = parse(e);
+                if(rr && rr.author && rr.author.includes(_text)){
+                    return true;
+                }
+            })
+        }
+
+        const { status, similarTitles } = checkIfDownload(text, books);
+
+        e.status = status || 0;
+        if (status === IS_IN_PC) {
+            subNode.style.color = "#61ef47";
+            addTooltip(thumbnailNode, "明确已经下载过了", similarTitles)
+        } else if (status === LIKELY_IN_PC) {
+            subNode.style.color = "#efd41b";
+            addTooltip(thumbnailNode, "电脑里面好像有", similarTitles)
+        } else if (status === SAME_AUTHOR) {
+            subNode.style.color = "#ef8787";
+            addTooltip(thumbnailNode, `下载同样作者“${r1.author}”的书 ${books.length}次`, books, "same_author")
+        }
+
+        if (status) {
+            if (r1) {
+                appendLink(e, r1.author);
+                // if (status >= LIKELY_IN_PC) {
+                //     appendLink(e, r1.title);
+                // }
+            } else {
+                appendLink(e, text);
+            }
+            subNode.style.fontWeight = 600;
+        }
+    } catch (err) {
+        console.error(err);
+    }
+}
+
 async function highlightThumbnail() {
     const nodes = Array.prototype.slice.call(document.getElementsByClassName("gl1t"));
     if (!nodes || nodes.length === 0) {
@@ -191,88 +276,14 @@ async function highlightThumbnail() {
 
     for (let index = 0; index < nodes.length; index++) {
         const e = nodes[index];
-        try {
-            const subNode = e.getElementsByClassName("gl4t")[0];
-            const thumbnailNode = e.getElementsByTagName("img")[0];
-            let text = subNode.textContent;
-
-            if (text.includes("翻訳") || text.includes("翻译")) {
-                return;
-            }
-
-            let r1 = parse(text);
-
-            let useAuthorSearch = false;
-            let _text = text;
-            if (r1) {
-                if (r1.author) {
-                    _text = r1.author;
-                    useAuthorSearch = true;
-                } else if (r1.title) {
-                    _text = r1.title;
-                }
-            }
-            const tt = encodeURIComponent(_text);
-            const uri = `http://localhost:${everything_port}/?search="${tt}"&offset=0&json=1&path_column=1&size_column=1&date_modified_column=1`;
-            let res = await GM_xmlhttpRequest_promise("GET", uri);
-
-            res = JSON.parse(res.responseText)
-            const books_info = res.results;
-
-            let books = books_info
-                .filter(e => e.type === "folder" || (e.type === "file" && isCompress(e.name)))
-                .map(e => {
-                    if(e.type === "file"){
-                        return e.name.replace(compressTypesRegex, "");
-                    }else if(e.type === "folder"){
-                        return e.name;
-                    }
-                })
-            e.status = 0;
-
-            if(useAuthorSearch){
-                books = books.filter(e => {
-                    let rr = parse(e);
-                    if(rr && rr.author && rr.author.includes(_text)){
-                        return true;
-                    }
-                })
-            }
-
-            const { status, similarTitles } = checkIfDownload(text, books);
-
-            e.status = status || 0;
-            if (status === IS_IN_PC) {
-                subNode.style.color = "#61ef47";
-                addTooltip(thumbnailNode, "明确已经下载过了", similarTitles)
-            } else if (status === LIKELY_IN_PC) {
-                subNode.style.color = "#efd41b";
-                addTooltip(thumbnailNode, "电脑里面好像有", similarTitles)
-            } else if (status === SAME_AUTHOR) {
-                subNode.style.color = "#ef8787";
-                addTooltip(thumbnailNode, `下载同样作者“${r1.author}”的书 ${books.length}次`, books, "same_author")
-            }
-
-            if (status) {
-                if (r1) {
-                    appendLink(e, r1.author);
-                    // if (status >= LIKELY_IN_PC) {
-                    //     appendLink(e, r1.title);
-                    // }
-                } else {
-                    appendLink(e, text);
-                }
-                subNode.style.fontWeight = 600;
-            }
-        } catch (err) {
-            console.error(err);
-        }
+        console.log(index);
+        checkNode(e);
     }
 
     const finishTime = getCurrentTime();
     console.log((finishTime - timeMiddle2) / 1000, "to finish algo and change dom");
 
-    console.log((finishTime - begTime) / 1000, "for any time");
+    console.log((finishTime - begTime) / 1000, " done");
 }
 
 function addTooltip(node, title, books) {
