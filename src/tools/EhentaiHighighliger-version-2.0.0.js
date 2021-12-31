@@ -86,9 +86,9 @@ function isTwoBookTheSame(fn1, fn2) {
     if (isSimilarGroup) {
         let title1 = _clean(r1.title);
         let title2 = _clean(r2.title);
-        if (title1 === title2 || isHighlySimilar(title1, title2)) {
+        if (title1 === title2) {
             result = IS_IN_PC;
-        } else if (oneInsideOne(title1, title2)) {
+        } else if (oneInsideOne(title1, title2)  || isHighlySimilar(title1, title2)) {
             result = LIKELY_IN_PC;
         }
     }
@@ -129,9 +129,9 @@ function checkIfDownload(text, books) {
     for (let ii = 0; ii < books.length; ii++) {
         const fn2 = books[ii];
 
-        if (fn2 === text) {
+        if (fn2.trim() === text.trim()) {
             status = IS_IN_PC;
-            similarTitles.push(fn2);
+            similarTitles = [fn2];
             break;
         }
 
@@ -139,14 +139,19 @@ function checkIfDownload(text, books) {
 
         if (r2) {
             if (!compareInternalDigit(r1.title, r2.title)) {
+                similarTitles.push(fn2);
                 continue;
             }
-
-            status = Math.max(status, isTwoBookTheSame(text, fn2));
-            if (status === LIKELY_IN_PC) {
-                similarTitles.push(fn2);
-                //todo pick the most similar 
-                //or show all
+            if(isTwoBookTheSame(text, fn2) > status){
+                status = isTwoBookTheSame(text, fn2);
+                if (status == LIKELY_IN_PC) {
+                    similarTitles.push(fn2);
+                    //todo pick the most similar 
+                    //or show all
+                }else if (status == IS_IN_PC){
+                    similarTitles = [fn2];
+                    break;
+                }
             }
         } else {
             if (status < LIKELY_IN_PC && isHighlySimilar(fn2, text)) {
@@ -154,6 +159,10 @@ function checkIfDownload(text, books) {
                 similarTitles.push(fn2);
             }
         }
+    }
+
+    if(status > 0 && similarTitles.length == 0){
+        console.error("something wrong");
     }
 
     return {
@@ -276,12 +285,12 @@ async function highlightThumbnail() {
 
     for (let index = 0; index < nodes.length; index++) {
         const e = nodes[index];
-        console.log(index);
-        checkNode(e);
+        // console.log(index);
+        await checkNode(e);
     }
 
     const finishTime = getCurrentTime();
-    console.log((finishTime - timeMiddle2) / 1000, "to finish algo and change dom");
+    // console.log((finishTime - timeMiddle2) / 1000, "to finish algo and change dom");
 
     console.log((finishTime - begTime) / 1000, " done");
 }
