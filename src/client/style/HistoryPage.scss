@@ -6,6 +6,10 @@
   @include common_sub_container;
 
   .history-section {
+    .admin-section-title{
+      color: $font_color_black_two;
+    }
+
     .history-day-section {
       margin-bottom: 20px;
 
@@ -22,6 +26,10 @@
         padding-top: 5px;
         padding-bottom: 5px;
         margin-bottom: 5px;
+
+        span{
+          color: $font_color_black_two;
+        }
       }
     }
 

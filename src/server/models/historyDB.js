@@ -18,8 +18,9 @@ sqlDb.getSync = _util.promisify(sqlDb.get).bind(sqlDb);
 sqlDb.runSync = _util.promisify(sqlDb.run).bind(sqlDb);
 
 module.exports.init = async ()=> {
-    await sqlDb.runSync("CREATE TABLE IF NOT EXISTS history_table (filePath TEXT NOT NULL, dirPath TEXT, fileName TEXT, time INTEGER); \
-    CREATE INDEX IF NOT EXISTS fileName_index ON history_table (fileName)");
+    const sql = `CREATE TABLE IF NOT EXISTS history_table (filePath TEXT NOT NULL, dirPath TEXT, fileName TEXT, time INTEGER); 
+                 CREATE INDEX IF NOT EXISTS fileName_index ON history_table (fileName)`
+    await sqlDb.runSync(sql);
 }
 
 module.exports.getSQLDB = function () {
@@ -31,22 +32,32 @@ module.exports.addOneRecord = function (filePath) {
     const fileName = path.basename(filePath);
     const dirPath = path.dirname(filePath);
 
-    sqlDb.run("INSERT OR REPLACE INTO history_table(filePath, dirPath, fileName, time ) values(?, ?, ?, ?)",
-        filePath, dirPath, fileName, time);
+    // sql = "INSERT OR REPLACE INTO history_table(filePath, dirPath, fileName, time ) values(?, ?, ?, ?)";
+    sql = "INSERT INTO history_table(filePath, dirPath, fileName, time ) values(?, ?, ?, ?)";
+    sqlDb.run(sql, filePath, dirPath, fileName, time);
 }
 
 const back_days = 5;
 module.exports.getHistory = async function () {
     let time = util.getCurrentTime();
     time = time - 1000 * 3600 * 24 * back_days;
-    let rows = await sqlDb.allSync("SELECT filePath, MAX(time) as time FROM history_table where time > ? GROUP BY filePath", [time]);
+    // const sql = `SELECT  filePath, MAX(time) as time FROM 
+    //             (SELECT * FROM history_table where time > ?) 
+    //          GROUP BY filePath`
+    const sql = `SELECT * FROM history_table where time > ?`
+
+    let rows = await sqlDb.allSync(sql, [time]);
     return rows;
 }
 
+// SELECT *, strftime('%d-%m-%Y', datetime(time/1000, 'unixepoch')) FROM history_table ORDER BY time DESC
 module.exports.getHistoryByFP = async function (fileName) {
     // 一天算一次
     // let rows1 = await sqlDb.allSync("SELECT filePath, time FROM history_table WHERE fileName = ?", [fileName]);
-    let rows = await sqlDb.allSync("SELECT filePath, Max(time) as time FROM history_table WHERE fileName = ? GROUP BY strftime('%d-%m-%Y', datetime(time/1000, 'unixepoch')) ORDER BY time DESC", [fileName]);
+    const sql = `SELECT filePath, Max(time) as time FROM
+                 (SELECT * FROM history_table where time > ?)  
+                GROUP BY strftime('%d-%m-%Y', datetime(time/1000, 'unixepoch')) ORDER BY time DESC`
+    let rows = await sqlDb.allSync(sql, [fileName]);
     return rows;
 }
 
