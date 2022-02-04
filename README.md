@@ -52,9 +52,12 @@
 
 ##### 使用
 
-windows的话，直接下载压缩包解压。
-修改ini文件，然后点击ShiguReader.exe
-其他系统或者开发者需要参考[Readme_Env_Setup](https://github.com/hjyssg/ShiguReader/blob/dev/Readme_Env_Setup.md)
+请阅读[Readme_Env_Setup](https://github.com/hjyssg/ShiguReader/blob/dev/Readme_Env_Setup.md)
+
+2020年的旧版本支持exe一键运行。  
+修改ini文件，然后点击ShiguReader.exe即可。  
+新版本使用sqlite，exe打包太麻烦了，弄半天搞不定。  
+
 
 ##### 第三方依赖
 
