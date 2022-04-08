@@ -94,10 +94,15 @@ export default class VideoPlayer extends Component {
     const videoRef = this.dp.video;
     const hh = videoRef.videoHeight; // returns the intrinsic height of the video
     const ww = videoRef.videoWidth;
+
+    var doc_width = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
+    var doc_height = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
+
+    const scale = clientUtil.isMobile()? 0.9: 0.7;
     if (hh > ww) {
-      videoRef.className = "vertical-video"
+      videoRef.style.height = doc_height * scale + "px";
     }else{
-      videoRef.className = "horizontal-video"
+      videoRef.style.width = doc_width * scale + "px";
     }
 
     const filePath = this.getTextFromQuery();
