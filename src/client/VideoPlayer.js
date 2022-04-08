@@ -90,26 +90,41 @@ export default class VideoPlayer extends Component {
     }
   }
 
-  onLoadedmetadata() {
+ adjustHW(){
     const videoRef = this.dp.video;
     const hh = videoRef.videoHeight; // returns the intrinsic height of the video
     const ww = videoRef.videoWidth;
-
     var doc_width = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
     var doc_height = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
-
     const scale = clientUtil.isMobile()? 0.9: 0.7;
     if (hh > ww) {
       videoRef.style.height = doc_height * scale + "px";
     }else{
       videoRef.style.width = doc_width * scale + "px";
     }
+  }
+
+  onLoadedmetadata() {
+    this.adjustHW();
 
     const filePath = this.getTextFromQuery();
     const previous = parseFloat(Cookie.get(filePath));
     if(previous > 1 ){
       this.dp.seek(previous)
     }
+
+    const that = this;
+    this.dp.on('fullscreen', function () {
+      console.log('player fullscreen');
+      const videoRef = that.dp.video;
+      videoRef.style.height = "";
+       videoRef.style.width = "";
+    });
+
+    this.dp.on('fullscreen_cancel', function () {
+      console.log('player fullscreen cancel');
+      that.adjustHW();
+    });
   }
 
   render() {
