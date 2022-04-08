@@ -573,10 +573,10 @@ export default class FileChangeToolbar extends Component {
 
 
 
-        const { etc_config } = this.context;
-        if (!clientUtil.isAuthorized(etc_config)) {
-            return <div className={cn} > {this.renderDownloadLink()}</div>;
-        }
+        // const { etc_config } = this.context;
+        // if (!clientUtil.isAuthorized(etc_config)) {
+        //     return <div className={cn} > {this.renderDownloadLink()}</div>;
+        // }
 
         let secondRow;
 

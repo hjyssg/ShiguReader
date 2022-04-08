@@ -165,6 +165,8 @@ export default class AdminPage extends Component {
     }
 
     renderPasswordInput() {
+        return null;
+
         let content;
         const { etc_config } = this.context;
         if (clientUtil.isAuthorized(etc_config)) {
@@ -204,8 +206,12 @@ export default class AdminPage extends Component {
     }
 
     renderRemoteShutDown() {
-        const { etc_config } = this.context;
-        if (clientUtil.isLocalHost() || !clientUtil.isAuthorized(etc_config)) {
+        // const { etc_config } = this.context;
+        // if (clientUtil.isLocalHost() || !clientUtil.isAuthorized(etc_config)) {
+        //     return;
+        // }
+
+        if(clientUtil.isLocalHost()){
             return;
         }
 
