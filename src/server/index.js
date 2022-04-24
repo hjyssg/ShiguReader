@@ -515,9 +515,16 @@ app.post("/api/logout", async (req, res) => {
     res.send({ failed: false });
 })
 
+const exception_apis = [
+    "/api/search",
+    "/api/simple_search"
+]
 
+//check if login
 app.use((req, res, next) => {
-    if(req.cookies && req.cookies["login-token"] && token_set[req.cookies["login-token"]]){
+    if(exception_apis.some(e => (req.path.includes(e)))){
+        next();
+    } else if(req.cookies && req.cookies["login-token"] && token_set[req.cookies["login-token"]]){
         next();
     }else{
         res.cookie('login-token', "")
@@ -628,10 +635,18 @@ async function extractThumbnailFromZip(filePath, res, mode, config) {
             if (!thumb) {
                 throw "no img in this file";
             }
-            const stderrForThumbnail = await extractByRange(filePath, outputPath, [thumb])
-            if (stderrForThumbnail) {
-                throw "extract exec failed";
+
+            const temp = cacheDb.getCacheFiles(outputPath);
+            if (temp && temp.files === files.length) {
+                debugger
+                //skip
+            }else{
+                const stderrForThumbnail = await extractByRange(filePath, outputPath, [thumb])
+                if (stderrForThumbnail) {
+                    throw "extract exec failed";
+                }
             }
+           
             // send original img path to client as thumbnail
             let original_thumb = path.join(outputPath, path.basename(thumb));
             sendImage(original_thumb);

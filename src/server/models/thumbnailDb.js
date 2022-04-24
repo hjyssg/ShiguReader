@@ -23,7 +23,8 @@ module.exports.init = async ()=> {
     CREATE INDEX IF NOT EXISTS filePath_index ON thumbnail_table (filePath)");
     await syncInterbalDict()
 
-    await clean();
+    // comment out when needed
+    // await clean();
 }
 
 module.exports.addNewThumbnail = function (filePath, thumbnailFilePath) {

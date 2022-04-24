@@ -215,33 +215,39 @@ async function checkNode(e){
         const tt = encodeURIComponent(_text);
         const uri = `http://localhost:${everything_port}/?search="${tt}"&offset=0&json=1&path_column=1&size_column=1&date_modified_column=1`;
         let res = await GM_xmlhttpRequest_promise("GET", uri);
+        let books;
+        if(!res){
+            const uri2 = `http://localhost:3000/api/simple_search/${tt}`;
+            let res = await GM_xmlhttpRequest_promise("POST", uri2);
+            res = JSON.parse(res.responseText)
+            books = res;
+        }else{
+            res = JSON.parse(res.responseText)
+            const books_info = res.results;
+            books = books_info
+                .filter(e => e.type === "folder" || (e.type === "file" && isCompress(e.name)))
+                .map(e => {
+                    if(e.type === "file"){
+                        return e.name.replace(compressTypesRegex, "");
+                    }else if(e.type === "folder"){
+                        return e.name;
+                    }
+                })
+            e.status = 0;
+            // console.log(books);
+            if(useAuthorSearch){
+                books = books.filter(e => {
+                    let rr = parse(e);
+                    if(rr && rr.author && rr.author.includes(_text)){
+                        return true;
+                    }
+                })
+            }
+        }
 
-        res = JSON.parse(res.responseText)
-        const books_info = res.results;
-
-   
-
-        let books = books_info
-            .filter(e => e.type === "folder" || (e.type === "file" && isCompress(e.name)))
-            .map(e => {
-                if(e.type === "file"){
-                    return e.name.replace(compressTypesRegex, "");
-                }else if(e.type === "folder"){
-                    return e.name;
-                }
-            })
-        e.status = 0;
-
-        
-        // console.log(books);
-
-        if(useAuthorSearch){
-            books = books.filter(e => {
-                let rr = parse(e);
-                if(rr && rr.author && rr.author.includes(_text)){
-                    return true;
-                }
-            })
+        if(!books){
+            console.warn("null res");
+            return;
         }
 
         const { status, similarTitles } = checkIfDownload(text, books);

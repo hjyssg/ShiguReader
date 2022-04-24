@@ -182,3 +182,5 @@ async function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
 }
 
 module.exports.searchByTagAndAuthor = searchByTagAndAuthor;
+module.exports.searchByText = searchByText;
+

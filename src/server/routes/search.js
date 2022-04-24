@@ -1,8 +1,9 @@
 const express = require('express');
 const router = express.Router();
-const { searchByTagAndAuthor } = require("../searchUtil");
+const { searchByTagAndAuthor, searchByText } = require("../searchUtil");
 const Constant = global.requireConstant();
 const { MODE_TAG, MODE_AUTHOR, MODE_SEARCH } = Constant;
+const path = require('path');
 
 // three para 1.mode 2.text
 router.post("/api/search", async (req, res) => {
@@ -20,5 +21,18 @@ router.post("/api/search", async (req, res) => {
         res.send(temp);
     }
 });
+
+
+router.post("/api/simple_search/:text", async (req, res) => {
+    const text = req.params.text;
+    const temp = await searchByText(text);
+    const zipResult = temp.zipResult;
+
+    const fn = filePath => path.basename(filePath, path.extname(filePath));
+
+    res.send(zipResult.map(e => fn(e.fileName)));
+});
+
+
 
 module.exports = router;
