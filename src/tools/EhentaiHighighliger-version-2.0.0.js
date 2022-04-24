@@ -213,15 +213,16 @@ async function checkNode(e){
             }
         }
         const tt = encodeURIComponent(_text);
-        const uri = `http://localhost:${everything_port}/?search="${tt}"&offset=0&json=1&path_column=1&size_column=1&date_modified_column=1`;
-        let res = await GM_xmlhttpRequest_promise("GET", uri);
+        const uri2 = `http://localhost:3000/api/simple_search/${tt}`;
+        let res = await GM_xmlhttpRequest_promise("POST", uri2);
         let books;
-        if(!res){
-            const uri2 = `http://localhost:3000/api/simple_search/${tt}`;
-            let res = await GM_xmlhttpRequest_promise("POST", uri2);
-            res = JSON.parse(res.responseText)
+        if(res){
+            res = JSON.parse(res.responseText);
             books = res;
+            e.status = 0;
         }else{
+            const uri = `http://localhost:${everything_port}/?search="${tt}"&offset=0&json=1&path_column=1&size_column=1&date_modified_column=1`;
+            let res = await GM_xmlhttpRequest_promise("GET", uri);
             res = JSON.parse(res.responseText)
             const books_info = res.results;
             books = books_info
