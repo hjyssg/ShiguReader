@@ -17,9 +17,9 @@ router.post('/api/getHistoryByFP', async (req, res) => {
 });
 
 router.post('/api/getHistory', async (req, res) => {
-    const history = await historyDb.getHistory();
-    res.send({
-        history
-    })
+    let page = req.body && req.body.page;
+    page = parseInt(page);
+    const history = await historyDb.getHistory(page);
+    res.send(history);
 });
 module.exports = router;

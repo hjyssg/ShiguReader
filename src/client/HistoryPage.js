@@ -16,6 +16,8 @@ const dateFormat = require('dateformat');
 import { GlobalContext } from './globalContext'
 const util = require("@common/util");
 const classNames = require('classnames');
+import Pagination from './subcomponent/Pagination';
+
 
 function renderHistory(history) {
 
@@ -37,7 +39,7 @@ function renderHistory(history) {
 
         items = _.sortBy(items, e => -e.time);
 
-        const dayHistory = items.map(e => {
+        const dayHistory = items.map((e, ii) => {
             const filePath = e.filePath;
             const toUrl = util.isVideo(filePath)? 
                           clientUtil.getVideoPlayerLink(filePath) : 
@@ -50,7 +52,7 @@ function renderHistory(history) {
             });
 
             return (
-                <Link to={toUrl} key={filePath} className={"history-link"}>
+                <Link to={toUrl} key={filePath + ii} className={"history-link"}>
                     <div className="history-one-line-list-item" key={filePath}>
                         <span className={cn} /> 
                         <span className="file-text" title={filePath}> {getBaseName(filePath)||filePath}</span>
@@ -82,22 +84,43 @@ function renderHistory(history) {
 export default class HistoryPage extends Component {
     constructor(prop) {
         super(prop);
-        this.state = { };
+        this.state = { pageIndex: 0, totalCount: 0 };
     }
 
     componentDidMount() {
-        this.requestHistory();
+        this.requestHistory(this.state.pageIndex);
     }
 
-    requestHistory() {
-        Sender.post("/api/getHistory", {}, res => {
-            let { history } = res.json;
-            history = history || [];
+    requestHistory(pageIndex) {
+        Sender.post("/api/getHistory", {page: pageIndex}, res => {
+            let { rows, count } = res.json;
+            let history = rows || [];
             history.forEach(e => {
                 e.time = parseInt(e.time);
             })
-            this.setState({history, res})
+            this.setState({history, res, totalCount: count})
         });
+    }
+
+
+    handlePageChange(index) {
+        this.setState({
+            pageIndex: index,
+            history: []
+        });
+        this.requestHistory(index);
+    }
+    
+    renderPagination() {
+        return (<div className="pagination-container">
+            <Pagination ref={ref => this.pagination = ref}
+                currentPage={this.state.pageIndex}
+                itemPerPage={200}
+                totalItemNum={this.state.totalCount}
+                onChange={this.handlePageChange.bind(this)}
+                // onExtraButtonClick={this.toggleItemNum.bind(this)}
+                // linkFunc={clientUtil.linkFunc}
+            /></div>);
     }
 
     render() {
@@ -110,6 +133,7 @@ export default class HistoryPage extends Component {
         }else{
             return (
                 <div className="history-container container">
+                    {this.renderPagination()}
                     {renderHistory(this.state.history)}
                 </div>)
         }

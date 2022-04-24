@@ -38,16 +38,21 @@ module.exports.addOneRecord = function (filePath) {
 }
 
 const back_days = 5;
-module.exports.getHistory = async function () {
-    let time = util.getCurrentTime();
-    time = time - 1000 * 3600 * 24 * back_days;
+module.exports.getHistory = async function (page=0) {
+    // let time = util.getCurrentTime();
+    // time = time - 1000 * 3600 * 24 * back_days;
     // const sql = `SELECT  filePath, MAX(time) as time FROM 
     //             (SELECT * FROM history_table where time > ?) 
     //          GROUP BY filePath`
-    const sql = `SELECT * FROM history_table where time > ?`
+    // const sql = `SELECT * FROM history_table where time > ?`
 
-    let rows = await sqlDb.allSync(sql, [time]);
-    return rows;
+    const sql = `SELECT * FROM history_table ORDER BY time DESC LIMIT ${page*200}, ${(page+1)*200}`
+    let rows = await sqlDb.allSync(sql);
+    // return rows;
+
+    const sql2 = `SELECT count(*) as count FROM history_table`
+    let counts = await sqlDb.allSync(sql2);
+    return {rows, count: counts[0]["count"]}
 }
 
 // SELECT *, strftime('%d-%m-%Y', datetime(time/1000, 'unixepoch')) FROM history_table ORDER BY time DESC

@@ -522,6 +522,7 @@ const exception_apis = [
 
 //check if login
 app.use((req, res, next) => {
+    console.log("[" + req.path+ "]" + new Date());
     if(exception_apis.some(e => (req.path.includes(e)))){
         next();
     } else if(req.cookies && req.cookies["login-token"] && token_set[req.cookies["login-token"]]){
