@@ -90,7 +90,7 @@ async function searchOnEverything(text) {
 
 async function searchByText(text) {
     const sqldb = db.getSQLDB();
-    let sql = `SELECT * FROM file_table WHERE INSTR(filePath, ?) > 0`;
+    let sql = `SELECT * FROM file_table WHERE INSTR(LOWER(filePath), LOWER(?)) > 0`;
     let rows = await sqldb.allSync(sql, [text]);
     return splitRows(rows, text);
 }
@@ -121,7 +121,7 @@ async function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
             //inner joiner then group by
             let sql = `SELECT a.* `
                 + `FROM file_table AS a INNER JOIN tag_table AS b `
-                + `ON a.filePath = b.filePath AND INSTR(b.tag, ?) > 0`;
+                + `ON a.filePath = b.filePath AND INSTR(LOWER(b.tag), LOWER(?)) > 0`;
             let rows = await sqldb.allSync(sql, [at_text]);
             const tag_obj = splitRows(rows, at_text);
             zipResult = tag_obj.zipResult;
