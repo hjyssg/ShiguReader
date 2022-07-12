@@ -81,6 +81,10 @@ export default class OneBook extends Component {
     let change = $(window).scrollTop() + (this.clickY - e.pageY) * ADJUSTER;
     $(window).scrollTop(change);
     // console.log(change)
+
+
+    change = $(window).scrollLeft() + (this.clickX - e.pageX) * ADJUSTER;
+    $(window).scrollLeft(change);
   }
 
   getMaxHeight() {
@@ -133,6 +137,7 @@ export default class OneBook extends Component {
 
     this.clicked = false;
     this.clickY = 0;
+    this.clickX = 0;
 
     //set max height
     const maxHeight = this.getMaxHeight();
@@ -270,6 +275,7 @@ export default class OneBook extends Component {
       'mousedown': function (e) {
         that.clicked = true;
         that.clickY = e.pageY;
+        that.clickX = e.pageX;
         e.preventDefault();
       },
       'mouseup': function (e) {
