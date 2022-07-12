@@ -59,9 +59,13 @@ module.exports.getHistory = async function (page=0) {
 module.exports.getHistoryByFP = async function (fileName) {
     // 一天算一次
     // let rows1 = await sqlDb.allSync("SELECT filePath, time FROM history_table WHERE fileName = ?", [fileName]);
+    // const sql = `SELECT filePath, Max(time) as time FROM
+    //              (SELECT * FROM history_table where time > ?)  
+    //             GROUP BY strftime('%d-%m-%Y', datetime(time/1000, 'unixepoch')) ORDER BY time DESC`
+
     const sql = `SELECT filePath, Max(time) as time FROM
-                 (SELECT * FROM history_table where time > ?)  
-                GROUP BY strftime('%d-%m-%Y', datetime(time/1000, 'unixepoch')) ORDER BY time DESC`
+     (SELECT * FROM history_table where fileName = ?)  
+     GROUP BY strftime('%d-%m-%Y', datetime(time/1000, 'unixepoch')) ORDER BY time DESC`
     let rows = await sqlDb.allSync(sql, [fileName]);
     return rows;
 }
@@ -95,7 +99,7 @@ module.exports.getFileHistory = async function (pathes) {
     rows = rows.filter(e => !!e);
 
     let end3 = getCurrentTime();
-    console.log(`[getFileHistory] ${(end3 - end1) / 1000}s for ${fileNames.length} zips`);
+    // console.log(`[getFileHistory] ${(end3 - end1) / 1000}s for ${fileNames.length} zips`);
 
     return rows;
 }
