@@ -425,7 +425,7 @@ async function getThumbnailForFolders(filePathes) {
 
 
     let end3 = getCurrentTime();
-    console.log(`[getThumbnailForFolders] ${(end3 - end1) / 1000}s`);
+    // console.log(`[getThumbnailForFolders] ${(end3 - end1) / 1000}s`);
     return result;
 }
 
@@ -517,12 +517,13 @@ app.post("/api/logout", async (req, res) => {
 
 const exception_apis = [
     "/api/search",
-    "/api/simple_search"
+    "/api/simple_search",
+    "/api/download"
 ]
 
 //check if login
 app.use((req, res, next) => {
-    console.log("[" + req.path+ "]" + new Date());
+    //console.log("[" + req.path+ "]" + new Date());
     if(exception_apis.some(e => (req.path.includes(e)))){
         next();
     } else if(req.cookies && req.cookies["login-token"] && token_set[req.cookies["login-token"]]){
