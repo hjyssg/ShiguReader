@@ -314,7 +314,8 @@ function setUpFileWatch(scan_path) {
             init_count++;
             if (init_count % 2000 === 0) {
                 let end1 = getCurrentTime();
-                console.log(`[chokidar] scan: ${(end1 - beg) / 1000}s  ${init_count} ${fp}`);
+                let np = fp.slice(0, 12) + "..." + fp.slice(fp.length - 8);
+                console.log(`[chokidar] scan: ${(end1 - beg) / 1000}s  ${init_count} ${np}`);
             }
         }
     };
