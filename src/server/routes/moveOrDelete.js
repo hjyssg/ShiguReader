@@ -46,7 +46,7 @@ router.post('/api/renameFile', async (req, res) => {
 
         if (err) { throw err; }
 
-        logger.info(`[rename] ${src} to ${dest}`);
+        // logger.info(`[rename] ${src} to ${dest}`);
         res.send({ failed: false, dest });
 
         serverUtil.common.moveCallBack(src, dest);
@@ -92,7 +92,7 @@ router.post('/api/moveFile', async (req, res) => {
 
         if (err) { throw err; }
 
-        logger.info(`[MOVE] ${src} to ${dest}`);
+        // logger.info(`[MOVE] ${src} to ${dest}`);
 
         res.send({ failed: false, dest: destFP });
 
@@ -134,7 +134,7 @@ router.post('/api/deleteFile', async (req, res) => {
     try {
         await deleteThing(src);
         res.send({ failed: false });
-        logger.info(`[DELETE] ${src}`);
+        // logger.info(`[DELETE] ${src}`);
 
         serverUtil.common.deleteCallBack(src);
     } catch (e) {
@@ -162,7 +162,7 @@ router.post('/api/deleteFolder', async (req, res) => {
     try {
         await deleteThing(src);
         res.send({ failed: false });
-        logger.info(`[DELETE] ${src}`);
+        // logger.info(`[DELETE] ${src}`);
     } catch (e) {
         console.error(e);
         res.send({ reason: file_occupy_warning, failed: true });
@@ -190,7 +190,7 @@ router.post('/api/zipFolder', async (req, res) => {
             throw stderr;
         }
         res.send({ failed: false, dest: resultZipPath });
-        logger.info(`[zipFolder] ${src}`);
+        // logger.info(`[zipFolder] ${src}`);
     } catch (e) {
         console.error(e);
         res.send({ reason: "fail to zip", failed: true });
