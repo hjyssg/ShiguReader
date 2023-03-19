@@ -21,7 +21,7 @@ sqlDb.runSync = _util.promisify(sqlDb.run).bind(sqlDb);
 module.exports.init = async ()=> {
     await sqlDb.runSync("CREATE TABLE IF NOT EXISTS thumbnail_table (filePath TEXT, thumbnailFileName TEXT);\
     CREATE INDEX IF NOT EXISTS filePath_index ON thumbnail_table (filePath)");
-    await syncInterbalDict()
+    await syncInternalDict()
 
     // comment out when needed
     // await clean();
@@ -43,7 +43,7 @@ function _add_col(rows) {
 }
 
 const _internal_dict_ = {};
-async function syncInterbalDict(){
+async function syncInternalDict(){
     const sql = `SELECT * FROM  thumbnail_table`;
     let rows = await sqlDb.allSync(sql)
 
