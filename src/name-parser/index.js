@@ -49,6 +49,7 @@ same_tag_matrix.sort((r1, r2) => {
 const localCache = {};
 
 const comicket_reg = /^C\d{2}$/i;
+const comicket_reg_2 = /^C1\d{2}$/i;
 const air_comicket_reg = /^エアコミケ\d{1}$/i;
 const comic_star_reg = /^COMIC1☆\d{1,2}$/i;
 const love_live_event_reg = /^僕らのラブライブ!/i;
@@ -57,7 +58,7 @@ const sankuri_reg = /^サンクリ.*\d+/;
 const reitaisai_reg = /^例大祭.*\d+/;
 const tora_reg = /^とら祭り.*\d+/;
 const komitore_reg = /^こみトレ.*\d+/;
-const reg_list = [comicket_reg, air_comicket_reg, comic_star_reg, love_live_event_reg,
+const reg_list = [comicket_reg, air_comicket_reg, comicket_reg_2, comic_star_reg, love_live_event_reg,
     comitea_reg, sankuri_reg, reitaisai_reg,
     tora_reg, komitore_reg, /みみけっと.*\d+/,
     /コミトレ.*\d+/, /FF\d+/, /iDOL SURVIVAL.*\d/i,
@@ -110,6 +111,10 @@ function getDateFromComiket(comiket) {
         } else {
             result = new Date(2020, 11, 30);
         }
+    } else if (comiket.match(comicket_reg_2)) {
+        comiket = comiket.replace("C", "");
+        num = parseInt(comiket);
+        result = new Date(2022, 8, 13);
     } else if (comiket.match(comic_star_reg)) {
         comiket = comiket.replace("COMIC1☆", "");
         num = parseInt(comiket);
