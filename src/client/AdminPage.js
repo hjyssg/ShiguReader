@@ -15,6 +15,7 @@ const AdminUtil = require("./AdminUtil");
 import { GlobalContext } from './globalContext'
 // const util = require("@common/util");
 const classNames = require('classnames');
+import {QRCodeSVG} from 'qrcode.react';
 
 function MinifyZipQueSection(){
     const [minifyZipQue, setMinifyZipQue] = useState([]);
@@ -218,6 +219,27 @@ export default class AdminPage extends Component {
         return <button onClick={this.onclickShutDown.bind(this)}> Recomote shutdown </button>;
     }
 
+    renderQRCode(){
+        try{
+            // https://www.npmjs.com/package/qrcode.react
+            let data = sessionStorage.getItem('GeneralInfo');
+            data = JSON.parse(data);
+            if(data.server_ip){
+                return (
+                    <div className="admin-section">
+                    <div className="admin-section-title" title="QR Code"> LAN Address</div>
+                    <div className="admin-section-content">
+                        <div style={{marginBottom: "5px"}}>{data.server_ip}</div>
+                        <QRCodeSVG value={data.server_ip} />
+                    </div>
+                    </div>
+                )
+            }
+        }catch(e){
+            console.error(e);
+        }
+    }
+
     render() {
         document.title = "Admin"
         let folder_list = this.state.dirs.slice();
@@ -240,6 +262,7 @@ export default class AdminPage extends Component {
 
 
                 <CacheSection />
+                {this.renderQRCode()}
                 {this.renderRemoteShutDown()}
                 <MinifyZipQueSection />
                 <LogoutSection />

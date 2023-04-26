@@ -99,6 +99,13 @@ try {
     console.warn(e);
 }
 
+const internalIp = require('internal-ip');
+async function getIP(){
+    const lanIP = await internalIp.v4();
+    const mobileAddress = `http://${lanIP}:${http_port}`;
+    return mobileAddress;
+}
+
 async function init() {
     if (isWindows()) {
         const { stdout, stderr } = await execa("chcp");
@@ -137,12 +144,10 @@ async function init() {
         console.log(`http://localhost:${http_port}`);
 
         try {
-            const internalIp = require('internal-ip');
-            const lanIP = await internalIp.v4();
-            const mobileAddress = `http://${lanIP}:${http_port}`;
-            console.log(mobileAddress);
+            const ip = await getIP();
+            console.log(ip);
             console.log("Scan the QR code to open on mobile devices");
-            qrcode.generate(mobileAddress);
+            qrcode.generate(ip);
         } catch (e) { }
 
 
@@ -925,12 +930,12 @@ app.post('/api/extract', async (req, res) => {
 
 app.post('/api/getGeneralInfo', async (req, res) => {
     let os = isWindows() ? "windows" : "linux";
-
+    const ip = await getIP();
     const result = {
         server_os: os,
         file_path_sep: path.sep,
         has_magick: global._has_magick_,
-
+        server_ip: ip,
         etc_config,
 
         good_folder: global.good_folder,
