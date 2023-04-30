@@ -7,6 +7,7 @@ const isWindows = require('is-windows');
 const util = global.requireUtil();
 const historyDb = require("../models/historyDb");
 const pathUtil = require("../pathUtil");
+const memorycache = require('memory-cache');
 
 
 let hdd_list = [];
@@ -30,7 +31,12 @@ if (isWindows()) {
 }
 
 router.post('/api/homePagePath', async (req, res) => {
-    // let beg = (new Date).getTime();
+    const cacheKey = "homePagePathCacheKey";
+    if(memorycache.get(cacheKey)){
+        res.send(memorycache.get(cacheKey))
+        return;
+    }
+
     let dirs = global.scan_path || [];
     // dirs = dirs.filter(e => {
     //     if (e) {
@@ -53,14 +59,14 @@ router.post('/api/homePagePath', async (req, res) => {
     if (dirs.length === 0 && hdd_list.length === 0 && quickAccess.length === 0) {
         res.send({ failed: true, reason: "config-path.ini has no path" });
     } else {
-        res.send({
+        let result = {
             dirs,
             hdd_list,
             quickAccess
-        })
-    }
+        }
+        res.send(result)
 
-    // let end1 = (new Date).getTime();
-    // console.log(`${(end1 - beg)/1000}s to /api/homePagePath`);
+        memorycache.put(cacheKey, result, 30 * 1000);
+    }
 });
 module.exports = router;

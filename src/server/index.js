@@ -8,8 +8,9 @@ const isWindows = require('is-windows');
 const qrcode = require('qrcode-terminal');
 const fs = require('fs');
 const ini = require('ini');
-
+const memorycache = require('memory-cache');
 global.requireUtil = () => require("../common/util");
+
 
 
 global.requireUserConfig = () => require("../config/user-config");
@@ -572,6 +573,7 @@ app.post("/api/getFileHistory", async (req, res) => {
     res.send({ failed: false, fileHistory });
 });
 
+
 app.post("/api/getTagThumbnail", async (req, res) => {
     const author = req.body && req.body.author;
     const tag = req.body && req.body.tag;
@@ -580,13 +582,22 @@ app.post("/api/getTagThumbnail", async (req, res) => {
         return;
     }
 
+    const cacheKey = tag || author;
+    let oneThumbnail = memorycache.get[cacheKey];
+    if(oneThumbnail){
+        res.send({
+            url: oneThumbnail
+        })
+        return;
+    }
+
     const onlyNeedFew = true;
     const searchResult = await searchByTagAndAuthor(tag, author, null, onlyNeedFew);
     let { fileInfos, thumbnails } = searchResult;
-    
     const thumbnailPathes =  _.values(thumbnails);
-    const oneThumbnail = thumbnailPathes[0];
+    oneThumbnail = thumbnailPathes[0];
     if(oneThumbnail){
+        memorycache.put(cacheKey, oneThumbnail, 20*1000);
         res.send({
             url: oneThumbnail
         })
@@ -938,21 +949,30 @@ app.post('/api/extract', async (req, res) => {
     }
 });
 
-app.post('/api/getGeneralInfo', async (req, res) => {
-    let os = isWindows() ? "windows" : "linux";
-    const ip = await getIP();
-    const result = {
-        server_os: os,
-        file_path_sep: path.sep,
-        has_magick: global._has_magick_,
-        server_ip: ip,
-        etc_config,
 
-        good_folder: global.good_folder,
-        not_good_folder: global.not_good_folder,
-        additional_folder: global.scan_path
-    };
-    res.send(result)
+app.post('/api/getGeneralInfo', async (req, res) => {
+    const cacheKey = "GeneralInfoCacheKey";
+    let result = memorycache.get(cacheKey);
+    if(result){
+        res.send(result)
+    }else{
+        let os = isWindows() ? "windows" : "linux";
+        const ip = await getIP();
+        result = {
+            server_os: os,
+            file_path_sep: path.sep,
+            has_magick: global._has_magick_,
+            server_ip: ip,
+            etc_config,
+    
+            good_folder: global.good_folder,
+            not_good_folder: global.not_good_folder,
+            additional_folder: global.scan_path
+        };
+    
+        memorycache.put(cacheKey, result, 30 * 1000)
+        res.send(result)
+    }
 });
 
 

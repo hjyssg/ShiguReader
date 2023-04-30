@@ -45,6 +45,7 @@
     "junk": "^3.1.0",
     "lokijs": "^1.5.8",
     "mecab-async": "^0.1.2",
+    "memory-cache": "^0.2.0",
     "p-limit": "^2.1.0",
     "promise-fs": "^2.1.1",
     "prop-types": "^15.6.2",
