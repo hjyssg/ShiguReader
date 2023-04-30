@@ -376,14 +376,6 @@ async function getThumbnailsForZip(filePathes) {
 
         if (isCompress(filePath)) {
             //从cache找thumbnail意义不大
-            //get cache file
-            // const outputPath = path.join(cachePath, getHash(filePath));
-            // let cacheFiles = cacheDb.getCacheFiles(outputPath);
-            // cacheFiles = (cacheFiles && cacheFiles.files) || [];
-            // let thumb = serverUtil.chooseThumbnailImage(cacheFiles);
-            // if (thumb) {
-            //     thumbnails[filePath] = thumb;
-            // } else
             if (zipInfoDb.has(filePath)) {
                 const pageNum = zipInfoDb.getZipInfo(filePath).pageNum;
                 if (pageNum === 0) {
@@ -817,6 +809,7 @@ async function getSameFileName(filePath) {
 }
 
 const current_extract_queue = {};
+const extract_result_cache = {};
 app.post('/api/extract', async (req, res) => {
     let filePath = req.body && req.body.filePath;
     const startIndex = (req.body && req.body.startIndex) || 0;
@@ -853,28 +846,37 @@ app.post('/api/extract', async (req, res) => {
 
         const mecab_tokens = await global.mecab_getTokens(path);
 
-        res.send({ imageFiles: tempFiles, musicFiles, videoFiles, path, outputPath, stat, zipInfo, mecab_tokens });
+        let result = { imageFiles: tempFiles, musicFiles, videoFiles, path, outputPath, stat, zipInfo, mecab_tokens };
+        extract_result_cache[filePath] = result;
+        res.send(result);
 
-        historyDb.addOneRecord(filePath)
+        historyDb.addOneRecord(filePath);
     }
 
     const outputPath = path.join(cachePath, getHash(filePath));
-    const temp = cacheDb.getCacheFiles(outputPath);
-
+    // const temp = cacheDb.getCacheFiles(outputPath);
+    // TODO 各种情况的避免重新解压
     // check if alreay unzip
-    if (zipInfoDb.has(filePath) && temp) {
-        let tempZipInfo = zipInfoDb.getZipInfo(filePath);
-        const totalNum = tempZipInfo.totalNum;
-        const _files = temp.files || [];
+    // if (zipInfoDb.has(filePath) && temp) {
+    //     let tempZipInfo = zipInfoDb.getZipInfo(filePath);
+    //     const totalNum = tempZipInfo.totalNum;
+    //     const _files = temp.files || [];
 
-        if (totalNum > 0 && _files.length >= totalNum) {
-            sendBack(temp, filePath, stat);
-            return;
-        } else if (totalNum === 0) {
-            sendBack({}, filePath, stat);
-            return;
-        }
+    //     if (totalNum > 0 && _files.length >= totalNum) {
+    //         sendBack(temp, filePath, stat);
+    //         return;
+    //     } else if (totalNum === 0) {
+    //         sendBack({}, filePath, stat);
+    //         return;
+    //     }
+    // }
+
+    // 这样zip内容改变对应不了，但我很少这么操作
+    if(extract_result_cache[filePath]){
+        res.send(extract_result_cache[filePath]);
+        return;
     }
+
 
     let hasDuplicate = false;
     async function _extractAll_(){
@@ -915,35 +917,28 @@ app.post('/api/extract', async (req, res) => {
         } else {
             //spit one zip into two uncompress task
             //so user can have a quicker response time
-
-            //  sort by type 优先图片
+            //  优先图片
             serverUtil.sortFileNames(imgfiles);
-            files = [...imgfiles, ...musicFiles];
-            
-            //choose range wisely
+            const tempfiles = [...imgfiles, ...musicFiles];
             const PREV_SPACE = 2;
             //cut the array into 3 parts
             let beg = startIndex - PREV_SPACE;
             let end = startIndex + full_extract_max - PREV_SPACE;
-            const firstRange = arraySlice(files, beg, end);
-            let secondRange = files.filter(e => {
+            const firstRange = arraySlice(tempfiles, beg, end);
+            let secondRange = tempfiles.filter(e => {
                 return !firstRange.includes(e);
             })
             secondRange = [...secondRange,  ...videoFiles];
-
-            //dev checking
-            if (firstRange.length + secondRange.length !== files.length) {
-                throw "arraySlice wrong";
-            }
+            const totalRange = [...firstRange, ...secondRange];
 
             let stderr = await extractByRange(filePath, outputPath, firstRange)
             if (!stderr) {
-                const outputPathes = files.map(e => path.resolve(outputPath,  path.basename(e)));
+                const outputPathes = totalRange.map(e => path.resolve(outputPath,  path.basename(e)));
                 const temp = generateContentUrl(outputPathes, outputPath);
                 sendBack(temp, filePath, stat);
                 const time2 = getCurrentTime();
                 const timeUsed = (time2 - time1);
-                console.log(`[/api/extract] FIRST PART UNZIP ${filePath} : ${timeUsed}ms`);
+                // console.log(`[/api/extract] FIRST PART UNZIP ${filePath} : ${timeUsed}ms`);
 
                 await extractByRange(filePath, outputPath, secondRange);
             } else {
