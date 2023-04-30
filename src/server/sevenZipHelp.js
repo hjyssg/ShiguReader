@@ -83,9 +83,11 @@ function read7zOutput(data) {
     }
 }
 
-const get7zipOption = module.exports.get7zipOption = function (filePath, outputPath, file_specifier) {
+const get7zipOption = module.exports.get7zipOption = function (filePath, outputPath, file_specifier, levelFlag) {
     //https://sevenzip.osdn.jp/chm/cmdline/commands/extract.htm
     //e make folder as one level
+    //x different level
+    levelFlag = levelFlag || "e";
     if (file_specifier) {
         let specifier = _.isArray(file_specifier) ? file_specifier : [file_specifier];
         specifier = specifier.map(e => {
@@ -97,9 +99,9 @@ const get7zipOption = module.exports.get7zipOption = function (filePath, outputP
             }
         })
 
-        return ['e', filePath, `-o${outputPath}`].concat(specifier, "-aos");
+        return [levelFlag, filePath, `-o${outputPath}`].concat(specifier, "-aos");
     } else {
-        return ['e', filePath, `-o${outputPath}`, "-aos"];
+        return [levelFlag, filePath, `-o${outputPath}`, "-aos"];
     }
 }
 
@@ -190,19 +192,25 @@ module.exports.extractByRange = async function (filePath, outputPath, range) {
         return error;
     }
 }
-module.exports.extractAll = async function (filePath, outputPath) {
+module.exports.extractAll = async function (filePath, outputPath, isRecursive) {
     if (!global._has_7zip_) {
         throw "this computer did not install 7z"
     }
 
-    const opt = get7zipOption(filePath, outputPath);
-    let error, pathes
+    const levelFlag = isRecursive? "x" : null;
+    const opt = get7zipOption(filePath, outputPath, null, levelFlag);
+    let error, pathes = [];
     try {
         const { stderr } = await execa(sevenZip, opt);
         if (stderr) {
             throw stderr;
         }
-        pathes = await pfs.readdir(outputPath);
+        if(!isRecursive){
+            pathes = await pfs.readdir(outputPath);
+        }else {
+            await pathUtil.readdirRecursive(outputPath, pathes);
+            console.log(pathes);
+        }
     } catch (e) {
         error = e;
         logger.error('[extractAll] exit: ', e);

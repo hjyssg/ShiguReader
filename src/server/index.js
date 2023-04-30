@@ -876,8 +876,9 @@ app.post('/api/extract', async (req, res) => {
         }
     }
 
+    let hasDuplicate = false;
     async function _extractAll_(){
-        const { pathes, error } = await extractAll(filePath, outputPath);
+        const { pathes, error } = await extractAll(filePath, outputPath, hasDuplicate);
         if (!error && pathes) {
             const temp = generateContentUrl(pathes, outputPath);
             sendBack(temp, filePath, stat);
@@ -902,12 +903,18 @@ app.post('/api/extract', async (req, res) => {
             throw `${filePath} has no content`
         }
 
+        let fnInZip = files.map(e => path.basename(e));
+        hasDuplicate = _.uniq(fnInZip).length < fnInZip.length;
+        const shouldExtractFull =  files.length <= full_extract_max || hasDuplicate;
+
         //todo: music/video may be huge and will be slow
-        if (hasMusic || hasVideo || files.length <= full_extract_max) {
+        if (shouldExtractFull) {
             await  _extractAll_()
         } else {
             //spit one zip into two uncompress task
             //so user can have a quicker response time
+
+            // TODO sort by type 优先图片
             serverUtil.sortFileNames(files);
             //choose range wisely
             const PREV_SPACE = 2;
