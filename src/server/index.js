@@ -914,8 +914,9 @@ app.post('/api/extract', async (req, res) => {
             //spit one zip into two uncompress task
             //so user can have a quicker response time
 
-            // TODO sort by type 优先图片
+            // sort by type 优先图片
             serverUtil.sortFileNames(files);
+            files = [...files.filter(isImage), ...files.filter(isMusic) , ...files.filter(isVideo)];
             //choose range wisely
             const PREV_SPACE = 2;
             //cut the array into 3 parts
