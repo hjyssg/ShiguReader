@@ -68,7 +68,7 @@ router.get('/api/download/', async (req, res) => {
 
     // cache 1 hour
     if(isImage(filePath)){
-        res.setHeader('Cache-Control', 'public, max-age=3600')
+        res.setHeader('Cache-Control', 'public, max-age=3600');
     }
     res.download(filePath); // Set disposition and send it.
 });

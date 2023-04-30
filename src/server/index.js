@@ -597,7 +597,7 @@ app.post("/api/getTagThumbnail", async (req, res) => {
     const thumbnailPathes =  _.values(thumbnails);
     oneThumbnail = thumbnailPathes[0];
     if(oneThumbnail){
-        memorycache.put(cacheKey, oneThumbnail, 20*1000);
+        memorycache.put(cacheKey, oneThumbnail, 60*1000);
         res.send({
             url: oneThumbnail
         })
@@ -950,12 +950,10 @@ app.post('/api/extract', async (req, res) => {
 });
 
 
-app.post('/api/getGeneralInfo', async (req, res) => {
+app.get('/api/getGeneralInfo', async (req, res) => {
     const cacheKey = "GeneralInfoCacheKey";
     let result = memorycache.get(cacheKey);
-    if(result){
-        res.send(result)
-    }else{
+    if(!result){
         let os = isWindows() ? "windows" : "linux";
         const ip = await getIP();
         result = {
@@ -969,10 +967,12 @@ app.post('/api/getGeneralInfo', async (req, res) => {
             not_good_folder: global.not_good_folder,
             additional_folder: global.scan_path
         };
-    
+        
         memorycache.put(cacheKey, result, 30 * 1000)
-        res.send(result)
     }
+
+    res.setHeader('Cache-Control', 'public, max-age=30');
+    res.send(result)
 });
 
 

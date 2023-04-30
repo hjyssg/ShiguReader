@@ -29,5 +29,5 @@ x
     http://www.angusj.com/resourcehacker/
     -》改完exe就打不开了
 
-    curl -X POST http://localhost:8080/api/homePagePath
+    curl -X GET http://localhost:8080/api/homePagePath
     成功

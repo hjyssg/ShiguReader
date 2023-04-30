@@ -130,15 +130,14 @@ export default class AdminPage extends Component {
         this.requestHomePagePathes();
     }
 
-    requestHomePagePathes() {
-        Sender.post("/api/homePagePath", {}, res => {
-            if (!res.isFailed()) {
-                let { dirs } = res.json;
-                this.setState({
-                    dirs: dirs || []
-                })
-            }
-        });
+    async requestHomePagePathes() {
+        const res = await Sender.getWithPromise("/api/homePagePath");
+        if (!res.isFailed()) {
+            let { dirs } = res.json;
+            this.setState({
+                dirs: dirs || []
+            })
+        }
     }
 
     onPrenerate(fastUpdateMode) {

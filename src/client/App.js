@@ -40,17 +40,20 @@ class App extends Component {
         //     };
         // } 
         
-        //save result to session storage
-        Sender.post('/api/getGeneralInfo', {}, res => {
-            if (!res.isFailed()) {
-                let data = res.json;
-                this.setState({
-                    context: data
-                });
-                sessionStorage.setItem('GeneralInfo', JSON.stringify(data));
-                // Cookie.set('GeneralInfo', JSON.stringify(data), { expires: 1/(24/3) });
-            }
-        });
+        this.askServer();
+    }
+
+    async askServer() {
+         //save result to session storage
+        const res = await Sender.getWithPromise('/api/getGeneralInfo');
+        if (!res.isFailed()) {
+            let data = res.json;
+            this.setState({
+                context: data
+            });
+            sessionStorage.setItem('GeneralInfo', JSON.stringify(data));
+            // Cookie.set('GeneralInfo', JSON.stringify(data), { expires: 1/(24/3) });
+        }
     }
 
     componentDidMount() {

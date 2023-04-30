@@ -390,7 +390,7 @@ async function main() {
     const EXPIRE_TIME = 1000 * 60 * 2;
 
     //detect if the server if running
-    // const isServerRunningRes = await GM_xmlhttpRequest_promise("POST", 'http://localhost:8080/api/getGeneralInfo', 1000);
+    // const isServerRunningRes = await GM_xmlhttpRequest_promise("GET", 'http://localhost:8080/api/getGeneralInfo', 1000);
 
     if (responseText && lastResTime && (getCurrentTime() - (+lastResTime) < EXPIRE_TIME)) {
         time2 = getCurrentTime();

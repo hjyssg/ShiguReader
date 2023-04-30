@@ -30,9 +30,10 @@ if (isWindows()) {
     });
 }
 
-router.post('/api/homePagePath', async (req, res) => {
+router.get('/api/homePagePath', async (req, res) => {
     const cacheKey = "homePagePathCacheKey";
     if(memorycache.get(cacheKey)){
+        res.setHeader('Cache-Control', 'public, max-age=30');
         res.send(memorycache.get(cacheKey))
         return;
     }
@@ -59,13 +60,14 @@ router.post('/api/homePagePath', async (req, res) => {
     if (dirs.length === 0 && hdd_list.length === 0 && quickAccess.length === 0) {
         res.send({ failed: true, reason: "config-path.ini has no path" });
     } else {
+
         let result = {
             dirs,
             hdd_list,
             quickAccess
         }
-        res.send(result)
-
+        res.setHeader('Cache-Control', 'public, max-age=30');
+        res.send(result);
         memorycache.put(cacheKey, result, 30 * 1000);
     }
 });

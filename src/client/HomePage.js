@@ -28,8 +28,11 @@ function getOneLineListItem(icon, fileName, filePath) {
 const HomePage = () => {
     const [res, setRes] = useState(null)
 
-    useEffect(() => {
-        Sender.postWithPromise("/api/homePagePath", {}).then(res => setRes(res));
+    useEffect(async () => {
+        const res = await Sender.getWithPromise("/api/homePagePath");
+        if (!res.isFailed()) {
+            setRes(res);
+        }
     }, []); 
 
     document.title = "ShiguReader";

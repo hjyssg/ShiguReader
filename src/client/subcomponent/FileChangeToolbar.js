@@ -132,19 +132,18 @@ class MoveMenu extends Component {
                 })
             }
         }else{
-            Sender.postWithPromise("/api/homePagePath", {}).then(res => {
-                if (res.isFailed()) {
-                    debugger
-                    return;
-                } else {
-                    const { dirs, hdd_list, quickAccess } = res.json;
-                    this.setState({
-                        dirs: hdd_list,
-                        path: "",
-                        loading: false
-                    })
-                }
-            });
+            const res = Sender.getWithPromise("/api/homePagePath");
+            if (res.isFailed()) {
+                debugger
+                return;
+            } else {
+                const { dirs, hdd_list, quickAccess } = res.json;
+                this.setState({
+                    dirs: hdd_list,
+                    path: "",
+                    loading: false
+                })
+            }
         }
     }
 

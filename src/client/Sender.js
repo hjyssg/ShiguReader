@@ -12,6 +12,27 @@ function attachFunc(res) {
 }
 
 
+const getWithPromise = Sender.getWithPromise = async function (api, body) {
+    const res = await fetch(api, {
+        method: 'GET',
+        // headers: {
+        //     Accept: 'application/json',
+        //     'Content-Type': 'application/json',
+        // },
+        // body: JSON.stringify(body)
+    });
+
+    try {
+        //e.g when 504, there is no json, will throw a error
+        res.json = await res.json();
+    } catch (e) {
+        res.json = { failed: true }
+    }
+
+    attachFunc(res);
+    return res;
+};
+
 const postWithPromise = Sender.postWithPromise = async function (api, body) {
     const res = await fetch(api, {
         method: 'POST',
