@@ -142,7 +142,7 @@ module.exports.getThumbnailForFolders = async function (filePathes) {
 
     // Q ask chatgpt: write a sql query that if column 'file' contains one of string array
     const stringsToMatch = filePathes; // string array of values
-    const patterns = stringsToMatch.map(str => `%${str}%`);
+    const patterns = stringsToMatch.map(str => `${str}%`);
     const placeholders = patterns.map(() => 'filePath LIKE ?').join(' OR ');
     const sql = `SELECT * FROM thumbnail_table WHERE ${placeholders}`;
     let rows = await sqlDb.allSync(sql, patterns);

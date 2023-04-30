@@ -405,28 +405,35 @@ async function getThumbnailForFolders(filePathes) {
 
     let label = "getThumbnailForFolders" + filePathes.length;
     console.time(label);
+    // 先尝试从thumbnail db拿
     let thumbnailRows = await thumbnailDb.getThumbnailForFolders(filePathes);
 
-    for (let ii = 0; ii < filePathes.length; ii++) {
-        const filePath = filePathes[ii];
-        // const ext = serverUtil.getExt(filePath);
-        // console.assert(!ext);
+    let nextFilePathes = [];
+    filePathes.forEach(filePath => {
         let rows = thumbnailRows.filter(row => isSub(filePath, row.filePath))
         if (rows && rows[0]) {
             result[filePath] = rows[0].thumbnailFilePath;
-            continue;
+        }else{
+            nextFilePathes.push(filePath);
         }
+    })
+   
 
-        // TODO can be improve
-        let sql = `SELECT filePath FROM file_table WHERE INSTR(filePath, ?) > 0 AND isDisplayableInOnebook = true`;
-        rows = await sqldb.allSync(sql, [filePath]);
-        rows = rows.filter(row => {
-            return isImage(row.filePath) && isSub(filePath, row.filePath);
-        });
-        if (rows.length > 0) {
+    //拿不到就看看有没有下属image
+    const stringsToMatch = nextFilePathes; // string array of values
+    const patterns = stringsToMatch.map(str => `${str}%`);
+    const placeholders = patterns.map(() => 'filePath LIKE ?').join(' OR ');
+    const sql = `SELECT filePath FROM file_table WHERE isDisplayableInOnebook = true AND ${placeholders} `;
+    let imagerows = await sqldb.allSync(sql, patterns);
+    imagerows = imagerows.filter(row => {
+        return isImage(row.filePath);
+    });
+    nextFilePathes.forEach(filePath => {
+        let rows = imagerows.filter(row => isSub(filePath, row.filePath))
+        if (rows && rows[0]) {
             result[filePath] = rows[0].filePath;
         }
-    }
+    })
 
     console.timeEnd(label);
     return result;
@@ -983,6 +990,7 @@ const shutdown = require("./routes/shutdown");
 app.use(shutdown);
 
 const minifyZip = require("./routes/minifyZip");
+const e = require('express');
 app.use(minifyZip);
 
 // const ehentaiMetadata = require("./routes/ehentaiMetadata");
