@@ -401,6 +401,11 @@ async function getThumbnailsForZip(filePathes) {
 
 async function getThumbnailForFolders(filePathes) {
     const result = {};
+
+    if(!filePathes || filePathes.length == 0){
+        return result;
+    }
+
     const sqldb = db.getSQLDB();
 
     let label = "getThumbnailForFolders" + filePathes.length;
