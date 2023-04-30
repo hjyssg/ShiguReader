@@ -581,11 +581,11 @@ app.post("/api/getTagThumbnail", async (req, res) => {
     }
 
     const onlyNeedFew = true;
-    const { fileInfos } = await searchByTagAndAuthor(tag, author, null, onlyNeedFew);
-    const files = _.keys(fileInfos);
-
-    const thumbnails = await getThumbnailsForZip(files)
-    const oneThumbnail = _.values(thumbnails)[0];
+    const searchResult = await searchByTagAndAuthor(tag, author, null, onlyNeedFew);
+    let { fileInfos, thumbnails } = searchResult;
+    
+    const thumbnailPathes =  _.values(thumbnails);
+    const oneThumbnail = thumbnailPathes[0];
     if(oneThumbnail){
         res.send({
             url: oneThumbnail
@@ -593,6 +593,7 @@ app.post("/api/getTagThumbnail", async (req, res) => {
         return;
     }
 
+    const files = _.keys(fileInfos);
     const chosendFileName = serverUtil.chooseOneZipForOneTag(files, db.getFileToInfo());
     if (!chosendFileName) {
         res.send({ failed: true, reason: "No file found" });
