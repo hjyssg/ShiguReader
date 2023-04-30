@@ -111,7 +111,7 @@ export default class ExplorerPage extends Component {
 
     setStateAndSetHash(state, callback) {
         // const time1 = util.getCurrentTime();
-        //??? this is slow after handleRes
+        //??? this is slow after handleLsDirRes
         this.setState(state, callback);
 
         const obj = Object.assign({}, this.state, state);
@@ -221,7 +221,7 @@ export default class ExplorerPage extends Component {
             const hash = this.getTextFromQuery();
             if (hash && this.loadedHash !== hash) {
                 res = await Sender.postWithPromise('/api/lsDir', { dir: this.getTextFromQuery(), isRecursive: this.state.isRecursive });
-                this.handleRes(res);
+                this.handleLsDirRes(res);
             }
         } else {
             const hash = this.getTextFromQuery();
@@ -234,7 +234,7 @@ export default class ExplorerPage extends Component {
                     res = await Sender.postWithPromise("/api/search", { text: this.getSearchTextFromQuery(), mode: this.getMode() })
                 }
             }
-            this.handleRes(res);
+            this.handleLsDirRes(res);
         }
     }
 
@@ -301,7 +301,7 @@ export default class ExplorerPage extends Component {
         return this.dirs.concat( _.keys(this.fileInfos));
     }
 
-    handleRes(res) {
+    handleLsDirRes(res) {
         if (!res.isFailed()) {
             let { dirs, mode, tag, author, fileInfos, thumbnails,
                 zipInfo, imgFolders, imgFolderInfo } = res.json;
@@ -364,12 +364,10 @@ export default class ExplorerPage extends Component {
                 }
             });
 
-            Sender.post("/api/getThumbnailForFolders", { dirs: this.dirs }, res => {
-                if (!res.isFailed()) {
-                    this.thumbnails =  _.extend(this.thumbnails, res.json.dirThumbnails);
-                    this.forceUpdate();
-                }
-            });
+            this.hasCalled_getThumbnailForFolders = false;
+            if(this.state.showFolderThumbnail){
+                this.requestThumbnailForFolder();
+            }
         } else {
             this.res = res;
             this.forceUpdate();
@@ -931,7 +929,7 @@ export default class ExplorerPage extends Component {
         }, () => {
             (async () => {
                 let res = await Sender.postWithPromise('/api/lsDir', { dir: this.getTextFromQuery(), isRecursive: this.state.isRecursive });
-                this.handleRes(res);
+                this.handleLsDirRes(res);
             })();
         })
     }
@@ -951,6 +949,20 @@ export default class ExplorerPage extends Component {
         this.setStateAndSetHash({
             showFolderThumbnail: next
         })
+
+        if(next && !this.hasCalled_getThumbnailForFolders){
+            this.requestThumbnailForFolder();
+        }
+    }
+
+    async requestThumbnailForFolder(){
+        Sender.post("/api/getThumbnailForFolders", { dirs: this.dirs }, res => {
+            if (!res.isFailed()) {
+                this.thumbnails =  _.extend(this.thumbnails, res.json.dirThumbnails);
+                this.hasCalled_getThumbnailForFolders = true;
+                this.forceUpdate();
+            }
+        });
     }
 
     toggleShowVideo() {
