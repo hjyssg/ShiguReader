@@ -19,7 +19,9 @@ sqlDb.runSync = _util.promisify(sqlDb.run).bind(sqlDb);
 
 module.exports.init = async ()=> {
     const sql = `CREATE TABLE IF NOT EXISTS history_table (filePath TEXT NOT NULL, dirPath TEXT, fileName TEXT, time INTEGER); 
-                 CREATE INDEX IF NOT EXISTS fileName_index ON history_table (fileName)`
+                 CREATE INDEX IF NOT EXISTS fileName_index ON history_table (fileName);
+                 CREATE INDEX IF NOT EXISTS time_index ON history_table (time);
+                 `
     await sqlDb.runSync(sql);
 }
 
@@ -75,7 +77,15 @@ const quick_access_day = 10;
 module.exports.getQuickAccess = async function () {
     let time = util.getCurrentTime();
     time = time - 1000 * 3600 * 24 * quick_access_day;
-    let rows = await sqlDb.allSync("SELECT dirPath, count(dirPath) AS count FROM history_table where time > ? GROUP BY dirPath ORDER BY count DESC", [time]);
+    const sql = `
+        SELECT dirPath, count(dirPath) AS count 
+        FROM history_table 
+        WHERE time > ? 
+        GROUP BY dirPath 
+        ORDER BY count DESC
+        LIMIT 50;
+    `
+    let rows = await sqlDb.allSync(sql, [time]);
     return rows;
 }
 
