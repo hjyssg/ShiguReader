@@ -66,6 +66,8 @@ module.exports.createSqlIndex = function () {
     sqlDb.run("CREATE INDEX IF NOT EXISTS filePath_index ON file_table (filePath)");
     sqlDb.run("CREATE INDEX IF NOT EXISTS dirPath_index ON file_table (dirPath)");
     sqlDb.run("CREATE INDEX IF NOT EXISTS tag_index ON tag_table (tag)");
+    sqlDb.run("CREATE INDEX IF NOT EXISTS tag_filePath_index ON tag_table (filePath)");
+
 }
 
 const updateFileDb = function (filePath, statObj) {
