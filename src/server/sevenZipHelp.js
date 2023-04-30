@@ -209,7 +209,7 @@ module.exports.extractAll = async function (filePath, outputPath, isRecursive) {
             pathes = await pfs.readdir(outputPath);
         }else {
             await pathUtil.readdirRecursive(outputPath, pathes);
-            console.log(pathes);
+            // console.log(pathes);
         }
     } catch (e) {
         error = e;

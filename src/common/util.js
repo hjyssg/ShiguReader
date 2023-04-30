@@ -69,7 +69,10 @@ module.exports.canBeCompressed = function (fn) {
     return compressable.some((e) => fnl.endsWith(e));
 }
 
-//todo duplicate----------
+function hasDuplicates(arr) {
+    return new Set(arr).size !== arr.length;
+}
+
 module.exports._sortFileNames = function (files, getBaseNameWithoutExtention) {
     if (!getBaseNameWithoutExtention) {
         throw "no getBaseNameWithoutExtention";
@@ -79,7 +82,12 @@ module.exports._sortFileNames = function (files, getBaseNameWithoutExtention) {
         return isOnlyDigit(getBaseNameWithoutExtention(e))
     });
 
-    if (isAllDigit) {
+    // check if duplicate filename
+    const fns = files.map(getBaseNameWithoutExtention);
+    let isDup = hasDuplicates(fns);
+
+
+    if (isAllDigit && !isDup) {
         files.sort((a, b) => { return parseInt(getBaseNameWithoutExtention(a)) - parseInt(getBaseNameWithoutExtention(b)) });
     } else {
         files.sort((a, b) => a.localeCompare(b));
