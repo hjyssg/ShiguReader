@@ -137,6 +137,9 @@ async function init() {
     await historyDb.init();
 
     const port = isProduction ? http_port : dev_express_port;
+    
+
+
     const server = app.listen(port, async () => {
         console.log("----------------------------------------------------------------");
         console.log(dateFormat(new Date(), "yyyy-mm-dd HH:MM"));
@@ -813,6 +816,7 @@ const extract_result_cache = {};
 app.post('/api/extract', async (req, res) => {
     let filePath = req.body && req.body.filePath;
     const startIndex = (req.body && req.body.startIndex) || 0;
+    let stat;
     if (!filePath) {
         res.send({ failed: true, reason: "No parameter" });
         return;
@@ -830,8 +834,7 @@ app.post('/api/extract', async (req, res) => {
         return;
     }
 
-    const time1 = getCurrentTime();
-    const stat = await getStat(filePath);
+    // const time1 = getCurrentTime();
 
     async function sendBack(contentObj, path, stat) {
         const { files, musicFiles, videoFiles } = contentObj
@@ -882,8 +885,8 @@ app.post('/api/extract', async (req, res) => {
     async function _extractAll_(){
         const { pathes, error } = await extractAll(filePath, outputPath, hasDuplicate);
         if (!error && pathes) {
-            const temp = generateContentUrl(pathes, outputPath);
-            sendBack(temp, filePath, stat);
+            const contentUrls = generateContentUrl(pathes, outputPath);
+            sendBack(contentUrls, filePath, stat);
         } else {
             throw "fail to extract all"
         }
@@ -891,6 +894,7 @@ app.post('/api/extract', async (req, res) => {
 
     const full_extract_max = 10;
     try {
+        stat = await getStat(filePath);
         if(current_extract_queue[filePath] === "in_progress"){
             res.send({ failed: true, reason: "extract_in_progress" });
             return;
@@ -907,7 +911,7 @@ app.post('/api/extract', async (req, res) => {
             throw `${filePath} has no content`
         }
 
-        let fnInZip = files.map(e => path.basename(e));
+        const fnInZip = files.map(e => path.basename(e));
         hasDuplicate = _.uniq(fnInZip).length < fnInZip.length;
         const shouldExtractFull =  files.length <= full_extract_max || hasDuplicate;
 
@@ -922,8 +926,8 @@ app.post('/api/extract', async (req, res) => {
             const tempfiles = [...imgfiles, ...musicFiles];
             const PREV_SPACE = 2;
             //cut the array into 3 parts
-            let beg = startIndex - PREV_SPACE;
-            let end = startIndex + full_extract_max - PREV_SPACE;
+            const beg = startIndex - PREV_SPACE;
+            const end = startIndex + full_extract_max - PREV_SPACE;
             const firstRange = arraySlice(tempfiles, beg, end);
             let secondRange = tempfiles.filter(e => {
                 return !firstRange.includes(e);
@@ -931,13 +935,13 @@ app.post('/api/extract', async (req, res) => {
             secondRange = [...secondRange,  ...videoFiles];
             const totalRange = [...firstRange, ...secondRange];
 
-            let stderr = await extractByRange(filePath, outputPath, firstRange)
+            const stderr = await extractByRange(filePath, outputPath, firstRange)
             if (!stderr) {
-                const outputPathes = totalRange.map(e => path.resolve(outputPath,  path.basename(e)));
-                const temp = generateContentUrl(outputPathes, outputPath);
-                sendBack(temp, filePath, stat);
-                const time2 = getCurrentTime();
-                const timeUsed = (time2 - time1);
+                const unzipOutputPathes = totalRange.map(e => path.resolve(outputPath,  path.basename(e)));
+                const contentUrls = generateContentUrl(unzipOutputPathes, outputPath);
+                sendBack(contentUrls, filePath, stat);
+                // const time2 = getCurrentTime();
+                // const timeUsed = (time2 - time1);
                 // console.log(`[/api/extract] FIRST PART UNZIP ${filePath} : ${timeUsed}ms`);
 
                 await extractByRange(filePath, outputPath, secondRange);
