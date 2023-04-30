@@ -39,7 +39,8 @@ module.exports.addOneRecord = function (filePath) {
     sqlDb.run(sql, filePath, dirPath, fileName, time);
 }
 
-const back_days = 5;
+// const back_days = 5;
+const PAGE_TIME_SIZE = 200;
 module.exports.getHistory = async function (page=0) {
     // let time = util.getCurrentTime();
     // time = time - 1000 * 3600 * 24 * back_days;
@@ -47,9 +48,17 @@ module.exports.getHistory = async function (page=0) {
     //             (SELECT * FROM history_table where time > ?) 
     //          GROUP BY filePath`
     // const sql = `SELECT * FROM history_table where time > ?`
+    // const sql = `SELECT * FROM history_table ORDER BY time DESC LIMIT ${page*200}, ${(page+1)*200}`
 
-    const sql = `SELECT * FROM history_table ORDER BY time DESC LIMIT ${page*200}, ${(page+1)*200}`
+    // https://www.tutorialspoint.com/sqlite/sqlite_limit_clause.htm
+    const sql = `
+    SELECT filePath, dirPath, fileName, MAX(time) as time FROM 
+        (SELECT * FROM history_table ORDER BY time DESC  LIMIT ${PAGE_TIME_SIZE} OFFSET ${page*PAGE_TIME_SIZE})  
+    GROUP BY filePath 
+    ORDER BY time DESC 
+    ;`
     let rows = await sqlDb.allSync(sql);
+    console.assert(rows.length < PAGE_TIME_SIZE)
     // return rows;
 
     const sql2 = `SELECT count(*) as count FROM history_table`
