@@ -496,6 +496,7 @@ app.get('/*', (req, res, next) => {
         next();
     }else{
         const as = path.resolve(rootPath, 'dist', 'index.html');
+        res.setHeader('Cache-Control', 'public, max-age=3047');
         res.sendFile(as);
     }
 })
