@@ -896,9 +896,11 @@ app.post('/api/extract', async (req, res) => {
         current_extract_queue[filePath] = "in_progress";
 
         let { files, fileInfos } = await listZipContentAndUpdateDb(filePath);
-        let hasMusic = files.some(e => isMusic(e));
-        let hasVideo = files.some(e => isVideo(e));
-        files = files.filter(e => isDisplayableInOnebook(e));
+        // let hasMusic = files.some(e => isMusic(e));
+        // let hasVideo = files.some(e => isVideo(e));
+        const imgfiles = files.filter(e => isImage(e));
+        const musicFiles = files.filter(e => isVideo(e));
+        const videoFiles = files.filter(e => isMusic(e));
         if (files.length === 0) {
             throw `${filePath} has no content`
         }
@@ -914,18 +916,20 @@ app.post('/api/extract', async (req, res) => {
             //spit one zip into two uncompress task
             //so user can have a quicker response time
 
-            // sort by type 优先图片
-            serverUtil.sortFileNames(files);
-            files = [...files.filter(isImage), ...files.filter(isMusic) , ...files.filter(isVideo)];
+            //  sort by type 优先图片
+            serverUtil.sortFileNames(imgfiles);
+            files = [...imgfiles, ...musicFiles];
+            
             //choose range wisely
             const PREV_SPACE = 2;
             //cut the array into 3 parts
             let beg = startIndex - PREV_SPACE;
             let end = startIndex + full_extract_max - PREV_SPACE;
             const firstRange = arraySlice(files, beg, end);
-            const secondRange = files.filter(e => {
+            let secondRange = files.filter(e => {
                 return !firstRange.includes(e);
             })
+            secondRange = [...secondRange,  ...videoFiles];
 
             //dev checking
             if (firstRange.length + secondRange.length !== files.length) {
@@ -934,7 +938,8 @@ app.post('/api/extract', async (req, res) => {
 
             let stderr = await extractByRange(filePath, outputPath, firstRange)
             if (!stderr) {
-                const temp = generateContentUrl(files, outputPath);
+                const outputPathes = files.map(e => path.resolve(outputPath,  path.basename(e)));
+                const temp = generateContentUrl(outputPathes, outputPath);
                 sendBack(temp, filePath, stat);
                 const time2 = getCurrentTime();
                 const timeUsed = (time2 - time1);
