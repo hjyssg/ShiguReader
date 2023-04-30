@@ -52,7 +52,7 @@ const config = {
     historyApiFallback: true,
     publicPath: "/",
     proxy: {
-      '/api': `http://localhost:${dev_express_port}`
+      '/api': `http://127.0.0.1:${dev_express_port}`
     }
   },
   plugins: [
