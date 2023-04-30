@@ -78,7 +78,7 @@ export default class TagPage extends Component {
   static getDerivedStateFromProps(nextProps, prevState){
     if (nextProps.mode && nextProps.mode !== prevState.mode) {
         return {
-          pageIndex: 1, filterText: ""
+          pageIndex: 1, filterText: "", mode: nextProps.mode
         }
     }
     

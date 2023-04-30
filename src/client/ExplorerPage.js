@@ -206,7 +206,7 @@ export default class ExplorerPage extends Component {
     }
 
     static getDerivedStateFromProps(nextProps, prevState){
-        if (_.isString(nextProps.filterText) && nextProps.filterText !== prevState) {
+        if (_.isString(nextProps.filterText) && nextProps.filterText !== prevState.filterText) {
             return {
                 filterText: nextProps.filterText,
                 pageIndex: 1
