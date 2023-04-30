@@ -104,20 +104,19 @@ module.exports.getFileHistory = async function (pathes) {
         return path.basename(e);
     });
 
-    let end1 = getCurrentTime();
+    if(fileNames.length == 0){
+        return [];
+    }
 
-    // const joinStr = fileNames.join(" ");
-    // let sql = "SELECT fileName, MAX(time) as time FROM history_table where INSTR(?, fileName) > 0 GROUP BY fileName"
-    // let rows = await sqlDb.allSync(sql, [joinStr]);
+    // chatgpt Q1: how to sql query select with an huge array 
+    // chatgpt Q2: does sqlite have query text limit
+    const placeholders = fileNames.map(() => '?').join(',');
+    const sql = `SELECT fileName, MAX(time) as time, COUNT(time) as count FROM 
+    history_table where fileName IN (${placeholders})  
+    GROUP BY fileName`
+    let rows =  await sqlDb.allSync(sql, fileNames);
 
-    const promiseArr = fileNames.map(fp => {
-        const sql = "SELECT fileName, MAX(time) as time, COUNT(time) as count FROM history_table where fileName = ? GROUP BY fileName"
-        return sqlDb.getSync(sql, [fp]);
-    })
-    let rows =  await Promise.all(promiseArr);
-    rows = rows.filter(e => !!e);
-
-    let end3 = getCurrentTime();
+    // let end3 = getCurrentTime();
     // console.log(`[getFileHistory] ${(end3 - end1) / 1000}s for ${fileNames.length} zips`);
 
     return rows;

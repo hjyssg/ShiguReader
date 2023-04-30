@@ -90,8 +90,14 @@ async function searchOnEverything(text) {
 
 async function searchByText(text) {
     const sqldb = db.getSQLDB();
+
+    // console.log("---" + text)
+    // https://www.sqlite.org/optoverview.html
+    // console.time();
     let sql = `SELECT * FROM file_table WHERE INSTR(LOWER(filePath), LOWER(?)) > 0`;
     let rows = await sqldb.allSync(sql, [text]);
+    // console.timeEnd();
+
     return splitRows(rows, text);
 }
 
@@ -119,9 +125,9 @@ async function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
         if (at_text) {
             const sqldb = db.getSQLDB();
             //inner joiner then group by
-            let sql = `SELECT a.* `
-                + `FROM file_table AS a INNER JOIN tag_table AS b `
-                + `ON a.filePath = b.filePath AND INSTR(LOWER(b.tag), LOWER(?)) > 0`;
+            let sql = `SELECT a.* 
+                        FROM file_table AS a INNER JOIN tag_table AS b 
+                        ON a.filePath = b.filePath AND INSTR(LOWER(b.tag), LOWER(?)) > 0`;
             let rows = await sqldb.allSync(sql, [at_text]);
             const tag_obj = splitRows(rows, at_text);
             zipResult = tag_obj.zipResult;
@@ -175,8 +181,10 @@ async function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
         dirs: dirResults
     }
 
+    // console.time("decorate");
     const { _decorate } = serverUtil.common;
     result = await _decorate(result);
+    // console.timeEnd("decorate");
 
     return result;
 }
