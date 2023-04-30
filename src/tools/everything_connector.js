@@ -53,6 +53,7 @@ module.exports.searchByText = async function (text, config) {
         const rp = require('request-promise');
         const json = await rp({
             uri,
+            timeout: 3000,
             json: true
         });
         return parseResult(json, config);
