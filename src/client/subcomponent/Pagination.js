@@ -110,8 +110,10 @@ export default class Pagination extends Component {
         active: e === currentPage,
         "disabled": isEllipsis
       })
+      let href = linkFunc && !isEllipsis && linkFunc(e-1);
+      href = href || "";
       return (<li className={cn} key={ii + e} > 
-                <a onClick={isEllipsis ? () => { } : this.onChange} href={linkFunc && !isEllipsis && linkFunc(e-1)} >{e} </a>
+                <a onClick={isEllipsis ? () => { } : this.onChange} href={href} >{e} </a>
               </li>)
     })
 
