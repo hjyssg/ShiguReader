@@ -45,7 +45,7 @@ router.post('/api/lsDir', async (req, res) => {
     const sqldb = db.getSQLDB();
     const suffix = stringHash(dir) + time1;
     const tempFileTable = "TEMP.FILE_TABLE_" + suffix;
-    const tempDirTable = "TEMP.DIR_TABLE_" + suffix;
+    // const tempDirTable = "TEMP.DIR_TABLE_" + suffix;
 
     try {
         let time2, timeUsed;
@@ -57,23 +57,39 @@ router.post('/api/lsDir', async (req, res) => {
         const sep = "|---|"
 
         //limit the searching  within this dir
-        sql = `CREATE TABLE ${tempFileTable} AS SELECT * FROM file_table WHERE INSTR(filePath, ?) = 1`;
+        // 重复使用的临时table
+        sql = `CREATE TABLE ${tempFileTable} AS SELECT * FROM file_table WHERE INSTR(filePath, ?) = 1;
+               CREATE INDEX IF NOT EXISTS ${tempFileTable}_filePath_index ON ${tempFileTable} (filePath);
+               CREATE INDEX IF NOT EXISTS ${tempFileTable}_dirPath_index ON ${tempFileTable} (dirPath);
+        `;
         await sqldb.runSync(sql, [dir]);
 
         //todo: LIMIT 0, 5 group by
         //-------------- dir --------------
         if (!isRecursive) {
-            sql = `CREATE TABLE ${tempDirTable} AS SELECT * FROM ${tempFileTable} WHERE dirPath = ? AND isFolder = true`;
-            await sqldb.runSync(sql, [dir]);
+            // sql = `CREATE TABLE ${tempDirTable} AS SELECT * FROM ${tempFileTable} WHERE dirPath = ? AND isFolder = true`;
+            // await sqldb.runSync(sql, [dir]);
 
-            //todo: group_concat is ugly
-            // in order to get folder's files, join file_Table and then group by
-            sql = `SELECT a.filePath, group_concat(b.fileName, '${sep}') as files ` +
-                `FROM ${tempDirTable} AS a LEFT JOIN ` +
-                `${tempFileTable} AS b ` +
-                `ON a.filePath = b.dirPath ` +
-                `GROUP by a.fileName `
-            rows = await sqldb.allSync(sql);
+            // //todo: group_concat is ugly
+            // // in order to get folder's files, join file_Table and then group by
+            // sql = `SELECT a.filePath, group_concat(b.fileName, '${sep}') as files  
+            //         FROM ${tempDirTable} AS a LEFT JOIN  
+            //         ${tempFileTable} AS b  
+            //         ON a.filePath = b.dirPath  
+            //         GROUP by a.fileName `
+            //
+            // CREATE VIEW filtered_dirs AS  SELECT * FROM ${tempFileTable} WHERE dirPath = '${dir}' AND isFolder = true;
+
+            sql = `
+                SELECT a.filePath, group_concat(b.fileName, '${sep}') as files  
+                FROM ${tempFileTable} AS a 
+                LEFT JOIN  
+                ${tempFileTable} AS b  
+                ON a.filePath = b.dirPath  
+                WHERE a.dirPath = ? AND a.isFolder = true
+                GROUP by a.fileName;
+            `
+            rows = await sqldb.allSync(sql, dir);
             dirs = rows.map(e => e.filePath);
         }
 
@@ -95,9 +111,9 @@ router.post('/api/lsDir', async (req, res) => {
 
         //---------------img folder -----------------
         const imgFolders = {};
-        sql = `SELECT dirPath, group_concat(fileName, '${sep}') AS files ` +
-            `FROM ${tempFileTable} WHERE isDisplayableInOnebook = true ` +
-            `GROUP BY dirPath`;
+        sql = `SELECT dirPath, group_concat(fileName, '${sep}') AS files 
+              FROM ${tempFileTable} WHERE isDisplayableInOnebook = true 
+              GROUP BY dirPath`;
         rows = await sqldb.allSync(sql);
         rows.forEach(row => {
             const fp = row.dirPath;
@@ -135,8 +151,8 @@ router.post('/api/lsDir', async (req, res) => {
         //drop
         let sql = `DROP TABLE IF EXISTS ${tempFileTable}`;
         sqldb.run(sql);
-        sql = `DROP TABLE IF EXISTS ${tempDirTable}`
-        sqldb.run(sql);
+        // sql = `DROP TABLE IF EXISTS ${tempDirTable}`
+        // sqldb.run(sql);
     }
 });
 
