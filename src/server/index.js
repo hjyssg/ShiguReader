@@ -403,22 +403,21 @@ async function getThumbnailForFolders(filePathes) {
     const result = {};
     const sqldb = db.getSQLDB();
 
-    let end1 = getCurrentTime();
-
-    let promiseArr = filePathes.map(filePath => thumbnailDb.getThumbnailForFolder(filePath));
-    let thumbnailRows = await Promise.all(promiseArr);
+    let label = "getThumbnailForFolders" + filePathes.length;
+    console.time(label);
+    let thumbnailRows = await thumbnailDb.getThumbnailForFolders(filePathes);
 
     for (let ii = 0; ii < filePathes.length; ii++) {
         const filePath = filePathes[ii];
-
-        const ext = serverUtil.getExt(filePath);
+        // const ext = serverUtil.getExt(filePath);
         // console.assert(!ext);
-        let rows = thumbnailRows[ii];
+        let rows = thumbnailRows.filter(row => isSub(filePath, row.filePath))
         if (rows && rows[0]) {
             result[filePath] = rows[0].thumbnailFilePath;
             continue;
         }
 
+        // TODO can be improve
         let sql = `SELECT filePath FROM file_table WHERE INSTR(filePath, ?) > 0 AND isDisplayableInOnebook = true`;
         rows = await sqldb.allSync(sql, [filePath]);
         rows = rows.filter(row => {
@@ -429,9 +428,7 @@ async function getThumbnailForFolders(filePathes) {
         }
     }
 
-
-    let end3 = getCurrentTime();
-    // console.log(`[getThumbnailForFolders] ${(end3 - end1) / 1000}s`);
+    console.timeEnd(label);
     return result;
 }
 

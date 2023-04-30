@@ -133,12 +133,25 @@ module.exports.getThumbnailArr = function (filePathes) {
     return rows;
 }
 
-module.exports.getThumbnailForFolder = async function (filePath) {
-    const sql = `SELECT * FROM  thumbnail_table WHERE INSTR(filePath, ?) > 0`;
-    let rows = await sqlDb.allSync(sql, [filePath]);
-    rows = rows.filter(row => {
-        return isSub(filePath, row.filePath)
-    });
+module.exports.getThumbnailForFolders = async function (filePathes) {
+    console.assert(_.isArray(filePathes));
+
+    if(filePathes.length == 0){
+        return [];
+    }
+
+    // Q ask chatgpt: write a sql query that if column 'file' contains one of string array
+    const stringsToMatch = filePathes; // string array of values
+    const patterns = stringsToMatch.map(str => `%${str}%`);
+    const placeholders = patterns.map(() => 'filePath LIKE ?').join(' OR ');
+    const sql = `SELECT * FROM thumbnail_table WHERE ${placeholders}`;
+    let rows = await sqlDb.allSync(sql, patterns);
+    
+    // const sql = `SELECT * FROM  thumbnail_table WHERE INSTR(filePath, ?) > 0`;
+    // let rows = await sqlDb.allSync(sql, [filePath]);
+    // rows = rows.filter(row => {
+    //     return isSub(filePath, row.filePath)
+    // });
     _add_col(rows)
     return rows;
 }
