@@ -203,9 +203,7 @@ const readdirRecursive = async (filePath, resultArr) => {
 
     for(let ii = 0; ii < pathes.length; ii++){
         try{
-                //not accurate, but performance is good. access each file is very slow
                 const fp = pathes[ii];
-                // TODO for now
                 const ext = path.extname(fp).toLowerCase();
                 const isFolder = !ext;
                 if(isDisplayableInOnebook(fp)){

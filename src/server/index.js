@@ -918,7 +918,7 @@ app.post('/api/extract', async (req, res) => {
         }
 
         const fnInZip = files.map(e => path.basename(e));
-        hasDuplicate = _.uniq(fnInZip).length < fnInZip.length;
+        hasDuplicate = util.hasDuplicate(fnInZip);
         const shouldExtractFull =  files.length <= full_extract_max || hasDuplicate;
 
         //todo: music/video may be huge and will be slow
