@@ -69,7 +69,7 @@ module.exports.canBeCompressed = function (fn) {
     return compressable.some((e) => fnl.endsWith(e));
 }
 
-function hasDuplicates(arr) {
+const hasDuplicate = module.exports.hasDuplicate = (arr) => {
     return new Set(arr).size !== arr.length;
 }
 
@@ -84,7 +84,7 @@ module.exports._sortFileNames = function (files, getBaseNameWithoutExtention) {
 
     // check if duplicate filename
     const fns = files.map(getBaseNameWithoutExtention);
-    let isDup = hasDuplicates(fns);
+    let isDup = hasDuplicate(fns);
 
 
     if (isAllDigit && !isDup) {
