@@ -138,7 +138,13 @@ async function init() {
 
     const port = isProduction ? http_port : dev_express_port;
     
-
+    //express does not check if the port is used and remains slient
+    // we need to check
+    const isPortOccupied =  await serverUtil.isPortOccupied(port);
+    if(isPortOccupied){
+        logger.error(`[Server Init] port ${port} is occupied `);
+        process.exit(22);
+    }
 
     const server = app.listen(port, async () => {
         console.log("----------------------------------------------------------------");

@@ -146,7 +146,27 @@ function makeid() {
    }
    return result;
 }
-
 module.exports.makeid = makeid;
+
+
+const net = require('net');
+function isPortOccupied(port) {
+  return new Promise((resolve, reject) => {
+    const server = net.createServer()
+                  .once('error', err => {
+                    if (err.code !== 'EADDRINUSE') {
+                      reject(err);
+                      return;
+                    }
+                    resolve(true);
+                  })
+                  .once('listening', () => {
+                    server.close();
+                    resolve(false);
+                  })
+                  .listen(port);
+  });
+}
+module.exports.isPortOccupied = isPortOccupied;
 
 module.exports.common = {};
