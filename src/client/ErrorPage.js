@@ -24,6 +24,7 @@ export default class ErrorPage extends Component {
         }
 
         if(statusText === "You need to login"){
+            sessionStorage.setItem('url_before_login', window.location.href||"");
             return <LoginPage />;
         }
 
