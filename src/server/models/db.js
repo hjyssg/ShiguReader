@@ -36,6 +36,10 @@ sqlDb.allSync = _util.promisify(sqlDb.all).bind(sqlDb);
 sqlDb.getSync = _util.promisify(sqlDb.get).bind(sqlDb);
 sqlDb.runSync = _util.promisify(sqlDb.run).bind(sqlDb);
 
+
+let stmt_tag_insert ;
+let stmt_file_insert;
+
 module.exports.init = async ()=> {
     // TODO
     // 现在图片、zip、文件夹都放这个table 
@@ -44,33 +48,28 @@ module.exports.init = async ()=> {
         sTime INTEGER, isDisplayableInExplorer BOOL, isDisplayableInOnebook BOOL, isCompress BOOL, isFolder BOOL);");
 
     //todo: http://howto.philippkeller.com/2005/04/24/Tags-Database-schemas/
-    await sqlDb.runSync("CREATE TABLE tag_table (filePath TEXT NOT NULL, tag VARCHAR(50), type VARCHAR(25), \
-            subtype VARCHAR(25), isCompress BOOL)");
+    await sqlDb.runSync(`CREATE TABLE tag_table (filePath TEXT NOT NULL, tag VARCHAR(50), type VARCHAR(25),
+            subtype VARCHAR(25), isCompress BOOL)`);
+
+    stmt_tag_insert = sqlDb.prepare('INSERT OR REPLACE INTO tag_table(filePath, tag, type, subtype, isCompress ) values(?, ?, ?, ?, ?)');
+    stmt_file_insert = sqlDb.prepare(`INSERT OR REPLACE INTO file_table(filePath, dirPath, fileName, sTime, 
+                isDisplayableInExplorer, isDisplayableInOnebook, 
+                isCompress, isFolder ) values(?, ?, ?, ?, ?, ?, ?, ?)`);
 }
 
 module.exports.getSQLDB = function () {
     return sqlDb;
 }
 
-function insertToTagTable(filePath, tag, type, subtype) {
-    subtype = subtype || "";
-    if (!tag || tag.match(util.useless_tag_regex)) {
-        return;
-    }
-    console.assert(!!filePath)
-    sqlDb.run("INSERT OR REPLACE INTO tag_table(filePath, tag, type, subtype, isCompress ) values(?, ?, ?, ?, ?)",
-               filePath, tag, type, subtype, isCompress(filePath));
-}
-
 module.exports.createSqlIndex = function () {
-    sqlDb.run("CREATE INDEX IF NOT EXISTS filePath_index ON file_table (filePath)");
-    sqlDb.run("CREATE INDEX IF NOT EXISTS dirPath_index ON file_table (dirPath)");
-    sqlDb.run("CREATE INDEX IF NOT EXISTS tag_index ON tag_table (tag)");
-    sqlDb.run("CREATE INDEX IF NOT EXISTS tag_filePath_index ON tag_table (filePath)");
-
+    sqlDb.run(`CREATE INDEX IF NOT EXISTS filePath_index ON file_table (filePath);
+                CREATE INDEX IF NOT EXISTS dirPath_index ON file_table (dirPath);
+                CREATE INDEX IF NOT EXISTS tag_index ON tag_table (tag);
+                CREATE INDEX IF NOT EXISTS tag_filePath_index ON tag_table (filePath); `);
 }
 
 const updateFileDb = function (filePath, statObj) {
+    console.assert(!!filePath)
     const fileName = path.basename(filePath);
 
     if (!statObj) {
@@ -91,39 +90,39 @@ const updateFileDb = function (filePath, statObj) {
     const authors = temp.authors || [];
     const group = temp.group || "";
 
+    const isCompresFile = isCompress(filePath);
+    
+    // tag插入sql
+    let tags_rows = [];
     tags.forEach(t => {
         if (!authors.includes(t) && group !== t) {
-
-            //todo: add subtype
-            //e.g comiket, parody
             if (temp.comiket === t) {
-                insertToTagTable(filePath, t, "tag", "comiket");
+                tags_rows.push([filePath, t, "tag", "comiket", isCompresFile]);
             } else {
-                insertToTagTable(filePath, t, "tag", "parody");
+                tags_rows.push([filePath, t, "tag", "parody", isCompresFile]);
             }
         }
     })
-
     authors.forEach(t => {
-        insertToTagTable(filePath, t, "author");
+        tags_rows.push([filePath, t, "author", "", isCompresFile]);
     })
+    tags_rows.push([filePath, group, "group", "", isCompresFile]);
+    tags_rows = tags_rows.filter(e => e[1] && !e[1].match(util.useless_tag_regex))
+    // do batch insertion
+    if(tags_rows.length > 0){
+        for(const row of tags_rows){
+            stmt_tag_insert.run(...row);
+        }
+    }
 
-    insertToTagTable(filePath, group, "group")
-
+    //file_table插入
     let aboutTimeA = nameParser.getDateFromParse(str);
     aboutTimeA = aboutTimeA && aboutTimeA.getTime();
     let fileTimeA = statObj.mtimeMs || aboutTimeA;
-
     const dirPath = path.dirname(filePath);
-
-    // sqlDb.run("INSERT INTO file_table VALUES (?)", 
     // https://www.sqlitetutorial.net/sqlite-nodejs/insert/
-    console.assert(!!filePath)
-    sqlDb.run("INSERT OR REPLACE INTO file_table(filePath, dirPath, fileName, sTime, " +
-        "isDisplayableInExplorer, isDisplayableInOnebook, " +
-        "isCompress, isFolder ) values(?, ?, ?, ?, ?, ?, ?, ?)",
-        filePath, dirPath, fileName, fileTimeA,
-        isDisplayableInExplorer, isDisplayableInOnebook, isCompress(fileName), statObj.isDir);
+    stmt_file_insert.run(filePath, dirPath, fileName, fileTimeA,
+        isDisplayableInExplorer, isDisplayableInOnebook, isCompresFile, statObj.isDir);
 }
 
 const pfs = require('promise-fs');

@@ -321,7 +321,6 @@ function setUpFileWatch(scan_path) {
     let init_count = 0;
 
     const addCallBack = (fp, stats) => {
-        serverUtil.parse(fp);
         db.updateStatToDb(fp, stats);
         if (is_chokidar_ready) {
             db.createSqlIndex();
