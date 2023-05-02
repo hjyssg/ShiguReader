@@ -15,7 +15,7 @@ const askPregenerate = function (path, fastUpdateMode) {
     }).then((result) => {
         if (result.value === true) {
             const reqBoby = {
-                path: path,
+                pregenerateThumbnailPath: path,
                 fastUpdateMode: fastUpdateMode
             }
             Sender.post('/api/pregenerateThumbnails', reqBoby, res => {

@@ -728,8 +728,8 @@ async function extractThumbnailFromZip(filePath, res, mode, config) {
 //  it generate all thumbnail and will be slow
 let pregenerateThumbnails_lock = false;
 app.post('/api/pregenerateThumbnails', async (req, res) => {
-    let path = req.body && req.body.path;
-    if (!path) {
+    let pregenerateThumbnailPath = req.body && req.body.pregenerateThumbnailPath;
+    if (!pregenerateThumbnailPath) {
         res.send({ failed: true, reason: "NOT PATH" });
         return;
     } else if (pregenerateThumbnails_lock) {
@@ -742,8 +742,8 @@ app.post('/api/pregenerateThumbnails', async (req, res) => {
 
     const allfiles = db.getAllFilePathes();
     let totalFiles = allfiles.filter(isCompress);
-    if (path !== "All_Pathes") {
-        totalFiles = totalFiles.filter(e => e.includes(path));
+    if (pregenerateThumbnailPath !== "All_Pathes") {
+        totalFiles = totalFiles.filter(e => e.includes(pregenerateThumbnailPath));
     }
 
     function shouldWatch(p, stat) {
@@ -754,8 +754,8 @@ app.post('/api/pregenerateThumbnails', async (req, res) => {
         return !ext || isCompress(ext);
     }
 
-    if (path && !isAlreadyScan(path)) {
-        const { pathes } = await fileiterator(path, {
+    if (pregenerateThumbnailPath !== "All_Pathes" && pregenerateThumbnailPath && !isAlreadyScan(pregenerateThumbnailPath)) {
+        const { pathes } = await fileiterator(pregenerateThumbnailPath, {
             doNotNeedInfo: true,
             filter: shouldWatch
         });
