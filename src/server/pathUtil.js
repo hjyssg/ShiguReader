@@ -7,7 +7,7 @@ const _ = require('underscore');
 const ini = require('ini');
 
 
-const { isImage, isMusic, isVideo } = util;
+const { isImage, isMusic, isVideo, isDisplayableInOnebook } = util;
 const cache_folder_name = userConfig.cache_folder_name;
 const pfs = require('promise-fs');
 
@@ -30,6 +30,10 @@ const getRootPath = function () {
 //     return fn.replace(new RegExp(`\\${path.sep}`, 'g'), '/');
 // }
 
+function isFilePath(str) {
+    return path.parse(str).dir !== '';
+  }
+
 //for zip inside image and music files
 const generateContentUrl = function (pathes, outputPath) {
     const files = [];
@@ -37,17 +41,15 @@ const generateContentUrl = function (pathes, outputPath) {
     const musicFiles = [];
     const videoFiles = [];
     if (pathes) {
-        const base = path.basename(outputPath);
         for (let i = 0; i < pathes.length; i++) {
             const p = path.basename(pathes[i]);
-            let temp = path.resolve(cache_folder_name, base, p);
-            // temp = turnPathSepToWebSep(temp);
+            let fp = isFilePath(pathes[i])? pathes[i] : path.resolve(outputPath, pathes[i]);
             if (isImage(p)) {
-                files.push(temp);
+                files.push(fp);
             } else if (isMusic(p)) {
-                musicFiles.push(temp);
+                musicFiles.push(fp);
             } else if (isVideo(p)) {
-                videoFiles.push(temp);
+                videoFiles.push(fp);
             }
         }
     }
@@ -195,6 +197,26 @@ function getZipOutputCachePath() {
     return path.join(getRootPath(), userConfig.workspace_name, userConfig.zip_output_cache);
 }
 
+const readdirRecursive = async (filePath, resultArr) => {
+    let pathes = await pfs.readdir(filePath);
+    pathes = pathes.map(e => path.resolve(filePath, e));
+
+    for(let ii = 0; ii < pathes.length; ii++){
+        try{
+                const fp = pathes[ii];
+                const ext = path.extname(fp).toLowerCase();
+                const isFolder = !ext;
+                if(isDisplayableInOnebook(fp)){
+                    resultArr.push(fp)
+                }else if(isFolder){
+                    await readdirRecursive(fp, resultArr);
+                }
+        }catch(e){
+            console.error(e);
+        }
+    }
+}
+
 module.exports = {
     generateContentUrl,
     getRootPath,
@@ -205,5 +227,6 @@ module.exports = {
     getScanPath,
     getImgConverterCachePath,
     getZipOutputCachePath,
-    removeLastPathSep
+    removeLastPathSep,
+    readdirRecursive
 };

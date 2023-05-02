@@ -25,7 +25,13 @@ class LoginPage extends Component {
         const text = this.getPasswordInput();
         const res = await Sender.postWithPromise('/api/login', {"password":text});
         if (!res.isFailed()) {
-            window.location.href = "/"
+            //跳转回login之前的页面
+            const prevUrl = sessionStorage.getItem('url_before_login') || "/";
+            if(prevUrl == window.location.href){
+                location.reload(true);
+            }else{
+                window.location.href = prevUrl;
+            }
         }else{
             this.setState({errMessage: "Wrong Password"});
         }
