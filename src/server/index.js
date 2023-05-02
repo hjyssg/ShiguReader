@@ -304,7 +304,7 @@ serverUtil.common.moveCallBack  = moveCallBack ;
 
 
 
-let is_chokidar_ready = false;
+let is_chokidar_scan_done = false;
 const chokidar = require('chokidar');
 function setUpFileWatch(scan_path) {
     console.log("[chokidar] begin...");
@@ -320,10 +320,11 @@ function setUpFileWatch(scan_path) {
 
     let init_count = 0;
 
+    //处理添加文件事件
     const addCallBack = (fp, stats) => {
         db.updateStatToDb(fp, stats);
-        if (is_chokidar_ready) {
-            db.createSqlIndex();
+        if (is_chokidar_scan_done) {
+            // nothing
         } else {
             init_count++;
             if (init_count % 2000 === 0) {
@@ -348,7 +349,9 @@ function setUpFileWatch(scan_path) {
 
     //about 1s for 1000 files
     watcher.on('ready', () => {
-        is_chokidar_ready = true;
+        is_chokidar_scan_done = true;
+        db.createSqlIndex();
+
         let end1 = getCurrentTime();
         console.log(`[chokidar] ${(end1 - beg) / 1000}s scan complete.`);
         console.log(`-------------------------------------------------`);
