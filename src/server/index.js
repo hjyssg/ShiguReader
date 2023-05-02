@@ -427,42 +427,48 @@ async function getThumbnailForFolders(filePathes) {
         return result;
     }
 
-    const sqldb = db.getSQLDB();
+    try{
+        const sqldb = db.getSQLDB();
 
-    let label = "getThumbnailForFolders" + filePathes.length;
-    console.time(label);
-    // 先尝试从thumbnail db拿
-    let thumbnailRows = await thumbnailDb.getThumbnailForFolders(filePathes);
+        let label = "getThumbnailForFolders" + filePathes.length;
+        console.time(label);
+        // 先尝试从thumbnail db拿
+        let thumbnailRows = await thumbnailDb.getThumbnailForFolders(filePathes);
+    
+        let nextFilePathes = [];
+        filePathes.forEach(filePath => {
+            let rows = thumbnailRows.filter(row => isSub(filePath, row.filePath))
+            if (rows && rows[0]) {
+                result[filePath] = rows[0].thumbnailFilePath;
+            }else{
+                nextFilePathes.push(filePath);
+            }
+        })
+        
 
-    let nextFilePathes = [];
-    filePathes.forEach(filePath => {
-        let rows = thumbnailRows.filter(row => isSub(filePath, row.filePath))
-        if (rows && rows[0]) {
-            result[filePath] = rows[0].thumbnailFilePath;
-        }else{
-            nextFilePathes.push(filePath);
+        if(nextFilePathes.length > 0){
+            //拿不到就看看有没有下属image
+            // TODO 担心nextFilePathe很多的时候
+            const stringsToMatch = nextFilePathes; // string array of values
+            const patterns = stringsToMatch.map(str => `${str}%`);
+            const placeholders = patterns.map(() => 'filePath LIKE ?').join(' OR ');
+            const sql = `SELECT filePath FROM file_table WHERE isDisplayableInOnebook = true AND ${placeholders} `;
+            let imagerows = await sqldb.allSync(sql, patterns);
+            imagerows = imagerows.filter(row => {
+                return isImage(row.filePath);
+            });
+            nextFilePathes.forEach(filePath => {
+                let rows = imagerows.filter(row => isSub(filePath, row.filePath))
+                if (rows && rows[0]) {
+                    result[filePath] = rows[0].filePath;
+                }
+            })
         }
-    })
-   
-
-    //拿不到就看看有没有下属image
-    // TODO 担心nextFilePathe很多的时候
-    const stringsToMatch = nextFilePathes; // string array of values
-    const patterns = stringsToMatch.map(str => `${str}%`);
-    const placeholders = patterns.map(() => 'filePath LIKE ?').join(' OR ');
-    const sql = `SELECT filePath FROM file_table WHERE isDisplayableInOnebook = true AND ${placeholders} `;
-    let imagerows = await sqldb.allSync(sql, patterns);
-    imagerows = imagerows.filter(row => {
-        return isImage(row.filePath);
-    });
-    nextFilePathes.forEach(filePath => {
-        let rows = imagerows.filter(row => isSub(filePath, row.filePath))
-        if (rows && rows[0]) {
-            result[filePath] = rows[0].filePath;
-        }
-    })
-
-    console.timeEnd(label);
+    
+        console.timeEnd(label);
+    }catch(e){
+        console.error("[getThumbnailForFolders]", e);
+    }
     return result;
 }
 
