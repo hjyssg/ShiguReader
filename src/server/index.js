@@ -321,7 +321,8 @@ function setUpFileWatch(scan_path) {
     let init_count = 0;
 
     //处理添加文件事件
-    const addCallBack = (fp, stats) => {
+    const addCallBack = async (fp, stats) => {
+        // console.log(fp);
         db.updateStatToDb(fp, stats);
         if (is_chokidar_scan_done) {
             // nothing
@@ -348,9 +349,25 @@ function setUpFileWatch(scan_path) {
         .on('unlinkDir', deleteCallBack);
 
     //about 1s for 1000 files
-    watcher.on('ready', () => {
+    watcher.on('ready', async () => {
         is_chokidar_scan_done = true;
         db.createSqlIndex();
+
+        // DEBUG数据多少
+        setTimeout(async () => {
+            const sqldb = db.getSQLDB();
+            let sql = `SELECT count(*) as count FROM file_table `;
+            let temp = await sqldb.allSync(sql);
+            console.log(temp[0].count);
+
+            sql = `SELECT count(*) as count FROM tag_table `;
+            temp = await sqldb.allSync(sql);
+            console.log(temp[0].count);
+    
+            // sql = `SELECT * FROM file_table `;
+            // temp = await sqldb.allSync(sql);
+            // console.log(temp); 
+        }, 5000);
 
         let end1 = getCurrentTime();
         console.log(`[chokidar] ${(end1 - beg) / 1000}s scan complete.`);
