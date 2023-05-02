@@ -370,7 +370,7 @@ function setUpFileWatch(scan_path) {
         // }, 5000);
 
         let end1 = getCurrentTime();
-        console.log(`[chokidar] ${(end1 - beg) / 1000}s scan complete.`);
+        console.log(`[chokidar] ${(end1 - beg) / 1000}s scan complete.  ${init_count}`);
         console.log(`-------------------------------------------------`);
         console.log(`\n\n\n\n\n`);
     })
