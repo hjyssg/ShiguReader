@@ -474,8 +474,7 @@ export default class ExplorerPage extends Component {
     }
 
     getFilteredFiles() {
-        let files = this.compressFiles;
-        files = files.concat(_.keys(this.imgFolders))
+        let files = [...this.compressFiles, ...(_.keys(this.imgFolders))];
 
         const { authorInfo } = this.state;
 
@@ -883,7 +882,7 @@ export default class ExplorerPage extends Component {
                 </div>);
                 zipfileItems.push(seperator)
                 const zipGroup = folderGroup.map(fp => this.renderSingleZipItem(fp));
-                zipfileItems = zipfileItems.concat(zipGroup);
+                zipfileItems.push(...zipGroup);
             })
         } else {
             //! !todo if the file is already an image file
@@ -1329,7 +1328,7 @@ export default class ExplorerPage extends Component {
         let sortOptions = Constant.SORT_OPTIONS;
 
         if (this.getMode() !== MODE_EXPLORER) {
-            sortOptions = sortOptions.concat(BY_FOLDER);
+            sortOptions.push(...BY_FOLDER);
         }
 
         return (<div className="sort-header-container container">

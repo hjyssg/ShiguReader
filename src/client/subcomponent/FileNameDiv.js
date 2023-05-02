@@ -34,14 +34,14 @@ function getText(filename, mecab_tokens) {
     }
 
     if (authors) {
-      allTags = allTags.concat(authors);
+      allTags.push(...authors);
     }
 
-    allTags = allTags.concat(originalTags);
+    allTags.push(...originalTags);
     pTags = allTags.slice();
   }
   let nameTags = namePicker.pick(text) || [];
-  allTags = allTags.concat(nameTags);
+  allTags.push(...nameTags);
 
 
   //less meaningful
@@ -53,7 +53,7 @@ function getText(filename, mecab_tokens) {
 
     return isUniq;
   });
-  allTags = allTags.concat(lessTags);
+  allTags.push(...lessTags);
 
   //unique
   allTags = _.uniq(allTags);

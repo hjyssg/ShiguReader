@@ -606,7 +606,7 @@ function parse(str) {
 
     //---------------handle tags
     if (pMacthes && pMacthes.length > 0) {
-        tags = tags.concat(pMacthes);
+        tags.push(...pMacthes);
     }
 
     //seperate
