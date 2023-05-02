@@ -611,7 +611,7 @@ app.post("/api/getTagThumbnail", async (req, res) => {
     }
 
     const cacheKey = tag || author;
-    let oneThumbnail = memorycache.get[cacheKey];
+    let oneThumbnail = memorycache.get(cacheKey);
     if(oneThumbnail){
         res.send({
             url: oneThumbnail
@@ -626,6 +626,7 @@ app.post("/api/getTagThumbnail", async (req, res) => {
     oneThumbnail = thumbnailPathes[0];
     if(oneThumbnail){
         memorycache.put(cacheKey, oneThumbnail, 60*1000);
+        // console.log(cacheKey);
         res.send({
             url: oneThumbnail
         })
