@@ -77,9 +77,9 @@ const updateFileDb = function (filePath, statObj) {
                 isDisplayableInExplorer, isDisplayableInOnebook, 
                 isCompress, isFolder ) values(?, ?, ?, ?, ?, ?, ?, ?)`);
 
-    const isDisplayableInExplorer = util.isDisplayableInExplorer(filePath);
-    const isDisplayableInOnebook = util.isDisplayableInOnebook(filePath);
-
+    const isCompresFile = isCompress(fileName);
+    const isDisplayableInExplorer = util.isDisplayableInExplorer(fileName);
+    const isDisplayableInOnebook = util.isDisplayableInOnebook(fileName);
     //set up tags
     const str = isDisplayableInExplorer ? fileName : getDirName(filePath);
 
@@ -90,7 +90,6 @@ const updateFileDb = function (filePath, statObj) {
     const authors = temp.authors || [];
     const group = temp.group || "";
 
-    const isCompresFile = isCompress(filePath);
     
     // tag插入sql
     let tags_rows = [];
