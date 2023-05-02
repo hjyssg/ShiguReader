@@ -612,7 +612,7 @@ export default class ExplorerPage extends Component {
                 getBaseName,
                 onlyByMTime
             }
-            files = sortUtil.sort_file_by_time(files, config);
+            sortUtil.sort_file_by_time(files, config);
         } else if (sortOrder === BY_READ_TIME) {
             const config = {
                 fileInfos: this.allfileInfos,
@@ -621,7 +621,7 @@ export default class ExplorerPage extends Component {
                 byReadTime: true,
                 fileNameToHistory: this.fileNameToHistory
             }
-            files = sortUtil.sort_file_by_time(files, config);
+            sortUtil.sort_file_by_time(files, config);
         } else if (sortOrder === BY_READ_COUNT) {
             const config = {
                 fileInfos: this.allfileInfos,
@@ -630,7 +630,7 @@ export default class ExplorerPage extends Component {
                 byReadCount: true,
                 fileNameToHistory: this.fileNameToHistory
             }
-            files = sortUtil.sort_file_by_time(files, config);
+            sortUtil.sort_file_by_time(files, config);
         } else if (sortOrder === BY_FILE_SIZE) {
             files = _.sortBy(files, e => {
                 return this.getFileSize(e);
@@ -651,7 +651,7 @@ export default class ExplorerPage extends Component {
                 getBaseName,
                 onlyByMTime
             }
-            files = sortUtil.sort_file_by_time(files, config);
+            sortUtil.sort_file_by_time(files, config);
         }
 
         if (!isSortAsc) {

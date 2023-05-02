@@ -329,11 +329,10 @@ function parse(str) {
     const tseperator = /,|、/;
     const tempTags = [];
     tags.forEach(t => {
-        t.split(tseperator).forEach(token => {
-            tempTags.push(token);
-        })
+        tempTags.push(...(t.split(tseperator)));
     })
     tags = tempTags;
+
 
     tags = tags.map(e => e.trim());
 
@@ -341,11 +340,10 @@ function parse(str) {
         return e.length > 1 && !isOtherInfo(e) && authors.indexOf(e) === -1 && e !== author;
     });
 
-    tags = tags
-        .map(e => e.replace(/ {2,}/g, " ").replace(/。/g, "").replace(/！/g, "!").replace(/？/g, "?"))
-
-    //tag reducing
     tags = tags.map(e => {
+        e = e.replace(/ {2,}/g, " ").replace(/。/g, "").replace(/！/g, "!").replace(/？/g, "?");
+
+        //tag reducing
         const converts = [];
         for (let ii = 0; ii < same_tag_matrix.length; ii++) {
             const row = same_tag_matrix[ii];
@@ -384,9 +382,7 @@ function parse(str) {
 
     //get character names
     const names = char_name_regex && title.match(char_name_regex);
-    names && names.forEach(e => {
-        tags.push(e);
-    })
+    names && tags.push(...names);
 
     const result = {
         dateTag, group, author, authors, tags, comiket, type, title

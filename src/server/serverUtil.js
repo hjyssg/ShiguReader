@@ -54,7 +54,7 @@ module.exports.chooseOneZipForOneTag = function (files, fileInfos) {
         getBaseName
     }
 
-    _files = sortUtil.sort_file_by_time(_files, config);
+    sortUtil.sort_file_by_time(_files, config);
     return _files[0];
 }
 
