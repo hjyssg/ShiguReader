@@ -354,20 +354,20 @@ function setUpFileWatch(scan_path) {
         db.createSqlIndex();
 
         // DEBUG数据多少
-        setTimeout(async () => {
-            const sqldb = db.getSQLDB();
-            let sql = `SELECT count(*) as count FROM file_table `;
-            let temp = await sqldb.allSync(sql);
-            console.log(temp[0].count);
+        // setTimeout(async () => {
+        //     const sqldb = db.getSQLDB();
+        //     let sql = `SELECT count(*) as count FROM file_table `;
+        //     let temp = await sqldb.allSync(sql);
+        //     console.log(temp[0].count);
 
-            sql = `SELECT count(*) as count FROM tag_table `;
-            temp = await sqldb.allSync(sql);
-            console.log(temp[0].count);
+        //     sql = `SELECT count(*) as count FROM tag_table `;
+        //     temp = await sqldb.allSync(sql);
+        //     console.log(temp[0].count);
     
-            // sql = `SELECT * FROM file_table `;
-            // temp = await sqldb.allSync(sql);
-            // console.log(temp); 
-        }, 5000);
+        //     // sql = `SELECT * FROM file_table `;
+        //     // temp = await sqldb.allSync(sql);
+        //     // console.log(temp); 
+        // }, 5000);
 
         let end1 = getCurrentTime();
         console.log(`[chokidar] ${(end1 - beg) / 1000}s scan complete.`);
