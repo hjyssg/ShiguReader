@@ -446,6 +446,7 @@ async function getThumbnailForFolders(filePathes) {
    
 
     //拿不到就看看有没有下属image
+    // TODO 担心nextFilePathe很多的时候
     const stringsToMatch = nextFilePathes; // string array of values
     const patterns = stringsToMatch.map(str => `${str}%`);
     const placeholders = patterns.map(() => 'filePath LIKE ?').join(' OR ');
