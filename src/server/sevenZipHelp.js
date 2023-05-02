@@ -179,6 +179,7 @@ module.exports.extractByRange = async function (filePath, outputPath, range) {
                 break;
             }
             if(stdout.includes("No files to process")){
+                // 常见原因是zip内部文件夹有奇怪字符  🍑  🍊
                 throw "need_to_extract_all";
             }
             ii = ii + DISTANCE;

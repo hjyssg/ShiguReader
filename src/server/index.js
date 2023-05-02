@@ -691,17 +691,19 @@ async function extractThumbnailFromZip(filePath, res, mode, config) {
             }
             const thumb = serverUtil.chooseThumbnailImage(files);
             if (!thumb) {
-                throw "no img in this file";
+                throw "[extractThumbnailFromZip] no img in this file";
             }
 
-            const temp = cacheDb.getCacheFiles(outputPath);
-            if (temp && temp.files === files.length) {
+            const cacheFiles = cacheDb.getCacheFiles(outputPath);
+            // if (cacheFiles && cacheFiles.files === files.length) {
+            if (cacheFiles && cacheFiles.includes(thumb)) {
                 debugger
                 //skip
             }else{
                 const stderrForThumbnail = await extractByRange(filePath, outputPath, [thumb])
                 if (stderrForThumbnail) {
-                    throw "extract exec failed";
+                    console.error(stderrForThumbnail);
+                    throw "[extractThumbnailFromZip] extract exec failed";
                 }
             }
            
