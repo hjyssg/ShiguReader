@@ -37,8 +37,6 @@ sqlDb.getSync = _util.promisify(sqlDb.get).bind(sqlDb);
 sqlDb.runSync = _util.promisify(sqlDb.run).bind(sqlDb);
 
 
-let stmt_tag_insert ;
-let stmt_file_insert;
 
 module.exports.init = async ()=> {
     // TODO
@@ -50,11 +48,6 @@ module.exports.init = async ()=> {
     //todo: http://howto.philippkeller.com/2005/04/24/Tags-Database-schemas/
     await sqlDb.runSync(`CREATE TABLE tag_table (filePath TEXT NOT NULL, tag VARCHAR(50), type VARCHAR(25),
             subtype VARCHAR(25), isCompress BOOL)`);
-
-    stmt_tag_insert = sqlDb.prepare('INSERT OR REPLACE INTO tag_table(filePath, tag, type, subtype, isCompress ) values(?, ?, ?, ?, ?)');
-    stmt_file_insert = sqlDb.prepare(`INSERT OR REPLACE INTO file_table(filePath, dirPath, fileName, sTime, 
-                isDisplayableInExplorer, isDisplayableInOnebook, 
-                isCompress, isFolder ) values(?, ?, ?, ?, ?, ?, ?, ?)`);
 }
 
 module.exports.getSQLDB = function () {
@@ -68,6 +61,8 @@ module.exports.createSqlIndex = function () {
                 CREATE INDEX IF NOT EXISTS tag_filePath_index ON tag_table (filePath); `);
 }
 
+let stmt_tag_insert ;
+let stmt_file_insert;
 const updateFileDb = function (filePath, statObj) {
     console.assert(!!filePath)
     const fileName = path.basename(filePath);
@@ -76,6 +71,11 @@ const updateFileDb = function (filePath, statObj) {
         console.warn("no statObj");
         statObj = {};
     }
+
+    stmt_tag_insert = stmt_tag_insert || sqlDb.prepare('INSERT OR REPLACE INTO tag_table(filePath, tag, type, subtype, isCompress ) values(?, ?, ?, ?, ?)');
+    stmt_file_insert = stmt_file_insert || sqlDb.prepare(`INSERT OR REPLACE INTO file_table(filePath, dirPath, fileName, sTime, 
+                isDisplayableInExplorer, isDisplayableInOnebook, 
+                isCompress, isFolder ) values(?, ?, ?, ?, ?, ?, ?, ?)`);
 
     const isDisplayableInExplorer = util.isDisplayableInExplorer(filePath);
     const isDisplayableInOnebook = util.isDisplayableInOnebook(filePath);
