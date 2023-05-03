@@ -120,6 +120,7 @@ module.exports.listZipContentAndUpdateDb = async function (filePath) {
         let text;
         let _stderr;
 
+        // zip内部文件夹有奇怪字符  🍑  🍊 ・ 会输出不对
         let { stdout, stderr } = await execa(sevenZip, ['l', '-r', '-ba', '-slt', filePath], { timeout: 5000 });
         text = stdout;
         _stderr = stderr;
@@ -179,8 +180,9 @@ module.exports.extractByRange = async function (filePath, outputPath, range) {
                 break;
             }
             if(stdout.includes("No files to process")){
-                // 常见原因是zip内部文件夹有奇怪字符  🍑  🍊
-                throw "need_to_extract_all";
+                // 常见原因是zip内部文件夹有奇怪字符  🍑  🍊 ・
+                // debugger
+                throw "NEED_TO_EXTRACT_ALL";
             }
             ii = ii + DISTANCE;
             count++;

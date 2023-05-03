@@ -691,20 +691,17 @@ async function extractThumbnailFromZip(filePath, res, mode, config) {
             }
             const thumb = serverUtil.chooseThumbnailImage(files);
             if (!thumb) {
-                throw "[extractThumbnailFromZip] no img in this file";
+                let reason = "[extractThumbnailFromZip] no img in this file " +  filePath;
+                console.log(reason);
+                sendable && res.send({ failed: true, reason });
+                return;
             }
 
-            const cacheFiles = cacheDb.getCacheFiles(outputPath);
-            // if (cacheFiles && cacheFiles.files === files.length) {
-            if (cacheFiles && cacheFiles.files.includes(thumb)) {
-                debugger
-                //skip
-            }else{
-                const stderrForThumbnail = await extractByRange(filePath, outputPath, [thumb])
-                if (stderrForThumbnail) {
-                    console.error(stderrForThumbnail);
-                    throw "[extractThumbnailFromZip] extract exec failed";
-                }
+      
+            const stderrForThumbnail = await extractByRange(filePath, outputPath, [thumb])
+            if (stderrForThumbnail) {
+                // console.error(stderrForThumbnail);
+                throw "[extractThumbnailFromZip] extract exec failed"+filePath;
             }
            
             // send original img path to client as thumbnail
@@ -982,7 +979,7 @@ app.post('/api/extract', async (req, res) => {
                 await extractByRange(filePath, outputPath, secondRange);
             } else {
                 //seven的谜之抽风
-                if(stderr === "need_to_extract_all" && files.length <= 100){
+                if(stderr === "NEED_TO_EXTRACT_ALL" && files.length <= 100){
                    await _extractAll_()
                 }else{
                     throw stderr;
