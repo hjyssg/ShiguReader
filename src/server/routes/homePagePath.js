@@ -55,13 +55,14 @@ router.get('/api/homePagePath', async (req, res) => {
         return !dirs.includes(e) && !hdd_list.includes(e) && !dirs.includes(e2) && !hdd_list.includes(e2);
     });
     let quickAccess = [];
+    const NUM_QUICK_ACCESS = 15;
     for(let ii = 0; ii < tempQuickAccess.length; ii++){
         const pp = tempQuickAccess[ii];
         //确认是否存在
         if(await pathUtil.isExist(pp)){
             quickAccess.push(pp);
         }
-        if(quickAccess.length >= 10){
+        if(quickAccess.length >= NUM_QUICK_ACCESS){
             break;
         }
     }
