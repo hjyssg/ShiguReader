@@ -121,7 +121,8 @@ module.exports.listZipContentAndUpdateDb = async function (filePath) {
         let _stderr;
 
         // zip内部文件夹有奇怪字符  🍑  🍊 ・ 会输出不对
-        let { stdout, stderr } = await execa(sevenZip, ['l', '-r', '-ba', '-slt', filePath], { timeout: 5000 });
+        let { stdout, stderr } = await execa(sevenZip, ['l', '-r', '-ba', '-slt', filePath]);
+
         text = stdout;
         _stderr = stderr;
 
