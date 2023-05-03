@@ -37,14 +37,24 @@ module.exports.sevenZip = sevenZip;
 
 
 function read7zOutput(data) {
-    const lines = data && data.split("\n");
     const files = [];
     const fileInfos = [];
+    if(!data){
+        return { files, fileInfos };
+    }
+
+    let lines = data.split("\n");
+    lines = lines.map(e => e.trim()).filter(e => e.length > 0);
     let currentInfo;
     try {
         for (let ii = 0; ii < lines.length; ii++) {
-            let line = lines[ii].trim();
-            let tokens = line.split(" = ");
+            let line = lines[ii];
+            //https://stackoverflow.com/questions/20474257/split-string-into-two-parts
+            const sep = " = ";
+            var index = line.indexOf(sep);  // Gets the first index where a space occours
+            const key = line.substr(0, index); // Gets the first part
+            const value = line.substr(index + sep.length).trim();  // Gets the text part
+
             // an example 
             // Path = 041.jpg
             // Folder = -
@@ -53,9 +63,7 @@ function read7zOutput(data) {
             // Modified = 2020-04-03 17:29:52
             // Created = 2020-04-03 17:29:52
             // Accessed = 2020-04-03 17:29:52
-            if (tokens.length === 2) {
-                const key = tokens[0];
-                const value = tokens[1].trim();
+            if (key && value) {
                 const lkey = key.toLowerCase();
                 if (lkey === "path") {
                     if (currentInfo) {
@@ -66,6 +74,8 @@ function read7zOutput(data) {
                 } else {
                     currentInfo[lkey] = value;
                 }
+            }else{
+                // debugger
             }
         }
 
@@ -74,7 +84,7 @@ function read7zOutput(data) {
             fileInfos.push(currentInfo);
         }
         if (fileInfos.length !== files.length) {
-            throw "read7zOutput missing info";
+            throw "[read7zOutput] read7zOutput missing info";
         }
         return { files, fileInfos };
     } catch (e) {
