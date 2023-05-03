@@ -37,6 +37,7 @@ router.post('/api/lsDir', async (req, res) => {
 
     if (!isAlreadyScan(dir)) {
         const result = await listNoScanDir(dir, res);
+        historyDb.addOneLsDirRecord(dir);
         res.send(result);
         return;
     }
@@ -143,6 +144,7 @@ router.post('/api/lsDir', async (req, res) => {
         // const time3 = getCurrentTime();
         // timeUsed = (time3 - time2) / 1000;
         // console.log("[/api/LsDir] info look", timeUsed, "s")
+        historyDb.addOneLsDirRecord(dir);
         res.send(result);
     } catch (e) {
         console.error(e);

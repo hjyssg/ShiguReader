@@ -9,7 +9,7 @@ const { isCompress, isVideo, getCurrentTime } = util;
 const { isSub, isExist } = pathUtil;
 const rootPath = pathUtil.getRootPath();
 
-let thumbnail_db_path = path.join(rootPath, userConfig.workspace_name, "thumbnail_sql_db");
+let thumbnail_db_path = path.join(rootPath, userConfig.workspace_name, "thumbnail_sql_db.db");
 const sqlite3 = require('sqlite3').verbose();
 const sqlDb = new sqlite3.Database(thumbnail_db_path);
 

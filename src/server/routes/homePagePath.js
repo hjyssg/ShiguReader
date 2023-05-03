@@ -47,15 +47,25 @@ router.get('/api/homePagePath', async (req, res) => {
     //     }
     // });
 
-    let quickAccess = await historyDb.getQuickAccess();
-    quickAccess = quickAccess.map(e => e.dirPath);
-
-    quickAccess = quickAccess.filter(e => {
+    let tempQuickAccess = await historyDb.getQuickAccess();
+    tempQuickAccess = tempQuickAccess.map(e => e.filePath);
+    //不要和其他项目重复
+    tempQuickAccess = tempQuickAccess.filter(e => {
         const e2 = pathUtil.removeLastPathSep(e);
         return !dirs.includes(e) && !hdd_list.includes(e) && !dirs.includes(e2) && !hdd_list.includes(e2);
     });
+    let quickAccess = [];
+    for(let ii = 0; ii < tempQuickAccess.length; ii++){
+        const pp = tempQuickAccess[ii];
+        //确认是否存在
+        if(await pathUtil.isExist(pp)){
+            quickAccess.push(pp);
+        }
+        if(quickAccess.length >= 10){
+            break;
+        }
+    }
 
-    quickAccess = quickAccess.slice(0, 10);
 
     if (dirs.length === 0 && hdd_list.length === 0 && quickAccess.length === 0) {
         res.send({ failed: true, reason: "config-path.ini has no path" });

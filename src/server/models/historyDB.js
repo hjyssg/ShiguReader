@@ -8,7 +8,7 @@ const pathUtil = require("../pathUtil");
 
 const userConfig = global.requireUserConfig();
 const rootPath = pathUtil.getRootPath();
-const history_db_path = path.join(rootPath, userConfig.workspace_name, "history_sql_db");
+const history_db_path = path.join(rootPath, userConfig.workspace_name, "history_sql_db.db");
 const sqlite3 = require('sqlite3').verbose();
 const sqlDb = new sqlite3.Database(history_db_path);
 
@@ -18,10 +18,18 @@ sqlDb.getSync = _util.promisify(sqlDb.get).bind(sqlDb);
 sqlDb.runSync = _util.promisify(sqlDb.run).bind(sqlDb);
 
 module.exports.init = async ()=> {
-    const sql = `CREATE TABLE IF NOT EXISTS history_table (filePath TEXT NOT NULL, dirPath TEXT, fileName TEXT, time INTEGER); 
+    // 记录打开文件
+    let sql = `CREATE TABLE IF NOT EXISTS history_table (filePath TEXT NOT NULL, dirPath TEXT, fileName TEXT, time INTEGER); 
                  CREATE INDEX IF NOT EXISTS fileName_index ON history_table (fileName);
                  CREATE INDEX IF NOT EXISTS time_index ON history_table (time);
                  `
+    await sqlDb.runSync(sql);
+
+    // 记录文件夹lsdir的table
+    sql = `CREATE TABLE IF NOT EXISTS lsdir_history_table (filePath TEXT NOT NULL, time INTEGER); 
+    CREATE INDEX IF NOT EXISTS filePath_lsdir_index ON lsdir_history_table (fileName);
+    CREATE INDEX IF NOT EXISTS time_lsdir_index ON lsdir_history_table (time);
+    `
     await sqlDb.runSync(sql);
 }
 
@@ -37,6 +45,12 @@ module.exports.addOneRecord = function (filePath) {
     // sql = "INSERT OR REPLACE INTO history_table(filePath, dirPath, fileName, time ) values(?, ?, ?, ?)";
     sql = "INSERT INTO history_table(filePath, dirPath, fileName, time ) values(?, ?, ?, ?)";
     sqlDb.run(sql, filePath, dirPath, fileName, time);
+}
+
+module.exports.addOneLsDirRecord = function (filePath) {
+    const time = util.getCurrentTime()
+    sql = "INSERT INTO lsdir_history_table(filePath, time ) values(?, ?)";
+    sqlDb.run(sql, filePath, time);
 }
 
 // const back_days = 5;
@@ -87,11 +101,11 @@ module.exports.getQuickAccess = async function () {
     let time = util.getCurrentTime();
     time = time - 1000 * 3600 * 24 * quick_access_day;
     const sql = `
-        SELECT dirPath, count(dirPath) AS count 
-        FROM history_table 
+        SELECT filePath, count(filePath) AS count 
+        FROM lsdir_history_table 
         WHERE time > ? 
-        GROUP BY dirPath 
-        ORDER BY count DESC
+        GROUP BY filePath 
+        ORDER BY count DESC, filePath ASC
         LIMIT 50;
     `
     let rows = await sqlDb.allSync(sql, [time]);
