@@ -696,7 +696,7 @@ async function extractThumbnailFromZip(filePath, res, mode, config) {
 
             const cacheFiles = cacheDb.getCacheFiles(outputPath);
             // if (cacheFiles && cacheFiles.files === files.length) {
-            if (cacheFiles && cacheFiles.includes(thumb)) {
+            if (cacheFiles && cacheFiles.files.includes(thumb)) {
                 debugger
                 //skip
             }else{
