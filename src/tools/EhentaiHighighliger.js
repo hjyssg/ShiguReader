@@ -7,12 +7,13 @@
 // @grant       GM_getResourceText
 // @connect     localhost
 // @namespace       Aji47
-// @version         0.0.21
+// @version         0.0.29
 // @description
 // @author        Aji47
 // @include       *://exhentai.org/*
 // @include       *://g.e-hentai.org/*
 // @include       *://e-hentai.org/*
+// @include       *://sukebei.nyaa.si/*
 // @require      https://raw.githubusercontent.com/hjyssg/ShiguReader/dev/src/name-parser/all_in_one/index.js
 // @require      https://cdnjs.cloudflare.com/ajax/libs/lokijs/1.5.11/lokijs.min.js
 // ==/UserScript==
@@ -36,7 +37,8 @@ GM_addStyle(`
 
 `);
 
-
+const IS_EHENTAI = window.location.hostname.includes("exhentai") || window.location.hostname.includes("e-hentai");
+const IS_NYAA =  window.location.hostname.includes("nyaa");
 
 console.assert = console.assert || (() => { });
 
@@ -119,7 +121,10 @@ function checkIfDownload(text, pageNum) {
     let similarTitles = [];
     let r1 = parse(text);
 
-    function comparePageNum(book, pageNum) {
+    function isPageNumDifferent(book, pageNum) {
+        if (!IS_EHENTAI){
+            return false;
+        }
         if (!isNaN(book.pageNum) && Math.abs(book.pageNum - pageNum) >= 5) {
             return true;
         }
@@ -134,7 +139,7 @@ function checkIfDownload(text, pageNum) {
             status = SAME_AUTHOR;
             for (let ii = 0; ii < books.length; ii++) {
                 const book = books[ii];
-                if (comparePageNum(book, pageNum)) {
+                if (isPageNumDifferent(book, pageNum)) {
                     continue;
                 }
 
@@ -148,7 +153,7 @@ function checkIfDownload(text, pageNum) {
                 status = Math.max(status, isTwoBookTheSame(text, fn2));
                 if (status === LIKELY_IN_PC) {
                     similarTitles.push(fn2);
-                    //todo pick the most similar 
+                    //todo pick the most similar
                     //or show all
                 }
 
@@ -165,7 +170,7 @@ function checkIfDownload(text, pageNum) {
             .data();
 
         books.forEach(e => {
-            if (comparePageNum(e, pageNum)) {
+            if (isPageNumDifferent(e, pageNum)) {
                 return;
             }
 
@@ -197,11 +202,10 @@ function getCurrentTime() {
 }
 
 const begTime = getCurrentTime();
-let time2;
 const file_db = new loki();
 const file_collection = file_db.addCollection("file_collection");
 
-escapeRegExp = function (string) {
+const escapeRegExp = function (string) {
     const str = string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
     var reg = new RegExp(str, 'i');
     return reg;
@@ -218,12 +222,8 @@ function getByAuthor(key) {
         .data();
 }
 
-function highlightThumbnail(allFiles) {
-    const nodes = Array.prototype.slice.call(document.getElementsByClassName("gl1t"));
-    if (!nodes || nodes.length === 0) {
-        return;
-    }
-
+function parseAllFiles(allFiles){
+    console.time("parse_all_files");
     for (let e in allFiles) {
         if (allFiles.hasOwnProperty(e)) {
             const r = parse(e) || {};
@@ -237,10 +237,17 @@ function highlightThumbnail(allFiles) {
             })
         }
     }
+    console.timeEnd("parse_all_files");
+}
 
-    const timeMiddle2 = getCurrentTime();
-    console.log((timeMiddle2 - time2) / 1000, "to parse name");
+function highlightEhentaiThumbnail() {
+    let nodes = Array.prototype.slice.call(document.getElementsByClassName("gl1t"));
 
+    if (!nodes || nodes.length === 0) {
+        return;
+    }
+
+    console.time("check_all_dom");
     nodes.forEach(e => {
         try {
             const subNode = e.getElementsByClassName("gl4t")[0];
@@ -286,10 +293,53 @@ function highlightThumbnail(allFiles) {
         }
     });
 
-    const finishTime = getCurrentTime();
-    console.log((finishTime - timeMiddle2) / 1000, "to finish algo and change dom");
+    console.timeEnd("check_all_dom");
+}
 
-    console.log((finishTime - begTime) / 1000, "for any time");
+function highlightNyaa(){
+    const  nodes = Array.prototype.slice.call(document.querySelectorAll(".table-bordered tr td:nth-child(2) a"))
+
+    console.time("check_all_dom");
+    nodes.forEach(node => {
+        try {
+            const text = node.textContent;
+            // node.status = 0;
+            const rr = parse(text);
+            const { status, similarTitles } = checkIfDownload(text);
+            // node.status = status || 0;
+            if (status === IS_IN_PC) {
+                // node.style.color = "#61ef47";
+                node.style.textDecoration = "line-through";
+                node.style.textDecorationColor = "green";
+                node.title = "明确已经下载过了";
+            } else if (status === LIKELY_IN_PC) {
+                node.style.color = "#efd41b";
+                addTooltip(node, "电脑里面好像有", similarTitles)
+            } else if (status === SAME_AUTHOR) {
+                node.style.color = "#ef8787";
+                const fns = getByAuthor(rr.author).map(e => e.fileName);
+                addTooltip(node, `下载同样作者“${rr.author}”的书 ${fns.length}次`, fns, "same_author")
+            }
+
+            // if (status) {
+            //     if (r) {
+            //         appendLink(e, r.author);
+            //         if (status >= LIKELY_IN_PC) {
+            //             appendLink(e, r.title);
+            //         }
+            //     } else {
+            //         appendLink(e, text);
+            //     }
+
+            //     subNode.style.fontWeight = 600;
+            // }
+        } catch (e) {
+            console.error(e);
+        }
+    });
+
+    console.timeEnd("check_all_dom");
+
 }
 
 function addTooltip(node, title, books, same_author) {
@@ -354,7 +404,7 @@ function GM_xmlhttpRequest_promise(method, api) {
     })
 }
 
-function addSearchLink() {
+function addSearchLinkForEhentai() {
     //add shigureader search link
     let fileTitleDom = document.getElementById("gj");
     let title = fileTitleDom && fileTitleDom.textContent;
@@ -383,44 +433,31 @@ function addSearchLink() {
 }
 
 async function main() {
-    addSearchLink();
-
-    const responseText = GM_getValue('responseText');
-    const lastResTime = GM_getValue('lastResTime');
-    const EXPIRE_TIME = 1000 * 60 * 2;
-
-    //detect if the server if running
-    // const isServerRunningRes = await GM_xmlhttpRequest_promise("GET", 'http://localhost:8080/api/getGeneralInfo', 1000);
-
-    if (responseText && lastResTime && (getCurrentTime() - (+lastResTime) < EXPIRE_TIME)) {
-        time2 = getCurrentTime();
-        const res = JSON.parse(responseText);
-        highlightThumbnail(res.allFiles);
-    } else {
-        //annote file table
-        var api = 'http://localhost:8080/api/exhentaiApi';
-        const res = await GM_xmlhttpRequest_promise("GET", api);
-        time2 = getCurrentTime();
-        if (res) {
-            console.log((time2 - begTime) / 1000, "to load");
-            GM_setValue('lastResTime', getCurrentTime());
-
-            const text = res.responseText;
-            GM_setValue('responseText', text);
-            const json = JSON.parse(text);
-            highlightThumbnail(json.allFiles);
-
-        } else {
-            console.log((time2 - begTime) / 1000, "to timeout");
-            const responseText = GM_getValue('responseText');
-            if (responseText) {
-                const res = JSON.parse(responseText);
-                highlightThumbnail(res.allFiles);
-            }
-        }
+    if(IS_EHENTAI){
+        addSearchLinkForEhentai();
     }
 
+    //server有两个port，根据不同deploy
+    let api = 'http://localhost:34213/api/exhentaiApi';
+    let res = await GM_xmlhttpRequest_promise("GET", api);
 
+    if(!res){
+        api = 'http://localhost:34213/api/exhentaiApi';
+        res = await GM_xmlhttpRequest_promise("GET", api);
+    }
+
+    if (res) {
+        const text = res.responseText;
+        const json = JSON.parse(text);
+        parseAllFiles(json.allFiles)
+        if(IS_EHENTAI){
+            highlightEhentaiThumbnail();
+        }else if (IS_NYAA){
+            highlightNyaa();
+        }
+    } else {
+        console.error("fail to api/exhentaiApi")
+    }
 }
 
 

@@ -306,6 +306,7 @@ serverUtil.common.moveCallBack  = moveCallBack ;
 
 let is_chokidar_scan_done = false;
 const chokidar = require('chokidar');
+/** 用来让chokidar监听文件夹，把需要的信息加到db */
 function setUpFileWatch(scan_path) {
     console.log("[chokidar] begin...");
     let beg = getCurrentTime();
