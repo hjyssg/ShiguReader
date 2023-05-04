@@ -122,7 +122,7 @@ module.exports.getFileHistory = async function (pathes) {
         return [];
     }
 
-    // TODO 担心很多的时候
+    console.assert(pathes.length < 20000, "may Too many SQL variables");
     // chatgpt Q1: how to sql query select with an huge array 
     // chatgpt Q2: does sqlite have query text limit
     const placeholders = fileNames.map(() => '?').join(',');

@@ -113,6 +113,16 @@ module.exports.arraySlice = function (arr, beg, end) {
     return result;
 }
 
+module.exports.cutIntoSmallArrays = (arr, size)=> {
+    size = size || 10000;
+    const result = [];
+    for (let i = 0; i < arr.length; i += size) {
+        const chunk = arr.slice(i, i + size);
+        result.push(chunk);
+    }
+    return result;
+}
+
 module.exports.getCurrentTime = function () {
     return new Date().getTime();
 }
