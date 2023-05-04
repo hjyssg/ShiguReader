@@ -16,29 +16,39 @@ module.exports.sort_file_by_time = function (files, config) {
         if(fp2Time[fp]){
             return fp2Time[fp];
         }
-
         const fn = getBaseName(fp);
-
-        const mTime = fileInfos && fileInfos[fp] && parseInt(fileInfos[fp].mtimeMs);
-        let tTime = nameParser.getDateFromParse(fn);
-        tTime = tTime && tTime.getTime();
-
         let time = -Infinity;
-        //单纯文件夹
+
+        function getMtime(){
+            if(!time){
+                const mTime = fileInfos && fileInfos[fp] && parseInt(fileInfos[fp].mtimeMs);
+                time = mTime;
+            }
+        }
+
+        function getTTime(){
+            if(!time){
+                let tTime = nameParser.getDateFromParse(fn);
+                tTime = tTime && tTime.getTime();
+                time = tTime;
+            }
+        }
 
         if(byReadCount){
             const count = fileNameToHistory && fileNameToHistory[fn] && parseInt(fileNameToHistory[fn].count);
             time = count || 0;
         }else if (byReadTime) {
             const rTime = fileNameToHistory && fileNameToHistory[fn] && parseInt(fileNameToHistory[fn].time);
-            time = rTime || mTime || tTime;
+            time = rTime;
+            getMtime();
+            getTTime()
         } else if (onlyByMTime) {
-            time = mTime;
+            getMtime();
         } else {
-            time = mTime || tTime;
+            getMtime();
+            getTTime();
         }
 
-        time = time || -Infinity;
         fp2Time[fp] = ascend ? time : -time;
         return fp2Time[fp];
     })
