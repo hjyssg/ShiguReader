@@ -1089,9 +1089,10 @@ export default class ExplorerPage extends Component {
 
         const isInfoMode = !this.isLackInfoMode();
 
+        // 没加入config-path,递归显示，文件搜索都不行。因为文件没被监听，不存在数据库
         const warning = this.isLackInfoMode() && (
-            <div className="alert alert-warning" role="alert">
-                {`Warning: ${this.getTextFromQuery()} is not included in config-path.`}
+            <div className="alert alert-warning" role="alert" >
+                {`[Reminder] ${this.getTextFromQuery()} is not included in config-path. Usable, but lack some good features`}
             </div>
         );
 
