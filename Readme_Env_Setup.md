@@ -16,7 +16,6 @@ git clone https://github.com/hjyssg/ShiguReader
 
 ## modify 
 ##    config-path.ini  
-##    config-move-path.ini
 ##    config-etc.ini
 #     user-config.js accoding to your own comic files location
 

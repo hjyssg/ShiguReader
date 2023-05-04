@@ -149,13 +149,11 @@ async function getScanPath() {
     const fContent1 = fs.readFileSync(path_config_path).toString();
 
     const path_config = ini.parse(fContent1);
-    let scan_path = [].concat(path_config.path);
-
-    const move_path_config_path = path.join(getRootPath(), "config-move-path.ini");
-    const fContent2 = fs.readFileSync(move_path_config_path).toString();
-    const moveObj = ini.parse(fContent2);
-
-    let { good_folder_root, not_good_folder_root } = moveObj;
+    let { good_folder_root, not_good_folder_root, folder_pathes } = path_config;
+    let scan_path = [].concat(folder_pathes);
+    // const move_path_config_path = path.join(getRootPath(), "config-move-path.ini");
+    // const fContent2 = fs.readFileSync(move_path_config_path).toString();
+    // const moveObj = ini.parse(fContent2);
 
     global.good_folder_root = good_folder_root || "";
     global.not_good_folder_root = not_good_folder_root || "";
