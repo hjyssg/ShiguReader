@@ -189,9 +189,9 @@ function isStrDate(str) {
     }
 }
 
-
+const groupAndNameReg = /^(.*?)\s*\((.*?)\)$/;
 function getGroupAndName(str) {
-    var macthes = str.match(/^(.*?)\s*\((.*?)\)$/);
+    var macthes = str.match(groupAndNameReg);
     if (macthes && macthes.length > 0) {
         return {
             group: macthes[1].trim(),
