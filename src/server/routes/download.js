@@ -40,11 +40,11 @@ router.get('/api/download/', async (req, res) => {
         res.send({ failed: true, reason: "NOT FOUND" });
         return;
     }
-
+    const cacheKey = req.url;
     try {
         if (sharp && isImage(filePath) && !isGif(filePath)) {
-            if(memorycache.get(filePath)){
-                filePath = memorycache.get(filePath);
+            if(memorycache.get(cacheKey)){
+                filePath = memorycache.get(cacheKey);
             }else{
                 const stat = await pfs.stat(filePath);
                 if (thumbnailMode && stat.size > THUMBNAIL_HUGE_THRESHOLD) {
@@ -53,7 +53,7 @@ router.get('/api/download/', async (req, res) => {
                     if (!(await isExist(outputPath))) {
                         await sharp(filePath).resize({ height: 280 }).toFile(outputPath);
                     }
-                    memorycache.put(filePath, outputPath, 60*1000);
+                    memorycache.put(cacheKey, outputPath, 60*1000);
                     filePath = outputPath;
                 }else if(stat.size > ONEBOOK_HUGE_THRESHOLD){
                     const outputFn = stringHash(filePath).toString() + "-min-2.jpg";
@@ -61,7 +61,7 @@ router.get('/api/download/', async (req, res) => {
                     if (!(await isExist(outputPath))) {
                         await sharp(filePath).resize({ height: 1980 }).toFile(outputPath);
                     }
-                    memorycache.put(filePath, outputPath, 60*1000);
+                    memorycache.put(cacheKey, outputPath, 60*1000);
                     filePath = outputPath;
                 }
             }
