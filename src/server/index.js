@@ -540,7 +540,7 @@ app.post("/api/login", async (req, res) => {
     if(password == etc_config.home_password){
         const token = serverUtil.makeid()
         token_set[token] = true;
-        res.cookie('login-token', token, {maxAge: 1000 * 3600 * 24 })
+        res.cookie('login-token', token, {maxAge: 1000 * 3600 * 24 });
         res.json({
             failed: false
         });
@@ -569,6 +569,7 @@ const exception_apis = [
 app.use((req, res, next) => {
     //console.log("[" + req.path+ "]" + new Date());
     if(!etc_config.home_password){
+        res.cookie('login-token', 'no-need-login-token', {maxAge: 1000 * 3600 * 1 });
         next();
     } else if(exception_apis.some(e => (req.path.includes(e)))){
         next();
