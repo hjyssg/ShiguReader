@@ -105,6 +105,7 @@ module.exports.getQuickAccess = async function () {
         FROM lsdir_history_table 
         WHERE time > ? 
         GROUP BY filePath 
+        HAVING count > 1
         ORDER BY count DESC, filePath ASC
         LIMIT 50;
     `
