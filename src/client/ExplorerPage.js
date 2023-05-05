@@ -548,7 +548,7 @@ export default class ExplorerPage extends Component {
         if (userConfig.filter_empty_zip) {
             files = files.filter(e => {
                 if (this.hasZipInfo(e)) {
-                    if (this.getMusicNum(e) === 0 && this.getPageNum(e) === 0) {
+                    if (this.getMusicNum(e) === 0 && this.getPageNum(e) === 0 && this.getVideoNum(e) === 0) {
                         return false;
                     }
                 }
