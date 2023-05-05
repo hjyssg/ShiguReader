@@ -17,7 +17,7 @@ module.exports.sort_file_by_time = function (files, config) {
             return fp2Time[fp];
         }
         const fn = getBaseName(fp);
-        let time = -Infinity;
+        let time = null;
 
         function getMtime(){
             if(!time){
@@ -49,6 +49,7 @@ module.exports.sort_file_by_time = function (files, config) {
             getTTime();
         }
 
+        time = time || -Infinity;
         fp2Time[fp] = ascend ? time : -time;
         return fp2Time[fp];
     })
