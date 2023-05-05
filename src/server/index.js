@@ -20,7 +20,6 @@ global.requireConstant = () => require("../common/constant");
 const execa = require('./own_execa');
 const userConfig = global.requireUserConfig();
 const util = global.requireUtil();
-const passwordConfig = require("../config/password-config");
 
 const fileiterator = require('./file-iterator');
 const pathUtil = require("./pathUtil");
@@ -538,7 +537,7 @@ app.get('/*', (req, res, next) => {
 const token_set = {};
 app.post("/api/login", async (req, res) => {
     const password = req.body && req.body.password;
-    if(password == passwordConfig.home_password){
+    if(password == etc_config.home_password){
         const token = serverUtil.makeid()
         token_set[token] = true;
         res.cookie('login-token', token, {maxAge: 1000 * 3600 * 24 })
@@ -569,7 +568,7 @@ const exception_apis = [
 //check if login
 app.use((req, res, next) => {
     //console.log("[" + req.path+ "]" + new Date());
-    if(!passwordConfig.home_password){
+    if(!etc_config.home_password){
         next();
     } else if(exception_apis.some(e => (req.path.includes(e)))){
         next();
@@ -1025,7 +1024,6 @@ app.get('/api/getGeneralInfo', async (req, res) => {
             file_path_sep: path.sep,
             has_magick: global._has_magick_,
             server_ip: ip,
-            etc_config,
     
             good_folder: global.good_folder,
             not_good_folder: global.not_good_folder,

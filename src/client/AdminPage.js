@@ -165,27 +165,27 @@ export default class AdminPage extends Component {
     }
 
     renderPasswordInput() {
-        return null;
+        // return null;
 
-        let content;
-        const { etc_config } = this.context;
-        if (clientUtil.isAuthorized(etc_config)) {
-            content = (<div className="admin-section-title"> You are authorized to move/delete files. </div>)
-        } else {
-            content = (<React.Fragment>
-                <div className="admin-section-title">Enter password to move/delete file </div>
-                <div className="admin-section-content">
-                    <input className="admin-intput" ref={pathInput => this.passwordInputRef = pathInput}
-                        placeholder="...type here" onChange={this.setPasswordCookie.bind(this)} />
-                </div>
-            </React.Fragment>);
-        }
+        // let content;
+        // const { etc_config } = this.context;
+        // if (clientUtil.isAuthorized(etc_config)) {
+        //     content = (<div className="admin-section-title"> You are authorized to move/delete files. </div>)
+        // } else {
+        //     content = (<React.Fragment>
+        //         <div className="admin-section-title">Enter password to move/delete file </div>
+        //         <div className="admin-section-content">
+        //             <input className="admin-intput" ref={pathInput => this.passwordInputRef = pathInput}
+        //                 placeholder="...type here" onChange={this.setPasswordCookie.bind(this)} />
+        //         </div>
+        //     </React.Fragment>);
+        // }
 
-        return (
-            <div className="admin-section">
-                {content}
-            </div>
-        )
+        // return (
+        //     <div className="admin-section">
+        //         {content}
+        //     </div>
+        // )
     }
 
     onclickShutDown() {

@@ -104,15 +104,15 @@ module.exports.isLocalHost = function () {
     return location.hostname.includes("localhost");
 }
 
-module.exports.isAuthorized = function (etc_config) {
-    if (location.hostname.includes("localhost")) {
-        return true;
-    } else if(etc_config) {
-        const Cookie = require("js-cookie");
-        const password = Cookie.get('password');
-        return etc_config.remote_file_change_password === password;
-    }
-}
+// module.exports.isAuthorized = function (etc_config) {
+//     if (location.hostname.includes("localhost")) {
+//         return true;
+//     } else if(etc_config) {
+//         const Cookie = require("js-cookie");
+//         const password = Cookie.get('password');
+//         return etc_config.remote_file_change_password === password;
+//     }
+// }
 
 module.exports.isAllowedToEnter = function () {
     return !!Cookie.get('login-token');
