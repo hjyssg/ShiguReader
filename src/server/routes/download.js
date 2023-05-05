@@ -32,8 +32,8 @@ router.get('/api/download/', async (req, res) => {
         return;
     }
 
-    const logLabel = '/api/download/' + filePath;
-    console.time(logLabel);
+    // const logLabel = '/api/download/' + filePath;
+    // console.time(logLabel);
 
     if (!(await isExist(filePath))) {
         console.error("[/api/download]", filePath, "NOT FOUND");
