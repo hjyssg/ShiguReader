@@ -23,6 +23,7 @@ const ONEBOOK_HUGE_THRESHOLD = 3 * 1000 * 1000;
 
 //------------------download------------
 router.get('/api/download/', async (req, res) => {
+    console.log()
     let filePath = path.resolve(req.query.p);
     let thumbnailMode = req.query.thumbnailMode;
     if (!filePath) {
@@ -30,6 +31,9 @@ router.get('/api/download/', async (req, res) => {
         res.send({ failed: true, reason: "NO Param" });
         return;
     }
+
+    const logLabel = '/api/download/' + filePath;
+    console.time(logLabel);
 
     if (!(await isExist(filePath))) {
         console.error("[/api/download]", filePath, "NOT FOUND");
@@ -69,8 +73,16 @@ router.get('/api/download/', async (req, res) => {
     // cache 1 hour
     if(isImage(filePath)){
         res.setHeader('Cache-Control', 'public, max-age=3600');
+        // 下载多个thumbnail的时候，不要每次都重新TCP握手
+        // https://serverfault.com/questions/790197/what-does-connection-close-mean-when-used-in-the-response-message
+        // the initial connection refers to the time it takes to perform the initial TCP handshake and negotiate SSL (if applicable) for an HTTP request. 
+        //It is a stage in which the browser is establishing a connection, including TCP handshake and retrying, and negotiating SSL.
+        res.setHeader('Connection', 'Keep-Alive');
+        res.setHeader('Keep-Alive', 'timeout=5, max=1000');
     }
     res.download(filePath); // Set disposition and send it.
+
+    // console.timeEnd(logLabel);
 });
 
 module.exports = router;
