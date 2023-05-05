@@ -507,7 +507,7 @@ export default class OneBook extends Component {
     const end = Math.min(beg + 4, this.getImageLength())
 
     for(let ii = beg; ii < end; ii++){
-      const temp =  <link key={ii} href={getFileUrl(imageFiles[ii])} as="image" loading="lazy" />
+      const temp =  <link key={ii} href={getFileUrl(imageFiles[ii])} as="image" />
       result.push(temp);
     }
     return result;
