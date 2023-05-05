@@ -1326,10 +1326,10 @@ export default class ExplorerPage extends Component {
     }
 
     renderSortHeader() {
-        let sortOptions = Constant.SORT_OPTIONS;
+        let sortOptions = Constant.SORT_OPTIONS.slice();
 
         if (this.getMode() !== MODE_EXPLORER) {
-            sortOptions.push(...BY_FOLDER);
+            sortOptions.push(BY_FOLDER);
         }
 
         return (<div className="sort-header-container container">
