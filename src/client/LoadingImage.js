@@ -136,6 +136,7 @@ export default class LoadingImage extends Component {
       content = (<img style={style} key={fileName} ref={e => { this.dom = e && e.node }}
         className={className} src={_url} title={title || fileName}
         onError={this.onError.bind(this)}
+        loading="lazy" 
         {...others} />);
     } else {
       content = (<div key={fileName} className={cn} title={title || fileName} {...others} />);

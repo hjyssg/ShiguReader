@@ -507,7 +507,7 @@ export default class OneBook extends Component {
     const end = Math.min(beg + 4, this.getImageLength())
 
     for(let ii = beg; ii < end; ii++){
-      const temp =  <link key={ii} href={getFileUrl(imageFiles[ii])} as="image" />
+      const temp =  <link key={ii} href={getFileUrl(imageFiles[ii])} as="image" loading="lazy" />
       result.push(temp);
     }
     return result;
@@ -544,7 +544,7 @@ export default class OneBook extends Component {
           index={index}
           onError={this.onImageError.bind(this)}
           onLoad={this.onImgLoad.bind(this)}
-
+          loading="lazy"
         />
         {twoPageMode === TWO_PAGE_LEFT && nextImg}
         {preload}
