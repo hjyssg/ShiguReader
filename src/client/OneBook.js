@@ -502,13 +502,15 @@ export default class OneBook extends Component {
 
   renderPreload(){
     const result = [];
-    const { imageFiles, index, twoPageMode } = this.state;
-    const beg = index + 1;
-    const end = Math.min(beg + 4, this.getImageLength())
-
-    for(let ii = beg; ii < end; ii++){
-      const temp =  <link key={ii} href={getFileUrl(imageFiles[ii])} as="image" />
-      result.push(temp);
+    if(document.visibilityState === 'visible'){
+      const { imageFiles, index, twoPageMode } = this.state;
+      const beg = index + 1;
+      const end = Math.min(beg + 4, this.getImageLength())
+  
+      for(let ii = beg; ii < end; ii++){
+        const temp =  <link key={ii} href={getFileUrl(imageFiles[ii])} as="image" />
+        result.push(temp);
+      }
     }
     return result;
   }
