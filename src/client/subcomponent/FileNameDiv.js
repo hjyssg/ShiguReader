@@ -105,7 +105,9 @@ function getText(filename, mecab_tokens) {
   allTags = allTags.filter(e => !willRemove[e]);
 
   let tempText = text;
-  const SEP = "||__SEP__||"
+  // const SEP = "||__SEP__||"
+  // sep不能含有常见字符，有作者名字就叫一个p。直接就炸掉了
+  const SEP = "ⶤ▒"
   allTags.forEach(tag => {
     //https://stackoverflow.com/questions/4514144/js-string-split-without-removing-the-delimiters
     const tempHolder = SEP + tag + SEP;
