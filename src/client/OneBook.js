@@ -343,6 +343,8 @@ export default class OneBook extends Component {
       this.onwheel({ wheelDelta: 1 })
     } else if (key === "-") {
       this.onwheel({ wheelDelta: -1 })
+    }else if(key == "g"){
+      this.onClickPagination();
     }
   }
 
