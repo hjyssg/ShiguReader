@@ -31,7 +31,7 @@ router.get('/api/download/', async (req, res) => {
         return;
     }
 
-    const logLabel = '/api/download/' + filePath;
+    const logLabel = '[/api/download/]  ' + filePath;
     // console.time(logLabel);
     const time1 = util.getCurrentTime();
 
