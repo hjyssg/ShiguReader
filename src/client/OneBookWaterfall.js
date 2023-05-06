@@ -46,7 +46,9 @@ class SmartImage extends Component {
     let content = (<img className="one-book-waterfall-image"
         src={isVisible? url : ""}
         title={index}
-        style={style} />)
+        style={style} 
+        loading="lazy"
+        />)
 
     return (
       <VisibilitySensor offset={{ bottom: -150 }} partialVisibility={true} onChange={this.onChange.bind(this)}>
