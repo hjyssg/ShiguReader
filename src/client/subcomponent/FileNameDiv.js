@@ -114,7 +114,7 @@ function getText(filename, mecab_tokens) {
     tempText = tempText.replaceAll(tag, tempHolder)
   })
   const formatArr = [];
-  tempText.split(SEP).map(token => {
+  tempText.split(SEP).map((token, ii) => {
     if (allTags.includes(token)) {
       const tag = token;
       let url;
@@ -130,7 +130,7 @@ function getText(filename, mecab_tokens) {
         "with-color": getPriority(tag) > 1
       });
 
-      const link = <a className={cn} target="_blank" href={url} key={tag}>{tag}</a>;
+      const link = <a className={cn} target="_blank" href={url} key={tag+ii}>{tag}</a>;
       formatArr.push(link);
     } else {
       formatArr.push(token);
