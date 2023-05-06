@@ -173,8 +173,8 @@ async function getScanPath() {
     const not_good_folder = not_good_folder_root && path.resolve(not_good_folder_root, fd2);
     global.not_good_folder = not_good_folder;
 
-    // scan_path = scan_path.concat(good_folder, good_folder_root,
-    //     not_good_folder_root, not_good_folder);
+    scan_path = scan_path.concat(good_folder, good_folder_root,
+        not_good_folder_root, not_good_folder);
 
     scan_path.push(getImgConverterCachePath());
     scan_path.push(getZipOutputCachePath());
