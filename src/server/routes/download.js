@@ -18,8 +18,10 @@ try {
     console.error("did not install sharp", e);
 }
 
-const THUMBNAIL_HUGE_THRESHOLD = 2 * 1000 * 1000;
-const ONEBOOK_HUGE_THRESHOLD = 3 * 1000 * 1000;
+const THUMBNAIL_HUGE_THRESHOLD = 2 * 1000 * 1000;  //MB
+const ONEBOOK_HUGE_THRESHOLD_REMOTE = 3 * 1000 * 1000;  // MB
+const ONEBOOK_HUGE_THRESHOLD_LOCAL = 10 * 1000 * 1000;  // MB
+
 
 //------------------download------------
 router.get('/api/download/', async (req, res) => {
@@ -40,7 +42,11 @@ router.get('/api/download/', async (req, res) => {
         res.send({ failed: true, reason: "NOT FOUND" });
         return;
     }
-    const cacheKey = req.url;
+
+    var ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress 
+    const cacheKey = req.url + ip;
+    const isLocalClient = ip.includes("127.0.0.1");
+    const onebook_huge_threshold = isLocalClient? ONEBOOK_HUGE_THRESHOLD_LOCAL: ONEBOOK_HUGE_THRESHOLD_REMOTE;
     try {
         if (sharp && isImage(filePath) && !isGif(filePath)) {
             if(memorycache.get(cacheKey)){
@@ -55,7 +61,7 @@ router.get('/api/download/', async (req, res) => {
                     }
                     memorycache.put(cacheKey, outputPath, 60*1000);
                     filePath = outputPath;
-                }else if(stat.size > ONEBOOK_HUGE_THRESHOLD){
+                }else if(stat.size > onebook_huge_threshold){
                     const outputFn = stringHash(filePath).toString() + "-min-2.jpg";
                     const outputPath = path.resolve(global.cachePath, outputFn);
                     if (!(await isExist(outputPath))) {
