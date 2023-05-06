@@ -23,7 +23,6 @@ const ONEBOOK_HUGE_THRESHOLD = 3 * 1000 * 1000;
 
 //------------------download------------
 router.get('/api/download/', async (req, res) => {
-    console.log()
     let filePath = path.resolve(req.query.p);
     let thumbnailMode = req.query.thumbnailMode;
     if (!filePath) {
@@ -32,8 +31,9 @@ router.get('/api/download/', async (req, res) => {
         return;
     }
 
-    // const logLabel = '/api/download/' + filePath;
+    const logLabel = '/api/download/' + filePath;
     // console.time(logLabel);
+    const time1 = util.getCurrentTime();
 
     if (!(await isExist(filePath))) {
         console.error("[/api/download]", filePath, "NOT FOUND");
@@ -83,6 +83,9 @@ router.get('/api/download/', async (req, res) => {
     res.download(filePath); // Set disposition and send it.
 
     // console.timeEnd(logLabel);
+    const time2 = util.getCurrentTime();
+    const timeUsed = (time2 - time1) / 1000;
+    console.log(logLabel, timeUsed, "s")
 });
 
 module.exports = router;
