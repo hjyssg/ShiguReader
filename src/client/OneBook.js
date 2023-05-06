@@ -507,7 +507,8 @@ export default class OneBook extends Component {
     if(document.visibilityState === 'visible'){
       const { imageFiles, index, twoPageMode } = this.state;
       const beg = index + 1;
-      const end = Math.min(beg + 4, this.getImageLength())
+      const preload_num = 4;
+      const end = Math.min(beg + preload_num, this.getImageLength())
   
       for(let ii = beg; ii < end; ii++){
         const temp =  <link rel="preload" key={ii} href={getFileUrl(imageFiles[ii])} as="image" />
