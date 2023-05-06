@@ -58,19 +58,19 @@ module.exports.getZipInfo = function (filePathes) {
     filePathes.forEach(filePath => {
         if (isCompress(filePath) && has(filePath)) {
             const contentInfo = getData(filePath);
-
             const files = contentInfo.files;
             const pageNum = files.filter(isImage).length;
             const musicNum = files.filter(isMusic).length;
             const videoNum = files.filter(isVideo).length;
-            const totalImgSize = +(contentInfo.totalImgSize) || 0;
 
             const entry = {
                 pageNum,
                 musicNum,
                 videoNum,
                 totalNum: files.length,
-                totalImgSize
+               
+                totalImgSize: contentInfo.totalImgSize,
+                mtime: contentInfo.mtime
             }
 
             fpToInfo[filePath] = entry;
@@ -100,13 +100,9 @@ const updateZipDb = module.exports.updateZipDb = function (filePath, info) {
         return;
     }
 
-    const { totalImgSize, files } = info;
-    console.assert(files && files.length >= 0);
-
     const entry = {
         filePath,
-        totalImgSize,
-        files
+        ...info
     };
 
     //!!bug if shut the down the program, all data will be lost

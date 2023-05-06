@@ -145,4 +145,15 @@ module.exports.isWindowsPath = function (string) {
     return /[A-Za-z]:/.test(string);
 }
 
+module.exports.getAverage = function(intArray) {
+    if (intArray.length === 0) {
+      return 0;
+    }
+  
+    const sum = intArray.reduce((acc, val) => acc + val);
+    const avg = sum / intArray.length;
+  
+    return avg;
+  }
+
 module.exports.useless_tag_regex = /DL版|同人誌|別スキャン|修正版|^エロ|^digital$|^JPG|^PNG|ページ補足/i;

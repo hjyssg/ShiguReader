@@ -145,15 +145,24 @@ module.exports.listZipContentAndUpdateDb = async function (filePath) {
         const { files, fileInfos } = read7zOutput(text);
 
         let totalImgSize = 0;
+        let mtime_arr = [];
         files.forEach((e, ii) => {
             if (isImage(e)) {
                 totalImgSize += parseFloat(fileInfos[ii].size) || 0;
             }
+
+            // https://stackoverflow.com/questions/1353684/detecting-an-invalid-date-date-instance-in-javascript
+            var timestamp = Date.parse(fileInfos[ii].modified);
+            if (isNaN(timestamp) == false) {
+                mtime_arr.push(timestamp);
+            }
         })
+        const mtime = util.getAverage(mtime_arr);
 
         const info = {
             totalImgSize,
-            files
+            files,
+            mtime
         };
 
         updateZipDb(filePath, info);
