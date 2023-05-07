@@ -19,7 +19,10 @@ router.get('/api/exhentaiApi', async (req, res) => {
     allFiles.forEach(fp => {
         const key = path.basename(fp, path.extname(fp)).trim();
         result[key] = Object.assign({}, zipInfo[fp]);
-        let pObj = serverUtil.parse(key);
+
+        // 参考const updateFileDb(...) 避免重复计算
+        const fileName = path.basename(filePath);
+        let pObj = serverUtil.parse(fileName);
         if (pObj) {
             result[key].title = pObj.title;
             result[key].author = pObj.author;
