@@ -226,14 +226,17 @@ function parseAllFiles(allFiles){
     console.time("parse_all_files");
     for (let e in allFiles) {
         if (allFiles.hasOwnProperty(e)) {
-            const rr = parse(e) || {};
+            // const rr = parse(e) || {};
             const value = allFiles[e];
             file_collection.insert({
                 fileName: e,
-                _author_: _clean(rr.author),
                 _filename_: _clean(e),
-                title: rr.title,
-                pageNum: parseInt(value.pageNum)
+                pageNum: parseInt(value.pageNum),
+
+                // _author_: _clean(rr.author),
+                // title: rr.title,
+                _author_: _clean(value.author),
+                title: value.title,
             })
         }
     }
