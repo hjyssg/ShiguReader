@@ -226,13 +226,13 @@ function parseAllFiles(allFiles){
     console.time("parse_all_files");
     for (let e in allFiles) {
         if (allFiles.hasOwnProperty(e)) {
-            const r = parse(e) || {};
+            const rr = parse(e) || {};
             const value = allFiles[e];
             file_collection.insert({
                 fileName: e,
-                _author_: _clean(r.author),
+                _author_: _clean(rr.author),
                 _filename_: _clean(e),
-                title: r.title,
+                title: rr.title,
                 pageNum: parseInt(value.pageNum)
             })
         }
@@ -442,7 +442,7 @@ async function main() {
     let res = await GM_xmlhttpRequest_promise("GET", api);
 
     if(!res){
-        api = 'http://localhost:34213/api/exhentaiApi';
+        api = 'http://localhost:3000/api/exhentaiApi';
         res = await GM_xmlhttpRequest_promise("GET", api);
     }
 
