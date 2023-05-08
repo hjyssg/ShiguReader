@@ -445,10 +445,11 @@ function addSearchLinkForEhentai() {
 function popMessage(text){
     if(is_list_page){
         Swal.fire({
-            title: 'EhentaiHighighliger',
+            // title: 'EhentaiHighighliger',
             html: text,
             timer: 1000,
             backdrop:false,
+            width: "200px",
             position: 'top-end',
             // timerProgressBar: true,
             didOpen: () => {
