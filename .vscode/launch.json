@@ -48,6 +48,14 @@
         {
             "type": "node",
             "request": "launch",
+            "name": "production server",
+            "program": "${workspaceFolder}\\src\\server\\index.js",
+            "args": [
+            ]
+        },
+        {
+            "type": "node",
+            "request": "launch",
             "name": "server on mac",
             "program": "${workspaceFolder}/src/server/index.js",
             "args": [
