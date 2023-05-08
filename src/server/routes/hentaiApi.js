@@ -12,27 +12,32 @@ const serverUtil = require("../serverUtil");
 // http://localhost:8080/api/exhentaiApi
 router.get('/api/exhentaiApi', async (req, res) => {
     console.time("[/api/exhentaiApi]")
-    let allFiles = db.getAllFilePathes().filter(isCompress);
-    const zipInfo = zipInfoDb.getZipInfo(allFiles);
+    try{
+        let allFiles = db.getAllFilePathes().filter(isCompress);
+        const zipInfo = zipInfoDb.getZipInfo(allFiles);
+    
+        const result = {};
+        allFiles.forEach(fp => {
+            const key = path.basename(fp, path.extname(fp)).trim();
+            result[key] = Object.assign({}, zipInfo[fp]);
+    
+            // 参考const updateFileDb(...) 避免重复计算
+            const fileName = path.basename(fp);
+            let pObj = serverUtil.parse(fileName);
+            if (pObj) {
+                result[key].title = pObj.title;
+                result[key].author = pObj.author;
+            }
+        })
+    
+        res.setHeader('Cache-Control', 'public, max-age=120');
+        res.send({
+            allFiles: result
+        });
+    }catch(e){
+        console.error("[/api/exhentaiApi]", e);
+    }
 
-    const result = {};
-    allFiles.forEach(fp => {
-        const key = path.basename(fp, path.extname(fp)).trim();
-        result[key] = Object.assign({}, zipInfo[fp]);
-
-        // 参考const updateFileDb(...) 避免重复计算
-        const fileName = path.basename(filePath);
-        let pObj = serverUtil.parse(fileName);
-        if (pObj) {
-            result[key].title = pObj.title;
-            result[key].author = pObj.author;
-        }
-    })
-
-    res.setHeader('Cache-Control', 'public, max-age=120');
-    res.send({
-        allFiles: result
-    });
     console.timeEnd("[/api/exhentaiApi]")
 })
 
