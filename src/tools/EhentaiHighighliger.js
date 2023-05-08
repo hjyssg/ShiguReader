@@ -16,6 +16,7 @@
 // @include       *://sukebei.nyaa.si/*
 // @require      https://raw.githubusercontent.com/hjyssg/ShiguReader/dev/src/name-parser/all_in_one/index.js
 // @require      https://cdnjs.cloudflare.com/ajax/libs/lokijs/1.5.11/lokijs.min.js
+// @require      https://cdn.jsdelivr.net/npm/sweetalert2@11.7.5/dist/sweetalert2.all.min.js
 // ==/UserScript==
 
 //tamper monkey自动缓存require脚本，随便改一下版本号就可以更新
@@ -433,6 +434,20 @@ function addSearchLinkForEhentai() {
     }
 }
 
+function popMessage(text){
+    Swal.fire({
+        title: 'EhentaiHighighliger',
+        html: text,
+        timer: 1000,
+        backdrop:false,
+        position: 'top-end',
+        // timerProgressBar: true,
+        didOpen: () => {
+            // Swal.showLoading()
+        }
+    })
+}
+
 const production_port = 3000;
 const dev_port = 34213;
 async function main() {
@@ -459,7 +474,9 @@ async function main() {
         }else if (IS_NYAA){
             highlightNyaa();
         }
+        popMessage("成功载入");
     } else {
+        popMessage("载入失败");
         console.error("fail to api/exhentaiApi")
     }
 }
