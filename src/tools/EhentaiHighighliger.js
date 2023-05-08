@@ -242,12 +242,16 @@ function parseAllFiles(allFiles){
     console.timeEnd("parse_all_files");
 }
 
+let is_list_page = false;
+
 function highlightEhentaiThumbnail() {
     let nodes = Array.prototype.slice.call(document.getElementsByClassName("gl1t"));
 
     if (!nodes || nodes.length === 0) {
         return;
     }
+
+    is_list_page = true;
 
     console.time("check_all_dom");
     nodes.forEach(e => {
@@ -300,6 +304,10 @@ function highlightEhentaiThumbnail() {
 
 function highlightNyaa(){
     const  nodes = Array.prototype.slice.call(document.querySelectorAll(".table-bordered tr td:nth-child(2) a"))
+    if (!nodes || nodes.length === 0) {
+        return;
+    }
+    is_list_page = true;
 
     console.time("check_all_dom");
     nodes.forEach(node => {
@@ -435,17 +443,19 @@ function addSearchLinkForEhentai() {
 }
 
 function popMessage(text){
-    Swal.fire({
-        title: 'EhentaiHighighliger',
-        html: text,
-        timer: 1000,
-        backdrop:false,
-        position: 'top-end',
-        // timerProgressBar: true,
-        didOpen: () => {
-            // Swal.showLoading()
-        }
-    })
+    if(is_list_page){
+        Swal.fire({
+            title: 'EhentaiHighighliger',
+            html: text,
+            timer: 1000,
+            backdrop:false,
+            position: 'top-end',
+            // timerProgressBar: true,
+            didOpen: () => {
+                // Swal.showLoading()
+            }
+        })
+    }
 }
 
 const production_port = 3000;
