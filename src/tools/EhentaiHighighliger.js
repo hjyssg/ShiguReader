@@ -122,6 +122,10 @@ function checkIfDownload(text, pageNum) {
     let r1 = parse(text);
 
     function isPageNumDifferent(book, pageNum) {
+        //pageNum没啥用，还占用后端大量计算资源        
+        if(!pageNum){
+            return false;
+        }
         if (!IS_EHENTAI){
             return false;
         }
@@ -224,21 +228,15 @@ function getByAuthor(key) {
 
 function parseAllFiles(allFiles){
     console.time("parse_all_files");
-    for (let e in allFiles) {
-        if (allFiles.hasOwnProperty(e)) {
-            // const rr = parse(e) || {};
-            const value = allFiles[e];
+    for (let row of allFiles) {
+            const [fileName, title, author] = row;
+            const fn = _clean(fileName);
             file_collection.insert({
-                fileName: e,
-                _filename_: _clean(e),
-                pageNum: parseInt(value.pageNum),
-
-                // _author_: _clean(rr.author),
-                // title: rr.title,
-                _author_: _clean(value.author),
-                title: value.title,
+                fileName,
+                _filename_: fn,
+                _author_: _clean(author),
+                title,
             })
-        }
     }
     console.timeEnd("parse_all_files");
 }
@@ -435,20 +433,23 @@ function addSearchLinkForEhentai() {
     }
 }
 
+const production_port = 3000;
+const dev_port = 34213;
 async function main() {
     if(IS_EHENTAI){
         addSearchLinkForEhentai();
     }
 
+    console.time("[api/exhentaiApi]");
     //server有两个port，根据不同deploy
-    let api = 'http://localhost:34213/api/exhentaiApi';
+    let api = `http://localhost:${production_port}/api/exhentaiApi`;
     let res = await GM_xmlhttpRequest_promise("GET", api);
 
     if(!res){
-        api = 'http://localhost:3000/api/exhentaiApi';
+        api = `http://localhost:${dev_port}/api/exhentaiApi`;
         res = await GM_xmlhttpRequest_promise("GET", api);
     }
-
+    console.timeEnd("[api/exhentaiApi]");
     if (res) {
         const text = res.responseText;
         const json = JSON.parse(text);
