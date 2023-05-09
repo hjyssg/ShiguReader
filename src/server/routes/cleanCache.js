@@ -16,7 +16,7 @@ function doCacheClean(config) {
     }
 }
 
-router.post('/api/cleanCache', serverUtil.asyncWrapper((req, res) => {
+router.post('/api/cleanCache', serverUtil.asyncWrapper(async (req, res) => {
     function afterClean() {
         res.send({ failed: false });
     }

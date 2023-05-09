@@ -32,7 +32,7 @@ function shutdown(cb) {
     });
 }
 
-router.post('/api/shutdownServer', serverUtil.asyncWrapper((req, res) => {
+router.post('/api/shutdownServer', serverUtil.asyncWrapper(async (req, res) => {
     shutdown();
     res.send({ failed: false });
 }));

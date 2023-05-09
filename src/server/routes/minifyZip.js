@@ -24,7 +24,7 @@ const count = {
     saveSpace: 0
 };
 const minifyZipQue = [];
-router.post('/api/minifyZipQue', serverUtil.asyncWrapper((req, res) => {
+router.post('/api/minifyZipQue', serverUtil.asyncWrapper(async (req, res) => {
     res.send({
         minifyZipQue
     })
