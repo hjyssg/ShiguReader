@@ -20,7 +20,7 @@ const { isAlreadyScan, _decorate } = serverUtil.common;
 const readdir = require("../readdir");
 const historyDb = require("../models/historyDb");
 
-router.post('/api/lsDir', async (req, res) => {
+router.post('/api/lsDir', serverUtil.asyncWrapper(async (req, res) => {
     let dir = req.body && req.body.dir;
     const isRecursive = req.body && req.body.isRecursive;
 
@@ -156,7 +156,7 @@ router.post('/api/lsDir', async (req, res) => {
         // sql = `DROP TABLE IF EXISTS ${tempDirTable}`
         // sqldb.run(sql);
     }
-});
+}));
 
 
 async function listNoScanDir(filePath) {
@@ -196,7 +196,7 @@ async function listNoScanDir(filePath) {
     return result;
 }
 
-router.post('/api/listImageFolderContent', async (req, res) => {
+router.post('/api/listImageFolderContent', serverUtil.asyncWrapper(async (req, res) => {
     let filePath = req.body && req.body.filePath;
     const noMedataInfo = req.body && req.body.noMedataInfo;
     if (!filePath || !(await isExist(filePath))) {
@@ -242,6 +242,6 @@ router.post('/api/listImageFolderContent', async (req, res) => {
     }
     res.send(result);
     historyDb.addOneRecord(filePath);
-});
+}));
 
 module.exports = router;

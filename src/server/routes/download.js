@@ -6,6 +6,8 @@ const express = require('express');
 const router = express.Router();
 const util = global.requireUtil();
 const { isImage, isGif } = util;
+const serverUtil = require("../serverUtil");
+
 
 const pathUtil = require("../pathUtil");
 const { isExist } = pathUtil;
@@ -24,7 +26,7 @@ const ONEBOOK_HUGE_THRESHOLD_LOCAL = 10 * 1000 * 1000;  // MB
 
 
 //------------------download------------
-router.get('/api/download/', async (req, res) => {
+router.get('/api/download/', serverUtil.asyncWrapper(async (req, res) => {
     let filePath = path.resolve(req.query.p);
     let thumbnailMode = req.query.thumbnailMode;
     if (!filePath) {
@@ -33,9 +35,9 @@ router.get('/api/download/', async (req, res) => {
         return;
     }
 
-    const logLabel = '[/api/download/]  ' + filePath;
-    // console.time(logLabel);
-    const time1 = util.getCurrentTime();
+    // const logLabel = '[/api/download/]  ' + filePath;
+    // // console.time(logLabel);
+    // const time1 = util.getCurrentTime();
 
     if (!(await isExist(filePath))) {
         console.error("[/api/download]", filePath, "NOT FOUND");
@@ -89,9 +91,9 @@ router.get('/api/download/', async (req, res) => {
     res.download(filePath); // Set disposition and send it.
 
     // console.timeEnd(logLabel);
-    const time2 = util.getCurrentTime();
-    const timeUsed = (time2 - time1) / 1000;
-    console.log(logLabel, timeUsed, "s")
-});
+    // const time2 = util.getCurrentTime();
+    // const timeUsed = (time2 - time1) / 1000;
+    // console.log(logLabel, timeUsed, "s")
+}));
 
 module.exports = router;

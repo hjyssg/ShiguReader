@@ -26,7 +26,7 @@ function getReason(e) {
 }
 
 
-router.post('/api/renameFile', async (req, res) => {
+router.post('/api/renameFile', serverUtil.asyncWrapper(async (req, res) => {
     const src = req.body && req.body.src;
     const dest = req.body && req.body.dest;
 
@@ -54,9 +54,9 @@ router.post('/api/renameFile', async (req, res) => {
         console.error(err);
         res.send({ reason: getReason(err), failed: true });
     }
-});
+}));
 
-router.post('/api/moveFile', async (req, res) => {
+router.post('/api/moveFile', serverUtil.asyncWrapper(async (req, res) => {
     const src = req.body && req.body.src;
     let dest = req.body && req.body.dest;
 
@@ -101,7 +101,7 @@ router.post('/api/moveFile', async (req, res) => {
         console.error(err);
         res.send({ reason: getReason(err), failed: true });
     }
-});
+}));
 
 async function deleteThing(src) {
     if (userConfig.move_file_to_recyle) {
@@ -123,7 +123,7 @@ async function isSimpleFolder(src) {
 const _folder_waring_ = "This folder is not a one-level img/music folder";
 const file_occupy_warning = "File may be used by another process"
 
-router.post('/api/deleteFile', async (req, res) => {
+router.post('/api/deleteFile', serverUtil.asyncWrapper(async (req, res) => {
     const src = req.body && req.body.src;
 
     if (!src || !(await isExist(src))) {
@@ -141,10 +141,10 @@ router.post('/api/deleteFile', async (req, res) => {
         console.error(e);
         res.send({ reason: file_occupy_warning, failed: true });
     }
-});
+}));
 
 
-router.post('/api/deleteFolder', async (req, res) => {
+router.post('/api/deleteFolder', serverUtil.asyncWrapper(async (req, res) => {
     const src = req.body && req.body.src;
 
     if (!src || !(await isExist(src))) {
@@ -167,9 +167,9 @@ router.post('/api/deleteFolder', async (req, res) => {
         console.error(e);
         res.send({ reason: file_occupy_warning, failed: true });
     }
-});
+}));
 
-router.post('/api/zipFolder', async (req, res) => {
+router.post('/api/zipFolder', serverUtil.asyncWrapper(async (req, res) => {
     const src = req.body && req.body.src;
 
     if (!src || !(await isExist(src))) {
@@ -195,6 +195,6 @@ router.post('/api/zipFolder', async (req, res) => {
         console.error(e);
         res.send({ reason: "fail to zip", failed: true });
     }
-});
+}));
 
 module.exports = router;

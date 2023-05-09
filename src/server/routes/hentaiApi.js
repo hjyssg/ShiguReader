@@ -11,20 +11,20 @@ const { title } = require('process');
 
 // get to get all
 // http://localhost:8080/api/exhentaiApi
-router.get('/api/exhentaiApi', async (req, res) => {
+router.get('/api/exhentaiApi', serverUtil.asyncWrapper(async (req, res) => {
     console.time("[/api/exhentaiApi]")
     try{
 
-        console.time("part 1")
+        // console.time("part 1")
         let tempAllFiles = db.getAllFilePathes().filter(isCompress);
-        console.timeEnd("part 1")
+        // console.timeEnd("part 1")
 
         //pageNum没啥用，还占用后端大量计算资源 
         // console.time("part 2")
         // const zipInfo = zipInfoDb.getZipInfo(tempAllFiles);
         // console.timeEnd("part 2")
         
-        console.time("part 3")
+        // console.time("part 3")
         const result = [];
         tempAllFiles.forEach(fp => {
             // result[key] = Object.assign({}, zipInfo[fp]);
@@ -39,7 +39,7 @@ router.get('/api/exhentaiApi', async (req, res) => {
                 result.push([key, pObj.title, pObj.author]);
             }
         })
-        console.timeEnd("part 3")
+        // console.timeEnd("part 3")
     
         res.setHeader('Cache-Control', 'public, max-age=120');
         res.send({
@@ -50,6 +50,6 @@ router.get('/api/exhentaiApi', async (req, res) => {
     }
 
     console.timeEnd("[/api/exhentaiApi]")
-})
+}));
 
 module.exports = router;

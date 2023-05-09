@@ -1,7 +1,7 @@
 
 const express = require('express');
 const router = express.Router();
-// const serverUtil = require("../serverUtil");
+const serverUtil = require("../serverUtil");
 // const db = require("../models/db");
 const isWindows = require('is-windows');
 const util = global.requireUtil();
@@ -30,7 +30,7 @@ if (isWindows()) {
     });
 }
 
-router.get('/api/homePagePath', async (req, res) => {
+router.get('/api/homePagePath', serverUtil.asyncWrapper(async (req, res) => {
     const cacheKey = "homePagePathCacheKey";
     if(memorycache.get(cacheKey)){
         res.setHeader('Cache-Control', 'public, max-age=30');
@@ -81,5 +81,5 @@ router.get('/api/homePagePath', async (req, res) => {
         res.send(result);
         memorycache.put(cacheKey, result, 30 * 1000);
     }
-});
+}));
 module.exports = router;

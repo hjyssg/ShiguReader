@@ -4,9 +4,10 @@ const { searchByTagAndAuthor, searchByText } = require("../searchUtil");
 const Constant = global.requireConstant();
 const { MODE_TAG, MODE_AUTHOR, MODE_SEARCH } = Constant;
 const path = require('path');
+const serverUtil = require("../serverUtil");
 
 // three para 1.mode 2.text
-router.post("/api/search", async (req, res) => {
+router.post("/api/search", serverUtil.asyncWrapper(async (req, res) => {
     const mode = req.body && req.body.mode;
     const textParam = req.body && req.body.text;
 
@@ -20,10 +21,10 @@ router.post("/api/search", async (req, res) => {
         const temp = await searchByTagAndAuthor(tag, author, text);
         res.send(temp);
     }
-});
+}));
 
 
-router.post("/api/simple_search/:text", async (req, res) => {
+router.post("/api/simple_search/:text", serverUtil.asyncWrapper(async (req, res) => {
     const text = req.params.text;
     const temp = await searchByText(text);
     const zipResult = temp.zipResult;
@@ -31,7 +32,7 @@ router.post("/api/simple_search/:text", async (req, res) => {
     const fn = filePath => path.basename(filePath, path.extname(filePath));
 
     res.send(zipResult.map(e => fn(e.fileName)));
-});
+}));
 
 
 

@@ -15,7 +15,7 @@ async function add_col(rows){
     }
 }
 
-router.post('/api/get_authors', async (req, res) => {
+router.post('/api/get_authors', serverUtil.asyncWrapper(async (req, res) => {
     // const needThumbnail = req.body && req.body.needThumbnail;
     const sqldb = db.getSQLDB();
 
@@ -38,9 +38,9 @@ router.post('/api/get_authors', async (req, res) => {
     res.send({
         author_rows
     });
-});
+}));
 
-router.post('/api/get_tags', async (req, res) => {
+router.post('/api/get_tags', serverUtil.asyncWrapper(async (req, res) => {
     // const needThumbnail = req.body && req.body.needThumbnail;
     const sqldb = db.getSQLDB();
 
@@ -66,9 +66,9 @@ router.post('/api/get_tags', async (req, res) => {
     res.send({
         tag_rows
     });
-});
+}));
 
-router.post('/api/allInfo', async (req, res) => {
+router.post('/api/allInfo', serverUtil.asyncWrapper(async (req, res) => {
     const needThumbnail = req.body && req.body.needThumbnail;
 
     let allThumbnails = {};
@@ -86,6 +86,6 @@ router.post('/api/allInfo', async (req, res) => {
         fileToInfo: fileToInfo,
         allThumbnails: allThumbnails
     });
-});
+}));
 
 module.exports = router;

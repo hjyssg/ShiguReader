@@ -169,4 +169,18 @@ function isPortOccupied(port) {
 }
 module.exports.isPortOccupied = isPortOccupied;
 
+// Async wrapper function
+const asyncWrapper = (fn) => {
+    return (req, res, next) => {
+      fn(req, res, next).catch((reason)=>{
+        // next
+        console.log(req);
+        console.error(reason);
+        res.send({faled: true, reason});
+      });
+    };
+};
+
+module.exports.asyncWrapper = asyncWrapper;
+
 module.exports.common = {};

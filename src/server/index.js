@@ -24,7 +24,7 @@ const util = global.requireUtil();
 const fileiterator = require('./file-iterator');
 const pathUtil = require("./pathUtil");
 const serverUtil = require("./serverUtil");
-const { isHiddenFile, getHash, mkdir } = serverUtil;
+const { isHiddenFile, getHash, mkdir, asyncWrapper } = serverUtil;
 
 const { generateContentUrl, isExist, getScanPath, isSub } = pathUtil;
 const { isImage, isCompress, isVideo, isMusic, arraySlice,
@@ -519,7 +519,7 @@ serverUtil.common.isAlreadyScan = isAlreadyScan;
 // 前端路由需要redirect到index.html
 //所有api都不需要转发
 app.get('/*', (req, res, next) => {
-    if (req.path.includes("/api/")){
+    if (req.path && req.path.includes("/api/")){
         next();
     }else{
         const as = path.resolve(rootPath, 'dist', 'index.html');
@@ -535,7 +535,7 @@ app.get('/*', (req, res, next) => {
 // 一个用户10秒最多100个请求？
 
 const token_set = {};
-app.post("/api/login", async (req, res) => {
+app.post("/api/login", asyncWrapper(async (req, res) => {
     const password = req.body && req.body.password;
     if(password == etc_config.home_password){
         const token = serverUtil.makeid()
@@ -549,15 +549,15 @@ app.post("/api/login", async (req, res) => {
             failed: true
         });
     }
-})
+}));
 
-app.post("/api/logout", async (req, res) => {
+app.post("/api/logout", asyncWrapper(async (req, res) => {
     if(req.cookies && req.cookies["login-token"] && token_set[req.cookies["login-token"]]){
         delete token_set[req.cookies["login-token"]]
     }
     res.cookie('login-token', "")
     res.send({ failed: false });
-})
+}));
 
 const exception_apis = [
     "/api/search",
@@ -582,7 +582,7 @@ app.use((req, res, next) => {
 })
 
 //-----------------thumbnail related-----------------------------------
-app.post("/api/getThumbnailForFolders", async (req, res) => {
+app.post("/api/getThumbnailForFolders", asyncWrapper(async (req, res) => {
     const dirs = req.body && req.body.dirs;
     if (!dirs) {
         res.send({ failed: true, reason: "No Parameter" });
@@ -591,9 +591,9 @@ app.post("/api/getThumbnailForFolders", async (req, res) => {
 
     const dirThumbnails = await getThumbnailForFolders(dirs);
     res.send({ failed: false, dirThumbnails });
-});
+}));
 
-app.post("/api/getFileHistory", async (req, res) => {
+app.post("/api/getFileHistory", asyncWrapper(async (req, res) => {
     const all_pathes = req.body && req.body.all_pathes;
     if (!all_pathes) {
         res.send({ failed: true, reason: "No Parameter" });
@@ -618,10 +618,10 @@ app.post("/api/getFileHistory", async (req, res) => {
     }catch(e){
         res.send({failed: true})
     }
-});
+}));
 
 
-app.post("/api/getTagThumbnail", async (req, res) => {
+app.post("/api/getTagThumbnail", asyncWrapper(async (req, res) => {
     const author = req.body && req.body.author;
     const tag = req.body && req.body.tag;
     if (!author && !tag) {
@@ -660,7 +660,7 @@ app.post("/api/getTagThumbnail", async (req, res) => {
     }
 
     extractThumbnailFromZip(chosendFileName, res);
-});
+}));
 
 const thumbnailGenerator = require("../tools/thumbnailGenerator");
 //the only required parameter is filePath
@@ -743,7 +743,7 @@ async function extractThumbnailFromZip(filePath, res, mode, config) {
 //  a huge back ground task
 //  it generate all thumbnail and will be slow
 let pregenerateThumbnails_lock = false;
-app.post('/api/pregenerateThumbnails', async (req, res) => {
+app.post('/api/pregenerateThumbnails', asyncWrapper(async (req, res) => {
     let pregenerateThumbnailPath = req.body && req.body.pregenerateThumbnailPath;
     if (!pregenerateThumbnailPath) {
         res.send({ failed: true, reason: "NOT PATH" });
@@ -810,10 +810,10 @@ app.post('/api/pregenerateThumbnails', async (req, res) => {
 
     pregenerateThumbnails_lock = false;
     console.log('[pregenerate] done');
-});
+}));
 
 
-app.post('/api/getZipThumbnail', async (req, res) => {
+app.post('/api/getZipThumbnail', asyncWrapper(async (req, res) => {
     const filePath = req.body && req.body.filePath;
 
     if (!filePath || !(await isExist(filePath))) {
@@ -831,7 +831,7 @@ app.post('/api/getZipThumbnail', async (req, res) => {
     }
 
     extractThumbnailFromZip(filePath, res);
-});
+}));
 
 async function getSameFileName(filePath) {
     if (!(await isExist(filePath))) {
@@ -864,7 +864,7 @@ async function getSameFileName(filePath) {
 
 const current_extract_queue = {};
 const extract_result_cache = {};
-app.post('/api/extract', async (req, res) => {
+app.post('/api/extract', asyncWrapper(async (req, res) => {
     let filePath = req.body && req.body.filePath;
     const startIndex = (req.body && req.body.startIndex) || 0;
     let stat;
@@ -1011,10 +1011,10 @@ app.post('/api/extract', async (req, res) => {
     }finally{
         current_extract_queue[filePath] = "done"
     }
-});
+}));
 
 
-app.get('/api/getGeneralInfo', async (req, res) => {
+app.get('/api/getGeneralInfo', asyncWrapper(async (req, res) => {
     const cacheKey = "GeneralInfoCacheKey";
     let result = memorycache.get(cacheKey);
     if(!result){
@@ -1036,7 +1036,7 @@ app.get('/api/getGeneralInfo', async (req, res) => {
 
     res.setHeader('Cache-Control', 'public, max-age=30');
     res.send(result)
-});
+}));
 
 
 const homePagePath = require("./routes/homePagePath");

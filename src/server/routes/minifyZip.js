@@ -24,16 +24,16 @@ const count = {
     saveSpace: 0
 };
 const minifyZipQue = [];
-router.post('/api/minifyZipQue', (req, res) => {
+router.post('/api/minifyZipQue', serverUtil.asyncWrapper((req, res) => {
     res.send({
         minifyZipQue
     })
-})
+}));
 
 const pLimit = require('p-limit');
 const limit = pLimit(2);
 
-router.post('/api/overwrite', async (req, res) => {
+router.post('/api/overwrite', serverUtil.asyncWrapper(async (req, res) => {
     const filePath = req.body && req.body.filePath;
 
     if (!filePath || !(await isExist(filePath))) {
@@ -90,9 +90,9 @@ router.post('/api/overwrite', async (req, res) => {
     } else {
         res.send({ reason: "fail to find original file", failed: true });
     }
-})
+}));
 
-router.post('/api/isAbleToMinify', async (req, res) => {
+router.post('/api/isAbleToMinify', serverUtil.asyncWrapper(async (req, res) => {
     const filePath = req.body && req.body.filePath;
 
     if (!filePath || !(await isExist(filePath))) {
@@ -106,9 +106,9 @@ router.post('/api/isAbleToMinify', async (req, res) => {
         res.send({ failed: true, reason: text })
     }
 
-});
+}));
 
-router.post('/api/minifyZip', async (req, res) => {
+router.post('/api/minifyZip', serverUtil.asyncWrapper(async (req, res) => {
     const filePath = req.body && req.body.filePath;
 
     if (!filePath || !(await isExist(filePath))) {
@@ -144,6 +144,6 @@ router.post('/api/minifyZip', async (req, res) => {
             console.log("[/api/minifyZip] the task queue is now empty");
         }
     }
-});
+}));
 
 module.exports = router;

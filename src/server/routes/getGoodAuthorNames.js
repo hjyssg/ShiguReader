@@ -6,7 +6,7 @@ const db = require("../models/db");
 // const util = global.requireUtil();
 // const { isCompress } = util;
 // const userConfig = global.requireUserConfig();
-// const serverUtil = require("../serverUtil");
+const serverUtil = require("../serverUtil");
 const memorycache = require('memory-cache');
 
 async function getGoodAndOtherSet() {
@@ -37,9 +37,9 @@ async function getGoodAndOtherSet() {
     }
 }
 
-router.post('/api/getGoodAuthorNames', async (req, res) => {
+router.post('/api/getGoodAuthorNames', serverUtil.asyncWrapper(async (req, res) => {
     const result = await getGoodAndOtherSet();
     res.send(result);
-});
+}));
 
 module.exports = router;
