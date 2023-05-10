@@ -56,6 +56,14 @@
         {
             "type": "node",
             "request": "launch",
+            "name": "sub server",
+            "program": "${workspaceFolder}\\src\\server\\_sub_server.js",
+            "args": [
+            ]
+        },
+        {
+            "type": "node",
+            "request": "launch",
             "name": "server on mac",
             "program": "${workspaceFolder}/src/server/index.js",
             "args": [

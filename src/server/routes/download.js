@@ -35,9 +35,9 @@ router.get('/api/download/', serverUtil.asyncWrapper(async (req, res) => {
         return;
     }
 
-    // const logLabel = '[/api/download/]  ' + filePath;
-    // // console.time(logLabel);
-    // const time1 = util.getCurrentTime();
+    const logLabel = '[/api/download/]  ' + filePath;
+    // console.time(logLabel);
+    const time1 = util.getCurrentTime();
 
     if (!(await isExist(filePath))) {
         console.error("[/api/download]", filePath, "NOT FOUND");
@@ -91,9 +91,9 @@ router.get('/api/download/', serverUtil.asyncWrapper(async (req, res) => {
     res.download(filePath); // Set disposition and send it.
 
     // console.timeEnd(logLabel);
-    // const time2 = util.getCurrentTime();
-    // const timeUsed = (time2 - time1) / 1000;
-    // console.log(logLabel, timeUsed, "s")
+    const time2 = util.getCurrentTime();
+    const timeUsed = (time2 - time1);
+    console.log(logLabel, timeUsed, "ms")
 }));
 
 module.exports = router;
