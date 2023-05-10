@@ -92,9 +92,13 @@ module.exports.getExt = function (p) {
         return ext;
     }
 
+    const isAlphebetorNumber = /^\.[a-zA-z0-9]*$/.test(ext);  // e.g .7z
+    const isOnlyDigit = /^\.[0-9]*$/.test(ext); // e.g   445
+    const isFileSize =  /\d+\.\d+\s*(?:MB|GB)]$/i.test(p);  // e.g 456.28 MB] or 120.44 GB]
+
     //xxx NO.003 xxx is not meaningful extension
     //extension string should be alphabet(may with digit), but not only digit
-    if (ext && /^\.[a-zA-z0-9]*$/.test(ext) && !/^\.[0-9]*$/.test(ext)) {
+    if (ext && isAlphebetorNumber  && !isOnlyDigit && !isFileSize) {
         return ext;
     } else {
         return "";
