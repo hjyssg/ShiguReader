@@ -52,8 +52,8 @@ async function init() {
     });
 }
 
-const homePagePath = require("./routes/homePagePath");
-app.use(homePagePath);
+// const homePagePath = require("./routes/homePagePath");
+// app.use(homePagePath);
 
 const getHistory = require("./routes/getHistory");
 app.use(getHistory);
