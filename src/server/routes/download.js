@@ -86,7 +86,7 @@ router.get('/api/download/', serverUtil.asyncWrapper(async (req, res) => {
         // the initial connection refers to the time it takes to perform the initial TCP handshake and negotiate SSL (if applicable) for an HTTP request. 
         //It is a stage in which the browser is establishing a connection, including TCP handshake and retrying, and negotiating SSL.
         res.setHeader('Connection', 'Keep-Alive');
-        res.setHeader('Keep-Alive', 'timeout=5, max=1000');
+        res.setHeader('Keep-Alive', 'timeout=50, max=1000');
     }
     res.download(filePath); // Set disposition and send it.
 
