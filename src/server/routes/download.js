@@ -45,7 +45,7 @@ router.get('/api/download/', serverUtil.asyncWrapper(async (req, res) => {
         return;
     }
 
-    var ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress 
+    var ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || "";
     const cacheKey = req.url + ip;
     const isLocalClient = ip.includes("127.0.0.1");
     const onebook_huge_threshold = isLocalClient? ONEBOOK_HUGE_THRESHOLD_LOCAL: ONEBOOK_HUGE_THRESHOLD_REMOTE;
