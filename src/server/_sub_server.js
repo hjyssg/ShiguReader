@@ -37,7 +37,7 @@ async function init() {
     // we need to check
     const isPortOccupied =  await serverUtil.isPortOccupied(port);
     if(isPortOccupied){
-        logger.error(`[Server Init] port ${port} is occupied `);
+        console.error(`[Server Init] port ${port} is occupied `);
         process.exit(22);
     }
 
@@ -46,7 +46,7 @@ async function init() {
         console.log(`Express Server listening on port ${port}`);
         console.log("----------------------------------------------------------------");
     }).on('error', (error) => {
-        logger.error("[Server Init]", error.message);
+        console.error("[Server Init]", error.message);
         //exit the current program
         process.exit(22);
     });

@@ -162,7 +162,7 @@ async function init() {
 
 
         console.log("----------------------------------------------------------------");
-        scan_path = await (await getScanPath()).scan_path;
+        scan_path = (await getScanPath()).scan_path;
         //统一mkdir
         await mkdir(thumbnailFolderPath);
         await mkdir(cachePath);
