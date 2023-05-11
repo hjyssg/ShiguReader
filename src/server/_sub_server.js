@@ -55,8 +55,8 @@ async function init() {
 const homePagePath = require("./routes/homePagePath");
 app.use(homePagePath);
 
-const getGoodAuthorNames = require("./routes/getGoodAuthorNames");
-app.use(getGoodAuthorNames);
+// const getGoodAuthorNames = require("./routes/getGoodAuthorNames");
+// app.use(getGoodAuthorNames);
 
 const getHistory = require("./routes/getHistory");
 app.use(getHistory);
