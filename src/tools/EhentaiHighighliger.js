@@ -14,6 +14,7 @@
 // @include       *://g.e-hentai.org/*
 // @include       *://e-hentai.org/*
 // @include       *://sukebei.nyaa.si/*
+// @include       *://sukebei.nyaa.si
 // @require      https://raw.githubusercontent.com/hjyssg/ShiguReader/dev/src/name-parser/all_in_one/index.js
 // @require      https://cdnjs.cloudflare.com/ajax/libs/lokijs/1.5.11/lokijs.min.js
 // @require      https://cdn.jsdelivr.net/npm/sweetalert2@11.7.5/dist/sweetalert2.all.min.js
