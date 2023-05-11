@@ -106,6 +106,7 @@ async function getIP(){
     return mobileAddress;
 }
 
+let scan_path;
 async function init() {
     if (isWindows()) {
         const { stdout, stderr } = await execa("chcp");
@@ -161,7 +162,7 @@ async function init() {
 
 
         console.log("----------------------------------------------------------------");
-        let { scan_path } = await getScanPath();
+        scan_path = await (await getScanPath()).scan_path;
         //统一mkdir
         await mkdir(thumbnailFolderPath);
         await mkdir(cachePath);
@@ -176,9 +177,8 @@ async function init() {
             }
             await mkdir(fp, "quiet");
         }
-
         scan_path = await pathUtil.filterNonExist(scan_path);
-        global.scan_path = scan_path;
+        db.insertScanPath(scan_path)
 
         const cleanCache = require("../tools/cleanCache");
         cleanCache.cleanCache(cachePath);
@@ -194,6 +194,7 @@ async function init() {
         // console.log(`[scan thumbnail] ${(end3 - end1) / 1000}s  to read thumbnail dirs`);
         // thumbnailDb.init(thumbnail_pathes);
 
+        //因为scan path内部有sub parent重复关系，避免重复的
         let will_scan = _.sortBy(scan_path, e => e.length); //todo
         for (let ii = 0; ii < will_scan.length; ii++) {
             for (let jj = ii + 1; jj < will_scan.length; jj++) {
@@ -481,7 +482,7 @@ async function getStat(filePath) {
 }
 
 function isAlreadyScan(dir) {
-    return global.scan_path.some(sp => {
+    return scan_path.some(sp => {
         return sp === dir || pathUtil.isSub(sp, dir);
     });
 }
@@ -756,7 +757,7 @@ app.post('/api/pregenerateThumbnails', asyncWrapper(async (req, res) => {
     pregenerateThumbnails_lock = true;
     const fastUpdateMode = req.body && req.body.fastUpdateMode;
 
-    const allfiles = db.getAllFilePathes();
+    const allfiles = await db.getAllFilePathes();
     let totalFiles = allfiles.filter(isCompress);
     if (pregenerateThumbnailPath !== "All_Pathes") {
         totalFiles = totalFiles.filter(e => e.includes(pregenerateThumbnailPath));
@@ -1028,7 +1029,7 @@ app.get('/api/getGeneralInfo', asyncWrapper(async (req, res) => {
     
             good_folder: global.good_folder,
             not_good_folder: global.not_good_folder,
-            additional_folder: global.scan_path
+            additional_folder: scan_path
         };
         
         memorycache.put(cacheKey, result, 30 * 1000)

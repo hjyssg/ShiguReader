@@ -11,11 +11,8 @@ const namePicker = require("../../human-name-picker");
 
 
 //file path to file stats
+// 这个设计有点傻，应该并到sql。我当时刚学sql，不自信
 const fileToInfo = {};
-
-module.exports.getAllFilePathes = function () {
-    return _.keys(fileToInfo);
-};
 
 const getFileToInfo = module.exports.getFileToInfo = function (filePath) {
     if (filePath) {
@@ -25,11 +22,8 @@ const getFileToInfo = module.exports.getFileToInfo = function (filePath) {
     }
 }
 
-
 const sqlite3 = require('sqlite3').verbose();
-const sqlDb = new sqlite3.Database(':memory:');
-
-
+const sqlDb = new sqlite3.Database('file_sql.db');
 
 const _util = require('util');
 sqlDb.allSync = _util.promisify(sqlDb.all).bind(sqlDb);
@@ -42,12 +36,16 @@ module.exports.init = async ()=> {
     // TODO
     // 现在图片、zip、文件夹都放这个table 
     // 需要拆开
+    await sqlDb.runSync("DROP TABLE IF EXISTS file_table;");
+    await sqlDb.runSync("DROP TABLE IF EXISTS tag_table;");
+    await sqlDb.runSync("DROP TABLE IF EXISTS scan_path_table;");
+
     await sqlDb.runSync("CREATE TABLE file_table (filePath TEXT NOT NULL PRIMARY KEY, dirPath TEXT, fileName TEXT, \
         sTime INTEGER, isDisplayableInExplorer BOOL, isDisplayableInOnebook BOOL, isCompress BOOL, isFolder BOOL);");
-
     //todo: http://howto.philippkeller.com/2005/04/24/Tags-Database-schemas/
     await sqlDb.runSync(`CREATE TABLE tag_table (filePath TEXT NOT NULL, tag VARCHAR(50), type VARCHAR(25),
             subtype VARCHAR(25), isCompress BOOL)`);
+    await sqlDb.runSync(`CREATE TABLE scan_path_table (filePath TEXT NOT NULL, type VARCHAR(25))`);
 }
 
 module.exports.getSQLDB = function () {
@@ -60,6 +58,26 @@ module.exports.createSqlIndex = function () {
                 CREATE INDEX IF NOT EXISTS tag_index ON tag_table (tag);
                 CREATE INDEX IF NOT EXISTS tag_filePath_index ON tag_table (filePath); `);
 }
+
+module.exports.insertScanPath = async function(scan_path){
+    const stmt = sqlDb.prepare('INSERT INTO scan_path_table(filePath, type) VALUES (?, ?)');
+    for(let pp of scan_path){
+        stmt.run(pp, "");
+    }
+}
+
+module.exports.getAllScanPath = async function(){
+    const sql = `SELECT filePath FROM scan_path_table `;
+    const temp = await sqlDb.allSync(sql);
+    return temp.map(e => e.filePath);
+}
+
+module.exports.getAllFilePathes = async function (sql_condition) {
+    // return _.keys(fileToInfo);
+    const sql = `SELECT filePath FROM file_table ` + sql_condition;
+    const temp = await sqlDb.allSync(sql);
+    return temp.map(e => e.filePath);
+};
 
 let stmt_tag_insert ;
 let stmt_file_insert;

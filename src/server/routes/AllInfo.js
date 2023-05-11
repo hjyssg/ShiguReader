@@ -72,7 +72,7 @@ router.post('/api/allInfo', serverUtil.asyncWrapper(async (req, res) => {
     const needThumbnail = req.body && req.body.needThumbnail;
 
     let allThumbnails = {};
-    const files = db.getAllFilePathes().filter(isDisplayableInExplorer);
+    const files = await db.getAllFilePathes("WHERE isDisplayableInExplorer=1");
     if (needThumbnail) {
         allThumbnails = await getThumbnailsForZip(files);
     }

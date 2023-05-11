@@ -2,7 +2,7 @@
 const express = require('express');
 const router = express.Router();
 const serverUtil = require("../serverUtil");
-// const db = require("../models/db");
+const db = require("../models/db");
 const isWindows = require('is-windows');
 const util = global.requireUtil();
 const historyDb = require("../models/historyDb");
@@ -38,15 +38,7 @@ router.get('/api/homePagePath', serverUtil.asyncWrapper(async (req, res) => {
         return;
     }
 
-    let dirs = global.scan_path || [];
-    // dirs = dirs.filter(e => {
-    //     if (e) {
-    //         const reg = escapeRegExp(e);
-    //         //check if pathes really exist by checking there is file in the folder
-    //         return !!getFileCollection().findOne({ 'filePath': { '$regex': reg }, isDisplayableInExplorer: true });
-    //     }
-    // });
-
+    let dirs = await db.getAllScanPath();
     let tempQuickAccess = await historyDb.getQuickAccess();
     tempQuickAccess = tempQuickAccess.map(e => e.filePath);
     //不要和其他项目重复
@@ -71,7 +63,6 @@ router.get('/api/homePagePath', serverUtil.asyncWrapper(async (req, res) => {
     if (dirs.length === 0 && hdd_list.length === 0 && quickAccess.length === 0) {
         res.send({ failed: true, reason: "config-path.ini has no path" });
     } else {
-
         let result = {
             dirs,
             hdd_list,

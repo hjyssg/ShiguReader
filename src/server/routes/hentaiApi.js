@@ -5,9 +5,8 @@ const router = express.Router();
 const db = require("../models/db");
 const util = global.requireUtil();
 const { isCompress } = util;
-const zipInfoDb = require("../models/zipInfoDb");
+// const zipInfoDb = require("../models/zipInfoDb");
 const serverUtil = require("../serverUtil");
-const { title } = require('process');
 
 // get to get all
 // http://localhost:8080/api/exhentaiApi
@@ -16,7 +15,7 @@ router.get('/api/exhentaiApi', serverUtil.asyncWrapper(async (req, res) => {
     try{
 
         // console.time("part 1")
-        let tempAllFiles = db.getAllFilePathes().filter(isCompress);
+        let tempAllFiles = await db.getAllFilePathes("WHERE isCompress=1");
         // console.timeEnd("part 1")
 
         //pageNum没啥用，还占用后端大量计算资源 
