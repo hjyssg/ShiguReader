@@ -23,7 +23,9 @@ const getFileToInfo = module.exports.getFileToInfo = function (filePath) {
 }
 
 const sqlite3 = require('sqlite3').verbose();
-const sqlDb = new sqlite3.Database('file_sql.db');
+// const sqlDb = new sqlite3.Database('file_sql.db'); 用file的话，启示init太慢了
+const sqlDb = new sqlite3.Database(':memory:');
+
 
 const _util = require('util');
 sqlDb.allSync = _util.promisify(sqlDb.all).bind(sqlDb);

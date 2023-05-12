@@ -52,20 +52,11 @@ async function init() {
     });
 }
 
-const homePagePath = require("./routes/homePagePath");
-app.use(homePagePath);
-
-// const getGoodAuthorNames = require("./routes/getGoodAuthorNames");
-// app.use(getGoodAuthorNames);
-
 const getHistory = require("./routes/getHistory");
 app.use(getHistory);
 
 const download = require("./routes/download");
 app.use(download);
-
-const hentaiApi = require("./routes/hentaiApi");
-app.use(hentaiApi);
 
 app.post('/*', (req, res) => {
     res.sendStatus(404);
