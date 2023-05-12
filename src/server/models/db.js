@@ -23,7 +23,7 @@ const getFileToInfo = module.exports.getFileToInfo = function (filePath) {
 }
 
 const sqlite3 = require('sqlite3').verbose();
-// const sqlDb = new sqlite3.Database('file_sql.db'); 用file的话，启示init太慢了
+// const sqlDb = new sqlite3.Database('file_sql.db'); 用file的话，init的insertion太慢了
 const sqlDb = new sqlite3.Database(':memory:');
 
 
