@@ -25,6 +25,8 @@ const getFileToInfo = module.exports.getFileToInfo = function (filePath) {
 const sqlite3 = require('sqlite3').verbose();
 // const sqlDb = new sqlite3.Database('file_sql.db'); 用file的话，init的insertion太慢了
 const sqlDb = new sqlite3.Database(':memory:');
+// 提升少量性能
+
 
 
 const _util = require('util');
@@ -35,6 +37,9 @@ sqlDb.runSync = _util.promisify(sqlDb.run).bind(sqlDb);
 
 
 module.exports.init = async ()=> {
+    await sqlDb.runSync( `
+        PRAGMA journal_mode = OFF;
+        PRAGMA synchronous = OFF; ` );
     // TODO
     // 现在图片、zip、文件夹都放这个table 
     // 需要拆开
