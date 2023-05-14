@@ -23,10 +23,8 @@ const getFileToInfo = module.exports.getFileToInfo = function (filePath) {
 }
 
 const sqlite3 = require('sqlite3').verbose();
-// const sqlDb = new sqlite3.Database('file_sql.db'); 用file的话，init的insertion太慢了
+// 用file的话，init的insertion太慢了
 const sqlDb = new sqlite3.Database(':memory:');
-// 提升少量性能
-
 
 
 const _util = require('util');
@@ -37,22 +35,26 @@ sqlDb.runSync = _util.promisify(sqlDb.run).bind(sqlDb);
 
 
 module.exports.init = async ()=> {
+    // 提升少量性能
     await sqlDb.runSync( `
         PRAGMA journal_mode = OFF;
         PRAGMA synchronous = OFF; ` );
-    // TODO
-    // 现在图片、zip、文件夹都放这个table 
-    // 需要拆开
+
     await sqlDb.runSync("DROP TABLE IF EXISTS file_table;");
     await sqlDb.runSync("DROP TABLE IF EXISTS tag_table;");
     await sqlDb.runSync("DROP TABLE IF EXISTS scan_path_table;");
 
-    await sqlDb.runSync("CREATE TABLE file_table (filePath TEXT NOT NULL PRIMARY KEY, dirPath TEXT, fileName TEXT, \
-        sTime INTEGER, isDisplayableInExplorer BOOL, isDisplayableInOnebook BOOL, isCompress BOOL, isFolder BOOL);");
-    //todo: http://howto.philippkeller.com/2005/04/24/Tags-Database-schemas/
+    await sqlDb.runSync(`CREATE TABLE file_table (filePath TEXT NOT NULL PRIMARY KEY, dirPath TEXT, fileName TEXT, 
+        sTime INTEGER, isDisplayableInExplorer BOOL, isDisplayableInOnebook BOOL, isCompress BOOL, isFolder BOOL);`);
     await sqlDb.runSync(`CREATE TABLE tag_table (filePath TEXT NOT NULL, tag VARCHAR(50), type VARCHAR(25),
             subtype VARCHAR(25), isCompress BOOL)`);
     await sqlDb.runSync(`CREATE TABLE scan_path_table (filePath TEXT NOT NULL, type VARCHAR(25))`);
+
+
+    await sqlDb.runSync(` CREATE VIEW zip_view  AS SELECT * FROM file_table WHERE isCompress = true `)
+    await sqlDb.runSync(` CREATE VIEW author_view  AS SELECT * FROM tag_table WHERE type='author' `)
+    await sqlDb.runSync(` CREATE VIEW tag_view  AS SELECT * FROM tag_table WHERE type='tag'  `)
+
 }
 
 module.exports.getSQLDB = function () {

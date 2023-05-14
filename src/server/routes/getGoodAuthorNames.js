@@ -24,7 +24,7 @@ async function getGoodAndOtherSet() {
             sql = `SELECT tag, 
                     COUNT(CASE WHEN INSTR(filePath, ?) = 1 THEN 1 END) AS good_count,
                     COUNT(CASE WHEN INSTR(filePath, ?) != 1 THEN 1 END) AS bad_count 
-                    FROM tag_table WHERE type = 'author' GROUP BY tag`;
+                    FROM author_view GROUP BY tag`;
             authorInfo = await sqldb.allSync(sql, [global.good_folder_root, global.good_folder_root]);
             memorycache.put(cacheKey, authorInfo, 10*1000);
         }

@@ -841,7 +841,7 @@ async function getSameFileName(filePath) {
         const dir = path.dirname(filePath);
 
         const sqldb = db.getSQLDB();
-        let sql = `SELECT filePath FROM file_table WHERE fileName LIKE ? AND filePath NOT LIke ? AND isCompress = true`;
+        let sql = `SELECT filePath FROM zip_view WHERE fileName LIKE ? AND filePath NOT LIke ? `;
         let rows = await sqldb.allSync(sql, [('%' + fn + '%'), (dir + '%')]);
 
         if (rows && rows.length > 1) {
