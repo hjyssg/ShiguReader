@@ -42,9 +42,10 @@ class SmartImage extends Component {
 
     let content;
     if (isVisible) {
+      const tooltip = `page: ${index} \nfilename: ${getBaseName(fp)}`;
       content = (<img className="single-img-cell"
         src={url}
-        title={`${index} ${getBaseName(fp)}`} 
+        title={tooltip} 
         loading="lazy"/>)
     } else {
       content = <div className="place-holder single-img-cell" title={index} />
@@ -121,16 +122,14 @@ export default class OneBookOverview extends Component {
       return;
     }
 
-    const fp = this.getTextFromQuery();
-
+    // const fp = this.getTextFromQuery();
     const images = imageFiles
-      .map((e) => {
-        //let url = getFileUrl(e);
+      .map((e, ii) => {
         let url = clientUtil.getDownloadLink(e);
         url += "&thumbnailMode=true"
-       return url;
+        return (<SmartImage key={e+ii} url={url} index={ii} fp={e}></SmartImage>);
       })
-      .map((e, ii) => <SmartImage key={e+ii} url={e} index={ii} fp={fp} />);
+
     return images;
   }
 
