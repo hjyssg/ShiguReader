@@ -62,8 +62,7 @@ module.exports.getSQLDB = function () {
 }
 
 module.exports.createSqlIndex = function () {
-    sqlDb.run(`CREATE INDEX IF NOT EXISTS filePath_index ON file_table (filePath);
-                CREATE INDEX IF NOT EXISTS dirPath_index ON file_table (dirPath);
+    sqlDb.run(` CREATE INDEX IF NOT EXISTS dirPath_index ON file_table (dirPath);
                 CREATE INDEX IF NOT EXISTS tag_index ON tag_table (tag);
                 CREATE INDEX IF NOT EXISTS tag_filePath_index ON tag_table (filePath); `);
 }
