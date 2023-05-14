@@ -16,10 +16,10 @@ async function add_col(rows){
 }
 
 function getSql(tableName){
+    // 只管zip文件，image folder太麻烦，不管了。  
     return `SELECT a.filePath, MAX(a.sTime) AS maxTime, b.tag, COUNT(b.tag) AS count, b.type, b.subtype
     FROM zip_view a 
-    LEFT JOIN ${tableName} b ON a.filePath = b.filePath 
-    WHERE b.isCompress = 1 
+    INNER JOIN ${tableName} b ON a.filePath = b.filePath 
     GROUP BY b.tag 
     HAVING a.sTime = maxTime AND count > 1 
     ORDER BY count DESC;`
