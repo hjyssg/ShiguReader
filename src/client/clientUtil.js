@@ -4,6 +4,7 @@ const _ = require("underscore");
 const filesizeUitl = require('filesize');
 const userConfig = require('@config/user-config');
 const queryString = require('query-string');
+const { assert } = require("chai");
 
 
 module.exports.filesizeUitl = function (num) {
@@ -338,4 +339,15 @@ module.exports.download = function(filename, text) {
   
     document.body.removeChild(element);
 }
-  
+
+module.exports.setRightAsNext = function(flg){
+    console.assert(_.isBoolean(flg));
+    window.localStorage && window.localStorage.setItem("isRightAsNext", flg);
+}
+
+module.exports.isRightAsNext = function(){
+    const item = window.localStorage && window.localStorage.getItem("isRightAsNext");
+    const result = !_.isNull(item)? item === 'true' : true;
+    console.assert(_.isBoolean(result));
+    return result;
+}

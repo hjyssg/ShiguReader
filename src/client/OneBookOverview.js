@@ -44,7 +44,7 @@ class SmartImage extends Component {
     if (isVisible) {
       content = (<img className="single-img-cell"
         src={url}
-        title={index} 
+        title={`${index} ${getBaseName(fp)}`} 
         loading="lazy"/>)
     } else {
       content = <div className="place-holder single-img-cell" title={index} />

@@ -333,11 +333,20 @@ export default class OneBook extends Component {
 
   handleKeyDown(event) {
     const key = event.key.toLowerCase();
+    const isRightAsNext = clientUtil.isRightAsNext();
     if (key === "arrowright" || key === "d" || key === "l") {
-      this.next();
+      if(isRightAsNext){
+        this.next();
+      }else{
+        this.prev();
+      }
       event.preventDefault();
     } else if (key === "arrowleft" || key === "a" || key === "j") {
-      this.prev();
+      if(isRightAsNext){
+        this.prev();
+      }else{
+        this.next();
+      }
       event.preventDefault();
     } else if (key === "+" || key === "=") {
       this.onwheel({ wheelDelta: 1 })
@@ -589,10 +598,19 @@ export default class OneBook extends Component {
     const posX = x > width / 2;
     const posY = y > upperRange;
 
-    if (posX) {
-      this.next();
-    } else {
-      this.prev();
+    const isRightAsNext = clientUtil.isRightAsNext();
+    if(isRightAsNext){
+      if (posX) {
+        this.next();
+      } else {
+        this.prev();
+      }
+    }else{
+      if (posX) {
+        this.prev();
+      } else {
+        this.next();
+      }
     }
 
     event.preventDefault();

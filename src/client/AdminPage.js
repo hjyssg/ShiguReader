@@ -239,6 +239,30 @@ export default class AdminPage extends Component {
         }
     }
 
+    rendersRightAsNext(){
+        const options = [
+            "Right As Next",
+            "Left As Next"
+        ]
+
+        const checked = clientUtil.isRightAsNext()? 0: 1;
+        const onHabitChange = (e, index)=>{
+            const flg = index == 0;
+            clientUtil.setRightAsNext(flg);
+            this.forceUpdate();
+        }
+
+        return (
+            <div className="admin-section">
+            <div className="admin-section-title"> Reading Habit: Right As Next  </div>
+            <div className="admin-section-content">
+                <RadioButtonGroup checked={checked}
+                    options={options} name="read habit" onChange={onHabitChange} />
+            </div>
+        </div>
+        )
+    }
+
     render() {
         document.title = "Admin"
         let folder_list = this.state.dirs.slice();
@@ -247,6 +271,7 @@ export default class AdminPage extends Component {
         return (
             <div className="admin-container container">
                 {this.renderPasswordInput()}
+                {this.rendersRightAsNext()}
 
                 <div className="admin-section">
                     <div className="admin-section-title"> Pregenerate Thumbnail and Update Internal Database</div>

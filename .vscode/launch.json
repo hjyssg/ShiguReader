@@ -39,7 +39,7 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "server",
+            "name": "dev backend server",
             "program": "${workspaceFolder}\\src\\server\\index.js",
             "args": [
                 "--dev"
