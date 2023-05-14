@@ -254,7 +254,7 @@ export default class AdminPage extends Component {
 
         return (
             <div className="admin-section">
-            <div className="admin-section-title"> Reading Habit: Right As Next  </div>
+            <div className="admin-section-title"> Reading Habit  </div>
             <div className="admin-section-content">
                 <RadioButtonGroup checked={checked}
                     options={options} name="read habit" onChange={onHabitChange} />
