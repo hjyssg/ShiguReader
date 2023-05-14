@@ -44,12 +44,22 @@ module.exports.init = async ()=> {
     await sqlDb.runSync("DROP TABLE IF EXISTS tag_table;");
     await sqlDb.runSync("DROP TABLE IF EXISTS scan_path_table;");
 
-    await sqlDb.runSync(`CREATE TABLE file_table (filePath TEXT NOT NULL PRIMARY KEY, dirPath TEXT, fileName TEXT, 
-        sTime INTEGER, isDisplayableInExplorer BOOL, isDisplayableInOnebook BOOL, isCompress BOOL, isFolder BOOL);`);
-    await sqlDb.runSync(`CREATE TABLE tag_table (filePath TEXT NOT NULL, tag VARCHAR(50), type VARCHAR(25),
-            subtype VARCHAR(25), isCompress BOOL)`);
+    await sqlDb.runSync(`CREATE TABLE file_table (
+                            filePath TEXT NOT NULL PRIMARY KEY, 
+                            dirPath TEXT, 
+                            fileName TEXT, 
+                            sTime INTEGER, 
+                            isDisplayableInExplorer BOOL, 
+                            isDisplayableInOnebook BOOL, 
+                            isCompress BOOL, 
+                            isFolder BOOL);`);
+    await sqlDb.runSync(`CREATE TABLE tag_table (
+                            filePath TEXT NOT NULL, 
+                            tag VARCHAR(50), 
+                            type VARCHAR(25),
+                            subtype VARCHAR(25), 
+                            isCompress BOOL)`);
     await sqlDb.runSync(`CREATE TABLE scan_path_table (filePath TEXT NOT NULL, type VARCHAR(25))`);
-
 
     await sqlDb.runSync(` CREATE VIEW zip_view  AS SELECT * FROM file_table WHERE isCompress = true `)
     await sqlDb.runSync(` CREATE VIEW author_view  AS SELECT * FROM tag_table WHERE type='author' `)

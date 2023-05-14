@@ -15,18 +15,20 @@ async function add_col(rows){
     }
 }
 
-router.post('/api/get_authors', serverUtil.asyncWrapper(async (req, res) => {
-    // const needThumbnail = req.body && req.body.needThumbnail;
-    const sqldb = db.getSQLDB();
-
-    let sql = `SELECT a.filePath, MAX(a.sTime) AS maxTime, b.tag, COUNT(b.tag) AS count, b.type, b.subtype
+function getSql(tableName){
+    return `SELECT a.filePath, MAX(a.sTime) AS maxTime, b.tag, COUNT(b.tag) AS count, b.type, b.subtype
     FROM zip_view a 
-    LEFT JOIN author_view b ON a.filePath = b.filePath 
+    LEFT JOIN ${tableName} b ON a.filePath = b.filePath 
     WHERE b.isCompress = 1 
     GROUP BY b.tag 
     HAVING a.sTime = maxTime AND count > 1 
     ORDER BY count DESC;`
+}
 
+router.post('/api/get_authors', serverUtil.asyncWrapper(async (req, res) => {
+    // const needThumbnail = req.body && req.body.needThumbnail;
+    const sqldb = db.getSQLDB();
+    let sql = getSql("author_view");
     let author_rows = await sqldb.allSync(sql);
     await add_col(author_rows);
 
@@ -38,17 +40,8 @@ router.post('/api/get_authors', serverUtil.asyncWrapper(async (req, res) => {
 router.post('/api/get_tags', serverUtil.asyncWrapper(async (req, res) => {
     // const needThumbnail = req.body && req.body.needThumbnail;
     const sqldb = db.getSQLDB();
-    sql = `
-    SELECT a.filePath, MAX(a.sTime) AS maxTime, b.tag, COUNT(b.tag) AS count, b.type, b.subtype
-    FROM zip_view a 
-    LEFT JOIN tag_view b ON a.filePath = b.filePath 
-    WHERE b.isCompress = 1 
-    GROUP BY b.tag 
-    HAVING a.sTime = maxTime AND count > 1 
-    ORDER BY count DESC;
-    `
+    let sql = getSql("tag_view");
     let tag_rows = await sqldb.allSync(sql);
-
     await add_col(tag_rows);
 
     res.send({
