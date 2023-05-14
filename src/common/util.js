@@ -73,25 +73,36 @@ const hasDuplicate = module.exports.hasDuplicate = (arr) => {
     return new Set(arr).size !== arr.length;
 }
 
+// 用来排序图片和mp3的
 module.exports._sortFileNames = function (files, getBaseNameWithoutExtention) {
-    if (!getBaseNameWithoutExtention) {
-        throw "no getBaseNameWithoutExtention";
-    }
+    // assertion
+    files.forEach(e => {
+        console.assert(!e.includes("/") && !e.includes("\\"));
+    })
 
-    const isAllDigit = files.every(e => {
-        return isOnlyDigit(getBaseNameWithoutExtention(e))
-    });
+    // 奇怪了，以前的sort有numeric这个选项吗，还是我重新发明轮子了？
+    // A:The Intl.Collator object was introduced in ECMAScript 2015 (ES6).  好像10年前就有了？？
+    files.sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+    return;
 
-    // check if duplicate filename
-    const fns = files.map(getBaseNameWithoutExtention);
-    let isDup = hasDuplicate(fns);
+    // if (!getBaseNameWithoutExtention) {
+    //     throw "no getBaseNameWithoutExtention";
+    // }
+
+    // const isAllDigit = files.every(e => {
+    //     return isOnlyDigit(getBaseNameWithoutExtention(e))
+    // });
+
+    // // check if duplicate filename
+    // const fns = files.map(getBaseNameWithoutExtention);
+    // let isDup = hasDuplicate(fns);
 
 
-    if (isAllDigit && !isDup) {
-        files.sort((a, b) => { return parseInt(getBaseNameWithoutExtention(a)) - parseInt(getBaseNameWithoutExtention(b)) });
-    } else {
-        files.sort((a, b) => a.localeCompare(b));
-    }
+    // if (isAllDigit && !isDup) {
+    //     files.sort((a, b) => { return parseInt(getBaseNameWithoutExtention(a)) - parseInt(getBaseNameWithoutExtention(b)) });
+    // } else {
+    //     files.sort((a, b) => a.localeCompare(b));
+    // }
 };
 
 module.exports.arraySlice = function (arr, beg, end) {
