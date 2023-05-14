@@ -99,7 +99,7 @@ const updateFileDb = function (filePath, statObj) {
         statObj = {};
     }
 
-    stmt_tag_insert = stmt_tag_insert || sqlDb.prepare('INSERT OR REPLACE INTO tag_table(filePath, tag, type, subtype, isCompress ) values(?, ?, ?, ?, ?)');
+    stmt_tag_insert = stmt_tag_insert || sqlDb.prepare('INSERT INTO tag_table(filePath, tag, type, subtype, isCompress ) values(?, ?, ?, ?, ?)');
     stmt_file_insert = stmt_file_insert || sqlDb.prepare(`INSERT OR REPLACE INTO file_table(filePath, dirPath, fileName, sTime, 
                 isDisplayableInExplorer, isDisplayableInOnebook, 
                 isCompress, isFolder ) values(?, ?, ?, ?, ?, ?, ?, ?)`);

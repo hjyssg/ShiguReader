@@ -42,7 +42,6 @@ module.exports.addOneRecord = function (filePath) {
     const fileName = path.basename(filePath);
     const dirPath = path.dirname(filePath);
 
-    // sql = "INSERT OR REPLACE INTO history_table(filePath, dirPath, fileName, time ) values(?, ?, ?, ?)";
     sql = "INSERT INTO history_table(filePath, dirPath, fileName, time ) values(?, ?, ?, ?)";
     sqlDb.run(sql, filePath, dirPath, fileName, time);
 }

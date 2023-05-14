@@ -19,8 +19,8 @@ sqlDb.getSync = _util.promisify(sqlDb.get).bind(sqlDb);
 sqlDb.runSync = _util.promisify(sqlDb.run).bind(sqlDb);
 
 module.exports.init = async ()=> {
-    await sqlDb.runSync("CREATE TABLE IF NOT EXISTS thumbnail_table (filePath TEXT, thumbnailFileName TEXT);\
-    CREATE INDEX IF NOT EXISTS filePath_index ON thumbnail_table (filePath)");
+    await sqlDb.runSync(`CREATE TABLE IF NOT EXISTS thumbnail_table (filePath TEXT, thumbnailFileName TEXT);
+                         CREATE INDEX IF NOT EXISTS filePath_index ON thumbnail_table (filePath)`);
     await syncInternalDict()
 
     // comment out when needed
@@ -29,7 +29,7 @@ module.exports.init = async ()=> {
 
 module.exports.addNewThumbnail = function (filePath, thumbnailFilePath) {
     const thumbnailFileName = path.basename(thumbnailFilePath);
-    sqlDb.run("INSERT OR REPLACE INTO thumbnail_table(filePath, thumbnailFileName ) values(?, ?)", filePath, thumbnailFileName);
+    sqlDb.run("INSERT INTO thumbnail_table(filePath, thumbnailFileName ) values(?, ?)", filePath, thumbnailFileName);
     _internal_dict_[filePath] = {filePath, thumbnailFileName}
 }
 
