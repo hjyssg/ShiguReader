@@ -350,7 +350,7 @@ export default class ExplorerPage extends Component {
                 //this will set state
                 this.handlePageChange(1);
             } else {
-                this.forceUpdate();
+                this.askRerender();
             }
 
             Sender.post('/api/getFileHistory', {all_pathes: this.get_all_pathes()}, res => {
@@ -360,7 +360,7 @@ export default class ExplorerPage extends Component {
                         const { fileName, time, count } = row;
                         this.fileNameToHistory[fileName] = {time, count};
                     })
-                    this.forceUpdate();
+                    this.askRerender();
                 }
             });
 
@@ -378,7 +378,7 @@ export default class ExplorerPage extends Component {
             }
         } else {
             this.res = res;
-            this.forceUpdate();
+            this.askRerender();
         }
     }
 
@@ -967,9 +967,16 @@ export default class ExplorerPage extends Component {
             if (!res.isFailed()) {
                 this.thumbnails =  _.extend(this.thumbnails, res.json.dirThumbnails);
                 this.hasCalled_getThumbnailForFolders = true;
-                this.forceUpdate();
+                this.askRerender();
             }
         });
+    }
+
+    askRerender(){
+        this.setState({
+            rerenderTick: !this.state.rerenderTick
+        })
+        // this.forceUpdate();
     }
 
     toggleShowVideo() {
@@ -1396,6 +1403,9 @@ export default class ExplorerPage extends Component {
 
     render() {
         this.setWebTitle();
+        this.time = this.time|| 1;
+        console.log(this.time);
+        this.time++;
 
         if (this.isFailedLoading()) {
             return <ErrorPage res={this.res} />;

@@ -1,4 +1,4 @@
-import React, { Component, useState, useEffect } from 'react';
+import React, { Component } from 'react';
 import '../style/Spinner.scss';
 const userConfig = require('@config/user-config');
 import PropTypes from 'prop-types';

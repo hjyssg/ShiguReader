@@ -11,7 +11,8 @@ module.exports.sort_file_by_time = function (files, config) {
 
     // 5400个文件计算time需要0.4秒
     let logLabel = "sort_file_by_time  "+files.length;
-    console.time(logLabel);
+    // console.time(logLabel);
+
     files.forEach(fp => {
         if(fp2Time[fp]){
             return fp2Time[fp];
@@ -53,11 +54,11 @@ module.exports.sort_file_by_time = function (files, config) {
         fp2Time[fp] = ascend ? time : -time;
         return fp2Time[fp];
     })
-    console.timeEnd(logLabel);
+    // console.timeEnd(logLabel);
 
-    logLabel = "sort_file_by_time  "+files.length + " part_2"
-    console.time(logLabel);
+    // logLabel = "sort_file_by_time  "+files.length + " part_2"
+    // console.time(logLabel);
     files.sort((a, b)=> fp2Time[a] - fp2Time[b]);
-    console.timeEnd(logLabel);
+    // console.timeEnd(logLabel);
 }
 

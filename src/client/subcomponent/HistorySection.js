@@ -11,13 +11,16 @@ function HistorySection(props){
   const {filePath} = props;
   const [history, setHistory] = useState([]);
 
-  useEffect(async () => {
-      const res = await Sender.postWithPromise("/api/getHistoryByFP", {filePath});
-      if (!res.isFailed()) {
-          let { history } = res.json;
-          setHistory(history)
-      }
-  }, []); 
+  useEffect(() => {
+    async function fetchData() {
+        const res = await Sender.postWithPromise("/api/getHistoryByFP", {filePath});
+        if (!res.isFailed()) {
+            let { history } = res.json;
+            setHistory(history)
+        }
+    }
+    fetchData();
+}, []); 
 
   let items;
   let length = history.length;

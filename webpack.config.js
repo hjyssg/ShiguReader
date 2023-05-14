@@ -1,6 +1,6 @@
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
-const CleanWebpackPlugin = require('clean-webpack-plugin');
+const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 
 const outputDirectory = 'dist';
 
@@ -29,7 +29,16 @@ const config = {
       },
       {
         test: /\.(png|woff|woff2|eot|ttf|svg)$/,
-        loader: 'url-loader?limit=100000'
+        // loader: 'url-loader?limit=100000'
+        use:[
+          {
+              loader: 'url-loader',
+              options: {
+                  limit: 1000,
+              }
+          }
+      ]
+
       },{
         test: /\.scss$/,
         use: ["style-loader", "css-loader", {
@@ -48,15 +57,22 @@ const config = {
     port: http_port,
     open: false,
     host: '0.0.0.0',
-    disableHostCheck: true,
+    allowedHosts: "all",
     historyApiFallback: true,
-    publicPath: "/",
     proxy: {
       '/api': `http://127.0.0.1:${dev_express_port}`
-    }
+    },
+    static: [{
+      directory: path.join(__dirname, 'public'),
+      publicPath:"/"
+    },{
+      directory: path.join(__dirname, 'resource'),
+      publicPath:"/"
+    }]
   },
   plugins: [
-    new CleanWebpackPlugin([outputDirectory]),
+    // new CleanWebpackPlugin([outputDirectory]),
+    new CleanWebpackPlugin(),
     new HtmlWebpackPlugin({
       template: './public/index.html',
       favicon: './public/favicon-96x96.png'
