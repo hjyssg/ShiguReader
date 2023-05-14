@@ -74,11 +74,13 @@ const hasDuplicate = module.exports.hasDuplicate = (arr) => {
 }
 
 // 用来排序图片和mp3的
+// files既可能是filename也可能是filepath
 module.exports._sortFileNames = function (files, getBaseNameWithoutExtention) {
     // assertion
-    files.forEach(e => {
-        console.assert(!e.includes("/") && !e.includes("\\"));
-    })
+    // files.forEach((e, ii) => {
+    //     const good =  (!e.includes("/") && !e.includes("\\"));
+    //     console.assert(good);
+    // })
 
     // 奇怪了，以前的sort有numeric这个选项吗，还是我重新发明轮子了？
     // A:The Intl.Collator object was introduced in ECMAScript 2015 (ES6).  好像10年前就有了？？
