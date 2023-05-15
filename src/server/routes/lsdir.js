@@ -3,6 +3,7 @@ const router = express.Router();
 // const _ = require('underscore');
 const stringHash = require("string-hash");
 const path = require('path');
+const pfs = require('promise-fs');
 
 const pathUtil = require("../pathUtil");
 const {
@@ -210,17 +211,26 @@ router.post('/api/listImageFolderContent', serverUtil.asyncWrapper(async (req, r
         return;
     }
 
+    const stat = await pfs.stat(filePath);
+    if (!stat.isDirectory()) {
+        res.send({ failed: true, reason: "NOT FOLDER" });
+        return;
+    }
+
     let result;
-    if (!isAlreadyScan(filePath)) {
+    // 除了cache以外都不递归
+    if(isSub(global.cachePath, filePath)){
         result = await listNoScanDir(filePath, res, true);
+    }else if (!isAlreadyScan(filePath)) {
+        result = await listNoScanDir(filePath, res);
     } else {
         const sqldb = db.getSQLDB();
-        let sql = `SELECT filePath FROM file_table WHERE INSTR(filePath, ?) = 1`;
+        let sql = `SELECT filePath FROM file_table WHERE INSTR(filePath, ?) = 1 ORDER BY filePath`;
         let _files = await sqldb.allSync(sql, [filePath]);
 
         _files = _files.map(e => e.filePath);
-        // 单层或者递归，各有利弊，和其他地方逻辑一致吧
-        _files = _files.filter(fp => {
+         // 单层或者递归，各有利弊，和其他地方逻辑一致吧
+         _files = _files.filter(fp => {
             return isDirectParent(filePath, fp)
         });
 

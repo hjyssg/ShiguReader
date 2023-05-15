@@ -203,12 +203,15 @@ const readdirRecursive = async (filePath, resultArr) => {
     for(let ii = 0; ii < pathes.length; ii++){
         try{
                 const fp = pathes[ii];
-                const ext = path.extname(fp).toLowerCase();
-                const isFolder = !ext;
+                // const ext = path.extname(fp).toLowerCase();
+                // const isFolder = !ext;
                 if(isDisplayableInOnebook(fp)){
                     resultArr.push(fp)
-                }else if(isFolder){
-                    await readdirRecursive(fp, resultArr);
+                }else{
+                    const stat = await pfs.stat(filePath);
+                    if(stat.isDirectory()){
+                        await readdirRecursive(fp, resultArr);
+                    }
                 }
         }catch(e){
             console.error(e);
