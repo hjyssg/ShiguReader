@@ -792,7 +792,7 @@ export default class OneBook extends Component {
     </div>);
 
     if (_.isEmpty(imageFiles) && _.isEmpty(musicFiles)) {
-      if (this.res && !this.refs.failed) {
+      if (this.res && !this.res.isFailed()) {
         return (<h3>
           <center style={{ paddingTop: "200px" }}>
             <div className="alert alert-warning col-6" role="alert" > No image or music file </div>
