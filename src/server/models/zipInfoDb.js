@@ -59,7 +59,7 @@ module.exports.init = async ()=> {
 
 module.exports.has = function (filePath) {
     const data = getZipInfo(filePath);
-    return !!data;
+    return data.length > 0;
 }
 
 const updateZipDb = module.exports.updateZipDb = function (info) {
@@ -98,7 +98,7 @@ module.exports.deleteFromZipDb = function (filePath) {
     delete _internal_dict_[filePath]
 }
 
-module.exports.getZipInfo = function (filePathes) {
+const getZipInfo =  module.exports.getZipInfo = function (filePathes) {
     filePathes = _.isString(filePathes) ? [filePathes] : filePathes;
     filePathes = filePathes.filter(isCompress);
 

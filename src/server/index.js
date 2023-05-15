@@ -400,11 +400,10 @@ async function getThumbnailsForZip(filePathes) {
         if (thumbnails[filePath]) {
             return;
         }
-
         if (isCompress(filePath)) {
-            //从cache找thumbnail意义不大
-            if (zipInfoDb.has(filePath)) {
-                const pageNum = zipInfoDb.getZipInfo(filePath).pageNum;
+            const zipInfo = zipInfoDb.getZipInfo(filePath);
+            if(zipInfo[0]){
+                const pageNum = zipInfo[0].pageNum;
                 if (pageNum === 0) {
                     thumbnails[filePath] = "NOT_THUMBNAIL_AVAILABLE";
                 }

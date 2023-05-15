@@ -45,7 +45,6 @@
     "js-cookie": "^2.2.1",
     "jsonfile": "^6.1.0",
     "junk": "^3.1.0",
-    "lokijs": "^1.5.8",
     "mecab-async": "^0.1.2",
     "memory-cache": "^0.2.0",
     "p-limit": "^2.1.0",
