@@ -87,9 +87,10 @@ module.exports.getHistoryByFP = async function (fileName) {
     //              (SELECT * FROM history_table where time > ?)  
     //             GROUP BY strftime('%d-%m-%Y', datetime(time/1000, 'unixepoch')) ORDER BY time DESC`
 
-    const sql = `SELECT filePath, Max(time) as time FROM
-     (SELECT * FROM history_table where fileName = ?)  
-     GROUP BY strftime('%d-%m-%Y', datetime(time/1000, 'unixepoch')) ORDER BY time DESC`
+    // const sql = `SELECT filePath, Max(time) as time FROM
+    //  (SELECT * FROM history_table where fileName = ?)  
+    //  GROUP BY strftime('%d-%m-%Y', datetime(time/1000, 'unixepoch')) ORDER BY time DESC`
+    const sql = `SELECT * FROM history_table where fileName = ? ORDER BY time DESC`
     let rows = await sqlDb.allSync(sql, [fileName]);
     return rows;
 }
