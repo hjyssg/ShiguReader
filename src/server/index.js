@@ -292,9 +292,6 @@ const deleteCallBack = fp => {
 };
 
 const moveCallBack = async (oldfilePath, newfilePath) => {
-    // zipInfoDb.updateThumbnail(oldfilePath, newfilePath);
-    // await thumbnailDb.updateThumbnail(oldfilePath, newfilePath);
-
     // 现在 delete和insert被chokidar callback代劳了 
     // 重复进行太容易出bug了
 }
