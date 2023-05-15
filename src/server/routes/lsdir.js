@@ -159,9 +159,14 @@ router.post('/api/lsDir', serverUtil.asyncWrapper(async (req, res) => {
 }));
 
 
-async function listNoScanDir(filePath) {
-    let subFnArr = await readdir(filePath);
-    let subFpArr = subFnArr.map(e => path.resolve(filePath, e));
+async function listNoScanDir(filePath, res, isRecussive) {
+    let subFpArr = [];
+    if(isRecussive){
+        await pathUtil.readdirRecursive(filePath, subFpArr);
+    }else{
+        let subFnArr = await readdir(filePath);
+        subFpArr = subFnArr.map(e => path.resolve(filePath, e));
+    }
 
     const compressFiles = subFpArr.filter(isCompress);
     const imageFiles = subFpArr.filter(isImage);
@@ -207,7 +212,7 @@ router.post('/api/listImageFolderContent', serverUtil.asyncWrapper(async (req, r
 
     let result;
     if (!isAlreadyScan(filePath)) {
-        result = await listNoScanDir(filePath, res);
+        result = await listNoScanDir(filePath, res, true);
     } else {
         const sqldb = db.getSQLDB();
         let sql = `SELECT filePath FROM file_table WHERE INSTR(filePath, ?) = 1`;

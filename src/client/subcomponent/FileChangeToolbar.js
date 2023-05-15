@@ -132,7 +132,7 @@ class MoveMenu extends Component {
                 })
             }
         }else{
-            const res = Sender.getWithPromise("/api/homePagePath");
+            const res = await Sender.getWithPromise("/api/homePagePath");
             if (res.isFailed()) {
                 debugger
                 return;

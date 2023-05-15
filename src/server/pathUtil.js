@@ -195,6 +195,7 @@ function getZipOutputCachePath() {
     return path.join(getRootPath(), userConfig.workspace_name, userConfig.zip_output_cache);
 }
 
+//递归文件夹，结果存在resultArr
 const readdirRecursive = async (filePath, resultArr) => {
     let pathes = await pfs.readdir(filePath);
     pathes = pathes.map(e => path.resolve(filePath, e));
