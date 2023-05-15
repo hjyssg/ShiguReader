@@ -160,12 +160,13 @@ module.exports.listZipContentAndUpdateDb = async function (filePath) {
         const mtime = util.getAverage(mtime_arr);
 
         const info = {
+            filePath,
             totalImgSize,
             files,
             mtime
         };
 
-        updateZipDb(filePath, info);
+        updateZipDb(info);
         return { files, fileInfos, info };
     } catch (e) {
         logger.error("[listZipContentAndUpdateDb]", filePath, e);

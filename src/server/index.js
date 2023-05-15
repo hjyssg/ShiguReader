@@ -135,6 +135,7 @@ async function init() {
     await db.init();
     await thumbnailDb.init();
     await historyDb.init();
+    await zipInfoDb.init();
 
     const port = isProduction ? http_port : dev_express_port;
     

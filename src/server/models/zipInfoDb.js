@@ -1,4 +1,3 @@
-const Loki = require("lokijs");
 const util = global.requireUtil();
 const { isImage, isMusic, isCompress, isVideo } = util;
 const _ = require('underscore');
@@ -7,103 +6,102 @@ const userConfig = global.requireUserConfig();
 const path = require('path');
 const pathUtil = require("../pathUtil");
 
-let loki_db;
-let zip_content_db;
+// const Loki = require("lokijs");
+// let loki_db;
+// let zip_content_db;
 const rootPath = pathUtil.getRootPath();
-let zip_content_db_path = path.join(rootPath, userConfig.workspace_name, "zip_info");
-
+// let zip_content_db_path = path.join(rootPath, userConfig.workspace_name, "zip_info");
 
 // implement the autoloadback referenced in loki constructor
-function databaseInitialize() {
-    zip_content_db = loki_db.getCollection("zipInfo");
-    if (zip_content_db === null) {
-        zip_content_db = loki_db.addCollection("zipInfo", { indices: ['filePath'] });
-    }
-    const entryCount = zip_content_db.count();
-    console.log("[zipInfoDb] number of entries in database : " + entryCount);
+// function databaseInitialize() {
+//     zip_content_db = loki_db.getCollection("zipInfo");
+//     if (zip_content_db === null) {
+//         zip_content_db = loki_db.addCollection("zipInfo", { indices: ['filePath'] });
+//     }
+//     const entryCount = zip_content_db.count();
+//     console.log("[zipInfoDb] number of entries in database : " + entryCount);
+
+//     const entries = zip_content_db.find();
+//     entries.forEach(e => {
+//         updateZipDb(e);
+//     })
+// }
+
+// loki_db = new Loki(zip_content_db_path, {
+//     autoload: true,
+//     autoloadCallback: databaseInitialize,
+//     autosave: true,
+//     autosaveInterval: 4000
+// });
+
+let zip_sql_path = path.join(rootPath, userConfig.workspace_name, "zip_info_sql.db");
+const sqlite3 = require('sqlite3').verbose();
+const sqlDb = new sqlite3.Database(zip_sql_path);
+
+const _util = require('util');
+sqlDb.allSync = _util.promisify(sqlDb.all).bind(sqlDb);
+sqlDb.getSync = _util.promisify(sqlDb.get).bind(sqlDb);
+sqlDb.runSync = _util.promisify(sqlDb.run).bind(sqlDb);
+
+//-----------------------
+module.exports.init = async ()=> {
+    await sqlDb.runSync(`CREATE TABLE IF NOT EXISTS zip_table (
+                            filePath TEXT PRIMARY KEY, 
+                            pageNum INTEGER,
+                            musicNum INTEGER,
+                            videoNum INTEGER,
+                            totalNum INTEGER,
+                            totalImgSize INTEGER,
+                            mtime INTEGER );
+                        `);
+    await syncInternalDict()
 }
 
-loki_db = new Loki(zip_content_db_path, {
-    autoload: true,
-    autoloadCallback: databaseInitialize,
-    autosave: true,
-    autosaveInterval: 4000
-});
-
-function getData(filePath) {
-    return zip_content_db && zip_content_db.findOne({ filePath });
-}
-
-const has = module.exports.has = function (filePath) {
-    const data = getData(filePath);
+module.exports.has = function (filePath) {
+    const data = getZipInfo(filePath);
     return !!data;
 }
 
+const updateZipDb = module.exports.updateZipDb = function (info) {
+    const {   
+        filePath,
+        totalImgSize,
+        files,
+        mtime} = info;
 
-module.exports.getZipInfo = function (filePathes) {
-    const fpToInfo = {};
+    const pageNum = files.filter(isImage).length;
+    const musicNum = files.filter(isMusic).length;
+    const videoNum = files.filter(isVideo).length;
+    const totalNum = files.length;
 
-    const isStringInput = _.isString(filePathes);
-    if (isStringInput) {
-        filePathes = [filePathes];
-    }
+    sqlDb.run(`INSERT OR REPLACE INTO zip_table (
+            filePath, pageNum, musicNum, videoNum, totalNum, totalImgSize, mtime) 
+            values(?, ?, ?, ?, ?, ?, ?)`, 
+    filePath, pageNum, musicNum, videoNum, totalNum, totalImgSize, mtime);
+    _internal_dict_[filePath] = info;
+}
 
-    filePathes.forEach(filePath => {
-        if (isCompress(filePath) && has(filePath)) {
-            const contentInfo = getData(filePath);
-            const files = contentInfo.files;
-            const pageNum = files.filter(isImage).length;
-            const musicNum = files.filter(isMusic).length;
-            const videoNum = files.filter(isVideo).length;
+const _internal_dict_ = {};
+async function syncInternalDict(){
+    const sql = `SELECT * FROM  zip_table`;
+    let rows = await sqlDb.allSync(sql)
 
-            const entry = {
-                pageNum,
-                musicNum,
-                videoNum,
-                totalNum: files.length,
-               
-                totalImgSize: contentInfo.totalImgSize,
-                mtime: contentInfo.mtime
-            }
-
-            fpToInfo[filePath] = entry;
-        }
-    });
-
-    if (isStringInput) {
-        return fpToInfo[filePathes[0]]
-    }
-
-    return fpToInfo;
+    rows.forEach(e => {
+        _internal_dict_[e.filePath] = e;
+    })
 }
 
 module.exports.deleteFromZipDb = function (filePath) {
-    if (!zip_content_db) {
-        return;
-    }
+    const sql2 = `DELETE FROM  zip_table WHERE filePath = ?`;
+    sqlDb.runSync(sql2, [filePath])
 
-    if (has(filePath)) {
-        let data = getData(filePath);
-        zip_content_db.remove(data);
-    }
+    delete _internal_dict_[filePath]
 }
 
-const updateZipDb = module.exports.updateZipDb = function (filePath, info) {
-    if (!zip_content_db) {
-        return;
-    }
+module.exports.getZipInfo = function (filePathes) {
+    filePathes = _.isString(filePathes) ? [filePathes] : filePathes;
+    filePathes = filePathes.filter(isCompress);
 
-    const entry = {
-        filePath,
-        ...info
-    };
-
-    //!!bug if shut the down the program, all data will be lost
-    if (has(filePath)) {
-        let data = getData(filePath);
-        data = _.extend(data, entry)
-        zip_content_db.update(data);
-    } else {
-        zip_content_db.insert(entry);
-    }
+    let rows = filePathes.map(e => _internal_dict_[e]);
+    return rows;
 }
