@@ -379,7 +379,6 @@ function setUpFileWatch(scan_path) {
     };
 }
 
-
 async function getThumbnailsForZip(filePathes) {
     const isStringInput = _.isString(filePathes);
     if (isStringInput) {
@@ -490,7 +489,12 @@ async function _decorate(resObj) {
 
     const files = _.keys(fileInfos);
     const thumbnails = await getThumbnailsForZip(files);
-    resObj.zipInfo = zipInfoDb.getZipInfo(files);
+
+    const tempZipList = zipInfoDb.getZipInfo(files);
+    const zipInfo = {};
+    tempZipList.forEach(e => { zipInfo[e.filePath] = e;  })
+    resObj.zipInfo = zipInfo;
+
     resObj.thumbnails = thumbnails;
     const imgFolderInfo = db.getImgFolderInfo(imgFolders);
     resObj.imgFolderInfo = imgFolderInfo;
@@ -893,7 +897,7 @@ app.post('/api/extract', asyncWrapper(async (req, res) => {
         });
         let zipInfo;
         if (tempFiles.length > 0) {
-            zipInfo = zipInfoDb.getZipInfo(path);
+            zipInfo = zipInfoDb.getZipInfo(path)[0];
         }
 
         const mecab_tokens = await global.mecab_getTokens(path);
