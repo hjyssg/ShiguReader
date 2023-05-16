@@ -67,6 +67,10 @@ const config = {
     },{
       directory: path.join(__dirname, 'resource'),
       publicPath:"/"
+    },
+    {
+      directory: __dirname,
+      publicPath:"/"
     }],
     port: 9000,
   },
