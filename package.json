@@ -4,6 +4,7 @@
   "description": "All-in-one solution for local doujin/anime/music file",
   "repository": "hjyssg/ShiguReader",
   "main": "src/server/index.js",
+  "bin": "src/server/index.js",
   "scripts": {
     "build": "webpack --mode production",
     "start-production": "node src/server/index.js",
@@ -14,7 +15,15 @@
     "dev": "concurrently \"npm run server\" \"npm run client\"",
     "flow": "flow",
     "test": "mocha ./src/test",
-    "pkg": "npm run build && pkg package.json -t host --out-dir executables"
+    "pkg": "pkg package.json -t host --out-dir executables"
+  },
+  "pkg": {
+    "scripts": "src/server/index.js ",
+    "assets": ["./node_modules/sqlite3/lib/binding/**/*",
+            "./node_modules/sharp/build/Release/*"
+        ],
+    "targets": [ "win-x64" ],
+    "outputPath": "."
   },
   "author": "aji47",
   "license": "MIT",
