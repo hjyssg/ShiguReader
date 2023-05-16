@@ -6,6 +6,7 @@ const isWindows = require('is-windows');
 const express = require('express');
 const router = express.Router();
 const logger = require("../logger");
+const thumbnailDb = require("../models/thumbnailDb");
 
 const pathUtil = require("../pathUtil");
 const {
@@ -86,6 +87,8 @@ router.post('/api/moveFile', serverUtil.asyncWrapper(async (req, res) => {
             }
         }
 
+        const thumbRows = thumbnailDb.getThumbnailArr(src);
+
         const cmdStr = isWindows() ? "move" : "mv";
         const { stdout, stderr } = await execa(cmdStr, [src, dest]);
         err = stderr;
@@ -93,7 +96,10 @@ router.post('/api/moveFile', serverUtil.asyncWrapper(async (req, res) => {
         if (err) { throw err; }
 
         // logger.info(`[MOVE] ${src} to ${dest}`);
-
+        // 回收thumbnail
+        if(thumbRows[0]){
+            thumbnailDb.addNewThumbnail(destFP, thumbRows[0].thumbnailFilePath)
+        }
         res.send({ failed: false, dest: destFP });
 
         serverUtil.common.moveCallBack(src, dest);

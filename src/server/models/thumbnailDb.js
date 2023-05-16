@@ -49,7 +49,9 @@ async function syncInternalDict(){
 
 module.exports.deleteThumbnail = function (filePath) {
     const sql2 = `DELETE FROM  thumbnail_table WHERE filePath = ?`;
-    sqlDb.runSync(sql2, [filePath])
+    sqlDb.runSync(sql2, [filePath]);
+    //不删除文件，避免部分的bug
+    //文件占的空间很小，无所谓
 }
 
 async function clean(){

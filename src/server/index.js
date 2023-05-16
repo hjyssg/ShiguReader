@@ -397,8 +397,8 @@ async function getThumbnailsForZip(filePathes) {
     const thumbnails = {};
 
     let end1 = getCurrentTime();
-    let thumbArrs = thumbnailDb.getThumbnailArr(filePathes);
-    thumbArrs.forEach(row => {
+    let thumbRows = thumbnailDb.getThumbnailArr(filePathes);
+    thumbRows.forEach(row => {
         thumbnails[row.filePath] = row.thumbnailFilePath;
     })
     let end3 = getCurrentTime();
@@ -409,9 +409,9 @@ async function getThumbnailsForZip(filePathes) {
             return;
         }
         if (isCompress(filePath)) {
-            const zipInfo = zipInfoDb.getZipInfo(filePath);
-            if(zipInfo[0]){
-                const pageNum = zipInfo[0].pageNum;
+            const zipInfoRows = zipInfoDb.getZipInfo(filePath);
+            if(zipInfoRows[0]){
+                const pageNum = zipInfoRows[0].pageNum;
                 if (pageNum === 0) {
                     thumbnails[filePath] = "NOT_THUMBNAIL_AVAILABLE";
                 }
@@ -499,9 +499,9 @@ async function _decorate(resObj) {
     const files = _.keys(fileInfos);
     const thumbnails = await getThumbnailsForZip(files);
 
-    const tempZipList = zipInfoDb.getZipInfo(files);
+    const zipInfoRows = zipInfoDb.getZipInfo(files);
     const zipInfo = {};
-    tempZipList.forEach(e => { 
+    zipInfoRows.forEach(e => { 
         if(e){
             zipInfo[e.filePath] = e;
         }
@@ -701,16 +701,16 @@ async function extractThumbnailFromZip(filePath, res, mode, config) {
             }
 
             if (config.fastUpdateMode){
-                const temp = thumbnailDb.getThumbnailArr(filePath);
-                if(temp.length > 0){
+                const thumbRows = thumbnailDb.getThumbnailArr(filePath);
+                if(thumbRows.length > 0){
                     return;
                 }
             }
         }
 
-        const thumbnail = thumbnailDb.getThumbnailArr(filePath);
-        if (thumbnail[0]) {
-            sendImage(thumbnail[0].thumbnailFilePath);
+        const thumbRows = thumbnailDb.getThumbnailArr(filePath);
+        if (thumbRows[0]) {
+            sendImage(thumbRows[0].thumbnailFilePath);
         } else {
             if (!files) {
                 files = (await listZipContentAndUpdateDb(filePath)).files;
@@ -831,9 +831,9 @@ app.post('/api/getQuickThumbnail', asyncWrapper(async (req, res) => {
 
     let url = null;
     if(isCompress(filePath)){
-        let thumbArrs = thumbnailDb.getThumbnailArr(filePath);
-        if(thumbArrs.length > 0){
-            url = thumbArrs[0].thumbnailFilePath;
+        const thumbRows = thumbnailDb.getThumbnailArr(filePath);
+        if(thumbRows.length > 0){
+            url = thumbRows[0].thumbnailFilePath;
         }
     }
 
@@ -928,7 +928,8 @@ app.post('/api/extract', asyncWrapper(async (req, res) => {
         });
         let zipInfo;
         if (tempFiles.length > 0) {
-            zipInfo = zipInfoDb.getZipInfo(path)[0];
+            const zipInfoRows = zipInfoDb.getZipInfo(files);
+            zipInfo = zipInfoRows[0];
         }
 
         const mecab_tokens = await global.mecab_getTokens(path);
