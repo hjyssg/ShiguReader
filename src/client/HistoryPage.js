@@ -44,6 +44,8 @@ function renderHistory(history) {
             const toUrl = util.isVideo(filePath)? 
                           clientUtil.getVideoPlayerLink(filePath) : 
                           clientUtil.getOneBookLink(filePath);
+            const itemTimeStr = dateFormat(new Date(e.time), "mm/dd/yyyy HH:MM");
+            const tooltip = `${filePath}\n${itemTimeStr}`
 
             const cn = classNames("icon", {
                 "far fa-file-video": util.isVideo(filePath),
@@ -55,7 +57,7 @@ function renderHistory(history) {
                 <Link to={toUrl} key={filePath + ii} className={"history-link"}>
                     <div className="history-one-line-list-item" key={filePath}>
                         <span className={cn} /> 
-                        <span className="file-text" title={filePath}> {getBaseName(filePath)||filePath}</span>
+                        <span className="file-text" title={tooltip}> {getBaseName(filePath)||filePath}</span>
                     </div>
                 </Link>);
 
