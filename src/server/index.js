@@ -99,13 +99,13 @@ try {
     etc_config = ini.parse(fcontent);
     global.etc_config = etc_config;
 
-    console.log(etf_config_path);
+    // console.log(etf_config_path);
 
     const path_config_path = path.join(rootPath, "config-path.ini");
     const fContent1 = fs.readFileSync(path_config_path).toString();
     path_config = ini.parse(fContent1);
 
-    console.log(path_config_path);
+    // console.log(path_config_path);
 } catch (e) {
     //nothing
     console.warn(e);

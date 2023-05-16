@@ -73,7 +73,11 @@ const updateZipDb = module.exports.updateZipDb = function (info) {
             filePath, pageNum, musicNum, videoNum, totalNum, totalImgSize, mtime) 
             values(?, ?, ?, ?, ?, ?, ?)`, 
     filePath, pageNum, musicNum, videoNum, totalNum, totalImgSize, mtime);
-    _internal_dict_[filePath] = info;
+
+
+    _internal_dict_[filePath] = {
+        filePath, pageNum, musicNum, videoNum, totalNum, totalImgSize, mtime
+    };
 }
 
 const _internal_dict_ = {};
