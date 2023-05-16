@@ -501,7 +501,11 @@ async function _decorate(resObj) {
 
     const tempZipList = zipInfoDb.getZipInfo(files);
     const zipInfo = {};
-    tempZipList.forEach(e => { zipInfo[e.filePath] = e;  })
+    tempZipList.forEach(e => { 
+        if(e){
+            zipInfo[e.filePath] = e;
+        }
+    })
     resObj.zipInfo = zipInfo;
 
     resObj.thumbnails = thumbnails;
