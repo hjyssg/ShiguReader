@@ -80,6 +80,20 @@ const updateZipDb = module.exports.updateZipDb = function (info) {
     };
 }
 
+
+module.exports.updateZipDb_v2 = function (info) {
+    const { filePath, pageNum, musicNum, videoNum, totalNum, totalImgSize, mtime} = info;
+
+    sqlDb.run(`INSERT OR REPLACE INTO zip_table (
+            filePath, pageNum, musicNum, videoNum, totalNum, totalImgSize, mtime) 
+            values(?, ?, ?, ?, ?, ?, ?)`, 
+    filePath, pageNum, musicNum, videoNum, totalNum, totalImgSize, mtime);
+
+    _internal_dict_[filePath] = {
+        filePath, pageNum, musicNum, videoNum, totalNum, totalImgSize, mtime
+    };
+}
+
 const _internal_dict_ = {};
 async function syncInternalDict(){
     const sql = `SELECT * FROM  zip_table`;
