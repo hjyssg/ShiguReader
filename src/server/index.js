@@ -10,13 +10,7 @@ const fs = require('fs');
 const ini = require('ini');
 const memorycache = require('memory-cache');
 global.requireUtil = () => require("../common/util");
-
-
-
-
-
 global.requireUserConfig = () => require("../config/user-config");
-
 global.requireConstant = () => require("../common/constant");
 
 const execa = require('./own_execa');
