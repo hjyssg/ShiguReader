@@ -5,7 +5,7 @@ const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const outputDirectory = 'dist';
 
 const portConfig = require('./src/config/port-config');
-const {http_port, dev_express_port } = portConfig;
+const { default_http_port } = portConfig;
 
 const config = {
   entry: ['babel-polyfill', './src/client/index.js'],
@@ -54,13 +54,12 @@ const config = {
     ]
   },
   devServer: {
-    port: http_port,
-    open: false,
+    open: true,
     host: '0.0.0.0',
     allowedHosts: "all",
     historyApiFallback: true,
     proxy: {
-      '/api': `http://127.0.0.1:${dev_express_port}`
+      '/api': `http://127.0.0.1:${default_http_port}`
     },
     static: [{
       directory: path.join(__dirname, 'public'),
@@ -68,7 +67,8 @@ const config = {
     },{
       directory: path.join(__dirname, 'resource'),
       publicPath:"/"
-    }]
+    }],
+    port: 9000,
   },
   plugins: [
     // new CleanWebpackPlugin([outputDirectory]),

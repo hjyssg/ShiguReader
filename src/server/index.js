@@ -13,6 +13,8 @@ global.requireUtil = () => require("../common/util");
 
 
 
+
+
 global.requireUserConfig = () => require("../config/user-config");
 
 global.requireConstant = () => require("../common/constant");
@@ -38,6 +40,13 @@ const thumbnailFolderPath = path.join(rootPath, thumbnail_folder_name);
 global.thumbnailFolderPath = thumbnailFolderPath;
 global.cachePath = cachePath;
 
+const portConfig = require('../config/port-config');
+const { program } = require('commander');
+program.option('-p, --port <number>', 'Specify the port',  portConfig.default_http_port);
+program.parse();
+const options = program.opts();
+// 懒得细看commander，不是最正确写法
+const port = _.isString(options.port)? parseInt(options.port): options.port;
 
 const db = require("./models/db");
 
@@ -47,8 +56,8 @@ const historyDb = require("./models/historyDb");
 const cacheDb = require("./models/cacheDb");
 
 //set up user path
-const isDev = process.argv.includes("--dev");
-const isProduction = !isDev;
+// const isDev = process.argv.includes("--dev");
+// const isProduction = !isDev;
 
 // console.log("------path helper--------------");
 // console.log("isProduction", isProduction)
@@ -81,8 +90,7 @@ app.use(express.json({limit: '50mb'}));
 var cookieParser = require('cookie-parser')
 app.use(cookieParser())
 
-const portConfig = require('../config/port-config');
-const { http_port, dev_express_port } = portConfig;
+
 
 // const jsonfile = require('jsonfile');
 // let temp_json_path = path.join(rootPath, userConfig.workspace_name, "temp_json_info.json");
@@ -102,7 +110,7 @@ try {
 const internalIp = require('internal-ip');
 async function getIP(){
     const lanIP = await internalIp.v4();
-    const mobileAddress = `http://${lanIP}:${http_port}`;
+    const mobileAddress = `http://${lanIP}:${port}`;
     return mobileAddress;
 }
 
@@ -122,14 +130,11 @@ async function init() {
         global._cmd_encoding = charset;
     }
 
-    if (isProduction) {
-        const indexHtmlPath = path.resolve(rootPath, "dist", "index.html");
-        // console.log(indexHtmlPath)
-        if (!(await isExist(indexHtmlPath))) {
-            console.error("[Error] No dist\\index.html for producation");
-            console.error("[Error] You need to run npm run build");
-            return;
-        }
+    const indexHtmlPath = path.resolve(rootPath, "dist", "index.html");
+    // console.log(indexHtmlPath)
+    if (!(await isExist(indexHtmlPath))) {
+        console.warn(`[Error] No ${indexHtmlPath} for producation`);
+        console.warn("[Error] You may need to run npm run build");
     }
 
     await db.init();
@@ -137,7 +142,7 @@ async function init() {
     await historyDb.init();
     await zipInfoDb.init();
 
-    const port = isProduction ? http_port : dev_express_port;
+ 
     
     //express does not check if the port is used and remains slient
     // we need to check
@@ -152,7 +157,7 @@ async function init() {
         console.log(dateFormat(new Date(), "yyyy-mm-dd HH:MM"));
         console.log(`Express Server listening on port ${port}`);
         console.log("You can open ShiguReader from Browser now!");
-        console.log(`http://localhost:${http_port}`);
+        console.log(`http://localhost:${port}`);
 
         try {
             const ip = await getIP();
@@ -506,14 +511,6 @@ serverUtil.common._decorate = _decorate
 serverUtil.common.getThumbnailsForZip = getThumbnailsForZip;
 serverUtil.common.getStat = getStat;
 serverUtil.common.isAlreadyScan = isAlreadyScan;
-
-//--------------------
-// if (isProduction) {
-    // const history = require('connect-history-api-fallback');
-    // app.use(history({
-    //     verbose: true
-    // }));
-// }
 
 
 // http://localhost:3000/explorer/
