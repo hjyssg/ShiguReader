@@ -4,8 +4,7 @@ const util = global.requireUtil();
 const fs = require('fs');
 const isWindows = require('is-windows');
 const _ = require('underscore');
-const ini = require('ini');
-
+// const ini = require('ini');
 
 const { isImage, isMusic, isVideo, isDisplayableInOnebook } = util;
 const cache_folder_name = userConfig.cache_folder_name;
@@ -144,11 +143,7 @@ async function filterNonExist(pathes) {
 //     return result;
 // }
 
-async function getScanPath() {
-    const path_config_path = path.join(getRootPath(), "config-path.ini");
-    const fContent1 = fs.readFileSync(path_config_path).toString();
-
-    const path_config = ini.parse(fContent1);
+async function getScanPath(path_config) {
     let { good_folder_root, not_good_folder_root, folder_pathes } = path_config;
     let scan_path = [].concat(folder_pathes);
     // const move_path_config_path = path.join(getRootPath(), "config-move-path.ini");

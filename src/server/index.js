@@ -92,10 +92,20 @@ app.use(cookieParser())
 
 //read etc config
 let etc_config = {};
+let path_config;
 try {
-    let fcontent = fs.readFileSync(path.resolve(rootPath, "config-etc.ini"), 'utf-8');
+    const etf_config_path = path.resolve(rootPath, "config-etc.ini");
+    let fcontent = fs.readFileSync(etf_config_path, 'utf-8');
     etc_config = ini.parse(fcontent);
     global.etc_config = etc_config;
+
+    console.log(etf_config_path);
+
+    const path_config_path = path.join(rootPath, "config-path.ini");
+    const fContent1 = fs.readFileSync(path_config_path).toString();
+    path_config = ini.parse(fContent1);
+
+    console.log(path_config_path);
 } catch (e) {
     //nothing
     console.warn(e);
@@ -162,7 +172,7 @@ async function init() {
 
 
         console.log("----------------------------------------------------------------");
-        scan_path = (await getScanPath()).scan_path;
+        scan_path = (await getScanPath(path_config)).scan_path;
         //统一mkdir
         await mkdir(thumbnailFolderPath);
         await mkdir(cachePath);
