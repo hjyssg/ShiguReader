@@ -1,0 +1,58 @@
+@import "vars.scss";
+
+.thumbnail-popup-wrap {
+//   color: $font_color_white_one;
+  cursor: pointer;
+  position: relative;
+  display: block;
+
+
+  .thumbnail-popup-wrap {
+    position: relative;
+    .thumbnail-popup-content {
+      display: none;
+    }
+  }
+
+  &.open {
+    .thumbnail-popup-content {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: absolute;
+      flex-direction: column;
+      z-index: 10;
+
+      left: -250px;
+      top: -50px;
+
+      background: rgb(124, 117, 117);
+      width: 200px;
+      height: 220px;
+      border-radius: 3px;
+
+      .thumbnail-popup-title {
+        color: $font_color_white_one;
+        font-size: 14px;
+        line-height: 1em;
+        height: 2em;
+        overflow: hidden;
+        margin-bottom: 5px;
+        width: 100%;
+        padding-left: 10px;
+        padding-right: 10px;
+      }
+
+      .thumbnail-popup-text{
+        color: $font_color_white_one;
+      }
+
+      img{
+        max-width: 100%;
+        max-height: 180px;
+      }
+    }
+  }
+
+
+}

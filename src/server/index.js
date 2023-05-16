@@ -820,6 +820,31 @@ app.post('/api/pregenerateThumbnails', asyncWrapper(async (req, res) => {
 }));
 
 
+// TODO 快速的获取任意文件或者文件夹的thumbnail
+app.post('/api/getQuickThumbnail', asyncWrapper(async (req, res) => {
+    const filePath = req.body && req.body.filePath;
+
+    if (!filePath) {
+        res.send({ failed: true, reason: "bad param" });
+        return;
+    }
+
+    let url = null;
+    if(isCompress(filePath)){
+        let thumbArrs = thumbnailDb.getThumbnailArr(filePath);
+        if(thumbArrs.length > 0){
+            url = thumbArrs[0].thumbnailFilePath;
+        }
+    }
+
+    res.setHeader('Cache-Control', 'public, max-age=3600');
+    res.setHeader('Connection', 'Keep-Alive');
+    res.setHeader('Keep-Alive', 'timeout=50, max=1000');
+    res.send({
+        url: url
+    });
+}))
+
 app.post('/api/getZipThumbnail', asyncWrapper(async (req, res) => {
     const filePath = req.body && req.body.filePath;
 
@@ -831,6 +856,7 @@ app.post('/api/getZipThumbnail', asyncWrapper(async (req, res) => {
     const thumbnails = await getThumbnailsForZip([filePath])
     const oneThumbnail = _.values(thumbnails)[0];
     if(oneThumbnail){
+    
         res.send({
             url: oneThumbnail
         })

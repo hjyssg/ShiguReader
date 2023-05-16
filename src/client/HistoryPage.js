@@ -17,6 +17,8 @@ import { GlobalContext } from './globalContext'
 const util = require("@common/util");
 const classNames = require('classnames');
 import Pagination from './subcomponent/Pagination';
+import ThumbnailPopup from './subcomponent/ThumbnailPopup';
+
 
 
 function renderHistory(history) {
@@ -55,10 +57,12 @@ function renderHistory(history) {
 
             return (
                 <Link to={toUrl} key={filePath + ii} className={"history-link"}>
-                    <div className="history-one-line-list-item" key={filePath}>
-                        <span className={cn} /> 
-                        <span className="file-text" title={tooltip}> {getBaseName(filePath)||filePath}</span>
-                    </div>
+                    <ThumbnailPopup filePath={filePath}>
+                        <div className="history-one-line-list-item" key={filePath}>
+                            <span className={cn} /> 
+                            <span className="file-text" title={tooltip}> {getBaseName(filePath)||filePath}</span>
+                        </div>
+                    </ThumbnailPopup>
                 </Link>);
 
         })

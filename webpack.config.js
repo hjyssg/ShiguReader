@@ -58,6 +58,7 @@ const config = {
     host: '0.0.0.0',
     allowedHosts: "all",
     historyApiFallback: true,
+    hot: false,
     proxy: {
       '/api': `http://127.0.0.1:${default_http_port}`
     },
