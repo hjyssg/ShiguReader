@@ -10,13 +10,8 @@ const { isSub, isExist } = pathUtil;
 const rootPath = pathUtil.getRootPath();
 
 let thumbnail_db_path = path.join(rootPath, userConfig.workspace_name, "thumbnail_sql_db.db");
-const sqlite3 = require('sqlite3').verbose();
-const sqlDb = new sqlite3.Database(thumbnail_db_path);
-
-const _util = require('util');
-sqlDb.allSync = _util.promisify(sqlDb.all).bind(sqlDb);
-sqlDb.getSync = _util.promisify(sqlDb.get).bind(sqlDb);
-sqlDb.runSync = _util.promisify(sqlDb.run).bind(sqlDb);
+const dbCommon = require("./dbCommon");
+const sqlDb = dbCommon.getSQLInstance(thumbnail_db_path);
 
 module.exports.init = async ()=> {
     await sqlDb.runSync(`CREATE TABLE IF NOT EXISTS thumbnail_table (filePath TEXT, thumbnailFileName TEXT);

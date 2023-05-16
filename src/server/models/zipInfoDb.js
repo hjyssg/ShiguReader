@@ -6,10 +6,10 @@ const userConfig = global.requireUserConfig();
 const path = require('path');
 const pathUtil = require("../pathUtil");
 
+const rootPath = pathUtil.getRootPath();
 // const Loki = require("lokijs");
 // let loki_db;
 // let zip_content_db;
-const rootPath = pathUtil.getRootPath();
 // let zip_content_db_path = path.join(rootPath, userConfig.workspace_name, "zip_info");
 
 // implement the autoloadback referenced in loki constructor
@@ -35,13 +35,8 @@ const rootPath = pathUtil.getRootPath();
 // });
 
 let zip_sql_path = path.join(rootPath, userConfig.workspace_name, "zip_info_sql.db");
-const sqlite3 = require('sqlite3').verbose();
-const sqlDb = new sqlite3.Database(zip_sql_path);
-
-const _util = require('util');
-sqlDb.allSync = _util.promisify(sqlDb.all).bind(sqlDb);
-sqlDb.getSync = _util.promisify(sqlDb.get).bind(sqlDb);
-sqlDb.runSync = _util.promisify(sqlDb.run).bind(sqlDb);
+const dbCommon = require("./dbCommon");
+const sqlDb = dbCommon.getSQLInstance(zip_sql_path);
 
 //-----------------------
 module.exports.init = async ()=> {
