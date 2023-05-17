@@ -34,16 +34,17 @@
       }
 
       background: rgb(124, 117, 117);
-      width: 200px;
+      width: 220px;
       height: 220px;
       border-radius: 3px;
 
       .thumbnail-popup-title {
         color: $font_color_white_one;
-        font-size: 14px;
+        font-size: 10px;
         line-height: 1em;
         height: 2em;
         overflow: hidden;
+        padding-bottom: 5px;
         margin-bottom: 5px;
         width: 100%;
         padding-left: 10px;
