@@ -14,7 +14,7 @@ class ThumbnailPopup extends Component {
 
     constructor(prop) {
         super(prop);
-        this.url = null;
+        this.url = prop.url;
         this.isHovering = false;
         this.state = {};
 
@@ -23,6 +23,14 @@ class ThumbnailPopup extends Component {
             this.fetchData();
         }, 1000);
     }
+
+    componentDidUpdate(prevProps) {
+        if (this.props.url && prevProps.url !== this.props.url && !this.state.url) {
+          this.setState({
+            url: this.props.url
+          });
+        }
+      }
 
     askRerender(){
         this.setState({

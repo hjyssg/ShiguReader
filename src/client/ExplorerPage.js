@@ -20,6 +20,7 @@ import SortHeader from './subcomponent/SortHeader';
 import Breadcrumb from './subcomponent/Breadcrumb';
 import FileCellTitle from './subcomponent/FileCellTitle';
 import Checkbox from './subcomponent/Checkbox';
+import ThumbnailPopup from './subcomponent/ThumbnailPopup';
 import { getFileUrl } from './clientUtil';
 const nameParser = require('@name-parser');
 const classNames = require('classnames');
@@ -679,6 +680,23 @@ export default class ExplorerPage extends Component {
         return result;
     }
 
+    getThumbnailUrl(fp){
+        const isImgFolder = !!this.imgFolders[fp];
+        let thumbnailurl;
+        if (isImgFolder) {
+            const _imgs = this.imgFolders[fp].filter(isImage);
+            sortFileNames(_imgs)
+            const tp = _imgs[0];
+            thumbnailurl = getFileUrl(tp);
+        } else {
+            thumbnailurl = getFileUrl(this.thumbnails[fp]);
+        }
+        thumbnailurl += "&thumbnailMode=true"
+        return thumbnailurl;
+    }
+    
+    
+
     renderSingleZipItem(fp) {
         const text = getBaseName(fp);
         const toUrl = clientUtil.getOneBookLink(fp);
@@ -690,10 +708,13 @@ export default class ExplorerPage extends Component {
         const avgSizeStr = avgSize > 0 && filesizeUitl(avgSize);
 
         let zipItem;
+        let thumbnailurl = this.getThumbnailUrl(fp);
 
         if (this.state.noThumbnail) {
-            zipItem = (<Link to={toUrl} key={fp} className={""}>
-                {getOneLineListItem(<i className="fas fa-book"></i>, text, fp)}
+            zipItem = (<Link to={toUrl} key={fp} className={""}  title={this.getTooltipStr(fp)} >
+                <ThumbnailPopup filePath={fp} url={thumbnailurl}>
+                    {getOneLineListItem(<i className="fas fa-book"></i>, text, fp)}
+                </ThumbnailPopup>
             </Link>)
         } else {
 
@@ -706,17 +727,6 @@ export default class ExplorerPage extends Component {
             const fileInfoRowCn = classNames("file-info-row", {
                 "less-padding": hasMusic
             })
-
-            let thumbnailurl;
-            if (isImgFolder) {
-                const _imgs = this.imgFolders[fp].filter(isImage);
-                sortFileNames(_imgs)
-                const tp = _imgs[0];
-                thumbnailurl = getFileUrl(tp);
-            } else {
-                thumbnailurl = getFileUrl(this.thumbnails[fp]);
-            }
-            thumbnailurl += "&thumbnailMode=true"
 
             const thumbnailCn = classNames("file-cell-thumbnail", {
                 "as-folder-thumbnail": isImgFolder
