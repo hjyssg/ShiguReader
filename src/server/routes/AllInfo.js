@@ -6,6 +6,7 @@ const db = require("../models/db");
 const { getThumbnailsForZip } = serverUtil.common;
 const util = global.requireUtil();
 const { isDisplayableInExplorer } = util;
+const nameParser = require('../../name-parser');
 
 async function add_col(rows){
     const thumbnails = await getThumbnailsForZip(rows.map(e => e.filePath))
@@ -47,6 +48,21 @@ router.post('/api/get_tags', serverUtil.asyncWrapper(async (req, res) => {
     res.send({
         tag_rows
     });
+}));
+
+router.get('/api/getParseCache/', serverUtil.asyncWrapper(async (req, res) => {
+    const logLabel = '[/api/getParseCache/]';
+    const time1 = util.getCurrentTime();
+
+    const localCache = nameParser.getLocalCache();
+    if(Object.keys(localCache).length > 5000){
+        res.setHeader('Cache-Control', 'public, max-age=600');
+    }
+    res.send(localCache); 
+
+    const time2 = util.getCurrentTime();
+    const timeUsed = (time2 - time1);
+    console.log(logLabel, timeUsed, "ms")
 }));
 
 router.post('/api/allInfo', serverUtil.asyncWrapper(async (req, res) => {

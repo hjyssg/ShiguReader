@@ -23,6 +23,7 @@ import Cookie from "js-cookie";
 import 'react-toastify/dist/ReactToastify.css';
 import { GlobalContext } from './globalContext'
 import Sender from './Sender';
+const nameParser = require('@name-parser');
 
 
 // http://localhost:3000/
@@ -45,14 +46,19 @@ class App extends Component {
 
     async askServer() {
          //save result to session storage
-        const res = await Sender.getWithPromise('/api/getGeneralInfo');
-        if (!res.isFailed()) {
-            let data = res.json;
+        const generalRes = await Sender.getWithPromise('/api/getGeneralInfo');
+        if (!generalRes.isFailed()) {
+            let data = generalRes.json;
             this.setState({
                 context: data
             });
             sessionStorage.setItem('GeneralInfo', JSON.stringify(data));
             // Cookie.set('GeneralInfo', JSON.stringify(data), { expires: 1/(24/3) });
+        }
+
+        const parseCacheRes = await Sender.getWithPromise('/api/getParseCache/');
+        if (!parseCacheRes.isFailed()) {
+            nameParser.setLocalCache(parseCacheRes.json)
         }
     }
 
