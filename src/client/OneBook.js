@@ -735,10 +735,21 @@ export default class OneBook extends Component {
       return;
     }
 
+    let leftFunc;
+    let rightFunc;
+    const isRightAsNext = clientUtil.isRightAsNext();
+    if(isRightAsNext){
+      rightFunc= this.next.bind(this);
+      leftFunc = this.prev.bind(this)
+    }else{
+      leftFunc = this.next.bind(this);
+      rightFunc = this.prev.bind(this)
+    }
+
     return (
       <React.Fragment>
-        <div className="big-column-button next"> <i className="fas fa-arrow-circle-right" onClick={this.next.bind(this)}></i> </div>
-        <div className="big-column-button prev"> <i className="fas fa-arrow-circle-left" onClick={this.prev.bind(this)}></i>  </div>
+        <div className="big-column-button next"> <i className="fas fa-arrow-circle-right" onClick={rightFunc}></i> </div>
+        <div className="big-column-button prev"> <i className="fas fa-arrow-circle-left" onClick={leftFunc}></i>  </div>
       </React.Fragment>
     );
   }
