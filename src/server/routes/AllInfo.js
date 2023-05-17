@@ -55,14 +55,15 @@ router.get('/api/getParseCache/', serverUtil.asyncWrapper(async (req, res) => {
     const time1 = util.getCurrentTime();
 
     const localCache = nameParser.getLocalCache();
-    if(Object.keys(localCache).length > 5000){
+    const size = Object.keys(localCache).length;
+    if(size > 5000){
         res.setHeader('Cache-Control', 'public, max-age=600');
     }
     res.send(localCache); 
 
     const time2 = util.getCurrentTime();
     const timeUsed = (time2 - time1);
-    console.log(logLabel, timeUsed, "ms")
+    console.log(logLabel, size, "  ", timeUsed, "ms")
 }));
 
 router.post('/api/allInfo', serverUtil.asyncWrapper(async (req, res) => {

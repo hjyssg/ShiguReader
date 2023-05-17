@@ -158,10 +158,16 @@ export default class AdminPage extends Component {
         return text;
     }
 
+    askRerender(){
+        this.setState({
+            rerenderTick: !this.state.rerenderTick
+        })
+    }
+
     setPasswordCookie() {
         const text = this.getPasswordInput();
         Cookie.set("password", text, { expires: 3 });
-        this.forceUpdate();
+        this.askRerender();
     }
 
     renderPasswordInput() {
@@ -249,7 +255,7 @@ export default class AdminPage extends Component {
         const onHabitChange = (e, index)=>{
             const flg = index == 0;
             clientUtil.setRightAsNext(flg);
-            this.forceUpdate();
+            this.askRerender();
         }
 
         return (

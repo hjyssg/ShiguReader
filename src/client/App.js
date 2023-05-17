@@ -45,7 +45,6 @@ class App extends Component {
     }
 
     async askServer() {
-         //save result to session storage
         const generalRes = await Sender.getWithPromise('/api/getGeneralInfo');
         if (!generalRes.isFailed()) {
             let data = generalRes.json;
@@ -53,12 +52,6 @@ class App extends Component {
                 context: data
             });
             sessionStorage.setItem('GeneralInfo', JSON.stringify(data));
-            // Cookie.set('GeneralInfo', JSON.stringify(data), { expires: 1/(24/3) });
-        }
-
-        const parseCacheRes = await Sender.getWithPromise('/api/getParseCache/');
-        if (!parseCacheRes.isFailed()) {
-            nameParser.setLocalCache(parseCacheRes.json)
         }
     }
 
@@ -98,17 +91,23 @@ class App extends Component {
         }
     }
 
+    askRerender(){
+        this.setState({
+            rerenderTick: !this.state.rerenderTick
+        })
+    }
+
     onSearchClick(event) {
         this.searchText = getSearchInputText();
         if (this.searchText.trim) {
             this.searchText = this.searchText.trim();
         }
-        this.forceUpdate();
+        this.askRerender();
     }
 
     onFilterClick(event) {
         this.filterText = getSearchInputText();
-        this.forceUpdate();
+        this.askRerender();
     }
 
     RenderSubComponent() {

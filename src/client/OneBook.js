@@ -61,12 +61,18 @@ export default class OneBook extends Component {
     return queryString.parse(_props.location.search)["p"] || "";
   }
 
+  askRerender(){
+    this.setState({
+        rerenderTick: !this.state.rerenderTick
+    })
+  }
+
   componentDidMount() {
     this.sendRequest();
 
     if (!isMobile()) {
       screenfull.onchange(() => {
-        this.forceUpdate();
+        this.askRerender();
       });
     }
 
@@ -322,7 +328,7 @@ export default class OneBook extends Component {
       this.setState({ imageFiles, musicFiles, videoFiles, path, fileStat: stat, zipInfo, mecab_tokens, outputPath },
         () => { this.bindUserInteraction() });
     } else {
-      this.forceUpdate();
+      this.askRerender();
     }
   }
 

@@ -997,7 +997,6 @@ export default class ExplorerPage extends Component {
         this.setState({
             rerenderTick: !this.state.rerenderTick
         })
-        // this.forceUpdate();
     }
 
     toggleShowVideo() {

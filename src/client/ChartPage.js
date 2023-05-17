@@ -119,6 +119,13 @@ export default class ChartPage extends Component {
             body = {};
         }
 
+        const parseCacheRes = await Sender.getWithPromise('/api/getParseCache/');
+        if (!parseCacheRes.isFailed()) {
+            console.time("setLocalCache");
+            nameParser.setLocalCache(parseCacheRes.json)
+            console.timeEnd("setLocalCache");
+        }
+
         const res = await Sender.postWithPromise(api, body);
         this.handleRes(res);
     }
@@ -130,7 +137,13 @@ export default class ChartPage extends Component {
             this.files = _.keys(this.fileToInfo) || [];
         }
         this.res = res;
-        this.forceUpdate();
+        this.askRerender();
+    }
+
+    askRerender(){
+        this.setState({
+            rerenderTick: !this.state.rerenderTick
+        })
     }
 
     isFailedLoading() {

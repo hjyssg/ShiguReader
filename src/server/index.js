@@ -1074,7 +1074,7 @@ app.get('/api/getGeneralInfo', asyncWrapper(async (req, res) => {
         memorycache.put(cacheKey, result, 30 * 1000)
     }
 
-    res.setHeader('Cache-Control', 'public, max-age=30');
+    res.setHeader('Cache-Control', 'public, max-age=60');
     res.send(result)
 }));
 

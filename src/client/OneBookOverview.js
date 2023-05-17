@@ -96,6 +96,12 @@ export default class OneBookOverview extends Component {
     this.handleRes(res);
   }
 
+  askRerender(){
+    this.setState({
+        rerenderTick: !this.state.rerenderTick
+    })
+  }
+
   handleRes(res) {
     this.res = res;
     if (!res.isFailed()) {
@@ -108,7 +114,7 @@ export default class OneBookOverview extends Component {
 
       this.setState({ imageFiles, musicFiles, path, fileStat: stat, zipInfo });
     } else {
-      this.forceUpdate();
+      this.askRerender();
     }
   }
 
