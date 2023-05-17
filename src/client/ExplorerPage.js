@@ -6,6 +6,7 @@ import PropTypes from 'prop-types';
 import LoadingImage from './LoadingImage';
 import Sender from './Sender';
 import { Link } from 'react-router-dom';
+const dateFormat = require('dateformat');
 
 const userConfig = require('@config/user-config');
 import ErrorPage from './ErrorPage';
@@ -669,6 +670,15 @@ export default class ExplorerPage extends Component {
         return files;
     }
 
+    getTooltipStr(fp){
+        let result = fp;
+        if(this.allfileInfos[fp] && this.allfileInfos[fp].mtimeMs){
+            const dateStr = dateFormat(this.allfileInfos[fp].mtimeMs, "yyyy/mm/dd")
+            result = `${fp}\ntime: ${dateStr}`;
+        }
+        return result;
+    }
+
     renderSingleZipItem(fp) {
         const text = getBaseName(fp);
         const toUrl = clientUtil.getOneBookLink(fp);
@@ -716,7 +726,8 @@ export default class ExplorerPage extends Component {
                 onlyUseURL={isImgFolder}
                 isThumbnail
                 className={thumbnailCn}
-                title={fp} fileName={fp}
+                title={this.getTooltipStr(fp)} 
+                fileName={fp}
                 url={thumbnailurl}
                 musicNum={musicNum}
                 onReceiveUrl={url => {

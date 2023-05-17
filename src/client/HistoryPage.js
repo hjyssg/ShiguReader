@@ -46,7 +46,7 @@ function renderHistory(history) {
             const toUrl = util.isVideo(filePath)? 
                           clientUtil.getVideoPlayerLink(filePath) : 
                           clientUtil.getOneBookLink(filePath);
-            const itemTimeStr = dateFormat(new Date(e.time), "mm/dd/yyyy HH:MM");
+            const itemTimeStr = dateFormat(new Date(e.time), "yyyy/mm/dd HH:MM");
             const tooltip = `${filePath}\n${itemTimeStr}`
 
             const cn = classNames("icon", {

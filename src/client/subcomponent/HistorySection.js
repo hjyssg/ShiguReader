@@ -29,7 +29,7 @@ function HistorySection(props){
   } else {
       items = history.map(e => {
           // return <div key={e.time}>{dateFormat(e.time, "dddd, mmmm dS, yyyy, h:MM:ss TT") }</div>
-          return <div key={e.time}>{dateFormat(e.time, "mm/dd/yyyy HH:MM") }</div>
+          return <div key={e.time}>{dateFormat(e.time, "yyyy/mm/dd HH:MM") }</div>
       });
 
       if(items.length > 10){
