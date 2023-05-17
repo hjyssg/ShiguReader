@@ -17,7 +17,8 @@
   &.open {
     .thumbnail-popup-content {
       display: flex;
-      justify-content: center;
+      justify-content: start;
+      padding-top: 5px;
       align-items: center;
       position: absolute;
       flex-direction: column;

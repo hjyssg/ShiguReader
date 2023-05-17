@@ -102,7 +102,6 @@ async function clean(){
 //multiple
 module.exports.getThumbnailArr = function (filePathes) {
     filePathes = _.isString(filePathes) ? [filePathes] : filePathes;
-    filePathes = filePathes.filter(isCompress);
 
     // const joinStr = filePathes.join(" ");
     //todo: slow for large number
@@ -119,6 +118,16 @@ module.exports.getThumbnailArr = function (filePathes) {
 
     let rows = filePathes.map(e => _internal_dict_[e]);
     rows = rows.filter(e => !!e);
+    rows = _add_col(rows);
+    return rows;
+}
+
+//multiple
+module.exports.getThumbnailByFileName = async function (fileName) {
+    // filePathes = _.isString(filePathes) ? [filePathes] : filePathes;
+
+    const sql = `SELECT * FROM  thumbnail_table WHERE filePath LIKE '%${fileName}'  `;
+    let rows = await sqlDb.allSync(sql);
     rows = _add_col(rows);
     return rows;
 }

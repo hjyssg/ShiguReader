@@ -831,9 +831,15 @@ app.post('/api/getQuickThumbnail', asyncWrapper(async (req, res) => {
 
     let url = null;
     if(isCompress(filePath)){
-        const thumbRows = thumbnailDb.getThumbnailArr(filePath);
+        let thumbRows = thumbnailDb.getThumbnailArr(filePath);
         if(thumbRows.length > 0){
             url = thumbRows[0].thumbnailFilePath;
+        }else{
+            const fileName = path.basename(filePath);
+            thumbRows = await thumbnailDb.getThumbnailByFileName(fileName);
+            if(thumbRows.length > 0){
+                url = thumbRows[0].thumbnailFilePath;
+            }
         }
     }
 
