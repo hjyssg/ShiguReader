@@ -12,6 +12,17 @@
       font-weight: 600;
     }
 
+    .ip-address-title {
+      cursor: pointer;
+      margin-bottom: 12px;
+      &:hover {
+        color: #db892a;
+        background: unset;
+      }
+    }
+
+   
+
     .admin-section-text {
       font-size: 15px;
       font-weight: 600;

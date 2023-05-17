@@ -16,6 +16,7 @@ import { GlobalContext } from './globalContext'
 // const util = require("@common/util");
 const classNames = require('classnames');
 import {QRCodeSVG} from 'qrcode.react';
+import { toast } from 'react-toastify';
 
 function MinifyZipQueSection(){
     const [minifyZipQue, setMinifyZipQue] = useState([]);
@@ -224,6 +225,20 @@ export default class AdminPage extends Component {
         return <button onClick={this.onclickShutDown.bind(this)}> Recomote shutdown </button>;
     }
 
+    onClickIP(server_ip){
+        clientUtil.CopyToClipboard(server_ip);
+
+        toast('Copied to Clipboard', {
+            className: "one-line-toast",
+            position: "top-right",
+            autoClose: 3 * 1000,
+            hideProgressBar: true,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true
+          })
+    }
+
     renderQRCode(){
         try{
             // https://www.npmjs.com/package/qrcode.react
@@ -232,9 +247,12 @@ export default class AdminPage extends Component {
             if(data.server_ip){
                 return (
                     <div className="admin-section">
-                    <div className="admin-section-title" title="QR Code"> LAN Address</div>
+                    <div className="admin-section-title" title="QR Code" > LAN Address</div>
                     <div className="admin-section-content">
-                        <div style={{marginBottom: "5px"}}>{data.server_ip}</div>
+                        <div className='ip-address-title'  
+                             onClick={()=>this.onClickIP(data.server_ip)}>
+                            {data.server_ip}
+                            </div>
                         <QRCodeSVG value={data.server_ip} />
                     </div>
                     </div>
