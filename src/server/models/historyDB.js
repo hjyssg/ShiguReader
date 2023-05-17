@@ -32,7 +32,16 @@ module.exports.getSQLDB = function () {
     return sqlDb;
 }
 
+// cache内部的不记录
+function noNeedRecord(filePath){
+    return global.cachePath && pathUtil.isSub(global.cachePath, filePath);
+}
+
 module.exports.addOneRecord = function (filePath) {
+    if(noNeedRecord(filePath)){
+        return;
+    }
+
     const time = util.getCurrentTime()
     const fileName = path.basename(filePath);
     const dirPath = path.dirname(filePath);
@@ -42,6 +51,9 @@ module.exports.addOneRecord = function (filePath) {
 }
 
 module.exports.addOneLsDirRecord = function (filePath) {
+    if(noNeedRecord(filePath)){
+        return;
+    }
     const time = util.getCurrentTime()
     sql = "INSERT INTO lsdir_history_table(filePath, time ) values(?, ?)";
     sqlDb.run(sql, filePath, time);

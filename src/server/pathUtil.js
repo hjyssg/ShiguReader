@@ -81,7 +81,7 @@ function removeLastPathSep(fp) {
     }
 }
 
-// 是否为字目录，性能优化版
+// 是否为子目录，性能优化版
 function isSub(parent, child) {
     if (isWindows()) {
         parent = parent.toLowerCase();
