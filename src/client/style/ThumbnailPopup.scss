@@ -23,8 +23,14 @@
       flex-direction: column;
       z-index: 10;
 
-      left: -250px;
+      
       top: -50px;
+
+      left: -250px;
+      @media screen and (max-width: 1600px) {
+        right: 100px;
+        left: unset;
+      }
 
       background: rgb(124, 117, 117);
       width: 200px;
