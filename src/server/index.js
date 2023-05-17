@@ -413,7 +413,7 @@ async function getThumbnailsForZip(filePathes) {
             if(zipInfoRows[0]){
                 const pageNum = zipInfoRows[0].pageNum;
                 if (pageNum === 0) {
-                    thumbnails[filePath] = "NOT_THUMBNAIL_AVAILABLE";
+                    thumbnails[filePath] = "NO_THUMBNAIL_AVAILABLE";
                 }
             }
         }
@@ -821,8 +821,8 @@ app.post('/api/pregenerateThumbnails', asyncWrapper(async (req, res) => {
 
 
 // TODO 快速的获取任意文件或者文件夹的thumbnail
-app.post('/api/getQuickThumbnail', asyncWrapper(async (req, res) => {
-    const filePath = req.body && req.body.filePath;
+app.get('/api/getQuickThumbnail', asyncWrapper(async (req, res) => {
+    let filePath = req.query.p;
 
     if (!filePath) {
         res.send({ failed: true, reason: "bad param" });
@@ -843,7 +843,7 @@ app.post('/api/getQuickThumbnail', asyncWrapper(async (req, res) => {
         }
     }
 
-    res.setHeader('Cache-Control', 'public, max-age=3600');
+    res.setHeader('Cache-Control', 'public, max-age=30');
     res.setHeader('Connection', 'Keep-Alive');
     res.setHeader('Keep-Alive', 'timeout=50, max=1000');
     res.send({

@@ -41,12 +41,8 @@ class ThumbnailPopup extends Component {
     async fetchData ()  {
         const { filePath} = this.props;
         if(!this.url){
-            const api =  '/api/getQuickThumbnail';
-            const body = {};
-            body["filePath"] = filePath;
-        
-            // console.log(body);
-            const res = await Sender.postWithPromise(api, body);
+            const api = clientUtil.getQuickThumbUrl(filePath);
+            const res = await Sender.getWithPromise(api);
             if (res.isFailed() || !res.json.url) {
                 // todo
                 // nothing 
@@ -85,7 +81,7 @@ class ThumbnailPopup extends Component {
             }else{
                 imgDom = (<div className='thumbnail-popup-content'>
                 <div className='thumbnail-popup-title'>{filePath}</div>
-                <div className='thumbnail-popup-text'>no thumbnail</div>
+                <div className='thumbnail-popup-text'>NO_THUMBNAIL_AVAILABLE</div>
              </div>)
             }
         }

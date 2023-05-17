@@ -12,14 +12,14 @@ function attachFunc(res) {
 }
 
 
-const getWithPromise = Sender.getWithPromise = async function (api, body) {
+const getWithPromise = Sender.getWithPromise = async function (api) {
+    // Request with GET/HEAD method cannot have body.
     const res = await fetch(api, {
         method: 'GET',
         // headers: {
         //     Accept: 'application/json',
         //     'Content-Type': 'application/json',
         // },
-        // body: JSON.stringify(body)
     });
 
     try {
@@ -34,6 +34,7 @@ const getWithPromise = Sender.getWithPromise = async function (api, body) {
 };
 
 const postWithPromise = Sender.postWithPromise = async function (api, body) {
+    body = body||{};
     const res = await fetch(api, {
         method: 'POST',
         headers: {

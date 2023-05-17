@@ -47,7 +47,7 @@ const getBaseName = module.exports.getBaseName = function (fp) {
 };
 
 module.exports.getFileUrl = function (url) {
-    if (!url || url === "NOT_THUMBNAIL_AVAILABLE") {
+    if (!url || url === "NO_THUMBNAIL_AVAILABLE") {
         return "";
     }
   
@@ -180,6 +180,10 @@ module.exports.getOneBookWaterfallLink = function (path) {
 
 module.exports.getVideoPlayerLink = function (path) {
     return "/videoPlayer/?p=" + encodeURIComponent(path);
+}
+
+module.exports.getQuickThumbUrl = function(filePath){
+    return "/api/getQuickThumbnail?p=" + encodeURIComponent(filePath);
 }
 
 const getDownloadLink = module.exports.getDownloadLink = function (path) {
