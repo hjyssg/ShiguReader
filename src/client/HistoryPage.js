@@ -90,7 +90,7 @@ function renderHistory(history) {
 export default class HistoryPage extends Component {
     constructor(prop) {
         super(prop);
-        this.state = { pageIndex: 0, totalCount: 0 };
+        this.state = { pageIndex: 1, totalCount: 0 };
     }
 
     componentDidMount() {
@@ -98,7 +98,7 @@ export default class HistoryPage extends Component {
     }
 
     requestHistory(pageIndex) {
-        Sender.post("/api/getHistory", {page: pageIndex}, res => {
+        Sender.post("/api/getHistory", {page: pageIndex-1}, res => {
             let { rows, count } = res.json;
             let history = rows || [];
             history.forEach(e => {
