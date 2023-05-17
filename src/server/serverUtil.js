@@ -178,9 +178,13 @@ const asyncWrapper = (fn) => {
     return (req, res, next) => {
       fn(req, res, next).catch((reason)=>{
         // next
-        console.log(req);
-        console.error(reason);
-        res.send({faled: true, reason});
+        try{
+            console.log(req);
+            console.error(reason);
+            res.send({faled: true, reason});
+        }catch(e){
+            debugger;
+        }
       });
     };
 };
