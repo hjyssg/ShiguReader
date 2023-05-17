@@ -118,14 +118,6 @@ export default class ChartPage extends Component {
             api = "/api/allInfo";
             body = {};
         }
-
-        const parseCacheRes = await Sender.getWithPromise('/api/getParseCache/');
-        if (!parseCacheRes.isFailed()) {
-            console.time("setLocalCache");
-            nameParser.setLocalCache(parseCacheRes.json)
-            console.timeEnd("setLocalCache");
-        }
-
         const res = await Sender.postWithPromise(api, body);
         this.handleRes(res);
     }

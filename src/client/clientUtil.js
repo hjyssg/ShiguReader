@@ -4,8 +4,6 @@ const _ = require("underscore");
 const filesizeUitl = require('filesize');
 const userConfig = require('@config/user-config');
 const queryString = require('query-string');
-const { assert } = require("chai");
-
 
 module.exports.filesizeUitl = function (num) {
     if (isNaN(num)) {

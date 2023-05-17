@@ -50,6 +50,7 @@ router.post('/api/get_tags', serverUtil.asyncWrapper(async (req, res) => {
     });
 }));
 
+//直接把tag结果传给前端，提高性能。失败也不影响使用
 router.get('/api/getParseCache/', serverUtil.asyncWrapper(async (req, res) => {
     const logLabel = '[/api/getParseCache/]';
     const time1 = util.getCurrentTime();

@@ -45,6 +45,8 @@ class App extends Component {
     }
 
     async askServer() {
+        this.getParseCache();
+
         const generalRes = await Sender.getWithPromise('/api/getGeneralInfo');
         if (!generalRes.isFailed()) {
             let data = generalRes.json;
@@ -52,6 +54,15 @@ class App extends Component {
                 context: data
             });
             sessionStorage.setItem('GeneralInfo', JSON.stringify(data));
+        }
+    }
+
+    async getParseCache(){
+        const parseCacheRes = await Sender.getWithPromise('/api/getParseCache/');
+        if (!parseCacheRes.isFailed()) {
+            console.time("setLocalCache");
+            nameParser.setLocalCache(parseCacheRes.json)
+            console.timeEnd("setLocalCache");
         }
     }
 
