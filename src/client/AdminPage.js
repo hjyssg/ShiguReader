@@ -303,7 +303,7 @@ export default class AdminPage extends Component {
                         <RadioButtonGroup checked={folder_list.indexOf(this.state.prePath)}
                             options={folder_list} name="pregenerate" onChange={this.onPathChange.bind(this)} />
                         <input className="admin-intput" ref={pathInput => this.pathInputRef = pathInput} placeholder="...or any other path" />
-                        <div className="submit-button" onClick={this.onPrenerate.bind(this, false)}>Full Update (Regenerate Metadata And Thumbnail)</div>
+                        <div className="submit-button" onClick={this.onPrenerate.bind(this, false)}>Full Update (Aslo Regenerate Metadata)</div>
                         <div className="submit-button" onClick={this.onPrenerate.bind(this, true)}>Fast Update (Only For New File)</div>
                     </div>
                 </div>

@@ -718,6 +718,9 @@ async function extractThumbnailFromZip(filePath, res, mode, config) {
             }
         }
 
+        // 已经有了就不再生成thumbnail
+        // 如果有thumbnail生成出问题，只能靠改filepath或者filename来促使重新生成
+        // 但几乎没有重新生成必要
         const thumbRows = thumbnailDb.getThumbnailArr(filePath);
         if (thumbRows[0]) {
             sendImage(thumbRows[0].thumbnailFilePath);
@@ -725,6 +728,8 @@ async function extractThumbnailFromZip(filePath, res, mode, config) {
             if (!files) {
                 files = (await listZipContentAndUpdateDb(filePath)).files;
             }
+
+            //挑一个img来做thumbnail
             const thumb = serverUtil.chooseThumbnailImage(files);
             if (!thumb) {
                 let reason = "[extractThumbnailFromZip] no img in this file " +  filePath;
@@ -733,7 +738,7 @@ async function extractThumbnailFromZip(filePath, res, mode, config) {
                 return;
             }
 
-      
+            //解压
             const stderrForThumbnail = await extractByRange(filePath, outputPath, [thumb])
             if (stderrForThumbnail) {
                 // console.error(stderrForThumbnail);
