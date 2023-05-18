@@ -876,7 +876,10 @@ export default class ExplorerPage extends Component {
                 const toUrl = clientUtil.getVideoPlayerLink(item);
                 const text = getBaseName(item);
                 const result = getOneLineListItem(<i className="far fa-file-video"></i>, text, item);
-                return <Link target="_blank" to={toUrl} key={item}>{result}</Link>;
+                return (<ThumbnailPopup filePath={item}>
+                    <Link target="_blank" to={toUrl} key={item}>{result}</Link>
+                </ThumbnailPopup>
+                );
             });
             return <ItemsContainer key={key} className="video-list" items={videoItems} />
         })

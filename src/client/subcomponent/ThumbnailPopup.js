@@ -4,7 +4,7 @@ const classNames = require('classnames');
 const _ = require("underscore");
 const util = require("@common/util");
 const clientUtil = require("../clientUtil");
-const { isCompress } = util;
+const { isVideo } = util;
 import Sender from '../Sender';
 
 class ThumbnailPopup extends Component {
@@ -40,6 +40,10 @@ class ThumbnailPopup extends Component {
 
     async fetchData ()  {
         const { filePath} = this.props;
+        if(isVideo(filePath)){
+            return;
+        }
+
         if(!this.url){
             const api = clientUtil.getQuickThumbUrl(filePath);
             const res = await Sender.getWithPromise(api);
@@ -71,15 +75,23 @@ class ThumbnailPopup extends Component {
             "open": isHovering
         })
 
-        let imgDom = null;
+        let extraDom = null;
         if(this.isHovering){
-            if(url){
-                imgDom = (<div className='thumbnail-popup-content'>
+            if(isVideo(filePath)){
+                extraDom = (<div className='thumbnail-popup-content'>
                 <div className='thumbnail-popup-title'>{filePath}</div>
-                 <img className='thumbnail-popup-img' src={url}></img>
-                  </div>)
+                    <video className={"thumbnail-video-preview"} src={clientUtil.getFileUrl(filePath)} autoPlay={true} muted>
+                        Your browser does not support the video tag.
+                    </video>
+                </div>)
+
+            } else if(url){
+                extraDom = (<div className='thumbnail-popup-content'>
+                <div className='thumbnail-popup-title'>{filePath}</div>
+                <img className='thumbnail-popup-img' src={url}></img>
+                </div>)
             }else{
-                imgDom = (<div className='thumbnail-popup-content'>
+                extraDom = (<div className='thumbnail-popup-content'>
                 <div className='thumbnail-popup-title'>{filePath}</div>
                 <div className='thumbnail-popup-text'>NO_THUMBNAIL_AVAILABLE</div>
              </div>)
@@ -89,7 +101,7 @@ class ThumbnailPopup extends Component {
         return (
             <div className={cn}  onMouseMove={this.onMouseMove.bind(this)} onMouseOut={this.onMouseOut.bind(this)}>
                 {children}
-                {imgDom}
+                {extraDom}
             </div>);
     }
 }

@@ -51,8 +51,14 @@
         padding-right: 10px;
       }
 
-      .thumbnail-popup-text{
+      .thumbnail-popup-text {
         color: $font_color_white_one;
+      }
+
+      .thumbnail-video-preview {
+        margin-top: 15px;
+        max-width: 100%;
+        max-height: 180px;
       }
 
       img{
