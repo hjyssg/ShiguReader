@@ -23,10 +23,8 @@
       position: absolute;
       flex-direction: column;
       z-index: 10;
-
       
       top: -50px;
-
       left: -250px;
       @media screen and (max-width: 1600px) {
         right: 100px;
@@ -34,9 +32,10 @@
       }
 
       background: rgb(124, 117, 117);
-      width: 220px;
+      width: 240px;
       height: 220px;
       border-radius: 3px;
+      box-shadow: 4px 4px 7px rgba(0, 0, 0, 0.59);
 
       .thumbnail-popup-title {
         color: $font_color_white_one;
@@ -57,12 +56,12 @@
 
       .thumbnail-video-preview {
         margin-top: 15px;
-        max-width: 100%;
+        max-width: 95%;
         max-height: 180px;
       }
 
-      img{
-        max-width: 100%;
+      img {
+        max-width: 95%;
         max-height: 180px;
       }
     }

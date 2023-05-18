@@ -17,6 +17,7 @@ class ThumbnailPopup extends Component {
         this.url = prop.url;
         this.isHovering = false;
         this.state = {};
+        this.useVideoPreviewForFolder = false;
 
         // a throttled function that can only call the func parameter maximally once per every wait milliseconds. 
         this.throttleGet = _.throttle(()=> {
@@ -52,6 +53,7 @@ class ThumbnailPopup extends Component {
                 // nothing 
             } else {
                 this.url = clientUtil.getFileUrl(res.json.url);
+                this.useVideoPreviewForFolder = res.json.useVideoPreviewForFolder;
             }
             this.askRerender();
         } 
@@ -77,10 +79,17 @@ class ThumbnailPopup extends Component {
 
         let extraDom = null;
         if(this.isHovering){
-            if(isVideo(filePath)){
+            if(isVideo(filePath)|| (this.useVideoPreviewForFolder && this.url)){
+                let src;
+                if(isVideo(filePath)){
+                    src = clientUtil.getFileUrl(filePath);
+                }else{
+                    src = this.url;
+                }
+
                 extraDom = (<div className='thumbnail-popup-content'>
                 <div className='thumbnail-popup-title'>{filePath}</div>
-                    <video className={"thumbnail-video-preview"} src={clientUtil.getFileUrl(filePath)} autoPlay={true} muted>
+                    <video className={"thumbnail-video-preview"} src={src} autoPlay={true} muted>
                         Your browser does not support the video tag.
                     </video>
                 </div>)

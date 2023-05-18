@@ -434,6 +434,17 @@ async function getThumbnailsForZip(filePathes) {
     return thumbnails;
 }
 
+async function findVideoForFolder(filePath){
+    const sqldb = db.getSQLDB();
+    const sql = `SELECT filePath FROM file_table WHERE  INSTR(filePath, ?) = 1 AND isDisplayableInExplorer = true `;
+    let videoRows = await sqldb.allSync(sql, filePath);
+    videoRows = videoRows.filter(row => {
+        return isVideo(row.filePath);
+    });
+    return videoRows;
+}
+
+// 找文件夹的thumbnail
 async function getThumbnailForFolders(filePathes) {
     const result = {};
 
@@ -844,6 +855,7 @@ app.get('/api/getQuickThumbnail', asyncWrapper(async (req, res) => {
         return;
     }
 
+    let useVideoPreviewForFolder = false;
     let url = null;
     if(isCompress(filePath)){
         let thumbRows = thumbnailDb.getThumbnailArr(filePath);
@@ -859,13 +871,22 @@ app.get('/api/getQuickThumbnail', asyncWrapper(async (req, res) => {
     } else if(estimateIfFolder(filePath)){
         const dirThumbnails = await getThumbnailForFolders([filePath]);
         url = dirThumbnails[filePath];
-    }
 
-    res.setHeader('Cache-Control', 'public, max-age=30');
+        // 没thumbnail，用video也行。
+        if(!url){
+            const videoRows = await findVideoForFolder(filePath);
+            if(videoRows[0]){
+                url = videoRows[0].filePath;
+                useVideoPreviewForFolder = true;
+            }
+        }
+    }
+    res.setHeader('Cache-Control', 'public, max-age=60');
     res.setHeader('Connection', 'Keep-Alive');
     res.setHeader('Keep-Alive', 'timeout=50, max=1000');
     res.send({
-        url: url
+        url: url,
+        useVideoPreviewForFolder
     });
 }))
 
