@@ -374,7 +374,7 @@ export default class FileChangeToolbar extends Component {
     }
 
     getDropdownItems() {
-        let arr = this.context.additional_folder || [];
+        let arr = this.context.move_pathes || [];
         const tempMovePath = getTempMovePath()
 
         arr = _.uniq(arr.concat(tempMovePath))

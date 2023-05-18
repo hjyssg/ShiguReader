@@ -24,6 +24,15 @@ function getOneLineListItem(icon, fileName, filePath) {
         </li>);
 }
 
+function getPathItems(items){
+    const result = (items||[]).map(item => {
+        const toUrl = clientUtil.getExplorerLink(item);
+        const text = item;
+        const result = getOneLineListItem(<i className="far fa-folder"></i>, text, item);
+        return <Link to={toUrl} key={item}>{result}</Link>;
+    })
+    return result;
+}
 
 const HomePage = () => {
     const [res, setRes] = useState(null)
@@ -45,34 +54,17 @@ const HomePage = () => {
     }else if(res.isFailed()){
         return <ErrorPage res={res} />;
     }else {
-        const {dirs, hdd_list, quickAccess } = res.json;
-        const dirItems = dirs.map((item) => {
-            const toUrl = clientUtil.getExplorerLink(item);
-            const text = item;
-            const result = getOneLineListItem(<i className="far fa-folder"></i>, text, item);
-            return <Link to={toUrl} key={item}>{result}</Link>;
-        });
-
-        const hddItems = hdd_list.map((item) => {
-                // const toUrl = clientUtil.getExplorerLink(item);
-                // F: 的时候，会莫名其妙显示shigureader文件夹的内容
-                const toUrl = clientUtil.getExplorerLink(item + "\\\\");
-                const text = item;
-                const result = getOneLineListItem(<i className="far fa-folder"></i>, text, item);
-                return <Link to={toUrl} key={item}>{result}</Link>;
-            });
-
-        const quickAccessItems = quickAccess.map(item => {
-                const toUrl = clientUtil.getExplorerLink(item);
-                const text = item;
-                const result = getOneLineListItem(<i className="far fa-folder"></i>, text, item);
-                return <Link to={toUrl} key={item}>{result}</Link>;
-            })
+        let {dirs, hdd_list, quickAccess, recentAccess } = res.json;
+        const dirItems = getPathItems(dirs);
+        const hddItems = getPathItems(hdd_list);
+        const quickAccessItems = getPathItems(quickAccess);
+        const recentAccessItems = getPathItems(recentAccess);
 
         return (
             <div className="home-page container">
                  <ItemsContainer items={dirItems}  />
                  <ItemsContainer items={quickAccessItems} />
+                 <ItemsContainer items={recentAccessItems} />
                  <ItemsContainer items={hddItems} />
             </div>)
     }

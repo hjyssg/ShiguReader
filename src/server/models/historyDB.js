@@ -103,10 +103,10 @@ module.exports.getHistoryByFP = async function (fileName) {
 }
 
 
-const quick_access_day = 10;
-module.exports.getQuickAccess = async function () {
+const recent_access_day = 10;
+module.exports.getRecentAccess = async function () {
     let time = util.getCurrentTime();
-    time = time - 1000 * 3600 * 24 * quick_access_day;
+    time = time - 1000 * 3600 * 24 * recent_access_day;
     const sql = `
         SELECT filePath, count(filePath) AS count 
         FROM lsdir_history_table 

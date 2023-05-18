@@ -181,7 +181,7 @@ const asyncWrapper = (fn) => {
         try{
             console.log(req);
             console.error(reason);
-            res.send({faled: true, reason});
+            res.send({faled: true, reason: reason?.stack});
         }catch(e){
             debugger;
         }

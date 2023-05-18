@@ -101,19 +101,20 @@ if (isWindows()) {
     console.assert(isSub("/Users/hjy/", "/Users/hjy/Downloads"))
 }
 
-async function filterNonExist(pathes) {
+async function filterNonExist(pathes, limit) {
+    const result = [];
+    limit = limit || 100000;
     for (let ii = 0; ii < pathes.length; ii++) {
         const e = pathes[ii];
-        if (!e) {
-            pathes[ii] = null;
+        if (await isExist(e)) {
+            result.push(e);
         }
-
-        if (!(await isExist(e))) {
-            pathes[ii] = null;
+        if(limit && result.length > limit){
+            break;
         }
     }
 
-    return pathes.filter(e => !!e);
+    return result;
 }
 
 // function parse_aji_path_config(fileContent, sepArr){
@@ -143,16 +144,11 @@ async function filterNonExist(pathes) {
 //     return result;
 // }
 
-async function getScanPath(path_config) {
-    let { good_folder_root, not_good_folder_root, folder_pathes } = path_config;
-    let scan_path = [].concat(folder_pathes);
-    // const move_path_config_path = path.join(getRootPath(), "config-move-path.ini");
-    // const fContent2 = fs.readFileSync(move_path_config_path).toString();
-    // const moveObj = ini.parse(fContent2);
+async function filterPathConfig(path_config) {
+    let { good_folder_root, not_good_folder_root, scan_folder_pathes, quick_access_pathes, move_pathes } = path_config;
 
-    global.good_folder_root = good_folder_root || "";
-    global.not_good_folder_root = not_good_folder_root || "";
-    //less freedom for more noob-friendly
+    quick_access_pathes = await filterNonExist(quick_access_pathes||[]);
+    move_pathes = await filterNonExist(move_pathes||[]);
 
     //add good folder
     const now = new Date();
@@ -161,23 +157,26 @@ async function getScanPath(path_config) {
     mm = (mm < 10) ? ("0" + (mm).toString()) : (mm).toString();
     const fd = "good_" + [y, mm, "01"].join("_");
     const good_folder = good_folder_root && path.resolve(good_folder_root, fd);
-    global.good_folder = good_folder;
 
-    //add not good folder
+    // not good folder
     const fd2 = "not_good_" + y;
     const not_good_folder = not_good_folder_root && path.resolve(not_good_folder_root, fd2);
-    global.not_good_folder = not_good_folder;
 
-    scan_path = scan_path.concat(good_folder, good_folder_root,
-        not_good_folder_root, not_good_folder);
-
+    // scan path
+    let scan_path = [].concat(scan_folder_pathes||[]);
+    scan_path = scan_path.concat(good_folder, good_folder_root, not_good_folder_root, not_good_folder);
     scan_path.push(getImgConverterCachePath());
     scan_path.push(getZipOutputCachePath());
-
     scan_path = _.uniq(scan_path);
 
     return {
-        scan_path
+       scan_path,
+       good_folder_root : good_folder_root || "",
+       not_good_folder_root : not_good_folder_root || "",
+       quick_access_pathes: quick_access_pathes,
+       good_folder,    
+       not_good_folder,
+       move_pathes   
     };
 }
 
@@ -221,7 +220,7 @@ module.exports = {
     isExist,
     isDirectParent,
     isSub,
-    getScanPath,
+    filterPathConfig,
     getImgConverterCachePath,
     getZipOutputCachePath,
     removeLastPathSep,

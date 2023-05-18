@@ -217,22 +217,6 @@ const getDownloadLink = module.exports.getDownloadLink = function (path) {
 //     Cookie.set(now, hash, { expires: cookie_expire_days })
 // }
 
-// module.exports.getQuickAccess = function(){
-//     const countBy = getHistoryCountByFolder();
-//     let keyValues = _.pairs(countBy);
-//     keyValues =  _.sortBy(keyValues, row => {
-//         let [k, count] = row;
-//         return -count;
-//     })
-
-//     keyValues = keyValues.slice(0, 10);
-
-//     return keyValues.map(row => {
-//         let [k, count] = row;
-//         return k;
-//     })
-// }
-
 // const getHistoryCountByFolder = function(){
 //     const timeToHash = Cookie.get();
 //     const pathes = _.values(timeToHash)

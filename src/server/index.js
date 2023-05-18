@@ -22,7 +22,7 @@ const pathUtil = require("./pathUtil");
 const serverUtil = require("./serverUtil");
 const { isHiddenFile, getHash, mkdir, asyncWrapper } = serverUtil;
 
-const { generateContentUrl, isExist, getScanPath, isSub } = pathUtil;
+const { generateContentUrl, isExist, filterPathConfig, isSub } = pathUtil;
 const { isImage, isCompress, isVideo, isMusic, arraySlice,
     getCurrentTime, isDisplayableInExplorer, isDisplayableInOnebook } = util;
 
@@ -172,21 +172,20 @@ async function init() {
 
 
         console.log("----------------------------------------------------------------");
-        scan_path = (await getScanPath(path_config)).scan_path;
+        const filterPathConfigObj = await filterPathConfig(path_config);
+        global = {
+            ...global,
+            ...filterPathConfigObj
+        };
+        scan_path = filterPathConfigObj.scan_path;
+
+
         //统一mkdir
         await mkdir(thumbnailFolderPath);
         await mkdir(cachePath);
         await mkdir(pathUtil.getImgConverterCachePath());
         await mkdir(pathUtil.getZipOutputCachePath());
-
-        const mkdirArr = scan_path;
-        for (let ii = 0; ii < mkdirArr.length; ii++) {
-            const fp = mkdirArr[ii];
-            if (!isWindows() && util.isWindowsPath(fp)) {
-                continue;
-            }
-            await mkdir(fp, "quiet");
-        }
+        await mkdirList(scan_path)
         scan_path = await pathUtil.filterNonExist(scan_path);
         db.insertScanPath(scan_path)
 
@@ -225,6 +224,17 @@ async function init() {
         //exit the current program
         process.exit(22);
     });
+}
+
+async function mkdirList(scan_path){
+    const mkdirArr = scan_path;
+    for (let ii = 0; ii < mkdirArr.length; ii++) {
+        const fp = mkdirArr[ii];
+        if (!isWindows() && util.isWindowsPath(fp)) {
+            continue;
+        }
+        await mkdir(fp, "quiet");
+    }
 }
 
 
@@ -1068,7 +1078,9 @@ app.get('/api/getGeneralInfo', asyncWrapper(async (req, res) => {
     
             good_folder: global.good_folder,
             not_good_folder: global.not_good_folder,
-            additional_folder: scan_path
+            move_pathes: global.move_pathes,
+            recentAccess: global.recentAccess 
+
         };
         
         memorycache.put(cacheKey, result, 30 * 1000)
