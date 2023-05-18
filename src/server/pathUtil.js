@@ -155,12 +155,22 @@ async function filterPathConfig(path_config) {
     const y = now.getFullYear();
     let mm = now.getMonth() + 1;
     mm = (mm < 10) ? ("0" + (mm).toString()) : (mm).toString();
-    const fd = "good_" + [y, mm, "01"].join("_");
-    const good_folder = good_folder_root && path.resolve(good_folder_root, fd);
+
+    let good_folder;
+    if(good_folder_root){
+        const fd = "good_" + [y, mm, "01"].join("_");
+        good_folder =  path.resolve(good_folder_root, fd);
+        move_pathes.unshift(good_folder);
+    }
+
 
     // not good folder
-    const fd2 = "not_good_" + y;
-    const not_good_folder = not_good_folder_root && path.resolve(not_good_folder_root, fd2);
+    let not_good_folder;
+    if(not_good_folder_root){
+        const fd2 = "not_good_" + y;
+        not_good_folder = path.resolve(not_good_folder_root, fd2);
+        move_pathes.unshift(not_good_folder);
+    }
 
     // scan path
     let scan_path = [].concat(scan_folder_pathes||[]);
