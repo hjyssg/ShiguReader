@@ -191,4 +191,11 @@ const asyncWrapper = (fn) => {
 
 module.exports.asyncWrapper = asyncWrapper;
 
+
+module.exports.estimateIfFolder = function(filePath){
+     //not accurate, but performance is good. access each file is very slow
+    const ext = serverUtil.getExt(filePath);
+    return !ext 
+}
+
 module.exports.common = {};

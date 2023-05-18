@@ -20,7 +20,7 @@ const util = global.requireUtil();
 const fileiterator = require('./file-iterator');
 const pathUtil = require("./pathUtil");
 const serverUtil = require("./serverUtil");
-const { isHiddenFile, getHash, mkdir, asyncWrapper } = serverUtil;
+const { isHiddenFile, getHash, mkdir, asyncWrapper, estimateIfFolder } = serverUtil;
 
 const { generateContentUrl, isExist, filterPathConfig, isSub } = pathUtil;
 const { isImage, isCompress, isVideo, isMusic, arraySlice,
@@ -255,9 +255,7 @@ function shouldWatchForNormal(p, stat) {
     }
 
     const ext = serverUtil.getExt(p);
-    //not accurate, but performance is good. access each file is very slow
-    const isFolder = !ext;
-    let result = isFolder || isDisplayableInExplorer(ext);
+    let result = estimateIfFolder(p) || isDisplayableInExplorer(ext);
 
     if (view_img_folder) {
         result = result || isDisplayableInOnebook(ext)
@@ -284,7 +282,7 @@ function shouldWatchForCache(p, stat) {
     }
 
     const ext = serverUtil.getExt(p);
-    return !ext || isDisplayableInOnebook(ext) || isVideo(ext);
+    return estimateIfFolder(p) || isDisplayableInOnebook(ext) || isVideo(ext);
 }
 
 function setUpCacheWatch() {
@@ -789,7 +787,7 @@ app.post('/api/pregenerateThumbnails', asyncWrapper(async (req, res) => {
             return false;
         }
         const ext = serverUtil.getExt(p);
-        return !ext || isCompress(ext);
+        return estimateIfFolder(p) || isCompress(ext);
     }
 
     if (pregenerateThumbnailPath !== "All_Pathes" && pregenerateThumbnailPath && !isAlreadyScan(pregenerateThumbnailPath)) {
@@ -857,6 +855,9 @@ app.get('/api/getQuickThumbnail', asyncWrapper(async (req, res) => {
             }
         }
     }
+
+    // TODO
+    // const dirThumbnails = await getThumbnailForFolders(dirs);
 
     res.setHeader('Cache-Control', 'public, max-age=30');
     res.setHeader('Connection', 'Keep-Alive');

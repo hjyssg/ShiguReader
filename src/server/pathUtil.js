@@ -207,8 +207,6 @@ const readdirRecursive = async (filePath, resultArr) => {
     for(let ii = 0; ii < pathes.length; ii++){
         try{
                 const fp = pathes[ii];
-                // const ext = path.extname(fp).toLowerCase();
-                // const isFolder = !ext;
                 if(isDisplayableInOnebook(fp)){
                     resultArr.push(fp)
                 }else{
