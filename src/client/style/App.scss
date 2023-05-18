@@ -37,6 +37,12 @@ a {
   min-height: 100vh;
   padding-bottom: 50px;
 
+  .critical-error {
+    color: $font_color_white_one;
+    font-size: 25px;
+    margin: 20px 20px;
+  }
+
   .fab,
   .fas {
     color: $font_color_white_one;

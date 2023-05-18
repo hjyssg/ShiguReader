@@ -711,7 +711,8 @@ export default class ExplorerPage extends Component {
         let thumbnailurl = this.getThumbnailUrl(fp);
 
         if (this.state.noThumbnail) {
-            zipItem = (<Link to={toUrl} key={fp} className={""}  title={this.getTooltipStr(fp)} >
+            zipItem = (
+            <Link to={toUrl} key={fp} className={""}  title={this.getTooltipStr(fp)} >
                 <ThumbnailPopup filePath={fp} url={thumbnailurl}>
                     {getOneLineListItem(<i className="fas fa-book"></i>, text, fp)}
                 </ThumbnailPopup>
@@ -833,8 +834,8 @@ export default class ExplorerPage extends Component {
                 const text = getBaseName(item);
                 const result = getOneLineListItem(<i className="far fa-folder"></i>, text, item);
                 return (
-                    <ThumbnailPopup filePath={item}>
-                        <Link to={toUrl} key={item}>{result}</Link>
+                    <ThumbnailPopup filePath={item} key={item}>
+                        <Link to={toUrl}>{result}</Link>
                     </ThumbnailPopup>
                 );
             });
@@ -869,15 +870,16 @@ export default class ExplorerPage extends Component {
         }) || {};
 
         //todo av-color
-        const videoDivGroup = _.keys(groupByVideoType).map(key => {
+        const videoDivGroup = _.keys(groupByVideoType).map((key, ii) => {
             let group = groupByVideoType[key];
             group = this.sortFiles(group, BY_FILENAME);
             const videoItems = group.map((item) => {
                 const toUrl = clientUtil.getVideoPlayerLink(item);
                 const text = getBaseName(item);
                 const result = getOneLineListItem(<i className="far fa-file-video"></i>, text, item);
-                return (<ThumbnailPopup filePath={item}>
-                    <Link target="_blank" to={toUrl} key={item}>{result}</Link>
+                return (
+                <ThumbnailPopup filePath={item} key={item}>
+                    <Link target="_blank" to={toUrl} >{result}</Link>
                 </ThumbnailPopup>
                 );
             });

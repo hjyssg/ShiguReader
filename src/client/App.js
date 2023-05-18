@@ -175,7 +175,12 @@ class App extends Component {
 
     render() {
         if (this.state.hasError){
-            return "Critical Error. Please check F12";   
+            return   (<div className="app-container">
+                <div className='critical-error'>
+                    Web Error. 
+                    Please check F12 to debug.
+                </div>
+             </div> ) 
         }
 
         // document.title = this.getWebTitle();
