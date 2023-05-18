@@ -14,7 +14,7 @@ zip_info
 zip_info~
 .DS_Store
 imageMagick_cache
-image_convert_cache
+minified_zip_cache
 zip_output
 thumbnails
 thumbnails_2

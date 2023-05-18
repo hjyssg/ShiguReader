@@ -85,7 +85,7 @@ ShiguReader的使用场景是LAN(局域网)，开放到外网非常不安全。
 [介绍视频](https://www.bilibili.com/video/BV1pi4y147Gu?from=search&seid=13429520178852889848/)     
 现在有的漫画图片明显太大。比如上次下了一本24页640MB，关键画质并没有比1本30MB高出多少。为此添加了压缩包内图片压缩功能。
 安装后，自行确认可否在cmd使用magick命令。然后就可以通过网页来启动压缩程序了。
-压缩完的文件默认在workspace\image_convert_cache。
+压缩完的文件默认在workspace\minified_zip_cache。
 
 ##### DOCKER 使用方法
 
