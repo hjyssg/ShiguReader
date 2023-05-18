@@ -9,19 +9,21 @@ import { Link } from 'react-router-dom';
 import ErrorPage from './ErrorPage';
 import CenterSpinner from './subcomponent/CenterSpinner';
 import ItemsContainer from './subcomponent/ItemsContainer';
+import ThumbnailPopup from './subcomponent/ThumbnailPopup';
 
 const util = require("@common/util");
-
-
 const classNames = require('classnames');
 const clientUtil = require("./clientUtil");
 
 function getOneLineListItem(icon, fileName, filePath) {
     return (
-        <li className="explorer-one-line-list-item" key={fileName} title={filePath}>
-            {icon}
-            <span className="explorer-one-line-list-item-text">{fileName}</span>
-        </li>);
+        <ThumbnailPopup filePath={filePath}>
+            <li className="explorer-one-line-list-item" key={fileName} title={filePath}>
+                {icon}
+                <span className="explorer-one-line-list-item-text">{fileName}</span>
+            </li>
+        </ThumbnailPopup>
+        );
 }
 
 function getPathItems(items){

@@ -86,7 +86,7 @@ module.exports.parse = function (str) {
 }
 
 
-module.exports.getExt = function (p) {
+const getExt = module.exports.getExt = function (p) {
     const ext = path.extname(p).toLowerCase();
     if (ext === ".!ut") {
         return ext;
@@ -194,7 +194,7 @@ module.exports.asyncWrapper = asyncWrapper;
 
 module.exports.estimateIfFolder = function(filePath){
      //not accurate, but performance is good. access each file is very slow
-    const ext = serverUtil.getExt(filePath);
+    const ext = getExt(filePath);
     return !ext 
 }
 

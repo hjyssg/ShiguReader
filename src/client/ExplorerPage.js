@@ -832,12 +832,13 @@ export default class ExplorerPage extends Component {
                 const toUrl = clientUtil.getExplorerLink(item);
                 const text = getBaseName(item);
                 const result = getOneLineListItem(<i className="far fa-folder"></i>, text, item);
-                return <Link to={toUrl} key={item}>{result}</Link>;
+                return (
+                    <ThumbnailPopup filePath={item}>
+                        <Link to={toUrl} key={item}>{result}</Link>
+                    </ThumbnailPopup>
+                );
             });
         }
-
-  
-
 
         const musicItems = this.musicFiles.map((item) => {
             const toUrl = clientUtil.getOneBookLink(getDir(item));

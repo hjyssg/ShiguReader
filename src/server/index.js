@@ -443,9 +443,10 @@ async function getThumbnailForFolders(filePathes) {
 
     try{
         const sqldb = db.getSQLDB();
+        let beg = getCurrentTime();
 
-        let label = "getThumbnailForFolders" + filePathes.length;
-        console.time(label);
+        // let label = "getThumbnailForFolders" + filePathes.length;
+        // console.time(label);
         // 先尝试从thumbnail db拿
         let thumbnailRows = await thumbnailDb.getThumbnailForFolders(filePathes);
     
@@ -479,7 +480,8 @@ async function getThumbnailForFolders(filePathes) {
             })
         }
     
-        console.timeEnd(label);
+        let end = getCurrentTime();
+        console.log(`[getThumbnailForFolders] ${(end - beg)}ms for ${filePathes.length} zips`);
     }catch(e){
         console.error("[getThumbnailForFolders]", e);
     }
@@ -854,10 +856,10 @@ app.get('/api/getQuickThumbnail', asyncWrapper(async (req, res) => {
                 url = thumbRows[0].thumbnailFilePath;
             }
         }
+    } else if(estimateIfFolder(filePath)){
+        const dirThumbnails = await getThumbnailForFolders([filePath]);
+        url = dirThumbnails[filePath];
     }
-
-    // TODO
-    // const dirThumbnails = await getThumbnailForFolders(dirs);
 
     res.setHeader('Cache-Control', 'public, max-age=30');
     res.setHeader('Connection', 'Keep-Alive');
