@@ -9,6 +9,7 @@ const historyDb = require("../models/historyDb");
 const pathUtil = require("../pathUtil");
 const memorycache = require('memory-cache');
 const path = require("path");
+const _ = require('underscore');
 const { pathEqual } = require('path-equal');
 
 const getDownloadsFolder = require('downloads-folder');
@@ -60,6 +61,7 @@ router.get('/api/homePagePath', serverUtil.asyncWrapper(async (req, res) => {
     quickAccess = quickAccess.filter(e => {
         return !containPath(dirs, e) && !containPath(hdd_list, e);
     });
+    quickAccess = _.uniq(quickAccess);
 
     // recent access path
     let recentAccess = await historyDb.getRecentAccess();
