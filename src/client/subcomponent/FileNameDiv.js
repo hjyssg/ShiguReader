@@ -34,14 +34,14 @@ function getText(filename, mecab_tokens) {
     }
 
     if (authors) {
-      allTags = allTags.concat(authors);
+      allTags.push(...authors);
     }
 
-    allTags = allTags.concat(originalTags);
+    allTags.push(...originalTags);
     pTags = allTags.slice();
   }
   let nameTags = namePicker.pick(text) || [];
-  allTags = allTags.concat(nameTags);
+  allTags.push(...nameTags);
 
 
   //less meaningful
@@ -53,7 +53,7 @@ function getText(filename, mecab_tokens) {
 
     return isUniq;
   });
-  allTags = allTags.concat(lessTags);
+  allTags.push(...lessTags);
 
   //unique
   allTags = _.uniq(allTags);
@@ -105,14 +105,16 @@ function getText(filename, mecab_tokens) {
   allTags = allTags.filter(e => !willRemove[e]);
 
   let tempText = text;
-  const SEP = "||__SEP__||"
+  // const SEP = "||__SEP__||"
+  // sep不能含有常见字符，有作者名字就叫一个p。直接就炸掉了
+  const SEP = "ⶤ▒"
   allTags.forEach(tag => {
     //https://stackoverflow.com/questions/4514144/js-string-split-without-removing-the-delimiters
     const tempHolder = SEP + tag + SEP;
     tempText = tempText.replaceAll(tag, tempHolder)
   })
   const formatArr = [];
-  tempText.split(SEP).map(token => {
+  tempText.split(SEP).map((token, ii) => {
     if (allTags.includes(token)) {
       const tag = token;
       let url;
@@ -128,7 +130,7 @@ function getText(filename, mecab_tokens) {
         "with-color": getPriority(tag) > 1
       });
 
-      const link = <a className={cn} target="_blank" href={url} key={tag}>{tag}</a>;
+      const link = <a className={cn} target="_blank" href={url} key={tag+ii}>{tag}</a>;
       formatArr.push(link);
     } else {
       formatArr.push(token);

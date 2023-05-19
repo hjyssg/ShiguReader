@@ -21,7 +21,7 @@
 ![screenshot-06](screenshot/06.png)
 ![screenshot-06](screenshot/08.png)
 
-密码在password-config.js
+密码在config-etc
 
 ##### Demo Video
 

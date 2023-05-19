@@ -9,7 +9,7 @@ const util = global.requireUtil();
 const pathUtil = require("../pathUtil");
 const { isExist } = pathUtil;
 
-router.post("/api/singleFileInfo", async (req, res) => {
+router.post("/api/singleFileInfo", serverUtil.asyncWrapper(async (req, res) => {
     const filePath = (req.body && req.body.filePath);
 
     if (!filePath || !(await isExist(filePath))) {
@@ -32,7 +32,7 @@ router.post("/api/singleFileInfo", async (req, res) => {
     if (util.isVideo(filePath)) {
         historyDb.addOneRecord(filePath);
     }
-});
+}));
 
 module.exports = router;
 

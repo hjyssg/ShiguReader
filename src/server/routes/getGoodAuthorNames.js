@@ -6,7 +6,7 @@ const db = require("../models/db");
 // const util = global.requireUtil();
 // const { isCompress } = util;
 // const userConfig = global.requireUserConfig();
-// const serverUtil = require("../serverUtil");
+const serverUtil = require("../serverUtil");
 const memorycache = require('memory-cache');
 
 async function getGoodAndOtherSet() {
@@ -24,7 +24,7 @@ async function getGoodAndOtherSet() {
             sql = `SELECT tag, 
                     COUNT(CASE WHEN INSTR(filePath, ?) = 1 THEN 1 END) AS good_count,
                     COUNT(CASE WHEN INSTR(filePath, ?) != 1 THEN 1 END) AS bad_count 
-                    FROM tag_table WHERE type = 'author' GROUP BY tag`;
+                    FROM author_view GROUP BY tag`;
             authorInfo = await sqldb.allSync(sql, [global.good_folder_root, global.good_folder_root]);
             memorycache.put(cacheKey, authorInfo, 10*1000);
         }
@@ -37,9 +37,9 @@ async function getGoodAndOtherSet() {
     }
 }
 
-router.post('/api/getGoodAuthorNames', async (req, res) => {
+router.post('/api/getGoodAuthorNames', serverUtil.asyncWrapper(async (req, res) => {
     const result = await getGoodAndOtherSet();
     res.send(result);
-});
+}));
 
 module.exports = router;

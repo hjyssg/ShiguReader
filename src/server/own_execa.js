@@ -3,6 +3,7 @@ const iconv = require('iconv-lite');
 
 
 async function execa(cmd, option){
+    console.assert(arguments.length <= 2);
     if(global._cmd_encoding === 65001){
         let { stdout, stderr } = await _execa(cmd, option, { timeout: 60000 });
         return { stdout, stderr }

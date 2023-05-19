@@ -112,8 +112,8 @@ function LogoutSection(){
         <div className="admin-section">
         <div className="admin-section-title" title="Logout"> Logout</div>
         <div className="admin-section-content">
-            <a class="btn btn-info" onClick={dologout}>
-            <span class="glyphicon glyphicon-log-out"></span> Log out
+            <a className="btn btn-info" onClick={dologout}>
+            <span className="glyphicon glyphicon-log-out"></span> Log out
             </a>
         </div>
         </div>
@@ -165,27 +165,27 @@ export default class AdminPage extends Component {
     }
 
     renderPasswordInput() {
-        return null;
+        // return null;
 
-        let content;
-        const { etc_config } = this.context;
-        if (clientUtil.isAuthorized(etc_config)) {
-            content = (<div className="admin-section-title"> You are authorized to move/delete files. </div>)
-        } else {
-            content = (<React.Fragment>
-                <div className="admin-section-title">Enter password to move/delete file </div>
-                <div className="admin-section-content">
-                    <input className="admin-intput" ref={pathInput => this.passwordInputRef = pathInput}
-                        placeholder="...type here" onChange={this.setPasswordCookie.bind(this)} />
-                </div>
-            </React.Fragment>);
-        }
+        // let content;
+        // const { etc_config } = this.context;
+        // if (clientUtil.isAuthorized(etc_config)) {
+        //     content = (<div className="admin-section-title"> You are authorized to move/delete files. </div>)
+        // } else {
+        //     content = (<React.Fragment>
+        //         <div className="admin-section-title">Enter password to move/delete file </div>
+        //         <div className="admin-section-content">
+        //             <input className="admin-intput" ref={pathInput => this.passwordInputRef = pathInput}
+        //                 placeholder="...type here" onChange={this.setPasswordCookie.bind(this)} />
+        //         </div>
+        //     </React.Fragment>);
+        // }
 
-        return (
-            <div className="admin-section">
-                {content}
-            </div>
-        )
+        // return (
+        //     <div className="admin-section">
+        //         {content}
+        //     </div>
+        // )
     }
 
     onclickShutDown() {
@@ -239,6 +239,30 @@ export default class AdminPage extends Component {
         }
     }
 
+    rendersRightAsNext(){
+        const options = [
+            "Right As Next",
+            "Left As Next"
+        ]
+
+        const checked = clientUtil.isRightAsNext()? 0: 1;
+        const onHabitChange = (e, index)=>{
+            const flg = index == 0;
+            clientUtil.setRightAsNext(flg);
+            this.forceUpdate();
+        }
+
+        return (
+            <div className="admin-section">
+            <div className="admin-section-title"> Reading Habit  </div>
+            <div className="admin-section-content">
+                <RadioButtonGroup checked={checked}
+                    options={options} name="read habit" onChange={onHabitChange} />
+            </div>
+        </div>
+        )
+    }
+
     render() {
         document.title = "Admin"
         let folder_list = this.state.dirs.slice();
@@ -247,6 +271,7 @@ export default class AdminPage extends Component {
         return (
             <div className="admin-container container">
                 {this.renderPasswordInput()}
+                {this.rendersRightAsNext()}
 
                 <div className="admin-section">
                     <div className="admin-section-title"> Pregenerate Thumbnail and Update Internal Database</div>
@@ -254,7 +279,7 @@ export default class AdminPage extends Component {
                         <RadioButtonGroup checked={folder_list.indexOf(this.state.prePath)}
                             options={folder_list} name="pregenerate" onChange={this.onPathChange.bind(this)} />
                         <input className="admin-intput" ref={pathInput => this.pathInputRef = pathInput} placeholder="...or any other path" />
-                        <div className="submit-button" onClick={this.onPrenerate.bind(this)}>Full Update (Regenerate all data and thumbnail)</div>
+                        <div className="submit-button" onClick={this.onPrenerate.bind(this, false)}>Full Update (Regenerate metadata and thumbnail)</div>
                         <div className="submit-button" onClick={this.onPrenerate.bind(this, true)}>Fast Update (Only generate for new file)</div>
                     </div>
                 </div>

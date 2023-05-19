@@ -25,3 +25,6 @@ uploaded-v2.6-node-v14.4.0-win-x64
 ShiguReader.exe
 history_sql_db
 thumbnail_sql_db
+history_sql_db.db
+thumbnail_sql_db.db
+file_sql.db

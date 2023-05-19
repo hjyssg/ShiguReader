@@ -6,8 +6,10 @@ const util = global.requireUtil();
 const { isDisplayableInOnebook } = util;
 const thumbnailDb = require("../models/thumbnailDb");
 const cacheDb = require("../models/cacheDb");
+const serverUtil = require("../serverUtil");
 
-router.post('/api/cacheInfo', async (req, res) => {
+
+router.post('/api/cacheInfo', serverUtil.asyncWrapper(async (req, res) => {
     const cacheFileToInfo = cacheDb.getCacheFileToInfo();
     const cacheFiles = cacheDb.getAllCacheFilePathes().filter(isDisplayableInOnebook);
     let totalSize = 0;
@@ -23,6 +25,6 @@ router.post('/api/cacheInfo', async (req, res) => {
         totalSize: totalSize,
         cacheNum: cacheFiles.length
     })
-});
+}));
 
 module.exports = router;

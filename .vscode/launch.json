@@ -39,10 +39,26 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "server",
+            "name": "dev backend server",
             "program": "${workspaceFolder}\\src\\server\\index.js",
             "args": [
                 "--dev"
+            ]
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "production server",
+            "program": "${workspaceFolder}\\src\\server\\index.js",
+            "args": [
+            ]
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "sub server",
+            "program": "${workspaceFolder}\\src\\server\\_sub_server.js",
+            "args": [
             ]
         },
         {

@@ -328,6 +328,14 @@ export default class ExplorerPage extends Component {
             this.res = res;
 
             this.allfileInfos = _.extend({}, this.fileInfos, this.imgFolderInfo);
+            // 把zipinfo的mtime合并到allfileinfos
+            for(const tempFilePath in this.zipInfo){
+                if(this.allfileInfos[tempFilePath] && !this.allfileInfos[tempFilePath].mtimeMs){
+                    if(this.zipInfo[tempFilePath].mtime){
+                        this.allfileInfos[tempFilePath].mtimeMs = this.zipInfo[tempFilePath].mtime;
+                    }
+                }
+            }
 
             if (this.videoFiles.length > 0 && !this.state.showVideo) {
                 this.setStateAndSetHash({
@@ -474,8 +482,7 @@ export default class ExplorerPage extends Component {
     }
 
     getFilteredFiles() {
-        let files = this.compressFiles;
-        files = files.concat(_.keys(this.imgFolders))
+        let files = [...this.compressFiles, ...(_.keys(this.imgFolders))];
 
         const { authorInfo } = this.state;
 
@@ -549,7 +556,7 @@ export default class ExplorerPage extends Component {
         if (userConfig.filter_empty_zip) {
             files = files.filter(e => {
                 if (this.hasZipInfo(e)) {
-                    if (this.getMusicNum(e) === 0 && this.getPageNum(e) === 0) {
+                    if (this.getMusicNum(e) === 0 && this.getPageNum(e) === 0 && this.getVideoNum(e) === 0) {
                         return false;
                     }
                 }
@@ -613,7 +620,7 @@ export default class ExplorerPage extends Component {
                 getBaseName,
                 onlyByMTime
             }
-            files = sortUtil.sort_file_by_time(files, config);
+            sortUtil.sort_file_by_time(files, config);
         } else if (sortOrder === BY_READ_TIME) {
             const config = {
                 fileInfos: this.allfileInfos,
@@ -622,7 +629,7 @@ export default class ExplorerPage extends Component {
                 byReadTime: true,
                 fileNameToHistory: this.fileNameToHistory
             }
-            files = sortUtil.sort_file_by_time(files, config);
+            sortUtil.sort_file_by_time(files, config);
         } else if (sortOrder === BY_READ_COUNT) {
             const config = {
                 fileInfos: this.allfileInfos,
@@ -631,7 +638,7 @@ export default class ExplorerPage extends Component {
                 byReadCount: true,
                 fileNameToHistory: this.fileNameToHistory
             }
-            files = sortUtil.sort_file_by_time(files, config);
+            sortUtil.sort_file_by_time(files, config);
         } else if (sortOrder === BY_FILE_SIZE) {
             files = _.sortBy(files, e => {
                 return this.getFileSize(e);
@@ -652,7 +659,7 @@ export default class ExplorerPage extends Component {
                 getBaseName,
                 onlyByMTime
             }
-            files = sortUtil.sort_file_by_time(files, config);
+            sortUtil.sort_file_by_time(files, config);
         }
 
         if (!isSortAsc) {
@@ -883,7 +890,7 @@ export default class ExplorerPage extends Component {
                 </div>);
                 zipfileItems.push(seperator)
                 const zipGroup = folderGroup.map(fp => this.renderSingleZipItem(fp));
-                zipfileItems = zipfileItems.concat(zipGroup);
+                zipfileItems.push(...zipGroup);
             })
         } else {
             //! !todo if the file is already an image file
@@ -1090,9 +1097,10 @@ export default class ExplorerPage extends Component {
 
         const isInfoMode = !this.isLackInfoMode();
 
+        // 没加入config-path,递归显示，文件搜索都不行。因为文件没被监听，不存在数据库
         const warning = this.isLackInfoMode() && (
-            <div className="alert alert-warning" role="alert">
-                {`Warning: ${this.getTextFromQuery()} is not included in config-path.`}
+            <div className="alert alert-warning" role="alert" >
+                {`[Reminder] ${this.getTextFromQuery()} is not included in config-path. Usable, but lack some good features`}
             </div>
         );
 
@@ -1326,10 +1334,10 @@ export default class ExplorerPage extends Component {
     }
 
     renderSortHeader() {
-        let sortOptions = Constant.SORT_OPTIONS;
+        let sortOptions = Constant.SORT_OPTIONS.slice();
 
         if (this.getMode() !== MODE_EXPLORER) {
-            sortOptions = sortOptions.concat(BY_FOLDER);
+            sortOptions.push(BY_FOLDER);
         }
 
         return (<div className="sort-header-container container">

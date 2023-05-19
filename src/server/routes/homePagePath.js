@@ -1,8 +1,8 @@
 
 const express = require('express');
 const router = express.Router();
-// const serverUtil = require("../serverUtil");
-// const db = require("../models/db");
+const serverUtil = require("../serverUtil");
+const db = require("../models/db");
 const isWindows = require('is-windows');
 const util = global.requireUtil();
 const historyDb = require("../models/historyDb");
@@ -30,7 +30,7 @@ if (isWindows()) {
     });
 }
 
-router.get('/api/homePagePath', async (req, res) => {
+router.get('/api/homePagePath', serverUtil.asyncWrapper(async (req, res) => {
     const cacheKey = "homePagePathCacheKey";
     if(memorycache.get(cacheKey)){
         res.setHeader('Cache-Control', 'public, max-age=30');
@@ -38,29 +38,31 @@ router.get('/api/homePagePath', async (req, res) => {
         return;
     }
 
-    let dirs = global.scan_path || [];
-    // dirs = dirs.filter(e => {
-    //     if (e) {
-    //         const reg = escapeRegExp(e);
-    //         //check if pathes really exist by checking there is file in the folder
-    //         return !!getFileCollection().findOne({ 'filePath': { '$regex': reg }, isDisplayableInExplorer: true });
-    //     }
-    // });
-
-    let quickAccess = await historyDb.getQuickAccess();
-    quickAccess = quickAccess.map(e => e.dirPath);
-
-    quickAccess = quickAccess.filter(e => {
+    let dirs = await db.getAllScanPath();
+    let tempQuickAccess = await historyDb.getQuickAccess();
+    tempQuickAccess = tempQuickAccess.map(e => e.filePath);
+    //不要和其他项目重复
+    tempQuickAccess = tempQuickAccess.filter(e => {
         const e2 = pathUtil.removeLastPathSep(e);
         return !dirs.includes(e) && !hdd_list.includes(e) && !dirs.includes(e2) && !hdd_list.includes(e2);
     });
+    let quickAccess = [];
+    const NUM_QUICK_ACCESS = 15;
+    for(let ii = 0; ii < tempQuickAccess.length; ii++){
+        const pp = tempQuickAccess[ii];
+        //确认是否存在
+        if(await pathUtil.isExist(pp)){
+            quickAccess.push(pp);
+        }
+        if(quickAccess.length >= NUM_QUICK_ACCESS){
+            break;
+        }
+    }
 
-    quickAccess = quickAccess.slice(0, 10);
 
     if (dirs.length === 0 && hdd_list.length === 0 && quickAccess.length === 0) {
         res.send({ failed: true, reason: "config-path.ini has no path" });
     } else {
-
         let result = {
             dirs,
             hdd_list,
@@ -70,5 +72,5 @@ router.get('/api/homePagePath', async (req, res) => {
         res.send(result);
         memorycache.put(cacheKey, result, 30 * 1000);
     }
-});
+}));
 module.exports = router;

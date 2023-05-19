@@ -15,64 +15,45 @@ async function add_col(rows){
     }
 }
 
-router.post('/api/get_authors', async (req, res) => {
-    // const needThumbnail = req.body && req.body.needThumbnail;
-    const sqldb = db.getSQLDB();
-
-    // let sql = `SELECT a.filePath, max(a.sTime) as maxTime , b.tag, COUNT(b.tag) as count, b.type, b.subtype
-    //     FROM (SELECT * FROM tag_table WHERE type = 'author' and isCompress = true) AS b LEFT JOIN
-    //     (SELECT * FROM file_table where isCompress = true ) AS a
-    //     ON a.filePath = b.filePath
-    //     GROUP BY tag HAVING a.sTime = maxTime AND count > 1 ORDER BY count DESC`;
-    let sql = `SELECT a.filePath, MAX(a.sTime) AS maxTime, b.tag, COUNT(b.tag) AS count, b.type, b.subtype
-    FROM file_table a 
-    LEFT JOIN tag_table b ON a.filePath = b.filePath 
-    WHERE b.type = 'author' AND a.isCompress = 1 AND b.isCompress = 1 
+function getSql(tableName){
+    // 只管zip文件，image folder太麻烦，不管了。  
+    return `SELECT a.filePath, MAX(a.sTime) AS maxTime, b.tag, COUNT(b.tag) AS count, b.type, b.subtype
+    FROM zip_view a 
+    INNER JOIN ${tableName} b ON a.filePath = b.filePath 
     GROUP BY b.tag 
     HAVING a.sTime = maxTime AND count > 1 
     ORDER BY count DESC;`
+}
 
+router.post('/api/get_authors', serverUtil.asyncWrapper(async (req, res) => {
+    // const needThumbnail = req.body && req.body.needThumbnail;
+    const sqldb = db.getSQLDB();
+    let sql = getSql("author_view");
     let author_rows = await sqldb.allSync(sql);
     await add_col(author_rows);
 
     res.send({
         author_rows
     });
-});
+}));
 
-router.post('/api/get_tags', async (req, res) => {
+router.post('/api/get_tags', serverUtil.asyncWrapper(async (req, res) => {
     // const needThumbnail = req.body && req.body.needThumbnail;
     const sqldb = db.getSQLDB();
-
-    // sql = `SELECT a.filePath, max(a.sTime) as maxTime , b.tag, COUNT(b.tag) as count, b.type, b.subtype
-    //         FROM (SELECT * FROM tag_table WHERE type = 'tag' and isCompress = true) AS b LEFT JOIN
-    //         (SELECT * FROM file_table where isCompress = true) AS a
-    //         ON a.filePath = b.filePath
-    //         GROUP BY tag HAVING a.sTime = maxTime AND count > 1 ORDER BY count DESC`;
-
-    sql = `
-    SELECT a.filePath, MAX(a.sTime) AS maxTime, b.tag, COUNT(b.tag) AS count, b.type, b.subtype
-    FROM file_table a 
-    LEFT JOIN tag_table b ON a.filePath = b.filePath 
-    WHERE b.type = 'tag' AND a.isCompress = 1 AND b.isCompress = 1 
-    GROUP BY b.tag 
-    HAVING a.sTime = maxTime AND count > 1 
-    ORDER BY count DESC;
-    `
+    let sql = getSql("tag_view");
     let tag_rows = await sqldb.allSync(sql);
-
     await add_col(tag_rows);
 
     res.send({
         tag_rows
     });
-});
+}));
 
-router.post('/api/allInfo', async (req, res) => {
+router.post('/api/allInfo', serverUtil.asyncWrapper(async (req, res) => {
     const needThumbnail = req.body && req.body.needThumbnail;
 
     let allThumbnails = {};
-    const files = db.getAllFilePathes().filter(isDisplayableInExplorer);
+    const files = await db.getAllFilePathes("WHERE isDisplayableInExplorer=1");
     if (needThumbnail) {
         allThumbnails = await getThumbnailsForZip(files);
     }
@@ -86,6 +67,6 @@ router.post('/api/allInfo', async (req, res) => {
         fileToInfo: fileToInfo,
         allThumbnails: allThumbnails
     });
-});
+}));
 
 module.exports = router;

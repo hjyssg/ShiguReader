@@ -9,7 +9,7 @@ const { isCompress, isVideo, getCurrentTime } = util;
 const { isSub, isExist } = pathUtil;
 const rootPath = pathUtil.getRootPath();
 
-let thumbnail_db_path = path.join(rootPath, userConfig.workspace_name, "thumbnail_sql_db");
+let thumbnail_db_path = path.join(rootPath, userConfig.workspace_name, "thumbnail_sql_db.db");
 const sqlite3 = require('sqlite3').verbose();
 const sqlDb = new sqlite3.Database(thumbnail_db_path);
 
@@ -19,8 +19,8 @@ sqlDb.getSync = _util.promisify(sqlDb.get).bind(sqlDb);
 sqlDb.runSync = _util.promisify(sqlDb.run).bind(sqlDb);
 
 module.exports.init = async ()=> {
-    await sqlDb.runSync("CREATE TABLE IF NOT EXISTS thumbnail_table (filePath TEXT, thumbnailFileName TEXT);\
-    CREATE INDEX IF NOT EXISTS filePath_index ON thumbnail_table (filePath)");
+    await sqlDb.runSync(`CREATE TABLE IF NOT EXISTS thumbnail_table (filePath TEXT, thumbnailFileName TEXT);
+                         CREATE INDEX IF NOT EXISTS filePath_index ON thumbnail_table (filePath)`);
     await syncInternalDict()
 
     // comment out when needed
@@ -29,7 +29,7 @@ module.exports.init = async ()=> {
 
 module.exports.addNewThumbnail = function (filePath, thumbnailFilePath) {
     const thumbnailFileName = path.basename(thumbnailFilePath);
-    sqlDb.run("INSERT OR REPLACE INTO thumbnail_table(filePath, thumbnailFileName ) values(?, ?)", filePath, thumbnailFileName);
+    sqlDb.run("INSERT INTO thumbnail_table(filePath, thumbnailFileName ) values(?, ?)", filePath, thumbnailFileName);
     _internal_dict_[filePath] = {filePath, thumbnailFileName}
 }
 
@@ -140,12 +140,19 @@ module.exports.getThumbnailForFolders = async function (filePathes) {
         return [];
     }
 
-    // Q ask chatgpt: write a sql query that if column 'file' contains one of string array
-    const stringsToMatch = filePathes; // string array of values
-    const patterns = stringsToMatch.map(str => `${str}%`);
-    const placeholders = patterns.map(() => 'filePath LIKE ?').join(' OR ');
-    const sql = `SELECT * FROM thumbnail_table WHERE ${placeholders}`;
-    let rows = await sqlDb.allSync(sql, patterns);
+    let rows = [];
+    try{
+        // TODO 担心很多的时候
+        // Q ask chatgpt: write a sql query that if column 'file' contains one of string array
+        const stringsToMatch = filePathes; // string array of values
+        const patterns = stringsToMatch.map(str => `${str}%`);
+        const placeholders = patterns.map(() => 'filePath LIKE ?').join(' OR ');
+        const sql = `SELECT * FROM thumbnail_table WHERE ${placeholders}`;
+        rows = await sqlDb.allSync(sql, patterns);
+    }catch(e){
+        console.error(e);
+    }
+
     
     // const sql = `SELECT * FROM  thumbnail_table WHERE INSTR(filePath, ?) > 0`;
     // let rows = await sqlDb.allSync(sql, [filePath]);

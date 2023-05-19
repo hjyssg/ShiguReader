@@ -4,6 +4,7 @@ const _ = require("underscore");
 const filesizeUitl = require('filesize');
 const userConfig = require('@config/user-config');
 const queryString = require('query-string');
+const { assert } = require("chai");
 
 
 module.exports.filesizeUitl = function (num) {
@@ -104,15 +105,15 @@ module.exports.isLocalHost = function () {
     return location.hostname.includes("localhost");
 }
 
-module.exports.isAuthorized = function (etc_config) {
-    if (location.hostname.includes("localhost")) {
-        return true;
-    } else if(etc_config) {
-        const Cookie = require("js-cookie");
-        const password = Cookie.get('password');
-        return etc_config.remote_file_change_password === password;
-    }
-}
+// module.exports.isAuthorized = function (etc_config) {
+//     if (location.hostname.includes("localhost")) {
+//         return true;
+//     } else if(etc_config) {
+//         const Cookie = require("js-cookie");
+//         const password = Cookie.get('password');
+//         return etc_config.remote_file_change_password === password;
+//     }
+// }
 
 module.exports.isAllowedToEnter = function () {
     return !!Cookie.get('login-token');
@@ -338,4 +339,15 @@ module.exports.download = function(filename, text) {
   
     document.body.removeChild(element);
 }
-  
+
+module.exports.setRightAsNext = function(flg){
+    console.assert(_.isBoolean(flg));
+    window.localStorage && window.localStorage.setItem("isRightAsNext", flg);
+}
+
+module.exports.isRightAsNext = function(){
+    const item = window.localStorage && window.localStorage.getItem("isRightAsNext");
+    const result = !_.isNull(item)? item === 'true' : true;
+    console.assert(_.isBoolean(result));
+    return result;
+}

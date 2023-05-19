@@ -61,10 +61,12 @@ class App extends Component {
         document.addEventListener('keydown', this._handleKeyDown);
 
         const path = window.location.pathname;
-        const isLogin = path.includes("/login");
-        if (!clientUtil.isAllowedToEnter() && !isLogin) {
+        const isLoginPage = path.includes("/login");
+        if (!clientUtil.isAllowedToEnter() && !isLoginPage) {
             sessionStorage.setItem('url_before_login', window.location.href||"");
             window.location.href = "/login";
+        }else if(clientUtil.isAllowedToEnter() && isLoginPage){
+            window.location.href = "/";
         }
     }
 

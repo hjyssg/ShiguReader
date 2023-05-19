@@ -333,16 +333,27 @@ export default class OneBook extends Component {
 
   handleKeyDown(event) {
     const key = event.key.toLowerCase();
+    const isRightAsNext = clientUtil.isRightAsNext();
     if (key === "arrowright" || key === "d" || key === "l") {
-      this.next();
+      if(isRightAsNext){
+        this.next();
+      }else{
+        this.prev();
+      }
       event.preventDefault();
     } else if (key === "arrowleft" || key === "a" || key === "j") {
-      this.prev();
+      if(isRightAsNext){
+        this.prev();
+      }else{
+        this.next();
+      }
       event.preventDefault();
     } else if (key === "+" || key === "=") {
       this.onwheel({ wheelDelta: 1 })
     } else if (key === "-") {
       this.onwheel({ wheelDelta: -1 })
+    }else if(key == "g"){
+      this.onClickPagination();
     }
   }
 
@@ -502,13 +513,16 @@ export default class OneBook extends Component {
 
   renderPreload(){
     const result = [];
-    const { imageFiles, index, twoPageMode } = this.state;
-    const beg = index + 1;
-    const end = Math.min(beg + 4, this.getImageLength())
-
-    for(let ii = beg; ii < end; ii++){
-      const temp =  <link rel="preload" key={ii} href={getFileUrl(imageFiles[ii])} as="image" />
-      result.push(temp);
+    if(document.visibilityState === 'visible'){
+      const { imageFiles, index, twoPageMode } = this.state;
+      const beg = index + 1;
+      const preload_num = 4;
+      const end = Math.min(beg + preload_num, this.getImageLength())
+  
+      for(let ii = beg; ii < end; ii++){
+        const temp =  <link rel="preload" key={ii} href={getFileUrl(imageFiles[ii])} as="image" />
+        result.push(temp);
+      }
     }
     return result;
   }
@@ -544,7 +558,7 @@ export default class OneBook extends Component {
           index={index}
           onError={this.onImageError.bind(this)}
           onLoad={this.onImgLoad.bind(this)}
-
+          loading="lazy"
         />
         {twoPageMode === TWO_PAGE_LEFT && nextImg}
         {preload}
@@ -584,10 +598,19 @@ export default class OneBook extends Component {
     const posX = x > width / 2;
     const posY = y > upperRange;
 
-    if (posX) {
-      this.next();
-    } else {
-      this.prev();
+    const isRightAsNext = clientUtil.isRightAsNext();
+    if(isRightAsNext){
+      if (posX) {
+        this.next();
+      } else {
+        this.prev();
+      }
+    }else{
+      if (posX) {
+        this.prev();
+      } else {
+        this.next();
+      }
     }
 
     event.preventDefault();

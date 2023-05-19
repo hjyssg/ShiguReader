@@ -54,7 +54,7 @@ module.exports.chooseOneZipForOneTag = function (files, fileInfos) {
         getBaseName
     }
 
-    _files = sortUtil.sort_file_by_time(_files, config);
+    sortUtil.sort_file_by_time(_files, config);
     return _files[0];
 }
 
@@ -92,9 +92,13 @@ module.exports.getExt = function (p) {
         return ext;
     }
 
+    const isAlphebetorNumber = /^\.[a-zA-z0-9]*$/.test(ext);  // e.g .7z
+    const isOnlyDigit = /^\.[0-9]*$/.test(ext); // e.g   445
+    const isFileSize =  /\d+\.\d+\s*(?:MB|GB)]$/i.test(p);  // e.g 456.28 MB] or 120.44 GB]
+
     //xxx NO.003 xxx is not meaningful extension
     //extension string should be alphabet(may with digit), but not only digit
-    if (ext && /^\.[a-zA-z0-9]*$/.test(ext) && !/^\.[0-9]*$/.test(ext)) {
+    if (ext && isAlphebetorNumber  && !isOnlyDigit && !isFileSize) {
         return ext;
     } else {
         return "";
@@ -168,5 +172,19 @@ function isPortOccupied(port) {
   });
 }
 module.exports.isPortOccupied = isPortOccupied;
+
+// Async wrapper function
+const asyncWrapper = (fn) => {
+    return (req, res, next) => {
+      fn(req, res, next).catch((reason)=>{
+        // next
+        console.log(req);
+        console.error(reason);
+        res.send({faled: true, reason});
+      });
+    };
+};
+
+module.exports.asyncWrapper = asyncWrapper;
 
 module.exports.common = {};

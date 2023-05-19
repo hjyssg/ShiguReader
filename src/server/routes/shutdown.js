@@ -9,6 +9,8 @@ const isOsx = require("is-osx");
 const cp = require('child_process');
 const util = global.requireUtil();
 const { getCurrentTime } = util;
+const serverUtil = require("../serverUtil");
+
 
 function shutdown(cb) {
     //modify https://github.com/hemanth/power-off/
@@ -30,9 +32,9 @@ function shutdown(cb) {
     });
 }
 
-router.post('/api/shutdownServer', (req, res) => {
+router.post('/api/shutdownServer', serverUtil.asyncWrapper(async (req, res) => {
     shutdown();
     res.send({ failed: false });
-});
+}));
 
 module.exports = router;

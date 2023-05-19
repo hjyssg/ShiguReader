@@ -73,25 +73,38 @@ const hasDuplicate = module.exports.hasDuplicate = (arr) => {
     return new Set(arr).size !== arr.length;
 }
 
+// 用来排序图片和mp3的
+// files既可能是filename也可能是filepath
 module.exports._sortFileNames = function (files, getBaseNameWithoutExtention) {
-    if (!getBaseNameWithoutExtention) {
-        throw "no getBaseNameWithoutExtention";
-    }
+    // assertion
+    // files.forEach((e, ii) => {
+    //     const good =  (!e.includes("/") && !e.includes("\\"));
+    //     console.assert(good);
+    // })
 
-    const isAllDigit = files.every(e => {
-        return isOnlyDigit(getBaseNameWithoutExtention(e))
-    });
+    // 奇怪了，以前的sort有numeric这个选项吗，还是我重新发明轮子了？
+    // A:The Intl.Collator object was introduced in ECMAScript 2015 (ES6).  好像10年前就有了？？
+    files.sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+    return;
 
-    // check if duplicate filename
-    const fns = files.map(getBaseNameWithoutExtention);
-    let isDup = hasDuplicate(fns);
+    // if (!getBaseNameWithoutExtention) {
+    //     throw "no getBaseNameWithoutExtention";
+    // }
+
+    // const isAllDigit = files.every(e => {
+    //     return isOnlyDigit(getBaseNameWithoutExtention(e))
+    // });
+
+    // // check if duplicate filename
+    // const fns = files.map(getBaseNameWithoutExtention);
+    // let isDup = hasDuplicate(fns);
 
 
-    if (isAllDigit && !isDup) {
-        files.sort((a, b) => { return parseInt(getBaseNameWithoutExtention(a)) - parseInt(getBaseNameWithoutExtention(b)) });
-    } else {
-        files.sort((a, b) => a.localeCompare(b));
-    }
+    // if (isAllDigit && !isDup) {
+    //     files.sort((a, b) => { return parseInt(getBaseNameWithoutExtention(a)) - parseInt(getBaseNameWithoutExtention(b)) });
+    // } else {
+    //     files.sort((a, b) => a.localeCompare(b));
+    // }
 };
 
 module.exports.arraySlice = function (arr, beg, end) {
@@ -109,6 +122,16 @@ module.exports.arraySlice = function (arr, beg, end) {
         result = arr.slice(beg, _end);
     } else {
         throw "wrf dude"
+    }
+    return result;
+}
+
+module.exports.cutIntoSmallArrays = (arr, size)=> {
+    size = size || 10000;
+    const result = [];
+    for (let i = 0; i < arr.length; i += size) {
+        const chunk = arr.slice(i, i + size);
+        result.push(chunk);
     }
     return result;
 }
@@ -134,5 +157,16 @@ module.exports.escapeRegExp = function (string) {
 module.exports.isWindowsPath = function (string) {
     return /[A-Za-z]:/.test(string);
 }
+
+module.exports.getAverage = function(intArray) {
+    if (intArray.length === 0) {
+      return 0;
+    }
+  
+    const sum = intArray.reduce((acc, val) => acc + val);
+    const avg = sum / intArray.length;
+  
+    return avg;
+  }
 
 module.exports.useless_tag_regex = /DL版|同人誌|別スキャン|修正版|^エロ|^digital$|^JPG|^PNG|ページ補足/i;

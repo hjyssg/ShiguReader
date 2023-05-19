@@ -1,7 +1,7 @@
 
 const express = require('express');
 const router = express.Router();
-// const serverUtil = require("../serverUtil");
+const serverUtil = require("../serverUtil");
 const cachePath = global.cachePath;
 const deleteEmpty = require('delete-empty');
 const pathUtil = require("../pathUtil");
@@ -16,7 +16,7 @@ function doCacheClean(config) {
     }
 }
 
-router.post('/api/cleanCache', (req, res) => {
+router.post('/api/cleanCache', serverUtil.asyncWrapper(async (req, res) => {
     function afterClean() {
         res.send({ failed: false });
     }
@@ -29,6 +29,6 @@ router.post('/api/cleanCache', (req, res) => {
             console.error(err);
         }
     });
-});
+}));
 
 module.exports = router;

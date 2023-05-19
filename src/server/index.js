@@ -20,12 +20,11 @@ global.requireConstant = () => require("../common/constant");
 const execa = require('./own_execa');
 const userConfig = global.requireUserConfig();
 const util = global.requireUtil();
-const passwordConfig = require("../config/password-config");
 
 const fileiterator = require('./file-iterator');
 const pathUtil = require("./pathUtil");
 const serverUtil = require("./serverUtil");
-const { isHiddenFile, getHash, mkdir } = serverUtil;
+const { isHiddenFile, getHash, mkdir, asyncWrapper } = serverUtil;
 
 const { generateContentUrl, isExist, getScanPath, isSub } = pathUtil;
 const { isImage, isCompress, isVideo, isMusic, arraySlice,
@@ -107,6 +106,7 @@ async function getIP(){
     return mobileAddress;
 }
 
+let scan_path;
 async function init() {
     if (isWindows()) {
         const { stdout, stderr } = await execa("chcp");
@@ -162,7 +162,7 @@ async function init() {
 
 
         console.log("----------------------------------------------------------------");
-        let { scan_path } = await getScanPath();
+        scan_path = (await getScanPath()).scan_path;
         //统一mkdir
         await mkdir(thumbnailFolderPath);
         await mkdir(cachePath);
@@ -177,9 +177,8 @@ async function init() {
             }
             await mkdir(fp, "quiet");
         }
-
         scan_path = await pathUtil.filterNonExist(scan_path);
-        global.scan_path = scan_path;
+        db.insertScanPath(scan_path)
 
         const cleanCache = require("../tools/cleanCache");
         cleanCache.cleanCache(cachePath);
@@ -195,6 +194,7 @@ async function init() {
         // console.log(`[scan thumbnail] ${(end3 - end1) / 1000}s  to read thumbnail dirs`);
         // thumbnailDb.init(thumbnail_pathes);
 
+        //因为scan path内部有sub parent重复关系，避免重复的
         let will_scan = _.sortBy(scan_path, e => e.length); //todo
         for (let ii = 0; ii < will_scan.length; ii++) {
             for (let jj = ii + 1; jj < will_scan.length; jj++) {
@@ -304,8 +304,9 @@ serverUtil.common.moveCallBack  = moveCallBack ;
 
 
 
-let is_chokidar_ready = false;
+let is_chokidar_scan_done = false;
 const chokidar = require('chokidar');
+/** 用来让chokidar监听文件夹，把需要的信息加到db */
 function setUpFileWatch(scan_path) {
     console.log("[chokidar] begin...");
     let beg = getCurrentTime();
@@ -320,11 +321,12 @@ function setUpFileWatch(scan_path) {
 
     let init_count = 0;
 
-    const addCallBack = (fp, stats) => {
-        serverUtil.parse(fp);
+    //处理添加文件事件
+    const addCallBack = async (fp, stats) => {
+        // console.log(fp);
         db.updateStatToDb(fp, stats);
-        if (is_chokidar_ready) {
-            db.createSqlIndex();
+        if (is_chokidar_scan_done) {
+            // nothing
         } else {
             init_count++;
             if (init_count % 2000 === 0) {
@@ -348,10 +350,28 @@ function setUpFileWatch(scan_path) {
         .on('unlinkDir', deleteCallBack);
 
     //about 1s for 1000 files
-    watcher.on('ready', () => {
-        is_chokidar_ready = true;
+    watcher.on('ready', async () => {
+        is_chokidar_scan_done = true;
+        db.createSqlIndex();
+
+        // DEBUG数据多少
+        // setTimeout(async () => {
+        //     const sqldb = db.getSQLDB();
+        //     let sql = `SELECT count(*) as count FROM file_table `;
+        //     let temp = await sqldb.allSync(sql);
+        //     console.log(temp[0].count);
+
+        //     sql = `SELECT count(*) as count FROM tag_table `;
+        //     temp = await sqldb.allSync(sql);
+        //     console.log(temp[0].count);
+    
+        //     // sql = `SELECT * FROM file_table `;
+        //     // temp = await sqldb.allSync(sql);
+        //     // console.log(temp); 
+        // }, 5000);
+
         let end1 = getCurrentTime();
-        console.log(`[chokidar] ${(end1 - beg) / 1000}s scan complete.`);
+        console.log(`[chokidar] ${(end1 - beg) / 1000}s scan complete.  ${init_count}`);
         console.log(`-------------------------------------------------`);
         console.log(`\n\n\n\n\n`);
     })
@@ -408,41 +428,48 @@ async function getThumbnailForFolders(filePathes) {
         return result;
     }
 
-    const sqldb = db.getSQLDB();
+    try{
+        const sqldb = db.getSQLDB();
 
-    let label = "getThumbnailForFolders" + filePathes.length;
-    console.time(label);
-    // 先尝试从thumbnail db拿
-    let thumbnailRows = await thumbnailDb.getThumbnailForFolders(filePathes);
+        let label = "getThumbnailForFolders" + filePathes.length;
+        console.time(label);
+        // 先尝试从thumbnail db拿
+        let thumbnailRows = await thumbnailDb.getThumbnailForFolders(filePathes);
+    
+        let nextFilePathes = [];
+        filePathes.forEach(filePath => {
+            let rows = thumbnailRows.filter(row => isSub(filePath, row.filePath))
+            if (rows && rows[0]) {
+                result[filePath] = rows[0].thumbnailFilePath;
+            }else{
+                nextFilePathes.push(filePath);
+            }
+        })
+        
 
-    let nextFilePathes = [];
-    filePathes.forEach(filePath => {
-        let rows = thumbnailRows.filter(row => isSub(filePath, row.filePath))
-        if (rows && rows[0]) {
-            result[filePath] = rows[0].thumbnailFilePath;
-        }else{
-            nextFilePathes.push(filePath);
+        if(nextFilePathes.length > 0){
+            //拿不到就看看有没有下属image
+            // TODO 担心nextFilePathe很多的时候
+            const stringsToMatch = nextFilePathes; // string array of values
+            const patterns = stringsToMatch.map(str => `${str}%`);
+            const placeholders = patterns.map(() => 'filePath LIKE ?').join(' OR ');
+            const sql = `SELECT filePath FROM file_table WHERE isDisplayableInOnebook = true AND ${placeholders} `;
+            let imagerows = await sqldb.allSync(sql, patterns);
+            imagerows = imagerows.filter(row => {
+                return isImage(row.filePath);
+            });
+            nextFilePathes.forEach(filePath => {
+                let rows = imagerows.filter(row => isSub(filePath, row.filePath))
+                if (rows && rows[0]) {
+                    result[filePath] = rows[0].filePath;
+                }
+            })
         }
-    })
-   
-
-    //拿不到就看看有没有下属image
-    const stringsToMatch = nextFilePathes; // string array of values
-    const patterns = stringsToMatch.map(str => `${str}%`);
-    const placeholders = patterns.map(() => 'filePath LIKE ?').join(' OR ');
-    const sql = `SELECT filePath FROM file_table WHERE isDisplayableInOnebook = true AND ${placeholders} `;
-    let imagerows = await sqldb.allSync(sql, patterns);
-    imagerows = imagerows.filter(row => {
-        return isImage(row.filePath);
-    });
-    nextFilePathes.forEach(filePath => {
-        let rows = imagerows.filter(row => isSub(filePath, row.filePath))
-        if (rows && rows[0]) {
-            result[filePath] = rows[0].filePath;
-        }
-    })
-
-    console.timeEnd(label);
+    
+        console.timeEnd(label);
+    }catch(e){
+        console.error("[getThumbnailForFolders]", e);
+    }
     return result;
 }
 
@@ -455,7 +482,7 @@ async function getStat(filePath) {
 }
 
 function isAlreadyScan(dir) {
-    return global.scan_path.some(sp => {
+    return scan_path.some(sp => {
         return sp === dir || pathUtil.isSub(sp, dir);
     });
 }
@@ -493,7 +520,7 @@ serverUtil.common.isAlreadyScan = isAlreadyScan;
 // 前端路由需要redirect到index.html
 //所有api都不需要转发
 app.get('/*', (req, res, next) => {
-    if (req.path.includes("/api/")){
+    if (req.path && req.path.includes("/api/")){
         next();
     }else{
         const as = path.resolve(rootPath, 'dist', 'index.html');
@@ -509,12 +536,12 @@ app.get('/*', (req, res, next) => {
 // 一个用户10秒最多100个请求？
 
 const token_set = {};
-app.post("/api/login", async (req, res) => {
+app.post("/api/login", asyncWrapper(async (req, res) => {
     const password = req.body && req.body.password;
-    if(password == passwordConfig.home_password){
+    if(password == etc_config.home_password){
         const token = serverUtil.makeid()
         token_set[token] = true;
-        res.cookie('login-token', token, {maxAge: 1000 * 3600 * 24 })
+        res.cookie('login-token', token, {maxAge: 1000 * 3600 * 24 });
         res.json({
             failed: false
         });
@@ -523,15 +550,15 @@ app.post("/api/login", async (req, res) => {
             failed: true
         });
     }
-})
+}));
 
-app.post("/api/logout", async (req, res) => {
+app.post("/api/logout", asyncWrapper(async (req, res) => {
     if(req.cookies && req.cookies["login-token"] && token_set[req.cookies["login-token"]]){
         delete token_set[req.cookies["login-token"]]
     }
     res.cookie('login-token', "")
     res.send({ failed: false });
-})
+}));
 
 const exception_apis = [
     "/api/search",
@@ -542,7 +569,10 @@ const exception_apis = [
 //check if login
 app.use((req, res, next) => {
     //console.log("[" + req.path+ "]" + new Date());
-    if(exception_apis.some(e => (req.path.includes(e)))){
+    if(!etc_config.home_password){
+        res.cookie('login-token', 'no-need-login-token', {maxAge: 1000 * 3600 * 1 });
+        next();
+    } else if(exception_apis.some(e => (req.path.includes(e)))){
         next();
     } else if(req.cookies && req.cookies["login-token"] && token_set[req.cookies["login-token"]]){
         next();
@@ -553,7 +583,7 @@ app.use((req, res, next) => {
 })
 
 //-----------------thumbnail related-----------------------------------
-app.post("/api/getThumbnailForFolders", async (req, res) => {
+app.post("/api/getThumbnailForFolders", asyncWrapper(async (req, res) => {
     const dirs = req.body && req.body.dirs;
     if (!dirs) {
         res.send({ failed: true, reason: "No Parameter" });
@@ -562,21 +592,37 @@ app.post("/api/getThumbnailForFolders", async (req, res) => {
 
     const dirThumbnails = await getThumbnailForFolders(dirs);
     res.send({ failed: false, dirThumbnails });
-});
+}));
 
-app.post("/api/getFileHistory", async (req, res) => {
+app.post("/api/getFileHistory", asyncWrapper(async (req, res) => {
     const all_pathes = req.body && req.body.all_pathes;
     if (!all_pathes) {
         res.send({ failed: true, reason: "No Parameter" });
         return;
     }
 
-    const fileHistory = await historyDb.getFileHistory(all_pathes);
-    res.send({ failed: false, fileHistory });
-});
+    try{
+        //需要拆分成好几个小array
+        const fileHistory = [];
+        const subs = util.cutIntoSmallArrays(all_pathes);
+        for(const sub of subs){
+            const temp = await historyDb.getFileHistory(sub);
+            fileHistory.push(...temp);
+        }
+
+        // assert
+        const subLength = subs.map(e => e.length).reduce(function(a, b) { return a + b; }, 0);
+        console.assert(subLength === all_pathes.length);
+
+        // const fileHistory = await historyDb.getFileHistory(all_pathes);
+        res.send({ failed: false, fileHistory });
+    }catch(e){
+        res.send({failed: true})
+    }
+}));
 
 
-app.post("/api/getTagThumbnail", async (req, res) => {
+app.post("/api/getTagThumbnail", asyncWrapper(async (req, res) => {
     const author = req.body && req.body.author;
     const tag = req.body && req.body.tag;
     if (!author && !tag) {
@@ -585,7 +631,7 @@ app.post("/api/getTagThumbnail", async (req, res) => {
     }
 
     const cacheKey = tag || author;
-    let oneThumbnail = memorycache.get[cacheKey];
+    let oneThumbnail = memorycache.get(cacheKey);
     if(oneThumbnail){
         res.send({
             url: oneThumbnail
@@ -600,6 +646,7 @@ app.post("/api/getTagThumbnail", async (req, res) => {
     oneThumbnail = thumbnailPathes[0];
     if(oneThumbnail){
         memorycache.put(cacheKey, oneThumbnail, 60*1000);
+        // console.log(cacheKey);
         res.send({
             url: oneThumbnail
         })
@@ -614,7 +661,7 @@ app.post("/api/getTagThumbnail", async (req, res) => {
     }
 
     extractThumbnailFromZip(chosendFileName, res);
-});
+}));
 
 const thumbnailGenerator = require("../tools/thumbnailGenerator");
 //the only required parameter is filePath
@@ -664,18 +711,17 @@ async function extractThumbnailFromZip(filePath, res, mode, config) {
             }
             const thumb = serverUtil.chooseThumbnailImage(files);
             if (!thumb) {
-                throw "no img in this file";
+                let reason = "[extractThumbnailFromZip] no img in this file " +  filePath;
+                console.log(reason);
+                sendable && res.send({ failed: true, reason });
+                return;
             }
 
-            const temp = cacheDb.getCacheFiles(outputPath);
-            if (temp && temp.files === files.length) {
-                debugger
-                //skip
-            }else{
-                const stderrForThumbnail = await extractByRange(filePath, outputPath, [thumb])
-                if (stderrForThumbnail) {
-                    throw "extract exec failed";
-                }
+      
+            const stderrForThumbnail = await extractByRange(filePath, outputPath, [thumb])
+            if (stderrForThumbnail) {
+                // console.error(stderrForThumbnail);
+                throw "[extractThumbnailFromZip] extract exec failed"+filePath;
             }
            
             // send original img path to client as thumbnail
@@ -698,9 +744,9 @@ async function extractThumbnailFromZip(filePath, res, mode, config) {
 //  a huge back ground task
 //  it generate all thumbnail and will be slow
 let pregenerateThumbnails_lock = false;
-app.post('/api/pregenerateThumbnails', async (req, res) => {
-    let path = req.body && req.body.path;
-    if (!path) {
+app.post('/api/pregenerateThumbnails', asyncWrapper(async (req, res) => {
+    let pregenerateThumbnailPath = req.body && req.body.pregenerateThumbnailPath;
+    if (!pregenerateThumbnailPath) {
         res.send({ failed: true, reason: "NOT PATH" });
         return;
     } else if (pregenerateThumbnails_lock) {
@@ -711,10 +757,10 @@ app.post('/api/pregenerateThumbnails', async (req, res) => {
     pregenerateThumbnails_lock = true;
     const fastUpdateMode = req.body && req.body.fastUpdateMode;
 
-    const allfiles = db.getAllFilePathes();
+    const allfiles = await db.getAllFilePathes();
     let totalFiles = allfiles.filter(isCompress);
-    if (path !== "All_Pathes") {
-        totalFiles = totalFiles.filter(e => e.includes(path));
+    if (pregenerateThumbnailPath !== "All_Pathes") {
+        totalFiles = totalFiles.filter(e => e.includes(pregenerateThumbnailPath));
     }
 
     function shouldWatch(p, stat) {
@@ -725,8 +771,8 @@ app.post('/api/pregenerateThumbnails', async (req, res) => {
         return !ext || isCompress(ext);
     }
 
-    if (path && !isAlreadyScan(path)) {
-        const { pathes } = await fileiterator(path, {
+    if (pregenerateThumbnailPath !== "All_Pathes" && pregenerateThumbnailPath && !isAlreadyScan(pregenerateThumbnailPath)) {
+        const { pathes } = await fileiterator(pregenerateThumbnailPath, {
             doNotNeedInfo: true,
             filter: shouldWatch
         });
@@ -765,10 +811,10 @@ app.post('/api/pregenerateThumbnails', async (req, res) => {
 
     pregenerateThumbnails_lock = false;
     console.log('[pregenerate] done');
-});
+}));
 
 
-app.post('/api/getZipThumbnail', async (req, res) => {
+app.post('/api/getZipThumbnail', asyncWrapper(async (req, res) => {
     const filePath = req.body && req.body.filePath;
 
     if (!filePath || !(await isExist(filePath))) {
@@ -786,7 +832,7 @@ app.post('/api/getZipThumbnail', async (req, res) => {
     }
 
     extractThumbnailFromZip(filePath, res);
-});
+}));
 
 async function getSameFileName(filePath) {
     if (!(await isExist(filePath))) {
@@ -795,7 +841,7 @@ async function getSameFileName(filePath) {
         const dir = path.dirname(filePath);
 
         const sqldb = db.getSQLDB();
-        let sql = `SELECT filePath FROM file_table WHERE fileName LIKE ? AND filePath NOT LIke ? AND isCompress = true`;
+        let sql = `SELECT filePath FROM zip_view WHERE fileName LIKE ? AND filePath NOT LIke ? `;
         let rows = await sqldb.allSync(sql, [('%' + fn + '%'), (dir + '%')]);
 
         if (rows && rows.length > 1) {
@@ -819,7 +865,7 @@ async function getSameFileName(filePath) {
 
 const current_extract_queue = {};
 const extract_result_cache = {};
-app.post('/api/extract', async (req, res) => {
+app.post('/api/extract', asyncWrapper(async (req, res) => {
     let filePath = req.body && req.body.filePath;
     const startIndex = (req.body && req.body.startIndex) || 0;
     let stat;
@@ -953,7 +999,7 @@ app.post('/api/extract', async (req, res) => {
                 await extractByRange(filePath, outputPath, secondRange);
             } else {
                 //seven的谜之抽风
-                if(stderr === "need_to_extract_all" && files.length <= 100){
+                if(stderr === "NEED_TO_EXTRACT_ALL" && files.length <= 100){
                    await _extractAll_()
                 }else{
                     throw stderr;
@@ -966,10 +1012,10 @@ app.post('/api/extract', async (req, res) => {
     }finally{
         current_extract_queue[filePath] = "done"
     }
-});
+}));
 
 
-app.get('/api/getGeneralInfo', async (req, res) => {
+app.get('/api/getGeneralInfo', asyncWrapper(async (req, res) => {
     const cacheKey = "GeneralInfoCacheKey";
     let result = memorycache.get(cacheKey);
     if(!result){
@@ -980,11 +1026,10 @@ app.get('/api/getGeneralInfo', async (req, res) => {
             file_path_sep: path.sep,
             has_magick: global._has_magick_,
             server_ip: ip,
-            etc_config,
     
             good_folder: global.good_folder,
             not_good_folder: global.not_good_folder,
-            additional_folder: global.scan_path
+            additional_folder: scan_path
         };
         
         memorycache.put(cacheKey, result, 30 * 1000)
@@ -992,7 +1037,7 @@ app.get('/api/getGeneralInfo', async (req, res) => {
 
     res.setHeader('Cache-Control', 'public, max-age=30');
     res.send(result)
-});
+}));
 
 
 const homePagePath = require("./routes/homePagePath");

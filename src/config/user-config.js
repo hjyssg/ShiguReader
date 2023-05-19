@@ -74,7 +74,7 @@ config.img_reduce_resolution_dimension = "4000x4000";
 //但可能用很多内存
 config.view_img_folder = true;
 
-//do not display a zip if it has no image files or music files
+//do not display a zip if it has no image files or music files or video files
 config.filter_empty_zip = true;
 
 //------------------------------------------------------------------

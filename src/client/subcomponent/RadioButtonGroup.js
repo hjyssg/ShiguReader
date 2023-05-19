@@ -11,7 +11,7 @@ export default class RadioButtonGroup extends Component {
     render() {
         const { options, name, onChange, checked, className } = this.props;
         const buttons = options.map((e, index) => {
-            return (<div className="radio-button" key={e} onClick={() => onChange(e)}>
+            return (<div className="radio-button" key={e} onClick={() => onChange(e, index)}>
                 <input checked={index === checked} onChange={() => { }} onClick={onChange} type="radio" name={name} value={e} key={e} /> {e}
             </div>);
         })
