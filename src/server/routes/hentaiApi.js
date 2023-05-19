@@ -18,11 +18,6 @@ router.get('/api/exhentaiApi', serverUtil.asyncWrapper(async (req, res) => {
         let tempAllFiles = await db.getAllFilePathes("WHERE isCompress=1");
         // console.timeEnd("part 1")
 
-        //pageNum没啥用，还占用后端大量计算资源 
-        // console.time("part 2")
-        // const zipInfo = zipInfoDb.getZipInfo(tempAllFiles);
-        // console.timeEnd("part 2")
-        
         // console.time("part 3")
         const result = [];
         tempAllFiles.forEach(fp => {

@@ -10,11 +10,7 @@ const fs = require('fs');
 const ini = require('ini');
 const memorycache = require('memory-cache');
 global.requireUtil = () => require("../common/util");
-
-
-
 global.requireUserConfig = () => require("../config/user-config");
-
 global.requireConstant = () => require("../common/constant");
 
 const execa = require('./own_execa');
@@ -24,9 +20,9 @@ const util = global.requireUtil();
 const fileiterator = require('./file-iterator');
 const pathUtil = require("./pathUtil");
 const serverUtil = require("./serverUtil");
-const { isHiddenFile, getHash, mkdir, asyncWrapper } = serverUtil;
+const { isHiddenFile, getHash, mkdir, asyncWrapper, estimateIfFolder } = serverUtil;
 
-const { generateContentUrl, isExist, getScanPath, isSub } = pathUtil;
+const { generateContentUrl, isExist, filterPathConfig, isSub } = pathUtil;
 const { isImage, isCompress, isVideo, isMusic, arraySlice,
     getCurrentTime, isDisplayableInExplorer, isDisplayableInOnebook } = util;
 
@@ -38,6 +34,13 @@ const thumbnailFolderPath = path.join(rootPath, thumbnail_folder_name);
 global.thumbnailFolderPath = thumbnailFolderPath;
 global.cachePath = cachePath;
 
+const portConfig = require('../config/port-config');
+const { program } = require('commander');
+program.option('-p, --port <number>', 'Specify the port',  portConfig.default_http_port);
+program.parse();
+const options = program.opts();
+// 懒得细看commander，不是最正确写法
+const port = _.isString(options.port)? parseInt(options.port): options.port;
 
 const db = require("./models/db");
 
@@ -47,8 +50,8 @@ const historyDb = require("./models/historyDb");
 const cacheDb = require("./models/cacheDb");
 
 //set up user path
-const isDev = process.argv.includes("--dev");
-const isProduction = !isDev;
+// const isDev = process.argv.includes("--dev");
+// const isProduction = !isDev;
 
 // console.log("------path helper--------------");
 // console.log("isProduction", isProduction)
@@ -81,8 +84,7 @@ app.use(express.json({limit: '50mb'}));
 var cookieParser = require('cookie-parser')
 app.use(cookieParser())
 
-const portConfig = require('../config/port-config');
-const { http_port, dev_express_port } = portConfig;
+
 
 // const jsonfile = require('jsonfile');
 // let temp_json_path = path.join(rootPath, userConfig.workspace_name, "temp_json_info.json");
@@ -90,10 +92,20 @@ const { http_port, dev_express_port } = portConfig;
 
 //read etc config
 let etc_config = {};
+let path_config;
 try {
-    let fcontent = fs.readFileSync(path.resolve(rootPath, "config-etc.ini"), 'utf-8');
+    const etf_config_path = path.resolve(rootPath, "config-etc.ini");
+    let fcontent = fs.readFileSync(etf_config_path, 'utf-8');
     etc_config = ini.parse(fcontent);
     global.etc_config = etc_config;
+
+    // console.log(etf_config_path);
+
+    const path_config_path = path.join(rootPath, "config-path.ini");
+    const fContent1 = fs.readFileSync(path_config_path).toString();
+    path_config = ini.parse(fContent1);
+
+    // console.log(path_config_path);
 } catch (e) {
     //nothing
     console.warn(e);
@@ -102,7 +114,7 @@ try {
 const internalIp = require('internal-ip');
 async function getIP(){
     const lanIP = await internalIp.v4();
-    const mobileAddress = `http://${lanIP}:${http_port}`;
+    const mobileAddress = `http://${lanIP}:${port}`;
     return mobileAddress;
 }
 
@@ -122,21 +134,19 @@ async function init() {
         global._cmd_encoding = charset;
     }
 
-    if (isProduction) {
-        const indexHtmlPath = path.resolve(rootPath, "dist", "index.html");
-        // console.log(indexHtmlPath)
-        if (!(await isExist(indexHtmlPath))) {
-            console.error("[Error] No dist\\index.html for producation");
-            console.error("[Error] You need to run npm run build");
-            return;
-        }
+    const indexHtmlPath = path.resolve(rootPath, "dist", "index.html");
+    // console.log(indexHtmlPath)
+    if (!(await isExist(indexHtmlPath))) {
+        console.warn(`[Error] No ${indexHtmlPath} for producation`);
+        console.warn("[Error] You may need to run npm run build");
     }
 
     await db.init();
     await thumbnailDb.init();
     await historyDb.init();
+    await zipInfoDb.init();
 
-    const port = isProduction ? http_port : dev_express_port;
+ 
     
     //express does not check if the port is used and remains slient
     // we need to check
@@ -151,7 +161,7 @@ async function init() {
         console.log(dateFormat(new Date(), "yyyy-mm-dd HH:MM"));
         console.log(`Express Server listening on port ${port}`);
         console.log("You can open ShiguReader from Browser now!");
-        console.log(`http://localhost:${http_port}`);
+        console.log(`http://localhost:${port}`);
 
         try {
             const ip = await getIP();
@@ -162,21 +172,20 @@ async function init() {
 
 
         console.log("----------------------------------------------------------------");
-        scan_path = (await getScanPath()).scan_path;
+        const filterPathConfigObj = await filterPathConfig(path_config);
+        global = {
+            ...global,
+            ...filterPathConfigObj
+        };
+        scan_path = filterPathConfigObj.scan_path;
+
+
         //统一mkdir
         await mkdir(thumbnailFolderPath);
         await mkdir(cachePath);
         await mkdir(pathUtil.getImgConverterCachePath());
         await mkdir(pathUtil.getZipOutputCachePath());
-
-        const mkdirArr = scan_path;
-        for (let ii = 0; ii < mkdirArr.length; ii++) {
-            const fp = mkdirArr[ii];
-            if (!isWindows() && util.isWindowsPath(fp)) {
-                continue;
-            }
-            await mkdir(fp, "quiet");
-        }
+        await mkdirList(scan_path)
         scan_path = await pathUtil.filterNonExist(scan_path);
         db.insertScanPath(scan_path)
 
@@ -217,6 +226,17 @@ async function init() {
     });
 }
 
+async function mkdirList(scan_path){
+    const mkdirArr = scan_path;
+    for (let ii = 0; ii < mkdirArr.length; ii++) {
+        const fp = mkdirArr[ii];
+        if (!isWindows() && util.isWindowsPath(fp)) {
+            continue;
+        }
+        await mkdir(fp, "quiet");
+    }
+}
+
 
 //this function which files will be scanned and watched by ShiguReader
 function shouldWatchForNormal(p, stat) {
@@ -235,9 +255,7 @@ function shouldWatchForNormal(p, stat) {
     }
 
     const ext = serverUtil.getExt(p);
-    //not accurate, but performance is good. access each file is very slow
-    const isFolder = !ext;
-    let result = isFolder || isDisplayableInExplorer(ext);
+    let result = estimateIfFolder(p) || isDisplayableInExplorer(ext);
 
     if (view_img_folder) {
         result = result || isDisplayableInOnebook(ext)
@@ -264,7 +282,7 @@ function shouldWatchForCache(p, stat) {
     }
 
     const ext = serverUtil.getExt(p);
-    return !ext || isDisplayableInOnebook(ext) || isVideo(ext);
+    return estimateIfFolder(p) || isDisplayableInOnebook(ext) || isVideo(ext);
 }
 
 function setUpCacheWatch() {
@@ -292,9 +310,6 @@ const deleteCallBack = fp => {
 };
 
 const moveCallBack = async (oldfilePath, newfilePath) => {
-    // zipInfoDb.updateThumbnail(oldfilePath, newfilePath);
-    // await thumbnailDb.updateThumbnail(oldfilePath, newfilePath);
-
     // 现在 delete和insert被chokidar callback代劳了 
     // 重复进行太容易出bug了
 }
@@ -381,7 +396,6 @@ function setUpFileWatch(scan_path) {
     };
 }
 
-
 async function getThumbnailsForZip(filePathes) {
     const isStringInput = _.isString(filePathes);
     if (isStringInput) {
@@ -391,8 +405,8 @@ async function getThumbnailsForZip(filePathes) {
     const thumbnails = {};
 
     let end1 = getCurrentTime();
-    let thumbArrs = thumbnailDb.getThumbnailArr(filePathes);
-    thumbArrs.forEach(row => {
+    let thumbRows = thumbnailDb.getThumbnailArr(filePathes);
+    thumbRows.forEach(row => {
         thumbnails[row.filePath] = row.thumbnailFilePath;
     })
     let end3 = getCurrentTime();
@@ -402,13 +416,12 @@ async function getThumbnailsForZip(filePathes) {
         if (thumbnails[filePath]) {
             return;
         }
-
         if (isCompress(filePath)) {
-            //从cache找thumbnail意义不大
-            if (zipInfoDb.has(filePath)) {
-                const pageNum = zipInfoDb.getZipInfo(filePath).pageNum;
+            const zipInfoRows = zipInfoDb.getZipInfo(filePath);
+            if(zipInfoRows[0]){
+                const pageNum = zipInfoRows[0].pageNum;
                 if (pageNum === 0) {
-                    thumbnails[filePath] = "NOT_THUMBNAIL_AVAILABLE";
+                    thumbnails[filePath] = "NO_THUMBNAIL_AVAILABLE";
                 }
             }
         }
@@ -421,6 +434,17 @@ async function getThumbnailsForZip(filePathes) {
     return thumbnails;
 }
 
+async function findVideoForFolder(filePath){
+    const sqldb = db.getSQLDB();
+    const sql = `SELECT filePath FROM file_table WHERE  INSTR(filePath, ?) = 1 AND isDisplayableInExplorer = true `;
+    let videoRows = await sqldb.allSync(sql, filePath);
+    videoRows = videoRows.filter(row => {
+        return isVideo(row.filePath);
+    });
+    return videoRows;
+}
+
+// 找文件夹的thumbnail
 async function getThumbnailForFolders(filePathes) {
     const result = {};
 
@@ -430,9 +454,10 @@ async function getThumbnailForFolders(filePathes) {
 
     try{
         const sqldb = db.getSQLDB();
+        let beg = getCurrentTime();
 
-        let label = "getThumbnailForFolders" + filePathes.length;
-        console.time(label);
+        // let label = "getThumbnailForFolders" + filePathes.length;
+        // console.time(label);
         // 先尝试从thumbnail db拿
         let thumbnailRows = await thumbnailDb.getThumbnailForFolders(filePathes);
     
@@ -466,7 +491,8 @@ async function getThumbnailForFolders(filePathes) {
             })
         }
     
-        console.timeEnd(label);
+        let end = getCurrentTime();
+        console.log(`[getThumbnailForFolders] ${(end - beg)}ms for ${filePathes.length} zips`);
     }catch(e){
         console.error("[getThumbnailForFolders]", e);
     }
@@ -493,7 +519,16 @@ async function _decorate(resObj) {
 
     const files = _.keys(fileInfos);
     const thumbnails = await getThumbnailsForZip(files);
-    resObj.zipInfo = zipInfoDb.getZipInfo(files);
+
+    const zipInfoRows = zipInfoDb.getZipInfo(files);
+    const zipInfo = {};
+    zipInfoRows.forEach(e => { 
+        if(e){
+            zipInfo[e.filePath] = e;
+        }
+    })
+    resObj.zipInfo = zipInfo;
+
     resObj.thumbnails = thumbnails;
     const imgFolderInfo = db.getImgFolderInfo(imgFolders);
     resObj.imgFolderInfo = imgFolderInfo;
@@ -505,14 +540,6 @@ serverUtil.common._decorate = _decorate
 serverUtil.common.getThumbnailsForZip = getThumbnailsForZip;
 serverUtil.common.getStat = getStat;
 serverUtil.common.isAlreadyScan = isAlreadyScan;
-
-//--------------------
-// if (isProduction) {
-    // const history = require('connect-history-api-fallback');
-    // app.use(history({
-    //     verbose: true
-    // }));
-// }
 
 
 // http://localhost:3000/explorer/
@@ -538,7 +565,7 @@ app.get('/*', (req, res, next) => {
 const token_set = {};
 app.post("/api/login", asyncWrapper(async (req, res) => {
     const password = req.body && req.body.password;
-    if(password == etc_config.home_password){
+    if(password == etc_config.home_password || !etc_config.home_password){
         const token = serverUtil.makeid()
         token_set[token] = true;
         res.cookie('login-token', token, {maxAge: 1000 * 3600 * 24 });
@@ -695,20 +722,25 @@ async function extractThumbnailFromZip(filePath, res, mode, config) {
             }
 
             if (config.fastUpdateMode){
-                const temp = thumbnailDb.getThumbnailArr(filePath);
-                if(temp.length > 0){
+                const thumbRows = thumbnailDb.getThumbnailArr(filePath);
+                if(thumbRows.length > 0){
                     return;
                 }
             }
         }
 
-        const thumbnail = thumbnailDb.getThumbnailArr(filePath);
-        if (thumbnail[0]) {
-            sendImage(thumbnail[0].thumbnailFilePath);
+        // 已经有了就不再生成thumbnail
+        // 如果有thumbnail生成出问题，只能靠改filepath或者filename来促使重新生成
+        // 但几乎没有重新生成必要
+        const thumbRows = thumbnailDb.getThumbnailArr(filePath);
+        if (thumbRows[0]) {
+            sendImage(thumbRows[0].thumbnailFilePath);
         } else {
             if (!files) {
                 files = (await listZipContentAndUpdateDb(filePath)).files;
             }
+
+            //挑一个img来做thumbnail
             const thumb = serverUtil.chooseThumbnailImage(files);
             if (!thumb) {
                 let reason = "[extractThumbnailFromZip] no img in this file " +  filePath;
@@ -717,7 +749,7 @@ async function extractThumbnailFromZip(filePath, res, mode, config) {
                 return;
             }
 
-      
+            //解压
             const stderrForThumbnail = await extractByRange(filePath, outputPath, [thumb])
             if (stderrForThumbnail) {
                 // console.error(stderrForThumbnail);
@@ -768,7 +800,7 @@ app.post('/api/pregenerateThumbnails', asyncWrapper(async (req, res) => {
             return false;
         }
         const ext = serverUtil.getExt(p);
-        return !ext || isCompress(ext);
+        return estimateIfFolder(p) || isCompress(ext);
     }
 
     if (pregenerateThumbnailPath !== "All_Pathes" && pregenerateThumbnailPath && !isAlreadyScan(pregenerateThumbnailPath)) {
@@ -814,6 +846,50 @@ app.post('/api/pregenerateThumbnails', asyncWrapper(async (req, res) => {
 }));
 
 
+// TODO 快速的获取任意文件或者文件夹的thumbnail
+app.get('/api/getQuickThumbnail', asyncWrapper(async (req, res) => {
+    let filePath = req.query.p;
+
+    if (!filePath) {
+        res.send({ failed: true, reason: "bad param" });
+        return;
+    }
+
+    let useVideoPreviewForFolder = false;
+    let url = null;
+    if(isCompress(filePath)){
+        let thumbRows = thumbnailDb.getThumbnailArr(filePath);
+        if(thumbRows.length > 0){
+            url = thumbRows[0].thumbnailFilePath;
+        }else{
+            const fileName = path.basename(filePath);
+            thumbRows = await thumbnailDb.getThumbnailByFileName(fileName);
+            if(thumbRows.length > 0){
+                url = thumbRows[0].thumbnailFilePath;
+            }
+        }
+    } else if(estimateIfFolder(filePath)){
+        const dirThumbnails = await getThumbnailForFolders([filePath]);
+        url = dirThumbnails[filePath];
+
+        // 没thumbnail，用video也行。
+        if(!url){
+            const videoRows = await findVideoForFolder(filePath);
+            if(videoRows[0]){
+                url = videoRows[0].filePath;
+                useVideoPreviewForFolder = true;
+            }
+        }
+    }
+    res.setHeader('Cache-Control', 'public, max-age=60');
+    res.setHeader('Connection', 'Keep-Alive');
+    res.setHeader('Keep-Alive', 'timeout=50, max=1000');
+    res.send({
+        url: url,
+        useVideoPreviewForFolder
+    });
+}))
+
 app.post('/api/getZipThumbnail', asyncWrapper(async (req, res) => {
     const filePath = req.body && req.body.filePath;
 
@@ -825,6 +901,7 @@ app.post('/api/getZipThumbnail', asyncWrapper(async (req, res) => {
     const thumbnails = await getThumbnailsForZip([filePath])
     const oneThumbnail = _.values(thumbnails)[0];
     if(oneThumbnail){
+    
         res.send({
             url: oneThumbnail
         })
@@ -896,7 +973,8 @@ app.post('/api/extract', asyncWrapper(async (req, res) => {
         });
         let zipInfo;
         if (tempFiles.length > 0) {
-            zipInfo = zipInfoDb.getZipInfo(path);
+            const zipInfoRows = zipInfoDb.getZipInfo(files);
+            zipInfo = zipInfoRows[0];
         }
 
         const mecab_tokens = await global.mecab_getTokens(path);
@@ -1029,13 +1107,15 @@ app.get('/api/getGeneralInfo', asyncWrapper(async (req, res) => {
     
             good_folder: global.good_folder,
             not_good_folder: global.not_good_folder,
-            additional_folder: scan_path
+            move_pathes: global.move_pathes,
+            recentAccess: global.recentAccess 
+
         };
         
         memorycache.put(cacheKey, result, 30 * 1000)
     }
 
-    res.setHeader('Cache-Control', 'public, max-age=30');
+    res.setHeader('Cache-Control', 'public, max-age=60');
     res.send(result)
 }));
 

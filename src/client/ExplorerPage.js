@@ -6,6 +6,7 @@ import PropTypes from 'prop-types';
 import LoadingImage from './LoadingImage';
 import Sender from './Sender';
 import { Link } from 'react-router-dom';
+const dateFormat = require('dateformat');
 
 const userConfig = require('@config/user-config');
 import ErrorPage from './ErrorPage';
@@ -19,6 +20,7 @@ import SortHeader from './subcomponent/SortHeader';
 import Breadcrumb from './subcomponent/Breadcrumb';
 import FileCellTitle from './subcomponent/FileCellTitle';
 import Checkbox from './subcomponent/Checkbox';
+import ThumbnailPopup from './subcomponent/ThumbnailPopup';
 import { getFileUrl } from './clientUtil';
 const nameParser = require('@name-parser');
 const classNames = require('classnames');
@@ -350,7 +352,7 @@ export default class ExplorerPage extends Component {
                 //this will set state
                 this.handlePageChange(1);
             } else {
-                this.forceUpdate();
+                this.askRerender();
             }
 
             Sender.post('/api/getFileHistory', {all_pathes: this.get_all_pathes()}, res => {
@@ -360,7 +362,7 @@ export default class ExplorerPage extends Component {
                         const { fileName, time, count } = row;
                         this.fileNameToHistory[fileName] = {time, count};
                     })
-                    this.forceUpdate();
+                    this.askRerender();
                 }
             });
 
@@ -378,7 +380,7 @@ export default class ExplorerPage extends Component {
             }
         } else {
             this.res = res;
-            this.forceUpdate();
+            this.askRerender();
         }
     }
 
@@ -669,6 +671,32 @@ export default class ExplorerPage extends Component {
         return files;
     }
 
+    getTooltipStr(fp){
+        let result = fp;
+        if(this.allfileInfos[fp] && this.allfileInfos[fp].mtimeMs){
+            const dateStr = dateFormat(this.allfileInfos[fp].mtimeMs, "yyyy/mm/dd")
+            result = `${fp}\ntime: ${dateStr}`;
+        }
+        return result;
+    }
+
+    getThumbnailUrl(fp){
+        const isImgFolder = !!this.imgFolders[fp];
+        let thumbnailurl;
+        if (isImgFolder) {
+            const _imgs = this.imgFolders[fp].filter(isImage);
+            sortFileNames(_imgs)
+            const tp = _imgs[0];
+            thumbnailurl = getFileUrl(tp);
+        } else {
+            thumbnailurl = getFileUrl(this.thumbnails[fp]);
+        }
+        thumbnailurl += "&thumbnailMode=true"
+        return thumbnailurl;
+    }
+    
+    
+
     renderSingleZipItem(fp) {
         const text = getBaseName(fp);
         const toUrl = clientUtil.getOneBookLink(fp);
@@ -680,10 +708,14 @@ export default class ExplorerPage extends Component {
         const avgSizeStr = avgSize > 0 && filesizeUitl(avgSize);
 
         let zipItem;
+        let thumbnailurl = this.getThumbnailUrl(fp);
 
         if (this.state.noThumbnail) {
-            zipItem = (<Link to={toUrl} key={fp} className={""}>
-                {getOneLineListItem(<i className="fas fa-book"></i>, text, fp)}
+            zipItem = (
+            <Link to={toUrl} key={fp} className={""}  title={this.getTooltipStr(fp)} >
+                <ThumbnailPopup filePath={fp} url={thumbnailurl}>
+                    {getOneLineListItem(<i className="fas fa-book"></i>, text, fp)}
+                </ThumbnailPopup>
             </Link>)
         } else {
 
@@ -697,17 +729,6 @@ export default class ExplorerPage extends Component {
                 "less-padding": hasMusic
             })
 
-            let thumbnailurl;
-            if (isImgFolder) {
-                const _imgs = this.imgFolders[fp].filter(isImage);
-                sortFileNames(_imgs)
-                const tp = _imgs[0];
-                thumbnailurl = getFileUrl(tp);
-            } else {
-                thumbnailurl = getFileUrl(this.thumbnails[fp]);
-            }
-            thumbnailurl += "&thumbnailMode=true"
-
             const thumbnailCn = classNames("file-cell-thumbnail", {
                 "as-folder-thumbnail": isImgFolder
             });
@@ -716,7 +737,8 @@ export default class ExplorerPage extends Component {
                 onlyUseURL={isImgFolder}
                 isThumbnail
                 className={thumbnailCn}
-                title={fp} fileName={fp}
+                title={this.getTooltipStr(fp)} 
+                fileName={fp}
                 url={thumbnailurl}
                 musicNum={musicNum}
                 onReceiveUrl={url => {
@@ -811,12 +833,13 @@ export default class ExplorerPage extends Component {
                 const toUrl = clientUtil.getExplorerLink(item);
                 const text = getBaseName(item);
                 const result = getOneLineListItem(<i className="far fa-folder"></i>, text, item);
-                return <Link to={toUrl} key={item}>{result}</Link>;
+                return (
+                    <ThumbnailPopup filePath={item} key={item}>
+                        <Link to={toUrl}>{result}</Link>
+                    </ThumbnailPopup>
+                );
             });
         }
-
-  
-
 
         const musicItems = this.musicFiles.map((item) => {
             const toUrl = clientUtil.getOneBookLink(getDir(item));
@@ -847,14 +870,18 @@ export default class ExplorerPage extends Component {
         }) || {};
 
         //todo av-color
-        const videoDivGroup = _.keys(groupByVideoType).map(key => {
+        const videoDivGroup = _.keys(groupByVideoType).map((key, ii) => {
             let group = groupByVideoType[key];
             group = this.sortFiles(group, BY_FILENAME);
             const videoItems = group.map((item) => {
                 const toUrl = clientUtil.getVideoPlayerLink(item);
                 const text = getBaseName(item);
                 const result = getOneLineListItem(<i className="far fa-file-video"></i>, text, item);
-                return <Link target="_blank" to={toUrl} key={item}>{result}</Link>;
+                return (
+                <ThumbnailPopup filePath={item} key={item}>
+                    <Link target="_blank" to={toUrl} >{result}</Link>
+                </ThumbnailPopup>
+                );
             });
             return <ItemsContainer key={key} className="video-list" items={videoItems} />
         })
@@ -967,9 +994,15 @@ export default class ExplorerPage extends Component {
             if (!res.isFailed()) {
                 this.thumbnails =  _.extend(this.thumbnails, res.json.dirThumbnails);
                 this.hasCalled_getThumbnailForFolders = true;
-                this.forceUpdate();
+                this.askRerender();
             }
         });
+    }
+
+    askRerender(){
+        this.setState({
+            rerenderTick: !this.state.rerenderTick
+        })
     }
 
     toggleShowVideo() {
@@ -1396,6 +1429,9 @@ export default class ExplorerPage extends Component {
 
     render() {
         this.setWebTitle();
+        this.time = this.time|| 1;
+        console.log(this.time);
+        this.time++;
 
         if (this.isFailedLoading()) {
             return <ErrorPage res={this.res} />;

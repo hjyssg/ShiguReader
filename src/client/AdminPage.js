@@ -16,6 +16,7 @@ import { GlobalContext } from './globalContext'
 // const util = require("@common/util");
 const classNames = require('classnames');
 import {QRCodeSVG} from 'qrcode.react';
+import { toast } from 'react-toastify';
 
 function MinifyZipQueSection(){
     const [minifyZipQue, setMinifyZipQue] = useState([]);
@@ -158,10 +159,16 @@ export default class AdminPage extends Component {
         return text;
     }
 
+    askRerender(){
+        this.setState({
+            rerenderTick: !this.state.rerenderTick
+        })
+    }
+
     setPasswordCookie() {
         const text = this.getPasswordInput();
         Cookie.set("password", text, { expires: 3 });
-        this.forceUpdate();
+        this.askRerender();
     }
 
     renderPasswordInput() {
@@ -218,6 +225,20 @@ export default class AdminPage extends Component {
         return <button onClick={this.onclickShutDown.bind(this)}> Recomote shutdown </button>;
     }
 
+    onClickIP(server_ip){
+        clientUtil.CopyToClipboard(server_ip);
+
+        toast('Copied to Clipboard', {
+            className: "one-line-toast",
+            position: "top-right",
+            autoClose: 3 * 1000,
+            hideProgressBar: true,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true
+          })
+    }
+
     renderQRCode(){
         try{
             // https://www.npmjs.com/package/qrcode.react
@@ -226,9 +247,12 @@ export default class AdminPage extends Component {
             if(data.server_ip){
                 return (
                     <div className="admin-section">
-                    <div className="admin-section-title" title="QR Code"> LAN Address</div>
+                    <div className="admin-section-title" title="QR Code" > LAN Address</div>
                     <div className="admin-section-content">
-                        <div style={{marginBottom: "5px"}}>{data.server_ip}</div>
+                        <div className='ip-address-title'  
+                             onClick={()=>this.onClickIP(data.server_ip)}>
+                            {data.server_ip}
+                            </div>
                         <QRCodeSVG value={data.server_ip} />
                     </div>
                     </div>
@@ -249,7 +273,7 @@ export default class AdminPage extends Component {
         const onHabitChange = (e, index)=>{
             const flg = index == 0;
             clientUtil.setRightAsNext(flg);
-            this.forceUpdate();
+            this.askRerender();
         }
 
         return (
@@ -279,8 +303,8 @@ export default class AdminPage extends Component {
                         <RadioButtonGroup checked={folder_list.indexOf(this.state.prePath)}
                             options={folder_list} name="pregenerate" onChange={this.onPathChange.bind(this)} />
                         <input className="admin-intput" ref={pathInput => this.pathInputRef = pathInput} placeholder="...or any other path" />
-                        <div className="submit-button" onClick={this.onPrenerate.bind(this, false)}>Full Update (Regenerate metadata and thumbnail)</div>
-                        <div className="submit-button" onClick={this.onPrenerate.bind(this, true)}>Fast Update (Only generate for new file)</div>
+                        <div className="submit-button" onClick={this.onPrenerate.bind(this, false)}>Full Update (Aslo Regenerate Metadata)</div>
+                        <div className="submit-button" onClick={this.onPrenerate.bind(this, true)}>Fast Update (Only For New File)</div>
                     </div>
                 </div>
 

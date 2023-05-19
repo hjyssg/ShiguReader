@@ -22,16 +22,9 @@ const getFileToInfo = module.exports.getFileToInfo = function (filePath) {
     }
 }
 
-const sqlite3 = require('sqlite3').verbose();
+const dbCommon = require("./dbCommon");
+const sqlDb = dbCommon.getSQLInstance(':memory:');
 // 用file的话，init的insertion太慢了
-const sqlDb = new sqlite3.Database(':memory:');
-
-
-const _util = require('util');
-sqlDb.allSync = _util.promisify(sqlDb.all).bind(sqlDb);
-sqlDb.getSync = _util.promisify(sqlDb.get).bind(sqlDb);
-sqlDb.runSync = _util.promisify(sqlDb.run).bind(sqlDb);
-
 
 
 module.exports.init = async ()=> {

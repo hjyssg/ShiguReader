@@ -16,8 +16,13 @@ const iconv = require('iconv-lite');
 global._has_7zip_ = true;
 let sevenZip;
 if (isWindows()) {
-    const sevenZipPath = path.join(pathUtil.getRootPath(), "resource", "7zip");
-    sevenZip = require(sevenZipPath)['7z'];
+    try{
+        const sevenZipPath = path.join(pathUtil.getRootPath(), "resource", "7zip");
+        sevenZip = require(sevenZipPath)['7z'];
+    }catch{
+        global._has_7zip_ = false;
+        console.error("[ERROR] no 7zip on windows");
+    }
     // console.log("sevenZipPath", sevenZipPath);
 } else {
     //assume linux/mac people already install it by cmd
@@ -160,12 +165,13 @@ module.exports.listZipContentAndUpdateDb = async function (filePath) {
         const mtime = util.getAverage(mtime_arr);
 
         const info = {
+            filePath,
             totalImgSize,
             files,
             mtime
         };
 
-        updateZipDb(filePath, info);
+        updateZipDb(info);
         return { files, fileInfos, info };
     } catch (e) {
         logger.error("[listZipContentAndUpdateDb]", filePath, e);

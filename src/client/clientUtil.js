@@ -4,8 +4,6 @@ const _ = require("underscore");
 const filesizeUitl = require('filesize');
 const userConfig = require('@config/user-config');
 const queryString = require('query-string');
-const { assert } = require("chai");
-
 
 module.exports.filesizeUitl = function (num) {
     if (isNaN(num)) {
@@ -47,7 +45,7 @@ const getBaseName = module.exports.getBaseName = function (fp) {
 };
 
 module.exports.getFileUrl = function (url) {
-    if (!url || url === "NOT_THUMBNAIL_AVAILABLE") {
+    if (!url || url === "NO_THUMBNAIL_AVAILABLE") {
         return "";
     }
   
@@ -182,6 +180,10 @@ module.exports.getVideoPlayerLink = function (path) {
     return "/videoPlayer/?p=" + encodeURIComponent(path);
 }
 
+module.exports.getQuickThumbUrl = function(filePath){
+    return "/api/getQuickThumbnail?p=" + encodeURIComponent(filePath);
+}
+
 const getDownloadLink = module.exports.getDownloadLink = function (path) {
     if (!path) { return ""; }
 
@@ -213,22 +215,6 @@ const getDownloadLink = module.exports.getDownloadLink = function (path) {
 //     const now = util.getCurrentTime();
 //     const hash = stringHash(path);
 //     Cookie.set(now, hash, { expires: cookie_expire_days })
-// }
-
-// module.exports.getQuickAccess = function(){
-//     const countBy = getHistoryCountByFolder();
-//     let keyValues = _.pairs(countBy);
-//     keyValues =  _.sortBy(keyValues, row => {
-//         let [k, count] = row;
-//         return -count;
-//     })
-
-//     keyValues = keyValues.slice(0, 10);
-
-//     return keyValues.map(row => {
-//         let [k, count] = row;
-//         return k;
-//     })
 // }
 
 // const getHistoryCountByFolder = function(){

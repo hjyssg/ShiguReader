@@ -11,13 +11,16 @@ function HistorySection(props){
   const {filePath} = props;
   const [history, setHistory] = useState([]);
 
-  useEffect(async () => {
-      const res = await Sender.postWithPromise("/api/getHistoryByFP", {filePath});
-      if (!res.isFailed()) {
-          let { history } = res.json;
-          setHistory(history)
-      }
-  }, []); 
+  useEffect(() => {
+    async function fetchData() {
+        const res = await Sender.postWithPromise("/api/getHistoryByFP", {filePath});
+        if (!res.isFailed()) {
+            let { history } = res.json;
+            setHistory(history)
+        }
+    }
+    fetchData();
+}, []); 
 
   let items;
   let length = history.length;
@@ -26,7 +29,7 @@ function HistorySection(props){
   } else {
       items = history.map(e => {
           // return <div key={e.time}>{dateFormat(e.time, "dddd, mmmm dS, yyyy, h:MM:ss TT") }</div>
-          return <div key={e.time}>{dateFormat(e.time, "mm/dd/yyyy") }</div>
+          return <div key={e.time}>{dateFormat(e.time, "yyyy/mm/dd HH:MM") }</div>
       });
 
       if(items.length > 10){

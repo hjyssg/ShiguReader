@@ -1,4 +1,4 @@
-import React, { Component, useState, useEffect } from 'react';
+import React, { Component } from 'react';
 import '../style/Spinner.scss';
 const userConfig = require('@config/user-config');
 import PropTypes from 'prop-types';
@@ -132,7 +132,7 @@ class MoveMenu extends Component {
                 })
             }
         }else{
-            const res = Sender.getWithPromise("/api/homePagePath");
+            const res = await Sender.getWithPromise("/api/homePagePath");
             if (res.isFailed()) {
                 debugger
                 return;
@@ -374,7 +374,7 @@ export default class FileChangeToolbar extends Component {
     }
 
     getDropdownItems() {
-        let arr = this.context.additional_folder || [];
+        let arr = this.context.move_pathes || [];
         const tempMovePath = getTempMovePath()
 
         arr = _.uniq(arr.concat(tempMovePath))

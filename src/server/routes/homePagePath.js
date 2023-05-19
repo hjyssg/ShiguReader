@@ -8,7 +8,12 @@ const util = global.requireUtil();
 const historyDb = require("../models/historyDb");
 const pathUtil = require("../pathUtil");
 const memorycache = require('memory-cache');
+const path = require("path");
+const _ = require('underscore');
+const { pathEqual } = require('path-equal');
 
+const getDownloadsFolder = require('downloads-folder');
+let downloadFolder = getDownloadsFolder();
 
 let hdd_list = [];
 if (isWindows()) {
@@ -25,8 +30,16 @@ if (isWindows()) {
 
         //no c drive
         hdd_list = hdd_list.filter(e => !e.toLocaleLowerCase().startsWith("c"));
-        const getDownloadsFolder = require('downloads-folder');
-        hdd_list.unshift(getDownloadsFolder());
+        // hdd_list = hdd_list.map(e => path.resolve(e));
+        // F: 的时候，会莫名其妙显示shigureader文件夹的内容
+        hdd_list = hdd_list.map(e => e + "\\\\");
+    });
+}
+
+
+function containPath(pathList, fp){
+    return pathList.some(e =>  {
+        return pathEqual(e, fp)
     });
 }
 
@@ -38,35 +51,37 @@ router.get('/api/homePagePath', serverUtil.asyncWrapper(async (req, res) => {
         return;
     }
 
+    // dirs
     let dirs = await db.getAllScanPath();
-    let tempQuickAccess = await historyDb.getQuickAccess();
-    tempQuickAccess = tempQuickAccess.map(e => e.filePath);
+
+    // quick Access
+    let quickAccess = global.quick_access_pathes;
+    quickAccess.push(downloadFolder);
     //不要和其他项目重复
-    tempQuickAccess = tempQuickAccess.filter(e => {
-        const e2 = pathUtil.removeLastPathSep(e);
-        return !dirs.includes(e) && !hdd_list.includes(e) && !dirs.includes(e2) && !hdd_list.includes(e2);
+    quickAccess = quickAccess.filter(e => {
+        return !containPath(dirs, e) && !containPath(hdd_list, e);
     });
-    let quickAccess = [];
-    const NUM_QUICK_ACCESS = 15;
-    for(let ii = 0; ii < tempQuickAccess.length; ii++){
-        const pp = tempQuickAccess[ii];
-        //确认是否存在
-        if(await pathUtil.isExist(pp)){
-            quickAccess.push(pp);
-        }
-        if(quickAccess.length >= NUM_QUICK_ACCESS){
-            break;
-        }
-    }
+    quickAccess = _.uniq(quickAccess);
 
+    // recent access path
+    let recentAccess = await historyDb.getRecentAccess();
+    recentAccess = recentAccess.map(e => e.filePath);
+    // 不要和其他项目重复
+    recentAccess = recentAccess.filter(e => {
+        return !containPath(dirs, e) && !containPath(hdd_list, e) && !containPath(quickAccess, e);
+    });
+    const NUM_QUICK_ACCESS = 10;
+    recentAccess = await pathUtil.filterNonExist(recentAccess, NUM_QUICK_ACCESS);
+  
 
-    if (dirs.length === 0 && hdd_list.length === 0 && quickAccess.length === 0) {
+    if (dirs.length === 0 && hdd_list.length === 0 && quickAccess.length === 0 && recentAccess.length == 0) {
         res.send({ failed: true, reason: "config-path.ini has no path" });
     } else {
         let result = {
             dirs,
             hdd_list,
-            quickAccess
+            quickAccess,
+            recentAccess
         }
         res.setHeader('Cache-Control', 'public, max-age=30');
         res.send(result);

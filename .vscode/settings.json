@@ -10,6 +10,7 @@
         "**/folder_thumbnails": true,
         "**/node_modules": true,
         "**/thumbnails": true,
-        "**/cache": true
+        "**/cache": true,
+        "**/deprecated": true
       }
 }

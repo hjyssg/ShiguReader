@@ -37,12 +37,12 @@ class SmartImage extends Component {
   }
 
   render() {
-    const { url, index, fp } = this.props;
+    const { url, index, filePath, dirPath } = this.props;
     const { isVisible } = this.state;
 
     let content;
     if (isVisible) {
-      const tooltip = `page: ${index} \nfilename: ${getBaseName(fp)}`;
+      const tooltip = `page: ${index} \nfilename: ${getBaseName(filePath)}`;
       content = (<img className="single-img-cell"
         src={url}
         title={tooltip} 
@@ -51,7 +51,7 @@ class SmartImage extends Component {
       content = <div className="place-holder single-img-cell" title={index} />
     }
 
-    const toUrl = clientUtil.getOneBookLink(fp, index);
+    const toUrl = clientUtil.getOneBookLink(dirPath, index);
 
     return (
       <VisibilitySensor offset={{ bottom: -1200 }} partialVisibility={true} onChange={this.onChange.bind(this)}>
@@ -96,6 +96,12 @@ export default class OneBookOverview extends Component {
     this.handleRes(res);
   }
 
+  askRerender(){
+    this.setState({
+        rerenderTick: !this.state.rerenderTick
+    })
+  }
+
   handleRes(res) {
     this.res = res;
     if (!res.isFailed()) {
@@ -108,7 +114,7 @@ export default class OneBookOverview extends Component {
 
       this.setState({ imageFiles, musicFiles, path, fileStat: stat, zipInfo });
     } else {
-      this.forceUpdate();
+      this.askRerender();
     }
   }
 
@@ -122,12 +128,12 @@ export default class OneBookOverview extends Component {
       return;
     }
 
-    // const fp = this.getTextFromQuery();
+    const fp = this.getTextFromQuery();
     const images = imageFiles
       .map((e, ii) => {
         let url = clientUtil.getDownloadLink(e);
         url += "&thumbnailMode=true"
-        return (<SmartImage key={e+ii} url={url} index={ii} fp={e}></SmartImage>);
+        return (<SmartImage key={e+ii} url={url} index={ii} filePath={e}  dirPath={fp}></SmartImage>);
       })
 
     return images;
@@ -164,7 +170,7 @@ export default class OneBookOverview extends Component {
     </div>);
 
     if (_.isEmpty(imageFiles) && _.isEmpty(musicFiles)) {
-      if (this.res && !this.refs.failed) {
+      if (this.res && !this.res.isFailed()) {
         return (<h3>
           <center style={{ paddingTop: "200px" }}>
             <div className="alert alert-warning col-6" role="alert" > No image or music file </div>

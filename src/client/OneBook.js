@@ -61,12 +61,18 @@ export default class OneBook extends Component {
     return queryString.parse(_props.location.search)["p"] || "";
   }
 
+  askRerender(){
+    this.setState({
+        rerenderTick: !this.state.rerenderTick
+    })
+  }
+
   componentDidMount() {
     this.sendRequest();
 
     if (!isMobile()) {
       screenfull.onchange(() => {
-        this.forceUpdate();
+        this.askRerender();
       });
     }
 
@@ -322,7 +328,7 @@ export default class OneBook extends Component {
       this.setState({ imageFiles, musicFiles, videoFiles, path, fileStat: stat, zipInfo, mecab_tokens, outputPath },
         () => { this.bindUserInteraction() });
     } else {
-      this.forceUpdate();
+      this.askRerender();
     }
   }
 
@@ -463,11 +469,14 @@ export default class OneBook extends Component {
   renderFileSizeAndTime() {
     const { fileStat, imageFiles, index, zipInfo, videoFiles } = this.state;
     if (fileStat) {
-      let avgFileSize;
+      let avgFileSize; // 和explore的getPageAvgSize(e)是重复逻辑？
       if (zipInfo) {
         avgFileSize = zipInfo.totalImgSize / zipInfo.pageNum;
       } else {
         avgFileSize = fileStat.size / this.getImageLength();
+      }
+      if(avgFileSize == Infinity){
+        avgFileSize = 0;
       }
 
       const size = filesizeUitl(fileStat.size);
@@ -617,20 +626,28 @@ export default class OneBook extends Component {
   }
 
   renderOverviewLink() {
-    if (!this.state.path || !this.hasImage()) {
+    if (!this.state.path) {
       return;
     }
-
-    const toUrl = clientUtil.getOneBookOverviewLink(this.state.path);
-    const toUrl2 = clientUtil.getOneBookWaterfallLink(this.state.path);
-    const toUrl3 = clientUtil.getExplorerLink(this.state.outputPath || this.state.path);
-
-    return (
-      <div className="one-book-overview-path">
-        <Link to={toUrl}> Overview </Link>
-        <Link to={toUrl2}> Waterfall </Link>
-        <Link to={toUrl3}> Explorer </Link>
-      </div>);
+      
+    if(!this.hasImage()){
+        const toUrl3 = clientUtil.getExplorerLink(this.state.outputPath || this.state.path);
+        return (
+          <div className="one-book-overview-path">
+            <Link to={toUrl3}> Explorer </Link>
+          </div>);
+      }else{
+        const toUrl = clientUtil.getOneBookOverviewLink(this.state.path);
+        const toUrl2 = clientUtil.getOneBookWaterfallLink(this.state.path);
+        const toUrl3 = clientUtil.getExplorerLink(this.state.outputPath || this.state.path);
+    
+        return (
+          <div className="one-book-overview-path">
+            <Link to={toUrl}> Overview </Link>
+            <Link to={toUrl2}> Waterfall </Link>
+            <Link to={toUrl3}> Explorer </Link>
+          </div>);
+    }
   }
 
   renderPath() {
@@ -729,10 +746,21 @@ export default class OneBook extends Component {
       return;
     }
 
+    let leftFunc;
+    let rightFunc;
+    const isRightAsNext = clientUtil.isRightAsNext();
+    if(isRightAsNext){
+      rightFunc= this.next.bind(this);
+      leftFunc = this.prev.bind(this)
+    }else{
+      leftFunc = this.next.bind(this);
+      rightFunc = this.prev.bind(this)
+    }
+
     return (
       <React.Fragment>
-        <div className="big-column-button next"> <i className="fas fa-arrow-circle-right" onClick={this.next.bind(this)}></i> </div>
-        <div className="big-column-button prev"> <i className="fas fa-arrow-circle-left" onClick={this.prev.bind(this)}></i>  </div>
+        <div className="big-column-button next"> <i className="fas fa-arrow-circle-right" onClick={rightFunc}></i> </div>
+        <div className="big-column-button prev"> <i className="fas fa-arrow-circle-left" onClick={leftFunc}></i>  </div>
       </React.Fragment>
     );
   }
@@ -792,7 +820,7 @@ export default class OneBook extends Component {
     </div>);
 
     if (_.isEmpty(imageFiles) && _.isEmpty(musicFiles)) {
-      if (this.res && !this.refs.failed) {
+      if (this.res && !this.res.isFailed()) {
         return (<h3>
           <center style={{ paddingTop: "200px" }}>
             <div className="alert alert-warning col-6" role="alert" > No image or music file </div>

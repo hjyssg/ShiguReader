@@ -17,7 +17,8 @@ let sharp;
 try {
     sharp = require('sharp')
 } catch (e) {
-    console.error("did not install sharp", e);
+    console.error("[ERROR] did not install sharp", e);
+    console.log("-------------------------------")
 }
 
 const THUMBNAIL_HUGE_THRESHOLD = 2 * 1000 * 1000;  //MB

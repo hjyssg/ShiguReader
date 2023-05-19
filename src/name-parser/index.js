@@ -242,6 +242,20 @@ const pReg = /\((.*?)\)/g;
 const bReg = /\[(.*?)\]/g;
 const seperator = /,|、|&|＆/;
 
+function getLocalCache(){
+    return localCache;
+}
+
+function setLocalCache(newLocache){
+    for (var key in newLocache) {
+        if (!newLocache.hasOwnProperty(key)) {
+            continue;
+        }
+        var obj = newLocache[key];
+        localCache[key] = obj;
+    }
+}
+
 function parse(str) {
     if (!str || localCache[str] === "NO_EXIST") {
         return null;
@@ -547,3 +561,6 @@ module.exports.parse = parse;
 module.exports.getDateFromComiket = getDateFromComiket;
 module.exports.getDateFromParse = getDateFromParse;
 module.exports.parseMusicTitle = parseMusicTitle;
+module.exports.getLocalCache = getLocalCache;
+module.exports.setLocalCache = setLocalCache;
+

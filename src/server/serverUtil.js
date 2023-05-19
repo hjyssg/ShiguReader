@@ -86,7 +86,7 @@ module.exports.parse = function (str) {
 }
 
 
-module.exports.getExt = function (p) {
+const getExt = module.exports.getExt = function (p) {
     const ext = path.extname(p).toLowerCase();
     if (ext === ".!ut") {
         return ext;
@@ -178,13 +178,24 @@ const asyncWrapper = (fn) => {
     return (req, res, next) => {
       fn(req, res, next).catch((reason)=>{
         // next
-        console.log(req);
-        console.error(reason);
-        res.send({faled: true, reason});
+        try{
+            console.log(req);
+            console.error(reason);
+            res.send({faled: true, reason: reason?.stack});
+        }catch(e){
+            debugger;
+        }
       });
     };
 };
 
 module.exports.asyncWrapper = asyncWrapper;
+
+
+module.exports.estimateIfFolder = function(filePath){
+     //not accurate, but performance is good. access each file is very slow
+    const ext = getExt(filePath);
+    return !ext 
+}
 
 module.exports.common = {};
