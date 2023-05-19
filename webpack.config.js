@@ -1,11 +1,11 @@
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
-const CleanWebpackPlugin = require('clean-webpack-plugin');
+const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 
 const outputDirectory = 'dist';
 
 const portConfig = require('./src/config/port-config');
-const {http_port, dev_express_port } = portConfig;
+const { default_http_port } = portConfig;
 
 const config = {
   entry: ['babel-polyfill', './src/client/index.js'],
@@ -29,7 +29,16 @@ const config = {
       },
       {
         test: /\.(png|woff|woff2|eot|ttf|svg)$/,
-        loader: 'url-loader?limit=100000'
+        // loader: 'url-loader?limit=100000'
+        use:[
+          {
+              loader: 'url-loader',
+              options: {
+                  limit: 1000,
+              }
+          }
+      ]
+
       },{
         test: /\.scss$/,
         use: ["style-loader", "css-loader", {
@@ -45,18 +54,30 @@ const config = {
     ]
   },
   devServer: {
-    port: http_port,
-    open: false,
+    open: true,
     host: '0.0.0.0',
-    disableHostCheck: true,
+    allowedHosts: "all",
     historyApiFallback: true,
-    publicPath: "/",
+    hot: false,
     proxy: {
-      '/api': `http://127.0.0.1:${dev_express_port}`
-    }
+      '/api': `http://127.0.0.1:${default_http_port}`
+    },
+    static: [{
+      directory: path.join(__dirname, 'public'),
+      publicPath:"/"
+    },{
+      directory: path.join(__dirname, 'resource'),
+      publicPath:"/"
+    },
+    {
+      directory: __dirname,
+      publicPath:"/"
+    }],
+    port: 9000,
   },
   plugins: [
-    new CleanWebpackPlugin([outputDirectory]),
+    // new CleanWebpackPlugin([outputDirectory]),
+    new CleanWebpackPlugin(),
     new HtmlWebpackPlugin({
       template: './public/index.html',
       favicon: './public/favicon-96x96.png'

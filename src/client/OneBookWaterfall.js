@@ -75,12 +75,18 @@ export default class OneBookWaterfall extends Component {
     return queryString.parse(_props.location.search)["p"] || "";
   }
 
+  askRerender(){
+    this.setState({
+        rerenderTick: !this.state.rerenderTick
+    })
+}
+
   componentDidMount() {
     this.sendExtract();
 
     if (!isMobile()) {
       screenfull.onchange(() => {
-        this.forceUpdate();
+        this.askRerender();
       });
     }
   }
@@ -111,7 +117,7 @@ export default class OneBookWaterfall extends Component {
 
       this.setState({ imageFiles, musicFiles, path, fileStat: stat, zipInfo });
     } else {
-      this.forceUpdate();
+      this.askRerender();
     }
   }
 
@@ -187,7 +193,7 @@ export default class OneBookWaterfall extends Component {
     </div>);
 
     if (_.isEmpty(imageFiles) && _.isEmpty(musicFiles)) {
-      if (this.res && !this.refs.failed) {
+      if (this.res && !this.res.isFailed()) {
         return (<h3>
           <center style={{ paddingTop: "200px" }}>
             <div className="alert alert-warning col-6" role="alert" > No image or music file </div>

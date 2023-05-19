@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import './style/ErrorPage.scss';
 import LoginPage from "./LoginPage";
+const _ = require("underscore");
 
 
 export default class ErrorPage extends Component {
@@ -15,7 +16,7 @@ export default class ErrorPage extends Component {
             text = "The backend server did not start.";
         } else if (res.isFailed() && res.json.reason) {
             status = "ERROR"
-            statusText = res.json.reason;
+            statusText = _.isString(res.json.reason)? res.json.reason: ""
             text = filePath;
         } else if (status === 404 && filePath) {
             text = `Could not find ${filePath}.`;

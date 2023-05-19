@@ -10,13 +10,8 @@ const { isSub, isExist } = pathUtil;
 const rootPath = pathUtil.getRootPath();
 
 let thumbnail_db_path = path.join(rootPath, userConfig.workspace_name, "thumbnail_sql_db.db");
-const sqlite3 = require('sqlite3').verbose();
-const sqlDb = new sqlite3.Database(thumbnail_db_path);
-
-const _util = require('util');
-sqlDb.allSync = _util.promisify(sqlDb.all).bind(sqlDb);
-sqlDb.getSync = _util.promisify(sqlDb.get).bind(sqlDb);
-sqlDb.runSync = _util.promisify(sqlDb.run).bind(sqlDb);
+const dbCommon = require("./dbCommon");
+const sqlDb = dbCommon.getSQLInstance(thumbnail_db_path);
 
 module.exports.init = async ()=> {
     await sqlDb.runSync(`CREATE TABLE IF NOT EXISTS thumbnail_table (filePath TEXT, thumbnailFileName TEXT);
@@ -52,16 +47,11 @@ async function syncInternalDict(){
     })
 }
 
-module.exports.updateThumbnail = async function (oldfilePath, newfilePath) {
-    const sql2 = `UPDATE thumbnail_table SET filePath = ? WHERE filePath = ?`;
-    await sqlDb.runSync(sql2, [newfilePath, oldfilePath])
-
-    _internal_dict_[newfilePath] = _internal_dict_[oldfilePath]
-}
-
 module.exports.deleteThumbnail = function (filePath) {
     const sql2 = `DELETE FROM  thumbnail_table WHERE filePath = ?`;
-    sqlDb.runSync(sql2, [filePath])
+    sqlDb.runSync(sql2, [filePath]);
+    //不删除文件，避免部分的bug
+    //文件占的空间很小，无所谓
 }
 
 async function clean(){
@@ -112,7 +102,6 @@ async function clean(){
 //multiple
 module.exports.getThumbnailArr = function (filePathes) {
     filePathes = _.isString(filePathes) ? [filePathes] : filePathes;
-    filePathes = filePathes.filter(isCompress);
 
     // const joinStr = filePathes.join(" ");
     //todo: slow for large number
@@ -129,6 +118,16 @@ module.exports.getThumbnailArr = function (filePathes) {
 
     let rows = filePathes.map(e => _internal_dict_[e]);
     rows = rows.filter(e => !!e);
+    rows = _add_col(rows);
+    return rows;
+}
+
+//multiple
+module.exports.getThumbnailByFileName = async function (fileName) {
+    // filePathes = _.isString(filePathes) ? [filePathes] : filePathes;
+
+    const sql = `SELECT * FROM  thumbnail_table WHERE filePath LIKE '%${fileName}'  `;
+    let rows = await sqlDb.allSync(sql);
     rows = _add_col(rows);
     return rows;
 }

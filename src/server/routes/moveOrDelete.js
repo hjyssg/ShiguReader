@@ -6,6 +6,8 @@ const isWindows = require('is-windows');
 const express = require('express');
 const router = express.Router();
 const logger = require("../logger");
+const thumbnailDb = require("../models/thumbnailDb");
+const zipInfoDb = require("../models/zipInfoDb");
 
 const pathUtil = require("../pathUtil");
 const {
@@ -65,15 +67,14 @@ router.post('/api/moveFile', serverUtil.asyncWrapper(async (req, res) => {
         return;
     }
 
-    const destFP = path.resolve(dest, path.basename(src));
-    if (await isExist(destFP)) {
-        res.send({ failed: true, reason: `duplicate file already in ${dest}` });
+    if (!await isExist(src)) {
+        res.send({ failed: true, reason: `${src} does not exist` });
         return;
     }
 
-
-    if (!(await isExist(src))) {
-        res.send({ failed: true, reason: src + " is missing" });
+    const destFP = path.resolve(dest, path.basename(src));
+    if (await isExist(destFP)) {
+        res.send({ failed: true, reason: `duplicate file already in ${dest}` });
         return;
     }
 
@@ -86,6 +87,9 @@ router.post('/api/moveFile', serverUtil.asyncWrapper(async (req, res) => {
             }
         }
 
+        const thumbRows = thumbnailDb.getThumbnailArr(src);
+        const zipInfoRows = zipInfoDb.getZipInfo(src);
+
         const cmdStr = isWindows() ? "move" : "mv";
         const { stdout, stderr } = await execa(cmdStr, [src, dest]);
         err = stderr;
@@ -93,7 +97,16 @@ router.post('/api/moveFile', serverUtil.asyncWrapper(async (req, res) => {
         if (err) { throw err; }
 
         // logger.info(`[MOVE] ${src} to ${dest}`);
-
+        // 回收thumbnail
+        if(thumbRows[0]){
+            thumbnailDb.addNewThumbnail(destFP, thumbRows[0].thumbnailFilePath)
+        }
+        //和zipinfo
+        const tempZinInfo = zipInfoRows[0];
+        if(tempZinInfo){
+            tempZinInfo.filePath = destFP;
+            zipInfoDb.updateZipDb_v2(tempZinInfo);
+        }
         res.send({ failed: false, dest: destFP });
 
         serverUtil.common.moveCallBack(src, dest);

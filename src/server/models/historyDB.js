@@ -9,13 +9,8 @@ const pathUtil = require("../pathUtil");
 const userConfig = global.requireUserConfig();
 const rootPath = pathUtil.getRootPath();
 const history_db_path = path.join(rootPath, userConfig.workspace_name, "history_sql_db.db");
-const sqlite3 = require('sqlite3').verbose();
-const sqlDb = new sqlite3.Database(history_db_path);
-
-const _util = require('util');
-sqlDb.allSync = _util.promisify(sqlDb.all).bind(sqlDb);
-sqlDb.getSync = _util.promisify(sqlDb.get).bind(sqlDb);
-sqlDb.runSync = _util.promisify(sqlDb.run).bind(sqlDb);
+const dbCommon = require("./dbCommon");
+const sqlDb = dbCommon.getSQLInstance(history_db_path);
 
 module.exports.init = async ()=> {
     // 记录打开文件
@@ -37,7 +32,16 @@ module.exports.getSQLDB = function () {
     return sqlDb;
 }
 
+// cache内部的不记录
+function noNeedRecord(filePath){
+    return global.cachePath && pathUtil.isSub(global.cachePath, filePath);
+}
+
 module.exports.addOneRecord = function (filePath) {
+    if(noNeedRecord(filePath)){
+        return;
+    }
+
     const time = util.getCurrentTime()
     const fileName = path.basename(filePath);
     const dirPath = path.dirname(filePath);
@@ -47,6 +51,9 @@ module.exports.addOneRecord = function (filePath) {
 }
 
 module.exports.addOneLsDirRecord = function (filePath) {
+    if(noNeedRecord(filePath)){
+        return;
+    }
     const time = util.getCurrentTime()
     sql = "INSERT INTO lsdir_history_table(filePath, time ) values(?, ?)";
     sqlDb.run(sql, filePath, time);
@@ -87,18 +94,19 @@ module.exports.getHistoryByFP = async function (fileName) {
     //              (SELECT * FROM history_table where time > ?)  
     //             GROUP BY strftime('%d-%m-%Y', datetime(time/1000, 'unixepoch')) ORDER BY time DESC`
 
-    const sql = `SELECT filePath, Max(time) as time FROM
-     (SELECT * FROM history_table where fileName = ?)  
-     GROUP BY strftime('%d-%m-%Y', datetime(time/1000, 'unixepoch')) ORDER BY time DESC`
+    // const sql = `SELECT filePath, Max(time) as time FROM
+    //  (SELECT * FROM history_table where fileName = ?)  
+    //  GROUP BY strftime('%d-%m-%Y', datetime(time/1000, 'unixepoch')) ORDER BY time DESC`
+    const sql = `SELECT * FROM history_table where fileName = ? ORDER BY time DESC`
     let rows = await sqlDb.allSync(sql, [fileName]);
     return rows;
 }
 
 
-const quick_access_day = 10;
-module.exports.getQuickAccess = async function () {
+const recent_access_day = 10;
+module.exports.getRecentAccess = async function () {
     let time = util.getCurrentTime();
-    time = time - 1000 * 3600 * 24 * quick_access_day;
+    time = time - 1000 * 3600 * 24 * recent_access_day;
     const sql = `
         SELECT filePath, count(filePath) AS count 
         FROM lsdir_history_table 

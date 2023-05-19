@@ -39,18 +39,10 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "dev backend server",
+            "name": "main server",
             "program": "${workspaceFolder}\\src\\server\\index.js",
             "args": [
-                "--dev"
-            ]
-        },
-        {
-            "type": "node",
-            "request": "launch",
-            "name": "production server",
-            "program": "${workspaceFolder}\\src\\server\\index.js",
-            "args": [
+                // "--port" ,"5000", 
             ]
         },
         {
@@ -59,15 +51,6 @@
             "name": "sub server",
             "program": "${workspaceFolder}\\src\\server\\_sub_server.js",
             "args": [
-            ]
-        },
-        {
-            "type": "node",
-            "request": "launch",
-            "name": "server on mac",
-            "program": "${workspaceFolder}/src/server/index.js",
-            "args": [
-                "--dev"
             ]
         }
     ]

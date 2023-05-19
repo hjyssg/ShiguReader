@@ -17,6 +17,8 @@ import { GlobalContext } from './globalContext'
 const util = require("@common/util");
 const classNames = require('classnames');
 import Pagination from './subcomponent/Pagination';
+import ThumbnailPopup from './subcomponent/ThumbnailPopup';
+
 
 
 function renderHistory(history) {
@@ -44,6 +46,8 @@ function renderHistory(history) {
             const toUrl = util.isVideo(filePath)? 
                           clientUtil.getVideoPlayerLink(filePath) : 
                           clientUtil.getOneBookLink(filePath);
+            const itemTimeStr = dateFormat(new Date(e.time), "yyyy/mm/dd HH:MM");
+            const tooltip = `${filePath}\n${itemTimeStr}`
 
             const cn = classNames("icon", {
                 "far fa-file-video": util.isVideo(filePath),
@@ -53,10 +57,12 @@ function renderHistory(history) {
 
             return (
                 <Link to={toUrl} key={filePath + ii} className={"history-link"}>
-                    <div className="history-one-line-list-item" key={filePath}>
-                        <span className={cn} /> 
-                        <span className="file-text" title={filePath}> {getBaseName(filePath)||filePath}</span>
-                    </div>
+                    <ThumbnailPopup filePath={filePath}>
+                        <div className="history-one-line-list-item" key={filePath}>
+                            <span className={cn} /> 
+                            <span className="file-text" title={tooltip}> {getBaseName(filePath)||filePath}</span>
+                        </div>
+                    </ThumbnailPopup>
                 </Link>);
 
         })
@@ -84,7 +90,7 @@ function renderHistory(history) {
 export default class HistoryPage extends Component {
     constructor(prop) {
         super(prop);
-        this.state = { pageIndex: 0, totalCount: 0 };
+        this.state = { pageIndex: 1, totalCount: 0 };
     }
 
     componentDidMount() {
@@ -92,7 +98,7 @@ export default class HistoryPage extends Component {
     }
 
     requestHistory(pageIndex) {
-        Sender.post("/api/getHistory", {page: pageIndex}, res => {
+        Sender.post("/api/getHistory", {page: pageIndex-1}, res => {
             let { rows, count } = res.json;
             let history = rows || [];
             history.forEach(e => {

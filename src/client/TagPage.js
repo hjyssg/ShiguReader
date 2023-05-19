@@ -91,6 +91,12 @@ export default class TagPage extends Component {
     return null;
   }
 
+  askRerender(){
+    this.setState({
+        rerenderTick: !this.state.rerenderTick
+    })
+  }
+
   async requestAuthors(){
     let res = await Sender.postWithPromise('/api/get_authors', { needThumbnail: true })
     if (!res.isFailed()) {
@@ -100,7 +106,7 @@ export default class TagPage extends Component {
       this.setState({ loaded: true });
     } else {
       this.res = res;
-      this.forceUpdate();
+      this.askRerender();
     }
   }
 
@@ -113,7 +119,7 @@ export default class TagPage extends Component {
       this.setState({ loaded: true });
     } else {
       this.res = res;
-      this.forceUpdate();
+      this.askRerender();
     }
   }
 

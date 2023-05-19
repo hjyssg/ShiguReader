@@ -97,6 +97,7 @@ router.post('/api/isAbleToMinify', serverUtil.asyncWrapper(async (req, res) => {
 
     if (!filePath || !(await isExist(filePath))) {
         res.send({ failed: true, reason: "NOT FOUND" });
+        return;
     }
 
     let text = await imageMagickHelp.isConertable(filePath);

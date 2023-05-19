@@ -43,7 +43,7 @@ export default class LoadingImage extends Component {
     }else if (!this.state.url) {
       return true;
     } else {
-      if (this.state.url === "NOT_THUMBNAIL_AVAILABLE") {
+      if (this.state.url === "NO_THUMBNAIL_AVAILABLE") {
         return this.isAuthorTagMode();
       } else {
         return false;
@@ -104,7 +104,7 @@ export default class LoadingImage extends Component {
   }
 
   isUrlAvaible() {
-    return this.state.url && this.state.url !== "NOT_THUMBNAIL_AVAILABLE";
+    return this.state.url && this.state.url !== "NO_THUMBNAIL_AVAILABLE";
   }
 
   render() {

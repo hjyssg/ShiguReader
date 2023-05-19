@@ -23,6 +23,7 @@ import Cookie from "js-cookie";
 import 'react-toastify/dist/ReactToastify.css';
 import { GlobalContext } from './globalContext'
 import Sender from './Sender';
+const nameParser = require('@name-parser');
 
 
 // http://localhost:3000/
@@ -44,15 +45,24 @@ class App extends Component {
     }
 
     async askServer() {
-         //save result to session storage
-        const res = await Sender.getWithPromise('/api/getGeneralInfo');
-        if (!res.isFailed()) {
-            let data = res.json;
+        this.getParseCache();
+
+        const generalRes = await Sender.getWithPromise('/api/getGeneralInfo');
+        if (!generalRes.isFailed()) {
+            let data = generalRes.json;
             this.setState({
                 context: data
             });
             sessionStorage.setItem('GeneralInfo', JSON.stringify(data));
-            // Cookie.set('GeneralInfo', JSON.stringify(data), { expires: 1/(24/3) });
+        }
+    }
+
+    async getParseCache(){
+        const parseCacheRes = await Sender.getWithPromise('/api/getParseCache/');
+        if (!parseCacheRes.isFailed()) {
+            console.time("setLocalCache");
+            nameParser.setLocalCache(parseCacheRes.json)
+            console.timeEnd("setLocalCache");
         }
     }
 
@@ -92,17 +102,23 @@ class App extends Component {
         }
     }
 
+    askRerender(){
+        this.setState({
+            rerenderTick: !this.state.rerenderTick
+        })
+    }
+
     onSearchClick(event) {
         this.searchText = getSearchInputText();
         if (this.searchText.trim) {
             this.searchText = this.searchText.trim();
         }
-        this.forceUpdate();
+        this.askRerender();
     }
 
     onFilterClick(event) {
         this.filterText = getSearchInputText();
-        this.forceUpdate();
+        this.askRerender();
     }
 
     RenderSubComponent() {
@@ -159,7 +175,12 @@ class App extends Component {
 
     render() {
         if (this.state.hasError){
-            return "Critical Error. Please check F12";   
+            return   (<div className="app-container">
+                <div className='critical-error'>
+                    Web Error. 
+                    Please check F12 to debug.
+                </div>
+             </div> ) 
         }
 
         // document.title = this.getWebTitle();

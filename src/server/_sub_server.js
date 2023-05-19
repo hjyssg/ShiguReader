@@ -1,5 +1,7 @@
 const express = require('express');
 const path = require('path');
+const _ = require('underscore');
+
 
 global.requireUtil = () => require("../common/util");
 global.requireUserConfig = () => require("../config/user-config");
@@ -29,10 +31,14 @@ app.use(express.static('dist', {
 // https://stackoverflow.com/questions/50304779/payloadtoolargeerror-request-entity-too-large?noredirect=1&lq=1
 app.use(express.json({limit: '50mb'}));
 
+const { program } = require('commander');
+program.option('-p, --port <number>', 'Specify the port',  34213);
+program.parse();
+const options = program.opts();
+// 懒得细看commander，不是最正确写法
+const port = _.isString(options.port)? parseInt(options.port): options.port;
+
 async function init() {
-    // todo from cmd
-    const port =  34213;
-    
     //express does not check if the port is used and remains slient
     // we need to check
     const isPortOccupied =  await serverUtil.isPortOccupied(port);
