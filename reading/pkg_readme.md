@@ -31,3 +31,38 @@ x
 
     curl -X GET http://localhost:8080/api/homePagePath
     成功
+
+
+
+
+
+
+
+
+
+ ----------------------
+ pkg
+
+ 可以自己在代码里面加console.log
+ C:\Users\**********\AppData\Roaming\npm\node_modules\pkg\prelude\bootstrap.js
+
+  process.dlopen = function dlopen() {
+    const args = cloneArgs(arguments);
+    const modulePath = revertMakingLong(args[1]);
+    const moduleBaseName = path.basename(modulePath);
+    const moduleFolder = path.dirname(modulePath);
+
+    console.log(arguments);
+    console.log(modulePath);
+    console.log(moduleBaseName);
+    console.log(moduleFolder);
+
+
+package-lock 久了要重新生成，否则会安装一堆莫名其妙没用到的东西
+明明没用到axios 却会去安装
+
+现在前后端一个分支，应该拆开简化pkg难度
+
+glob打包就炸了
+还炸在glob的依赖
+C:\\snapshot\\ShiguReader\\node_modules\\.store\\glob@9.3.5\\node_modules\\path-scurry\\dist\\mjs\\index.js.map

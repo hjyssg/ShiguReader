@@ -14,12 +14,7 @@ const { isExist } = pathUtil;
 const memorycache = require('memory-cache');
 
 let sharp;
-try {
-    sharp = require('sharp')
-} catch (e) {
-    console.error("[ERROR] did not install sharp", e);
-    console.log("-------------------------------")
-}
+
 
 const THUMBNAIL_HUGE_THRESHOLD = 2 * 1000 * 1000;  //MB
 const ONEBOOK_HUGE_THRESHOLD_REMOTE = 3 * 1000 * 1000;  // MB

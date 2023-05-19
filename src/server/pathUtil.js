@@ -10,9 +10,9 @@ const { isImage, isMusic, isVideo, isDisplayableInOnebook } = util;
 const cache_folder_name = userConfig.cache_folder_name;
 const pfs = require('promise-fs');
 
-let rootPath = path.resolve(process.cwd()); // path.join(__dirname, "..", "..");
+let rootPath = path.join(__dirname, "..", "..");
 if (isWindows()) {
-    rootPath = rootPath.charAt(0).toUpperCase() + rootPath.slice(1)
+    rootPath = "X:\\git\\sexe"; // rootPath.charAt(0).toUpperCase() + rootPath.slice(1)
 }
 const getRootPath = function () {
     return rootPath;

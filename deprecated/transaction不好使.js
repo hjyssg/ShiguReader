@@ -53,12 +53,13 @@ const cacheDb = require("./models/cacheDb");
 // const isDev = process.argv.includes("--dev");
 // const isProduction = !isDev;
 
-console.log("------path helper--------------");
-console.log("__filename", __filename);
-console.log("__dirname", __dirname);
-console.log("rootPath", rootPath);
-console.log("process.cwd()", process.cwd());
-console.log("----------------------");
+// console.log("------path helper--------------");
+// console.log("isProduction", isProduction)
+// console.log("process.cwd()", process.cwd());
+// console.log("__filename", __filename);
+// console.log("__dirname", __dirname);
+// console.log("rootPath", rootPath);
+// console.log("----------------------");
 
 const logger = require("./logger");
 const { searchByTagAndAuthor } = require("./searchUtil");
@@ -93,7 +94,6 @@ app.use(cookieParser())
 let etc_config = {};
 let path_config;
 try {
-    console.log("read ini....")
     const etf_config_path = path.resolve(rootPath, "config-etc.ini");
     let fcontent = fs.readFileSync(etf_config_path, 'utf-8');
     etc_config = ini.parse(fcontent);
@@ -105,7 +105,6 @@ try {
     const fContent1 = fs.readFileSync(path_config_path).toString();
     path_config = ini.parse(fContent1);
 
-    console.log("read done ")
     // console.log(path_config_path);
 } catch (e) {
     //nothing
@@ -218,8 +217,26 @@ async function init() {
         }
         will_scan = will_scan.filter(e => e !== "_to_remove_");
 
+        const sqldb = db.getSQLDB();
+        await sqldb.runSync('BEGIN TRANSACTION');
+
         //todo: chokidar will slow the server down very much when it init async
-        setUpFileWatch(will_scan);
+        const hdd2path = {};
+        will_scan.forEach(e => {
+            const key = e.substr(0, 2);
+            hdd2path[key] =  hdd2path[key] || [];
+            hdd2path[key].push(e)
+        });
+
+        for(let hdd in hdd2path){
+            if(hdd2path.hasOwnProperty(hdd)){
+                const tempArr = hdd2path[hdd];
+                console.log(tempArr);
+                setUpFileWatch(tempArr);
+            }
+        }
+
+        // setUpFileWatch(will_scan);
     }).on('error', (error) => {
         logger.error("[Server Init]", error.message);
         //exit the current program
@@ -368,7 +385,12 @@ function setUpFileWatch(scan_path) {
     //about 1s for 1000 files
     watcher.on('ready', async () => {
         is_chokidar_scan_done = true;
+
+        const sqldb = db.getSQLDB();
+        await sqldb.runSync('COMMIT');
+
         db.createSqlIndex();
+
 
         // DEBUG数据多少
         // setTimeout(async () => {
