@@ -34,6 +34,7 @@ const thumbnailFolderPath = path.join(rootPath, thumbnail_folder_name);
 global.thumbnailFolderPath = thumbnailFolderPath;
 global.cachePath = cachePath;
 const indexHtmlPath = path.resolve(rootPath, "dist", "index.html");
+const bundleJsPath = path.resolve(rootPath, "dist", "bundle.js");
 const distPath = path.resolve(rootPath, "dist");
 
 
@@ -61,7 +62,9 @@ console.log("__filename", __filename);
 console.log("__dirname", __dirname);
 console.log("rootPath", rootPath);
 console.log("process.cwd()", process.cwd());
+console.log("distPath", distPath);
 console.log("indexHtmlPath", indexHtmlPath);
+console.log("bundleJsPath", bundleJsPath);
 console.log("----------------------");
 
 const logger = require("./logger");
@@ -72,7 +75,7 @@ const { listZipContentAndUpdateDb, extractAll, extractByRange } = sevenZipHelp;
 
 
 const app = express();
-// http://localhost:3000/videoPlayer/bundle.js 不回去handle？
+// http://localhost:3000/videoPlayer/bundle.js 不去handle？
 app.use(express.static(distPath, {
     maxAge: (1000 * 3600).toString()
 }));
@@ -492,7 +495,7 @@ async function getThumbnailForFolders(filePathes) {
         }
     
         let end = getCurrentTime();
-        console.log(`[getThumbnailForFolders] ${(end - beg)}ms for ${filePathes.length} zips`);
+        // console.log(`[getThumbnailForFolders] ${(end - beg)}ms for ${filePathes.length} zips`);
     }catch(e){
         console.error("[getThumbnailForFolders]", e);
     }
@@ -547,11 +550,17 @@ serverUtil.common.isAlreadyScan = isAlreadyScan;
 // 前端路由需要redirect到index.html
 //所有api都不需要转发
 app.get('/*', (req, res, next) => {
-    if (req.path && req.path.includes("/api/")){
+    const pp = req.path || "";
+    if (pp && pp.includes("/api/")){
         next();
     }else{
-        res.setHeader('Cache-Control', 'public, max-age=3047');
-        res.sendFile(indexHtmlPath);
+        if(pp.endsWith("bundle.js")){
+            // res.setHeader('Cache-Control', 'public, max-age=3047');
+            res.sendFile(bundleJsPath);
+        }else{
+            res.setHeader('Cache-Control', 'public, max-age=3047');
+            res.sendFile(indexHtmlPath);
+        }
     }
 })
 

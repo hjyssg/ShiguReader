@@ -89,7 +89,7 @@ router.get('/api/download/', serverUtil.asyncWrapper(async (req, res) => {
     // console.timeEnd(logLabel);
     const time2 = util.getCurrentTime();
     const timeUsed = (time2 - time1);
-    console.log(logLabel, timeUsed, "ms")
+    // console.log(logLabel, timeUsed, "ms")
 }));
 
 module.exports = router;
