@@ -20,7 +20,7 @@ const util = global.requireUtil();
 const fileiterator = require('./file-iterator');
 const pathUtil = require("./pathUtil");
 const serverUtil = require("./serverUtil");
-const { isHiddenFile, getHash, mkdir, asyncWrapper, estimateIfFolder } = serverUtil;
+const { isHiddenFile, getHash, mkdir, mkdirSync, asyncWrapper, estimateIfFolder } = serverUtil;
 
 const { generateContentUrl, isExist, filterPathConfig, isSub } = pathUtil;
 const { isImage, isCompress, isVideo, isMusic, arraySlice,
@@ -39,28 +39,6 @@ const distPath = path.resolve(rootPath, "dist");
 const etf_config_path = path.resolve(rootPath, "config-etc.ini");
 const path_config_path = path.join(rootPath, "config-path.ini");
 const workspacePath = pathUtil.getWorkSpacePath();
-
-
-
-const portConfig = require('../config/port-config');
-const { program } = require('commander');
-program.option('-p, --port <number>', 'Specify the port',  portConfig.default_http_port);
-program.parse();
-const options = program.opts();
-// 懒得细看commander，不是最正确写法
-const port = _.isString(options.port)? parseInt(options.port): options.port;
-
-const db = require("./models/db");
-
-const zipInfoDb = require("./models/zipInfoDb");
-const thumbnailDb = require("./models/thumbnailDb");
-const historyDb = require("./models/historyDb");
-const cacheDb = require("./models/cacheDb");
-
-//set up user path
-// const isDev = process.argv.includes("--dev");
-// const isProduction = !isDev;
-
 console.log("------path debug--------------");
 console.log("__filename:         ", __filename);
 console.log("__dirname:          ", __dirname);
@@ -76,20 +54,44 @@ console.log("path_config_path:   ", path_config_path);
 console.log("workspacePath:      ", workspacePath);
 console.log("-------------------------------");
 
+// 会被监视扫描的文件夹、现在既存在global也存在db。之前想做分布式server，但又算了。
+global.SCANED_PATH = [];
+
+// mkdir
+mkdirSync(workspacePath);
+mkdirSync(thumbnailFolderPath);
+mkdirSync(cachePath);
+mkdirSync(pathUtil.getImgConverterCachePath());
+mkdirSync(pathUtil.getZipOutputCachePath());
+
 const logger = require("./logger");
 const { searchByTagAndAuthor } = require("./searchUtil");
 
 const sevenZipHelp = require("./sevenZipHelp");
 const { listZipContentAndUpdateDb, extractAll, extractByRange } = sevenZipHelp;
 
+// 从用户命令拿port
+const portConfig = require('../config/port-config');
+const { program } = require('commander');
+program.option('-p, --port <number>', 'Specify the port',  portConfig.default_http_port);
+program.parse();
+const options = program.opts();
+const port = _.isString(options.port)? parseInt(options.port): options.port; // 懒得细看commander，不是最正确写法
+
+// DB import
+const db = require("./models/db");
+const zipInfoDb = require("./models/zipInfoDb");
+const thumbnailDb = require("./models/thumbnailDb");
+const historyDb = require("./models/historyDb");
+const cacheDb = require("./models/cacheDb");
+
 
 const app = express();
-// http://localhost:3000/videoPlayer/bundle.js 不去handle？
 app.use(express.static(distPath, {
     maxAge: (1000 * 3600).toString()
 }));
 app.use(express.static(rootPath, {
-    maxAge: (1000 * 3600 * 24).toString() // uses milliseconds per docs
+    maxAge: (1000 * 3600).toString() // uses milliseconds per docs
 }));
 
 //  to consume json request body
@@ -97,9 +99,8 @@ app.use(express.static(rootPath, {
 // https://stackoverflow.com/questions/50304779/payloadtoolargeerror-request-entity-too-large?noredirect=1&lq=1
 app.use(express.json({limit: '50mb'}));
 
-var cookieParser = require('cookie-parser')
+const cookieParser = require('cookie-parser')
 app.use(cookieParser())
-
 
 //read etc config
 let etc_config = {};
@@ -128,15 +129,7 @@ async function getIP(){
     return mobileAddress;
 }
 
-let scan_path;
 async function init() {
-    // mkdir
-    await mkdir(workspacePath);
-    await mkdir(thumbnailFolderPath);
-    await mkdir(cachePath);
-    await mkdir(pathUtil.getImgConverterCachePath());
-    await mkdir(pathUtil.getZipOutputCachePath());
-
     if (isWindows()) {
         const { stdout, stderr } = await execa("chcp");
         // console.log("[chcp]", stdout);
@@ -161,8 +154,6 @@ async function init() {
     await thumbnailDb.init();
     await historyDb.init();
     await zipInfoDb.init();
-
- 
     
     //express does not check if the port is used and remains slient
     // we need to check
@@ -178,11 +169,12 @@ async function init() {
             ...global,
             ...filterPathConfigObj
         };
-        scan_path = filterPathConfigObj.scan_path;
+        let scan_path = filterPathConfigObj.scan_path;
 
-
-        await mkdirList(scan_path)
+        serverUtil.mkdirList(scan_path)
         scan_path = await pathUtil.filterNonExist(scan_path);
+
+        global.SCANED_PATH = scan_path;
         db.insertScanPath(scan_path)
 
         const cleanCache = require("../tools/cleanCache");
@@ -220,17 +212,6 @@ async function init() {
         //exit the current program
         process.exit(22);
     });
-}
-
-async function mkdirList(scan_path){
-    const mkdirArr = scan_path;
-    for (let ii = 0; ii < mkdirArr.length; ii++) {
-        const fp = mkdirArr[ii];
-        if (!isWindows() && util.isWindowsPath(fp)) {
-            continue;
-        }
-        await mkdir(fp, "quiet");
-    }
 }
 
 
@@ -347,8 +328,6 @@ function setUpFileWatch(scan_path) {
             }
         }
     };
-
-
 
     watcher
         .on('add', addCallBack)
@@ -522,7 +501,7 @@ async function getStat(filePath) {
 }
 
 function isAlreadyScan(dir) {
-    return scan_path.some(sp => {
+    return global.SCANED_PATH.some(sp => {
         return sp === dir || pathUtil.isSub(sp, dir);
     });
 }
@@ -1128,7 +1107,6 @@ app.get('/api/getGeneralInfo', asyncWrapper(async (req, res) => {
             not_good_folder: global.not_good_folder,
             move_pathes: global.move_pathes,
             recentAccess: global.recentAccess 
-
         };
         
         memorycache.put(cacheKey, result, 30 * 1000)

@@ -4,6 +4,7 @@ const stringHash = require("string-hash");
 const nameParser = require('../name-parser');
 const sortUtil = require("../common/sortUtil");
 const { isImage, isCompress } = util;
+const fs = require('fs');
 
 const userConfig = global.requireUserConfig();
 
@@ -121,6 +122,28 @@ module.exports.mkdir = async function (path, quiet) {
                 throw err;
             }
         }
+    }
+}
+
+module.exports.mkdirSync = (path, quiet) => {
+    if (path && !fs.existsSync(path)) {
+        try {
+            fs.mkdirSync(path, { recursive: true });
+        } catch (err) {
+            if (!quiet) {
+                throw err;
+            }
+        }
+    }
+}
+
+module.exports.mkdirList = (mkdirArr) => {
+    for (let ii = 0; ii < mkdirArr.length; ii++) {
+        const fp = mkdirArr[ii];
+        if (!isWindows() && util.isWindowsPath(fp)) {
+            continue;
+        }
+        mkdirSync(fp, "quiet");
     }
 }
 
