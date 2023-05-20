@@ -9,7 +9,7 @@ const { isCompress, isVideo, getCurrentTime } = util;
 const { isSub, isExist } = pathUtil;
 const rootPath = pathUtil.getRootPath();
 
-let thumbnail_db_path = path.join(rootPath, userConfig.workspace_name, "thumbnail_sql_db.db");
+let thumbnail_db_path = path.join(pathUtil.getWorkSpacePath(), "thumbnail_sql_db.db");
 const dbCommon = require("./dbCommon");
 const sqlDb = dbCommon.getSQLInstance(thumbnail_db_path);
 

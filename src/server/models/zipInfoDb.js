@@ -6,35 +6,7 @@ const userConfig = global.requireUserConfig();
 const path = require('path');
 const pathUtil = require("../pathUtil");
 
-const rootPath = pathUtil.getRootPath();
-// const Loki = require("lokijs");
-// let loki_db;
-// let zip_content_db;
-// let zip_content_db_path = path.join(rootPath, userConfig.workspace_name, "zip_info");
-
-// implement the autoloadback referenced in loki constructor
-// function databaseInitialize() {
-//     zip_content_db = loki_db.getCollection("zipInfo");
-//     if (zip_content_db === null) {
-//         zip_content_db = loki_db.addCollection("zipInfo", { indices: ['filePath'] });
-//     }
-//     const entryCount = zip_content_db.count();
-//     console.log("[zipInfoDb] number of entries in database : " + entryCount);
-
-//     const entries = zip_content_db.find();
-//     entries.forEach(e => {
-//         updateZipDb(e);
-//     })
-// }
-
-// loki_db = new Loki(zip_content_db_path, {
-//     autoload: true,
-//     autoloadCallback: databaseInitialize,
-//     autosave: true,
-//     autosaveInterval: 4000
-// });
-
-let zip_sql_path = path.join(rootPath, userConfig.workspace_name, "zip_info_sql.db");
+let zip_sql_path = path.join(pathUtil.getWorkSpacePath(), "zip_info_sql.db");
 const dbCommon = require("./dbCommon");
 const sqlDb = dbCommon.getSQLInstance(zip_sql_path);
 

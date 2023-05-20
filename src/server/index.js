@@ -38,6 +38,7 @@ const bundleJsPath = path.resolve(rootPath, "dist", "bundle.js");
 const distPath = path.resolve(rootPath, "dist");
 const etf_config_path = path.resolve(rootPath, "config-etc.ini");
 const path_config_path = path.join(rootPath, "config-path.ini");
+const workspacePath = pathUtil.getWorkSpacePath();
 
 
 
@@ -60,18 +61,20 @@ const cacheDb = require("./models/cacheDb");
 // const isDev = process.argv.includes("--dev");
 // const isProduction = !isDev;
 
-console.log("------path helper--------------");
-console.log("__filename", __filename);
-console.log("__dirname", __dirname);
-console.log("process.execPath", process.execPath);
-console.log("rootPath", rootPath);
-console.log("process.cwd()", process.cwd());
-console.log("distPath", distPath);
-console.log("indexHtmlPath", indexHtmlPath);
-console.log("bundleJsPath", bundleJsPath);
-console.log("etf_config_path", etf_config_path);
-console.log("path_config_path", path_config_path);
-console.log("----------------------");
+console.log("------path debug--------------");
+console.log("__filename:         ", __filename);
+console.log("__dirname:          ", __dirname);
+console.log("process.execPath:   ", process.execPath);
+console.log("process.cwd():      ", process.cwd());
+console.log("process.pkg:        ", !!process.pkg)
+console.log("rootPath:           ", rootPath);
+console.log("distPath:           ", distPath);
+console.log("indexHtmlPath:      ", indexHtmlPath);
+console.log("bundleJsPath:       ", bundleJsPath);
+console.log("etf_config_path:    ", etf_config_path);
+console.log("path_config_path:   ", path_config_path);
+console.log("workspacePath:      ", workspacePath);
+console.log("-------------------------------");
 
 const logger = require("./logger");
 const { searchByTagAndAuthor } = require("./searchUtil");
@@ -102,21 +105,19 @@ app.use(cookieParser())
 let etc_config = {};
 let path_config;
 try {
-    console.log("read ini....")
-  
+    // console.log("read ini....")
     let fcontent = fs.readFileSync(etf_config_path, 'utf-8');
     etc_config = ini.parse(fcontent);
     global.etc_config = etc_config;
-
     // console.log(etf_config_path);
 
     const fContent1 = fs.readFileSync(path_config_path).toString();
     path_config = ini.parse(fContent1);
-
-    console.log("read done ")
+    // console.log("read done ")
     // console.log(path_config_path);
 } catch (e) {
     //nothing
+    console.warn("fail to read ini files")
     console.warn(e);
 }
 
@@ -129,6 +130,8 @@ async function getIP(){
 
 let scan_path;
 async function init() {
+    await mkdir(workspacePath);
+
     if (isWindows()) {
         const { stdout, stderr } = await execa("chcp");
         // console.log("[chcp]", stdout);

@@ -10,10 +10,16 @@ const { isImage, isMusic, isVideo, isDisplayableInOnebook } = util;
 const cache_folder_name = userConfig.cache_folder_name;
 const pfs = require('promise-fs');
 
+// 重要的path计算，关于所有文件的 读取
 let rootPath = path.join(__dirname, "..", "..");
-if (isWindows()) {
-    rootPath = "X:\\git\\sexe"; // rootPath.charAt(0).toUpperCase() + rootPath.slice(1)
+const isPkg = process.pkg;
+if(isPkg){
+    rootPath = path.dirname(process.execPath);
 }
+// if (isWindows()) {
+//     rootPath = rootPath.charAt(0).toUpperCase() + rootPath.slice(1);
+// }
+
 const getRootPath = function () {
     return rootPath;
 }
@@ -190,13 +196,17 @@ async function filterPathConfig(path_config) {
     };
 }
 
+function getWorkSpacePath(){
+    return  path.join(getRootPath(), userConfig.workspace_name);
+}
+
 function getImgConverterCachePath() {
-    const imgConvertFolder = path.join(getRootPath(), userConfig.workspace_name, userConfig.img_convert_cache);
+    const imgConvertFolder = path.join(getWorkSpacePath(), userConfig.img_convert_cache);
     return imgConvertFolder;
 }
 
 function getZipOutputCachePath() {
-    return path.join(getRootPath(), userConfig.workspace_name, userConfig.zip_output_cache);
+    return path.join(getWorkSpacePath(), userConfig.zip_output_cache);
 }
 
 //递归文件夹，结果存在resultArr
@@ -232,5 +242,6 @@ module.exports = {
     getImgConverterCachePath,
     getZipOutputCachePath,
     removeLastPathSep,
-    readdirRecursive
+    readdirRecursive,
+    getWorkSpacePath
 };

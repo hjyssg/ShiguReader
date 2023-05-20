@@ -6,9 +6,7 @@ const { getCurrentTime } = util;
 const pathUtil = require("../pathUtil");
 // const serverUtil = require("../serverUtil");
 
-const userConfig = global.requireUserConfig();
-const rootPath = pathUtil.getRootPath();
-const history_db_path = path.join(rootPath, userConfig.workspace_name, "history_sql_db.db");
+const history_db_path = path.join(pathUtil.getWorkSpacePath(), "history_sql_db.db");
 const dbCommon = require("./dbCommon");
 const sqlDb = dbCommon.getSQLInstance(history_db_path);
 
