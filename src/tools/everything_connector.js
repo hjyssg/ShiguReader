@@ -45,22 +45,22 @@ function parseResult(json, config) {
 }
 
 module.exports.searchByText = async function (text, config) {
-    try {
-        const port = config.port;
-        const tt = encodeURIComponent(text);
-        const uri = `http://localhost:${port}/?search="${tt}"&offset=0&json=1&path_column=1&size_column=1&date_modified_column=1`;
+    // try {
+    //     const port = config.port;
+    //     const tt = encodeURIComponent(text);
+    //     const uri = `http://localhost:${port}/?search="${tt}"&offset=0&json=1&path_column=1&size_column=1&date_modified_column=1`;
 
-        const rp = require('request-promise');
-        const json = await rp({
-            uri,
-            timeout: 3000,
-            json: true
-        });
-        return parseResult(json, config);
-    } catch (e) {
-        console.error(e);
-        return null;
-    }
+    //     const rp = require('request-promise');
+    //     const json = await rp({
+    //         uri,
+    //         timeout: 3000,
+    //         json: true
+    //     });
+    //     return parseResult(json, config);
+    // } catch (e) {
+    //     console.error(e);
+    //     return null;
+    // }
 
 }
 

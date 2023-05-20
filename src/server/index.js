@@ -84,11 +84,6 @@ var cookieParser = require('cookie-parser')
 app.use(cookieParser())
 
 
-
-// const jsonfile = require('jsonfile');
-// let temp_json_path = path.join(rootPath, userConfig.workspace_name, "temp_json_info.json");
-
-
 //read etc config
 let etc_config = {};
 let path_config;
