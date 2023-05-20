@@ -2,7 +2,9 @@ var resolve = require('path').resolve
 var bin = require('./package').bin
 
 module.exports = map_obj(bin, function(v){
-  return resolve(__dirname, v)
+  let result = resolve(__dirname, v);
+  console.log("[DEBUG] 7Zpath", result);
+  return result;
 })
 
 function map_obj(obj, fn){
