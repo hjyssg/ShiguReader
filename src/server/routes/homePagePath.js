@@ -58,7 +58,7 @@ router.get('/api/homePagePath', serverUtil.asyncWrapper(async (req, res) => {
 
     // quick Access
     let quickAccess = global.quick_access_pathes;
-    quickAccess.push(downloadFolder);
+    // quickAccess.push(downloadFolder);
     //不要和其他项目重复
     quickAccess = quickAccess.filter(e => {
         return !containPath(dirs, e) && !containPath(hdd_list, e);

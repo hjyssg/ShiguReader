@@ -33,6 +33,9 @@ const cachePath = path.join(rootPath, cache_folder_name);
 const thumbnailFolderPath = path.join(rootPath, thumbnail_folder_name);
 global.thumbnailFolderPath = thumbnailFolderPath;
 global.cachePath = cachePath;
+const indexHtmlPath = path.resolve(rootPath, "dist", "index.html");
+const distPath = path.resolve(rootPath, "dist");
+
 
 const portConfig = require('../config/port-config');
 const { program } = require('commander');
@@ -58,6 +61,7 @@ console.log("__filename", __filename);
 console.log("__dirname", __dirname);
 console.log("rootPath", rootPath);
 console.log("process.cwd()", process.cwd());
+console.log("indexHtmlPath", indexHtmlPath);
 console.log("----------------------");
 
 const logger = require("./logger");
@@ -68,7 +72,8 @@ const { listZipContentAndUpdateDb, extractAll, extractByRange } = sevenZipHelp;
 
 
 const app = express();
-app.use(express.static('dist', {
+// http://localhost:3000/videoPlayer/bundle.js 不回去handle？
+app.use(express.static(distPath, {
     maxAge: (1000 * 3600).toString()
 }));
 app.use(express.static(rootPath, {
@@ -130,7 +135,6 @@ async function init() {
         global._cmd_encoding = charset;
     }
 
-    const indexHtmlPath = path.resolve(rootPath, "dist", "index.html");
     // console.log(indexHtmlPath)
     if (!(await isExist(indexHtmlPath))) {
         console.warn(`[Error] No ${indexHtmlPath} for producation`);
@@ -546,9 +550,8 @@ app.get('/*', (req, res, next) => {
     if (req.path && req.path.includes("/api/")){
         next();
     }else{
-        const as = path.resolve(rootPath, 'dist', 'index.html');
         res.setHeader('Cache-Control', 'public, max-age=3047');
-        res.sendFile(as);
+        res.sendFile(indexHtmlPath);
     }
 })
 
