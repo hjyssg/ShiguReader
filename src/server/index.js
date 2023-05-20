@@ -130,7 +130,12 @@ async function getIP(){
 
 let scan_path;
 async function init() {
+    // mkdir
     await mkdir(workspacePath);
+    await mkdir(thumbnailFolderPath);
+    await mkdir(cachePath);
+    await mkdir(pathUtil.getImgConverterCachePath());
+    await mkdir(pathUtil.getZipOutputCachePath());
 
     if (isWindows()) {
         const { stdout, stderr } = await execa("chcp");
@@ -176,11 +181,6 @@ async function init() {
         scan_path = filterPathConfigObj.scan_path;
 
 
-        //统一mkdir
-        await mkdir(thumbnailFolderPath);
-        await mkdir(cachePath);
-        await mkdir(pathUtil.getImgConverterCachePath());
-        await mkdir(pathUtil.getZipOutputCachePath());
         await mkdirList(scan_path)
         scan_path = await pathUtil.filterNonExist(scan_path);
         db.insertScanPath(scan_path)
