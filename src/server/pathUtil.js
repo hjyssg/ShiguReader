@@ -2,7 +2,6 @@ const path = require('path');
 const userConfig = global.requireUserConfig();
 const util = global.requireUtil();
 const fs = require('fs');
-const isWindows = require('is-windows');
 const _ = require('underscore');
 // const ini = require('ini');
 
@@ -16,7 +15,7 @@ const isPkg = process.pkg;
 if(isPkg){
     rootPath = path.dirname(process.execPath);
 }
-// if (isWindows()) {
+// if (global.isWindows) {
 //     rootPath = rootPath.charAt(0).toUpperCase() + rootPath.slice(1);
 // }
 
@@ -89,7 +88,7 @@ function removeLastPathSep(fp) {
 
 // 是否为子目录，性能优化版
 function isSub(parent, child) {
-    if (isWindows()) {
+    if (global.isWindows) {
         parent = parent.toLowerCase();
         child = child.toLowerCase();
     }
@@ -100,7 +99,7 @@ function isSub(parent, child) {
     // return parent && child && child.length > parent.length && child.startsWith(parent) && path.dirname(child) === parent;
 }
 
-if (isWindows()) {
+if (global.isWindows) {
     console.assert(isSub("D:\\_Happy_Lesson\\_Going_to_sort\\_not_good\\", "D:\\_Happy_Lesson\\_Going_to_sort\\_not_good\\not_good_2020"))
     console.assert(isSub("D:\\_Happy_Lesson\\_Going_to_sort\\_not_good", "D:\\_Happy_Lesson\\_Going_to_sort\\_not_good\\not_good_2020"))
 } else {

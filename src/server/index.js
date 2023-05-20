@@ -1,14 +1,14 @@
-const express = require('express');
 const path = require('path');
-
+const fs = require('fs');
+const express = require('express');
 const pfs = require('promise-fs');
 const dateFormat = require('dateformat');
 const _ = require('underscore');
-const isWindows = require('is-windows');
 const qrcode = require('qrcode-terminal');
-const fs = require('fs');
 const ini = require('ini');
 const memorycache = require('memory-cache');
+
+global.isWindows = require('is-windows')();
 global.requireUtil = () => require("../common/util");
 global.requireUserConfig = () => require("../config/user-config");
 global.requireConstant = () => require("../common/constant");
@@ -130,7 +130,7 @@ async function getIP(){
 }
 
 async function init() {
-    if (isWindows()) {
+    if (global.isWindows) {
         const { stdout, stderr } = await execa("chcp");
         // console.log("[chcp]", stdout);
         const r = new RegExp("\\d+");
@@ -1095,7 +1095,7 @@ app.get('/api/getGeneralInfo', asyncWrapper(async (req, res) => {
     const cacheKey = "GeneralInfoCacheKey";
     let result = memorycache.get(cacheKey);
     if(!result){
-        let os = isWindows() ? "windows" : "linux";
+        let os = global.isWindows ? "windows" : "linux";
         const ip = await getIP();
         result = {
             server_os: os,

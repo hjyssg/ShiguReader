@@ -2,7 +2,6 @@ const path = require('path');
 const pfs = require('promise-fs');
 const execa = require('../own_execa');
 const userConfig = global.requireUserConfig();
-const isWindows = require('is-windows');
 const express = require('express');
 const router = express.Router();
 const logger = require("../logger");
@@ -90,7 +89,7 @@ router.post('/api/moveFile', serverUtil.asyncWrapper(async (req, res) => {
         const thumbRows = thumbnailDb.getThumbnailArr(src);
         const zipInfoRows = zipInfoDb.getZipInfo(src);
 
-        const cmdStr = isWindows() ? "move" : "mv";
+        const cmdStr = global.isWindows ? "move" : "mv";
         const { stdout, stderr } = await execa(cmdStr, [src, dest]);
         err = stderr;
 

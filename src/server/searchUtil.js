@@ -4,7 +4,6 @@ const db = require("./models/db");
 const util = global.requireUtil();
 const path = require('path');
 const _ = require('underscore');
-const isWindows = require('is-windows');
 const pathUtil = require("./pathUtil");
 const { isSub } = pathUtil;
 const { getCurrentTime } = util;
@@ -83,7 +82,7 @@ async function searchOnEverything(text) {
     };
 
 
-    if (port && isWindows()) {
+    if (port && global.isWindows) {
         return await everything_connector.searchByText(text, config);
     }
 }

@@ -2,7 +2,6 @@ const path = require('path');
 const execa = require('./own_execa');
 const pfs = require('promise-fs');
 const _ = require('underscore');
-const isWindows = require('is-windows');
 const zipInfoDb = require("./models/zipInfoDb");
 const { updateZipDb } = zipInfoDb;
 const logger = require("./logger");
@@ -15,7 +14,7 @@ const iconv = require('iconv-lite');
 
 global._has_7zip_ = true;
 let sevenZip;
-if (isWindows()) {
+if (global.isWindows) {
     try{
         const sevenZipPath = path.join(pathUtil.getRootPath(), "resource", "7zip");
         sevenZip = require(sevenZipPath)['7z'];

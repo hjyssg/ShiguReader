@@ -3,7 +3,6 @@ const express = require('express');
 const router = express.Router();
 const serverUtil = require("../serverUtil");
 const db = require("../models/db");
-const isWindows = require('is-windows');
 const util = global.requireUtil();
 const historyDb = require("../models/historyDb");
 const pathUtil = require("../pathUtil");
@@ -18,7 +17,7 @@ let downloadFolder;
 // downloadFolder = getDownloadsFolder();
 
 let hdd_list = [];
-if (isWindows()) {
+if (global.isWindows) {
     //https://stackoverflow.com/questions/15878969/enumerate-system-drives-in-nodejs
     const child = require('child_process');
     child.exec('wmic logicaldisk get name', (error, stdout) => {

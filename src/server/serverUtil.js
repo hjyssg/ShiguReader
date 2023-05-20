@@ -125,7 +125,7 @@ module.exports.mkdir = async function (path, quiet) {
     }
 }
 
-module.exports.mkdirSync = (path, quiet) => {
+const mkdirSync = module.exports.mkdirSync = (path, quiet) => {
     if (path && !fs.existsSync(path)) {
         try {
             fs.mkdirSync(path, { recursive: true });
@@ -140,7 +140,7 @@ module.exports.mkdirSync = (path, quiet) => {
 module.exports.mkdirList = (mkdirArr) => {
     for (let ii = 0; ii < mkdirArr.length; ii++) {
         const fp = mkdirArr[ii];
-        if (!isWindows() && util.isWindowsPath(fp)) {
+        if (!global.isWindows && util.isWindowsPath(fp)) {
             continue;
         }
         mkdirSync(fp, "quiet");
