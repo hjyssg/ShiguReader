@@ -36,6 +36,9 @@ global.cachePath = cachePath;
 const indexHtmlPath = path.resolve(rootPath, "dist", "index.html");
 const bundleJsPath = path.resolve(rootPath, "dist", "bundle.js");
 const distPath = path.resolve(rootPath, "dist");
+const etf_config_path = path.resolve(rootPath, "config-etc.ini");
+const path_config_path = path.join(rootPath, "config-path.ini");
+
 
 
 const portConfig = require('../config/port-config');
@@ -65,6 +68,8 @@ console.log("process.cwd()", process.cwd());
 console.log("distPath", distPath);
 console.log("indexHtmlPath", indexHtmlPath);
 console.log("bundleJsPath", bundleJsPath);
+console.log("etf_config_path", etf_config_path);
+console.log("path_config_path", path_config_path);
 console.log("----------------------");
 
 const logger = require("./logger");
@@ -97,14 +102,13 @@ let etc_config = {};
 let path_config;
 try {
     console.log("read ini....")
-    const etf_config_path = path.resolve(rootPath, "config-etc.ini");
+  
     let fcontent = fs.readFileSync(etf_config_path, 'utf-8');
     etc_config = ini.parse(fcontent);
     global.etc_config = etc_config;
 
     // console.log(etf_config_path);
 
-    const path_config_path = path.join(rootPath, "config-path.ini");
     const fContent1 = fs.readFileSync(path_config_path).toString();
     path_config = ini.parse(fContent1);
 
