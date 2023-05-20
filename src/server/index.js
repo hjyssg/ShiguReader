@@ -63,6 +63,7 @@ const cacheDb = require("./models/cacheDb");
 console.log("------path helper--------------");
 console.log("__filename", __filename);
 console.log("__dirname", __dirname);
+console.log("process.execPath", process.execPath);
 console.log("rootPath", rootPath);
 console.log("process.cwd()", process.cwd());
 console.log("distPath", distPath);
