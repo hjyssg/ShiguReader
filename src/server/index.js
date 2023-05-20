@@ -87,6 +87,8 @@ const cacheDb = require("./models/cacheDb");
 
 
 const app = express();
+
+// express的静态文件middle ware，但有时不好使。还需要staticFileRouter()
 app.use(express.static(distPath, {
     maxAge: (1000 * 3600).toString()
 }));
@@ -535,11 +537,7 @@ serverUtil.common.getStat = getStat;
 serverUtil.common.isAlreadyScan = isAlreadyScan;
 
 
-// http://localhost:3000/explorer/
-// http://localhost:3000/onebook/
-// 前端路由需要redirect到index.html
-//所有api都不需要转发
-app.get('/*', (req, res, next) => {
+const staticFileRouter = (req, res, next) => {
     const pp = req.path || "";
     if (pp && pp.includes("/api/")){
         next();
@@ -552,7 +550,14 @@ app.get('/*', (req, res, next) => {
             res.sendFile(indexHtmlPath);
         }
     }
-})
+}
+
+
+// http://localhost:3000/explorer/
+// http://localhost:3000/onebook/
+// 前端路由需要redirect到index.html
+//所有api都不需要转发
+app.get('/*', staticFileRouter)
 
 //---------login-----------
 
