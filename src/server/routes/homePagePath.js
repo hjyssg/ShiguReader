@@ -12,8 +12,10 @@ const path = require("path");
 const _ = require('underscore');
 const { pathEqual } = require('path-equal');
 
-const getDownloadsFolder = require('downloads-folder');
-let downloadFolder = getDownloadsFolder();
+let downloadFolder;
+
+// const getDownloadsFolder = require('downloads-folder');
+// downloadFolder = getDownloadsFolder();
 
 let hdd_list = [];
 if (isWindows()) {

@@ -6,7 +6,7 @@ rimraf.sync = rimrafSync
 var assert = require("assert")
 var path = require("path")
 var fs = require("fs")
-var glob = require("glob")
+var glob = { } //require("glob")
 var _0666 = parseInt('666', 8)
 
 var defaultGlobOpts = {
@@ -68,7 +68,7 @@ function rimraf(p, options, cb) {
     if (!er)
       return afterGlob(null, [p])
 
-    glob(p, options.glob, afterGlob)
+    // glob(p, options.glob, afterGlob)
   })
 
   function next(er) {
@@ -272,14 +272,14 @@ function rimrafSync(p, options) {
 
   var results
 
-  if (options.disableGlob || !glob.hasMagic(p)) {
+  if (options.disableGlob ) {
     results = [p]
   } else {
     try {
       options.lstatSync(p)
       results = [p]
     } catch (er) {
-      results = glob.sync(p, options.glob)
+      // results = glob.sync(p, options.glob)
     }
   }
 

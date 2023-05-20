@@ -21,6 +21,8 @@
   "pkg": {
     "scripts": "src/server/index.js ",
     "assets": [
+      "/node_modules/sqlite3/lib/binding/binding/napi-v6-win32-unknown-x64/*",
+      "node_modules/.store/registry-js@1.15.1/node_modules/registry-js/build/Release/*"
     ],
     "targets": [
       "win-x64"
@@ -36,7 +38,6 @@
     "cookie-parser": "^1.4.5",
     "dateformat": "^3.0.3",
     "delete-empty": "^3.0.0",
-    "downloads-folder": "^1.0.3",
     "execa": "^5.0.0",
     "express": "^4.16.3",
     "filesize": "^4.1.2",
