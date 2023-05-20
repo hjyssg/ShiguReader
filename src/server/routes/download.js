@@ -7,13 +7,19 @@ const router = express.Router();
 const util = global.requireUtil();
 const { isImage, isGif } = util;
 const serverUtil = require("../serverUtil");
-
+const execa = require('../own_execa');
 
 const pathUtil = require("../pathUtil");
 const { isExist } = pathUtil;
 const memorycache = require('memory-cache');
 
 let sharp;
+try {
+    sharp = require('sharp')
+} catch (e) {
+    console.error("[Warning] did not install sharp", e);
+    console.log("-------------------------------")
+}
 
 
 const THUMBNAIL_HUGE_THRESHOLD = 2 * 1000 * 1000;  //MB
@@ -41,32 +47,44 @@ router.get('/api/download/', serverUtil.asyncWrapper(async (req, res) => {
         return;
     }
 
+    // 因为sharp在pkg用不了，灵活的逻辑
+    const doMinify = async (filePath, outputFn, height) => {
+        const outputPath = path.resolve(global.cachePath, outputFn);
+        if (await isExist(outputPath)) {
+            return outputPath;
+        }
+
+        if(sharp){
+            await sharp(filePath).resize({ height: height }).toFile(outputPath);
+            memorycache.put(cacheKey, outputPath, 60*1000);
+            return outputPath;
+        }else if(global._has_magick_){
+            const opt = [filePath, "-thumbnail", `${height}x${height}\>`, "-quality", "92",  outputPath];
+            let { stdout, stderr } = await execa("magick", opt);
+            if (!stderr) {
+                return outputPath;
+            }
+        }else{
+            return filePath;
+        }
+    }
+
     var ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || "";
     const cacheKey = req.url + ip;
     const isLocalClient = ip.includes("127.0.0.1");
     const onebook_huge_threshold = isLocalClient? ONEBOOK_HUGE_THRESHOLD_LOCAL: ONEBOOK_HUGE_THRESHOLD_REMOTE;
     try {
-        if (sharp && isImage(filePath) && !isGif(filePath)) {
+        if (isImage(filePath) && !isGif(filePath)) {
             if(memorycache.get(cacheKey)){
                 filePath = memorycache.get(cacheKey);
             }else{
                 const stat = await pfs.stat(filePath);
                 if (thumbnailMode && stat.size > THUMBNAIL_HUGE_THRESHOLD) {
                     const outputFn = stringHash(filePath).toString() + "-min.jpg";
-                    const outputPath = path.resolve(global.cachePath, outputFn);
-                    if (!(await isExist(outputPath))) {
-                        await sharp(filePath).resize({ height: 280 }).toFile(outputPath);
-                    }
-                    memorycache.put(cacheKey, outputPath, 60*1000);
-                    filePath = outputPath;
+                    filePath = await doMinify(filePath, outputFn, 250);
                 }else if(stat.size > onebook_huge_threshold){
                     const outputFn = stringHash(filePath).toString() + "-min-2.jpg";
-                    const outputPath = path.resolve(global.cachePath, outputFn);
-                    if (!(await isExist(outputPath))) {
-                        await sharp(filePath).resize({ height: 1980 }).toFile(outputPath);
-                    }
-                    memorycache.put(cacheKey, outputPath, 60*1000);
-                    filePath = outputPath;
+                    filePath = await doMinify(filePath, outputFn, 2300);
                 }
             }
         }
