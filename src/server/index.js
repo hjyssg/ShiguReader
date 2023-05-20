@@ -168,21 +168,6 @@ async function init() {
     }
 
     const server = app.listen(port, async () => {
-        console.log("----------------------------------------------------------------");
-        console.log(dateFormat(new Date(), "yyyy-mm-dd HH:MM"));
-        console.log(`Express Server listening on port ${port}`);
-        console.log("You can open ShiguReader from Browser now!");
-        console.log(`http://localhost:${port}`);
-
-        try {
-            const ip = await getIP();
-            console.log(ip);
-            console.log("Scan the QR code to open on mobile devices");
-            qrcode.generate(ip);
-        } catch (e) { }
-
-
-        console.log("----------------------------------------------------------------");
         const filterPathConfigObj = await filterPathConfig(path_config);
         global = {
             ...global,
@@ -379,7 +364,6 @@ function setUpFileWatch(scan_path) {
     watcher.on('ready', async () => {
         is_chokidar_scan_done = true;
         db.createSqlIndex();
-
         // DEBUG数据多少
         // setTimeout(async () => {
         //     const sqldb = db.getSQLDB();
@@ -400,11 +384,30 @@ function setUpFileWatch(scan_path) {
         console.log(`[chokidar] ${(end1 - beg) / 1000}s scan complete.  ${init_count}`);
         console.log(`-------------------------------------------------`);
         console.log(`\n\n\n\n\n`);
+
+        printIP();
     })
 
     return {
         watcher
     };
+}
+
+
+async function printIP(){
+    console.log("----------------------------------------------------------------");
+    console.log(dateFormat(new Date(), "yyyy-mm-dd HH:MM"));
+    console.log(`Express Server listening on port ${port}`);
+    console.log("You can open ShiguReader from Browser now!");
+    console.log(`http://localhost:${port}`);
+
+    try {
+        const ip = await getIP();
+        console.log(ip);
+        console.log("Scan the QR code to open on mobile devices");
+        qrcode.generate(ip);
+    } catch (e) { }
+    console.log("----------------------------------------------------------------");
 }
 
 async function getThumbnailsForZip(filePathes) {
