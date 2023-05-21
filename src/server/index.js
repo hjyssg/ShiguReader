@@ -182,6 +182,8 @@ async function init() {
         let scan_path = filterPathConfigObj.scan_path;
         if(skipScan){
             scan_path = [];
+            scan_path.push(pathUtil.getImgConverterCachePath());
+            scan_path.push(pathUtil.getZipOutputCachePath());
         }
         serverUtil.mkdirList(scan_path)
         scan_path = await pathUtil.filterNonExist(scan_path);
