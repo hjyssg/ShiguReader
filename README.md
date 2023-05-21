@@ -5,7 +5,7 @@
 [<img src="https://img.shields.io/docker/v/liwufan/shigureader?label=docker%20version">](https://hub.docker.com/r/liwufan/shigureader)
 [<img src="https://img.shields.io/docker/pulls/liwufan/shigureader.svg">](https://hub.docker.com/r/liwufan/shigureader)
 
-[English](https://github.com/hjyssg/ShiguReader/blob/dev/README_English.md)
+[English Version](https://github.com/hjyssg/ShiguReader/blob/Dev_Frontend/README_English.md)
 
 
 ShiguReader是一款可在电脑或iPad上使用的漫画浏览器，它还支持整理资源、播放音乐和观看视频等多种功能。只需前往[Release](https://github.com/hjyssg/ShiguReader/releasesx)，下载后便可立即开始使用。
