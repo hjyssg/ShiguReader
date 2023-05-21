@@ -21,7 +21,7 @@
     "targets": [
       "win-x64"
     ],
-    "outputPath": "."
+    "outputPath": "../SGR_pkg/"
   },
   "author": "aji47",
   "license": "MIT",
