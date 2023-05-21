@@ -181,7 +181,7 @@ async function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
     }
 
     // console.time("decorate");
-    result = await serverUtil.common._decorateResWithMeta(result);
+    result = await serverUtil.common.decorateResWithMeta(result);
     // console.timeEnd("decorate");
 
     return result;

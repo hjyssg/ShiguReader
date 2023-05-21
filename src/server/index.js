@@ -536,7 +536,7 @@ function isAlreadyScan(dir) {
  * @param {*} resObj 
  * @returns 
  */
-async function _decorateResWithMeta(resObj) {
+async function decorateResWithMeta(resObj) {
     const { fileInfos, dirs, imgFolders } = resObj;
     console.assert(fileInfos && dirs && imgFolders);
 
@@ -559,7 +559,7 @@ async function _decorateResWithMeta(resObj) {
 }
 
 
-serverUtil.common._decorateResWithMeta = _decorateResWithMeta
+serverUtil.common.decorateResWithMeta = decorateResWithMeta
 serverUtil.common.getThumbnailsForZip = getThumbnailsForZip;
 serverUtil.common.getStatAndUpdateDB = getStatAndUpdateDB;
 serverUtil.common.isAlreadyScan = isAlreadyScan;
