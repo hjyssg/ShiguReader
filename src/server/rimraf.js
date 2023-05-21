@@ -61,7 +61,8 @@ function rimraf(p, options, cb) {
   var errState = null
   var n = 0
 
-  if (options.disableGlob || !glob.hasMagic(p))
+  // if (options.disableGlob || !glob.hasMagic(p))
+  if (options.disableGlob)
     return afterGlob(null, [p])
 
   options.lstat(p, function (er, stat) {

@@ -139,6 +139,8 @@ async function getIP(){
     return mobileAddress;
 }
 
+const cleanCache = require("./cleanCache");
+
 async function init() {
     if (global.isWindows) {
         const { stdout, stderr } = await execa("chcp");
@@ -191,8 +193,8 @@ async function init() {
         global.SCANED_PATH = scan_path;
         db.insertScanPath(scan_path)
 
-        const cleanCache = require("../tools/cleanCache");
-        cleanCache.cleanCache(cachePath);
+        
+        cleanCache(cachePath);
         setUpCacheWatch();
 
         const mecabHelper = require("./mecabHelper");
@@ -1172,8 +1174,8 @@ app.use(singleFileInfo);
 const hentaiApi = require("./routes/hentaiApi");
 app.use(hentaiApi);
 
-const cleanCache = require("./routes/cleanCache");
-app.use(cleanCache);
+const cleanCacheRoute = require("./routes/cleanCache");
+app.use(cleanCacheRoute);
 
 const CacheInfo = require("./routes/CacheInfo");
 app.use(CacheInfo);

@@ -2,23 +2,21 @@ const fs = require('fs');
 const path = require('path');
 const rimraf = require("./rimraf");
 
+const pathUtil = require("./pathUtil");
+const logger = require("./logger");
+
 let counter = 0;
-const pathUtil = require("../server/pathUtil");
-const { isSub } = pathUtil;
-
-const show_error = false;
-
 function del(file, cachePath) {
-    if (isSub(cachePath, file)) {
+    if (pathUtil.isSub(cachePath, file)) {
         rimraf(file, (err) => {
             if (err) {
-                show_error && console.error("[cache clean]", err);
+                logger.error("[cache clean]", err);
             }
         });
 
         counter++;
         if (counter % 500 === 0) {
-            console.log("[cache clean] delete:", counter);
+            logger.info("[cache clean] delete:", counter);
         }
     } else {
         throw "try to delete non-cache file";
@@ -47,11 +45,11 @@ function _clean(cachePath, config) {
             fPath = path.resolve(cachePath, fPath);
             del(fPath, cachePath);
         } catch (e) {
-            show_error && console.error("[cache clean] error", e);
+            logger.error("[cache clean] error", e);
         }
     });
-    console.log("[cache clean] done");
+    logger.info("[cache clean] done");
     config.afterClean && config.afterClean();
 }
 
-module.exports.cleanCache = cleanCache;
+module.exports = cleanCache;

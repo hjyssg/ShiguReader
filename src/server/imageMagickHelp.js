@@ -15,7 +15,7 @@ const { isExist, getRootPath, getImgConverterCachePath } = pathUtil;
 const userConfig = global.requireUserConfig();
 const filesizeUitl = require('filesize');
 
-const rimraf = require("../tools/rimraf");
+const rimraf = require("./rimraf");
 
 const serverUtil = require("./serverUtil");
 const { getStat } = serverUtil.common;

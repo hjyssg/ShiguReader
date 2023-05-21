@@ -50,9 +50,9 @@ function splitRows(rows, text) {
 }
 
 async function searchOnEverything(text) {
-    const everything_connector = require("../tools/everything_connector");
+    const everything_connector = require("./everything_connector");
     const etc_config = global.etc_config;
-    const port = etc_config && etc_config.everything_http_server_port;
+    const everything_http_server_port = etc_config && etc_config.everything_http_server_port;
     const { cachePath, thumbnailFolderPath } = global;
 
     function isNotAllow(fp) {
@@ -65,7 +65,7 @@ async function searchOnEverything(text) {
     }
 
     const config = {
-        port,
+        everything_http_server_port,
         filter: (fp, info) => {
             if (isNotAllow(fp)) {
                 return false;
@@ -82,7 +82,7 @@ async function searchOnEverything(text) {
     };
 
 
-    if (port && global.isWindows) {
+    if (everything_http_server_port && global.isWindows) {
         return await everything_connector.searchByText(text, config);
     }
 }
