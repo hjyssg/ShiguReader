@@ -510,7 +510,8 @@ export default class OneBook extends Component {
   }
 
   onImageError() {
-    this.imgRef.src = "./error_loading.png";
+    // https://stackoverflow.com/questions/5559578/having-links-relative-to-root
+    this.imgRef.src = "/error_loading.png";
     this.hideSpinner()
   }
 
