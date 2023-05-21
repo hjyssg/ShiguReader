@@ -26,14 +26,23 @@ module.exports.isGif = function (fn) {
     return fn.toLowerCase().endsWith(".gif");
 };
 
+/**
+ * 是否为图片文件
+ */
 const isImage = module.exports.isImage = function (fn) {
     return !!fn.toLowerCase().match(imageTypesRegex);
 };
 
+/**
+ * 是否为压缩文件
+ */
 const isCompress = module.exports.isCompress = function (fn) {
     return !!fn.toLowerCase().match(compressTypesRegex);
 };
 
+/**
+ * 是否为音乐文件
+ */
 const isMusic = module.exports.isMusic = function (fn) {
     return !!fn.toLowerCase().match(musicTypesRegex);
 }
@@ -73,8 +82,10 @@ const hasDuplicate = module.exports.hasDuplicate = (arr) => {
     return new Set(arr).size !== arr.length;
 }
 
-// 用来排序图片和mp3的
-// files既可能是filename也可能是filepath
+
+/**
+ * 用来排序图片和mp3的。files既可能是filename也可能是filepath
+ */
 module.exports._sortFileNames = function (files, getBaseNameWithoutExtention) {
     // assertion
     // files.forEach((e, ii) => {
@@ -158,6 +169,9 @@ module.exports.isWindowsPath = function (string) {
     return /[A-Za-z]:/.test(string);
 }
 
+/**
+ * 求平均数
+ */
 module.exports.getAverage = function(intArray) {
     if (intArray.length === 0) {
       return 0;
