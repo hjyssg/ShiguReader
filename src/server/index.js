@@ -44,7 +44,7 @@ console.log("__filename:         ", __filename);
 console.log("__dirname:          ", __dirname);
 console.log("process.execPath:   ", process.execPath);
 console.log("process.cwd():      ", process.cwd());
-console.log("global.isPkg:        ", global.isPkg)
+console.log("global.isPkg:       ", global.isPkg)
 console.log("rootPath:           ", rootPath);
 console.log("distPath:           ", distPath);
 console.log("indexHtmlPath:      ", indexHtmlPath);
@@ -310,8 +310,16 @@ serverUtil.common.moveCallBack  = moveCallBack ;
 
 let is_chokidar_scan_done = false;
 const chokidar = require('chokidar');
-/** 用来让chokidar监听文件夹，把需要的信息加到db */
+/** 
+ * 用来让chokidar监听文件夹，把需要的信息加到db。只在程序启动时这么做
+ * 
+ * */
 function setUpFileWatch(scan_path) {
+    if(scan_path.length == 0){
+        printIP();
+        return;
+    }
+
     console.log("[chokidar] begin...");
     let beg = getCurrentTime();
 
