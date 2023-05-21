@@ -321,8 +321,8 @@ let is_chokidar_scan_done = false;
  * 用来让chokidar监听文件夹，把需要的信息加到db。只在程序启动时这么做
  * 
  * */
-function setUpFileWatch(scan_path) {
-    if(scan_path.length == 0){
+function setUpFileWatch(dirPathes) {
+    if(dirPathes.length == 0){
         printIP();
         return;
     }
@@ -332,7 +332,7 @@ function setUpFileWatch(scan_path) {
 
     //watch file change
     //update two database
-    const watcher = chokidar.watch(scan_path, {
+    const watcher = chokidar.watch(dirPathes, {
         ignored: shouldIgnoreForNormal,
         persistent: true,
         ignorePermissionErrors: true
@@ -399,6 +399,70 @@ function setUpFileWatch(scan_path) {
     };
 }
 
+
+/**
+ * 服务器使用中途添加监听扫描path
+ */
+function addNewFileWatch(dirPathes) {
+    if(dirPathes.length == 0){
+        return;
+    }
+
+    console.log("[chokidar addNewFileWatch] begin...");
+    let beg = getCurrentTime();
+
+    // TODO check with db to prevent duplicate adding shouldIgnoreForNormal
+
+
+    //watch file change
+    //update two database
+    const watcher = chokidar.watch(dirPathes, {
+        ignored: shouldIgnoreForNormal,
+        persistent: true,
+        ignorePermissionErrors: true
+    });
+
+    let init_count = 0;
+
+    //处理添加文件事件
+    const addCallBack = async (fp, stats) => {
+        // console.log(fp);
+        db.updateStatToDb(fp, stats);
+        if (is_chokidar_scan_done) {
+            // nothing
+        } else {
+            init_count++;
+            if (init_count % 2000 === 0) {
+                let end1 = getCurrentTime();
+                let np = fp.slice(0, 12) + "..." + fp.slice(fp.length - 8);
+                console.log(`[chokidar] scan: ${(end1 - beg) / 1000}s  ${init_count} ${np}`);
+            }
+        }
+    };
+
+    watcher
+        .on('add', addCallBack)
+        .on('change', addCallBack)
+        .on('unlink', deleteCallBack);
+
+    // More possible events.
+    watcher
+        .on('addDir', addCallBack)
+        .on('unlinkDir', deleteCallBack);
+
+    //about 1s for 1000 files
+    watcher.on('ready', async () => {
+        let end1 = getCurrentTime();
+        console.log(`[chokidar] ${(end1 - beg) / 1000}s scan complete.`);
+        console.log(`[chokidar] ${init_count} files were scanned`)
+        console.log("----------------------------------------------------------------");
+        console.log(`\n\n\n`);
+    })
+
+    return {
+        watcher
+    };
+}
 
 async function printIP(){
     console.log("----------------------------------------------------------------");
