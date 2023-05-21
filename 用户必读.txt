@@ -1,0 +1,7 @@
+硬核宅宅资源管理器 ShiguReader
+
+1. 无需安装，点击exe即可运行。
+2. 配置文件是config-path.ini和config-etc.ini。请自行修改自行修改。
+3. 高度推荐自行安装ImageMagick https://imagemagick.org/script/download.php  本软件会用ImageMagick去压缩图片，提高性能。
+4. 使用过程会使用磁盘空间，至少保证硬盘有20GB以上的空间。
+5. 前前后后开发维护了5年。GitHub点个star https://github.com/hjyssg/ShiguReader 
