@@ -8,8 +8,7 @@
 [English](https://github.com/hjyssg/ShiguReader/blob/dev/README_English.md)
 
 
-使用电脑或iPad轻松浏览漫画、整理资源、播放音乐、观看视频。  
-直接到[Release](https://github.com/hjyssg/ShiguReader/releasesx)下载就能使用。
+ShiguReader是一款可在电脑或iPad上使用的漫画浏览器，它还支持整理资源、播放音乐和观看视频等多种功能。只需前往[Release](https://github.com/hjyssg/ShiguReader/releasesx)，下载后便可立即开始使用。
 
 ##### Screenshots
 
@@ -21,59 +20,58 @@
 <img src="screenshot/05.png" alt="screenshot-05" width="600"/>
 <img src="screenshot/06.png" alt="screenshot-06" width="600"/>
 
-##### Features
+##### 功能特色
 
-* 在电脑和ipad都可以使用。
-* 显示每个漫画zip包的封面，便阅览。
-* 播放音乐。
-* 播放视频。
-* 提供各种排序和筛选。
-* 一键压缩压缩包内的图片，节约硬盘空间
-* 展示特定作者或者同人类型的全部文件。
-* 移动删除文件。
-* 统计图表。统计文件大小，各时期的文件数量。
-* 配色和旧版熊猫网的一模一样，亲切熟悉。
-* 服务器端支持windows和*nix。
+* 可在电脑和iPad上使用。
+* 显示每个漫画压缩包的封面，方便浏览。
+* 支持播放音乐和视频。
+* 提供各种排序和筛选功能。
+* 可一键压缩压缩包内的图片，节约硬盘空间。
+* 进行特定作者或同人类型的全部文件展示。
+* 可移动、删除文件。
+* 可制作统计图表，统计文件大小和各时期的文件数量。
+* 接近于旧版熊猫网的配色，让你感受亲切熟悉。
+* 服务器端同时支持Windows和*nix系统。
 
 
 
 ##### 支持的文件格式
 
-支持的压缩包取决于[7Zip](https://www.7-zip.org/)。常见的zip、rar、7zi都支持。  
-图片、音乐和视频的支持格式取决于浏览器。图片常见的jpg、png、png，视频常见的mp4、avi都是支持的。音乐支持mp3、wav。  
+支持的压缩包格式取决于7Zip。支持常见的zip、rar、7z。图片、音乐和视频的支持格式取决于浏览器。图片格式常见的包括jpg、png和gif，视频格式常见的包括mp4和avi，音乐格式支持mp3和wav等多种格式。
 
 
-##### Demo Video
+##### 演示视频
 
-有点过时了，回头整新的。  
+ShiguReader的演示视频有些过时了，不过我们会尽快更新新版本的演示视频。你可以通过以下链接找到过去的演示视频
 [iPad使用](https://www.bilibili.com/video/BV1Mt4y1m7qU)  
 [PC使用](https://www.bilibili.com/video/BV1t64y1u729/)   
 [iPhone使用](https://www.bilibili.com/video/BV1xt4y1U73L/)    
 
-##### Dev SetUP
+##### 快捷键
 
-开发人员请阅读[Readme_Env_Setup](https://github.com/hjyssg/ShiguReader/blob/dev/Readme_Env_Setup.md)
+漫画页面  
+enter: 全屏  
+AD和左右方向键: 翻页  
++-: 缩放图片 
+
 
 ##### 第三方依赖
 
-不安装也能用。但强烈建议安装[image magick](https://imagemagick.org)。本软件用它来压缩图片。
+虽然ShiguReader可不安装依赖也能使用，但强烈建议安装[image magick](https://imagemagick.org)。这样可以使用它来压缩图片，提高软件的性能。
 
 
 ##### 注意事项
 
-如果部分文件名带汉字日语假名的图片加载不出来，你可能需要如下语言设置。
-但可能导致其他非unicode软件乱码。
+部分文件名带汉字或日语假名的图片无法正常加载，你可能需要进行以下语言设置。请注意，这可能会导致其他非Unicode软件出现乱码问题。
 
-windows语言设置:  
+Windows 语言设置如下所示：:  
 <img src="screenshot/unicode-setting.png" alt="Unicode Setting" width="600"/>
 
 
 ##### 压缩包内图片压缩功能
 
 [介绍视频](https://www.bilibili.com/video/BV1pi4y147Gu?from=search&seid=13429520178852889848/)     
-现在有的漫画图片明显太大。比如上次下了一本24页640MB，关键画质并没有比1本30MB高出多少。为此添加了压缩包内图片压缩功能。
-安装后，自行确认可否在cmd使用magick命令。然后就可以通过网页来启动压缩程序了。
-压缩完的文件默认在workspace\minified_zip_cache。
+一些漫画图片过于庞大，比如下载了一本24页共640MB的漫画，但关键画面与一本仅30MB的漫画并没有太大区别。因此，我们添加了压缩包内图片压缩功能。首先，你需要确认是否可以通过cmd运行magick命令。然后就可以通过网页以启动压缩程序，压缩后的文件默认保存在workspace\minified_zip_cache目录里。
 
 ##### DOCKER 使用方法
 
@@ -92,7 +90,6 @@ docker run -d -p hostport:3000 -v comicpath:/data liwufan/shigureader
 [热心人总结的](https://github.com/hjyssg/ShiguReader/issues/90)
 
 
-
 ##### 配合TamperMonkey使用
 
     把EhentaiHighighliger.js添加到TamperMonkey。
@@ -100,33 +97,30 @@ docker run -d -p hostport:3000 -v comicpath:/data liwufan/shigureader
 
 ##### FAQ
 
-    问： 点exe闪退。怎么办？
-    答:  默认的3000端口被占用了。
+    问： 点击exe后软件无法启动，怎么办？
+    答:  默认的3000端口可能已被占用，请尝试更改端口号。
     
-    问：有的视频播放不了。
-    答：视频只是附件功能，有限支持。
+    问：某些视频无法播放，怎么办？
+    答：视频只是附件功能，支持的格式有限
   
-    问：电脑可以打开使用，可是手机扫了二维码打不开。怎么办
-    答：先确认手机是不是和电脑在同一个局域网下。如果是，还打不开。那可能是电脑防火墙设置问题，自行网上搜索。
+    问：电脑可以正常使用，但是扫描二维码后无法在手机上打开，请问如何解决？
+    答：请首先确认电脑和手机是否在同一局域网Wifi下。如果仍然无法打开，请检查电脑防火墙设置。
 
     问： ShiguReader是啥意思？
-    答： Shigure(しぐれ) + Reader。当年的舰C的同人真好看。
+    答： Shigure(しぐれ) + Reader。当年的舰C的同人可真好看。
 
 
-##### Donation
+##### 捐赠
 
-想喝奶茶  
-微信  
+如果你喜欢我们的软件，想请我们喝奶茶，可以通过微信扫描以下二维码进行捐赠：  
 <img alt="微信" src="https://i.imgur.com/4KY4BcN.jpg." data-canonical-src="https://i.imgur.com/4KY4BcN.jpg" height="300px"/>
 
-##### 热键
 
-漫画页面  
-enter: 全屏  
-AD和左右方向键: 翻页  
-+-: 缩放图片 
+##### 开发环境设置
 
-##### 认真看这个readme 还是有问题的话
+开发人员请阅读[Readme_Env_Setup](https://github.com/hjyssg/ShiguReader/blob/dev/Readme_Env_Setup.md)
 
-直接在github issue问
+##### 反馈与建议
+
+如果你仍有疑问或者需要帮助，请在Github上反馈issue。同时，我们也欢迎任何关于改善ShiguReader的建议。
 

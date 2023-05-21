@@ -4,90 +4,79 @@
 [<img src="https://img.shields.io/docker/v/liwufan/shigureader?label=docker%20version">](https://hub.docker.com/r/liwufan/shigureader)
 [<img src="https://img.shields.io/docker/pulls/liwufan/shigureader.svg">](https://hub.docker.com/r/liwufan/shigureader)
 
-Read Comic/Play Music and Video on all platforms
+ShiguReader is a manga browser that can be used on computers or iPads. It also supports various features such as organizing resources, playing music, and watching videos. Simply go to [Release](https://github.com/hjyssg/ShiguReader/releasesx) and download it to start using immediately.
+
+##### Screenshots
+
+<img src="screenshot/01.png" alt="screenshot-01" width="600"/>
+<img src="screenshot/02.png" alt="screenshot-02" width="600"/>
+<img src="screenshot/02.5.png" alt="screenshot-02.5" width="600"/>
+<img src="screenshot/03.png" alt="screenshot-03" width="600"/>
+<img src="screenshot/04.png" alt="screenshot-04" width="600"/>
+<img src="screenshot/05.png" alt="screenshot-05" width="600"/>
+<img src="screenshot/06.png" alt="screenshot-06" width="600"/>
+
+##### Key Features
+
+* Can be used on computers and iPads.
+* Displays cover images of each manga archive for easy browsing.
+* Supports playing music and videos.
+* Provides various sorting and filtering functions.
+* Can compress images in a comic archive with a single click, saving disk space.
+* Displays all files by specific authors or doujin types.
+* Allows moving and deleting files.
+* Generates statistical charts to show file sizes and file counts in different periods.
+* Adopts a color scheme similar to the old version of Panda website, giving you a sense of familiarity.
+* The server-side supports both Windows and *nix systems.
 
 
-##### Demo Video
+##### Supported File Formats
 
-[demo video](https://youtu.be/nV24b6X6eeI)  
+The supported archive formats depend on 7Zip. Common formats such as zip, rar, and 7z are supported. The supported formats for images, music, and videos depend on the browser. Common image formats include jpg, png, and gif, while common video formats include mp4 and avi. The supported music formats include mp3 and wav, among others.
 
-##### Screenshot
+##### Keyboard Shortcuts
 
-![screenshot-01](screenshot/01.png)
-![screenshot-02](screenshot/02.png)
-![screenshot-02](screenshot/02.5.png)
-![screenshot-03](screenshot/03.png)
-![screenshot-04](screenshot/04.png)
-![screenshot-05](screenshot/05.png)
-![screenshot-06](screenshot/06.png)
-![screenshot-06](screenshot/08.png)
+Manga Page
+enter: Fullscreen
+AD and left/right arrow keys: Page navigation
++-: Image zoom
 
-password is at config-etc
+##### Third-Party Dependencies
 
-##### Features
+While ShiguReader can be used without installing dependencies, it is highly recommended to install [ImageMagick](https://imagemagick.org). This allows you to use it to compress images and improve the software's performance.
 
-* display the thumbnails of zip/rar/7zip files
-* re-compress images to save disk space
-* move/delete files
-* play music files that are in the zip/rar/7zip files
-* play mp4/mkv/avi files and display their tags
-* show statistics chart
-* same color theme as exh**tai
-* support Windows/*nix servers
-* client can run on any modern browser(except IE), including mobile phone and tablet(no need to install any other softwares)
+##### Usage with TamperMonkey
 
-
-##### File Format Support
-
-* Compressed files: zip/rar/7zip files  
-* Format support of image/video/music files depends on the browser. Support typical jpg,png,png,mp4,avi,mp3,wav files  
-* More details in src/util.js
-
-##### Instruction
-
-* For windows, download the zip file
-* Modify ini file, then click the ShiguReader.exe
-* For *nix users and developers, please refer to [Readme_Env_Setup](https://github.com/hjyssg/ShiguReader/blob/dev/Readme_Env_Setup.md)
-
-##### Third Party Dependency
-
-It is nice to have. But ShiguReader can run without it.
-install imagemagick  from https://imagemagick.org
-
-##### Safety
-
-ShiguReader is not safe when being accessed from the public IP. The server is not prepared for any cyber attack.
-
-If you just want to read comic or watch anime when going outside, you can download the files to you tablet.
-For example, my ipad has VLC for video and ComicGlass for comic. I download file in Chrome browser and save them to the apps.
-
-##### How to use on NAS
-
-Thanks to [this guy](https://github.com/hjyssg/ShiguReader/issues/90)
-
-##### Hotkey
-
-enter: browser enter/quit full screen
-AD and left right arrow key: go to next/previous page
-+-: zoom image
-
-##### Caution
-
-If you find the images with file name containing Japanese Kanji/Kana, you will need to change the language setting:
-![unicode setting](screenshot/unicode-setting.png)
-But it's also reported that this setting will cause Mojibake in other softwares using non unicode encoding.
+Add `EhentaiHighighliger.js` to TamperMonkey. When you visit the E-Hentai website, this script will communicate with the backend server to show whether files have been downloaded or not.
 
 ##### FAQ
-    Q： I can open the webpage, but it is empty or 404.
-    A: Please check your config-path.ini file
 
-    Q：Why English Readme is much less than Chinese Readme?
-    A: I received more questions from Chinese community. But I do provide enough information here.
+Q: The software doesn't start after clicking the .exe file. What should I do?
+A: The default port 3000 may already be in use. Try changing the port number.
 
-    Q： What does ShiguReader mean？
-    A： Shigure(しぐれ) + Reader
+Q: Some videos cannot be played. What should I do?
+A: Videos are only a supplementary feature, and their supported formats are limited.
+
+Q: The software works fine on my computer, but after scanning the QR code, it doesn't open on my phone. How can I resolve this?
+A: Please make sure that your computer and phone are connected to the same local Wi-Fi network. If it still doesn't open, check your computer's firewall settings.
+
+Q: What does "ShiguReader" mean?
+A: ShiguReader is a combination of "Shigure" (しぐれ) and "Reader." The doujinshi of that era's Kantai Collection were really good.
+
+##### Donations
+
+If you like our software and would like to treat us to a cup of milk tea, you can donate by scanning the following QR code via WeChat:
+<img alt="WeChat" src="https://i.imgur.com/4KY4BcN.jpg." data-canonical-src="https://i.imgur.com/4KY4BcN.jpg" height="300px"/>
+
+##### Development Environment Setup
+
+please refer to [Readme_Env_Setup](https://github.com/hjyssg/ShiguReader/blob/dev/Readme_Env_Setup.md).
+
+##### Feedback and Suggestions
+
+If you have any questions or need assistance, please provide feedback through issues on GitHub. We also welcome any suggestions for improving ShiguReader.
 
 
-##### Have any question?
 
-If you have any question, just post in Github Issue.
+
+

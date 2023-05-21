@@ -1,50 +1,57 @@
 ##### Dev Environment Setup
 
+
+###### Short Version:
+
 ```bash
-# If you do not have Node.js installed, please go to https://nodejs.org/
-# Node.js 14 is recommended
 
-# install imagemagick  from https://imagemagick.org
-# It is nice to have, but is fine without it
-
-# For Mac and *nix, install 7zip by your own
-# If you are a Mac user who lives in China, remember use http proxy 
-# https://www.logcg.com/archives/1617.html
-
-# Clone the repository or download
-git clone https://github.com/hjyssg/ShiguReader
-
-## modify 
-##    config-path.ini  
-##    config-etc.ini
-#     user-config.js accoding to your own comic files location
-
-## Windows default cmd is not working
-## Please install Git and Git Bash  https://git-scm.com/
-
-# open Git Bash
-cd ShiguReader
-
-# Install dependencies
-npm install
-
-#If you live in China, I recommend the following
-npm install -g cnpm --registry=https://registry.npm.taobao.org
-cnpm install 
-
-# for *nix people, please install 7zip on your own
-
-# Start development server
-npm run dev
-
-# open the link shown on the git bash
+npm i
+npm run start
 
 ```
 
-| software      | must have | note                           |
+###### Detailed Version:
+```bash
+# Node.js 16 is recommended.
+
+# Install ImageMagick from https://imagemagick.org.
+# It is nice to have, but not necessary.
+
+# For Mac and *nix, install 7-Zip on your own.
+
+# If you are a Mac user living in China, remember to use an HTTP proxy.
+
+# Clone the repository or download it.
+git clone https://github.com/hjyssg/ShiguReader
+
+# Modify the following files:
+# - config-path.ini
+# - config-etc.ini
+
+## Windows default CMD may not work. Please install Git and Git Bash from https://git-scm.com/.
+
+# Open the command prompt.
+cd ShiguReader
+
+# Install dependencies.
+npm install
+
+# If you live in China, I recommend the following:
+npm install -g cnpm --registry=https://registry.npm.taobao.org
+cnpm install
+
+# Start the development server.
+npm run start
+
+# Open the link shown in the command prompt.
+
+```
+
+
+| Software      | Must Have | Note                           |
 |---------------|-----------|--------------------------------|
-| Node.js       | yes       | version 14 will be good        |
-| image magick  | no        | nice to have                   |
-| 7-Zip         | *      | Windows does not need to install. Must have for *nix |
-| git bash      | *         | must have for Windows, no for *nix |
-| MeCab         | no        | nice to have |
+| Node.js       | Yes       | Version 16 is recommended.      |
+| image magick  | No        | Nice to have.                   |
+| 7-Zip         | *      | Windows does not need to install. Must-have for *nix. |
+| git bash      | *         | Must-have for Windows, not required for *nix. |
+| MeCab         | No        | 	Nice to have. |
