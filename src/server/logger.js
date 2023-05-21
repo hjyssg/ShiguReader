@@ -57,7 +57,7 @@ module.exports.info = function (...args) {
 */
 module.exports.debug = function(...args) {
     _log && _log.debug(...args);
-    if(global.isPkg){  //发布版不用给用户看太多信息
+    if(!global.isPkg){  //发布版不用给用户看太多信息
         console.debug(...args);
     }
 }
