@@ -713,7 +713,7 @@ app.post("/api/getTagThumbnail", asyncWrapper(async (req, res) => {
     extractThumbnailFromZip(chosendFileName, res);
 }));
 
-const thumbnailGenerator = require("../tools/thumbnailGenerator");
+const thumbnailGenerator = require("./thumbnailGenerator");
 //the only required parameter is filePath
 async function extractThumbnailFromZip(filePath, res, mode, config) {
     if (!util.isCompress(filePath)) {
