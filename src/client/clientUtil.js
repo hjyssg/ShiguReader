@@ -2,7 +2,6 @@ const util = require("@common/util");
 const Cookie = require("js-cookie");
 const _ = require("underscore");
 const filesizeUitl = require('filesize');
-const userConfig = require('@config/user-config');
 const queryString = require('query-string');
 
 module.exports.filesizeUitl = function (num) {

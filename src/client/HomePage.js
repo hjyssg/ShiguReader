@@ -5,7 +5,6 @@ import './style/HomePage.scss';
 import Sender from './Sender';
 import { Link } from 'react-router-dom';
 
-// const userConfig = require('@config/user-config');
 import ErrorPage from './ErrorPage';
 import CenterSpinner from './subcomponent/CenterSpinner';
 import ItemsContainer from './subcomponent/ItemsContainer';
