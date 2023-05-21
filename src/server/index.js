@@ -7,6 +7,7 @@ const _ = require('underscore');
 const qrcode = require('qrcode-terminal');
 const ini = require('ini');
 const memorycache = require('memory-cache');
+const chokidar = require('chokidar');
 
 global.isWindows = require('is-windows')();
 global.requireUtil = () => require("../common/util");
@@ -231,7 +232,48 @@ async function init() {
 }
 
 
-//this function which files will be scanned and watched by ShiguReader
+
+/**
+ * 设置cache folder的监听，其实没啥意义。
+ */
+function setUpCacheWatch() {
+    function shouldIgnoreForCache(p, stat) {
+        return !shouldWatchForCache(p, stat);
+    }
+    
+    function shouldWatchForCache(p, stat) {
+        if (isHiddenFile(p)) {
+            return false;
+        }
+    
+        //if ignore, chokidar wont check its content
+        if (stat && stat.isDirectory()) {
+            return true;
+        }
+    
+        const ext = pathUtil.getExt(p);
+        return estimateIfFolder(p) || isDisplayableInOnebook(ext) || isVideo(ext);
+    }
+
+    //also for cache files
+    const cacheWatcher = chokidar.watch(cachePath, {
+        ignored: shouldIgnoreForCache,
+        persistent: true,
+        ignorePermissionErrors: true,
+        ignoreInitial: true,
+    });
+
+    cacheWatcher
+        .on('add', (p, stats) => {
+            cacheDb.updateStatToCacheDb(p, stats);
+        })
+        .on('unlink', p => {
+            cacheDb.deleteFromCacheDb(p);
+        });
+}
+
+
+/** this function decide which files will be scanned and watched by ShiguReader  */
 function shouldWatchForNormal(p, stat) {
     //cache is cover by another watch
     if (p.includes(cachePath)) {
@@ -260,60 +302,21 @@ function shouldIgnoreForNormal(p, stat) {
     return !shouldWatchForNormal(p, stat);
 }
 
-function shouldIgnoreForCache(p, stat) {
-    return !shouldWatchForCache(p, stat);
-}
-
-function shouldWatchForCache(p, stat) {
-    if (isHiddenFile(p)) {
-        return false;
-    }
-
-    //if ignore, chokidar wont check its content
-    if (stat && stat.isDirectory()) {
-        return true;
-    }
-
-    const ext = pathUtil.getExt(p);
-    return estimateIfFolder(p) || isDisplayableInOnebook(ext) || isVideo(ext);
-}
-
-function setUpCacheWatch() {
-    //also for cache files
-    const cacheWatcher = chokidar.watch(cachePath, {
-        ignored: shouldIgnoreForCache,
-        persistent: true,
-        ignorePermissionErrors: true,
-        ignoreInitial: true,
-    });
-
-    cacheWatcher
-        .on('add', (p, stats) => {
-            cacheDb.updateStatToCacheDb(p, stats);
-        })
-        .on('unlink', p => {
-            cacheDb.deleteFromCacheDb(p);
-        });
-}
-
 /** 文件被删除时，去相关数据库删除信息 */
 const deleteCallBack = fp => {
     db.deleteFromDb(fp);
     zipInfoDb.deleteFromZipDb(fp);
     thumbnailDb.deleteThumbnail(fp)
 };
+serverUtil.common.deleteCallBack = deleteCallBack;
 
 // const moveCallBack = async (oldfilePath, newfilePath) => {
 //     // 现在 delete和insert被chokidar callback代劳了 
 //     // 重复进行太容易出bug了
 // }
 
-serverUtil.common.deleteCallBack = deleteCallBack;
-
-
 
 let is_chokidar_scan_done = false;
-const chokidar = require('chokidar');
 /** 
  * 用来让chokidar监听文件夹，把需要的信息加到db。只在程序启动时这么做
  * 
