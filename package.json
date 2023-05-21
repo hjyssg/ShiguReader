@@ -1,12 +1,12 @@
 {
-  "name": "ShiguReader",
+  "name": "ShiguReader_Backend",
   "version": "2.0.0",
   "description": "All-in-one solution for local doujin/anime/music file",
   "repository": "hjyssg/ShiguReader",
   "main": "src/server/index.js",
   "bin": "src/server/index.js",
   "scripts": {
-    "start-production": "node src/server/index.js",
+    "start": "node src/server/index.js",
     "flow": "flow",
     "test": "mocha ./src/test",
     "pkg": "pkg package.json -t host --out-dir executables"
