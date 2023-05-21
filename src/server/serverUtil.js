@@ -5,6 +5,8 @@ const nameParser = require('../name-parser');
 const sortUtil = require("../common/sortUtil");
 const { isImage, isCompress } = util;
 const fs = require('fs');
+const logger = require("./logger");
+
 
 const userConfig = global.requireUserConfig();
 
@@ -202,8 +204,7 @@ const asyncWrapper = (fn) => {
       fn(req, res, next).catch((reason)=>{
         // next
         try{
-            console.log(req);
-            console.error(reason);
+            logger.error("asyncWrapper", reason, "\n\n", req);
             res.send({faled: true, reason: reason?.stack});
         }catch(e){
             debugger;

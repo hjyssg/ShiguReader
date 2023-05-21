@@ -5,14 +5,15 @@ const fs = require('fs');
 const _ = require('underscore');
 // const ini = require('ini');
 
+const logger = require("./logger");
 const { isImage, isMusic, isVideo, isDisplayableInOnebook } = util;
 const cache_folder_name = userConfig.cache_folder_name;
 const pfs = require('promise-fs');
 
 // 重要的path计算，关于所有文件的 读取
 let rootPath = path.join(__dirname, "..", "..");
-const isPkg = process.pkg;
-if(isPkg){
+global.isPkg = !!process.pkg;
+if(global.isPkg){
     rootPath = path.dirname(process.execPath);
 }
 // if (global.isWindows) {
@@ -225,7 +226,7 @@ const readdirRecursive = async (filePath, resultArr) => {
                     }
                 }
         }catch(e){
-            console.error(e);
+            logger.error("readdirRecursive", e);
         }
     }
 }

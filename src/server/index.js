@@ -39,12 +39,12 @@ const distPath = path.resolve(rootPath, "dist");
 const etf_config_path = path.resolve(rootPath, "config-etc.ini");
 const path_config_path = path.join(rootPath, "config-path.ini");
 const workspacePath = pathUtil.getWorkSpacePath();
-console.log("------path debug--------------");
+console.log("------path debug-----------------------------------------------");
 console.log("__filename:         ", __filename);
 console.log("__dirname:          ", __dirname);
 console.log("process.execPath:   ", process.execPath);
 console.log("process.cwd():      ", process.cwd());
-console.log("process.pkg:        ", !!process.pkg)
+console.log("global.isPkg:        ", global.isPkg)
 console.log("rootPath:           ", rootPath);
 console.log("distPath:           ", distPath);
 console.log("indexHtmlPath:      ", indexHtmlPath);
@@ -52,7 +52,7 @@ console.log("bundleJsPath:       ", bundleJsPath);
 console.log("etf_config_path:    ", etf_config_path);
 console.log("path_config_path:   ", path_config_path);
 console.log("workspacePath:      ", workspacePath);
-console.log("-------------------------------");
+console.log("----------------------------------------------------------------");
 
 // 会被监视扫描的文件夹、现在既存在global也存在db。之前想做分布式server，但又算了。
 global.SCANED_PATH = [];
@@ -65,9 +65,11 @@ mkdirSync(pathUtil.getImgConverterCachePath());
 mkdirSync(pathUtil.getZipOutputCachePath());
 
 const logger = require("./logger");
+logger.init();
 const { searchByTagAndAuthor } = require("./searchUtil");
 
 const sevenZipHelp = require("./sevenZipHelp");
+sevenZipHelp.init();
 const { listZipContentAndUpdateDb, extractAll, extractByRange } = sevenZipHelp;
 
 // 从用户命令拿port
@@ -120,8 +122,8 @@ try {
     // console.log(path_config_path);
 } catch (e) {
     //nothing
-    console.warn("fail to read ini files")
-    console.warn(e);
+    logger.warn("fail to read ini files")
+    logger.warn(e);
 }
 
 const internalIp = require('internal-ip');
@@ -140,7 +142,7 @@ async function init() {
         const charset = parseInt(m && m[0]);
 
         if (charset !== 65001) {
-            console.error("I recommend you to change console encoding to utf8 in windows language setting");
+            logger.error("Changing console encoding to utf8 in Windows language setting is recommended");
         }
 
         global._cmd_encoding = charset;
@@ -148,8 +150,8 @@ async function init() {
 
     // console.log(indexHtmlPath)
     if (!(await isExist(indexHtmlPath))) {
-        console.warn(`[Error] No ${indexHtmlPath} for producation`);
-        console.warn("[Error] You may need to run npm run build");
+        logger.warn(`[Error] No ${indexHtmlPath} for producation`);
+        logger.warn("[Error] You may need to run npm run build");
     }
 
     await db.init();
@@ -362,10 +364,10 @@ function setUpFileWatch(scan_path) {
         // }, 5000);
 
         let end1 = getCurrentTime();
-        console.log(`[chokidar] ${(end1 - beg) / 1000}s scan complete.  ${init_count}`);
-        console.log(`-------------------------------------------------`);
-        console.log(`\n\n\n\n\n`);
-
+        console.log(`[chokidar] ${(end1 - beg) / 1000}s scan complete.`);
+        console.log(`[chokidar] ${init_count} files were scanned`)
+        console.log("----------------------------------------------------------------");
+        console.log(`\n\n\n`);
         printIP();
     })
 
@@ -489,7 +491,7 @@ async function getThumbnailForFolders(filePathes) {
         let end = getCurrentTime();
         // console.log(`[getThumbnailForFolders] ${(end - beg)}ms for ${filePathes.length} zips`);
     }catch(e){
-        console.error("[getThumbnailForFolders]", e);
+        logger.error("[getThumbnailForFolders]", e);
     }
     return result;
 }
@@ -755,7 +757,7 @@ async function extractThumbnailFromZip(filePath, res, mode, config) {
             //解压
             const stderrForThumbnail = await extractByRange(filePath, outputPath, [thumb])
             if (stderrForThumbnail) {
-                // console.error(stderrForThumbnail);
+                // logger.error(stderrForThumbnail);
                 throw "[extractThumbnailFromZip] extract exec failed"+filePath;
             }
            
@@ -770,7 +772,7 @@ async function extractThumbnailFromZip(filePath, res, mode, config) {
             }
         }
     } catch (e) {
-        console.error("[extractThumbnailFromZip] exception", filePath, e);
+        logger.error("[extractThumbnailFromZip] exception", filePath, e);
         const reason = e || "NOT FOUND";
         sendable && res.send({ failed: true, reason });
     }
@@ -835,7 +837,7 @@ app.post('/api/pregenerateThumbnails', asyncWrapper(async (req, res) => {
             const filePath = totalFiles[ii];
             await extractThumbnailFromZip(filePath, null, "pre-generate", config);
         } catch (e) {
-            console.error(e);
+            logger.error(e);
         }
         const time2 = getCurrentTime();
         const timeUsed = (time2 - pregenBeginTime) / 1000;
@@ -1089,7 +1091,7 @@ app.post('/api/extract', asyncWrapper(async (req, res) => {
         }
     } catch (e) {
         res.send({ failed: true, reason: e });
-        console.error('[/api/extract] exit: ', e);
+        logger.error('[/api/extract] exit: ', e);
     }finally{
         current_extract_queue[filePath] = "done"
     }

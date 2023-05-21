@@ -3,7 +3,6 @@ const path = require('path');
 const filesizeUitl = require('filesize');
 const express = require('express');
 const router = express.Router();
-const imageMagickHelp = require("../imageMagickHelp");
 const pathUtil = require("../pathUtil");
 const { isExist } = pathUtil;
 const logger = require("../logger");
@@ -16,6 +15,9 @@ const sevenZipHelp = require("../sevenZipHelp");
 const { listZipContentAndUpdateDb } = sevenZipHelp;
 
 const { move, trash } = require("../moveDeleteHelp");
+
+const imageMagickHelp = require("../imageMagickHelp");
+imageMagickHelp.init();
 
 const util = global.requireUtil();
 

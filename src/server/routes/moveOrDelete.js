@@ -47,12 +47,12 @@ router.post('/api/renameFile', serverUtil.asyncWrapper(async (req, res) => {
 
         if (err) { throw err; }
 
-        // logger.info(`[rename] ${src} to ${dest}`);
+        logger.info(`[rename] ${src} to ${dest}`);
         res.send({ failed: false, dest });
 
         serverUtil.common.moveCallBack(src, dest);
     } catch (err) {
-        console.error(err);
+        logger.error(err);
         res.send({ reason: getReason(err), failed: true });
     }
 }));
@@ -95,7 +95,7 @@ router.post('/api/moveFile', serverUtil.asyncWrapper(async (req, res) => {
 
         if (err) { throw err; }
 
-        // logger.info(`[MOVE] ${src} to ${dest}`);
+        logger.info(`[MOVE] ${src} to ${dest}`);
         // 回收thumbnail
         if(thumbRows[0]){
             thumbnailDb.addNewThumbnail(destFP, thumbRows[0].thumbnailFilePath)
@@ -110,7 +110,7 @@ router.post('/api/moveFile', serverUtil.asyncWrapper(async (req, res) => {
 
         serverUtil.common.moveCallBack(src, dest);
     } catch (err) {
-        console.error(err);
+        logger.error(err);
         res.send({ reason: getReason(err), failed: true });
     }
 }));
@@ -146,11 +146,11 @@ router.post('/api/deleteFile', serverUtil.asyncWrapper(async (req, res) => {
     try {
         await deleteThing(src);
         res.send({ failed: false });
-        // logger.info(`[DELETE] ${src}`);
+        logger.info(`[DELETE] ${src}`);
 
         serverUtil.common.deleteCallBack(src);
     } catch (e) {
-        console.error(e);
+        logger.error(e);
         res.send({ reason: file_occupy_warning, failed: true });
     }
 }));
@@ -174,9 +174,9 @@ router.post('/api/deleteFolder', serverUtil.asyncWrapper(async (req, res) => {
     try {
         await deleteThing(src);
         res.send({ failed: false });
-        // logger.info(`[DELETE] ${src}`);
+        logger.info(`[DELETE_FOLDER] ${src}`);
     } catch (e) {
-        console.error(e);
+        logger.error(e);
         res.send({ reason: file_occupy_warning, failed: true });
     }
 }));
@@ -202,9 +202,9 @@ router.post('/api/zipFolder', serverUtil.asyncWrapper(async (req, res) => {
             throw stderr;
         }
         res.send({ failed: false, dest: resultZipPath });
-        // logger.info(`[zipFolder] ${src}`);
+        logger.info(`[zipFolder] ${src}`);
     } catch (e) {
-        console.error(e);
+        logger.error(e);
         res.send({ reason: "fail to zip", failed: true });
     }
 }));

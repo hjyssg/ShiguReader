@@ -1,8 +1,10 @@
 const sql_lib = require('sqlite3');
 const _util = require('util');
+const logger = require("../logger");
+
 
 function getSQLInstance(filePath){
-    console.log("[getSQLInstance] " + filePath);
+    logger.info("[getSQLInstance] " + filePath);
     try{
         const sqlite3 = sql_lib.verbose();
         const sqlDb = new sqlite3.Database(filePath);
@@ -12,11 +14,12 @@ function getSQLInstance(filePath){
         sqlDb.getSync = _util.promisify(sqlDb.get).bind(sqlDb);
         sqlDb.runSync = _util.promisify(sqlDb.run).bind(sqlDb);
         // run()
-        // console.log("loaded sql " + filePath);
+        
+        logger.info("[getSQLInstance] loaded " + filePath);
         return sqlDb;
     }catch(e){
-        console.error("[SQLite] failed to open "+ filePath)
-        console.error(e);
+        logger.error("[SQLite] failed to open "+ filePath)
+        logger.error(e);
         throw e;
     }
 

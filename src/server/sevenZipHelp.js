@@ -9,33 +9,36 @@ const util = global.requireUtil();
 const pathUtil = require("./pathUtil");
 const { isImage, isCompress, isMusic, isVideo, arraySlice, getCurrentTime, isDisplayableInExplorer, isDisplayableInOnebook } = util;
 const { isExist } = pathUtil;
-const iconv = require('iconv-lite');
-
+// const iconv = require('iconv-lite');
 
 global._has_7zip_ = true;
 let sevenZip;
-if (global.isWindows) {
-    try{
-        const sevenZipPath = path.join(pathUtil.getRootPath(), "resource", "7zip");
-        sevenZip = require(sevenZipPath)['7z'];
-    }catch{
-        global._has_7zip_ = false;
-        console.error("[ERROR] no 7zip on windows");
-    }
-    // console.log("sevenZipPath", sevenZipPath);
-} else {
-    //assume linux/mac people already install it by cmd
-    //https://superuser.com/questions/548349/how-can-i-install-7zip-so-i-can-run-it-from-terminal-on-os-x
-    sevenZip = "7z";
-    execa(sevenZip)
-        .then(() => { })
-        .catch(e => {
+
+module.exports.init = function(){
+    if (global.isWindows) {
+        try{
+            const sevenZipPath = path.join(pathUtil.getRootPath(), "resource", "7zip");
+            sevenZip = require(sevenZipPath)['7z'];
+        }catch{
             global._has_7zip_ = false;
-            console.warn("[warning] this computer did not install 7z")
-            console.warn("[warning] mac and *nix people need to install 7zip themselves")
-            console.warn("On Debian and Ubuntu install the p7zip-full package.\nOn Mac OSX use Homebrew brew install p7zip")
-        });
+            logger.error("[ERROR] no 7zip on windows");
+        }
+        // console.log("sevenZipPath", sevenZipPath);
+    } else {
+        //assume linux/mac people already install it by cmd
+        //https://superuser.com/questions/548349/how-can-i-install-7zip-so-i-can-run-it-from-terminal-on-os-x
+        sevenZip = "7z";
+        execa(sevenZip)
+            .then(() => { })
+            .catch(e => {
+                global._has_7zip_ = false;
+                logger.error("[warning] this computer did not install 7z")
+                logger.error("[warning] mac and *nix people need to install 7zip themselves")
+                logger.error("On Debian and Ubuntu install the p7zip-full package.\nOn Mac OSX use Homebrew brew install p7zip")
+            });
+    }
 }
+
 
 module.exports.sevenZip = sevenZip;
 
@@ -92,7 +95,6 @@ function read7zOutput(data) {
         }
         return { files, fileInfos };
     } catch (e) {
-        // console.error("[read7zOutput]", e)
         logger.error('[read7zOutput] exit: ', e);
     }
 }

@@ -32,13 +32,20 @@ function logFail(filePath, e) {
     logger.error("[imageMagickHelp]", filePath, e);
 }
 
-global._has_magick_ = true;
-execa("magick")
-    .then(() => { })
+global._has_magick_ = false;
+module.exports.init = function(){
+    execa("magick")
+    .then((std) => {
+        global._has_magick_ = true;
+     })
     .catch(e => {
-        global._has_magick_ = false;
-        console.log("Did not install magick")
+        
+        logger.warn("[Warning]Did not install ImageMagic.")
+        logger.warn("https://imagemagick.org")
+        logger.warn("Highly Recommend. It is used to create thumbnail and reduce image size")
+        logger.warn("----------------------------------------------------------------");
     });
+}
 
 
 //https://imagemagick.org/script/download.php#windows
@@ -124,8 +131,8 @@ module.exports.minifyOneFile = async function (filePath) {
             logFail(filePath, "ExtractAll Different than Original Files");
             return;
         }
-        console.log("-----begin images convertion --------------");
-        console.log(filePath);
+        logger.info("-----begin images convertion --------------");
+        logger.info(filePath);
         const _pathes = pathes;
         const total = _pathes.length;
         let converterError;
@@ -161,10 +168,10 @@ module.exports.minifyOneFile = async function (filePath) {
                     const timePerImg = timeSpent / (ii + 1) / 1000; // in second
                     const remaintime = (total - ii) * timePerImg;
                     if (ii + 1 < total) {
-                        console.log(`${ii + 1}/${total}      ${(timePerImg).toFixed(2)}s per file   ${remaintime.toFixed(2)}s left`);
+                        logger.info(`${ii + 1}/${total}      ${(timePerImg).toFixed(2)}s per file   ${remaintime.toFixed(2)}s left`);
                     } else {
-                        console.log(`${ii + 1}/${total}`);
-                        // console.log("finish convertion. going to check if there is any error")
+                        logger.info(`${ii + 1}/${total}`);
+                        // logger.info("finish convertion. going to check if there is any error")
                     }
                 }
 
@@ -197,7 +204,7 @@ module.exports.minifyOneFile = async function (filePath) {
         }
         const newStat = await getStat(resultZipPath);
         const reducePercentage = (100 - newStat.size / oldStat.size * 100).toFixed(2);
-        console.log(`[imageMagickHelp] size reduce ${reducePercentage}%`);
+        logger.info(`[imageMagickHelp] size reduce ${reducePercentage}%`);
 
         if (reducePercentage < userful_percent) {
             logFail(filePath, "not a useful work. abandon");
@@ -210,10 +217,10 @@ module.exports.minifyOneFile = async function (filePath) {
                 deleteCache(resultZipPath);
             } else {
                 // logger.info("convertion done", filePath);
-                console.log("original size", filesizeUitl(oldStat.size, { base: 2 }));
-                console.log("new size", filesizeUitl(newStat.size, { base: 2 }));
-                console.log(`size reduce ${reducePercentage}%`);
-                console.log("output file is at", convertSpace);
+                logger.info("original size", filesizeUitl(oldStat.size, { base: 2 }));
+                logger.info("new size", filesizeUitl(newStat.size, { base: 2 }));
+                logger.info(`size reduce ${reducePercentage}%`);
+                logger.info("output file is at", convertSpace);
                 return {
                     oldSize: oldStat.size,
                     newSize: newStat.size,
@@ -227,7 +234,7 @@ module.exports.minifyOneFile = async function (filePath) {
         //maybe let user to delete file manually?
         deleteCache(extractOutputPath);
         deleteCache(minifyOutputPath);
-        console.log("------------------------------");
+        logger.info("----------------------------------------------------------------");
     }
 }
 
@@ -235,7 +242,7 @@ function deleteCache(filePath) {
     if (filePath) {
         rimraf(filePath, (err) => {
             if (err) {
-                console.error("[clean imageMagickHelp]", filePath, err);
+                logger.error("[clean imageMagickHelp]", filePath, err);
             }
         });
     }
@@ -272,8 +279,9 @@ const isNewZipSameWithOriginalFiles = module.exports.isNewZipSameWithOriginalFil
 
 const fileiterator = require('./file-iterator');
 const trash = require('trash');
+const { func } = require('prop-types');
 module.exports.minifyFolder = async function (filePath) {
-    console.log("-----begin images convertion --------------");
+    logger.info("-----begin images convertion --------------");
     //only one level
     const { pathes, infos } = await fileiterator(filePath, {
         filter: util.isImage
@@ -311,9 +319,9 @@ module.exports.minifyFolder = async function (filePath) {
                     saveSpace += (oldSize - newStat.size);
                 }
             }
-            console.log(`${ii + 1}/${total} ${filePath}`);
+            logger.info(`${ii + 1}/${total} ${filePath}`);
         } catch (e) {
-            console.error(e);
+            logger.error(e);
         }
     }
 

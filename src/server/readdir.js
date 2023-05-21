@@ -3,6 +3,7 @@
 const path = require('path');
 const pfs = require('promise-fs');
 const serverUtil = require("./serverUtil");
+const logger = require("./logger");
 
 const isHiddenFile = function (f) {
     const temp = path.basename(f);
@@ -21,7 +22,7 @@ module.exports = async function (fp, option) {
         });
         return pathes;
     } catch (e) {
-        console.error(e);
+        logger.error(e);
         return [];
     }
 }

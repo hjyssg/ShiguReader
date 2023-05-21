@@ -20,13 +20,15 @@ const { getCurrentTime, isImage, isMusic, isCompress, isVideo } = util;
 const { isAlreadyScan, _decorate } = serverUtil.common;
 const readdir = require("../readdir");
 const historyDb = require("../models/historyDb");
+const logger = require("../logger");
+
 
 router.post('/api/lsDir', serverUtil.asyncWrapper(async (req, res) => {
     let dir = req.body && req.body.dir;
     const isRecursive = req.body && req.body.isRecursive;
 
     if (!dir || !(await isExist(dir))) {
-        console.error("[/api/lsDir]", dir, "does not exist");
+        logger.error("[/api/lsDir]", dir, "does not exist");
         res.send({ failed: true, reason: "NOT FOUND" });
         return;
     }
@@ -148,7 +150,7 @@ router.post('/api/lsDir', serverUtil.asyncWrapper(async (req, res) => {
         historyDb.addOneLsDirRecord(dir);
         res.send(result);
     } catch (e) {
-        console.error(e);
+        logger.error(e);
         res.send({ failed: true, reason: e });
     } finally {
         //drop
@@ -205,7 +207,7 @@ router.post('/api/listImageFolderContent', serverUtil.asyncWrapper(async (req, r
     let filePath = req.body && req.body.filePath;
     const noMedataInfo = req.body && req.body.noMedataInfo;
     if (!filePath || !(await isExist(filePath))) {
-        console.error("[/api/listImageFolderContent]", filePath, "does not exist");
+        logger.error("[/api/listImageFolderContent]", filePath, "does not exist");
         res.send({ failed: true, reason: "NOT FOUND" });
         return;
     }

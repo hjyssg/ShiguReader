@@ -9,11 +9,13 @@ const { isCompress, isVideo, getCurrentTime } = util;
 const { isSub, isExist } = pathUtil;
 const rootPath = pathUtil.getRootPath();
 
-let thumbnail_db_path = path.join(pathUtil.getWorkSpacePath(), "thumbnail_sql_db.db");
-const dbCommon = require("./dbCommon");
-const sqlDb = dbCommon.getSQLInstance(thumbnail_db_path);
 
+let sqlDb;
 module.exports.init = async ()=> {
+    let thumbnail_db_path = path.join(pathUtil.getWorkSpacePath(), "thumbnail_sql_db.db");
+    const dbCommon = require("./dbCommon");
+    sqlDb = dbCommon.getSQLInstance(thumbnail_db_path);
+
     await sqlDb.runSync(`CREATE TABLE IF NOT EXISTS thumbnail_table (filePath TEXT, thumbnailFileName TEXT);
                          CREATE INDEX IF NOT EXISTS filePath_index ON thumbnail_table (filePath)`);
     await syncInternalDict()

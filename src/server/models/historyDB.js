@@ -6,11 +6,13 @@ const { getCurrentTime } = util;
 const pathUtil = require("../pathUtil");
 // const serverUtil = require("../serverUtil");
 
-const history_db_path = path.join(pathUtil.getWorkSpacePath(), "history_sql_db.db");
-const dbCommon = require("./dbCommon");
-const sqlDb = dbCommon.getSQLInstance(history_db_path);
 
+let sqlDb;
 module.exports.init = async ()=> {
+    const history_db_path = path.join(pathUtil.getWorkSpacePath(), "history_sql_db.db");
+    const dbCommon = require("./dbCommon");
+    sqlDb = dbCommon.getSQLInstance(history_db_path);
+
     // 记录打开文件
     let sql = `CREATE TABLE IF NOT EXISTS history_table (filePath TEXT NOT NULL, dirPath TEXT, fileName TEXT, time INTEGER); 
                  CREATE INDEX IF NOT EXISTS fileName_index ON history_table (fileName);

@@ -6,12 +6,14 @@ const userConfig = global.requireUserConfig();
 const path = require('path');
 const pathUtil = require("../pathUtil");
 
-let zip_sql_path = path.join(pathUtil.getWorkSpacePath(), "zip_info_sql.db");
-const dbCommon = require("./dbCommon");
-const sqlDb = dbCommon.getSQLInstance(zip_sql_path);
 
+let sqlDb;
 //-----------------------
 module.exports.init = async ()=> {
+    let zip_sql_path = path.join(pathUtil.getWorkSpacePath(), "zip_info_sql.db");
+    const dbCommon = require("./dbCommon");
+    sqlDb = dbCommon.getSQLInstance(zip_sql_path);
+
     await sqlDb.runSync(`CREATE TABLE IF NOT EXISTS zip_table (
                             filePath TEXT PRIMARY KEY, 
                             pageNum INTEGER,

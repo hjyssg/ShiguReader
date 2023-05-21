@@ -22,12 +22,12 @@ const getFileToInfo = module.exports.getFileToInfo = function (filePath) {
     }
 }
 
-const dbCommon = require("./dbCommon");
-const sqlDb = dbCommon.getSQLInstance(':memory:');
-// 用file的话，init的insertion太慢了
-
-
+let sqlDb;
 module.exports.init = async ()=> {
+    const dbCommon = require("./dbCommon");
+    sqlDb = dbCommon.getSQLInstance(':memory:');
+    // 用file的话，init的insertion太慢了
+
     // 提升少量性能
     await sqlDb.runSync( `
         PRAGMA journal_mode = OFF;
@@ -97,7 +97,7 @@ const updateFileDb = function (filePath, statObj) {
     const fileName = path.basename(filePath);
 
     if (!statObj) {
-        console.warn("no statObj");
+        console.warn("[updateFileDb] no statObj");
         statObj = {};
     }
 
