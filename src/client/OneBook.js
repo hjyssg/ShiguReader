@@ -510,7 +510,7 @@ export default class OneBook extends Component {
   }
 
   onImageError() {
-    this.imgRef.src = "../resource/error_loading.png";
+    this.imgRef.src = "./error_loading.png";
     this.hideSpinner()
   }
 
