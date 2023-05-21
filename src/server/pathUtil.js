@@ -20,7 +20,10 @@ if(global.isPkg){
 //     rootPath = rootPath.charAt(0).toUpperCase() + rootPath.slice(1);
 // }
 
-const getRootPath = function () {
+/**
+ * 【非常重要】获得项目的根目录的路径
+ */
+const getRootPath = module.exports.getRootPath = function () {
     return rootPath;
 }
 
@@ -42,7 +45,7 @@ function isFilePath(str) {
 /**
  * for zip inside image and music files。把pathes按类拆分
  */
-const generateContentUrl = function (pathes, outputPath) {
+ module.exports.generateContentUrl = function (pathes, outputPath) {
     const files = [];
     const dirs = [];
     const musicFiles = [];
@@ -63,7 +66,7 @@ const generateContentUrl = function (pathes, outputPath) {
     return { files, dirs, musicFiles, videoFiles };
 }
 
-const isExist = async (tempPath) => {
+const isExist = module.exports.isExist = async (tempPath) => {
     try {
         if (!tempPath) {
             return false;
@@ -78,12 +81,12 @@ const isExist = async (tempPath) => {
 /**
  * 是否为直属parent directory
  */
-function isDirectParent(parent, filePath) {
+ module.exports.isDirectParent =(parent, filePath) => {
     const parentPath = path.resolve(filePath, "..");
     return parentPath === parent;
 }
 
-function removeLastPathSep(fp) {
+const removeLastPathSep = module.exports.removeLastPathSep = (fp) => {
     //https://stackoverflow.com/questions/3884632/how-to-get-the-last-character-of-a-string
     if (fp.slice(-1) === path.sep) {
         return fp.slice(0, fp.length - 1);
@@ -95,7 +98,7 @@ function removeLastPathSep(fp) {
 /**
  * 是否为子目录，性能优化版
  */
-function isSub(parent, child) {
+const isSub = module.exports.isSub = (parent, child) => {
     if (global.isWindows) {
         parent = parent.toLowerCase();
         child = child.toLowerCase();
@@ -114,7 +117,10 @@ if (global.isWindows) {
     console.assert(isSub("/Users/hjy/", "/Users/hjy/Downloads"))
 }
 
-async function filterNonExist(pathes, limit) {
+/**
+ * 删选实际存在的filepath 
+ */
+const filterNonExist = module.exports.filterNonExist = async (pathes, limit) => {
     const result = [];
     limit = limit || 100000;
     for (let ii = 0; ii < pathes.length; ii++) {
@@ -130,37 +136,12 @@ async function filterNonExist(pathes, limit) {
     return result;
 }
 
-// function parse_aji_path_config(fileContent, sepArr){
-//     let pathes = fileContent.toString().split('\n');
-//     pathes = pathes
-//         .map(e => e.trim().replace(/\n|\r/g, ""))
-//         .filter(pp => { return pp && pp.length > 0 && !pp.startsWith("#") && !pp.startsWith(";"); });
-//     pathes = _.uniq(pathes);
 
-//     const indexArr = sepArr.map(sep =>  {
-//        return pathes.findIndex(e => e.includes(sep));
-//     })
-
-//     const result = [];
-//     for(let ii = 0; ii < indexArr.length; ii++){
-//         const curIndex = indexArr[ii];
-//         const nextIndex = indexArr[ii+1];
-//         let part;
-//         if(nextIndex){
-//             part = pathes.slice(curIndex+1, nextIndex)
-//         }else {
-//             part = pathes.slice(curIndex+1);
-//         }
-//         result.push(part);
-//     }
-
-//     return result;
-// }
 
 /**
  * 算出项目相关的各种path
  */
-async function filterPathConfig(path_config) {
+module.exports.filterPathConfig = async (path_config) => {
     let { good_folder_root, not_good_folder_root, scan_folder_pathes, quick_access_pathes, move_pathes } = path_config;
 
     quick_access_pathes = await filterNonExist(quick_access_pathes||[]);
@@ -206,23 +187,51 @@ async function filterPathConfig(path_config) {
     };
 }
 
-function getWorkSpacePath(){
+const getWorkSpacePath = module.exports.getWorkSpacePath = () => {
     return  path.join(getRootPath(), userConfig.workspace_name);
 }
 
-function getImgConverterCachePath() {
+const getImgConverterCachePath = module.exports.getImgConverterCachePath = () => {
     const imgConvertFolder = path.join(getWorkSpacePath(), userConfig.img_convert_cache);
     return imgConvertFolder;
 }
 
-function getZipOutputCachePath() {
+const getZipOutputCachePath = module.exports.getZipOutputCachePath = () => {
     return path.join(getWorkSpacePath(), userConfig.zip_output_cache);
+}
+
+const getExt = module.exports.getExt = function (p) {
+    const ext = path.extname(p).toLowerCase();
+    if (ext === ".!ut") {
+        return ext;
+    }
+
+    const isAlphebetorNumber = /^\.[a-zA-z0-9]*$/.test(ext);  // e.g .7z
+    const isOnlyDigit = /^\.[0-9]*$/.test(ext); // e.g   445
+    const isFileSize =  /\d+\.\d+\s*(?:MB|GB)]$/i.test(p);  // e.g 456.28 MB] or 120.44 GB]
+
+    //xxx NO.003 xxx is not meaningful extension
+    //extension string should be alphabet(may with digit), but not only digit
+    if (ext && isAlphebetorNumber  && !isOnlyDigit && !isFileSize) {
+        return ext;
+    } else {
+        return "";
+    }
+}
+
+/**
+ * not accurate, but performance is good. access each file is very slow 
+ * 根据有无后缀快速判断估算是不是文件夹。没有才可能是文件
+ */
+const estimateIfFolder = module.exports.estimateIfFolder = function(filePath){
+   const ext = getExt(filePath);
+   return !ext 
 }
 
 /**
  * 递归文件夹，结果存在resultArr
  */
-const readdirRecursive = async (filePath, resultArr) => {
+const readdirRecursive = module.exports.readdirRecursive = async (filePath, resultArr) => {
     let pathes = await pfs.readdir(filePath);
     pathes = pathes.map(e => path.resolve(filePath, e));
 
@@ -231,7 +240,7 @@ const readdirRecursive = async (filePath, resultArr) => {
                 const fp = pathes[ii];
                 if(isDisplayableInOnebook(fp)){
                     resultArr.push(fp)
-                }else{
+                }else if(estimateIfFolder(fp)){
                     const stat = await pfs.stat(filePath);
                     if(stat.isDirectory()){
                         await readdirRecursive(fp, resultArr);
@@ -243,17 +252,12 @@ const readdirRecursive = async (filePath, resultArr) => {
     }
 }
 
-module.exports = {
-    generateContentUrl,
-    getRootPath,
-    filterNonExist,
-    isExist,
-    isDirectParent,
-    isSub,
-    filterPathConfig,
-    getImgConverterCachePath,
-    getZipOutputCachePath,
-    removeLastPathSep,
-    readdirRecursive,
-    getWorkSpacePath
-};
+/**
+ * 判断是否为隐藏文件
+ */
+const filterHiddenFile = module.exports.filterHiddenFile = function (files) {
+    return files.filter(f => {
+        const temp = path.basename(f);
+        return temp && temp.length > 1 && temp[0] !== ".";
+    })
+}

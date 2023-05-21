@@ -176,7 +176,7 @@ async function listNoScanDir(filePath, res, isRecussive) {
     const musicFiles = subFpArr.filter(isMusic);
     const videoFiles = subFpArr.filter(isVideo);
     const dirs = subFpArr.filter(e => {
-        const isFolder = serverUtil.estimateIfFolder(e);
+        const isFolder = pathUtil.estimateIfFolder(e);
         return isFolder;
     })
 

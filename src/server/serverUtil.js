@@ -6,9 +6,11 @@ const sortUtil = require("../common/sortUtil");
 const { isImage, isCompress } = util;
 const fs = require('fs');
 const logger = require("./logger");
-
-
+const pfs = require('promise-fs');
+const pathUtil = require("./pathUtil");
 const userConfig = global.requireUserConfig();
+const net = require('net');
+const junk = require('junk');
 
 /*
 *  cache folder name and thumbnail file name
@@ -30,18 +32,18 @@ module.exports.getHash = function (filePath) {
     return hash;
 }
 
-
-
-const filterHiddenFile = module.exports.filterHiddenFile = function (files) {
-    return files.filter(f => {
-        const temp = path.basename(f);
-        return temp && temp[0] !== ".";
-    })
-}
-
 const isHiddenFile = module.exports.isHiddenFile = function (f) {
     const temp = path.basename(f);
     return temp && temp[0] === ".";
+}
+
+function getBaseName(e) {
+    return path.basename(e);
+}
+
+module.exports.getDirName = function (p) {
+    const result = path.dirname(p);
+    return path.basename(result);
 }
 
 module.exports.chooseOneZipForOneTag = function (files, fileInfos) {
@@ -61,14 +63,7 @@ module.exports.chooseOneZipForOneTag = function (files, fileInfos) {
     return _files[0];
 }
 
-function getBaseName(e) {
-    return path.basename(e);
-}
 
-module.exports.getDirName = function (p) {
-    const result = path.dirname(p);
-    return path.basename(result);
-}
 
 const sortFileNames = module.exports.sortFileNames = function (files) {
     util._sortFileNames(files, e => path.basename(e, path.extname(e)));
@@ -87,30 +82,6 @@ module.exports.chooseThumbnailImage = function (files) {
 module.exports.parse = function (str) {
     return nameParser.parse(path.basename(str, path.extname(str)));
 }
-
-
-const getExt = module.exports.getExt = function (p) {
-    const ext = path.extname(p).toLowerCase();
-    if (ext === ".!ut") {
-        return ext;
-    }
-
-    const isAlphebetorNumber = /^\.[a-zA-z0-9]*$/.test(ext);  // e.g .7z
-    const isOnlyDigit = /^\.[0-9]*$/.test(ext); // e.g   445
-    const isFileSize =  /\d+\.\d+\s*(?:MB|GB)]$/i.test(p);  // e.g 456.28 MB] or 120.44 GB]
-
-    //xxx NO.003 xxx is not meaningful extension
-    //extension string should be alphabet(may with digit), but not only digit
-    if (ext && isAlphebetorNumber  && !isOnlyDigit && !isFileSize) {
-        return ext;
-    } else {
-        return "";
-    }
-}
-
-
-const pfs = require('promise-fs');
-const pathUtil = require("./pathUtil");
 
 module.exports.mkdir = async function (path, quiet) {
     if (path && !(await pathUtil.isExist(path))) {
@@ -156,7 +127,6 @@ const forbid = ["System Volume Information",
     "Windows",
     "msdownld.tmp",
     "node_modules"];
-const junk = require('junk');
 module.exports.isForbid = function (str) {
     str = str.toLocaleLowerCase();
     return junk.is(str) || forbid.some(e => {
@@ -177,9 +147,7 @@ function makeid() {
 }
 module.exports.makeid = makeid;
 
-
-const net = require('net');
-function isPortOccupied(port) {
+module.exports.isPortOccupied = isPortOccupied = (port) => {
   return new Promise((resolve, reject) => {
     const server = net.createServer()
                   .once('error', err => {
@@ -196,10 +164,11 @@ function isPortOccupied(port) {
                   .listen(port);
   });
 }
-module.exports.isPortOccupied = isPortOccupied;
 
-// Async wrapper function
-const asyncWrapper = (fn) => {
+/**
+ * Async wrapper function。用来封装所有的async request
+ */
+module.exports.asyncWrapper = (fn) => {
     return (req, res, next) => {
       fn(req, res, next).catch((reason)=>{
         // next
@@ -212,14 +181,5 @@ const asyncWrapper = (fn) => {
       });
     };
 };
-
-module.exports.asyncWrapper = asyncWrapper;
-
-
-module.exports.estimateIfFolder = function(filePath){
-     //not accurate, but performance is good. access each file is very slow
-    const ext = getExt(filePath);
-    return !ext 
-}
 
 module.exports.common = {};

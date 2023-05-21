@@ -20,9 +20,9 @@ const util = global.requireUtil();
 const fileiterator = require('./file-iterator');
 const pathUtil = require("./pathUtil");
 const serverUtil = require("./serverUtil");
-const { isHiddenFile, getHash, mkdir, mkdirSync, asyncWrapper, estimateIfFolder } = serverUtil;
+const { isHiddenFile, getHash, mkdir, mkdirSync, asyncWrapper } = serverUtil;
 
-const { generateContentUrl, isExist, filterPathConfig, isSub } = pathUtil;
+const { generateContentUrl, isExist, filterPathConfig, isSub, estimateIfFolder } = pathUtil;
 const { isImage, isCompress, isVideo, isMusic, arraySlice,
     getCurrentTime, isDisplayableInExplorer, isDisplayableInOnebook } = util;
 
@@ -245,7 +245,7 @@ function shouldWatchForNormal(p, stat) {
         return true;
     }
 
-    const ext = serverUtil.getExt(p);
+    const ext = pathUtil.getExt(p);
     let result = estimateIfFolder(p) || isDisplayableInExplorer(ext);
 
     if (view_img_folder) {
@@ -272,7 +272,7 @@ function shouldWatchForCache(p, stat) {
         return true;
     }
 
-    const ext = serverUtil.getExt(p);
+    const ext = pathUtil.getExt(p);
     return estimateIfFolder(p) || isDisplayableInOnebook(ext) || isVideo(ext);
 }
 
@@ -822,7 +822,7 @@ app.post('/api/pregenerateThumbnails', asyncWrapper(async (req, res) => {
         if (isHiddenFile(p)) {
             return false;
         }
-        const ext = serverUtil.getExt(p);
+        const ext = pathUtil.getExt(p);
         return estimateIfFolder(p) || isCompress(ext);
     }
 
