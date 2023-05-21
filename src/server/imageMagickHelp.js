@@ -18,7 +18,7 @@ const filesizeUitl = require('filesize');
 const rimraf = require("./rimraf");
 
 const serverUtil = require("./serverUtil");
-const { getStat } = serverUtil.common;
+const { getStatAndUpdateDB } = serverUtil.common;
 
 let { img_convert_quality, img_convert_dest_type,
     img_convert_huge_threshold, img_reduce_resolution_dimension,
@@ -98,7 +98,7 @@ module.exports.minifyOneFile = async function (filePath) {
     let extractOutputPath;
     let minifyOutputPath;
     try {
-        const oldStat = await getStat(filePath);
+        const oldStat = await getStatAndUpdateDB(filePath);
         const oldTemp = await listZipContentAndUpdateDb(filePath);
         const oldFiles = oldTemp.files;
 
@@ -202,7 +202,7 @@ module.exports.minifyOneFile = async function (filePath) {
             deleteCache(resultZipPath);
             return;
         }
-        const newStat = await getStat(resultZipPath);
+        const newStat = await getStatAndUpdateDB(resultZipPath);
         const reducePercentage = (100 - newStat.size / oldStat.size * 100).toFixed(2);
         logger.info(`[imageMagickHelp] size reduce ${reducePercentage}%`);
 
@@ -305,7 +305,7 @@ module.exports.minifyFolder = async function (filePath) {
             if (isImgConvertable(inputFp, oldSize)) {
                 await convertImage(inputFp, outputfp, oldSize);
 
-                const newStat = await getStat(outputfp);
+                const newStat = await getStatAndUpdateDB(outputfp);
                 const reducePercentage = (100 - newStat.size / oldSize * 100).toFixed(2);
                 if (reducePercentage < userful_percent || newStat.size < 1000) {
                     await trash([outputfp]);

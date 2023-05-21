@@ -5,6 +5,8 @@ const path = require('path');
 const serverUtil = require("../serverUtil");
 const util = global.requireUtil();
 const { isImage, isCompress, isMusic } = util;
+const pfs = require('promise-fs');
+
 
 const nameParser = require('../../name-parser');
 const namePicker = require("../../human-name-picker");
@@ -153,8 +155,6 @@ const updateFileDb = function (filePath, statObj) {
         isDisplayableInExplorer, isDisplayableInOnebook, isCompresFile, statObj.isDir);
 }
 
-const pfs = require('promise-fs');
-//!! same as file-iterator getStat()
 module.exports.updateStatToDb = async function (filePath, stat) {
     const statObj = {};
     if (!stat) {
@@ -201,7 +201,6 @@ module.exports.getImgFolderInfo = function (imgFolders) {
             }
         })
 
-        //!! same as file-iterator getStat()
         imgFolderInfo[folder] = {
             isFile: false,
             isDir: true,

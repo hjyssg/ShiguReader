@@ -3,7 +3,7 @@ const express = require('express');
 const router = express.Router();
 const db = require("../models/db");
 const serverUtil = require("../serverUtil");
-const { getStat } = serverUtil.common;
+const { getStatAndUpdateDB } = serverUtil.common;
 const historyDb = require("../models/historyDb");
 const util = global.requireUtil();
 const pathUtil = require("../pathUtil");
@@ -19,7 +19,7 @@ router.post("/api/singleFileInfo", serverUtil.asyncWrapper(async (req, res) => {
 
     let stat = db.getFileToInfo(filePath);
     if (!stat) {
-        stat = await getStat(filePath);
+        stat = await getStatAndUpdateDB(filePath);
     }
 
     const mecab_tokens = await global.mecab_getTokens(filePath);

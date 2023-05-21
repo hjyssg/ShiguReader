@@ -35,7 +35,6 @@ module.exports.getCacheFiles = function (outputPath) {
 }
 
 
-//!! same as file-iterator getStat()
 module.exports.updateStatToCacheDb = function (p, stats) {
     const { folderToFiles, cacheFileToInfo } = cacheDb;
     const fp = getDirName(p);

@@ -516,7 +516,8 @@ async function getThumbnailForFolders(filePathes) {
     return result;
 }
 
-async function getStat(filePath) {
+/** 获得file stat同时保存到db */
+async function getStatAndUpdateDB(filePath) {
     const stat = await pfs.stat(filePath);
     if (isAlreadyScan(filePath)) {
         db.updateStatToDb(filePath, stat);
@@ -524,6 +525,7 @@ async function getStat(filePath) {
     return stat;
 }
 
+/** 判断一个dir path是不是在scan路径上 */
 function isAlreadyScan(dir) {
     return global.SCANED_PATH.some(sp => {
         return sp === dir || pathUtil.isSub(sp, dir);
@@ -559,7 +561,7 @@ async function _decorateResWithMeta(resObj) {
 
 serverUtil.common._decorateResWithMeta = _decorateResWithMeta
 serverUtil.common.getThumbnailsForZip = getThumbnailsForZip;
-serverUtil.common.getStat = getStat;
+serverUtil.common.getStatAndUpdateDB = getStatAndUpdateDB;
 serverUtil.common.isAlreadyScan = isAlreadyScan;
 
 
@@ -818,24 +820,23 @@ app.post('/api/pregenerateThumbnails', asyncWrapper(async (req, res) => {
     pregenerateThumbnails_lock = true;
     const fastUpdateMode = req.body && req.body.fastUpdateMode;
 
-    const allfiles = await db.getAllFilePathes();
-    let totalFiles = allfiles.filter(isCompress);
+    let totalFiles = await db.getAllFilePathes("WHERE isCompress=1");
     if (pregenerateThumbnailPath !== "All_Pathes") {
         totalFiles = totalFiles.filter(e => e.includes(pregenerateThumbnailPath));
     }
 
-    function shouldWatch(p, stat) {
-        if (isHiddenFile(p)) {
-            return false;
-        }
-        const ext = pathUtil.getExt(p);
-        return estimateIfFolder(p) || isCompress(ext);
-    }
-
     if (pregenerateThumbnailPath !== "All_Pathes" && pregenerateThumbnailPath && !isAlreadyScan(pregenerateThumbnailPath)) {
+        function shouldScanForPreg(p, stat) {
+            if (isHiddenFile(p)) {
+                return false;
+            }
+            const ext = pathUtil.getExt(p);
+            return estimateIfFolder(p) || isCompress(ext);
+        }
+
         const { pathes } = await fileiterator(pregenerateThumbnailPath, {
             doNotNeedInfo: true,
-            filter: shouldWatch
+            filter: shouldScanForPreg
         });
         totalFiles = pathes.filter(isCompress);
     }
@@ -1053,7 +1054,7 @@ app.post('/api/extract', asyncWrapper(async (req, res) => {
 
     const full_extract_max = 10;
     try {
-        stat = await getStat(filePath);
+        stat = await getStatAndUpdateDB(filePath);
         if(current_extract_queue[filePath] === "in_progress"){
             res.send({ failed: true, reason: "extract_in_progress" });
             return;

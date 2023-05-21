@@ -40,7 +40,7 @@ function isLegalDepth(depth, config) {
     return true;
 }
 
-async function getStat(p) {
+async function get_stat(p) {
     const stat = await pfs.statSync(p);
     const result = {};
     result.isFile = stat.isFile();
@@ -67,7 +67,7 @@ async function iterate(p, config, result, depth, isFile) {
                 }
             }
             if (!config.doNotNeedInfo) {
-                const stat = await getStat(p, config);
+                const stat = await get_stat(p, config);
                 result.infos[p] = stat;
             }
             result.pathes.push(p);
