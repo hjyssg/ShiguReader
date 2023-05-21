@@ -36,10 +36,9 @@ The supported archive formats depend on 7Zip. Common formats such as zip, rar, a
 
 ##### Keyboard Shortcuts
 
-Manga Page
-enter: Fullscreen
-AD and left/right arrow keys: Page navigation
-+-: Image zoom
+enter: Fullscreen  
+AD and left/right arrow keys: Page navigation  
++-: Image zoom  
 
 ##### Third-Party Dependencies
 
@@ -51,16 +50,16 @@ Add `EhentaiHighighliger.js` to TamperMonkey. When you visit the E-Hentai websit
 
 ##### FAQ
 
-Q: The software doesn't start after clicking the .exe file. What should I do?
+Q: The software doesn't start after clicking the .exe file. What should I do?  
 A: The default port 3000 may already be in use. Try changing the port number.
 
-Q: Some videos cannot be played. What should I do?
+Q: Some videos cannot be played. What should I do?  
 A: Videos are only a supplementary feature, and their supported formats are limited.
 
-Q: The software works fine on my computer, but after scanning the QR code, it doesn't open on my phone. How can I resolve this?
+Q: The software works fine on my computer, but after scanning the QR code, it doesn't open on my phone. How can I resolve this?  
 A: Please make sure that your computer and phone are connected to the same local Wi-Fi network. If it still doesn't open, check your computer's firewall settings.
 
-Q: What does "ShiguReader" mean?
+Q: What does "ShiguReader" mean?  
 A: ShiguReader is a combination of "Shigure" (しぐれ) and "Reader." The doujinshi of that era's Kantai Collection were really good.
 
 ##### Donations
@@ -70,7 +69,7 @@ If you like our software and would like to treat us to a cup of milk tea, you ca
 
 ##### Development Environment Setup
 
-please refer to [Readme_Env_Setup](https://github.com/hjyssg/ShiguReader/blob/dev/Readme_Env_Setup.md).
+please refer to [Readme_Env_Setup](https://github.com/hjyssg/ShiguReader/blob/Dev_Frontend/Readme_Env_Setup.md).
 
 ##### Feedback and Suggestions
 

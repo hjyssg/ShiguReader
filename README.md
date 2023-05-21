@@ -118,7 +118,7 @@ docker run -d -p hostport:3000 -v comicpath:/data liwufan/shigureader
 
 ##### 开发环境设置
 
-开发人员请阅读[Readme_Env_Setup](https://github.com/hjyssg/ShiguReader/blob/dev/Readme_Env_Setup.md)
+开发人员请阅读[Readme_Env_Setup](https://github.com/hjyssg/ShiguReader/blob/Dev_Frontend/Readme_Env_Setup.md)
 
 ##### 反馈与建议
 
