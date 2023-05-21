@@ -1,7 +1,7 @@
 const express = require('express');
 const path = require('path');
 const _ = require('underscore');
-
+global.isWindows = require('is-windows')();
 
 global.requireUtil = () => require("../common/util");
 global.requireUserConfig = () => require("../config/user-config");

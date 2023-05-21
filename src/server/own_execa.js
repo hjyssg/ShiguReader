@@ -1,7 +1,12 @@
 const _execa = require('execa');
 const iconv = require('iconv-lite');
 
-
+/**
+ * 
+ * @param cmd 回去执行的cmd或者cmd路径
+ * @param {*} option cmd参数
+ * @returns stdout, stderr
+ */
 async function execa(cmd, option){
     console.assert(arguments.length <= 2);
     if(global._cmd_encoding === 65001){
@@ -19,7 +24,6 @@ async function execa(cmd, option){
             err.stderr = iconv.decode(err.stderr, 'gbk');
             throw err;
         }
-  
     }
 }
 
