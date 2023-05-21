@@ -7,6 +7,8 @@ const { getThumbnailsForZip } = serverUtil.common;
 const util = global.requireUtil();
 const { isDisplayableInExplorer } = util;
 const nameParser = require('../../name-parser');
+const logger = require("../logger");
+
 
 async function add_col(rows){
     const thumbnails = await getThumbnailsForZip(rows.map(e => e.filePath))
@@ -64,7 +66,7 @@ router.get('/api/getParseCache/', serverUtil.asyncWrapper(async (req, res) => {
 
     const time2 = util.getCurrentTime();
     const timeUsed = (time2 - time1);
-    console.log(logLabel, size, "  ", timeUsed, "ms")
+    logger.debug(logLabel, size, "  ", timeUsed, "ms")
 }));
 
 router.post('/api/allInfo', serverUtil.asyncWrapper(async (req, res) => {
