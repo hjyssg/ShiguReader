@@ -1429,8 +1429,8 @@ export default class ExplorerPage extends Component {
 
     render() {
         this.setWebTitle();
-        this.time = this.time|| 1;
-        console.log(this.time);
+        // this.time = this.time|| 1;
+        // console.log(this.time);
         this.time++;
 
         if (this.isFailedLoading()) {

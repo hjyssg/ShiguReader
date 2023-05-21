@@ -78,6 +78,9 @@ class App extends Component {
         }else if(clientUtil.isAllowedToEnter() && isLoginPage){
             window.location.href = "/";
         }
+
+        //菜单
+        console.log(`应该安排点彩蛋在这边。\n先放个 https://github.com/hjyssg/ShiguReader   `)
     }
 
     componentWillUnmount() {
