@@ -39,7 +39,9 @@ function isFilePath(str) {
     return path.parse(str).dir !== '';
   }
 
-//for zip inside image and music files
+/**
+ * for zip inside image and music files。把pathes按类拆分
+ */
 const generateContentUrl = function (pathes, outputPath) {
     const files = [];
     const dirs = [];
@@ -73,6 +75,9 @@ const isExist = async (tempPath) => {
     }
 };
 
+/**
+ * 是否为直属parent directory
+ */
 function isDirectParent(parent, filePath) {
     const parentPath = path.resolve(filePath, "..");
     return parentPath === parent;
@@ -214,7 +219,9 @@ function getZipOutputCachePath() {
     return path.join(getWorkSpacePath(), userConfig.zip_output_cache);
 }
 
-//递归文件夹，结果存在resultArr
+/**
+ * 递归文件夹，结果存在resultArr
+ */
 const readdirRecursive = async (filePath, resultArr) => {
     let pathes = await pfs.readdir(filePath);
     pathes = pathes.map(e => path.resolve(filePath, e));
