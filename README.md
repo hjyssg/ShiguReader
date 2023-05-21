@@ -56,8 +56,7 @@
 
 ##### 第三方依赖
 
-不安装也没事。但都强烈建议安装
-https://imagemagick.org image magick 用来压缩图片的
+不安装也能用。但强烈建议安装[image magick](https://imagemagick.org)。本软件用它来压缩图片。
 
 
 ##### 注意事项
