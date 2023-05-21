@@ -192,7 +192,7 @@ async function init() {
         scan_path = await pathUtil.filterNonExist(scan_path);
 
         global.SCANED_PATH = scan_path;
-        db.insertScanPath(scan_path)
+        // db.insertScanPath(scan_path)
 
         
         cleanCache(cachePath);
@@ -223,7 +223,7 @@ async function init() {
         will_scan = will_scan.filter(e => e !== "_to_remove_");
 
         //todo: chokidar will slow the server down very much when it init async
-        setUpFileWatch(will_scan);
+        initializeFileWatch(will_scan);
     }).on('error', (error) => {
         logger.error("[Server Init]", error.message);
         //exit the current program
@@ -315,19 +315,23 @@ serverUtil.common.deleteCallBack = deleteCallBack;
 //     // 重复进行太容易出bug了
 // }
 
+// 隐私
+function shrinkFp(fp){
+    return fp.slice(0, 12) + "..." + fp.slice(fp.length - 10);
+}
 
 let is_chokidar_scan_done = false;
 /** 
- * 用来让chokidar监听文件夹，把需要的信息加到db。只在程序启动时这么做
+ * 程序启动时让chokidar监听文件夹，把需要的信息加到db。并做一些初始操作
  * 
  * */
-function setUpFileWatch(dirPathes) {
+function initializeFileWatch(dirPathes) {
     if(dirPathes.length == 0){
         printIP();
         return;
     }
 
-    console.log("[chokidar] begin...");
+    console.log("[chokidar initializeFileWatch] begin...");
     let beg = getCurrentTime();
 
     //watch file change
@@ -343,6 +347,7 @@ function setUpFileWatch(dirPathes) {
     //处理添加文件事件
     const addCallBack = async (fp, stats) => {
         // console.log(fp);
+        // 突然想起来，这边其实可以存在到数据。最后一次加到db
         db.updateStatToDb(fp, stats);
         if (is_chokidar_scan_done) {
             // nothing
@@ -350,8 +355,8 @@ function setUpFileWatch(dirPathes) {
             init_count++;
             if (init_count % 2000 === 0) {
                 let end1 = getCurrentTime();
-                let np = fp.slice(0, 12) + "..." + fp.slice(fp.length - 8);
-                console.log(`[chokidar] scan: ${(end1 - beg) / 1000}s  ${init_count} ${np}`);
+                let np = shrinkFp(fp);
+                console.log(`[chokidar initializeFileWatch] scan: ${(end1 - beg) / 1000}s  ${init_count} ${np}`);
             }
         }
     };
@@ -387,8 +392,8 @@ function setUpFileWatch(dirPathes) {
         // }, 5000);
 
         let end1 = getCurrentTime();
-        console.log(`[chokidar] ${(end1 - beg) / 1000}s scan complete.`);
-        console.log(`[chokidar] ${init_count} files were scanned`)
+        console.log(`[chokidar initializeFileWatch] ${(end1 - beg) / 1000}s scan complete.`);
+        console.log(`[chokidar initializeFileWatch] ${init_count} files were scanned`)
         console.log("----------------------------------------------------------------");
         console.log(`\n\n\n`);
         printIP();
@@ -403,7 +408,7 @@ function setUpFileWatch(dirPathes) {
 /**
  * 服务器使用中途添加监听扫描path
  */
-function addNewFileWatch(dirPathes) {
+function addNewFileWatchAfterInit(dirPathes) {
     if(dirPathes.length == 0){
         return;
     }
@@ -411,7 +416,10 @@ function addNewFileWatch(dirPathes) {
     console.log("[chokidar addNewFileWatch] begin...");
     let beg = getCurrentTime();
 
+    // add to scan_path
     // TODO check with db to prevent duplicate adding shouldIgnoreForNormal
+    // todo 不严谨 会出现重复添加
+    global.SCANED_PATH = [...global.SCANED_PATH, ...dirPathes]
 
 
     //watch file change
@@ -428,15 +436,12 @@ function addNewFileWatch(dirPathes) {
     const addCallBack = async (fp, stats) => {
         // console.log(fp);
         db.updateStatToDb(fp, stats);
-        if (is_chokidar_scan_done) {
-            // nothing
-        } else {
-            init_count++;
-            if (init_count % 2000 === 0) {
-                let end1 = getCurrentTime();
-                let np = fp.slice(0, 12) + "..." + fp.slice(fp.length - 8);
-                console.log(`[chokidar] scan: ${(end1 - beg) / 1000}s  ${init_count} ${np}`);
-            }
+       
+        init_count++;
+        if (init_count % 500 === 0) {
+            let end1 = getCurrentTime();
+            let np = shrinkFp(fp);
+            console.log(`[chokidar addNewFileWatch] scan: ${(end1 - beg) / 1000}s  ${init_count} ${np}`);
         }
     };
 
@@ -463,6 +468,18 @@ function addNewFileWatch(dirPathes) {
         watcher
     };
 }
+
+app.post('/api/addNewFileWatchAfterInit', serverUtil.asyncWrapper(async (req, res) => {
+    let filePath = req.body && req.body.filePath;
+    if (!filePath || !(await isExist(filePath))) {
+        logger.error("[/api/addNewFileWatchAfterInit]", filePath, "does not exist");
+        res.send({ failed: true, reason: "NOT FOUND" });
+        return;
+    }
+
+    addNewFileWatchAfterInit([filePath])
+    res.send({ failed: false });
+}));
 
 async function printIP(){
     console.log("----------------------------------------------------------------");

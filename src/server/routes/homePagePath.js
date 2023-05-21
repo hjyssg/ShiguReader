@@ -46,14 +46,15 @@ function containPath(pathList, fp){
 
 router.get('/api/homePagePath', serverUtil.asyncWrapper(async (req, res) => {
     const cacheKey = "homePagePathCacheKey";
+    const TIME_OUT = 20;
     if(memorycache.get(cacheKey)){
-        res.setHeader('Cache-Control', 'public, max-age=30');
+        res.setHeader('Cache-Control', `public, max-age=${TIME_OUT}`);
         res.send(memorycache.get(cacheKey))
         return;
     }
 
     // dirs
-    let dirs = await db.getAllScanPath();
+    let dirs = global.SCANED_PATH //await db.getAllScanPath();
 
     // quick Access
     let quickAccess = global.quick_access_pathes;
@@ -84,9 +85,9 @@ router.get('/api/homePagePath', serverUtil.asyncWrapper(async (req, res) => {
             quickAccess,
             recentAccess
         }
-        res.setHeader('Cache-Control', 'public, max-age=30');
+        res.setHeader('Cache-Control', `public, max-age=${TIME_OUT}`);
         res.send(result);
-        memorycache.put(cacheKey, result, 30 * 1000);
+        memorycache.put(cacheKey, result, TIME_OUT * 1000);
     }
 }));
 module.exports = router;
