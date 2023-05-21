@@ -1,9 +1,3 @@
-安装nasm https://www.nasm.us/
-
-https://github.com/vercel/pkg/issues/419
-
-npm run build && pkg src/server/index.js --targets win-x64 --debug   --output ShiguReader.exe
-
 
 cd ..
 mkdir ShiguReader_Portable
@@ -22,7 +16,3 @@ cp ShiguReader/node_modules/_sqlite3@5.0.0@sqlite3/lib/binding/napi-v3-win32-x64
 cp ShiguReader/README.md ShiguReader_Portable 
 cp ShiguReader/README_English.md ShiguReader_Portable 
 
-一个exe
-两个readme
-三个ini
-三个folder

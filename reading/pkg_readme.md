@@ -1,4 +1,3 @@
-
 npm install -g pkg
     pkg回去网上下载打包的binary，但gfw内。
     所以我们需要自己去下载放到pkg cache里面
@@ -42,3 +41,7 @@ package-lock 久了要重新生成，否则会安装一堆莫名其妙没用到�
 glob打包就炸了
 还炸在glob的依赖
 C:\\snapshot\\ShiguReader\\node_modules\\.store\\glob@9.3.5\\node_modules\\path-scurry\\dist\\mjs\\index.js.map
+
+-----------------------------------
+吐槽  
+pkg团队各种不回复，issue n个关于sqlite和sharp，也不给个example project给人抄。
