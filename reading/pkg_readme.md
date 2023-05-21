@@ -8,40 +8,16 @@ npm install -g pkg
     https://github.com/vercel/pkg/issues/765
     e.g fetched-v14.4.0-win-x64
     
-pkg src/server/index.js --targets win-x64  --output ShiguReader.exe
+根据package.json去打包后端代码
+pkg . --compress GZip
 
-移动asset文件 这样可以避免pkg path的坑
-    dist
-    public
+手动移动asset文件 这样可以避免pkg path的坑
+    dist 《---前端的wepback的build的文件
     resource
-
-x
-需要flag
-    --production 或者代码build时候就是build
-    -》改成开发时候用--dev 平时不用
-
-7zip莫名其妙要移动最上层  
-    改F:\ShiguReader\resource\7zip\index.js 
-
-打开onebook会显示404 -> 莫名其妙又没事了
-
-修改exe的icon
-    http://www.angusj.com/resourcehacker/
-    -》改完exe就打不开了
-
-    curl -X GET http://localhost:8080/api/homePagePath
-    成功
-
-
-
-
-
-
-
 
 
  ----------------------
- pkg
+ pkg debug
 
  可以自己在代码里面加console.log
  C:\Users\**********\AppData\Roaming\npm\node_modules\pkg\prelude\bootstrap.js
@@ -61,7 +37,7 @@ x
 package-lock 久了要重新生成，否则会安装一堆莫名其妙没用到的东西
 明明没用到axios 却会去安装
 
-现在前后端一个分支，应该拆开简化pkg难度
+现在前后端各一个分支，应该拆开简化pkg难度
 
 glob打包就炸了
 还炸在glob的依赖

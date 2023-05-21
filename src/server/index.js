@@ -72,13 +72,19 @@ const sevenZipHelp = require("./sevenZipHelp");
 sevenZipHelp.init();
 const { listZipContentAndUpdateDb, extractAll, extractByRange } = sevenZipHelp;
 
-// 从用户命令拿port
+// 从用户命令拿port和其他参数
 const portConfig = require('../config/port-config');
 const { program } = require('commander');
-program.option('-p, --port <number>', 'Specify the port',  portConfig.default_http_port);
-program.parse();
+program
+    .option('-p, --port <number>', 'Specify the port',  portConfig.default_http_port)
+    .option('--skip-scan', 'skip initial scan for startup fasted', false);
+program.parse(process.argv);
 const options = program.opts();
 const port = _.isString(options.port)? parseInt(options.port): options.port; // 懒得细看commander，不是最正确写法
+const skipScan = options.skipScan;
+console.log("port: ", port);
+console.log("skipScan: ", skipScan);
+
 
 // DB import
 const db = require("./models/db");
@@ -174,7 +180,9 @@ async function init() {
             ...filterPathConfigObj
         };
         let scan_path = filterPathConfigObj.scan_path;
-
+        if(skipScan){
+            scan_path = [];
+        }
         serverUtil.mkdirList(scan_path)
         scan_path = await pathUtil.filterNonExist(scan_path);
 

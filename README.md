@@ -11,6 +11,7 @@
 发布流程：
     安装pkg 
     生成exe    pkg . --compress GZip
+    前端是webpack的打包
     添加其他文件 
     打包成zip。 注意不要放自己的信息。 pkg_zip_tool.py
 

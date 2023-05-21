@@ -87,7 +87,9 @@ function removeLastPathSep(fp) {
     }
 }
 
-// 是否为子目录，性能优化版
+/**
+ * 是否为子目录，性能优化版
+ */
 function isSub(parent, child) {
     if (global.isWindows) {
         parent = parent.toLowerCase();
@@ -150,6 +152,9 @@ async function filterNonExist(pathes, limit) {
 //     return result;
 // }
 
+/**
+ * 算出项目相关的各种path
+ */
 async function filterPathConfig(path_config) {
     let { good_folder_root, not_good_folder_root, scan_folder_pathes, quick_access_pathes, move_pathes } = path_config;
 
