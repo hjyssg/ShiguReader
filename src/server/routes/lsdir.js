@@ -17,7 +17,7 @@ const db = require("../models/db");
 const { getFileToInfo, getImgFolderInfo } = db;
 const util = global.requireUtil();
 const { getCurrentTime, isImage, isMusic, isCompress, isVideo } = util;
-const { isAlreadyScan, _decorate } = serverUtil.common;
+const { isAlreadyScan, _decorateResWithMeta } = serverUtil.common;
 const historyDb = require("../models/historyDb");
 const logger = require("../logger");
 
@@ -142,7 +142,7 @@ router.post('/api/lsDir', serverUtil.asyncWrapper(async (req, res) => {
             imgFolders
         };
 
-        result = await _decorate(result);
+        result = await _decorateResWithMeta(result);
         // const time3 = getCurrentTime();
         // timeUsed = (time3 - time2) / 1000;
         // console.log("[/api/LsDir] info look", timeUsed, "s")
@@ -198,7 +198,7 @@ async function listNoScanDir(filePath, res, isRecussive) {
         videoFiles,
         compressFiles,
     };
-    result = await _decorate(result)
+    result = await _decorateResWithMeta(result)
     return result;
 }
 

@@ -14,7 +14,7 @@ async function execa(cmd, option){
         return { stdout, stderr }
     }else{
         try{
-            let { stdout, stderr } = await _execa(cmd, option, { timeout: 60000, encoding: null });
+            let { stdout, stderr } = await _execa(cmd, option, { timeout: 60000, encoding: null, windowsHide: true });
             // only support chinese os for now
             stdout = iconv.decode(stdout, 'gbk');
             stderr = iconv.decode(stderr, 'gbk');

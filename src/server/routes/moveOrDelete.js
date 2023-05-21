@@ -49,8 +49,6 @@ router.post('/api/renameFile', serverUtil.asyncWrapper(async (req, res) => {
 
         logger.info(`[rename] ${src} to ${dest}`);
         res.send({ failed: false, dest });
-
-        serverUtil.common.moveCallBack(src, dest);
     } catch (err) {
         logger.error(err);
         res.send({ reason: getReason(err), failed: true });
@@ -107,8 +105,6 @@ router.post('/api/moveFile', serverUtil.asyncWrapper(async (req, res) => {
             zipInfoDb.updateZipDb_v2(tempZinInfo);
         }
         res.send({ failed: false, dest: destFP });
-
-        serverUtil.common.moveCallBack(src, dest);
     } catch (err) {
         logger.error(err);
         res.send({ reason: getReason(err), failed: true });

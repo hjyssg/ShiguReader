@@ -158,4 +158,5 @@ module.exports.asyncWrapper = (fn) => {
     };
 };
 
+/** 用来避免循环引用的函数object */
 module.exports.common = {};

@@ -296,19 +296,19 @@ function setUpCacheWatch() {
         });
 }
 
+/** 文件被删除时，去相关数据库删除信息 */
 const deleteCallBack = fp => {
     db.deleteFromDb(fp);
     zipInfoDb.deleteFromZipDb(fp);
     thumbnailDb.deleteThumbnail(fp)
 };
 
-const moveCallBack = async (oldfilePath, newfilePath) => {
-    // 现在 delete和insert被chokidar callback代劳了 
-    // 重复进行太容易出bug了
-}
+// const moveCallBack = async (oldfilePath, newfilePath) => {
+//     // 现在 delete和insert被chokidar callback代劳了 
+//     // 重复进行太容易出bug了
+// }
 
 serverUtil.common.deleteCallBack = deleteCallBack;
-serverUtil.common.moveCallBack  = moveCallBack ;
 
 
 
@@ -529,8 +529,12 @@ function isAlreadyScan(dir) {
         return sp === dir || pathUtil.isSub(sp, dir);
     });
 }
-
-async function _decorate(resObj) {
+/**
+ * 给res添加信息。比如thumbnail，zipinfo。不使用sql是因为有部分filePath没存在数据库
+ * @param {*} resObj 
+ * @returns 
+ */
+async function _decorateResWithMeta(resObj) {
     const { fileInfos, dirs, imgFolders } = resObj;
     console.assert(fileInfos && dirs && imgFolders);
 
@@ -553,7 +557,7 @@ async function _decorate(resObj) {
 }
 
 
-serverUtil.common._decorate = _decorate
+serverUtil.common._decorateResWithMeta = _decorateResWithMeta
 serverUtil.common.getThumbnailsForZip = getThumbnailsForZip;
 serverUtil.common.getStat = getStat;
 serverUtil.common.isAlreadyScan = isAlreadyScan;
