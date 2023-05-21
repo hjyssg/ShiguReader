@@ -8,8 +8,8 @@
   "scripts": {
     "build": "webpack --mode production",
     "build-dev": "webpack --mode development --devtool inline-source-map",
-    "client": "webpack-dev-server --mode development --devtool inline-source-map --hot",
-    "client-min": "webpack-dev-server --mode production",
+    "start": "webpack-dev-server --mode development --devtool inline-source-map --hot",
+    "start-production": "webpack-dev-server --mode production",
     "flow": "flow",
     "test": "mocha ./src/test"
   },
