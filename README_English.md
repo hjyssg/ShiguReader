@@ -51,7 +51,8 @@ Add `EhentaiHighighliger.js` to TamperMonkey. When you visit the E-Hentai websit
 ##### FAQ
 
 Q: The software doesn't start after clicking the .exe file. What should I do?  
-A: The default port 3000 may already be in use. Try changing the port number.
+A: The default port 3000 may already be in use. Try changing the port number.   
+   ShiguReader_Backend.exe --port 5000  
 
 Q: Some videos cannot be played. What should I do?  
 A: Videos are only a supplementary feature, and their supported formats are limited.
