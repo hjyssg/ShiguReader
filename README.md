@@ -9,7 +9,8 @@
     开发时，前端用webpack dev server来自己serve静态文件
 
 发布流程：
-    安装pkg 生成exe 
+    安装pkg 
+    生成exe    pkg . --compress GZip
     添加其他文件 
     打包成zip。 注意不要放自己的信息。 pkg_zip_tool.py
 
