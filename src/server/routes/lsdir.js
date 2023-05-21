@@ -18,7 +18,6 @@ const { getFileToInfo, getImgFolderInfo } = db;
 const util = global.requireUtil();
 const { getCurrentTime, isImage, isMusic, isCompress, isVideo } = util;
 const { isAlreadyScan, _decorate } = serverUtil.common;
-const readdir = require("../readdir");
 const historyDb = require("../models/historyDb");
 const logger = require("../logger");
 
@@ -167,7 +166,7 @@ async function listNoScanDir(filePath, res, isRecussive) {
     if(isRecussive){
         await pathUtil.readdirRecursive(filePath, subFpArr);
     }else{
-        let subFnArr = await readdir(filePath);
+        let subFnArr = await pathUtil.readdirOneLevel(filePath);
         subFpArr = subFnArr.map(e => path.resolve(filePath, e));
     }
 

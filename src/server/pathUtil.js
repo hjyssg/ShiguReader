@@ -9,6 +9,8 @@ const logger = require("./logger");
 const { isImage, isMusic, isVideo, isDisplayableInOnebook } = util;
 const cache_folder_name = userConfig.cache_folder_name;
 const pfs = require('promise-fs');
+const junk = require('junk');
+
 
 // 重要的path计算，关于所有文件的 读取
 let rootPath = path.join(__dirname, "..", "..");
@@ -238,6 +240,9 @@ const readdirRecursive = module.exports.readdirRecursive = async (filePath, resu
     for(let ii = 0; ii < pathes.length; ii++){
         try{
                 const fp = pathes[ii];
+                if(isHiddenFile(fp) || isForbid(fp)){
+                    continue;
+                }
                 if(isDisplayableInOnebook(fp)){
                     resultArr.push(fp)
                 }else if(estimateIfFolder(fp)){
@@ -252,6 +257,25 @@ const readdirRecursive = module.exports.readdirRecursive = async (filePath, resu
     }
 }
 
+/*
+* 单层读取文件
+*/
+module.exports.readdirOneLevel = async function (fp, option) {
+    try {
+        let pathes = await pfs.readdir(fp, option);
+        pathes = pathes.filter(e => {
+            if (option && option.withFileTypes) {
+                e = e.name;
+            }
+            return !isHiddenFile(e) && !isForbid(e);
+        });
+        return pathes;
+    } catch (e) {
+        logger.error(e);
+        return [];
+    }
+}
+
 /**
  * 判断是否为隐藏文件
  */
@@ -260,4 +284,29 @@ const filterHiddenFile = module.exports.filterHiddenFile = function (files) {
         const temp = path.basename(f);
         return temp && temp.length > 1 && temp[0] !== ".";
     })
+}
+
+
+module.exports.getDirName = function (p) {
+    const result = path.dirname(p);
+    return path.basename(result);
+}
+
+const isHiddenFile = module.exports.isHiddenFile = function (f) {
+    const temp = path.basename(f);
+    return temp && temp[0] === ".";
+}
+
+const forbid = ["System Volume Information",
+    "$Recycle.Bin",
+    "Config.Msi",
+    "$WinREAgent",
+    "Windows",
+    "msdownld.tmp",
+    "node_modules"];
+const isForbid = module.exports.isForbid = function (str) {
+    str = str.toLocaleLowerCase();
+    return junk.is(str) || forbid.some(e => {
+        return path.basename(str) === e.toLocaleLowerCase();
+    });
 }

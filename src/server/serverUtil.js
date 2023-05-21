@@ -10,7 +10,6 @@ const pfs = require('promise-fs');
 const pathUtil = require("./pathUtil");
 const userConfig = global.requireUserConfig();
 const net = require('net');
-const junk = require('junk');
 
 /*
 *  cache folder name and thumbnail file name
@@ -32,23 +31,14 @@ module.exports.getHash = function (filePath) {
     return hash;
 }
 
-const isHiddenFile = module.exports.isHiddenFile = function (f) {
-    const temp = path.basename(f);
-    return temp && temp[0] === ".";
-}
-
 function getBaseName(e) {
     return path.basename(e);
 }
 
-module.exports.getDirName = function (p) {
-    const result = path.dirname(p);
-    return path.basename(result);
-}
-
+/** 从zip片中挑一个当代表 */
 module.exports.chooseOneZipForOneTag = function (files, fileInfos) {
     let _files = files.filter(e => {
-        if (e.includes("アニメ") || !isCompress(e) || isHiddenFile(e)) {
+        if (e.includes("アニメ") || !isCompress(e) || pathUtil.isHiddenFile(e)) {
             return false;
         }
         return true;
@@ -63,22 +53,22 @@ module.exports.chooseOneZipForOneTag = function (files, fileInfos) {
     return _files[0];
 }
 
-
-
 const sortFileNames = module.exports.sortFileNames = function (files) {
     util._sortFileNames(files, e => path.basename(e, path.extname(e)));
 }
 
+/** 从图片中挑一张封面 */
 module.exports.chooseThumbnailImage = function (files) {
     if (files.length === 0) {
         return null;
     }
 
-    let tempFiles = files.filter(e => isImage(e) && !isHiddenFile(e));
+    let tempFiles = files.filter(e => isImage(e) && !pathUtil.isHiddenFile(e));
     sortFileNames(tempFiles);
     return tempFiles[0];
 }
 
+/** 解析filepath */
 module.exports.parse = function (str) {
     return nameParser.parse(path.basename(str, path.extname(str)));
 }
@@ -118,20 +108,6 @@ module.exports.mkdirList = (mkdirArr) => {
         }
         mkdirSync(fp, "quiet");
     }
-}
-
-const forbid = ["System Volume Information",
-    "$Recycle.Bin",
-    "Config.Msi",
-    "$WinREAgent",
-    "Windows",
-    "msdownld.tmp",
-    "node_modules"];
-module.exports.isForbid = function (str) {
-    str = str.toLocaleLowerCase();
-    return junk.is(str) || forbid.some(e => {
-        return path.basename(str) === e.toLocaleLowerCase();
-    });
 }
 
 

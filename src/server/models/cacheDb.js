@@ -2,9 +2,10 @@ const _ = require('underscore');
 
 const path = require('path');
 const pathUtil = require("../pathUtil");
+const { getDirName } = pathUtil;
+
 // const util = global.requireUtil();
 const serverUtil = require("../serverUtil");
-const { getDirName } = serverUtil;
 const { generateContentUrl } = pathUtil;
 
 //---------------------------------------------cache db---------------------

@@ -3,7 +3,8 @@
 const path = require('path');
 const _ = require("underscore");
 const pfs = require('promise-fs');
-const readdir = require("./readdir");
+const pathUtil = require("./pathUtil");
+
 
 
 module.exports = async function (folders, config) {
@@ -71,7 +72,7 @@ async function iterate(p, config, result, depth, isFile) {
             }
             result.pathes.push(p);
         } else if (isLegalDepth(depth + 1, config)) {
-            let pathes = await readdir(p, { withFileTypes: true });
+            let pathes = await pathUtil.readdirOneLevel(p, { withFileTypes: true });
             //iterate all file
             pathes = _.sortBy(pathes, e => {
                 if (e.isFile()) {

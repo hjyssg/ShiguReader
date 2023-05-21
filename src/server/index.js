@@ -20,9 +20,9 @@ const util = global.requireUtil();
 const fileiterator = require('./file-iterator');
 const pathUtil = require("./pathUtil");
 const serverUtil = require("./serverUtil");
-const { isHiddenFile, getHash, mkdir, mkdirSync, asyncWrapper } = serverUtil;
+const { getHash, mkdir, mkdirSync, asyncWrapper } = serverUtil;
 
-const { generateContentUrl, isExist, filterPathConfig, isSub, estimateIfFolder } = pathUtil;
+const { isHiddenFile, generateContentUrl, isExist, filterPathConfig, isSub, estimateIfFolder } = pathUtil;
 const { isImage, isCompress, isVideo, isMusic, arraySlice,
     getCurrentTime, isDisplayableInExplorer, isDisplayableInOnebook } = util;
 
@@ -236,7 +236,7 @@ function shouldWatchForNormal(p, stat) {
         return false;
     }
 
-    if (isHiddenFile(p) || serverUtil.isForbid(p)) {
+    if (isHiddenFile(p) || pathUtil.isForbid(p)) {
         return false;
     }
 
