@@ -1,19 +1,12 @@
 {
   "name": "ShiguReader",
-  "version": "1.5.0",
+  "version": "2.0.0",
   "description": "All-in-one solution for local doujin/anime/music file",
   "repository": "hjyssg/ShiguReader",
   "main": "src/server/index.js",
   "bin": "src/server/index.js",
   "scripts": {
-    "build": "webpack --mode production",
-    "build-dev": "webpack --mode development --devtool inline-source-map",
     "start-production": "node src/server/index.js",
-    "start": "npm run build && node src/server/index.js",
-    "client": "webpack-dev-server --mode development --devtool inline-source-map --hot",
-    "client-min": "webpack-dev-server --mode production",
-    "server": "nodemon src/server/index.js",
-    "dev": "concurrently \"npm run server\" \"npm run client\"",
     "flow": "flow",
     "test": "mocha ./src/test",
     "pkg": "pkg package.json -t host --out-dir executables"
