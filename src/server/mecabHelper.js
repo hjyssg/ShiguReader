@@ -1,6 +1,8 @@
 const path = require('path');
 const serverUtil = require("./serverUtil");
 
+// TODO mecab早就不维护了。
+// 替换用chatgpt
 let parseAsync;
 module.exports.init =  async function () {
     try {
