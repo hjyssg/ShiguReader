@@ -545,7 +545,9 @@ async function findVideoForFolder(filePath){
     return videoRows;
 }
 
-// 找文件夹的thumbnail
+/**
+ * 找文件夹的thumbnail
+ */
 async function getThumbnailForFolders(filePathes) {
     const result = {};
 
@@ -729,6 +731,8 @@ app.post("/api/getThumbnailForFolders", asyncWrapper(async (req, res) => {
         res.send({ failed: true, reason: "No Parameter" });
         return;
     }
+
+    dirs = dirs.filter(pathUtil.estimateIfFolder);
 
     const dirThumbnails = await getThumbnailForFolders(dirs);
     res.send({ failed: false, dirThumbnails });
@@ -1007,6 +1011,11 @@ app.post('/api/getZipThumbnail', asyncWrapper(async (req, res) => {
 
     if (!filePath || !(await isExist(filePath))) {
         res.send({ failed: true, reason: "NOT FOUND" });
+        return;
+    }
+
+    if(!isCompress(filePath)){
+        res.send({ failed: true, reason: "not a zip" });
         return;
     }
 
