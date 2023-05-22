@@ -1072,6 +1072,11 @@ app.post('/api/extract', asyncWrapper(async (req, res) => {
         return;
     }
 
+    if(!isCompress(filePath)){
+        res.send({ failed: true, reason: "not a zip" });
+        return;
+    }
+
     //potential bug:
     // if in one zip there are 01/001.jpg and 01/002.jpg 
     // this will only only extract one, because they overwrite each other
