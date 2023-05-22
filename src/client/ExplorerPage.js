@@ -30,6 +30,7 @@ const { getDir, getBaseName, getPerPageItemNumber, isSearchInputTextTyping, file
 const { isVideo, isCompress, isImage, isMusic } = util;
 const sortUtil = require("../common/sortUtil");
 const AdminUtil = require("./AdminUtil");
+import Swal from 'sweetalert2';
 
 import { GlobalContext } from './globalContext'
 
@@ -57,6 +58,38 @@ const FILTER_FIRST_TIME = "FILTER_FIRST_TIME";
 const FILTER_HAS_MUSIC = "FILTER_HAS_MUSIC";
 const FILTER_HAS_VIDEO = "FILTER_HAS_VIDEO";
 const FILTER_IMG_FOLDER = "FILTER_IMG_FOLDER";
+
+function NoScanAlertArea(props){
+    // const [minifyZipQue, setMinifyZipQue] = useState([]);
+    const {filePath} = props;
+
+
+    const askSendScan =() => {
+        Swal.fire({
+            title: "Scan this Folder (but it will take time)",
+            showCancelButton: true,
+            confirmButtonText: 'Yes',
+            cancelButtonText: 'No'
+        }).then((result) => {
+            if (result.value === true) {
+                Sender.post("/api/addNewFileWatchAfterInit", {filePath}, res => {
+                    if (!res.isFailed()) {
+                        // let { minifyZipQue } = res.json;
+                        // setMinifyZipQue(minifyZipQue)
+                    }
+                });
+            }
+        });
+    }
+
+    return (
+        <div className="alert alert-warning" role="alert" >
+            <div>{`${filePath} is not included in config-path`}</div>
+            <div style={{marginBottom:"5px"}}>{`It is usable, but lack some good features`}</div>
+            <div className="scan-button" onClick={askSendScan}>Scan this Folder (but it will take time)</div>
+        </div>)
+}
+
 
 function parse(str) {
     return nameParser.parse(getBaseName(str));
@@ -1132,9 +1165,7 @@ export default class ExplorerPage extends Component {
 
         // 没加入config-path,递归显示，文件搜索都不行。因为文件没被监听，不存在数据库
         const warning = this.isLackInfoMode() && (
-            <div className="alert alert-warning" role="alert" >
-                {`[Reminder] ${this.getTextFromQuery()} is not included in config-path. Usable, but lack some good features`}
-            </div>
+            <NoScanAlertArea filePath={this.getTextFromQuery()}></NoScanAlertArea>
         );
 
         let topButtons = (
