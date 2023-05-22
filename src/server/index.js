@@ -477,6 +477,11 @@ app.post('/api/addNewFileWatchAfterInit', serverUtil.asyncWrapper(async (req, re
         return;
     }
 
+    if(isAlreadyScan(filePath)){
+        res.send({ failed: true, reason: "ALREADY SCAN" });
+        return;
+    }
+
     addNewFileWatchAfterInit([filePath])
     res.send({ failed: false });
 }));
