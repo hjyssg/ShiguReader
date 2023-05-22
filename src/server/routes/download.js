@@ -19,9 +19,9 @@ try {
     sharp = require('sharp')
 } catch (e) {
     // 有image magick也行
-    logger.info("[Warning] Did not install sharp");
-    logger.info(e);
-    logger.info("----------------------------------------------------------------");
+    logger.warn("[Warning] Did not install sharp");
+    logger.warn(e);
+    logger.warn("----------------------------------------------------------------");
 }
 
 
@@ -41,7 +41,6 @@ const doMinify = async (filePath, outputFn, height) => {
     let result = filePath;
     if(sharp){
         await sharp(filePath).resize({ height: height }).toFile(outputPath);
-        memorycache.put(cacheKey, outputPath, 60*1000);
         result = outputPath;
     }else if(global._has_magick_){
         const opt = [filePath, "-thumbnail", `${height}x${height}\>`, "-quality", "92",  outputPath];
@@ -87,9 +86,11 @@ router.get('/api/download/', serverUtil.asyncWrapper(async (req, res) => {
                 if (thumbnailMode && stat.size > THUMBNAIL_HUGE_THRESHOLD) {
                     const outputFn = stringHash(filePath).toString() + "-min.jpg";
                     filePath = await doMinify(filePath, outputFn, 250);
+                    memorycache.put(cacheKey, outputPath, 60*1000);
                 }else if(stat.size > onebook_huge_threshold){
                     const outputFn = stringHash(filePath).toString() + "-min-2.jpg";
                     filePath = await doMinify(filePath, outputFn, 2300);
+                    memorycache.put(cacheKey, outputPath, 60*1000);
                 }
             }
         }
