@@ -553,11 +553,11 @@ export default class FileChangeToolbar extends Component {
         return (
             <React.Fragment>
                 {good_folder &&
-                    <div tabIndex="0" className="fas fa-check"
+                    <div tabIndex="0" className="fas fa-check move-to-good-button"
                         title={"Move to " + good_folder}
                         onClick={this.handleMove.bind(this, good_folder)}></div>}
                 {not_good_folder &&
-                    <div tabIndex="0" className="fas fa-times"
+                    <div tabIndex="0" className="fas fa-times move-to-no-good-button"
                         title={"Move to " + not_good_folder}
                         onClick={this.handleMove.bind(this, not_good_folder)}></div>}
             </React.Fragment>

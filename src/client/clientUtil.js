@@ -336,3 +336,14 @@ module.exports.isRightAsNext = function(){
     console.assert(_.isBoolean(result));
     return result;
 }
+
+
+module.exports.triggerClickOnClass = (className) => {
+    // Get all elements with the given class name
+    const elements = document.getElementsByClassName(className);
+
+    const arr = Array.from(elements);
+    console.assert(arr.length == 1);
+
+    arr[0].click();
+}

@@ -360,6 +360,10 @@ export default class OneBook extends Component {
       this.onwheel({ wheelDelta: -1 })
     }else if(key == "g"){
       this.onClickPagination();
+    }else if(key == "x"){
+      clientUtil.triggerClickOnClass("move-to-no-good-button");
+    }else if(key == "v"){
+      clientUtil.triggerClickOnClass("move-to-no-good-button");
     }
   }
 
