@@ -78,7 +78,7 @@ module.exports.getHistory = async function (page=0) {
     ORDER BY time DESC 
     ;`
     let rows = await sqlDb.allSync(sql);
-    console.assert(rows.length < PAGE_TIME_SIZE)
+    console.assert(rows.length <= PAGE_TIME_SIZE)
     // return rows;
 
     const sql2 = `SELECT count(*) as count FROM history_table`
