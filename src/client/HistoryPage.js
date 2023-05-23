@@ -36,7 +36,7 @@ function renderHistory(history) {
     keys = _.sortBy(keys, e => -e);
 
     const historyDom = keys.map(key => {
-        const timeStr = dateFormat(new Date(parseInt(key)), "dddd, mmmm dS, yyyy");
+        const timeStr = dateFormat(new Date(parseInt(key)), "yyyy-mm-dd");
         let items = groupByDay[key];
 
         items = _.sortBy(items, e => -e.time);
@@ -46,8 +46,9 @@ function renderHistory(history) {
             const toUrl = util.isVideo(filePath)? 
                           clientUtil.getVideoPlayerLink(filePath) : 
                           clientUtil.getOneBookLink(filePath);
-            const itemTimeStr = dateFormat(new Date(e.time), "yyyy/mm/dd HH:MM");
-            const tooltip = `${filePath}\n${itemTimeStr}`
+            const fn = getBaseName(filePath)||filePath;
+            const itemTimeStr = dateFormat(new Date(e.time), "yyyy-mm-dd HH:MM");
+            const tooltip = `${fn}\n${itemTimeStr}`
 
             const cn = classNames("icon", {
                 "far fa-file-video": util.isVideo(filePath),
@@ -60,7 +61,7 @@ function renderHistory(history) {
                     <ThumbnailPopup filePath={filePath}>
                         <div className="history-one-line-list-item" key={filePath}>
                             <span className={cn} /> 
-                            <span className="file-text" title={tooltip}> {getBaseName(filePath)||filePath}</span>
+                            <span className="file-text" title={tooltip}> {fn}</span>
                         </div>
                     </ThumbnailPopup>
                 </Link>);

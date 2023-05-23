@@ -707,7 +707,7 @@ export default class ExplorerPage extends Component {
     getTooltipStr(fp){
         let result = fp;
         if(this.allfileInfos[fp] && this.allfileInfos[fp].mtimeMs){
-            const dateStr = dateFormat(this.allfileInfos[fp].mtimeMs, "yyyy/mm/dd")
+            const dateStr = dateFormat(this.allfileInfos[fp].mtimeMs, "yyyy-mm-dd")
             result = `${fp}\ntime: ${dateStr}`;
         }
         return result;
@@ -910,10 +910,14 @@ export default class ExplorerPage extends Component {
                 const toUrl = clientUtil.getVideoPlayerLink(item);
                 const text = getBaseName(item);
                 const result = getOneLineListItem(<i className="far fa-file-video"></i>, text, item);
+                // 会卡顿，弃用video preview
+                // return (
+                // <ThumbnailPopup filePath={item} key={item}>
+                //     <Link target="_blank" to={toUrl} >{result}</Link>
+                // </ThumbnailPopup>
+                // );
                 return (
-                <ThumbnailPopup filePath={item} key={item}>
-                    <Link target="_blank" to={toUrl} >{result}</Link>
-                </ThumbnailPopup>
+                        <Link target="_blank" to={toUrl} key={item}>{result}</Link>
                 );
             });
             return <ItemsContainer key={key} className="video-list" items={videoItems} />
