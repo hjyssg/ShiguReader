@@ -11,33 +11,6 @@ const path = require("path");
 const _ = require('underscore');
 const { pathEqual } = require('path-equal');
 
-let downloadFolder;
-// const getDownloadsFolder = require('downloads-folder');  PKG打包时报错
-
-let hdd_list = [];
-if (global.isWindows) {
-    //https://stackoverflow.com/questions/15878969/enumerate-system-drives-in-nodejs
-    const child = require('child_process');
-    child.exec('wmic logicaldisk get name', (error, stdout) => {
-        if (error) {
-            return;
-        }
-
-        hdd_list = stdout.split('\r\r\n')
-            .filter(util.isWindowsPath)
-            .map(value => value.trim());
-
-        //no c drive
-        hdd_list = hdd_list.filter(e => !e.toLocaleLowerCase().startsWith("c"));
-        // hdd_list = hdd_list.map(e => path.resolve(e));
-        // F: 的时候，会莫名其妙显示shigureader文件夹的内容
-        hdd_list = hdd_list.map(e => e + "\\\\");
-    });
-
-    // https://stackoverflow.com/questions/33136864/how-to-obtain-the-browsers-download-location-using-node-js
-    downloadFolder = path.resolve(process.env.USERPROFILE, "Downloads");
-}
-
 
 function containPath(pathList, fp){
     return pathList.some(e =>  {
@@ -54,11 +27,11 @@ router.get('/api/homePagePath', serverUtil.asyncWrapper(async (req, res) => {
         return;
     }
 
+    let hdd_list = global.hdd_list;
     let scan_pathes = global.SCANED_PATH; //await db.getAllScanPath();
 
     // quick Access
     let quickAccess = global.quick_access_pathes;
-    quickAccess.push(downloadFolder);
     //不要和其他项目重复
     quickAccess = quickAccess.filter(e => {
         return !containPath(scan_pathes, e) && !containPath(hdd_list, e);

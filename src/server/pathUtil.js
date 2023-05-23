@@ -7,20 +7,48 @@ const _ = require('underscore');
 
 const logger = require("./logger");
 const { isImage, isMusic, isVideo, isDisplayableInOnebook } = util;
-const cache_folder_name = userConfig.cache_folder_name;
+// const cache_folder_name = userConfig.cache_folder_name;
 const pfs = require('promise-fs');
 const junk = require('junk');
 
+let rootPath;
+let downloadFolder;
+let hdd_list = [];
+module.exports.init = function(){
+    // 重要的path计算，关于所有文件的 读取
+    rootPath = path.join(__dirname, "..", "..");
+    global.isPkg = !!process.pkg;
+    if(global.isPkg){
+        rootPath = path.dirname(process.execPath);
+    }
+    // if (global.isWindows) {
+    //     rootPath = rootPath.charAt(0).toUpperCase() + rootPath.slice(1);
+    // }
 
-// 重要的path计算，关于所有文件的 读取
-let rootPath = path.join(__dirname, "..", "..");
-global.isPkg = !!process.pkg;
-if(global.isPkg){
-    rootPath = path.dirname(process.execPath);
+  
+    if (global.isWindows) {
+        //https://stackoverflow.com/questions/15878969/enumerate-system-drives-in-nodejs
+        try{
+            const child = require('child_process');
+            const stdout = child.execSync('wmic logicaldisk get name');
+            hdd_list = stdout.toString().split('\r\r\n')
+                .filter(util.isWindowsPath)
+                .map(value => value.trim());
+    
+            //no c drive
+            hdd_list = hdd_list.filter(e => !e.toLocaleLowerCase().startsWith("c"));
+            // hdd_list = hdd_list.map(e => path.resolve(e));
+            // F: 的时候，会莫名其妙显示shigureader文件夹的内容
+            hdd_list = hdd_list.map(e => e + "\\");
+        }catch(e){
+            logger.warn("[get hdd]",e);
+        }
+
+        // https://stackoverflow.com/questions/33136864/how-to-obtain-the-browsers-download-location-using-node-js
+        downloadFolder = path.resolve(process.env.USERPROFILE, "Downloads");
+        // const getDownloadsFolder = require('downloads-folder');  PKG打包时报错
+    }
 }
-// if (global.isWindows) {
-//     rootPath = rootPath.charAt(0).toUpperCase() + rootPath.slice(1);
-// }
 
 /**
  * 【非常重要】获得项目的根目录的路径
@@ -127,6 +155,9 @@ const filterNonExist = module.exports.filterNonExist = async (pathes, limit) => 
     limit = limit || 100000;
     for (let ii = 0; ii < pathes.length; ii++) {
         const e = pathes[ii];
+        if(!e){
+            continue;
+        }
         if (await isExist(e)) {
             result.push(e);
         }
@@ -179,13 +210,16 @@ module.exports.filterPathConfig = async (path_config, skipScan) => {
         scan_path.push(getImgConverterCachePath());
         scan_path.push(getZipOutputCachePath());
         //没scan的时候，把scan path加到quick access
-        quick_access_pathes = [...temp_scan_path,  ...quick_access_pathes];
+        quick_access_pathes = [...temp_scan_path,  ...quick_access_pathes, downloadFolder];
         quick_access_pathes = _.uniq(quick_access_pathes);
     }else{
         scan_path = temp_scan_path.slice();
         scan_path.push(getImgConverterCachePath());
         scan_path.push(getZipOutputCachePath());
         scan_path = _.uniq(scan_path);
+
+        quick_access_pathes = [...quick_access_pathes, downloadFolder];
+        quick_access_pathes = _.uniq(quick_access_pathes);
     }
     quick_access_pathes = await filterNonExist(quick_access_pathes||[]);
     scan_path = await filterNonExist(scan_path||[]);
@@ -195,9 +229,11 @@ module.exports.filterPathConfig = async (path_config, skipScan) => {
        good_folder_root : good_folder_root || "",
        not_good_folder_root : not_good_folder_root || "",
        quick_access_pathes: quick_access_pathes,
-       good_folder,    
+       good_folder,
        not_good_folder,
-       move_pathes   
+       move_pathes,
+       downloadFolder,
+       hdd_list
     };
 }
 
