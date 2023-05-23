@@ -78,6 +78,8 @@ class ThumbnailPopup extends Component {
         })
 
         let extraDom = null;
+        let titleStr = clientUtil.getBaseName(filePath);
+        titleStr = util.truncateString(titleStr, 35);
         if(this.isHovering){
             if(isVideo(filePath)|| (this.useVideoPreviewForFolder && this.url)){
                 let src;
@@ -88,7 +90,7 @@ class ThumbnailPopup extends Component {
                 }
 
                 extraDom = (<div className='thumbnail-popup-content'>
-                <div className='thumbnail-popup-title'>{filePath}</div>
+                <div className='thumbnail-popup-title'>{titleStr}</div>
                     <video className={"thumbnail-video-preview"} src={src} autoPlay={true} muted>
                         Your browser does not support the video tag.
                     </video>
@@ -96,12 +98,12 @@ class ThumbnailPopup extends Component {
 
             } else if(url){
                 extraDom = (<div className='thumbnail-popup-content'>
-                <div className='thumbnail-popup-title'>{filePath}</div>
+                <div className='thumbnail-popup-title'>{titleStr}</div>
                 <img className='thumbnail-popup-img' src={url}></img>
                 </div>)
             }else{
                 extraDom = (<div className='thumbnail-popup-content'>
-                <div className='thumbnail-popup-title'>{filePath}</div>
+                <div className='thumbnail-popup-title'>{titleStr}</div>
                 <div className='thumbnail-popup-text'>NO_THUMBNAIL_AVAILABLE</div>
              </div>)
             }
