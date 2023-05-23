@@ -50,10 +50,12 @@ module.exports.init = async ()=> {
                             isFolder BOOL);`);
     await sqlDb.runSync(`CREATE TABLE tag_table (
                             filePath TEXT NOT NULL, 
-                            tag VARCHAR(50), 
+                            tag VARCHAR(50) NOT NULL, 
                             type VARCHAR(25),
                             subtype VARCHAR(25), 
-                            isCompress BOOL)`);
+                            isCompress BOOL,
+                            PRIMARY KEY (filePath, tag, type) 
+                        )`);
     await sqlDb.runSync(`CREATE TABLE scan_path_table (filePath TEXT NOT NULL, type VARCHAR(25))`);
 
     await sqlDb.runSync(` CREATE VIEW zip_view  AS SELECT * FROM file_table WHERE isCompress = true `)
@@ -103,7 +105,7 @@ const updateFileDb = function (filePath, statObj) {
         statObj = {};
     }
 
-    stmt_tag_insert = stmt_tag_insert || sqlDb.prepare('INSERT INTO tag_table(filePath, tag, type, subtype, isCompress ) values(?, ?, ?, ?, ?)');
+    stmt_tag_insert = stmt_tag_insert || sqlDb.prepare('INSERT OR REPLACE INTO tag_table(filePath, tag, type, subtype, isCompress ) values(?, ?, ?, ?, ?)');
     stmt_file_insert = stmt_file_insert || sqlDb.prepare(`INSERT OR REPLACE INTO file_table(filePath, dirPath, fileName, sTime, 
                 isDisplayableInExplorer, isDisplayableInOnebook, 
                 isCompress, isFolder ) values(?, ?, ?, ?, ?, ?, ?, ?)`);
@@ -141,7 +143,9 @@ const updateFileDb = function (filePath, statObj) {
     // do batch insertion
     if(tags_rows.length > 0){
         for(const row of tags_rows){
-            stmt_tag_insert.run(...row);
+            if(row[0] && row[1]){
+                stmt_tag_insert.run(...row);
+            }
         }
     }
 
