@@ -16,7 +16,7 @@ module.exports.init = async ()=> {
     const dbCommon = require("./dbCommon");
     sqlDb = dbCommon.getSQLInstance(thumbnail_db_path);
 
-    await sqlDb.runSync(`CREATE TABLE IF NOT EXISTS thumbnail_table (filePath TEXT, thumbnailFileName TEXT);
+    await sqlDb.runSync(`CREATE TABLE IF NOT EXISTS thumbnail_table (filePath TEXT, thumbnailFileName TEXT, time INTEGER);
                          CREATE INDEX IF NOT EXISTS filePath_index ON thumbnail_table (filePath)`);
     await syncInternalDict()
 
@@ -26,8 +26,10 @@ module.exports.init = async ()=> {
 
 module.exports.addNewThumbnail = function (filePath, thumbnailFilePath) {
     const thumbnailFileName = path.basename(thumbnailFilePath);
-    sqlDb.run("INSERT INTO thumbnail_table(filePath, thumbnailFileName ) values(?, ?)", filePath, thumbnailFileName);
-    _internal_dict_[filePath] = {filePath, thumbnailFileName}
+    const time = util.getCurrentTime()
+    sqlDb.run("INSERT INTO thumbnail_table(filePath, thumbnailFileName, time ) values(?, ?, ?)", 
+               filePath, thumbnailFileName, time);
+    _internal_dict_[filePath] = {filePath, thumbnailFileName,time}
 }
 
 function _add_col(rows) {
@@ -148,7 +150,7 @@ module.exports.getThumbnailForFolders = async function (filePathes) {
         const stringsToMatch = filePathes; // string array of values
         const patterns = stringsToMatch.map(str => `${str}%`);
         const placeholders = patterns.map(() => 'filePath LIKE ?').join(' OR ');
-        const sql = `SELECT * FROM thumbnail_table WHERE ${placeholders}`;
+        const sql = `SELECT * FROM thumbnail_table WHERE ${placeholders} ORDER BY time DESC, ROWID DESC`;
         rows = await sqlDb.allSync(sql, patterns);
     }catch(e){
         console.error(e);

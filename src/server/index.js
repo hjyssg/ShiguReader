@@ -571,6 +571,18 @@ async function getThumbnailForFolders(filePathes) {
         return result;
     }
 
+    function findOne(rows, filePath){
+        let findRow = null;
+        rows.forEach(row => {
+            if(!findRow){
+                if(isSub(filePath, row.filePath)){
+                    findRow = row;
+                }
+            }
+        })
+        return findRow;
+    }
+
     try{
         const sqldb = db.getSQLDB();
         let beg = getCurrentTime();
@@ -582,9 +594,9 @@ async function getThumbnailForFolders(filePathes) {
     
         let nextFilePathes = [];
         filePathes.forEach(filePath => {
-            let rows = thumbnailRows.filter(row => isSub(filePath, row.filePath))
-            if (rows && rows[0]) {
-                result[filePath] = rows[0].thumbnailFilePath;
+            const findRow = findOne(thumbnailRows, filePath);
+            if (findRow) {
+                result[filePath] = findRow.thumbnailFilePath;
             }else{
                 nextFilePathes.push(filePath);
             }
@@ -603,9 +615,9 @@ async function getThumbnailForFolders(filePathes) {
                 return isImage(row.filePath);
             });
             nextFilePathes.forEach(filePath => {
-                let rows = imagerows.filter(row => isSub(filePath, row.filePath))
-                if (rows && rows[0]) {
-                    result[filePath] = rows[0].filePath;
+                const findRow = findOne(imagerows, filePath);
+                if (findRow) {
+                    result[filePath] = findRow.filePath;
                 }
             })
         }
