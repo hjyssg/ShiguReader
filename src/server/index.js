@@ -1177,8 +1177,8 @@ app.post('/api/extract', asyncWrapper(async (req, res) => {
         // let hasMusic = files.some(e => isMusic(e));
         // let hasVideo = files.some(e => isVideo(e));
         const imgfiles = files.filter(e => isImage(e));
-        const musicFiles = files.filter(e => isVideo(e));
-        const videoFiles = files.filter(e => isMusic(e));
+        const musicFiles = files.filter(e => isMusic(e));
+        const videoFiles = files.filter(e => isVideo(e));
         if (files.length === 0) {
             throw `${filePath} has no content`
         }
