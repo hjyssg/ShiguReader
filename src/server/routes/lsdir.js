@@ -33,9 +33,10 @@ router.post('/api/lsDir', serverUtil.asyncWrapper(async (req, res) => {
     }
 
     //remove '\' at the end
-    if (dir.length > 2 && dir[dir.length - 1] === path.sep) {
-        dir = dir.slice(0, dir.length - 1)
-    }
+    // if (dir.length > 2 && dir[dir.length - 1] === path.sep) {
+    //     dir = dir.slice(0, dir.length - 1)
+    // }
+    dir = path.resolve(dir);
 
     if (!isAlreadyScan(dir)) {
         const result = await listNoScanDir(dir, res);
