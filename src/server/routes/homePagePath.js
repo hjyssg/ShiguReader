@@ -18,6 +18,11 @@ function containPath(pathList, fp){
     });
 }
 
+function normalizePath(pathes){
+    pathes =  pathes || [];
+    return pathes.map(e => path.resolve(e));
+}
+
 router.get('/api/homePagePath', serverUtil.asyncWrapper(async (req, res) => {
     const cacheKey = "homePagePathCacheKey";
     const TIME_OUT = 20;
@@ -53,10 +58,10 @@ router.get('/api/homePagePath', serverUtil.asyncWrapper(async (req, res) => {
         res.send({ failed: true, reason: "config-path.ini has no path" });
     } else {
         let result = {
-            dirs: scan_pathes,
-            hdd_list,
-            quickAccess,
-            recentAccess
+            dirs: normalizePath(scan_pathes),
+            hdd_list: normalizePath(hdd_list),
+            quickAccess: normalizePath(quickAccess),
+            recentAccess: normalizePath(recentAccess)
         }
         res.setHeader('Cache-Control', `public, max-age=${TIME_OUT}`);
         res.send(result);
