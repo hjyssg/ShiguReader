@@ -14,15 +14,7 @@ const { isExist } = pathUtil;
 const logger = require("../logger");
 const memorycache = require('memory-cache');
 
-let sharp;
-try {
-    sharp = require('sharp')
-} catch (e) {
-    // 有image magick也行
-    logger.warn("[Warning] Did not install sharp");
-    logger.warn(e);
-    logger.warn("----------------------------------------------------------------");
-}
+
 
 
 const THUMBNAIL_HUGE_THRESHOLD = 2 * 1000 * 1000;  //MB
@@ -39,8 +31,8 @@ const doMinify = async (filePath, outputFn, height) => {
     }
 
     let result = filePath;
-    if(sharp){
-        await sharp(filePath).resize({ height: height }).toFile(outputPath);
+    if(global.sharp){
+        await global.sharp(filePath).resize({ height: height }).toFile(outputPath);
         result = outputPath;
     }else if(global._has_magick_){
         const opt = [filePath, "-thumbnail", `${height}x${height}\>`, "-quality", "92",  outputPath];

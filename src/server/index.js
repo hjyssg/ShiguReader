@@ -143,6 +143,16 @@ async function getIP(){
 
 const cleanCache = require("./cleanCache");
 
+try {
+    // 因为sharp在pkg用不了，灵活的逻辑
+    global.sharp = require('sharp')
+} catch (e) {
+    // 有image magick也行
+    logger.warn("[Warning] Did not install sharp");
+    logger.warn(e);
+    logger.warn("----------------------------------------------------------------");
+}
+
 async function init() {
     if (global.isWindows) {
         const { stdout, stderr } = await execa("chcp");

@@ -27,8 +27,11 @@ async function thumbnailGenerator(thumbnailFolderPath, imgFolderPath, imgFileNam
             if (!(await pathUtil.isExist(inputFilePath))) {
                throw `input file ${inputFilePath} missing`
             }
-
-            if (global._has_magick_) {
+            
+            if (global.sharp) {
+                await global.sharp(inputFilePath).resize(280, 354).toFile(tempOutputPath);
+                outputFilePath = tempOutputPath;
+            }else  if (global._has_magick_) {
                 //https://imagemagick.org/Usage/resize/#shrink
                 // const opt = [inputFilePath, "-strip", "-resize", `280x354\>`, tempOutputPath];
                 const opt = [inputFilePath, "-thumbnail", "250x280\>", "-quality", "92",  tempOutputPath];
@@ -38,12 +41,6 @@ async function thumbnailGenerator(thumbnailFolderPath, imgFolderPath, imgFileNam
                 }
                 outputFilePath = tempOutputPath
             }
-            //  else {
-            //    // sharp 不能通过pkg打包进去
-            //     const sharp = require('sharp');
-            //     await sharp(inputFilePath).resize(280, 354).toFile(tempOutputPath);
-            //     outputFilePath = tempOutputPath;
-            // }
 
             let end1 = getCurrentTime();
             logger.info(`[thumbnailGenerator] ${(end1 - beg) }ms `);
