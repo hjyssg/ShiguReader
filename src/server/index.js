@@ -79,13 +79,17 @@ const portConfig = require('../config/port-config');
 const { program } = require('commander');
 program
     .option('-p, --port <number>', 'Specify the port',  portConfig.default_http_port)
-    .option('--skip-scan', 'skip initial scan for startup fasted', false);
+    .option('--skip-scan', 'skip initial scan for startup fasted', false)
+    .option('--skip-cache-clean', 'skip initial cache clean', false);
 program.parse(process.argv);
 const options = program.opts();
 const port = _.isString(options.port)? parseInt(options.port): options.port; // 懒得细看commander，不是最正确写法
 const skipScan = options.skipScan;
+const skipCacheClean = options.skipCacheClean;
 console.log("port: ", port);
 console.log("skipScan: ", skipScan);
+console.log("skipCacheClean: ", skipCacheClean);
+
 
 
 // DB import
@@ -200,8 +204,9 @@ async function init() {
         global.SCANED_PATH = scan_path;
         // db.insertScanPath(scan_path)
 
-        
-        cleanCache(cachePath);
+        if(!skipCacheClean){
+            cleanCache(cachePath);
+        }
         setUpCacheWatch();
 
         const mecabHelper = require("./mecabHelper");
