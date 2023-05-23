@@ -171,19 +171,21 @@ module.exports.filterPathConfig = async (path_config, skipScan) => {
     }
 
     // scan path
-    let scan_path = [].concat(scan_folder_pathes||[]);
-    scan_path = scan_path.concat(good_folder, good_folder_root, not_good_folder_root, not_good_folder);
-    scan_path.push(getImgConverterCachePath());
-    scan_path.push(getZipOutputCachePath());
-    scan_path = _.uniq(scan_path);
+    let temp_scan_path = [].concat(scan_folder_pathes||[]);
+    temp_scan_path = temp_scan_path.concat(good_folder, good_folder_root, not_good_folder_root, not_good_folder);
 
+    let scan_path = [];
     if(skipScan){
-        scan_path = [];
         scan_path.push(getImgConverterCachePath());
         scan_path.push(getZipOutputCachePath());
-
-        quick_access_pathes = [good_folder, good_folder_root, not_good_folder_root, not_good_folder,  ...quick_access_pathes];
+        //没scan的时候，把scan path加到quick access
+        quick_access_pathes = [...temp_scan_path,  ...quick_access_pathes];
         quick_access_pathes = _.uniq(quick_access_pathes);
+    }else{
+        scan_path = temp_scan_path.slice();
+        scan_path.push(getImgConverterCachePath());
+        scan_path.push(getZipOutputCachePath());
+        scan_path = _.uniq(scan_path);
     }
     quick_access_pathes = await filterNonExist(quick_access_pathes||[]);
     scan_path = await filterNonExist(scan_path||[]);

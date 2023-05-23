@@ -12,9 +12,7 @@ const _ = require('underscore');
 const { pathEqual } = require('path-equal');
 
 let downloadFolder;
-
-// const getDownloadsFolder = require('downloads-folder');
-// downloadFolder = getDownloadsFolder();
+// const getDownloadsFolder = require('downloads-folder');  PKG打包时报错
 
 let hdd_list = [];
 if (global.isWindows) {
@@ -35,6 +33,9 @@ if (global.isWindows) {
         // F: 的时候，会莫名其妙显示shigureader文件夹的内容
         hdd_list = hdd_list.map(e => e + "\\\\");
     });
+
+    // https://stackoverflow.com/questions/33136864/how-to-obtain-the-browsers-download-location-using-node-js
+    downloadFolder = path.resolve(process.env.USERPROFILE, "Downloads");
 }
 
 
@@ -53,15 +54,14 @@ router.get('/api/homePagePath', serverUtil.asyncWrapper(async (req, res) => {
         return;
     }
 
-    // dirs
-    let dirs = global.SCANED_PATH //await db.getAllScanPath();
+    let scan_pathes = global.SCANED_PATH; //await db.getAllScanPath();
 
     // quick Access
     let quickAccess = global.quick_access_pathes;
-    // quickAccess.push(downloadFolder);
+    quickAccess.push(downloadFolder);
     //不要和其他项目重复
     quickAccess = quickAccess.filter(e => {
-        return !containPath(dirs, e) && !containPath(hdd_list, e);
+        return !containPath(scan_pathes, e) && !containPath(hdd_list, e);
     });
     quickAccess = _.uniq(quickAccess);
 
@@ -70,17 +70,17 @@ router.get('/api/homePagePath', serverUtil.asyncWrapper(async (req, res) => {
     recentAccess = recentAccess.map(e => e.filePath);
     // 不要和其他项目重复
     recentAccess = recentAccess.filter(e => {
-        return !containPath(dirs, e) && !containPath(hdd_list, e) && !containPath(quickAccess, e);
+        return !containPath(scan_pathes, e) && !containPath(hdd_list, e) && !containPath(quickAccess, e);
     });
     const NUM_QUICK_ACCESS = 10;
     recentAccess = await pathUtil.filterNonExist(recentAccess, NUM_QUICK_ACCESS);
   
 
-    if (dirs.length === 0 && hdd_list.length === 0 && quickAccess.length === 0 && recentAccess.length == 0) {
+    if (scan_pathes.length === 0 && hdd_list.length === 0 && quickAccess.length === 0 && recentAccess.length == 0) {
         res.send({ failed: true, reason: "config-path.ini has no path" });
     } else {
         let result = {
-            dirs,
+            dirs: scan_pathes,
             hdd_list,
             quickAccess,
             recentAccess
