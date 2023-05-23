@@ -35,18 +35,23 @@
       ]
     },
     {
-        "type": "node",
-        "request": "launch",
-        "name": "main server [skip scan]",
-        "program": "${workspaceFolder}\\src\\server\\index.js",
-        "args": [
-           "--skip-scan"
-        ]
-      },
+      "type": "node",
+      "request": "launch",
+      "name": "main server [skip scan]",
+      "program": "${workspaceFolder}\\src\\server\\index.js",
+      "args": ["--skip-scan"]
+    },
     {
       "type": "node",
       "request": "launch",
-      "name": "sub server",
+      "name": "sub server [no scan and different port, share the same db with main server]",
+      "program": "${workspaceFolder}\\src\\server\\index.js",
+      "args": ["--skip-scan", "--port", "34213"]
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "sub server [deprecated]",
       "program": "${workspaceFolder}\\src\\server\\_sub_server.js",
       "args": []
     }
