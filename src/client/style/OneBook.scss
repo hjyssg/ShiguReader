@@ -167,9 +167,16 @@
     }
   }
 
+  $font_size_icon: 1.6rem;
+
   .one-book-toolbar {
     width: 200px;
-    font-size: 1.5rem;
+
+    .tool-bar-row{
+      .fas, .fa {
+        font-size: $font_size_icon
+      }
+    }
   }
 
   .one-book-file-stat {
@@ -195,6 +202,7 @@
   .one-book-second-toolbar {
     @include flex_center_display;
     margin-top: 5px;
+    margin-bottom: 5px;
 
     div:first-child {
       margin-right: 30px;
@@ -202,7 +210,7 @@
 
     .two-page-mode-button,
     .rotate-button {
-      font-size: 18px;
+      font-size: $font_size_icon;
 
       &:hover {
         @include third_hover_effect();
