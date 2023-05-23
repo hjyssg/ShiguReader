@@ -23,7 +23,6 @@ const ONEBOOK_HUGE_THRESHOLD_LOCAL = 10 * 1000 * 1000;  // MB
 
 
 
-// 因为sharp在pkg用不了，灵活的逻辑
 const doMinify = async (filePath, outputFn, height) => {
     const outputPath = path.resolve(global.cachePath, outputFn);
     if (await isExist(outputPath)) {

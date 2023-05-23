@@ -103,7 +103,7 @@ module.exports.getHistoryByFP = async function (fileName) {
 }
 
 
-const recent_access_day = 10;
+const recent_access_day = 31; // day
 module.exports.getRecentAccess = async function () {
     let time = util.getCurrentTime();
     time = time - 1000 * 3600 * 24 * recent_access_day;
