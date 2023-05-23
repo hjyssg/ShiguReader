@@ -86,11 +86,11 @@ router.get('/api/download/', serverUtil.asyncWrapper(async (req, res) => {
                 if (thumbnailMode && stat.size > THUMBNAIL_HUGE_THRESHOLD) {
                     const outputFn = stringHash(filePath).toString() + "-min.jpg";
                     filePath = await doMinify(filePath, outputFn, 250);
-                    memorycache.put(cacheKey, outputPath, 60*1000);
+                    memorycache.put(cacheKey, filePath, 60*1000);
                 }else if(stat.size > onebook_huge_threshold){
                     const outputFn = stringHash(filePath).toString() + "-min-2.jpg";
                     filePath = await doMinify(filePath, outputFn, 2300);
-                    memorycache.put(cacheKey, outputPath, 60*1000);
+                    memorycache.put(cacheKey, filePath, 60*1000);
                 }
             }
         }
