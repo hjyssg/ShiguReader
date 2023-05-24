@@ -222,7 +222,7 @@ export default class AdminPage extends Component {
             return;
         }
 
-        return <button onClick={this.onclickShutDown.bind(this)}> Recomote shutdown </button>;
+        return <button onClick={this.onclickShutDown.bind(this)}> Remote Shutdown PC </button>;
     }
 
     onClickIP(server_ip){
