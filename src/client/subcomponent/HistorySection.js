@@ -27,13 +27,14 @@ function HistorySection(props){
   if (length === 0) {
       return <div className="history-section">It is first time to read this book</div>;
   } else {
-      items = history.map(e => {
+      items = history.map((e, ii) => {
           // return <div key={e.time}>{dateFormat(e.time, "dddd, mmmm dS, yyyy, h:MM:ss TT") }</div>
-          return <div key={e.time}>{dateFormat(e.time, "yyyy-mm-dd HH:MM") }</div>
+          const key = e.time + "_" + ii;
+          return <div key={key}>{dateFormat(e.time, "yyyy-mm-dd HH:MM") }</div>
       });
 
       if(items.length > 10){
-        const middle = (<div> ... </div>);
+        const middle = (<div key="ellipsis"> ... </div>);
         items = items.slice(0, 3).concat(middle, items.slice(length - 4))
       }
   }

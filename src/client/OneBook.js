@@ -501,7 +501,7 @@ export default class OneBook extends Component {
         let text = e;
         if(title == "Image Name"){
           title = `${title}: ${text}`;
-          text = util.truncateString(text, 20);
+          text = util.truncateString(text, 30);
         }
 
         return (
