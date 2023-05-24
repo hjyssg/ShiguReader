@@ -347,3 +347,12 @@ module.exports.triggerClickOnClass = (className) => {
 
     arr[0].click();
 }
+
+/**
+ * 
+ * 这个函数使用scrollBy()方法来将页面滚动指定的像素数。在这里，我们只需要指定垂直滚动的距离，水平滚动距离为0。
+ * 参数distance是一个整数，表示向上或向下移动的像素数。当distance为正数时，页面向下滚动；当distance为负数时，页面向上滚动。
+ */
+module.exports.scrollPageByDistance = (distance) => {
+        window.scrollBy(0, distance);
+};
