@@ -158,5 +158,21 @@ module.exports.asyncWrapper = (fn) => {
     };
 };
 
+// write a nodejs function that suspend the progtam until user type something
+const readline = require('readline');
+module.exports.suspend = ()  => {
+  return new Promise((resolve, reject) => {
+    const rl = readline.createInterface({
+      input: process.stdin,
+      output: process.stdout
+    });
+
+    rl.question('---------------------', (answer) => {
+      rl.close();
+      resolve();
+    });
+  });
+}
+
 /** 用来避免循环引用的函数object */
 module.exports.common = {};

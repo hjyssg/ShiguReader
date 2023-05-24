@@ -188,6 +188,7 @@ async function init() {
     const isPortOccupied =  await serverUtil.isPortOccupied(port);
     if(isPortOccupied){
         logger.error(`[Server Init] port ${port} is occupied `);
+        await serverUtil.suspend();
         process.exit(22);
     }
 
@@ -235,9 +236,10 @@ async function init() {
 
         //todo: chokidar will slow the server down very much when it init async
         initializeFileWatch(will_scan);
-    }).on('error', (error) => {
+    }).on('error', async (error) => {
         logger.error("[Server Init]", error.message);
         //exit the current program
+        await serverUtil.suspend();
         process.exit(22);
     });
 }
