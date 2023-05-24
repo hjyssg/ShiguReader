@@ -14,7 +14,7 @@ const {
 
 const serverUtil = require("../serverUtil");
 const db = require("../models/db");
-const { getFileToInfo, getImgFolderInfo } = db;
+const { getFileToInfo} = db;
 const util = global.requireUtil();
 const { getCurrentTime, isImage, isMusic, isCompress, isVideo } = util;
 const { isAlreadyScan, decorateResWithMeta } = serverUtil.common;
@@ -162,6 +162,32 @@ router.post('/api/lsDir', serverUtil.asyncWrapper(async (req, res) => {
 }));
 
 
+function fileIntoCategory(files){
+    const imageFiles = [];
+    const musicFiles = [];
+    const videoFiles = [];
+    const compressFiles = [];
+
+    files.forEach(fp => {
+        if(isImage(fp)){
+            imageFiles.push(fp);
+        }else if (isVideo(fp)){
+            videoFiles.push(fp);
+        }else if(isMusic(fp)){
+            musicFiles.push(fp);
+        }else if(isCompress(fp)){
+            compressFiles.push(fp);
+        }
+    })
+
+    return {
+        imageFiles,
+        musicFiles,
+        videoFiles,
+        compressFiles
+    }
+}
+
 async function listNoScanDir(filePath, res, isRecussive) {
     let subFpArr = [];
     if(isRecussive){
@@ -171,10 +197,12 @@ async function listNoScanDir(filePath, res, isRecussive) {
         subFpArr = subFnArr.map(e => path.resolve(filePath, e));
     }
 
-    const compressFiles = subFpArr.filter(isCompress);
-    const imageFiles = subFpArr.filter(isImage);
-    const musicFiles = subFpArr.filter(isMusic);
-    const videoFiles = subFpArr.filter(isVideo);
+    const {
+        imageFiles,
+        musicFiles,
+        videoFiles,
+        compressFiles
+    } = fileIntoCategory(subFpArr);
     const dirs = subFpArr.filter(e => {
         const isFolder = pathUtil.estimateIfFolder(e);
         return isFolder;
@@ -235,13 +263,16 @@ router.post('/api/listImageFolderContent', serverUtil.asyncWrapper(async (req, r
             return isDirectParent(filePath, fp)
         });
 
-        const imageFiles = _files.filter(isImage)
-        const musicFiles = _files.filter(isMusic);
-        const videoFiles = _files.filter(isVideo)
+        const {
+            imageFiles,
+            musicFiles,
+            videoFiles,
+            compressFiles
+        } = fileIntoCategory(_files);
 
         const mapping = {};
         mapping[filePath] = _files;
-        const info = getImgFolderInfo(mapping)[filePath];
+        const info = db.getImgFolderInfo(mapping)[filePath];
 
         result = {
             zipInfo: info,
