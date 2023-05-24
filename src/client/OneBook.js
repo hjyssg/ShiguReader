@@ -496,10 +496,20 @@ export default class OneBook extends Component {
         "Dimensions"
       ];
 
-      const texts = [mTime, size, title, avg, dim].map((e, ii) =>
+      const texts = [mTime, size, title, avg, dim].map((e, ii) => {
+        let title = titles[ii];
+        let text = e;
+        if(title == "Image Name"){
+          title = `${title}: ${text}`;
+          text = util.truncateString(text, 20);
+        }
+
+        return (
         <div className={titles[ii] === "Dimensions" ? "dimension-tag" : ""}
-          key={e + ii} style={{ marginLeft: "15px" }} title={titles[ii]}> {e}
+          key={e + ii} style={{ marginLeft: "15px" }} title={title}> {text}
         </div>);
+      } );
+
       const mobilePageNum = (<div className="mobile-page-num"
         onClick={this.onClickPagination.bind(this)} >
         {`${index + 1}/${this.getImageLength()}`}  </div>)
