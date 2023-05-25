@@ -37,6 +37,10 @@ GM_addStyle(`
     position: relative;
 }
 
+.disappear_dom {
+    display: none !important;
+}
+
 `);
 
 const IS_EHENTAI = window.location.hostname.includes("exhentai") || window.location.hostname.includes("e-hentai");
@@ -460,10 +464,56 @@ function popMessage(text){
     }
 }
 
+/**
+ * ehentai防瞎眼
+ */
+function ehentaiProtection(){
+    function disapprearNode(node) {
+        if(node){
+            // node.display = node.display || {};
+            // node.display.style = "none";
+            node.classList.add("disappear_dom");
+            console.log("fuck one node");
+        }
+    }
+
+
+    let nodes = Array.prototype.slice.call(document.getElementsByClassName("gl1t"));
+    nodes.forEach(node => {
+        const star = node.querySelector(".ir")
+        const rawPos = window.getComputedStyle(star)["backgroundPosition"];
+        
+
+        const tokens = rawPos.split(" ");
+        console.assert(tokens.length == 2);
+        // let pos = parseInt(tokens[1].replace("px", ""))
+
+        const pos = tokens.map(tt => {
+            return parseInt(tt.replace("px", ""));
+        });
+
+        const [x, y] = pos;
+
+        const THRESHOLD = -48; // 2 star
+        if(y == -21){
+            // 0.5
+             if(x <= THRESHOLD){
+                disapprearNode(node)
+            }
+        }else{
+            //整数
+            if(x <= THRESHOLD){
+                disapprearNode(node)
+            }
+        }
+    })
+}
+
 const production_port = 3000;
 const dev_port = 34213;
 async function main() {
     if(IS_EHENTAI){
+        ehentaiProtection()
         addSearchLinkForEhentai();
     }
 
