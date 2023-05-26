@@ -21,11 +21,12 @@ async function getGoodAndOtherSet() {
             authorInfo = memorycache.get(cacheKey);
         }else{
              //conditional count
+             // TODO：不好不坏咋办
             sql = `SELECT tag, 
                     COUNT(CASE WHEN INSTR(filePath, ?) = 1 THEN 1 END) AS good_count,
-                    COUNT(CASE WHEN INSTR(filePath, ?) != 1 THEN 1 END) AS bad_count 
+                    COUNT(CASE WHEN INSTR(filePath, ?) = 1 THEN 1 END) AS bad_count 
                     FROM author_view GROUP BY tag`;
-            authorInfo = await sqldb.allSync(sql, [global.good_folder_root, global.good_folder_root]);
+            authorInfo = await sqldb.allSync(sql, [global.good_folder_root, global.not_good_folder_root]);
             memorycache.put(cacheKey, authorInfo, 10*1000);
         }
     }
