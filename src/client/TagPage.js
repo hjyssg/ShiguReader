@@ -27,6 +27,7 @@ const ClientConstant = require("./ClientConstant");
 const {
   BY_TAG_NAME,
   BY_FILE_NUMBER,
+  BY_GOOD_COUNT,
   BY_RANDOM
 } = ClientConstant;
 
@@ -99,7 +100,15 @@ export default class TagPage extends Component {
   }
 
   async requestAuthors(){
-    let res = await Sender.postWithPromise('/api/get_authors', { needThumbnail: true })
+    let res = await Sender.postWithPromise('/api/getGoodAuthorNames');
+    if (!res.isFailed()) {
+        this.setState({
+            authorInfo: res.json.authorInfo
+        })
+    }
+
+
+    res = await Sender.postWithPromise('/api/get_authors', { needThumbnail: true })
     if (!res.isFailed()) {
       this.setState({
         author_rows: res.json.author_rows
@@ -123,6 +132,47 @@ export default class TagPage extends Component {
       this.askRerender();
     }
   }
+
+  // 有点重复，tagpage和explorepage
+  getAuthorCount(author) {
+    this.author2count = this.author2count || {};
+    if(this.author2count[author]){
+        return this.author2count[author];
+    }
+    const { authorInfo } = this.state;
+    let result = {
+        good_count: 0,
+        bad_count: 0
+    };
+    if (author && authorInfo) {
+        for(let ii = 0; ii < authorInfo.length; ii++){
+            const e = authorInfo[ii];
+            if(e.tag === author){
+                result = e || result;
+                this.author2count[author] = result;
+                break;
+            }
+        }
+    }
+    return result;
+  }
+
+  getTooltipStr(tag){
+    if(this.isAuthorMode()){
+      let rows = [];
+      rows.push([tag]);
+  
+      rows.push(["good count", this.getAuthorCount(tag).good_count]);
+      rows.push(["not so good count", this.getAuthorCount(tag).bad_count]);
+      rows.push(["score", this.getScore(tag)]);
+  
+      return rows.map(row => {
+          return row.join(": ");
+      }).join("\n")
+    }else{
+      return tag;
+    }
+}
 
   componentDidMount() {
     if (this.state.loaded) {
@@ -195,7 +245,18 @@ export default class TagPage extends Component {
       items.sort((a, b) => {
         return a.tag.localeCompare(b.tag);
       });
-    }
+    }else  if (sortOrder == BY_GOOD_COUNT){
+      // 再按喜好排序
+      items.sort((a, b)=> {
+          const s1 = this.getScore(a.tag);
+          const s2 = this.getScore(b.tag);
+          if(s1 === s2){
+              return a.count - b.count;
+          }else{
+              return s1 - s2;
+          }
+      })
+  }
 
     if (!isSortAsc) {
       items.reverse();
@@ -214,6 +275,10 @@ export default class TagPage extends Component {
     }
 
     return items;
+  }
+
+  getScore(author) {
+    return clientUtil.getScoreFromCount(this.getAuthorCount(author));
   }
 
   getItems() {
@@ -257,6 +322,7 @@ export default class TagPage extends Component {
           <Link target="_blank" className="tag-page-list-item-link" to={url} key={tag}>
             <FileCellTitle str={itemText} />
             <LoadingImage isThumbnail
+              title={this.getTooltipStr(tag)}
               className="tag-page-thumbnail" fileName={tag}
               mode={this.props.mode}
               url={thumbnailUrl} />
@@ -333,7 +399,13 @@ export default class TagPage extends Component {
 }
 
   renderSortHeader() {
-    let sortOptions = ClientConstant.TAG_SORT_OPTIONS;
+    let sortOptions;
+    if(this.isAuthorMode()){
+      sortOptions = ClientConstant.AUTHOR_SORT_OPTIONS;
+    }else{
+      sortOptions = ClientConstant.TAG_SORT_OPTIONS;
+    }
+
     return (<div className="sort-header-container container">
       <SortHeader sortOptions={sortOptions} selected={this.state.sortOrder} 
                         isSortAsc={this.state.isSortAsc}

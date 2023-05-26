@@ -356,3 +356,41 @@ module.exports.triggerClickOnClass = (className) => {
 module.exports.scrollPageByDistance = (distance) => {
         window.scrollBy(0, distance);
 };
+
+/** 计算对特定作者的喜欢程度的分值 */
+module.exports.getScoreFromCount = (countObj) => {
+    // 对于一个东西，我有两个参数点赞数 g 和厌恶数 b。
+    // 帮我想一个数学公式。综合评价这个东西的分数。
+    // 既要注意点赞数的绝对值，也要考虑它们之间的相对比值。
+    // 同时要用log加一点阻尼效果
+    // 然后用一个js函数实现的
+
+    const { good_count, bad_count } =  countObj;
+    // const goodS = good_count == 0? 0: Math.log10(good_count);
+    // const badS = bad_count == 0? 0: Math.log10(bad_count);
+    // return   goodS * 3 - badS * 0.2;
+
+    // 加数字 避免log出现0和无穷
+    const g = good_count + 2;
+    const b = bad_count + 2;
+
+    // let d = 0.01; // 阻尼系数，越小阻尼效果越强
+    // let score = Math.log10(g + 1.5) + Math.log10(g + 1.5) / (Math.log10(g + 1.5) + Math.log10(b + 1.5));
+    // // score = score * (1 - d) + d * 0.5; // 阻尼加权平均
+    // if (isNaN(score) || !isFinite(score)) {
+    //     debugger;
+    //     return 0;
+    // }
+    // return score;
+
+    const k = 5;
+    const z = 1.96; // 95% 置信度的 z 分数
+    const n = g + b;
+  
+    const phat = g / n;
+    const left = phat + z * z / (2 * n) - z * Math.sqrt((phat * (1 - phat) + z * z / (4 * n)) / n);
+    const right = 1 + z * z / n;
+  
+    const result =  (left / right + k) / (n + 2 * k);
+    return 1/result;
+}   

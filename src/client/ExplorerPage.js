@@ -500,21 +500,17 @@ export default class ExplorerPage extends Component {
         return +(this.zipInfo[fp] && this.zipInfo[fp].videoNum) || 0;
     }
     
-    getScore(e) {
-        // 作品喜欢分值
-        const { good_count, bad_count } =  this.getAuthorCount(e);
-        const goodS = good_count == 0? 0: Math.log10(good_count);
-        const badS = bad_count == 0? 0: Math.log10(bad_count);
-        return   goodS * 3 - badS * 0.2;
+    
+    getScore(author) {
+        return clientUtil.getScoreFromCount(this.getAuthorCount(author));
     }
 
+    // 有点重复，tagpage和explorepage
     getAuthorCount(fn) {
         this.author2count = this.author2count || {};
         if(this.author2count[fn]){
             return this.author2count[fn];
         }
-
-
         const temp = parse(fn);
         const { authorInfo } = this.state;
         let result = {
@@ -664,11 +660,7 @@ export default class ExplorerPage extends Component {
             files.sort((a, b)=> {
                 const s1 = this.getScore(a);
                 const s2 = this.getScore(b);
-                if(s1 === s2){
-                    return 
-                }else{
-                    return s1 - s2;
-                }
+                return s1 - s2;
             })
         } else if (sortOrder === BY_FOLDER) {
             files = _.sortBy(files, e => {

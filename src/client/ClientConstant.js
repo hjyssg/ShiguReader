@@ -17,6 +17,13 @@ module.exports.TAG_SORT_OPTIONS = [
     module.exports.BY_RANDOM
 ];
 
+module.exports.AUTHOR_SORT_OPTIONS = [
+    module.exports.BY_FILE_NUMBER,
+    module.exports.BY_GOOD_COUNT,
+    module.exports.BY_TAG_NAME,
+    module.exports.BY_RANDOM
+];
+
 module.exports.SORT_OPTIONS = [
     module.exports.BY_TIME,
     module.exports.BY_READ_TIME,
