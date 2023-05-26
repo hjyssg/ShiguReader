@@ -97,13 +97,6 @@ function parse(str) {
     return nameParser.parse(getBaseName(str));
 }
 
-function getOneLineListItem(icon, fileName, filePath) {
-    return (
-        <li className="explorer-one-line-list-item" key={fileName} title={filePath}>
-            {icon}
-            <span className="explorer-one-line-list-item-text">{fileName}</span>
-        </li>);
-}
 
 export default class ExplorerPage extends Component {
     constructor(prop) {
@@ -510,8 +503,8 @@ export default class ExplorerPage extends Component {
     getScore(e) {
         // 作品喜欢分值
         const { good_count, bad_count } =  this.getAuthorCount(e);
-        const goodS = good_count == 0? 0: Math.log2(good_count);
-        const badS = bad_count == 0? 0: Math.log2(bad_count);
+        const goodS = good_count == 0? 0: Math.log10(good_count);
+        const badS = bad_count == 0? 0: Math.log10(bad_count);
         return   goodS * 3 - badS * 0.2;
     }
 
@@ -739,9 +732,18 @@ export default class ExplorerPage extends Component {
         return files;
     }
 
+    getOneLineListItem(icon, fileName, filePath, title) {
+        return (
+            <li className="explorer-one-line-list-item" key={fileName} title={this.getTooltipStr(filePath)}>
+                {icon}
+                <span className="explorer-one-line-list-item-text">{fileName}</span>
+            </li>);
+    }
+    
+
     getTooltipStr(fp){
         let rows = [];
-        rows.push([fp]);
+        // rows.push([fp]);
 
         if(this.allfileInfos[fp] && this.allfileInfos[fp].mtimeMs){
             const dateStr = dateFormat(this.allfileInfos[fp].mtimeMs, "yyyy-mm-dd")
@@ -789,9 +791,9 @@ export default class ExplorerPage extends Component {
 
         if (this.state.noThumbnail) {
             zipItem = (
-            <Link to={toUrl} key={fp} className={""}  title={this.getTooltipStr(fp)} >
+            <Link to={toUrl} key={fp} className={""} >
                 <ThumbnailPopup filePath={fp} url={thumbnailurl}>
-                    {getOneLineListItem(<i className="fas fa-book"></i>, text, fp)}
+                    {this.getOneLineListItem(<i className="fas fa-book"></i>, text, fp)}
                 </ThumbnailPopup>
             </Link>)
         } else {
@@ -909,7 +911,7 @@ export default class ExplorerPage extends Component {
             dirItems = dirs.map((item) => {
                 const toUrl = clientUtil.getExplorerLink(item);
                 const text = getBaseName(item);
-                const result = getOneLineListItem(<i className="far fa-folder"></i>, text, item);
+                const result = this.getOneLineListItem(<i className="far fa-folder"></i>, text, item);
                 return (
                     <ThumbnailPopup filePath={item} key={item}>
                         <Link to={toUrl}>{result}</Link>
@@ -921,14 +923,14 @@ export default class ExplorerPage extends Component {
         const musicItems = this.musicFiles.map((item) => {
             const toUrl = clientUtil.getOneBookLink(getDir(item));
             const text = getBaseName(item);
-            const result = getOneLineListItem(<i className="fas fa-volume-up"></i>, text, item);
+            const result = this.getOneLineListItem(<i className="fas fa-volume-up"></i>, text, item);
             return <Link to={toUrl} key={item}>{result}</Link>;
         });
 
         const imageItems = this.imageFiles.map((item, ii) => {
             const toUrl = clientUtil.getOneBookLink(getDir(item), ii);
             const text = getBaseName(item);
-            const result = getOneLineListItem(<i className="fas fa-images"></i>, text, item);
+            const result = this.getOneLineListItem(<i className="fas fa-images"></i>, text, item);
             return <Link to={toUrl} key={item}>{result}</Link>;
         });
 
@@ -953,7 +955,7 @@ export default class ExplorerPage extends Component {
             const videoItems = group.map((item) => {
                 const toUrl = clientUtil.getVideoPlayerLink(item);
                 const text = getBaseName(item);
-                const result = getOneLineListItem(<i className="far fa-file-video"></i>, text, item);
+                const result = this.getOneLineListItem(<i className="far fa-file-video"></i>, text, item);
                 // 会卡顿，弃用video preview
                 // return (
                 // <ThumbnailPopup filePath={item} key={item}>
