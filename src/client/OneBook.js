@@ -832,17 +832,17 @@ export default class OneBook extends Component {
       return <ErrorPage res={this.res} filePath={fp} />;
     }
 
-    const { imageFiles, index, musicFiles,  mecab_tokens } = this.state;
+    const {  index, imageFiles, musicFiles, videoFiles, mecab_tokens } = this.state;
     const bookTitle = (<div className="one-book-title" >
       <FileNameDiv mecab_tokens={mecab_tokens} filename={getBaseName(this.state.path)} />
       {this.renderPath()}
     </div>);
 
-    if (_.isEmpty(imageFiles) && _.isEmpty(musicFiles)) {
+    if (_.isEmpty(imageFiles) && _.isEmpty(musicFiles) && _.isEmpty(videoFiles)) {
       if (this.res && !this.res.isFailed()) {
         return (<h3>
           <center style={{ paddingTop: "200px" }}>
-            <div className="alert alert-warning col-6" role="alert" > No image or music file </div>
+            <div className="alert alert-warning col-6" role="alert" > No image or music or video file </div>
             {bookTitle}
             {this.renderTags()}
             {this.renderToolbar()}
