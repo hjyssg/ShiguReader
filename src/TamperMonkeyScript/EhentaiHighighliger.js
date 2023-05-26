@@ -473,7 +473,7 @@ function ehentaiProtection(){
             // node.display = node.display || {};
             // node.display.style = "none";
             node.classList.add("disappear_dom");
-            console.log("fuck one node");
+            console.log("kill one low-rating dom");
         }
     }
 

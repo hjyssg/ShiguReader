@@ -253,9 +253,9 @@ export default class ChartPage extends Component {
             if (timeSourceType === BY_TAG_TIME) {
                 aboutTimeA = nameParser.getDateFromParse(getBaseName(e));
                 aboutTimeA = aboutTimeA && aboutTimeA.getTime();
-                aboutTimeA = aboutTimeA || fileInfo.mtime;
+                aboutTimeA = aboutTimeA || fileInfo.mtimeMs;
             } else {
-                aboutTimeA = fileInfo.mtime;
+                aboutTimeA = fileInfo.mtimeMs;
             }
 
             const t = new Date(aboutTimeA);

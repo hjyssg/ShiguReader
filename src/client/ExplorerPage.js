@@ -361,16 +361,7 @@ export default class ExplorerPage extends Component {
             this.imgFolders = imgFolders || {};
             this.imgFolderInfo = imgFolderInfo || {};
             this.res = res;
-
             this.allfileInfos = _.extend({}, this.fileInfos, this.imgFolderInfo);
-            // 把zipinfo的mtime合并到allfileinfos
-            for(const tempFilePath in this.zipInfo){
-                if(this.allfileInfos[tempFilePath] && !this.allfileInfos[tempFilePath].mtimeMs){
-                    if(this.zipInfo[tempFilePath].mtime){
-                        this.allfileInfos[tempFilePath].mtimeMs = this.zipInfo[tempFilePath].mtime;
-                    }
-                }
-            }
 
             if (this.videoFiles.length > 0 && !this.state.showVideo) {
                 this.setStateAndSetHash({

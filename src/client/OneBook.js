@@ -489,7 +489,7 @@ export default class OneBook extends Component {
 
       const size = filesizeUitl(fileStat.size);
       const avg = filesizeUitl(avgFileSize);
-      const mTime = dateFormat(fileStat.mtime, "isoDate");
+      const mTime = dateFormat(new Date(fileStat.mtimeMs), "isoDate");
       const title = getBaseName(imageFiles[index]);
       const dim = "";  //change by dom operation
       const titles = [
