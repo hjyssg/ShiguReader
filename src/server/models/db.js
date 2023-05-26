@@ -4,7 +4,7 @@ const { getDirName } = pathUtil;
 const path = require('path');
 const serverUtil = require("../serverUtil");
 const util = global.requireUtil();
-const { isImage, isCompress, isMusic } = util;
+const { isImage, isCompress, isMusic, isVideo } = util;
 const pfs = require('promise-fs');
 
 
@@ -47,6 +47,7 @@ module.exports.init = async ()=> {
                             isDisplayableInExplorer BOOL, 
                             isDisplayableInOnebook BOOL, 
                             isCompress BOOL, 
+                            isVideo BOOL,
                             isFolder BOOL);`);
     await sqlDb.runSync(`CREATE TABLE tag_table (
                             filePath TEXT NOT NULL, 
@@ -108,9 +109,10 @@ const updateFileDb = function (filePath, statObj) {
     stmt_tag_insert = stmt_tag_insert || sqlDb.prepare('INSERT OR REPLACE INTO tag_table(filePath, tag, type, subtype, isCompress ) values(?, ?, ?, ?, ?)');
     stmt_file_insert = stmt_file_insert || sqlDb.prepare(`INSERT OR REPLACE INTO file_table(filePath, dirPath, fileName, sTime, 
                 isDisplayableInExplorer, isDisplayableInOnebook, 
-                isCompress, isFolder ) values(?, ?, ?, ?, ?, ?, ?, ?)`);
+                isCompress, isVideo, isFolder ) values(?, ?, ?, ?, ?, ?, ?, ?, ?)`);
 
-    const isCompresFile = isCompress(fileName);
+    const isCompressFile = isCompress(fileName);
+    const isVideoFile = isVideo(fileName);
     const isDisplayableInExplorer = util.isDisplayableInExplorer(fileName);
     const isDisplayableInOnebook = util.isDisplayableInOnebook(fileName);
     //set up tags
@@ -129,16 +131,16 @@ const updateFileDb = function (filePath, statObj) {
     tags.forEach(t => {
         if (!authors.includes(t) && group !== t) {
             if (temp.comiket === t) {
-                tags_rows.push([filePath, t, "tag", "comiket", isCompresFile]);
+                tags_rows.push([filePath, t, "tag", "comiket", isCompressFile]);
             } else {
-                tags_rows.push([filePath, t, "tag", "parody", isCompresFile]);
+                tags_rows.push([filePath, t, "tag", "parody", isCompressFile]);
             }
         }
     })
     authors.forEach(t => {
-        tags_rows.push([filePath, t, "author", "", isCompresFile]);
+        tags_rows.push([filePath, t, "author", "", isCompressFile]);
     })
-    tags_rows.push([filePath, group, "group", "", isCompresFile]);
+    tags_rows.push([filePath, group, "group", "", isCompressFile]);
     tags_rows = tags_rows.filter(e => e[1] && !e[1].match(util.useless_tag_regex))
     // do batch insertion
     if(tags_rows.length > 0){
@@ -156,7 +158,7 @@ const updateFileDb = function (filePath, statObj) {
     const dirPath = path.dirname(filePath);
     // https://www.sqlitetutorial.net/sqlite-nodejs/insert/
     stmt_file_insert.run(filePath, dirPath, fileName, fileTimeA,
-        isDisplayableInExplorer, isDisplayableInOnebook, isCompresFile, statObj.isDir);
+        isDisplayableInExplorer, isDisplayableInOnebook, isCompressFile, isVideoFile, statObj.isDir);
 }
 
 module.exports.updateStatToDb = async function (filePath, stat) {
@@ -184,7 +186,9 @@ module.exports.getImgFolderInfo = function (imgFolders) {
     _.keys(imgFolders).forEach(folder => {
         const files = imgFolders[folder];
         const len = files.length;
-        let mtimeMs = 0, size = 0, totalImgSize = 0, pageNum = 0, musicNum = 0;
+        let mtimeMs = 0, size = 0, totalImgSize = 0, 
+            pageNum = 0, musicNum = 0, videoNum = 0;
+
         files.forEach(file => {
             const tempInfo = getFileToInfo(file);
             if (tempInfo) {
@@ -200,18 +204,23 @@ module.exports.getImgFolderInfo = function (imgFolders) {
                 pageNum++;
             } else if (isMusic(file)) {
                 musicNum++;
+            } else if(isVideo(file)){
+                videoNum++;
             }
-        })
+        });
+
+        const _imgs = files.filter(isImage);
+        serverUtil.sortFileNames(_imgs);
+        const thumbnail = _imgs[0]
 
         imgFolderInfo[folder] = {
-            // isFile: false,
-            // isDir: true,
             mtimeMs,
-            // mtime: mtimeMs,
             size,
             totalImgSize,
             pageNum,
-            musicNum
+            musicNum,
+            videoNum,
+            thumbnail
         };
     })
 

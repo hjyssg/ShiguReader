@@ -695,7 +695,7 @@ async function decorateResWithMeta(resObj) {
     // "tag", "author", "path" 查询时用的参数
     // 检查
     const allowedKeys = [ "dirs", "mode", "tag", "path", "author", "fileInfos", 
-                          "thumbnails", "zipInfo", "imgFolders", "imgFolderInfo"]
+                          "thumbnails", "zipInfo", "imgFolderInfo"];
     resObj = filterObjectProperties(resObj, allowedKeys, true);
 
     return resObj;

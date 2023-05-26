@@ -116,7 +116,7 @@ router.post('/api/lsDir', serverUtil.asyncWrapper(async (req, res) => {
         //---------------img folder -----------------
         const imgFolders = {};
         sql = `SELECT dirPath, group_concat(fileName, '${sep}') AS files 
-              FROM ${tempFileTable} WHERE isDisplayableInOnebook = true 
+              FROM ${tempFileTable} WHERE isDisplayableInOnebook = true OR isVideo = true
               GROUP BY dirPath`;
         rows = await sqldb.allSync(sql);
         rows.forEach(row => {
