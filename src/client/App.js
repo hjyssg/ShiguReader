@@ -218,7 +218,7 @@ class App extends Component {
                     <input className="search-input" type="text" placeholder="Search.." onKeyDown={this.onSearchKeydown.bind(this)} />
                     <div onClick={this.onSearchClick.bind(this)} title="Search" className="fa fa-search search-button" />
                     {(isExplorer || isTag || isAuthor || isSearch) &&
-                        <div onClick={this.onFilterClick.bind(this)} title="Filter Files" className="fa fa-filter filter-button" />}
+                        <div onClick={this.onFilterClick.bind(this)} title="Filter Current Page's Files" className="fa fa-filter filter-button" />}
                 </div>
             </div>
         );
