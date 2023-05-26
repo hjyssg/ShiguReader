@@ -183,3 +183,17 @@ module.exports.getAverage = function(intArray) {
   }
 
 module.exports.useless_tag_regex = /DL版|同人誌|別スキャン|修正版|^エロ|^digital$|^JPG|^PNG|ページ補足/i;
+
+
+
+/** 写一个js函数，把string留头留尾，中间的字符换成省略号。穿参数设置最终字符数 */
+const truncateString = module.exports.truncateString = (str, maxLength) => {
+    if (str.length <= maxLength) return str;
+    const ellipsis = '...';
+    const truncatedLength = maxLength - ellipsis.length;
+    const frontChars = Math.ceil(truncatedLength / 2);
+    const backChars = Math.floor(truncatedLength / 2);
+    const truncatedString = str.substr(0, frontChars) + ellipsis + str.substr(str.length - backChars);
+    return truncatedString;
+}
+
