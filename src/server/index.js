@@ -669,8 +669,46 @@ async function decorateResWithMeta(resObj) {
     resObj.thumbnails = thumbnails;
     const imgFolderInfo = db.getImgFolderInfo(imgFolders);
     resObj.imgFolderInfo = imgFolderInfo;
+
+    // 把zipinfo的mtime合并到fileInfos
+    for(const tempFilePath in zipInfo){
+        if(fileInfos[tempFilePath] && !fileInfos[tempFilePath].mtimeMs){
+            if(zipInfo[tempFilePath].mtimeMs){
+                fileInfos[tempFilePath].mtimeMs = zipInfo[tempFilePath].mtimeMs;
+            }
+        }
+    }
+
+    // resObj说明：
+    // dirs:          [dir filepath...]
+    // thumbnails:    filePath-> thumbnail filePath
+    // fileInfos:     filePath-> fileInfo (不仅有zip，还有video和music)
+    // zipInfo:       filePath-> zipInfo (和fileinfos互补)
+    // imgFolderInfo: folderPath-> folderinfo
+    // imgFolders:    folderPath -> [ file filepath ... ]
+    // mode: 是否lack_info_mode
+    // "tag", "author", "path" 查询时用的参数
+    // 检查
+    const allowedKeys = [ "dirs", "mode", "tag", "path", "author", "fileInfos", 
+                          "thumbnails", "zipInfo", "imgFolders", "imgFolderInfo"]
+    resObj = filterObjectProperties(resObj, allowedKeys);
+
     return resObj;
 }
+
+//写一个js函数，根据一个key list，只保留object需要的property
+function filterObjectProperties(obj, keysToKeep) {
+    // 遍历对象的所有属性
+    return Object.keys(obj).reduce((acc, key) => {
+      // 如果当前属性存在于 keysToKeep 数组中，将其添加到新对象中
+      if (keysToKeep.includes(key)) {
+        acc[key] = obj[key];
+      }else{
+        console.warn("filterObjectProperties", key);
+      }
+      return acc;
+    }, {});
+  }
 
 
 serverUtil.common.decorateResWithMeta = decorateResWithMeta

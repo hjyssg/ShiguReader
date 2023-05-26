@@ -204,10 +204,10 @@ module.exports.getImgFolderInfo = function (imgFolders) {
         })
 
         imgFolderInfo[folder] = {
-            isFile: false,
-            isDir: true,
+            // isFile: false,
+            // isDir: true,
             mtimeMs,
-            mtime: mtimeMs,
+            // mtime: mtimeMs,
             size,
             totalImgSize,
             pageNum,
