@@ -34,6 +34,7 @@ import Swal from 'sweetalert2';
 
 import { GlobalContext } from './globalContext'
 
+const ClientConstant = require("./ClientConstant");
 const { BY_FILE_NUMBER,
     BY_TIME,
     BY_READ_TIME,
@@ -42,8 +43,9 @@ const { BY_FILE_NUMBER,
     BY_AVG_PAGE_SIZE,
     BY_PAGE_NUMBER,
     BY_FILENAME,
+    BY_GOOD_COUNT,
     BY_FOLDER,
-    BY_RANDOM } = Constant;
+    BY_RANDOM } = ClientConstant;
 
 const { MODE_TAG,
     MODE_AUTHOR,
@@ -504,25 +506,49 @@ export default class ExplorerPage extends Component {
         }
         return +(this.zipInfo[fp] && this.zipInfo[fp].videoNum) || 0;
     }
+    
+    getScore(e) {
+        // 作品喜欢分值
+        const { good_count, bad_count } =  this.getAuthorCount(e);
+        const goodS = good_count == 0? 0: Math.log2(good_count);
+        const badS = bad_count == 0? 0: Math.log2(bad_count);
+        return   goodS * 3 - badS * 0.2;
+    }
+
+    getAuthorCount(fn) {
+        this.author2count = this.author2count || {};
+        if(this.author2count[fn]){
+            return this.author2count[fn];
+        }
+
+
+        const temp = parse(fn);
+        const { authorInfo } = this.state;
+        let result = {
+            good_count: 0,
+            bad_count: 0
+        };
+        if (temp && temp.author && authorInfo) {
+            for(let ii = 0; ii < authorInfo.length; ii++){
+                const e = authorInfo[ii];
+                if(e.tag === temp.author){
+                    result = e || result;
+                    this.author2count[fn] = result;
+                    break;
+                }
+            }
+        }
+        return result;
+    }
 
     getFilteredFiles() {
         let files = [...this.compressFiles, ...(_.keys(this.imgFolderInfo))];
 
         const { authorInfo } = this.state;
 
-        function getCount(fn) {
-            const temp = parse(fn);
-            if (temp && temp.author) {
-                const info = authorInfo.filter(e => {
-                    return e.tag === temp.author
-                });
-                return info[0];
-            }
-        }
-
         if (this.isOn(FILTER_GOOD_AUTHOR) && authorInfo) {
             files = files.filter(e => {
-                const count = getCount(e);
+                const count = getAuthorCount(e);
                 if (count && count.good_count > GOOD_STANDARD) {
                     return true;
                 }
@@ -531,7 +557,7 @@ export default class ExplorerPage extends Component {
 
         if (this.isOn(FILTER_FIRST_TIME) && authorInfo) {
             files = files.filter(e => {
-                const count = getCount(e);
+                const count = getAuthorCount(e);
                 if (count && (count.good_count + count.bad_count) === 1) {
                     return true;
                 }
@@ -631,6 +657,26 @@ export default class ExplorerPage extends Component {
             files.sort((a, b) => {
                 return byFn(a, b);
             });
+        }else if (sortOrder == BY_GOOD_COUNT){
+            //先时间排序。和正下方有点重复代码
+            const onlyByMTime = this.getMode() === MODE_EXPLORER && !this.isLackInfoMode();
+            const config = {
+                fileInfos: this.allfileInfos,
+                ascend: true,
+                getBaseName,
+                onlyByMTime
+            }
+            sortUtil.sort_file_by_time(files, config);
+            // 再按喜好排序
+            files.sort((a, b)=> {
+                const s1 = this.getScore(a);
+                const s2 = this.getScore(b);
+                if(s1 === s2){
+                    return 
+                }else{
+                    return s1 - s2;
+                }
+            })
         } else if (sortOrder === BY_FOLDER) {
             files = _.sortBy(files, e => {
                 const dir = getDir(e);
@@ -694,12 +740,20 @@ export default class ExplorerPage extends Component {
     }
 
     getTooltipStr(fp){
-        let result = fp;
+        let rows = [];
+        rows.push([fp]);
+
         if(this.allfileInfos[fp] && this.allfileInfos[fp].mtimeMs){
             const dateStr = dateFormat(this.allfileInfos[fp].mtimeMs, "yyyy-mm-dd")
-            result = `${fp}\ntime: ${dateStr}`;
+            rows.push(["time", dateStr]);
         }
-        return result;
+
+        rows.push(["good count", this.getAuthorCount(fp).good_count]);
+        rows.push(["not so good count", this.getAuthorCount(fp).bad_count]);
+
+        return rows.map(row => {
+            return row.join(": ");
+        }).join("\n")
     }
 
     isImgFolder(fp){
@@ -1392,7 +1446,7 @@ export default class ExplorerPage extends Component {
     }
 
     renderSortHeader() {
-        let sortOptions = Constant.SORT_OPTIONS.slice();
+        let sortOptions = ClientConstant.SORT_OPTIONS.slice();
 
         if (this.getMode() !== MODE_EXPLORER) {
             sortOptions.push(BY_FOLDER);
@@ -1413,8 +1467,8 @@ export default class ExplorerPage extends Component {
                 onChange={this.toggleFilter.bind(this, FILTER_GOOD_AUTHOR)}
                 checked={this.isOn(FILTER_GOOD_AUTHOR)}
                 title={`need to found more than ${GOOD_STANDARD} times in good folder`}>
-                By Good Folder
-                        </Checkbox>);
+                By Good Count
+                </Checkbox>);
         }
 
         const st2 = `Image > ${userConfig.oversized_image_size} MB`;

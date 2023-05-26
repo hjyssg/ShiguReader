@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import Sender from './Sender';
-const Constant = require("@common/constant");
 const classNames = require('classnames');
 import "./style/LoadingImage.scss"
 const clientUtil = require("./clientUtil");

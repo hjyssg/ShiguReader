@@ -15,7 +15,6 @@ import FileNameDiv from './subcomponent/FileNameDiv';
 const util = require("@common/util");
 const queryString = require('query-string');
 import screenfull from 'screenfull';
-const Constant = require("@common/constant");
 
 const clientUtil = require("./clientUtil");
 const { getDir, getBaseName, isMobile, getFileUrl, sortFileNames } = clientUtil;

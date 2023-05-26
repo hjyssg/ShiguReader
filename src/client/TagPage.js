@@ -23,11 +23,12 @@ const clientUtil = require("./clientUtil");
 const { getDir, getBaseName, getPerPageItemNumber, isSearchInputTextTyping } = clientUtil;
 // const sortUtil = require("../common/sortUtil");
 
+const ClientConstant = require("./ClientConstant");
 const {
   BY_TAG_NAME,
   BY_FILE_NUMBER,
   BY_RANDOM
-} = Constant;
+} = ClientConstant;
 
 const FILTER_PARODY = "FILTER_PARODY";
 const FILTER_COMIKET = "FILTER_COMIKET"
@@ -332,7 +333,7 @@ export default class TagPage extends Component {
 }
 
   renderSortHeader() {
-    let sortOptions = Constant.TAG_SORT_OPTIONS;
+    let sortOptions = ClientConstant.TAG_SORT_OPTIONS;
     return (<div className="sort-header-container container">
       <SortHeader sortOptions={sortOptions} selected={this.state.sortOrder} 
                         isSortAsc={this.state.isSortAsc}
