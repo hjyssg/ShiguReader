@@ -166,10 +166,8 @@ module.exports.updateStatToDb = async function (filePath, stat) {
         stat = await pfs.stat(filePath)
     }
 
-    statObj.isFile = stat.isFile();
     statObj.isDir = stat.isDirectory();
     statObj.mtimeMs = stat.mtimeMs;
-    statObj.mtime = stat.mtime;
     statObj.size = stat.size;
     fileToInfo[filePath] = statObj;
     updateFileDb(filePath, statObj);

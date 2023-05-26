@@ -426,7 +426,7 @@ function addNewFileWatchAfterInit(dirPathes) {
         return;
     }
 
-    console.log("[chokidar addNewFileWatch] begin...");
+    console.log(`[chokidar addNewFileWatch] [${dirPathes.join(",")}] begin...`);
     let beg = getCurrentTime();
 
     // add to scan_path

@@ -43,10 +43,8 @@ function isLegalDepth(depth, config) {
 async function get_stat(p) {
     const stat = await pfs.stat(p);
     const result = {};
-    result.isFile = stat.isFile();
     result.isDir = stat.isDirectory();
     result.mtimeMs = stat.mtimeMs;
-    result.mtime = stat.mtime;
     result.size = stat.size;
     return result;
 }
