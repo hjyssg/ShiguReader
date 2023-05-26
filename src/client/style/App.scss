@@ -181,26 +181,40 @@ a {
 .aji-checkbox-container {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: space-around;
 
-  .aji-checkbox{
+  .aji-checkbox {
     display: inline-flex;
 
     .inner {
-      font-size: 10px;
+      font-size: 8px;
 
       @media screen and (min-width: 800px) {
-        font-size: 1rem;
+        font-size: 10px;
+      }
+
+      @media screen and (min-width: 1200px) {
+        font-size: 12px;
+      }
+
+      @media screen and (min-width: 1400px) {
+        font-size: 14px;
       }
     }
 
-    &:not(:first-child){
-      margin-left: 20px;
-    }
+    // &:not(:first-child){
+    //   margin-left: 10px;
+    // }
+
+    // @media screen and (min-width: 1200px) {
+    //   &:not(:first-child){
+    //     margin-left: 15px;
+    //   }
+    // }
   }
 }
 
-.history-section{
+.history-section {
   margin-top: 20px;
   color: $font_color_white_one;
 }
