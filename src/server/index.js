@@ -974,12 +974,10 @@ app.post('/api/pregenerateThumbnails', asyncWrapper(async (req, res) => {
     pregenerateThumbnails_lock = true;
     const fastUpdateMode = req.body && req.body.fastUpdateMode;
 
-    let totalFiles = await db.getAllFilePathes("WHERE isCompress=1");
-    if (pregenerateThumbnailPath !== "All_Pathes") {
-        totalFiles = totalFiles.filter(e => e.includes(pregenerateThumbnailPath));
-    }
-
-    if (pregenerateThumbnailPath !== "All_Pathes" && pregenerateThumbnailPath && !isAlreadyScan(pregenerateThumbnailPath)) {
+    let totalFiles = [];
+    if(pregenerateThumbnailPath == "All_Pathes"){
+        totalFiles = await db.getAllFilePathes("WHERE isCompress=1");
+    }else{
         function shouldScanForPreg(p, stat) {
             if (isHiddenFile(p)) {
                 return false;
@@ -993,6 +991,8 @@ app.post('/api/pregenerateThumbnails', asyncWrapper(async (req, res) => {
             filter: shouldScanForPreg
         });
         totalFiles = pathes.filter(isCompress);
+        // totalFiles = await db.getAllFilePathes("WHERE isCompress=1");
+        // totalFiles = totalFiles.filter(e => e.includes(pregenerateThumbnailPath));
     }
 
     let config = {
