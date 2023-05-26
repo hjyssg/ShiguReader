@@ -16,8 +16,8 @@ module.exports = async function (folders, config) {
     config.visited = {};
     for (let ii = 0; ii < folders.length; ii++) {
         const src = folders[ii];
-        if (await pfs.existsSync(src)) {
-            const stat = await pfs.statSync(src);
+        if (await pathUtil.isExist(src)) {
+            const stat = await pfs.stat(src);
             if (stat.isFile()) {
                 throw "[file-iterator] only source folder path";
             } else {
@@ -41,7 +41,7 @@ function isLegalDepth(depth, config) {
 }
 
 async function get_stat(p) {
-    const stat = await pfs.statSync(p);
+    const stat = await pfs.stat(p);
     const result = {};
     result.isFile = stat.isFile();
     result.isDir = stat.isDirectory();
