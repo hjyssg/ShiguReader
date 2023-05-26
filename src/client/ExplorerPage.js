@@ -537,7 +537,7 @@ export default class ExplorerPage extends Component {
 
         if (this.isOn(FILTER_GOOD_AUTHOR) && authorInfo) {
             files = files.filter(e => {
-                const count = getAuthorCount(e);
+                const count = this.getAuthorCount(e);
                 if (count && count.good_count > GOOD_STANDARD) {
                     return true;
                 }
@@ -546,7 +546,7 @@ export default class ExplorerPage extends Component {
 
         if (this.isOn(FILTER_FIRST_TIME) && authorInfo) {
             files = files.filter(e => {
-                const count = getAuthorCount(e);
+                const count = this.getAuthorCount(e);
                 if (count && (count.good_count + count.bad_count) === 1) {
                     return true;
                 }
