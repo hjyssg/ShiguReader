@@ -165,6 +165,8 @@ export default class TagPage extends Component {
       rows.push(["good count", this.getAuthorCount(tag).good_count]);
       rows.push(["not so good count", this.getAuthorCount(tag).bad_count]);
       rows.push(["score", this.getScore(tag)]);
+
+      // TODO 获得rank
   
       return rows.map(row => {
           return row.join(": ");

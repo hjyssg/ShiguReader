@@ -370,27 +370,19 @@ module.exports.getScoreFromCount = (countObj) => {
     // const badS = bad_count == 0? 0: Math.log10(bad_count);
     // return   goodS * 3 - badS * 0.2;
 
-    // 加数字 避免log出现0和无穷
-    const g = good_count + 2;
-    const b = bad_count + 2;
+    if(good_count == 0 && bad_count == 0){
+        return 0;
+    }
 
-    // let d = 0.01; // 阻尼系数，越小阻尼效果越强
-    // let score = Math.log10(g + 1.5) + Math.log10(g + 1.5) / (Math.log10(g + 1.5) + Math.log10(b + 1.5));
-    // // score = score * (1 - d) + d * 0.5; // 阻尼加权平均
-    // if (isNaN(score) || !isFinite(score)) {
-    //     debugger;
-    //     return 0;
-    // }
-    // return score;
-
-    const k = 5;
-    const z = 1.96; // 95% 置信度的 z 分数
-    const n = g + b;
-  
-    const phat = g / n;
-    const left = phat + z * z / (2 * n) - z * Math.sqrt((phat * (1 - phat) + z * z / (4 * n)) / n);
-    const right = 1 + z * z / n;
-  
-    const result =  (left / right + k) / (n + 2 * k);
-    return 1/result;
+    if(good_count == 0 && bad_count > 0){
+        //区间是负数
+        // 虽然bad，但数量多的话，给分搞点。
+        return -1/Math.log10(bad_count+ 2);
+    }
+    
+    const kk = 2; // 越小越看重比例，越大越看重g绝对值
+    const g = good_count + kk;
+    const b = bad_count + kk;
+    // 区间落在0~2
+    return g / (g + b) + g/(g+1) ;
 }   
