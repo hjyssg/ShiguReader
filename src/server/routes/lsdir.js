@@ -197,12 +197,12 @@ async function listNoScanDir(filePath, res, isRecussive) {
         subFpArr = subFnArr.map(e => path.resolve(filePath, e));
     }
 
-    const {
-        imageFiles,
-        musicFiles,
-        videoFiles,
-        compressFiles
-    } = fileIntoCategory(subFpArr);
+    // const {
+    //     imageFiles,
+    //     musicFiles,
+    //     videoFiles,
+    //     compressFiles
+    // } = fileIntoCategory(subFpArr);
     const dirs = subFpArr.filter(e => {
         const isFolder = pathUtil.estimateIfFolder(e);
         return isFolder;
@@ -217,15 +217,15 @@ async function listNoScanDir(filePath, res, isRecussive) {
         path: filePath,
         mode: "lack_info_mode",
 
-        stat: {},
+        // stat: {},
         dirs,
         imgFolders: {},
         fileInfos,
 
-        imageFiles,
-        musicFiles,
-        videoFiles,
-        compressFiles,
+        // imageFiles,
+        // musicFiles,
+        // videoFiles,
+        // compressFiles,
     };
     result = await decorateResWithMeta(result)
     return result;

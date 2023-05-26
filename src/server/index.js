@@ -671,12 +671,17 @@ async function decorateResWithMeta(resObj) {
     resObj.imgFolderInfo = imgFolderInfo;
 
     // 把zipinfo的mtime合并到fileInfos
+    // 并精简obj
+    const allowZipInfo = ["pageNum", "musicNum", "videoNum", "totalNum", "totalImgSize"];
     for(const tempFilePath in zipInfo){
-        if(fileInfos[tempFilePath] && !fileInfos[tempFilePath].mtimeMs){
-            if(zipInfo[tempFilePath].mtimeMs){
-                fileInfos[tempFilePath].mtimeMs = zipInfo[tempFilePath].mtimeMs;
+        const obj = zipInfo[tempFilePath];
+        if(obj.mtime){
+            fileInfos[tempFilePath] = fileInfos[tempFilePath] || {};
+            if(!fileInfos[tempFilePath].mtimeMs){
+                fileInfos[tempFilePath].mtimeMs = obj.mtime;
             }
         }
+        zipInfo[tempFilePath] = filterObjectProperties(obj, allowZipInfo);
     }
 
     // resObj说明：
@@ -691,19 +696,19 @@ async function decorateResWithMeta(resObj) {
     // 检查
     const allowedKeys = [ "dirs", "mode", "tag", "path", "author", "fileInfos", 
                           "thumbnails", "zipInfo", "imgFolders", "imgFolderInfo"]
-    resObj = filterObjectProperties(resObj, allowedKeys);
+    resObj = filterObjectProperties(resObj, allowedKeys, true);
 
     return resObj;
 }
 
 //写一个js函数，根据一个key list，只保留object需要的property
-function filterObjectProperties(obj, keysToKeep) {
+function filterObjectProperties(obj, keysToKeep, needWarn) {
     // 遍历对象的所有属性
     return Object.keys(obj).reduce((acc, key) => {
       // 如果当前属性存在于 keysToKeep 数组中，将其添加到新对象中
       if (keysToKeep.includes(key)) {
         acc[key] = obj[key];
-      }else{
+      }else if(needWarn){
         console.warn("filterObjectProperties", key);
       }
       return acc;
