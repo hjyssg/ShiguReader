@@ -23,7 +23,7 @@ export default class Breadcrumb extends PureComponent {
 
     render() {
         let { path, right, className, sep, server_os, extraDiv} = this.props;
-        console.assert(sep);
+        // console.assert(sep);
         sep = sep || "\\";
         const beginWithSep = path.startsWith(sep);
         const pathes = path.split(sep).filter(e => !!e);

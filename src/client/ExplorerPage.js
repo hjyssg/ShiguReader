@@ -302,7 +302,6 @@ export default class ExplorerPage extends Component {
         this.author = "";
         this.fileInfos = {};
         this.thumbnails = {};
-        this.imgFolders = {};
         this.imgFolderInfo = {};
         this.res = null;
     }
@@ -339,7 +338,7 @@ export default class ExplorerPage extends Component {
     handleLsDirRes(res) {
         if (!res.isFailed()) {
             let { dirs, mode, tag, author, fileInfos, thumbnails,
-                zipInfo, imgFolders, imgFolderInfo } = res.json;
+                zipInfo, imgFolderInfo } = res.json;
             this.loadedHash = this.getTextFromQuery();
             this.mode = mode;
 
@@ -358,7 +357,6 @@ export default class ExplorerPage extends Component {
             this.author = author || "";
             this.thumbnails = thumbnails || {};
             this.zipInfo = zipInfo || {};
-            this.imgFolders = imgFolders || {};
             this.imgFolderInfo = imgFolderInfo || {};
             this.res = res;
             this.allfileInfos = _.extend({}, this.fileInfos, this.imgFolderInfo);
@@ -444,8 +442,8 @@ export default class ExplorerPage extends Component {
     }
 
     getPageNum(fp) {
-        if (this.imgFolders[fp]) {
-            return this.imgFolders[fp].filter(isImage).length;
+        if (this.isImgFolder(fp)) {
+            return this.imgFolderInfo[fp]?.pageNum || 0;
         }
         return +(this.zipInfo[fp] && this.zipInfo[fp].pageNum) || 0;
     }
@@ -465,8 +463,8 @@ export default class ExplorerPage extends Component {
     //comes from zipInfo libray, may not be reliable
     //because sometimes, filename dont chane but the size change 
     getTotalImgSize(fp) {
-        if (this.imgFolders[fp]) {
-            return (this.imgFolderInfo[fp] && this.imgFolderInfo[fp].totalImgSize) || 0;
+        if (this.isImgFolder(fp)) {
+            return (this.imgFolderInfo[fp]?.totalImgSize) || 0;
         }
         return +(this.zipInfo[fp] && this.zipInfo[fp].totalImgSize) || 0;
     }
@@ -494,21 +492,21 @@ export default class ExplorerPage extends Component {
     }
 
     getMusicNum(fp) {
-        if (this.imgFolders[fp]) {
-            return this.imgFolders[fp].filter(isMusic).length;
+        if (this.isImgFolder(fp)) {
+            return this.imgFolderInfo[fp]?.musicNum || 0;
         }
         return +(this.zipInfo[fp] && this.zipInfo[fp].musicNum) || 0;
     }
 
     getVideoNum(fp) {
-        // if (this.imgFolders[fp]) {
-        //     return this.imgFolders[fp].filter(isMusic).length;
-        // }
+        if (this.isImgFolder(fp)) {
+            return (this.imgFolderInfo[fp]?.videoNum) || 0;
+        }
         return +(this.zipInfo[fp] && this.zipInfo[fp].videoNum) || 0;
     }
 
     getFilteredFiles() {
-        let files = [...this.compressFiles, ...(_.keys(this.imgFolders))];
+        let files = [...this.compressFiles, ...(_.keys(this.imgFolderInfo))];
 
         const { authorInfo } = this.state;
 
@@ -704,13 +702,14 @@ export default class ExplorerPage extends Component {
         return result;
     }
 
+    isImgFolder(fp){
+        return !!this.imgFolderInfo[fp];
+    }
+
     getThumbnailUrl(fp){
-        const isImgFolder = !!this.imgFolders[fp];
         let thumbnailurl;
-        if (isImgFolder) {
-            const _imgs = this.imgFolders[fp].filter(isImage);
-            sortFileNames(_imgs)
-            const tp = _imgs[0];
+        if (this.isImgFolder(fp)) {
+            const tp = this.imgFolderInfo[fp].thumbnail;
             thumbnailurl = getFileUrl(tp);
         } else {
             thumbnailurl = getFileUrl(this.thumbnails[fp]);
@@ -745,7 +744,7 @@ export default class ExplorerPage extends Component {
 
             const hasZipInfo = this.hasZipInfo(fp);
             const musicNum = this.getMusicNum(fp);
-            const isImgFolder = !!this.imgFolders[fp];
+            const isImgFolder = this.isImgFolder(fp);
             const hasMusic = musicNum > 0;
             const pageNum = this.getPageNum(fp);
 
@@ -968,7 +967,7 @@ export default class ExplorerPage extends Component {
                 <ItemsContainer items={imageItems} />
                 {videoDivGroup}
                 {this.renderPagination(filteredFiles, filteredVideos)}
-                {this.compressFiles.length > 0 && this.renderFilterMenu()}
+                {this.renderFilterMenu()}
                 {zipfileItems.length > 0 && this.renderSortHeader()}
                 <div className={"file-grid container"}>
                     <div className={rowCn}>
