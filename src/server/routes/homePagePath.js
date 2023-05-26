@@ -20,7 +20,8 @@ function containPath(pathList, fp){
 
 function normalizePath(pathes){
     pathes =  pathes || [];
-    return pathes.map(e => path.resolve(e));
+    pathes = pathes.map(e => path.resolve(e));
+    return _.uniq(pathes);
 }
 
 router.get('/api/homePagePath', serverUtil.asyncWrapper(async (req, res) => {
