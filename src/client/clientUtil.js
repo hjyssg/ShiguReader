@@ -375,14 +375,18 @@ module.exports.getScoreFromCount = (countObj) => {
     }
 
     if(good_count == 0 && bad_count > 0){
-        //区间是负数
-        // 虽然bad，但数量多的话，给分搞点。
-        return -1/Math.log10(bad_count+ 2);
+        // 区间是负数
+        // 虽然bad，但数量多的话，给分高点。
+        return -1/(bad_count+ 2);
     }
     
     const kk = 2; // 越小越看重比例，越大越看重g绝对值
     const g = good_count + kk;
     const b = bad_count + kk;
     // 区间落在0~2
-    return g / (g + b) + g/(g+1) ;
+    // 既看比例，也看绝对值
+    const ratio = g / (g + b);
+    const absV = g/(g+1);
+    // TODO 比例太好，有点过分
+    return ratio +  absV;
 }   
