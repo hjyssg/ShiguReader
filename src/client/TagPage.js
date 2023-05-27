@@ -27,7 +27,7 @@ const ClientConstant = require("./ClientConstant");
 const {
   BY_TAG_NAME,
   BY_FILE_NUMBER,
-  BY_GOOD_COUNT,
+  BY_GOOD_SCORE,
   BY_RANDOM
 } = ClientConstant;
 
@@ -160,7 +160,7 @@ export default class TagPage extends Component {
   getTooltipStr(tag, index){
     let rows = [];
     rows.push([tag]);
-    rows.push(["number", index]);
+    rows.push(["rank", index]);
     
     if(this.isAuthorMode()){
       rows.push(["good count", this.getAuthorCount(tag).good_count]);
@@ -244,7 +244,7 @@ export default class TagPage extends Component {
       items.sort((a, b) => {
         return a.tag.localeCompare(b.tag);
       });
-    }else  if (sortOrder == BY_GOOD_COUNT){
+    }else  if (sortOrder == BY_GOOD_SCORE){
       // 再按喜好排序
       items.sort((a, b)=> {
           const s1 = this.getScore(a.tag);

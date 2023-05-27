@@ -358,35 +358,55 @@ module.exports.scrollPageByDistance = (distance) => {
 };
 
 /** 计算对特定作者的喜欢程度的分值 */
-module.exports.getScoreFromCount = (countObj) => {
-    // 对于一个东西，我有两个参数点赞数 g 和厌恶数 b。
-    // 帮我想一个数学公式。综合评价这个东西的分数。
-    // 既要注意点赞数的绝对值，也要考虑它们之间的相对比值。
-    // 同时要用log加一点阻尼效果
-    // 然后用一个js函数实现的
+const getScoreFromCount = module.exports.getScoreFromCount = (countObj) => {
+    let { good_count, bad_count } =  countObj;
+    console.assert(good_count >= 0 && bad_count >= 0);
 
-    const { good_count, bad_count } =  countObj;
-    // const goodS = good_count == 0? 0: Math.log10(good_count);
-    // const badS = bad_count == 0? 0: Math.log10(bad_count);
-    // return   goodS * 3 - badS * 0.2;
+    // 写一个数学函数，当x逼近正无穷，y逼近1。要使保证x从0到100的范围内，y尽量均匀分布。超过100开始逼近1
+    function f1(x) {
+        const a = Math.log(101/100);
+        if (x <= 100) {
+            return 1 - Math.exp(-a * x);
+        } else {
+            return 1;
+        }
+    }
+
+    function f2(x){
+        // 用Math.floor进行离散区间处理
+        return Math.floor(x/3) *3;
+    }
 
     if(good_count == 0 && bad_count == 0){
+        // 啥都没有，纯中性
         return 0;
     }
 
     if(good_count == 0 && bad_count > 0){
         // 区间是负数
-        // 虽然bad，但数量多的话，给分高点。
-        return -1/(bad_count+ 2);
+        // 虽然bad，但数量多的话，给分高点。 
+        // 虽然不喜欢，到时下载得多。还是有点好感的概念
+        return -1/f2(bad_count);
     }
     
-    const kk = 2; // 越小越看重比例，越大越看重g绝对值
-    const g = good_count + kk;
-    const b = bad_count + kk;
-    // 区间落在0~2
-    // 既看比例，也看绝对值
+    const g = good_count;
+    const b = f2(bad_count);
+    // 既看比例，
     const ratio = g / (g + b);
-    const absV = g/(g+1);
-    // TODO 比例太好，有点过分
+    // 也看绝对值
+    const absV = f1(g);
+    // 最终区间落在0~2
     return ratio +  absV;
 }   
+
+
+
+// 测试 getScoreFromCount()
+// for(let ii = 0; ii < 100; ii++){
+//     const temp =  getScoreFromCount({
+//         bad_count: 2,
+//         good_count: ii
+//     });
+
+//     console.log(ii, "   ", temp);
+// }

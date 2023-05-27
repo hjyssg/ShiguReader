@@ -43,7 +43,7 @@ const { BY_FILE_NUMBER,
     BY_AVG_PAGE_SIZE,
     BY_PAGE_NUMBER,
     BY_FILENAME,
-    BY_GOOD_COUNT,
+    BY_GOOD_SCORE,
     BY_FOLDER,
     BY_RANDOM } = ClientConstant;
 
@@ -646,7 +646,7 @@ export default class ExplorerPage extends Component {
             files.sort((a, b) => {
                 return byFn(a, b);
             });
-        }else if (sortOrder == BY_GOOD_COUNT){
+        }else if (sortOrder == BY_GOOD_SCORE){
             //先时间排序。和正下方有点重复代码
             const onlyByMTime = this.getMode() === MODE_EXPLORER && !this.isLackInfoMode();
             const config = {

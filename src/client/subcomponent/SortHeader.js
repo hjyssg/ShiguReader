@@ -25,6 +25,9 @@ export default class SortHeader extends PureComponent {
         if(!selected){
             selected = sortOptions[0];
         }
+
+        console.assert(sortOptions.includes(selected));
+
         const items = sortOptions.map((item) => {
             let icon;
             if (item === selected) {
