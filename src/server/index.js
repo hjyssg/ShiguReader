@@ -8,6 +8,8 @@ const qrcode = require('qrcode-terminal');
 const ini = require('ini');
 const memorycache = require('memory-cache');
 const chokidar = require('chokidar');
+const { pathEqual } = require('path-equal');
+
 
 global.isWindows = require('is-windows')();
 global.requireUtil = () => require("../common/util");
@@ -644,7 +646,7 @@ async function getStatAndUpdateDB(filePath) {
 /** 判断一个dir path是不是在scan路径上 */
 function isAlreadyScan(dir) {
     return global.SCANED_PATH.some(sp => {
-        return sp === dir || pathUtil.isSub(sp, dir);
+        return pathEqual(sp, dir) || pathUtil.isSub(sp, dir);
     });
 }
 /**
@@ -696,7 +698,8 @@ async function decorateResWithMeta(resObj) {
     // 检查
     const allowedKeys = [ "dirs", "mode", "tag", "path", "author", "fileInfos", 
                           "thumbnails", "zipInfo", "imgFolderInfo"];
-    resObj = filterObjectProperties(resObj, allowedKeys, true);
+    // resObj = filterObjectProperties(resObj, allowedKeys, true);
+    resObj = filterObjectProperties(resObj, allowedKeys);
 
     return resObj;
 }
