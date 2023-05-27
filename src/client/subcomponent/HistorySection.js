@@ -1,8 +1,8 @@
 import React, { Component, useState, useEffect } from 'react';
 import _ from 'underscore';
-const classNames = require('classnames');
-const dateFormat = require('dateformat');
-import ReactDOM from 'react-dom';
+const clientUtil = require("../clientUtil");
+// const classNames = require('classnames');
+// import ReactDOM from 'react-dom';
 
 import Sender from '../Sender';
 
@@ -28,9 +28,8 @@ function HistorySection(props){
       return <div className="history-section">It is first time to read this book</div>;
   } else {
       items = history.map((e, ii) => {
-          // return <div key={e.time}>{dateFormat(e.time, "dddd, mmmm dS, yyyy, h:MM:ss TT") }</div>
           const key = e.time + "_" + ii;
-          return <div key={key}>{dateFormat(e.time, "yyyy-mm-dd HH:MM") }</div>
+          return <div key={key}>{clientUtil.dateFormat_v1(e.time) }</div>
       });
 
       if(items.length > 10){

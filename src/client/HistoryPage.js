@@ -11,7 +11,6 @@ import ErrorPage from './ErrorPage';
 import CenterSpinner from './subcomponent/CenterSpinner';
 const clientUtil = require("./clientUtil");
 const { getBaseName } = clientUtil;
-const dateFormat = require('dateformat');
 // const AdminUtil = require("./AdminUtil");
 import { GlobalContext } from './globalContext'
 const util = require("@common/util");
@@ -36,7 +35,7 @@ function renderHistory(history) {
     keys = _.sortBy(keys, e => -e);
 
     const historyDom = keys.map(key => {
-        const timeStr = dateFormat(new Date(parseInt(key)), "yyyy-mm-dd");
+        const timeStr = clientUtil.dateFormat_ymd(new Date(parseInt(key)));
         let items = groupByDay[key];
 
         items = _.sortBy(items, e => -e.time);
@@ -47,7 +46,7 @@ function renderHistory(history) {
                           clientUtil.getVideoPlayerLink(filePath) : 
                           clientUtil.getOneBookLink(filePath);
             const fn = getBaseName(filePath)||filePath;
-            const itemTimeStr = dateFormat(new Date(e.time), "yyyy-mm-dd HH:MM");
+            const itemTimeStr = clientUtil.dateFormat_v1(new Date(e.time));
             const tooltip = `${fn}\n${itemTimeStr}`
 
             const cn = classNames("icon", {

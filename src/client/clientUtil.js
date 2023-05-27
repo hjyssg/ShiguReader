@@ -374,29 +374,31 @@ const getScoreFromCount = module.exports.getScoreFromCount = (countObj) => {
 
     function f2(x){
         // 用Math.floor进行离散区间处理
-        return Math.floor(x/3) *3;
+        // +1 避免无穷
+        return Math.floor(x/3) *3 + 1;
     }
 
+    let result = 0;
     if(good_count == 0 && bad_count == 0){
         // 啥都没有，纯中性
-        return 0;
-    }
-
-    if(good_count == 0 && bad_count > 0){
+        result = 0;
+    }else if(good_count == 0 && bad_count > 0){
         // 区间是负数
         // 虽然bad，但数量多的话，给分高点。 
         // 虽然不喜欢，到时下载得多。还是有点好感的概念
-        return -1/f2(bad_count);
+        result = -1/f2(bad_count);
+    }else {
+        const g = good_count;
+        const b = f2(bad_count);
+        // 既看比例，
+        const ratio = g / (g + b);
+        // 也看绝对值
+        const absV = f1(g);
+        // 最终区间落在0~2
+        result = ratio +  absV;
     }
     
-    const g = good_count;
-    const b = f2(bad_count);
-    // 既看比例，
-    const ratio = g / (g + b);
-    // 也看绝对值
-    const absV = f1(g);
-    // 最终区间落在0~2
-    return ratio +  absV;
+    return Number(result.toFixed(3));
 }   
 
 
@@ -410,3 +412,24 @@ const getScoreFromCount = module.exports.getScoreFromCount = (countObj) => {
 
 //     console.log(ii, "   ", temp);
 // }
+
+
+const dateFormat = require('dateformat');
+/**
+ * yyyy-mm-dd HH:MM
+ */
+module.exports.dateFormat_v1 = (timeStamp) => {
+    if(!timeStamp){
+        return "-"
+    }else{
+        return dateFormat(timeStamp, "yyyy-mm-dd HH:MM");
+    }
+}
+
+module.exports.dateFormat_ymd = (timeStamp) => {
+    if(!timeStamp){
+        return "-"
+    }else{
+        return dateFormat(timeStamp, "yyyy-mm-dd");
+    }
+}

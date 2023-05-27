@@ -10,7 +10,6 @@ import Cookie from "js-cookie";
 import RadioButtonGroup from './subcomponent/RadioButtonGroup';
 const clientUtil = require("./clientUtil");
 // const { getBaseName } = clientUtil;
-// const dateFormat = require('dateformat');
 const AdminUtil = require("./AdminUtil");
 import { GlobalContext } from './globalContext'
 // const util = require("@common/util");

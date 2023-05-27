@@ -6,7 +6,6 @@ import PropTypes from 'prop-types';
 import LoadingImage from './LoadingImage';
 import Sender from './Sender';
 import { Link } from 'react-router-dom';
-const dateFormat = require('dateformat');
 
 const userConfig = require('@config/user-config');
 import ErrorPage from './ErrorPage';
@@ -37,7 +36,7 @@ import { GlobalContext } from './globalContext'
 const ClientConstant = require("./ClientConstant");
 const { BY_FILE_NUMBER,
     BY_TIME,
-    BY_READ_TIME,
+    BY_LAST_READ_TIME,
     BY_READ_COUNT,
     BY_FILE_SIZE,
     BY_AVG_PAGE_SIZE,
@@ -640,6 +639,18 @@ export default class ExplorerPage extends Component {
             return ap.localeCompare(bp);
         }
 
+
+        // 一律先时间排序
+        const onlyByMTime = this.getMode() === MODE_EXPLORER && !this.isLackInfoMode();
+        const config = {
+            fileInfos: this.allfileInfos,
+            ascend: true,
+            getBaseName,
+            onlyByMTime
+        }
+        sortUtil.sort_file_by_time(files, config);
+        // 下方的sort都是stable sort。
+
         if (sortOrder.includes(BY_RANDOM)) {
             files = _.shuffle(files);
         } else if (sortOrder === BY_FILENAME) {
@@ -647,16 +658,7 @@ export default class ExplorerPage extends Component {
                 return byFn(a, b);
             });
         }else if (sortOrder == BY_GOOD_SCORE){
-            //先时间排序。和正下方有点重复代码
-            const onlyByMTime = this.getMode() === MODE_EXPLORER && !this.isLackInfoMode();
-            const config = {
-                fileInfos: this.allfileInfos,
-                ascend: true,
-                getBaseName,
-                onlyByMTime
-            }
-            sortUtil.sort_file_by_time(files, config);
-            // 再按喜好排序
+            // 喜好排序
             files.sort((a, b)=> {
                 const s1 = this.getScore(a);
                 const s2 = this.getScore(b);
@@ -668,32 +670,15 @@ export default class ExplorerPage extends Component {
                 return dir;
             });
         } else if (sortOrder === BY_TIME) {
-            const onlyByMTime = this.getMode() === MODE_EXPLORER && !this.isLackInfoMode();
-            const config = {
-                fileInfos: this.allfileInfos,
-                ascend: true,
-                getBaseName,
-                onlyByMTime
-            }
-            sortUtil.sort_file_by_time(files, config);
-        } else if (sortOrder === BY_READ_TIME) {
-            const config = {
-                fileInfos: this.allfileInfos,
-                ascend: true,
-                getBaseName,
-                byReadTime: true,
-                fileNameToHistory: this.fileNameToHistory
-            }
-            sortUtil.sort_file_by_time(files, config);
+            // pass
+        } else if (sortOrder === BY_LAST_READ_TIME) {
+            files = _.sortBy(files, e => {
+                return this.getLastReadTime(e);
+            });
         } else if (sortOrder === BY_READ_COUNT) {
-            const config = {
-                fileInfos: this.allfileInfos,
-                ascend: true,
-                getBaseName,
-                byReadCount: true,
-                fileNameToHistory: this.fileNameToHistory
-            }
-            sortUtil.sort_file_by_time(files, config);
+            files = _.sortBy(files, e => {
+                return this.getReadCount(e);
+            });
         } else if (sortOrder === BY_FILE_SIZE) {
             files = _.sortBy(files, e => {
                 return this.getFileSize(e);
@@ -706,15 +691,6 @@ export default class ExplorerPage extends Component {
             files = _.sortBy(files, e => {
                 return this.getPageNum(e);
             });
-        }else{
-            const onlyByMTime = this.getMode() === MODE_EXPLORER && !this.isLackInfoMode();
-            const config = {
-                fileInfos: this.allfileInfos,
-                ascend: true,
-                getBaseName,
-                onlyByMTime
-            }
-            sortUtil.sort_file_by_time(files, config);
         }
 
         if (!isSortAsc) {
@@ -722,6 +698,31 @@ export default class ExplorerPage extends Component {
         }
 
         return files;
+    }
+
+    getMtime(fp){
+        const mTime = this.fileInfos && this.fileInfos[fp] && parseInt(this.fileInfos[fp].mtimeMs);
+        return mTime || 0;
+    }
+
+    /** get tag time */
+    getTTime(fp){
+        const fn = getBaseName(fp);
+        let tTime = nameParser.getDateFromParse(fn);
+        tTime = tTime && tTime.getTime();
+        return tTime || 0;
+    }
+
+    getReadCount(fp){
+        const fn = getBaseName(fp);
+        const count = this.fileNameToHistory && this.fileNameToHistory[fn] && parseInt(this.fileNameToHistory[fn].count);
+        return count || 0;
+    }
+
+    getLastReadTime(fp){
+        const fn = getBaseName(fp);
+        const rTime = this.fileNameToHistory && this.fileNameToHistory[fn] && parseInt(this.fileNameToHistory[fn].time);
+        return rTime || 0;
     }
 
     getOneLineListItem(icon, fileName, filePath, title) {
@@ -737,13 +738,15 @@ export default class ExplorerPage extends Component {
         let rows = [];
         // rows.push([fp]);
 
-        if(this.allfileInfos[fp] && this.allfileInfos[fp].mtimeMs){
-            const dateStr = dateFormat(this.allfileInfos[fp].mtimeMs, "yyyy-mm-dd")
-            rows.push(["time", dateStr]);
-        }
-
+        rows.push(["mtime", clientUtil.dateFormat_v1(this.getMtime(fp))]);
+        rows.push(["tag time", clientUtil.dateFormat_v1(this.getTTime(fp))]);
+        rows.push(["     "]);
         rows.push(["good count", this.getAuthorCount(fp).good_count]);
         rows.push(["not so good count", this.getAuthorCount(fp).bad_count]);
+        rows.push(["score", this.getScore(fp)]);
+        rows.push(["     "]);
+        rows.push(["last read time", clientUtil.dateFormat_v1(this.getLastReadTime(fp))]);
+        rows.push(["read count", this.getReadCount(fp)]);
 
         return rows.map(row => {
             return row.join(": ");

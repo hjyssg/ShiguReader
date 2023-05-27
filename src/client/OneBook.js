@@ -1,7 +1,6 @@
 import React, { Component, useState, useEffect } from 'react';
 import _ from 'underscore';
 const classNames = require('classnames');
-const dateFormat = require('dateformat');
 import ReactDOM from 'react-dom';
 
 import { Link } from 'react-router-dom';
@@ -489,7 +488,7 @@ export default class OneBook extends Component {
 
       const size = filesizeUitl(fileStat.size);
       const avg = filesizeUitl(avgFileSize);
-      const mTime = dateFormat(new Date(fileStat.mtimeMs), "isoDate");
+      const mTime = clientUtil.dateFormat_ymd(new Date(fileStat.mtimeMs));
       const title = getBaseName(imageFiles[index]);
       const dim = "";  //change by dom operation
       const titles = [

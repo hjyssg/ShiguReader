@@ -8,7 +8,6 @@ const { getDir, getBaseName, filesizeUitl } = clientUtil;
 const namePicker = require("../human-name-picker");
 import { Link } from 'react-router-dom';
 import Sender from './Sender';
-const dateFormat = require('dateformat');
 const queryString = require('query-string');
 const Cookie = require("js-cookie");
 import DPlayer from "react-dplayer";
@@ -140,7 +139,7 @@ export default class VideoPlayer extends Component {
     </div>);
 
     const fileSize = stat && filesizeUitl(stat.size);
-    const mTime = stat && dateFormat(new Date(stat.mtimeMs), "isoDate");
+    const mTime = stat && clientUtil.dateFormat_ymd(new Date(stat.mtimeMs));
 
     const videoFileInfo = (stat && <div className="video-file-info-row">
       <span>{fileSize}</span>
