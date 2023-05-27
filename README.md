@@ -2,8 +2,7 @@
 <h1 align="center">ShiguReader</h1>
 
 [<img src="https://img.shields.io/github/v/release/hjyssg/ShiguReader?label=latest%20release">](https://github.com/hjyssg/ShiguReader/releases)
-[<img src="https://img.shields.io/docker/v/liwufan/shigureader?label=docker%20version">](https://hub.docker.com/r/liwufan/shigureader)
-[<img src="https://img.shields.io/docker/pulls/liwufan/shigureader.svg">](https://hub.docker.com/r/liwufan/shigureader)
+
 
 [English Version](https://github.com/hjyssg/ShiguReader/blob/Dev_Frontend/README_English.md)
 
