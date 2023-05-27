@@ -55,6 +55,7 @@ module.exports.init = async ()=> {
                             type VARCHAR(25),
                             subtype VARCHAR(25), 
                             isCompress BOOL,
+                            isFolder BOOL,
                             PRIMARY KEY (filePath, tag, type) 
                         )`);
     await sqlDb.runSync(`CREATE TABLE scan_path_table (filePath TEXT NOT NULL, type VARCHAR(25))`);
@@ -107,13 +108,18 @@ const updateFileDb = function (filePath, statObj) {
         statObj = {};
     }
 
-    stmt_tag_insert = stmt_tag_insert || sqlDb.prepare('INSERT OR REPLACE INTO tag_table(filePath, tag, type, subtype, isCompress ) values(?, ?, ?, ?, ?)');
-    stmt_file_insert = stmt_file_insert || sqlDb.prepare(`INSERT OR REPLACE INTO file_table(filePath, dirPath, fileName, sTime, 
-                isDisplayableInExplorer, isDisplayableInOnebook, 
-                isCompress, isVideo, isFolder ) values(?, ?, ?, ?, ?, ?, ?, ?, ?)`);
+    stmt_tag_insert = stmt_tag_insert || sqlDb.prepare(`
+            INSERT OR REPLACE INTO tag_table (filePath, tag, type, subtype, isCompress, isFolder )
+            values (?, ?, ?, ?, ?, ?)`);
+
+    stmt_file_insert = stmt_file_insert || sqlDb.prepare(`
+        INSERT OR REPLACE INTO file_table (filePath, dirPath, fileName, sTime, 
+        isDisplayableInExplorer, isDisplayableInOnebook, 
+        isCompress, isVideo, isFolder ) values(?, ?, ?, ?, ?, ?, ?, ?, ?)`);
 
     const isCompressFile = isCompress(fileName);
     const isVideoFile = isVideo(fileName);
+    const isFolder = statObj.isDir;
     const isDisplayableInExplorer = util.isDisplayableInExplorer(fileName);
     const isDisplayableInOnebook = util.isDisplayableInOnebook(fileName);
     //set up tags
@@ -132,16 +138,16 @@ const updateFileDb = function (filePath, statObj) {
     tags.forEach(t => {
         if (!authors.includes(t) && group !== t) {
             if (temp.comiket === t) {
-                tags_rows.push([filePath, t, "tag", "comiket", isCompressFile]);
+                tags_rows.push([filePath, t, "tag", "comiket", isCompressFile, isFolder]);
             } else {
-                tags_rows.push([filePath, t, "tag", "parody", isCompressFile]);
+                tags_rows.push([filePath, t, "tag", "parody", isCompressFile, isFolder]);
             }
         }
     })
     authors.forEach(t => {
-        tags_rows.push([filePath, t, "author", "", isCompressFile]);
+        tags_rows.push([filePath, t, "author", "", isCompressFile, isFolder]);
     })
-    tags_rows.push([filePath, group, "group", "", isCompressFile]);
+    tags_rows.push([filePath, group, "group", "", isCompressFile, isFolder]);
     tags_rows = tags_rows.filter(e => e[1] && !e[1].match(util.useless_tag_regex))
     // do batch insertion
     if(tags_rows.length > 0){
@@ -159,7 +165,7 @@ const updateFileDb = function (filePath, statObj) {
     const dirPath = path.dirname(filePath);
     // https://www.sqlitetutorial.net/sqlite-nodejs/insert/
     stmt_file_insert.run(filePath, dirPath, fileName, fileTimeA,
-        isDisplayableInExplorer, isDisplayableInOnebook, isCompressFile, isVideoFile, statObj.isDir);
+        isDisplayableInExplorer, isDisplayableInOnebook, isCompressFile, isVideoFile, isFolder);
 }
 
 module.exports.updateStatToDb = async function (filePath, stat) {
