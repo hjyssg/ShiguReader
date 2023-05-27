@@ -60,7 +60,8 @@ module.exports.init = async ()=> {
     await sqlDb.runSync(`CREATE TABLE scan_path_table (filePath TEXT NOT NULL, type VARCHAR(25))`);
 
     await sqlDb.runSync(` CREATE VIEW zip_view  AS SELECT * FROM file_table WHERE isCompress = true `)
-    await sqlDb.runSync(` CREATE VIEW author_view  AS SELECT * FROM tag_table WHERE type='author' `)
+    await sqlDb.runSync(` CREATE VIEW author_view  AS SELECT * FROM tag_table 
+                            WHERE type='author' AND (isCompress = true OR isFolder = true) `)
     await sqlDb.runSync(` CREATE VIEW tag_view  AS SELECT * FROM tag_table WHERE type='tag'  `)
 
 }
