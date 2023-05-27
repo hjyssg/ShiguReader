@@ -157,23 +157,20 @@ export default class TagPage extends Component {
     return result;
   }
 
-  getTooltipStr(tag){
+  getTooltipStr(tag, index){
+    let rows = [];
+    rows.push([tag]);
+    rows.push(["number", index]);
+    
     if(this.isAuthorMode()){
-      let rows = [];
-      rows.push([tag]);
-  
       rows.push(["good count", this.getAuthorCount(tag).good_count]);
       rows.push(["not so good count", this.getAuthorCount(tag).bad_count]);
       rows.push(["score", this.getScore(tag)]);
-
-      // TODO 获得rank
-  
-      return rows.map(row => {
-          return row.join(": ");
-      }).join("\n")
-    }else{
-      return tag;
     }
+
+    return rows.map(row => {
+      return row.join(": ");
+    }).join("\n")
 }
 
   componentDidMount() {
@@ -311,9 +308,10 @@ export default class TagPage extends Component {
       }
     }
 
-    items = items.slice((pageIndex - 1) * this.state.perPageItemNum, pageIndex * this.state.perPageItemNum);
+    const begIndex = (pageIndex - 1) * this.state.perPageItemNum;
+    items = items.slice(begIndex, pageIndex * this.state.perPageItemNum);
 
-    const tagItems = items.map((item) => {
+    const tagItems = items.map((item, ii) => {
       const tag = item.tag;
       const itemText = `${tag} (${item.count})`;
       const url = this.isAuthorMode() ? clientUtil.getAuthorLink(tag) : clientUtil.getTagLink(tag);
@@ -324,7 +322,7 @@ export default class TagPage extends Component {
           <Link target="_blank" className="tag-page-list-item-link" to={url} key={tag}>
             <FileCellTitle str={itemText} />
             <LoadingImage isThumbnail
-              title={this.getTooltipStr(tag)}
+              title={this.getTooltipStr(tag, begIndex+ii)}
               className="tag-page-thumbnail" fileName={tag}
               mode={this.props.mode}
               url={thumbnailUrl} />
