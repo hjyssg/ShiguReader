@@ -709,7 +709,7 @@ async function decorateResWithMeta(resObj) {
 function checkOneBookRes(resObj){
     const allowedKeys = ["zipInfo", "path", "stat", "imageFiles", "musicFiles", "videoFiles", "mecab_tokens", "outputPath"];
     checkKeys(resObj, allowedKeys);
-    resObj = filterObjectProperties(resObj, allowedKeys, true);
+    resObj = filterObjectProperties(resObj, allowedKeys, false);
     return resObj;
 }
 
@@ -718,7 +718,7 @@ function checkKeys(obj, keys) {
     const objKeys = Object.keys(obj);
     for (let i = 0; i < keys.length; i++) {
       if (!objKeys.includes(keys[i])) {
-        console.warn("[checkKeys]", obj, keys[i]);
+        console.warn("[checkKeys]", keys[i]);
       }
     }
 }
@@ -743,6 +743,8 @@ serverUtil.common.decorateResWithMeta = decorateResWithMeta
 serverUtil.common.getThumbnailsForZip = getThumbnailsForZip;
 serverUtil.common.getStatAndUpdateDB = getStatAndUpdateDB;
 serverUtil.common.isAlreadyScan = isAlreadyScan;
+serverUtil.common.checkOneBookRes = checkOneBookRes;
+
 
 
 const staticFileRouter = (req, res, next) => {
@@ -1203,7 +1205,7 @@ app.post('/api/extract', asyncWrapper(async (req, res) => {
 
         let result = { imageFiles: tempFiles, musicFiles, videoFiles, path, outputPath, stat, zipInfo, mecab_tokens };
         extract_result_cache[filePath] = result;
-        checkOneBookRes(result);
+        result = checkOneBookRes(result);
         res.send(result);
 
         historyDb.addOneRecord(filePath);
