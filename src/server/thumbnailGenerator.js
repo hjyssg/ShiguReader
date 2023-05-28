@@ -29,7 +29,7 @@ async function thumbnailGenerator(thumbnailFolderPath, imgFolderPath, imgFileNam
             }
             
             if (global.sharp) {
-                await global.sharp(inputFilePath).resize(280, 354).toFile(tempOutputPath);
+                await global.sharp(inputFilePath).resize({ width:250 }).toFile(tempOutputPath);
                 outputFilePath = tempOutputPath;
             }else  if (global._has_magick_) {
                 //https://imagemagick.org/Usage/resize/#shrink
