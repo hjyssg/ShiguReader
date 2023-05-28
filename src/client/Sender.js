@@ -65,4 +65,13 @@ Sender.post = async function (api, body, callback) {
     callback(res);
 };
 
+//server will return json
+Sender.get = async function (api,  callback) {
+    if (!callback) {
+        throw "no callback function"
+    }
+    const res = await getWithPromise(api);
+    callback(res);
+};
+
 export default Sender;

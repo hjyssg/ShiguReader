@@ -28,6 +28,7 @@ module.exports = {
 
 module.exports.TAG_SORT_OPTIONS = [
     BY_FILE_NUMBER,
+    BY_GOOD_SCORE,
     BY_TAG_NAME,
     BY_RANDOM
 ];

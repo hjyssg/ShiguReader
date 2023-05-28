@@ -100,10 +100,11 @@ export default class TagPage extends Component {
   }
 
   async requestAuthors(){
-    let res = await Sender.postWithPromise('/api/getGoodAuthorNames');
+    let res = await Sender.getWithPromise('/api/getGoodAuthorNames');
     if (!res.isFailed()) {
         this.setState({
-            authorInfo: res.json.authorInfo
+            authorInfo: res.json.authorInfo,
+            tagInfo: res.json.tagInfo
         })
     }
 
@@ -133,37 +134,25 @@ export default class TagPage extends Component {
     }
   }
 
-  // 有点重复，tagpage和explorepage
   getAuthorCount(author) {
-    this.author2count = this.author2count || {};
-    if(this.author2count[author]){
-        return this.author2count[author];
-    }
-    const { authorInfo } = this.state;
-    let result = { };
-    if (author && authorInfo) {
-        for(let ii = 0; ii < authorInfo.length; ii++){
-            const e = authorInfo[ii];
-            if(e.tag === author){
-                result = e || result;
-                this.author2count[author] = result;
-                break;
-            }
-        }
-    }
-    return result;
+    return clientUtil.getAuthorCount(this.state.authorInfo, author) || {};
+  }
+
+  getTagCount(tag) {
+    return clientUtil.getAuthorCount(this.state.tagInfo, tag) || {};
   }
 
   getTooltipStr(tag, rank){
     let rows = [];
-    rows.push([tag]);
-    rows.push(["rank", rank]);
-    
+    // rows.push([tag]);
+    rows.push(["     "]);
     if(this.isAuthorMode()){
-      rows.push(["good count", this.getAuthorCount(tag).good_count]);
-      rows.push(["bad count", this.getAuthorCount(tag).bad_count]);
-      rows.push(["score", this.getScore(tag)]);
+      rows.push(...clientUtil.convertSimpleObj2tooltipRow(this.getAuthorCount(tag)));
+      // rows.push(["score", this.getScore(tag)]);
+    }else{
+      rows.push(...clientUtil.convertSimpleObj2tooltipRow(this.getTagCount(tag)));
     }
+    rows.push(["rank", rank]);
 
     return rows.map(row => {
       return row.join(": ");
@@ -280,8 +269,12 @@ export default class TagPage extends Component {
     return items;
   }
 
-  getScore(author) {
-    return clientUtil.getScoreFromCount(this.getAuthorCount(author));
+  getScore(tag) {
+    if(this.isAuthorMode()){
+      return this.getAuthorCount(tag).score || 0;
+    }else{
+      return this.getTagCount(tag).score || 0;
+    }
   }
 
   getItems() {

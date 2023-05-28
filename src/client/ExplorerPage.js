@@ -55,7 +55,7 @@ const GOOD_STANDARD = 2;
 
 const FILTER_GOOD_AUTHOR = "FILTER_GOOD_AUTHOR";
 const FILTER_OVERSIZE = "FILTER_OVERSIZE";
-const FILTER_FIRST_TIME = "FILTER_FIRST_TIME";
+const FILTER_FIRST_TIME_AUTHOR = "FILTER_FIRST_TIME_AUTHOR";
 const FILTER_HAS_MUSIC = "FILTER_HAS_MUSIC";
 const FILTER_HAS_VIDEO = "FILTER_HAS_VIDEO";
 const FILTER_IMG_FOLDER = "FILTER_IMG_FOLDER";
@@ -382,10 +382,11 @@ export default class ExplorerPage extends Component {
                 }
             });
 
-            Sender.post('/api/getGoodAuthorNames', {}, res => {
+            Sender.get('/api/getGoodAuthorNames', res => {
                 if (!res.isFailed()) {
                     this.setState({
-                        authorInfo: res.json.authorInfo
+                        authorInfo: res.json.authorInfo,
+                        tagInfo: res.json.tagInfo
                     })
                 }
             });
@@ -499,41 +500,6 @@ export default class ExplorerPage extends Component {
         return +(this.zipInfo[fp] && this.zipInfo[fp].videoNum) || 0;
     }
     
-    
-    getScore(fp) {
-        let score = clientUtil.getScoreFromCount(this.getAuthorCount(fp));
-        // console.log(fp)
-        const { good_folder_root, not_good_folder_root } = this.context;
-        if(good_folder_root && fp.includes(good_folder_root)){
-            score += 1;
-        }else if(not_good_folder_root && fp.includes(not_good_folder_root)){
-            score -= 1;
-        }
-        return score;
-    }
-
-    // 有点重复，tagpage和explorepage
-    getAuthorCount(fp) {
-        this.author2count = this.author2count || {};
-        if(this.author2count[fp]){
-            return this.author2count[fp];
-        }
-        const temp = parse(fp);
-        const { authorInfo } = this.state;
-        let result = { };
-        if (temp && temp.author && authorInfo) {
-            for(let ii = 0; ii < authorInfo.length; ii++){
-                const e = authorInfo[ii];
-                if(e.tag === temp.author){
-                    result = e || result;
-                    this.author2count[fp] = result;
-                    break;
-                }
-            }
-        }
-        return result;
-    }
-
     getFilteredFiles() {
         let files = [...this.compressFiles, ...(_.keys(this.imgFolderInfo))];
 
@@ -541,17 +507,17 @@ export default class ExplorerPage extends Component {
 
         if (this.isOn(FILTER_GOOD_AUTHOR) && authorInfo) {
             files = files.filter(e => {
-                const count = this.getAuthorCount(e);
+                const count = this.getAuthorCountForFP(e);
                 if (count && count.good_count > GOOD_STANDARD) {
                     return true;
                 }
             })
         }
 
-        if (this.isOn(FILTER_FIRST_TIME) && authorInfo) {
+        if (this.isOn(FILTER_FIRST_TIME_AUTHOR) && authorInfo) {
             files = files.filter(e => {
-                const count = this.getAuthorCount(e);
-                if (count && (count.good_count + count.bad_count) === 1) {
+                const count = this.getAuthorCountForFP(e);
+                if (count && (count.total_count) === 1) {
                     return true;
                 }
             })
@@ -737,6 +703,38 @@ export default class ExplorerPage extends Component {
                 <span className="explorer-one-line-list-item-text">{fileName}</span>
             </li>);
     }
+
+    getScore(fp) {
+        let score = this.getAuthorCountForFP(fp).score || 0;
+        // console.log(fp)
+        const { good_folder_root, not_good_folder_root } = this.context;
+        if(good_folder_root && fp.includes(good_folder_root)){
+            score += 1;
+        }else if(not_good_folder_root && fp.includes(not_good_folder_root)){
+            score -= 1;
+        }
+        return score;
+    }
+
+    getAuthorCountForFP(fp) {
+        const temp = parse(fp);
+        if(temp && temp.author){
+            return clientUtil.getAuthorCount(this.state.authorInfo, temp.author) || {};
+        }else{
+            return {};
+        }
+    }
+
+    // getTagCountForFP(fp) {
+    //     const temp = parse(fp);
+    //     if(temp && temp.tags){
+    //         return temp.tags.map(tag => {
+    //             return clientUtil.getAuthorCount(this.state.tagInfo, tag) || [];
+    //         });
+    //     }else{
+    //         return [];
+    //     }
+    // }
     
 
     getTooltipStr(fp){
@@ -745,10 +743,17 @@ export default class ExplorerPage extends Component {
 
         rows.push(["mtime", clientUtil.dateFormat_v1(this.getMtime(fp))]);
         rows.push(["tag time", clientUtil.dateFormat_v1(this.getTTime(fp))]);
+
         rows.push(["     "]);
-        rows.push(["good count", this.getAuthorCount(fp).good_count]);
-        rows.push(["bad count", this.getAuthorCount(fp).bad_count]);
-        rows.push(["score", this.getScore(fp)]);
+        rows.push(...clientUtil.convertSimpleObj2tooltipRow(this.getAuthorCountForFP(fp)));
+        // rows.push(["score", this.getScore(fp)]);
+
+        // tag score不精确
+        // this.getTagCountForFP(fp).forEach(ee => {
+        //     rows.push(["     "]);
+        //     rows.push(...clientUtil.convertSimpleObj2tooltipRow(ee));
+        // })
+
         rows.push(["     "]);
         rows.push(["last read time", clientUtil.dateFormat_v1(this.getLastReadTime(fp))]);
         rows.push(["read count", this.getReadCount(fp)]);
@@ -1478,8 +1483,8 @@ export default class ExplorerPage extends Component {
             {st2}
         </Checkbox>);
 
-        const st3 = `First Time`;
-        let checkbox3 = (<Checkbox onChange={this.toggleFilter.bind(this, FILTER_FIRST_TIME)} checked={this.isOn(FILTER_FIRST_TIME)}>
+        const st3 = `First Time Author`;
+        let checkbox3 = (<Checkbox onChange={this.toggleFilter.bind(this, FILTER_FIRST_TIME_AUTHOR)} checked={this.isOn(FILTER_FIRST_TIME_AUTHOR)}>
             {st3}
         </Checkbox>);
 
@@ -1499,8 +1504,8 @@ export default class ExplorerPage extends Component {
         </Checkbox>);
         return (
             <div className="aji-checkbox-container container">
-                {checkbox}
-                {checkbox2}
+                {/* {checkbox} */}
+                {/* {checkbox2} */}
                 {checkbox3}
                 {checkbox4}
                 {checkbox45}

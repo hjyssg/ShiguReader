@@ -357,69 +357,7 @@ module.exports.scrollPageByDistance = (distance) => {
         window.scrollBy(0, distance);
 };
 
-/** 计算对特定作者的喜欢程度的分值 */
-const getScoreFromCount = module.exports.getScoreFromCount = (countObj) => {
-    let { good_count=0, bad_count=0, total_count=0 } =  countObj;
-    console.assert(good_count >= 0 && bad_count >= 0);
-    console.assert(total_count >= 0 && total_count >= (good_count + bad_count));
 
-
-    // 写一个数学函数，当x逼近正无穷，y逼近1。要使保证x从0到100的范围内，y尽量均匀分布。超过100开始逼近1
-    function f1(x) {
-        const a = Math.log(101/100);
-        if (x <= 100) {
-            return 1 - Math.exp(-a * x);
-        } else {
-            return 1;
-        }
-    }
-
-    function f2(x){
-        // 用Math.floor进行离散区间处理
-        // +1 避免无穷
-        return Math.floor(x/3) *3 + 1;
-    }
-
-    let result = 0;
-    if(good_count == 0 && bad_count == 0){
-        // 啥都没有，纯中性
-        result = 0;
-    }else if(good_count == 0 && bad_count > 0){
-        // 区间是负数
-        // 虽然bad，但数量多的话，给分高点。 
-        // 虽然不喜欢，到时下载得多。还是有点好感的概念
-        result = -1/f2(total_count);
-    }else {
-        const g = good_count;
-        const b = f2(bad_count);
-        // 既看比例，
-        const ratio = g / (g + b);
-        // 也看绝对值
-        const absV1 = f1(g);
-        const absV2 = f1(total_count - g - b);
-        // 最终区间落在0~3
-        result = ratio +  absV1 + absV2;
-    }
-
-    // // 写一个js。x范围是-1到3，映射到y从0到100
-    // function mapRange(x, inMin, inMax, outMin, outMax) {
-    //     return (x - inMin) * (outMax - outMin) / (inMax - inMin) + outMin;
-    // }
-    // result = mapRange(result, -1, 3, 0, 100);
-    return Number(result.toFixed(3));
-}   
-
-
-
-// 测试 getScoreFromCount()
-// for(let ii = 0; ii < 100; ii++){
-//     const temp =  getScoreFromCount({
-//         bad_count: 2,
-//         good_count: ii
-//     });
-
-//     console.log(ii, "   ", temp);
-// }
 
 
 const dateFormat = require('dateformat');
@@ -440,4 +378,42 @@ module.exports.dateFormat_ymd = (timeStamp) => {
     }else{
         return dateFormat(timeStamp, "yyyy-mm-dd");
     }
+}
+
+
+// todo 现在tag也用这个函数。麻烦了。
+const author2count  = {};
+/** 从arr寻找element，把结果存到缓存。 */
+module.exports.getAuthorCount = (authorInfo, author) => {
+    if(authorInfo && author){
+        if(author2count[author]){
+            return author2count[author];
+        }
+
+        let result;
+        for(let ii = 0; ii < authorInfo.length; ii++){
+            const e = authorInfo[ii];
+            if(e.tag === author){
+                result = e;
+                author2count[author] = result;
+                break;
+            }
+        }
+        return result;
+    }else{
+        return null;
+    }
+}
+
+
+
+module.exports.convertSimpleObj2tooltipRow = (obj) => {
+    let rows = [];
+    if(obj){
+        const keys = Object.keys(obj);
+        keys.forEach(kk => {
+            rows.push([kk, obj[kk]]);
+        });
+    }
+    return rows;
 }
