@@ -35,9 +35,10 @@ module.exports.init = async ()=> {
         PRAGMA journal_mode = OFF;
         PRAGMA synchronous = OFF; ` );
 
-    await sqlDb.runSync("DROP TABLE IF EXISTS file_table;");
-    await sqlDb.runSync("DROP TABLE IF EXISTS tag_table;");
-    await sqlDb.runSync("DROP TABLE IF EXISTS scan_path_table;");
+    await sqlDb.runSync(`
+        DROP TABLE IF EXISTS file_table;
+        DROP TABLE IF EXISTS tag_table;
+        DROP TABLE IF EXISTS scan_path_table;`);
 
     await sqlDb.runSync(`CREATE TABLE file_table (
                             filePath TEXT NOT NULL PRIMARY KEY, 
@@ -63,7 +64,8 @@ module.exports.init = async ()=> {
     await sqlDb.runSync(` CREATE VIEW zip_view  AS SELECT * FROM file_table WHERE isCompress = true `)
     await sqlDb.runSync(` CREATE VIEW author_view  AS SELECT * FROM tag_table 
                             WHERE type='author' AND (isCompress = true OR isFolder = true) `)
-    await sqlDb.runSync(` CREATE VIEW tag_view  AS SELECT * FROM tag_table WHERE type='tag'  `)
+    await sqlDb.runSync(` CREATE VIEW tag_view  AS SELECT * FROM tag_table 
+                            WHERE type='tag' AND (isCompress = true OR isFolder = true)  `)
 
 }
 

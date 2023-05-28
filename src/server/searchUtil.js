@@ -93,6 +93,7 @@ async function searchByText(text) {
     // console.log("---" + text)
     // https://www.sqlite.org/optoverview.html
     // console.time();
+    // 模糊搜索
     let sql = `SELECT * FROM file_table WHERE INSTR(LOWER(filePath), LOWER(?)) > 0`;
     let rows = await sqldb.allSync(sql, [text]);
     // console.timeEnd();
@@ -124,10 +125,16 @@ async function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
         if (at_text) {
             const sqldb = db.getSQLDB();
             //inner joiner then group by
+            // let sql = `SELECT a.* 
+            //             FROM file_table AS a INNER JOIN tag_table AS b 
+            //             ON a.filePath = b.filePath AND INSTR(LOWER(b.tag), LOWER(?)) > 0`;
+
+            // 严格匹配
+            const type = tag? "tag" : "author" ;
             let sql = `SELECT a.* 
-                        FROM file_table AS a INNER JOIN tag_table AS b 
-                        ON a.filePath = b.filePath AND INSTR(LOWER(b.tag), LOWER(?)) > 0`;
-            let rows = await sqldb.allSync(sql, [at_text]);
+                FROM file_table AS a INNER JOIN tag_table AS b 
+                ON a.filePath = b.filePath AND b.tag = ? AND b.type =?`;
+            let rows = await sqldb.allSync(sql, [at_text, type]);
             const tag_obj = splitRows(rows, at_text);
             zipResult = tag_obj.zipResult;
             dirResults = tag_obj.dirResults;
