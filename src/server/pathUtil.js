@@ -175,9 +175,9 @@ const filterNonExist = module.exports.filterNonExist = async (pathes, limit) => 
  * 算出项目相关的各种path
  */
 module.exports.filterPathConfig = async (path_config, skipScan) => {
-    let { good_folder_root, not_good_folder_root, scan_folder_pathes, quick_access_pathes, move_pathes } = path_config;
+    let { good_folder_root="", not_good_folder_root="", scan_folder_pathes=[], quick_access_pathes=[], move_pathes=[] } = path_config;
 
-    move_pathes = await filterNonExist(move_pathes||[]);
+    move_pathes = await filterNonExist(move_pathes);
 
     //add good folder
     const now = new Date();
@@ -202,7 +202,7 @@ module.exports.filterPathConfig = async (path_config, skipScan) => {
     }
 
     // scan path
-    let temp_scan_path = [].concat(scan_folder_pathes||[]);
+    let temp_scan_path = [].concat(scan_folder_pathes);
     temp_scan_path = temp_scan_path.concat(good_folder, good_folder_root, not_good_folder_root, not_good_folder);
 
     let scan_path = [];
@@ -221,8 +221,8 @@ module.exports.filterPathConfig = async (path_config, skipScan) => {
         quick_access_pathes = [...quick_access_pathes, downloadFolder];
         quick_access_pathes = _.uniq(quick_access_pathes);
     }
-    quick_access_pathes = await filterNonExist(quick_access_pathes||[]);
-    scan_path = await filterNonExist(scan_path||[]);
+    quick_access_pathes = await filterNonExist(quick_access_pathes);
+    scan_path = await filterNonExist(scan_path);
 
 
     good_folder_root = (good_folder_root?  path.resolve(good_folder_root) : "");
