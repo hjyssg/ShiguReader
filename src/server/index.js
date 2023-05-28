@@ -650,7 +650,7 @@ function isAlreadyScan(dir) {
     });
 }
 /**
- * 给res添加信息。比如thumbnail，zipinfo。不使用sql是因为有部分filePath没存在数据库
+ * 给lsdir search res添加信息。比如thumbnail，zipinfo。不使用sql是因为有部分filePath没存在数据库
  */
 async function decorateResWithMeta(resObj) {
     const { fileInfos, dirs, imgFolders } = resObj;
@@ -699,10 +699,30 @@ async function decorateResWithMeta(resObj) {
     const allowedKeys = [ "dirs", "mode", "tag", "path", "author", "fileInfos", 
                           "thumbnails", "zipInfo", "imgFolderInfo"];
     // resObj = filterObjectProperties(resObj, allowedKeys, true);
+    // checkKeys(resObj, allowedKeys);
     resObj = filterObjectProperties(resObj, allowedKeys);
 
     return resObj;
 }
+
+/** 检查回传给onebook的res */
+function checkOneBookRes(resObj){
+    const allowedKeys = ["zipInfo", "path", "stat", "imageFiles", "musicFiles", "videoFiles", "mecab_tokens", "outputPath"];
+    checkKeys(resObj, allowedKeys);
+    resObj = filterObjectProperties(resObj, allowedKeys, true);
+    return resObj;
+}
+
+/** 开发用。检查的obj是不是都有这些key */
+function checkKeys(obj, keys) {
+    const objKeys = Object.keys(obj);
+    for (let i = 0; i < keys.length; i++) {
+      if (!objKeys.includes(keys[i])) {
+        console.warn("[checkKeys]", obj, keys[i]);
+      }
+    }
+}
+  
 
 //写一个js函数，根据一个key list，只保留object需要的property
 function filterObjectProperties(obj, keysToKeep, needWarn) {
@@ -1183,6 +1203,7 @@ app.post('/api/extract', asyncWrapper(async (req, res) => {
 
         let result = { imageFiles: tempFiles, musicFiles, videoFiles, path, outputPath, stat, zipInfo, mecab_tokens };
         extract_result_cache[filePath] = result;
+        checkOneBookRes(result);
         res.send(result);
 
         historyDb.addOneRecord(filePath);

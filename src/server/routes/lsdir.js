@@ -39,7 +39,8 @@ router.post('/api/lsDir', serverUtil.asyncWrapper(async (req, res) => {
     dir = path.resolve(dir);
 
     if (!isAlreadyScan(dir)) {
-        const result = await listNoScanDir(dir, res);
+        let result = await listNoScanDir(dir, res);
+        result = await decorateResWithMeta(result);
         historyDb.addOneLsDirRecord(dir);
         res.send(result);
         return;
@@ -197,12 +198,12 @@ async function listNoScanDir(filePath, res, isRecussive) {
         subFpArr = subFnArr.map(e => path.resolve(filePath, e));
     }
 
-    // const {
-    //     imageFiles,
-    //     musicFiles,
-    //     videoFiles,
-    //     compressFiles
-    // } = fileIntoCategory(subFpArr);
+    const {
+        imageFiles,
+        musicFiles,
+        videoFiles,
+        compressFiles
+    } = fileIntoCategory(subFpArr);
     const dirs = subFpArr.filter(e => {
         const isFolder = pathUtil.estimateIfFolder(e);
         return isFolder;
@@ -222,12 +223,12 @@ async function listNoScanDir(filePath, res, isRecussive) {
         imgFolders: {},
         fileInfos,
 
-        // imageFiles,
-        // musicFiles,
-        // videoFiles,
-        // compressFiles,
+        imageFiles,
+        musicFiles,
+        videoFiles,
+        compressFiles,
     };
-    result = await decorateResWithMeta(result)
+    
     return result;
 }
 
