@@ -196,8 +196,10 @@ const getScoreFromCount = module.exports.getScoreFromCount = (countObj, goodDump
         if (x <= ceil) {
             return 1 - Math.exp(-a * x);
         } else {
+            //阻尼过强，会导致一直垃圾小tag因为比例排前
+            //太弱，又没啥效果。
             const above = (x - ceil);
-            return 1 + f1(above, ceil * 100);
+            return 1 + f1(above, ceil + 5000);
         }
     }
 
