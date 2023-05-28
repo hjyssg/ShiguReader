@@ -9,6 +9,11 @@ const db = require("../models/db");
 const serverUtil = require("../serverUtil");
 // const memorycache = require('memory-cache');
 
+function _addCol(rows){
+    rows.forEach(row => {
+        row.score = serverUtil.getScoreFromCount(row);
+    });
+}
 
 async function getGoodAndOtherSet() {
     // let beg = (new Date).getTime();
@@ -29,9 +34,7 @@ async function getGoodAndOtherSet() {
                 COUNT(filePath) AS total_count
                 FROM author_view GROUP BY tag`;
         authorInfo = await sqldb.allSync(sql, [global.good_folder_root, global.not_good_folder_root]);
-        authorInfo.forEach(row => {
-            row.score = serverUtil.getScoreFromCount(row);
-        });
+        _addCol(authorInfo);
 
         sql = `SELECT tag, 
         COUNT(CASE WHEN INSTR(filePath, ?) = 1 THEN 1 END) AS good_count,
@@ -39,9 +42,7 @@ async function getGoodAndOtherSet() {
         COUNT(filePath) AS total_count
         FROM tag_view GROUP BY tag`;
         tagInfo = await sqldb.allSync(sql, [global.good_folder_root, global.not_good_folder_root]);
-        tagInfo.forEach(row => {
-            row.score = serverUtil.getScoreFromCount(row);
-        });
+        _addCol(tagInfo);
     }
 
     // let end = (new Date).getTime();
