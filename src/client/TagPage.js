@@ -214,11 +214,14 @@ export default class TagPage extends Component {
     let items = this.getItems() || [];
 
 
+    // 一律先按file count来
+    items = _.sortBy(items, item => item.count);
+
     //sort
     if (sortOrder.includes(BY_RANDOM)) {
       items = _.shuffle(items);
     } else if (sortOrder === BY_FILE_NUMBER) {
-      items = _.sortBy(items, item => item.count);
+      // nothing
     } else if (sortOrder === BY_TAG_NAME) {
       items.sort((a, b) => {
         return a.tag.localeCompare(b.tag);
