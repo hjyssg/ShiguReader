@@ -500,17 +500,25 @@ export default class ExplorerPage extends Component {
     }
     
     
-    getScore(author) {
-        return clientUtil.getScoreFromCount(this.getAuthorCount(author));
+    getScore(fp) {
+        let score = clientUtil.getScoreFromCount(this.getAuthorCount(fp));
+        // console.log(fp)
+        const { good_folder_root, not_good_folder_root } = this.context;
+        if(good_folder_root && fp.includes(good_folder_root)){
+            score += 1;
+        }else if(not_good_folder_root && fp.includes(not_good_folder_root)){
+            score -= 1;
+        }
+        return score;
     }
 
     // 有点重复，tagpage和explorepage
-    getAuthorCount(fn) {
+    getAuthorCount(fp) {
         this.author2count = this.author2count || {};
-        if(this.author2count[fn]){
-            return this.author2count[fn];
+        if(this.author2count[fp]){
+            return this.author2count[fp];
         }
-        const temp = parse(fn);
+        const temp = parse(fp);
         const { authorInfo } = this.state;
         let result = { };
         if (temp && temp.author && authorInfo) {
@@ -518,7 +526,7 @@ export default class ExplorerPage extends Component {
                 const e = authorInfo[ii];
                 if(e.tag === temp.author){
                     result = e || result;
-                    this.author2count[fn] = result;
+                    this.author2count[fp] = result;
                     break;
                 }
             }
@@ -733,7 +741,7 @@ export default class ExplorerPage extends Component {
 
     getTooltipStr(fp){
         let rows = [];
-        // rows.push([fp]);
+        rows.push([fp]);
 
         rows.push(["mtime", clientUtil.dateFormat_v1(this.getMtime(fp))]);
         rows.push(["tag time", clientUtil.dateFormat_v1(this.getTTime(fp))]);
