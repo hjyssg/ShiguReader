@@ -217,4 +217,12 @@ a {
 .history-section {
   margin-top: 20px;
   color: $font_color_white_one;
+
+  .history-ellipsis {
+    cursor: pointer;
+    font-size: 1.5rem;
+    &:hover {
+      @include third_hover_effect;
+    }
+  }
 }

@@ -10,6 +10,8 @@ import Sender from '../Sender';
 function HistorySection(props){
   const {filePath} = props;
   const [history, setHistory] = useState([]);
+  const [collapse, setCollapse] = useState(true);
+
 
   useEffect(() => {
     async function fetchData() {
@@ -32,8 +34,8 @@ function HistorySection(props){
           return <div key={key}>{clientUtil.dateFormat_v1(e.time) }</div>
       });
 
-      if(items.length > 10){
-        const middle = (<div key="ellipsis"> ... </div>);
+      if(items.length > 10 && collapse){
+        const middle = (<div className='history-ellipsis fa fa-ellipsis-h' key="ellipsis" onClick={()=>setCollapse(false)}>  </div>);
         items = items.slice(0, 3).concat(middle, items.slice(length - 4))
       }
   }
