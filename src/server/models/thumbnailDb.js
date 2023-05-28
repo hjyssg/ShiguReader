@@ -23,6 +23,10 @@ module.exports.init = async ()=> {
     // await clean();
 }
 
+module.exports.getSQLDB = function () {
+    return sqlDb;
+}
+
 module.exports.addNewThumbnail = function (filePath, thumbnailFilePath) {
     const thumbnailFileName = path.basename(thumbnailFilePath);
     const time = util.getCurrentTime()

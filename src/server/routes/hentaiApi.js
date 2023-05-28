@@ -7,33 +7,38 @@ const db = require("../models/db");
 // const { isCompress } = util;
 // const zipInfoDb = require("../models/zipInfoDb");
 const serverUtil = require("../serverUtil");
+const thumbnailDb = require("../models/thumbnailDb");
+const _ = require('underscore');
 
 // get to get all
 // http://localhost:8080/api/exhentaiApi
 router.get('/api/exhentaiApi', serverUtil.asyncWrapper(async (req, res) => {
     console.time("[/api/exhentaiApi]")
     try{
+        let sqldb = db.getSQLDB();
+        let sql = `SELECT fileName FROM file_table WHERE isCompress=1 `;
+        let tempAllFiles = await sqldb.allSync(sql);
 
-        // console.time("part 1")
-        let tempAllFiles = await db.getAllFilePathes("WHERE isCompress=1");
-        // console.timeEnd("part 1")
+        // 从thumbnail拿一点数据
+        sqldb = thumbnailDb.getSQLDB();
+        sql = `SELECT filePath FROM thumbnail_table ORDER BY ROWID DESC LIMIT  1000`;
+        let tempAllFiles2 = await sqldb.allSync(sql);
+        tempAllFiles2.forEach(row => {
+            row.fileName = path.basename(row.filePath);
+        })
 
-        // console.time("part 3")
+
+        const allFiles = _.uniq([...tempAllFiles, ...tempAllFiles2]);
+
         const result = [];
-        tempAllFiles.forEach(fp => {
-            // result[key] = Object.assign({}, zipInfo[fp]);
-            // 参考const updateFileDb(...) 避免重复计算
-            const fileName = path.basename(fp);
+        allFiles.forEach(row => {
+            const fileName = row.fileName;
             let pObj = serverUtil.parse(fileName);
             if (pObj) {
-                const key = path.basename(fp, path.extname(fp)).trim();
-                // result[key] = {};
-                // result[key].title = pObj.title;
-                // result[key].author = pObj.author;
+                const key = path.basename(fileName, path.extname(fileName)).trim();
                 result.push([key, pObj.title, pObj.author]);
             }
         })
-        // console.timeEnd("part 3")
     
         res.setHeader('Cache-Control', 'public, max-age=120');
         res.send({
