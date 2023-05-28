@@ -1,37 +1,52 @@
-module.exports.BY_FILE_NUMBER = "file number";
-module.exports.BY_TAG_NAME = "tag name";
-module.exports.BY_TIME = "time";
-module.exports.BY_LAST_READ_TIME = "last read time";
-module.exports.BY_READ_COUNT = "read count"
-module.exports.BY_FILE_SIZE = "file size";
-module.exports.BY_AVG_PAGE_SIZE = "avg page size";
-module.exports.BY_PAGE_NUMBER = "page number";
-module.exports.BY_FILENAME = "file name";
-module.exports.BY_GOOD_SCORE = "score";
-module.exports.BY_FOLDER = "by folder name";
-module.exports.BY_RANDOM = "random";
+const BY_FILE_NUMBER = "file number";
+const BY_TAG_NAME = "tag name";
+const BY_TIME = "time";
+const BY_LAST_READ_TIME = "last read time";
+const BY_READ_COUNT = "read count"
+const BY_FILE_SIZE = "file size";
+const BY_AVG_PAGE_SIZE = "avg page size";
+const BY_PAGE_NUMBER = "page number";
+const BY_FILENAME = "file name";
+const BY_GOOD_SCORE = "score";
+const BY_FOLDER = "by folder name";
+const BY_RANDOM = "random";
+
+module.exports = {
+    BY_FILE_NUMBER,
+    BY_TAG_NAME,
+    BY_TIME,
+    BY_LAST_READ_TIME,
+    BY_READ_COUNT,
+    BY_FILE_SIZE,
+    BY_AVG_PAGE_SIZE,
+    BY_PAGE_NUMBER,
+    BY_FILENAME,
+    BY_GOOD_SCORE,
+    BY_FOLDER,
+    BY_RANDOM,
+}
 
 module.exports.TAG_SORT_OPTIONS = [
-    module.exports.BY_FILE_NUMBER,
-    module.exports.BY_TAG_NAME,
-    module.exports.BY_RANDOM
+    BY_FILE_NUMBER,
+    BY_TAG_NAME,
+    BY_RANDOM
 ];
 
 module.exports.AUTHOR_SORT_OPTIONS = [
-    module.exports.BY_FILE_NUMBER,
-    module.exports.BY_GOOD_SCORE,
-    module.exports.BY_TAG_NAME,
-    module.exports.BY_RANDOM
+    BY_FILE_NUMBER,
+    BY_GOOD_SCORE,
+    BY_TAG_NAME,
+    BY_RANDOM
 ];
 
 module.exports.SORT_OPTIONS = [
-    module.exports.BY_TIME,
-    module.exports.BY_LAST_READ_TIME,
-    module.exports.BY_READ_COUNT,
-    module.exports.BY_FILE_SIZE,
-    module.exports.BY_AVG_PAGE_SIZE,
-    module.exports.BY_PAGE_NUMBER,
-    module.exports.BY_FILENAME,
-    module.exports.BY_GOOD_SCORE,
-    module.exports.BY_RANDOM
+    BY_TIME,
+    BY_LAST_READ_TIME,
+    BY_READ_COUNT,
+    BY_FILE_SIZE,
+    BY_AVG_PAGE_SIZE,
+    BY_PAGE_NUMBER,
+    BY_FILENAME,
+    BY_GOOD_SCORE,
+    BY_RANDOM
 ];
