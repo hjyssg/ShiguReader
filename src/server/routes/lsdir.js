@@ -198,12 +198,7 @@ async function listNoScanDir(filePath, res, isRecussive) {
         subFpArr = subFnArr.map(e => path.resolve(filePath, e));
     }
 
-    const {
-        imageFiles,
-        musicFiles,
-        videoFiles,
-        compressFiles
-    } = fileIntoCategory(subFpArr);
+    const categoryObj  = fileIntoCategory(subFpArr);
     const dirs = subFpArr.filter(e => {
         const isFolder = pathUtil.estimateIfFolder(e);
         return isFolder;
@@ -223,10 +218,7 @@ async function listNoScanDir(filePath, res, isRecussive) {
         imgFolders: {},
         fileInfos,
 
-        imageFiles,
-        musicFiles,
-        videoFiles,
-        compressFiles,
+        ...categoryObj
     };
     
     return result;
@@ -264,12 +256,7 @@ router.post('/api/listImageFolderContent', serverUtil.asyncWrapper(async (req, r
             return isDirectParent(filePath, fp)
         });
 
-        const {
-            imageFiles,
-            musicFiles,
-            videoFiles,
-            compressFiles
-        } = fileIntoCategory(_files);
+        const categoryObj = fileIntoCategory(_files);
 
         const mapping = {};
         mapping[filePath] = _files;
@@ -279,9 +266,8 @@ router.post('/api/listImageFolderContent', serverUtil.asyncWrapper(async (req, r
             zipInfo: info,
             stat: info,
             path: filePath,
-            imageFiles,
-            musicFiles,
-            videoFiles,
+            
+            ...categoryObj
         };
     }
 
