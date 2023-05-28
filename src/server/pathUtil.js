@@ -224,10 +224,14 @@ module.exports.filterPathConfig = async (path_config, skipScan) => {
     quick_access_pathes = await filterNonExist(quick_access_pathes||[]);
     scan_path = await filterNonExist(scan_path||[]);
 
+
+    good_folder_root = (good_folder_root?  path.resolve(good_folder_root) : "");
+    not_good_folder_root = (not_good_folder_root? path.resolve(not_good_folder_root) : "");
+
     return {
        scan_path,
-       good_folder_root : good_folder_root || "",
-       not_good_folder_root : not_good_folder_root || "",
+       good_folder_root,
+       not_good_folder_root,
        quick_access_pathes: quick_access_pathes,
        good_folder,
        not_good_folder,

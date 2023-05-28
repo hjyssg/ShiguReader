@@ -1333,6 +1333,9 @@ app.get('/api/getGeneralInfo', asyncWrapper(async (req, res) => {
     
             good_folder: global.good_folder,
             not_good_folder: global.not_good_folder,
+            good_folder_root: global.good_folder_root,
+            not_good_folder_root: global.not_good_folder_root,
+
             move_pathes: global.move_pathes,
             recentAccess: global.recentAccess 
         };
