@@ -475,51 +475,66 @@ export default class OneBook extends Component {
 
   renderFileSizeAndTime() {
     const { fileStat, imageFiles, index, zipInfo, videoFiles } = this.state;
-    if (fileStat) {
-      let avgFileSize; // 和explore的getPageAvgSize(e)是重复逻辑？
+
+    const fileSize = (fileStat?.size) || null;
+    const fileDate = (fileStat?.mtimeMs) || null;
+    
+    let avgFileSize = 0; // 和explore的getPageAvgSize(e)是重复逻辑？
+    if(this.hasImage()){
       if (zipInfo) {
         avgFileSize = zipInfo.totalImgSize / zipInfo.pageNum;
-      } else {
-        avgFileSize = fileStat.size / this.getImageLength();
+      } else if(fileSize) {
+        avgFileSize = fileSize / this.getImageLength();
       }
       if(avgFileSize == Infinity){
         avgFileSize = 0;
       }
-
-      const size = filesizeUitl(fileStat.size);
-      const avg = filesizeUitl(avgFileSize);
-      const mTime = clientUtil.dateFormat_ymd(new Date(fileStat.mtimeMs));
-      const title = getBaseName(imageFiles[index]);
-      const dim = "";  //change by dom operation
-      const titles = [
-        "Modify Time",
-        "Total Size",
-        "Image Name",
-        "Average Image Size",
-        "Dimensions"
-      ];
-
-      const texts = [mTime, size, title, avg, dim].map((e, ii) => {
-        let title = titles[ii];
-        let text = e;
-        if(title == "Image Name"){
-          title = `${title}: ${text}`;
-          text = util.truncateString(text, 30);
-        }
-
-        return (
-        <div className={titles[ii] === "Dimensions" ? "dimension-tag" : ""}
-          key={e + ii} style={{ marginLeft: "15px" }} title={title}> {text}
-        </div>);
-      } );
-
-      const mobilePageNum = (<div className="mobile-page-num"
-        onClick={this.onClickPagination.bind(this)} >
-        {`${index + 1}/${this.getImageLength()}`}  </div>)
-
-      const videoNum = videoFiles.length > 0 && (<div className="video-num"> {` video: ${videoFiles.length}`}  </div>)
-      return <div className={"one-book-file-stat"}>{texts} {mobilePageNum} {videoNum} </div>
     }
+
+    const rows = [];
+    if(fileDate){
+      const mTime = clientUtil.dateFormat_ymd(new Date(fileDate));
+      rows.push(["Modify Time", mTime]);
+    }
+    if(fileSize){
+      const size = filesizeUitl(fileSize);
+      rows.push(["Total Size", size]);
+    }
+    if(this.hasImage()){
+      const title = getBaseName(imageFiles[index]);
+      rows.push(["Image Name", title]);
+   
+      const avg = filesizeUitl(avgFileSize);
+      rows.push(["Average Image Size", avg]);
+   
+      rows.push(["Dimensions"]);
+    }
+
+    if(rows.length == 0){
+      return 0;
+    }
+
+    const texts = rows.map((row, ii) => {
+      let title = row[0];
+      let text = row[1];
+
+      if(title == "Image Name"){
+        title = `${title}: ${text}`;
+        text = util.truncateString(text, 30);
+      }
+
+      return (
+      <div className={title === "Dimensions" ? "dimension-tag" : ""}
+        key={ii} style={{ marginLeft: "15px" }} title={title}> {text}
+      </div>);
+    } );
+
+    const mobilePageNum = (<div className="mobile-page-num"
+      onClick={this.onClickPagination.bind(this)} >
+      {`${index + 1}/${this.getImageLength()}`}  </div>);
+
+    const videoNum = videoFiles.length > 0 && (<div className="video-num"> {` video: ${videoFiles.length}`}  </div>);
+    return (<div className={"one-book-file-stat"}>{texts} {mobilePageNum} {videoNum} </div>);
   }
 
   shouldTwoPageMode() {
