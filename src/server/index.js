@@ -824,7 +824,7 @@ app.use((req, res, next) => {
 
 //-----------------thumbnail related-----------------------------------
 app.post("/api/getThumbnailForFolders", asyncWrapper(async (req, res) => {
-    const dirs = req.body && req.body.dirs;
+    let dirs = req.body && req.body.dirs;
     if (!dirs) {
         res.send({ failed: true, reason: "No Parameter" });
         return;
