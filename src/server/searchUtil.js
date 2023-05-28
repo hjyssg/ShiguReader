@@ -6,7 +6,7 @@ const path = require('path');
 const _ = require('underscore');
 const pathUtil = require("./pathUtil");
 const { isSub } = pathUtil;
-const { getCurrentTime } = util;
+// const { getCurrentTime } = util;
 
 function isEqual(a, b) {
     a = a || "";
@@ -18,7 +18,7 @@ function splitRows(rows, text) {
     let zipResult = [];
     let dirResults = [];
     let imgFolders = {};
-    const textInLowerCase = text.toLowerCase();
+    // const textInLowerCase = text.toLowerCase();
 
     //tag不一定出现在文件名里面
     //因为tag是经过处理的
@@ -116,7 +116,7 @@ async function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
     let imgFolders;
 
     if(text){
-        temp = await searchByText(text);
+        const temp = await searchByText(text);
         zipResult = temp.zipResult;
         dirResults = temp.dirResults;
         imgFolders = temp.imgFolders;
@@ -153,7 +153,7 @@ async function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
         if (esObj) {
             if(author){
                 const parse = serverUtil.parse;
-                function checkIfPass(fileName, author){
+                const checkIfPass = (fileName, author) => {
                     const result = parse(fileName);
                     if(!result){
                         return false;

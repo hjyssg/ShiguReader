@@ -15,7 +15,7 @@ const {
 } = pathUtil;
 
 const util = global.requireUtil();
-const { isImage, isCompress, isMusic, isDisplayableInOnebook } = util;
+
 
 const serverUtil = require("../serverUtil");
 const { mkdir } = serverUtil;
@@ -123,8 +123,7 @@ async function deleteThing(src) {
 
 async function isSimpleFolder(src) {
     let content_pathes = await pfs.readdir(src);
-    const otherTypes = content_pathes.filter(e => !isDisplayableInOnebook(e));
-
+    const otherTypes = content_pathes.filter(e => !util.isDisplayableInOnebook(e));
     return otherTypes.length === 0;
 }
 

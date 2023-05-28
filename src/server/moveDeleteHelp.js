@@ -6,7 +6,7 @@ module.exports.move = async function (src, dest) {
     return { stdout, stderr };
 }
 
-module.exports.trash = async function (src, dest) {
+module.exports.trash = async function (src) {
     const trash = require('trash');
     await trash([src]);
 }

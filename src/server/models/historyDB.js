@@ -1,7 +1,7 @@
 // const _ = require('underscore');
 const path = require('path');
 const util = global.requireUtil();
-const { getCurrentTime } = util;
+// const { getCurrentTime } = util;
 
 const pathUtil = require("../pathUtil");
 // const serverUtil = require("../serverUtil");
@@ -46,7 +46,7 @@ module.exports.addOneRecord = function (filePath) {
     const fileName = path.basename(filePath);
     const dirPath = path.dirname(filePath);
 
-    sql = "INSERT INTO history_table(filePath, dirPath, fileName, time ) values(?, ?, ?, ?)";
+    const sql = "INSERT INTO history_table(filePath, dirPath, fileName, time ) values(?, ?, ?, ?)";
     sqlDb.run(sql, filePath, dirPath, fileName, time);
 }
 
@@ -55,7 +55,7 @@ module.exports.addOneLsDirRecord = function (filePath) {
         return;
     }
     const time = util.getCurrentTime()
-    sql = "INSERT INTO lsdir_history_table(filePath, time ) values(?, ?)";
+    const sql = "INSERT INTO lsdir_history_table(filePath, time ) values(?, ?)";
     sqlDb.run(sql, filePath, time);
 }
 

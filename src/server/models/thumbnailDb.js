@@ -1,13 +1,12 @@
 const path = require('path');
 const _ = require('underscore');
 // const serverUtil = require("../serverUtil");
-const userConfig = global.requireUserConfig();
+// const userConfig = global.requireUserConfig();
 const pathUtil = require("../pathUtil");
 const util = global.requireUtil();
-const { isCompress, isVideo, getCurrentTime } = util;
-
-const { isSub, isExist } = pathUtil;
-const rootPath = pathUtil.getRootPath();
+// const { isCompress, isVideo, getCurrentTime } = util;
+// const { isSub, isExist } = pathUtil;
+// const rootPath = pathUtil.getRootPath();
 
 
 let sqlDb;

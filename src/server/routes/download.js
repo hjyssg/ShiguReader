@@ -15,12 +15,9 @@ const logger = require("../logger");
 const memorycache = require('memory-cache');
 
 
-
-
 const THUMBNAIL_HUGE_THRESHOLD = 2 * 1000 * 1000;  //MB
 const ONEBOOK_HUGE_THRESHOLD_REMOTE = 3 * 1000 * 1000;  // MB
 const ONEBOOK_HUGE_THRESHOLD_LOCAL = 10 * 1000 * 1000;  // MB
-
 
 
 const doMinify = async (filePath, outputFn, height) => {

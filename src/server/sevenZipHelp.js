@@ -7,7 +7,7 @@ const { updateZipDb } = zipInfoDb;
 const logger = require("./logger");
 const util = global.requireUtil();
 const pathUtil = require("./pathUtil");
-const { isImage, isCompress, isMusic, isVideo, arraySlice, getCurrentTime, isDisplayableInExplorer, isDisplayableInOnebook } = util;
+// const { isImage, isCompress, isMusic, isVideo, arraySlice, getCurrentTime, isDisplayableInExplorer, isDisplayableInOnebook } = util;
 const { isExist } = pathUtil;
 // const iconv = require('iconv-lite');
 
@@ -153,7 +153,7 @@ module.exports.listZipContentAndUpdateDb = async function (filePath) {
         let totalImgSize = 0;
         let mtime_arr = [];
         files.forEach((e, ii) => {
-            if (isImage(e)) {
+            if (util.isImage(e)) {
                 totalImgSize += parseFloat(fileInfos[ii].size) || 0;
             }
 
@@ -245,7 +245,7 @@ module.exports.extractAll = async function (filePath, outputPath, isRecursive) {
         error = e;
         logger.error('[extractAll] exit: ', e);
     } finally {
-        return { error, pathes }
+        return { error, pathes };
     }
 }
 

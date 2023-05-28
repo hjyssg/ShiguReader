@@ -123,7 +123,7 @@ function makeid() {
 }
 module.exports.makeid = makeid;
 
-module.exports.isPortOccupied = isPortOccupied = (port) => {
+module.exports.isPortOccupied = (port) => {
   return new Promise((resolve, reject) => {
     const server = net.createServer()
                   .once('error', err => {

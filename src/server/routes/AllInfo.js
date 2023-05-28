@@ -5,7 +5,7 @@ const serverUtil = require("../serverUtil");
 const db = require("../models/db");
 const { getThumbnailsForZip } = serverUtil.common;
 const util = global.requireUtil();
-const { isDisplayableInExplorer } = util;
+// const { isDisplayableInExplorer } = util;
 const nameParser = require('../../name-parser');
 const logger = require("../logger");
 

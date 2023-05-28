@@ -2,8 +2,8 @@
 const express = require('express');
 const router = express.Router();
 const serverUtil = require("../serverUtil");
-const db = require("../models/db");
-const util = global.requireUtil();
+// const db = require("../models/db");
+// const util = global.requireUtil();
 const historyDb = require("../models/historyDb");
 const pathUtil = require("../pathUtil");
 const memorycache = require('memory-cache');

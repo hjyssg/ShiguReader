@@ -1,4 +1,4 @@
-const fs = require('fs');
+// const fs = require('fs');
 const path = require('path');
 const util = global.requireUtil();
 const execa = require('./own_execa');

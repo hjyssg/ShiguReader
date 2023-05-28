@@ -3,8 +3,8 @@ const path = require('path');
 const express = require('express');
 const router = express.Router();
 const db = require("../models/db");
-const util = global.requireUtil();
-const { isCompress } = util;
+// const util = global.requireUtil();
+// const { isCompress } = util;
 // const zipInfoDb = require("../models/zipInfoDb");
 const serverUtil = require("../serverUtil");
 

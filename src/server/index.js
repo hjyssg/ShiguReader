@@ -24,7 +24,7 @@ const fileiterator = require('./file-iterator');
 const pathUtil = require("./pathUtil");
 pathUtil.init();
 const serverUtil = require("./serverUtil");
-const { getHash, mkdir, mkdirSync, asyncWrapper } = serverUtil;
+const { getHash, mkdirSync, asyncWrapper } = serverUtil;
 
 const { isHiddenFile, generateContentUrl, isExist, filterPathConfig, isSub, estimateIfFolder } = pathUtil;
 const { isImage, isCompress, isVideo, isMusic, arraySlice,

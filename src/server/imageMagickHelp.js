@@ -10,7 +10,7 @@ const { isImage, getCurrentTime, isGif } = util;
 const sevenZipHelp = require("./sevenZipHelp");
 const { listZipContentAndUpdateDb, extractAll } = sevenZipHelp;
 
-const { isExist, getRootPath, getImgConverterCachePath } = pathUtil;
+const { isExist, getImgConverterCachePath } = pathUtil;
 
 const userConfig = global.requireUserConfig();
 const filesizeUitl = require('filesize');
@@ -39,7 +39,6 @@ module.exports.init = function(){
         global._has_magick_ = true;
      })
     .catch(e => {
-        
         logger.warn("[Warning]Did not install ImageMagic.")
         logger.warn("https://imagemagick.org")
         logger.warn("Highly Recommend. It is used to create thumbnail and reduce image size")
@@ -279,7 +278,6 @@ const isNewZipSameWithOriginalFiles = module.exports.isNewZipSameWithOriginalFil
 
 const fileiterator = require('./file-iterator');
 const trash = require('trash');
-const { func } = require('prop-types');
 module.exports.minifyFolder = async function (filePath) {
     logger.info("-----begin images convertion --------------");
     //only one level
