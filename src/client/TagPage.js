@@ -140,10 +140,7 @@ export default class TagPage extends Component {
         return this.author2count[author];
     }
     const { authorInfo } = this.state;
-    let result = {
-        good_count: 0,
-        bad_count: 0
-    };
+    let result = { };
     if (author && authorInfo) {
         for(let ii = 0; ii < authorInfo.length; ii++){
             const e = authorInfo[ii];
@@ -157,14 +154,14 @@ export default class TagPage extends Component {
     return result;
   }
 
-  getTooltipStr(tag, index){
+  getTooltipStr(tag, rank){
     let rows = [];
     rows.push([tag]);
-    rows.push(["rank", index]);
+    rows.push(["rank", rank]);
     
     if(this.isAuthorMode()){
       rows.push(["good count", this.getAuthorCount(tag).good_count]);
-      rows.push(["not so good count", this.getAuthorCount(tag).bad_count]);
+      rows.push(["bad count", this.getAuthorCount(tag).bad_count]);
       rows.push(["score", this.getScore(tag)]);
     }
 
@@ -227,13 +224,6 @@ export default class TagPage extends Component {
 
     let items = this.getItems() || [];
 
-    //by text
-    if (_.isString(filterText)) {
-      let _text = filterText.toLowerCase();
-      items = items.filter(e => {
-        return e.tag.toLowerCase().indexOf(_text) > -1;
-      });
-    }
 
     //sort
     if (sortOrder.includes(BY_RANDOM)) {
@@ -257,21 +247,35 @@ export default class TagPage extends Component {
       })
   }
 
-    if (!isSortAsc) {
-      items.reverse();
-    }
+  if (!isSortAsc) {
+    items.reverse();
+  }
 
-    if(this.isTagMode()){
-      items = items.filter(e => {
-        if(this.isOn(FILTER_COMIKET) && e.subtype === "comiket"){
-          return true;
-        }
+  // 追加property
+  items.forEach((e, ii) => {
+    e.rank = ii+1;
+  })
 
-        if(this.isOn(FILTER_PARODY) && e.subtype === "parody"){
-          return true;
-        }
-      });
-    }
+  //by text
+  if (_.isString(filterText)) {
+    let _text = filterText.toLowerCase();
+    items = items.filter(e => {
+      return e.tag.toLowerCase().indexOf(_text) > -1;
+    });
+  }
+    
+
+  if(this.isTagMode()){
+    items = items.filter(e => {
+      if(this.isOn(FILTER_COMIKET) && e.subtype === "comiket"){
+        return true;
+      }
+
+      if(this.isOn(FILTER_PARODY) && e.subtype === "parody"){
+        return true;
+      }
+    });
+  }
 
     return items;
   }
@@ -322,7 +326,7 @@ export default class TagPage extends Component {
           <Link target="_blank" className="tag-page-list-item-link" to={url} key={tag}>
             <FileCellTitle str={itemText} />
             <LoadingImage isThumbnail
-              title={this.getTooltipStr(tag, begIndex+ii)}
+              title={this.getTooltipStr(tag, item.rank)}
               className="tag-page-thumbnail" fileName={tag}
               mode={this.props.mode}
               url={thumbnailUrl} />

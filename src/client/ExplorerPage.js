@@ -512,10 +512,7 @@ export default class ExplorerPage extends Component {
         }
         const temp = parse(fn);
         const { authorInfo } = this.state;
-        let result = {
-            good_count: 0,
-            bad_count: 0
-        };
+        let result = { };
         if (temp && temp.author && authorInfo) {
             for(let ii = 0; ii < authorInfo.length; ii++){
                 const e = authorInfo[ii];
@@ -742,7 +739,7 @@ export default class ExplorerPage extends Component {
         rows.push(["tag time", clientUtil.dateFormat_v1(this.getTTime(fp))]);
         rows.push(["     "]);
         rows.push(["good count", this.getAuthorCount(fp).good_count]);
-        rows.push(["not so good count", this.getAuthorCount(fp).bad_count]);
+        rows.push(["bad count", this.getAuthorCount(fp).bad_count]);
         rows.push(["score", this.getScore(fp)]);
         rows.push(["     "]);
         rows.push(["last read time", clientUtil.dateFormat_v1(this.getLastReadTime(fp))]);
