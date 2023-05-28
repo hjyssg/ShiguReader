@@ -180,19 +180,24 @@ module.exports.common = {};
 
 
 /** 计算对特定作者/tag的喜欢程度的分值 */
-const getScoreFromCount = module.exports.getScoreFromCount = (countObj) => {
+const getScoreFromCount = module.exports.getScoreFromCount = (countObj, goodDump) => {
     let { good_count=0, bad_count=0, total_count=0 } =  countObj;
     console.assert(good_count >= 0 && bad_count >= 0);
     console.assert(total_count >= 0 && total_count >= (good_count + bad_count));
-
+    goodDump = goodDump || 100;
 
     // 写一个数学函数，当x逼近正无穷，y逼近1。要使保证x从0到100的范围内，y尽量均匀分布。超过100开始逼近1
-    function f1(x) {
-        const a = Math.log(101/100);
-        if (x <= 100) {
+    // 超过的部分， 超过的部分极小的加权
+    // y区间约是0到2
+    function f1(x, ceil) {
+        ceil = ceil || goodDump; // fault value
+
+        const a = Math.log((ceil+1)/ceil);
+        if (x <= ceil) {
             return 1 - Math.exp(-a * x);
         } else {
-            return 1;
+            const above = (x - ceil);
+            return 1 + f1(above, ceil * 100);
         }
     }
 
@@ -219,15 +224,10 @@ const getScoreFromCount = module.exports.getScoreFromCount = (countObj) => {
         // 也看绝对值
         const absV1 = f1(g);
         const absV2 = f1(total_count - g - b);
-        // 最终区间落在0~3
+        // 最终区间落在0~4
         result = ratio +  absV1 + absV2;
     }
 
-    // // 写一个js。x范围是-1到3，映射到y从0到100
-    // function mapRange(x, inMin, inMax, outMin, outMax) {
-    //     return (x - inMin) * (outMax - outMin) / (inMax - inMin) + outMin;
-    // }
-    // result = mapRange(result, -1, 3, 0, 100);
     return Number(result.toFixed(3));
 }   
 
