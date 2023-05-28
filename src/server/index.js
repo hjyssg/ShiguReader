@@ -513,7 +513,9 @@ async function printIP(){
         console.log(ip);
         console.log("Scan the QR code to open on mobile devices");
         qrcode.generate(ip);
-    } catch (e) { }
+    } catch (e) { 
+        //nothing
+    }
     console.log("----------------------------------------------------------------");
 }
 
@@ -1008,7 +1010,7 @@ app.post('/api/pregenerateThumbnails', asyncWrapper(async (req, res) => {
     if(pregenerateThumbnailPath == "All_Pathes"){
         totalFiles = await db.getAllFilePathes("WHERE isCompress=1");
     }else{
-        function shouldScanForPreg(p, stat) {
+        const shouldScanForPreg = (p, stat) => {
             if (isHiddenFile(p)) {
                 return false;
             }
@@ -1388,7 +1390,6 @@ const shutdown = require("./routes/shutdown");
 app.use(shutdown);
 
 const minifyZip = require("./routes/minifyZip");
-const e = require('express');
 app.use(minifyZip);
 
 // const ehentaiMetadata = require("./routes/ehentaiMetadata");
