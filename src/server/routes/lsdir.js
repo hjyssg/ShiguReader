@@ -14,7 +14,6 @@ const {
 
 const serverUtil = require("../serverUtil");
 const db = require("../models/db");
-const { getFileToInfo} = db;
 const util = global.requireUtil();
 const { getCurrentTime, isImage, isMusic, isCompress, isVideo } = util;
 const { isAlreadyScan, decorateResWithMeta } = serverUtil.common;
@@ -100,18 +99,19 @@ router.post('/api/lsDir', serverUtil.asyncWrapper(async (req, res) => {
 
         //-------------------files -----------------
         if (isRecursive) {
-            sql = `SELECT filePath FROM ${tempFileTable}`;
-            rows = await sqldb.allSync(sql);
-        } else {
-            sql = `SELECT filePath FROM ${tempFileTable} WHERE dirPath = ?`;
+            sql = `SELECT * FROM ${tempFileTable} AND filePath != ?`;
             rows = await sqldb.allSync(sql, [dir]);
+        } else {
+            sql = `SELECT * FROM ${tempFileTable} WHERE dirPath = ? AND filePath != ?`;
+            rows = await sqldb.allSync(sql, [dir, dir]);
         }
-        rows.forEach(obj => {
-            const fp = obj.filePath;
-            if (fp === dir) {
-                return;
-            }
-            fileInfos[fp] = getFileToInfo(fp);
+        rows.forEach(row => {
+            const fp = row.filePath;
+            console.assert(!!fp);
+            fileInfos[fp] = {
+                size: row.fileSize,
+                mtimeMs: row.mTime
+            };
         })
 
         //---------------img folder -----------------

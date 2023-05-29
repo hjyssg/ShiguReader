@@ -71,22 +71,22 @@ router.get('/api/getParseCache/', serverUtil.asyncWrapper(async (req, res) => {
 }));
 
 router.post('/api/allInfo', serverUtil.asyncWrapper(async (req, res) => {
-    const needThumbnail = req.body && req.body.needThumbnail;
-
-    let allThumbnails = {};
-    const files = await db.getAllFilePathes("WHERE isDisplayableInExplorer=1");
-    if (needThumbnail) {
-        allThumbnails = await getThumbnailsForZip(files);
-    }
-
+    let sqldb = db.getSQLDB();
+    let sql = `SELECT *  FROM file_table WHERE isDisplayableInExplorer=1 `;
+    let rows = await sqldb.allSync(sql);
+ 
     const fileToInfo = {};
-    files.forEach(e => {
-        fileToInfo[e] = db.getFileToInfo(e);
+    rows.forEach(row => {
+        const fp = row.filePath;
+        console.assert(!!fp);
+        fileToInfo[fp] ={
+            size: row.fileSize,
+            mtimeMs: row.mTime
+        };
     })
 
     res.send({
         fileToInfo: fileToInfo,
-        allThumbnails: allThumbnails
     });
 }));
 

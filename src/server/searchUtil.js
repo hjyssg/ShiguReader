@@ -142,9 +142,13 @@ async function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
         }
     }
 
-    zipResult.forEach(obj => {
-        const fp = obj.filePath;
-        fileInfos[fp] = db.getFileToInfo(fp);
+    zipResult.forEach(row => {
+        const fp = row.filePath;
+        console.assert(!!fp);
+        fileInfos[fp] = {
+            size: row.fileSize,
+            mtimeMs: row.mTime
+        };
     })
 
     // filter everything search result
