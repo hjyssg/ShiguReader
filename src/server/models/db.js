@@ -4,24 +4,30 @@ const { getDirName } = pathUtil;
 const path = require('path');
 const serverUtil = require("../serverUtil");
 const util = global.requireUtil();
-const { isImage, isCompress, isMusic, isVideo } = util;
+const _util = require('util');
+const { isImage, isCompress, isMusic, isVideo, getCurrentTime } = util;
 const pfs = require('promise-fs');
-
 
 const nameParser = require('../../name-parser');
 const namePicker = require("../../human-name-picker");
 
 
-//file path to file stats
-// 这个设计有点傻，应该并到sql。我当时刚学sql，不自信
+// file path to file stats
+// 简单重复查询，性能是sql的30倍
 const fileToInfo = {};
+const getFileToInfo = function (filePath) {
+    return fileToInfo[filePath];
+}
 
-const getFileToInfo = module.exports.getFileToInfo = function (filePath) {
-    if (filePath) {
-        return fileToInfo[filePath];
-    } else {
-        return fileToInfo;
+let stmd_single_file;
+const getFileToInfoAsync = async (filePath) => {
+    // const sql = ;
+    // return await sqldb.getSync(sql, [filePath]);
+    if(!stmd_single_file){
+        stmd_single_file =  sqldb.prepare(` SELECT * FROM file_table WHERE filePath = ?`)
+        stmd_single_file.getSync = _util.promisify(stmd_single_file.get).bind(stmd_single_file);
     }
+    return stmd_single_file.getSync(filePath)
 }
 
 let sqldb;
@@ -99,6 +105,9 @@ module.exports.getAllFilePathes = async function (sql_condition) {
     const temp = await sqldb.allSync(sql);
     return temp.map(e => e.filePath);
 };
+
+
+
 
 let stmt_tag_insert ;
 let stmt_file_insert;
@@ -192,20 +201,41 @@ module.exports.deleteFromDb = function (filePath) {
     sqldb.run("DELETE FROM tag_table where filePath = ?", filePath);
 }
 
-module.exports.getImgFolderInfo = function (imgFolders) {
+module.exports.getImgFolderInfo = async (imgFolders) => {
     const imgFolderInfo = {};
-    _.keys(imgFolders).forEach(folder => {
-        const files = imgFolders[folder];
+    const imagefolderList = _.keys(imgFolders);
+
+    let beg = getCurrentTime();
+    let count = 0;
+    // 每个文件夹
+    for(let ii = 0; ii < imagefolderList.length; ii++){
+        let folderPath = imagefolderList[ii];
+
+        const files = imgFolders[folderPath];
         const len = files.length;
         let mtimeMs = 0, size = 0, totalImgSize = 0, 
             pageNum = 0, musicNum = 0, videoNum = 0;
 
-        files.forEach(file => {
+
+        //。。。的每个文件夹
+        for (let jj = 0; jj < files.length; jj++){
+            const file = files[jj];
+            count++;
+            // 很慢
+            // const tempInfo = await getFileToInfoAsync(file);
+            // if (tempInfo) {
+            //     mtimeMs += tempInfo.mtime / len;
+            //     size += tempInfo.fileSize;
+
+            //     if (isImage(file)) {
+            //         totalImgSize += tempInfo.fileSize;
+            //     }
+            // }
+
             const tempInfo = getFileToInfo(file);
             if (tempInfo) {
                 mtimeMs += tempInfo.mtimeMs / len;
                 size += tempInfo.size;
-
                 if (isImage(file)) {
                     totalImgSize += tempInfo.size;
                 }
@@ -218,13 +248,13 @@ module.exports.getImgFolderInfo = function (imgFolders) {
             } else if(isVideo(file)){
                 videoNum++;
             }
-        });
+        }
 
         const _imgs = files.filter(isImage);
         serverUtil.sortFileNames(_imgs);
         const thumbnail = _imgs[0]
 
-        imgFolderInfo[folder] = {
+        imgFolderInfo[folderPath] = {
             mtimeMs,
             size,
             totalImgSize,
@@ -233,7 +263,10 @@ module.exports.getImgFolderInfo = function (imgFolders) {
             videoNum,
             thumbnail
         };
-    })
+    }
+
+    let end = getCurrentTime();
+    console.log(`[getImgFolderInfo] ${count} ${end - beg}ms`);
 
     return imgFolderInfo;
 }

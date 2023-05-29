@@ -671,7 +671,7 @@ async function decorateResWithMeta(resObj) {
     resObj.zipInfo = zipInfo;
 
     resObj.thumbnails = thumbnails;
-    const imgFolderInfo = db.getImgFolderInfo(imgFolders);
+    const imgFolderInfo = await db.getImgFolderInfo(imgFolders);
     resObj.imgFolderInfo = imgFolderInfo;
 
     // 把zipinfo的mtime合并到fileInfos
@@ -694,7 +694,7 @@ async function decorateResWithMeta(resObj) {
     // fileInfos:     filePath-> fileInfo (不仅有zip，还有video和music)
     // zipInfo:       filePath-> zipInfo (和fileinfos互补)
     // imgFolderInfo: folderPath-> folderinfo
-    // imgFolders:    folderPath -> [ file filepath ... ]
+    // [deprecated] imgFolders:    folderPath -> [ file filepath ... ]
     // mode: 是否lack_info_mode
     // "tag", "author", "path" 查询时用的参数
     // 检查

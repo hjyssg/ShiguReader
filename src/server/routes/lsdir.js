@@ -99,7 +99,7 @@ router.post('/api/lsDir', serverUtil.asyncWrapper(async (req, res) => {
 
         //-------------------files -----------------
         if (isRecursive) {
-            sql = `SELECT * FROM ${tempFileTable} AND filePath != ?`;
+            sql = `SELECT * FROM ${tempFileTable} WHERE filePath != ?`;
             rows = await sqldb.allSync(sql, [dir]);
         } else {
             sql = `SELECT * FROM ${tempFileTable} WHERE dirPath = ? AND filePath != ?`;
@@ -247,34 +247,6 @@ router.post('/api/listImageFolderContent', serverUtil.asyncWrapper(async (req, r
         ...result
     }
     
-    // else if (!isAlreadyScan(filePath)) {
-    //     result = await listNoScanDir(filePath, res);
-    // } else {
-    //     const sqldb = db.getSQLDB();
-    //     let sql = `SELECT filePath FROM file_table WHERE INSTR(filePath, ?) = 1 ORDER BY filePath`;
-    //     let _files = await sqldb.allSync(sql, [filePath]);
-
-    //     _files = _files.map(e => e.filePath);
-    //      // 单层或者递归，各有利弊，和其他地方逻辑一致吧
-    //      _files = _files.filter(fp => {
-    //         return isDirectParent(filePath, fp)
-    //     });
-
-    //     const categoryObj = fileIntoCategory(_files);
-
-    //     const mapping = {};
-    //     mapping[filePath] = _files;
-    //     const info = db.getImgFolderInfo(mapping)[filePath];
-
-    //     result = {
-    //         zipInfo: info,
-    //         stat: info,
-    //         path: filePath,
-
-    //         ...categoryObj
-    //     };
-    // }
-
     if (result && !noMedataInfo) {
         result.mecab_tokens = await global.mecab_getTokens(filePath);
     }
