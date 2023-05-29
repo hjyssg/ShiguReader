@@ -45,6 +45,7 @@ module.exports.init = async ()=> {
                             dirPath TEXT, 
                             fileName TEXT, 
                             mTime INTEGER, 
+                            fileSize INTEGER, 
                             isDisplayableInExplorer BOOL, 
                             isDisplayableInOnebook BOOL, 
                             isCompress BOOL, 
@@ -115,9 +116,9 @@ const updateFileDb = function (filePath, statObj) {
             values (?, ?, ?, ?, ?, ?)`);
 
     stmt_file_insert = stmt_file_insert || sqldb.prepare(`
-        INSERT OR REPLACE INTO file_table (filePath, dirPath, fileName, mTime, 
+        INSERT OR REPLACE INTO file_table (filePath, dirPath, fileName, mTime, fileSize,
         isDisplayableInExplorer, isDisplayableInOnebook, 
-        isCompress, isVideo, isFolder ) values(?, ?, ?, ?, ?, ?, ?, ?, ?)`);
+        isCompress, isVideo, isFolder ) values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`);
 
     const isCompressFile = isCompress(fileName);
     const isVideoFile = isVideo(fileName);
@@ -165,8 +166,9 @@ const updateFileDb = function (filePath, statObj) {
     aboutTimeA = aboutTimeA && aboutTimeA.getTime();
     let fileTimeA = statObj.mtimeMs || aboutTimeA;
     const dirPath = path.dirname(filePath);
+    const fileSize = statObj.size || 0;
     // https://www.sqlitetutorial.net/sqlite-nodejs/insert/
-    stmt_file_insert.run(filePath, dirPath, fileName, fileTimeA,
+    stmt_file_insert.run(filePath, dirPath, fileName, fileTimeA, fileSize,
         isDisplayableInExplorer, isDisplayableInOnebook, isCompressFile, isVideoFile, isFolder);
 }
 
