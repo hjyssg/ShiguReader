@@ -103,7 +103,7 @@ async function searchByText(text) {
 
 async function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
     // let beg = getCurrentTime()
-    const fileInfos = {};
+    let fileInfos = {};
 
     const all_text = tag || author || text;
     let searchEveryPromise;
@@ -141,15 +141,8 @@ async function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
             imgFolders = tag_obj.imgFolders;
         }
     }
+    fileInfos = serverUtil.convertFileRowsIntoFileInfo(zipResult);
 
-    zipResult.forEach(row => {
-        const fp = row.filePath;
-        console.assert(!!fp);
-        fileInfos[fp] = {
-            size: row.fileSize,
-            mtimeMs: row.mTime
-        };
-    })
 
     // filter everything search result
     if(!onlyNeedFew){

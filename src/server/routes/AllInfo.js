@@ -74,16 +74,7 @@ router.post('/api/allInfo', serverUtil.asyncWrapper(async (req, res) => {
     let sqldb = db.getSQLDB();
     let sql = `SELECT *  FROM file_table WHERE isDisplayableInExplorer=1 `;
     let rows = await sqldb.allSync(sql);
- 
-    const fileToInfo = {};
-    rows.forEach(row => {
-        const fp = row.filePath;
-        console.assert(!!fp);
-        fileToInfo[fp] ={
-            size: row.fileSize,
-            mtimeMs: row.mTime
-        };
-    })
+    const fileToInfo = serverUtil.convertFileRowsIntoFileInfo(rows);
 
     res.send({
         fileToInfo: fileToInfo,

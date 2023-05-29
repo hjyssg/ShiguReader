@@ -244,3 +244,23 @@ const getScoreFromCount = module.exports.getScoreFromCount = (countObj, goodDump
 
 //     console.log(ii, "   ", temp);
 // }
+
+
+module.exports.convertFileRowsIntoFileInfo = (rows) => {
+
+    let fileInfos = {};
+    rows.forEach(row => {
+        const fp = row.filePath;
+
+        console.assert(!!fp);
+        console.assert("fileSize" in row);
+        console.assert("mTime" in row);
+
+        fileInfos[fp] = {
+            size: row.fileSize,
+            mtimeMs: row.mTime
+        };
+    })
+
+    return fileInfos;
+}

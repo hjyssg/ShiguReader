@@ -105,14 +105,7 @@ router.post('/api/lsDir', serverUtil.asyncWrapper(async (req, res) => {
             sql = `SELECT * FROM ${tempFileTable} WHERE dirPath = ? AND filePath != ?`;
             rows = await sqldb.allSync(sql, [dir, dir]);
         }
-        rows.forEach(row => {
-            const fp = row.filePath;
-            console.assert(!!fp);
-            fileInfos[fp] = {
-                size: row.fileSize,
-                mtimeMs: row.mTime
-            };
-        })
+        fileInfos = serverUtil.convertFileRowsIntoFileInfo(rows);
 
         //---------------img folder -----------------
         const imgFolders = {};
