@@ -15,8 +15,8 @@ module.exports.init = async ()=> {
     const dbCommon = require("./dbCommon");
     sqldb = dbCommon.getSQLInstance(thumbnail_db_path);
 
-    await sqldb.runSync(`CREATE TABLE IF NOT EXISTS thumbnail_table (filePath TEXT, thumbnailFileName TEXT, time INTEGER);
-                         CREATE INDEX IF NOT EXISTS filePath_index ON thumbnail_table (filePath)`);
+    await sqldb.runSync(`CREATE TABLE IF NOT EXISTS thumbnail_table (filePath TEXT, thumbnailFileName TEXT, time INTEGER);`);
+    await sqldb.runSync(`CREATE INDEX IF NOT EXISTS filePath_index ON thumbnail_table (filePath)`);
     await syncInternalDict()
 
     // comment out when needed

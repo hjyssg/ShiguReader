@@ -389,7 +389,7 @@ function initializeFileWatch(dirPathes) {
     //about 1s for 1000 files
     watcher.on('ready', async () => {
         is_chokidar_scan_done = true;
-        db.createSqlIndex();
+        await db.createSqlIndex();
         // DEBUG数据多少
         // setTimeout(async () => {
         //     const sqldb = db.getSQLDB();
