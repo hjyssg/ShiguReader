@@ -51,7 +51,7 @@ module.exports.init = async ()=> {
                             dirPath TEXT, 
                             fileName TEXT, 
                             mTime INTEGER, 
-                            fileSize INTEGER, 
+                            size INTEGER, 
                             isDisplayableInExplorer BOOL, 
                             isDisplayableInOnebook BOOL, 
                             isCompress BOOL, 
@@ -125,7 +125,7 @@ const updateFileDb = function (filePath, statObj) {
             values (?, ?, ?, ?, ?, ?)`);
 
     stmt_file_insert = stmt_file_insert || sqldb.prepare(`
-        INSERT OR REPLACE INTO file_table (filePath, dirPath, fileName, mTime, fileSize,
+        INSERT OR REPLACE INTO file_table (filePath, dirPath, fileName, mTime, size,
         isDisplayableInExplorer, isDisplayableInOnebook, 
         isCompress, isVideo, isFolder ) values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`);
 
@@ -225,10 +225,10 @@ module.exports.getImgFolderInfo = async (imgFolders) => {
             // const tempInfo = await getFileToInfoAsync(file);
             // if (tempInfo) {
             //     mtimeMs += tempInfo.mtime / len;
-            //     size += tempInfo.fileSize;
+            //     size += tempInfo.size;
 
             //     if (isImage(file)) {
-            //         totalImgSize += tempInfo.fileSize;
+            //         totalImgSize += tempInfo.size;
             //     }
             // }
 

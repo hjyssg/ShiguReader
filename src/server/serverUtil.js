@@ -252,11 +252,11 @@ module.exports.convertFileRowsIntoFileInfo = (rows) => {
         const fp = row.filePath;
 
         console.assert(!!fp);
-        console.assert("fileSize" in row);
+        console.assert("size" in row);
         console.assert("mTime" in row);
 
         fileInfos[fp] = {
-            size: row.fileSize,
+            size: row.size,
             mtimeMs: row.mTime
         };
     })
