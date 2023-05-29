@@ -20,11 +20,12 @@ async function add_col(rows){
 
 function getSql(tableName){
     // 只管zip文件，image folder太麻烦，不管了。  
-    return `SELECT a.filePath, MAX(a.sTime) AS maxTime, b.tag, COUNT(b.tag) AS count, b.type, b.subtype
+    // 每个tag，统计数量。已经找到最新的一本zip，之后用来找thumbnail。
+    return `SELECT a.filePath, MAX(a.mTime) AS maxTime, b.tag, COUNT(b.tag) AS count, b.type, b.subtype
     FROM zip_view a 
     INNER JOIN ${tableName} b ON a.filePath = b.filePath 
     GROUP BY b.tag 
-    HAVING a.sTime = maxTime AND count > 1 
+    HAVING a.mTime = maxTime AND count > 1 
     ORDER BY count DESC;`
 }
 

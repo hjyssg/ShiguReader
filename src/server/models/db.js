@@ -44,7 +44,7 @@ module.exports.init = async ()=> {
                             filePath TEXT NOT NULL PRIMARY KEY, 
                             dirPath TEXT, 
                             fileName TEXT, 
-                            sTime INTEGER, 
+                            mTime INTEGER, 
                             isDisplayableInExplorer BOOL, 
                             isDisplayableInOnebook BOOL, 
                             isCompress BOOL, 
@@ -115,7 +115,7 @@ const updateFileDb = function (filePath, statObj) {
             values (?, ?, ?, ?, ?, ?)`);
 
     stmt_file_insert = stmt_file_insert || sqlDb.prepare(`
-        INSERT OR REPLACE INTO file_table (filePath, dirPath, fileName, sTime, 
+        INSERT OR REPLACE INTO file_table (filePath, dirPath, fileName, mTime, 
         isDisplayableInExplorer, isDisplayableInOnebook, 
         isCompress, isVideo, isFolder ) values(?, ?, ?, ?, ?, ?, ?, ?, ?)`);
 
