@@ -81,6 +81,7 @@ module.exports.getSQLDB = function () {
 }
 
 module.exports.createSqlIndex = async function () {
+    await sqldb.runSync(` CREATE INDEX IF NOT EXISTS filePath_index ON file_table (filePath); `);
     await sqldb.runSync(` CREATE INDEX IF NOT EXISTS dirPath_index ON file_table (dirPath); `);
     await sqldb.runSync(` CREATE INDEX IF NOT EXISTS tag_index ON tag_table (tag); `);
     await sqldb.runSync(` CREATE INDEX IF NOT EXISTS tag_filePath_index ON tag_table (filePath); `);

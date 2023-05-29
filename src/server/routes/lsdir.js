@@ -47,38 +47,29 @@ router.post('/api/lsDir', serverUtil.asyncWrapper(async (req, res) => {
 
     const time1 = getCurrentTime();
     const sqldb = db.getSQLDB();
-    const suffix = stringHash(dir) + time1;
-    const tempFileTable = "TEMP_FILE_TABLE_" + suffix;
+    // const suffix = stringHash(dir) + time1;
+    const selectFileSQL = `SELECT * FROM file_table WHERE INSTR(filePath, ?) = 1 AND filePath != ?`
 
     try {
         let time2, timeUsed;
         let dirs = [];
         let fileInfos = {};
-
         let sql, rows;
-
-        //limit the searching  within this dir
-        // 重复使用的临时table
-        sql = `CREATE TABLE ${tempFileTable} AS SELECT * FROM file_table WHERE INSTR(filePath, ?) = 1 AND filePath != ?;
-               CREATE INDEX IF NOT EXISTS ${tempFileTable}_filePath_index ON ${tempFileTable} (filePath);
-               CREATE INDEX IF NOT EXISTS ${tempFileTable}_dirPath_index ON ${tempFileTable} (dirPath);
-        `;
-        await sqldb.runSync(sql, [dir, dir]);
 
         //-------------- dir --------------
         if (!isRecursive) {
-            sql = `SELECT filePath FROM ${tempFileTable} WHERE dirPath = ? AND isFolder=true `
-            rows = await sqldb.allSync(sql, dir);
+            sql = `${selectFileSQL} AND dirPath = ? AND isFolder=true `
+            rows = await sqldb.allSync(sql, [dir, dir, dir]);
             dirs = rows.map(e => e.filePath);
         }
 
         //-------------------files -----------------
         if (isRecursive) {
-            sql = `SELECT * FROM ${tempFileTable} WHERE isFolder=false`;
-            rows = await sqldb.allSync(sql);
+            sql = `${selectFileSQL} AND isFolder=false`;
+            rows = await sqldb.allSync(sql, [dir, dir]);
         } else {
-            sql = `SELECT * FROM ${tempFileTable} WHERE dirPath = ? AND isFolder=false`;
-            rows = await sqldb.allSync(sql, [dir]);
+            sql = `${selectFileSQL} AND dirPath = ? AND isFolder=false`;
+            rows = await sqldb.allSync(sql, [dir, dir, dir]);
         }
         fileInfos = serverUtil.convertFileRowsIntoFileInfo(rows);
 
@@ -87,20 +78,28 @@ router.post('/api/lsDir', serverUtil.asyncWrapper(async (req, res) => {
         // join folder with isDisplayableInOnebook file
         if(isRecursive){
             sql = `
-            SELECT B.filePath, B.dirPath FROM
-             (SELECT filePath FROM ${tempFileTable} WHERE isFolder=true ) DT
-             INNER JOIN ${tempFileTable} B
-             ON DT.filePath=B.dirPath AND B.isDisplayableInOnebook=True
+            WITH TT AS (
+                ${selectFileSQL}
+            )
+
+            SELECT TT.filePath, TT.dirPath FROM
+             (SELECT filePath FROM TT WHERE isFolder=true ) DT
+             INNER JOIN TT
+             ON DT.filePath=TT.dirPath AND TT.isDisplayableInOnebook=True
             `
-            rows = await sqldb.allSync(sql);
+            rows = await sqldb.allSync(sql, [dir, dir]);
         }else{
             sql = `
-            SELECT B.filePath, B.dirPath FROM
-             (SELECT filePath FROM ${tempFileTable}  WHERE dirPath = ? AND isFolder=true ) DT
-             INNER JOIN ${tempFileTable} B
-             ON DT.filePath=B.dirPath AND B.isDisplayableInOnebook=True
+            WITH TT AS (
+                ${selectFileSQL}
+            )
+
+            SELECT TT.filePath, TT.dirPath FROM
+             (SELECT filePath FROM TT WHERE dirPath = ? AND isFolder=true ) DT
+             INNER JOIN TT
+             ON DT.filePath=TT.dirPath AND TT.isDisplayableInOnebook=True
             `
-            rows = await sqldb.allSync(sql, dir);
+            rows = await sqldb.allSync(sql, [dir, dir, dir]);
         }
         rows.forEach(row => {
             const dirPath = row.dirPath;
@@ -110,9 +109,9 @@ router.post('/api/lsDir', serverUtil.asyncWrapper(async (req, res) => {
 
 
         //-------------get extra info
-        time2 = getCurrentTime();
-        timeUsed = (time2 - time1) / 1000;
-        console.log("[/api/LsDir] sql time", timeUsed, "s")
+        // time2 = getCurrentTime();
+        // timeUsed = (time2 - time1) / 1000;
+        // console.log("[/api/LsDir] sql time", timeUsed, "s")
 
         let result = {
             path: dir,
@@ -131,11 +130,7 @@ router.post('/api/lsDir', serverUtil.asyncWrapper(async (req, res) => {
         logger.error(e);
         res.send({ failed: true, reason: e });
     } finally {
-        //drop
-        let sql = `DROP TABLE IF EXISTS ${tempFileTable}`;
-        sqldb.run(sql);
-        // sql = `DROP TABLE IF EXISTS ${tempDirTable}`
-        // sqldb.run(sql);
+        //nothing
     }
 }));
 
