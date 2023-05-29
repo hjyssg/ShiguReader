@@ -5,9 +5,9 @@ const getFileToInfoAsync = async (filePath) => {
     return await sqldb.getSync(sql, [filePath]);
 }
 ```
-[getImgFolderInfo] 4564 1518ms
-[getImgFolderInfo] 4564 1716ms
-[getImgFolderInfo] 4564 1793ms
+[getImgFolderInfo] 4564 files 1518ms
+[getImgFolderInfo] 4564 files 1716ms
+[getImgFolderInfo] 4564 files 1793ms
 
 
 ```js
@@ -21,9 +21,9 @@ const getFileToInfoAsync = async (filePath) => {
     return stmd_single_file.getSync(filePath)
 }
 ```
-[getImgFolderInfo] 4564 818ms
-[getImgFolderInfo] 4564 995ms
-[getImgFolderInfo] 4564 710ms
+[getImgFolderInfo] 4564 files 818ms
+[getImgFolderInfo] 4564 files 995ms
+[getImgFolderInfo] 4564 files 710ms
 
 
 
@@ -34,13 +34,21 @@ const getFileToInfo = function (filePath) {
     return fileToInfo[filePath];
 }
 ```
-[getImgFolderInfo] 4564 45ms
-[getImgFolderInfo] 4564 75ms
-[getImgFolderInfo] 4564 53ms
+[getImgFolderInfo] 4564 files 45ms
+[getImgFolderInfo] 4564 files 75ms
+[getImgFolderInfo] 4564 files 53ms
 
 
 
 结论：
 sql不擅长简单大次数的hash查询。
 一种方法是用内存dict
-另一种做法参考historyDb.js的getFileHistory(pathes) 
+另一种做法参考historyDb.js的getFileHistory(pathes) 的  where fileName IN (${placeholders}) 
+
+----------------
+[/api/getFileHistory] 39642 files
+
+186ms
+186ms
+178ms
+198ms
