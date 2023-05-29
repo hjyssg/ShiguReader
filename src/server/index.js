@@ -559,7 +559,7 @@ async function getThumbnailsForZip(filePathes) {
 
 async function findVideoForFolder(filePath){
     const sqldb = db.getSQLDB();
-    const sql = `SELECT filePath FROM file_table WHERE  INSTR(filePath, ?) = 1 AND isDisplayableInExplorer = true `;
+    const sql = `SELECT filePath FROM file_table WHERE INSTR(filePath, ?) = 1 AND isDisplayableInExplorer = true `;
     let videoRows = await sqldb.allSync(sql, filePath);
     videoRows = videoRows.filter(row => {
         return isVideo(row.filePath);
@@ -1110,7 +1110,6 @@ app.post('/api/getZipThumbnail', asyncWrapper(async (req, res) => {
     const thumbnails = await getThumbnailsForZip([filePath])
     const oneThumbnail = _.values(thumbnails)[0];
     if(oneThumbnail){
-    
         res.send({
             url: oneThumbnail
         })

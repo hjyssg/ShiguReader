@@ -81,8 +81,8 @@ module.exports.getSQLDB = function () {
 }
 
 module.exports.createSqlIndex = async function () {
-    await sqldb.runSync(` CREATE INDEX IF NOT EXISTS filePath_index ON file_table (filePath); `);
-    await sqldb.runSync(` CREATE INDEX IF NOT EXISTS dirPath_index ON file_table (dirPath); `);
+    await sqldb.runSync(` CREATE INDEX IF NOT EXISTS ft_filePath_index ON file_table (filePath); `);
+    await sqldb.runSync(` CREATE INDEX IF NOT EXISTS ft_dirPath_index ON file_table (dirPath); `);
     await sqldb.runSync(` CREATE INDEX IF NOT EXISTS tag_index ON tag_table (tag); `);
     await sqldb.runSync(` CREATE INDEX IF NOT EXISTS tag_filePath_index ON tag_table (filePath); `);
 }
@@ -212,48 +212,37 @@ module.exports.getImgFolderInfo = async (imgFolders) => {
     for(let ii = 0; ii < imagefolderList.length; ii++){
         let folderPath = imagefolderList[ii];
 
-        const files = imgFolders[folderPath];
+        let files = imgFolders[folderPath];
         const len = files.length;
         let mtimeMs = 0, size = 0, totalImgSize = 0, 
             pageNum = 0, musicNum = 0, videoNum = 0;
 
+        files = _.sortBy(files, e => e.mTime);
+        // TODO 确定没有就没事的？ 避免前端又跑来问？
+        let thumbnail = "NO_THUMBNAIL_AVAILABLE";
 
         //。。。的每个文件夹
         for (let jj = 0; jj < files.length; jj++){
             const file = files[jj];
+            console.assert(file.isDisplayableInOnebook);
             count++;
-            // 很慢
-            // const tempInfo = await getFileToInfoAsync(file);
-            // if (tempInfo) {
-            //     mtimeMs += tempInfo.mtime / len;
-            //     size += tempInfo.size;
-
-            //     if (isImage(file)) {
-            //         totalImgSize += tempInfo.size;
-            //     }
-            // }
-
-            const tempInfo = getFileToInfo(file);
-            if (tempInfo) {
-                mtimeMs += tempInfo.mtimeMs / len;
-                size += tempInfo.size;
-                if (isImage(file)) {
-                    totalImgSize += tempInfo.size;
-                }
-            }
-
-            if (isImage(file)) {
+            mtimeMs += file.mtimeMs / len;
+            size += file.size;
+            const fp = file.filePath;
+            if (isImage(fp)) {
+                totalImgSize += file.size;
                 pageNum++;
-            } else if (isMusic(file)) {
+                thumbnail = fp;
+            } else if (isMusic(fp)) {
                 musicNum++;
-            } else if(isVideo(file)){
+            } else if(isVideo(fp)){
                 videoNum++;
             }
         }
 
-        const _imgs = files.filter(isImage);
-        serverUtil.sortFileNames(_imgs);
-        const thumbnail = _imgs[0]
+        // const _imgs = files.filter(isImage);
+        // serverUtil.sortFileNames(_imgs);
+        // const thumbnail = _imgs[0]
 
         imgFolderInfo[folderPath] = {
             mtimeMs,

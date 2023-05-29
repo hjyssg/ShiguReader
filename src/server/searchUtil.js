@@ -32,7 +32,7 @@ function splitRows(rows, text) {
             zipResult.push(row);
         } else if (row.isDisplayableInOnebook) {
             imgFolders[dirName] = imgFolders[dirName] || [];
-            imgFolders[dirName].push(row.filePath);
+            imgFolders[dirName].push(row);
         } else if (row.isFolder) {
             //folder check its name
             dirResults.push(row);
@@ -94,8 +94,8 @@ async function searchByText(text) {
     // https://www.sqlite.org/optoverview.html
     // console.time();
     // 模糊搜索
-    let sql = `SELECT * FROM file_table WHERE INSTR(LOWER(filePath), LOWER(?)) > 0`;
-    let rows = await sqldb.allSync(sql, [text]);
+    let sql = `SELECT * FROM file_table WHERE filePath LIKE ? `;
+    let rows = await sqldb.allSync(sql, ["%" + text + "%"]);
     // console.timeEnd();
 
     return splitRows(rows, text);

@@ -48,7 +48,7 @@ router.post('/api/lsDir', serverUtil.asyncWrapper(async (req, res) => {
     const time1 = getCurrentTime();
     const sqldb = db.getSQLDB();
     // const suffix = stringHash(dir) + time1;
-    const selectFileSQL = `SELECT * FROM file_table WHERE INSTR(filePath, ?) = 1 AND filePath != ?`
+    const selectFileSQL = `SELECT * FROM file_table WHERE filePath LIKE ? AND filePath != ?`
 
     try {
         let time2, timeUsed;
@@ -59,17 +59,17 @@ router.post('/api/lsDir', serverUtil.asyncWrapper(async (req, res) => {
         //-------------- dir --------------
         if (!isRecursive) {
             sql = `${selectFileSQL} AND dirPath = ? AND isFolder=true `
-            rows = await sqldb.allSync(sql, [dir, dir, dir]);
+            rows = await sqldb.allSync(sql, [`${dir}%`, dir, dir]);
             dirs = rows.map(e => e.filePath);
         }
 
         //-------------------files -----------------
         if (isRecursive) {
             sql = `${selectFileSQL} AND isFolder=false`;
-            rows = await sqldb.allSync(sql, [dir, dir]);
+            rows = await sqldb.allSync(sql, [`${dir}%`, dir]);
         } else {
             sql = `${selectFileSQL} AND dirPath = ? AND isFolder=false`;
-            rows = await sqldb.allSync(sql, [dir, dir, dir]);
+            rows = await sqldb.allSync(sql, [`${dir}%`, dir, dir]);
         }
         fileInfos = serverUtil.convertFileRowsIntoFileInfo(rows);
 
@@ -82,29 +82,29 @@ router.post('/api/lsDir', serverUtil.asyncWrapper(async (req, res) => {
                 ${selectFileSQL}
             )
 
-            SELECT TT.filePath, TT.dirPath FROM
+            SELECT TT.* FROM
              (SELECT filePath FROM TT WHERE isFolder=true ) DT
              INNER JOIN TT
              ON DT.filePath=TT.dirPath AND TT.isDisplayableInOnebook=True
             `
-            rows = await sqldb.allSync(sql, [dir, dir]);
+            rows = await sqldb.allSync(sql, [`${dir}%`, dir]);
         }else{
             sql = `
             WITH TT AS (
                 ${selectFileSQL}
             )
 
-            SELECT TT.filePath, TT.dirPath FROM
+            SELECT TT.* FROM
              (SELECT filePath FROM TT WHERE dirPath = ? AND isFolder=true ) DT
              INNER JOIN TT
              ON DT.filePath=TT.dirPath AND TT.isDisplayableInOnebook=True
             `
-            rows = await sqldb.allSync(sql, [dir, dir, dir]);
+            rows = await sqldb.allSync(sql, [`${dir}%`, dir, dir]);
         }
         rows.forEach(row => {
             const dirPath = row.dirPath;
             imgFolders[dirPath] = imgFolders[dirPath] || [];
-            imgFolders[dirPath].push(row.filePath);
+            imgFolders[dirPath].push(row);
         })
 
 
