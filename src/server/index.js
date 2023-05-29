@@ -874,6 +874,11 @@ app.post("/api/getTagThumbnail", asyncWrapper(async (req, res) => {
         return;
     }
 
+    if (author && tag) {
+        res.send({ failed: true, reason: "only one Parameter" });
+        return;
+    }
+
     let oneThumbnail;
     // const cacheKey = tag || author;
     // let oneThumbnail = memorycache.get(cacheKey);
@@ -884,36 +889,27 @@ app.post("/api/getTagThumbnail", asyncWrapper(async (req, res) => {
     //     return;
     // }
 
-    const onlyNeedFew = true;
-    const searchResult = await searchByTagAndAuthor(tag, author, null, onlyNeedFew);
-    let { fileInfos, thumbnails } = searchResult;
-   
-    // dict to arr
-    let rows = Object.entries(fileInfos);
-    rows = rows.map(row => {
-        return {
-            filePath: row[0],
-            ...row[1]
-        }
-    });
-    // only keep zip
-    rows = rows.filter(row => isCompress(row.filePath));
-    rows = _.sortBy(rows, row => {
-        console.assert("mTimeMs" in row);
-        return row.mTimeMs;
-    });
 
-    // find one with thumbnail
-    for(let ii = 0; ii < rows.length; ii++){
+    const sqldb = db.getSQLDB();
+    let sql = ` SELECT a.* , b.*
+                FROM zip_view a 
+                INNER JOIN tag_table b ON a.filePath = b.filePath AND b.tag = ?
+                ORDER BY a.mTime DESC 
+                LIMIT 100;`
+    let rows = await sqldb.allSync(sql, [author || tag]);
+
+    // find thumbnail
+    const thumbnails = await serverUtil.common.getThumbnailsForZip(rows.map(e => e.filePath))
+    for (let ii = 0; ii < rows.length; ii++) {
         const row = rows[ii];
-        const fp = row.filePath;
-        if(thumbnails[fp]){
-            oneThumbnail = thumbnails[fp];
+        const thumbnail = thumbnails[row.filePath];
+
+        if(thumbnail){
+            oneThumbnail = thumbnail;
             break;
         }
     }
 
-    
     if(oneThumbnail){
         res.send({
             url: oneThumbnail

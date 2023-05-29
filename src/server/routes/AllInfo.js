@@ -3,7 +3,6 @@ const express = require('express');
 const router = express.Router();
 const serverUtil = require("../serverUtil");
 const db = require("../models/db");
-const { getThumbnailsForZip } = serverUtil.common;
 const util = global.requireUtil();
 // const { isDisplayableInExplorer } = util;
 const nameParser = require('../../name-parser');
@@ -11,7 +10,7 @@ const logger = require("../logger");
 
 
 async function add_col(rows){
-    const thumbnails = await getThumbnailsForZip(rows.map(e => e.filePath))
+    const thumbnails = await serverUtil.common.getThumbnailsForZip(rows.map(e => e.filePath))
     for (let ii = 0; ii < rows.length; ii++) {
         const row = rows[ii];
         row.thumbnail = thumbnails[row.filePath];
