@@ -79,7 +79,7 @@ async function syncInternalDict(){
 }
 
 module.exports.deleteFromZipDb = function (filePath) {
-    const sql2 = `DELETE FROM  zip_table WHERE filePath = ?`;
+    const sql2 = `DELETE FROM zip_table WHERE filePath = ?`;
     sqldb.runSync(sql2, [filePath])
 
     delete _internal_dict_[filePath]

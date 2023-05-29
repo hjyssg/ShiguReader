@@ -245,9 +245,8 @@ const getScoreFromCount = module.exports.getScoreFromCount = (countObj, goodDump
 //     console.log(ii, "   ", temp);
 // }
 
-
+// array变为map
 module.exports.convertFileRowsIntoFileInfo = (rows) => {
-
     let fileInfos = {};
     rows.forEach(row => {
         const fp = row.filePath;
