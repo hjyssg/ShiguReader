@@ -7,16 +7,16 @@ function getSQLInstance(filePath){
     logger.info("[getSQLInstance] " + filePath);
     try{
         const sqlite3 = sql_lib.verbose();
-        const sqlDb = new sqlite3.Database(filePath);
+        const sqldb = new sqlite3.Database(filePath);
     
         //只用到下面这四个函数
-        sqlDb.allSync = _util.promisify(sqlDb.all).bind(sqlDb);
-        sqlDb.getSync = _util.promisify(sqlDb.get).bind(sqlDb);
-        sqlDb.runSync = _util.promisify(sqlDb.run).bind(sqlDb);
+        sqldb.allSync = _util.promisify(sqldb.all).bind(sqldb);
+        sqldb.getSync = _util.promisify(sqldb.get).bind(sqldb);
+        sqldb.runSync = _util.promisify(sqldb.run).bind(sqldb);
         // run()
         
         logger.info("[getSQLInstance] loaded " + filePath);
-        return sqlDb;
+        return sqldb;
     }catch(e){
         logger.error("[SQLite] failed to open "+ filePath)
         logger.error(e);

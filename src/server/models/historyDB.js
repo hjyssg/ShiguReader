@@ -7,29 +7,29 @@ const pathUtil = require("../pathUtil");
 // const serverUtil = require("../serverUtil");
 
 
-let sqlDb;
+let sqldb;
 module.exports.init = async ()=> {
     const history_db_path = path.join(pathUtil.getWorkSpacePath(), "history_sql_db.db");
     const dbCommon = require("./dbCommon");
-    sqlDb = dbCommon.getSQLInstance(history_db_path);
+    sqldb = dbCommon.getSQLInstance(history_db_path);
 
     // 记录打开文件
     let sql = `CREATE TABLE IF NOT EXISTS history_table (filePath TEXT NOT NULL, dirPath TEXT, fileName TEXT, time INTEGER); 
                  CREATE INDEX IF NOT EXISTS fileName_index ON history_table (fileName);
                  CREATE INDEX IF NOT EXISTS time_index ON history_table (time);
                  `
-    await sqlDb.runSync(sql);
+    await sqldb.runSync(sql);
 
     // 记录文件夹lsdir的table
     sql = `CREATE TABLE IF NOT EXISTS lsdir_history_table (filePath TEXT NOT NULL, time INTEGER); 
     CREATE INDEX IF NOT EXISTS filePath_lsdir_index ON lsdir_history_table (fileName);
     CREATE INDEX IF NOT EXISTS time_lsdir_index ON lsdir_history_table (time);
     `
-    await sqlDb.runSync(sql);
+    await sqldb.runSync(sql);
 }
 
 module.exports.getSQLDB = function () {
-    return sqlDb;
+    return sqldb;
 }
 
 // cache内部的不记录
@@ -47,7 +47,7 @@ module.exports.addOneRecord = function (filePath) {
     const dirPath = path.dirname(filePath);
 
     const sql = "INSERT INTO history_table(filePath, dirPath, fileName, time ) values(?, ?, ?, ?)";
-    sqlDb.run(sql, filePath, dirPath, fileName, time);
+    sqldb.run(sql, filePath, dirPath, fileName, time);
 }
 
 module.exports.addOneLsDirRecord = function (filePath) {
@@ -56,7 +56,7 @@ module.exports.addOneLsDirRecord = function (filePath) {
     }
     const time = util.getCurrentTime()
     const sql = "INSERT INTO lsdir_history_table(filePath, time ) values(?, ?)";
-    sqlDb.run(sql, filePath, time);
+    sqldb.run(sql, filePath, time);
 }
 
 // const back_days = 5;
@@ -77,19 +77,19 @@ module.exports.getHistory = async function (page=0) {
     GROUP BY filePath 
     ORDER BY time DESC 
     ;`
-    let rows = await sqlDb.allSync(sql);
+    let rows = await sqldb.allSync(sql);
     console.assert(rows.length <= PAGE_TIME_SIZE)
     // return rows;
 
     const sql2 = `SELECT count(*) as count FROM history_table`
-    let counts = await sqlDb.allSync(sql2);
+    let counts = await sqldb.allSync(sql2);
     return {rows, count: counts[0]["count"]}
 }
 
 // SELECT *, strftime('%d-%m-%Y', datetime(time/1000, 'unixepoch')) FROM history_table ORDER BY time DESC
 module.exports.getHistoryByFP = async function (fileName) {
     // 一天算一次
-    // let rows1 = await sqlDb.allSync("SELECT filePath, time FROM history_table WHERE fileName = ?", [fileName]);
+    // let rows1 = await sqldb.allSync("SELECT filePath, time FROM history_table WHERE fileName = ?", [fileName]);
     // const sql = `SELECT filePath, Max(time) as time FROM
     //              (SELECT * FROM history_table where time > ?)  
     //             GROUP BY strftime('%d-%m-%Y', datetime(time/1000, 'unixepoch')) ORDER BY time DESC`
@@ -98,7 +98,7 @@ module.exports.getHistoryByFP = async function (fileName) {
     //  (SELECT * FROM history_table where fileName = ?)  
     //  GROUP BY strftime('%d-%m-%Y', datetime(time/1000, 'unixepoch')) ORDER BY time DESC`
     const sql = `SELECT * FROM history_table where fileName = ? ORDER BY time DESC`
-    let rows = await sqlDb.allSync(sql, [fileName]);
+    let rows = await sqldb.allSync(sql, [fileName]);
     return rows;
 }
 
@@ -116,7 +116,7 @@ module.exports.getRecentAccess = async function () {
         ORDER BY count DESC, filePath ASC
         LIMIT 50;
     `
-    let rows = await sqlDb.allSync(sql, [time]);
+    let rows = await sqldb.allSync(sql, [time]);
     return rows;
 }
 
@@ -137,7 +137,7 @@ module.exports.getFileHistory = async function (pathes) {
     const sql = `SELECT fileName, MAX(time) as time, COUNT(time) as count FROM 
     history_table where fileName IN (${placeholders})  
     GROUP BY fileName`
-    let rows =  await sqlDb.allSync(sql, fileNames);
+    let rows =  await sqldb.allSync(sql, fileNames);
 
     // let end3 = getCurrentTime();
     // console.log(`[getFileHistory] ${(end3 - end1) / 1000}s for ${fileNames.length} zips`);

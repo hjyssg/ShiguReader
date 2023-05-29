@@ -24,23 +24,23 @@ const getFileToInfo = module.exports.getFileToInfo = function (filePath) {
     }
 }
 
-let sqlDb;
+let sqldb;
 module.exports.init = async ()=> {
     const dbCommon = require("./dbCommon");
-    sqlDb = dbCommon.getSQLInstance(':memory:');
+    sqldb = dbCommon.getSQLInstance(':memory:');
     // 用file的话，init的insertion太慢了
 
     // 提升少量性能
-    await sqlDb.runSync( `
+    await sqldb.runSync( `
         PRAGMA journal_mode = OFF;
         PRAGMA synchronous = OFF; ` );
 
-    await sqlDb.runSync(`
+    await sqldb.runSync(`
         DROP TABLE IF EXISTS file_table;
         DROP TABLE IF EXISTS tag_table;
         DROP TABLE IF EXISTS scan_path_table;`);
 
-    await sqlDb.runSync(`CREATE TABLE file_table (
+    await sqldb.runSync(`CREATE TABLE file_table (
                             filePath TEXT NOT NULL PRIMARY KEY, 
                             dirPath TEXT, 
                             fileName TEXT, 
@@ -50,7 +50,7 @@ module.exports.init = async ()=> {
                             isCompress BOOL, 
                             isVideo BOOL,
                             isFolder BOOL);`);
-    await sqlDb.runSync(`CREATE TABLE tag_table (
+    await sqldb.runSync(`CREATE TABLE tag_table (
                             filePath TEXT NOT NULL, 
                             tag VARCHAR(50) NOT NULL, 
                             type VARCHAR(25),
@@ -59,28 +59,28 @@ module.exports.init = async ()=> {
                             isFolder BOOL,
                             PRIMARY KEY (filePath, tag, type) 
                         )`);
-    await sqlDb.runSync(`CREATE TABLE scan_path_table (filePath TEXT NOT NULL, type VARCHAR(25))`);
+    await sqldb.runSync(`CREATE TABLE scan_path_table (filePath TEXT NOT NULL, type VARCHAR(25))`);
 
-    await sqlDb.runSync(` CREATE VIEW zip_view  AS SELECT * FROM file_table WHERE isCompress = true `)
-    await sqlDb.runSync(` CREATE VIEW author_view  AS SELECT * FROM tag_table 
+    await sqldb.runSync(` CREATE VIEW zip_view  AS SELECT * FROM file_table WHERE isCompress = true `)
+    await sqldb.runSync(` CREATE VIEW author_view  AS SELECT * FROM tag_table 
                             WHERE type='author' AND (isCompress = true OR isFolder = true) `)
-    await sqlDb.runSync(` CREATE VIEW tag_view  AS SELECT * FROM tag_table 
+    await sqldb.runSync(` CREATE VIEW tag_view  AS SELECT * FROM tag_table 
                             WHERE type='tag' AND (isCompress = true OR isFolder = true)  `)
 
 }
 
 module.exports.getSQLDB = function () {
-    return sqlDb;
+    return sqldb;
 }
 
 module.exports.createSqlIndex = function () {
-    sqlDb.run(` CREATE INDEX IF NOT EXISTS dirPath_index ON file_table (dirPath);
+    sqldb.run(` CREATE INDEX IF NOT EXISTS dirPath_index ON file_table (dirPath);
                 CREATE INDEX IF NOT EXISTS tag_index ON tag_table (tag);
                 CREATE INDEX IF NOT EXISTS tag_filePath_index ON tag_table (filePath); `);
 }
 
 module.exports.insertScanPath = async function(scan_path){
-    const stmt = sqlDb.prepare('INSERT INTO scan_path_table(filePath, type) VALUES (?, ?)');
+    const stmt = sqldb.prepare('INSERT INTO scan_path_table(filePath, type) VALUES (?, ?)');
     for(let pp of scan_path){
         stmt.run(pp, "");
     }
@@ -88,14 +88,14 @@ module.exports.insertScanPath = async function(scan_path){
 
 module.exports.getAllScanPath = async function(){
     const sql = `SELECT filePath FROM scan_path_table `;
-    const temp = await sqlDb.allSync(sql);
+    const temp = await sqldb.allSync(sql);
     return temp.map(e => e.filePath);
 }
 
 module.exports.getAllFilePathes = async function (sql_condition) {
     // return _.keys(fileToInfo);
     const sql = `SELECT filePath FROM file_table ` + sql_condition;
-    const temp = await sqlDb.allSync(sql);
+    const temp = await sqldb.allSync(sql);
     return temp.map(e => e.filePath);
 };
 
@@ -110,11 +110,11 @@ const updateFileDb = function (filePath, statObj) {
         statObj = {};
     }
 
-    stmt_tag_insert = stmt_tag_insert || sqlDb.prepare(`
+    stmt_tag_insert = stmt_tag_insert || sqldb.prepare(`
             INSERT OR REPLACE INTO tag_table (filePath, tag, type, subtype, isCompress, isFolder )
             values (?, ?, ?, ?, ?, ?)`);
 
-    stmt_file_insert = stmt_file_insert || sqlDb.prepare(`
+    stmt_file_insert = stmt_file_insert || sqldb.prepare(`
         INSERT OR REPLACE INTO file_table (filePath, dirPath, fileName, mTime, 
         isDisplayableInExplorer, isDisplayableInOnebook, 
         isCompress, isVideo, isFolder ) values(?, ?, ?, ?, ?, ?, ?, ?, ?)`);
@@ -186,8 +186,8 @@ module.exports.updateStatToDb = async function (filePath, stat) {
 
 module.exports.deleteFromDb = function (filePath) {
     delete fileToInfo[filePath];
-    sqlDb.run("DELETE FROM file_table where filePath = ?", filePath);
-    sqlDb.run("DELETE FROM tag_table where filePath = ?", filePath);
+    sqldb.run("DELETE FROM file_table where filePath = ?", filePath);
+    sqldb.run("DELETE FROM tag_table where filePath = ?", filePath);
 }
 
 module.exports.getImgFolderInfo = function (imgFolders) {

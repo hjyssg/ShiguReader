@@ -7,14 +7,14 @@ const path = require('path');
 const pathUtil = require("../pathUtil");
 
 
-let sqlDb;
+let sqldb;
 //-----------------------
 module.exports.init = async ()=> {
     let zip_sql_path = path.join(pathUtil.getWorkSpacePath(), "zip_info_sql.db");
     const dbCommon = require("./dbCommon");
-    sqlDb = dbCommon.getSQLInstance(zip_sql_path);
+    sqldb = dbCommon.getSQLInstance(zip_sql_path);
 
-    await sqlDb.runSync(`CREATE TABLE IF NOT EXISTS zip_table (
+    await sqldb.runSync(`CREATE TABLE IF NOT EXISTS zip_table (
                             filePath TEXT PRIMARY KEY, 
                             pageNum INTEGER,
                             musicNum INTEGER,
@@ -43,7 +43,7 @@ const updateZipDb = module.exports.updateZipDb = function (info) {
     const videoNum = files.filter(isVideo).length;
     const totalNum = files.length;
 
-    sqlDb.run(`INSERT OR REPLACE INTO zip_table (
+    sqldb.run(`INSERT OR REPLACE INTO zip_table (
             filePath, pageNum, musicNum, videoNum, totalNum, totalImgSize, mtime) 
             values(?, ?, ?, ?, ?, ?, ?)`, 
     filePath, pageNum, musicNum, videoNum, totalNum, totalImgSize, mtime);
@@ -58,7 +58,7 @@ const updateZipDb = module.exports.updateZipDb = function (info) {
 module.exports.updateZipDb_v2 = function (info) {
     const { filePath, pageNum, musicNum, videoNum, totalNum, totalImgSize, mtime} = info;
 
-    sqlDb.run(`INSERT OR REPLACE INTO zip_table (
+    sqldb.run(`INSERT OR REPLACE INTO zip_table (
             filePath, pageNum, musicNum, videoNum, totalNum, totalImgSize, mtime) 
             values(?, ?, ?, ?, ?, ?, ?)`, 
     filePath, pageNum, musicNum, videoNum, totalNum, totalImgSize, mtime);
@@ -71,7 +71,7 @@ module.exports.updateZipDb_v2 = function (info) {
 const _internal_dict_ = {};
 async function syncInternalDict(){
     const sql = `SELECT * FROM  zip_table`;
-    let rows = await sqlDb.allSync(sql)
+    let rows = await sqldb.allSync(sql)
 
     rows.forEach(e => {
         _internal_dict_[e.filePath] = e;
@@ -80,7 +80,7 @@ async function syncInternalDict(){
 
 module.exports.deleteFromZipDb = function (filePath) {
     const sql2 = `DELETE FROM  zip_table WHERE filePath = ?`;
-    sqlDb.runSync(sql2, [filePath])
+    sqldb.runSync(sql2, [filePath])
 
     delete _internal_dict_[filePath]
 }

@@ -9,13 +9,13 @@ const util = global.requireUtil();
 // const rootPath = pathUtil.getRootPath();
 
 
-let sqlDb;
+let sqldb;
 module.exports.init = async ()=> {
     let thumbnail_db_path = path.join(pathUtil.getWorkSpacePath(), "thumbnail_sql_db.db");
     const dbCommon = require("./dbCommon");
-    sqlDb = dbCommon.getSQLInstance(thumbnail_db_path);
+    sqldb = dbCommon.getSQLInstance(thumbnail_db_path);
 
-    await sqlDb.runSync(`CREATE TABLE IF NOT EXISTS thumbnail_table (filePath TEXT, thumbnailFileName TEXT, time INTEGER);
+    await sqldb.runSync(`CREATE TABLE IF NOT EXISTS thumbnail_table (filePath TEXT, thumbnailFileName TEXT, time INTEGER);
                          CREATE INDEX IF NOT EXISTS filePath_index ON thumbnail_table (filePath)`);
     await syncInternalDict()
 
@@ -24,13 +24,13 @@ module.exports.init = async ()=> {
 }
 
 module.exports.getSQLDB = function () {
-    return sqlDb;
+    return sqldb;
 }
 
 module.exports.addNewThumbnail = function (filePath, thumbnailFilePath) {
     const thumbnailFileName = path.basename(thumbnailFilePath);
     const time = util.getCurrentTime()
-    sqlDb.run("INSERT INTO thumbnail_table(filePath, thumbnailFileName, time ) values(?, ?, ?)", 
+    sqldb.run("INSERT INTO thumbnail_table(filePath, thumbnailFileName, time ) values(?, ?, ?)", 
                filePath, thumbnailFileName, time);
     _internal_dict_[filePath] = {filePath, thumbnailFileName,time}
 }
@@ -47,7 +47,7 @@ function _add_col(rows) {
 const _internal_dict_ = {};
 async function syncInternalDict(){
     const sql = `SELECT * FROM  thumbnail_table`;
-    let rows = await sqlDb.allSync(sql)
+    let rows = await sqldb.allSync(sql)
 
     rows.forEach(e => {
         _internal_dict_[e.filePath] = e;
@@ -56,14 +56,14 @@ async function syncInternalDict(){
 
 module.exports.deleteThumbnail = function (filePath) {
     const sql2 = `DELETE FROM  thumbnail_table WHERE filePath = ?`;
-    sqlDb.runSync(sql2, [filePath]);
+    sqldb.runSync(sql2, [filePath]);
     //不删除文件，避免部分的bug
     //文件占的空间很小，无所谓
 }
 
 async function clean(){
     const sql = `SELECT * FROM  thumbnail_table ORDER BY filePath`;
-    let rows = await sqlDb.allSync(sql)
+    let rows = await sqldb.allSync(sql)
 
     //if the real file is delete
     //remove from sql table
@@ -73,7 +73,7 @@ async function clean(){
         
     //     if (!(await isExist(filePath))) {
     //         const sql2 = `DELETE FROM  thumbnail_table WHERE filePath = ?`;
-    //         await sqlDb.runSync(sql2, [filePath])
+    //         await sqldb.runSync(sql2, [filePath])
     //         console.log(filePath)
     //     }
     //     console.log(ii)
@@ -113,11 +113,11 @@ module.exports.getThumbnailArr = function (filePathes) {
     // const joinStr = filePathes.join(" ");
     //todo: slow for large number
     // const sql = `SELECT * FROM  thumbnail_table WHERE INSTR(?, filePath) > 0`;
-    // let rows = await sqlDb.allSync(sql, [joinStr]);
+    // let rows = await sqldb.allSync(sql, [joinStr]);
 
     // const promiseArr = filePathes.map(fp => {
     //     const sql = `SELECT * FROM  thumbnail_table WHERE filePath = ?`;
-    //     return sqlDb.getSync(sql, [fp]);
+    //     return sqldb.getSync(sql, [fp]);
     // })
 
     // let rows =  await Promise.all(promiseArr);
@@ -134,7 +134,7 @@ module.exports.getThumbnailByFileName = async function (fileName) {
     // filePathes = _.isString(filePathes) ? [filePathes] : filePathes;
 
     const sql = `SELECT * FROM  thumbnail_table WHERE filePath LIKE '%${fileName}'  `;
-    let rows = await sqlDb.allSync(sql);
+    let rows = await sqldb.allSync(sql);
     rows = _add_col(rows);
     return rows;
 }
@@ -154,14 +154,14 @@ module.exports.getThumbnailForFolders = async function (filePathes) {
         const patterns = stringsToMatch.map(str => `${str}%`);
         const placeholders = patterns.map(() => 'filePath LIKE ?').join(' OR ');
         const sql = `SELECT * FROM thumbnail_table WHERE ${placeholders} ORDER BY time DESC, ROWID DESC`;
-        rows = await sqlDb.allSync(sql, patterns);
+        rows = await sqldb.allSync(sql, patterns);
     }catch(e){
         console.error(e);
     }
 
     
     // const sql = `SELECT * FROM  thumbnail_table WHERE INSTR(filePath, ?) > 0`;
-    // let rows = await sqlDb.allSync(sql, [filePath]);
+    // let rows = await sqldb.allSync(sql, [filePath]);
     // rows = rows.filter(row => {
     //     return isSub(filePath, row.filePath)
     // });
@@ -171,6 +171,6 @@ module.exports.getThumbnailForFolders = async function (filePathes) {
 
 module.exports.getThumbCount = async function () {
     const sql = `SELECT COUNT(*) as count FROM  thumbnail_table`;
-    const rows = await sqlDb.allSync(sql);
+    const rows = await sqldb.allSync(sql);
     return rows[0].count;
 }
