@@ -325,8 +325,9 @@ export default class ExplorerPage extends Component {
         return this.mode === "lack_info_mode";
     }
 
-    get_all_pathes(){
-        return this.dirs.concat( _.keys(this.fileInfos));
+    getPathesForHistoryAPI(){
+        // 只拿需要的
+        return [...this.compressFiles, ...(_.keys(this.imgFolderInfo))];
     }
 
     handleLsDirRes(res) {
@@ -371,7 +372,7 @@ export default class ExplorerPage extends Component {
                 this.askRerender();
             }
 
-            Sender.post('/api/getFileHistory', {all_pathes: this.get_all_pathes()}, res => {
+            Sender.post('/api/getFileHistory', {all_pathes: this.getPathesForHistoryAPI()}, res => {
                 if (!res.isFailed()) {
                     this.fileNameToHistory = {};
                     (res.json.fileHistory || {}).forEach(row => {
