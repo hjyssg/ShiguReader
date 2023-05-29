@@ -874,37 +874,56 @@ app.post("/api/getTagThumbnail", asyncWrapper(async (req, res) => {
         return;
     }
 
-    const cacheKey = tag || author;
-    let oneThumbnail = memorycache.get(cacheKey);
-    if(oneThumbnail){
-        res.send({
-            url: oneThumbnail
-        })
-        return;
-    }
+    let oneThumbnail;
+    // const cacheKey = tag || author;
+    // let oneThumbnail = memorycache.get(cacheKey);
+    // if(oneThumbnail){
+    //     res.send({
+    //         url: oneThumbnail
+    //     })
+    //     return;
+    // }
 
     const onlyNeedFew = true;
     const searchResult = await searchByTagAndAuthor(tag, author, null, onlyNeedFew);
     let { fileInfos, thumbnails } = searchResult;
-    const thumbnailPathes =  _.values(thumbnails);
-    oneThumbnail = thumbnailPathes[0];
+   
+    // dict to arr
+    let rows = Object.entries(fileInfos);
+    rows = rows.map(row => {
+        return {
+            filePath: row[0],
+            ...row[1]
+        }
+    });
+    // only keep zip
+    rows = rows.filter(row => isCompress(row.filePath));
+    rows = _.sortBy(rows, row => {
+        console.assert("mTimeMs" in row);
+        return row.mTimeMs;
+    });
+
+    // find one with thumbnail
+    for(let ii = 0; ii < rows.length; ii++){
+        const row = rows[ii];
+        const fp = row.filePath;
+        if(thumbnails[fp]){
+            oneThumbnail = thumbnails[fp];
+            break;
+        }
+    }
+
+    
     if(oneThumbnail){
-        memorycache.put(cacheKey, oneThumbnail, 60*1000);
-        // console.log(cacheKey);
         res.send({
             url: oneThumbnail
-        })
-        return;
-    }
-
-    const files = _.keys(fileInfos);
-    const chosendFileName = serverUtil.chooseOneZipForOneTag(files, db.getFileToInfo());
-    if (!chosendFileName) {
+        });
+    } else if (rows.length > 0) {
+        // 没有的话，现场unzip一个出来
+        extractThumbnailFromZip(rows[0], res);
+    } else {
         res.send({ failed: true, reason: "No file found" });
-        return;
     }
-
-    extractThumbnailFromZip(chosendFileName, res);
 }));
 
 const thumbnailGenerator = require("./thumbnailGenerator");
