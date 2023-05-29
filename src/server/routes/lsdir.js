@@ -48,8 +48,7 @@ router.post('/api/lsDir', serverUtil.asyncWrapper(async (req, res) => {
     const time1 = getCurrentTime();
     const sqldb = db.getSQLDB();
     const suffix = stringHash(dir) + time1;
-    const tempFileTable = "TEMP.FILE_TABLE_" + suffix;
-    // const tempDirTable = "TEMP.DIR_TABLE_" + suffix;
+    const tempFileTable = "TEMP_FILE_TABLE_" + suffix;
 
     try {
         let time2, timeUsed;
@@ -58,77 +57,62 @@ router.post('/api/lsDir', serverUtil.asyncWrapper(async (req, res) => {
 
         let sql, rows;
 
-        const sep = "|---|"
-
         //limit the searching  within this dir
         // 重复使用的临时table
-        sql = `CREATE TABLE ${tempFileTable} AS SELECT * FROM file_table WHERE INSTR(filePath, ?) = 1;
+        sql = `CREATE TABLE ${tempFileTable} AS SELECT * FROM file_table WHERE INSTR(filePath, ?) = 1 AND filePath != ?;
                CREATE INDEX IF NOT EXISTS ${tempFileTable}_filePath_index ON ${tempFileTable} (filePath);
                CREATE INDEX IF NOT EXISTS ${tempFileTable}_dirPath_index ON ${tempFileTable} (dirPath);
         `;
-        await sqldb.runSync(sql, [dir]);
+        await sqldb.runSync(sql, [dir, dir]);
 
-        //todo: LIMIT 0, 5 group by
         //-------------- dir --------------
         if (!isRecursive) {
-            // sql = `CREATE TABLE ${tempDirTable} AS SELECT * FROM ${tempFileTable} WHERE dirPath = ? AND isFolder = true`;
-            // await sqldb.runSync(sql, [dir]);
-
-            // //todo: group_concat is ugly
-            // // in order to get folder's files, join file_Table and then group by
-            // sql = `SELECT a.filePath, group_concat(b.fileName, '${sep}') as files  
-            //         FROM ${tempDirTable} AS a LEFT JOIN  
-            //         ${tempFileTable} AS b  
-            //         ON a.filePath = b.dirPath  
-            //         GROUP by a.fileName `
-            //
-            // CREATE VIEW filtered_dirs AS  SELECT * FROM ${tempFileTable} WHERE dirPath = '${dir}' AND isFolder = true;
-
-            sql = `
-                SELECT a.filePath, group_concat(b.fileName, '${sep}') as files  
-                FROM ${tempFileTable} AS a 
-                LEFT JOIN  
-                ${tempFileTable} AS b  
-                ON a.filePath = b.dirPath  
-                WHERE a.dirPath = ? AND a.isFolder = true
-                GROUP by a.fileName;
-            `
+            sql = `SELECT filePath FROM ${tempFileTable} WHERE dirPath = ? AND isFolder=true `
             rows = await sqldb.allSync(sql, dir);
             dirs = rows.map(e => e.filePath);
         }
 
         //-------------------files -----------------
         if (isRecursive) {
-            sql = `SELECT * FROM ${tempFileTable} WHERE filePath != ?`;
-            rows = await sqldb.allSync(sql, [dir]);
+            sql = `SELECT * FROM ${tempFileTable} WHERE isFolder=false`;
+            rows = await sqldb.allSync(sql);
         } else {
-            sql = `SELECT * FROM ${tempFileTable} WHERE dirPath = ? AND filePath != ?`;
-            rows = await sqldb.allSync(sql, [dir, dir]);
+            sql = `SELECT * FROM ${tempFileTable} WHERE dirPath = ? AND isFolder=false`;
+            rows = await sqldb.allSync(sql, [dir]);
         }
         fileInfos = serverUtil.convertFileRowsIntoFileInfo(rows);
 
         //---------------img folder -----------------
         const imgFolders = {};
-        sql = `SELECT dirPath, group_concat(fileName, '${sep}') AS files 
-              FROM ${tempFileTable} WHERE isDisplayableInOnebook = true OR isVideo = true
-              GROUP BY dirPath`;
-        rows = await sqldb.allSync(sql);
+        // join folder with isDisplayableInOnebook file
+        if(isRecursive){
+            sql = `
+            SELECT B.filePath, B.dirPath FROM
+             (SELECT filePath FROM ${tempFileTable} WHERE isFolder=true ) DT
+             INNER JOIN ${tempFileTable} B
+             ON DT.filePath=B.dirPath AND B.isDisplayableInOnebook=True
+            `
+            rows = await sqldb.allSync(sql);
+        }else{
+            sql = `
+            SELECT B.filePath, B.dirPath FROM
+             (SELECT filePath FROM ${tempFileTable}  WHERE dirPath = ? AND isFolder=true ) DT
+             INNER JOIN ${tempFileTable} B
+             ON DT.filePath=B.dirPath AND B.isDisplayableInOnebook=True
+            `
+            rows = await sqldb.allSync(sql, dir);
+        }
         rows.forEach(row => {
-            const fp = row.dirPath;
-            if (fp === dir || !row.files) {
-                return;
-            }
-            if (!isRecursive && !isDirectParent(dir, fp)) {
-                return;
-            }
-            const files = row.files.split(sep);
-            imgFolders[fp] = files.map(e => path.resolve(fp, e));
+            const dirPath = row.dirPath;
+            imgFolders[dirPath] = imgFolders[dirPath] || [];
+            imgFolders[dirPath].push(row.filePath);
         })
 
+
         //-------------get extra info
-        // time2 = getCurrentTime();
-        // timeUsed = (time2 - time1) / 1000;
-        // console.log("[/api/LsDir] sql time", timeUsed, "s")
+        time2 = getCurrentTime();
+        timeUsed = (time2 - time1) / 1000;
+        console.log("[/api/LsDir] sql time", timeUsed, "s")
 
         let result = {
             path: dir,
