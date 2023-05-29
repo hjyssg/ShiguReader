@@ -146,7 +146,26 @@ module.exports.isPortOccupied = (port) => {
  */
 module.exports.asyncWrapper = (fn) => {
     return (req, res, next) => {
-      fn(req, res, next).catch((reason)=>{
+      const beginTime = util.getCurrentTime();
+      fn(req, res, next)
+      .then(()=>{
+        // 测量性能
+        const timeSpent = util.getCurrentTime() - beginTime;
+        const url = req.url || "";
+        const exclude_list  = ["/api/download", "/api/getQuickThumbnail"];
+        let shouldLog = true;
+        exclude_list.forEach(e => {
+            if(url.includes(e)){
+                shouldLog = false;
+            }
+        })
+
+        let warnFlg = timeSpent > 300;
+        if(shouldLog || warnFlg){
+            console.log(`[${url}] ${timeSpent}ms`);
+        }
+      })
+      .catch((reason)=>{
         // next
         try{
             logger.error("asyncWrapper", reason, "\n\n", req);
@@ -154,7 +173,7 @@ module.exports.asyncWrapper = (fn) => {
         }catch(e){
             debugger;
         }
-      });
+      })
     };
 };
 

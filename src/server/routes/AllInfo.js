@@ -66,7 +66,7 @@ router.get('/api/getParseCache/', serverUtil.asyncWrapper(async (req, res) => {
 
     const time2 = util.getCurrentTime();
     const timeUsed = (time2 - time1);
-    logger.debug(logLabel, size, "  ", timeUsed, "ms")
+    // logger.debug(logLabel, size, "  ", timeUsed, "ms")
 }));
 
 router.post('/api/allInfo', serverUtil.asyncWrapper(async (req, res) => {
