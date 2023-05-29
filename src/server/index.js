@@ -1309,31 +1309,28 @@ app.post('/api/extract', asyncWrapper(async (req, res) => {
 }));
 
 
+let server_ip;
 app.get('/api/getGeneralInfo', asyncWrapper(async (req, res) => {
-    const cacheKey = "GeneralInfoCacheKey";
-    let result = memorycache.get(cacheKey);
-    if(!result){
-        let os = global.isWindows ? "windows" : "linux";
-        const ip = await getIP();
-        result = {
-            server_os: os,
-            file_path_sep: path.sep,
-            has_magick: global._has_magick_,
-            server_ip: ip,
-    
-            good_folder: global.good_folder,
-            not_good_folder: global.not_good_folder,
-            good_folder_root: global.good_folder_root,
-            not_good_folder_root: global.not_good_folder_root,
-
-            move_pathes: global.move_pathes,
-            recentAccess: global.recentAccess 
-        };
-        
-        memorycache.put(cacheKey, result, 30 * 1000)
+    let os = global.isWindows ? "windows" : "linux";
+    if(!server_ip){
+        server_ip = await getIP();
     }
 
-    res.setHeader('Cache-Control', 'public, max-age=60');
+    const result = {
+        server_os: os,
+        file_path_sep: path.sep,
+        has_magick: global._has_magick_,
+        server_ip,
+
+        good_folder: global.good_folder,
+        not_good_folder: global.not_good_folder,
+        good_folder_root: global.good_folder_root,
+        not_good_folder_root: global.not_good_folder_root,
+
+        move_pathes: global.move_pathes,
+        recentAccess: global.recentAccess 
+    };
+    res.setHeader('Cache-Control', 'public, max-age=3600');
     res.send(result)
 }));
 

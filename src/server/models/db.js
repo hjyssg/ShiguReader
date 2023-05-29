@@ -266,7 +266,6 @@ module.exports.getImgFolderInfo = async (imgFolders) => {
     }
 
     let end = getCurrentTime();
-    console.log(`[getImgFolderInfo] ${count} ${end - beg}ms`);
-
+    // console.log(`[getImgFolderInfo] ${count}images ${end - beg}ms`);
     return imgFolderInfo;
 }
