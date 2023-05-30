@@ -224,7 +224,7 @@ export default class TagPage extends Component {
       // nothing
     } else if (sortOrder === BY_TAG_NAME) {
       items.sort((a, b) => {
-        return a.tag.localeCompare(b.tag);
+        return a.tag.localeCompare(b.tag, undefined, { numeric: true });
       });
     }else  if (sortOrder == BY_GOOD_SCORE){
       // 再按喜好排序
