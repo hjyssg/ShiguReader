@@ -208,7 +208,7 @@ module.exports.deleteFromDb = function (filePath) {
     sqldb.run("DELETE FROM tag_table where filePath = ?", filePath);
 }
 
-module.exports.getImgFolderInfo = async (imgFolders) => {
+module.exports.getImgFolderInfo = (imgFolders) => {
     const imgFolderInfo = {};
     const imagefolderList = _.keys(imgFolders);
 

@@ -671,21 +671,21 @@ async function decorateResWithMeta(resObj) {
     resObj.zipInfo = zipInfo;
 
     resObj.thumbnails = thumbnails;
-    const imgFolderInfo = await db.getImgFolderInfo(imgFolders);
+    const imgFolderInfo = db.getImgFolderInfo(imgFolders);
     resObj.imgFolderInfo = imgFolderInfo;
 
-    // 把zipinfo的mtime合并到fileInfos
-    // 并精简obj
     const allowZipInfo = ["pageNum", "musicNum", "videoNum", "totalNum", "totalImgSize"];
     for(const tempFilePath in zipInfo){
-        const obj = zipInfo[tempFilePath];
-        if(obj.mtime){
+        const zipObj = zipInfo[tempFilePath];
+        // 把zipinfo的mtime合并到fileInfos
+        if(zipObj.mtime){
             fileInfos[tempFilePath] = fileInfos[tempFilePath] || {};
             if(!fileInfos[tempFilePath].mtimeMs){
-                fileInfos[tempFilePath].mtimeMs = obj.mtime;
+                fileInfos[tempFilePath].mtimeMs = zipObj.mtime;
             }
         }
-        zipInfo[tempFilePath] = filterObjectProperties(obj, allowZipInfo);
+        // 并精简obj
+        zipInfo[tempFilePath] = filterObjectProperties(zipObj, allowZipInfo);
     }
 
     // resObj说明：
