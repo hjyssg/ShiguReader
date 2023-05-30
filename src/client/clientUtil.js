@@ -260,17 +260,25 @@ const getDownloadLink = module.exports.getDownloadLink = function (path) {
 //     return history;
 // }
 
+function replaceHash(newHash){
+    if(location.hash){
+        return location.href.replace(location.hash, "#" + newHash);
+    }else{
+        return location.href + "#" + newHash;
+    }
+}
+
 module.exports.linkFunc = (index)=>{
     const parsed = queryString.parse(location.hash);
     parsed.pageIndex = index + 1;
     const newHash = queryString.stringify(parsed)
-    const newUrl = location.href.replace(location.hash, "#" + newHash);
+    const newUrl = replaceHash(newHash);
     return newUrl
 }
 
 module.exports.replaceUrlHash = function(newHash){
     // console.assert((location.origin + location.pathname + location.search + location.hash) === location.href, "[replaceUrlHash] url error")
-    const newUrl = location.href.replace(location.hash, "#" + newHash);
+    const newUrl = replaceHash(newHash);
     location.replace(newUrl);
 }
 
