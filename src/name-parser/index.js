@@ -6,11 +6,14 @@ const char_names = require("./character-names");
 const char_name_regex = new RegExp(char_names.join("|"));
 const not_author_but_tag_regex = new RegExp(not_author_but_tag.join("$|") + "$", "i");
 
+const useless_tag_regex = /DL版|同人誌|別スキャン|修正版|^エロ|^digital$|^JPG|^PNG|ページ補足|進行中|別版|Various/i;
+
 const book_types = [
     "同人音声",
     "同人催眠音声",
     "同人ソフト",
     "同人CG集",
+    "同人CG",
     "同人ゲーム",
     "成年コミック",
     "一般コミック",
@@ -354,6 +357,12 @@ function parse(str) {
         return e.length > 1 && !isOtherInfo(e) && authors.indexOf(e) === -1 && e !== author;
     });
 
+    tags = tags.filter(e => {
+        return  !e.match(useless_tag_regex) && !isBookType(e);
+    })
+
+    const rawTags = tags.slice();
+
     tags = tags.map(e => {
         e = e.replace(/ {2,}/g, " ").replace(/。/g, "").replace(/！/g, "!").replace(/？/g, "?");
 
@@ -392,21 +401,51 @@ function parse(str) {
     (bMacthes || []).concat(pMacthes || [], tags || [], [/\[/g, /\]/g, /\(/g, /\)/g]).forEach(e => {
         title = title.replace(e, "");
     })
+    if(title.includes(".")){
+        title = title.split(".")[0];
+    }
     title = title.trim();
 
     //get character names
-    const names = char_name_regex && title.match(char_name_regex);
-    names && tags.push(...names);
+    let charNames = [];
+    if(char_name_regex ){
+        const names = title.match(char_name_regex);
+        if(names){
+            charNames.push(...names);
+        }
+    } 
 
+    const extraTags = getExtraTags(title);
     const result = {
-        dateTag, group, author, authors, tags, comiket, type, title
+        // 日期tag：比如 20220312
+        dateTag, 
+        // 同人的group
+        group, 
+        // 作者。其实有点不对，因为有的是有多作者的
+        author, 
+        // 作者list
+        authors, 
+        // tags 已过变形处理
+        tags, 
+        // 用regex从string找到的角色名字
+        charNames,
+        // extrac tags
+        extraTags,
+        // 未经转换的tags
+        rawTags,
+        // 比如 c101
+        comiket, 
+        // 类型
+        type, 
+        // 标题
+        title
     };
 
     localCache[str] = result;
     return result;
 }
 
-function parseMusicTitle(str) {
+function getExtraTags(str) {
     // [161109] TVアニメ「ラブライブ！サンシャイン!!」挿入歌シングル3「想いよひとつになれ／MIRAI TICKET」／Aqours [320K].zip
     //[180727]TVアニメ『音楽少女』OPテーマ「永遠少年」／小倉唯[320K].rar
     let jpbReg = /「(.*?)」/g;
@@ -560,7 +599,6 @@ module.exports.isHighlySimilar = isHighlySimilar;
 module.exports.parse = parse;
 module.exports.getDateFromComiket = getDateFromComiket;
 module.exports.getDateFromParse = getDateFromParse;
-module.exports.parseMusicTitle = parseMusicTitle;
 module.exports.getLocalCache = getLocalCache;
 module.exports.setLocalCache = setLocalCache;
 

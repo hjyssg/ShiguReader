@@ -7,7 +7,6 @@ const util = global.requireUtil();
 const _util = require('util');
 const { isImage, isCompress, isMusic, isVideo, getCurrentTime } = util;
 const pfs = require('promise-fs');
-
 const nameParser = require('../../name-parser');
 const namePicker = require("../../human-name-picker");
 
@@ -152,27 +151,29 @@ const updateFileDb = function (filePath, statObj) {
     const isDisplayableInExplorer = util.isDisplayableInExplorer(fileName);
     const isDisplayableInOnebook = util.isDisplayableInOnebook(fileName);
     //set up tags
-    const str = isDisplayableInExplorer ? fileName : getDirName(filePath);
-
+    const str = isDisplayableInExplorer ? path.basename(filePath, path.extname(filePath)) : getDirName(filePath);
     const temp = nameParser.parse(str) || {};
-    const musicTags = nameParser.parseMusicTitle(str) || [];
-   
-    const authors = temp.authors || [];
-    const group = temp.group || "";
+
+    const {
+        authors=[],
+        group="",
+        comiket="",
+        charNames=[],
+        tags=[],
+    } = temp;
 
     
     // tag插入sql
     let tags_rows = [];
     // comiket
-    tags_rows.push([filePath, temp.comiket, "tag", "comiket", isCompressFile, isFolder]);
+    tags_rows.push([filePath, comiket, "tag", "comiket", isCompressFile, isFolder]);
     // name
-    const nameTags = namePicker.pick(str) || [];
+    const nameTags = [...(namePicker.pick(str)||[]), ...charNames];
     nameTags.forEach(name => {
         tags_rows.push([filePath, name, "tag", "name", isCompressFile, isFolder]);
     })
 
     // parody
-    const tags = _.uniq([].concat(temp.tags, musicTags));
     tags.forEach(tt => {
         if (!authors.includes(tt) && group !== tt) {
             tags_rows.push([filePath, tt, "tag", "parody", isCompressFile, isFolder]);
@@ -185,9 +186,8 @@ const updateFileDb = function (filePath, statObj) {
     // group
     tags_rows.push([filePath, group, "group", "group", isCompressFile, isFolder]);
 
-    tags_rows = tags_rows.filter(e => {
-        return  e[1] && !e[1].match(util.useless_tag_regex)
-    })
+    // fliter null or empty
+    tags_rows = tags_rows.filter(e => { return  e[1] && e[1].length > 0; })
 
     // do batch insertion
     if(tags_rows.length > 0){

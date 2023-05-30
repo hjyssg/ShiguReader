@@ -27,7 +27,7 @@ const serverUtil = require("./serverUtil");
 const { getHash, mkdirSync, asyncWrapper } = serverUtil;
 
 const { isHiddenFile, generateContentUrl, isExist, filterPathConfig, isSub, estimateIfFolder } = pathUtil;
-const { isImage, isCompress, isVideo, isMusic, arraySlice,
+const { isImage, isCompress, isVideo, isMusic, 
     getCurrentTime, isDisplayableInExplorer, isDisplayableInOnebook } = util;
 
 //set up path
@@ -1272,7 +1272,7 @@ app.post('/api/extract', asyncWrapper(async (req, res) => {
             //cut the array into 3 parts
             const beg = startIndex - PREV_SPACE;
             const end = startIndex + full_extract_max - PREV_SPACE;
-            const firstRange = arraySlice(tempfiles, beg, end);
+            const firstRange = util.arraySlice(tempfiles, beg, end);
             let secondRange = tempfiles.filter(e => {
                 return !firstRange.includes(e);
             })

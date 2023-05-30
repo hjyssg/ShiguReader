@@ -10,7 +10,7 @@ const _ = require('underscore');
  *  * tag time:根据文件名推算出来的时间
  */
 module.exports.sort_file_by_time = function (files, config) {
-    const { fileInfos, getBaseName, ascend, onlyByMTime, byReadTime, byReadCount, fileNameToHistory } = config;
+    const { fileInfos, getBaseName, ascend, onlyByMTime } = config;
     const fp2Time = {};
 
     // 5400个文件计算time需要0.4秒
@@ -38,16 +38,8 @@ module.exports.sort_file_by_time = function (files, config) {
                 time = tTime;
             }
         }
-
-        if(byReadCount){
-            const count = fileNameToHistory && fileNameToHistory[fn] && parseInt(fileNameToHistory[fn].count);
-            time = count || 0;
-        }else if (byReadTime) {
-            const rTime = fileNameToHistory && fileNameToHistory[fn] && parseInt(fileNameToHistory[fn].time);
-            time = rTime;
-            getMtime();
-            getTTime()
-        } else if (onlyByMTime) {
+     
+        if (onlyByMTime) {
             getMtime();
         } else {
             getMtime();

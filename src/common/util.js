@@ -65,13 +65,11 @@ module.exports.isAv = function (fn) {
 
     //ABP264
     const fnUp = fn.toUpperCase();
-    if (avRegex.test(fnUp)) {
-        return true;
-    }
+    return avRegex.test(fnUp);
 }
 
 //not for .gif
-const compressable = ["jpg", "jpeg", ".png"]
+const compressable = [".jpg", ".jpeg", ".png"]
 module.exports.canBeCompressed = function (fn) {
     const fnl = fn.toLowerCase();
     return compressable.some((e) => fnl.endsWith(e));
@@ -180,10 +178,7 @@ module.exports.getAverage = function(intArray) {
     const avg = sum / intArray.length;
   
     return avg;
-  }
-
-module.exports.useless_tag_regex = /DL版|同人誌|別スキャン|修正版|^エロ|^digital$|^JPG|^PNG|ページ補足/i;
-
+}
 
 
 /** 写一个js函数，把string留头留尾，中间的字符换成省略号。穿参数设置最终字符数 */

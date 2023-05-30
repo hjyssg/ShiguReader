@@ -141,9 +141,8 @@ async function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
         let esObj = await searchEveryPromise;
         if (esObj) {
             if(author){
-                const parse = serverUtil.parse;
                 const checkIfPass = (fileName, author) => {
-                    const result = parse(fileName);
+                    const result = serverUtil.parse(fileName);
                     if(!result){
                         return false;
                     }
