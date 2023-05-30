@@ -172,7 +172,7 @@ const updateFileDb = function (filePath, statObj) {
     })
 
     // parody
-    const tags = _.uniq([].concat(temp.tags, nameTags, musicTags));
+    const tags = _.uniq([].concat(temp.tags, musicTags));
     tags.forEach(tt => {
         if (!authors.includes(tt) && group !== tt) {
             tags_rows.push([filePath, tt, "tag", "parody", isCompressFile, isFolder]);

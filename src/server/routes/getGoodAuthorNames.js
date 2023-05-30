@@ -39,7 +39,7 @@ async function getGoodAndOtherSet() {
         COUNT(CASE WHEN INSTR(filePath, ?) = 1 THEN 1 END) AS good_count,
         COUNT(CASE WHEN INSTR(filePath, ?) = 1 THEN 1 END) AS bad_count,
         COUNT(filePath) AS total_count
-        FROM tag_view GROUP BY tag`;
+        FROM tag_view WHERE subtype="parody" GROUP BY tag HAVING total_count >= 5 `;
         tagInfo = await db.doSmartAllSync(sql, [global.good_folder_root, global.not_good_folder_root]);
         _addCol(tagInfo);
     }
