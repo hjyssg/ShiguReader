@@ -613,15 +613,19 @@ export default class ExplorerPage extends Component {
 
 
         // 一律先时间排序
-        const onlyByMTime = this.getMode() === MODE_EXPLORER && !this.isLackInfoMode();
-        const config = {
-            fileInfos: this.allfileInfos,
-            ascend: true,
-            getBaseName,
-            onlyByMTime
-        }
-        sortUtil.sort_file_by_time(files, config);
+        // const onlyByMTime = this.getMode() === MODE_EXPLORER && !this.isLackInfoMode();
+        // const config = {
+        //     fileInfos: this.allfileInfos,
+        //     ascend: true,
+        //     getBaseName,
+        //     onlyByMTime
+        // }
+        // sortUtil.sort_file_by_time(files, config);
         // 下方的sort都是stable sort。
+        files = _.sortBy(files, e => {
+            // 没有信息，排到前面来触发后端get thumbnail。获得信息
+            return  this.getMtime(e) || Infinity;
+        });
 
         if (sortOrder.includes(BY_RANDOM)) {
             files = _.shuffle(files);
@@ -673,7 +677,7 @@ export default class ExplorerPage extends Component {
     }
 
     getMtime(fp){
-        const mTime = this.fileInfos && this.fileInfos[fp] && parseInt(this.fileInfos[fp].mtimeMs);
+        const mTime = this.allfileInfos && this.allfileInfos[fp] && parseInt(this.allfileInfos[fp].mtimeMs);
         return mTime || 0;
     }
 
