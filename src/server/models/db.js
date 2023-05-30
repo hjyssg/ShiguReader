@@ -48,6 +48,7 @@ module.exports.init = async ()=> {
 
     await sqldb.runSync(`CREATE TABLE file_table (
                             filePath TEXT NOT NULL PRIMARY KEY, 
+                            dirName TEXT, 
                             dirPath TEXT, 
                             fileName TEXT, 
                             mTime INTEGER, 
@@ -82,7 +83,10 @@ module.exports.getSQLDB = function () {
 
 module.exports.createSqlIndex = async function () {
     await sqldb.runSync(` CREATE INDEX IF NOT EXISTS ft_filePath_index ON file_table (filePath); `);
+    await sqldb.runSync(` CREATE INDEX IF NOT EXISTS ft_fileName_index ON file_table (fileName); `);
     await sqldb.runSync(` CREATE INDEX IF NOT EXISTS ft_dirPath_index ON file_table (dirPath); `);
+    await sqldb.runSync(` CREATE INDEX IF NOT EXISTS ft_dirName_index ON file_table (dirName); `);
+
     await sqldb.runSync(` CREATE INDEX IF NOT EXISTS tag_index ON tag_table (tag); `);
     await sqldb.runSync(` CREATE INDEX IF NOT EXISTS tag_filePath_index ON tag_table (filePath); `);
 }
@@ -126,9 +130,10 @@ const updateFileDb = function (filePath, statObj) {
             values (?, ?, ?, ?, ?, ?)`);
 
     stmt_file_insert = stmt_file_insert || sqldb.prepare(`
-        INSERT OR REPLACE INTO file_table (filePath, dirPath, fileName, mTime, size,
+        INSERT OR REPLACE INTO file_table (
+        filePath, dirName, dirPath, fileName, mTime, size,
         isDisplayableInExplorer, isDisplayableInOnebook, 
-        isCompress, isVideo, isFolder ) values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`);
+        isCompress, isVideo, isFolder ) values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`);
 
     const isCompressFile = isCompress(fileName);
     const isVideoFile = isVideo(fileName);
@@ -176,9 +181,10 @@ const updateFileDb = function (filePath, statObj) {
     aboutTimeA = aboutTimeA && aboutTimeA.getTime();
     let fileTimeA = statObj.mtimeMs || aboutTimeA;
     const dirPath = path.dirname(filePath);
+    const dirName = path.basename(path.dirname(filePath));
     const fileSize = statObj.size || 0;
     // https://www.sqlitetutorial.net/sqlite-nodejs/insert/
-    stmt_file_insert.run(filePath, dirPath, fileName, fileTimeA, fileSize,
+    stmt_file_insert.run(filePath, dirName, dirPath, fileName, fileTimeA, fileSize,
         isDisplayableInExplorer, isDisplayableInOnebook, isCompressFile, isVideoFile, isFolder);
 }
 

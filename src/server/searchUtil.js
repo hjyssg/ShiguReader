@@ -94,8 +94,8 @@ async function searchByText(text) {
     // https://www.sqlite.org/optoverview.html
     // console.time();
     // 模糊搜索
-    let sql = `SELECT * FROM file_table WHERE filePath LIKE ? `;
-    let rows = await sqldb.allSync(sql, ["%" + text + "%"]);
+    let sql = `SELECT * FROM file_table WHERE fileName LIKE ? or dirName LIKE ? `;
+    let rows = await sqldb.allSync(sql, ["%" + text + "%", "%" + text + "%"]);
     // console.timeEnd();
 
     return splitRows(rows, text);
