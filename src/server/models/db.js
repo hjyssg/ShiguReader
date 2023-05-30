@@ -71,9 +71,9 @@ module.exports.init = async ()=> {
                             isFolder BOOL);`);
     await sqldb.runSync(`CREATE TABLE tag_table (
                             filePath TEXT NOT NULL, 
-                            tag VARCHAR(50) NOT NULL, 
-                            type VARCHAR(25),
-                            subtype VARCHAR(25), 
+                            tag VARCHAR(50) NOT NULL , 
+                            type VARCHAR(25) CHECK(type IN ('tag', 'author', 'group')),
+                            subtype VARCHAR(25)  CHECK(subtype IN ('comiket', 'name', 'parody', 'author', 'group')) , 
                             isCompress BOOL,
                             isFolder BOOL,
                             PRIMARY KEY (filePath, tag, type) 
@@ -155,29 +155,40 @@ const updateFileDb = function (filePath, statObj) {
     const str = isDisplayableInExplorer ? fileName : getDirName(filePath);
 
     const temp = nameParser.parse(str) || {};
-    const nameTags = namePicker.pick(str) || [];
     const musicTags = nameParser.parseMusicTitle(str) || [];
-    const tags = _.uniq([].concat(temp.tags, temp.comiket, nameTags, musicTags));
+   
     const authors = temp.authors || [];
     const group = temp.group || "";
 
     
     // tag插入sql
     let tags_rows = [];
-    tags.forEach(t => {
-        if (!authors.includes(t) && group !== t) {
-            if (temp.comiket === t) {
-                tags_rows.push([filePath, t, "tag", "comiket", isCompressFile, isFolder]);
-            } else {
-                tags_rows.push([filePath, t, "tag", "parody", isCompressFile, isFolder]);
-            }
+    // comiket
+    tags_rows.push([filePath, temp.comiket, "tag", "comiket", isCompressFile, isFolder]);
+    // name
+    const nameTags = namePicker.pick(str) || [];
+    nameTags.forEach(name => {
+        tags_rows.push([filePath, name, "tag", "name", isCompressFile, isFolder]);
+    })
+
+    // parody
+    const tags = _.uniq([].concat(temp.tags, nameTags, musicTags));
+    tags.forEach(tt => {
+        if (!authors.includes(tt) && group !== tt) {
+            tags_rows.push([filePath, tt, "tag", "parody", isCompressFile, isFolder]);
         }
     })
-    authors.forEach(t => {
-        tags_rows.push([filePath, t, "author", "", isCompressFile, isFolder]);
+    // author
+    authors.forEach(tt => {
+        tags_rows.push([filePath, tt, "author", "author", isCompressFile, isFolder]);
     })
-    tags_rows.push([filePath, group, "group", "", isCompressFile, isFolder]);
-    tags_rows = tags_rows.filter(e => e[1] && !e[1].match(util.useless_tag_regex))
+    // group
+    tags_rows.push([filePath, group, "group", "group", isCompressFile, isFolder]);
+
+    tags_rows = tags_rows.filter(e => {
+        return  e[1] && !e[1].match(util.useless_tag_regex)
+    })
+
     // do batch insertion
     if(tags_rows.length > 0){
         for(const row of tags_rows){

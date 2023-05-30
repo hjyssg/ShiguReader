@@ -27,7 +27,7 @@ async function getGoodAndOtherSet() {
   
 
     if (global.good_folder_root && global.not_good_folder_root) {
-        sql = `SELECT tag, 
+        sql = `SELECT tag, MAX(subtype) AS subtype,
                 COUNT(CASE WHEN INSTR(filePath, ?) = 1 THEN 1 END) AS good_count,
                 COUNT(CASE WHEN INSTR(filePath, ?) = 1 THEN 1 END) AS bad_count,
                 COUNT(filePath) AS total_count
@@ -35,7 +35,7 @@ async function getGoodAndOtherSet() {
         authorInfo = await db.doSmartAllSync(sql, [global.good_folder_root, global.not_good_folder_root]);
         _addCol(authorInfo);
 
-        sql = `SELECT tag, 
+        sql = `SELECT tag, MAX(subtype) AS subtype,
         COUNT(CASE WHEN INSTR(filePath, ?) = 1 THEN 1 END) AS good_count,
         COUNT(CASE WHEN INSTR(filePath, ?) = 1 THEN 1 END) AS bad_count,
         COUNT(filePath) AS total_count
