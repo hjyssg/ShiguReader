@@ -671,21 +671,21 @@ async function decorateResWithMeta(resObj) {
     resObj.zipInfo = zipInfo;
 
     resObj.thumbnails = thumbnails;
-    const imgFolderInfo = await db.getImgFolderInfo(imgFolders);
+    const imgFolderInfo = db.getImgFolderInfo(imgFolders);
     resObj.imgFolderInfo = imgFolderInfo;
 
-    // 把zipinfo的mtime合并到fileInfos
-    // 并精简obj
     const allowZipInfo = ["pageNum", "musicNum", "videoNum", "totalNum", "totalImgSize"];
     for(const tempFilePath in zipInfo){
-        const obj = zipInfo[tempFilePath];
-        if(obj.mtime){
+        const zipObj = zipInfo[tempFilePath];
+        // 把zipinfo的mtime合并到fileInfos
+        if(zipObj.mtime){
             fileInfos[tempFilePath] = fileInfos[tempFilePath] || {};
             if(!fileInfos[tempFilePath].mtimeMs){
-                fileInfos[tempFilePath].mtimeMs = obj.mtime;
+                fileInfos[tempFilePath].mtimeMs = zipObj.mtime;
             }
         }
-        zipInfo[tempFilePath] = filterObjectProperties(obj, allowZipInfo);
+        // 并精简obj
+        zipInfo[tempFilePath] = filterObjectProperties(zipObj, allowZipInfo);
     }
 
     // resObj说明：
@@ -863,13 +863,12 @@ app.post("/api/getTagThumbnail", asyncWrapper(async (req, res) => {
     // }
 
 
-    const sqldb = db.getSQLDB();
     let sql = ` SELECT a.* , b.*
                 FROM zip_view a 
                 INNER JOIN tag_table b ON a.filePath = b.filePath AND b.tag = ?
                 ORDER BY a.mTime DESC 
                 LIMIT 100;`
-    let rows = await sqldb.allSync(sql, [author || tag]);
+    let rows = await db.doSmartAllSync(sql, [author || tag]);
 
     // find thumbnail
     const thumbnails = await serverUtil.common.getThumbnailsForZip(rows.map(e => e.filePath))

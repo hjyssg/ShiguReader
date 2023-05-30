@@ -46,7 +46,7 @@ router.post('/api/lsDir', serverUtil.asyncWrapper(async (req, res) => {
     }
 
     const time1 = getCurrentTime();
-    const sqldb = db.getSQLDB();
+    // const sqldb = db.getSQLDB();
     // const suffix = stringHash(dir) + time1;
 
     // 前缀是子文件都搜索
@@ -61,17 +61,17 @@ router.post('/api/lsDir', serverUtil.asyncWrapper(async (req, res) => {
         if (!isRecursive) {
             // 单层才有folder
             sql = `SELECT filePath FROM file_table WHERE dirPath = ? AND isFolder=true `
-            rows = await sqldb.allSync(sql, [dir]);
+            rows = await db.doSmartAllSync(sql, [dir]);
             dirs = rows.map(e => e.filePath);
         }
 
         //-------------------files -----------------
         if (isRecursive) {
             sql = `${recursiveFileSQL} AND isFolder=false`;
-            rows = await sqldb.allSync(sql, [`${dir}%`, dir]);
+            rows = await db.doSmartAllSync(sql, [`${dir}%`, dir]);
         } else {
             sql = `SELECT * FROM file_table WHERE dirPath = ? AND isFolder=false`;
-            rows = await sqldb.allSync(sql, [dir]);
+            rows = await db.doSmartAllSync(sql, [dir]);
         }
         fileInfos = serverUtil.convertFileRowsIntoFileInfo(rows);
 
@@ -89,7 +89,7 @@ router.post('/api/lsDir', serverUtil.asyncWrapper(async (req, res) => {
              INNER JOIN TT AS B
              ON A.filePath=B.dirPath AND B.isDisplayableInOnebook=True AND A.isFolder=true
             `
-            rows = await sqldb.allSync(sql, [`${dir}%`, dir]);
+            rows = await db.doSmartAllSync(sql, [`${dir}%`, dir]);
         }else{
             //单层
             sql = `
@@ -102,7 +102,7 @@ router.post('/api/lsDir', serverUtil.asyncWrapper(async (req, res) => {
              INNER JOIN TT AS B
              ON A.filePath=B.dirPath AND B.isDisplayableInOnebook=True AND A.isFolder=true
             `
-            rows = await sqldb.allSync(sql, [dir]);
+            rows = await db.doSmartAllSync(sql, [dir]);
         }
         rows.forEach(row => {
             const dirPath = row.dirPath;
@@ -113,8 +113,8 @@ router.post('/api/lsDir', serverUtil.asyncWrapper(async (req, res) => {
 
         // -------------get extra info
         time2 = getCurrentTime();
-        timeUsed = (time2 - time1) / 1000;
-        console.log("[/api/LsDir] sql time", timeUsed, "s")
+        timeUsed = (time2 - time1);
+        console.log("[/api/LsDir] sql time", timeUsed, "ms")
 
         let result = {
             path: dir,
@@ -125,8 +125,8 @@ router.post('/api/lsDir', serverUtil.asyncWrapper(async (req, res) => {
 
         result = await decorateResWithMeta(result);
         const time3 = getCurrentTime();
-        timeUsed = (time3 - time2) / 1000;
-        console.log("[/api/LsDir] info look", timeUsed, "s")
+        timeUsed = (time3 - time2);
+        console.log("[/api/LsDir] decorateResWithMeta", timeUsed, "ms")
         historyDb.addOneLsDirRecord(dir);
         res.send(result);
     } catch (e) {

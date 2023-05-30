@@ -30,9 +30,8 @@ function getSql(tableName){
 
 router.post('/api/get_authors', serverUtil.asyncWrapper(async (req, res) => {
     // const needThumbnail = req.body && req.body.needThumbnail;
-    const sqldb = db.getSQLDB();
     let sql = getSql("author_view");
-    let author_rows = await sqldb.allSync(sql);
+    let author_rows = await db.doSmartAllSync(sql);
     await add_col(author_rows);
 
     res.send({
@@ -42,9 +41,8 @@ router.post('/api/get_authors', serverUtil.asyncWrapper(async (req, res) => {
 
 router.post('/api/get_tags', serverUtil.asyncWrapper(async (req, res) => {
     // const needThumbnail = req.body && req.body.needThumbnail;
-    const sqldb = db.getSQLDB();
     let sql = getSql("tag_view");
-    let tag_rows = await sqldb.allSync(sql);
+    let tag_rows = await db.doSmartAllSync(sql);
     await add_col(tag_rows);
 
     res.send({

@@ -30,6 +30,16 @@ const getFileToInfoAsync = async (filePath) => {
     return stmd_single_file.getSync(filePath)
 }
 
+let statement_cache = {};
+const doSmartAllSync = module.exports.doSmartAllSync = async (sql, params) =>{
+    if(!statement_cache[sql]){
+        const statement = sqldb.prepare(sql);
+        statement.allSync = _util.promisify(statement.all).bind(statement);
+        statement_cache[sql] = statement;
+    }
+    return await statement_cache[sql].allSync(params);
+}
+
 let sqldb;
 module.exports.init = async ()=> {
     const dbCommon = require("./dbCommon");
@@ -208,7 +218,7 @@ module.exports.deleteFromDb = function (filePath) {
     sqldb.run("DELETE FROM tag_table where filePath = ?", filePath);
 }
 
-module.exports.getImgFolderInfo = async (imgFolders) => {
+module.exports.getImgFolderInfo = (imgFolders) => {
     const imgFolderInfo = {};
     const imagefolderList = _.keys(imgFolders);
 

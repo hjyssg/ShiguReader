@@ -20,7 +20,6 @@ async function getGoodAndOtherSet() {
     let sql;
     let authorInfo = [];
     let tagInfo = [];
-    const sqldb = db.getSQLDB();
     // const cacheKey = "GoodAndOtherSetCacheKey";
     // if(memorycache.get(cacheKey)){
     //     authorInfo = memorycache.get(cacheKey);
@@ -33,7 +32,7 @@ async function getGoodAndOtherSet() {
                 COUNT(CASE WHEN INSTR(filePath, ?) = 1 THEN 1 END) AS bad_count,
                 COUNT(filePath) AS total_count
                 FROM author_view GROUP BY tag`;
-        authorInfo = await sqldb.allSync(sql, [global.good_folder_root, global.not_good_folder_root]);
+        authorInfo = await db.doSmartAllSync(sql, [global.good_folder_root, global.not_good_folder_root]);
         _addCol(authorInfo);
 
         sql = `SELECT tag, 
@@ -41,7 +40,7 @@ async function getGoodAndOtherSet() {
         COUNT(CASE WHEN INSTR(filePath, ?) = 1 THEN 1 END) AS bad_count,
         COUNT(filePath) AS total_count
         FROM tag_view GROUP BY tag`;
-        tagInfo = await sqldb.allSync(sql, [global.good_folder_root, global.not_good_folder_root]);
+        tagInfo = await db.doSmartAllSync(sql, [global.good_folder_root, global.not_good_folder_root]);
         _addCol(tagInfo);
     }
 
