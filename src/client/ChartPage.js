@@ -36,7 +36,7 @@ function parse(str) {
 //@param filterFunction(key, value)
 function getKeyAndValues(keyToValueTable, filterFunction) {
     const tempKeys = _.keys(keyToValueTable);
-    tempKeys.sort();
+    tempKeys.sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
     const values = [];
     let keys = [];
     tempKeys.forEach(key => {

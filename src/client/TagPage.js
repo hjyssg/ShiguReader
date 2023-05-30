@@ -213,6 +213,18 @@ export default class TagPage extends Component {
 
     let items = this.getItems() || [];
 
+    // tag页面特有的过滤
+    if(this.isTagMode()){
+      items = items.filter(e => {
+        if(this.isOn(FILTER_COMIKET) && e.subtype === "comiket"){
+          return true;
+        }
+        if(this.isOn(FILTER_PARODY) && e.subtype === "parody"){
+          return true;
+        }
+      });
+    }
+
 
     // 一律先按file count来
     items = _.sortBy(items, item => item.count);
@@ -243,7 +255,7 @@ export default class TagPage extends Component {
     items.reverse();
   }
 
-  // 追加property
+  // 追加property rank
   items.forEach((e, ii) => {
     e.rank = ii+1;
   })
@@ -253,19 +265,6 @@ export default class TagPage extends Component {
     let _text = filterText.toLowerCase();
     items = items.filter(e => {
       return e.tag.toLowerCase().indexOf(_text) > -1;
-    });
-  }
-    
-
-  if(this.isTagMode()){
-    items = items.filter(e => {
-      if(this.isOn(FILTER_COMIKET) && e.subtype === "comiket"){
-        return true;
-      }
-
-      if(this.isOn(FILTER_PARODY) && e.subtype === "parody"){
-        return true;
-      }
     });
   }
 
@@ -413,21 +412,39 @@ export default class TagPage extends Component {
     </div>);
   }
 
-  toggleFilter(key) {
-      let filterArr = this.state.filterArr.slice();
-      const index = filterArr.indexOf(key)
+  toggleFilterForTagPage(key) {
+      // let filterArr = this.state.filterArr.slice();
+      // const index = filterArr.indexOf(key)
 
-      if (index > -1) {
-          filterArr.splice(index, 1)
-      } else {
-          filterArr.push(key);
+      // if (index > -1) {
+      //     filterArr.splice(index, 1)
+      // } else {
+      //     filterArr.push(key);
+      // }
+
+      let { filterArr } = this.state;
+      if(filterArr[0] == key){
+        return;
       }
 
+      // 互斥
       // console.log(filterArr)
       this.setStateAndSetHash({
-          filterArr,
+          filterArr: [key],
           pageIndex: 1
       });
+
+      if(key == FILTER_COMIKET){
+        this.setStateAndSetHash({
+          sortOrder: BY_TAG_NAME, 
+          isSortAsc: true
+        });
+      }else{
+        this.setStateAndSetHash({
+          sortOrder: BY_GOOD_SCORE, 
+          isSortAsc: false
+        });
+      }
   }
 
   isOn(key) {
@@ -440,12 +457,12 @@ export default class TagPage extends Component {
     }
 
     const st2 = `Parody`;
-    let checkbox2 = (<Checkbox onChange={this.toggleFilter.bind(this, FILTER_PARODY)} checked={this.isOn(FILTER_PARODY)}>
+    let checkbox2 = (<Checkbox onChange={this.toggleFilterForTagPage.bind(this, FILTER_PARODY)} checked={this.isOn(FILTER_PARODY)}>
         {st2}
     </Checkbox>);
 
     const st3 = `Comiket`;
-    let checkbox3 = (<Checkbox onChange={this.toggleFilter.bind(this, FILTER_COMIKET)} checked={this.isOn(FILTER_COMIKET)}>
+    let checkbox3 = (<Checkbox onChange={this.toggleFilterForTagPage.bind(this, FILTER_COMIKET)} checked={this.isOn(FILTER_COMIKET)}>
         {st3}
     </Checkbox>);
 
