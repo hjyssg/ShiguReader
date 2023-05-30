@@ -31,7 +31,8 @@ const getFileToInfoAsync = async (filePath) => {
 }
 
 let statement_cache = {};
-const doSmartAllSync = module.exports.doSmartAllSync = async (sql, params) =>{
+module.exports.doSmartAllSync = async (sql, params) =>{
+    // 可能是sql文都比较简单，性能提升大约只有百分之三。
     if(!statement_cache[sql]){
         const statement = sqldb.prepare(sql);
         statement.allSync = _util.promisify(statement.all).bind(statement);
