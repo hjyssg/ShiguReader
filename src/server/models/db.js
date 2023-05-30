@@ -242,8 +242,11 @@ module.exports.getImgFolderInfo = (imgFolders) => {
         for (let jj = 0; jj < files.length; jj++){
             const file = files[jj];
             console.assert(file.isDisplayableInOnebook);
+            console.assert("mTime" in file);
+            console.assert("size" in file);
+
             count++;
-            mtimeMs += file.mtimeMs / len;
+            mtimeMs += file.mTime / len;
             size += file.size;
             const fp = file.filePath;
             if (isImage(fp)) {

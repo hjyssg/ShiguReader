@@ -31,27 +31,27 @@ module.exports.getHash = function (filePath) {
     return hash;
 }
 
-function getBaseName(e) {
-    return path.basename(e);
-}
+// function getBaseName(e) {
+//     return path.basename(e);
+// }
 
 /** 从zip片中挑一个当代表 */
-module.exports.chooseOneZipForOneTag = function (files, fileInfos) {
-    let _files = files.filter(e => {
-        if (e.includes("アニメ") || !isCompress(e) || pathUtil.isHiddenFile(e)) {
-            return false;
-        }
-        return true;
-    });
+// module.exports.chooseOneZipForOneTag = function (files, fileInfos) {
+//     let _files = files.filter(e => {
+//         if (e.includes("アニメ") || !isCompress(e) || pathUtil.isHiddenFile(e)) {
+//             return false;
+//         }
+//         return true;
+//     });
 
-    const config = {
-        fileInfos,
-        getBaseName
-    }
+//     const config = {
+//         fileInfos,
+//         getBaseName
+//     }
 
-    sortUtil.sort_file_by_time(_files, config);
-    return _files[0];
-}
+//     sortUtil.sort_file_by_time(_files, config);
+//     return _files[0];
+// }
 
 const sortFileNames = module.exports.sortFileNames = function (files) {
     util._sortFileNames(files, e => path.basename(e, path.extname(e)));
