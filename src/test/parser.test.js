@@ -29,6 +29,12 @@ describe('name parser', () => {
         result = parser.parse(s1);
         assert.equal(result.author, "真珠貝");
         assert.deepEqual(result.tags, []);
+
+
+        s1 = "[真珠貝]apple  ";
+        result = parser.parse(s1);
+        assert.equal(result.author, "真珠貝");
+        assert.deepEqual(result.tags, []);
     });
 
     it("find with group name and tag", () => {
@@ -80,15 +86,22 @@ describe('name parser', () => {
     it("tag converter", ()=>{
         s1 = "[桃井涼太] 艦隊これくしょん -艦これ- 4コマコミック 吹雪、がんばります! Vol.1(艦隊これくしょん) [Digital].zip";
         result = parser.parse(s1);
-        assert.deepEqual(result.tags.sort(),["艦これ", "吹雪"].sort());
+        assert.deepEqual(result.tags.sort(),["艦これ"].sort());
+        assert.deepEqual(result.charNames.sort(),["吹雪"].sort());
+        assert.deepEqual(result.rawTags.sort(),["艦隊これくしょん"].sort());
+
+
 
         s2 = "[桃井涼太] 艦隊これくしょん -艦これ- 4コマコミック 吹雪、がんばります! Vol.1(艦これ) [Digital].zip";
         result = parser.parse(s1);
-        assert.deepEqual(result.tags.sort(),["艦これ", "吹雪"].sort());
+        assert.deepEqual(result.tags.sort(),["艦これ"].sort());
+        assert.deepEqual(result.charNames.sort(),["吹雪"].sort());
+
 
         s3 = "[Pixel Cot. (羽原メグル)] こおりのせかい (艦隊これくしょん-艦これ-) (1).zip";
         result = parser.parse(s3);
         assert.deepEqual(result.tags.sort(),["艦これ"].sort());   
+        assert.deepEqual(result.rawTags.sort(),["艦隊これくしょん-艦これ-"].sort());
     })   
 
     
@@ -119,11 +132,11 @@ describe('name parser', () => {
     it("test etc", ()=>{
         let temp = parser.parse("(C89) (同人誌) [にのこや] MAKIPET3 (ラブライブ!)");
         assert.deepEqual(temp.authors, ["にのこや"])
-        assert.deepEqual(temp.tags, ["同人誌", "ラブライブ!"])
+        assert.deepEqual(temp.tags, ["ラブライブ!"])
     
         //重要 tag转换！
         temp = parser.parse("(C80) (同人誌) [サークルARE] 唯ちゃんが俺のファミレスでバイトすることになった件 (K-ON!)");
-        assert.deepEqual(temp.tags, ["同人誌", "けいおん"])
+        assert.deepEqual(temp.tags, ["けいおん"])
     
         // when no author
         temp = parser.parse("唯ちゃんが俺のファミレスでバイトすることになった件 (K-ON!)");

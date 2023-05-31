@@ -367,12 +367,6 @@ function addTooltip(node, title, books, same_author) {
         }
         const t1 = "  " + tt + ".  ";
         return t1 + e;
-
-        // if(same_author){
-        //     const pObj = parse(e);
-        //     return t1 + (pObj.comiket||"") + pObj.title + "(" + pObj.tags + ")";
-        // }else{
-        // }
     });
     if (books.length > 25) {
         books = books.slice(0, 10).concat("...");

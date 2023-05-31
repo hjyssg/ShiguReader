@@ -19,7 +19,7 @@ function getText(filename, mecab_tokens) {
   let authors;
 
   if (pResult) {
-    originalTags = pResult.tags;
+    originalTags = [...pResult.rawTags, ...pResult.charNames];
     authors = pResult.authors;
 
     if (pResult.comiket) {

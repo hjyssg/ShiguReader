@@ -55,7 +55,7 @@ export default class VideoPlayer extends Component {
     let tags = namePicker.pick(dirName) || [];
     tags = _.uniq(tags);
 
-    if (tags) {
+    if (tags.length > 0) {
       const tagDoms = tags.map(tag => {
         const url = clientUtil.getSearhLink(tag);
         return (<Link className="video-tag" target="_blank" to={url} key={tag}>{tag}</Link>)
