@@ -1,4 +1,4 @@
-const util = require("@common/util");
+const util = require("../common/util");
 const Cookie = require("js-cookie");
 const _ = require("underscore");
 const filesizeUitl = require('filesize');
@@ -12,8 +12,8 @@ module.exports.filesizeUitl = function (num) {
     return filesizeUitl(num, { base: 2 });
 }
 
-function getSep(fp){
-    //todo: use path_sep from server
+const getSep = module.exports.getSep = (fp) => {
+    // todo: use path_sep from server
     // this function will take file path/or web url
     // so it need to decide seperator will be used
     let seperator = "/";  //   / is used by linux and web url
@@ -70,7 +70,7 @@ const getBaseNameWithoutExtention = module.exports.getBaseNameWithoutExtention =
     }
     const tokens = getBaseName(fn).split(".");
     if (tokens.length < 2) {
-        return fn;
+        return tokens[0];
     } else {
         return tokens.slice(0, tokens.length - 1).join(".");
     }
