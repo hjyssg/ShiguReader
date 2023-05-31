@@ -16,11 +16,13 @@ import shutil
 
 source_dirs = [
     r"X:\git\ShiguReader_Frontend\src\name-parser",
-    r"X:\git\ShiguReader_Frontend\src\common"
+    r"X:\git\ShiguReader_Frontend\src\common",
+    r"X:\git\ShiguReader_Frontend\dist"
 ]
 target_dirs = [
     r"X:\git\Shigureader_Backend\src\name-parser",
-    r"X:\git\Shigureader_Backend\src\common"
+    r"X:\git\Shigureader_Backend\src\common",
+    r"X:\git\Shigureader_Backend\dist"
 ]
 
 # 先删除目标目录下的所有文件和子目录
