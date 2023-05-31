@@ -203,7 +203,7 @@ const updateFileDb = function (filePath, statObj) {
     aboutTimeA = aboutTimeA && aboutTimeA.getTime();
     let fileTimeA = statObj.mtimeMs || aboutTimeA;
     const dirPath = path.dirname(filePath);
-    const dirName = path.basename(path.dirname(filePath));
+    const dirName = getDirName(filePath);
     const fileSize = statObj.size || 0;
     // https://www.sqlitetutorial.net/sqlite-nodejs/insert/
     stmt_file_insert.run(filePath, dirName, dirPath, fileName, fileTimeA, fileSize,

@@ -2,8 +2,8 @@ const util = global.requireUtil();
 const path = require('path');
 const stringHash = require("string-hash");
 const nameParser = require('../name-parser');
-const sortUtil = require("../common/sortUtil");
-const { isImage, isCompress } = util;
+// const sortUtil = require("../common/sortUtil");
+// const { isImage, isCompress } = util;
 const fs = require('fs');
 const logger = require("./logger");
 const pfs = require('promise-fs');
@@ -63,7 +63,7 @@ module.exports.chooseThumbnailImage = function (files) {
         return null;
     }
 
-    let tempFiles = files.filter(e => isImage(e) && !pathUtil.isHiddenFile(e));
+    let tempFiles = files.filter(e => util.isImage(e) && !pathUtil.isHiddenFile(e));
     sortFileNames(tempFiles);
     return tempFiles[0];
 }

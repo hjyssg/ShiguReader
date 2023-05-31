@@ -1,6 +1,10 @@
 const path = require('path');
-const userConfig = global.requireUserConfig();
-const util = global.requireUtil();
+// const userConfig = global.requireUserConfig();
+// const util = global.requireUtil();
+
+const util = require("../common/util");
+const userConfig = require("../config/user-config");
+
 // const fs = require('fs');
 const _ = require('underscore');
 // const ini = require('ini');
@@ -10,6 +14,7 @@ const { isImage, isMusic, isVideo, isDisplayableInOnebook } = util;
 // const cache_folder_name = userConfig.cache_folder_name;
 const pfs = require('promise-fs');
 const junk = require('junk');
+const { pathEqual } = require('path-equal');
 
 let rootPath;
 let downloadFolder;
@@ -68,7 +73,9 @@ const getRootPath = module.exports.getRootPath = function () {
 //     return fn.replace(new RegExp(`\\${path.sep}`, 'g'), '/');
 // }
 
+/** 判断给定的路径字符串是否表示一个文件路径。 */
 function isFilePath(str) {
+    // 如果 dir 字段不为空，则说明该路径字符串表示一个文件路径
     return path.parse(str).dir !== '';
   }
 
@@ -113,7 +120,7 @@ const isExist = module.exports.isExist = async (tempPath) => {
  */
  module.exports.isDirectParent =(parent, filePath) => {
     const parentPath = path.resolve(filePath, "..");
-    return parentPath === parent;
+    return pathEqual(parentPath, parent);
 }
 
 const removeLastPathSep = module.exports.removeLastPathSep = (fp) => {
@@ -140,12 +147,7 @@ const isSub = module.exports.isSub = (parent, child) => {
     // return parent && child && child.length > parent.length && child.startsWith(parent) && path.dirname(child) === parent;
 }
 
-if (global.isWindows) {
-    console.assert(isSub("D:\\_Happy_Lesson\\_Going_to_sort\\_not_good\\", "D:\\_Happy_Lesson\\_Going_to_sort\\_not_good\\not_good_2020"))
-    console.assert(isSub("D:\\_Happy_Lesson\\_Going_to_sort\\_not_good", "D:\\_Happy_Lesson\\_Going_to_sort\\_not_good\\not_good_2020"))
-} else {
-    console.assert(isSub("/Users/hjy/", "/Users/hjy/Downloads"))
-}
+
 
 /**
  * 删选实际存在的filepath 
@@ -338,7 +340,7 @@ const filterHiddenFile = module.exports.filterHiddenFile = function (files) {
     })
 }
 
-
+/** 拿文件夹的名字 */
 module.exports.getDirName = function (p) {
     const result = path.dirname(p);
     return path.basename(result);
