@@ -327,11 +327,11 @@ const book_types = [
 ];
 const book_type_regex = new RegExp(book_types.map(e => `(${e})`).join("|"), "i");
 
-function isBookType(str) {
+function isMediaType(str) {
     return !!str.match(book_type_regex);
 }
 
-function getBookType(str) {
+function getMediaType(str) {
     return str.match(book_type_regex)[0];
 }
 
@@ -556,8 +556,8 @@ function parse(str) {
 
     function isOtherInfo(token) {
         let result = false;
-        if (isBookType(token)) {
-            type = getBookType(token);
+        if (isMediaType(token)) {
+            type = getMediaType(token);
             result = true;
         } else if (isUselessTag(token)) {
             //nothing
