@@ -4,12 +4,18 @@ const parser = require("../name-parser");
 describe("name parser", () => {
   let s1;
   let result;
-  it("trim test", () => {
+
+
+  it("basic test", () => {
     s1 = null;
     result = parser.parse(s1);
     assert.ok(!result);
 
     s1 = "no thing";
+    result = parser.parse(s1);
+    assert.ok(!result);
+
+    s1 = "Gaming Mouse Profiles";
     result = parser.parse(s1);
     assert.ok(!result);
 
@@ -32,6 +38,7 @@ describe("name parser", () => {
     result = parser.parse(s1);
     assert.equal(result.author, "真珠貝");
     assert.deepEqual(result.tags, []);
+    assert.equal(result.title, "apple");
   });
 
   it("find with group name and tag", () => {
@@ -40,6 +47,8 @@ describe("name parser", () => {
     assert.deepEqual(result.tags.sort(), ["DOUJIN", "cake"].sort());
     assert.equal(result.author, "武田弘光");
     assert.equal(result.comiket, "C82");
+    assert.equal(result.title, "apple");
+
 
     s1 = "(DOUJIN)(C82)[真珠貝(武田弘光)]apple(cake).zip";
     result = parser.parse(s1);
@@ -53,6 +62,30 @@ describe("name parser", () => {
     assert.deepEqual(result.authors, ["上杉響士郎", "榊ゆいの"]);
     assert.deepEqual(result.tags, ["アイドルマスター シンデレラガールズ"]);
     assert.equal(result.comiket, "COMIC1☆9");
+    assert.equal(result.title, "すみません。");
+
+
+    s1 ="(同人CG集) [エアリーソックス] 騒音被害.zip";
+    result = parser.parse(s1);
+    assert.equal(result.author, "エアリーソックス");
+    assert.deepEqual(result.authors, ["エアリーソックス"]);
+    assert.deepEqual(result.tags, []);
+    assert.deepEqual(result.type, "同人CG集");
+    assert.ok(!result.comiket);
+    assert.equal(result.title, "騒音被害")
+
+    s1 ="(同人誌) [GRINP] お兄ちゃんはおしまい! 22.zip";
+    result = parser.parse(s1);
+    assert.equal(result.author, "GRINP");
+    assert.deepEqual(result.authors, ["GRINP"]);
+    assert.deepEqual(result.tags, []);
+    assert.deepEqual(result.type, "同人誌");
+    assert.ok(!result.comiket);
+    assert.equal(result.title, "お兄ちゃんはおしまい! 22")
+
+    s1 ="Twoyun - Asuma Toki.zip";
+    result = parser.parse(s1);
+    assert.ok(!result);
   });
 
   it("find name with year tag", () => {
@@ -67,6 +100,8 @@ describe("name parser", () => {
       "(同人ゲームCG) [170428] [ピンポイント] 王女&女騎士Wド下品露出 ～恥辱の見世物奴隷～";
     result = parser.parse(s1);
     assert.equal(result.author, "ピンポイント");
+    assert.equal(result.title, "王女&女騎士Wド下品露出 ～恥辱の見世物奴隷～");
+
 
     s1 =
       "(ゲームCG) [181207] [DWARFSOFT] ムチムチデカパイマラ喰い魔王様とおんぼろ四畳半同棲生活";
@@ -108,6 +143,9 @@ describe("name parser", () => {
   });
 
   it("tag time calculation", () => {
+    const C101T = parser
+    .getDateFromParse("(C101)[ fake_author ] apple")
+    .getTime();
     const C96T = parser
       .getDateFromParse("(C96)[ fake_author ] apple")
       .getTime();
@@ -144,11 +182,34 @@ describe("name parser", () => {
     assert(C91T > C87T);
     assert(C85T > C84T);
     assert(C84T > C72T);
+    assert(C101T > C96T);
 
-    const air2 = parser
-      .getDateFromParse("(エアコミケ2) [ちんちん亭 (chin)] 12132")
-      .getTime();
+    const air2 = parser.getDateFromParse("(エアコミケ2) [ちんちん亭 (chin)] 12132").getTime();
     assert(air2 > C96T);
+
+    let tt;
+    tt = parser.getDateFromParse("(ゲームCG) [210430] [みるくふぁくとりー] もっと")
+    assert.equal(tt.getFullYear(), 2021);
+    assert.equal(tt.getMonth(), 3);
+    assert.equal(tt.getDate(), 30);
+
+    tt = parser.getDateFromParse("[220824]TVアニメ『メイドインアビス 烈日の黄金郷』OP主题歌「かたち」／安月名莉子[320K]")
+    assert.equal(tt.getFullYear(), 2022);
+    assert.equal(tt.getMonth(), 7);
+    assert.equal(tt.getDate(), 24);
+
+    tt = parser.getDateFromParse("[2021.11.24] ラブライブ！シリーズのオールナイトニッポンGOLD タイアップ企画スプリットシングル「not ALONE not HITORI／ミラクル STAY TUNE!／Shooting Voice!!」[MP3 320K]")
+    assert.equal(tt.getFullYear(), 2021);
+    assert.equal(tt.getMonth(), 10);
+    assert.equal(tt.getDate(), 24);
+
+    //----------------------music file--------------------
+    tt = parser.parse("[220824]TVアニメ『メイドインアビス 烈日の黄金郷』OP主题歌「かたち」／安月名莉子[320K]")
+    assert.deepEqual(tt.extraTags.sort(), ['かたち', 'メイドインアビス 烈日の黄金郷'].sort());
+
+    tt = parser.parse("[2021.11.17] TVアニメ「鬼滅の刃 無限列車編」OP&EDテーマ「明け星／白銀」／LiSA [MP3 320K]")
+    assert.deepEqual(tt.extraTags.sort(), ['鬼滅の刃 無限列車編', '明け星／白銀'].sort());
+
   });
 
   it("test etc", () => {
