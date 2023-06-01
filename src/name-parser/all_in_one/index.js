@@ -370,9 +370,9 @@ function parse(str) {
   });
   if (!type) {
     if (comiket || group) {
-      type = "Doujin";
+      type = "同人誌";
     } else {
-      type = "etc";
+      type = "UNKOWN";
     }
   }
   if (!author && !group && tags.length === 0) {

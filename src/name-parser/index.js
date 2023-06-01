@@ -386,7 +386,7 @@ function parse(str) {
         if (comiket || group) {
             type = "同人誌";
         } else {
-            type = "etc";
+            type = "UNKOWN";
         }
     }
 
