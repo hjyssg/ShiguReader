@@ -24,9 +24,18 @@ const getSep = module.exports.getSep = (fp) => {
     return seperator;
 }
 
+const removeLastPathSep = (fp, seperator) => {
+    if (fp.slice(-1) === seperator) {
+        return fp.slice(0, fp.length - 1);
+    } else {
+        return fp;
+    }
+}
+
 const getDir = module.exports.getDir = function (fp) {
     if (!fp) { return ""; }
     const seperator = getSep(fp);
+    fp = removeLastPathSep(fp, seperator);
     const tokens = fp.split(seperator);
     return tokens.slice(0, tokens.length - 1).join(seperator);
 };
@@ -39,7 +48,7 @@ const getBaseName = module.exports.getBaseName = function (fp) {
     if (!fp) { return ""; }
 
     const seperator = getSep(fp);
-    const tokens = fp.split(seperator);
+    const tokens = fp.split(seperator).filter(e => !!e);
     return tokens[tokens.length - 1];
 };
 
