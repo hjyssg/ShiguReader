@@ -130,10 +130,7 @@ const updateFileDb = function (filePath, statObj) {
     console.assert(!!filePath)
     const fileName = path.basename(filePath);
 
-    if (!statObj) {
-        console.warn("[updateFileDb] no statObj");
-        statObj = {};
-    }
+    console.assert(statObj);
 
     stmt_tag_insert = stmt_tag_insert || sqldb.prepare(`
             INSERT OR REPLACE INTO tag_table (filePath, tag, type, subtype, isCompress, isFolder )
