@@ -14,27 +14,24 @@ module.exports.init = async ()=> {
     sqldb = dbCommon.getSQLInstance(history_db_path);
 
     // 记录打开文件
-    let sql = `CREATE TABLE IF NOT EXISTS history_table (
-                        filePath TEXT NOT NULL, 
-                        dirPath TEXT, 
-                        fileName TEXT, 
-                        time INTEGER
-                 ); 
-                 `
-    await sqldb.runSync(sql);
-    await sqldb.runSync(` CREATE INDEX IF NOT EXISTS fileName_index ON history_table (fileName); `);
-    await sqldb.runSync(` CREATE INDEX IF NOT EXISTS time_index ON history_table (time); `);
-
-
-    // 记录文件夹lsdir的table
-    sql = `CREATE TABLE IF NOT EXISTS lsdir_history_table (
-                    filePath TEXT NOT NULL, 
-                    time INTEGER
-            ); 
-    `
-    await sqldb.runSync(sql);
-    await sqldb.runSync(` CREATE INDEX IF NOT EXISTS filePath_lsdir_index ON lsdir_history_table (filePath); `);
-    await sqldb.runSync(` CREATE INDEX IF NOT EXISTS time_lsdir_index ON lsdir_history_table (time); `);
+    await sqldb.execSync(`CREATE TABLE IF NOT EXISTS history_table (
+        filePath TEXT NOT NULL, 
+        dirPath TEXT, 
+        fileName TEXT, 
+        time INTEGER
+    ); 
+    CREATE INDEX IF NOT EXISTS fileName_index ON history_table (fileName);
+    CREATE INDEX IF NOT EXISTS time_index ON history_table (time); 
+     
+     
+    CREATE TABLE IF NOT EXISTS lsdir_history_table (
+        filePath TEXT NOT NULL, 
+        time INTEGER
+    ); 
+    CREATE INDEX IF NOT EXISTS filePath_lsdir_index ON lsdir_history_table (filePath);
+    CREATE INDEX IF NOT EXISTS time_lsdir_index ON lsdir_history_table (time);
+    
+    `);
 }
 
 module.exports.getSQLDB = function () {

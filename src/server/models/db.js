@@ -49,15 +49,16 @@ module.exports.init = async ()=> {
     sqldb = dbCommon.getSQLInstance(backup_db_path);
 
     // 提升少量性能
-    await sqldb.runSync( `
-        PRAGMA journal_mode = OFF;
-        PRAGMA synchronous = OFF; ` );
+    await sqldb.execSync( `
 
-    await sqldb.runSync(`DROP TABLE IF EXISTS file_table`);
-    await sqldb.runSync(`DROP TABLE IF EXISTS tag_table`);
-    await sqldb.runSync(`DROP TABLE IF EXISTS scan_path_table;`);
+    PRAGMA journal_mode = OFF;
+    PRAGMA synchronous = OFF; 
+    
+    DROP TABLE IF EXISTS file_table;
+    DROP TABLE IF EXISTS tag_table;
+    DROP TABLE IF EXISTS scan_path_table;
 
-    await sqldb.runSync(`CREATE TABLE file_table (
+    CREATE TABLE file_table (
                             filePath TEXT NOT NULL PRIMARY KEY, 
                             dirName TEXT, 
                             dirPath TEXT, 
@@ -68,8 +69,9 @@ module.exports.init = async ()=> {
                             isDisplayableInOnebook BOOL, 
                             isCompress BOOL, 
                             isVideo BOOL,
-                            isFolder BOOL);`);
-    await sqldb.runSync(`CREATE TABLE tag_table (
+                            isFolder BOOL);
+
+    CREATE TABLE tag_table (
                             filePath TEXT NOT NULL, 
                             tag VARCHAR(50) NOT NULL , 
                             type VARCHAR(25) CHECK(type IN ('tag', 'author', 'group')),
@@ -77,14 +79,24 @@ module.exports.init = async ()=> {
                             isCompress BOOL,
                             isFolder BOOL,
                             PRIMARY KEY (filePath, tag, type, subtype) 
-                        )`);
-    await sqldb.runSync(`CREATE TABLE scan_path_table (filePath TEXT NOT NULL, type VARCHAR(25))`);
+                        );
 
-    await sqldb.runSync(` CREATE VIEW IF NOT EXISTS zip_view  AS SELECT * FROM file_table WHERE isCompress = true `)
-    await sqldb.runSync(` CREATE VIEW IF NOT EXISTS  author_view  AS SELECT * FROM tag_table 
-                            WHERE type='author' AND (isCompress = true OR isFolder = true) `)
-    await sqldb.runSync(` CREATE VIEW IF NOT EXISTS  tag_view  AS SELECT * FROM tag_table 
-                            WHERE type='tag' AND (isCompress = true OR isFolder = true)  `)
+    CREATE TABLE scan_path_table (filePath TEXT NOT NULL, type VARCHAR(25));
+
+    CREATE VIEW IF NOT EXISTS zip_view AS SELECT * FROM file_table WHERE isCompress = true;
+
+    CREATE VIEW IF NOT EXISTS  author_view  AS SELECT * FROM tag_table WHERE type='author' AND (isCompress = true OR isFolder = true) ;
+    CREATE VIEW IF NOT EXISTS  tag_view  AS SELECT * FROM tag_table WHERE type='tag' AND (isCompress = true OR isFolder = true);
+
+
+     CREATE INDEX IF NOT EXISTS ft_filePath_index ON file_table (filePath); 
+     CREATE INDEX IF NOT EXISTS ft_fileName_index ON file_table (fileName); 
+     CREATE INDEX IF NOT EXISTS ft_dirPath_index ON file_table (dirPath); 
+     CREATE INDEX IF NOT EXISTS ft_dirName_index ON file_table (dirName); 
+
+     CREATE INDEX IF NOT EXISTS tag_index ON tag_table (tag); 
+     CREATE INDEX IF NOT EXISTS tag_type_index ON tag_table (type); 
+     CREATE INDEX IF NOT EXISTS tag_filePath_index ON tag_table (filePath); `);
 
 }
 
@@ -92,15 +104,6 @@ module.exports.getSQLDB = function () {
     return sqldb;
 }
 
-module.exports.createSqlIndex = async function () {
-    await sqldb.runSync(` CREATE INDEX IF NOT EXISTS ft_filePath_index ON file_table (filePath); `);
-    await sqldb.runSync(` CREATE INDEX IF NOT EXISTS ft_fileName_index ON file_table (fileName); `);
-    await sqldb.runSync(` CREATE INDEX IF NOT EXISTS ft_dirPath_index ON file_table (dirPath); `);
-    await sqldb.runSync(` CREATE INDEX IF NOT EXISTS ft_dirName_index ON file_table (dirName); `);
-
-    await sqldb.runSync(` CREATE INDEX IF NOT EXISTS tag_index ON tag_table (tag); `);
-    await sqldb.runSync(` CREATE INDEX IF NOT EXISTS tag_filePath_index ON tag_table (filePath); `);
-}
 
 module.exports.insertScanPath = async function(scan_path){
     const stmt = sqldb.prepare('INSERT INTO scan_path_table(filePath, type) VALUES (?, ?)');

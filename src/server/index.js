@@ -395,7 +395,6 @@ function initializeFileWatch(dirPathes) {
         is_chokidar_scan_done = true;
         await db.batchInsert("file_table", insertion_cache.files);
         await db.batchInsert("tag_table", insertion_cache.tags);
-        await db.createSqlIndex();
 
         let end1 = getCurrentTime();
         console.log(`[chokidar initializeFileWatch] ${(end1 - beg) / 1000}s scan complete.`);
@@ -1121,24 +1120,18 @@ app.post('/api/getZipThumbnail', asyncWrapper(async (req, res) => {
     extractThumbnailFromZip(filePath, res);
 }));
 
-async function getSameFileName(filePath) {
-    if (!(await isExist(filePath))) {
+async function getZipWithSameFileName(filePath) {
+    if (!(await isExist(filePath)) && isCompress(filePath)) {
         //maybe the file move to other location
         const fn = path.basename(filePath);
         const dir = path.dirname(filePath);
 
         const sqldb = db.getSQLDB();
-        let sql = `SELECT filePath FROM zip_view WHERE fileName LIKE ? AND filePath NOT LIke ? `;
-        let rows = await sqldb.allSync(sql, [('%' + fn + '%'), (dir + '%')]);
 
-        if (rows && rows.length > 1) {
-            const tempP = pathUtil.getImgConverterCachePath();
-            rows = rows.filter(e => {
-                return !e.filePath.includes(tempP);
-            })
-        }
+        const tempP = pathUtil.getImgConverterCachePath();
+        let sql = `SELECT filePath FROM zip_view WHERE fileName LIKE ? AND filePath != ? AND filePath NOT LIKE ? `;
+        let rows = await sqldb.allSync(sql, [('%' + fn + '%'), filePath, (tempP + "%")]);
         let sameFnObj = rows && rows[0];
-
         if (sameFnObj) {
             filePath = sameFnObj.filePath;
             return filePath;
@@ -1172,7 +1165,7 @@ app.post('/api/extract', asyncWrapper(async (req, res) => {
 
     //todo: record the timestamp of each request
     //when cleaning cache, if the file is read recently, dont clean its cache
-    filePath = await getSameFileName(filePath);
+    filePath = await getZipWithSameFileName(filePath);
     if (!filePath) {
         res.send({ failed: true, reason: "NOT FOUND" });
         return;
