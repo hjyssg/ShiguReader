@@ -54,10 +54,9 @@ module.exports.init = async ()=> {
         PRAGMA journal_mode = OFF;
         PRAGMA synchronous = OFF; ` );
 
-    await sqldb.runSync(`
-        DROP TABLE IF EXISTS file_table;
-        DROP TABLE IF EXISTS tag_table;
-        DROP TABLE IF EXISTS scan_path_table;`);
+    await sqldb.runSync(`DROP TABLE IF EXISTS file_table`);
+    await sqldb.runSync(`DROP TABLE IF EXISTS tag_table`);
+    await sqldb.runSync(`DROP TABLE IF EXISTS scan_path_table;`);
 
     await sqldb.runSync(`CREATE TABLE file_table (
                             filePath TEXT NOT NULL PRIMARY KEY, 
@@ -129,11 +128,22 @@ module.exports.getAllFilePathes = async function (sql_condition) {
 
 let stmt_tag_insert ;
 let stmt_file_insert;
-const updateFileDb = function (filePath, statObj) {
-    console.assert(!!filePath)
-    const fileName = path.basename(filePath);
+module.exports.updateStatToDb = async function (filePath, stat) {
+    const statObj = {};
+    if (!stat) {
+        //seems only happen on mac
+        stat = await pfs.stat(filePath)
+    }
 
+    statObj.isDir = stat.isDirectory();
+    statObj.mtimeMs = stat.mtimeMs;
+    statObj.size = stat.size;
+    fileToInfo[filePath] = statObj;
+    
+    
+    console.assert(!!filePath);
     console.assert(statObj);
+    const fileName = path.basename(filePath);
 
     stmt_tag_insert = stmt_tag_insert || sqldb.prepare(`
             INSERT OR REPLACE INTO tag_table (filePath, tag, type, subtype, isCompress, isFolder )
@@ -187,15 +197,11 @@ const updateFileDb = function (filePath, statObj) {
     tags_rows.push([filePath, group, "group", "group", isCompressFile, isFolder]);
 
     // fliter null or empty
-    tags_rows = tags_rows.filter(e => { return  e[1] && e[1].length > 0; })
+    tags_rows = tags_rows.filter(e => { return e[0] && e[1] && e[1].length > 0; })
 
     // do batch insertion
-    if(tags_rows.length > 0){
-        for(const row of tags_rows){
-            if(row[0] && row[1]){
-                stmt_tag_insert.run(...row);
-            }
-        }
+    for(const row of tags_rows){
+        stmt_tag_insert.run(...row);
     }
 
     //file_table插入
@@ -208,20 +214,6 @@ const updateFileDb = function (filePath, statObj) {
     // https://www.sqlitetutorial.net/sqlite-nodejs/insert/
     stmt_file_insert.run(filePath, dirName, dirPath, fileName, fileTimeA, fileSize,
         isDisplayableInExplorer, isDisplayableInOnebook, isCompressFile, isVideoFile, isFolder);
-}
-
-module.exports.updateStatToDb = async function (filePath, stat) {
-    const statObj = {};
-    if (!stat) {
-        //seems only happen on mac
-        stat = await pfs.stat(filePath)
-    }
-
-    statObj.isDir = stat.isDirectory();
-    statObj.mtimeMs = stat.mtimeMs;
-    statObj.size = stat.size;
-    fileToInfo[filePath] = statObj;
-    updateFileDb(filePath, statObj);
 }
 
 module.exports.deleteFromDb = function (filePath) {
