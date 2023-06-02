@@ -81,7 +81,7 @@ router.post('/api/lsDir', serverUtil.asyncWrapper(async (req, res) => {
         if(isRecursive){
             sql = `
             WITH TT AS (
-                ${recursiveFileSQL}
+                ${recursiveFileSQL} 
             )
 
             SELECT B.* FROM
@@ -93,16 +93,19 @@ router.post('/api/lsDir', serverUtil.asyncWrapper(async (req, res) => {
         }else{
             //单层
             sql = `
-            WITH TT AS (
-                SELECT * FROM file_table WHERE dirPath = ?
+            WITH A AS (
+                SELECT filePath FROM file_table WHERE dirPath = ? AND isFolder=true
+            ),
+            B AS (
+                ${recursiveFileSQL} AND isDisplayableInOnebook=True
             )
 
             SELECT B.* FROM
-             TT AS A
-             INNER JOIN TT AS B
-             ON A.filePath=B.dirPath AND B.isDisplayableInOnebook=True AND A.isFolder=true
+             A 
+             INNER JOIN B
+             ON A.filePath=B.dirPath
             `
-            rows = await db.doSmartAllSync(sql, [dir]);
+            rows = await db.doSmartAllSync(sql, [ dir, `${dir}%`, dir]);
         }
         rows.forEach(row => {
             const dirPath = row.dirPath;
