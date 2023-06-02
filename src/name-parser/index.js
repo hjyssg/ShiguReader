@@ -397,7 +397,7 @@ function parse(str) {
 
     //get title
     let title = str;
-    (bMacthes || []).concat(pMacthes || [], tags || [], [/\[/g, /\]/g, /\(/g, /\)/g]).forEach(e => {
+    (bMacthes || []).concat(pMacthes || [], rawTags || [], [/\[/g, /\]/g, /\(/g, /\)/g]).forEach(e => {
         title = title.replace(e, "");
     })
     if(title.includes(".")){
