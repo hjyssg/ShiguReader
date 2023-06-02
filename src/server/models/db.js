@@ -43,11 +43,11 @@ module.exports.doSmartAllSync = async (sql, params) =>{
 let sqldb;
 module.exports.init = async ()=> {
     const dbCommon = require("./dbCommon");
-    // sqldb = dbCommon.getSQLInstance(':memory:');
+    sqldb = dbCommon.getSQLInstance(':memory:');
 
     // 用file的话，init的insertion太慢了
-    const backup_db_path = path.join(pathUtil.getWorkSpacePath(), "backup_file_db.db");
-    sqldb = dbCommon.getSQLInstance(backup_db_path);
+    // const backup_db_path = path.join(pathUtil.getWorkSpacePath(), "backup_file_db.db");
+    // sqldb = dbCommon.getSQLInstance(backup_db_path);
 
     // 提升少量性能
     await sqldb.runSync( `
@@ -145,15 +145,15 @@ module.exports.updateStatToDb = async function (filePath, stat, insertion_cache)
     console.assert(statObj);
     const fileName = path.basename(filePath);
 
-    stmt_tag_insert = stmt_tag_insert || sqldb.prepare(`
-            INSERT OR REPLACE INTO tag_table (filePath, tag, type, subtype, isCompress, isFolder )
-            values (?, ?, ?, ?, ?, ?)`);
+    // stmt_tag_insert = stmt_tag_insert || sqldb.prepare(`
+    //         INSERT OR REPLACE INTO tag_table (filePath, tag, type, subtype, isCompress, isFolder )
+    //         values (?, ?, ?, ?, ?, ?)`);
 
-    stmt_file_insert = stmt_file_insert || sqldb.prepare(`
-        INSERT OR REPLACE INTO file_table (
-        filePath, dirName, dirPath, fileName, mTime, size,
-        isDisplayableInExplorer, isDisplayableInOnebook, 
-        isCompress, isVideo, isFolder ) values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`);
+    // stmt_file_insert = stmt_file_insert || sqldb.prepare(`
+    //     INSERT OR REPLACE INTO file_table (
+    //     filePath, dirName, dirPath, fileName, mTime, size,
+    //     isDisplayableInExplorer, isDisplayableInOnebook, 
+    //     isCompress, isVideo, isFolder ) values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`);
 
     const isCompressFile = isCompress(fileName);
     const isVideoFile = isVideo(fileName);
@@ -176,50 +176,53 @@ module.exports.updateStatToDb = async function (filePath, stat, insertion_cache)
     // tag插入sql
     let tags_rows = [];
     // comiket
-    tags_rows.push([filePath, comiket, "tag", "comiket", isCompressFile, isFolder]);
+    tags_rows.push({ filePath, tag:comiket, type:"tag", subtype:"comiket", isCompress:isCompressFile, isFolder });
     // name
     const nameTags = [...(namePicker.pick(str)||[]), ...charNames];
-    _.uniq(nameTags).forEach(name => {
-        tags_rows.push([filePath, name, "tag", "name", isCompressFile, isFolder]);
+    _.uniq(nameTags).forEach(tag => {
+        tags_rows.push({ filePath, tag, type:"tag", subtype:"name", isCompress:isCompressFile, isFolder});
     })
 
     // parody
-    _.uniq(tags).forEach(tt => {
-        if (!authors.includes(tt) && group !== tt) {
-            tags_rows.push([filePath, tt, "tag", "parody", isCompressFile, isFolder]);
+    _.uniq(tags).forEach(tag => {
+        if (!authors.includes(tag) && group !== tag) {
+            tags_rows.push({ filePath, tag, type:"tag", subtype:"parody", isCompress:isCompressFile, isFolder});
         }
     })
     // author
-    _.uniq(authors).forEach(tt => {
-        tags_rows.push([filePath, tt, "author", "author", isCompressFile, isFolder]);
+    _.uniq(authors).forEach(tag => {
+        tags_rows.push({ filePath, tag, type:"author", subtype:"author", isCompress:isCompressFile, isFolder});
     })
     // group
-    _.uniq(tags_rows).push([filePath, group, "group", "group", isCompressFile, isFolder]);
+    tags_rows.push({ filePath, tag: group, type:"group", subtype:"group", isCompress:isCompressFile, isFolder});
 
     // fliter null or empty
-    tags_rows = tags_rows.filter(e => { return e[0] && e[1] && e[2]; })
+    tags_rows = tags_rows.filter(e => { return e.filePath && e.tag && e.type && e.subtype; })
 
     if(insertion_cache){
         insertion_cache.tags.push(...tags_rows);
     }else{
         for(const row of tags_rows){
-            stmt_tag_insert.run(...row);
+            sqldb.insertOneRow(row);
         }
     }
 
     //file_table插入
     let aboutTimeA = nameParser.getDateFromParse(str);
     aboutTimeA = aboutTimeA && aboutTimeA.getTime();
-    let fileTimeA = statObj.mtimeMs || aboutTimeA;
+    let fileTime = statObj.mtimeMs || aboutTimeA;
     const dirPath = path.dirname(filePath);
     const dirName = getDirName(filePath);
     const fileSize = statObj.size || 0;
-    const params = [filePath, dirName, dirPath, fileName, fileTimeA, fileSize,
-        isDisplayableInExplorer, isDisplayableInOnebook, isCompressFile, isVideoFile, isFolder];
+    const params = {filePath, dirName, dirPath, fileName, 
+        mTime: fileTime, size: fileSize,
+        isDisplayableInExplorer, isDisplayableInOnebook, 
+        isCompress: isCompressFile, isVideo: isVideoFile, isFolder}
+
     if(insertion_cache){
         insertion_cache.files.push(params);
     }else{
-        stmt_file_insert.run(...params);
+        sqldb.push(params);
     }
 }
 
@@ -228,9 +231,6 @@ module.exports.batchInsert = async (tableName, dataArray, blockSize = 2000) => {
     if(dataArray.length == 0){
         return;
     }
-  
-    // 生成占位符
-    const placeholder = '(' + new Array(dataArray[0].length).fill('?').join(',') + ')';
     
     // 计算分块数量
     const length = dataArray.length;
@@ -238,26 +238,16 @@ module.exports.batchInsert = async (tableName, dataArray, blockSize = 2000) => {
     
     // 开始事务
     await sqldb.runSync('BEGIN');
-    
-    // 循环插入数据分块
     for (let i = 0; i < blocks; i++) {
         const start = i * blockSize;
         const end = start + blockSize;
         const subArr = dataArray.slice(start, end);
         try{
             // 拼接 SQL 语句
-            // const keys = Object.keys(subArr[0]).join(',');
-            let keys;
-            if(tableName == "file_table"){
-              keys = `filePath, dirName, dirPath, fileName, mTime, size, isDisplayableInExplorer, isDisplayableInOnebook, isCompress, isVideo, isFolder`;
-            }else if (tableName == "tag_table"){
-              keys = `filePath, tag, type, subtype, isCompress, isFolder`;
-            }else{
-              throw "WTF????"
-            }
-            
-            const questions =  subArr.map(() => placeholder).join(',');
-            const sql = `INSERT INTO ${tableName} (${keys}) VALUES ${questions}`;
+            const keys = Object.keys(subArr[0]);
+            const placeholder = '(' + keys.map(() => '?') + ')';
+            const questions =  subArr.map(() => placeholder);
+            const sql = `INSERT INTO ${tableName} (${keys.join(',')}) VALUES ${questions.join(',')}`;
             
             // 执行 SQL 语句
             const flatData = subArr.reduce((acc, cur) => acc.concat(Object.values(cur)), []);
@@ -265,7 +255,7 @@ module.exports.batchInsert = async (tableName, dataArray, blockSize = 2000) => {
             console.log(tableName, start, end);
         }catch(e){
             // debug
-            console.error(subArr);
+            console.error(subArr, start);
             console.error(e);
             throw e;
         }

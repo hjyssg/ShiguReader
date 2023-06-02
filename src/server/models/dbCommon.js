@@ -18,6 +18,8 @@ function getSQLInstance(filePath){
         sqldb.execSync = _util.promisify(sqldb.exec).bind(sqldb);
         // run()
 
+        // TODO sql -> statement
+        // sqldb.statements = {};
         sqldb.insertOneRow = async function(tableName, rowObj){
             const keys = Object.keys(rowObj);
             const values = keys.map(key => rowObj[key]);
