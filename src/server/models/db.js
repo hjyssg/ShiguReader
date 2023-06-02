@@ -43,11 +43,11 @@ module.exports.doSmartAllSync = async (sql, params) =>{
 let sqldb;
 module.exports.init = async ()=> {
     const dbCommon = require("./dbCommon");
-    sqldb = dbCommon.getSQLInstance(':memory:');
+    // sqldb = dbCommon.getSQLInstance(':memory:');
 
     // 用file的话，init的insertion太慢了
-    // const backup_db_path = path.join(pathUtil.getWorkSpacePath(), "backup_file_db.db");
-    // sqldb = dbCommon.getSQLInstance(backup_db_path);
+    const backup_db_path = path.join(pathUtil.getWorkSpacePath(), "backup_file_db.db");
+    sqldb = dbCommon.getSQLInstance(backup_db_path);
 
     // 提升少量性能
     await sqldb.runSync( `
@@ -77,14 +77,14 @@ module.exports.init = async ()=> {
                             subtype VARCHAR(25)  CHECK(subtype IN ('comiket', 'name', 'parody', 'author', 'group')) , 
                             isCompress BOOL,
                             isFolder BOOL,
-                            PRIMARY KEY (filePath, tag, type) 
+                            PRIMARY KEY (filePath, tag, type, subtype) 
                         )`);
     await sqldb.runSync(`CREATE TABLE scan_path_table (filePath TEXT NOT NULL, type VARCHAR(25))`);
 
-    await sqldb.runSync(` CREATE VIEW zip_view  AS SELECT * FROM file_table WHERE isCompress = true `)
-    await sqldb.runSync(` CREATE VIEW author_view  AS SELECT * FROM tag_table 
+    await sqldb.runSync(` CREATE VIEW IF NOT EXISTS zip_view  AS SELECT * FROM file_table WHERE isCompress = true `)
+    await sqldb.runSync(` CREATE VIEW IF NOT EXISTS  author_view  AS SELECT * FROM tag_table 
                             WHERE type='author' AND (isCompress = true OR isFolder = true) `)
-    await sqldb.runSync(` CREATE VIEW tag_view  AS SELECT * FROM tag_table 
+    await sqldb.runSync(` CREATE VIEW IF NOT EXISTS  tag_view  AS SELECT * FROM tag_table 
                             WHERE type='tag' AND (isCompress = true OR isFolder = true)  `)
 
 }
@@ -128,7 +128,7 @@ module.exports.getAllFilePathes = async function (sql_condition) {
 
 let stmt_tag_insert ;
 let stmt_file_insert;
-module.exports.updateStatToDb = async function (filePath, stat) {
+module.exports.updateStatToDb = async function (filePath, stat, insertion_cache) {
     const statObj = {};
     if (!stat) {
         //seems only happen on mac
@@ -179,29 +179,32 @@ module.exports.updateStatToDb = async function (filePath, stat) {
     tags_rows.push([filePath, comiket, "tag", "comiket", isCompressFile, isFolder]);
     // name
     const nameTags = [...(namePicker.pick(str)||[]), ...charNames];
-    nameTags.forEach(name => {
+    _.uniq(nameTags).forEach(name => {
         tags_rows.push([filePath, name, "tag", "name", isCompressFile, isFolder]);
     })
 
     // parody
-    tags.forEach(tt => {
+    _.uniq(tags).forEach(tt => {
         if (!authors.includes(tt) && group !== tt) {
             tags_rows.push([filePath, tt, "tag", "parody", isCompressFile, isFolder]);
         }
     })
     // author
-    authors.forEach(tt => {
+    _.uniq(authors).forEach(tt => {
         tags_rows.push([filePath, tt, "author", "author", isCompressFile, isFolder]);
     })
     // group
-    tags_rows.push([filePath, group, "group", "group", isCompressFile, isFolder]);
+    _.uniq(tags_rows).push([filePath, group, "group", "group", isCompressFile, isFolder]);
 
     // fliter null or empty
-    tags_rows = tags_rows.filter(e => { return e[0] && e[1] && e[1].length > 0; })
+    tags_rows = tags_rows.filter(e => { return e[0] && e[1] && e[2]; })
 
-    // do batch insertion
-    for(const row of tags_rows){
-        stmt_tag_insert.run(...row);
+    if(insertion_cache){
+        insertion_cache.tags.push(...tags_rows);
+    }else{
+        for(const row of tags_rows){
+            stmt_tag_insert.run(...row);
+        }
     }
 
     //file_table插入
@@ -211,10 +214,65 @@ module.exports.updateStatToDb = async function (filePath, stat) {
     const dirPath = path.dirname(filePath);
     const dirName = getDirName(filePath);
     const fileSize = statObj.size || 0;
-    // https://www.sqlitetutorial.net/sqlite-nodejs/insert/
-    stmt_file_insert.run(filePath, dirName, dirPath, fileName, fileTimeA, fileSize,
-        isDisplayableInExplorer, isDisplayableInOnebook, isCompressFile, isVideoFile, isFolder);
+    const params = [filePath, dirName, dirPath, fileName, fileTimeA, fileSize,
+        isDisplayableInExplorer, isDisplayableInOnebook, isCompressFile, isVideoFile, isFolder];
+    if(insertion_cache){
+        insertion_cache.files.push(params);
+    }else{
+        stmt_file_insert.run(...params);
+    }
 }
+
+// 传入 db、table 和数据数组实现批量插入
+module.exports.batchInsert = async (tableName, dataArray, blockSize = 2000) => {
+    if(dataArray.length == 0){
+        return;
+    }
+  
+    // 生成占位符
+    const placeholder = '(' + new Array(dataArray[0].length).fill('?').join(',') + ')';
+    
+    // 计算分块数量
+    const length = dataArray.length;
+    const blocks = Math.ceil(length / blockSize);
+    
+    // 开始事务
+    await sqldb.runSync('BEGIN');
+    
+    // 循环插入数据分块
+    for (let i = 0; i < blocks; i++) {
+        const start = i * blockSize;
+        const end = start + blockSize;
+        const subArr = dataArray.slice(start, end);
+        try{
+            // 拼接 SQL 语句
+            // const keys = Object.keys(subArr[0]).join(',');
+            let keys;
+            if(tableName == "file_table"){
+              keys = `filePath, dirName, dirPath, fileName, mTime, size, isDisplayableInExplorer, isDisplayableInOnebook, isCompress, isVideo, isFolder`;
+            }else if (tableName == "tag_table"){
+              keys = `filePath, tag, type, subtype, isCompress, isFolder`;
+            }else{
+              throw "WTF????"
+            }
+            
+            const questions =  subArr.map(() => placeholder).join(',');
+            const sql = `INSERT INTO ${tableName} (${keys}) VALUES ${questions}`;
+            
+            // 执行 SQL 语句
+            const flatData = subArr.reduce((acc, cur) => acc.concat(Object.values(cur)), []);
+            await sqldb.runSync(sql, flatData);
+            console.log(tableName, start, end);
+        }catch(e){
+            // debug
+            console.error(subArr);
+            console.error(e);
+            throw e;
+        }
+    }
+    // 提交事务
+    await sqldb.runSync('COMMIT');
+  }
 
 module.exports.deleteFromDb = function (filePath) {
     delete fileToInfo[filePath];

@@ -359,11 +359,17 @@ function initializeFileWatch(dirPathes) {
 
     let init_count = 0;
 
+    const insertion_cache = {
+        files: [],
+        tags: []
+    }
+
     //处理添加文件事件
     const addCallBack = async (fp, stats) => {
         // console.log(fp);
         // 突然想起来，这边其实可以存在到数据。最后一次加到db
-        db.updateStatToDb(fp, stats);
+        db.updateStatToDb(fp, stats, insertion_cache);
+        // db.updateStatToDb(fp, stats);
         if (is_chokidar_scan_done) {
             // nothing
         } else {
@@ -389,6 +395,8 @@ function initializeFileWatch(dirPathes) {
     //about 1s for 1000 files
     watcher.on('ready', async () => {
         is_chokidar_scan_done = true;
+        await db.batchInsert("file_table", insertion_cache.files);
+        await db.batchInsert("tag_table", insertion_cache.tags);
         await db.createSqlIndex();
         // DEBUG数据多少
         // setTimeout(async () => {
