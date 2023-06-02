@@ -43,11 +43,10 @@ module.exports.doSmartAllSync = async (sql, params) =>{
 let sqldb;
 module.exports.init = async ()=> {
     const dbCommon = require("./dbCommon");
-    sqldb = dbCommon.getSQLInstance(':memory:');
-
+    // sqldb = dbCommon.getSQLInstance(':memory:');
     // 用file的话，init的insertion太慢了
-    // const backup_db_path = path.join(pathUtil.getWorkSpacePath(), "backup_file_db.db");
-    // sqldb = dbCommon.getSQLInstance(backup_db_path);
+    const backup_db_path = path.join(pathUtil.getWorkSpacePath(), "backup_file_db.db");
+    sqldb = dbCommon.getSQLInstance(backup_db_path);
 
     // 提升少量性能
     await sqldb.runSync( `
