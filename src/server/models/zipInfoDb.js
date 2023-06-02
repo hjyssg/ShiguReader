@@ -43,12 +43,7 @@ const updateZipDb = module.exports.updateZipDb = function (info) {
     const videoNum = files.filter(isVideo).length;
     const totalNum = files.length;
 
-    sqldb.run(`INSERT OR REPLACE INTO zip_table (
-            filePath, pageNum, musicNum, videoNum, totalNum, totalImgSize, mtime) 
-            values(?, ?, ?, ?, ?, ?, ?)`, 
-    filePath, pageNum, musicNum, videoNum, totalNum, totalImgSize, mtime);
-
-
+    sqldb.insertOneRow("zip_table", {filePath, pageNum, musicNum, videoNum, totalNum, totalImgSize, mtime});
     _internal_dict_[filePath] = {
         filePath, pageNum, musicNum, videoNum, totalNum, totalImgSize, mtime
     };
@@ -58,11 +53,7 @@ const updateZipDb = module.exports.updateZipDb = function (info) {
 module.exports.updateZipDb_v2 = function (info) {
     const { filePath, pageNum, musicNum, videoNum, totalNum, totalImgSize, mtime} = info;
 
-    sqldb.run(`INSERT OR REPLACE INTO zip_table (
-            filePath, pageNum, musicNum, videoNum, totalNum, totalImgSize, mtime) 
-            values(?, ?, ?, ?, ?, ?, ?)`, 
-    filePath, pageNum, musicNum, videoNum, totalNum, totalImgSize, mtime);
-
+    sqldb.insertOneRow("zip_table", {filePath, pageNum, musicNum, videoNum, totalNum, totalImgSize, mtime});
     _internal_dict_[filePath] = {
         filePath, pageNum, musicNum, videoNum, totalNum, totalImgSize, mtime
     };

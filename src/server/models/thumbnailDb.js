@@ -30,8 +30,9 @@ module.exports.getSQLDB = function () {
 module.exports.addNewThumbnail = function (filePath, thumbnailFilePath) {
     const thumbnailFileName = path.basename(thumbnailFilePath);
     const time = util.getCurrentTime()
-    sqldb.run("INSERT INTO thumbnail_table(filePath, thumbnailFileName, time ) values(?, ?, ?)", 
-               filePath, thumbnailFileName, time);
+    sqldb.insertOneRow("thumbnail_table", {
+        filePath, thumbnailFileName, time
+    });
     _internal_dict_[filePath] = {filePath, thumbnailFileName,time}
 }
 

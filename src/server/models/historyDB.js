@@ -55,8 +55,9 @@ module.exports.addOneRecord = function (filePath) {
     const fileName = path.basename(filePath);
     const dirPath = path.dirname(filePath);
 
-    const sql = "INSERT INTO history_table(filePath, dirPath, fileName, time ) values(?, ?, ?, ?)";
-    sqldb.run(sql, filePath, dirPath, fileName, time);
+    sqldb.insertOneRow("history_table", {
+        filePath, dirPath, fileName, time
+    });
 }
 
 module.exports.addOneLsDirRecord = function (filePath) {
@@ -64,8 +65,9 @@ module.exports.addOneLsDirRecord = function (filePath) {
         return;
     }
     const time = util.getCurrentTime()
-    const sql = "INSERT INTO lsdir_history_table(filePath, time ) values(?, ?)";
-    sqldb.run(sql, filePath, time);
+    sqldb.insertOneRow("lsdir_history_table", {
+        filePath, time
+    });
 }
 
 // const back_days = 5;
