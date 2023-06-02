@@ -69,6 +69,8 @@ module.exports.init = async ()=> {
                             isDisplayableInOnebook BOOL, 
                             isCompress BOOL, 
                             isVideo BOOL,
+                            isMusic BOOL,
+                            isImage BOOL,
                             isFolder BOOL);
 
     CREATE TABLE tag_table (
@@ -119,17 +121,11 @@ module.exports.getAllScanPath = async function(){
 }
 
 module.exports.getAllFilePathes = async function (sql_condition) {
-    // return _.keys(fileToInfo);
     const sql = `SELECT filePath FROM file_table ` + sql_condition;
     const temp = await sqldb.allSync(sql);
     return temp.map(e => e.filePath);
 };
 
-
-
-
-let stmt_tag_insert ;
-let stmt_file_insert;
 module.exports.updateStatToDb = async function (filePath, stat, insertion_cache) {
     const statObj = {};
     if (!stat) {
@@ -149,9 +145,12 @@ module.exports.updateStatToDb = async function (filePath, stat, insertion_cache)
 
     const isCompressFile = isCompress(fileName);
     const isVideoFile = isVideo(fileName);
+    const isMusicFile = isMusic(fileName);
+    const isImageFile = isImage(fileName);
     const isFolder = statObj.isDir;
     const isDisplayableInExplorer = util.isDisplayableInExplorer(fileName);
     const isDisplayableInOnebook = util.isDisplayableInOnebook(fileName);
+
     //set up tags
     const str = isDisplayableInExplorer ? path.basename(filePath, path.extname(filePath)) : getDirName(filePath);
     const temp = nameParser.parse(str) || {};
@@ -206,10 +205,20 @@ module.exports.updateStatToDb = async function (filePath, stat, insertion_cache)
     const dirPath = path.dirname(filePath);
     const dirName = getDirName(filePath);
     const fileSize = statObj.size || 0;
-    const params = {filePath, dirName, dirPath, fileName, 
-        mTime: fileTime, size: fileSize,
-        isDisplayableInExplorer, isDisplayableInOnebook, 
-        isCompress: isCompressFile, isVideo: isVideoFile, isFolder}
+    const params = {
+        filePath, 
+        dirName, 
+        dirPath, 
+        fileName, 
+        mTime: fileTime, 
+        size: fileSize,
+        isDisplayableInExplorer, 
+        isDisplayableInOnebook, 
+        isCompress: isCompressFile, 
+        isVideo: isVideoFile, 
+        isMusic: isMusicFile,
+        isImage: isImageFile,
+        isFolder }
 
     if(insertion_cache){
         insertion_cache.files.push(params);
@@ -259,25 +268,22 @@ module.exports.getImgFolderInfo = (imgFolders) => {
             console.assert(file.isDisplayableInOnebook);
             console.assert("mTime" in file);
             console.assert("size" in file);
+            console.assert("isImage" in file);
 
             count++;
             mtimeMs += file.mTime / len;
             size += file.size;
             const fp = file.filePath;
-            if (isImage(fp)) {
+            if (file.isImage) {
                 totalImgSize += file.size;
                 pageNum++;
                 thumbnail = fp;
-            } else if (isMusic(fp)) {
+            } else if (file.isMusic) {
                 musicNum++;
-            } else if(isVideo(fp)){
+            } else if(file.isVideo){
                 videoNum++;
             }
         }
-
-        // const _imgs = files.filter(isImage);
-        // serverUtil.sortFileNames(_imgs);
-        // const thumbnail = _imgs[0]
 
         imgFolderInfo[folderPath] = {
             mtimeMs,

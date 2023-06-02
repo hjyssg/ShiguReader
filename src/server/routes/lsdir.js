@@ -1,7 +1,6 @@
 const express = require('express');
 const router = express.Router();
 // const _ = require('underscore');
-const stringHash = require("string-hash");
 const path = require('path');
 const pfs = require('promise-fs');
 
@@ -31,10 +30,6 @@ router.post('/api/lsDir', serverUtil.asyncWrapper(async (req, res) => {
         return;
     }
 
-    //remove '\' at the end
-    // if (dir.length > 2 && dir[dir.length - 1] === path.sep) {
-    //     dir = dir.slice(0, dir.length - 1)
-    // }
     dir = path.resolve(dir);
 
     if (!isAlreadyScan(dir)) {
@@ -47,7 +42,6 @@ router.post('/api/lsDir', serverUtil.asyncWrapper(async (req, res) => {
 
     const time1 = getCurrentTime();
     // const sqldb = db.getSQLDB();
-    // const suffix = stringHash(dir) + time1;
 
     // 前缀是子文件都搜索
     const recursiveFileSQL = `SELECT * FROM file_table WHERE filePath LIKE ? AND filePath != ?`

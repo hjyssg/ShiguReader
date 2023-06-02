@@ -617,11 +617,8 @@ async function getThumbnailForFolders(filePathes) {
             const stringsToMatch = nextFilePathes; // string array of values
             const patterns = stringsToMatch.map(str => `${str}%`);
             const placeholders = patterns.map(() => 'filePath LIKE ?').join(' OR ');
-            const sql = `SELECT filePath FROM file_table WHERE isDisplayableInOnebook = true AND ${placeholders} `;
+            const sql = `SELECT filePath FROM file_table WHERE isImage=true AND ${placeholders} `;
             let imagerows = await sqldb.allSync(sql, patterns);
-            imagerows = imagerows.filter(row => {
-                return isImage(row.filePath);
-            });
             nextFilePathes.forEach(filePath => {
                 const findRow = findOne(imagerows, filePath);
                 if (findRow) {
