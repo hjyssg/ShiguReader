@@ -21,6 +21,9 @@ function getSQLInstance(filePath){
         // TODO sql -> statement
         // sqldb.statements = {};
         sqldb.insertOneRow = async function(tableName, rowObj){
+            if(!tableName && !rowObj){
+                console.warn("[sqldb.insertOneRow] WTF??");
+            }
             const keys = Object.keys(rowObj);
             const values = keys.map(key => rowObj[key]);
             const placeholders = keys.map(() => '?');

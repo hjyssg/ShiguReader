@@ -366,13 +366,12 @@ function initializeFileWatch(dirPathes) {
 
     //处理添加文件事件
     const addCallBack = async (fp, stats) => {
-        // console.log(fp);
-        // 突然想起来，这边其实可以存在到数据。最后一次加到db
-        db.updateStatToDb(fp, stats, insertion_cache);
-        // db.updateStatToDb(fp, stats);
         if (is_chokidar_scan_done) {
-            // nothing
+            // 单次添加
+            db.updateStatToDb(fp, stats);
         } else {
+            // 批量添加
+            db.updateStatToDb(fp, stats, insertion_cache);
             init_count++;
             if (init_count % 2000 === 0) {
                 let end1 = getCurrentTime();
@@ -398,21 +397,6 @@ function initializeFileWatch(dirPathes) {
         await db.batchInsert("file_table", insertion_cache.files);
         await db.batchInsert("tag_table", insertion_cache.tags);
         await db.createSqlIndex();
-        // DEBUG数据多少
-        // setTimeout(async () => {
-        //     const sqldb = db.getSQLDB();
-        //     let sql = `SELECT count(*) as count FROM file_table `;
-        //     let temp = await sqldb.allSync(sql);
-        //     console.log(temp[0].count);
-
-        //     sql = `SELECT count(*) as count FROM tag_table `;
-        //     temp = await sqldb.allSync(sql);
-        //     console.log(temp[0].count);
-    
-        //     // sql = `SELECT * FROM file_table `;
-        //     // temp = await sqldb.allSync(sql);
-        //     // console.log(temp); 
-        // }, 5000);
 
         let end1 = getCurrentTime();
         console.log(`[chokidar initializeFileWatch] ${(end1 - beg) / 1000}s scan complete.`);
@@ -454,12 +438,9 @@ function addNewFileWatchAfterInit(dirPathes) {
     });
 
     let init_count = 0;
-
     //处理添加文件事件
     const addCallBack = async (fp, stats) => {
-        // console.log(fp);
         db.updateStatToDb(fp, stats);
-       
         init_count++;
         if (init_count % 500 === 0) {
             let end1 = getCurrentTime();

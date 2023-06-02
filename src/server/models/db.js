@@ -203,7 +203,7 @@ module.exports.updateStatToDb = async function (filePath, stat, insertion_cache)
         insertion_cache.tags.push(...tags_rows);
     }else{
         for(const row of tags_rows){
-            sqldb.insertOneRow(row);
+            sqldb.insertOneRow("tag_table", row);
         }
     }
 
@@ -222,7 +222,7 @@ module.exports.updateStatToDb = async function (filePath, stat, insertion_cache)
     if(insertion_cache){
         insertion_cache.files.push(params);
     }else{
-        sqldb.push(params);
+        sqldb.insertOneRow("file_table", params);
     }
 }
 
