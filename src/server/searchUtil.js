@@ -24,15 +24,15 @@ function splitRows(rows, text) {
     //因为tag是经过处理的
 
     rows.forEach(row => {
-        const dirName = path.basename(row.dirPath);
-        // const byDir = dirName.toLowerCase().includes(textInLowerCase);
+        const dirPath = row.dirPath;
+        // const byDir = dirPath.toLowerCase().includes(textInLowerCase);
         // const byFn = row.fileName.toLowerCase().includes(textInLowerCase);
 
         if (row.isDisplayableInExplorer) {
             zipResult.push(row);
         } else if (row.isDisplayableInOnebook) {
-            imgFolders[dirName] = imgFolders[dirName] || [];
-            imgFolders[dirName].push(row);
+            imgFolders[dirPath] = imgFolders[dirPath] || [];
+            imgFolders[dirPath].push(row);
         } else if (row.isFolder) {
             //folder check its name
             dirResults.push(row);
