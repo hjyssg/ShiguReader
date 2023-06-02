@@ -252,7 +252,7 @@ module.exports.batchInsert = async (tableName, dataArray, blockSize = 2000) => {
             // 执行 SQL 语句
             const flatData = subArr.reduce((acc, cur) => acc.concat(Object.values(cur)), []);
             await sqldb.runSync(sql, flatData);
-            console.log(tableName, start, end);
+            // console.log(tableName, start, end);
         }catch(e){
             // debug
             console.error(subArr, start);
