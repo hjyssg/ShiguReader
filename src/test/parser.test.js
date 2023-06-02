@@ -48,12 +48,15 @@ describe("name parser", () => {
     assert.equal(result.author, "武田弘光");
     assert.equal(result.comiket, "C82");
     assert.equal(result.title, "apple");
+    assert.equal(result.group, "真珠貝");
+
 
 
     s1 = "(DOUJIN)(C82)[真珠貝(武田弘光)]apple(cake).zip";
     result = parser.parse(s1);
     assert.deepEqual(result.tags.sort(), ["DOUJIN", "cake"].sort());
     assert.equal(result.author, "武田弘光");
+    
 
     s1 =
       "(COMIC1☆9) [橘花屋 (上杉響士郎, 榊ゆいの)] すみません。 (アイドルマスター シンデレラガールズ).zip";
@@ -63,6 +66,7 @@ describe("name parser", () => {
     assert.deepEqual(result.tags, ["アイドルマスター シンデレラガールズ"]);
     assert.equal(result.comiket, "COMIC1☆9");
     assert.equal(result.title, "すみません。");
+    assert.equal(result.group, "橘花屋");
 
 
     s1 ="(同人CG集) [エアリーソックス] 騒音被害.zip";
