@@ -868,7 +868,7 @@ export default class ExplorerPage extends Component {
         let files = filteredFiles;
 
         dirs.sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
-        videos.sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+       
 
         try {
             files = this.sortFiles(files, sortOrder, isSortAsc);
@@ -962,7 +962,8 @@ export default class ExplorerPage extends Component {
         //todo av-color
         const videoDivGroup = _.keys(groupByVideoType).map((key, ii) => {
             let group = groupByVideoType[key];
-            group = this.sortFiles(group, BY_FILENAME);
+            group.sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+
             const videoItems = group.map((item) => {
                 const toUrl = clientUtil.getVideoPlayerLink(item);
                 const text = getBaseName(item);
