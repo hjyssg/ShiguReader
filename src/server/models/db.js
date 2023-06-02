@@ -218,41 +218,13 @@ module.exports.updateStatToDb = async function (filePath, stat, insertion_cache)
 
 // 传入 db、table 和数据数组实现批量插入
 module.exports.batchInsert = async (tableName, dataArray, blockSize = 2000) => {
-    if(dataArray.length == 0){
-        return;
-    }
-    
-    // 计算分块数量
-    const length = dataArray.length;
-    const blocks = Math.ceil(length / blockSize);
-    
-    // 开始事务
-    await sqldb.runSync('BEGIN');
-    for (let i = 0; i < blocks; i++) {
-        const start = i * blockSize;
-        const end = start + blockSize;
-        const subArr = dataArray.slice(start, end);
-        try{
-            // 拼接 SQL 语句
-            const keys = Object.keys(subArr[0]);
-            const placeholder = '(' + keys.map(() => '?') + ')';
-            const questions =  subArr.map(() => placeholder);
-            const sql = `INSERT OR REPLACE INTO ${tableName} (${keys.join(',')}) VALUES ${questions.join(',')}`;
-            
-            // 执行 SQL 语句
-            const flatData = subArr.reduce((acc, cur) => acc.concat(Object.values(cur)), []);
-            await sqldb.runSync(sql, flatData);
-            // console.log(tableName, start, end);
-        }catch(e){
-            // debug
-            console.error(subArr, start);
-            console.error(e);
-            throw e;
-        }
-    }
-    // 提交事务
-    await sqldb.runSync('COMMIT');
-  }
+    let beg = getCurrentTime();
+
+    await sqldb.batchInsert(tableName, dataArray, blockSize);
+
+    let end = getCurrentTime();
+    console.log(`[batchInsert] ${tableName} ${dataArray.length} ${end - beg}ms`);
+}
 
 module.exports.deleteFromDb = function (filePath) {
     delete fileToInfo[filePath];
