@@ -145,16 +145,6 @@ module.exports.updateStatToDb = async function (filePath, stat, insertion_cache)
     console.assert(statObj);
     const fileName = path.basename(filePath);
 
-    // stmt_tag_insert = stmt_tag_insert || sqldb.prepare(`
-    //         INSERT OR REPLACE INTO tag_table (filePath, tag, type, subtype, isCompress, isFolder )
-    //         values (?, ?, ?, ?, ?, ?)`);
-
-    // stmt_file_insert = stmt_file_insert || sqldb.prepare(`
-    //     INSERT OR REPLACE INTO file_table (
-    //     filePath, dirName, dirPath, fileName, mTime, size,
-    //     isDisplayableInExplorer, isDisplayableInOnebook, 
-    //     isCompress, isVideo, isFolder ) values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`);
-
     const isCompressFile = isCompress(fileName);
     const isVideoFile = isVideo(fileName);
     const isFolder = statObj.isDir;
@@ -247,7 +237,7 @@ module.exports.batchInsert = async (tableName, dataArray, blockSize = 2000) => {
             const keys = Object.keys(subArr[0]);
             const placeholder = '(' + keys.map(() => '?') + ')';
             const questions =  subArr.map(() => placeholder);
-            const sql = `INSERT INTO ${tableName} (${keys.join(',')}) VALUES ${questions.join(',')}`;
+            const sql = `INSERT OR REPLACE INTO ${tableName} (${keys.join(',')}) VALUES ${questions.join(',')}`;
             
             // 执行 SQL 语句
             const flatData = subArr.reduce((acc, cur) => acc.concat(Object.values(cur)), []);

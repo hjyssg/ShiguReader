@@ -335,7 +335,6 @@ function shrinkFp(fp){
     return fp.slice(0, 12) + "..." + fp.slice(fp.length - 10);
 }
 
-let is_chokidar_scan_done = false;
 /** 
  * 程序启动时让chokidar监听文件夹，把需要的信息加到db。并做一些初始操作
  * 
@@ -358,7 +357,7 @@ function initializeFileWatch(dirPathes) {
     });
 
     let init_count = 0;
-
+    let is_chokidar_scan_done = false;
     const insertion_cache = {
         files: [],
         tags: []
@@ -438,14 +437,25 @@ function addNewFileWatchAfterInit(dirPathes) {
     });
 
     let init_count = 0;
+    let is_chokidar_scan_done = false;
+    const insertion_cache = {
+        files: [],
+        tags: []
+    }
     //处理添加文件事件
     const addCallBack = async (fp, stats) => {
-        db.updateStatToDb(fp, stats);
-        init_count++;
-        if (init_count % 500 === 0) {
-            let end1 = getCurrentTime();
-            let np = shrinkFp(fp);
-            console.log(`[chokidar addNewFileWatch] scan: ${(end1 - beg) / 1000}s  ${init_count} ${np}`);
+        if (is_chokidar_scan_done) {
+            // 单次添加
+            db.updateStatToDb(fp, stats);
+        } else {
+            // 批量添加
+            db.updateStatToDb(fp, stats, insertion_cache);
+            init_count++;
+            if (init_count % 500 === 0) {
+                let end1 = getCurrentTime();
+                let np = shrinkFp(fp);
+                console.log(`[chokidar addNewFileWatch] scan: ${(end1 - beg) / 1000}s  ${init_count} ${np}`);
+            }
         }
     };
 
@@ -461,6 +471,10 @@ function addNewFileWatchAfterInit(dirPathes) {
 
     //about 1s for 1000 files
     watcher.on('ready', async () => {
+        is_chokidar_scan_done = true;
+        await db.batchInsert("file_table", insertion_cache.files);
+        await db.batchInsert("tag_table", insertion_cache.tags);
+
         let end1 = getCurrentTime();
         console.log(`[chokidar] ${(end1 - beg) / 1000}s scan complete.`);
         console.log(`[chokidar] ${init_count} files were scanned`)
