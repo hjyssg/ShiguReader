@@ -867,7 +867,8 @@ export default class ExplorerPage extends Component {
         let videos = filteredVideos;
         let files = filteredFiles;
 
-        dirs.sort();
+        dirs.sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+        videos.sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
 
         try {
             files = this.sortFiles(files, sortOrder, isSortAsc);
