@@ -584,11 +584,18 @@ export default class OneBook extends Component {
         "has-music": this.hasMusic()
       });
 
-      const nextImg = this.shouldTwoPageMode() && <img className={cn} src={getFileUrl(imageFiles[index + 1])} alt="book-image"
-        ref={img => this.nextImgRef = img}
-        onLoad={this.makeTwoImageSameHeight.bind(this)}
-        index={index + 1}
-      />;
+      let nextImg = null
+      if(this.shouldTwoPageMode()) {
+        nextImg = ( 
+              <BookImage className={cn} 
+                alt="book-image"
+                ref={img => this.nextImgRef = img}
+
+                imageFiles={imageFiles}
+                index={index + 1}
+                onLoad={this.makeTwoImageSameHeight.bind(this)}
+              />);
+        };
 
       const preload = this.renderPreload();
 
@@ -614,14 +621,21 @@ export default class OneBook extends Component {
       const cn = classNames("mobile-single-image", {
         "has-music": this.hasMusic()
       });
-      images = (<div className="mobile-single-image-container"
+      images = (
+      <div className="mobile-single-image-container"
         ref={(e) => this.imgContainerRef = e}
         onClick={this.onClickMobileOneImageContainer.bind(this)}>
-        <img className={cn}
+        <BookImage 
+          className={cn}
           ref={(img) => this.imgRef = img}
+
+          imageFiles={imageFiles}
+          index={index}
           onError={this.onImageError.bind(this)}
           onLoad={this.onImgLoad.bind(this)}
-          src={getFileUrl(imageFiles[index])} />
+          src={getFileUrl(imageFiles[index])} 
+          loading="lazy"
+        />
       </div>);
       return (<div className="mobile-one-book-container">
         <Spinner className="one-book-img-load-spinner" />
