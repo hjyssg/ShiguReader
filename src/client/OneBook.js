@@ -10,6 +10,7 @@ import ErrorPage from './ErrorPage';
 import Spinner from './subcomponent/Spinner';
 import CenterSpinner from './subcomponent/CenterSpinner';
 import FileNameDiv from './subcomponent/FileNameDiv';
+import BookImage from './subcomponent/BookImage';
 import FileChangeToolbar from './subcomponent/FileChangeToolbar';
 import HistorySection from './subcomponent/HistorySection';
 import MusicPlayer from './MusicPlayer';
@@ -401,12 +402,11 @@ export default class OneBook extends Component {
   changePage(index, event) {
     event && event.preventDefault();
     event && event.stopPropagation();
+
     if (!userConfig.keep_clip) {
       this.setState({ twoPageMode: NO_TWO_PAGE });
     }
-
     this.showSpinner();
-
     this.setState({ index: index });
     this.setIndex(index);
     this.rotateImg(0);
@@ -595,15 +595,19 @@ export default class OneBook extends Component {
       return (<React.Fragment>
         <Spinner className="one-book-img-load-spinner" />
         {twoPageMode === TWO_PAGE_RIGHT && nextImg}
-        <img className={cn} src={getFileUrl(imageFiles[index])} alt="book-image"
+        <BookImage
+          className={cn}
+          alt="book-image"
           ref={img => this.imgRef = img}
+
+          imageFiles={imageFiles}
           index={index}
           onError={this.onImageError.bind(this)}
           onLoad={this.onImgLoad.bind(this)}
           loading="lazy"
         />
         {twoPageMode === TWO_PAGE_LEFT && nextImg}
-        {preload}
+        {/* {preload} */}
       </React.Fragment>);
     } else {
       let images;

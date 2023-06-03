@@ -16,6 +16,7 @@
   "author": "aji47",
   "license": "MIT",
   "dependencies": {
+    "@react-hook/throttle": "^2.2.0",
     "babel-polyfill": "^6.26.0",
     "chart.js": "^4.3.0",
     "classnames": "^2.2.6",
