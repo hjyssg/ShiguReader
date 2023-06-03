@@ -473,23 +473,33 @@ export default class OneBook extends Component {
     return <div className={cn}>{text}</div>;
   }
 
+    //may not be reliable
+    getPageAvgSize() {
+      const { fileStat, imageFiles, index, zipInfo, videoFiles } = this.state;
+      const fileSize = (fileStat?.size) || null;
+      const fileDate = (fileStat?.mtimeMs) || null;
+
+      let avgFileSize = 0; // 和explore的getPageAvgSize(e)是重复逻辑？
+      if(this.hasImage()){
+        if (zipInfo) {
+          avgFileSize = zipInfo.totalImgSize / zipInfo.pageNum;
+        } else if(fileSize) {
+          avgFileSize = fileSize / this.getImageLength();
+        }
+        if(avgFileSize == Infinity){
+          avgFileSize = 0;
+        }
+      };
+      return avgFileSize;
+  }
+
   renderFileSizeAndTime() {
     const { fileStat, imageFiles, index, zipInfo, videoFiles } = this.state;
 
     const fileSize = (fileStat?.size) || null;
     const fileDate = (fileStat?.mtimeMs) || null;
     
-    let avgFileSize = 0; // 和explore的getPageAvgSize(e)是重复逻辑？
-    if(this.hasImage()){
-      if (zipInfo) {
-        avgFileSize = zipInfo.totalImgSize / zipInfo.pageNum;
-      } else if(fileSize) {
-        avgFileSize = fileSize / this.getImageLength();
-      }
-      if(avgFileSize == Infinity){
-        avgFileSize = 0;
-      }
-    }
+    let avgFileSize = this.getPageAvgSize();
 
     const rows = [];
     if(fileDate){

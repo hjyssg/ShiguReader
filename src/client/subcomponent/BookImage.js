@@ -6,8 +6,7 @@ import { useThrottleCallback } from "@react-hook/throttle";
 function BookImage(props, ref) {
   const { className, imageFiles, index, onLoad, onError, ...rest } = props;
   const [imageSrc, setImageSrc] = useState("");
-  const [prealoadMade, setprealoadMade] = useState({});
-
+  const preloadMade = useRef({});
   //   react hook在闭包拿到最新的props
   const latestProps = useRef(props);
   useEffect(() => {
@@ -29,10 +28,10 @@ function BookImage(props, ref) {
       for (let ii = beg; ii < end; ii++) {
         const url = clientUtil.getFileUrl(imageFiles[ii]);
         // 避免重复load
-        if(prealoadMade[url]){
+        if(preloadMade[url]){
             continue;
         }
-        prealoadMade[url] = true;
+        preloadMade[url] = true;
 
         const response = await fetch(url, {
           method: "GET",
@@ -47,7 +46,8 @@ function BookImage(props, ref) {
   async function getImageData() {
     try {
       //   console.log(props, index);
-      console.log(index);
+      //   console.log(index);
+      const index = latestProps.current.index;
       const url = clientUtil.getFileUrl(imageFiles[index]);
       if (!url) {
         return;
@@ -59,7 +59,7 @@ function BookImage(props, ref) {
           "Content-Type": "application/octet-stream",
         },
       });
-      prealoadMade[url] = true;
+      preloadMade[url] = true;
 
       const blob = await response.blob();
       if (blob.size > 0) {
@@ -73,7 +73,7 @@ function BookImage(props, ref) {
           } else {
             console.log(latestProps.current.index, index);
           }
-
+            //   setImageSrc(`data:image/jpeg;base64,${window.btoa(binaryString)}`);
           onLoad && onLoad();
         };
         reader.readAsBinaryString(blob);
