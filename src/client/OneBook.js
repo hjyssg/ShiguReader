@@ -548,24 +548,7 @@ export default class OneBook extends Component {
 
   onImgLoad() {
     this.hideSpinner();
-
     this.adjustImageSize();
-  }
-
-  renderPreload(){
-    const result = [];
-    if(document.visibilityState === 'visible'){
-      const { imageFiles, index, twoPageMode } = this.state;
-      const beg = index + 1;
-      const preload_num = 4;
-      const end = Math.min(beg + preload_num, this.getImageLength())
-  
-      for(let ii = beg; ii < end; ii++){
-        const temp =  <link rel="preload" key={ii} href={getFileUrl(imageFiles[ii])} as="image" />
-        result.push(temp);
-      }
-    }
-    return result;
   }
 
   renderImage() {
@@ -596,7 +579,6 @@ export default class OneBook extends Component {
               />);
         };
 
-      const preload = this.renderPreload();
 
       return (<React.Fragment>
         <Spinner className="one-book-img-load-spinner" />
@@ -613,7 +595,6 @@ export default class OneBook extends Component {
           loading="lazy"
         />
         {twoPageMode === TWO_PAGE_LEFT && nextImg}
-        {/* {preload} */}
       </React.Fragment>);
     } else {
       let images;

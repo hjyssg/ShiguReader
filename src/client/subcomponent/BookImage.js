@@ -12,6 +12,26 @@ function BookImage(props, ref) {
     throttledGetImageData();
   }, [index]);
 
+  const doPreload =  async () => {
+    if(document.visibilityState === 'visible'){
+      const beg = index + 1;
+      const preload_num = 2;
+      const end = Math.min(beg + preload_num, imageFiles.length);
+  
+      for(let ii = beg; ii < end; ii++){
+        // const temp =  <link rel="preload" key={ii} href={getFileUrl(imageFiles[ii])} as="image" />
+        // result.push(temp);
+        const url = clientUtil.getFileUrl(imageFiles[ii]);
+        const response = await fetch(url, {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/octet-stream",
+            },
+          });
+      }
+    }
+  }
+
   async function getImageData() {
     try {
       //   console.log(props, index);
@@ -38,6 +58,9 @@ function BookImage(props, ref) {
         reader.readAsBinaryString(blob);
       }
 
+      // preload
+      doPreload();
+
     } catch (error) {
       console.error(error);
       console.error(error);
@@ -48,10 +71,11 @@ function BookImage(props, ref) {
   
   const onImageError = (error) => {
     // https://stackoverflow.com/questions/5559578/having-links-relative-to-root
-    // this.imgRef.src = "/error_loading.png";
-    console.error(error);
-    setImageSrc("/error_loading.png");
-    onError && onError()
+    if(imageSrc){
+        console.error(error);
+        setImageSrc("/error_loading.png");
+        onError && onError()
+    }
   }
 
   const throttledGetImageData = useThrottleCallback(getImageData, 4);
