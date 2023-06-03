@@ -100,6 +100,20 @@ function parse(str) {
 export default class ExplorerPage extends Component {
     constructor(prop) {
         super(prop);
+
+        this.metaInfo = [
+            {key:"pageIndex", type: "int", defVal: 1},
+            {key:"isRecursive", type: "boolean"},
+            {key:"sortOrder", type: "str", defVal: BY_TIME},
+            {key:"isSortAsc", type: "boolean"},
+            {key:"showVideo", type: "boolean"},
+            {key:"showFolderThumbnail", type: "boolean"},
+            {key:"filterArr", type: "arr"},
+            {key:"filterText", type: "str"},
+            {key:"filterType", type: "str"},
+            {key:"noThumbnail", type: "boolean"}
+        ];
+
         this.state = this.getInitState();
         this.resetParam();
     }
@@ -110,59 +124,17 @@ export default class ExplorerPage extends Component {
     }
 
     getInitState(reset) {
-        const parsed = reset ? {} : queryString.parse(location.hash);
-        const pageIndex = parseInt(parsed.pageIndex) || 1;
-        const isRecursive = !!(parsed.isRecursive === "true");
-        const sortOrder = parsed.sortOrder || BY_TIME;
-        const isSortAsc = !!(parsed.isSortAsc === "true");
-        const showVideo = !!(parsed.showVideo === "true");
-        const showFolderThumbnail = !!(parsed.showFolderThumbnail == "true");
-        let filterArr = parsed.filterArr || [];
-        if (_.isString(filterArr)) {
-            filterArr = [filterArr];
-        }
-
+        const initState = clientUtil.getInitState(this.metaInfo, reset);
         return {
             perPageItemNum: getPerPageItemNumber(),
-            anchorSideMenu: false,
-            pageIndex,
-            isRecursive,
-            sortOrder,
-            isSortAsc,
-            showVideo,
-            showFolderThumbnail,
-            filterArr,
-            filterText: parsed.filterText || "",
-            filterType: parsed.filterType || "",
-            noThumbnail: parsed.noThumbnail === "true"
+            ...initState
         }
     }
 
     setStateAndSetHash(state, callback) {
-        // const time1 = util.getCurrentTime();
-        //??? this is slow after handleLsDirRes
         this.setState(state, callback);
-
-        const obj = Object.assign({}, this.state, state);
-        const obj2 = {};
-        ["pageIndex",
-            "isRecursive",
-            "sortOrder",
-            "isSortAsc",
-            "showVideo",
-            "filterArr",
-            "filterText",
-            "filterType",
-            "noThumbnail",
-            "showFolderThumbnail"].forEach(key => {
-                obj2[key] = obj[key];
-            })
-
-        clientUtil.replaceUrlHash(queryString.stringify(obj2))
-
-        // const time2 = util.getCurrentTime();
-        // const timeUsed = (time2 - time1) / 1000;
-        // console.log("[setState] ", timeUsed, "s")
+        const newState = {...this.state, ...state};
+        clientUtil.saveStateToUrl(this.metaInfo, newState);
     }
 
     handlePageChange(index) {

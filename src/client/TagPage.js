@@ -37,45 +37,32 @@ const FILTER_COMIKET = "FILTER_COMIKET"
 export default class TagPage extends Component {
   constructor(prop) {
     super(prop);
+    this.metaInfo = [
+      {key:"pageIndex", type: "int", defVal: 1},
+      {key:"sortOrder", type: "str", defVal: BY_FILE_NUMBER},
+      {key:"isSortAsc", type: "boolean"},
+      {key:"filterArr", type: "arr"},
+      {key:"filterText", type: "str"},
+    ];
     this.state = this.getInitState();
   }
 
   getInitState(reset) {
-    const parsed = reset ? {} : queryString.parse(location.hash);
-    const pageIndex = parseInt(parsed.pageIndex) || 1;
-    const sortOrder = parsed.sortOrder || BY_FILE_NUMBER;
-    const isSortAsc = !!(parsed.isSortAsc === "true");
-    let filterArr = parsed.filterArr || [FILTER_PARODY];
-    if (_.isString(filterArr)) {
-        filterArr = [ filterArr ];
-    }
-
+    const initState = clientUtil.getInitState(this.metaInfo, reset);
     return {
-      perPageItemNum: getPerPageItemNumber(),
       tag_rows: [],
       author_rows: [],
-      pageIndex,
-      sortOrder,
-      isSortAsc,
-      filterArr,
-      filterText: parsed.filterText || "",
-
-      //https://stackoverflow.com/questions/49723019/compare-with-previous-props-in-getderivedstatefromprops
-      mode: this.props.mode 
+      perPageItemNum: getPerPageItemNumber(),
+      mode: this.props.mode,
+      ...initState
     }
   }
 
   setStateAndSetHash(state, callback) {
-    const obj = Object.assign({}, this.state, state);
-    const obj2 = {};
-    ["pageIndex", "sortOrder", "isSortAsc", "filterText", "filterArr"].forEach(key => {
-      obj2[key] = obj[key];
-    })
-
-    clientUtil.replaceUrlHash(queryString.stringify(obj2));
     this.setState(state, callback);
+    const newState = {...this.state, ...state};
+    clientUtil.saveStateToUrl(this.metaInfo, newState);
   }
-
 
   static getDerivedStateFromProps(nextProps, prevState){
     if (nextProps.mode && nextProps.mode !== prevState.mode) {

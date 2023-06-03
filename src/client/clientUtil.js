@@ -285,7 +285,7 @@ module.exports.linkFunc = (index)=>{
     return newUrl
 }
 
-module.exports.replaceUrlHash = function(newHash){
+const replaceUrlHash = module.exports.replaceUrlHash = function(newHash){
     // console.assert((location.origin + location.pathname + location.search + location.hash) === location.href, "[replaceUrlHash] url error")
     const newUrl = replaceHash(newHash);
     location.replace(newUrl);
@@ -435,40 +435,42 @@ module.exports.convertSimpleObj2tooltipRow = (obj) => {
     return rows;
 }
 
-const queryString = require('query-string');
 module.exports.getInitState = (metaInfo, reset) => {
     const parsed = reset ? {} : queryString.parse(location.hash);
 
     const result = {};
     metaInfo.forEach(item => {
-        const name = item["name"];
+        const key = item["key"];
         const type = item["type"];
         const defVal = item["defVal"];
-        console.assert(name && type);
-        let raw = parsed[name];
+        console.assert(key && type);
+        let raw = parsed[key];
 
         if(type === "int"){
-            result[name] = parseInt(raw)  || defVal;
+            result[key] = parseInt(raw)  || defVal;
         }else if (type === "bolean"){
-            result[name] = !!(raw === "true")
-        }else (type === "arr"){
+            result[key] = !!(raw === "true")
+        }else if (type === "arr"){
+            raw = raw || [];
             if (_.isString(raw)) {
                 raw = [ raw ];
             }
-            result[name] = raw || defVal;
+            result[key] = raw || defVal;
+        }else if (type == "str"){
+            result[key] = raw || defVal || "";
         }
     });
 
     return result;
 }
 
-module.exports.saveStateToUrl = (metaInfo, state){
+module.exports.saveStateToUrl = (metaInfo, state) => {
     const obj2 = {};
     metaInfo.forEach(item => {
-            const name = item["name"];
-            console.assert(name);
-            obj2[name] = state[name];
+            const key = item["key"];
+            console.assert(key);
+            obj2[key] = state[key];
     })
 
-    clientUtil.replaceUrlHash(queryString.stringify(obj2))
+    replaceUrlHash(queryString.stringify(obj2))
 }
