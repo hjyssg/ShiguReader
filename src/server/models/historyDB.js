@@ -69,42 +69,24 @@ module.exports.addOneLsDirRecord = function (filePath) {
 
 // const back_days = 5;
 const PAGE_TIME_SIZE = 200;
-module.exports.getHistory = async function (page=0) {
-    // let time = util.getCurrentTime();
-    // time = time - 1000 * 3600 * 24 * back_days;
-    // const sql = `SELECT  filePath, MAX(time) as time FROM 
-    //             (SELECT * FROM history_table where time > ?) 
-    //          GROUP BY filePath`
-    // const sql = `SELECT * FROM history_table where time > ?`
-    // const sql = `SELECT * FROM history_table ORDER BY time DESC LIMIT ${page*200}, ${(page+1)*200}`
-
+module.exports.getHistoryPageData = async function (page=0) {
     // https://www.tutorialspoint.com/sqlite/sqlite_limit_clause.htm
     const sql = `
     SELECT filePath, dirPath, fileName, MAX(time) as time FROM 
         (SELECT * FROM history_table ORDER BY time DESC  LIMIT ${PAGE_TIME_SIZE} OFFSET ${page*PAGE_TIME_SIZE})  
     GROUP BY filePath 
-    ORDER BY time DESC 
-    ;`
+    ORDER BY time DESC ;`
     let rows = await sqldb.allSync(sql);
     console.assert(rows.length <= PAGE_TIME_SIZE)
     // return rows;
 
-    const sql2 = `SELECT count(*) as count FROM history_table`
+    const sql2 = `SELECT count(*) as count FROM history_table;`
     let counts = await sqldb.allSync(sql2);
     return {rows, count: counts[0]["count"]}
 }
 
-// SELECT *, strftime('%d-%m-%Y', datetime(time/1000, 'unixepoch')) FROM history_table ORDER BY time DESC
-module.exports.getHistoryByFP = async function (fileName) {
-    // 一天算一次
-    // let rows1 = await sqldb.allSync("SELECT filePath, time FROM history_table WHERE fileName = ?", [fileName]);
-    // const sql = `SELECT filePath, Max(time) as time FROM
-    //              (SELECT * FROM history_table where time > ?)  
-    //             GROUP BY strftime('%d-%m-%Y', datetime(time/1000, 'unixepoch')) ORDER BY time DESC`
-
-    // const sql = `SELECT filePath, Max(time) as time FROM
-    //  (SELECT * FROM history_table where fileName = ?)  
-    //  GROUP BY strftime('%d-%m-%Y', datetime(time/1000, 'unixepoch')) ORDER BY time DESC`
+/** 单个文件的全部历史记录  */
+module.exports.getHistoryForOneFile = async function (fileName) {
     const sql = `SELECT * FROM history_table where fileName = ? ORDER BY time DESC`
     let rows = await sqldb.allSync(sql, [fileName]);
     return rows;
@@ -128,6 +110,7 @@ module.exports.getRecentAccess = async function () {
     return rows;
 }
 
+/** n个文件的最新一次记录 */
 module.exports.getFileHistory = async function (pathes) {
     pathes = pathes || [];
     const fileNames = pathes.map(e => {
@@ -146,9 +129,6 @@ module.exports.getFileHistory = async function (pathes) {
     history_table where fileName IN (${placeholders})  
     GROUP BY fileName`
     let rows =  await sqldb.allSync(sql, fileNames);
-
-    // let end3 = getCurrentTime();
-    // console.log(`[getFileHistory] ${(end3 - end1) / 1000}s for ${fileNames.length} zips`);
 
     return rows;
 }
