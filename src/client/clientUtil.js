@@ -434,3 +434,41 @@ module.exports.convertSimpleObj2tooltipRow = (obj) => {
     }
     return rows;
 }
+
+const queryString = require('query-string');
+module.exports.getInitState = (metaInfo, reset) => {
+    const parsed = reset ? {} : queryString.parse(location.hash);
+
+    const result = {};
+    metaInfo.forEach(item => {
+        const name = item["name"];
+        const type = item["type"];
+        const defVal = item["defVal"];
+        console.assert(name && type);
+        let raw = parsed[name];
+
+        if(type === "int"){
+            result[name] = parseInt(raw)  || defVal;
+        }else if (type === "bolean"){
+            result[name] = !!(raw === "true")
+        }else (type === "arr"){
+            if (_.isString(raw)) {
+                raw = [ raw ];
+            }
+            result[name] = raw || defVal;
+        }
+    });
+
+    return result;
+}
+
+module.exports.saveStateToUrl = (metaInfo, state){
+    const obj2 = {};
+    metaInfo.forEach(item => {
+            const name = item["name"];
+            console.assert(name);
+            obj2[name] = state[name];
+    })
+
+    clientUtil.replaceUrlHash(queryString.stringify(obj2))
+}
