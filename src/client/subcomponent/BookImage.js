@@ -6,16 +6,11 @@ import {useThrottleCallback} from '@react-hook/throttle'
 function BookImage(props, ref) {
   const { className, imageFiles, index, onLoad, ...rest } = props;
   const [imageSrc, setImageSrc] = useState("");
-  //   const nextImgRef = useRef(null);
 
   useEffect(() => {
     // 组件挂载时获取图片数据
     throttledGetImageData();
   }, [index]);
-
-  function makeTwoImageSameHeight() {
-    // 这里需要自己实现makeTwoImageSameHeight函数的逻辑
-  }
 
   async function getImageData() {
     try {
@@ -46,7 +41,6 @@ function BookImage(props, ref) {
     }
   }
 
-  // 当使用 _.throttle 时，为了确保节流函数的稳定性，需要使用 useCallback 将回调函数缓存下来，并将 _.throttle 函数作为一个依赖项。
   const throttledGetImageData = useThrottleCallback(getImageData, 4);
 
   return (
@@ -55,10 +49,6 @@ function BookImage(props, ref) {
       src={imageSrc}
       alt="book-image"
       ref={ref}
-      // ref={nextImgRef}
-      // onLoad={makeTwoImageSameHeight}
-      // index={index + 1}
-      // onError={throttledGetImageData}
       {...rest}
     />
   );
