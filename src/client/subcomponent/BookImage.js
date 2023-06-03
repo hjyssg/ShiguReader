@@ -50,7 +50,7 @@ function BookImage(props, ref) {
     // https://stackoverflow.com/questions/5559578/having-links-relative-to-root
     // this.imgRef.src = "/error_loading.png";
     console.error(error);
-    // setImageSrc("/error_loading.png");
+    setImageSrc("/error_loading.png");
     onError && onError()
   }
 
