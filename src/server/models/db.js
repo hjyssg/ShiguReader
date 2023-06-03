@@ -79,6 +79,9 @@ module.exports.init = async ()=> {
                             type VARCHAR(25) CHECK(type IN ('tag', 'author', 'group')),
                             subtype VARCHAR(25)  CHECK(subtype IN ('comiket', 'name', 'parody', 'author', 'group')) , 
                             isCompress BOOL,
+                            isVideo BOOL,
+                            isMusic BOOL,
+                            isImage BOOL,
                             isFolder BOOL,
                             PRIMARY KEY (filePath, tag, type, subtype) 
                         );
@@ -167,25 +170,73 @@ module.exports.updateStatToDb = async function (filePath, stat, insertion_cache)
     // tag插入sql
     let tags_rows = [];
     // comiket
-    tags_rows.push({ filePath, tag:comiket, type:"tag", subtype:"comiket", isCompress:isCompressFile, isFolder });
+    tags_rows.push({ 
+        filePath, 
+        tag:comiket, 
+        type:"tag", 
+        subtype:"comiket", 
+        isCompress: isCompressFile, 
+        isVideo: isVideoFile, 
+        isMusic: isMusicFile,
+        isImage: isImageFile,
+        isFolder
+    });
+
     // name
     const nameTags = [...(namePicker.pick(str)||[]), ...charNames];
     _.uniq(nameTags).forEach(tag => {
-        tags_rows.push({ filePath, tag, type:"tag", subtype:"name", isCompress:isCompressFile, isFolder});
+        tags_rows.push({ 
+            filePath, 
+            tag, 
+            type:"tag",
+            subtype:"name", 
+            isCompress: isCompressFile, 
+            isVideo: isVideoFile, 
+            isMusic: isMusicFile,
+            isImage: isImageFile,
+            isFolder});
     })
 
     // parody
     _.uniq(tags).forEach(tag => {
-        if (!authors.includes(tag) && group !== tag) {
-            tags_rows.push({ filePath, tag, type:"tag", subtype:"parody", isCompress:isCompressFile, isFolder});
+        if (authors.includes(tag) || group === tag) {
+            return;
         }
+        tags_rows.push({ 
+            filePath, 
+            tag, 
+            type:"tag", 
+            subtype:"parody", 
+            isCompress: isCompressFile, 
+            isVideo: isVideoFile, 
+            isMusic: isMusicFile,
+            isImage: isImageFile,
+            isFolder });
     })
     // author
     _.uniq(authors).forEach(tag => {
-        tags_rows.push({ filePath, tag, type:"author", subtype:"author", isCompress:isCompressFile, isFolder});
+        tags_rows.push({ 
+            filePath, 
+            tag, 
+            type:"author", 
+            subtype:"author", 
+            isCompress: isCompressFile, 
+            isVideo: isVideoFile, 
+            isMusic: isMusicFile,
+            isImage: isImageFile,
+            isFolder });
     })
     // group
-    tags_rows.push({ filePath, tag: group, type:"group", subtype:"group", isCompress:isCompressFile, isFolder});
+    tags_rows.push({ 
+        filePath, 
+        tag: group, 
+        type:"group", 
+        subtype:"group", 
+        isCompress: isCompressFile, 
+        isVideo: isVideoFile, 
+        isMusic: isMusicFile,
+        isImage: isImageFile,
+        isFolder });
 
     // fliter null or empty
     tags_rows = tags_rows.filter(e => { return e.filePath && e.tag && e.type && e.subtype; })
