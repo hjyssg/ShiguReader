@@ -297,36 +297,46 @@ export default class ExplorerPage extends Component {
         return this.mode === "lack_info_mode";
     }
 
-    getPathesForHistoryAPI(){
-        // 只拿需要的
-        return [...this.compressFiles, ...(_.keys(this.imgFolderInfo))];
-    }
 
     handleLsDirRes(res) {
         if (!res.isFailed()) {
-            let { dirs, mode, tag, author, fileInfos, thumbnails,
-                zipInfo, imgFolderInfo } = res.json;
+            let { 
+                dirs=[], 
+                mode, 
+                tag="", 
+                author="", 
+                fileInfos={}, 
+                thumbnails={},
+                zipInfo={}, 
+                imgFolderInfo={}, 
+                fileHistory } = res.json;
             this.loadedHash = this.getTextFromQuery();
             this.mode = mode;
 
-            this.fileInfos = fileInfos || {};
+            this.fileInfos = fileInfos;
             const files = _.keys(this.fileInfos) || [];
-            this.videoFiles = files.filter(isVideo) || [];
-            this.compressFiles = files.filter(isCompress) || [];
-            this.musicFiles = files.filter(isMusic) || [];
-            this.imageFiles = files.filter(isImage) || [];
+            this.videoFiles = files.filter(isVideo);
+            this.compressFiles = files.filter(isCompress);
+            this.musicFiles = files.filter(isMusic);
+            this.imageFiles = files.filter(isImage);
 
             sortFileNames(this.musicFiles)
             sortFileNames(this.imageFiles)
 
-            this.dirs = dirs || [];
-            this.tag = tag || "";
-            this.author = author || "";
-            this.thumbnails = thumbnails || {};
-            this.zipInfo = zipInfo || {};
-            this.imgFolderInfo = imgFolderInfo || {};
+            this.dirs = dirs;
+            this.tag = tag;
+            this.author = author;
+            this.thumbnails = thumbnails;
+            this.zipInfo = zipInfo;
+            this.imgFolderInfo = imgFolderInfo;
             this.res = res;
             this.allfileInfos = _.extend({}, this.fileInfos, this.imgFolderInfo);
+
+            this.fileNameToHistory = {};
+            fileHistory.forEach(row => {
+                const { fileName, time, count } = row;
+                this.fileNameToHistory[fileName] = {time, count};
+            })
 
             if (this.videoFiles.length > 0 && !this.state.showVideo) {
                 this.setStateAndSetHash({
@@ -343,17 +353,6 @@ export default class ExplorerPage extends Component {
             } else {
                 this.askRerender();
             }
-
-            Sender.post('/api/getFileHistory', {all_pathes: this.getPathesForHistoryAPI()}, res => {
-                if (!res.isFailed()) {
-                    this.fileNameToHistory = {};
-                    (res.json.fileHistory || {}).forEach(row => {
-                        const { fileName, time, count } = row;
-                        this.fileNameToHistory[fileName] = {time, count};
-                    })
-                    this.askRerender();
-                }
-            });
 
             Sender.get('/api/getGoodAuthorNames', res => {
                 if (!res.isFailed()) {
@@ -558,7 +557,7 @@ export default class ExplorerPage extends Component {
         if (filterByGoodAuthorName || filterByOversizeImage || filterByGuess || filterByFirstTime || filterByHasMusic) {
             videoFiles = [];
         } else {
-            videoFiles = this.videoFiles || []
+            videoFiles = this.videoFiles || [];
         }
 
         const filterText = this.state.filterText && this.state.filterText.toLowerCase();

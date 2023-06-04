@@ -309,10 +309,7 @@ export default class OneBook extends Component {
   async handleRes(res) {
     this.res = res;
     if (!res.isFailed()) {
-      let { zipInfo, path, stat, imageFiles, musicFiles, videoFiles, mecab_tokens, outputPath } = res.json;
-      imageFiles = imageFiles || [];
-      musicFiles = musicFiles || [];
-      videoFiles = videoFiles || [];
+      let { zipInfo, path, stat, imageFiles=[], musicFiles=[], videoFiles=[], mecab_tokens, outputPath } = res.json;
 
       //files name can be 001.jpg, 002.jpg, 011.jpg, 012.jpg
       //or 1.jpg, 2.jpg 3.jpg 1.jpg
