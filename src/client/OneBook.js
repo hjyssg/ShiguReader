@@ -42,6 +42,8 @@ export default class OneBook extends Component {
     this.state = {
       imageFiles: [],
       musicFiles: [],
+      videoFiles: [],
+      dirs: [],
       index: this.getInitIndex(),
       twoPageMode: NO_TWO_PAGE
     };
@@ -309,7 +311,7 @@ export default class OneBook extends Component {
   async handleRes(res) {
     this.res = res;
     if (!res.isFailed()) {
-      let { zipInfo, path, stat, imageFiles=[], musicFiles=[], videoFiles=[], mecab_tokens, outputPath } = res.json;
+      let { zipInfo, path, stat, imageFiles=[], musicFiles=[], videoFiles=[], dirs=[], mecab_tokens, outputPath } = res.json;
 
       //files name can be 001.jpg, 002.jpg, 011.jpg, 012.jpg
       //or 1.jpg, 2.jpg 3.jpg 1.jpg
@@ -318,7 +320,7 @@ export default class OneBook extends Component {
       sortFileNames(musicFiles);
       sortFileNames(videoFiles);
 
-      this.setState({ imageFiles, musicFiles, videoFiles, path, fileStat: stat, zipInfo, mecab_tokens, outputPath },
+      this.setState({ imageFiles, musicFiles, videoFiles, dirs, path, fileStat: stat, zipInfo, mecab_tokens, outputPath },
         () => { this.bindUserInteraction() });
     } else {
       this.askRerender();
@@ -664,12 +666,14 @@ export default class OneBook extends Component {
     if (!this.state.path) {
       return;
     }
+
+    const exploreCN = this.hasFolder() || this.hasVideo() ? "orange-font" : "";
       
     if(!this.hasImage()){
         const toUrl3 = clientUtil.getExplorerLink(this.state.outputPath || this.state.path);
         return (
           <div className="one-book-overview-path">
-            <Link to={toUrl3}> Explorer </Link>
+            <Link className={exploreCN} to={toUrl3}> Explorer </Link>
           </div>);
       }else{
         const toUrl = clientUtil.getOneBookOverviewLink(this.state.path);
@@ -680,7 +684,7 @@ export default class OneBook extends Component {
           <div className="one-book-overview-path">
             <Link to={toUrl}> Overview </Link>
             <Link to={toUrl2}> Waterfall </Link>
-            <Link to={toUrl3}> Explorer </Link>
+            <Link className={exploreCN}  to={toUrl3}> Explorer </Link>
           </div>);
     }
   }
@@ -751,6 +755,10 @@ export default class OneBook extends Component {
     return videoFiles.length > 0;
   }
 
+  hasFolder(){
+    const { dirs } = this.state;
+    return dirs.length > 0;
+  }
 
   renderMusicPlayer() {
     if (this.hasMusic()) {
