@@ -105,10 +105,6 @@ module.exports.init = async ()=> {
 
 }
 
-module.exports.getSQLDB = function () {
-    return sqldb;
-}
-
 
 module.exports.insertScanPath = async function(scan_path){
     const stmt = sqldb.prepare('INSERT INTO scan_path_table(filePath, type) VALUES (?, ?)');

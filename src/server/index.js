@@ -560,12 +560,8 @@ async function getThumbnailsForZip(filePathes) {
 }
 
 async function findVideoForFolder(filePath){
-    const sqldb = db.getSQLDB();
-    const sql = `SELECT filePath FROM file_table WHERE INSTR(filePath, ?) = 1 AND isDisplayableInExplorer = true `;
-    let videoRows = await sqldb.allSync(sql, filePath);
-    videoRows = videoRows.filter(row => {
-        return isVideo(row.filePath);
-    });
+    const sql = `SELECT filePath FROM file_table WHERE INSTR(filePath, ?) = 1 AND isVideo = true `;
+    let videoRows = await db.doSmartAllSync(sql, filePath);
     return videoRows;
 }
 
@@ -592,7 +588,6 @@ async function getThumbnailForFolders(filePathes) {
     }
 
     try{
-        const sqldb = db.getSQLDB();
         let beg = getCurrentTime();
 
         // let label = "getThumbnailForFolders" + filePathes.length;
@@ -618,7 +613,7 @@ async function getThumbnailForFolders(filePathes) {
             const patterns = stringsToMatch.map(str => `${str}%`);
             const placeholders = patterns.map(() => 'filePath LIKE ?').join(' OR ');
             const sql = `SELECT filePath FROM file_table WHERE isImage=true AND ${placeholders} `;
-            let imagerows = await sqldb.allSync(sql, patterns);
+            let imagerows = await db.doSmartAllSync(sql, patterns);
             nextFilePathes.forEach(filePath => {
                 const findRow = findOne(imagerows, filePath);
                 if (findRow) {
@@ -1124,13 +1119,9 @@ async function getZipWithSameFileName(filePath) {
     if (!(await isExist(filePath)) && isCompress(filePath)) {
         //maybe the file move to other location
         const fn = path.basename(filePath);
-        const dir = path.dirname(filePath);
-
-        const sqldb = db.getSQLDB();
-
         const tempP = pathUtil.getImgConverterCachePath();
         let sql = `SELECT filePath FROM zip_view WHERE fileName LIKE ? AND filePath != ? AND filePath NOT LIKE ? `;
-        let rows = await sqldb.allSync(sql, [('%' + fn + '%'), filePath, (tempP + "%")]);
+        let rows = await db.doSmartAllSync(sql, [('%' + fn + '%'), filePath, (tempP + "%")]);
         let sameFnObj = rows && rows[0];
         if (sameFnObj) {
             filePath = sameFnObj.filePath;

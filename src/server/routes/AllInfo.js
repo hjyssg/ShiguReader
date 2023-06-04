@@ -68,9 +68,8 @@ router.get('/api/getParseCache/', serverUtil.asyncWrapper(async (req, res) => {
 }));
 
 router.post('/api/allInfo', serverUtil.asyncWrapper(async (req, res) => {
-    let sqldb = db.getSQLDB();
     let sql = `SELECT *  FROM file_table WHERE isDisplayableInExplorer=1 `;
-    let rows = await sqldb.allSync(sql);
+    let rows = await db.doSmartAllSync(sql);
     const fileToInfo = serverUtil.convertFileRowsIntoFileInfo(rows);
 
     res.send({

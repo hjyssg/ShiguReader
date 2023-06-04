@@ -41,7 +41,6 @@ router.post('/api/lsDir', serverUtil.asyncWrapper(async (req, res) => {
     }
 
     const time1 = getCurrentTime();
-    // const sqldb = db.getSQLDB();
 
     // 前缀是子文件都搜索
     const recursiveFileSQL = `SELECT * FROM file_table WHERE filePath LIKE ? AND filePath != ?`

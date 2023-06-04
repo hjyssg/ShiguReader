@@ -34,10 +34,6 @@ module.exports.init = async ()=> {
     `);
 }
 
-module.exports.getSQLDB = function () {
-    return sqldb;
-}
-
 // cache内部的不记录
 function noNeedRecord(filePath){
     return global.cachePath && pathUtil.isSub(global.cachePath, filePath);

@@ -7,6 +7,7 @@ const util = global.requireUtil();
 // const { isCompress, isVideo, getCurrentTime } = util;
 // const { isSub, isExist } = pathUtil;
 // const rootPath = pathUtil.getRootPath();
+const _util = require('util');
 
 
 let sqldb;
@@ -25,9 +26,17 @@ module.exports.init = async ()=> {
     // await clean();
 }
 
-module.exports.getSQLDB = function () {
-    return sqldb;
+let statement_cache = {};
+module.exports.doSmartAllSync = async (sql, params) =>{
+    // 可能是sql文都比较简单，性能提升大约只有百分之三。
+    if(!statement_cache[sql]){
+        const statement = sqldb.prepare(sql);
+        statement.allSync = _util.promisify(statement.all).bind(statement);
+        statement_cache[sql] = statement;
+    }
+    return await statement_cache[sql].allSync(params);
 }
+
 
 module.exports.addNewThumbnail = function (filePath, thumbnailFilePath) {
     const thumbnailFileName = path.basename(thumbnailFilePath);

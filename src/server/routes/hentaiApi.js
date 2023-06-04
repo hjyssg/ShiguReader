@@ -15,14 +15,12 @@ const _ = require('underscore');
 router.get('/api/exhentaiApi', serverUtil.asyncWrapper(async (req, res) => {
     console.time("[/api/exhentaiApi]")
     try{
-        let sqldb = db.getSQLDB();
-        let sql = `SELECT fileName FROM file_table WHERE isCompress=1 `;
-        let tempAllFiles = await sqldb.allSync(sql);
+        let sql = `SELECT fileName FROM zip_view `;
+        let tempAllFiles = await db.doSmartAllSync(sql);
 
         // 从thumbnail拿一点数据
-        sqldb = thumbnailDb.getSQLDB();
         sql = `SELECT filePath FROM thumbnail_table ORDER BY ROWID DESC LIMIT  1000`;
-        let tempAllFiles2 = await sqldb.allSync(sql);
+        let tempAllFiles2 = await thumbnailDb.doSmartAllSync(sql);
         tempAllFiles2.forEach(row => {
             row.fileName = path.basename(row.filePath);
         })
