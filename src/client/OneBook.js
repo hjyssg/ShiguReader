@@ -466,11 +466,11 @@ export default class OneBook extends Component {
     const cn = classNames("one-book-foot-index-number", {
       "is-last": isLast
     })
-    return <div className={cn}>{text}</div>;
+    return (<div className={cn}>{text}</div>);
   }
 
-    //may not be reliable
-    getPageAvgSize() {
+  //may not be reliable
+  getPageAvgSize() {
       const { fileStat, imageFiles, index, zipInfo, videoFiles } = this.state;
       const fileSize = (fileStat?.size) || null;
       const fileDate = (fileStat?.mtimeMs) || null;
@@ -517,7 +517,7 @@ export default class OneBook extends Component {
     }
 
     if(rows.length == 0){
-      return 0;
+      return null;
     }
 
     const texts = rows.map((row, ii) => {
@@ -539,7 +539,7 @@ export default class OneBook extends Component {
       onClick={this.onClickPagination.bind(this)} >
       {`${index + 1}/${this.getImageLength()}`}  </div>);
 
-    const videoNum = videoFiles.length > 0 && (<div className="video-num"> {` video: ${videoFiles.length}`}  </div>);
+    const videoNum = this.hasVideo() && (<div className="video-num"> {` video: ${videoFiles.length}`}  </div>);
     return (<div className={"one-book-file-stat"}>{texts} {mobilePageNum} {videoNum} </div>);
   }
 
@@ -748,6 +748,12 @@ export default class OneBook extends Component {
   hasImage() {
     return this.getImageLength() > 0;
   }
+
+  hasVideo() {
+    const { videoFiles } = this.state;
+    return videoFiles.length > 0;
+  }
+
 
   renderMusicPlayer() {
     if (this.hasMusic()) {
