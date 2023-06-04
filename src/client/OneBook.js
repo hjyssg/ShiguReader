@@ -94,25 +94,21 @@ export default class OneBook extends Component {
   }
 
   getMaxHeight() {
-    if (isMobile()) {
-      return window.screen.height - 10;
-    }
-
-    let maxHeight = 952;
+    let height = clientUtil.getWindowsHeight();
     if (this.hasMusic()) {
-      maxHeight = 450;
-    } else {
-      maxHeight = isNaN(window.innerHeight) ? window.clientHeight : window.innerHeight;
+      height = Math.max(450, height/2);
+    }else {
+      height -= 10;
     }
-    return maxHeight - 10;
+    return height;
   }
 
   getMaxWidth() {
-    if (isMobile()) {
-      return window.screen.width;
+    let width = clientUtil.getWindowsWidth();
+    if (!isMobile()) {
+      width -= 50;
     }
-    const result = isNaN(window.innerWidth) ? window.clientWidth : window.innerWidth;
-    return result - 50;
+    return width;
   }
 
   adjustImageSize() {

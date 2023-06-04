@@ -486,3 +486,12 @@ module.exports.getWindowsWidth = () => {
     const result = isNaN(window.innerWidth) ? window.clientWidth : window.innerWidth;
     return result;
 }
+
+module.exports.getWindowsHeight = () => {
+    if (isMobile()) {
+        return window.screen.height ;
+    }
+  
+    let maxHeight = isNaN(window.innerHeight) ? window.clientHeight : window.innerHeight;
+    return maxHeight;
+}

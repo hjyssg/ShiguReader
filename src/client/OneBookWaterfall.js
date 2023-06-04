@@ -129,12 +129,9 @@ export default class OneBookWaterfall extends Component {
   }
 
   getMaxHeight() {
-    if (isMobile()) {
-      return window.screen.height - 10;
-    }
-
-    let maxHeight = isNaN(window.innerHeight) ? window.clientHeight : window.innerHeight;
-    return maxHeight - 10;
+    let height = clientUtil.getWindowsHeight();
+    height -= 10;
+    return height;
   }
 
   renderImage() {
