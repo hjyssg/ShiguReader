@@ -448,7 +448,7 @@ module.exports.getInitState = (metaInfo, reset) => {
 
         if(type === "int"){
             result[key] = parseInt(raw)  || defVal;
-        }else if (type === "bolean"){
+        }else if (type === "boolean"){
             result[key] = !!(raw === "true")
         }else if (type === "arr"){
             raw = raw || [];
@@ -458,6 +458,8 @@ module.exports.getInitState = (metaInfo, reset) => {
             result[key] = raw || defVal;
         }else if (type == "str"){
             result[key] = raw || defVal || "";
+        }else {
+            console.warn("?????");
         }
     });
 

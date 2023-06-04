@@ -415,19 +415,17 @@ export default class TagPage extends Component {
       }
 
       // 互斥
-      // console.log(filterArr)
-      this.setStateAndSetHash({
-          filterArr: [key],
-          pageIndex: 1
-      });
-
       if(key == FILTER_COMIKET){
         this.setStateAndSetHash({
+          filterArr: [key],
+          pageIndex: 1,
           sortOrder: BY_TAG_NAME, 
           isSortAsc: true
         });
       }else{
         this.setStateAndSetHash({
+          filterArr: [key],
+          pageIndex: 1,
           sortOrder: BY_GOOD_SCORE, 
           isSortAsc: false
         });
