@@ -111,7 +111,7 @@ module.exports.getRecentAccess = async function () {
 }
 
 /** n个文件的最新一次记录 */
-module.exports.getFileHistory = async function (pathes) {
+const _getFileHistory = async function (pathes) {
     pathes = pathes || [];
     const fileNames = pathes.map(e => {
         return path.basename(e);
@@ -131,4 +131,21 @@ module.exports.getFileHistory = async function (pathes) {
     let rows =  await sqldb.allSync(sql, fileNames);
 
     return rows;
+}
+
+
+module.exports.getBatchFileHistory = async (all_pathes) => {
+    //需要拆分成好几个小array
+    const fileHistory = [];
+    const subs = util.cutIntoSmallArrays(all_pathes);
+    for(const sub of subs){
+        const temp = await _getFileHistory(sub);
+        fileHistory.push(...temp);
+    }
+
+    // assert
+    const subLength = subs.map(e => e.length).reduce(function(a, b) { return a + b; }, 0);
+    console.assert(subLength === all_pathes.length);
+    
+    return fileHistory;
 }

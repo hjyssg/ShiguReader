@@ -32,19 +32,7 @@ router.post("/api/getFileHistory", serverUtil.asyncWrapper(async (req, res) => {
     }
 
     try{
-        //需要拆分成好几个小array
-        const fileHistory = [];
-        const subs = util.cutIntoSmallArrays(all_pathes);
-        for(const sub of subs){
-            const temp = await historyDb.getFileHistory(sub);
-            fileHistory.push(...temp);
-        }
-
-        // assert
-        const subLength = subs.map(e => e.length).reduce(function(a, b) { return a + b; }, 0);
-        console.assert(subLength === all_pathes.length);
-
-        // const fileHistory = await historyDb.getFileHistory(all_pathes);
+        const fileHistory = await historyDb.getBatchFileHistory(all_pathes);
         res.send({ failed: false, fileHistory });
     }catch(e){
         res.send({failed: true})

@@ -672,6 +672,9 @@ async function decorateResWithMeta(resObj) {
     resObj.thumbnails = thumbnails;
     const imgFolderInfo = db.getImgFolderInfo(imgFolders);
     resObj.imgFolderInfo = imgFolderInfo;
+    
+    const pathes_for_history = [..._.keys(zipInfo), ..._.keys(imgFolderInfo)];
+    resObj.fileHistory = await historyDb.getBatchFileHistory(pathes_for_history);
 
     const allowZipInfo = ["pageNum", "musicNum", "videoNum", "totalNum", "totalImgSize"];
     for(const tempFilePath in zipInfo){
@@ -698,7 +701,7 @@ async function decorateResWithMeta(resObj) {
     // "tag", "author", "path" 查询时用的参数
     // 检查
     const allowedKeys = [ "dirs", "mode", "tag", "path", "author", "fileInfos", 
-                          "thumbnails", "zipInfo", "imgFolderInfo"];
+                          "thumbnails", "zipInfo", "imgFolderInfo", "fileHistory"];
     // resObj = filterObjectProperties(resObj, allowedKeys, true);
     // checkKeys(resObj, allowedKeys);
     resObj = filterObjectProperties(resObj, allowedKeys);
