@@ -1,6 +1,8 @@
 import React, { Component } from 'react';
 import '../style/Pagination.scss';
 const classNames = require('classnames');
+const clientUtil = require("../clientUtil");
+
 
 export default class Pagination extends Component {
   constructor(props) {
@@ -63,7 +65,14 @@ export default class Pagination extends Component {
 
     const { textValue } = this.state;
 
-    const BUFFER_SIZE = window.screen.width < 750 ? 2 : 5; //the items will 1 + BUFFER_SIZE*2
+    let BUFFER_SIZE;
+    if(clientUtil.getWindowsWidth() < 750){
+      BUFFER_SIZE = 1;
+    }else if (clientUtil.getWindowsWidth() < 1000){
+      BUFFER_SIZE = 2;
+    }else {
+      BUFFER_SIZE = 5;
+    }
     const totalPage = this.getTotalPage();
 
     if (totalPage <= 1) {

@@ -287,6 +287,7 @@ module.exports.linkFunc = (index)=>{
 
 const replaceUrlHash = module.exports.replaceUrlHash = function(newHash){
     // console.assert((location.origin + location.pathname + location.search + location.hash) === location.href, "[replaceUrlHash] url error")
+    // console.log(newHash);
     const newUrl = replaceHash(newHash);
     location.replace(newUrl);
 }
@@ -475,4 +476,13 @@ module.exports.saveStateToUrl = (metaInfo, state) => {
     })
 
     replaceUrlHash(queryString.stringify(obj2))
+}
+
+
+module.exports.getWindowsWidth = () => {
+    if (isMobile()) {
+        return window.screen.width;
+    }
+    const result = isNaN(window.innerWidth) ? window.clientWidth : window.innerWidth;
+    return result;
 }
