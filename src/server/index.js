@@ -711,7 +711,7 @@ async function decorateResWithMeta(resObj) {
 
 /** 检查回传给onebook的res */
 function checkOneBookRes(resObj){
-    const allowedKeys = ["zipInfo", "path", "stat", "imageFiles", "musicFiles", "videoFiles", "mecab_tokens", "outputPath"];
+    const allowedKeys = ["zipInfo", "path", "stat", "imageFiles", "musicFiles", "videoFiles", "dirs", "mecab_tokens", "outputPath"];
     checkKeys(resObj, allowedKeys);
     resObj = filterObjectProperties(resObj, allowedKeys, false);
     return resObj;
