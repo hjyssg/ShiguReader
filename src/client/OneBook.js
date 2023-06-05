@@ -501,21 +501,18 @@ export default class OneBook extends Component {
       const mTime = clientUtil.dateFormat_ymd(new Date(fileDate));
       rows.push(["Modify Time", mTime]);
     }
-    if(fileSize){
+    if(fileSize && fileSize > 0){
       const size = filesizeUitl(fileSize);
-      if(size > 0){
-        rows.push(["Total Size", size]);
-      }
+      rows.push(["Total Size", size]);
     }
     if(this.hasImage()){
       const title = getBaseName(imageFiles[index]);
       rows.push(["Image Name", title]);
    
-      const avg = filesizeUitl(avgFileSize);
-      if(avg > 0){
+      if(avgFileSize > 0){
+        const avg = filesizeUitl(avgFileSize);
         rows.push(["Average Image Size", avg]);
       }
-    
    
       rows.push(["Dimensions"]);
     }
