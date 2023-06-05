@@ -41,7 +41,7 @@ export default class TagPage extends Component {
       {key:"pageIndex", type: "int", defVal: 1},
       {key:"sortOrder", type: "str", defVal: BY_FILE_NUMBER},
       {key:"isSortAsc", type: "boolean"},
-      {key:"filterArr", type: "arr"},
+      {key:"filterArr", type: "arr", defVal: FILTER_PARODY},
       {key:"filterText", type: "str"},
     ];
     this.state = this.getInitState();

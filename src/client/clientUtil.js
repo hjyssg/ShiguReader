@@ -452,11 +452,11 @@ module.exports.getInitState = (metaInfo, reset) => {
         }else if (type === "boolean"){
             result[key] = !!(raw === "true")
         }else if (type === "arr"){
-            raw = raw || [];
+            raw = raw || defVal;
             if (_.isString(raw)) {
                 raw = [ raw ];
             }
-            result[key] = raw || defVal;
+            result[key] = raw;
         }else if (type == "str"){
             result[key] = raw || defVal || "";
         }else {
