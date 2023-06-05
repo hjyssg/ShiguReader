@@ -32,15 +32,18 @@ async function getGoodAndOtherSet() {
                 COUNT(CASE WHEN INSTR(filePath, ?) = 1 THEN 1 END) AS bad_count,
                 COUNT(filePath) AS total_count
                 FROM author_view GROUP BY tag`;
-        authorInfo = await db.doSmartAllSync(sql, [global.good_folder_root, global.not_good_folder_root]);
-        _addCol(authorInfo);
+        const authorQuery = db.doSmartAllSync(sql, [global.good_folder_root, global.not_good_folder_root]);
+        
 
         sql = `SELECT tag, MAX(subtype) AS subtype,
         COUNT(CASE WHEN INSTR(filePath, ?) = 1 THEN 1 END) AS good_count,
         COUNT(CASE WHEN INSTR(filePath, ?) = 1 THEN 1 END) AS bad_count,
         COUNT(filePath) AS total_count
         FROM tag_view GROUP BY tag HAVING total_count >= 5 `;
-        tagInfo = await db.doSmartAllSync(sql, [global.good_folder_root, global.not_good_folder_root]);
+        const tagQuery = db.doSmartAllSync(sql, [global.good_folder_root, global.not_good_folder_root]);
+
+        [authorInfo, tagInfo] = await Promise.all([authorQuery, tagQuery]);
+        _addCol(authorInfo);
         _addCol(tagInfo);
     }
 

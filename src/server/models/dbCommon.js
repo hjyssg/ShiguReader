@@ -9,7 +9,7 @@ function getSQLInstance(filePath){
     logger.info("[getSQLInstance] " + filePath);
     try{
         const sqlite3 = sql_lib.verbose();
-        const sqldb = new sqlite3.Database(filePath);
+        const sqldb = new sqlite3.Database(filePath, sqlite3.OPEN_READWRITE | sqlite3.OPEN_CREATE);
     
         //只用到下面这四个函数
         sqldb.allSync = _util.promisify(sqldb.all).bind(sqldb);
