@@ -7,11 +7,12 @@ const db = require("../models/db");
 // const { isCompress } = util;
 // const userConfig = global.requireUserConfig();
 const serverUtil = require("../serverUtil");
+const scoreUtil = require("../scoreUtil");
 // const memorycache = require('memory-cache');
 
 function _addCol(rows){
     rows.forEach(row => {
-        row.score = serverUtil.getScoreFromCount(row);
+        row.score = scoreUtil.getScoreFromCount(row);
     });
 }
 
