@@ -694,8 +694,9 @@ export default class ExplorerPage extends Component {
 
     getAuthorCountForFP(fp) {
         const temp = parse(fp);
-        if(temp && temp.author){
-            return clientUtil.getAuthorCount(this.state.authorInfo, temp.author) || {};
+        if(temp && temp.authors){
+            // todo multiple-author
+            return clientUtil.getAuthorCount(this.state.authorInfo, temp.authors[0]) || {};
         }else{
             return {};
         }
