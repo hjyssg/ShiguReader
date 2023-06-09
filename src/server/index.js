@@ -670,6 +670,15 @@ async function decorateResWithMeta(resObj) {
     const pathes_for_history = [..._.keys(zipInfo), ..._.keys(imgFolderInfo)];
     resObj.fileHistory = await historyDb.getBatchFileHistory(pathes_for_history);
 
+    resObj.nameParseCache = {};
+    [...files, ..._.keys(imgFolderInfo), ...dirs].forEach(fp => {
+        const fn = path.basename(fp);
+        const temp = serverUtil.parse(fn);
+        if(temp){
+            resObj.nameParseCache[fn] = temp;
+        }
+    })
+
     const allowZipInfo = ["pageNum", "musicNum", "videoNum", "totalNum", "totalImgSize"];
     for(const tempFilePath in zipInfo){
         const zipObj = zipInfo[tempFilePath];
@@ -695,7 +704,7 @@ async function decorateResWithMeta(resObj) {
     // "tag", "author", "path" 查询时用的参数
     // 检查
     const allowedKeys = [ "dirs", "mode", "tag", "path", "author", "fileInfos", 
-                          "thumbnails", "zipInfo", "imgFolderInfo", "fileHistory"];
+                          "thumbnails", "zipInfo", "imgFolderInfo", "fileHistory", "nameParseCache"];
     // resObj = filterObjectProperties(resObj, allowedKeys, true);
     // checkKeys(resObj, allowedKeys);
     resObj = filterObjectProperties(resObj, allowedKeys);
