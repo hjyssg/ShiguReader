@@ -8,7 +8,6 @@ const db = require("../models/db");
 // const userConfig = global.requireUserConfig();
 const serverUtil = require("../serverUtil");
 const scoreUtil = require("../scoreUtil");
-// const memorycache = require('memory-cache');
 
 function _addCol(rows){
     rows.forEach(row => {
@@ -21,11 +20,6 @@ async function getGoodAndOtherSet() {
     let sql;
     let authorInfo = [];
     let tagInfo = [];
-    // const cacheKey = "GoodAndOtherSetCacheKey";
-    // if(memorycache.get(cacheKey)){
-    //     authorInfo = memorycache.get(cacheKey);
-    // memorycache.put(cacheKey, authorInfo, 10*1000);
-  
 
     if (global.good_folder_root && global.not_good_folder_root) {
         sql = `SELECT tag, MAX(subtype) AS subtype,

@@ -6,7 +6,6 @@ const dateFormat = require('dateformat');
 const _ = require('underscore');
 const qrcode = require('qrcode-terminal');
 const ini = require('ini');
-const memorycache = require('memory-cache');
 const chokidar = require('chokidar');
 const { pathEqual } = require('path-equal');
 
@@ -850,15 +849,6 @@ app.post("/api/getTagThumbnail", asyncWrapper(async (req, res) => {
     }
 
     let oneThumbnail;
-    // const cacheKey = tag || author;
-    // let oneThumbnail = memorycache.get(cacheKey);
-    // if(oneThumbnail){
-    //     res.send({
-    //         url: oneThumbnail
-    //     })
-    //     return;
-    // }
-
 
     let sql = ` SELECT a.* , b.*
                 FROM zip_view a 

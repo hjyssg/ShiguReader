@@ -13,31 +13,53 @@ const namePicker = require("../../human-name-picker");
 
 // file path to file stats
 // 简单重复查询，性能是sql的30倍
-const fileToInfo = {};
-const getFileToInfo = function (filePath) {
-    return fileToInfo[filePath];
-}
+// const fileToInfo = {};
+// const getFileToInfo = function (filePath) {
+//     return fileToInfo[filePath];
+// }
 
-let stmd_single_file;
-const getFileToInfoAsync = async (filePath) => {
-    // const sql = ;
-    // return await sqldb.getSync(sql, [filePath]);
-    if(!stmd_single_file){
-        stmd_single_file =  sqldb.prepare(` SELECT * FROM file_table WHERE filePath = ?`)
-        stmd_single_file.getSync = _util.promisify(stmd_single_file.get).bind(stmd_single_file);
-    }
-    return stmd_single_file.getSync(filePath)
-}
+// let stmd_single_file;
+// const getFileToInfoAsync = async (filePath) => {
+//     // const sql = ;
+//     // return await sqldb.getSync(sql, [filePath]);
+//     if(!stmd_single_file){
+//         stmd_single_file =  sqldb.prepare(` SELECT * FROM file_table WHERE filePath = ?`)
+//         stmd_single_file.getSync = _util.promisify(stmd_single_file.get).bind(stmd_single_file);
+//     }
+//     return stmd_single_file.getSync(filePath)
+// }
 
 let statement_cache = {};
+let smart_select_cache = {};
 module.exports.doSmartAllSync = async (sql, params) =>{
+    if(!_.isNull(params) && !_.isArray(params)){
+        params = [params];
+    }
+    if(_.isArray(params)){
+        console.assert(params.length < 20);
+    }  
+
     // 可能是sql文都比较简单，性能提升大约只有百分之三。
     if(!statement_cache[sql]){
         const statement = sqldb.prepare(sql);
         statement.allSync = _util.promisify(statement.all).bind(statement);
         statement_cache[sql] = statement;
     }
-    return await statement_cache[sql].allSync(params);
+    
+    // 把select结果也缓存了，提高性能
+    let temp = params || [];
+    const cache_key = `${sql} ${(temp).join("---")}`;
+    let result = smart_select_cache[cache_key];
+    if(!result){
+        smart_select_cache[cache_key] = await statement_cache[sql].allSync(params);
+        result = smart_select_cache[cache_key]
+    }
+    console.assert(!!result);
+    return result || [];
+}
+
+const cleanSmart_select_cache = () => {
+    smart_select_cache = {};
 }
 
 let sqldb;
@@ -106,18 +128,18 @@ module.exports.init = async ()=> {
 }
 
 
-module.exports.insertScanPath = async function(scan_path){
-    const stmt = sqldb.prepare('INSERT INTO scan_path_table(filePath, type) VALUES (?, ?)');
-    for(let pp of scan_path){
-        stmt.run(pp, "");
-    }
-}
+// module.exports.insertScanPath = async function(scan_path){
+//     const stmt = sqldb.prepare('INSERT INTO scan_path_table(filePath, type) VALUES (?, ?)');
+//     for(let pp of scan_path){
+//         stmt.run(pp, "");
+//     }
+// }
 
-module.exports.getAllScanPath = async function(){
-    const sql = `SELECT filePath FROM scan_path_table `;
-    const temp = await sqldb.allSync(sql);
-    return temp.map(e => e.filePath);
-}
+// module.exports.getAllScanPath = async function(){
+//     const sql = `SELECT filePath FROM scan_path_table `;
+//     const temp = await sqldb.allSync(sql);
+//     return temp.map(e => e.filePath);
+// }
 
 module.exports.getAllFilePathes = async function (sql_condition) {
     const sql = `SELECT filePath FROM file_table ` + sql_condition;
@@ -126,6 +148,8 @@ module.exports.getAllFilePathes = async function (sql_condition) {
 };
 
 module.exports.updateStatToDb = async function (filePath, stat, insertion_cache) {
+    cleanSmart_select_cache();
+
     const statObj = {};
     if (!stat) {
         //seems only happen on mac
@@ -135,7 +159,7 @@ module.exports.updateStatToDb = async function (filePath, stat, insertion_cache)
     statObj.isDir = stat.isDirectory();
     statObj.mtimeMs = stat.mtimeMs;
     statObj.size = stat.size;
-    fileToInfo[filePath] = statObj;
+    // fileToInfo[filePath] = statObj;
     
     
     console.assert(!!filePath);
@@ -276,16 +300,21 @@ module.exports.updateStatToDb = async function (filePath, stat, insertion_cache)
 
 // 传入 db、table 和数据数组实现批量插入
 module.exports.batchInsert = async (tableName, dataArray, blockSize = 2000) => {
+    cleanSmart_select_cache();
+
     let beg = getCurrentTime();
 
     await sqldb.batchInsert(tableName, dataArray, blockSize);
 
     let end = getCurrentTime();
     console.log(`[batchInsert] ${tableName} ${dataArray.length} ${end - beg}ms`);
+    
 }
 
 module.exports.deleteFromDb = function (filePath) {
-    delete fileToInfo[filePath];
+    cleanSmart_select_cache();
+
+    // delete fileToInfo[filePath];
     sqldb.run("DELETE FROM file_table where filePath = ?", filePath);
     sqldb.run("DELETE FROM tag_table where filePath = ?", filePath);
 }
