@@ -162,7 +162,7 @@ module.exports.asyncWrapper = (fn) => {
 
         let warnFlg = timeSpent > 300;
         if(shouldLog || warnFlg){
-            console.log(`[${url}] ${timeSpent}ms`);
+            logger.debug(`[${url}] ${timeSpent}ms`);
         }
       })
       .catch((reason)=>{
