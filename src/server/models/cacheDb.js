@@ -6,7 +6,7 @@ const { getDirName } = pathUtil;
 
 // const util = global.requireUtil();
 // const serverUtil = require("../serverUtil");
-const { generateContentUrl } = pathUtil;
+// const { generateContentUrl } = pathUtil;
 
 //---------------------------------------------cache db---------------------
 const cacheDb = module.exports.cacheDb = {
@@ -35,13 +35,18 @@ module.exports.getAllCacheFilePathes = function () {
 // }
 
 
-module.exports.updateStatToCacheDb = function (p, stats) {
+module.exports.updateStatToCacheDb = function (p, stat) {
     const { folderToFiles, cacheFileToInfo } = cacheDb;
     const fp = getDirName(p);
     folderToFiles[fp] = folderToFiles[fp] || [];
     folderToFiles[fp].push(path.basename(p));
 
-    cacheFileToInfo[p] = stats;
+    const statObj = {};
+    statObj.isDir = stat.isDirectory();
+    statObj.mtimeMs = stat.mtimeMs;
+    statObj.size = Number(stat.size);
+
+    cacheFileToInfo[p] = statObj;
 }
 
 module.exports.isFileInCache = function(filePath){

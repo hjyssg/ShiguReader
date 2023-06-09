@@ -255,18 +255,21 @@ function setUpCacheWatch() {
         return !shouldWatchForCache(p, stat);
     }
     
-    function shouldWatchForCache(p, stat) {
-        if (isHiddenFile(p)) {
+    function shouldWatchForCache(fp, stat) {
+        if (isHiddenFile(fp)) {
             return false;
         }
     
         //if ignore, chokidar wont check its content
-        if (stat && stat.isDirectory()) {
+        if (pathUtil.estimateIfFolder(fp) ||  (stat && stat.isDirectory())) {
+            // 文件夹
             return true;
+        }else if (!stat){
+            return true;
+        }  else {
+            cacheDb.updateStatToCacheDb(fp, stat);
+            return false;
         }
-    
-        const ext = pathUtil.getExt(p);
-        return estimateIfFolder(p) || isDisplayableInOnebook(ext) || isVideo(ext);
     }
 
     //also for cache files
@@ -278,12 +281,12 @@ function setUpCacheWatch() {
     });
 
     cacheWatcher
-        .on('add', (p, stats) => {
-            cacheDb.updateStatToCacheDb(p, stats);
+        .on('add', (fp, stats) => {
+            // cacheDb.updateStatToCacheDb(fp, stats);
         })
-        .on('unlink', p => {
-            cacheDb.deleteFromCacheDb(p);
-        });
+        // .on('unlink', p => {
+        //     cacheDb.deleteFromCacheDb(p);
+        // });
 }
 
 
