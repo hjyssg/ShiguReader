@@ -309,10 +309,13 @@ export default class ExplorerPage extends Component {
                 thumbnails={},
                 zipInfo={}, 
                 imgFolderInfo={}, 
-                fileHistory } = res.json;
+                fileHistory,
+                nameParseCache={}
+            } = res.json;
+            nameParser.setLocalCache(nameParseCache);
+
             this.loadedHash = this.getTextFromQuery();
             this.mode = mode;
-
             this.fileInfos = fileInfos;
             const files = _.keys(this.fileInfos) || [];
             this.videoFiles = files.filter(isVideo);
