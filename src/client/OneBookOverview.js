@@ -147,7 +147,7 @@ export default class OneBookOverview extends Component {
 
     return (
       <div className="one-book-path">
-        <Link to={toUrl}>{parentPath} </Link>
+        <Link target="_blank" to={toUrl}>{parentPath} </Link>
       </div>);
   }
 

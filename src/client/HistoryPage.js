@@ -56,7 +56,7 @@ function renderHistory(history) {
             });
 
             return (
-                <Link to={toUrl} key={filePath + ii} className={"history-link"}>
+                <Link target="_blank" to={toUrl} key={filePath + ii} className={"history-link"}>
                     <ThumbnailPopup filePath={filePath}>
                         <div className="history-one-line-list-item" key={filePath}>
                             <span className={cn} /> 

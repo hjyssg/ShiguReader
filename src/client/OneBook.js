@@ -684,9 +684,9 @@ export default class OneBook extends Component {
     
         return (
           <div className="one-book-overview-path">
-            <Link to={toUrl}> Overview </Link>
-            <Link to={toUrl2}> Waterfall </Link>
-            <Link className={exploreCN}  to={toUrl3}> Explorer </Link>
+            <Link target="_blank" to={toUrl}> Overview </Link>
+            <Link target="_blank" to={toUrl2}> Waterfall </Link>
+            <Link target="_blank" className={exploreCN}  to={toUrl3}> Explorer </Link>
           </div>);
     }
   }
@@ -708,7 +708,7 @@ export default class OneBook extends Component {
 
     return (
       <div className="one-book-path">
-        <Link to={toUrl}>{parentPath} </Link>
+        <Link target="_blank" to={toUrl}>{parentPath} </Link>
       </div>);
   }
 

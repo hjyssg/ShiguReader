@@ -778,7 +778,7 @@ export default class ExplorerPage extends Component {
 
         if (this.state.noThumbnail) {
             zipItem = (
-            <Link to={toUrl} key={fp} className={""} >
+            <Link target="_blank" to={toUrl} key={fp} className={""} >
                 <ThumbnailPopup filePath={fp} url={thumbnailurl}>
                     {this.getOneLineListItem(<i className="fas fa-book"></i>, text, fp)}
                 </ThumbnailPopup>
@@ -912,14 +912,14 @@ export default class ExplorerPage extends Component {
             const toUrl = clientUtil.getOneBookLink(getDir(item));
             const text = getBaseName(item);
             const result = this.getOneLineListItem(<i className="fas fa-volume-up"></i>, text, item);
-            return <Link to={toUrl} key={item}>{result}</Link>;
+            return <Link target="_blank" to={toUrl} key={item}>{result}</Link>;
         });
 
         const imageItems = this.imageFiles.map((item, ii) => {
             const toUrl = clientUtil.getOneBookLink(getDir(item), ii);
             const text = getBaseName(item);
             const result = this.getOneLineListItem(<i className="fas fa-images"></i>, text, item);
-            return <Link to={toUrl} key={item}>{result}</Link>;
+            return <Link target="_blank" to={toUrl} key={item}>{result}</Link>;
         });
 
         //seperate av from others
@@ -1191,7 +1191,7 @@ export default class ExplorerPage extends Component {
     getBookModeLink() {
         const onebookUrl = clientUtil.getOneBookLink(this.getTextFromQuery());
         return (
-            <Link className="exp-top-button" target="_blank" to={onebookUrl} >
+            <Link target="_blank" className="exp-top-button"  to={onebookUrl} >
                 <span className="fas fa-book-reader" />
                 <span>Open in Book Mode </span>
             </Link>
@@ -1228,7 +1228,7 @@ export default class ExplorerPage extends Component {
                 {
                     (isTag || isAuthor) &&
                     <div className="col-6 col-md-4">
-                        <Link className="exp-top-button" target="_blank" to={url} >
+                        <Link  target="_blank" className="exp-top-button" to={url} >
                             <span className="fab fa-searchengin" />
                             <span>Search by Text </span>
                         </Link>
