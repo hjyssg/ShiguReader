@@ -20,9 +20,9 @@ module.exports.getCacheFileToInfo = function () {
     return cacheDb.cacheFileToInfo;
 }
 
-module.exports.getAllCacheFilePathes = function () {
-    return _.keys(cacheDb.cacheFileToInfo);
-}
+// module.exports.getAllCacheFilePathes = function () {
+//     return _.keys(cacheDb.cacheFileToInfo);
+// }
 
 // //  outputPath is the folder name
 // module.exports.getCacheFiles = function (outputPath) {

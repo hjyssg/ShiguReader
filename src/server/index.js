@@ -280,13 +280,15 @@ function setUpCacheWatch() {
         ignoreInitial: true,
     });
 
-    cacheWatcher
-        .on('add', (fp, stats) => {
-            // cacheDb.updateStatToCacheDb(fp, stats);
-        })
-        // .on('unlink', p => {
-        //     cacheDb.deleteFromCacheDb(p);
-        // });
+    // cacheWatcher
+    //     .on('add', (fp, stats) => {
+    //         console.log(fp, stats);
+    //         // cacheDb.updateStatToCacheDb(fp, stats);
+    //     })
+    //     .on('unlink', (fp, stats) => {
+    //         // cacheDb.deleteFromCacheDb(p);
+    //         console.log(fp, stats);
+    //     });
 }
 
 
@@ -1151,10 +1153,6 @@ app.post('/api/extract', asyncWrapper(async (req, res) => {
         res.send({ failed: true, reason: "not a zip" });
         return;
     }
-
-    //potential bug:
-    // if in one zip there are 01/001.jpg and 01/002.jpg 
-    // this will only only extract one, because they overwrite each other
 
     //todo: record the timestamp of each request
     //when cleaning cache, if the file is read recently, dont clean its cache
