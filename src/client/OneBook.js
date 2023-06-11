@@ -358,7 +358,7 @@ export default class OneBook extends Component {
     }else if(key == "x"){
       clientUtil.triggerClickOnClass("move-to-no-good-button");
     }else if(key == "v"){
-      clientUtil.triggerClickOnClass("move-to-no-good-button");
+      clientUtil.triggerClickOnClass("move-to-good-button");
     }else if(key == "arrowUp" || key == "w"){
       clientUtil.scrollPageByDistance(-50);
     }else if (key == "arrowDown" || key == "s"){
