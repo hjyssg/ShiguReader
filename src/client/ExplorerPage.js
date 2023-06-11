@@ -389,6 +389,9 @@ export default class ExplorerPage extends Component {
         } else if (key === "arrowleft" || key === "a" || key === "j") {
             this.prev();
             event.preventDefault();
+        }else if (key == "r"){
+            this.loadedHash = ""; // 感觉这玩意是个错误design
+            this.askServer();
         }
     }
 
