@@ -109,7 +109,7 @@ export default class ChartPage extends Component {
     this.state = {
       fileType: "compressed",
       timeType: BY_YEAR,
-      timeSourceType: BY_TAG_TIME,
+      timeSourceType: BY_MTIME,
       valueType: VALUE_COUNT,
     };
   }
@@ -144,7 +144,8 @@ export default class ChartPage extends Component {
 
   handleRes(res) {
     if (!res.isFailed()) {
-      let { fileToInfo, fileInfos } = res.json;
+      let { fileToInfo, fileInfos, nameParseCache={} } = res.json;
+      nameParser.setLocalCache(nameParseCache);
       this.fileToInfo = fileInfos || fileToInfo || {};
       this.files = _.keys(this.fileToInfo) || [];
     }
