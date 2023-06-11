@@ -970,8 +970,15 @@ export default class ExplorerPage extends Component {
             (this.getMode() === MODE_AUTHOR || this.getMode() === MODE_TAG || this.getMode() === MODE_SEARCH)) {
             const byDir = _.groupBy(files, getDir);
             let fDirs = _.keys(byDir);
-            sortFileNames(fDirs);
-            if (this.state.isSortAsc) {
+            // 文件夹根据所拥有文件件的时间来排序
+            fDirs = _.sortBy(fDirs, dirPath => {
+                const files = byDir[dirPath];
+                const times = files.map(fp =>  this.getMtime(fp)).filter(e => !!e);
+                const avgTime = util.getAverage(times);
+                return avgTime || 0;
+            });
+
+            if (!this.state.isSortAsc) {
                 fDirs.reverse();
             }
 
