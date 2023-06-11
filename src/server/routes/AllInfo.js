@@ -7,7 +7,8 @@ const util = global.requireUtil();
 // const { isDisplayableInExplorer } = util;
 const nameParser = require('../../name-parser');
 const logger = require("../logger");
-
+const path = require("path");
+const _ = require("underscore");
 
 async function add_col(rows){
     const thumbnails = await serverUtil.common.getThumbnailsForZip(rows.map(e => e.filePath))
@@ -72,8 +73,18 @@ router.post('/api/allInfo', serverUtil.asyncWrapper(async (req, res) => {
     let rows = await db.doSmartAllSync(sql);
     const fileToInfo = serverUtil.convertFileRowsIntoFileInfo(rows);
 
+    const nameParseCache = {};
+    _.keys(fileToInfo).forEach(fp => {
+        const fn = path.basename(fp);
+        const temp = serverUtil.parse(fn);
+        if(temp){
+            nameParseCache[fn] = temp;
+        }
+    })
+
     res.send({
         fileToInfo: fileToInfo,
+        nameParseCache
     });
 }));
 
