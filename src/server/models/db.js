@@ -54,7 +54,7 @@ module.exports.doSmartAllSync = async (sql, params) =>{
         smart_select_cache[cache_key] = await statement_cache[sql].allSync(params);
         result = smart_select_cache[cache_key]
     }
-    console.assert(!!result);
+    console.assert(!!result, sql, params);
     return result || [];
 }
 
@@ -97,7 +97,7 @@ module.exports.init = async ()=> {
 
     CREATE TABLE tag_table (
                             filePath TEXT NOT NULL, 
-                            tag VARCHAR(50) NOT NULL , 
+                            tag VARCHAR(50) NOT NULL COLLATE NOCASE, 
                             type VARCHAR(25) CHECK(type IN ('tag', 'author', 'group')),
                             subtype VARCHAR(25)  CHECK(subtype IN ('comiket', 'name', 'parody', 'author', 'group')) , 
                             isCompress BOOL,
@@ -158,7 +158,7 @@ module.exports.updateStatToDb = async function (filePath, stat, insertion_cache)
 
     statObj.isDir = stat.isDirectory();
     statObj.mtimeMs = stat.mtimeMs;
-    statObj.size = stat.size;
+    statObj.size = Number(stat.size);
     // fileToInfo[filePath] = statObj;
     
     
