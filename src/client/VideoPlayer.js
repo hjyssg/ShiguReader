@@ -128,7 +128,7 @@ export default class VideoPlayer extends Component {
 
   render() {
     const filePath = this.getTextFromQuery();
-    const url = clientUtil.getDownloadLink(this.getTextFromQuery());
+    const url = clientUtil.getFileUrl(this.getTextFromQuery());
     const fileName = getBaseName(filePath);
     document.title = fileName;
     const { hasError, stat, mecab_tokens } = this.state;

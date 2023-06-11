@@ -8,7 +8,7 @@ import Sender from '../Sender';
 import '../style/FileChangeToolbar.scss';
 const util = require("@common/util");
 const clientUtil = require("../clientUtil");
-const { getDir, getBaseName, getDownloadLink } = clientUtil;
+const { getDir, getBaseName } = clientUtil;
 import _ from 'underscore';
 import { toast } from 'react-toastify';
 import Modal from 'react-modal';
@@ -403,7 +403,7 @@ export default class FileChangeToolbar extends Component {
     }
 
     renderDownloadLink() {
-        return (<a className="fa fa-fw fa-download" href={clientUtil.getDownloadLink(this.props.file)} />);
+        return (<a className="fa fa-fw fa-download" href={clientUtil.getFileUrl(this.props.file)} />);
     }
 
     renderMinifyZipButton() {

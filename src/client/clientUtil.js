@@ -52,17 +52,7 @@ const getBaseName = module.exports.getBaseName = function (fp) {
     return tokens[tokens.length - 1];
 };
 
-module.exports.getFileUrl = function (url) {
-    if (!url || url === "NO_THUMBNAIL_AVAILABLE") {
-        return "";
-    }
-  
-    // if (url.includes("thumbnails/") || url.includes("cache/") ) {
-    //     return "../" + encodeFileUrl(url); 
-    // } else {
-    return getDownloadLink(url);
-    // }
-}
+
 
 const encodeFileUrl = module.exports.encodeFileUrl = function (url) {
     if (!url) {
@@ -111,15 +101,7 @@ module.exports.isLocalHost = function () {
     return location.hostname.includes("localhost");
 }
 
-// module.exports.isAuthorized = function (etc_config) {
-//     if (location.hostname.includes("localhost")) {
-//         return true;
-//     } else if(etc_config) {
-//         const Cookie = require("js-cookie");
-//         const password = Cookie.get('password');
-//         return etc_config.remote_file_change_password === password;
-//     }
-// }
+
 
 module.exports.isAllowedToEnter = function () {
     return !!Cookie.get('login-token');
@@ -192,82 +174,26 @@ module.exports.getQuickThumbUrl = function(filePath){
     return "/api/getQuickThumbnail?p=" + encodeURIComponent(filePath);
 }
 
-const getDownloadLink = module.exports.getDownloadLink = function (path) {
-    if (!path) { return ""; }
 
-    if(path.includes("/api/download/?p")){
-       //loadingImage onReceiveUrl
-       return path;
+module.exports.getFileUrl = function (filePath, thumbnailMode) {
+    if (!filePath || filePath === "NO_THUMBNAIL_AVAILABLE") {
+        return "";
     }
 
-    return "/api/download/?p=" + encodeURIComponent(path);
-    // let prefix = location.origin.replace(/:\d+/, ":" + userConfig.file_server_port);
-    // return prefix + "/api/download/?p=" + encodeURIComponent(path);
+    let result;
+    if(filePath.includes("/api/download/?p")){
+       //loadingImage onReceiveUrl
+       result =  filePath;
+    }else {
+        result = "/api/download/?p=" + encodeURIComponent(filePath);
+    }
+
+    if(thumbnailMode){
+        result += "&thumbnailMode=true"
+    }
+    return result;
 }
 
-// function stringHash(str) {
-//     const stringHash = require("string-hash");
-//     const result = stringHash(str);
-//     window.localStorage && window.localStorage.setItem(result, str)
-//     return result;
-// };
-
-// function getPathFromLocalStorage(hash) {
-//     return window.localStorage && window.localStorage.getItem(hash);
-// }
-
-// const cookie_expire_days = 5;
-
-// module.exports.saveFilePathToCookie = function (path) {
-//     //!!! 413 error. if the cookie become too big
-//     const now = util.getCurrentTime();
-//     const hash = stringHash(path);
-//     Cookie.set(now, hash, { expires: cookie_expire_days })
-// }
-
-// const getHistoryCountByFolder = function(){
-//     const timeToHash = Cookie.get();
-//     const pathes = _.values(timeToHash)
-//     .map(hash => {
-//         const filePath = getPathFromLocalStorage(hash);
-//         return filePath;
-//     })
-//     .filter(e => !!e)
-//     .map(e => {
-//         return getDir(e);
-//     });
-
-//     return _.countBy(pathes)
-// }
-
-// move to backend
-// module.exports.getHistoryFromCookie = function () {
-//     const timeToHash = Cookie.get();
-//     let times = _.keys(timeToHash)
-//                  .map(e => parseInt(e))
-//                  .filter(e => e && e > 0);
-//     times = _.sortBy(times).reverse();
-
-//     const visited = {};
-//     const history = [];
-
-//     times.forEach(t => {
-//         const hash = timeToHash[t];
-//         const filePath = getPathFromLocalStorage(hash);
-//         if (visited[filePath] || !filePath) {
-//             return;
-//         }
-//         visited[filePath] = true;
-//         try {
-//             const time = new Date(+t);
-//             history.push([time, filePath])
-//         } catch{
-//             //cookie may be dirty
-//         }
-//     });
-
-//     return history;
-// }
 
 function replaceHash(newHash){
     if(location.hash){

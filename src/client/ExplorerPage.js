@@ -754,11 +754,10 @@ export default class ExplorerPage extends Component {
         let thumbnailurl;
         if (this.isImgFolder(fp)) {
             const tp = this.imgFolderInfo[fp].thumbnail;
-            thumbnailurl = getFileUrl(tp);
+            thumbnailurl = getFileUrl(tp, true);
         } else {
-            thumbnailurl = getFileUrl(this.thumbnails[fp]);
+            thumbnailurl = getFileUrl(this.thumbnails[fp], true);
         }
-        thumbnailurl += "&thumbnailMode=true"
         return thumbnailurl;
     }
     
