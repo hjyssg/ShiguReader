@@ -55,7 +55,7 @@ router.get('/api/download/', serverUtil.asyncWrapper(async (req, res) => {
     const time1 = util.getCurrentTime();
 
     if (!(await isExist(filePath))) {
-        logger.error("[/api/download]", filePath, "NOT FOUND");
+        logger.warn("[/api/download]", filePath, "NOT FOUND");
         res.send({ failed: true, reason: "NOT FOUND" });
         return;
     }
