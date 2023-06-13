@@ -34,7 +34,7 @@ module.exports.doSmartAllSync = async (sql, params) =>{
         statement.allSync = _util.promisify(statement.all).bind(statement);
         statement_cache[sql] = statement;
     }
-    return await statement_cache[sql].allSync(params);
+    return (await statement_cache[sql].allSync(params)) || [];
 }
 
 

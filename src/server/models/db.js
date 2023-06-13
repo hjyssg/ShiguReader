@@ -52,9 +52,9 @@ module.exports.doSmartAllSync = async (sql, params) =>{
     let result = smart_select_cache[cache_key];
     if(!result){
         smart_select_cache[cache_key] = await statement_cache[sql].allSync(params);
-        result = smart_select_cache[cache_key]
+        result = smart_select_cache[cache_key];
     }
-    console.assert(!!result, sql, params);
+    // console.assert(!!result, sql, params);
     return result || [];
 }
 
