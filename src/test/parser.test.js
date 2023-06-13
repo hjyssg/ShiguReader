@@ -207,6 +207,13 @@ describe("name parser", () => {
     assert.equal(tt.getMonth(), 10);
     assert.equal(tt.getDate(), 24);
 
+    tt = parser.getDateFromParse("[3221.11.24]  sadas")
+    assert.equal(tt, undefined);
+
+    tt = parser.getDateFromParse("[321123]  sadas")
+    assert.equal(tt, undefined);
+
+
     //----------------------music file--------------------
     tt = parser.parse("[220824]TVアニメ『メイドインアビス 烈日の黄金郷』OP主题歌「かたち」／安月名莉子[320K]")
     assert.deepEqual(tt.extraTags.sort(), ['かたち', 'メイドインアビス 烈日の黄金郷'].sort());
