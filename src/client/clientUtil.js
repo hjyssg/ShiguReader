@@ -40,6 +40,7 @@ const getDir = module.exports.getDir = function (fp) {
     return tokens.slice(0, tokens.length - 1).join(seperator);
 };
 
+const _base_name_cache_ = {};
 const getBaseName = module.exports.getBaseName = function (fp) {
     if (arguments.length > 1) {
         throw "getBaseName error"
@@ -47,9 +48,15 @@ const getBaseName = module.exports.getBaseName = function (fp) {
 
     if (!fp) { return ""; }
 
+    if(_base_name_cache_[fp]){
+        return _base_name_cache_[fp];
+    }
+
     const seperator = getSep(fp);
     const tokens = fp.split(seperator).filter(e => !!e);
-    return tokens[tokens.length - 1];
+    const result = tokens[tokens.length - 1];
+    _base_name_cache_[fp] = result;
+    return result;
 };
 
 

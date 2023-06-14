@@ -96,6 +96,14 @@ function parse(str) {
     return nameParser.parse(getBaseName(str));
 }
 
+function _parseInt(val){
+    if(_.isNumber(val)){
+        return val;
+    }else{
+        return parseInt(val);
+    }
+}
+
 
 export default class ExplorerPage extends Component {
     constructor(prop) {
@@ -654,7 +662,7 @@ export default class ExplorerPage extends Component {
     }
 
     getMtime(fp){
-        const mTime = this.allfileInfos && this.allfileInfos[fp] && parseInt(this.allfileInfos[fp].mtimeMs);
+        const mTime = this.allfileInfos && this.allfileInfos[fp] && _parseInt(this.allfileInfos[fp].mtimeMs);
         return mTime || 0;
     }
 
@@ -668,13 +676,13 @@ export default class ExplorerPage extends Component {
 
     getReadCount(fp){
         const fn = getBaseName(fp);
-        const count = this.fileNameToHistory && this.fileNameToHistory[fn] && parseInt(this.fileNameToHistory[fn].count);
+        const count = this.fileNameToHistory && this.fileNameToHistory[fn] && _parseInt(this.fileNameToHistory[fn].count);
         return count || 0;
     }
 
     getLastReadTime(fp){
         const fn = getBaseName(fp);
-        const rTime = this.fileNameToHistory && this.fileNameToHistory[fn] && parseInt(this.fileNameToHistory[fn].time);
+        const rTime = this.fileNameToHistory && this.fileNameToHistory[fn] && _parseInt(this.fileNameToHistory[fn].time);
         return rTime || 0;
     }
 
@@ -908,6 +916,7 @@ export default class ExplorerPage extends Component {
             });
         }
 
+        // TODO 实际显示20个，但会去loop全部
         const musicItems = this.musicFiles.map((item) => {
             const toUrl = clientUtil.getOneBookLink(getDir(item));
             const text = getBaseName(item);
