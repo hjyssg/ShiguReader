@@ -315,9 +315,8 @@ export default class ExplorerPage extends Component {
                 author="", 
                 fileInfos={}, 
                 thumbnails={},
-                zipInfo={}, 
                 imgFolderInfo={}, 
-                fileHistory,
+                fileHistory=[],
                 nameParseCache={}
             } = res.json;
             nameParser.setLocalCache(nameParseCache);
@@ -338,7 +337,6 @@ export default class ExplorerPage extends Component {
             this.tag = tag;
             this.author = author;
             this.thumbnails = thumbnails;
-            this.zipInfo = zipInfo;
             this.imgFolderInfo = imgFolderInfo;
             this.res = res;
             this.allfileInfos = _.extend({}, this.fileInfos, this.imgFolderInfo);
@@ -406,8 +404,7 @@ export default class ExplorerPage extends Component {
     //comes from file db.
     //may not be reliable
     getFileSize(e) {
-        const temp = this.imgFolderInfo[e] || this.fileInfos[e];
-        return (temp && temp.size) || 0;
+        return (this.allfileInfos[e]?.size) || 0;
     }
 
     hasFileSize(e) {
@@ -423,10 +420,7 @@ export default class ExplorerPage extends Component {
     }
 
     getPageNum(fp) {
-        if (this.isImgFolder(fp)) {
-            return this.imgFolderInfo[fp]?.pageNum || 0;
-        }
-        return +(this.zipInfo[fp] && this.zipInfo[fp].pageNum) || 0;
+        return +(this.allfileInfos[fp]?.pageNum) || 0;
     }
 
     getAllFilePageNum(filteredFiles) {
@@ -437,17 +431,12 @@ export default class ExplorerPage extends Component {
         return count;
     }
 
-    hasZipInfo(fp) {
-        return !!this.zipInfo[fp];
-    }
+ 
 
-    //comes from zipInfo libray, may not be reliable
+    //comes from libray, may not be reliable
     //because sometimes, filename dont chane but the size change 
     getTotalImgSize(fp) {
-        if (this.isImgFolder(fp)) {
-            return (this.imgFolderInfo[fp]?.totalImgSize) || 0;
-        }
-        return +(this.zipInfo[fp] && this.zipInfo[fp].totalImgSize) || 0;
+        return +(this.allfileInfos[fp]?.totalImgSize) || 0;
     }
 
     //may not be reliable
@@ -473,17 +462,11 @@ export default class ExplorerPage extends Component {
     }
 
     getMusicNum(fp) {
-        if (this.isImgFolder(fp)) {
-            return this.imgFolderInfo[fp]?.musicNum || 0;
-        }
-        return +(this.zipInfo[fp] && this.zipInfo[fp].musicNum) || 0;
+        return +(this.allfileInfos[fp]?.musicNum) || 0;
     }
 
     getVideoNum(fp) {
-        if (this.isImgFolder(fp)) {
-            return (this.imgFolderInfo[fp]?.videoNum) || 0;
-        }
-        return +(this.zipInfo[fp] && this.zipInfo[fp].videoNum) || 0;
+        return +(this.allfileInfos[fp]?.videoNum) || 0;
     }
     
     getFilteredFiles() {
@@ -550,10 +533,8 @@ export default class ExplorerPage extends Component {
 
         if (userConfig.filter_empty_zip) {
             files = files.filter(e => {
-                if (this.hasZipInfo(e)) {
-                    if (this.getMusicNum(e) === 0 && this.getPageNum(e) === 0 && this.getVideoNum(e) === 0) {
-                        return false;
-                    }
+                if (this.getMusicNum(e) === 0 && this.getPageNum(e) === 0 && this.getVideoNum(e) === 0) {
+                    return false;
                 }
                 return true;
             });
@@ -676,13 +657,13 @@ export default class ExplorerPage extends Component {
 
     getReadCount(fp){
         const fn = getBaseName(fp);
-        const count = this.fileNameToHistory && this.fileNameToHistory[fn] && _parseInt(this.fileNameToHistory[fn].count);
+        const count = this.fileNameToHistory[fn] && _parseInt(this.fileNameToHistory[fn]?.count);
         return count || 0;
     }
 
     getLastReadTime(fp){
         const fn = getBaseName(fp);
-        const rTime = this.fileNameToHistory && this.fileNameToHistory[fn] && _parseInt(this.fileNameToHistory[fn].time);
+        const rTime = this.fileNameToHistory[fn] && _parseInt(this.fileNameToHistory[fn]?.time);
         return rTime || 0;
     }
 
@@ -768,8 +749,6 @@ export default class ExplorerPage extends Component {
         }
         return thumbnailurl;
     }
-    
-    
 
     renderSingleZipItem(fp) {
         const text = getBaseName(fp);
@@ -793,7 +772,6 @@ export default class ExplorerPage extends Component {
             </Link>)
         } else {
 
-            const hasZipInfo = this.hasZipInfo(fp);
             const musicNum = this.getMusicNum(fp);
             const isImgFolder = this.isImgFolder(fp);
             const hasMusic = musicNum > 0;
@@ -833,7 +811,7 @@ export default class ExplorerPage extends Component {
                         </Link>
                         <div className={fileInfoRowCn}>
                             {fileSizeStr && <span title="file size">{fileSizeStr}</span>}
-                            {(hasZipInfo || isImgFolder) && <span>{`${pageNum} pages`}</span>}
+                            <span>{`${pageNum} pages`}</span>
                             {hasMusic && <span>{`${musicNum} songs`}</span>}
                             {avgSizeStr && <span title="average img size"> {avgSizeStr} </span>}
                         </div>
