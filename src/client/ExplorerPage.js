@@ -275,9 +275,9 @@ export default class ExplorerPage extends Component {
         this.tag = "";
         this.author = "";
         this.fileInfos = {};
-        this.thumbnails = {};
         this.imgFolderInfo = {};
         this.res = null;
+        this.dirThumbnailMap = {};
     }
 
     componentDidUpdate(prevProps, prevState) {
@@ -314,7 +314,6 @@ export default class ExplorerPage extends Component {
                 tag="", 
                 author="", 
                 fileInfos={}, 
-                thumbnails={},
                 imgFolderInfo={}, 
                 fileHistory=[],
                 nameParseCache={}
@@ -336,7 +335,6 @@ export default class ExplorerPage extends Component {
             this.dirs = dirs;
             this.tag = tag;
             this.author = author;
-            this.thumbnails = thumbnails;
             this.imgFolderInfo = imgFolderInfo;
             this.res = res;
             this.allfileInfos = _.extend({}, this.fileInfos, this.imgFolderInfo);
@@ -745,7 +743,7 @@ export default class ExplorerPage extends Component {
             const tp = this.imgFolderInfo[fp].thumbnail;
             thumbnailurl = getFileUrl(tp, true);
         } else {
-            thumbnailurl = getFileUrl(this.thumbnails[fp], true);
+            thumbnailurl = getFileUrl(this.allfileInfos[fp].thumbnailFilePath, true);
         }
         return thumbnailurl;
     }
@@ -794,7 +792,9 @@ export default class ExplorerPage extends Component {
                 url={thumbnailurl}
                 musicNum={musicNum}
                 onReceiveUrl={url => {
-                    this.thumbnails[fp] = url;
+                    // TODO
+                    // this.thumbnails[fp] = url;
+                    // this.allfileInfos[fp].thumbnailFilePath = url;
                 }}
             />;
 
@@ -860,7 +860,9 @@ export default class ExplorerPage extends Component {
             dirItems = dirs.map((item) => {
                 const toUrl = clientUtil.getExplorerLink(item);
                 const text = getBaseName(item);
-                let thumbnailurl = getFileUrl(this.thumbnails[item]);
+
+                // TODO
+                let thumbnailurl = getFileUrl(this.dirThumbnailMap[item]);
                 const thumbnailCn = classNames("file-cell-thumbnail", "as-folder-thumbnail");
 
                 let imgDiv = <LoadingImage
@@ -1056,9 +1058,10 @@ export default class ExplorerPage extends Component {
     }
 
     async requestThumbnailForFolder(){
+        // TODO
         Sender.post("/api/getThumbnailForFolders", { dirs: this.dirs }, res => {
             if (!res.isFailed()) {
-                this.thumbnails =  _.extend(this.thumbnails, res.json.dirThumbnails);
+                this.dirThumbnailMap =  res.json.dirThumbnails;
                 this.hasCalled_getThumbnailForFolders = true;
                 this.askRerender();
             }
