@@ -376,7 +376,7 @@ module.exports.getInitState = (metaInfo, reset) => {
         if(type === "int"){
             result[key] = parseInt(raw)  || defVal;
         }else if (type === "boolean"){
-            result[key] = !!(raw === "true")
+            result[key] = !!(raw === "true") || defVal;
         }else if (type === "arr"){
             raw = raw || defVal || [];
             if (_.isString(raw)) {

@@ -40,7 +40,7 @@ export default class TagPage extends Component {
     this.metaInfo = [
       {key:"pageIndex", type: "int", defVal: 1},
       {key:"sortOrder", type: "str", defVal: BY_FILE_NUMBER},
-      {key:"isSortAsc", type: "boolean"},
+      {key:"isSortAsc", type: "boolean", defVal: false},
       {key:"filterArr", type: "arr", defVal: FILTER_PARODY},
       {key:"filterText", type: "str"},
     ];

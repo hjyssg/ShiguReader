@@ -103,15 +103,15 @@ export default class ExplorerPage extends Component {
 
         this.metaInfo = [
             {key:"pageIndex", type: "int", defVal: 1},
-            {key:"isRecursive", type: "boolean"},
+            {key:"isRecursive", type: "boolean", defVal: false},
             {key:"sortOrder", type: "str", defVal: BY_TIME},
-            {key:"isSortAsc", type: "boolean"},
-            {key:"showVideo", type: "boolean"},
-            {key:"showFolderThumbnail", type: "boolean"},
+            {key:"isSortAsc", type: "boolean", defVal: false},
+            {key:"showVideo", type: "boolean", defVal: true},
+            {key:"showFolderThumbnail", type: "boolean", defVal: false},
             {key:"filterArr", type: "arr"},
             {key:"filterText", type: "str"},
             {key:"filterType", type: "str"},
-            {key:"noThumbnail", type: "boolean"}
+            {key:"noThumbnail", type: "boolean", defVal: false}
         ];
 
         this.state = this.getInitState();

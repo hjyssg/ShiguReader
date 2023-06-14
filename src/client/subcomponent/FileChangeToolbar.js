@@ -55,8 +55,8 @@ function saveTempMovePath(filePath){
 function pop(file, res, postFix, extraDiv, callback) {
     const reason = res.json.reason;
     const isFailed = res.isFailed()
-    const message = isFailed ? `fail to ${postFix} ${file}` : `${postFix} successfully`;
-    const cn = isFailed ? "a-error" : "a-success";
+    // const message = isFailed ? `fail to ${postFix} ${file}` : `${postFix} successfully`;
+    // const cn = isFailed ? "a-error" : "a-success";
     const badge = isFailed ? (<span className="badge badge-danger">Error</span>) :
         (<span className="badge badge-success">Success</span>)
 
