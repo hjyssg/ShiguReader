@@ -90,7 +90,7 @@ function CacheSection(){
 
     return (
         <div className="admin-section">
-        <div className="admin-section-title" title="only keep thumbnail and delete other files"> Clean Cache</div>
+        <div className="admin-section-title" title="only keep thumbnail and delete other files"> Cache Usage (Restart ShiguReader will delete the cache)</div>
         <div className="admin-section-content">
             {cacheInfo}
                 {/* <div className="submit-button" onClick={cleanCache}>clean</div> */}

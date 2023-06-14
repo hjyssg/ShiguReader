@@ -10,6 +10,7 @@ import ErrorPage from './ErrorPage';
 import Spinner from './subcomponent/Spinner';
 import CenterSpinner from './subcomponent/CenterSpinner';
 import FileNameDiv from './subcomponent/FileNameDiv';
+import BookImage from './subcomponent/BookImage';
 import FileChangeToolbar from './subcomponent/FileChangeToolbar';
 import HistorySection from './subcomponent/HistorySection';
 import MusicPlayer from './MusicPlayer';
@@ -41,6 +42,8 @@ export default class OneBook extends Component {
     this.state = {
       imageFiles: [],
       musicFiles: [],
+      videoFiles: [],
+      dirs: [],
       index: this.getInitIndex(),
       twoPageMode: NO_TWO_PAGE
     };
@@ -93,25 +96,21 @@ export default class OneBook extends Component {
   }
 
   getMaxHeight() {
-    if (isMobile()) {
-      return window.screen.height - 10;
-    }
-
-    let maxHeight = 952;
+    let height = clientUtil.getWindowsHeight();
     if (this.hasMusic()) {
-      maxHeight = 450;
-    } else {
-      maxHeight = isNaN(window.innerHeight) ? window.clientHeight : window.innerHeight;
+      height = Math.max(450, height/2);
+    }else {
+      height -= 10;
     }
-    return maxHeight - 10;
+    return height;
   }
 
   getMaxWidth() {
-    if (isMobile()) {
-      return window.screen.width;
+    let width = clientUtil.getWindowsWidth();
+    if (!isMobile()) {
+      width -= 50;
     }
-    const result = isNaN(window.innerWidth) ? window.clientWidth : window.innerWidth;
-    return result - 50;
+    return width;
   }
 
   adjustImageSize() {
@@ -312,10 +311,7 @@ export default class OneBook extends Component {
   async handleRes(res) {
     this.res = res;
     if (!res.isFailed()) {
-      let { zipInfo, path, stat, imageFiles, musicFiles, videoFiles, mecab_tokens, outputPath } = res.json;
-      imageFiles = imageFiles || [];
-      musicFiles = musicFiles || [];
-      videoFiles = videoFiles || [];
+      let { zipInfo, path, stat, imageFiles=[], musicFiles=[], videoFiles=[], dirs=[], mecab_tokens, outputPath } = res.json;
 
       //files name can be 001.jpg, 002.jpg, 011.jpg, 012.jpg
       //or 1.jpg, 2.jpg 3.jpg 1.jpg
@@ -324,7 +320,7 @@ export default class OneBook extends Component {
       sortFileNames(musicFiles);
       sortFileNames(videoFiles);
 
-      this.setState({ imageFiles, musicFiles, videoFiles, path, fileStat: stat, zipInfo, mecab_tokens, outputPath },
+      this.setState({ imageFiles, musicFiles, videoFiles, dirs, path, fileStat: stat, zipInfo, mecab_tokens, outputPath },
         () => { this.bindUserInteraction() });
     } else {
       this.askRerender();
@@ -362,7 +358,7 @@ export default class OneBook extends Component {
     }else if(key == "x"){
       clientUtil.triggerClickOnClass("move-to-no-good-button");
     }else if(key == "v"){
-      clientUtil.triggerClickOnClass("move-to-no-good-button");
+      clientUtil.triggerClickOnClass("move-to-good-button");
     }else if(key == "arrowUp" || key == "w"){
       clientUtil.scrollPageByDistance(-50);
     }else if (key == "arrowDown" || key == "s"){
@@ -401,12 +397,11 @@ export default class OneBook extends Component {
   changePage(index, event) {
     event && event.preventDefault();
     event && event.stopPropagation();
+
     if (!userConfig.keep_clip) {
       this.setState({ twoPageMode: NO_TWO_PAGE });
     }
-
     this.showSpinner();
-
     this.setState({ index: index });
     this.setIndex(index);
     this.rotateImg(0);
@@ -470,7 +465,27 @@ export default class OneBook extends Component {
     const cn = classNames("one-book-foot-index-number", {
       "is-last": isLast
     })
-    return <div className={cn}>{text}</div>;
+    return (<div className={cn}>{text}</div>);
+  }
+
+  //may not be reliable
+  getPageAvgSize() {
+      const { fileStat, imageFiles, index, zipInfo, videoFiles } = this.state;
+      const fileSize = (fileStat?.size) || null;
+      const fileDate = (fileStat?.mtimeMs) || null;
+
+      let avgFileSize = 0; // 和explore的getPageAvgSize(e)是重复逻辑？
+      if(this.hasImage()){
+        if (zipInfo) {
+          avgFileSize = zipInfo.totalImgSize / zipInfo.pageNum;
+        } else if(fileSize) {
+          avgFileSize = fileSize / this.getImageLength();
+        }
+        if(avgFileSize == Infinity){
+          avgFileSize = 0;
+        }
+      };
+      return avgFileSize;
   }
 
   renderFileSizeAndTime() {
@@ -479,24 +494,14 @@ export default class OneBook extends Component {
     const fileSize = (fileStat?.size) || null;
     const fileDate = (fileStat?.mtimeMs) || null;
     
-    let avgFileSize = 0; // 和explore的getPageAvgSize(e)是重复逻辑？
-    if(this.hasImage()){
-      if (zipInfo) {
-        avgFileSize = zipInfo.totalImgSize / zipInfo.pageNum;
-      } else if(fileSize) {
-        avgFileSize = fileSize / this.getImageLength();
-      }
-      if(avgFileSize == Infinity){
-        avgFileSize = 0;
-      }
-    }
+    let avgFileSize = this.getPageAvgSize();
 
     const rows = [];
     if(fileDate){
       const mTime = clientUtil.dateFormat_ymd(new Date(fileDate));
       rows.push(["Modify Time", mTime]);
     }
-    if(fileSize){
+    if(fileSize && fileSize > 0){
       const size = filesizeUitl(fileSize);
       rows.push(["Total Size", size]);
     }
@@ -504,14 +509,16 @@ export default class OneBook extends Component {
       const title = getBaseName(imageFiles[index]);
       rows.push(["Image Name", title]);
    
-      const avg = filesizeUitl(avgFileSize);
-      rows.push(["Average Image Size", avg]);
+      if(avgFileSize > 0){
+        const avg = filesizeUitl(avgFileSize);
+        rows.push(["Average Image Size", avg]);
+      }
    
       rows.push(["Dimensions"]);
     }
 
     if(rows.length == 0){
-      return 0;
+      return null;
     }
 
     const texts = rows.map((row, ii) => {
@@ -533,7 +540,7 @@ export default class OneBook extends Component {
       onClick={this.onClickPagination.bind(this)} >
       {`${index + 1}/${this.getImageLength()}`}  </div>);
 
-    const videoNum = videoFiles.length > 0 && (<div className="video-num"> {` video: ${videoFiles.length}`}  </div>);
+    const videoNum = this.hasVideo() && (<div className="video-num"> {` video: ${videoFiles.length}`}  </div>);
     return (<div className={"one-book-file-stat"}>{texts} {mobilePageNum} {videoNum} </div>);
   }
 
@@ -549,24 +556,7 @@ export default class OneBook extends Component {
 
   onImgLoad() {
     this.hideSpinner();
-
     this.adjustImageSize();
-  }
-
-  renderPreload(){
-    const result = [];
-    if(document.visibilityState === 'visible'){
-      const { imageFiles, index, twoPageMode } = this.state;
-      const beg = index + 1;
-      const preload_num = 4;
-      const end = Math.min(beg + preload_num, this.getImageLength())
-  
-      for(let ii = beg; ii < end; ii++){
-        const temp =  <link rel="preload" key={ii} href={getFileUrl(imageFiles[ii])} as="image" />
-        result.push(temp);
-      }
-    }
-    return result;
   }
 
   renderImage() {
@@ -584,40 +574,56 @@ export default class OneBook extends Component {
         "has-music": this.hasMusic()
       });
 
-      const nextImg = this.shouldTwoPageMode() && <img className={cn} src={getFileUrl(imageFiles[index + 1])} alt="book-image"
-        ref={img => this.nextImgRef = img}
-        onLoad={this.makeTwoImageSameHeight.bind(this)}
-        index={index + 1}
-      />;
+      let nextImg = null
+      if(this.shouldTwoPageMode()) {
+        nextImg = ( 
+              <BookImage className={cn} 
+                alt="book-image"
+                ref={img => this.nextImgRef = img}
 
-      const preload = this.renderPreload();
+                imageFiles={imageFiles}
+                index={index + 1}
+                onLoad={this.makeTwoImageSameHeight.bind(this)}
+              />);
+        };
+
 
       return (<React.Fragment>
         <Spinner className="one-book-img-load-spinner" />
         {twoPageMode === TWO_PAGE_RIGHT && nextImg}
-        <img className={cn} src={getFileUrl(imageFiles[index])} alt="book-image"
+        <BookImage
+          className={cn}
+          alt="book-image"
           ref={img => this.imgRef = img}
+
+          imageFiles={imageFiles}
           index={index}
           onError={this.onImageError.bind(this)}
           onLoad={this.onImgLoad.bind(this)}
           loading="lazy"
         />
         {twoPageMode === TWO_PAGE_LEFT && nextImg}
-        {preload}
       </React.Fragment>);
     } else {
       let images;
       const cn = classNames("mobile-single-image", {
         "has-music": this.hasMusic()
       });
-      images = (<div className="mobile-single-image-container"
+      images = (
+      <div className="mobile-single-image-container"
         ref={(e) => this.imgContainerRef = e}
         onClick={this.onClickMobileOneImageContainer.bind(this)}>
-        <img className={cn}
+        <BookImage 
+          className={cn}
           ref={(img) => this.imgRef = img}
+
+          imageFiles={imageFiles}
+          index={index}
           onError={this.onImageError.bind(this)}
           onLoad={this.onImgLoad.bind(this)}
-          src={getFileUrl(imageFiles[index])} />
+          src={getFileUrl(imageFiles[index])} 
+          loading="lazy"
+        />
       </div>);
       return (<div className="mobile-one-book-container">
         <Spinner className="one-book-img-load-spinner" />
@@ -662,12 +668,14 @@ export default class OneBook extends Component {
     if (!this.state.path) {
       return;
     }
+
+    const exploreCN = this.hasFolder() || this.hasVideo() ? "orange-font" : "";
       
     if(!this.hasImage()){
         const toUrl3 = clientUtil.getExplorerLink(this.state.outputPath || this.state.path);
         return (
           <div className="one-book-overview-path">
-            <Link to={toUrl3}> Explorer </Link>
+            <Link className={exploreCN} to={toUrl3}> Explorer </Link>
           </div>);
       }else{
         const toUrl = clientUtil.getOneBookOverviewLink(this.state.path);
@@ -676,9 +684,9 @@ export default class OneBook extends Component {
     
         return (
           <div className="one-book-overview-path">
-            <Link to={toUrl}> Overview </Link>
-            <Link to={toUrl2}> Waterfall </Link>
-            <Link to={toUrl3}> Explorer </Link>
+            <Link target="_blank" to={toUrl}> Overview </Link>
+            <Link target="_blank" to={toUrl2}> Waterfall </Link>
+            <Link target="_blank" className={exploreCN}  to={toUrl3}> Explorer </Link>
           </div>);
     }
   }
@@ -700,7 +708,7 @@ export default class OneBook extends Component {
 
     return (
       <div className="one-book-path">
-        <Link to={toUrl}>{parentPath} </Link>
+        <Link target="_blank" to={toUrl}>{parentPath} </Link>
       </div>);
   }
 
@@ -742,6 +750,16 @@ export default class OneBook extends Component {
 
   hasImage() {
     return this.getImageLength() > 0;
+  }
+
+  hasVideo() {
+    const { videoFiles } = this.state;
+    return videoFiles.length > 0;
+  }
+
+  hasFolder(){
+    const { dirs } = this.state;
+    return dirs.length > 0;
   }
 
   renderMusicPlayer() {

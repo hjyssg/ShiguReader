@@ -56,7 +56,7 @@ function renderHistory(history) {
             });
 
             return (
-                <Link to={toUrl} key={filePath + ii} className={"history-link"}>
+                <Link target="_blank" to={toUrl} key={filePath + ii} className={"history-link"}>
                     <ThumbnailPopup filePath={filePath}>
                         <div className="history-one-line-list-item" key={filePath}>
                             <span className={cn} /> 
@@ -90,7 +90,25 @@ function renderHistory(history) {
 export default class HistoryPage extends Component {
     constructor(prop) {
         super(prop);
-        this.state = { pageIndex: 1, totalCount: 0 };
+
+        this.metaInfo = [
+            {key:"pageIndex", type: "int", defVal: 1},
+        ];
+        this.state = this.getInitState();
+    }
+
+    getInitState(reset) {
+        const initState = clientUtil.getInitState(this.metaInfo, reset);
+        return {
+            ...initState,
+            totalCount: 0
+        }
+    }
+
+    setStateAndSetHash(state, callback) {
+        this.setState(state, callback);
+        const newState = {...this.state, ...state};
+        clientUtil.saveStateToUrl(this.metaInfo, newState);
     }
 
     componentDidMount() {
@@ -104,13 +122,13 @@ export default class HistoryPage extends Component {
             history.forEach(e => {
                 e.time = parseInt(e.time);
             })
-            this.setState({history, res, totalCount: count})
+            this.setStateAndSetHash({history, res, totalCount: count})
         });
     }
 
 
     handlePageChange(index) {
-        this.setState({
+        this.setStateAndSetHash({
             pageIndex: index,
             history: []
         });

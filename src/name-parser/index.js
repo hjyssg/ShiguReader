@@ -146,6 +146,7 @@ function getDateFromComiket(comiket) {
     return result;
 }
 
+const currentYear = (new Date()).getFullYear();
 function getDateFromStr(str) {
     const mresult = str.match(date_reg);
     if (mresult) {
@@ -157,6 +158,8 @@ function getDateFromStr(str) {
         if (m < 0 || m > 11) {
             return undefined;
         } else if (d < 1 || d > 31) {
+            return undefined;
+        }if (y > currentYear + 2){
             return undefined;
         }
 

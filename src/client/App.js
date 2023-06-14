@@ -45,7 +45,7 @@ class App extends Component {
     }
 
     async askServer() {
-        this.getParseCache();
+        // this.getParseCache();
 
         const generalRes = await Sender.getWithPromise('/api/getGeneralInfo');
         if (!generalRes.isFailed()) {
@@ -57,14 +57,14 @@ class App extends Component {
         }
     }
 
-    async getParseCache(){
-        const parseCacheRes = await Sender.getWithPromise('/api/getParseCache/');
-        if (!parseCacheRes.isFailed()) {
-            console.time("setLocalCache");
-            nameParser.setLocalCache(parseCacheRes.json)
-            console.timeEnd("setLocalCache");
-        }
-    }
+    // async getParseCache(){
+    //     const parseCacheRes = await Sender.getWithPromise('/api/getParseCache/');
+    //     if (!parseCacheRes.isFailed()) {
+    //         console.time("setLocalCache");
+    //         nameParser.setLocalCache(parseCacheRes.json)
+    //         console.timeEnd("setLocalCache");
+    //     }
+    // }
 
     componentDidMount() {
         this._handleKeyDown = this.handleKeyDown.bind(this);

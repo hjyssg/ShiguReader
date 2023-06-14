@@ -96,10 +96,32 @@ function parse(str) {
     return nameParser.parse(getBaseName(str));
 }
 
+function _parseInt(val){
+    if(_.isNumber(val)){
+        return val;
+    }else{
+        return parseInt(val);
+    }
+}
+
 
 export default class ExplorerPage extends Component {
     constructor(prop) {
         super(prop);
+
+        this.metaInfo = [
+            {key:"pageIndex", type: "int", defVal: 1},
+            {key:"isRecursive", type: "boolean", defVal: false},
+            {key:"sortOrder", type: "str", defVal: BY_TIME},
+            {key:"isSortAsc", type: "boolean", defVal: false},
+            {key:"showVideo", type: "boolean", defVal: true},
+            {key:"showFolderThumbnail", type: "boolean", defVal: false},
+            {key:"filterArr", type: "arr"},
+            {key:"filterText", type: "str"},
+            {key:"filterType", type: "str"},
+            {key:"noThumbnail", type: "boolean", defVal: false}
+        ];
+
         this.state = this.getInitState();
         this.resetParam();
     }
@@ -110,59 +132,17 @@ export default class ExplorerPage extends Component {
     }
 
     getInitState(reset) {
-        const parsed = reset ? {} : queryString.parse(location.hash);
-        const pageIndex = parseInt(parsed.pageIndex) || 1;
-        const isRecursive = !!(parsed.isRecursive === "true");
-        const sortOrder = parsed.sortOrder || BY_TIME;
-        const isSortAsc = !!(parsed.isSortAsc === "true");
-        const showVideo = !!(parsed.showVideo === "true");
-        const showFolderThumbnail = !!(parsed.showFolderThumbnail == "true");
-        let filterArr = parsed.filterArr || [];
-        if (_.isString(filterArr)) {
-            filterArr = [filterArr];
-        }
-
+        const initState = clientUtil.getInitState(this.metaInfo, reset);
         return {
             perPageItemNum: getPerPageItemNumber(),
-            anchorSideMenu: false,
-            pageIndex,
-            isRecursive,
-            sortOrder,
-            isSortAsc,
-            showVideo,
-            showFolderThumbnail,
-            filterArr,
-            filterText: parsed.filterText || "",
-            filterType: parsed.filterType || "",
-            noThumbnail: parsed.noThumbnail === "true"
+            ...initState
         }
     }
 
     setStateAndSetHash(state, callback) {
-        // const time1 = util.getCurrentTime();
-        //??? this is slow after handleLsDirRes
         this.setState(state, callback);
-
-        const obj = Object.assign({}, this.state, state);
-        const obj2 = {};
-        ["pageIndex",
-            "isRecursive",
-            "sortOrder",
-            "isSortAsc",
-            "showVideo",
-            "filterArr",
-            "filterText",
-            "filterType",
-            "noThumbnail",
-            "showFolderThumbnail"].forEach(key => {
-                obj2[key] = obj[key];
-            })
-
-        clientUtil.replaceUrlHash(queryString.stringify(obj2))
-
-        // const time2 = util.getCurrentTime();
-        // const timeUsed = (time2 - time1) / 1000;
-        // console.log("[setState] ", timeUsed, "s")
+        const newState = {...this.state, ...state};
+        clientUtil.saveStateToUrl(this.metaInfo, newState);
     }
 
     handlePageChange(index) {
@@ -325,36 +305,49 @@ export default class ExplorerPage extends Component {
         return this.mode === "lack_info_mode";
     }
 
-    getPathesForHistoryAPI(){
-        // 只拿需要的
-        return [...this.compressFiles, ...(_.keys(this.imgFolderInfo))];
-    }
 
     handleLsDirRes(res) {
         if (!res.isFailed()) {
-            let { dirs, mode, tag, author, fileInfos, thumbnails,
-                zipInfo, imgFolderInfo } = res.json;
+            let { 
+                dirs=[], 
+                mode, 
+                tag="", 
+                author="", 
+                fileInfos={}, 
+                thumbnails={},
+                zipInfo={}, 
+                imgFolderInfo={}, 
+                fileHistory,
+                nameParseCache={}
+            } = res.json;
+            nameParser.setLocalCache(nameParseCache);
+
             this.loadedHash = this.getTextFromQuery();
             this.mode = mode;
-
-            this.fileInfos = fileInfos || {};
+            this.fileInfos = fileInfos;
             const files = _.keys(this.fileInfos) || [];
-            this.videoFiles = files.filter(isVideo) || [];
-            this.compressFiles = files.filter(isCompress) || [];
-            this.musicFiles = files.filter(isMusic) || [];
-            this.imageFiles = files.filter(isImage) || [];
+            this.videoFiles = files.filter(isVideo);
+            this.compressFiles = files.filter(isCompress);
+            this.musicFiles = files.filter(isMusic);
+            this.imageFiles = files.filter(isImage);
 
             sortFileNames(this.musicFiles)
             sortFileNames(this.imageFiles)
 
-            this.dirs = dirs || [];
-            this.tag = tag || "";
-            this.author = author || "";
-            this.thumbnails = thumbnails || {};
-            this.zipInfo = zipInfo || {};
-            this.imgFolderInfo = imgFolderInfo || {};
+            this.dirs = dirs;
+            this.tag = tag;
+            this.author = author;
+            this.thumbnails = thumbnails;
+            this.zipInfo = zipInfo;
+            this.imgFolderInfo = imgFolderInfo;
             this.res = res;
             this.allfileInfos = _.extend({}, this.fileInfos, this.imgFolderInfo);
+
+            this.fileNameToHistory = {};
+            fileHistory.forEach(row => {
+                const { fileName, time, count } = row;
+                this.fileNameToHistory[fileName] = {time, count};
+            })
 
             if (this.videoFiles.length > 0 && !this.state.showVideo) {
                 this.setStateAndSetHash({
@@ -371,17 +364,6 @@ export default class ExplorerPage extends Component {
             } else {
                 this.askRerender();
             }
-
-            Sender.post('/api/getFileHistory', {all_pathes: this.getPathesForHistoryAPI()}, res => {
-                if (!res.isFailed()) {
-                    this.fileNameToHistory = {};
-                    (res.json.fileHistory || {}).forEach(row => {
-                        const { fileName, time, count } = row;
-                        this.fileNameToHistory[fileName] = {time, count};
-                    })
-                    this.askRerender();
-                }
-            });
 
             Sender.get('/api/getGoodAuthorNames', res => {
                 if (!res.isFailed()) {
@@ -415,6 +397,9 @@ export default class ExplorerPage extends Component {
         } else if (key === "arrowleft" || key === "a" || key === "j") {
             this.prev();
             event.preventDefault();
+        }else if (key == "r"){
+            this.loadedHash = ""; // 感觉这玩意是个错误design
+            this.askServer();
         }
     }
 
@@ -586,7 +571,7 @@ export default class ExplorerPage extends Component {
         if (filterByGoodAuthorName || filterByOversizeImage || filterByGuess || filterByFirstTime || filterByHasMusic) {
             videoFiles = [];
         } else {
-            videoFiles = this.videoFiles || []
+            videoFiles = this.videoFiles || [];
         }
 
         const filterText = this.state.filterText && this.state.filterText.toLowerCase();
@@ -677,7 +662,7 @@ export default class ExplorerPage extends Component {
     }
 
     getMtime(fp){
-        const mTime = this.allfileInfos && this.allfileInfos[fp] && parseInt(this.allfileInfos[fp].mtimeMs);
+        const mTime = this.allfileInfos && this.allfileInfos[fp] && _parseInt(this.allfileInfos[fp].mtimeMs);
         return mTime || 0;
     }
 
@@ -691,13 +676,13 @@ export default class ExplorerPage extends Component {
 
     getReadCount(fp){
         const fn = getBaseName(fp);
-        const count = this.fileNameToHistory && this.fileNameToHistory[fn] && parseInt(this.fileNameToHistory[fn].count);
+        const count = this.fileNameToHistory && this.fileNameToHistory[fn] && _parseInt(this.fileNameToHistory[fn].count);
         return count || 0;
     }
 
     getLastReadTime(fp){
         const fn = getBaseName(fp);
-        const rTime = this.fileNameToHistory && this.fileNameToHistory[fn] && parseInt(this.fileNameToHistory[fn].time);
+        const rTime = this.fileNameToHistory && this.fileNameToHistory[fn] && _parseInt(this.fileNameToHistory[fn].time);
         return rTime || 0;
     }
 
@@ -723,8 +708,9 @@ export default class ExplorerPage extends Component {
 
     getAuthorCountForFP(fp) {
         const temp = parse(fp);
-        if(temp && temp.author){
-            return clientUtil.getAuthorCount(this.state.authorInfo, temp.author) || {};
+        if(temp && temp.authors){
+            // todo multiple-author
+            return clientUtil.getAuthorCount(this.state.authorInfo, temp.authors[0]) || {};
         }else{
             return {};
         }
@@ -776,11 +762,10 @@ export default class ExplorerPage extends Component {
         let thumbnailurl;
         if (this.isImgFolder(fp)) {
             const tp = this.imgFolderInfo[fp].thumbnail;
-            thumbnailurl = getFileUrl(tp);
+            thumbnailurl = getFileUrl(tp, true);
         } else {
-            thumbnailurl = getFileUrl(this.thumbnails[fp]);
+            thumbnailurl = getFileUrl(this.thumbnails[fp], true);
         }
-        thumbnailurl += "&thumbnailMode=true"
         return thumbnailurl;
     }
     
@@ -801,7 +786,7 @@ export default class ExplorerPage extends Component {
 
         if (this.state.noThumbnail) {
             zipItem = (
-            <Link to={toUrl} key={fp} className={""} >
+            <Link target="_blank" to={toUrl} key={fp} className={""} >
                 <ThumbnailPopup filePath={fp} url={thumbnailurl}>
                     {this.getOneLineListItem(<i className="fas fa-book"></i>, text, fp)}
                 </ThumbnailPopup>
@@ -931,18 +916,19 @@ export default class ExplorerPage extends Component {
             });
         }
 
+        // TODO 实际显示20个，但会去loop全部
         const musicItems = this.musicFiles.map((item) => {
             const toUrl = clientUtil.getOneBookLink(getDir(item));
             const text = getBaseName(item);
             const result = this.getOneLineListItem(<i className="fas fa-volume-up"></i>, text, item);
-            return <Link to={toUrl} key={item}>{result}</Link>;
+            return <Link target="_blank" to={toUrl} key={item}>{result}</Link>;
         });
 
         const imageItems = this.imageFiles.map((item, ii) => {
             const toUrl = clientUtil.getOneBookLink(getDir(item), ii);
             const text = getBaseName(item);
             const result = this.getOneLineListItem(<i className="fas fa-images"></i>, text, item);
-            return <Link to={toUrl} key={item}>{result}</Link>;
+            return <Link target="_blank" to={toUrl} key={item}>{result}</Link>;
         });
 
         //seperate av from others
@@ -992,8 +978,15 @@ export default class ExplorerPage extends Component {
             (this.getMode() === MODE_AUTHOR || this.getMode() === MODE_TAG || this.getMode() === MODE_SEARCH)) {
             const byDir = _.groupBy(files, getDir);
             let fDirs = _.keys(byDir);
-            sortFileNames(fDirs);
-            if (this.state.isSortAsc) {
+            // 文件夹根据所拥有文件件的时间来排序
+            fDirs = _.sortBy(fDirs, dirPath => {
+                const files = byDir[dirPath];
+                const times = files.map(fp =>  this.getMtime(fp)).filter(e => !!e);
+                const avgTime = util.getAverage(times);
+                return avgTime || 0;
+            });
+
+            if (!this.state.isSortAsc) {
                 fDirs.reverse();
             }
 
@@ -1207,7 +1200,7 @@ export default class ExplorerPage extends Component {
     getBookModeLink() {
         const onebookUrl = clientUtil.getOneBookLink(this.getTextFromQuery());
         return (
-            <Link className="exp-top-button" target="_blank" to={onebookUrl} >
+            <Link target="_blank" className="exp-top-button"  to={onebookUrl} >
                 <span className="fas fa-book-reader" />
                 <span>Open in Book Mode </span>
             </Link>
@@ -1244,7 +1237,7 @@ export default class ExplorerPage extends Component {
                 {
                     (isTag || isAuthor) &&
                     <div className="col-6 col-md-4">
-                        <Link className="exp-top-button" target="_blank" to={url} >
+                        <Link  target="_blank" className="exp-top-button" to={url} >
                             <span className="fab fa-searchengin" />
                             <span>Search by Text </span>
                         </Link>

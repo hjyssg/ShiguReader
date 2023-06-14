@@ -40,6 +40,7 @@ const getDir = module.exports.getDir = function (fp) {
     return tokens.slice(0, tokens.length - 1).join(seperator);
 };
 
+const _base_name_cache_ = {};
 const getBaseName = module.exports.getBaseName = function (fp) {
     if (arguments.length > 1) {
         throw "getBaseName error"
@@ -47,22 +48,18 @@ const getBaseName = module.exports.getBaseName = function (fp) {
 
     if (!fp) { return ""; }
 
+    if(_base_name_cache_[fp]){
+        return _base_name_cache_[fp];
+    }
+
     const seperator = getSep(fp);
     const tokens = fp.split(seperator).filter(e => !!e);
-    return tokens[tokens.length - 1];
+    const result = tokens[tokens.length - 1];
+    _base_name_cache_[fp] = result;
+    return result;
 };
 
-module.exports.getFileUrl = function (url) {
-    if (!url || url === "NO_THUMBNAIL_AVAILABLE") {
-        return "";
-    }
-  
-    // if (url.includes("thumbnails/") || url.includes("cache/") ) {
-    //     return "../" + encodeFileUrl(url); 
-    // } else {
-    return getDownloadLink(url);
-    // }
-}
+
 
 const encodeFileUrl = module.exports.encodeFileUrl = function (url) {
     if (!url) {
@@ -111,15 +108,7 @@ module.exports.isLocalHost = function () {
     return location.hostname.includes("localhost");
 }
 
-// module.exports.isAuthorized = function (etc_config) {
-//     if (location.hostname.includes("localhost")) {
-//         return true;
-//     } else if(etc_config) {
-//         const Cookie = require("js-cookie");
-//         const password = Cookie.get('password');
-//         return etc_config.remote_file_change_password === password;
-//     }
-// }
+
 
 module.exports.isAllowedToEnter = function () {
     return !!Cookie.get('login-token');
@@ -192,82 +181,26 @@ module.exports.getQuickThumbUrl = function(filePath){
     return "/api/getQuickThumbnail?p=" + encodeURIComponent(filePath);
 }
 
-const getDownloadLink = module.exports.getDownloadLink = function (path) {
-    if (!path) { return ""; }
 
-    if(path.includes("/api/download/?p")){
-       //loadingImage onReceiveUrl
-       return path;
+module.exports.getFileUrl = function (filePath, thumbnailMode) {
+    if (!filePath || filePath === "NO_THUMBNAIL_AVAILABLE") {
+        return "";
     }
 
-    return "/api/download/?p=" + encodeURIComponent(path);
-    // let prefix = location.origin.replace(/:\d+/, ":" + userConfig.file_server_port);
-    // return prefix + "/api/download/?p=" + encodeURIComponent(path);
+    let result;
+    if(filePath.includes("/api/download/?p")){
+       //loadingImage onReceiveUrl
+       result =  filePath;
+    }else {
+        result = "/api/download/?p=" + encodeURIComponent(filePath);
+    }
+
+    if(thumbnailMode){
+        result += "&thumbnailMode=true"
+    }
+    return result;
 }
 
-// function stringHash(str) {
-//     const stringHash = require("string-hash");
-//     const result = stringHash(str);
-//     window.localStorage && window.localStorage.setItem(result, str)
-//     return result;
-// };
-
-// function getPathFromLocalStorage(hash) {
-//     return window.localStorage && window.localStorage.getItem(hash);
-// }
-
-// const cookie_expire_days = 5;
-
-// module.exports.saveFilePathToCookie = function (path) {
-//     //!!! 413 error. if the cookie become too big
-//     const now = util.getCurrentTime();
-//     const hash = stringHash(path);
-//     Cookie.set(now, hash, { expires: cookie_expire_days })
-// }
-
-// const getHistoryCountByFolder = function(){
-//     const timeToHash = Cookie.get();
-//     const pathes = _.values(timeToHash)
-//     .map(hash => {
-//         const filePath = getPathFromLocalStorage(hash);
-//         return filePath;
-//     })
-//     .filter(e => !!e)
-//     .map(e => {
-//         return getDir(e);
-//     });
-
-//     return _.countBy(pathes)
-// }
-
-// move to backend
-// module.exports.getHistoryFromCookie = function () {
-//     const timeToHash = Cookie.get();
-//     let times = _.keys(timeToHash)
-//                  .map(e => parseInt(e))
-//                  .filter(e => e && e > 0);
-//     times = _.sortBy(times).reverse();
-
-//     const visited = {};
-//     const history = [];
-
-//     times.forEach(t => {
-//         const hash = timeToHash[t];
-//         const filePath = getPathFromLocalStorage(hash);
-//         if (visited[filePath] || !filePath) {
-//             return;
-//         }
-//         visited[filePath] = true;
-//         try {
-//             const time = new Date(+t);
-//             history.push([time, filePath])
-//         } catch{
-//             //cookie may be dirty
-//         }
-//     });
-
-//     return history;
-// }
 
 function replaceHash(newHash){
     if(location.hash){
@@ -285,8 +218,9 @@ module.exports.linkFunc = (index)=>{
     return newUrl
 }
 
-module.exports.replaceUrlHash = function(newHash){
+const replaceUrlHash = module.exports.replaceUrlHash = function(newHash){
     // console.assert((location.origin + location.pathname + location.search + location.hash) === location.href, "[replaceUrlHash] url error")
+    // console.log(newHash);
     const newUrl = replaceHash(newHash);
     location.replace(newUrl);
 }
@@ -433,4 +367,64 @@ module.exports.convertSimpleObj2tooltipRow = (obj) => {
         });
     }
     return rows;
+}
+
+module.exports.getInitState = (metaInfo, reset) => {
+    const parsed = reset ? {} : queryString.parse(location.hash);
+
+    const result = {};
+    metaInfo.forEach(item => {
+        const key = item["key"];
+        const type = item["type"];
+        const defVal = item["defVal"];
+        console.assert(key && type);
+        let raw = parsed[key];
+
+        if(type === "int"){
+            result[key] = parseInt(raw)  || defVal;
+        }else if (type === "boolean"){
+            result[key] = !!(raw === "true") || defVal;
+        }else if (type === "arr"){
+            raw = raw || defVal || [];
+            if (_.isString(raw)) {
+                raw = [ raw ];
+            }
+            result[key] = raw;
+        }else if (type == "str"){
+            result[key] = raw || defVal || "";
+        }else {
+            console.warn("?????");
+        }
+    });
+
+    return result;
+}
+
+module.exports.saveStateToUrl = (metaInfo, state) => {
+    const obj2 = {};
+    metaInfo.forEach(item => {
+            const key = item["key"];
+            console.assert(key);
+            obj2[key] = state[key];
+    })
+
+    replaceUrlHash(queryString.stringify(obj2))
+}
+
+
+module.exports.getWindowsWidth = () => {
+    if (isMobile()) {
+        return window.screen.width;
+    }
+    const result = isNaN(window.innerWidth) ? window.clientWidth : window.innerWidth;
+    return result;
+}
+
+module.exports.getWindowsHeight = () => {
+    if (isMobile()) {
+        return window.screen.height ;
+    }
+  
+    let maxHeight = isNaN(window.innerHeight) ? window.clientHeight : window.innerHeight;
+    return maxHeight;
 }

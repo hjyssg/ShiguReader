@@ -1,8 +1,5 @@
 @import "vars.scss";
 
-
-
-
 .one-book-nothing-available {
   color: $font_color_white_one;
   font-size: 2rem;
@@ -29,7 +26,6 @@
     @include flex_center_display;
     flex-flow: column;
 
-
     &.two-page-mode {
       flex-flow: row;
     }
@@ -42,7 +38,7 @@
       min-width: 500px;
 
       //https://w3bits.com/rainbow-text/
-      .placeholder-for-music{
+      .placeholder-for-music {
         margin-top: 50px;
         font-size: 200px;
         background-image: linear-gradient(to left, #ffff55, #abffab, #899dff);
@@ -89,7 +85,8 @@
 
   .one-book-image {
     margin-bottom: 0.5rem;
-    box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.16), 0 2px 10px 0 rgba(0, 0, 0, 0.12) !important;
+    box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.16),
+      0 2px 10px 0 rgba(0, 0, 0, 0.12) !important;
     z-index: 10;
     object-fit: cover;
   }
@@ -172,9 +169,10 @@
   .one-book-toolbar {
     width: 200px;
 
-    .tool-bar-row{
-      .fas, .fa {
-        font-size: $font_size_icon
+    .tool-bar-row {
+      .fas,
+      .fa {
+        font-size: $font_size_icon;
       }
     }
   }
@@ -184,7 +182,7 @@
     display: flex;
     font-size: 14px;
 
-    .video-num{
+    .video-num {
       color: $font_dark_orange;
       margin-left: 15px;
     }
@@ -281,7 +279,6 @@
   }
 }
 
-
 .ehentai-tag-row {
   display: flex;
 
@@ -290,10 +287,8 @@
   }
 }
 
-
 .one-book-img-load-spinner {
   display: none;
-
 
   &.show {
     display: flex;
@@ -310,21 +305,20 @@
   }
 }
 
-
 .one-book-overview-path {
   a {
-    font-size: 20px; 
+    font-size: 20px;
   }
   a:not(:last-child) {
     margin-right: 30px;
   }
 }
 
-.one-book-video-container{
+.one-book-video-container {
   display: flex;
   flex-direction: column;
 
-  .video-link{
+  .video-link {
     &:hover {
       .video-link-text {
         text-decoration: underline;
@@ -336,4 +330,3 @@
     }
   }
 }
-

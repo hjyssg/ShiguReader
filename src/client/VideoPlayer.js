@@ -58,7 +58,7 @@ export default class VideoPlayer extends Component {
     if (tags.length > 0) {
       const tagDoms = tags.map(tag => {
         const url = clientUtil.getSearhLink(tag);
-        return (<Link className="video-tag" target="_blank" to={url} key={tag}>{tag}</Link>)
+        return (<Link target="_blank" className="video-tag" to={url} key={tag}>{tag}</Link>)
       });
 
       return (<div className="video-tag-row">  {tagDoms} </div>);
@@ -72,7 +72,7 @@ export default class VideoPlayer extends Component {
 
     return (
       <div className="one-book-path">
-        <Link to={toUrl}>{parentPath} </Link>
+        <Link target="_blank" to={toUrl}>{parentPath} </Link>
       </div>);
   }
 
@@ -128,7 +128,7 @@ export default class VideoPlayer extends Component {
 
   render() {
     const filePath = this.getTextFromQuery();
-    const url = clientUtil.getDownloadLink(this.getTextFromQuery());
+    const url = clientUtil.getFileUrl(this.getTextFromQuery());
     const fileName = getBaseName(filePath);
     document.title = fileName;
     const { hasError, stat, mecab_tokens } = this.state;
