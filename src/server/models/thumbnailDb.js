@@ -7,31 +7,40 @@ const util = global.requireUtil();
 // const { isCompress, isVideo, getCurrentTime } = util;
 // const { isSub, isExist } = pathUtil;
 // const rootPath = pathUtil.getRootPath();
+const _util = require('util');
 
 
 let sqldb;
-module.exports.init = async ()=> {
-    let thumbnail_db_path = path.join(pathUtil.getWorkSpacePath(), "thumbnail_sql_db.db");
-    const dbCommon = require("./dbCommon");
-    sqldb = dbCommon.getSQLInstance(thumbnail_db_path);
-
-    await sqldb.runSync(`CREATE TABLE IF NOT EXISTS thumbnail_table (filePath TEXT, thumbnailFileName TEXT, time INTEGER);`);
-    await sqldb.runSync(`CREATE INDEX IF NOT EXISTS filePath_index ON thumbnail_table (filePath)`);
+module.exports.init = async (_sqldb)=> {
+    sqldb = _sqldb;
+    await sqldb.execSync(`
+        CREATE TABLE IF NOT EXISTS thumbnail_table (filePath TEXT, thumbnailFileName TEXT, time INTEGER);
+        
+        CREATE INDEX IF NOT EXISTS filePath_index ON thumbnail_table (filePath);
+    `);
     await syncInternalDict()
-
     // comment out when needed
     // await clean();
 }
 
-module.exports.getSQLDB = function () {
-    return sqldb;
+let statement_cache = {};
+module.exports.doSmartAllSync = async (sql, params) =>{
+    // V1 可能是sql文都比较简单，性能提升大约只有百分之三。
+    if(!statement_cache[sql]){
+        const statement = sqldb.prepare(sql);
+        statement.allSync = _util.promisify(statement.all).bind(statement);
+        statement_cache[sql] = statement;
+    }
+    return (await statement_cache[sql].allSync(params)) || [];
 }
+
 
 module.exports.addNewThumbnail = function (filePath, thumbnailFilePath) {
     const thumbnailFileName = path.basename(thumbnailFilePath);
     const time = util.getCurrentTime()
-    sqldb.run("INSERT INTO thumbnail_table(filePath, thumbnailFileName, time ) values(?, ?, ?)", 
-               filePath, thumbnailFileName, time);
+    sqldb.insertOneRow("thumbnail_table", {
+        filePath, thumbnailFileName, time
+    });
     _internal_dict_[filePath] = {filePath, thumbnailFileName,time}
 }
 

@@ -119,6 +119,7 @@ module.exports.minifyOneFile = async function (filePath) {
         }
 
         //do a brand new extract
+        logger.info("[minifyOneFile] extractAll....");
         const { pathes, error } = await extractAll(filePath, extractOutputPath);
         if (error) {
             logFail(filePath, "failed to extractAll", error);
@@ -130,7 +131,7 @@ module.exports.minifyOneFile = async function (filePath) {
             logFail(filePath, "ExtractAll Different than Original Files");
             return;
         }
-        logger.info("-----begin images convertion --------------");
+        logger.info("[minifyOneFile] begin images convertion --------------");
         logger.info(filePath);
         const _pathes = pathes;
         const total = _pathes.length;

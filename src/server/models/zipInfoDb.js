@@ -9,11 +9,8 @@ const pathUtil = require("../pathUtil");
 
 let sqldb;
 //-----------------------
-module.exports.init = async ()=> {
-    let zip_sql_path = path.join(pathUtil.getWorkSpacePath(), "zip_info_sql.db");
-    const dbCommon = require("./dbCommon");
-    sqldb = dbCommon.getSQLInstance(zip_sql_path);
-
+module.exports.init = async (_sqldb)=> {
+    sqldb = _sqldb;
     await sqldb.runSync(`CREATE TABLE IF NOT EXISTS zip_table (
                             filePath TEXT PRIMARY KEY, 
                             pageNum INTEGER,
@@ -43,12 +40,7 @@ const updateZipDb = module.exports.updateZipDb = function (info) {
     const videoNum = files.filter(isVideo).length;
     const totalNum = files.length;
 
-    sqldb.run(`INSERT OR REPLACE INTO zip_table (
-            filePath, pageNum, musicNum, videoNum, totalNum, totalImgSize, mtime) 
-            values(?, ?, ?, ?, ?, ?, ?)`, 
-    filePath, pageNum, musicNum, videoNum, totalNum, totalImgSize, mtime);
-
-
+    sqldb.insertOneRow("zip_table", {filePath, pageNum, musicNum, videoNum, totalNum, totalImgSize, mtime});
     _internal_dict_[filePath] = {
         filePath, pageNum, musicNum, videoNum, totalNum, totalImgSize, mtime
     };
@@ -58,11 +50,7 @@ const updateZipDb = module.exports.updateZipDb = function (info) {
 module.exports.updateZipDb_v2 = function (info) {
     const { filePath, pageNum, musicNum, videoNum, totalNum, totalImgSize, mtime} = info;
 
-    sqldb.run(`INSERT OR REPLACE INTO zip_table (
-            filePath, pageNum, musicNum, videoNum, totalNum, totalImgSize, mtime) 
-            values(?, ?, ?, ?, ?, ?, ?)`, 
-    filePath, pageNum, musicNum, videoNum, totalNum, totalImgSize, mtime);
-
+    sqldb.insertOneRow("zip_table", {filePath, pageNum, musicNum, videoNum, totalNum, totalImgSize, mtime});
     _internal_dict_[filePath] = {
         filePath, pageNum, musicNum, videoNum, totalNum, totalImgSize, mtime
     };

@@ -24,15 +24,15 @@ function splitRows(rows, text) {
     //因为tag是经过处理的
 
     rows.forEach(row => {
-        const dirName = path.basename(row.dirPath);
-        // const byDir = dirName.toLowerCase().includes(textInLowerCase);
+        const dirPath = row.dirPath;
+        // const byDir = dirPath.toLowerCase().includes(textInLowerCase);
         // const byFn = row.fileName.toLowerCase().includes(textInLowerCase);
 
         if (row.isDisplayableInExplorer) {
             zipResult.push(row);
         } else if (row.isDisplayableInOnebook) {
-            imgFolders[dirName] = imgFolders[dirName] || [];
-            imgFolders[dirName].push(row.filePath);
+            imgFolders[dirPath] = imgFolders[dirPath] || [];
+            imgFolders[dirPath].push(row);
         } else if (row.isFolder) {
             //folder check its name
             dirResults.push(row);
@@ -88,14 +88,12 @@ async function searchOnEverything(text) {
 }
 
 async function searchByText(text) {
-    const sqldb = db.getSQLDB();
-
     // console.log("---" + text)
     // https://www.sqlite.org/optoverview.html
     // console.time();
     // 模糊搜索
-    let sql = `SELECT * FROM file_table WHERE INSTR(LOWER(filePath), LOWER(?)) > 0`;
-    let rows = await sqldb.allSync(sql, [text]);
+    let sql = `SELECT * FROM file_table WHERE fileName LIKE ? or dirName LIKE ? `;
+    let rows = await db.doSmartAllSync(sql, ["%" + text + "%", "%" + text + "%"]);
     // console.timeEnd();
 
     return splitRows(rows, text);
@@ -123,18 +121,12 @@ async function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
     } else {
         const at_text = tag || author;
         if (at_text) {
-            const sqldb = db.getSQLDB();
-            //inner joiner then group by
-            // let sql = `SELECT a.* 
-            //             FROM file_table AS a INNER JOIN tag_table AS b 
-            //             ON a.filePath = b.filePath AND INSTR(LOWER(b.tag), LOWER(?)) > 0`;
-
             // 严格匹配
             const type = tag? "tag" : "author" ;
             let sql = `SELECT a.* 
                 FROM file_table AS a INNER JOIN tag_table AS b 
                 ON a.filePath = b.filePath AND b.tag = ? AND b.type =?`;
-            let rows = await sqldb.allSync(sql, [at_text, type]);
+            let rows = await db.doSmartAllSync(sql, [at_text, type]);
             const tag_obj = splitRows(rows, at_text);
             zipResult = tag_obj.zipResult;
             dirResults = tag_obj.dirResults;
@@ -149,9 +141,8 @@ async function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
         let esObj = await searchEveryPromise;
         if (esObj) {
             if(author){
-                const parse = serverUtil.parse;
                 const checkIfPass = (fileName, author) => {
-                    const result = parse(fileName);
+                    const result = serverUtil.parse(fileName);
                     if(!result){
                         return false;
                     }

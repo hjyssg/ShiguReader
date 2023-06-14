@@ -7,11 +7,11 @@ const db = require("../models/db");
 // const { isCompress } = util;
 // const userConfig = global.requireUserConfig();
 const serverUtil = require("../serverUtil");
-// const memorycache = require('memory-cache');
+const scoreUtil = require("../scoreUtil");
 
 function _addCol(rows){
     rows.forEach(row => {
-        row.score = serverUtil.getScoreFromCount(row);
+        row.score = scoreUtil.getScoreFromCount(row);
     });
 }
 
@@ -20,28 +20,22 @@ async function getGoodAndOtherSet() {
     let sql;
     let authorInfo = [];
     let tagInfo = [];
-    const sqldb = db.getSQLDB();
-    // const cacheKey = "GoodAndOtherSetCacheKey";
-    // if(memorycache.get(cacheKey)){
-    //     authorInfo = memorycache.get(cacheKey);
-    // memorycache.put(cacheKey, authorInfo, 10*1000);
-  
 
     if (global.good_folder_root && global.not_good_folder_root) {
-        sql = `SELECT tag, 
+        sql = `SELECT tag, MAX(subtype) AS subtype,
                 COUNT(CASE WHEN INSTR(filePath, ?) = 1 THEN 1 END) AS good_count,
                 COUNT(CASE WHEN INSTR(filePath, ?) = 1 THEN 1 END) AS bad_count,
                 COUNT(filePath) AS total_count
                 FROM author_view GROUP BY tag`;
-        authorInfo = await sqldb.allSync(sql, [global.good_folder_root, global.not_good_folder_root]);
+        authorInfo = await db.doSmartAllSync(sql, [global.good_folder_root, global.not_good_folder_root]);
         _addCol(authorInfo);
 
-        sql = `SELECT tag, 
+        sql = `SELECT tag, MAX(subtype) AS subtype,
         COUNT(CASE WHEN INSTR(filePath, ?) = 1 THEN 1 END) AS good_count,
         COUNT(CASE WHEN INSTR(filePath, ?) = 1 THEN 1 END) AS bad_count,
         COUNT(filePath) AS total_count
-        FROM tag_view GROUP BY tag`;
-        tagInfo = await sqldb.allSync(sql, [global.good_folder_root, global.not_good_folder_root]);
+        FROM tag_view GROUP BY tag HAVING total_count >= 5 `;
+        tagInfo = await db.doSmartAllSync(sql, [global.good_folder_root, global.not_good_folder_root]);
         _addCol(tagInfo);
     }
 

@@ -7,7 +7,8 @@ const util = global.requireUtil();
 // const { isDisplayableInExplorer } = util;
 const nameParser = require('../../name-parser');
 const logger = require("../logger");
-
+const path = require("path");
+const _ = require("underscore");
 
 async function add_col(rows){
     const thumbnails = await serverUtil.common.getThumbnailsForZip(rows.map(e => e.filePath))
@@ -21,7 +22,7 @@ function getSql(tableName){
     // 只管zip文件，image folder太麻烦，不管了。  
     // 每个tag，统计数量。已经找到最新的一本zip，之后用来找thumbnail。
     return `SELECT a.filePath, MAX(a.mTime) AS maxTime, b.tag, COUNT(b.tag) AS count, b.type, b.subtype
-    FROM zip_view a 
+    FROM file_table a 
     INNER JOIN ${tableName} b ON a.filePath = b.filePath 
     GROUP BY b.tag 
     HAVING a.mTime = maxTime AND count > 1 
@@ -30,9 +31,8 @@ function getSql(tableName){
 
 router.post('/api/get_authors', serverUtil.asyncWrapper(async (req, res) => {
     // const needThumbnail = req.body && req.body.needThumbnail;
-    const sqldb = db.getSQLDB();
     let sql = getSql("author_view");
-    let author_rows = await sqldb.allSync(sql);
+    let author_rows = await db.doSmartAllSync(sql);
     await add_col(author_rows);
 
     res.send({
@@ -42,9 +42,8 @@ router.post('/api/get_authors', serverUtil.asyncWrapper(async (req, res) => {
 
 router.post('/api/get_tags', serverUtil.asyncWrapper(async (req, res) => {
     // const needThumbnail = req.body && req.body.needThumbnail;
-    const sqldb = db.getSQLDB();
     let sql = getSql("tag_view");
-    let tag_rows = await sqldb.allSync(sql);
+    let tag_rows = await db.doSmartAllSync(sql);
     await add_col(tag_rows);
 
     res.send({
@@ -70,13 +69,22 @@ router.get('/api/getParseCache/', serverUtil.asyncWrapper(async (req, res) => {
 }));
 
 router.post('/api/allInfo', serverUtil.asyncWrapper(async (req, res) => {
-    let sqldb = db.getSQLDB();
     let sql = `SELECT *  FROM file_table WHERE isDisplayableInExplorer=1 `;
-    let rows = await sqldb.allSync(sql);
+    let rows = await db.doSmartAllSync(sql);
     const fileToInfo = serverUtil.convertFileRowsIntoFileInfo(rows);
+
+    const nameParseCache = {};
+    _.keys(fileToInfo).forEach(fp => {
+        const fn = path.basename(fp);
+        const temp = serverUtil.parse(fn);
+        if(temp){
+            nameParseCache[fn] = temp;
+        }
+    })
 
     res.send({
         fileToInfo: fileToInfo,
+        nameParseCache
     });
 }));
 

@@ -7,7 +7,7 @@ const { updateZipDb } = zipInfoDb;
 const logger = require("./logger");
 const util = global.requireUtil();
 const pathUtil = require("./pathUtil");
-// const { isImage, isCompress, isMusic, isVideo, arraySlice, getCurrentTime, isDisplayableInExplorer, isDisplayableInOnebook } = util;
+// const { isImage, isCompress, isMusic, isVideo, getCurrentTime, isDisplayableInExplorer, isDisplayableInOnebook } = util;
 const { isExist } = pathUtil;
 // const iconv = require('iconv-lite');
 

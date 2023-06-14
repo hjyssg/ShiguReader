@@ -6,7 +6,6 @@ const dateFormat = require('dateformat');
 const _ = require('underscore');
 const qrcode = require('qrcode-terminal');
 const ini = require('ini');
-const memorycache = require('memory-cache');
 const chokidar = require('chokidar');
 const { pathEqual } = require('path-equal');
 
@@ -27,7 +26,7 @@ const serverUtil = require("./serverUtil");
 const { getHash, mkdirSync, asyncWrapper } = serverUtil;
 
 const { isHiddenFile, generateContentUrl, isExist, filterPathConfig, isSub, estimateIfFolder } = pathUtil;
-const { isImage, isCompress, isVideo, isMusic, arraySlice,
+const { isImage, isCompress, isVideo, isMusic, 
     getCurrentTime, isDisplayableInExplorer, isDisplayableInOnebook } = util;
 
 //set up path
@@ -180,10 +179,10 @@ async function init() {
         logger.warn("[Error] You may need to run npm run build");
     }
 
-    await db.init();
-    await thumbnailDb.init();
-    await historyDb.init();
-    await zipInfoDb.init();
+    const sqldb = await db.init();
+    await thumbnailDb.init(sqldb);
+    await historyDb.init(sqldb);
+    await zipInfoDb.init(sqldb);
     
     //express does not check if the port is used and remains slient
     // we need to check
@@ -256,18 +255,21 @@ function setUpCacheWatch() {
         return !shouldWatchForCache(p, stat);
     }
     
-    function shouldWatchForCache(p, stat) {
-        if (isHiddenFile(p)) {
+    function shouldWatchForCache(fp, stat) {
+        if (isHiddenFile(fp)) {
             return false;
         }
     
         //if ignore, chokidar wont check its content
-        if (stat && stat.isDirectory()) {
+        if (pathUtil.estimateIfFolder(fp) ||  (stat && stat.isDirectory())) {
+            // 文件夹
             return true;
+        }else if (!stat){
+            return true;
+        }  else {
+            cacheDb.updateStatToCacheDb(fp, stat);
+            return false;
         }
-    
-        const ext = pathUtil.getExt(p);
-        return estimateIfFolder(p) || isDisplayableInOnebook(ext) || isVideo(ext);
     }
 
     //also for cache files
@@ -278,13 +280,15 @@ function setUpCacheWatch() {
         ignoreInitial: true,
     });
 
-    cacheWatcher
-        .on('add', (p, stats) => {
-            cacheDb.updateStatToCacheDb(p, stats);
-        })
-        .on('unlink', p => {
-            cacheDb.deleteFromCacheDb(p);
-        });
+    // cacheWatcher
+    //     .on('add', (fp, stats) => {
+    //         console.log(fp, stats);
+    //         // cacheDb.updateStatToCacheDb(fp, stats);
+    //     })
+    //     .on('unlink', (fp, stats) => {
+    //         // cacheDb.deleteFromCacheDb(p);
+    //         console.log(fp, stats);
+    //     });
 }
 
 
@@ -335,7 +339,6 @@ function shrinkFp(fp){
     return fp.slice(0, 12) + "..." + fp.slice(fp.length - 10);
 }
 
-let is_chokidar_scan_done = false;
 /** 
  * 程序启动时让chokidar监听文件夹，把需要的信息加到db。并做一些初始操作
  * 
@@ -358,15 +361,20 @@ function initializeFileWatch(dirPathes) {
     });
 
     let init_count = 0;
+    let is_chokidar_scan_done = false;
+    const insertion_cache = {
+        files: [],
+        tags: []
+    }
 
     //处理添加文件事件
     const addCallBack = async (fp, stats) => {
-        // console.log(fp);
-        // 突然想起来，这边其实可以存在到数据。最后一次加到db
-        db.updateStatToDb(fp, stats);
         if (is_chokidar_scan_done) {
-            // nothing
+            // 单次添加
+            db.updateStatToDb(fp, stats);
         } else {
+            // 批量添加
+            db.updateStatToDb(fp, stats, insertion_cache);
             init_count++;
             if (init_count % 2000 === 0) {
                 let end1 = getCurrentTime();
@@ -389,22 +397,8 @@ function initializeFileWatch(dirPathes) {
     //about 1s for 1000 files
     watcher.on('ready', async () => {
         is_chokidar_scan_done = true;
-        await db.createSqlIndex();
-        // DEBUG数据多少
-        // setTimeout(async () => {
-        //     const sqldb = db.getSQLDB();
-        //     let sql = `SELECT count(*) as count FROM file_table `;
-        //     let temp = await sqldb.allSync(sql);
-        //     console.log(temp[0].count);
-
-        //     sql = `SELECT count(*) as count FROM tag_table `;
-        //     temp = await sqldb.allSync(sql);
-        //     console.log(temp[0].count);
-    
-        //     // sql = `SELECT * FROM file_table `;
-        //     // temp = await sqldb.allSync(sql);
-        //     // console.log(temp); 
-        // }, 5000);
+        await db.batchInsert("file_table", insertion_cache.files);
+        await db.batchInsert("tag_table", insertion_cache.tags);
 
         let end1 = getCurrentTime();
         console.log(`[chokidar initializeFileWatch] ${(end1 - beg) / 1000}s scan complete.`);
@@ -446,17 +440,25 @@ function addNewFileWatchAfterInit(dirPathes) {
     });
 
     let init_count = 0;
-
+    let is_chokidar_scan_done = false;
+    const insertion_cache = {
+        files: [],
+        tags: []
+    }
     //处理添加文件事件
     const addCallBack = async (fp, stats) => {
-        // console.log(fp);
-        db.updateStatToDb(fp, stats);
-       
-        init_count++;
-        if (init_count % 500 === 0) {
-            let end1 = getCurrentTime();
-            let np = shrinkFp(fp);
-            console.log(`[chokidar addNewFileWatch] scan: ${(end1 - beg) / 1000}s  ${init_count} ${np}`);
+        if (is_chokidar_scan_done) {
+            // 单次添加
+            db.updateStatToDb(fp, stats);
+        } else {
+            // 批量添加
+            db.updateStatToDb(fp, stats, insertion_cache);
+            init_count++;
+            if (init_count % 500 === 0) {
+                let end1 = getCurrentTime();
+                let np = shrinkFp(fp);
+                console.log(`[chokidar addNewFileWatch] scan: ${(end1 - beg) / 1000}s  ${init_count} ${np}`);
+            }
         }
     };
 
@@ -472,6 +474,10 @@ function addNewFileWatchAfterInit(dirPathes) {
 
     //about 1s for 1000 files
     watcher.on('ready', async () => {
+        is_chokidar_scan_done = true;
+        await db.batchInsert("file_table", insertion_cache.files);
+        await db.batchInsert("tag_table", insertion_cache.tags);
+
         let end1 = getCurrentTime();
         console.log(`[chokidar] ${(end1 - beg) / 1000}s scan complete.`);
         console.log(`[chokidar] ${init_count} files were scanned`)
@@ -558,12 +564,8 @@ async function getThumbnailsForZip(filePathes) {
 }
 
 async function findVideoForFolder(filePath){
-    const sqldb = db.getSQLDB();
-    const sql = `SELECT filePath FROM file_table WHERE  INSTR(filePath, ?) = 1 AND isDisplayableInExplorer = true `;
-    let videoRows = await sqldb.allSync(sql, filePath);
-    videoRows = videoRows.filter(row => {
-        return isVideo(row.filePath);
-    });
+    const sql = `SELECT filePath FROM file_table WHERE INSTR(filePath, ?) = 1 AND isVideo = true `;
+    let videoRows = await db.doSmartAllSync(sql, filePath);
     return videoRows;
 }
 
@@ -590,7 +592,6 @@ async function getThumbnailForFolders(filePathes) {
     }
 
     try{
-        const sqldb = db.getSQLDB();
         let beg = getCurrentTime();
 
         // let label = "getThumbnailForFolders" + filePathes.length;
@@ -615,11 +616,8 @@ async function getThumbnailForFolders(filePathes) {
             const stringsToMatch = nextFilePathes; // string array of values
             const patterns = stringsToMatch.map(str => `${str}%`);
             const placeholders = patterns.map(() => 'filePath LIKE ?').join(' OR ');
-            const sql = `SELECT filePath FROM file_table WHERE isDisplayableInOnebook = true AND ${placeholders} `;
-            let imagerows = await sqldb.allSync(sql, patterns);
-            imagerows = imagerows.filter(row => {
-                return isImage(row.filePath);
-            });
+            const sql = `SELECT filePath FROM file_table WHERE isImage=true AND ${placeholders} `;
+            let imagerows = await db.doSmartAllSync(sql, patterns);
             nextFilePathes.forEach(filePath => {
                 const findRow = findOne(imagerows, filePath);
                 if (findRow) {
@@ -671,21 +669,33 @@ async function decorateResWithMeta(resObj) {
     resObj.zipInfo = zipInfo;
 
     resObj.thumbnails = thumbnails;
-    const imgFolderInfo = await db.getImgFolderInfo(imgFolders);
+    const imgFolderInfo = db.getImgFolderInfo(imgFolders);
     resObj.imgFolderInfo = imgFolderInfo;
+    
+    const pathes_for_history = [..._.keys(zipInfo), ..._.keys(imgFolderInfo)];
+    resObj.fileHistory = await historyDb.getBatchFileHistory(pathes_for_history);
 
-    // 把zipinfo的mtime合并到fileInfos
-    // 并精简obj
+    resObj.nameParseCache = {};
+    [...files, ..._.keys(imgFolderInfo), ...dirs].forEach(fp => {
+        const fn = path.basename(fp);
+        const temp = serverUtil.parse(fn);
+        if(temp){
+            resObj.nameParseCache[fn] = temp;
+        }
+    })
+
     const allowZipInfo = ["pageNum", "musicNum", "videoNum", "totalNum", "totalImgSize"];
     for(const tempFilePath in zipInfo){
-        const obj = zipInfo[tempFilePath];
-        if(obj.mtime){
+        const zipObj = zipInfo[tempFilePath];
+        // 把zipinfo的mtime合并到fileInfos
+        if(zipObj.mtime){
             fileInfos[tempFilePath] = fileInfos[tempFilePath] || {};
             if(!fileInfos[tempFilePath].mtimeMs){
-                fileInfos[tempFilePath].mtimeMs = obj.mtime;
+                fileInfos[tempFilePath].mtimeMs = zipObj.mtime;
             }
         }
-        zipInfo[tempFilePath] = filterObjectProperties(obj, allowZipInfo);
+        // 并精简obj
+        zipInfo[tempFilePath] = filterObjectProperties(zipObj, allowZipInfo);
     }
 
     // resObj说明：
@@ -699,7 +709,7 @@ async function decorateResWithMeta(resObj) {
     // "tag", "author", "path" 查询时用的参数
     // 检查
     const allowedKeys = [ "dirs", "mode", "tag", "path", "author", "fileInfos", 
-                          "thumbnails", "zipInfo", "imgFolderInfo"];
+                          "thumbnails", "zipInfo", "imgFolderInfo", "fileHistory", "nameParseCache"];
     // resObj = filterObjectProperties(resObj, allowedKeys, true);
     // checkKeys(resObj, allowedKeys);
     resObj = filterObjectProperties(resObj, allowedKeys);
@@ -709,7 +719,7 @@ async function decorateResWithMeta(resObj) {
 
 /** 检查回传给onebook的res */
 function checkOneBookRes(resObj){
-    const allowedKeys = ["zipInfo", "path", "stat", "imageFiles", "musicFiles", "videoFiles", "mecab_tokens", "outputPath"];
+    const allowedKeys = ["zipInfo", "path", "stat", "imageFiles", "musicFiles", "videoFiles", "dirs", "mecab_tokens", "outputPath"];
     checkKeys(resObj, allowedKeys);
     resObj = filterObjectProperties(resObj, allowedKeys, false);
     return resObj;
@@ -853,23 +863,13 @@ app.post("/api/getTagThumbnail", asyncWrapper(async (req, res) => {
     }
 
     let oneThumbnail;
-    // const cacheKey = tag || author;
-    // let oneThumbnail = memorycache.get(cacheKey);
-    // if(oneThumbnail){
-    //     res.send({
-    //         url: oneThumbnail
-    //     })
-    //     return;
-    // }
 
-
-    const sqldb = db.getSQLDB();
     let sql = ` SELECT a.* , b.*
                 FROM zip_view a 
                 INNER JOIN tag_table b ON a.filePath = b.filePath AND b.tag = ?
                 ORDER BY a.mTime DESC 
                 LIMIT 100;`
-    let rows = await sqldb.allSync(sql, [author || tag]);
+    let rows = await db.doSmartAllSync(sql, [author || tag]);
 
     // find thumbnail
     const thumbnails = await serverUtil.common.getThumbnailsForZip(rows.map(e => e.filePath))
@@ -1110,7 +1110,6 @@ app.post('/api/getZipThumbnail', asyncWrapper(async (req, res) => {
     const thumbnails = await getThumbnailsForZip([filePath])
     const oneThumbnail = _.values(thumbnails)[0];
     if(oneThumbnail){
-    
         res.send({
             url: oneThumbnail
         })
@@ -1120,24 +1119,14 @@ app.post('/api/getZipThumbnail', asyncWrapper(async (req, res) => {
     extractThumbnailFromZip(filePath, res);
 }));
 
-async function getSameFileName(filePath) {
-    if (!(await isExist(filePath))) {
+async function getZipWithSameFileName(filePath) {
+    if (!(await isExist(filePath)) && isCompress(filePath)) {
         //maybe the file move to other location
         const fn = path.basename(filePath);
-        const dir = path.dirname(filePath);
-
-        const sqldb = db.getSQLDB();
-        let sql = `SELECT filePath FROM zip_view WHERE fileName LIKE ? AND filePath NOT LIke ? `;
-        let rows = await sqldb.allSync(sql, [('%' + fn + '%'), (dir + '%')]);
-
-        if (rows && rows.length > 1) {
-            const tempP = pathUtil.getImgConverterCachePath();
-            rows = rows.filter(e => {
-                return !e.filePath.includes(tempP);
-            })
-        }
+        const tempP = pathUtil.getImgConverterCachePath();
+        let sql = `SELECT filePath FROM zip_view WHERE fileName LIKE ? AND filePath != ? AND filePath NOT LIKE ? `;
+        let rows = await db.doSmartAllSync(sql, [('%' + fn + '%'), filePath, (tempP + "%")]);
         let sameFnObj = rows && rows[0];
-
         if (sameFnObj) {
             filePath = sameFnObj.filePath;
             return filePath;
@@ -1165,13 +1154,9 @@ app.post('/api/extract', asyncWrapper(async (req, res) => {
         return;
     }
 
-    //potential bug:
-    // if in one zip there are 01/001.jpg and 01/002.jpg 
-    // this will only only extract one, because they overwrite each other
-
     //todo: record the timestamp of each request
     //when cleaning cache, if the file is read recently, dont clean its cache
-    filePath = await getSameFileName(filePath);
+    filePath = await getZipWithSameFileName(filePath);
     if (!filePath) {
         res.send({ failed: true, reason: "NOT FOUND" });
         return;
@@ -1274,7 +1259,7 @@ app.post('/api/extract', asyncWrapper(async (req, res) => {
             //cut the array into 3 parts
             const beg = startIndex - PREV_SPACE;
             const end = startIndex + full_extract_max - PREV_SPACE;
-            const firstRange = arraySlice(tempfiles, beg, end);
+            const firstRange = util.arraySlice(tempfiles, beg, end);
             let secondRange = tempfiles.filter(e => {
                 return !firstRange.includes(e);
             })

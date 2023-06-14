@@ -6,32 +6,43 @@ const char_names = require("./character-names");
 const char_name_regex = new RegExp(char_names.join("|"));
 const not_author_but_tag_regex = new RegExp(not_author_but_tag.join("$|") + "$", "i");
 
-const book_types = [
+const useless_tag_regex = /DL版|同人誌|別スキャン|修正版|^エロ|^digital$|^JPG|^PNG|ページ補足|進行中|別版|Various/i;
+function isUselessTag(str) {
+    return !!str.match(useless_tag_regex)
+}
+
+const media_types = [
     "同人音声",
     "同人催眠音声",
     "同人ソフト",
     "同人CG集",
+    "同人CG",
     "同人ゲーム",
+    "同人GAME",
     "成年コミック",
     "一般コミック",
+    "一般漫画",
     "ゲームCG",
     "イラスト集",
     "アンソロジー",
     "画集",
     "雑誌",
-    "18禁ゲーム"
+    "18禁ゲーム",
+    "GAME",
+    "CG",
+    "同人誌",
+    "DOUJINSHI"
 ];
-const book_type_regex = new RegExp(book_types.map(e => `(${e})`).join("|"), "i");
+const media_type_regex = new RegExp(media_types.map(e => `(${e})`).join("|"), "i");
 
-function isBookType(str) {
-    return !!str.match(book_type_regex);
+function isMediaType(str) {
+    return !!str.match(media_type_regex);
 }
 
-function getBookType(str) {
-    return str.match(book_type_regex)[0];
+function getMediaType(str) {
+    let res = str.match(media_type_regex) || [];
+    return res[0];
 }
-
-console.assert(getBookType("(18禁ゲームCG)[060929] めがちゅ！") === "18禁ゲーム");
 
 const same_tag_matrix = [];
 for (let tag in same_tag_regs_table) {
@@ -68,8 +79,8 @@ const reg_list = [comicket_reg, air_comicket_reg, comicket_reg_2, comic_star_reg
 
 const event_reg = new RegExp(reg_list.map(e => e.source).join("|"), "i");
 
-function belongToEvent(e) {
-    return e.match(event_reg);
+function belongToEvent(str) {
+    return !!str.match(event_reg);
 }
 
 const comiket_to_date_table = {};
@@ -135,10 +146,11 @@ function getDateFromComiket(comiket) {
     return result;
 }
 
+const currentYear = (new Date()).getFullYear();
 function getDateFromStr(str) {
     const mresult = str.match(date_reg);
     if (mresult) {
-        let [wm, y, m, d] = mresult.filter(e => !!e);
+        let [wholeMatch, y, m, d] = mresult.filter(e => !!e);
         y = convertYearString(y);
         m = parseInt(m) - 1;
         d = parseInt(d) || 1;
@@ -146,6 +158,8 @@ function getDateFromStr(str) {
         if (m < 0 || m > 11) {
             return undefined;
         } else if (d < 1 || d > 31) {
+            return undefined;
+        }if (y > currentYear + 2){
             return undefined;
         }
 
@@ -175,13 +189,14 @@ function isDateValid(date) {
     return date.getTime() === date.getTime();
 };
 
+const dreg0 = /(\d{4})(\d{1,2})(\d{2})/;
 const dreg1 = /(\d{2})(\d{2})(\d{2})/;
 const dreg2 = /(\d{2})-(\d{2})-(\d{2})/;
 const dreg3 = /(\d{4})-(\d{1,2})-(\d{2})/;
 const dreg4 = /(\d{4})年(\d{1,2})月号/;
 const dreg5 = /(\d{4})年(\d{1,2})月(\d{1,2})日/;
 const dreg6 = /(\d{4})\.(\d{1,2})\.(\d{1,2})/;
-const date_reg = new RegExp([dreg1, dreg2, dreg3, dreg4, dreg5, dreg6].map(e => e.source).join("|"), "i");
+const date_reg = new RegExp([dreg0, dreg1, dreg2, dreg3, dreg4, dreg5, dreg6].map(e => e.source).join("|"), "i");
 function isStrDate(str) {
     if (str.match(date_reg)) {
         const dd = getDateFromStr(str);
@@ -217,16 +232,6 @@ function match(reg, str) {
 function isNotAuthor(str) {
     return str.match(not_author_but_tag_regex);
 }
-
-const useless_tag = /RJ\d+|DL版|別スキャン^エロ|^digital$|^\d+p$|^\d+$/i;
-function isUselessTag(str) {
-    return !!str.match(useless_tag)
-}
-
-console.assert(isUselessTag("123"))
-console.assert(!isUselessTag("666PROTECT (甚六)"))
-console.assert(!isUselessTag("666PROTECT"))
-
 
 function findMaxStr(arr) {
     let res = arr[0];
@@ -286,8 +291,8 @@ function parse(str) {
 
     function isOtherInfo(token) {
         let result = false;
-        if (isBookType(token)) {
-            type = getBookType(token);
+        if (isMediaType(token)) {
+            type = getMediaType(token);
             result = true;
         } else if (belongToEvent(token)) {
             comiket = token;
@@ -354,6 +359,12 @@ function parse(str) {
         return e.length > 1 && !isOtherInfo(e) && authors.indexOf(e) === -1 && e !== author;
     });
 
+    tags = tags.filter(e => {
+        return  !isUselessTag(e) && !isMediaType(e);
+    })
+
+    const rawTags = tags.slice();
+
     tags = tags.map(e => {
         e = e.replace(/ {2,}/g, " ").replace(/。/g, "").replace(/！/g, "!").replace(/？/g, "?");
 
@@ -376,9 +387,9 @@ function parse(str) {
 
     if (!type) {
         if (comiket || group) {
-            type = "Doujin";
+            type = "同人誌";
         } else {
-            type = "etc";
+            type = "UNKOWN";
         }
     }
 
@@ -389,24 +400,54 @@ function parse(str) {
 
     //get title
     let title = str;
-    (bMacthes || []).concat(pMacthes || [], tags || [], [/\[/g, /\]/g, /\(/g, /\)/g]).forEach(e => {
+    (bMacthes || []).concat(pMacthes || [], rawTags || [], [/\[/g, /\]/g, /\(/g, /\)/g]).forEach(e => {
         title = title.replace(e, "");
     })
+    if(title.includes(".")){
+        title = title.split(".")[0];
+    }
     title = title.trim();
 
     //get character names
-    const names = char_name_regex && title.match(char_name_regex);
-    names && tags.push(...names);
+    let charNames = [];
+    if(char_name_regex ){
+        const names = title.match(char_name_regex);
+        if(names){
+            charNames.push(...names);
+        }
+    } 
 
+    const extraTags = getExtraTags(title);
     const result = {
-        dateTag, group, author, authors, tags, comiket, type, title
+        // 日期tag：比如 20220312
+        dateTag, 
+        // 同人的group
+        group, 
+        // 作者。其实有点不对，因为有的是有多作者的
+        author, 
+        // 作者list
+        authors, 
+        // tags 已过变形处理
+        tags, 
+        // 用regex从string找到的角色名字
+        charNames,
+        // extrac tags
+        extraTags,
+        // 未经转换的tags
+        rawTags,
+        // 比如 c101
+        comiket, 
+        // 类型
+        type, 
+        // 标题
+        title
     };
 
     localCache[str] = result;
     return result;
 }
 
-function parseMusicTitle(str) {
+function getExtraTags(str) {
     // [161109] TVアニメ「ラブライブ！サンシャイン!!」挿入歌シングル3「想いよひとつになれ／MIRAI TICKET」／Aqours [320K].zip
     //[180727]TVアニメ『音楽少女』OPテーマ「永遠少年」／小倉唯[320K].rar
     let jpbReg = /「(.*?)」/g;
@@ -517,9 +558,6 @@ function editDistance(s, t) {
     return h;
 }
 
-console.assert(editDistance("abc", "b") === 2)
-console.assert(editDistance("tozanbu", "tozan:bu") === 1)
-console.assert(editDistance("tozan；bu", "tozan:bu") === 1)
 //---------------------
 
 function compareInternalDigit(s1, s2) {
@@ -556,11 +594,23 @@ function isHighlySimilar(s1, s2) {
     }
 }
 
-module.exports.isHighlySimilar = isHighlySimilar;
-module.exports.parse = parse;
-module.exports.getDateFromComiket = getDateFromComiket;
-module.exports.getDateFromParse = getDateFromParse;
-module.exports.parseMusicTitle = parseMusicTitle;
-module.exports.getLocalCache = getLocalCache;
-module.exports.setLocalCache = setLocalCache;
+
+module.exports = {
+    isUselessTag,
+    isMediaType,
+    getMediaType,
+    belongToEvent,
+    convertYearString,
+    editDistance,
+    getDateFromStr,
+
+    parse,
+    getDateFromComiket,
+    getDateFromParse,
+    getLocalCache,
+    setLocalCache,
+    isHighlySimilar,
+}
+
+
 
