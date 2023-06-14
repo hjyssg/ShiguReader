@@ -657,24 +657,30 @@ async function decorateResWithMeta(resObj) {
     console.assert(fileInfos && dirs && imgFolders);
 
     const files = _.keys(fileInfos);
+
+    //-------------------
     const thumbnails = await getThumbnailsForZip(files);
-
-    const zipInfoRows = zipInfoDb.getZipInfo(files);
-    const zipInfo = {};
-    zipInfoRows.forEach(e => { 
-        if(e){
-            zipInfo[e.filePath] = e;
-        }
+    _.keys(thumbnails).forEach(filePath=> {
+        const e = thumbnails[filePath];
+        fileInfos[filePath].thumbnailFilePath = e;
     })
-    resObj.zipInfo = zipInfo;
 
-    resObj.thumbnails = thumbnails;
+
+    //-------------------------------
+    const zipInfoRows = zipInfoDb.getZipInfo(files);
+    zipInfoRows.forEach(e => { 
+        fileInfos[e.filePath] = _.extend(fileInfos[e.filePath], e);
+    })
+
+    //------------------------
     const imgFolderInfo = db.getImgFolderInfo(imgFolders);
     resObj.imgFolderInfo = imgFolderInfo;
-    
-    const pathes_for_history = [..._.keys(zipInfo), ..._.keys(imgFolderInfo)];
+
+    //--------------------
+    const pathes_for_history = [...files, ..._.keys(imgFolderInfo)];
     resObj.fileHistory = await historyDb.getBatchFileHistory(pathes_for_history);
 
+    //-----------------------------
     resObj.nameParseCache = {};
     [...files, ..._.keys(imgFolderInfo), ...dirs].forEach(fp => {
         const fn = path.basename(fp);
@@ -684,32 +690,34 @@ async function decorateResWithMeta(resObj) {
         }
     })
 
-    const allowZipInfo = ["pageNum", "musicNum", "videoNum", "totalNum", "totalImgSize"];
-    for(const tempFilePath in zipInfo){
-        const zipObj = zipInfo[tempFilePath];
-        // 把zipinfo的mtime合并到fileInfos
-        if(zipObj.mtime){
-            fileInfos[tempFilePath] = fileInfos[tempFilePath] || {};
-            if(!fileInfos[tempFilePath].mtimeMs){
-                fileInfos[tempFilePath].mtimeMs = zipObj.mtime;
-            }
-        }
-        // 并精简obj
-        zipInfo[tempFilePath] = filterObjectProperties(zipObj, allowZipInfo);
-    }
+    // const allowZipInfo = ["pageNum", "musicNum", "videoNum", "totalNum", "totalImgSize"];
+    // for(const tempFilePath in zipInfo){
+    //     const zipObj = zipInfo[tempFilePath];
+    //     // 把zipinfo的mtime合并到fileInfos
+    //     if(zipObj.mtime){
+    //         fileInfos[tempFilePath] = fileInfos[tempFilePath] || {};
+    //         if(!fileInfos[tempFilePath].mtimeMs){
+    //             fileInfos[tempFilePath].mtimeMs = zipObj.mtime;
+    //         }
+    //     }
+    //     // 并精简obj
+    //     zipInfo[tempFilePath] = filterObjectProperties(zipObj, allowZipInfo);
+    // }
 
     // resObj说明：
-    // dirs:          [dir filepath...]
-    // thumbnails:    filePath-> thumbnail filePath
-    // fileInfos:     filePath-> fileInfo (不仅有zip，还有video和music)
-    // zipInfo:       filePath-> zipInfo (和fileinfos互补)
-    // imgFolderInfo: folderPath-> folderinfo
+
+    // [deprecated] thumbnails:    filePath-> thumbnail filePath
+    // [deprecated] zipInfo:       filePath-> zipInfo (和fileinfos互补)
     // [deprecated] imgFolders:    folderPath -> [ file filepath ... ]
+
+    // dirs:          [dir filepath...]
+    // fileInfos:     filePath-> fileInfo (不仅有zip，还有video和music)
+    // imgFolderInfo: folderPath-> folderinfo
     // mode: 是否lack_info_mode
     // "tag", "author", "path" 查询时用的参数
     // 检查
     const allowedKeys = [ "dirs", "mode", "tag", "path", "author", "fileInfos", 
-                          "thumbnails", "zipInfo", "imgFolderInfo", "fileHistory", "nameParseCache"];
+                          "imgFolderInfo", "fileHistory", "nameParseCache"];
     // resObj = filterObjectProperties(resObj, allowedKeys, true);
     // checkKeys(resObj, allowedKeys);
     resObj = filterObjectProperties(resObj, allowedKeys);
