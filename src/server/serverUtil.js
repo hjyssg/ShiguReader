@@ -215,3 +215,12 @@ module.exports.convertFileRowsIntoFileInfo = (rows) => {
 
     return fileInfos;
 }
+
+
+module.exports.joinThumbnailFolderPath = (thumbnailFileName) => {
+    if(!thumbnailFileName){
+        return "";
+    }
+    const thumbnailFolderPath = global.thumbnailFolderPath;
+    return  thumbnailFolderPath + path.sep + thumbnailFileName;
+}

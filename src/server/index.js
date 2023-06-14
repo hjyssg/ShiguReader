@@ -658,7 +658,7 @@ async function decorateResWithMeta(resObj) {
 
     const files = _.keys(fileInfos);
 
-    //-------------------
+    //------------------- thumbnails
     const thumbnails = await getThumbnailsForZip(files);
     _.keys(thumbnails).forEach(filePath=> {
         const e = thumbnails[filePath];
@@ -666,21 +666,21 @@ async function decorateResWithMeta(resObj) {
     })
 
 
-    //-------------------------------
+    //------------------------------- zipInfo
     const zipInfoRows = zipInfoDb.getZipInfo(files);
     zipInfoRows.forEach(e => { 
         fileInfos[e.filePath] = _.extend(fileInfos[e.filePath], e);
     })
 
-    //------------------------
+    //------------------------ imgFolderInfo
     const imgFolderInfo = db.getImgFolderInfo(imgFolders);
     resObj.imgFolderInfo = imgFolderInfo;
 
-    //--------------------
+    //-------------------- history
     const pathes_for_history = [...files, ..._.keys(imgFolderInfo)];
     resObj.fileHistory = await historyDb.getBatchFileHistory(pathes_for_history);
 
-    //-----------------------------
+    //----------------------------- ParseCache
     resObj.nameParseCache = {};
     [...files, ..._.keys(imgFolderInfo), ...dirs].forEach(fp => {
         const fn = path.basename(fp);
@@ -760,7 +760,6 @@ function filterObjectProperties(obj, keysToKeep, needWarn) {
 
 
 serverUtil.common.decorateResWithMeta = decorateResWithMeta
-serverUtil.common.getThumbnailsForZip = getThumbnailsForZip;
 serverUtil.common.getStatAndUpdateDB = getStatAndUpdateDB;
 serverUtil.common.isAlreadyScan = isAlreadyScan;
 serverUtil.common.checkOneBookRes = checkOneBookRes;
@@ -872,22 +871,22 @@ app.post("/api/getTagThumbnail", asyncWrapper(async (req, res) => {
 
     let oneThumbnail;
 
-    let sql = ` SELECT a.* , b.*
+    let sql = ` SELECT AA.*, BB.thumbnailFileName FROM 
+                (SELECT a.* , b.*
                 FROM zip_view a 
                 INNER JOIN tag_table b ON a.filePath = b.filePath AND b.tag = ?
                 ORDER BY a.mTime DESC 
-                LIMIT 100;`
+                LIMIT 100 ) AA
+                LEFT JOIN thumbnail_table BB 
+                ON AA.filePath = BB.filePath AND BB.thumbnailFileName IS NOT NULL 
+                `
     let rows = await db.doSmartAllSync(sql, [author || tag]);
 
     // find thumbnail
-    const thumbnails = await serverUtil.common.getThumbnailsForZip(rows.map(e => e.filePath))
-    for (let ii = 0; ii < rows.length; ii++) {
-        const row = rows[ii];
-        const thumbnail = thumbnails[row.filePath];
-
-        if(thumbnail){
-            oneThumbnail = thumbnail;
-            break;
+    if(rows.length > 0){
+        const row = rows[0];
+        if(row.thumbnailFileName){
+            oneThumbnail = serverUtil.joinThumbnailFolderPath(row.thumbnailFileName);
         }
     }
 

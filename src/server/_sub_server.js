@@ -15,7 +15,6 @@ const rootPath = pathUtil.getRootPath();
 const { cache_folder_name, thumbnail_folder_name, view_img_folder } = userConfig
 const cachePath = path.join(rootPath, cache_folder_name);
 // const thumbnailFolderPath = path.join(rootPath, thumbnail_folder_name);
-// global.thumbnailFolderPath = thumbnailFolderPath;
 global.cachePath = cachePath;
 
 const app = express();

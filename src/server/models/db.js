@@ -30,7 +30,6 @@ const namePicker = require("../../human-name-picker");
 // }
 
 let statement_cache = {};
-let smart_select_cache = {};
 module.exports.doSmartAllSync = async (sql, params) =>{
     if(!_.isNull(params) && !_.isArray(params)){
         params = [params];
@@ -46,20 +45,8 @@ module.exports.doSmartAllSync = async (sql, params) =>{
         statement_cache[sql] = statement;
     }
     
-    // 把select结果也缓存了，提高性能
-    let temp = params || [];
-    const cache_key = `${sql} ${(temp).join("---")}`;
-    let result = smart_select_cache[cache_key];
-    if(!result){
-        smart_select_cache[cache_key] = await statement_cache[sql].allSync(params);
-        result = smart_select_cache[cache_key];
-    }
-    // console.assert(!!result, sql, params);
+    const result = await statement_cache[sql].allSync(params); 
     return result || [];
-}
-
-const cleanSmart_select_cache = () => {
-    smart_select_cache = {};
 }
 
 let sqldb;
@@ -149,7 +136,6 @@ module.exports.getAllFilePathes = async function (sql_condition) {
 };
 
 module.exports.updateStatToDb = async function (filePath, stat, insertion_cache) {
-    cleanSmart_select_cache();
 
     const statObj = {};
     if (!stat) {
@@ -301,7 +287,6 @@ module.exports.updateStatToDb = async function (filePath, stat, insertion_cache)
 
 // 传入 db、table 和数据数组实现批量插入
 module.exports.batchInsert = async (tableName, dataArray, blockSize = 2000) => {
-    cleanSmart_select_cache();
 
     let beg = getCurrentTime();
 
@@ -313,7 +298,6 @@ module.exports.batchInsert = async (tableName, dataArray, blockSize = 2000) => {
 }
 
 module.exports.deleteFromDb = function (filePath) {
-    cleanSmart_select_cache();
 
     // delete fileToInfo[filePath];
     sqldb.run("DELETE FROM file_table where filePath = ?", filePath);
