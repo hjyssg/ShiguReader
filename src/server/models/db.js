@@ -67,7 +67,7 @@ module.exports.init = async ()=> {
     const dbCommon = require("./dbCommon");
     // sqldb = dbCommon.getSQLInstance(':memory:');
     // 用file的话，init的insertion太慢了
-    const backup_db_path = path.join(pathUtil.getWorkSpacePath(), "backup_file_db.db");
+    const backup_db_path = path.join(pathUtil.getWorkSpacePath(), "shigureader_internal_db.sqlite");
     sqldb = dbCommon.getSQLInstance(backup_db_path);
 
     // 提升少量性能
@@ -125,6 +125,7 @@ module.exports.init = async ()=> {
      CREATE INDEX IF NOT EXISTS tag_type_index ON tag_table (type); 
      CREATE INDEX IF NOT EXISTS tag_filePath_index ON tag_table (filePath); `);
 
+     return sqldb;
 }
 
 

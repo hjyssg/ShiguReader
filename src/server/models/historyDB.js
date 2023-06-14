@@ -8,12 +8,8 @@ const pathUtil = require("../pathUtil");
 
 
 let sqldb;
-module.exports.init = async ()=> {
-    const history_db_path = path.join(pathUtil.getWorkSpacePath(), "history_sql_db.db");
-    const dbCommon = require("./dbCommon");
-    sqldb = dbCommon.getSQLInstance(history_db_path);
-
-    // 记录打开文件
+module.exports.init = async (_sqldb)=> {
+    sqldb = _sqldb;
     await sqldb.execSync(`CREATE TABLE IF NOT EXISTS history_table (
         filePath TEXT NOT NULL, 
         dirPath TEXT, 

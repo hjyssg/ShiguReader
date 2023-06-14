@@ -9,11 +9,8 @@ const pathUtil = require("../pathUtil");
 
 let sqldb;
 //-----------------------
-module.exports.init = async ()=> {
-    let zip_sql_path = path.join(pathUtil.getWorkSpacePath(), "zip_info_sql.db");
-    const dbCommon = require("./dbCommon");
-    sqldb = dbCommon.getSQLInstance(zip_sql_path);
-
+module.exports.init = async (_sqldb)=> {
+    sqldb = _sqldb;
     await sqldb.runSync(`CREATE TABLE IF NOT EXISTS zip_table (
                             filePath TEXT PRIMARY KEY, 
                             pageNum INTEGER,

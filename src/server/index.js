@@ -179,10 +179,10 @@ async function init() {
         logger.warn("[Error] You may need to run npm run build");
     }
 
-    await db.init();
-    await thumbnailDb.init();
-    await historyDb.init();
-    await zipInfoDb.init();
+    const sqldb = await db.init();
+    await thumbnailDb.init(sqldb);
+    await historyDb.init(sqldb);
+    await zipInfoDb.init(sqldb);
     
     //express does not check if the port is used and remains slient
     // we need to check

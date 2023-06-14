@@ -11,11 +11,8 @@ const _util = require('util');
 
 
 let sqldb;
-module.exports.init = async ()=> {
-    let thumbnail_db_path = path.join(pathUtil.getWorkSpacePath(), "thumbnail_sql_db.db");
-    const dbCommon = require("./dbCommon");
-    sqldb = dbCommon.getSQLInstance(thumbnail_db_path);
-
+module.exports.init = async (_sqldb)=> {
+    sqldb = _sqldb;
     await sqldb.execSync(`
         CREATE TABLE IF NOT EXISTS thumbnail_table (filePath TEXT, thumbnailFileName TEXT, time INTEGER);
         
