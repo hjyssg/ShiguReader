@@ -52,8 +52,6 @@ module.exports.doSmartAllSync = async (sql, params) =>{
 let sqldb;
 module.exports.init = async ()=> {
     const dbCommon = require("./dbCommon");
-    // sqldb = dbCommon.getSQLInstance(':memory:');
-    // 用file的话，init的insertion太慢了
     const backup_db_path = path.join(pathUtil.getWorkSpacePath(), "shigureader_internal_db.sqlite");
     sqldb = dbCommon.getSQLInstance(backup_db_path);
 
