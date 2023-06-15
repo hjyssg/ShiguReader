@@ -556,10 +556,6 @@ async function getThumbnailsForZip(filePathes) {
         }
     });
 
-    if (isStringInput) {
-        return thumbnails[filePathes[0]]
-    }
-
     return thumbnails;
 }
 
@@ -1115,15 +1111,14 @@ app.post('/api/getZipThumbnail', asyncWrapper(async (req, res) => {
     }
 
     const thumbnails = await getThumbnailsForZip([filePath])
-    const oneThumbnail = _.values(thumbnails)[0];
+    const oneThumbnail = thumbnails[filePath];
     if(oneThumbnail){
         res.send({
             url: oneThumbnail
         })
-        return;
+    }else{
+        extractThumbnailFromZip(filePath, res);
     }
-
-    extractThumbnailFromZip(filePath, res);
 }));
 
 async function getZipWithSameFileName(filePath) {
