@@ -318,8 +318,18 @@ export default class ExplorerPage extends Component {
                 fileHistory=[],
                 nameParseCache={}
             } = res.json;
-            nameParser.setLocalCache(nameParseCache);
 
+            // 马上叫server准备下一个信息
+            Sender.get('/api/getGoodAuthorNames', res => {
+                if (!res.isFailed()) {
+                    this.setState({
+                        authorInfo: res.json.authorInfo,
+                        tagInfo: res.json.tagInfo
+                    })
+                }
+            });
+
+            nameParser.setLocalCache(nameParseCache);
             this.loadedHash = this.getTextFromQuery();
             this.mode = mode;
             this.fileInfos = fileInfos;
@@ -338,6 +348,7 @@ export default class ExplorerPage extends Component {
             this.imgFolderInfo = imgFolderInfo;
             this.res = res;
             this.allfileInfos = _.extend({}, this.fileInfos, this.imgFolderInfo);
+            this.decorate_allfileInfos();
 
             this.fileNameToHistory = {};
             fileHistory.forEach(row => {
@@ -361,15 +372,6 @@ export default class ExplorerPage extends Component {
                 this.askRerender();
             }
 
-            Sender.get('/api/getGoodAuthorNames', res => {
-                if (!res.isFailed()) {
-                    this.setState({
-                        authorInfo: res.json.authorInfo,
-                        tagInfo: res.json.tagInfo
-                    })
-                }
-            });
-
             this.hasCalled_getThumbnailForFolders = false;
             if(this.state.showFolderThumbnail){
                 this.requestThumbnailForFolder();
@@ -378,6 +380,42 @@ export default class ExplorerPage extends Component {
             this.res = res;
             this.askRerender();
         }
+    }
+
+    decorate_allfileInfos(){
+        // this.allfileInfos
+        for(const fp in this.allfileInfos){
+            if(!this.allfileInfos.hasOwnProperty(fp)){
+                continue;
+            }
+
+            const info = this.allfileInfos[fp];
+            info.size = _parseInt(info.size) || 0;
+            info.mtimeMs = _parseInt(info.mtimeMs) || 0;
+
+            info.musicNum = _parseInt(info.musicNum) || 0;
+            info.videoNum = _parseInt(info.videoNum) || 0;
+            info.pageNum = _parseInt(info.pageNum) || 0;
+
+            info.totalImgSize = _parseInt(info.totalImgSize) || 0;
+            info.pageAvgSize = this.calculateAvgPageSize(fp) || 0;
+        }
+    }
+
+    calculateAvgPageSize(fp){
+        //may not be reliable
+        const pageNum = this.getPageNum(fp);
+        if (pageNum === 0) {
+            return 0;
+        }
+
+        let total;
+        if (this.getFileSize(fp) === 0) {
+            total = this.getTotalImgSize(fp);
+        } else {
+            total = Math.min(this.getFileSize(fp), this.getTotalImgSize(fp))
+        }
+        return total / pageNum;
     }
 
     handleKeyDown(event) {
@@ -399,17 +437,11 @@ export default class ExplorerPage extends Component {
         }
     }
 
-    //comes from file db.
-    //may not be reliable
-    getFileSize(e) {
-        return (this.allfileInfos[e]?.size) || 0;
-    }
-
     hasFileSize(e) {
         return !!this.getFileSize(e);
     }
 
-    getAllFileSize(files) {
+    countAllFileSize(files) {
         let totalSize = 0;
         files.forEach(e => {
             totalSize += this.getFileSize(e);
@@ -417,11 +449,7 @@ export default class ExplorerPage extends Component {
         return totalSize;
     }
 
-    getPageNum(fp) {
-        return +(this.allfileInfos[fp]?.pageNum) || 0;
-    }
-
-    getAllFilePageNum(filteredFiles) {
+    countAllFilePageNum(filteredFiles) {
         let count = 0;
         filteredFiles.forEach(e => {
             count += this.getPageNum(e);
@@ -429,42 +457,53 @@ export default class ExplorerPage extends Component {
         return count;
     }
 
- 
+    getFileSize(fp) {
+        return this.allfileInfos[fp]?.size || 0;
+    }
 
-    //comes from libray, may not be reliable
-    //because sometimes, filename dont chane but the size change 
+    getPageNum(fp) {
+        return this.allfileInfos[fp]?.pageNum || 0;
+    }
+
     getTotalImgSize(fp) {
-        return +(this.allfileInfos[fp]?.totalImgSize) || 0;
+        return this.allfileInfos[fp]?.totalImgSize || 0;
     }
 
     //may not be reliable
-    getPageAvgSize(e) {
-        const pageNum = this.getPageNum(e);
-        if (pageNum === 0) {
-            //one for display
-            //one for sort 
-            return 0;
-        }
-
-        //choose the min
-        //but can not be 0
-        let total;
-
-        if (this.getFileSize(e) === 0) {
-            total = this.getTotalImgSize(e);
-        } else {
-            total = Math.min(this.getFileSize(e), this.getTotalImgSize(e))
-        }
-
-        return total / pageNum;
+    getPageAvgSize(fp) {
+        return this.allfileInfos[fp]?.pageAvgSize || 0;
     }
 
     getMusicNum(fp) {
-        return +(this.allfileInfos[fp]?.musicNum) || 0;
+        return this.allfileInfos[fp]?.musicNum || 0;
     }
 
     getVideoNum(fp) {
-        return +(this.allfileInfos[fp]?.videoNum) || 0;
+        return this.allfileInfos[fp]?.videoNum || 0;
+    }
+
+    getMtime(fp){
+        return this.allfileInfos[fp]?.mtimeMs || 0;
+    }
+
+    /** get tag time */
+    getTTime(fp){
+        const fn = getBaseName(fp);
+        let tTime = nameParser.getDateFromParse(fn);
+        tTime = tTime && tTime.getTime();
+        return tTime || 0;
+    }
+
+    getReadCount(fp){
+        const fn = getBaseName(fp);
+        const count = _parseInt(this.fileNameToHistory[fn]?.count);
+        return count || 0;
+    }
+
+    getLastReadTime(fp){
+        const fn = getBaseName(fp);
+        const rTime = _parseInt(this.fileNameToHistory[fn]?.time);
+        return rTime || 0;
     }
     
     getFilteredFiles() {
@@ -529,14 +568,15 @@ export default class ExplorerPage extends Component {
             });
         }
 
-        if (userConfig.filter_empty_zip) {
-            files = files.filter(e => {
-                if (this.getMusicNum(e) === 0 && this.getPageNum(e) === 0 && this.getVideoNum(e) === 0) {
-                    return false;
-                }
-                return true;
-            });
-        }
+        // 没有zip信息会被误会为没有，拿掉。
+        // if (userConfig.filter_empty_zip) {
+        //     files = files.filter(e => {
+        //         if (this.getMusicNum(e) === 0 && this.getPageNum(e) === 0 && this.getVideoNum(e) === 0) {
+        //             return false;
+        //         }
+        //         return true;
+        //     });
+        // }
         return files;
     }
 
@@ -640,31 +680,6 @@ export default class ExplorerPage extends Component {
         return files;
     }
 
-    getMtime(fp){
-        const mTime = this.allfileInfos && this.allfileInfos[fp] && _parseInt(this.allfileInfos[fp].mtimeMs);
-        return mTime || 0;
-    }
-
-    /** get tag time */
-    getTTime(fp){
-        const fn = getBaseName(fp);
-        let tTime = nameParser.getDateFromParse(fn);
-        tTime = tTime && tTime.getTime();
-        return tTime || 0;
-    }
-
-    getReadCount(fp){
-        const fn = getBaseName(fp);
-        const count = this.fileNameToHistory[fn] && _parseInt(this.fileNameToHistory[fn]?.count);
-        return count || 0;
-    }
-
-    getLastReadTime(fp){
-        const fn = getBaseName(fp);
-        const rTime = this.fileNameToHistory[fn] && _parseInt(this.fileNameToHistory[fn]?.time);
-        return rTime || 0;
-    }
-
     getOneLineListItem(icon, fileName, filePath, title) {
         return (
             <li className="explorer-one-line-list-item" key={fileName} title={this.getTooltipStr(filePath)}>
@@ -755,7 +770,7 @@ export default class ExplorerPage extends Component {
         const fileSize = this.hasFileSize(fp) && this.getFileSize(fp);
         const fileSizeStr = fileSize && filesizeUitl(fileSize);
 
-        const avgSize = (this.hasFileSize(fp) || this.getTotalImgSize(fp)) && this.getPageAvgSize(fp);
+        const avgSize = this.getPageAvgSize(fp);
         const avgSizeStr = avgSize > 0 && filesizeUitl(avgSize);
 
         let zipItem;
@@ -1158,11 +1173,11 @@ export default class ExplorerPage extends Component {
     }
 
     renderFileCount(filteredFiles, filteredVideos) {
-        const totalZipSize = this.getAllFileSize(filteredFiles);
-        const totalVideoSize = this.getAllFileSize(filteredVideos);
+        const totalZipSize = this.countAllFileSize(filteredFiles);
+        const totalVideoSize = this.countAllFileSize(filteredVideos);
         const totalSize = totalZipSize + totalVideoSize;
         const title = `${filesizeUitl(totalZipSize)} zips and ${filesizeUitl(totalVideoSize)} videos`
-        const totalPageNum = this.getAllFilePageNum(filteredFiles);
+        const totalPageNum = this.countAllFilePageNum(filteredFiles);
         return (
             <div className="row">
                 <div className="col-12 file-count-row">
