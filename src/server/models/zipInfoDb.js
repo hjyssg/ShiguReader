@@ -77,6 +77,6 @@ const getZipInfo =  module.exports.getZipInfo = function (filePathes) {
     filePathes = _.isString(filePathes) ? [filePathes] : filePathes;
     filePathes = filePathes.filter(isCompress);
 
-    let rows = filePathes.map(e => _internal_dict_[e]);
+    let rows = filePathes.map(e => _internal_dict_[e]).filter(e => !!e);
     return rows;
 }
