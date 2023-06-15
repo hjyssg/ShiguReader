@@ -30,7 +30,7 @@ const namePicker = require("../../human-name-picker");
 // }
 
 let statement_cache = {};
-module.exports.doSmartAllSync = async (sql, params) =>{
+module.exports.doSmartAllSync = async (sql, params) => {
     if(!_.isNull(params) && !_.isArray(params)){
         params = [params];
     }
@@ -47,6 +47,10 @@ module.exports.doSmartAllSync = async (sql, params) =>{
     
     const result = await statement_cache[sql].allSync(params); 
     return result || [];
+}
+
+module.exports.doAllSync  = async (sql, params) => {
+    return await sqldb.allSync(sql, params);
 }
 
 let sqldb;

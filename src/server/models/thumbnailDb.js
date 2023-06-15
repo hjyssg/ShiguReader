@@ -136,35 +136,6 @@ module.exports.getThumbnailByFileName = async function (fileName) {
     return rows;
 }
 
-module.exports.getThumbnailForFolders = async function (filePathes) {
-    console.assert(_.isArray(filePathes));
-
-    if(filePathes.length == 0){
-        return [];
-    }
-
-    let rows = [];
-    try{
-        // TODO 担心很多的时候
-        // Q ask chatgpt: write a sql query that if column 'file' contains one of string array
-        const stringsToMatch = filePathes; // string array of values
-        const patterns = stringsToMatch.map(str => `${str}%`);
-        const placeholders = patterns.map(() => 'filePath LIKE ?').join(' OR ');
-        const sql = `SELECT * FROM thumbnail_table WHERE ${placeholders} ORDER BY time DESC, ROWID DESC`;
-        rows = await sqldb.allSync(sql, patterns);
-    }catch(e){
-        console.error(e);
-    }
-
-    
-    // const sql = `SELECT * FROM  thumbnail_table WHERE INSTR(filePath, ?) > 0`;
-    // let rows = await sqldb.allSync(sql, [filePath]);
-    // rows = rows.filter(row => {
-    //     return isSub(filePath, row.filePath)
-    // });
-    _add_col(rows)
-    return rows;
-}
 
 module.exports.getThumbCount = async function () {
     const sql = `SELECT COUNT(*) as count FROM  thumbnail_table`;

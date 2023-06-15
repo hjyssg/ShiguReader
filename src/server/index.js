@@ -574,6 +574,7 @@ async function getThumbnailForFolders(filePathes) {
     if(!filePathes || filePathes.length == 0){
         return result;
     }
+    // TODO 担心nextFilePathe很多的时候
 
     function findOne(rows, filePath){
         let findRow = null;
@@ -590,31 +591,47 @@ async function getThumbnailForFolders(filePathes) {
     try{
         let beg = getCurrentTime();
 
-        // let label = "getThumbnailForFolders" + filePathes.length;
-        // console.time(label);
         // 先尝试从thumbnail db拿
-        let thumbnailRows = await thumbnailDb.getThumbnailForFolders(filePathes);
-    
-        let nextFilePathes = [];
+        // Q ask chatgpt: write a sql query that if column 'file' contains one of string array
+        const stringsToMatch = filePathes; // string array of values
+        const patterns = stringsToMatch.map(str => `${str}%`);
+        const placeholders = patterns.map(() => 'filePath LIKE ?').join(' OR ');
+        const sql = `
+            SELECT t1.* FROM thumbnail_table t1
+            INNER JOIN (
+            SELECT filePath, MAX(ROWID) AS max_rowid 
+            FROM thumbnail_table
+            WHERE ${placeholders}
+            GROUP BY filePath
+            ) t2 ON t1.filePath = t2.filePath AND t1.ROWID = t2.max_rowid
+        `;
+        const thumbnailRows = await db.doAllSync(sql, patterns);
+        let notFoundList = [];
         filePathes.forEach(filePath => {
             const findRow = findOne(thumbnailRows, filePath);
             if (findRow) {
-                result[filePath] = findRow.thumbnailFilePath;
+                result[filePath] = serverUtil.joinThumbnailFolderPath(findRow.thumbnailFileName);
             }else{
-                nextFilePathes.push(filePath);
+                notFoundList.push(filePath);
             }
         })
         
 
-        if(nextFilePathes.length > 0){
-            //拿不到就看看有没有下属image
-            // TODO 担心nextFilePathe很多的时候
-            const stringsToMatch = nextFilePathes; // string array of values
+        if(notFoundList.length > 0){
+            const stringsToMatch = notFoundList; // string array of values
             const patterns = stringsToMatch.map(str => `${str}%`);
             const placeholders = patterns.map(() => 'filePath LIKE ?').join(' OR ');
-            const sql = `SELECT filePath, isImage FROM file_table WHERE isImage=true AND (${placeholders}) `;
-            let imagerows = await db.doSmartAllSync(sql, patterns);
-            nextFilePathes.forEach(filePath => {
+            const sql = `
+            SELECT t1.* FROM file_table t1
+            INNER JOIN (
+               SELECT filePath, MIN(ROWID) AS min_rowid 
+               FROM file_table
+               WHERE isImage=1 AND (${placeholders})
+               GROUP BY filePath
+            ) t2 ON t1.filePath = t2.filePath AND t1.ROWID = t2.min_rowid
+            ORDER BY t1.filePath `;
+            let imagerows = await db.doAllSync(sql, patterns);
+            notFoundList.forEach(filePath => {
                 const findRow = findOne(imagerows, filePath);
                 if (findRow) {
                     console.assert(findRow.isImage);
