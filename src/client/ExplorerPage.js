@@ -343,6 +343,8 @@ export default class ExplorerPage extends Component {
             sortFileNames(this.imageFiles)
 
             this.dirs = dirs;
+            this.dirs.sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+
             this.tag = tag;
             this.author = author;
             this.imgFolderInfo = imgFolderInfo;
@@ -845,9 +847,7 @@ export default class ExplorerPage extends Component {
         let videos = filteredVideos;
         let files = filteredFiles;
 
-        dirs.sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
-       
-
+        
         try {
             files = this.sortFiles(files, sortOrder, isSortAsc);
         } catch (e) {
@@ -1513,7 +1513,7 @@ export default class ExplorerPage extends Component {
         this.setWebTitle();
         // this.time = this.time|| 1;
         // console.log(this.time);
-        this.time++;
+        // this.time++;
 
         if (this.isFailedLoading()) {
             return <ErrorPage res={this.res} />;
