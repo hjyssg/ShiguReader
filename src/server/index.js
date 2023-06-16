@@ -683,7 +683,15 @@ async function decorateResWithMeta(resObj) {
     //------------------------------- zipInfo
     const zipInfoRows = zipInfoDb.getZipInfo(files);
     zipInfoRows.forEach(e => { 
-        fileInfos[e.filePath] = _.extend(fileInfos[e.filePath], e);
+        fileInfos[e.filePath] = {
+            ...fileInfos[e.filePath],
+            pageNum: e.pageNum,
+            musicNum: e.musicNum,
+            videoNum: e.videoNum,
+            totalNum: e.totalNum,
+            totalImgSize: e.totalImgSize,
+        }
+        fileInfos[e.filePath].mtimeMs = fileInfos[e.filePath].mtimeMs || e.mtime;
     })
 
     //------------------------ imgFolderInfo
