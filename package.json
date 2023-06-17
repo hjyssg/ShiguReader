@@ -64,7 +64,6 @@
     "eslint-plugin-jsx-a11y": "^6.0.3",
     "eslint-plugin-react": "^7.7.0",
     "file-loader": "^3.0.0",
-    "flow-bin": "^0.91.0",
     "less": "^3.9.0",
     "less-loader": "^4.1.0",
     "mocha": "^5.2.0",

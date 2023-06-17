@@ -33,6 +33,8 @@ const {
 
 const FILTER_PARODY = "FILTER_PARODY";
 const FILTER_COMIKET = "FILTER_COMIKET"
+const FILTER_NAME = "FILTER_NAME"
+
 
 export default class TagPage extends Component {
   constructor(prop) {
@@ -205,8 +207,9 @@ export default class TagPage extends Component {
       items = items.filter(e => {
         if(this.isOn(FILTER_COMIKET) && e.subtype === "comiket"){
           return true;
-        }
-        if(this.isOn(FILTER_PARODY) && e.subtype === "parody"){
+        } else if(this.isOn(FILTER_PARODY) && e.subtype === "parody"){
+          return true;
+        } else  if(this.isOn(FILTER_NAME) && e.subtype === "name"){
           return true;
         }
       });
@@ -414,22 +417,17 @@ export default class TagPage extends Component {
         return;
       }
 
-      // 互斥
-      if(key == FILTER_COMIKET){
-        this.setStateAndSetHash({
-          filterArr: [key],
-          pageIndex: 1,
-          sortOrder: BY_TAG_NAME, 
-          isSortAsc: true
-        });
-      }else{
-        this.setStateAndSetHash({
-          filterArr: [key],
-          pageIndex: 1,
-          sortOrder: BY_GOOD_SCORE, 
-          isSortAsc: false
-        });
+      const order_map = {
+        FILTER_COMIKET: BY_TAG_NAME,
+        FILTER_NAME: BY_FILE_NUMBER,
       }
+     
+      this.setStateAndSetHash({
+        filterArr: [key],
+        pageIndex: 1,
+        sortOrder: order_map[key] || BY_GOOD_SCORE, 
+        isSortAsc: false
+      });
   }
 
   isOn(key) {
@@ -451,11 +449,16 @@ export default class TagPage extends Component {
         {st3}
     </Checkbox>);
 
+    const st4 = `Human Name`;
+    let checkbox4 = (<Checkbox onChange={this.toggleFilterForTagPage.bind(this, FILTER_NAME)} checked={this.isOn(FILTER_NAME)}>
+        {st4}
+    </Checkbox>);
 
     return (
         <div className="aji-checkbox-container container">
             {checkbox2}
             {checkbox3}
+            {checkbox4}
         </div>);
   }
 

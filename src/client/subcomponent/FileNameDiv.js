@@ -4,7 +4,6 @@ import PropTypes from 'prop-types';
 var classNames = require('classnames');
 const clientUtil = require("../clientUtil");
 import { toast } from 'react-toastify';
-const namePicker = require("../../human-name-picker");
 const nameParser = require('@name-parser');
 import _ from 'underscore';
 
@@ -40,20 +39,21 @@ function getText(filename, mecab_tokens) {
     allTags.push(...originalTags);
     pTags = allTags.slice();
   }
-  let nameTags = namePicker.pick(text) || [];
+  // let nameTags = namePicker.pick(text) || [];
+  let nameTags = [];
   allTags.push(...nameTags);
 
 
   //less meaningful
-  let lessTags = (mecab_tokens && mecab_tokens.length > 1) ? mecab_tokens : namePicker.splitBySpace(text);
-  lessTags = lessTags.filter(e => {
-    const isUniq =  allTags.every(e2 => {
-      return !e2.includes(e);
-    });
+  // let lessTags = (mecab_tokens && mecab_tokens.length > 1) ? mecab_tokens : namePicker.splitBySpace(text);
+  // lessTags = lessTags.filter(e => {
+  //   const isUniq =  allTags.every(e2 => {
+  //     return !e2.includes(e);
+  //   });
 
-    return isUniq;
-  });
-  allTags.push(...lessTags);
+  //   return isUniq;
+  // });
+  // allTags.push(...lessTags);
 
   //unique
   allTags = _.uniq(allTags);

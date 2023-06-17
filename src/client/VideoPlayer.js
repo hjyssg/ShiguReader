@@ -5,7 +5,6 @@ import FileNameDiv from './subcomponent/FileNameDiv';
 import FileChangeToolbar from './subcomponent/FileChangeToolbar';
 const clientUtil = require("./clientUtil");
 const { getDir, getBaseName, filesizeUitl } = clientUtil;
-const namePicker = require("../human-name-picker");
 import { Link } from 'react-router-dom';
 import Sender from './Sender';
 const queryString = require('query-string');
@@ -52,7 +51,8 @@ export default class VideoPlayer extends Component {
   renderTag() {
     const filePath = this.getTextFromQuery();
     const dirName = getBaseName(getDir(filePath));
-    let tags = namePicker.pick(dirName) || [];
+    // let tags = namePicker.pick(dirName) || [];
+    let tags = [];
     tags = _.uniq(tags);
 
     if (tags.length > 0) {
