@@ -1,8 +1,6 @@
 const assert = require('assert');
 const picker = require("../human-name-picker");
 
-picker.init();
-
 describe('name picker', () => {
     let s1;
     let result;

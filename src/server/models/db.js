@@ -9,7 +9,6 @@ const { isImage, isCompress, isMusic, isVideo, getCurrentTime } = util;
 const pfs = require('promise-fs');
 const nameParser = require('../../name-parser');
 const namePicker = require("../../human-name-picker");
-namePicker.init();
 
 // file path to file stats
 // 简单重复查询，性能是sql的30倍

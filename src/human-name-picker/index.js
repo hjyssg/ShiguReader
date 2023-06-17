@@ -2,37 +2,10 @@ const config = require("./jp-family-name");
 let family_names = config.family_names;
 const family_name_regex = new RegExp(family_names.join("|"));
 
-let name_entris = [];
-let name_regex;
-
-module.exports.init = () => {
-    const path = require("path");
-    readSingleFile(path.resolve(__dirname, 'av_tag_list.csv'));
-    readSingleFile(path.resolve(__dirname, 'cos_tag_list.csv'));
-    name_regex = new RegExp(name_entris.join("|"));
-}
-
-const readSingleFile = (filePath) => {
-    const fs = require('fs');
-    const Papa = require('papaparse');
-
-    // 读取本地 CSV 文件
-    // TODO: pkg打包会麻烦
-    const csvData = fs.readFileSync(filePath, 'utf8');
-
-    // 使用 papaparse 解析 CSV 数据
-    const { data } = Papa.parse(csvData, { header: true, skipEmptyLines: true });
-
-    // 将结果保存为 object array
-    const objectArray = data.map(item => ({
-        tag: item.tag,
-        category: item.category,
-    })).filter(e => e.tag);
-
-    // console.log(objectArray);
-    name_entris.push(...objectArray.map(e => e.tag));
-}
-
+let av_tag_list = require("./av_tag_list");
+let cos_tag_list = require("./cos_tag_list");
+const name_entris = [...av_tag_list.map(e => e.tag), ...cos_tag_list.map(e => e.tag)];
+let name_regex = new RegExp(name_entris.join("|"));
 
 const localCache = {};
 function pick(str) {

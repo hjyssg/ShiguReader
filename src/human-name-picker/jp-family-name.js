@@ -1,14 +1,3 @@
-//Not going to put a huge list into this
-//just put common attress name
-
-// rows = document.getElementsByTagName("tr");
-// for(ii = 0; ii < rows.length; ii++ ){
-// 	row = rows[ii];
-// 	if(row.children && row.children[1]){
-// 		console.log(row.children[1].textContent)
-// 	}
-// }
-
 //the top 5000 family name
 // http://www2s.biglobe.ne.jp/~suzakihp/ju0001.html
 
@@ -16,8 +5,4 @@ const top_5000 = "佐藤 鈴木 高橋 田中 渡辺 伊藤 山本 中村 小林
 
 module.exports.family_names = top_5000.split(" ").filter(e => e.length > 1);
 
-//impossible to put all
-//only dmm awards
-const av_attress_names = "AIKA JULIA RION あべみかこ あやみ旬果 さくらゆら ティア 七沢みあ 三上悠亜 上原亜衣 乃々果花 久保由利香 乙葉ななせ 仲村みう 佐倉絆 佳苗るか 凰かなめ 初川みなみ 加藤ももか 吉川あいみ 吉沢明歩 明日花キララ 吉高寧々 唯井まひろ 園田みおん 坂道みる 堀井美月 堺希美 夢乃あいか 大槻ひびき 天使もえ 宇都宮しをん 小島みなみ 市川まさみ 希志あいの 成瀬心美 戸田真琴 明日花キララ 明里つむぎ 星野ナミ 有村千佳 本庄鈴 東凛 松本菜奈実 桃乃木かな 桃谷エリカ 桜空もも 椎名そら 橋本ありな 橘梨紗 水卜さくら 河北彩花 河合あすな 深田えいみ 湊莉久 白石茉莉奈 相沢みなみ 神咲詩織 紗倉まな 紗倉まな 緒川りお 美竹すず 美谷朱里 羽咲みはる 葵つかさ 蓮実クレア 鈴村あいり 高橋しょう子 麻倉憂 麻美ゆま 麻里梨夏 明日花キララ";
 
-module.exports.name_entris = av_attress_names.split(" ").filter(e => e.length > 1);
