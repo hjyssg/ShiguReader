@@ -916,9 +916,9 @@ app.post("/api/getTagThumbnail", asyncWrapper(async (req, res) => {
         res.send({
             url: oneThumbnail
         });
-    } else if (rows.length > 0) {
+    } else if (rows[0] && rows[0].isCompress) {
         // 没有的话，现场unzip一个出来
-        extractThumbnailFromZip(rows[0], res);
+        extractThumbnailFromZip(rows[0].filePath, res);
     } else {
         res.send({ failed: true, reason: "No file found" });
     }

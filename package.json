@@ -46,6 +46,7 @@
     "mecab-async": "^0.1.2",
     "memory-cache": "^0.2.0",
     "p-limit": "^2.1.0",
+    "papaparse": "^5.4.1",
     "path-equal": "^1.2.5",
     "promise-fs": "^2.1.1",
     "prop-types": "^15.6.2",

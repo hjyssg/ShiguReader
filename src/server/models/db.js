@@ -9,7 +9,7 @@ const { isImage, isCompress, isMusic, isVideo, getCurrentTime } = util;
 const pfs = require('promise-fs');
 const nameParser = require('../../name-parser');
 const namePicker = require("../../human-name-picker");
-
+namePicker.init();
 
 // file path to file stats
 // 简单重复查询，性能是sql的30倍
@@ -191,20 +191,27 @@ module.exports.updateStatToDb = async function (filePath, stat, insertion_cache)
         isFolder
     });
 
+    // TODO , ...charNames
+
     // name
-    const nameTags = [...(namePicker.pick(str)||[]), ...charNames];
-    _.uniq(nameTags).forEach(tag => {
-        tags_rows.push({ 
-            filePath, 
-            tag, 
-            type:"tag",
-            subtype:"name", 
-            isCompress: isCompressFile, 
-            isVideo: isVideoFile, 
-            isMusic: isMusicFile,
-            isImage: isImageFile,
-            isFolder});
-    })
+    if(_.isEmpty(temp)){
+        const nameTags = [...(namePicker.pick(str)||[])];
+        _.uniq(nameTags).forEach(tag => {
+            if (authors.includes(tag) || group === tag) {
+                return;
+            }
+            tags_rows.push({ 
+                filePath, 
+                tag, 
+                type:"tag",
+                subtype:"name", 
+                isCompress: isCompressFile, 
+                isVideo: isVideoFile, 
+                isMusic: isMusicFile,
+                isImage: isImageFile,
+                isFolder});
+        })
+    }
 
     // parody
     _.uniq(tags).forEach(tag => {
