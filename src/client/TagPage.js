@@ -2,7 +2,6 @@
 import React, { Component } from 'react';
 import LoadingImage from './LoadingImage';
 import _ from "underscore";
-import PropTypes from 'prop-types';
 import Sender from './Sender';
 import './style/TagPage.scss';
 import { Link } from 'react-router-dom';

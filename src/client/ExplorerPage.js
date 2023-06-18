@@ -2,7 +2,6 @@
 import React, { Component } from 'react';
 import _ from "underscore";
 import './style/Explorer.scss';
-import PropTypes from 'prop-types';
 import LoadingImage from './LoadingImage';
 import Sender from './Sender';
 import { Link } from 'react-router-dom';

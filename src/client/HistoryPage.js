@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-// import PropTypes from 'prop-types';
 import './style/HistoryPage.scss';
 import Sender from './Sender';
 import _ from "underscore";

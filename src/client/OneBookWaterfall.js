@@ -223,6 +223,3 @@ export default class OneBookWaterfall extends Component {
     );
   }
 }
-
-OneBookWaterfall.propTypes = {
-};

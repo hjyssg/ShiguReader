@@ -196,6 +196,3 @@ export default class OneBookOverview extends Component {
     );
   }
 }
-
-OneBookOverview.propTypes = {
-};

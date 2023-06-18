@@ -1,5 +1,4 @@
 import React, { Component, useState, useEffect } from 'react';
-// import PropTypes from 'prop-types';
 import './style/AdminPage.scss';
 import Sender from './Sender';
 import _ from "underscore";
