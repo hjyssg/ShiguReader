@@ -692,6 +692,7 @@ async function decorateResWithMeta(resObj) {
             totalImgSize: e.totalImgSize,
         }
         fileInfos[e.filePath].mtimeMs = fileInfos[e.filePath].mtimeMs || e.mtime;
+        fileInfos[e.filePath].size = fileInfos[e.filePath].size || e.totalSize;
     })
 
     //------------------------ imgFolderInfo
