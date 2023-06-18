@@ -73,8 +73,9 @@ module.exports.isConertable = async function (filePath) {
     //check if already exist minfied version
     //! hard-code here
     const bookName = path.basename(filePath, path.extname(filePath));
-    const subfoldername = `from_${path.basename(path.dirname(filePath))}`
-    const convertSpace = path.join(getImgConverterCachePath(), subfoldername);
+    // const subfoldername = `from_${path.basename(path.dirname(filePath))}`
+    // const convertSpace = path.join(getImgConverterCachePath(), subfoldername);
+    const convertSpace = getImgConverterCachePath();
     const outputFile = path.join(convertSpace, bookName + ".zip");
 
     if ((await isExist(outputFile))) {
@@ -104,8 +105,9 @@ module.exports.minifyOneFile = async function (filePath) {
         //one folder for extract
         //one for minify image
         const bookName = path.basename(filePath, path.extname(filePath));
-        const subfoldername = `from_${path.basename(path.dirname(filePath))}`
-        const convertSpace = path.join(getImgConverterCachePath(), subfoldername);
+        // const subfoldername = `from_${path.basename(path.dirname(filePath))}`
+        // const convertSpace = path.join(getImgConverterCachePath(), subfoldername);
+        const convertSpace = getImgConverterCachePath();
         extractOutputPath = path.join(convertSpace, bookName + "-original");
         minifyOutputPath = path.join(convertSpace, bookName);
 
