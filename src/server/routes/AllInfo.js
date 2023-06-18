@@ -29,7 +29,6 @@ function getSql(tableName){
         INNER JOIN ${tableName} b ON a.filePath = b.filePath 
         GROUP BY b.tag 
         HAVING a.mTime = maxTime AND count > 1 
-        ORDER BY count DESC
     ) AA
     LEFT JOIN thumbnail_table BB 
     ON AA.filePath = BB.filePath

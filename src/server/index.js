@@ -894,30 +894,51 @@ app.post("/api/getTagThumbnail", asyncWrapper(async (req, res) => {
     let oneThumbnail;
 
     let sql = ` SELECT AA.*, BB.thumbnailFileName FROM 
-                (SELECT a.* , b.*
-                FROM zip_view a 
-                INNER JOIN tag_table b ON a.filePath = b.filePath AND b.tag = ?
-                ORDER BY a.mTime DESC 
-                LIMIT 100 ) AA
+                (
+                    SELECT a.* , b.*
+                    FROM zip_view a 
+                    INNER JOIN tag_table b ON a.filePath = b.filePath AND b.tag = ?
+                    ORDER BY a.mTime DESC 
+                    LIMIT 100 
+                ) AA
                 LEFT JOIN thumbnail_table BB 
-                ON AA.filePath = BB.filePath AND BB.thumbnailFileName IS NOT NULL 
+                ON AA.filePath = BB.filePath
                 `
     let rows = await db.doSmartAllSync(sql, [author || tag]);
 
-    // find thumbnail
-    if(rows.length > 0){
-        const row = rows[0];
+    // find thumbnail by zip
+    for(let ii = 0; ii < rows.length; ii++){
+        const row = rows[ii];
         if(row.thumbnailFileName){
             oneThumbnail = serverUtil.joinThumbnailFolderPath(row.thumbnailFileName);
+            break;
         }
     }
-
     if(oneThumbnail){
         res.send({
             url: oneThumbnail
         });
-    } else if (rows[0] && rows[0].isCompress) {
-        // 没有的话，现场unzip一个出来
+        return;
+    } 
+    
+    // from image
+    const sql2 = ` SELECT a.* , b.*
+            FROM file_table a 
+            INNER JOIN tag_table b ON a.filePath = b.filePath AND b.tag = ? AND a.isImage=1 
+            ORDER BY a.mTime DESC 
+            LIMIT 1 
+        `
+    const rows2 = await db.doSmartAllSync(sql2, [author || tag]);
+    if (rows2[0]) {
+        console.assert(rows2[0].isImage);
+        res.send({
+            url: rows2[0].filePath
+        });
+        return;
+    }
+
+    // 没有的话，现场unzip一个出来
+    if (rows[0] && rows[0].isCompress) {
         extractThumbnailFromZip(rows[0].filePath, res);
     } else {
         res.send({ failed: true, reason: "No file found" });
