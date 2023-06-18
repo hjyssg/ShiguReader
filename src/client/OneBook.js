@@ -900,10 +900,14 @@ export default class OneBook extends Component {
       "two-page-mode": this.shouldTwoPageMode()
     });
 
-    const content = (<div className={wraperCn} ref={wrapper => this.wrapperRef = wrapper}>
-      {this.renderImage()}
+    const content = (
+    <>
+      <div className={wraperCn} ref={wrapper => this.wrapperRef = wrapper}>
+        {this.renderImage()}
+      </div>
       {this.renderMusicPlayer()}
-    </div>);
+    </>
+    );
 
 
     return (
