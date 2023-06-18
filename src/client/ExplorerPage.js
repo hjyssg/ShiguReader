@@ -18,6 +18,7 @@ import ItemsContainer from './subcomponent/ItemsContainer';
 import SortHeader from './subcomponent/SortHeader';
 import Breadcrumb from './subcomponent/Breadcrumb';
 import FileCellTitle from './subcomponent/FileCellTitle';
+import ClickAndCopyDiv from './subcomponent/ClickAndCopyDiv';
 import Checkbox from './subcomponent/Checkbox';
 import ThumbnailPopup from './subcomponent/ThumbnailPopup';
 import { getFileUrl } from './clientUtil';
@@ -633,7 +634,7 @@ export default class ExplorerPage extends Component {
             return  this.getMtime(e) || Infinity;
         });
 
-        if (sortOrder.includes(BY_RANDOM)) {
+        if (sortOrder === BY_RANDOM) {
             files = _.shuffle(files);
         } else if (sortOrder === BY_FILENAME) {
             files.sort((a, b) => {
@@ -1287,6 +1288,7 @@ export default class ExplorerPage extends Component {
 
             return (<center className={"location-title"}>
                 <a className="explorer-external-link" target="_blank" href={link} title={title}>{this.getTitle()} </a>
+                <ClickAndCopyDiv text={searchable} />
             </center>);
         }
     }
@@ -1534,14 +1536,5 @@ export default class ExplorerPage extends Component {
         );
     }
 }
-
-ExplorerPage.propTypes = {
-    dirs: PropTypes.array,
-    files: PropTypes.array,
-    openBookFunc: PropTypes.func,
-    openDirFunc: PropTypes.func,
-    filterText: PropTypes.string
-};
-
 
 ExplorerPage.contextType = GlobalContext;

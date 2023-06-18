@@ -1,11 +1,11 @@
 import React, { Component } from 'react';
 import '../style/FileNameDiv.scss';
-import PropTypes from 'prop-types';
 var classNames = require('classnames');
 const clientUtil = require("../clientUtil");
-import { toast } from 'react-toastify';
 const nameParser = require('@name-parser');
 import _ from 'underscore';
+import ClickAndCopyDiv from './ClickAndCopyDiv';
+
 
 function getText(filename, mecab_tokens) {
   const text = clientUtil.getBaseNameWithoutExtention(filename);
@@ -144,30 +144,15 @@ function getText(filename, mecab_tokens) {
   return <span> {formatArr} </span>
 }
 
-function onTitleClick(filename) {
-  clientUtil.CopyToClipboard(filename);
 
-  toast('Copied to Clipboard', {
-    className: "one-line-toast",
-    position: "top-right",
-    autoClose: 3 * 1000,
-    hideProgressBar: true,
-    closeOnClick: true,
-    pauseOnHover: true,
-    draggable: true
-  })
-}
 
 export default function FileNameDiv(props) {
     const { filename, className, mecab_tokens, isVideo, ...others } = props;
-    const cn2 = classNames("click-and-copy-text", className, "fas fa-copy")
     return (
       <span className="aji-file-name">
         {getText(filename, mecab_tokens)}
-        <span onClick={()=>onTitleClick(filename)} className={cn2} />
+        <ClickAndCopyDiv text={filename} />
       </span>)
 }
 
-FileNameDiv.propTypes = {
-  filename: PropTypes.string
-};
+

@@ -9,6 +9,7 @@ const BY_PAGE_NUMBER = "page number";
 const BY_FILENAME = "file name";
 const BY_GOOD_SCORE = "score";
 const BY_FOLDER = "by folder name";
+const BY_LATEST_WORK = "by latest work";
 const BY_RANDOM = "random";
 
 module.exports = {
@@ -23,6 +24,7 @@ module.exports = {
     BY_FILENAME,
     BY_GOOD_SCORE,
     BY_FOLDER,
+    BY_LATEST_WORK,
     BY_RANDOM,
 }
 
@@ -30,6 +32,7 @@ module.exports.TAG_SORT_OPTIONS = [
     BY_FILE_NUMBER,
     BY_GOOD_SCORE,
     BY_TAG_NAME,
+    BY_LATEST_WORK,
     BY_RANDOM
 ];
 
@@ -37,6 +40,7 @@ module.exports.AUTHOR_SORT_OPTIONS = [
     BY_FILE_NUMBER,
     BY_GOOD_SCORE,
     BY_TAG_NAME,
+    BY_LATEST_WORK,
     BY_RANDOM
 ];
 

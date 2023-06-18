@@ -44,7 +44,3 @@ export default class ErrorPage extends Component {
     }
 }
 
-ErrorPage.propTypes = {
-    res: PropTypes.object,
-    userText: PropTypes.string
-};

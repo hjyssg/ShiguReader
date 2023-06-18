@@ -182,5 +182,3 @@ export default class VideoPlayer extends Component {
   }
 }
 
-VideoPlayer.propTypes = {
-};

@@ -20,6 +20,3 @@ export default function Accordion(props) {
         )
 }
 
-Accordion.propTypes = {
-
-};

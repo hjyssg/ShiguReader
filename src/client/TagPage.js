@@ -27,6 +27,7 @@ const ClientConstant = require("./ClientConstant");
 const {
   BY_TAG_NAME,
   BY_FILE_NUMBER,
+  BY_LATEST_WORK,
   BY_GOOD_SCORE,
   BY_RANDOM
 } = ClientConstant;
@@ -131,9 +132,10 @@ export default class TagPage extends Component {
     return clientUtil.getAuthorCount(this.state.tagInfo, tag) || {};
   }
 
-  getTooltipStr(tag, rank){
+  getTooltipStr(item){
     let rows = [];
     // rows.push([tag]);
+    const tag = item.tag;
     rows.push(["     "]);
     if(this.isAuthorMode()){
       rows.push(...clientUtil.convertSimpleObj2tooltipRow(this.getAuthorCount(tag)));
@@ -141,7 +143,9 @@ export default class TagPage extends Component {
     }else{
       rows.push(...clientUtil.convertSimpleObj2tooltipRow(this.getTagCount(tag)));
     }
-    rows.push(["rank", rank]);
+    rows.push(["     "]);
+    rows.push(["rank", item.rank]);
+    rows.push(["latest work", clientUtil.dateFormat_ymd(item.maxTime)]);
 
     return rows.map(row => {
       return row.join(": ");
@@ -220,7 +224,7 @@ export default class TagPage extends Component {
     items = _.sortBy(items, item => item.count);
 
     //sort
-    if (sortOrder.includes(BY_RANDOM)) {
+    if (sortOrder === BY_RANDOM) {
       items = _.shuffle(items);
     } else if (sortOrder === BY_FILE_NUMBER) {
       // nothing
@@ -228,6 +232,8 @@ export default class TagPage extends Component {
       items.sort((a, b) => {
         return a.tag.localeCompare(b.tag, undefined, { numeric: true });
       });
+    } else if (sortOrder === BY_LATEST_WORK) {
+      items = _.sortBy(items, item => item.maxTime);
     }else  if (sortOrder == BY_GOOD_SCORE){
       // 再按喜好排序
       items.sort((a, b)=> {
@@ -311,7 +317,7 @@ export default class TagPage extends Component {
           <Link target="_blank" className="tag-page-list-item-link" to={url} key={tag}>
             <FileCellTitle str={itemText} />
             <LoadingImage isThumbnail
-              title={this.getTooltipStr(tag, item.rank)}
+              title={this.getTooltipStr(item)}
               className="tag-page-thumbnail" fileName={tag}
               mode={this.props.mode}
               url={thumbnailUrl} />
@@ -483,11 +489,3 @@ export default class TagPage extends Component {
   }
 }
 
-TagPage.propTypes = {
-  mode: PropTypes.oneOf(["tag", "author"])
-};
-
-TagPage.propTypes = {
-  openDirFunc: PropTypes.func,
-  filterText: PropTypes.string
-};

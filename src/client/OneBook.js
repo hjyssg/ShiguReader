@@ -929,5 +929,4 @@ export default class OneBook extends Component {
 }
 
 OneBook.contextType = GlobalContext;
-OneBook.propTypes = {
-};
+
