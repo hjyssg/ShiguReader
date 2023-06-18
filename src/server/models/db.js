@@ -265,9 +265,7 @@ module.exports.updateStatToDb = async function (filePath, stat, insertion_cache)
     }
 
     //file_table插入
-    let aboutTimeA = nameParser.getDateFromParse(str);
-    aboutTimeA = aboutTimeA && aboutTimeA.getTime();
-    let fileTime = statObj.mtimeMs || aboutTimeA;
+    let fileTime = statObj.mtimeMs;
     const dirPath = path.dirname(filePath);
     const dirName = getDirName(filePath);
     const fileSize = statObj.size || 0;
