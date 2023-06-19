@@ -683,6 +683,9 @@ async function decorateResWithMeta(resObj) {
     //------------------------------- zipInfo
     const zipInfoRows = zipInfoDb.getZipInfo(files);
     zipInfoRows.forEach(e => { 
+        if(!fileInfos[e.filePath]){
+            return;
+        }
         fileInfos[e.filePath] = {
             ...fileInfos[e.filePath],
             pageNum: e.pageNum,
