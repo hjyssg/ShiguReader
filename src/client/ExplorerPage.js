@@ -920,7 +920,7 @@ export default class ExplorerPage extends Component {
         });
 
         const imageItems = this.imageFiles.map((item, ii) => {
-            const toUrl = clientUtil.getOneBookLink(getDir(item), ii);
+            const toUrl = clientUtil.getOneBookLink(getDir(item));
             const text = getBaseName(item);
             const result = this.getOneLineListItem(<i className="fas fa-images"></i>, text, item);
             return <Link target="_blank" to={toUrl} key={item}>{result}</Link>;
