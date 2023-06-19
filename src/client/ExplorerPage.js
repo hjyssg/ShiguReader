@@ -27,7 +27,7 @@ const Constant = require("@common/constant");
 const clientUtil = require("./clientUtil");
 const { getDir, getBaseName, getPerPageItemNumber, isSearchInputTextTyping, filesizeUitl, sortFileNames } = clientUtil;
 const { isVideo, isCompress, isImage, isMusic } = util;
-const sortUtil = require("../common/sortUtil");
+// const sortUtil = require("../common/sortUtil");
 const AdminUtil = require("./AdminUtil");
 import Swal from 'sweetalert2';
 
@@ -630,7 +630,20 @@ export default class ExplorerPage extends Component {
         // 下方的sort都是stable sort。
         files = _.sortBy(files, e => {
             // 没有信息，排到前面来触发后端get thumbnail。获得信息
-            return  this.getMtime(e) || Infinity;
+            const mtime = this.getMtime(e);
+            const ttime = this.getTTime(e);
+
+            if(mtime && ttime){
+                const gap = Math.abs(mtime  - ttime);
+                const GAP_THRESHOLD = 180 * 24 * 3600 * 1000;
+                if(gap > GAP_THRESHOLD){
+                    return Math.min(mtime, ttime) || Infinity;
+                } else {
+                    return mtime || Infinity;
+                }
+            }else{
+                return mtime || ttime;
+            }
         });
 
         if (sortOrder === BY_RANDOM) {
