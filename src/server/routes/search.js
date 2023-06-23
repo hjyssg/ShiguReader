@@ -94,6 +94,7 @@ router.post("/api/findSimilarFile/:text", serverUtil.asyncWrapper(async (req, re
     foo(rawRows);
 
     result = _.sortBy(result, e=>e.score);
+    result.reverse();
     res.send(result);
   })
 );
