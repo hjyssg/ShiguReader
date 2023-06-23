@@ -53,19 +53,50 @@ const LIKELY_IN_PC = 70;
 const SAME_AUTHOR = 20;
 const TOTALLY_DIFFERENT = 0;
 
+function GM_xmlhttpRequest_promise(method, uri) {
+    //tamper monkey have bug
+    //timeout do not work
+    return new Promise((resolve, reject) => {
+        GM_xmlhttpRequest({
+            method: method,
+            url: uri,
+            responseType: "json",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            fetch: true,
+            onload: res => {
+                resolve(res);
+            },
+            onTimeout: () => {
+                resolve();
+            },
+            onerror: () => {
+                resolve();
+            }
+        });
+    })
+}
+
 async function checkIfDownload(text) {
     var status = 0;
     let similarTitles = [];
 
     try{
-        let api = `http://localhost:${production_port}/api/findSimilarFile/${text}`;
+        console.time("checkIfDownload" + text);
+        let api = `http://localhost:${production_port}/api/findSimilarFile/${encodeURIComponent(text)}`;
         let res = await GM_xmlhttpRequest_promise("POST", api);
-        const json = JSON.parse(res.responseText);
-    
-        similarTitles = json.map(e => e.fn);
-        status = json[0]?.score;
+        console.timeEnd("checkIfDownload" + text);
+        const data = res.response;
+        similarTitles = data.map(e => e.fn);
+        status = data[0]?.score || 0;
     }catch(e){
         console.error(e);
+    }finally {
+        // console.table({
+        //     status,
+        //     similarTitles
+        // });
     }
 
     return {
@@ -75,13 +106,7 @@ async function checkIfDownload(text) {
 }
 
 
-
 //--------------------------------------------------------------
-function getCurrentTime() {
-    return new Date().getTime();
-}
-
-const begTime = getCurrentTime();
 let is_list_page = false;
 
 async function highlightEhentaiThumbnail() {
@@ -104,7 +129,7 @@ async function highlightEhentaiThumbnail() {
             if (text.includes("翻訳") || text.includes("翻译")) {
                 return;
             }
-            const r = parse(text);
+            const rr = parse(text);
             const { status, similarTitles } = await checkIfDownload(text);
             e.status = status || 0;
             if (status === IS_IN_PC) {
@@ -115,27 +140,25 @@ async function highlightEhentaiThumbnail() {
                 addTooltip(thumbnailNode, "电脑里面好像有", similarTitles)
             } else if (status === SAME_AUTHOR) {
                 subNode.style.color = "#ef8787";
-                const fns = getByAuthor(r.author).map(e => e.fileName);
-                addTooltip(thumbnailNode, `下载同样作者“${r.author}”的书 ${fns.length}次`, fns, "same_author")
+                const fns = similarTitles; 
+                addTooltip(thumbnailNode, `下载同样作者“${rr.author}”的书 ${fns.length}次`, fns, "same_author")
             }
 
             if (status) {
-                if (r) {
-                    appendLink(e, r.author);
+                if (rr) {
+                    appendLink(e, rr.author);
                     if (status >= LIKELY_IN_PC) {
-                        appendLink(e, r.title);
+                        appendLink(e, rr.title);
                     }
                 } else {
                     appendLink(e, text);
                 }
-
                 subNode.style.fontWeight = 600;
             }
         } catch (e) {
             console.error(e);
         }
     };
-
     console.timeEnd("check_all_dom");
 }
 
@@ -151,12 +174,8 @@ async function highlightNyaa(){
         const node = nodes[ii];
         try {
             const text = node.textContent;
-            // node.status = 0;
-            const rr = parse(text);
             const { status, similarTitles } = await checkIfDownload(text);
-            // node.status = status || 0;
             if (status === IS_IN_PC) {
-                // node.style.color = "#61ef47";
                 node.style.textDecoration = "line-through";
                 node.style.textDecorationColor = "green";
                 node.title = "明确已经下载过了";
@@ -165,29 +184,15 @@ async function highlightNyaa(){
                 addTooltip(node, "电脑里面好像有", similarTitles)
             } else if (status === SAME_AUTHOR) {
                 node.style.color = "#ef8787";
-                const fns = getByAuthor(rr.author).map(e => e.fileName);
+                const rr = parse(text);
+                const fns = similarTitles; 
                 addTooltip(node, `下载同样作者“${rr.author}”的书 ${fns.length}次`, fns, "same_author")
             }
-
-            // if (status) {
-            //     if (r) {
-            //         appendLink(e, r.author);
-            //         if (status >= LIKELY_IN_PC) {
-            //             appendLink(e, r.title);
-            //         }
-            //     } else {
-            //         appendLink(e, text);
-            //     }
-
-            //     subNode.style.fontWeight = 600;
-            // }
         } catch (e) {
             console.error(e);
         }
     };
-
     console.timeEnd("check_all_dom");
-
 }
 
 function addTooltip(node, title, books, same_author) {
@@ -220,31 +225,10 @@ function appendLink(fileTitleDom, text, asIcon) {
     fileTitleDom.append(link);
     link.target = "_blank"
     link.className = "shigureader_link";
-    link.href = "http://localhost:3000/search/?s=" + text;
+    link.href = `http://localhost:${production_port}/search/?s=${text}`;
 }
 
 
-
-
-function GM_xmlhttpRequest_promise(method, api) {
-    //tamper monkey have bug
-    //timeout do not work
-    return new Promise((resolve, reject) => {
-        GM_xmlhttpRequest({
-            method: method,
-            url: api,
-            onload: res => {
-                resolve(res);
-            },
-            onTimeout: () => {
-                resolve();
-            },
-            onerror: () => {
-                resolve();
-            }
-        });
-    })
-}
 
 function addSearchLinkForEhentai() {
     //add shigureader search link
@@ -277,7 +261,6 @@ function addSearchLinkForEhentai() {
 function popMessage(text){
     if(is_list_page){
         Swal.fire({
-            // title: 'EhentaiHighighliger',
             html: text,
             timer: 1000,
             backdrop:false,
@@ -343,16 +326,12 @@ async function main() {
         addSearchLinkForEhentai();
     }
 
-    console.time("------------ONE PAGE")
     if(IS_EHENTAI){
         await highlightEhentaiThumbnail();
     }else if (IS_NYAA){
         await highlightNyaa();
     }
-    console.timeEnd("------------ONE PAGE")
     popMessage("成功载入");
-
 }
-
 
 main();
