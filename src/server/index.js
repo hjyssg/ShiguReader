@@ -809,6 +809,8 @@ const staticFileRouter = (req, res, next) => {
     }
 }
 
+const cors = require('cors');
+app.use(cors());
 
 // http://localhost:3000/explorer/
 // http://localhost:3000/onebook/
