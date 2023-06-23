@@ -78,21 +78,42 @@ function GM_xmlhttpRequest_promise(method, uri) {
     })
 }
 
+async function postData(method, url, data) {
+    data = data || {};
+    const header = {
+        method: method, 
+        // mode: "no-cors",
+        cache: "no-cache",
+        headers: {
+            //   "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data), 
+    };
+    const response = await fetch(url, header);
+    // const text =  await response.text();
+    // console.log(text)
+    if(response.type == "opaque"){
+        debugger
+    }
+    const json =  await response.json();
+    // console.log(json);
+    return json;
+}
+
 async function checkIfDownload(text) {
     var status = 0;
     let similarTitles = [];
 
     try{
-        console.time("checkIfDownload" + text);
         let api = `http://localhost:${production_port}/api/findSimilarFile/${encodeURIComponent(text)}`;
-        let res = await GM_xmlhttpRequest_promise("POST", api);
-        console.timeEnd("checkIfDownload" + text);
-        const data = res.response;
+        // let res = await GM_xmlhttpRequest_promise("POST", api);
+        let res = await postData("POST", api);
+        const data = res;
         similarTitles = data.map(e => e.fn);
         status = data[0]?.score || 0;
-    }catch(e){
+    } catch(e) {
         console.error(e);
-    }finally {
+    } finally {
         // console.table({
         //     status,
         //     similarTitles
