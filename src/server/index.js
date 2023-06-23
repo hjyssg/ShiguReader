@@ -69,7 +69,6 @@ mkdirSync(pathUtil.getZipOutputCachePath());
 
 const logger = require("./logger");
 logger.init();
-const { searchByTagAndAuthor } = require("./searchUtil");
 
 const sevenZipHelp = require("./sevenZipHelp");
 sevenZipHelp.init();
@@ -675,6 +674,9 @@ async function decorateResWithMeta(resObj) {
     //------------------- thumbnails
     const thumbnails = await getThumbnailsForZip(files);
     _.keys(thumbnails).forEach(filePath=> {
+        if(!fileInfos[filePath]){
+            return;
+        }
         const e = thumbnails[filePath];
         fileInfos[filePath].thumbnailFilePath = e;
     })
