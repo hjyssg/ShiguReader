@@ -1,6 +1,5 @@
 // ==UserScript==
 // @name        EhentaiLight配合Shigureader
-// @grant       GM_xmlhttpRequest
 // @grant       GM_addStyle
 // @grant       GM_getValue
 // @grant       GM_setValue
@@ -53,30 +52,6 @@ const LIKELY_IN_PC = 70;
 const SAME_AUTHOR = 20;
 const TOTALLY_DIFFERENT = 0;
 
-function GM_xmlhttpRequest_promise(method, uri) {
-    //tamper monkey have bug
-    //timeout do not work
-    return new Promise((resolve, reject) => {
-        GM_xmlhttpRequest({
-            method: method,
-            url: uri,
-            responseType: "json",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            fetch: true,
-            onload: res => {
-                resolve(res);
-            },
-            onTimeout: () => {
-                resolve();
-            },
-            onerror: () => {
-                resolve();
-            }
-        });
-    })
-}
 
 async function postData(method, url, data) {
     data = data || {};
