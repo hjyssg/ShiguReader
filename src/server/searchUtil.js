@@ -14,7 +14,7 @@ function isEqual(a, b) {
     return a.toLowerCase() === b.toLowerCase();
 }
 
-function splitRows(rows, text) {
+function splitRows(rows) {
     let zipResult = [];
     let dirResults = [];
     let imgFolders = {};
@@ -96,10 +96,20 @@ async function searchByText(text) {
     let rows = await db.doSmartAllSync(sql, ["%" + text + "%", "%" + text + "%"]);
     // console.timeEnd();
 
-    return splitRows(rows, text);
+    return splitRows(rows);
 }
 
-async function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
+async function _searchByTag_(tag){
+    // 严格匹配
+    const type = tag? "tag" : "author" ;
+    let sql = `SELECT a.* 
+        FROM file_table AS a INNER JOIN tag_table AS b 
+        ON a.filePath = b.filePath AND b.tag = ? AND b.type =?`;
+    let rows = await db.doSmartAllSync(sql, [tag, type]);
+    return splitRows(rows);
+}
+
+async function searchGenerally(tag, author, text, onlyNeedFew) {
     // let beg = getCurrentTime()
     let fileInfos = {};
 
@@ -121,16 +131,10 @@ async function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
     } else {
         const at_text = tag || author;
         if (at_text) {
-            // 严格匹配
-            const type = tag? "tag" : "author" ;
-            let sql = `SELECT a.* 
-                FROM file_table AS a INNER JOIN tag_table AS b 
-                ON a.filePath = b.filePath AND b.tag = ? AND b.type =?`;
-            let rows = await db.doSmartAllSync(sql, [at_text, type]);
-            const tag_obj = splitRows(rows, at_text);
-            zipResult = tag_obj.zipResult;
-            dirResults = tag_obj.dirResults;
-            imgFolders = tag_obj.imgFolders;
+            const temp = await _searchByTag_(at_text);
+            zipResult = temp.zipResult;
+            dirResults = temp.dirResults;
+            imgFolders = temp.imgFolders;
         }
     }
     fileInfos = serverUtil.convertFileRowsIntoFileInfo(zipResult);
@@ -182,6 +186,10 @@ async function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
     return result;
 }
 
-module.exports.searchByTagAndAuthor = searchByTagAndAuthor;
-module.exports.searchByText = searchByText;
+
+module.exports = {
+    searchGenerally,
+    searchByText,
+    _searchByTag_
+}
 
