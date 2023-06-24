@@ -1,0 +1,9 @@
+{
+  "dependencies": {
+    "execa": "^7.1.1",
+    "iconv-lite": "^0.6.3",
+    "jimp": "^0.22.8",
+    "sharp": "^0.32.1"
+  },
+  "type": "module"
+}

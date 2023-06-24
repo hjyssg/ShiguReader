@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>SQL.js 数据库示例</title>
+</head>
+<body>
+  <h1>SQL.js 数据库示例</h1>
+
+  <label>输入关键词：</label>
+  <input id="keyword" type="text" placeholder="请输入关键词">
+
+  <button class="search-button">搜索</button>
+
+  <table id="result">
+    <tr>
+      <th>Name</th>
+      <th>Number</th>
+    </tr>
+  </table>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.2.1/dist/sql-asm-debug.js"></script>
+  <script>
+
+    initSqlJs({}).then(function(SQL){
+
+
+
+    // 创建数据库对象
+    const db = new SQL.Database();
+
+    console.time("init")
+    // 创建表格并插入数据
+    db.run(`
+      CREATE TABLE test_table (
+        name TEXT,
+        number INT
+      )
+    `);
+
+    // for (let i = 1; i <= 10000; i++) {
+    //   db.run(`
+    //     INSERT INTO test_table (name, number)
+    //     VALUES ("Name ${i}", ${i})
+    //   `);
+    // }
+
+    let sql = 'INSERT INTO test_table (name, number) VALUES ';
+    for (let i = 1; i <= 10000; i++) {
+      sql += `("Name ${i}", ${i}),`;
+    }
+    sql = sql.slice(0, -1); // 去掉最后一个逗号
+
+    db.run(sql);
+
+
+    console.timeEnd("init")
+
+
+    // 处理查询事件
+    function search() {
+      let keyword = 11;
+
+      console.time("select----")
+      let temps =  db.exec(`SELECT * FROM test_table where name LIKE ?
+        order by number desc
+
+        `, [`%${keyword}%`]);
+      const data = temps[0].values;
+      console.timeEnd("select----")
+
+
+      keyword = document.getElementById('keyword').value;
+      const result = document.getElementById('result');
+
+      // 清空结果表格
+      result.innerHTML = `
+        <tr>
+          <th>Name</th>
+          <th>Number</th>
+        </tr>
+      `;
+
+      // // 查询匹配的数据
+      // const stmt = db.prepare(`
+      //   SELECT name, number
+      //   FROM test
+      //   WHERE name LIKE ?
+      //   ORDER BY number
+      // `);
+
+      // const data = stmt.all(`%${keyword}%`);
+
+      // 显示查询结果
+      data.forEach(row => {
+        const tr = document.createElement('tr');
+        const td1 = document.createElement('td');
+        const td2 = document.createElement('td');
+
+        td1.innerText = row[0] // row.name;
+        td2.innerText = row[1] // row.number;
+
+        tr.appendChild(td1);
+        tr.appendChild(td2);
+
+        result.appendChild(tr);
+      });
+    }
+
+
+    document.querySelector(".search-button").addEventListener("click", search);
+
+
+  });
+  </script>
+</body>
+</html>
