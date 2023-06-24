@@ -5,6 +5,8 @@ const execa = require('./own_execa');
 const pathUtil = require("./pathUtil");
 const logger = require("./logger");
 const { getCurrentTime } = util;
+const ImageCompressUtil = require("./ImageCompressUtil");
+
 
 /**
  * 用来生成长期储存的thumbnail
@@ -14,42 +16,15 @@ const { getCurrentTime } = util;
  * @returns 生成的thumbnail的filepath
  */
 async function thumbnailGenerator(thumbnailFolderPath, imgFolderPath, imgFileName) {
-    let outputFilePath = null;
+    // let beg = getCurrentTime();
+    const outputName = path.basename(imgFolderPath);
+    const tempOutputPath = path.resolve(thumbnailFolderPath, outputName) + ".webp";
+    const inputFilePath = path.resolve(imgFolderPath, imgFileName);
+    const outputFilePath = await ImageCompressUtil.doMinifyImage(inputFilePath, tempOutputPath, 250);
+    // let end1 = getCurrentTime();
+    // logger.info(`[thumbnailGenerator] ${(end1 - beg) }ms `);
+    return outputFilePath;
 
-    try {
-        if (util.canBeCompressed(imgFileName)) {
-            let beg = getCurrentTime();
-
-            const outputName = path.basename(imgFolderPath);
-            const tempOutputPath = path.resolve(thumbnailFolderPath, outputName) + ".webp";
-            const inputFilePath = path.resolve(imgFolderPath, imgFileName);
-
-            if (!(await pathUtil.isExist(inputFilePath))) {
-               throw `input file ${inputFilePath} missing`
-            }
-            
-            if (global.sharp) {
-                await global.sharp(inputFilePath).resize({ width:250 }).toFile(tempOutputPath);
-                outputFilePath = tempOutputPath;
-            }else  if (global._has_magick_) {
-                //https://imagemagick.org/Usage/resize/#shrink
-                // const opt = [inputFilePath, "-strip", "-resize", `280x354\>`, tempOutputPath];
-                const opt = [inputFilePath, "-thumbnail", "250x280\>", "-quality", "92",  tempOutputPath];
-                let { stdout, stderr } = await execa("magick", opt);
-                if (stderr) {
-                    throw stderr;
-                }
-                outputFilePath = tempOutputPath
-            }
-
-            let end1 = getCurrentTime();
-            logger.info(`[thumbnailGenerator] ${(end1 - beg) }ms `);
-        }
-    } catch (e) {
-        logger.error("[thumbnailGenerator] exception", e);
-    } finally {
-        return outputFilePath;
-    }
 }
 
 module.exports = thumbnailGenerator;
