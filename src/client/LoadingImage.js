@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import PropTypes from 'prop-types';
 import Sender from './Sender';
 const classNames = require('classnames');
 import "./style/LoadingImage.scss"
@@ -144,11 +143,3 @@ export default class LoadingImage extends Component {
     return content;
   }
 }
-
-LoadingImage.propTypes = {
-  fileName: PropTypes.string,
-  className: PropTypes.string,
-  mode: PropTypes.string,
-  url: PropTypes.string,   //predefined url, not request from this component,
-  onChange: PropTypes.func
-};
