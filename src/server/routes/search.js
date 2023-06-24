@@ -60,7 +60,7 @@ router.post("/api/findSimilarFile/:text", serverUtil.asyncWrapper(async (req, re
     if (parseResult) {
         // TODO 假设单作者
         if (parseResult.author) {
-            const temp = await _searchByTag_(parseResult.author);
+            const temp = await _searchByTag_(parseResult.author, "author");
             rawRows.push(...temp.zipResult);
         } else if (parseResult.title) {
             const middleTitle = extractMiddleChars(parseResult.title);

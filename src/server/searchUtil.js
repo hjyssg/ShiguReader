@@ -99,9 +99,8 @@ async function searchByText(text) {
     return splitRows(rows);
 }
 
-async function _searchByTag_(tag){
+async function _searchByTag_(tag, type){
     // 严格匹配
-    const type = tag? "tag" : "author" ;
     let sql = `SELECT a.* 
         FROM file_table AS a INNER JOIN tag_table AS b 
         ON a.filePath = b.filePath AND b.tag = ? AND b.type =?`;
@@ -131,7 +130,8 @@ async function searchGenerally(tag, author, text, onlyNeedFew) {
     } else {
         const at_text = tag || author;
         if (at_text) {
-            const temp = await _searchByTag_(at_text);
+            const type = tag? "tag" : "author" ;
+            const temp = await _searchByTag_(at_text, type);
             zipResult = temp.zipResult;
             dirResults = temp.dirResults;
             imgFolders = temp.imgFolders;
