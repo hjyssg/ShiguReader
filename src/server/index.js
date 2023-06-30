@@ -596,13 +596,9 @@ async function getThumbnailForFolders(filePathes) {
         const patterns = stringsToMatch.map(str => `${str}%`);
         const placeholders = patterns.map(() => 'filePath LIKE ?').join(' OR ');
         const sql = `
-            SELECT t1.* FROM thumbnail_table t1
-            INNER JOIN (
-            SELECT filePath, MAX(ROWID) AS max_rowid 
+            SELECT *
             FROM thumbnail_table
-            WHERE ${placeholders}
-            GROUP BY filePath
-            ) t2 ON t1.filePath = t2.filePath AND t1.ROWID = t2.max_rowid
+            WHERE ${placeholders} ORDER BY ROWID DESC
         `;
         const thumbnailRows = await db.doAllSync(sql, patterns);
         let notFoundList = [];
@@ -621,14 +617,10 @@ async function getThumbnailForFolders(filePathes) {
             const patterns = stringsToMatch.map(str => `${str}%`);
             const placeholders = patterns.map(() => 'filePath LIKE ?').join(' OR ');
             const sql = `
-            SELECT t1.* FROM file_table t1
-            INNER JOIN (
-               SELECT filePath, MIN(ROWID) AS min_rowid 
+               SELECT *
                FROM file_table
                WHERE isImage=1 AND (${placeholders})
-               GROUP BY filePath
-            ) t2 ON t1.filePath = t2.filePath AND t1.ROWID = t2.min_rowid
-            ORDER BY t1.filePath `;
+               ORDER BY mTime DESC`;
             let imagerows = await db.doAllSync(sql, patterns);
             notFoundList.forEach(filePath => {
                 const findRow = findOne(imagerows, filePath);
