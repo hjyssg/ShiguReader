@@ -39,11 +39,11 @@ router.post("/api/search", serverUtil.asyncWrapper(async (req, res) => {
 router.post("/api/simple_search/:text", serverUtil.asyncWrapper(async (req, res) => {
     const text = req.params.text;
     const temp = await searchByText(text);
-    const zipResult = temp.zipResult;
+    const { explorerfileResult } = temp;
 
     const fn = (filePath) => path.basename(filePath, path.extname(filePath));
 
-    res.send(zipResult.map((e) => fn(e.fileName)));
+    res.send(explorerfileResult.map((e) => fn(e.fileName)));
   })
 );
 
@@ -61,18 +61,18 @@ router.post("/api/findSimilarFile/:text", serverUtil.asyncWrapper(async (req, re
         // TODO 假设单作者
         if (parseResult.author) {
             const temp = await _searchByTag_(parseResult.author, "author");
-            rawRows.push(...temp.zipResult);
+            rawRows.push(...temp.explorerfileResult);
         } else if (parseResult.title) {
             const middleTitle = extractMiddleChars(parseResult.title);
             const temp = await searchByText(middleTitle);
-            rawRows.push(...temp.zipResult);
+            rawRows.push(...temp.explorerfileResult);
         } 
     }
     
     if(rawRows.length == 0){
         const middleTitle = extractMiddleChars(text);
         const temp = await searchByText(middleTitle);
-        rawRows.push(...temp.zipResult);
+        rawRows.push(...temp.explorerfileResult);
     }
 
     let result = [];

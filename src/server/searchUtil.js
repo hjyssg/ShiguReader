@@ -15,7 +15,7 @@ function isEqual(a, b) {
 }
 
 function splitRows(rows) {
-    let zipResult = [];
+    let explorerfileResult = [];
     let dirResults = [];
     let imgFolders = {};
     // const textInLowerCase = text.toLowerCase();
@@ -29,7 +29,7 @@ function splitRows(rows) {
         // const byFn = row.fileName.toLowerCase().includes(textInLowerCase);
 
         if (row.isDisplayableInExplorer) {
-            zipResult.push(row);
+            explorerfileResult.push(row);
         } else if (row.isDisplayableInOnebook) {
             imgFolders[dirPath] = imgFolders[dirPath] || [];
             imgFolders[dirPath].push(row);
@@ -43,7 +43,7 @@ function splitRows(rows) {
     dirResults = _.unique(dirResults);
 
     return {
-        zipResult,
+        explorerfileResult,
         dirResults,
         imgFolders
     }
@@ -118,27 +118,20 @@ async function searchGenerally(tag, author, text, onlyNeedFew) {
         searchEveryPromise =  searchOnEverything(all_text);
     }
 
-    let zipResult;
-    let dirResults;
-    let imgFolders;
+    let explorerfileResult, dirResults, imgFolders;
 
     if(text){
         const temp = await searchByText(text);
-        zipResult = temp.zipResult;
-        dirResults = temp.dirResults;
-        imgFolders = temp.imgFolders;
+        ({explorerfileResult, dirResults, imgFolders} = temp);
     } else {
         const at_text = tag || author;
         if (at_text) {
             const type = tag? "tag" : "author" ;
             const temp = await _searchByTag_(at_text, type);
-            zipResult = temp.zipResult;
-            dirResults = temp.dirResults;
-            imgFolders = temp.imgFolders;
+            ({explorerfileResult, dirResults, imgFolders} = temp);
         }
     }
-    fileInfos = serverUtil.convertFileRowsIntoFileInfo(zipResult);
-
+    fileInfos = serverUtil.convertFileRowsIntoFileInfo(explorerfileResult);
 
     // filter everything search result
     if(!onlyNeedFew){
