@@ -36,6 +36,7 @@ import { GlobalContext } from './globalContext'
 const ClientConstant = require("./ClientConstant");
 const { BY_FILE_NUMBER,
     BY_TIME,
+    BY_MTIME,
     BY_LAST_READ_TIME,
     BY_READ_COUNT,
     BY_FILE_SIZE,
@@ -666,6 +667,12 @@ export default class ExplorerPage extends Component {
             });
         } else if (sortOrder === BY_TIME) {
             // pass
+        } else if (sortOrder === BY_MTIME) {
+            //只看mtime
+            files = _.sortBy(files, e => {
+                const mtime = this.getMtime(e);
+                return mtime || Infinity;
+            });
         } else if (sortOrder === BY_LAST_READ_TIME) {
             files = _.sortBy(files, e => {
                 return this.getLastReadTime(e);
