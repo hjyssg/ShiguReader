@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import PropTypes from 'prop-types';
 import './style/ErrorPage.scss';
 import LoginPage from "./LoginPage";
 const _ = require("underscore");
@@ -44,7 +43,3 @@ export default class ErrorPage extends Component {
     }
 }
 
-ErrorPage.propTypes = {
-    res: PropTypes.object,
-    userText: PropTypes.string
-};

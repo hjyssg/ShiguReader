@@ -625,7 +625,3 @@ export default class ChartPage extends Component {
     }
   }
 }
-
-ChartPage.propTypes = {
-  res: PropTypes.object,
-};

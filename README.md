@@ -1,5 +1,6 @@
 
-<h1 align="center">ShiguReader</h1>
+<h1 align="center"><img src="public/favicon-96x96.png" alt="icon" width="90"/>ShiguReader</h1>
+
 
 [<img src="https://img.shields.io/github/v/release/hjyssg/ShiguReader?label=latest%20release">](https://github.com/hjyssg/ShiguReader/releases)
 

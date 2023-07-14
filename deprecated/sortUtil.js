@@ -1,3 +1,5 @@
+// [deprecated]前后端都不需要了
+
 const nameParser = require('../name-parser');
 const _ = require('underscore');
 

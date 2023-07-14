@@ -2,7 +2,6 @@
 import React, { Component } from 'react';
 import _ from "underscore";
 import './style/Explorer.scss';
-import PropTypes from 'prop-types';
 import LoadingImage from './LoadingImage';
 import Sender from './Sender';
 import { Link } from 'react-router-dom';
@@ -18,6 +17,7 @@ import ItemsContainer from './subcomponent/ItemsContainer';
 import SortHeader from './subcomponent/SortHeader';
 import Breadcrumb from './subcomponent/Breadcrumb';
 import FileCellTitle from './subcomponent/FileCellTitle';
+import ClickAndCopyDiv from './subcomponent/ClickAndCopyDiv';
 import Checkbox from './subcomponent/Checkbox';
 import ThumbnailPopup from './subcomponent/ThumbnailPopup';
 import { getFileUrl } from './clientUtil';
@@ -27,7 +27,7 @@ const Constant = require("@common/constant");
 const clientUtil = require("./clientUtil");
 const { getDir, getBaseName, getPerPageItemNumber, isSearchInputTextTyping, filesizeUitl, sortFileNames } = clientUtil;
 const { isVideo, isCompress, isImage, isMusic } = util;
-const sortUtil = require("../common/sortUtil");
+// const sortUtil = require("../common/sortUtil");
 const AdminUtil = require("./AdminUtil");
 import Swal from 'sweetalert2';
 
@@ -36,6 +36,7 @@ import { GlobalContext } from './globalContext'
 const ClientConstant = require("./ClientConstant");
 const { BY_FILE_NUMBER,
     BY_TIME,
+    BY_MTIME,
     BY_LAST_READ_TIME,
     BY_READ_COUNT,
     BY_FILE_SIZE,
@@ -275,9 +276,9 @@ export default class ExplorerPage extends Component {
         this.tag = "";
         this.author = "";
         this.fileInfos = {};
-        this.thumbnails = {};
         this.imgFolderInfo = {};
         this.res = null;
+        this.dirThumbnailMap = {};
     }
 
     componentDidUpdate(prevProps, prevState) {
@@ -314,14 +315,22 @@ export default class ExplorerPage extends Component {
                 tag="", 
                 author="", 
                 fileInfos={}, 
-                thumbnails={},
-                zipInfo={}, 
                 imgFolderInfo={}, 
-                fileHistory,
+                fileHistory=[],
                 nameParseCache={}
             } = res.json;
-            nameParser.setLocalCache(nameParseCache);
 
+            // 马上叫server准备下一个信息
+            Sender.get('/api/getGoodAuthorNames', res => {
+                if (!res.isFailed()) {
+                    this.setState({
+                        authorInfo: res.json.authorInfo,
+                        tagInfo: res.json.tagInfo
+                    })
+                }
+            });
+
+            nameParser.setLocalCache(nameParseCache);
             this.loadedHash = this.getTextFromQuery();
             this.mode = mode;
             this.fileInfos = fileInfos;
@@ -335,13 +344,14 @@ export default class ExplorerPage extends Component {
             sortFileNames(this.imageFiles)
 
             this.dirs = dirs;
+            this.dirs.sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+
             this.tag = tag;
             this.author = author;
-            this.thumbnails = thumbnails;
-            this.zipInfo = zipInfo;
             this.imgFolderInfo = imgFolderInfo;
             this.res = res;
             this.allfileInfos = _.extend({}, this.fileInfos, this.imgFolderInfo);
+            this.decorate_allfileInfos();
 
             this.fileNameToHistory = {};
             fileHistory.forEach(row => {
@@ -365,15 +375,6 @@ export default class ExplorerPage extends Component {
                 this.askRerender();
             }
 
-            Sender.get('/api/getGoodAuthorNames', res => {
-                if (!res.isFailed()) {
-                    this.setState({
-                        authorInfo: res.json.authorInfo,
-                        tagInfo: res.json.tagInfo
-                    })
-                }
-            });
-
             this.hasCalled_getThumbnailForFolders = false;
             if(this.state.showFolderThumbnail){
                 this.requestThumbnailForFolder();
@@ -382,6 +383,42 @@ export default class ExplorerPage extends Component {
             this.res = res;
             this.askRerender();
         }
+    }
+
+    decorate_allfileInfos(){
+        // this.allfileInfos
+        for(const fp in this.allfileInfos){
+            if(!this.allfileInfos.hasOwnProperty(fp)){
+                continue;
+            }
+
+            const info = this.allfileInfos[fp];
+            info.size = _parseInt(info.size) || 0;
+            info.mtimeMs = _parseInt(info.mtimeMs) || 0;
+
+            info.musicNum = _parseInt(info.musicNum) || 0;
+            info.videoNum = _parseInt(info.videoNum) || 0;
+            info.pageNum = _parseInt(info.pageNum) || 0;
+
+            info.totalImgSize = _parseInt(info.totalImgSize) || 0;
+            info.pageAvgSize = this.calculateAvgPageSize(fp) || 0;
+        }
+    }
+
+    calculateAvgPageSize(fp){
+        //may not be reliable
+        const pageNum = this.getPageNum(fp);
+        if (pageNum === 0) {
+            return 0;
+        }
+
+        let total;
+        if (this.getFileSize(fp) === 0) {
+            total = this.getTotalImgSize(fp);
+        } else {
+            total = Math.min(this.getFileSize(fp), this.getTotalImgSize(fp))
+        }
+        return total / pageNum;
     }
 
     handleKeyDown(event) {
@@ -403,18 +440,11 @@ export default class ExplorerPage extends Component {
         }
     }
 
-    //comes from file db.
-    //may not be reliable
-    getFileSize(e) {
-        const temp = this.imgFolderInfo[e] || this.fileInfos[e];
-        return (temp && temp.size) || 0;
-    }
-
     hasFileSize(e) {
         return !!this.getFileSize(e);
     }
 
-    getAllFileSize(files) {
+    countAllFileSize(files) {
         let totalSize = 0;
         files.forEach(e => {
             totalSize += this.getFileSize(e);
@@ -422,14 +452,7 @@ export default class ExplorerPage extends Component {
         return totalSize;
     }
 
-    getPageNum(fp) {
-        if (this.isImgFolder(fp)) {
-            return this.imgFolderInfo[fp]?.pageNum || 0;
-        }
-        return +(this.zipInfo[fp] && this.zipInfo[fp].pageNum) || 0;
-    }
-
-    getAllFilePageNum(filteredFiles) {
+    countAllFilePageNum(filteredFiles) {
         let count = 0;
         filteredFiles.forEach(e => {
             count += this.getPageNum(e);
@@ -437,53 +460,53 @@ export default class ExplorerPage extends Component {
         return count;
     }
 
-    hasZipInfo(fp) {
-        return !!this.zipInfo[fp];
+    getFileSize(fp) {
+        return this.allfileInfos[fp]?.size || 0;
     }
 
-    //comes from zipInfo libray, may not be reliable
-    //because sometimes, filename dont chane but the size change 
+    getPageNum(fp) {
+        return this.allfileInfos[fp]?.pageNum || 0;
+    }
+
     getTotalImgSize(fp) {
-        if (this.isImgFolder(fp)) {
-            return (this.imgFolderInfo[fp]?.totalImgSize) || 0;
-        }
-        return +(this.zipInfo[fp] && this.zipInfo[fp].totalImgSize) || 0;
+        return this.allfileInfos[fp]?.totalImgSize || 0;
     }
 
     //may not be reliable
-    getPageAvgSize(e) {
-        const pageNum = this.getPageNum(e);
-        if (pageNum === 0) {
-            //one for display
-            //one for sort 
-            return 0;
-        }
-
-        //choose the min
-        //but can not be 0
-        let total;
-
-        if (this.getFileSize(e) === 0) {
-            total = this.getTotalImgSize(e);
-        } else {
-            total = Math.min(this.getFileSize(e), this.getTotalImgSize(e))
-        }
-
-        return total / pageNum;
+    getPageAvgSize(fp) {
+        return this.allfileInfos[fp]?.pageAvgSize || 0;
     }
 
     getMusicNum(fp) {
-        if (this.isImgFolder(fp)) {
-            return this.imgFolderInfo[fp]?.musicNum || 0;
-        }
-        return +(this.zipInfo[fp] && this.zipInfo[fp].musicNum) || 0;
+        return this.allfileInfos[fp]?.musicNum || 0;
     }
 
     getVideoNum(fp) {
-        if (this.isImgFolder(fp)) {
-            return (this.imgFolderInfo[fp]?.videoNum) || 0;
-        }
-        return +(this.zipInfo[fp] && this.zipInfo[fp].videoNum) || 0;
+        return this.allfileInfos[fp]?.videoNum || 0;
+    }
+
+    getMtime(fp){
+        return this.allfileInfos[fp]?.mtimeMs || 0;
+    }
+
+    /** get tag time */
+    getTTime(fp){
+        const fn = getBaseName(fp);
+        let tTime = nameParser.getDateFromParse(fn);
+        tTime = tTime && tTime.getTime();
+        return tTime || 0;
+    }
+
+    getReadCount(fp){
+        const fn = getBaseName(fp);
+        const count = _parseInt(this.fileNameToHistory[fn]?.count);
+        return count || 0;
+    }
+
+    getLastReadTime(fp){
+        const fn = getBaseName(fp);
+        const rTime = _parseInt(this.fileNameToHistory[fn]?.time);
+        return rTime || 0;
     }
     
     getFilteredFiles() {
@@ -548,16 +571,15 @@ export default class ExplorerPage extends Component {
             });
         }
 
-        if (userConfig.filter_empty_zip) {
-            files = files.filter(e => {
-                if (this.hasZipInfo(e)) {
-                    if (this.getMusicNum(e) === 0 && this.getPageNum(e) === 0 && this.getVideoNum(e) === 0) {
-                        return false;
-                    }
-                }
-                return true;
-            });
-        }
+        // 没有zip信息会被误会为没有，拿掉。
+        // if (userConfig.filter_empty_zip) {
+        //     files = files.filter(e => {
+        //         if (this.getMusicNum(e) === 0 && this.getPageNum(e) === 0 && this.getVideoNum(e) === 0) {
+        //             return false;
+        //         }
+        //         return true;
+        //     });
+        // }
         return files;
     }
 
@@ -609,10 +631,23 @@ export default class ExplorerPage extends Component {
         // 下方的sort都是stable sort。
         files = _.sortBy(files, e => {
             // 没有信息，排到前面来触发后端get thumbnail。获得信息
-            return  this.getMtime(e) || Infinity;
+            const mtime = this.getMtime(e);
+            const ttime = this.getTTime(e);
+
+            if(mtime && ttime){
+                const gap = Math.abs(mtime  - ttime);
+                const GAP_THRESHOLD = 180 * 24 * 3600 * 1000;
+                if(gap > GAP_THRESHOLD){
+                    return Math.min(mtime, ttime) || Infinity;
+                } else {
+                    return mtime || Infinity;
+                }
+            }else{
+                return mtime || ttime;
+            }
         });
 
-        if (sortOrder.includes(BY_RANDOM)) {
+        if (sortOrder === BY_RANDOM) {
             files = _.shuffle(files);
         } else if (sortOrder === BY_FILENAME) {
             files.sort((a, b) => {
@@ -632,6 +667,12 @@ export default class ExplorerPage extends Component {
             });
         } else if (sortOrder === BY_TIME) {
             // pass
+        } else if (sortOrder === BY_MTIME) {
+            //只看mtime
+            files = _.sortBy(files, e => {
+                const mtime = this.getMtime(e);
+                return mtime || Infinity;
+            });
         } else if (sortOrder === BY_LAST_READ_TIME) {
             files = _.sortBy(files, e => {
                 return this.getLastReadTime(e);
@@ -659,31 +700,6 @@ export default class ExplorerPage extends Component {
         }
 
         return files;
-    }
-
-    getMtime(fp){
-        const mTime = this.allfileInfos && this.allfileInfos[fp] && _parseInt(this.allfileInfos[fp].mtimeMs);
-        return mTime || 0;
-    }
-
-    /** get tag time */
-    getTTime(fp){
-        const fn = getBaseName(fp);
-        let tTime = nameParser.getDateFromParse(fn);
-        tTime = tTime && tTime.getTime();
-        return tTime || 0;
-    }
-
-    getReadCount(fp){
-        const fn = getBaseName(fp);
-        const count = this.fileNameToHistory && this.fileNameToHistory[fn] && _parseInt(this.fileNameToHistory[fn].count);
-        return count || 0;
-    }
-
-    getLastReadTime(fp){
-        const fn = getBaseName(fp);
-        const rTime = this.fileNameToHistory && this.fileNameToHistory[fn] && _parseInt(this.fileNameToHistory[fn].time);
-        return rTime || 0;
     }
 
     getOneLineListItem(icon, fileName, filePath, title) {
@@ -764,12 +780,10 @@ export default class ExplorerPage extends Component {
             const tp = this.imgFolderInfo[fp].thumbnail;
             thumbnailurl = getFileUrl(tp, true);
         } else {
-            thumbnailurl = getFileUrl(this.thumbnails[fp], true);
+            thumbnailurl = getFileUrl(this.allfileInfos[fp].thumbnailFilePath, true);
         }
         return thumbnailurl;
     }
-    
-    
 
     renderSingleZipItem(fp) {
         const text = getBaseName(fp);
@@ -778,7 +792,7 @@ export default class ExplorerPage extends Component {
         const fileSize = this.hasFileSize(fp) && this.getFileSize(fp);
         const fileSizeStr = fileSize && filesizeUitl(fileSize);
 
-        const avgSize = (this.hasFileSize(fp) || this.getTotalImgSize(fp)) && this.getPageAvgSize(fp);
+        const avgSize = this.getPageAvgSize(fp);
         const avgSizeStr = avgSize > 0 && filesizeUitl(avgSize);
 
         let zipItem;
@@ -793,7 +807,6 @@ export default class ExplorerPage extends Component {
             </Link>)
         } else {
 
-            const hasZipInfo = this.hasZipInfo(fp);
             const musicNum = this.getMusicNum(fp);
             const isImgFolder = this.isImgFolder(fp);
             const hasMusic = musicNum > 0;
@@ -816,7 +829,9 @@ export default class ExplorerPage extends Component {
                 url={thumbnailurl}
                 musicNum={musicNum}
                 onReceiveUrl={url => {
-                    this.thumbnails[fp] = url;
+                    // TODO
+                    // this.thumbnails[fp] = url;
+                    // this.allfileInfos[fp].thumbnailFilePath = url;
                 }}
             />;
 
@@ -833,7 +848,7 @@ export default class ExplorerPage extends Component {
                         </Link>
                         <div className={fileInfoRowCn}>
                             {fileSizeStr && <span title="file size">{fileSizeStr}</span>}
-                            {(hasZipInfo || isImgFolder) && <span>{`${pageNum} pages`}</span>}
+                            <span>{`${pageNum} pages`}</span>
                             {hasMusic && <span>{`${musicNum} songs`}</span>}
                             {avgSizeStr && <span title="average img size"> {avgSizeStr} </span>}
                         </div>
@@ -852,9 +867,7 @@ export default class ExplorerPage extends Component {
         let videos = filteredVideos;
         let files = filteredFiles;
 
-        dirs.sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
-       
-
+        
         try {
             files = this.sortFiles(files, sortOrder, isSortAsc);
         } catch (e) {
@@ -882,7 +895,9 @@ export default class ExplorerPage extends Component {
             dirItems = dirs.map((item) => {
                 const toUrl = clientUtil.getExplorerLink(item);
                 const text = getBaseName(item);
-                let thumbnailurl = getFileUrl(this.thumbnails[item]);
+
+                // TODO
+                let thumbnailurl = getFileUrl(this.dirThumbnailMap[item]);
                 const thumbnailCn = classNames("file-cell-thumbnail", "as-folder-thumbnail");
 
                 let imgDiv = <LoadingImage
@@ -925,7 +940,7 @@ export default class ExplorerPage extends Component {
         });
 
         const imageItems = this.imageFiles.map((item, ii) => {
-            const toUrl = clientUtil.getOneBookLink(getDir(item), ii);
+            const toUrl = clientUtil.getOneBookLink(getDir(item));
             const text = getBaseName(item);
             const result = this.getOneLineListItem(<i className="fas fa-images"></i>, text, item);
             return <Link target="_blank" to={toUrl} key={item}>{result}</Link>;
@@ -1078,9 +1093,10 @@ export default class ExplorerPage extends Component {
     }
 
     async requestThumbnailForFolder(){
+        // TODO
         Sender.post("/api/getThumbnailForFolders", { dirs: this.dirs }, res => {
             if (!res.isFailed()) {
-                this.thumbnails =  _.extend(this.thumbnails, res.json.dirThumbnails);
+                this.dirThumbnailMap =  res.json.dirThumbnails;
                 this.hasCalled_getThumbnailForFolders = true;
                 this.askRerender();
             }
@@ -1177,11 +1193,11 @@ export default class ExplorerPage extends Component {
     }
 
     renderFileCount(filteredFiles, filteredVideos) {
-        const totalZipSize = this.getAllFileSize(filteredFiles);
-        const totalVideoSize = this.getAllFileSize(filteredVideos);
+        const totalZipSize = this.countAllFileSize(filteredFiles);
+        const totalVideoSize = this.countAllFileSize(filteredVideos);
         const totalSize = totalZipSize + totalVideoSize;
         const title = `${filesizeUitl(totalZipSize)} zips and ${filesizeUitl(totalVideoSize)} videos`
-        const totalPageNum = this.getAllFilePageNum(filteredFiles);
+        const totalPageNum = this.countAllFilePageNum(filteredFiles);
         return (
             <div className="row">
                 <div className="col-12 file-count-row">
@@ -1291,6 +1307,7 @@ export default class ExplorerPage extends Component {
 
             return (<center className={"location-title"}>
                 <a className="explorer-external-link" target="_blank" href={link} title={title}>{this.getTitle()} </a>
+                <ClickAndCopyDiv text={searchable} />
             </center>);
         }
     }
@@ -1517,7 +1534,7 @@ export default class ExplorerPage extends Component {
         this.setWebTitle();
         // this.time = this.time|| 1;
         // console.log(this.time);
-        this.time++;
+        // this.time++;
 
         if (this.isFailedLoading()) {
             return <ErrorPage res={this.res} />;
@@ -1538,14 +1555,5 @@ export default class ExplorerPage extends Component {
         );
     }
 }
-
-ExplorerPage.propTypes = {
-    dirs: PropTypes.array,
-    files: PropTypes.array,
-    openBookFunc: PropTypes.func,
-    openDirFunc: PropTypes.func,
-    filterText: PropTypes.string
-};
-
 
 ExplorerPage.contextType = GlobalContext;
