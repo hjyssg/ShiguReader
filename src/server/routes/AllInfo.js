@@ -11,22 +11,28 @@ const path = require("path");
 const _ = require("underscore");
 
 async function add_col(rows){
-    const thumbnails = await serverUtil.common.getThumbnailsForZip(rows.map(e => e.filePath))
     for (let ii = 0; ii < rows.length; ii++) {
         const row = rows[ii];
-        row.thumbnail = thumbnails[row.filePath];
+        row.thumbnail =  serverUtil.joinThumbnailFolderPath(row.thumbnailFileName);
     }
 }
 
 function getSql(tableName){
     // 只管zip文件，image folder太麻烦，不管了。  
     // 每个tag，统计数量。已经找到最新的一本zip，之后用来找thumbnail。
-    return `SELECT a.filePath, MAX(a.mTime) AS maxTime, b.tag, COUNT(b.tag) AS count, b.type, b.subtype
-    FROM file_table a 
-    INNER JOIN ${tableName} b ON a.filePath = b.filePath 
-    GROUP BY b.tag 
-    HAVING a.mTime = maxTime AND count > 1 
-    ORDER BY count DESC;`
+    return ` 
+    
+    SELECT AA.*, BB.thumbnailFileName FROM 
+    (
+        SELECT a.filePath, MAX(a.mTime) AS maxTime, b.tag, COUNT(b.tag) AS count, b.type, b.subtype
+        FROM file_table a 
+        INNER JOIN ${tableName} b ON a.filePath = b.filePath 
+        GROUP BY b.tag 
+        HAVING a.mTime = maxTime AND count > 1 
+    ) AA
+    LEFT JOIN thumbnail_table BB 
+    ON AA.filePath = BB.filePath
+    `
 }
 
 router.post('/api/get_authors', serverUtil.asyncWrapper(async (req, res) => {

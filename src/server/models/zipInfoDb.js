@@ -18,7 +18,9 @@ module.exports.init = async (_sqldb)=> {
                             videoNum INTEGER,
                             totalNum INTEGER,
                             totalImgSize INTEGER,
-                            mtime INTEGER );
+                            mtime INTEGER,
+                            totalSize INTEGER
+                            );
                         `);
     await syncInternalDict()
 }
@@ -33,26 +35,28 @@ const updateZipDb = module.exports.updateZipDb = function (info) {
         filePath,
         totalImgSize,
         files,
-        mtime} = info;
+        mtime, 
+        totalSize
+    } = info;
 
     const pageNum = files.filter(isImage).length;
     const musicNum = files.filter(isMusic).length;
     const videoNum = files.filter(isVideo).length;
     const totalNum = files.length;
 
-    sqldb.insertOneRow("zip_table", {filePath, pageNum, musicNum, videoNum, totalNum, totalImgSize, mtime});
+    sqldb.insertOneRow("zip_table", {filePath, pageNum, musicNum, videoNum, totalNum, totalImgSize, mtime, totalSize});
     _internal_dict_[filePath] = {
-        filePath, pageNum, musicNum, videoNum, totalNum, totalImgSize, mtime
+        filePath, pageNum, musicNum, videoNum, totalNum, totalImgSize, mtime, totalSize
     };
 }
 
 
 module.exports.updateZipDb_v2 = function (info) {
-    const { filePath, pageNum, musicNum, videoNum, totalNum, totalImgSize, mtime} = info;
+    const { filePath, pageNum, musicNum, videoNum, totalNum, totalImgSize, mtime, totalSize} = info;
 
-    sqldb.insertOneRow("zip_table", {filePath, pageNum, musicNum, videoNum, totalNum, totalImgSize, mtime});
+    sqldb.insertOneRow("zip_table", {filePath, pageNum, musicNum, videoNum, totalNum, totalImgSize, mtime, totalSize});
     _internal_dict_[filePath] = {
-        filePath, pageNum, musicNum, videoNum, totalNum, totalImgSize, mtime
+        filePath, pageNum, musicNum, videoNum, totalNum, totalImgSize, mtime, totalSize
     };
 }
 
@@ -77,6 +81,6 @@ const getZipInfo =  module.exports.getZipInfo = function (filePathes) {
     filePathes = _.isString(filePathes) ? [filePathes] : filePathes;
     filePathes = filePathes.filter(isCompress);
 
-    let rows = filePathes.map(e => _internal_dict_[e]);
+    let rows = filePathes.map(e => _internal_dict_[e]).filter(e => !!e);
     return rows;
 }

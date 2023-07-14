@@ -20,7 +20,7 @@ router.get('/api/exhentaiApi', serverUtil.asyncWrapper(async (req, res) => {
 
         // 从thumbnail拿一点数据
         sql = `SELECT filePath FROM thumbnail_table ORDER BY ROWID DESC LIMIT  1000`;
-        let tempAllFiles2 = await thumbnailDb.doSmartAllSync(sql);
+        let tempAllFiles2 = await db.doSmartAllSync(sql);
         tempAllFiles2.forEach(row => {
             row.fileName = path.basename(row.filePath);
         })

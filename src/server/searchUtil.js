@@ -14,8 +14,8 @@ function isEqual(a, b) {
     return a.toLowerCase() === b.toLowerCase();
 }
 
-function splitRows(rows, text) {
-    let zipResult = [];
+function splitRows(rows) {
+    let explorerfileResult = [];
     let dirResults = [];
     let imgFolders = {};
     // const textInLowerCase = text.toLowerCase();
@@ -29,7 +29,7 @@ function splitRows(rows, text) {
         // const byFn = row.fileName.toLowerCase().includes(textInLowerCase);
 
         if (row.isDisplayableInExplorer) {
-            zipResult.push(row);
+            explorerfileResult.push(row);
         } else if (row.isDisplayableInOnebook) {
             imgFolders[dirPath] = imgFolders[dirPath] || [];
             imgFolders[dirPath].push(row);
@@ -43,7 +43,7 @@ function splitRows(rows, text) {
     dirResults = _.unique(dirResults);
 
     return {
-        zipResult,
+        explorerfileResult,
         dirResults,
         imgFolders
     }
@@ -96,10 +96,19 @@ async function searchByText(text) {
     let rows = await db.doSmartAllSync(sql, ["%" + text + "%", "%" + text + "%"]);
     // console.timeEnd();
 
-    return splitRows(rows, text);
+    return splitRows(rows);
 }
 
-async function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
+async function _searchByTag_(tag, type){
+    // 严格匹配
+    let sql = `SELECT a.* 
+        FROM file_table AS a INNER JOIN tag_table AS b 
+        ON a.filePath = b.filePath AND b.tag = ? AND b.type =?`;
+    let rows = await db.doSmartAllSync(sql, [tag, type]);
+    return splitRows(rows);
+}
+
+async function searchGenerally(tag, author, text, onlyNeedFew) {
     // let beg = getCurrentTime()
     let fileInfos = {};
 
@@ -109,32 +118,20 @@ async function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
         searchEveryPromise =  searchOnEverything(all_text);
     }
 
-    let zipResult;
-    let dirResults;
-    let imgFolders;
+    let explorerfileResult, dirResults, imgFolders;
 
     if(text){
         const temp = await searchByText(text);
-        zipResult = temp.zipResult;
-        dirResults = temp.dirResults;
-        imgFolders = temp.imgFolders;
+        ({explorerfileResult, dirResults, imgFolders} = temp);
     } else {
         const at_text = tag || author;
         if (at_text) {
-            // 严格匹配
             const type = tag? "tag" : "author" ;
-            let sql = `SELECT a.* 
-                FROM file_table AS a INNER JOIN tag_table AS b 
-                ON a.filePath = b.filePath AND b.tag = ? AND b.type =?`;
-            let rows = await db.doSmartAllSync(sql, [at_text, type]);
-            const tag_obj = splitRows(rows, at_text);
-            zipResult = tag_obj.zipResult;
-            dirResults = tag_obj.dirResults;
-            imgFolders = tag_obj.imgFolders;
+            const temp = await _searchByTag_(at_text, type);
+            ({explorerfileResult, dirResults, imgFolders} = temp);
         }
     }
-    fileInfos = serverUtil.convertFileRowsIntoFileInfo(zipResult);
-
+    fileInfos = serverUtil.convertFileRowsIntoFileInfo(explorerfileResult);
 
     // filter everything search result
     if(!onlyNeedFew){
@@ -182,6 +179,10 @@ async function searchByTagAndAuthor(tag, author, text, onlyNeedFew) {
     return result;
 }
 
-module.exports.searchByTagAndAuthor = searchByTagAndAuthor;
-module.exports.searchByText = searchByText;
+
+module.exports = {
+    searchGenerally,
+    searchByText,
+    _searchByTag_
+}
 

@@ -1,12 +1,11 @@
 const config = require("./jp-family-name");
 let family_names = config.family_names;
-let name_entris = config.name_entris;
-
-//https://stackoverflow.com/questions/5582574/how-to-check-if-a-string-contains-text-from-an-array-of-substrings-in-javascript
-const name_regex = new RegExp(name_entris.join("|"));
-
 const family_name_regex = new RegExp(family_names.join("|"));
 
+let av_tag_list = require("./av_tag_list");
+let cos_tag_list = require("./cos_tag_list");
+const name_entris = [...av_tag_list.map(e => e.tag), ...cos_tag_list.map(e => e.tag)];
+let name_regex = new RegExp(name_entris.join("|"));
 
 const localCache = {};
 function pick(str) {
@@ -36,7 +35,7 @@ function pick(str) {
             let familyName = tt.match(family_name_regex);
             if (familyName && familyName.index === 0) {
                 familyName.forEach(e => {
-                    //check the substring
+                    //check the substring 常见日文名至少4个字，少了不要
                     const firstName = tt.replace(familyName, "");
                     if (firstName.length < 4) {
                         result.push(tt);
@@ -45,6 +44,8 @@ function pick(str) {
             }
         }
     })
+
+    result = result.filter(e => e);
 
     if (result.length === 0) {
         localCache[str] = "NO_EXIST";
@@ -58,9 +59,6 @@ function pick(str) {
 const splitBySpace = module.exports.splitBySpace = function (str, sep) {
     sep = sep || /[ \.,\/#!$%\^&＆\*;:{}=\-_`~()\[\]\–-、｀～？！＠@、。／『』「」；’：・｜＝＋]/;
     const res = str.split(sep).filter(e => !!e);
-    if (res.length === 1) {
-        return [];
-    }
     return res;
 
 }

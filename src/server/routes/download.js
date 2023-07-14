@@ -13,6 +13,7 @@ const pathUtil = require("../pathUtil");
 const { isExist } = pathUtil;
 const logger = require("../logger");
 const memorycache = require('memory-cache');
+const ImageCompressUtil = require("../ImageCompressUtil");
 
 
 const THUMBNAIL_HUGE_THRESHOLD = 2 * 1000 * 1000;  //MB
@@ -22,21 +23,8 @@ const ONEBOOK_HUGE_THRESHOLD_LOCAL = 10 * 1000 * 1000;  // MB
 
 const doMinify = async (filePath, outputFn, height) => {
     const outputPath = path.resolve(global.cachePath, outputFn);
-    if (await isExist(outputPath)) {
-        return outputPath;
-    }
-
-    let result = filePath;
-    if(global.sharp){
-        await global.sharp(filePath).resize({ height: height }).toFile(outputPath);
-        result = outputPath;
-    }else if(global._has_magick_){
-        const opt = [filePath, "-thumbnail", `${height}x${height}\>`, "-quality", "92",  outputPath];
-        let { stdout, stderr } = await execa("magick", opt);
-        if (!stderr) {
-            result = outputPath;
-        }
-    }
+    let result = await ImageCompressUtil.doMinifyImage(filePath, outputPath, height);
+    result = result || filePath;
     return result;
 }
 

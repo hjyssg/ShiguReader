@@ -69,7 +69,6 @@ mkdirSync(pathUtil.getZipOutputCachePath());
 
 const logger = require("./logger");
 logger.init();
-const { searchByTagAndAuthor } = require("./searchUtil");
 
 const sevenZipHelp = require("./sevenZipHelp");
 sevenZipHelp.init();
@@ -556,10 +555,6 @@ async function getThumbnailsForZip(filePathes) {
         }
     });
 
-    if (isStringInput) {
-        return thumbnails[filePathes[0]]
-    }
-
     return thumbnails;
 }
 
@@ -578,6 +573,7 @@ async function getThumbnailForFolders(filePathes) {
     if(!filePathes || filePathes.length == 0){
         return result;
     }
+    // TODO 担心nextFilePathe很多的时候
 
     function findOne(rows, filePath){
         let findRow = null;
@@ -594,33 +590,42 @@ async function getThumbnailForFolders(filePathes) {
     try{
         let beg = getCurrentTime();
 
-        // let label = "getThumbnailForFolders" + filePathes.length;
-        // console.time(label);
         // 先尝试从thumbnail db拿
-        let thumbnailRows = await thumbnailDb.getThumbnailForFolders(filePathes);
-    
-        let nextFilePathes = [];
+        // Q ask chatgpt: write a sql query that if column 'file' contains one of string array
+        const stringsToMatch = filePathes; // string array of values
+        const patterns = stringsToMatch.map(str => `${str}%`);
+        const placeholders = patterns.map(() => 'filePath LIKE ?').join(' OR ');
+        const sql = `
+            SELECT *
+            FROM thumbnail_table
+            WHERE ${placeholders} ORDER BY ROWID DESC
+        `;
+        const thumbnailRows = await db.doAllSync(sql, patterns);
+        let notFoundList = [];
         filePathes.forEach(filePath => {
             const findRow = findOne(thumbnailRows, filePath);
             if (findRow) {
-                result[filePath] = findRow.thumbnailFilePath;
+                result[filePath] = serverUtil.joinThumbnailFolderPath(findRow.thumbnailFileName);
             }else{
-                nextFilePathes.push(filePath);
+                notFoundList.push(filePath);
             }
         })
         
 
-        if(nextFilePathes.length > 0){
-            //拿不到就看看有没有下属image
-            // TODO 担心nextFilePathe很多的时候
-            const stringsToMatch = nextFilePathes; // string array of values
+        if(notFoundList.length > 0){
+            const stringsToMatch = notFoundList; // string array of values
             const patterns = stringsToMatch.map(str => `${str}%`);
             const placeholders = patterns.map(() => 'filePath LIKE ?').join(' OR ');
-            const sql = `SELECT filePath FROM file_table WHERE isImage=true AND ${placeholders} `;
-            let imagerows = await db.doSmartAllSync(sql, patterns);
-            nextFilePathes.forEach(filePath => {
+            const sql = `
+               SELECT *
+               FROM file_table
+               WHERE isImage=1 AND (${placeholders})
+               ORDER BY mTime DESC`;
+            let imagerows = await db.doAllSync(sql, patterns);
+            notFoundList.forEach(filePath => {
                 const findRow = findOne(imagerows, filePath);
                 if (findRow) {
+                    console.assert(findRow.isImage);
                     result[filePath] = findRow.filePath;
                 }
             })
@@ -657,24 +662,45 @@ async function decorateResWithMeta(resObj) {
     console.assert(fileInfos && dirs && imgFolders);
 
     const files = _.keys(fileInfos);
+
+    //------------------- thumbnails
     const thumbnails = await getThumbnailsForZip(files);
-
-    const zipInfoRows = zipInfoDb.getZipInfo(files);
-    const zipInfo = {};
-    zipInfoRows.forEach(e => { 
-        if(e){
-            zipInfo[e.filePath] = e;
+    _.keys(thumbnails).forEach(filePath=> {
+        if(!fileInfos[filePath]){
+            return;
         }
+        const e = thumbnails[filePath];
+        fileInfos[filePath].thumbnailFilePath = e;
     })
-    resObj.zipInfo = zipInfo;
 
-    resObj.thumbnails = thumbnails;
+
+    //------------------------------- zipInfo
+    const zipInfoRows = zipInfoDb.getZipInfo(files);
+    zipInfoRows.forEach(e => { 
+        if(!fileInfos[e.filePath]){
+            return;
+        }
+        fileInfos[e.filePath] = {
+            ...fileInfos[e.filePath],
+            pageNum: e.pageNum,
+            musicNum: e.musicNum,
+            videoNum: e.videoNum,
+            totalNum: e.totalNum,
+            totalImgSize: e.totalImgSize,
+        }
+        fileInfos[e.filePath].mtimeMs = fileInfos[e.filePath].mtimeMs || e.mtime;
+        fileInfos[e.filePath].size = fileInfos[e.filePath].size || e.totalSize;
+    })
+
+    //------------------------ imgFolderInfo
     const imgFolderInfo = db.getImgFolderInfo(imgFolders);
     resObj.imgFolderInfo = imgFolderInfo;
-    
-    const pathes_for_history = [..._.keys(zipInfo), ..._.keys(imgFolderInfo)];
+
+    //-------------------- history
+    const pathes_for_history = [...files, ..._.keys(imgFolderInfo)];
     resObj.fileHistory = await historyDb.getBatchFileHistory(pathes_for_history);
 
+    //----------------------------- ParseCache
     resObj.nameParseCache = {};
     [...files, ..._.keys(imgFolderInfo), ...dirs].forEach(fp => {
         const fn = path.basename(fp);
@@ -684,32 +710,34 @@ async function decorateResWithMeta(resObj) {
         }
     })
 
-    const allowZipInfo = ["pageNum", "musicNum", "videoNum", "totalNum", "totalImgSize"];
-    for(const tempFilePath in zipInfo){
-        const zipObj = zipInfo[tempFilePath];
-        // 把zipinfo的mtime合并到fileInfos
-        if(zipObj.mtime){
-            fileInfos[tempFilePath] = fileInfos[tempFilePath] || {};
-            if(!fileInfos[tempFilePath].mtimeMs){
-                fileInfos[tempFilePath].mtimeMs = zipObj.mtime;
-            }
-        }
-        // 并精简obj
-        zipInfo[tempFilePath] = filterObjectProperties(zipObj, allowZipInfo);
-    }
+    // const allowZipInfo = ["pageNum", "musicNum", "videoNum", "totalNum", "totalImgSize"];
+    // for(const tempFilePath in zipInfo){
+    //     const zipObj = zipInfo[tempFilePath];
+    //     // 把zipinfo的mtime合并到fileInfos
+    //     if(zipObj.mtime){
+    //         fileInfos[tempFilePath] = fileInfos[tempFilePath] || {};
+    //         if(!fileInfos[tempFilePath].mtimeMs){
+    //             fileInfos[tempFilePath].mtimeMs = zipObj.mtime;
+    //         }
+    //     }
+    //     // 并精简obj
+    //     zipInfo[tempFilePath] = filterObjectProperties(zipObj, allowZipInfo);
+    // }
 
     // resObj说明：
-    // dirs:          [dir filepath...]
-    // thumbnails:    filePath-> thumbnail filePath
-    // fileInfos:     filePath-> fileInfo (不仅有zip，还有video和music)
-    // zipInfo:       filePath-> zipInfo (和fileinfos互补)
-    // imgFolderInfo: folderPath-> folderinfo
+
+    // [deprecated] thumbnails:    filePath-> thumbnail filePath
+    // [deprecated] zipInfo:       filePath-> zipInfo (和fileinfos互补)
     // [deprecated] imgFolders:    folderPath -> [ file filepath ... ]
+
+    // dirs:          [dir filepath...]
+    // fileInfos:     filePath-> fileInfo (不仅有zip，还有video和music)
+    // imgFolderInfo: folderPath-> folderinfo
     // mode: 是否lack_info_mode
     // "tag", "author", "path" 查询时用的参数
     // 检查
     const allowedKeys = [ "dirs", "mode", "tag", "path", "author", "fileInfos", 
-                          "thumbnails", "zipInfo", "imgFolderInfo", "fileHistory", "nameParseCache"];
+                          "imgFolderInfo", "fileHistory", "nameParseCache"];
     // resObj = filterObjectProperties(resObj, allowedKeys, true);
     // checkKeys(resObj, allowedKeys);
     resObj = filterObjectProperties(resObj, allowedKeys);
@@ -752,7 +780,6 @@ function filterObjectProperties(obj, keysToKeep, needWarn) {
 
 
 serverUtil.common.decorateResWithMeta = decorateResWithMeta
-serverUtil.common.getThumbnailsForZip = getThumbnailsForZip;
 serverUtil.common.getStatAndUpdateDB = getStatAndUpdateDB;
 serverUtil.common.isAlreadyScan = isAlreadyScan;
 serverUtil.common.checkOneBookRes = checkOneBookRes;
@@ -774,6 +801,8 @@ const staticFileRouter = (req, res, next) => {
     }
 }
 
+const cors = require('cors');
+app.use(cors());
 
 // http://localhost:3000/explorer/
 // http://localhost:3000/onebook/
@@ -864,32 +893,53 @@ app.post("/api/getTagThumbnail", asyncWrapper(async (req, res) => {
 
     let oneThumbnail;
 
-    let sql = ` SELECT a.* , b.*
-                FROM zip_view a 
-                INNER JOIN tag_table b ON a.filePath = b.filePath AND b.tag = ?
-                ORDER BY a.mTime DESC 
-                LIMIT 100;`
+    let sql = ` SELECT AA.*, BB.thumbnailFileName FROM 
+                (
+                    SELECT a.* , b.*
+                    FROM zip_view a 
+                    INNER JOIN tag_table b ON a.filePath = b.filePath AND b.tag = ?
+                    ORDER BY a.mTime DESC 
+                    LIMIT 100 
+                ) AA
+                LEFT JOIN thumbnail_table BB 
+                ON AA.filePath = BB.filePath
+                `
     let rows = await db.doSmartAllSync(sql, [author || tag]);
 
-    // find thumbnail
-    const thumbnails = await serverUtil.common.getThumbnailsForZip(rows.map(e => e.filePath))
-    for (let ii = 0; ii < rows.length; ii++) {
+    // find thumbnail by zip
+    for(let ii = 0; ii < rows.length; ii++){
         const row = rows[ii];
-        const thumbnail = thumbnails[row.filePath];
-
-        if(thumbnail){
-            oneThumbnail = thumbnail;
+        if(row.thumbnailFileName){
+            oneThumbnail = serverUtil.joinThumbnailFolderPath(row.thumbnailFileName);
             break;
         }
     }
-
     if(oneThumbnail){
         res.send({
             url: oneThumbnail
         });
-    } else if (rows.length > 0) {
-        // 没有的话，现场unzip一个出来
-        extractThumbnailFromZip(rows[0], res);
+        return;
+    } 
+    
+    // from image
+    const sql2 = ` SELECT a.* , b.*
+            FROM file_table a 
+            INNER JOIN tag_table b ON a.filePath = b.filePath AND b.tag = ? AND a.isImage=1 
+            ORDER BY a.mTime DESC 
+            LIMIT 1 
+        `
+    const rows2 = await db.doSmartAllSync(sql2, [author || tag]);
+    if (rows2[0]) {
+        console.assert(rows2[0].isImage);
+        res.send({
+            url: rows2[0].filePath
+        });
+        return;
+    }
+
+    // 没有的话，现场unzip一个出来
+    if (rows[0] && rows[0].isCompress) {
+        extractThumbnailFromZip(rows[0].filePath, res);
     } else {
         res.send({ failed: true, reason: "No file found" });
     }
@@ -1108,15 +1158,14 @@ app.post('/api/getZipThumbnail', asyncWrapper(async (req, res) => {
     }
 
     const thumbnails = await getThumbnailsForZip([filePath])
-    const oneThumbnail = _.values(thumbnails)[0];
+    const oneThumbnail = thumbnails[filePath];
     if(oneThumbnail){
         res.send({
             url: oneThumbnail
         })
-        return;
+    }else{
+        extractThumbnailFromZip(filePath, res);
     }
-
-    extractThumbnailFromZip(filePath, res);
 }));
 
 async function getZipWithSameFileName(filePath) {

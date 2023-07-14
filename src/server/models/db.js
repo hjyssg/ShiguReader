@@ -10,7 +10,6 @@ const pfs = require('promise-fs');
 const nameParser = require('../../name-parser');
 const namePicker = require("../../human-name-picker");
 
-
 // file path to file stats
 // 简单重复查询，性能是sql的30倍
 // const fileToInfo = {};
@@ -30,8 +29,7 @@ const namePicker = require("../../human-name-picker");
 // }
 
 let statement_cache = {};
-let smart_select_cache = {};
-module.exports.doSmartAllSync = async (sql, params) =>{
+module.exports.doSmartAllSync = async (sql, params) => {
     if(!_.isNull(params) && !_.isArray(params)){
         params = [params];
     }
@@ -46,27 +44,17 @@ module.exports.doSmartAllSync = async (sql, params) =>{
         statement_cache[sql] = statement;
     }
     
-    // 把select结果也缓存了，提高性能
-    let temp = params || [];
-    const cache_key = `${sql} ${(temp).join("---")}`;
-    let result = smart_select_cache[cache_key];
-    if(!result){
-        smart_select_cache[cache_key] = await statement_cache[sql].allSync(params);
-        result = smart_select_cache[cache_key];
-    }
-    // console.assert(!!result, sql, params);
+    const result = await statement_cache[sql].allSync(params); 
     return result || [];
 }
 
-const cleanSmart_select_cache = () => {
-    smart_select_cache = {};
+module.exports.doAllSync  = async (sql, params) => {
+    return await sqldb.allSync(sql, params);
 }
 
 let sqldb;
 module.exports.init = async ()=> {
     const dbCommon = require("./dbCommon");
-    // sqldb = dbCommon.getSQLInstance(':memory:');
-    // 用file的话，init的insertion太慢了
     const backup_db_path = path.join(pathUtil.getWorkSpacePath(), "shigureader_internal_db.sqlite");
     sqldb = dbCommon.getSQLInstance(backup_db_path);
 
@@ -149,7 +137,6 @@ module.exports.getAllFilePathes = async function (sql_condition) {
 };
 
 module.exports.updateStatToDb = async function (filePath, stat, insertion_cache) {
-    cleanSmart_select_cache();
 
     const statObj = {};
     if (!stat) {
@@ -203,20 +190,27 @@ module.exports.updateStatToDb = async function (filePath, stat, insertion_cache)
         isFolder
     });
 
+    // TODO , ...charNames
+
     // name
-    const nameTags = [...(namePicker.pick(str)||[]), ...charNames];
-    _.uniq(nameTags).forEach(tag => {
-        tags_rows.push({ 
-            filePath, 
-            tag, 
-            type:"tag",
-            subtype:"name", 
-            isCompress: isCompressFile, 
-            isVideo: isVideoFile, 
-            isMusic: isMusicFile,
-            isImage: isImageFile,
-            isFolder});
-    })
+    if(_.isEmpty(temp)){
+        const nameTags = [...(namePicker.pick(str)||[])];
+        _.uniq(nameTags).forEach(tag => {
+            if (authors.includes(tag) || group === tag) {
+                return;
+            }
+            tags_rows.push({ 
+                filePath, 
+                tag, 
+                type:"tag",
+                subtype:"name", 
+                isCompress: isCompressFile, 
+                isVideo: isVideoFile, 
+                isMusic: isMusicFile,
+                isImage: isImageFile,
+                isFolder});
+        })
+    }
 
     // parody
     _.uniq(tags).forEach(tag => {
@@ -271,9 +265,7 @@ module.exports.updateStatToDb = async function (filePath, stat, insertion_cache)
     }
 
     //file_table插入
-    let aboutTimeA = nameParser.getDateFromParse(str);
-    aboutTimeA = aboutTimeA && aboutTimeA.getTime();
-    let fileTime = statObj.mtimeMs || aboutTimeA;
+    let fileTime = statObj.mtimeMs;
     const dirPath = path.dirname(filePath);
     const dirName = getDirName(filePath);
     const fileSize = statObj.size || 0;
@@ -301,7 +293,6 @@ module.exports.updateStatToDb = async function (filePath, stat, insertion_cache)
 
 // 传入 db、table 和数据数组实现批量插入
 module.exports.batchInsert = async (tableName, dataArray, blockSize = 2000) => {
-    cleanSmart_select_cache();
 
     let beg = getCurrentTime();
 
@@ -313,7 +304,6 @@ module.exports.batchInsert = async (tableName, dataArray, blockSize = 2000) => {
 }
 
 module.exports.deleteFromDb = function (filePath) {
-    cleanSmart_select_cache();
 
     // delete fileToInfo[filePath];
     sqldb.run("DELETE FROM file_table where filePath = ?", filePath);

@@ -151,11 +151,16 @@ module.exports.listZipContentAndUpdateDb = async function (filePath) {
         const { files, fileInfos } = read7zOutput(text);
 
         let totalImgSize = 0;
+        let totalSize = 0;
         let mtime_arr = [];
         files.forEach((e, ii) => {
+            const singleSize = parseFloat(fileInfos[ii].size) || 0;
             if (util.isImage(e)) {
-                totalImgSize += parseFloat(fileInfos[ii].size) || 0;
+                totalImgSize += singleSize;
             }
+
+            // 这个是解压后的大小，不是实际大小
+            totalSize += singleSize;
 
             // https://stackoverflow.com/questions/1353684/detecting-an-invalid-date-date-instance-in-javascript
             var timestamp = Date.parse(fileInfos[ii].modified);
@@ -169,7 +174,8 @@ module.exports.listZipContentAndUpdateDb = async function (filePath) {
             filePath,
             totalImgSize,
             files,
-            mtime
+            mtime,
+            totalSize
         };
 
         updateZipDb(info);

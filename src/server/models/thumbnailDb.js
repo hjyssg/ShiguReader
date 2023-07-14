@@ -1,6 +1,6 @@
 const path = require('path');
 const _ = require('underscore');
-// const serverUtil = require("../serverUtil");
+const serverUtil = require("../serverUtil");
 // const userConfig = global.requireUserConfig();
 const pathUtil = require("../pathUtil");
 const util = global.requireUtil();
@@ -13,8 +13,9 @@ const _util = require('util');
 let sqldb;
 module.exports.init = async (_sqldb)=> {
     sqldb = _sqldb;
+    // TODO make filepath unique
     await sqldb.execSync(`
-        CREATE TABLE IF NOT EXISTS thumbnail_table (filePath TEXT, thumbnailFileName TEXT, time INTEGER);
+        CREATE TABLE IF NOT EXISTS thumbnail_table (filePath TEXT PRIMARY KEY, thumbnailFileName TEXT, time INTEGER);
         
         CREATE INDEX IF NOT EXISTS filePath_index ON thumbnail_table (filePath);
     `);
@@ -22,18 +23,6 @@ module.exports.init = async (_sqldb)=> {
     // comment out when needed
     // await clean();
 }
-
-let statement_cache = {};
-module.exports.doSmartAllSync = async (sql, params) =>{
-    // V1 可能是sql文都比较简单，性能提升大约只有百分之三。
-    if(!statement_cache[sql]){
-        const statement = sqldb.prepare(sql);
-        statement.allSync = _util.promisify(statement.all).bind(statement);
-        statement_cache[sql] = statement;
-    }
-    return (await statement_cache[sql].allSync(params)) || [];
-}
-
 
 module.exports.addNewThumbnail = function (filePath, thumbnailFilePath) {
     const thumbnailFileName = path.basename(thumbnailFilePath);
@@ -45,10 +34,9 @@ module.exports.addNewThumbnail = function (filePath, thumbnailFilePath) {
 }
 
 function _add_col(rows) {
-    const thumbnailFolderPath = global.thumbnailFolderPath;
     rows.forEach(row => {
         // row.thumbnailFilePath = path.resolve(thumbnailFolderPath, row.thumbnailFileName)
-        row.thumbnailFilePath = thumbnailFolderPath + path.sep + row.thumbnailFileName;
+        row.thumbnailFilePath = serverUtil.joinThumbnailFolderPath(row.thumbnailFileName);
     })
     return rows;
 }
@@ -148,35 +136,6 @@ module.exports.getThumbnailByFileName = async function (fileName) {
     return rows;
 }
 
-module.exports.getThumbnailForFolders = async function (filePathes) {
-    console.assert(_.isArray(filePathes));
-
-    if(filePathes.length == 0){
-        return [];
-    }
-
-    let rows = [];
-    try{
-        // TODO 担心很多的时候
-        // Q ask chatgpt: write a sql query that if column 'file' contains one of string array
-        const stringsToMatch = filePathes; // string array of values
-        const patterns = stringsToMatch.map(str => `${str}%`);
-        const placeholders = patterns.map(() => 'filePath LIKE ?').join(' OR ');
-        const sql = `SELECT * FROM thumbnail_table WHERE ${placeholders} ORDER BY time DESC, ROWID DESC`;
-        rows = await sqldb.allSync(sql, patterns);
-    }catch(e){
-        console.error(e);
-    }
-
-    
-    // const sql = `SELECT * FROM  thumbnail_table WHERE INSTR(filePath, ?) > 0`;
-    // let rows = await sqldb.allSync(sql, [filePath]);
-    // rows = rows.filter(row => {
-    //     return isSub(filePath, row.filePath)
-    // });
-    _add_col(rows)
-    return rows;
-}
 
 module.exports.getThumbCount = async function () {
     const sql = `SELECT COUNT(*) as count FROM  thumbnail_table`;
