@@ -123,9 +123,10 @@ async function highlightEhentaiThumbnail() {
 
             e.status = 0;
             if (text.includes("翻訳") || text.includes("翻译")) {
-                return;
+                continue;
             }
             const rr = parse(text);
+            console.log(`${ii}/${nodes.length}  ${text}`)
             const { status, similarTitles } = await checkIfDownload(text);
             e.status = status || 0;
             if (status === IS_IN_PC) {
