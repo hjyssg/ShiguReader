@@ -147,9 +147,16 @@ describe("name parser", () => {
   });
 
   it("tag time calculation", () => {
+    const C102T = parser
+    .getDateFromParse("(C102)[ fake_author ] apple")
+    .getTime();
     const C101T = parser
     .getDateFromParse("(C101)[ fake_author ] apple")
     .getTime();
+    const C100T = parser
+    .getDateFromParse("(C100)[ fake_author ] apple")
+    .getTime();
+
     const C96T = parser
       .getDateFromParse("(C96)[ fake_author ] apple")
       .getTime();
@@ -186,7 +193,11 @@ describe("name parser", () => {
     assert(C91T > C87T);
     assert(C85T > C84T);
     assert(C84T > C72T);
-    assert(C101T > C96T);
+
+    assert(C100T > C96T);
+    assert(C101T > C100T);
+    assert(C102T > C101T);
+
 
     const air2 = parser.getDateFromParse("(エアコミケ2) [ちんちん亭 (chin)] 12132").getTime();
     assert(air2 > C96T);
