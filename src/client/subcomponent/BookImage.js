@@ -33,6 +33,9 @@ function BookImage(props, ref) {
   const onImageError = (error) => {
     console.error(error);
     onError && onError();
+
+    // https://stackoverflow.com/questions/5559578/having-links-relative-to-root
+    // this.imgRef.src = "/error_loading.png";
   };
 
     
