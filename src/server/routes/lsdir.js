@@ -59,17 +59,17 @@ router.post('/api/lsDir', serverUtil.asyncWrapper(async (req, res) => {
         }
 
         //-------------------files -----------------
+        let fileQuery;
         if (isRecursive) {
             sql = `${recursiveFileSQL} AND isFolder=false`;
-            rows = await db.doSmartAllSync(sql, [`${dir}%`, dir]);
+            fileQuery = db.doSmartAllSync(sql, [`${dir}%`, dir]);
         } else {
             sql = `SELECT * FROM file_table WHERE dirPath = ? AND isFolder=false`;
-            rows = await db.doSmartAllSync(sql, [dir]);
+            fileQuery = db.doSmartAllSync(sql, [dir]);
         }
-        fileInfos = serverUtil.convertFileRowsIntoFileInfo(rows);
 
         //---------------img folder -----------------
-        const imgFolders = {};
+        let imageFolderQuery;
         // join folder with isDisplayableInOnebook file
         if(isRecursive){
             sql = `
@@ -82,7 +82,7 @@ router.post('/api/lsDir', serverUtil.asyncWrapper(async (req, res) => {
              INNER JOIN TT AS B
              ON A.filePath=B.dirPath AND B.isDisplayableInOnebook=True AND A.isFolder=true
             `
-            rows = await db.doSmartAllSync(sql, [`${dir}%`, dir]);
+            imageFolderQuery =  db.doSmartAllSync(sql, [`${dir}%`, dir]);
         }else{
             //单层
             sql = `
@@ -98,9 +98,13 @@ router.post('/api/lsDir', serverUtil.asyncWrapper(async (req, res) => {
              INNER JOIN B
              ON A.filePath=B.dirPath
             `
-            rows = await db.doSmartAllSync(sql, [ dir, `${dir}%`, dir]);
+            imageFolderQuery =  db.doSmartAllSync(sql, [ dir, `${dir}%`, dir]);
         }
-        rows.forEach(row => {
+
+        const [fileRows, imageFolderRows] = await Promise.all([fileQuery, imageFolderQuery]);
+        fileInfos = serverUtil.convertFileRowsIntoFileInfo(fileRows);
+        const imgFolders = {};
+        imageFolderRows.forEach(row => {
             const dirPath = row.dirPath;
             imgFolders[dirPath] = imgFolders[dirPath] || [];
             imgFolders[dirPath].push(row);
