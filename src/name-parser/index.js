@@ -69,7 +69,7 @@ const sankuri_reg = /^サンクリ.*\d+/;
 const reitaisai_reg = /^例大祭.*\d+/;
 const tora_reg = /^とら祭り.*\d+/;
 const komitore_reg = /^こみトレ.*\d+/;
-const reg_list = [comicket_reg, air_comicket_reg, comicket_reg_2, comic_star_reg, love_live_event_reg,
+const reg_list = [comicket_reg_2, comicket_reg, air_comicket_reg, comic_star_reg, love_live_event_reg,
     comitea_reg, sankuri_reg, reitaisai_reg,
     tora_reg, komitore_reg, /みみけっと.*\d+/,
     /コミトレ.*\d+/, /FF\d+/, /iDOL SURVIVAL.*\d/i,
@@ -106,6 +106,16 @@ function getDateFromComiket(comiket) {
 
     if (comiket_to_date_table[comiket]) {
         result = comiket_to_date_table[comiket];
+    } else if (comiket.match(comicket_reg_2)) {
+        comiket = comiket.replace("C", "");
+        num = parseInt(comiket);
+        result = new Date(2022, 8, 13);
+
+        year = Math.floor(num / 2) + 2022;
+        const isSummer = num % 2 === 0;
+        month = isSummer ? 8 : 11;
+        const day = isSummer ? 10 : 28;
+        result = new Date(year, month, day);
     } else if (comiket.match(comicket_reg)) {
         comiket = comiket.replace("C", "");
         num = parseInt(comiket);
@@ -122,10 +132,6 @@ function getDateFromComiket(comiket) {
         } else {
             result = new Date(2020, 11, 30);
         }
-    } else if (comiket.match(comicket_reg_2)) {
-        comiket = comiket.replace("C", "");
-        num = parseInt(comiket);
-        result = new Date(2022, 8, 13);
     } else if (comiket.match(comic_star_reg)) {
         comiket = comiket.replace("COMIC1☆", "");
         num = parseInt(comiket);
