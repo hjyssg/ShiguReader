@@ -34,7 +34,7 @@ function logFail(filePath, e) {
 
 global._has_magick_ = false;
 module.exports.init = function(){
-    execa("magick")
+    execa("magick --version")
     .then((std) => {
         global._has_magick_ = true;
      })
