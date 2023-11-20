@@ -152,7 +152,7 @@ module.exports.asyncWrapper = (fn) => {
         // 测量性能
         const timeSpent = util.getCurrentTime() - beginTime;
         const url = req.url || "";
-        const exclude_list  = ["/api/download", "/api/getQuickThumbnail"];
+        const exclude_list  = ["/api/download", "/api/getQuickThumbnail", "/api/findSimilarFile/"];
         let shouldLog = true;
         exclude_list.forEach(e => {
             if(url.includes(e)){

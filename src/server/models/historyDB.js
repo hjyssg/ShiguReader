@@ -94,11 +94,12 @@ module.exports.getRecentAccess = async function () {
         FROM lsdir_history_table 
         WHERE time > ? 
         GROUP BY filePath 
-        HAVING count > 1
+        HAVING count > 3
         ORDER BY count DESC, filePath ASC
-        LIMIT 50;
+        LIMIT 30;
     `
     let rows = await sqldb.allSync(sql, [time]);
+    // console.log(rows)
     return rows;
 }
 
