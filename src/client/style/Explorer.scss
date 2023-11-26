@@ -238,3 +238,35 @@
     @include hover_effect;
   }
 }
+
+.page-number-range-slider-wrapper {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 15px;
+  margin-bottom: 15px;
+
+  .small-text-title {
+    color: $font_color_white_one;
+  }
+
+  .page-number-range-slider {
+    width: 500px;
+    margin-left: 10px;
+    margin-right: 10px;
+    height: 4px;
+
+    .range-slider__thumb {
+      background: $font_color_white_one;
+      width: 15px;
+      height: 15px;
+    }
+    
+    .range-slider__range{
+      // background: $font_color_white_one;
+     
+    }
+  }
+}
+
