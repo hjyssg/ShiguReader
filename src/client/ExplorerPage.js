@@ -373,7 +373,7 @@ export default class ExplorerPage extends Component {
             }
 
             // 找出最大页数
-            let _maxPage = 0;
+            let _maxPage = 10;
             files.forEach(e => {
                 const count = this.getPageNum(e);
                 _maxPage = Math.max(_maxPage, count);
@@ -381,7 +381,7 @@ export default class ExplorerPage extends Component {
             this.minPageNum = 0;
             this.maxPageNum = _maxPage;
             this.setState({
-                pageNumRange: [0, this.maxPageNum]
+                pageNumRange: [0, this.getMaxPageForSlider()]
             })
 
             //check pageindex
@@ -1096,7 +1096,7 @@ export default class ExplorerPage extends Component {
         const righttext = pageNumRange[1] >= maxForSilder? `${this.maxPageNum}/${this.maxPageNum}` : `${pageNumRange[1]}/${this.maxPageNum}`
         // const righttext =  `${pageNumRange[1]}/${this.maxPageNum}`
 
-
+        // 本质就range slider的max不超过300的，超过和到达的时候有额外逻辑
         return (
             <div className='page-number-range-slider-wrapper'>
                 <div className='small-text-title'>{pageNumRange[0]} </div>
