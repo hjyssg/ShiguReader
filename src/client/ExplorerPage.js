@@ -123,6 +123,7 @@ export default class ExplorerPage extends Component {
             { key: "showVideo", type: "boolean", defVal: true },
             { key: "showFolderThumbnail", type: "boolean", defVal: false },
             { key: "filterArr", type: "arr" },
+            { key: "pageNumRange", type: "arr", defVal:[0, DEFAULT_MAX_PAGE]},  // 默认全部范围
             { key: "filterText", type: "str" },
             { key: "filterType", type: "str" },
             { key: "noThumbnail", type: "boolean", defVal: false },
@@ -142,7 +143,6 @@ export default class ExplorerPage extends Component {
         const initState = clientUtil.getInitState(this.metaInfo, reset);
         return {
             perPageItemNum: getPerPageItemNumber(),
-            pageNumRange: [0, DEFAULT_MAX_PAGE],
             ...initState
         }
     }
@@ -238,7 +238,7 @@ export default class ExplorerPage extends Component {
             const hash = this.getTextFromQuery();
             if (hash && this.loadedHash !== hash) {
                 res = await Sender.postWithPromise('/api/lsDir', { dir: this.getTextFromQuery(), isRecursive: this.state.isRecursive });
-                this.handleLsDirRes(res);
+                await this.handleLsDirRes(res);
             }
         } else {
             const hash = this.getTextFromQuery();
@@ -251,7 +251,7 @@ export default class ExplorerPage extends Component {
                     res = await Sender.postWithPromise("/api/search", { text: this.getSearchTextFromQuery(), mode: this.getMode() })
                 }
             }
-            this.handleLsDirRes(res);
+            await this.handleLsDirRes(res);
         }
     }
 
@@ -314,7 +314,7 @@ export default class ExplorerPage extends Component {
     }
 
 
-    handleLsDirRes(res) {
+    async handleLsDirRes(res) {
         if (!res.isFailed()) {
             let {
                 dirs = [],
@@ -380,9 +380,7 @@ export default class ExplorerPage extends Component {
             })
             this.minPageNum = 0;
             this.maxPageNum = _maxPage;
-            this.setState({
-                pageNumRange: [0, this.getMaxPageForSlider()]
-            })
+      
 
             //check pageindex
             const availableFiles = this.getFileInPage(this.getFilteredFiles());
@@ -440,7 +438,7 @@ export default class ExplorerPage extends Component {
         return total / pageNum;
     }
 
-    handleKeyDown(event) {
+    async handleKeyDown(event) {
         //this cause input wont work 
         if (isSearchInputTextTyping()) {
             return;
@@ -455,7 +453,7 @@ export default class ExplorerPage extends Component {
             event.preventDefault();
         } else if (key == "r") {
             this.loadedHash = ""; // 感觉这玩意是个错误design
-            this.askServer();
+            await this.askServer();
         }
     }
 
@@ -1104,7 +1102,7 @@ export default class ExplorerPage extends Component {
                     if(range[0] === pageNumRange[0] && range[1] === pageNumRange[1]){
                         //
                     }else{
-                        this.setState({ pageNumRange: range })
+                        this.setStateAndSetHash({ pageNumRange: range })
                     }
                 }} />
                 <div className='small-text-title'>{righttext}</div>
