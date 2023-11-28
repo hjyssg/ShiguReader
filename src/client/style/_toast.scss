@@ -2,7 +2,7 @@
   margin-top: 0px !important;
   margin-bottom: 0px !important;
   font-size: 14px;
-
+  
   .toast-header {
     padding-bottom: 10px;
     border-bottom: 1px solid rgba(0, 0, 0, .05);
@@ -20,8 +20,9 @@
 }
 
 .Toastify__close-button {
-  position: fixed;
-  right: 10px;
+  // position: fixed;
+  // right: 10px;
+  display: none
 }
 
 .one-line-toast {
