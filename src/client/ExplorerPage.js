@@ -30,8 +30,11 @@ const { isVideo, isCompress, isImage, isMusic } = util;
 // const sortUtil = require("../common/sortUtil");
 const AdminUtil = require("./AdminUtil");
 import Swal from 'sweetalert2';
+import RangeSlider from 'react-range-slider-input';
+import 'react-range-slider-input/dist/style.css';
 
 import { GlobalContext } from './globalContext'
+
 
 const ClientConstant = require("./ClientConstant");
 const { BY_FILE_NUMBER,
@@ -61,12 +64,13 @@ const FILTER_HAS_MUSIC = "FILTER_HAS_MUSIC";
 const FILTER_HAS_VIDEO = "FILTER_HAS_VIDEO";
 const FILTER_IMG_FOLDER = "FILTER_IMG_FOLDER";
 
-function NoScanAlertArea(props){
+
+function NoScanAlertArea(props) {
     // const [minifyZipQue, setMinifyZipQue] = useState([]);
-    const {filePath} = props;
+    const { filePath } = props;
 
 
-    const askSendScan =() => {
+    const askSendScan = () => {
         Swal.fire({
             title: "Scan this Folder (but it will take time)",
             showCancelButton: true,
@@ -74,7 +78,7 @@ function NoScanAlertArea(props){
             cancelButtonText: 'No'
         }).then((result) => {
             if (result.value === true) {
-                Sender.post("/api/addNewFileWatchAfterInit", {filePath}, res => {
+                Sender.post("/api/addNewFileWatchAfterInit", { filePath }, res => {
                     if (!res.isFailed()) {
                         // let { minifyZipQue } = res.json;
                         // setMinifyZipQue(minifyZipQue)
@@ -87,7 +91,7 @@ function NoScanAlertArea(props){
     return (
         <div className="alert alert-warning" role="alert" >
             <div>{`${filePath} is not included in config-path`}</div>
-            <div style={{marginBottom:"5px"}}>{`It is usable, but lack some good features`}</div>
+            <div style={{ marginBottom: "5px" }}>{`It is usable, but lack some good features`}</div>
             <div className="scan-button" onClick={askSendScan}>Scan this Folder (but it will take time)</div>
         </div>)
 }
@@ -97,39 +101,42 @@ function parse(str) {
     return nameParser.parse(getBaseName(str));
 }
 
-function _parseInt(val){
-    if(_.isNumber(val)){
+function _parseInt(val) {
+    if (_.isNumber(val)) {
         return val;
-    }else{
+    } else {
         return parseInt(val);
     }
 }
 
+const DEFAULT_MAX_PAGE = 300;
 
 export default class ExplorerPage extends Component {
     constructor(prop) {
         super(prop);
 
         this.metaInfo = [
-            {key:"pageIndex", type: "int", defVal: 1},
-            {key:"isRecursive", type: "boolean", defVal: false},
-            {key:"sortOrder", type: "str", defVal: BY_TIME},
-            {key:"isSortAsc", type: "boolean", defVal: false},
-            {key:"showVideo", type: "boolean", defVal: true},
-            {key:"showFolderThumbnail", type: "boolean", defVal: false},
-            {key:"filterArr", type: "arr"},
-            {key:"filterText", type: "str"},
-            {key:"filterType", type: "str"},
-            {key:"noThumbnail", type: "boolean", defVal: false}
+            { key: "pageIndex", type: "int", defVal: 1 },
+            { key: "isRecursive", type: "boolean", defVal: false },
+            { key: "sortOrder", type: "str", defVal: BY_TIME },
+            { key: "isSortAsc", type: "boolean", defVal: false },
+            { key: "showVideo", type: "boolean", defVal: true },
+            { key: "showFolderThumbnail", type: "boolean", defVal: false },
+            { key: "filterArr", type: "arr" },
+            { key: "pageNumRange", type: "arr", defVal:[0, DEFAULT_MAX_PAGE]},  // 默认全部范围
+            { key: "filterText", type: "str" },
+            { key: "filterType", type: "str" },
+            { key: "noThumbnail", type: "boolean", defVal: false },
         ];
 
         this.state = this.getInitState();
+ 
         this.resetParam();
     }
 
     getNumPerPage() {
-        return (this.state.noThumbnail || this.state.sortOrder === BY_FOLDER)? 
-                1000 : this.state.perPageItemNum;
+        return (this.state.noThumbnail || this.state.sortOrder === BY_FOLDER) ?
+            1000 : this.state.perPageItemNum;
     }
 
     getInitState(reset) {
@@ -142,7 +149,7 @@ export default class ExplorerPage extends Component {
 
     setStateAndSetHash(state, callback) {
         this.setState(state, callback);
-        const newState = {...this.state, ...state};
+        const newState = { ...this.state, ...state };
         clientUtil.saveStateToUrl(this.metaInfo, newState);
     }
 
@@ -215,7 +222,7 @@ export default class ExplorerPage extends Component {
         }
     }
 
-    static getDerivedStateFromProps(nextProps, prevState){
+    static getDerivedStateFromProps(nextProps, prevState) {
         if (_.isString(nextProps.filterText) && nextProps.filterText !== prevState.filterText) {
             return {
                 filterText: nextProps.filterText,
@@ -231,7 +238,7 @@ export default class ExplorerPage extends Component {
             const hash = this.getTextFromQuery();
             if (hash && this.loadedHash !== hash) {
                 res = await Sender.postWithPromise('/api/lsDir', { dir: this.getTextFromQuery(), isRecursive: this.state.isRecursive });
-                this.handleLsDirRes(res);
+                await this.handleLsDirRes(res);
             }
         } else {
             const hash = this.getTextFromQuery();
@@ -244,7 +251,7 @@ export default class ExplorerPage extends Component {
                     res = await Sender.postWithPromise("/api/search", { text: this.getSearchTextFromQuery(), mode: this.getMode() })
                 }
             }
-            this.handleLsDirRes(res);
+            await this.handleLsDirRes(res);
         }
     }
 
@@ -307,17 +314,17 @@ export default class ExplorerPage extends Component {
     }
 
 
-    handleLsDirRes(res) {
+    async handleLsDirRes(res) {
         if (!res.isFailed()) {
-            let { 
-                dirs=[], 
-                mode, 
-                tag="", 
-                author="", 
-                fileInfos={}, 
-                imgFolderInfo={}, 
-                fileHistory=[],
-                nameParseCache={}
+            let {
+                dirs = [],
+                mode,
+                tag = "",
+                author = "",
+                fileInfos = {},
+                imgFolderInfo = {},
+                fileHistory = [],
+                nameParseCache = {}
             } = res.json;
 
             // 马上叫server准备下一个信息
@@ -356,7 +363,7 @@ export default class ExplorerPage extends Component {
             this.fileNameToHistory = {};
             fileHistory.forEach(row => {
                 const { fileName, time, count } = row;
-                this.fileNameToHistory[fileName] = {time, count};
+                this.fileNameToHistory[fileName] = { time, count };
             })
 
             if (this.videoFiles.length > 0 && !this.state.showVideo) {
@@ -364,6 +371,16 @@ export default class ExplorerPage extends Component {
                     showVideo: true
                 });
             }
+
+            // 找出最大页数
+            let _maxPage = 10;
+            files.forEach(e => {
+                const count = this.getPageNum(e);
+                _maxPage = Math.max(_maxPage, count);
+            })
+            this.minPageNum = 0;
+            this.maxPageNum = _maxPage;
+      
 
             //check pageindex
             const availableFiles = this.getFileInPage(this.getFilteredFiles());
@@ -376,7 +393,7 @@ export default class ExplorerPage extends Component {
             }
 
             this.hasCalled_getThumbnailForFolders = false;
-            if(this.state.showFolderThumbnail){
+            if (this.state.showFolderThumbnail) {
                 this.requestThumbnailForFolder();
             }
         } else {
@@ -385,10 +402,10 @@ export default class ExplorerPage extends Component {
         }
     }
 
-    decorate_allfileInfos(){
+    decorate_allfileInfos() {
         // this.allfileInfos
-        for(const fp in this.allfileInfos){
-            if(!this.allfileInfos.hasOwnProperty(fp)){
+        for (const fp in this.allfileInfos) {
+            if (!this.allfileInfos.hasOwnProperty(fp)) {
                 continue;
             }
 
@@ -405,7 +422,7 @@ export default class ExplorerPage extends Component {
         }
     }
 
-    calculateAvgPageSize(fp){
+    calculateAvgPageSize(fp) {
         //may not be reliable
         const pageNum = this.getPageNum(fp);
         if (pageNum === 0) {
@@ -421,7 +438,7 @@ export default class ExplorerPage extends Component {
         return total / pageNum;
     }
 
-    handleKeyDown(event) {
+    async handleKeyDown(event) {
         //this cause input wont work 
         if (isSearchInputTextTyping()) {
             return;
@@ -434,9 +451,9 @@ export default class ExplorerPage extends Component {
         } else if (key === "arrowleft" || key === "a" || key === "j") {
             this.prev();
             event.preventDefault();
-        }else if (key == "r"){
+        } else if (key == "r") {
             this.loadedHash = ""; // 感觉这玩意是个错误design
-            this.askServer();
+            await this.askServer();
         }
     }
 
@@ -485,34 +502,44 @@ export default class ExplorerPage extends Component {
         return this.allfileInfos[fp]?.videoNum || 0;
     }
 
-    getMtime(fp){
+    getMtime(fp) {
         return this.allfileInfos[fp]?.mtimeMs || 0;
     }
 
     /** get tag time */
-    getTTime(fp){
+    getTTime(fp) {
         const fn = getBaseName(fp);
         let tTime = nameParser.getDateFromParse(fn);
         tTime = tTime && tTime.getTime();
         return tTime || 0;
     }
 
-    getReadCount(fp){
+    getReadCount(fp) {
         const fn = getBaseName(fp);
         const count = _parseInt(this.fileNameToHistory[fn]?.count);
         return count || 0;
     }
 
-    getLastReadTime(fp){
+    getLastReadTime(fp) {
         const fn = getBaseName(fp);
         const rTime = _parseInt(this.fileNameToHistory[fn]?.time);
         return rTime || 0;
     }
-    
+
     getFilteredFiles() {
         let files = [...this.compressFiles, ...(_.keys(this.imgFolderInfo))];
 
-        const { authorInfo } = this.state;
+        const { authorInfo, pageNumRange } = this.state;
+
+        const maxPage =  pageNumRange[1] >= this.getMaxPageForSlider()? Infinity:  pageNumRange[1];
+        files = files.filter(e => {
+            const count = this.getPageNum(e);
+            if (_.isNull(count) || count === 0) {
+                return true;
+            } else if (count >= pageNumRange[0] && count <= maxPage ) {
+                return true;
+            }
+        })
 
         if (this.isOn(FILTER_GOOD_AUTHOR) && authorInfo) {
             files = files.filter(e => {
@@ -634,15 +661,15 @@ export default class ExplorerPage extends Component {
             const mtime = this.getMtime(e);
             const ttime = this.getTTime(e);
 
-            if(mtime && ttime){
-                const gap = Math.abs(mtime  - ttime);
+            if (mtime && ttime) {
+                const gap = Math.abs(mtime - ttime);
                 const GAP_THRESHOLD = 180 * 24 * 3600 * 1000;
-                if(gap > GAP_THRESHOLD){
+                if (gap > GAP_THRESHOLD) {
                     return Math.min(mtime, ttime) || Infinity;
                 } else {
                     return mtime || Infinity;
                 }
-            }else{
+            } else {
                 return mtime || ttime;
             }
         });
@@ -653,9 +680,9 @@ export default class ExplorerPage extends Component {
             files.sort((a, b) => {
                 return byFn(a, b);
             });
-        }else if (sortOrder == BY_GOOD_SCORE){
+        } else if (sortOrder == BY_GOOD_SCORE) {
             // 喜好排序
-            files.sort((a, b)=> {
+            files.sort((a, b) => {
                 const s1 = this.getScore(a);
                 const s2 = this.getScore(b);
                 return s1 - s2;
@@ -714,9 +741,9 @@ export default class ExplorerPage extends Component {
         let score = this.getAuthorCountForFP(fp).score || 0;
         // console.log(fp)
         const { good_folder_root, not_good_folder_root } = this.context;
-        if(good_folder_root && fp.includes(good_folder_root)){
+        if (good_folder_root && fp.includes(good_folder_root)) {
             score += 1;
-        }else if(not_good_folder_root && fp.includes(not_good_folder_root)){
+        } else if (not_good_folder_root && fp.includes(not_good_folder_root)) {
             score -= 1;
         }
         return score;
@@ -724,10 +751,10 @@ export default class ExplorerPage extends Component {
 
     getAuthorCountForFP(fp) {
         const temp = parse(fp);
-        if(temp && temp.authors){
+        if (temp && temp.authors) {
             // todo multiple-author
             return clientUtil.getAuthorCount(this.state.authorInfo, temp.authors[0]) || {};
-        }else{
+        } else {
             return {};
         }
     }
@@ -742,9 +769,9 @@ export default class ExplorerPage extends Component {
     //         return [];
     //     }
     // }
-    
 
-    getTooltipStr(fp){
+
+    getTooltipStr(fp) {
         let rows = [];
         rows.push([fp]);
 
@@ -770,11 +797,11 @@ export default class ExplorerPage extends Component {
         }).join("\n")
     }
 
-    isImgFolder(fp){
+    isImgFolder(fp) {
         return !!this.imgFolderInfo[fp];
     }
 
-    getThumbnailUrl(fp){
+    getThumbnailUrl(fp) {
         let thumbnailurl;
         if (this.isImgFolder(fp)) {
             const tp = this.imgFolderInfo[fp].thumbnail;
@@ -800,11 +827,11 @@ export default class ExplorerPage extends Component {
 
         if (this.state.noThumbnail) {
             zipItem = (
-            <Link target="_blank" to={toUrl} key={fp} className={""} >
-                <ThumbnailPopup filePath={fp} url={thumbnailurl}>
-                    {this.getOneLineListItem(<i className="fas fa-book"></i>, text, fp)}
-                </ThumbnailPopup>
-            </Link>)
+                <Link target="_blank" to={toUrl} key={fp} className={""} >
+                    <ThumbnailPopup filePath={fp} url={thumbnailurl}>
+                        {this.getOneLineListItem(<i className="fas fa-book"></i>, text, fp)}
+                    </ThumbnailPopup>
+                </Link>)
         } else {
 
             const musicNum = this.getMusicNum(fp);
@@ -824,7 +851,7 @@ export default class ExplorerPage extends Component {
                 onlyUseURL={isImgFolder}
                 isThumbnail
                 className={thumbnailCn}
-                title={this.getTooltipStr(fp)} 
+                title={this.getTooltipStr(fp)}
                 fileName={fp}
                 url={thumbnailurl}
                 musicNum={musicNum}
@@ -862,12 +889,12 @@ export default class ExplorerPage extends Component {
 
 
     renderFileList(filteredFiles, filteredVideos) {
-        const { sortOrder, isSortAsc , showFolderThumbnail } = this.state;
+        const { sortOrder, isSortAsc, showFolderThumbnail } = this.state;
         let dirs = this.dirs;
         let videos = filteredVideos;
         let files = filteredFiles;
 
-        
+
         try {
             files = this.sortFiles(files, sortOrder, isSortAsc);
         } catch (e) {
@@ -976,27 +1003,27 @@ export default class ExplorerPage extends Component {
                 // </ThumbnailPopup>
                 // );
                 return (
-                        <Link target="_blank" to={toUrl} key={item}>{result}</Link>
+                    <Link target="_blank" to={toUrl} key={item}>{result}</Link>
                 );
             });
             return <ItemsContainer key={key} className="video-list" items={videoItems} />
         })
 
-        
+
 
         //better tooltip to show file size 
         //and tag
         files = this.getFileInPage(files);
 
         let zipfileItems;
-        if (sortOrder === BY_FOLDER || sortOrder === BY_FOLDER && 
+        if (sortOrder === BY_FOLDER || sortOrder === BY_FOLDER &&
             (this.getMode() === MODE_AUTHOR || this.getMode() === MODE_TAG || this.getMode() === MODE_SEARCH)) {
             const byDir = _.groupBy(files, getDir);
             let fDirs = _.keys(byDir);
             // 文件夹根据所拥有文件件的时间来排序
             fDirs = _.sortBy(fDirs, dirPath => {
                 const files = byDir[dirPath];
-                const times = files.map(fp =>  this.getMtime(fp)).filter(e => !!e);
+                const times = files.map(fp => this.getMtime(fp)).filter(e => !!e);
                 const avgTime = util.getAverage(times);
                 return avgTime || 0;
             });
@@ -1013,10 +1040,10 @@ export default class ExplorerPage extends Component {
                     <Breadcrumb sep={this.context.file_path_sep}
                         server_os={this.context.server_os}
                         path={dirPath}
-                        className={ii > 0 ? "not-first-breadcrumb folder-seperator" : "folder-seperator"} 
+                        className={ii > 0 ? "not-first-breadcrumb folder-seperator" : "folder-seperator"}
                         extraDiv={extraDiv}
                     />
-                    
+
                 </div>);
                 zipfileItems.push(seperator)
                 const zipGroup = folderGroup.map(fp => this.renderSingleZipItem(fp));
@@ -1043,6 +1070,7 @@ export default class ExplorerPage extends Component {
                 <ItemsContainer items={imageItems} />
                 {videoDivGroup}
                 {this.renderPagination(filteredFiles, filteredVideos)}
+                {this.renderPageRangeSilder()}
                 {this.renderFilterMenu()}
                 {zipfileItems.length > 0 && this.renderSortHeader()}
                 <div className={"file-grid container"}>
@@ -1052,6 +1080,33 @@ export default class ExplorerPage extends Component {
                 </div>
             </div>
         );
+    }
+
+    getMaxPageForSlider(){
+       return Math.min(DEFAULT_MAX_PAGE, this.maxPageNum);
+    }
+
+    renderPageRangeSilder() {
+        const { pageNumRange } = this.state;
+        const maxForSilder = this.getMaxPageForSlider();
+        const righttext = pageNumRange[1] >= maxForSilder? `${this.maxPageNum}/${this.maxPageNum}` : `${pageNumRange[1]}/${this.maxPageNum}`
+
+        // 本质就range slider的max不超过300的，超过和到达的时候有额外逻辑
+        return (
+            <div className='page-number-range-slider-wrapper'>
+                <div className='small-text-title'>{pageNumRange[0]} </div>
+                <RangeSlider className="page-number-range-slider" 
+                min={this.minPageNum} max={maxForSilder} step={1} 
+                value={pageNumRange} onInput={(range) => {
+                    console.log(range);
+                    if(range[0] === pageNumRange[0] && range[1] === pageNumRange[1]){
+                        //
+                    }else{
+                        this.setStateAndSetHash({ pageNumRange: range })
+                    }
+                }} />
+                <div className='small-text-title'>{righttext}</div>
+            </div>);
     }
 
     isFailedLoading() {
@@ -1087,23 +1142,23 @@ export default class ExplorerPage extends Component {
             showFolderThumbnail: next
         })
 
-        if(next && !this.hasCalled_getThumbnailForFolders){
+        if (next && !this.hasCalled_getThumbnailForFolders) {
             this.requestThumbnailForFolder();
         }
     }
 
-    async requestThumbnailForFolder(){
+    async requestThumbnailForFolder() {
         // TODO
         Sender.post("/api/getThumbnailForFolders", { dirs: this.dirs }, res => {
             if (!res.isFailed()) {
-                this.dirThumbnailMap =  res.json.dirThumbnails;
+                this.dirThumbnailMap = res.json.dirThumbnails;
                 this.hasCalled_getThumbnailForFolders = true;
                 this.askRerender();
             }
         });
     }
 
-    askRerender(){
+    askRerender() {
         this.setState({
             rerenderTick: !this.state.rerenderTick
         })
@@ -1216,7 +1271,7 @@ export default class ExplorerPage extends Component {
     getBookModeLink() {
         const onebookUrl = clientUtil.getOneBookLink(this.getTextFromQuery());
         return (
-            <Link target="_blank" className="exp-top-button"  to={onebookUrl} >
+            <Link target="_blank" className="exp-top-button" to={onebookUrl} >
                 <span className="fas fa-book-reader" />
                 <span>Open in Book Mode </span>
             </Link>
@@ -1253,7 +1308,7 @@ export default class ExplorerPage extends Component {
                 {
                     (isTag || isAuthor) &&
                     <div className="col-6 col-md-4">
-                        <Link  target="_blank" className="exp-top-button" to={url} >
+                        <Link target="_blank" className="exp-top-button" to={url} >
                             <span className="fab fa-searchengin" />
                             <span>Search by Text </span>
                         </Link>
@@ -1477,9 +1532,9 @@ export default class ExplorerPage extends Component {
         }
 
         return (<div className="sort-header-container container">
-            <SortHeader sortOptions={sortOptions} selected={this.state.sortOrder} 
-                        isSortAsc={this.state.isSortAsc}
-                        onChange={this.onSortChange.bind(this)} />
+            <SortHeader sortOptions={sortOptions} selected={this.state.sortOrder}
+                isSortAsc={this.state.isSortAsc}
+                onChange={this.onSortChange.bind(this)} />
         </div>);
     }
 
@@ -1492,7 +1547,7 @@ export default class ExplorerPage extends Component {
                 checked={this.isOn(FILTER_GOOD_AUTHOR)}
                 title={`need to found more than ${GOOD_STANDARD} times in good folder`}>
                 By Good Count
-                </Checkbox>);
+            </Checkbox>);
         }
 
         const st2 = `Image > ${userConfig.oversized_image_size} MB`;
