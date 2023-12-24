@@ -92,10 +92,6 @@ Windows 语言设置如下所示：:
     问： ShiguReader是啥意思？
     答： Shigure(しぐれ) + Reader。当年的舰C的同人可真好看。
 
-##### 捐赠
-
-如果你喜欢我们的软件，想请我们喝奶茶，可以通过微信扫描以下二维码进行捐赠：  
-<img alt="微信" src="https://i.imgur.com/4KY4BcN.jpg." data-canonical-src="https://i.imgur.com/4KY4BcN.jpg" height="300px"/>
 
 ##### 开发环境设置
 
