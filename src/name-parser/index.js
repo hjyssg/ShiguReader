@@ -108,8 +108,8 @@ function getDateFromComiket(comiket) {
         result = comiket_to_date_table[comiket];
     } else if (comiket.match(comicket_reg_2)) {
         comiket = comiket.replace("C", "");
-        num = parseInt(comiket);
-        result = new Date(2022, 8, 13);
+        num = parseInt(comiket) - 100;
+        result = new Date(2022, 8, 13); // C100
 
         year = Math.floor(num / 2) + 2022;
         const isSummer = num % 2 === 0;
