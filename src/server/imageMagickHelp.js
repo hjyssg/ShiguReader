@@ -90,107 +90,83 @@ function isImgConvertable(fileName, size) {
     return isImage(fileName) && !isGif(fileName) && size > img_convert_min_threshold;
 }
 
-const userful_percent = 20;
+// 如果一个文件夹parentDir只有一个folder，没有别的文件。把那个folder的所有东西移动到parentDir
+async function moveSubfolderContentsToParent(parentDir) {
+    // 获取parentDir中的所有文件和文件夹
+    const items = await pfs.readdir(parentDir, { withFileTypes: true });
+    const dirs = items.filter(item => item.isDirectory());
+    const files = items.filter(item => item.isFile());
 
+    // 确保只有一个文件夹且没有文件
+    if (dirs.length === 1 && files.length === 0) {
+        const subfolderName = dirs[0].name;
+        const subfolderPath = path.join(parentDir, subfolderName);
+
+        // 获取子文件夹中的所有文件和文件夹
+        const subfolderItems = await pfs.readdir(subfolderPath, { withFileTypes: true });
+
+        for (const item of subfolderItems) {
+            const sourcePath = path.join(subfolderPath, item.name);
+            const destPath = path.join(parentDir, item.name);
+
+            // 移动子文件夹中的内容到父文件夹
+            await pfs.rename(sourcePath, destPath);
+        }
+
+        // 删除现在已经空的子文件夹
+        await pfs.rmdir(subfolderPath);
+
+        console.log(`Contents moved from ${subfolderName} to ${parentDir}`);
+    } else {
+        console.log('Parent directory does not meet the conditions.');
+    }
+}
 
 //ONLY KEEP THE CORRECT FILES IN FOLDER AFTER EVERYTHING
 module.exports.minifyOneFile = async function (filePath) {
     let extractOutputPath;
-    let minifyOutputPath;
     try {
         const oldStat = await getStatAndUpdateDB(filePath);
         const oldTemp = await listZipContentAndUpdateDb(filePath);
         const oldFiles = oldTemp.files;
 
-        //one folder for extract
-        //one for minify image
         const bookName = path.basename(filePath, path.extname(filePath));
-        // const subfoldername = `from_${path.basename(path.dirname(filePath))}`
-        // const convertSpace = path.join(getImgConverterCachePath(), subfoldername);
         const convertSpace = getImgConverterCachePath();
-        extractOutputPath = path.join(convertSpace, bookName + "-original");
-        minifyOutputPath = path.join(convertSpace, bookName);
+        extractOutputPath = path.join(convertSpace, bookName);
 
         //mkdir for output
-        if (!(await isExist(minifyOutputPath))) {
-            const mdkirErr = await serverUtil.mkdir(minifyOutputPath, { recursive: true });
+        if (!(await isExist(extractOutputPath))) {
+            const mdkirErr = await serverUtil.mkdir(extractOutputPath, { recursive: true });
             if (mdkirErr instanceof Error) {
-                logFail(minifyOutputPath, "cannot create output folder");
+                logFail(extractOutputPath, "cannot create output folder");
                 return;
             }
         }
 
         //do a brand new extract
         logger.info("[minifyOneFile] extractAll....");
-        const { pathes, error } = await extractAll(filePath, extractOutputPath);
+        const { pathes, error } = await extractAll(filePath, extractOutputPath, true);
         if (error) {
             logFail(filePath, "failed to extractAll", error);
             return;
         }
 
+        await moveSubfolderContentsToParent(extractOutputPath)
 
-        if (!isExtractAllSameWithOriginalFiles(pathes, oldFiles)) {
-            logFail(filePath, "ExtractAll Different than Original Files");
-            return;
-        }
+
         logger.info("[minifyOneFile] begin images convertion --------------");
         logger.info(filePath);
-        const _pathes = pathes;
-        const total = _pathes.length;
-        let converterError;
-        const beginTime = getCurrentTime();
 
-        //convert one by one
-        for (let ii = 0; ii < total; ii++) {
-            const fname = _pathes[ii];
-            const inputFp = path.resolve(extractOutputPath, fname);
-            try {
-                const stat = await pfs.stat(inputFp);
-                if (stat.isDirectory()) {
-                    continue;
-                }
-                const oldSize = stat.size;
-                let simplyCopy = !isImgConvertable(fname, oldSize)
+        const { saveSpace } = await minifyFolder(extractOutputPath);
 
-                if (simplyCopy) {
-                    const outputImgPath = path.resolve(minifyOutputPath, fname);
-                    //this copy file does not create folder and isnot recursive
-                    await pfs.copyFile(inputFp, outputImgPath);
-                } else {
-                    //use imageMagik to convert 
-                    //  magick 1.jpeg   50 1.webp
-                    const name = path.basename(fname, path.extname(fname)) + img_convert_dest_type;
-                    const outputImgPath = path.resolve(minifyOutputPath, name);
-                    let { stdout, stderr } = await convertImage(inputFp, outputImgPath, oldSize);
-                    if (stderr) {
-                        throw stderr;
-                    }
-
-                    const timeSpent = getCurrentTime() - beginTime;
-                    const timePerImg = timeSpent / (ii + 1) / 1000; // in second
-                    const remaintime = (total - ii) * timePerImg;
-                    if (ii + 1 < total) {
-                        logger.info(`${ii + 1}/${total}      ${(timePerImg).toFixed(2)}s per file   ${remaintime.toFixed(2)}s left`);
-                    } else {
-                        logger.info(`${ii + 1}/${total}`);
-                        // logger.info("finish convertion. going to check if there is any error")
-                    }
-                }
-
-            } catch (err) {
-                converterError = err;
-                break;
-            }
-        }
-
-        if (converterError) {
-            logFail(filePath, converterError);
+        if( saveSpace < 1000){
+            logFail(filePath, "not a useful work. abandon");
             return;
         }
 
         //zip into a new zip file
         //todo: The process cannot access the file because it is being used by another process
-        let { stdout, stderr, resultZipPath } = await sevenZipHelp.zipOneFolder(minifyOutputPath);
+        let { stdout, stderr, resultZipPath } = await sevenZipHelp.zipOneFolder(extractOutputPath);
         if (stderr) {
             logFail(filePath, "sevenZipHelp.zipOneFolder fail");
             deleteCache(resultZipPath);
@@ -204,30 +180,15 @@ module.exports.minifyOneFile = async function (filePath) {
             deleteCache(resultZipPath);
             return;
         }
-        const newStat = await getStatAndUpdateDB(resultZipPath);
-        const reducePercentage = (100 - newStat.size / oldStat.size * 100).toFixed(2);
-        logger.info(`[imageMagickHelp] size reduce ${reducePercentage}%`);
-
-        if (reducePercentage < userful_percent) {
-            logFail(filePath, "not a useful work. abandon");
+ 
+        //manually let file have the same modify time
+        const error2 = await pfs.utimes(resultZipPath, oldStat.atime, oldStat.mtime);
+        if (error2) {
+            logFail(filePath, "pfs.utimes failed");
             deleteCache(resultZipPath);
         } else {
-            //manually let file have the same modify time
-            const error2 = await pfs.utimes(resultZipPath, oldStat.atime, oldStat.mtime);
-            if (error2) {
-                logFail(filePath, "pfs.utimes failed");
-                deleteCache(resultZipPath);
-            } else {
-                // logger.info("convertion done", filePath);
-                logger.info("original size", filesizeUitl(oldStat.size, { base: 2 }));
-                logger.info("new size", filesizeUitl(newStat.size, { base: 2 }));
-                logger.info(`size reduce ${reducePercentage}%`);
-                logger.info("output file is at", convertSpace);
-                return {
-                    oldSize: oldStat.size,
-                    newSize: newStat.size,
-                    saveSpace: (oldStat.size - newStat.size)
-                }
+            return {
+                saveSpace
             }
         }
     } catch (e) {
@@ -235,7 +196,6 @@ module.exports.minifyOneFile = async function (filePath) {
     } finally {
         //maybe let user to delete file manually?
         deleteCache(extractOutputPath);
-        deleteCache(minifyOutputPath);
         logger.info("----------------------------------------------------------------");
     }
 }
@@ -250,16 +210,6 @@ function deleteCache(filePath) {
     }
 }
 
-//todo 下面这两个函数有点雷同啊
-function isExtractAllSameWithOriginalFiles(newFiles, files) {
-    if (!newFiles) {
-        return false;
-    }
-
-    const expect_file_names = files.filter(isImage).map(e => path.basename(e)).sort();
-    const resulted_file_names = newFiles.filter(isImage).map(e => path.basename(e)).sort();
-    return _.isEqual(resulted_file_names, expect_file_names);
-}
 
 function getFn(e) {
     return path.basename(e, path.extname(e));
@@ -279,14 +229,14 @@ const isNewZipSameWithOriginalFiles = module.exports.isNewZipSameWithOriginalFil
     return _.isEqual(resulted_file_names, expect_file_names)
 }
 
+
+const userful_percent = 20;
 const fileiterator = require('./file-iterator');
 const trash = require('trash');
-module.exports.minifyFolder = async function (filePath) {
+const minifyFolder = module.exports.minifyFolder = async function (filePath) {
     logger.info("-----begin images convertion --------------");
-    //only one level
-    const { pathes, infos } = await fileiterator(filePath, {
-        filter: util.isImage
-    });
+ 
+    const { pathes, infos } = await fileiterator(filePath, {});
 
     const sufix = "_temp_compress.jpg";
     const total = pathes.length;
@@ -308,7 +258,9 @@ module.exports.minifyFolder = async function (filePath) {
 
                 const newStat = await getStatAndUpdateDB(outputfp);
                 const reducePercentage = (100 - newStat.size / oldSize * 100).toFixed(2);
+                // 逐张判断有用语法
                 if (reducePercentage < userful_percent || newStat.size < 1000) {
+                    // 压缩跟没压缩一样就删掉
                     await trash([outputfp]);
                 } else {
                     //delete input file
@@ -326,6 +278,7 @@ module.exports.minifyFolder = async function (filePath) {
         }
     }
 
+    logger.info("size reduce ", filesizeUitl(saveSpace, { base: 2 }));
     return {
         saveSpace
     }
