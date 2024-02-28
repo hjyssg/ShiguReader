@@ -220,8 +220,11 @@ const isNewZipSameWithOriginalFiles = module.exports.isNewZipSameWithOriginalFil
         return false;
     }
 
-    //naive algo here
-    const isFile = e => e && e.includes(".");
+    // naive algo here
+    // TODO 文件夹名带.会被当做文件夹
+    const isFile = e => {
+        return !pathUtil.estimateIfFolder(e);
+    };
 
     //todo: need to check if other type files are missing
     const expect_file_names = files.filter(isFile).map(getFn).sort();
