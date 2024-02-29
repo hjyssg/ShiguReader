@@ -953,7 +953,7 @@ async function extractThumbnailFromZip(filePath, res, mode, config) {
     }
 
     const isPregenerateMode = mode === "pre-generate";
-    const sendable = !isPregenerateMode && res;
+    let sendable = !isPregenerateMode && res;
     const outputPath = path.join(cachePath, getHash(filePath));
     let files;
 
@@ -1006,19 +1006,33 @@ async function extractThumbnailFromZip(filePath, res, mode, config) {
 
             //解压
             const stderrForThumbnail = await extractByRange(filePath, outputPath, [thumb])
-            if (stderrForThumbnail) {
-                // logger.error(stderrForThumbnail);
+            if(stderrForThumbnail === "NEED_TO_EXTRACT_ALL"){
+                const { pathes, error } = await extractAll(filePath, outputPath, false);
+                if (error) {
+                    throw "[extractThumbnailFromZip] extract exec failed"+filePath;
+                }
+            } else if (stderrForThumbnail) {
                 throw "[extractThumbnailFromZip] extract exec failed"+filePath;
             }
            
             // send original img path to client as thumbnail
             let original_thumb = path.join(outputPath, path.basename(thumb));
             sendImage(original_thumb);
+            sendable = false;
 
             //compress into real thumbnail
             const outputFilePath = await thumbnailGenerator(thumbnailFolderPath, outputPath, path.basename(thumb));
             if (outputFilePath) {
                 thumbnailDb.addNewThumbnail(filePath, outputFilePath);
+
+                // TODO 删除除了要使用的文件，避免硬盘爆炸
+                // Uncaught Error Error: EPERM: operation not permitted, unlink 'F:\git\Shigureader_Backend\cache\2932237659'
+                // at (program) (internal/process/promises:279:12)
+                // setTimeout(async() => {
+                //     // 删除不要的文件夹
+                //     const err = await pfs.unlink(outputPath)
+                //     if (err) { throw err; }
+                // }, 10000);
             }
         }
     } catch (e) {
@@ -1326,9 +1340,8 @@ app.post('/api/extract', asyncWrapper(async (req, res) => {
 
                 await extractByRange(filePath, outputPath, secondRange);
             } else {
-                //seven的谜之抽风
-                if(stderr === "NEED_TO_EXTRACT_ALL" && files.length <= 100){
-                   await _extractAll_()
+                if(stderr === "NEED_TO_EXTRACT_ALL"){
+                   await _extractAll_();
                 }else{
                     throw stderr;
                 }
