@@ -1025,14 +1025,10 @@ async function extractThumbnailFromZip(filePath, res, mode, config) {
             if (outputFilePath) {
                 thumbnailDb.addNewThumbnail(filePath, outputFilePath);
 
-                // TODO 删除除了要使用的文件，避免硬盘爆炸
-                // Uncaught Error Error: EPERM: operation not permitted, unlink 'F:\git\Shigureader_Backend\cache\2932237659'
-                // at (program) (internal/process/promises:279:12)
-                // setTimeout(async() => {
-                //     // 删除不要的文件夹
-                //     const err = await pfs.unlink(outputPath)
-                //     if (err) { throw err; }
-                // }, 10000);
+                // 删除除了要使用的文件，避免硬盘爆炸
+                setTimeout(async() => {
+                    cleanDirectory(outputPath, thumb)
+                }, 10000);
             }
         }
     } catch (e) {
@@ -1041,6 +1037,37 @@ async function extractThumbnailFromZip(filePath, res, mode, config) {
         sendable && res.send({ failed: true, reason });
     }
 }
+
+
+
+async function cleanDirectory(targetDir, filename) {
+  const _fn = path.basename(filename, path.extname(filename));
+  try {
+    // 读取目标文件夹下的所有文件和文件夹
+    const items = await pfs.readdir(targetDir, { withFileTypes: true });
+    // 遍历每个项目
+    for (const item of items) {
+      const fullPath = path.join(targetDir, item.name);
+      if (item.isDirectory()) {
+        // 如果是文件夹，递归处理
+        await cleanDirectory(fullPath, filename);
+      } else {
+        // 如果是文件，检查文件名（不含扩展名）是否与filename相同
+        const fileNameWithoutExt = path.basename(item.name, path.extname(item.name));
+        if (fileNameWithoutExt !== _fn) {
+          // 如果不相同，删除该文件
+          await pfs.unlink(fullPath);
+        //   console.log(`Deleted: ${fullPath}`);
+        }
+      }
+    }
+  } catch (error) {
+    console.error(`Error processing directory ${targetDir}:`, error);
+  }
+}
+
+
+
 
 //  a huge back ground task
 //  it generate all thumbnail and will be slow
