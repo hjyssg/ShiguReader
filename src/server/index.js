@@ -1026,9 +1026,9 @@ async function extractThumbnailFromZip(filePath, res, mode, config) {
                 thumbnailDb.addNewThumbnail(filePath, outputFilePath);
 
                 // 删除除了要使用的文件，避免硬盘爆炸
-                setTimeout(async() => {
-                    cleanDirectory(outputPath, thumb)
-                }, 10000);
+                // setTimeout(async() => {
+                //     // cleanDirectory(outputPath, thumb)
+                // }, 10000);
             }
         }
     } catch (e) {
