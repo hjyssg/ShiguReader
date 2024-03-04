@@ -955,7 +955,7 @@ async function extractThumbnailFromZip(filePath, res, mode, config) {
     const isPregenerateMode = mode === "pre-generate";
     let sendable = !isPregenerateMode && res;
     const outputPath = path.join(cachePath, getHash(filePath));
-    let files;
+    let zipInfo;
 
     function sendImage(imgFp) {
         sendable && res.send({
@@ -973,7 +973,7 @@ async function extractThumbnailFromZip(filePath, res, mode, config) {
                 //skip
             } else {
                 //in pregenerate mode, it always updates db content
-                files = (await listZipContentAndUpdateDb(filePath)).files;
+                zipInfo = (await listZipContentAndUpdateDb(filePath));
             }
 
             if (config.fastUpdateMode){
@@ -991,12 +991,12 @@ async function extractThumbnailFromZip(filePath, res, mode, config) {
         if (thumbRows[0]) {
             sendImage(thumbRows[0].thumbnailFilePath);
         } else {
-            if (!files) {
-                files = (await listZipContentAndUpdateDb(filePath)).files;
+            if (!zipInfo) {
+                zipInfo = (await listZipContentAndUpdateDb(filePath));
             }
 
             //挑一个img来做thumbnail
-            const thumb = serverUtil.chooseThumbnailImage(files);
+            const thumb = serverUtil.chooseThumbnailImage(zipInfo.files);
             if (!thumb) {
                 let reason = "[extractThumbnailFromZip] no img in this file " +  filePath;
                 console.log(reason);
@@ -1006,7 +1006,7 @@ async function extractThumbnailFromZip(filePath, res, mode, config) {
 
             //解压
             const stderrForThumbnail = await extractByRange(filePath, outputPath, [thumb])
-            if(stderrForThumbnail === "NEED_TO_EXTRACT_ALL"){
+            if(stderrForThumbnail === "NEED_TO_EXTRACT_ALL" && zipInfo.info.totalSize < 100*1000 * 1000){
                 const { pathes, error } = await extractAll(filePath, outputPath, false);
                 if (error) {
                     throw "[extractThumbnailFromZip] extract exec failed"+filePath;
