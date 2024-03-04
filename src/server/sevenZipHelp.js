@@ -209,7 +209,7 @@ module.exports.extractByRange = async function (filePath, outputPath, range) {
             let { stderr, stdout } = await execa(sevenZip, opt);
             if (stderr) {
                 error = stderr;
-                logger.error('[extractByRange] exit: ', stderr);
+                // logger.error('[extractByRange] exit: ', stderr);
                 break;
             }
             if(stdout.includes("No files to process")){
@@ -228,6 +228,9 @@ module.exports.extractByRange = async function (filePath, outputPath, range) {
         return error;
     }
 }
+
+
+// isRecursive: 保持原来的文件夹结构
 module.exports.extractAll = async function (filePath, outputPath, isRecursive) {
     if (!global._has_7zip_) {
         throw "this computer did not install 7z"

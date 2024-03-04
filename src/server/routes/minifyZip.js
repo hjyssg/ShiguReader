@@ -33,8 +33,7 @@ router.post('/api/minifyZipQue', serverUtil.asyncWrapper(async (req, res) => {
 }));
 
 const pLimit = require('p-limit');
-const limit = pLimit(2);
-
+const limit = pLimit(1);
 router.post('/api/overwrite', serverUtil.asyncWrapper(async (req, res) => {
     const filePath = req.body && req.body.filePath;
 
@@ -130,7 +129,7 @@ router.post('/api/minifyZip', serverUtil.asyncWrapper(async (req, res) => {
         }
         if (temp) {
             //only success will return result
-            const { oldSize, newSize, saveSpace } = temp;
+            const { saveSpace } = temp;
             count.processed++
             count.saveSpace += saveSpace;
             logger.info("[/api/minifyZip] total space save:", filesizeUitl(count.saveSpace, { base: 2 }))

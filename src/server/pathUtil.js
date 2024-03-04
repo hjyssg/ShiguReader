@@ -256,6 +256,7 @@ const getZipOutputCachePath = module.exports.getZipOutputCachePath = () => {
     return path.join(getWorkSpacePath(), userConfig.zip_output_cache);
 }
 
+// get file extension
 const getExt = module.exports.getExt = function (p) {
     const ext = path.extname(p).toLowerCase();
     if (ext === ".!ut") {

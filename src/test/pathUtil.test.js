@@ -117,6 +117,13 @@ describe("Path Util Test", function () {
       const result = pathUtil.getExt(p);
       assert.strictEqual(result, "");
     });
+
+
+    it("should return an empty string if the file path has no extension", function () {
+      const p = "Y:\\_Downloads\\alice [22P-362.71 MB]";
+      const result = pathUtil.getExt(p);
+      assert.strictEqual(result, "");
+    });
   });
 
   describe("estimateIfFolder()", function () {
