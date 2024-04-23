@@ -54,7 +54,7 @@ router.post('/api/overwrite', serverUtil.asyncWrapper(async (req, res) => {
     let originalFilePath;
     let allPath = [];
     const fn = path.basename(filePath, path.extname(filePath));
-    minifyDoneArr.filter(e => {
+    allPath = minifyDoneArr.filter(e => {
         return path.basename(e, path.extname(e)) == fn;
     })
     if (allPath.length === 0){
