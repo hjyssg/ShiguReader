@@ -27,14 +27,16 @@
       "program": "${workspaceFolder}\\src\\server\\index.js",
       "args": [
         // "--port" ,"5000",
-      ]
+      ],
+      "preLaunchTask": "set_chcp_65001", // 添加这个属性来引用一个预启动任务
     },
     {
       "type": "node",
       "request": "launch",
       "name": "main server [skip scan]",
       "program": "${workspaceFolder}\\src\\server\\index.js",
-      "args": ["--skip-scan"]
+      "args": ["--skip-scan"],
+      "preLaunchTask": "set_chcp_65001", // 添加这个属性来引用一个预启动任务
     },
     {
       "type": "node",
