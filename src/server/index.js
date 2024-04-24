@@ -96,7 +96,7 @@ console.log("skipCacheClean: ", skipCacheClean);
 const db = require("./models/db");
 const zipInfoDb = require("./models/zipInfoDb");
 const thumbnailDb = require("./models/thumbnailDb");
-const historyDb = require("./models/historyDb");
+const historyDb = require("./models/historyDB");
 const cacheDb = require("./models/cacheDb");
 
 
@@ -996,8 +996,8 @@ async function extractThumbnailFromZip(filePath, res, mode, config) {
             }
 
             //挑一个img来做thumbnail
-            const thumb = serverUtil.chooseThumbnailImage(zipInfo.files);
-            if (!thumb) {
+            let thumbFN = serverUtil.chooseThumbnailImage(zipInfo.files);
+            if (!thumbFN) {
                 let reason = "[extractThumbnailFromZip] no img in this file " +  filePath;
                 console.log(reason);
                 sendable && res.send({ failed: true, reason });
@@ -1005,29 +1005,31 @@ async function extractThumbnailFromZip(filePath, res, mode, config) {
             }
 
             //解压
-            const stderrForThumbnail = await extractByRange(filePath, outputPath, [thumb])
+            const stderrForThumbnail = await extractByRange(filePath, outputPath, [thumbFN])
             if(stderrForThumbnail === "NEED_TO_EXTRACT_ALL" && zipInfo.info.totalSize < 100*1000 * 1000){
                 const { pathes, error } = await extractAll(filePath, outputPath, false);
                 if (error) {
                     throw "[extractThumbnailFromZip] extract exec failed"+filePath;
+                }else{
+                    thumbFN = serverUtil.chooseThumbnailImage(pathes);
                 }
             } else if (stderrForThumbnail) {
-                throw "[extractThumbnailFromZip] extract exec failed"+filePath;
+                throw "[extractThumbnailFromZip] extract exec failed" + filePath;
             }
            
             // send original img path to client as thumbnail
-            let original_thumb = path.join(outputPath, path.basename(thumb));
+            let original_thumb = path.join(outputPath, path.basename(thumbFN));
             sendImage(original_thumb);
             sendable = false;
 
             //compress into real thumbnail
-            const outputFilePath = await thumbnailGenerator(thumbnailFolderPath, outputPath, path.basename(thumb));
+            const outputFilePath = await thumbnailGenerator(thumbnailFolderPath, outputPath, path.basename(thumbFN));
             if (outputFilePath) {
                 thumbnailDb.addNewThumbnail(filePath, outputFilePath);
 
                 // 删除除了要使用的文件，避免硬盘爆炸
                 // setTimeout(async() => {
-                //     // cleanDirectory(outputPath, thumb)
+                //     // cleanDirectory(outputPath, thumbFN)
                 // }, 10000);
             }
         }
