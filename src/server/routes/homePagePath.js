@@ -4,7 +4,7 @@ const router = express.Router();
 const serverUtil = require("../serverUtil");
 // const db = require("../models/db");
 // const util = global.requireUtil();
-const historyDb = require("../models/historyDb");
+const historyDb = require("../models/historyDB");
 const pathUtil = require("../pathUtil");
 const memorycache = require('memory-cache');
 const path = require("path");
@@ -52,7 +52,8 @@ router.get('/api/homePagePath', serverUtil.asyncWrapper(async (req, res) => {
         return !containPath(scan_pathes, e) && !containPath(hdd_list, e) && !containPath(quickAccess, e);
     });
     const NUM_QUICK_ACCESS = 10;
-    recentAccess = await pathUtil.filterNonExist(recentAccess, NUM_QUICK_ACCESS);
+    recentAccess = recentAccess.slice(0, 20);
+    // recentAccess = await pathUtil.filterNonExist(recentAccess, NUM_QUICK_ACCESS);
   
 
     if (scan_pathes.length === 0 && hdd_list.length === 0 && quickAccess.length === 0 && recentAccess.length == 0) {
