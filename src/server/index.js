@@ -203,8 +203,6 @@ async function init() {
         serverUtil.mkdirList(scan_path)
         scan_path = await pathUtil.filterNonExist(scan_path);
 
-        global.SCANED_PATH = scan_path;
-        // db.insertScanPath(scan_path)
 
         if(!skipCacheClean){
             cleanCache(cachePath);
@@ -234,9 +232,12 @@ async function init() {
             }
         }
         will_scan = will_scan.filter(e => e !== "_to_remove_");
+        
+        printIP();
 
         //todo: chokidar will slow the server down very much when it init async
-        initializeFileWatch(will_scan);
+        add_New_File_to_Watch(will_scan)
+        
     }).on('error', async (error) => {
         logger.error("[Server Init]", error.message);
         //exit the current program
@@ -344,12 +345,7 @@ function shrinkFp(fp){
  * 
  * */
 function initializeFileWatch(dirPathes) {
-    if(dirPathes.length == 0){
-        printIP();
-        return;
-    }
-
-    add_New_File_to_Watch(dirPathes)
+   
 }
 
 
@@ -365,7 +361,7 @@ async function add_New_File_to_Watch(dirPathes) {
 
     // add to scan_path
     // todo 不严谨 会出现重复添加
-    global.SCANED_PATH = [...global.SCANED_PATH, ...dirPathes]
+  
 
     for (let filePath of dirPathes){
         await filewatch.recursiveFileProcess({

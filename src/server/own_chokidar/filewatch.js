@@ -69,7 +69,10 @@ const addWatch = async ({ folderPath, deleteCallBack, shouldScan, db }) => {
         if(!shouldScan(fp, stat)){
             return true;
         } else {
-            console.log("---")
+            if(stat && !stat.isDirectory()){
+                 console.log(fp)
+                return true;
+            }
         }
     }
 
@@ -79,22 +82,27 @@ const addWatch = async ({ folderPath, deleteCallBack, shouldScan, db }) => {
         ignorePermissionErrors: true,
         followSymlinks: false,
         disableGlobbing: true,
-        ignoreInitial: true
+        ignoreInitial: true,
+        useFsEvents: true
     });
 
   
     //处理添加文件事件
-    const addCallBack = async (fp, stats) => {
-            db.updateStatToDb(fp, stats);
+    const addFileCallBack = async (fp, stats) => {
+        db.updateStatToDb(fp, stats);
+    };
+
+    const addFolderCallBack = async (fp, stats) => {
+        db.updateStatToDb(fp, stats);
     };
 
     watcher
-        .on('add', addCallBack)
-        .on('change', addCallBack)
+        .on('add', addFileCallBack)
+        .on('change', addFileCallBack)
         .on('unlink', deleteCallBack);
 
     watcher
-        .on('addDir', addCallBack)
+        .on('addDir', addFolderCallBack)
         .on('unlinkDir', deleteCallBack);
 
     watcher.on('ready', async () => {
@@ -102,11 +110,9 @@ const addWatch = async ({ folderPath, deleteCallBack, shouldScan, db }) => {
     })
 
     watchDescriptors[folderPath] = watcher;
+    global.SCANED_PATH = Object.keys(watchDescriptors);
 };
 
-// TODO
-function get_scan_path() {
-    return Object.keys(watchDescriptors);
-}
+
 
 module.exports = { addWatch, recursiveFileProcess }
