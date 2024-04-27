@@ -1,12 +1,13 @@
 const fs = require('fs').promises;
-const _fs = require('fs');
 const path = require('path');
+const chokidar = require('chokidar');
+
 
 const getCurrentTime = function () {
     return new Date().getTime();
 }
 
-async function recursiveFileProcess({filepath, db, shouldIgnoreForNormal}) {
+async function recursiveFileProcess({filePath, db, shouldIgnoreForNormal}) {
     let beg = getCurrentTime();
 
     // 缓存对象，用于存储文件和标签数据
@@ -25,7 +26,11 @@ async function recursiveFileProcess({filepath, db, shouldIgnoreForNormal}) {
             for (let entry of entries) {
                 const fullPath = path.join(dirPath, entry.name);
                 const stats = await fs.stat(fullPath);
-                
+
+                if(shouldIgnoreForNormal(fullPath, stats)){
+                    continue;
+                }
+
                 // 更新状态到数据库的缓存
                 db.updateStatToDb(fullPath, stats, insertion_cache);
 
@@ -40,7 +45,7 @@ async function recursiveFileProcess({filepath, db, shouldIgnoreForNormal}) {
     }
 
     // 开始递归处理
-    await processDirectory(filepath);
+    await processDirectory(filePath);
 
     // 所有文件处理完成后，批量插入数据库
     await db.batchInsert("file_table", insertion_cache.files);
@@ -58,43 +63,44 @@ async function recursiveFileProcess({filepath, db, shouldIgnoreForNormal}) {
 let watchDescriptors = {};
 
 // 动态添加监听目录
-const addWatch = async ({ folderPath, addFileCallBack, addFolderCallBack, deleteFileCallBack, deleteFolderCallBack, shouldIgnoreForNormal }) => {
-    const watcher = _fs.watch(folderPath, { persistent: true, recursive: true }, async (eventType, filename) => {
-        if (!filename) return;
+const addWatch = async ({ folderPath, deleteCallBack, shouldScan, db }) => {
 
-        const fullPath = path.join(folderPath, filename);
-        console.log(eventType, fullPath);
-
-        try {
-            const stats = await fs.stat(fullPath);
-            if (stats.isDirectory()) {
-                if (eventType === 'rename' && !watchDescriptors[fullPath]) {
-                    // 新增目录
-                    addFolderCallBack(fullPath, stats);
-                }
-            } else if (stats.isFile()) {
-                if (eventType === 'rename') {
-                    // 新增文件
-                    addFileCallBack(fullPath, stats);
-                }
-            }
-        } catch (error) {
-            if (error.code === 'ENOENT') {
-                // 文件或目录被删除
-                if (watchDescriptors[fullPath]) {
-                    deleteFolderCallBack(fullPath);
-                    watcher.close(); // 停止监听已删除的目录
-                    delete watchDescriptors[fullPath];
-                } else {
-                    deleteFileCallBack(fullPath);
-                }
-            } else {
-                console.error(`Error watching file ${fullPath}:`, error);
-            }
+    const shouldWatchIgnore = (fp, stat) => {
+        if(!shouldScan(fp, stat)){
+            return true;
+        } else {
+            console.log("---")
         }
+    }
+
+    const watcher = chokidar.watch(folderPath, {
+        ignored: shouldWatchIgnore,
+        persistent: true,
+        ignorePermissionErrors: true,
+        followSymlinks: false,
+        disableGlobbing: true,
+        ignoreInitial: true
     });
 
-    console.log(folderPath, watcher)
+  
+    //处理添加文件事件
+    const addCallBack = async (fp, stats) => {
+            db.updateStatToDb(fp, stats);
+    };
+
+    watcher
+        .on('add', addCallBack)
+        .on('change', addCallBack)
+        .on('unlink', deleteCallBack);
+
+    watcher
+        .on('addDir', addCallBack)
+        .on('unlinkDir', deleteCallBack);
+
+    watcher.on('ready', async () => {
+        console.log(`[chokidar] ${folderPath} scan complete.`)
+    })
+
     watchDescriptors[folderPath] = watcher;
 };
 

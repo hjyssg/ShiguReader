@@ -293,13 +293,13 @@ function setUpCacheWatch() {
 
 
 /** this function decide which files will be scanned and watched by ShiguReader  */
-function shouldWatchForNormal(p, stat) {
+function shouldScan(fp, stat) {
     //cache is cover by another watch
-    if (p.includes(cachePath)) {
+    if (fp.includes(cachePath)) {
         return false;
     }
 
-    if (isHiddenFile(p) || pathUtil.isForbid(p)) {
+    if (isHiddenFile(fp) || pathUtil.isForbid(fp)) {
         return false;
     }
 
@@ -308,8 +308,8 @@ function shouldWatchForNormal(p, stat) {
         return true;
     }
 
-    const ext = pathUtil.getExt(p);
-    let result = estimateIfFolder(p) || isDisplayableInExplorer(ext);
+    const ext = pathUtil.getExt(fp);
+    let result = estimateIfFolder(fp) || isDisplayableInExplorer(ext);
 
     if (view_img_folder) {
         result = result || isDisplayableInOnebook(ext)
@@ -317,8 +317,8 @@ function shouldWatchForNormal(p, stat) {
     return result;
 }
 
-function shouldIgnoreForNormal(p, stat) {
-    return !shouldWatchForNormal(p, stat);
+function shouldIgnoreForNormal(fp, stat) {
+    return !shouldScan(fp, stat);
 }
 
 /** 文件被删除时，去相关数据库删除信息 */
@@ -349,42 +349,35 @@ function initializeFileWatch(dirPathes) {
         return;
     }
 
-    addNewFileWatchAfterInit(dirPathes)
+    add_New_File_to_Watch(dirPathes)
 }
 
 
 /**
  * 服务器使用中途添加监听扫描path
  */
-async function addNewFileWatchAfterInit(dirPathes) {
+async function add_New_File_to_Watch(dirPathes) {
     if(dirPathes.length == 0){
         return;
     }
 
-    console.log(`[chokidar addNewFileWatch] [${dirPathes.join(",")}] begin...`);
-    let beg = getCurrentTime();
+    // console.log(`[chokidar addNewFileWatch] [${dirPathes.join(",")}] begin...`);
 
     // add to scan_path
-    // TODO check with db to prevent duplicate adding shouldIgnoreForNormal
     // todo 不严谨 会出现重复添加
     global.SCANED_PATH = [...global.SCANED_PATH, ...dirPathes]
 
-    //处理添加文件事件
-    const addCallBack = async (fp, stats) => {
-        db.updateStatToDb(fp, stats);
-    };
-
     for (let filePath of dirPathes){
         await filewatch.recursiveFileProcess({
-            filePath, db, shouldIgnoreForNormal
+            filePath,
+            db, 
+            shouldIgnoreForNormal
         });
         await filewatch.addWatch({
             folderPath: filePath, 
-            addFileCallBack: addCallBack, 
-            addFolderCallBack: addCallBack, 
-            deleteFileCallBack: addCallBack, 
-            deleteFolderCallBack: addCallBack,
-            shouldIgnoreForNormal
+            deleteCallBack, 
+            shouldScan, 
+            db
         })
     }
 }
