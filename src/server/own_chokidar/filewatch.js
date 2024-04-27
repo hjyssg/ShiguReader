@@ -16,6 +16,7 @@ async function fastFileIterate({filePath, db, shouldIgnoreForNormal}) {
         tags: []
     };
 
+    console.log(`[fastFileIterate] ${filePath}  begin`);
 
     // 递归函数，用于处理文件和文件夹
     async function processDirectory(dirPath) {
