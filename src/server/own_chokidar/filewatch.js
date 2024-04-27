@@ -115,7 +115,7 @@ const addWatch_chokidar = async ({ folderPath, deleteCallBack, shouldScan, db })
     global.SCANED_PATH = Object.keys(watchDescriptors);
 };
 
-const sane = require('sane');
+const sane = require('sane');  // 性能确实比chokidar好
 const addWatch_sane = async ({ folderPath, deleteCallBack, shouldScan, db }) => {
     // 或许使用https://facebook.github.io/watchman/docs/install
     const startTime = Date.now();  // 设置开始时间

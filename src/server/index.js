@@ -261,16 +261,12 @@ function setUpCacheWatch() {
             return false;
         }
     
-        //if ignore, chokidar wont check its content
         if (pathUtil.estimateIfFolder(fp) ||  (stat && stat.isDirectory())) {
             // 文件夹
             return true;
-        }else if (!stat){
-            return true;
-        }  else {
-            cacheDb.updateStatToCacheDb(fp, stat);
-            return false;
         }
+        
+        return true;
     }
 
     //also for cache files
@@ -281,11 +277,13 @@ function setUpCacheWatch() {
         ignoreInitial: true,
     });
 
-    // cacheWatcher
-    //     .on('add', (fp, stats) => {
-    //         console.log(fp, stats);
-    //         // cacheDb.updateStatToCacheDb(fp, stats);
-    //     })
+    const addCallBack = (fp, stats) => {
+        cacheDb.updateStatToCacheDb(fp, stats);
+    }
+
+    cacheWatcher
+        .on('add', addCallBack)
+        .on('addDir', addCallBack)
     //     .on('unlink', (fp, stats) => {
     //         // cacheDb.deleteFromCacheDb(p);
     //         console.log(fp, stats);
