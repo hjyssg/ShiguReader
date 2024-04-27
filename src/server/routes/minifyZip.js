@@ -26,6 +26,7 @@ const count = {
     saveSpace: 0
 };
 const minifyZipQue = [];
+const minifyDoneArr = [];
 router.post('/api/minifyZipQue', serverUtil.asyncWrapper(async (req, res) => {
     res.send({
         minifyZipQue
@@ -33,8 +34,7 @@ router.post('/api/minifyZipQue', serverUtil.asyncWrapper(async (req, res) => {
 }));
 
 const pLimit = require('p-limit');
-const limit = pLimit(2);
-
+const limit = pLimit(1);
 router.post('/api/overwrite', serverUtil.asyncWrapper(async (req, res) => {
     const filePath = req.body && req.body.filePath;
 
@@ -52,11 +52,16 @@ router.post('/api/overwrite', serverUtil.asyncWrapper(async (req, res) => {
 
     //fint the original file
     let originalFilePath;
-
+    let allPath = [];
     const fn = path.basename(filePath, path.extname(filePath));
-    let sql = `SELECT filePath FROM zip_view WHERE fileName LIKE ? AND filePath != ?`;
-    let allPath = await db.doSmartAllSync(sql, [('%' + fn + '%'), filePath]);
-    allPath = allPath.map(obj => obj.filePath)
+    allPath = minifyDoneArr.filter(e => {
+        return path.basename(e, path.extname(e)) == fn;
+    })
+    if (allPath.length === 0){
+        let sql = `SELECT filePath FROM zip_view WHERE fileName LIKE ? AND filePath != ?`;
+        allPath = await db.doSmartAllSync(sql, [('%' + fn + '%'), filePath]);
+        allPath = allPath.map(obj => obj.filePath)
+    }
 
     for (let ii = 0; ii < allPath.length; ii++) {
         let fp = allPath[ii];
@@ -130,7 +135,7 @@ router.post('/api/minifyZip', serverUtil.asyncWrapper(async (req, res) => {
         }
         if (temp) {
             //only success will return result
-            const { oldSize, newSize, saveSpace } = temp;
+            const { saveSpace } = temp;
             count.processed++
             count.saveSpace += saveSpace;
             logger.info("[/api/minifyZip] total space save:", filesizeUitl(count.saveSpace, { base: 2 }))
@@ -138,7 +143,8 @@ router.post('/api/minifyZip', serverUtil.asyncWrapper(async (req, res) => {
     } catch (e) {
         logger.error("[/api/minifyZip]", e);
     } finally {
-        minifyZipQue.shift();
+        const tempItem = minifyZipQue.shift();
+        minifyDoneArr.push(tempItem);
         if (minifyZipQue.length === 0) {
             console.log("[/api/minifyZip] the task queue is now empty");
         }

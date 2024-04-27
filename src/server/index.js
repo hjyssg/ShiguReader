@@ -96,7 +96,7 @@ console.log("skipCacheClean: ", skipCacheClean);
 const db = require("./models/db");
 const zipInfoDb = require("./models/zipInfoDb");
 const thumbnailDb = require("./models/thumbnailDb");
-const historyDb = require("./models/historyDb");
+const historyDb = require("./models/historyDB");
 const cacheDb = require("./models/cacheDb");
 
 
@@ -953,9 +953,9 @@ async function extractThumbnailFromZip(filePath, res, mode, config) {
     }
 
     const isPregenerateMode = mode === "pre-generate";
-    const sendable = !isPregenerateMode && res;
+    let sendable = !isPregenerateMode && res;
     const outputPath = path.join(cachePath, getHash(filePath));
-    let files;
+    let zipInfo;
 
     function sendImage(imgFp) {
         sendable && res.send({
@@ -973,7 +973,7 @@ async function extractThumbnailFromZip(filePath, res, mode, config) {
                 //skip
             } else {
                 //in pregenerate mode, it always updates db content
-                files = (await listZipContentAndUpdateDb(filePath)).files;
+                zipInfo = (await listZipContentAndUpdateDb(filePath));
             }
 
             if (config.fastUpdateMode){
@@ -991,13 +991,13 @@ async function extractThumbnailFromZip(filePath, res, mode, config) {
         if (thumbRows[0]) {
             sendImage(thumbRows[0].thumbnailFilePath);
         } else {
-            if (!files) {
-                files = (await listZipContentAndUpdateDb(filePath)).files;
+            if (!zipInfo) {
+                zipInfo = (await listZipContentAndUpdateDb(filePath));
             }
 
             //挑一个img来做thumbnail
-            const thumb = serverUtil.chooseThumbnailImage(files);
-            if (!thumb) {
+            let thumbFN = serverUtil.chooseThumbnailImage(zipInfo.files);
+            if (!thumbFN) {
                 let reason = "[extractThumbnailFromZip] no img in this file " +  filePath;
                 console.log(reason);
                 sendable && res.send({ failed: true, reason });
@@ -1005,20 +1005,32 @@ async function extractThumbnailFromZip(filePath, res, mode, config) {
             }
 
             //解压
-            const stderrForThumbnail = await extractByRange(filePath, outputPath, [thumb])
-            if (stderrForThumbnail) {
-                // logger.error(stderrForThumbnail);
-                throw "[extractThumbnailFromZip] extract exec failed"+filePath;
+            const stderrForThumbnail = await extractByRange(filePath, outputPath, [thumbFN])
+            if(stderrForThumbnail === "NEED_TO_EXTRACT_ALL" && zipInfo.info.totalSize < 100*1000 * 1000){
+                const { pathes, error } = await extractAll(filePath, outputPath, false);
+                if (error) {
+                    throw "[extractThumbnailFromZip] extract exec failed"+filePath;
+                }else{
+                    thumbFN = serverUtil.chooseThumbnailImage(pathes);
+                }
+            } else if (stderrForThumbnail) {
+                throw "[extractThumbnailFromZip] extract exec failed" + filePath;
             }
            
             // send original img path to client as thumbnail
-            let original_thumb = path.join(outputPath, path.basename(thumb));
+            let original_thumb = path.join(outputPath, path.basename(thumbFN));
             sendImage(original_thumb);
+            sendable = false;
 
             //compress into real thumbnail
-            const outputFilePath = await thumbnailGenerator(thumbnailFolderPath, outputPath, path.basename(thumb));
+            const outputFilePath = await thumbnailGenerator(thumbnailFolderPath, outputPath, path.basename(thumbFN));
             if (outputFilePath) {
                 thumbnailDb.addNewThumbnail(filePath, outputFilePath);
+
+                // 删除除了要使用的文件，避免硬盘爆炸
+                // setTimeout(async() => {
+                //     // cleanDirectory(outputPath, thumbFN)
+                // }, 10000);
             }
         }
     } catch (e) {
@@ -1027,6 +1039,37 @@ async function extractThumbnailFromZip(filePath, res, mode, config) {
         sendable && res.send({ failed: true, reason });
     }
 }
+
+
+
+async function cleanDirectory(targetDir, filename) {
+  const _fn = path.basename(filename, path.extname(filename));
+  try {
+    // 读取目标文件夹下的所有文件和文件夹
+    const items = await pfs.readdir(targetDir, { withFileTypes: true });
+    // 遍历每个项目
+    for (const item of items) {
+      const fullPath = path.join(targetDir, item.name);
+      if (item.isDirectory()) {
+        // 如果是文件夹，递归处理
+        await cleanDirectory(fullPath, filename);
+      } else {
+        // 如果是文件，检查文件名（不含扩展名）是否与filename相同
+        const fileNameWithoutExt = path.basename(item.name, path.extname(item.name));
+        if (fileNameWithoutExt !== _fn) {
+          // 如果不相同，删除该文件
+          await pfs.unlink(fullPath);
+        //   console.log(`Deleted: ${fullPath}`);
+        }
+      }
+    }
+  } catch (error) {
+    console.error(`Error processing directory ${targetDir}:`, error);
+  }
+}
+
+
+
 
 //  a huge back ground task
 //  it generate all thumbnail and will be slow
@@ -1326,9 +1369,8 @@ app.post('/api/extract', asyncWrapper(async (req, res) => {
 
                 await extractByRange(filePath, outputPath, secondRange);
             } else {
-                //seven的谜之抽风
-                if(stderr === "NEED_TO_EXTRACT_ALL" && files.length <= 100){
-                   await _extractAll_()
+                if(stderr === "NEED_TO_EXTRACT_ALL"){
+                   await _extractAll_();
                 }else{
                     throw stderr;
                 }

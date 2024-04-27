@@ -16,7 +16,7 @@ const db = require("../models/db");
 const util = global.requireUtil();
 const { getCurrentTime, isImage, isMusic, isCompress, isVideo } = util;
 const { isAlreadyScan, decorateResWithMeta } = serverUtil.common;
-const historyDb = require("../models/historyDb");
+const historyDb = require("../models/historyDB");
 const logger = require("../logger");
 
 
