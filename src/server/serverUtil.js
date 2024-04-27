@@ -154,7 +154,7 @@ module.exports.asyncWrapper = (fn) => {
         const url = req.url || "";
         
         let shouldLog = false;
-        const want_list  = ["/api/lsDir"];
+        const want_list  = [];
         want_list.forEach(e => {
             if(url.includes(e)){
                 shouldLog = true;
