@@ -298,8 +298,7 @@ module.exports.batchInsert = async (tableName, dataArray, blockSize = 2000) => {
     await sqldb.batchInsert(tableName, dataArray, blockSize);
 
     let end = getCurrentTime();
-    console.log(`[batchInsert] ${tableName} ${dataArray.length} ${end - beg}ms`);
-    
+    // console.log(`[batchInsert] ${tableName} ${dataArray.length} ${end - beg}ms`);
 }
 
 module.exports.deleteFromDb = function (filePath) {
