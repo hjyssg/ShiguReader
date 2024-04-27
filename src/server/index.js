@@ -236,7 +236,7 @@ async function init() {
         printIP();
 
         //todo: chokidar will slow the server down very much when it init async
-        add_New_File_to_Watch(will_scan)
+        add_dirs_to_watch(will_scan)
         
     }).on('error', async (error) => {
         logger.error("[Server Init]", error.message);
@@ -340,19 +340,11 @@ function shrinkFp(fp){
     return fp.slice(0, 12) + "..." + fp.slice(fp.length - 10);
 }
 
-/** 
- * 程序启动时让chokidar监听文件夹，把需要的信息加到db。并做一些初始操作
- * 
- * */
-function initializeFileWatch(dirPathes) {
-   
-}
-
 
 /**
  * 服务器使用中途添加监听扫描path
  */
-async function add_New_File_to_Watch(dirPathes) {
+async function add_dirs_to_watch(dirPathes) {
     if(dirPathes.length == 0){
         return;
     }
@@ -364,7 +356,7 @@ async function add_New_File_to_Watch(dirPathes) {
   
 
     for (let filePath of dirPathes){
-        await filewatch.recursiveFileProcess({
+        await filewatch.fastFileIterate({
             filePath,
             db, 
             shouldIgnoreForNormal
@@ -391,7 +383,7 @@ app.post('/api/addNewFileWatchAfterInit', serverUtil.asyncWrapper(async (req, re
         return;
     }
 
-    add_New_File_to_Watch([filePath])
+    add_dirs_to_watch([filePath])
     res.send({ failed: false });
 }));
 
@@ -543,6 +535,8 @@ function isAlreadyScan(dir) {
         return pathEqual(sp, dir) || pathUtil.isSub(sp, dir);
     });
 }
+
+
 /**
  * 给lsdir search res添加信息。比如thumbnail，zipinfo。不使用sql是因为有部分filePath没存在数据库
  */

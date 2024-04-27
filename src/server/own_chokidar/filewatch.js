@@ -7,7 +7,7 @@ const getCurrentTime = function () {
     return new Date().getTime();
 }
 
-async function recursiveFileProcess({filePath, db, shouldIgnoreForNormal}) {
+async function fastFileIterate({filePath, db, shouldIgnoreForNormal}) {
     let beg = getCurrentTime();
 
     // 缓存对象，用于存储文件和标签数据
@@ -52,8 +52,7 @@ async function recursiveFileProcess({filePath, db, shouldIgnoreForNormal}) {
     await db.batchInsert("tag_table", insertion_cache.tags);
 
     let end1 = getCurrentTime();
-    console.log(`[recursiveFileProcess] ${(end1 - beg) / 1000}s scan complete.`);
-    console.log(`[recursiveFileProcess] ${insertion_cache.files.length} files were scanned`)
+    console.log(`[fastFileIterate] ${insertion_cache.files.length} files were scanned.  ${(end1 - beg) / 1000}s`);
     console.log("----------------------------------------------------------------");
     console.log(`\n\n\n`);
 }
@@ -63,7 +62,8 @@ async function recursiveFileProcess({filePath, db, shouldIgnoreForNormal}) {
 let watchDescriptors = {};
 
 // 动态添加监听目录
-const addWatch = async ({ folderPath, deleteCallBack, shouldScan, db }) => {
+const addWatch_chokidar = async ({ folderPath, deleteCallBack, shouldScan, db }) => {
+    const startTime = Date.now();  // 设置开始时间
     const shouldWatchIgnore = (fp, stat) => {
         if(!shouldScan(fp, stat)){
             return true;
@@ -106,8 +106,58 @@ const addWatch = async ({ folderPath, deleteCallBack, shouldScan, db }) => {
         .on('unlinkDir', deleteCallBack);
 
     watcher.on('ready', async () => {
-        console.log(`[chokidar] ${folderPath} watcher set up.`)
+        // console.log(`[chokidar] ${folderPath} watcher set up.`)
+        const endTime = Date.now();
+        console.log(`[chokidar] ${folderPath} watcher set up. Time taken: ${endTime - startTime} ms`);
     })
+
+    watchDescriptors[folderPath] = watcher;
+    global.SCANED_PATH = Object.keys(watchDescriptors);
+};
+
+const sane = require('sane');
+const addWatch_sane = async ({ folderPath, deleteCallBack, shouldScan, db }) => {
+    // 或许使用https://facebook.github.io/watchman/docs/install
+    const startTime = Date.now();  // 设置开始时间
+    const shouldWatchIgnore = (fp, stat) => {
+        if(!shouldScan(fp, stat)){
+            return true;
+        } else {
+            // if(stat && !stat.isDirectory()){
+            //      console.log(fp)
+            //     return true;
+            // }
+            // ignore文件，之后文件变化就不会通知。但创建几千个文件的watch又会卡
+            // return !pathUtil.estimateIfFolder(fp);
+        }
+    }
+
+    const watcher = sane(folderPath, {
+        glob: ['**/*'], // 监视所有文件和目录，可以根据需要调整
+        poll: false,    // 根据需求选择是否使用轮询
+        ignored: shouldWatchIgnore,
+        dot: false      // 是否监视点文件（隐藏文件）
+    });
+
+    //处理文件或目录添加事件
+    const addCallBack = async (fp, root, stat) => {
+        fp = path.resolve(root, fp);
+        db.updateStatToDb(fp, stat);
+    };
+
+    const _deleteCallBack =  async (fp, root)=>{
+        fp = path.resolve(root, fp);
+        deleteCallBack(fp);
+    }
+
+    watcher.on('add', addCallBack)
+           .on('change', addCallBack)
+           .on('delete', _deleteCallBack);
+
+    watcher.on('ready', () => {
+            const endTime = Date.now();
+            console.log(`[sane] ${folderPath} watcher set up. Time taken: ${endTime - startTime} ms`);
+    });
 
     watchDescriptors[folderPath] = watcher;
     global.SCANED_PATH = Object.keys(watchDescriptors);
@@ -115,4 +165,4 @@ const addWatch = async ({ folderPath, deleteCallBack, shouldScan, db }) => {
 
 
 
-module.exports = { addWatch, recursiveFileProcess }
+module.exports = { addWatch: addWatch_sane, fastFileIterate }

@@ -293,7 +293,6 @@ module.exports.updateStatToDb = async function (filePath, stat, insertion_cache)
 
 // 传入 db、table 和数据数组实现批量插入
 module.exports.batchInsert = async (tableName, dataArray, blockSize = 2000) => {
-
     let beg = getCurrentTime();
 
     await sqldb.batchInsert(tableName, dataArray, blockSize);
@@ -304,7 +303,6 @@ module.exports.batchInsert = async (tableName, dataArray, blockSize = 2000) => {
 }
 
 module.exports.deleteFromDb = function (filePath) {
-
     // delete fileToInfo[filePath];
     sqldb.run("DELETE FROM file_table where filePath = ?", filePath);
     sqldb.run("DELETE FROM tag_table where filePath = ?", filePath);
