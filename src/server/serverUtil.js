@@ -164,7 +164,11 @@ module.exports.asyncWrapper = (fn) => {
         let warnFlg = timeSpent > 300;
         if(shouldLog || warnFlg){
             const now = new Date();
-            logger.debug(` [${decodeURI(url)}] ${now} ${timeSpent}ms`);
+            // 获取小时、分钟、秒
+            const hours = now.getHours();
+            const minutes = now.getMinutes();
+            const seconds = now.getSeconds();
+            logger.debug(`[${decodeURI(url)}] ${hours}:${minutes}:${seconds} ${timeSpent}ms`);
         }
       })
       .catch((reason)=>{
