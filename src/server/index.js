@@ -24,6 +24,7 @@ const pathUtil = require("./pathUtil");
 pathUtil.init();
 const serverUtil = require("./serverUtil");
 const { getHash, mkdirSync, asyncWrapper } = serverUtil;
+const filewatch = require("./own_chokidar/filewatch");
 
 const { isHiddenFile, generateContentUrl, isExist, filterPathConfig, isSub, estimateIfFolder } = pathUtil;
 const { isImage, isCompress, isVideo, isMusic, 
@@ -348,75 +349,14 @@ function initializeFileWatch(dirPathes) {
         return;
     }
 
-    console.log("[chokidar initializeFileWatch] begin...");
-    let beg = getCurrentTime();
-
-    //watch file change
-    //update two database
-    const watcher = chokidar.watch(dirPathes, {
-        ignored: shouldIgnoreForNormal,
-        persistent: true,
-        ignorePermissionErrors: true
-    });
-
-    let init_count = 0;
-    let is_chokidar_scan_done = false;
-    const insertion_cache = {
-        files: [],
-        tags: []
-    }
-
-    //处理添加文件事件
-    const addCallBack = async (fp, stats) => {
-        if (is_chokidar_scan_done) {
-            // 单次添加
-            db.updateStatToDb(fp, stats);
-        } else {
-            // 批量添加
-            db.updateStatToDb(fp, stats, insertion_cache);
-            init_count++;
-            if (init_count % 2000 === 0) {
-                let end1 = getCurrentTime();
-                let np = shrinkFp(fp);
-                console.log(`[chokidar initializeFileWatch] scan: ${(end1 - beg) / 1000}s  ${init_count} ${np}`);
-            }
-        }
-    };
-
-    watcher
-        .on('add', addCallBack)
-        .on('change', addCallBack)
-        .on('unlink', deleteCallBack);
-
-    // More possible events.
-    watcher
-        .on('addDir', addCallBack)
-        .on('unlinkDir', deleteCallBack);
-
-    //about 1s for 1000 files
-    watcher.on('ready', async () => {
-        is_chokidar_scan_done = true;
-        await db.batchInsert("file_table", insertion_cache.files);
-        await db.batchInsert("tag_table", insertion_cache.tags);
-
-        let end1 = getCurrentTime();
-        console.log(`[chokidar initializeFileWatch] ${(end1 - beg) / 1000}s scan complete.`);
-        console.log(`[chokidar initializeFileWatch] ${init_count} files were scanned`)
-        console.log("----------------------------------------------------------------");
-        console.log(`\n\n\n`);
-        printIP();
-    })
-
-    return {
-        watcher
-    };
+    addNewFileWatchAfterInit(dirPathes)
 }
 
 
 /**
  * 服务器使用中途添加监听扫描path
  */
-function addNewFileWatchAfterInit(dirPathes) {
+async function addNewFileWatchAfterInit(dirPathes) {
     if(dirPathes.length == 0){
         return;
     }
@@ -429,64 +369,24 @@ function addNewFileWatchAfterInit(dirPathes) {
     // todo 不严谨 会出现重复添加
     global.SCANED_PATH = [...global.SCANED_PATH, ...dirPathes]
 
-
-    //watch file change
-    //update two database
-    const watcher = chokidar.watch(dirPathes, {
-        ignored: shouldIgnoreForNormal,
-        persistent: true,
-        ignorePermissionErrors: true
-    });
-
-    let init_count = 0;
-    let is_chokidar_scan_done = false;
-    const insertion_cache = {
-        files: [],
-        tags: []
-    }
     //处理添加文件事件
     const addCallBack = async (fp, stats) => {
-        if (is_chokidar_scan_done) {
-            // 单次添加
-            db.updateStatToDb(fp, stats);
-        } else {
-            // 批量添加
-            db.updateStatToDb(fp, stats, insertion_cache);
-            init_count++;
-            if (init_count % 500 === 0) {
-                let end1 = getCurrentTime();
-                let np = shrinkFp(fp);
-                console.log(`[chokidar addNewFileWatch] scan: ${(end1 - beg) / 1000}s  ${init_count} ${np}`);
-            }
-        }
+        db.updateStatToDb(fp, stats);
     };
 
-    watcher
-        .on('add', addCallBack)
-        .on('change', addCallBack)
-        .on('unlink', deleteCallBack);
-
-    // More possible events.
-    watcher
-        .on('addDir', addCallBack)
-        .on('unlinkDir', deleteCallBack);
-
-    //about 1s for 1000 files
-    watcher.on('ready', async () => {
-        is_chokidar_scan_done = true;
-        await db.batchInsert("file_table", insertion_cache.files);
-        await db.batchInsert("tag_table", insertion_cache.tags);
-
-        let end1 = getCurrentTime();
-        console.log(`[chokidar] ${(end1 - beg) / 1000}s scan complete.`);
-        console.log(`[chokidar] ${init_count} files were scanned`)
-        console.log("----------------------------------------------------------------");
-        console.log(`\n\n\n`);
-    })
-
-    return {
-        watcher
-    };
+    for (let filePath of dirPathes){
+        await filewatch.recursiveFileProcess({
+            filePath, db, shouldIgnoreForNormal
+        });
+        await filewatch.addWatch({
+            folderPath: filePath, 
+            addFileCallBack: addCallBack, 
+            addFolderCallBack: addCallBack, 
+            deleteFileCallBack: addCallBack, 
+            deleteFolderCallBack: addCallBack,
+            shouldIgnoreForNormal
+        })
+    }
 }
 
 app.post('/api/addNewFileWatchAfterInit', serverUtil.asyncWrapper(async (req, res) => {
