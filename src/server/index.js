@@ -232,7 +232,7 @@ async function init() {
             }
         }
         will_scan = will_scan.filter(e => e !== "_to_remove_");
-        
+
         printIP();
 
         //todo: chokidar will slow the server down very much when it init async
@@ -391,7 +391,7 @@ app.post('/api/addNewFileWatchAfterInit', serverUtil.asyncWrapper(async (req, re
         return;
     }
 
-    addNewFileWatchAfterInit([filePath])
+    add_New_File_to_Watch([filePath])
     res.send({ failed: false });
 }));
 

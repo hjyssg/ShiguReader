@@ -110,7 +110,7 @@ router.post('/api/lsDir', serverUtil.asyncWrapper(async (req, res) => {
         // -------------get extra info
         time2 = getCurrentTime();
         timeUsed = (time2 - time1);
-        console.log("[/api/LsDir] sql time", timeUsed, "ms")
+        // console.log("[/api/LsDir] sql time", timeUsed, "ms")
 
         let result = {
             path: dir,
@@ -122,7 +122,7 @@ router.post('/api/lsDir', serverUtil.asyncWrapper(async (req, res) => {
         result = await decorateResWithMeta(result);
         const time3 = getCurrentTime();
         timeUsed = (time3 - time2);
-        console.log("[/api/LsDir] decorateResWithMeta", timeUsed, "ms")
+        // console.log("[/api/LsDir] decorateResWithMeta", timeUsed, "ms")
         historyDb.addOneLsDirRecord(dir);
         res.send(result);
     } catch (e) {

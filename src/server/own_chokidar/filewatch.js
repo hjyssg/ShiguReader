@@ -64,15 +64,15 @@ let watchDescriptors = {};
 
 // 动态添加监听目录
 const addWatch = async ({ folderPath, deleteCallBack, shouldScan, db }) => {
-
     const shouldWatchIgnore = (fp, stat) => {
         if(!shouldScan(fp, stat)){
             return true;
         } else {
-            if(stat && !stat.isDirectory()){
-                 console.log(fp)
-                return true;
-            }
+            // if(stat && !stat.isDirectory()){
+            //      console.log(fp)
+            //     return true;
+            // }
+            // ignore文件，之后文件变化就不会通知。但创建几千个文件的watch又会卡
         }
     }
 
@@ -106,7 +106,7 @@ const addWatch = async ({ folderPath, deleteCallBack, shouldScan, db }) => {
         .on('unlinkDir', deleteCallBack);
 
     watcher.on('ready', async () => {
-        console.log(`[chokidar] ${folderPath} scan complete.`)
+        console.log(`[chokidar] ${folderPath} watcher set up.`)
     })
 
     watchDescriptors[folderPath] = watcher;

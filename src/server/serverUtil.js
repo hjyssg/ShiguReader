@@ -152,17 +152,19 @@ module.exports.asyncWrapper = (fn) => {
         // 测量性能
         const timeSpent = util.getCurrentTime() - beginTime;
         const url = req.url || "";
-        const exclude_list  = ["/api/download", "/api/getQuickThumbnail", "/api/findSimilarFile/"];
-        let shouldLog = true;
-        exclude_list.forEach(e => {
+        
+        let shouldLog = false;
+        const want_list  = ["/api/lsDir"];
+        want_list.forEach(e => {
             if(url.includes(e)){
-                shouldLog = false;
+                shouldLog = true;
             }
         })
 
         let warnFlg = timeSpent > 300;
         if(shouldLog || warnFlg){
-            logger.debug(`[${decodeURI(url)}] ${timeSpent}ms`);
+            const now = new Date();
+            logger.debug(` [${decodeURI(url)}] ${now} ${timeSpent}ms`);
         }
       })
       .catch((reason)=>{
