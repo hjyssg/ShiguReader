@@ -203,8 +203,9 @@ class App extends Component {
         const isAuthor = path.includes("/author");
         const isSearch = path.includes("/search");
         const isLogin = path.includes("/login");
+        const isVideo = path.includes("/videoPlayer")
 
-        const topNav = !isOneBook && !isLogin && (
+        const topNav = !isOneBook && !isLogin && !isVideo && (
             <div className="app-top-topnav container">
                 <div className="app-page-links row">
                     <Link to='/'><i className="fas fa-home">Home</i></Link>

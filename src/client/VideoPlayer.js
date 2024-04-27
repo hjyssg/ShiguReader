@@ -91,17 +91,47 @@ export default class VideoPlayer extends Component {
 
  adjustHW(){
     const videoRef = this.dp.video;
-    const hh = videoRef.videoHeight; // returns the intrinsic height of the video
-    const ww = videoRef.videoWidth;
-    var doc_width = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
-    var doc_height = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
-    const scale = clientUtil.isMobile()? 0.9: 0.7;
-    if (hh > ww) {
-      videoRef.style.height = doc_height * scale + "px";
-    }else{
-      videoRef.style.width = doc_width * scale + "px";
+    const hh = videoRef.videoHeight; // 返回视频的内在高度
+    const ww = videoRef.videoWidth; // 返回视频的内在宽度
+    const docWidth = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
+    const docHeight = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
+    const aspectRatio = ww / hh; // 计算视频的宽高比
+
+    // 计算基于文档宽度的目标视频宽度
+    let scale;
+    if(ww>hh){
+      scale = clientUtil.isMobile() ? 0.9 : 0.8;
+    }else {
+      scale = clientUtil.isMobile() ? 0.95 : 0.95;
     }
+    let targetWidth = docWidth * scale;
+
+    // 计算基于目标宽度的视频高度
+    let targetHeight = targetWidth / aspectRatio;
+
+    // 如果计算出的高度超过了文档的高度，则重新调整宽度和高度
+    if (targetHeight > docHeight * scale) {
+        targetHeight = docHeight * scale;
+        targetWidth = targetHeight * aspectRatio;
+    }
+
+    // 应用样式调整
+    videoRef.style.width = targetWidth + "px";
+    // videoRef.style.height = targetHeight + "px";
   }
+
+  changeVideoSize(ratio) {
+    const videoRef = this.dp.video;
+    if (!videoRef) {
+        console.error('No video element found!');
+        return;
+    }
+
+    const currentWidth = videoRef.offsetWidth;
+    const newWidth = currentWidth * ratio;
+    videoRef.style.width = `${newWidth}px`;
+  }
+
 
   onLoadedmetadata() {
     this.adjustHW();
@@ -157,7 +187,25 @@ export default class VideoPlayer extends Component {
                 options={{
                     lang: navigator.language.toLowerCase(),
                     video:{ url: url},
-                    playbackSpeed:	[0.5, 0.75, 1, 1.125, 1.25, 1.5, 2]
+                    playbackSpeed:	[0.5, 0.75, 1, 1.125, 1.25, 1.5, 2],
+                    contextmenu: [
+                      {
+                          text: 'Bigger +',
+                          click: (player) => {
+                            // console.log(player);
+                            this.changeVideoSize(1.1) 
+                        },
+                      },
+                      {
+                          text: 'Smaller -',
+                          click: (player) => {
+                            this.changeVideoSize(0.9) 
+                          },
+                      },
+                      {
+                        text: '⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯',
+                    },
+                  ]
                 }}
                 onLoadedmetadata={this.onLoadedmetadata.bind(this)}
                 onLoad={this.onLoad.bind(this)}

@@ -1,8 +1,11 @@
 @import "vars.scss";
 
 .video-player-page {
+
     .video-player-container {
         @include flex_center_display;
+        padding-top: 10px;
+
 
         //horizontal
         .horizontal-video {
