@@ -45,6 +45,8 @@ async function doMinifyImage(inputFilePath, outputFilePath, height) {
             logger.info(`[doMinifyImage] ${(end1 - beg) }ms `);
 
             return result;
+        }else {
+            console.warn("[doMinifyImage] cannot minify ", inputFilePath)
         }
     } catch (e) {
         logger.error("[doMinifyImage] exception", e);

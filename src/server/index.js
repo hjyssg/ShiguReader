@@ -836,7 +836,6 @@ async function extractThumbnailFromZip(filePath, res, mode, config) {
     const isPregenerateMode = mode === "pre-generate";
     let sendable = !isPregenerateMode && res;
     const outputPath = path.join(cachePath, getHash(filePath));
-    let zipInfo;
 
     function sendImage(imgFp) {
         sendable && res.send({
@@ -848,26 +847,8 @@ async function extractThumbnailFromZip(filePath, res, mode, config) {
         sendable && res.send({ failed: true, reason });
     }
 
-    //do the extract
     try {
-        //only update zip db
-        //do not use zip db's information
-        //in case previous info is changed or wrong
-        if (isPregenerateMode) {
-            if (config.fastUpdateMode && zipInfoDb.has(filePath)) {
-                //skip
-            } else {
-                //in pregenerate mode, it always updates db content
-                zipInfo = (await listZipContentAndUpdateDb(filePath));
-            }
-
-            if (config.fastUpdateMode){
-                const thumbRows = thumbnailDb.getThumbnailArr(filePath);
-                if(thumbRows.length > 0){
-                    return;
-                }
-            }
-        }
+        const zipInfo = (await listZipContentAndUpdateDb(filePath));
 
         // 已经有了就不再生成thumbnail
         // 如果有thumbnail生成出问题，只能靠改filepath或者filename来促使重新生成
@@ -875,51 +856,48 @@ async function extractThumbnailFromZip(filePath, res, mode, config) {
         const thumbRows = thumbnailDb.getThumbnailArr(filePath);
         if (thumbRows[0]) {
             sendImage(thumbRows[0].thumbnailFilePath);
-        } else {
-            if (!zipInfo) {
-                zipInfo = (await listZipContentAndUpdateDb(filePath));
-            }
+            return;
+        } 
 
-            //挑一个img来做thumbnail
-            let thumbFN = serverUtil.chooseThumbnailImage(zipInfo.files);
-            if (!thumbFN) {
-                let reason = "[extractThumbnailFromZip] no img in this file " +  filePath;
-                console.log(reason);
-                sendError(reason)
-                return;
-            }
+        //挑一个img来做thumbnail
+        let thumbInnerPath = serverUtil.chooseThumbnailImage(zipInfo.files);
+        if (!thumbInnerPath) {
+            let reason = "[extractThumbnailFromZip] no img in this file " +  filePath;
+            console.log(reason);
+            sendError(reason)
+            return;
+        }
 
-            //解压
-            const stderrForThumbnail = await extractByRange(filePath, outputPath, [thumbFN])
-            if(stderrForThumbnail === "NEED_TO_EXTRACT_ALL" && zipInfo.info.totalSize < 100*1000 * 1000){
-                const { pathes, error } = await extractAll(filePath, outputPath, false);
-                if (error) {
-                    // throw "[extractThumbnailFromZip] extract exec failed "+filePath;
-                    throw error
-                }else{
-                    thumbFN = serverUtil.chooseThumbnailImage(pathes);
-                }
-            } else if (stderrForThumbnail) {
-                const reason = "Cannot extract thumbnail currently"
-                sendError(reason)
-                return;
+        //解压
+        const stderrForThumbnail = await extractByRange(filePath, outputPath, [thumbInnerPath])
+        const SMALL_SIZE = 100 * 1000 * 1000;
+        if(stderrForThumbnail === "NEED_TO_EXTRACT_ALL" && zipInfo.info.totalSize < SMALL_SIZE){
+            const { pathes, error } = await extractAll(filePath, outputPath, false);
+            if (error) {
+                throw error
+            } else {
+                thumbInnerPath = serverUtil.chooseThumbnailImage(pathes);
             }
-           
-            // send original img path to client as thumbnail
-            let original_thumb = path.join(outputPath, path.basename(thumbFN));
-            sendImage(original_thumb);
-            sendable = false;
+        } else if (stderrForThumbnail) {
+            const reason = "Cannot extract thumbnail currently"
+            sendError(reason)
+            return;
+        }
+        
+        // send original img path to client as thumbnail
+        let original_thumb = path.join(outputPath, path.basename(thumbInnerPath));
+        sendImage(original_thumb);
+        sendable = false;
 
-            //compress into real thumbnail
-            const outputFilePath = await thumbnailGenerator(thumbnailFolderPath, outputPath, path.basename(thumbFN));
-            if (outputFilePath) {
-                thumbnailDb.addNewThumbnail(filePath, outputFilePath);
+        //compress into real thumbnail
+        const outputFilePath = await thumbnailGenerator(thumbnailFolderPath, outputPath, path.basename(thumbInnerPath));
+        if (outputFilePath) {
+            thumbnailDb.addNewThumbnail(filePath, outputFilePath);
 
-                // 删除除了要使用的文件，避免硬盘爆炸
-                // setTimeout(async() => {
-                //     // cleanDirectory(outputPath, thumbFN)
-                // }, 10000);
-            }
+            // 删除除了要使用的文件，避免硬盘爆炸
+            // setTimeout(async() => {
+            //     // cleanDirectory(outputPath, thumbFN)
+            // }, 10000);
         }
     } catch (e) {
         logger.error("[extractThumbnailFromZip] exception ", filePath, e);
