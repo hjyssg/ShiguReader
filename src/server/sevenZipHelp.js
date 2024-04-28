@@ -99,7 +99,7 @@ function read7zOutput(data) {
     }
 }
 
-const get7zipOption = module.exports.get7zipOption = function (filePath, outputPath, file_specifier, levelFlag) {
+const getExtractOption = module.exports.getExtractOption = function (filePath, outputPath, file_specifier, levelFlag) {
     //https://sevenzip.osdn.jp/chm/cmdline/commands/extract.htm
     //e make folder as one level
     //x different level
@@ -115,7 +115,7 @@ const get7zipOption = module.exports.get7zipOption = function (filePath, outputP
             }
         })
 
-        return [levelFlag, filePath, `-o${outputPath}`].concat(specifier, "-aos");
+        return [levelFlag, filePath, `-o${outputPath}`].concat(specifier, "-aos", "-r");
     } else {
         return [levelFlag, filePath, `-o${outputPath}`, "-aos"];
     }
@@ -205,7 +205,7 @@ module.exports.extractByRange = async function (filePath, outputPath, range) {
             //cut into parts
             //when range is too large, will cause OS level error
             let subRange = range.slice(ii, ii + DISTANCE);
-            let opt = get7zipOption(filePath, outputPath, subRange);
+            let opt = getExtractOption(filePath, outputPath, subRange);
             let { stderr, stdout } = await execa(sevenZip, opt);
             if (stderr) {
                 error = stderr;
@@ -229,6 +229,28 @@ module.exports.extractByRange = async function (filePath, outputPath, range) {
     }
 }
 
+module.exports.extractByExtension = async function(filePath, outputPath, extensions) {
+    if (!global._has_7zip_) {
+        throw "this computer did not install 7z";
+    }
+
+    let error, pathes;
+    try {
+        const opt = getExtractOption(filePath, outputPath, extensions);
+        const { stderr, stdout } = await execa(sevenZip, opt);
+        if (stderr) {
+            throw stderr;
+        }
+        pathes = await pfs.readdir(outputPath);
+    } catch (e) {
+        error = e;
+        logger.error('[extractByExtension] exit: ', e);
+    } finally {
+            return { error, pathes };
+    }
+}
+
+
 
 // isRecursive: 保持原来的文件夹结构
 module.exports.extractAll = async function (filePath, outputPath, isRecursive) {
@@ -237,7 +259,7 @@ module.exports.extractAll = async function (filePath, outputPath, isRecursive) {
     }
 
     const levelFlag = isRecursive? "x" : null;
-    const opt = get7zipOption(filePath, outputPath, null, levelFlag);
+    const opt = getExtractOption(filePath, outputPath, null, levelFlag);
     let error, pathes = [];
     try {
         const { stderr } = await execa(sevenZip, opt);

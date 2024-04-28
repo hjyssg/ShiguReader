@@ -115,6 +115,10 @@ module.exports._sortFileNames = function (files, getBaseNameWithoutExtention) {
     // }
 };
 
+module.exports.pause = async (time) => {
+    await new Promise(resolve => setTimeout(resolve, time));
+}
+
 module.exports.arraySlice = function (arr, beg, end) {
     const len = arr.length;
     let _beg = beg >= 0 ? beg : len + beg;

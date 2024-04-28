@@ -868,16 +868,30 @@ async function extractThumbnailFromZip(filePath, res, mode, config) {
             return;
         }
 
+
         //解压
         const stderrForThumbnail = await extractByRange(filePath, outputPath, [thumbInnerPath])
-        const SMALL_SIZE = 100 * 1000 * 1000;
-        if(stderrForThumbnail === "NEED_TO_EXTRACT_ALL" && zipInfo.info.totalSize < SMALL_SIZE){
-            const { pathes, error } = await extractAll(filePath, outputPath, false);
-            if (error) {
-                throw error
-            } else {
-                thumbInnerPath = serverUtil.chooseThumbnailImage(pathes);
+        if(stderrForThumbnail === "NEED_TO_EXTRACT_ALL"){
+            const SMALL_SIZE = 100 * 1000 * 1000;
+            if(zipInfo.info.totalSize < SMALL_SIZE){
+                const { pathes, error } = await extractAll(filePath, outputPath, false);
+                if (error) {
+                    throw error
+                } else {
+                    thumbInnerPath = serverUtil.chooseThumbnailImage(pathes);
+                }
+            }else  {
+                let extensions = zipInfo.files.filter(isImage).map(path.extname).map(e => "*"+e);
+                extensions = _.unique(extensions);
+                console.assert(extensions.length > 0)
+                const { error, pathes } = await  sevenZipHelp.extractByExtension(filePath, outputPath, extensions )
+                if (error) {
+                    throw error
+                } else {
+                    thumbInnerPath = serverUtil.chooseThumbnailImage(pathes);
+                }
             }
+
         } else if (stderrForThumbnail) {
             const reason = "Cannot extract thumbnail currently"
             sendError(reason)
@@ -889,15 +903,13 @@ async function extractThumbnailFromZip(filePath, res, mode, config) {
         sendImage(original_thumb);
         sendable = false;
 
+        await util.pause(1000);
+
         //compress into real thumbnail
         const outputFilePath = await thumbnailGenerator(thumbnailFolderPath, outputPath, path.basename(thumbInnerPath));
         if (outputFilePath) {
             thumbnailDb.addNewThumbnail(filePath, outputFilePath);
-
-            // 删除除了要使用的文件，避免硬盘爆炸
-            // setTimeout(async() => {
-            //     // cleanDirectory(outputPath, thumbFN)
-            // }, 10000);
+            // 想删除除了要使用的文件，但不行。各种文件系统错误
         }
     } catch (e) {
         logger.error("[extractThumbnailFromZip] exception ", filePath, e);

@@ -20,6 +20,9 @@ async function thumbnailGenerator(thumbnailFolderPath, imgFolderPath, imgFileNam
     const outputName = path.basename(imgFolderPath);
     const tempOutputPath = path.resolve(thumbnailFolderPath, outputName) + ".webp";
     const inputFilePath = path.resolve(imgFolderPath, imgFileName);
+    if(!(await pathUtil.isExist(inputFilePath))){
+        return null;
+    }
     const outputFilePath = await ImageCompressUtil.doMinifyImage(inputFilePath, tempOutputPath, 250);
     // let end1 = getCurrentTime();
     // logger.info(`[thumbnailGenerator] ${(end1 - beg) }ms `);
