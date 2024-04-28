@@ -33,17 +33,28 @@ function logFail(filePath, e) {
 }
 
 global._has_magick_ = false;
+let magick_cmd = "magick";
 module.exports.init = function(){
-    execa("magick --version")
-    .then((std) => {
-        global._has_magick_ = true;
-     })
-    .catch(e => {
-        logger.warn("[Warning]Did not install ImageMagic.")
-        logger.warn("https://imagemagick.org")
-        logger.warn("Highly Recommend. It is used to create thumbnail and reduce image size")
-        logger.warn("----------------------------------------------------------------");
-    });
+    if (global.isWindows) {
+        try{
+            magick_cmd = path.join(pathUtil.getRootPath(), "resource", "imagemagick", "magick.exe");
+            global._has_magick_ = true;
+        }catch{
+            logger.error("[ERROR] no magick on windows");
+        }
+        // console.log("sevenZipPath", sevenZipPath);
+    } else {
+        execa("magick --version")
+        .then((std) => {
+            global._has_magick_ = true;
+         })
+        .catch(e => {
+            logger.warn("[Warning]Did not install ImageMagic.")
+            logger.warn("https://imagemagick.org")
+            logger.warn("Highly Recommend. It is used to create thumbnail and reduce image size")
+            logger.warn("----------------------------------------------------------------");
+        });
+    }
 }
 
 
@@ -58,7 +69,7 @@ async function convertImage(imgFilePath, outputImgPath, oldImgSize) {
             opt = [imgFilePath, "-strip", "-quality", img_convert_quality_for_middle_size_file, outputImgPath];
         }
 
-        let { stdout, stderr } = await execa("magick", opt);
+        let { stdout, stderr } = await execa(magick_cmd, opt);
         return { stdout, stderr };
     } catch (e) {
         logFail("[convertImage]", e);
