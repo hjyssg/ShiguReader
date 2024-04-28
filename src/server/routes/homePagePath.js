@@ -53,7 +53,7 @@ router.get('/api/homePagePath', serverUtil.asyncWrapper(async (req, res) => {
     });
     const NUM_QUICK_ACCESS = 10;
     recentAccess = recentAccess.slice(0, 20);
-    // recentAccess = await pathUtil.filterNonExist(recentAccess, NUM_QUICK_ACCESS);
+    recentAccess = await pathUtil.filterNonExist(recentAccess, NUM_QUICK_ACCESS);
   
 
     if (scan_pathes.length === 0 && hdd_list.length === 0 && quickAccess.length === 0 && recentAccess.length == 0) {
