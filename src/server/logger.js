@@ -30,7 +30,7 @@ module.exports.init = function(){
 */
 module.exports.error = function (...args) {
     _log && _log.error(...args);
-    console.trace();
+    console.trace("----");
     console.error(...args);
 }
 

@@ -844,6 +844,10 @@ async function extractThumbnailFromZip(filePath, res, mode, config) {
         })
     }
 
+    function sendError(reason){
+        sendable && res.send({ failed: true, reason });
+    }
+
     //do the extract
     try {
         //only update zip db
@@ -881,7 +885,7 @@ async function extractThumbnailFromZip(filePath, res, mode, config) {
             if (!thumbFN) {
                 let reason = "[extractThumbnailFromZip] no img in this file " +  filePath;
                 console.log(reason);
-                sendable && res.send({ failed: true, reason });
+                sendError(reason)
                 return;
             }
 
@@ -890,12 +894,15 @@ async function extractThumbnailFromZip(filePath, res, mode, config) {
             if(stderrForThumbnail === "NEED_TO_EXTRACT_ALL" && zipInfo.info.totalSize < 100*1000 * 1000){
                 const { pathes, error } = await extractAll(filePath, outputPath, false);
                 if (error) {
-                    throw "[extractThumbnailFromZip] extract exec failed"+filePath;
+                    // throw "[extractThumbnailFromZip] extract exec failed "+filePath;
+                    throw error
                 }else{
                     thumbFN = serverUtil.chooseThumbnailImage(pathes);
                 }
             } else if (stderrForThumbnail) {
-                throw "[extractThumbnailFromZip] extract exec failed" + filePath;
+                const reason = "Cannot extract thumbnail currently"
+                sendError(reason)
+                return;
             }
            
             // send original img path to client as thumbnail
@@ -915,9 +922,9 @@ async function extractThumbnailFromZip(filePath, res, mode, config) {
             }
         }
     } catch (e) {
-        logger.error("[extractThumbnailFromZip] exception", filePath, e);
-        const reason = e || "NOT FOUND";
-        sendable && res.send({ failed: true, reason });
+        logger.error("[extractThumbnailFromZip] exception ", filePath, e);
+        const reason = e || "TBD";
+        sendError(reason)
     }
 }
 
@@ -1088,6 +1095,17 @@ app.post('/api/getZipThumbnail', asyncWrapper(async (req, res) => {
             url: oneThumbnail
         })
     }else{
+        // 先找到发过去再说
+        const fileName = path.basename(filePath);
+        const thumbRows = await thumbnailDb.getThumbnailByFileName(fileName);
+        if(thumbRows.length > 0){
+            url = thumbRows[0].thumbnailFilePath;
+            res.send({
+                url: oneThumbnail
+            })
+            res.send = () => {}
+        }
+
         extractThumbnailFromZip(filePath, res);
     }
 }));
