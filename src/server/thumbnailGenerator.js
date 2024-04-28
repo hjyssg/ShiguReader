@@ -23,7 +23,7 @@ async function thumbnailGenerator(thumbnailFolderPath, imgFolderPath, imgFileNam
     if(!(await pathUtil.isExist(inputFilePath))){
         return null;
     }
-    const outputFilePath = await ImageCompressUtil.doMinifyImage(inputFilePath, tempOutputPath, 250);
+    const outputFilePath = await ImageCompressUtil.doMinifyTempImage(inputFilePath, tempOutputPath, 250);
     // let end1 = getCurrentTime();
     // logger.info(`[thumbnailGenerator] ${(end1 - beg) }ms `);
     return outputFilePath;
