@@ -166,7 +166,7 @@ async function init() {
         const charset = parseInt(m && m[0]);
 
         if (charset !== 65001) {
-            logger.error("Changing console encoding to utf8 in Windows language setting is recommended");
+            logger.warn("Changing console encoding to utf8 in Windows language setting is recommended");
         }
 
         global._cmd_encoding = charset;
