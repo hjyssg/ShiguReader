@@ -69,7 +69,7 @@ module.exports.isAv = function (fn) {
 }
 
 //not for .gif
-const compressable = [".jpg", ".jpeg", ".png", ".avif"]
+const compressable = [".jpg", ".jpeg", ".png", ".avif", "webp", ".bmp"]
 module.exports.canBeCompressed = function (fn) {
     const fnl = fn.toLowerCase();
     return compressable.some((e) => fnl.endsWith(e));

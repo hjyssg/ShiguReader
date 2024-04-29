@@ -42,7 +42,7 @@ async function doMinifyTempImage(inputFilePath, outputFilePath, height) {
             }
 
             let end1 = getCurrentTime();
-            logger.info(`[doMinifyImage] ${(end1 - beg) }ms `);
+            // logger.info(`[doMinifyImage] ${(end1 - beg) }ms `);
 
             return result;
         }else {
