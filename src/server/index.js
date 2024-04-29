@@ -212,13 +212,6 @@ async function init() {
         const mecabHelper = require("./mecabHelper");
         mecabHelper.init();
 
-        // let end1 = getCurrentTime();
-        // let thumbnail_pathes = await pfs.readdir(thumbnailFolderPath);
-        // thumbnail_pathes = thumbnail_pathes.filter(isImage).map(e => path.resolve(thumbnailFolderPath, e));
-        // let end3 = getCurrentTime();
-        // console.log(`[scan thumbnail] ${(end3 - end1) / 1000}s  to read thumbnail dirs`);
-        // thumbnailDb.init(thumbnail_pathes);
-
         //因为scan path内部有sub parent重复关系，避免重复的
         let will_scan = _.sortBy(scan_path, e => e.length); //todo
         for (let ii = 0; ii < will_scan.length; ii++) {

@@ -241,7 +241,7 @@ module.exports.extractByExtension = async function(filePath, outputPath, extensi
         if (stderr) {
             throw stderr;
         }
-        pathes = await pfs.readdir(outputPath);
+        pathes = await  pathUtil.readDirForFileAndFolder(outputPath, true);
     } catch (e) {
         error = e;
         logger.error('[extractByExtension] exit: ', e);
@@ -266,12 +266,8 @@ module.exports.extractAll = async function (filePath, outputPath, isRecursive) {
         if (stderr) {
             throw stderr;
         }
-        if(!isRecursive){
-            pathes = await pfs.readdir(outputPath);
-        }else {
-            await pathUtil.readdirRecursive(outputPath, pathes);
-            // console.log(pathes);
-        }
+        
+        pathes = (await pathUtil.readDirForFileAndFolder(outputPath, isRecursive)).pathes;
     } catch (e) {
         error = e;
         logger.error('[extractAll] exit: ', e);

@@ -161,19 +161,10 @@ function fileIntoCategory(files){
 }
 
 async function listNoScanDir(filePath, res, isRecussive) {
-    let subFpArr = [];
-    if(isRecussive){
-        await pathUtil.readdirRecursive(filePath, subFpArr);
-    }else{
-        let subFnArr = await pathUtil.readdirOneLevel(filePath);
-        subFpArr = subFnArr.map(e => path.resolve(filePath, e));
-    }
+    const {pathes, dirPathes} = await pathUtil.readDirForFileAndFolder(filePath, isRecussive);
 
+    const subFpArr = pathes;
     const categoryObj  = fileIntoCategory(subFpArr);
-    const dirs = subFpArr.filter(e => {
-        const isFolder = pathUtil.estimateIfFolder(e);
-        return isFolder;
-    })
 
     const fileInfos = {};
     subFpArr.forEach(e => {
@@ -185,7 +176,7 @@ async function listNoScanDir(filePath, res, isRecussive) {
         mode: "lack_info_mode",
 
         // stat: {},
-        dirs,
+        dirs: dirPathes,
         imgFolders: {},
         fileInfos,
 

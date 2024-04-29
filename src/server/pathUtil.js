@@ -288,29 +288,39 @@ const estimateIfFolder = module.exports.estimateIfFolder = function(filePath){
 /**
  * 递归文件夹，结果存在resultArr
  */
-const readdirRecursive = module.exports.readdirRecursive = async (filePath, resultArr) => {
-    let pathes = await pfs.readdir(filePath);
-    pathes = pathes.map(e => path.resolve(filePath, e));
+module.exports.readDirForFileAndFolder = async (filePath, isRecursive) => {
+    // Helper function to filter out hidden or forbidden files
+    const isValidFile = (fp) => !isHiddenFile(fp) && !isForbid(fp);
 
-    for(let ii = 0; ii < pathes.length; ii++){
-        try{
-                const fp = pathes[ii];
-                if(isHiddenFile(fp) || isForbid(fp)){
-                    continue;
+    const pathes = [];
+    const dirPathes = [];
+
+    async function traverseDirectory(currentPath) {
+        let entries = await pfs.readdir(currentPath, { withFileTypes: true });
+        for (const entry of entries) {
+            const fullPath = path.resolve(currentPath, entry.name);
+            if (!isValidFile(fullPath)) {
+                continue;
+            }
+            const isFolder = entry.isDirectory();
+
+            if (isDisplayableInOnebook(fullPath) || util.isDisplayableInExplorer(fullPath) || isFolder) {
+                pathes.push(fullPath);
+                if(isFolder){
+                    dirPathes.push(fullPath);
                 }
-                if(isDisplayableInOnebook(fp)){
-                    resultArr.push(fp)
-                }else if(estimateIfFolder(fp)){
-                    const stat = await pfs.stat(filePath);
-                    if(stat.isDirectory()){
-                        await readdirRecursive(fp, resultArr);
-                    }
-                }
-        }catch(e){
-            logger.error("readdirRecursive", e);
+            }
+
+            if (isFolder && isRecursive) {  // Only recurse if isRecursive is true
+                await traverseDirectory(fullPath);
+            }  
         }
     }
-}
+
+    await traverseDirectory(filePath);
+    return {pathes, dirPathes};
+};
+
 
 /*
 * 单层读取文件
