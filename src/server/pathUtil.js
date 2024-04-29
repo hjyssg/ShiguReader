@@ -286,7 +286,7 @@ const estimateIfFolder = module.exports.estimateIfFolder = function(filePath){
 }
 
 /**
- * 递归文件夹，结果存在resultArr
+ * 遍历文件夹，过滤一些没必要的东西。
  */
 module.exports.readDirForFileAndFolder = async (filePath, isRecursive) => {
     // Helper function to filter out hidden or forbidden files

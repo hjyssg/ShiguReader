@@ -1152,7 +1152,8 @@ app.post('/api/extract', asyncWrapper(async (req, res) => {
 
         const mecab_tokens = await global.mecab_getTokens(path);
 
-        let result = { imageFiles: tempFiles, musicFiles, videoFiles, path, outputPath, stat, zipInfo, mecab_tokens };
+        // TODO dirs留空。
+        let result = { imageFiles: tempFiles, musicFiles, videoFiles, path, outputPath, stat, zipInfo, mecab_tokens, dirs: [] };
         extract_result_cache[filePath] = result;
         result = checkOneBookRes(result);
         res.send(result);
