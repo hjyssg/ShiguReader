@@ -161,13 +161,13 @@ function fileIntoCategory(files){
 }
 
 async function listNoScanDir(filePath, res, isRecussive) {
-    const { pathes, dirPathes } = await pathUtil.readDirForFileAndFolder(filePath, isRecussive);
+    const { filePathes, dirPathes } = await pathUtil.readDirForFileAndFolder(filePath, isRecussive);
     
-    const categoryObj  = fileIntoCategory(pathes);
-    const fileInfos = {};
-    pathes.forEach(e => {
-        fileInfos[e] = {};
-    })
+    const categoryObj  = fileIntoCategory(filePathes);
+    const fileInfos = filePathes.reduce((acc, filePath) => {
+        acc[filePath] = {};
+        return acc;
+    }, {});
 
     let result = {
         path: filePath,

@@ -292,8 +292,8 @@ module.exports.readDirForFileAndFolder = async (filePath, isRecursive) => {
     // Helper function to filter out hidden or forbidden files
     const isValidFile = (fp) => !isHiddenFile(fp) && !isForbid(fp);
 
-    const pathes = [];
     const dirPathes = [];
+    const filePathes = [];
 
     async function traverseDirectory(currentPath) {
         let entries = await pfs.readdir(currentPath, { withFileTypes: true });
@@ -305,9 +305,10 @@ module.exports.readDirForFileAndFolder = async (filePath, isRecursive) => {
             const isFolder = entry.isDirectory();
 
             if (isDisplayableInOnebook(fullPath) || util.isDisplayableInExplorer(fullPath) || isFolder) {
-                pathes.push(fullPath);
                 if(isFolder){
                     dirPathes.push(fullPath);
+                } else {
+                    filePathes.push(fullPath);
                 }
             }
 
@@ -318,7 +319,7 @@ module.exports.readDirForFileAndFolder = async (filePath, isRecursive) => {
     }
 
     await traverseDirectory(filePath);
-    return {pathes, dirPathes};
+    return {pathes: [...dirPathes, ...filePathes], dirPathes, filePathes};
 };
 
 
