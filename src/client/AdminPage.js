@@ -204,7 +204,7 @@ export default class AdminPage extends Component {
             if (result.value === true) {
                 Sender.post('/api/shutdownServer', {}, res => {
                     //send another request  to check if shut down?
-                    alert("You computer is shut down");
+                    alert("Shutdown request is sent");
                 });
             }
         });
