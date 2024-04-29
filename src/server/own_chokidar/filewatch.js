@@ -1,6 +1,7 @@
 const fs = require('fs').promises;
 const path = require('path');
 const chokidar = require('chokidar');
+const pathUtil = require("../pathUtil");
 
 
 const getCurrentTime = function () {
@@ -163,6 +164,13 @@ const addWatch_sane = async ({ folderPath, deleteCallBack, shouldScan, db }) => 
     global.SCANED_PATH = Object.keys(watchDescriptors);
 };
 
+const { pathEqual } = require('path-equal');
+/** 判断一个dir path是不是在scan路径上 */
+function isAlreadyScan(dir) {
+    return dir && global.SCANED_PATH.some(sp => {
+        return pathEqual(sp, dir) || pathUtil.isSub(sp, dir);
+    });
+}
 
 
-module.exports = { addWatch: addWatch_sane, fastFileIterate }
+module.exports = { addWatch: addWatch_sane, fastFileIterate, isAlreadyScan }

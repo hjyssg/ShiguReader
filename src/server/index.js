@@ -7,7 +7,6 @@ const _ = require('underscore');
 const qrcode = require('qrcode-terminal');
 const ini = require('ini');
 const chokidar = require('chokidar');
-const { pathEqual } = require('path-equal');
 
 
 global.isWindows = require('is-windows')();
@@ -368,7 +367,7 @@ app.post('/api/addNewFileWatchAfterInit', serverUtil.asyncWrapper(async (req, re
         return;
     }
 
-    if(isAlreadyScan(filePath)){
+    if(filewatch.isAlreadyScan(filePath)){
         res.send({ failed: true, reason: "ALREADY SCAN" });
         return;
     }
@@ -513,18 +512,13 @@ async function getThumbnailForFolders(filePathes) {
 /** 获得file stat同时保存到db */
 async function getStatAndUpdateDB(filePath) {
     const stat = await pfs.stat(filePath);
-    if (isAlreadyScan(filePath)) {
+    if (filewatch.isAlreadyScan(filePath)) {
         db.updateStatToDb(filePath, stat);
     }
     return stat;
 }
 
-/** 判断一个dir path是不是在scan路径上 */
-function isAlreadyScan(dir) {
-    return global.SCANED_PATH.some(sp => {
-        return pathEqual(sp, dir) || pathUtil.isSub(sp, dir);
-    });
-}
+
 
 
 /**
@@ -654,7 +648,6 @@ function filterObjectProperties(obj, keysToKeep, needWarn) {
 
 serverUtil.common.decorateResWithMeta = decorateResWithMeta
 serverUtil.common.getStatAndUpdateDB = getStatAndUpdateDB;
-serverUtil.common.isAlreadyScan = isAlreadyScan;
 serverUtil.common.checkOneBookRes = checkOneBookRes;
 
 
@@ -904,7 +897,9 @@ async function extractThumbnailFromZip(filePath, res, mode, config) {
             // 想删除除了要使用的文件，但不行。各种文件系统错误
         }
     } catch (e) {
-        logger.error("[extractThumbnailFromZip] exception ", filePath, e);
+        if(e !== "NEED_TO_EXTRACT_ALL"){
+            logger.error("[extractThumbnailFromZip] exception ", filePath, e);
+        }
         const reason = e || "TBD";
         sendError(reason)
     }
@@ -961,7 +956,7 @@ app.post('/api/pregenerateThumbnails', asyncWrapper(async (req, res) => {
     if(pregenerateThumbnailPath == "All_Pathes"){
         totalFiles = await db.getAllFilePathes("WHERE isCompress=1");
     }else{
-        const { pathes } = await pathUtil.readDirForFileAndFolder(pregenerateThumbnailPath, true );
+        const { pathes } = await pathUtil.readDirForFileAndFolder(pregenerateThumbnailPath, true);
         totalFiles = pathes.filter(isCompress);
     }
 

@@ -9,6 +9,7 @@ const db = require("../models/db");
 const serverUtil = require("../serverUtil");
 const scoreUtil = require("../scoreUtil");
 
+
 function _addCol(rows){
     rows.forEach(row => {
         row.score = scoreUtil.getScoreFromCount(row);
@@ -21,6 +22,9 @@ async function getGoodAndOtherSet() {
     let authorInfo = [];
     let tagInfo = [];
 
+    // TODO 缓存到数据
+    // 判断是否扫描了good_folder_root和not_good_folder_root
+    // 没有就从数据库拿 isAlreadyScan
     if (global.good_folder_root && global.not_good_folder_root) {
         sql = `SELECT tag, MAX(subtype) AS subtype,
                 COUNT(CASE WHEN INSTR(filePath, ?) = 1 THEN 1 END) AS good_count,
@@ -37,6 +41,8 @@ async function getGoodAndOtherSet() {
         FROM tag_view GROUP BY tag HAVING total_count >= 5 `;
         tagInfo = await db.doSmartAllSync(sql, [global.good_folder_root, global.not_good_folder_root]);
         _addCol(tagInfo);
+    }else {
+
     }
 
     // let end = (new Date).getTime();

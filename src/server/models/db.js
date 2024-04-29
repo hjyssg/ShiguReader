@@ -54,9 +54,9 @@ module.exports.doAllSync  = async (sql, params) => {
 
 let sqldb;
 module.exports.init = async ()=> {
-    const dbCommon = require("./dbCommon");
+    const SQLWrapper = require("./SQLWrapper");
     const backup_db_path = path.join(pathUtil.getWorkSpacePath(), "shigureader_internal_db.sqlite");
-    sqldb = dbCommon.getSQLInstance(backup_db_path);
+    sqldb = new SQLWrapper(backup_db_path);
 
     // 提升少量性能
     await sqldb.execSync( `

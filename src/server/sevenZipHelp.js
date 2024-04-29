@@ -234,14 +234,14 @@ module.exports.extractByExtension = async function(filePath, outputPath, extensi
         throw "this computer did not install 7z";
     }
 
-    let error, pathes;
+    let error, pathes = [];
     try {
         const opt = getExtractOption(filePath, outputPath, extensions);
         const { stderr, stdout } = await execa(sevenZip, opt);
         if (stderr) {
             throw stderr;
         }
-        pathes = await  pathUtil.readDirForFileAndFolder(outputPath, true);
+        pathes = (await (pathUtil.readDirForFileAndFolder(outputPath, true))).pathes;
     } catch (e) {
         error = e;
         logger.error('[extractByExtension] exit: ', e);
