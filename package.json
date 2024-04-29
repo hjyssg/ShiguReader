@@ -45,7 +45,6 @@
     "jimp": "^0.22.8",
     "js-cookie": "^2.2.1",
     "junk": "^3.1.0",
-    "mecab-async": "^0.1.2",
     "memory-cache": "^0.2.0",
     "p-limit": "^2.1.0",
     "path-equal": "^1.2.5",
