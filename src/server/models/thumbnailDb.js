@@ -2,12 +2,9 @@ const path = require('path');
 const _ = require('underscore');
 const serverUtil = require("../serverUtil");
 // const userConfig = global.requireUserConfig();
-const pathUtil = require("../pathUtil");
+// const pathUtil = require("../pathUtil");
 const util = global.requireUtil();
-// const { isCompress, isVideo, getCurrentTime } = util;
-// const { isSub, isExist } = pathUtil;
-// const rootPath = pathUtil.getRootPath();
-const _util = require('util');
+// const _util = require('util');
 
 
 let sqldb;
@@ -20,8 +17,6 @@ module.exports.init = async (_sqldb)=> {
         CREATE INDEX IF NOT EXISTS filePath_index ON thumbnail_table (filePath);
     `);
     await syncInternalDict()
-    // comment out when needed
-    // await clean();
 }
 
 module.exports.addNewThumbnail = function (filePath, thumbnailFilePath) {
@@ -58,65 +53,25 @@ module.exports.deleteThumbnail = function (filePath) {
     //文件占的空间很小，无所谓
 }
 
-async function clean(){
-    const sql = `SELECT * FROM  thumbnail_table ORDER BY filePath`;
-    let rows = await sqldb.allSync(sql)
-
-    //if the real file is delete
-    //remove from sql table
-    // for(let ii = 0; ii < rows.length; ii++){
-    //     const row = rows[ii];
-    //     const filePath = row.filePath;
-        
-    //     if (!(await isExist(filePath))) {
-    //         const sql2 = `DELETE FROM  thumbnail_table WHERE filePath = ?`;
-    //         await sqldb.runSync(sql2, [filePath])
-    //         console.log(filePath)
-    //     }
-    //     console.log(ii)
-    // }
-
-    const pfs = require('promise-fs');
-    const path = require("path")
-    const thumbnailFolderPath = global.thumbnailFolderPath;
-    let thumbnail_pathes = await pfs.readdir(thumbnailFolderPath);
-    thumbnail_pathes = thumbnail_pathes.filter(util.isImage)
-
-    // if the sql row is missing, delete the thumbnail file
-    for(let ii = 0; ii < thumbnail_pathes.length; ii++){
-        const fn = thumbnail_pathes[ii];
-        const filePath = path.resolve(thumbnailFolderPath, fn)
-        
-        const record = rows.filter(row => row.thumbnailFileName == fn);
-
-        if(record.length === 0){
-            // console.log("need to remove ", filePath)
-            const err = await pfs.unlink(filePath)
-            if (err) { throw err; }
-        }else{
-            // console.log("need to keep ", filePath)
-        }
-        if (ii % 1000 === 0) {
-            console.log(`[thumbnail] scan and clean unneeded thumbnails ${ii}`);
-        }
-    }
-}
+// async function clean(){
+//     // 额外写一个python维护脚本来清理更简单。
+// }
 
 
 //multiple
 module.exports.getThumbnailArr = function (filePathes) {
     filePathes = _.isString(filePathes) ? [filePathes] : filePathes;
 
+    // 大量的时候，唯一快速查找的方法就是最简单的hashmap。sql怎么都不行。
     // const joinStr = filePathes.join(" ");
-    //todo: slow for large number
+    //  slow for large number
     // const sql = `SELECT * FROM  thumbnail_table WHERE INSTR(?, filePath) > 0`;
     // let rows = await sqldb.allSync(sql, [joinStr]);
-
+    // 
     // const promiseArr = filePathes.map(fp => {
     //     const sql = `SELECT * FROM  thumbnail_table WHERE filePath = ?`;
     //     return sqldb.getSync(sql, [fp]);
     // })
-
     // let rows =  await Promise.all(promiseArr);
     // rows = rows.filter(e => !!e);
 
@@ -126,12 +81,10 @@ module.exports.getThumbnailArr = function (filePathes) {
     return rows;
 }
 
-//multiple
-module.exports.getThumbnailByFileName = async function (fileName) {
-    // filePathes = _.isString(filePathes) ? [filePathes] : filePathes;
 
-    const sql = `SELECT * FROM  thumbnail_table WHERE filePath LIKE '%${fileName}'  `;
-    let rows = await sqldb.allSync(sql);
+module.exports.getThumbnailByFileName = async function (fileName) {
+    const sql = `SELECT * FROM thumbnail_table WHERE filePath LIKE ?`;
+    let rows = await sqldb.allSync(sql, [`%${fileName}`]);
     rows = _add_col(rows);
     return rows;
 }
