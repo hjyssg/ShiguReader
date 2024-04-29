@@ -161,7 +161,7 @@ module.exports.asyncWrapper = (fn) => {
             }
         })
 
-        let warnFlg = timeSpent > 300;
+        let warnFlg = timeSpent > 3000;
         if(shouldLog || warnFlg){
             const now = new Date();
             // 获取小时、分钟、秒
