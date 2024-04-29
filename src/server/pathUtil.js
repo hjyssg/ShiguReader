@@ -280,7 +280,7 @@ const getExt = module.exports.getExt = function (p) {
  * not accurate, but performance is good. access each file is very slow 
  * 根据有无后缀快速判断估算是不是文件夹。没有才可能是文件
  */
-const estimateIfFolder = module.exports.estimateIfFolder = function(filePath){
+module.exports.estimateIfFolder = function(filePath){
    const ext = getExt(filePath);
    return !ext 
 }

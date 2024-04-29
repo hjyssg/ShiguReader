@@ -19,7 +19,6 @@ const execa = require('./own_execa');
 const userConfig = global.requireUserConfig();
 const util = global.requireUtil();
 
-const fileiterator = require('./file-iterator');
 const pathUtil = require("./pathUtil");
 pathUtil.init();
 const serverUtil = require("./serverUtil");
@@ -962,21 +961,8 @@ app.post('/api/pregenerateThumbnails', asyncWrapper(async (req, res) => {
     if(pregenerateThumbnailPath == "All_Pathes"){
         totalFiles = await db.getAllFilePathes("WHERE isCompress=1");
     }else{
-        const shouldScanForPreg = (p, stat) => {
-            if (isHiddenFile(p)) {
-                return false;
-            }
-            const ext = pathUtil.getExt(p);
-            return estimateIfFolder(p) || isCompress(ext);
-        }
-
-        const { pathes } = await fileiterator(pregenerateThumbnailPath, {
-            doNotNeedInfo: true,
-            filter: shouldScanForPreg
-        });
+        const { pathes } = await pathUtil.readDirForFileAndFolder(pregenerateThumbnailPath, true );
         totalFiles = pathes.filter(isCompress);
-        // totalFiles = await db.getAllFilePathes("WHERE isCompress=1");
-        // totalFiles = totalFiles.filter(e => e.includes(pregenerateThumbnailPath));
     }
 
     let config = {

@@ -129,7 +129,6 @@ const addWatch_sane = async ({ folderPath, deleteCallBack, shouldScan, db }) => 
             //     return true;
             // }
             // ignore文件，之后文件变化就不会通知。但创建几千个文件的watch又会卡
-            // return !pathUtil.estimateIfFolder(fp);
         }
     }
 
