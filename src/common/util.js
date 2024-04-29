@@ -69,7 +69,7 @@ module.exports.isAv = function (fn) {
 }
 
 //not for .gif
-const compressable = [".jpg", ".jpeg", ".png"]
+const compressable = [".jpg", ".jpeg", ".png", ".avif", "webp", ".bmp"]
 module.exports.canBeCompressed = function (fn) {
     const fnl = fn.toLowerCase();
     return compressable.some((e) => fnl.endsWith(e));
@@ -114,6 +114,10 @@ module.exports._sortFileNames = function (files, getBaseNameWithoutExtention) {
     //     files.sort((a, b) => a.localeCompare(b));
     // }
 };
+
+module.exports.pause = async (time) => {
+    await new Promise(resolve => setTimeout(resolve, time));
+}
 
 module.exports.arraySlice = function (arr, beg, end) {
     const len = arr.length;
