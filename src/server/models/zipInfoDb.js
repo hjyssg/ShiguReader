@@ -2,11 +2,6 @@ const util = global.requireUtil();
 const { isImage, isMusic, isCompress, isVideo } = util;
 const _ = require('underscore');
 
-// const userConfig = global.requireUserConfig();
-const path = require('path');
-const pathUtil = require("../pathUtil");
-
-
 let sqldb;
 //-----------------------
 module.exports.init = async (_sqldb)=> {

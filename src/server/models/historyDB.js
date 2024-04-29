@@ -2,9 +2,7 @@
 const path = require('path');
 const util = global.requireUtil();
 // const { getCurrentTime } = util;
-
 const pathUtil = require("../pathUtil");
-// const serverUtil = require("../serverUtil");
 
 
 let sqldb;

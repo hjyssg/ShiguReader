@@ -7,7 +7,6 @@ const router = express.Router();
 const util = global.requireUtil();
 const { isImage, isGif } = util;
 const serverUtil = require("../serverUtil");
-const execa = require('../own_execa');
 
 const pathUtil = require("../pathUtil");
 const { isExist } = pathUtil;

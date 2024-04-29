@@ -24,16 +24,6 @@ module.exports.getCacheFileToInfo = function () {
 //     return _.keys(cacheDb.cacheFileToInfo);
 // }
 
-// //  outputPath is the folder name
-// module.exports.getCacheFiles = function (outputPath) {
-//     //in-memory is fast
-//     const single_cache_folder = path.basename(outputPath);
-//     if (cacheDb.folderToFiles[single_cache_folder] && cacheDb.folderToFiles[single_cache_folder].length > 0) {
-//         return generateContentUrl(cacheDb.folderToFiles[single_cache_folder], outputPath);
-//     }
-//     return null;
-// }
-
 
 module.exports.updateStatToCacheDb = function (p, stat) {
     const { folderToFiles, cacheFileToInfo } = cacheDb;
