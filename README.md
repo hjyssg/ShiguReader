@@ -19,7 +19,7 @@
     前端是webpack的打包  
     添加其他文件   
     pkg_zip_tool.py打包成zip。 注意检查不要放自己的信息。    
-
+    具体还可以参考pkg_readme
 
 
 ##### 参数:  
