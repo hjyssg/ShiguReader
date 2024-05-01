@@ -1,9 +1,9 @@
 // const fs = require('fs');
 const path = require('path');
 const util = global.requireUtil();
-const execa = require('./own_execa');
+// const execa = require('./own_execa');
 const pathUtil = require("./pathUtil");
-const logger = require("./logger");
+// const logger = require("./logger");
 const { getCurrentTime } = util;
 const ImageCompressUtil = require("./ImageCompressUtil");
 const fs = require('fs').promises;

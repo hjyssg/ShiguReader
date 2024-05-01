@@ -76,7 +76,7 @@ async function convertImage(imgFilePath, outputImgPath, oldImgSize) {
     }
 }
 
-module.exports.isConertable = async function (filePath) {
+module.exports.isConvertable = async function (filePath) {
     if (!global._has_magick_) {
         return "No magick installed";
     }

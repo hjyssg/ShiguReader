@@ -105,7 +105,7 @@ router.post('/api/isAbleToMinify', serverUtil.asyncWrapper(async (req, res) => {
         return;
     }
 
-    let text = await imageMagickHelp.isConertable(filePath);
+    let text = await imageMagickHelp.isConvertable(filePath);
     if (text === "allow_to_minify") {
         res.send({ failed: false })
     } else {

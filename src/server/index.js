@@ -917,34 +917,6 @@ function withLimit(fn) {
 }
 extractThumbnailFromZip = withLimit(extractThumbnailFromZip)
 
-async function cleanDirectory(targetDir, filename) {
-  const _fn = path.basename(filename, path.extname(filename));
-  try {
-    // 读取目标文件夹下的所有文件和文件夹
-    const items = await pfs.readdir(targetDir, { withFileTypes: true });
-    // 遍历每个项目
-    for (const item of items) {
-      const fullPath = path.join(targetDir, item.name);
-      if (item.isDirectory()) {
-        // 如果是文件夹，递归处理
-        await cleanDirectory(fullPath, filename);
-      } else {
-        // 如果是文件，检查文件名（不含扩展名）是否与filename相同
-        const fileNameWithoutExt = path.basename(item.name, path.extname(item.name));
-        if (fileNameWithoutExt !== _fn) {
-          // 如果不相同，删除该文件
-          await pfs.unlink(fullPath);
-        //   console.log(`Deleted: ${fullPath}`);
-        }
-      }
-    }
-  } catch (error) {
-    console.error(`Error processing directory ${targetDir}:`, error);
-  }
-}
-
-
-
 
 //  a huge back ground task
 //  it generate all thumbnail and will be slow

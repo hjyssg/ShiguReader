@@ -5,7 +5,7 @@ const serverUtil = require("../serverUtil");
 const cachePath = global.cachePath;
 const deleteEmpty = require('delete-empty');
 const pathUtil = require("../pathUtil");
-const cleanCache = require("./cleanCache");
+const cleanCache = require("../cleanCache");
 
 function doCacheClean(config) {
     try {

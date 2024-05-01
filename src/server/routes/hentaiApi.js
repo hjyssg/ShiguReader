@@ -7,7 +7,7 @@ const db = require("../models/db");
 // const { isCompress } = util;
 // const zipInfoDb = require("../models/zipInfoDb");
 const serverUtil = require("../serverUtil");
-const thumbnailDb = require("../models/thumbnailDb");
+// const thumbnailDb = require("../models/thumbnailDb");
 const _ = require('underscore');
 
 // get to get all
