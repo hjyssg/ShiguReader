@@ -83,21 +83,48 @@ module.exports.getHistoryForOneFile = async function (fileName) {
 }
 
 
-const recent_access_day = 31; // day
 module.exports.getRecentAccess = async function () {
     let time = util.getCurrentTime();
-    time = time - 1000 * 3600 * 24 * recent_access_day;
+    // const recent_access_day = 31; // day
+    // time = time - 1000 * 3600 * 24 * recent_access_day;
+    // const sql = `
+    //     SELECT filePath, count(filePath) AS count 
+    //     FROM lsdir_history_table 
+    //     WHERE time > ? 
+    //     GROUP BY filePath 
+    //     HAVING count > 3
+    //     ORDER BY count DESC, filePath ASC
+    //     LIMIT 30;
+    // `
+
+    // GPT好牛啊。。。
+    // 计算方式是对于过去30天，每次访问的权重值叠加起来。
+    // 权重值是根据每次访问时间的新旧决定。
+    // 取前20个。
     const sql = `
-        SELECT filePath, count(filePath) AS count 
-        FROM lsdir_history_table 
-        WHERE time > ? 
-        GROUP BY filePath 
-        HAVING count > 3
-        ORDER BY count DESC, filePath ASC
-        LIMIT 30;
+    WITH WeightedVisits AS (
+        SELECT
+            filePath,
+            (1 / (julianday('now') - julianday(time/1000, 'unixepoch') + 1)) AS weight -- 计算权重
+        FROM
+            lsdir_history_table
+        WHERE
+            time >= strftime('%s', 'now', '-30 day') -- 过去30天内的数据
+    )
+    
+    SELECT
+        filePath,
+        SUM(weight) AS total_weight
+    FROM
+        WeightedVisits
+    GROUP BY
+        filePath
+    ORDER BY
+        total_weight DESC
+    LIMIT
+        20;
     `
-    let rows = await sqldb.allSync(sql, [time]);
-    // console.log(rows)
+    let rows = await sqldb.allSync(sql);
     return rows;
 }
 
