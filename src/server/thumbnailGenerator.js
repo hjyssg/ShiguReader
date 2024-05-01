@@ -6,7 +6,7 @@ const pathUtil = require("./pathUtil");
 const logger = require("./logger");
 const { getCurrentTime } = util;
 const ImageCompressUtil = require("./ImageCompressUtil");
-
+const fs = require('fs').promises;
 
 /**
  * 用来生成长期储存的thumbnail
@@ -18,16 +18,25 @@ const ImageCompressUtil = require("./ImageCompressUtil");
 async function thumbnailGenerator(thumbnailFolderPath, imgFolderPath, imgFileName) {
     // let beg = getCurrentTime();
     const outputName = path.basename(imgFolderPath);
-    const tempOutputPath = path.resolve(thumbnailFolderPath, outputName) + ".webp";
+    const ext = util.isGif(imgFileName) ? ".gif" : ".webp";
+    const tempOutputPath = path.resolve(thumbnailFolderPath, outputName) + ext;
     const inputFilePath = path.resolve(imgFolderPath, imgFileName);
     if(!(await pathUtil.isExist(inputFilePath))){
         return null;
     }
-    const outputFilePath = await ImageCompressUtil.doMinifyTempImage(inputFilePath, tempOutputPath, 250);
-    // let end1 = getCurrentTime();
-    // logger.info(`[thumbnailGenerator] ${(end1 - beg) }ms `);
-    return outputFilePath;
-
+    if(util.isGif(inputFilePath)){
+        try {
+            await fs.copyFile(inputFilePath, tempOutputPath);
+            return tempOutputPath;
+          } catch (error) {
+            throw error;
+          }
+    }else{
+        const outputFilePath = await ImageCompressUtil.doMinifyTempImage(inputFilePath, tempOutputPath, 250);
+        // let end1 = getCurrentTime();
+        // logger.info(`[thumbnailGenerator] ${(end1 - beg) }ms `);
+        return outputFilePath;
+    }
 }
 
 module.exports = thumbnailGenerator;
