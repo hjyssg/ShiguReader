@@ -14,15 +14,18 @@
 import os
 import shutil
 
+script_dir = os.path.dirname(os.path.realpath(__file__))
+pp = os.path.join(script_dir, '../..')
+
 source_dirs = [
-    r"F:\git\ShiguReader_Frontend\src\name-parser",
-    r"F:\git\ShiguReader_Frontend\src\common",
-    r"F:\git\ShiguReader_Frontend\dist"
+    os.path.join(pp, r"ShiguReader_Frontend\src\name-parser"),
+    os.path.join(pp, r"ShiguReader_Frontend\src\common"),
+    os.path.join(pp, r"ShiguReader_Frontend\dist")
 ]
 target_dirs = [
-    r"F:\git\Shigureader_Backend\src\name-parser",
-    r"F:\git\Shigureader_Backend\src\common",
-    r"F:\git\Shigureader_Backend\dist"
+     os.path.join(pp, r"F:\git\Shigureader_Backend\src\name-parser"),
+     os.path.join(pp, r"F:\git\Shigureader_Backend\src\common"),
+     os.path.join(pp, r"F:\git\Shigureader_Backend\dist")
 ]
 
 # 先删除目标目录下的所有文件和子目录
