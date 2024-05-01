@@ -21,6 +21,9 @@ imageMagickHelp.init();
 
 const util = global.requireUtil();
 
+const pLimit = require('p-limit');
+const minify_limit = pLimit(1);
+
 const count = {
     processed: 0,
     saveSpace: 0
@@ -33,8 +36,7 @@ router.post('/api/minifyZipQue', serverUtil.asyncWrapper(async (req, res) => {
     })
 }));
 
-const pLimit = require('p-limit');
-const limit = pLimit(1);
+
 router.post('/api/overwrite', serverUtil.asyncWrapper(async (req, res) => {
     const filePath = req.body && req.body.filePath;
 
@@ -129,9 +131,9 @@ router.post('/api/minifyZip', serverUtil.asyncWrapper(async (req, res) => {
     try {
         let temp;
         if (util.isCompress(filePath)) {
-            temp = await limit(() => imageMagickHelp.minifyOneFile(filePath));
+            temp = await minify_limit(() => imageMagickHelp.minifyOneFile(filePath));
         } else {
-            temp = await limit(() => imageMagickHelp.minifyFolder(filePath));
+            temp = await minify_limit(() => imageMagickHelp.minifyFolder(filePath));
         }
         if (temp) {
             //only success will return result

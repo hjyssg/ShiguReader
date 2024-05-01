@@ -98,6 +98,11 @@ const thumbnailDb = require("./models/thumbnailDb");
 const historyDb = require("./models/historyDB");
 const cacheDb = require("./models/cacheDb");
 
+// 防止系统过载
+const pLimit = require('p-limit');
+const thumbnail_limit = pLimit(5);
+const unzip_limit = pLimit(3);
+
 
 const app = express();
 
@@ -813,7 +818,7 @@ app.post("/api/getTagThumbnail", asyncWrapper(async (req, res) => {
 
 const thumbnailGenerator = require("./thumbnailGenerator");
 //the only required parameter is filePath
-async function extractThumbnailFromZip(filePath, res, mode, config) {
+let extractThumbnailFromZip = async (filePath, res, mode, config) => {
     if (!util.isCompress(filePath)) {
         return;
     }
@@ -905,7 +910,12 @@ async function extractThumbnailFromZip(filePath, res, mode, config) {
     }
 }
 
-
+function withLimit(fn) {
+    return function(...args) {
+        return thumbnail_limit(() => fn(...args));
+    };
+}
+extractThumbnailFromZip = withLimit(extractThumbnailFromZip)
 
 async function cleanDirectory(targetDir, filename) {
   const _fn = path.basename(filename, path.extname(filename));
@@ -1204,7 +1214,7 @@ app.post('/api/extract', asyncWrapper(async (req, res) => {
 
         //todo: music/video may be huge and will be slow
         if (shouldExtractFull) {
-            await  _extractAll_()
+            await unzip_limit(_extractAll_);
         } else {
             //spit one zip into two uncompress task
             //so user can have a quicker response time
@@ -1222,7 +1232,7 @@ app.post('/api/extract', asyncWrapper(async (req, res) => {
             secondRange = [...secondRange,  ...videoFiles];
             const totalRange = [...firstRange, ...secondRange];
 
-            const stderr = await extractByRange(filePath, outputPath, firstRange)
+            const stderr = await unzip_limit(()=> extractByRange(filePath, outputPath, firstRange));
             if (!stderr) {
                 const unzipOutputPathes = totalRange.map(e => path.resolve(outputPath,  path.basename(e)));
                 const contentUrls = generateContentUrl(unzipOutputPathes, outputPath);
@@ -1234,7 +1244,7 @@ app.post('/api/extract', asyncWrapper(async (req, res) => {
                 await extractByRange(filePath, outputPath, secondRange);
             } else {
                 if(stderr === "NEED_TO_EXTRACT_ALL"){
-                   await _extractAll_();
+                    await unzip_limit(_extractAll_);
                 }else{
                     throw stderr;
                 }
