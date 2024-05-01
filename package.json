@@ -27,7 +27,6 @@
   "license": "MIT",
   "dependencies": {
     "chokidar": "^3.4.3",
-    "classnames": "^2.2.6",
     "commander": "^10.0.1",
     "cookie-parser": "^1.4.5",
     "cors": "^2.8.5",
@@ -49,7 +48,6 @@
     "p-limit": "^2.1.0",
     "path-equal": "^1.2.5",
     "promise-fs": "^2.1.1",
-    "prop-types": "^15.6.2",
     "qrcode-terminal": "^0.12.0",
     "qrcode.react": "^3.1.0",
     "sane": "^5.0.1",
