@@ -57,8 +57,7 @@ g：快速跳页
 
 
 ##### 第三方依赖
-
-虽然ShiguReader可不安装依赖也能使用，但强烈建议安装[image magick](https://imagemagick.org)。这样可以使用它来压缩图片，提高软件的性能。
+linux系统强烈建议安装[image magick](https://imagemagick.org)。这样可以使用它来压缩图片，提高软件的性能。
 
 ##### 注意事项
 

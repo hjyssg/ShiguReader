@@ -54,4 +54,3 @@ npm run start
 | image magick  | No        | Nice to have.                   |
 | 7-Zip         | *      | Windows does not need to install. Must-have for *nix. |
 | git bash      | *         | Must-have for Windows, not required for *nix. |
-| MeCab         | No        | 	Nice to have. |
