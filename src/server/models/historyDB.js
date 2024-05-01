@@ -142,6 +142,7 @@ const _getFileHistory = async function (pathes) {
     console.assert(pathes.length < 20000, "may Too many SQL variables");
     // chatgpt Q1: how to sql query select with an huge array 
     // chatgpt Q2: does sqlite have query text limit
+    // 240501 想明白了，其实最好的方式是额外再维护一个file_count_table和file_recent_access_table，但吃饱撑。
     const placeholders = fileNames.map(() => '?').join(',');
     const sql = `SELECT fileName, MAX(time) as time, COUNT(time) as count FROM 
     history_table where fileName IN (${placeholders})  
