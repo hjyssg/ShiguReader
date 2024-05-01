@@ -100,7 +100,7 @@ const cacheDb = require("./models/cacheDb");
 
 // 防止系统过载
 const pLimit = require('p-limit');
-const thumbnail_limit = pLimit(5);
+const thumbnail_limit = pLimit(10);
 const unzip_limit = pLimit(3);
 
 
