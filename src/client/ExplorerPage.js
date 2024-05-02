@@ -33,7 +33,7 @@ import { GlobalContext } from './globalContext';
 import { NoScanAlertArea, FileCountPanel, getOneLineListItem, 
          LinkToEHentai, SimpleFileListPanel, SingleZipItem, FileGroupZipPanel } from './ExplorerPageUI';
 
-import ExplorerUtil from "./ExplorerUtil";
+import * as ExplorerUtil from "./ExplorerUtil";
 
 
 const ClientConstant = require("./ClientConstant");
@@ -55,7 +55,6 @@ const { MODE_TAG,
     MODE_SEARCH,
     MODE_EXPLORER } = Constant;
 
-const GOOD_STANDARD = 2;
 
 const FILTER_FIRST_TIME_AUTHOR = "FILTER_FIRST_TIME_AUTHOR";
 const FILTER_HAS_MUSIC = "FILTER_HAS_MUSIC";
@@ -680,7 +679,7 @@ export default class ExplorerPage extends Component {
         let files = filteredFiles;
 
         try {
-            files = ExplorerUtil.sortFiles(files, sortOrder, isSortAsc, this);
+            files = ExplorerUtil.sortFiles(this, files, sortOrder, isSortAsc);
         } catch (e) {
             console.error(e);
         }
