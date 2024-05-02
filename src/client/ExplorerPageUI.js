@@ -33,36 +33,36 @@ import Swal from 'sweetalert2';
 import RangeSlider from 'react-range-slider-input';
 import 'react-range-slider-input/dist/style.css';
 
-import { GlobalContext } from './globalContext'
+// import { GlobalContext } from './globalContext'
 
 
 const ClientConstant = require("./ClientConstant");
-const { BY_FILE_NUMBER,
-    BY_TIME,
-    BY_MTIME,
-    BY_LAST_READ_TIME,
-    BY_READ_COUNT,
-    BY_FILE_SIZE,
-    BY_AVG_PAGE_SIZE,
-    BY_PAGE_NUMBER,
-    BY_FILENAME,
-    BY_GOOD_SCORE,
-    BY_FOLDER,
-    BY_RANDOM } = ClientConstant;
+// const { BY_FILE_NUMBER,
+//     BY_TIME,
+//     BY_MTIME,
+//     BY_LAST_READ_TIME,
+//     BY_READ_COUNT,
+//     BY_FILE_SIZE,
+//     BY_AVG_PAGE_SIZE,
+//     BY_PAGE_NUMBER,
+//     BY_FILENAME,
+//     BY_GOOD_SCORE,
+//     BY_FOLDER,
+//     BY_RANDOM } = ClientConstant;
 
-const { MODE_TAG,
-    MODE_AUTHOR,
-    MODE_SEARCH,
-    MODE_EXPLORER } = Constant;
+// const { MODE_TAG,
+//     MODE_AUTHOR,
+//     MODE_SEARCH,
+//     MODE_EXPLORER } = Constant;
 
-const GOOD_STANDARD = 2;
+// const GOOD_STANDARD = 2;
 
-const FILTER_GOOD_AUTHOR = "FILTER_GOOD_AUTHOR";
-const FILTER_OVERSIZE = "FILTER_OVERSIZE";
-const FILTER_FIRST_TIME_AUTHOR = "FILTER_FIRST_TIME_AUTHOR";
-const FILTER_HAS_MUSIC = "FILTER_HAS_MUSIC";
-const FILTER_HAS_VIDEO = "FILTER_HAS_VIDEO";
-const FILTER_IMG_FOLDER = "FILTER_IMG_FOLDER";
+// const FILTER_GOOD_AUTHOR = "FILTER_GOOD_AUTHOR";
+// const FILTER_OVERSIZE = "FILTER_OVERSIZE";
+// const FILTER_FIRST_TIME_AUTHOR = "FILTER_FIRST_TIME_AUTHOR";
+// const FILTER_HAS_MUSIC = "FILTER_HAS_MUSIC";
+// const FILTER_HAS_VIDEO = "FILTER_HAS_VIDEO";
+// const FILTER_IMG_FOLDER = "FILTER_IMG_FOLDER";
 
 
 export const NoScanAlertArea = ({ filePath }) => {
@@ -220,7 +220,7 @@ export const SingleZipItem = ({ filePath, info }) => {
 }
 
 
-export const ZipGroupByFolderPanel = ({
+export const FileGroupZipPanel = ({
     files,
     isSortAsc,
     info

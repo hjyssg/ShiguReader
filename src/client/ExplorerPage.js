@@ -31,7 +31,7 @@ import 'react-range-slider-input/dist/style.css';
 
 import { GlobalContext } from './globalContext';
 import { NoScanAlertArea, FileCountPanel, getOneLineListItem, 
-         LinkToEHentai, SimpleFileListPanel, SingleZipItem, ZipGroupByFolderPanel } from './ExplorerPageUI';
+         LinkToEHentai, SimpleFileListPanel, SingleZipItem, FileGroupZipPanel } from './ExplorerPageUI';
 
 
 const ClientConstant = require("./ClientConstant");
@@ -55,8 +55,6 @@ const { MODE_TAG,
 
 const GOOD_STANDARD = 2;
 
-const FILTER_GOOD_AUTHOR = "FILTER_GOOD_AUTHOR";
-const FILTER_OVERSIZE = "FILTER_OVERSIZE";
 const FILTER_FIRST_TIME_AUTHOR = "FILTER_FIRST_TIME_AUTHOR";
 const FILTER_HAS_MUSIC = "FILTER_HAS_MUSIC";
 const FILTER_HAS_VIDEO = "FILTER_HAS_VIDEO";
@@ -510,27 +508,12 @@ export default class ExplorerPage extends Component {
             }
         })
 
-        if (this.isOn(FILTER_GOOD_AUTHOR) && authorInfo) {
-            files = files.filter(e => {
-                const count = this.getAuthorCountForFP(e);
-                if (count && count.good_count > GOOD_STANDARD) {
-                    return true;
-                }
-            })
-        }
-
         if (this.isOn(FILTER_FIRST_TIME_AUTHOR) && authorInfo) {
             files = files.filter(e => {
                 const count = this.getAuthorCountForFP(e);
                 if (count && (count.total_count) === 1) {
                     return true;
                 }
-            })
-        }
-
-        if (this.isOn(FILTER_OVERSIZE)) {
-            files = files.filter(e => {
-                return this.getPageAvgSize(e) / 1024 / 1024 > userConfig.oversized_image_size
             })
         }
 
@@ -914,7 +897,7 @@ export default class ExplorerPage extends Component {
         if (sortOrder === BY_FOLDER || sortOrder === BY_FOLDER &&
             (this.getMode() === MODE_AUTHOR || this.getMode() === MODE_TAG || this.getMode() === MODE_SEARCH)) {
     
-            zipfileItems = <ZipGroupByFolderPanel files={files} isSortAsc={this.state.isSortAsc} info={this} />
+            zipfileItems = <FileGroupZipPanel files={files} isSortAsc={this.state.isSortAsc} info={this} />
         } else {
             //! !todo if the file is already an image file
             zipfileItems = files.map(fp => this.renderSingleZipItem(fp));
@@ -936,9 +919,9 @@ export default class ExplorerPage extends Component {
                 <SimpleFileListPanel musicFiles={this.musicFiles} imageFiles={this.imageFiles} info={this} />
 
                 {videoDivGroup}
-                {zipfileItems.length > 0 && this.renderPagination(filteredFiles, filteredVideos)}
-                {zipfileItems.length > 0 && this.renderPageRangeSilder()}
-                {zipfileItems.length > 0 && this.renderFilterMenu()}
+                {this.renderPagination(filteredFiles, filteredVideos)}
+                {this.renderPageRangeSilder()}
+                {this.renderCheckboxPanel()}
                 {zipfileItems.length > 0 && this.renderSortHeader()}
                 <div className={"file-grid container"}>
                     <div className={rowCn}>
@@ -964,7 +947,8 @@ export default class ExplorerPage extends Component {
                 <div className='small-text-title'>{pageNumRange[0]} </div>
                 <RangeSlider className="page-number-range-slider" 
                 min={this.minPageNum} max={maxForSilder} step={1} 
-                value={pageNumRange} onInput={(range) => {
+                value={pageNumRange} 
+                onInput={(range) => {
                     console.log(range);
                     if(range[0] === pageNumRange[0] && range[1] === pageNumRange[1]){
                         //
@@ -1375,51 +1359,32 @@ export default class ExplorerPage extends Component {
         </div>);
     }
 
-    renderFilterMenu() {
-        //no one pay me, I am not going to improve the ui
-        let checkbox;
-        if (this.state.authorInfo) {
-            checkbox = (<Checkbox
-                onChange={this.toggleFilter.bind(this, FILTER_GOOD_AUTHOR)}
-                checked={this.isOn(FILTER_GOOD_AUTHOR)}
-                title={`need to found more than ${GOOD_STANDARD} times in good folder`}>
-                By Good Count
-            </Checkbox>);
-        }
+    renderCheckboxPanel() {
+        // Define a list of filters with their descriptions
+        const filters = [
+            { id: 'FILTER_FIRST_TIME_AUTHOR', label: 'First Time Author' },
+            { id: 'FILTER_HAS_MUSIC', label: 'Has Music' },
+            { id: 'FILTER_HAS_VIDEO', label: 'Has Video' },
+            { id: 'FILTER_IMG_FOLDER', label: 'Only Image Folder' }
+        ];
 
-        const st2 = `Image > ${userConfig.oversized_image_size} MB`;
-        let checkbox2 = (<Checkbox onChange={this.toggleFilter.bind(this, FILTER_OVERSIZE)} checked={this.isOn(FILTER_OVERSIZE)}>
-            {st2}
-        </Checkbox>);
+        // Map over the filters array to create checkbox components
+        const checkboxes = filters.map(filter => (
+            <Checkbox 
+                key={filter.id}
+                onChange={this.toggleFilter.bind(this, filter.id)} 
+                checked={this.isOn(filter.id)}
+            >
+                {filter.label}
+            </Checkbox>
+        ));
 
-        const st3 = `First Time Author`;
-        let checkbox3 = (<Checkbox onChange={this.toggleFilter.bind(this, FILTER_FIRST_TIME_AUTHOR)} checked={this.isOn(FILTER_FIRST_TIME_AUTHOR)}>
-            {st3}
-        </Checkbox>);
-
-        const st4 = `Has Music`;
-        let checkbox4 = (<Checkbox onChange={this.toggleFilter.bind(this, FILTER_HAS_MUSIC)} checked={this.isOn(FILTER_HAS_MUSIC)}>
-            {st4}
-        </Checkbox>);
-
-        const st45 = `Has Video`;
-        let checkbox45 = (<Checkbox onChange={this.toggleFilter.bind(this, FILTER_HAS_VIDEO)} checked={this.isOn(FILTER_HAS_VIDEO)}>
-            {st45}
-        </Checkbox>);
-
-        const st5 = `Only Image Folder`;
-        let checkbox5 = (<Checkbox onChange={this.toggleFilter.bind(this, FILTER_IMG_FOLDER)} checked={this.isOn(FILTER_IMG_FOLDER)}>
-            {st5}
-        </Checkbox>);
+        // Return the container with all checkboxes
         return (
             <div className="aji-checkbox-container container">
-                {/* {checkbox} */}
-                {/* {checkbox2} */}
-                {checkbox3}
-                {checkbox4}
-                {checkbox45}
-                {checkbox5}
-            </div>);
+                {checkboxes}
+            </div>
+        );
     }
 
     render() {
