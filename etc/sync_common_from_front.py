@@ -13,22 +13,33 @@
 
 import os
 import shutil
+from pathlib import Path
 
 script_dir = os.path.dirname(os.path.realpath(__file__))
-pp = os.path.join(script_dir, '../..')
+root = Path(os.path.join(script_dir, '../..')).resolve()
+
+backend_path = Path(os.path.join(script_dir, '..')).resolve()
+frontend_path = Path(os.path.join(root, r"ShiguReader_Frontend")).resolve()
+
+backend_path = str(backend_path)
+frontend_path = str(frontend_path)
+
 
 source_dirs = [
-    os.path.join(pp, r"ShiguReader_Frontend\src\name-parser"),
-    os.path.join(pp, r"ShiguReader_Frontend\src\common"),
-    os.path.join(pp, r"ShiguReader_Frontend\dist")
+    os.path.join(frontend_path, r"src\name-parser"),
+    os.path.join(frontend_path, r"src\common"),
+    os.path.join(frontend_path, r"dist")
 ]
 target_dirs = [
-     os.path.join(pp, r"F:\git\Shigureader_Backend\src\name-parser"),
-     os.path.join(pp, r"F:\git\Shigureader_Backend\src\common"),
-     os.path.join(pp, r"F:\git\Shigureader_Backend\dist")
+     os.path.join(backend_path, r"src\name-parser"),
+     os.path.join(backend_path, r"src\common"),
+     os.path.join(backend_path, r"dist")
 ]
 
-# 先删除目标目录下的所有文件和子目录
+#--------------------- build
+
+
+# ------------------ 先删除目标目录下的所有文件和子目录
 for target_dir in target_dirs:
     for root, dirs, files in os.walk(target_dir, topdown=False):
         for filename in files:
