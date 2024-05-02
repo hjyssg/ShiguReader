@@ -34,7 +34,7 @@ import RangeSlider from 'react-range-slider-input';
 import 'react-range-slider-input/dist/style.css';
 
 import { GlobalContext } from './globalContext';
-import { NoScanAlertArea, FileCountPanel, getOneLineListItem, LinkToEHentai } from './ExplorerPageUI';
+import { NoScanAlertArea, FileCountPanel, getOneLineListItem, LinkToEHentai, SimpleFileListPanel } from './ExplorerPageUI';
 
 
 const ClientConstant = require("./ClientConstant");
@@ -922,20 +922,7 @@ export default class ExplorerPage extends Component {
             });
         }
 
-        // TODO 实际显示20个，但会去loop全部
-        const musicItems = this.musicFiles.map((item) => {
-            const toUrl = clientUtil.getOneBookLink(getDir(item));
-            const text = getBaseName(item);
-            const result = getOneLineListItem(<i className="fas fa-volume-up"></i>, text, item, this);
-            return <Link target="_blank" to={toUrl} key={item}>{result}</Link>;
-        });
-
-        const imageItems = this.imageFiles.map((item, ii) => {
-            const toUrl = clientUtil.getOneBookLink(getDir(item));
-            const text = getBaseName(item);
-            const result = getOneLineListItem(<i className="fas fa-images"></i>, text, item, this);
-            return <Link target="_blank" to={toUrl} key={item}>{result}</Link>;
-        });
+      
 
         //seperate av from others
         const groupByVideoType = _.groupBy(videos, item => {
@@ -1030,12 +1017,13 @@ export default class ExplorerPage extends Component {
                         </div>
                     </div>
                 }
-                <ItemsContainer items={musicItems} />
-                <ItemsContainer items={imageItems} />
+
+                <SimpleFileListPanel musicFiles={this.musicFiles} imageFiles={this.imageFiles} info={this} />
+
                 {videoDivGroup}
-                {this.renderPagination(filteredFiles, filteredVideos)}
-                {this.renderPageRangeSilder()}
-                {this.renderFilterMenu()}
+                {zipfileItems.length > 0 && this.renderPagination(filteredFiles, filteredVideos)}
+                {zipfileItems.length > 0 && this.renderPageRangeSilder()}
+                {zipfileItems.length > 0 && this.renderFilterMenu()}
                 {zipfileItems.length > 0 && this.renderSortHeader()}
                 <div className={"file-grid container"}>
                     <div className={rowCn}>
