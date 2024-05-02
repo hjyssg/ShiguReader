@@ -10,7 +10,7 @@ import os
 import shutil
 
 script_dir = os.path.dirname(os.path.realpath(__file__))
-root_folder = os.path.join(script_dir, '..\\..')
+root_folder = os.path.join(script_dir, '..\\..\\..')
 pkg_folder =  os.path.join(root_folder, "SGR_pkg")   
 
 # The relative paths of the directories to be excluded from the compression
