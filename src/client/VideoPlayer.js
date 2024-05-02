@@ -33,7 +33,24 @@ export default class VideoPlayer extends Component {
         }
       });
     }
+
+
+    document.addEventListener('keydown', this.handleKeyDown.bind(this));
   }
+
+  componentWillUnmount() {
+    document.removeEventListener("keydown", this.handleKeyDown.bind(this));
+  }
+
+  handleKeyDown(event) {
+    const key = event.key.toLowerCase();
+    if (key === "+" || key === "=") {
+        this.changeVideoSize(1.1)
+      } else if (key === "-") {
+        this.changeVideoSize(0.9)
+      }
+  }
+
 
   getTextFromQuery(props) {
     //may allow tag author in future
