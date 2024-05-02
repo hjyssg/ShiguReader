@@ -33,7 +33,8 @@ import Swal from 'sweetalert2';
 import RangeSlider from 'react-range-slider-input';
 import 'react-range-slider-input/dist/style.css';
 
-import { GlobalContext } from './globalContext'
+import { GlobalContext } from './globalContext';
+import { NoScanAlertArea, FileCountPanel, getOneLineListItem, LinkToEHentai } from './ExplorerPageUI';
 
 
 const ClientConstant = require("./ClientConstant");
@@ -65,36 +66,7 @@ const FILTER_HAS_VIDEO = "FILTER_HAS_VIDEO";
 const FILTER_IMG_FOLDER = "FILTER_IMG_FOLDER";
 
 
-function NoScanAlertArea(props) {
-    // const [minifyZipQue, setMinifyZipQue] = useState([]);
-    const { filePath } = props;
 
-
-    const askSendScan = () => {
-        Swal.fire({
-            title: "Scan this Folder (but it will take time)",
-            showCancelButton: true,
-            confirmButtonText: 'Yes',
-            cancelButtonText: 'No'
-        }).then((result) => {
-            if (result.value === true) {
-                Sender.post("/api/addNewFileWatchAfterInit", { filePath }, res => {
-                    if (!res.isFailed()) {
-                        // let { minifyZipQue } = res.json;
-                        // setMinifyZipQue(minifyZipQue)
-                    }
-                });
-            }
-        });
-    }
-
-    return (
-        <div className="alert alert-warning" role="alert" >
-            <div>{`${filePath} is not included in config-path`}</div>
-            <div style={{ marginBottom: "5px" }}>{`It is usable, but lack some good features`}</div>
-            <div className="scan-button" onClick={askSendScan}>Scan this Folder (but it will take time)</div>
-        </div>)
-}
 
 
 function parse(str) {
@@ -729,14 +701,6 @@ export default class ExplorerPage extends Component {
         return files;
     }
 
-    getOneLineListItem(icon, fileName, filePath, title) {
-        return (
-            <li className="explorer-one-line-list-item" key={fileName} title={this.getTooltipStr(filePath)}>
-                {icon}
-                <span className="explorer-one-line-list-item-text">{fileName}</span>
-            </li>);
-    }
-
     getScore(fp) {
         let score = this.getAuthorCountForFP(fp).score || 0;
         // console.log(fp)
@@ -829,7 +793,7 @@ export default class ExplorerPage extends Component {
             zipItem = (
                 <Link target="_blank" to={toUrl} key={fp} className={""} >
                     <ThumbnailPopup filePath={fp} url={thumbnailurl}>
-                        {this.getOneLineListItem(<i className="fas fa-book"></i>, text, fp)}
+                        {getOneLineListItem(<i className="fas fa-book"></i>, text, fp, this)}
                     </ThumbnailPopup>
                 </Link>)
         } else {
@@ -949,7 +913,7 @@ export default class ExplorerPage extends Component {
             dirItems = dirs.map((item) => {
                 const toUrl = clientUtil.getExplorerLink(item);
                 const text = getBaseName(item);
-                const result = this.getOneLineListItem(<i className="far fa-folder"></i>, text, item);
+                const result = getOneLineListItem(<i className="far fa-folder"></i>, text, item, this);
                 return (
                     <ThumbnailPopup filePath={item} key={item}>
                         <Link to={toUrl}>{result}</Link>
@@ -962,14 +926,14 @@ export default class ExplorerPage extends Component {
         const musicItems = this.musicFiles.map((item) => {
             const toUrl = clientUtil.getOneBookLink(getDir(item));
             const text = getBaseName(item);
-            const result = this.getOneLineListItem(<i className="fas fa-volume-up"></i>, text, item);
+            const result = getOneLineListItem(<i className="fas fa-volume-up"></i>, text, item, this);
             return <Link target="_blank" to={toUrl} key={item}>{result}</Link>;
         });
 
         const imageItems = this.imageFiles.map((item, ii) => {
             const toUrl = clientUtil.getOneBookLink(getDir(item));
             const text = getBaseName(item);
-            const result = this.getOneLineListItem(<i className="fas fa-images"></i>, text, item);
+            const result = getOneLineListItem(<i className="fas fa-images"></i>, text, item, this);
             return <Link target="_blank" to={toUrl} key={item}>{result}</Link>;
         });
 
@@ -995,7 +959,7 @@ export default class ExplorerPage extends Component {
             const videoItems = group.map((item) => {
                 const toUrl = clientUtil.getVideoPlayerLink(item);
                 const text = getBaseName(item);
-                const result = this.getOneLineListItem(<i className="far fa-file-video"></i>, text, item);
+                const result = getOneLineListItem(<i className="far fa-file-video"></i>, text, item, this);
                 // 会卡顿，弃用video preview
                 // return (
                 // <ThumbnailPopup filePath={item} key={item}>
@@ -1247,26 +1211,7 @@ export default class ExplorerPage extends Component {
         }
     }
 
-    renderFileCount(filteredFiles, filteredVideos) {
-        const totalZipSize = this.countAllFileSize(filteredFiles);
-        const totalVideoSize = this.countAllFileSize(filteredVideos);
-        const totalSize = totalZipSize + totalVideoSize;
-        const title = `${filesizeUitl(totalZipSize)} zips and ${filesizeUitl(totalVideoSize)} videos`
-        const totalPageNum = this.countAllFilePageNum(filteredFiles);
-        return (
-            <div className="row">
-                <div className="col-12 file-count-row">
-                    <div className="file-count">{"Zip: " + filteredFiles.length} </div>
-                    <div className="file-count">{"Page: " + totalPageNum} </div>
-                    <div className="file-count">{"Video: " + filteredVideos.length} </div>
-                    <div className="file-count">{"Music: " + this.musicFiles.length} </div>
-                    <div className="file-count">{"Image: " + this.imageFiles.length} </div>
-                    <div className="file-count">{"Folder: " + this.dirs.length} </div>
-                    <div className="file-count" title={title}>{"Total: " + filesizeUitl(totalSize)} </div>
-                </div>
-            </div>
-        );
-    }
+ 
 
     getBookModeLink() {
         const onebookUrl = clientUtil.getOneBookLink(this.getTextFromQuery());
@@ -1327,7 +1272,7 @@ export default class ExplorerPage extends Component {
         return (<div className="container explorer-top-bar-container">
             {breadcrumb}
             {warning}
-            {this.renderFileCount(filteredFiles, filteredVideos)}
+            <FileCountPanel filteredFiles={filteredFiles} filteredVideos={filteredVideos} info={this} />
             {topButtons}
         </div>);
     }
@@ -1352,18 +1297,7 @@ export default class ExplorerPage extends Component {
         }
 
         if (searchable) {
-            const link = "https://exhentai.org/?f_search=" + searchable;
-            const title = "Search '" + searchable + "' in Exhentai";
-
-            let btn;
-            if (this.getMode() === MODE_AUTHOR || this.getMode() === MODE_TAG || this.getMode() === MODE_SEARCH) {
-                btn = [this.renderToggleThumbNailButton(), this.renderToggleFolferThumbNailButton(), this.renderToggleMenuButton()];
-            }
-
-            return (<center className={"location-title"}>
-                <a className="explorer-external-link" target="_blank" href={link} title={title}>{this.getTitle()} </a>
-                <ClickAndCopyDiv text={searchable} />
-            </center>);
+            return <LinkToEHentai searchable={searchable} text={this.getTitle()} />
         }
     }
 
