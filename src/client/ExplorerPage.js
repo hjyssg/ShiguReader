@@ -8,7 +8,6 @@ import { Link } from 'react-router-dom';
 
 const userConfig = require('@config/user-config');
 import ErrorPage from './ErrorPage';
-import FileChangeToolbar from './subcomponent/FileChangeToolbar';
 import CenterSpinner from './subcomponent/CenterSpinner';
 const util = require("@common/util");
 const queryString = require('query-string');
@@ -17,7 +16,6 @@ import ItemsContainer from './subcomponent/ItemsContainer';
 import SortHeader from './subcomponent/SortHeader';
 import Breadcrumb from './subcomponent/Breadcrumb';
 import FileCellTitle from './subcomponent/FileCellTitle';
-import ClickAndCopyDiv from './subcomponent/ClickAndCopyDiv';
 import Checkbox from './subcomponent/Checkbox';
 import ThumbnailPopup from './subcomponent/ThumbnailPopup';
 import { getFileUrl } from './clientUtil';
@@ -27,15 +25,13 @@ const Constant = require("@common/constant");
 const clientUtil = require("./clientUtil");
 const { getDir, getBaseName, getPerPageItemNumber, isSearchInputTextTyping, filesizeUitl, sortFileNames } = clientUtil;
 const { isVideo, isCompress, isImage, isMusic } = util;
-// const sortUtil = require("../common/sortUtil");
 const AdminUtil = require("./AdminUtil");
-import Swal from 'sweetalert2';
 import RangeSlider from 'react-range-slider-input';
 import 'react-range-slider-input/dist/style.css';
 
 import { GlobalContext } from './globalContext';
 import { NoScanAlertArea, FileCountPanel, getOneLineListItem, 
-         LinkToEHentai, SimpleFileListPanel, SingleZipItem } from './ExplorerPageUI';
+         LinkToEHentai, SimpleFileListPanel, SingleZipItem, ZipGroupByFolderPanel } from './ExplorerPageUI';
 
 
 const ClientConstant = require("./ClientConstant");
@@ -917,37 +913,8 @@ export default class ExplorerPage extends Component {
         let zipfileItems;
         if (sortOrder === BY_FOLDER || sortOrder === BY_FOLDER &&
             (this.getMode() === MODE_AUTHOR || this.getMode() === MODE_TAG || this.getMode() === MODE_SEARCH)) {
-            const byDir = _.groupBy(files, getDir);
-            let fDirs = _.keys(byDir);
-            // 文件夹根据所拥有文件件的时间来排序
-            fDirs = _.sortBy(fDirs, dirPath => {
-                const files = byDir[dirPath];
-                const times = files.map(fp => this.getMtime(fp)).filter(e => !!e);
-                const avgTime = util.getAverage(times);
-                return avgTime || 0;
-            });
-
-            if (!this.state.isSortAsc) {
-                fDirs.reverse();
-            }
-
-            zipfileItems = [];
-            fDirs.map((dirPath, ii) => {
-                const folderGroup = byDir[dirPath];
-                const extraDiv = (<div className="extra-div" >{`Zip: ${folderGroup.length}`} </div>);
-                const seperator = (<div className="col-12" key={dirPath + "---seperator"}>
-                    <Breadcrumb sep={this.context.file_path_sep}
-                        server_os={this.context.server_os}
-                        path={dirPath}
-                        className={ii > 0 ? "not-first-breadcrumb folder-seperator" : "folder-seperator"}
-                        extraDiv={extraDiv}
-                    />
-
-                </div>);
-                zipfileItems.push(seperator)
-                const zipGroup = folderGroup.map(fp => this.renderSingleZipItem(fp));
-                zipfileItems.push(...zipGroup);
-            })
+    
+            zipfileItems = <ZipGroupByFolderPanel files={files} isSortAsc={this.state.isSortAsc} info={this} />
         } else {
             //! !todo if the file is already an image file
             zipfileItems = files.map(fp => this.renderSingleZipItem(fp));

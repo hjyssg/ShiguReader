@@ -219,6 +219,47 @@ export const SingleZipItem = ({ filePath, info }) => {
     return zipItem;
 }
 
+
+export const ZipGroupByFolderPanel = ({
+    files,
+    isSortAsc,
+    info
+}) => {
+    const byDir = _.groupBy(files, getDir);
+    let fDirs = _.keys(byDir);
+    // 文件夹根据所拥有文件件的时间来排序
+    fDirs = _.sortBy(fDirs, dirPath => {
+        const files = byDir[dirPath];
+        const times = files.map(fp => info.getMtime(fp)).filter(e => !!e);
+        const avgTime = util.getAverage(times);
+        return avgTime || 0;
+    });
+
+    if (isSortAsc) {
+        fDirs.reverse();
+    }
+
+    const zipfileItems = [];
+    fDirs.map((dirPath, ii) => {
+        const folderGroup = byDir[dirPath];
+        const extraDiv = (<div className="extra-div" >{`Zip: ${folderGroup.length}`} </div>);
+        const seperator = (<div className="col-12" key={dirPath + "---seperator"}>
+            <Breadcrumb sep={info.context.file_path_sep}
+                server_os={info.context.server_os}
+                path={dirPath}
+                className={ii > 0 ? "not-first-breadcrumb folder-seperator" : "folder-seperator"}
+                extraDiv={extraDiv}
+            />
+
+        </div>);
+        zipfileItems.push(seperator)
+        const zipGroup = folderGroup.map(fp => info.renderSingleZipItem(fp));
+        zipfileItems.push(...zipGroup);
+    })
+
+    return <>{ zipfileItems } </>;
+}
+
 //-----------------------------------------
 
 
