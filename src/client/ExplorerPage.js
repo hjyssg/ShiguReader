@@ -635,9 +635,26 @@ export default class ExplorerPage extends Component {
         } else if (sortOrder == BY_GOOD_SCORE) {
             // 喜好排序
             files.sort((a, b) => {
-                const s1 = this.getScore(a);
-                const s2 = this.getScore(b);
-                return s1 - s2;
+                let s1 = this.getScore(a);
+                let s2 = this.getScore(b);
+
+                if(s1 == s2){
+                    const adjustScore = (fp, score) => {
+                        const { good_folder_root, not_good_folder_root } = this.context;
+                        if (good_folder_root && fp.includes(good_folder_root)) {
+                            score += 1;
+                        } else if (not_good_folder_root && fp.includes(not_good_folder_root)) {
+                            score -= 1;
+                        }
+                        return score;
+                    }
+                    s1 = adjustScore(a, s1);
+                    s2 = adjustScore(b, s2);
+
+                    return s1 - s2;
+                }else{
+                    return s1 - s2;
+                }
             })
         } else if (sortOrder === BY_FOLDER) {
             files = _.sortBy(files, e => {
@@ -683,13 +700,6 @@ export default class ExplorerPage extends Component {
 
     getScore(fp) {
         let score = this.getAuthorCountForFP(fp).score || 0;
-        // console.log(fp)
-        const { good_folder_root, not_good_folder_root } = this.context;
-        if (good_folder_root && fp.includes(good_folder_root)) {
-            score += 1;
-        } else if (not_good_folder_root && fp.includes(not_good_folder_root)) {
-            score -= 1;
-        }
         return score;
     }
 
@@ -703,16 +713,6 @@ export default class ExplorerPage extends Component {
         }
     }
 
-    // getTagCountForFP(fp) {
-    //     const temp = parse(fp);
-    //     if(temp && temp.tags){
-    //         return temp.tags.map(tag => {
-    //             return clientUtil.getAuthorCount(this.state.tagInfo, tag) || [];
-    //         });
-    //     }else{
-    //         return [];
-    //     }
-    // }
 
 
     getTooltipStr(fp) {
