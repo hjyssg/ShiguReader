@@ -83,6 +83,9 @@ router.post('/api/overwrite', serverUtil.asyncWrapper(async (req, res) => {
     if (originalFilePath) {
         //do the overwrite
         await trash(originalFilePath);
+        // 删除旧的zip信息
+        serverUtil.common.deleteCallBack(originalFilePath);
+
         const newPath = path.join(path.dirname(originalFilePath), path.basename(filePath));
         const { stdout, stderr } = move(filePath, newPath);
         if (!stderr) {

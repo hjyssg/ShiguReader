@@ -524,8 +524,6 @@ async function getStatAndUpdateDB(filePath) {
 }
 
 
-
-
 /**
  * 给lsdir search res添加信息。比如thumbnail，zipinfo。不使用sql是因为有部分filePath没存在数据库
  */
