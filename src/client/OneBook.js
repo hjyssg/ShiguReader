@@ -573,56 +573,55 @@ export default class OneBook extends Component {
       });
 
       let nextImg = null
-      if(this.shouldTwoPageMode()) {
-        nextImg = ( 
-              <BookImage className={cn} 
-                alt="book-image"
-                ref={img => this.nextImgRef = img}
+      if (this.shouldTwoPageMode()) {
+        nextImg = (
+          <BookImage className={cn}
+            alt="book-image"
+            ref={img => this.nextImgRef = img}
 
-                imageFiles={imageFiles}
-                index={index + 1}
-                onLoad={this.makeTwoImageSameHeight.bind(this)}
-              />);
-        };
+            imageFiles={imageFiles}
+            index={index + 1}
+            onLoad={this.makeTwoImageSameHeight.bind(this)}
+          />);
+      };
 
 
-      return (<React.Fragment>
-        <Spinner className="one-book-img-load-spinner" />
-        {twoPageMode === TWO_PAGE_RIGHT && nextImg}
-        <BookImage
-          className={cn}
-          alt="book-image"
-          ref={img => this.imgRef = img}
+      return (<>
+          <Spinner className="one-book-img-load-spinner" />
+          {twoPageMode === TWO_PAGE_RIGHT && nextImg}
+          <BookImage
+            className={cn}
+            alt="book-image"
+            ref={img => this.imgRef = img}
 
-          imageFiles={imageFiles}
-          index={index}
-          onError={this.onImageError.bind(this)}
-          onLoad={this.onImgLoad.bind(this)}
-          loading="lazy"
-        />
-        {twoPageMode === TWO_PAGE_LEFT && nextImg}
-      </React.Fragment>);
+            imageFiles={imageFiles}
+            index={index}
+            onError={this.onImageError.bind(this)}
+            onLoad={this.onImgLoad.bind(this)}
+            loading="lazy"
+          />
+          {twoPageMode === TWO_PAGE_LEFT && nextImg}
+        </>);
     } else {
       let images;
       const cn = classNames("mobile-single-image", {
         "has-music": this.hasMusic()
       });
       images = (
-      <div className="mobile-single-image-container"
-        ref={(e) => this.imgContainerRef = e}
-        onClick={this.onClickMobileOneImageContainer.bind(this)}>
-        <BookImage 
-          className={cn}
-          ref={(img) => this.imgRef = img}
+        <div className="mobile-single-image-container"
+          ref={(e) => this.imgContainerRef = e}
+          onClick={this.onClickMobileOneImageContainer.bind(this)}>
+          <BookImage
+            className={cn}
+            ref={(img) => this.imgRef = img}
 
-          imageFiles={imageFiles}
-          index={index}
-          onError={this.onImageError.bind(this)}
-          onLoad={this.onImgLoad.bind(this)}
-          src={getFileUrl(imageFiles[index])} 
-          loading="lazy"
-        />
-      </div>);
+            imageFiles={imageFiles}
+            index={index}
+            onError={this.onImageError.bind(this)}
+            onLoad={this.onImgLoad.bind(this)}
+            loading="lazy"
+          />
+        </div>);
       return (<div className="mobile-one-book-container">
         <Spinner className="one-book-img-load-spinner" />
         {images}
