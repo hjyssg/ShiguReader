@@ -34,7 +34,8 @@ import RangeSlider from 'react-range-slider-input';
 import 'react-range-slider-input/dist/style.css';
 
 import { GlobalContext } from './globalContext';
-import { NoScanAlertArea, FileCountPanel, getOneLineListItem, LinkToEHentai, SimpleFileListPanel } from './ExplorerPageUI';
+import { NoScanAlertArea, FileCountPanel, getOneLineListItem, 
+         LinkToEHentai, SimpleFileListPanel, SingleZipItem } from './ExplorerPageUI';
 
 
 const ClientConstant = require("./ClientConstant");
@@ -780,12 +781,6 @@ export default class ExplorerPage extends Component {
         const text = getBaseName(fp);
         const toUrl = clientUtil.getOneBookLink(fp);
 
-        const fileSize = this.hasFileSize(fp) && this.getFileSize(fp);
-        const fileSizeStr = fileSize && filesizeUitl(fileSize);
-
-        const avgSize = this.getPageAvgSize(fp);
-        const avgSizeStr = avgSize > 0 && filesizeUitl(avgSize);
-
         let zipItem;
         let thumbnailurl = this.getThumbnailUrl(fp);
 
@@ -798,56 +793,8 @@ export default class ExplorerPage extends Component {
                 </Link>)
         } else {
 
-            const musicNum = this.getMusicNum(fp);
-            const isImgFolder = this.isImgFolder(fp);
-            const hasMusic = musicNum > 0;
-            const pageNum = this.getPageNum(fp);
-
-            const fileInfoRowCn = classNames("file-info-row", {
-                "less-padding": hasMusic
-            })
-
-            const thumbnailCn = classNames("file-cell-thumbnail", {
-                "as-folder-thumbnail": isImgFolder
-            });
-
-            let imgDiv = <LoadingImage
-                onlyUseURL={isImgFolder}
-                isThumbnail
-                className={thumbnailCn}
-                title={this.getTooltipStr(fp)}
-                fileName={fp}
-                url={thumbnailurl}
-                musicNum={musicNum}
-                onReceiveUrl={url => {
-                    // TODO
-                    // this.thumbnails[fp] = url;
-                    // this.allfileInfos[fp].thumbnailFilePath = url;
-                }}
-            />;
-
-            if (isImgFolder) {
-                imgDiv = (<div className="folder-effect"> {imgDiv} </div>)
-            }
-
-            zipItem = (
-                <div key={fp} className={"col-sm-6 col-md-4 col-lg-3 file-out-cell"}>
-                    <div className="file-cell">
-                        <Link target="_blank" to={toUrl} key={fp} className={"file-cell-inner"}>
-                            <FileCellTitle str={text} />
-                            {imgDiv}
-                        </Link>
-                        <div className={fileInfoRowCn}>
-                            {fileSizeStr && <span title="file size">{fileSizeStr}</span>}
-                            <span>{`${pageNum} pages`}</span>
-                            {hasMusic && <span>{`${musicNum} songs`}</span>}
-                            {avgSizeStr && <span title="average img size"> {avgSizeStr} </span>}
-                        </div>
-                        <FileChangeToolbar isFolder={isImgFolder} hasMusic={hasMusic} className="explorer-file-change-toolbar" file={fp} />
-                    </div>
-                </div>);
+            zipItem = <SingleZipItem filePath={fp}  info={this} />
         }
-
         return zipItem;
     }
 

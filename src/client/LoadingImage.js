@@ -80,7 +80,6 @@ export default class LoadingImage extends Component {
         this.setState({ fail_time: this.state.fail_time + 1 });
       } else {
         const url = clientUtil.getFileUrl(res.json.url);
-        this.props.onReceiveUrl && this.props.onReceiveUrl(url);
         this.setState({ url });
       }
     });
@@ -108,7 +107,7 @@ export default class LoadingImage extends Component {
   render() {
     let content;
     const { className, style, fileName, url, title, 
-             isThumbnail, onlyUseURL, mode, onReceiveUrl,
+             isThumbnail, onlyUseURL, mode, 
               musicNum, ...others } = this.props;
 
     let empty_icon_cn = "";

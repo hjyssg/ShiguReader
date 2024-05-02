@@ -65,7 +65,7 @@ const FILTER_HAS_VIDEO = "FILTER_HAS_VIDEO";
 const FILTER_IMG_FOLDER = "FILTER_IMG_FOLDER";
 
 
-export const NoScanAlertArea = ({filePath}) => {
+export const NoScanAlertArea = ({ filePath }) => {
     // const [minifyZipQue, setMinifyZipQue] = useState([]);
 
     const askSendScan = () => {
@@ -95,7 +95,7 @@ export const NoScanAlertArea = ({filePath}) => {
 }
 
 
-export const FileCountPanel = ({filteredFiles, filteredVideos, info}) => {
+export const FileCountPanel = ({ filteredFiles, filteredVideos, info }) => {
     const totalZipSize = info.countAllFileSize(filteredFiles);
     const totalVideoSize = info.countAllFileSize(filteredVideos);
     const totalSize = totalZipSize + totalVideoSize;
@@ -116,7 +116,7 @@ export const FileCountPanel = ({filteredFiles, filteredVideos, info}) => {
     );
 }
 
-export const LinkToEHentai = ({ searchable, text  }) => {
+export const LinkToEHentai = ({ searchable, text }) => {
     const link = "https://exhentai.org/?f_search=" + searchable;
     const title = "Search '" + searchable + "' in Exhentai";
 
@@ -127,7 +127,7 @@ export const LinkToEHentai = ({ searchable, text  }) => {
 }
 
 
-export const getOneLineListItem = (icon, fileName, filePath, info ) => {
+export const getOneLineListItem = (icon, fileName, filePath, info) => {
     return (
         <li className="explorer-one-line-list-item" key={fileName} title={info.getTooltipStr(filePath)}>
             {icon}
@@ -155,6 +155,68 @@ export const SimpleFileListPanel = ({ musicFiles, imageFiles, info }) => {
         <ItemsContainer items={imageItems} />
     </>)
 
+}
+
+export const SingleZipItem = ({ filePath, info }) => {
+    const fp = filePath;
+    const text = getBaseName(fp);
+    const toUrl = clientUtil.getOneBookLink(fp);
+
+    let zipItem;
+    let thumbnailurl = info.getThumbnailUrl(fp);
+
+
+    const fileSize = info.hasFileSize(fp) && info.getFileSize(fp);
+    const fileSizeStr = fileSize && filesizeUitl(fileSize);
+
+    const avgSize = info.getPageAvgSize(fp);
+    const avgSizeStr = avgSize > 0 && filesizeUitl(avgSize);
+
+    const musicNum = info.getMusicNum(fp);
+    const isImgFolder = info.isImgFolder(fp);
+    const hasMusic = musicNum > 0;
+    const pageNum = info.getPageNum(fp);
+
+    const fileInfoRowCn = classNames("file-info-row", {
+        "less-padding": hasMusic
+    })
+
+    const thumbnailCn = classNames("file-cell-thumbnail", {
+        "as-folder-thumbnail": isImgFolder
+    });
+
+    let imgDiv = <LoadingImage
+        onlyUseURL={isImgFolder}
+        isThumbnail
+        className={thumbnailCn}
+        title={info.getTooltipStr(fp)}
+        fileName={fp}
+        url={thumbnailurl}
+        musicNum={musicNum}
+    />;
+
+    if (isImgFolder) {
+        imgDiv = (<div className="folder-effect"> {imgDiv} </div>)
+    }
+
+    zipItem = (
+        <div key={fp} className={"col-sm-6 col-md-4 col-lg-3 file-out-cell"}>
+            <div className="file-cell">
+                <Link target="_blank" to={toUrl} key={fp} className={"file-cell-inner"}>
+                    <FileCellTitle str={text} />
+                    {imgDiv}
+                </Link>
+                <div className={fileInfoRowCn}>
+                    {fileSizeStr && <span title="file size">{fileSizeStr}</span>}
+                    <span>{`${pageNum} pages`}</span>
+                    {hasMusic && <span>{`${musicNum} songs`}</span>}
+                    {avgSizeStr && <span title="average img size"> {avgSizeStr} </span>}
+                </div>
+                <FileChangeToolbar isFolder={isImgFolder} hasMusic={hasMusic} className="explorer-file-change-toolbar" file={fp} />
+            </div>
+        </div>);
+
+    return zipItem;
 }
 
 //-----------------------------------------
