@@ -189,7 +189,6 @@ module.exports.getFileUrl = function (filePath, thumbnailMode) {
 
     let result;
     if(filePath.includes("/api/download/?p")){
-       //loadingImage onReceiveUrl
        result =  filePath;
     }else {
         result = "/api/download/?p=" + encodeURIComponent(filePath);

@@ -838,13 +838,14 @@ export default class ExplorerPage extends Component {
                 let thumbnailurl = getFileUrl(this.dirThumbnailMap[item]);
                 const thumbnailCn = classNames("file-cell-thumbnail", "as-folder-thumbnail");
 
-                let imgDiv = <LoadingImage
-                    onlyUseURL={true}
-                    isThumbnail
+                let imgDiv = (
+                <LoadingImage
                     className={thumbnailCn}
-                    title={item} fileName={item}
+                    title={item} 
+                    fileName={item}
                     url={thumbnailurl}
-                />;
+                    mode={"folder"}
+                />);
 
                 return (
                     <div key={item} className={"col-sm-6 col-md-4 col-lg-3 file-out-cell"}>

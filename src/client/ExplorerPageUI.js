@@ -185,15 +185,15 @@ export const SingleZipItem = ({ filePath, info }) => {
         "as-folder-thumbnail": isImgFolder
     });
 
-    let imgDiv = <LoadingImage
-        onlyUseURL={isImgFolder}
-        isThumbnail
+    let imgDiv = (
+    <LoadingImage
+        mode={"zip"}
         className={thumbnailCn}
         title={info.getTooltipStr(fp)}
         fileName={fp}
         url={thumbnailurl}
         musicNum={musicNum}
-    />;
+    />);
 
     if (isImgFolder) {
         imgDiv = (<div className="folder-effect"> {imgDiv} </div>)
