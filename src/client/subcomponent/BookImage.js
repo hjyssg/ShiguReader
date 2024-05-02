@@ -35,7 +35,7 @@ function BookImage(props, ref) {
     const debounceSetImageSrc = _.debounce(() => {
       setImageSrc(clientUtil.getFileUrl(imageFiles[index]));
       preloadImages(index);
-    }, 10);
+    }, 100);
 
     debounceSetImageSrc();
 

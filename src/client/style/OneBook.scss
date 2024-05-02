@@ -158,6 +158,7 @@
     bottom: 20px;
     color: $font_color_white_one;
     font-weight: 600;
+    z-index: 10;
 
     &.is-last {
       color: $font_dark_orange;
