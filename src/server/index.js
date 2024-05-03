@@ -79,15 +79,19 @@ const { program } = require('commander');
 program
     .option('-p, --port <number>', 'Specify the port',  portConfig.default_http_port)
     .option('--skip-scan', 'skip initial scan for startup fasted', false)
-    .option('--skip-cache-clean', 'skip initial cache clean', false);
+    .option('--skip-cache-clean', 'skip initial cache clean', false)
+    .option('--skip-db-clean', '[Advanced Feature] skip clean previous file_table db record', false);
 program.parse(process.argv);
 const options = program.opts();
 const port = _.isString(options.port)? parseInt(options.port): options.port; // 懒得细看commander，不是最正确写法
 const skipScan = options.skipScan;
 const skipCacheClean = options.skipCacheClean;
-console.log("port: ", port);
-console.log("skipScan: ", skipScan);
-console.log("skipCacheClean: ", skipCacheClean);
+const skipDbClean = options.skipCacheClean;
+// console.log("port: ", port);
+// console.log("skipScan: ", skipScan);
+// console.log("skipCacheClean: ", skipCacheClean);
+
+console.log(options);
 
 
 
@@ -182,7 +186,7 @@ async function init() {
         logger.warn("[Error] You may need to run npm run build");
     }
 
-    const sqldb = await db.init();
+    const sqldb = await db.init(skipDbClean);
     await thumbnailDb.init(sqldb);
     await historyDb.init(sqldb);
     await zipInfoDb.init(sqldb);

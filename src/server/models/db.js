@@ -53,67 +53,70 @@ module.exports.doAllSync  = async (sql, params) => {
 }
 
 let sqldb;
-module.exports.init = async ()=> {
+module.exports.init = async (skipDbClean)=> {
     const SQLWrapper = require("./SQLWrapper");
     const backup_db_path = path.join(pathUtil.getWorkSpacePath(), "shigureader_internal_db.sqlite");
     sqldb = new SQLWrapper(backup_db_path);
 
-    // 提升少量性能
-    await sqldb.execSync( `
+    // 开发用： 这样就不会删除上次的file table。    
+    const _SKP_INIT = skipDbClean // || true;
 
-    PRAGMA journal_mode = OFF;
-    PRAGMA synchronous = OFF; 
+    if(!_SKP_INIT){
+        await sqldb.execSync( `
+
+        PRAGMA journal_mode = OFF;
+        PRAGMA synchronous = OFF; 
+        
+        DROP TABLE IF EXISTS file_table;
+        DROP TABLE IF EXISTS tag_table;
+        DROP TABLE IF EXISTS scan_path_table;
     
-    DROP TABLE IF EXISTS file_table;
-    DROP TABLE IF EXISTS tag_table;
-    DROP TABLE IF EXISTS scan_path_table;
-
-    CREATE TABLE file_table (
-                            filePath TEXT NOT NULL PRIMARY KEY, 
-                            dirName TEXT, 
-                            dirPath TEXT, 
-                            fileName TEXT, 
-                            mTime INTEGER, 
-                            size INTEGER, 
-                            isDisplayableInExplorer BOOL, 
-                            isDisplayableInOnebook BOOL, 
-                            isCompress BOOL, 
-                            isVideo BOOL,
-                            isMusic BOOL,
-                            isImage BOOL,
-                            isFolder BOOL);
-
-    CREATE TABLE tag_table (
-                            filePath TEXT NOT NULL, 
-                            tag VARCHAR(50) NOT NULL COLLATE NOCASE, 
-                            type VARCHAR(25) CHECK(type IN ('tag', 'author', 'group')),
-                            subtype VARCHAR(25)  CHECK(subtype IN ('comiket', 'name', 'parody', 'author', 'group')) , 
-                            isCompress BOOL,
-                            isVideo BOOL,
-                            isMusic BOOL,
-                            isImage BOOL,
-                            isFolder BOOL,
-                            PRIMARY KEY (filePath, tag, type, subtype) 
-                        );
-
-    CREATE TABLE scan_path_table (filePath TEXT NOT NULL, type VARCHAR(25));
-
-    CREATE VIEW IF NOT EXISTS zip_view AS SELECT * FROM file_table WHERE isCompress = true;
-
-    CREATE VIEW IF NOT EXISTS  author_view  AS SELECT * FROM tag_table WHERE type='author' AND (isCompress = true OR isFolder = true) ;
-    CREATE VIEW IF NOT EXISTS  tag_view  AS SELECT * FROM tag_table WHERE type='tag' AND (isCompress = true OR isFolder = true);
-
-
-     CREATE INDEX IF NOT EXISTS ft_filePath_index ON file_table (filePath); 
-     CREATE INDEX IF NOT EXISTS ft_fileName_index ON file_table (fileName); 
-     CREATE INDEX IF NOT EXISTS ft_dirPath_index ON file_table (dirPath); 
-     CREATE INDEX IF NOT EXISTS ft_dirName_index ON file_table (dirName); 
-
-     CREATE INDEX IF NOT EXISTS tag_index ON tag_table (tag); 
-     CREATE INDEX IF NOT EXISTS tag_type_index ON tag_table (type); 
-     CREATE INDEX IF NOT EXISTS tag_filePath_index ON tag_table (filePath); `);
-
-     return sqldb;
+        CREATE TABLE file_table (
+                                filePath TEXT NOT NULL PRIMARY KEY, 
+                                dirName TEXT, 
+                                dirPath TEXT, 
+                                fileName TEXT, 
+                                mTime INTEGER, 
+                                size INTEGER, 
+                                isDisplayableInExplorer BOOL, 
+                                isDisplayableInOnebook BOOL, 
+                                isCompress BOOL, 
+                                isVideo BOOL,
+                                isMusic BOOL,
+                                isImage BOOL,
+                                isFolder BOOL);
+    
+        CREATE TABLE tag_table (
+                                filePath TEXT NOT NULL, 
+                                tag VARCHAR(50) NOT NULL COLLATE NOCASE, 
+                                type VARCHAR(25) CHECK(type IN ('tag', 'author', 'group')),
+                                subtype VARCHAR(25)  CHECK(subtype IN ('comiket', 'name', 'parody', 'author', 'group')) , 
+                                isCompress BOOL,
+                                isVideo BOOL,
+                                isMusic BOOL,
+                                isImage BOOL,
+                                isFolder BOOL,
+                                PRIMARY KEY (filePath, tag, type, subtype) 
+                            );
+    
+        CREATE TABLE scan_path_table (filePath TEXT NOT NULL, type VARCHAR(25));
+    
+        CREATE VIEW IF NOT EXISTS zip_view AS SELECT * FROM file_table WHERE isCompress = true;
+    
+        CREATE VIEW IF NOT EXISTS  author_view  AS SELECT * FROM tag_table WHERE type='author' AND (isCompress = true OR isFolder = true) ;
+        CREATE VIEW IF NOT EXISTS  tag_view  AS SELECT * FROM tag_table WHERE type='tag' AND (isCompress = true OR isFolder = true);
+    
+    
+         CREATE INDEX IF NOT EXISTS ft_filePath_index ON file_table (filePath); 
+         CREATE INDEX IF NOT EXISTS ft_fileName_index ON file_table (fileName); 
+         CREATE INDEX IF NOT EXISTS ft_dirPath_index ON file_table (dirPath); 
+         CREATE INDEX IF NOT EXISTS ft_dirName_index ON file_table (dirName); 
+    
+         CREATE INDEX IF NOT EXISTS tag_index ON tag_table (tag); 
+         CREATE INDEX IF NOT EXISTS tag_type_index ON tag_table (type); 
+         CREATE INDEX IF NOT EXISTS tag_filePath_index ON tag_table (filePath); `);
+    }
+    return sqldb;
 }
 
 
