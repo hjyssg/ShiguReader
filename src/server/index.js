@@ -760,35 +760,28 @@ app.post("/api/getTagThumbnail", asyncWrapper(async (req, res) => {
         return;
     }
 
-    let oneThumbnail;
-
-    let sql = ` SELECT AA.*, BB.thumbnailFileName FROM 
-                (
-                    SELECT a.* , b.*
-                    FROM zip_view a 
-                    INNER JOIN tag_table b ON a.filePath = b.filePath AND b.tag = ?
-                    ORDER BY a.mTime DESC 
-                    LIMIT 100 
-                ) AA
-                LEFT JOIN thumbnail_table BB 
-                ON AA.filePath = BB.filePath
-                `
+    let sql = `  
+        SELECT 
+        zip_view.*, tag_table.*,
+        thumbnail_table.thumbnailFileName 
+        FROM zip_view 
+        INNER JOIN tag_table ON zip_view.filePath = tag_table.filePath AND tag_table.tag = ?
+        LEFT JOIN thumbnail_table ON zip_view.filePath = thumbnail_table.filePath
+        WHERE thumbnail_table.thumbnailFileName IS NOT NULL
+        ORDER BY zip_view.mTime DESC
+        LIMIT 1
+   `
     let rows = await db.doSmartAllSync(sql, [author || tag]);
 
     // find thumbnail by zip
-    for(let ii = 0; ii < rows.length; ii++){
-        const row = rows[ii];
-        if(row.thumbnailFileName){
-            oneThumbnail = serverUtil.joinThumbnailFolderPath(row.thumbnailFileName);
-            break;
-        }
-    }
-    if(oneThumbnail){
+    if (rows.length > 0 && rows[0].thumbnailFileName) {
+        let oneThumbnail = serverUtil.joinThumbnailFolderPath(rows[0].thumbnailFileName);
         res.send({
             url: oneThumbnail
         });
         return;
-    } 
+    }
+     
     
     // from image
     const sql2 = ` SELECT a.* , b.*
