@@ -89,7 +89,7 @@ export const NoScanAlertArea = ({ filePath }) => {
     return (
         <div className="alert alert-warning" role="alert" >
             <div>{`${filePath} is not included in config-path`}</div>
-            <div style={{ marginBottom: "5px" }}>{`It is usable, but lack some good features (e.g tags, search)`}</div>
+            <div style={{ marginBottom: "5px" }}>{`It is usable, but it lacks some important features, such as tags and search.`}</div>
             <div className="scan-button" onClick={askSendScan}>Scan this Folder (but it will take time)</div>
         </div>)
 }
