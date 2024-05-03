@@ -5,7 +5,7 @@ import "./style/LoadingImage.scss"
 const clientUtil = require("./clientUtil");
 const util = require("@common/util");
 const _ = require("underscore");
-
+const VisibilitySensor = require('react-visibility-sensor').default;
 
 // 同时初始的url不好用，才会去api request
 // 三个场景： 普通zip，folder，tag
@@ -13,7 +13,8 @@ export default class LoadingImage extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      url: props.url
+      url: props.url,
+      isVisible: false
     };
     console.assert(["tag", "author", "folder", "zip"].includes(props.mode))
   }
@@ -26,6 +27,21 @@ export default class LoadingImage extends Component {
     }
   }
 
+  onChange(isVisible) {
+    // only use to turn on
+    if (!isVisible) {
+      return;
+    }
+
+    this.setState({
+      isVisible
+    })
+
+    if (this.shouldAskUrl()) {
+      this.requestThumbnail()
+    }
+  }
+
   shouldAskUrl() {
     if (this.state.url === "NO_THUMBNAIL_AVAILABLE" || this.props.url === "NO_THUMBNAIL_AVAILABLE") {
       return false;
@@ -35,9 +51,9 @@ export default class LoadingImage extends Component {
   }
 
   componentDidMount() {
-    if (this.shouldAskUrl()) {
-      this.requestThumbnail()
-    }
+    // if (this.shouldAskUrl()) {
+    //   this.requestThumbnail()
+    // }
   }
 
   componentWillUnmount() {
@@ -130,6 +146,10 @@ export default class LoadingImage extends Component {
       content = (<div key={fileName} className={cn} title={title || fileName} {...others} />);
     }
 
-    return content;
+    return (
+      <VisibilitySensor offset={{ bottom: -200 }} partialVisibility={true} onChange={this.onChange.bind(this)}>
+          {content}
+      </VisibilitySensor>
+    )
   }
 }
