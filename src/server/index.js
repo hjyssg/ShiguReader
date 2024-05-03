@@ -86,7 +86,7 @@ const options = program.opts();
 const port = _.isString(options.port)? parseInt(options.port): options.port; // 懒得细看commander，不是最正确写法
 const skipScan = options.skipScan;
 const skipCacheClean = options.skipCacheClean;
-const skipDbClean = options.skipCacheClean;
+const skipDbClean = options.skipDbClean;
 // console.log("port: ", port);
 // console.log("skipScan: ", skipScan);
 // console.log("skipCacheClean: ", skipCacheClean);

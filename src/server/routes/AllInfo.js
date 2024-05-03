@@ -50,6 +50,8 @@ function getSql(tableName){
         thumbnail_table th ON ft.filePath = th.filePath AND th.thumbnailFileName IS NOT NULL
     GROUP BY 
         tt.tag, tt.type, tt.subtype
+    HAVING 
+        COUNT(tt.tag) >= 3
     `
 }
 

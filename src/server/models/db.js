@@ -59,7 +59,7 @@ module.exports.init = async (skipDbClean)=> {
     sqldb = new SQLWrapper(backup_db_path);
 
     // 开发用： 这样就不会删除上次的file table。    
-    const _SKP_INIT = skipDbClean // || true;
+    const _SKP_INIT = skipDbClean;
 
     if(!_SKP_INIT){
         await sqldb.execSync( `
