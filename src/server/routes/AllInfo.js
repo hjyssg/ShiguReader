@@ -20,18 +20,36 @@ async function add_col(rows){
 function getSql(tableName){
     // 只管zip文件，image folder太麻烦，不管了。  
     // 每个tag，统计数量。已经找到最新的一本zip，之后用来找thumbnail。
-    return ` 
+    // return ` 
     
-    SELECT AA.*, BB.thumbnailFileName FROM 
-    (
-        SELECT a.filePath, MAX(a.mTime) AS maxTime, b.tag, COUNT(b.tag) AS count, b.type, b.subtype
-        FROM file_table a 
-        INNER JOIN ${tableName} b ON a.filePath = b.filePath 
-        GROUP BY b.tag 
-        HAVING a.mTime = maxTime AND count > 1 
-    ) AA
-    LEFT JOIN thumbnail_table BB 
-    ON AA.filePath = BB.filePath
+    // SELECT AA.*, BB.thumbnailFileName FROM 
+    // (
+    //     SELECT a.filePath, MAX(a.mTime) AS maxTime, b.tag, COUNT(b.tag) AS count, b.type, b.subtype
+    //     FROM file_table a 
+    //     INNER JOIN ${tableName} b ON a.filePath = b.filePath 
+    //     GROUP BY b.tag 
+    //     HAVING a.mTime = maxTime AND count > 1 
+    // ) AA
+    // LEFT JOIN thumbnail_table BB 
+    // ON AA.filePath = BB.filePath
+    // `
+
+    return `
+    SELECT 
+        tt.tag, 
+        tt.type, 
+        tt.subtype,
+        MAX(ft.mTime) AS maxTime, 
+        COUNT(tt.tag) AS count, 
+        MAX(th.thumbnailFileName) AS thumbnailFileName
+    FROM 
+        ${tableName} tt
+    INNER JOIN 
+        file_table ft ON tt.filePath = ft.filePath
+    LEFT JOIN 
+        thumbnail_table th ON ft.filePath = th.filePath AND th.thumbnailFileName IS NOT NULL
+    GROUP BY 
+        tt.tag, tt.type, tt.subtype
     `
 }
 

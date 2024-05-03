@@ -771,13 +771,14 @@ app.post("/api/getTagThumbnail", asyncWrapper(async (req, res) => {
         ORDER BY zip_view.mTime DESC
         LIMIT 1
    `
-    let rows = await db.doSmartAllSync(sql, [author || tag]);
+    let tRows = await db.doSmartAllSync(sql, [author || tag]);
 
     // find thumbnail by zip
-    if (rows.length > 0 && rows[0].thumbnailFileName) {
-        let oneThumbnail = serverUtil.joinThumbnailFolderPath(rows[0].thumbnailFileName);
+    if (tRows[0]) {
+        let oneThumbnail = serverUtil.joinThumbnailFolderPath(tRows[0].thumbnailFileName);
         res.send({
-            url: oneThumbnail
+            url: oneThumbnail,
+            debug: "from thumbnail_table"
         });
         return;
     }
@@ -790,18 +791,27 @@ app.post("/api/getTagThumbnail", asyncWrapper(async (req, res) => {
             ORDER BY a.mTime DESC 
             LIMIT 1 
         `
-    const rows2 = await db.doSmartAllSync(sql2, [author || tag]);
-    if (rows2[0]) {
-        console.assert(rows2[0].isImage);
+    const imageRows = await db.doSmartAllSync(sql2, [author || tag]);
+    if (imageRows[0]) {
+        console.assert(imageRows[0].isImage);
         res.send({
-            url: rows2[0].filePath
+            url: imageRows[0].filePath,
+            debug: "from image"
         });
         return;
     }
 
+
+    const sql3 = ` SELECT a.* , b.*
+    FROM file_table a 
+    INNER JOIN tag_table b ON a.filePath = b.filePath AND b.tag = ? AND a.isCompress=1 
+    ORDER BY a.mTime DESC 
+    LIMIT 1 
+    `
+    const zipRows = await db.doSmartAllSync(sql3, [author || tag]);
     // 没有的话，现场unzip一个出来
-    if (rows[0] && rows[0].isCompress) {
-        extractThumbnailFromZip(rows[0].filePath, res);
+    if (zipRows[0]) {
+        extractThumbnailFromZip(zipRows[0].filePath, res);
     } else {
         res.send({ failed: true, reason: "No file found" });
     }
