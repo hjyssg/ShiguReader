@@ -14,6 +14,7 @@
 import os
 import shutil
 from pathlib import Path
+import subprocess
 
 script_dir = os.path.dirname(os.path.realpath(__file__))
 root = Path(os.path.join(script_dir, '../..')).resolve()
@@ -37,6 +38,8 @@ target_dirs = [
 ]
 
 #--------------------- build
+build_command = "npm run build"
+subprocess.run(build_command, shell=True, cwd=frontend_path, check=True)
 
 
 # ------------------ 先删除目标目录下的所有文件和子目录
