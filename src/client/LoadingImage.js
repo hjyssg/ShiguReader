@@ -20,7 +20,7 @@ export default class LoadingImage extends Component {
   }
 
   componentDidUpdate(prevProps) {
-    if (this.props.url && prevProps.url !== this.props.url && !this.isUrlAvaible()) {
+    if (this.props.url && prevProps.url !== this.props.url) {
       this.setState({
         url: this.props.url
       });
