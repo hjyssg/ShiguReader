@@ -227,6 +227,6 @@ module.exports.joinThumbnailFolderPath = (thumbnailFileName) => {
     if(!thumbnailFileName){
         return "";
     }
-    const thumbnailFolderPath = global.thumbnailFolderPath;
-    return  thumbnailFolderPath + path.sep + thumbnailFileName;
+
+    return path.join(global.thumbnailFolderPath, thumbnailFileName);
 }
