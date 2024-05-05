@@ -3,7 +3,6 @@ const execa = require('./own_execa');
 const pfs = require('promise-fs');
 const _ = require('underscore');
 const zipInfoDb = require("./models/zipInfoDb");
-const { updateZipDb } = zipInfoDb;
 const logger = require("./logger");
 const util = global.requireUtil();
 const pathUtil = require("./pathUtil");
@@ -178,7 +177,7 @@ module.exports.listZipContentAndUpdateDb = async function (filePath) {
             totalSize
         };
 
-        updateZipDb(info);
+        zipInfoDb.updateZipDb(info);
         return { files, fileInfos, info };
     } catch (e) {
         logger.error("[listZipContentAndUpdateDb]", filePath, e);

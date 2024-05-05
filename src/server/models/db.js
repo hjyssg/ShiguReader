@@ -325,9 +325,9 @@ module.exports.getImgFolderInfo = (imgFolders) => {
         let mtimeMs = 0, size = 0, totalImgSize = 0, 
             pageNum = 0, musicNum = 0, videoNum = 0;
 
-        files = _.sortBy(files, e => e.mTime);
+        // files = _.sortBy(files, e => e.mTime);
+        // util.sortFileNames(files)
         // TODO 确定没有就没事的？ 避免前端又跑来问？
-        let thumbnail = "NO_THUMBNAIL_AVAILABLE";
 
         //。。。的每个文件夹
         for (let jj = 0; jj < files.length; jj++){
@@ -344,13 +344,14 @@ module.exports.getImgFolderInfo = (imgFolders) => {
             if (file.isImage) {
                 totalImgSize += file.size;
                 pageNum++;
-                thumbnail = fp;
             } else if (file.isMusic) {
                 musicNum++;
             } else if(file.isVideo){
                 videoNum++;
             }
         }
+
+        const thumbnail = serverUtil.chooseThumbnailImage(files.map(e => e.filePath)) || "NO_THUMBNAIL_AVAILABLE";
 
         imgFolderInfo[folderPath] = {
             mtimeMs,

@@ -161,7 +161,7 @@ try {
 } catch (e) {
     // 有image magick也行
     logger.warn("[Warning] Did not install sharp");
-    logger.warn(e);
+    // logger.warn(e);
     logger.warn("----------------------------------------------------------------");
 }
 

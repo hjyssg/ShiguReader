@@ -67,6 +67,10 @@ router.post('/api/overwrite', serverUtil.asyncWrapper(async (req, res) => {
 
     for (let ii = 0; ii < allPath.length; ii++) {
         let fp = allPath[ii];
+        if (!(await isExist(fp))) {
+            continue;
+        }
+
         let ppFn = path.basename(fp, path.extname(fp));
         if (ppFn === fn) {
             const oldTemp = await listZipContentAndUpdateDb(fp);
