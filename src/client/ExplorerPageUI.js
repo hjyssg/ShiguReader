@@ -145,10 +145,10 @@ export const LinkToEHentai = ({ searchable, text }) => {
 }
 
 
-export const getOneLineListItem = (icon, fileName, filePath, info) => {
+export const OneLineListItem = ({icon, fileName, item, info}) => {
     // TODO
     return (
-        <li className="explorer-one-line-list-item" key={fileName} title={info.getTooltipStr(filePath)}>
+        <li className="explorer-one-line-list-item" key={fileName} title={info.getTooltipStr(item)}>
             {icon}
             <span className="explorer-one-line-list-item-text">{fileName}</span>
         </li>);
@@ -158,14 +158,14 @@ export const SimpleFileListPanel = ({ musicFiles, imageFiles, info }) => {
     const musicItems = musicFiles.map((item) => {
         const toUrl = clientUtil.getOneBookLink(getDir(item));
         const text = getBaseName(item);
-        const result = getOneLineListItem(<i className="fas fa-volume-up"></i>, text, item, info);
+        const result = (<OneLineListItem  icon={<i className="fas fa-volume-up"></i>} fileName={text} item={item} info={info} />);
         return <Link target="_blank" to={toUrl} key={item}>{result}</Link>;
     });
 
     const imageItems = imageFiles.map((item) => {
         const toUrl = clientUtil.getOneBookLink(getDir(item));
         const text = getBaseName(item);
-        const result = getOneLineListItem(<i className="fas fa-images"></i>, text, item, info);
+        const result = (<OneLineListItem  icon={<i className="fas fa-images"></i>} fileName={text} item={item} info={info}/>);
         return <Link target="_blank" to={toUrl} key={item}>{result}</Link>;
     });
 

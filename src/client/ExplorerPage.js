@@ -30,7 +30,7 @@ import RangeSlider from 'react-range-slider-input';
 import 'react-range-slider-input/dist/style.css';
 
 import { GlobalContext } from './globalContext';
-import { NoScanAlertArea, FileCountPanel, getOneLineListItem, 
+import { NoScanAlertArea, FileCountPanel, OneLineListItem, 
          LinkToEHentai, SimpleFileListPanel, SingleZipItem, FileGroupZipPanel } from './ExplorerPageUI';
 
 import * as ExplorerUtil from "./ExplorerUtil";
@@ -244,8 +244,6 @@ export default class ExplorerPage extends Component {
 
     resetParam() {
         this.loadedHash = "";
-        this.videoFiles = []
-        this.compressFiles = [];
         this.imageFiles = [];
         this.musicFiles = [];
         this.dirs = [];
@@ -309,8 +307,6 @@ export default class ExplorerPage extends Component {
             this.loadedHash = this.getTextFromQuery();
             this.mode = mode;
             const files = _.keys(fileInfos) || [];
-            this.videoFiles = files.filter(isVideo);
-            this.compressFiles = files.filter(isCompress);
             this.musicFiles = files.filter(isMusic);
             this.imageFiles = files.filter(isImage);
 
@@ -366,11 +362,11 @@ export default class ExplorerPage extends Component {
                 this.fileNameToHistory[fileName] = { time, count };
             })
 
-            if (this.videoFiles.length > 0 && !this.state.showVideo) {
-                this.setStateAndSetHash({
-                    showVideo: true
-                });
-            }
+
+            this.setStateAndSetHash({
+                showVideo: true
+            });
+
 
             // 找出最大页数
             let _maxPage = 10;
@@ -516,18 +512,14 @@ export default class ExplorerPage extends Component {
             return [];
         }
 
-        const { filterByGoodAuthorName, filterByOversizeImage, filterByGuess, filterByFirstTime, filterByHasMusic } = this.state;
         let videoFiles;
-        if (filterByGoodAuthorName || filterByOversizeImage || filterByGuess || filterByFirstTime || filterByHasMusic) {
-            videoFiles = [];
-        } else {
-            videoFiles = this.videoFiles || [];
-        }
+     
+        videoFiles = this.fileRows.filter(e => e.isVideo);
 
         const filterText = this.state.filterText && this.state.filterText.toLowerCase();
         if (filterText) {
             return videoFiles.filter(e => {
-                return e.toLowerCase().indexOf(filterText) > -1;
+                return e.fileName.toLowerCase().indexOf(filterText) > -1;
             });
         } else {
             return videoFiles;
@@ -558,6 +550,10 @@ export default class ExplorerPage extends Component {
 
 
     getTooltipStr(item) {
+        if(_.isString(item)){
+            // TODO 
+            return ""
+        }
         const fp = item.filePath;
 
         let rows = [];
@@ -604,7 +600,7 @@ export default class ExplorerPage extends Component {
             zipItem = (
                 <Link target="_blank" to={toUrl} key={fp} className={""} >
                     <ThumbnailPopup filePath={fp} url={thumbnailurl}>
-                        {getOneLineListItem(<i className="fas fa-book"></i>, text, item, this)}
+                        <OneLineListItem icon={<i className="fas fa-book"></i>} fileName={text} item={item} info={this} />
                     </ThumbnailPopup>
                 </Link>)
         } else {
@@ -677,7 +673,7 @@ export default class ExplorerPage extends Component {
             dirItems = dirs.map((item) => {
                 const toUrl = clientUtil.getExplorerLink(item);
                 const text = getBaseName(item);
-                const result = getOneLineListItem(<i className="far fa-folder"></i>, text, item, this);
+                const result = (<OneLineListItem  icon={<i className="far fa-folder"></i>} fileName={text} item={item} info={this}/>);
                 return (
                     <ThumbnailPopup filePath={item} key={item}>
                         <Link to={toUrl}>{result}</Link>
@@ -690,10 +686,9 @@ export default class ExplorerPage extends Component {
 
         //seperate av from others
         const groupByVideoType = _.groupBy(videos, item => {
-            const text = getBaseName(item);
-            const temp = parse(item);
+            const temp = parse(item.fileName);
 
-            if (util.isAv(text)) {
+            if (util.isAv(item.fileName)) {
                 return "av"
             } else if (temp && temp.dateTag) {
                 return "_date_";
@@ -705,12 +700,12 @@ export default class ExplorerPage extends Component {
         //todo av-color
         const videoDivGroup = _.keys(groupByVideoType).map((key, ii) => {
             let group = groupByVideoType[key];
-            group.sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+            group.sort((a, b) => a.fileName.localeCompare(b.fileName, undefined, { numeric: true }));
 
             const videoItems = group.map((item) => {
                 const toUrl = clientUtil.getVideoPlayerLink(item);
-                const text = getBaseName(item);
-                const result = getOneLineListItem(<i className="far fa-file-video"></i>, text, item, this);
+                const text = item.fileName;
+                const result =(<OneLineListItem  icon={<i className="far fa-file-video"></i>} fileName={text} item={item} info={this}/>);
                 // 会卡顿，弃用video preview
                 // return (
                 // <ThumbnailPopup filePath={item} key={item}>
@@ -1225,9 +1220,6 @@ export default class ExplorerPage extends Component {
 
     render() {
         this.setWebTitle();
-        // this.time = this.time|| 1;
-        // console.log(this.time);
-        // this.time++;
 
         if (this.isFailedLoading()) {
             return <ErrorPage res={this.res} />;
@@ -1240,7 +1232,7 @@ export default class ExplorerPage extends Component {
 
         return (<div className={cn} >
             {this.getLinkToEhentai()}
-             {this.getExplorerToolbar(filteredFiles, filteredVideos)}
+            {this.getExplorerToolbar(filteredFiles, filteredVideos)}
             {this.renderSideMenu(filteredFiles, filteredVideos)} 
             {this.renderFileList(filteredFiles, filteredVideos)}
             {this.renderPagination(filteredFiles, filteredVideos)}
