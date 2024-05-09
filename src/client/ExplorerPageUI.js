@@ -159,14 +159,14 @@ export const SimpleFileListPanel = ({ musicFiles, imageFiles, info }) => {
         const toUrl = clientUtil.getOneBookLink(getDir(item));
         const text = getBaseName(item);
         const result = (<OneLineListItem  icon={<i className="fas fa-volume-up"></i>} fileName={text} item={item} info={info} />);
-        return <Link target="_blank" to={toUrl} key={item}>{result}</Link>;
+        return <Link target="_blank" to={toUrl} key={text}>{result}</Link>;
     });
 
     const imageItems = imageFiles.map((item) => {
         const toUrl = clientUtil.getOneBookLink(getDir(item));
         const text = getBaseName(item);
         const result = (<OneLineListItem  icon={<i className="fas fa-images"></i>} fileName={text} item={item} info={info}/>);
-        return <Link target="_blank" to={toUrl} key={item}>{result}</Link>;
+        return <Link target="_blank" to={toUrl} key={text}>{result}</Link>;
     });
 
     return (<>

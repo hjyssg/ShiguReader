@@ -605,7 +605,7 @@ export default class ExplorerPage extends Component {
                 </Link>)
         } else {
 
-            zipItem = <SingleZipItem filePath={fp}  info={this} item={item} />
+            zipItem = <SingleZipItem key={fp} filePath={fp}  info={this} item={item} />
         }
         return zipItem;
     }
@@ -660,9 +660,9 @@ export default class ExplorerPage extends Component {
                 />);
 
                 return (
-                    <div key={item} className={"col-sm-6 col-md-4 col-lg-3 file-out-cell"}>
+                    <div key={text} className={"col-sm-6 col-md-4 col-lg-3 file-out-cell"}>
                         <div className="file-cell">
-                            <Link to={toUrl} key={item} className={"file-cell-inner"}>
+                            <Link to={toUrl} className={"file-cell-inner"}>
                                 <FileCellTitle str={text} />
                                 <div className="folder-effect"> {imgDiv} </div>
                             </Link>
@@ -675,7 +675,7 @@ export default class ExplorerPage extends Component {
                 const text = getBaseName(item);
                 const result = (<OneLineListItem  icon={<i className="far fa-folder"></i>} fileName={text} item={item} info={this}/>);
                 return (
-                    <ThumbnailPopup filePath={item} key={item}>
+                    <ThumbnailPopup filePath={item} key={text}>
                         <Link to={toUrl}>{result}</Link>
                     </ThumbnailPopup>
                 );
@@ -713,10 +713,10 @@ export default class ExplorerPage extends Component {
                 // </ThumbnailPopup>
                 // );
                 return (
-                    <Link target="_blank" to={toUrl} key={item}>{result}</Link>
+                    <Link target="_blank" to={toUrl} key={text}>{result}</Link>
                 );
             });
-            return <ItemsContainer key={key} className="video-list" items={videoItems} />
+            return <ItemsContainer key={ii} className="video-list" items={videoItems} />
         })
 
 
