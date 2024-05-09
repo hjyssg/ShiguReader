@@ -56,7 +56,6 @@ const { MODE_TAG,
     MODE_EXPLORER } = Constant;
 
 
-const FILTER_FIRST_TIME_AUTHOR = "FILTER_FIRST_TIME_AUTHOR";
 const FILTER_HAS_MUSIC = "FILTER_HAS_MUSIC";
 const FILTER_HAS_VIDEO = "FILTER_HAS_VIDEO";
 const FILTER_IMG_FOLDER = "FILTER_IMG_FOLDER";
@@ -98,6 +97,8 @@ export default class ExplorerPage extends Component {
         ];
 
         this.state = this.getInitState();
+
+        this.fileRows = [];
  
         this.resetParam();
     }
@@ -250,10 +251,9 @@ export default class ExplorerPage extends Component {
         this.dirs = [];
         this.tag = "";
         this.author = "";
-        this.fileInfos = {};
-        this.imgFolderInfo = {};
         this.res = null;
         this.dirThumbnailMap = {};
+        this.fileRows = [];
     }
 
     componentDidUpdate(prevProps, prevState) {
@@ -308,8 +308,7 @@ export default class ExplorerPage extends Component {
             nameParser.setLocalCache(nameParseCache);
             this.loadedHash = this.getTextFromQuery();
             this.mode = mode;
-            this.fileInfos = fileInfos;
-            const files = _.keys(this.fileInfos) || [];
+            const files = _.keys(fileInfos) || [];
             this.videoFiles = files.filter(isVideo);
             this.compressFiles = files.filter(isCompress);
             this.musicFiles = files.filter(isMusic);
@@ -323,11 +322,44 @@ export default class ExplorerPage extends Component {
 
             this.tag = tag;
             this.author = author;
-            this.imgFolderInfo = imgFolderInfo;
             this.res = res;
-            this.allfileInfos = _.extend({}, this.fileInfos, this.imgFolderInfo);
-            this.decorate_allfileInfos();
 
+
+            //----------------------------------------------------------------------------------
+            const allfileInfos = _.extend({}, fileInfos, imgFolderInfo);
+            for (const fp in allfileInfos) {
+                if (!allfileInfos.hasOwnProperty(fp)) {
+                    continue;
+                }
+    
+                const item = allfileInfos[fp];
+                item.fileSize = _parseInt(item.size) || 0;
+                item.mtimeMs = _parseInt(item.mtimeMs) || 0;
+    
+                item.musicNum = _parseInt(item.musicNum) || 0;
+                item.videoNum = _parseInt(item.videoNum) || 0;
+                item.pageNum = _parseInt(item.pageNum) || 0;
+    
+                item.totalImgSize = _parseInt(item.totalImgSize) || 0;
+                item.pageAvgSize = this.calculateAvgPageSize(fp) || 0;
+    
+                item.fileName = getBaseName(fp);
+              
+                item.isImgFolder = !!imgFolderInfo[fp];
+                if(item.isImgFolder){
+                    item.thumbnailFilePath = imgFolderInfo[fp].thumbnail;
+                }
+                item.isVideo = isVideo(item.fileName);
+                item.isCompress = isCompress(item.fileName);
+            }
+            this.fileRows= Object.keys(allfileInfos).map(key => {
+                return {
+                    filePath: key,
+                    ...allfileInfos[key]
+                };
+            });
+
+            //----------------------------------------------------------------------------------
             this.fileNameToHistory = {};
             fileHistory.forEach(row => {
                 const { fileName, time, count } = row;
@@ -342,8 +374,8 @@ export default class ExplorerPage extends Component {
 
             // 找出最大页数
             let _maxPage = 10;
-            files.forEach(e => {
-                const count = this.getPageNum(e);
+            Object.keys(this.fileRows).forEach(e => {
+                const count = this.fileRows[e].pageNum;
                 _maxPage = Math.max(_maxPage, count);
             })
             this.minPageNum = 0;
@@ -352,7 +384,6 @@ export default class ExplorerPage extends Component {
 
             //check pageindex
             const availableFiles = this.getFileInPage(this.getFilteredFiles());
-
             if (availableFiles.length === 0) {
                 //this will set state
                 this.handlePageChange(1);
@@ -370,39 +401,15 @@ export default class ExplorerPage extends Component {
         }
     }
 
-    decorate_allfileInfos() {
-        // this.allfileInfos
-        for (const fp in this.allfileInfos) {
-            if (!this.allfileInfos.hasOwnProperty(fp)) {
-                continue;
-            }
 
-            const info = this.allfileInfos[fp];
-            info.size = _parseInt(info.size) || 0;
-            info.mtimeMs = _parseInt(info.mtimeMs) || 0;
-
-            info.musicNum = _parseInt(info.musicNum) || 0;
-            info.videoNum = _parseInt(info.videoNum) || 0;
-            info.pageNum = _parseInt(info.pageNum) || 0;
-
-            info.totalImgSize = _parseInt(info.totalImgSize) || 0;
-            info.pageAvgSize = this.calculateAvgPageSize(fp) || 0;
-        }
-    }
-
-    calculateAvgPageSize(fp) {
+    calculateAvgPageSize(item) {
         //may not be reliable
-        const pageNum = this.getPageNum(fp);
-        if (pageNum === 0) {
+        const pageNum = item.pageNum;
+        if (pageNum == 0) {
             return 0;
         }
 
-        let total;
-        if (this.getFileSize(fp) === 0) {
-            total = this.getTotalImgSize(fp);
-        } else {
-            total = Math.min(this.getFileSize(fp), this.getTotalImgSize(fp))
-        }
+        let total = item.totalImgSize || item.fileSize;
         return total / pageNum;
     }
 
@@ -425,62 +432,7 @@ export default class ExplorerPage extends Component {
         }
     }
 
-    hasFileSize(e) {
-        return !!this.getFileSize(e);
-    }
-
-    countAllFileSize(files) {
-        let totalSize = 0;
-        files.forEach(e => {
-            totalSize += this.getFileSize(e);
-        });
-        return totalSize;
-    }
-
-    countAllFilePageNum(filteredFiles) {
-        let count = 0;
-        filteredFiles.forEach(e => {
-            count += this.getPageNum(e);
-        });
-        return count;
-    }
-
-    getFileSize(fp) {
-        return this.allfileInfos[fp]?.size || 0;
-    }
-
-    getPageNum(fp) {
-        return this.allfileInfos[fp]?.pageNum || 0;
-    }
-
-    getTotalImgSize(fp) {
-        return this.allfileInfos[fp]?.totalImgSize || 0;
-    }
-
-    //may not be reliable
-    getPageAvgSize(fp) {
-        return this.allfileInfos[fp]?.pageAvgSize || 0;
-    }
-
-    getMusicNum(fp) {
-        return this.allfileInfos[fp]?.musicNum || 0;
-    }
-
-    getVideoNum(fp) {
-        return this.allfileInfos[fp]?.videoNum || 0;
-    }
-
-    getMtime(fp) {
-        return this.allfileInfos[fp]?.mtimeMs || 0;
-    }
-
-    /** get tag time */
-    getTTime(fp) {
-        const fn = getBaseName(fp);
-        let tTime = nameParser.getDateFromParse(fn);
-        tTime = tTime && tTime.getTime();
-        return tTime || 0;
-    }
+ 
 
     getReadCount(fp) {
         const fn = getBaseName(fp);
@@ -495,13 +447,17 @@ export default class ExplorerPage extends Component {
     }
 
     getFilteredFiles() {
-        let files = [...this.compressFiles, ...(_.keys(this.imgFolderInfo))];
+        let files = this.fileRows.slice();
 
-        const { authorInfo, pageNumRange } = this.state;
+        const { pageNumRange } = this.state;
+
+        files = files.filter(e => {
+            return e.isCompress || e.isImgFolder;
+         })
 
         const maxPage =  pageNumRange[1] >= this.getMaxPageForSlider()? Infinity:  pageNumRange[1];
         files = files.filter(e => {
-            const count = this.getPageNum(e);
+            const count = e.pageNum;
             if (_.isNull(count) || count === 0) {
                 return true;
             } else if (count >= pageNumRange[0] && count <= maxPage ) {
@@ -509,44 +465,36 @@ export default class ExplorerPage extends Component {
             }
         })
 
-        if (this.isOn(FILTER_FIRST_TIME_AUTHOR) && authorInfo) {
-            files = files.filter(e => {
-                const count = this.getAuthorCountForFP(e);
-                if (count && (count.total_count) === 1) {
-                    return true;
-                }
-            })
-        }
 
         if (this.isOn(FILTER_HAS_MUSIC)) {
             files = files.filter(e => {
-                return this.getMusicNum(e) > 0;
+                return e.musicNum > 0;
             })
         }
 
         if (this.isOn(FILTER_HAS_VIDEO)) {
             files = files.filter(e => {
-                return this.getVideoNum(e) > 0;
+                return e.videoNum > 0;
             })
         }
 
         if (this.isOn(FILTER_IMG_FOLDER)) {
             files = files.filter(e => {
-                return !isCompress(e);
+                return  e.isImgFolder;
             })
         }
 
         const filterText = _.isString(this.state.filterText) && this.state.filterText.toLowerCase();
         if (filterText) {
             files = files.filter(e => {
-                return e.toLowerCase().indexOf(filterText) > -1;
+                return e.filePath.toLowerCase().indexOf(filterText) > -1;
             });
         }
 
         const filterType = _.isString(this.state.filterType) && this.state.filterType;
         if (filterType) {
             files = files.filter(e => {
-                const result = parse(e);
+                const result = parse(e.filePath);
                 return result && result.type === filterType;
             });
         }
@@ -609,12 +557,15 @@ export default class ExplorerPage extends Component {
 
 
 
-    getTooltipStr(fp) {
+    getTooltipStr(item) {
+        const fp = item.filePath;
+
         let rows = [];
         rows.push([fp]);
 
-        rows.push(["mtime", clientUtil.dateFormat_v1(this.getMtime(fp))]);
-        rows.push(["tag time", clientUtil.dateFormat_v1(this.getTTime(fp))]);
+
+        rows.push(["mtime", clientUtil.dateFormat_v1(item.mtimeMs)]);
+        rows.push(["tag time", clientUtil.dateFormat_v1(ExplorerUtil.getTTime(item.fileName))]);
 
         rows.push(["     "]);
         rows.push(...clientUtil.convertSimpleObj2tooltipRow(this.getAuthorCountForFP(fp)));
@@ -635,38 +586,30 @@ export default class ExplorerPage extends Component {
         }).join("\n")
     }
 
-    isImgFolder(fp) {
-        return !!this.imgFolderInfo[fp];
+   
+
+    getThumbnailUrl(item) {
+        return getFileUrl(item.thumbnailFilePath, true)
     }
 
-    getThumbnailUrl(fp) {
-        let thumbnailurl;
-        if (this.isImgFolder(fp)) {
-            const tp = this.imgFolderInfo[fp].thumbnail;
-            thumbnailurl = getFileUrl(tp, true);
-        } else {
-            thumbnailurl = getFileUrl(this.allfileInfos[fp].thumbnailFilePath, true);
-        }
-        return thumbnailurl;
-    }
-
-    renderSingleZipItem(fp) {
-        const text = getBaseName(fp);
+    renderSingleZipItem(item) {
+        const fp = item.filePath;
+        const text = item.fileName;
         const toUrl = clientUtil.getOneBookLink(fp);
 
         let zipItem;
-        let thumbnailurl = this.getThumbnailUrl(fp);
+        let thumbnailurl = this.getThumbnailUrl(item);
 
         if (this.state.noThumbnail) {
             zipItem = (
                 <Link target="_blank" to={toUrl} key={fp} className={""} >
                     <ThumbnailPopup filePath={fp} url={thumbnailurl}>
-                        {getOneLineListItem(<i className="fas fa-book"></i>, text, fp, this)}
+                        {getOneLineListItem(<i className="fas fa-book"></i>, text, item, this)}
                     </ThumbnailPopup>
                 </Link>)
         } else {
 
-            zipItem = <SingleZipItem filePath={fp}  info={this} />
+            zipItem = <SingleZipItem filePath={fp}  info={this} item={item} />
         }
         return zipItem;
     }
@@ -1154,7 +1097,7 @@ export default class ExplorerPage extends Component {
         const type2Freq = {};
 
         filteredFiles.forEach(e => {
-            const result = parse(e);
+            const result = parse(e.fileName);
             let tags = [];
 
             if (result) {
@@ -1256,7 +1199,6 @@ export default class ExplorerPage extends Component {
     renderCheckboxPanel() {
         // Define a list of filters with their descriptions
         const filters = [
-            { id: 'FILTER_FIRST_TIME_AUTHOR', label: 'First Time Author' },
             { id: 'FILTER_HAS_MUSIC', label: 'Has Music' },
             { id: 'FILTER_HAS_VIDEO', label: 'Has Video' },
             { id: 'FILTER_IMG_FOLDER', label: 'Only Image Folder' }
@@ -1298,8 +1240,8 @@ export default class ExplorerPage extends Component {
 
         return (<div className={cn} >
             {this.getLinkToEhentai()}
-            {this.getExplorerToolbar(filteredFiles, filteredVideos)}
-            {this.renderSideMenu(filteredFiles, filteredVideos)}
+             {this.getExplorerToolbar(filteredFiles, filteredVideos)}
+            {this.renderSideMenu(filteredFiles, filteredVideos)} 
             {this.renderFileList(filteredFiles, filteredVideos)}
             {this.renderPagination(filteredFiles, filteredVideos)}
         </div>

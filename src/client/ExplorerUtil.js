@@ -26,6 +26,8 @@ const clientUtil = require("./clientUtil");
 const { getDir, getBaseName, getPerPageItemNumber, isSearchInputTextTyping, filesizeUitl, sortFileNames } = clientUtil;
 // const { isVideo, isCompress, isImage, isMusic } = util;
 // const AdminUtil = require("./AdminUtil");
+const nameParser = require('@name-parser');
+
 
 const ClientConstant = require("./ClientConstant");
 const { BY_FILE_NUMBER,
@@ -42,14 +44,17 @@ const { BY_FILE_NUMBER,
     BY_RANDOM } = ClientConstant;
 
 
+export function getTTime(fn) {
+    let tTime = nameParser.getDateFromParse(fn);
+    tTime = tTime && tTime.getTime();
+    return tTime || 0;
+}
 
 
 export const sortFiles = (info, files, sortOrder, isSortAsc) => {
     //-------sort algo
     const byFn = (a, b) => {
-        const ap = getBaseName(a);
-        const bp = getBaseName(b);
-        return ap.localeCompare(bp);
+        return a.fileName.localeCompare(b.fileName);
     }
 
 
@@ -57,8 +62,8 @@ export const sortFiles = (info, files, sortOrder, isSortAsc) => {
     // 下方的sort都是stable sort。
     files = _.sortBy(files, e => {
         // 没有信息，排到前面来触发后端get thumbnail。获得信息
-        const mtime = info.getMtime(e);
-        const ttime = info.getTTime(e);
+        const mtime = e.mtimeMs;
+        const ttime = getTTime(e.fileName);
 
         if (mtime && ttime) {
             const gap = Math.abs(mtime - ttime);
@@ -77,13 +82,13 @@ export const sortFiles = (info, files, sortOrder, isSortAsc) => {
         files = _.shuffle(files);
     } else if (sortOrder === BY_FILENAME) {
         files.sort((a, b) => {
-            return byFn(a, b);
+            return byFn(a.filePath, b.filePath);
         });
     } else if (sortOrder == BY_GOOD_SCORE) {
         // 喜好排序
         files.sort((a, b) => {
-            let s1 = info.getScore(a);
-            let s2 = info.getScore(b);
+            let s1 = info.getScore(a.filePath);
+            let s2 = info.getScore(b.filePath);
 
             if (s1 == s2) {
                 const adjustScore = (fp, score) => {
@@ -95,8 +100,8 @@ export const sortFiles = (info, files, sortOrder, isSortAsc) => {
                     }
                     return score;
                 }
-                s1 = adjustScore(a, s1);
-                s2 = adjustScore(b, s2);
+                s1 = adjustScore(a.filePath, s1);
+                s2 = adjustScore(b.filePath, s2);
 
                 return s1 - s2;
             } else {
@@ -105,7 +110,7 @@ export const sortFiles = (info, files, sortOrder, isSortAsc) => {
         })
     } else if (sortOrder === BY_FOLDER) {
         files = _.sortBy(files, e => {
-            const dir = getDir(e);
+            const dir = getDir(e.filePath);
             return dir;
         });
     } else if (sortOrder === BY_TIME) {
@@ -113,28 +118,27 @@ export const sortFiles = (info, files, sortOrder, isSortAsc) => {
     } else if (sortOrder === BY_MTIME) {
         //只看mtime
         files = _.sortBy(files, e => {
-            const mtime = info.getMtime(e);
-            return mtime || Infinity;
+            return e.mtimeMs || Infinity;
         });
     } else if (sortOrder === BY_LAST_READ_TIME) {
         files = _.sortBy(files, e => {
-            return info.getLastReadTime(e);
+            return info.getLastReadTime(e.filePath);
         });
     } else if (sortOrder === BY_READ_COUNT) {
         files = _.sortBy(files, e => {
-            return info.getReadCount(e);
+            return info.getReadCount(e.filePath);
         });
     } else if (sortOrder === BY_FILE_SIZE) {
         files = _.sortBy(files, e => {
-            return info.getFileSize(e);
+            return e.fileSize;
         });
     } else if (sortOrder === BY_AVG_PAGE_SIZE) {
         files = _.sortBy(files, e => {
-            return info.getPageAvgSize(e);
+            return e.pageAvgSize;
         });
     } else if (sortOrder === BY_PAGE_NUMBER) {
         files = _.sortBy(files, e => {
-            return info.getPageNum(e);
+            return e.pageNum;
         });
     }
 

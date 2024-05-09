@@ -59,10 +59,12 @@ const ClientConstant = require("./ClientConstant");
 
 // const FILTER_GOOD_AUTHOR = "FILTER_GOOD_AUTHOR";
 // const FILTER_OVERSIZE = "FILTER_OVERSIZE";
-// const FILTER_FIRST_TIME_AUTHOR = "FILTER_FIRST_TIME_AUTHOR";
 // const FILTER_HAS_MUSIC = "FILTER_HAS_MUSIC";
 // const FILTER_HAS_VIDEO = "FILTER_HAS_VIDEO";
 // const FILTER_IMG_FOLDER = "FILTER_IMG_FOLDER";
+
+
+
 
 
 export const NoScanAlertArea = ({ filePath }) => {
@@ -95,12 +97,28 @@ export const NoScanAlertArea = ({ filePath }) => {
 }
 
 
+function countAllFileSize(files) {
+    let totalSize = 0;
+    files.forEach(e => {
+        totalSize += e.fileSize;
+    });
+    return totalSize;
+}
+
+function countAllFilePageNum(filteredFiles) {
+    let count = 0;
+    filteredFiles.forEach(e => {
+        count += e.pageNum;
+    });
+    return count;
+}
+
 export const FileCountPanel = ({ filteredFiles, filteredVideos, info }) => {
-    const totalZipSize = info.countAllFileSize(filteredFiles);
-    const totalVideoSize = info.countAllFileSize(filteredVideos);
+    const totalZipSize = countAllFileSize(filteredFiles);
+    const totalVideoSize = countAllFileSize(filteredVideos);
     const totalSize = totalZipSize + totalVideoSize;
     const title = `${filesizeUitl(totalZipSize)} zips and ${filesizeUitl(totalVideoSize)} videos`
-    const totalPageNum = info.countAllFilePageNum(filteredFiles);
+    const totalPageNum = countAllFilePageNum(filteredFiles);
     return (
         <div className="row">
             <div className="col-12 file-count-row">
@@ -128,6 +146,7 @@ export const LinkToEHentai = ({ searchable, text }) => {
 
 
 export const getOneLineListItem = (icon, fileName, filePath, info) => {
+    // TODO
     return (
         <li className="explorer-one-line-list-item" key={fileName} title={info.getTooltipStr(filePath)}>
             {icon}
@@ -157,25 +176,23 @@ export const SimpleFileListPanel = ({ musicFiles, imageFiles, info }) => {
 
 }
 
-export const SingleZipItem = ({ filePath, info }) => {
+export const SingleZipItem = ({ filePath, info, item }) => {
     const fp = filePath;
-    const text = getBaseName(fp);
+    const text = item.fileName;
     const toUrl = clientUtil.getOneBookLink(fp);
 
     let zipItem;
-    let thumbnailurl = info.getThumbnailUrl(fp);
+    let thumbnailurl = info.getThumbnailUrl(item);
 
+    const fileSizeStr = item.fileSize && filesizeUitl(item.fileSize);
 
-    const fileSize = info.hasFileSize(fp) && info.getFileSize(fp);
-    const fileSizeStr = fileSize && filesizeUitl(fileSize);
-
-    const avgSize = info.getPageAvgSize(fp);
+    const avgSize = item.pageAvgSize;
     const avgSizeStr = avgSize > 0 && filesizeUitl(avgSize);
 
-    const musicNum = info.getMusicNum(fp);
-    const isImgFolder = info.isImgFolder(fp);
+    const musicNum = item.musicNum;
     const hasMusic = musicNum > 0;
-    const pageNum = info.getPageNum(fp);
+    const pageNum = item.pageNum;
+    const isImgFolder = item.isImgFolder;
 
     const fileInfoRowCn = classNames("file-info-row", {
         "less-padding": hasMusic
@@ -189,7 +206,7 @@ export const SingleZipItem = ({ filePath, info }) => {
     <LoadingImage
         mode={"zip"}
         className={thumbnailCn}
-        title={info.getTooltipStr(fp)}
+        title={info.getTooltipStr(item)}
         fileName={fp}
         url={thumbnailurl}
         musicNum={musicNum}
@@ -225,12 +242,14 @@ export const FileGroupZipPanel = ({
     isSortAsc,
     info
 }) => {
-    const byDir = _.groupBy(files, getDir);
+
+    // TODO
+    const byDir = _.groupBy(files, e => getDir(e.filePath));
     let fDirs = _.keys(byDir);
     // 文件夹根据所拥有文件件的时间来排序
     fDirs = _.sortBy(fDirs, dirPath => {
         const files = byDir[dirPath];
-        const times = files.map(fp => info.getMtime(fp)).filter(e => !!e);
+        const times = files.map(ff => ff.mtimeMs).filter(e => !!e);
         const avgTime = util.getAverage(times);
         return avgTime || 0;
     });
