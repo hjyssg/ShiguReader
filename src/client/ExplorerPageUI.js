@@ -1,42 +1,40 @@
-// @flow
-import React, { Component } from 'react';
+import React from 'react';
 import _ from "underscore";
 // import './style/Explorer.scss';
 import LoadingImage from './LoadingImage';
 import Sender from './Sender';
 import { Link } from 'react-router-dom';
-
-const userConfig = require('@config/user-config');
-import ErrorPage from './ErrorPage';
+// const userConfig = require('@config/user-config');
+// import ErrorPage from './ErrorPage';
 import FileChangeToolbar from './subcomponent/FileChangeToolbar';
-import CenterSpinner from './subcomponent/CenterSpinner';
+// import CenterSpinner from './subcomponent/CenterSpinner';
 const util = require("@common/util");
-const queryString = require('query-string');
-import Pagination from './subcomponent/Pagination';
+// const queryString = require('query-string');
+// import Pagination from './subcomponent/Pagination';
 import ItemsContainer from './subcomponent/ItemsContainer';
-import SortHeader from './subcomponent/SortHeader';
+// import SortHeader from './subcomponent/SortHeader';
 import Breadcrumb from './subcomponent/Breadcrumb';
 import FileCellTitle from './subcomponent/FileCellTitle';
 import ClickAndCopyDiv from './subcomponent/ClickAndCopyDiv';
-import Checkbox from './subcomponent/Checkbox';
-import ThumbnailPopup from './subcomponent/ThumbnailPopup';
-import { getFileUrl } from './clientUtil';
+// import Checkbox from './subcomponent/Checkbox';
+// import ThumbnailPopup from './subcomponent/ThumbnailPopup';
+// import { getFileUrl } from './clientUtil';
 const nameParser = require('@name-parser');
 const classNames = require('classnames');
-const Constant = require("@common/constant");
+// const Constant = require("@common/constant");
 const clientUtil = require("./clientUtil");
-const { getDir, getBaseName, getPerPageItemNumber, isSearchInputTextTyping, filesizeUitl, sortFileNames } = clientUtil;
-const { isVideo, isCompress, isImage, isMusic } = util;
+const { getDir, getBaseName,  filesizeUitl, sortFileNames } = clientUtil;
+// const { isVideo, isCompress, isImage, isMusic } = util;
 // const sortUtil = require("../common/sortUtil");
-const AdminUtil = require("./AdminUtil");
+// const AdminUtil = require("./AdminUtil");
 import Swal from 'sweetalert2';
-import RangeSlider from 'react-range-slider-input';
-import 'react-range-slider-input/dist/style.css';
+// import RangeSlider from 'react-range-slider-input';
+// import 'react-range-slider-input/dist/style.css';
 
 // import { GlobalContext } from './globalContext'
 
 
-const ClientConstant = require("./ClientConstant");
+// const ClientConstant = require("./ClientConstant");
 // const { BY_FILE_NUMBER,
 //     BY_TIME,
 //     BY_MTIME,

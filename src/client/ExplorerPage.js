@@ -37,18 +37,9 @@ import * as ExplorerUtil from "./ExplorerUtil";
 
 
 const ClientConstant = require("./ClientConstant");
-const { BY_FILE_NUMBER,
+const {
     BY_TIME,
-    BY_MTIME,
-    BY_LAST_READ_TIME,
-    BY_READ_COUNT,
-    BY_FILE_SIZE,
-    BY_AVG_PAGE_SIZE,
-    BY_PAGE_NUMBER,
-    BY_FILENAME,
-    BY_GOOD_SCORE,
-    BY_FOLDER,
-    BY_RANDOM } = ClientConstant;
+    BY_FOLDER } = ClientConstant;
 
 const { MODE_TAG,
     MODE_AUTHOR,
