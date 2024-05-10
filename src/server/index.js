@@ -23,6 +23,7 @@ pathUtil.init();
 const serverUtil = require("./serverUtil");
 const { getHash, mkdirSync, asyncWrapper } = serverUtil;
 const filewatch = require("./own_chokidar/filewatch");
+const thumbnailUtil = require("./getThumbnailUtil");
 
 const { isHiddenFile, generateContentUrl, isExist, filterPathConfig, isSub, estimateIfFolder } = pathUtil;
 const { isImage, isCompress, isVideo, isMusic, 
@@ -403,39 +404,6 @@ async function printIP(){
     console.log("----------------------------------------------------------------");
 }
 
-/**
-* 查找thumbnail，同时判断是不是zip确实没有thumbnail
-*/
-async function getThumbnailsForZip(filePathes) {
-    const isStringInput = _.isString(filePathes);
-    if (isStringInput) {
-        filePathes = [filePathes];
-    }
-
-    const thumbnails = {};
-
-    let thumbRows = thumbnailDb.getThumbnailArr(filePathes);
-    thumbRows.forEach(row => {
-        thumbnails[row.filePath] = row.thumbnailFilePath;
-    })
-
-    filePathes.forEach(filePath => {
-        if (thumbnails[filePath]) {
-            return;
-        }
-        if (isCompress(filePath)) {
-            const zipInfoRows = zipInfoDb.getZipInfo(filePath);
-            if(zipInfoRows[0]){
-                const pageNum = zipInfoRows[0].pageNum;
-                if (pageNum === 0) {
-                    thumbnails[filePath] = "NO_THUMBNAIL_AVAILABLE";
-                }
-            }
-        }
-    });
-
-    return thumbnails;
-}
 
 async function findVideoForFolder(filePath){
     const sql = `SELECT filePath FROM file_table WHERE INSTR(filePath, ?) = 1 AND isVideo = true `;
@@ -443,80 +411,6 @@ async function findVideoForFolder(filePath){
     return videoRows;
 }
 
-/**
- * 找文件夹的thumbnail
- */
-async function getThumbnailForFolders(filePathes) {
-    const result = {};
-
-    if(!filePathes || filePathes.length == 0){
-        return result;
-    }
-    // TODO 担心nextFilePathe很多的时候
-
-    function findOne(rows, filePath){
-        let findRow = null;
-        rows.forEach(row => {
-            if(!findRow){
-                if(isSub(filePath, row.filePath)){
-                    findRow = row;
-                }
-            }
-        })
-        return findRow;
-    }
-
-    try{
-        let beg = getCurrentTime();
-
-        // 先尝试从thumbnail db拿
-        // Q ask chatgpt: write a sql query that if column 'file' contains one of string array
-        const stringsToMatch = filePathes; // string array of values
-        const patterns = stringsToMatch.map(str => `${str}%`);
-        const placeholders = patterns.map(() => 'filePath LIKE ?').join(' OR ');
-        const sql = `
-            SELECT *
-            FROM thumbnail_table
-            WHERE ${placeholders} ORDER BY ROWID DESC
-        `;
-        const thumbnailRows = await db.doAllSync(sql, patterns);
-        let notFoundList = [];
-        filePathes.forEach(filePath => {
-            const findRow = findOne(thumbnailRows, filePath);
-            if (findRow) {
-                result[filePath] = serverUtil.joinThumbnailFolderPath(findRow.thumbnailFileName);
-            }else{
-                notFoundList.push(filePath);
-            }
-        })
-        
-
-        if(notFoundList.length > 0){
-            const stringsToMatch = notFoundList; // string array of values
-            const patterns = stringsToMatch.map(str => `${str}%`);
-            const placeholders = patterns.map(() => 'filePath LIKE ?').join(' OR ');
-            const sql = `
-               SELECT *
-               FROM file_table
-               WHERE isImage=1 AND (${placeholders})
-               ORDER BY mTime DESC`;
-            let imagerows = await db.doAllSync(sql, patterns);
-            notFoundList.forEach(filePath => {
-                const findRow = findOne(imagerows, filePath);
-                if (findRow) {
-                    console.assert(findRow.isImage);
-                    result[filePath] = findRow.filePath;
-                }
-            })
-        }
-    
-        let end = getCurrentTime();
-        // console.log(`[getThumbnailForFolders] ${(end - beg)}ms for ${filePathes.length} zips`);
-    }catch(e){
-        logger.error("[getThumbnailForFolders]", e);
-    }
-    return result;
-}
 
 /** 获得file stat同时保存到db */
 async function getStatAndUpdateDB(filePath) {
@@ -538,7 +432,7 @@ async function decorateResWithMeta(resObj) {
     const files = _.keys(fileInfos);
 
     //------------------- thumbnails
-    const thumbnails = await getThumbnailsForZip(files);
+    const thumbnails = await thumbnailUtil.getThumbnailsForZip(files);
     _.keys(thumbnails).forEach(filePath=> {
         if(!fileInfos[filePath]){
             return;
@@ -746,7 +640,7 @@ app.post("/api/getThumbnailForFolders", asyncWrapper(async (req, res) => {
 
     dirs = dirs.filter(pathUtil.estimateIfFolder);
 
-    const dirThumbnails = await getThumbnailForFolders(dirs);
+    const dirThumbnails = await  thumbnailUtil.getThumbnailForFolders(dirs);
     res.send({ failed: false, dirThumbnails });
 }));
 
@@ -993,9 +887,9 @@ app.get('/api/getQuickThumbnail', asyncWrapper(async (req, res) => {
     let useVideoPreviewForFolder = false;
     let url = null;
     if(isCompress(filePath)){
-        url = await  getQuickThumbnailForZip(filePath);
+        url = await  thumbnailUtil.getQuickThumbnailForZip(filePath);
     } else if(estimateIfFolder(filePath)){
-        const dirThumbnails = await getThumbnailForFolders([filePath]);
+        const dirThumbnails = await thumbnailUtil.getThumbnailForFolders([filePath]);
         url = dirThumbnails[filePath];
 
         // 没thumbnail，用video也行。
@@ -1016,23 +910,7 @@ app.get('/api/getQuickThumbnail', asyncWrapper(async (req, res) => {
     });
 }))
 
-async function getQuickThumbnailForZip(filePath){
-    let url;
-    const thumbnails = await getThumbnailsForZip([filePath])
-    const oneThumbnail = thumbnails[filePath];
-    if(oneThumbnail){
-        url = oneThumbnail;
-    }else{
-        // 先找到发过去再说
-        const fileName = path.basename(filePath);
-        const thumbRows = await thumbnailDb.getThumbnailByFileName(fileName);
-        if(thumbRows.length > 0){
-            url = thumbRows[0].thumbnailFilePath;
-            
-        }
-    }
-    return url;
-}
+
 
 
 app.post('/api/getZipThumbnail', asyncWrapper(async (req, res) => {
@@ -1048,7 +926,7 @@ app.post('/api/getZipThumbnail', asyncWrapper(async (req, res) => {
         return;
     }
 
-    let url = await  getQuickThumbnailForZip(filePath);
+    let url = await thumbnailUtil.getQuickThumbnailForZip(filePath);
     if(url){
         res.send({
             url
