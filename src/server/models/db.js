@@ -347,7 +347,8 @@ async function sync_tag_table() {
             COUNT(CASE WHEN INSTR(filePath, ?) = 1 THEN 1 END) AS good_count,
             COUNT(CASE WHEN INSTR(filePath, ?) = 1 THEN 1 END) AS bad_count,
             COUNT(filePath) AS total_count
-            FROM tag_view
+            FROM 
+                (SELECT * FROM tag_file_table WHERE isCompress = true OR isFolder = true)
             GROUP BY tag, type, subtype `;
         let tagInfo = await doSmartAllSync(sqlTag, [global.good_folder_root || placeholder, global.not_good_folder_root || placeholder ]);
         _addCol(tagInfo);  // Add score column to each row.
