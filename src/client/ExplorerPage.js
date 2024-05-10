@@ -666,7 +666,7 @@ export default class ExplorerPage extends Component {
                 </Link>)
         } else {
 
-            zipItem = <SingleZipItem filePath={fp}  info={this} />
+            zipItem = <SingleZipItem key={fp} filePath={fp}  info={this} />
         }
         return zipItem;
     }
