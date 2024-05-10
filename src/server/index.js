@@ -766,10 +766,10 @@ app.post("/api/getTagThumbnail", asyncWrapper(async (req, res) => {
 
     let sql = `  
         SELECT 
-        zip_view.*, tag_table.*,
+        zip_view.*, tag_file_table.*,
         thumbnail_table.thumbnailFileName 
         FROM zip_view 
-        INNER JOIN tag_table ON zip_view.filePath = tag_table.filePath AND tag_table.tag = ?
+        INNER JOIN tag_file_table ON zip_view.filePath = tag_file_table.filePath AND tag_file_table.tag = ?
         LEFT JOIN thumbnail_table ON zip_view.filePath = thumbnail_table.filePath
         WHERE thumbnail_table.thumbnailFileName IS NOT NULL
         ORDER BY zip_view.mTime DESC
@@ -791,7 +791,7 @@ app.post("/api/getTagThumbnail", asyncWrapper(async (req, res) => {
     // from image
     const sql2 = ` SELECT a.* , b.*
             FROM file_table a 
-            INNER JOIN tag_table b ON a.filePath = b.filePath AND b.tag = ? AND a.isImage=1 
+            INNER JOIN tag_file_table b ON a.filePath = b.filePath AND b.tag = ? AND a.isImage=1 
             ORDER BY a.mTime DESC 
             LIMIT 1 
         `
@@ -808,7 +808,7 @@ app.post("/api/getTagThumbnail", asyncWrapper(async (req, res) => {
 
     const sql3 = ` SELECT a.* , b.*
     FROM file_table a 
-    INNER JOIN tag_table b ON a.filePath = b.filePath AND b.tag = ? AND a.isCompress=1 
+    INNER JOIN tag_file_table b ON a.filePath = b.filePath AND b.tag = ? AND a.isCompress=1 
     ORDER BY a.mTime DESC 
     LIMIT 1 
     `

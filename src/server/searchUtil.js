@@ -102,7 +102,7 @@ async function searchByText(text) {
 async function _searchByTag_(tag, type){
     // 严格匹配
     let sql = `SELECT a.* 
-        FROM file_table AS a INNER JOIN tag_table AS b 
+        FROM file_table AS a INNER JOIN tag_file_table AS b 
         ON a.filePath = b.filePath AND b.tag = ? AND b.type =?`;
     let rows = await db.doSmartAllSync(sql, [tag, type]);
     return splitRows(rows);

@@ -51,7 +51,8 @@ async function fastFileIterate({filePath, db, shouldIgnoreForNormal}) {
 
     // 所有文件处理完成后，批量插入数据库
     await db.batchInsert("file_table", insertion_cache.files);
-    await db.batchInsert("tag_table", insertion_cache.tags);
+    await db.batchInsert("tag_file_table", insertion_cache.tags);
+    await db.throttledSyncTagTable();
 
     let end1 = getCurrentTime();
     console.log(`[fastFileIterate] ${insertion_cache.files.length} files were scanned.  ${(end1 - beg) / 1000}s`);

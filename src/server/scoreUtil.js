@@ -1,5 +1,5 @@
 /** 计算对特定作者/tag的喜欢程度的分值 */
-const getScoreFromCount = module.exports.getScoreFromCount = ({ good_count=0, bad_count=0, total_count=0 }, goodDump) => {
+module.exports.getScoreFromCount = ({ good_count=0, bad_count=0, total_count=0 }, goodDump) => {
     console.assert(good_count >= 0 && bad_count >= 0);
     console.assert(total_count >= 0 && total_count >= (good_count + bad_count));
     goodDump = goodDump || 100;
