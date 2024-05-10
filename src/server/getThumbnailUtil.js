@@ -1,12 +1,6 @@
 const path = require('path');
-// const fs = require('fs');
-// const express = require('express');
-// const pfs = require('promise-fs');
-// const dateFormat = require('dateformat');
 const _ = require('underscore');
 
-// const execa = require('./own_execa');
-// const userConfig = global.requireUserConfig();
 const serverUtil = require("./serverUtil");
 const util = global.requireUtil();
 const { isImage, isCompress, isVideo, isMusic, 
@@ -19,14 +13,7 @@ const { isHiddenFile, generateContentUrl, isExist, filterPathConfig, isSub, esti
 const db = require("./models/db");
 const zipInfoDb = require("./models/zipInfoDb");
 const thumbnailDb = require("./models/thumbnailDb");
-// const historyDb = require("./models/historyDB");
-// const cacheDb = require("./models/cacheDb");
-
-// 防止系统过载
-// const pLimit = require('p-limit');
 const logger = require("./logger");
-
-// const thumbnail_limit = pLimit(10);
 
 
 
@@ -105,6 +92,11 @@ async function getThumbnailForFolders(filePathes) {
     return result;
 }
 
+/**
+ * 单个filepath的thumbnail快速查找
+ * @param {*} filePath 
+ * @returns 
+ */
 async function getQuickThumbnailForZip(filePath){
     let url;
     const thumbnails = await getThumbnailsForZip([filePath])
@@ -117,7 +109,6 @@ async function getQuickThumbnailForZip(filePath){
         const thumbRows = await thumbnailDb.getThumbnailByFileName(fileName);
         if(thumbRows.length > 0){
             url = thumbRows[0].thumbnailFilePath;
-            
         }
     }
     return url;

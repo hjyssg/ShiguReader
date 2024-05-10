@@ -17,9 +17,8 @@ router.post("/api/singleFileInfo", serverUtil.asyncWrapper(async (req, res) => {
         return;
     }
 
-    // let stat = await serverUtil.common.getStatAndUpdateDB(filePath);
-    const stat = await pfs.stat(filePath);
 
+    const stat = await pfs.stat(filePath);
     const mecab_tokens = await global.mecab_getTokens(filePath);
     res.send({
         stat,

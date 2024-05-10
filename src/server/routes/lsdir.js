@@ -15,7 +15,6 @@ const serverUtil = require("../serverUtil");
 const db = require("../models/db");
 const util = global.requireUtil();
 const { getCurrentTime, isImage, isMusic, isCompress, isVideo } = util;
-const {  decorateResWithMeta } = serverUtil.common;
 const historyDb = require("../models/historyDB");
 const logger = require("../logger");
 const filewatch= require('../own_chokidar/filewatch');
@@ -34,7 +33,7 @@ router.post('/api/lsDir', serverUtil.asyncWrapper(async (req, res) => {
 
     if (!filewatch.isAlreadyScan(dir)) {
         let result = await listNoScanDir(dir, res);
-        result = await decorateResWithMeta(result);
+        result = await serverUtil.common.decorateResWithMeta(result);
         historyDb.addOneLsDirRecord(dir);
         res.send(result);
         return;
@@ -119,7 +118,7 @@ router.post('/api/lsDir', serverUtil.asyncWrapper(async (req, res) => {
             imgFolders
         };
 
-        result = await decorateResWithMeta(result);
+        result = await serverUtil.common.decorateResWithMeta(result);
         const time3 = getCurrentTime();
         timeUsed = (time3 - time2);
         // console.log("[/api/LsDir] decorateResWithMeta", timeUsed, "ms")
@@ -217,7 +216,7 @@ router.post('/api/listImageFolderContent', serverUtil.asyncWrapper(async (req, r
     if (result && !noMedataInfo) {
         result.mecab_tokens = await global.mecab_getTokens(filePath);
     }
-    result = serverUtil.common.checkOneBookRes(result);
+    result = serverUtil.checkOneBookRes(result);
     res.send(result);
     historyDb.addOneRecord(filePath);
 }));

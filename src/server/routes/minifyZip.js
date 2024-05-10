@@ -9,7 +9,6 @@ const logger = require("../logger");
 const db = require("../models/db");
 
 const serverUtil = require("../serverUtil");
-const { getStatAndUpdateDB } = serverUtil.common;
 
 const sevenZipHelp = require("../sevenZipHelp");
 const { listZipContentAndUpdateDb } = sevenZipHelp;
@@ -48,7 +47,7 @@ router.post('/api/overwrite', serverUtil.asyncWrapper(async (req, res) => {
         res.send({ failed: true, reason: "still in minify queue" });
     }
 
-    const newFileStat = await getStatAndUpdateDB(filePath);
+    const newFileStat = await serverUtil.common.getStatAndUpdateDB(filePath);
     const temp = await listZipContentAndUpdateDb(filePath);
     const newFileImgs = temp.files;
 
@@ -75,7 +74,7 @@ router.post('/api/overwrite', serverUtil.asyncWrapper(async (req, res) => {
         if (ppFn === fn) {
             const oldTemp = await listZipContentAndUpdateDb(fp);
             const oldFileImgs = oldTemp.files;
-            const oldFileStat = await getStatAndUpdateDB(fp);
+            const oldFileStat = await serverUtil.common.getStatAndUpdateDB(fp);
 
             if (oldFileStat.size > newFileStat.size && imageMagickHelp.isNewZipSameWithOriginalFiles(newFileImgs, oldFileImgs)) {
                 originalFilePath = fp;

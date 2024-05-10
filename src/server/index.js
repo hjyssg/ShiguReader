@@ -327,17 +327,11 @@ const deleteCallBack = fp => {
     zipInfoDb.deleteFromZipDb(fp);
     thumbnailDb.deleteThumbnail(fp)
 };
-serverUtil.common.deleteCallBack = deleteCallBack;
 
 // const moveCallBack = async (oldfilePath, newfilePath) => {
 //     // 现在 delete和insert被chokidar callback代劳了 
 //     // 重复进行太容易出bug了
 // }
-
-// 隐私
-function shrinkFp(fp){
-    return fp.slice(0, 12) + "..." + fp.slice(fp.length - 10);
-}
 
 
 /**
@@ -508,48 +502,12 @@ async function decorateResWithMeta(resObj) {
                           "imgFolderInfo", "fileHistory", "nameParseCache"];
     // resObj = filterObjectProperties(resObj, allowedKeys, true);
     // checkKeys(resObj, allowedKeys);
-    resObj = filterObjectProperties(resObj, allowedKeys);
+    resObj = serverUtil.filterObjectProperties(resObj, allowedKeys);
 
     return resObj;
 }
 
-/** 检查回传给onebook的res */
-function checkOneBookRes(resObj){
-    const allowedKeys = ["zipInfo", "path", "stat", "imageFiles", "musicFiles", "videoFiles", "dirs", "mecab_tokens", "outputPath"];
-    checkKeys(resObj, allowedKeys);
-    resObj = filterObjectProperties(resObj, allowedKeys, false);
-    return resObj;
-}
-
-/** 开发用。检查的obj是不是都有这些key */
-function checkKeys(obj, keys) {
-    const objKeys = Object.keys(obj);
-    for (let i = 0; i < keys.length; i++) {
-      if (!objKeys.includes(keys[i])) {
-        console.warn("[checkKeys]", keys[i]);
-      }
-    }
-}
   
-
-//写一个js函数，根据一个key list，只保留object需要的property
-function filterObjectProperties(obj, keysToKeep, needWarn) {
-    // 遍历对象的所有属性
-    return Object.keys(obj).reduce((acc, key) => {
-      // 如果当前属性存在于 keysToKeep 数组中，将其添加到新对象中
-      if (keysToKeep.includes(key)) {
-        acc[key] = obj[key];
-      }else if(needWarn){
-        console.warn("filterObjectProperties", key);
-      }
-      return acc;
-    }, {});
-  }
-
-
-serverUtil.common.decorateResWithMeta = decorateResWithMeta
-serverUtil.common.getStatAndUpdateDB = getStatAndUpdateDB;
-serverUtil.common.checkOneBookRes = checkOneBookRes;
 
 
 
@@ -998,7 +956,7 @@ app.post('/api/extract', asyncWrapper(async (req, res) => {
         // TODO dirs留空。
         let result = { imageFiles: tempFiles, musicFiles, videoFiles, path, outputPath, stat, zipInfo, mecab_tokens, dirs: [] };
         extract_result_cache[filePath] = result;
-        result = checkOneBookRes(result);
+        result = serverUtil.checkOneBookRes(result);
         res.send(result);
 
         historyDb.addOneRecord(filePath);
@@ -1110,6 +1068,11 @@ app.post('/api/extract', asyncWrapper(async (req, res) => {
     }
 }));
 
+serverUtil.common = {
+    deleteCallBack,
+    decorateResWithMeta,
+    getStatAndUpdateDB
+}
 
 let server_ip;
 app.get('/api/getGeneralInfo', asyncWrapper(async (req, res) => {

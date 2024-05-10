@@ -18,7 +18,6 @@ const filesizeUitl = require('filesize');
 const rimraf = require("./rimraf");
 
 const serverUtil = require("./serverUtil");
-const { getStatAndUpdateDB } = serverUtil.common;
 
 let { img_convert_quality, img_convert_dest_type,
     img_convert_huge_threshold, img_reduce_resolution_dimension,
@@ -137,7 +136,7 @@ async function moveSubfolderContentsToParent(parentDir) {
 module.exports.minifyOneFile = async function (filePath) {
     let extractOutputPath;
     try {
-        const oldStat = await getStatAndUpdateDB(filePath);
+        const oldStat = await serverUtil.common.getStatAndUpdateDB(filePath);
         const oldTemp = await listZipContentAndUpdateDb(filePath);
         const oldFiles = oldTemp.files;
 
@@ -270,7 +269,7 @@ const minifyFolder = module.exports.minifyFolder = async function (filePath) {
             if (isImgConvertable(inputFp, oldSize)) {
                 await convertImage(inputFp, outputfp, oldSize);
 
-                const newStat = await getStatAndUpdateDB(outputfp);
+                const newStat = await serverUtil.common.getStatAndUpdateDB(outputfp);
                 const reducePercentage = (100 - newStat.size / oldSize * 100).toFixed(2);
                 // 逐张判断有用语法
                 if (reducePercentage < userful_percent || newStat.size < 1000) {
