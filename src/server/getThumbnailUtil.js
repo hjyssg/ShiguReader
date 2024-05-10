@@ -71,7 +71,7 @@ async function getThumbnailForFolders(filePathes) {
             const sql = `
                SELECT *
                FROM file_table
-               WHERE isImage=1 AND (${placeholders})
+               WHERE isImage AND (${placeholders})
                ORDER BY mTime DESC`;
             let imagerows = await db.doAllSync(sql, patterns);
             notFoundList.forEach(filePath => {
@@ -147,8 +147,52 @@ async function getThumbnailsForZip(filePathes) {
     return thumbnails;
 }
 
+
+async function getTagThumbnail(author, tag){
+    let sql = `  
+        SELECT 
+        zip_view.*, tag_file_table.*,
+        thumbnail_table.thumbnailFileName 
+        FROM zip_view 
+        INNER JOIN tag_file_table ON zip_view.filePath = tag_file_table.filePath AND tag_file_table.tag = ?
+        LEFT JOIN thumbnail_table ON zip_view.filePath = thumbnail_table.filePath
+        WHERE thumbnail_table.thumbnailFileName IS NOT NULL
+        ORDER BY zip_view.mTime DESC
+        LIMIT 1
+    `
+    let tRows = await db.doSmartAllSync(sql, [author || tag]);
+
+    // find thumbnail by zip
+    if (tRows[0]) {
+        let oneThumbnail = serverUtil.joinThumbnailFolderPath(tRows[0].thumbnailFileName);
+        return {
+            url: oneThumbnail,
+            debug: "from thumbnail_table"
+        }
+    }
+    
+
+    // from image
+    const sql2 = ` SELECT a.* , b.*
+            FROM file_table a 
+            INNER JOIN tag_file_table b ON a.filePath = b.filePath AND b.tag = ? AND a.isImage
+            ORDER BY a.mTime DESC 
+            LIMIT 1 
+        `
+    const imageRows = await db.doSmartAllSync(sql2, [author || tag]);
+    if (imageRows[0]) {
+        console.assert(imageRows[0].isImage);
+        return {
+            url: imageRows[0].filePath,
+            debug: "from image"
+        }
+    }
+
+}
+
 module.exports = {
     getThumbnailForFolders,
     getQuickThumbnailForZip,
-    getThumbnailsForZip
+    getThumbnailsForZip,
+    getTagThumbnail
 }

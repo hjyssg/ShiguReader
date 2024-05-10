@@ -52,7 +52,7 @@ router.post('/api/lsDir', serverUtil.asyncWrapper(async (req, res) => {
         //-------------- dir --------------
         if (!isRecursive) {
             // 单层才有folder
-            sql = `SELECT filePath FROM file_table WHERE dirPath = ? AND isFolder=true `
+            sql = `SELECT filePath FROM file_table WHERE dirPath = ? AND isFolder`
             rows = await db.doSmartAllSync(sql, [dir]);
             dirs = rows.map(e => e.filePath);
         }
@@ -79,17 +79,17 @@ router.post('/api/lsDir', serverUtil.asyncWrapper(async (req, res) => {
             SELECT B.* FROM
              TT AS A
              INNER JOIN TT AS B
-             ON A.filePath=B.dirPath AND B.isDisplayableInOnebook=True AND A.isFolder=true
+             ON A.filePath=B.dirPath AND B.isDisplayableInOnebook AND A.isFolder
             `
             rows = await db.doSmartAllSync(sql, [`${dir}%`, dir]);
         }else{
             //单层
             sql = `
             WITH A AS (
-                SELECT filePath FROM file_table WHERE dirPath = ? AND isFolder=true
+                SELECT filePath FROM file_table WHERE dirPath = ? AND isFolder
             ),
             B AS (
-                ${recursiveFileSQL} AND isDisplayableInOnebook=True
+                ${recursiveFileSQL} AND isDisplayableInOnebook
             )
 
             SELECT B.* FROM

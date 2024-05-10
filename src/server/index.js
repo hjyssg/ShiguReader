@@ -397,7 +397,7 @@ async function printIP(){
 
 
 async function findVideoForFolder(filePath){
-    const sql = `SELECT filePath FROM file_table WHERE INSTR(filePath, ?) = 1 AND isVideo = true `;
+    const sql = `SELECT filePath FROM file_table WHERE INSTR(filePath, ?) = 1 AND isVideo `;
     let videoRows = await db.doSmartAllSync(sql, filePath);
     return videoRows;
 }
@@ -613,53 +613,18 @@ app.post("/api/getTagThumbnail", asyncWrapper(async (req, res) => {
         return;
     }
 
-    let sql = `  
-        SELECT 
-        zip_view.*, tag_file_table.*,
-        thumbnail_table.thumbnailFileName 
-        FROM zip_view 
-        INNER JOIN tag_file_table ON zip_view.filePath = tag_file_table.filePath AND tag_file_table.tag = ?
-        LEFT JOIN thumbnail_table ON zip_view.filePath = thumbnail_table.filePath
-        WHERE thumbnail_table.thumbnailFileName IS NOT NULL
-        ORDER BY zip_view.mTime DESC
-        LIMIT 1
-   `
-    let tRows = await db.doSmartAllSync(sql, [author || tag]);
 
-    // find thumbnail by zip
-    if (tRows[0]) {
-        let oneThumbnail = serverUtil.joinThumbnailFolderPath(tRows[0].thumbnailFileName);
-        res.send({
-            url: oneThumbnail,
-            debug: "from thumbnail_table"
-        });
+    let temp = thumbnailUtil.getTagThumbnail(author, tag);
+    if(temp){
+        res.send(temp);
         return;
     }
-     
-    
-    // from image
-    const sql2 = ` SELECT a.* , b.*
-            FROM file_table a 
-            INNER JOIN tag_file_table b ON a.filePath = b.filePath AND b.tag = ? AND a.isImage=1 
-            ORDER BY a.mTime DESC 
-            LIMIT 1 
-        `
-    const imageRows = await db.doSmartAllSync(sql2, [author || tag]);
-    if (imageRows[0]) {
-        console.assert(imageRows[0].isImage);
-        res.send({
-            url: imageRows[0].filePath,
-            debug: "from image"
-        });
-        return;
-    }
-
 
     const sql3 = ` SELECT a.* , b.*
-    FROM file_table a 
-    INNER JOIN tag_file_table b ON a.filePath = b.filePath AND b.tag = ? AND a.isCompress=1 
-    ORDER BY a.mTime DESC 
-    LIMIT 1 
+        FROM file_table a 
+        INNER JOIN tag_file_table b ON a.filePath = b.filePath AND b.tag = ? AND a.isCompress
+        ORDER BY a.mTime DESC 
+        LIMIT 1 
     `
     const zipRows = await db.doSmartAllSync(sql3, [author || tag]);
     // 没有的话，现场unzip一个出来
@@ -789,7 +754,7 @@ app.post('/api/pregenerateThumbnails', asyncWrapper(async (req, res) => {
 
     let totalFiles = [];
     if(pregenerateThumbnailPath == "All_Pathes"){
-        totalFiles = await db.getAllFilePathes("WHERE isCompress=1");
+        totalFiles = await db.getAllFilePathes("WHERE isCompress");
     }else{
         const { pathes } = await pathUtil.readDirForFileAndFolder(pregenerateThumbnailPath, true);
         totalFiles = pathes.filter(isCompress);
