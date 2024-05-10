@@ -829,7 +829,7 @@ let extractThumbnailFromZip = async (filePath, res, mode, config) => {
     }
 
     const isPregenerateMode = mode === "pre-generate";
-    let sendable = !isPregenerateMode && res;
+    let sendable = !isPregenerateMode && !!res;
     const outputPath = path.join(cachePath, getHash(filePath));
 
     function sendImage(imgFp) {
@@ -898,7 +898,6 @@ let extractThumbnailFromZip = async (filePath, res, mode, config) => {
         sendImage(original_thumb);
         sendable = false;
 
-        await util.pause(1000);
 
         //compress into real thumbnail
         const outputFilePath = await thumbnailGenerator(thumbnailFolderPath, outputPath, path.basename(thumbInnerPath));
@@ -907,7 +906,7 @@ let extractThumbnailFromZip = async (filePath, res, mode, config) => {
             // 想删除除了要使用的文件，但不行。各种文件系统错误
         }
     } catch (e) {
-        if(e !== "NEED_TO_EXTRACT_ALL"){
+        if(e && e.toString() !== "NEED_TO_EXTRACT_ALL"){
             logger.error("[extractThumbnailFromZip] exception ", filePath, e);
         }
         const reason = e || "TBD";
@@ -994,16 +993,7 @@ app.get('/api/getQuickThumbnail', asyncWrapper(async (req, res) => {
     let useVideoPreviewForFolder = false;
     let url = null;
     if(isCompress(filePath)){
-        let thumbRows = thumbnailDb.getThumbnailArr(filePath);
-        if(thumbRows.length > 0){
-            url = thumbRows[0].thumbnailFilePath;
-        }else{
-            const fileName = path.basename(filePath);
-            thumbRows = await thumbnailDb.getThumbnailByFileName(fileName);
-            if(thumbRows.length > 0){
-                url = thumbRows[0].thumbnailFilePath;
-            }
-        }
+        url = await  getQuickThumbnailForZip(filePath);
     } else if(estimateIfFolder(filePath)){
         const dirThumbnails = await getThumbnailForFolders([filePath]);
         url = dirThumbnails[filePath];
@@ -1026,6 +1016,25 @@ app.get('/api/getQuickThumbnail', asyncWrapper(async (req, res) => {
     });
 }))
 
+async function getQuickThumbnailForZip(filePath){
+    let url;
+    const thumbnails = await getThumbnailsForZip([filePath])
+    const oneThumbnail = thumbnails[filePath];
+    if(oneThumbnail){
+        url = oneThumbnail;
+    }else{
+        // 先找到发过去再说
+        const fileName = path.basename(filePath);
+        const thumbRows = await thumbnailDb.getThumbnailByFileName(fileName);
+        if(thumbRows.length > 0){
+            url = thumbRows[0].thumbnailFilePath;
+            
+        }
+    }
+    return url;
+}
+
+
 app.post('/api/getZipThumbnail', asyncWrapper(async (req, res) => {
     const filePath = req.body && req.body.filePath;
 
@@ -1039,24 +1048,12 @@ app.post('/api/getZipThumbnail', asyncWrapper(async (req, res) => {
         return;
     }
 
-    const thumbnails = await getThumbnailsForZip([filePath])
-    const oneThumbnail = thumbnails[filePath];
-    if(oneThumbnail){
+    let url = await  getQuickThumbnailForZip(filePath);
+    if(url){
         res.send({
-            url: oneThumbnail
+            url
         })
     }else{
-        // 先找到发过去再说
-        const fileName = path.basename(filePath);
-        const thumbRows = await thumbnailDb.getThumbnailByFileName(fileName);
-        if(thumbRows.length > 0){
-            url = thumbRows[0].thumbnailFilePath;
-            res.send({
-                url: oneThumbnail
-            })
-            res.send = () => {}
-        }
-
         extractThumbnailFromZip(filePath, res);
     }
 }));
