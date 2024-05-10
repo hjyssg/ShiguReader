@@ -4,9 +4,6 @@ const path = require('path');
 const pathUtil = require("../pathUtil");
 const { getDirName } = pathUtil;
 
-// const util = global.requireUtil();
-// const serverUtil = require("../serverUtil");
-// const { generateContentUrl } = pathUtil;
 
 //---------------------------------------------cache db---------------------
 const cacheDb = module.exports.cacheDb = {

@@ -3,11 +3,10 @@ const _ = require('underscore');
 
 const serverUtil = require("./serverUtil");
 const util = global.requireUtil();
-const { isImage, isCompress, isVideo, isMusic, 
-    getCurrentTime, isDisplayableInExplorer, isDisplayableInOnebook } = util;
+const { getCurrentTime } = util;
 
 const pathUtil = require("./pathUtil");
-const { isHiddenFile, generateContentUrl, isExist, filterPathConfig, isSub, estimateIfFolder } = pathUtil;
+const { isSub } = pathUtil;
 
 // DB import
 const db = require("./models/db");

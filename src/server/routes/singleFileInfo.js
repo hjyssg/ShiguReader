@@ -19,7 +19,7 @@ router.post("/api/singleFileInfo", serverUtil.asyncWrapper(async (req, res) => {
 
 
     const stat = await pfs.stat(filePath);
-    const mecab_tokens = await global.mecab_getTokens(filePath);
+    const mecab_tokens = [];
     res.send({
         stat,
         mecab_tokens

@@ -25,7 +25,7 @@ const { getHash, mkdirSync, asyncWrapper } = serverUtil;
 const filewatch = require("./own_chokidar/filewatch");
 const thumbnailUtil = require("./getThumbnailUtil");
 
-const { isHiddenFile, generateContentUrl, isExist, filterPathConfig, isSub, estimateIfFolder } = pathUtil;
+const { isHiddenFile, splitFilesByType, isExist, filterPathConfig, isSub, estimateIfFolder } = pathUtil;
 const { isImage, isCompress, isVideo, isMusic, 
     getCurrentTime, isDisplayableInExplorer, isDisplayableInOnebook } = util;
 
@@ -216,9 +216,6 @@ async function init() {
             cleanCache(cachePath);
         }
         setUpCacheWatch();
-
-        const mecabHelper = require("./mecabHelper");
-        mecabHelper.init();
 
         //因为scan path内部有sub parent重复关系，避免重复的
         let will_scan = _.sortBy(scan_path, e => e.length); //todo
@@ -951,7 +948,7 @@ app.post('/api/extract', asyncWrapper(async (req, res) => {
             zipInfo = zipInfoRows[0];
         }
 
-        const mecab_tokens = await global.mecab_getTokens(path);
+        const mecab_tokens = [];
 
         // TODO dirs留空。
         let result = { imageFiles: tempFiles, musicFiles, videoFiles, path, outputPath, stat, zipInfo, mecab_tokens, dirs: [] };
@@ -992,7 +989,7 @@ app.post('/api/extract', asyncWrapper(async (req, res) => {
     async function _extractAll_(){
         const { pathes, error } = await extractAll(filePath, outputPath, hasDuplicate);
         if (!error && pathes) {
-            const contentUrls = generateContentUrl(pathes, outputPath);
+            const contentUrls = splitFilesByType(pathes, outputPath);
             sendBack(contentUrls, filePath, stat);
         } else {
             throw "fail to extract all"
@@ -1045,7 +1042,7 @@ app.post('/api/extract', asyncWrapper(async (req, res) => {
             const stderr = await unzip_limit(()=> extractByRange(filePath, outputPath, firstRange));
             if (!stderr) {
                 const unzipOutputPathes = totalRange.map(e => path.resolve(outputPath,  path.basename(e)));
-                const contentUrls = generateContentUrl(unzipOutputPathes, outputPath);
+                const contentUrls = splitFilesByType(unzipOutputPathes, outputPath);
                 sendBack(contentUrls, filePath, stat);
                 // const time2 = getCurrentTime();
                 // const timeUsed = (time2 - time1);

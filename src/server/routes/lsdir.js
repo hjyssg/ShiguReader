@@ -214,7 +214,7 @@ router.post('/api/listImageFolderContent', serverUtil.asyncWrapper(async (req, r
     }
     
     if (result && !noMedataInfo) {
-        result.mecab_tokens = await global.mecab_getTokens(filePath);
+        result.mecab_tokens = [];
     }
     result = serverUtil.checkOneBookRes(result);
     res.send(result);

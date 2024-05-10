@@ -238,7 +238,7 @@ function checkKeys(obj, keys) {
 /** 检查回传给onebook的res */
 function checkOneBookRes(resObj){
     const allowedKeys = ["zipInfo", "path", "stat", "imageFiles", "musicFiles", "videoFiles", "dirs", "mecab_tokens", "outputPath"];
-    serverUtil.checkKeys(resObj, allowedKeys);
+    checkKeys(resObj, allowedKeys);
     resObj = filterObjectProperties(resObj, allowedKeys, false);
     return resObj;
 }

@@ -81,7 +81,7 @@ function isFilePath(str) {
 /**
  * for zip inside image and music files。把pathes按类拆分
  */
- module.exports.generateContentUrl = function (pathes, outputPath) {
+ module.exports.splitFilesByType = function (pathes, outputPath) {
     const files = [];
     const dirs = [];
     const musicFiles = [];
