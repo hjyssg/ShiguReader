@@ -52,6 +52,10 @@ module.exports.doAllSync  = async (sql, params) => {
     return await sqldb.allSync(sql, params);
 }
 
+module.exports.runSync  = async (sql, params) => {
+    return await sqldb.runSync(sql, params);
+}
+
 let sqldb;
 module.exports.init = async (skipDbClean)=> {
     const SQLWrapper = require("./SQLWrapper");

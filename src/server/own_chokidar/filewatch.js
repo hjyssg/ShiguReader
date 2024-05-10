@@ -49,6 +49,10 @@ async function fastFileIterate({filePath, db, shouldIgnoreForNormal}) {
     // 开始递归处理
     await processDirectory(filePath);
 
+    //  删除地址现有的全部data
+    await db.runSync("DELETE FROM file_table where filePath LIKE ?", [(filePath + '%')]);
+    await db.runSync("DELETE FROM tag_file_table where filePath LIKE ?", [(filePath + '%')]);
+
     // 所有文件处理完成后，批量插入数据库
     await db.batchInsert("file_table", insertion_cache.files);
     await db.batchInsert("tag_file_table", insertion_cache.tags);
