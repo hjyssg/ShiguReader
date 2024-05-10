@@ -403,6 +403,9 @@ async function printIP(){
     console.log("----------------------------------------------------------------");
 }
 
+/**
+* 查找thumbnail，同时判断是不是zip确实没有thumbnail
+*/
 async function getThumbnailsForZip(filePathes) {
     const isStringInput = _.isString(filePathes);
     if (isStringInput) {
@@ -411,13 +414,10 @@ async function getThumbnailsForZip(filePathes) {
 
     const thumbnails = {};
 
-    let end1 = getCurrentTime();
     let thumbRows = thumbnailDb.getThumbnailArr(filePathes);
     thumbRows.forEach(row => {
         thumbnails[row.filePath] = row.thumbnailFilePath;
     })
-    let end3 = getCurrentTime();
-    // console.log(`[getThumbnailsForZip] ${(end3 - end1) / 1000}s for ${filePathes.length} zips`);
 
     filePathes.forEach(filePath => {
         if (thumbnails[filePath]) {

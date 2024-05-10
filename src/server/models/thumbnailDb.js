@@ -55,23 +55,12 @@ module.exports.deleteThumbnail = function (filePath) {
 // }
 
 
-//multiple
+/**
+* 快速查找thumbnail
+*/
 module.exports.getThumbnailArr = function (filePathes) {
     filePathes = _.isString(filePathes) ? [filePathes] : filePathes;
-
     // 大量的时候，唯一快速查找的方法就是最简单的hashmap。sql怎么都不行。
-    // const joinStr = filePathes.join(" ");
-    //  slow for large number
-    // const sql = `SELECT * FROM  thumbnail_table WHERE INSTR(?, filePath) > 0`;
-    // let rows = await sqldb.allSync(sql, [joinStr]);
-    // 
-    // const promiseArr = filePathes.map(fp => {
-    //     const sql = `SELECT * FROM  thumbnail_table WHERE filePath = ?`;
-    //     return sqldb.getSync(sql, [fp]);
-    // })
-    // let rows =  await Promise.all(promiseArr);
-    // rows = rows.filter(e => !!e);
-
     let rows = filePathes.map(e => _internal_dict_[e]);
     rows = rows.filter(e => !!e);
     rows = _add_col(rows);
