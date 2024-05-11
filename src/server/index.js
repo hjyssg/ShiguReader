@@ -849,7 +849,8 @@ app.post('/api/getZipThumbnail', asyncWrapper(async (req, res) => {
     let url = await thumbnailUtil.getQuickThumbnailForZip(filePath);
     if(url){
         res.send({
-            url
+            url,
+            debug: "from getQuickThumbnailForZip"
         })
     }else{
         extractThumbnailFromZip(filePath, res);

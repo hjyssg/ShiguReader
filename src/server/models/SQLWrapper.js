@@ -18,6 +18,8 @@ class SQLWrapper extends sqlite3.Database {
         this.getSync = util.promisify(this.get).bind(this);
         this.runSync = util.promisify(this.run).bind(this);
         this.execSync = util.promisify(this.exec).bind(this);
+        this.getSync = util.promisify(this.get).bind(this);
+
 
         // sqldb.allSync = _util.promisify(sqldb.all).bind(sqldb);
         // sqldb.getSync = _util.promisify(sqldb.get).bind(sqldb);

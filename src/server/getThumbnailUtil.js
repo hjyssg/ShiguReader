@@ -15,7 +15,6 @@ const thumbnailDb = require("./models/thumbnailDb");
 const logger = require("./logger");
 
 
-
 /**
  * 找文件夹的thumbnail
  */
@@ -26,56 +25,60 @@ async function getThumbnailForFolders(filePathes) {
         return result;
     }
     // TODO 担心nextFilePathe很多的时候
+    let postfix = filePathes.length == 1 ? " LIMIT 1" : "";
 
-    function findOne(rows, filePath){
-        let findRow = null;
-        rows.forEach(row => {
-            if(!findRow){
-                if(isSub(filePath, row.filePath)){
-                    findRow = row;
-                }
+    function findThumbFromRows(rows, filePath){
+        for (let i = 0; i < rows.length; i++) {
+            if (isSub(filePath, rows[i].filePath)) {
+                return rows[i];
             }
-        })
-        return findRow;
+        }
     }
+
+    function getPatterns(filePathes){
+        const stringsToMatch = filePathes; // string array of values
+        let patterns = stringsToMatch.map(str => `${str}%`);
+        let placeholders = patterns.map(() => 'filePath LIKE ?').join(' OR ');
+        return [patterns, placeholders];
+    }
+    
 
     try{
         let beg = getCurrentTime();
+        const original_fps = filePathes.slice();
 
         // 先尝试从thumbnail db拿
-        // Q ask chatgpt: write a sql query that if column 'file' contains one of string array
-        const stringsToMatch = filePathes; // string array of values
-        const patterns = stringsToMatch.map(str => `${str}%`);
-        const placeholders = patterns.map(() => 'filePath LIKE ?').join(' OR ');
-        const sql = `
-            SELECT *
-            FROM thumbnail_table
-            WHERE ${placeholders} ORDER BY ROWID DESC
-        `;
-        const thumbnailRows = await db.doAllSync(sql, patterns);
-        let notFoundList = [];
-        filePathes.forEach(filePath => {
-            const findRow = findOne(thumbnailRows, filePath);
+        let [patterns, placeholders] = getPatterns(filePathes);
+        let sql = `
+            SELECT T.*, f.mTime FROM 
+            (SELECT *  FROM thumbnail_table WHERE ${placeholders} ) AS T 
+            LEFT JOIN file_table AS F ON f.filePath = t.filePath
+            ORDER BY f.mTime DESC
+            ${postfix}
+            `
+        thumbnailRows = await db.doAllSync(sql, patterns);
+        filePathes = filePathes.filter(filePath => {
+            const findRow = findThumbFromRows(thumbnailRows, filePath);
             if (findRow) {
                 result[filePath] = serverUtil.joinThumbnailFolderPath(findRow.thumbnailFileName);
             }else{
-                notFoundList.push(filePath);
+                return true;
             }
         })
-        
 
-        if(notFoundList.length > 0){
-            const stringsToMatch = notFoundList; // string array of values
-            const patterns = stringsToMatch.map(str => `${str}%`);
-            const placeholders = patterns.map(() => 'filePath LIKE ?').join(' OR ');
+
+        // 从image找出当image
+        if(filePathes.length > 0){
+            const [patterns, placeholders] = getPatterns(filePathes);
             const sql = `
                SELECT *
                FROM file_table
                WHERE isImage AND (${placeholders})
-               ORDER BY mTime DESC`;
+               ORDER BY mTime DESC
+               ${postfix}`;
             let imagerows = await db.doAllSync(sql, patterns);
-            notFoundList.forEach(filePath => {
-                const findRow = findOne(imagerows, filePath);
+            filePathes.forEach(filePath => {
+                const findRow = findThumbFromRows(imagerows, filePath);
                 if (findRow) {
                     console.assert(findRow.isImage);
                     result[filePath] = findRow.filePath;
@@ -84,7 +87,7 @@ async function getThumbnailForFolders(filePathes) {
         }
     
         let end = getCurrentTime();
-        // console.log(`[getThumbnailForFolders] ${(end - beg)}ms for ${filePathes.length} zips`);
+        console.log(`[getThumbnailForFolders] ${(end - beg)}ms for ${original_fps.length} zips`);
     }catch(e){
         logger.error("[getThumbnailForFolders]", e);
     }
@@ -104,6 +107,7 @@ async function getQuickThumbnailForZip(filePath){
         url = oneThumbnail;
     }else{
         // 先找到发过去再说
+        // TODO 但会导致不生成thumbnail了
         const fileName = path.basename(filePath);
         if(fileName.length > 10){ // 文件名太短了，很容易冲突
             const thumbRows = await thumbnailDb.getThumbnailByFileName(fileName);
