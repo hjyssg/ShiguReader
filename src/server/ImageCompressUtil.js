@@ -7,7 +7,7 @@ const logger = require("./logger");
 const { getCurrentTime } = util;
 const Jimp = require('jimp');
 
-/** 封装sharp和imagick */
+/** 封装sharp和imagick。对图片进行压缩 */
 async function doMinifyTempImage(inputFilePath, outputFilePath, height) {
     try {
         if (util.canBeCompressed(inputFilePath)) {
