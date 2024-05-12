@@ -258,7 +258,7 @@ export default class OneBook extends Component {
     this._handleKeyDown = this.handleKeyDown.bind(this);
     document.addEventListener('keydown', this._handleKeyDown);
 
-    if (this.hasMusic() || isMobile()) {
+    if (isMobile()) {
       return;
     }
 
