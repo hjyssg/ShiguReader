@@ -95,22 +95,12 @@ router.get('/api/getParseCache/', serverUtil.asyncWrapper(async (req, res) => {
 }));
 
 router.post('/api/allInfo', serverUtil.asyncWrapper(async (req, res) => {
-    let sql = `SELECT *  FROM file_table WHERE isDisplayableInExplorer `;
+    let sql = `SELECT filePath, size, mTime  FROM file_table WHERE isDisplayableInExplorer `;
     let rows = await db.doSmartAllSync(sql);
     const fileInfos = serverUtil.convertFileRowsIntoFileInfo(rows);
 
-    const nameParseCache = {};
-    _.keys(fileInfos).forEach(fp => {
-        const fn = path.basename(fp);
-        const temp = serverUtil.parse(fn);
-        if(temp){
-            nameParseCache[fn] = temp;
-        }
-    })
-
     res.send({
-        fileInfos,
-        nameParseCache
+        fileInfos
     });
 }));
 

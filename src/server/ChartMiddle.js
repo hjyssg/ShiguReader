@@ -20,43 +20,25 @@ const setToMidnight = (timestamp) => {
 const modifyDataForChart = (data) => {
     const filtererFiles = _.keys(data.fileInfos);
 
-    // comiket: number
-    const byComiket = _.countBy(filtererFiles, (e) => {
-        const result = serverUtil.parse(e);
-        if (result && result.comiket) {
-            let cc = result.comiket;
-            return cc.toUpperCase();
-        } else {
-            return "etc";
-        }
-    });
-
-    // type: number
-    const byType = _.countBy(filtererFiles, (e) => {
-        const result = serverUtil.parse(e);
-        if (result) {
-          return result.type;
-        } else {
-          return "UNKOWN";
-        }
-    });
+    
+    filtererFiles.forEach((e) => {
+        data.fileInfos[e]= data.fileInfos[e] || {};
+        data.fileInfos[e].fileName = path.basename(e, path.extname(e));
+    })
 
     // timestamp -> {fileSize, fileCount}
     // 初始化 byMTime 和 ByTagTime
     const byMTime = {};
     const ByTagTime = {};
     filtererFiles.forEach((e) => {
-        const fileInfo = data.fileInfos[e];
-
-        if(!fileInfo){
-            return;
-        }
+        const fileInfo = data.fileInfos[e] || {};
+        const fileName = fileInfo.fileName;
 
         // 文件大小
-        const fileSize = fileInfo.size;
+        const fileSize = fileInfo.size || 0;
         let mTime = setToMidnight(fileInfo.mtimeMs);
 
-        let tagTime = nameParser.getDateFromParse(path.basename(e, path.extname(e)));
+        let tagTime = nameParser.getDateFromParse(fileName);
         tagTime = tagTime && tagTime.getTime();
         tagTime = setToMidnight(tagTime) || mTime;
 
@@ -82,6 +64,31 @@ const modifyDataForChart = (data) => {
 
         ByTagTime[tagTime][type].fileSize += fileSize;
         ByTagTime[tagTime][type].fileCount += 1;
+    });
+
+    // comiket: number
+    const byComiket = _.countBy(filtererFiles, (e) => {
+        const fileInfo = data.fileInfos[e];
+        const fileName = fileInfo.fileName;
+        const result = nameParser.parse(fileName);
+        if (result && result.comiket) {
+            let cc = result.comiket;
+            return cc.toUpperCase();
+        } else {
+            return "etc";
+        }
+    });
+
+    // type: number
+    const byType = _.countBy(filtererFiles, (e) => {
+        const fileInfo = data.fileInfos[e];
+        const fileName = fileInfo.fileName;
+        const result = nameParser.parse(fileName);
+        if (result) {
+          return result.type;
+        } else {
+          return "UNKOWN";
+        }
     });
 
     clearObject(data);
