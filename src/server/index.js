@@ -119,6 +119,11 @@ app.use(express.static(rootPath, {
     maxAge: (1000 * 3600).toString() // uses milliseconds per docs
 }));
 
+
+const modifyResponseForChart = require('./ChartMiddle');
+// 将中间件应用到指定的 API 路由
+app.use(['/api/lsDir', '/api/search', '/api/allInfo'], modifyResponseForChart);
+
 //  to consume json request body
 //  https://stackoverflow.com/questions/10005939/how-do-i-consume-the-json-post-data-in-an-express-application
 // https://stackoverflow.com/questions/50304779/payloadtoolargeerror-request-entity-too-large?noredirect=1&lq=1
