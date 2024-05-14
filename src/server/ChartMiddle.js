@@ -8,6 +8,15 @@ const clearObject = (obj) => {
     Object.keys(obj).forEach(key => delete obj[key]);
 };
 
+const setToMidnight = (timestamp) => {
+    if(!timestamp){
+        return null;
+    }
+    const date = new Date(timestamp);
+    date.setHours(0, 0, 0, 0); // 将小时、分钟、秒和毫秒设置为 0
+    return date.getTime();
+};
+
 const modifyDataForChart = (data) => {
     const filtererFiles = _.keys(data.fileInfos);
 
@@ -45,11 +54,11 @@ const modifyDataForChart = (data) => {
 
         // 文件大小
         const fileSize = fileInfo.size;
-        let mTime = fileInfo.mtimeMs;
+        let mTime = setToMidnight(fileInfo.mtimeMs);
 
         let tagTime = nameParser.getDateFromParse(path.basename(e, path.extname(e)));
         tagTime = tagTime && tagTime.getTime();
-        tagTime = tagTime || fileInfo.mtimeMs;
+        tagTime = setToMidnight(tagTime) || mTime;
 
         // 判断文件类型
         let type = null;
