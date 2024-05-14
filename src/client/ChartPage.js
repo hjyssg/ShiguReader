@@ -1,5 +1,4 @@
 import React, { Component } from "react";
-import PropTypes from "prop-types";
 import "./style/ChartPage.scss";
 import Sender from "./Sender";
 import _ from "underscore";
@@ -14,6 +13,7 @@ import RadioButtonGroup from "./subcomponent/RadioButtonGroup";
 const { isVideo } = util;
 import Accordion from "./subcomponent/Accordion";
 const queryString = require("query-string");
+import { SimpleDataTable,  do_statitic_by_time_v2, getKeyAndValues } from "./ChartUtil"
 
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
 import {CategoryScale, LinearScale, BarElement, PointElement, LineElement, Title } from "chart.js";
@@ -48,54 +48,9 @@ function parse(str) {
   return nameParser.parse(getBaseName(str));
 }
 
-//@param filterFunction(key, value)
-function getKeyAndValues(keyToValueTable, filterFunction) {
-  const tempKeys = _.keys(keyToValueTable);
-  tempKeys.sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
-  const values = [];
-  let keys = [];
-  tempKeys.forEach((key) => {
-    const value = keyToValueTable[key];
 
-    if (filterFunction && !filterFunction(key, value)) {
-      return;
-    }
-    values.push(value);
-    keys.push(key);
-  });
 
-  return {
-    keys,
-    values,
-  };
-}
 
-function renderTable(labels, values) {
-  const tableHeader = (
-    <thead>
-      <tr>
-        <th scope="col">name</th>
-        <th scope="col">number</th>
-      </tr>
-    </thead>
-  );
-
-  const rows = labels.map((e, index) => {
-    return (
-      <tr key={index}>
-        <th scope="row">{e}</th>
-        <td>{values[index]}</td>
-      </tr>
-    );
-  });
-
-  return (
-    <table className="table aji-table">
-      {tableHeader}
-      <tbody>{rows}</tbody>
-    </table>
-  );
-}
 
 const VALUE_COUNT = "file number";
 const VALUE_FILESIZE = "file size in GB";
@@ -127,16 +82,18 @@ export default class ChartPage extends Component {
       body = {
         dir: this.getTextFromQuery(),
         isRecursive: this.isRecursive(),
+        forChart: true
       };
     } else if (mode) {
       api = "/api/search";
       body = {
         text: this.getTextFromQuery(),
         mode: mode,
+        forChart: true
       };
     } else {
       api = "/api/allInfo";
-      body = {};
+      body = { forChart: true };
     }
     const res = await Sender.postWithPromise(api, body);
     this.handleRes(res);
@@ -144,10 +101,7 @@ export default class ChartPage extends Component {
 
   handleRes(res) {
     if (!res.isFailed()) {
-      let { fileToInfo, fileInfos, nameParseCache={} } = res.json;
-      nameParser.setLocalCache(nameParseCache);
-      this.fileToInfo = fileInfos || fileToInfo || {};
-      this.files = _.keys(this.fileToInfo) || [];
+      this.data = res.json;
     }
     this.res = res;
     this.askRerender();
@@ -209,16 +163,6 @@ export default class ChartPage extends Component {
       return;
     }
 
-    const byComiket = _.countBy(filtererFiles, (e) => {
-      const result = parse(e);
-      if (result && result.comiket) {
-        let cc = result.comiket;
-        return cc.toUpperCase();
-      } else {
-        return "etc";
-      }
-    });
-
     const data = {};
     const filterFunction = (key, value) => {
       if (key === "etc") {
@@ -229,7 +173,7 @@ export default class ChartPage extends Component {
       }
       return true;
     };
-    let { values, keys } = getKeyAndValues(byComiket, filterFunction);
+    let { values, keys } = getKeyAndValues(this.data.byComiket, filterFunction);
     data.labels = keys;
 
     data.datasets = [
@@ -254,7 +198,7 @@ export default class ChartPage extends Component {
         }
     }
 
-    let tableData = getKeyAndValues(byComiket);
+    let tableData = getKeyAndValues(this.data.byComiket);
     //add big tag
     return (
       <div className="individual-chart-container">
@@ -263,7 +207,7 @@ export default class ChartPage extends Component {
         </div>
         <Accordion
           header="Toggle Table"
-          body={renderTable(tableData.keys, tableData.values)}
+          body={<SimpleDataTable labels={tableData.keys} values={tableData.values} />}
         />
       </div>
     );
@@ -271,48 +215,9 @@ export default class ChartPage extends Component {
 
   rendeTimeChart(filtererFiles) {
     const { timeType, valueType, timeSourceType } = this.state;
-    const byTime = {};
+    const type = this.isShowingVideoChart() ? "video" : "compress";
+    const byTime = do_statitic_by_time_v2(this.data.ByTagTime, this.data.byMTime, type, timeSourceType, valueType, timeType);
 
-    filtererFiles.forEach((e) => {
-      const fileInfo = this.fileToInfo[e];
-      //todo use choose use string time or only mtime
-      let aboutTimeA;
-      if (timeSourceType === BY_TAG_TIME) {
-        aboutTimeA = nameParser.getDateFromParse(getBaseName(e));
-        aboutTimeA = aboutTimeA && aboutTimeA.getTime();
-        aboutTimeA = aboutTimeA || fileInfo.mtimeMs;
-      } else {
-        aboutTimeA = fileInfo.mtimeMs;
-      }
-
-      const t = new Date(aboutTimeA);
-      const month = t.getMonth();
-      const quarter = Math.floor(month / 3) + 1;
-
-      let tLabel;
-      if (timeType === BY_DAY) {
-        tLabel = `${t.getFullYear()}-${t.getMonth() + 1}-${t.getDate()}`;
-      } else if (timeType === BY_QUARTER) {
-        tLabel = `${t.getFullYear()}-Q${quarter}`;
-      } else if (timeType === BY_MONTH) {
-        tLabel = `${t.getFullYear()}-${t.getMonth() + 1}`;
-      } else {
-        tLabel = t.getFullYear();
-      }
-
-      if (valueType === VALUE_COUNT) {
-        byTime[tLabel] = byTime[tLabel] || 0;
-        byTime[tLabel]++;
-      } else if (valueType === VALUE_FILESIZE) {
-        byTime[tLabel] = byTime[tLabel] || 0;
-        byTime[tLabel] += (fileInfo.size || 0) / 1024.0 / 1024.0 / 1024.0;
-        byTime[tLabel] = byTime[tLabel];
-      }
-    });
-
-    _.keys(byTime).forEach((key) => {
-      byTime[key] = byTime[key].toFixed(3);
-    });
 
     const data = {};
     const { values, keys } = getKeyAndValues(byTime);
@@ -385,15 +290,6 @@ export default class ChartPage extends Component {
       return;
     }
 
-    const byType = _.countBy(filtererFiles, (e) => {
-      const result = parse(e);
-      if (result) {
-        return result.type;
-      } else {
-        return "UNKOWN";
-      }
-    });
-
     const colors = [
       "rgba(255, 99, 132, 0.2)",
       "rgba(54, 162, 235, 0.2)",
@@ -404,7 +300,7 @@ export default class ChartPage extends Component {
     ];
 
     const data = {};
-    const { values, keys } = getKeyAndValues(byType);
+    const { values, keys } = getKeyAndValues(this.data.byType);
     data.labels = keys;
     data.datasets = [
       {
@@ -451,89 +347,23 @@ export default class ChartPage extends Component {
   }
 
   renderTotalSize(filtererFiles) {
-    let total = 0;
-    const files = filtererFiles;
-    const num = files.length;
-    files.forEach((e) => {
-      total += this.fileToInfo[e].size;
-    });
-    return (
-      <div className="total-info">
-        <div>{`There are ${num} ${this.state.fileType} files`}</div>
-        <div>{`Total: ${clientUtil.filesizeUitl(total)}`}</div>
-      </div>
-    );
+    // let total = 0;
+    // const files = filtererFiles;
+    // const num = files.length;
+    // files.forEach((e) => {
+    //   total += this.fileToInfo[e].size;
+    // });
+    // return (
+    //   <div className="total-info">
+    //     <div>{`There are ${num} ${this.state.fileType} files`}</div>
+    //     <div>{`Total: ${clientUtil.filesizeUitl(total)}`}</div>
+    //   </div>
+    // );
+
+    //TODO
+    console.log("TODO")
   }
 
-  // renderGoodBadDistribution() {
-  //     if (this.isShowingVideoChart()) {
-  //         return;
-  //     }
-
-  //     const { goodAuthors, otherAuthors } = this.state;
-  //     const data = {
-  //         labels: []
-  //     };
-  //     const segment = 0.05;
-
-  //     for (let ii = 0; ii < 1 / segment; ii++) {
-  //         data.labels.push((ii * segment));
-  //     }
-
-  //     if (goodAuthors && otherAuthors) {
-  //         let allAuthors = _.keys(goodAuthors).concat(_.keys(otherAuthors));
-  //         allAuthors = _.uniq(allAuthors);
-  //         let value = [];
-
-  //         allAuthors.forEach(aa => {
-  //             const good = goodAuthors[aa] || 0;
-  //             const other = otherAuthors[aa] || 0;
-  //             let pp = good / (good + other);
-  //             pp = pp.toFixed(2);
-
-  //             for (let ii = 0; ii < data.labels.length; ii++) {
-  //                 const segmentBeg = data.labels[ii];
-  //                 const segmentEnd = segmentBeg + segment;
-
-  //                 if (segmentBeg <= pp && pp < segmentEnd) {
-  //                     value[ii] = value[ii] || 0;
-  //                     value[ii]++;
-  //                     break;
-  //                 }
-  //             }
-  //         });
-
-  //         data.labels = data.labels.slice(1);
-  //         value = value.slice(1);
-  //         // console.log(value);
-
-  //         const opt = {
-  //             maintainAspectRatio: false,
-  //             legend: {
-  //                 position: "right"
-  //             }
-  //         };
-
-  //         data.datasets = [{
-  //             type: 'line',
-  //             label: 'good/(good+other) distribution',
-  //             backgroundColor: "#15c69a",
-  //             data: value,
-  //             fill: false,
-  //         }]
-
-  //         return (
-  //             <div className="individual-chart-container">
-  //                 <Line
-  //                     data={data}
-  //                     width={800}
-  //                     height={200}
-  //                     options={opt}
-  //                 />
-  //             </div>
-  //         );
-  //     }
-  // }
 
   onFileTypeChange(e) {
     this.setState({
@@ -595,19 +425,19 @@ export default class ChartPage extends Component {
       return <CenterSpinner />;
     } else if (this.isFailedLoading()) {
       return <ErrorPage res={this.res} />;
-    } else if (filtererFiles.length < too_few) {
-      return (
-        <div className="chart-container container">
-          {filePath}
-          {radioGroup}
-          <div className="alert alert-info" role="alert">
-            <div>
-              {`There are only ${filtererFiles.length} ${fileType} files.`}{" "}
-            </div>
-            <div>Unable to render chart</div>
-          </div>
-        </div>
-      );
+    // } else if (filtererFiles.length < too_few) {
+    //   return (
+    //     <div className="chart-container container">
+    //       {filePath}
+    //       {radioGroup}
+    //       <div className="alert alert-info" role="alert">
+    //         <div>
+    //           {`There are only ${filtererFiles.length} ${fileType} files.`}{" "}
+    //         </div>
+    //         <div>Unable to render chart</div>
+    //       </div>
+    //     </div>
+    //   );
     } else {
       return (
         <div className="chart-container container">
