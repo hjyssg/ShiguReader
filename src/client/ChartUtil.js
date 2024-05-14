@@ -121,3 +121,24 @@ export const SimpleDataTable = ({labels, values}) => {
       </table>
     );
   }
+
+export const calculateTotalFilesAndSize = (ByTagTime, type) => {
+    let totalFileCount = 0;
+    let totalFileSize = 0; // 以字节为单位
+
+    Object.keys(ByTagTime).forEach(timestamp => {
+        const data = ByTagTime[timestamp][type];
+        if(!data){
+            return;
+        }
+        totalFileCount += data.fileCount;
+        totalFileSize += data.fileSize;
+    });
+
+   
+
+    return {
+        totalFileCount,
+        totalFileSize
+    };
+};

@@ -13,7 +13,7 @@ import RadioButtonGroup from "./subcomponent/RadioButtonGroup";
 const { isVideo } = util;
 import Accordion from "./subcomponent/Accordion";
 const queryString = require("query-string");
-import { SimpleDataTable,  do_statitic_by_time_v2, getKeyAndValues } from "./ChartUtil"
+import { SimpleDataTable,  do_statitic_by_time_v2, getKeyAndValues, calculateTotalFilesAndSize } from "./ChartUtil"
 
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
 import {CategoryScale, LinearScale, BarElement, PointElement, LineElement, Title } from "chart.js";
@@ -34,8 +34,6 @@ ChartJS.register(
 
 import { Bar, Pie, Line } from "react-chartjs-2";
 
-
-
 const Constant = require("@common/constant");
 const { MODE_TAG, MODE_AUTHOR, MODE_SEARCH, MODE_EXPLORER } = Constant;
 
@@ -43,14 +41,6 @@ const BY_YEAR = "by year";
 const BY_QUARTER = "by quarter";
 const BY_MONTH = "by month";
 const BY_DAY = "by day";
-
-function parse(str) {
-  return nameParser.parse(getBaseName(str));
-}
-
-
-
-
 
 const VALUE_COUNT = "file number";
 const VALUE_FILESIZE = "file size in GB";
@@ -62,7 +52,7 @@ export default class ChartPage extends Component {
   constructor(prop) {
     super(prop);
     this.state = {
-      fileType: "compressed",
+      fileType: "compress",
       timeType: BY_YEAR,
       timeSourceType: BY_MTIME,
       valueType: VALUE_COUNT,
@@ -158,7 +148,7 @@ export default class ChartPage extends Component {
     return this.state.fileType === "video";
   }
 
-  renderComiketChart(filtererFiles) {
+  renderComiketChart() {
     if (this.isShowingVideoChart()) {
       return;
     }
@@ -213,11 +203,9 @@ export default class ChartPage extends Component {
     );
   }
 
-  rendeTimeChart(filtererFiles) {
+  rendeTimeChart() {
     const { timeType, valueType, timeSourceType } = this.state;
-    const type = this.isShowingVideoChart() ? "video" : "compress";
-    const byTime = do_statitic_by_time_v2(this.data.ByTagTime, this.data.byMTime, type, timeSourceType, valueType, timeType);
-
+    const byTime = do_statitic_by_time_v2(this.data.ByTagTime, this.data.byMTime, this.state.fileType, timeSourceType, valueType, timeType);
 
     const data = {};
     const { values, keys } = getKeyAndValues(byTime);
@@ -353,15 +341,17 @@ export default class ChartPage extends Component {
     // files.forEach((e) => {
     //   total += this.fileToInfo[e].size;
     // });
-    // return (
-    //   <div className="total-info">
-    //     <div>{`There are ${num} ${this.state.fileType} files`}</div>
-    //     <div>{`Total: ${clientUtil.filesizeUitl(total)}`}</div>
-    //   </div>
-    // );
+    const  { totalFileCount, totalFileSize } = calculateTotalFilesAndSize(this.data.ByTagTime, this.state.fileType)
+
+    return (
+      <div className="total-info">
+        <div>{`There are ${totalFileCount} ${this.state.fileType} files`}</div>
+        <div>{`Total: ${clientUtil.filesizeUitl(totalFileSize)}`}</div>
+      </div>
+    );
 
     //TODO
-    console.log("TODO")
+    // console.log("TODO")
   }
 
 
@@ -393,9 +383,8 @@ export default class ChartPage extends Component {
     document.title = "Chart";
     const too_few = 5; // 30;
 
-    const FILE_OPTIONS = ["video", "compressed"];
+    const FILE_OPTIONS = ["video", "compress"];
 
-    const filtererFiles = this.getFilterFiles();
     const { fileType } = this.state;
     const mode = this.getMode();
 
@@ -443,13 +432,12 @@ export default class ChartPage extends Component {
         <div className="chart-container container">
           {filePath}
           {radioGroup}
-          {this.renderTotalSize(filtererFiles)}
+          {this.renderTotalSize()}
 
-          {this.rendeTimeChart(filtererFiles)}
-          {this.renderComiketChart(filtererFiles)}
+          {this.rendeTimeChart()}
+          {this.renderComiketChart()}
 
-          {this.renderPieChart(filtererFiles)}
-          {/* {this.renderGoodBadDistribution(filtererFiles)} */}
+          {this.renderPieChart()}
         </div>
       );
     }
