@@ -91,6 +91,8 @@
     object-fit: cover;
   }
 
+
+
   .mobile-one-book-container {
     width: 100%;
 
@@ -165,18 +167,7 @@
     }
   }
 
-  $font_size_icon: 1.6rem;
-
-  .one-book-toolbar {
-    width: 200px;
-
-    .tool-bar-row {
-      .fas,
-      .fa {
-        font-size: $font_size_icon;
-      }
-    }
-  }
+  $font_size_icon: 1.4rem;
 
   .one-book-file-stat {
     color: $font_color_white_one;
@@ -200,9 +191,6 @@
 
   .one-book-second-toolbar {
     @include flex_center_display;
-    margin-top: 5px;
-    margin-bottom: 5px;
-
     div:first-child {
       margin-right: 30px;
     }
@@ -223,6 +211,7 @@
   flex-direction: column;
   @include flex_center_display;
   font-size: 14px;
+  gap: 8px;
 
   .small-box {
     flex-direction: row;
@@ -244,10 +233,10 @@
   margin-right: 10px;
   @include flex_center_display;
   flex-direction: column;
+  display: flex;
 
   a {
     line-height: 1em;
-    height: 2em;
     max-width: 650px;
     color: $font_color_white_one !important;
   }
@@ -308,11 +297,12 @@
 
 .one-book-overview-path {
   a {
-    font-size: 20px;
+    font-size: 15px;
   }
-  a:not(:last-child) {
-    margin-right: 30px;
-  }
+
+  display: flex;
+  justify-content: center;
+  gap: 14px;
 }
 
 .one-book-video-container {

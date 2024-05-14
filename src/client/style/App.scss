@@ -63,19 +63,20 @@ a {
 
   .app-top-topnav {
     overflow: hidden;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
 
-    @media screen and (max-width: 980px) {
-      margin-bottom: 20px;
-    }
 
     .app-page-links {
-      float: left;
       display: inline-flex;
 
       a {
-        display: block;
+        display: flex;
+        justify-content: center;
+        align-items: center;
         text-align: center;
-        padding: 14px 16px;
+        padding: 12px 12px;
         text-decoration: none;
         font-size: 15px;
 
@@ -92,17 +93,12 @@ a {
     }
 
     .search-bar {
-      @media screen and (min-width: 1000px) {
-        float: right;
-        margin-bottom: 10px;
-      }
-
       display: inline-flex;
+      padding-top: 8px;
 
       .search-input {
         padding: 6px;
         border: none;
-        margin-top: 8px;
         font-size: 17px;
         border-radius: 2px;
         width: 350px;
@@ -110,7 +106,6 @@ a {
 
       .filter-button,
       .search-button {
-        margin-top: 8px;
         cursor: pointer;
         border-radius: 0px;
         @include flex_center_display;
@@ -128,14 +123,6 @@ a {
       .search-button {
         border-right: 1px $border-color-black solid;
         border-left: 1px $border-color-black solid;
-      }
-    }
-
-    @media screen and (max-width: 600px) {
-
-      .app-page-links,
-      .search-bar {
-        float: none;
       }
     }
   }
@@ -215,7 +202,7 @@ a {
 }
 
 .history-section {
-  margin-top: 20px;
+  // margin-top: 20px;
   color: $font_color_white_one;
 
   .history-ellipsis {
@@ -223,6 +210,33 @@ a {
     font-size: 1.5rem;
     &:hover {
       @include third_hover_effect;
+    }
+  }
+
+  .history-section-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+}
+
+.vertical-gap-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+}
+
+.tool-bar-row {
+  &.only-one-row {
+    gap: 8px;
+    margin-top: unset;
+    margin-bottom: unset;
+
+    .fas,
+    .fa {
+      font-size: 16px;
     }
   }
 }

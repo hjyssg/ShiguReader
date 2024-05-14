@@ -31,7 +31,7 @@ function HistorySection(props){
   } else {
       items = history.map((e, ii) => {
           const key = e.time + "_" + ii;
-          return <div key={key}>{clientUtil.dateFormat_v1(e.time) }</div>
+          return <div key={key} className='history-item'>{clientUtil.dateFormat_v1(e.time) }</div>
       });
 
       if(items.length > 10 && collapse){

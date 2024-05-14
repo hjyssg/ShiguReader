@@ -661,7 +661,7 @@ export default class OneBook extends Component {
     event.preventDefault();
   }
 
-  renderOverviewLink() {
+  renderLinkRow() {
     if (!this.state.path) {
       return;
     }
@@ -719,6 +719,7 @@ export default class OneBook extends Component {
       className="one-book-toolbar"
       file={this.state.path}
       popPosition={"top-center"}
+      returnButtonOnly={true}
       onNewPath={this.onNewPath.bind(this)} />;
     return toolbar;
   }
@@ -865,7 +866,7 @@ export default class OneBook extends Component {
     const bookTitle = (<div className="one-book-title" >
       <FileNameDiv mecab_tokens={mecab_tokens} filename={getBaseName(this.state.path)} />
       {this.renderPath()}
-    </div>);
+      </div>);
 
     if (_.isEmpty(imageFiles) && _.isEmpty(musicFiles) && _.isEmpty(videoFiles)) {
       if (this.res && !this.res.isFailed()) {
@@ -910,16 +911,20 @@ export default class OneBook extends Component {
     return (
       <div className="one-book-container">
         {content}
-        {bookTitle}
-        {this.renderPagination()}
-        {this.renderFileSizeAndTime()}
-        {this.renderTags()}
-        {this.renderToolbar()}
+        <div className='vertical-gap-container'>
+            {bookTitle}
+            {this.renderPagination()}
+            {this.renderFileSizeAndTime()}
+            {this.renderTags()}
+            {this.renderToolbar()}
+            {this.renderSecondBar()}
+            {this.renderLinkRow()}
+            <HistorySection filePath={this.state.path} />
+        </div>
+
         {this.renderNextPrevButton()}
-        {this.renderSecondBar()}
-        {this.renderOverviewLink()}
+
         {/* {this.renderEhentaiTag()} */}
-        <HistorySection filePath={this.state.path} />
       </div>
     );
   }
