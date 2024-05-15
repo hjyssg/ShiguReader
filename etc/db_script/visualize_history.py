@@ -5,7 +5,7 @@ import os
 
 # 连接数据库
 script_dir = os.path.dirname(os.path.realpath(__file__))
-db_path = os.path.join(script_dir, '../workspace/shigureader_internal_db.sqlite')
+db_path = os.path.join(script_dir, '../../workspace/shigureader_internal_db.sqlite')
 conn = sqlite3.connect(db_path)
 query = """
     -- 使用 WITH 子句定义一个名为 unique_visits 的临时视图
