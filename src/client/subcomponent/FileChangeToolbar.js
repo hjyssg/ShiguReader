@@ -607,6 +607,7 @@ export default class FileChangeToolbar extends Component {
                     {this.renderDeleteButton()}
                     {secondRow}
                 </div>
+                {this.renderMoveModal()}
             </div>)
         }else{
             return (
