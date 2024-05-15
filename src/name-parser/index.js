@@ -165,7 +165,7 @@ function getDateFromStr(str) {
             return undefined;
         } else if (d < 1 || d > 31) {
             return undefined;
-        }if (y > currentYear + 2){
+        }if (y > currentYear + 2 || y < 1970){
             return undefined;
         }
 
