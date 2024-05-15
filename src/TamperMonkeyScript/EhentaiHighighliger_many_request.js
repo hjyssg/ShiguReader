@@ -141,17 +141,13 @@ async function highlightEhentaiThumbnail() {
                 addTooltip(thumbnailNode, `下载同样作者“${rr.author}”的书 ${fns.length}次`, fns, "same_author")
             }
 
-            if (status) {
-                if (rr) {
-                    appendLink(e, rr.author);
-                    if (status >= LIKELY_IN_PC) {
-                        appendLink(e, rr.title);
-                    }
-                } else {
-                    appendLink(e, text);
-                }
-                subNode.style.fontWeight = 600;
+            if (rr) {
+                appendLink(e, rr.author);
+                appendLink(e, rr.title);
+            } else {
+                appendLink(e, text);
             }
+            subNode.style.fontWeight = 600;
         } catch (e) {
             console.error(e);
         }
@@ -215,7 +211,7 @@ function appendLink(fileTitleDom, text, asIcon) {
     if (asIcon) {
         link.textContent = "🔍";
     } else {
-        link.textContent = `Search ${text} in ShiguReader`;
+        link.textContent = `Search ${text} in PC`;
     }
 
     link.style.display = "block";
