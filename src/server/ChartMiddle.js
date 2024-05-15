@@ -39,7 +39,6 @@ const modifyDataForChart = (data) => {
         let mTime = setToMidnight(fileInfo.mtimeMs);
 
         let tagTime = nameParser.getDateFromParse(fileName);
-        tagTime = tagTime && tagTime.getTime();
         tagTime = setToMidnight(tagTime) || mTime;
 
         // 判断文件类型
