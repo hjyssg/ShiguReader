@@ -39,6 +39,8 @@ class ExpressServerGUI:
         self.server_process = None
         self.log_thread = None
 
+        self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
+
     def create_widgets(self):
         frame = tk.Frame(self.root, padx=20, pady=10)
         frame.pack(fill='x')
@@ -152,6 +154,10 @@ class ExpressServerGUI:
         self.btn_start.config(state='normal')
         self.btn_stop.config(state='disabled')
         messagebox.showinfo("Server", "Server has been stopped")
+    
+    def on_closing(self):
+        self.stop_server()
+        self.root.destroy()
 
 if __name__ == "__main__":
     root = tk.Tk()
