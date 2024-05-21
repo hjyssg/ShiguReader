@@ -5,16 +5,16 @@ import threading
 import os
 import sys
 import ctypes
+import configparser
 
+
+SETTING_Cache_FN = 'settings-cache.ini'
 
 def get_executable_path():
     if getattr(sys, 'frozen', False):
-        # 如果是打包后的可执行文件
         executable_path = sys.executable
     else:
-        # 如果是脚本文件
         executable_path = os.path.abspath(__file__)
-    
     return executable_path
 
 class ExpressServerGUI:
@@ -22,17 +22,18 @@ class ExpressServerGUI:
         self.root = root
         self.root.title("ShiguReader启动器")
 
-         # 设置窗口图标
+        # 设置窗口图标
         icon_path = os.path.join(get_executable_path(), "..", 'favicon-96x96.png')
         self.root.iconbitmap(icon_path)
-        # 确保任务栏图标也设置
         if sys.platform == "win32":
             ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(u"mycompany.myproduct.subproduct.version")
             self.root.iconbitmap(icon_path)
 
-        self.skip_scan = tk.BooleanVar(value=True)
+        self.skip_scan = tk.BooleanVar()
         self.skip_db_clean = tk.BooleanVar()
         self.port = tk.StringVar(value="3000")
+
+        self.load_settings()
 
         self.create_widgets()
 
@@ -57,7 +58,6 @@ class ExpressServerGUI:
         self.port_entry = tk.Entry(port_frame, textvariable=self.port, width=10)
         self.port_entry.pack(side='left', padx=5)
 
-        # 添加提醒用户修改 config-path.ini 的提示
         warning_label = tk.Label(frame, text="初次使用记得修改config-path.ini 文件", fg="#cc3300")
         warning_label.pack(anchor='w', pady=2)
 
@@ -84,29 +84,20 @@ class ExpressServerGUI:
 
         options.append("--port")
         options.append(self.port.get())
-
-        # 始终传入 --print-qr-code 参数并设置为 false
-        # options.append("--print-qr-code=false")
         options.append("--print-qr-code")
         options.append("false")
 
-
         pp = get_executable_path()
         script_dir = os.path.dirname(pp)
-         # Check if an executable exists in the script directory
-
-        # TODO pyinstaller完下面这个不对
         exe_file = os.path.join(script_dir, "ShiguReader_Backend.exe")
         if os.path.exists(exe_file):
             cmd = [exe_file] + options
         else:
-            # Check for the Node.js script if the executable is not found
             server_script_path = os.path.join(script_dir, "..", "src", "server", "index.js")
             if not os.path.exists(server_script_path):
                 messagebox.showwarning("Warning", "Server script not found at path: " + server_script_path)
                 return
             cmd = ["node", server_script_path] + options
-
 
         self.server_process = subprocess.Popen(
             cmd,
@@ -122,7 +113,11 @@ class ExpressServerGUI:
         self.btn_start.config(state='disabled')
         self.btn_stop.config(state='normal')
 
-        # Display server URL
+        # 清空log
+        self.log_text.config(state='normal')
+        self.log_text.delete(1.0, tk.END)
+        self.log_text.config(state='disabled')
+
         self.display_server_url(f"http://localhost:{self.port.get()}")
 
     def read_log(self):
@@ -153,11 +148,30 @@ class ExpressServerGUI:
 
         self.btn_start.config(state='normal')
         self.btn_stop.config(state='disabled')
-        messagebox.showinfo("Server", "Server has been stopped")
+        self.append_log("\n\n\nServer has been stopped\n")
     
     def on_closing(self):
         self.stop_server()
+        self.save_settings()
         self.root.destroy()
+
+    def load_settings(self):
+        config = configparser.ConfigParser()
+        config.read(SETTING_Cache_FN)
+        if 'Settings' in config:
+            self.skip_scan.set(config.getboolean('Settings', 'skip_scan', fallback=True))
+            self.skip_db_clean.set(config.getboolean('Settings', 'skip_db_clean', fallback=False))
+            self.port.set(config.get('Settings', 'port', fallback="3000"))
+
+    def save_settings(self):
+        config = configparser.ConfigParser()
+        config['Settings'] = {
+            'skip_scan': self.skip_scan.get(),
+            'skip_db_clean': self.skip_db_clean.get(),
+            'port': self.port.get()
+        }
+        with open(SETTING_Cache_FN, 'w') as configfile:
+            config.write(configfile)
 
 if __name__ == "__main__":
     root = tk.Tk()
