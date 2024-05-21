@@ -6,6 +6,7 @@ import os
 import sys
 import ctypes
 import configparser
+from tkinter import scrolledtext 
 
 
 SETTING_Cache_FN = 'settings-cache.ini'
@@ -64,7 +65,7 @@ class ExpressServerGUI:
         self.btn_start = tk.Button(frame, text="Start Server", command=self.start_server)
         self.btn_start.pack(pady=10, anchor='w')
 
-        self.log_text = tk.Text(self.root, state='disabled', height=15, width=80)
+        self.log_text = scrolledtext.ScrolledText(self.root, state='disabled', height=15, width=80,  wrap=tk.WORD)
         self.log_text.pack(pady=10, padx=20, fill='x')
 
         url_frame = tk.Frame(self.root, padx=20, pady=5)

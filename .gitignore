@@ -37,3 +37,4 @@ shigureader_internal_db.sqlite
 /GUI/SGR_Launch.exe
 /SGR_Launch.exe.spec
 /settings-cache.ini
+/GUI/settings-cache.ini
