@@ -81,13 +81,16 @@ program
     .option('-p, --port <number>', 'Specify the port',  portConfig.default_http_port)
     .option('--skip-scan', 'skip initial scan for startup fasted', false)
     .option('--skip-cache-clean', 'skip initial cache clean', false)
-    .option('--skip-db-clean', '[Advanced Feature] skip clean previous file_table db record', false);
+    .option('--skip-db-clean', '[Advanced Feature] skip clean previous file_table db record', false)
+    .option('--print-qr-code [boolean]', '', true);
+
 program.parse(process.argv);
 const options = program.opts();
 const port = _.isString(options.port)? parseInt(options.port): options.port; // 懒得细看commander，不是最正确写法
 const skipScan = options.skipScan;
 const skipCacheClean = options.skipCacheClean;
 const skipDbClean = options.skipDbClean;
+const printQrCode = options.printQrCode === "false" ? false : options.printQrCode;
 // console.log("port: ", port);
 // console.log("skipScan: ", skipScan);
 // console.log("skipCacheClean: ", skipCacheClean);
@@ -390,10 +393,13 @@ async function printIP(){
     console.log(`http://localhost:${port}`);
 
     try {
-        const ip = await getIP();
-        console.log(ip);
-        console.log("Scan the QR code to open on mobile devices");
-        qrcode.generate(ip);
+        if(printQrCode){
+
+            const ip = await getIP();
+            console.log(ip);
+            console.log("Scan the QR code to open on mobile devices");
+            qrcode.generate(ip);
+        }
     } catch (e) { 
         //nothing
     }

@@ -4,11 +4,31 @@ import subprocess
 import threading
 import os
 import sys
+import ctypes
+
+
+def get_executable_path():
+    if getattr(sys, 'frozen', False):
+        # 如果是打包后的可执行文件
+        executable_path = sys.executable
+    else:
+        # 如果是脚本文件
+        executable_path = os.path.abspath(__file__)
+    
+    return executable_path
 
 class ExpressServerGUI:
     def __init__(self, root):
         self.root = root
         self.root.title("ShiguReader启动器")
+
+         # 设置窗口图标
+        icon_path = os.path.join(get_executable_path(), "..", 'favicon-96x96.png')
+        self.root.iconbitmap(icon_path)
+        # 确保任务栏图标也设置
+        if sys.platform == "win32":
+            ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(u"mycompany.myproduct.subproduct.version")
+            self.root.iconbitmap(icon_path)
 
         self.skip_scan = tk.BooleanVar(value=True)
         self.skip_db_clean = tk.BooleanVar()
@@ -69,7 +89,8 @@ class ExpressServerGUI:
         options.append("false")
 
 
-        script_dir = os.path.dirname(os.path.abspath(__file__))
+        pp = get_executable_path()
+        script_dir = os.path.dirname(pp)
          # Check if an executable exists in the script directory
 
         # TODO pyinstaller完下面这个不对
@@ -90,7 +111,7 @@ class ExpressServerGUI:
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             text=True,
-            # creationflags=subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0
+            creationflags=subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0
         )
 
         self.log_thread = threading.Thread(target=self.read_log)
