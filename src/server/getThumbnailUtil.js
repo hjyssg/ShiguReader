@@ -87,7 +87,7 @@ async function getThumbnailForFolders(filePathes) {
         }
     
         let end = getCurrentTime();
-        console.log(`[getThumbnailForFolders] ${(end - beg)}ms for ${original_fps.length} zips`);
+        // console.log(`[getThumbnailForFolders] ${(end - beg)}ms for ${original_fps.length} zips`);
     }catch(e){
         logger.error("[getThumbnailForFolders]", e);
     }
