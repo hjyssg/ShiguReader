@@ -274,10 +274,10 @@ const minifyFolder = module.exports.minifyFolder = async function (filePath) {
                 // 逐张判断有用语法
                 if (reducePercentage < userful_percent || newStat.size < 1000) {
                     // 压缩跟没压缩一样就删掉
-                    await trash([outputfp]);
+                    await deleteThing(outputfp);
                 } else {
                     //delete input file
-                    await trash([inputFp]);
+                    await deleteThing(inputFp);
                     //rename output to input file
                     let err = await pfs.rename(outputfp, inputFp);
                     if (err) { throw err; }
@@ -294,5 +294,16 @@ const minifyFolder = module.exports.minifyFolder = async function (filePath) {
     logger.info("size reduce ", filesizeUitl(saveSpace, { base: 2 }));
     return {
         saveSpace
+    }
+}
+
+async function deleteThing(src) {
+    const convertSpace = getImgConverterCachePath();
+    if (src.includes(convertSpace)) {
+        // 处于缓存文件夹的直接删除就好了
+        const err = await pfs.unlink(src)
+        if (err) { throw err; }
+    } else {
+        await trash([src]);
     }
 }
