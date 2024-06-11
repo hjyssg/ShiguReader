@@ -42,10 +42,10 @@ config.oversized_image_size = 4;
 
 //压缩图片的时候用的参数 传给magick用的
 //magick compress output quality for huge file
-config.img_convert_quality = 60;
+config.img_convert_quality = 75;
 
 //magick compress output quality for middle-size file
-config.img_convert_quality_for_middle_size_file = 70;
+config.img_convert_quality_for_middle_size_file = 80;
 
 //超过这个大小，再转换的时候同时压低分辨率。
 //现在太多漫画，扫描出来一来4000*6000。完全没有必要
