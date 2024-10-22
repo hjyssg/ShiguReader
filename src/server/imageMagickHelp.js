@@ -18,7 +18,6 @@ const filesizeUitl = require('filesize');
 const rimraf = require("./rimraf");
 
 const serverUtil = require("./serverUtil");
-const { getStatAndUpdateDB } = serverUtil.common;
 
 let { img_convert_quality, img_convert_dest_type,
     img_convert_huge_threshold, img_reduce_resolution_dimension,
@@ -33,17 +32,28 @@ function logFail(filePath, e) {
 }
 
 global._has_magick_ = false;
+let magick_cmd = "magick";
 module.exports.init = function(){
-    execa("magick --version")
-    .then((std) => {
-        global._has_magick_ = true;
-     })
-    .catch(e => {
-        logger.warn("[Warning]Did not install ImageMagic.")
-        logger.warn("https://imagemagick.org")
-        logger.warn("Highly Recommend. It is used to create thumbnail and reduce image size")
-        logger.warn("----------------------------------------------------------------");
-    });
+    if (global.isWindows) {
+        try{
+            magick_cmd = path.join(pathUtil.getRootPath(), "resource", "imagemagick", "magick.exe");
+            global._has_magick_ = true;
+        }catch{
+            logger.error("[ERROR] no magick on windows");
+        }
+        // console.log("sevenZipPath", sevenZipPath);
+    } else {
+        execa("magick --version")
+        .then((std) => {
+            global._has_magick_ = true;
+         })
+        .catch(e => {
+            logger.warn("[Warning]Did not install ImageMagic.")
+            logger.warn("https://imagemagick.org")
+            logger.warn("Highly Recommend. It is used to create thumbnail and reduce image size")
+            logger.warn("----------------------------------------------------------------");
+        });
+    }
 }
 
 
@@ -58,14 +68,14 @@ async function convertImage(imgFilePath, outputImgPath, oldImgSize) {
             opt = [imgFilePath, "-strip", "-quality", img_convert_quality_for_middle_size_file, outputImgPath];
         }
 
-        let { stdout, stderr } = await execa("magick", opt);
+        let { stdout, stderr } = await execa(magick_cmd, opt);
         return { stdout, stderr };
     } catch (e) {
         logFail("[convertImage]", e);
     }
 }
 
-module.exports.isConertable = async function (filePath) {
+module.exports.isConvertable = async function (filePath) {
     if (!global._has_magick_) {
         return "No magick installed";
     }
@@ -126,7 +136,7 @@ async function moveSubfolderContentsToParent(parentDir) {
 module.exports.minifyOneFile = async function (filePath) {
     let extractOutputPath;
     try {
-        const oldStat = await getStatAndUpdateDB(filePath);
+        const oldStat = await serverUtil.common.getStatAndUpdateDB(filePath);
         const oldTemp = await listZipContentAndUpdateDb(filePath);
         const oldFiles = oldTemp.files;
 
@@ -259,15 +269,15 @@ const minifyFolder = module.exports.minifyFolder = async function (filePath) {
             if (isImgConvertable(inputFp, oldSize)) {
                 await convertImage(inputFp, outputfp, oldSize);
 
-                const newStat = await getStatAndUpdateDB(outputfp);
+                const newStat = await serverUtil.common.getStatAndUpdateDB(outputfp);
                 const reducePercentage = (100 - newStat.size / oldSize * 100).toFixed(2);
                 // 逐张判断有用语法
                 if (reducePercentage < userful_percent || newStat.size < 1000) {
                     // 压缩跟没压缩一样就删掉
-                    await trash([outputfp]);
+                    await deleteThing(outputfp);
                 } else {
                     //delete input file
-                    await trash([inputFp]);
+                    await deleteThing(inputFp);
                     //rename output to input file
                     let err = await pfs.rename(outputfp, inputFp);
                     if (err) { throw err; }
@@ -284,5 +294,16 @@ const minifyFolder = module.exports.minifyFolder = async function (filePath) {
     logger.info("size reduce ", filesizeUitl(saveSpace, { base: 2 }));
     return {
         saveSpace
+    }
+}
+
+async function deleteThing(src) {
+    const convertSpace = getImgConverterCachePath();
+    if (src.includes(convertSpace)) {
+        // 处于缓存文件夹的直接删除就好了
+        const err = await pfs.unlink(src)
+        if (err) { throw err; }
+    } else {
+        await trash([src]);
     }
 }

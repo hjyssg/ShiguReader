@@ -7,7 +7,6 @@ const userConfig = require("../config/user-config");
 
 // const fs = require('fs');
 const _ = require('underscore');
-// const ini = require('ini');
 
 const logger = require("./logger");
 const { isImage, isMusic, isVideo, isDisplayableInOnebook } = util;
@@ -82,7 +81,7 @@ function isFilePath(str) {
 /**
  * for zip inside image and music files。把pathes按类拆分
  */
- module.exports.generateContentUrl = function (pathes, outputPath) {
+ module.exports.splitFilesByType = function (pathes, outputPath) {
     const files = [];
     const dirs = [];
     const musicFiles = [];
@@ -280,37 +279,48 @@ const getExt = module.exports.getExt = function (p) {
  * not accurate, but performance is good. access each file is very slow 
  * 根据有无后缀快速判断估算是不是文件夹。没有才可能是文件
  */
-const estimateIfFolder = module.exports.estimateIfFolder = function(filePath){
+module.exports.estimateIfFolder = function(filePath){
    const ext = getExt(filePath);
    return !ext 
 }
 
 /**
- * 递归文件夹，结果存在resultArr
+ * 遍历文件夹，过滤一些没必要的东西。
  */
-const readdirRecursive = module.exports.readdirRecursive = async (filePath, resultArr) => {
-    let pathes = await pfs.readdir(filePath);
-    pathes = pathes.map(e => path.resolve(filePath, e));
+module.exports.readDirForFileAndFolder = async (filePath, isRecursive) => {
+    // Helper function to filter out hidden or forbidden files
+    const isValidFile = (fp) => !isHiddenFile(fp) && !isForbid(fp);
 
-    for(let ii = 0; ii < pathes.length; ii++){
-        try{
-                const fp = pathes[ii];
-                if(isHiddenFile(fp) || isForbid(fp)){
-                    continue;
+    const dirPathes = [];
+    const filePathes = [];
+
+    async function traverseDirectory(currentPath) {
+        let entries = await pfs.readdir(currentPath, { withFileTypes: true });
+        for (const entry of entries) {
+            const fullPath = path.resolve(currentPath, entry.name);
+            if (!isValidFile(fullPath)) {
+                continue;
+            }
+            const isFolder = entry.isDirectory();
+
+            if (isDisplayableInOnebook(fullPath) || util.isDisplayableInExplorer(fullPath) || isFolder) {
+                if(isFolder){
+                    dirPathes.push(fullPath);
+                } else {
+                    filePathes.push(fullPath);
                 }
-                if(isDisplayableInOnebook(fp)){
-                    resultArr.push(fp)
-                }else if(estimateIfFolder(fp)){
-                    const stat = await pfs.stat(filePath);
-                    if(stat.isDirectory()){
-                        await readdirRecursive(fp, resultArr);
-                    }
-                }
-        }catch(e){
-            logger.error("readdirRecursive", e);
+            }
+
+            if (isFolder && isRecursive) {  // Only recurse if isRecursive is true
+                await traverseDirectory(fullPath);
+            }  
         }
     }
-}
+
+    await traverseDirectory(filePath);
+    return {pathes: [...dirPathes, ...filePathes], dirPathes, filePathes};
+};
+
 
 /*
 * 单层读取文件

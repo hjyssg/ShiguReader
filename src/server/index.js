@@ -7,7 +7,6 @@ const _ = require('underscore');
 const qrcode = require('qrcode-terminal');
 const ini = require('ini');
 const chokidar = require('chokidar');
-const { pathEqual } = require('path-equal');
 
 
 global.isWindows = require('is-windows')();
@@ -19,13 +18,14 @@ const execa = require('./own_execa');
 const userConfig = global.requireUserConfig();
 const util = global.requireUtil();
 
-const fileiterator = require('./file-iterator');
 const pathUtil = require("./pathUtil");
 pathUtil.init();
 const serverUtil = require("./serverUtil");
 const { getHash, mkdirSync, asyncWrapper } = serverUtil;
+const filewatch = require("./own_chokidar/filewatch");
+const thumbnailUtil = require("./getThumbnailUtil");
 
-const { isHiddenFile, generateContentUrl, isExist, filterPathConfig, isSub, estimateIfFolder } = pathUtil;
+const { isHiddenFile, splitFilesByType, isExist, filterPathConfig, isSub, estimateIfFolder } = pathUtil;
 const { isImage, isCompress, isVideo, isMusic, 
     getCurrentTime, isDisplayableInExplorer, isDisplayableInOnebook } = util;
 
@@ -80,15 +80,22 @@ const { program } = require('commander');
 program
     .option('-p, --port <number>', 'Specify the port',  portConfig.default_http_port)
     .option('--skip-scan', 'skip initial scan for startup fasted', false)
-    .option('--skip-cache-clean', 'skip initial cache clean', false);
+    .option('--skip-cache-clean', 'skip initial cache clean', false)
+    .option('--skip-db-clean', '[Advanced Feature] skip clean previous file_table db record', false)
+    .option('--print-qr-code [boolean]', '', true);
+
 program.parse(process.argv);
 const options = program.opts();
 const port = _.isString(options.port)? parseInt(options.port): options.port; // 懒得细看commander，不是最正确写法
 const skipScan = options.skipScan;
 const skipCacheClean = options.skipCacheClean;
-console.log("port: ", port);
-console.log("skipScan: ", skipScan);
-console.log("skipCacheClean: ", skipCacheClean);
+const skipDbClean = options.skipDbClean;
+const printQrCode = options.printQrCode === "false" ? false : options.printQrCode;
+// console.log("port: ", port);
+// console.log("skipScan: ", skipScan);
+// console.log("skipCacheClean: ", skipCacheClean);
+
+console.log(options);
 
 
 
@@ -98,6 +105,11 @@ const zipInfoDb = require("./models/zipInfoDb");
 const thumbnailDb = require("./models/thumbnailDb");
 const historyDb = require("./models/historyDB");
 const cacheDb = require("./models/cacheDb");
+
+// 防止系统过载
+const pLimit = require('p-limit');
+const thumbnail_limit = pLimit(10);
+const unzip_limit = pLimit(3);
 
 
 const app = express();
@@ -109,6 +121,11 @@ app.use(express.static(distPath, {
 app.use(express.static(rootPath, {
     maxAge: (1000 * 3600).toString() // uses milliseconds per docs
 }));
+
+
+const modifyResponseForChart = require('./ChartMiddle');
+// 将中间件应用到指定的 API 路由
+app.use(['/api/lsDir', '/api/search', '/api/allInfo'], modifyResponseForChart);
 
 //  to consume json request body
 //  https://stackoverflow.com/questions/10005939/how-do-i-consume-the-json-post-data-in-an-express-application
@@ -153,7 +170,7 @@ try {
 } catch (e) {
     // 有image magick也行
     logger.warn("[Warning] Did not install sharp");
-    logger.warn(e);
+    // logger.warn(e);
     logger.warn("----------------------------------------------------------------");
 }
 
@@ -166,7 +183,7 @@ async function init() {
         const charset = parseInt(m && m[0]);
 
         if (charset !== 65001) {
-            logger.error("Changing console encoding to utf8 in Windows language setting is recommended");
+            logger.warn("Changing console encoding to utf8 in Windows language setting is recommended");
         }
 
         global._cmd_encoding = charset;
@@ -178,7 +195,7 @@ async function init() {
         logger.warn("[Error] You may need to run npm run build");
     }
 
-    const sqldb = await db.init();
+    const sqldb = await db.init(skipDbClean);
     await thumbnailDb.init(sqldb);
     await historyDb.init(sqldb);
     await zipInfoDb.init(sqldb);
@@ -202,23 +219,11 @@ async function init() {
         serverUtil.mkdirList(scan_path)
         scan_path = await pathUtil.filterNonExist(scan_path);
 
-        global.SCANED_PATH = scan_path;
-        // db.insertScanPath(scan_path)
 
         if(!skipCacheClean){
             cleanCache(cachePath);
         }
         setUpCacheWatch();
-
-        const mecabHelper = require("./mecabHelper");
-        mecabHelper.init();
-
-        // let end1 = getCurrentTime();
-        // let thumbnail_pathes = await pfs.readdir(thumbnailFolderPath);
-        // thumbnail_pathes = thumbnail_pathes.filter(isImage).map(e => path.resolve(thumbnailFolderPath, e));
-        // let end3 = getCurrentTime();
-        // console.log(`[scan thumbnail] ${(end3 - end1) / 1000}s  to read thumbnail dirs`);
-        // thumbnailDb.init(thumbnail_pathes);
 
         //因为scan path内部有sub parent重复关系，避免重复的
         let will_scan = _.sortBy(scan_path, e => e.length); //todo
@@ -234,8 +239,11 @@ async function init() {
         }
         will_scan = will_scan.filter(e => e !== "_to_remove_");
 
+        printIP();
+
         //todo: chokidar will slow the server down very much when it init async
-        initializeFileWatch(will_scan);
+        add_dirs_to_watch(will_scan)
+        
     }).on('error', async (error) => {
         logger.error("[Server Init]", error.message);
         //exit the current program
@@ -259,16 +267,12 @@ function setUpCacheWatch() {
             return false;
         }
     
-        //if ignore, chokidar wont check its content
         if (pathUtil.estimateIfFolder(fp) ||  (stat && stat.isDirectory())) {
             // 文件夹
             return true;
-        }else if (!stat){
-            return true;
-        }  else {
-            cacheDb.updateStatToCacheDb(fp, stat);
-            return false;
         }
+        
+        return true;
     }
 
     //also for cache files
@@ -279,11 +283,13 @@ function setUpCacheWatch() {
         ignoreInitial: true,
     });
 
-    // cacheWatcher
-    //     .on('add', (fp, stats) => {
-    //         console.log(fp, stats);
-    //         // cacheDb.updateStatToCacheDb(fp, stats);
-    //     })
+    const addCallBack = (fp, stats) => {
+        cacheDb.updateStatToCacheDb(fp, stats);
+    }
+
+    cacheWatcher
+        .on('add', addCallBack)
+        .on('addDir', addCallBack)
     //     .on('unlink', (fp, stats) => {
     //         // cacheDb.deleteFromCacheDb(p);
     //         console.log(fp, stats);
@@ -292,13 +298,13 @@ function setUpCacheWatch() {
 
 
 /** this function decide which files will be scanned and watched by ShiguReader  */
-function shouldWatchForNormal(p, stat) {
+function shouldScan(fp, stat) {
     //cache is cover by another watch
-    if (p.includes(cachePath)) {
+    if (fp.includes(cachePath)) {
         return false;
     }
 
-    if (isHiddenFile(p) || pathUtil.isForbid(p)) {
+    if (isHiddenFile(fp) || pathUtil.isForbid(fp)) {
         return false;
     }
 
@@ -307,8 +313,8 @@ function shouldWatchForNormal(p, stat) {
         return true;
     }
 
-    const ext = pathUtil.getExt(p);
-    let result = estimateIfFolder(p) || isDisplayableInExplorer(ext);
+    const ext = pathUtil.getExt(fp);
+    let result = estimateIfFolder(fp) || isDisplayableInExplorer(ext);
 
     if (view_img_folder) {
         result = result || isDisplayableInOnebook(ext)
@@ -316,8 +322,8 @@ function shouldWatchForNormal(p, stat) {
     return result;
 }
 
-function shouldIgnoreForNormal(p, stat) {
-    return !shouldWatchForNormal(p, stat);
+function shouldIgnoreForNormal(fp, stat) {
+    return !shouldScan(fp, stat);
 }
 
 /** 文件被删除时，去相关数据库删除信息 */
@@ -326,167 +332,40 @@ const deleteCallBack = fp => {
     zipInfoDb.deleteFromZipDb(fp);
     thumbnailDb.deleteThumbnail(fp)
 };
-serverUtil.common.deleteCallBack = deleteCallBack;
 
 // const moveCallBack = async (oldfilePath, newfilePath) => {
 //     // 现在 delete和insert被chokidar callback代劳了 
 //     // 重复进行太容易出bug了
 // }
 
-// 隐私
-function shrinkFp(fp){
-    return fp.slice(0, 12) + "..." + fp.slice(fp.length - 10);
-}
-
-/** 
- * 程序启动时让chokidar监听文件夹，把需要的信息加到db。并做一些初始操作
- * 
- * */
-function initializeFileWatch(dirPathes) {
-    if(dirPathes.length == 0){
-        printIP();
-        return;
-    }
-
-    console.log("[chokidar initializeFileWatch] begin...");
-    let beg = getCurrentTime();
-
-    //watch file change
-    //update two database
-    const watcher = chokidar.watch(dirPathes, {
-        ignored: shouldIgnoreForNormal,
-        persistent: true,
-        ignorePermissionErrors: true
-    });
-
-    let init_count = 0;
-    let is_chokidar_scan_done = false;
-    const insertion_cache = {
-        files: [],
-        tags: []
-    }
-
-    //处理添加文件事件
-    const addCallBack = async (fp, stats) => {
-        if (is_chokidar_scan_done) {
-            // 单次添加
-            db.updateStatToDb(fp, stats);
-        } else {
-            // 批量添加
-            db.updateStatToDb(fp, stats, insertion_cache);
-            init_count++;
-            if (init_count % 2000 === 0) {
-                let end1 = getCurrentTime();
-                let np = shrinkFp(fp);
-                console.log(`[chokidar initializeFileWatch] scan: ${(end1 - beg) / 1000}s  ${init_count} ${np}`);
-            }
-        }
-    };
-
-    watcher
-        .on('add', addCallBack)
-        .on('change', addCallBack)
-        .on('unlink', deleteCallBack);
-
-    // More possible events.
-    watcher
-        .on('addDir', addCallBack)
-        .on('unlinkDir', deleteCallBack);
-
-    //about 1s for 1000 files
-    watcher.on('ready', async () => {
-        is_chokidar_scan_done = true;
-        await db.batchInsert("file_table", insertion_cache.files);
-        await db.batchInsert("tag_table", insertion_cache.tags);
-
-        let end1 = getCurrentTime();
-        console.log(`[chokidar initializeFileWatch] ${(end1 - beg) / 1000}s scan complete.`);
-        console.log(`[chokidar initializeFileWatch] ${init_count} files were scanned`)
-        console.log("----------------------------------------------------------------");
-        console.log(`\n\n\n`);
-        printIP();
-    })
-
-    return {
-        watcher
-    };
-}
-
 
 /**
  * 服务器使用中途添加监听扫描path
  */
-function addNewFileWatchAfterInit(dirPathes) {
+async function add_dirs_to_watch(dirPathes) {
     if(dirPathes.length == 0){
         return;
     }
 
-    console.log(`[chokidar addNewFileWatch] [${dirPathes.join(",")}] begin...`);
-    let beg = getCurrentTime();
+    // console.log(`[chokidar addNewFileWatch] [${dirPathes.join(",")}] begin...`);
 
     // add to scan_path
-    // TODO check with db to prevent duplicate adding shouldIgnoreForNormal
     // todo 不严谨 会出现重复添加
-    global.SCANED_PATH = [...global.SCANED_PATH, ...dirPathes]
+  
 
-
-    //watch file change
-    //update two database
-    const watcher = chokidar.watch(dirPathes, {
-        ignored: shouldIgnoreForNormal,
-        persistent: true,
-        ignorePermissionErrors: true
-    });
-
-    let init_count = 0;
-    let is_chokidar_scan_done = false;
-    const insertion_cache = {
-        files: [],
-        tags: []
+    for (let filePath of dirPathes){
+        await filewatch.fastFileIterate({
+            filePath,
+            db, 
+            shouldIgnoreForNormal
+        });
+        await filewatch.addWatch({
+            folderPath: filePath, 
+            deleteCallBack, 
+            shouldScan, 
+            db
+        })
     }
-    //处理添加文件事件
-    const addCallBack = async (fp, stats) => {
-        if (is_chokidar_scan_done) {
-            // 单次添加
-            db.updateStatToDb(fp, stats);
-        } else {
-            // 批量添加
-            db.updateStatToDb(fp, stats, insertion_cache);
-            init_count++;
-            if (init_count % 500 === 0) {
-                let end1 = getCurrentTime();
-                let np = shrinkFp(fp);
-                console.log(`[chokidar addNewFileWatch] scan: ${(end1 - beg) / 1000}s  ${init_count} ${np}`);
-            }
-        }
-    };
-
-    watcher
-        .on('add', addCallBack)
-        .on('change', addCallBack)
-        .on('unlink', deleteCallBack);
-
-    // More possible events.
-    watcher
-        .on('addDir', addCallBack)
-        .on('unlinkDir', deleteCallBack);
-
-    //about 1s for 1000 files
-    watcher.on('ready', async () => {
-        is_chokidar_scan_done = true;
-        await db.batchInsert("file_table", insertion_cache.files);
-        await db.batchInsert("tag_table", insertion_cache.tags);
-
-        let end1 = getCurrentTime();
-        console.log(`[chokidar] ${(end1 - beg) / 1000}s scan complete.`);
-        console.log(`[chokidar] ${init_count} files were scanned`)
-        console.log("----------------------------------------------------------------");
-        console.log(`\n\n\n`);
-    })
-
-    return {
-        watcher
-    };
 }
 
 app.post('/api/addNewFileWatchAfterInit', serverUtil.asyncWrapper(async (req, res) => {
@@ -497,12 +376,12 @@ app.post('/api/addNewFileWatchAfterInit', serverUtil.asyncWrapper(async (req, re
         return;
     }
 
-    if(isAlreadyScan(filePath)){
+    if(filewatch.isAlreadyScan(filePath)){
         res.send({ failed: true, reason: "ALREADY SCAN" });
         return;
     }
 
-    addNewFileWatchAfterInit([filePath])
+    add_dirs_to_watch([filePath])
     res.send({ failed: false });
 }));
 
@@ -514,146 +393,37 @@ async function printIP(){
     console.log(`http://localhost:${port}`);
 
     try {
-        const ip = await getIP();
-        console.log(ip);
-        console.log("Scan the QR code to open on mobile devices");
-        qrcode.generate(ip);
+        if(printQrCode){
+
+            const ip = await getIP();
+            console.log(ip);
+            console.log("Scan the QR code to open on mobile devices");
+            qrcode.generate(ip);
+        }
     } catch (e) { 
         //nothing
     }
     console.log("----------------------------------------------------------------");
 }
 
-async function getThumbnailsForZip(filePathes) {
-    const isStringInput = _.isString(filePathes);
-    if (isStringInput) {
-        filePathes = [filePathes];
-    }
-
-    const thumbnails = {};
-
-    let end1 = getCurrentTime();
-    let thumbRows = thumbnailDb.getThumbnailArr(filePathes);
-    thumbRows.forEach(row => {
-        thumbnails[row.filePath] = row.thumbnailFilePath;
-    })
-    let end3 = getCurrentTime();
-    // console.log(`[getThumbnailsForZip] ${(end3 - end1) / 1000}s for ${filePathes.length} zips`);
-
-    filePathes.forEach(filePath => {
-        if (thumbnails[filePath]) {
-            return;
-        }
-        if (isCompress(filePath)) {
-            const zipInfoRows = zipInfoDb.getZipInfo(filePath);
-            if(zipInfoRows[0]){
-                const pageNum = zipInfoRows[0].pageNum;
-                if (pageNum === 0) {
-                    thumbnails[filePath] = "NO_THUMBNAIL_AVAILABLE";
-                }
-            }
-        }
-    });
-
-    return thumbnails;
-}
 
 async function findVideoForFolder(filePath){
-    const sql = `SELECT filePath FROM file_table WHERE INSTR(filePath, ?) = 1 AND isVideo = true `;
+    const sql = `SELECT filePath FROM file_table WHERE INSTR(filePath, ?) = 1 AND isVideo `;
     let videoRows = await db.doSmartAllSync(sql, filePath);
     return videoRows;
 }
 
-/**
- * 找文件夹的thumbnail
- */
-async function getThumbnailForFolders(filePathes) {
-    const result = {};
-
-    if(!filePathes || filePathes.length == 0){
-        return result;
-    }
-    // TODO 担心nextFilePathe很多的时候
-
-    function findOne(rows, filePath){
-        let findRow = null;
-        rows.forEach(row => {
-            if(!findRow){
-                if(isSub(filePath, row.filePath)){
-                    findRow = row;
-                }
-            }
-        })
-        return findRow;
-    }
-
-    try{
-        let beg = getCurrentTime();
-
-        // 先尝试从thumbnail db拿
-        // Q ask chatgpt: write a sql query that if column 'file' contains one of string array
-        const stringsToMatch = filePathes; // string array of values
-        const patterns = stringsToMatch.map(str => `${str}%`);
-        const placeholders = patterns.map(() => 'filePath LIKE ?').join(' OR ');
-        const sql = `
-            SELECT *
-            FROM thumbnail_table
-            WHERE ${placeholders} ORDER BY ROWID DESC
-        `;
-        const thumbnailRows = await db.doAllSync(sql, patterns);
-        let notFoundList = [];
-        filePathes.forEach(filePath => {
-            const findRow = findOne(thumbnailRows, filePath);
-            if (findRow) {
-                result[filePath] = serverUtil.joinThumbnailFolderPath(findRow.thumbnailFileName);
-            }else{
-                notFoundList.push(filePath);
-            }
-        })
-        
-
-        if(notFoundList.length > 0){
-            const stringsToMatch = notFoundList; // string array of values
-            const patterns = stringsToMatch.map(str => `${str}%`);
-            const placeholders = patterns.map(() => 'filePath LIKE ?').join(' OR ');
-            const sql = `
-               SELECT *
-               FROM file_table
-               WHERE isImage=1 AND (${placeholders})
-               ORDER BY mTime DESC`;
-            let imagerows = await db.doAllSync(sql, patterns);
-            notFoundList.forEach(filePath => {
-                const findRow = findOne(imagerows, filePath);
-                if (findRow) {
-                    console.assert(findRow.isImage);
-                    result[filePath] = findRow.filePath;
-                }
-            })
-        }
-    
-        let end = getCurrentTime();
-        // console.log(`[getThumbnailForFolders] ${(end - beg)}ms for ${filePathes.length} zips`);
-    }catch(e){
-        logger.error("[getThumbnailForFolders]", e);
-    }
-    return result;
-}
 
 /** 获得file stat同时保存到db */
 async function getStatAndUpdateDB(filePath) {
     const stat = await pfs.stat(filePath);
-    if (isAlreadyScan(filePath)) {
+    if (filewatch.isAlreadyScan(filePath)) {
         db.updateStatToDb(filePath, stat);
     }
     return stat;
 }
 
-/** 判断一个dir path是不是在scan路径上 */
-function isAlreadyScan(dir) {
-    return global.SCANED_PATH.some(sp => {
-        return pathEqual(sp, dir) || pathUtil.isSub(sp, dir);
-    });
-}
+
 /**
  * 给lsdir search res添加信息。比如thumbnail，zipinfo。不使用sql是因为有部分filePath没存在数据库
  */
@@ -664,7 +434,7 @@ async function decorateResWithMeta(resObj) {
     const files = _.keys(fileInfos);
 
     //------------------- thumbnails
-    const thumbnails = await getThumbnailsForZip(files);
+    const thumbnails = await thumbnailUtil.getThumbnailsForZip(files);
     _.keys(thumbnails).forEach(filePath=> {
         if(!fileInfos[filePath]){
             return;
@@ -740,49 +510,12 @@ async function decorateResWithMeta(resObj) {
                           "imgFolderInfo", "fileHistory", "nameParseCache"];
     // resObj = filterObjectProperties(resObj, allowedKeys, true);
     // checkKeys(resObj, allowedKeys);
-    resObj = filterObjectProperties(resObj, allowedKeys);
+    resObj = serverUtil.filterObjectProperties(resObj, allowedKeys);
 
     return resObj;
 }
 
-/** 检查回传给onebook的res */
-function checkOneBookRes(resObj){
-    const allowedKeys = ["zipInfo", "path", "stat", "imageFiles", "musicFiles", "videoFiles", "dirs", "mecab_tokens", "outputPath"];
-    checkKeys(resObj, allowedKeys);
-    resObj = filterObjectProperties(resObj, allowedKeys, false);
-    return resObj;
-}
-
-/** 开发用。检查的obj是不是都有这些key */
-function checkKeys(obj, keys) {
-    const objKeys = Object.keys(obj);
-    for (let i = 0; i < keys.length; i++) {
-      if (!objKeys.includes(keys[i])) {
-        console.warn("[checkKeys]", keys[i]);
-      }
-    }
-}
   
-
-//写一个js函数，根据一个key list，只保留object需要的property
-function filterObjectProperties(obj, keysToKeep, needWarn) {
-    // 遍历对象的所有属性
-    return Object.keys(obj).reduce((acc, key) => {
-      // 如果当前属性存在于 keysToKeep 数组中，将其添加到新对象中
-      if (keysToKeep.includes(key)) {
-        acc[key] = obj[key];
-      }else if(needWarn){
-        console.warn("filterObjectProperties", key);
-      }
-      return acc;
-    }, {});
-  }
-
-
-serverUtil.common.decorateResWithMeta = decorateResWithMeta
-serverUtil.common.getStatAndUpdateDB = getStatAndUpdateDB;
-serverUtil.common.isAlreadyScan = isAlreadyScan;
-serverUtil.common.checkOneBookRes = checkOneBookRes;
 
 
 
@@ -822,7 +555,7 @@ app.post("/api/login", asyncWrapper(async (req, res) => {
     if(password == etc_config.home_password || !etc_config.home_password){
         const token = serverUtil.makeid()
         token_set[token] = true;
-        res.cookie('login-token', token, {maxAge: 1000 * 3600 * 24 });
+        res.cookie('login-token', token, {maxAge: 30 * 1000 * 3600 * 24 });
         res.json({
             failed: false
         });
@@ -873,7 +606,7 @@ app.post("/api/getThumbnailForFolders", asyncWrapper(async (req, res) => {
 
     dirs = dirs.filter(pathUtil.estimateIfFolder);
 
-    const dirThumbnails = await getThumbnailForFolders(dirs);
+    const dirThumbnails = await  thumbnailUtil.getThumbnailForFolders(dirs);
     res.send({ failed: false, dirThumbnails });
 }));
 
@@ -891,55 +624,23 @@ app.post("/api/getTagThumbnail", asyncWrapper(async (req, res) => {
         return;
     }
 
-    let oneThumbnail;
 
-    let sql = ` SELECT AA.*, BB.thumbnailFileName FROM 
-                (
-                    SELECT a.* , b.*
-                    FROM zip_view a 
-                    INNER JOIN tag_table b ON a.filePath = b.filePath AND b.tag = ?
-                    ORDER BY a.mTime DESC 
-                    LIMIT 100 
-                ) AA
-                LEFT JOIN thumbnail_table BB 
-                ON AA.filePath = BB.filePath
-                `
-    let rows = await db.doSmartAllSync(sql, [author || tag]);
-
-    // find thumbnail by zip
-    for(let ii = 0; ii < rows.length; ii++){
-        const row = rows[ii];
-        if(row.thumbnailFileName){
-            oneThumbnail = serverUtil.joinThumbnailFolderPath(row.thumbnailFileName);
-            break;
-        }
-    }
-    if(oneThumbnail){
-        res.send({
-            url: oneThumbnail
-        });
-        return;
-    } 
-    
-    // from image
-    const sql2 = ` SELECT a.* , b.*
-            FROM file_table a 
-            INNER JOIN tag_table b ON a.filePath = b.filePath AND b.tag = ? AND a.isImage=1 
-            ORDER BY a.mTime DESC 
-            LIMIT 1 
-        `
-    const rows2 = await db.doSmartAllSync(sql2, [author || tag]);
-    if (rows2[0]) {
-        console.assert(rows2[0].isImage);
-        res.send({
-            url: rows2[0].filePath
-        });
+    let temp = thumbnailUtil.getTagThumbnail(author, tag);
+    if(temp){
+        res.send(temp);
         return;
     }
 
+    const sql3 = ` SELECT a.* , b.*
+        FROM file_table a 
+        INNER JOIN tag_file_table b ON a.filePath = b.filePath AND b.tag = ? AND a.isCompress
+        ORDER BY a.mTime DESC 
+        LIMIT 1 
+    `
+    const zipRows = await db.doSmartAllSync(sql3, [author || tag]);
     // 没有的话，现场unzip一个出来
-    if (rows[0] && rows[0].isCompress) {
-        extractThumbnailFromZip(rows[0].filePath, res);
+    if (zipRows[0]) {
+        extractThumbnailFromZip(zipRows[0].filePath, res);
     } else {
         res.send({ failed: true, reason: "No file found" });
     }
@@ -947,15 +648,14 @@ app.post("/api/getTagThumbnail", asyncWrapper(async (req, res) => {
 
 const thumbnailGenerator = require("./thumbnailGenerator");
 //the only required parameter is filePath
-async function extractThumbnailFromZip(filePath, res, mode, config) {
+let extractThumbnailFromZip = async (filePath, res, mode, config) => {
     if (!util.isCompress(filePath)) {
         return;
     }
 
     const isPregenerateMode = mode === "pre-generate";
-    let sendable = !isPregenerateMode && res;
+    let sendable = !isPregenerateMode && !!res;
     const outputPath = path.join(cachePath, getHash(filePath));
-    let zipInfo;
 
     function sendImage(imgFp) {
         sendable && res.send({
@@ -963,26 +663,12 @@ async function extractThumbnailFromZip(filePath, res, mode, config) {
         })
     }
 
-    //do the extract
-    try {
-        //only update zip db
-        //do not use zip db's information
-        //in case previous info is changed or wrong
-        if (isPregenerateMode) {
-            if (config.fastUpdateMode && zipInfoDb.has(filePath)) {
-                //skip
-            } else {
-                //in pregenerate mode, it always updates db content
-                zipInfo = (await listZipContentAndUpdateDb(filePath));
-            }
+    function sendError(reason){
+        sendable && res.send({ failed: true, reason });
+    }
 
-            if (config.fastUpdateMode){
-                const thumbRows = thumbnailDb.getThumbnailArr(filePath);
-                if(thumbRows.length > 0){
-                    return;
-                }
-            }
-        }
+    try {
+        const zipInfo = (await listZipContentAndUpdateDb(filePath));
 
         // 已经有了就不再生成thumbnail
         // 如果有thumbnail生成出问题，只能靠改filepath或者filename来促使重新生成
@@ -990,85 +676,75 @@ async function extractThumbnailFromZip(filePath, res, mode, config) {
         const thumbRows = thumbnailDb.getThumbnailArr(filePath);
         if (thumbRows[0]) {
             sendImage(thumbRows[0].thumbnailFilePath);
-        } else {
-            if (!zipInfo) {
-                zipInfo = (await listZipContentAndUpdateDb(filePath));
-            }
+            return;
+        } 
 
-            //挑一个img来做thumbnail
-            let thumbFN = serverUtil.chooseThumbnailImage(zipInfo.files);
-            if (!thumbFN) {
-                let reason = "[extractThumbnailFromZip] no img in this file " +  filePath;
-                console.log(reason);
-                sendable && res.send({ failed: true, reason });
-                return;
-            }
+        //挑一个img来做thumbnail
+        let thumbInnerPath = serverUtil.chooseThumbnailImage(zipInfo.files);
+        if (!thumbInnerPath) {
+            let reason = "[extractThumbnailFromZip] no img in this file " +  filePath;
+            console.log(reason);
+            sendError(reason)
+            return;
+        }
 
-            //解压
-            const stderrForThumbnail = await extractByRange(filePath, outputPath, [thumbFN])
-            if(stderrForThumbnail === "NEED_TO_EXTRACT_ALL" && zipInfo.info.totalSize < 100*1000 * 1000){
+
+        //解压
+        const stderrForThumbnail = await extractByRange(filePath, outputPath, [thumbInnerPath])
+        if(stderrForThumbnail === "NEED_TO_EXTRACT_ALL"){
+            const SMALL_SIZE = 100 * 1000 * 1000;
+            if(zipInfo.info.totalSize < SMALL_SIZE){
                 const { pathes, error } = await extractAll(filePath, outputPath, false);
                 if (error) {
-                    throw "[extractThumbnailFromZip] extract exec failed"+filePath;
-                }else{
-                    thumbFN = serverUtil.chooseThumbnailImage(pathes);
+                    throw error
+                } else {
+                    thumbInnerPath = serverUtil.chooseThumbnailImage(pathes);
                 }
-            } else if (stderrForThumbnail) {
-                throw "[extractThumbnailFromZip] extract exec failed" + filePath;
+            }else  {
+                let extensions = zipInfo.files.filter(isImage).map(path.extname).map(e => "*"+e);
+                extensions = _.unique(extensions);
+                console.assert(extensions.length > 0)
+                const { error, pathes } = await  sevenZipHelp.extractByExtension(filePath, outputPath, extensions )
+                if (error) {
+                    throw error
+                } else {
+                    thumbInnerPath = serverUtil.chooseThumbnailImage(pathes);
+                }
             }
-           
-            // send original img path to client as thumbnail
-            let original_thumb = path.join(outputPath, path.basename(thumbFN));
-            sendImage(original_thumb);
-            sendable = false;
 
-            //compress into real thumbnail
-            const outputFilePath = await thumbnailGenerator(thumbnailFolderPath, outputPath, path.basename(thumbFN));
-            if (outputFilePath) {
-                thumbnailDb.addNewThumbnail(filePath, outputFilePath);
+        } else if (stderrForThumbnail) {
+            const reason = "Cannot extract thumbnail currently"
+            sendError(reason)
+            return;
+        }
+        
+        // send original img path to client as thumbnail
+        let original_thumb = path.join(outputPath, path.basename(thumbInnerPath));
+        sendImage(original_thumb);
+        sendable = false;
 
-                // 删除除了要使用的文件，避免硬盘爆炸
-                // setTimeout(async() => {
-                //     // cleanDirectory(outputPath, thumbFN)
-                // }, 10000);
-            }
+
+        //compress into real thumbnail
+        const outputFilePath = await thumbnailGenerator(thumbnailFolderPath, outputPath, path.basename(thumbInnerPath));
+        if (outputFilePath) {
+            thumbnailDb.addNewThumbnail(filePath, outputFilePath);
+            // 想删除除了要使用的文件，但不行。各种文件系统错误
         }
     } catch (e) {
-        logger.error("[extractThumbnailFromZip] exception", filePath, e);
-        const reason = e || "NOT FOUND";
-        sendable && res.send({ failed: true, reason });
-    }
-}
-
-
-
-async function cleanDirectory(targetDir, filename) {
-  const _fn = path.basename(filename, path.extname(filename));
-  try {
-    // 读取目标文件夹下的所有文件和文件夹
-    const items = await pfs.readdir(targetDir, { withFileTypes: true });
-    // 遍历每个项目
-    for (const item of items) {
-      const fullPath = path.join(targetDir, item.name);
-      if (item.isDirectory()) {
-        // 如果是文件夹，递归处理
-        await cleanDirectory(fullPath, filename);
-      } else {
-        // 如果是文件，检查文件名（不含扩展名）是否与filename相同
-        const fileNameWithoutExt = path.basename(item.name, path.extname(item.name));
-        if (fileNameWithoutExt !== _fn) {
-          // 如果不相同，删除该文件
-          await pfs.unlink(fullPath);
-        //   console.log(`Deleted: ${fullPath}`);
+        if(e && e.toString() !== "NEED_TO_EXTRACT_ALL"){
+            logger.error("[extractThumbnailFromZip] exception ", filePath, e);
         }
-      }
+        const reason = e || "TBD";
+        sendError(reason)
     }
-  } catch (error) {
-    console.error(`Error processing directory ${targetDir}:`, error);
-  }
 }
 
-
+function withLimit(fn) {
+    return function(...args) {
+        return thumbnail_limit(() => fn(...args));
+    };
+}
+extractThumbnailFromZip = withLimit(extractThumbnailFromZip)
 
 
 //  a huge back ground task
@@ -1089,23 +765,10 @@ app.post('/api/pregenerateThumbnails', asyncWrapper(async (req, res) => {
 
     let totalFiles = [];
     if(pregenerateThumbnailPath == "All_Pathes"){
-        totalFiles = await db.getAllFilePathes("WHERE isCompress=1");
+        totalFiles = await db.getAllFilePathes("WHERE isCompress");
     }else{
-        const shouldScanForPreg = (p, stat) => {
-            if (isHiddenFile(p)) {
-                return false;
-            }
-            const ext = pathUtil.getExt(p);
-            return estimateIfFolder(p) || isCompress(ext);
-        }
-
-        const { pathes } = await fileiterator(pregenerateThumbnailPath, {
-            doNotNeedInfo: true,
-            filter: shouldScanForPreg
-        });
+        const { pathes } = await pathUtil.readDirForFileAndFolder(pregenerateThumbnailPath, true);
         totalFiles = pathes.filter(isCompress);
-        // totalFiles = await db.getAllFilePathes("WHERE isCompress=1");
-        // totalFiles = totalFiles.filter(e => e.includes(pregenerateThumbnailPath));
     }
 
     let config = {
@@ -1155,18 +818,9 @@ app.get('/api/getQuickThumbnail', asyncWrapper(async (req, res) => {
     let useVideoPreviewForFolder = false;
     let url = null;
     if(isCompress(filePath)){
-        let thumbRows = thumbnailDb.getThumbnailArr(filePath);
-        if(thumbRows.length > 0){
-            url = thumbRows[0].thumbnailFilePath;
-        }else{
-            const fileName = path.basename(filePath);
-            thumbRows = await thumbnailDb.getThumbnailByFileName(fileName);
-            if(thumbRows.length > 0){
-                url = thumbRows[0].thumbnailFilePath;
-            }
-        }
+        url = await  thumbnailUtil.getQuickThumbnailForZip(filePath);
     } else if(estimateIfFolder(filePath)){
-        const dirThumbnails = await getThumbnailForFolders([filePath]);
+        const dirThumbnails = await thumbnailUtil.getThumbnailForFolders([filePath]);
         url = dirThumbnails[filePath];
 
         // 没thumbnail，用video也行。
@@ -1187,6 +841,9 @@ app.get('/api/getQuickThumbnail', asyncWrapper(async (req, res) => {
     });
 }))
 
+
+
+
 app.post('/api/getZipThumbnail', asyncWrapper(async (req, res) => {
     const filePath = req.body && req.body.filePath;
 
@@ -1200,11 +857,11 @@ app.post('/api/getZipThumbnail', asyncWrapper(async (req, res) => {
         return;
     }
 
-    const thumbnails = await getThumbnailsForZip([filePath])
-    const oneThumbnail = thumbnails[filePath];
-    if(oneThumbnail){
+    let url = await thumbnailUtil.getQuickThumbnailForZip(filePath);
+    if(url){
         res.send({
-            url: oneThumbnail
+            url,
+            debug: "from getQuickThumbnailForZip"
         })
     }else{
         extractThumbnailFromZip(filePath, res);
@@ -1268,11 +925,12 @@ app.post('/api/extract', asyncWrapper(async (req, res) => {
             zipInfo = zipInfoRows[0];
         }
 
-        const mecab_tokens = await global.mecab_getTokens(path);
+        const mecab_tokens = [];
 
-        let result = { imageFiles: tempFiles, musicFiles, videoFiles, path, outputPath, stat, zipInfo, mecab_tokens };
+        // TODO dirs留空。
+        let result = { imageFiles: tempFiles, musicFiles, videoFiles, path, outputPath, stat, zipInfo, mecab_tokens, dirs: [] };
         extract_result_cache[filePath] = result;
-        result = checkOneBookRes(result);
+        result = serverUtil.checkOneBookRes(result);
         res.send(result);
 
         historyDb.addOneRecord(filePath);
@@ -1308,7 +966,7 @@ app.post('/api/extract', asyncWrapper(async (req, res) => {
     async function _extractAll_(){
         const { pathes, error } = await extractAll(filePath, outputPath, hasDuplicate);
         if (!error && pathes) {
-            const contentUrls = generateContentUrl(pathes, outputPath);
+            const contentUrls = splitFilesByType(pathes, outputPath);
             sendBack(contentUrls, filePath, stat);
         } else {
             throw "fail to extract all"
@@ -1340,7 +998,7 @@ app.post('/api/extract', asyncWrapper(async (req, res) => {
 
         //todo: music/video may be huge and will be slow
         if (shouldExtractFull) {
-            await  _extractAll_()
+            await unzip_limit(_extractAll_);
         } else {
             //spit one zip into two uncompress task
             //so user can have a quicker response time
@@ -1358,10 +1016,10 @@ app.post('/api/extract', asyncWrapper(async (req, res) => {
             secondRange = [...secondRange,  ...videoFiles];
             const totalRange = [...firstRange, ...secondRange];
 
-            const stderr = await extractByRange(filePath, outputPath, firstRange)
+            const stderr = await unzip_limit(()=> extractByRange(filePath, outputPath, firstRange));
             if (!stderr) {
                 const unzipOutputPathes = totalRange.map(e => path.resolve(outputPath,  path.basename(e)));
-                const contentUrls = generateContentUrl(unzipOutputPathes, outputPath);
+                const contentUrls = splitFilesByType(unzipOutputPathes, outputPath);
                 sendBack(contentUrls, filePath, stat);
                 // const time2 = getCurrentTime();
                 // const timeUsed = (time2 - time1);
@@ -1370,7 +1028,7 @@ app.post('/api/extract', asyncWrapper(async (req, res) => {
                 await extractByRange(filePath, outputPath, secondRange);
             } else {
                 if(stderr === "NEED_TO_EXTRACT_ALL"){
-                   await _extractAll_();
+                    await unzip_limit(_extractAll_);
                 }else{
                     throw stderr;
                 }
@@ -1384,6 +1042,11 @@ app.post('/api/extract', asyncWrapper(async (req, res) => {
     }
 }));
 
+serverUtil.common = {
+    deleteCallBack,
+    decorateResWithMeta,
+    getStatAndUpdateDB
+}
 
 let server_ip;
 app.get('/api/getGeneralInfo', asyncWrapper(async (req, res) => {

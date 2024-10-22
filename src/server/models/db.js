@@ -29,7 +29,7 @@ const namePicker = require("../../human-name-picker");
 // }
 
 let statement_cache = {};
-module.exports.doSmartAllSync = async (sql, params) => {
+const doSmartAllSync = module.exports.doSmartAllSync = async (sql, params) => {
     if(!_.isNull(params) && !_.isArray(params)){
         params = [params];
     }
@@ -52,83 +52,94 @@ module.exports.doAllSync  = async (sql, params) => {
     return await sqldb.allSync(sql, params);
 }
 
-let sqldb;
-module.exports.init = async ()=> {
-    const dbCommon = require("./dbCommon");
-    const backup_db_path = path.join(pathUtil.getWorkSpacePath(), "shigureader_internal_db.sqlite");
-    sqldb = dbCommon.getSQLInstance(backup_db_path);
-
-    // 提升少量性能
-    await sqldb.execSync( `
-
-    PRAGMA journal_mode = OFF;
-    PRAGMA synchronous = OFF; 
-    
-    DROP TABLE IF EXISTS file_table;
-    DROP TABLE IF EXISTS tag_table;
-    DROP TABLE IF EXISTS scan_path_table;
-
-    CREATE TABLE file_table (
-                            filePath TEXT NOT NULL PRIMARY KEY, 
-                            dirName TEXT, 
-                            dirPath TEXT, 
-                            fileName TEXT, 
-                            mTime INTEGER, 
-                            size INTEGER, 
-                            isDisplayableInExplorer BOOL, 
-                            isDisplayableInOnebook BOOL, 
-                            isCompress BOOL, 
-                            isVideo BOOL,
-                            isMusic BOOL,
-                            isImage BOOL,
-                            isFolder BOOL);
-
-    CREATE TABLE tag_table (
-                            filePath TEXT NOT NULL, 
-                            tag VARCHAR(50) NOT NULL COLLATE NOCASE, 
-                            type VARCHAR(25) CHECK(type IN ('tag', 'author', 'group')),
-                            subtype VARCHAR(25)  CHECK(subtype IN ('comiket', 'name', 'parody', 'author', 'group')) , 
-                            isCompress BOOL,
-                            isVideo BOOL,
-                            isMusic BOOL,
-                            isImage BOOL,
-                            isFolder BOOL,
-                            PRIMARY KEY (filePath, tag, type, subtype) 
-                        );
-
-    CREATE TABLE scan_path_table (filePath TEXT NOT NULL, type VARCHAR(25));
-
-    CREATE VIEW IF NOT EXISTS zip_view AS SELECT * FROM file_table WHERE isCompress = true;
-
-    CREATE VIEW IF NOT EXISTS  author_view  AS SELECT * FROM tag_table WHERE type='author' AND (isCompress = true OR isFolder = true) ;
-    CREATE VIEW IF NOT EXISTS  tag_view  AS SELECT * FROM tag_table WHERE type='tag' AND (isCompress = true OR isFolder = true);
-
-
-     CREATE INDEX IF NOT EXISTS ft_filePath_index ON file_table (filePath); 
-     CREATE INDEX IF NOT EXISTS ft_fileName_index ON file_table (fileName); 
-     CREATE INDEX IF NOT EXISTS ft_dirPath_index ON file_table (dirPath); 
-     CREATE INDEX IF NOT EXISTS ft_dirName_index ON file_table (dirName); 
-
-     CREATE INDEX IF NOT EXISTS tag_index ON tag_table (tag); 
-     CREATE INDEX IF NOT EXISTS tag_type_index ON tag_table (type); 
-     CREATE INDEX IF NOT EXISTS tag_filePath_index ON tag_table (filePath); `);
-
-     return sqldb;
+module.exports.runSync  = async (sql, params) => {
+    return await sqldb.runSync(sql, params);
 }
 
+let sqldb;
+module.exports.init = async (skipDbClean)=> {
+    const SQLWrapper = require("./SQLWrapper");
+    const backup_db_path = path.join(pathUtil.getWorkSpacePath(), "shigureader_internal_db.sqlite");
+    sqldb = new SQLWrapper(backup_db_path);
 
-// module.exports.insertScanPath = async function(scan_path){
-//     const stmt = sqldb.prepare('INSERT INTO scan_path_table(filePath, type) VALUES (?, ?)');
-//     for(let pp of scan_path){
-//         stmt.run(pp, "");
-//     }
-// }
+    // 开发用： 这样就不会删除上次的file table。    
+    const _SKP_INIT = skipDbClean;
 
-// module.exports.getAllScanPath = async function(){
-//     const sql = `SELECT filePath FROM scan_path_table `;
-//     const temp = await sqldb.allSync(sql);
-//     return temp.map(e => e.filePath);
-// }
+    if(!_SKP_INIT){
+        console.log("remove previous db cache")
+
+        await sqldb.execSync( `
+
+        PRAGMA journal_mode = OFF;
+        PRAGMA synchronous = OFF; 
+        
+        DROP TABLE IF EXISTS file_table;
+        DROP TABLE IF EXISTS tag_file_table;
+        DROP TABLE IF EXISTS tag_table;
+
+        
+    
+        CREATE TABLE file_table (
+                                filePath TEXT NOT NULL PRIMARY KEY, 
+                                dirName TEXT, 
+                                dirPath TEXT, 
+                                fileName TEXT, 
+                                mTime INTEGER, 
+                                size INTEGER, 
+                                isDisplayableInExplorer BOOL, 
+                                isDisplayableInOnebook BOOL, 
+                                isCompress BOOL, 
+                                isVideo BOOL,
+                                isMusic BOOL,
+                                isImage BOOL,
+                                isFolder BOOL);
+            
+        CREATE TABLE tag_file_table (
+                                filePath TEXT NOT NULL, 
+                                tag VARCHAR(50) NOT NULL COLLATE NOCASE, 
+                                type VARCHAR(25) CHECK(type IN ('tag', 'author', 'group')),
+                                subtype VARCHAR(25)  CHECK(subtype IN ('comiket', 'name', 'parody', 'author', 'group')) , 
+                                isCompress BOOL,
+                                isVideo BOOL,
+                                isMusic BOOL,
+                                isImage BOOL,
+                                isFolder BOOL,
+                                PRIMARY KEY (filePath, tag, type, subtype) 
+                            );
+
+
+        CREATE TABLE tag_table (
+            tag VARCHAR(50) NOT NULL COLLATE NOCASE, 
+            type VARCHAR(25) CHECK(type IN ('tag', 'author', 'group')),
+            subtype VARCHAR(25)  CHECK(subtype IN ('comiket', 'name', 'parody', 'author', 'group')) , 
+
+            good_count INTEGER,
+            bad_count INTEGER,
+            total_count INTEGER,
+
+            score REAL,
+            PRIMARY KEY (tag, type, subtype) 
+        );
+        
+        
+        DROP VIEW IF EXISTS author_view;
+        DROP VIEW IF EXISTS tag_view;
+
+        CREATE VIEW IF NOT EXISTS zip_view AS SELECT * FROM file_table WHERE isCompress;
+    
+        CREATE VIEW IF NOT EXISTS  author_view  AS SELECT * FROM tag_file_table WHERE type='author' AND (isCompress OR isFolder) ;
+        CREATE VIEW IF NOT EXISTS  tag_view  AS SELECT * FROM tag_file_table WHERE type='tag' AND (isCompress OR isFolder);
+    
+        
+
+         CREATE INDEX IF NOT EXISTS ft_fileName_index ON file_table (fileName); 
+         CREATE INDEX IF NOT EXISTS ft_dirPath_index ON file_table (dirPath); 
+         CREATE INDEX IF NOT EXISTS ft_dirName_index ON file_table (dirName); 
+      `);
+    }
+    return sqldb;
+}
+
 
 module.exports.getAllFilePathes = async function (sql_condition) {
     const sql = `SELECT filePath FROM file_table ` + sql_condition;
@@ -177,18 +188,26 @@ module.exports.updateStatToDb = async function (filePath, stat, insertion_cache)
     
     // tag插入sql
     let tags_rows = [];
-    // comiket
-    tags_rows.push({ 
+
+    const common_tag_item = {
         filePath, 
-        tag:comiket, 
-        type:"tag", 
-        subtype:"comiket", 
         isCompress: isCompressFile, 
         isVideo: isVideoFile, 
         isMusic: isMusicFile,
         isImage: isImageFile,
         isFolder
-    });
+    }
+
+    if(comiket){
+        // comiket
+        tags_rows.push({ 
+            tag:comiket, 
+            type:"tag", 
+            subtype:"comiket", 
+            ...common_tag_item
+        });
+    }
+
 
     // TODO , ...charNames
 
@@ -200,15 +219,10 @@ module.exports.updateStatToDb = async function (filePath, stat, insertion_cache)
                 return;
             }
             tags_rows.push({ 
-                filePath, 
                 tag, 
                 type:"tag",
                 subtype:"name", 
-                isCompress: isCompressFile, 
-                isVideo: isVideoFile, 
-                isMusic: isMusicFile,
-                isImage: isImageFile,
-                isFolder});
+                ...common_tag_item});
         })
     }
 
@@ -218,40 +232,26 @@ module.exports.updateStatToDb = async function (filePath, stat, insertion_cache)
             return;
         }
         tags_rows.push({ 
-            filePath, 
             tag, 
             type:"tag", 
             subtype:"parody", 
-            isCompress: isCompressFile, 
-            isVideo: isVideoFile, 
-            isMusic: isMusicFile,
-            isImage: isImageFile,
-            isFolder });
+            ...common_tag_item });
     })
     // author
     _.uniq(authors).forEach(tag => {
         tags_rows.push({ 
-            filePath, 
             tag, 
             type:"author", 
             subtype:"author", 
-            isCompress: isCompressFile, 
-            isVideo: isVideoFile, 
-            isMusic: isMusicFile,
-            isImage: isImageFile,
-            isFolder });
+            ...common_tag_item});
     })
     // group
     tags_rows.push({ 
-        filePath, 
         tag: group, 
         type:"group", 
         subtype:"group", 
-        isCompress: isCompressFile, 
-        isVideo: isVideoFile, 
-        isMusic: isMusicFile,
-        isImage: isImageFile,
-        isFolder });
+        ...common_tag_item 
+    });
 
     // fliter null or empty
     tags_rows = tags_rows.filter(e => { return e.filePath && e.tag && e.type && e.subtype; })
@@ -260,7 +260,7 @@ module.exports.updateStatToDb = async function (filePath, stat, insertion_cache)
         insertion_cache.tags.push(...tags_rows);
     }else{
         for(const row of tags_rows){
-            sqldb.insertOneRow("tag_table", row);
+            sqldb.insertOneRow("tag_file_table", row);
         }
     }
 
@@ -288,27 +288,88 @@ module.exports.updateStatToDb = async function (filePath, stat, insertion_cache)
         insertion_cache.files.push(params);
     }else{
         sqldb.insertOneRow("file_table", params);
+        throttledSyncTagTable();
     }
 }
 
 // 传入 db、table 和数据数组实现批量插入
-module.exports.batchInsert = async (tableName, dataArray, blockSize = 2000) => {
-
+const batchInsert = module.exports.batchInsert = async (tableName, dataArray, blockSize = 2000) => {
     let beg = getCurrentTime();
 
     await sqldb.batchInsert(tableName, dataArray, blockSize);
 
     let end = getCurrentTime();
     console.log(`[batchInsert] ${tableName} ${dataArray.length} ${end - beg}ms`);
-    
 }
 
 module.exports.deleteFromDb = function (filePath) {
-
     // delete fileToInfo[filePath];
     sqldb.run("DELETE FROM file_table where filePath = ?", filePath);
-    sqldb.run("DELETE FROM tag_table where filePath = ?", filePath);
+    sqldb.run("DELETE FROM tag_file_table where filePath = ?", filePath);
+    throttledSyncTagTable();
 }
+
+
+
+
+const scoreUtil = require('../scoreUtil');  // Assuming scoreUtil is a module that contains the scoring logic.
+
+async function sync_tag_table() {
+    // Helper function to add scoring column.
+    function _addCol(rows) {
+        rows.forEach(row => {
+            row.score = scoreUtil.getScoreFromCount(row);  // Adjust scoring function as necessary.
+        });
+    }
+
+    try {
+        // await sqldb.execSync( ` `);  truncate table
+        // const sqlAuthor = `
+        //     SELECT tag, type, MAX(subtype) AS subtype,
+        //     COUNT(CASE WHEN INSTR(filePath, ?) = 1 THEN 1 END) AS good_count,
+        //     COUNT(CASE WHEN INSTR(filePath, ?) = 1 THEN 1 END) AS bad_count,
+        //     COUNT(filePath) AS total_count
+        //     FROM author_view
+        //     GROUP BY tag, type`;
+        // let authorInfo = await doSmartAllSync(sqlAuthor, [global.good_folder_root, global.not_good_folder_root]);
+        // _addCol(authorInfo);  // Add score column to each row.
+
+        // const sqlTag = `
+        //     SELECT tag, MAX(subtype) AS subtype,
+        //     COUNT(CASE WHEN INSTR(filePath, ?) = 1 THEN 1 END) AS good_count,
+        //     COUNT(CASE WHEN INSTR(filePath, ?) = 1 THEN 1 END) AS bad_count,
+        //     COUNT(filePath) AS total_count
+        //     FROM tag_view
+        //     GROUP BY tag, type `;
+        // let tagInfo = await doSmartAllSync(sqlTag, [global.good_folder_root, global.not_good_folder_root]);
+        // _addCol(tagInfo);  // Add score column to each row.
+
+        // const combinedData = [...authorInfo, ...tagInfo];
+
+        const placeholder = "-----||------";
+
+        const sqlTag = `
+            SELECT tag, type, subtype,
+            COUNT(CASE WHEN INSTR(filePath, ?) = 1 THEN 1 END) AS good_count,
+            COUNT(CASE WHEN INSTR(filePath, ?) = 1 THEN 1 END) AS bad_count,
+            COUNT(filePath) AS total_count
+            FROM 
+                (SELECT * FROM tag_file_table WHERE isCompress OR isFolder )
+            GROUP BY tag, type, subtype `;
+        let tagInfo = await doSmartAllSync(sqlTag, [global.good_folder_root || placeholder, global.not_good_folder_root || placeholder ]);
+        _addCol(tagInfo);  // Add score column to each row.
+
+
+        await batchInsert('tag_table', tagInfo);
+    } catch (error) {
+        console.error('Failed to sync tag table:', error);
+    }
+}
+
+const throttledSyncTagTable = _.debounce(sync_tag_table, 5000);
+module.exports.throttledSyncTagTable = throttledSyncTagTable;
+
+
 
 module.exports.getImgFolderInfo = (imgFolders) => {
     const imgFolderInfo = {};
@@ -325,9 +386,9 @@ module.exports.getImgFolderInfo = (imgFolders) => {
         let mtimeMs = 0, size = 0, totalImgSize = 0, 
             pageNum = 0, musicNum = 0, videoNum = 0;
 
-        files = _.sortBy(files, e => e.mTime);
+        // files = _.sortBy(files, e => e.mTime);
+        // util.sortFileNames(files)
         // TODO 确定没有就没事的？ 避免前端又跑来问？
-        let thumbnail = "NO_THUMBNAIL_AVAILABLE";
 
         //。。。的每个文件夹
         for (let jj = 0; jj < files.length; jj++){
@@ -344,13 +405,14 @@ module.exports.getImgFolderInfo = (imgFolders) => {
             if (file.isImage) {
                 totalImgSize += file.size;
                 pageNum++;
-                thumbnail = fp;
             } else if (file.isMusic) {
                 musicNum++;
             } else if(file.isVideo){
                 videoNum++;
             }
         }
+
+        const thumbnail = serverUtil.chooseThumbnailImage(files.map(e => e.filePath)) || "NO_THUMBNAIL_AVAILABLE";
 
         imgFolderInfo[folderPath] = {
             mtimeMs,

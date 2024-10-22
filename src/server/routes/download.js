@@ -7,7 +7,6 @@ const router = express.Router();
 const util = global.requireUtil();
 const { isImage, isGif } = util;
 const serverUtil = require("../serverUtil");
-const execa = require('../own_execa');
 
 const pathUtil = require("../pathUtil");
 const { isExist } = pathUtil;
@@ -21,9 +20,9 @@ const ONEBOOK_HUGE_THRESHOLD_REMOTE = 3 * 1000 * 1000;  // MB
 const ONEBOOK_HUGE_THRESHOLD_LOCAL = 10 * 1000 * 1000;  // MB
 
 
-const doMinify = async (filePath, outputFn, height) => {
+const doMinifyForDownload = async (filePath, outputFn, height) => {
     const outputPath = path.resolve(global.cachePath, outputFn);
-    let result = await ImageCompressUtil.doMinifyImage(filePath, outputPath, height);
+    let result = await ImageCompressUtil.doMinifyTempImage(filePath, outputPath, height);
     result = result || filePath;
     return result;
 }
@@ -61,11 +60,11 @@ router.get('/api/download/', serverUtil.asyncWrapper(async (req, res) => {
                 const stat = await pfs.stat(filePath);
                 if (thumbnailMode && stat.size > THUMBNAIL_HUGE_THRESHOLD) {
                     const outputFn = stringHash(filePath).toString() + "-min.jpg";
-                    filePath = await doMinify(filePath, outputFn, 250);
+                    filePath = await doMinifyForDownload(filePath, outputFn, 250);
                     memorycache.put(cacheKey, filePath, 60*1000);
                 }else if(stat.size > onebook_huge_threshold){
                     const outputFn = stringHash(filePath).toString() + "-min-2.jpg";
-                    filePath = await doMinify(filePath, outputFn, 2300);
+                    filePath = await doMinifyForDownload(filePath, outputFn, 2300);
                     memorycache.put(cacheKey, filePath, 60*1000);
                 }
             }

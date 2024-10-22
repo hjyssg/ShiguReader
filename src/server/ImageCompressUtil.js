@@ -7,8 +7,8 @@ const logger = require("./logger");
 const { getCurrentTime } = util;
 const Jimp = require('jimp');
 
-/** 封装sharp和imagick */
-async function doMinifyImage(inputFilePath, outputFilePath, height) {
+/** 封装sharp和imagick。对图片进行压缩 */
+async function doMinifyTempImage(inputFilePath, outputFilePath, height) {
     try {
         if (util.canBeCompressed(inputFilePath)) {
             let beg = getCurrentTime();
@@ -42,9 +42,11 @@ async function doMinifyImage(inputFilePath, outputFilePath, height) {
             }
 
             let end1 = getCurrentTime();
-            logger.info(`[doMinifyImage] ${(end1 - beg) }ms `);
+            // logger.info(`[doMinifyImage] ${(end1 - beg) }ms `);
 
             return result;
+        }else {
+            console.warn("[doMinifyImage] cannot minify ", inputFilePath)
         }
     } catch (e) {
         logger.error("[doMinifyImage] exception", e);
@@ -52,5 +54,5 @@ async function doMinifyImage(inputFilePath, outputFilePath, height) {
 }
 
 module.exports = {
-    doMinifyImage
+    doMinifyTempImage
 };

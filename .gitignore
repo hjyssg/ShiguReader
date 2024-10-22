@@ -32,3 +32,9 @@ zip_info_sql.db
 ShiguReader_Backend.exe
 backup_file_db.db
 shigureader_internal_db.sqlite
+/workspace/shigureader_internal_db - good.sqlite
+/GUI/server_gui.exe
+/GUI/SGR_Launch.exe
+/SGR_Launch.exe.spec
+/settings-cache.ini
+/GUI/settings-cache.ini

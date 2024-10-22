@@ -2,11 +2,6 @@ const util = global.requireUtil();
 const { isImage, isMusic, isCompress, isVideo } = util;
 const _ = require('underscore');
 
-// const userConfig = global.requireUserConfig();
-const path = require('path');
-const pathUtil = require("../pathUtil");
-
-
 let sqldb;
 //-----------------------
 module.exports.init = async (_sqldb)=> {
@@ -30,7 +25,7 @@ module.exports.has = function (filePath) {
     return data.length > 0;
 }
 
-const updateZipDb = module.exports.updateZipDb = function (info) {
+module.exports.updateZipDb = function (info) {
     const {   
         filePath,
         totalImgSize,
@@ -44,14 +39,16 @@ const updateZipDb = module.exports.updateZipDb = function (info) {
     const videoNum = files.filter(isVideo).length;
     const totalNum = files.length;
 
-    sqldb.insertOneRow("zip_table", {filePath, pageNum, musicNum, videoNum, totalNum, totalImgSize, mtime, totalSize});
-    _internal_dict_[filePath] = {
-        filePath, pageNum, musicNum, videoNum, totalNum, totalImgSize, mtime, totalSize
-    };
+    // sqldb.insertOneRow("zip_table", {filePath, pageNum, musicNum, videoNum, totalNum, totalImgSize, mtime, totalSize});
+    // _internal_dict_[filePath] = {
+    //     filePath, pageNum, musicNum, videoNum, totalNum, totalImgSize, mtime, totalSize
+    // };
+
+    updateZipDb_v2({filePath, pageNum, musicNum, videoNum, totalNum, totalImgSize, mtime, totalSize});
 }
 
 
-module.exports.updateZipDb_v2 = function (info) {
+const updateZipDb_v2 = module.exports.updateZipDb_v2 = function (info) {
     const { filePath, pageNum, musicNum, videoNum, totalNum, totalImgSize, mtime, totalSize} = info;
 
     sqldb.insertOneRow("zip_table", {filePath, pageNum, musicNum, videoNum, totalNum, totalImgSize, mtime, totalSize});

@@ -4,9 +4,6 @@ const path = require('path');
 const pathUtil = require("../pathUtil");
 const { getDirName } = pathUtil;
 
-// const util = global.requireUtil();
-// const serverUtil = require("../serverUtil");
-// const { generateContentUrl } = pathUtil;
 
 //---------------------------------------------cache db---------------------
 const cacheDb = module.exports.cacheDb = {
@@ -22,16 +19,6 @@ module.exports.getCacheFileToInfo = function () {
 
 // module.exports.getAllCacheFilePathes = function () {
 //     return _.keys(cacheDb.cacheFileToInfo);
-// }
-
-// //  outputPath is the folder name
-// module.exports.getCacheFiles = function (outputPath) {
-//     //in-memory is fast
-//     const single_cache_folder = path.basename(outputPath);
-//     if (cacheDb.folderToFiles[single_cache_folder] && cacheDb.folderToFiles[single_cache_folder].length > 0) {
-//         return generateContentUrl(cacheDb.folderToFiles[single_cache_folder], outputPath);
-//     }
-//     return null;
 // }
 
 

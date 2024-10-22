@@ -14,7 +14,7 @@ const net = require('net');
 /*
 *  cache folder name and thumbnail file name
 */
-module.exports.getHash = function (filePath) {
+const getHash = function (filePath) {
     let hash;
     // potential bug:
     // files that have same name in the same folder, but different 
@@ -31,34 +31,14 @@ module.exports.getHash = function (filePath) {
     return hash;
 }
 
-// function getBaseName(e) {
-//     return path.basename(e);
-// }
 
-/** 从zip片中挑一个当代表 */
-// module.exports.chooseOneZipForOneTag = function (files, fileInfos) {
-//     let _files = files.filter(e => {
-//         if (e.includes("アニメ") || !isCompress(e) || pathUtil.isHiddenFile(e)) {
-//             return false;
-//         }
-//         return true;
-//     });
 
-//     const config = {
-//         fileInfos,
-//         getBaseName
-//     }
-
-//     sortUtil.sort_file_by_time(_files, config);
-//     return _files[0];
-// }
-
-const sortFileNames = module.exports.sortFileNames = function (files) {
+const sortFileNames = function (files) {
     util._sortFileNames(files, e => path.basename(e, path.extname(e)));
 }
 
 /** 从图片中挑一张封面 */
-module.exports.chooseThumbnailImage = function (files) {
+const chooseThumbnailImage = function (files) {
     if (files.length === 0) {
         return null;
     }
@@ -69,11 +49,11 @@ module.exports.chooseThumbnailImage = function (files) {
 }
 
 /** 解析filepath */
-module.exports.parse = function (str) {
+const parse = function (str) {
     return nameParser.parse(path.basename(str, path.extname(str)));
 }
 
-module.exports.mkdir = async function (path, quiet) {
+const mkdir = async function (path, quiet) {
     if (path && !(await pathUtil.isExist(path))) {
         try {
             const err = await pfs.mkdir(path, { recursive: true });
@@ -88,7 +68,7 @@ module.exports.mkdir = async function (path, quiet) {
     }
 }
 
-const mkdirSync = module.exports.mkdirSync = (path, quiet) => {
+const mkdirSync = (path, quiet) => {
     if (path && !fs.existsSync(path)) {
         try {
             fs.mkdirSync(path, { recursive: true });
@@ -100,7 +80,7 @@ const mkdirSync = module.exports.mkdirSync = (path, quiet) => {
     }
 }
 
-module.exports.mkdirList = (mkdirArr) => {
+const mkdirList = (mkdirArr) => {
     for (let ii = 0; ii < mkdirArr.length; ii++) {
         const fp = mkdirArr[ii];
         if (!global.isWindows && util.isWindowsPath(fp)) {
@@ -121,9 +101,9 @@ function makeid() {
    }
    return result;
 }
-module.exports.makeid = makeid;
 
-module.exports.isPortOccupied = (port) => {
+
+const isPortOccupied = (port) => {
   return new Promise((resolve, reject) => {
     const server = net.createServer()
                   .once('error', err => {
@@ -144,7 +124,7 @@ module.exports.isPortOccupied = (port) => {
 /**
  * Async wrapper function。用来封装所有的async request
  */
-module.exports.asyncWrapper = (fn) => {
+const asyncWrapper = (fn) => {
     return (req, res, next) => {
       const beginTime = util.getCurrentTime();
       fn(req, res, next)
@@ -152,17 +132,23 @@ module.exports.asyncWrapper = (fn) => {
         // 测量性能
         const timeSpent = util.getCurrentTime() - beginTime;
         const url = req.url || "";
-        const exclude_list  = ["/api/download", "/api/getQuickThumbnail", "/api/findSimilarFile/"];
-        let shouldLog = true;
-        exclude_list.forEach(e => {
+        
+        let shouldLog = false;
+        const want_list  = [];
+        want_list.forEach(e => {
             if(url.includes(e)){
-                shouldLog = false;
+                shouldLog = true;
             }
         })
 
-        let warnFlg = timeSpent > 300;
+        let warnFlg = timeSpent > 3000;
         if(shouldLog || warnFlg){
-            logger.debug(`[${decodeURI(url)}] ${timeSpent}ms`);
+            const now = new Date();
+            // 获取小时、分钟、秒
+            const hours = now.getHours();
+            const minutes = now.getMinutes();
+            const seconds = now.getSeconds();
+            logger.debug(`[${decodeURI(url)}] ${hours}:${minutes}:${seconds} ${timeSpent}ms`);
         }
       })
       .catch((reason)=>{
@@ -179,7 +165,7 @@ module.exports.asyncWrapper = (fn) => {
 
 // write a nodejs function that suspend the progtam until user type something
 const readline = require('readline');
-module.exports.suspend = ()  => {
+const suspend = ()  => {
   return new Promise((resolve, reject) => {
     const rl = readline.createInterface({
       input: process.stdin,
@@ -193,12 +179,11 @@ module.exports.suspend = ()  => {
   });
 }
 
-/** 用来避免循环引用的函数object */
-module.exports.common = {};
+
 
 
 // array变为map
-module.exports.convertFileRowsIntoFileInfo = (rows) => {
+const convertFileRowsIntoFileInfo = (rows) => {
     let fileInfos = {};
     rows.forEach(row => {
         const fp = row.filePath;
@@ -217,10 +202,69 @@ module.exports.convertFileRowsIntoFileInfo = (rows) => {
 }
 
 
-module.exports.joinThumbnailFolderPath = (thumbnailFileName) => {
+const joinThumbnailFolderPath = (thumbnailFileName) => {
     if(!thumbnailFileName){
         return "";
     }
-    const thumbnailFolderPath = global.thumbnailFolderPath;
-    return  thumbnailFolderPath + path.sep + thumbnailFileName;
+    return path.join(global.thumbnailFolderPath, thumbnailFileName);
+}
+
+/**
+ * 写一个js函数，根据一个key list，只保留object需要的property
+ */
+function filterObjectProperties(obj, keysToKeep, needWarn) {
+    // 遍历对象的所有属性
+    return Object.keys(obj).reduce((acc, key) => {
+      // 如果当前属性存在于 keysToKeep 数组中，将其添加到新对象中
+      if (keysToKeep.includes(key)) {
+        acc[key] = obj[key];
+      }else if(needWarn){
+        console.warn("filterObjectProperties", key);
+      }
+      return acc;
+    }, {});
+}
+
+/** 开发用。检查的obj是不是都有这些key */
+function checkKeys(obj, keys) {
+    const objKeys = Object.keys(obj);
+    for (let i = 0; i < keys.length; i++) {
+      if (!objKeys.includes(keys[i])) {
+        console.warn("[checkKeys]", keys[i]);
+      }
+    }
+}
+
+/** 检查回传给onebook的res */
+function checkOneBookRes(resObj){
+    const allowedKeys = ["zipInfo", "path", "stat", "imageFiles", "musicFiles", "videoFiles", "dirs", "mecab_tokens", "outputPath"];
+    checkKeys(resObj, allowedKeys);
+    resObj = filterObjectProperties(resObj, allowedKeys, false);
+    return resObj;
+}
+
+// 隐私
+function shrinkFp(fp){
+    return fp.slice(0, 12) + "..." + fp.slice(fp.length - 10);
+}
+
+module.exports = {
+    common: {}, //用来避免循环引用的函数object
+
+    getHash,
+    sortFileNames,
+    chooseThumbnailImage,
+    parse,
+    mkdir,
+    mkdirSync,
+    mkdirList,
+    makeid,
+    isPortOccupied,
+    asyncWrapper,
+    suspend,
+    convertFileRowsIntoFileInfo,
+    filterObjectProperties,
+    joinThumbnailFolderPath,
+    checkKeys,
+    checkOneBookRes
 }

@@ -9,7 +9,6 @@ const logger = require("../logger");
 const db = require("../models/db");
 
 const serverUtil = require("../serverUtil");
-const { getStatAndUpdateDB } = serverUtil.common;
 
 const sevenZipHelp = require("../sevenZipHelp");
 const { listZipContentAndUpdateDb } = sevenZipHelp;
@@ -20,6 +19,9 @@ const imageMagickHelp = require("../imageMagickHelp");
 imageMagickHelp.init();
 
 const util = global.requireUtil();
+
+const pLimit = require('p-limit');
+const minify_limit = pLimit(1);
 
 const count = {
     processed: 0,
@@ -33,8 +35,7 @@ router.post('/api/minifyZipQue', serverUtil.asyncWrapper(async (req, res) => {
     })
 }));
 
-const pLimit = require('p-limit');
-const limit = pLimit(1);
+
 router.post('/api/overwrite', serverUtil.asyncWrapper(async (req, res) => {
     const filePath = req.body && req.body.filePath;
 
@@ -46,7 +47,7 @@ router.post('/api/overwrite', serverUtil.asyncWrapper(async (req, res) => {
         res.send({ failed: true, reason: "still in minify queue" });
     }
 
-    const newFileStat = await getStatAndUpdateDB(filePath);
+    const newFileStat = await serverUtil.common.getStatAndUpdateDB(filePath);
     const temp = await listZipContentAndUpdateDb(filePath);
     const newFileImgs = temp.files;
 
@@ -65,11 +66,15 @@ router.post('/api/overwrite', serverUtil.asyncWrapper(async (req, res) => {
 
     for (let ii = 0; ii < allPath.length; ii++) {
         let fp = allPath[ii];
+        if (!(await isExist(fp))) {
+            continue;
+        }
+
         let ppFn = path.basename(fp, path.extname(fp));
         if (ppFn === fn) {
             const oldTemp = await listZipContentAndUpdateDb(fp);
             const oldFileImgs = oldTemp.files;
-            const oldFileStat = await getStatAndUpdateDB(fp);
+            const oldFileStat = await serverUtil.common.getStatAndUpdateDB(fp);
 
             if (oldFileStat.size > newFileStat.size && imageMagickHelp.isNewZipSameWithOriginalFiles(newFileImgs, oldFileImgs)) {
                 originalFilePath = fp;
@@ -81,6 +86,9 @@ router.post('/api/overwrite', serverUtil.asyncWrapper(async (req, res) => {
     if (originalFilePath) {
         //do the overwrite
         await trash(originalFilePath);
+        // 删除旧的zip信息
+        serverUtil.common.deleteCallBack(originalFilePath);
+
         const newPath = path.join(path.dirname(originalFilePath), path.basename(filePath));
         const { stdout, stderr } = move(filePath, newPath);
         if (!stderr) {
@@ -103,7 +111,7 @@ router.post('/api/isAbleToMinify', serverUtil.asyncWrapper(async (req, res) => {
         return;
     }
 
-    let text = await imageMagickHelp.isConertable(filePath);
+    let text = await imageMagickHelp.isConvertable(filePath);
     if (text === "allow_to_minify") {
         res.send({ failed: false })
     } else {
@@ -129,9 +137,9 @@ router.post('/api/minifyZip', serverUtil.asyncWrapper(async (req, res) => {
     try {
         let temp;
         if (util.isCompress(filePath)) {
-            temp = await limit(() => imageMagickHelp.minifyOneFile(filePath));
+            temp = await minify_limit(() => imageMagickHelp.minifyOneFile(filePath));
         } else {
-            temp = await limit(() => imageMagickHelp.minifyFolder(filePath));
+            temp = await minify_limit(() => imageMagickHelp.minifyFolder(filePath));
         }
         if (temp) {
             //only success will return result
