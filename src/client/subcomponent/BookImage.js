@@ -1,47 +1,51 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import _ from "underscore";
 const clientUtil = require("../clientUtil");
+const util = require("@common/util");
+
 
 function BookImage(props, ref) {
   const { className, imageFiles, index, onLoad, onError, ...rest } = props;
   const preloadMade = useRef({});
+  const [imageSrc, setImageSrc] = useState(clientUtil.getFileUrl(imageFiles[index]));
 
-  const doPreload = async () => {
-    if (document.visibilityState === "visible") {
-      const beg = index + 1;
-      const preload_num = 2;
-      const end = Math.min(beg + preload_num, imageFiles.length);
+  const preloadImages = async (startIndex) => {
+    const beg = startIndex + 1;
+    const preload_num = 2;
+    const end = Math.min(beg + preload_num, imageFiles.length);
 
-      for (let ii = beg; ii < end; ii++) {
-        const url = clientUtil.getFileUrl(imageFiles[ii]);
-        // 避免重复load
-        if(preloadMade[url]){
-            continue;
-        }
-        preloadMade[url] = true;
-
-        const response = await fetch(url, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/octet-stream",
-          },
-        });
+    for (let ii = beg; ii < end; ii++) {
+      const url = clientUtil.getFileUrl(imageFiles[ii]);
+      if (preloadMade.current[url]) {
+        continue;
       }
+      preloadMade.current[url] = true;
+
+      const response = await fetch(url, {
+        method: "GET",
+        headers: { "Content-Type": "application/octet-stream" },
+      });
+
+      await util.pause(300);
     }
   };
+
+  // 使用 Underscore 的 _.debounce 函数来防抖
+  useEffect(() => {
+    const debounceSetImageSrc = _.debounce(() => {
+      setImageSrc(clientUtil.getFileUrl(imageFiles[index]));
+      preloadImages(index);
+    }, 100);
+
+    debounceSetImageSrc();
+
+    return () => debounceSetImageSrc.cancel(); // 清理函数，取消未执行的防抖函数
+  }, [index]);
 
   const onImageError = (error) => {
     console.error(error);
     onError && onError();
-
-    // https://stackoverflow.com/questions/5559578/having-links-relative-to-root
-    // this.imgRef.src = "/error_loading.png";
   };
-
-    
-  const imageSrc = clientUtil.getFileUrl(imageFiles[index]);
-  preloadMade[imageSrc] = true;
-  doPreload();
 
   return (
     <img
@@ -55,5 +59,6 @@ function BookImage(props, ref) {
     />
   );
 }
+
 
 export default React.forwardRef(BookImage);

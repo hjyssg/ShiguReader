@@ -79,7 +79,7 @@ function renderHistory(history) {
 
     return (
         <div className="history-section admin-section">
-            <div className="admin-section-title"> Recent Read</div>
+            {/* <div className="admin-section-title"> Recent Read</div> */}
             <div className="admin-section-content">
                 {historyDom}
             </div>

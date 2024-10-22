@@ -235,12 +235,12 @@ export default class VideoPlayer extends Component {
 
     return (<div className="video-player-page">
       {content}
-      {videoTitle}
-      {videoFileInfo}
-      <FileChangeToolbar className="video-toolbar" file={filePath} popPosition={"top-center"} />
-      {this.renderTag()}
-      <div className="video-history-section">
-        <HistorySection filePath={filePath} />
+      <div className='vertical-gap-container'>
+          {videoTitle}
+          {videoFileInfo}
+          <FileChangeToolbar className="video-toolbar" file={filePath} popPosition={"top-center"}  returnButtonOnly={true}/>
+          {this.renderTag()}
+          <HistorySection filePath={filePath} />
       </div>
     </div>
     );

@@ -551,7 +551,7 @@ export default class FileChangeToolbar extends Component {
         const { good_folder, not_good_folder } = this.context;
 
         return (
-            <React.Fragment>
+            <>
                 {good_folder &&
                     <div tabIndex="0" className="fas fa-check move-to-good-button"
                         title={"Move to " + good_folder}
@@ -560,12 +560,12 @@ export default class FileChangeToolbar extends Component {
                     <div tabIndex="0" className="fas fa-times move-to-no-good-button"
                         title={"Move to " + not_good_folder}
                         onClick={this.handleMove.bind(this, not_good_folder)}></div>}
-            </React.Fragment>
+            </>
         )
     }
 
     render() {
-        const { file, className, header, hasMusic, bigFont, isFolder } = this.props;
+        const { file, className, header, hasMusic, bigFont, isFolder, returnButtonOnly } = this.props;
         const cn = classNames("file-change-tool-bar", className, {
             bigFont: bigFont || clientUtil.isMobile(),
         });
@@ -579,37 +579,51 @@ export default class FileChangeToolbar extends Component {
 
         let secondRow;
 
+
         if (isFolder) {
             secondRow = (
-                <div className="tool-bar-row second">
+                <>
                     {this.renderMinifyZipButton()}
                     {this.renderZipButton()}
                     {this.renderModalButton()}
-                </div>
+                </>
             );
         } else {
             secondRow = (
-                <div className="tool-bar-row second">
+                <>
                     {this.renderDownloadLink()}
                     {this.renderMinifyZipButton()}
                     {this.renderOverwriteButton()}
                     {this.renderModalButton()}
-                </div>
+                </>
             );
         }
 
-        return (
+        if(returnButtonOnly){
+            return (
             <div className={cn} >
-                {header && <span className="file-change-tool-bar-header">{header}</span>}
-                <div className="tool-bar-row">
+                <div className="tool-bar-row only-one-row">
                     {this.renderMoveGoodBadButton()}
                     {this.renderDeleteButton()}
+                    {secondRow}
                 </div>
-                {secondRow}
                 {this.renderMoveModal()}
-            </div>
-        )
-
+            </div>)
+        }else{
+            return (
+                <div className={cn} >
+                    {header && <span className="file-change-tool-bar-header">{header}</span>}
+                    <div className="tool-bar-row">
+                        {this.renderMoveGoodBadButton()}
+                        {this.renderDeleteButton()}
+                    </div>
+                    <div className="tool-bar-row second">
+                        {secondRow}
+                    </div>
+                    {this.renderMoveModal()}
+                </div>
+            )
+        }
     }
 }
 

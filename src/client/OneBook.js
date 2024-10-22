@@ -258,7 +258,7 @@ export default class OneBook extends Component {
     this._handleKeyDown = this.handleKeyDown.bind(this);
     document.addEventListener('keydown', this._handleKeyDown);
 
-    if (this.hasMusic() || isMobile()) {
+    if (isMobile()) {
       return;
     }
 
@@ -573,56 +573,55 @@ export default class OneBook extends Component {
       });
 
       let nextImg = null
-      if(this.shouldTwoPageMode()) {
-        nextImg = ( 
-              <BookImage className={cn} 
-                alt="book-image"
-                ref={img => this.nextImgRef = img}
+      if (this.shouldTwoPageMode()) {
+        nextImg = (
+          <BookImage className={cn}
+            alt="book-image"
+            ref={img => this.nextImgRef = img}
 
-                imageFiles={imageFiles}
-                index={index + 1}
-                onLoad={this.makeTwoImageSameHeight.bind(this)}
-              />);
-        };
+            imageFiles={imageFiles}
+            index={index + 1}
+            onLoad={this.makeTwoImageSameHeight.bind(this)}
+          />);
+      };
 
 
-      return (<React.Fragment>
-        <Spinner className="one-book-img-load-spinner" />
-        {twoPageMode === TWO_PAGE_RIGHT && nextImg}
-        <BookImage
-          className={cn}
-          alt="book-image"
-          ref={img => this.imgRef = img}
+      return (<>
+          <Spinner className="one-book-img-load-spinner" />
+          {twoPageMode === TWO_PAGE_RIGHT && nextImg}
+          <BookImage
+            className={cn}
+            alt="book-image"
+            ref={img => this.imgRef = img}
 
-          imageFiles={imageFiles}
-          index={index}
-          onError={this.onImageError.bind(this)}
-          onLoad={this.onImgLoad.bind(this)}
-          loading="lazy"
-        />
-        {twoPageMode === TWO_PAGE_LEFT && nextImg}
-      </React.Fragment>);
+            imageFiles={imageFiles}
+            index={index}
+            onError={this.onImageError.bind(this)}
+            onLoad={this.onImgLoad.bind(this)}
+            loading="lazy"
+          />
+          {twoPageMode === TWO_PAGE_LEFT && nextImg}
+        </>);
     } else {
       let images;
       const cn = classNames("mobile-single-image", {
         "has-music": this.hasMusic()
       });
       images = (
-      <div className="mobile-single-image-container"
-        ref={(e) => this.imgContainerRef = e}
-        onClick={this.onClickMobileOneImageContainer.bind(this)}>
-        <BookImage 
-          className={cn}
-          ref={(img) => this.imgRef = img}
+        <div className="mobile-single-image-container"
+          ref={(e) => this.imgContainerRef = e}
+          onClick={this.onClickMobileOneImageContainer.bind(this)}>
+          <BookImage
+            className={cn}
+            ref={(img) => this.imgRef = img}
 
-          imageFiles={imageFiles}
-          index={index}
-          onError={this.onImageError.bind(this)}
-          onLoad={this.onImgLoad.bind(this)}
-          src={getFileUrl(imageFiles[index])} 
-          loading="lazy"
-        />
-      </div>);
+            imageFiles={imageFiles}
+            index={index}
+            onError={this.onImageError.bind(this)}
+            onLoad={this.onImgLoad.bind(this)}
+            loading="lazy"
+          />
+        </div>);
       return (<div className="mobile-one-book-container">
         <Spinner className="one-book-img-load-spinner" />
         {images}
@@ -662,7 +661,7 @@ export default class OneBook extends Component {
     event.preventDefault();
   }
 
-  renderOverviewLink() {
+  renderLinkRow() {
     if (!this.state.path) {
       return;
     }
@@ -720,6 +719,7 @@ export default class OneBook extends Component {
       className="one-book-toolbar"
       file={this.state.path}
       popPosition={"top-center"}
+      returnButtonOnly={true}
       onNewPath={this.onNewPath.bind(this)} />;
     return toolbar;
   }
@@ -866,7 +866,7 @@ export default class OneBook extends Component {
     const bookTitle = (<div className="one-book-title" >
       <FileNameDiv mecab_tokens={mecab_tokens} filename={getBaseName(this.state.path)} />
       {this.renderPath()}
-    </div>);
+      </div>);
 
     if (_.isEmpty(imageFiles) && _.isEmpty(musicFiles) && _.isEmpty(videoFiles)) {
       if (this.res && !this.res.isFailed()) {
@@ -911,16 +911,20 @@ export default class OneBook extends Component {
     return (
       <div className="one-book-container">
         {content}
-        {bookTitle}
-        {this.renderPagination()}
-        {this.renderFileSizeAndTime()}
-        {this.renderTags()}
-        {this.renderToolbar()}
+        <div className='vertical-gap-container'>
+            {bookTitle}
+            {this.renderPagination()}
+            {this.renderFileSizeAndTime()}
+            {this.renderTags()}
+            {this.renderToolbar()}
+            {this.renderSecondBar()}
+            {this.renderLinkRow()}
+            <HistorySection filePath={this.state.path} />
+        </div>
+
         {this.renderNextPrevButton()}
-        {this.renderSecondBar()}
-        {this.renderOverviewLink()}
+
         {/* {this.renderEhentaiTag()} */}
-        <HistorySection filePath={this.state.path} />
       </div>
     );
   }

@@ -8,7 +8,6 @@ import { Link } from 'react-router-dom';
 
 const userConfig = require('@config/user-config');
 import ErrorPage from './ErrorPage';
-import FileChangeToolbar from './subcomponent/FileChangeToolbar';
 import CenterSpinner from './subcomponent/CenterSpinner';
 const util = require("@common/util");
 const queryString = require('query-string');
@@ -17,7 +16,6 @@ import ItemsContainer from './subcomponent/ItemsContainer';
 import SortHeader from './subcomponent/SortHeader';
 import Breadcrumb from './subcomponent/Breadcrumb';
 import FileCellTitle from './subcomponent/FileCellTitle';
-import ClickAndCopyDiv from './subcomponent/ClickAndCopyDiv';
 import Checkbox from './subcomponent/Checkbox';
 import ThumbnailPopup from './subcomponent/ThumbnailPopup';
 import { getFileUrl } from './clientUtil';
@@ -27,13 +25,15 @@ const Constant = require("@common/constant");
 const clientUtil = require("./clientUtil");
 const { getDir, getBaseName, getPerPageItemNumber, isSearchInputTextTyping, filesizeUitl, sortFileNames } = clientUtil;
 const { isVideo, isCompress, isImage, isMusic } = util;
-// const sortUtil = require("../common/sortUtil");
 const AdminUtil = require("./AdminUtil");
-import Swal from 'sweetalert2';
 import RangeSlider from 'react-range-slider-input';
 import 'react-range-slider-input/dist/style.css';
 
-import { GlobalContext } from './globalContext'
+import { GlobalContext } from './globalContext';
+import { NoScanAlertArea, FileCountPanel, getOneLineListItem, 
+         LinkToEHentai, SimpleFileListPanel, SingleZipItem, FileGroupZipPanel } from './ExplorerPageUI';
+
+import * as ExplorerUtil from "./ExplorerUtil";
 
 
 const ClientConstant = require("./ClientConstant");
@@ -55,46 +55,14 @@ const { MODE_TAG,
     MODE_SEARCH,
     MODE_EXPLORER } = Constant;
 
-const GOOD_STANDARD = 2;
 
-const FILTER_GOOD_AUTHOR = "FILTER_GOOD_AUTHOR";
-const FILTER_OVERSIZE = "FILTER_OVERSIZE";
 const FILTER_FIRST_TIME_AUTHOR = "FILTER_FIRST_TIME_AUTHOR";
 const FILTER_HAS_MUSIC = "FILTER_HAS_MUSIC";
 const FILTER_HAS_VIDEO = "FILTER_HAS_VIDEO";
 const FILTER_IMG_FOLDER = "FILTER_IMG_FOLDER";
 
 
-function NoScanAlertArea(props) {
-    // const [minifyZipQue, setMinifyZipQue] = useState([]);
-    const { filePath } = props;
 
-
-    const askSendScan = () => {
-        Swal.fire({
-            title: "Scan this Folder (but it will take time)",
-            showCancelButton: true,
-            confirmButtonText: 'Yes',
-            cancelButtonText: 'No'
-        }).then((result) => {
-            if (result.value === true) {
-                Sender.post("/api/addNewFileWatchAfterInit", { filePath }, res => {
-                    if (!res.isFailed()) {
-                        // let { minifyZipQue } = res.json;
-                        // setMinifyZipQue(minifyZipQue)
-                    }
-                });
-            }
-        });
-    }
-
-    return (
-        <div className="alert alert-warning" role="alert" >
-            <div>{`${filePath} is not included in config-path`}</div>
-            <div style={{ marginBottom: "5px" }}>{`It is usable, but lack some good features`}</div>
-            <div className="scan-button" onClick={askSendScan}>Scan this Folder (but it will take time)</div>
-        </div>)
-}
 
 
 function parse(str) {
@@ -541,27 +509,12 @@ export default class ExplorerPage extends Component {
             }
         })
 
-        if (this.isOn(FILTER_GOOD_AUTHOR) && authorInfo) {
-            files = files.filter(e => {
-                const count = this.getAuthorCountForFP(e);
-                if (count && count.good_count > GOOD_STANDARD) {
-                    return true;
-                }
-            })
-        }
-
         if (this.isOn(FILTER_FIRST_TIME_AUTHOR) && authorInfo) {
             files = files.filter(e => {
                 const count = this.getAuthorCountForFP(e);
                 if (count && (count.total_count) === 1) {
                     return true;
                 }
-            })
-        }
-
-        if (this.isOn(FILTER_OVERSIZE)) {
-            files = files.filter(e => {
-                return this.getPageAvgSize(e) / 1024 / 1024 > userConfig.oversized_image_size
             })
         }
 
@@ -637,115 +590,10 @@ export default class ExplorerPage extends Component {
         return files.slice((this.state.pageIndex - 1) * this.getNumPerPage(), (this.state.pageIndex) * this.getNumPerPage());
     }
 
-    sortFiles(files, sortOrder, isSortAsc) {
-        //-------sort algo
-        const byFn = (a, b) => {
-            const ap = getBaseName(a);
-            const bp = getBaseName(b);
-            return ap.localeCompare(bp);
-        }
-
-
-        // 一律先时间排序
-        // const onlyByMTime = this.getMode() === MODE_EXPLORER && !this.isLackInfoMode();
-        // const config = {
-        //     fileInfos: this.allfileInfos,
-        //     ascend: true,
-        //     getBaseName,
-        //     onlyByMTime
-        // }
-        // sortUtil.sort_file_by_time(files, config);
-        // 下方的sort都是stable sort。
-        files = _.sortBy(files, e => {
-            // 没有信息，排到前面来触发后端get thumbnail。获得信息
-            const mtime = this.getMtime(e);
-            const ttime = this.getTTime(e);
-
-            if (mtime && ttime) {
-                const gap = Math.abs(mtime - ttime);
-                const GAP_THRESHOLD = 180 * 24 * 3600 * 1000;
-                if (gap > GAP_THRESHOLD) {
-                    return Math.min(mtime, ttime) || Infinity;
-                } else {
-                    return mtime || Infinity;
-                }
-            } else {
-                return mtime || ttime;
-            }
-        });
-
-        if (sortOrder === BY_RANDOM) {
-            files = _.shuffle(files);
-        } else if (sortOrder === BY_FILENAME) {
-            files.sort((a, b) => {
-                return byFn(a, b);
-            });
-        } else if (sortOrder == BY_GOOD_SCORE) {
-            // 喜好排序
-            files.sort((a, b) => {
-                const s1 = this.getScore(a);
-                const s2 = this.getScore(b);
-                return s1 - s2;
-            })
-        } else if (sortOrder === BY_FOLDER) {
-            files = _.sortBy(files, e => {
-                const dir = getDir(e);
-                return dir;
-            });
-        } else if (sortOrder === BY_TIME) {
-            // pass
-        } else if (sortOrder === BY_MTIME) {
-            //只看mtime
-            files = _.sortBy(files, e => {
-                const mtime = this.getMtime(e);
-                return mtime || Infinity;
-            });
-        } else if (sortOrder === BY_LAST_READ_TIME) {
-            files = _.sortBy(files, e => {
-                return this.getLastReadTime(e);
-            });
-        } else if (sortOrder === BY_READ_COUNT) {
-            files = _.sortBy(files, e => {
-                return this.getReadCount(e);
-            });
-        } else if (sortOrder === BY_FILE_SIZE) {
-            files = _.sortBy(files, e => {
-                return this.getFileSize(e);
-            });
-        } else if (sortOrder === BY_AVG_PAGE_SIZE) {
-            files = _.sortBy(files, e => {
-                return this.getPageAvgSize(e);
-            });
-        } else if (sortOrder === BY_PAGE_NUMBER) {
-            files = _.sortBy(files, e => {
-                return this.getPageNum(e);
-            });
-        }
-
-        if (!isSortAsc) {
-            files.reverse();
-        }
-
-        return files;
-    }
-
-    getOneLineListItem(icon, fileName, filePath, title) {
-        return (
-            <li className="explorer-one-line-list-item" key={fileName} title={this.getTooltipStr(filePath)}>
-                {icon}
-                <span className="explorer-one-line-list-item-text">{fileName}</span>
-            </li>);
-    }
+    
 
     getScore(fp) {
         let score = this.getAuthorCountForFP(fp).score || 0;
-        // console.log(fp)
-        const { good_folder_root, not_good_folder_root } = this.context;
-        if (good_folder_root && fp.includes(good_folder_root)) {
-            score += 1;
-        } else if (not_good_folder_root && fp.includes(not_good_folder_root)) {
-            score -= 1;
-        }
         return score;
     }
 
@@ -759,16 +607,6 @@ export default class ExplorerPage extends Component {
         }
     }
 
-    // getTagCountForFP(fp) {
-    //     const temp = parse(fp);
-    //     if(temp && temp.tags){
-    //         return temp.tags.map(tag => {
-    //             return clientUtil.getAuthorCount(this.state.tagInfo, tag) || [];
-    //         });
-    //     }else{
-    //         return [];
-    //     }
-    // }
 
 
     getTooltipStr(fp) {
@@ -816,12 +654,6 @@ export default class ExplorerPage extends Component {
         const text = getBaseName(fp);
         const toUrl = clientUtil.getOneBookLink(fp);
 
-        const fileSize = this.hasFileSize(fp) && this.getFileSize(fp);
-        const fileSizeStr = fileSize && filesizeUitl(fileSize);
-
-        const avgSize = this.getPageAvgSize(fp);
-        const avgSizeStr = avgSize > 0 && filesizeUitl(avgSize);
-
         let zipItem;
         let thumbnailurl = this.getThumbnailUrl(fp);
 
@@ -829,61 +661,13 @@ export default class ExplorerPage extends Component {
             zipItem = (
                 <Link target="_blank" to={toUrl} key={fp} className={""} >
                     <ThumbnailPopup filePath={fp} url={thumbnailurl}>
-                        {this.getOneLineListItem(<i className="fas fa-book"></i>, text, fp)}
+                        {getOneLineListItem(<i className="fas fa-book"></i>, text, fp, this)}
                     </ThumbnailPopup>
                 </Link>)
         } else {
 
-            const musicNum = this.getMusicNum(fp);
-            const isImgFolder = this.isImgFolder(fp);
-            const hasMusic = musicNum > 0;
-            const pageNum = this.getPageNum(fp);
-
-            const fileInfoRowCn = classNames("file-info-row", {
-                "less-padding": hasMusic
-            })
-
-            const thumbnailCn = classNames("file-cell-thumbnail", {
-                "as-folder-thumbnail": isImgFolder
-            });
-
-            let imgDiv = <LoadingImage
-                onlyUseURL={isImgFolder}
-                isThumbnail
-                className={thumbnailCn}
-                title={this.getTooltipStr(fp)}
-                fileName={fp}
-                url={thumbnailurl}
-                musicNum={musicNum}
-                onReceiveUrl={url => {
-                    // TODO
-                    // this.thumbnails[fp] = url;
-                    // this.allfileInfos[fp].thumbnailFilePath = url;
-                }}
-            />;
-
-            if (isImgFolder) {
-                imgDiv = (<div className="folder-effect"> {imgDiv} </div>)
-            }
-
-            zipItem = (
-                <div key={fp} className={"col-sm-6 col-md-4 col-lg-3 file-out-cell"}>
-                    <div className="file-cell">
-                        <Link target="_blank" to={toUrl} key={fp} className={"file-cell-inner"}>
-                            <FileCellTitle str={text} />
-                            {imgDiv}
-                        </Link>
-                        <div className={fileInfoRowCn}>
-                            {fileSizeStr && <span title="file size">{fileSizeStr}</span>}
-                            <span>{`${pageNum} pages`}</span>
-                            {hasMusic && <span>{`${musicNum} songs`}</span>}
-                            {avgSizeStr && <span title="average img size"> {avgSizeStr} </span>}
-                        </div>
-                        <FileChangeToolbar isFolder={isImgFolder} hasMusic={hasMusic} className="explorer-file-change-toolbar" file={fp} />
-                    </div>
-                </div>);
+            zipItem = <SingleZipItem key={fp} filePath={fp}  info={this} />
         }
-
         return zipItem;
     }
 
@@ -894,9 +678,8 @@ export default class ExplorerPage extends Component {
         let videos = filteredVideos;
         let files = filteredFiles;
 
-
         try {
-            files = this.sortFiles(files, sortOrder, isSortAsc);
+            files = ExplorerUtil.sortFiles(this, files, sortOrder, isSortAsc);
         } catch (e) {
             console.error(e);
         }
@@ -909,7 +692,8 @@ export default class ExplorerPage extends Component {
                 const str = this.getMode() === MODE_EXPLORER ? "This folder is empty" : "Empty Result";
                 return (
                     <div>
-                        {this.renderFilterMenu()}
+                        {this.renderPageRangeSilder()}
+                        {this.renderCheckboxPanel()}
                         <div className="one-book-nothing-available">
                             <div className="alert alert-secondary" role="alert">{str}</div>
                         </div>
@@ -927,13 +711,14 @@ export default class ExplorerPage extends Component {
                 let thumbnailurl = getFileUrl(this.dirThumbnailMap[item]);
                 const thumbnailCn = classNames("file-cell-thumbnail", "as-folder-thumbnail");
 
-                let imgDiv = <LoadingImage
-                    onlyUseURL={true}
-                    isThumbnail
+                let imgDiv = (
+                <LoadingImage
                     className={thumbnailCn}
-                    title={item} fileName={item}
+                    title={item} 
+                    fileName={item}
                     url={thumbnailurl}
-                />;
+                    mode={"folder"}
+                />);
 
                 return (
                     <div key={item} className={"col-sm-6 col-md-4 col-lg-3 file-out-cell"}>
@@ -949,7 +734,7 @@ export default class ExplorerPage extends Component {
             dirItems = dirs.map((item) => {
                 const toUrl = clientUtil.getExplorerLink(item);
                 const text = getBaseName(item);
-                const result = this.getOneLineListItem(<i className="far fa-folder"></i>, text, item);
+                const result = getOneLineListItem(<i className="far fa-folder"></i>, text, item, this);
                 return (
                     <ThumbnailPopup filePath={item} key={item}>
                         <Link to={toUrl}>{result}</Link>
@@ -958,20 +743,7 @@ export default class ExplorerPage extends Component {
             });
         }
 
-        // TODO 实际显示20个，但会去loop全部
-        const musicItems = this.musicFiles.map((item) => {
-            const toUrl = clientUtil.getOneBookLink(getDir(item));
-            const text = getBaseName(item);
-            const result = this.getOneLineListItem(<i className="fas fa-volume-up"></i>, text, item);
-            return <Link target="_blank" to={toUrl} key={item}>{result}</Link>;
-        });
-
-        const imageItems = this.imageFiles.map((item, ii) => {
-            const toUrl = clientUtil.getOneBookLink(getDir(item));
-            const text = getBaseName(item);
-            const result = this.getOneLineListItem(<i className="fas fa-images"></i>, text, item);
-            return <Link target="_blank" to={toUrl} key={item}>{result}</Link>;
-        });
+      
 
         //seperate av from others
         const groupByVideoType = _.groupBy(videos, item => {
@@ -995,7 +767,7 @@ export default class ExplorerPage extends Component {
             const videoItems = group.map((item) => {
                 const toUrl = clientUtil.getVideoPlayerLink(item);
                 const text = getBaseName(item);
-                const result = this.getOneLineListItem(<i className="far fa-file-video"></i>, text, item);
+                const result = getOneLineListItem(<i className="far fa-file-video"></i>, text, item, this);
                 // 会卡顿，弃用video preview
                 // return (
                 // <ThumbnailPopup filePath={item} key={item}>
@@ -1018,37 +790,8 @@ export default class ExplorerPage extends Component {
         let zipfileItems;
         if (sortOrder === BY_FOLDER || sortOrder === BY_FOLDER &&
             (this.getMode() === MODE_AUTHOR || this.getMode() === MODE_TAG || this.getMode() === MODE_SEARCH)) {
-            const byDir = _.groupBy(files, getDir);
-            let fDirs = _.keys(byDir);
-            // 文件夹根据所拥有文件件的时间来排序
-            fDirs = _.sortBy(fDirs, dirPath => {
-                const files = byDir[dirPath];
-                const times = files.map(fp => this.getMtime(fp)).filter(e => !!e);
-                const avgTime = util.getAverage(times);
-                return avgTime || 0;
-            });
-
-            if (!this.state.isSortAsc) {
-                fDirs.reverse();
-            }
-
-            zipfileItems = [];
-            fDirs.map((dirPath, ii) => {
-                const folderGroup = byDir[dirPath];
-                const extraDiv = (<div className="extra-div" >{`Zip: ${folderGroup.length}`} </div>);
-                const seperator = (<div className="col-12" key={dirPath + "---seperator"}>
-                    <Breadcrumb sep={this.context.file_path_sep}
-                        server_os={this.context.server_os}
-                        path={dirPath}
-                        className={ii > 0 ? "not-first-breadcrumb folder-seperator" : "folder-seperator"}
-                        extraDiv={extraDiv}
-                    />
-
-                </div>);
-                zipfileItems.push(seperator)
-                const zipGroup = folderGroup.map(fp => this.renderSingleZipItem(fp));
-                zipfileItems.push(...zipGroup);
-            })
+    
+            zipfileItems = <FileGroupZipPanel files={files} isSortAsc={this.state.isSortAsc} info={this} />
         } else {
             //! !todo if the file is already an image file
             zipfileItems = files.map(fp => this.renderSingleZipItem(fp));
@@ -1066,12 +809,13 @@ export default class ExplorerPage extends Component {
                         </div>
                     </div>
                 }
-                <ItemsContainer items={musicItems} />
-                <ItemsContainer items={imageItems} />
+
+                <SimpleFileListPanel musicFiles={this.musicFiles} imageFiles={this.imageFiles} info={this} />
+
                 {videoDivGroup}
                 {this.renderPagination(filteredFiles, filteredVideos)}
                 {this.renderPageRangeSilder()}
-                {this.renderFilterMenu()}
+                {this.renderCheckboxPanel()}
                 {zipfileItems.length > 0 && this.renderSortHeader()}
                 <div className={"file-grid container"}>
                     <div className={rowCn}>
@@ -1097,7 +841,8 @@ export default class ExplorerPage extends Component {
                 <div className='small-text-title'>{pageNumRange[0]} </div>
                 <RangeSlider className="page-number-range-slider" 
                 min={this.minPageNum} max={maxForSilder} step={1} 
-                value={pageNumRange} onInput={(range) => {
+                value={pageNumRange} 
+                onInput={(range) => {
                     console.log(range);
                     if(range[0] === pageNumRange[0] && range[1] === pageNumRange[1]){
                         //
@@ -1247,26 +992,7 @@ export default class ExplorerPage extends Component {
         }
     }
 
-    renderFileCount(filteredFiles, filteredVideos) {
-        const totalZipSize = this.countAllFileSize(filteredFiles);
-        const totalVideoSize = this.countAllFileSize(filteredVideos);
-        const totalSize = totalZipSize + totalVideoSize;
-        const title = `${filesizeUitl(totalZipSize)} zips and ${filesizeUitl(totalVideoSize)} videos`
-        const totalPageNum = this.countAllFilePageNum(filteredFiles);
-        return (
-            <div className="row">
-                <div className="col-12 file-count-row">
-                    <div className="file-count">{"Zip: " + filteredFiles.length} </div>
-                    <div className="file-count">{"Page: " + totalPageNum} </div>
-                    <div className="file-count">{"Video: " + filteredVideos.length} </div>
-                    <div className="file-count">{"Music: " + this.musicFiles.length} </div>
-                    <div className="file-count">{"Image: " + this.imageFiles.length} </div>
-                    <div className="file-count">{"Folder: " + this.dirs.length} </div>
-                    <div className="file-count" title={title}>{"Total: " + filesizeUitl(totalSize)} </div>
-                </div>
-            </div>
-        );
-    }
+ 
 
     getBookModeLink() {
         const onebookUrl = clientUtil.getOneBookLink(this.getTextFromQuery());
@@ -1327,7 +1053,7 @@ export default class ExplorerPage extends Component {
         return (<div className="container explorer-top-bar-container">
             {breadcrumb}
             {warning}
-            {this.renderFileCount(filteredFiles, filteredVideos)}
+            <FileCountPanel filteredFiles={filteredFiles} filteredVideos={filteredVideos} info={this} />
             {topButtons}
         </div>);
     }
@@ -1352,18 +1078,7 @@ export default class ExplorerPage extends Component {
         }
 
         if (searchable) {
-            const link = "https://exhentai.org/?f_search=" + searchable;
-            const title = "Search '" + searchable + "' in Exhentai";
-
-            let btn;
-            if (this.getMode() === MODE_AUTHOR || this.getMode() === MODE_TAG || this.getMode() === MODE_SEARCH) {
-                btn = [this.renderToggleThumbNailButton(), this.renderToggleFolferThumbNailButton(), this.renderToggleMenuButton()];
-            }
-
-            return (<center className={"location-title"}>
-                <a className="explorer-external-link" target="_blank" href={link} title={title}>{this.getTitle()} </a>
-                <ClickAndCopyDiv text={searchable} />
-            </center>);
+            return <LinkToEHentai searchable={searchable} text={this.getTitle()} />
         }
     }
 
@@ -1538,51 +1253,32 @@ export default class ExplorerPage extends Component {
         </div>);
     }
 
-    renderFilterMenu() {
-        //no one pay me, I am not going to improve the ui
-        let checkbox;
-        if (this.state.authorInfo) {
-            checkbox = (<Checkbox
-                onChange={this.toggleFilter.bind(this, FILTER_GOOD_AUTHOR)}
-                checked={this.isOn(FILTER_GOOD_AUTHOR)}
-                title={`need to found more than ${GOOD_STANDARD} times in good folder`}>
-                By Good Count
-            </Checkbox>);
-        }
+    renderCheckboxPanel() {
+        // Define a list of filters with their descriptions
+        const filters = [
+            { id: 'FILTER_FIRST_TIME_AUTHOR', label: 'First Time Author' },
+            { id: 'FILTER_HAS_MUSIC', label: 'Has Music' },
+            { id: 'FILTER_HAS_VIDEO', label: 'Has Video' },
+            { id: 'FILTER_IMG_FOLDER', label: 'Only Image Folder' }
+        ];
 
-        const st2 = `Image > ${userConfig.oversized_image_size} MB`;
-        let checkbox2 = (<Checkbox onChange={this.toggleFilter.bind(this, FILTER_OVERSIZE)} checked={this.isOn(FILTER_OVERSIZE)}>
-            {st2}
-        </Checkbox>);
+        // Map over the filters array to create checkbox components
+        const checkboxes = filters.map(filter => (
+            <Checkbox 
+                key={filter.id}
+                onChange={this.toggleFilter.bind(this, filter.id)} 
+                checked={this.isOn(filter.id)}
+            >
+                {filter.label}
+            </Checkbox>
+        ));
 
-        const st3 = `First Time Author`;
-        let checkbox3 = (<Checkbox onChange={this.toggleFilter.bind(this, FILTER_FIRST_TIME_AUTHOR)} checked={this.isOn(FILTER_FIRST_TIME_AUTHOR)}>
-            {st3}
-        </Checkbox>);
-
-        const st4 = `Has Music`;
-        let checkbox4 = (<Checkbox onChange={this.toggleFilter.bind(this, FILTER_HAS_MUSIC)} checked={this.isOn(FILTER_HAS_MUSIC)}>
-            {st4}
-        </Checkbox>);
-
-        const st45 = `Has Video`;
-        let checkbox45 = (<Checkbox onChange={this.toggleFilter.bind(this, FILTER_HAS_VIDEO)} checked={this.isOn(FILTER_HAS_VIDEO)}>
-            {st45}
-        </Checkbox>);
-
-        const st5 = `Only Image Folder`;
-        let checkbox5 = (<Checkbox onChange={this.toggleFilter.bind(this, FILTER_IMG_FOLDER)} checked={this.isOn(FILTER_IMG_FOLDER)}>
-            {st5}
-        </Checkbox>);
+        // Return the container with all checkboxes
         return (
             <div className="aji-checkbox-container container">
-                {/* {checkbox} */}
-                {/* {checkbox2} */}
-                {checkbox3}
-                {checkbox4}
-                {checkbox45}
-                {checkbox5}
-            </div>);
+                {checkboxes}
+            </div>
+        );
     }
 
     render() {

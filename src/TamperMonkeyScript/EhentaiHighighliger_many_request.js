@@ -131,7 +131,7 @@ async function highlightEhentaiThumbnail() {
             e.status = status || 0;
             if (status === IS_IN_PC) {
                 subNode.style.color = "#61ef47";
-                thumbnailNode.title = "明确已经下载过了";
+                addTooltip(thumbnailNode, "明确已经下载过了", similarTitles)
             } else if (status === LIKELY_IN_PC) {
                 subNode.style.color = "#efd41b";
                 addTooltip(thumbnailNode, "电脑里面好像有", similarTitles)
@@ -141,17 +141,13 @@ async function highlightEhentaiThumbnail() {
                 addTooltip(thumbnailNode, `下载同样作者“${rr.author}”的书 ${fns.length}次`, fns, "same_author")
             }
 
-            if (status) {
-                if (rr) {
-                    appendLink(e, rr.author);
-                    if (status >= LIKELY_IN_PC) {
-                        appendLink(e, rr.title);
-                    }
-                } else {
-                    appendLink(e, text);
-                }
-                subNode.style.fontWeight = 600;
+            if (rr) {
+                appendLink(e, rr.author);
+                appendLink(e, rr.title);
+            } else {
+                appendLink(e, text);
             }
+            subNode.style.fontWeight = 600;
         } catch (e) {
             console.error(e);
         }
@@ -175,7 +171,7 @@ async function highlightNyaa(){
             if (status === IS_IN_PC) {
                 node.style.textDecoration = "line-through";
                 node.style.textDecorationColor = "green";
-                node.title = "明确已经下载过了";
+                addTooltip(node, "明确已经下载过了", similarTitles)
             } else if (status === LIKELY_IN_PC) {
                 node.style.color = "#efd41b";
                 addTooltip(node, "电脑里面好像有", similarTitles)
@@ -192,7 +188,7 @@ async function highlightNyaa(){
     console.timeEnd("check_all_dom");
 }
 
-function addTooltip(node, title, books, same_author) {
+function addTooltip(node, title, books) {
     books.sort();
     //indent
     books = books.map((e, ii) => {
@@ -206,7 +202,7 @@ function addTooltip(node, title, books, same_author) {
     if (books.length > 25) {
         books = books.slice(0, 10).concat("...");
     }
-    node.title = [title, "  ",].concat(books).join("\n");;
+    node.title = [node.title, " ", title, "  ",].concat(books).join("\n");
 }
 
 function appendLink(fileTitleDom, text, asIcon) {
@@ -215,7 +211,7 @@ function appendLink(fileTitleDom, text, asIcon) {
     if (asIcon) {
         link.textContent = "🔍";
     } else {
-        link.textContent = `Search ${text} in ShiguReader`;
+        link.textContent = `Search ${text} in PC`;
     }
 
     link.style.display = "block";

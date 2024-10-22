@@ -183,13 +183,15 @@ module.exports.getQuickThumbUrl = function(filePath){
 
 
 module.exports.getFileUrl = function (filePath, thumbnailMode) {
-    if (!filePath || filePath === "NO_THUMBNAIL_AVAILABLE") {
+    if (!filePath ) {
         return "";
+    }
+    if(filePath === "NO_THUMBNAIL_AVAILABLE"){
+        return filePath;
     }
 
     let result;
     if(filePath.includes("/api/download/?p")){
-       //loadingImage onReceiveUrl
        result =  filePath;
     }else {
         result = "/api/download/?p=" + encodeURIComponent(filePath);

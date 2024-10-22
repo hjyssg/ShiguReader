@@ -43,6 +43,7 @@
         margin-top: 10px;
         font-size: 14px;
         color: $font_color_white_one;
+        gap: 8px;
 
         .inline-display {
             display: inline;
@@ -62,9 +63,10 @@
     .video-toolbar {
         @include flex_center_display;
 
-        margin-left: auto;
-        margin-right: auto;
+        // margin-left: auto;
+        // margin-right: auto;
         font-size: 15px;
+        gap: 14px;
 
         .aji-dropdown-item {
             font-size: 28px;
@@ -79,9 +81,5 @@
         font-size: 15px;
 
         color: $font_color_white_one;
-    }
-
-    .video-history-section{
-        @include flex_center_display;
     }
 }

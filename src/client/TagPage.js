@@ -315,9 +315,10 @@ export default class TagPage extends Component {
         <div className={"tag-cell"}>
           <Link target="_blank" className="tag-page-list-item-link" to={url} key={tag}>
             <FileCellTitle str={itemText} />
-            <LoadingImage isThumbnail
+            <LoadingImage
               title={this.getTooltipStr(item)}
-              className="tag-page-thumbnail" fileName={tag}
+              className="tag-page-thumbnail"
+              fileName={tag}
               mode={this.props.mode}
               url={thumbnailUrl} />
           </Link>

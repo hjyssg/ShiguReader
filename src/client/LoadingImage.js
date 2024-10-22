@@ -4,55 +4,60 @@ const classNames = require('classnames');
 import "./style/LoadingImage.scss"
 const clientUtil = require("./clientUtil");
 const util = require("@common/util");
+const _ = require("underscore");
+const VisibilitySensor = require('react-visibility-sensor').default;
 
-// 需要是isThumbnail && onlyUseURL && 同时初始的url不好用，才会去api request
+// 同时初始的url不好用，才会去api request
+// 三个场景： 普通zip，folder，tag
 export default class LoadingImage extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      fail_time: 0,
-      url: props.url
+      url: props.url,
+      isVisible: false
     };
+    console.assert(["tag", "author", "folder", "zip"].includes(props.mode))
   }
 
   componentDidUpdate(prevProps) {
-    if (this.props.url && prevProps.url !== this.props.url && !this.isUrlAvaible()) {
+    if (this.props.url && prevProps.url !== this.props.url) {
       this.setState({
         url: this.props.url
       });
     }
   }
 
-  componentDidMount() {
-    if (this.props.isThumbnail) {
-      setTimeout(() => {
-        this.onChange(true)
-      }, 0);
+  onChange(isVisible) {
+    // only use to turn on
+    if (!isVisible) {
+      return;
     }
+
+    this.setState({
+      isVisible
+    })
+
+    if (this.shouldAskUrl()) {
+      this.requestThumbnail()
+    }
+  }
+
+  shouldAskUrl() {
+    if (this.state.url === "NO_THUMBNAIL_AVAILABLE" || this.props.url === "NO_THUMBNAIL_AVAILABLE") {
+      return false;
+    } else {
+      return !this.props.url;
+    }
+  }
+
+  componentDidMount() {
+    // if (this.shouldAskUrl()) {
+    //   this.requestThumbnail()
+    // }
   }
 
   componentWillUnmount() {
     this.isUnmounted = true;
-  }
-
-  shouldAskUrl() {
-    if(this.props.onlyUseURL){
-      return false;
-    }else if (!this.state.url) {
-      return true;
-    } else {
-      if (this.state.url === "NO_THUMBNAIL_AVAILABLE") {
-        return this.isAuthorTagMode();
-      } else {
-        return false;
-      }
-    }
-  }
-
-  onChange() {
-    if (this.shouldAskUrl() & !this.loading) {
-      this.requestThumbnail()
-    }
   }
 
   isAuthorTagMode() {
@@ -60,86 +65,91 @@ export default class LoadingImage extends Component {
     return mode === "author" || mode === "tag";
   }
 
-  requestThumbnail() {
+  async requestThumbnail() {
     const { mode, fileName } = this.props;
-    const api = (this.isAuthorTagMode()) ? "/api/getTagThumbnail" : '/api/getZipThumbnail';
-    const body = {};
+    let api;
+    if (this.isAuthorTagMode()) {
+      api = "/api/getTagThumbnail"
+    } else if (mode === "folder") {
+      // TODO backend need to support?
+    } else {
+      api = '/api/getZipThumbnail'
+    }
 
+    const body = {};
     if (this.isAuthorTagMode()) {
       body[mode] = fileName;
     } else {
       body["filePath"] = fileName;
     }
 
-    this.loading = true;
-    Sender.post(api, body, res => {
-      if (this.isUnmounted) {
-        return;
-      }
+    if (!api) {
+      return;
+    }
+
+    const res = await Sender.postWithPromise(api, body);
+    if (!this.isUnmounted) {
       if (res.isFailed()) {
-        this.setState({ fail_time: this.state.fail_time + 1 });
+        this.setState({ url: "NO_THUMBNAIL_AVAILABLE" })
       } else {
         const url = clientUtil.getFileUrl(res.json.url);
-        this.props.onReceiveUrl && this.props.onReceiveUrl(url);
         this.setState({ url });
       }
-    });
-  }
-
-  onError() {
-    if (!this.tryEnoughRequest()) {
-      this.setState({
-        url: null,
-        fail_time: this.state.fail_time + 1
-      }, () => {
-        this.requestThumbnail()
-      });
     }
   }
 
-  tryEnoughRequest() {
-    return this.state.fail_time > 2;
-  }
 
-  isUrlAvaible() {
-    return this.state.url && this.state.url !== "NO_THUMBNAIL_AVAILABLE";
+
+  getImageUrl() {
+    if(this.state.url && this.state.url !== "NO_THUMBNAIL_AVAILABLE"){
+      return this.state.url;
+    }
   }
 
   render() {
-    let content;
-    const { className, style, fileName, url, title, 
-             isThumbnail, onlyUseURL, mode, onReceiveUrl,
-              musicNum, ...others } = this.props;
+    const { className, style, fileName, url, title,
+      mode, musicNum, ...others } = this.props;
 
-    let empty_icon_cn = "";
-    if(musicNum > 0){
-      empty_icon_cn = " fas fa-music"
-    }else if(fileName && util.isCompress(fileName)){
-      empty_icon_cn = " fas fa-file-archive"
-    }else {
-      empty_icon_cn = " far fa-folder"
-    }
+    const _url = this.getImageUrl();
+
 
     let cn = classNames("loading-image", className, {
-      "empty-block": !this.isUrlAvaible()
+      "empty-block": !_url
     });
 
-    if (!this.isUrlAvaible() && empty_icon_cn) {
-      cn += empty_icon_cn;
+
+
+    if (!_url) {
+      let temp = "";
+      if (musicNum > 0) {
+        temp = "fas fa-music"
+      } else if (mode === "zip") {
+        temp = "fas fa-file-archive"
+      } else if (mode == "folder") {
+        temp = "far fa-folder"
+      }else if (mode == "tag") {
+        temp = "fas fa-tags"
+      }else if (mode == "author") {
+        temp = "fas fa-pen"
+      }
+      cn += " " +  temp;
     }
 
-    const _url = this.state.url;
 
-    if (this.isUrlAvaible()) {
+    let content;
+    if (_url) {
       content = (<img style={style} key={fileName} ref={e => { this.dom = e && e.node }}
         className={className} src={_url} title={title || fileName}
-        onError={this.onError.bind(this)}
-        loading="lazy" 
+        loading="lazy"
         {...others} />);
     } else {
       content = (<div key={fileName} className={cn} title={title || fileName} {...others} />);
     }
 
-    return content;
+    return (
+      <VisibilitySensor offset={{ bottom: -200 }} partialVisibility={true} onChange={this.onChange.bind(this)}>
+          {content}
+      </VisibilitySensor>
+    )
   }
 }
