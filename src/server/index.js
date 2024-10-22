@@ -555,7 +555,7 @@ app.post("/api/login", asyncWrapper(async (req, res) => {
     if(password == etc_config.home_password || !etc_config.home_password){
         const token = serverUtil.makeid()
         token_set[token] = true;
-        res.cookie('login-token', token, {maxAge: 1000 * 3600 * 24 });
+        res.cookie('login-token', token, {maxAge: 30 * 1000 * 3600 * 24 });
         res.json({
             failed: false
         });

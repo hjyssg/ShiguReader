@@ -66,6 +66,8 @@ module.exports.init = async (skipDbClean)=> {
     const _SKP_INIT = skipDbClean;
 
     if(!_SKP_INIT){
+        console.log("remove previous db cache")
+
         await sqldb.execSync( `
 
         PRAGMA journal_mode = OFF;
