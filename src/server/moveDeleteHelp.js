@@ -7,6 +7,6 @@ module.exports.move = async function (src, dest) {
 }
 
 module.exports.trash = async function (src) {
-    const trash = require('trash');
-    await trash([src]);
+    const trash = await import('trash');
+    await trash.default([src]);
 }

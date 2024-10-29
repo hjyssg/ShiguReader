@@ -111,9 +111,9 @@ router.post('/api/moveFile', serverUtil.asyncWrapper(async (req, res) => {
     }
 }));
 
+const { trash } = require("../moveDeleteHelp");
 async function deleteThing(src) {
     if (userConfig.move_file_to_recyle) {
-        const trash = require('trash');
         await trash([src]);
     } else {
         const err = await pfs.unlink(src)

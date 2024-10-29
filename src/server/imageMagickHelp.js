@@ -245,7 +245,6 @@ const isNewZipSameWithOriginalFiles = module.exports.isNewZipSameWithOriginalFil
 
 const userful_percent = 20;
 const fileiterator = require('./file-iterator');
-const trash = require('trash');
 const minifyFolder = module.exports.minifyFolder = async function (filePath) {
     logger.info("-----begin images convertion --------------");
  
@@ -297,6 +296,7 @@ const minifyFolder = module.exports.minifyFolder = async function (filePath) {
     }
 }
 
+const { trash } = require("./moveDeleteHelp");
 async function deleteThing(src) {
     const convertSpace = getImgConverterCachePath();
     if (src.includes(convertSpace)) {
