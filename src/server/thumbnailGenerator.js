@@ -18,7 +18,9 @@ const fs = require('fs').promises;
 async function thumbnailGenerator(thumbnailFolderPath, imgFolderPath, imgFileName) {
     // let beg = getCurrentTime();
     const outputName = path.basename(imgFolderPath);
-    const ext = util.isGif(imgFileName) ? ".gif" : ".webp";
+    // const ext = util.isGif(imgFileName) ? ".gif" : ".webp";
+    // webp 会出现0kb空白图片
+    const ext = util.isGif(imgFileName) ? ".gif" : ".jpg";
     const tempOutputPath = path.resolve(thumbnailFolderPath, outputName) + ext;
     const inputFilePath = path.resolve(imgFolderPath, imgFileName);
     if(!(await pathUtil.isExist(inputFilePath))){
