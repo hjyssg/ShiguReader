@@ -50,7 +50,7 @@
     "promise-fs": "^2.1.1",
     "qrcode-terminal": "^0.12.0",
     "sane": "^5.0.1",
-    "sharp": "^0.32.1",
+    "sharp": "^0.33.5",
     "sqlite3": "^5.1.6",
     "string-hash": "^1.1.3",
     "trash": "^9.0.0",
