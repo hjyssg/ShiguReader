@@ -7,13 +7,13 @@ from pathlib import Path
 
 # 替换为你的数据库文件路径
 script_dir = os.path.dirname(os.path.realpath(__file__))
-db_path_1 = os.path.join(script_dir, '../../workspace/shigureader_internal_db.sqlite')
+db_path_1 = os.path.join(script_dir, '../../../ShiguReader_2024-10-22/workspace/shigureader_internal_db.sqlite') 
 db_path_1 = Path(db_path_1).resolve()
 
 
 
 
-db_path_2 = os.path.join(script_dir, '../../../SGR_pkg/workspace/shigureader_internal_db.sqlite')
+db_path_2 = os.path.join(script_dir, '../../workspace/shigureader_internal_db.sqlite')
 db_path_2 = Path(db_path_2).resolve()
 
 print(db_path_1)
