@@ -70,6 +70,11 @@ router.post('/api/moveFile', serverUtil.asyncWrapper(async (req, res) => {
     }
 
     const destFP = path.resolve(dest, path.basename(src));
+    if(destFP === src){
+        res.send({ failed: true, reason: `File is already at ${dest}` });
+        return;
+    }
+
     if (await isExist(destFP)) {
         res.send({ failed: true, reason: `duplicate file already in ${dest}` });
         return;
