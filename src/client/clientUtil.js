@@ -101,7 +101,7 @@ module.exports.getPerPageItemNumber = function () {
 }
 
 module.exports.sortFileNames = function (files) {
-    util._sortFileNames(files, getBaseNameWithoutExtention);
+    util._sortFileNames(files, getBaseName);
 }
 
 module.exports.isLocalHost = function () {

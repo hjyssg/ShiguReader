@@ -80,39 +80,32 @@ const hasDuplicate = module.exports.hasDuplicate = (arr) => {
 }
 
 
+
+
 /**
  * 用来排序图片和mp3的。files既可能是filename也可能是filepath
  */
-module.exports._sortFileNames = function (files, getBaseNameWithoutExtention) {
-    // assertion
-    // files.forEach((e, ii) => {
-    //     const good =  (!e.includes("/") && !e.includes("\\"));
-    //     console.assert(good);
-    // })
+module.exports._sortFileNames = function (files, getBaseName) {
+    // files.sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+    // return;
 
-    // 奇怪了，以前的sort有numeric这个选项吗，还是我重新发明轮子了？
-    // A:The Intl.Collator object was introduced in ECMAScript 2015 (ES6).  好像10年前就有了？？
-    files.sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
-    return;
+    files.sort((a, b) => {
+        // 使用 getBaseName 获取文件名部分
+        const fileNameA = getBaseName(a);
+        const fileNameB = getBaseName(b);
 
-    // if (!getBaseNameWithoutExtention) {
-    //     throw "no getBaseNameWithoutExtention";
-    // }
+        // 获取路径部分（去掉文件名部分后的内容）
+        const dirA = a.slice(0, a.length - fileNameA.length);
+        const dirB = b.slice(0, b.length - fileNameB.length);
 
-    // const isAllDigit = files.every(e => {
-    //     return isOnlyDigit(getBaseNameWithoutExtention(e))
-    // });
-
-    // // check if duplicate filename
-    // const fns = files.map(getBaseNameWithoutExtention);
-    // let isDup = hasDuplicate(fns);
-
-
-    // if (isAllDigit && !isDup) {
-    //     files.sort((a, b) => { return parseInt(getBaseNameWithoutExtention(a)) - parseInt(getBaseNameWithoutExtention(b)) });
-    // } else {
-    //     files.sort((a, b) => a.localeCompare(b));
-    // }
+        // 先按路径部分排序
+        if (dirA !== dirB) {
+            return dirA.localeCompare(dirB);
+        }else{
+            // 如果路径部分相同，按文件名数值排序
+            return fileNameA.localeCompare(fileNameB, undefined, { numeric: true });
+        }
+    });
 };
 
 module.exports.pause = async (time) => {
