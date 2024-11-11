@@ -863,6 +863,8 @@ app.post('/api/getZipThumbnail', asyncWrapper(async (req, res) => {
             url,
             debug: "from getQuickThumbnailForZip"
         })
+        // 还是多生成一下
+        extractThumbnailFromZip(filePath);
     }else{
         extractThumbnailFromZip(filePath, res);
     }
