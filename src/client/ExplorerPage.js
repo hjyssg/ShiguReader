@@ -397,13 +397,10 @@ export default class ExplorerPage extends Component {
             return 0;
         }
 
-        let total;
-        if (this.getFileSize(fp) === 0) {
-            total = this.getTotalImgSize(fp);
-        } else {
-            total = Math.min(this.getFileSize(fp), this.getTotalImgSize(fp))
-        }
-        return total / pageNum;
+        const totalImgSize = this.getTotalImgSize(fp);
+        const videoNum = this.getVideoNum(fp);
+
+        return util.calcAvgImgSize({ pageNum, totalImgSize, videoNum });
     }
 
     async handleKeyDown(event) {

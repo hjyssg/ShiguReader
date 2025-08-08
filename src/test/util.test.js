@@ -18,6 +18,7 @@ const {
   escapeRegExp,
   isWindowsPath,
   getAverage,
+  calcAvgImgSize,
   truncateString,
 } = require("../common/util.js");
 
@@ -229,6 +230,18 @@ describe("ut for js util functions", () => {
   describe("#getAverage()", () => {
     it("should return the mean of the input array", () => {
       assert.strictEqual(getAverage([1, 2, 3, 4]), 2.5);
+    });
+  });
+
+  describe("#calcAvgImgSize()", () => {
+    it("should ignore video files when computing average", () => {
+      const avg = calcAvgImgSize({ pageNum: 6, totalImgSize: 40, videoNum: 2 });
+      assert.strictEqual(avg, 10);
+    });
+
+    it("should return 0 when total image size is missing", () => {
+      const avg = calcAvgImgSize({ pageNum: 2 });
+      assert.strictEqual(avg, 0);
     });
   });
 

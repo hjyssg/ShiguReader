@@ -470,21 +470,18 @@ export default class OneBook extends Component {
 
   //may not be reliable
   getPageAvgSize() {
-      const { fileStat, imageFiles, index, zipInfo, videoFiles } = this.state;
-      const fileSize = (fileStat?.size) || null;
-      const fileDate = (fileStat?.mtimeMs) || null;
+      const { zipInfo, videoFiles } = this.state;
 
-      let avgFileSize = 0; // 和explore的getPageAvgSize(e)是重复逻辑？
-      if(this.hasImage()){
-        if (zipInfo) {
-          avgFileSize = zipInfo.totalImgSize / zipInfo.pageNum;
-        } else if(fileSize) {
-          avgFileSize = fileSize / this.getImageLength();
-        }
-        if(avgFileSize == Infinity){
-          avgFileSize = 0;
-        }
-      };
+      if (!this.hasImage()) {
+        return 0;
+      }
+
+      const pageNum = zipInfo?.pageNum || (this.getImageLength() + videoFiles.length);
+      const totalImgSize = zipInfo?.totalImgSize || 0;
+      const videoNum = zipInfo?.videoNum || videoFiles.length;
+
+      const avgFileSize = util.calcAvgImgSize({ pageNum, totalImgSize, videoNum });
+
       return avgFileSize;
   }
 
