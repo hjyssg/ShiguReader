@@ -170,11 +170,29 @@ module.exports.getAverage = function(intArray) {
     if (intArray.length === 0) {
       return 0;
     }
-  
+
     const sum = intArray.reduce((acc, val) => acc + val);
     const avg = sum / intArray.length;
-  
+
     return avg;
+}
+
+/**
+ * Calculate average image size for a zip/folder.
+ *
+ * @param {Object} param0
+ * @param {number} param0.pageNum    total number of files reported
+ * @param {number} [param0.totalImgSize] summed size of image files
+ * @param {number} [param0.videoNum] number of video files included
+ * @returns {number} average size of image files
+ */
+module.exports.calcAvgImgSize = function({ pageNum, totalImgSize = 0, videoNum = 0 }) {
+    const imgCount = Math.max(0, pageNum - videoNum);
+    if (imgCount === 0) {
+        return 0;
+    }
+
+    return totalImgSize / imgCount;
 }
 
 
