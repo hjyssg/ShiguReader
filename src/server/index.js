@@ -921,11 +921,12 @@ app.post('/api/extract', asyncWrapper(async (req, res) => {
         const tempFiles = files.filter(e => {
             return !isHiddenFile(e);
         });
-        let zipInfo;
-        if (tempFiles.length > 0) {
-            const zipInfoRows = zipInfoDb.getZipInfo(files);
-            zipInfo = zipInfoRows[0];
-        }
+        // let zipInfo;
+        // if (tempFiles.length > 0) {
+        //     const zipInfoRows = zipInfoDb.getZipInfo(files);
+        //     zipInfo = zipInfoRows[0];
+        // }
+        let zipInfo = zipInfoDb.getZipInfo(filePath)[0];
 
         const mecab_tokens = [];
 
@@ -1071,7 +1072,7 @@ app.get('/api/getGeneralInfo', asyncWrapper(async (req, res) => {
         move_pathes: global.move_pathes,
         recentAccess: global.recentAccess 
     };
-    res.setHeader('Cache-Control', 'public, max-age=3600');
+    res.setHeader('Cache-Control', 'public, max-age=30');
     res.send(result)
 }));
 
