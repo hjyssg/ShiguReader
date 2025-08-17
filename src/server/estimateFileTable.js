@@ -1,12 +1,13 @@
 const db = require('./models/db');
 const path = require('path');
 
-function updateByScan(dir, currentPaths){
-    db.getEstimateFilesInDir(dir).then(rows => {
+async function updateByScan(dir, currentPaths) {
+    try {
+        const rows = await db.getEstimateFilesInDir(dir);
         const currentSet = new Set(currentPaths.map(p => path.resolve(p)));
         const dbSet = new Set(rows.map(r => r.filePath));
 
-        db.addEstimateFiles([...currentSet]).catch(err => console.error(err));
+        await db.addEstimateFiles([...currentSet]);
 
         const toRemove = [];
         for (const fp of dbSet) {
@@ -15,20 +16,30 @@ function updateByScan(dir, currentPaths){
             }
         }
         if (toRemove.length) {
-            db.markEstimateFilesRemoved(toRemove).catch(err => console.error(err));
+            await db.markEstimateFilesRemoved(toRemove);
         }
-    }).catch(err => console.error('[estimateFileTable.updateByScan]', err));
-}
-
-function onMove(src, dest){
-    db.markEstimateFilesRemoved([src]).catch(err => console.error(err));
-    if(dest){
-        db.addEstimateFiles([dest]).catch(err => console.error(err));
+    } catch (err) {
+        console.error('[estimateFileTable.updateByScan]', err);
     }
 }
 
-function onDelete(src){
-    db.markEstimateFilesRemoved([src]).catch(err => console.error(err));
+async function onMove(src, dest) {
+    try {
+        await db.markEstimateFilesRemoved([src]);
+        if (dest) {
+            await db.addEstimateFiles([dest]);
+        }
+    } catch (err) {
+        console.error('[estimateFileTable.onMove]', err);
+    }
+}
+
+async function onDelete(src) {
+    try {
+        await db.markEstimateFilesRemoved([src]);
+    } catch (err) {
+        console.error('[estimateFileTable.onDelete]', err);
+    }
 }
 
 module.exports = {
