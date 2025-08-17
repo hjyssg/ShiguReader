@@ -50,8 +50,40 @@ router.post("/api/simple_search/:text", serverUtil.asyncWrapper(async (req, res)
 
 router.post("/api/check_pc_has_file/:text", serverUtil.asyncWrapper(async (req, res) => {
     const text = req.params.text;
-    const rows = await db.findEstimateByText(text);
-    res.send({ has: rows.length > 0 });
+    let rawRows = [];
+
+    const parseResult = serverUtil.parse(text);
+    if (parseResult) {
+        if (parseResult.author) {
+            const temp = await db.findEstimateByText(parseResult.author);
+            rawRows.push(...temp);
+        } else if (parseResult.title) {
+            const middleTitle = extractMiddleChars(parseResult.title);
+            const temp = await db.findEstimateByText(middleTitle);
+            rawRows.push(...temp);
+        }
+    }
+
+    if (rawRows.length === 0) {
+        const middleTitle = extractMiddleChars(text);
+        const temp = await db.findEstimateByText(middleTitle);
+        rawRows.push(...temp);
+    }
+
+    const checkFns = {};
+    let has = false;
+    for (const row of rawRows) {
+        const fn = row.fileName;
+        if (checkFns[fn]) continue;
+        checkFns[fn] = true;
+        const score = isTwoBookTheSame(text, fn);
+        if (score >= TOTALLY_DIFFERENT) {
+            has = true;
+            break;
+        }
+    }
+
+    res.send({ has });
   })
 );
 
