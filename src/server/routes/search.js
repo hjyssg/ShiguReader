@@ -70,20 +70,24 @@ router.post("/api/check_pc_has_file/:text", serverUtil.asyncWrapper(async (req, 
         rawRows.push(...temp);
     }
 
+    let result = [];
     const checkFns = {};
-    let has = false;
-    for (const row of rawRows) {
-        const fn = row.fileName;
-        if (checkFns[fn]) continue;
-        checkFns[fn] = true;
-        const score = isTwoBookTheSame(text, fn);
-        if (score >= TOTALLY_DIFFERENT) {
-            has = true;
-            break;
+    function foo(rows){
+        for (const row of rows) {
+            const fn = row.fileName;
+            if (checkFns[fn]) continue;
+            checkFns[fn] = true;
+            const score = isTwoBookTheSame(text, fn);
+            if (score >= TOTALLY_DIFFERENT) {
+                result.push({ fn, score });
+            }
         }
     }
 
-    res.send({ has });
+    foo(rawRows);
+
+    result = _.sortBy(result, e => e.score).reverse();
+    res.send(result);
   })
 );
 
