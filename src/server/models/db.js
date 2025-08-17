@@ -76,14 +76,15 @@ module.exports.init = async (skipDbClean)=> {
         DROP TABLE IF EXISTS file_table;
         DROP TABLE IF EXISTS tag_file_table;
         DROP TABLE IF EXISTS tag_table;
+        DROP TABLE IF EXISTS estimate_file_table;
 
         
     
         CREATE TABLE file_table (
-                                filePath TEXT NOT NULL PRIMARY KEY, 
-                                dirName TEXT, 
-                                dirPath TEXT, 
-                                fileName TEXT, 
+                                filePath TEXT NOT NULL PRIMARY KEY,
+                                dirName TEXT,
+                                dirPath TEXT,
+                                fileName TEXT,
                                 mTime INTEGER, 
                                 size INTEGER, 
                                 isDisplayableInExplorer BOOL, 
@@ -93,6 +94,13 @@ module.exports.init = async (skipDbClean)=> {
                                 isMusic BOOL,
                                 isImage BOOL,
                                 isFolder BOOL);
+
+        CREATE TABLE estimate_file_table (
+                                filePath TEXT NOT NULL PRIMARY KEY,
+                                dirName TEXT,
+                                dirPath TEXT,
+                                fileName TEXT,
+                                isRemoved BOOL);
             
         CREATE TABLE tag_file_table (
                                 filePath TEXT NOT NULL, 
@@ -133,8 +141,10 @@ module.exports.init = async (skipDbClean)=> {
         
 
          CREATE INDEX IF NOT EXISTS ft_fileName_index ON file_table (fileName); 
-         CREATE INDEX IF NOT EXISTS ft_dirPath_index ON file_table (dirPath); 
-         CREATE INDEX IF NOT EXISTS ft_dirName_index ON file_table (dirName); 
+         CREATE INDEX IF NOT EXISTS ft_dirPath_index ON file_table (dirPath);
+         CREATE INDEX IF NOT EXISTS ft_dirName_index ON file_table (dirName);
+         CREATE INDEX IF NOT EXISTS eft_fileName_index ON estimate_file_table (fileName);
+         CREATE INDEX IF NOT EXISTS eft_dirName_index ON estimate_file_table (dirName);
       `);
     }
     return sqldb;
@@ -429,3 +439,39 @@ module.exports.getImgFolderInfo = (imgFolders) => {
     // console.log(`[getImgFolderInfo] ${count}images ${end - beg}ms`);
     return imgFolderInfo;
 }
+
+module.exports.addEstimateFiles = async function (filePaths) {
+    if (!filePaths || filePaths.length === 0) return;
+    const rows = filePaths.map(filePath => {
+        const fileName = path.basename(filePath);
+        const dirPath = path.dirname(filePath);
+        const dirName = path.basename(dirPath);
+        return { filePath, dirName, dirPath, fileName, isRemoved: 0 };
+    });
+    await batchInsert('estimate_file_table', rows);
+};
+
+module.exports.addEstimateFile = async function (filePath) {
+    return module.exports.addEstimateFiles([filePath]);
+};
+
+module.exports.markEstimateFilesRemoved = async function (filePaths) {
+    if (!filePaths || filePaths.length === 0) return;
+    const placeholders = filePaths.map(() => '?').join(',');
+    const sql = `UPDATE estimate_file_table SET isRemoved=1 WHERE filePath IN (${placeholders})`;
+    await sqldb.runSync(sql, filePaths);
+};
+
+module.exports.markEstimateFileRemoved = async function (filePath) {
+    return module.exports.markEstimateFilesRemoved([filePath]);
+};
+
+module.exports.getEstimateFilesInDir = async function (dirPath) {
+    const sql = `SELECT filePath, isRemoved FROM estimate_file_table WHERE dirPath = ?`;
+    return await doSmartAllSync(sql, [dirPath]);
+};
+
+module.exports.findEstimateByText = async function (text) {
+    const sql = `SELECT * FROM estimate_file_table WHERE isRemoved = 0 AND (fileName LIKE ? OR dirName LIKE ?)`;
+    return await doSmartAllSync(sql, ['%'+text+'%', '%'+text+'%']);
+};

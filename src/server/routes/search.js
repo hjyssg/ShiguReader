@@ -10,6 +10,7 @@ const { MODE_TAG, MODE_AUTHOR, MODE_SEARCH } = Constant;
 const path = require("path");
 const serverUtil = require("../serverUtil");
 const util = global.requireUtil();
+const db = require("../models/db");
 const BookCompareUtil = require("../BookCompareUtil");
 const {
     TOTALLY_DIFFERENT,
@@ -44,6 +45,13 @@ router.post("/api/simple_search/:text", serverUtil.asyncWrapper(async (req, res)
     const fn = (filePath) => path.basename(filePath, path.extname(filePath));
 
     res.send(explorerfileResult.map((e) => fn(e.fileName)));
+  })
+);
+
+router.post("/api/check_pc_has_file/:text", serverUtil.asyncWrapper(async (req, res) => {
+    const text = req.params.text;
+    const rows = await db.findEstimateByText(text);
+    res.send({ has: rows.length > 0 });
   })
 );
 

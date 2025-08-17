@@ -18,6 +18,7 @@ const { getCurrentTime, isImage, isMusic, isCompress, isVideo } = util;
 const historyDb = require("../models/historyDB");
 const logger = require("../logger");
 const filewatch= require('../own_chokidar/filewatch');
+const estimateFileTable = require("../estimateFileTable");
 
 router.post('/api/lsDir', serverUtil.asyncWrapper(async (req, res) => {
     let dir = req.body && req.body.dir;
@@ -161,6 +162,8 @@ function fileIntoCategory(files){
 
 async function listNoScanDir(filePath, res, isRecussive) {
     const { filePathes, dirPathes } = await pathUtil.readDirForFileAndFolder(filePath, isRecussive);
+
+    estimateFileTable.updateByScan(filePath, filePathes.concat(dirPathes));
     
     const categoryObj  = fileIntoCategory(filePathes);
     const fileInfos = filePathes.reduce((acc, filePath) => {
