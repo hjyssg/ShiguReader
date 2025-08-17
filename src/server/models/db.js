@@ -57,18 +57,14 @@ module.exports.runSync  = async (sql, params) => {
 }
 
 let sqldb;
-module.exports.init = async (skipDbClean)=> {
+module.exports.init = async () => {
     const SQLWrapper = require("./SQLWrapper");
     const backup_db_path = path.join(pathUtil.getWorkSpacePath(), "shigureader_internal_db.sqlite");
     sqldb = new SQLWrapper(backup_db_path);
 
-    // 开发用： 这样就不会删除上次的file table。    
-    const _SKP_INIT = skipDbClean;
+    console.log("remove previous db cache")
 
-    if(!_SKP_INIT){
-        console.log("remove previous db cache")
-
-        await sqldb.execSync( `
+    await sqldb.execSync( `
 
         PRAGMA journal_mode = OFF;
         PRAGMA synchronous = OFF; 
@@ -136,7 +132,6 @@ module.exports.init = async (skipDbClean)=> {
          CREATE INDEX IF NOT EXISTS ft_dirPath_index ON file_table (dirPath); 
          CREATE INDEX IF NOT EXISTS ft_dirName_index ON file_table (dirName); 
       `);
-    }
     return sqldb;
 }
 
