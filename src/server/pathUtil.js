@@ -211,14 +211,12 @@ module.exports.filterPathConfig = async (path_config, skipScan) => {
     let scan_path = [];
     if(skipScan){
         scan_path.push(getImgConverterCachePath());
-        scan_path.push(getZipOutputCachePath());
         //没scan的时候，把scan path加到quick access
         quick_access_pathes = [...temp_scan_path,  ...quick_access_pathes, downloadFolder];
         quick_access_pathes = _.uniq(quick_access_pathes);
     }else{
         scan_path = temp_scan_path.slice();
         scan_path.push(getImgConverterCachePath());
-        scan_path.push(getZipOutputCachePath());
         scan_path = _.uniq(scan_path);
 
         quick_access_pathes = [...quick_access_pathes, downloadFolder];
@@ -253,9 +251,6 @@ const getImgConverterCachePath = module.exports.getImgConverterCachePath = () =>
     return imgConvertFolder;
 }
 
-const getZipOutputCachePath = module.exports.getZipOutputCachePath = () => {
-    return path.join(getWorkSpacePath(), userConfig.zip_output_cache);
-}
 
 // get file extension
 const getExt = module.exports.getExt = function (p) {
