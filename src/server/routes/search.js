@@ -52,28 +52,23 @@ router.post("/api/simple_search/:text", serverUtil.asyncWrapper(async (req, res)
 router.post("/api/findSimilarFile/:text", serverUtil.asyncWrapper(async (req, res) => {
     const text = req.params.text;
     let rawRows = [];
-    // if (util.isAv(text)) {
-    // const middleTitle = extractMiddleChars(parseResult.title);
-    // rawRows = await searchByText(middleTitle);
- 
     const parseResult = serverUtil.parse(text);
     if (parseResult) {
-        // TODO 假设单作者
         if (parseResult.author) {
             const temp = await _searchByTag_(parseResult.author, "author");
             rawRows.push(...temp.explorerfileResult);
-        } else if (parseResult.title) {
+        } 
+        
+        if (parseResult.title) {
             const middleTitle = extractMiddleChars(parseResult.title);
             const temp = await searchByText(middleTitle);
             rawRows.push(...temp.explorerfileResult);
         } 
     }
     
-    if(rawRows.length == 0){
-        const middleTitle = extractMiddleChars(text);
-        const temp = await searchByText(middleTitle);
-        rawRows.push(...temp.explorerfileResult);
-    }
+    const middleTitle = extractMiddleChars(text);
+    const temp = await searchByText(middleTitle);
+    rawRows.push(...temp.explorerfileResult);
 
     let result = [];
     const checkFns = {};
