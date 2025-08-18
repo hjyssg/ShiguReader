@@ -6,6 +6,17 @@ const pathUtil = require("./pathUtil");
 const logger = require("./logger");
 const { getCurrentTime } = util;
 const Jimp = require('jimp');
+const fs = require('fs').promises;
+
+async function isFileLargerThan1KB(filepath) {
+    try {
+      const stats = await fs.stat(filepath); // 获取文件的状态信息
+      return stats.size > 1024; // 1KB = 1024字节
+    } catch (error) {
+      console.error('Error checking file size:', error);
+      return false;
+    }
+  }
 
 /** 封装sharp和imagick。对图片进行压缩 */
 async function doMinifyTempImage(inputFilePath, outputFilePath, height) {
@@ -24,10 +35,8 @@ async function doMinifyTempImage(inputFilePath, outputFilePath, height) {
             // }
 
             let result;
-            if (global.sharp) {
-                await global.sharp(inputFilePath).resize({ height }).toFile(outputFilePath);
-                result = outputFilePath;
-            } else  if (global._has_magick_) {
+       
+            if (global._has_magick_) {
                 //https://imagemagick.org/Usage/resize/#shrink
                 const opt = [inputFilePath, "-thumbnail", `${height}x${height}\>`, "-quality", "92",  outputFilePath];
                 let { stdout, stderr } = await execa("magick", opt);
@@ -35,7 +44,14 @@ async function doMinifyTempImage(inputFilePath, outputFilePath, height) {
                     throw stderr;
                 }
                 result = outputFilePath;
-            } else if (Jimp && height < 300){
+            } 
+            
+            if (!isFileLargerThan1KB(result) && global.sharp) {
+                await global.sharp(inputFilePath).resize({ height }).toFile(outputFilePath);
+                result = outputFilePath;
+            }  
+            
+            if (!isFileLargerThan1KB(result) && Jimp && height < 300){
                 // jimp因为是pure js，性能和输出质量比较差。作为最终替代
                 const image = await Jimp.read(inputFilePath);
                 await image.resize(Jimp.AUTO, height, Jimp.RESIZE_NEAREST_NEIGHBOR).quality(60).writeAsync(outputFilePath);
@@ -43,6 +59,10 @@ async function doMinifyTempImage(inputFilePath, outputFilePath, height) {
 
             let end1 = getCurrentTime();
             // logger.info(`[doMinifyImage] ${(end1 - beg) }ms `);
+
+            if(!isFileLargerThan1KB(result)){
+                result = null;
+            }
 
             return result;
         }else {
