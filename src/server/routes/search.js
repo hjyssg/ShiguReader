@@ -50,13 +50,6 @@ router.post(
   })
 );
 
-router.post(
-  "/api/findSimilarFile/:text",
-  serverUtil.asyncWrapper(async (req, res) => {
-    const text = req.params.text;
-
-    const fileRows = [];
-    const estimateRows = [];
 
 router.post("/api/findSimilarFile/:text", serverUtil.asyncWrapper(async (req, res) => {
   const text = req.params.text;
