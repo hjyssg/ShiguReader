@@ -47,76 +47,32 @@ router.post("/api/simple_search/:text", serverUtil.asyncWrapper(async (req, res)
     res.send(explorerfileResult.map((e) => fn(e.fileName)));
   })
 );
-
-router.post("/api/check_pc_has_file/:text", serverUtil.asyncWrapper(async (req, res) => {
+router.post("/api/findSimilarFile/:text", serverUtil.asyncWrapper(async (req, res) => {
     const text = req.params.text;
     let rawRows = [];
 
     const parseResult = serverUtil.parse(text);
     if (parseResult) {
         if (parseResult.author) {
-            const temp = await db.findEstimateByText(parseResult.author);
-            rawRows.push(...temp);
+            const temp = await _searchByTag_(parseResult.author, "author");
+            rawRows.push(...temp.explorerfileResult);
+            const estimateRows = await db.findEstimateByText(parseResult.author);
+            rawRows.push(...estimateRows);
         } else if (parseResult.title) {
             const middleTitle = extractMiddleChars(parseResult.title);
-            const temp = await db.findEstimateByText(middleTitle);
-            rawRows.push(...temp);
+            const temp = await searchByText(middleTitle);
+            rawRows.push(...temp.explorerfileResult);
+            const estimateRows = await db.findEstimateByText(middleTitle);
+            rawRows.push(...estimateRows);
         }
     }
 
     if (rawRows.length === 0) {
         const middleTitle = extractMiddleChars(text);
-        const temp = await db.findEstimateByText(middleTitle);
-        rawRows.push(...temp);
-    }
-
-    let result = [];
-    const checkFns = {};
-    function foo(rows){
-        for (const row of rows) {
-            const fn = row.fileName;
-            if (checkFns[fn]) continue;
-            checkFns[fn] = true;
-            const score = isTwoBookTheSame(text, fn);
-            if (score >= TOTALLY_DIFFERENT) {
-                result.push({ fn, score });
-            }
-        }
-    }
-
-    foo(rawRows);
-
-    result = _.sortBy(result, e => e.score).reverse();
-    res.send(result);
-  })
-);
-
-
-
-router.post("/api/findSimilarFile/:text", serverUtil.asyncWrapper(async (req, res) => {
-    const text = req.params.text;
-    let rawRows = [];
-    // if (util.isAv(text)) {
-    // const middleTitle = extractMiddleChars(parseResult.title);
-    // rawRows = await searchByText(middleTitle);
- 
-    const parseResult = serverUtil.parse(text);
-    if (parseResult) {
-        // TODO 假设单作者
-        if (parseResult.author) {
-            const temp = await _searchByTag_(parseResult.author, "author");
-            rawRows.push(...temp.explorerfileResult);
-        } else if (parseResult.title) {
-            const middleTitle = extractMiddleChars(parseResult.title);
-            const temp = await searchByText(middleTitle);
-            rawRows.push(...temp.explorerfileResult);
-        } 
-    }
-    
-    if(rawRows.length == 0){
-        const middleTitle = extractMiddleChars(text);
         const temp = await searchByText(middleTitle);
         rawRows.push(...temp.explorerfileResult);
+        const estimateRows = await db.findEstimateByText(middleTitle);
+        rawRows.push(...estimateRows);
     }
 
     let result = [];
