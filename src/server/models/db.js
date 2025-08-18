@@ -123,6 +123,7 @@ module.exports.init = async () => {
             dirName TEXT,
             dirPath TEXT,
             fileName TEXT,
+            scan_time INTEGER,
             isRemoved BOOL,
             PRIMARY KEY (dirPath, fileName)
         );
@@ -159,6 +160,8 @@ module.exports.addEstimateFiles = async function(rows){
     if(!rows || rows.length === 0){
         return;
     }
+    const time = getCurrentTime();
+    rows = rows.map(r=>({ ...r, scan_time: time }));
     await sqldb.batchInsert("estimate_file_table", rows);
 };
 
@@ -167,8 +170,17 @@ module.exports.markEstimateFilesRemoved = async function(dirPath, fileNames){
         return;
     }
     const placeholders = fileNames.map(()=>'?').join(',');
-    const sql = `UPDATE estimate_file_table SET isRemoved=1 WHERE dirPath=? AND fileName IN (${placeholders})`;
-    await sqldb.runSync(sql, [dirPath, ...fileNames]);
+    const sql = `UPDATE estimate_file_table SET isRemoved=1, scan_time=? WHERE dirPath=? AND fileName IN (${placeholders})`;
+    await sqldb.runSync(sql, [getCurrentTime(), dirPath, ...fileNames]);
+};
+
+module.exports.touchEstimateFiles = async function(dirPath, fileNames){
+    if(!fileNames || fileNames.length === 0){
+        return;
+    }
+    const placeholders = fileNames.map(()=>'?').join(',');
+    const sql = `UPDATE estimate_file_table SET isRemoved=0, scan_time=? WHERE dirPath=? AND fileName IN (${placeholders})`;
+    await sqldb.runSync(sql, [getCurrentTime(), dirPath, ...fileNames]);
 };
 
 module.exports.getEstimateFilesInDir = async function(dirPath){

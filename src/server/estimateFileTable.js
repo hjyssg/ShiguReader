@@ -32,6 +32,7 @@ async function updateByScan(dirPath){
         if(toRemove.length){
             await db.markEstimateFilesRemoved(dirPath, toRemove);
         }
+        await db.touchEstimateFiles(dirPath, names);
     }catch(e){
         logger.error(e);
     }

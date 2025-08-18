@@ -1096,8 +1096,6 @@ app.use(download);
 const search = require("./routes/search");
 app.use(search);
 
-const checkPcHasFile = require("./routes/checkPcHasFile");
-app.use(checkPcHasFile);
 
 const AllInfo = require("./routes/AllInfo");
 app.use(AllInfo);
