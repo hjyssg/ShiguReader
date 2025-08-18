@@ -58,55 +58,59 @@ router.post(
     const fileRows = [];
     const estimateRows = [];
 
-    const parseResult = serverUtil.parse(text);
-    let estimateSearchText = text;
+router.post("/api/findSimilarFile/:text", serverUtil.asyncWrapper(async (req, res) => {
+  const text = req.params.text;
+  let fileRows = [];
+  let estimateRows = [];
+  const parseResult = serverUtil.parse(text);
 
-    if (parseResult) {
-      if (parseResult.author) {
-        const temp = await _searchByTag_(parseResult.author, "author");
-        fileRows.push(...temp.explorerfileResult);
-      }
-      if (parseResult.title) {
-        const middleTitle = extractMiddleChars(parseResult.title);
-        const temp = await searchByText(middleTitle);
-        fileRows.push(...temp.explorerfileResult);
-        estimateSearchText = parseResult.title;
+  if (parseResult) {
+    if (parseResult.author) {
+      const temp = await _searchByTag_(parseResult.author, "author");
+      fileRows.push(...temp.explorerfileResult);
+
+      const tempEstimate = await db.findEstimateByText(parseResult.author);
+      estimateRows.push(...tempEstimate);
+    }
+    if (parseResult.title) {
+      const middleTitle = extractMiddleChars(parseResult.title);
+      const temp = await searchByText(middleTitle);
+      fileRows.push(...temp.explorerfileResult);
+
+      const tempEstimate = await db.findEstimateByText(middleTitle);
+      estimateRows.push(...tempEstimate);
+    }
+  }
+
+  const middleTitle = extractMiddleChars(text);
+  const temp = await searchByText(middleTitle);
+  fileRows.push(...temp.explorerfileResult);
+
+  const tempEstimate = await db.findEstimateByText(middleTitle);
+  estimateRows.push(...tempEstimate);
+
+  const result = [];
+  const seen = new Set();
+
+  function merge(rows, bonus) {
+    for (const row of rows) {
+      const fn = row.fileName;
+      if (seen.has(fn)) continue;
+      seen.add(fn);
+      const score = isTwoBookTheSame(text, fn) + bonus;
+      if (score >= TOTALLY_DIFFERENT) {
+        result.push({ fn, score });
       }
     }
+  }
 
-    const middleText = extractMiddleChars(text);
-    const middleResult = await searchByText(middleText);
-    fileRows.push(...middleResult.explorerfileResult);
+  merge(fileRows, 1); // direct file hits get extra confidence
+  merge(estimateRows, 0);
 
-    // query estimate table in multiple ways
-    estimateRows.push(
-      ...(await db.findEstimateByText(extractMiddleChars(estimateSearchText)))
-    );
-    estimateRows.push(...(await db.findEstimateByText(extractMiddleChars(text))));
-    estimateRows.push(...(await db.findEstimateByText(text)));
+  result.sort((a, b) => b.score - a.score);
+  res.send(result);
+}));
 
-    const result = [];
-    const seen = {};
-
-    function merge(rows, bonus) {
-      for (const row of rows) {
-        const fn = row.fileName;
-        if (seen[fn]) continue;
-        seen[fn] = true;
-        const score = isTwoBookTheSame(text, fn) + bonus;
-        if (score >= TOTALLY_DIFFERENT) {
-          result.push({ fn, score });
-        }
-      }
-    }
-
-    merge(fileRows, 1); // direct file hits get extra confidence
-    merge(estimateRows, 0);
-
-    result.sort((a, b) => b.score - a.score);
-    res.send(result);
-  })
-);
 
 module.exports = router;
 
