@@ -52,7 +52,8 @@ router.post("/api/simple_search/:text", serverUtil.asyncWrapper(async (req, res)
 
 router.post("/api/findSimilarFile/:text", serverUtil.asyncWrapper(async (req, res) => {
     const text = req.params.text;
-    let rawRows = [];
+    const fileRows = [];
+    const estimateRows = [];
     // if (util.isAv(text)) {
     // const middleTitle = extractMiddleChars(parseResult.title);
     // rawRows = await searchByText(middleTitle);
@@ -63,12 +64,12 @@ router.post("/api/findSimilarFile/:text", serverUtil.asyncWrapper(async (req, re
         // TODO 假设单作者
         if (parseResult.author) {
             const temp = await _searchByTag_(parseResult.author, "author");
-            rawRows.push(...temp.explorerfileResult);
+            fileRows.push(...temp.explorerfileResult);
         }
         if (parseResult.title) {
             const middleTitle = extractMiddleChars(parseResult.title);
             const temp = await searchByText(middleTitle);
-            rawRows.push(...temp.explorerfileResult);
+            fileRows.push(...temp.explorerfileResult);
             estimateSearchText = parseResult.title;
         }
     }
@@ -76,15 +77,15 @@ router.post("/api/findSimilarFile/:text", serverUtil.asyncWrapper(async (req, re
     const middleTitle = extractMiddleChars(text);
     {
         const temp = await searchByText(middleTitle);
-        rawRows.push(...temp.explorerfileResult);
+        fileRows.push(...temp.explorerfileResult);
     }
-
-    const eRows = await db.findEstimateByText(extractMiddleChars(estimateSearchText));
-    rawRows.push(...eRows);
+    estimateRows.push(...await db.findEstimateByText(extractMiddleChars(estimateSearchText)));
+    estimateRows.push(...await db.findEstimateByText(extractMiddleChars(text)));
+    estimateRows.push(...await db.findEstimateByText(text));
 
     let result = [];
     const checkFns = {};
-    function foo(rows){
+    function foo(rows, bonus){
         for(let ii = 0; ii < rows.length; ii++){
             const row = rows[ii];
             const fn = row.fileName;
@@ -92,13 +93,14 @@ router.post("/api/findSimilarFile/:text", serverUtil.asyncWrapper(async (req, re
                 continue;
             }
             checkFns[fn] = true;
-            const score = isTwoBookTheSame(text, fn);
+            let score = isTwoBookTheSame(text, fn) + bonus;
             if(score >= TOTALLY_DIFFERENT){
                 result.push({fn, score});
             }
         }
     }
-    foo(rawRows);
+    foo(fileRows, 1);
+    foo(estimateRows, 0);
 
     result = _.sortBy(result, e=>e.score);
     result.reverse();
