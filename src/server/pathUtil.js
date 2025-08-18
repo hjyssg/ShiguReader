@@ -204,8 +204,8 @@ module.exports.filterPathConfig = async (path_config, skipScan) => {
 
     // scan path
     let temp_scan_path = [].concat(scan_folder_pathes);
+    // Do not automatically scan good_folder or not_good_folder; only scan specified paths
     // temp_scan_path = temp_scan_path.concat(good_folder, good_folder_root, not_good_folder_root, not_good_folder);
-    temp_scan_path = temp_scan_path.concat(good_folder, not_good_folder);
 
 
     let scan_path = [];
