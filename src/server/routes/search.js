@@ -17,6 +17,7 @@ const {
     extractMiddleChars
 } = BookCompareUtil;
 const _ = require("underscore");
+const db = require("../models/db");
 
 // three para 1.mode 2.text
 router.post("/api/search", serverUtil.asyncWrapper(async (req, res) => {
@@ -57,23 +58,29 @@ router.post("/api/findSimilarFile/:text", serverUtil.asyncWrapper(async (req, re
     // rawRows = await searchByText(middleTitle);
  
     const parseResult = serverUtil.parse(text);
+    let estimateSearchText = text;
     if (parseResult) {
         // TODO 假设单作者
         if (parseResult.author) {
             const temp = await _searchByTag_(parseResult.author, "author");
             rawRows.push(...temp.explorerfileResult);
-        } else if (parseResult.title) {
+        }
+        if (parseResult.title) {
             const middleTitle = extractMiddleChars(parseResult.title);
             const temp = await searchByText(middleTitle);
             rawRows.push(...temp.explorerfileResult);
-        } 
+            estimateSearchText = parseResult.title;
+        }
     }
-    
-    if(rawRows.length == 0){
-        const middleTitle = extractMiddleChars(text);
+
+    const middleTitle = extractMiddleChars(text);
+    {
         const temp = await searchByText(middleTitle);
         rawRows.push(...temp.explorerfileResult);
     }
+
+    const eRows = await db.findEstimateByText(extractMiddleChars(estimateSearchText));
+    rawRows.push(...eRows);
 
     let result = [];
     const checkFns = {};

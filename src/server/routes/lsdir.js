@@ -18,6 +18,7 @@ const { getCurrentTime, isImage, isMusic, isCompress, isVideo } = util;
 const historyDb = require("../models/historyDB");
 const logger = require("../logger");
 const filewatch= require('../own_chokidar/filewatch');
+const estimateFileTable = require('../estimateFileTable');
 
 router.post('/api/lsDir', serverUtil.asyncWrapper(async (req, res) => {
     let dir = req.body && req.body.dir;
@@ -30,6 +31,9 @@ router.post('/api/lsDir', serverUtil.asyncWrapper(async (req, res) => {
     }
 
     dir = path.resolve(dir);
+
+    // update estimate file table asynchronously
+    estimateFileTable.updateByScan(dir).catch(err=>logger.error(err));
 
     if (!filewatch.isAlreadyScan(dir)) {
         let result = await listNoScanDir(dir, res);
