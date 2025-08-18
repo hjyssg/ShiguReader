@@ -12,7 +12,6 @@ config.thumbnail_folder_name = "thumbnails";
 
 config.img_convert_cache = "minified_zip_cache"
 
-config.zip_output_cache = "zip_output";
 
 //delete or move to recyle bin
 //删除操作是真的彻底删除还是丢进回收站

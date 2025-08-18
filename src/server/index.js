@@ -65,7 +65,6 @@ mkdirSync(workspacePath);
 mkdirSync(thumbnailFolderPath);
 mkdirSync(cachePath);
 mkdirSync(pathUtil.getImgConverterCachePath());
-mkdirSync(pathUtil.getZipOutputCachePath());
 
 const logger = require("./logger");
 logger.init();

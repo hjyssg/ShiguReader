@@ -9,10 +9,7 @@ const thumbnailDb = require("../models/thumbnailDb");
 const zipInfoDb = require("../models/zipInfoDb");
 
 const pathUtil = require("../pathUtil");
-const {
-    isExist,
-    getZipOutputCachePath
-} = pathUtil;
+const { isExist } = pathUtil;
 
 const util = global.requireUtil();
 
@@ -194,8 +191,7 @@ router.post('/api/zipFolder', serverUtil.asyncWrapper(async (req, res) => {
     //     return;
     // }
 
-    const outputRoot = getZipOutputCachePath();
-    const _resultZipPath = path.resolve(outputRoot, path.basename(src) + ".zip");
+    const _resultZipPath = path.resolve(path.dirname(src), path.basename(src) + ".zip");
     try {
         let { stdout, stderr, resultZipPath } = await sevenZipHelp.zipOneFolder(src, _resultZipPath);
         if (stderr) {
