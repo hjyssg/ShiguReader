@@ -97,7 +97,7 @@ router.post("/api/findSimilarFile/:text", serverUtil.asyncWrapper(async (req, re
     }
   }
 
-  merge(fileRows, 1); // direct file hits get extra confidence
+  merge(fileRows, 0);
   merge(estimateRows, 0);
 
   result.sort((a, b) => b.score - a.score);
