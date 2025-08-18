@@ -42,6 +42,12 @@ describe('isTwoBookTheSame', () => {
     assert.strictEqual(result, LIKELY_IN_PC);
   });
 
+  it('should handle missing author by comparing group and title', () => {
+    const result = isTwoBookTheSame('(C101) [灯夜工房] 破魔のミズキは終われない',
+                                    '(C101) [灯夜工房 (灯ひでかず)] 破魔のミズキは終われない');
+    assert.strictEqual(result, IS_IN_PC);
+  });
+
 });
 
 
