@@ -7,21 +7,9 @@
   "bin": "src/server/index.js",
   "scripts": {
     "start": "node src/server/index.js",
+    "build": "webpack",
     "flow": "flow",
-    "test": "mocha ./src/test",
-    "pkg": "pkg package.json -t host --out-dir executables"
-  },
-  "pkg": {
-    "scripts": "src/server/index.js ",
-    "assets": [
-      "/dist/*",
-      "/node_modules/sqlite3/lib/binding/binding/napi-v6-win32-unknown-x64/*",
-      "/node_modules/.store/registry-js@1.15.1/node_modules/registry-js/build/Release/*"
-    ],
-    "targets": [
-      "win-x64"
-    ],
-    "outputPath": "../SGR_pkg/"
+    "test": "mocha ./src/test"
   },
   "author": "aji47",
   "license": "MIT",
@@ -59,6 +47,11 @@
   },
   "devDependencies": {
     "chai": "^4.3.7",
-    "mocha": "^10.2.0"
+    "copy-webpack-plugin": "^13.0.1",
+    "mocha": "^10.2.0",
+    "node-loader": "^2.1.0",
+    "webpack": "^5.101.3",
+    "webpack-cli": "^6.0.1",
+    "webpack-node-externals": "^3.0.0"
   }
 }

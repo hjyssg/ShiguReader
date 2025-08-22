@@ -38,3 +38,6 @@ shigureader_internal_db.sqlite
 /SGR_Launch.exe.spec
 /settings-cache.ini
 /GUI/settings-cache.ini
+
+# Webpack build output
+/build/

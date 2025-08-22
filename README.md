@@ -13,16 +13,29 @@
     后端开发用vscode打开，然后launch main server。  
     
 
-##### 打包与分发 (命令行版)
-本项目现在采用包含便携版Node.js的源码打包方式进行分发，取代了原有的 `pkg` 打包流程。
+##### 构建与分发 (Webpack)
+本项目的分发包通过 Webpack 进行构建。`src` 目录下的应用源码会被打包成一个单独的 `build/main.js` 文件。
 
-详细的打包步骤请参考 [INSTRUCTIONS_for_packaging.md](./INSTRUCTIONS_for_packaging.md)。
+**构建命令:**
+```bash
+npm run build
+```
 
-面向最终用户的安装和使用说明，请参考 [README_dist.md](./README_dist.md)。
+**打包与分发:**
+关于如何将构建产物 (`build/main.js`)、`node_modules`、便携版Node.js运行环境以及其他资源组合成一个可供用户使用的最终分发包，请参考详细的打包指南：
+[INSTRUCTIONS_for_packaging.md](./INSTRUCTIONS_for_packaging.md)
+
+**最终用户使用说明:**
+最终用户的使用方式请参考 [README_dist.md](./README_dist.md)。
+
 
 ##### 命令行参数:
---port：这个参数用来设置软件监听的端口号。
-例如：`node src/server/index.js --port=3000`
+服务器支持以下命令行参数:
+`--port`: 设置监听端口。
+`--skip-scan`: 启动时跳过扫描。
 
---skip-scan：这个参数可以让您跳过应用程序启动时的扫描过程。
-例如：`node src/server/index.js --skip-scan`
+**开发时运行:**
+`node src/server/index.js --port=3000`
+
+**通过构建产物运行:**
+`node build/main.js --port=3000`

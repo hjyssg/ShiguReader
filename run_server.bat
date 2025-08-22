@@ -11,20 +11,20 @@ echo =================================================================
 echo.
 
 set "NODE_EXE=%~dp0node_portable\node.exe"
-set "SERVER_SCRIPT=%~dp0src\server\index.js"
+set "SERVER_SCRIPT=%~dp0build\main.js"
 
 rem --- Sanity checks ---
 if not exist "%NODE_EXE%" (
     echo 错误: 未在本目录下的 "node_portable" 文件夹中找到 node.exe!
-    echo 请确认您下载的软件包是完整的，并且已经运行过 setup.bat。
+    echo 请确认您下载的软件包是完整的。
     echo.
     pause
     exit /b 1
 )
 
 if not exist "%SERVER_SCRIPT%" (
-    echo 错误: 未能找到服务器主程序脚本: %SERVER_SCRIPT%
-    echo 请确认您的软件文件是完整的。
+    echo 错误: 未能找到服务器主程序: %SERVER_SCRIPT%
+    echo 请确认软件文件完整, 并且开发者已经执行过 build 脚本。
     echo.
     pause
     exit /b 1
