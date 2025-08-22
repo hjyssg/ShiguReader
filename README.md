@@ -13,18 +13,16 @@
     后端开发用vscode打开，然后launch main server。  
     
 
-##### 发布流程：
-    安装pkg   
-    生成exe    pkg . --compress GZip  
-    前端是webpack的打包  
-    添加其他文件   
-    pkg_zip_tool.py打包成zip。 注意检查不要放自己的信息。    
-    具体还可以参考pkg_readme
+##### 打包与分发 (命令行版)
+本项目现在采用包含便携版Node.js的源码打包方式进行分发，取代了原有的 `pkg` 打包流程。
 
+详细的打包步骤请参考 [INSTRUCTIONS_for_packaging.md](./INSTRUCTIONS_for_packaging.md)。
 
-##### 参数:  
---port：这个参数用来设置软件监听的端口号，您可以通过命令行输入 "--port=端口号" 来指定。  
-例如：$ node ShiguReader.exe --port=3000  
+面向最终用户的安装和使用说明，请参考 [README_dist.md](./README_dist.md)。
 
---skip-scan：这个参数可以让您跳过应用程序启动时的扫描过程，加快应用程序启动速度。如果您不希望应用程序进行扫描，请在命令行中输入 "--skip-scan" 参数。  
-例如：$ node ShiguReader.exe --skip-scan  
+##### 命令行参数:
+--port：这个参数用来设置软件监听的端口号。
+例如：`node src/server/index.js --port=3000`
+
+--skip-scan：这个参数可以让您跳过应用程序启动时的扫描过程。
+例如：`node src/server/index.js --skip-scan`
