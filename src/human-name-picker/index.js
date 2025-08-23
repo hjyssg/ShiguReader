@@ -1,11 +1,11 @@
 const config = require("./jp-family-name");
-let family_names = config.family_names;
+const family_names = config.family_names;
 const family_name_regex = new RegExp(family_names.join("|"));
 
-let av_tag_list = require("./av_tag_list");
-let cos_tag_list = require("./cos_tag_list");
+const av_tag_list = require("./av_tag_list");
+const cos_tag_list = require("./cos_tag_list");
 const name_entris = [...av_tag_list.map(e => e.tag), ...cos_tag_list.map(e => e.tag)];
-let name_regex = new RegExp(name_entris.join("|"));
+const name_regex = new RegExp(name_entris.join("|"));
 
 const localCache = {};
 function pick(str) {
