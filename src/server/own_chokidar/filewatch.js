@@ -2,7 +2,7 @@ const fs = require('fs').promises;
 const path = require('path');
 const chokidar = require('chokidar');
 const pathUtil = require("../pathUtil");
-
+const _ = require('underscore');
 
 const getCurrentTime = function () {
     return new Date().getTime();
@@ -65,6 +65,40 @@ async function fastFileIterate({filePath, db, shouldIgnoreForNormal}) {
 }
 
 
+//-------------------------------------------------
+let change_queue = [];
+const processFileChange = async (db) => {
+    if (change_queue.length === 0) {
+        return;
+    }
+
+    // https://stackoverflow.com/questions/19544453/requires-the-array-to-be-sorted-for-this-kind-of-processing
+    const tasks = _.uniq(change_queue, e => e.fp);
+    change_queue = [];
+
+    const insertion_cache = {
+        files: [],
+        tags: []
+    };
+
+    for(const task of tasks){
+        const {fp, stat} = task;
+        //todo: if the file is delete
+        await db.updateStatToDb(fp, stat, insertion_cache);
+    }
+
+    // 所有文件处理完成后，批量插入数据库
+    await db.batchInsert("file_table", insertion_cache.files);
+    await db.batchInsert("tag_file_table", insertion_cache.tags);
+    await db.throttledSyncTagTable();
+    console.log(`[watch change] ${tasks.length} changes processed`);
+};
+
+const debounced_processFileChange = _.debounce(processFileChange, 1000 * 2);
+
+//-------------------------------------------------
+
+
 // 用于存储当前所有监听的目录
 let watchDescriptors = {};
 
@@ -96,11 +130,13 @@ const addWatch_chokidar = async ({ folderPath, deleteCallBack, shouldScan, db })
   
     //处理添加文件事件
     const addFileCallBack = async (fp, stats) => {
-        db.updateStatToDb(fp, stats);
+        change_queue.push({fp, stat: stats});
+        debounced_processFileChange(db);
     };
 
     const addFolderCallBack = async (fp, stats) => {
-        db.updateStatToDb(fp, stats);
+        change_queue.push({fp, stat: stats});
+        debounced_processFileChange(db);
     };
 
     watcher
@@ -148,7 +184,8 @@ const addWatch_sane = async ({ folderPath, deleteCallBack, shouldScan, db }) => 
     //处理文件或目录添加事件
     const addCallBack = async (fp, root, stat) => {
         fp = path.resolve(root, fp);
-        db.updateStatToDb(fp, stat);
+        change_queue.push({fp, stat});
+        debounced_processFileChange(db);
     };
 
     const _deleteCallBack =  async (fp, root)=>{
