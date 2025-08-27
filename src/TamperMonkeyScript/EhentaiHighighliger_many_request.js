@@ -52,6 +52,7 @@ const LIKELY_IN_PC = 70;
 const SAME_AUTHOR = 20;
 const TOTALLY_DIFFERENT = 0;
 
+let isServerUp = true;
 
 async function postData(method, url, data) {
     data = data || {};
@@ -79,6 +80,13 @@ async function checkIfDownload(text) {
     var status = 0;
     let similarTitles = [];
 
+    if (!isServerUp) {
+        return {
+            status,
+            similarTitles
+        };
+    }
+
     try{
         let api = `http://localhost:${production_port}/api/findSimilarFile/${encodeURIComponent(text)}`;
         // let res = await GM_xmlhttpRequest_promise("POST", api);
@@ -87,6 +95,7 @@ async function checkIfDownload(text) {
         similarTitles = data.map(e => e.fn);
         status = data[0]?.score || 0;
     } catch(e) {
+        isServerUp = false;
         console.error(e);
     } finally {
         // console.table({
@@ -206,6 +215,9 @@ function addTooltip(node, title, books) {
 }
 
 function appendLink(fileTitleDom, text, asIcon) {
+    if(!isServerUp){
+        return;
+    }
     var link = document.createElement("a");
 
     if (asIcon) {
@@ -316,15 +328,22 @@ const production_port = 3000;
 async function main() {
     if(IS_EHENTAI){
         ehentaiProtection()
-        addSearchLinkForEhentai();
     }
 
     if(IS_EHENTAI){
         await highlightEhentaiThumbnail();
+
+        if(isServerUp){
+            addSearchLinkForEhentai();
+        }
     }else if (IS_NYAA){
         await highlightNyaa();
     }
-    popMessage("成功载入");
+    if(isServerUp){
+        popMessage("成功载入");
+    }else{
+        popMessage("无法连接到ShiguReader，无法使用搜索和高亮功能");
+    }
 }
 
 main();
