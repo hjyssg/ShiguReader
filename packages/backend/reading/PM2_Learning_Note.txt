@@ -1,0 +1,4 @@
+C:\Users\hjy\.pm2\logs
+
+pm2 start X:\git\ShiguReader\src\server\index.js
+pm2 logs
