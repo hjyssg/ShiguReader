@@ -1,10 +1,10 @@
 # 写一个python小脚本，把任意文件从
-# 	X:\git\ShiguReader_Frontend\src\name-parser
-# 	X:\git\ShiguReader_Frontend\src\common
+# 	frontend\src\name-parser
+# 	frontend\src\common
 
 # 复制到
-# 	X:\git\Shigureader_Backend\src\name-parser
-# 	X:\git\Shigureader_Backend\src\common
+# 	backend\src\name-parser
+# 	backend\src\common
 
 # 步骤是先把目标文件夹的所有内容都删了。再把源文件夹的文件全部复制过去
 # 每个文件，print出来给我看见。
@@ -20,7 +20,7 @@ script_dir = os.path.dirname(os.path.realpath(__file__))
 root = Path(os.path.join(script_dir, '../..')).resolve()
 
 backend_path = Path(os.path.join(script_dir, '..')).resolve()
-frontend_path = Path(os.path.join(root, r"ShiguReader_Frontend")).resolve()
+frontend_path = Path(os.path.join(root, r"frontend")).resolve()
 
 backend_path = str(backend_path)
 frontend_path = str(frontend_path)
