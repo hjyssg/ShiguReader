@@ -43,6 +43,9 @@ export default class LoadingImage extends Component {
   }
 
   shouldAskUrl() {
+    if (this.props.mode === "zip") {
+      return false;
+    }
     if (this.state.url === "NO_THUMBNAIL_AVAILABLE" || this.props.url === "NO_THUMBNAIL_AVAILABLE") {
       return false;
     } else {

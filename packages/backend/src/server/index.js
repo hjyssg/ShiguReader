@@ -430,17 +430,6 @@ async function decorateResWithMeta(resObj) {
 
     const files = _.keys(fileInfos);
 
-    //------------------- thumbnails
-    const thumbnails = await thumbnailUtil.getThumbnailsForZip(files);
-    _.keys(thumbnails).forEach(filePath=> {
-        if(!fileInfos[filePath]){
-            return;
-        }
-        const e = thumbnails[filePath];
-        fileInfos[filePath].thumbnailFilePath = e;
-    })
-
-
     //------------------------------- zipInfo
     const zipInfoRows = zipInfoDb.getZipInfo(files);
     zipInfoRows.forEach(e => { 
@@ -865,6 +854,36 @@ app.post('/api/getZipThumbnail', asyncWrapper(async (req, res) => {
     }else{
         extractThumbnailFromZip(filePath, res);
     }
+}));
+
+app.post('/api/getZipThumbnails', asyncWrapper(async (req, res) => {
+    let filePaths = req.body && req.body.filePaths;
+    if (!Array.isArray(filePaths) || filePaths.length === 0) {
+        res.send({ failed: true, reason: "No parameter" });
+        return;
+    }
+
+    const thumbnails = {};
+    await Promise.all(filePaths.map(async fp => {
+        if (!fp || !(await isExist(fp)) || !isCompress(fp)) {
+            return;
+        }
+
+        let url = await thumbnailUtil.getQuickThumbnailForZip(fp);
+        if (url) {
+            thumbnails[fp] = url;
+            extractThumbnailFromZip(fp);
+        } else {
+            const data = await new Promise(resolve => {
+                extractThumbnailFromZip(fp, { send: resolve });
+            });
+            if (data && !data.failed && data.url) {
+                thumbnails[fp] = data.url;
+            }
+        }
+    }));
+
+    res.send({ thumbnails });
 }));
 
 async function getZipWithSameFileName(filePath) {
