@@ -7,12 +7,10 @@ const router = express.Router();
 const logger = require("../logger");
 const thumbnailDb = require("../models/thumbnailDb");
 const zipInfoDb = require("../models/zipInfoDb");
+const estimateFileTable = require("../estimateFileTable");
 
 const pathUtil = require("../pathUtil");
-const {
-    isExist,
-    getZipOutputCachePath
-} = pathUtil;
+const { isExist } = pathUtil;
 
 const util = global.requireUtil();
 
@@ -48,6 +46,7 @@ router.post('/api/renameFile', serverUtil.asyncWrapper(async (req, res) => {
         if (err) { throw err; }
 
         logger.info(`[rename] ${src} to ${dest}`);
+        estimateFileTable.onMove(src, dest).catch(e=>logger.error(e));
         res.send({ failed: false, dest });
     } catch (err) {
         logger.error(err);
@@ -109,6 +108,7 @@ router.post('/api/moveFile', serverUtil.asyncWrapper(async (req, res) => {
             tempZinInfo.filePath = destFP;
             zipInfoDb.updateZipDb_v2(tempZinInfo);
         }
+        estimateFileTable.onMove(src, destFP).catch(e=>logger.error(e));
         res.send({ failed: false, dest: destFP });
     } catch (err) {
         logger.error(err);
@@ -147,6 +147,7 @@ router.post('/api/deleteFile', serverUtil.asyncWrapper(async (req, res) => {
         await deleteThing(src);
         res.send({ failed: false });
         logger.info(`[DELETE] ${src}`);
+        estimateFileTable.onDelete(src).catch(e=>logger.error(e));
 
         serverUtil.common.deleteCallBack(src);
     } catch (e) {
@@ -175,6 +176,7 @@ router.post('/api/deleteFolder', serverUtil.asyncWrapper(async (req, res) => {
         await deleteThing(src);
         res.send({ failed: false });
         logger.info(`[DELETE_FOLDER] ${src}`);
+        estimateFileTable.onDelete(src).catch(e=>logger.error(e));
     } catch (e) {
         logger.error(e);
         res.send({ reason: file_occupy_warning, failed: true });
@@ -194,8 +196,7 @@ router.post('/api/zipFolder', serverUtil.asyncWrapper(async (req, res) => {
     //     return;
     // }
 
-    const outputRoot = getZipOutputCachePath();
-    const _resultZipPath = path.resolve(outputRoot, path.basename(src) + ".zip");
+    const _resultZipPath = path.resolve(path.dirname(src), path.basename(src) + ".zip");
     try {
         let { stdout, stderr, resultZipPath } = await sevenZipHelp.zipOneFolder(src, _resultZipPath);
         if (stderr) {

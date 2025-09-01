@@ -204,19 +204,19 @@ module.exports.filterPathConfig = async (path_config, skipScan) => {
 
     // scan path
     let temp_scan_path = [].concat(scan_folder_pathes);
-    temp_scan_path = temp_scan_path.concat(good_folder, good_folder_root, not_good_folder_root, not_good_folder);
+    // Do not automatically scan good_folder or not_good_folder; only scan specified paths
+    // temp_scan_path = temp_scan_path.concat(good_folder, good_folder_root, not_good_folder_root, not_good_folder);
+
 
     let scan_path = [];
     if(skipScan){
         scan_path.push(getImgConverterCachePath());
-        scan_path.push(getZipOutputCachePath());
         //没scan的时候，把scan path加到quick access
         quick_access_pathes = [...temp_scan_path,  ...quick_access_pathes, downloadFolder];
         quick_access_pathes = _.uniq(quick_access_pathes);
     }else{
         scan_path = temp_scan_path.slice();
         scan_path.push(getImgConverterCachePath());
-        scan_path.push(getZipOutputCachePath());
         scan_path = _.uniq(scan_path);
 
         quick_access_pathes = [...quick_access_pathes, downloadFolder];
@@ -233,7 +233,7 @@ module.exports.filterPathConfig = async (path_config, skipScan) => {
        scan_path,
        good_folder_root,
        not_good_folder_root,
-       quick_access_pathes: quick_access_pathes,
+       quick_access_pathes,
        good_folder,
        not_good_folder,
        move_pathes,
@@ -251,9 +251,6 @@ const getImgConverterCachePath = module.exports.getImgConverterCachePath = () =>
     return imgConvertFolder;
 }
 
-const getZipOutputCachePath = module.exports.getZipOutputCachePath = () => {
-    return path.join(getWorkSpacePath(), userConfig.zip_output_cache);
-}
 
 // get file extension
 const getExt = module.exports.getExt = function (p) {

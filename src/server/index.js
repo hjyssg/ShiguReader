@@ -65,7 +65,6 @@ mkdirSync(workspacePath);
 mkdirSync(thumbnailFolderPath);
 mkdirSync(cachePath);
 mkdirSync(pathUtil.getImgConverterCachePath());
-mkdirSync(pathUtil.getZipOutputCachePath());
 
 const logger = require("./logger");
 logger.init();
@@ -81,7 +80,6 @@ program
     .option('-p, --port <number>', 'Specify the port',  portConfig.default_http_port)
     .option('--skip-scan', 'skip initial scan for startup fasted', false)
     .option('--skip-cache-clean', 'skip initial cache clean', false)
-    .option('--skip-db-clean', '[Advanced Feature] skip clean previous file_table db record', false)
     .option('--print-qr-code [boolean]', '', true);
 
 program.parse(process.argv);
@@ -89,7 +87,6 @@ const options = program.opts();
 const port = _.isString(options.port)? parseInt(options.port): options.port; // 懒得细看commander，不是最正确写法
 const skipScan = options.skipScan;
 const skipCacheClean = options.skipCacheClean;
-const skipDbClean = options.skipDbClean;
 const printQrCode = options.printQrCode === "false" ? false : options.printQrCode;
 // console.log("port: ", port);
 // console.log("skipScan: ", skipScan);
@@ -195,7 +192,7 @@ async function init() {
         logger.warn("[Error] You may need to run npm run build");
     }
 
-    const sqldb = await db.init(skipDbClean);
+    const sqldb = await db.init();
     await thumbnailDb.init(sqldb);
     await historyDb.init(sqldb);
     await zipInfoDb.init(sqldb);
@@ -863,6 +860,8 @@ app.post('/api/getZipThumbnail', asyncWrapper(async (req, res) => {
             url,
             debug: "from getQuickThumbnailForZip"
         })
+        // 还是多生成一下
+        extractThumbnailFromZip(filePath);
     }else{
         extractThumbnailFromZip(filePath, res);
     }
@@ -919,11 +918,12 @@ app.post('/api/extract', asyncWrapper(async (req, res) => {
         const tempFiles = files.filter(e => {
             return !isHiddenFile(e);
         });
-        let zipInfo;
-        if (tempFiles.length > 0) {
-            const zipInfoRows = zipInfoDb.getZipInfo(files);
-            zipInfo = zipInfoRows[0];
-        }
+        // let zipInfo;
+        // if (tempFiles.length > 0) {
+        //     const zipInfoRows = zipInfoDb.getZipInfo(files);
+        //     zipInfo = zipInfoRows[0];
+        // }
+        let zipInfo = zipInfoDb.getZipInfo(filePath)[0];
 
         const mecab_tokens = [];
 
@@ -1069,7 +1069,7 @@ app.get('/api/getGeneralInfo', asyncWrapper(async (req, res) => {
         move_pathes: global.move_pathes,
         recentAccess: global.recentAccess 
     };
-    res.setHeader('Cache-Control', 'public, max-age=3600');
+    res.setHeader('Cache-Control', 'public, max-age=30');
     res.send(result)
 }));
 
@@ -1094,6 +1094,7 @@ app.use(download);
 
 const search = require("./routes/search");
 app.use(search);
+
 
 const AllInfo = require("./routes/AllInfo");
 app.use(AllInfo);

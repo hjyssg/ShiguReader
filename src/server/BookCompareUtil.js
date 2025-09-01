@@ -32,19 +32,26 @@ function isTwoBookTheSame(fn1, fn2) {
         }
     }
 
-    if (_clean(r1.author) !== _clean(r2.author)) {
-        return TOTALLY_DIFFERENT;
+    const author1 = _clean(r1.author);
+    const author2 = _clean(r2.author);
+    const group1 = _clean(r1.group);
+    const group2 = _clean(r2.group);
+
+    if (author1 && author2) {
+        const authorSimilar = __isHighlySimilar(author1, author2);
+        const crossSimilar = __isHighlySimilar(author1, group2) || __isHighlySimilar(author2, group1);
+        if (!authorSimilar && !crossSimilar) {
+            return TOTALLY_DIFFERENT;
+        }
     }
 
-    let result = SAME_AUTHOR;
+    let result = author1 && author2 ? SAME_AUTHOR : TOTALLY_DIFFERENT;
     //e.g one is c97, the other is c96. cannot be the same
     if (r1.comiket && r2.comiket && r1.comiket !== r2.comiket) {
         return result;
     }
 
     let isSimilarGroup;
-    let group1 = _clean(r1.group);
-    let group2 = _clean(r2.group);
     if ((group1 && !group2) || (!group1 && group2)) {
         isSimilarGroup = true;
     } else {

@@ -31,7 +31,6 @@ class ExpressServerGUI:
             self.root.iconbitmap(icon_path)
 
         self.skip_scan = tk.BooleanVar()
-        self.skip_db_clean = tk.BooleanVar()
         self.port = tk.StringVar(value="3000")
 
         self.load_settings()
@@ -50,8 +49,6 @@ class ExpressServerGUI:
         self.chk_skip_scan = tk.Checkbutton(frame, text="[快速启动] 跳过起始扫描 ", variable=self.skip_scan)
         self.chk_skip_scan.pack(anchor='w', pady=2)
 
-        self.chk_skip_db_clean = tk.Checkbutton(frame, text="[高级功能] 不清理上次的DB缓存, 直接启动。", variable=self.skip_db_clean)
-        self.chk_skip_db_clean.pack(anchor='w', pady=2)
 
         port_frame = tk.Frame(frame)
         port_frame.pack(anchor='w', pady=5)
@@ -80,8 +77,6 @@ class ExpressServerGUI:
         options = []
         if self.skip_scan.get():
             options.append("--skip-scan")
-        if self.skip_db_clean.get():
-            options.append("--skip-db-clean")
 
         options.append("--port")
         options.append(self.port.get())
@@ -161,14 +156,12 @@ class ExpressServerGUI:
         config.read(SETTING_Cache_FN)
         if 'Settings' in config:
             self.skip_scan.set(config.getboolean('Settings', 'skip_scan', fallback=True))
-            self.skip_db_clean.set(config.getboolean('Settings', 'skip_db_clean', fallback=False))
             self.port.set(config.get('Settings', 'port', fallback="3000"))
 
     def save_settings(self):
         config = configparser.ConfigParser()
         config['Settings'] = {
             'skip_scan': self.skip_scan.get(),
-            'skip_db_clean': self.skip_db_clean.get(),
             'port': self.port.get()
         }
         with open(SETTING_Cache_FN, 'w') as configfile:

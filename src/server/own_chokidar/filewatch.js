@@ -166,7 +166,7 @@ const addWatch_sane = async ({ folderPath, deleteCallBack, shouldScan, db }) => 
     });
 
     watchDescriptors[folderPath] = watcher;
-    global.SCANED_PATH = Object.keys(watchDescriptors);
+    global.SCANED_PATH = Object.keys(watchDescriptors).sort((a, b) => b.localeCompare(a));
 };
 
 const { pathEqual } = require('path-equal');
