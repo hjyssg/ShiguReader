@@ -9,17 +9,18 @@ const Constant = global.requireConstant();
 const { MODE_TAG, MODE_AUTHOR, MODE_SEARCH } = Constant;
 const path = require("path");
 const serverUtil = require("../serverUtil");
-const util = global.requireUtil();
 const BookCompareUtil = require("../BookCompareUtil");
 const {
-    TOTALLY_DIFFERENT,
-    isTwoBookTheSame,
-    extractMiddleChars
+  TOTALLY_DIFFERENT,
+  isTwoBookTheSame,
+  extractMiddleChars,
 } = BookCompareUtil;
-const _ = require("underscore");
+const db = require("../models/db");
 
 // three para 1.mode 2.text
-router.post("/api/search", serverUtil.asyncWrapper(async (req, res) => {
+router.post(
+  "/api/search",
+  serverUtil.asyncWrapper(async (req, res) => {
     const mode = req.body && req.body.mode;
     const textParam = req.body && req.body.text;
 
@@ -36,7 +37,9 @@ router.post("/api/search", serverUtil.asyncWrapper(async (req, res) => {
   })
 );
 
-router.post("/api/simple_search/:text", serverUtil.asyncWrapper(async (req, res) => {
+router.post(
+  "/api/simple_search/:text",
+  serverUtil.asyncWrapper(async (req, res) => {
     const text = req.params.text;
     const temp = await searchByText(text);
     const { explorerfileResult } = temp;
@@ -48,50 +51,59 @@ router.post("/api/simple_search/:text", serverUtil.asyncWrapper(async (req, res)
 );
 
 
-
 router.post("/api/findSimilarFile/:text", serverUtil.asyncWrapper(async (req, res) => {
-    const text = req.params.text;
-    let rawRows = [];
-    const parseResult = serverUtil.parse(text);
-    if (parseResult) {
-        if (parseResult.author) {
-            const temp = await _searchByTag_(parseResult.author, "author");
-            rawRows.push(...temp.explorerfileResult);
-        } 
-        
-        if (parseResult.title) {
-            const middleTitle = extractMiddleChars(parseResult.title);
-            const temp = await searchByText(middleTitle);
-            rawRows.push(...temp.explorerfileResult);
-        } 
-    }
-    
-    const middleTitle = extractMiddleChars(text);
-    const temp = await searchByText(middleTitle);
-    rawRows.push(...temp.explorerfileResult);
+  const text = req.params.text;
+  let fileRows = [];
+  let estimateRows = [];
+  const parseResult = serverUtil.parse(text);
 
-    let result = [];
-    const checkFns = {};
-    function foo(rows){
-        for(let ii = 0; ii < rows.length; ii++){
-            const row = rows[ii];
-            const fn = row.fileName;
-            if(checkFns[fn]){
-                continue;
-            }
-            checkFns[fn] = true;
-            const score = isTwoBookTheSame(text, fn);
-            if(score >= TOTALLY_DIFFERENT){
-                result.push({fn, score});
-            }
-        }
-    }
-    foo(rawRows);
+  if (parseResult) {
+    if (parseResult.author) {
+      const temp = await _searchByTag_(parseResult.author, "author");
+      fileRows.push(...temp.explorerfileResult);
 
-    result = _.sortBy(result, e=>e.score);
-    result.reverse();
-    res.send(result);
-  })
-);
+      const tempEstimate = await db.findEstimateByText(parseResult.author);
+      estimateRows.push(...tempEstimate);
+    }
+    if (parseResult.title) {
+      const middleTitle = extractMiddleChars(parseResult.title);
+      const temp = await searchByText(middleTitle);
+      fileRows.push(...temp.explorerfileResult);
+
+      const tempEstimate = await db.findEstimateByText(middleTitle);
+      estimateRows.push(...tempEstimate);
+    }
+  }
+
+  const middleTitle = extractMiddleChars(text);
+  const temp = await searchByText(middleTitle);
+  fileRows.push(...temp.explorerfileResult);
+
+  const tempEstimate = await db.findEstimateByText(middleTitle);
+  estimateRows.push(...tempEstimate);
+
+  const result = [];
+  const seen = new Set();
+
+  function merge(rows, bonus) {
+    for (const row of rows) {
+      const fn = row.fileName;
+      if (seen.has(fn)) continue;
+      seen.add(fn);
+      const score = isTwoBookTheSame(text, fn) + bonus;
+      if (score >= TOTALLY_DIFFERENT) {
+        result.push({ fn, score });
+      }
+    }
+  }
+
+  merge(fileRows, 0);
+  merge(estimateRows, 0);
+
+  result.sort((a, b) => b.score - a.score);
+  res.send(result);
+}));
+
 
 module.exports = router;
+
