@@ -1,5 +1,5 @@
 
-<h1 align="center"><img src="public/favicon-96x96.png" alt="icon" width="90"/>ShiguReader</h1>
+<h1 align="center"><img src="/screenshot/favicon-96x96.png" alt="icon" width="90"/>ShiguReader</h1>
 
 
 [<img src="https://img.shields.io/github/v/release/hjyssg/ShiguReader?label=latest%20release">](https://github.com/hjyssg/ShiguReader/releases)
@@ -100,19 +100,3 @@ Windows 语言设置如下所示：:
 
 如果你仍有疑问或者需要帮助，请在Github上反馈issue。同时，我们也欢迎任何关于改善ShiguReader的建议。
 
-
-##### DOCKER 使用方法（过时）
-
-```
-docker pull liwufan/shigureader
-docker run -d -p hostport:3000 -v comicpath:/data liwufan/shigureader
-
-# hostport 是主机要开放的端口
-# comicpath 是要扫描的文件目录
-```
-有问题阅读 [docker配置说明](https://github.com/hjyssg/ShiguReader/blob/dev/dockerguide.md)
-
-
-##### NAS 使用方法（过时）
-
-[热心人总结的](https://github.com/hjyssg/ShiguReader/issues/90)
