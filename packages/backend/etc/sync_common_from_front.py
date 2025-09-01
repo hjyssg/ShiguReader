@@ -1,77 +1,40 @@
-# 写一个python小脚本，把任意文件从
-# 	X:\git\ShiguReader_Frontend\src\name-parser
-# 	X:\git\ShiguReader_Frontend\src\common
-
-# 复制到
-# 	X:\git\Shigureader_Backend\src\name-parser
-# 	X:\git\Shigureader_Backend\src\common
-
-# 步骤是先把目标文件夹的所有内容都删了。再把源文件夹的文件全部复制过去
-# 每个文件，print出来给我看见。
-# 只能使用python原生的library。
-# 改一下写法，先一个loop去删除文件。再一个loop去复制
-
 import os
 import shutil
 from pathlib import Path
 import subprocess
 
-script_dir = os.path.dirname(os.path.realpath(__file__))
-root = Path(os.path.join(script_dir, '../..')).resolve()
+script_dir = Path(__file__).resolve().parent
+root = script_dir.parent.parent.resolve()
 
-backend_path = Path(os.path.join(script_dir, '..')).resolve()
-frontend_path = Path(os.path.join(root, r"ShiguReader_Frontend")).resolve()
+frontend_path = root / 'packages' / 'frontend'
+backend_path = root / 'packages' / 'backend'
 
-backend_path = str(backend_path)
-frontend_path = str(frontend_path)
+source_dir = frontend_path / 'dist'
+target_dir = backend_path / 'dist'
 
-
-source_dirs = [
-    os.path.join(frontend_path, r"src\name-parser"),
-    os.path.join(frontend_path, r"src\common"),
-    os.path.join(frontend_path, r"dist")
-]
-target_dirs = [
-     os.path.join(backend_path, r"src\name-parser"),
-     os.path.join(backend_path, r"src\common"),
-     os.path.join(backend_path, r"dist")
-]
-
-#--------------------- build
 build_command = "npm run build"
-subprocess.run(build_command, shell=True, cwd=frontend_path, check=True)
+subprocess.run(build_command, shell=True, cwd=str(frontend_path), check=True)
 
-
-# ------------------ 先删除目标目录下的所有文件和子目录
-for target_dir in target_dirs:
-    for root, dirs, files in os.walk(target_dir, topdown=False):
+if target_dir.exists():
+    for root_dir, dirs, files in os.walk(target_dir, topdown=False):
         for filename in files:
-            file_path = os.path.join(root, filename)
+            file_path = Path(root_dir) / filename
             print("Deleting file:", file_path)
-            os.remove(file_path)
+            file_path.unlink()
         for dirname in dirs:
-            dir_path = os.path.join(root, dirname)
+            dir_path = Path(root_dir) / dirname
             print("Deleting directory:", dir_path)
-            os.rmdir(dir_path)
+            dir_path.rmdir()
+else:
+    target_dir.mkdir(parents=True, exist_ok=True)
 
-# 分别复制源目录和目标目录中的所有文件
-for i, source_dir in enumerate(source_dirs):
-    target_dir = target_dirs[i]
+for root_dir, dirs, files in os.walk(source_dir):
+    for filename in files:
+        source_path = Path(root_dir) / filename
+        rel_path = source_path.relative_to(source_dir)
+        target_path = target_dir / rel_path
 
-    for root, dirs, files in os.walk(source_dir):
-        for filename in files:
-            # 构造源文件和目标文件的绝对路径
-            source_path = os.path.join(root, filename)
-            rel_path = os.path.relpath(source_path, source_dir)
-            target_path = os.path.join(target_dir, rel_path)
+        print("Copying file:", source_path)
 
-            # 打印该文件的路径
-            print("Copying file:", source_path)
-
-            # 如果目标文件夹不存在，则创建之
-            target_folder = os.path.dirname(target_path)
-            if not os.path.exists(target_folder):
-                os.makedirs(target_folder)
-
-            # 复制文件并覆盖已存在的文件
-            shutil.copy2(source_path, target_path)
+        target_path.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(source_path, target_path)
