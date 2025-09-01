@@ -1,0 +1,41 @@
+@import "vars.scss";
+
+$zoom-width: 10%;
+
+.big-column-button {
+
+    background-color: transparent;
+
+    &.next {
+        right: 0;
+    }
+
+    &.prev {
+        left: 0;
+    }
+
+    position: fixed;
+    top: 0;
+    width: $zoom-width;
+    height: 100%;
+    z-index: 10;
+
+    @include flex_center_display;
+
+    opacity: 0;
+    animation: all 0.5s;
+
+    .fas {
+        font-weight: 600;
+        font-size: 6rem;
+        color: black;
+
+        &:active {
+            color: slategray;
+        }
+    }
+
+    &:hover {
+        opacity: 0.7;
+    }
+}

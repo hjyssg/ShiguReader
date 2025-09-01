@@ -1,0 +1,48 @@
+@import "vars.scss";
+
+
+.sort-header-container {
+  margin-top: 10px;
+  margin-bottom: 10px;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  background-color: #99a2b5;
+  border-radius: 5px;
+  font-weight: 500;
+  
+  .sort-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 10px;
+
+
+    @media screen and (min-width: 1000px) {
+      font-size: 16px;
+    }
+
+    @media screen and (min-width: 1200px) {
+      font-size: 14px;
+      padding-left: 50px;
+      padding-right: 50px;
+    }
+
+    width: 100%;
+
+    .sort-item {
+      color: #212529;
+
+      .fas {
+        color: #212529;
+      }
+
+      background: unset;
+      cursor: pointer;
+      vertical-align: baseline;
+
+      &:hover {
+        @include third_hover_effect;
+      }
+    }
+  }
+}

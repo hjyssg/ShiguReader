@@ -1,0 +1,48 @@
+@import "vars.scss";
+
+.aji-dropdown {
+  color: $font_color_white_one;
+  cursor: pointer;
+  position: relative;
+  height: 16px;
+  display: flex;
+  justify-content: center;
+
+  .aji-dropdown-menu {
+    display: none;
+    margin-top: 2px;
+    z-index: 999;
+    bottom: 25px;
+    left: -10px;
+    position: absolute;
+    border: 1px solid $font_color_white_one;
+    background: $bacground_level_three;
+
+    .aji-dropdown-item {
+      min-width: 30px;
+      color: $font_color_white_one;
+
+      &:not(:last-child) {
+        border-bottom: 1px solid $font_color_white_one;
+      }
+    }
+  }
+
+  &.open {
+    .aji-dropdown-menu {
+      display: block;
+    }
+  }
+
+
+}
+
+//can be use independently
+.aji-dropdown-item {
+  @include flex_center_display;
+  cursor: pointer;
+
+  &:hover {
+    @include hover_effect;
+  }
+}

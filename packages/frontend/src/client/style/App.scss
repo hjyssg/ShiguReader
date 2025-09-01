@@ -1,0 +1,244 @@
+@import "vars.scss";
+
+#root {
+  @media screen and (max-width: 400px) {
+    min-width: 400px;
+  }
+}
+
+body {
+  text-align: center;
+  margin: auto;
+  color: $font_color_white_one;
+}
+
+a {
+  color: $font_color_white_one;
+
+  &:hover {
+    color: unset;
+  }
+}
+
+.location-title {
+  color: $font_color_white_one;
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 10px;
+
+  .exp-top-button {
+    margin-left: 20px;
+  }
+}
+
+
+.app-container {
+  background-color: $bacground_level_one;
+  min-height: 100vh;
+  padding-bottom: 50px;
+
+  .critical-error {
+    color: $font_color_white_one;
+    font-size: 25px;
+    margin: 20px 20px;
+  }
+
+  .fab,
+  .fas {
+    color: $font_color_white_one;
+
+    &::before {
+      padding-right: 5px;
+    }
+  }
+
+  .fa-download {
+    color: $font_color_white_one;
+    margin-left: 10px;
+
+    &:hover {
+      @include hover_effect;
+    }
+  }
+
+  .app-top-topnav {
+    overflow: hidden;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    margin-bottom: 12px;
+
+
+    .app-page-links {
+      display: inline-flex;
+      margin-right: 20px;
+
+      a {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        padding: 12px 12px;
+        text-decoration: none;
+        font-size: 15px;
+
+        @media screen and (min-width: 1000px) {
+          &:hover {
+            @include hover_effect;
+
+            i {
+              @include hover_effect;
+            }
+          }
+        }
+      }
+    }
+
+    .search-bar {
+      display: inline-flex;
+      padding-top: 8px;
+
+      .search-input {
+        padding: 6px;
+        border: none;
+        font-size: 17px;
+        border-radius: 2px;
+        width: 350px;
+      }
+
+      .filter-button,
+      .search-button {
+        cursor: pointer;
+        border-radius: 0px;
+        @include flex_center_display;
+        background-color: #a7a7a7;
+        padding-left: 5px;
+        padding-right: 5px;
+        margin-left: 1px;
+        width: 50px;
+
+        &:hover {
+          @include hover_effect;
+        }
+      }
+
+      .search-button {
+        border-right: 1px $border-color-black solid;
+        border-left: 1px $border-color-black solid;
+      }
+    }
+  }
+}
+
+
+
+.login-page{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  //https://stackoverflow.com/questions/31217268/center-div-on-the-middle-of-screen
+  .log-section {
+    background: white;
+    padding: 20px 50px;
+    box-shadow: 4px 4px 7px rgba(0, 0, 0, 0.59);
+    border-radius: 3px;
+
+    #login-input{
+      margin-top: 20px;
+      margin-bottom: 20px;
+      width: 100%;
+    }
+
+    #log-err {
+      color: #e93b3b;
+      margin-top: 10px;
+      font-weight: bold;
+    }
+
+    .author-link {
+      margin-top: 100px;
+
+      .fab {
+        color: unset;
+      }
+    }
+  }
+}
+
+
+.aji-checkbox-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+
+  .aji-checkbox {
+    display: inline-flex;
+
+    .inner {
+      font-size: 8px;
+
+      @media screen and (min-width: 800px) {
+        font-size: 10px;
+      }
+
+      @media screen and (min-width: 1200px) {
+        font-size: 12px;
+      }
+
+      @media screen and (min-width: 1400px) {
+        font-size: 14px;
+      }
+    }
+
+    // &:not(:first-child){
+    //   margin-left: 10px;
+    // }
+
+    // @media screen and (min-width: 1200px) {
+    //   &:not(:first-child){
+    //     margin-left: 15px;
+    //   }
+    // }
+  }
+}
+
+.history-section {
+  // margin-top: 20px;
+  color: $font_color_white_one;
+
+  .history-ellipsis {
+    cursor: pointer;
+    font-size: 1.5rem;
+    &:hover {
+      @include third_hover_effect;
+    }
+  }
+
+  .history-section-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+}
+
+.vertical-gap-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+}
+
+.tool-bar-row {
+  &.only-one-row {
+    gap: 8px;
+    margin-top: unset;
+    margin-bottom: unset;
+
+    .fas,
+    .fa {
+      font-size: 16px;
+    }
+  }
+}

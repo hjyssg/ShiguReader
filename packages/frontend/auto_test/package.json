@@ -1,0 +1,16 @@
+{
+  "name": "auto_test",
+  "version": "0.0.1",
+  "description": "test for shigureader",
+  "main": "index",
+  "scripts": {
+    "test": "mocha test.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "chai": "^4.2.0",
+    "mocha": "^8.2.1",
+    "puppeteer": "^5.5.0"
+  }
+}

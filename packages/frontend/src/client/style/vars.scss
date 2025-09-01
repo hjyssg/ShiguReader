@@ -1,0 +1,83 @@
+$font_color_white_one: #DDDDDD;
+$font_color_black_two: #414141;
+
+$bacground_level_one: #34353b;
+$bacground_level_two: #43464e;
+$bacground_level_three: #666b7a;
+$background_orange_white: rgb(231, 218, 190);
+
+$font_dark_orange: #da653a;
+
+$border-color-black: #616161;
+
+@mixin file_cell_common {
+    background: $bacground_level_two;
+    border: 1px solid $border-color-black;
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+@mixin hover_effect {
+    color: #212121;
+    background: $font_color_white_one;
+}
+
+@mixin second_hover_effect {
+    color: #2ad4da;
+    background: unset;
+}
+
+@mixin third_hover_effect {
+    color: $font_dark_orange;
+    background: unset;
+}
+
+@mixin flex_center_display {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.flex-center-display-container {
+    @include flex_center_display;
+}
+
+@mixin common_sub_container {
+    background: $background_orange_white;
+    color: $font_color_black_two;
+    padding-bottom: 20px;
+    padding-top: 20px;
+    min-height: 800px;
+
+    a {
+        color: $font_color_black_two;
+    }
+}
+
+.f-s-10 {
+    font-size: 10px;
+}
+
+.f-s-11 {
+    font-size: 11px;
+}
+
+.f-s-12 {
+    font-size: 12px;
+}
+
+.f-s-14 {
+    font-size: 14px;
+}
+
+.f-s-15 {
+    font-size: 14px;
+}
+
+.f-s-16 {
+    font-size: 16px;
+}
+
+*:focus {
+    outline: 0px;
+}

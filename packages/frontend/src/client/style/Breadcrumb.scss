@@ -1,0 +1,95 @@
+@import "vars.scss";
+
+.explorer-breadcrumb {
+  padding: 8px 16px;
+  list-style: none;
+  margin-bottom: 0px;
+
+  .breadcrumb-item {
+    display: inline-flex;
+    align-items: center;
+    font-size: 18px;
+
+    @media screen and (max-width: 800px) {
+      font-size: 15px;
+    }
+
+    color: $font_color_white_one;
+    text-decoration: none;
+    background-color: transparent;
+    -webkit-text-decoration-skip: objects;
+  }
+
+  .breadcrumb-sep {
+    padding-left: 4px;
+    padding-right: 4px;
+    color: #DDDDDD;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .breadcrumb-item {
+    &:not(.current):hover {
+      text-decoration: underline;
+    }
+
+    &.current{
+      cursor: pointer;
+      &:hover {
+        color: #db892a;
+        background: unset;
+      }
+    }
+  }
+}
+
+.top-button-gropus {
+  color: $font_color_white_one;
+  position: relative;
+  margin-bottom: 1rem;
+  padding-bottom: 6px;
+}
+
+.exp-top-button {
+  cursor: pointer;
+  color: $font_color_white_one;
+  .fas {
+    color: $font_color_white_one;
+  }
+
+  &.warning {
+    color: #fd8585;
+    .fas {
+      color: #fd8585;
+    }
+  }
+
+  &:hover {
+    @include second_hover_effect;
+
+    .fas {
+      @include second_hover_effect;
+    }
+  }
+}
+
+.file-count-row {
+  padding-bottom: 8px;
+
+  .file-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-start;
+    margin-right: 20px;
+    color: $font_color_white_one;
+  }
+}
+
+
+@media screen and (max-width: 800px) {
+  .file-count,
+  .exp-top-button {
+    font-size: 12px;
+  }
+}
