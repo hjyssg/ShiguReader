@@ -5,7 +5,7 @@
 [<img src="https://img.shields.io/github/v/release/hjyssg/ShiguReader?label=latest%20release">](https://github.com/hjyssg/ShiguReader/releases)
 
 
-[English Version](https://github.com/hjyssg/ShiguReader/blob/Dev_Frontend/README_English.md)
+[English Version (outdated)](README_English.md)
 
 
 ShiguReader是一款可在电脑或iPad上使用的漫画浏览器，它还支持整理资源、播放音乐和观看视频等多种功能。只需前往[Release](https://github.com/hjyssg/ShiguReader/releases)，下载后便可立即开始使用。
@@ -31,7 +31,7 @@ ShiguReader是一款可在电脑或iPad上使用的漫画浏览器，它还支�
 * 可移动、删除文件。
 * 可制作统计图表，统计文件大小和各时期的文件数量。
 * 接近于旧版熊猫网的配色，让你感受亲切熟悉。
-* 同时支持Windows和lunix系统。
+* 同时支持Windows和Linux系统。
 
 ##### 支持的文件格式
 
@@ -57,13 +57,13 @@ g：快速跳页
 
 
 ##### 第三方依赖
-linux系统强烈建议安装[image magick](https://imagemagick.org)。这样可以使用它来压缩图片，提高软件的性能。
+Linux系统强烈建议安装[ImageMagick](https://imagemagick.org)。这样可以使用它来压缩图片，提高软件的性能。
 
 ##### 注意事项
 
 部分文件名带汉字或日语假名的图片无法正常加载，你可能需要进行以下语言设置。请注意，这可能会导致其他非Unicode软件出现乱码问题。
 
-Windows 语言设置如下所示：:  
+Windows 语言设置如下所示：
 <img src="screenshot/unicode-setting.png" alt="Unicode Setting" width="600"/>
 
 ##### 压缩包内图片压缩功能
@@ -94,7 +94,7 @@ Windows 语言设置如下所示：:
 
 ##### 开发环境设置
 
-开发人员请阅读[Readme_Env_Setup](https://github.com/hjyssg/ShiguReader/blob/Dev_Frontend/Readme_Env_Setup.md)
+开发人员请阅读[Readme_Env_Setup](Readme_Env_Setup.md)
 
 ##### 反馈与建议
 

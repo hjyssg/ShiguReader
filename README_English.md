@@ -1,10 +1,12 @@
 <h1 align="center">ShiguReader</h1>
 
+> ⚠️ This English README is outdated. Please refer to the [Chinese README](README.md) for the latest information.
+
 [<img src="https://img.shields.io/github/v/release/hjyssg/ShiguReader?label=latest%20release">](https://github.com/hjyssg/ShiguReader/releases)
 [<img src="https://img.shields.io/docker/v/liwufan/shigureader?label=docker%20version">](https://hub.docker.com/r/liwufan/shigureader)
 [<img src="https://img.shields.io/docker/pulls/liwufan/shigureader.svg">](https://hub.docker.com/r/liwufan/shigureader)
 
-ShiguReader is a manga browser that can be used on computers or iPads. It also supports various features such as organizing resources, playing music, and watching videos. Simply go to [Release](https://github.com/hjyssg/ShiguReader/releasesx) and download it to start using immediately.
+ShiguReader is a manga browser that can be used on computers or iPads. It also supports various features such as organizing resources, playing music, and watching videos. Simply go to [Release](https://github.com/hjyssg/ShiguReader/releases) and download it to start using immediately.
 
 ##### Screenshots
 
@@ -70,7 +72,7 @@ If you like our software and would like to treat us to a cup of milk tea, you ca
 
 ##### Development Environment Setup
 
-please refer to [Readme_Env_Setup](https://github.com/hjyssg/ShiguReader/blob/Dev_Frontend/Readme_Env_Setup.md).
+please refer to [Readme_Env_Setup](Readme_Env_Setup.md).
 
 ##### Feedback and Suggestions
 

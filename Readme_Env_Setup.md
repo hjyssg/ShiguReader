@@ -51,6 +51,6 @@ npm run start
 | Software      | Must Have | Note                           |
 |---------------|-----------|--------------------------------|
 | Node.js       | Yes       | Version 16 is recommended.      |
-| image magick  | No        | Nice to have.                   |
-| 7-Zip         | *      | Windows does not need to install. Must-have for *nix. |
-| git bash      | *         | Must-have for Windows, not required for *nix. |
+| ImageMagick   | No        | Nice to have.                   |
+| 7-Zip         | Conditional | Windows does not need to install. Must-have for *nix. |
+| git bash      | Conditional | Must-have for Windows, not required for *nix. |
