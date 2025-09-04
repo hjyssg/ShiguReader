@@ -1,6 +1,7 @@
 # 写一个python小脚本，把任意文件从
 # 	frontend\src\name-parser
 # 	frontend\src\common
+# dist
 
 # 复制到
 # 	backend\src\name-parser
