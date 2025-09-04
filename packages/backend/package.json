@@ -9,17 +9,18 @@
     "start": "node src/server/index.js",
     "flow": "flow",
     "test": "mocha ./src/test",
-    "pkg": "pkg package.json -t host --out-dir executables"
+     "pkg": "pkg . --compress GZip"
   },
   "pkg": {
     "scripts": "src/server/index.js ",
     "assets": [
       "/dist/*",
+       "/resource/**/*",
       "/node_modules/sqlite3/lib/binding/binding/napi-v6-win32-unknown-x64/*",
       "/node_modules/.store/registry-js@1.15.1/node_modules/registry-js/build/Release/*"
     ],
     "targets": [
-      "win-x64"
+      "node22-win-x64"
     ],
     "outputPath": "../SGR_pkg/"
   },

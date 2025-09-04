@@ -14,7 +14,7 @@
     
 
 ##### 发布流程：
-    安装pkg   
+    安装pkg   (虽然原版pkg不维护，但有开源组织继续维护 https://github.com/yao-pkg/pkg 感谢)
     生成exe    pkg . --compress GZip  
     前端是webpack的打包  
     添加其他文件   
