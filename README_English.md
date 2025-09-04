@@ -72,7 +72,7 @@ If you like our software and would like to treat us to a cup of milk tea, you ca
 
 ##### Development Environment Setup
 
-please refer to [Readme_Env_Setup](Readme_Env_Setup.md).
+please refer to [Readme_Dev_Setup](Readme_Dev_Setup.md).
 
 ##### Feedback and Suggestions
 

@@ -1,16 +1,13 @@
-##### Dev Environment Setup
+# Dev Environment Setup
 
-
-###### Short Version:
+## Short Version
 
 ```bash
-
 npm i
 npm run start
-
 ```
 
-###### Detailed Version:
+## Detailed Version
 ```bash
 # Node.js 16 is recommended.
 
@@ -47,10 +44,10 @@ npm run start
 
 ```
 
-
 | Software      | Must Have | Note                           |
 |---------------|-----------|--------------------------------|
 | Node.js       | Yes       | Version 16 is recommended.      |
 | ImageMagick   | No        | Nice to have.                   |
 | 7-Zip         | Conditional | Windows does not need to install. Must-have for *nix. |
 | git bash      | Conditional | Must-have for Windows, not required for *nix. |
+
