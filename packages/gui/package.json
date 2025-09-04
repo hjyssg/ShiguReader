@@ -1,0 +1,12 @@
+{
+  "name": "ShiguReader_GUI",
+  "version": "1.0.0",
+  "description": "Electron GUI for launching ShiguReader backend server",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron main.js"
+  },
+  "devDependencies": {
+    "electron": "^28.0.0"
+  }
+}

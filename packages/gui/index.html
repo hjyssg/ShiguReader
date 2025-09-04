@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>ShiguReader Server Launcher</title>
+  </head>
+  <body>
+    <label>Port: <input id="port" type="number" /></label><br/>
+    <label><input id="skip-scan" type="checkbox" /> Skip initial scan</label><br/>
+    <button id="start">Start Server</button>
+    <script>
+      document.getElementById('port').value = window.serverLauncher.defaultPort;
+      document.getElementById('start').addEventListener('click', () => {
+        const port = parseInt(document.getElementById('port').value, 10);
+        const skip = document.getElementById('skip-scan').checked;
+        window.serverLauncher.startServer(port, skip);
+      });
+    </script>
+  </body>
+</html>
