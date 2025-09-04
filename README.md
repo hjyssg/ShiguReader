@@ -4,7 +4,7 @@
 
 [![Latest Release](https://img.shields.io/github/v/release/hjyssg/ShiguReader?label=latest%20release)](https://github.com/hjyssg/ShiguReader/releases)
 
-[English Version (outdated)](README_English.md)
+[English Version](README_English.md)
 
 ShiguReader是一款可在电脑或iPad上使用的漫画浏览器，它还支持整理资源、播放音乐和观看视频等功能。下载 [Release](https://github.com/hjyssg/ShiguReader/releases) 后便可立即开始使用。
 
