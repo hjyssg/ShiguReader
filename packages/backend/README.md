@@ -28,3 +28,8 @@
 
 --skip-scan：这个参数可以让您跳过应用程序启动时的扫描过程，加快应用程序启动速度。如果您不希望应用程序进行扫描，请在命令行中输入 "--skip-scan" 参数。  
 例如：$ node ShiguReader.exe --skip-scan  
+
+
+
+##### 数据迁移方法
+旧项目中的 `thumbnails` 文件夹和 `workspace/shigureader_internal_db.sqlite` 数据库复制到新的后端就行
