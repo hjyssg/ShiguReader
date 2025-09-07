@@ -222,7 +222,6 @@ router.post('/api/listImageFolderContent', serverUtil.asyncWrapper(async (req, r
     }
     result = serverUtil.checkOneBookRes(result);
     res.send(result);
-    historyDb.addOneRecord(filePath);
 }));
 
 module.exports = router;

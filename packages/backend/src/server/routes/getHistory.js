@@ -39,4 +39,14 @@ router.post("/api/getFileHistory", serverUtil.asyncWrapper(async (req, res) => {
     }
 }));
 
+router.post('/api/addHistoryRecord', serverUtil.asyncWrapper(async (req, res) => {
+    const filePath = req.body && req.body.filePath;
+    if (!filePath) {
+        res.send({ failed: true, reason: "No Parameter" });
+        return;
+    }
+    historyDb.addOneRecord(filePath);
+    res.send({ failed: false });
+}));
+
 module.exports = router;
