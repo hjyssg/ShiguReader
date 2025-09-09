@@ -50,13 +50,13 @@ async function getThumbnailForFolders(filePathes) {
         // 先尝试从thumbnail db拿
         let [patterns, placeholders] = getPatterns(filePathes);
         let sql = `
-            SELECT T.*, f.mTime FROM 
-            (SELECT *  FROM thumbnail_table WHERE ${placeholders} ) AS T 
-            LEFT JOIN file_table AS F ON f.filePath = t.filePath
-            ORDER BY f.mTime DESC
+            SELECT T.*, COALESCE(F.mTime, T.time) AS sortTime FROM
+            (SELECT *  FROM thumbnail_table WHERE ${placeholders} ) AS T
+            LEFT JOIN file_table AS F ON F.filePath = T.filePath
+            ORDER BY sortTime DESC
             ${postfix}
             `
-        thumbnailRows = await db.doAllSync(sql, patterns);
+        const thumbnailRows = await db.doAllSync(sql, patterns);
         filePathes = filePathes.filter(filePath => {
             const findRow = findThumbFromRows(thumbnailRows, filePath);
             if (findRow) {
