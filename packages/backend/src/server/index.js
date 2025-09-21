@@ -727,7 +727,7 @@ let extractThumbnailFromZip = async (filePath, res, mode, config) => {
         }
         
         // send original img path to client as thumbnail
-        // 这里必须重新解析一次，避免七牛返回的相对路径逃离缓存目录
+        // 这里必须重新解析一次，避免 7-Zip 的返回路径逃离缓存目录
         const resolvedThumb = resolveExtractedEntry(outputPath, thumbInnerPath);
         if (!resolvedThumb) {
             sendError("Cannot locate thumbnail inside cache");
