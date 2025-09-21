@@ -26,6 +26,16 @@ const filewatch = require("./own_chokidar/filewatch");
 const thumbnailUtil = require("./getThumbnailUtil");
 
 const { isHiddenFile, splitFilesByType, isExist, filterPathConfig, isSub, estimateIfFolder } = pathUtil;
+
+const resolveExtractedEntry = (baseOutputPath, entryPath) => {
+    if (!entryPath) {
+        return null;
+    }
+    const normalizedBase = path.resolve(baseOutputPath);
+    const normalizedEntry = path.normalize(entryPath);
+    const candidate = path.resolve(normalizedBase, normalizedEntry);
+    return isSub(normalizedBase, candidate) ? candidate : null;
+};
 const { isImage, isCompress, isVideo, isMusic, 
     getCurrentTime, isDisplayableInExplorer, isDisplayableInOnebook } = util;
 
@@ -716,13 +726,21 @@ let extractThumbnailFromZip = async (filePath, res, mode, config) => {
         }
         
         // send original img path to client as thumbnail
-        let original_thumb = path.join(outputPath, path.basename(thumbInnerPath));
-        sendImage(original_thumb);
+        const resolvedThumb = resolveExtractedEntry(outputPath, thumbInnerPath);
+        if (!resolvedThumb) {
+            sendError("Cannot locate thumbnail inside cache");
+            return;
+        }
+        sendImage(resolvedThumb);
         sendable = false;
 
 
         //compress into real thumbnail
-        const outputFilePath = await thumbnailGenerator(thumbnailFolderPath, outputPath, path.basename(thumbInnerPath));
+        const outputFilePath = await thumbnailGenerator(
+            thumbnailFolderPath,
+            path.dirname(resolvedThumb),
+            path.basename(resolvedThumb)
+        );
         if (outputFilePath) {
             thumbnailDb.addNewThumbnail(filePath, outputFilePath);
             // 想删除除了要使用的文件，但不行。各种文件系统错误
@@ -1018,8 +1036,11 @@ app.post('/api/extract', asyncWrapper(async (req, res) => {
 
             const stderr = await unzip_limit(()=> extractByRange(filePath, outputPath, firstRange));
             if (!stderr) {
-                const unzipOutputPathes = totalRange.map(e => path.resolve(outputPath,  path.basename(e)));
-                const contentUrls = splitFilesByType(unzipOutputPathes, outputPath);
+                const resolvedOutputPath = path.resolve(outputPath);
+                const unzipOutputPathes = totalRange
+                    .map(e => resolveExtractedEntry(outputPath, e))
+                    .filter(Boolean);
+                const contentUrls = splitFilesByType(unzipOutputPathes, resolvedOutputPath);
                 sendBack(contentUrls, filePath, stat);
                 // const time2 = getCurrentTime();
                 // const timeUsed = (time2 - time1);

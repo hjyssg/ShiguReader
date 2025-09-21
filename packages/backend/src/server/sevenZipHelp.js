@@ -102,7 +102,7 @@ const getExtractOption = module.exports.getExtractOption = function (filePath, o
     //https://sevenzip.osdn.jp/chm/cmdline/commands/extract.htm
     //e make folder as one level
     //x different level
-    levelFlag = levelFlag || "e";
+    levelFlag = levelFlag || "x";
     if (file_specifier) {
         let specifier = _.isArray(file_specifier) ? file_specifier : [file_specifier];
         specifier = specifier.map(e => {
@@ -204,7 +204,7 @@ module.exports.extractByRange = async function (filePath, outputPath, range) {
             //cut into parts
             //when range is too large, will cause OS level error
             let subRange = range.slice(ii, ii + DISTANCE);
-            let opt = getExtractOption(filePath, outputPath, subRange);
+            let opt = getExtractOption(filePath, outputPath, subRange, "x");
             let { stderr, stdout } = await execa(sevenZip, opt);
             if (stderr) {
                 error = stderr;
@@ -235,7 +235,7 @@ module.exports.extractByExtension = async function(filePath, outputPath, extensi
 
     let error, pathes = [];
     try {
-        const opt = getExtractOption(filePath, outputPath, extensions);
+        const opt = getExtractOption(filePath, outputPath, extensions, "x");
         const { stderr, stdout } = await execa(sevenZip, opt);
         if (stderr) {
             throw stderr;
@@ -251,22 +251,21 @@ module.exports.extractByExtension = async function(filePath, outputPath, extensi
 
 
 
-// isRecursive: 保持原来的文件夹结构
+// isRecursive 参数已经保留兼容性，但现在始终保持原来的文件夹结构
 module.exports.extractAll = async function (filePath, outputPath, isRecursive) {
     if (!global._has_7zip_) {
         throw "this computer did not install 7z"
     }
 
-    const levelFlag = isRecursive? "x" : null;
-    const opt = getExtractOption(filePath, outputPath, null, levelFlag);
+    const opt = getExtractOption(filePath, outputPath, null, "x");
     let error, pathes = [];
     try {
         const { stderr } = await execa(sevenZip, opt);
         if (stderr) {
             throw stderr;
         }
-        
-        pathes = (await pathUtil.readDirForFileAndFolder(outputPath, isRecursive)).pathes;
+
+        pathes = (await pathUtil.readDirForFileAndFolder(outputPath, true)).pathes;
     } catch (e) {
         error = e;
         logger.error('[extractAll] exit: ', e);

@@ -34,7 +34,14 @@ const getHash = function (filePath) {
 
 
 const sortFileNames = function (files) {
-    util._sortFileNames(files, e => path.basename(e, path.extname(e)));
+    util._sortFileNames(
+        files,
+        e => path.basename(e, path.extname(e)),
+        e => {
+            const dir = path.dirname(e);
+            return dir === '.' ? '' : dir;
+        }
+    );
 }
 
 /** 从图片中挑一张封面 */

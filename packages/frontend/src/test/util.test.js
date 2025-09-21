@@ -1,4 +1,5 @@
 const assert = require("assert");
+const path = require("path");
 
 const {
   isGif,
@@ -123,6 +124,22 @@ describe("ut for js util functions", () => {
         "12.mp4",
         "a.mp4",
         "b.mp4",
+      ]);
+    });
+
+    it("should prioritize directory path before filename when sorting", () => {
+      const files = [
+        "dirB/1.jpg",
+        "dirA/2.jpg",
+        "dirA/1.jpg",
+        "dirB/10.jpg",
+      ];
+      _sortFileNames(files, (fName) => path.basename(fName));
+      assert.deepStrictEqual(files, [
+        "dirA/1.jpg",
+        "dirA/2.jpg",
+        "dirB/1.jpg",
+        "dirB/10.jpg",
       ]);
     });
   });
