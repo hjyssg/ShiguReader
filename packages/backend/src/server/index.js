@@ -27,6 +27,7 @@ const thumbnailUtil = require("./getThumbnailUtil");
 
 const { isHiddenFile, splitFilesByType, isExist, filterPathConfig, isSub, estimateIfFolder } = pathUtil;
 
+// 将压缩文件内的条目路径解析成解压后的绝对路径，并确保不会跳出目标目录
 const resolveExtractedEntry = (baseOutputPath, entryPath) => {
     if (!entryPath) {
         return null;
@@ -726,6 +727,7 @@ let extractThumbnailFromZip = async (filePath, res, mode, config) => {
         }
         
         // send original img path to client as thumbnail
+        // 这里必须重新解析一次，避免七牛返回的相对路径逃离缓存目录
         const resolvedThumb = resolveExtractedEntry(outputPath, thumbInnerPath);
         if (!resolvedThumb) {
             sendError("Cannot locate thumbnail inside cache");
@@ -1037,6 +1039,7 @@ app.post('/api/extract', asyncWrapper(async (req, res) => {
             const stderr = await unzip_limit(()=> extractByRange(filePath, outputPath, firstRange));
             if (!stderr) {
                 const resolvedOutputPath = path.resolve(outputPath);
+                // 将压缩包内的相对路径转为绝对路径，同时过滤掉不合法的项目
                 const unzipOutputPathes = totalRange
                     .map(e => resolveExtractedEntry(outputPath, e))
                     .filter(Boolean);
