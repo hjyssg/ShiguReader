@@ -84,8 +84,9 @@ const hasDuplicate = module.exports.hasDuplicate = (arr) => {
 
 /**
  * 用来排序图片和mp3的。files既可能是filename也可能是filepath
+ * getDirName is optional and should return the directory portion used for sorting
  */
-module.exports._sortFileNames = function (files, getBaseName) {
+module.exports._sortFileNames = function (files, getBaseName, getDirName) {
     // files.sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
     // return;
 
@@ -95,10 +96,27 @@ module.exports._sortFileNames = function (files, getBaseName) {
         const fileNameB = getBaseName(b);
 
         // 获取路径部分（去掉文件名部分后的内容）
-        const dirA = a.slice(0, a.length - fileNameA.length);
-        const dirB = b.slice(0, b.length - fileNameB.length);
+        const dirA = (() => {
+            if (getDirName) {
+                return getDirName(a) || "";
+            }
+            if (typeof fileNameA === "string" && a.endsWith(fileNameA)) {
+                return a.slice(0, a.length - fileNameA.length) || "";
+            }
+            return "";
+        })();
 
-        // 先按路径部分排序
+        const dirB = (() => {
+            if (getDirName) {
+                return getDirName(b) || "";
+            }
+            if (typeof fileNameB === "string" && b.endsWith(fileNameB)) {
+                return b.slice(0, b.length - fileNameB.length) || "";
+            }
+            return "";
+        })();
+
+        // 先按路径部分排序，确保不同子目录下的同名文件不会混在一起
         if (dirA !== dirB) {
             return dirA.localeCompare(dirB);
         }else{
