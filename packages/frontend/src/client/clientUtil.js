@@ -144,6 +144,10 @@ module.exports.getExplorerLink = function (path) {
     return '/explorer/?p=' + encodeURIComponent(path);
 }
 
+module.exports.getExplorerV2Link = function (path) {
+    return '/explorerV2/?p=' + encodeURIComponent(path);
+}
+
 module.exports.getSearhLink = function (path) {
     return "/search/?s=" + encodeURIComponent(path);
 }

@@ -1,0 +1,21 @@
+.explorer-v2 {
+  .explorer-v2-body {
+    margin-top: 20px;
+  }
+
+  .explorer-v2-side {
+    margin-bottom: 20px;
+  }
+
+  .explorer-v2-main {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  @media (max-width: 992px) {
+    .explorer-v2-main {
+      gap: 1rem;
+    }
+  }
+}
