@@ -3,6 +3,7 @@ import './style/App.scss';
 import './style/_toast.scss';
 import './style/rc-pagination.scss';
 import ExplorerPage from "./ExplorerPage";
+import ExplorerPageV2 from "./explorerV2/ExplorerPageV2";
 import OneBook from "./OneBook";
 import OneBookOverview from "./OneBookOverview";
 import OneBookWaterfall from "./OneBookWaterfall";
@@ -133,6 +134,7 @@ class App extends Component {
 
         const renderHomePage = (props) => { return (<HomePage {...props} />) };
         const renderExplorer = (props) => { return (<ExplorerPage  {...props} filterText={this.filterText} />) };
+        const renderExplorerV2 = (props) => { return (<ExplorerPageV2  {...props} filterText={this.filterText} />) };
 
         const renderTagPage = (props) => { return (<TagPage mode="tag" filterText={this.filterText} {...props} />) };
         const renderAuthorPage = (props) => { return (<TagPage mode="author" filterText={this.filterText} {...props} />) };
@@ -147,6 +149,7 @@ class App extends Component {
             <Switch>
                 <Route exact path='/' render={renderHomePage} />
                 <Route path='/explorer/' render={renderExplorer} />
+                <Route path='/explorerV2/' render={renderExplorerV2} />
                 <Route path='/tag/' render={renderExplorer} />
                 <Route path='/author/' render={renderExplorer} />
                 <Route path='/search/' render={renderExplorer} />

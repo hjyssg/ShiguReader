@@ -27,7 +27,7 @@ function getOneLineListItem(icon, fileName, filePath) {
 
 function getPathItems(items){
     const result = (items||[]).map(item => {
-        const toUrl = clientUtil.getExplorerLink(item);
+        const toUrl = clientUtil.getExplorerV2Link(item);
         const text = item;
         const result = getOneLineListItem(<i className="far fa-folder"></i>, text, item);
         return <Link to={toUrl} key={item}>{result}</Link>;
