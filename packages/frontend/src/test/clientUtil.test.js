@@ -1,5 +1,5 @@
 const assert = require("assert");
-const clientUtil = require("../client/clientUtil");
+const clientUtil = require("../utils/clientUtil");
 
 describe("clientUtil", function () {
   describe("#getSep()", function () {
