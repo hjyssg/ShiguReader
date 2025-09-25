@@ -1,0 +1,83 @@
+{
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Frontend Mocha Tests",
+      "program": "${workspaceFolder}/packages/frontend/node_modules/mocha/bin/_mocha",
+      "args": [
+        "-u",
+        "bdd",
+        "--timeout",
+        "999999",
+        "--colors",
+        "${workspaceFolder}/packages/frontend/src/test"
+      ],
+      "cwd": "${workspaceFolder}/packages/frontend",
+      "internalConsoleOptions": "openOnSessionStart"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Backend Mocha Tests",
+      "program": "${workspaceFolder}/packages/backend/node_modules/mocha/bin/_mocha",
+      "args": [
+        "-u",
+        "bdd",
+        "--timeout",
+        "999999",
+        "--colors",
+        "${workspaceFolder}/packages/backend/src/test"
+      ],
+      "cwd": "${workspaceFolder}/packages/backend",
+      "internalConsoleOptions": "openOnSessionStart"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Backend main server",
+      "program": "${workspaceFolder}/packages/backend/src/server/index.js",
+      "args": [],
+      "cwd": "${workspaceFolder}/packages/backend",
+      "preLaunchTask": "set_chcp_65001"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Backend main server [skip scan]",
+      "program": "${workspaceFolder}/packages/backend/src/server/index.js",
+      "args": ["--skip-scan"],
+      "cwd": "${workspaceFolder}/packages/backend",
+      "preLaunchTask": "set_chcp_65001"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Backend main server [skip scan and skip db clean]",
+      "program": "${workspaceFolder}/packages/backend/src/server/index.js",
+      "args": ["--skip-scan", "--skip-db-clean"],
+      "cwd": "${workspaceFolder}/packages/backend",
+      "preLaunchTask": "set_chcp_65001"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Backend sub server [no scan and different port, share the same db with main server]",
+      "program": "${workspaceFolder}/packages/backend/src/server/index.js",
+      "args": ["--skip-scan", "--skip-cache-clean", "--port", "34213"],
+      "cwd": "${workspaceFolder}/packages/backend"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Backend sub server [deprecated]",
+      "program": "${workspaceFolder}/packages/backend/src/server/_sub_server.js",
+      "args": [],
+      "cwd": "${workspaceFolder}/packages/backend"
+    }
+  ]
+}
