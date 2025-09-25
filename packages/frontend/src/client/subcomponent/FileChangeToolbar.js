@@ -165,7 +165,7 @@ class MoveMenu extends Component {
              </span>
              <span className="mv-btn-small" onClick={()=> {
                 onPathSelect && onPathSelect(e)
-             }}> select </span>
+             }}> Select </span>
              </div>)
         })
 

@@ -64,7 +64,7 @@ const HomePage = () => {
         return (
             <div className="home-page container">
 
-                {dirItems && <div className="home-section-title"> Scanned And Under Watch </div>} 
+                {dirItems && <div className="home-section-title"> Watched Folders </div>}
                 <ItemsContainer items={dirItems} />
 
                 {quickAccessItems && <div className="home-section-title"> Quick Access </div>} 
