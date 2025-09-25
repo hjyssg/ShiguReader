@@ -1,11 +1,9 @@
 @import "vars.scss";
 
 .thumbnail-popup-wrap {
-//   color: $font_color_white_one;
   cursor: pointer;
   position: relative;
   display: block;
-
 
   .thumbnail-popup-wrap {
     position: relative;
@@ -23,7 +21,7 @@
       position: absolute;
       flex-direction: column;
       z-index: 10;
-      
+
       top: -50px;
       left: -250px;
       @media screen and (max-width: 1600px) {
@@ -31,31 +29,33 @@
         left: unset;
       }
 
-      background: rgb(124, 117, 117);
+      background: $surface_card;
+      border: 1px solid $border_soft;
       width: 240px;
       height: 220px;
-      border-radius: 3px;
-      box-shadow: 4px 4px 7px rgba(0, 0, 0, 0.59);
+      border-radius: $radius_base;
+      box-shadow: $shadow_soft;
+      padding: 12px 10px;
+      gap: 8px;
 
       .thumbnail-popup-title {
-        color: $font_color_white_one;
-        font-size: 10px;
-        line-height: 1em;
-        height: 2em;
-        overflow: hidden;
-        padding-bottom: 5px;
-        margin-bottom: 5px;
+        color: $text_secondary;
+        font-size: 11px;
+        line-height: 1.2;
         width: 100%;
-        padding-left: 10px;
-        padding-right: 10px;
+        padding-bottom: 4px;
+        border-bottom: 1px solid $border_soft;
+        text-align: left;
       }
 
       .thumbnail-popup-text {
-        color: $font_color_white_one;
+        color: $text_primary;
+        font-size: 12px;
+        line-height: 1.4;
+        text-align: left;
       }
 
       .thumbnail-video-preview {
-        margin-top: 15px;
         max-width: 95%;
         max-height: 180px;
       }
@@ -66,6 +66,4 @@
       }
     }
   }
-
-
 }
