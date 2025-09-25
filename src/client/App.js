@@ -13,7 +13,7 @@ import AdminPage from "./AdminPage";
 import HistoryPage from "./HistoryPage";
 import HomePage from "./HomePage";
 import LoginPage from "./LoginPage";
-import { Switch, Route, Link, Redirect } from 'react-router-dom';
+import { Switch, Route, Link, Redirect, withRouter } from 'react-router-dom';
 import screenfull from 'screenfull';
 const clientUtil = require("./clientUtil");
 const { getSearchInputText } = clientUtil;
@@ -85,6 +85,20 @@ class App extends Component {
 
     componentWillUnmount() {
         document.removeEventListener("keydown", this._handleKeyDown);
+    }
+
+    componentDidUpdate(prevProps) {
+        const prevPath = prevProps.location && prevProps.location.pathname;
+        const currentPath = this.props.location && this.props.location.pathname;
+
+        if (currentPath && currentPath !== prevPath) {
+            const shouldKeepFilter = ["/explorer/", "/tag/", "/author/", "/search/"].some(fragment => currentPath.includes(fragment));
+
+            if (!shouldKeepFilter) {
+                this.filterText = "";
+                clientUtil.setSearchInputText("");
+            }
+        }
     }
 
     handleKeyDown(e) {
@@ -240,4 +254,4 @@ App.propTypes = {
 
 };
 
-export default App;
+export default withRouter(App);

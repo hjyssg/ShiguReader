@@ -269,9 +269,17 @@ export default class ExplorerPage extends Component {
             this.askServer();
         }
 
-        if (this.getMode() === MODE_TAG || this.getMode() === MODE_AUTHOR || this.getMode() === MODE_SEARCH) {
+        const mode = this.getMode();
+        if (mode === MODE_TAG || mode === MODE_AUTHOR || mode === MODE_SEARCH) {
             const text = this.getTextFromQuery();
             clientUtil.setSearchInputText(text);
+        } else if (mode === MODE_EXPLORER) {
+            const { filterText } = this.state;
+            if (_.isString(filterText) && filterText) {
+                clientUtil.setSearchInputText(filterText);
+            } else {
+                clientUtil.setSearchInputText("");
+            }
         } else {
             clientUtil.setSearchInputText("");
         }
