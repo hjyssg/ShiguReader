@@ -239,20 +239,40 @@
   }
 }
 
-.page-number-range-slider-wrapper {
-  width: 100%;
+.explorer-filter-controls {
   display: flex;
-  justify-content: center;
+  flex-wrap: wrap;
   align-items: center;
-  margin-top: 15px;
-  margin-bottom: 15px;
+  justify-content: space-between;
+  column-gap: 20px;
+}
+
+.explorer-filter-controls .aji-checkbox-container {
+  flex: 0 1 auto;
+  margin: 15px 0;
+}
+
+.page-number-range-slider-wrapper {
+  // width: 500px;
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  margin: 15px 0;
+  flex: 1 1;
 
   .small-text-title {
     color: $font_color_white_one;
+
+    &.no-wrap {
+      margin-right: 10px;
+      overflow: hidden;
+      white-space: nowrap;
+    }
   }
 
   .page-number-range-slider {
-    width: 500px;
+    width: 80%;
+    max-width: 200px;
     margin-left: 10px;
     margin-right: 10px;
     height: 4px;
