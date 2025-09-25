@@ -18,24 +18,20 @@
     .thumbnail-popup-content {
       display: flex;
       justify-content: start;
-      padding-top: 5px;
-      align-items: center;
-      position: absolute;
+      align-items: flex-start;
+      position: fixed;
       flex-direction: column;
       z-index: 10;
-      
-      top: -50px;
-      left: -250px;
-      @media screen and (max-width: 1600px) {
-        right: 100px;
-        left: unset;
-      }
+      top: 0;
+      left: 0;
 
-      background: rgb(124, 117, 117);
-      width: 240px;
-      height: 220px;
+      background: rgba(67, 70, 78, 0.95);
+      padding: 8px 10px 12px;
       border-radius: 3px;
       box-shadow: 4px 4px 7px rgba(0, 0, 0, 0.59);
+      pointer-events: none;
+      max-width: 360px;
+      max-height: 320px;
 
       .thumbnail-popup-title {
         color: $font_color_white_one;
@@ -43,8 +39,8 @@
         line-height: 1em;
         height: 2em;
         overflow: hidden;
-        padding-bottom: 5px;
-        margin-bottom: 5px;
+        padding-bottom: 6px;
+        margin-bottom: 6px;
         width: 100%;
         padding-left: 10px;
         padding-right: 10px;
@@ -55,14 +51,16 @@
       }
 
       .thumbnail-video-preview {
-        margin-top: 15px;
-        max-width: 95%;
-        max-height: 180px;
+        margin-top: 6px;
+        max-width: 100%;
+        max-height: 260px;
+        border-radius: 2px;
       }
 
       img {
-        max-width: 95%;
-        max-height: 180px;
+        max-width: 100%;
+        max-height: 260px;
+        border-radius: 2px;
       }
     }
   }
