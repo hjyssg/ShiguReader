@@ -274,6 +274,14 @@ export default class ExplorerPage extends Component {
         } else {
             clientUtil.setSearchInputText("");
         }
+
+        if (this.state.pageIndex !== prevState.pageIndex ||
+            this.state.sortOrder !== prevState.sortOrder ||
+            this.state.isSortAsc !== prevState.isSortAsc ||
+            this.state.filterText !== prevState.filterText ||
+            this.state.noThumbnail !== prevState.noThumbnail) {
+            this.requestThumbnailForCurrentPage();
+        }
     }
 
     isLackInfoMode() {
@@ -363,6 +371,7 @@ export default class ExplorerPage extends Component {
             if (this.state.showFolderThumbnail) {
                 this.requestThumbnailForFolder();
             }
+            this.requestThumbnailForCurrentPage();
         } else {
             this.res = res;
             this.askRerender();
@@ -887,6 +896,29 @@ export default class ExplorerPage extends Component {
                 this.askRerender();
             }
         });
+    }
+
+    async requestThumbnailForCurrentPage() {
+        if (this.state.noThumbnail) {
+            return;
+        }
+        const files = this.getFileInPage(this.getFilteredFiles());
+        const missing = files.filter(fp => {
+            return !this.isImgFolder(fp) && !(this.allfileInfos[fp] && this.allfileInfos[fp].thumbnailFilePath);
+        });
+        if (missing.length === 0) {
+            return;
+        }
+        const res = await Sender.postWithPromise('/api/getZipThumbnails', { filePaths: missing });
+        if (!res.isFailed()) {
+            const { thumbnails = {} } = res.json;
+            Object.keys(thumbnails).forEach(fp => {
+                if (this.allfileInfos[fp]) {
+                    this.allfileInfos[fp].thumbnailFilePath = thumbnails[fp];
+                }
+            });
+            this.askRerender();
+        }
     }
 
     askRerender() {
