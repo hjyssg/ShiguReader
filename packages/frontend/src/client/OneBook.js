@@ -445,7 +445,7 @@ export default class OneBook extends Component {
   }
 
   onClickPagination(event) {
-    let index = prompt("Which page to go ");
+    let index = prompt("Which page would you like to go to?");
     index = parseInt(index);
     if (_.isNumber(index) && !isNaN(index)) {
       //the real index 
@@ -537,7 +537,7 @@ export default class OneBook extends Component {
       onClick={this.onClickPagination.bind(this)} >
       {`${index + 1}/${this.getImageLength()}`}  </div>);
 
-    const videoNum = this.hasVideo() && (<div className="video-num"> {` video: ${videoFiles.length}`}  </div>);
+    const videoNum = this.hasVideo() && (<div className="video-num"> {` Video: ${videoFiles.length}`}  </div>);
     return (<div className={"one-book-file-stat"}>{texts} {mobilePageNum} {videoNum} </div>);
   }
 
@@ -816,8 +816,8 @@ export default class OneBook extends Component {
     if (!isMobile()) {
       content = (
         <React.Fragment>
-          <div className="two-page-mode-button fas fa-arrows-alt-h" onClick={this.toggleTwoPageMode.bind(this)} title="two page mode"></div>
-          <div className="fas fa-sync-alt rotate-button" title="rotate image" onClick={this.rotateImg.bind(this)}></div>
+          <div className="two-page-mode-button fas fa-arrows-alt-h" onClick={this.toggleTwoPageMode.bind(this)} title="Two Page Mode"></div>
+          <div className="fas fa-sync-alt rotate-button" title="Rotate Image" onClick={this.rotateImg.bind(this)}></div>
         </React.Fragment>);
     }
     return (<div className="one-book-second-toolbar">

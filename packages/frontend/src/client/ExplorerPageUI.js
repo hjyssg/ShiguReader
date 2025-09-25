@@ -89,7 +89,7 @@ export const NoScanAlertArea = ({ filePath }) => {
     return (
         <div className="alert alert-warning" role="alert" >
             <div>{`${filePath} is not included in config-path`}</div>
-            <div style={{ marginBottom: "5px" }}>{`It is usable, but it lacks some important features, such as tags and search.`}</div>
+            <div style={{ marginBottom: "5px" }}>{`It's usable but still missing important features like tags and search.`}</div>
             <div className="scan-button" onClick={askSendScan}>Scan this Folder (but it will take time)</div>
         </div>)
 }
@@ -207,10 +207,10 @@ export const SingleZipItem = ({ filePath, info }) => {
                     {imgDiv}
                 </Link>
                 <div className={fileInfoRowCn}>
-                    {fileSizeStr && <span title="file size">{fileSizeStr}</span>}
+                    {fileSizeStr && <span title="File Size">{fileSizeStr}</span>}
                     <span>{`${pageNum} pages`}</span>
                     {hasMusic && <span>{`${musicNum} songs`}</span>}
-                    {avgSizeStr && <span title="average img size"> {avgSizeStr} </span>}
+                    {avgSizeStr && <span title="Average Image Size"> {avgSizeStr} </span>}
                 </div>
                 <FileChangeToolbar isFolder={isImgFolder} hasMusic={hasMusic} className="explorer-file-change-toolbar" file={fp} />
             </div>

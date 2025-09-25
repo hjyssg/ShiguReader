@@ -9,7 +9,7 @@ const KEY_CONFIG = {
     'by latest work': { label: 'Latest Work', icon: '🆕', group: 'Time', title: 'Latest Work' },
     'file size': { label: 'File Size', icon: '📁', group: 'File' },
     'avg page size': { label: 'Average Page Size', icon: '📐', group: 'File' },
-    'page num': { label: 'Page Num', icon: '📄', group: 'File' },
+    'page num': { label: 'Page Number', icon: '📄', group: 'File' },
     'file number': { label: 'File Count', icon: '🔢', group: 'File' },
     filename: { label: 'Filename', icon: '🔤', group: 'File' },
     'tag name': { label: 'Tag Name', icon: '🏷️', group: 'File' },
