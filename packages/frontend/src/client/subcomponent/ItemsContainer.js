@@ -5,12 +5,16 @@ var classNames = require('classnames');
 
 export default function ItemsContainer(props) {
     const [ open, setOpen ] = useState(false);
-    const { className, items, neverCollapse } = props;
+    const { className, items, neverCollapse, noContainerPadding } = props;
     const TOO_MUCH = 15;
 
     if (neverCollapse || items.length <= TOO_MUCH) {
         return (
-            <ul className={classNames("item-container container", className)}>
+            <ul className={classNames(
+                "item-container",
+                { container: !noContainerPadding },
+                className,
+            )}>
                 {items}
             </ul>);
     } else {
@@ -24,9 +28,13 @@ export default function ItemsContainer(props) {
         })
 
         return (
-            <ul className={"item-container container"}>
+            <ul className={classNames(
+                "item-container",
+                { container: !noContainerPadding },
+                className,
+            )}>
                 {_items}
-                <div className={cn} onClick={() => { setOpen(!open) }} > 
+                <div className={cn} onClick={() => { setOpen(!open) }} >
                     <span>...</span>
                     <i className={arrowCn} />
                 </div>

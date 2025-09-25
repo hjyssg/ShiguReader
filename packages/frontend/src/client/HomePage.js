@@ -1,6 +1,5 @@
 // @flow
-import React, { Component, useState, useEffect } from 'react';
-// import _ from "underscore";
+import React, { useState, useEffect } from 'react';
 import './style/HomePage.scss';
 import Sender from './Sender';
 import { Link } from 'react-router-dom';
@@ -10,14 +9,12 @@ import CenterSpinner from './subcomponent/CenterSpinner';
 import ItemsContainer from './subcomponent/ItemsContainer';
 import ThumbnailPopup from './subcomponent/ThumbnailPopup';
 
-const util = require("@common/util");
-const classNames = require('classnames');
 const clientUtil = require("./clientUtil");
 
 function getOneLineListItem(icon, fileName, filePath) {
     return (
         <ThumbnailPopup filePath={filePath}>
-            <li className="explorer-one-line-list-item" key={fileName} title={filePath}>
+            <li className="explorer-one-line-list-item" key={filePath} title={filePath}>
                 {icon}
                 <span className="explorer-one-line-list-item-text">{fileName}</span>
             </li>
@@ -28,12 +25,25 @@ function getOneLineListItem(icon, fileName, filePath) {
 function getPathItems(items){
     const result = (items||[]).map(item => {
         const toUrl = clientUtil.getExplorerLink(item);
-        const text = item;
+        const text = clientUtil.getBaseName(item) || item;
         const result = getOneLineListItem(<i className="far fa-folder"></i>, text, item);
         return <Link to={toUrl} key={item}>{result}</Link>;
     })
     return result;
 }
+
+const HomeSection = ({ title, items }) => {
+    if (!items || items.length === 0) {
+        return null;
+    }
+
+    return (
+        <section className="home-section-panel">
+            <div className="home-section-title"> {title} </div>
+            <ItemsContainer items={items} className="home-section-items" noContainerPadding />
+        </section>
+    );
+};
 
 const HomePage = () => {
     const [res, setRes] = useState(null)
@@ -62,19 +72,11 @@ const HomePage = () => {
         const recentAccessItems = getPathItems(recentAccess);
 
         return (
-            <div className="home-page container">
-
-                {dirItems && <div className="home-section-title"> Watched Folders </div>}
-                <ItemsContainer items={dirItems} />
-
-                {quickAccessItems && <div className="home-section-title"> Quick Access </div>} 
-                <ItemsContainer items={quickAccessItems} />
-
-                {recentAccessItems && <div className="home-section-title"> Recent Access </div>} 
-                <ItemsContainer items={recentAccessItems} />
-
-                {hddItems && <div className="home-section-title"> Hard Drives </div>}
-                <ItemsContainer items={hddItems} />
+            <div className="home-page">
+                <HomeSection title="Watched Folders" items={dirItems} />
+                <HomeSection title="Quick Access" items={quickAccessItems} />
+                <HomeSection title="Recent Access" items={recentAccessItems} />
+                <HomeSection title="Hard Drives" items={hddItems} />
             </div>)
     }
 }
