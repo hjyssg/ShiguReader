@@ -1,48 +1,161 @@
 @import "vars.scss";
 
+$sb-panel: $bacground_level_two;
+$sb-text: $font_color_white_one;
+$sb-muted: rgba($sb-text, 0.7);
+$sb-pill: lighten($bacground_level_two, 3%);
+$sb-pill-border: rgba(0, 0, 0, 0.3);
+$sb-active: #2f6feb;
+$sb-active-text: #ffffff;
+$sb-divider: rgba(255, 255, 255, 0.08);
+$sb-hover: lighten($bacground_level_two, 6%);
 
-.sort-header-container {
-  margin-top: 10px;
-  margin-bottom: 10px;
-  padding-top: 10px;
-  padding-bottom: 10px;
-  background-color: #99a2b5;
-  border-radius: 5px;
-  font-weight: 500;
+.sb-bar {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: $sb-panel;
+  color: $sb-text;
+  border: 1px solid $sb-pill-border;
+  overflow: auto;
+  margin-bottom: 12px;
+
   
-  .sort-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    font-size: 10px;
+  button:focus {
+    outline: none;
+  }
+}
 
+.sb-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
 
-    @media screen and (min-width: 1000px) {
-      font-size: 16px;
-    }
+.sb-label {
+  color: $sb-muted;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  margin-right: 6px;
+}
 
-    @media screen and (min-width: 1200px) {
-      font-size: 14px;
-      padding-left: 50px;
-      padding-right: 50px;
-    }
+@media (max-width: 720px) {
+  .sb-label {
+    display: none;
+  }
+}
 
-    width: 100%;
+.sb-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: $sb-pill;
+  color: inherit;
+  border: 1px solid $sb-pill-border;
+  padding: 8px 12px;
+  border-radius: 999px;
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.16s ease, border-color 0.16s ease, color 0.16s ease;
+  white-space: nowrap;
+  font-size: 14px;
 
-    .sort-item {
-      color: #212529;
+  &:hover {
+    background: $sb-hover;
+  }
 
-      .fas {
-        color: #212529;
-      }
+  &[aria-pressed='true'] {
+    background: $sb-active;
+    color: $sb-active-text;
+    border-color: transparent;
+  }
+}
 
-      background: unset;
-      cursor: pointer;
-      vertical-align: baseline;
+.sb-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 1px solid $sb-pill-border;
+  background: $sb-pill;
+  cursor: pointer;
+  transition: background 0.16s ease;
+  color: inherit;
+  font-size: 14px;
 
-      &:hover {
-        @include third_hover_effect;
-      }
-    }
+  &:hover {
+    background: $sb-hover;
+  }
+  min-height: 34px;
+}
+
+.sb-more {
+  position: relative;
+
+  summary {
+    list-style: none;
+  }
+}
+
+.sb-menu {
+  position: absolute;
+  right: 0;
+  margin-top: 8px;
+  width: 210px;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid $sb-pill-border;
+  background: $sb-panel;
+  color: $sb-text;
+  z-index: 20;
+}
+
+.sb-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  row-gap: 8px;
+}
+
+.sb-row--controls {
+  align-items: center;
+  gap: 12px;
+}
+
+.sb-row-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+}
+
+.sb-btn--order {
+  margin-left: auto;
+  width: 60px;
+  min-width: 40px;
+  justify-content: center;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.sb-arrow {
+  display: inline-block;
+  width: 0;
+  height: 0;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+
+  &.up {
+    border-bottom: 9px solid currentColor;
+  }
+
+  &.down {
+    border-top: 9px solid currentColor;
   }
 }
