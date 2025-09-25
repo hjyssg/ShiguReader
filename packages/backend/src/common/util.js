@@ -116,7 +116,7 @@ module.exports._sortFileNames = function (files, getBaseName, getDirName) {
             return "";
         })();
 
-        // 先按路径部分排序
+        // 先按路径部分排序，确保不同子目录下的同名文件不会混在一起
         if (dirA !== dirB) {
             return dirA.localeCompare(dirB);
         }else{

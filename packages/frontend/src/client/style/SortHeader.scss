@@ -132,11 +132,15 @@ $sb-hover: lighten($bacground_level_two, 6%);
 
 .sb-btn--order {
   margin-left: auto;
-  width: 40px;
+  width: 60px;
   min-width: 40px;
   justify-content: center;
   padding-left: 0;
   padding-right: 0;
+
+  &:focus {
+    outline: none;
+  }
 }
 
 .sb-arrow {
