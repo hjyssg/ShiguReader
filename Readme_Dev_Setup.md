@@ -39,6 +39,10 @@ npm run start
 
 6. Open the URL printed in the terminal.
 
+### Sync frontend assets into the backend build
+
+Run `packages/backend/etc/sync_frontend_assets_to_backend.py` to compile the frontend and copy the fresh build artifacts into the backend package. The script executes `npm run build` for you and then mirrors the generated `dist` files and shared modules so the backend's bundled assets stay up to date with the latest frontend changes.
+
 | Software | Required | Notes |
 |----------|----------|-------|
 | Node.js | Yes | v16 recommended |
