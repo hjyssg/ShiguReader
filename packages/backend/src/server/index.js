@@ -421,6 +421,12 @@ async function findVideoForFolder(filePath){
     return videoRows;
 }
 
+async function findZipForFolder(filePath){
+    const sql = `SELECT filePath FROM zip_view WHERE INSTR(filePath, ?) = 1 ORDER BY mTime DESC LIMIT 1`;
+    const zipRows = await db.doSmartAllSync(sql, filePath);
+    return zipRows;
+}
+
 
 /** 获得file stat同时保存到db */
 async function getStatAndUpdateDB(filePath) {
@@ -616,6 +622,33 @@ app.post("/api/getThumbnailForFolders", asyncWrapper(async (req, res) => {
 
     const dirThumbnails = await  thumbnailUtil.getThumbnailForFolders(dirs);
     res.send({ failed: false, dirThumbnails });
+}));
+
+
+app.post("/api/getFolderThumbnail", asyncWrapper(async (req, res) => {
+    const filePath = req.body && req.body.filePath;
+
+    if (!filePath || !(await isExist(filePath)) || !estimateIfFolder(filePath)) {
+        res.send({ failed: true, reason: "NOT FOUND" });
+        return;
+    }
+
+    const dirThumbnails = await thumbnailUtil.getThumbnailForFolders([filePath]);
+    const existing = dirThumbnails[filePath];
+    if (existing) {
+        res.send({
+            url: existing,
+            debug: "from getThumbnailForFolders"
+        });
+        return;
+    }
+
+    const zipRows = await findZipForFolder(filePath);
+    if (zipRows[0]) {
+        extractThumbnailFromZip(zipRows[0].filePath, res);
+    } else {
+        res.send({ failed: true, reason: "No file found" });
+    }
 }));
 
 

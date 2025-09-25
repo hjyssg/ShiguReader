@@ -71,7 +71,7 @@ export default class LoadingImage extends Component {
     if (this.isAuthorTagMode()) {
       api = "/api/getTagThumbnail"
     } else if (mode === "folder") {
-      // TODO backend need to support?
+      api = "/api/getFolderThumbnail";
     } else {
       api = '/api/getZipThumbnail'
     }
