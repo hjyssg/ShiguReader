@@ -22,6 +22,11 @@ $sb-hover: lighten($bacground_level_two, 6%);
   border: 1px solid $sb-pill-border;
   overflow: auto;
   margin-bottom: 12px;
+
+  
+  button:focus {
+    outline: none;
+  }
 }
 
 .sb-group {
@@ -137,10 +142,6 @@ $sb-hover: lighten($bacground_level_two, 6%);
   justify-content: center;
   padding-left: 0;
   padding-right: 0;
-
-  &:focus {
-    outline: none;
-  }
 }
 
 .sb-arrow {
