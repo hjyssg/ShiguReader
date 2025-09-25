@@ -118,6 +118,7 @@ const cacheDb = require("./models/cacheDb");
 const pLimit = require('p-limit');
 const thumbnail_limit = pLimit(10);
 const unzip_limit = pLimit(3);
+const folder_stat_limit = pLimit(20);
 
 
 const app = express();
@@ -441,7 +442,7 @@ async function findLatestFileInFolder(dirPath, matcher){
         return null;
     }
 
-    const candidates = await Promise.all(entries.map(async (entry) => {
+    const candidatePromises = entries.map((entry) => folder_stat_limit(async () => {
         try {
             if (!entry || typeof entry.isFile !== "function" || !entry.isFile()) {
                 return null;
@@ -469,6 +470,8 @@ async function findLatestFileInFolder(dirPath, matcher){
             return null;
         }
     }));
+
+    const candidates = await Promise.all(candidatePromises);
 
     const sorted = candidates
         .filter(Boolean)
