@@ -424,7 +424,57 @@ async function findVideoForFolder(filePath){
 async function findZipForFolder(filePath){
     const sql = `SELECT filePath FROM zip_view WHERE INSTR(filePath, ?) = 1 ORDER BY mTime DESC LIMIT 1`;
     const zipRows = await db.doSmartAllSync(sql, filePath);
-    return zipRows;
+    if (zipRows[0]) {
+        return zipRows;
+    }
+
+    const fallbackZip = await findLatestFileInFolder(filePath, isCompress);
+    if (fallbackZip) {
+        return [fallbackZip];
+    }
+    return [];
+}
+
+async function findLatestFileInFolder(dirPath, matcher){
+    const entries = await pathUtil.readdirOneLevel(dirPath, { withFileTypes: true });
+    if (!entries || entries.length === 0) {
+        return null;
+    }
+
+    const candidates = await Promise.all(entries.map(async (entry) => {
+        try {
+            if (!entry || typeof entry.isFile !== "function" || !entry.isFile()) {
+                return null;
+            }
+
+            const name = entry.name;
+            if (!matcher(name)) {
+                return null;
+            }
+
+            const absolutePath = path.join(dirPath, name);
+            const stat = await pfs.stat(absolutePath);
+            const mTime = typeof stat.mtimeMs === "number"
+                ? stat.mtimeMs
+                : (stat.mtime instanceof Date ? stat.mtime.getTime() : 0);
+
+            return {
+                filePath: absolutePath,
+                mTime
+            };
+        } catch (error) {
+            const absolutePath = path.join(dirPath, entry && entry.name ? entry.name : "");
+            logger.warn(`[findLatestFileInFolder] failed to inspect ${absolutePath}`);
+            logger.warn(error);
+            return null;
+        }
+    }));
+
+    const sorted = candidates
+        .filter(Boolean)
+        .sort((a, b) => (b.mTime || 0) - (a.mTime || 0));
+
+    return sorted[0] || null;
 }
 
 
@@ -646,9 +696,19 @@ app.post("/api/getFolderThumbnail", asyncWrapper(async (req, res) => {
     const zipRows = await findZipForFolder(filePath);
     if (zipRows[0]) {
         extractThumbnailFromZip(zipRows[0].filePath, res);
-    } else {
-        res.send({ failed: true, reason: "No file found" });
+        return;
     }
+
+    const imageRow = await findLatestFileInFolder(filePath, isImage);
+    if (imageRow) {
+        res.send({
+            url: imageRow.filePath,
+            debug: "from folder image"
+        });
+        return;
+    }
+
+    res.send({ failed: true, reason: "No file found" });
 }));
 
 
