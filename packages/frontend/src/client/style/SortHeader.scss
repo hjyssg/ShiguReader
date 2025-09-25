@@ -12,27 +12,16 @@ $sb-hover: lighten($bacground_level_two, 6%);
 
 .sb-bar {
   display: flex;
-  align-items: flex-start;
-  gap: 16px;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12px;
   padding: 12px 14px;
   border-radius: 14px;
   background: $sb-panel;
   color: $sb-text;
   border: 1px solid $sb-pill-border;
   overflow: auto;
-  flex-wrap: wrap;
-  row-gap: 12px;
   margin-bottom: 12px;
-}
-
-.sb-left {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 14px;
-  row-gap: 10px;
-  flex: 1 1 auto;
-  min-width: 0;
 }
 
 .sb-group {
@@ -46,20 +35,13 @@ $sb-hover: lighten($bacground_level_two, 6%);
   color: $sb-muted;
   font-weight: 600;
   letter-spacing: 0.2px;
-  margin-right: 2px;
+  margin-right: 6px;
 }
 
 @media (max-width: 720px) {
   .sb-label {
     display: none;
   }
-}
-
-.sb-divider {
-  width: 1px;
-  align-self: stretch;
-  background: $sb-divider;
-  margin: 0 6px;
 }
 
 .sb-pill {
@@ -88,16 +70,6 @@ $sb-hover: lighten($bacground_level_two, 6%);
   }
 }
 
-.sb-right {
-  margin-left: auto;
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  flex-wrap: wrap;
-  row-gap: 8px;
-  flex: 0 0 auto;
-}
-
 .sb-btn {
   display: inline-flex;
   align-items: center;
@@ -114,22 +86,7 @@ $sb-hover: lighten($bacground_level_two, 6%);
   &:hover {
     background: $sb-hover;
   }
-}
-
-.sb-caret {
-  display: inline-block;
-  width: 0;
-  height: 0;
-  border-left: 5px solid transparent;
-  border-right: 5px solid transparent;
-
-  &.up {
-    border-bottom: 7px solid currentColor;
-  }
-
-  &.down {
-    border-top: 7px solid currentColor;
-  }
+  min-height: 34px;
 }
 
 .sb-more {
@@ -156,6 +113,43 @@ $sb-hover: lighten($bacground_level_two, 6%);
 .sb-row {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  row-gap: 8px;
+}
+
+.sb-row--controls {
+  align-items: center;
+  gap: 12px;
+}
+
+.sb-row-option {
+  display: flex;
+  align-items: center;
   gap: 8px;
   padding: 6px 0;
+}
+
+.sb-btn--order {
+  margin-left: auto;
+  width: 40px;
+  justify-content: center;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.sb-arrow {
+  display: inline-block;
+  width: 0;
+  height: 0;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+
+  &.up {
+    border-bottom: 9px solid currentColor;
+  }
+
+  &.down {
+    border-top: 9px solid currentColor;
+  }
 }

@@ -2,20 +2,20 @@ import React from 'react';
 import '../style/SortHeader.scss';
 
 const KEY_CONFIG = {
-    time: { label: 'Time', icon: '🕒', group: '时间', title: '创建时间' },
-    mtime: { label: 'Mtime', icon: '📅', group: '时间', title: '修改时间' },
-    'last read time': { label: 'Last Read', icon: '📖', group: '时间', title: '最近阅读' },
-    'read count': { label: 'Read Count', icon: '📚', group: '时间', title: '阅读次数' },
-    'by latest work': { label: 'Latest Work', icon: '🆕', group: '时间', title: '最新作品' },
-    'file size': { label: 'File Size', icon: '📁', group: '文件' },
-    'avg page size': { label: 'Avg Page', icon: '📐', group: '文件' },
-    'page num': { label: 'Page Num', icon: '📄', group: '文件' },
-    'file number': { label: 'File Count', icon: '🔢', group: '文件' },
-    filename: { label: 'Filename', icon: '🔤', group: '文件' },
-    'tag name': { label: 'Tag Name', icon: '🏷️', group: '文件' },
-    score: { label: 'Score', icon: '⭐', group: '文件' },
-    random: { label: 'Random', icon: '🎲', group: '其他' },
-    'by folder name': { label: 'Folder', icon: '🗂️', group: '文件' },
+    time: { label: 'Time', icon: '🕒', group: 'Time', title: 'Created Time' },
+    mtime: { label: 'Mtime', icon: '📅', group: 'Time', title: 'Modified Time' },
+    'last read time': { label: 'Last Read', icon: '📖', group: 'Time', title: 'Last Read Time' },
+    'read count': { label: 'Read Count', icon: '📚', group: 'Time', title: 'Read Count' },
+    'by latest work': { label: 'Latest Work', icon: '🆕', group: 'Time', title: 'Latest Work' },
+    'file size': { label: 'File Size', icon: '📁', group: 'File' },
+    'avg page size': { label: 'Avg Page', icon: '📐', group: 'File' },
+    'page num': { label: 'Page Num', icon: '📄', group: 'File' },
+    'file number': { label: 'File Count', icon: '🔢', group: 'File' },
+    filename: { label: 'Filename', icon: '🔤', group: 'File' },
+    'tag name': { label: 'Tag Name', icon: '🏷️', group: 'File' },
+    score: { label: 'Score', icon: '⭐', group: 'File' },
+    random: { label: 'Random', icon: '🎲', group: 'Other' },
+    'by folder name': { label: 'Folder', icon: '🗂️', group: 'File' },
 };
 
 const DEFAULT_OPTIONS = {
@@ -33,7 +33,7 @@ function getMeta(key) {
     return {
         key,
         label,
-        group: meta.group || '其他',
+        group: meta.group || 'Other',
         icon: meta.icon || '⬤',
         title: meta.title,
     };
@@ -116,23 +116,64 @@ export default function SortHeader({
             if (!meta) {
                 return;
             }
-            if (!map.has(meta.group)) {
-                map.set(meta.group, []);
-                order.push(meta.group);
+            const groupKey = meta.group;
+            if (!map.has(groupKey)) {
+                map.set(groupKey, []);
+                order.push(groupKey);
             }
-            map.get(meta.group).push(meta);
+            map.get(groupKey).push(meta);
         });
         return order.map((group) => ({ group, items: map.get(group) }));
     }, [sortOptions]);
 
+    const { primarySections, otherSection } = React.useMemo(() => {
+        const primary = [];
+        const others = [];
+
+        grouped.forEach((section) => {
+            if (section.group.toLowerCase() === 'other') {
+                others.push(section);
+            } else {
+                primary.push(section);
+            }
+        });
+
+        const mergedOther = others.length
+            ? {
+                  group: 'Other',
+                  items: others.flatMap((section) => section.items),
+              }
+            : null;
+
+        return { primarySections: primary, otherSection: mergedOther };
+    }, [grouped]);
+
     return (
         <div className={`sb-bar ${className || ''}`} role="toolbar" aria-label="Sorting bar">
-            <div className="sb-left">
-                {grouped.map((section, index) => (
-                    <React.Fragment key={section.group}>
-                        {index > 0 ? <div className="sb-divider" /> : null}
-                        <Group label={section.group}>
-                            {section.items.map((item) => (
+            {primarySections.map((section) => (
+                <div className="sb-row" key={section.group}>
+                    <Group label={section.group}>
+                        {section.items.map((item) => (
+                            <button
+                                key={item.key}
+                                className="sb-pill"
+                                aria-pressed={state.key === item.key}
+                                title={item.title}
+                                onClick={() => handleSelect(item.key)}
+                            >
+                                <span style={{ opacity: 0.9 }}>{item.icon}</span>
+                                <span>{item.label}</span>
+                            </button>
+                        ))}
+                    </Group>
+                </div>
+            ))}
+
+            {(otherSection || showOptions) && (
+                <div className="sb-row sb-row--controls">
+                    {otherSection ? (
+                        <Group label={otherSection.group}>
+                            {otherSection.items.map((item) => (
                                 <button
                                     key={item.key}
                                     className="sb-pill"
@@ -145,48 +186,44 @@ export default function SortHeader({
                                 </button>
                             ))}
                         </Group>
-                    </React.Fragment>
-                ))}
-            </div>
+                    ) : null}
 
-            <div className="sb-right">
-                <button className="sb-btn" aria-label="切换升降序" onClick={toggleOrder}>
-                    <span>Order</span>
-                    <span className={`sb-caret ${state.order === 'asc' ? 'up' : 'down'}`} aria-hidden="true" />
-                    <span
-                        style={{ opacity: 0.8, letterSpacing: '.04em', fontVariant: 'all-small-caps' }}
+                    {showOptions ? (
+                        <details className="sb-more">
+                            <summary className="sb-btn">
+                                <span>More</span>
+                                <span style={{ opacity: 0.7 }}>▾</span>
+                            </summary>
+                            <div className="sb-menu">
+                                <label className="sb-row-option">
+                                    <input
+                                        type="checkbox"
+                                        checked={!!state.options.stickyFolders}
+                                        onChange={(e) => setOption('stickyFolders', e.currentTarget.checked)}
+                                    />
+                                    Pin folders to top
+                                </label>
+                                <label className="sb-row-option">
+                                    <input
+                                        type="checkbox"
+                                        checked={!!state.options.naturalSort}
+                                        onChange={(e) => setOption('naturalSort', e.currentTarget.checked)}
+                                    />
+                                    Natural sort (1&lt;10&lt;100)
+                                </label>
+                            </div>
+                        </details>
+                    ) : null}
+
+                    <button
+                        className="sb-btn sb-btn--order"
+                        aria-label={`Toggle sort order (currently ${state.order === 'asc' ? 'ascending' : 'descending'})`}
+                        onClick={toggleOrder}
                     >
-                        {state.order.toUpperCase()}
-                    </span>
-                </button>
-
-                {showOptions ? (
-                    <details className="sb-more">
-                        <summary className="sb-btn">
-                            <span>More</span>
-                            <span style={{ opacity: 0.7 }}>▾</span>
-                        </summary>
-                        <div className="sb-menu">
-                            <label className="sb-row">
-                                <input
-                                    type="checkbox"
-                                    checked={!!state.options.stickyFolders}
-                                    onChange={(e) => setOption('stickyFolders', e.currentTarget.checked)}
-                                />
-                                置顶文件夹
-                            </label>
-                            <label className="sb-row">
-                                <input
-                                    type="checkbox"
-                                    checked={!!state.options.naturalSort}
-                                    onChange={(e) => setOption('naturalSort', e.currentTarget.checked)}
-                                />
-                                自然排序 (1&lt;10&lt;100)
-                            </label>
-                        </div>
-                    </details>
-                ) : null}
-            </div>
+                        <span className={`sb-arrow ${state.order === 'asc' ? 'up' : 'down'}`} aria-hidden="true" />
+                    </button>
+                </div>
+            )}
         </div>
     );
 }
