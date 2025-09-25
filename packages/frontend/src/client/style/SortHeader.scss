@@ -12,14 +12,27 @@ $sb-hover: lighten($bacground_level_two, 6%);
 
 .sb-bar {
   display: flex;
-  align-items: center;
-  gap: 14px;
+  align-items: flex-start;
+  gap: 16px;
   padding: 12px 14px;
   border-radius: 14px;
   background: $sb-panel;
   color: $sb-text;
   border: 1px solid $sb-pill-border;
   overflow: auto;
+  flex-wrap: wrap;
+  row-gap: 12px;
+  margin-bottom: 12px;
+}
+
+.sb-left {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 14px;
+  row-gap: 10px;
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
 .sb-group {
@@ -80,6 +93,9 @@ $sb-hover: lighten($bacground_level_two, 6%);
   display: flex;
   gap: 8px;
   align-items: center;
+  flex-wrap: wrap;
+  row-gap: 8px;
+  flex: 0 0 auto;
 }
 
 .sb-btn {

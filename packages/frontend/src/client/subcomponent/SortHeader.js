@@ -127,25 +127,27 @@ export default function SortHeader({
 
     return (
         <div className={`sb-bar ${className || ''}`} role="toolbar" aria-label="Sorting bar">
-            {grouped.map((section, index) => (
-                <React.Fragment key={section.group}>
-                    {index > 0 ? <div className="sb-divider" /> : null}
-                    <Group label={section.group}>
-                        {section.items.map((item) => (
-                            <button
-                                key={item.key}
-                                className="sb-pill"
-                                aria-pressed={state.key === item.key}
-                                title={item.title}
-                                onClick={() => handleSelect(item.key)}
-                            >
-                                <span style={{ opacity: 0.9 }}>{item.icon}</span>
-                                <span>{item.label}</span>
-                            </button>
-                        ))}
-                    </Group>
-                </React.Fragment>
-            ))}
+            <div className="sb-left">
+                {grouped.map((section, index) => (
+                    <React.Fragment key={section.group}>
+                        {index > 0 ? <div className="sb-divider" /> : null}
+                        <Group label={section.group}>
+                            {section.items.map((item) => (
+                                <button
+                                    key={item.key}
+                                    className="sb-pill"
+                                    aria-pressed={state.key === item.key}
+                                    title={item.title}
+                                    onClick={() => handleSelect(item.key)}
+                                >
+                                    <span style={{ opacity: 0.9 }}>{item.icon}</span>
+                                    <span>{item.label}</span>
+                                </button>
+                            ))}
+                        </Group>
+                    </React.Fragment>
+                ))}
+            </div>
 
             <div className="sb-right">
                 <button className="sb-btn" aria-label="切换升降序" onClick={toggleOrder}>
