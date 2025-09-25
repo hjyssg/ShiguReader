@@ -29,7 +29,7 @@
     }
 
     .path-highlight {
-      color: #f3cf4b;
+      color: lighten($font_dark_orange, 12%);
       font-weight: 600;
     }
   }
