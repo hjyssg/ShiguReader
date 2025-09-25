@@ -1,5 +1,5 @@
 // 引入需要测试的函数
-const pathUtil = require("../server/pathUtil");
+const pathUtil = require("../utils/pathUtil");
 const assert = require("assert");
 
 describe("Path Util Test", function () {

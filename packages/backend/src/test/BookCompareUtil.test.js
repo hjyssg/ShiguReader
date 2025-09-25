@@ -7,7 +7,7 @@ const {
   isTwoBookTheSame,
   extractMiddleChars,
   compareInternalDigit
-} = require('../server/BookCompareUtil');
+} = require('../services/BookCompareUtil');
 
 describe('isTwoBookTheSame', () => {
   it('should return TOTALLY_DIFFERENT for filenames with no parsed result', () => {
