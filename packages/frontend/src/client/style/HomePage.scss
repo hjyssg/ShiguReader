@@ -17,5 +17,21 @@
     font-weight: bold;
     color: $font_color_white_one;
   }
+
+  .explorer-one-line-list-item-text {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 2px;
+
+    .path-prefix {
+      color: lighten($font_color_white_one, 20%);
+      opacity: 0.7;
+    }
+
+    .path-highlight {
+      color: lighten($font_dark_orange, 12%);
+      font-weight: 600;
+    }
+  }
 }
 

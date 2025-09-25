@@ -14,12 +14,28 @@ const util = require("@common/util");
 const classNames = require('classnames');
 const clientUtil = require("./clientUtil");
 
+function renderHighlightedPath(filePath, fallbackText){
+    const displayPath = filePath || fallbackText || '';
+    const lastSlashIndex = Math.max(displayPath.lastIndexOf('/'), displayPath.lastIndexOf('\\'));
+    const prefix = lastSlashIndex >= 0 ? displayPath.slice(0, lastSlashIndex + 1) : '';
+    const folderName = lastSlashIndex >= 0 ? displayPath.slice(lastSlashIndex + 1) : displayPath;
+
+    return (
+        <span className="explorer-one-line-list-item-text">
+            {prefix && <span className="path-prefix">{prefix}</span>}
+            <span className="path-highlight">{folderName}</span>
+        </span>
+    );
+}
+
 function getOneLineListItem(icon, fileName, filePath) {
+    const highlightedPath = renderHighlightedPath(filePath, fileName);
+
     return (
         <ThumbnailPopup filePath={filePath}>
-            <li className="explorer-one-line-list-item" key={fileName} title={filePath}>
+            <li className="explorer-one-line-list-item" key={filePath || fileName} title={filePath}>
                 {icon}
-                <span className="explorer-one-line-list-item-text">{fileName}</span>
+                {highlightedPath}
             </li>
         </ThumbnailPopup>
         );
