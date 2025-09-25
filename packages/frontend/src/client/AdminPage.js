@@ -82,14 +82,14 @@ function CacheSection(){
     let cacheInfo;
     cacheInfo =(
         <div className="cache-info">
-            <div className="cache-info-row"> {`thumbnail: ${thumbCount || 0}`} </div>
-            <div className="cache-info-row">{`cache size: ${size}`} </div>
-            <div className="cache-info-row">{`cache file number: ${cacheNum}`} </div>
+            <div className="cache-info-row"> {`Thumbnail: ${thumbCount || 0}`} </div>
+            <div className="cache-info-row">{`Cache Size: ${size}`} </div>
+            <div className="cache-info-row">{`Cache File Number: ${cacheNum}`} </div>
         </div>);
 
     return (
         <div className="admin-section">
-        <div className="admin-section-title" title="only keep thumbnail and delete other files"> Cache Usage (Restart ShiguReader will delete the cache)</div>
+        <div className="admin-section-title" title="Only Keep Thumbnails and Delete Other Files"> Cache Usage (Restart ShiguReader will delete the cache)</div>
         <div className="admin-section-content">
             {cacheInfo}
                 {/* <div className="submit-button" onClick={cleanCache}>clean</div> */}

@@ -73,7 +73,7 @@ const HomePage = () => {
                 {recentAccessItems && <div className="home-section-title"> Recent Access </div>} 
                 <ItemsContainer items={recentAccessItems} />
 
-                {hddItems && <div className="home-section-title"> Hard Drivers </div>} 
+                {hddItems && <div className="home-section-title"> Hard Drives </div>}
                 <ItemsContainer items={hddItems} />
             </div>)
     }

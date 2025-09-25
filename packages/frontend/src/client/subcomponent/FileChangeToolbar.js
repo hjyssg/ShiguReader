@@ -415,7 +415,7 @@ export default class FileChangeToolbar extends Component {
         const { file, className, header, hasMusic, bigFont } = this.props;
         // const showMinifyZip = util.isCompress(file);
         if (!this.isInMinifiedFolder()) {
-            return (<div tabIndex="0" className="fas fa-hand-scissors" title="minify img"
+            return (<div tabIndex="0" className="fas fa-hand-scissors" title="Minify Image"
                 onClick={this.handleMinifyZip.bind(this)}></div>)
         }
     }
@@ -429,22 +429,22 @@ export default class FileChangeToolbar extends Component {
         const { file, hasMusic } = this.props;
         const showMinifyZip = util.isCompress(file) && !hasMusic;
         if (showMinifyZip && this.isInMinifiedFolder()) {
-            return (<div tabIndex="0" className="fas fa-cut" title="overwrite the original file"
+            return (<div tabIndex="0" className="fas fa-cut" title="Overwrite the Original File"
                 onClick={this.handleOverwrite.bind(this)}></div>)
         }
     }
 
     renderRenameButton() {
-        return (<div tabIndex="0" className="fas fa-pen raname-button" title="rename file"
+        return (<div tabIndex="0" className="fas fa-pen raname-button" title="Rename File"
             onClick={this.handleRename.bind(this, "rename")}></div>)
 
     }
 
     renderMoveButton() {
-        // return (<div tabIndex="0" className="fas fa-pen move-button" title="move file"
+        // return (<div tabIndex="0" className="fas fa-pen move-button" title="Move File"
         //     onClick={this.handleRename.bind(this, "move")}></div>)
 
-        return (<div tabIndex="0" className="fas fa-pen move-button" title="move file"
+        return (<div tabIndex="0" className="fas fa-pen move-button" title="Move File"
             onClick={() => this.switchMode("move_menu")}></div>)
     }
 
@@ -483,7 +483,7 @@ export default class FileChangeToolbar extends Component {
         if (this.isImgFolder()) {
             const toUrl = clientUtil.getExplorerLink(filePath);
             explorerLink = (<div className="section with-bottom-margin">
-                <Link target="_blank" to={toUrl} >open in explorer</Link>
+                <Link target="_blank" to={toUrl} >Open in Explorer</Link>
             </div>);
         }
 
@@ -515,7 +515,7 @@ export default class FileChangeToolbar extends Component {
             content = (<div className="move_menu_wrap"> 
                 <div className="section with-bottom-margin">
                     <div className="move_menu-back-btn" onClick={()=>this.switchMode("default")}>
-                        <i className="fas fa-long-arrow-alt-left"></i> back 
+                        <i className="fas fa-long-arrow-alt-left"></i> Back
                     </div>
                 </div>
 
@@ -529,7 +529,7 @@ export default class FileChangeToolbar extends Component {
             <Modal
                 isOpen={this.state.showModal}
                 ariaHideApp={false}
-                contentLabel="Move to which path"
+                contentLabel="Move to Which Path"
                 className="file-change-toolbar-move-modal"
                 onRequestClose={this.handleCloseModal.bind(this)}
             >
@@ -541,7 +541,7 @@ export default class FileChangeToolbar extends Component {
     renderModalButton() {
         return (
             <div tabIndex="0" className="fas fa-bars"
-                title="open move-path windows"
+                title="Open Move Path Window"
                 onClick={this.handleOpenModal.bind(this)}>
             </div>
         );

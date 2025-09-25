@@ -207,10 +207,10 @@ export const SingleZipItem = ({ filePath, info }) => {
                     {imgDiv}
                 </Link>
                 <div className={fileInfoRowCn}>
-                    {fileSizeStr && <span title="file size">{fileSizeStr}</span>}
+                    {fileSizeStr && <span title="File Size">{fileSizeStr}</span>}
                     <span>{`${pageNum} pages`}</span>
                     {hasMusic && <span>{`${musicNum} songs`}</span>}
-                    {avgSizeStr && <span title="average img size"> {avgSizeStr} </span>}
+                    {avgSizeStr && <span title="Average Image Size"> {avgSizeStr} </span>}
                 </div>
                 <FileChangeToolbar isFolder={isImgFolder} hasMusic={hasMusic} className="explorer-file-change-toolbar" file={fp} />
             </div>

@@ -79,8 +79,8 @@ export default class Pagination extends Component {
       return null;
     }
 
-    const prevButton = (<div className="pagination-item page-link prev" onClick={this.prev}> prev </div>)
-    const nextButton = (<div className="pagination-item page-link next" onClick={this.next}> next </div>)
+    const prevButton = (<div className="pagination-item page-link prev" onClick={this.prev}> Prev </div>)
+    const nextButton = (<div className="pagination-item page-link next" onClick={this.next}> Next </div>)
 
     let right = Math.max(currentPage - BUFFER_SIZE, 1);
     let left = Math.min(currentPage + BUFFER_SIZE, totalPage);
@@ -151,7 +151,7 @@ export default class Pagination extends Component {
 
     const extraButton = (<div className="pagination-extra-button"
       onClick={onExtraButtonClick}
-      title="click to show more">
+      title="Click to Show More">
       {`${itemPerPage} per page`}
     </div>)
 

@@ -823,7 +823,7 @@ export default class ExplorerPage extends Component {
         // 本质就range slider的max不超过300的，超过和到达的时候有额外逻辑
         return (
             <div className='page-number-range-slider-wrapper'>
-                <div className='small-text-title no-wrap' >Page Range：</div>
+                <div className='small-text-title no-wrap' >Page Range:</div>
                 <div className='small-text-title'>{pageNumRange[0]} </div>
                 <RangeSlider className="page-number-range-slider" 
                 min={this.minPageNum} max={maxForSilder} step={1} 
@@ -920,7 +920,7 @@ export default class ExplorerPage extends Component {
     }
 
     renderShowVideoButton() {
-        const text2 = this.state.showVideo ? "Hide video" : "Show video";
+        const text2 = this.state.showVideo ? "Hide Video" : "Show Video";
         return (
             <span className="show-video-button exp-top-button" onClick={this.toggleShowVideo.bind(this)}>
                 <span className="fas fa-video" />
@@ -930,7 +930,7 @@ export default class ExplorerPage extends Component {
     }
 
     renderLevelButton() {
-        const text = this.state.isRecursive ? "Show only one level" : "Show subfolder's files";
+        const text = this.state.isRecursive ? "Show Only One Level" : "Show Files in Subfolders";
         return (
             <span className="recursive-button exp-top-button" onClick={this.toggleRecursively.bind(this)}>
                 <span className="fas fa-glasses" />
@@ -968,7 +968,7 @@ export default class ExplorerPage extends Component {
 
     renderPregenerateButton() {
         if (this.getMode() === MODE_EXPLORER) {
-            const text = "Generate thumbnail"
+            const text = "Generate Thumbnail"
             return (
                 <span key="thumbnail-button" className="thumbnail-button exp-top-button" onClick={() => AdminUtil.askPregenerate(this.getPathFromQuery(), true)}>
                     <span className="fas fa-tools" />
@@ -1216,10 +1216,10 @@ export default class ExplorerPage extends Component {
         });
 
         return (<div className={cn}>
-            <div className="side-menu-radio-title"> Special Filter </div>
+            <div className="side-menu-radio-title"> Special Filters </div>
             <div className="row info-row">
-                <div className="col-3">{`filterText: ${filterText || "-"}`} </div>
-                <div className="col-3">{`filterType: ${filterType || "-"}`} </div>
+                <div className="col-3">{`Filter Text: ${filterText || "-"}`} </div>
+                <div className="col-3">{`Filter Type: ${filterType || "-"}`} </div>
             </div>
             {tagContainer}
         </div>)
@@ -1244,7 +1244,7 @@ export default class ExplorerPage extends Component {
         const filters = [
             { id: 'FILTER_HAS_MUSIC', label: 'Has Music' },
             { id: 'FILTER_HAS_VIDEO', label: 'Has Video' },
-            { id: 'FILTER_IMG_FOLDER', label: 'Only Image Folder' }
+            { id: 'FILTER_IMG_FOLDER', label: 'Image Folders Only' }
         ];
 
         // Map over the filters array to create checkbox components
