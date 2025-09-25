@@ -253,19 +253,26 @@
 }
 
 .page-number-range-slider-wrapper {
-  width: 300px;
+  // width: 500px;
   display: flex;
-  justify-content: center;
+  justify-content: flex-start;
   align-items: center;
   margin: 15px 0;
+  flex: 1 1;
 
   .small-text-title {
     color: $font_color_white_one;
+
+    &.no-wrap {
+      margin-right: 10px;
+      overflow: hidden;
+      white-space: nowrap;
+    }
   }
 
   .page-number-range-slider {
-    width: 100%;
-    max-width: 500px;
+    width: 80%;
+    max-width: 200px;
     margin-left: 10px;
     margin-right: 10px;
     height: 4px;

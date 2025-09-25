@@ -823,6 +823,7 @@ export default class ExplorerPage extends Component {
         // 本质就range slider的max不超过300的，超过和到达的时候有额外逻辑
         return (
             <div className='page-number-range-slider-wrapper'>
+                <div className='small-text-title no-wrap' >Page Range：</div>
                 <div className='small-text-title'>{pageNumRange[0]} </div>
                 <RangeSlider className="page-number-range-slider" 
                 min={this.minPageNum} max={maxForSilder} step={1} 
