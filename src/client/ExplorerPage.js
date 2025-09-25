@@ -56,7 +56,6 @@ const { MODE_TAG,
     MODE_EXPLORER } = Constant;
 
 
-const FILTER_FIRST_TIME_AUTHOR = "FILTER_FIRST_TIME_AUTHOR";
 const FILTER_HAS_MUSIC = "FILTER_HAS_MUSIC";
 const FILTER_HAS_VIDEO = "FILTER_HAS_VIDEO";
 const FILTER_IMG_FOLDER = "FILTER_IMG_FOLDER";
@@ -494,7 +493,7 @@ export default class ExplorerPage extends Component {
     getFilteredFiles() {
         let files = [...this.compressFiles, ...(_.keys(this.imgFolderInfo))];
 
-        const { authorInfo, pageNumRange } = this.state;
+        const { pageNumRange } = this.state;
 
         const maxPage =  pageNumRange[1] >= this.getMaxPageForSlider()? Infinity:  pageNumRange[1];
         files = files.filter(e => {
@@ -505,15 +504,6 @@ export default class ExplorerPage extends Component {
                 return true;
             }
         })
-
-        if (this.isOn(FILTER_FIRST_TIME_AUTHOR) && authorInfo) {
-            files = files.filter(e => {
-                const count = this.getAuthorCountForFP(e);
-                if (count && (count.total_count) === 1) {
-                    return true;
-                }
-            })
-        }
 
         if (this.isOn(FILTER_HAS_MUSIC)) {
             files = files.filter(e => {
@@ -811,8 +801,7 @@ export default class ExplorerPage extends Component {
 
                 {videoDivGroup}
                 {this.renderPagination(filteredFiles, filteredVideos)}
-                {this.renderPageRangeSilder()}
-                {this.renderCheckboxPanel()}
+                {this.renderPageControls()}
                 {zipfileItems.length > 0 && this.renderSortHeader()}
                 <div className={"file-grid container"}>
                     <div className={rowCn}>
@@ -836,9 +825,9 @@ export default class ExplorerPage extends Component {
         return (
             <div className='page-number-range-slider-wrapper'>
                 <div className='small-text-title'>{pageNumRange[0]} </div>
-                <RangeSlider className="page-number-range-slider" 
-                min={this.minPageNum} max={maxForSilder} step={1} 
-                value={pageNumRange} 
+                <RangeSlider className="page-number-range-slider"
+                min={this.minPageNum} max={maxForSilder} step={1}
+                value={pageNumRange}
                 onInput={(range) => {
                     console.log(range);
                     if(range[0] === pageNumRange[0] && range[1] === pageNumRange[1]){
@@ -849,6 +838,15 @@ export default class ExplorerPage extends Component {
                 }} />
                 <div className='small-text-title'>{righttext}</div>
             </div>);
+    }
+
+    renderPageControls() {
+        return (
+            <div className="container explorer-page-controls">
+                {this.renderPageRangeSilder()}
+                {this.renderCheckboxPanel()}
+            </div>
+        );
     }
 
     isFailedLoading() {
@@ -1253,7 +1251,6 @@ export default class ExplorerPage extends Component {
     renderCheckboxPanel() {
         // Define a list of filters with their descriptions
         const filters = [
-            { id: 'FILTER_FIRST_TIME_AUTHOR', label: 'First Time Author' },
             { id: 'FILTER_HAS_MUSIC', label: 'Has Music' },
             { id: 'FILTER_HAS_VIDEO', label: 'Has Video' },
             { id: 'FILTER_IMG_FOLDER', label: 'Only Image Folder' }
@@ -1272,7 +1269,7 @@ export default class ExplorerPage extends Component {
 
         // Return the container with all checkboxes
         return (
-            <div className="aji-checkbox-container container">
+            <div className="aji-checkbox-container">
                 {checkboxes}
             </div>
         );
