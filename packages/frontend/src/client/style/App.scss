@@ -8,15 +8,21 @@
 
 body {
   text-align: center;
-  margin: auto;
-  color: $font_color_white_one;
+  margin: 0;
+  color: $text_primary;
+  background: linear-gradient(180deg, $page_gradient_start 0%, $page_background 55%, $page_background_soft 100%);
+  font-family: var(--font-family-base);
+  min-height: 100vh;
+  transition: background 0.3s ease, color 0.3s ease;
 }
 
 a {
-  color: $font_color_white_one;
+  color: inherit;
+  text-decoration: none;
+  transition: color 0.2s ease;
 
   &:hover {
-    color: unset;
+    color: $accent;
   }
 }
 
@@ -32,20 +38,21 @@ a {
 }
 
 
+
 .app-container {
-  background-color: $bacground_level_one;
+  background-color: transparent;
   min-height: 100vh;
-  padding-bottom: 50px;
+  padding-bottom: 60px;
 
   .critical-error {
-    color: $font_color_white_one;
+    color: $text_primary;
     font-size: 25px;
     margin: 20px 20px;
   }
 
   .fab,
   .fas {
-    color: $font_color_white_one;
+    color: $text_secondary;
 
     &::before {
       padding-right: 5px;
@@ -53,7 +60,7 @@ a {
   }
 
   .fa-download {
-    color: $font_color_white_one;
+    color: $accent;
     margin-left: 10px;
 
     &:hover {
@@ -66,28 +73,42 @@ a {
     display: flex;
     flex-wrap: wrap;
     justify-content: space-between;
-    margin-bottom: 12px;
+    align-items: center;
+    gap: 12px;
+    margin: 24px auto 18px;
+    padding: 14px 18px;
+    background: $header_background;
+    color: $header_text;
+    border-radius: $radius_base;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    box-shadow: $shadow_soft;
+    width: min(1120px, 95%);
 
 
     .app-page-links {
       display: inline-flex;
-      margin-right: 20px;
+      align-items: center;
+      gap: 6px;
 
       a {
-        display: flex;
+        display: inline-flex;
         justify-content: center;
         align-items: center;
         text-align: center;
-        padding: 12px 12px;
-        text-decoration: none;
+        padding: 10px 14px;
+        border-radius: calc($radius_base - 4px);
         font-size: 15px;
+        font-weight: 500;
+        color: inherit;
+        transition: background 0.2s ease, color 0.2s ease;
 
         @media screen and (min-width: 1000px) {
           &:hover {
-            @include hover_effect;
+            background: rgba(255, 255, 255, 0.08);
+            color: $accent;
 
             i {
-              @include hover_effect;
+              color: inherit;
             }
           }
         }
@@ -96,35 +117,51 @@ a {
 
     .search-bar {
       display: inline-flex;
-      padding-top: 8px;
+      align-items: stretch;
+      gap: 6px;
+      padding-top: 4px;
 
       .search-input {
-        padding: 6px;
-        border: none;
-        font-size: 17px;
-        border-radius: 2px;
-        width: 350px;
+        padding: 10px 14px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        font-size: 16px;
+        border-radius: calc($radius_base - 6px);
+        width: clamp(240px, 38vw, 360px);
+        background: rgba(0, 0, 0, 0.18);
+        color: $header_text;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+
+        &::placeholder {
+          color: rgba(255, 255, 255, 0.56);
+          font-style: italic;
+        }
+
+        &:focus {
+          border-color: $accent;
+          box-shadow: 0 0 0 3px rgba(77, 163, 255, 0.3);
+        }
       }
 
       .filter-button,
       .search-button {
         cursor: pointer;
-        border-radius: 0px;
+        border-radius: calc($radius_base - 6px);
         @include flex_center_display;
-        background-color: #a7a7a7;
-        padding-left: 5px;
-        padding-right: 5px;
-        margin-left: 1px;
-        width: 50px;
+        background-color: rgba(255, 255, 255, 0.08);
+        padding: 0 14px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        color: $header_text;
+        transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
 
         &:hover {
-          @include hover_effect;
+          background: $accent;
+          border-color: transparent;
+          color: $accent_contrast;
         }
       }
 
       .search-button {
-        border-right: 1px $border-color-black solid;
-        border-left: 1px $border-color-black solid;
+        font-weight: 600;
       }
     }
   }

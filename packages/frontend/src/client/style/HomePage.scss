@@ -1,6 +1,11 @@
 @import "vars.scss";
 
 .home-page {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 10px clamp(16px, 3vw, 28px) 40px;
+  text-align: left;
+
   @media only screen and (min-width: 1200px) {
     .explorer-one-line-list-item {
       font-size: 1rem;
@@ -8,14 +13,52 @@
     }
   }
 
-  .fa-folder {
-    color: yellowgreen;
+  .home-section-title {
+    margin: 22px 4px 12px;
+    font-weight: 700;
+    font-size: 1.05rem;
+    letter-spacing: 0.02em;
+    color: $text_primary;
   }
 
-  .home-section-title {
-    // margin-bottom: 5px;
-    font-weight: bold;
-    color: $font_color_white_one;
+  .explorer-one-line-list-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: $text_primary;
+    border-radius: calc($radius_base - 6px);
+    border: 1px solid transparent;
+    transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+
+    &:hover {
+      background: $surface_hover;
+      border-color: $border_soft;
+      box-shadow: 0 6px 18px rgba(23, 41, 64, 0.14);
+
+      .far,
+      .fas {
+        color: $folder_hover;
+      }
+    }
+
+    .far,
+    .fas {
+      color: $folder_color;
+      font-size: 1.1rem;
+      transition: color 0.2s ease;
+    }
+
+    .explorer-one-line-list-item-text {
+      flex: 1;
+      min-width: 0;
+      color: inherit;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
   }
 }
 
