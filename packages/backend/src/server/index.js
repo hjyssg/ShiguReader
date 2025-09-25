@@ -675,17 +675,24 @@ app.post("/api/getThumbnailForFolders", asyncWrapper(async (req, res) => {
 }));
 
 
-app.post("/api/getFolderThumbnail", asyncWrapper(async (req, res) => {
-    const filePath = req.body && req.body.filePath;
+const FOLDER_THUMBNAIL_CACHE_CONTROL = "public, max-age=300";
+
+app.get("/api/folderThumbnailFromDisk", asyncWrapper(async (req, res) => {
+    const filePath = req.query && req.query.filePath;
 
     if (!filePath || !(await isExist(filePath)) || !estimateIfFolder(filePath)) {
         res.send({ failed: true, reason: "NOT FOUND" });
         return;
     }
 
+    const applyCacheHeader = () => {
+        res.setHeader("Cache-Control", FOLDER_THUMBNAIL_CACHE_CONTROL);
+    };
+
     const dirThumbnails = await thumbnailUtil.getThumbnailForFolders([filePath]);
     const existing = dirThumbnails[filePath];
     if (existing) {
+        applyCacheHeader();
         res.send({
             url: existing,
             debug: "from getThumbnailForFolders"
@@ -695,12 +702,15 @@ app.post("/api/getFolderThumbnail", asyncWrapper(async (req, res) => {
 
     const zipRows = await findZipForFolder(filePath);
     if (zipRows[0]) {
-        extractThumbnailFromZip(zipRows[0].filePath, res);
+        extractThumbnailFromZip(zipRows[0].filePath, res, undefined, {
+            onSuccess: applyCacheHeader
+        });
         return;
     }
 
     const imageRow = await findLatestFileInFolder(filePath, isImage);
     if (imageRow) {
+        applyCacheHeader();
         res.send({
             url: imageRow.filePath,
             debug: "from folder image"
@@ -757,11 +767,23 @@ let extractThumbnailFromZip = async (filePath, res, mode, config) => {
     const isPregenerateMode = mode === "pre-generate";
     let sendable = !isPregenerateMode && !!res;
     const outputPath = path.join(cachePath, getHash(filePath));
+    const normalizedConfig = config || {};
+    const onSuccess = typeof normalizedConfig.onSuccess === "function" ? normalizedConfig.onSuccess : null;
 
     function sendImage(imgFp) {
-        sendable && res.send({
-            url: imgFp
-        })
+        if (sendable) {
+            if (onSuccess) {
+                try {
+                    onSuccess(imgFp);
+                } catch (callbackError) {
+                    logger.warn("[extractThumbnailFromZip] onSuccess callback failed");
+                    logger.warn(callbackError);
+                }
+            }
+            res.send({
+                url: imgFp
+            })
+        }
     }
 
     function sendError(reason){

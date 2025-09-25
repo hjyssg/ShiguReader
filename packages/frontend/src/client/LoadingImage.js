@@ -67,27 +67,18 @@ export default class LoadingImage extends Component {
 
   async requestThumbnail() {
     const { mode, fileName } = this.props;
-    let api;
+    let res;
     if (this.isAuthorTagMode()) {
-      api = "/api/getTagThumbnail"
-    } else if (mode === "folder") {
-      api = "/api/getFolderThumbnail";
-    } else {
-      api = '/api/getZipThumbnail'
-    }
-
-    const body = {};
-    if (this.isAuthorTagMode()) {
+      const body = {};
       body[mode] = fileName;
+      res = await Sender.postWithPromise("/api/getTagThumbnail", body);
+    } else if (mode === "folder") {
+      const query = encodeURIComponent(fileName);
+      res = await Sender.getWithPromise(`/api/folderThumbnailFromDisk?filePath=${query}`);
     } else {
-      body["filePath"] = fileName;
+      res = await Sender.postWithPromise('/api/getZipThumbnail', { filePath: fileName });
     }
 
-    if (!api) {
-      return;
-    }
-
-    const res = await Sender.postWithPromise(api, body);
     if (!this.isUnmounted) {
       if (res.isFailed()) {
         this.setState({ url: "NO_THUMBNAIL_AVAILABLE" })
