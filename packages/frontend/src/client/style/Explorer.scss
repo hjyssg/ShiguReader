@@ -7,6 +7,7 @@
   position: fixed;
   left: 45%;
   top: 50%;
+  color: $accent;
 }
 
 .explorer-container-out {
@@ -33,65 +34,75 @@
 }
 
 .explorer-external-link {
-  color: $font_color_white_one !important;
+  color: $accent !important;
 }
 
 .explorer-container {
-  padding-bottom: 30px;
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 16px clamp(16px, 3vw, 28px) 42px;
+  text-align: left;
+  color: $text_primary;
+  padding-bottom: 60px;
 
   .fa-folder {
-    color: yellowgreen;
+    color: $folder_color;
+    transition: color 0.2s ease;
   }
 
   a {
-    color: $font_color_white_one !important;
+    color: inherit !important;
   }
-
 
   .file-list {
     text-align: left !important;
   }
 
   .file-out-cell {
-    padding-bottom: 10px;
+    padding-bottom: 18px;
   }
 
   .file-cell {
-
     @include file_cell_common;
-
-    padding-top: 5px;
-    padding-bottom: 10px;
+    padding: 12px 12px 18px;
     display: flex;
     flex-flow: column;
     justify-content: start;
     align-items: center;
+    box-shadow: $shadow_soft;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+    &:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 16px 34px rgba(16, 25, 41, 0.28);
+    }
   }
 
   .file-info-row {
-    color: $font_color_white_one;
+    color: $text_secondary;
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
     width: 100%;
-    padding-left: 15px;
-    padding-right: 15px;
-    font-size: 12.5px;
+    padding-left: 16px;
+    padding-right: 16px;
+    font-size: 13px;
+    gap: 10px;
 
     &.less-padding {
-      padding-left: 5px;
-      padding-right: 5px;
+      padding-left: 8px;
+      padding-right: 8px;
     }
   }
 
   .explorer-file-change-toolbar {
-    margin-top: 5px;
-    padding-left: 15px;
-    padding-right: 15px;
+    margin-top: 10px;
+    padding-left: 16px;
+    padding-right: 16px;
   }
 
   .file-cell-inner {
-    padding-bottom: 5px;
+    padding-bottom: 8px;
     display: flex;
     flex-flow: column;
     justify-content: start;
@@ -99,15 +110,17 @@
     overflow: hidden;
 
     .file-cell-thumbnail {
-      margin: 0.2rem 1rem;
+      margin: 0.3rem 1rem;
       padding: 0px !important;
       max-width: 100%;
       height: 205px;
       object-fit: scale-down;
       margin: auto;
       text-align: center;
-      border-radius: 2px;
+      border-radius: calc($radius_base - 6px);
       margin-top: 20px;
+      background: $surface_contrast;
+      padding: 10px;
 
       &.as-folder-thumbnail {
         max-width: 90%;
@@ -118,12 +131,15 @@
   }
 
   .folder-seperator {
-    border: 2px solid $border-color-black;
-    border-radius: 2px;
+    border: 1px solid $border_soft;
+    border-radius: $radius_base;
+    background: $surface_card_alt;
+    padding: 14px 18px;
+    margin-bottom: 22px;
 
     .extra-div{
       float: right;
-      color: $font_color_white_one;
+      color: $text_secondary;
     }
   }
 }
@@ -133,7 +149,9 @@
   height: 2em;
   /* height is 2x line-height, so two lines will display */
   overflow: hidden;
-  margin-bottom: 5px;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: $text_primary;
 }
 
 
@@ -144,16 +162,16 @@
   margin: 0 auto;
   margin-top: 20px;
   position: relative;
-  background-color: #f3cf4b;
-  border-radius: 0 5px 5px 5px;
-  box-shadow: 4px 4px 7px rgba(0, 0, 0, 0.59);
+  background-color: $folder_color;
+  border-radius: calc($radius_base - 6px);
+  box-shadow: $shadow_soft;
 
   &::before {
     content: '';
     width: 40%;
     height: 10px;
-    border-radius: 0 5px 0 0;
-    background-color: #f3cf4b;
+    border-radius: calc($radius_base - 6px) calc($radius_base - 6px) 0 0;
+    background-color: $folder_hover;
     position: absolute;
     top: -10px;
     left: 0px;
@@ -161,41 +179,60 @@
 }
 
 .fail-reason-text {
-  color: rgb(128, 16, 16);
+  color: #c2410c;
+  font-weight: 600;
 }
 
 .explorer-one-line-list-item {
   text-align: left !important;
-
   display: flex;
   align-items: center;
-
-  border-radius: 5px;
-  border: white;
-  border-width: 1px;
-
-  font-size: 1rem;
-  font-weight: bold;
-  color: black;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: calc($radius_base - 6px);
+  border: 1px solid transparent;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: $text_primary;
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
 
   @media only screen and (max-width: 500px) {
-    font-size: 10px;
+    font-size: 0.7rem;
   }
 
   @media only screen and (max-width: 1100px) {
-    font-size: 12px;
+    font-size: 0.8rem;
   }
 
-  padding-left: 5px;
-  color:$font_color_white_one;
+  &:hover {
+    background: $surface_hover;
+    border-color: $border_soft;
+    box-shadow: 0 8px 22px rgba(23, 41, 64, 0.18);
+
+    .far,
+    .fas {
+      color: $folder_hover;
+    }
+  }
 
   .far,
   .fas {
-    margin-right: 5px;
+    margin-right: 2px;
+    color: $folder_color;
+    transition: color 0.2s ease;
+  }
+
+  .explorer-one-line-list-item-text {
+    flex: 1;
+    min-width: 0;
+    color: inherit;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .av-color {
-    color: #abc0eb;
+    color: $accent;
   }
 }
 
@@ -203,17 +240,38 @@
 
 .item-container {
   list-style: none;
+  background: $surface_card;
+  border-radius: $radius_base;
+  border: 1px solid $border_soft;
+  box-shadow: $shadow_soft;
+  padding: 14px clamp(8px, 2vw, 18px);
+  margin: 0 0 26px;
+  display: grid;
+  gap: 6px;
 
   .item-container-expand-button {
-    color: $font_color_white_one;
+    color: $text_secondary;
     cursor: pointer;
     padding-left: 14px;
-    font-size: 40px;
+    font-size: 32px;
     width: 100%;
-    // text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: calc($radius_base - 6px);
+    border: 1px dashed $border_soft;
+    padding: 12px;
+    transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+
+    &:hover {
+      background: $surface_hover;
+      border-color: $accent;
+      color: $accent;
+    }
 
     .arror-icon{
       font-size: 20px;
+      margin-left: 6px;
     }
   }
 }
@@ -224,18 +282,23 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 300px;
-  background-color: $bacground_level_one;
-  min-height: 26px;
-  padding: 1px 5px 2px;
-  margin: 0 2px;
-  border-radius: 3px;
-  font-size: 9pt;
-  color: $font_color_white_one;
-  margin-bottom: 10px;
+  width: min(300px, 80%);
+  background-color: $accent;
+  min-height: 34px;
+  padding: 6px 16px;
+  margin: 10px 2px 18px;
+  border-radius: $radius_base;
+  font-size: 0.95rem;
+  color: $accent_contrast;
+  font-weight: 600;
+  border: none;
+  box-shadow: 0 10px 28px rgba(59, 130, 246, 0.25);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
 
   &:hover {
-    @include hover_effect;
+    transform: translateY(-2px);
+    filter: brightness(1.05);
+    box-shadow: 0 18px 36px rgba(59, 130, 246, 0.28);
   }
 }
 
@@ -248,24 +311,31 @@
   margin-bottom: 15px;
 
   .small-text-title {
-    color: $font_color_white_one;
+    color: $text_secondary;
+    font-weight: 600;
   }
 
   .page-number-range-slider {
-    width: 500px;
+    width: min(500px, 90%);
     margin-left: 10px;
     margin-right: 10px;
     height: 4px;
+    background: $surface_contrast;
+    border-radius: 999px;
 
     .range-slider__thumb {
-      background: $font_color_white_one;
+      background: $accent;
       width: 15px;
       height: 15px;
+      border: 2px solid $accent_contrast;
+      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25);
     }
-    
+
     .range-slider__range{
-      // background: $font_color_white_one;
-     
+      background: $accent;
+      height: 100%;
+      border-radius: 999px;
+
     }
   }
 }

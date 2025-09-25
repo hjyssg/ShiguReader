@@ -4,6 +4,17 @@ const _ = require("underscore");
 const filesizeUitl = require('filesize');
 const queryString = require('query-string');
 
+const THEME_STORAGE_KEY = 'theme';
+const DARK_THEME = 'dark';
+const LIGHT_THEME = 'light';
+const DEFAULT_THEME = DARK_THEME;
+const THEME_CLASS_PREFIX = 'theme-';
+const THEME_CLASS_LIST = [`${THEME_CLASS_PREFIX}${DARK_THEME}`, `${THEME_CLASS_PREFIX}${LIGHT_THEME}`];
+
+function normalizeTheme(theme) {
+    return theme === LIGHT_THEME ? LIGHT_THEME : DEFAULT_THEME;
+}
+
 module.exports.filesizeUitl = function (num) {
     if (isNaN(num)) {
         return "";
@@ -288,6 +299,38 @@ module.exports.isRightAsNext = function(){
     const result = !_.isNull(item)? item === 'true' : true;
     console.assert(_.isBoolean(result));
     return result;
+}
+
+module.exports.getTheme = function(){
+    const theme = window.localStorage && window.localStorage.getItem(THEME_STORAGE_KEY);
+    return normalizeTheme(theme);
+}
+
+module.exports.applyThemeClass = function(theme){
+    if (typeof document === 'undefined') {
+        return;
+    }
+    const normalizedTheme = normalizeTheme(theme);
+    const apply = () => {
+        if (!document.body) {
+            return;
+        }
+        document.body.classList.remove(...THEME_CLASS_LIST);
+        document.body.classList.add(`${THEME_CLASS_PREFIX}${normalizedTheme}`);
+    };
+
+    if (!document.body && document.addEventListener) {
+        document.addEventListener('DOMContentLoaded', apply, { once: true });
+        return;
+    }
+
+    apply();
+}
+
+module.exports.setTheme = function(theme){
+    const normalizedTheme = normalizeTheme(theme);
+    window.localStorage && window.localStorage.setItem(THEME_STORAGE_KEY, normalizedTheme);
+    module.exports.applyThemeClass(normalizedTheme);
 }
 
 

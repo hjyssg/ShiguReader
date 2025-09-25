@@ -1,29 +1,191 @@
-$font_color_white_one: #DDDDDD;
-$font_color_black_two: #414141;
+:root {
+  --text-primary: #e9eefc;
+  --text-secondary: #a9b3c9;
+  --text-tertiary: #7f889c;
 
-$bacground_level_one: #34353b;
-$bacground_level_two: #43464e;
-$bacground_level_three: #666b7a;
-$background_orange_white: rgb(231, 218, 190);
+  --page-background: #1d2028;
+  --page-background-soft: #232735;
+  --page-gradient-start: #1f2431;
 
-$font_dark_orange: #da653a;
+  --surface-card: #2a2f3a;
+  --surface-card-alt: #313744;
+  --surface-hover: rgba(88, 135, 233, 0.14);
+  --surface-contrast: #171a22;
 
-$border-color-black: #616161;
+  --border-soft: rgba(255, 255, 255, 0.12);
+  --border-strong: rgba(255, 255, 255, 0.24);
+
+  --accent: #4da3ff;
+  --accent-weak: rgba(77, 163, 255, 0.16);
+  --accent-contrast: #0f172a;
+
+  --header-background: #1c2432;
+  --header-text: #f8fafc;
+
+  --folder-color: #8bb4e5;
+  --folder-hover: #a7c8f4;
+
+  --shadow-soft: 0 14px 36px rgba(6, 13, 27, 0.35);
+  --radius-base: 12px;
+
+  --font-family-base: 'Inter', 'Segoe UI', Roboto, system-ui, -apple-system, sans-serif;
+
+  --font_color_white_one: var(--text-primary);
+  --font_color_black_two: var(--text-secondary);
+
+  --bacground_level_one: var(--page-background);
+  --bacground_level_two: var(--surface-card);
+  --bacground_level_three: var(--surface-card-alt);
+  --background_orange_white: var(--surface-card-alt);
+
+  --font_dark_orange: var(--accent);
+
+  --border-color-black: var(--border-soft);
+
+  --hover-background: var(--surface-hover);
+  --hover-color: var(--text-primary);
+}
+
+body.theme-dark {
+  --text-primary: #e9eefc;
+  --text-secondary: #a9b3c9;
+  --text-tertiary: #7f889c;
+
+  --page-background: #1d2028;
+  --page-background-soft: #232735;
+  --page-gradient-start: #1f2431;
+
+  --surface-card: #2a2f3a;
+  --surface-card-alt: #313744;
+  --surface-hover: rgba(88, 135, 233, 0.14);
+  --surface-contrast: #171a22;
+
+  --border-soft: rgba(255, 255, 255, 0.12);
+  --border-strong: rgba(255, 255, 255, 0.24);
+
+  --accent: #4da3ff;
+  --accent-weak: rgba(77, 163, 255, 0.16);
+  --accent-contrast: #0f172a;
+
+  --header-background: #1c2432;
+  --header-text: #f8fafc;
+
+  --folder-color: #8bb4e5;
+  --folder-hover: #a7c8f4;
+
+  --shadow-soft: 0 14px 36px rgba(6, 13, 27, 0.35);
+  --radius-base: 12px;
+
+  --font_color_white_one: var(--text-primary);
+  --font_color_black_two: var(--text-secondary);
+
+  --bacground_level_one: var(--page-background);
+  --bacground_level_two: var(--surface-card);
+  --bacground_level_three: var(--surface-card-alt);
+  --background_orange_white: var(--surface-card-alt);
+
+  --font_dark_orange: var(--accent);
+
+  --border-color-black: var(--border-soft);
+
+  --hover-background: var(--surface-hover);
+  --hover-color: var(--text-primary);
+}
+
+body.theme-light {
+  --text-primary: #2b2f36;
+  --text-secondary: #606774;
+  --text-tertiary: #7c8394;
+
+  --page-background: #f4f6f9;
+  --page-background-soft: #f7f9fe;
+  --page-gradient-start: #f7f9fe;
+
+  --surface-card: #ffffff;
+  --surface-card-alt: #fbfcff;
+  --surface-hover: #e7f0ff;
+  --surface-contrast: #dfe6f4;
+
+  --border-soft: #dbe2f3;
+  --border-strong: #c7d0e3;
+
+  --accent: #3b82f6;
+  --accent-weak: #e7f0ff;
+  --accent-contrast: #ffffff;
+
+  --header-background: #2a303b;
+  --header-text: #f7f9ff;
+
+  --folder-color: #7aa2c7;
+  --folder-hover: #6a94bb;
+
+  --shadow-soft: 0 12px 30px rgba(23, 41, 64, 0.12);
+  --radius-base: 14px;
+
+  --font_color_white_one: var(--text-primary);
+  --font_color_black_two: var(--text-secondary);
+
+  --bacground_level_one: var(--page-background);
+  --bacground_level_two: var(--surface-card);
+  --bacground_level_three: var(--surface-card-alt);
+  --background_orange_white: var(--surface-card-alt);
+
+  --font_dark_orange: var(--accent);
+
+  --border-color-black: var(--border-soft);
+
+  --hover-background: var(--surface-hover);
+  --hover-color: var(--text-primary);
+}
+
+$font_color_white_one: var(--font_color_white_one);
+$font_color_black_two: var(--font_color_black_two);
+
+$bacground_level_one: var(--bacground_level_one);
+$bacground_level_two: var(--bacground_level_two);
+$bacground_level_three: var(--bacground_level_three);
+$background_orange_white: var(--background_orange_white);
+
+$font_dark_orange: var(--font_dark_orange);
+
+$border-color-black: var(--border-color-black);
+
+$text_primary: var(--text-primary);
+$text_secondary: var(--text-secondary);
+$text_tertiary: var(--text-tertiary);
+$page_background: var(--page-background);
+$page_background_soft: var(--page-background-soft);
+$page_gradient_start: var(--page-gradient-start);
+$surface_card: var(--surface-card);
+$surface_card_alt: var(--surface-card-alt);
+$surface_hover: var(--surface-hover);
+$surface_contrast: var(--surface-contrast);
+$border_soft: var(--border-soft);
+$border_strong: var(--border-strong);
+$accent: var(--accent);
+$accent_weak: var(--accent-weak);
+$accent_contrast: var(--accent-contrast);
+$header_background: var(--header-background);
+$header_text: var(--header-text);
+$folder_color: var(--folder-color);
+$folder_hover: var(--folder-hover);
+$shadow_soft: var(--shadow-soft);
+$radius_base: var(--radius-base);
 
 @mixin file_cell_common {
-    background: $bacground_level_two;
-    border: 1px solid $border-color-black;
-    border-radius: 5px;
+    background: $surface_card;
+    border: 1px solid $border_soft;
+    border-radius: $radius_base;
     overflow: hidden;
 }
 
 @mixin hover_effect {
-    color: #212121;
-    background: $font_color_white_one;
+    color: var(--hover-color);
+    background: var(--hover-background);
 }
 
 @mixin second_hover_effect {
-    color: #2ad4da;
+    color: $accent;
     background: unset;
 }
 
@@ -43,7 +205,7 @@ $border-color-black: #616161;
 }
 
 @mixin common_sub_container {
-    background: $background_orange_white;
+    background: $surface_card_alt;
     color: $font_color_black_two;
     padding-bottom: 20px;
     padding-top: 20px;

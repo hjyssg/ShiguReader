@@ -285,6 +285,31 @@ export default class AdminPage extends Component {
         )
     }
 
+    renderThemeSection(){
+        const options = [
+            "Dark Theme",
+            "Light Theme"
+        ];
+
+        const theme = clientUtil.getTheme();
+        const checked = theme === 'light' ? 1 : 0;
+        const onThemeChange = (e, index) => {
+            const nextTheme = index === 1 ? 'light' : 'dark';
+            clientUtil.setTheme(nextTheme);
+            this.askRerender();
+        };
+
+        return (
+            <div className="admin-section">
+            <div className="admin-section-title"> Theme </div>
+            <div className="admin-section-content">
+                <RadioButtonGroup checked={checked}
+                    options={options} name="theme" onChange={onThemeChange} />
+            </div>
+        </div>
+        )
+    }
+
     render() {
         document.title = "Admin"
         let folder_list = this.state.dirs.slice();
@@ -293,6 +318,7 @@ export default class AdminPage extends Component {
         return (
             <div className="admin-container container">
                 {this.renderPasswordInput()}
+                {this.renderThemeSection()}
                 {this.rendersRightAsNext()}
 
                 <div className="admin-section">
