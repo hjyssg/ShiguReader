@@ -1,48 +1,145 @@
 @import "vars.scss";
 
+$sb-panel: $bacground_level_two;
+$sb-text: $font_color_white_one;
+$sb-muted: rgba($sb-text, 0.7);
+$sb-pill: lighten($bacground_level_two, 3%);
+$sb-pill-border: rgba(0, 0, 0, 0.3);
+$sb-active: #2f6feb;
+$sb-active-text: #ffffff;
+$sb-divider: rgba(255, 255, 255, 0.08);
+$sb-hover: lighten($bacground_level_two, 6%);
 
-.sort-header-container {
-  margin-top: 10px;
-  margin-bottom: 10px;
-  padding-top: 10px;
-  padding-bottom: 10px;
-  background-color: #99a2b5;
-  border-radius: 5px;
-  font-weight: 500;
-  
-  .sort-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    font-size: 10px;
+.sb-bar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: $sb-panel;
+  color: $sb-text;
+  border: 1px solid $sb-pill-border;
+  overflow: auto;
+}
 
+.sb-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
 
-    @media screen and (min-width: 1000px) {
-      font-size: 16px;
-    }
+.sb-label {
+  color: $sb-muted;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  margin-right: 2px;
+}
 
-    @media screen and (min-width: 1200px) {
-      font-size: 14px;
-      padding-left: 50px;
-      padding-right: 50px;
-    }
-
-    width: 100%;
-
-    .sort-item {
-      color: #212529;
-
-      .fas {
-        color: #212529;
-      }
-
-      background: unset;
-      cursor: pointer;
-      vertical-align: baseline;
-
-      &:hover {
-        @include third_hover_effect;
-      }
-    }
+@media (max-width: 720px) {
+  .sb-label {
+    display: none;
   }
+}
+
+.sb-divider {
+  width: 1px;
+  align-self: stretch;
+  background: $sb-divider;
+  margin: 0 6px;
+}
+
+.sb-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: $sb-pill;
+  color: inherit;
+  border: 1px solid $sb-pill-border;
+  padding: 8px 12px;
+  border-radius: 999px;
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.16s ease, border-color 0.16s ease, color 0.16s ease;
+  white-space: nowrap;
+  font-size: 14px;
+
+  &:hover {
+    background: $sb-hover;
+  }
+
+  &[aria-pressed='true'] {
+    background: $sb-active;
+    color: $sb-active-text;
+    border-color: transparent;
+  }
+}
+
+.sb-right {
+  margin-left: auto;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.sb-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 1px solid $sb-pill-border;
+  background: $sb-pill;
+  cursor: pointer;
+  transition: background 0.16s ease;
+  color: inherit;
+  font-size: 14px;
+
+  &:hover {
+    background: $sb-hover;
+  }
+}
+
+.sb-caret {
+  display: inline-block;
+  width: 0;
+  height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+
+  &.up {
+    border-bottom: 7px solid currentColor;
+  }
+
+  &.down {
+    border-top: 7px solid currentColor;
+  }
+}
+
+.sb-more {
+  position: relative;
+
+  summary {
+    list-style: none;
+  }
+}
+
+.sb-menu {
+  position: absolute;
+  right: 0;
+  margin-top: 8px;
+  width: 210px;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid $sb-pill-border;
+  background: $sb-panel;
+  color: $sb-text;
+  z-index: 20;
+}
+
+.sb-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
 }
