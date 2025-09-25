@@ -1070,8 +1070,6 @@ app.post('/api/extract', asyncWrapper(async (req, res) => {
         extract_result_cache[filePath] = result;
         result = serverUtil.checkOneBookRes(result);
         res.send(result);
-
-        historyDb.addOneRecord(filePath);
     }
 
     const outputPath = path.join(cachePath, getHash(filePath));
@@ -1095,7 +1093,6 @@ app.post('/api/extract', asyncWrapper(async (req, res) => {
     // 这样zip内容改变对应不了，但我很少这么操作
     if(extract_result_cache[filePath]){
         res.send(extract_result_cache[filePath]);
-        historyDb.addOneRecord(filePath);
         return;
     }
 

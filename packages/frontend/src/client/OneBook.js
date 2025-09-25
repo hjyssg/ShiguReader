@@ -32,12 +32,17 @@ const NO_TWO_PAGE = "no_clip";
 const TWO_PAGE_LEFT = "left";
 const TWO_PAGE_RIGHT = "right";
 
+const MIN_PAGES_TO_RECORD = 5;
+
 
 export default class OneBook extends Component {
   constructor(props) {
     super(props);
 
     this.zoom_scale = null;
+
+    this.pageViewSet = new Set();
+    this.hasHistoryRecorded = false;
 
     this.state = {
       imageFiles: [],
@@ -311,6 +316,8 @@ export default class OneBook extends Component {
   async handleRes(res) {
     this.res = res;
     if (!res.isFailed()) {
+      this.pageViewSet = new Set();
+      this.hasHistoryRecorded = false;
       let { zipInfo, path, stat, imageFiles=[], musicFiles=[], videoFiles=[], dirs=[], mecab_tokens, outputPath } = res.json;
 
       //files name can be 001.jpg, 002.jpg, 011.jpg, 012.jpg
@@ -321,7 +328,10 @@ export default class OneBook extends Component {
       sortFileNames(videoFiles);
 
       this.setState({ imageFiles, musicFiles, videoFiles, dirs, path, fileStat: stat, zipInfo, mecab_tokens, outputPath },
-        () => { this.bindUserInteraction() });
+        () => {
+          this.recordPage(this.state.index);
+          this.bindUserInteraction()
+        });
     } else {
       this.askRerender();
     }
@@ -402,13 +412,28 @@ export default class OneBook extends Component {
       this.setState({ twoPageMode: NO_TWO_PAGE });
     }
     this.showSpinner();
-    this.setState({ index: index });
+    this.setState({ index: index }, () => {
+      this.recordPage(index);
+    });
     this.setIndex(index);
     this.rotateImg(0);
 
     // //https://stackoverflow.com/questions/4210798/how-to-scroll-to-top-of-page-with-javascript-jquery
     // document.body.scrollTop = document.documentElement.scrollTop = 0;
     $(window).scrollTop(0);
+  }
+
+  recordPage(index) {
+    this.pageViewSet.add(index);
+    if (this.hasHistoryRecorded) {
+      return;
+    }
+    const total = this.getImageLength();
+    const threshold = Math.min(MIN_PAGES_TO_RECORD, total);
+    if (this.pageViewSet.size >= threshold && this.state.path) {
+      this.hasHistoryRecorded = true;
+      Sender.post('/api/addHistoryRecord', { filePath: this.state.path }, () => {});
+    }
   }
 
   getImageLength() {
