@@ -78,6 +78,13 @@
       "program": "${workspaceFolder}/packages/backend/src/server/_sub_server.js",
       "args": [],
       "cwd": "${workspaceFolder}/packages/backend"
+    },
+    {
+      "type": "python",
+      "request": "launch",
+      "name": "Sync frontend assets to backend",
+      "program": "${workspaceFolder}/packages/backend/etc/sync_frontend_assets_to_backend.py",
+      "console": "integratedTerminal"
     }
   ]
 }

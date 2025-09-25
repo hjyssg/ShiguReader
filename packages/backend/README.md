@@ -4,8 +4,7 @@
 后端分支 仅供开发人员  
 
 ##### 开发流程
-    前端分支 npm build 生成的dist。复制到此处作为静态文件去serve。   
-    etc\sync_common_from_front.py
+    etc\sync_frontend_assets_to_backend.py 会先执行 `npm run build`，然后把前端分支生成的 dist 和共享模块复制到此处作为静态文件去 serve。
  
     前端开发时，前端用webpack dev server来自己serve静态文件。   
     比如，前端用9000的端口，后端用3000的端口。用户打开localhost:9000，所有api call都转发到3000端口上的。9000就是webpack dev server。    
