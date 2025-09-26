@@ -206,12 +206,30 @@ class App extends Component {
         const topNav = !isOneBook && !isLogin && !isVideo && (
             <div className="app-top-topnav container">
                 <div className="app-page-links row">
-                    <Link to='/'><i className="fas fa-home">Home</i></Link>
-                    <Link to='/authorPage/'><i className="fas fa-pen">Authors</i></Link>
-                    <Link to='/tagPage/'><i className="fas fa-tags">Tags</i></Link>
-                    <Link to='/chart'><i className="fas fa-chart-bar">Chart</i></Link>
-                    <Link to='/history'><i className="fas fa-history">History</i></Link>
-                    <Link to='/admin'><i className="fas fa-tools">Admin</i></Link>
+                    <Link to='/'>
+                        <i className="fas fa-home" aria-hidden="true" />
+                        <span>Home</span>
+                    </Link>
+                    <Link to='/authorPage/'>
+                        <i className="fas fa-pen" aria-hidden="true" />
+                        <span>Authors</span>
+                    </Link>
+                    <Link to='/tagPage/'>
+                        <i className="fas fa-tags" aria-hidden="true" />
+                        <span>Tags</span>
+                    </Link>
+                    <Link to='/chart'>
+                        <i className="fas fa-chart-bar" aria-hidden="true" />
+                        <span>Chart</span>
+                    </Link>
+                    <Link to='/history'>
+                        <i className="fas fa-history" aria-hidden="true" />
+                        <span>History</span>
+                    </Link>
+                    <Link to='/admin'>
+                        <i className="fas fa-tools" aria-hidden="true" />
+                        <span>Admin</span>
+                    </Link>
                 </div>
                 <div className="search-bar">
                     <input className="search-input" type="text" placeholder="Search.." onKeyDown={this.onSearchKeydown.bind(this)} />
