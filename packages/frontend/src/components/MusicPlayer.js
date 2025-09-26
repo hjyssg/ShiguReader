@@ -45,10 +45,21 @@ export default class MusicPlayer extends Component {
         const { audioFiles, className } = this.props;
         const { index } = this.state;
         const audioItems = audioFiles.map((e, ii) => {
+            const isActive = ii === index;
             const cn = classNames("aji-music-player-item", {
-                "aji-music-player-active  fas fa-volume-up": ii === index
-            })
-            return (<div key={e} className={cn} onClick={this.handleIndexChange.bind(this, ii)} title={getBaseName(e)}> {getBaseName(e)} </div>)
+                "aji-music-player-active": isActive
+            });
+            return (
+                <div
+                    key={e}
+                    className={cn}
+                    onClick={this.handleIndexChange.bind(this, ii)}
+                    title={getBaseName(e)}
+                >
+                    {isActive && <i className="fas fa-volume-up aji-music-player-icon" aria-hidden="true"></i>}
+                    <span className="aji-music-player-title">{getBaseName(e)}</span>
+                </div>
+            )
         });
 
         if (audioFiles.length === 0) {
