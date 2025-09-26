@@ -1,5 +1,5 @@
 const assert = require('assert');
-const scoreUtil = require("../utils/scoreUtil");
+const scoreUtil = require("../utils/score-util");
 const { getScoreFromCount } = scoreUtil;
 
 describe('Test getScoreFromCount function', () => {

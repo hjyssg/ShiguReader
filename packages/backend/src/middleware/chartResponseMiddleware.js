@@ -1,7 +1,7 @@
 const _ = require('underscore');
 const nameParser = require('../name-parser');
 const path = require('path');
-const util = global.requireUtil();
+const util = require('../common/util');
 
 const clearObject = (obj) => {
     Object.keys(obj).forEach(key => delete obj[key]);

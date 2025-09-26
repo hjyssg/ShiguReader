@@ -5,7 +5,7 @@ const path = require('path');
 
 let _log;
 module.exports.init = function(){
-    const pathUtil = require("../utils/pathUtil");
+    const pathUtil = require("../utils/path-util");
     let logPath = path.join(pathUtil.getWorkSpacePath(), "log");
     logPath = path.join(logPath, dateFormat(new Date(), "yyyy-mm-dd HH-MM")) + ".log";
     console.log("log File path: ", logPath)

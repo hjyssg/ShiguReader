@@ -1,9 +1,9 @@
 const _ = require('underscore');
-const pathUtil = require("../utils/pathUtil");
+const pathUtil = require("../utils/path-util");
 const { getDirName } = pathUtil;
 const path = require('path');
-const serverUtil = require("../utils/serverUtil");
-const util = global.requireUtil();
+const serverUtil = require("../utils/server-util");
+const util = require('../common/util');
 const _util = require('util');
 const { isImage, isCompress, isMusic, isVideo, getCurrentTime } = util;
 const pfs = require('promise-fs');
@@ -58,7 +58,7 @@ module.exports.runSync  = async (sql, params) => {
 
 let sqldb;
 module.exports.init = async () => {
-    const SQLWrapper = require("./SQLWrapper");
+    const SQLWrapper = require("./sql-wrapper");
     const backup_db_path = path.join(pathUtil.getWorkSpacePath(), "shigureader_internal_db.sqlite");
     sqldb = new SQLWrapper(backup_db_path);
 
@@ -358,7 +358,7 @@ module.exports.deleteFromDb = function (filePath) {
 
 
 
-const scoreUtil = require('../utils/scoreUtil');  // Assuming scoreUtil is a module that contains the scoring logic.
+const scoreUtil = require('../utils/score-util');  // Assuming scoreUtil is a module that contains the scoring logic.
 
 async function sync_tag_table() {
     // Helper function to add scoring column.

@@ -4,12 +4,12 @@ const {
   searchGenerally,
   searchByText,
   _searchByTag_,
-} = require("../utils/searchUtil");
-const Constant = global.requireConstant();
+} = require("../utils/search-util");
+const Constant = require('../common/constant');
 const { MODE_TAG, MODE_AUTHOR, MODE_SEARCH } = Constant;
 const path = require("path");
-const serverUtil = require("../utils/serverUtil");
-const BookCompareUtil = require("../utils/bookCompareUtil");
+const serverUtil = require("../utils/server-util");
+const BookCompareUtil = require("../utils/book-compare");
 const {
   TOTALLY_DIFFERENT,
   isTwoBookTheSame,
