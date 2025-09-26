@@ -90,12 +90,20 @@ a {
             i {
               @include hover_effect;
             }
+
+            span {
+              @include hover_effect;
+            }
           }
         }
 
         i {
           display: inline-flex;
           align-items: center;
+        }
+
+        span {
+          color: $font_color_white_one;
         }
       }
     }
