@@ -8,7 +8,7 @@ const portConfig = require('./src/config/port-config');
 const { default_http_port } = portConfig;
 
 const config = {
-  entry: ['babel-polyfill', './src/client/index.js'],
+  entry: ['babel-polyfill', './src/main.jsx'],
   output: {
     path: path.join(__dirname, outputDirectory),
     filename: 'bundle.js',
@@ -17,7 +17,7 @@ const config = {
   module: {
     rules: [
       {
-        test: /\.js$/,
+        test: /\.jsx?$/,
         exclude: /node_modules/,
         use: {
           loader: 'babel-loader'
@@ -86,11 +86,19 @@ const config = {
 };
 
 config.resolve = {
+  extensions: ['.js', '.jsx'],
   alias: {
+    "@assets": path.resolve(__dirname, 'src/assets/'),
     "@common": path.resolve(__dirname, 'src/common/'),
+    "@components": path.resolve(__dirname, 'src/components/'),
     "@config": path.resolve(__dirname, 'src/config/'),
+    "@context": path.resolve(__dirname, 'src/context/'),
     "@name-parser": path.resolve(__dirname, 'src/name-parser/index'),
+    "@pages": path.resolve(__dirname, 'src/pages/'),
+    "@services": path.resolve(__dirname, 'src/services/'),
+    "@styles": path.resolve(__dirname, 'src/styles/'),
+    "@utils": path.resolve(__dirname, 'src/utils/'),
   }
-}
+};
 
 module.exports = config;
