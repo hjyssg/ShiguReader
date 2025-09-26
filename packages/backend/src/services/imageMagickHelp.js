@@ -198,7 +198,8 @@ module.exports.minifyOneFile = async function (filePath) {
             deleteCache(resultZipPath);
         } else {
             return {
-                saveSpace
+                saveSpace,
+                resultZipPath
             }
         }
     } catch (e) {

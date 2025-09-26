@@ -29,6 +29,118 @@ const count = {
 };
 const minifyZipQue = [];
 const minifyDoneArr = [];
+
+async function getFileSizeSafe(targetPath) {
+    if (!targetPath) {
+        return null;
+    }
+    try {
+        const stat = await serverUtil.common.getStatAndUpdateDB(targetPath);
+        if (stat && typeof stat.size === 'number' && !Number.isNaN(stat.size)) {
+            return stat.size;
+        }
+    } catch (error) {
+        logger.warn(`[minifyZip] failed to read stat for ${targetPath}`, error);
+    }
+    return null;
+}
+
+async function logJobStart(filePath, sizeBefore) {
+    try {
+        const startedAt = util.getCurrentTime();
+        const fileName = path.basename(filePath);
+        const stmt = await db.runSync(
+            `INSERT INTO minify_zip_log (filePath, fileName, startedAt, sizeBefore) VALUES (?, ?, ?, ?)`,
+            [
+                filePath,
+                fileName,
+                startedAt,
+                (typeof sizeBefore === 'number' && !Number.isNaN(sizeBefore)) ? sizeBefore : null
+            ]
+        );
+        return stmt && stmt.lastID;
+    } catch (error) {
+        logger.warn('[minifyZip] failed to record minify start', error);
+    }
+    return null;
+}
+
+async function logJobSuccess(logId, { resultFilePath, sizeAfter }) {
+    if (!logId) {
+        return;
+    }
+    try {
+        const finishedAt = util.getCurrentTime();
+        const safeSizeAfter = (typeof sizeAfter === 'number' && !Number.isNaN(sizeAfter)) ? sizeAfter : null;
+        if (resultFilePath) {
+            await db.runSync(
+                `UPDATE minify_zip_log SET finishedAt=?, sizeAfter=?, success=1, filePath=?, fileName=? WHERE id=?`,
+                [
+                    finishedAt,
+                    safeSizeAfter,
+                    resultFilePath,
+                    path.basename(resultFilePath),
+                    logId
+                ]
+            );
+        } else {
+            await db.runSync(
+                `UPDATE minify_zip_log SET finishedAt=?, sizeAfter=?, success=1 WHERE id=?`,
+                [finishedAt, safeSizeAfter, logId]
+            );
+        }
+    } catch (error) {
+        logger.warn('[minifyZip] failed to record minify success', error);
+    }
+}
+
+async function logJobFailure(logId) {
+    if (!logId) {
+        return;
+    }
+    try {
+        const finishedAt = util.getCurrentTime();
+        await db.runSync(
+            `UPDATE minify_zip_log SET finishedAt=?, success=0 WHERE id=?`,
+            [finishedAt, logId]
+        );
+    } catch (error) {
+        logger.warn('[minifyZip] failed to record minify failure', error);
+    }
+}
+
+async function markLogReplaced(resultFilePath, finalFilePath) {
+    if (!resultFilePath) {
+        return;
+    }
+    try {
+        let rows = await db.doSmartAllSync(
+            `SELECT id FROM minify_zip_log WHERE filePath = ? ORDER BY finishedAt DESC, id DESC LIMIT 1`,
+            [resultFilePath]
+        );
+        let targetId = rows.length > 0 ? rows[0].id : null;
+        if (!targetId) {
+            const fileName = path.basename(resultFilePath);
+            rows = await db.doSmartAllSync(
+                `SELECT id FROM minify_zip_log WHERE fileName = ? ORDER BY finishedAt DESC, id DESC LIMIT 1`,
+                [fileName]
+            );
+            targetId = rows.length > 0 ? rows[0].id : null;
+        }
+        if (!targetId) {
+            return;
+        }
+        const now = util.getCurrentTime();
+        const finalPath = finalFilePath || resultFilePath;
+        await db.runSync(
+            `UPDATE minify_zip_log SET replaced=1, replacedAt=?, filePath=?, fileName=? WHERE id=?`,
+            [now, finalPath, path.basename(finalPath), targetId]
+        );
+    } catch (error) {
+        logger.warn('[minifyZip] failed to record overwrite event', error);
+    }
+}
+
 router.post('/api/minifyZipQue', serverUtil.asyncWrapper(async (req, res) => {
     res.send({
         minifyZipQue
@@ -92,6 +204,7 @@ router.post('/api/overwrite', serverUtil.asyncWrapper(async (req, res) => {
         const newPath = path.join(path.dirname(originalFilePath), path.basename(filePath));
         const { stdout, stderr } = move(filePath, newPath);
         if (!stderr) {
+            await markLogReplaced(filePath, newPath);
             logger.info("[overwrite]", "\n", originalFilePath, "\n", filePath);
             res.send({ failed: false });
         } else {
@@ -125,31 +238,57 @@ router.post('/api/minifyZip', serverUtil.asyncWrapper(async (req, res) => {
 
     if (!filePath || !(await isExist(filePath))) {
         res.send({ failed: true, reason: "NOT FOUND" });
-    } else if (minifyZipQue.includes(filePath)) {
-        res.send({ failed: true, reason: "Already in the minify queue" });
-    } else {
-        //add to queue
-        //it takes long time
-        res.send({ failed: false });
+        return;
     }
 
+    if (minifyZipQue.includes(filePath)) {
+        res.send({ failed: true, reason: "Already in the minify queue" });
+        return;
+    }
+
+    //add to queue
+    //it takes long time
+    res.send({ failed: false });
+
     minifyZipQue.push(filePath);
+    let logId = null;
+    let logHandled = false;
     try {
+        const sizeBefore = await getFileSizeSafe(filePath);
+        logId = await logJobStart(filePath, sizeBefore);
+
         let temp;
         if (util.isCompress(filePath)) {
             temp = await minify_limit(() => imageMagickHelp.minifyOneFile(filePath));
         } else {
             temp = await minify_limit(() => imageMagickHelp.minifyFolder(filePath));
         }
-        if (temp) {
-            //only success will return result
-            const { saveSpace } = temp;
+        if (temp && typeof temp.saveSpace === 'number' && !Number.isNaN(temp.saveSpace)) {
+            const { saveSpace, resultZipPath } = temp;
+            let sizeAfter = null;
+            if (resultZipPath && await isExist(resultZipPath)) {
+                sizeAfter = await getFileSizeSafe(resultZipPath);
+            }
+            if (sizeAfter === null && typeof sizeBefore === 'number' && !Number.isNaN(sizeBefore)) {
+                const estimated = sizeBefore - saveSpace;
+                sizeAfter = estimated >= 0 ? estimated : 0;
+            }
+            await logJobSuccess(logId, { resultFilePath: resultZipPath, sizeAfter });
+            logHandled = true;
+
             count.processed++
             count.saveSpace += saveSpace;
             logger.info("[/api/minifyZip] total space save:", filesizeUitl(count.saveSpace, { base: 2 }))
+        } else {
+            await logJobFailure(logId);
+            logHandled = true;
         }
     } catch (e) {
         logger.error("[/api/minifyZip]", e);
+        if (!logHandled) {
+            await logJobFailure(logId);
+            logHandled = true;
+        }
     } finally {
         const tempItem = minifyZipQue.shift();
         minifyDoneArr.push(tempItem);

@@ -72,12 +72,13 @@ module.exports.init = async () => {
         DROP TABLE IF EXISTS file_table;
         DROP TABLE IF EXISTS tag_file_table;
         DROP TABLE IF EXISTS tag_table;
+        DROP TABLE IF EXISTS minify_zip_log;
 
         
     
         CREATE TABLE file_table (
-                                filePath TEXT NOT NULL PRIMARY KEY, 
-                                dirName TEXT, 
+                                filePath TEXT NOT NULL PRIMARY KEY,
+                                dirName TEXT,
                                 dirPath TEXT, 
                                 fileName TEXT, 
                                 mTime INTEGER, 
@@ -89,10 +90,10 @@ module.exports.init = async () => {
                                 isMusic BOOL,
                                 isImage BOOL,
                                 isFolder BOOL);
-            
+
         CREATE TABLE tag_file_table (
-                                filePath TEXT NOT NULL, 
-                                tag VARCHAR(50) NOT NULL COLLATE NOCASE, 
+                                filePath TEXT NOT NULL,
+                                tag VARCHAR(50) NOT NULL COLLATE NOCASE,
                                 type VARCHAR(25) CHECK(type IN ('tag', 'author', 'group')),
                                 subtype VARCHAR(25)  CHECK(subtype IN ('comiket', 'name', 'parody', 'author', 'group')) , 
                                 isCompress BOOL,
@@ -115,6 +116,19 @@ module.exports.init = async () => {
 
             score REAL,
             PRIMARY KEY (tag, type, subtype)
+        );
+
+        CREATE TABLE minify_zip_log (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            filePath TEXT NOT NULL,
+            fileName TEXT NOT NULL,
+            startedAt INTEGER,
+            finishedAt INTEGER,
+            sizeBefore INTEGER,
+            sizeAfter INTEGER,
+            success BOOL DEFAULT 0,
+            replaced BOOL DEFAULT 0,
+            replacedAt INTEGER
         );
 
 
