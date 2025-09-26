@@ -1,33 +1,68 @@
 const path = require('path');
-const fs = require('fs');
 const express = require('express');
 const pfs = require('promise-fs');
 const dateFormat = require('dateformat');
 const _ = require('underscore');
 const qrcode = require('qrcode-terminal');
-const ini = require('ini');
-const chokidar = require('chokidar');
-
 
 global.isWindows = require('is-windows')();
-global.requireUtil = () => require("./common/util");
-global.requireUserConfig = () => require("./config/user-config");
-global.requireConstant = () => require("./common/constant");
 
-const execa = require('./utils/ownExeca');
-const userConfig = global.requireUserConfig();
-const util = global.requireUtil();
-
-const pathUtil = require("./utils/pathUtil");
-pathUtil.init();
-const serverUtil = require("./utils/serverUtil");
-const { getHash, mkdirSync, asyncWrapper } = serverUtil;
-const filewatch = require("./services/fileWatchers/filewatch");
-const thumbnailUtil = require("./services/getThumbnailUtil");
+const execa = require('./utils/own-execa');
+const util = require('./common/util');
+const userConfig = require('./config/user-config');
+const pathUtil = require('./utils/path-util');
+const serverUtil = require('./utils/server-util');
+const { getHash, asyncWrapper } = serverUtil;
+const filewatch = require('./services/file-watchers/file-watch');
+const thumbnailUtil = require('./services/thumbnail-query');
+const { getStatAndUpdateDB } = require('./services/server-common');
+const initializeEnvironment = require('./bootstrap/environment');
+const loadConfig = require('./bootstrap/loadConfig');
+const createWatchManager = require('./bootstrap/watchManager');
+const appState = require('./state/appState');
 
 const { isHiddenFile, splitFilesByType, isExist, filterPathConfig, isSub, estimateIfFolder } = pathUtil;
 
-// 将压缩文件内的条目路径解析成解压后的绝对路径，并确保不会跳出目标目录
+const { isImage, isCompress, isVideo, isMusic, getCurrentTime } = util;
+
+const environment = initializeEnvironment();
+const {
+    rootPath,
+    cachePath,
+    thumbnailFolderPath,
+    workspacePath,
+    distPath,
+    indexHtmlPath,
+    bundleJsPath,
+    etcConfigPath,
+    pathConfigPath,
+} = environment;
+
+appState.setPaths({ cachePath, thumbnailFolderPath });
+appState.setScannedPaths([]);
+
+console.log("------path debug-----------------------------------------------");
+console.log("__filename:         ", __filename);
+console.log("__dirname:          ", __dirname);
+console.log("process.execPath:   ", process.execPath);
+console.log("process.cwd():      ", process.cwd());
+console.log("global.isPkg:       ", global.isPkg);
+console.log("rootPath:           ", rootPath);
+console.log("distPath:           ", distPath);
+console.log("indexHtmlPath:      ", indexHtmlPath);
+console.log("bundleJsPath:       ", bundleJsPath);
+console.log("etf_config_path:    ", etcConfigPath);
+console.log("path_config_path:   ", pathConfigPath);
+console.log("workspacePath:      ", workspacePath);
+console.log("----------------------------------------------------------------");
+
+const logger = require('./config/logger');
+logger.init();
+
+const sevenZipHelp = require('./services/seven-zip');
+sevenZipHelp.init();
+const { listZipContentAndUpdateDb, extractAll, extractByRange } = sevenZipHelp;
+
 const resolveExtractedEntry = (baseOutputPath, entryPath) => {
     if (!entryPath) {
         return null;
@@ -37,53 +72,6 @@ const resolveExtractedEntry = (baseOutputPath, entryPath) => {
     const candidate = path.resolve(normalizedBase, normalizedEntry);
     return isSub(normalizedBase, candidate) ? candidate : null;
 };
-const { isImage, isCompress, isVideo, isMusic, 
-    getCurrentTime, isDisplayableInExplorer, isDisplayableInOnebook } = util;
-
-//set up path
-const rootPath = pathUtil.getRootPath();
-const { cache_folder_name, thumbnail_folder_name, view_img_folder } = userConfig
-const cachePath = path.join(rootPath, cache_folder_name);
-const thumbnailFolderPath = path.join(rootPath, thumbnail_folder_name);
-global.thumbnailFolderPath = thumbnailFolderPath;
-global.cachePath = cachePath;
-const indexHtmlPath = path.resolve(rootPath, "dist", "index.html");
-const bundleJsPath = path.resolve(rootPath, "dist", "bundle.js");
-const distPath = path.resolve(rootPath, "dist");
-const etf_config_path = path.resolve(rootPath, "config-etc.ini");
-const path_config_path = path.join(rootPath, "config-path.ini");
-const workspacePath = pathUtil.getWorkSpacePath();
-console.log("------path debug-----------------------------------------------");
-console.log("__filename:         ", __filename);
-console.log("__dirname:          ", __dirname);
-console.log("process.execPath:   ", process.execPath);
-console.log("process.cwd():      ", process.cwd());
-console.log("global.isPkg:       ", global.isPkg)
-console.log("rootPath:           ", rootPath);
-console.log("distPath:           ", distPath);
-console.log("indexHtmlPath:      ", indexHtmlPath);
-console.log("bundleJsPath:       ", bundleJsPath);
-console.log("etf_config_path:    ", etf_config_path);
-console.log("path_config_path:   ", path_config_path);
-console.log("workspacePath:      ", workspacePath);
-console.log("----------------------------------------------------------------");
-
-// 会被监视扫描的文件夹、现在既存在global也存在db。之前想做分布式server，但又算了。
-global.SCANED_PATH = [];
-
-// mkdir
-mkdirSync(workspacePath);
-mkdirSync(thumbnailFolderPath);
-mkdirSync(cachePath);
-mkdirSync(pathUtil.getImgConverterCachePath());
-
-const logger = require("./config/logger");
-logger.init();
-
-const sevenZipHelp = require("./services/sevenZipHelp");
-sevenZipHelp.init();
-const { listZipContentAndUpdateDb, extractAll, extractByRange } = sevenZipHelp;
-
 // 从用户命令拿port和其他参数
 const portConfig = require('./config/port-config');
 const { program } = require('commander');
@@ -109,10 +97,18 @@ console.log(options);
 
 // DB import
 const db = require("./models/db");
-const zipInfoDb = require("./models/zipInfoDb");
-const thumbnailDb = require("./models/thumbnailDb");
-const historyDb = require("./models/historyDB");
-const cacheDb = require("./models/cacheDb");
+const zipInfoDb = require("./models/zip-info-db");
+const thumbnailDb = require("./models/thumbnail-db");
+const historyDb = require("./models/history-db");
+const cacheDb = require("./models/cache-db");
+
+const watchManager = createWatchManager({
+    cacheDb,
+    db,
+    filewatch,
+    viewImgFolder: userConfig.view_img_folder,
+});
+const { addDirsToWatch, setUpCacheWatch, filterScanPaths } = watchManager;
 
 // 防止系统过载
 const pLimit = require('p-limit');
@@ -145,24 +141,14 @@ const cookieParser = require('cookie-parser')
 app.use(cookieParser())
 
 //read etc config
-let etc_config = {};
-let path_config;
-try {
-    // console.log("read ini....")
-    let fcontent = fs.readFileSync(etf_config_path, 'utf-8');
-    etc_config = ini.parse(fcontent);
-    global.etc_config = etc_config;
-    // console.log(etf_config_path);
-
-    const fContent1 = fs.readFileSync(path_config_path).toString();
-    path_config = ini.parse(fContent1);
-    // console.log("read done ")
-    // console.log(path_config_path);
-} catch (e) {
-    //nothing
-    logger.warn("fail to read ini files")
-    logger.warn(e);
-}
+const { etcConfig: loadedEtcConfig, pathConfig: loadedPathConfig } = loadConfig({
+    etcConfigPath,
+    pathConfigPath,
+    logger,
+});
+let etc_config = loadedEtcConfig || {};
+let path_config = loadedPathConfig;
+global.etc_config = etc_config;
 
 const internalIp = require('internal-ip');
 async function getIP(){
@@ -171,7 +157,7 @@ async function getIP(){
     return mobileAddress;
 }
 
-const cleanCache = require("./services/cleanCache");
+const cleanCache = require("./services/cache-cleaner");
 
 try {
     // 因为sharp在pkg用不了，灵活的逻辑
@@ -220,38 +206,22 @@ async function init() {
 
     const server = app.listen(port, async () => {
         const filterPathConfigObj = await filterPathConfig(path_config, skipScan);
-        global = {
-            ...global,
-            ...filterPathConfigObj
-        };
-        let scan_path = filterPathConfigObj.scan_path;
-        serverUtil.mkdirList(scan_path)
-        scan_path = await pathUtil.filterNonExist(scan_path);
+        Object.assign(global, filterPathConfigObj);
 
+        let scan_path = await pathUtil.filterNonExist(filterPathConfigObj?.scan_path || []);
+        serverUtil.mkdirList(scan_path);
+        appState.setScannedPaths(scan_path);
 
         if(!skipCacheClean){
             cleanCache(cachePath);
         }
         setUpCacheWatch();
 
-        //因为scan path内部有sub parent重复关系，避免重复的
-        let will_scan = _.sortBy(scan_path, e => e.length); //todo
-        for (let ii = 0; ii < will_scan.length; ii++) {
-            for (let jj = ii + 1; jj < will_scan.length; jj++) {
-                const p1 = will_scan[ii];
-                const p2 = will_scan[jj];
-
-                if (pathUtil.isSub(p1, p2)) {
-                    will_scan[jj] = "_to_remove_";
-                }
-            }
-        }
-        will_scan = will_scan.filter(e => e !== "_to_remove_");
+        const will_scan = filterScanPaths(scan_path);
 
         printIP();
 
-        //todo: chokidar will slow the server down very much when it init async
-        add_dirs_to_watch(will_scan)
+        await addDirsToWatch(will_scan);
         
     }).on('error', async (error) => {
         logger.error("[Server Init]", error.message);
@@ -259,122 +229,6 @@ async function init() {
         await serverUtil.suspend();
         process.exit(22);
     });
-}
-
-
-
-/**
- * 设置cache folder的监听，其实没啥意义。
- */
-function setUpCacheWatch() {
-    function shouldIgnoreForCache(p, stat) {
-        return !shouldWatchForCache(p, stat);
-    }
-    
-    function shouldWatchForCache(fp, stat) {
-        if (isHiddenFile(fp)) {
-            return false;
-        }
-    
-        if (pathUtil.estimateIfFolder(fp) ||  (stat && stat.isDirectory())) {
-            // 文件夹
-            return true;
-        }
-        
-        return true;
-    }
-
-    //also for cache files
-    const cacheWatcher = chokidar.watch(cachePath, {
-        ignored: shouldIgnoreForCache,
-        persistent: true,
-        ignorePermissionErrors: true,
-        ignoreInitial: true,
-    });
-
-    const addCallBack = (fp, stats) => {
-        cacheDb.updateStatToCacheDb(fp, stats);
-    }
-
-    cacheWatcher
-        .on('add', addCallBack)
-        .on('addDir', addCallBack)
-    //     .on('unlink', (fp, stats) => {
-    //         // cacheDb.deleteFromCacheDb(p);
-    //         console.log(fp, stats);
-    //     });
-}
-
-
-/** this function decide which files will be scanned and watched by ShiguReader  */
-function shouldScan(fp, stat) {
-    //cache is cover by another watch
-    if (fp.includes(cachePath)) {
-        return false;
-    }
-
-    if (isHiddenFile(fp) || pathUtil.isForbid(fp)) {
-        return false;
-    }
-
-    //if ignore, chokidar wont check its content
-    if (stat && stat.isDirectory()) {
-        return true;
-    }
-
-    const ext = pathUtil.getExt(fp);
-    let result = estimateIfFolder(fp) || isDisplayableInExplorer(ext);
-
-    if (view_img_folder) {
-        result = result || isDisplayableInOnebook(ext)
-    }
-    return result;
-}
-
-function shouldIgnoreForNormal(fp, stat) {
-    return !shouldScan(fp, stat);
-}
-
-/** 文件被删除时，去相关数据库删除信息 */
-const deleteCallBack = fp => {
-    db.deleteFromDb(fp);
-    zipInfoDb.deleteFromZipDb(fp);
-    thumbnailDb.deleteThumbnail(fp)
-};
-
-// const moveCallBack = async (oldfilePath, newfilePath) => {
-//     // 现在 delete和insert被chokidar callback代劳了 
-//     // 重复进行太容易出bug了
-// }
-
-
-/**
- * 服务器使用中途添加监听扫描path
- */
-async function add_dirs_to_watch(dirPathes) {
-    if(dirPathes.length == 0){
-        return;
-    }
-
-    // console.log(`[chokidar addNewFileWatch] [${dirPathes.join(",")}] begin...`);
-
-    // add to scan_path
-    // todo 不严谨 会出现重复添加
-  
-
-    for (let filePath of dirPathes){
-        await filewatch.fastFileIterate({
-            filePath,
-            db, 
-            shouldIgnoreForNormal
-        });
-        await filewatch.addWatch({
-            folderPath: filePath, 
-            deleteCallBack, 
-            shouldScan, 
-            db
-        })
-    }
 }
 
 app.post('/api/addNewFileWatchAfterInit', serverUtil.asyncWrapper(async (req, res) => {
@@ -390,7 +244,7 @@ app.post('/api/addNewFileWatchAfterInit', serverUtil.asyncWrapper(async (req, re
         return;
     }
 
-    add_dirs_to_watch([filePath])
+    await addDirsToWatch([filePath]);
     res.send({ failed: false });
 }));
 
@@ -479,110 +333,6 @@ async function findLatestFileInFolder(dirPath, matcher){
 
     return sorted[0] || null;
 }
-
-
-/** 获得file stat同时保存到db */
-async function getStatAndUpdateDB(filePath) {
-    const stat = await pfs.stat(filePath);
-    if (filewatch.isAlreadyScan(filePath)) {
-        db.updateStatToDb(filePath, stat);
-    }
-    return stat;
-}
-
-
-/**
- * 给lsdir search res添加信息。比如thumbnail，zipinfo。不使用sql是因为有部分filePath没存在数据库
- */
-async function decorateResWithMeta(resObj) {
-    const { fileInfos, dirs, imgFolders } = resObj;
-    console.assert(fileInfos && dirs && imgFolders);
-
-    const files = _.keys(fileInfos);
-
-    //------------------- thumbnails
-    const thumbnails = await thumbnailUtil.getThumbnailsForZip(files);
-    _.keys(thumbnails).forEach(filePath=> {
-        if(!fileInfos[filePath]){
-            return;
-        }
-        const e = thumbnails[filePath];
-        fileInfos[filePath].thumbnailFilePath = e;
-    })
-
-
-    //------------------------------- zipInfo
-    const zipInfoRows = zipInfoDb.getZipInfo(files);
-    zipInfoRows.forEach(e => { 
-        if(!fileInfos[e.filePath]){
-            return;
-        }
-        fileInfos[e.filePath] = {
-            ...fileInfos[e.filePath],
-            pageNum: e.pageNum,
-            musicNum: e.musicNum,
-            videoNum: e.videoNum,
-            totalNum: e.totalNum,
-            totalImgSize: e.totalImgSize,
-        }
-        fileInfos[e.filePath].mtimeMs = fileInfos[e.filePath].mtimeMs || e.mtime;
-        fileInfos[e.filePath].size = fileInfos[e.filePath].size || e.totalSize;
-    })
-
-    //------------------------ imgFolderInfo
-    const imgFolderInfo = db.getImgFolderInfo(imgFolders);
-    resObj.imgFolderInfo = imgFolderInfo;
-
-    //-------------------- history
-    const pathes_for_history = [...files, ..._.keys(imgFolderInfo)];
-    resObj.fileHistory = await historyDb.getBatchFileHistory(pathes_for_history);
-
-    //----------------------------- ParseCache
-    resObj.nameParseCache = {};
-    [...files, ..._.keys(imgFolderInfo), ...dirs].forEach(fp => {
-        const fn = path.basename(fp);
-        const temp = serverUtil.parse(fn);
-        if(temp){
-            resObj.nameParseCache[fn] = temp;
-        }
-    })
-
-    // const allowZipInfo = ["pageNum", "musicNum", "videoNum", "totalNum", "totalImgSize"];
-    // for(const tempFilePath in zipInfo){
-    //     const zipObj = zipInfo[tempFilePath];
-    //     // 把zipinfo的mtime合并到fileInfos
-    //     if(zipObj.mtime){
-    //         fileInfos[tempFilePath] = fileInfos[tempFilePath] || {};
-    //         if(!fileInfos[tempFilePath].mtimeMs){
-    //             fileInfos[tempFilePath].mtimeMs = zipObj.mtime;
-    //         }
-    //     }
-    //     // 并精简obj
-    //     zipInfo[tempFilePath] = filterObjectProperties(zipObj, allowZipInfo);
-    // }
-
-    // resObj说明：
-
-    // [deprecated] thumbnails:    filePath-> thumbnail filePath
-    // [deprecated] zipInfo:       filePath-> zipInfo (和fileinfos互补)
-    // [deprecated] imgFolders:    folderPath -> [ file filepath ... ]
-
-    // dirs:          [dir filepath...]
-    // fileInfos:     filePath-> fileInfo (不仅有zip，还有video和music)
-    // imgFolderInfo: folderPath-> folderinfo
-    // mode: 是否lack_info_mode
-    // "tag", "author", "path" 查询时用的参数
-    // 检查
-    const allowedKeys = [ "dirs", "mode", "tag", "path", "author", "fileInfos", 
-                          "imgFolderInfo", "fileHistory", "nameParseCache"];
-    // resObj = filterObjectProperties(resObj, allowedKeys, true);
-    // checkKeys(resObj, allowedKeys);
-    resObj = serverUtil.filterObjectProperties(resObj, allowedKeys);
-
-    return resObj;
-}
-
-  
 
 
 
@@ -760,7 +510,7 @@ app.post("/api/getTagThumbnail", asyncWrapper(async (req, res) => {
     }
 }));
 
-const thumbnailGenerator = require("./services/thumbnailGenerator");
+const thumbnailGenerator = require("./services/thumbnail-generator");
 //the only required parameter is filePath
 let extractThumbnailFromZip = async (filePath, res, mode, config) => {
     if (!util.isCompress(filePath)) {
@@ -1063,10 +813,8 @@ app.post('/api/extract', asyncWrapper(async (req, res) => {
         // }
         let zipInfo = zipInfoDb.getZipInfo(filePath)[0];
 
-        const mecab_tokens = [];
-
         // TODO dirs留空。
-        let result = { imageFiles: tempFiles, musicFiles, videoFiles, path, outputPath, stat, zipInfo, mecab_tokens, dirs: [] };
+        let result = { imageFiles: tempFiles, musicFiles, videoFiles, path, outputPath, stat, zipInfo, dirs: [] };
         extract_result_cache[filePath] = result;
         result = serverUtil.checkOneBookRes(result);
         res.send(result);
@@ -1184,12 +932,6 @@ app.post('/api/extract', asyncWrapper(async (req, res) => {
     }
 }));
 
-serverUtil.common = {
-    deleteCallBack,
-    decorateResWithMeta,
-    getStatAndUpdateDB
-}
-
 let server_ip;
 app.get('/api/getGeneralInfo', asyncWrapper(async (req, res) => {
     let os = global.isWindows ? "windows" : "linux";
@@ -1216,48 +958,48 @@ app.get('/api/getGeneralInfo', asyncWrapper(async (req, res) => {
 }));
 
 
-const homePagePath = require("./routes/homePagePath");
-app.use(homePagePath);
+const homepagePathRoute = require("./routes/homepage-path");
+app.use(homepagePathRoute);
 
-const getHistory = require("./routes/getHistory");
-app.use(getHistory);
+const historyRoute = require("./routes/history");
+app.use(historyRoute);
 
-const lsdir = require("./routes/lsdir");
-app.use(lsdir);
+const listDirRoute = require("./routes/list-dir");
+app.use(listDirRoute);
 
-const getGoodAuthorNames = require("./routes/getGoodAuthorNames");
-app.use(getGoodAuthorNames);
+const authorNamesRoute = require("./routes/author-names");
+app.use(authorNamesRoute);
 
-const moveOrDelete = require("./routes/moveOrDelete");
-app.use(moveOrDelete);
+const fileMoveDeleteRoute = require("./routes/file-move-delete");
+app.use(fileMoveDeleteRoute);
 
-const download = require("./routes/download");
-app.use(download);
+const fileDownloadRoute = require("./routes/file-download");
+app.use(fileDownloadRoute);
 
-const search = require("./routes/search");
-app.use(search);
+const searchRoute = require("./routes/search");
+app.use(searchRoute);
 
 
-const AllInfo = require("./routes/AllInfo");
-app.use(AllInfo);
+const allInfoRoute = require("./routes/all-info");
+app.use(allInfoRoute);
 
-const singleFileInfo = require("./routes/singleFileInfo");
-app.use(singleFileInfo);
+const fileInfoRoute = require("./routes/file-info");
+app.use(fileInfoRoute);
 
-const hentaiApi = require("./routes/hentaiApi");
-app.use(hentaiApi);
+const hentaiApiRoute = require("./routes/hentai-api");
+app.use(hentaiApiRoute);
 
-const cleanCacheRoute = require("./routes/cleanCache");
-app.use(cleanCacheRoute);
+const cacheCleanRoute = require("./routes/cache-clean");
+app.use(cacheCleanRoute);
 
-const CacheInfo = require("./routes/CacheInfo");
-app.use(CacheInfo);
+const cacheInfoRoute = require("./routes/cache-info");
+app.use(cacheInfoRoute);
 
-const shutdown = require("./routes/shutdown");
-app.use(shutdown);
+const systemShutdownRoute = require("./routes/system-shutdown");
+app.use(systemShutdownRoute);
 
-const minifyZip = require("./routes/minifyZip");
-app.use(minifyZip);
+const zipMinifyRoute = require("./routes/zip-minify");
+app.use(zipMinifyRoute);
 
 // const ehentaiMetadata = require("./routes/ehentaiMetadata");
 // app.use(ehentaiMetadata);
