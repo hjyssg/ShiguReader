@@ -6,8 +6,6 @@ const db = require("../models/db");
 const util = global.requireUtil();
 // const { isDisplayableInExplorer } = util;
 const nameParser = require('../name-parser');
-const logger = require("../config/logger");
-const path = require("path");
 const _ = require("underscore");
 
 async function add_col(rows){
