@@ -40,7 +40,7 @@
       "type": "node",
       "request": "launch",
       "name": "Backend main server",
-      "program": "${workspaceFolder}/packages/backend/src/server/index.js",
+      "program": "${workspaceFolder}/packages/backend/src/app.js",
       "args": [],
       "cwd": "${workspaceFolder}/packages/backend",
       "preLaunchTask": "set_chcp_65001"
@@ -49,16 +49,16 @@
       "type": "node",
       "request": "launch",
       "name": "Backend main server [skip scan]",
-      "program": "${workspaceFolder}/packages/backend/src/server/index.js",
+      "program": "${workspaceFolder}/packages/backend/src/app.js",
       "args": ["--skip-scan"],
       "cwd": "${workspaceFolder}/packages/backend",
-      "preLaunchTask": "set_chcp_65001"
+      // "preLaunchTask": "set_chcp_65001"
     },
     {
       "type": "node",
       "request": "launch",
       "name": "Backend main server [skip scan and skip db clean]",
-      "program": "${workspaceFolder}/packages/backend/src/server/index.js",
+      "program": "${workspaceFolder}/packages/backend/src/app.js",
       "args": ["--skip-scan", "--skip-db-clean"],
       "cwd": "${workspaceFolder}/packages/backend",
       "preLaunchTask": "set_chcp_65001"
@@ -67,7 +67,7 @@
       "type": "node",
       "request": "launch",
       "name": "Backend sub server [no scan and different port, share the same db with main server]",
-      "program": "${workspaceFolder}/packages/backend/src/server/index.js",
+      "program": "${workspaceFolder}/packages/backend/src/app.js",
       "args": ["--skip-scan", "--skip-cache-clean", "--port", "34213"],
       "cwd": "${workspaceFolder}/packages/backend"
     },

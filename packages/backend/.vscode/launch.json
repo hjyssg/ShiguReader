@@ -24,7 +24,7 @@
       "type": "node",
       "request": "launch",
       "name": "main server",
-      "program": "${workspaceFolder}\\src\\server\\index.js",
+      "program": "${workspaceFolder}\\src\\app.js",
       "args": [
         // "--port" ,"5000",
       ],
@@ -34,7 +34,7 @@
       "type": "node",
       "request": "launch",
       "name": "main server [skip scan]",
-      "program": "${workspaceFolder}\\src\\server\\index.js",
+      "program": "${workspaceFolder}\\src\\app.js",
       "args": ["--skip-scan"],
       "preLaunchTask": "set_chcp_65001", // 添加这个属性来引用一个预启动任务
     },
@@ -42,7 +42,7 @@
       "type": "node",
       "request": "launch",
       "name": "main server [skip scan and skip db clean]",
-      "program": "${workspaceFolder}\\src\\server\\index.js",
+      "program": "${workspaceFolder}\\src\\app.js",
       "args": ["--skip-scan", "--skip-db-clean"],
       "preLaunchTask": "set_chcp_65001", // 添加这个属性来引用一个预启动任务
     },
@@ -50,15 +50,8 @@
       "type": "node",
       "request": "launch",
       "name": "sub server [no scan and different port, share the same db with main server]",
-      "program": "${workspaceFolder}\\src\\server\\index.js",
+      "program": "${workspaceFolder}\\src\\app.js",
       "args": ["--skip-scan", "--skip-cache-clean", "--port", "34213"]
-    },
-    {
-      "type": "node",
-      "request": "launch",
-      "name": "sub server [deprecated]",
-      "program": "${workspaceFolder}\\src\\server\\_sub_server.js",
-      "args": []
     }
   ]
 }
