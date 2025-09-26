@@ -97,10 +97,10 @@ console.log(options);
 
 // DB import
 const db = require("./models/db");
-const zipInfoDb = require("./models/zipInfoDb");
-const thumbnailDb = require("./models/thumbnailDb");
-const historyDb = require("./models/historyDB");
-const cacheDb = require("./models/cacheDb");
+const zipInfoDb = require("./models/zip-info-db");
+const thumbnailDb = require("./models/thumbnail-db");
+const historyDb = require("./models/history-db");
+const cacheDb = require("./models/cache-db");
 
 const watchManager = createWatchManager({
     cacheDb,
@@ -960,48 +960,48 @@ app.get('/api/getGeneralInfo', asyncWrapper(async (req, res) => {
 }));
 
 
-const homePagePath = require("./routes/homePagePath");
-app.use(homePagePath);
+const homepagePathRoute = require("./routes/homepage-path");
+app.use(homepagePathRoute);
 
-const getHistory = require("./routes/getHistory");
-app.use(getHistory);
+const historyRoute = require("./routes/history");
+app.use(historyRoute);
 
-const lsdir = require("./routes/lsdir");
-app.use(lsdir);
+const listDirRoute = require("./routes/list-dir");
+app.use(listDirRoute);
 
-const getGoodAuthorNames = require("./routes/getGoodAuthorNames");
-app.use(getGoodAuthorNames);
+const authorNamesRoute = require("./routes/author-names");
+app.use(authorNamesRoute);
 
-const moveOrDelete = require("./routes/moveOrDelete");
-app.use(moveOrDelete);
+const fileMoveDeleteRoute = require("./routes/file-move-delete");
+app.use(fileMoveDeleteRoute);
 
-const download = require("./routes/download");
-app.use(download);
+const fileDownloadRoute = require("./routes/file-download");
+app.use(fileDownloadRoute);
 
-const search = require("./routes/search");
-app.use(search);
+const searchRoute = require("./routes/search");
+app.use(searchRoute);
 
 
-const AllInfo = require("./routes/AllInfo");
-app.use(AllInfo);
+const allInfoRoute = require("./routes/all-info");
+app.use(allInfoRoute);
 
-const singleFileInfo = require("./routes/singleFileInfo");
-app.use(singleFileInfo);
+const fileInfoRoute = require("./routes/file-info");
+app.use(fileInfoRoute);
 
-const hentaiApi = require("./routes/hentaiApi");
-app.use(hentaiApi);
+const hentaiApiRoute = require("./routes/hentai-api");
+app.use(hentaiApiRoute);
 
-const cleanCacheRoute = require("./routes/cleanCache");
-app.use(cleanCacheRoute);
+const cacheCleanRoute = require("./routes/cache-clean");
+app.use(cacheCleanRoute);
 
-const CacheInfo = require("./routes/CacheInfo");
-app.use(CacheInfo);
+const cacheInfoRoute = require("./routes/cache-info");
+app.use(cacheInfoRoute);
 
-const shutdown = require("./routes/shutdown");
-app.use(shutdown);
+const systemShutdownRoute = require("./routes/system-shutdown");
+app.use(systemShutdownRoute);
 
-const minifyZip = require("./routes/minifyZip");
-app.use(minifyZip);
+const zipMinifyRoute = require("./routes/zip-minify");
+app.use(zipMinifyRoute);
 
 // const ehentaiMetadata = require("./routes/ehentaiMetadata");
 // app.use(ehentaiMetadata);

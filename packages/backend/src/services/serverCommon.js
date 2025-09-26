@@ -5,9 +5,9 @@ const pfs = require('promise-fs');
 const serverUtil = require('../utils/serverUtil');
 const thumbnailUtil = require('./getThumbnailUtil');
 const db = require('../models/db');
-const historyDb = require('../models/historyDB');
-const zipInfoDb = require('../models/zipInfoDb');
-const thumbnailDb = require('../models/thumbnailDb');
+const historyDb = require('../models/history-db');
+const zipInfoDb = require('../models/zip-info-db');
+const thumbnailDb = require('../models/thumbnail-db');
 const filewatch = require('./fileWatchers/filewatch');
 
 async function getStatAndUpdateDB(filePath) {

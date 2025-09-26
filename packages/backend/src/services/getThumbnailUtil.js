@@ -10,8 +10,8 @@ const { isSub } = pathUtil;
 
 // DB import
 const db = require("../models/db");
-const zipInfoDb = require("../models/zipInfoDb");
-const thumbnailDb = require("../models/thumbnailDb");
+const zipInfoDb = require("../models/zip-info-db");
+const thumbnailDb = require("../models/thumbnail-db");
 const logger = require("../config/logger");
 
 

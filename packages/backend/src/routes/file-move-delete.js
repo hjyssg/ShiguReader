@@ -5,8 +5,8 @@ const userConfig = require('../config/user-config');
 const express = require('express');
 const router = express.Router();
 const logger = require("../config/logger");
-const thumbnailDb = require("../models/thumbnailDb");
-const zipInfoDb = require("../models/zipInfoDb");
+const thumbnailDb = require("../models/thumbnail-db");
+const zipInfoDb = require("../models/zip-info-db");
 const estimateFileTable = require("../services/estimateFileTable");
 
 const pathUtil = require("../utils/pathUtil");

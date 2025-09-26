@@ -58,7 +58,7 @@ module.exports.runSync  = async (sql, params) => {
 
 let sqldb;
 module.exports.init = async () => {
-    const SQLWrapper = require("./SQLWrapper");
+    const SQLWrapper = require("./sql-wrapper");
     const backup_db_path = path.join(pathUtil.getWorkSpacePath(), "shigureader_internal_db.sqlite");
     sqldb = new SQLWrapper(backup_db_path);
 

@@ -4,8 +4,8 @@ const router = express.Router();
 // const db = require("../models/db");
 // const util = global.requireUtil();
 // const { isDisplayableInOnebook } = util;
-const thumbnailDb = require("../models/thumbnailDb");
-const cacheDb = require("../models/cacheDb");
+const thumbnailDb = require("../models/thumbnail-db");
+const cacheDb = require("../models/cache-db");
 const serverUtil = require("../utils/serverUtil");
 const _  = require("underscore");
 
