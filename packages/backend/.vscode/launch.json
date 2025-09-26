@@ -52,13 +52,6 @@
       "name": "sub server [no scan and different port, share the same db with main server]",
       "program": "${workspaceFolder}\\src\\app.js",
       "args": ["--skip-scan", "--skip-cache-clean", "--port", "34213"]
-    },
-    {
-      "type": "node",
-      "request": "launch",
-      "name": "sub server [deprecated]",
-      "program": "${workspaceFolder}\\src\\services\\_subServer.js",
-      "args": []
     }
   ]
 }

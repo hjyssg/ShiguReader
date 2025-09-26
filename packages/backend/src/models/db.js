@@ -358,7 +358,7 @@ module.exports.deleteFromDb = function (filePath) {
 
 
 
-const scoreUtil = require('../scoreUtil');  // Assuming scoreUtil is a module that contains the scoring logic.
+const scoreUtil = require('../utils/scoreUtil');  // Assuming scoreUtil is a module that contains the scoring logic.
 
 async function sync_tag_table() {
     // Helper function to add scoring column.

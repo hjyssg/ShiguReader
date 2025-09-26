@@ -52,7 +52,7 @@
       "program": "${workspaceFolder}/packages/backend/src/server/index.js",
       "args": ["--skip-scan"],
       "cwd": "${workspaceFolder}/packages/backend",
-      "preLaunchTask": "set_chcp_65001"
+      // "preLaunchTask": "set_chcp_65001"
     },
     {
       "type": "node",
