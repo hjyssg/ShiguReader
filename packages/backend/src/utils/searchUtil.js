@@ -1,11 +1,12 @@
 
 const serverUtil = require("./serverUtil");
 const db = require("../models/db");
-const util = global.requireUtil();
+const util = require('../common/util');
 const path = require('path');
 const _ = require('underscore');
 const pathUtil = require("./pathUtil");
 const { isSub } = pathUtil;
+const appState = require('../state/appState');
 // const { getCurrentTime } = util;
 
 function isEqual(a, b) {
@@ -53,7 +54,8 @@ async function searchOnEverything(text) {
     const everything_connector = require("../services/everythingConnector");
     const etc_config = global.etc_config;
     const everything_http_server_port = etc_config && etc_config.everything_http_server_port;
-    const { cachePath, thumbnailFolderPath } = global;
+    const cachePath = appState.getCachePath();
+    const thumbnailFolderPath = appState.getThumbnailFolderPath();
 
     function isNotAllow(fp) {
         const arr = [cachePath, thumbnailFolderPath];

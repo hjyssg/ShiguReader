@@ -3,7 +3,7 @@ const execa = require('../utils/ownExeca');
 const pfs = require('promise-fs');
 const _ = require('underscore');
 const logger = require("../config/logger");
-const util = global.requireUtil();
+const util = require('../common/util');
 const pathUtil = require("../utils/pathUtil");
 const { isImage, getCurrentTime, isGif } = util;
 
@@ -12,7 +12,7 @@ const { listZipContentAndUpdateDb, extractAll } = sevenZipHelp;
 
 const { isExist, getImgConverterCachePath } = pathUtil;
 
-const userConfig = global.requireUserConfig();
+const userConfig = require('../config/user-config');
 const filesizeUitl = require('filesize');
 
 const rimraf = require("../utils/rimraf");

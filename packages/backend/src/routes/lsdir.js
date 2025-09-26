@@ -13,12 +13,13 @@ const {
 
 const serverUtil = require("../utils/serverUtil");
 const db = require("../models/db");
-const util = global.requireUtil();
+const util = require('../common/util');
 const { getCurrentTime, isImage, isMusic, isCompress, isVideo } = util;
 const historyDb = require("../models/historyDB");
 const logger = require("../config/logger");
 const filewatch= require('../services/fileWatchers/filewatch');
 const estimateFileTable = require('../services/estimateFileTable');
+const appState = require('../state/appState');
 
 router.post('/api/lsDir', serverUtil.asyncWrapper(async (req, res) => {
     let dir = req.body && req.body.dir;
@@ -204,7 +205,7 @@ router.post('/api/listImageFolderContent', serverUtil.asyncWrapper(async (req, r
 
     let result;
     // 除了cache以外都不递归
-    if(isSub(global.cachePath, filePath)){
+    if(isSub(appState.getCachePath(), filePath)){
         result = await listNoScanDir(filePath, res, true);
     }else {
         result = await listNoScanDir(filePath, res);

@@ -2,7 +2,7 @@ const path = require('path');
 const _ = require('underscore');
 
 const serverUtil = require("../utils/serverUtil");
-const util = global.requireUtil();
+const util = require('../common/util');
 const { getCurrentTime } = util;
 
 const pathUtil = require("../utils/pathUtil");

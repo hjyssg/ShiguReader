@@ -4,7 +4,8 @@ const pfs = require('promise-fs');
 const path = require('path');
 const express = require('express');
 const router = express.Router();
-const util = global.requireUtil();
+const util = require('../common/util');
+const appState = require('../state/appState');
 const { isImage, isGif } = util;
 const serverUtil = require("../utils/serverUtil");
 
@@ -21,7 +22,7 @@ const ONEBOOK_HUGE_THRESHOLD_LOCAL = 10 * 1000 * 1000;  // MB
 
 
 const doMinifyForDownload = async (filePath, outputFn, height) => {
-    const outputPath = path.resolve(global.cachePath, outputFn);
+    const outputPath = path.resolve(appState.getCachePath(), outputFn);
     let result = await ImageCompressUtil.doMinifyTempImage(filePath, outputPath, height);
     result = result || filePath;
     return result;

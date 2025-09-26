@@ -1,8 +1,9 @@
 // const _ = require('underscore');
 const path = require('path');
-const util = global.requireUtil();
+const util = require('../common/util');
 // const { getCurrentTime } = util;
 const pathUtil = require("../utils/pathUtil");
+const appState = require('../state/appState');
 
 
 let sqldb;
@@ -30,7 +31,8 @@ module.exports.init = async (_sqldb)=> {
 
 // cache内部的不记录
 function noNeedRecord(filePath){
-    return global.cachePath && pathUtil.isSub(global.cachePath, filePath);
+    const cachePath = appState.getCachePath();
+    return cachePath && pathUtil.isSub(cachePath, filePath);
 }
 
 module.exports.addOneRecord = function (filePath) {

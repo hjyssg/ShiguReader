@@ -6,7 +6,7 @@ const logger = require("../config/logger");
 const isLinux = require("is-linux")
 const isOsx = require("is-osx");
 const cp = require('child_process');
-const util = global.requireUtil();
+const util = require('../common/util');
 const { getCurrentTime } = util;
 const serverUtil = require("../utils/serverUtil");
 

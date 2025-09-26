@@ -1,6 +1,6 @@
 // const fs = require('fs');
 // const path = require('path');
-const util = global.requireUtil();
+const util = require('../common/util');
 const execa = require('./ownExeca');
 const pathUtil = require("./pathUtil");
 const logger = require("../config/logger");

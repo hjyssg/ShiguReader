@@ -6,6 +6,7 @@ const serverUtil = require("../utils/serverUtil");
 // const util = global.requireUtil();
 const historyDb = require("../models/historyDB");
 const pathUtil = require("../utils/pathUtil");
+const appState = require('../state/appState');
 const memorycache = require('memory-cache');
 const path = require("path");
 const _ = require('underscore');
@@ -34,7 +35,7 @@ router.get('/api/homePagePath', serverUtil.asyncWrapper(async (req, res) => {
     }
 
     let hdd_list = global.hdd_list;
-    let scan_pathes = global.SCANED_PATH; //await db.getAllScanPath();
+    let scan_pathes = appState.getScannedPaths();
 
     // quick Access
     let quickAccess = global.quick_access_pathes;

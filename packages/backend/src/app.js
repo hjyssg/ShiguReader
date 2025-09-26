@@ -1,33 +1,67 @@
 const path = require('path');
-const fs = require('fs');
 const express = require('express');
 const pfs = require('promise-fs');
 const dateFormat = require('dateformat');
 const _ = require('underscore');
 const qrcode = require('qrcode-terminal');
-const ini = require('ini');
-const chokidar = require('chokidar');
-
 
 global.isWindows = require('is-windows')();
-global.requireUtil = () => require("./common/util");
-global.requireUserConfig = () => require("./config/user-config");
-global.requireConstant = () => require("./common/constant");
 
 const execa = require('./utils/ownExeca');
-const userConfig = global.requireUserConfig();
-const util = global.requireUtil();
-
-const pathUtil = require("./utils/pathUtil");
-pathUtil.init();
-const serverUtil = require("./utils/serverUtil");
-const { getHash, mkdirSync, asyncWrapper } = serverUtil;
-const filewatch = require("./services/fileWatchers/filewatch");
-const thumbnailUtil = require("./services/getThumbnailUtil");
+const util = require('./common/util');
+const userConfig = require('./config/user-config');
+const pathUtil = require('./utils/pathUtil');
+const serverUtil = require('./utils/serverUtil');
+const { getHash, asyncWrapper } = serverUtil;
+const filewatch = require('./services/fileWatchers/filewatch');
+const thumbnailUtil = require('./services/getThumbnailUtil');
+const initializeEnvironment = require('./bootstrap/environment');
+const loadConfig = require('./bootstrap/loadConfig');
+const createWatchManager = require('./bootstrap/watchManager');
+const appState = require('./state/appState');
 
 const { isHiddenFile, splitFilesByType, isExist, filterPathConfig, isSub, estimateIfFolder } = pathUtil;
 
-// 将压缩文件内的条目路径解析成解压后的绝对路径，并确保不会跳出目标目录
+const { isImage, isCompress, isVideo, isMusic, getCurrentTime } = util;
+
+const environment = initializeEnvironment();
+const {
+    rootPath,
+    cachePath,
+    thumbnailFolderPath,
+    workspacePath,
+    distPath,
+    indexHtmlPath,
+    bundleJsPath,
+    etcConfigPath,
+    pathConfigPath,
+} = environment;
+
+appState.setPaths({ cachePath, thumbnailFolderPath });
+appState.setScannedPaths([]);
+
+console.log("------path debug-----------------------------------------------");
+console.log("__filename:         ", __filename);
+console.log("__dirname:          ", __dirname);
+console.log("process.execPath:   ", process.execPath);
+console.log("process.cwd():      ", process.cwd());
+console.log("global.isPkg:       ", global.isPkg);
+console.log("rootPath:           ", rootPath);
+console.log("distPath:           ", distPath);
+console.log("indexHtmlPath:      ", indexHtmlPath);
+console.log("bundleJsPath:       ", bundleJsPath);
+console.log("etf_config_path:    ", etcConfigPath);
+console.log("path_config_path:   ", pathConfigPath);
+console.log("workspacePath:      ", workspacePath);
+console.log("----------------------------------------------------------------");
+
+const logger = require('./config/logger');
+logger.init();
+
+const sevenZipHelp = require('./services/sevenZipHelp');
+sevenZipHelp.init();
+const { listZipContentAndUpdateDb, extractAll, extractByRange } = sevenZipHelp;
+
 const resolveExtractedEntry = (baseOutputPath, entryPath) => {
     if (!entryPath) {
         return null;
@@ -37,53 +71,6 @@ const resolveExtractedEntry = (baseOutputPath, entryPath) => {
     const candidate = path.resolve(normalizedBase, normalizedEntry);
     return isSub(normalizedBase, candidate) ? candidate : null;
 };
-const { isImage, isCompress, isVideo, isMusic, 
-    getCurrentTime, isDisplayableInExplorer, isDisplayableInOnebook } = util;
-
-//set up path
-const rootPath = pathUtil.getRootPath();
-const { cache_folder_name, thumbnail_folder_name, view_img_folder } = userConfig
-const cachePath = path.join(rootPath, cache_folder_name);
-const thumbnailFolderPath = path.join(rootPath, thumbnail_folder_name);
-global.thumbnailFolderPath = thumbnailFolderPath;
-global.cachePath = cachePath;
-const indexHtmlPath = path.resolve(rootPath, "dist", "index.html");
-const bundleJsPath = path.resolve(rootPath, "dist", "bundle.js");
-const distPath = path.resolve(rootPath, "dist");
-const etf_config_path = path.resolve(rootPath, "config-etc.ini");
-const path_config_path = path.join(rootPath, "config-path.ini");
-const workspacePath = pathUtil.getWorkSpacePath();
-console.log("------path debug-----------------------------------------------");
-console.log("__filename:         ", __filename);
-console.log("__dirname:          ", __dirname);
-console.log("process.execPath:   ", process.execPath);
-console.log("process.cwd():      ", process.cwd());
-console.log("global.isPkg:       ", global.isPkg)
-console.log("rootPath:           ", rootPath);
-console.log("distPath:           ", distPath);
-console.log("indexHtmlPath:      ", indexHtmlPath);
-console.log("bundleJsPath:       ", bundleJsPath);
-console.log("etf_config_path:    ", etf_config_path);
-console.log("path_config_path:   ", path_config_path);
-console.log("workspacePath:      ", workspacePath);
-console.log("----------------------------------------------------------------");
-
-// 会被监视扫描的文件夹、现在既存在global也存在db。之前想做分布式server，但又算了。
-global.SCANED_PATH = [];
-
-// mkdir
-mkdirSync(workspacePath);
-mkdirSync(thumbnailFolderPath);
-mkdirSync(cachePath);
-mkdirSync(pathUtil.getImgConverterCachePath());
-
-const logger = require("./config/logger");
-logger.init();
-
-const sevenZipHelp = require("./services/sevenZipHelp");
-sevenZipHelp.init();
-const { listZipContentAndUpdateDb, extractAll, extractByRange } = sevenZipHelp;
-
 // 从用户命令拿port和其他参数
 const portConfig = require('./config/port-config');
 const { program } = require('commander');
@@ -113,6 +100,16 @@ const zipInfoDb = require("./models/zipInfoDb");
 const thumbnailDb = require("./models/thumbnailDb");
 const historyDb = require("./models/historyDB");
 const cacheDb = require("./models/cacheDb");
+
+const watchManager = createWatchManager({
+    cacheDb,
+    db,
+    filewatch,
+    zipInfoDb,
+    thumbnailDb,
+    viewImgFolder: userConfig.view_img_folder,
+});
+const { addDirsToWatch, setUpCacheWatch, filterScanPaths } = watchManager;
 
 // 防止系统过载
 const pLimit = require('p-limit');
@@ -145,24 +142,14 @@ const cookieParser = require('cookie-parser')
 app.use(cookieParser())
 
 //read etc config
-let etc_config = {};
-let path_config;
-try {
-    // console.log("read ini....")
-    let fcontent = fs.readFileSync(etf_config_path, 'utf-8');
-    etc_config = ini.parse(fcontent);
-    global.etc_config = etc_config;
-    // console.log(etf_config_path);
-
-    const fContent1 = fs.readFileSync(path_config_path).toString();
-    path_config = ini.parse(fContent1);
-    // console.log("read done ")
-    // console.log(path_config_path);
-} catch (e) {
-    //nothing
-    logger.warn("fail to read ini files")
-    logger.warn(e);
-}
+const { etcConfig: loadedEtcConfig, pathConfig: loadedPathConfig } = loadConfig({
+    etcConfigPath,
+    pathConfigPath,
+    logger,
+});
+let etc_config = loadedEtcConfig || {};
+let path_config = loadedPathConfig;
+global.etc_config = etc_config;
 
 const internalIp = require('internal-ip');
 async function getIP(){
@@ -220,38 +207,22 @@ async function init() {
 
     const server = app.listen(port, async () => {
         const filterPathConfigObj = await filterPathConfig(path_config, skipScan);
-        global = {
-            ...global,
-            ...filterPathConfigObj
-        };
-        let scan_path = filterPathConfigObj.scan_path;
-        serverUtil.mkdirList(scan_path)
-        scan_path = await pathUtil.filterNonExist(scan_path);
+        Object.assign(global, filterPathConfigObj);
 
+        let scan_path = await pathUtil.filterNonExist(filterPathConfigObj?.scan_path || []);
+        serverUtil.mkdirList(scan_path);
+        appState.setScannedPaths(scan_path);
 
         if(!skipCacheClean){
             cleanCache(cachePath);
         }
         setUpCacheWatch();
 
-        //因为scan path内部有sub parent重复关系，避免重复的
-        let will_scan = _.sortBy(scan_path, e => e.length); //todo
-        for (let ii = 0; ii < will_scan.length; ii++) {
-            for (let jj = ii + 1; jj < will_scan.length; jj++) {
-                const p1 = will_scan[ii];
-                const p2 = will_scan[jj];
-
-                if (pathUtil.isSub(p1, p2)) {
-                    will_scan[jj] = "_to_remove_";
-                }
-            }
-        }
-        will_scan = will_scan.filter(e => e !== "_to_remove_");
+        const will_scan = filterScanPaths(scan_path);
 
         printIP();
 
-        //todo: chokidar will slow the server down very much when it init async
-        add_dirs_to_watch(will_scan)
+        await addDirsToWatch(will_scan);
         
     }).on('error', async (error) => {
         logger.error("[Server Init]", error.message);
@@ -259,122 +230,6 @@ async function init() {
         await serverUtil.suspend();
         process.exit(22);
     });
-}
-
-
-
-/**
- * 设置cache folder的监听，其实没啥意义。
- */
-function setUpCacheWatch() {
-    function shouldIgnoreForCache(p, stat) {
-        return !shouldWatchForCache(p, stat);
-    }
-    
-    function shouldWatchForCache(fp, stat) {
-        if (isHiddenFile(fp)) {
-            return false;
-        }
-    
-        if (pathUtil.estimateIfFolder(fp) ||  (stat && stat.isDirectory())) {
-            // 文件夹
-            return true;
-        }
-        
-        return true;
-    }
-
-    //also for cache files
-    const cacheWatcher = chokidar.watch(cachePath, {
-        ignored: shouldIgnoreForCache,
-        persistent: true,
-        ignorePermissionErrors: true,
-        ignoreInitial: true,
-    });
-
-    const addCallBack = (fp, stats) => {
-        cacheDb.updateStatToCacheDb(fp, stats);
-    }
-
-    cacheWatcher
-        .on('add', addCallBack)
-        .on('addDir', addCallBack)
-    //     .on('unlink', (fp, stats) => {
-    //         // cacheDb.deleteFromCacheDb(p);
-    //         console.log(fp, stats);
-    //     });
-}
-
-
-/** this function decide which files will be scanned and watched by ShiguReader  */
-function shouldScan(fp, stat) {
-    //cache is cover by another watch
-    if (fp.includes(cachePath)) {
-        return false;
-    }
-
-    if (isHiddenFile(fp) || pathUtil.isForbid(fp)) {
-        return false;
-    }
-
-    //if ignore, chokidar wont check its content
-    if (stat && stat.isDirectory()) {
-        return true;
-    }
-
-    const ext = pathUtil.getExt(fp);
-    let result = estimateIfFolder(fp) || isDisplayableInExplorer(ext);
-
-    if (view_img_folder) {
-        result = result || isDisplayableInOnebook(ext)
-    }
-    return result;
-}
-
-function shouldIgnoreForNormal(fp, stat) {
-    return !shouldScan(fp, stat);
-}
-
-/** 文件被删除时，去相关数据库删除信息 */
-const deleteCallBack = fp => {
-    db.deleteFromDb(fp);
-    zipInfoDb.deleteFromZipDb(fp);
-    thumbnailDb.deleteThumbnail(fp)
-};
-
-// const moveCallBack = async (oldfilePath, newfilePath) => {
-//     // 现在 delete和insert被chokidar callback代劳了 
-//     // 重复进行太容易出bug了
-// }
-
-
-/**
- * 服务器使用中途添加监听扫描path
- */
-async function add_dirs_to_watch(dirPathes) {
-    if(dirPathes.length == 0){
-        return;
-    }
-
-    // console.log(`[chokidar addNewFileWatch] [${dirPathes.join(",")}] begin...`);
-
-    // add to scan_path
-    // todo 不严谨 会出现重复添加
-  
-
-    for (let filePath of dirPathes){
-        await filewatch.fastFileIterate({
-            filePath,
-            db, 
-            shouldIgnoreForNormal
-        });
-        await filewatch.addWatch({
-            folderPath: filePath, 
-            deleteCallBack, 
-            shouldScan, 
-            db
-        })
-    }
 }
 
 app.post('/api/addNewFileWatchAfterInit', serverUtil.asyncWrapper(async (req, res) => {
@@ -390,7 +245,7 @@ app.post('/api/addNewFileWatchAfterInit', serverUtil.asyncWrapper(async (req, re
         return;
     }
 
-    add_dirs_to_watch([filePath])
+    await addDirsToWatch([filePath]);
     res.send({ failed: false });
 }));
 

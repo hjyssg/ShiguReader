@@ -5,7 +5,7 @@ const {
   searchByText,
   _searchByTag_,
 } = require("../utils/searchUtil");
-const Constant = global.requireConstant();
+const Constant = require('../common/constant');
 const { MODE_TAG, MODE_AUTHOR, MODE_SEARCH } = Constant;
 const path = require("path");
 const serverUtil = require("../utils/serverUtil");

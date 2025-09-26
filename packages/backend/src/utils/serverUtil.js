@@ -1,4 +1,4 @@
-const util = global.requireUtil();
+const util = require('../common/util');
 const path = require('path');
 const stringHash = require("string-hash");
 const nameParser = require('../name-parser');
@@ -8,8 +8,9 @@ const fs = require('fs');
 const logger = require("../config/logger");
 const pfs = require('promise-fs');
 const pathUtil = require("./pathUtil");
-const userConfig = global.requireUserConfig();
+const userConfig = require('../config/user-config');
 const net = require('net');
+const appState = require('../state/appState');
 
 /*
 *  cache folder name and thumbnail file name
@@ -214,7 +215,7 @@ const joinThumbnailFolderPath = (thumbnailFileName) => {
     if(!thumbnailFileName){
         return "";
     }
-    return path.join(global.thumbnailFolderPath, thumbnailFileName);
+    return path.join(appState.getThumbnailFolderPath(), thumbnailFileName);
 }
 
 /**

@@ -2,7 +2,7 @@
 const express = require('express');
 const router = express.Router();
 // const serverUtil = require("../serverUtil");
-const util = global.requireUtil();
+const util = require('../common/util');
 const path = require('path');
 const historyDb = require("../models/historyDB");
 const serverUtil = require("../utils/serverUtil");

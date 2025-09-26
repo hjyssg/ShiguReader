@@ -2,6 +2,7 @@ const fs = require('fs').promises;
 const path = require('path');
 const chokidar = require('chokidar');
 const pathUtil = require("../../utils/pathUtil");
+const appState = require('../../state/appState');
 
 
 const getCurrentTime = function () {
@@ -119,7 +120,7 @@ const addWatch_chokidar = async ({ folderPath, deleteCallBack, shouldScan, db })
     })
 
     watchDescriptors[folderPath] = watcher;
-    global.SCANED_PATH = Object.keys(watchDescriptors);
+    appState.setScannedPaths(Object.keys(watchDescriptors));
 };
 
 const sane = require('sane');  // 性能确实比chokidar好
@@ -166,13 +167,14 @@ const addWatch_sane = async ({ folderPath, deleteCallBack, shouldScan, db }) => 
     });
 
     watchDescriptors[folderPath] = watcher;
-    global.SCANED_PATH = Object.keys(watchDescriptors).sort((a, b) => b.localeCompare(a));
+    appState.setScannedPaths(Object.keys(watchDescriptors).sort((a, b) => b.localeCompare(a)));
 };
 
 const { pathEqual } = require('path-equal');
 /** 判断一个dir path是不是在scan路径上 */
 function isAlreadyScan(dir) {
-    return dir && global.SCANED_PATH.some(sp => {
+    const scannedPaths = appState.getScannedPaths();
+    return dir && scannedPaths.some(sp => {
         return pathEqual(sp, dir) || pathUtil.isSub(sp, dir);
     });
 }

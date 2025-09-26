@@ -18,7 +18,7 @@ const { move, trash } = require("../services/moveDeleteHelp");
 const imageMagickHelp = require("../services/imageMagickHelp");
 imageMagickHelp.init();
 
-const util = global.requireUtil();
+const util = require('../common/util');
 
 const pLimit = require('p-limit');
 const minify_limit = pLimit(1);

@@ -1,7 +1,7 @@
 const path = require('path');
 const pfs = require('promise-fs');
 const execa = require('../utils/ownExeca');
-const userConfig = global.requireUserConfig();
+const userConfig = require('../config/user-config');
 const express = require('express');
 const router = express.Router();
 const logger = require("../config/logger");
@@ -12,7 +12,7 @@ const estimateFileTable = require("../services/estimateFileTable");
 const pathUtil = require("../utils/pathUtil");
 const { isExist } = pathUtil;
 
-const util = global.requireUtil();
+const util = require('../common/util');
 
 
 const serverUtil = require("../utils/serverUtil");

@@ -1,4 +1,4 @@
-const util = global.requireUtil();
+const util = require('../common/util');
 const { isImage, isMusic, isCompress, isVideo } = util;
 const _ = require('underscore');
 
