@@ -17,6 +17,7 @@ const util = require('../common/util');
 
 const serverUtil = require("../utils/serverUtil");
 const { mkdir } = serverUtil;
+const { deleteCallBack } = require('../services/serverCommon');
 
 const sevenZipHelp = require("../services/sevenZipHelp");
 
@@ -149,7 +150,7 @@ router.post('/api/deleteFile', serverUtil.asyncWrapper(async (req, res) => {
         logger.info(`[DELETE] ${src}`);
         estimateFileTable.onDelete(src).catch(e=>logger.error(e));
 
-        serverUtil.common.deleteCallBack(src);
+        deleteCallBack(src);
     } catch (e) {
         logger.error(e);
         res.send({ reason: file_occupy_warning, failed: true });

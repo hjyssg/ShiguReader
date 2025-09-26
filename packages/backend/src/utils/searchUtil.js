@@ -1,5 +1,6 @@
 
 const serverUtil = require("./serverUtil");
+const { decorateResWithMeta } = require('../services/serverCommon');
 const db = require("../models/db");
 const util = require('../common/util');
 const path = require('path');
@@ -175,7 +176,7 @@ async function searchGenerally(tag, author, text, onlyNeedFew) {
     }
 
     // console.time("decorate");
-    result = await serverUtil.common.decorateResWithMeta(result);
+    result = await decorateResWithMeta(result);
     // console.timeEnd("decorate");
 
     return result;

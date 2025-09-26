@@ -15,6 +15,7 @@ const serverUtil = require('./utils/serverUtil');
 const { getHash, asyncWrapper } = serverUtil;
 const filewatch = require('./services/fileWatchers/filewatch');
 const thumbnailUtil = require('./services/getThumbnailUtil');
+const { getStatAndUpdateDB } = require('./services/serverCommon');
 const initializeEnvironment = require('./bootstrap/environment');
 const loadConfig = require('./bootstrap/loadConfig');
 const createWatchManager = require('./bootstrap/watchManager');
@@ -105,8 +106,6 @@ const watchManager = createWatchManager({
     cacheDb,
     db,
     filewatch,
-    zipInfoDb,
-    thumbnailDb,
     viewImgFolder: userConfig.view_img_folder,
 });
 const { addDirsToWatch, setUpCacheWatch, filterScanPaths } = watchManager;
@@ -334,110 +333,6 @@ async function findLatestFileInFolder(dirPath, matcher){
 
     return sorted[0] || null;
 }
-
-
-/** 获得file stat同时保存到db */
-async function getStatAndUpdateDB(filePath) {
-    const stat = await pfs.stat(filePath);
-    if (filewatch.isAlreadyScan(filePath)) {
-        db.updateStatToDb(filePath, stat);
-    }
-    return stat;
-}
-
-
-/**
- * 给lsdir search res添加信息。比如thumbnail，zipinfo。不使用sql是因为有部分filePath没存在数据库
- */
-async function decorateResWithMeta(resObj) {
-    const { fileInfos, dirs, imgFolders } = resObj;
-    console.assert(fileInfos && dirs && imgFolders);
-
-    const files = _.keys(fileInfos);
-
-    //------------------- thumbnails
-    const thumbnails = await thumbnailUtil.getThumbnailsForZip(files);
-    _.keys(thumbnails).forEach(filePath=> {
-        if(!fileInfos[filePath]){
-            return;
-        }
-        const e = thumbnails[filePath];
-        fileInfos[filePath].thumbnailFilePath = e;
-    })
-
-
-    //------------------------------- zipInfo
-    const zipInfoRows = zipInfoDb.getZipInfo(files);
-    zipInfoRows.forEach(e => { 
-        if(!fileInfos[e.filePath]){
-            return;
-        }
-        fileInfos[e.filePath] = {
-            ...fileInfos[e.filePath],
-            pageNum: e.pageNum,
-            musicNum: e.musicNum,
-            videoNum: e.videoNum,
-            totalNum: e.totalNum,
-            totalImgSize: e.totalImgSize,
-        }
-        fileInfos[e.filePath].mtimeMs = fileInfos[e.filePath].mtimeMs || e.mtime;
-        fileInfos[e.filePath].size = fileInfos[e.filePath].size || e.totalSize;
-    })
-
-    //------------------------ imgFolderInfo
-    const imgFolderInfo = db.getImgFolderInfo(imgFolders);
-    resObj.imgFolderInfo = imgFolderInfo;
-
-    //-------------------- history
-    const pathes_for_history = [...files, ..._.keys(imgFolderInfo)];
-    resObj.fileHistory = await historyDb.getBatchFileHistory(pathes_for_history);
-
-    //----------------------------- ParseCache
-    resObj.nameParseCache = {};
-    [...files, ..._.keys(imgFolderInfo), ...dirs].forEach(fp => {
-        const fn = path.basename(fp);
-        const temp = serverUtil.parse(fn);
-        if(temp){
-            resObj.nameParseCache[fn] = temp;
-        }
-    })
-
-    // const allowZipInfo = ["pageNum", "musicNum", "videoNum", "totalNum", "totalImgSize"];
-    // for(const tempFilePath in zipInfo){
-    //     const zipObj = zipInfo[tempFilePath];
-    //     // 把zipinfo的mtime合并到fileInfos
-    //     if(zipObj.mtime){
-    //         fileInfos[tempFilePath] = fileInfos[tempFilePath] || {};
-    //         if(!fileInfos[tempFilePath].mtimeMs){
-    //             fileInfos[tempFilePath].mtimeMs = zipObj.mtime;
-    //         }
-    //     }
-    //     // 并精简obj
-    //     zipInfo[tempFilePath] = filterObjectProperties(zipObj, allowZipInfo);
-    // }
-
-    // resObj说明：
-
-    // [deprecated] thumbnails:    filePath-> thumbnail filePath
-    // [deprecated] zipInfo:       filePath-> zipInfo (和fileinfos互补)
-    // [deprecated] imgFolders:    folderPath -> [ file filepath ... ]
-
-    // dirs:          [dir filepath...]
-    // fileInfos:     filePath-> fileInfo (不仅有zip，还有video和music)
-    // imgFolderInfo: folderPath-> folderinfo
-    // mode: 是否lack_info_mode
-    // "tag", "author", "path" 查询时用的参数
-    // 检查
-    const allowedKeys = [ "dirs", "mode", "tag", "path", "author", "fileInfos", 
-                          "imgFolderInfo", "fileHistory", "nameParseCache"];
-    // resObj = filterObjectProperties(resObj, allowedKeys, true);
-    // checkKeys(resObj, allowedKeys);
-    resObj = serverUtil.filterObjectProperties(resObj, allowedKeys);
-
-    return resObj;
-}
-
-  
 
 
 
@@ -1038,12 +933,6 @@ app.post('/api/extract', asyncWrapper(async (req, res) => {
         current_extract_queue[filePath] = "done"
     }
 }));
-
-serverUtil.common = {
-    deleteCallBack,
-    decorateResWithMeta,
-    getStatAndUpdateDB
-}
 
 let server_ip;
 app.get('/api/getGeneralInfo', asyncWrapper(async (req, res) => {

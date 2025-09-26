@@ -3,11 +3,12 @@ const _ = require('underscore');
 const util = require('../common/util');
 const pathUtil = require('../utils/pathUtil');
 const appState = require('../state/appState');
+const { deleteCallBack } = require('../services/serverCommon');
 
 const { isHiddenFile, estimateIfFolder, isSub, getExt } = pathUtil;
 const { isDisplayableInExplorer, isDisplayableInOnebook } = util;
 
-function createWatchManager({ cacheDb, db, filewatch, zipInfoDb, thumbnailDb, viewImgFolder }) {
+function createWatchManager({ cacheDb, db, filewatch, viewImgFolder }) {
     const cachePath = appState.getCachePath();
 
     function shouldWatchForCache(fp, stat) {
@@ -61,12 +62,6 @@ function createWatchManager({ cacheDb, db, filewatch, zipInfoDb, thumbnailDb, vi
     function shouldIgnoreForNormal(fp, stat) {
         return !shouldScan(fp, stat);
     }
-
-    const deleteCallBack = fp => {
-        db.deleteFromDb(fp);
-        zipInfoDb.deleteFromZipDb(fp);
-        thumbnailDb.deleteThumbnail(fp);
-    };
 
     async function addDirsToWatch(dirPaths) {
         if (!Array.isArray(dirPaths) || dirPaths.length === 0) {

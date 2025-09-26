@@ -9,6 +9,7 @@ const logger = require("../config/logger");
 const db = require("../models/db");
 
 const serverUtil = require("../utils/serverUtil");
+const { getStatAndUpdateDB, deleteCallBack } = require('../services/serverCommon');
 
 const sevenZipHelp = require("../services/sevenZipHelp");
 const { listZipContentAndUpdateDb } = sevenZipHelp;
@@ -47,7 +48,7 @@ router.post('/api/overwrite', serverUtil.asyncWrapper(async (req, res) => {
         res.send({ failed: true, reason: "still in minify queue" });
     }
 
-    const newFileStat = await serverUtil.common.getStatAndUpdateDB(filePath);
+    const newFileStat = await getStatAndUpdateDB(filePath);
     const temp = await listZipContentAndUpdateDb(filePath);
     const newFileImgs = temp.files;
 
@@ -74,7 +75,7 @@ router.post('/api/overwrite', serverUtil.asyncWrapper(async (req, res) => {
         if (ppFn === fn) {
             const oldTemp = await listZipContentAndUpdateDb(fp);
             const oldFileImgs = oldTemp.files;
-            const oldFileStat = await serverUtil.common.getStatAndUpdateDB(fp);
+            const oldFileStat = await getStatAndUpdateDB(fp);
 
             if (oldFileStat.size > newFileStat.size && imageMagickHelp.isNewZipSameWithOriginalFiles(newFileImgs, oldFileImgs)) {
                 originalFilePath = fp;
@@ -87,7 +88,7 @@ router.post('/api/overwrite', serverUtil.asyncWrapper(async (req, res) => {
         //do the overwrite
         await trash(originalFilePath);
         // 删除旧的zip信息
-        serverUtil.common.deleteCallBack(originalFilePath);
+        deleteCallBack(originalFilePath);
 
         const newPath = path.join(path.dirname(originalFilePath), path.basename(filePath));
         const { stdout, stderr } = move(filePath, newPath);

@@ -258,8 +258,6 @@ function shrinkFp(fp){
 }
 
 module.exports = {
-    common: {}, //用来避免循环引用的函数object
-
     getHash,
     sortFileNames,
     chooseThumbnailImage,

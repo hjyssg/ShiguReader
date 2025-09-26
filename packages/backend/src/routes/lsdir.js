@@ -12,6 +12,7 @@ const {
 } = pathUtil;
 
 const serverUtil = require("../utils/serverUtil");
+const { decorateResWithMeta } = require('../services/serverCommon');
 const db = require("../models/db");
 const util = require('../common/util');
 const { getCurrentTime, isImage, isMusic, isCompress, isVideo } = util;
@@ -38,7 +39,7 @@ router.post('/api/lsDir', serverUtil.asyncWrapper(async (req, res) => {
 
     if (!filewatch.isAlreadyScan(dir)) {
         let result = await listNoScanDir(dir, res);
-        result = await serverUtil.common.decorateResWithMeta(result);
+        result = await decorateResWithMeta(result);
         historyDb.addOneLsDirRecord(dir);
         res.send(result);
         return;
@@ -123,7 +124,7 @@ router.post('/api/lsDir', serverUtil.asyncWrapper(async (req, res) => {
             imgFolders
         };
 
-        result = await serverUtil.common.decorateResWithMeta(result);
+        result = await decorateResWithMeta(result);
         const time3 = getCurrentTime();
         timeUsed = (time3 - time2);
         // console.log("[/api/LsDir] decorateResWithMeta", timeUsed, "ms")
