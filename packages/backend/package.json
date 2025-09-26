@@ -16,7 +16,7 @@
     "assets": [
       "/dist/*",
        "/resource/**/*",
-      "/node_modules/sqlite3/lib/binding/binding/napi-v6-win32-unknown-x64/*",
+      "/node_modules/better-sqlite3/build/Release/*",
       "/node_modules/.store/registry-js@1.15.1/node_modules/registry-js/build/Release/*"
     ],
     "targets": [
@@ -52,7 +52,7 @@
     "qrcode-terminal": "^0.12.0",
     "sane": "^5.0.1",
     "sharp": "^0.33.5",
-    "sqlite3": "^5.1.6",
+    "better-sqlite3": "^11.1.2",
     "string-hash": "^1.1.3",
     "trash": "^9.0.0",
     "underscore": "^1.9.1",

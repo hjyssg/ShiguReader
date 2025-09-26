@@ -1,30 +1,62 @@
-const sqlite3 = require('sqlite3').verbose();
-const util = require('util');
+const Database = require('better-sqlite3');
 const logger = require("../config/logger");
 
-class SQLWrapper extends sqlite3.Database {
+class SQLWrapper {
     constructor(filePath) {
-        super(filePath, (err) => {
-            if (err) {
-                logger.error("[SQLWrapper] Failed to open database at " + filePath);
-                logger.error(err);
-                throw err;
-            }
+        try {
+            this.db = new Database(filePath);
             logger.info("[SQLWrapper] Database loaded successfully at " + filePath);
-        });
+        } catch (err) {
+            logger.error("[SQLWrapper] Failed to open database at " + filePath);
+            logger.error(err);
+            throw err;
+        }
+    }
 
-        // Promisify async methods
-        this.allSync = util.promisify(this.all).bind(this);
-        this.getSync = util.promisify(this.get).bind(this);
-        this.runSync = util.promisify(this.run).bind(this);
-        this.execSync = util.promisify(this.exec).bind(this);
-        this.getSync = util.promisify(this.get).bind(this);
+    static _normalizeParams(params) {
+        if (params === undefined || params === null) {
+            return [];
+        }
+        return Array.isArray(params) ? params : [params];
+    }
 
+    async allSync(sql, params) {
+        const statement = this.db.prepare(sql);
+        const normalized = SQLWrapper._normalizeParams(params);
+        return statement.all(...normalized);
+    }
 
-        // sqldb.allSync = _util.promisify(sqldb.all).bind(sqldb);
-        // sqldb.getSync = _util.promisify(sqldb.get).bind(sqldb);
-        // sqldb.runSync = _util.promisify(sqldb.run).bind(sqldb);
-        // sqldb.execSync = _util.promisify(sqldb.exec).bind(sqldb);
+    async getSync(sql, params) {
+        const statement = this.db.prepare(sql);
+        const normalized = SQLWrapper._normalizeParams(params);
+        return statement.get(...normalized);
+    }
+
+    async runSync(sql, params) {
+        const statement = this.db.prepare(sql);
+        const normalized = SQLWrapper._normalizeParams(params);
+        return statement.run(...normalized);
+    }
+
+    async execSync(sql) {
+        this.db.exec(sql);
+    }
+
+    prepare(sql) {
+        const statement = this.db.prepare(sql);
+        statement.allSync = async (params) => {
+            const normalized = SQLWrapper._normalizeParams(params);
+            return statement.all(...normalized);
+        };
+        statement.getSync = async (params) => {
+            const normalized = SQLWrapper._normalizeParams(params);
+            return statement.get(...normalized);
+        };
+        statement.runSync = async (params) => {
+            const normalized = SQLWrapper._normalizeParams(params);
+            return statement.run(...normalized);
+        };
+        return statement;
     }
 
     async insertOneRow(tableName, rowObj) {
