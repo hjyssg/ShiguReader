@@ -70,7 +70,7 @@ export const NoScanAlertArea = ({ filePath }) => {
 
     const askSendScan = () => {
         Swal.fire({
-            title: "Scan this Folder (but it will take time)",
+            title: "Scan Folder",
             showCancelButton: true,
             confirmButtonText: 'Yes',
             cancelButtonText: 'No'
@@ -90,7 +90,7 @@ export const NoScanAlertArea = ({ filePath }) => {
         <div className="alert alert-warning" role="alert" >
             <div>{`${filePath} is not included in config-path`}</div>
             <div style={{ marginBottom: "5px" }}>{`It's usable but still missing important features like tags and search.`}</div>
-            <div className="scan-button" onClick={askSendScan}>Scan this Folder (but it will take time)</div>
+            <div className="scan-button" onClick={askSendScan}>Scan Folder</div>
         </div>)
 }
 
@@ -101,16 +101,63 @@ export const FileCountPanel = ({ filteredFiles, filteredVideos, info }) => {
     const totalSize = totalZipSize + totalVideoSize;
     const title = `${filesizeUitl(totalZipSize)} zips and ${filesizeUitl(totalVideoSize)} videos`
     const totalPageNum = info.countAllFilePageNum(filteredFiles);
+    const fileCountItems = [
+        {
+            key: 'zip',
+            icon: 'fas fa-archive',
+            label: 'Zip',
+            value: filteredFiles.length,
+        },
+        {
+            key: 'page',
+            icon: 'fas fa-file-alt',
+            label: 'Page',
+            value: totalPageNum,
+        },
+        {
+            key: 'video',
+            icon: 'fas fa-video',
+            label: 'Video',
+            value: filteredVideos.length,
+        },
+        {
+            key: 'music',
+            icon: 'fas fa-music',
+            label: 'Music',
+            value: info.musicFiles.length,
+        },
+        {
+            key: 'image',
+            icon: 'fas fa-images',
+            label: 'Image',
+            value: info.imageFiles.length,
+        },
+        {
+            key: 'folder',
+            icon: 'fas fa-folder-open',
+            label: 'Folder',
+            value: info.dirs.length,
+        },
+        {
+            key: 'total',
+            icon: 'fas fa-database',
+            label: 'Total',
+            value: filesizeUitl(totalSize),
+            title,
+        },
+    ];
     return (
         <div className="row">
             <div className="col-12 file-count-row">
-                <div className="file-count">{"Zip: " + filteredFiles.length} </div>
-                <div className="file-count">{"Page: " + totalPageNum} </div>
-                <div className="file-count">{"Video: " + filteredVideos.length} </div>
-                <div className="file-count">{"Music: " + info.musicFiles.length} </div>
-                <div className="file-count">{"Image: " + info.imageFiles.length} </div>
-                <div className="file-count">{"Folder: " + info.dirs.length} </div>
-                <div className="file-count" title={title}>{"Total: " + filesizeUitl(totalSize)} </div>
+                {fileCountItems.map(({ key, icon, label, value, title: itemTitle }) => (
+                    <div className="file-count" key={key} title={itemTitle}>
+                        <i className={`file-count__icon ${icon}`} aria-hidden="true"></i>
+                        <div className="file-count__content">
+                            <div className="file-count__label">{label}</div>
+                            <div className="file-count__value">{value}</div>
+                        </div>
+                    </div>
+                ))}
             </div>
         </div>
     );
