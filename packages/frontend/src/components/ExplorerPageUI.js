@@ -70,7 +70,7 @@ export const NoScanAlertArea = ({ filePath }) => {
 
     const askSendScan = () => {
         Swal.fire({
-            title: "Scan this Folder (but it will take time)",
+            title: "Scan Folder",
             showCancelButton: true,
             confirmButtonText: 'Yes',
             cancelButtonText: 'No'
@@ -90,7 +90,7 @@ export const NoScanAlertArea = ({ filePath }) => {
         <div className="alert alert-warning" role="alert" >
             <div>{`${filePath} is not included in config-path`}</div>
             <div style={{ marginBottom: "5px" }}>{`It's usable but still missing important features like tags and search.`}</div>
-            <div className="scan-button" onClick={askSendScan}>Scan this Folder (but it will take time)</div>
+            <div className="scan-button" onClick={askSendScan}>Scan Folder</div>
         </div>)
 }
 

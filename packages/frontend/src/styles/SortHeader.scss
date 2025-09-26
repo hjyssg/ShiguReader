@@ -16,7 +16,7 @@ $sb-hover: lighten($bacground_level_two, 6%);
   align-items: stretch;
   gap: 12px;
   padding: 12px 14px;
-  border-radius: 14px;
+  border-radius: 0.25rem;
   background: $sb-panel;
   color: $sb-text;
   border: 1px solid $sb-pill-border;
