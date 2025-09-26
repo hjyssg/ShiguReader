@@ -16,6 +16,7 @@
   "author": "aji47",
   "license": "MIT",
   "dependencies": {
+    "@fortawesome/fontawesome-free": "^7.0.1",
     "chart.js": "^4.3.0",
     "classnames": "^2.2.6",
     "dateformat": "^3.0.3",

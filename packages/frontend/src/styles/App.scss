@@ -81,15 +81,23 @@ a {
         padding: 12px 12px;
         text-decoration: none;
         font-size: 15px;
+        gap: 6px;
+        color: $font_color_white_one;
 
         @media screen and (min-width: 1000px) {
           &:hover {
             @include hover_effect;
-
-            i {
-              @include hover_effect;
-            }
           }
+        }
+
+        i {
+          display: inline-flex;
+          align-items: center;
+          color: inherit;
+        }
+
+        span {
+          color: inherit;
         }
       }
     }
