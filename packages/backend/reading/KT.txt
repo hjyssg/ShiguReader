@@ -15,7 +15,7 @@ TagPage显示tag列表或者作者列表
 
 后端：
 MVC。
-route里面的是view，model里面的是data，server/index.js是controller。
+route里面的是view，model里面的是data，app.js是controller。
 1. chokidar不是百分百可靠
 2. 磁盘系统IO很贵。每次做的时候顺带更新数据库。
 
