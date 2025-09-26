@@ -56,7 +56,10 @@ class LoginPage extends Component {
                 <button onClick={this.setPasswordCookie.bind(this)}> Login </button>
                 <div id="log-err"> {this.state.errMessage} </div>
                 <div className="author-link">
-                    <a className="fab fa-github" title="Aji47's Github" href="https://github.com/hjyssg/ShiguReader" target="_blank"> Created By Aji47 </a>
+                    <a className="author-link-item" title="Aji47's Github" href="https://github.com/hjyssg/ShiguReader" target="_blank" rel="noreferrer">
+                        <i className="fab fa-github author-link-icon" aria-hidden="true"></i>
+                        <span className="author-link-text">Created By Aji47</span>
+                    </a>
                 </div>
             </div>
         </React.Fragment>);

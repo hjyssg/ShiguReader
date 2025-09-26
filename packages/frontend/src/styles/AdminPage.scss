@@ -71,9 +71,18 @@
     margin-top: 10px;
     margin-bottom: 10px;
 
-    a {
+    .author-link-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
       font-size: 1.2rem;
       color: $font_color_black_two;
+      text-decoration: none;
+      white-space: nowrap;
+
+      .author-link-icon {
+        color: inherit;
+      }
     }
   }
 }
