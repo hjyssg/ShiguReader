@@ -42,10 +42,12 @@ router.post('/api/overwrite', serverUtil.asyncWrapper(async (req, res) => {
 
     if (!filePath || !(await isExist(filePath))) {
         res.send({ failed: true, reason: "NOT FOUND" });
+        return;
     }
 
     if (minifyZipQue.includes(filePath)) {
         res.send({ failed: true, reason: "still in minify queue" });
+        return;
     }
 
     const newFileStat = await getStatAndUpdateDB(filePath);
