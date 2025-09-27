@@ -57,10 +57,10 @@ class SmartImage extends Component {
   }
 }
 
-//maybe combine with renderOneBookOverview into one file
+//maybe combine with renderBookOverviewPage into one file
 
 
-export default class OneBookWaterfall extends Component {
+export default class BookWaterfallPage extends Component {
   constructor(props) {
     super(props);
     this.state = {

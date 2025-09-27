@@ -156,8 +156,8 @@ module.exports.getAuthorLink = function (path) {
     return "/author/?a=" + encodeURIComponent(path);
 }
 
-module.exports.getOneBookLink = function (path, index) {
-    let temp = "/onebook/?p=" + encodeURIComponent(path);
+module.exports.getBookReadLink = function (path, index) {
+    let temp = "/book/?p=" + encodeURIComponent(path);
     index = parseInt(index);
     if(_.isNumber(index)){
         temp += "#index=" + index;
@@ -165,12 +165,12 @@ module.exports.getOneBookLink = function (path, index) {
     return temp;
 }
 
-module.exports.getOneBookOverviewLink = function (path) {
-    return "/onebookOverview/?p=" + encodeURIComponent(path);
+module.exports.getBookOverviewLink = function (path) {
+    return "/book-overview/?p=" + encodeURIComponent(path);
 }
 
-module.exports.getOneBookWaterfallLink = function (path) {
-    return "/onebookWaterfall/?p=" + encodeURIComponent(path);
+module.exports.getBookWaterfallLink = function (path) {
+    return "/book-waterfall/?p=" + encodeURIComponent(path);
 }
 
 module.exports.getVideoPlayerLink = function (path) {

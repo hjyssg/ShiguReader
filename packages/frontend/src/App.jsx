@@ -3,9 +3,9 @@ import '@styles/App.scss';
 import '@styles/_toast.scss';
 import '@styles/rc-pagination.scss';
 import ExplorerPage from '@pages/ExplorerPage';
-import OneBook from '@pages/OneBook';
-import OneBookOverview from '@pages/OneBookOverview';
-import OneBookWaterfall from '@pages/OneBookWaterfall';
+import BookReadPage from '@pages/BookReadPage';
+import BookOverviewPage from '@pages/BookOverviewPage';
+import BookWaterfallPage from '@pages/BookWaterfallPage';
 import VideoPlayer from '@pages/VideoPlayer';
 import TagPage from '@pages/TagPage';
 import ChartPage from '@pages/ChartPage';
@@ -123,9 +123,9 @@ class App extends Component {
     }
 
     RenderSubComponent() {
-        const renderOneBook = (props) => { return (<OneBook {...props} />) };
-        const renderOneBookOverview = (props) => { return (<OneBookOverview {...props} />) };
-        const renderOneBookWaterfall = (props) => { return (<OneBookWaterfall {...props} />) };
+        const renderBookReadPage = (props) => { return (<BookReadPage {...props} />) };
+        const renderBookOverviewPage = (props) => { return (<BookOverviewPage {...props} />) };
+        const renderBookWaterfallPage = (props) => { return (<BookWaterfallPage {...props} />) };
 
         const renderVideo = (props) => { return (<VideoPlayer {...props} />) };
 
@@ -149,9 +149,9 @@ class App extends Component {
                 <Route path='/author/' render={renderExplorer} />
                 <Route path='/search/' render={renderExplorer} />
 
-                <Route path='/onebook/' render={renderOneBook} />
-                <Route path='/onebookOverview/' render={renderOneBookOverview} />
-                <Route path='/onebookWaterfall/' render={renderOneBookWaterfall} />
+                <Route path='/book/' render={renderBookReadPage} />
+                <Route path='/book-overview/' render={renderBookOverviewPage} />
+                <Route path='/book-waterfall/' render={renderBookWaterfallPage} />
 
 
                 <Route path='/tagPage/' render={renderTagPage} />
@@ -195,7 +195,7 @@ class App extends Component {
         }
 
         const path = window.location.pathname;
-        const isOneBook = path.includes("/onebook");
+        const isBookPage = path.startsWith("/book");
         const isExplorer = path.includes("/explorer");
         const isTag = path.includes("/tagPage");
         const isAuthor = path.includes("/author");
@@ -203,7 +203,7 @@ class App extends Component {
         const isLogin = path.includes("/login");
         const isVideo = path.includes("/videoPlayer")
 
-        const topNav = !isOneBook && !isLogin && !isVideo && (
+        const topNav = !isBookPage && !isLogin && !isVideo && (
             <div className="app-top-topnav container">
                 <div className="app-page-links row">
                     <Link to='/'>

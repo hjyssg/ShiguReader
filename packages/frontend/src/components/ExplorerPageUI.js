@@ -179,14 +179,14 @@ export const getOneLineListItem = (icon, fileName, filePath, info) => {
 
 export const SimpleFileListPanel = ({ musicFiles, imageFiles, info }) => {
     const musicItems = musicFiles.map((item) => {
-        const toUrl = clientUtil.getOneBookLink(getDir(item));
+        const toUrl = clientUtil.getBookReadLink(getDir(item));
         const text = getBaseName(item);
         const result = getOneLineListItem(<i className="fas fa-volume-up"></i>, text, item, info);
         return <Link target="_blank" to={toUrl} key={item}>{result}</Link>;
     });
 
     const imageItems = imageFiles.map((item) => {
-        const toUrl = clientUtil.getOneBookLink(getDir(item));
+        const toUrl = clientUtil.getBookReadLink(getDir(item));
         const text = getBaseName(item);
         const result = getOneLineListItem(<i className="fas fa-images"></i>, text, item, info);
         return <Link target="_blank" to={toUrl} key={item}>{result}</Link>;
@@ -202,7 +202,7 @@ export const SimpleFileListPanel = ({ musicFiles, imageFiles, info }) => {
 export const SingleZipItem = ({ filePath, info }) => {
     const fp = filePath;
     const text = getBaseName(fp);
-    const toUrl = clientUtil.getOneBookLink(fp);
+    const toUrl = clientUtil.getBookReadLink(fp);
 
     let zipItem;
     let thumbnailurl = info.getThumbnailUrl(fp);

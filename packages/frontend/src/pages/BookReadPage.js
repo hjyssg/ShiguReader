@@ -35,7 +35,7 @@ const TWO_PAGE_LEFT = "left";
 const TWO_PAGE_RIGHT = "right";
 
 
-export default class OneBook extends Component {
+export default class BookReadPage extends Component {
   constructor(props) {
     super(props);
 
@@ -719,8 +719,8 @@ export default class OneBook extends Component {
             <Link className={exploreCN} to={toUrl3}> Explorer </Link>
           </div>);
       }else{
-        const toUrl = clientUtil.getOneBookOverviewLink(this.state.path);
-        const toUrl2 = clientUtil.getOneBookWaterfallLink(this.state.path);
+        const toUrl = clientUtil.getBookOverviewLink(this.state.path);
+        const toUrl2 = clientUtil.getBookWaterfallLink(this.state.path);
         const toUrl3 = clientUtil.getExplorerLink(this.state.outputPath || this.state.path);
     
         return (
@@ -974,5 +974,5 @@ export default class OneBook extends Component {
   }
 }
 
-OneBook.contextType = GlobalContext;
+BookReadPage.contextType = GlobalContext;
 
