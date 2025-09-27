@@ -8,6 +8,19 @@ const thumbnailDb = require("../models/thumbnail-db");
 const cacheDb = require("../models/cache-db");
 const serverUtil = require("../utils/server-util");
 const _  = require("underscore");
+const appState = require('../state/appState');
+const cachePath = appState.getCachePath();
+const deleteEmpty = require('delete-empty');
+const pathUtil = require("../utils/path-util");
+const cleanCache = require("../services/cache-cleaner");
+
+function doCacheClean(config) {
+    try {
+        cleanCache(cachePath, config);
+    } catch (e) {
+        console.error(e);
+    }
+}
 
 
 router.post('/api/cache/get_info', serverUtil.asyncWrapper(async (req, res) => {
@@ -26,6 +39,21 @@ router.post('/api/cache/get_info', serverUtil.asyncWrapper(async (req, res) => {
         totalSize: totalSize,
         cacheNum: cacheFiles.length
     })
+}));
+
+router.post('/api/cleanCache', serverUtil.asyncWrapper(async (req, res) => {
+    function afterClean() {
+        res.send({ failed: false });
+    }
+
+    doCacheClean({ afterClean });
+
+    //delete empty folder
+    deleteEmpty(pathUtil.getImgConverterCachePath(), (err) => {
+        if (err) {
+            console.error(err);
+        }
+    });
 }));
 
 module.exports = router;

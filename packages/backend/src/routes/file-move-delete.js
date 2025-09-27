@@ -8,6 +8,7 @@ const logger = require("../config/logger");
 const thumbnailDb = require("../models/thumbnail-db");
 const zipInfoDb = require("../models/zip-info-db");
 const estimateFileTable = require("../services/estimate-file-table");
+const historyDb = require("../models/history-db");
 
 const pathUtil = require("../utils/path-util");
 const { isExist } = pathUtil;
@@ -24,6 +25,25 @@ const sevenZipHelp = require("../services/seven-zip");
 function getReason(e) {
     return e.stderr || e.message || e;
 }
+
+
+router.post("/api/file/get_info", serverUtil.asyncWrapper(async (req, res) => {
+    const filePath = (req.body && req.body.filePath);
+
+    if (!filePath || !(await isExist(filePath))) {
+        res.send({ failed: true, reason: "NOT FOUND" });
+        return;
+    }
+
+    const stat = await pfs.stat(filePath);
+    res.send({
+        stat,
+    });
+
+    if (util.isVideo(filePath)) {
+        historyDb.addOneRecord(filePath);
+    }
+}));
 
 
 router.post('/api/file/rename', serverUtil.asyncWrapper(async (req, res) => {

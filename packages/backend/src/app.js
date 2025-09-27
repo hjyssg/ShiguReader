@@ -963,14 +963,8 @@ app.use(searchRoute);
 const allInfoRoute = require("./routes/all-info");
 app.use(allInfoRoute);
 
-const fileInfoRoute = require("./routes/file-info");
-app.use(fileInfoRoute);
-
 const hentaiApiRoute = require("./routes/hentai-api");
 app.use(hentaiApiRoute);
-
-const cacheCleanRoute = require("./routes/cache-clean");
-app.use(cacheCleanRoute);
 
 const cacheInfoRoute = require("./routes/cache-info");
 app.use(cacheInfoRoute);
