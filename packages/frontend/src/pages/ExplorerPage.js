@@ -63,6 +63,7 @@ const { MODE_TAG,
 const FILTER_HAS_MUSIC = "FILTER_HAS_MUSIC";
 const FILTER_HAS_VIDEO = "FILTER_HAS_VIDEO";
 const FILTER_IMG_FOLDER = "FILTER_IMG_FOLDER";
+const UNTAGGED_TAG_LABEL = "etc";
 
 
 
@@ -538,7 +539,7 @@ export default class ExplorerPage extends Component {
                     tags = result.tags;
                 }
                 if (!tags.length) {
-                    tags = ["Unknown"];
+                    tags = [UNTAGGED_TAG_LABEL];
                 }
                 return !tags.some(tag => excludedSet.has(tag));
             });
@@ -1123,7 +1124,7 @@ export default class ExplorerPage extends Component {
                 tags = result.tags;
             }
             if (!tags.length) {
-                tags = ["Unknown"];
+                tags = [UNTAGGED_TAG_LABEL];
             }
 
             tags.forEach(tag => {
@@ -1133,6 +1134,12 @@ export default class ExplorerPage extends Component {
         });
 
         const tags = _.keys(tag2Freq).sort((a, b) => {
+            if (a === UNTAGGED_TAG_LABEL && b !== UNTAGGED_TAG_LABEL) {
+                return 1;
+            }
+            if (b === UNTAGGED_TAG_LABEL && a !== UNTAGGED_TAG_LABEL) {
+                return -1;
+            }
             if (tag2Freq[b] === tag2Freq[a]) {
                 return a.localeCompare(b, undefined, { numeric: true });
             }
@@ -1207,9 +1214,11 @@ export default class ExplorerPage extends Component {
 
     renderFilterControls() {
         return (
-            <div className="explorer-filter-controls container">
-                {this.renderPageRangeSilder()}
-                {this.renderCheckboxPanel()}
+            <div className="explorer-filter-panel container">
+                <div className="explorer-filter-panel__row explorer-filter-panel__row--controls">
+                    {this.renderPageRangeSilder()}
+                    {this.renderCheckboxPanel()}
+                </div>
                 {this.renderFilterTagPanel()}
             </div>
         );

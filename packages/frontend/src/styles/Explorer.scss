@@ -234,54 +234,74 @@
   }
 }
 
-.explorer-filter-controls {
+.explorer-filter-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 14px 16px;
+  border-radius: 6px;
+  background: $bacground_level_two;
+  border: 1px solid rgba(0, 0, 0, 0.3);
+  color: $font_color_white_one;
+  margin: 15px auto;
+}
+
+.explorer-filter-panel__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  row-gap: 12px;
+  align-items: center;
+}
+
+.explorer-filter-panel__row--controls {
+  justify-content: space-between;
+}
+
+.explorer-filter-panel__row--controls .aji-checkbox-container {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  justify-content: space-between;
-  column-gap: 20px;
-}
-
-.explorer-filter-controls .aji-checkbox-container {
-  flex: 0 1 auto;
-  margin: 15px 0;
+  gap: 12px;
+  justify-content: flex-start;
 }
 
 .filter-type-panel {
-  flex: 1 1 100%;
-  background-color: $bacground_level_one;
-  border-radius: 4px;
-  padding: 12px 16px;
-  margin: 15px 0;
+  padding: 0;
+  margin: 0;
+  background: transparent;
+  color: inherit;
   width: 100%;
-  color: $font_color_white_one;
 
   .panel-title {
     font-size: 13px;
     font-weight: 600;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
     text-transform: uppercase;
     letter-spacing: 0.5px;
+    color: rgba($font_color_white_one, 0.9);
   }
 
   .type-checkboxes {
     display: flex;
     flex-wrap: wrap;
-    gap: 10px 15px;
+    gap: 10px 12px;
   }
 
   .aji-checkbox {
-    background-color: rgba(0, 0, 0, 0.2);
-    padding: 4px 8px;
-    border-radius: 4px;
+    background-color: rgba(0, 0, 0, 0.25);
+    padding: 4px 10px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
 
     .inner {
       font-size: 12px;
+      white-space: nowrap;
     }
   }
 
   .type-panel-actions {
-    margin-top: 12px;
+    margin-top: 10px;
 
     .btn {
       font-size: 12px;
@@ -291,12 +311,15 @@
 }
 
 .page-number-range-slider-wrapper {
-  // width: 500px;
   display: flex;
   justify-content: flex-start;
   align-items: center;
-  margin: 15px 0;
-  flex: 1 1;
+  margin: 0;
+  flex: 1 1 280px;
+
+  @media (max-width: 768px) {
+    min-width: 220px;
+  }
 
   .small-text-title {
     color: $font_color_white_one;
