@@ -1,5 +1,6 @@
-import React from "react";
 import Checkbox from "@components/common/Checkbox";
+import React, { useEffect, useState } from "react";
+import '@styles/FilterPanel.scss';
 
 const FilterPanel = ({
     title,
@@ -7,15 +8,18 @@ const FilterPanel = ({
     onToggle,
     onSelectAll,
     onDeselectAll,
-    selectAllLabel = "Select All",
-    deselectAllLabel = "Deselect All",
-    className,
-    checkboxContainerClassName = "filter-panel-checkboxes",
-    actionsClassName
+    className
 }) => {
     if (!items || items.length === 0) {
         return null;
     }
+
+    const selectAllLabel = "Select All";
+    const deselectAllLabel = "Deselect All";
+    const checkboxContainerClassName="type-checkboxes"
+    const actionsClassName="type-panel-actions"
+
+    const [isExpanded, setIsExpanded] = useState(false);
 
     const panelClassName = ["filter-panel", className].filter(Boolean).join(" ");
     const checkboxClassName = ["filter-panel-checkboxes", checkboxContainerClassName]
@@ -28,6 +32,12 @@ const FilterPanel = ({
     const actionsClass = ["filter-panel-actions", actionsClassName]
         .filter(Boolean)
         .join(" ");
+
+    const maxVisibleWhenCollapsed = 5;
+    const canCollapse = items.length > maxVisibleWhenCollapsed;
+    const displayedItems = canCollapse && !isExpanded
+        ? items.slice(0, maxVisibleWhenCollapsed)
+        : items;
 
     const renderActionButton = () => {
         if (canDeselectAll) {
@@ -59,6 +69,16 @@ const FilterPanel = ({
         return null;
     };
 
+    const toggleButton = canCollapse && (
+        <button
+            type="button"
+            className="btn btn-sm btn-light filter-panel-toggle-button"
+            onClick={() => setIsExpanded(prev => !prev)}
+        >
+           <div className="inner">{isExpanded ? "Show Less" : "..."}</div> 
+        </button>
+    );
+
     return (
         <div className={panelClassName}>
             {title && (
@@ -67,7 +87,7 @@ const FilterPanel = ({
                 </div>
             )}
             <div className={checkboxClassName}>
-                {items.map(item => (
+                {displayedItems.map(item => (
                     <Checkbox
                         key={item.value}
                         checked={!!item.checked}
@@ -77,6 +97,7 @@ const FilterPanel = ({
                         {item.label}
                     </Checkbox>
                 ))}
+                {toggleButton}
             </div>
             {(canDeselectAll || canSelectAll) && (
                 <div className={actionsClass}>

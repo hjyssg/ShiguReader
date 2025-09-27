@@ -1170,11 +1170,7 @@ export default class ExplorerPage extends Component {
                 onToggle={this.toggleTagFilterSelection.bind(this)}
                 onSelectAll={this.resetTagFilters.bind(this)}
                 onDeselectAll={deselectAllTags}
-                selectAllLabel="Select All"
-                deselectAllLabel="Deselect All"
                 className="filter-type-panel"
-                checkboxContainerClassName="type-checkboxes"
-                actionsClassName="type-panel-actions"
             />
         );
     }

@@ -1,0 +1,110 @@
+@import "vars.scss";
+
+.explorer-filter-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 12px 14px;
+    border-radius: 6px;
+    background: $bacground_level_two;
+    border: 1px solid rgba(0, 0, 0, 0.3);
+    color: $font_color_white_one;
+    margin: 15px 0;
+    box-sizing: border-box;
+    width: 100%;
+}
+
+.explorer-filter-panel__row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    row-gap: 12px;
+    align-items: center;
+}
+
+.explorer-filter-panel__row--controls {
+    justify-content: space-between;
+}
+
+.explorer-filter-panel__row--controls .aji-checkbox-container {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+    justify-content: flex-start;
+}
+
+.filter-type-panel {
+    padding: 0;
+    margin: 0;
+    background: transparent;
+    color: inherit;
+    width: 100%;
+
+    .panel-title {
+        font-size: 13px;
+        font-weight: 600;
+        margin-bottom: 8px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: rgba($font_color_white_one, 0.9);
+    }
+
+    .type-checkboxes {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px 12px;
+    }
+
+    .aji-checkbox {
+        background-color: rgba(0, 0, 0, 0.25);
+        padding: 4px 10px;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+
+        .inner {
+            font-size: 12px;
+            white-space: nowrap;
+        }
+    }
+
+    .type-panel-actions {
+        margin-top: 10px;
+        display: flex;
+        justify-content: flex-end;
+
+        .sb-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            padding: 4px 12px;
+            text-transform: none;
+
+            i {
+                font-size: 0.9em;
+            }
+        }
+    }
+
+    .filter-panel-toggle-button {
+        background-color: rgba(0, 0, 0, 0.25);
+        padding: 4px 10px;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        color: white;
+        font-size: 12px;
+        white-space: nowrap;
+
+        
+        &:focus {
+            outline: none;
+            box-shadow: none;
+        }
+
+        .inner {
+            font-size: 12px;
+            white-space: nowrap;
+        }
+    }
+}
