@@ -26,9 +26,8 @@
 
 .explorer-filter-panel__row {
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     gap: 16px;
-    row-gap: 12px;
     align-items: center;
 }
 

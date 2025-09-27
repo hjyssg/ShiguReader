@@ -241,11 +241,8 @@
   justify-content: flex-start;
   align-items: center;
   margin: 0;
-  flex: 1 1 280px;
-
-  @media (max-width: 768px) {
-    min-width: 220px;
-  }
+  flex: 1 1 350px;
+  max-width: 350px; 
 
   .small-text-title {
     color: $font_color_white_one;
