@@ -1,6 +1,4 @@
 @import "vars.scss";
-@import "sideMenu.scss";
-
 .explorer-page-loading {
   text-align: center;
   font-size: 3rem;
@@ -27,9 +25,6 @@
     }
   }
 
-  &.anchorSideMenu {
-    display: flex;
-  }
 }
 
 .explorer-external-link {
@@ -239,29 +234,97 @@
   }
 }
 
-.explorer-filter-controls {
+.explorer-filter-panel {
+  border-radius: 6px;
+  margin-bottom: 12px;
+
+  .two-panel-container {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    padding: 12px 14px;
+    border: 1px solid rgba(0, 0, 0, 0.3);
+    background: $bacground_level_two;
+    border-radius: 6px;
+  }
+}
+
+.explorer-filter-panel__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  row-gap: 12px;
+  align-items: center;
+}
+
+.explorer-filter-panel__row--controls {
+  justify-content: space-between;
+}
+
+.explorer-filter-panel__row--controls .aji-checkbox-container {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  justify-content: space-between;
-  column-gap: 20px;
+  gap: 12px;
+  justify-content: flex-start;
 }
 
-.explorer-filter-controls .aji-checkbox-container {
-  flex: 0 1 auto;
-  margin: 15px 0;
+.filter-type-panel {
+  padding: 0;
+  margin: 0;
+  background: transparent;
+  color: inherit;
+  width: 100%;
+
+  .panel-title {
+    font-size: 12px;
+    margin-bottom: 8px;
+    letter-spacing: 0.5px;
+    color: rgba($font_color_white_one, 0.9);
+  }
+
+  .type-checkboxes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 12px;
+  }
+
+  .aji-checkbox {
+    padding: 4px 10px;
+    border-radius: 12px;
+    border: 1px solid rgba(0, 0, 0, 0.3);
+
+    .inner {
+      font-size: 12px;
+      white-space: nowrap;
+    }
+  }
+
+  .type-panel-actions {
+    margin-top: 10px;
+
+    .btn {
+      font-size: 12px;
+      text-transform: none;
+    }
+  }
 }
 
 .page-number-range-slider-wrapper {
-  // width: 500px;
   display: flex;
   justify-content: flex-start;
   align-items: center;
-  margin: 15px 0;
-  flex: 1 1;
+  margin: 0;
+  flex: 1 1 280px;
+
+  @media (max-width: 768px) {
+    min-width: 220px;
+  }
 
   .small-text-title {
     color: $font_color_white_one;
+    font-size: 12px;
 
     &.no-wrap {
       margin-right: 10px;
