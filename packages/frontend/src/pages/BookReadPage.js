@@ -35,7 +35,7 @@ const TWO_PAGE_LEFT = "left";
 const TWO_PAGE_RIGHT = "right";
 
 
-export default class OneBook extends Component {
+export default class BookReadPage extends Component {
   constructor(props) {
     super(props);
 
@@ -974,5 +974,5 @@ export default class OneBook extends Component {
   }
 }
 
-OneBook.contextType = GlobalContext;
+BookReadPage.contextType = GlobalContext;
 

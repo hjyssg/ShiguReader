@@ -66,7 +66,7 @@ class SmartImage extends Component {
 }
 
 
-export default class OneBookOverview extends Component {
+export default class BookOverviewPage extends Component {
   constructor(props) {
     super(props);
     this.state = {
