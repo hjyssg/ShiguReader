@@ -2,7 +2,85 @@
 const clientUtil = require("./clientUtil");
 const { getBaseName } = clientUtil;
 import _ from "underscore";
-import React, { Component } from "react";
+import React from "react";
+const nameParser = require("@name-parser");
+const util = require("@common/util");
+
+const setToMidnight = (timestamp) => {
+    if (!timestamp) {
+        return null;
+    }
+    const date = new Date(timestamp);
+    date.setHours(0, 0, 0, 0);
+    return date.getTime();
+};
+
+export const buildChartData = (fileInfos = {}) => {
+    const filePaths = Object.keys(fileInfos || {});
+
+    const byMTime = {};
+    const ByTagTime = {};
+
+    filePaths.forEach((filePath) => {
+        const info = fileInfos[filePath] || {};
+        const fileName = info.fileName || getBaseName(filePath);
+        const fileSize = info.size || 0;
+
+        let mTime = setToMidnight(info.mtimeMs);
+        let tagTime = nameParser.getDateFromParse(fileName);
+        tagTime = setToMidnight(tagTime) || mTime;
+
+        let type = null;
+        if (util.isVideo(filePath)) {
+            type = "video";
+        } else if (util.isCompress(filePath)) {
+            type = "compress";
+        }
+
+        if (!type) {
+            return;
+        }
+
+        byMTime[mTime] = byMTime[mTime] || {};
+        ByTagTime[tagTime] = ByTagTime[tagTime] || {};
+
+        byMTime[mTime][type] = byMTime[mTime][type] || { fileSize: 0, fileCount: 0 };
+        ByTagTime[tagTime][type] = ByTagTime[tagTime][type] || { fileSize: 0, fileCount: 0 };
+
+        byMTime[mTime][type].fileSize += fileSize;
+        byMTime[mTime][type].fileCount += 1;
+
+        ByTagTime[tagTime][type].fileSize += fileSize;
+        ByTagTime[tagTime][type].fileCount += 1;
+    });
+
+    const byComiket = _.countBy(filePaths, (filePath) => {
+        const info = fileInfos[filePath] || {};
+        const fileName = info.fileName || getBaseName(filePath);
+        const result = nameParser.parse(fileName);
+        if (result && result.comiket) {
+            return result.comiket.toUpperCase();
+        }
+        return "etc";
+    });
+
+    const byType = _.countBy(filePaths, (filePath) => {
+        const info = fileInfos[filePath] || {};
+        const fileName = info.fileName || getBaseName(filePath);
+        const result = nameParser.parse(fileName);
+        if (result && result.type) {
+            return result.type;
+        }
+        return "UNKOWN";
+    });
+
+    return {
+        byComiket,
+        byType,
+        ByTagTime,
+        byMTime,
+    };
+};
 
 
 const BY_MTIME = "by mtime";

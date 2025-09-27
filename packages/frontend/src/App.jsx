@@ -8,7 +8,7 @@ import BookOverviewPage from '@pages/BookOverviewPage';
 import BookWaterfallPage from '@pages/BookWaterfallPage';
 import VideoPlayer from '@pages/VideoPlayer';
 import TagPage from '@pages/TagPage';
-import ChartPage from '@pages/ChartPage';
+import ChartModal from '@components/ChartModal';
 import AdminPage from '@pages/AdminPage';
 import HistoryPage from '@pages/HistoryPage';
 import HomePage from '@pages/HomePage';
@@ -29,7 +29,11 @@ class App extends Component {
 
     constructor(props) {
         super(props);
-        this.state = {};
+        this.state = {
+            chartData: null,
+            chartContextText: '',
+            isChartModalOpen: false,
+        };
 
         // let data = Cookie.get('GeneralInfo');
         // let data = sessionStorage.getItem('GeneralInfo');
@@ -37,9 +41,14 @@ class App extends Component {
         //     this.state = {
         //         context: JSON.parse(data)
         //     };
-        // } 
-        
+        // }
+
         this.askServer();
+
+        this.openChartModal = this.openChartModal.bind(this);
+        this.closeChartModal = this.closeChartModal.bind(this);
+        this.handleChartDataChange = this.handleChartDataChange.bind(this);
+        this.handleChartLinkClick = this.handleChartLinkClick.bind(this);
     }
 
     async askServer() {
@@ -53,6 +62,50 @@ class App extends Component {
             });
             sessionStorage.setItem('GeneralInfo', JSON.stringify(data));
         }
+    }
+
+    handleChartDataChange(payload) {
+        if (payload && payload.chartData) {
+            this.setState({
+                chartData: payload.chartData,
+                chartContextText: payload.contextText || '',
+            });
+        } else {
+            this.setState({
+                chartData: null,
+                chartContextText: '',
+                isChartModalOpen: false,
+            });
+        }
+    }
+
+    openChartModal(contextText) {
+        if (!this.state.chartData) {
+            return;
+        }
+
+        this.setState((prevState) => ({
+            isChartModalOpen: true,
+            chartContextText: contextText || prevState.chartContextText,
+        }));
+    }
+
+    closeChartModal() {
+        this.setState({
+            isChartModalOpen: false,
+        });
+    }
+
+    handleChartLinkClick(event) {
+        if (event && event.preventDefault) {
+            event.preventDefault();
+        }
+
+        if (!this.state.chartData) {
+            return;
+        }
+
+        this.openChartModal();
     }
 
     // async getParseCache(){
@@ -130,12 +183,20 @@ class App extends Component {
         const renderVideo = (props) => { return (<VideoPlayer {...props} />) };
 
         const renderHomePage = (props) => { return (<HomePage {...props} />) };
-        const renderExplorer = (props) => { return (<ExplorerPage  {...props} filterText={this.filterText} />) };
+        const renderExplorer = (props) => {
+            return (
+                <ExplorerPage
+                    {...props}
+                    filterText={this.filterText}
+                    onOpenChart={this.openChartModal}
+                    onChartDataChange={this.handleChartDataChange}
+                />
+            );
+        };
 
         const renderTagPage = (props) => { return (<TagPage mode="tag" filterText={this.filterText} {...props} />) };
         const renderAuthorPage = (props) => { return (<TagPage mode="author" filterText={this.filterText} {...props} />) };
 
-        const renderChartPage = (props) => { return (<ChartPage {...props} />) };
         const renderHistoryPage = (props) => { return (<HistoryPage {...props} />) };
         const renderAdminPage = (props) => { return (<AdminPage {...props} />) };
         const renderLoginPage = (props) => { return (<LoginPage {...props} />) };
@@ -158,7 +219,6 @@ class App extends Component {
                 <Route path='/authorPage/' render={renderAuthorPage} />
                 <Route path='/videoPlayer/' render={renderVideo} />
 
-                <Route path='/chart/' render={renderChartPage} />
                 <Route path='/history/' render={renderHistoryPage} />
                 <Route path='/admin' render={renderAdminPage} />
                 <Route path='/login' render={renderLoginPage} />
@@ -218,7 +278,7 @@ class App extends Component {
                         <i className="fas fa-tags" aria-hidden="true" />
                         <span>Tags</span>
                     </Link>
-                    <Link to='/chart'>
+                    <Link to='#' onClick={this.handleChartLinkClick} className={!this.state.chartData ? 'disabled' : ''}>
                         <i className="fas fa-chart-bar" aria-hidden="true" />
                         <span>Chart</span>
                     </Link>
@@ -246,6 +306,12 @@ class App extends Component {
                     {topNav}
                     {this.RenderSubComponent()}
                     <ToastContainer />
+                    <ChartModal
+                        isOpen={this.state.isChartModalOpen}
+                        onRequestClose={this.closeChartModal}
+                        data={this.state.chartData}
+                        contextText={this.state.chartContextText}
+                    />
                 </div>
             </GlobalContext.Provider>
         );

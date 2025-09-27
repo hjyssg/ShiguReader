@@ -130,7 +130,7 @@ app.use(express.static(rootPath, {
 
 const modifyResponseForChart = require('./middleware/chartResponseMiddleware');
 // 将中间件应用到指定的 API 路由
-app.use(['/api/folder/list_dir', '/api/search/search_file', '/api/info/get_all'], modifyResponseForChart);
+app.use(['/api/folder/list_dir', '/api/search/search_file'], modifyResponseForChart);
 
 //  to consume json request body
 //  https://stackoverflow.com/questions/10005939/how-do-i-consume-the-json-post-data-in-an-express-application

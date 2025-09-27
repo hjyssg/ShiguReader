@@ -84,6 +84,11 @@ a {
         gap: 6px;
         color: $font_color_white_one;
 
+        &.disabled {
+          opacity: 0.5;
+          pointer-events: none;
+        }
+
         @media screen and (min-width: 1000px) {
           &:hover {
             @include hover_effect;

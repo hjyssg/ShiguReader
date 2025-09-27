@@ -23,6 +23,7 @@ import Checkbox from '@components/common/Checkbox';
 import FilterPanel from '@components/common/FilterPanel';
 import ThumbnailPopup from '@components/common/ThumbnailPopup';
 import { getFileUrl } from '@utils/clientUtil';
+import { buildChartData } from '@utils/ChartUtil';
 const nameParser = require('@name-parser');
 const classNames = require('classnames');
 const Constant = require("@common/constant");
@@ -244,6 +245,10 @@ export default class ExplorerPage extends Component {
         document.removeEventListener("keydown", this._handleKeyDown);
 
         clientUtil.setSearchInputText("");
+
+        if (this.props.onChartDataChange) {
+            this.props.onChartDataChange(null);
+        }
     }
 
     resetParam() {
@@ -259,6 +264,7 @@ export default class ExplorerPage extends Component {
         this.imgFolderInfo = {};
         this.res = null;
         this.dirThumbnailMap = {};
+        this.chartContextText = "";
     }
 
     componentDidUpdate(prevProps, prevState) {
@@ -339,6 +345,9 @@ export default class ExplorerPage extends Component {
                 this.fileNameToHistory[fileName] = { time, count };
             })
 
+            this.chartContextText = this.buildChartContextText();
+            this.notifyChartData();
+
             // 找出最大页数
             let _maxPage = 10;
             files.forEach(e => {
@@ -366,6 +375,55 @@ export default class ExplorerPage extends Component {
         } else {
             this.res = res;
             this.askRerender();
+        }
+    }
+
+    notifyChartData() {
+        if (!this.props.onChartDataChange) {
+            return;
+        }
+
+        const chartData = buildChartData(this.fileInfos || {});
+        this.props.onChartDataChange({
+            chartData,
+            contextText: this.chartContextText || this.buildChartContextText(),
+        });
+    }
+
+    buildChartContextText() {
+        const mode = this.getMode();
+        let text = this.getTextFromQuery();
+
+        if (!text) {
+            return "";
+        }
+
+        if (this.state.isRecursive) {
+            text = `${text} And Subfolder's Files`;
+        } else if (mode === MODE_AUTHOR) {
+            text = `Author: ${text}`;
+        } else if (mode === MODE_TAG) {
+            text = `Tag: ${text}`;
+        } else if (mode === MODE_SEARCH) {
+            text = `Search: ${text}`;
+        }
+
+        return text;
+    }
+
+    handleOpenChart() {
+        if (!this.fileInfos || _.keys(this.fileInfos).length === 0) {
+            if (this.props.onChartDataChange) {
+                this.props.onChartDataChange(null);
+            }
+            return;
+        }
+
+        this.chartContextText = this.buildChartContextText();
+        this.notifyChartData();
+
+        if (this.props.onOpenChart) {
+            this.props.onOpenChart(this.chartContextText);
         }
     }
 
@@ -927,20 +985,26 @@ export default class ExplorerPage extends Component {
     }
 
     renderChartButton() {
-        const table = {}
-        table[MODE_AUTHOR] = "/chart/?a=";
-        table[MODE_EXPLORER] = "/chart/?p=";
-        table[MODE_SEARCH] = "/chart/?s=";
-        table[MODE_TAG] = "/chart/?t=";
-        let link = table[this.getMode()] + this.getTextFromQuery();
-        if (this.state.isRecursive) {
-            link += "&isRecursive=true"
-        }
+        const hasData = this.fileInfos && _.keys(this.fileInfos).length > 0;
+        const className = classNames("exp-top-button", { disabled: !hasData });
 
-        return (<Link target="_blank" className="exp-top-button" to={link}>
-            <span className="fas fa-chart-line" />
-            <span> Chart </span>
-        </Link>)
+        return (
+            <span
+                className={className}
+                role="button"
+                tabIndex="0"
+                onClick={hasData ? this.handleOpenChart.bind(this) : undefined}
+                onKeyDown={(e) => {
+                    if ((e.key === "Enter" || e.key === " ") && hasData) {
+                        e.preventDefault();
+                        this.handleOpenChart();
+                    }
+                }}
+            >
+                <span className="fas fa-chart-line" />
+                <span> Chart </span>
+            </span>
+        )
     }
 
     renderPregenerateButton() {
