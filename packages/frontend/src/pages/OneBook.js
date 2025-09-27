@@ -296,7 +296,7 @@ export default class OneBook extends Component {
 
   async sendRequest() {
     const fp = this.getTextFromQuery();
-    const api = this.isImgFolder() ? "/api/listImageFolderContent" : "/api/extract";
+    const api = this.isImgFolder() ? "/api/folder/list_image_content" : "/api/extract/extract_zip";
     let res = await Sender.postWithPromise(api, { filePath: fp, startIndex: this.state.index || 0 });
     this.handleRes(res);
 

@@ -9,7 +9,7 @@ const pathUtil = require("../utils/path-util");
 const pfs = require('promise-fs');
 const { isExist } = pathUtil;
 
-router.post("/api/singleFileInfo", serverUtil.asyncWrapper(async (req, res) => {
+router.post("/api/file/get_info", serverUtil.asyncWrapper(async (req, res) => {
     const filePath = (req.body && req.body.filePath);
 
     if (!filePath || !(await isExist(filePath))) {

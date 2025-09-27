@@ -178,7 +178,7 @@ module.exports.getVideoPlayerLink = function (path) {
 }
 
 module.exports.getQuickThumbUrl = function(filePath){
-    return "/api/getQuickThumbnail?p=" + encodeURIComponent(filePath);
+    return "/api/thumbnail/get_quick?p=" + encodeURIComponent(filePath);
 }
 
 
@@ -191,10 +191,10 @@ module.exports.getFileUrl = function (filePath, thumbnailMode) {
     }
 
     let result;
-    if(filePath.includes("/api/download/?p")){
+    if(filePath.includes("/api/file/download/?p")){
        result =  filePath;
     }else {
-        result = "/api/download/?p=" + encodeURIComponent(filePath);
+        result = "/api/file/download/?p=" + encodeURIComponent(filePath);
     }
 
     if(thumbnailMode){

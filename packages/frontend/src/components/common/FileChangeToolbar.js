@@ -120,7 +120,7 @@ class MoveMenu extends Component {
         })
 
         if(path){
-            const res = await Sender.postWithPromise("/api/lsDir", { dir: path });
+            const res = await Sender.postWithPromise("/api/folder/list_dir", { dir: path });
             if (res.isFailed()) {
                 return;
             } else {
@@ -228,7 +228,7 @@ export default class FileChangeToolbar extends Component {
             cancelButtonText: 'No'
         }).then((result) => {
             if (result.value === true) {
-                Sender.post("/api/overwrite", { filePath: file }, res => {
+                Sender.post("/api/minify/overwrite", { filePath: file }, res => {
                     pop(file, res, "overwrite");
                 });
             }
@@ -249,7 +249,7 @@ export default class FileChangeToolbar extends Component {
                 if (res.isFailed()) {
                     pop(file, res, "Not able to minify");
                 } else {
-                    Sender.post("/api/minifyZip", { filePath: file }, res => {
+                    Sender.post("/api/minify/minify", { filePath: file }, res => {
                         pop(file, res, "added to the task queue");
                     });
                 }
@@ -269,12 +269,12 @@ export default class FileChangeToolbar extends Component {
             if (result.value === true) {
                 if (isFolder) {
                     //send different request
-                    Sender.post("/api/deleteFolder", { src: file }, res => {
+                    Sender.post("/api/folder/delete", { src: file }, res => {
                         pop(file, res, "delete");
                     });
 
                 } else {
-                    Sender.post("/api/deleteFile", { src: file }, res => {
+                    Sender.post("/api/file/delete", { src: file }, res => {
                         pop(file, res, "delete");
                     });
                 }
@@ -293,7 +293,7 @@ export default class FileChangeToolbar extends Component {
             cancelButtonText: 'No'
         }).then((result) => {
             if (result.value === true && isFolder) {
-                Sender.post("/api/zipFolder", { src: file }, res => {
+                Sender.post("/api/folder/zip", { src: file }, res => {
                     let extraDiv = getExtraDiv(res);
                     pop(file, res, "zip folder", extraDiv);
                 });
@@ -312,7 +312,7 @@ export default class FileChangeToolbar extends Component {
                 cancelButtonText: 'No'
             }).then((result) => {
                 if (result.value === true) {
-                    Sender.post("/api/moveFile", { src: this.props.file, dest: path }, res => {
+                    Sender.post("/api/file/move", { src: this.props.file, dest: path }, res => {
                         let extraDiv = getExtraDiv(res);
                         pop(file, res, "move", extraDiv, onNewPath);
 
@@ -363,7 +363,7 @@ export default class FileChangeToolbar extends Component {
                     cancelButtonText: 'No'
                 }).then((result) => {
                     if (result.value === true) {
-                        Sender.post("/api/renameFile", { src: file, dest }, res => {
+                        Sender.post("/api/file/rename", { src: file, dest }, res => {
                             let extraDiv = getExtraDiv(res);
                             pop(file, res, "rename", extraDiv, onNewPath);
                         });

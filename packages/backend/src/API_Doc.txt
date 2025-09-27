@@ -12,4 +12,4 @@ JSON format
 
 
 
-The only exception is  /api/download/  that GET
+The only exception is  /api/file/download/  that GET

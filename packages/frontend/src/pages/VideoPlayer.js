@@ -23,7 +23,7 @@ export default class VideoPlayer extends Component {
   componentDidMount() {
     const filePath = this.getTextFromQuery();
     if (filePath) {
-      Sender.post("/api/singleFileInfo", { filePath }, res => {
+      Sender.post("/api/file/get_info", { filePath }, res => {
         if (!res.isFailed()) {
           const { stat, mecab_tokens } = res.json;
           this.setState({ stat, mecab_tokens })

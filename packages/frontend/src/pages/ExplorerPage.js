@@ -204,18 +204,18 @@ export default class ExplorerPage extends Component {
         if (this.getMode() === MODE_EXPLORER) {
             const hash = this.getTextFromQuery();
             if (hash && this.loadedHash !== hash) {
-                res = await Sender.postWithPromise('/api/lsDir', { dir: this.getTextFromQuery(), isRecursive: this.state.isRecursive });
+                res = await Sender.postWithPromise('/api/folder/list_dir', { dir: this.getTextFromQuery(), isRecursive: this.state.isRecursive });
                 await this.handleLsDirRes(res);
             }
         } else {
             const hash = this.getTextFromQuery();
             if (hash && this.loadedHash !== hash) {
                 if (this.getMode() === MODE_TAG) {
-                    res = await Sender.postWithPromise("/api/search", { text: this.getTextFromQuery(), mode: this.getMode() })
+                    res = await Sender.postWithPromise("/api/search/search_file", { text: this.getTextFromQuery(), mode: this.getMode() })
                 } else if (this.getMode() === MODE_AUTHOR) {
-                    res = await Sender.postWithPromise("/api/search", { text: this.getTextFromQuery(), mode: this.getMode() })
+                    res = await Sender.postWithPromise("/api/search/search_file", { text: this.getTextFromQuery(), mode: this.getMode() })
                 } else if (this.getMode() === MODE_SEARCH) {
-                    res = await Sender.postWithPromise("/api/search", { text: this.getSearchTextFromQuery(), mode: this.getMode() })
+                    res = await Sender.postWithPromise("/api/search/search_file", { text: this.getSearchTextFromQuery(), mode: this.getMode() })
                 }
             }
             await this.handleLsDirRes(res);
@@ -851,7 +851,7 @@ export default class ExplorerPage extends Component {
             isRecursive: !this.state.isRecursive
         }, () => {
             (async () => {
-                let res = await Sender.postWithPromise('/api/lsDir', { dir: this.getTextFromQuery(), isRecursive: this.state.isRecursive });
+                let res = await Sender.postWithPromise('/api/folder/list_dir', { dir: this.getTextFromQuery(), isRecursive: this.state.isRecursive });
                 this.handleLsDirRes(res);
             })();
         })
@@ -880,7 +880,7 @@ export default class ExplorerPage extends Component {
 
     async requestThumbnailForFolder() {
         // TODO
-        Sender.post("/api/getThumbnailForFolders", { dirs: this.dirs }, res => {
+        Sender.post("/api/thumbnail/get_for_folder_list", { dirs: this.dirs }, res => {
             if (!res.isFailed()) {
                 this.dirThumbnailMap = res.json.dirThumbnails;
                 this.hasCalled_getThumbnailForFolders = true;

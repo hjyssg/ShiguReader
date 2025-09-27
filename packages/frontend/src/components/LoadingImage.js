@@ -71,12 +71,12 @@ export default class LoadingImage extends Component {
     if (this.isAuthorTagMode()) {
       const body = {};
       body[mode] = fileName;
-      res = await Sender.postWithPromise("/api/getTagThumbnail", body);
+      res = await Sender.postWithPromise("/api/thumbnail/get_for_tag", body);
     } else if (mode === "folder") {
       const query = encodeURIComponent(fileName);
-      res = await Sender.getWithPromise(`/api/folderThumbnailFromDisk?filePath=${query}`);
+      res = await Sender.getWithPromise(`/api/thumbnail/get_for_folder?filePath=${query}`);
     } else {
-      res = await Sender.postWithPromise('/api/getZipThumbnail', { filePath: fileName });
+      res = await Sender.postWithPromise('/api/thumbnail/get_for_zip', { filePath: fileName });
     }
 
     if (!this.isUnmounted) {

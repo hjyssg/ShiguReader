@@ -23,7 +23,7 @@ class LoginPage extends Component {
 
     async setPasswordCookie() {
         const text = this.getPasswordInput();
-        const res = await Sender.postWithPromise('/api/login', {"password":text});
+        const res = await Sender.postWithPromise('/api/auth/login', {"password":text});
         if (!res.isFailed()) {
             //跳转回login之前的页面
             const prevUrl = sessionStorage.getItem('url_before_login') || "/";

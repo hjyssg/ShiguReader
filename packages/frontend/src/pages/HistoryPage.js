@@ -115,7 +115,7 @@ export default class HistoryPage extends Component {
     }
 
     requestHistory(pageIndex) {
-        Sender.post("/api/getHistoryPageData", {page: pageIndex-1}, res => {
+        Sender.post("/api/history/list", {page: pageIndex-1}, res => {
             let { rows, count } = res.json;
             let history = rows || [];
             history.forEach(e => {

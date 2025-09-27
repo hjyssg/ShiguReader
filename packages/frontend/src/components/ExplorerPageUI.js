@@ -76,7 +76,7 @@ export const NoScanAlertArea = ({ filePath }) => {
             cancelButtonText: 'No'
         }).then((result) => {
             if (result.value === true) {
-                Sender.post("/api/addNewFileWatchAfterInit", { filePath }, res => {
+                Sender.post("/api/folder/add_file_watch", { filePath }, res => {
                     if (!res.isFailed()) {
                         // let { minifyZipQue } = res.json;
                         // setMinifyZipQue(minifyZipQue)

@@ -10,7 +10,7 @@ const serverUtil = require("../utils/server-util");
 const _  = require("underscore");
 
 
-router.post('/api/cacheInfo', serverUtil.asyncWrapper(async (req, res) => {
+router.post('/api/cache/get_info', serverUtil.asyncWrapper(async (req, res) => {
     const cacheFileToInfo = cacheDb.getCacheFileToInfo();
     const cacheFiles = _.keys(cacheFileToInfo);
     let totalSize = 0;

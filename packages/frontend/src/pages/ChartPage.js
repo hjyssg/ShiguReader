@@ -68,21 +68,21 @@ export default class ChartPage extends Component {
     let body;
     const mode = this.getMode();
     if (mode === MODE_EXPLORER) {
-      api = "/api/lsDir";
+      api = "/api/folder/list_dir";
       body = {
         dir: this.getTextFromQuery(),
         isRecursive: this.isRecursive(),
         forChart: true
       };
     } else if (mode) {
-      api = "/api/search";
+      api = "/api/search/search_file";
       body = {
         text: this.getTextFromQuery(),
         mode: mode,
         forChart: true
       };
     } else {
-      api = "/api/allInfo";
+      api = "/api/info/get_all";
       body = { forChart: true };
     }
     const res = await Sender.postWithPromise(api, body);

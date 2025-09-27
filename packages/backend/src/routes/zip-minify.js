@@ -30,14 +30,14 @@ const count = {
 };
 const minifyZipQue = [];
 const minifyDoneArr = [];
-router.post('/api/minifyZipQue', serverUtil.asyncWrapper(async (req, res) => {
+router.post('/api/minify/get_minify_queue', serverUtil.asyncWrapper(async (req, res) => {
     res.send({
         minifyZipQue
     })
 }));
 
 
-router.post('/api/overwrite', serverUtil.asyncWrapper(async (req, res) => {
+router.post('/api/minify/overwrite', serverUtil.asyncWrapper(async (req, res) => {
     const filePath = req.body && req.body.filePath;
 
     if (!filePath || !(await isExist(filePath))) {
@@ -123,7 +123,7 @@ router.post('/api/isAbleToMinify', serverUtil.asyncWrapper(async (req, res) => {
 
 }));
 
-router.post('/api/minifyZip', serverUtil.asyncWrapper(async (req, res) => {
+router.post('/api/minify/minify', serverUtil.asyncWrapper(async (req, res) => {
     const filePath = req.body && req.body.filePath;
 
     if (!filePath || !(await isExist(filePath))) {
@@ -149,15 +149,15 @@ router.post('/api/minifyZip', serverUtil.asyncWrapper(async (req, res) => {
             const { saveSpace } = temp;
             count.processed++
             count.saveSpace += saveSpace;
-            logger.info("[/api/minifyZip] total space save:", filesizeUitl(count.saveSpace, { base: 2 }))
+            logger.info("[/api/minify/minify] total space save:", filesizeUitl(count.saveSpace, { base: 2 }))
         }
     } catch (e) {
-        logger.error("[/api/minifyZip]", e);
+        logger.error("[/api/minify/minify]", e);
     } finally {
         const tempItem = minifyZipQue.shift();
         minifyDoneArr.push(tempItem);
         if (minifyZipQue.length === 0) {
-            console.log("[/api/minifyZip] the task queue is now empty");
+            console.log("[/api/minify/minify] the task queue is now empty");
         }
     }
 }));

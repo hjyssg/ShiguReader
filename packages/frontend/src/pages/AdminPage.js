@@ -20,7 +20,7 @@ function MinifyZipQueSection(){
     const [minifyZipQue, setMinifyZipQue] = useState([]);
 
     useEffect(() => {
-        Sender.post("/api/minifyZipQue", {}, res => {
+        Sender.post("/api/minify/get_minify_queue", {}, res => {
             if (!res.isFailed()) {
                 let { minifyZipQue } = res.json;
                 setMinifyZipQue(minifyZipQue)
@@ -68,7 +68,7 @@ function CacheSection(){
 
 
     useEffect(() => {
-        Sender.post("/api/cacheInfo", {}, res => {
+        Sender.post("/api/cache/get_info", {}, res => {
             if (!res.isFailed()) {
                 let { totalSize, cacheNum, thumbCount } = res.json;
                 setTotalSize(totalSize);
@@ -100,7 +100,7 @@ function CacheSection(){
 
 function LogoutSection(){
     function dologout(){
-        Sender.post("/api/logout", {}, res => {
+        Sender.post("/api/auth/logout", {}, res => {
             if (!res.isFailed()) {
                 window.location.replace("/");
             }

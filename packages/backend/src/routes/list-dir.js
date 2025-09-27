@@ -22,12 +22,12 @@ const filewatch= require('../services/file-watchers/file-watch');
 const estimateFileTable = require('../services/estimate-file-table');
 const appState = require('../state/appState');
 
-router.post('/api/lsDir', serverUtil.asyncWrapper(async (req, res) => {
+router.post('/api/folder/list_dir', serverUtil.asyncWrapper(async (req, res) => {
     let dir = req.body && req.body.dir;
     const isRecursive = req.body && req.body.isRecursive;
 
     if (!dir || !(await isExist(dir))) {
-        logger.error("[/api/lsDir]", dir, "does not exist");
+        logger.error("[/api/folder/list_dir]", dir, "does not exist");
         res.send({ failed: true, reason: "NOT FOUND" });
         return;
     }
@@ -189,11 +189,11 @@ async function listNoScanDir(filePath, res, isRecussive) {
     return result;
 }
 
-router.post('/api/listImageFolderContent', serverUtil.asyncWrapper(async (req, res) => {
+router.post('/api/folder/list_image_content', serverUtil.asyncWrapper(async (req, res) => {
     let filePath = req.body && req.body.filePath;
     const noMedataInfo = req.body && req.body.noMedataInfo;
     if (!filePath || !(await isExist(filePath))) {
-        logger.error("[/api/listImageFolderContent]", filePath, "does not exist");
+        logger.error("[/api/folder/list_image_content]", filePath, "does not exist");
         res.send({ failed: true, reason: "NOT FOUND" });
         return;
     }

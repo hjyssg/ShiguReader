@@ -15,7 +15,7 @@ function HistorySection(props){
 
   useEffect(() => {
     async function fetchData() {
-        const res = await Sender.postWithPromise("/api/getHistoryForOneFile", {filePath});
+        const res = await Sender.postWithPromise("/api/history/get_one_file", {filePath});
         if (!res.isFailed()) {
             let { history } = res.json;
             setHistory(history)

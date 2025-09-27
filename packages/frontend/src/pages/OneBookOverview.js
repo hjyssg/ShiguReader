@@ -90,7 +90,7 @@ export default class OneBookOverview extends Component {
 
   async sendExtract() {
     const fp = this.getTextFromQuery();
-    const api = this.isImgFolder() ? "/api/listImageFolderContent" : "/api/extract";
+    const api = this.isImgFolder() ? "/api/folder/list_image_content" : "/api/extract/extract_zip";
     const res = await Sender.postWithPromise(api, { filePath: fp, startIndex: 0 })
     this.handleRes(res);
   }
