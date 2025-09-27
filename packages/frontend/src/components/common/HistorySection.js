@@ -1,10 +1,10 @@
-import React, { Component, useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import _ from 'underscore';
 const clientUtil = require("@utils/clientUtil");
 // const classNames = require('classnames');
 // import ReactDOM from 'react-dom';
 
-import Sender from '@services/Sender';
+import { getFileHistory } from '@api/history';
 
 
 function HistorySection(props){
@@ -15,7 +15,7 @@ function HistorySection(props){
 
   useEffect(() => {
     async function fetchData() {
-        const res = await Sender.postWithPromise("/api/history/get_one_file", {filePath});
+        const res = await getFileHistory(filePath);
         if (!res.isFailed()) {
             let { history } = res.json;
             setHistory(history)

@@ -1,6 +1,8 @@
 import React, { Component } from "react";
 import "@styles/ChartPage.scss";
-import Sender from "@services/Sender";
+import { listDirectory } from '@api/folder';
+import { searchFiles } from '@api/search';
+import { getAllInfo } from '@api/info';
 import _ from "underscore";
 const nameParser = require("@name-parser");
 import CenterSpinner from "@components/common/CenterSpinner";
@@ -64,28 +66,23 @@ export default class ChartPage extends Component {
   }
 
   async askServer() {
-    let api;
-    let body;
     const mode = this.getMode();
+    let res;
     if (mode === MODE_EXPLORER) {
-      api = "/api/folder/list_dir";
-      body = {
+      res = await listDirectory({
         dir: this.getTextFromQuery(),
         isRecursive: this.isRecursive(),
         forChart: true
-      };
+      });
     } else if (mode) {
-      api = "/api/search/search_file";
-      body = {
+      res = await searchFiles({
         text: this.getTextFromQuery(),
         mode: mode,
         forChart: true
-      };
+      });
     } else {
-      api = "/api/info/get_all";
-      body = { forChart: true };
+      res = await getAllInfo({ forChart: true });
     }
-    const res = await Sender.postWithPromise(api, body);
     this.handleRes(res);
   }
 

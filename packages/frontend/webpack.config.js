@@ -91,6 +91,7 @@ config.resolve = {
     "@assets": path.resolve(__dirname, 'src/assets/'),
     "@common": path.resolve(__dirname, 'src/common/'),
     "@components": path.resolve(__dirname, 'src/components/'),
+    "@api": path.resolve(__dirname, 'src/api/'),
     "@config": path.resolve(__dirname, 'src/config/'),
     "@context": path.resolve(__dirname, 'src/context/'),
     "@name-parser": path.resolve(__dirname, 'src/name-parser/index'),

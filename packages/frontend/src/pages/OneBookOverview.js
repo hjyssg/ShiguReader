@@ -3,7 +3,8 @@ import _ from 'underscore';
 const classNames = require('classnames');
 
 import { Link } from 'react-router-dom';
-import Sender from '@services/Sender';
+import { listImageFolderContent } from '@api/folder';
+import { extractZip } from '@api/extract';
 import '@styles/OneBook.scss';
 import ErrorPage from '@pages/ErrorPage';
 import CenterSpinner from '@components/common/CenterSpinner';
@@ -90,8 +91,9 @@ export default class OneBookOverview extends Component {
 
   async sendExtract() {
     const fp = this.getTextFromQuery();
-    const api = this.isImgFolder() ? "/api/folder/list_image_content" : "/api/extract/extract_zip";
-    const res = await Sender.postWithPromise(api, { filePath: fp, startIndex: 0 })
+    const res = this.isImgFolder()
+      ? await listImageFolderContent({ filePath: fp, startIndex: 0 })
+      : await extractZip({ filePath: fp, startIndex: 0 });
     this.handleRes(res);
   }
 

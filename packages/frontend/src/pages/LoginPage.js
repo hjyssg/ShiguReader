@@ -8,7 +8,7 @@ import ReactDOM from 'react-dom';
 // import Cookie from "js-cookie";
 // import 'react-toastify/dist/ReactToastify.css';
 // import { GlobalContext } from '../context/GlobalContext';
-import Sender from '@services/Sender';
+import { login } from '@api/auth';
 
 
 // http://localhost:3000/
@@ -23,7 +23,7 @@ class LoginPage extends Component {
 
     async setPasswordCookie() {
         const text = this.getPasswordInput();
-        const res = await Sender.postWithPromise('/api/auth/login', {"password":text});
+        const res = await login(text);
         if (!res.isFailed()) {
             //跳转回login之前的页面
             const prevUrl = sessionStorage.getItem('url_before_login') || "/";

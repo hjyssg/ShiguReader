@@ -1,6 +1,5 @@
 import React, { Component, useState, useEffect } from 'react';
 import '@styles/AdminPage.scss';
-import Sender from '@services/Sender';
 import _ from "underscore";
 import ReactDOM from 'react-dom';
 import Swal from 'sweetalert2';
@@ -15,18 +14,24 @@ import { GlobalContext } from '@context/GlobalContext';
 const classNames = require('classnames');
 import {QRCodeSVG} from 'qrcode.react';
 import { toast } from 'react-toastify';
+import { getQueue as getMinifyQueue } from '@api/minify';
+import { cleanCache as cleanCacheApi, getCacheInfo } from '@api/cache';
+import { logout } from '@api/auth';
+import { getHomeDirectories } from '@api/home';
+import { shutdownServer } from '@api/system';
 
 function MinifyZipQueSection(){
     const [minifyZipQue, setMinifyZipQue] = useState([]);
 
     useEffect(() => {
-        Sender.post("/api/minify/get_minify_queue", {}, res => {
+        (async () => {
+            const res = await getMinifyQueue();
             if (!res.isFailed()) {
                 let { minifyZipQue } = res.json;
                 setMinifyZipQue(minifyZipQue)
             }
-        });
-    }, []); 
+        })();
+    }, []);
 
     let items;
     if (minifyZipQue.length === 0) {
@@ -52,11 +57,9 @@ function cleanCache(minized) {
         showCancelButton: true,
         confirmButtonText: 'Yes',
         cancelButtonText: 'No'
-    }).then((result) => {
+    }).then(async (result) => {
         if (result.value === true) {
-            Sender.post('/api/cleanCache', {}, res => {
-                // this.askCacheInfo()
-            });
+            await cleanCacheApi();
         }
     });
 }
@@ -68,15 +71,16 @@ function CacheSection(){
 
 
     useEffect(() => {
-        Sender.post("/api/cache/get_info", {}, res => {
+        (async () => {
+            const res = await getCacheInfo();
             if (!res.isFailed()) {
                 let { totalSize, cacheNum, thumbCount } = res.json;
                 setTotalSize(totalSize);
                 setCacheNum(cacheNum);
                 setThumbCount(thumbCount);
             }
-        });
-    }, []); 
+        })();
+    }, []);
 
     const size = totalSize && clientUtil.filesizeUitl(totalSize);
     let cacheInfo;
@@ -99,12 +103,11 @@ function CacheSection(){
 }
 
 function LogoutSection(){
-    function dologout(){
-        Sender.post("/api/auth/logout", {}, res => {
-            if (!res.isFailed()) {
-                window.location.replace("/");
-            }
-        });
+    async function dologout(){
+        const res = await logout();
+        if (!res.isFailed()) {
+            window.location.replace("/");
+        }
     }
  
     return (
@@ -130,7 +133,7 @@ export default class AdminPage extends Component {
     }
 
     async requestHomePagePathes() {
-        const res = await Sender.getWithPromise("/api/homePagePath");
+        const res = await getHomeDirectories();
         if (!res.isFailed()) {
             let { dirs } = res.json;
             this.setState({
@@ -200,12 +203,11 @@ export default class AdminPage extends Component {
             showCancelButton: true,
             confirmButtonText: 'Yes',
             cancelButtonText: 'No'
-        }).then((result) => {
+        }).then(async (result) => {
             if (result.value === true) {
-                Sender.post('/api/shutdownServer', {}, res => {
-                    //send another request  to check if shut down?
-                    alert("Shutdown request is sent");
-                });
+                await shutdownServer();
+                //send another request  to check if shut down?
+                alert("Shutdown request is sent");
             }
         });
     }

@@ -3,7 +3,7 @@ import React, { Component } from 'react';
 import _ from "underscore";
 // import './style/Explorer.scss';
 import LoadingImage from './LoadingImage';
-import Sender from '@services/Sender';
+import { addFileWatch } from '@api/folder';
 import { Link } from 'react-router-dom';
 
 const userConfig = require('@config/user-config');
@@ -76,12 +76,7 @@ export const NoScanAlertArea = ({ filePath }) => {
             cancelButtonText: 'No'
         }).then((result) => {
             if (result.value === true) {
-                Sender.post("/api/folder/add_file_watch", { filePath }, res => {
-                    if (!res.isFailed()) {
-                        // let { minifyZipQue } = res.json;
-                        // setMinifyZipQue(minifyZipQue)
-                    }
-                });
+                addFileWatch(filePath);
             }
         });
     }

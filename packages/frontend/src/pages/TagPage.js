@@ -2,7 +2,7 @@
 import React, { Component } from 'react';
 import LoadingImage from '@components/LoadingImage';
 import _ from "underscore";
-import Sender from '@services/Sender';
+import { getAuthors, getGoodAuthorNames, getTags } from '@api/info';
 import '@styles/TagPage.scss';
 import { Link } from 'react-router-dom';
 import ErrorPage from '@pages/ErrorPage';
@@ -89,7 +89,7 @@ export default class TagPage extends Component {
   }
 
   async requestAuthors(){
-    let res = await Sender.getWithPromise('/api/getGoodAuthorNames');
+    let res = await getGoodAuthorNames();
     if (!res.isFailed()) {
         this.setState({
             authorInfo: res.json.authorInfo,
@@ -98,7 +98,7 @@ export default class TagPage extends Component {
     }
 
 
-    res = await Sender.postWithPromise('/api/get_authors', { needThumbnail: true })
+    res = await getAuthors({ needThumbnail: true })
     if (!res.isFailed()) {
       this.setState({
         author_rows: res.json.author_rows
@@ -111,7 +111,7 @@ export default class TagPage extends Component {
   }
 
   async requestTags(){
-    let res = await Sender.postWithPromise('/api/get_tags', { needThumbnail: true })
+    let res = await getTags({ needThumbnail: true })
     if (!res.isFailed()) {
       this.setState({
         tag_rows: res.json.tag_rows
