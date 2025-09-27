@@ -1215,11 +1215,13 @@ export default class ExplorerPage extends Component {
     renderFilterControls() {
         return (
             <div className="explorer-filter-panel container">
-                <div className="explorer-filter-panel__row explorer-filter-panel__row--controls">
-                    {this.renderPageRangeSilder()}
-                    {this.renderCheckboxPanel()}
+                <div className='two-panel-container'>
+                    <div className="explorer-filter-panel__row explorer-filter-panel__row--controls">
+                        {this.renderPageRangeSilder()}
+                        {this.renderCheckboxPanel()}
+                    </div>
+                    {this.renderFilterTagPanel()}
                 </div>
-                {this.renderFilterTagPanel()}
             </div>
         );
     }

@@ -235,17 +235,19 @@
 }
 
 .explorer-filter-panel {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  padding: 12px 14px;
   border-radius: 6px;
-  background: $bacground_level_two;
-  border: 1px solid rgba(0, 0, 0, 0.3);
-  color: $font_color_white_one;
-  margin: 15px 0;
-  box-sizing: border-box;
-  width: 100%;
+  margin-bottom: 12px;
+
+  .two-panel-container {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    padding: 12px 14px;
+    border: 1px solid rgba(0, 0, 0, 0.3);
+    background: $bacground_level_two;
+    border-radius: 6px;
+  }
 }
 
 .explorer-filter-panel__row {
@@ -276,10 +278,8 @@
   width: 100%;
 
   .panel-title {
-    font-size: 13px;
-    font-weight: 600;
+    font-size: 12px;
     margin-bottom: 8px;
-    text-transform: uppercase;
     letter-spacing: 0.5px;
     color: rgba($font_color_white_one, 0.9);
   }
@@ -291,10 +291,9 @@
   }
 
   .aji-checkbox {
-    background-color: rgba(0, 0, 0, 0.25);
     padding: 4px 10px;
     border-radius: 12px;
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(0, 0, 0, 0.3);
 
     .inner {
       font-size: 12px;
@@ -325,6 +324,7 @@
 
   .small-text-title {
     color: $font_color_white_one;
+    font-size: 12px;
 
     &.no-wrap {
       margin-right: 10px;
