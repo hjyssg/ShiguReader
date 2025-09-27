@@ -24,7 +24,7 @@ function getExtraDiv(res) {
     let extraDiv;
     if (!res.isFailed()) {
         const newPath = res.json.dest;
-        const toUrl = clientUtil.getOneBookLink(newPath);
+        const toUrl = clientUtil.getBookReadLink(newPath);
         extraDiv = (
             <Link to={toUrl} className={"result-zip-path"} target="_blank">
                 {newPath}

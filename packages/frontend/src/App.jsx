@@ -149,9 +149,9 @@ class App extends Component {
                 <Route path='/author/' render={renderExplorer} />
                 <Route path='/search/' render={renderExplorer} />
 
-                <Route path='/onebook/' render={renderBookReadPage} />
-                <Route path='/onebookOverview/' render={renderBookOverviewPage} />
-                <Route path='/onebookWaterfall/' render={renderBookWaterfallPage} />
+                <Route path='/book/' render={renderBookReadPage} />
+                <Route path='/book-overview/' render={renderBookOverviewPage} />
+                <Route path='/book-waterfall/' render={renderBookWaterfallPage} />
 
 
                 <Route path='/tagPage/' render={renderTagPage} />
@@ -195,7 +195,7 @@ class App extends Component {
         }
 
         const path = window.location.pathname;
-        const isOneBook = path.includes("/onebook");
+        const isBookPage = path.startsWith("/book");
         const isExplorer = path.includes("/explorer");
         const isTag = path.includes("/tagPage");
         const isAuthor = path.includes("/author");
@@ -203,7 +203,7 @@ class App extends Component {
         const isLogin = path.includes("/login");
         const isVideo = path.includes("/videoPlayer")
 
-        const topNav = !isOneBook && !isLogin && !isVideo && (
+        const topNav = !isBookPage && !isLogin && !isVideo && (
             <div className="app-top-topnav container">
                 <div className="app-page-links row">
                     <Link to='/'>

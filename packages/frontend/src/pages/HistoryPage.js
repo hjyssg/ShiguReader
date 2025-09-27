@@ -41,9 +41,9 @@ function renderHistory(history) {
 
         const dayHistory = items.map((e, ii) => {
             const filePath = e.filePath;
-            const toUrl = util.isVideo(filePath)? 
-                          clientUtil.getVideoPlayerLink(filePath) : 
-                          clientUtil.getOneBookLink(filePath);
+            const toUrl = util.isVideo(filePath)?
+                          clientUtil.getVideoPlayerLink(filePath) :
+                          clientUtil.getBookReadLink(filePath);
             const fn = getBaseName(filePath)||filePath;
             const itemTimeStr = clientUtil.dateFormat_v1(new Date(e.time));
             const tooltip = `${fn}\n${itemTimeStr}`

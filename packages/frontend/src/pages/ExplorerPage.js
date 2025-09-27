@@ -642,7 +642,7 @@ export default class ExplorerPage extends Component {
 
     renderSingleZipItem(fp) {
         const text = getBaseName(fp);
-        const toUrl = clientUtil.getOneBookLink(fp);
+        const toUrl = clientUtil.getBookReadLink(fp);
 
         let zipItem;
         let thumbnailurl = this.getThumbnailUrl(fp);
@@ -982,9 +982,9 @@ export default class ExplorerPage extends Component {
  
 
     getBookModeLink() {
-        const onebookUrl = clientUtil.getOneBookLink(this.getTextFromQuery());
+        const bookReadUrl = clientUtil.getBookReadLink(this.getTextFromQuery());
         return (
-            <Link target="_blank" className="exp-top-button" to={onebookUrl} >
+            <Link target="_blank" className="exp-top-button" to={bookReadUrl} >
                 <span className="fas fa-book-reader" />
                 <span>Open in Book Mode </span>
             </Link>
