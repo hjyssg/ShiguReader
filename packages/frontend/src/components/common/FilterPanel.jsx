@@ -8,10 +8,11 @@ const FilterPanel = ({
     onReset,
     onSelectNone,
     resetLabel = "Reset",
-    selectNoneLabel = "全部反选",
+    selectNoneLabel = "Deselect All",
     className,
     checkboxContainerClassName = "filter-panel-checkboxes",
-    actionsClassName = "filter-panel-actions"
+    actionsClassName = "filter-panel-actions",
+    maxVisibleWhenCollapsed
 }) => {
     if (!items || items.length === 0) {
         return null;
@@ -23,8 +24,15 @@ const FilterPanel = ({
     const [isExpanded, setIsExpanded] = useState(false);
     const [collapsedHeight, setCollapsedHeight] = useState(null);
     const [isOverflowing, setIsOverflowing] = useState(false);
+    const shouldLimitByCount = Number.isInteger(maxVisibleWhenCollapsed) && maxVisibleWhenCollapsed > 0;
 
     const measureOverflow = useCallback(() => {
+        if (shouldLimitByCount) {
+            setCollapsedHeight(null);
+            setIsOverflowing(false);
+            return;
+        }
+
         if (typeof window === "undefined") {
             setCollapsedHeight(null);
             setIsOverflowing(false);
@@ -58,39 +66,62 @@ const FilterPanel = ({
         setCollapsedHeight(nextCollapsedHeight);
         const totalHeight = container.scrollHeight;
         setIsOverflowing(totalHeight - nextCollapsedHeight > 1);
-    }, []);
+    }, [shouldLimitByCount]);
 
     useEffect(() => {
+        setIsExpanded(false);
+        if (shouldLimitByCount) {
+            return undefined;
+        }
         if (typeof window === "undefined") {
             return undefined;
         }
-        setIsExpanded(false);
         measureOverflow();
         window.addEventListener("resize", measureOverflow);
         return () => {
             window.removeEventListener("resize", measureOverflow);
         };
-    }, [items, measureOverflow]);
+    }, [items, measureOverflow, shouldLimitByCount]);
 
     useEffect(() => {
-        if (!isExpanded) {
+        if (!isExpanded && !shouldLimitByCount) {
             measureOverflow();
         }
-    }, [isExpanded, measureOverflow]);
+    }, [isExpanded, measureOverflow, shouldLimitByCount]);
 
     const containerStyle = useMemo(() => {
-        if (isExpanded || !collapsedHeight) {
+        if (shouldLimitByCount || isExpanded || !collapsedHeight) {
             return undefined;
         }
         return {
             maxHeight: collapsedHeight,
             overflow: "hidden"
         };
-    }, [collapsedHeight, isExpanded]);
+    }, [collapsedHeight, isExpanded, shouldLimitByCount]);
+
+    const displayedItems = useMemo(() => {
+        if (!shouldLimitByCount || isExpanded) {
+            return items;
+        }
+        return items.slice(0, maxVisibleWhenCollapsed);
+    }, [items, isExpanded, shouldLimitByCount, maxVisibleWhenCollapsed]);
 
     const showReset = onReset && hasDeselected;
     const showSelectNone = typeof onSelectNone === "function";
     const showActions = showReset || showSelectNone;
+    const showToggle = shouldLimitByCount
+        ? items.length > maxVisibleWhenCollapsed
+        : isOverflowing;
+
+    const toggleButton = showToggle && (
+        <button
+            type="button"
+            className="btn btn-sm btn-light filter-panel-toggle-button"
+            onClick={() => setIsExpanded(prev => !prev)}
+        >
+            {isExpanded ? "Show Less" : "Show More"}
+        </button>
+    );
 
     return (
         <div className={panelClassName}>
@@ -104,7 +135,7 @@ const FilterPanel = ({
                 ref={containerRef}
                 style={containerStyle}
             >
-                {items.map(item => (
+                {displayedItems.map(item => (
                     <Checkbox
                         key={item.value}
                         checked={!!item.checked}
@@ -114,16 +145,11 @@ const FilterPanel = ({
                         {item.label}
                     </Checkbox>
                 ))}
+                {shouldLimitByCount && toggleButton}
             </div>
-            {isOverflowing && (
+            {!shouldLimitByCount && isOverflowing && (
                 <div className="filter-panel-toggle">
-                    <button
-                        type="button"
-                        className="btn btn-sm btn-light"
-                        onClick={() => setIsExpanded(prev => !prev)}
-                    >
-                        {isExpanded ? "收起" : "..."}
-                    </button>
+                    {toggleButton}
                 </div>
             )}
             {showActions && (

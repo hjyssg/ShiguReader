@@ -1173,6 +1173,7 @@ export default class ExplorerPage extends Component {
                 onReset={this.resetTagFilters.bind(this)}
                 onSelectNone={() => this.selectNoneTagFilters(tags)}
                 resetLabel="Show All Tags"
+                maxVisibleWhenCollapsed={8}
                 className="filter-type-panel"
                 checkboxContainerClassName="type-checkboxes"
                 actionsClassName="type-panel-actions"

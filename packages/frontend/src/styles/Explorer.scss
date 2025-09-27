@@ -288,6 +288,7 @@
     display: flex;
     flex-wrap: wrap;
     gap: 10px 12px;
+    align-items: center;
   }
 
   .aji-checkbox {
@@ -299,6 +300,13 @@
       font-size: 12px;
       white-space: nowrap;
     }
+  }
+
+  .filter-panel-toggle-button {
+    font-size: 12px;
+    text-transform: none;
+    padding: 4px 10px;
+    border-radius: 12px;
   }
 
   .type-panel-actions {
