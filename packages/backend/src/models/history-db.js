@@ -44,8 +44,6 @@ async function getLatestRecordForFilePath(filePath) {
     return await sqldb.getSync(sql, [filePath]);
 }
 
-module.exports.getLatestRecordForFilePath = getLatestRecordForFilePath;
-
 module.exports.addOneRecord = async function (filePath, recordTime) {
     if(noNeedRecord(filePath)){
         return false;
