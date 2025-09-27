@@ -6,7 +6,7 @@
 // @grant       GM_getResourceText
 // @connect     localhost
 // @namespace       Aji47
-// @version         0.0.29
+// @version         0.0.30
 // @description
 // @author        Aji47
 // @include       *://exhentai.org/*
@@ -46,13 +46,211 @@ const IS_NYAA =  window.location.hostname.includes("nyaa");
 
 console.assert = console.assert || (() => { });
 
+const nameParser = window.nameParser || {};
+const parse = window.parse || (typeof nameParser.parse === "function" ? nameParser.parse : () => null);
+const isHighlySimilar = function (s1, s2) {
+    if (nameParser && typeof nameParser.isHighlySimilar === "function") {
+        return nameParser.isHighlySimilar(s1, s2);
+    }
+    if (!s1 && !s2) {
+        return true;
+    }
+    if (s1 && s2) {
+        return s1.toLowerCase() === s2.toLowerCase();
+    }
+    return false;
+};
+
 //-------------------------------
 const IS_IN_PC = 100;
 const LIKELY_IN_PC = 70;
 const SAME_AUTHOR = 20;
 const TOTALLY_DIFFERENT = 0;
 
+const EVERYTHING_PORT = 80;
+
 let isServerUp = true;
+let isEverythingServerUp = true;
+
+function cleanString(str) {
+    return str && str.replace(/[ \.\,\/#!$%\^&＆\*;:{}=\-_`~()\[\]\–-、｀～？！＠@、。／『』「」；’：・｜＝＋￥：？]/g, "");
+}
+
+function oneInsideOne(s1, s2) {
+    return s1 && s2 && (s1.includes(s2) || s2.includes(s1));
+}
+
+function extractMiddleChars(str, wantedSize = 10) {
+    if (!str) {
+        return "";
+    }
+    if (wantedSize >= str.length) {
+        return str;
+    } else {
+        const startIndex = Math.floor((str.length - wantedSize) / 2);
+        const endIndex = startIndex + wantedSize;
+        return str.substring(startIndex, endIndex);
+    }
+}
+
+function isTwoBookTheSame(fn1, fn2) {
+    if (!fn1 || !fn2) {
+        return TOTALLY_DIFFERENT;
+    }
+
+    fn1 = fn1.toLowerCase();
+    fn2 = fn2.toLowerCase();
+
+    const r1 = parse(fn1);
+    const r2 = parse(fn2);
+
+    if (!r1 || !r2) {
+        return isHighlySimilar(fn1, fn2) ? LIKELY_IN_PC : TOTALLY_DIFFERENT;
+    }
+
+    const author1 = cleanString(r1.author);
+    const author2 = cleanString(r2.author);
+    const group1 = cleanString(r1.group);
+    const group2 = cleanString(r2.group);
+
+    if (author1 && author2) {
+        const authorSimilar = isHighlySimilar(author1, author2);
+        const crossSimilar = isHighlySimilar(author1, group2) || isHighlySimilar(author2, group1);
+        if (!authorSimilar && !crossSimilar) {
+            return TOTALLY_DIFFERENT;
+        }
+    }
+
+    let result = author1 && author2 ? SAME_AUTHOR : TOTALLY_DIFFERENT;
+
+    if (r1.comiket && r2.comiket && r1.comiket !== r2.comiket) {
+        return result;
+    }
+
+    let isSimilarGroup;
+    if ((group1 && !group2) || (!group1 && group2)) {
+        isSimilarGroup = true;
+    } else {
+        isSimilarGroup = isHighlySimilar(group1, group2);
+    }
+
+    if (isSimilarGroup) {
+        let title1 = cleanString(r1.title);
+        let title2 = cleanString(r2.title);
+        if (title1 === title2 || isHighlySimilar(title1, title2)) {
+            result = IS_IN_PC;
+        } else if (oneInsideOne(title1, title2)) {
+            result = LIKELY_IN_PC;
+        }
+    }
+
+    return result;
+}
+
+function buildEverythingQueries(text) {
+    const queries = new Set();
+    const parsed = parse(text);
+    const cleanedText = text.replace(/[\[\](){}]/g, " ");
+
+    const addQuery = (value, size = 12) => {
+        if (!value) {
+            return;
+        }
+        const candidate = value.trim();
+        if (candidate.length >= 2) {
+            queries.add(extractMiddleChars(candidate, Math.min(size, candidate.length)));
+        }
+    };
+
+    if (parsed) {
+        addQuery(parsed.author, 8);
+        addQuery(parsed.group, 8);
+        addQuery(parsed.title, 14);
+    }
+
+    cleanedText.split(/\s+/).forEach(token => {
+        if (token && token.length >= 4) {
+            queries.add(extractMiddleChars(token, Math.min(8, token.length)));
+        }
+    });
+
+    addQuery(cleanedText, 12);
+    addQuery(text, 12);
+
+    return Array.from(queries).filter(Boolean);
+}
+
+async function searchEverythingServer(query) {
+    const url = `http://localhost:${EVERYTHING_PORT}/?search=${encodeURIComponent(query)}&format=json&path_column=1&offset=0&limit=30`;
+    const response = await fetch(url, { method: "GET", cache: "no-cache" });
+    if (!response.ok) {
+        throw new Error(`Everything server error ${response.status}`);
+    }
+    return response.json();
+}
+
+async function checkByEverything(text) {
+    if (!isEverythingServerUp) {
+        return { status: 0, similarTitles: [] };
+    }
+
+    const queries = buildEverythingQueries(text);
+    const seen = new Set();
+    const candidates = [];
+
+    try {
+        for (const q of queries) {
+            try {
+                const data = await searchEverythingServer(q);
+                const results = data && (data.results || data.Result || data.result || []);
+                const normalizedResults = Array.isArray(results) ? results : [];
+                for (const item of normalizedResults) {
+                    const name = item.name || item.Name || "";
+                    const path = item.path || item.Path || "";
+                    const displayName = path ? `${path}\\${name}` : name;
+                    if (!displayName || seen.has(displayName)) {
+                        continue;
+                    }
+                    seen.add(displayName);
+                    candidates.push({
+                        displayName,
+                        name: name || displayName
+                    });
+                }
+            } catch (err) {
+                console.error("Everything search failed", q, err);
+                isEverythingServerUp = false;
+                break;
+            }
+        }
+    } catch (error) {
+        console.error(error);
+        isEverythingServerUp = false;
+    }
+
+    if (!candidates.length) {
+        return { status: 0, similarTitles: [] };
+    }
+
+    let bestScore = TOTALLY_DIFFERENT;
+    const scoredCandidates = candidates.map(candidate => {
+        const score = isTwoBookTheSame(text, candidate.name);
+        if (score > bestScore) {
+            bestScore = score;
+        }
+        return { ...candidate, score };
+    });
+
+    const filteredCandidates = scoredCandidates
+        .filter(candidate => candidate.score > TOTALLY_DIFFERENT)
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 30);
+
+    return {
+        status: bestScore,
+        similarTitles: filteredCandidates.map(candidate => candidate.displayName)
+    };
+}
 
 async function postData(method, url, data) {
     data = data || {};
@@ -77,36 +275,32 @@ async function postData(method, url, data) {
 }
 
 async function checkIfDownload(text) {
-    var status = 0;
+    let status = 0;
     let similarTitles = [];
 
-    if (!isServerUp) {
-        return {
-            status,
-            similarTitles
-        };
+    if (isServerUp) {
+        try {
+            let api = `http://localhost:${production_port}/api/search/find_similar_file/${encodeURIComponent(text)}`;
+            let res = await postData("POST", api);
+            const data = res;
+            similarTitles = data.map(e => e.fn);
+            status = data[0]?.score || 0;
+        } catch (e) {
+            isServerUp = false;
+            console.error(e);
+        }
     }
 
-    try{
-        let api = `http://localhost:${production_port}/api/search/find_similar_file/${encodeURIComponent(text)}`;
-        // let res = await GM_xmlhttpRequest_promise("POST", api);
-        let res = await postData("POST", api);
-        const data = res;
-        similarTitles = data.map(e => e.fn);
-        status = data[0]?.score || 0;
-    } catch(e) {
-        isServerUp = false;
-        console.error(e);
-    } finally {
-        // console.table({
-        //     status,
-        //     similarTitles
-        // });
-    }
+    const everythingResult = await checkByEverything(text);
+    const combinedSimilarTitles = new Set();
+    similarTitles.forEach(t => combinedSimilarTitles.add(t));
+    everythingResult.similarTitles.forEach(t => combinedSimilarTitles.add(t));
+
+    status = Math.max(status, everythingResult.status);
 
     return {
         status,
-        similarTitles
+        similarTitles: Array.from(combinedSimilarTitles)
     }
 }
 
@@ -339,10 +533,10 @@ async function main() {
     }else if (IS_NYAA){
         await highlightNyaa();
     }
-    if(isServerUp){
+    if(isServerUp || isEverythingServerUp){
         popMessage("成功载入");
     }else{
-        popMessage("无法连接到ShiguReader，无法使用搜索和高亮功能");
+        popMessage("无法连接到ShiguReader或Everything服务器，无法使用搜索和高亮功能");
     }
 }
 
