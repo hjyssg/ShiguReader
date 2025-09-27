@@ -35,7 +35,7 @@ function noNeedRecord(filePath){
     return cachePath && pathUtil.isSub(cachePath, filePath);
 }
 
-module.exports.getLatestRecordForFilePath = async function (filePath) {
+async function getLatestRecordForFilePath(filePath) {
     if (!filePath) {
         return null;
     }
@@ -44,12 +44,22 @@ module.exports.getLatestRecordForFilePath = async function (filePath) {
     return await sqldb.getSync(sql, [filePath]);
 }
 
+module.exports.getLatestRecordForFilePath = getLatestRecordForFilePath;
+
 module.exports.addOneRecord = async function (filePath, recordTime) {
     if(noNeedRecord(filePath)){
         return false;
     }
 
-    const time = recordTime || util.getCurrentTime()
+    const time = typeof recordTime === 'number' ? recordTime : util.getCurrentTime();
+    const lastRecord = await getLatestRecordForFilePath(filePath);
+    const lastTime = lastRecord && typeof lastRecord.time === 'number' ? lastRecord.time : null;
+    const FIVE_MINUTES = 5 * 60 * 1000;
+
+    if (lastTime && time - lastTime < FIVE_MINUTES) {
+        return false;
+    }
+
     const fileName = path.basename(filePath);
     const dirPath = path.dirname(filePath);
 
