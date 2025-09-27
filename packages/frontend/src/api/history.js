@@ -5,3 +5,6 @@ export const getFileHistory = (filePath) =>
 
 export const listHistory = (page) =>
   Sender.postWithPromise('/api/history/list', { page });
+
+export const addHistoryRecord = (filePath) =>
+  Sender.postWithPromise('/api/history/add', { filePath });

@@ -39,10 +39,6 @@ router.post("/api/file/get_info", serverUtil.asyncWrapper(async (req, res) => {
     res.send({
         stat,
     });
-
-    if (util.isVideo(filePath)) {
-        historyDb.addOneRecord(filePath);
-    }
 }));
 
 

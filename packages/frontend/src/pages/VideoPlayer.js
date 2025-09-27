@@ -7,6 +7,7 @@ const clientUtil = require("@utils/clientUtil");
 const { getDir, getBaseName, filesizeUitl } = clientUtil;
 import { Link } from 'react-router-dom';
 import { getInfo as getFileInfo } from '@api/file';
+import { addHistoryRecord } from '@api/history';
 const queryString = require('query-string');
 const Cookie = require("js-cookie");
 import DPlayer from "react-dplayer";
@@ -18,6 +19,7 @@ export default class VideoPlayer extends Component {
     super(props);
     this.state = {
     };
+    this.videoHistoryRecorded = false;
   }
 
   componentDidMount() {
@@ -37,6 +39,12 @@ export default class VideoPlayer extends Component {
 
 
     document.addEventListener('keydown', this.handleKeyDown.bind(this));
+  }
+
+  componentDidUpdate(prevProps) {
+    if (this.getTextFromQuery(prevProps) !== this.getTextFromQuery()) {
+      this.videoHistoryRecorded = false;
+    }
   }
 
   componentWillUnmount() {
@@ -105,6 +113,32 @@ export default class VideoPlayer extends Component {
     }catch(e){
       console.error(e);
     }
+    this.maybeRecordVideoHistory();
+  }
+
+  maybeRecordVideoHistory() {
+    if (this.videoHistoryRecorded) {
+      return;
+    }
+
+    if (!this.dp || !this.dp.video) {
+      return;
+    }
+
+    if (this.dp.video.currentTime < 10) {
+      return;
+    }
+
+    const filePath = this.getTextFromQuery();
+    if (!filePath) {
+      return;
+    }
+
+    this.videoHistoryRecorded = true;
+    addHistoryRecord(filePath).catch((e) => {
+      console.error(e);
+      this.videoHistoryRecorded = false;
+    });
   }
 
  adjustHW(){
