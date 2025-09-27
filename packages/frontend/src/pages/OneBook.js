@@ -448,7 +448,10 @@ export default class OneBook extends Component {
     }
 
     const currentPage = index + 1;
-    if (currentPage / totalPages < (1 / 3)) {
+    const reachedProgressThreshold = currentPage / totalPages >= (1 / 3);
+    const reachedPageThreshold = currentPage > 8;
+
+    if (!reachedProgressThreshold && !reachedPageThreshold) {
       return;
     }
 

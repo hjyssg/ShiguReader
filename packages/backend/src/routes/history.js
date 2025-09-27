@@ -32,7 +32,17 @@ router.post('/api/history/add', serverUtil.asyncWrapper(async (req, res) => {
     }
 
     try {
-        historyDb.addOneRecord(filePath);
+        const now = util.getCurrentTime();
+        const lastRecord = await historyDb.getLatestRecordForFilePath(filePath);
+        const lastTime = lastRecord && typeof lastRecord.time === 'number' ? lastRecord.time : null;
+        const FIVE_MINUTES = 5 * 60 * 1000;
+
+        if (lastTime && now - lastTime < FIVE_MINUTES) {
+            res.send({ failed: false, skipped: true });
+            return;
+        }
+
+        await historyDb.addOneRecord(filePath, now);
         res.send({ failed: false });
     } catch (err) {
         res.send({ failed: true, reason: err?.message || String(err) });

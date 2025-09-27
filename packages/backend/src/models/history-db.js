@@ -35,18 +35,28 @@ function noNeedRecord(filePath){
     return cachePath && pathUtil.isSub(cachePath, filePath);
 }
 
-module.exports.addOneRecord = function (filePath) {
-    if(noNeedRecord(filePath)){
-        return;
+module.exports.getLatestRecordForFilePath = async function (filePath) {
+    if (!filePath) {
+        return null;
     }
 
-    const time = util.getCurrentTime()
+    const sql = `SELECT time FROM history_table WHERE filePath = ? ORDER BY time DESC LIMIT 1`;
+    return await sqldb.getSync(sql, [filePath]);
+}
+
+module.exports.addOneRecord = async function (filePath, recordTime) {
+    if(noNeedRecord(filePath)){
+        return false;
+    }
+
+    const time = recordTime || util.getCurrentTime()
     const fileName = path.basename(filePath);
     const dirPath = path.dirname(filePath);
 
-    sqldb.insertOneRow("history_table", {
+    await sqldb.insertOneRow("history_table", {
         filePath, dirPath, fileName, time
     });
+    return true;
 }
 
 module.exports.addOneLsDirRecord = function (filePath) {
