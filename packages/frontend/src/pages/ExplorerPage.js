@@ -1223,11 +1223,11 @@ export default class ExplorerPage extends Component {
     renderFilterControls() {
         return (
             <>
-                <div className="explorer-filter-panel container">
+                {/* <div className="explorer-filter-panel container">
                     <div className='small-wrapper'>
                         {this.renderFilterTagPanel()}
                     </div>
-                </div>
+                </div> */}
 
                 <div className="explorer-filter-panel container">
                     <div className='small-wrapper'>
