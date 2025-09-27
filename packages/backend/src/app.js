@@ -130,7 +130,7 @@ app.use(express.static(rootPath, {
 
 const modifyResponseForChart = require('./middleware/chartResponseMiddleware');
 // 将中间件应用到指定的 API 路由
-app.use(['/api/lsDir', '/api/search', '/api/allInfo'], modifyResponseForChart);
+app.use(['/api/folder/list_dir', '/api/search/search_file', '/api/info/get_all'], modifyResponseForChart);
 
 //  to consume json request body
 //  https://stackoverflow.com/questions/10005939/how-do-i-consume-the-json-post-data-in-an-express-application
@@ -231,10 +231,10 @@ async function init() {
     });
 }
 
-app.post('/api/addNewFileWatchAfterInit', serverUtil.asyncWrapper(async (req, res) => {
+app.post('/api/folder/add_file_watch', serverUtil.asyncWrapper(async (req, res) => {
     let filePath = req.body && req.body.filePath;
     if (!filePath || !(await isExist(filePath))) {
-        logger.error("[/api/addNewFileWatchAfterInit]", filePath, "does not exist");
+        logger.error("[/api/folder/add_file_watch]", filePath, "does not exist");
         res.send({ failed: true, reason: "NOT FOUND" });
         return;
     }
@@ -366,35 +366,15 @@ app.get('/*', staticFileRouter)
 // 疯狂发送请求洪水怎么处理
 // 一个用户10秒最多100个请求？
 
-const token_set = {};
-app.post("/api/login", asyncWrapper(async (req, res) => {
-    const password = req.body && req.body.password;
-    if(password == etc_config.home_password || !etc_config.home_password){
-        const token = serverUtil.makeid()
-        token_set[token] = true;
-        res.cookie('login-token', token, {maxAge: 30 * 1000 * 3600 * 24 });
-        res.json({
-            failed: false
-        });
-    }else{
-        res.json({
-            failed: true
-        });
-    }
-}));
-
-app.post("/api/logout", asyncWrapper(async (req, res) => {
-    if(req.cookies && req.cookies["login-token"] && token_set[req.cookies["login-token"]]){
-        delete token_set[req.cookies["login-token"]]
-    }
-    res.cookie('login-token', "")
-    res.send({ failed: false });
-}));
+const authModule = require('./routes/auth');
+const authRoute = authModule.router;
+const authTokenSet = authModule.tokenSet;
+app.use(authRoute);
 
 const exception_apis = [
-    "/api/search",
-    "/api/simple_search",
-    "/api/download"
+    "/api/search/search_file",
+    "/api/search/simple_search",
+    "/api/file/download"
 ]
 
 //check if login
@@ -405,7 +385,7 @@ app.use((req, res, next) => {
         next();
     } else if(exception_apis.some(e => (req.path.includes(e)))){
         next();
-    } else if(req.cookies && req.cookies["login-token"] && token_set[req.cookies["login-token"]]){
+    } else if(req.cookies && req.cookies["login-token"] && authTokenSet[req.cookies["login-token"]]){
         next();
     }else{
         res.cookie('login-token', "")
@@ -414,7 +394,7 @@ app.use((req, res, next) => {
 })
 
 //-----------------thumbnail related-----------------------------------
-app.post("/api/getThumbnailForFolders", asyncWrapper(async (req, res) => {
+app.post("/api/thumbnail/get_for_folder_list", asyncWrapper(async (req, res) => {
     let dirs = req.body && req.body.dirs;
     if (!dirs) {
         res.send({ failed: true, reason: "No Parameter" });
@@ -430,7 +410,7 @@ app.post("/api/getThumbnailForFolders", asyncWrapper(async (req, res) => {
 
 const FOLDER_THUMBNAIL_CACHE_CONTROL = "public, max-age=300";
 
-app.get("/api/folderThumbnailFromDisk", asyncWrapper(async (req, res) => {
+app.get("/api/thumbnail/get_for_folder", asyncWrapper(async (req, res) => {
     const filePath = req.query && req.query.filePath;
 
     if (!filePath || !(await isExist(filePath)) || !estimateIfFolder(filePath)) {
@@ -475,7 +455,7 @@ app.get("/api/folderThumbnailFromDisk", asyncWrapper(async (req, res) => {
 }));
 
 
-app.post("/api/getTagThumbnail", asyncWrapper(async (req, res) => {
+app.post("/api/thumbnail/get_for_tag", asyncWrapper(async (req, res) => {
     const author = req.body && req.body.author;
     const tag = req.body && req.body.tag;
     if (!author && !tag) {
@@ -692,7 +672,7 @@ app.post('/api/pregenerateThumbnails', asyncWrapper(async (req, res) => {
 
 
 // TODO 快速的获取任意文件或者文件夹的thumbnail
-app.get('/api/getQuickThumbnail', asyncWrapper(async (req, res) => {
+app.get('/api/thumbnail/get_quick', asyncWrapper(async (req, res) => {
     let filePath = req.query.p;
 
     if (!filePath) {
@@ -729,7 +709,7 @@ app.get('/api/getQuickThumbnail', asyncWrapper(async (req, res) => {
 
 
 
-app.post('/api/getZipThumbnail', asyncWrapper(async (req, res) => {
+app.post('/api/thumbnail/get_for_zip', asyncWrapper(async (req, res) => {
     const filePath = req.body && req.body.filePath;
 
     if (!filePath || !(await isExist(filePath))) {
@@ -776,7 +756,7 @@ async function getZipWithSameFileName(filePath) {
 
 const current_extract_queue = {};
 const extract_result_cache = {};
-app.post('/api/extract', asyncWrapper(async (req, res) => {
+app.post('/api/extract/extract_zip', asyncWrapper(async (req, res) => {
     let filePath = req.body && req.body.filePath;
     const startIndex = (req.body && req.body.startIndex) || 0;
     let stat;
@@ -913,7 +893,7 @@ app.post('/api/extract', asyncWrapper(async (req, res) => {
                 sendBack(contentUrls, filePath, stat);
                 // const time2 = getCurrentTime();
                 // const timeUsed = (time2 - time1);
-                // console.log(`[/api/extract] FIRST PART UNZIP ${filePath} : ${timeUsed}ms`);
+                // console.log(`[/api/extract/extract_zip] FIRST PART UNZIP ${filePath} : ${timeUsed}ms`);
 
                 await extractByRange(filePath, outputPath, secondRange);
             } else {
@@ -926,7 +906,7 @@ app.post('/api/extract', asyncWrapper(async (req, res) => {
         }
     } catch (e) {
         res.send({ failed: true, reason: e });
-        logger.error('[/api/extract] exit: ', e);
+        logger.error('[/api/extract/extract_zip] exit: ', e);
     }finally{
         current_extract_queue[filePath] = "done"
     }
@@ -983,14 +963,8 @@ app.use(searchRoute);
 const allInfoRoute = require("./routes/all-info");
 app.use(allInfoRoute);
 
-const fileInfoRoute = require("./routes/file-info");
-app.use(fileInfoRoute);
-
 const hentaiApiRoute = require("./routes/hentai-api");
 app.use(hentaiApiRoute);
-
-const cacheCleanRoute = require("./routes/cache-clean");
-app.use(cacheCleanRoute);
 
 const cacheInfoRoute = require("./routes/cache-info");
 app.use(cacheInfoRoute);

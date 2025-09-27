@@ -19,7 +19,7 @@ const db = require("../models/db");
 
 // three para 1.mode 2.text
 router.post(
-  "/api/search",
+  "/api/search/search_file",
   serverUtil.asyncWrapper(async (req, res) => {
     const mode = req.body && req.body.mode;
     const textParam = req.body && req.body.text;
@@ -38,7 +38,7 @@ router.post(
 );
 
 router.post(
-  "/api/simple_search/:text",
+  "/api/search/simple_search/:text",
   serverUtil.asyncWrapper(async (req, res) => {
     const text = req.params.text;
     const temp = await searchByText(text);
@@ -50,8 +50,7 @@ router.post(
   })
 );
 
-
-router.post("/api/findSimilarFile/:text", serverUtil.asyncWrapper(async (req, res) => {
+router.post("/api/search/find_similar_file/:text", serverUtil.asyncWrapper(async (req, res) => {
   const text = req.params.text;
   let fileRows = [];
   let estimateRows = [];

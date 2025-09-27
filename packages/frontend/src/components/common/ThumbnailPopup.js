@@ -5,7 +5,7 @@ const _ = require("underscore");
 const util = require("@common/util");
 const clientUtil = require("@utils/clientUtil");
 const { isVideo } = util;
-import Sender from '@services/Sender';
+import { getQuickThumbnail } from '@api/thumbnail';
 
 class ThumbnailPopup extends Component {
     static defaultProps = {
@@ -46,8 +46,7 @@ class ThumbnailPopup extends Component {
         }
 
         if(!this.url){
-            const api = clientUtil.getQuickThumbUrl(filePath);
-            const res = await Sender.getWithPromise(api);
+            const res = await getQuickThumbnail(filePath);
             if (res.isFailed() || !res.json.url) {
                 // todo
                 // nothing 

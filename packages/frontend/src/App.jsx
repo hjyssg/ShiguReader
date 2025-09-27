@@ -20,7 +20,7 @@ const { getSearchInputText } = clientUtil;
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { GlobalContext } from '@context/GlobalContext';
-import Sender from '@services/Sender';
+import { getGeneralInfo } from '@api/info';
 const nameParser = require('@name-parser');
 
 
@@ -45,7 +45,7 @@ class App extends Component {
     async askServer() {
         // this.getParseCache();
 
-        const generalRes = await Sender.getWithPromise('/api/getGeneralInfo');
+        const generalRes = await getGeneralInfo();
         if (!generalRes.isFailed()) {
             let data = generalRes.json;
             this.setState({

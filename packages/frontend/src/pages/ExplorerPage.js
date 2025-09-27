@@ -3,7 +3,10 @@ import React, { Component } from 'react';
 import _ from "underscore";
 import '@styles/Explorer.scss';
 import LoadingImage from '@components/LoadingImage';
-import Sender from '@services/Sender';
+import { listDirectory } from '@api/folder';
+import { searchFiles } from '@api/search';
+import { getGoodAuthorNames } from '@api/info';
+import { getFolderListThumbnails } from '@api/thumbnail';
 import { Link } from 'react-router-dom';
 
 const userConfig = require('@config/user-config');
@@ -204,18 +207,18 @@ export default class ExplorerPage extends Component {
         if (this.getMode() === MODE_EXPLORER) {
             const hash = this.getTextFromQuery();
             if (hash && this.loadedHash !== hash) {
-                res = await Sender.postWithPromise('/api/lsDir', { dir: this.getTextFromQuery(), isRecursive: this.state.isRecursive });
+                res = await listDirectory({ dir: this.getTextFromQuery(), isRecursive: this.state.isRecursive });
                 await this.handleLsDirRes(res);
             }
         } else {
             const hash = this.getTextFromQuery();
             if (hash && this.loadedHash !== hash) {
                 if (this.getMode() === MODE_TAG) {
-                    res = await Sender.postWithPromise("/api/search", { text: this.getTextFromQuery(), mode: this.getMode() })
+                    res = await searchFiles({ text: this.getTextFromQuery(), mode: this.getMode() })
                 } else if (this.getMode() === MODE_AUTHOR) {
-                    res = await Sender.postWithPromise("/api/search", { text: this.getTextFromQuery(), mode: this.getMode() })
+                    res = await searchFiles({ text: this.getTextFromQuery(), mode: this.getMode() })
                 } else if (this.getMode() === MODE_SEARCH) {
-                    res = await Sender.postWithPromise("/api/search", { text: this.getSearchTextFromQuery(), mode: this.getMode() })
+                    res = await searchFiles({ text: this.getSearchTextFromQuery(), mode: this.getMode() })
                 }
             }
             await this.handleLsDirRes(res);
@@ -295,7 +298,7 @@ export default class ExplorerPage extends Component {
             } = res.json;
 
             // 马上叫server准备下一个信息
-            Sender.get('/api/getGoodAuthorNames', res => {
+            getGoodAuthorNames().then(res => {
                 if (!res.isFailed()) {
                     this.setState({
                         authorInfo: res.json.authorInfo,
@@ -851,7 +854,7 @@ export default class ExplorerPage extends Component {
             isRecursive: !this.state.isRecursive
         }, () => {
             (async () => {
-                let res = await Sender.postWithPromise('/api/lsDir', { dir: this.getTextFromQuery(), isRecursive: this.state.isRecursive });
+                let res = await listDirectory({ dir: this.getTextFromQuery(), isRecursive: this.state.isRecursive });
                 this.handleLsDirRes(res);
             })();
         })
@@ -879,14 +882,12 @@ export default class ExplorerPage extends Component {
     }
 
     async requestThumbnailForFolder() {
-        // TODO
-        Sender.post("/api/getThumbnailForFolders", { dirs: this.dirs }, res => {
-            if (!res.isFailed()) {
-                this.dirThumbnailMap = res.json.dirThumbnails;
-                this.hasCalled_getThumbnailForFolders = true;
-                this.askRerender();
-            }
-        });
+        const res = await getFolderListThumbnails(this.dirs);
+        if (!res.isFailed()) {
+            this.dirThumbnailMap = res.json.dirThumbnails;
+            this.hasCalled_getThumbnailForFolders = true;
+            this.askRerender();
+        }
     }
 
     askRerender() {

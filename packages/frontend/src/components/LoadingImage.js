@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import Sender from '@services/Sender';
+import { getFolderThumbnail, getTagThumbnail, getZipThumbnail } from '@api/thumbnail';
 const classNames = require('classnames');
 import "@styles/LoadingImage.scss";
 const clientUtil = require("@utils/clientUtil");
@@ -71,12 +71,11 @@ export default class LoadingImage extends Component {
     if (this.isAuthorTagMode()) {
       const body = {};
       body[mode] = fileName;
-      res = await Sender.postWithPromise("/api/getTagThumbnail", body);
+      res = await getTagThumbnail(body);
     } else if (mode === "folder") {
-      const query = encodeURIComponent(fileName);
-      res = await Sender.getWithPromise(`/api/folderThumbnailFromDisk?filePath=${query}`);
+      res = await getFolderThumbnail(fileName);
     } else {
-      res = await Sender.postWithPromise('/api/getZipThumbnail', { filePath: fileName });
+      res = await getZipThumbnail(fileName);
     }
 
     if (!this.isUnmounted) {

@@ -8,6 +8,7 @@ const logger = require("../config/logger");
 const thumbnailDb = require("../models/thumbnail-db");
 const zipInfoDb = require("../models/zip-info-db");
 const estimateFileTable = require("../services/estimate-file-table");
+const historyDb = require("../models/history-db");
 
 const pathUtil = require("../utils/path-util");
 const { isExist } = pathUtil;
@@ -26,7 +27,26 @@ function getReason(e) {
 }
 
 
-router.post('/api/renameFile', serverUtil.asyncWrapper(async (req, res) => {
+router.post("/api/file/get_info", serverUtil.asyncWrapper(async (req, res) => {
+    const filePath = (req.body && req.body.filePath);
+
+    if (!filePath || !(await isExist(filePath))) {
+        res.send({ failed: true, reason: "NOT FOUND" });
+        return;
+    }
+
+    const stat = await pfs.stat(filePath);
+    res.send({
+        stat,
+    });
+
+    if (util.isVideo(filePath)) {
+        historyDb.addOneRecord(filePath);
+    }
+}));
+
+
+router.post('/api/file/rename', serverUtil.asyncWrapper(async (req, res) => {
     const src = req.body && req.body.src;
     const dest = req.body && req.body.dest;
 
@@ -55,7 +75,7 @@ router.post('/api/renameFile', serverUtil.asyncWrapper(async (req, res) => {
     }
 }));
 
-router.post('/api/moveFile', serverUtil.asyncWrapper(async (req, res) => {
+router.post('/api/file/move', serverUtil.asyncWrapper(async (req, res) => {
     const src = req.body && req.body.src;
     let dest = req.body && req.body.dest;
 
@@ -136,7 +156,7 @@ async function isSimpleFolder(src) {
 const _folder_waring_ = "This folder is not a one-level img/music folder";
 const file_occupy_warning = "File may be used by another process"
 
-router.post('/api/deleteFile', serverUtil.asyncWrapper(async (req, res) => {
+router.post('/api/file/delete', serverUtil.asyncWrapper(async (req, res) => {
     const src = req.body && req.body.src;
 
     if (!src || !(await isExist(src))) {
@@ -158,7 +178,7 @@ router.post('/api/deleteFile', serverUtil.asyncWrapper(async (req, res) => {
 }));
 
 
-router.post('/api/deleteFolder', serverUtil.asyncWrapper(async (req, res) => {
+router.post('/api/folder/delete', serverUtil.asyncWrapper(async (req, res) => {
     const src = req.body && req.body.src;
 
     if (!src || !(await isExist(src))) {
@@ -171,7 +191,7 @@ router.post('/api/deleteFolder', serverUtil.asyncWrapper(async (req, res) => {
         return;
     }
 
-    //below is duplicate code as /api/deleteFile
+    //below is duplicate code as /api/file/delete
     //need to improve
     try {
         await deleteThing(src);
@@ -184,7 +204,7 @@ router.post('/api/deleteFolder', serverUtil.asyncWrapper(async (req, res) => {
     }
 }));
 
-router.post('/api/zipFolder', serverUtil.asyncWrapper(async (req, res) => {
+router.post('/api/folder/zip', serverUtil.asyncWrapper(async (req, res) => {
     const src = req.body && req.body.src;
 
     if (!src || !(await isExist(src))) {

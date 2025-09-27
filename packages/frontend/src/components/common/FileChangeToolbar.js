@@ -4,7 +4,10 @@ const userConfig = require('@config/user-config');
 import PropTypes from 'prop-types';
 var classNames = require('classnames');
 import Swal from 'sweetalert2';
-import Sender from '@services/Sender';
+import { listDirectory, deleteFolder as deleteFolderApi, zipFolder as zipFolderApi } from '@api/folder';
+import { getHomeDirectories } from '@api/home';
+import { overwrite as overwriteMinify, requestMinify, checkMinifyable } from '@api/minify';
+import { deleteFile as deleteFileApi, moveFile as moveFileApi, renameFile as renameFileApi } from '@api/file';
 import '@styles/FileChangeToolbar.scss';
 const util = require("@common/util");
 const clientUtil = require("@utils/clientUtil");
@@ -120,7 +123,7 @@ class MoveMenu extends Component {
         })
 
         if(path){
-            const res = await Sender.postWithPromise("/api/lsDir", { dir: path });
+            const res = await listDirectory({ dir: path });
             if (res.isFailed()) {
                 return;
             } else {
@@ -132,7 +135,7 @@ class MoveMenu extends Component {
                 })
             }
         }else{
-            const res = await Sender.getWithPromise("/api/homePagePath");
+            const res = await getHomeDirectories();
             if (res.isFailed()) {
                 debugger
                 return;
@@ -226,11 +229,10 @@ export default class FileChangeToolbar extends Component {
             showCancelButton: true,
             confirmButtonText: 'Yes',
             cancelButtonText: 'No'
-        }).then((result) => {
+        }).then(async (result) => {
             if (result.value === true) {
-                Sender.post("/api/overwrite", { filePath: file }, res => {
-                    pop(file, res, "overwrite");
-                });
+                const res = await overwriteMinify(file);
+                pop(file, res, "overwrite");
             }
         });
     }
@@ -245,13 +247,12 @@ export default class FileChangeToolbar extends Component {
             cancelButtonText: 'No'
         }).then(async (result) => {
             if (result.value === true) {
-                let res = await Sender.postWithPromise('/api/isAbleToMinify', { filePath: file });
+                const res = await checkMinifyable(file);
                 if (res.isFailed()) {
                     pop(file, res, "Not able to minify");
                 } else {
-                    Sender.post("/api/minifyZip", { filePath: file }, res => {
-                        pop(file, res, "added to the task queue");
-                    });
+                    const queueRes = await requestMinify(file);
+                    pop(file, queueRes, "added to the task queue");
                 }
             }
         });
@@ -265,19 +266,15 @@ export default class FileChangeToolbar extends Component {
             showCancelButton: true,
             confirmButtonText: 'Yes',
             cancelButtonText: 'No'
-        }).then((result) => {
+        }).then(async (result) => {
             if (result.value === true) {
+                let res;
                 if (isFolder) {
-                    //send different request
-                    Sender.post("/api/deleteFolder", { src: file }, res => {
-                        pop(file, res, "delete");
-                    });
-
+                    res = await deleteFolderApi(file);
                 } else {
-                    Sender.post("/api/deleteFile", { src: file }, res => {
-                        pop(file, res, "delete");
-                    });
+                    res = await deleteFileApi(file);
                 }
+                pop(file, res, "delete");
             }
         });
     }
@@ -291,12 +288,11 @@ export default class FileChangeToolbar extends Component {
             showCancelButton: true,
             confirmButtonText: 'Yes',
             cancelButtonText: 'No'
-        }).then((result) => {
+        }).then(async (result) => {
             if (result.value === true && isFolder) {
-                Sender.post("/api/zipFolder", { src: file }, res => {
-                    let extraDiv = getExtraDiv(res);
-                    pop(file, res, "zip folder", extraDiv);
-                });
+                const res = await zipFolderApi(file);
+                let extraDiv = getExtraDiv(res);
+                pop(file, res, "zip folder", extraDiv);
             }
         });
     }
@@ -310,14 +306,13 @@ export default class FileChangeToolbar extends Component {
                 showCancelButton: true,
                 confirmButtonText: 'Yes',
                 cancelButtonText: 'No'
-            }).then((result) => {
+            }).then(async (result) => {
                 if (result.value === true) {
-                    Sender.post("/api/moveFile", { src: this.props.file, dest: path }, res => {
-                        let extraDiv = getExtraDiv(res);
-                        pop(file, res, "move", extraDiv, onNewPath);
+                    const res = await moveFileApi(this.props.file, path);
+                    let extraDiv = getExtraDiv(res);
+                    pop(file, res, "move", extraDiv, onNewPath);
 
-                        saveTempMovePath(path)
-                    });
+                    saveTempMovePath(path)
                 }
             });
         }
@@ -361,12 +356,11 @@ export default class FileChangeToolbar extends Component {
                     showCancelButton: true,
                     confirmButtonText: 'Yes',
                     cancelButtonText: 'No'
-                }).then((result) => {
+                }).then(async (result) => {
                     if (result.value === true) {
-                        Sender.post("/api/renameFile", { src: file, dest }, res => {
-                            let extraDiv = getExtraDiv(res);
-                            pop(file, res, "rename", extraDiv, onNewPath);
-                        });
+                        const res = await renameFileApi(file, dest);
+                        let extraDiv = getExtraDiv(res);
+                        pop(file, res, "rename", extraDiv, onNewPath);
                     }
                 });
             }

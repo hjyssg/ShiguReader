@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import '@styles/HistoryPage.scss';
-import Sender from '@services/Sender';
+import { listHistory } from '@api/history';
 import _ from "underscore";
 // import ReactDOM from 'react-dom';
 // import Swal from 'sweetalert2';
@@ -114,15 +114,18 @@ export default class HistoryPage extends Component {
         this.requestHistory(this.state.pageIndex);
     }
 
-    requestHistory(pageIndex) {
-        Sender.post("/api/getHistoryPageData", {page: pageIndex-1}, res => {
+    async requestHistory(pageIndex) {
+        const res = await listHistory(pageIndex - 1);
+        if (!res.isFailed()) {
             let { rows, count } = res.json;
             let history = rows || [];
             history.forEach(e => {
                 e.time = parseInt(e.time);
             })
             this.setStateAndSetHash({history, res, totalCount: count})
-        });
+        } else {
+            this.setStateAndSetHash({ history: [], res, totalCount: 0 });
+        }
     }
 
 

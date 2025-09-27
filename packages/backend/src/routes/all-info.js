@@ -92,7 +92,7 @@ router.get('/api/getParseCache/', serverUtil.asyncWrapper(async (req, res) => {
     // logger.debug(logLabel, size, "  ", timeUsed, "ms")
 }));
 
-router.post('/api/allInfo', serverUtil.asyncWrapper(async (req, res) => {
+router.post('/api/info/get_all', serverUtil.asyncWrapper(async (req, res) => {
     let sql = `SELECT filePath, size, mTime  FROM file_table WHERE isDisplayableInExplorer `;
     let rows = await db.doSmartAllSync(sql);
     const fileInfos = serverUtil.convertFileRowsIntoFileInfo(rows);

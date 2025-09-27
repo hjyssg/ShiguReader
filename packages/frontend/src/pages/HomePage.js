@@ -2,7 +2,7 @@
 import React, { Component, useState, useEffect } from 'react';
 // import _ from "underscore";
 import '@styles/HomePage.scss';
-import Sender from '@services/Sender';
+import { getHomeDirectories } from '@api/home';
 import { Link } from 'react-router-dom';
 
 import ErrorPage from '@pages/ErrorPage';
@@ -56,7 +56,7 @@ const HomePage = () => {
 
     useEffect(() => {
         async function fetchData() {
-            const res = await Sender.getWithPromise("/api/homePagePath");
+            const res = await getHomeDirectories();
             if (!res.isFailed()) {
                 setRes(res);
             }

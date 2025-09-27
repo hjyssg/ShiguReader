@@ -46,7 +46,7 @@ sql不擅长简单大次数的hash查询。
 另一种做法参考historyDb.js的getFileHistory(pathes) 的  where fileName IN (${placeholders}) 
 
 ----------------
-[/api/getFileHistory] 39642 files
+[/api/history/get_file_history] 39642 files
 
 186ms
 186ms

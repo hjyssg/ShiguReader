@@ -6,7 +6,7 @@ import FileChangeToolbar from '@components/common/FileChangeToolbar';
 const clientUtil = require("@utils/clientUtil");
 const { getDir, getBaseName, filesizeUitl } = clientUtil;
 import { Link } from 'react-router-dom';
-import Sender from '@services/Sender';
+import { getInfo as getFileInfo } from '@api/file';
 const queryString = require('query-string');
 const Cookie = require("js-cookie");
 import DPlayer from "react-dplayer";
@@ -23,7 +23,8 @@ export default class VideoPlayer extends Component {
   componentDidMount() {
     const filePath = this.getTextFromQuery();
     if (filePath) {
-      Sender.post("/api/singleFileInfo", { filePath }, res => {
+      (async () => {
+        const res = await getFileInfo(filePath);
         if (!res.isFailed()) {
           const { stat, mecab_tokens } = res.json;
           this.setState({ stat, mecab_tokens })
@@ -31,7 +32,7 @@ export default class VideoPlayer extends Component {
           this.res = res;
           this.onError();
         }
-      });
+      })();
     }
 
 

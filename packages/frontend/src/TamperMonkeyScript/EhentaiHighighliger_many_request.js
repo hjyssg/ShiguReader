@@ -88,7 +88,7 @@ async function checkIfDownload(text) {
     }
 
     try{
-        let api = `http://localhost:${production_port}/api/findSimilarFile/${encodeURIComponent(text)}`;
+        let api = `http://localhost:${production_port}/api/search/find_similar_file/${encodeURIComponent(text)}`;
         // let res = await GM_xmlhttpRequest_promise("POST", api);
         let res = await postData("POST", api);
         const data = res;

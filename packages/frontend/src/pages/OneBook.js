@@ -4,7 +4,8 @@ const classNames = require('classnames');
 import ReactDOM from 'react-dom';
 
 import { Link } from 'react-router-dom';
-import Sender from '@services/Sender';
+import { listImageFolderContent } from '@api/folder';
+import { extractZip } from '@api/extract';
 import '@styles/OneBook.scss';
 import ErrorPage from '@pages/ErrorPage';
 import Spinner from '@components/common/Spinner';
@@ -296,8 +297,10 @@ export default class OneBook extends Component {
 
   async sendRequest() {
     const fp = this.getTextFromQuery();
-    const api = this.isImgFolder() ? "/api/listImageFolderContent" : "/api/extract";
-    let res = await Sender.postWithPromise(api, { filePath: fp, startIndex: this.state.index || 0 });
+    const params = { filePath: fp, startIndex: this.state.index || 0 };
+    const res = this.isImgFolder()
+      ? await listImageFolderContent(params)
+      : await extractZip(params);
     this.handleRes(res);
 
     // let res2 = await Sender.postWithPromise("/api/getEhentaiMetaData", { filePath: fp });

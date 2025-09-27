@@ -29,21 +29,21 @@ const doMinifyForDownload = async (filePath, outputFn, height) => {
 }
 
 //------------------download------------
-router.get('/api/download/', serverUtil.asyncWrapper(async (req, res) => {
+router.get('/api/file/download/', serverUtil.asyncWrapper(async (req, res) => {
     let filePath = path.resolve(req.query.p);
     let thumbnailMode = req.query.thumbnailMode;
     if (!filePath) {
-        logger.error("[/api/download]", filePath, "NO Param");
+        logger.error("[/api/file/download]", filePath, "NO Param");
         res.send({ failed: true, reason: "NO Param" });
         return;
     }
 
-    const logLabel = '[/api/download/]  ' + filePath;
+    const logLabel = '[/api/file/download/]  ' + filePath;
     // console.time(logLabel);
     const time1 = util.getCurrentTime();
 
     if (!(await isExist(filePath))) {
-        logger.warn("[/api/download]", filePath, "NOT FOUND");
+        logger.warn("[/api/file/download]", filePath, "NOT FOUND");
         res.send({ failed: true, reason: "NOT FOUND" });
         return;
     }
