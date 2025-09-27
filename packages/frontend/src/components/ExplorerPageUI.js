@@ -5,6 +5,8 @@ import _ from "underscore";
 import LoadingImage from './LoadingImage';
 import { addFileWatch } from '@api/folder';
 import { Link } from 'react-router-dom';
+import { Alert, Badge, Button, Card, Col, ListGroup, Row } from 'react-bootstrap';
+import Panel from './common/Panel';
 
 const userConfig = require('@config/user-config');
 import ErrorPage from '@pages/ErrorPage';
@@ -13,7 +15,6 @@ import CenterSpinner from './common/CenterSpinner';
 const util = require("@common/util");
 const queryString = require('query-string');
 import Pagination from './common/Pagination';
-import ItemsContainer from './common/ItemsContainer';
 import SortHeader from './common/SortHeader';
 import Breadcrumb from './common/Breadcrumb';
 import FileCellTitle from './common/FileCellTitle';
@@ -82,11 +83,16 @@ export const NoScanAlertArea = ({ filePath }) => {
     }
 
     return (
-        <div className="alert alert-warning" role="alert" >
-            <div>{`${filePath} is not included in config-path`}</div>
-            <div style={{ marginBottom: "5px" }}>{`It's usable but still missing important features like tags and search.`}</div>
-            <div className="scan-button" onClick={askSendScan}>Scan Folder</div>
-        </div>)
+        <Alert variant="warning" className="mb-3 shadow-sm">
+            <div className="fw-semibold">{`${filePath} is not included in config-path`}</div>
+            <div className="small mb-3">{`It's usable but still missing important features like tags and search.`}</div>
+            <div className="d-flex justify-content-end">
+                <Button variant="outline-warning" size="sm" onClick={askSendScan}>
+                    <i className="fas fa-sync-alt me-2" aria-hidden="true"></i>
+                    Scan Folder
+                </Button>
+            </div>
+        </Alert>)
 }
 
 
@@ -142,19 +148,25 @@ export const FileCountPanel = ({ filteredFiles, filteredVideos, info }) => {
         },
     ];
     return (
-        <div className="row">
-            <div className="col-12 file-count-row">
+        <Panel title="Summary" bodyClassName="p-3">
+            <Row xs={1} sm={2} lg={3} className="g-3">
                 {fileCountItems.map(({ key, icon, label, value, title: itemTitle }) => (
-                    <div className="file-count" key={key} title={itemTitle}>
-                        <i className={`file-count__icon ${icon}`} aria-hidden="true"></i>
-                        <div className="file-count__content">
-                            <div className="file-count__label">{label}</div>
-                            <div className="file-count__value">{value}</div>
-                        </div>
-                    </div>
+                    <Col key={key}>
+                        <Card bg="light" text="dark" className="h-100 border-0 shadow-sm" title={itemTitle}>
+                            <Card.Body className="d-flex align-items-center gap-3">
+                                <div className="display-6 mb-0 text-primary">
+                                    <i className={icon} aria-hidden="true"></i>
+                                </div>
+                                <div>
+                                    <div className="fw-semibold text-uppercase small text-muted">{label}</div>
+                                    <div className="fs-5 fw-bold">{value}</div>
+                                </div>
+                            </Card.Body>
+                        </Card>
+                    </Col>
                 ))}
-            </div>
-        </div>
+            </Row>
+        </Panel>
     );
 }
 
@@ -169,34 +181,56 @@ export const LinkToEHentai = ({ searchable, text }) => {
 }
 
 
-export const getOneLineListItem = (icon, fileName, filePath, info) => {
-    return (
-        <li className="explorer-one-line-list-item" key={fileName} title={info.getTooltipStr(filePath)}>
-            {icon}
-            <span className="explorer-one-line-list-item-text">{fileName}</span>
-        </li>);
-}
-
 export const SimpleFileListPanel = ({ musicFiles, imageFiles, info }) => {
-    const musicItems = musicFiles.map((item) => {
-        const toUrl = clientUtil.getBookReadLink(getDir(item));
-        const text = getBaseName(item);
-        const result = getOneLineListItem(<i className="fas fa-volume-up"></i>, text, item, info);
-        return <Link target="_blank" to={toUrl} key={item}>{result}</Link>;
-    });
+    const sections = [
+        {
+            key: 'music',
+            title: 'Music',
+            icon: <i className="fas fa-volume-up" aria-hidden="true"></i>,
+            items: musicFiles,
+            toUrl: item => clientUtil.getBookReadLink(getDir(item)),
+        },
+        {
+            key: 'image',
+            title: 'Images',
+            icon: <i className="fas fa-images" aria-hidden="true"></i>,
+            items: imageFiles,
+            toUrl: item => clientUtil.getBookReadLink(getDir(item)),
+        },
+    ].filter(section => Array.isArray(section.items) && section.items.length);
 
-    const imageItems = imageFiles.map((item) => {
-        const toUrl = clientUtil.getBookReadLink(getDir(item));
-        const text = getBaseName(item);
-        const result = getOneLineListItem(<i className="fas fa-images"></i>, text, item, info);
-        return <Link target="_blank" to={toUrl} key={item}>{result}</Link>;
-    });
+    if (!sections.length) {
+        return null;
+    }
 
-    return (<>
-        <ItemsContainer items={musicItems} />
-        <ItemsContainer items={imageItems} />
-    </>)
-
+    return (
+        <Panel title="Media" bodyClassName="p-0">
+            {sections.map(({ key, title, icon, items, toUrl }) => (
+                <div key={key}>
+                    <div className="px-3 pt-3 pb-2 text-uppercase small text-muted fw-semibold">{title}</div>
+                    <ListGroup variant="flush" className="rounded-0">
+                        {items.map((item) => {
+                            const text = getBaseName(item);
+                            return (
+                                <ListGroup.Item
+                                    key={item}
+                                    as={Link}
+                                    to={toUrl(item)}
+                                    target="_blank"
+                                    className="d-flex align-items-center gap-3 explorer-one-line-list-item text-reset text-decoration-none"
+                                    action
+                                    title={info.getTooltipStr(item)}
+                                >
+                                    <span className="text-primary fs-5 d-flex align-items-center" aria-hidden="true">{icon}</span>
+                                    <span className="flex-grow-1 explorer-one-line-list-item-text">{text}</span>
+                                </ListGroup.Item>
+                            );
+                        })}
+                    </ListGroup>
+                </div>
+            ))}
+        </Panel>
+    );
 }
 
 export const SingleZipItem = ({ filePath, info }) => {
@@ -204,7 +238,6 @@ export const SingleZipItem = ({ filePath, info }) => {
     const text = getBaseName(fp);
     const toUrl = clientUtil.getBookReadLink(fp);
 
-    let zipItem;
     let thumbnailurl = info.getThumbnailUrl(fp);
 
 
@@ -218,10 +251,6 @@ export const SingleZipItem = ({ filePath, info }) => {
     const isImgFolder = info.isImgFolder(fp);
     const hasMusic = musicNum > 0;
     const pageNum = info.getPageNum(fp);
-
-    const fileInfoRowCn = classNames("file-info-row", {
-        "less-padding": hasMusic
-    })
 
     const thumbnailCn = classNames("file-cell-thumbnail", {
         "as-folder-thumbnail": isImgFolder
@@ -241,24 +270,36 @@ export const SingleZipItem = ({ filePath, info }) => {
         imgDiv = (<div className="folder-effect"> {imgDiv} </div>)
     }
 
-    zipItem = (
-        <div key={fp} className={"col-sm-6 col-md-4 col-lg-3 file-out-cell"}>
-            <div className="file-cell">
-                <Link target="_blank" to={toUrl} key={fp} className={"file-cell-inner"}>
-                    <FileCellTitle str={text} />
-                    {imgDiv}
-                </Link>
-                <div className={fileInfoRowCn}>
-                    {fileSizeStr && <span title="File Size">{fileSizeStr}</span>}
-                    <span>{`${pageNum} pages`}</span>
-                    {hasMusic && <span>{`${musicNum} songs`}</span>}
-                    {avgSizeStr && <span title="Average Image Size"> {avgSizeStr} </span>}
-                </div>
-                <FileChangeToolbar isFolder={isImgFolder} hasMusic={hasMusic} className="explorer-file-change-toolbar" file={fp} />
-            </div>
-        </div>);
-
-    return zipItem;
+    return (
+        <Col key={fp} xs={12} sm={6} md={4} lg={3} className="d-flex">
+            <Card className="flex-fill h-100 shadow-sm border-0">
+                <Card.Body className="d-flex flex-column gap-3">
+                    <Link target="_blank" to={toUrl} className="text-reset text-decoration-none">
+                        <div className="mb-2">
+                            <FileCellTitle str={text} />
+                        </div>
+                        <div className="rounded border bg-light overflow-hidden">
+                            {imgDiv}
+                        </div>
+                    </Link>
+                    <div className="d-flex flex-wrap gap-2 small text-muted">
+                        {fileSizeStr && <Badge bg="secondary" title="File Size">{fileSizeStr}</Badge>}
+                        <Badge bg="light" text="dark">{`${pageNum} pages`}</Badge>
+                        {hasMusic && <Badge bg="info" text="dark">{`${musicNum} songs`}</Badge>}
+                        {avgSizeStr && <Badge bg="secondary" title="Average Image Size">{avgSizeStr}</Badge>}
+                    </div>
+                </Card.Body>
+                <Card.Footer className="bg-white border-0 pt-0">
+                    <FileChangeToolbar
+                        isFolder={isImgFolder}
+                        hasMusic={hasMusic}
+                        className="explorer-file-change-toolbar d-flex justify-content-between"
+                        file={fp}
+                    />
+                </Card.Footer>
+            </Card>
+        </Col>
+    );
 }
 
 
@@ -281,25 +322,33 @@ export const FileGroupZipPanel = ({
         fDirs.reverse();
     }
 
-    const zipfileItems = [];
-    fDirs.map((dirPath, ii) => {
+    const panels = fDirs.map((dirPath, ii) => {
         const folderGroup = byDir[dirPath];
         const extraDiv = (<div className="extra-div" >{`Zip: ${folderGroup.length}`} </div>);
-        const seperator = (<div className="col-12" key={dirPath + "---seperator"}>
-            <Breadcrumb sep={info.context.file_path_sep}
-                server_os={info.context.server_os}
-                path={dirPath}
-                className={ii > 0 ? "not-first-breadcrumb folder-seperator" : "folder-seperator"}
-                extraDiv={extraDiv}
-            />
-
-        </div>);
-        zipfileItems.push(seperator)
         const zipGroup = folderGroup.map(fp => info.renderSingleZipItem(fp));
-        zipfileItems.push(...zipGroup);
-    })
+        const content = info.state.noThumbnail
+            ? (<ListGroup variant="flush">{zipGroup}</ListGroup>)
+            : (<Row className="g-3">{zipGroup}</Row>);
 
-    return <>{ zipfileItems } </>;
+        return (
+            <Panel
+                key={dirPath}
+                className={classNames({ 'mt-3': ii > 0 })}
+                bodyClassName="p-3"
+                title={<Breadcrumb
+                    sep={info.context.file_path_sep}
+                    server_os={info.context.server_os}
+                    path={dirPath}
+                    className="m-0"
+                    extraDiv={extraDiv}
+                />}
+            >
+                {content}
+            </Panel>
+        );
+    });
+
+    return <div className="d-flex flex-column gap-3">{panels}</div>;
 }
 
 //-----------------------------------------

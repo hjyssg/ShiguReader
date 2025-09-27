@@ -8,6 +8,8 @@ import { searchFiles } from '@api/search';
 import { getGoodAuthorNames } from '@api/info';
 import { getFolderListThumbnails } from '@api/thumbnail';
 import { Link } from 'react-router-dom';
+import { Alert, Button, Card, Col, Container, ListGroup, Row } from 'react-bootstrap';
+import Panel from '@components/common/Panel';
 
 const userConfig = require('@config/user-config');
 import ErrorPage from '@pages/ErrorPage';
@@ -15,13 +17,11 @@ import CenterSpinner from '@components/common/CenterSpinner';
 const util = require("@common/util");
 const queryString = require('query-string');
 import Pagination from '@components/common/Pagination';
-import ItemsContainer from '@components/common/ItemsContainer';
 import SortHeader from '@components/common/SortHeader';
 import Breadcrumb from '@components/common/Breadcrumb';
 import FileCellTitle from '@components/common/FileCellTitle';
 import Checkbox from '@components/common/Checkbox';
 import FilterPanel from '@components/common/FilterPanel';
-import ThumbnailPopup from '@components/common/ThumbnailPopup';
 import { getFileUrl } from '@utils/clientUtil';
 const nameParser = require('@name-parser');
 const classNames = require('classnames');
@@ -35,7 +35,7 @@ import 'react-range-slider-input/dist/style.css';
 
 import { GlobalContext } from '@context/GlobalContext';
 import {
-    NoScanAlertArea, FileCountPanel, getOneLineListItem,
+    NoScanAlertArea, FileCountPanel,
     LinkToEHentai, SimpleFileListPanel, SingleZipItem, FileGroupZipPanel
 } from '@components/ExplorerPageUI';
 
@@ -651,13 +651,22 @@ export default class ExplorerPage extends Component {
 
         if (this.state.noThumbnail) {
             zipItem = (
-                <Link target="_blank" to={toUrl} key={fp} className={""} >
-                    <ThumbnailPopup filePath={fp} url={thumbnailurl}>
-                        {getOneLineListItem(<i className="fas fa-book"></i>, text, fp, this)}
-                    </ThumbnailPopup>
-                </Link>)
+                <ListGroup.Item
+                    key={fp}
+                    as={Link}
+                    to={toUrl}
+                    target="_blank"
+                    action
+                    className="d-flex align-items-center gap-3 explorer-one-line-list-item"
+                    title={this.getTooltipStr(fp)}
+                >
+                    <span className="text-primary fs-5 d-flex align-items-center" aria-hidden="true">
+                        <i className="fas fa-book" />
+                    </span>
+                    <span className="flex-grow-1 explorer-one-line-list-item-text">{text}</span>
+                </ListGroup.Item>
+            );
         } else {
-
             zipItem = <SingleZipItem key={fp} filePath={fp} info={this} />
         }
         return zipItem;
@@ -683,139 +692,174 @@ export default class ExplorerPage extends Component {
             } else {
                 const str = this.getMode() === MODE_EXPLORER ? "This folder is empty" : "Empty Result";
                 return (
-                    <div>
+                    <Container className="py-4">
                         {this.renderFilterControls()}
-                        <div className="one-book-nothing-available">
-                            <div className="alert alert-secondary" role="alert">{str}</div>
-                        </div>
-                    </div>);
+                        <Alert variant="secondary" className="text-center shadow-sm">{str}</Alert>
+                    </Container>
+                );
             }
         }
 
-        let dirItems;
-        if (showFolderThumbnail) {
-            dirItems = dirs.map((item) => {
-                const toUrl = clientUtil.getExplorerLink(item);
-                const text = getBaseName(item);
+        let directorySection = null;
+        if (dirs.length) {
+            if (showFolderThumbnail) {
+                const dirCards = dirs.map((item) => {
+                    const toUrl = clientUtil.getExplorerLink(item);
+                    const text = getBaseName(item);
+                    const thumbnailurl = getFileUrl(this.dirThumbnailMap[item]);
+                    const thumbnailCn = classNames("file-cell-thumbnail", "as-folder-thumbnail");
 
-                // TODO
-                let thumbnailurl = getFileUrl(this.dirThumbnailMap[item]);
-                const thumbnailCn = classNames("file-cell-thumbnail", "as-folder-thumbnail");
+                    const imgDiv = (
+                        <LoadingImage
+                            className={thumbnailCn}
+                            title={item}
+                            fileName={item}
+                            url={thumbnailurl}
+                            mode={"folder"}
+                        />
+                    );
 
-                let imgDiv = (
-                    <LoadingImage
-                        className={thumbnailCn}
-                        title={item}
-                        fileName={item}
-                        url={thumbnailurl}
-                        mode={"folder"}
-                    />);
+                    return (
+                        <Col key={item} xs={12} sm={6} md={4} lg={3} className="d-flex">
+                            <Card className="flex-fill h-100 shadow-sm border-0">
+                                <Card.Body>
+                                    <Link to={toUrl} className="text-reset text-decoration-none">
+                                        <div className="mb-2">
+                                            <FileCellTitle str={text} />
+                                        </div>
+                                        <div className="folder-effect rounded border bg-light overflow-hidden">
+                                            {imgDiv}
+                                        </div>
+                                    </Link>
+                                </Card.Body>
+                            </Card>
+                        </Col>
+                    );
+                });
 
-                return (
-                    <div key={item} className={"col-sm-6 col-md-4 col-lg-3 file-out-cell"}>
-                        <div className="file-cell">
-                            <Link to={toUrl} key={item} className={"file-cell-inner"}>
-                                <FileCellTitle str={text} />
-                                <div className="folder-effect"> {imgDiv} </div>
-                            </Link>
-                        </div>
-                    </div>);
-            });
-        } else {
-            dirItems = dirs.map((item) => {
-                const toUrl = clientUtil.getExplorerLink(item);
-                const text = getBaseName(item);
-                const result = getOneLineListItem(<i className="far fa-folder"></i>, text, item, this);
-                return (
-                    <ThumbnailPopup filePath={item} key={item}>
-                        <Link to={toUrl}>{result}</Link>
-                    </ThumbnailPopup>
+                directorySection = (
+                    <Panel title="Folders" bodyClassName="p-0">
+                        <Row className="g-3 px-3 pb-3">{dirCards}</Row>
+                    </Panel>
                 );
-            });
+            } else {
+                const dirItems = dirs.map((item) => {
+                    const toUrl = clientUtil.getExplorerLink(item);
+                    const text = getBaseName(item);
+                    const tooltip = this.getTooltipStr ? this.getTooltipStr(item) : item;
+
+                    return (
+                        <ListGroup.Item
+                            key={item}
+                            as={Link}
+                            to={toUrl}
+                            className="d-flex align-items-center gap-3 explorer-one-line-list-item"
+                            action
+                            title={tooltip}
+                        >
+                            <span className="text-warning fs-5 d-flex align-items-center" aria-hidden="true">
+                                <i className="far fa-folder" />
+                            </span>
+                            <span className="flex-grow-1 explorer-one-line-list-item-text">{text}</span>
+                        </ListGroup.Item>
+                    );
+                });
+
+                directorySection = (
+                    <Panel title="Folders" bodyClassName="p-0">
+                        <ListGroup variant="flush">{dirItems}</ListGroup>
+                    </Panel>
+                );
+            }
         }
 
-
-
-        //seperate av from others
         const groupByVideoType = _.groupBy(videos, item => {
             const text = getBaseName(item);
             const temp = parse(item);
 
             if (util.isAv(text)) {
-                return "av"
+                return "av";
             } else if (temp && temp.dateTag) {
-                return "_date_";
+                return "date";
             } else {
                 return "etc";
             }
         }) || {};
 
-        //todo av-color
-        const videoDivGroup = _.keys(groupByVideoType).map((key, ii) => {
-            let group = groupByVideoType[key];
-            group.sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+        const videoTitleMap = {
+            av: 'Adult Videos',
+            date: 'Recorded Streams',
+            etc: 'Videos'
+        };
 
-            const videoItems = group.map((item) => {
-                const toUrl = clientUtil.getVideoPlayerLink(item);
-                const text = getBaseName(item);
-                const result = getOneLineListItem(<i className="far fa-file-video"></i>, text, item, this);
-                // 会卡顿，弃用video preview
-                // return (
-                // <ThumbnailPopup filePath={item} key={item}>
-                //     <Link target="_blank" to={toUrl} >{result}</Link>
-                // </ThumbnailPopup>
-                // );
-                return (
-                    <Link target="_blank" to={toUrl} key={item}>{result}</Link>
-                );
-            });
-            return <ItemsContainer key={key} className="video-list" items={videoItems} />
-        })
+        const videoPanels = _.keys(groupByVideoType).map((key) => {
+            const group = (groupByVideoType[key] || []).slice().sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+            if (!group.length) {
+                return null;
+            }
 
+            return (
+                <Panel key={`video-${key}`} title={videoTitleMap[key] || 'Videos'} bodyClassName="p-0">
+                    <ListGroup variant="flush">
+                        {group.map((item) => {
+                            const toUrl = clientUtil.getVideoPlayerLink(item);
+                            const text = getBaseName(item);
+                            return (
+                                <ListGroup.Item
+                                    key={item}
+                                    as={Link}
+                                    to={toUrl}
+                                    target="_blank"
+                                    className="d-flex align-items-center gap-3 explorer-one-line-list-item"
+                                    action
+                                    title={this.getTooltipStr ? this.getTooltipStr(item) : item}
+                                >
+                                    <span className="text-info fs-5 d-flex align-items-center" aria-hidden="true">
+                                        <i className="far fa-file-video" />
+                                    </span>
+                                    <span className="flex-grow-1 explorer-one-line-list-item-text">{text}</span>
+                                </ListGroup.Item>
+                            );
+                        })}
+                    </ListGroup>
+                </Panel>
+            );
+        }).filter(Boolean);
 
-
-        //better tooltip to show file size 
-        //and tag
         files = this.getFileInPage(files);
 
-        let zipfileItems;
-        if (sortOrder === BY_FOLDER || sortOrder === BY_FOLDER &&
-            (this.getMode() === MODE_AUTHOR || this.getMode() === MODE_TAG || this.getMode() === MODE_SEARCH)) {
+        let zipSection = null;
+        if (files.length) {
+            let zipContent;
+            if (sortOrder === BY_FOLDER &&
+                (this.getMode() === MODE_AUTHOR || this.getMode() === MODE_TAG || this.getMode() === MODE_SEARCH || this.getMode() === MODE_EXPLORER)) {
+                zipContent = <FileGroupZipPanel files={files} isSortAsc={this.state.isSortAsc} info={this} />;
+            } else {
+                const zipItems = files.map(fp => this.renderSingleZipItem(fp));
+                zipContent = this.state.noThumbnail
+                    ? <ListGroup variant="flush">{zipItems}</ListGroup>
+                    : <Row className="g-3">{zipItems}</Row>;
+            }
 
-            zipfileItems = <FileGroupZipPanel files={files} isSortAsc={this.state.isSortAsc} info={this} />
-        } else {
-            //! !todo if the file is already an image file
-            zipfileItems = files.map(fp => this.renderSingleZipItem(fp));
+            zipSection = (
+                <Panel title="Archives" bodyClassName="p-3">
+                    {zipContent}
+                </Panel>
+            );
         }
 
-        const rowCn = this.state.noThumbnail ? "file-list" : "row";
-
         return (
-            <div className={"explorer-container"}>
-                {!showFolderThumbnail && <ItemsContainer items={dirItems} neverCollapse={this.getMode() === MODE_EXPLORER} />}
-                {showFolderThumbnail &&
-                    <div className={"file-grid container"}>
-                        <div className={"row"}>
-                            {dirItems}
-                        </div>
-                    </div>
-                }
-
+            <Container fluid className="explorer-container py-3">
+                {directorySection}
                 <SimpleFileListPanel musicFiles={this.musicFiles} imageFiles={this.imageFiles} info={this} />
-
-                {videoDivGroup}
+                {videoPanels}
                 {this.renderPagination(filteredFiles, filteredVideos)}
                 {this.renderFilterControls()}
-                {zipfileItems.length > 0 && this.renderSortHeader()}
-                <div className={"file-grid container"}>
-                    <div className={rowCn}>
-                        {zipfileItems}
-                    </div>
-                </div>
-            </div>
+                {zipSection && this.renderSortHeader()}
+                {zipSection}
+            </Container>
         );
     }
-
     getMaxPageForSlider() {
         return Math.min(DEFAULT_MAX_PAGE, this.maxPageNum);
     }
@@ -901,28 +945,44 @@ export default class ExplorerPage extends Component {
     renderToggleThumbNailButton() {
         const text2 = this.state.noThumbnail ? "File Thumbnail" : "File Name Only";
         return (
-            <span key="thumbnail-button" className="thumbnail-button exp-top-button" onClick={this.toggleThumbNail.bind(this)}>
-                <span className="fas fa-book" /> <span>{text2} </span>
-            </span>
+            <Button
+                key="thumbnail-button"
+                variant="outline-primary"
+                className="w-100 text-start"
+                onClick={this.toggleThumbNail.bind(this)}
+            >
+                <i className="fas fa-book me-2" aria-hidden="true" />
+                {text2}
+            </Button>
         );
     }
 
     renderToggleFolferThumbNailButton() {
         const text2 = this.state.showFolderThumbnail ? "Folder Name Only" : "Folder Thumbnail";
         return (
-            <span key="folder-thumbnail-button" className="thumbnail-button exp-top-button" onClick={this.toggleFolderThumbNail.bind(this)}>
-                <span className="fas fa-book" /> <span>{text2} </span>
-            </span>
+            <Button
+                key="folder-thumbnail-button"
+                variant="outline-primary"
+                className="w-100 text-start"
+                onClick={this.toggleFolderThumbNail.bind(this)}
+            >
+                <i className="fas fa-images me-2" aria-hidden="true" />
+                {text2}
+            </Button>
         );
     }
 
     renderLevelButton() {
         const text = this.state.isRecursive ? "Show Only One Level" : "Show Files in Subfolders";
         return (
-            <span className="recursive-button exp-top-button" onClick={this.toggleRecursively.bind(this)}>
-                <span className="fas fa-glasses" />
-                <span> {text} </span>
-            </span>
+            <Button
+                variant="outline-secondary"
+                className="w-100 text-start"
+                onClick={this.toggleRecursively.bind(this)}
+            >
+                <i className="fas fa-glasses me-2" aria-hidden="true" />
+                {text}
+            </Button>
         );
     }
 
@@ -937,20 +997,27 @@ export default class ExplorerPage extends Component {
             link += "&isRecursive=true"
         }
 
-        return (<Link target="_blank" className="exp-top-button" to={link}>
-            <span className="fas fa-chart-line" />
-            <span> Chart </span>
-        </Link>)
+        return (
+            <Button as={Link} target="_blank" variant="outline-success" className="w-100 text-start" to={link}>
+                <i className="fas fa-chart-line me-2" aria-hidden="true" />
+                Chart
+            </Button>
+        );
     }
 
     renderPregenerateButton() {
         if (this.getMode() === MODE_EXPLORER) {
             const text = "Generate Thumbnail"
             return (
-                <span key="thumbnail-button" className="thumbnail-button exp-top-button" onClick={() => AdminUtil.askPregenerate(this.getPathFromQuery(), true)}>
-                    <span className="fas fa-tools" />
-                    <span> {text} </span>
-                </span>
+                <Button
+                    key="thumbnail-button"
+                    variant="outline-warning"
+                    className="w-100 text-start"
+                    onClick={() => AdminUtil.askPregenerate(this.getPathFromQuery(), true)}
+                >
+                    <i className="fas fa-tools me-2" aria-hidden="true" />
+                    {text}
+                </Button>
             );
         }
     }
@@ -960,16 +1027,15 @@ export default class ExplorerPage extends Component {
     getBookModeLink() {
         const bookReadUrl = clientUtil.getBookReadLink(this.getTextFromQuery());
         return (
-            <Link target="_blank" className="exp-top-button" to={bookReadUrl} >
-                <span className="fas fa-book-reader" />
-                <span>Open in Book Mode </span>
-            </Link>
+            <Button as={Link} target="_blank" variant="outline-dark" className="w-100 text-start" to={bookReadUrl}>
+                <i className="fas fa-book-reader me-2" aria-hidden="true" />
+                Open in Book Mode
+            </Button>
         )
     }
 
     getExplorerToolbar(filteredFiles, filteredVideos) {
         const mode = this.getMode();
-
 
         const isExplorer = mode === MODE_EXPLORER && this.getPathFromQuery();
         const isTag = mode === MODE_TAG;
@@ -978,47 +1044,65 @@ export default class ExplorerPage extends Component {
 
         const isInfoMode = !this.isLackInfoMode();
 
-        // 没加入config-path,递归显示，文件搜索都不行。因为文件没被监听，不存在数据库
         const warning = this.isLackInfoMode() && (
-            <NoScanAlertArea filePath={this.getTextFromQuery()}></NoScanAlertArea>
+            <NoScanAlertArea filePath={this.getTextFromQuery()} />
         );
 
-        let topButtons = (
-            <div className="top-button-gropus row">
-                <div className="col-6 col-md-4"> {this.renderToggleFolferThumbNailButton()} </div>
-                <div className="col-6 col-md-4"> {this.renderToggleThumbNailButton()} </div>
+        const actionButtons = (
+            <Row className="g-3">
+                <Col xs={12} sm={6} lg={4}>{this.renderToggleFolferThumbNailButton()}</Col>
+                <Col xs={12} sm={6} lg={4}>{this.renderToggleThumbNailButton()}</Col>
+                {isInfoMode && (
+                    <Col xs={12} sm={6} lg={4}>{this.renderChartButton()}</Col>
+                )}
+                {isExplorer && isInfoMode && (
+                    <Col xs={12} sm={6} lg={4}>{this.renderLevelButton()}</Col>
+                )}
+                {isExplorer && (
+                    <Col xs={12} sm={6} lg={4}>{this.renderPregenerateButton()}</Col>
+                )}
+                {(isTag || isAuthor) && (
+                    <Col xs={12} sm={6} lg={4}>
+                        <Button
+                            as={Link}
+                            target="_blank"
+                            to={url}
+                            variant="outline-primary"
+                            className="w-100 text-start"
+                        >
+                            <i className="fab fa-searchengin me-2" aria-hidden="true" />
+                            Search by Text
+                        </Button>
+                    </Col>
+                )}
+                {isExplorer && (
+                    <Col xs={12} sm={6} lg={4}>{this.getBookModeLink()}</Col>
+                )}
+            </Row>
+        );
 
-                {isInfoMode && <div className="col-6 col-md-4"> {this.renderChartButton()} </div>}
-                {isExplorer && isInfoMode &&
-                    <div className="col-6 col-md-4"> {this.renderLevelButton()} </div>}
-                {isExplorer &&
-                    <div className="col-6 col-md-4"> {this.renderPregenerateButton()} </div>}
-                {
-                    (isTag || isAuthor) &&
-                    <div className="col-6 col-md-4">
-                        <Link target="_blank" className="exp-top-button" to={url} >
-                            <span className="fab fa-searchengin" />
-                            <span>Search by Text </span>
-                        </Link>
-                    </div>
-                }
-                {isExplorer && <div className="col-6 col-md-4"> {this.getBookModeLink()} </div>}
-            </div>);
+        const breadcrumb = isExplorer && (
+            <Panel title="Location" bodyClassName="p-3">
+                <Breadcrumb
+                    sep={this.context.file_path_sep}
+                    server_os={this.context.server_os}
+                    path={this.getPathFromQuery()}
+                    className="mb-0"
+                />
+            </Panel>
+        );
 
-        const breadcrumb = isExplorer && (<div className="row">
-            <Breadcrumb sep={this.context.file_path_sep}
-                server_os={this.context.server_os}
-                path={this.getPathFromQuery()} className="col-12" />
-        </div>);
-
-        return (<div className="container explorer-top-bar-container">
-            {breadcrumb}
-            {warning}
-            <FileCountPanel filteredFiles={filteredFiles} filteredVideos={filteredVideos} info={this} />
-            {topButtons}
-        </div>);
+        return (
+            <Container fluid className="explorer-top-bar-container py-3">
+                {breadcrumb}
+                {warning}
+                <FileCountPanel filteredFiles={filteredFiles} filteredVideos={filteredVideos} info={this} />
+                <Panel title="Actions" bodyClassName="p-3">
+                    {actionButtons}
+                </Panel>
+            </Container>
+        );
     }
-
     getTitle() {
         const mode = this.getMode();
 
@@ -1054,15 +1138,18 @@ export default class ExplorerPage extends Component {
 
     renderPagination(filteredFiles, filteredVideos) {
         const fileLength = filteredFiles.length;
-        return (<div className="pagination-container">
-            <Pagination ref={ref => this.pagination = ref}
-                currentPage={this.state.pageIndex}
-                itemPerPage={this.getNumPerPage()}
-                totalItemNum={fileLength}
-                onChange={this.handlePageChange.bind(this)}
-                onExtraButtonClick={this.toggleItemNum.bind(this)}
-                linkFunc={clientUtil.linkFunc}
-            /></div>);
+        return (
+            <Panel bodyClassName="py-3 d-flex justify-content-center">
+                <Pagination ref={ref => this.pagination = ref}
+                    currentPage={this.state.pageIndex}
+                    itemPerPage={this.getNumPerPage()}
+                    totalItemNum={fileLength}
+                    onChange={this.handlePageChange.bind(this)}
+                    onExtraButtonClick={this.toggleItemNum.bind(this)}
+                    linkFunc={clientUtil.linkFunc}
+                />
+            </Panel>
+        );
     }
 
     setWebTitle() {
@@ -1186,11 +1273,13 @@ export default class ExplorerPage extends Component {
             sortOptions.push(BY_FOLDER);
         }
 
-        return (<div className="sort-header-container container">
-            <SortHeader sortOptions={sortOptions} selected={this.state.sortOrder}
-                isSortAsc={this.state.isSortAsc}
-                onChange={this.onSortChange.bind(this)} />
-        </div>);
+        return (
+            <Panel bodyClassName="py-3">
+                <SortHeader sortOptions={sortOptions} selected={this.state.sortOrder}
+                    isSortAsc={this.state.isSortAsc}
+                    onChange={this.onSortChange.bind(this)} />
+            </Panel>
+        );
     }
 
     renderCheckboxPanel() {
@@ -1214,7 +1303,7 @@ export default class ExplorerPage extends Component {
 
         // Return the container with all checkboxes
         return (
-            <div className="aji-checkbox-container">
+            <div className="d-flex flex-column gap-2">
                 {checkboxes}
             </div>
         );
@@ -1222,22 +1311,12 @@ export default class ExplorerPage extends Component {
 
     renderFilterControls() {
         return (
-            <>
-                {/* <div className="explorer-filter-panel container">
-                    <div className='small-wrapper'>
-                        {this.renderFilterTagPanel()}
-                    </div>
-                </div> */}
-
-                <div className="explorer-filter-panel container">
-                    <div className='small-wrapper'>
-                        <div className="explorer-filter-panel__row explorer-filter-panel__row--controls">
-                            {this.renderPageRangeSilder()}
-                            {this.renderCheckboxPanel()}
-                        </div>
-                    </div>
-                </div>
-            </>
+            <Panel title="Filters" bodyClassName="p-3">
+                <Row className="g-3 align-items-center">
+                    <Col lg={6}>{this.renderPageRangeSilder()}</Col>
+                    <Col lg={6}>{this.renderCheckboxPanel()}</Col>
+                </Row>
+            </Panel>
         );
     }
 
