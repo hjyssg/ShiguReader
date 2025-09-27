@@ -1113,6 +1113,14 @@ export default class ExplorerPage extends Component {
         });
     }
 
+    selectNoneTagFilters(allTags) {
+        const nextFilterTags = Array.isArray(allTags) ? Array.from(new Set(allTags)) : [];
+        this.setStateAndSetHash({
+            filterTags: nextFilterTags,
+            pageIndex: 1
+        });
+    }
+
     renderFilterTagPanel() {
         const filesForPanel = this.getFilteredFiles({ skipTagFilter: true });
 
@@ -1163,6 +1171,7 @@ export default class ExplorerPage extends Component {
                 items={items}
                 onToggle={this.toggleTagFilterSelection.bind(this)}
                 onReset={this.resetTagFilters.bind(this)}
+                onSelectNone={() => this.selectNoneTagFilters(tags)}
                 resetLabel="Show All Tags"
                 className="filter-type-panel"
                 checkboxContainerClassName="type-checkboxes"

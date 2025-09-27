@@ -303,6 +303,20 @@
 
   .type-panel-actions {
     margin-top: 10px;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+
+    .btn {
+      font-size: 12px;
+      text-transform: none;
+    }
+  }
+
+  .filter-panel-toggle {
+    margin-top: 8px;
+    display: flex;
+    justify-content: flex-end;
 
     .btn {
       font-size: 12px;
