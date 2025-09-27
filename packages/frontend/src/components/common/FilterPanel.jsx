@@ -17,7 +17,6 @@ const FilterPanel = ({
     const selectAllLabel = "Select All";
     const deselectAllLabel = "Deselect All";
     const checkboxContainerClassName="type-checkboxes"
-    const actionsClassName="type-panel-actions"
 
     const [isExpanded, setIsExpanded] = useState(false);
 
@@ -29,9 +28,7 @@ const FilterPanel = ({
     const allSelected = items.every(item => item && !!item.checked);
     const canDeselectAll = allSelected && typeof onDeselectAll === "function";
     const canSelectAll = !allSelected && typeof onSelectAll === "function";
-    const actionsClass = ["filter-panel-actions", actionsClassName]
-        .filter(Boolean)
-        .join(" ");
+
 
     const maxVisibleWhenCollapsed = 5;
     const canCollapse = items.length > maxVisibleWhenCollapsed;
@@ -47,7 +44,7 @@ const FilterPanel = ({
                     className="sb-pill"
                     onClick={onDeselectAll}
                 >
-                    <i className="far fa-square" aria-hidden="true"></i>
+                    {/* <i className="far fa-square" aria-hidden="true"></i> */}
                     <span>{deselectAllLabel}</span>
                 </button>
             );
@@ -60,7 +57,7 @@ const FilterPanel = ({
                     className="sb-pill"
                     onClick={onSelectAll}
                 >
-                    <i className="fas fa-check-double" aria-hidden="true"></i>
+                    {/* <i className="fas fa-check-double" aria-hidden="true"></i> */}
                     <span>{selectAllLabel}</span>
                 </button>
             );
@@ -100,7 +97,7 @@ const FilterPanel = ({
                 {toggleButton}
             </div>
             {(canDeselectAll || canSelectAll) && (
-                <div className={actionsClass}>
+                <div className={"type-panel-actions"}>
                     {renderActionButton()}
                 </div>
             )}

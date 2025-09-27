@@ -34,8 +34,10 @@ import RangeSlider from 'react-range-slider-input';
 import 'react-range-slider-input/dist/style.css';
 
 import { GlobalContext } from '@context/GlobalContext';
-import { NoScanAlertArea, FileCountPanel, getOneLineListItem,
-         LinkToEHentai, SimpleFileListPanel, SingleZipItem, FileGroupZipPanel } from '@components/ExplorerPageUI';
+import {
+    NoScanAlertArea, FileCountPanel, getOneLineListItem,
+    LinkToEHentai, SimpleFileListPanel, SingleZipItem, FileGroupZipPanel
+} from '@components/ExplorerPageUI';
 
 import * as ExplorerUtil from "@utils/ExplorerUtil";
 
@@ -94,14 +96,14 @@ export default class ExplorerPage extends Component {
             { key: "isSortAsc", type: "boolean", defVal: false },
             { key: "showFolderThumbnail", type: "boolean", defVal: false },
             { key: "filterArr", type: "arr" },
-            { key: "pageNumRange", type: "arr", defVal:[0, DEFAULT_MAX_PAGE]},  // 默认全部范围
+            { key: "pageNumRange", type: "arr", defVal: [0, DEFAULT_MAX_PAGE] },  // 默认全部范围
             { key: "filterText", type: "str" },
             { key: "filterTags", type: "arr", defVal: [] },
             { key: "noThumbnail", type: "boolean", defVal: false },
         ];
 
         this.state = this.getInitState();
- 
+
         this.resetParam();
     }
 
@@ -345,7 +347,7 @@ export default class ExplorerPage extends Component {
             })
             this.minPageNum = 0;
             this.maxPageNum = _maxPage;
-      
+
 
             //check pageindex
             const availableFiles = this.getFileInPage(this.getFilteredFiles());
@@ -494,12 +496,12 @@ export default class ExplorerPage extends Component {
 
         const { pageNumRange } = this.state;
 
-        const maxPage =  pageNumRange[1] >= this.getMaxPageForSlider()? Infinity:  pageNumRange[1];
+        const maxPage = pageNumRange[1] >= this.getMaxPageForSlider() ? Infinity : pageNumRange[1];
         files = files.filter(e => {
             const count = this.getPageNum(e);
             if (_.isNull(count) || count === 0) {
                 return true;
-            } else if (count >= pageNumRange[0] && count <= maxPage ) {
+            } else if (count >= pageNumRange[0] && count <= maxPage) {
                 return true;
             }
         })
@@ -580,7 +582,7 @@ export default class ExplorerPage extends Component {
         return files.slice((this.state.pageIndex - 1) * this.getNumPerPage(), (this.state.pageIndex) * this.getNumPerPage());
     }
 
-    
+
 
     getScore(fp) {
         let score = this.getAuthorCountForFP(fp).score || 0;
@@ -656,7 +658,7 @@ export default class ExplorerPage extends Component {
                 </Link>)
         } else {
 
-            zipItem = <SingleZipItem key={fp} filePath={fp}  info={this} />
+            zipItem = <SingleZipItem key={fp} filePath={fp} info={this} />
         }
         return zipItem;
     }
@@ -701,13 +703,13 @@ export default class ExplorerPage extends Component {
                 const thumbnailCn = classNames("file-cell-thumbnail", "as-folder-thumbnail");
 
                 let imgDiv = (
-                <LoadingImage
-                    className={thumbnailCn}
-                    title={item} 
-                    fileName={item}
-                    url={thumbnailurl}
-                    mode={"folder"}
-                />);
+                    <LoadingImage
+                        className={thumbnailCn}
+                        title={item}
+                        fileName={item}
+                        url={thumbnailurl}
+                        mode={"folder"}
+                    />);
 
                 return (
                     <div key={item} className={"col-sm-6 col-md-4 col-lg-3 file-out-cell"}>
@@ -732,7 +734,7 @@ export default class ExplorerPage extends Component {
             });
         }
 
-      
+
 
         //seperate av from others
         const groupByVideoType = _.groupBy(videos, item => {
@@ -779,7 +781,7 @@ export default class ExplorerPage extends Component {
         let zipfileItems;
         if (sortOrder === BY_FOLDER || sortOrder === BY_FOLDER &&
             (this.getMode() === MODE_AUTHOR || this.getMode() === MODE_TAG || this.getMode() === MODE_SEARCH)) {
-    
+
             zipfileItems = <FileGroupZipPanel files={files} isSortAsc={this.state.isSortAsc} info={this} />
         } else {
             //! !todo if the file is already an image file
@@ -814,31 +816,31 @@ export default class ExplorerPage extends Component {
         );
     }
 
-    getMaxPageForSlider(){
-       return Math.min(DEFAULT_MAX_PAGE, this.maxPageNum);
+    getMaxPageForSlider() {
+        return Math.min(DEFAULT_MAX_PAGE, this.maxPageNum);
     }
 
     renderPageRangeSilder() {
         const { pageNumRange } = this.state;
         const maxForSilder = this.getMaxPageForSlider();
-        const righttext = pageNumRange[1] >= maxForSilder? `${this.maxPageNum}/${this.maxPageNum}` : `${pageNumRange[1]}/${this.maxPageNum}`
+        const righttext = pageNumRange[1] >= maxForSilder ? `${this.maxPageNum}/${this.maxPageNum}` : `${pageNumRange[1]}/${this.maxPageNum}`
 
         // 本质就range slider的max不超过300的，超过和到达的时候有额外逻辑
         return (
             <div className='page-number-range-slider-wrapper'>
                 <div className='small-text-title no-wrap' >Page Range:</div>
                 <div className='small-text-title'>{pageNumRange[0]} </div>
-                <RangeSlider className="page-number-range-slider" 
-                min={this.minPageNum} max={maxForSilder} step={1} 
-                value={pageNumRange} 
-                onInput={(range) => {
-                    console.log(range);
-                    if(range[0] === pageNumRange[0] && range[1] === pageNumRange[1]){
-                        //
-                    }else{
-                        this.setStateAndSetHash({ pageNumRange: range })
-                    }
-                }} />
+                <RangeSlider className="page-number-range-slider"
+                    min={this.minPageNum} max={maxForSilder} step={1}
+                    value={pageNumRange}
+                    onInput={(range) => {
+                        console.log(range);
+                        if (range[0] === pageNumRange[0] && range[1] === pageNumRange[1]) {
+                            //
+                        } else {
+                            this.setStateAndSetHash({ pageNumRange: range })
+                        }
+                    }} />
                 <div className='small-text-title'>{righttext}</div>
             </div>);
     }
@@ -953,7 +955,7 @@ export default class ExplorerPage extends Component {
         }
     }
 
- 
+
 
     getBookModeLink() {
         const bookReadUrl = clientUtil.getBookReadLink(this.getTextFromQuery());
@@ -1151,15 +1153,15 @@ export default class ExplorerPage extends Component {
         const excludedTags = new Set(Array.isArray(this.state.filterTags) ? this.state.filterTags : []);
 
         const items = tags
-                    .filter(tag => tag2Freq[tag] > 2)
-                    .map(tag => {
-            const label = `${tag} (${tag2Freq[tag]})`;
-            return {
-                value: tag,
-                label,
-                checked: !excludedTags.has(tag)
-            };
-        });
+            .filter(tag => tag2Freq[tag] > 2)
+            .map(tag => {
+                const label = `${tag} (${tag2Freq[tag]})`;
+                return {
+                    value: tag,
+                    label,
+                    checked: !excludedTags.has(tag)
+                };
+            });
 
         const deselectAllTags = () => {
             this.setTagFilters(tags.slice());
@@ -1220,13 +1222,22 @@ export default class ExplorerPage extends Component {
 
     renderFilterControls() {
         return (
-            <div className="explorer-filter-panel container">
-                <div className="explorer-filter-panel__row explorer-filter-panel__row--controls">
-                    {this.renderPageRangeSilder()}
-                    {this.renderCheckboxPanel()}
+            <>
+                <div className="explorer-filter-panel container">
+                    <div className='small-wrapper'>
+                        {this.renderFilterTagPanel()}
+                    </div>
                 </div>
-                {this.renderFilterTagPanel()}
-            </div>
+
+                <div className="explorer-filter-panel container">
+                    <div className='small-wrapper'>
+                        <div className="explorer-filter-panel__row explorer-filter-panel__row--controls">
+                            {this.renderPageRangeSilder()}
+                            {this.renderCheckboxPanel()}
+                        </div>
+                    </div>
+                </div>
+            </>
         );
     }
 

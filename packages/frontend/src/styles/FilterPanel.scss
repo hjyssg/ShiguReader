@@ -1,17 +1,27 @@
 @import "vars.scss";
 
 .explorer-filter-panel {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
+
     padding: 12px 14px;
-    border-radius: 6px;
-    background: $bacground_level_two;
-    border: 1px solid rgba(0, 0, 0, 0.3);
+
     color: $font_color_white_one;
     margin: 15px 0;
     box-sizing: border-box;
     width: 100%;
+
+    .small-wrapper {
+        background: $bacground_level_two;
+        padding-top: 12px;
+        padding-bottom: 12px;
+        padding-left: 15px;
+        padding-right: 15px;
+        border: 1px solid rgba(0, 0, 0, 0.3);
+        border-radius: 6px;
+
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+    }
 }
 
 .explorer-filter-panel__row {
@@ -42,10 +52,9 @@
     width: 100%;
 
     .panel-title {
-        font-size: 13px;
+        font-size: 12px;
         font-weight: 600;
         margin-bottom: 8px;
-        text-transform: uppercase;
         letter-spacing: 0.5px;
         color: rgba($font_color_white_one, 0.9);
     }
@@ -71,11 +80,12 @@
     .type-panel-actions {
         margin-top: 10px;
         display: flex;
-        justify-content: flex-end;
+        justify-content: flex-start;
 
         .sb-pill {
             display: inline-flex;
             align-items: center;
+            justify-content: center;
             gap: 6px;
             font-size: 12px;
             padding: 4px 12px;
