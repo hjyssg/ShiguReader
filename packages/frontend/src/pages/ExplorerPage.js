@@ -90,12 +90,11 @@ export default class ExplorerPage extends Component {
             { key: "isRecursive", type: "boolean", defVal: false },
             { key: "sortOrder", type: "str", defVal: BY_TIME },
             { key: "isSortAsc", type: "boolean", defVal: false },
-            { key: "showVideo", type: "boolean", defVal: true },
             { key: "showFolderThumbnail", type: "boolean", defVal: false },
             { key: "filterArr", type: "arr" },
             { key: "pageNumRange", type: "arr", defVal:[0, DEFAULT_MAX_PAGE]},  // 默认全部范围
             { key: "filterText", type: "str" },
-            { key: "filterType", type: "str" },
+            { key: "filterTypes", type: "arr", defVal: [] },
             { key: "noThumbnail", type: "boolean", defVal: false },
         ];
 
@@ -336,12 +335,6 @@ export default class ExplorerPage extends Component {
                 this.fileNameToHistory[fileName] = { time, count };
             })
 
-            if (this.videoFiles.length > 0 && !this.state.showVideo) {
-                this.setStateAndSetHash({
-                    showVideo: true
-                });
-            }
-
             // 找出最大页数
             let _maxPage = 10;
             files.forEach(e => {
@@ -493,7 +486,8 @@ export default class ExplorerPage extends Component {
         return rTime || 0;
     }
 
-    getFilteredFiles() {
+    getFilteredFiles(options = {}) {
+        const { skipTypeFilter = false } = options;
         let files = [...this.compressFiles, ...(_.keys(this.imgFolderInfo))];
 
         const { pageNumRange } = this.state;
@@ -533,11 +527,13 @@ export default class ExplorerPage extends Component {
             });
         }
 
-        const filterType = _.isString(this.state.filterType) && this.state.filterType;
-        if (filterType) {
+        const excludedTypes = Array.isArray(this.state.filterTypes) ? this.state.filterTypes : [];
+        if (!skipTypeFilter && excludedTypes.length > 0) {
+            const excludedSet = new Set(excludedTypes);
             files = files.filter(e => {
                 const result = parse(e);
-                return result && result.type === filterType;
+                const type = result && result.type ? result.type : "Unknown";
+                return !excludedSet.has(type);
             });
         }
 
@@ -554,10 +550,6 @@ export default class ExplorerPage extends Component {
     }
 
     getFilteredVideos() {
-        if (!this.state.showVideo) {
-            return [];
-        }
-
         const { filterByGoodAuthorName, filterByOversizeImage, filterByGuess, filterByFirstTime, filterByHasMusic } = this.state;
         let videoFiles;
         if (filterByGoodAuthorName || filterByOversizeImage || filterByGuess || filterByFirstTime || filterByHasMusic) {
@@ -896,12 +888,6 @@ export default class ExplorerPage extends Component {
         })
     }
 
-    toggleShowVideo() {
-        this.setStateAndSetHash({
-            showVideo: !this.state.showVideo
-        })
-    }
-
     renderToggleThumbNailButton() {
         const text2 = this.state.noThumbnail ? "File Thumbnail" : "File Name Only";
         return (
@@ -920,31 +906,11 @@ export default class ExplorerPage extends Component {
         );
     }
 
-    renderShowVideoButton() {
-        const text2 = this.state.showVideo ? "Hide Video" : "Show Video";
-        return (
-            <span className="show-video-button exp-top-button" onClick={this.toggleShowVideo.bind(this)}>
-                <span className="fas fa-video" />
-                <span> {text2} </span>
-            </span>
-        );
-    }
-
     renderLevelButton() {
         const text = this.state.isRecursive ? "Show Only One Level" : "Show Files in Subfolders";
         return (
             <span className="recursive-button exp-top-button" onClick={this.toggleRecursively.bind(this)}>
                 <span className="fas fa-glasses" />
-                <span> {text} </span>
-            </span>
-        );
-    }
-
-    renderToggleMenuButton() {
-        const text = "Toggle Menu"
-        return (
-            <span key="toggle-side-menu-button" className="toggle-side-menu-button exp-top-button" onClick={this.toggleSideMenu.bind(this)}>
-                <span className="fas fa-ellipsis-h" />
                 <span> {text} </span>
             </span>
         );
@@ -1011,7 +977,6 @@ export default class ExplorerPage extends Component {
             <div className="top-button-gropus row">
                 <div className="col-6 col-md-4"> {this.renderToggleFolferThumbNailButton()} </div>
                 <div className="col-6 col-md-4"> {this.renderToggleThumbNailButton()} </div>
-                <div className="col-6 col-md-4"> {this.renderShowVideoButton()} </div>
 
                 {isInfoMode && <div className="col-6 col-md-4"> {this.renderChartButton()} </div>}
                 {isExplorer && isInfoMode &&
@@ -1028,7 +993,6 @@ export default class ExplorerPage extends Component {
                     </div>
                 }
                 {isExplorer && <div className="col-6 col-md-4"> {this.getBookModeLink()} </div>}
-                <div className="col-6 col-md-4 " > {this.renderToggleMenuButton()} </div>
             </div>);
 
         const breadcrumb = isExplorer && (<div className="row">
@@ -1099,18 +1063,6 @@ export default class ExplorerPage extends Component {
         this.setStateAndSetHash({ sortOrder, isSortAsc })
     }
 
-    toggleSideMenu() {
-        this.setState({ anchorSideMenu: !this.state.anchorSideMenu })
-    }
-
-    setFilterText(text) {
-        this.setStateAndSetHash({ filterText: text, pageIndex: 1 });
-    }
-
-    setFilterType(text) {
-        this.setStateAndSetHash({ filterType: text, pageIndex: 1 });
-    }
-
     toggleFilter(key) {
         let filterArr = this.state.filterArr.slice();
         const index = filterArr.indexOf(key)
@@ -1132,98 +1084,81 @@ export default class ExplorerPage extends Component {
         return this.state.filterArr.includes(key);
     }
 
-    renderSideMenu(filteredFiles, filteredVideos) {
-        if (!this.state.anchorSideMenu) {
-            return;
+    toggleTypeFilterSelection(type) {
+        const excludedTypes = new Set(Array.isArray(this.state.filterTypes) ? this.state.filterTypes : []);
+        if (excludedTypes.has(type)) {
+            excludedTypes.delete(type);
+        } else {
+            excludedTypes.add(type);
         }
 
-        const tag2Freq = {};
+        this.setStateAndSetHash({
+            filterTypes: Array.from(excludedTypes),
+            pageIndex: 1
+        });
+    }
+
+    resetTypeFilters() {
+        this.setStateAndSetHash({
+            filterTypes: [],
+            pageIndex: 1
+        });
+    }
+
+    renderFilterTypePanel() {
+        const filesForPanel = this.getFilteredFiles({ skipTypeFilter: true });
+
         const type2Freq = {};
+        filesForPanel.forEach(fp => {
+            const result = parse(fp);
+            const type = result && result.type ? result.type : "Unknown";
+            type2Freq[type] = type2Freq[type] || 0;
+            type2Freq[type]++;
+        });
 
-        filteredFiles.forEach(e => {
-            const result = parse(e);
-            let tags = [];
-
-            if (result) {
-                if (result.tags) {
-                    tags = result.tags;
-                }
-
-                if (result.type) {
-                    type2Freq[result.type] = type2Freq[result.type] || 0;
-                    type2Freq[result.type]++;
-                }
+        const types = _.keys(type2Freq).sort((a, b) => {
+            if (type2Freq[b] === type2Freq[a]) {
+                return a.localeCompare(b, undefined, { numeric: true });
             }
-
-            tags.forEach(t => {
-                if (t.length > 1) {
-                    tag2Freq[t] = tag2Freq[t] || 0;
-                    tag2Freq[t]++;
-                }
-            })
-        });
-
-        let tags = _.keys(tag2Freq);
-        tags.sort((a, b) => {
-            return tag2Freq[b] - tag2Freq[a];
-        })
-
-        let types = _.keys(type2Freq);
-        types.sort((a, b) => {
             return type2Freq[b] - type2Freq[a];
-        })
-
-        const tagInfos = tags.map(t => {
-            return (<div className="side-menu-single-tag col-3" onClick={() => this.setFilterText(t)}
-                key={t}>
-                {t}<span>({tag2Freq[t]})</span>
-            </div>);
         });
 
-        const typeInfos = types.map(t => {
-            return (<div className="side-menu-single-tag col-3 type-tag" onClick={() => this.setFilterType(t)}
-                key={t}>
-                {t}<span>({type2Freq[t]})</span>
-            </div>);
-        });
-
-
-        let showAll;
-
-        const { filterText, filterType } = this.state;
-
-        //!!duplicate code here. need to fix
-        if ((_.isString(filterText) && filterText) ||
-            (_.isString(filterType) && filterType)) {
-            // tagInfos.unshift(showAll);
-
-            showAll = (
-                <div className="side-menu-single-tag col-3" onClick={() => {
-                    this.setFilterText("");
-                    this.setFilterType("")
-                }}
-                    key={"side-menu-single-tag-all"}>
-                    Back to All
-                </div>);
+        if (types.length === 0) {
+            return null;
         }
-        const tagContainer = (<div className="exp-tag-container row">
-            {showAll}
-            {typeInfos}
-            {tagInfos}
-        </div>);
 
-        const cn = classNames("side-menu container", {
-            anchorSideMenu: this.state.anchorSideMenu
+        const excludedTypes = new Set(Array.isArray(this.state.filterTypes) ? this.state.filterTypes : []);
+
+        const typeCheckboxes = types.map(type => {
+            const isChecked = !excludedTypes.has(type);
+            const label = `${type} (${type2Freq[type]})`;
+            return (
+                <Checkbox
+                    key={type}
+                    checked={isChecked}
+                    onChange={() => this.toggleTypeFilterSelection(type)}
+                    title={label}
+                >
+                    {label}
+                </Checkbox>
+            );
         });
 
-        return (<div className={cn}>
-            <div className="side-menu-radio-title"> Special Filters </div>
-            <div className="row info-row">
-                <div className="col-3">{`Filter Text: ${filterText || "-"}`} </div>
-                <div className="col-3">{`Filter Type: ${filterType || "-"}`} </div>
+        return (
+            <div className="filter-type-panel">
+                <div className="panel-title">Filter Types</div>
+                <div className="type-checkboxes">
+                    {typeCheckboxes}
+                </div>
+                {excludedTypes.size > 0 && (
+                    <div className="type-panel-actions">
+                        <button type="button" className="btn btn-sm btn-light" onClick={this.resetTypeFilters.bind(this)}>
+                            Show All Types
+                        </button>
+                    </div>
+                )}
             </div>
-            {tagContainer}
-        </div>)
+        );
     }
 
     renderSortHeader() {
@@ -1272,6 +1207,7 @@ export default class ExplorerPage extends Component {
             <div className="explorer-filter-controls container">
                 {this.renderPageRangeSilder()}
                 {this.renderCheckboxPanel()}
+                {this.renderFilterTypePanel()}
             </div>
         );
     }
@@ -1294,7 +1230,6 @@ export default class ExplorerPage extends Component {
         return (<div className={cn} >
             {this.getLinkToEhentai()}
             {this.getExplorerToolbar(filteredFiles, filteredVideos)}
-            {this.renderSideMenu(filteredFiles, filteredVideos)}
             {this.renderFileList(filteredFiles, filteredVideos)}
             {this.renderPagination(filteredFiles, filteredVideos)}
         </div>

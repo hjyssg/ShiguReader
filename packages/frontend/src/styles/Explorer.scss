@@ -1,6 +1,4 @@
 @import "vars.scss";
-@import "sideMenu.scss";
-
 .explorer-page-loading {
   text-align: center;
   font-size: 3rem;
@@ -27,9 +25,6 @@
     }
   }
 
-  &.anchorSideMenu {
-    display: flex;
-  }
 }
 
 .explorer-external-link {
@@ -250,6 +245,49 @@
 .explorer-filter-controls .aji-checkbox-container {
   flex: 0 1 auto;
   margin: 15px 0;
+}
+
+.filter-type-panel {
+  flex: 1 1 100%;
+  background-color: $bacground_level_one;
+  border-radius: 4px;
+  padding: 12px 16px;
+  margin: 15px 0;
+  width: 100%;
+  color: $font_color_white_one;
+
+  .panel-title {
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .type-checkboxes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 15px;
+  }
+
+  .aji-checkbox {
+    background-color: rgba(0, 0, 0, 0.2);
+    padding: 4px 8px;
+    border-radius: 4px;
+
+    .inner {
+      font-size: 12px;
+    }
+  }
+
+  .type-panel-actions {
+    margin-top: 12px;
+
+    .btn {
+      font-size: 12px;
+      text-transform: none;
+    }
+  }
 }
 
 .page-number-range-slider-wrapper {
