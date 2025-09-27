@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import Checkbox from "@components/common/Checkbox";
 
 const FilterPanel = ({
@@ -20,98 +20,31 @@ const FilterPanel = ({
 
     const panelClassName = ["filter-panel", className].filter(Boolean).join(" ");
     const hasDeselected = items.some(item => item && !item.checked);
-    const containerRef = useRef(null);
     const [isExpanded, setIsExpanded] = useState(false);
-    const [collapsedHeight, setCollapsedHeight] = useState(null);
-    const [isOverflowing, setIsOverflowing] = useState(false);
-    const shouldLimitByCount = Number.isInteger(maxVisibleWhenCollapsed) && maxVisibleWhenCollapsed > 0;
-
-    const measureOverflow = useCallback(() => {
-        if (shouldLimitByCount) {
-            setCollapsedHeight(null);
-            setIsOverflowing(false);
-            return;
+    const collapsedCount = useMemo(() => {
+        if (Number.isInteger(maxVisibleWhenCollapsed) && maxVisibleWhenCollapsed > 0) {
+            return maxVisibleWhenCollapsed;
         }
+        return 5;
+    }, [maxVisibleWhenCollapsed]);
 
-        if (typeof window === "undefined") {
-            setCollapsedHeight(null);
-            setIsOverflowing(false);
-            return;
-        }
-        const container = containerRef.current;
-        if (!container) {
-            setCollapsedHeight(null);
-            setIsOverflowing(false);
-            return;
-        }
+    const shouldCollapse = items.length > collapsedCount;
 
-        const firstCheckbox = container.querySelector(".aji-checkbox");
-        if (!firstCheckbox) {
-            setCollapsedHeight(null);
-            setIsOverflowing(false);
-            return;
+    const displayedItems = useMemo(() => {
+        if (!shouldCollapse || isExpanded) {
+            return items;
         }
-
-        const styles = window.getComputedStyle(container);
-        const rowGapValue = styles.rowGap || styles.gap || "0";
-        const rowGap = parseFloat(rowGapValue) || 0;
-        const checkboxHeight = firstCheckbox.getBoundingClientRect().height;
-        if (!checkboxHeight) {
-            setCollapsedHeight(null);
-            setIsOverflowing(false);
-            return;
-        }
-
-        const nextCollapsedHeight = checkboxHeight * 2 + rowGap;
-        setCollapsedHeight(nextCollapsedHeight);
-        const totalHeight = container.scrollHeight;
-        setIsOverflowing(totalHeight - nextCollapsedHeight > 1);
-    }, [shouldLimitByCount]);
+        return items.slice(0, collapsedCount);
+    }, [collapsedCount, isExpanded, items, shouldCollapse]);
 
     useEffect(() => {
         setIsExpanded(false);
-        if (shouldLimitByCount) {
-            return undefined;
-        }
-        if (typeof window === "undefined") {
-            return undefined;
-        }
-        measureOverflow();
-        window.addEventListener("resize", measureOverflow);
-        return () => {
-            window.removeEventListener("resize", measureOverflow);
-        };
-    }, [items, measureOverflow, shouldLimitByCount]);
-
-    useEffect(() => {
-        if (!isExpanded && !shouldLimitByCount) {
-            measureOverflow();
-        }
-    }, [isExpanded, measureOverflow, shouldLimitByCount]);
-
-    const containerStyle = useMemo(() => {
-        if (shouldLimitByCount || isExpanded || !collapsedHeight) {
-            return undefined;
-        }
-        return {
-            maxHeight: collapsedHeight,
-            overflow: "hidden"
-        };
-    }, [collapsedHeight, isExpanded, shouldLimitByCount]);
-
-    const displayedItems = useMemo(() => {
-        if (!shouldLimitByCount || isExpanded) {
-            return items;
-        }
-        return items.slice(0, maxVisibleWhenCollapsed);
-    }, [items, isExpanded, shouldLimitByCount, maxVisibleWhenCollapsed]);
+    }, [items, collapsedCount]);
 
     const showReset = onReset && hasDeselected;
     const showSelectNone = typeof onSelectNone === "function";
     const showActions = showReset || showSelectNone;
-    const showToggle = shouldLimitByCount
-        ? items.length > maxVisibleWhenCollapsed
-        : isOverflowing;
+    const showToggle = shouldCollapse;
 
     const toggleButton = showToggle && (
         <button
@@ -119,7 +52,7 @@ const FilterPanel = ({
             className="btn btn-sm btn-light filter-panel-toggle-button"
             onClick={() => setIsExpanded(prev => !prev)}
         >
-            {isExpanded ? "Show Less" : "Show More"}
+            {isExpanded ? "Show Less" : "..."}
         </button>
     );
 
@@ -132,8 +65,6 @@ const FilterPanel = ({
             )}
             <div
                 className={checkboxContainerClassName}
-                ref={containerRef}
-                style={containerStyle}
             >
                 {displayedItems.map(item => (
                     <Checkbox
@@ -145,13 +76,8 @@ const FilterPanel = ({
                         {item.label}
                     </Checkbox>
                 ))}
-                {shouldLimitByCount && toggleButton}
+                {shouldCollapse && toggleButton}
             </div>
-            {!shouldLimitByCount && isOverflowing && (
-                <div className="filter-panel-toggle">
-                    {toggleButton}
-                </div>
-            )}
             {showActions && (
                 <div className={actionsClassName}>
                     {showSelectNone && (
