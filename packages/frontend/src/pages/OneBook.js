@@ -6,6 +6,7 @@ import ReactDOM from 'react-dom';
 import { Link } from 'react-router-dom';
 import { listImageFolderContent } from '@api/folder';
 import { extractZip } from '@api/extract';
+import { addHistoryRecord } from '@api/history';
 import '@styles/OneBook.scss';
 import ErrorPage from '@pages/ErrorPage';
 import Spinner from '@components/common/Spinner';
@@ -39,6 +40,7 @@ export default class OneBook extends Component {
     super(props);
 
     this.zoom_scale = null;
+    this.bookHistoryRecorded = false;
 
     this.state = {
       imageFiles: [],
@@ -81,6 +83,20 @@ export default class OneBook extends Component {
 
     this._adjustImageSize = this.adjustImageSize.bind(this);
     window.addEventListener("resize", this._adjustImageSize);
+  }
+
+  componentDidUpdate(prevProps, prevState) {
+    if (this.state.path && this.state.path !== prevState.path) {
+      this.bookHistoryRecorded = false;
+    }
+
+    if (this.state.path && (
+      this.state.index !== prevState.index ||
+      this.state.imageFiles !== prevState.imageFiles ||
+      this.state.path !== prevState.path
+    )) {
+      this.maybeRecordBookHistory();
+    }
   }
 
   updateScrollPos(e) {
@@ -416,6 +432,34 @@ export default class OneBook extends Component {
 
   getImageLength() {
     return this.state.imageFiles.length;
+  }
+
+  maybeRecordBookHistory() {
+    if (this.bookHistoryRecorded) {
+      return;
+    }
+
+    const { imageFiles, index, path, zipInfo } = this.state;
+    const parsedPageNum = zipInfo && parseInt(zipInfo.pageNum, 10);
+    const totalPages = parsedPageNum > 0 ? parsedPageNum : imageFiles.length;
+
+    if (!path || totalPages === 0) {
+      return;
+    }
+
+    const currentPage = index + 1;
+    const reachedProgressThreshold = currentPage / totalPages >= (1 / 3);
+    const reachedPageThreshold = currentPage > 8;
+
+    if (!reachedProgressThreshold && !reachedPageThreshold) {
+      return;
+    }
+
+    this.bookHistoryRecorded = true;
+    addHistoryRecord(path).catch((e) => {
+      console.error(e);
+      this.bookHistoryRecorded = false;
+    });
   }
 
   next(event) {

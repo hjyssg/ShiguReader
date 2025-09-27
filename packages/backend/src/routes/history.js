@@ -24,6 +24,27 @@ router.post('/api/history/list', serverUtil.asyncWrapper(async (req, res) => {
     res.send(history);
 }));
 
+router.post('/api/history/add', serverUtil.asyncWrapper(async (req, res) => {
+    const filePath = req.body && req.body.filePath;
+    if (!filePath) {
+        res.send({ failed: true, reason: "No parameter" });
+        return;
+    }
+
+    try {
+        const now = util.getCurrentTime();
+        const inserted = await historyDb.addOneRecord(filePath, now);
+        if (!inserted) {
+            res.send({ failed: false, skipped: true });
+            return;
+        }
+
+        res.send({ failed: false });
+    } catch (err) {
+        res.send({ failed: true, reason: err?.message || String(err) });
+    }
+}));
+
 router.post("/api/history/get_file_history", serverUtil.asyncWrapper(async (req, res) => {
     const all_pathes = req.body && req.body.all_pathes;
     if (!all_pathes) {
