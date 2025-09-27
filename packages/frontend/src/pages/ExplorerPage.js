@@ -1150,7 +1150,9 @@ export default class ExplorerPage extends Component {
 
         const excludedTags = new Set(Array.isArray(this.state.filterTags) ? this.state.filterTags : []);
 
-        const items = tags.map(tag => {
+        const items = tags
+                    .filter(tag => tag2Freq[tag] > 2)
+                    .map(tag => {
             const label = `${tag} (${tag2Freq[tag]})`;
             return {
                 value: tag,
