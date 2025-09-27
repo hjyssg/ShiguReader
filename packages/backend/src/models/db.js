@@ -117,9 +117,7 @@ module.exports.init = async () => {
             PRIMARY KEY (tag, type, subtype)
         );
 
-
-        DROP TABLE IF EXISTS estimate_file_table;
-        CREATE TABLE estimate_file_table (
+        CREATE TABLE IF NOT EXISTS estimate_file_table (
             dirName TEXT,
             dirPath TEXT,
             fileName TEXT,
