@@ -238,12 +238,14 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
-  padding: 14px 16px;
+  padding: 12px 14px;
   border-radius: 6px;
   background: $bacground_level_two;
   border: 1px solid rgba(0, 0, 0, 0.3);
   color: $font_color_white_one;
-  margin: 15px auto;
+  margin: 15px 0;
+  box-sizing: border-box;
+  width: 100%;
 }
 
 .explorer-filter-panel__row {
