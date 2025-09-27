@@ -284,7 +284,7 @@
     color: rgba($font_color_white_one, 0.9);
   }
 
-  .type-checkboxes {
+  .filter-panel-checkboxes {
     display: flex;
     flex-wrap: wrap;
     gap: 10px 12px;
@@ -309,7 +309,7 @@
     border-radius: 12px;
   }
 
-  .type-panel-actions {
+  .filter-panel-actions {
     margin-top: 10px;
     display: flex;
     gap: 8px;

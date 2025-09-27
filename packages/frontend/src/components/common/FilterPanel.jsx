@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import Checkbox from "@components/common/Checkbox";
 
 const FilterPanel = ({
@@ -10,39 +10,29 @@ const FilterPanel = ({
     resetLabel = "Reset",
     selectNoneLabel = "Deselect All",
     className,
-    checkboxContainerClassName = "filter-panel-checkboxes",
-    actionsClassName = "filter-panel-actions",
     maxVisibleWhenCollapsed
 }) => {
-    if (!items || items.length === 0) {
+    if (items.length === 0) {
         return null;
     }
 
     const panelClassName = ["filter-panel", className].filter(Boolean).join(" ");
-    const hasDeselected = items.some(item => item && !item.checked);
+    const hasDeselected = items.some(item => !item.checked);
     const [isExpanded, setIsExpanded] = useState(false);
-    const collapsedCount = useMemo(() => {
-        if (Number.isInteger(maxVisibleWhenCollapsed) && maxVisibleWhenCollapsed > 0) {
-            return maxVisibleWhenCollapsed;
-        }
-        return 5;
-    }, [maxVisibleWhenCollapsed]);
+    const collapsedCount = maxVisibleWhenCollapsed > 0 ? maxVisibleWhenCollapsed : 5;
 
     const shouldCollapse = items.length > collapsedCount;
 
-    const displayedItems = useMemo(() => {
-        if (!shouldCollapse || isExpanded) {
-            return items;
-        }
-        return items.slice(0, collapsedCount);
-    }, [collapsedCount, isExpanded, items, shouldCollapse]);
+    const displayedItems = !shouldCollapse || isExpanded
+        ? items
+        : items.slice(0, collapsedCount);
 
     useEffect(() => {
         setIsExpanded(false);
     }, [items, collapsedCount]);
 
     const showReset = onReset && hasDeselected;
-    const showSelectNone = typeof onSelectNone === "function";
+    const showSelectNone = !!onSelectNone;
     const showActions = showReset || showSelectNone;
     const showToggle = shouldCollapse;
 
@@ -63,14 +53,12 @@ const FilterPanel = ({
                     {title}
                 </div>
             )}
-            <div
-                className={checkboxContainerClassName}
-            >
+            <div className="filter-panel-checkboxes">
                 {displayedItems.map(item => (
                     <Checkbox
                         key={item.value}
                         checked={!!item.checked}
-                        onChange={() => onToggle && onToggle(item.value)}
+                        onChange={() => onToggle?.(item.value)}
                         title={item.label}
                     >
                         {item.label}
@@ -79,7 +67,7 @@ const FilterPanel = ({
                 {shouldCollapse && toggleButton}
             </div>
             {showActions && (
-                <div className={actionsClassName}>
+                <div className="filter-panel-actions">
                     {showSelectNone && (
                         <button
                             type="button"
