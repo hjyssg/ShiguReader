@@ -20,6 +20,7 @@ import SortHeader from '@components/common/SortHeader';
 import Breadcrumb from '@components/common/Breadcrumb';
 import FileCellTitle from '@components/common/FileCellTitle';
 import Checkbox from '@components/common/Checkbox';
+import FilterPanel from '@components/common/FilterPanel';
 import ThumbnailPopup from '@components/common/ThumbnailPopup';
 import { getFileUrl } from '@utils/clientUtil';
 const nameParser = require('@name-parser');
@@ -94,7 +95,7 @@ export default class ExplorerPage extends Component {
             { key: "filterArr", type: "arr" },
             { key: "pageNumRange", type: "arr", defVal:[0, DEFAULT_MAX_PAGE]},  // 默认全部范围
             { key: "filterText", type: "str" },
-            { key: "filterTypes", type: "arr", defVal: [] },
+            { key: "filterTags", type: "arr", defVal: [] },
             { key: "noThumbnail", type: "boolean", defVal: false },
         ];
 
@@ -487,7 +488,7 @@ export default class ExplorerPage extends Component {
     }
 
     getFilteredFiles(options = {}) {
-        const { skipTypeFilter = false } = options;
+        const { skipTagFilter = false } = options;
         let files = [...this.compressFiles, ...(_.keys(this.imgFolderInfo))];
 
         const { pageNumRange } = this.state;
@@ -527,13 +528,19 @@ export default class ExplorerPage extends Component {
             });
         }
 
-        const excludedTypes = Array.isArray(this.state.filterTypes) ? this.state.filterTypes : [];
-        if (!skipTypeFilter && excludedTypes.length > 0) {
-            const excludedSet = new Set(excludedTypes);
+        const excludedTags = Array.isArray(this.state.filterTags) ? this.state.filterTags : [];
+        if (!skipTagFilter && excludedTags.length > 0) {
+            const excludedSet = new Set(excludedTags);
             files = files.filter(e => {
                 const result = parse(e);
-                const type = result && result.type ? result.type : "Unknown";
-                return !excludedSet.has(type);
+                let tags = [];
+                if (result && Array.isArray(result.tags)) {
+                    tags = result.tags;
+                }
+                if (!tags.length) {
+                    tags = ["Unknown"];
+                }
+                return !tags.some(tag => excludedSet.has(tag));
             });
         }
 
@@ -1084,80 +1091,76 @@ export default class ExplorerPage extends Component {
         return this.state.filterArr.includes(key);
     }
 
-    toggleTypeFilterSelection(type) {
-        const excludedTypes = new Set(Array.isArray(this.state.filterTypes) ? this.state.filterTypes : []);
-        if (excludedTypes.has(type)) {
-            excludedTypes.delete(type);
+    toggleTagFilterSelection(tag) {
+        const excludedTags = new Set(Array.isArray(this.state.filterTags) ? this.state.filterTags : []);
+        if (excludedTags.has(tag)) {
+            excludedTags.delete(tag);
         } else {
-            excludedTypes.add(type);
+            excludedTags.add(tag);
         }
 
         this.setStateAndSetHash({
-            filterTypes: Array.from(excludedTypes),
+            filterTags: Array.from(excludedTags),
             pageIndex: 1
         });
     }
 
-    resetTypeFilters() {
+    resetTagFilters() {
         this.setStateAndSetHash({
-            filterTypes: [],
+            filterTags: [],
             pageIndex: 1
         });
     }
 
-    renderFilterTypePanel() {
-        const filesForPanel = this.getFilteredFiles({ skipTypeFilter: true });
+    renderFilterTagPanel() {
+        const filesForPanel = this.getFilteredFiles({ skipTagFilter: true });
 
-        const type2Freq = {};
+        const tag2Freq = {};
         filesForPanel.forEach(fp => {
             const result = parse(fp);
-            const type = result && result.type ? result.type : "Unknown";
-            type2Freq[type] = type2Freq[type] || 0;
-            type2Freq[type]++;
+            let tags = [];
+            if (result && Array.isArray(result.tags)) {
+                tags = result.tags;
+            }
+            if (!tags.length) {
+                tags = ["Unknown"];
+            }
+
+            tags.forEach(tag => {
+                tag2Freq[tag] = tag2Freq[tag] || 0;
+                tag2Freq[tag]++;
+            });
         });
 
-        const types = _.keys(type2Freq).sort((a, b) => {
-            if (type2Freq[b] === type2Freq[a]) {
+        const tags = _.keys(tag2Freq).sort((a, b) => {
+            if (tag2Freq[b] === tag2Freq[a]) {
                 return a.localeCompare(b, undefined, { numeric: true });
             }
-            return type2Freq[b] - type2Freq[a];
+            return tag2Freq[b] - tag2Freq[a];
         });
 
-        if (types.length === 0) {
-            return null;
-        }
+        const excludedTags = new Set(Array.isArray(this.state.filterTags) ? this.state.filterTags : []);
 
-        const excludedTypes = new Set(Array.isArray(this.state.filterTypes) ? this.state.filterTypes : []);
-
-        const typeCheckboxes = types.map(type => {
-            const isChecked = !excludedTypes.has(type);
-            const label = `${type} (${type2Freq[type]})`;
-            return (
-                <Checkbox
-                    key={type}
-                    checked={isChecked}
-                    onChange={() => this.toggleTypeFilterSelection(type)}
-                    title={label}
-                >
-                    {label}
-                </Checkbox>
-            );
+        const items = tags.map(tag => {
+            const label = `${tag} (${tag2Freq[tag]})`;
+            return {
+                value: tag,
+                label,
+                checked: !excludedTags.has(tag)
+            };
         });
 
         return (
-            <div className="filter-type-panel">
-                <div className="panel-title">Filter Types</div>
-                <div className="type-checkboxes">
-                    {typeCheckboxes}
-                </div>
-                {excludedTypes.size > 0 && (
-                    <div className="type-panel-actions">
-                        <button type="button" className="btn btn-sm btn-light" onClick={this.resetTypeFilters.bind(this)}>
-                            Show All Types
-                        </button>
-                    </div>
-                )}
-            </div>
+            <FilterPanel
+                title="Filter Tags"
+                items={items}
+                onToggle={this.toggleTagFilterSelection.bind(this)}
+                onReset={this.resetTagFilters.bind(this)}
+                resetLabel="Show All Tags"
+                className="filter-type-panel"
+                checkboxContainerClassName="type-checkboxes"
+                actionsClassName="type-panel-actions"
+            />
         );
     }
 
@@ -1207,7 +1210,7 @@ export default class ExplorerPage extends Component {
             <div className="explorer-filter-controls container">
                 {this.renderPageRangeSilder()}
                 {this.renderCheckboxPanel()}
-                {this.renderFilterTypePanel()}
+                {this.renderFilterTagPanel()}
             </div>
         );
     }
