@@ -232,7 +232,7 @@ export const SingleZipItem = ({ filePath, info }) => {
         mode={"zip"}
         className={thumbnailCn}
         title={info.getTooltipStr(fp)}
-        fileName={fp}
+        filePath={fp}
         url={thumbnailurl}
         musicNum={musicNum}
     />);

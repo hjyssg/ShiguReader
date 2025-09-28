@@ -5,7 +5,7 @@ const serverUtil = require("../utils/server-util");
 const db = require("../models/db");
 const util = require('../../../common/src/util');
 // const { isDisplayableInExplorer } = util;
-const nameParser = require('../name-parser');
+const nameParser = require('../../../name-parser');
 const _ = require("underscore");
 
 async function add_col(rows){

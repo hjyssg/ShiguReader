@@ -94,7 +94,7 @@ config.resolve = {
     "@api": path.resolve(__dirname, 'src/api/'),
     "@config": path.resolve(__dirname, 'src/config/'),
     "@context": path.resolve(__dirname, 'src/context/'),
-    "@name-parser": path.resolve(__dirname, 'src/name-parser/index'),
+    "@name-parser": path.resolve(__dirname, '../name-parser/index.js'),
     "@pages": path.resolve(__dirname, 'src/pages/'),
     "@services": path.resolve(__dirname, 'src/services/'),
     "@styles": path.resolve(__dirname, 'src/styles/'),

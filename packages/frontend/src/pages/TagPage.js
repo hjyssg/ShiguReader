@@ -318,7 +318,7 @@ export default class TagPage extends Component {
             <LoadingImage
               title={this.getTooltipStr(item)}
               className="tag-page-thumbnail"
-              fileName={tag}
+              tag={tag}
               mode={this.props.mode}
               url={thumbnailUrl} />
           </Link>

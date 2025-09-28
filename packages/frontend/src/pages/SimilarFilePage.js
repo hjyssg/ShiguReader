@@ -106,17 +106,16 @@ const SimilarFilePage = ({ location }) => {
 
   const renderThumbnail = useCallback((item) => {
     const filePath = item.filePath;
-    if (filePath && (item.isFolder || item.isCompress)) {
       const mode = item.isFolder ? 'folder' : 'zip';
       return (
         <LoadingImage
           className="similar-file-thumbnail-image"
-          fileName={filePath}
+          filePath={filePath}
           mode={mode}
           title={item.fn}
         />
       );
-    }
+    // }
 
     const placeholderClass = classNames(
       'similar-file-thumbnail-placeholder',

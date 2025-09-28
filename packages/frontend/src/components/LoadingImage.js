@@ -1,145 +1,144 @@
-import React, { Component } from 'react';
-import { getFolderThumbnail, getTagThumbnail, getZipThumbnail } from '@api/thumbnail';
-const classNames = require('classnames');
+import React, { useEffect, useRef, useState, useCallback } from "react";
+import { getFolderThumbnail, getTagThumbnail, getZipThumbnail } from "@api/thumbnail";
+import classNames from "classnames";
 import "@styles/LoadingImage.scss";
 const clientUtil = require("@utils/clientUtil");
-const util = require("@common/util");
-const _ = require("underscore");
-const VisibilitySensor = require('react-visibility-sensor').default;
+const VisibilitySensor = require("react-visibility-sensor").default;
 
-// 同时初始的url不好用，才会去api request
-// 三个场景： 普通zip，folder，tag
-export default class LoadingImage extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      url: props.url,
-      isVisible: false
+/**
+ * LoadingImage (Function Component)
+ *
+ * Props:
+ *  - url?: string                     // direct thumbnail url (if present, no request needed)
+ *  - filePath?: string                // path used to request folder/zip thumbnail when url is absent
+ *  - tag?: string                     // tag/author value used when mode is "tag" or "author"
+ *  - mode: "tag" | "author" | "folder" | "zip"
+ *  - className?: string
+ *  - style?: React.CSSProperties
+ *  - title?: string
+ *  - musicNum?: number
+ *  - ...others                        // forwarded to <img> or placeholder <div>
+ */
+export default function LoadingImage({
+  url: propUrl,
+  filePath,
+  tag,
+  mode,
+  className,
+  style,
+  title,
+  musicNum,
+  ...others
+}) {
+  // state
+  const [url, setUrl] = useState(propUrl);
+  const [isVisible, setIsVisible] = useState(false);
+  const unmountedRef = useRef(false);
+  const requestedRef = useRef(false); // guard against duplicate requests
+
+  // keep state.url in sync with prop url
+  useEffect(() => {
+    if (propUrl) {
+      setUrl(propUrl);
+    }
+  }, [propUrl]);
+
+  useEffect(() => {
+    return () => {
+      unmountedRef.current = true;
     };
-    console.assert(["tag", "author", "folder", "zip"].includes(props.mode))
-  }
+  }, []);
 
-  componentDidUpdate(prevProps) {
-    if (this.props.url && prevProps.url !== this.props.url) {
-      this.setState({
-        url: this.props.url
-      });
-    }
-  }
+  const isAuthorTagMode = mode === "author" || mode === "tag";
 
-  onChange(isVisible) {
-    // only use to turn on
-    if (!isVisible) {
-      return;
-    }
+  const shouldAskUrl = useCallback(() => {
+    if (url === "NO_THUMBNAIL_AVAILABLE" || propUrl === "NO_THUMBNAIL_AVAILABLE") return false;
+    return !propUrl; // only fetch when caller didn't provide url
+  }, [propUrl, url]);
 
-    this.setState({
-      isVisible
-    })
+  const requestThumbnail = useCallback(async () => {
+    if (requestedRef.current) return;
+    requestedRef.current = true;
 
-    if (this.shouldAskUrl()) {
-      this.requestThumbnail()
-    }
-  }
-
-  shouldAskUrl() {
-    if (this.state.url === "NO_THUMBNAIL_AVAILABLE" || this.props.url === "NO_THUMBNAIL_AVAILABLE") {
-      return false;
-    } else {
-      return !this.props.url;
-    }
-  }
-
-  componentDidMount() {
-    // if (this.shouldAskUrl()) {
-    //   this.requestThumbnail()
-    // }
-  }
-
-  componentWillUnmount() {
-    this.isUnmounted = true;
-  }
-
-  isAuthorTagMode() {
-    const { mode } = this.props;
-    return mode === "author" || mode === "tag";
-  }
-
-  async requestThumbnail() {
-    const { mode, fileName } = this.props;
-    let res;
-    if (this.isAuthorTagMode()) {
-      const body = {};
-      body[mode] = fileName;
-      res = await getTagThumbnail(body);
-    } else if (mode === "folder") {
-      res = await getFolderThumbnail(fileName);
-    } else {
-      res = await getZipThumbnail(fileName);
-    }
-
-    if (!this.isUnmounted) {
-      if (res.isFailed()) {
-        this.setState({ url: "NO_THUMBNAIL_AVAILABLE" })
+    try {
+      let res;
+      if (isAuthorTagMode) {
+        // tag/author thumbnail
+        const body = {};
+        body[mode] = tag;
+        res = await getTagThumbnail(body);
+      } else if (mode === "folder") {
+        res = await getFolderThumbnail(filePath);
       } else {
-        const url = clientUtil.getFileUrl(res.json.url);
-        this.setState({ url });
+        // zip
+        res = await getZipThumbnail(filePath);
+      }
+
+      if (!unmountedRef.current) {
+        if (!res || typeof res.isFailed === "function" && res.isFailed()) {
+          setUrl("NO_THUMBNAIL_AVAILABLE");
+        } else {
+          const nextUrl = clientUtil.getFileUrl(res.json.url);
+          setUrl(nextUrl);
+        }
+      }
+    } catch (_err) {
+      if (!unmountedRef.current) {
+        setUrl("NO_THUMBNAIL_AVAILABLE");
       }
     }
+  }, [isAuthorTagMode, mode, tag, filePath]);
+
+  // When visible, and we need a url, fetch it
+  useEffect(() => {
+    if (isVisible && shouldAskUrl()) {
+      requestThumbnail();
+    }
+  }, [isVisible, shouldAskUrl, requestThumbnail]);
+
+  const handleVisibilityChange = (visible) => {
+    if (visible) setIsVisible(true); // only turn on
+  };
+
+  const effectiveUrl = url && url !== "NO_THUMBNAIL_AVAILABLE" ? url : undefined;
+
+  // classes for empty placeholder with icon
+  let baseCn = classNames("loading-image", className, {
+    "empty-block": !effectiveUrl,
+  });
+
+  if (!effectiveUrl) {
+    let fa = "";
+    if (musicNum > 0) fa = "fas fa-music";
+    else if (mode === "zip") fa = "fas fa-file-archive";
+    else if (mode === "folder") fa = "far fa-folder";
+    else if (mode === "tag") fa = "fas fa-tags";
+    else if (mode === "author") fa = "fas fa-pen";
+    baseCn += ` ${fa}`;
   }
 
+  const commonTitle = title || (isAuthorTagMode ? tag : filePath);
 
+  const content = effectiveUrl ? (
+    <img
+      style={style}
+      className={className}
+      src={effectiveUrl}
+      title={commonTitle}
+      loading="lazy"
+      {...others}
+    />
+  ) : (
+    <div className={baseCn} title={commonTitle} {...others} />
+  );
 
-  getImageUrl() {
-    if(this.state.url && this.state.url !== "NO_THUMBNAIL_AVAILABLE"){
-      return this.state.url;
-    }
-  }
-
-  render() {
-    const { className, style, fileName, url, title,
-      mode, musicNum, ...others } = this.props;
-
-    const _url = this.getImageUrl();
-
-
-    let cn = classNames("loading-image", className, {
-      "empty-block": !_url
-    });
-
-
-
-    if (!_url) {
-      let temp = "";
-      if (musicNum > 0) {
-        temp = "fas fa-music"
-      } else if (mode === "zip") {
-        temp = "fas fa-file-archive"
-      } else if (mode == "folder") {
-        temp = "far fa-folder"
-      }else if (mode == "tag") {
-        temp = "fas fa-tags"
-      }else if (mode == "author") {
-        temp = "fas fa-pen"
-      }
-      cn += " " +  temp;
-    }
-
-
-    let content;
-    if (_url) {
-      content = (<img style={style} key={fileName} ref={e => { this.dom = e && e.node }}
-        className={className} src={_url} title={title || fileName}
-        loading="lazy"
-        {...others} />);
-    } else {
-      content = (<div key={fileName} className={cn} title={title || fileName} {...others} />);
-    }
-
-    return (
-      <VisibilitySensor offset={{ bottom: -200 }} partialVisibility={true} onChange={this.onChange.bind(this)}>
-          {content}
-      </VisibilitySensor>
-    )
-  }
+  return (
+    <VisibilitySensor
+      offset={{ bottom: -200 }}
+      partialVisibility={true}
+      onChange={handleVisibilityChange}
+    >
+      {content}
+    </VisibilitySensor>
+  );
 }

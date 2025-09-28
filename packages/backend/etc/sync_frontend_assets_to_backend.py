@@ -1,10 +1,8 @@
 # 写一个python小脚本，把任意文件从
-# 	packages/frontend/src/name-parser
 # 	packages/frontend/src/common
-# dist
+# 	packages/frontend/dist
 
 # 复制到
-# 	packages/backend/src/name-parser
 # 	packages/backend/src/common
 
 # 步骤是先把目标文件夹的所有内容都删了。再把源文件夹的文件全部复制过去
@@ -23,7 +21,6 @@ frontend_path = backend_path.parent / "frontend"
 
 
 SYNC_DIRS = [
-    (frontend_path / "src" / "name-parser", backend_path / "src" / "name-parser"),
     (frontend_path / "src" / "common", backend_path / "src" / "common"),
     (frontend_path / "dist", backend_path / "dist"),
 ]

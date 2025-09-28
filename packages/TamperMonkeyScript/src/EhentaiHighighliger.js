@@ -1,4 +1,4 @@
-const { parse } = require("../../backend/src/name-parser");
+const { parse } = require("../../name-parser");
 
 //tamper monkey自动缓存require脚本，随便改一下版本号就可以更新
 
