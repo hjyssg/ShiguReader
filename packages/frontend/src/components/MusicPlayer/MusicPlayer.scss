@@ -1,0 +1,54 @@
+@import "../../styles/vars.scss";
+
+.aji-music-player {
+    max-width: 750px;
+    width: 80%;
+    border-radius: 2px;
+    padding: 0px 10px;
+
+    .aji-music-items {
+        max-height: 350px;
+        overflow-y: scroll;
+        margin-bottom: 20px;
+    }
+
+    .aji-music-player-item {
+        color: $font_color_white_one;
+        cursor: pointer;
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 12px;
+
+        &:hover {
+            @include third_hover_effect;
+        }
+
+        .aji-music-player-icon {
+            flex-shrink: 0;
+            color: $font_color_white_one;
+        }
+
+        .aji-music-player-title {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            flex: 1;
+        }
+
+        &.aji-music-player-active {
+            .aji-music-player-icon {
+                color: chartreuse;
+            }
+        }
+    }
+
+    .aji-music-player-control {
+        width: 100%;
+
+        &:focus {
+            outline: none;
+        }
+    }
+}
