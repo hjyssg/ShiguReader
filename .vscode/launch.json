@@ -85,6 +85,13 @@
       "name": "Sync frontend assets to backend",
       "program": "${workspaceFolder}/packages/backend/etc/sync_frontend_assets_to_backend.py",
       "console": "integratedTerminal"
+    },
+    {
+      "type": "python",
+      "request": "launch",
+      "name": "one click pkg",
+      "program": "${workspaceFolder}/packages/backend/etc/pkg/one_click_pkg.py",
+      "console": "integratedTerminal"
     }
   ]
 }
