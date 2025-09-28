@@ -7,7 +7,6 @@ const router = express.Router();
 const logger = require("../config/logger");
 const thumbnailDb = require("../models/thumbnail-db");
 const zipInfoDb = require("../models/zip-info-db");
-const estimateFileTable = require("../services/estimate-file-table");
 const historyDb = require("../models/history-db");
 
 const pathUtil = require("../utils/path-util");
@@ -63,7 +62,6 @@ router.post('/api/file/rename', serverUtil.asyncWrapper(async (req, res) => {
         if (err) { throw err; }
 
         logger.info(`[rename] ${src} to ${dest}`);
-        estimateFileTable.onMove(src, dest).catch(e=>logger.error(e));
         res.send({ failed: false, dest });
     } catch (err) {
         logger.error(err);
@@ -125,7 +123,6 @@ router.post('/api/file/move', serverUtil.asyncWrapper(async (req, res) => {
             tempZinInfo.filePath = destFP;
             zipInfoDb.updateZipDb_v2(tempZinInfo);
         }
-        estimateFileTable.onMove(src, destFP).catch(e=>logger.error(e));
         res.send({ failed: false, dest: destFP });
     } catch (err) {
         logger.error(err);
@@ -164,7 +161,6 @@ router.post('/api/file/delete', serverUtil.asyncWrapper(async (req, res) => {
         await deleteThing(src);
         res.send({ failed: false });
         logger.info(`[DELETE] ${src}`);
-        estimateFileTable.onDelete(src).catch(e=>logger.error(e));
 
         deleteCallBack(src);
     } catch (e) {
@@ -193,7 +189,6 @@ router.post('/api/folder/delete', serverUtil.asyncWrapper(async (req, res) => {
         await deleteThing(src);
         res.send({ failed: false });
         logger.info(`[DELETE_FOLDER] ${src}`);
-        estimateFileTable.onDelete(src).catch(e=>logger.error(e));
     } catch (e) {
         logger.error(e);
         res.send({ reason: file_occupy_warning, failed: true });

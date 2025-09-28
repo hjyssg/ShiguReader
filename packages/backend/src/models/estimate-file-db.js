@@ -29,29 +29,6 @@ module.exports.addEstimateFiles = async function(rows){
     await sqldb.batchInsert('estimate_file_table', payload);
 };
 
-module.exports.removeEstimateFiles = async function(filePath, fileNames){
-    if(!fileNames || fileNames.length === 0){
-        return;
-    }
-    const placeholders = fileNames.map(() => '?').join(',');
-    const sql = `DELETE FROM estimate_file_table WHERE filePath=? AND fileName IN (${placeholders})`;
-    await sqldb.runSync(sql, [filePath, ...fileNames]);
-};
-
-module.exports.touchEstimateFiles = async function(filePath, fileNames){
-    if(!fileNames || fileNames.length === 0){
-        return;
-    }
-    const placeholders = fileNames.map(() => '?').join(',');
-    const sql = `UPDATE estimate_file_table SET scan_time=? WHERE filePath=? AND fileName IN (${placeholders})`;
-    await sqldb.runSync(sql, [util.getCurrentTime(), filePath, ...fileNames]);
-};
-
-module.exports.getEstimateFilesInDir = async function(filePath){
-    const sql = `SELECT * FROM estimate_file_table WHERE filePath=?`;
-    return await sqldb.allSync(sql, [filePath]);
-};
-
 module.exports.findEstimateByText = async function(text){
     const sql = `SELECT fileName FROM estimate_file_table WHERE fileName LIKE ?`;
     return await sqldb.allSync(sql, [`%${text}%`]);
