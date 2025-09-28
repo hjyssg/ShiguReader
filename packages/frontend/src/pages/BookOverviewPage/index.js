@@ -9,9 +9,8 @@ import '../shared/OneBook.scss';
 import ErrorPage from '@pages/ErrorPage';
 import CenterSpinner from '@components/common/CenterSpinner';
 import FileNameDiv from '@components/common/FileNameDiv';
+import VisibilitySensor from '@components/common/VisibilitySensor';
 // import ReactDOM from 'react-dom';
-
-const VisibilitySensor = require('react-visibility-sensor').default;
 const util = require("@common/util");
 const queryString = require('query-string');
 

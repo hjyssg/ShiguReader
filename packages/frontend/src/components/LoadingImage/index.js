@@ -2,8 +2,8 @@ import React, { useEffect, useRef, useState, useCallback } from "react";
 import { getFolderThumbnail, getTagThumbnail, getZipThumbnail } from "@api/thumbnail";
 import classNames from "classnames";
 import './LoadingImage.scss';
+import VisibilitySensor from "@components/common/VisibilitySensor";
 const clientUtil = require("@utils/clientUtil");
-const VisibilitySensor = require("react-visibility-sensor").default;
 
 /**
  * LoadingImage (Function Component)

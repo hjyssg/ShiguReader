@@ -11,6 +11,7 @@ import '../shared/OneBook.scss';
 import ErrorPage from '@pages/ErrorPage';
 import CenterSpinner from '@components/common/CenterSpinner';
 import FileNameDiv from '@components/common/FileNameDiv';
+import VisibilitySensor from '@components/common/VisibilitySensor';
 
 const util = require("@common/util");
 const queryString = require('query-string');
@@ -18,7 +19,6 @@ import screenfull from 'screenfull';
 
 const clientUtil = require("@utils/clientUtil");
 const { getDir, getBaseName, isMobile, getFileUrl, sortFileNames } = clientUtil;
-const VisibilitySensor = require('react-visibility-sensor').default;
 
 class SmartImage extends Component {
   constructor(props) {

@@ -36,7 +36,6 @@
     "react-range-slider-input": "^3.0.7",
     "react-router-dom": "^4.3.1",
     "react-toastify": "^9.1.2",
-    "react-visibility-sensor": "^5.1.1",
     "request": "^2.88.2",
     "request-promise": "^4.2.6",
     "screenfull": "^4.0.0",
