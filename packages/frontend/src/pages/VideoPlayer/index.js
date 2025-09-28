@@ -10,7 +10,7 @@ import { getInfo as getFileInfo } from '@api/file';
 import { addHistoryRecord } from '@api/history';
 const queryString = require('query-string');
 const Cookie = require("js-cookie");
-import DPlayer from "react-dplayer";
+import { Player as DPlayer } from "rc-dplayer";
 import HistorySection from '@components/common/HistorySection';
 
 
@@ -259,10 +259,10 @@ export default class VideoPlayer extends Component {
                     },
                   ]
                 }}
-                onLoadedmetadata={this.onLoadedmetadata.bind(this)}
+                onLoadedMetadata={this.onLoadedmetadata.bind(this)}
                 onLoad={this.onLoad.bind(this)}
                 onError={this.onError.bind(this)}
-                onTimeupdate={this.onTimeupdate.bind(this)}
+                onTimeUpdate={this.onTimeupdate.bind(this)}
                 />
         </div>
       );
