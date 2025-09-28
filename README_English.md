@@ -13,6 +13,7 @@ ShiguReader is a manga browser that can be used on computers or iPads. It also s
 - [Usage Instructions](Readme_Usage.md)
 - [Development Environment Setup](Readme_Dev_Setup.md)
 
+
 ## Screenshots
 
 ![screenshot-01](screenshot/01.png)

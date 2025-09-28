@@ -9,7 +9,7 @@ npm run start
 
 ## Full Setup
 
-1. Install Node.js (16+ recommended).
+1. Install Node.js (22+ recommended).
 2. Optional tools:
    - [ImageMagick](https://imagemagick.org)
    - 7-Zip (required on macOS/Linux, included on Windows)
@@ -58,7 +58,7 @@ Run `packages/backend/etc/sync_frontend_assets_to_backend.py` to compile the fro
 
 | Software | Required | Notes |
 |----------|----------|-------|
-| Node.js | Yes | v16 recommended |
+| Node.js | Yes | v22 recommended |
 | ImageMagick | No | Optional utility |
 | 7-Zip | Conditional | Needed on macOS/Linux |
 | Git Bash | Conditional | Needed on Windows |
