@@ -1,5 +1,5 @@
 const _ = require('underscore');
-const nameParser = require('../name-parser');
+const nameParser = require('../../../name-parser');
 const path = require('path');
 const util = require('../common/util');
 

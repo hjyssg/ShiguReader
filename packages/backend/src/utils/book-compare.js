@@ -1,4 +1,4 @@
-const nameParser = require('../name-parser');
+const nameParser = require('../../../name-parser');
 
 function oneInsideOne(s1, s2) {
     return s1 && s2 && (s1.includes(s2) || s2.includes(s1));

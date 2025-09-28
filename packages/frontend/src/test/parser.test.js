@@ -1,5 +1,5 @@
 const assert = require("assert");
-const parser = require("../name-parser");
+const parser = require("../../../name-parser");
 
 describe("name parser", () => {
   let s1;

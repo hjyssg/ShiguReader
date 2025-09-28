@@ -7,7 +7,7 @@ const util = require('../common/util');
 const _util = require('util');
 const { isImage, isCompress, isMusic, isVideo, getCurrentTime } = util;
 const pfs = require('promise-fs');
-const nameParser = require('../name-parser');
+const nameParser = require('../../../name-parser');
 const namePicker = require("../human-name-picker");
 
 // file path to file stats
