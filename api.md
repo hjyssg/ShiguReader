@@ -1,5 +1,13 @@
-# Explorer 核心 API 返回结构
+## API接口约定
+- Server 与 Client 之间通过 HTTP POST 或 GET 进行通信。
+- 无论成功或失败，Server 都应返回 JSON。
+- JSON 字段约定：
+  - `failed`：boolean，表示请求是否成功。
+  - `reason`：string，当失败时用于描述原因。
+- 更新或查阅 Explorer 相关接口时，请先阅读根目录下的 `api.md`，了解接口返回结构后再修改代码。
 
+
+# Explorer 核心 API 返回结构
 本文档总结前端 Explorer 页面依赖的核心后端接口返回值格式，便于在调试或扩展功能时参考。所有接口返回 JSON，并在失败时带有 `failed` 与 `reason` 字段。
 
 ## `POST /api/folder/list_dir`

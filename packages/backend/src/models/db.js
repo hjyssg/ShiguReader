@@ -64,7 +64,6 @@ module.exports.init = async () => {
 
     console.log("remove previous db cache")
 
-    // estimate_file_table 需要长期保存，初始化时不要删除表
     await sqldb.execSync( `
 
         PRAGMA journal_mode = OFF;
