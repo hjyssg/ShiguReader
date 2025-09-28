@@ -40,7 +40,7 @@ router.post('/api/folder/list_dir', serverUtil.asyncWrapper(async (req, res) => 
             ...(result.dirs || []),
             ...Object.keys(result.fileInfos || {})
         ];
-        estimateFileTable.updateByScan(dir, filePathesForEstimate).catch(err=>logger.error(err));
+        estimateFileTable.updateByScan(filePathesForEstimate).catch(err=>logger.error(err));
         result = await decorateResWithMeta(result);
         historyDb.addOneLsDirRecord(dir);
         res.send(result);
