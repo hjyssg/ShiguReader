@@ -22,9 +22,9 @@ const metadata = `// ==UserScript==\n`
 
 module.exports = {
   mode: "production",
-  entry: path.resolve(__dirname, "src", "EhentaiHighighliger_many_request.js"),
+  entry: path.resolve(__dirname, "src", "EhentaiHighighliger.js"),
   output: {
-    filename: "EhentaiHighighliger_many_request.js",
+    filename: "EhentaiHighighliger.user.js",
     path: path.resolve(__dirname),
   },
   target: "web",

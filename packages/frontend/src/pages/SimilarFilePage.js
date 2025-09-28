@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import '@styles/SimilarFilePage.scss';
 import { findSimilarFiles } from '@api/search';
-import { Link, useLocation } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import CenterSpinner from '@components/common/CenterSpinner';
 import ErrorPage from '@pages/ErrorPage';
 import LoadingImage from '@components/LoadingImage';
@@ -34,8 +34,7 @@ function getScoreInfo(score) {
   return { label: 'Low Confidence', className: 'low' };
 }
 
-const SimilarFilePage = () => {
-  const location = useLocation();
+const SimilarFilePage = ({ location }) => {
   const [items, setItems] = useState([]);
   const [res, setRes] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -44,7 +43,7 @@ const SimilarFilePage = () => {
     const search = (location && location.search) || '';
     const parsed = queryString.parse(search);
     return parsed.text || parsed.s || parsed.q || '';
-  }, [location.search]);
+  }, [location && location.search]);
 
   const trimmedQuery = useMemo(() => (queryText || '').trim(), [queryText]);
 
