@@ -65,9 +65,8 @@
 
   .similar-file-thumbnail-image {
     width: 100%;
-    height: 100%;
-    object-fit: cover;
-    border-radius: 8px;
+    object-fit: fit;
+    border-radius: 2px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
   }
 
