@@ -97,6 +97,7 @@ console.log(options);
 
 // DB import
 const db = require("./models/db");
+const estimateFileDb = require("./models/estimate-file-db");
 const zipInfoDb = require("./models/zip-info-db");
 const thumbnailDb = require("./models/thumbnail-db");
 const historyDb = require("./models/history-db");
@@ -191,6 +192,7 @@ async function init() {
     }
 
     const sqldb = await db.init();
+    await estimateFileDb.init(sqldb);
     await thumbnailDb.init(sqldb);
     await historyDb.init(sqldb);
     await zipInfoDb.init(sqldb);

@@ -118,14 +118,6 @@ module.exports.init = async () => {
             PRIMARY KEY (tag, type, subtype)
         );
 
-        CREATE TABLE IF NOT EXISTS estimate_file_table (
-            filePath TEXT,
-            fileName TEXT,
-            scan_time INTEGER,
-            PRIMARY KEY (filePath, fileName)
-        );
-
-
         DROP VIEW IF EXISTS author_view;
         DROP VIEW IF EXISTS tag_view;
 
@@ -139,8 +131,6 @@ module.exports.init = async () => {
          CREATE INDEX IF NOT EXISTS ft_fileName_index ON file_table (fileName);
          CREATE INDEX IF NOT EXISTS ft_dirPath_index ON file_table (dirPath);
          CREATE INDEX IF NOT EXISTS ft_dirName_index ON file_table (dirName);
-         CREATE INDEX IF NOT EXISTS eft_fileName_index ON estimate_file_table (fileName);
-         CREATE INDEX IF NOT EXISTS eft_filePath_index ON estimate_file_table (filePath);
       `);
     return sqldb;
 }
@@ -150,48 +140,6 @@ module.exports.getAllFilePathes = async function (sql_condition) {
     const sql = `SELECT filePath FROM file_table ` + sql_condition;
     const temp = await sqldb.allSync(sql);
     return temp.map(e => e.filePath);
-};
-
-// ----- estimate file table helpers -----
-module.exports.addEstimateFiles = async function(rows){
-    if(!rows || rows.length === 0){
-        return;
-    }
-    const time = getCurrentTime();
-    rows = rows.map(r=>({
-        filePath: r.filePath,
-        fileName: r.fileName,
-        scan_time: time
-    }));
-    await sqldb.batchInsert("estimate_file_table", rows);
-};
-
-module.exports.removeEstimateFiles = async function(filePath, fileNames){
-    if(!fileNames || fileNames.length === 0){
-        return;
-    }
-    const placeholders = fileNames.map(()=>'?').join(',');
-    const sql = `DELETE FROM estimate_file_table WHERE filePath=? AND fileName IN (${placeholders})`;
-    await sqldb.runSync(sql, [filePath, ...fileNames]);
-};
-
-module.exports.touchEstimateFiles = async function(filePath, fileNames){
-    if(!fileNames || fileNames.length === 0){
-        return;
-    }
-    const placeholders = fileNames.map(()=>'?').join(',');
-    const sql = `UPDATE estimate_file_table SET scan_time=? WHERE filePath=? AND fileName IN (${placeholders})`;
-    await sqldb.runSync(sql, [getCurrentTime(), filePath, ...fileNames]);
-};
-
-module.exports.getEstimateFilesInDir = async function(filePath){
-    const sql = `SELECT * FROM estimate_file_table WHERE filePath=?`;
-    return await sqldb.allSync(sql, [filePath]);
-};
-
-module.exports.findEstimateByText = async function(text){
-    const sql = `SELECT fileName FROM estimate_file_table WHERE fileName LIKE ?`;
-    return await doSmartAllSync(sql, ["%" + text + "%"]);
 };
 
 module.exports.updateStatToDb = async function (filePath, stat, insertion_cache) {

@@ -1,5 +1,5 @@
 const path = require('path');
-const db = require('../models/db');
+const estimateFileDb = require('../models/estimate-file-db');
 const logger = require('../config/logger');
 
 async function updateByScan(filePathes){
@@ -25,7 +25,7 @@ async function updateByScan(filePathes){
 
         for(const [dirPath, nameSet] of grouped.entries()){
             const uniqueNames = Array.from(nameSet);
-            const rows = await db.getEstimateFilesInDir(dirPath);
+            const rows = await estimateFileDb.getEstimateFilesInDir(dirPath);
             const oldSet = new Set(rows.map(r=>r.fileName));
 
             const toInsert = uniqueNames
@@ -34,13 +34,13 @@ async function updateByScan(filePathes){
             const toRemove = Array.from(oldSet).filter(fn=>!nameSet.has(fn));
 
             if(toInsert.length){
-                await db.addEstimateFiles(toInsert);
+                await estimateFileDb.addEstimateFiles(toInsert);
             }
             if(toRemove.length){
-                await db.removeEstimateFiles(dirPath, toRemove);
+                await estimateFileDb.removeEstimateFiles(dirPath, toRemove);
             }
             if(uniqueNames.length){
-                await db.touchEstimateFiles(dirPath, uniqueNames);
+                await estimateFileDb.touchEstimateFiles(dirPath, uniqueNames);
             }
         }
     }catch(e){
@@ -50,8 +50,8 @@ async function updateByScan(filePathes){
 
 async function onMove(src, dest){
     try{
-        await db.removeEstimateFiles(path.dirname(src), [path.basename(src)]);
-        await db.addEstimateFiles([
+        await estimateFileDb.removeEstimateFiles(path.dirname(src), [path.basename(src)]);
+        await estimateFileDb.addEstimateFiles([
             {
                 filePath: path.dirname(dest),
                 fileName: path.basename(dest)
@@ -64,7 +64,7 @@ async function onMove(src, dest){
 
 async function onDelete(src){
     try{
-        await db.removeEstimateFiles(path.dirname(src), [path.basename(src)]);
+        await estimateFileDb.removeEstimateFiles(path.dirname(src), [path.basename(src)]);
     }catch(e){
         logger.error(e);
     }

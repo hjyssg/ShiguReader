@@ -15,7 +15,7 @@ const {
   isTwoBookTheSame,
   extractMiddleChars,
 } = BookCompareUtil;
-const db = require("../models/db");
+const estimateFileDb = require("../models/estimate-file-db");
 
 // three para 1.mode 2.text
 router.post(
@@ -61,7 +61,7 @@ router.post("/api/search/find_similar_file/:text", serverUtil.asyncWrapper(async
       const temp = await _searchByTag_(parseResult.author, "author");
       fileRows.push(...temp.explorerfileResult);
 
-      const tempEstimate = await db.findEstimateByText(parseResult.author);
+      const tempEstimate = await estimateFileDb.findEstimateByText(parseResult.author);
       estimateRows.push(...tempEstimate);
     }
     if (parseResult.title) {
@@ -69,7 +69,7 @@ router.post("/api/search/find_similar_file/:text", serverUtil.asyncWrapper(async
       const temp = await searchByText(middleTitle);
       fileRows.push(...temp.explorerfileResult);
 
-      const tempEstimate = await db.findEstimateByText(middleTitle);
+      const tempEstimate = await estimateFileDb.findEstimateByText(middleTitle);
       estimateRows.push(...tempEstimate);
     }
   }
@@ -78,7 +78,7 @@ router.post("/api/search/find_similar_file/:text", serverUtil.asyncWrapper(async
   const temp = await searchByText(middleTitle);
   fileRows.push(...temp.explorerfileResult);
 
-  const tempEstimate = await db.findEstimateByText(middleTitle);
+  const tempEstimate = await estimateFileDb.findEstimateByText(middleTitle);
   estimateRows.push(...tempEstimate);
 
   const result = [];
