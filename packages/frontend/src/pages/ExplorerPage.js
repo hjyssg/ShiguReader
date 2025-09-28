@@ -706,7 +706,7 @@ export default class ExplorerPage extends Component {
                     <LoadingImage
                         className={thumbnailCn}
                         title={item}
-                        fileName={item}
+                        filePath={item}
                         url={thumbnailurl}
                         mode={"folder"}
                     />);
