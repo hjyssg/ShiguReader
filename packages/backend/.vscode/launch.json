@@ -52,6 +52,13 @@
       "name": "sub server [no scan and different port, share the same db with main server]",
       "program": "${workspaceFolder}\\src\\app.js",
       "args": ["--skip-scan", "--skip-cache-clean", "--port", "34213"]
+    },
+    {
+      "type": "python",
+      "request": "launch",
+      "name": "one click pkg",
+      "program": "${workspaceFolder}/etc/pkg/one_click_pkg.py",
+      "console": "integratedTerminal"
     }
   ]
 }
