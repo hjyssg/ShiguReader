@@ -115,25 +115,6 @@ const SimilarFilePage = ({ location }) => {
           title={item.fn}
         />
       );
-    // }
-
-    const placeholderClass = classNames(
-      'similar-file-thumbnail-placeholder',
-      'loading-image',
-      {
-        'far fa-file-video': item.isVideo,
-        'fas fa-book': item.isCompress,
-        'far fa-folder': item.isFolder,
-        'far fa-file-alt': !item.isVideo && !item.isCompress && !item.isFolder,
-      }
-    );
-
-    return (
-      <div
-        className={placeholderClass}
-        title={item.fn}
-      />
-    );
   }, []);
 
   const renderItems = useCallback((data) => (
