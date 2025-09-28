@@ -14,7 +14,7 @@
 // @include       *://e-hentai.org/*
 // @include       *://sukebei.nyaa.si/*
 // @include       *://sukebei.nyaa.si
-// @require      https://raw.githubusercontent.com/hjyssg/ShiguReader/dev/src/name-parser/all_in_one/index.js
+// @require      https://raw.githubusercontent.com/hjyssg/ShiguReader/main/packages/frontend/src/name-parser/all_in_one/index.js
 // @require      https://cdn.jsdelivr.net/npm/sweetalert2@11.7.5/dist/sweetalert2.all.min.js
 // ==/UserScript==
 
@@ -134,7 +134,6 @@ async function highlightEhentaiThumbnail() {
             if (text.includes("翻訳") || text.includes("翻译")) {
                 continue;
             }
-            const rr = parse(text);
             console.log(`${ii}/${nodes.length}  ${text}`)
             const { status, similarTitles } = await checkIfDownload(text);
             e.status = status || 0;
@@ -150,6 +149,7 @@ async function highlightEhentaiThumbnail() {
                 addTooltip(thumbnailNode, `下载同样作者“${rr.author}”的书 ${fns.length}次`, fns, "same_author")
             }
 
+            const rr = parse(text);
             if (rr) {
                 appendLink(e, rr.author);
                 appendLink(e, rr.title);
