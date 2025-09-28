@@ -3,6 +3,7 @@ const path = require('path');
 const chokidar = require('chokidar');
 const pathUtil = require("../../utils/path-util");
 const appState = require('../../state/appState');
+const estimateFileTable = require('../estimate-file-table');
 
 
 const getCurrentTime = function () {
@@ -56,6 +57,10 @@ async function fastFileIterate({filePath, db, shouldIgnoreForNormal}) {
 
     // 所有文件处理完成后，批量插入数据库
     await db.batchInsert("file_table", insertion_cache.files);
+    await estimateFileTable.updateByScan(
+        insertion_cache.files
+            .map(item => item.filePath)
+    );
     await db.batchInsert("tag_file_table", insertion_cache.tags);
     await db.throttledSyncTagTable();
 

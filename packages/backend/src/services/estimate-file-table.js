@@ -1,38 +1,48 @@
 const path = require('path');
-const pfs = require('promise-fs');
-const db = require('../models/db');
+const estimateFileDb = require('../models/estimate-file-db');
 const logger = require('../config/logger');
 
-async function updateByScan(dirPath){
+async function updateByScan(filePathes){
     try{
-        const names = await pfs.readdir(dirPath);
-        const rows = await db.getEstimateFilesInDir(dirPath);
-        const oldSet = new Set(rows.filter(r=>!r.isRemoved).map(r=>r.fileName));
-        const newSet = new Set(names);
-        const toInsert = [];
-        newSet.forEach(fn=>{
-            if(!oldSet.has(fn)){
-                toInsert.push({
-                    dirName: path.basename(dirPath),
-                    dirPath,
-                    fileName: fn,
-                    isRemoved: 0
-                });
+        if(filePathes.length === 0){
+            return;
+        }
+
+        const grouped = new Map();
+        filePathes.forEach(fp=>{
+            const dirPath = path.dirname(fp);
+            if(!grouped.has(dirPath)){
+                grouped.set(dirPath, new Set());
+            }
+            grouped.get(dirPath).add(path.basename(fp));
+        });
+
+        filePathes.forEach(fp=>{
+            if(!grouped.has(fp)){
+                grouped.set(fp, new Set());
             }
         });
-        const toRemove = [];
-        oldSet.forEach(fn=>{
-            if(!newSet.has(fn)){
-                toRemove.push(fn);
+
+        for(const [dirPath, nameSet] of grouped.entries()){
+            const uniqueNames = Array.from(nameSet);
+            const rows = await estimateFileDb.getEstimateFilesInDir(dirPath);
+            const oldSet = new Set(rows.map(r=>r.fileName));
+
+            const toInsert = uniqueNames
+                .filter(fn=>!oldSet.has(fn))
+                .map(fn=>({ filePath: dirPath, fileName: fn }));
+            const toRemove = Array.from(oldSet).filter(fn=>!nameSet.has(fn));
+
+            if(toInsert.length){
+                await estimateFileDb.addEstimateFiles(toInsert);
             }
-        });
-        if(toInsert.length){
-            await db.addEstimateFiles(toInsert);
+            if(toRemove.length){
+                await estimateFileDb.removeEstimateFiles(dirPath, toRemove);
+            }
+            if(uniqueNames.length){
+                await estimateFileDb.touchEstimateFiles(dirPath, uniqueNames);
+            }
         }
-        if(toRemove.length){
-            await db.markEstimateFilesRemoved(dirPath, toRemove);
-        }
-        await db.touchEstimateFiles(dirPath, names);
     }catch(e){
         logger.error(e);
     }
@@ -40,13 +50,11 @@ async function updateByScan(dirPath){
 
 async function onMove(src, dest){
     try{
-        await db.markEstimateFilesRemoved(path.dirname(src), [path.basename(src)]);
-        await db.addEstimateFiles([
+        await estimateFileDb.removeEstimateFiles(path.dirname(src), [path.basename(src)]);
+        await estimateFileDb.addEstimateFiles([
             {
-                dirName: path.basename(path.dirname(dest)),
-                dirPath: path.dirname(dest),
-                fileName: path.basename(dest),
-                isRemoved: 0
+                filePath: path.dirname(dest),
+                fileName: path.basename(dest)
             }
         ]);
     }catch(e){
@@ -56,7 +64,7 @@ async function onMove(src, dest){
 
 async function onDelete(src){
     try{
-        await db.markEstimateFilesRemoved(path.dirname(src), [path.basename(src)]);
+        await estimateFileDb.removeEstimateFiles(path.dirname(src), [path.basename(src)]);
     }catch(e){
         logger.error(e);
     }
