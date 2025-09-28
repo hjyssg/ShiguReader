@@ -50,11 +50,11 @@ The React app lives under `packages/frontend/src`. The key entry files are:
   - `components/`: reusable UI widgets (shared sub-components live in `components/common/`).
   - `pages/`: route-level screens rendered by the router.
   - `context/`, `services/`, `styles/`, `utils/`: state, API wrappers, styling helpers, and utility modules.
-  - Legacy shared helpers required by the backend remain in `common/` and the shared `packages/name-parser/` module for compatibility.
+  - Legacy shared helpers required by the backend remain in `common/` for compatibility.
 
 ### Sync frontend assets into the backend build
 
-Run `packages/backend/etc/sync_frontend_assets_to_backend.py` to compile the frontend and copy the fresh build artifacts into the backend package. The script executes `npm run build` for you and then mirrors the generated `dist` files plus the shared modules in `src/common`, ensuring the backend bundles stay aligned with the reorganized frontend structure. The name parser itself now lives in `packages/name-parser/`, so it no longer needs to be copied.
+Run `packages/backend/etc/sync_frontend_assets_to_backend.py` to compile the frontend and copy the fresh build artifacts into the backend package. The script executes `npm run build` for you and then mirrors the generated `dist` files plus the shared modules in `src/common`, ensuring the backend bundles stay aligned with the reorganized frontend structure.
 
 | Software | Required | Notes |
 |----------|----------|-------|
