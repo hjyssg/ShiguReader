@@ -2,7 +2,7 @@
 ```bash
 # 不要跳过下面任何一个步骤
 
-# 没有Node.js 14,麻烦先安装nodejs https://nodejs.org/
+# 没有Node.js 22,麻烦先安装nodejs https://nodejs.org/
 
 # 到 https://imagemagick.org 下载安装image magick。 
 # imagemagick是用来压缩图片的。不安装也没事，但强烈建议安装。

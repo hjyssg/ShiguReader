@@ -13,6 +13,8 @@ ShiguReader是一款可在电脑或iPad上使用的漫画浏览器，它还支�
 - [使用说明](Readme_Usage.md)
 - [开发环境设置](Readme_Dev_Setup.md)
 
+> 开发环境现已支持 Node.js 22；推荐使用 22 或更新版本以获得最佳体验。
+
 ## 截图
 
 ![screenshot-01](screenshot/01.png)

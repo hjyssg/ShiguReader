@@ -13,6 +13,8 @@ ShiguReader is a manga browser that can be used on computers or iPads. It also s
 - [Usage Instructions](Readme_Usage.md)
 - [Development Environment Setup](Readme_Dev_Setup.md)
 
+> The development environment now supports Node.js 22; we recommend using version 22 or newer for the best experience.
+
 ## Screenshots
 
 ![screenshot-01](screenshot/01.png)
