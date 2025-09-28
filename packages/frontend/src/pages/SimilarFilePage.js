@@ -1,11 +1,10 @@
-import React, { Component } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import '@styles/SimilarFilePage.scss';
 import { findSimilarFiles } from '@api/search';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import CenterSpinner from '@components/common/CenterSpinner';
 import ErrorPage from '@pages/ErrorPage';
 import LoadingImage from '@components/LoadingImage';
-import { GlobalContext } from '@context/GlobalContext';
 const queryString = require('query-string');
 const clientUtil = require('@utils/clientUtil');
 const classNames = require('classnames');
@@ -35,87 +34,63 @@ function getScoreInfo(score) {
   return { label: 'Low Confidence', className: 'low' };
 }
 
-export default class SimilarFilePage extends Component {
-  static contextType = GlobalContext;
+const SimilarFilePage = () => {
+  const location = useLocation();
+  const [items, setItems] = useState([]);
+  const [res, setRes] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
 
-  constructor(props) {
-    super(props);
-    this.state = {
-      items: [],
-      res: null,
-      isLoading: false,
-      queryText: this.getQueryText(props)
-    };
-  }
-
-  componentDidMount() {
-    this.fetchResults(this.state.queryText);
-  }
-
-  componentDidUpdate(prevProps) {
-    const prevQuery = this.getQueryText(prevProps);
-    const nextQuery = this.getQueryText(this.props);
-    if (prevQuery !== nextQuery) {
-      this.setState({
-        queryText: nextQuery,
-        res: null,
-        items: []
-      });
-      this.fetchResults(nextQuery);
-    }
-  }
-
-  componentWillUnmount() {
-    this.isUnmounted = true;
-  }
-
-  getQueryText(props) {
-    const _props = props || this.props;
-    const search = (_props && _props.location && _props.location.search) || '';
+  const queryText = useMemo(() => {
+    const search = (location && location.search) || '';
     const parsed = queryString.parse(search);
     return parsed.text || parsed.s || parsed.q || '';
-  }
+  }, [location.search]);
 
-  async fetchResults(text) {
-    const trimmed = (text || '').trim();
-    this.latestQuery = trimmed;
+  const trimmedQuery = useMemo(() => (queryText || '').trim(), [queryText]);
 
-    if (!trimmed) {
-      this.setState({
-        items: [],
-        res: null,
-        isLoading: false
-      });
-      return;
+  useEffect(() => {
+    document.title = 'Similar Files';
+  }, []);
+
+  useEffect(() => {
+    let isCancelled = false;
+
+    if (!trimmedQuery) {
+      setItems([]);
+      setRes(null);
+      setIsLoading(false);
+      return () => {
+        isCancelled = true;
+      };
     }
 
-    this.setState({
-      isLoading: true,
-      res: null
-    });
+    const fetchResults = async () => {
+      setItems([]);
+      setIsLoading(true);
+      setRes(null);
 
-    const res = await findSimilarFiles(trimmed);
-    if (this.isUnmounted || this.latestQuery !== trimmed) {
-      return;
-    }
+      const response = await findSimilarFiles(trimmedQuery);
+      if (isCancelled) {
+        return;
+      }
 
-    if (!res.isFailed()) {
-      const items = Array.isArray(res.json) ? res.json : [];
-      this.setState({
-        res,
-        items,
-        isLoading: false
-      });
-    } else {
-      this.setState({
-        res,
-        items: [],
-        isLoading: false
-      });
-    }
-  }
+      if (!response.isFailed()) {
+        setItems(Array.isArray(response.json) ? response.json : []);
+      } else {
+        setItems([]);
+      }
+      setRes(response);
+      setIsLoading(false);
+    };
 
-  getLinkTarget(item) {
+    fetchResults();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [trimmedQuery]);
+
+  const getLinkTarget = useCallback((item) => {
     const filePath = item.filePath;
     if (filePath) {
       if (item.isVideo) {
@@ -128,9 +103,9 @@ export default class SimilarFilePage extends Component {
     }
 
     return clientUtil.getSearhLink(item.fn);
-  }
+  }, []);
 
-  renderThumbnail(item) {
+  const renderThumbnail = useCallback((item) => {
     const filePath = item.filePath;
     if (filePath && (item.isFolder || item.isCompress)) {
       const mode = item.isFolder ? 'folder' : 'zip';
@@ -161,102 +136,85 @@ export default class SimilarFilePage extends Component {
         title={item.fn}
       />
     );
-  }
+  }, []);
 
-  renderItems(items) {
-    return (
-      <div className="similar-file-list">
-        {items.map((item, index) => {
-          const filePath = item.filePath;
-          const displayName = item.fn || filePath || `Result ${index + 1}`;
-          const key = filePath || `${displayName}-${index}`;
-          const dirText = filePath ? clientUtil.getDir(filePath) : '';
-          const scoreValue = _.isNumber(item.score) ? Math.round(item.score) : '-';
-          const scoreInfo = getScoreInfo(item.score);
-          const typeLabel = item.isVideo
-            ? 'Video'
-            : item.isFolder
-              ? 'Folder'
-              : item.isCompress
-                ? 'Archive'
-                : '';
+  const renderItems = useCallback((data) => (
+    <div className="similar-file-list">
+      {data.map((item, index) => {
+        const filePath = item.filePath;
+        const displayName = item.fn || filePath || `Result ${index + 1}`;
+        const key = filePath || `${displayName}-${index}`;
+        const dirText = filePath ? clientUtil.getDir(filePath) : '';
+        const scoreValue = _.isNumber(item.score) ? Math.round(item.score) : '-';
+        const scoreInfo = getScoreInfo(item.score);
+        const typeLabel = item.isVideo
+          ? 'Video'
+          : item.isFolder
+            ? 'Folder'
+            : item.isCompress
+              ? 'Archive'
+              : '';
 
-          return (
-            <Link
-              key={key}
-              className="similar-file-item"
-              to={this.getLinkTarget(item)}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <div className="similar-file-thumbnail-wrapper">
-                {this.renderThumbnail(item)}
+        return (
+          <Link
+            key={key}
+            className="similar-file-item"
+            to={getLinkTarget(item)}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <div className="similar-file-thumbnail-wrapper">
+              {renderThumbnail(item)}
+            </div>
+            <div className="similar-file-item-content">
+              <div className="file-name" title={displayName}>{displayName}</div>
+              <div className="file-meta">
+                <span className={classNames('score-tag', scoreInfo.className)}>{scoreInfo.label}</span>
+                <span className="score-value">{`Score: ${scoreValue}`}</span>
+                {typeLabel && <span className="type-tag">{typeLabel}</span>}
+                {filePath ? (
+                  <span className="file-path" title={filePath}>{dirText || filePath}</span>
+                ) : (
+                  <span className="file-path missing">Path not recorded</span>
+                )}
               </div>
-              <div className="similar-file-item-content">
-                <div className="file-name" title={displayName}>{displayName}</div>
-                <div className="file-meta">
-                  <span className={classNames('score-tag', scoreInfo.className)}>{scoreInfo.label}</span>
-                  <span className="score-value">{`Score: ${scoreValue}`}</span>
-                  {typeLabel && <span className="type-tag">{typeLabel}</span>}
-                  {filePath ? (
-                    <span className="file-path" title={filePath}>{dirText || filePath}</span>
-                  ) : (
-                    <span className="file-path missing">Path not recorded</span>
-                  )}
-                </div>
-              </div>
-            </Link>
-          );
-        })}
-      </div>
-    );
-  }
+            </div>
+          </Link>
+        );
+      })}
+    </div>
+  ), [getLinkTarget, renderThumbnail]);
 
-  render() {
-    document.title = 'Similar Files';
-    const { queryText, isLoading, res, items } = this.state;
-    const trimmedQuery = (queryText || '').trim();
-
-    if (!trimmedQuery) {
-      return (
-        <div className="similar-file-container container">
-          <div className="similar-file-header">
-            <div className="header-title">Similar Files</div>
-          </div>
-          <div className="similar-file-empty">Add ?text=xxx to the url or open from the helper script.</div>
-        </div>
-      );
-    }
-
-    if (res && res.isFailed()) {
-      return <ErrorPage res={res} />;
-    }
-
-    if (isLoading && !res) {
-      return (
-        <div className="similar-file-container container">
-          <div className="similar-file-header">
-            <div className="header-title">Similar Files</div>
-            <div className="query-chip" title={trimmedQuery}>{trimmedQuery}</div>
-          </div>
-          <CenterSpinner />
-        </div>
-      );
-    }
-
+  if (!trimmedQuery) {
     return (
       <div className="similar-file-container container">
         <div className="similar-file-header">
           <div className="header-title">Similar Files</div>
-          <div className="query-chip" title={trimmedQuery}>{trimmedQuery}</div>
         </div>
-        {isLoading && <CenterSpinner />}
-        {items && items.length > 0 ? (
-          this.renderItems(items)
-        ) : (
-          <div className="similar-file-empty">No similar files found.</div>
-        )}
+        <div className="similar-file-empty">Add ?text=xxx to the url or open from the helper script.</div>
       </div>
     );
   }
-}
+
+  if (res && res.isFailed()) {
+    return <ErrorPage res={res} />;
+  }
+
+  const hasItems = Array.isArray(items) && items.length > 0;
+
+  return (
+    <div className="similar-file-container container">
+      <div className="similar-file-header">
+        <div className="header-title">Similar Files</div>
+        <div className="query-chip" title={trimmedQuery}>{trimmedQuery}</div>
+      </div>
+      {isLoading && <CenterSpinner />}
+      {!isLoading && hasItems && renderItems(items)}
+      {!isLoading && !hasItems && (
+        <div className="similar-file-empty">No similar files found.</div>
+      )}
+    </div>
+  );
+};
+
+export default SimilarFilePage;

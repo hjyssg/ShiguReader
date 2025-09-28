@@ -152,9 +152,12 @@ async function highlightEhentaiThumbnail() {
             const rr = parse(text);
             if (rr) {
                 appendLink(e, rr.author);
+                appendSimilarLink(e, rr.author);
                 appendLink(e, rr.title);
+                appendSimilarLink(e, rr.title);
             } else {
                 appendLink(e, text);
+                appendSimilarLink(e, text);
             }
             subNode.style.fontWeight = 600;
         } catch (e) {
@@ -230,8 +233,27 @@ function appendLink(fileTitleDom, text, asIcon) {
     fileTitleDom.append(link);
     link.target = "_blank"
     link.className = "shigureader_link";
-    const encodedText = encodeURIComponent(text || "");
+    link.href = `http://localhost:${production_port}/search/?s=${text}`;
+}
+
+function appendSimilarLink(fileTitleDom, text) {
+    if(!isServerUp){
+        return;
+    }
+
+    const trimmed = (text || "").trim();
+    if (!trimmed) {
+        return;
+    }
+
+    const link = document.createElement("a");
+    link.textContent = `Find similar: ${trimmed}`;
+    link.style.display = "block";
+    link.target = "_blank";
+    link.className = "shigureader_link";
+    const encodedText = encodeURIComponent(trimmed);
     link.href = `http://localhost:${production_port}/similar-file/?text=${encodedText}`;
+    fileTitleDom.append(link);
 }
 
 
@@ -251,15 +273,19 @@ function addSearchLinkForEhentai() {
         if (r) {
             if (r.author) {
                 appendLink(fileTitleDom, r.author);
+                appendSimilarLink(fileTitleDom, r.author);
             } else if (r.group) {
                 appendLink(fileTitleDom, r.group);
+                appendSimilarLink(fileTitleDom, r.group);
             }
 
             if (r.title) {
                 appendLink(fileTitleDom, r.title);
+                appendSimilarLink(fileTitleDom, r.title);
             }
         } else {
             appendLink(fileTitleDom, title);
+            appendSimilarLink(fileTitleDom, title);
         }
     }
 }

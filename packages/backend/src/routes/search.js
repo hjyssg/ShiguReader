@@ -82,6 +82,7 @@ router.post("/api/search/find_similar_file/:text", serverUtil.asyncWrapper(async
   const tempEstimate = await estimateFileDb.findEstimateByText(middleTitle);
   estimateRows.push(...tempEstimate);
 
+  const result = [];
   const resultMap = new Map();
 
   function merge(rows, bonus) {
@@ -100,34 +101,52 @@ router.post("/api/search/find_similar_file/:text", serverUtil.asyncWrapper(async
         continue;
       }
 
-      const prev = resultMap.get(fn);
-      const filePath = row.filePath ?? prev?.filePath ?? null;
+      const existing = resultMap.get(fn);
+      const filePath = row.filePath || null;
+      const typeSource = filePath || fn;
+      const resolvedVideo = Object.prototype.hasOwnProperty.call(row, 'isVideo')
+        ? row.isVideo
+        : util.isVideo(typeSource);
+      const resolvedCompress = Object.prototype.hasOwnProperty.call(row, 'isCompress')
+        ? row.isCompress
+        : util.isCompress(typeSource);
+      const resolvedFolder = Object.prototype.hasOwnProperty.call(row, 'isFolder')
+        ? row.isFolder
+        : false;
 
-      const isVideo = row.isVideo ?? prev?.isVideo ?? util.isVideo(filePath || fn);
+      if (!existing) {
+        const item = {
+          fn,
+          score: rawScore,
+          filePath,
+          isVideo: resolvedVideo,
+          isCompress: resolvedCompress,
+          isFolder: resolvedFolder,
+        };
+        resultMap.set(fn, item);
+        result.push(item);
+        continue;
+      }
 
-      const isCompress = row.isCompress ?? prev?.isCompress ?? util.isCompress(filePath || fn);
-
-      const isFolder = row.isFolder ?? prev?.isFolder ?? false;
-
-      const prevScore = prev?.score ?? TOTALLY_DIFFERENT;
-      const score = Math.max(prevScore, rawScore);
-
-      resultMap.set(fn, {
-        ...prev,
-        fn,
-        score,
-        filePath,
-        isVideo,
-        isCompress,
-        isFolder,
-      });
+      existing.score = Math.max(existing.score, rawScore);
+      if (!existing.filePath && filePath) {
+        existing.filePath = filePath;
+      }
+      if (Object.prototype.hasOwnProperty.call(row, 'isVideo')) {
+        existing.isVideo = row.isVideo;
+      }
+      if (Object.prototype.hasOwnProperty.call(row, 'isCompress')) {
+        existing.isCompress = row.isCompress;
+      }
+      if (Object.prototype.hasOwnProperty.call(row, 'isFolder')) {
+        existing.isFolder = row.isFolder;
+      }
     }
   }
 
   merge(fileRows, 0);
   merge(estimateRows, 0);
 
-  const result = Array.from(resultMap.values());
   result.sort((a, b) => b.score - a.score);
   res.send(result);
 }));
