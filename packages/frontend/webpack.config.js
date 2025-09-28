@@ -45,6 +45,9 @@ const config = {
           loader: 'sass-loader',
           options: {
             implementation: require('dart-sass'),
+            sassOptions: {
+              includePaths: [path.resolve(__dirname, 'src/styles')],
+            },
           },
         }]
       },{
