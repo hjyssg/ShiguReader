@@ -17,6 +17,7 @@
   "license": "MIT",
   "dependencies": {
     "@fortawesome/fontawesome-free": "^7.0.1",
+    "axios": "^1.12.2",
     "chart.js": "^4.3.0",
     "classnames": "^2.2.6",
     "dateformat": "^3.0.3",
@@ -36,31 +37,31 @@
     "react-range-slider-input": "^3.0.7",
     "react-router-dom": "^4.3.1",
     "react-toastify": "^9.1.2",
-    "request": "^2.88.2",
-    "request-promise": "^4.2.6",
     "screenfull": "^4.0.0",
     "sweetalert2": "^8.0.7",
     "underscore": "^1.9.1",
     "whatwg-fetch": "^3.0.0"
   },
   "devDependencies": {
-    "dart-sass": "^1.25.0",
-    "babel-polyfill": "^6.26.0",
     "@babel/core": "^7.0.0",
     "@babel/plugin-proposal-class-properties": "^7.0.0",
     "@babel/preset-env": "^7.0.0",
     "@babel/preset-react": "^7.0.0",
     "babel-eslint": "^10.0.0",
     "babel-loader": "^8.0.0",
+    "babel-polyfill": "^6.26.0",
     "chai": "^4.2.0",
+    "clean-webpack-plugin": "^4.0.0",
     "concurrently": "^4.0.0",
     "css-loader": "^2.1.0",
+    "dart-sass": "^1.25.0",
     "eslint": "^5.0.0",
     "eslint-config-airbnb": "^17.0.0",
     "eslint-plugin-import": "^2.11.0",
     "eslint-plugin-jsx-a11y": "^6.0.3",
     "eslint-plugin-react": "^7.7.0",
     "file-loader": "^3.0.0",
+    "html-webpack-plugin": "^5.5.1",
     "less": "^3.9.0",
     "less-loader": "^4.1.0",
     "mocha": "^5.2.0",
@@ -69,8 +70,6 @@
     "url-loader": "^1.0.1",
     "webpack": "^5.82.1",
     "webpack-cli": "^5.1.1",
-    "webpack-dev-server": "^4.15.0",
-    "html-webpack-plugin": "^5.5.1",
-    "clean-webpack-plugin": "^4.0.0"
+    "webpack-dev-server": "^4.15.0"
   }
 }
