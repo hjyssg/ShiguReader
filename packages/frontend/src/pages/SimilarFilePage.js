@@ -210,7 +210,12 @@ const SimilarFilePage = ({ location }) => {
       {isLoading && <CenterSpinner />}
       {!isLoading && hasItems && renderItems(items)}
       {!isLoading && !hasItems && (
-        <div className="similar-file-empty">No similar files found.</div>
+        <div className="similar-file-empty">
+          No similar files were found for
+          {' '}
+          <span className="query-chip" title={trimmedQuery}>{trimmedQuery}</span>
+          .
+        </div>
       )}
     </div>
   );

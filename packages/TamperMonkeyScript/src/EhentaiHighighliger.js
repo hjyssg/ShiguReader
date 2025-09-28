@@ -136,13 +136,13 @@ async function highlightEhentaiThumbnail() {
             appendSimilarLink(e, text);
             if (rr) {
                 if (rr.author) {
-                    appendLink(e, rr.author);
+                    // appendLink(e, rr.author);
                 }
                 if (rr.title) {
-                    appendLink(e, rr.title);
+                    // appendLink(e, rr.title);
                 }
             } else {
-                appendLink(e, text);
+                // appendLink(e, text);
             }
             subNode.style.fontWeight = 600;
         } catch (e) {
@@ -232,7 +232,8 @@ function appendSimilarLink(fileTitleDom, text) {
     }
 
     const link = document.createElement("a");
-    link.textContent = `Find similar: ${trimmed}`;
+    link.textContent = "Find similar";
+    link.title = trimmed;
     link.style.display = "block";
     link.target = "_blank";
     link.className = "shigureader_link";
@@ -258,16 +259,16 @@ function addSearchLinkForEhentai() {
         const r = parse(title);
         if (r) {
             if (r.author) {
-                appendLink(fileTitleDom, r.author);
+                // appendLink(fileTitleDom, r.author);
             } else if (r.group) {
-                appendLink(fileTitleDom, r.group);
+                // appendLink(fileTitleDom, r.group);
             }
 
             if (r.title) {
-                appendLink(fileTitleDom, r.title);
+                // appendLink(fileTitleDom, r.title);
             }
         } else {
-            appendLink(fileTitleDom, title);
+            // appendLink(fileTitleDom, title);
         }
     }
 }
