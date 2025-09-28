@@ -16,7 +16,6 @@ const {
   extractMiddleChars,
 } = BookCompareUtil;
 const estimateFileDb = require("../models/estimate-file-db");
-const util = require("../common/util");
 
 // three para 1.mode 2.text
 router.post(
@@ -87,15 +86,11 @@ router.post("/api/search/find_similar_file/:text", serverUtil.asyncWrapper(async
 
   function merge(rows, bonus) {
     for (const row of rows) {
-      if (!row) {
+      if (!row || !row.fileName) {
         continue;
       }
 
       const fn = row.fileName;
-      if (!fn) {
-        continue;
-      }
-
       const rawScore = isTwoBookTheSame(text, fn) + bonus;
       if (rawScore < TOTALLY_DIFFERENT) {
         continue;
@@ -103,25 +98,18 @@ router.post("/api/search/find_similar_file/:text", serverUtil.asyncWrapper(async
 
       const existing = resultMap.get(fn);
       const filePath = row.filePath || null;
-      const typeSource = filePath || fn;
-      const resolvedVideo = Object.prototype.hasOwnProperty.call(row, 'isVideo')
-        ? row.isVideo
-        : util.isVideo(typeSource);
-      const resolvedCompress = Object.prototype.hasOwnProperty.call(row, 'isCompress')
-        ? row.isCompress
-        : util.isCompress(typeSource);
-      const resolvedFolder = Object.prototype.hasOwnProperty.call(row, 'isFolder')
-        ? row.isFolder
-        : false;
+      const isVideo = row.isVideo;
+      const isCompress = row.isCompress;
+      const isFolder = row.isFolder;
 
       if (!existing) {
         const item = {
           fn,
           score: rawScore,
           filePath,
-          isVideo: resolvedVideo,
-          isCompress: resolvedCompress,
-          isFolder: resolvedFolder,
+          isVideo,
+          isCompress,
+          isFolder,
         };
         resultMap.set(fn, item);
         result.push(item);
@@ -132,13 +120,13 @@ router.post("/api/search/find_similar_file/:text", serverUtil.asyncWrapper(async
       if (!existing.filePath && filePath) {
         existing.filePath = filePath;
       }
-      if (Object.prototype.hasOwnProperty.call(row, 'isVideo')) {
+      if (row.isVideo !== undefined) {
         existing.isVideo = row.isVideo;
       }
-      if (Object.prototype.hasOwnProperty.call(row, 'isCompress')) {
+      if (row.isCompress !== undefined) {
         existing.isCompress = row.isCompress;
       }
-      if (Object.prototype.hasOwnProperty.call(row, 'isFolder')) {
+      if (row.isFolder !== undefined) {
         existing.isFolder = row.isFolder;
       }
     }

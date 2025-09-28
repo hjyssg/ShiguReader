@@ -135,6 +135,7 @@ async function highlightEhentaiThumbnail() {
                 continue;
             }
             console.log(`${ii}/${nodes.length}  ${text}`)
+            const rr = parse(text);
             const { status, similarTitles } = await checkIfDownload(text);
             e.status = status || 0;
             if (status === IS_IN_PC) {
@@ -145,19 +146,21 @@ async function highlightEhentaiThumbnail() {
                 addTooltip(thumbnailNode, "电脑里面好像有", similarTitles)
             } else if (status === SAME_AUTHOR) {
                 subNode.style.color = "#ef8787";
-                const fns = similarTitles; 
-                addTooltip(thumbnailNode, `下载同样作者“${rr.author}”的书 ${fns.length}次`, fns, "same_author")
+                const fns = similarTitles;
+                const authorName = rr && rr.author ? rr.author : "这位作者";
+                addTooltip(thumbnailNode, `下载同样作者“${authorName}”的书 ${fns.length}次`, fns, "same_author")
             }
 
-            const rr = parse(text);
+            appendSimilarLink(e, text);
             if (rr) {
-                appendLink(e, rr.author);
-                appendSimilarLink(e, rr.author);
-                appendLink(e, rr.title);
-                appendSimilarLink(e, rr.title);
+                if (rr.author) {
+                    appendLink(e, rr.author);
+                }
+                if (rr.title) {
+                    appendLink(e, rr.title);
+                }
             } else {
                 appendLink(e, text);
-                appendSimilarLink(e, text);
             }
             subNode.style.fontWeight = 600;
         } catch (e) {
@@ -269,23 +272,20 @@ function addSearchLinkForEhentai() {
     }
 
     if (title) {
+        appendSimilarLink(fileTitleDom, title);
         const r = parse(title);
         if (r) {
             if (r.author) {
                 appendLink(fileTitleDom, r.author);
-                appendSimilarLink(fileTitleDom, r.author);
             } else if (r.group) {
                 appendLink(fileTitleDom, r.group);
-                appendSimilarLink(fileTitleDom, r.group);
             }
 
             if (r.title) {
                 appendLink(fileTitleDom, r.title);
-                appendSimilarLink(fileTitleDom, r.title);
             }
         } else {
             appendLink(fileTitleDom, title);
-            appendSimilarLink(fileTitleDom, title);
         }
     }
 }
