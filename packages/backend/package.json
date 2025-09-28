@@ -9,20 +9,24 @@
     "start": "node src/app.js",
     "flow": "flow",
     "test": "mocha ./src/test",
-     "pkg": "pkg . --compress GZip"
+    "pkg": "pkg . --compress GZip"
   },
   "pkg": {
-    "scripts": "src/app.js ",
+    "scripts": "src/app.js",
     "assets": [
-      "/dist/*",
-       "/resource/**/*",
-      "/node_modules/sqlite3/lib/binding/binding/napi-v6-win32-unknown-x64/*",
+      "/dist/**/*",
+      "/resource/**/*",
+      "/node_modules/sqlite3/**/*",
+      "/node_modules/sqlite3/build/Release/*",
+      "/node_modules/sqlite3/lib/binding/napi-v6-win32-x64/*",
+      "/node_modules/sqlite3/lib/binding/napi-v6-win32-unknown-x64/*",
+      "/node_modules/sharp/*",
       "/node_modules/.store/registry-js@1.15.1/node_modules/registry-js/build/Release/*"
     ],
     "targets": [
       "node22-win-x64"
     ],
-    "outputPath": "../SGR_pkg/"
+    "outputPath": "../ShiguReaderExeRelease/"
   },
   "author": "aji47",
   "license": "MIT",
