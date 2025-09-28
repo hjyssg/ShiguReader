@@ -40,7 +40,6 @@
     "screenfull": "^4.0.0",
     "sweetalert2": "^8.0.7",
     "underscore": "^1.9.1",
-    "whatwg-fetch": "^3.0.0"
   },
   "devDependencies": {
     "@babel/core": "^7.0.0",
