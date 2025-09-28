@@ -4,7 +4,7 @@ var classNames = require('classnames');
 const clientUtil = require("@utils/clientUtil");
 const nameParser = require('@name-parser');
 import _ from 'underscore';
-import ClickAndCopyDiv from './ClickAndCopyDiv';
+import ClickAndCopyDiv from '../ClickAndCopyDiv';
 
 
 function getText(filename, mecab_tokens) {
