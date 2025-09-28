@@ -5,7 +5,7 @@ script_dir = os.path.dirname(os.path.realpath(__file__))
 root_folder = os.path.normpath(os.path.join(script_dir, '..\\..\\..'))
 print("root_folder", root_folder)
 
-pkg_folder = os.path.join(root_folder, "SGR_pkg")
+pkg_folder = os.path.join(root_folder, "ShiguReaderExeRelease")
 os.makedirs(pkg_folder, exist_ok=True)  # 确保目标文件夹存在
 
 # 要复制的文件夹

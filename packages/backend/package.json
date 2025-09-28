@@ -22,7 +22,7 @@
     "targets": [
       "node22-win-x64"
     ],
-    "outputPath": "../SGR_pkg/"
+    "outputPath": "../ShiguReaderExeRelease/"
   },
   "author": "aji47",
   "license": "MIT",
