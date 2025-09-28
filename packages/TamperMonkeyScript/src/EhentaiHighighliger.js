@@ -1,22 +1,4 @@
-// ==UserScript==
-// @name        EhentaiLight配合Shigureader
-// @grant       GM_addStyle
-// @grant       GM_getValue
-// @grant       GM_setValue
-// @grant       GM_getResourceText
-// @connect     localhost
-// @namespace       Aji47
-// @version         0.0.29
-// @description
-// @author        Aji47
-// @include       *://exhentai.org/*
-// @include       *://g.e-hentai.org/*
-// @include       *://e-hentai.org/*
-// @include       *://sukebei.nyaa.si/*
-// @include       *://sukebei.nyaa.si
-// @require      https://raw.githubusercontent.com/hjyssg/ShiguReader/main/packages/frontend/src/name-parser/all_in_one/index.js
-// @require      https://cdn.jsdelivr.net/npm/sweetalert2@11.7.5/dist/sweetalert2.all.min.js
-// ==/UserScript==
+const { parse } = require("../../backend/src/name-parser");
 
 //tamper monkey自动缓存require脚本，随便改一下版本号就可以更新
 
@@ -135,6 +117,7 @@ async function highlightEhentaiThumbnail() {
                 continue;
             }
             console.log(`${ii}/${nodes.length}  ${text}`)
+            const rr = parse(text);
             const { status, similarTitles } = await checkIfDownload(text);
             e.status = status || 0;
             if (status === IS_IN_PC) {
@@ -145,16 +128,21 @@ async function highlightEhentaiThumbnail() {
                 addTooltip(thumbnailNode, "电脑里面好像有", similarTitles)
             } else if (status === SAME_AUTHOR) {
                 subNode.style.color = "#ef8787";
-                const fns = similarTitles; 
-                addTooltip(thumbnailNode, `下载同样作者“${rr.author}”的书 ${fns.length}次`, fns, "same_author")
+                const fns = similarTitles;
+                const authorName = rr && rr.author ? rr.author : "这位作者";
+                addTooltip(thumbnailNode, `下载同样作者“${authorName}”的书 ${fns.length}次`, fns, "same_author")
             }
 
-            const rr = parse(text);
+            appendSimilarLink(e, text);
             if (rr) {
-                appendLink(e, rr.author);
-                appendLink(e, rr.title);
+                if (rr.author) {
+                    // appendLink(e, rr.author);
+                }
+                if (rr.title) {
+                    // appendLink(e, rr.title);
+                }
             } else {
-                appendLink(e, text);
+                // appendLink(e, text);
             }
             subNode.style.fontWeight = 600;
         } catch (e) {
@@ -233,6 +221,27 @@ function appendLink(fileTitleDom, text, asIcon) {
     link.href = `http://localhost:${production_port}/search/?s=${text}`;
 }
 
+function appendSimilarLink(fileTitleDom, text) {
+    if(!isServerUp){
+        return;
+    }
+
+    const trimmed = (text || "").trim();
+    if (!trimmed) {
+        return;
+    }
+
+    const link = document.createElement("a");
+    link.textContent = "Find similar";
+    link.title = trimmed;
+    link.style.display = "block";
+    link.target = "_blank";
+    link.className = "shigureader_link";
+    const encodedText = encodeURIComponent(trimmed);
+    link.href = `http://localhost:${production_port}/similar-file/?text=${encodedText}`;
+    fileTitleDom.append(link);
+}
+
 
 
 function addSearchLinkForEhentai() {
@@ -246,19 +255,20 @@ function addSearchLinkForEhentai() {
     }
 
     if (title) {
+        appendSimilarLink(fileTitleDom, title);
         const r = parse(title);
         if (r) {
             if (r.author) {
-                appendLink(fileTitleDom, r.author);
+                // appendLink(fileTitleDom, r.author);
             } else if (r.group) {
-                appendLink(fileTitleDom, r.group);
+                // appendLink(fileTitleDom, r.group);
             }
 
             if (r.title) {
-                appendLink(fileTitleDom, r.title);
+                // appendLink(fileTitleDom, r.title);
             }
         } else {
-            appendLink(fileTitleDom, title);
+            // appendLink(fileTitleDom, title);
         }
     }
 }

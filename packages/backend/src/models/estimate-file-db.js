@@ -30,6 +30,6 @@ module.exports.addEstimateFiles = async function(rows){
 };
 
 module.exports.findEstimateByText = async function(text){
-    const sql = `SELECT fileName FROM estimate_file_table WHERE fileName LIKE ?`;
+    const sql = `SELECT filePath, fileName FROM estimate_file_table WHERE fileName LIKE ?`;
     return await sqldb.allSync(sql, [`%${text}%`]);
 };

@@ -82,16 +82,52 @@ router.post("/api/search/find_similar_file/:text", serverUtil.asyncWrapper(async
   estimateRows.push(...tempEstimate);
 
   const result = [];
-  const seen = new Set();
+  const resultMap = new Map();
 
   function merge(rows, bonus) {
     for (const row of rows) {
+      if (!row || !row.fileName) {
+        continue;
+      }
+
       const fn = row.fileName;
-      if (seen.has(fn)) continue;
-      seen.add(fn);
-      const score = isTwoBookTheSame(text, fn) + bonus;
-      if (score >= TOTALLY_DIFFERENT) {
-        result.push({ fn, score });
+      const rawScore = isTwoBookTheSame(text, fn) + bonus;
+      if (rawScore < TOTALLY_DIFFERENT) {
+        continue;
+      }
+
+      const existing = resultMap.get(fn);
+      const filePath = row.filePath || null;
+      const isVideo = row.isVideo;
+      const isCompress = row.isCompress;
+      const isFolder = row.isFolder;
+
+      if (!existing) {
+        const item = {
+          fn,
+          score: rawScore,
+          filePath,
+          isVideo,
+          isCompress,
+          isFolder,
+        };
+        resultMap.set(fn, item);
+        result.push(item);
+        continue;
+      }
+
+      existing.score = Math.max(existing.score, rawScore);
+      if (!existing.filePath && filePath) {
+        existing.filePath = filePath;
+      }
+      if (row.isVideo !== undefined) {
+        existing.isVideo = row.isVideo;
+      }
+      if (row.isCompress !== undefined) {
+        existing.isCompress = row.isCompress;
+      }
+      if (row.isFolder !== undefined) {
+        existing.isFolder = row.isFolder;
       }
     }
   }
