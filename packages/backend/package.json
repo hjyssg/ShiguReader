@@ -16,9 +16,11 @@
     "assets": [
       "/dist/**/*",
       "/resource/**/*",
+      "/node_modules/sqlite3/**/*",
       "/node_modules/sqlite3/build/Release/*",
       "/node_modules/sqlite3/lib/binding/napi-v6-win32-x64/*",
       "/node_modules/sqlite3/lib/binding/napi-v6-win32-unknown-x64/*",
+      "/node_modules/sharp/*",
       "/node_modules/.store/registry-js@1.15.1/node_modules/registry-js/build/Release/*"
     ],
     "targets": [
