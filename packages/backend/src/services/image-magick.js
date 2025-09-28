@@ -3,7 +3,7 @@ const execa = require('../utils/own-execa');
 const pfs = require('promise-fs');
 const _ = require('underscore');
 const logger = require("../config/logger");
-const util = require('../common/util');
+const util = require('../../../common/src/util');
 const pathUtil = require("../utils/path-util");
 const { isImage, getCurrentTime, isGif } = util;
 

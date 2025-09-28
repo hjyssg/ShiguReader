@@ -12,7 +12,7 @@ const historyDb = require("../models/history-db");
 const pathUtil = require("../utils/path-util");
 const { isExist } = pathUtil;
 
-const util = require('../common/util');
+const util = require('../../../common/src/util');
 
 
 const serverUtil = require("../utils/server-util");

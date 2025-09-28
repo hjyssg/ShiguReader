@@ -8,7 +8,7 @@ const qrcode = require('qrcode-terminal');
 global.isWindows = require('is-windows')();
 
 const execa = require('./utils/own-execa');
-const util = require('./common/util');
+const util = require('../../common/src/util');
 const userConfig = require('./config/user-config');
 const pathUtil = require('./utils/path-util');
 const serverUtil = require('./utils/server-util');

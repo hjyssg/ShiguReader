@@ -2,7 +2,7 @@ const path = require('path');
 // const userConfig = global.requireUserConfig();
 // const util = global.requireUtil();
 
-const util = require("../common/util");
+const util = require("../../../common/src/util");
 const userConfig = require("../config/user-config");
 
 // const fs = require('fs');

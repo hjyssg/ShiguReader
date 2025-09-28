@@ -1,4 +1,4 @@
-const util = require('../common/util');
+const util = require('../../../common/src/util');
 const path = require('path');
 const stringHash = require("string-hash");
 const nameParser = require('../name-parser');

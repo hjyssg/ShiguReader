@@ -19,7 +19,7 @@ const { move, trash } = require("../services/file-operations");
 const imageMagickHelp = require("../services/image-magick");
 imageMagickHelp.init();
 
-const util = require('../common/util');
+const util = require('../../../common/src/util');
 
 const pLimit = require('p-limit');
 const minify_limit = pLimit(1);
