@@ -1,7 +1,7 @@
 const path = require('path');
 const _ = require('underscore');
 const serverUtil = require("../utils/server-util");
-const util = require('../common/util');
+const util = require('../../../common/src/util');
 
 
 let sqldb;

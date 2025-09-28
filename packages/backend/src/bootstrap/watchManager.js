@@ -1,6 +1,6 @@
 const chokidar = require('chokidar');
 const _ = require('underscore');
-const util = require('../common/util');
+const util = require('../../../common/src/util');
 const pathUtil = require('../utils/path-util');
 const appState = require('../state/appState');
 const { deleteCallBack } = require('../services/server-common');

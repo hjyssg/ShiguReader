@@ -1,6 +1,6 @@
 // const _ = require('underscore');
 const path = require('path');
-const util = require('../common/util');
+const util = require('../../../common/src/util');
 // const { getCurrentTime } = util;
 const pathUtil = require("../utils/path-util");
 const appState = require('../state/appState');

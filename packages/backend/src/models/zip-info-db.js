@@ -1,4 +1,4 @@
-const util = require('../common/util');
+const util = require('../../../common/src/util');
 const { isImage, isMusic, isCompress, isVideo } = util;
 const _ = require('underscore');
 

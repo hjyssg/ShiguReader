@@ -1,4 +1,4 @@
-const util = require("../common/util");
+const util = require("../../../common/src/util");
 const Cookie = require("js-cookie");
 const _ = require("underscore");
 const filesizeUitl = require('filesize');

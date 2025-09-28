@@ -89,7 +89,7 @@ config.resolve = {
   extensions: ['.js', '.jsx'],
   alias: {
     "@assets": path.resolve(__dirname, 'src/assets/'),
-    "@common": path.resolve(__dirname, 'src/common/'),
+    "@common": path.resolve(__dirname, '../common/src/'),
     "@components": path.resolve(__dirname, 'src/components/'),
     "@api": path.resolve(__dirname, 'src/api/'),
     "@config": path.resolve(__dirname, 'src/config/'),

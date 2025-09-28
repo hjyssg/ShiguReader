@@ -14,7 +14,7 @@ const {
 const serverUtil = require("../utils/server-util");
 const { decorateResWithMeta } = require('../services/server-common');
 const db = require("../models/db");
-const util = require('../common/util');
+const util = require('../../../common/src/util');
 const { getCurrentTime, isImage, isMusic, isCompress, isVideo } = util;
 const historyDb = require("../models/history-db");
 const logger = require("../config/logger");

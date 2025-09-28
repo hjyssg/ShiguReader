@@ -1,4 +1,4 @@
-const util = require('../common/util');
+const util = require('../../../common/src/util');
 
 let sqldb;
 

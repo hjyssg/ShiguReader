@@ -21,7 +21,7 @@ const {
   getAverage,
   calcAvgImgSize,
   truncateString,
-} = require("../common/util.js");
+} = require("../../../common/src/util.js");
 
 describe("ut for js util functions", () => {
   describe("#isGif()", () => {
