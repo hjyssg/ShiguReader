@@ -136,10 +136,11 @@ app.use(['/api/folder/list_dir', '/api/search/search_file', '/api/info/get_all']
 //  to consume json request body
 //  https://stackoverflow.com/questions/10005939/how-do-i-consume-the-json-post-data-in-an-express-application
 // https://stackoverflow.com/questions/50304779/payloadtoolargeerror-request-entity-too-large?noredirect=1&lq=1
-app.use(express.json({limit: '50mb'}));
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
-const cookieParser = require('cookie-parser')
-app.use(cookieParser())
+const cookieParser = require('cookie-parser');
+app.use(cookieParser());
 
 //read etc config
 const { etcConfig: loadedEtcConfig, pathConfig: loadedPathConfig } = loadConfig({
