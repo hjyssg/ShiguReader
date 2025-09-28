@@ -3,6 +3,7 @@ const path = require('path');
 const chokidar = require('chokidar');
 const pathUtil = require("../../utils/path-util");
 const appState = require('../../state/appState');
+const estimateFileTable = require('../estimate-file-table');
 
 
 const getCurrentTime = function () {
@@ -25,6 +26,7 @@ async function fastFileIterate({filePath, db, shouldIgnoreForNormal}) {
         try {
             // 读取目录中的所有项
             const entries = await fs.readdir(dirPath, { withFileTypes: true });
+            const childPathesForEstimate = [];
             // 遍历目录项
             for (let entry of entries) {
                 const fullPath = path.join(dirPath, entry.name);
@@ -34,6 +36,8 @@ async function fastFileIterate({filePath, db, shouldIgnoreForNormal}) {
                     continue;
                 }
 
+                childPathesForEstimate.push(fullPath);
+
                 // 更新状态到数据库的缓存
                 db.updateStatToDb(fullPath, stats, insertion_cache);
 
@@ -42,6 +46,8 @@ async function fastFileIterate({filePath, db, shouldIgnoreForNormal}) {
                     await processDirectory(fullPath);
                 }
             }
+
+            await estimateFileTable.updateByScan(dirPath, childPathesForEstimate);
         } catch (error) {
             console.error('Error processing directory:', dirPath, error);
         }
@@ -56,6 +62,12 @@ async function fastFileIterate({filePath, db, shouldIgnoreForNormal}) {
 
     // 所有文件处理完成后，批量插入数据库
     await db.batchInsert("file_table", insertion_cache.files);
+    await estimateFileTable.updateByScan(
+        filePath,
+        insertion_cache.files
+            .filter(item => item.dirPath === filePath)
+            .map(item => item.filePath)
+    );
     await db.batchInsert("tag_file_table", insertion_cache.tags);
     await db.throttledSyncTagTable();
 

@@ -34,11 +34,13 @@ router.post('/api/folder/list_dir', serverUtil.asyncWrapper(async (req, res) => 
 
     dir = path.resolve(dir);
 
-    // update estimate file table asynchronously
-    estimateFileTable.updateByScan(dir).catch(err=>logger.error(err));
-
     if (!filewatch.isAlreadyScan(dir)) {
         let result = await listNoScanDir(dir, res);
+        const filePathesForEstimate = [
+            ...(result.dirs || []),
+            ...Object.keys(result.fileInfos || {})
+        ];
+        estimateFileTable.updateByScan(dir, filePathesForEstimate).catch(err=>logger.error(err));
         result = await decorateResWithMeta(result);
         historyDb.addOneLsDirRecord(dir);
         res.send(result);

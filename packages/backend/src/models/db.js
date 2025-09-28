@@ -64,6 +64,7 @@ module.exports.init = async () => {
 
     console.log("remove previous db cache")
 
+    // estimate_file_table 需要长期保存，初始化时不要删除表
     await sqldb.execSync( `
 
         PRAGMA journal_mode = OFF;
@@ -118,12 +119,10 @@ module.exports.init = async () => {
         );
 
         CREATE TABLE IF NOT EXISTS estimate_file_table (
-            dirName TEXT,
-            dirPath TEXT,
+            filePath TEXT,
             fileName TEXT,
             scan_time INTEGER,
-            isRemoved BOOL,
-            PRIMARY KEY (dirPath, fileName)
+            PRIMARY KEY (filePath, fileName)
         );
 
 
@@ -141,7 +140,7 @@ module.exports.init = async () => {
          CREATE INDEX IF NOT EXISTS ft_dirPath_index ON file_table (dirPath);
          CREATE INDEX IF NOT EXISTS ft_dirName_index ON file_table (dirName);
          CREATE INDEX IF NOT EXISTS eft_fileName_index ON estimate_file_table (fileName);
-         CREATE INDEX IF NOT EXISTS eft_dirName_index ON estimate_file_table (dirName);
+         CREATE INDEX IF NOT EXISTS eft_filePath_index ON estimate_file_table (filePath);
       `);
     return sqldb;
 }
@@ -159,35 +158,39 @@ module.exports.addEstimateFiles = async function(rows){
         return;
     }
     const time = getCurrentTime();
-    rows = rows.map(r=>({ ...r, scan_time: time }));
+    rows = rows.map(r=>({
+        filePath: r.filePath,
+        fileName: r.fileName,
+        scan_time: time
+    }));
     await sqldb.batchInsert("estimate_file_table", rows);
 };
 
-module.exports.markEstimateFilesRemoved = async function(dirPath, fileNames){
+module.exports.removeEstimateFiles = async function(filePath, fileNames){
     if(!fileNames || fileNames.length === 0){
         return;
     }
     const placeholders = fileNames.map(()=>'?').join(',');
-    const sql = `UPDATE estimate_file_table SET isRemoved=1, scan_time=? WHERE dirPath=? AND fileName IN (${placeholders})`;
-    await sqldb.runSync(sql, [getCurrentTime(), dirPath, ...fileNames]);
+    const sql = `DELETE FROM estimate_file_table WHERE filePath=? AND fileName IN (${placeholders})`;
+    await sqldb.runSync(sql, [filePath, ...fileNames]);
 };
 
-module.exports.touchEstimateFiles = async function(dirPath, fileNames){
+module.exports.touchEstimateFiles = async function(filePath, fileNames){
     if(!fileNames || fileNames.length === 0){
         return;
     }
     const placeholders = fileNames.map(()=>'?').join(',');
-    const sql = `UPDATE estimate_file_table SET isRemoved=0, scan_time=? WHERE dirPath=? AND fileName IN (${placeholders})`;
-    await sqldb.runSync(sql, [getCurrentTime(), dirPath, ...fileNames]);
+    const sql = `UPDATE estimate_file_table SET scan_time=? WHERE filePath=? AND fileName IN (${placeholders})`;
+    await sqldb.runSync(sql, [getCurrentTime(), filePath, ...fileNames]);
 };
 
-module.exports.getEstimateFilesInDir = async function(dirPath){
-    const sql = `SELECT * FROM estimate_file_table WHERE dirPath=?`;
-    return await sqldb.allSync(sql, [dirPath]);
+module.exports.getEstimateFilesInDir = async function(filePath){
+    const sql = `SELECT * FROM estimate_file_table WHERE filePath=?`;
+    return await sqldb.allSync(sql, [filePath]);
 };
 
 module.exports.findEstimateByText = async function(text){
-    const sql = `SELECT fileName FROM estimate_file_table WHERE fileName LIKE ? AND isRemoved=0`;
+    const sql = `SELECT fileName FROM estimate_file_table WHERE fileName LIKE ?`;
     return await doSmartAllSync(sql, ["%" + text + "%"]);
 };
 
