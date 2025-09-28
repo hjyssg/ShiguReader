@@ -1,7 +1,7 @@
 const util = require('../common/util');
 const path = require('path');
 const stringHash = require("string-hash");
-const nameParser = require('../name-parser');
+const nameParser = require('../../../name-parser');
 // const sortUtil = require("../common/sortUtil");
 // const { isImage, isCompress } = util;
 const fs = require('fs');
