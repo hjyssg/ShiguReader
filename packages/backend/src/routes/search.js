@@ -16,6 +16,7 @@ const {
   extractMiddleChars,
 } = BookCompareUtil;
 const estimateFileDb = require("../models/estimate-file-db");
+const util = require("../common/util");
 
 // three para 1.mode 2.text
 router.post(
@@ -81,24 +82,52 @@ router.post("/api/search/find_similar_file/:text", serverUtil.asyncWrapper(async
   const tempEstimate = await estimateFileDb.findEstimateByText(middleTitle);
   estimateRows.push(...tempEstimate);
 
-  const result = [];
-  const seen = new Set();
+  const resultMap = new Map();
 
   function merge(rows, bonus) {
     for (const row of rows) {
-      const fn = row.fileName;
-      if (seen.has(fn)) continue;
-      seen.add(fn);
-      const score = isTwoBookTheSame(text, fn) + bonus;
-      if (score >= TOTALLY_DIFFERENT) {
-        result.push({ fn, score });
+      if (!row) {
+        continue;
       }
+
+      const fn = row.fileName;
+      if (!fn) {
+        continue;
+      }
+
+      const rawScore = isTwoBookTheSame(text, fn) + bonus;
+      if (rawScore < TOTALLY_DIFFERENT) {
+        continue;
+      }
+
+      const prev = resultMap.get(fn);
+      const filePath = row.filePath ?? prev?.filePath ?? null;
+
+      const isVideo = row.isVideo ?? prev?.isVideo ?? util.isVideo(filePath || fn);
+
+      const isCompress = row.isCompress ?? prev?.isCompress ?? util.isCompress(filePath || fn);
+
+      const isFolder = row.isFolder ?? prev?.isFolder ?? false;
+
+      const prevScore = prev?.score ?? TOTALLY_DIFFERENT;
+      const score = Math.max(prevScore, rawScore);
+
+      resultMap.set(fn, {
+        ...prev,
+        fn,
+        score,
+        filePath,
+        isVideo,
+        isCompress,
+        isFolder,
+      });
     }
   }
 
   merge(fileRows, 0);
   merge(estimateRows, 0);
 
+  const result = Array.from(resultMap.values());
   result.sort((a, b) => b.score - a.score);
   res.send(result);
 }));

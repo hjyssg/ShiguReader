@@ -13,6 +13,7 @@ import AdminPage from '@pages/AdminPage';
 import HistoryPage from '@pages/HistoryPage';
 import HomePage from '@pages/HomePage';
 import LoginPage from '@pages/LoginPage';
+import SimilarFilePage from '@pages/SimilarFilePage';
 import { Switch, Route, Link, Redirect } from 'react-router-dom';
 import screenfull from 'screenfull';
 const clientUtil = require('@utils/clientUtil');
@@ -138,6 +139,7 @@ class App extends Component {
         const renderChartPage = (props) => { return (<ChartPage {...props} />) };
         const renderHistoryPage = (props) => { return (<HistoryPage {...props} />) };
         const renderAdminPage = (props) => { return (<AdminPage {...props} />) };
+        const renderSimilarFilePage = (props) => { return (<SimilarFilePage {...props} />) };
         const renderLoginPage = (props) => { return (<LoginPage {...props} />) };
 
 
@@ -160,6 +162,7 @@ class App extends Component {
 
                 <Route path='/chart/' render={renderChartPage} />
                 <Route path='/history/' render={renderHistoryPage} />
+                <Route path='/similar-file/' render={renderSimilarFilePage} />
                 <Route path='/admin' render={renderAdminPage} />
                 <Route path='/login' render={renderLoginPage} />
             </Switch>

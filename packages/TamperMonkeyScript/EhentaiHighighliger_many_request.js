@@ -230,7 +230,8 @@ function appendLink(fileTitleDom, text, asIcon) {
     fileTitleDom.append(link);
     link.target = "_blank"
     link.className = "shigureader_link";
-    link.href = `http://localhost:${production_port}/search/?s=${text}`;
+    const encodedText = encodeURIComponent(text || "");
+    link.href = `http://localhost:${production_port}/similar-file/?text=${encodedText}`;
 }
 
 
