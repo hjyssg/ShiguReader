@@ -15,6 +15,7 @@ const serverUtil = require('./utils/server-util');
 const { getHash, asyncWrapper } = serverUtil;
 const filewatch = require('./services/file-watchers/file-watch');
 const thumbnailUtil = require('./services/thumbnail-query');
+const videoThumbnailService = require('./services/video-thumbnail');
 const { getStatAndUpdateDB } = require('./services/server-common');
 const initializeEnvironment = require('./bootstrap/environment');
 const loadConfig = require('./bootstrap/loadConfig');
@@ -62,6 +63,8 @@ logger.init();
 const sevenZipHelp = require('./services/seven-zip');
 sevenZipHelp.init();
 const { listZipContentAndUpdateDb, extractAll, extractByRange } = sevenZipHelp;
+
+videoThumbnailService.init();
 
 const resolveExtractedEntry = (baseOutputPath, entryPath) => {
     if (!entryPath) {
@@ -699,6 +702,8 @@ app.get('/api/thumbnail/get_quick', asyncWrapper(async (req, res) => {
                 useVideoPreviewForFolder = true;
             }
         }
+    } else if (isVideo(filePath)) {
+        url = await videoThumbnailService.getVideoThumbnail(filePath);
     }
     res.setHeader('Cache-Control', 'public, max-age=60');
     res.setHeader('Connection', 'Keep-Alive');
