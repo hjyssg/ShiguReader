@@ -1,0 +1,31 @@
+appId: com.shigureader.backend
+productName: ShiguReader Backend Console
+copyright: Copyright © 2024 ShiguReader
+files:
+  - dist/main/**/*
+  - dist/renderer/**/*
+  - dist/backend/**/*
+  - package.json
+  - dist/main/preload.js
+directories:
+  buildResources: build
+extraMetadata:
+  main: dist/main/electron/main.js
+asar: true
+mac:
+  target:
+    - dmg
+  category: public.app-category.utilities
+win:
+  target:
+    - target: nsis
+      arch:
+        - x64
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+linux:
+  target:
+    - AppImage
+  category: Utility
+publish: null
