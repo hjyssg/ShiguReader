@@ -6,7 +6,7 @@ import { LogEntry } from './logWriter';
 import fs from 'fs';
 import net from 'net';
 
-const isDev = process.env.NODE_ENV === 'development' || !app.isPackaged;
+const isDev = process.env.NODE_ENV === 'development' || !(app?.isPackaged);
 let mainWindow: BrowserWindow | null = null;
 let tray: Tray | null = null;
 
