@@ -35,22 +35,15 @@ function noNeedRecord(filePath){
     return cachePath && pathUtil.isSub(cachePath, filePath);
 }
 
-async function getLatestRecordForFilePath(filePath) {
-    if (!filePath) {
-        return null;
-    }
-
-    const sql = `SELECT time FROM history_table WHERE filePath = ? ORDER BY time DESC LIMIT 1`;
-    return await sqldb.getSync(sql, [filePath]);
-}
-
 module.exports.addOneRecord = async function (filePath, recordTime) {
     if(noNeedRecord(filePath)){
         return false;
     }
 
     const time = typeof recordTime === 'number' ? recordTime : util.getCurrentTime();
-    const lastRecord = await getLatestRecordForFilePath(filePath);
+    const fileName = path.basename(filePath);
+    const sql = `SELECT time FROM history_table WHERE filePath = ? OR fileName = ? ORDER BY time DESC LIMIT 1`;
+    const lastRecord = await sqldb.getSync(sql, [filePath, fileName]);
     const lastTime = lastRecord && typeof lastRecord.time === 'number' ? lastRecord.time : null;
     const FIVE_MINUTES = 5 * 60 * 1000;
 
@@ -58,7 +51,6 @@ module.exports.addOneRecord = async function (filePath, recordTime) {
         return false;
     }
 
-    const fileName = path.basename(filePath);
     const dirPath = path.dirname(filePath);
 
     await sqldb.insertOneRow("history_table", {
