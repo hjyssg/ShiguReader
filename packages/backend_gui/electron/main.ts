@@ -6,7 +6,7 @@ import { LogEntry } from './logWriter';
 import fs from 'fs';
 import net from 'net';
 
-const isDev = process.env.NODE_ENV === 'development';
+const isDev = process.env.NODE_ENV === 'development' || !app.isPackaged;
 let mainWindow: BrowserWindow | null = null;
 let tray: Tray | null = null;
 
@@ -17,10 +17,18 @@ let healthState: 'unknown' | 'healthy' | 'unhealthy' = 'unknown';
 let healthTimer: NodeJS.Timeout | null = null;
 
 function resolveBackendRoot() {
+  if (process.env.BACKEND_ROOT) {
+    return process.env.BACKEND_ROOT;
+  }
   if (isDev) {
     return path.resolve(__dirname, '..', '..', 'backend');
   }
-  return path.join(process.resourcesPath, 'backend');
+  const resourcesPath = process.resourcesPath;
+  if (!resourcesPath) {
+    // 在某些开发或调试场景下，Electron 可能尚未初始化 resourcesPath。
+    return path.resolve(__dirname, '..', '..', 'backend');
+  }
+  return path.join(resourcesPath, 'backend');
 }
 
 async function createWindow() {
