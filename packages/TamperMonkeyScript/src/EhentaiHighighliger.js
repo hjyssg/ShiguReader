@@ -232,9 +232,11 @@ function appendSimilarLink(fileTitleDom, text) {
     }
 
     const link = document.createElement("a");
-    link.textContent = "Find similar";
+    link.textContent = "Find in ShiguReader";
     link.title = trimmed;
     link.style.display = "block";
+    link.style.marginTop = "8px";
+    link.style.marginBottom = "8px";
     link.target = "_blank";
     link.className = "shigureader_link";
     const encodedText = encodeURIComponent(trimmed);
