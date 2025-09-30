@@ -117,9 +117,29 @@ const isExist = module.exports.isExist = async (tempPath) => {
 /**
  * 是否为直属parent directory
  */
- module.exports.isDirectParent =(parent, filePath) => {
+const normalizeForCompare = (input) => {
+    if (!input) {
+        return input;
+    }
+
+    const normalized = path.normalize(input);
+    return global.isWindows ? normalized.toLowerCase() : normalized;
+};
+
+module.exports.isDirectParent =(parent, filePath) => {
+    if (!parent || !filePath) {
+        return false;
+    }
+
     const parentPath = path.resolve(filePath, "..");
-    return pathEqual(parentPath, parent);
+    const normalizedParent = normalizeForCompare(parent);
+    const normalizedCandidate = normalizeForCompare(parentPath);
+
+    if (normalizedParent == null || normalizedCandidate == null) {
+        return false;
+    }
+
+    return pathEqual(normalizedCandidate, normalizedParent);
 }
 
 const removeLastPathSep = module.exports.removeLastPathSep = (fp) => {

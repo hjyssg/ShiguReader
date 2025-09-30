@@ -1,256 +1,230 @@
 const assert = require("assert");
 const path = require("path");
+const Module = require("module");
 
-// 在 Linux 环境下运行单测时，默认的 path 模块使用 POSIX 分隔符，会导致大量
-// Windows 风格路径用例失败。这里将常用方法替换为 win32 版本，模拟真实运行环境。
+// 让 path-util 在 Linux 单测环境中也走 Windows 语义：仅在装载被测模块期间
+// 将 Node.js 的 "path" 依赖替换为 win32 版本，避免污染全局。
 const originalIsWindows = global.isWindows;
-const win32Path = path.win32;
-
-const originalSepDescriptor = Object.getOwnPropertyDescriptor(path, "sep");
-const originalMethods = {
-  resolve: path.resolve,
-  join: path.join,
-  normalize: path.normalize,
-  relative: path.relative,
-  dirname: path.dirname,
-  basename: path.basename,
-  extname: path.extname,
-  parse: path.parse,
+const win32Path = {
+  ...path.win32,
+  sep: "\\",
+  delimiter: path.win32.delimiter,
+  posix: path.posix,
+  win32: path.win32,
 };
 
-function mockWin32PathModule() {
-  Object.defineProperty(path, "sep", {
-    configurable: true,
-    enumerable: true,
-    value: "\\",
-  });
+function loadPathUtilWithWin32Path() {
+  const originalLoad = Module._load;
+  Module._load = function mockPath(request, parent, isMain) {
+    if (request === "path") {
+      return win32Path;
+    }
+    return originalLoad.call(this, request, parent, isMain);
+  };
 
-  Object.assign(path, {
-    resolve: win32Path.resolve,
-    join: win32Path.join,
-    normalize: win32Path.normalize,
-    relative: win32Path.relative,
-    dirname: win32Path.dirname,
-    basename: win32Path.basename,
-    extname: win32Path.extname,
-    parse: win32Path.parse,
-  });
-}
-
-function restorePathModule() {
-  Object.defineProperty(path, "sep", originalSepDescriptor);
-  Object.assign(path, originalMethods);
-
-  if (originalIsWindows === undefined) {
-    delete global.isWindows;
-  } else {
-    global.isWindows = originalIsWindows;
+  try {
+    delete require.cache[require.resolve("../utils/path-util")];
+    return require("../utils/path-util");
+  } finally {
+    Module._load = originalLoad;
   }
 }
 
 let pathUtil;
 
 before(() => {
-  pathUtil = require("../utils/path-util");
-  mockWin32PathModule();
   global.isWindows = true;
+  pathUtil = loadPathUtilWithWin32Path();
 });
 
 after(() => {
-  restorePathModule();
+  if (originalIsWindows === undefined) {
+    delete global.isWindows;
+  } else {
+    global.isWindows = originalIsWindows;
+  }
   delete require.cache[require.resolve("../utils/path-util")];
 });
 
 describe("Path Util Test", function () {
   describe("isDirectParent()", function () {
-    // 测试 isDirectParent() 函数
-    it("should return true if parent is a direct parent of filePath", function () {
-      const parent = "C:\\Users\\";
-      const filePath = "C:\\Users\\file.txt";
-      const result = pathUtil.isDirectParent(parent, filePath);
-      assert.strictEqual(result, true);
-    });
+    const cases = [
+      {
+        name: "父目录带结尾分隔符",
+        parent: "C:\\Users\\",
+        filePath: "C:\\Users\\file.txt",
+        expected: true,
+      },
+      {
+        name: "父目录不带结尾分隔符",
+        parent: "C:\\Users",
+        filePath: "C:\\Users\\file.txt",
+        expected: true,
+      },
+      {
+        name: "与文件不在同一层级",
+        parent: "C:\\Users",
+        filePath: "C:\\Users\\nested\\file.txt",
+        expected: false,
+      },
+      {
+        name: "大小写不同的同一路径",
+        parent: "C:\\DATA",
+        filePath: "c:\\data\\index.txt",
+        expected: true,
+      },
+      {
+        name: "不同盘符",
+        parent: "D:\\Users",
+        filePath: "C:\\Users\\file.txt",
+        expected: false,
+      },
+    ];
 
-    it("should return true if parent is a direct parent of filePath 2", function () {
-        const parent = "C:\\Users";
-        const filePath = "C:\\Users\\file.txt";
-        const result = pathUtil.isDirectParent(parent, filePath);
-        assert.strictEqual(result, true);
-    });
-
-    it("should return false if parent is not a direct parent of filePath", function () {
-      const parent = "C:\\Users\\";
-      const filePath = "C:\\file.txt";
-      const result = pathUtil.isDirectParent(parent, filePath);
-      assert.strictEqual(result, false);
-    });
-
-    it("should return false if parent is not a direct parent of filePath 2", function () {
-        const parent = "C:\\Users\\";
-        const filePath = "C:\\file.txt";
-        const result = pathUtil.isDirectParent(parent, filePath);
-        assert.strictEqual(result, false);
+    cases.forEach(({ name, parent, filePath, expected }) => {
+      it(name, function () {
+        assert.strictEqual(pathUtil.isDirectParent(parent, filePath), expected);
       });
-
-
-
-
+    });
   });
 
   describe("removeLastPathSep()", function () {
-    // 测试 removeLastPathSep() 函数
-    it("should remove the last path separator if exists", function () {
-      const fp = "C:\\Users\\";
-      const result = pathUtil.removeLastPathSep(fp);
-      assert.strictEqual(result, "C:\\Users");
+    it("存在尾部分隔符时移除", function () {
+      assert.strictEqual(pathUtil.removeLastPathSep("C:\\Users\\"), "C:\\Users");
     });
 
-    it("should return the original string if there is no last path separator", function () {
-      const fp = "C:\\Users";
-      const result = pathUtil.removeLastPathSep(fp);
-      assert.strictEqual(result, "C:\\Users");
+    it("没有尾部分隔符时返回原值", function () {
+      assert.strictEqual(pathUtil.removeLastPathSep("C:\\Users"), "C:\\Users");
+    });
+
+    it("保留根目录的盘符形式", function () {
+      assert.strictEqual(pathUtil.removeLastPathSep("C:\\"), "C:");
+    });
+
+    it("空字符串返回空字符串", function () {
+      assert.strictEqual(pathUtil.removeLastPathSep(""), "");
     });
   });
 
   describe("isSub()", function () {
-    // 测试 isSub() 函数
-    it("should return true if child is a subdirectory of parent 1", function () {
-      const parent = "Y:\\_Downloads";
-      const child = "Y:\\_Downloads\\_pixiv";
-      const result = pathUtil.isSub(parent, child);
-      assert.strictEqual(result, true);
-    });
+    const cases = [
+      {
+        name: "子目录与父目录同盘符",
+        parent: "Y:\\_Downloads",
+        child: "Y:\\_Downloads\\_pixiv",
+        expected: true,
+      },
+      {
+        name: "父目录保留尾部分隔符",
+        parent: "Y:\\_Downloads\\",
+        child: "Y:\\_Downloads\\_pixiv",
+        expected: true,
+      },
+      {
+        name: "多级子目录",
+        parent: "Y:\\_Downloads",
+        child: "Y:\\_Downloads\\_pixiv\\set01",
+        expected: true,
+      },
+      {
+        name: "仅大小写不同",
+        parent: "D:\\Archive",
+        child: "d:\\archive\\2024\\set",
+        expected: true,
+      },
+      {
+        name: "不同盘符直接判定为 false",
+        parent: "C:\\Archive",
+        child: "D:\\Archive\\2024",
+        expected: false,
+      },
+      {
+        name: "父子相同路径返回 false",
+        parent: "Y:\\_Downloads",
+        child: "Y:\\_Downloads",
+        expected: false,
+      },
+      {
+        name: "父目录少一级",
+        parent: "D:\\_Happy_Lesson\\_Going_to_sort\\_not_good",
+        child: "D:\\_Happy_Lesson\\_Going_to_sort\\_not_good\\not_good_2020",
+        expected: true,
+      },
+    ];
 
-    it("should return true if child is a subdirectory of parent 2", function () {
-        const parent = "Y:\\_Downloads\\";
-        const child = "Y:\\_Downloads\\_pixiv";
-        const result = pathUtil.isSub(parent, child);
-        assert.strictEqual(result, true);
+    cases.forEach(({ name, parent, child, expected }) => {
+      it(name, function () {
+        assert.strictEqual(pathUtil.isSub(parent, child), expected);
       });
-
-    it("should return true if child is a subdirectory of parent  3", function () {
-        const parent = "Y:\\_Downloads";
-        const child = "Y:\\_Downloads\\_pixiv\\asdsda";
-        const result = pathUtil.isSub(parent, child);
-        assert.strictEqual(result, true);
     });
-
-    it("should return true if child is a subdirectory of parent  4", function () {
-        const parent = "Y:\\_Downloads\\";
-        const child = "Y:\\_Downloads\\_pixiv\\asdsda";
-        const result = pathUtil.isSub(parent, child);
-        assert.strictEqual(result, true);
-    });
-
-    it("should return false if child is not a subdirectory of parent 5", function () {
-      const parent = "Y:\\_Downloads";
-      const child = "Y:\\_Downloads";
-      const result = pathUtil.isSub(parent, child);
-      assert.strictEqual(result, false);
-    });
-
-    it("should return false if child is not a subdirectory of parent 6", function () {
-        const parent = "Y:\\_Downloads\\";
-        const child = "Y:\\_Downloads";
-        const result = pathUtil.isSub(parent, child);
-        assert.strictEqual(result, false);
-      });
-
-    it(" 7 ", function () {
-        assert.strictEqual(pathUtil.isSub("D:\\_Happy_Lesson\\_Going_to_sort\\_not_good\\", "D:\\_Happy_Lesson\\_Going_to_sort\\_not_good\\not_good_2020"), true);
-        assert.strictEqual(pathUtil.isSub("D:\\_Happy_Lesson\\_Going_to_sort\\_not_good", "D:\\_Happy_Lesson\\_Going_to_sort\\_not_good\\not_good_2020"), true);
-    });
-
   });
 
   describe("getExt()", function () {
-    // 测试 getExt() 函数
-    it("should return the extension of the file path", function () {
-      const p = "Y:\\_Downloads\\file.txt";
-      const result = pathUtil.getExt(p);
-      assert.strictEqual(result, ".txt");
+    it("读取文件后缀", function () {
+      assert.strictEqual(pathUtil.getExt("Y:\\_Downloads\\file.txt"), ".txt");
     });
 
-    it("should return an empty string if the file path has no extension", function () {
-      const p = "Y:\\_Downloads";
-      const result = pathUtil.getExt(p);
-      assert.strictEqual(result, "");
+    it("无后缀时返回空字符串", function () {
+      assert.strictEqual(pathUtil.getExt("Y:\\_Downloads"), "");
+      assert.strictEqual(pathUtil.getExt("Y:\\_Downloads\\alice [22P-362.71 MB]"), "");
     });
 
-
-    it("should return an empty string if the file path has no extension", function () {
-      const p = "Y:\\_Downloads\\alice [22P-362.71 MB]";
-      const result = pathUtil.getExt(p);
-      assert.strictEqual(result, "");
+    it("统一转换为小写扩展名", function () {
+      assert.strictEqual(pathUtil.getExt("Y:\\_Downloads\\cover.PNG"), ".png");
     });
   });
 
   describe("estimateIfFolder()", function () {
-    // 测试 estimateIfFolder() 函数
-    it("should return true if the file path is a folder", function () {
-      const filePath = "Y:\\_Downloads";
-      const result = pathUtil.estimateIfFolder(filePath);
-      assert.strictEqual(result, true);
+    it("路径没有扩展名时判断为文件夹", function () {
+      assert.strictEqual(pathUtil.estimateIfFolder("Y:\\_Downloads"), true);
     });
 
-    it("should return false if the file path is not a folder", function () {
-      const filePath = "Y:\\_Downloads\\file.txt";
-      const result = pathUtil.estimateIfFolder(filePath);
-      assert.strictEqual(result, false);
+    it("存在扩展名时判断为文件", function () {
+      assert.strictEqual(pathUtil.estimateIfFolder("Y:\\_Downloads\\file.txt"), false);
     });
   });
 
   describe("filterHiddenFile()", function () {
-    // 测试 filterHiddenFile() 函数
-    it("should return files with non-hidden names", function () {
+    it("过滤掉以点开头的文件（类 Unix dotfile）", function () {
       const files = ["Y:\\_Downloads\\file.txt", "Y:\\_Downloads\\.hidden_file"];
-      const result = pathUtil.filterHiddenFile(files);
-      assert.deepStrictEqual(result, ["Y:\\_Downloads\\file.txt"]);
+      assert.deepStrictEqual(pathUtil.filterHiddenFile(files), ["Y:\\_Downloads\\file.txt"]);
     });
 
-    it("should return empty array if all files have hidden names", function () {
+    it("全部为 dotfile 时返回空数组", function () {
       const files = [".hidden_file1", ".hidden_file2"];
-      const result = pathUtil.filterHiddenFile(files);
-      assert.deepStrictEqual(result, []);
+      assert.deepStrictEqual(pathUtil.filterHiddenFile(files), []);
     });
   });
 
   describe("getDirName()", function () {
-    // 测试 getDirName() 函数
-    it("should return the name of the directory containing the file path", function () {
-      const p = "Y:\\_Downloads\\file.txt";
-      const result = pathUtil.getDirName(p);
-      assert.strictEqual(result, "_Downloads");
+    it("返回文件所在目录名称", function () {
+      assert.strictEqual(pathUtil.getDirName("Y:\\_Downloads\\file.txt"), "_Downloads");
+    });
+
+    it("目录路径自身时返回上一级目录名称", function () {
+      assert.strictEqual(pathUtil.getDirName("Y:\\_Downloads\\sample"), "_Downloads");
     });
   });
 
   describe("isHiddenFile()", function () {
-    // 测试 isHiddenFile() 函数
-    it("should return true if the file name starts with a dot (.)", function () {
-      const f = ".hidden_file.txt";
-      const result = pathUtil.isHiddenFile(f);
-      assert.strictEqual(result, true);
+    it("以点开头视为隐藏文件（dotfile）", function () {
+      assert.strictEqual(pathUtil.isHiddenFile(".hidden_file.txt"), true);
     });
 
-    it("should return false if the file name does not start with a dot (.)", function () {
-      const f = "file.txt";
-      const result = pathUtil.isHiddenFile(f);
-      assert.strictEqual(result, false);
+    it("普通文件名返回 false", function () {
+      assert.strictEqual(pathUtil.isHiddenFile("file.txt"), false);
     });
   });
 
   describe("isForbid()", function () {
-    // 测试 isForbid() 函数
-    it("should return true if the string matches any forbidden folder names", function () {
+    it("命中保留目录名称返回 true", function () {
       const str = "System Volume Information";
-      const result = pathUtil.isForbid(str);
-      assert.strictEqual(result, true);
+      assert.strictEqual(pathUtil.isForbid(str), true);
     });
 
-    it("should return false if the string does not match any forbidden folder names", function () {
+    it("普通目录名称返回 false", function () {
       const str = "_Downloads";
-      const result = pathUtil.isForbid(str);
-      assert.strictEqual(result, false);
+      assert.strictEqual(pathUtil.isForbid(str), false);
     });
   });
 });
