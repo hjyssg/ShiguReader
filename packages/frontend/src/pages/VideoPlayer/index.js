@@ -10,7 +10,7 @@ import { getInfo as getFileInfo } from '@api/file';
 import { addHistoryRecord } from '@api/history';
 const queryString = require('query-string');
 const Cookie = require("js-cookie");
-import DPlayer from "react-dplayer";
+import DPlayer from "@components/common/DPlayer";
 import HistorySection from '@components/common/HistorySection';
 
 
