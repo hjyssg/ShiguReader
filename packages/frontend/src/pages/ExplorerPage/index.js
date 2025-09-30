@@ -29,7 +29,7 @@ const Constant = require("@common/constant");
 const clientUtil = require("@utils/clientUtil");
 const { getDir, getBaseName, getPerPageItemNumber, isSearchInputTextTyping, filesizeUitl, sortFileNames } = clientUtil;
 const { isVideo, isCompress, isImage, isMusic } = util;
-const AdminUtil = require("@utils/AdminUtil");
+const ThumbnailGenerationUtil = require("@utils/ThumbnailGenerationUtil");
 import RangeSlider from 'react-range-slider-input';
 import 'react-range-slider-input/dist/style.css';
 
@@ -947,7 +947,7 @@ export default class ExplorerPage extends Component {
         if (this.getMode() === MODE_EXPLORER) {
             const text = "Generate Thumbnail"
             return (
-                <span key="thumbnail-button" className="thumbnail-button exp-top-button" onClick={() => AdminUtil.askPregenerate(this.getPathFromQuery())}>
+                <span key="thumbnail-button" className="thumbnail-button exp-top-button" onClick={() => ThumbnailGenerationUtil.askPregenerate(this.getPathFromQuery())}>
                     <span className="fas fa-tools" />
                     <span> {text} </span>
                 </span>

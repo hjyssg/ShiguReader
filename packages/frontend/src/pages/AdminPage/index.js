@@ -8,7 +8,7 @@ import Cookie from "js-cookie";
 import RadioButtonGroup from '@components/common/RadioButtonGroup';
 const clientUtil = require("@utils/clientUtil");
 // const { getBaseName } = clientUtil;
-const AdminUtil = require("@utils/AdminUtil");
+const ThumbnailGenerationUtil = require("@utils/ThumbnailGenerationUtil");
 import { GlobalContext } from '@context/GlobalContext';
 // const util = require("@common/util");
 const classNames = require('classnames');
@@ -145,7 +145,7 @@ export default class AdminPage extends Component {
     onPrenerate(fastUpdateMode) {
         const pathInput = ReactDOM.findDOMNode(this.pathInputRef);
         const path = pathInput.value || this.state.prePath;
-        AdminUtil.askPregenerate(path);
+        ThumbnailGenerationUtil.askPregenerate(path);
     }
 
     onPathChange(e) {
