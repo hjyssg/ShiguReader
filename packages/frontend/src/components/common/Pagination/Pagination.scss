@@ -1,5 +1,4 @@
-@import "../../../styles/vars.scss";
-
+@use "../../../styles/vars" as *;
 .pagination-container {
     @include flex_center_display
 }

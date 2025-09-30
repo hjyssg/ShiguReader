@@ -1,5 +1,4 @@
-@import "../../styles/vars.scss";
-
+@use "../../styles/vars" as *;
 .error-page-container {
   position: fixed;
   top: 30%;

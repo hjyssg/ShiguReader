@@ -1,5 +1,4 @@
-@import "vars.scss";
-
+@use "./vars" as *;
 .rc-pagination {
   font-size: 12px;
   font-family: 'Arial';

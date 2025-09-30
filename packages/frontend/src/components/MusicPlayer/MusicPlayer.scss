@@ -1,5 +1,4 @@
-@import "../../styles/vars.scss";
-
+@use "../../styles/vars" as *;
 .aji-music-player {
     max-width: 750px;
     width: 80%;

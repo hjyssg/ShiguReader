@@ -1,5 +1,4 @@
-@import "../../../styles/vars.scss";
-
+@use "../../../styles/vars" as *;
 .explorer-breadcrumb {
   padding: 8px 16px;
   list-style: none;

@@ -1,5 +1,4 @@
-@import "../../styles/vars.scss";
-
+@use "../../styles/vars" as *;
 .empty-block {
   width: 180px;
   margin-top: 30px;

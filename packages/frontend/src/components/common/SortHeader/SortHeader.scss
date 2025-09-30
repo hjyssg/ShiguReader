@@ -1,14 +1,14 @@
-@import "../../../styles/vars.scss";
-
+@use "sass:color";
+@use "../../../styles/vars" as *;
 $sb-panel: $bacground_level_two;
 $sb-text: $font_color_white_one;
 $sb-muted: rgba($sb-text, 0.7);
-$sb-pill: lighten($bacground_level_two, 3%);
+$sb-pill: color.adjust($bacground_level_two, $lightness: 3%);
 $sb-pill-border: rgba(0, 0, 0, 0.3);
 $sb-active: #2f6feb;
 $sb-active-text: #ffffff;
 $sb-divider: rgba(255, 255, 255, 0.08);
-$sb-hover: lighten($bacground_level_two, 6%);
+$sb-hover: color.adjust($bacground_level_two, $lightness: 6%);
 
 .sb-bar {
   display: flex;

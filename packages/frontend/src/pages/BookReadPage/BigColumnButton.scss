@@ -1,5 +1,4 @@
-@import "../../styles/vars.scss";
-
+@use "../../styles/vars" as *;
 $zoom-width: 10%;
 
 .big-column-button {

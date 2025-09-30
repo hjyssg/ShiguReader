@@ -1,5 +1,4 @@
-@import "../../styles/vars.scss";
-
+@use "../../styles/vars" as *;
 .similar-file-container {
   position: relative;
   @include common_sub_container;

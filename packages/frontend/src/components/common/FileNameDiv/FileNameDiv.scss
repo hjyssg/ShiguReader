@@ -1,5 +1,4 @@
-@import "../../../styles/vars.scss";
-
+@use "../../../styles/vars" as *;
 .aji-file-name {
   .embed-link {
     color: #DDDDDD !important;
