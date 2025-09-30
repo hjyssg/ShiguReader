@@ -1,6 +1,5 @@
 import React from "react";
-import clsx from "clsx";
-import omit from "omit.js";
+import classNames from "classnames";
 import DPlayer from "dplayer";
 
 const events = [
@@ -59,6 +58,7 @@ const eventsProps = events.map((eventName) => ({
   eventName,
   prop: `on${capitalizeEventName(eventName)}`
 }));
+const eventPropNames = new Set(eventsProps.map((event) => event.prop));
 
 class DPlayerComponent extends React.Component {
   componentDidMount() {
@@ -104,15 +104,13 @@ class DPlayerComponent extends React.Component {
 
   render() {
     const { className, ...otherProps } = this.props;
-    const resetProps = omit(otherProps, [
-      "options",
-      "onLoad",
-      ...eventsProps.map((ev) => ev.prop)
-    ]);
-    const wrapperClassName = clsx({
-      dplayer: true,
-      [className]: !!className
+    const resetProps = {};
+    Object.keys(otherProps).forEach((key) => {
+      if (key !== "options" && key !== "onLoad" && !eventPropNames.has(key)) {
+        resetProps[key] = otherProps[key];
+      }
     });
+    const wrapperClassName = classNames("dplayer", className);
 
     return (
       <div
