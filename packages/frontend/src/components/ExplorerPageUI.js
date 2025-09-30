@@ -28,7 +28,7 @@ const clientUtil = require("@utils/clientUtil");
 const { getDir, getBaseName, getPerPageItemNumber, isSearchInputTextTyping, filesizeUitl, sortFileNames } = clientUtil;
 const { isVideo, isCompress, isImage, isMusic } = util;
 // const sortUtil = require("../common/sortUtil");
-const AdminUtil = require("@utils/AdminUtil");
+const ThumbnailGenerationUtil = require("@utils/ThumbnailGenerationUtil");
 import Swal from 'sweetalert2';
 import RangeSlider from 'react-range-slider-input';
 import 'react-range-slider-input/dist/style.css';
