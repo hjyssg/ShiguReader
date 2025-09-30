@@ -39,7 +39,7 @@ const config = {
           }
       ]
 
-      },{
+      }, {
         test: /\.scss$/,
         use: ["style-loader", "css-loader", {
           loader: 'sass-loader',
@@ -50,9 +50,6 @@ const config = {
             },
           },
         }]
-      },{
-        test: /\.less$/,
-        use: ["style-loader" ,"css-loader", "less-loader"]
       }
     ]
   },

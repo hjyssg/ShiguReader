@@ -60,8 +60,6 @@
     "eslint-plugin-react": "^7.7.0",
     "file-loader": "^6.2.0",
     "html-webpack-plugin": "^5.5.1",
-    "less": "^3.9.0",
-    "less-loader": "^11.1.4",
     "mocha": "^5.2.0",
     "sass": "^1.77.8",
     "sass-loader": "^13.3.2",
