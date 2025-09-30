@@ -39,7 +39,7 @@
     "react-toastify": "^9.1.2",
     "screenfull": "^4.0.0",
     "sweetalert2": "^8.0.7",
-    "underscore": "^1.9.1",
+    "underscore": "^1.9.1"
   },
   "devDependencies": {
     "@babel/core": "^7.0.0",

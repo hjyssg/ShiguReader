@@ -1,6 +1,65 @@
-// 引入需要测试的函数
-const pathUtil = require("../utils/path-util");
 const assert = require("assert");
+const path = require("path");
+
+// 在 Linux 环境下运行单测时，默认的 path 模块使用 POSIX 分隔符，会导致大量
+// Windows 风格路径用例失败。这里将常用方法替换为 win32 版本，模拟真实运行环境。
+const originalIsWindows = global.isWindows;
+const win32Path = path.win32;
+
+const originalSepDescriptor = Object.getOwnPropertyDescriptor(path, "sep");
+const originalMethods = {
+  resolve: path.resolve,
+  join: path.join,
+  normalize: path.normalize,
+  relative: path.relative,
+  dirname: path.dirname,
+  basename: path.basename,
+  extname: path.extname,
+  parse: path.parse,
+};
+
+function mockWin32PathModule() {
+  Object.defineProperty(path, "sep", {
+    configurable: true,
+    enumerable: true,
+    value: "\\",
+  });
+
+  Object.assign(path, {
+    resolve: win32Path.resolve,
+    join: win32Path.join,
+    normalize: win32Path.normalize,
+    relative: win32Path.relative,
+    dirname: win32Path.dirname,
+    basename: win32Path.basename,
+    extname: win32Path.extname,
+    parse: win32Path.parse,
+  });
+}
+
+function restorePathModule() {
+  Object.defineProperty(path, "sep", originalSepDescriptor);
+  Object.assign(path, originalMethods);
+
+  if (originalIsWindows === undefined) {
+    delete global.isWindows;
+  } else {
+    global.isWindows = originalIsWindows;
+  }
+}
+
+let pathUtil;
+
+before(() => {
+  pathUtil = require("../utils/path-util");
+  mockWin32PathModule();
+  global.isWindows = true;
+});
+
+after(() => {
+  restorePathModule();
+  delete require.cache[require.resolve("../utils/path-util")];
+});
 
 describe("Path Util Test", function () {
   describe("isDirectParent()", function () {
