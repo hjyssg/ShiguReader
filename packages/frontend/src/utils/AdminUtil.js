@@ -44,32 +44,13 @@ const askPregenerate = function (path, fastUpdateMode) {
         toast(divContent, toastConfig)
     }
 
-    const showConfirm = (mode) => {
-        const confirmText = mode ? 'Fast Update (Only For New File)' : 'Full Update (Also Regenerate Metadata)';
-        Swal.fire({
-            title: "Pregenerate Thumbnail",
-            text: path + "\n" + confirmText,
-            showCancelButton: true,
-            confirmButtonText: 'Confirm',
-            cancelButtonText: 'Cancel'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                requestPregenerate(mode);
-            }
-        });
-    }
-
-    if (typeof fastUpdateMode === 'boolean') {
-        showConfirm(fastUpdateMode);
-        return;
-    }
 
     Swal.fire({
-        title: "Pregenerate Thumbnail",
+        title: "Generate Thumbnail",
         text: path,
         showDenyButton: true,
         showCancelButton: true,
-        confirmButtonText: 'Full Update (Also Regenerate Metadata)',
+        confirmButtonText: 'Full Update (Thumbnail And Metadata)',
         denyButtonText: 'Fast Update (Only For New File)',
         cancelButtonText: 'Cancel'
     }).then((result) => {

@@ -1,4 +1,3 @@
-import 'whatwg-fetch';
 import axios from 'axios';
 
 const Sender = {};
