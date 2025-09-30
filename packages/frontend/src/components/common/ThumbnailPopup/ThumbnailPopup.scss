@@ -1,5 +1,4 @@
-@import "../../../styles/vars.scss";
-
+@use "../../../styles/vars" as *;
 .thumbnail-popup-wrap {
 //   color: $font_color_white_one;
   cursor: pointer;

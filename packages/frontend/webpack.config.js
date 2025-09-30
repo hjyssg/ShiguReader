@@ -44,9 +44,10 @@ const config = {
         use: ["style-loader", "css-loader", {
           loader: 'sass-loader',
           options: {
-            implementation: require('sass'),
+            implementation: require('sass-embedded'),
             sassOptions: {
-              includePaths: [path.resolve(__dirname, 'src/styles')],
+              api: 'modern',
+              loadPaths: [path.resolve(__dirname, 'src/styles')],
             },
           },
         }]

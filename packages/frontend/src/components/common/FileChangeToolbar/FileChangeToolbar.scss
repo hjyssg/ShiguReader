@@ -1,5 +1,4 @@
-@import "../../../styles/vars.scss";
-
+@use "../../../styles/vars" as *;
 .path-highlight {
   color: red;
   font-weight: 700;

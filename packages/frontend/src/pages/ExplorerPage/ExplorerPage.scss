@@ -1,4 +1,4 @@
-@import "../../styles/vars.scss";
+@use "../../styles/vars" as *;
 .explorer-page-loading {
   text-align: center;
   font-size: 3rem;

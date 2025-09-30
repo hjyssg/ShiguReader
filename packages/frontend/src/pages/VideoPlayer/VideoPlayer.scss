@@ -1,5 +1,4 @@
-@import "../../styles/vars.scss";
-
+@use "../../styles/vars" as *;
 .video-player-page {
 
     .video-player-container {

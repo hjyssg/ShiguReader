@@ -1,5 +1,4 @@
-@import "../../styles/vars.scss";
-
+@use "../../styles/vars" as *;
 .one-book-nothing-available {
   color: $font_color_white_one;
   font-size: 2rem;

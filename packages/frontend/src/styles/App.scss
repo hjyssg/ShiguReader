@@ -1,5 +1,4 @@
-@import "vars.scss";
-
+@use "./vars" as *;
 #root {
   @media screen and (max-width: 400px) {
     min-width: 400px;

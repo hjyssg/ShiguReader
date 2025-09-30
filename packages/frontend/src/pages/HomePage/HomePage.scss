@@ -1,5 +1,5 @@
-@import "../../styles/vars.scss";
-
+@use "sass:color";
+@use "../../styles/vars" as *;
 .home-page {
   @media only screen and (min-width: 1200px) {
     .explorer-one-line-list-item {
@@ -24,12 +24,12 @@
     gap: 2px;
 
     .path-prefix {
-      color: lighten($font_color_white_one, 20%);
+      color: color.adjust($font_color_white_one, $lightness: 20%);
       opacity: 0.7;
     }
 
     .path-highlight {
-      color: lighten($font_dark_orange, 12%);
+      color: color.adjust($font_dark_orange, $lightness: 12%);
       font-weight: 600;
     }
   }
