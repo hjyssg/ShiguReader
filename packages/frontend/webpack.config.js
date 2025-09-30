@@ -28,18 +28,19 @@ const config = {
         use: ['style-loader', 'css-loader']
       },
       {
-        test: /\.(png|woff|woff2|eot|ttf|svg)$/,
-        // loader: 'url-loader?limit=100000'
-        use:[
-          {
-              loader: 'url-loader',
-              options: {
-                  limit: 1000,
-              }
-          }
-      ]
-
-      }, {
+        test: /\.(png|jpe?g|gif|svg)$/i,
+        type: 'asset',
+        parser: {
+          dataUrlCondition: {
+            maxSize: 1000,
+          },
+        },
+      },
+      {
+        test: /\.(woff2?|eot|ttf|otf)$/i,
+        type: 'asset/resource',
+      },
+      {
         test: /\.scss$/,
         use: ["style-loader", "css-loader", {
           loader: 'sass-loader',
