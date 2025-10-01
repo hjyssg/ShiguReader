@@ -29,7 +29,10 @@ REPO_ROOT = PACKAGES_DIR.parent
 RELEASE_DIR = PACKAGES_DIR / "ShiguReaderExeRelease"
 SYNC_SCRIPT = BACKEND_DIR / "etc" / "sync_frontend_assets_to_backend.py"
 ASSET_FOLDERS = ("dist", "resource")
-ADDITIONAL_FILES = ("config-etc.ini", "config-path.ini")
+CONFIG_FILE_PAIRS = (
+    ("config-etc.ini", "config-etc.ini.example"),
+    ("config-path.ini", "config-path.ini.example"),
+)
 ZIP_EXCLUDE_DIRS = {"workspace", "thumbnails", "cache", ".git"}
 
 
@@ -83,17 +86,33 @@ def copy_release_folders() -> None:
 
 
 def copy_release_files() -> None:
-    """Copy additional config files into the release directory."""
+    """Copy configuration files (or their templates) into the release directory."""
 
     print("[4/6] 复制配置文件到 ShiguReaderExeRelease……")
-    for file_name in ADDITIONAL_FILES:
-        src = BACKEND_DIR / file_name
-        if not src.is_file():
-            raise FileNotFoundError(f"缺少必须的文件: {src}")
+    for real_name, template_name in CONFIG_FILE_PAIRS:
+        real_path = BACKEND_DIR / real_name
+        template_path = BACKEND_DIR / template_name
 
-        dst = RELEASE_DIR / file_name
-        shutil.copy2(src, dst)
-        print(f"已复制 {src} -> {dst}")
+        if template_path.is_file():
+            dst_template = RELEASE_DIR / template_name
+            shutil.copy2(template_path, dst_template)
+            print(f"已复制 {template_path} -> {dst_template}")
+
+        if real_path.is_file():
+            target = RELEASE_DIR / real_name
+            shutil.copy2(real_path, target)
+            print(f"已复制 {real_path} -> {target}")
+            continue
+
+        if template_path.is_file():
+            target = RELEASE_DIR / real_name
+            shutil.copy2(template_path, target)
+            print(f"未找到 {real_path.name}，已使用模板 {template_path.name} 生成 {target.name}")
+            continue
+
+        raise FileNotFoundError(
+            f"缺少必须的配置文件或模板: {real_path} / {template_path}"
+        )
 
 
 def clear_release_workspace() -> None:

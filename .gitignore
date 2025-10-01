@@ -1,3 +1,5 @@
 /packages/SGR_pkg/*
 /packages/ShiguReaderExeRelease/*
+packages/backend/config-etc.ini
+packages/backend/config-path.ini
 

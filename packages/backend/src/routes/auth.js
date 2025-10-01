@@ -8,7 +8,8 @@ const tokenSet = {};
 router.post('/api/auth/login', serverUtil.asyncWrapper(async (req, res) => {
     const etcConfig = global.etc_config || {};
     const password = req.body && req.body.password;
-    if (password === etcConfig.home_password || !etcConfig.home_password) {
+    const homePassword = etcConfig.security?.homePassword ?? etcConfig.home_password;
+    if (password === homePassword || !homePassword) {
         const token = serverUtil.makeid();
         tokenSet[token] = true;
         res.cookie('login-token', token, { maxAge: 30 * 1000 * 3600 * 24 });

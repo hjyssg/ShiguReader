@@ -4,6 +4,7 @@ const path = require('path');
 
 const util = require("../../../common/src/util");
 const userConfig = require("../config/user-config");
+const { normalizePathConfig } = require("../config/config-schema");
 
 // const fs = require('fs');
 const _ = require('underscore');
@@ -176,7 +177,20 @@ const filterNonExist = module.exports.filterNonExist = async (pathes, limit) => 
  * 算出项目相关的各种path
  */
 module.exports.filterPathConfig = async (path_config, skipScan) => {
-    let { good_folder_root="", not_good_folder_root="", scan_folder_pathes=[], quick_access_pathes=[], move_pathes=[] } = path_config;
+    const { config, warnings, errors } = normalizePathConfig(path_config);
+
+    warnings.forEach((message) => {
+        logger.warn(`[config] ${message}`);
+    });
+    errors.forEach((message) => {
+        logger.error(`[config] ${message}`);
+    });
+
+    let good_folder_root = config.favorites.goodRoot || "";
+    let not_good_folder_root = config.favorites.notGoodRoot || "";
+    let scan_folder_pathes = config.paths.scan || [];
+    let quick_access_pathes = config.paths.quickAccess || [];
+    let move_pathes = config.paths.moveTargets || [];
 
     move_pathes = await filterNonExist(move_pathes);
 

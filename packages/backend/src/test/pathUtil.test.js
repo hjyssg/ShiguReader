@@ -1,8 +1,17 @@
 // 引入需要测试的函数
+const path = require("path");
 const pathUtil = require("../utils/path-util");
 const assert = require("assert");
 
+const isWindows = path.sep === "\\";
+
 describe("Path Util Test", function () {
+  before(function () {
+    if (!isWindows) {
+      this.skip();
+    }
+  });
+
   describe("isDirectParent()", function () {
     // 测试 isDirectParent() 函数
     it("should return true if parent is a direct parent of filePath", function () {

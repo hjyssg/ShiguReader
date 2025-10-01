@@ -1,0 +1,6 @@
+# ShiguReader 通用配置模板
+# 将本文件复制为 config-etc.ini 后再修改。
+
+[security]
+# 主页登录密码。留空则无需登录即可访问。
+home_password =

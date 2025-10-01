@@ -1,0 +1,21 @@
+# ShiguReader 路径配置模板
+# 将本文件复制为 config-path.ini 后按需编辑。
+# ';' 或 '#' 开头的行为注释。
+
+[paths]
+# 需要扫描的目录，可重复填写多行。
+scan[] = D:\\Comics
+# 快速访问但不参与扫描的目录。
+quick_access[] = D:\\Downloads
+# 前端“移动到”面板的候选目标。
+move_targets[] = D:\\Library
+
+[favorites]
+# 喜欢的作品根目录（可选）。会自动创建类似 good_2024_01_01 的子目录。
+good_root =
+# 不喜欢的作品根目录（可选）。会自动创建类似 not_good_2024 的子目录。
+not_good_root =
+
+[notes]
+# Windows 请使用双反斜杠，例如 D:\\Comics。
+# Linux 或 macOS 使用普通的 /home/user/Comics 写法。

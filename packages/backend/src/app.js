@@ -143,12 +143,21 @@ const cookieParser = require('cookie-parser');
 app.use(cookieParser());
 
 //read etc config
-const { etcConfig: loadedEtcConfig, pathConfig: loadedPathConfig } = loadConfig({
+const {
+    etcConfig: loadedEtcConfig,
+    pathConfig: loadedPathConfig,
+    warnings: configWarnings,
+    errors: configErrors,
+} = loadConfig({
     etcConfigPath,
     pathConfigPath,
     logger,
 });
-let etc_config = loadedEtcConfig || {};
+configWarnings?.forEach((message) => logger.warn(`[config] ${message}`));
+configErrors?.forEach((message) => logger.error(`[config] ${message}`));
+
+let etc_config = loadedEtcConfig || { security: { homePassword: '' } };
+etc_config.home_password = etc_config.security?.homePassword || '';
 let path_config = loadedPathConfig;
 global.etc_config = etc_config;
 
@@ -383,7 +392,8 @@ const exception_apis = [
 //check if login
 app.use((req, res, next) => {
     //console.log("[" + req.path+ "]" + new Date());
-    if(!etc_config.home_password){
+    const homePassword = etc_config.security?.homePassword;
+    if(!homePassword){
         res.cookie('login-token', 'no-need-login-token', {maxAge: 1000 * 3600 * 1 });
         next();
     } else if(exception_apis.some(e => (req.path.includes(e)))){
