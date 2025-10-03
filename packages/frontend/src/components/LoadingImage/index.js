@@ -33,7 +33,6 @@ export default function LoadingImage({
   // state
   const [url, setUrl] = useState(propUrl);
   const [isVisible, setIsVisible] = useState(false);
-  const unmountedRef = useRef(false);
   const requestedRef = useRef(false); // guard against duplicate requests
 
   // keep state.url in sync with prop url
@@ -43,11 +42,6 @@ export default function LoadingImage({
     }
   }, [propUrl]);
 
-  useEffect(() => {
-    return () => {
-      unmountedRef.current = true;
-    };
-  }, []);
 
   const isAuthorTagMode = mode === "author" || mode === "tag";
 
@@ -71,18 +65,14 @@ export default function LoadingImage({
         res = await getDetailedThumbnail(filePath);
       }
 
-      if (!unmountedRef.current) {
         if (!res || typeof res.isFailed === "function" && res.isFailed()) {
           setUrl("NO_THUMBNAIL_AVAILABLE");
         } else {
           const nextUrl = clientUtil.getFileUrl(res.json.url);
           setUrl(nextUrl);
         }
-      }
     } catch (_err) {
-      if (!unmountedRef.current) {
-        setUrl("NO_THUMBNAIL_AVAILABLE");
-      }
+      setUrl("NO_THUMBNAIL_AVAILABLE");
     }
   }, [isAuthorTagMode, mode, tag, filePath]);
 
