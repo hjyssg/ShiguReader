@@ -426,39 +426,91 @@ app.all("/api/thumbnail/get", asyncWrapper(async (req, res) => {
         return;
     }
 
-    if (isQuickRequest) {
-        let useVideoPreviewForFolder = false;
-        let url = null;
+    const quickContext = {
+        attempted: {
+            zip: false,
+            folder: false,
+            image: false,
+        },
+        resolved: false,
+        source: null,
+        url: null,
+        useVideoPreviewForFolder: false,
+    };
+
+    async function resolveQuickContext() {
+        if (quickContext.resolved) {
+            return quickContext;
+        }
 
         if (isCompress(filePath)) {
-            url = await thumbnailUtil.getQuickThumbnailForZip(filePath);
-        } else if (estimateIfFolder(filePath)) {
-            const dirThumbnails = await thumbnailUtil.getThumbnailForFolders([filePath]);
-            url = dirThumbnails[filePath];
-
-            if (!url) {
-                const videoRows = await findVideoForFolder(filePath);
-                if (videoRows[0]) {
-                    url = videoRows[0].filePath;
-                    useVideoPreviewForFolder = true;
-                }
+            quickContext.attempted.zip = true;
+            quickContext.url = await thumbnailUtil.getQuickThumbnailForZip(filePath);
+            if (quickContext.url) {
+                quickContext.source = "zip-thumbnail";
             }
-        } else if (isImage(filePath)) {
-            url = filePath;
+            quickContext.resolved = true;
+            return quickContext;
         }
+
+        if (estimateIfFolder(filePath)) {
+            quickContext.attempted.folder = true;
+            const dirThumbnails = await thumbnailUtil.getThumbnailForFolders([filePath]);
+            const folderUrl = dirThumbnails[filePath];
+            if (folderUrl) {
+                quickContext.url = folderUrl;
+                quickContext.source = "folder-thumbnail";
+                quickContext.resolved = true;
+                return quickContext;
+            }
+
+            const videoRows = await findVideoForFolder(filePath);
+            if (videoRows[0]) {
+                quickContext.url = videoRows[0].filePath;
+                quickContext.useVideoPreviewForFolder = true;
+                quickContext.source = "folder-video";
+            }
+            quickContext.resolved = true;
+            return quickContext;
+        }
+
+        if (isImage(filePath)) {
+            quickContext.attempted.image = true;
+            quickContext.url = filePath;
+            quickContext.source = "image-direct";
+            quickContext.resolved = true;
+        }
+
+        quickContext.resolved = true;
+        return quickContext;
+    }
+
+    if (isQuickRequest) {
+        await resolveQuickContext();
 
         res.setHeader('Cache-Control', 'public, max-age=60');
         res.setHeader('Connection', 'Keep-Alive');
         res.setHeader('Keep-Alive', 'timeout=50, max=1000');
-        res.send({
-            url,
-            useVideoPreviewForFolder,
-        });
-        return;
+        if (quickContext.url) {
+            res.send({
+                url: quickContext.url,
+                useVideoPreviewForFolder: quickContext.useVideoPreviewForFolder,
+            });
+            return;
+        }
     }
 
     if (isCompress(filePath)) {
-        let url = await thumbnailUtil.getQuickThumbnailForZip(filePath);
+        if (!quickContext.source && !isQuickRequest) {
+            await resolveQuickContext();
+        }
+
+        let url;
+        if (quickContext.attempted.zip) {
+            url = quickContext.source === "zip-thumbnail" ? quickContext.url : null;
+        } else {
+            url = await thumbnailUtil.getQuickThumbnailForZip(filePath);
+        }
         if (url) {
             res.send({
                 url,
@@ -474,12 +526,21 @@ app.all("/api/thumbnail/get", asyncWrapper(async (req, res) => {
     }
 
     if (estimateIfFolder(filePath)) {
+        if (!quickContext.source && !isQuickRequest) {
+            await resolveQuickContext();
+        }
+
         const applyCacheHeader = () => {
             res.setHeader("Cache-Control", FOLDER_THUMBNAIL_CACHE_CONTROL);
         };
 
-        const dirThumbnails = await thumbnailUtil.getThumbnailForFolders([filePath]);
-        const existing = dirThumbnails[filePath];
+        let existing;
+        if (quickContext.attempted.folder) {
+            existing = quickContext.source === "folder-thumbnail" ? quickContext.url : null;
+        } else {
+            const dirThumbnails = await thumbnailUtil.getThumbnailForFolders([filePath]);
+            existing = dirThumbnails[filePath];
+        }
         if (existing) {
             applyCacheHeader();
             res.send({
