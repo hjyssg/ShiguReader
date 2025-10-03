@@ -62,7 +62,9 @@ export default function LoadingImage({
         body[mode] = tag;
         res = await getTagThumbnail(body);
       } else if ((mode === "folder" || mode === "zip") && filePath) {
-        res = await getDetailedThumbnail(filePath);
+        res = await getDetailedThumbnail(filePath, {
+          allowVideoPreviewForFolder: false,
+        });
       }
 
         if (!res || typeof res.isFailed === "function" && res.isFailed()) {

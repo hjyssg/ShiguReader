@@ -3,8 +3,15 @@ import Sender from '@services/Sender';
 export const getTagThumbnail = (payload) =>
   Sender.postWithPromise('/api/thumbnail/get_for_tag', payload);
 
-export const getDetailedThumbnail = (filePath, options = {}) =>
-  Sender.postWithPromise('/api/thumbnail/get', { filePath, ...options });
+export const getDetailedThumbnail = (
+  filePath,
+  { allowVideoPreviewForFolder = true, ...options } = {}
+) =>
+  Sender.postWithPromise('/api/thumbnail/get', {
+    filePath,
+    allowVideoPreviewForFolder,
+    ...options,
+  });
 
 
 export const getQuickThumbnail = (filePath) =>
