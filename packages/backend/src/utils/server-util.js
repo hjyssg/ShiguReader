@@ -136,12 +136,30 @@ const isPortOccupied = (port) => {
 const asyncWrapper = (fn) => {
     return (req, res, next) => {
       const beginTime = util.getCurrentTime();
-      fn(req, res, next)
+
+      const handleError = (reason) => {
+        try{
+            logger.error("asyncWrapper", reason, "\n\n", req);
+            res.send({faled: true, reason: reason?.stack});
+        }catch(e){
+            debugger;
+        }
+      };
+
+      let result;
+      try {
+        result = fn(req, res, next);
+      } catch (err) {
+        handleError(err);
+        return;
+      }
+
+      Promise.resolve(result)
       .then(()=>{
         // 测量性能
         const timeSpent = util.getCurrentTime() - beginTime;
         const url = req.url || "";
-        
+
         let shouldLog = false;
         const want_list  = [];
         want_list.forEach(e => {
@@ -160,15 +178,7 @@ const asyncWrapper = (fn) => {
             logger.debug(`[${decodeURI(url)}] ${hours}:${minutes}:${seconds} ${timeSpent}ms`);
         }
       })
-      .catch((reason)=>{
-        // next
-        try{
-            logger.error("asyncWrapper", reason, "\n\n", req);
-            res.send({faled: true, reason: reason?.stack});
-        }catch(e){
-            debugger;
-        }
-      })
+      .catch(handleError)
     };
 };
 
