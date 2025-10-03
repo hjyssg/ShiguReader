@@ -411,6 +411,7 @@ app.all("/api/thumbnail/get", asyncWrapper(async (req, res) => {
     const filePath = body.filePath;
     const quickFlagFromBody = body.quick === true;
     const isQuickRequest = quickFlagFromBody;
+    const allowVideoPreviewForFolder = body.allowVideoPreviewForFolder !== false;
 
     if (!filePath || !(await isExist(filePath))) {
         res.send({ failed: true, reason: "NOT FOUND" });
@@ -423,12 +424,16 @@ app.all("/api/thumbnail/get", asyncWrapper(async (req, res) => {
 
     const quickResult = await thumbnailUtil.getQuickThumbnail(filePath);
     if (quickResult && quickResult.url) {
-        applyCacheHeader();
-        res.send({
-            url: quickResult.url,
-            useVideoPreviewForFolder: quickResult.useVideoPreviewForFolder,
-        });
-        return;
+        if (!allowVideoPreviewForFolder && quickResult.useVideoPreviewForFolder) {
+            // 继续执行后续逻辑，避免返回视频预览
+        } else {
+            applyCacheHeader();
+            res.send({
+                url: quickResult.url,
+                useVideoPreviewForFolder: quickResult.useVideoPreviewForFolder,
+            });
+            return;
+        }
     }
 
     if(isQuickRequest){
