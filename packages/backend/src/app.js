@@ -417,9 +417,9 @@ app.all("/api/thumbnail/get_detailed", asyncWrapper(async (req, res) => {
     const body = req.body || {};
     const query = req.query || {};
     const filePath = body.filePath || query.filePath || query.p;
-    const quickFlagFromBody = body.quick === true || body.quick === "true" || body.mode === "quick";
-    const quickFlagFromQuery = query.quick === "true" || query.quick === "1" || query.mode === "quick";
-    const isQuickRequest = quickFlagFromBody || quickFlagFromQuery || (req.method === "GET" && Boolean(query.p) && !quickFlagFromQuery && !body.filePath);
+    const quickFlagFromBody = body.quick === true;
+    const quickFlagFromQuery = ["true", "1"].includes(query.quick);
+    const isQuickRequest = quickFlagFromBody || quickFlagFromQuery;
 
     if (!filePath || !(await isExist(filePath))) {
         res.send({ failed: true, reason: "NOT FOUND" });
