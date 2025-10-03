@@ -420,36 +420,36 @@ app.all("/api/thumbnail/get", asyncWrapper(async (req, res) => {
         return;
     }
 
-    let quickContext = null;
-    let quickContextLoaded = false;
+    let quickResult = null;
+    let hasQuickResult = false;
 
     if (isQuickRequest) {
-        if (!quickContextLoaded) {
-            quickContext = await thumbnailUtil.getQuickThumbnail(filePath);
-            quickContextLoaded = true;
+        if (!hasQuickResult) {
+            quickResult = await thumbnailUtil.getQuickThumbnail(filePath);
+            hasQuickResult = true;
         }
 
-        if (quickContext && quickContext.url) {
+        if (quickResult && quickResult.url) {
             res.setHeader('Cache-Control', 'public, max-age=60');
             res.setHeader('Connection', 'Keep-Alive');
             res.setHeader('Keep-Alive', 'timeout=50, max=1000');
             res.send({
-                url: quickContext.url,
-                useVideoPreviewForFolder: quickContext.useVideoPreviewForFolder,
+                url: quickResult.url,
+                useVideoPreviewForFolder: quickResult.useVideoPreviewForFolder,
             });
             return;
         }
     }
 
     if (isCompress(filePath)) {
-        if (!quickContextLoaded) {
-            quickContext = await thumbnailUtil.getQuickThumbnail(filePath);
-            quickContextLoaded = true;
+        if (!hasQuickResult) {
+            quickResult = await thumbnailUtil.getQuickThumbnail(filePath);
+            hasQuickResult = true;
         }
 
         let url;
-        if (quickContext && quickContext.attempted.zip) {
-            url = quickContext.source === "zip-thumbnail" ? quickContext.url : null;
+        if (quickResult && quickResult.attempted.zip) {
+            url = quickResult.source === "zip-thumbnail" ? quickResult.url : null;
         } else {
             url = await thumbnailUtil.getQuickThumbnailForZip(filePath);
         }
@@ -468,9 +468,9 @@ app.all("/api/thumbnail/get", asyncWrapper(async (req, res) => {
     }
 
     if (estimateIfFolder(filePath)) {
-        if (!quickContextLoaded) {
-            quickContext = await thumbnailUtil.getQuickThumbnail(filePath);
-            quickContextLoaded = true;
+        if (!hasQuickResult) {
+            quickResult = await thumbnailUtil.getQuickThumbnail(filePath);
+            hasQuickResult = true;
         }
 
         const applyCacheHeader = () => {
@@ -478,8 +478,8 @@ app.all("/api/thumbnail/get", asyncWrapper(async (req, res) => {
         };
 
         let existing;
-        if (quickContext && quickContext.attempted.folder) {
-            existing = quickContext.source === "folder-thumbnail" ? quickContext.url : null;
+        if (quickResult && quickResult.attempted.folder) {
+            existing = quickResult.source === "folder-thumbnail" ? quickResult.url : null;
         } else {
             const dirThumbnails = await thumbnailUtil.getThumbnailForFolders([filePath]);
             existing = dirThumbnails[filePath];
