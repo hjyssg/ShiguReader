@@ -1,5 +1,5 @@
 // @flow
-import React, { Component, useState, useEffect } from 'react';
+import React, { Component, useState, useEffect, useContext } from 'react';
 // import _ from "underscore";
 import './HomePage.scss';
 import { getHomeDirectories } from '@api/home';
@@ -9,6 +9,7 @@ import ErrorPage from '@pages/ErrorPage';
 import CenterSpinner from '@components/common/CenterSpinner';
 import ItemsContainer from '@components/common/ItemsContainer';
 import ThumbnailPopup from '@components/common/ThumbnailPopup';
+import { GlobalContext } from '@context/GlobalContext';
 
 const util = require("@common/util");
 const classNames = require('classnames');
@@ -52,6 +53,8 @@ function getPathItems(items){
 }
 
 const HomePage = () => {
+    const globalContext = useContext(GlobalContext) || {};
+    const { good_folder, downloadFolder } = globalContext;
     const [res, setRes] = useState(null)
 
     useEffect(() => {
@@ -72,9 +75,32 @@ const HomePage = () => {
         return <ErrorPage res={res} />;
     }else {
         let {dirs, hdd_list, quickAccess, recentAccess } = res.json;
+
+        const quickAccessList = [...(quickAccess || [])];
+        if (good_folder) {
+            const index = quickAccessList.indexOf(good_folder);
+            if (index > 0) {
+                quickAccessList.splice(index, 1);
+            }
+            if (index !== 0) {
+                quickAccessList.unshift(good_folder);
+            }
+        }
+
+        const hddList = [...(hdd_list || [])];
+        if (downloadFolder) {
+            const index = hddList.indexOf(downloadFolder);
+            if (index > 0) {
+                hddList.splice(index, 1);
+            }
+            if (index !== 0) {
+                hddList.unshift(downloadFolder);
+            }
+        }
+
         const dirItems = getPathItems(dirs);
-        const hddItems = getPathItems(hdd_list);
-        const quickAccessItems = getPathItems(quickAccess);
+        const hddItems = getPathItems(hddList);
+        const quickAccessItems = getPathItems(quickAccessList);
         const recentAccessItems = getPathItems(recentAccess);
 
         return (
