@@ -437,38 +437,8 @@ app.all("/api/thumbnail/get", asyncWrapper(async (req, res) => {
     }
 
     if (isCompress(filePath)) {
-        let url;
-        if (quickResult && quickResult.attempted.zip) {
-            url = quickResult.source === "zip-thumbnail" ? quickResult.url : null;
-        } else {
-            url = await thumbnailUtil.getQuickThumbnailForZip(filePath);
-        }
-        if (url) {
-            res.send({
-                url,
-                debug: "from getQuickThumbnailForZip"
-            });
-            extractThumbnailFromZip(filePath);
-        }else{
-            extractThumbnailFromZip(filePath, res);
-        }
+        extractThumbnailFromZip(filePath);
     }else if (estimateIfFolder(filePath)) {
-        let existing;
-        if (quickResult && quickResult.attempted.folder) {
-            existing = quickResult.source === "folder-thumbnail" ? quickResult.url : null;
-        } else {
-            const dirThumbnails = await thumbnailUtil.getThumbnailForFolders([filePath]);
-            existing = dirThumbnails[filePath];
-        }
-        if (existing) {
-            applyCacheHeader();
-            res.send({
-                url: existing,
-                debug: "from getThumbnailForFolders"
-            });
-            return;
-        }
-
         const zipRows = await findZipForFolder(filePath);
         if (zipRows[0]) {
             extractThumbnailFromZip(zipRows[0].filePath, res);
