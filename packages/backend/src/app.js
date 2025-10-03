@@ -437,7 +437,7 @@ app.all("/api/thumbnail/get", asyncWrapper(async (req, res) => {
     }
 
     if (isCompress(filePath)) {
-        extractThumbnailFromZip(filePath);
+        extractThumbnailFromZip(filePath, res);
     }else if (estimateIfFolder(filePath)) {
         const zipRows = await findZipForFolder(filePath);
         if (zipRows[0]) {
