@@ -413,7 +413,7 @@ app.post("/api/thumbnail/get_for_folder_list", asyncWrapper(async (req, res) => 
 
 const FOLDER_THUMBNAIL_CACHE_CONTROL = "public, max-age=300";
 
-app.all("/api/thumbnail/get_detailed", asyncWrapper(async (req, res) => {
+app.all("/api/thumbnail/get", asyncWrapper(async (req, res) => {
     const body = req.body || {};
     const query = req.query || {};
     const filePath = body.filePath || query.filePath || query.p;
