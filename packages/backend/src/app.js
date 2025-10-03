@@ -421,20 +421,18 @@ app.all("/api/thumbnail/get", asyncWrapper(async (req, res) => {
     }
 
     let quickContext = null;
-    async function ensureQuickContext() {
-        if (!quickContext) {
-            quickContext = await thumbnailUtil.getQuickThumbnail(filePath);
-        }
-        return quickContext;
-    }
+    let quickContextLoaded = false;
 
     if (isQuickRequest) {
-        await ensureQuickContext();
+        if (!quickContextLoaded) {
+            quickContext = await thumbnailUtil.getQuickThumbnail(filePath);
+            quickContextLoaded = true;
+        }
 
-        res.setHeader('Cache-Control', 'public, max-age=60');
-        res.setHeader('Connection', 'Keep-Alive');
-        res.setHeader('Keep-Alive', 'timeout=50, max=1000');
-        if (quickContext.url) {
+        if (quickContext && quickContext.url) {
+            res.setHeader('Cache-Control', 'public, max-age=60');
+            res.setHeader('Connection', 'Keep-Alive');
+            res.setHeader('Keep-Alive', 'timeout=50, max=1000');
             res.send({
                 url: quickContext.url,
                 useVideoPreviewForFolder: quickContext.useVideoPreviewForFolder,
@@ -444,8 +442,9 @@ app.all("/api/thumbnail/get", asyncWrapper(async (req, res) => {
     }
 
     if (isCompress(filePath)) {
-        if (!quickContext && !isQuickRequest) {
-            await ensureQuickContext();
+        if (!quickContextLoaded) {
+            quickContext = await thumbnailUtil.getQuickThumbnail(filePath);
+            quickContextLoaded = true;
         }
 
         let url;
@@ -469,8 +468,9 @@ app.all("/api/thumbnail/get", asyncWrapper(async (req, res) => {
     }
 
     if (estimateIfFolder(filePath)) {
-        if (!quickContext && !isQuickRequest) {
-            await ensureQuickContext();
+        if (!quickContextLoaded) {
+            quickContext = await thumbnailUtil.getQuickThumbnail(filePath);
+            quickContextLoaded = true;
         }
 
         const applyCacheHeader = () => {
