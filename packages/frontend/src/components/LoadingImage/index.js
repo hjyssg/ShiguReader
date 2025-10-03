@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
-import { getFolderThumbnail, getTagThumbnail, getZipThumbnail } from "@api/thumbnail";
+import { getDetailedThumbnail, getTagThumbnail } from "@api/thumbnail";
 import classNames from "classnames";
 import './LoadingImage.scss';
 import VisibilitySensor from "@components/common/VisibilitySensor";
@@ -67,11 +67,8 @@ export default function LoadingImage({
         const body = {};
         body[mode] = tag;
         res = await getTagThumbnail(body);
-      } else if (mode === "folder") {
-        res = await getFolderThumbnail(filePath);
-      } else {
-        // zip
-        res = await getZipThumbnail(filePath);
+      } else if ((mode === "folder" || mode === "zip") && filePath) {
+        res = await getDetailedThumbnail(filePath);
       }
 
       if (!unmountedRef.current) {

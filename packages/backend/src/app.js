@@ -413,48 +413,77 @@ app.post("/api/thumbnail/get_for_folder_list", asyncWrapper(async (req, res) => 
 
 const FOLDER_THUMBNAIL_CACHE_CONTROL = "public, max-age=300";
 
-app.get("/api/thumbnail/get_for_folder", asyncWrapper(async (req, res) => {
-    const filePath = req.query && req.query.filePath;
+app.post("/api/thumbnail/get_detailed", asyncWrapper(async (req, res) => {
+    const filePath = req.body && req.body.filePath;
 
-    if (!filePath || !(await isExist(filePath)) || !estimateIfFolder(filePath)) {
+    if (!filePath || !(await isExist(filePath))) {
         res.send({ failed: true, reason: "NOT FOUND" });
         return;
     }
 
-    const applyCacheHeader = () => {
-        res.setHeader("Cache-Control", FOLDER_THUMBNAIL_CACHE_CONTROL);
-    };
+    if (isCompress(filePath)) {
+        let url = await thumbnailUtil.getQuickThumbnailForZip(filePath);
+        if (url) {
+            res.send({
+                url,
+                debug: "from getQuickThumbnailForZip"
+            });
+            // generate in background as well
+            extractThumbnailFromZip(filePath);
+            return;
+        }
 
-    const dirThumbnails = await thumbnailUtil.getThumbnailForFolders([filePath]);
-    const existing = dirThumbnails[filePath];
-    if (existing) {
-        applyCacheHeader();
+        extractThumbnailFromZip(filePath, res);
+        return;
+    }
+
+    if (estimateIfFolder(filePath)) {
+        const applyCacheHeader = () => {
+            res.setHeader("Cache-Control", FOLDER_THUMBNAIL_CACHE_CONTROL);
+        };
+
+        const dirThumbnails = await thumbnailUtil.getThumbnailForFolders([filePath]);
+        const existing = dirThumbnails[filePath];
+        if (existing) {
+            applyCacheHeader();
+            res.send({
+                url: existing,
+                debug: "from getThumbnailForFolders"
+            });
+            return;
+        }
+
+        const zipRows = await findZipForFolder(filePath);
+        if (zipRows[0]) {
+            extractThumbnailFromZip(zipRows[0].filePath, res, undefined, {
+                onSuccess: applyCacheHeader
+            });
+            return;
+        }
+
+        const imageRow = await findLatestFileInFolder(filePath, isImage);
+        if (imageRow) {
+            applyCacheHeader();
+            res.send({
+                url: imageRow.filePath,
+                debug: "from folder image"
+            });
+            return;
+        }
+
+        res.send({ failed: true, reason: "No file found" });
+        return;
+    }
+
+    if (isImage(filePath)) {
         res.send({
-            url: existing,
-            debug: "from getThumbnailForFolders"
+            url: filePath,
+            debug: "direct image"
         });
         return;
     }
 
-    const zipRows = await findZipForFolder(filePath);
-    if (zipRows[0]) {
-        extractThumbnailFromZip(zipRows[0].filePath, res, undefined, {
-            onSuccess: applyCacheHeader
-        });
-        return;
-    }
-
-    const imageRow = await findLatestFileInFolder(filePath, isImage);
-    if (imageRow) {
-        applyCacheHeader();
-        res.send({
-            url: imageRow.filePath,
-            debug: "from folder image"
-        });
-        return;
-    }
-
-    res.send({ failed: true, reason: "No file found" });
+    res.send({ failed: true, reason: "Unsupported file type" });
 }));
 
 
@@ -711,32 +740,6 @@ app.get('/api/thumbnail/get_quick', asyncWrapper(async (req, res) => {
 
 
 
-
-app.post('/api/thumbnail/get_for_zip', asyncWrapper(async (req, res) => {
-    const filePath = req.body && req.body.filePath;
-
-    if (!filePath || !(await isExist(filePath))) {
-        res.send({ failed: true, reason: "NOT FOUND" });
-        return;
-    }
-
-    if(!isCompress(filePath)){
-        res.send({ failed: true, reason: "not a zip" });
-        return;
-    }
-
-    let url = await thumbnailUtil.getQuickThumbnailForZip(filePath);
-    if(url){
-        res.send({
-            url,
-            debug: "from getQuickThumbnailForZip"
-        })
-        // 还是多生成一下
-        extractThumbnailFromZip(filePath);
-    }else{
-        extractThumbnailFromZip(filePath, res);
-    }
-}));
 
 async function getZipWithSameFileName(filePath) {
     if (!(await isExist(filePath)) && isCompress(filePath)) {
