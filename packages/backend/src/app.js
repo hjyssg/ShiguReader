@@ -413,11 +413,47 @@ app.post("/api/thumbnail/get_for_folder_list", asyncWrapper(async (req, res) => 
 
 const FOLDER_THUMBNAIL_CACHE_CONTROL = "public, max-age=300";
 
-app.post("/api/thumbnail/get_detailed", asyncWrapper(async (req, res) => {
-    const filePath = req.body && req.body.filePath;
+app.all("/api/thumbnail/get_detailed", asyncWrapper(async (req, res) => {
+    const body = req.body || {};
+    const query = req.query || {};
+    const filePath = body.filePath || query.filePath || query.p;
+    const quickFlagFromBody = body.quick === true || body.quick === "true" || body.mode === "quick";
+    const quickFlagFromQuery = query.quick === "true" || query.quick === "1" || query.mode === "quick";
+    const isQuickRequest = quickFlagFromBody || quickFlagFromQuery || (req.method === "GET" && Boolean(query.p) && !quickFlagFromQuery && !body.filePath);
 
     if (!filePath || !(await isExist(filePath))) {
         res.send({ failed: true, reason: "NOT FOUND" });
+        return;
+    }
+
+    if (isQuickRequest) {
+        let useVideoPreviewForFolder = false;
+        let url = null;
+
+        if (isCompress(filePath)) {
+            url = await thumbnailUtil.getQuickThumbnailForZip(filePath);
+        } else if (estimateIfFolder(filePath)) {
+            const dirThumbnails = await thumbnailUtil.getThumbnailForFolders([filePath]);
+            url = dirThumbnails[filePath];
+
+            if (!url) {
+                const videoRows = await findVideoForFolder(filePath);
+                if (videoRows[0]) {
+                    url = videoRows[0].filePath;
+                    useVideoPreviewForFolder = true;
+                }
+            }
+        } else if (isImage(filePath)) {
+            url = filePath;
+        }
+
+        res.setHeader('Cache-Control', 'public, max-age=60');
+        res.setHeader('Connection', 'Keep-Alive');
+        res.setHeader('Keep-Alive', 'timeout=50, max=1000');
+        res.send({
+            url,
+            useVideoPreviewForFolder,
+        });
         return;
     }
 
@@ -701,44 +737,6 @@ app.post('/api/pregenerateThumbnails', asyncWrapper(async (req, res) => {
     pregenerateThumbnails_lock = false;
     console.log('[pregenerate] done');
 }));
-
-
-// TODO 快速的获取任意文件或者文件夹的thumbnail
-app.get('/api/thumbnail/get_quick', asyncWrapper(async (req, res) => {
-    let filePath = req.query.p;
-
-    if (!filePath) {
-        res.send({ failed: true, reason: "bad param" });
-        return;
-    }
-
-    let useVideoPreviewForFolder = false;
-    let url = null;
-    if(isCompress(filePath)){
-        url = await  thumbnailUtil.getQuickThumbnailForZip(filePath);
-    } else if(estimateIfFolder(filePath)){
-        const dirThumbnails = await thumbnailUtil.getThumbnailForFolders([filePath]);
-        url = dirThumbnails[filePath];
-
-        // 没thumbnail，用video也行。
-        if(!url){
-            const videoRows = await findVideoForFolder(filePath);
-            if(videoRows[0]){
-                url = videoRows[0].filePath;
-                useVideoPreviewForFolder = true;
-            }
-        }
-    }
-    res.setHeader('Cache-Control', 'public, max-age=60');
-    res.setHeader('Connection', 'Keep-Alive');
-    res.setHeader('Keep-Alive', 'timeout=50, max=1000');
-    res.send({
-        url: url,
-        useVideoPreviewForFolder
-    });
-}))
-
-
 
 
 async function getZipWithSameFileName(filePath) {
