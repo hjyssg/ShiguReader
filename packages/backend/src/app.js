@@ -273,12 +273,6 @@ async function printIP(){
 }
 
 
-async function findVideoForFolder(filePath){
-    const sql = `SELECT filePath FROM file_table WHERE INSTR(filePath, ?) = 1 AND isVideo `;
-    let videoRows = await db.doSmartAllSync(sql, filePath);
-    return videoRows;
-}
-
 async function findZipForFolder(filePath){
     const sql = `SELECT filePath FROM zip_view WHERE INSTR(filePath, ?) = 1 ORDER BY mTime DESC LIMIT 1`;
     const zipRows = await db.doSmartAllSync(sql, filePath);
@@ -411,50 +405,65 @@ app.post("/api/thumbnail/get_for_folder_list", asyncWrapper(async (req, res) => 
 }));
 
 
-const FOLDER_THUMBNAIL_CACHE_CONTROL = "public, max-age=300";
 
-app.get("/api/thumbnail/get_for_folder", asyncWrapper(async (req, res) => {
-    const filePath = req.query && req.query.filePath;
+app.all("/api/thumbnail/get", asyncWrapper(async (req, res) => {
+    const body = req.body || {};
+    const filePath = body.filePath;
+    const quickFlagFromBody = body.quick === true;
+    const isQuickRequest = quickFlagFromBody;
 
-    if (!filePath || !(await isExist(filePath)) || !estimateIfFolder(filePath)) {
+    if (!filePath || !(await isExist(filePath))) {
         res.send({ failed: true, reason: "NOT FOUND" });
         return;
     }
 
     const applyCacheHeader = () => {
-        res.setHeader("Cache-Control", FOLDER_THUMBNAIL_CACHE_CONTROL);
-    };
+        res.setHeader('Cache-Control', 'public, max-age=30');
+    }
 
-    const dirThumbnails = await thumbnailUtil.getThumbnailForFolders([filePath]);
-    const existing = dirThumbnails[filePath];
-    if (existing) {
+    const quickResult = await thumbnailUtil.getQuickThumbnail(filePath);
+    if (quickResult && quickResult.url) {
         applyCacheHeader();
         res.send({
-            url: existing,
-            debug: "from getThumbnailForFolders"
+            url: quickResult.url,
+            useVideoPreviewForFolder: quickResult.useVideoPreviewForFolder,
         });
         return;
     }
 
-    const zipRows = await findZipForFolder(filePath);
-    if (zipRows[0]) {
-        extractThumbnailFromZip(zipRows[0].filePath, res, undefined, {
-            onSuccess: applyCacheHeader
-        });
+    if(isQuickRequest){
+        res.send({ failed: true, reason: "NOT FOUND FOR QUICK" });
         return;
     }
 
-    const imageRow = await findLatestFileInFolder(filePath, isImage);
-    if (imageRow) {
-        applyCacheHeader();
+    if (isCompress(filePath)) {
+        extractThumbnailFromZip(filePath, res);
+    }else if (estimateIfFolder(filePath)) {
+        const zipRows = await findZipForFolder(filePath);
+        if (zipRows[0]) {
+            extractThumbnailFromZip(zipRows[0].filePath, res);
+            return;
+        }
+
+        const imageRow = await findLatestFileInFolder(filePath, isImage);
+        if (imageRow) {
+            applyCacheHeader();
+            res.send({
+                url: imageRow.filePath,
+                debug: "from folder image"
+            });
+            return;
+        }else {
+            res.send({ failed: true, reason: "No file found" });
+        }
+    } else if (isImage(filePath)) {
         res.send({
-            url: imageRow.filePath,
-            debug: "from folder image"
+            url: filePath,
+            debug: "direct image"
         });
-        return;
+    } else {
+        res.send({ failed: true, reason: "Unsupported file type" });
     }
-
-    res.send({ failed: true, reason: "No file found" });
 }));
 
 
@@ -673,70 +682,6 @@ app.post('/api/pregenerateThumbnails', asyncWrapper(async (req, res) => {
     console.log('[pregenerate] done');
 }));
 
-
-// TODO 快速的获取任意文件或者文件夹的thumbnail
-app.get('/api/thumbnail/get_quick', asyncWrapper(async (req, res) => {
-    let filePath = req.query.p;
-
-    if (!filePath) {
-        res.send({ failed: true, reason: "bad param" });
-        return;
-    }
-
-    let useVideoPreviewForFolder = false;
-    let url = null;
-    if(isCompress(filePath)){
-        url = await  thumbnailUtil.getQuickThumbnailForZip(filePath);
-    } else if(estimateIfFolder(filePath)){
-        const dirThumbnails = await thumbnailUtil.getThumbnailForFolders([filePath]);
-        url = dirThumbnails[filePath];
-
-        // 没thumbnail，用video也行。
-        if(!url){
-            const videoRows = await findVideoForFolder(filePath);
-            if(videoRows[0]){
-                url = videoRows[0].filePath;
-                useVideoPreviewForFolder = true;
-            }
-        }
-    }
-    res.setHeader('Cache-Control', 'public, max-age=60');
-    res.setHeader('Connection', 'Keep-Alive');
-    res.setHeader('Keep-Alive', 'timeout=50, max=1000');
-    res.send({
-        url: url,
-        useVideoPreviewForFolder
-    });
-}))
-
-
-
-
-app.post('/api/thumbnail/get_for_zip', asyncWrapper(async (req, res) => {
-    const filePath = req.body && req.body.filePath;
-
-    if (!filePath || !(await isExist(filePath))) {
-        res.send({ failed: true, reason: "NOT FOUND" });
-        return;
-    }
-
-    if(!isCompress(filePath)){
-        res.send({ failed: true, reason: "not a zip" });
-        return;
-    }
-
-    let url = await thumbnailUtil.getQuickThumbnailForZip(filePath);
-    if(url){
-        res.send({
-            url,
-            debug: "from getQuickThumbnailForZip"
-        })
-        // 还是多生成一下
-        extractThumbnailFromZip(filePath);
-    }else{
-        extractThumbnailFromZip(filePath, res);
-    }
-}));
 
 async function getZipWithSameFileName(filePath) {
     if (!(await isExist(filePath)) && isCompress(filePath)) {

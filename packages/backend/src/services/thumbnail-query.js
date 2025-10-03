@@ -6,7 +6,7 @@ const util = require('../../../common/src/util');
 const { getCurrentTime } = util;
 
 const pathUtil = require("../utils/path-util");
-const { isSub } = pathUtil;
+const { isSub, estimateIfFolder } = pathUtil;
 
 // DB import
 const db = require("../models/db");
@@ -101,7 +101,7 @@ async function getThumbnailForFolders(filePathes) {
  */
 async function getQuickThumbnailForZip(filePath){
     let url;
-    const thumbnails = await getThumbnailsForZip([filePath])
+    const thumbnails = await getThumbnailsForZipFiles([filePath]);
     const oneThumbnail = thumbnails[filePath];
     if(oneThumbnail){
         url = oneThumbnail;
@@ -119,10 +119,71 @@ async function getQuickThumbnailForZip(filePath){
     return url;
 }
 
+async function findVideoForFolder(filePath){
+    const sql = `SELECT filePath FROM file_table WHERE INSTR(filePath, ?) = 1 AND isVideo `;
+    return db.doSmartAllSync(sql, filePath);
+}
+
+/** get thumbnail for any file qucikly */
+async function getQuickThumbnail(filePath) {
+    const result = {
+        attempted: {
+            zip: false,
+            folder: false,
+            image: false,
+        },
+        source: null,
+        url: null,
+        useVideoPreviewForFolder: false,
+    };
+
+    if (!filePath) {
+        return result;
+    }
+
+    if (util.isCompress(filePath)) {
+        result.attempted.zip = true;
+        const url = await getQuickThumbnailForZip(filePath);
+        if (url) {
+            result.url = url;
+            result.source = "zip-thumbnail";
+        }
+        return result;
+    }
+
+    if (estimateIfFolder(filePath)) {
+        result.attempted.folder = true;
+        const dirThumbnails = await getThumbnailForFolders([filePath]);
+        const folderUrl = dirThumbnails[filePath];
+        if (folderUrl) {
+            result.url = folderUrl;
+            result.source = "folder-thumbnail";
+            return result;
+        }
+
+        const videoRows = await findVideoForFolder(filePath);
+        if (videoRows[0]) {
+            result.url = videoRows[0].filePath;
+            result.source = "folder-video";
+            result.useVideoPreviewForFolder = true;
+        }
+        return result;
+    }
+
+    if (util.isImage(filePath)) {
+        result.attempted.image = true;
+        result.url = filePath;
+        result.source = "image-direct";
+        return result;
+    }
+
+    return result;
+}
+
 /**
 * 查找thumbnail，同时判断是不是zip确实没有thumbnail
 */
-async function getThumbnailsForZip(filePathes) {
+async function getThumbnailsForZipFiles(filePathes) {
     const isStringInput = _.isString(filePathes);
     if (isStringInput) {
         filePathes = [filePathes];
@@ -198,7 +259,7 @@ async function getTagThumbnail(author, tag){
 
 module.exports = {
     getThumbnailForFolders,
-    getQuickThumbnailForZip,
-    getThumbnailsForZip,
-    getTagThumbnail
+    getThumbnailsForZipFiles,
+    getTagThumbnail,
+    getQuickThumbnail,
 }
