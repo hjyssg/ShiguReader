@@ -101,9 +101,10 @@ class ThumbnailPopup extends Component {
                 <img className='thumbnail-popup-img' src={url}></img>
                 </div>)
             }else{
-                extraDom = (<div className='thumbnail-popup-content'>
+                extraDom = (<div className='thumbnail-popup-content not-found-icon'>
                 <div className='thumbnail-popup-title'>{titleStr}</div>
-                <div className='thumbnail-popup-text'>NO_THUMBNAIL_AVAILABLE</div>
+                <div className='thumbnail-popup-text'>NO THUMBNAIL AVAILABLE</div>
+                 <i className="fas fa-image"></i> {/* 表示没有图片 */}
              </div>)
             }
         }

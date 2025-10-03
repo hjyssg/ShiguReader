@@ -29,12 +29,22 @@
         right: 100px;
         left: unset;
       }
+      
 
       background: rgb(124, 117, 117);
       width: 240px;
       height: 220px;
       border-radius: 3px;
       box-shadow: 4px 4px 7px rgba(0, 0, 0, 0.59);
+
+      &.not-found-icon {
+        size: 60px;
+
+        .fas {
+          margin-top: 20px;
+          font-size: 60px;
+        }
+      }
 
       .thumbnail-popup-title {
         color: $font_color_white_one;
