@@ -882,7 +882,8 @@ app.get('/api/getGeneralInfo', asyncWrapper(async (req, res) => {
         not_good_folder_root: global.not_good_folder_root,
 
         move_pathes: global.move_pathes,
-        recentAccess: global.recentAccess 
+        recentAccess: global.recentAccess,
+        downloadFolder: global.downloadFolder
     };
     res.setHeader('Cache-Control', 'public, max-age=30');
     res.send(result)
