@@ -24,7 +24,7 @@ async function decorateResWithMeta(resObj) {
 
     const files = _.keys(fileInfos);
 
-    const thumbnails = await thumbnailUtil.getThumbnailsForZip(files);
+    const thumbnails = await thumbnailUtil.getThumbnailsForZipFiles(files);
     _.keys(thumbnails).forEach(filePath => {
         if (!fileInfos[filePath]) {
             return;

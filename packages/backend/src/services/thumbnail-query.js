@@ -101,7 +101,7 @@ async function getThumbnailForFolders(filePathes) {
  */
 async function getQuickThumbnailForZip(filePath){
     let url;
-    const thumbnails = await getThumbnailsForZip([filePath]);
+    const thumbnails = await getThumbnailsForZipFiles([filePath]);
     const oneThumbnail = thumbnails[filePath];
     if(oneThumbnail){
         url = oneThumbnail;
@@ -124,6 +124,7 @@ async function findVideoForFolder(filePath){
     return db.doSmartAllSync(sql, filePath);
 }
 
+/** get thumbnail for any file qucikly */
 async function getQuickThumbnail(filePath) {
     const result = {
         attempted: {
@@ -182,7 +183,7 @@ async function getQuickThumbnail(filePath) {
 /**
 * 查找thumbnail，同时判断是不是zip确实没有thumbnail
 */
-async function getThumbnailsForZip(filePathes) {
+async function getThumbnailsForZipFiles(filePathes) {
     const isStringInput = _.isString(filePathes);
     if (isStringInput) {
         filePathes = [filePathes];
@@ -258,8 +259,7 @@ async function getTagThumbnail(author, tag){
 
 module.exports = {
     getThumbnailForFolders,
-    getQuickThumbnailForZip,
-    getThumbnailsForZip,
+    getThumbnailsForZipFiles,
     getTagThumbnail,
     getQuickThumbnail,
 }
