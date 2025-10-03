@@ -405,48 +405,38 @@ app.post("/api/thumbnail/get_for_folder_list", asyncWrapper(async (req, res) => 
 }));
 
 
-const FOLDER_THUMBNAIL_CACHE_CONTROL = "public, max-age=300";
 
 app.all("/api/thumbnail/get", asyncWrapper(async (req, res) => {
     const body = req.body || {};
-    const query = req.query || {};
-    const filePath = body.filePath || query.filePath || query.p;
+    const filePath = body.filePath;
     const quickFlagFromBody = body.quick === true;
-    const quickFlagFromQuery = ["true", "1"].includes(query.quick);
-    const isQuickRequest = quickFlagFromBody || quickFlagFromQuery;
+    const isQuickRequest = quickFlagFromBody;
 
     if (!filePath || !(await isExist(filePath))) {
         res.send({ failed: true, reason: "NOT FOUND" });
         return;
     }
 
-    let quickResult = null;
-    let hasQuickResult = false;
+    const applyCacheHeader = () => {
+        res.setHeader('Cache-Control', 'public, max-age=30');
+    }
 
-    if (isQuickRequest) {
-        if (!hasQuickResult) {
-            quickResult = await thumbnailUtil.getQuickThumbnail(filePath);
-            hasQuickResult = true;
-        }
+    const quickResult = await thumbnailUtil.getQuickThumbnail(filePath);
+    if (quickResult && quickResult.url) {
+        applyCacheHeader();
+        res.send({
+            url: quickResult.url,
+            useVideoPreviewForFolder: quickResult.useVideoPreviewForFolder,
+        });
+        return;
+    }
 
-        if (quickResult && quickResult.url) {
-            res.setHeader('Cache-Control', 'public, max-age=60');
-            res.setHeader('Connection', 'Keep-Alive');
-            res.setHeader('Keep-Alive', 'timeout=50, max=1000');
-            res.send({
-                url: quickResult.url,
-                useVideoPreviewForFolder: quickResult.useVideoPreviewForFolder,
-            });
-            return;
-        }
+    if(isQuickRequest){
+        res.send({ failed: true, reason: "NOT FOUND FOR QUICK" });
+        return;
     }
 
     if (isCompress(filePath)) {
-        if (!hasQuickResult) {
-            quickResult = await thumbnailUtil.getQuickThumbnail(filePath);
-            hasQuickResult = true;
-        }
-
         let url;
         if (quickResult && quickResult.attempted.zip) {
             url = quickResult.source === "zip-thumbnail" ? quickResult.url : null;
@@ -458,25 +448,11 @@ app.all("/api/thumbnail/get", asyncWrapper(async (req, res) => {
                 url,
                 debug: "from getQuickThumbnailForZip"
             });
-            // generate in background as well
             extractThumbnailFromZip(filePath);
-            return;
+        }else{
+            extractThumbnailFromZip(filePath, res);
         }
-
-        extractThumbnailFromZip(filePath, res);
-        return;
-    }
-
-    if (estimateIfFolder(filePath)) {
-        if (!hasQuickResult) {
-            quickResult = await thumbnailUtil.getQuickThumbnail(filePath);
-            hasQuickResult = true;
-        }
-
-        const applyCacheHeader = () => {
-            res.setHeader("Cache-Control", FOLDER_THUMBNAIL_CACHE_CONTROL);
-        };
-
+    }else if (estimateIfFolder(filePath)) {
         let existing;
         if (quickResult && quickResult.attempted.folder) {
             existing = quickResult.source === "folder-thumbnail" ? quickResult.url : null;
@@ -495,9 +471,7 @@ app.all("/api/thumbnail/get", asyncWrapper(async (req, res) => {
 
         const zipRows = await findZipForFolder(filePath);
         if (zipRows[0]) {
-            extractThumbnailFromZip(zipRows[0].filePath, res, undefined, {
-                onSuccess: applyCacheHeader
-            });
+            extractThumbnailFromZip(zipRows[0].filePath, res);
             return;
         }
 
@@ -509,21 +483,17 @@ app.all("/api/thumbnail/get", asyncWrapper(async (req, res) => {
                 debug: "from folder image"
             });
             return;
+        }else {
+            res.send({ failed: true, reason: "No file found" });
         }
-
-        res.send({ failed: true, reason: "No file found" });
-        return;
-    }
-
-    if (isImage(filePath)) {
+    } else if (isImage(filePath)) {
         res.send({
             url: filePath,
             debug: "direct image"
         });
-        return;
+    } else {
+        res.send({ failed: true, reason: "Unsupported file type" });
     }
-
-    res.send({ failed: true, reason: "Unsupported file type" });
 }));
 
 

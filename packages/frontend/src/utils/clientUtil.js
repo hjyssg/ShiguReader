@@ -177,10 +177,6 @@ module.exports.getVideoPlayerLink = function (path) {
     return "/videoPlayer/?p=" + encodeURIComponent(path);
 }
 
-module.exports.getQuickThumbUrl = function(filePath){
-    return "/api/thumbnail/get?quick=true&p=" + encodeURIComponent(filePath);
-}
-
 
 module.exports.getFileUrl = function (filePath, thumbnailMode) {
     if (!filePath ) {
