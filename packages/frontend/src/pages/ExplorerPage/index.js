@@ -92,7 +92,7 @@ export default class ExplorerPage extends Component {
         this.metaInfo = [
             { key: "pageIndex", type: "int", defVal: 1 },
             { key: "isRecursive", type: "boolean", defVal: false },
-            { key: "sortOrder", type: "str", defVal: BY_TIME },
+            { key: "sortOrder", type: "str", defVal: BY_MTIME },
             { key: "isSortAsc", type: "boolean", defVal: false },
             { key: "showFolderThumbnail", type: "boolean", defVal: false },
             { key: "filterArr", type: "arr" },
