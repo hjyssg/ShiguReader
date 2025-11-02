@@ -123,7 +123,7 @@ export default function LoadingImage({
 
   return (
     <VisibilitySensor
-      offset={{ bottom: -200 }}
+      offset={{ bottom: 200 }}
       partialVisibility={true}
       onChange={handleVisibilityChange}
     >
