@@ -14,3 +14,6 @@ export const getAuthors = (payload) =>
 
 export const getTags = (payload) =>
   Sender.postWithPromise('/api/get_tags', payload);
+
+export const extractZipInfo = (filePaths) =>
+  Sender.postWithPromise('/api/info/extract_zip_info', { filePaths });
