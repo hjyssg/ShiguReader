@@ -102,4 +102,35 @@ router.post('/api/info/get_all', serverUtil.asyncWrapper(async (req, res) => {
     });
 }));
 
+const sevenZipHelp = require('../services/seven-zip');
+const { listZipContentAndUpdateDb } = sevenZipHelp;
+const zipInfoDb = require("../models/zip-info-db");
+
+router.post('/api/info/extract_zip_info', serverUtil.asyncWrapper(async (req, res) => {
+    const filePaths = req.body && req.body.filePaths;
+    if (!filePaths || !Array.isArray(filePaths)) {
+        res.send({ failed: true, reason: "Invalid parameter" });
+        return;
+    }
+
+    const filteredFilePaths = filePaths.filter(util.isCompress);
+
+    const promises = filteredFilePaths.map(async (filePath) => {
+        const result = await listZipContentAndUpdateDb(filePath);
+        return result && result.info;
+    });
+
+    const results = await Promise.all(promises);
+    const infos = {};
+    results.forEach(info => {
+        if (info) {
+            infos[info.filePath] = info;
+        }
+    });
+
+    res.send({
+        infos
+    });
+}));
+
 module.exports = router;

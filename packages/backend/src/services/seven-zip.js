@@ -177,8 +177,8 @@ module.exports.listZipContentAndUpdateDb = async function (filePath) {
             totalSize
         };
 
-        zipInfoDb.updateZipDb(info);
-        return { files, fileInfos, info };
+        const _info = zipInfoDb.updateZipDb(info);
+        return { files, fileInfos, info: _info };
     } catch (e) {
         logger.error("[listZipContentAndUpdateDb]", filePath, e);
         return emptyResult;

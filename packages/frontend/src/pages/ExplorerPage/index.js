@@ -5,7 +5,7 @@ import './ExplorerPage.scss';
 import LoadingImage from '@components/LoadingImage';
 import { listDirectory } from '@api/folder';
 import { searchFiles } from '@api/search';
-import { getGoodAuthorNames } from '@api/info';
+import { getGoodAuthorNames, extractZipInfo } from '@api/info';
 import { getFolderListThumbnails } from '@api/thumbnail';
 import { Link } from 'react-router-dom';
 
@@ -331,6 +331,7 @@ export default class ExplorerPage extends Component {
             this.imgFolderInfo = imgFolderInfo;
             this.res = res;
             this.allfileInfos = _.extend({}, this.fileInfos, this.imgFolderInfo);
+            this.checkAndGetZipInfo(this.allfileInfos);
             this.decorate_allfileInfos();
 
             this.fileNameToHistory = {};
@@ -557,6 +558,32 @@ export default class ExplorerPage extends Component {
         //     });
         // }
         return files;
+    }
+
+    checkAndGetZipInfo(fileInfos) {
+        const filesToFetch = [];
+        const _files = _.keys(fileInfos) || [];
+        const files = _files.filter(isCompress);
+
+        files.forEach(fp => {
+            const info = fileInfos[fp];
+            if (info && info.thumbnailFilePath && (_.isUndefined(info.pageNum) || _.isNull(info.pageNum))) {
+                filesToFetch.push(fp);
+            }
+        });
+
+        if (filesToFetch.length > 0) {
+            extractZipInfo(filesToFetch).then(res => {
+                if (!res.isFailed() && res.json.infos) {
+                    const { infos } = res.json;
+                    _.keys(infos).forEach(fp => {
+                        this.allfileInfos[fp] = infos[fp];
+                    });
+                    this.decorate_allfileInfos();
+                    this.askRerender();
+                }
+            });
+        }
     }
 
     getFilteredVideos() {

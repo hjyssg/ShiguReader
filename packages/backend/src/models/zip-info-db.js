@@ -44,7 +44,7 @@ module.exports.updateZipDb = function (info) {
     //     filePath, pageNum, musicNum, videoNum, totalNum, totalImgSize, mtime, totalSize
     // };
 
-    updateZipDb_v2({filePath, pageNum, musicNum, videoNum, totalNum, totalImgSize, mtime, totalSize});
+    return updateZipDb_v2({filePath, pageNum, musicNum, videoNum, totalNum, totalImgSize, mtime, totalSize});
 }
 
 
@@ -52,9 +52,11 @@ const updateZipDb_v2 = module.exports.updateZipDb_v2 = function (info) {
     const { filePath, pageNum, musicNum, videoNum, totalNum, totalImgSize, mtime, totalSize} = info;
 
     sqldb.insertOneRow("zip_table", {filePath, pageNum, musicNum, videoNum, totalNum, totalImgSize, mtime, totalSize});
-    _internal_dict_[filePath] = {
+    const _info = {
         filePath, pageNum, musicNum, videoNum, totalNum, totalImgSize, mtime, totalSize
     };
+    _internal_dict_[filePath] = _info;
+    return _info;
 }
 
 const _internal_dict_ = {};
