@@ -5,7 +5,7 @@ import './ExplorerPage.scss';
 import LoadingImage from '@components/LoadingImage';
 import { listDirectory } from '@api/folder';
 import { searchFiles } from '@api/search';
-import { getGoodAuthorNames } from '@api/info';
+import { getGoodAuthorNames, extractZipInfo } from '@api/info';
 import { getFolderListThumbnails } from '@api/thumbnail';
 import { Link } from 'react-router-dom';
 
@@ -332,6 +332,7 @@ export default class ExplorerPage extends Component {
             this.res = res;
             this.allfileInfos = _.extend({}, this.fileInfos, this.imgFolderInfo);
             this.decorate_allfileInfos();
+            this.checkAndGetZipInfo(this.allfileInfos);
 
             this.fileNameToHistory = {};
             fileHistory.forEach(row => {
@@ -557,6 +558,26 @@ export default class ExplorerPage extends Component {
         //     });
         // }
         return files;
+    }
+
+    checkAndGetZipInfo(fileInfos) {
+        const _files = _.keys(fileInfos) || [];
+        const files = _files.filter(isCompress);
+
+        files.forEach(fp => {
+            const info = fileInfos[fp];
+            if (info && info.thumbnailFilePath && !info.pageNum) {
+                //send request
+                extractZipInfo({ filePath: fp }).then(res => {
+                    if (!res.isFailed() && res.json.info) {
+                        const { info } = res.json;
+                        this.allfileInfos[fp] = info;
+                        this.decorate_allfileInfos();
+                        this.askRerender();
+                    }
+                })
+            }
+        });
     }
 
     getFilteredVideos() {

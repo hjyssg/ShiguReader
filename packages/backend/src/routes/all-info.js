@@ -102,4 +102,21 @@ router.post('/api/info/get_all', serverUtil.asyncWrapper(async (req, res) => {
     });
 }));
 
+const sevenZipHelp = require('../services/seven-zip');
+const { listZipContentAndUpdateDb } = sevenZipHelp;
+const zipInfoDb = require("../models/zip-info-db");
+
+router.post('/api/info/extract_zip_info', serverUtil.asyncWrapper(async (req, res) => {
+    const filePath = req.body && req.body.filePath;
+    if (!filePath || !util.isCompress(filePath)) {
+        res.send({ failed: true, reason: "NOT FOUND" });
+        return;
+    }
+
+    const result = await listZipContentAndUpdateDb(filePath);
+    res.send({
+        info: result && result.info
+    });
+}));
+
 module.exports = router;

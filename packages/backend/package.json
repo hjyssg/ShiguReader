@@ -59,7 +59,7 @@
     "sqlite3": "^5.1.6",
     "string-hash": "^1.1.3",
     "trash": "^9.0.0",
-    "underscore": "^1.9.1",
+    "underscore": "^1.13.7",
     "winston": "^3.2.1"
   },
   "devDependencies": {
