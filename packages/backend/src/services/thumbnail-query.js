@@ -101,6 +101,7 @@ async function getThumbnailForFolders(filePathes) {
  */
 async function getQuickThumbnailForZip(filePath){
     let url;
+    let isFromFileName = false;
     const thumbnails = await getThumbnailsForZipFiles([filePath]);
     const oneThumbnail = thumbnails[filePath];
     if(oneThumbnail){
@@ -113,10 +114,11 @@ async function getQuickThumbnailForZip(filePath){
             const thumbRows = await thumbnailDb.getThumbnailByFileName(fileName);
             if(thumbRows.length > 0){
                 url = thumbRows[0].thumbnailFilePath;
+                isFromFileName = true;
             }
         }
     }
-    return url;
+    return { url, isFromFileName };
 }
 
 async function findVideoForFolder(filePath){
@@ -143,10 +145,11 @@ async function getQuickThumbnail(filePath) {
 
     if (util.isCompress(filePath)) {
         result.attempted.zip = true;
-        const url = await getQuickThumbnailForZip(filePath);
+        const { url, isFromFileName } = await getQuickThumbnailForZip(filePath);
         if (url) {
             result.url = url;
             result.source = "zip-thumbnail";
+            result.isFromFileName = isFromFileName;
         }
         return result;
     }

@@ -116,6 +116,7 @@ const pLimit = require('p-limit');
 const thumbnail_limit = pLimit(10);
 const unzip_limit = pLimit(3);
 const folder_stat_limit = pLimit(20);
+const thumbnailCorrectionQueue = pLimit(1);
 
 
 const app = express();
@@ -424,6 +425,12 @@ app.all("/api/thumbnail/get", asyncWrapper(async (req, res) => {
 
     const quickResult = await thumbnailUtil.getQuickThumbnail(filePath);
     if (quickResult && quickResult.url) {
+        if (quickResult.isFromFileName) {
+            setTimeout(() => {
+                thumbnailCorrectionQueue(() => extractThumbnailFromZip(filePath));
+            }, 1000);
+        }
+
         if (!allowVideoPreviewForFolder && quickResult.useVideoPreviewForFolder) {
             // 继续执行后续逻辑，避免返回视频预览
         } else {
