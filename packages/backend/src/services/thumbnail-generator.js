@@ -7,6 +7,7 @@ const pathUtil = require("../utils/path-util");
 const { getCurrentTime } = util;
 const imageCompressUtil = require("../utils/image-compress");
 const fs = require('fs').promises;
+const stringHash = require("string-hash");
 
 /**
  * 用来生成长期储存的thumbnail
@@ -17,7 +18,7 @@ const fs = require('fs').promises;
  */
 async function thumbnailGenerator(thumbnailFolderPath, imgFolderPath, imgFileName) {
     // let beg = getCurrentTime();
-    const outputName = path.basename(imgFolderPath);
+    const outputName = stringHash(imgFolderPath).toString();  //path.basename(imgFolderPath);
     // const ext = util.isGif(imgFileName) ? ".gif" : ".webp";
     // webp 会出现0kb空白图片
     const ext = util.isGif(imgFileName) ? ".gif" : ".jpg";
