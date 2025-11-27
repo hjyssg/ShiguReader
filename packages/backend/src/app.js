@@ -133,6 +133,26 @@ const modifyResponseForChart = require('./middleware/chartResponseMiddleware');
 // 将中间件应用到指定的 API 路由
 app.use(['/api/folder/list_dir', '/api/search/search_file', '/api/info/get_all'], modifyResponseForChart);
 
+const delayedThumbnailQueue = new Map();
+const DELAYED_THUMBNAIL_WAIT = 2000;
+
+function enqueueDelayedThumbnailExtract(filePath) {
+    if (delayedThumbnailQueue.has(filePath)) {
+        return;
+    }
+
+    const timer = setTimeout(async () => {
+        delayedThumbnailQueue.delete(filePath);
+        try {
+            await extractThumbnailFromZip(filePath, null, "delay-generate");
+        } catch (e) {
+            logger.warn("[thumbnail-delay]", e);
+        }
+    }, DELAYED_THUMBNAIL_WAIT);
+
+    delayedThumbnailQueue.set(filePath, timer);
+}
+
 //  to consume json request body
 //  https://stackoverflow.com/questions/10005939/how-do-i-consume-the-json-post-data-in-an-express-application
 // https://stackoverflow.com/questions/50304779/payloadtoolargeerror-request-entity-too-large?noredirect=1&lq=1
@@ -423,6 +443,12 @@ app.all("/api/thumbnail/get", asyncWrapper(async (req, res) => {
     }
 
     const quickResult = await thumbnailUtil.getQuickThumbnail(filePath);
+    const quickZipFromFilename = quickResult && quickResult.zipThumbnailSource === "fileName";
+
+    if (isQuickRequest && isCompress(filePath) && (!quickResult || !quickResult.url || quickZipFromFilename)) {
+        enqueueDelayedThumbnailExtract(filePath);
+    }
+
     if (quickResult && quickResult.url) {
         if (!allowVideoPreviewForFolder && quickResult.useVideoPreviewForFolder) {
             // 继续执行后续逻辑，避免返回视频预览

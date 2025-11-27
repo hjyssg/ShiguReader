@@ -101,10 +101,12 @@ async function getThumbnailForFolders(filePathes) {
  */
 async function getQuickThumbnailForZip(filePath){
     let url;
+    let source = null;
     const thumbnails = await getThumbnailsForZipFiles([filePath]);
     const oneThumbnail = thumbnails[filePath];
     if(oneThumbnail){
         url = oneThumbnail;
+        source = "filePath";
     }else{
         // 先找到发过去再说
         // TODO 但会导致不生成thumbnail了
@@ -113,10 +115,11 @@ async function getQuickThumbnailForZip(filePath){
             const thumbRows = await thumbnailDb.getThumbnailByFileName(fileName);
             if(thumbRows.length > 0){
                 url = thumbRows[0].thumbnailFilePath;
+                source = "fileName";
             }
         }
     }
-    return url;
+    return { url, source };
 }
 
 async function findVideoForFolder(filePath){
@@ -143,10 +146,11 @@ async function getQuickThumbnail(filePath) {
 
     if (util.isCompress(filePath)) {
         result.attempted.zip = true;
-        const url = await getQuickThumbnailForZip(filePath);
+        const { url, source: zipSource } = await getQuickThumbnailForZip(filePath);
         if (url) {
             result.url = url;
-            result.source = "zip-thumbnail";
+            result.source = zipSource === "fileName" ? "zip-thumbnail-by-filename" : "zip-thumbnail";
+            result.zipThumbnailSource = zipSource;
         }
         return result;
     }
