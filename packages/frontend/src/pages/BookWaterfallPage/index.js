@@ -50,7 +50,7 @@ class SmartImage extends Component {
         />)
 
     return (
-      <VisibilitySensor offset={{ bottom: -150 }} partialVisibility={true} onChange={this.onChange.bind(this)}>
+      <VisibilitySensor offset={{ bottom: 200 }} partialVisibility={true} onChange={this.onChange.bind(this)}>
             {content}
       </VisibilitySensor>
     )
