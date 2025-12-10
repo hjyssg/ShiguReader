@@ -108,13 +108,13 @@ async function getQuickThumbnailForZip(filePath){
     }else{
         // 先找到发过去再说
         // TODO 但会导致不生成thumbnail了
-        const fileName = path.basename(filePath);
-        if(fileName.length > 10){ // 文件名太短了，很容易冲突
-            const thumbRows = await thumbnailDb.getThumbnailByFileName(fileName);
-            if(thumbRows.length > 0){
-                url = thumbRows[0].thumbnailFilePath;
-            }
-        }
+        // const fileName = path.basename(filePath);
+        // if(fileName.length > 10){ // 文件名太短了，很容易冲突
+        //     const thumbRows = await thumbnailDb.getThumbnailByFileName(fileName);
+        //     if(thumbRows.length > 0){
+        //         url = thumbRows[0].thumbnailFilePath;
+        //     }
+        // }
     }
     return url;
 }
