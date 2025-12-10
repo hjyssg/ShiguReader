@@ -18,7 +18,11 @@ GM_addStyle(`
 }
 
 .disappear_dom {
-    display: none !important;
+    opacity: 0.3;
+    transition: opacity 0.3s;
+}
+.disappear_dom:hover {
+    opacity: 1 !important;
 }
 
 `);
@@ -300,7 +304,7 @@ function ehentaiProtection(){
             // node.display = node.display || {};
             // node.display.style = "none";
             node.classList.add("disappear_dom");
-            console.log("kill one low-rating dom");
+            console.log("hide (transparent) one low-rating dom");
         }
     }
 
