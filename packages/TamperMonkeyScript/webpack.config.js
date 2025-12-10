@@ -9,7 +9,7 @@ const metadata = `// ==UserScript==\n`
   + `// @grant       GM_getResourceText\n`
   + `// @connect     localhost\n`
   + `// @namespace       Aji47\n`
-  + `// @version         0.0.29\n`
+  + `// @version         0.0.30\n`
   + `// @description\n`
   + `// @author        Aji47\n`
   + `// @include       *://exhentai.org/*\n`
