@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "build": "webpack --config webpack.config.js"
+    "build": "webpack --config webpack.config.js",
+    "dev": "webpack --watch --config webpack.config.js"
   },
   "devDependencies": {
     "webpack": "^5.90.0",
