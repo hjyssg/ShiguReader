@@ -1,33 +1,62 @@
+# ShiguReader Backend (后端分支)
 
-<h1 align="center">ShiguReader Backend</h1>
+> **注意：** 本分支仅供开发人员使用。
 
-后端分支 仅供开发人员  
+## 开发流程
 
-##### 开发流程
-    etc\sync_frontend_assets_to_backend.py 会先执行 `npm run build`，然后把前端分支生成的 dist 到这里。
-    前端开发时，前端用webpack dev server来自己serve静态文件。   
-    比如，前端用9000的端口，后端用3000的端口。用户打开localhost:9000，所有api call都转发到3000端口上的。9000就是webpack dev server。    
+为了确保前后端协作顺畅，请遵循以下开发逻辑：
 
-    后端开发用vscode打开，然后launch main server。  
-    
-
-##### 发布流程：
-    安装pkg   (虽然原版pkg不维护，但有开源组织继续维护 https://github.com/yao-pkg/pkg 感谢)
-    生成exe    pkg . --compress GZip  
-    前端是webpack的打包  
-    添加其他文件   
-    pkg_zip_tool.py打包成zip。 注意检查不要放自己的信息。    
-    具体还可以参考pkg_readme
+1. **前端初始化**：在前端目录下运行 `npm i`。
+2. **资源同步**：运行 `etc\sync_frontend_assets_to_backend.py`。
+* 该脚本会自动执行 `npm run build`。
+* 将生成的 `dist` 文件夹同步至后端目录（若不执行此步，后端将缺少静态页面文件）。
 
 
-##### 参数:  
---port：这个参数用来设置软件监听的端口号，您可以通过命令行输入 "--port=端口号" 来指定。  
-例如：$ node ShiguReader.exe --port=3000  
-
---skip-scan：这个参数可以让您跳过应用程序启动时的扫描过程，加快应用程序启动速度。如果您不希望应用程序进行扫描，请在命令行中输入 "--skip-scan" 参数。  
-例如：$ node ShiguReader.exe --skip-scan  
+3. **开发环境联调**：
+* **前端**：使用 Webpack Dev Server（例如端口 `9000`）。
+* **后端**：使用 VS Code 打开项目，运行 `main server`（例如端口 `3000`）。
+* **转发机制**：用户访问 `localhost:9000`，所有的 API 请求会自动转发到 `3000` 端口的后端服务。
 
 
+---
 
-##### 数据迁移方法
-旧项目中的 `thumbnails` 文件夹和 `workspace/shigureader_internal_db.sqlite` 数据库复制到新的后端就行
+## 发布流程
+
+项目使用 [yao-pkg](https://github.com/yao-pkg/pkg) 进行打包：
+
+1. **环境准备**：确保已安装 `pkg` 工具。
+2. **生成执行文件**：
+```bash
+pkg . --compress GZip
+
+```
+
+
+3. **打包资源**：
+* 确认前端 Webpack 已完成打包。
+* 运行 `pkg_zip_tool.py` 将程序及相关依赖打包成 `.zip`。
+
+
+4. **安全检查**：**打包前请务必检查并清除个人敏感信息。**
+5. **参考资料**：更多细节请查阅 `pkg_readme`。
+
+---
+
+## ⌨️ 命令行参数
+
+启动 `ShiguReader.exe` 时支持以下参数：
+
+| 参数 | 说明 | 示例 |
+| --- | --- | --- |
+| `--port` | 设置软件监听的端口号 | `ShiguReader.exe --port=3000` |
+| `--skip-scan` | 跳过启动时的自动扫描过程，加快启动速度 | `ShiguReader.exe --skip-scan` |
+
+---
+
+## 📦 数据迁移方法
+
+如果您需要从旧项目迁移数据，请手动复制以下路径的文件至新后端目录下：
+
+* `thumbnails/` (缩略图文件夹)
+* `workspace/shigureader_internal_db.sqlite` (SQLite 数据库文件)
+

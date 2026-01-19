@@ -449,7 +449,7 @@ export default class BookReadPage extends Component {
 
     const currentPage = index + 1;
     const reachedProgressThreshold = currentPage / totalPages >= (1 / 3);
-    const reachedPageThreshold = currentPage > 8;
+    const reachedPageThreshold = currentPage > 3;
 
     if (!reachedProgressThreshold && !reachedPageThreshold) {
       return;
