@@ -8,19 +8,19 @@ const portConfig = require('./src/config/port-config');
 const { default_http_port } = portConfig;
 
 const config = {
-  entry: ['babel-polyfill', './src/main.jsx'],
+  entry: ['babel-polyfill', './src/main.tsx'],
   output: {
     path: path.join(__dirname, outputDirectory),
     filename: 'bundle.js',
-    publicPath:"/"
+    publicPath: "/"
   },
   module: {
     rules: [
       {
-        test: /\.jsx?$/,
+        test: /\.(js|jsx|ts|tsx)$/,
         exclude: /node_modules/,
         use: {
-          loader: 'babel-loader'
+          loader: 'ts-loader',
         }
       },
       {
@@ -66,14 +66,14 @@ const config = {
     },
     static: [{
       directory: path.join(__dirname, 'public'),
-      publicPath:"/"
-    },{
+      publicPath: "/"
+    }, {
       directory: path.join(__dirname, 'resource'),
-      publicPath:"/"
+      publicPath: "/"
     },
     {
       directory: __dirname,
-      publicPath:"/"
+      publicPath: "/"
     }],
     port: 9000,
   },
@@ -88,7 +88,7 @@ const config = {
 };
 
 config.resolve = {
-  extensions: ['.js', '.jsx'],
+  extensions: ['.js', '.jsx', '.ts', '.tsx'],
   alias: {
     "@assets": path.resolve(__dirname, 'src/assets/'),
     "@common": path.resolve(__dirname, '../common/src/'),
@@ -96,7 +96,7 @@ config.resolve = {
     "@api": path.resolve(__dirname, 'src/api/'),
     "@config": path.resolve(__dirname, 'src/config/'),
     "@context": path.resolve(__dirname, 'src/context/'),
-    "@name-parser": path.resolve(__dirname, '../name-parser/index.js'),
+    "@name-parser": path.resolve(__dirname, '../name-parser/'),
     "@pages": path.resolve(__dirname, 'src/pages/'),
     "@services": path.resolve(__dirname, 'src/services/'),
     "@styles": path.resolve(__dirname, 'src/styles/'),

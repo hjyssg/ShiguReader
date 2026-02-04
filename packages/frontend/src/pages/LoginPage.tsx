@@ -1,58 +1,56 @@
-import React, { Component } from 'react';
 
-// import { Switch, Route, Link, Redirect } from 'react-router-dom';
-// import screenfull from 'screenfull';
-// const clientUtil = require("../utils/clientUtil");
-// const { getSearchInputText } = clientUtil;
+import React, { Component, ReactNode, KeyboardEvent } from 'react';
 import ReactDOM from 'react-dom';
-// import Cookie from "js-cookie";
-// import 'react-toastify/dist/ReactToastify.css';
-// import { GlobalContext } from '../context/GlobalContext';
 import { login } from '@api/auth';
 
+interface LoginPageState {
+    errMessage?: string;
+}
 
-// http://localhost:3000/
-class LoginPage extends Component {
-    state = {};
+class LoginPage extends Component<{}, LoginPageState> {
+    state: LoginPageState = {};
+    passwordInputRef: HTMLInputElement | null = null;
 
-    getPasswordInput() {
-        const pathInput = ReactDOM.findDOMNode(this.passwordInputRef);
+    getPasswordInput(): string {
+        const pathInput = ReactDOM.findDOMNode(this.passwordInputRef) as HTMLInputElement;
         const text = (pathInput && pathInput.value) || "";
         return text;
     }
 
-    async setPasswordCookie() {
+    async setPasswordCookie(): Promise<void> {
         const text = this.getPasswordInput();
         const res = await login(text);
-        if (!res.isFailed()) {
-            //跳转回login之前的页面
+        if (!(res as any).isFailed()) {
             const prevUrl = sessionStorage.getItem('url_before_login') || "/";
-            if(prevUrl == window.location.href){
-                location.reload(true);
-            }else{
+            if (prevUrl === window.location.href) {
+                location.reload();
+            } else {
                 window.location.href = prevUrl;
             }
-        }else{
-            this.setState({errMessage: "Wrong Password"});
+        } else {
+            this.setState({ errMessage: "Wrong Password" });
         }
     }
 
-    render() {
+    render(): ReactNode {
         let content = (<React.Fragment>
             <div className="admin-section-title">ShiguReader</div>
             <div className="admin-section-content">
-                <input className="admin-intput" id="login-input"   type="password"    placeholder="password here..." 
+                <input
+                    className="admin-intput"
+                    id="login-input"
+                    type="password"
+                    placeholder="password here..."
                     ref={pathInput => this.passwordInputRef = pathInput}
-                    onChange={()=> this.setState({errMessage: ""})}   
-                    onKeyPress={e => {
+                    onChange={() => this.setState({ errMessage: "" })}
+                    onKeyPress={(e: KeyboardEvent<HTMLInputElement>) => {
                         if (e.which === 13 || e.keyCode === 13) {
-                        //enter key
-                        this.setPasswordCookie();
-                        e.preventDefault();
-                        e.stopPropagation();
+                            this.setPasswordCookie();
+                            e.preventDefault();
+                            e.stopPropagation();
                         }
                     }}
-                    />
+                />
                 <button onClick={this.setPasswordCookie.bind(this)}> Login </button>
                 <div id="log-err"> {this.state.errMessage} </div>
                 <div className="author-link">
@@ -73,6 +71,5 @@ class LoginPage extends Component {
         )
     }
 }
-
 
 export default LoginPage;

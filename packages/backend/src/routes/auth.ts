@@ -1,12 +1,13 @@
-const express = require('express');
+
+import express, { Request, Response } from 'express';
 const serverUtil = require('../utils/server-util');
 
 const router = express.Router();
 
-const tokenSet = {};
+const tokenSet: Record<string, boolean> = {};
 
-router.post('/api/auth/login', serverUtil.asyncWrapper(async (req, res) => {
-    const etcConfig = global.etc_config || {};
+router.post('/api/auth/login', serverUtil.asyncWrapper(async (req: Request, res: Response) => {
+    const etcConfig = (global as any).etc_config || {};
     const password = req.body && req.body.password;
     if (password === etcConfig.home_password || !etcConfig.home_password) {
         const token = serverUtil.makeid();
@@ -22,7 +23,7 @@ router.post('/api/auth/login', serverUtil.asyncWrapper(async (req, res) => {
     }
 }));
 
-router.post('/api/auth/logout', serverUtil.asyncWrapper(async (req, res) => {
+router.post('/api/auth/logout', serverUtil.asyncWrapper(async (req: Request, res: Response) => {
     const token = req.cookies && req.cookies['login-token'];
     if (token && tokenSet[token]) {
         delete tokenSet[token];
@@ -31,7 +32,7 @@ router.post('/api/auth/logout', serverUtil.asyncWrapper(async (req, res) => {
     res.send({ failed: false });
 }));
 
-module.exports = {
+export {
     router,
     tokenSet,
 };

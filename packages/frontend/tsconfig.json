@@ -1,0 +1,56 @@
+{
+    "compilerOptions": {
+        "outDir": "./dist/",
+        "sourceMap": true,
+        "noImplicitAny": false,
+        "module": "es6",
+        "target": "es5",
+        "jsx": "react",
+        "allowJs": true,
+        "moduleResolution": "node",
+        "allowSyntheticDefaultImports": true,
+        "esModuleInterop": true,
+        "baseUrl": ".",
+        "paths": {
+            "@assets/*": [
+                "src/assets/*"
+            ],
+            "@common/*": [
+                "../common/src/*"
+            ],
+            "@components/*": [
+                "src/components/*"
+            ],
+            "@api/*": [
+                "src/api/*"
+            ],
+            "@config/*": [
+                "src/config/*"
+            ],
+            "@context/*": [
+                "src/context/*"
+            ],
+            "@name-parser": [
+                "../name-parser/index"
+            ],
+            "@name-parser/*": [
+                "../name-parser/*"
+            ],
+            "@pages/*": [
+                "src/pages/*"
+            ],
+            "@services/*": [
+                "src/services/*"
+            ],
+            "@styles/*": [
+                "src/styles/*"
+            ],
+            "@utils/*": [
+                "src/utils/*"
+            ]
+        }
+    },
+    "include": [
+        "src/**/*"
+    ]
+}

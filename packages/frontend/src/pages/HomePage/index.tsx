@@ -1,6 +1,5 @@
-// @flow
-import React, { Component, useState, useEffect, useContext } from 'react';
-// import _ from "underscore";
+
+import React, { useState, useEffect, useContext, ReactNode } from 'react';
 import './HomePage.scss';
 import { getHomeDirectories } from '@api/home';
 import { Link } from 'react-router-dom';
@@ -11,11 +10,11 @@ import ItemsContainer from '@components/common/ItemsContainer';
 import ThumbnailPopup from '@components/common/ThumbnailPopup';
 import { GlobalContext } from '@context/GlobalContext';
 
-const util = require("@common/util");
-const classNames = require('classnames');
-const clientUtil = require("@utils/clientUtil");
+import * as util from "@common/util";
+import classNames from 'classnames';
+import * as clientUtil from "@utils/clientUtil";
 
-function renderHighlightedPath(filePath, fallbackText){
+function renderHighlightedPath(filePath: string, fallbackText: string) {
     const displayPath = filePath || fallbackText || '';
     const lastSlashIndex = Math.max(displayPath.lastIndexOf('/'), displayPath.lastIndexOf('\\'));
     const prefix = lastSlashIndex >= 0 ? displayPath.slice(0, lastSlashIndex + 1) : '';
@@ -29,7 +28,7 @@ function renderHighlightedPath(filePath, fallbackText){
     );
 }
 
-function getOneLineListItem(icon, fileName, filePath) {
+function getOneLineListItem(icon: ReactNode, fileName: string, filePath: string) {
     const highlightedPath = renderHighlightedPath(filePath, fileName);
 
     return (
@@ -39,12 +38,12 @@ function getOneLineListItem(icon, fileName, filePath) {
                 {highlightedPath}
             </li>
         </ThumbnailPopup>
-        );
+    );
 }
 
-function getPathItems(items){
-    const result = (items||[]).map(item => {
-        const toUrl = clientUtil.getExplorerLink(item);
+function getPathItems(items: string[]) {
+    const result = (items || []).map(item => {
+        const toUrl = (clientUtil as any).getExplorerLink(item);
         const text = item;
         const result = getOneLineListItem(<i className="far fa-folder"></i>, text, item);
         return <Link to={toUrl} key={item}>{result}</Link>;
@@ -54,27 +53,27 @@ function getPathItems(items){
 
 const HomePage = () => {
     const globalContext = useContext(GlobalContext) || {};
-    const { good_folder, downloadFolder } = globalContext;
-    const [res, setRes] = useState(null)
+    const { good_folder, downloadFolder } = globalContext as any;
+    const [res, setRes] = useState<any>(null)
 
     useEffect(() => {
         async function fetchData() {
             const res = await getHomeDirectories();
-            if (!res.isFailed()) {
+            if (res && !(res as any).isFailed()) {
                 setRes(res);
             }
         }
         fetchData();
-    }, []); 
+    }, []);
 
     document.title = "ShiguReader";
 
-    if(!res){
+    if (!res) {
         return (<CenterSpinner />);
-    }else if(res.isFailed()){
+    } else if ((res as any).isFailed()) {
         return <ErrorPage res={res} />;
-    }else {
-        let {dirs, hdd_list, quickAccess, recentAccess } = res.json;
+    } else {
+        let { dirs, hdd_list, quickAccess, recentAccess } = res.json;
 
         const quickAccessList = [...(quickAccess || [])];
         if (good_folder) {
@@ -109,10 +108,10 @@ const HomePage = () => {
                 {dirItems && <div className="home-section-title"> Watched Folders </div>}
                 <ItemsContainer items={dirItems} />
 
-                {quickAccessItems && <div className="home-section-title"> Quick Access </div>} 
+                {quickAccessItems && <div className="home-section-title"> Quick Access </div>}
                 <ItemsContainer items={quickAccessItems} />
 
-                {recentAccessItems && <div className="home-section-title"> Recent Access </div>} 
+                {recentAccessItems && <div className="home-section-title"> Recent Access </div>}
                 <ItemsContainer items={recentAccessItems} />
 
                 {hddItems && <div className="home-section-title"> Hard Drives </div>}

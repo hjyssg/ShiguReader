@@ -1,0 +1,29 @@
+{
+    "compilerOptions": {
+        "target": "es2018",
+        "module": "commonjs",
+        "outDir": "./dist",
+        "strict": false,
+        "esModuleInterop": true,
+        "skipLibCheck": true,
+        "resolveJsonModule": true,
+        "allowJs": true,
+        "baseUrl": ".",
+        "paths": {
+            "@common": [
+                "../common/src/index"
+            ],
+            "@common/*": [
+                "../common/src/*"
+            ]
+        }
+    },
+    "include": [
+        "src/**/*",
+        "../common/src/**/*"
+    ],
+    "exclude": [
+        "node_modules",
+        "**/*.test.ts"
+    ]
+}

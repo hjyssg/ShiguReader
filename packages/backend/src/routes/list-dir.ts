@@ -1,28 +1,28 @@
-const express = require('express');
-const router = express.Router();
-// const _ = require('underscore');
-const path = require('path');
-const pfs = require('promise-fs');
 
-const pathUtil = require("../utils/path-util");
+import express, { Request, Response } from 'express';
+const router = express.Router();
+import path from 'path';
+import pfs from 'promise-fs';
+
+import * as pathUtil from "../utils/path-util";
 const {
     isExist,
     isDirectParent,
     isSub
-} = pathUtil;
+} = pathUtil as any;
 
 const serverUtil = require("../utils/server-util");
 const { decorateResWithMeta } = require('../services/server-common');
 const db = require("../models/db");
-const util = require('../../../common/src/util');
+import * as util from '../../../common/src';
 const { getCurrentTime, isImage, isMusic, isCompress, isVideo } = util;
 const historyDb = require("../models/history-db");
 const logger = require("../config/logger");
-const filewatch= require('../services/file-watchers/file-watch');
+const filewatch = require('../services/file-watchers/file-watch');
 const estimateFileTable = require('../services/estimate-file-table');
 const appState = require('../state/appState');
 
-router.post('/api/folder/list_dir', serverUtil.asyncWrapper(async (req, res) => {
+router.post('/api/folder/list_dir', serverUtil.asyncWrapper(async (req: Request, res: Response) => {
     let dir = req.body && req.body.dir;
     const isRecursive = req.body && req.body.isRecursive;
 
@@ -40,7 +40,7 @@ router.post('/api/folder/list_dir', serverUtil.asyncWrapper(async (req, res) => 
             ...(result.dirs || []),
             ...Object.keys(result.fileInfos || {})
         ];
-        estimateFileTable.updateByScan(filePathesForEstimate).catch(err=>logger.error(err));
+        estimateFileTable.updateByScan(filePathesForEstimate).catch((err: any) => logger.error(err));
         result = await decorateResWithMeta(result);
         historyDb.addOneLsDirRecord(dir);
         res.send(result);
@@ -52,17 +52,17 @@ router.post('/api/folder/list_dir', serverUtil.asyncWrapper(async (req, res) => 
     // 前缀是子文件都搜索
     const recursiveFileSQL = `SELECT * FROM file_table WHERE filePath LIKE ? AND filePath != ?`
     try {
-        let time2, timeUsed;
-        let dirs = [];
-        let fileInfos = {};
-        let sql, rows;
+        let time2: number, timeUsed: number;
+        let dirs: string[] = [];
+        let fileInfos: any = {};
+        let sql: string, rows: any[];
 
         //-------------- dir --------------
         if (!isRecursive) {
             // 单层才有folder
             sql = `SELECT filePath FROM file_table WHERE dirPath = ? AND isFolder`
             rows = await db.doSmartAllSync(sql, [dir]);
-            dirs = rows.map(e => e.filePath);
+            dirs = rows.map((e: any) => e.filePath);
         }
 
         //-------------------files -----------------
@@ -76,9 +76,9 @@ router.post('/api/folder/list_dir', serverUtil.asyncWrapper(async (req, res) => 
         fileInfos = serverUtil.convertFileRowsIntoFileInfo(rows);
 
         //---------------img folder -----------------
-        const imgFolders = {};
+        const imgFolders: Record<string, any[]> = {};
         // join folder with isDisplayableInOnebook file
-        if(isRecursive){
+        if (isRecursive) {
             sql = `
             WITH TT AS (
                 ${recursiveFileSQL} 
@@ -90,7 +90,7 @@ router.post('/api/folder/list_dir', serverUtil.asyncWrapper(async (req, res) => 
              ON A.filePath=B.dirPath AND B.isDisplayableInOnebook AND A.isFolder
             `
             rows = await db.doSmartAllSync(sql, [`${dir}%`, dir]);
-        }else{
+        } else {
             //单层
             sql = `
             WITH A AS (
@@ -105,9 +105,9 @@ router.post('/api/folder/list_dir', serverUtil.asyncWrapper(async (req, res) => 
              INNER JOIN B
              ON A.filePath=B.dirPath
             `
-            rows = await db.doSmartAllSync(sql, [ dir, `${dir}%`, dir]);
+            rows = await db.doSmartAllSync(sql, [dir, `${dir}%`, dir]);
         }
-        rows.forEach(row => {
+        rows.forEach((row: any) => {
             const dirPath = row.dirPath;
             imgFolders[dirPath] = imgFolders[dirPath] || [];
             imgFolders[dirPath].push(row);
@@ -117,9 +117,8 @@ router.post('/api/folder/list_dir', serverUtil.asyncWrapper(async (req, res) => 
         // -------------get extra info
         time2 = getCurrentTime();
         timeUsed = (time2 - time1);
-        // console.log("[/api/LsDir] sql time", timeUsed, "ms")
 
-        let result = {
+        let result: any = {
             path: dir,
             dirs,
             fileInfos,
@@ -129,32 +128,29 @@ router.post('/api/folder/list_dir', serverUtil.asyncWrapper(async (req, res) => 
         result = await decorateResWithMeta(result);
         const time3 = getCurrentTime();
         timeUsed = (time3 - time2);
-        // console.log("[/api/LsDir] decorateResWithMeta", timeUsed, "ms")
         historyDb.addOneLsDirRecord(dir);
         res.send(result);
     } catch (e) {
         logger.error(e);
         res.send({ failed: true, reason: e });
-    } finally {
-        //nothing
     }
 }));
 
 
-function fileIntoCategory(files){
-    const imageFiles = [];
-    const musicFiles = [];
-    const videoFiles = [];
-    const compressFiles = [];
+function fileIntoCategory(files: string[]) {
+    const imageFiles: string[] = [];
+    const musicFiles: string[] = [];
+    const videoFiles: string[] = [];
+    const compressFiles: string[] = [];
 
     files.forEach(fp => {
-        if(isImage(fp)){
+        if (isImage(fp)) {
             imageFiles.push(fp);
-        }else if (isVideo(fp)){
+        } else if (isVideo(fp)) {
             videoFiles.push(fp);
-        }else if(isMusic(fp)){
+        } else if (isMusic(fp)) {
             musicFiles.push(fp);
-        }else if(isCompress(fp)){
+        } else if (isCompress(fp)) {
             compressFiles.push(fp);
         }
     })
@@ -167,11 +163,11 @@ function fileIntoCategory(files){
     }
 }
 
-async function listNoScanDir(filePath, res, isRecussive) {
-    const { filePathes, dirPathes } = await pathUtil.readDirForFileAndFolder(filePath, isRecussive);
-    
-    const categoryObj  = fileIntoCategory(filePathes);
-    const fileInfos = filePathes.reduce((acc, filePath) => {
+async function listNoScanDir(filePath: string, res: Response, isRecussive?: boolean) {
+    const { filePathes, dirPathes } = await (pathUtil as any).readDirForFileAndFolder(filePath, isRecussive);
+
+    const categoryObj = fileIntoCategory(filePathes);
+    const fileInfos = filePathes.reduce((acc: any, filePath) => {
         acc[filePath] = {};
         return acc;
     }, {});
@@ -179,21 +175,17 @@ async function listNoScanDir(filePath, res, isRecussive) {
     let result = {
         path: filePath,
         mode: "lack_info_mode",
-
-        // stat: {},
         dirs: dirPathes,
         imgFolders: {},
         fileInfos,
-
         ...categoryObj
     };
-    
+
     return result;
 }
 
-router.post('/api/folder/list_image_content', serverUtil.asyncWrapper(async (req, res) => {
+router.post('/api/folder/list_image_content', serverUtil.asyncWrapper(async (req: Request, res: Response) => {
     let filePath = req.body && req.body.filePath;
-    const noMedataInfo = req.body && req.body.noMedataInfo;
     if (!filePath || !(await isExist(filePath))) {
         logger.error("[/api/folder/list_image_content]", filePath, "does not exist");
         res.send({ failed: true, reason: "NOT FOUND" });
@@ -206,11 +198,11 @@ router.post('/api/folder/list_image_content', serverUtil.asyncWrapper(async (req
         return;
     }
 
-    let result;
+    let result: any;
     // 除了cache以外都不递归
-    if(isSub(appState.getCachePath(), filePath)){
+    if (isSub(appState.getCachePath(), filePath)) {
         result = await listNoScanDir(filePath, res, true);
-    }else {
+    } else {
         result = await listNoScanDir(filePath, res);
     }
 
@@ -220,9 +212,9 @@ router.post('/api/folder/list_image_content', serverUtil.asyncWrapper(async (req
         outputPath: null,
         ...result
     }
-    
+
     result = serverUtil.checkOneBookRes(result);
     res.send(result);
 }));
 
-module.exports = router;
+export default router;
