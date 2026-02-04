@@ -70,3 +70,45 @@ export interface ThumbnailResponse extends BaseResponse {
     dirThumbnails?: Record<string, string>;
     debug?: string;
 }
+
+export interface HistoryRecord {
+    filePath: string;
+    dirPath: string;
+    fileName: string;
+    time: number;
+}
+
+export interface HistoryResponse extends BaseResponse {
+    rows: HistoryRecord[];
+    count: number;
+}
+
+export interface TagInfo {
+    tag: string;
+    type: 'tag' | 'author' | 'group';
+    subtype: 'comiket' | 'name' | 'parody' | 'author' | 'group';
+    maxTime: number;
+    count: number;
+    thumbnailFileName?: string;
+    thumbnail?: string;
+    rank?: number;
+}
+
+export interface TagResponse extends BaseResponse {
+    tag_rows: TagInfo[];
+}
+
+export interface AuthorResponse extends BaseResponse {
+    author_rows: TagInfo[];
+}
+
+export interface GoodAuthorNamesResponse extends BaseResponse {
+    authorInfo: any[]; // These are from tag_table, might need more specific types later
+    tagInfo: any[];
+}
+
+export interface ApiResponse<T> {
+    status: number;
+    json: T & BaseResponse;
+    isFailed(): boolean;
+}

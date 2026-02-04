@@ -1,14 +1,15 @@
 
-const express = require('express');
+import express, { Request, Response } from 'express';
 const router = express.Router();
-// const serverUtil = require("../serverUtil");
-const util = require('../../../common/src/util');
-const path = require('path');
+import path from 'path';
+import * as util from '@common';
+import { HistoryResponse } from '@common';
+
 const historyDb = require("../models/history-db");
 const serverUtil = require("../utils/server-util");
 
 
-router.post('/api/history/get_one_file', serverUtil.asyncWrapper(async (req, res) => {
+router.post('/api/history/get_one_file', serverUtil.asyncWrapper(async (req: Request, res: Response) => {
     let filePath = req.body && req.body.filePath;
     const fileName = path.basename(filePath);
     const history = await historyDb.getHistoryForOneFile(fileName);
@@ -17,14 +18,14 @@ router.post('/api/history/get_one_file', serverUtil.asyncWrapper(async (req, res
     })
 }));
 
-router.post('/api/history/list', serverUtil.asyncWrapper(async (req, res) => {
+router.post('/api/history/list', serverUtil.asyncWrapper(async (req: Request, res: Response) => {
     let page = req.body && req.body.page;
-    page = parseInt(page);
-    const history = await historyDb.getHistoryPageData(page);
+    const pageNum = parseInt(page);
+    const history: HistoryResponse = await historyDb.getHistoryPageData(pageNum);
     res.send(history);
 }));
 
-router.post('/api/history/add', serverUtil.asyncWrapper(async (req, res) => {
+router.post('/api/history/add', serverUtil.asyncWrapper(async (req: Request, res: Response) => {
     const filePath = req.body && req.body.filePath;
     if (!filePath) {
         res.send({ failed: true, reason: "No parameter" });
@@ -40,24 +41,24 @@ router.post('/api/history/add', serverUtil.asyncWrapper(async (req, res) => {
         }
 
         res.send({ failed: false });
-    } catch (err) {
+    } catch (err: any) {
         res.send({ failed: true, reason: err?.message || String(err) });
     }
 }));
 
-router.post("/api/history/get_file_history", serverUtil.asyncWrapper(async (req, res) => {
+router.post("/api/history/get_file_history", serverUtil.asyncWrapper(async (req: Request, res: Response) => {
     const all_pathes = req.body && req.body.all_pathes;
     if (!all_pathes) {
         res.send({ failed: true, reason: "No Parameter" });
         return;
     }
 
-    try{
+    try {
         const fileHistory = await historyDb.getBatchFileHistory(all_pathes);
         res.send({ failed: false, fileHistory });
-    }catch(e){
-        res.send({failed: true})
+    } catch (e) {
+        res.send({ failed: true })
     }
 }));
 
-module.exports = router;
+export default router;

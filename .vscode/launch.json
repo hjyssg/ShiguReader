@@ -40,47 +40,67 @@
       "type": "node",
       "request": "launch",
       "name": "Backend main server",
-      "program": "${workspaceFolder}/packages/backend/src/app.js",
+      "runtimeExecutable": "ts-node",
+      "runtimeArgs": [
+        "-r",
+        "tsconfig-paths/register"
+      ],
+      "program": "${workspaceFolder}/packages/backend/src/app.ts",
       "args": [],
       "cwd": "${workspaceFolder}/packages/backend",
-      "preLaunchTask": "set_chcp_65001"
+      "protocol": "inspector",
+      "skipFiles": [
+        "<node_internals>/**"
+      ]
     },
     {
       "type": "node",
       "request": "launch",
       "name": "Backend main server [skip scan]",
-      "program": "${workspaceFolder}/packages/backend/src/app.js",
-      "args": ["--skip-scan"],
+      "runtimeExecutable": "ts-node",
+      "runtimeArgs": [
+        "-r",
+        "tsconfig-paths/register"
+      ],
+      "program": "${workspaceFolder}/packages/backend/src/app.ts",
+      "args": [
+        "--skip-scan"
+      ],
       "cwd": "${workspaceFolder}/packages/backend",
-      // "preLaunchTask": "set_chcp_65001"
+      "protocol": "inspector",
+      "skipFiles": [
+        "<node_internals>/**"
+      ]
     },
     {
       "type": "node",
       "request": "launch",
-      "name": "Backend main server [skip scan and skip db clean]",
-      "program": "${workspaceFolder}/packages/backend/src/app.js",
-      "args": ["--skip-scan", "--skip-db-clean"],
+      "name": "Frontend Dev Server",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "start"
+      ],
+      "cwd": "${workspaceFolder}/packages/frontend",
+      "console": "integratedTerminal"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Backend Mocha Tests",
+      "program": "${workspaceFolder}/packages/backend/node_modules/mocha/bin/_mocha",
+      "args": [
+        "-u",
+        "bdd",
+        "--timeout",
+        "999999",
+        "--colors",
+        "${workspaceFolder}/packages/backend/src/test"
+      ],
       "cwd": "${workspaceFolder}/packages/backend",
-      "preLaunchTask": "set_chcp_65001"
+      "internalConsoleOptions": "openOnSessionStart"
     },
     {
       "type": "node",
-      "request": "launch",
-      "name": "Backend sub server [no scan and different port, share the same db with main server]",
-      "program": "${workspaceFolder}/packages/backend/src/app.js",
-      "args": ["--skip-scan", "--skip-cache-clean", "--port", "34213"],
-      "cwd": "${workspaceFolder}/packages/backend"
-    },
-    {
-      "type": "node",
-      "request": "launch",
-      "name": "Backend sub server [deprecated]",
-      "program": "${workspaceFolder}/packages/backend/src/server/_sub_server.js",
-      "args": [],
-      "cwd": "${workspaceFolder}/packages/backend"
-    },
-    {
-      "type": "python",
       "request": "launch",
       "name": "Sync frontend assets to backend",
       "program": "${workspaceFolder}/packages/backend/etc/sync_frontend_assets_to_backend.py",

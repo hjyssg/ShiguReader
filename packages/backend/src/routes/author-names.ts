@@ -1,15 +1,13 @@
 
-
-const express = require('express');
+import express, { Request, Response } from 'express';
 const router = express.Router();
+import { GoodAuthorNamesResponse } from '@common';
+
 const db = require("../models/db");
-// const util = global.requireUtil();
-// const { isCompress } = util;
-// const userConfig = global.requireUserConfig();
 const serverUtil = require("../utils/server-util");
 
 
-async function getGoodAndOtherSet() {
+async function getGoodAndOtherSet(): Promise<GoodAuthorNamesResponse> {
     // let beg = (new Date).getTime();
     let sql;
     let authorInfo = [];
@@ -26,14 +24,15 @@ async function getGoodAndOtherSet() {
     // console.log(`[/api/getGoodAuthorNames] ${(end - beg) / 1000}s`);
     return {
         authorInfo,
-        tagInfo
+        tagInfo,
+        failed: false
     }
 }
 
-router.get('/api/getGoodAuthorNames', serverUtil.asyncWrapper(async (req, res) => {
+router.get('/api/getGoodAuthorNames', serverUtil.asyncWrapper(async (req: Request, res: Response) => {
     const result = await getGoodAndOtherSet();
     // res.setHeader('Cache-Control', 'public, max-age=20');
     res.send(result);
 }));
 
-module.exports = router;
+export default router;

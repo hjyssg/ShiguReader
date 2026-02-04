@@ -890,13 +890,13 @@ app.get('/api/getGeneralInfo', asyncWrapper(async (req: Request, res: Response) 
 const homepagePathRoute = require("./routes/homepage-path");
 app.use(homepagePathRoute);
 
-const historyRoute = require("./routes/history");
+const historyRoute = require("./routes/history").default;
 app.use(historyRoute);
 
 const listDirRoute = require("./routes/list-dir").default;
 app.use(listDirRoute);
 
-const authorNamesRoute = require("./routes/author-names");
+const authorNamesRoute = require("./routes/author-names").default;
 app.use(authorNamesRoute);
 
 const fileMoveDeleteRoute = require("./routes/file-move-delete");
@@ -909,7 +909,7 @@ const searchRoute = require("./routes/search").default;
 app.use(searchRoute);
 
 
-const allInfoRoute = require("./routes/all-info");
+const allInfoRoute = require("./routes/all-info").default;
 app.use(allInfoRoute);
 
 const hentaiApiRoute = require("./routes/hentai-api");

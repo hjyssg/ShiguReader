@@ -15,6 +15,9 @@
             "@assets/*": [
                 "src/assets/*"
             ],
+            "@common": [
+                "../common/src/index"
+            ],
             "@common/*": [
                 "../common/src/*"
             ],
@@ -51,6 +54,7 @@
         }
     },
     "include": [
-        "src/**/*"
+        "src/**/*",
+        "../common/src/**/*"
     ]
 }
