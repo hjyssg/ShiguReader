@@ -55,7 +55,12 @@ class SQLWrapper extends sqlite3.Database {
                 const placeholders = '(' + keys.map(() => '?').join(',') + ')';
                 const questions = new Array(subArr.length).fill(placeholders).join(',');
                 const sql = `INSERT OR REPLACE INTO ${tableName} (${keys.join(',')}) VALUES ${questions}`;
-                const flatData = subArr.reduce((acc, cur) => [...acc, ...Object.values(cur)], []);
+                const flatData = [];
+                for (const obj of subArr) {
+                    for (const v of Object.values(obj)) {
+                        flatData.push(v);
+                    }
+                }
                 await this.runSync(sql, flatData);
             }
             await this.execSync('COMMIT');
