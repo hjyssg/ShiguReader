@@ -1,5 +1,5 @@
 
-import React, { Component, ReactNode } from 'react';
+import React, { ReactNode, useState, useRef, useEffect, useCallback, useContext } from 'react';
 import _ from "underscore";
 import './ExplorerPage.scss';
 import LoadingImage from '@components/LoadingImage';
@@ -118,125 +118,100 @@ function _parseInt(val: any) {
 
 const DEFAULT_MAX_PAGE = 300;
 
-class ExplorerPage extends Component<ExplorerPageProps, ExplorerPageState> {
-    metaInfo: MetaInfo[];
-    loadedHash: string = "";
-    videoFiles: string[] = [];
-    compressFiles: string[] = [];
-    imageFiles: string[] = [];
-    musicFiles: string[] = [];
-    dirs: string[] = [];
-    tag: string = "";
-    author: string = "";
-    fileInfos: Record<string, FileInfo> = {};
-    imgFolderInfo: Record<string, ImgFolderInfo> = {};
-    res: ApiResponse<ListDirResponse | SearchFileResponse> | null = null;
-    dirThumbnailMap: Record<string, string> = {};
-    minPageNum: number = 0;
-    maxPageNum: number = 0;
-    mode: string = "";
-    allfileInfos: Record<string, FileInfo | ImgFolderInfo> = {};
-    fileNameToHistory: Record<string, { time: number, count: number }> = {};
-    hasCalled_getThumbnailForFolders: boolean = false;
-    pagination: any;
-    _handleKeyDown: any;
+const metaInfo: MetaInfo[] = [
+    { key: "pageIndex", type: "int", defVal: 1 },
+    { key: "isRecursive", type: "boolean", defVal: false },
+    { key: "sortOrder", type: "str", defVal: BY_MTIME },
+    { key: "isSortAsc", type: "boolean", defVal: false },
+    { key: "showFolderThumbnail", type: "boolean", defVal: false },
+    { key: "filterArr", type: "arr" },
+    { key: "pageNumRange", type: "arr", defVal: [0, DEFAULT_MAX_PAGE] },  // 默认全部范围
+    { key: "filterText", type: "str" },
+    { key: "filterTags", type: "arr", defVal: [] },
+    { key: "noThumbnail", type: "boolean", defVal: false },
+];
 
-    constructor(prop: ExplorerPageProps) {
-        super(prop);
+function getInitState(reset?: boolean): ExplorerPageState {
+    const initState = clientUtil.getInitState(metaInfo, reset);
+    return {
+        perPageItemNum: getPerPageItemNumber(),
+        ...initState
+    } as ExplorerPageState;
+}
 
-        this.metaInfo = [
-            { key: "pageIndex", type: "int", defVal: 1 },
-            { key: "isRecursive", type: "boolean", defVal: false },
-            { key: "sortOrder", type: "str", defVal: BY_MTIME },
-            { key: "isSortAsc", type: "boolean", defVal: false },
-            { key: "showFolderThumbnail", type: "boolean", defVal: false },
-            { key: "filterArr", type: "arr" },
-            { key: "pageNumRange", type: "arr", defVal: [0, DEFAULT_MAX_PAGE] },  // 默认全部范围
-            { key: "filterText", type: "str" },
-            { key: "filterTags", type: "arr", defVal: [] },
-            { key: "noThumbnail", type: "boolean", defVal: false },
-        ];
+const ExplorerPage: React.FC<ExplorerPageProps> = (props) => {
+    const globalContext = useContext(GlobalContext) as GlobalContextType;
 
-        this.state = this.getInitState();
+    // State
+    const [state, setState] = useState<ExplorerPageState>(() => getInitState());
 
-        this.resetParam();
-    }
+    // Refs for instance variables
+    const loadedHashRef = useRef<string>("");
+    const videoFilesRef = useRef<string[]>([]);
+    const compressFilesRef = useRef<string[]>([]);
+    const imageFilesRef = useRef<string[]>([]);
+    const musicFilesRef = useRef<string[]>([]);
+    const dirsRef = useRef<string[]>([]);
+    const tagRef = useRef<string>("");
+    const authorRef = useRef<string>("");
+    const fileInfosRef = useRef<Record<string, FileInfo>>({});
+    const imgFolderInfoRef = useRef<Record<string, ImgFolderInfo>>({});
+    const resRef = useRef<ApiResponse<ListDirResponse | SearchFileResponse> | null>(null);
+    const dirThumbnailMapRef = useRef<Record<string, string>>({});
+    const minPageNumRef = useRef<number>(0);
+    const maxPageNumRef = useRef<number>(0);
+    const modeRef = useRef<string>("");
+    const allfileInfosRef = useRef<Record<string, FileInfo | ImgFolderInfo>>({});
+    const fileNameToHistoryRef = useRef<Record<string, { time: number, count: number }>>({});
+    const hasCalled_getThumbnailForFoldersRef = useRef<boolean>(false);
+    const paginationRef = useRef<any>(null);
 
-    getNumPerPage() {
-        return (this.state.noThumbnail || this.state.sortOrder === BY_FOLDER) ?
-            1000 : this.state.perPageItemNum;
-    }
+    // Helper functions
+    const getNumPerPage = useCallback(() => {
+        return (state.noThumbnail || state.sortOrder === BY_FOLDER) ?
+            1000 : state.perPageItemNum;
+    }, [state.noThumbnail, state.sortOrder, state.perPageItemNum]);
 
-    getInitState(reset?: boolean): ExplorerPageState {
-        const initState = clientUtil.getInitState(this.metaInfo, reset);
-        return {
-            perPageItemNum: getPerPageItemNumber(),
-            ...initState
-        } as ExplorerPageState;
-    }
+    const setStateAndSetHash = useCallback((newState: Partial<ExplorerPageState>, callback?: () => void) => {
+        setState(prev => {
+            const updated = { ...prev, ...newState };
+            clientUtil.saveStateToUrl(metaInfo, updated);
+            return updated;
+        });
+        if (callback) {
+            // Execute callback after state update
+            setTimeout(callback, 0);
+        }
+    }, []);
 
-    setStateAndSetHash(state: any, callback?: () => void) {
-        this.setState(state, callback);
-        const newState = { ...this.state, ...state };
-        clientUtil.saveStateToUrl(this.metaInfo, newState);
-    }
-
-    handlePageChange(index: number) {
+    const handlePageChange = useCallback((index: number) => {
         if ((window.event as any) && (window.event as any).ctrlKey) {
             return;
         }
-        this.setStateAndSetHash({ pageIndex: index });
-    }
+        setStateAndSetHash({ pageIndex: index });
+    }, [setStateAndSetHash]);
 
-    next() {
-        if (this.pagination && this.pagination.hasNext()) {
-            let next = this.state.pageIndex + 1;
-            this.handlePageChange(next);
+    const next = useCallback(() => {
+        if (paginationRef.current && paginationRef.current.hasNext()) {
+            let nextPage = state.pageIndex + 1;
+            handlePageChange(nextPage);
         }
-    }
+    }, [state.pageIndex, handlePageChange]);
 
-    prev() {
-        if (this.pagination && this.pagination.hasPrev()) {
-            let next = this.state.pageIndex - 1;
-            this.handlePageChange(next);
+    const prev = useCallback(() => {
+        if (paginationRef.current && paginationRef.current.hasPrev()) {
+            let prevPage = state.pageIndex - 1;
+            handlePageChange(prevPage);
         }
-    }
+    }, [state.pageIndex, handlePageChange]);
 
-    getPathFromQuery(props?: any) {
-        const _props = props || this.props;
+    const getPathFromQuery = useCallback((propsOverride?: any) => {
+        const _props = propsOverride || props;
         return queryString.parse(_props.location.search)["p"] as string || "";
-    }
+    }, [props]);
 
-    getSearchTextFromQuery(props?: any) {
-        const _props = props || this.props;
-        if (this.getMode(_props) === MODE_SEARCH) {
-            let str = _props.location.search || _props.location.pathname;
-            str = str.replace("/search/?", "")
-            return queryString.parse(str)["s"] as string || "";
-        }
-        return "";
-    }
-
-    getAuthorFromQuery(props?: any) {
-        const _props = props || this.props;
-        return queryString.parse(_props.location.search)["a"] as string || "";
-    }
-
-    getTagFromQuery(props?: any) {
-        const _props = props || this.props;
-        return queryString.parse(_props.location.search)["t"] as string || "";
-    }
-
-    getTextFromQuery(props?: any) {
-        const _props = props || this.props;
-        return this.getTagFromQuery(_props) ||
-            this.getAuthorFromQuery(_props) ||
-            this.getSearchTextFromQuery(_props) ||
-            this.getPathFromQuery(_props);
-    }
-
-    getMode(props?: any) {
-        const _props = props || this.props;
+    const getMode = useCallback((propsOverride?: any) => {
+        const _props = propsOverride || props;
         const pathname = _props.location.pathname;
         if (pathname.includes("/tag/")) {
             return MODE_TAG;
@@ -248,314 +223,177 @@ class ExplorerPage extends Component<ExplorerPageProps, ExplorerPageState> {
             return MODE_SEARCH;
         }
         return "";
-    }
+    }, [props]);
 
-    static getDerivedStateFromProps(nextProps: any, prevState: any) {
-        if (_.isString(nextProps.filterText) && nextProps.filterText !== prevState.filterText) {
-            return {
-                filterText: nextProps.filterText,
-                pageIndex: 1
-            }
+    const getSearchTextFromQuery = useCallback((propsOverride?: any) => {
+        const _props = propsOverride || props;
+        if (getMode(_props) === MODE_SEARCH) {
+            let str = _props.location.search || _props.location.pathname;
+            str = str.replace("/search/?", "")
+            return queryString.parse(str)["s"] as string || "";
         }
-        return null;
-    }
+        return "";
+    }, [props, getMode]);
 
-    async askServer() {
-        let res;
-        if (this.getMode() === MODE_EXPLORER) {
-            const hash = this.getTextFromQuery();
-            if (hash && this.loadedHash !== hash) {
-                res = await listDirectory({ dir: this.getTextFromQuery(), isRecursive: this.state.isRecursive });
-                await this.handleLsDirRes(res);
-            }
-        } else {
-            const hash = this.getTextFromQuery();
-            if (hash && this.loadedHash !== hash) {
-                if (this.getMode() === MODE_TAG) {
-                    res = await searchFiles({ text: this.getTextFromQuery(), mode: this.getMode() })
-                } else if (this.getMode() === MODE_AUTHOR) {
-                    res = await searchFiles({ text: this.getTextFromQuery(), mode: this.getMode() })
-                } else if (this.getMode() === MODE_SEARCH) {
-                    res = await searchFiles({ text: this.getSearchTextFromQuery(), mode: this.getMode() })
-                }
-            }
-            if (res) {
-                await this.handleLsDirRes(res);
-            }
-        }
-    }
+    const getAuthorFromQuery = useCallback((propsOverride?: any) => {
+        const _props = propsOverride || props;
+        return queryString.parse(_props.location.search)["a"] as string || "";
+    }, [props]);
 
+    const getTagFromQuery = useCallback((propsOverride?: any) => {
+        const _props = propsOverride || props;
+        return queryString.parse(_props.location.search)["t"] as string || "";
+    }, [props]);
 
-    componentDidMount() {
-        this.askServer();
+    const getTextFromQuery = useCallback((propsOverride?: any) => {
+        const _props = propsOverride || props;
+        return getTagFromQuery(_props) ||
+            getAuthorFromQuery(_props) ||
+            getSearchTextFromQuery(_props) ||
+            getPathFromQuery(_props);
+    }, [getTagFromQuery, getAuthorFromQuery, getSearchTextFromQuery, getPathFromQuery]);
 
-        this.bindUserInteraction();
-    }
+    const isLackInfoMode = useCallback(() => {
+        return modeRef.current === "lack_info_mode";
+    }, []);
 
-    bindUserInteraction() {
-        this._handleKeyDown = this.handleKeyDown.bind(this);
-        document.addEventListener('keydown', this._handleKeyDown);
-    }
+    const getFileSize = useCallback((fp: string) => {
+        return allfileInfosRef.current[fp]?.size || 0;
+    }, []);
 
-    componentWillUnmount() {
-        document.removeEventListener("keydown", this._handleKeyDown);
+    const getPageNum = useCallback((fp: string) => {
+        return allfileInfosRef.current[fp]?.pageNum || 0;
+    }, []);
 
-        clientUtil.setSearchInputText("");
-    }
+    const getTotalImgSize = useCallback((fp: string) => {
+        return allfileInfosRef.current[fp]?.totalImgSize || 0;
+    }, []);
 
-    resetParam() {
-        this.loadedHash = "";
-        this.videoFiles = []
-        this.compressFiles = [];
-        this.imageFiles = [];
-        this.musicFiles = [];
-        this.dirs = [];
-        this.tag = "";
-        this.author = "";
-        this.fileInfos = {};
-        this.imgFolderInfo = {};
-        this.res = null;
-        this.dirThumbnailMap = {};
-    }
+    const getPageAvgSize = useCallback((fp: string) => {
+        return (allfileInfosRef.current[fp] as any)?.pageAvgSize || 0;
+    }, []);
 
-    componentDidUpdate(prevProps: any, prevState: any) {
-        //when path changes, does not show previous path's content 
-        const prevMode = this.getMode(prevProps);
-        const prevHash = this.getTextFromQuery(prevProps);
-        const differentMode = this.getMode() !== prevMode;
-        const sameMode = !differentMode;
-        const pathChanged = !!(sameMode && this.getTextFromQuery() !== prevHash);
-        if (differentMode || pathChanged) {
-            this.resetParam();
-            this.setStateAndSetHash(this.getInitState(true));
-            this.askServer();
-        }
+    const getMusicNum = useCallback((fp: string) => {
+        return allfileInfosRef.current[fp]?.musicNum || 0;
+    }, []);
 
-        if (this.getMode() === MODE_TAG || this.getMode() === MODE_AUTHOR || this.getMode() === MODE_SEARCH) {
-            const text = this.getTextFromQuery();
-            clientUtil.setSearchInputText(text);
-        } else {
-            clientUtil.setSearchInputText("");
-        }
-    }
+    const getVideoNum = useCallback((fp: string) => {
+        return allfileInfosRef.current[fp]?.videoNum || 0;
+    }, []);
 
-    isLackInfoMode() {
-        return this.mode === "lack_info_mode";
-    }
+    const getMtime = useCallback((fp: string) => {
+        return allfileInfosRef.current[fp]?.mtimeMs || 0;
+    }, []);
 
-
-    async handleLsDirRes(res: ApiResponse<ListDirResponse | SearchFileResponse>) {
-        if (res && !res.isFailed()) {
-            let {
-                dirs = [],
-                mode = "",
-                tag = "",
-                author = "",
-                fileInfos = {},
-                imgFolderInfo = {},
-                fileHistory = [],
-                nameParseCache = {}
-            } = res.json as any; // Using any here because SearchFileResponse and ListDirResponse are slightly different but overlapping
-
-            // 马上叫server准备下一个信息
-            getGoodAuthorNames().then((res: ApiResponse<GoodAuthorNamesResponse>) => {
-                if (res && !res.isFailed()) {
-                    this.setState({
-                        authorInfo: res.json.authorInfo,
-                        tagInfo: res.json.tagInfo
-                    })
-                }
-            });
-
-            (nameParser as any).setLocalCache(nameParseCache);
-            this.loadedHash = this.getTextFromQuery();
-            this.mode = mode;
-            this.fileInfos = fileInfos;
-            const files = _.keys(this.fileInfos) || [];
-            this.videoFiles = files.filter(isVideo);
-            this.compressFiles = files.filter(isCompress);
-            this.musicFiles = files.filter(isMusic);
-            this.imageFiles = files.filter(isImage);
-
-            sortFileNames(this.musicFiles)
-            sortFileNames(this.imageFiles)
-
-            this.dirs = dirs;
-            this.dirs.sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
-
-            this.tag = tag;
-            this.author = author;
-            this.imgFolderInfo = imgFolderInfo;
-            this.res = res;
-            this.allfileInfos = _.extend({}, this.fileInfos, this.imgFolderInfo);
-            this.decorate_allfileInfos();
-
-            this.fileNameToHistory = {};
-            fileHistory.forEach((row: any) => {
-                const { fileName, time, count } = row;
-                this.fileNameToHistory[fileName] = { time, count };
-            })
-
-            // 找出最大页数
-            let _maxPage = 10;
-            files.forEach(e => {
-                const count = this.getPageNum(e);
-                _maxPage = Math.max(_maxPage, count);
-            })
-            this.minPageNum = 0;
-            this.maxPageNum = _maxPage;
-
-
-            //check pageindex
-            const availableFiles = this.getFileInPage(this.getFilteredFiles());
-
-            if (availableFiles.length === 0) {
-                //this will set state
-                this.handlePageChange(1);
-            } else {
-                this.askRerender();
-            }
-
-            this.hasCalled_getThumbnailForFolders = false;
-            if (this.state.showFolderThumbnail) {
-                this.requestThumbnailForFolder();
-            }
-        } else {
-            this.res = res;
-            this.askRerender();
-        }
-    }
-
-    decorate_allfileInfos() {
-        // this.allfileInfos
-        for (const fp in this.allfileInfos) {
-            if (!this.allfileInfos.hasOwnProperty(fp)) {
-                continue;
-            }
-
-            const info = this.allfileInfos[fp] as any;
-            info.size = _parseInt(info.size) || 0;
-            info.mtimeMs = _parseInt(info.mtimeMs) || 0;
-
-            info.musicNum = _parseInt(info.musicNum) || 0;
-            info.videoNum = _parseInt(info.videoNum) || 0;
-            info.pageNum = _parseInt(info.pageNum) || 0;
-
-            info.totalImgSize = _parseInt(info.totalImgSize) || 0;
-            info.pageAvgSize = this.calculateAvgPageSize(fp) || 0;
-        }
-    }
-
-    calculateAvgPageSize(fp: string) {
-        //may not be reliable
-        const pageNum = this.getPageNum(fp);
-        if (pageNum === 0) {
-            return 0;
-        }
-
-        const totalImgSize = this.getTotalImgSize(fp);
-        const videoNum = this.getVideoNum(fp);
-
-        return util.calcAvgImgSize({ pageNum, totalImgSize, videoNum });
-    }
-
-    async handleKeyDown(event: any) {
-        //this cause input wont work 
-        if (isSearchInputTextTyping()) {
-            return;
-        }
-
-        const key = event.key.toLowerCase();
-        if (key === "arrowright" || key === "d" || key === "l") {
-            this.next();
-            event.preventDefault();
-        } else if (key === "arrowleft" || key === "a" || key === "j") {
-            this.prev();
-            event.preventDefault();
-        } else if (key == "r") {
-            this.loadedHash = "";
-            await this.askServer();
-        }
-    }
-
-    hasFileSize(e: string) {
-        return !!this.getFileSize(e);
-    }
-
-    countAllFileSize(files: string[]) {
-        let totalSize = 0;
-        files.forEach(e => {
-            totalSize += this.getFileSize(e);
-        });
-        return totalSize;
-    }
-
-    countAllFilePageNum(filteredFiles: string[]) {
-        let count = 0;
-        filteredFiles.forEach(e => {
-            count += this.getPageNum(e);
-        });
-        return count;
-    }
-
-    getFileSize(fp: string) {
-        return this.allfileInfos[fp]?.size || 0;
-    }
-
-    getPageNum(fp: string) {
-        return this.allfileInfos[fp]?.pageNum || 0;
-    }
-
-    getTotalImgSize(fp: string) {
-        return this.allfileInfos[fp]?.totalImgSize || 0;
-    }
-
-    //may not be reliable
-    getPageAvgSize(fp: string) {
-        return (this.allfileInfos[fp] as any)?.pageAvgSize || 0;
-    }
-
-    getMusicNum(fp: string) {
-        return this.allfileInfos[fp]?.musicNum || 0;
-    }
-
-    getVideoNum(fp: string) {
-        return this.allfileInfos[fp]?.videoNum || 0;
-    }
-
-    getMtime(fp: string) {
-        return this.allfileInfos[fp]?.mtimeMs || 0;
-    }
-
-    /** get tag time */
-    getTTime(fp: string) {
+    const getTTime = useCallback((fp: string) => {
         const fn = getBaseName(fp);
         let tTime = (nameParser as any).getDateFromParse(fn);
         tTime = tTime && tTime.getTime();
         return tTime || 0;
-    }
+    }, []);
 
-    getReadCount(fp: string) {
+    const getReadCount = useCallback((fp: string) => {
         const fn = getBaseName(fp);
-        const count = _parseInt(this.fileNameToHistory[fn]?.count);
+        const count = _parseInt(fileNameToHistoryRef.current[fn]?.count);
         return count || 0;
-    }
+    }, []);
 
-    getLastReadTime(fp: string) {
+    const getLastReadTime = useCallback((fp: string) => {
         const fn = getBaseName(fp);
-        const rTime = _parseInt(this.fileNameToHistory[fn]?.time);
+        const rTime = _parseInt(fileNameToHistoryRef.current[fn]?.time);
         return rTime || 0;
-    }
+    }, []);
 
-    getFilteredFiles(options: any = {}) {
+    const hasFileSize = useCallback((e: string) => {
+        return !!getFileSize(e);
+    }, [getFileSize]);
+
+    const countAllFileSize = useCallback((files: string[]) => {
+        let totalSize = 0;
+        files.forEach(e => {
+            totalSize += getFileSize(e);
+        });
+        return totalSize;
+    }, [getFileSize]);
+
+    const countAllFilePageNum = useCallback((filteredFiles: string[]) => {
+        let count = 0;
+        filteredFiles.forEach(e => {
+            count += getPageNum(e);
+        });
+        return count;
+    }, [getPageNum]);
+
+    const getScore = useCallback((fp: string) => {
+        let score = getAuthorCountForFP(fp).score || 0;
+        return score;
+    }, []);
+
+    const getAuthorCountForFP = useCallback((fp: string) => {
+        const temp = parse(fp);
+        if (temp && temp.authors) {
+            // todo multiple-author
+            return clientUtil.getAuthorCount(state.authorInfo, temp.authors[0]) || {};
+        } else {
+            return {};
+        }
+    }, [state.authorInfo]);
+
+    const getTooltipStr = useCallback((fp: string) => {
+        let rows: any[] = [];
+        rows.push([fp]);
+
+        rows.push(["mtime", clientUtil.dateFormat_v1(getMtime(fp))]);
+        rows.push(["tag time", clientUtil.dateFormat_v1(getTTime(fp))]);
+
+        rows.push(["     "]);
+        rows.push(...(clientUtil as any).convertSimpleObj2tooltipRow(getAuthorCountForFP(fp)));
+
+        rows.push(["     "]);
+        rows.push(["last read time", clientUtil.dateFormat_v1(getLastReadTime(fp))]);
+        rows.push(["read count", getReadCount(fp)]);
+
+        return rows.map(row => {
+            return row.join(": ");
+        }).join("\n")
+    }, [getMtime, getTTime, getAuthorCountForFP, getLastReadTime, getReadCount]);
+
+    const isImgFolder = useCallback((fp: string) => {
+        return !!imgFolderInfoRef.current[fp];
+    }, []);
+
+    const getThumbnailUrl = useCallback((fp: string) => {
+        let thumbnailurl;
+        if (isImgFolder(fp)) {
+            const tp = (imgFolderInfoRef.current[fp] as ImgFolderInfo).thumbnail;
+            thumbnailurl = getFileUrl(tp, true);
+        } else {
+            thumbnailurl = getFileUrl((allfileInfosRef.current[fp] as FileInfo).thumbnailFilePath, true);
+        }
+        return thumbnailurl;
+    }, [isImgFolder]);
+
+    const getMaxPageForSlider = useCallback(() => {
+        return Math.min(DEFAULT_MAX_PAGE, maxPageNumRef.current);
+    }, []);
+
+    const isFailedLoading = useCallback(() => {
+        return resRef.current && resRef.current.isFailed();
+    }, []);
+
+    const isOn = useCallback((key: any) => {
+        return state.filterArr.includes(key);
+    }, [state.filterArr]);
+
+    const getFilteredFiles = useCallback((options: any = {}) => {
         const { skipTagFilter = false } = options;
-        let files = [...this.compressFiles, ...(_.keys(this.imgFolderInfo))];
+        let files = [...compressFilesRef.current, ...(_.keys(imgFolderInfoRef.current))];
 
-        const { pageNumRange } = this.state;
+        const { pageNumRange } = state;
 
-        const maxPage = pageNumRange[1] >= this.getMaxPageForSlider() ? Infinity : pageNumRange[1];
+        const maxPage = pageNumRange[1] >= getMaxPageForSlider() ? Infinity : pageNumRange[1];
         files = files.filter(e => {
-            const count = this.getPageNum(e);
+            const count = getPageNum(e);
             if (_.isNull(count) || count === 0) {
                 return true;
             } else if (count >= pageNumRange[0] && count <= maxPage) {
@@ -564,32 +402,32 @@ class ExplorerPage extends Component<ExplorerPageProps, ExplorerPageState> {
             return false;
         })
 
-        if (this.isOn(FILTER_HAS_MUSIC)) {
+        if (isOn(FILTER_HAS_MUSIC)) {
             files = files.filter(e => {
-                return this.getMusicNum(e) > 0;
+                return getMusicNum(e) > 0;
             })
         }
 
-        if (this.isOn(FILTER_HAS_VIDEO)) {
+        if (isOn(FILTER_HAS_VIDEO)) {
             files = files.filter(e => {
-                return this.getVideoNum(e) > 0;
+                return getVideoNum(e) > 0;
             })
         }
 
-        if (this.isOn(FILTER_IMG_FOLDER)) {
+        if (isOn(FILTER_IMG_FOLDER)) {
             files = files.filter(e => {
                 return !isCompress(e);
             })
         }
 
-        const filterText = _.isString(this.state.filterText) && this.state.filterText.toLowerCase();
+        const filterText = _.isString(state.filterText) && state.filterText.toLowerCase();
         if (filterText) {
             files = files.filter(e => {
                 return e.toLowerCase().indexOf(filterText) > -1;
             });
         }
 
-        const excludedTags = Array.isArray(this.state.filterTags) ? this.state.filterTags : [];
+        const excludedTags = Array.isArray(state.filterTags) ? state.filterTags : [];
         if (!skipTagFilter && excludedTags.length > 0) {
             const excludedSet = new Set(excludedTags);
             files = files.filter(e => {
@@ -606,18 +444,18 @@ class ExplorerPage extends Component<ExplorerPageProps, ExplorerPageState> {
         }
 
         return files;
-    }
+    }, [state.pageNumRange, state.filterText, state.filterTags, getMaxPageForSlider, getPageNum, getMusicNum, getVideoNum, isOn]);
 
-    getFilteredVideos() {
-        const { filterByGoodAuthorName, filterByOversizeImage, filterByGuess, filterByFirstTime, filterByHasMusic } = this.state;
+    const getFilteredVideos = useCallback(() => {
+        const { filterByGoodAuthorName, filterByOversizeImage, filterByGuess, filterByFirstTime, filterByHasMusic } = state;
         let videoFiles: string[];
         if (filterByGoodAuthorName || filterByOversizeImage || filterByGuess || filterByFirstTime || filterByHasMusic) {
             videoFiles = [];
         } else {
-            videoFiles = this.videoFiles || [];
+            videoFiles = videoFilesRef.current || [];
         }
 
-        const filterText = this.state.filterText && this.state.filterText.toLowerCase();
+        const filterText = state.filterText && state.filterText.toLowerCase();
         if (filterText) {
             return videoFiles.filter(e => {
                 return e.toLowerCase().indexOf(filterText) > -1;
@@ -625,531 +463,552 @@ class ExplorerPage extends Component<ExplorerPageProps, ExplorerPageState> {
         } else {
             return videoFiles;
         }
-    }
+    }, [state]);
 
-    getFileInPage(files: string[]) {
-        return files.slice((this.state.pageIndex - 1) * this.getNumPerPage(), (this.state.pageIndex) * this.getNumPerPage());
-    }
+    const getFileInPage = useCallback((files: string[]) => {
+        return files.slice((state.pageIndex - 1) * getNumPerPage(), (state.pageIndex) * getNumPerPage());
+    }, [state.pageIndex, getNumPerPage]);
 
+    // Create info object for child components
+    const createInfoObject = useCallback(() => {
+        return {
+            getFileSize,
+            getPageNum,
+            getTotalImgSize,
+            getPageAvgSize,
+            getMusicNum,
+            getVideoNum,
+            getMtime,
+            getTTime,
+            getReadCount,
+            getLastReadTime,
+            hasFileSize,
+            countAllFileSize,
+            countAllFilePageNum,
+            getScore,
+            getAuthorCountForFP,
+            getTooltipStr,
+            isImgFolder,
+            getThumbnailUrl,
+            getMaxPageForSlider,
+            isFailedLoading,
+            isOn,
+            getFilteredFiles,
+            getFilteredVideos,
+            getFileInPage,
+            isLackInfoMode,
+            getTextFromQuery,
+            getMode,
+            state,
+            allfileInfos: allfileInfosRef.current,
+            imgFolderInfo: imgFolderInfoRef.current,
+            fileInfos: fileInfosRef.current,
+            musicFiles: musicFilesRef.current,
+            imageFiles: imageFilesRef.current,
+            dirs: dirsRef.current,
+            context: globalContext,
+            // renderSingleZipItem will be added later via renderSingleZipItemRef
+            renderSingleZipItem: (fp: string) => renderSingleZipItemRef.current?.(fp),
+        };
+    }, [
+        getFileSize, getPageNum, getTotalImgSize, getPageAvgSize, getMusicNum, getVideoNum,
+        getMtime, getTTime, getReadCount, getLastReadTime, hasFileSize, countAllFileSize,
+        countAllFilePageNum, getScore, getAuthorCountForFP, getTooltipStr, isImgFolder,
+        getThumbnailUrl, getMaxPageForSlider, isFailedLoading, isOn, getFilteredFiles,
+        getFilteredVideos, getFileInPage, isLackInfoMode, getTextFromQuery, getMode, state, globalContext
+    ]);
 
+    // Ref for renderSingleZipItem to break circular dependency
+    const renderSingleZipItemRef = useRef<((fp: string) => ReactNode) | null>(null);
 
-    getScore(fp: string) {
-        let score = this.getAuthorCountForFP(fp).score || 0;
-        return score;
-    }
+    // Reset params
+    const resetParam = useCallback(() => {
+        loadedHashRef.current = "";
+        videoFilesRef.current = [];
+        compressFilesRef.current = [];
+        imageFilesRef.current = [];
+        musicFilesRef.current = [];
+        dirsRef.current = [];
+        tagRef.current = "";
+        authorRef.current = "";
+        fileInfosRef.current = {};
+        imgFolderInfoRef.current = {};
+        resRef.current = null;
+        dirThumbnailMapRef.current = {};
+    }, []);
 
-    getAuthorCountForFP(fp: string) {
-        const temp = parse(fp);
-        if (temp && temp.authors) {
-            // todo multiple-author
-            return clientUtil.getAuthorCount(this.state.authorInfo, temp.authors[0]) || {};
-        } else {
-            return {};
-        }
-    }
-
-
-
-    getTooltipStr(fp: string) {
-        let rows: any[] = [];
-        rows.push([fp]);
-
-        rows.push(["mtime", clientUtil.dateFormat_v1(this.getMtime(fp))]);
-        rows.push(["tag time", clientUtil.dateFormat_v1(this.getTTime(fp))]);
-
-        rows.push(["     "]);
-        rows.push(...(clientUtil as any).convertSimpleObj2tooltipRow(this.getAuthorCountForFP(fp)));
-
-        rows.push(["     "]);
-        rows.push(["last read time", clientUtil.dateFormat_v1(this.getLastReadTime(fp))]);
-        rows.push(["read count", this.getReadCount(fp)]);
-
-        return rows.map(row => {
-            return row.join(": ");
-        }).join("\n")
-    }
-
-    isImgFolder(fp: string) {
-        return !!this.imgFolderInfo[fp];
-    }
-
-    getThumbnailUrl(fp: string) {
-        let thumbnailurl;
-        if (this.isImgFolder(fp)) {
-            const tp = (this.imgFolderInfo[fp] as ImgFolderInfo).thumbnail;
-            thumbnailurl = getFileUrl(tp, true);
-        } else {
-            thumbnailurl = getFileUrl((this.allfileInfos[fp] as FileInfo).thumbnailFilePath, true);
-        }
-        return thumbnailurl;
-    }
-
-    renderSingleZipItem(fp: string) {
-        const text = getBaseName(fp);
-        const toUrl = clientUtil.getBookReadLink(fp);
-
-        let zipItem;
-        let thumbnailurl = this.getThumbnailUrl(fp);
-
-        if (this.state.noThumbnail) {
-            zipItem = (
-                <Link target="_blank" to={toUrl} key={fp} className={""} >
-                    <ThumbnailPopup filePath={fp} url={thumbnailurl}>
-                        {getOneLineListItem(<i className="fas fa-book"></i>, text, fp, this)}
-                    </ThumbnailPopup>
-                </Link>)
-        } else {
-
-            zipItem = <SingleZipItem key={fp} filePath={fp} info={this} />
-        }
-        return zipItem;
-    }
-
-
-    renderFileList(filteredFiles: string[], filteredVideos: string[]) {
-        const { sortOrder, isSortAsc, showFolderThumbnail } = this.state;
-        let dirs = this.dirs;
-        let videos = filteredVideos;
-        let files = filteredFiles;
-
-        try {
-            files = ExplorerUtil.sortFiles(this, files, sortOrder, isSortAsc);
-        } catch (e) {
-            console.error(e);
+    const calculateAvgPageSize = useCallback((fp: string) => {
+        const pageNum = getPageNum(fp);
+        if (pageNum === 0) {
+            return 0;
         }
 
-        const isEmpty = [dirs, files, videos, this.musicFiles, this.imageFiles].every(_.isEmpty);
-        if (isEmpty) {
-            if (!this.res) {
-                return (<CenterSpinner text={this.getTextFromQuery()} />);
-            } else {
-                const str = this.getMode() === MODE_EXPLORER ? "This folder is empty" : "Empty Result";
-                return (
-                    <div>
-                        {this.renderFilterControls()}
-                        <div className="one-book-nothing-available">
-                            <div className="alert alert-secondary" role="alert">{str}</div>
-                        </div>
-                    </div>);
+        const totalImgSize = getTotalImgSize(fp);
+        const videoNum = getVideoNum(fp);
+
+        return util.calcAvgImgSize({ pageNum, totalImgSize, videoNum });
+    }, [getPageNum, getTotalImgSize, getVideoNum]);
+
+    const decorate_allfileInfos = useCallback(() => {
+        for (const fp in allfileInfosRef.current) {
+            if (!allfileInfosRef.current.hasOwnProperty(fp)) {
+                continue;
             }
+
+            const info = allfileInfosRef.current[fp] as any;
+            info.size = _parseInt(info.size) || 0;
+            info.mtimeMs = _parseInt(info.mtimeMs) || 0;
+
+            info.musicNum = _parseInt(info.musicNum) || 0;
+            info.videoNum = _parseInt(info.videoNum) || 0;
+            info.pageNum = _parseInt(info.pageNum) || 0;
+
+            info.totalImgSize = _parseInt(info.totalImgSize) || 0;
+            info.pageAvgSize = calculateAvgPageSize(fp) || 0;
         }
+    }, [calculateAvgPageSize]);
 
-        let dirItems;
-        if (showFolderThumbnail) {
-            dirItems = dirs.map((item) => {
-                const toUrl = clientUtil.getExplorerLink(item);
-                const text = getBaseName(item);
+    const askRerender = useCallback(() => {
+        setState(prev => ({
+            ...prev,
+            rerenderTick: !prev.rerenderTick
+        }));
+    }, []);
 
-                let thumbnailurl = getFileUrl(this.dirThumbnailMap[item]);
-                const thumbnailCn = classNames("file-cell-thumbnail", "as-folder-thumbnail");
-
-                let imgDiv = (
-                    <LoadingImage
-                        className={thumbnailCn}
-                        title={item}
-                        filePath={item}
-                        url={thumbnailurl}
-                        mode={"folder"}
-                        tag=""
-                        musicNum={0}
-                    />);
-
-                return (
-                    <div key={item} className={"col-sm-6 col-md-4 col-lg-3 file-out-cell"}>
-                        <div className="file-cell">
-                            <Link to={toUrl} key={item} className={"file-cell-inner"}>
-                                <FileCellTitle str={text} />
-                                <div className="folder-effect"> {imgDiv} </div>
-                            </Link>
-                        </div>
-                    </div>);
-            });
-        } else {
-            dirItems = dirs.map((item) => {
-                const toUrl = clientUtil.getExplorerLink(item);
-                const text = getBaseName(item);
-                const result = getOneLineListItem(<i className="far fa-folder"></i>, text, item, this);
-                return (
-                    <ThumbnailPopup filePath={item} key={item}>
-                        <Link to={toUrl}>{result}</Link>
-                    </ThumbnailPopup>
-                );
-            });
+    const requestThumbnailForFolder = useCallback(async () => {
+        const res = await getFolderListThumbnails(dirsRef.current);
+        if (res && !(res as any).isFailed()) {
+            dirThumbnailMapRef.current = res.json.dirThumbnails;
+            hasCalled_getThumbnailForFoldersRef.current = true;
+            askRerender();
         }
+    }, [askRerender]);
 
+    const handleLsDirRes = useCallback(async (res: ApiResponse<ListDirResponse | SearchFileResponse>) => {
+        if (res && !res.isFailed()) {
+            let {
+                dirs = [],
+                mode = "",
+                tag = "",
+                author = "",
+                fileInfos = {},
+                imgFolderInfo = {},
+                fileHistory = [],
+                nameParseCache = {}
+            } = res.json as any;
 
-
-        //seperate av from others
-        const groupByVideoType = _.groupBy(videos, item => {
-            const text = getBaseName(item);
-            const temp = parse(item);
-
-            if (util.isAv(text)) {
-                return "av"
-            } else if (temp && temp.dateTag) {
-                return "_date_";
-            } else {
-                return "etc";
-            }
-        }) || {};
-
-        const videoDivGroup = _.keys(groupByVideoType).map((key, ii) => {
-            let group = groupByVideoType[key];
-            group.sort((a: string, b: string) => a.localeCompare(b, undefined, { numeric: true }));
-
-            const videoItems = group.map((item: string) => {
-                const toUrl = clientUtil.getVideoPlayerLink(item);
-                const text = getBaseName(item);
-                const result = getOneLineListItem(<i className="far fa-file-video"></i>, text, item, this);
-                return (
-                    <Link target="_blank" to={toUrl} key={item}>{result}</Link>
-                );
-            });
-            return <ItemsContainer key={key} className="video-list" items={videoItems} />
-        })
-
-
-
-        files = this.getFileInPage(files);
-
-        let zipfileItems: ReactNode[] | ReactNode;
-        if (sortOrder === BY_FOLDER || sortOrder === BY_FOLDER &&
-            (this.getMode() === MODE_AUTHOR || this.getMode() === MODE_TAG || this.getMode() === MODE_SEARCH)) {
-
-            zipfileItems = <FileGroupZipPanel files={files} isSortAsc={this.state.isSortAsc} info={this} />
-        } else {
-            zipfileItems = files.map(fp => this.renderSingleZipItem(fp));
-        }
-
-        const rowCn = this.state.noThumbnail ? "file-list" : "row";
-
-        return (
-            <div className={"explorer-container"}>
-                {!showFolderThumbnail && <ItemsContainer items={dirItems} neverCollapse={this.getMode() === MODE_EXPLORER} />}
-                {showFolderThumbnail &&
-                    <div className={"file-grid container"}>
-                        <div className={"row"}>
-                            {dirItems}
-                        </div>
-                    </div>
+            // 马上叫server准备下一个信息
+            getGoodAuthorNames().then((res: ApiResponse<GoodAuthorNamesResponse>) => {
+                if (res && !res.isFailed()) {
+                    setState(prev => ({
+                        ...prev,
+                        authorInfo: res.json.authorInfo,
+                        tagInfo: res.json.tagInfo
+                    }));
                 }
+            });
 
-                <SimpleFileListPanel musicFiles={this.musicFiles} imageFiles={this.imageFiles} info={this} />
+            (nameParser as any).setLocalCache(nameParseCache);
+            loadedHashRef.current = getTextFromQuery();
+            modeRef.current = mode;
+            fileInfosRef.current = fileInfos;
+            const files = _.keys(fileInfosRef.current) || [];
+            videoFilesRef.current = files.filter(isVideo);
+            compressFilesRef.current = files.filter(isCompress);
+            musicFilesRef.current = files.filter(isMusic);
+            imageFilesRef.current = files.filter(isImage);
 
-                {videoDivGroup}
-                {this.renderPagination(filteredFiles, filteredVideos)}
-                {this.renderFilterControls()}
-                {(Array.isArray(zipfileItems) ? zipfileItems.length > 0 : !!zipfileItems) && this.renderSortHeader()}
-                <div className={"file-grid container"}>
-                    <div className={rowCn}>
-                        {zipfileItems}
-                    </div>
-                </div>
-            </div>
-        );
-    }
+            sortFileNames(musicFilesRef.current);
+            sortFileNames(imageFilesRef.current);
 
-    getMaxPageForSlider() {
-        return Math.min(DEFAULT_MAX_PAGE, this.maxPageNum);
-    }
+            dirsRef.current = dirs;
+            dirsRef.current.sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
 
-    renderPageRangeSilder() {
-        const { pageNumRange } = this.state;
-        const maxForSilder = this.getMaxPageForSlider();
-        const righttext = pageNumRange[1] >= maxForSilder ? `${this.maxPageNum}/${this.maxPageNum}` : `${pageNumRange[1]}/${this.maxPageNum}`
+            tagRef.current = tag;
+            authorRef.current = author;
+            imgFolderInfoRef.current = imgFolderInfo;
+            resRef.current = res;
+            allfileInfosRef.current = _.extend({}, fileInfosRef.current, imgFolderInfoRef.current);
+            decorate_allfileInfos();
 
-        return (
-            <div className='page-number-range-slider-wrapper'>
-                <div className='small-text-title no-wrap' >Page Range:</div>
-                <div className='small-text-title'>{pageNumRange[0]} </div>
-                <RangeSlider className="page-number-range-slider"
-                    min={this.minPageNum} max={maxForSilder} step={1}
-                    value={pageNumRange}
-                    onInput={(range: any) => {
-                        if (range[0] === pageNumRange[0] && range[1] === pageNumRange[1]) {
-                            //
-                        } else {
-                            this.setStateAndSetHash({ pageNumRange: range })
-                        }
-                    }} />
-                <div className='small-text-title'>{righttext}</div>
-            </div>);
-    }
+            fileNameToHistoryRef.current = {};
+            fileHistory.forEach((row: any) => {
+                const { fileName, time, count } = row;
+                fileNameToHistoryRef.current[fileName] = { time, count };
+            });
 
-    isFailedLoading() {
-        return this.res && this.res.isFailed();
-    }
+            // 找出最大页数
+            let _maxPage = 10;
+            files.forEach(e => {
+                const count = getPageNum(e);
+                _maxPage = Math.max(_maxPage, count);
+            });
+            minPageNumRef.current = 0;
+            maxPageNumRef.current = _maxPage;
 
-    toggleRecursively() {
-        this.resetParam();
-        this.setStateAndSetHash({
+            // check pageindex
+            const availableFiles = getFileInPage(getFilteredFiles());
+
+            if (availableFiles.length === 0) {
+                handlePageChange(1);
+            } else {
+                askRerender();
+            }
+
+            hasCalled_getThumbnailForFoldersRef.current = false;
+            if (state.showFolderThumbnail) {
+                requestThumbnailForFolder();
+            }
+        } else {
+            resRef.current = res;
+            askRerender();
+        }
+    }, [getTextFromQuery, decorate_allfileInfos, getPageNum, getFileInPage, getFilteredFiles, handlePageChange, askRerender, state.showFolderThumbnail, requestThumbnailForFolder]);
+
+    const askServer = useCallback(async () => {
+        let res;
+        if (getMode() === MODE_EXPLORER) {
+            const hash = getTextFromQuery();
+            if (hash && loadedHashRef.current !== hash) {
+                res = await listDirectory({ dir: getTextFromQuery(), isRecursive: state.isRecursive });
+                await handleLsDirRes(res);
+            }
+        } else {
+            const hash = getTextFromQuery();
+            if (hash && loadedHashRef.current !== hash) {
+                if (getMode() === MODE_TAG) {
+                    res = await searchFiles({ text: getTextFromQuery(), mode: getMode() });
+                } else if (getMode() === MODE_AUTHOR) {
+                    res = await searchFiles({ text: getTextFromQuery(), mode: getMode() });
+                } else if (getMode() === MODE_SEARCH) {
+                    res = await searchFiles({ text: getSearchTextFromQuery(), mode: getMode() });
+                }
+            }
+            if (res) {
+                await handleLsDirRes(res);
+            }
+        }
+    }, [getMode, getTextFromQuery, getSearchTextFromQuery, state.isRecursive, handleLsDirRes]);
+
+    const handleKeyDown = useCallback(async (event: KeyboardEvent) => {
+        if (isSearchInputTextTyping()) {
+            return;
+        }
+
+        const key = event.key.toLowerCase();
+        if (key === "arrowright" || key === "d" || key === "l") {
+            next();
+            event.preventDefault();
+        } else if (key === "arrowleft" || key === "a" || key === "j") {
+            prev();
+            event.preventDefault();
+        } else if (key == "r") {
+            loadedHashRef.current = "";
+            await askServer();
+        }
+    }, [next, prev, askServer]);
+
+    // Effects
+    useEffect(() => {
+        askServer();
+        document.addEventListener('keydown', handleKeyDown);
+
+        return () => {
+            document.removeEventListener("keydown", handleKeyDown);
+            clientUtil.setSearchInputText("");
+        };
+    }, []);
+
+    // Handle filterText prop changes (equivalent to getDerivedStateFromProps)
+    useEffect(() => {
+        if (_.isString(props.filterText) && props.filterText !== state.filterText) {
+            setState(prev => ({
+                ...prev,
+                filterText: props.filterText || '',
+                pageIndex: 1
+            }));
+        }
+    }, [props.filterText]);
+
+    // Handle route changes (equivalent to componentDidUpdate)
+    const prevPropsRef = useRef(props);
+    useEffect(() => {
+        const prevProps = prevPropsRef.current;
+        const prevMode = getMode(prevProps);
+        const prevHash = getTextFromQuery(prevProps);
+        const differentMode = getMode() !== prevMode;
+        const sameMode = !differentMode;
+        const pathChanged = !!(sameMode && getTextFromQuery() !== prevHash);
+
+        if (differentMode || pathChanged) {
+            resetParam();
+            setState(getInitState(true));
+            askServer();
+        }
+
+        if (getMode() === MODE_TAG || getMode() === MODE_AUTHOR || getMode() === MODE_SEARCH) {
+            const text = getTextFromQuery();
+            clientUtil.setSearchInputText(text);
+        } else {
+            clientUtil.setSearchInputText("");
+        }
+
+        prevPropsRef.current = props;
+    }, [props.location.pathname, props.location.search]);
+
+    // Toggle functions
+    const toggleRecursively = useCallback(() => {
+        resetParam();
+        setStateAndSetHash({
             pageIndex: 1,
-            isRecursive: !this.state.isRecursive
+            isRecursive: !state.isRecursive
         }, () => {
             (async () => {
-                let res = await listDirectory({ dir: this.getTextFromQuery(), isRecursive: this.state.isRecursive });
-                this.handleLsDirRes(res);
+                let res = await listDirectory({ dir: getTextFromQuery(), isRecursive: !state.isRecursive });
+                handleLsDirRes(res);
             })();
-        })
-    }
+        });
+    }, [resetParam, setStateAndSetHash, state.isRecursive, getTextFromQuery, handleLsDirRes]);
 
-    toggleThumbNail() {
-        const prev = this.state.noThumbnail;
+    const toggleThumbNail = useCallback(() => {
+        const prev = state.noThumbnail;
         const next = !prev;
+        setStateAndSetHash({ noThumbnail: next });
+    }, [state.noThumbnail, setStateAndSetHash]);
 
-        this.setStateAndSetHash({
-            noThumbnail: next
-        })
-    }
+    const toggleFolderThumbNail = useCallback(async () => {
+        const next = !state.showFolderThumbnail;
+        setStateAndSetHash({ showFolderThumbnail: next });
 
-    async toggleFolderThumbNail() {
-        const next = !this.state.showFolderThumbnail;
-
-        this.setStateAndSetHash({
-            showFolderThumbnail: next
-        })
-
-        if (next && !this.hasCalled_getThumbnailForFolders) {
-            this.requestThumbnailForFolder();
+        if (next && !hasCalled_getThumbnailForFoldersRef.current) {
+            requestThumbnailForFolder();
         }
-    }
+    }, [state.showFolderThumbnail, setStateAndSetHash, requestThumbnailForFolder]);
 
-    async requestThumbnailForFolder() {
-        const res = await getFolderListThumbnails(this.dirs);
-        if (res && !(res as any).isFailed()) {
-            this.dirThumbnailMap = res.json.dirThumbnails;
-            this.hasCalled_getThumbnailForFolders = true;
-            this.askRerender();
-        }
-    }
-
-    askRerender() {
-        this.setState({
-            rerenderTick: !this.state.rerenderTick
-        })
-    }
-
-    renderToggleThumbNailButton() {
-        const text2 = this.state.noThumbnail ? "File Thumbnail" : "File Name Only";
-        return (
-            <span key="thumbnail-button" className="thumbnail-button exp-top-button" onClick={this.toggleThumbNail.bind(this)}>
-                <span className="fas fa-book" /> <span>{text2} </span>
-            </span>
-        );
-    }
-
-    renderToggleFolferThumbNailButton() {
-        const text2 = this.state.showFolderThumbnail ? "Folder Name Only" : "Folder Thumbnail";
-        return (
-            <span key="folder-thumbnail-button" className="thumbnail-button exp-top-button" onClick={this.toggleFolderThumbNail.bind(this)}>
-                <span className="fas fa-book" /> <span>{text2} </span>
-            </span>
-        );
-    }
-
-    renderLevelButton() {
-        const text = this.state.isRecursive ? "Show Only One Level" : "Show Files in Subfolders";
-        return (
-            <span className="recursive-button exp-top-button" onClick={this.toggleRecursively.bind(this)}>
-                <span className="fas fa-glasses" />
-                <span> {text} </span>
-            </span>
-        );
-    }
-
-    renderChartButton() {
-        const table: any = {}
-        table[MODE_AUTHOR] = "/chart/?a=";
-        table[MODE_EXPLORER] = "/chart/?p=";
-        table[MODE_SEARCH] = "/chart/?s=";
-        table[MODE_TAG] = "/chart/?t=";
-        let link = table[this.getMode()] + this.getTextFromQuery();
-        if (this.state.isRecursive) {
-            link += "&isRecursive=true"
-        }
-
-        return (<Link target="_blank" className="exp-top-button" to={link}>
-            <span className="fas fa-chart-line" />
-            <span> Chart </span>
-        </Link>)
-    }
-
-    renderPregenerateButton() {
-        if (this.getMode() === MODE_EXPLORER) {
-            const text = "Generate Thumbnail"
-            return (
-                <span key="thumbnail-button" className="thumbnail-button exp-top-button" onClick={() => askPregenerate(this.getPathFromQuery())}>
-                    <span className="fas fa-tools" />
-                    <span> {text} </span>
-                </span>
-            );
-        }
-    }
-
-
-
-    getBookModeLink() {
-        const bookReadUrl = clientUtil.getBookReadLink(this.getTextFromQuery());
-        return (
-            <Link target="_blank" className="exp-top-button" to={bookReadUrl} >
-                <span className="fas fa-book-reader" />
-                <span>Open in Book Mode </span>
-            </Link>
-        )
-    }
-
-    getExplorerToolbar(filteredFiles: string[], filteredVideos: string[]) {
-        const mode = this.getMode();
-
-
-        const isExplorer = mode === MODE_EXPLORER && this.getPathFromQuery();
-        const isTag = mode === MODE_TAG;
-        const isAuthor = mode == MODE_AUTHOR;
-        const url = clientUtil.getSearhLink(this.getTextFromQuery());
-
-        const isInfoMode = !this.isLackInfoMode();
-
-        const warning = this.isLackInfoMode() && (
-            <NoScanAlertArea filePath={this.getTextFromQuery()}></NoScanAlertArea>
-        );
-
-        let topButtons = (
-            <div className="top-button-gropus row">
-                <div className="col-6 col-md-4"> {this.renderToggleFolferThumbNailButton()} </div>
-                <div className="col-6 col-md-4"> {this.renderToggleThumbNailButton()} </div>
-
-                {isInfoMode && <div className="col-6 col-md-4"> {this.renderChartButton()} </div>}
-                {isExplorer && isInfoMode &&
-                    <div className="col-6 col-md-4"> {this.renderLevelButton()} </div>}
-                {isExplorer &&
-                    <div className="col-6 col-md-4"> {this.renderPregenerateButton()} </div>}
-                {
-                    (isTag || isAuthor) &&
-                    <div className="col-6 col-md-4">
-                        <Link target="_blank" className="exp-top-button" to={url} >
-                            <span className="fab fa-searchengin" />
-                            <span>Search by Text </span>
-                        </Link>
-                    </div>
-                }
-                {isExplorer && <div className="col-6 col-md-4"> {this.getBookModeLink()} </div>}
-            </div>);
-
-        const globalContext = this.context as GlobalContextType;
-        const breadcrumb = isExplorer && (<div className="row">
-            <Breadcrumb sep={globalContext.file_path_sep}
-                server_os={globalContext.server_os}
-                path={this.getPathFromQuery()} className="col-12" />
-        </div>);
-
-        return (<div className="container explorer-top-bar-container">
-            {breadcrumb}
-            {warning}
-            <FileCountPanel filteredFiles={filteredFiles} filteredVideos={filteredVideos} info={this} />
-            {topButtons}
-        </div>);
-    }
-
-    getTitle() {
-        const mode = this.getMode();
-
-        if (this.tag && mode === MODE_TAG) {
-            return "Tag: " + this.tag;
-        } else if (this.author && mode === MODE_AUTHOR) {
-            return "Author: " + this.author;
-        } else if (mode === MODE_SEARCH) {
-            return "Search Result: " + this.getTextFromQuery();
-        }
-        return "";
-    }
-
-    getLinkToEhentai() {
-        let searchable: any = this.tag || this.author;
-        const isSearchMode = this.getMode() === MODE_SEARCH;
-        if (isSearchMode) {
-            searchable = this.getTextFromQuery();
-        }
-
-        if (searchable) {
-            return <LinkToEHentai searchable={searchable} text={this.getTitle()} />
-        }
-    }
-
-    toggleItemNum() {
-        let nv = this.state.perPageItemNum + 12;
-        nv = Math.min(nv, 108);
-        this.setStateAndSetHash({
-            perPageItemNum: nv,
-            pageIndex: Math.min(Math.ceil(this.getFilteredFiles().length / nv), this.state.pageIndex)
-        })
-    }
-
-    renderPagination(filteredFiles: string[], filteredVideos: string[]) {
-        const fileLength = filteredFiles.length;
-        return (<div className="pagination-container">
-            <Pagination ref={(ref: any) => this.pagination = ref}
-                currentPage={this.state.pageIndex}
-                itemPerPage={this.getNumPerPage()}
-                totalItemNum={fileLength}
-                onChange={this.handlePageChange.bind(this)}
-                onExtraButtonClick={this.toggleItemNum.bind(this)}
-                linkFunc={clientUtil.linkFunc}
-            /></div>);
-    }
-
-    setWebTitle() {
-        document.title = this.getTextFromQuery() || "ShiguReader";
-    }
-
-    onSortChange(sortOrder: any, isSortAsc: boolean) {
-        this.setStateAndSetHash({ sortOrder, isSortAsc })
-    }
-
-    toggleFilter(key: any) {
-        let filterArr = this.state.filterArr.slice();
-        const index = filterArr.indexOf(key)
+    const toggleFilter = useCallback((key: any) => {
+        let filterArr = state.filterArr.slice();
+        const index = filterArr.indexOf(key);
 
         if (index > -1) {
-            filterArr.splice(index, 1)
+            filterArr.splice(index, 1);
         } else {
             filterArr.push(key);
         }
 
-        this.setStateAndSetHash({
+        setStateAndSetHash({
             filterArr,
             pageIndex: 1
         });
-    }
+    }, [state.filterArr, setStateAndSetHash]);
 
-    isOn(key: any) {
-        return this.state.filterArr.includes(key);
-    }
-
-    toggleTagFilterSelection(tag: any) {
-        const excludedTags = new Set(Array.isArray(this.state.filterTags) ? this.state.filterTags : []);
+    const toggleTagFilterSelection = useCallback((tag: any) => {
+        const excludedTags = new Set(Array.isArray(state.filterTags) ? state.filterTags : []);
         if (excludedTags.has(tag)) {
             excludedTags.delete(tag);
         } else {
             excludedTags.add(tag);
         }
 
-        this.setTagFilters(Array.from(excludedTags));
-    }
+        setTagFilters(Array.from(excludedTags));
+    }, [state.filterTags]);
 
-    setTagFilters(filterTags: any) {
+    const setTagFilters = useCallback((filterTags: any) => {
         const nextFilterTags = Array.isArray(filterTags) ? filterTags : [];
-        this.setStateAndSetHash({
+        setStateAndSetHash({
             filterTags: nextFilterTags,
             pageIndex: 1
         });
-    }
+    }, [setStateAndSetHash]);
 
-    resetTagFilters() {
-        this.setTagFilters([]);
-    }
+    const resetTagFilters = useCallback(() => {
+        setTagFilters([]);
+    }, [setTagFilters]);
 
-    renderFilterTagPanel() {
-        const filesForPanel = this.getFilteredFiles({ skipTagFilter: true });
+    const onSortChange = useCallback((sortOrder: any, isSortAsc: boolean) => {
+        setStateAndSetHash({ sortOrder, isSortAsc });
+    }, [setStateAndSetHash]);
+
+    const toggleItemNum = useCallback(() => {
+        let nv = state.perPageItemNum + 12;
+        nv = Math.min(nv, 108);
+        setStateAndSetHash({
+            perPageItemNum: nv,
+            pageIndex: Math.min(Math.ceil(getFilteredFiles().length / nv), state.pageIndex)
+        });
+    }, [state.perPageItemNum, state.pageIndex, getFilteredFiles, setStateAndSetHash]);
+
+    const getTitle = useCallback(() => {
+        const mode = getMode();
+
+        if (tagRef.current && mode === MODE_TAG) {
+            return "Tag: " + tagRef.current;
+        } else if (authorRef.current && mode === MODE_AUTHOR) {
+            return "Author: " + authorRef.current;
+        } else if (mode === MODE_SEARCH) {
+            return "Search Result: " + getTextFromQuery();
+        }
+        return "";
+    }, [getMode, getTextFromQuery]);
+
+    const setWebTitle = useCallback(() => {
+        document.title = getTextFromQuery() || "ShiguReader";
+    }, [getTextFromQuery]);
+
+    // Render functions
+    const renderSingleZipItem = useCallback((fp: string) => {
+        const text = getBaseName(fp);
+        const toUrl = clientUtil.getBookReadLink(fp);
+        const info = createInfoObject();
+
+        let zipItem;
+        let thumbnailurl = getThumbnailUrl(fp);
+
+        if (state.noThumbnail) {
+            zipItem = (
+                <Link target="_blank" to={toUrl} key={fp} className={""} >
+                    <ThumbnailPopup filePath={fp} url={thumbnailurl}>
+                        {getOneLineListItem(<i className="fas fa-book"></i>, text, fp, info)}
+                    </ThumbnailPopup>
+                </Link>);
+        } else {
+            zipItem = <SingleZipItem key={fp} filePath={fp} info={info} />;
+        }
+        return zipItem;
+    }, [state.noThumbnail, getThumbnailUrl, createInfoObject]);
+
+    // Update ref so it can be accessed via info.renderSingleZipItem
+    renderSingleZipItemRef.current = renderSingleZipItem;
+
+    const renderPageRangeSilder = useCallback(() => {
+        const { pageNumRange } = state;
+        const maxForSilder = getMaxPageForSlider();
+        const righttext = pageNumRange[1] >= maxForSilder ? `${maxPageNumRef.current}/${maxPageNumRef.current}` : `${pageNumRange[1]}/${maxPageNumRef.current}`;
+
+        return (
+            <div className='page-number-range-slider-wrapper'>
+                <div className='small-text-title no-wrap' >Page Range:</div>
+                <div className='small-text-title'>{pageNumRange[0]} </div>
+                <RangeSlider className="page-number-range-slider"
+                    min={minPageNumRef.current} max={maxForSilder} step={1}
+                    value={pageNumRange}
+                    onInput={(range: any) => {
+                        if (range[0] === pageNumRange[0] && range[1] === pageNumRange[1]) {
+                            //
+                        } else {
+                            setStateAndSetHash({ pageNumRange: range });
+                        }
+                    }} />
+                <div className='small-text-title'>{righttext}</div>
+            </div>);
+    }, [state.pageNumRange, getMaxPageForSlider, setStateAndSetHash]);
+
+    const renderToggleThumbNailButton = useCallback(() => {
+        const text2 = state.noThumbnail ? "File Thumbnail" : "File Name Only";
+        return (
+            <span key="thumbnail-button" className="thumbnail-button exp-top-button" onClick={toggleThumbNail}>
+                <span className="fas fa-book" /> <span>{text2} </span>
+            </span>
+        );
+    }, [state.noThumbnail, toggleThumbNail]);
+
+    const renderToggleFolferThumbNailButton = useCallback(() => {
+        const text2 = state.showFolderThumbnail ? "Folder Name Only" : "Folder Thumbnail";
+        return (
+            <span key="folder-thumbnail-button" className="thumbnail-button exp-top-button" onClick={toggleFolderThumbNail}>
+                <span className="fas fa-book" /> <span>{text2} </span>
+            </span>
+        );
+    }, [state.showFolderThumbnail, toggleFolderThumbNail]);
+
+    const renderLevelButton = useCallback(() => {
+        const text = state.isRecursive ? "Show Only One Level" : "Show Files in Subfolders";
+        return (
+            <span className="recursive-button exp-top-button" onClick={toggleRecursively}>
+                <span className="fas fa-glasses" />
+                <span> {text} </span>
+            </span>
+        );
+    }, [state.isRecursive, toggleRecursively]);
+
+    const renderChartButton = useCallback(() => {
+        const table: any = {};
+        table[MODE_AUTHOR] = "/chart/?a=";
+        table[MODE_EXPLORER] = "/chart/?p=";
+        table[MODE_SEARCH] = "/chart/?s=";
+        table[MODE_TAG] = "/chart/?t=";
+        let link = table[getMode()] + getTextFromQuery();
+        if (state.isRecursive) {
+            link += "&isRecursive=true";
+        }
+
+        return (<Link target="_blank" className="exp-top-button" to={link}>
+            <span className="fas fa-chart-line" />
+            <span> Chart </span>
+        </Link>);
+    }, [getMode, getTextFromQuery, state.isRecursive]);
+
+    const renderPregenerateButton = useCallback(() => {
+        if (getMode() === MODE_EXPLORER) {
+            const text = "Generate Thumbnail";
+            return (
+                <span key="thumbnail-button" className="thumbnail-button exp-top-button" onClick={() => askPregenerate(getPathFromQuery())}>
+                    <span className="fas fa-tools" />
+                    <span> {text} </span>
+                </span>
+            );
+        }
+        return null;
+    }, [getMode, getPathFromQuery]);
+
+    const getBookModeLink = useCallback(() => {
+        const bookReadUrl = clientUtil.getBookReadLink(getTextFromQuery());
+        return (
+            <Link target="_blank" className="exp-top-button" to={bookReadUrl} >
+                <span className="fas fa-book-reader" />
+                <span>Open in Book Mode </span>
+            </Link>
+        );
+    }, [getTextFromQuery]);
+
+    const renderPagination = useCallback((filteredFiles: string[], filteredVideos: string[]) => {
+        const fileLength = filteredFiles.length;
+        return (<div className="pagination-container">
+            <Pagination ref={(ref: any) => paginationRef.current = ref}
+                currentPage={state.pageIndex}
+                itemPerPage={getNumPerPage()}
+                totalItemNum={fileLength}
+                onChange={handlePageChange}
+                onExtraButtonClick={toggleItemNum}
+                linkFunc={clientUtil.linkFunc}
+            /></div>);
+    }, [state.pageIndex, getNumPerPage, handlePageChange, toggleItemNum]);
+
+    const renderCheckboxPanel = useCallback(() => {
+        const filters = [
+            { id: 'FILTER_HAS_MUSIC', label: 'Has Music' },
+            { id: 'FILTER_HAS_VIDEO', label: 'Has Video' },
+            { id: 'FILTER_IMG_FOLDER', label: 'Image Folders Only' }
+        ];
+
+        const checkboxes = filters.map(filter => (
+            <Checkbox
+                key={filter.id}
+                onChange={() => toggleFilter(filter.id)}
+                checked={isOn(filter.id)}
+            >
+                {filter.label}
+            </Checkbox>
+        ));
+
+        return (
+            <div className="aji-checkbox-container">
+                {checkboxes}
+            </div>
+        );
+    }, [toggleFilter, isOn]);
+
+    const renderFilterTagPanel = useCallback(() => {
+        const filesForPanel = getFilteredFiles({ skipTagFilter: true });
 
         const tag2Freq: any = {};
         filesForPanel.forEach(fp => {
@@ -1181,7 +1040,7 @@ class ExplorerPage extends Component<ExplorerPageProps, ExplorerPageState> {
             return tag2Freq[b] - tag2Freq[a];
         });
 
-        const excludedTags = new Set(Array.isArray(this.state.filterTags) ? this.state.filterTags : []);
+        const excludedTags = new Set(Array.isArray(state.filterTags) ? state.filterTags : []);
 
         const items = tags
             .filter(tag => tag2Freq[tag] > 2)
@@ -1195,99 +1054,276 @@ class ExplorerPage extends Component<ExplorerPageProps, ExplorerPageState> {
             });
 
         const deselectAllTags = () => {
-            this.setTagFilters(tags.slice());
+            setTagFilters(tags.slice());
         };
 
         return (
             <FilterPanel
                 title="Filter Tags"
                 items={items}
-                onToggle={this.toggleTagFilterSelection.bind(this)}
-                onSelectAll={this.resetTagFilters.bind(this)}
+                onToggle={toggleTagFilterSelection}
+                onSelectAll={resetTagFilters}
                 onDeselectAll={deselectAllTags}
                 className="filter-type-panel"
             />
         );
-    }
+    }, [getFilteredFiles, state.filterTags, toggleTagFilterSelection, resetTagFilters, setTagFilters]);
 
-    renderSortHeader() {
+    const renderSortHeader = useCallback(() => {
         let sortOptions = (ClientConstant as any).SORT_OPTIONS.slice();
 
-        if (this.getMode() !== MODE_EXPLORER) {
+        if (getMode() !== MODE_EXPLORER) {
             sortOptions.push(BY_FOLDER);
         }
 
         return (<div className="sort-header-container container">
-            <SortHeader sortOptions={sortOptions} selected={this.state.sortOrder}
-                isSortAsc={this.state.isSortAsc}
-                onChange={this.onSortChange.bind(this)}
+            <SortHeader sortOptions={sortOptions} selected={state.sortOrder}
+                isSortAsc={state.isSortAsc}
+                onChange={onSortChange}
                 className=""
                 options={sortOptions}
             />
         </div>);
-    }
+    }, [getMode, state.sortOrder, state.isSortAsc, onSortChange]);
 
-    renderCheckboxPanel() {
-        const filters = [
-            { id: 'FILTER_HAS_MUSIC', label: 'Has Music' },
-            { id: 'FILTER_HAS_VIDEO', label: 'Has Video' },
-            { id: 'FILTER_IMG_FOLDER', label: 'Image Folders Only' }
-        ];
-
-        const checkboxes = filters.map(filter => (
-            <Checkbox
-                key={filter.id}
-                onChange={this.toggleFilter.bind(this, filter.id)}
-                checked={this.isOn(filter.id)}
-            >
-                {filter.label}
-            </Checkbox>
-        ));
-
-        return (
-            <div className="aji-checkbox-container">
-                {checkboxes}
-            </div>
-        );
-    }
-
-    renderFilterControls() {
+    const renderFilterControls = useCallback(() => {
         return (
             <>
                 <div className="explorer-filter-panel container">
                     <div className='small-wrapper'>
                         <div className="explorer-filter-panel__row explorer-filter-panel__row--controls">
-                            {this.renderPageRangeSilder()}
-                            {this.renderCheckboxPanel()}
+                            {renderPageRangeSilder()}
+                            {renderCheckboxPanel()}
                         </div>
                     </div>
                 </div>
             </>
         );
-    }
+    }, [renderPageRangeSilder, renderCheckboxPanel]);
 
-    render(): ReactNode {
-        this.setWebTitle();
-
-        if (this.isFailedLoading()) {
-            return <ErrorPage res={this.res} />;
+    const getLinkToEhentai = useCallback(() => {
+        let searchable: any = tagRef.current || authorRef.current;
+        const isSearchMode = getMode() === MODE_SEARCH;
+        if (isSearchMode) {
+            searchable = getTextFromQuery();
         }
 
-        const filteredFiles = this.getFilteredFiles();
-        const filteredVideos = this.getFilteredVideos();
+        if (searchable) {
+            return <LinkToEHentai searchable={searchable} text={getTitle()} />;
+        }
+        return null;
+    }, [getMode, getTextFromQuery, getTitle]);
 
-        const cn = classNames("explorer-container-out", this.getMode().replace(" ", "_"));
+    const getExplorerToolbar = useCallback((filteredFiles: string[], filteredVideos: string[]) => {
+        const mode = getMode();
+        const info = createInfoObject();
 
-        return (<div className={cn} >
-            {this.getLinkToEhentai()}
-            {this.getExplorerToolbar(filteredFiles, filteredVideos)}
-            {this.renderFileList(filteredFiles, filteredVideos)}
-            {this.renderPagination(filteredFiles, filteredVideos)}
-        </div>
+        const isExplorer = mode === MODE_EXPLORER && getPathFromQuery();
+        const isTag = mode === MODE_TAG;
+        const isAuthor = mode == MODE_AUTHOR;
+        const url = clientUtil.getSearhLink(getTextFromQuery());
+
+        const isInfoMode = !isLackInfoMode();
+
+        const warning = isLackInfoMode() && (
+            <NoScanAlertArea filePath={getTextFromQuery()}></NoScanAlertArea>
         );
-    }
-}
 
-(ExplorerPage as any).contextType = GlobalContext;
+        let topButtons = (
+            <div className="top-button-gropus row">
+                <div className="col-6 col-md-4"> {renderToggleFolferThumbNailButton()} </div>
+                <div className="col-6 col-md-4"> {renderToggleThumbNailButton()} </div>
+
+                {isInfoMode && <div className="col-6 col-md-4"> {renderChartButton()} </div>}
+                {isExplorer && isInfoMode &&
+                    <div className="col-6 col-md-4"> {renderLevelButton()} </div>}
+                {isExplorer &&
+                    <div className="col-6 col-md-4"> {renderPregenerateButton()} </div>}
+                {
+                    (isTag || isAuthor) &&
+                    <div className="col-6 col-md-4">
+                        <Link target="_blank" className="exp-top-button" to={url} >
+                            <span className="fab fa-searchengin" />
+                            <span>Search by Text </span>
+                        </Link>
+                    </div>
+                }
+                {isExplorer && <div className="col-6 col-md-4"> {getBookModeLink()} </div>}
+            </div>);
+
+        const breadcrumb = isExplorer && (<div className="row">
+            <Breadcrumb sep={globalContext.file_path_sep}
+                server_os={globalContext.server_os}
+                path={getPathFromQuery()} className="col-12" />
+        </div>);
+
+        return (<div className="container explorer-top-bar-container">
+            {breadcrumb}
+            {warning}
+            <FileCountPanel filteredFiles={filteredFiles} filteredVideos={filteredVideos} info={info} />
+            {topButtons}
+        </div>);
+    }, [getMode, getPathFromQuery, getTextFromQuery, isLackInfoMode, renderToggleFolferThumbNailButton, renderToggleThumbNailButton, renderChartButton, renderLevelButton, renderPregenerateButton, getBookModeLink, globalContext, createInfoObject]);
+
+    const renderFileList = useCallback((filteredFiles: string[], filteredVideos: string[]) => {
+        const { sortOrder, isSortAsc, showFolderThumbnail } = state;
+        let dirs = dirsRef.current;
+        let videos = filteredVideos;
+        let files = filteredFiles;
+        const info = createInfoObject();
+
+        try {
+            files = ExplorerUtil.sortFiles(info, files, sortOrder, isSortAsc);
+        } catch (e) {
+            console.error(e);
+        }
+
+        const isEmpty = [dirs, files, videos, musicFilesRef.current, imageFilesRef.current].every(_.isEmpty);
+        if (isEmpty) {
+            if (!resRef.current) {
+                return (<CenterSpinner text={getTextFromQuery()} />);
+            } else {
+                const str = getMode() === MODE_EXPLORER ? "This folder is empty" : "Empty Result";
+                return (
+                    <div>
+                        {renderFilterControls()}
+                        <div className="one-book-nothing-available">
+                            <div className="alert alert-secondary" role="alert">{str}</div>
+                        </div>
+                    </div>);
+            }
+        }
+
+        let dirItems;
+        if (showFolderThumbnail) {
+            dirItems = dirs.map((item) => {
+                const toUrl = clientUtil.getExplorerLink(item);
+                const text = getBaseName(item);
+
+                let thumbnailurl = getFileUrl(dirThumbnailMapRef.current[item]);
+                const thumbnailCn = classNames("file-cell-thumbnail", "as-folder-thumbnail");
+
+                let imgDiv = (
+                    <LoadingImage
+                        className={thumbnailCn}
+                        title={item}
+                        filePath={item}
+                        url={thumbnailurl}
+                        mode={"folder"}
+                        tag=""
+                        musicNum={0}
+                    />);
+
+                return (
+                    <div key={item} className={"col-sm-6 col-md-4 col-lg-3 file-out-cell"}>
+                        <div className="file-cell">
+                            <Link to={toUrl} key={item} className={"file-cell-inner"}>
+                                <FileCellTitle str={text} />
+                                <div className="folder-effect"> {imgDiv} </div>
+                            </Link>
+                        </div>
+                    </div>);
+            });
+        } else {
+            dirItems = dirs.map((item) => {
+                const toUrl = clientUtil.getExplorerLink(item);
+                const text = getBaseName(item);
+                const result = getOneLineListItem(<i className="far fa-folder"></i>, text, item, info);
+                return (
+                    <ThumbnailPopup filePath={item} key={item}>
+                        <Link to={toUrl}>{result}</Link>
+                    </ThumbnailPopup>
+                );
+            });
+        }
+
+        // separate av from others
+        const groupByVideoType = _.groupBy(videos, item => {
+            const text = getBaseName(item);
+            const temp = parse(item);
+
+            if (util.isAv(text)) {
+                return "av";
+            } else if (temp && temp.dateTag) {
+                return "_date_";
+            } else {
+                return "etc";
+            }
+        }) || {};
+
+        const videoDivGroup = _.keys(groupByVideoType).map((key, ii) => {
+            let group = groupByVideoType[key];
+            group.sort((a: string, b: string) => a.localeCompare(b, undefined, { numeric: true }));
+
+            const videoItems = group.map((item: string) => {
+                const toUrl = clientUtil.getVideoPlayerLink(item);
+                const text = getBaseName(item);
+                const result = getOneLineListItem(<i className="far fa-file-video"></i>, text, item, info);
+                return (
+                    <Link target="_blank" to={toUrl} key={item}>{result}</Link>
+                );
+            });
+            return <ItemsContainer key={key} className="video-list" items={videoItems} />;
+        });
+
+        files = getFileInPage(files);
+
+        let zipfileItems: ReactNode[] | ReactNode;
+        if (sortOrder === BY_FOLDER || sortOrder === BY_FOLDER &&
+            (getMode() === MODE_AUTHOR || getMode() === MODE_TAG || getMode() === MODE_SEARCH)) {
+
+            zipfileItems = <FileGroupZipPanel files={files} isSortAsc={state.isSortAsc} info={info} />;
+        } else {
+            zipfileItems = files.map(fp => renderSingleZipItem(fp));
+        }
+
+        const rowCn = state.noThumbnail ? "file-list" : "row";
+
+        return (
+            <div className={"explorer-container"}>
+                {!showFolderThumbnail && <ItemsContainer items={dirItems} neverCollapse={getMode() === MODE_EXPLORER} />}
+                {showFolderThumbnail &&
+                    <div className={"file-grid container"}>
+                        <div className={"row"}>
+                            {dirItems}
+                        </div>
+                    </div>
+                }
+
+                <SimpleFileListPanel musicFiles={musicFilesRef.current} imageFiles={imageFilesRef.current} info={info} />
+
+                {videoDivGroup}
+                {renderPagination(filteredFiles, filteredVideos)}
+                {renderFilterControls()}
+                {(Array.isArray(zipfileItems) ? zipfileItems.length > 0 : !!zipfileItems) && renderSortHeader()}
+                <div className={"file-grid container"}>
+                    <div className={rowCn}>
+                        {zipfileItems}
+                    </div>
+                </div>
+            </div>
+        );
+    }, [state, getTextFromQuery, getMode, renderFilterControls, getFileInPage, renderSingleZipItem, renderPagination, renderSortHeader, createInfoObject]);
+
+    // Main render
+    setWebTitle();
+
+    if (isFailedLoading()) {
+        return <ErrorPage res={resRef.current} />;
+    }
+
+    const filteredFiles = getFilteredFiles();
+    const filteredVideos = getFilteredVideos();
+
+    const cn = classNames("explorer-container-out", getMode().replace(" ", "_"));
+
+    return (<div className={cn} >
+        {getLinkToEhentai()}
+        {getExplorerToolbar(filteredFiles, filteredVideos)}
+        {renderFileList(filteredFiles, filteredVideos)}
+        {renderPagination(filteredFiles, filteredVideos)}
+    </div>
+    );
+};
 
 export default ExplorerPage;
