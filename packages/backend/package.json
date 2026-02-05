@@ -3,16 +3,18 @@
   "version": "2.0.0",
   "description": "All-in-one solution for local doujin/anime/music file",
   "repository": "hjyssg/ShiguReader",
-  "main": "src/app.js",
-  "bin": "src/app.js",
+  "main": "dist/app.js",
+  "bin": "dist/app.js",
   "scripts": {
     "start": "ts-node -r tsconfig-paths/register src/app.ts",
+    "build": "tsc",
+    "serve": "node dist/app.js",
     "flow": "flow",
     "test": "mocha ./src/test",
     "pkg": "pkg . --compress GZip"
   },
   "pkg": {
-    "scripts": "src/app.js",
+    "scripts": "dist/app.js",
     "assets": [
       "/dist/**/*",
       "/resource/**/*",
