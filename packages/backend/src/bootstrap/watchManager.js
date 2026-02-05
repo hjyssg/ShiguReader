@@ -1,4 +1,5 @@
-const chokidar = require('chokidar');
+const watcher = require('@parcel/watcher');
+const fs = require('fs').promises;
 const _ = require('underscore');
 const util = require('../../../common/src/util');
 const pathUtil = require('../utils/path-util');
@@ -10,6 +11,7 @@ const { isDisplayableInExplorer, isDisplayableInOnebook } = util;
 
 function createWatchManager({ cacheDb, db, filewatch, viewImgFolder }) {
     const cachePath = appState.getCachePath();
+    let cacheSubscription = null;
 
     function shouldWatchForCache(fp, stat) {
         if (isHiddenFile(fp)) {
@@ -21,21 +23,28 @@ function createWatchManager({ cacheDb, db, filewatch, viewImgFolder }) {
         return true;
     }
 
-    function setUpCacheWatch() {
-        const cacheWatcher = chokidar.watch(cachePath, {
-            ignored: (fp, stat) => !shouldWatchForCache(fp, stat),
-            persistent: true,
-            ignorePermissionErrors: true,
-            ignoreInitial: true,
+    async function setUpCacheWatch() {
+        cacheSubscription = await watcher.subscribe(cachePath, async (err, events) => {
+            if (err) {
+                console.error(`[@parcel/watcher] Error watching cache path ${cachePath}:`, err);
+                return;
+            }
+
+            for (const event of events) {
+                const { path: fp, type } = event;
+                if (type !== 'delete') {
+                    try {
+                        const stats = await fs.stat(fp);
+                        if (shouldWatchForCache(fp, stats)) {
+                            cacheDb.updateStatToCacheDb(fp, stats);
+                        }
+                    } catch (e) {
+                        // ignore
+                    }
+                }
+                // cacheDb 目前似乎没有针对 delete 的处理逻辑（根据原代码只监听 add/addDir）
+            }
         });
-
-        const addCallBack = (fp, stats) => {
-            cacheDb.updateStatToCacheDb(fp, stats);
-        };
-
-        cacheWatcher
-            .on('add', addCallBack)
-            .on('addDir', addCallBack);
     }
 
     function shouldScan(fp, stat) {
@@ -104,6 +113,16 @@ function createWatchManager({ cacheDb, db, filewatch, viewImgFolder }) {
         appState.setScannedPaths(paths);
     }
 
+    async function stopAll() {
+        if (cacheSubscription) {
+            await cacheSubscription.unsubscribe();
+            cacheSubscription = null;
+        }
+        if (filewatch.stopAllWatches) {
+            await filewatch.stopAllWatches();
+        }
+    }
+
     return {
         addDirsToWatch,
         setUpCacheWatch,
@@ -111,7 +130,9 @@ function createWatchManager({ cacheDb, db, filewatch, viewImgFolder }) {
         shouldIgnoreForNormal,
         filterScanPaths,
         updateScannedPaths,
+        stopAll
     };
 }
 
 module.exports = createWatchManager;
+
