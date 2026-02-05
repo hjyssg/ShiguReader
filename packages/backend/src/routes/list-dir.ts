@@ -16,6 +16,8 @@ const { decorateResWithMeta } = require('../services/server-common');
 const db = require("../models/db");
 import * as util from '../../../common/src';
 const { getCurrentTime, isImage, isMusic, isCompress, isVideo } = util;
+import { ListDirResponse, FileInfo, ImgFolderInfo } from '../../../common/src/types';
+
 const historyDb = require("../models/history-db");
 const logger = require("../config/logger");
 const filewatch = require('../services/file-watchers/file-watch');
@@ -54,7 +56,7 @@ router.post('/api/folder/list_dir', serverUtil.asyncWrapper(async (req: Request,
     try {
         let time2: number, timeUsed: number;
         let dirs: string[] = [];
-        let fileInfos: any = {};
+        let fileInfos: Record<string, FileInfo> = {};
         let sql: string, rows: any[];
 
         //-------------- dir --------------
@@ -76,7 +78,7 @@ router.post('/api/folder/list_dir', serverUtil.asyncWrapper(async (req: Request,
         fileInfos = serverUtil.convertFileRowsIntoFileInfo(rows);
 
         //---------------img folder -----------------
-        const imgFolders: Record<string, any[]> = {};
+        const imgFolders: Record<string, ImgFolderInfo[]> = {};
         // join folder with isDisplayableInOnebook file
         if (isRecursive) {
             sql = `
@@ -118,11 +120,13 @@ router.post('/api/folder/list_dir', serverUtil.asyncWrapper(async (req: Request,
         time2 = getCurrentTime();
         timeUsed = (time2 - time1);
 
-        let result: any = {
+        let result: ListDirResponse = {
             path: dir,
             dirs,
             fileInfos,
-            imgFolders
+            imgFolderInfo: imgFolders as any, // TODO: Fix type mismatch if imgFolders structure is different in DB vs Type, for now casting
+            fileHistory: [],
+            nameParseCache: {}
         };
 
         result = await decorateResWithMeta(result);
@@ -132,7 +136,7 @@ router.post('/api/folder/list_dir', serverUtil.asyncWrapper(async (req: Request,
         res.send(result);
     } catch (e) {
         logger.error(e);
-        res.send({ failed: true, reason: e });
+        res.send({ failed: true, reason: e as string });
     }
 }));
 
@@ -163,23 +167,25 @@ function fileIntoCategory(files: string[]) {
     }
 }
 
-async function listNoScanDir(filePath: string, res: Response, isRecussive?: boolean) {
+async function listNoScanDir(filePath: string, res: Response, isRecussive?: boolean): Promise<ListDirResponse> {
     const { filePathes, dirPathes } = await (pathUtil as any).readDirForFileAndFolder(filePath, isRecussive);
 
     const categoryObj = fileIntoCategory(filePathes);
-    const fileInfos = filePathes.reduce((acc: any, filePath) => {
+    const fileInfos = filePathes.reduce((acc: any, filePath: string) => {
         acc[filePath] = {};
         return acc;
     }, {});
 
-    let result = {
+    let result: ListDirResponse = {
         path: filePath,
         mode: "lack_info_mode",
         dirs: dirPathes,
-        imgFolders: {},
+        imgFolderInfo: {},
         fileInfos,
+        fileHistory: [],
+        nameParseCache: {},
         ...categoryObj
-    };
+    } as any; // Using any to merge categoryObj which might not be strictly part of ListDirResponse or needs extension
 
     return result;
 }

@@ -29,6 +29,7 @@ declare global {
 // Local imports
 const execa = require('./utils/own-execa');
 import * as util from '@common'; // Import from common via alias
+import { BookOverviewResponse } from '@common';
 
 const userConfig = require('./config/user-config');
 const pathUtil = require('./utils/path-util');
@@ -744,7 +745,7 @@ app.post('/api/extract/extract_zip', asyncWrapper(async (req: Request, res: Resp
         let zipInfo = zipInfoDb.getZipInfo(filePath)[0];
 
         // TODO dirs留空。
-        let result = { imageFiles: tempFiles, musicFiles, videoFiles, path, outputPath, stat, zipInfo, dirs: [] };
+        let result: BookOverviewResponse = { imageFiles: tempFiles, musicFiles, videoFiles, path, outputPath, stat, zipInfo, dirs: [] } as any;
         extract_result_cache[filePath] = result;
         result = serverUtil.checkOneBookRes(result);
         res.send(result);

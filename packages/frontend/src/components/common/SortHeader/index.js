@@ -70,9 +70,9 @@ export default function SortHeader({
     selected,
     isSortAsc = false,
     onChange,
-    className,
+    className = "",
     showOptions = false,
-    options,
+    options = {},
 }) {
     const [state, setState] = useSortState({ sortOptions, selected, isSortAsc, options });
 
@@ -140,9 +140,9 @@ export default function SortHeader({
 
         const mergedOther = others.length
             ? {
-                  group: 'Other',
-                  items: others.flatMap((section) => section.items),
-              }
+                group: 'Other',
+                items: others.flatMap((section) => section.items),
+            }
             : null;
 
         return { primarySections: primary, otherSection: mergedOther };

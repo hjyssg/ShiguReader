@@ -1,13 +1,13 @@
-
 export interface FileInfo {
     size: number;
     mtimeMs: number;
-    thumbnailFilePath?: string;
+    thumbnailFilePath: string;
     pageNum?: number;
     musicNum?: number;
     videoNum?: number;
     totalNum?: number;
     totalImgSize?: number;
+    pageAvgSize?: number;
 }
 
 export interface ImgFolderInfo {
@@ -35,6 +35,11 @@ export interface NameParseResult {
     [key: string]: any;
 }
 
+export interface KeyVal {
+    key: string;
+    value: any;
+}
+
 export interface ListDirResponse {
     failed?: boolean;
     reason?: string;
@@ -45,6 +50,8 @@ export interface ListDirResponse {
     fileHistory: FileHistory[];
     nameParseCache: Record<string, NameParseResult>;
     mode?: string;
+    tag?: string;
+    author?: string;
 }
 
 export interface SearchFileResponse {
@@ -111,4 +118,13 @@ export interface ApiResponse<T> {
     status: number;
     json: T & BaseResponse;
     isFailed(): boolean;
+}
+
+export interface BookOverviewResponse extends BaseResponse {
+    zipInfo?: any;
+    path?: string;
+    stat?: any;
+    imageFiles: string[];
+    musicFiles: string[];
+    readmeFile?: string;
 }

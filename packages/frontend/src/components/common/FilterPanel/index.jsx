@@ -6,9 +6,9 @@ const FilterPanel = ({
     title,
     items = [],
     onToggle,
-    onSelectAll,
-    onDeselectAll,
-    className
+    onSelectAll = null,
+    onDeselectAll = null,
+    className = ""
 }) => {
     if (!items || items.length === 0) {
         return null;
@@ -16,7 +16,7 @@ const FilterPanel = ({
 
     const selectAllLabel = "Select All";
     const deselectAllLabel = "Deselect All";
-    const checkboxContainerClassName="type-checkboxes"
+    const checkboxContainerClassName = "type-checkboxes"
 
     const [isExpanded, setIsExpanded] = useState(false);
 
@@ -72,7 +72,7 @@ const FilterPanel = ({
             className="btn btn-sm btn-light filter-panel-toggle-button"
             onClick={() => setIsExpanded(prev => !prev)}
         >
-           <div className="inner">{isExpanded ? "Show Less" : "..."}</div> 
+            <div className="inner">{isExpanded ? "Show Less" : "..."}</div>
         </button>
     );
 
