@@ -1,4 +1,5 @@
-const chokidar = require('chokidar');
+const watcher = require('@parcel/watcher');
+const fs = require('fs').promises;
 const _ = require('underscore');
 const util = require('../../../common/src/util');
 const pathUtil = require('../utils/path-util');
@@ -10,6 +11,7 @@ const { isDisplayableInExplorer, isDisplayableInOnebook } = util;
 
 function createWatchManager({ cacheDb, db, filewatch, viewImgFolder }) {
     const cachePath = appState.getCachePath();
+    let cacheSubscription = null;
 
     function shouldWatchForCache(fp, stat) {
         if (isHiddenFile(fp)) {
@@ -21,21 +23,42 @@ function createWatchManager({ cacheDb, db, filewatch, viewImgFolder }) {
         return true;
     }
 
-    function setUpCacheWatch() {
-        const cacheWatcher = chokidar.watch(cachePath, {
-            ignored: (fp, stat) => !shouldWatchForCache(fp, stat),
-            persistent: true,
-            ignorePermissionErrors: true,
-            ignoreInitial: true,
-        });
+    async function setUpCacheWatch() {
+        try {
+            cacheSubscription = await watcher.subscribe(cachePath, async (err, events) => {
+                if (err) {
+                    console.error('[parcel/watcher] Cache watch error:', err);
+                    return;
+                }
 
-        const addCallBack = (fp, stats) => {
-            cacheDb.updateStatToCacheDb(fp, stats);
-        };
+                for (const event of events) {
+                    try {
+                        if (event.type === 'create') {
+                            const stats = await fs.stat(event.path);
+                            if (!shouldWatchForCache(event.path, stats)) {
+                                continue;
+                            }
+                            cacheDb.updateStatToCacheDb(event.path, stats);
+                        }
+                    } catch (eventError) {
+                        if (eventError.code !== 'ENOENT') {
+                            console.error('[parcel/watcher] Cache event error:', eventError);
+                        }
+                    }
+                }
+            });
+            console.log(`[parcel/watcher] Cache watcher set up for: ${cachePath}`);
+        } catch (error) {
+            console.error('[parcel/watcher] Failed to set up cache watch:', error);
+        }
+    }
 
-        cacheWatcher
-            .on('add', addCallBack)
-            .on('addDir', addCallBack);
+    async function stopCacheWatch() {
+        if (cacheSubscription) {
+            await cacheSubscription.unsubscribe();
+            cacheSubscription = null;
+            console.log('[parcel/watcher] Cache watcher stopped');
+        }
     }
 
     function shouldScan(fp, stat) {
@@ -107,6 +130,7 @@ function createWatchManager({ cacheDb, db, filewatch, viewImgFolder }) {
     return {
         addDirsToWatch,
         setUpCacheWatch,
+        stopCacheWatch,
         shouldScan,
         shouldIgnoreForNormal,
         filterScanPaths,

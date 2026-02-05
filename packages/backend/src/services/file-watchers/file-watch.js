@@ -1,16 +1,19 @@
 const fs = require('fs').promises;
 const path = require('path');
-const chokidar = require('chokidar');
+const fsWalk = require('@nodelib/fs.walk');
+const watcher = require('@parcel/watcher');
 const pathUtil = require("../../utils/path-util");
 const appState = require('../../state/appState');
 const estimateFileTable = require('../estimate-file-table');
-
 
 const getCurrentTime = function () {
     return new Date().getTime();
 }
 
-async function fastFileIterate({filePath, db, shouldIgnoreForNormal}) {
+/**
+ * 使用 @nodelib/fs.walk 进行高性能文件遍历
+ */
+async function fastFileIterate({ filePath, db, shouldIgnoreForNormal }) {
     let beg = getCurrentTime();
 
     // 缓存对象，用于存储文件和标签数据
@@ -21,35 +24,32 @@ async function fastFileIterate({filePath, db, shouldIgnoreForNormal}) {
 
     console.log(`[fastFileIterate] ${filePath}  begin`);
 
-    // 递归函数，用于处理文件和文件夹
-    async function processDirectory(dirPath) {
-        try {
-            // 读取目录中的所有项
-            const entries = await fs.readdir(dirPath, { withFileTypes: true });
-            // 遍历目录项
-            for (let entry of entries) {
-                const fullPath = path.join(dirPath, entry.name);
-                const stats = await fs.stat(fullPath);
-
-                if(shouldIgnoreForNormal(fullPath, stats)){
-                    continue;
+    try {
+        // 使用 @nodelib/fs.walk 的 Promise 接口进行异步遍历
+        const entries = await new Promise((resolve, reject) => {
+            fsWalk.walk(filePath, {
+                stats: true,
+                deepFilter: (entry) => {
+                    // 过滤掉需要忽略的目录
+                    return !shouldIgnoreForNormal(entry.path, entry.stats);
+                },
+                entryFilter: (entry) => {
+                    // 过滤掉需要忽略的文件和目录
+                    return !shouldIgnoreForNormal(entry.path, entry.stats);
                 }
+            }, (err, entries) => {
+                if (err) reject(err);
+                else resolve(entries);
+            });
+        });
 
-                // 更新状态到数据库的缓存
-                db.updateStatToDb(fullPath, stats, insertion_cache);
-
-                // 如果是目录，递归调用
-                if (entry.isDirectory()) {
-                    await processDirectory(fullPath);
-                }
-            }
-        } catch (error) {
-            console.error('Error processing directory:', dirPath, error);
+        // 处理所有条目
+        for (const entry of entries) {
+            db.updateStatToDb(entry.path, entry.stats, insertion_cache);
         }
+    } catch (error) {
+        console.error('Error processing directory:', filePath, error);
     }
-
-    // 开始递归处理
-    await processDirectory(filePath);
 
     //  删除地址现有的全部data
     await db.runSync("DELETE FROM file_table where filePath LIKE ?", [(filePath + '%')]);
@@ -71,108 +71,74 @@ async function fastFileIterate({filePath, db, shouldIgnoreForNormal}) {
 }
 
 
-// 用于存储当前所有监听的目录
+// 用于存储当前所有监听的 subscription
 let watchDescriptors = {};
 
-// 动态添加监听目录
-const addWatch_chokidar = async ({ folderPath, deleteCallBack, shouldScan, db }) => {
-    const startTime = Date.now();  // 设置开始时间
-    const shouldWatchIgnore = (fp, stat) => {
-        if(!shouldScan(fp, stat)){
-            return true;
-        } else {
-            // if(stat && !stat.isDirectory()){
-            //      console.log(fp)
-            //     return true;
-            // }
-            // ignore文件，之后文件变化就不会通知。但创建几千个文件的watch又会卡
-        }
+/**
+ * 使用 @parcel/watcher 添加目录监听
+ */
+const addWatch = async ({ folderPath, deleteCallBack, shouldScan, db }) => {
+    const startTime = Date.now();
+
+    try {
+        const subscription = await watcher.subscribe(folderPath, async (err, events) => {
+            if (err) {
+                console.error('[parcel/watcher] Error:', err);
+                return;
+            }
+
+            for (const event of events) {
+                try {
+                    if (event.type === 'create' || event.type === 'update') {
+                        // 文件新增或修改
+                        const stats = await fs.stat(event.path);
+                        if (shouldScan && !shouldScan(event.path, stats)) {
+                            continue;
+                        }
+                        db.updateStatToDb(event.path, stats);
+                    } else if (event.type === 'delete') {
+                        // 文件删除
+                        deleteCallBack(event.path);
+                    }
+                } catch (eventError) {
+                    // 文件可能在处理时被删除，忽略错误
+                    if (eventError.code !== 'ENOENT') {
+                        console.error('[parcel/watcher] Event processing error:', eventError);
+                    }
+                }
+            }
+        });
+
+        console.log(`[parcel/watcher] ${folderPath} watcher set up. Time taken: ${Date.now() - startTime} ms`);
+
+        watchDescriptors[folderPath] = subscription;
+        appState.setScannedPaths(Object.keys(watchDescriptors).sort((a, b) => b.localeCompare(a)));
+    } catch (error) {
+        console.error('[parcel/watcher] Failed to subscribe:', folderPath, error);
     }
-
-    const watcher = chokidar.watch(folderPath, {
-        ignored: shouldWatchIgnore,
-        persistent: true,
-        ignorePermissionErrors: true,
-        followSymlinks: false,
-        disableGlobbing: true,
-        ignoreInitial: true,
-        useFsEvents: true
-    });
-
-  
-    //处理添加文件事件
-    const addFileCallBack = async (fp, stats) => {
-        db.updateStatToDb(fp, stats);
-    };
-
-    const addFolderCallBack = async (fp, stats) => {
-        db.updateStatToDb(fp, stats);
-    };
-
-    watcher
-        .on('add', addFileCallBack)
-        .on('change', addFileCallBack)
-        .on('unlink', deleteCallBack);
-
-    watcher
-        .on('addDir', addFolderCallBack)
-        .on('unlinkDir', deleteCallBack);
-
-    watcher.on('ready', async () => {
-        // console.log(`[chokidar] ${folderPath} watcher set up.`)
-        const endTime = Date.now();
-        console.log(`[chokidar] ${folderPath} watcher set up. Time taken: ${endTime - startTime} ms`);
-    })
-
-    watchDescriptors[folderPath] = watcher;
-    appState.setScannedPaths(Object.keys(watchDescriptors));
 };
 
-const sane = require('sane');  // 性能确实比chokidar好
-const addWatch_sane = async ({ folderPath, deleteCallBack, shouldScan, db }) => {
-    // 或许使用https://facebook.github.io/watchman/docs/install
-    const startTime = Date.now();  // 设置开始时间
-    const shouldWatchIgnore = (fp, stat) => {
-        if(!shouldScan(fp, stat)){
-            return true;
-        } else {
-            // if(stat && !stat.isDirectory()){
-            //      console.log(fp)
-            //     return true;
-            // }
-            // ignore文件，之后文件变化就不会通知。但创建几千个文件的watch又会卡
-        }
+/**
+ * 移除目录监听，释放资源
+ */
+const removeWatch = async (folderPath) => {
+    const subscription = watchDescriptors[folderPath];
+    if (subscription) {
+        await subscription.unsubscribe();
+        delete watchDescriptors[folderPath];
+        appState.setScannedPaths(Object.keys(watchDescriptors).sort((a, b) => b.localeCompare(a)));
+        console.log(`[parcel/watcher] ${folderPath} watcher removed.`);
     }
+};
 
-    const watcher = sane(folderPath, {
-        glob: ['**/*'], // 监视所有文件和目录，可以根据需要调整
-        poll: false,    // 根据需求选择是否使用轮询
-        ignored: shouldWatchIgnore,
-        dot: false      // 是否监视点文件（隐藏文件）
-    });
-
-    //处理文件或目录添加事件
-    const addCallBack = async (fp, root, stat) => {
-        fp = path.resolve(root, fp);
-        db.updateStatToDb(fp, stat);
-    };
-
-    const _deleteCallBack =  async (fp, root)=>{
-        fp = path.resolve(root, fp);
-        deleteCallBack(fp);
+/**
+ * 移除所有监听，用于服务销毁时清理
+ */
+const removeAllWatches = async () => {
+    const paths = Object.keys(watchDescriptors);
+    for (const folderPath of paths) {
+        await removeWatch(folderPath);
     }
-
-    watcher.on('add', addCallBack)
-           .on('change', addCallBack)
-           .on('delete', _deleteCallBack);
-
-    watcher.on('ready', () => {
-            const endTime = Date.now();
-            console.log(`[sane] ${folderPath} watcher set up. Time taken: ${endTime - startTime} ms`);
-    });
-
-    watchDescriptors[folderPath] = watcher;
-    appState.setScannedPaths(Object.keys(watchDescriptors).sort((a, b) => b.localeCompare(a)));
 };
 
 const { pathEqual } = require('path-equal');
@@ -185,4 +151,4 @@ function isAlreadyScan(dir) {
 }
 
 
-module.exports = { addWatch: addWatch_sane, fastFileIterate, isAlreadyScan }
+module.exports = { addWatch, fastFileIterate, isAlreadyScan, removeWatch, removeAllWatches }
