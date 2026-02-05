@@ -34,6 +34,45 @@ import 'react-range-slider-input/dist/style.css';
 
 import { GlobalContext, GlobalContextType } from '@context/GlobalContext';
 import {
+    FileInfo,
+    ImgFolderInfo,
+    FileHistory,
+    ListDirResponse,
+    SearchFileResponse,
+    TagInfo,
+    ApiResponse,
+    GoodAuthorNamesResponse
+} from '@common/types';
+
+interface ExplorerPageProps {
+    location: any;
+    filterText?: string;
+}
+
+interface ExplorerPageState {
+    perPageItemNum: number;
+    pageIndex: number;
+    isRecursive: boolean;
+    sortOrder: string;
+    isSortAsc: boolean;
+    showFolderThumbnail: boolean;
+    filterArr: string[];
+    pageNumRange: [number, number];
+    filterText: string;
+    filterTags: string[];
+    noThumbnail: boolean;
+    authorInfo?: any[];
+    tagInfo?: any[];
+    [key: string]: any; // To support dynamic state for now
+}
+
+interface MetaInfo {
+    key: string;
+    type: "int" | "boolean" | "str" | "arr" | "float";
+    defVal?: any;
+}
+
+import {
     NoScanAlertArea, FileCountPanel, getOneLineListItem,
     LinkToEHentai, SimpleFileListPanel, SingleZipItem, FileGroupZipPanel
 } from '@components/ExplorerPageUI';
@@ -79,8 +118,8 @@ function _parseInt(val: any) {
 
 const DEFAULT_MAX_PAGE = 300;
 
-class ExplorerPage extends Component<any, any> {
-    metaInfo: any[];
+class ExplorerPage extends Component<ExplorerPageProps, ExplorerPageState> {
+    metaInfo: MetaInfo[];
     loadedHash: string = "";
     videoFiles: string[] = [];
     compressFiles: string[] = [];
@@ -89,20 +128,20 @@ class ExplorerPage extends Component<any, any> {
     dirs: string[] = [];
     tag: string = "";
     author: string = "";
-    fileInfos: any = {};
-    imgFolderInfo: any = {};
-    res: any = null;
-    dirThumbnailMap: any = {};
+    fileInfos: Record<string, FileInfo> = {};
+    imgFolderInfo: Record<string, ImgFolderInfo> = {};
+    res: ApiResponse<ListDirResponse | SearchFileResponse> | null = null;
+    dirThumbnailMap: Record<string, string> = {};
     minPageNum: number = 0;
     maxPageNum: number = 0;
     mode: string = "";
-    allfileInfos: any = {};
-    fileNameToHistory: any = {};
+    allfileInfos: Record<string, FileInfo | ImgFolderInfo> = {};
+    fileNameToHistory: Record<string, { time: number, count: number }> = {};
     hasCalled_getThumbnailForFolders: boolean = false;
     pagination: any;
     _handleKeyDown: any;
 
-    constructor(prop: any) {
+    constructor(prop: ExplorerPageProps) {
         super(prop);
 
         this.metaInfo = [
@@ -128,12 +167,12 @@ class ExplorerPage extends Component<any, any> {
             1000 : this.state.perPageItemNum;
     }
 
-    getInitState(reset?: boolean) {
+    getInitState(reset?: boolean): ExplorerPageState {
         const initState = clientUtil.getInitState(this.metaInfo, reset);
         return {
             perPageItemNum: getPerPageItemNumber(),
             ...initState
-        }
+        } as ExplorerPageState;
     }
 
     setStateAndSetHash(state: any, callback?: () => void) {
@@ -305,22 +344,22 @@ class ExplorerPage extends Component<any, any> {
     }
 
 
-    async handleLsDirRes(res: any) {
-        if (res && !(res as any).isFailed()) {
+    async handleLsDirRes(res: ApiResponse<ListDirResponse | SearchFileResponse>) {
+        if (res && !res.isFailed()) {
             let {
                 dirs = [],
-                mode,
+                mode = "",
                 tag = "",
                 author = "",
                 fileInfos = {},
                 imgFolderInfo = {},
                 fileHistory = [],
                 nameParseCache = {}
-            } = res.json;
+            } = res.json as any; // Using any here because SearchFileResponse and ListDirResponse are slightly different but overlapping
 
             // 马上叫server准备下一个信息
-            getGoodAuthorNames().then(res => {
-                if (res && !(res as any).isFailed()) {
+            getGoodAuthorNames().then((res: ApiResponse<GoodAuthorNamesResponse>) => {
+                if (res && !res.isFailed()) {
                     this.setState({
                         authorInfo: res.json.authorInfo,
                         tagInfo: res.json.tagInfo
@@ -394,7 +433,7 @@ class ExplorerPage extends Component<any, any> {
                 continue;
             }
 
-            const info = this.allfileInfos[fp];
+            const info = this.allfileInfos[fp] as any;
             info.size = _parseInt(info.size) || 0;
             info.mtimeMs = _parseInt(info.mtimeMs) || 0;
 
@@ -473,7 +512,7 @@ class ExplorerPage extends Component<any, any> {
 
     //may not be reliable
     getPageAvgSize(fp: string) {
-        return this.allfileInfos[fp]?.pageAvgSize || 0;
+        return (this.allfileInfos[fp] as any)?.pageAvgSize || 0;
     }
 
     getMusicNum(fp: string) {
@@ -637,10 +676,10 @@ class ExplorerPage extends Component<any, any> {
     getThumbnailUrl(fp: string) {
         let thumbnailurl;
         if (this.isImgFolder(fp)) {
-            const tp = this.imgFolderInfo[fp].thumbnail;
+            const tp = (this.imgFolderInfo[fp] as ImgFolderInfo).thumbnail;
             thumbnailurl = getFileUrl(tp, true);
         } else {
-            thumbnailurl = getFileUrl(this.allfileInfos[fp].thumbnailFilePath, true);
+            thumbnailurl = getFileUrl((this.allfileInfos[fp] as FileInfo).thumbnailFilePath, true);
         }
         return thumbnailurl;
     }
