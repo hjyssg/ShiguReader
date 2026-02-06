@@ -1,5 +1,5 @@
 const assert = require("assert");
-const parser = require("../../../name-parser");
+const parser = require("../index");
 
 describe("name parser", () => {
   let s1;
@@ -56,7 +56,7 @@ describe("name parser", () => {
     result = parser.parse(s1);
     assert.deepEqual(result.tags.sort(), ["DOUJIN", "cake"].sort());
     assert.equal(result.author, "武田弘光");
-    
+
 
     s1 =
       "(COMIC1☆9) [橘花屋 (上杉響士郎, 榊ゆいの)] すみません。 (アイドルマスター シンデレラガールズ).zip";
@@ -69,7 +69,7 @@ describe("name parser", () => {
     assert.equal(result.group, "橘花屋");
 
 
-    s1 ="(同人CG集) [エアリーソックス] 騒音被害.zip";
+    s1 = "(同人CG集) [エアリーソックス] 騒音被害.zip";
     result = parser.parse(s1);
     assert.equal(result.author, "エアリーソックス");
     assert.deepEqual(result.authors, ["エアリーソックス"]);
@@ -78,7 +78,7 @@ describe("name parser", () => {
     assert.ok(!result.comiket);
     assert.equal(result.title, "騒音被害")
 
-    s1 ="(同人誌) [GRINP] お兄ちゃんはおしまい! 22.zip";
+    s1 = "(同人誌) [GRINP] お兄ちゃんはおしまい! 22.zip";
     result = parser.parse(s1);
     assert.equal(result.author, "GRINP");
     assert.deepEqual(result.authors, ["GRINP"]);
@@ -87,7 +87,7 @@ describe("name parser", () => {
     assert.ok(!result.comiket);
     assert.equal(result.title, "お兄ちゃんはおしまい! 22")
 
-    s1 ="Twoyun - Asuma Toki.zip";
+    s1 = "Twoyun - Asuma Toki.zip";
     result = parser.parse(s1);
     assert.ok(!result);
   });
@@ -148,14 +148,14 @@ describe("name parser", () => {
 
   it("tag time calculation", () => {
     const C102T = parser
-    .getDateFromParse("(C102)[ fake_author ] apple")
-    .getTime();
+      .getDateFromParse("(C102)[ fake_author ] apple")
+      .getTime();
     const C101T = parser
-    .getDateFromParse("(C101)[ fake_author ] apple")
-    .getTime();
+      .getDateFromParse("(C101)[ fake_author ] apple")
+      .getTime();
     const C100T = parser
-    .getDateFromParse("(C100)[ fake_author ] apple")
-    .getTime();
+      .getDateFromParse("(C100)[ fake_author ] apple")
+      .getTime();
 
     const C96T = parser
       .getDateFromParse("(C96)[ fake_author ] apple")
@@ -439,6 +439,41 @@ describe("name parser", () => {
     it("should return 0 for identical strings", () => {
       const str = "test string";
       assert.strictEqual(parser.editDistance(str, str), 0);
+    });
+    describe("sampled from E drive", () => {
+      it("case 1: (18禁ゲームCG)[CHAOS-R feat. FreakStrike] ボクとエーヴァのヒミツの森.zip", () => {
+        const s = "(18禁ゲームCG)[CHAOS-R feat. FreakStrike] ボクとエーヴァのヒミツの森.zip";
+        const result = parser.parse(s);
+        assert.equal(result.type, "18禁ゲーム");
+        assert.equal(result.author, "CHAOS-R feat. FreakStrike");
+        assert.equal(result.title, "ボクとエーヴァのヒミツの森");
+      });
+
+      it("case 2: (C105) [gallium wear(Masami Atabe)] (Blue Archive) This is also part of the job [Japanese] [DL].zip", () => {
+        const s = "(C105) [gallium wear(Masami Atabe)] (Blue Archive) This is also part of the job [Japanese] [DL].zip";
+        const result = parser.parse(s);
+        assert.equal(result.comiket, "C105");
+        assert.equal(result.group, "gallium wear");
+        assert.equal(result.author, "Masami Atabe");
+        assert.ok(result.tags.includes("Blue Archive"));
+      });
+
+      it("case 3: (C107) [小米堂 (聖コゴメ)] 儀玄と汚いおじさん ラブラブ術法交尾2日間 (ゼンレスゾーンゼロ) [DL版].zip", () => {
+        const s = "(C107) [小米堂 (聖コゴメ)] 儀玄と汚いおじさん ラブラブ術法交尾2日間 (ゼンレスゾーンゼロ) [DL版].zip";
+        const result = parser.parse(s);
+        assert.equal(result.comiket, "C107");
+        assert.equal(result.group, "小米堂");
+        assert.equal(result.author, "聖コゴメ");
+        assert.ok(result.tags.includes("ゼンレスゾーンゼロ"));
+      });
+
+      it("case 4: (C103) [French letter (藤崎ひかり)] クラスメイトのアイドルVをセフレにしてみた 総集編 (しぐれうい、大空スバル) [DL版].zip", () => {
+        const s = "(C103) [French letter (藤崎ひかり)] クラスメイトのアイドルVをセフレにしてみた 総集編 (しぐれうい、大空スバル) [DL版].zip";
+        const result = parser.parse(s);
+        assert.equal(result.author, "藤崎ひかり");
+        assert.ok(result.tags.includes("しぐれうい"));
+        assert.ok(result.tags.includes("大空スバル"));
+      });
     });
   });
 });
