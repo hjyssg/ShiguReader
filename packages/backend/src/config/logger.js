@@ -4,7 +4,7 @@ const path = require('path');
 
 
 let _log;
-module.exports.init = function(){
+module.exports.init = function (level = "warn") {
     const pathUtil = require("../utils/path-util");
     let logPath = path.join(pathUtil.getWorkSpacePath(), "log");
     logPath = path.join(logPath, dateFormat(new Date(), "yyyy-mm-dd HH-MM")) + ".log";
@@ -12,7 +12,7 @@ module.exports.init = function(){
 
     // singleton
     _log = winston.createLogger({
-        level: "debug",
+        level: level,
         transports: [
             new winston.transports.File({
                 filename: logPath,
@@ -22,6 +22,14 @@ module.exports.init = function(){
             })
         ]
     });
+    global.log_level = level;
+}
+
+module.exports.setLevel = function (level) {
+    if (_log) {
+        _log.level = level;
+        global.log_level = level;
+    }
 }
 
 
@@ -50,7 +58,8 @@ module.exports.warn = function (...args) {
 */
 module.exports.info = function (...args) {
     _log && _log.info(...args);
-    if(!global.isPkg){  //发布版不用给用户看太多信息
+    const levels = ["debug", "info"];
+    if (!global.isPkg && levels.includes(global.log_level)) {  //控制台输出受级别控制
         console.log(...args);
     }
 }
@@ -58,9 +67,10 @@ module.exports.info = function (...args) {
 /**
 * log debug 发布版不用给用户看太多信息
 */
-module.exports.debug = function(...args) {
+module.exports.debug = function (...args) {
     _log && _log.debug(...args);
-    if(!global.isPkg){  //发布版不用给用户看太多信息
+    const levels = ["debug"];
+    if (!global.isPkg && levels.includes(global.log_level)) {  //控制台输出受级别控制
         console.debug(...args);
     }
 }

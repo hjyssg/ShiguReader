@@ -21,13 +21,13 @@ const logger = require("../config/logger");
 async function getThumbnailForFolders(filePathes) {
     const result = {};
 
-    if(!filePathes || filePathes.length == 0){
+    if (!filePathes || filePathes.length == 0) {
         return result;
     }
     // TODO 担心nextFilePathe很多的时候
     let postfix = filePathes.length == 1 ? " LIMIT 1" : "";
 
-    function findThumbFromRows(rows, filePath){
+    function findThumbFromRows(rows, filePath) {
         for (let i = 0; i < rows.length; i++) {
             if (isSub(filePath, rows[i].filePath)) {
                 return rows[i];
@@ -35,15 +35,15 @@ async function getThumbnailForFolders(filePathes) {
         }
     }
 
-    function getPatterns(filePathes){
+    function getPatterns(filePathes) {
         const stringsToMatch = filePathes; // string array of values
         let patterns = stringsToMatch.map(str => `${str}%`);
         let placeholders = patterns.map(() => 'filePath LIKE ?').join(' OR ');
         return [patterns, placeholders];
     }
-    
 
-    try{
+
+    try {
         let beg = getCurrentTime();
         const original_fps = filePathes.slice();
 
@@ -61,14 +61,14 @@ async function getThumbnailForFolders(filePathes) {
             const findRow = findThumbFromRows(thumbnailRows, filePath);
             if (findRow) {
                 result[filePath] = serverUtil.joinThumbnailFolderPath(findRow.thumbnailFileName);
-            }else{
+            } else {
                 return true;
             }
         })
 
 
         // 从image找出当image
-        if(filePathes.length > 0){
+        if (filePathes.length > 0) {
             const [patterns, placeholders] = getPatterns(filePathes);
             const sql = `
                SELECT *
@@ -85,10 +85,10 @@ async function getThumbnailForFolders(filePathes) {
                 }
             })
         }
-    
+
         let end = getCurrentTime();
-        // console.log(`[getThumbnailForFolders] ${(end - beg)}ms for ${original_fps.length} zips`);
-    }catch(e){
+        // logger.debug(`[getThumbnailForFolders] ${(end - beg)}ms for ${original_fps.length} zips`);
+    } catch (e) {
         logger.error("[getThumbnailForFolders]", e);
     }
     return result;
@@ -99,13 +99,13 @@ async function getThumbnailForFolders(filePathes) {
  * @param {*} filePath 
  * @returns 
  */
-async function getQuickThumbnailForZip(filePath){
+async function getQuickThumbnailForZip(filePath) {
     let url;
     const thumbnails = await getThumbnailsForZipFiles([filePath]);
     const oneThumbnail = thumbnails[filePath];
-    if(oneThumbnail){
+    if (oneThumbnail) {
         url = oneThumbnail;
-    }else{
+    } else {
         // 先找到发过去再说
         // TODO 但会导致不生成thumbnail了
         // const fileName = path.basename(filePath);
@@ -119,7 +119,7 @@ async function getQuickThumbnailForZip(filePath){
     return url;
 }
 
-async function findVideoForFolder(filePath){
+async function findVideoForFolder(filePath) {
     const sql = `SELECT filePath FROM file_table WHERE INSTR(filePath, ?) = 1 AND isVideo `;
     return db.doSmartAllSync(sql, filePath);
 }
@@ -202,7 +202,7 @@ async function getThumbnailsForZipFiles(filePathes) {
         }
         if (util.isCompress(filePath)) {
             const zipInfoRows = zipInfoDb.getZipInfo(filePath);
-            if(zipInfoRows[0]){
+            if (zipInfoRows[0]) {
                 const pageNum = zipInfoRows[0].pageNum;
                 if (pageNum === 0) {
                     thumbnails[filePath] = "NO_THUMBNAIL_AVAILABLE";
@@ -215,7 +215,7 @@ async function getThumbnailsForZipFiles(filePathes) {
 }
 
 
-async function getTagThumbnail(author, tag){
+async function getTagThumbnail(author, tag) {
     let sql = `  
         SELECT 
         zip_view.*, tag_file_table.*,
@@ -237,7 +237,7 @@ async function getTagThumbnail(author, tag){
             debug: "from thumbnail_table"
         }
     }
-    
+
 
     // from image
     const sql2 = ` SELECT a.* , b.*

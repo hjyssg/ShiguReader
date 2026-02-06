@@ -18,7 +18,7 @@ const util = require('../../../common/src/util');
 const { getCurrentTime, isImage, isMusic, isCompress, isVideo } = util;
 const historyDb = require("../models/history-db");
 const logger = require("../config/logger");
-const filewatch= require('../services/file-watchers/file-watch');
+const filewatch = require('../services/file-watchers/file-watch');
 const estimateFileTable = require('../services/estimate-file-table');
 const appState = require('../state/appState');
 
@@ -40,7 +40,7 @@ router.post('/api/folder/list_dir', serverUtil.asyncWrapper(async (req, res) => 
             ...(result.dirs || []),
             ...Object.keys(result.fileInfos || {})
         ];
-        estimateFileTable.updateByScan(filePathesForEstimate).catch(err=>logger.error(err));
+        estimateFileTable.updateByScan(filePathesForEstimate).catch(err => logger.error(err));
         result = await decorateResWithMeta(result);
         historyDb.addOneLsDirRecord(dir);
         res.send(result);
@@ -78,7 +78,7 @@ router.post('/api/folder/list_dir', serverUtil.asyncWrapper(async (req, res) => 
         //---------------img folder -----------------
         const imgFolders = {};
         // join folder with isDisplayableInOnebook file
-        if(isRecursive){
+        if (isRecursive) {
             sql = `
             WITH TT AS (
                 ${recursiveFileSQL} 
@@ -90,7 +90,7 @@ router.post('/api/folder/list_dir', serverUtil.asyncWrapper(async (req, res) => 
              ON A.filePath=B.dirPath AND B.isDisplayableInOnebook AND A.isFolder
             `
             rows = await db.doSmartAllSync(sql, [`${dir}%`, dir]);
-        }else{
+        } else {
             //单层
             sql = `
             WITH A AS (
@@ -105,7 +105,7 @@ router.post('/api/folder/list_dir', serverUtil.asyncWrapper(async (req, res) => 
              INNER JOIN B
              ON A.filePath=B.dirPath
             `
-            rows = await db.doSmartAllSync(sql, [ dir, `${dir}%`, dir]);
+            rows = await db.doSmartAllSync(sql, [dir, `${dir}%`, dir]);
         }
         rows.forEach(row => {
             const dirPath = row.dirPath;
@@ -117,7 +117,7 @@ router.post('/api/folder/list_dir', serverUtil.asyncWrapper(async (req, res) => 
         // -------------get extra info
         time2 = getCurrentTime();
         timeUsed = (time2 - time1);
-        // console.log("[/api/LsDir] sql time", timeUsed, "ms")
+        // logger.debug("[/api/LsDir] sql time", timeUsed, "ms")
 
         let result = {
             path: dir,
@@ -129,7 +129,7 @@ router.post('/api/folder/list_dir', serverUtil.asyncWrapper(async (req, res) => 
         result = await decorateResWithMeta(result);
         const time3 = getCurrentTime();
         timeUsed = (time3 - time2);
-        // console.log("[/api/LsDir] decorateResWithMeta", timeUsed, "ms")
+        // logger.debug("[/api/LsDir] decorateResWithMeta", timeUsed, "ms")
         historyDb.addOneLsDirRecord(dir);
         res.send(result);
     } catch (e) {
@@ -141,20 +141,20 @@ router.post('/api/folder/list_dir', serverUtil.asyncWrapper(async (req, res) => 
 }));
 
 
-function fileIntoCategory(files){
+function fileIntoCategory(files) {
     const imageFiles = [];
     const musicFiles = [];
     const videoFiles = [];
     const compressFiles = [];
 
     files.forEach(fp => {
-        if(isImage(fp)){
+        if (isImage(fp)) {
             imageFiles.push(fp);
-        }else if (isVideo(fp)){
+        } else if (isVideo(fp)) {
             videoFiles.push(fp);
-        }else if(isMusic(fp)){
+        } else if (isMusic(fp)) {
             musicFiles.push(fp);
-        }else if(isCompress(fp)){
+        } else if (isCompress(fp)) {
             compressFiles.push(fp);
         }
     })
@@ -169,8 +169,8 @@ function fileIntoCategory(files){
 
 async function listNoScanDir(filePath, res, isRecussive) {
     const { filePathes, dirPathes } = await pathUtil.readDirForFileAndFolder(filePath, isRecussive);
-    
-    const categoryObj  = fileIntoCategory(filePathes);
+
+    const categoryObj = fileIntoCategory(filePathes);
     const fileInfos = filePathes.reduce((acc, filePath) => {
         acc[filePath] = {};
         return acc;
@@ -187,7 +187,7 @@ async function listNoScanDir(filePath, res, isRecussive) {
 
         ...categoryObj
     };
-    
+
     return result;
 }
 
@@ -208,9 +208,9 @@ router.post('/api/folder/list_image_content', serverUtil.asyncWrapper(async (req
 
     let result;
     // 除了cache以外都不递归
-    if(isSub(appState.getCachePath(), filePath)){
+    if (isSub(appState.getCachePath(), filePath)) {
         result = await listNoScanDir(filePath, res, true);
-    }else {
+    } else {
         result = await listNoScanDir(filePath, res);
     }
 
@@ -220,7 +220,7 @@ router.post('/api/folder/list_image_content', serverUtil.asyncWrapper(async (req
         outputPath: null,
         ...result
     }
-    
+
     result = serverUtil.checkOneBookRes(result);
     res.send(result);
 }));

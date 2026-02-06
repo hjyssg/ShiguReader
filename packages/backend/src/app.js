@@ -40,24 +40,25 @@ const {
 
 appState.setPaths({ cachePath, thumbnailFolderPath });
 appState.setScannedPaths([]);
-
-console.log("------path debug-----------------------------------------------");
-console.log("__filename:         ", __filename);
-console.log("__dirname:          ", __dirname);
-console.log("process.execPath:   ", process.execPath);
-console.log("process.cwd():      ", process.cwd());
-console.log("global.isPkg:       ", global.isPkg);
-console.log("rootPath:           ", rootPath);
-console.log("distPath:           ", distPath);
-console.log("indexHtmlPath:      ", indexHtmlPath);
-console.log("bundleJsPath:       ", bundleJsPath);
-console.log("etf_config_path:    ", etcConfigPath);
-console.log("path_config_path:   ", pathConfigPath);
-console.log("workspacePath:      ", workspacePath);
-console.log("----------------------------------------------------------------");
-
 const logger = require('./config/logger');
 logger.init();
+
+logger.debug("------path debug-----------------------------------------------");
+logger.debug("__filename:         ", __filename);
+logger.debug("__dirname:          ", __dirname);
+logger.debug("process.execPath:   ", process.execPath);
+logger.debug("process.cwd():      ", process.cwd());
+logger.debug("global.isPkg:       ", global.isPkg);
+logger.debug("rootPath:           ", rootPath);
+logger.debug("distPath:           ", distPath);
+logger.debug("indexHtmlPath:      ", indexHtmlPath);
+logger.debug("bundleJsPath:       ", bundleJsPath);
+logger.debug("etf_config_path:    ", etcConfigPath);
+logger.debug("path_config_path:   ", pathConfigPath);
+logger.debug("workspacePath:      ", workspacePath);
+logger.debug("----------------------------------------------------------------");
+
+
 
 const sevenZipHelp = require('./services/seven-zip');
 sevenZipHelp.init();
@@ -76,22 +77,25 @@ const resolveExtractedEntry = (baseOutputPath, entryPath) => {
 const portConfig = require('./config/port-config');
 const { program } = require('commander');
 program
-    .option('-p, --port <number>', 'Specify the port',  portConfig.default_http_port)
+    .option('-p, --port <number>', 'Specify the port', portConfig.default_http_port)
     .option('--skip-scan', 'skip initial scan for startup fasted', false)
     .option('--skip-cache-clean', 'skip initial cache clean', false)
+    .option('--log-level <level>', 'set log level', 'warn')
     .option('--print-qr-code [boolean]', '', true);
 
 program.parse(process.argv);
 const options = program.opts();
-const port = _.isString(options.port)? parseInt(options.port): options.port; // 懒得细看commander，不是最正确写法
+const port = _.isString(options.port) ? parseInt(options.port) : options.port; // 懒得细看commander，不是最正确写法
 const skipScan = options.skipScan;
 const skipCacheClean = options.skipCacheClean;
 const printQrCode = options.printQrCode === "false" ? false : options.printQrCode;
+const logLevel = options.logLevel;
+logger.setLevel(logLevel);
 // console.log("port: ", port);
 // console.log("skipScan: ", skipScan);
 // console.log("skipCacheClean: ", skipCacheClean);
 
-console.log(options);
+logger.debug(options);
 
 
 
@@ -153,7 +157,7 @@ let path_config = loadedPathConfig;
 global.etc_config = etc_config;
 
 const internalIp = require('internal-ip');
-async function getIP(){
+async function getIP() {
     const lanIP = await internalIp.v4();
     const mobileAddress = `http://${lanIP}:${port}`;
     return mobileAddress;
@@ -197,11 +201,11 @@ async function init() {
     await thumbnailDb.init(sqldb);
     await historyDb.init(sqldb);
     await zipInfoDb.init(sqldb);
-    
+
     //express does not check if the port is used and remains slient
     // we need to check
-    const isPortOccupied =  await serverUtil.isPortOccupied(port);
-    if(isPortOccupied){
+    const isPortOccupied = await serverUtil.isPortOccupied(port);
+    if (isPortOccupied) {
         logger.error(`[Server Init] port ${port} is occupied `);
         await serverUtil.suspend();
         process.exit(22);
@@ -215,7 +219,7 @@ async function init() {
         serverUtil.mkdirList(scan_path);
         appState.setScannedPaths(scan_path);
 
-        if(!skipCacheClean){
+        if (!skipCacheClean) {
             cleanCache(cachePath);
         }
         setUpCacheWatch();
@@ -225,7 +229,7 @@ async function init() {
         printIP();
 
         await addDirsToWatch(will_scan);
-        
+
     }).on('error', async (error) => {
         logger.error("[Server Init]", error.message);
         //exit the current program
@@ -242,7 +246,7 @@ app.post('/api/folder/add_file_watch', serverUtil.asyncWrapper(async (req, res) 
         return;
     }
 
-    if(filewatch.isAlreadyScan(filePath)){
+    if (filewatch.isAlreadyScan(filePath)) {
         res.send({ failed: true, reason: "ALREADY SCAN" });
         return;
     }
@@ -251,7 +255,7 @@ app.post('/api/folder/add_file_watch', serverUtil.asyncWrapper(async (req, res) 
     res.send({ failed: false });
 }));
 
-async function printIP(){
+async function printIP() {
     console.log("----------------------------------------------------------------");
     console.log(dateFormat(new Date(), "yyyy-mm-dd HH:MM"));
     console.log(`Express Server listening on port ${port}`);
@@ -259,21 +263,21 @@ async function printIP(){
     console.log(`http://localhost:${port}`);
 
     try {
-        if(printQrCode){
+        if (printQrCode) {
 
             const ip = await getIP();
             console.log(ip);
             console.log("Scan the QR code to open on mobile devices");
             qrcode.generate(ip);
         }
-    } catch (e) { 
+    } catch (e) {
         //nothing
     }
     console.log("----------------------------------------------------------------");
 }
 
 
-async function findZipForFolder(filePath){
+async function findZipForFolder(filePath) {
     const sql = `SELECT filePath FROM zip_view WHERE INSTR(filePath, ?) = 1 ORDER BY mTime DESC LIMIT 1`;
     const zipRows = await db.doSmartAllSync(sql, filePath);
     if (zipRows[0]) {
@@ -287,7 +291,7 @@ async function findZipForFolder(filePath){
     return [];
 }
 
-async function findLatestFileInFolder(dirPath, matcher){
+async function findLatestFileInFolder(dirPath, matcher) {
     const entries = await pathUtil.readdirOneLevel(dirPath, { withFileTypes: true });
     if (!entries || entries.length === 0) {
         return null;
@@ -335,13 +339,13 @@ async function findLatestFileInFolder(dirPath, matcher){
 
 const staticFileRouter = (req, res, next) => {
     const pp = req.path || "";
-    if (pp && pp.includes("/api/")){
+    if (pp && pp.includes("/api/")) {
         next();
-    }else{
-        if(pp.endsWith("bundle.js")){
+    } else {
+        if (pp.endsWith("bundle.js")) {
             // res.setHeader('Cache-Control', 'public, max-age=3047');
             res.sendFile(bundleJsPath);
-        }else{
+        } else {
             res.setHeader('Cache-Control', 'public, max-age=3047');
             res.sendFile(indexHtmlPath);
         }
@@ -377,14 +381,14 @@ const exception_apis = [
 //check if login
 app.use((req, res, next) => {
     //console.log("[" + req.path+ "]" + new Date());
-    if(!etc_config.home_password){
-        res.cookie('login-token', 'no-need-login-token', {maxAge: 1000 * 3600 * 1 });
+    if (!etc_config.home_password) {
+        res.cookie('login-token', 'no-need-login-token', { maxAge: 1000 * 3600 * 1 });
         next();
-    } else if(exception_apis.some(e => (req.path.includes(e)))){
+    } else if (exception_apis.some(e => (req.path.includes(e)))) {
         next();
-    } else if(req.cookies && req.cookies["login-token"] && authTokenSet[req.cookies["login-token"]]){
+    } else if (req.cookies && req.cookies["login-token"] && authTokenSet[req.cookies["login-token"]]) {
         next();
-    }else{
+    } else {
         res.cookie('login-token', "")
         res.send({ failed: true, reason: "You need to login" });
     }
@@ -400,7 +404,7 @@ app.post("/api/thumbnail/get_for_folder_list", asyncWrapper(async (req, res) => 
 
     dirs = dirs.filter(pathUtil.estimateIfFolder);
 
-    const dirThumbnails = await  thumbnailUtil.getThumbnailForFolders(dirs);
+    const dirThumbnails = await thumbnailUtil.getThumbnailForFolders(dirs);
     res.send({ failed: false, dirThumbnails });
 }));
 
@@ -436,14 +440,14 @@ app.all("/api/thumbnail/get", asyncWrapper(async (req, res) => {
         }
     }
 
-    if(isQuickRequest){
+    if (isQuickRequest) {
         res.send({ failed: true, reason: "NOT FOUND FOR QUICK" });
         return;
     }
 
     if (isCompress(filePath)) {
         extractThumbnailFromZip(filePath, res);
-    }else if (estimateIfFolder(filePath)) {
+    } else if (estimateIfFolder(filePath)) {
         const zipRows = await findZipForFolder(filePath);
         if (zipRows[0]) {
             extractThumbnailFromZip(zipRows[0].filePath, res);
@@ -458,7 +462,7 @@ app.all("/api/thumbnail/get", asyncWrapper(async (req, res) => {
                 debug: "from folder image"
             });
             return;
-        }else {
+        } else {
             res.send({ failed: true, reason: "No file found" });
         }
     } else if (isImage(filePath)) {
@@ -487,7 +491,7 @@ app.post("/api/thumbnail/get_for_tag", asyncWrapper(async (req, res) => {
 
 
     let temp = thumbnailUtil.getTagThumbnail(author, tag);
-    if(temp){
+    if (temp) {
         res.send(temp);
         return;
     }
@@ -536,7 +540,7 @@ let extractThumbnailFromZip = async (filePath, res, mode, config) => {
         }
     }
 
-    function sendError(reason){
+    function sendError(reason) {
         sendable && res.send({ failed: true, reason });
     }
 
@@ -550,13 +554,13 @@ let extractThumbnailFromZip = async (filePath, res, mode, config) => {
         if (thumbRows[0]) {
             sendImage(thumbRows[0].thumbnailFilePath);
             return;
-        } 
+        }
 
         //挑一个img来做thumbnail
         let thumbInnerPath = serverUtil.chooseThumbnailImage(zipInfo.files);
         if (!thumbInnerPath) {
-            let reason = "[extractThumbnailFromZip] no img in this file " +  filePath;
-            console.log(reason);
+            let reason = "[extractThumbnailFromZip] no img in this file " + filePath;
+            logger.warn(reason);
             sendError(reason)
             return;
         }
@@ -564,20 +568,20 @@ let extractThumbnailFromZip = async (filePath, res, mode, config) => {
 
         //解压
         const stderrForThumbnail = await extractByRange(filePath, outputPath, [thumbInnerPath])
-        if(stderrForThumbnail === "NEED_TO_EXTRACT_ALL"){
+        if (stderrForThumbnail === "NEED_TO_EXTRACT_ALL") {
             const SMALL_SIZE = 100 * 1000 * 1000;
-            if(zipInfo.info.totalSize < SMALL_SIZE){
+            if (zipInfo.info.totalSize < SMALL_SIZE) {
                 const { pathes, error } = await extractAll(filePath, outputPath, false);
                 if (error) {
                     throw error
                 } else {
                     thumbInnerPath = serverUtil.chooseThumbnailImage(pathes);
                 }
-            }else  {
-                let extensions = zipInfo.files.filter(isImage).map(path.extname).map(e => "*"+e);
+            } else {
+                let extensions = zipInfo.files.filter(isImage).map(path.extname).map(e => "*" + e);
                 extensions = _.unique(extensions);
                 console.assert(extensions.length > 0)
-                const { error, pathes } = await  sevenZipHelp.extractByExtension(filePath, outputPath, extensions )
+                const { error, pathes } = await sevenZipHelp.extractByExtension(filePath, outputPath, extensions)
                 if (error) {
                     throw error
                 } else {
@@ -590,7 +594,7 @@ let extractThumbnailFromZip = async (filePath, res, mode, config) => {
             sendError(reason)
             return;
         }
-        
+
         // send original img path to client as thumbnail
         // 这里必须重新解析一次，避免 7-Zip 的返回路径逃离缓存目录
         const resolvedThumb = resolveExtractedEntry(outputPath, thumbInnerPath);
@@ -613,7 +617,7 @@ let extractThumbnailFromZip = async (filePath, res, mode, config) => {
             // 想删除除了要使用的文件，但不行。各种文件系统错误
         }
     } catch (e) {
-        if(e && e.toString() !== "NEED_TO_EXTRACT_ALL"){
+        if (e && e.toString() !== "NEED_TO_EXTRACT_ALL") {
             logger.error("[extractThumbnailFromZip] exception ", filePath, e);
         }
         const reason = e || "TBD";
@@ -622,7 +626,7 @@ let extractThumbnailFromZip = async (filePath, res, mode, config) => {
 }
 
 function withLimit(fn) {
-    return function(...args) {
+    return function (...args) {
         return thumbnail_limit(() => fn(...args));
     };
 }
@@ -646,9 +650,9 @@ app.post('/api/pregenerateThumbnails', asyncWrapper(async (req, res) => {
     const fastUpdateMode = req.body && req.body.fastUpdateMode;
 
     let totalFiles = [];
-    if(pregenerateThumbnailPath == "All_Pathes"){
+    if (pregenerateThumbnailPath == "All_Pathes") {
         totalFiles = await db.getAllFilePathes("WHERE isCompress");
-    }else{
+    } else {
         const { pathes } = await pathUtil.readDirForFileAndFolder(pregenerateThumbnailPath, true);
         totalFiles = pathes.filter(isCompress);
     }
@@ -718,7 +722,7 @@ app.post('/api/extract/extract_zip', asyncWrapper(async (req, res) => {
         return;
     }
 
-    if(!isCompress(filePath)){
+    if (!isCompress(filePath)) {
         res.send({ failed: true, reason: "not a zip" });
         return;
     }
@@ -773,14 +777,14 @@ app.post('/api/extract/extract_zip', asyncWrapper(async (req, res) => {
     // }
 
     // 这样zip内容改变对应不了，但我很少这么操作
-    if(extract_result_cache[filePath]){
+    if (extract_result_cache[filePath]) {
         res.send(extract_result_cache[filePath]);
         return;
     }
 
 
     let hasDuplicate = false;
-    async function _extractAll_(){
+    async function _extractAll_() {
         const { pathes, error } = await extractAll(filePath, outputPath, hasDuplicate);
         if (!error && pathes) {
             const contentUrls = splitFilesByType(pathes, outputPath);
@@ -793,7 +797,7 @@ app.post('/api/extract/extract_zip', asyncWrapper(async (req, res) => {
     const full_extract_max = 10;
     try {
         stat = await getStatAndUpdateDB(filePath);
-        if(current_extract_queue[filePath] === "in_progress"){
+        if (current_extract_queue[filePath] === "in_progress") {
             res.send({ failed: true, reason: "extract_in_progress" });
             return;
         }
@@ -811,7 +815,7 @@ app.post('/api/extract/extract_zip', asyncWrapper(async (req, res) => {
 
         const fnInZip = files.map(e => path.basename(e));
         hasDuplicate = util.hasDuplicate(fnInZip);
-        const shouldExtractFull =  files.length <= full_extract_max || hasDuplicate;
+        const shouldExtractFull = files.length <= full_extract_max || hasDuplicate;
 
         //todo: music/video may be huge and will be slow
         if (shouldExtractFull) {
@@ -830,10 +834,10 @@ app.post('/api/extract/extract_zip', asyncWrapper(async (req, res) => {
             let secondRange = tempfiles.filter(e => {
                 return !firstRange.includes(e);
             })
-            secondRange = [...secondRange,  ...videoFiles];
+            secondRange = [...secondRange, ...videoFiles];
             const totalRange = [...firstRange, ...secondRange];
 
-            const stderr = await unzip_limit(()=> extractByRange(filePath, outputPath, firstRange));
+            const stderr = await unzip_limit(() => extractByRange(filePath, outputPath, firstRange));
             if (!stderr) {
                 const resolvedOutputPath = path.resolve(outputPath);
                 // 将压缩包内的相对路径转为绝对路径，同时过滤掉不合法的项目
@@ -848,9 +852,9 @@ app.post('/api/extract/extract_zip', asyncWrapper(async (req, res) => {
 
                 await extractByRange(filePath, outputPath, secondRange);
             } else {
-                if(stderr === "NEED_TO_EXTRACT_ALL"){
+                if (stderr === "NEED_TO_EXTRACT_ALL") {
                     await unzip_limit(_extractAll_);
-                }else{
+                } else {
                     throw stderr;
                 }
             }
@@ -858,7 +862,7 @@ app.post('/api/extract/extract_zip', asyncWrapper(async (req, res) => {
     } catch (e) {
         res.send({ failed: true, reason: e });
         logger.error('[/api/extract/extract_zip] exit: ', e);
-    }finally{
+    } finally {
         current_extract_queue[filePath] = "done"
     }
 }));
@@ -866,7 +870,7 @@ app.post('/api/extract/extract_zip', asyncWrapper(async (req, res) => {
 let server_ip;
 app.get('/api/getGeneralInfo', asyncWrapper(async (req, res) => {
     let os = global.isWindows ? "windows" : "linux";
-    if(!server_ip){
+    if (!server_ip) {
         server_ip = await getIP();
     }
 

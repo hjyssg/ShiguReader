@@ -50,6 +50,7 @@ pkg . --compress GZip
 | --- | --- | --- |
 | `--port` | 设置软件监听的端口号 | `ShiguReader.exe --port=3000` |
 | `--skip-scan` | 跳过启动时的自动扫描过程，加快启动速度 | `ShiguReader.exe --skip-scan` |
+| `--log-level` | 设置日志输出级别 (debug, info, warn, error)。默认为 warn | `ShiguReader.exe --log-level=debug` |
 
 ---
 
