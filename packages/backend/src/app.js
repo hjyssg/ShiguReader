@@ -156,6 +156,10 @@ let etc_config = loadedEtcConfig || {};
 let path_config = loadedPathConfig;
 global.etc_config = etc_config;
 
+// LAN访问限制中间件
+const lanAccessMiddleware = require('./middleware/lanAccessMiddleware');
+app.use(lanAccessMiddleware(etc_config));
+
 const internalIp = require('internal-ip');
 async function getIP() {
     const lanIP = await internalIp.v4();
