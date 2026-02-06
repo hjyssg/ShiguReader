@@ -1,0 +1,11 @@
+{
+    "name": "@shigureader/name-parser",
+    "version": "1.0.0",
+    "description": "Parser for doujinshi/manga file names",
+    "main": "index.js",
+    "scripts": {
+        "test": "mocha test/*.test.js"
+    },
+    "author": "aji47",
+    "license": "MIT"
+}
