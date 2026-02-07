@@ -4,6 +4,7 @@ const watcher = require('@parcel/watcher');
 const pathUtil = require("../../utils/path-util");
 const appState = require('../../state/appState');
 const estimateFileTable = require('../estimate-file-table');
+const logger = require('../../config/logger');
 
 
 const getCurrentTime = function () {
@@ -19,7 +20,7 @@ async function fastFileIterate({ filePath, db, shouldIgnoreForNormal }) {
         tags: []
     };
 
-    console.log(`[fastFileIterate] ${filePath}  begin`);
+    logger.info(`[fastFileIterate] ${filePath}  begin`);
 
     try {
         // 使用 Node.js 20+ 原生递归读取目录
@@ -62,9 +63,11 @@ async function fastFileIterate({ filePath, db, shouldIgnoreForNormal }) {
     await db.throttledSyncTagTable();
 
     let end1 = getCurrentTime();
+    logger.info(`[fastFileIterate] ${insertion_cache.files.length} files were scanned.  ${(end1 - beg) / 1000}s`);
+    logger.info("----------------------------------------------------------------");
+    logger.info(`\n\n\n`);
+
     console.log(`[fastFileIterate] ${insertion_cache.files.length} files were scanned.  ${(end1 - beg) / 1000}s`);
-    console.log("----------------------------------------------------------------");
-    console.log(`\n\n\n`);
 }
 
 
@@ -104,7 +107,7 @@ const addWatch = async ({ folderPath, deleteCallBack, shouldScan, db }) => {
     });
 
     const endTime = Date.now();
-    console.log(`[@parcel/watcher] ${folderPath} watcher set up. Time taken: ${endTime - startTime} ms`);
+    logger.info(`[@parcel/watcher] ${folderPath} watcher set up. Time taken: ${endTime - startTime} ms`);
 
     watchDescriptors[folderPath] = subscription;
     appState.setScannedPaths(Object.keys(watchDescriptors).sort((a, b) => b.localeCompare(a)));
