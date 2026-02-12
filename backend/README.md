@@ -163,6 +163,39 @@ $ alembic upgrade head
 
 If you don't want to start with the default models and want to remove them / modify them, from the beginning, without having any previous revision, you can remove the revision files (`.py` Python files) under `./backend/app/alembic/versions/`. And then create a first migration as described above.
 
+## Index DB (SQLite + SQLModel + Alembic)
+
+项目新增了独立的媒体索引库（index DB），用于漫画/视频/音频等本地资源索引，不影响现有 `user/item` 主业务库。
+
+- 默认连接：`INDEX_SQLITE_URL=sqlite:///../data/index.db`（可在顶层 `.env` 覆盖）
+- 代码位置：`app/index_db/`
+- 迁移位置：`app/index_db/alembic/`
+
+### 自动初始化
+
+应用启动时会自动执行索引库迁移到最新版本：
+
+- 首次运行：自动创建 SQLite 文件并建表
+- 后续运行：自动执行升级（如果有新 migration）
+
+入口：`app.main` 的 startup 钩子会调用 `ensure_index_db_initialized()`。
+
+### 手动迁移（可选）
+
+如需手动触发，可在 Python 中调用：
+
+```python
+from app.index_db.bootstrap import ensure_index_db_initialized
+
+ensure_index_db_initialized()
+```
+
+或传入自定义 URL：
+
+```python
+ensure_index_db_initialized("sqlite:///../data/custom-index.db")
+```
+
 ## Email Templates
 
 The email templates are in `./backend/app/email-templates/`. Here, there are two directories: `build` and `src`. The `src` directory contains the source files that are used to build the final email templates. The `build` directory contains the final email templates that are used by the application.
