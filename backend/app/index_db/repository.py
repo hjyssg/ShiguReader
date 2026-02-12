@@ -3,9 +3,9 @@ from __future__ import annotations
 from dataclasses import dataclass
 from time import time
 
-from sqlmodel import Session
+from sqlmodel import Session, select
 
-from app.index_db.models import File, Folder
+from app.index_db.models import ArchiveMeta, File, Folder
 
 
 def _now_ts() -> int:
@@ -126,3 +126,149 @@ class IndexRepository:
         self.session.commit()
         self.session.refresh(file)
         return file
+
+    def batch_upsert_folders(self, data_list: list[UpsertFolderInput]) -> None:
+        """Batch upsert folders for better performance."""
+        if not data_list:
+            return
+
+        now = _now_ts()
+        filepaths = [d.filepath for d in data_list]
+
+        # Query existing folders
+        stmt = select(Folder).where(Folder.filepath.in_(filepaths))
+        existing = {f.filepath: f for f in self.session.exec(stmt).all()}
+
+        to_add = []
+        for data in data_list:
+            folder = existing.get(data.filepath)
+            if folder is None:
+                # Create new
+                folder = Folder(
+                    filepath=data.filepath,
+                    dirname=data.dirname,
+                    mtime=data.mtime,
+                    scan_state=data.scan_state,
+                    watch_state=data.watch_state,
+                    first_seen_at=now if data.scan_state == 1 else None,
+                    last_seen_at=now if data.scan_state == 1 else None,
+                    last_scanned_at=now if data.scanned else None,
+                )
+                to_add.append(folder)
+            else:
+                # Update existing
+                folder.dirname = data.dirname
+                folder.mtime = data.mtime
+                folder.scan_state = data.scan_state
+                folder.watch_state = data.watch_state
+                if data.scan_state == 1:
+                    if folder.first_seen_at is None:
+                        folder.first_seen_at = now
+                    folder.last_seen_at = now
+                if data.scanned:
+                    folder.last_scanned_at = now
+
+        if to_add:
+            self.session.add_all(to_add)
+        self.session.commit()
+
+    def batch_upsert_files(self, data_list: list[UpsertFileInput]) -> None:
+        """Batch upsert files for better performance."""
+        if not data_list:
+            return
+
+        now = _now_ts()
+        filepaths = [d.filepath for d in data_list]
+
+        # Query existing files
+        stmt = select(File).where(File.filepath.in_(filepaths))
+        existing = {f.filepath: f for f in self.session.exec(stmt).all()}
+
+        to_add = []
+        for data in data_list:
+            file = existing.get(data.filepath)
+            if file is None:
+                # Create new
+                file = File(
+                    filepath=data.filepath,
+                    folderpath=data.folderpath,
+                    filename=data.filename,
+                    mtime=data.mtime,
+                    filesize=data.filesize,
+                    file_type=data.file_type,
+                    ext=data.ext,
+                    thumbnail_filepath=data.thumbnail_filepath,
+                    fingerprint=data.fingerprint,
+                    content_hash=data.content_hash,
+                    scan_state=data.scan_state,
+                    watch_state=data.watch_state,
+                    first_seen_at=now if data.scan_state == 1 else None,
+                    last_seen_at=now if data.scan_state == 1 else None,
+                    last_scanned_at=now if data.scanned else None,
+                )
+                to_add.append(file)
+            else:
+                # Update existing
+                file.folderpath = data.folderpath
+                file.filename = data.filename
+                file.mtime = data.mtime
+                file.filesize = data.filesize
+                file.file_type = data.file_type
+                file.ext = data.ext
+                file.thumbnail_filepath = data.thumbnail_filepath
+                file.fingerprint = data.fingerprint
+                file.content_hash = data.content_hash
+                file.scan_state = data.scan_state
+                file.watch_state = data.watch_state
+                if data.scan_state == 1:
+                    if file.first_seen_at is None:
+                        file.first_seen_at = now
+                    file.last_seen_at = now
+                if data.scanned:
+                    file.last_scanned_at = now
+
+        if to_add:
+            self.session.add_all(to_add)
+        self.session.commit()
+
+    def upsert_archive_meta(
+        self,
+        filepath: str,
+        archive_type: str,
+        entry_count: int,
+        image_file_num: int,
+        video_file_num: int,
+        music_file_num: int,
+    ) -> ArchiveMeta:
+        """Upsert archive metadata."""
+        now = _now_ts()
+        meta = self.session.get(ArchiveMeta, filepath)
+        if meta is None:
+            meta = ArchiveMeta(
+                filepath=filepath,
+                archive_type=archive_type,
+                entry_count=entry_count,
+                image_file_num=image_file_num,
+                video_file_num=video_file_num,
+                music_file_num=music_file_num,
+                scanned_at=now,
+            )
+            self.session.add(meta)
+        else:
+            meta.archive_type = archive_type
+            meta.entry_count = entry_count
+            meta.image_file_num = image_file_num
+            meta.video_file_num = video_file_num
+            meta.music_file_num = music_file_num
+            meta.scanned_at = now
+
+        self.session.commit()
+        self.session.refresh(meta)
+        return meta
+
+    def update_file_thumbnail(self, filepath: str, thumbnail_filepath: str) -> None:
+        """Update thumbnail path for a file."""
+        file = self.session.get(File, filepath)
+        if file is not None:
+            file.thumbnail_filepath = thumbnail_filepath
+            self.session.commit()

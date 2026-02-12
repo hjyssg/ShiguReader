@@ -13,6 +13,8 @@ from pydantic import BaseModel
 from app.core.config import settings
 from app.file_processing.archive_lister import list_archive_entries
 from app.file_processing.stepwise_extractor import stepwise_extract
+from app.index_db.db import get_index_session
+from app.index_db.repository import IndexRepository, UpsertFileInput, UpsertFolderInput
 from app.services.thumb_service import (
     ARCHIVE_SUFFIXES,
     IMAGE_DIRECT_SUFFIXES,
@@ -101,7 +103,10 @@ async def get_roots() -> list[RootItem]:
 
 
 @router.get("/list", response_model=ListResponse)
-async def list_directory(path: str = Query(..., description="Directory path to list")) -> ListResponse:
+async def list_directory(
+    background_tasks: BackgroundTasks,
+    path: str = Query(..., description="Directory path to list"),
+) -> ListResponse:
     """List contents of a directory."""
     target_path = Path(path)
     validated_path = _validate_path_in_roots(target_path)
@@ -113,8 +118,23 @@ async def list_directory(path: str = Query(..., description="Directory path to l
         raise HTTPException(status_code=400, detail="Path is not a directory")
     
     items: list[FileSystemItem] = []
+    folders_to_upsert: list[UpsertFolderInput] = []
+    files_to_upsert: list[UpsertFileInput] = []
     
     try:
+        # Upsert current directory itself
+        dir_stat = validated_path.stat()
+        folders_to_upsert.append(
+            UpsertFolderInput(
+                filepath=str(validated_path),
+                dirname=validated_path.name or str(validated_path),
+                mtime=int(dir_stat.st_mtime),
+                scan_state=1,
+                watch_state=0,
+                scanned=True,
+            )
+        )
+        
         for entry in validated_path.iterdir():
             try:
                 stat = entry.stat()
@@ -129,6 +149,16 @@ async def list_directory(path: str = Query(..., description="Directory path to l
                             filesize=None,
                             mtime=int(stat.st_mtime),
                             thumbnail_url=None,
+                        )
+                    )
+                    folders_to_upsert.append(
+                        UpsertFolderInput(
+                            filepath=str(entry),
+                            dirname=entry.name,
+                            mtime=int(stat.st_mtime),
+                            scan_state=1,
+                            watch_state=0,
+                            scanned=False,
                         )
                     )
                 elif entry.is_file():
@@ -149,6 +179,24 @@ async def list_directory(path: str = Query(..., description="Directory path to l
                             thumbnail_url=thumbnail_url,
                         )
                     )
+                    
+                    # Prepare file for DB upsert
+                    fingerprint = f"{entry.name}-{stat.st_size}-{int(stat.st_mtime)}"
+                    files_to_upsert.append(
+                        UpsertFileInput(
+                            filepath=str(entry),
+                            filename=entry.name,
+                            mtime=int(stat.st_mtime),
+                            filesize=stat.st_size,
+                            fingerprint=fingerprint,
+                            folderpath=str(validated_path),
+                            file_type=file_type,
+                            ext=entry.suffix.lower() if entry.suffix else None,
+                            scan_state=1,
+                            watch_state=0,
+                            scanned=False,
+                        )
+                    )
             except Exception as e:
                 logger.warning(f"Failed to process entry {entry}: {e}")
                 continue
@@ -158,6 +206,21 @@ async def list_directory(path: str = Query(..., description="Directory path to l
     
     # Sort: folders first, then files, each sorted by name
     items.sort(key=lambda x: (x.item_type != "folder", x.name.lower()))
+    
+    # Batch upsert to DB in background
+    def upsert_to_db():
+        try:
+            with get_index_session() as session:
+                repo = IndexRepository(session)
+                if folders_to_upsert:
+                    repo.batch_upsert_folders(folders_to_upsert)
+                if files_to_upsert:
+                    repo.batch_upsert_files(files_to_upsert)
+            logger.info(f"DB upsert completed for {validated_path}: {len(folders_to_upsert)} folders, {len(files_to_upsert)} files")
+        except Exception as e:
+            logger.error(f"DB upsert failed for {validated_path}: {e}")
+    
+    background_tasks.add_task(upsert_to_db)
     
     return ListResponse(items=items)
 

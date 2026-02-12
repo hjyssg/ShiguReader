@@ -14,6 +14,8 @@ from app.file_processing.thumbnail_generator.service import (
     IMAGE_SUFFIXES,
     generate_first_image_thumbnail,
 )
+from app.index_db.db import get_index_session
+from app.index_db.repository import IndexRepository
 
 logger = logging.getLogger(__name__)
 
@@ -114,6 +116,20 @@ class ThumbService:
         try:
             entries = sorted(list_entries(filepath))
             
+            # Count file types
+            image_count = 0
+            video_count = 0
+            music_count = 0
+            
+            for entry in entries:
+                suffix = Path(entry).suffix.lower()
+                if suffix in IMAGE_SUFFIXES or suffix in (".jpg", ".jpeg", ".png", ".webp", ".bmp", ".gif"):
+                    image_count += 1
+                elif suffix in VIDEO_SUFFIXES:
+                    video_count += 1
+                elif suffix in (".mp3", ".flac", ".wav", ".aac", ".ogg", ".m4a"):
+                    music_count += 1
+            
             # Priority 1: cover.* files
             cover_entry = next(
                 (e for e in entries if Path(e).stem.lower() == "cover" and e.lower().endswith(IMAGE_SUFFIXES)),
@@ -143,6 +159,25 @@ class ThumbService:
                 cache_path,
                 height=settings.THUMB_HEIGHT,
             )
+            
+            # Save archive metadata to DB
+            try:
+                arch_type = archive_kind(filepath)
+                with get_index_session() as session:
+                    repo = IndexRepository(session)
+                    repo.upsert_archive_meta(
+                        filepath=str(filepath),
+                        archive_type=arch_type,
+                        entry_count=len(entries),
+                        image_file_num=image_count,
+                        video_file_num=video_count,
+                        music_file_num=music_count,
+                    )
+                    # Update thumbnail path
+                    repo.update_file_thumbnail(str(filepath), str(cache_path))
+                logger.info(f"Archive metadata saved to DB: {filepath}")
+            except Exception as db_err:
+                logger.warning(f"Failed to save archive metadata to DB: {filepath}, error: {db_err}")
         except Exception as e:
             logger.error(f"Archive thumbnail generation failed: {filepath}, error: {e}")
             raise
