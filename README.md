@@ -1,0 +1,46 @@
+# ShiguReader (orpha branch)
+
+基于 `fastapi/full-stack-fastapi-template` 初始化，并按 **LAN 内网最小化部署** 做了裁剪。
+
+## 当前保留
+
+- FastAPI + SQLModel + PostgreSQL
+- React + Vite 前端
+- 基础用户/条目管理结构
+
+## 已移除 / 禁用
+
+- Docker Compose（开发/生产）
+- Traefik 相关配置
+- JWT 鉴权流程
+- 邮件找回密码流程
+- Mailcatcher
+- Docker Compose + Traefik 部署文档
+
+## 本地开发（LAN）
+
+### 后端
+
+```bash
+cd backend
+uv sync
+uv run fastapi dev app/main.py
+```
+
+后端地址：<http://localhost:8000>
+
+接口文档：<http://localhost:8000/docs>
+
+### 前端
+
+```bash
+bun install
+bun run dev
+```
+
+前端地址：<http://localhost:5173>
+
+## 说明
+
+- 本分支面向内网使用，认证已按你的要求禁用。
+- 生产公网场景请不要直接使用当前安全策略。
