@@ -1,4 +1,5 @@
 const _ = require('underscore');
+const logger = require("../config/logger");
 const pathUtil = require("../utils/path-util");
 const { getDirName } = pathUtil;
 const path = require('path');
@@ -30,29 +31,29 @@ const namePicker = require("../human-name-picker");
 
 let statement_cache = {};
 const doSmartAllSync = module.exports.doSmartAllSync = async (sql, params) => {
-    if(!_.isNull(params) && !_.isArray(params)){
+    if (!_.isNull(params) && !_.isArray(params)) {
         params = [params];
     }
-    if(_.isArray(params)){
+    if (_.isArray(params)) {
         console.assert(params.length < 20);
-    }  
+    }
 
     // 可能是sql文都比较简单，性能提升大约只有百分之三。
-    if(!statement_cache[sql]){
+    if (!statement_cache[sql]) {
         const statement = sqldb.prepare(sql);
         statement.allSync = _util.promisify(statement.all).bind(statement);
         statement_cache[sql] = statement;
     }
-    
-    const result = await statement_cache[sql].allSync(params); 
+
+    const result = await statement_cache[sql].allSync(params);
     return result || [];
 }
 
-module.exports.doAllSync  = async (sql, params) => {
+module.exports.doAllSync = async (sql, params) => {
     return await sqldb.allSync(sql, params);
 }
 
-module.exports.runSync  = async (sql, params) => {
+module.exports.runSync = async (sql, params) => {
     return await sqldb.runSync(sql, params);
 }
 
@@ -62,9 +63,9 @@ module.exports.init = async () => {
     const backup_db_path = path.join(pathUtil.getWorkSpacePath(), "shigureader_internal_db.sqlite");
     sqldb = new SQLWrapper(backup_db_path);
 
-    console.log("remove previous db cache")
+    logger.info("remove previous db cache")
 
-    await sqldb.execSync( `
+    await sqldb.execSync(`
 
         PRAGMA journal_mode = OFF;
         PRAGMA synchronous = OFF; 
@@ -153,8 +154,8 @@ module.exports.updateStatToDb = async function (filePath, stat, insertion_cache)
     statObj.mtimeMs = stat.mtimeMs;
     statObj.size = Number(stat.size);
     // fileToInfo[filePath] = statObj;
-    
-    
+
+
     console.assert(!!filePath);
     console.assert(statObj);
     const fileName = path.basename(filePath);
@@ -172,32 +173,32 @@ module.exports.updateStatToDb = async function (filePath, stat, insertion_cache)
     const temp = nameParser.parse(str) || {};
 
     const {
-        authors=[],
-        group="",
-        comiket="",
-        charNames=[],
-        tags=[],
+        authors = [],
+        group = "",
+        comiket = "",
+        charNames = [],
+        tags = [],
     } = temp;
 
-    
+
     // tag插入sql
     let tags_rows = [];
 
     const common_tag_item = {
-        filePath, 
-        isCompress: isCompressFile, 
-        isVideo: isVideoFile, 
+        filePath,
+        isCompress: isCompressFile,
+        isVideo: isVideoFile,
         isMusic: isMusicFile,
         isImage: isImageFile,
         isFolder
     }
 
-    if(comiket){
+    if (comiket) {
         // comiket
-        tags_rows.push({ 
-            tag:comiket, 
-            type:"tag", 
-            subtype:"comiket", 
+        tags_rows.push({
+            tag: comiket,
+            type: "tag",
+            subtype: "comiket",
             ...common_tag_item
         });
     }
@@ -206,17 +207,18 @@ module.exports.updateStatToDb = async function (filePath, stat, insertion_cache)
     // TODO , ...charNames
 
     // name
-    if(_.isEmpty(temp)){
-        const nameTags = [...(namePicker.pick(str)||[])];
+    if (_.isEmpty(temp)) {
+        const nameTags = [...(namePicker.pick(str) || [])];
         _.uniq(nameTags).forEach(tag => {
             if (authors.includes(tag) || group === tag) {
                 return;
             }
-            tags_rows.push({ 
-                tag, 
-                type:"tag",
-                subtype:"name", 
-                ...common_tag_item});
+            tags_rows.push({
+                tag,
+                type: "tag",
+                subtype: "name",
+                ...common_tag_item
+            });
         })
     }
 
@@ -225,35 +227,37 @@ module.exports.updateStatToDb = async function (filePath, stat, insertion_cache)
         if (authors.includes(tag) || group === tag) {
             return;
         }
-        tags_rows.push({ 
-            tag, 
-            type:"tag", 
-            subtype:"parody", 
-            ...common_tag_item });
+        tags_rows.push({
+            tag,
+            type: "tag",
+            subtype: "parody",
+            ...common_tag_item
+        });
     })
     // author
     _.uniq(authors).forEach(tag => {
-        tags_rows.push({ 
-            tag, 
-            type:"author", 
-            subtype:"author", 
-            ...common_tag_item});
+        tags_rows.push({
+            tag,
+            type: "author",
+            subtype: "author",
+            ...common_tag_item
+        });
     })
     // group
-    tags_rows.push({ 
-        tag: group, 
-        type:"group", 
-        subtype:"group", 
-        ...common_tag_item 
+    tags_rows.push({
+        tag: group,
+        type: "group",
+        subtype: "group",
+        ...common_tag_item
     });
 
     // fliter null or empty
     tags_rows = tags_rows.filter(e => { return e.filePath && e.tag && e.type && e.subtype; })
 
-    if(insertion_cache){
+    if (insertion_cache) {
         insertion_cache.tags.push(...tags_rows);
-    }else{
-        for(const row of tags_rows){
+    } else {
+        for (const row of tags_rows) {
             sqldb.insertOneRow("tag_file_table", row);
         }
     }
@@ -264,23 +268,24 @@ module.exports.updateStatToDb = async function (filePath, stat, insertion_cache)
     const dirName = getDirName(filePath);
     const fileSize = statObj.size || 0;
     const params = {
-        filePath, 
-        dirName, 
-        dirPath, 
-        fileName, 
-        mTime: fileTime, 
+        filePath,
+        dirName,
+        dirPath,
+        fileName,
+        mTime: fileTime,
         size: fileSize,
-        isDisplayableInExplorer, 
-        isDisplayableInOnebook, 
-        isCompress: isCompressFile, 
-        isVideo: isVideoFile, 
+        isDisplayableInExplorer,
+        isDisplayableInOnebook,
+        isCompress: isCompressFile,
+        isVideo: isVideoFile,
         isMusic: isMusicFile,
         isImage: isImageFile,
-        isFolder }
+        isFolder
+    }
 
-    if(insertion_cache){
+    if (insertion_cache) {
         insertion_cache.files.push(params);
-    }else{
+    } else {
         sqldb.insertOneRow("file_table", params);
         throttledSyncTagTable();
     }
@@ -293,7 +298,7 @@ const batchInsert = module.exports.batchInsert = async (tableName, dataArray, bl
     await sqldb.batchInsert(tableName, dataArray, blockSize);
 
     let end = getCurrentTime();
-    console.log(`[batchInsert] ${tableName} ${dataArray.length} ${end - beg}ms`);
+    logger.info(`[batchInsert] ${tableName} ${dataArray.length} ${end - beg}ms`);
 }
 
 module.exports.deleteFromDb = function (filePath) {
@@ -350,13 +355,13 @@ async function sync_tag_table() {
             FROM 
                 (SELECT * FROM tag_file_table WHERE isCompress OR isFolder )
             GROUP BY tag, type, subtype `;
-        let tagInfo = await doSmartAllSync(sqlTag, [global.good_folder_root || placeholder, global.not_good_folder_root || placeholder ]);
+        let tagInfo = await doSmartAllSync(sqlTag, [global.good_folder_root || placeholder, global.not_good_folder_root || placeholder]);
         _addCol(tagInfo);  // Add score column to each row.
 
 
         await batchInsert('tag_table', tagInfo);
     } catch (error) {
-        console.error('Failed to sync tag table:', error);
+        logger.error('Failed to sync tag table:', error);
     }
 }
 
@@ -372,12 +377,12 @@ module.exports.getImgFolderInfo = (imgFolders) => {
     let beg = getCurrentTime();
     let count = 0;
     // 每个文件夹
-    for(let ii = 0; ii < imagefolderList.length; ii++){
+    for (let ii = 0; ii < imagefolderList.length; ii++) {
         let folderPath = imagefolderList[ii];
 
         let files = imgFolders[folderPath];
         const len = files.length;
-        let mtimeMs = 0, size = 0, totalImgSize = 0, 
+        let mtimeMs = 0, size = 0, totalImgSize = 0,
             pageNum = 0, musicNum = 0, videoNum = 0;
 
         // files = _.sortBy(files, e => e.mTime);
@@ -385,7 +390,7 @@ module.exports.getImgFolderInfo = (imgFolders) => {
         // TODO 确定没有就没事的？ 避免前端又跑来问？
 
         //。。。的每个文件夹
-        for (let jj = 0; jj < files.length; jj++){
+        for (let jj = 0; jj < files.length; jj++) {
             const file = files[jj];
             console.assert(file.isDisplayableInOnebook);
             console.assert("mTime" in file);
@@ -401,7 +406,7 @@ module.exports.getImgFolderInfo = (imgFolders) => {
                 pageNum++;
             } else if (file.isMusic) {
                 musicNum++;
-            } else if(file.isVideo){
+            } else if (file.isVideo) {
                 videoNum++;
             }
         }
@@ -420,6 +425,6 @@ module.exports.getImgFolderInfo = (imgFolders) => {
     }
 
     let end = getCurrentTime();
-    // console.log(`[getImgFolderInfo] ${count}images ${end - beg}ms`);
+    // logger.debug(`[getImgFolderInfo] ${count}images ${end - beg}ms`);
     return imgFolderInfo;
 }

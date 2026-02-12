@@ -1,4 +1,5 @@
 
+const logger = require("../config/logger");
 const serverUtil = require("./server-util");
 const { decorateResWithMeta } = require('../services/server-common');
 const db = require("../models/db");
@@ -40,7 +41,7 @@ function splitRows(rows) {
 }
 
 async function searchByText(text) {
-    // console.log("---" + text)
+    // logger.debug("---" + text)
     // https://www.sqlite.org/optoverview.html
     // console.time();
     // 模糊搜索
@@ -51,7 +52,7 @@ async function searchByText(text) {
     return splitRows(rows);
 }
 
-async function _searchByTag_(tag, type){
+async function _searchByTag_(tag, type) {
     // 严格匹配
     let sql = `SELECT a.* 
         FROM file_table AS a INNER JOIN tag_file_table AS b 
@@ -81,7 +82,7 @@ async function searchGenerally(tag, author, text) {
     fileInfos = serverUtil.convertFileRowsIntoFileInfo(explorerfileResult);
 
     // let end = getCurrentTime();
-    // console.log((end - beg)/1000, "to search");
+    // logger.debug((end - beg)/1000, "to search");
     let result = {
         tag,
         author,

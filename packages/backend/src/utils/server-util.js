@@ -102,32 +102,32 @@ const mkdirList = (mkdirArr) => {
 
 // https://stackoverflow.com/questions/1349404/generate-random-string-characters-in-javascript
 function makeid() {
-    var result           = '';
-    var characters       = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    var result = '';
+    var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
     var charactersLength = characters.length;
-    for ( var i = 0; i < 30; i++ ) {
-      result += characters.charAt(Math.floor(Math.random() *  charactersLength));
-   }
-   return result;
+    for (var i = 0; i < 30; i++) {
+        result += characters.charAt(Math.floor(Math.random() * charactersLength));
+    }
+    return result;
 }
 
 
 const isPortOccupied = (port) => {
-  return new Promise((resolve, reject) => {
-    const server = net.createServer()
-                  .once('error', err => {
-                    if (err.code !== 'EADDRINUSE') {
-                      reject(err);
-                      return;
-                    }
-                    resolve(true);
-                  })
-                  .once('listening', () => {
-                    server.close();
-                    resolve(false);
-                  })
-                  .listen(port);
-  });
+    return new Promise((resolve, reject) => {
+        const server = net.createServer()
+            .once('error', err => {
+                if (err.code !== 'EADDRINUSE') {
+                    reject(err);
+                    return;
+                }
+                resolve(true);
+            })
+            .once('listening', () => {
+                server.close();
+                resolve(false);
+            })
+            .listen(port);
+    });
 }
 
 /**
@@ -135,57 +135,57 @@ const isPortOccupied = (port) => {
  */
 const asyncWrapper = (fn) => {
     return (req, res, next) => {
-      const beginTime = util.getCurrentTime();
-      fn(req, res, next)
-      .then(()=>{
-        // 测量性能
-        const timeSpent = util.getCurrentTime() - beginTime;
-        const url = req.url || "";
-        
-        let shouldLog = false;
-        const want_list  = [];
-        want_list.forEach(e => {
-            if(url.includes(e)){
-                shouldLog = true;
-            }
-        })
+        const beginTime = util.getCurrentTime();
+        fn(req, res, next)
+            .then(() => {
+                // 测量性能
+                const timeSpent = util.getCurrentTime() - beginTime;
+                const url = req.url || "";
 
-        let warnFlg = timeSpent > 3000;
-        if(shouldLog || warnFlg){
-            const now = new Date();
-            // 获取小时、分钟、秒
-            const hours = now.getHours();
-            const minutes = now.getMinutes();
-            const seconds = now.getSeconds();
-            logger.debug(`[${decodeURI(url)}] ${hours}:${minutes}:${seconds} ${timeSpent}ms`);
-        }
-      })
-      .catch((reason)=>{
-        // next
-        try{
-            logger.error("asyncWrapper", reason, "\n\n", req);
-            res.send({faled: true, reason: reason?.stack});
-        }catch(e){
-            debugger;
-        }
-      })
+                let shouldLog = false;
+                const want_list = [];
+                want_list.forEach(e => {
+                    if (url.includes(e)) {
+                        shouldLog = true;
+                    }
+                })
+
+                let warnFlg = timeSpent > 3000;
+                if (shouldLog || warnFlg) {
+                    const now = new Date();
+                    // 获取小时、分钟、秒
+                    const hours = now.getHours();
+                    const minutes = now.getMinutes();
+                    const seconds = now.getSeconds();
+                    logger.debug(`[${decodeURI(url)}] ${hours}:${minutes}:${seconds} ${timeSpent}ms`);
+                }
+            })
+            .catch((reason) => {
+                // next
+                try {
+                    logger.error("asyncWrapper", reason, "\n\n", req);
+                    res.send({ faled: true, reason: reason?.stack });
+                } catch (e) {
+                    debugger;
+                }
+            })
     };
 };
 
 // write a nodejs function that suspend the progtam until user type something
 const readline = require('readline');
-const suspend = ()  => {
-  return new Promise((resolve, reject) => {
-    const rl = readline.createInterface({
-      input: process.stdin,
-      output: process.stdout
-    });
+const suspend = () => {
+    return new Promise((resolve, reject) => {
+        const rl = readline.createInterface({
+            input: process.stdin,
+            output: process.stdout
+        });
 
-    rl.question('---------------------', (answer) => {
-      rl.close();
-      resolve();
+        rl.question('---------------------', (answer) => {
+            rl.close();
+            resolve();
+        });
     });
-  });
 }
 
 
@@ -212,7 +212,7 @@ const convertFileRowsIntoFileInfo = (rows) => {
 
 
 const joinThumbnailFolderPath = (thumbnailFileName) => {
-    if(!thumbnailFileName){
+    if (!thumbnailFileName) {
         return "";
     }
     return path.join(appState.getThumbnailFolderPath(), thumbnailFileName);
@@ -224,13 +224,13 @@ const joinThumbnailFolderPath = (thumbnailFileName) => {
 function filterObjectProperties(obj, keysToKeep, needWarn) {
     // 遍历对象的所有属性
     return Object.keys(obj).reduce((acc, key) => {
-      // 如果当前属性存在于 keysToKeep 数组中，将其添加到新对象中
-      if (keysToKeep.includes(key)) {
-        acc[key] = obj[key];
-      }else if(needWarn){
-        console.warn("filterObjectProperties", key);
-      }
-      return acc;
+        // 如果当前属性存在于 keysToKeep 数组中，将其添加到新对象中
+        if (keysToKeep.includes(key)) {
+            acc[key] = obj[key];
+        } else if (needWarn) {
+            logger.warn("filterObjectProperties", key);
+        }
+        return acc;
     }, {});
 }
 
@@ -238,14 +238,14 @@ function filterObjectProperties(obj, keysToKeep, needWarn) {
 function checkKeys(obj, keys) {
     const objKeys = Object.keys(obj);
     for (let i = 0; i < keys.length; i++) {
-      if (!objKeys.includes(keys[i])) {
-        console.warn("[checkKeys]", keys[i]);
-      }
+        if (!objKeys.includes(keys[i])) {
+            logger.warn("[checkKeys]", keys[i]);
+        }
     }
 }
 
 /** 检查回传给onebook的res */
-function checkOneBookRes(resObj){
+function checkOneBookRes(resObj) {
     const allowedKeys = ["zipInfo", "path", "stat", "imageFiles", "musicFiles", "videoFiles", "dirs", "outputPath"];
     checkKeys(resObj, allowedKeys);
     resObj = filterObjectProperties(resObj, allowedKeys, false);
@@ -253,7 +253,7 @@ function checkOneBookRes(resObj){
 }
 
 // 隐私
-function shrinkFp(fp){
+function shrinkFp(fp) {
     return fp.slice(0, 12) + "..." + fp.slice(fp.length - 10);
 }
 
