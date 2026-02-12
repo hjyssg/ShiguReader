@@ -15,9 +15,12 @@ import { Route as RecoverPasswordRouteImport } from './routes/recover-password'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as LayoutRouteImport } from './routes/_layout'
 import { Route as LayoutIndexRouteImport } from './routes/_layout/index'
+import { Route as LayoutVideoRouteImport } from './routes/_layout/video'
 import { Route as LayoutSettingsRouteImport } from './routes/_layout/settings'
+import { Route as LayoutReaderRouteImport } from './routes/_layout/reader'
 import { Route as LayoutItemsRouteImport } from './routes/_layout/items'
 import { Route as LayoutExplorerRouteImport } from './routes/_layout/explorer'
+import { Route as LayoutArchiveRouteImport } from './routes/_layout/archive'
 import { Route as LayoutAdminRouteImport } from './routes/_layout/admin'
 
 const SignupRoute = SignupRouteImport.update({
@@ -49,9 +52,19 @@ const LayoutIndexRoute = LayoutIndexRouteImport.update({
   path: '/',
   getParentRoute: () => LayoutRoute,
 } as any)
+const LayoutVideoRoute = LayoutVideoRouteImport.update({
+  id: '/video',
+  path: '/video',
+  getParentRoute: () => LayoutRoute,
+} as any)
 const LayoutSettingsRoute = LayoutSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const LayoutReaderRoute = LayoutReaderRouteImport.update({
+  id: '/reader',
+  path: '/reader',
   getParentRoute: () => LayoutRoute,
 } as any)
 const LayoutItemsRoute = LayoutItemsRouteImport.update({
@@ -62,6 +75,11 @@ const LayoutItemsRoute = LayoutItemsRouteImport.update({
 const LayoutExplorerRoute = LayoutExplorerRouteImport.update({
   id: '/explorer',
   path: '/explorer',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const LayoutArchiveRoute = LayoutArchiveRouteImport.update({
+  id: '/archive',
+  path: '/archive',
   getParentRoute: () => LayoutRoute,
 } as any)
 const LayoutAdminRoute = LayoutAdminRouteImport.update({
@@ -77,9 +95,12 @@ export interface FileRoutesByFullPath {
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
   '/admin': typeof LayoutAdminRoute
+  '/archive': typeof LayoutArchiveRoute
   '/explorer': typeof LayoutExplorerRoute
   '/items': typeof LayoutItemsRoute
+  '/reader': typeof LayoutReaderRoute
   '/settings': typeof LayoutSettingsRoute
+  '/video': typeof LayoutVideoRoute
 }
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
@@ -87,9 +108,12 @@ export interface FileRoutesByTo {
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
   '/admin': typeof LayoutAdminRoute
+  '/archive': typeof LayoutArchiveRoute
   '/explorer': typeof LayoutExplorerRoute
   '/items': typeof LayoutItemsRoute
+  '/reader': typeof LayoutReaderRoute
   '/settings': typeof LayoutSettingsRoute
+  '/video': typeof LayoutVideoRoute
   '/': typeof LayoutIndexRoute
 }
 export interface FileRoutesById {
@@ -100,9 +124,12 @@ export interface FileRoutesById {
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
   '/_layout/admin': typeof LayoutAdminRoute
+  '/_layout/archive': typeof LayoutArchiveRoute
   '/_layout/explorer': typeof LayoutExplorerRoute
   '/_layout/items': typeof LayoutItemsRoute
+  '/_layout/reader': typeof LayoutReaderRoute
   '/_layout/settings': typeof LayoutSettingsRoute
+  '/_layout/video': typeof LayoutVideoRoute
   '/_layout/': typeof LayoutIndexRoute
 }
 export interface FileRouteTypes {
@@ -114,9 +141,12 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/signup'
     | '/admin'
+    | '/archive'
     | '/explorer'
     | '/items'
+    | '/reader'
     | '/settings'
+    | '/video'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/login'
@@ -124,9 +154,12 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/signup'
     | '/admin'
+    | '/archive'
     | '/explorer'
     | '/items'
+    | '/reader'
     | '/settings'
+    | '/video'
     | '/'
   id:
     | '__root__'
@@ -136,9 +169,12 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/signup'
     | '/_layout/admin'
+    | '/_layout/archive'
     | '/_layout/explorer'
     | '/_layout/items'
+    | '/_layout/reader'
     | '/_layout/settings'
+    | '/_layout/video'
     | '/_layout/'
   fileRoutesById: FileRoutesById
 }
@@ -194,11 +230,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutIndexRouteImport
       parentRoute: typeof LayoutRoute
     }
+    '/_layout/video': {
+      id: '/_layout/video'
+      path: '/video'
+      fullPath: '/video'
+      preLoaderRoute: typeof LayoutVideoRouteImport
+      parentRoute: typeof LayoutRoute
+    }
     '/_layout/settings': {
       id: '/_layout/settings'
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof LayoutSettingsRouteImport
+      parentRoute: typeof LayoutRoute
+    }
+    '/_layout/reader': {
+      id: '/_layout/reader'
+      path: '/reader'
+      fullPath: '/reader'
+      preLoaderRoute: typeof LayoutReaderRouteImport
       parentRoute: typeof LayoutRoute
     }
     '/_layout/items': {
@@ -215,6 +265,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutExplorerRouteImport
       parentRoute: typeof LayoutRoute
     }
+    '/_layout/archive': {
+      id: '/_layout/archive'
+      path: '/archive'
+      fullPath: '/archive'
+      preLoaderRoute: typeof LayoutArchiveRouteImport
+      parentRoute: typeof LayoutRoute
+    }
     '/_layout/admin': {
       id: '/_layout/admin'
       path: '/admin'
@@ -227,17 +284,23 @@ declare module '@tanstack/react-router' {
 
 interface LayoutRouteChildren {
   LayoutAdminRoute: typeof LayoutAdminRoute
+  LayoutArchiveRoute: typeof LayoutArchiveRoute
   LayoutExplorerRoute: typeof LayoutExplorerRoute
   LayoutItemsRoute: typeof LayoutItemsRoute
+  LayoutReaderRoute: typeof LayoutReaderRoute
   LayoutSettingsRoute: typeof LayoutSettingsRoute
+  LayoutVideoRoute: typeof LayoutVideoRoute
   LayoutIndexRoute: typeof LayoutIndexRoute
 }
 
 const LayoutRouteChildren: LayoutRouteChildren = {
   LayoutAdminRoute: LayoutAdminRoute,
+  LayoutArchiveRoute: LayoutArchiveRoute,
   LayoutExplorerRoute: LayoutExplorerRoute,
   LayoutItemsRoute: LayoutItemsRoute,
+  LayoutReaderRoute: LayoutReaderRoute,
   LayoutSettingsRoute: LayoutSettingsRoute,
+  LayoutVideoRoute: LayoutVideoRoute,
   LayoutIndexRoute: LayoutIndexRoute,
 }
 

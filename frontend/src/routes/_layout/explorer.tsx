@@ -106,12 +106,15 @@ function Explorer() {
 
 function FileItem({ item }: { item: FileSystemItem }) {
   const isFolder = item.item_type === "folder"
+  const isArchive = item.file_type === "archive"
+  const isVideo = item.file_type === "video"
+  const isClickable = isFolder || isArchive || isVideo
 
   const content = (
     <div
       className={cn(
         "group relative rounded-lg border bg-card transition-all",
-        isFolder
+        isClickable
           ? "cursor-pointer hover:border-primary hover:shadow-md"
           : "cursor-default"
       )}
@@ -147,6 +150,22 @@ function FileItem({ item }: { item: FileSystemItem }) {
   if (isFolder) {
     return (
       <Link to="/explorer" search={{ path: item.path }}>
+        {content}
+      </Link>
+    )
+  }
+
+  if (isArchive) {
+    return (
+      <Link to="/archive" search={{ path: item.path }}>
+        {content}
+      </Link>
+    )
+  }
+
+  if (isVideo) {
+    return (
+      <Link to="/video" search={{ path: item.path, entry: undefined }}>
         {content}
       </Link>
     )

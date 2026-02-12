@@ -3,7 +3,7 @@
 import type { CancelablePromise } from './core/CancelablePromise';
 import { OpenAPI } from './core/OpenAPI';
 import { request as __request } from './core/request';
-import type { FilesystemGetRootsResponse, FilesystemListDirectoryData, FilesystemListDirectoryResponse, FilesystemGetThumbnailData, FilesystemGetThumbnailResponse, ItemsReadItemsData, ItemsReadItemsResponse, ItemsCreateItemData, ItemsCreateItemResponse, ItemsReadItemData, ItemsReadItemResponse, ItemsUpdateItemData, ItemsUpdateItemResponse, ItemsDeleteItemData, ItemsDeleteItemResponse, PrivateCreateUserData, PrivateCreateUserResponse, UsersReadUsersData, UsersReadUsersResponse, UsersCreateUserData, UsersCreateUserResponse, UsersReadUserMeResponse, UsersDeleteUserMeResponse, UsersUpdateUserMeData, UsersUpdateUserMeResponse, UsersUpdatePasswordMeData, UsersUpdatePasswordMeResponse, UsersRegisterUserData, UsersRegisterUserResponse, UsersReadUserByIdData, UsersReadUserByIdResponse, UsersUpdateUserData, UsersUpdateUserResponse, UsersDeleteUserData, UsersDeleteUserResponse, UtilsHealthCheckResponse } from './types.gen';
+import type { FilesystemGetRootsResponse, FilesystemListDirectoryData, FilesystemListDirectoryResponse, FilesystemGetThumbnailData, FilesystemGetThumbnailResponse, FilesystemListArchiveData, FilesystemListArchiveResponse, FilesystemExtractArchiveData, FilesystemExtractArchiveResponse, FilesystemGetArchiveFileData, FilesystemGetArchiveFileResponse, FilesystemGetFileData, FilesystemGetFileResponse, ItemsReadItemsData, ItemsReadItemsResponse, ItemsCreateItemData, ItemsCreateItemResponse, ItemsReadItemData, ItemsReadItemResponse, ItemsUpdateItemData, ItemsUpdateItemResponse, ItemsDeleteItemData, ItemsDeleteItemResponse, PrivateCreateUserData, PrivateCreateUserResponse, UsersReadUsersData, UsersReadUsersResponse, UsersCreateUserData, UsersCreateUserResponse, UsersReadUserMeResponse, UsersDeleteUserMeResponse, UsersUpdateUserMeData, UsersUpdateUserMeResponse, UsersUpdatePasswordMeData, UsersUpdatePasswordMeResponse, UsersRegisterUserData, UsersRegisterUserResponse, UsersReadUserByIdData, UsersReadUserByIdResponse, UsersUpdateUserData, UsersUpdateUserResponse, UsersDeleteUserData, UsersDeleteUserResponse, UtilsHealthCheckResponse } from './types.gen';
 
 export class FilesystemService {
     /**
@@ -52,6 +52,94 @@ export class FilesystemService {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/fs/thumb',
+            query: {
+                path: data.path
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * List Archive
+     * List contents of an archive file.
+     * @param data The data for the request.
+     * @param data.path Archive file path
+     * @returns ArchiveListResponse Successful Response
+     * @throws ApiError
+     */
+    public static listArchive(data: FilesystemListArchiveData): CancelablePromise<FilesystemListArchiveResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/fs/archive/list',
+            query: {
+                path: data.path
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Extract Archive
+     * Extract archive with prioritized extraction of current page vicinity.
+     * @param data The data for the request.
+     * @param data.path Archive file path
+     * @param data.page Current page number for prioritized extraction
+     * @returns ExtractStatus Successful Response
+     * @throws ApiError
+     */
+    public static extractArchive(data: FilesystemExtractArchiveData): CancelablePromise<FilesystemExtractArchiveResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/fs/archive/extract',
+            query: {
+                path: data.path,
+                page: data.page
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Get Archive File
+     * Get a file from extracted archive cache.
+     * @param data The data for the request.
+     * @param data.path Archive file path
+     * @param data.entry Entry path within archive
+     * @returns unknown Successful Response
+     * @throws ApiError
+     */
+    public static getArchiveFile(data: FilesystemGetArchiveFileData): CancelablePromise<FilesystemGetArchiveFileResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/fs/archive/file',
+            query: {
+                path: data.path,
+                entry: data.entry
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Get File
+     * Serve a file directly from disk.
+     * @param data The data for the request.
+     * @param data.path File path
+     * @returns unknown Successful Response
+     * @throws ApiError
+     */
+    public static getFile(data: FilesystemGetFileData): CancelablePromise<FilesystemGetFileResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/fs/file',
             query: {
                 path: data.path
             },

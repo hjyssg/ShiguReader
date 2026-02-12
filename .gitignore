@@ -7,3 +7,4 @@ node_modules/
 /playwright/.cache/
 data/index.db
 data/thumb_cache/
+data/extract_cache/
