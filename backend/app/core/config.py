@@ -53,6 +53,13 @@ class Settings(BaseSettings):
     POSTGRES_DB: str = ""
     INDEX_SQLITE_URL: str = "sqlite:///../data/index.db"
 
+    # File System & Thumbnail settings
+    FS_ROOTS: str = ""  # Comma-separated list of root directories
+    THUMB_CACHE_DIR: str = "../data/thumb_cache"
+    THUMB_CONCURRENCY: int = 3
+    THUMB_TIMEOUT_SEC: int = 10
+    THUMB_HEIGHT: int = 350
+
     @computed_field  # type: ignore[prop-decorator]
     @property
     def SQLALCHEMY_DATABASE_URI(self) -> PostgresDsn:
