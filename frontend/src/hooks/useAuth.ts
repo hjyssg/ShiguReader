@@ -1,8 +1,7 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { useNavigate } from "@tanstack/react-router"
 
 import {
-  type UserPublic,
   type UserRegister,
   UsersService,
 } from "@/client"
@@ -17,12 +16,6 @@ const useAuth = () => {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const { showErrorToast } = useCustomToast()
-
-  const { data: user } = useQuery<UserPublic | null, Error>({
-    queryKey: ["currentUser"],
-    queryFn: UsersService.readUserMe,
-    enabled: true,
-  })
 
   const signUpMutation = useMutation({
     mutationFn: (data: UserRegister) =>
@@ -52,7 +45,6 @@ const useAuth = () => {
     signUpMutation,
     loginMutation,
     logout,
-    user,
   }
 }
 

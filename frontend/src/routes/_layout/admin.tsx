@@ -18,14 +18,6 @@ function getUsersQueryOptions() {
 
 export const Route = createFileRoute("/_layout/admin")({
   component: Admin,
-  beforeLoad: async () => {
-    const user = await UsersService.readUserMe()
-    if (!user.is_superuser) {
-      throw redirect({
-        to: "/",
-      })
-    }
-  },
   head: () => ({
     meta: [
       {
@@ -36,12 +28,11 @@ export const Route = createFileRoute("/_layout/admin")({
 })
 
 function UsersTableContent() {
-  const { user: currentUser } = useAuth()
   const { data: users } = useSuspenseQuery(getUsersQueryOptions())
 
   const tableData: UserTableData[] = users.data.map((user: UserPublic) => ({
     ...user,
-    isCurrentUser: currentUser?.id === user.id,
+    isCurrentUser: false,
   }))
 
   return <DataTable columns={columns} data={tableData} />
