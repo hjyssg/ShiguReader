@@ -55,6 +55,7 @@ def test_stepwise_extract_atomic_on_failure(
     file_processing_data: dict[str, object],
     tmp_path: Path,
 ) -> None:
+    """Test that first stage files are preserved even if second stage fails."""
     archive = file_processing_data["archives"]["zip"]
     output_dir = tmp_path / "broken-output"
 
@@ -66,7 +67,11 @@ def test_stepwise_extract_atomic_on_failure(
             fail_after_prioritized=True,
         )
 
-    assert not output_dir.exists()
+    # With progressive extraction, first stage files should still exist
+    assert output_dir.exists()
+    assert (output_dir / "nested/images/001-cover.jpg").exists()
+    # But second stage files should not exist
+    assert not (output_dir / "nested/images/002-sample.png").exists()
 
 
 def test_stepwise_extract_under_time_limit(
