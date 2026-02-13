@@ -229,13 +229,12 @@ def parse(text: str) -> ParseResult | None:
         return None
 
     # ------------------------------------------------------------------
-    # Extract title (everything outside brackets)
+    # Extract title (everything outside brackets) - optimized
     # ------------------------------------------------------------------
-    title = text
-    for token in (b_matches or []) + (p_matches or []):
-        title = title.replace(token, "")
-    # Remove bracket characters themselves
-    title = re.sub(r"[\[\]\(\)]", "", title)
+    # Use regex to remove all bracket content in one pass
+    title = _BRACKET_RE.sub("", text)
+    title = _PAREN_RE.sub("", title)
+    
     # Remove file extension
     if "." in title:
         title = title.rsplit(".", 1)[0]
