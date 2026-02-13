@@ -363,6 +363,13 @@ class IndexRepository:
         now = _now_ts()
         filepaths = [r["filepath"] for r in results]
 
+        # Ensure file FK exists. Parse payload should point to existing files,
+        # but we guard against out-of-order calls or stale payloads.
+        existing_files_stmt = select(File.filepath).where(File.filepath.in_(filepaths))
+        existing_files = set(self.session.exec(existing_files_stmt).all())
+        if not existing_files:
+            return
+
         # Fetch existing metadata
         stmt = select(ParsedMetadata).where(ParsedMetadata.filepath.in_(filepaths))
         existing_meta = {
@@ -373,8 +380,10 @@ class IndexRepository:
         all_authors: set[str] = set()
         all_tags: set[str] = set()
         for r in results:
-            all_authors.update(r.get("authors") or [])
-            all_tags.update(r.get("raw_tags") or [])
+            if r["filepath"] not in existing_files:
+                continue
+            all_authors.update({a for a in (r.get("authors") or []) if a})
+            all_tags.update({t for t in (r.get("raw_tags") or []) if t})
 
         # Fetch existing artists / tags
         existing_artists: set[str] = set()
@@ -395,6 +404,9 @@ class IndexRepository:
 
         for r in results:
             fp = r["filepath"]
+            if fp not in existing_files:
+                continue
+
             meta = existing_meta.get(fp)
             if meta is None:
                 meta = ParsedMetadata(
@@ -415,27 +427,60 @@ class IndexRepository:
                 meta.media_type = r.get("media_type")
                 meta.parsed_at = now
 
-            # Artists
-            for name in r.get("authors") or []:
+            # Artists (dedupe within each file)
+            for name in {a for a in (r.get("authors") or []) if a}:
                 if name not in existing_artists:
                     to_add.append(Artist(artist_name=name))
                     existing_artists.add(name)
-                to_add.append(
-                    FileArtist(filepath=fp, artist_name=name)
-                )
 
-            # Tags
-            for tag in r.get("raw_tags") or []:
+            # Tags (dedupe within each file)
+            for tag in {t for t in (r.get("raw_tags") or []) if t}:
                 if tag not in existing_tags:
                     to_add.append(Tag(tag_name=tag))
                     existing_tags.add(tag)
-                to_add.append(
-                    FileTag(filepath=fp, tag_name=tag)
-                )
 
         if to_add:
             self.session.add_all(to_add)
+        # First commit ParsedMetadata + master tables (artists/tags), then write
+        # join tables. This avoids intermittent FK failures under bulk flush.
         self.session.commit()
+
+        target_filepaths = [fp for fp in filepaths if fp in existing_files]
+
+        existing_file_artists = {
+            (fa.filepath, fa.artist_name, fa.role)
+            for fa in self.session.exec(
+                select(FileArtist).where(FileArtist.filepath.in_(target_filepaths))
+            ).all()
+        }
+        existing_file_tags = {
+            (ft.filepath, ft.tag_name)
+            for ft in self.session.exec(
+                select(FileTag).where(FileTag.filepath.in_(target_filepaths))
+            ).all()
+        }
+
+        link_to_add: list[object] = []
+        for r in results:
+            fp = r["filepath"]
+            if fp not in existing_files:
+                continue
+
+            for name in {a for a in (r.get("authors") or []) if a}:
+                key = (fp, name, "")
+                if key not in existing_file_artists:
+                    link_to_add.append(FileArtist(filepath=fp, artist_name=name))
+                    existing_file_artists.add(key)
+
+            for tag in {t for t in (r.get("raw_tags") or []) if t}:
+                key = (fp, tag)
+                if key not in existing_file_tags:
+                    link_to_add.append(FileTag(filepath=fp, tag_name=tag))
+                    existing_file_tags.add(key)
+
+        if link_to_add:
+            self.session.add_all(link_to_add)
+            self.session.commit()
 
     def get_parsed_metadata(self, filepath: str) -> ParsedMetadata | None:
         """Return parsed metadata for a single file."""
