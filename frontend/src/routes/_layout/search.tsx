@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query"
 import { createFileRoute } from "@tanstack/react-router"
 import { Search } from "lucide-react"
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 
 import { SearchService } from "@/client"
 import { FileList } from "@/components/Files/FileList"
@@ -22,6 +22,23 @@ type Mode = "exact" | "hybrid"
 
 export const Route = createFileRoute("/_layout/search")({
   component: SearchPage,
+  validateSearch: (search: Record<string, unknown>) => {
+    const q = typeof search.q === "string" ? search.q : ""
+    const mode: Mode = search.mode === "exact" ? "exact" : "hybrid"
+
+    const rawScopes = search.scopes
+    const scopes = Array.isArray(rawScopes)
+      ? rawScopes.filter(
+          (s): s is Scope => s === "file" || s === "author" || s === "tag",
+        )
+      : []
+
+    return {
+      q,
+      mode,
+      scopes: scopes.length > 0 ? scopes : (["file", "author", "tag"] as Scope[]),
+    } as { q: string; mode: Mode; scopes: Scope[] }
+  },
   head: () => ({
     meta: [
       {
@@ -32,10 +49,19 @@ export const Route = createFileRoute("/_layout/search")({
 })
 
 function SearchPage() {
-  const [q, setQ] = useState("")
-  const [submittedQ, setSubmittedQ] = useState("")
-  const [scopes, setScopes] = useState<Scope[]>(["file", "author", "tag"])
-  const [mode, setMode] = useState<Mode>("hybrid")
+  const search = Route.useSearch()
+
+  const [q, setQ] = useState(search.q)
+  const [submittedQ, setSubmittedQ] = useState(search.q)
+  const [scopes, setScopes] = useState<Scope[]>(search.scopes)
+  const [mode, setMode] = useState<Mode>(search.mode)
+
+  useEffect(() => {
+    setQ(search.q)
+    setSubmittedQ(search.q)
+    setScopes(search.scopes)
+    setMode(search.mode)
+  }, [search.mode, search.q, search.scopes])
 
   const { data, isLoading } = useQuery({
     queryKey: ["search", submittedQ, scopes, mode],

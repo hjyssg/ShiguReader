@@ -44,6 +44,120 @@ export const ArchiveListResponseSchema = {
     title: 'ArchiveListResponse'
 } as const;
 
+export const AuthorListItemSchema = {
+    properties: {
+        name: {
+            type: 'string',
+            title: 'Name'
+        },
+        thumbnail: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Thumbnail'
+        },
+        file_count: {
+            type: 'integer',
+            title: 'File Count'
+        }
+    },
+    type: 'object',
+    required: ['name', 'file_count'],
+    title: 'AuthorListItem'
+} as const;
+
+export const AuthorsResponseSchema = {
+    properties: {
+        items: {
+            items: {
+                '$ref': '#/components/schemas/AuthorListItem'
+            },
+            type: 'array',
+            title: 'Items'
+        },
+        page: {
+            type: 'integer',
+            title: 'Page'
+        },
+        page_size: {
+            type: 'integer',
+            title: 'Page Size'
+        },
+        total: {
+            type: 'integer',
+            title: 'Total'
+        }
+    },
+    type: 'object',
+    required: ['items', 'page', 'page_size', 'total'],
+    title: 'AuthorsResponse'
+} as const;
+
+export const BatchParseItemSchema = {
+    properties: {
+        filepath: {
+            type: 'string',
+            title: 'Filepath'
+        },
+        result: {
+            anyOf: [
+                {
+                    '$ref': '#/components/schemas/ParseResponse'
+                },
+                {
+                    type: 'null'
+                }
+            ]
+        }
+    },
+    type: 'object',
+    required: ['filepath'],
+    title: 'BatchParseItem'
+} as const;
+
+export const BatchParseRequestSchema = {
+    properties: {
+        filepaths: {
+            items: {
+                type: 'string'
+            },
+            type: 'array',
+            title: 'Filepaths'
+        }
+    },
+    type: 'object',
+    required: ['filepaths'],
+    title: 'BatchParseRequest'
+} as const;
+
+export const BatchParseResponseSchema = {
+    properties: {
+        items: {
+            items: {
+                '$ref': '#/components/schemas/BatchParseItem'
+            },
+            type: 'array',
+            title: 'Items'
+        },
+        parsed_count: {
+            type: 'integer',
+            title: 'Parsed Count'
+        },
+        total_count: {
+            type: 'integer',
+            title: 'Total Count'
+        }
+    },
+    type: 'object',
+    required: ['items', 'parsed_count', 'total_count'],
+    title: 'BatchParseResponse'
+} as const;
+
 export const ExtractStatusSchema = {
     properties: {
         status: {
@@ -159,131 +273,6 @@ export const HTTPValidationErrorSchema = {
     title: 'HTTPValidationError'
 } as const;
 
-export const ItemCreateSchema = {
-    properties: {
-        title: {
-            type: 'string',
-            maxLength: 255,
-            minLength: 1,
-            title: 'Title'
-        },
-        description: {
-            anyOf: [
-                {
-                    type: 'string',
-                    maxLength: 255
-                },
-                {
-                    type: 'null'
-                }
-            ],
-            title: 'Description'
-        }
-    },
-    type: 'object',
-    required: ['title'],
-    title: 'ItemCreate'
-} as const;
-
-export const ItemPublicSchema = {
-    properties: {
-        title: {
-            type: 'string',
-            maxLength: 255,
-            minLength: 1,
-            title: 'Title'
-        },
-        description: {
-            anyOf: [
-                {
-                    type: 'string',
-                    maxLength: 255
-                },
-                {
-                    type: 'null'
-                }
-            ],
-            title: 'Description'
-        },
-        id: {
-            type: 'string',
-            format: 'uuid',
-            title: 'Id'
-        },
-        owner_id: {
-            type: 'string',
-            format: 'uuid',
-            title: 'Owner Id'
-        },
-        created_at: {
-            anyOf: [
-                {
-                    type: 'string',
-                    format: 'date-time'
-                },
-                {
-                    type: 'null'
-                }
-            ],
-            title: 'Created At'
-        }
-    },
-    type: 'object',
-    required: ['title', 'id', 'owner_id'],
-    title: 'ItemPublic'
-} as const;
-
-export const ItemUpdateSchema = {
-    properties: {
-        title: {
-            anyOf: [
-                {
-                    type: 'string',
-                    maxLength: 255,
-                    minLength: 1
-                },
-                {
-                    type: 'null'
-                }
-            ],
-            title: 'Title'
-        },
-        description: {
-            anyOf: [
-                {
-                    type: 'string',
-                    maxLength: 255
-                },
-                {
-                    type: 'null'
-                }
-            ],
-            title: 'Description'
-        }
-    },
-    type: 'object',
-    title: 'ItemUpdate'
-} as const;
-
-export const ItemsPublicSchema = {
-    properties: {
-        data: {
-            items: {
-                '$ref': '#/components/schemas/ItemPublic'
-            },
-            type: 'array',
-            title: 'Data'
-        },
-        count: {
-            type: 'integer',
-            title: 'Count'
-        }
-    },
-    type: 'object',
-    required: ['data', 'count'],
-    title: 'ItemsPublic'
-} as const;
-
 export const ListResponseSchema = {
     properties: {
         items: {
@@ -309,6 +298,69 @@ export const MessageSchema = {
     type: 'object',
     required: ['message'],
     title: 'Message'
+} as const;
+
+export const ParseResponseSchema = {
+    properties: {
+        title: {
+            type: 'string',
+            title: 'Title'
+        },
+        authors: {
+            items: {
+                type: 'string'
+            },
+            type: 'array',
+            title: 'Authors'
+        },
+        group: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Group'
+        },
+        raw_tags: {
+            items: {
+                type: 'string'
+            },
+            type: 'array',
+            title: 'Raw Tags'
+        },
+        event: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Event'
+        },
+        date_tag: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Date Tag'
+        },
+        type: {
+            type: 'string',
+            title: 'Type'
+        }
+    },
+    type: 'object',
+    required: ['title', 'authors', 'raw_tags', 'type'],
+    title: 'ParseResponse'
 } as const;
 
 export const PrivateUserCreateSchema = {
@@ -350,6 +402,301 @@ export const RootItemSchema = {
     type: 'object',
     required: ['path', 'dirname'],
     title: 'RootItem'
+} as const;
+
+export const ScanRequestSchema = {
+    properties: {
+        path: {
+            type: 'string',
+            title: 'Path'
+        },
+        recursive: {
+            type: 'boolean',
+            title: 'Recursive',
+            default: true
+        }
+    },
+    type: 'object',
+    required: ['path'],
+    title: 'ScanRequest'
+} as const;
+
+export const ScanStartResponseSchema = {
+    properties: {
+        status: {
+            type: 'string',
+            const: 'started',
+            title: 'Status'
+        },
+        message: {
+            type: 'string',
+            title: 'Message'
+        },
+        path: {
+            type: 'string',
+            title: 'Path'
+        }
+    },
+    type: 'object',
+    required: ['status', 'message', 'path'],
+    title: 'ScanStartResponse'
+} as const;
+
+export const ScanStatusItemSchema = {
+    properties: {
+        path: {
+            type: 'string',
+            title: 'Path'
+        },
+        status: {
+            type: 'string',
+            enum: ['running', 'completed', 'error'],
+            title: 'Status'
+        },
+        message: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Message'
+        },
+        recursive: {
+            type: 'boolean',
+            title: 'Recursive',
+            default: true
+        },
+        scanned_folders: {
+            type: 'integer',
+            title: 'Scanned Folders',
+            default: 0
+        },
+        scanned_files: {
+            type: 'integer',
+            title: 'Scanned Files',
+            default: 0
+        },
+        parsed_files: {
+            type: 'integer',
+            title: 'Parsed Files',
+            default: 0
+        },
+        watcher_active: {
+            type: 'boolean',
+            title: 'Watcher Active',
+            default: false
+        },
+        started_at: {
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Started At'
+        },
+        finished_at: {
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Finished At'
+        }
+    },
+    type: 'object',
+    required: ['path', 'status'],
+    title: 'ScanStatusItem'
+} as const;
+
+export const SearchRequestSchema = {
+    properties: {
+        q: {
+            type: 'string',
+            title: 'Q',
+            default: ''
+        },
+        scopes: {
+            items: {
+                type: 'string',
+                enum: ['file', 'author', 'tag']
+            },
+            type: 'array',
+            title: 'Scopes'
+        },
+        mode: {
+            type: 'string',
+            enum: ['exact', 'hybrid'],
+            title: 'Mode',
+            default: 'hybrid'
+        }
+    },
+    type: 'object',
+    title: 'SearchRequest'
+} as const;
+
+export const SearchResponseSchema = {
+    properties: {
+        items: {
+            items: {
+                '$ref': '#/components/schemas/FileSystemItem'
+            },
+            type: 'array',
+            title: 'Items'
+        },
+        total: {
+            type: 'integer',
+            title: 'Total'
+        }
+    },
+    type: 'object',
+    required: ['items', 'total'],
+    title: 'SearchResponse'
+} as const;
+
+export const StoredParseResponseSchema = {
+    properties: {
+        filepath: {
+            type: 'string',
+            title: 'Filepath'
+        },
+        title: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Title'
+        },
+        authors: {
+            items: {
+                type: 'string'
+            },
+            type: 'array',
+            title: 'Authors',
+            default: []
+        },
+        group_name: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Group Name'
+        },
+        raw_tags: {
+            items: {
+                type: 'string'
+            },
+            type: 'array',
+            title: 'Raw Tags',
+            default: []
+        },
+        event: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Event'
+        },
+        date_tag: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Date Tag'
+        },
+        media_type: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Media Type'
+        }
+    },
+    type: 'object',
+    required: ['filepath'],
+    title: 'StoredParseResponse'
+} as const;
+
+export const TagListItemSchema = {
+    properties: {
+        name: {
+            type: 'string',
+            title: 'Name'
+        },
+        thumbnail: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Thumbnail'
+        },
+        file_count: {
+            type: 'integer',
+            title: 'File Count'
+        }
+    },
+    type: 'object',
+    required: ['name', 'file_count'],
+    title: 'TagListItem'
+} as const;
+
+export const TagsResponseSchema = {
+    properties: {
+        items: {
+            items: {
+                '$ref': '#/components/schemas/TagListItem'
+            },
+            type: 'array',
+            title: 'Items'
+        },
+        page: {
+            type: 'integer',
+            title: 'Page'
+        },
+        page_size: {
+            type: 'integer',
+            title: 'Page Size'
+        },
+        total: {
+            type: 'integer',
+            title: 'Total'
+        }
+    },
+    type: 'object',
+    required: ['items', 'page', 'page_size', 'total'],
+    title: 'TagsResponse'
 } as const;
 
 export const UpdatePasswordSchema = {

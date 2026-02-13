@@ -16,11 +16,13 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as LayoutRouteImport } from './routes/_layout'
 import { Route as LayoutIndexRouteImport } from './routes/_layout/index'
 import { Route as LayoutVideoRouteImport } from './routes/_layout/video'
+import { Route as LayoutTagsRouteImport } from './routes/_layout/tags'
 import { Route as LayoutSettingsRouteImport } from './routes/_layout/settings'
 import { Route as LayoutSearchRouteImport } from './routes/_layout/search'
 import { Route as LayoutReaderRouteImport } from './routes/_layout/reader'
 import { Route as LayoutItemsRouteImport } from './routes/_layout/items'
 import { Route as LayoutExplorerRouteImport } from './routes/_layout/explorer'
+import { Route as LayoutAuthorsRouteImport } from './routes/_layout/authors'
 import { Route as LayoutArchiveRouteImport } from './routes/_layout/archive'
 import { Route as LayoutAdminRouteImport } from './routes/_layout/admin'
 
@@ -58,6 +60,11 @@ const LayoutVideoRoute = LayoutVideoRouteImport.update({
   path: '/video',
   getParentRoute: () => LayoutRoute,
 } as any)
+const LayoutTagsRoute = LayoutTagsRouteImport.update({
+  id: '/tags',
+  path: '/tags',
+  getParentRoute: () => LayoutRoute,
+} as any)
 const LayoutSettingsRoute = LayoutSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
@@ -83,6 +90,11 @@ const LayoutExplorerRoute = LayoutExplorerRouteImport.update({
   path: '/explorer',
   getParentRoute: () => LayoutRoute,
 } as any)
+const LayoutAuthorsRoute = LayoutAuthorsRouteImport.update({
+  id: '/authors',
+  path: '/authors',
+  getParentRoute: () => LayoutRoute,
+} as any)
 const LayoutArchiveRoute = LayoutArchiveRouteImport.update({
   id: '/archive',
   path: '/archive',
@@ -102,11 +114,13 @@ export interface FileRoutesByFullPath {
   '/signup': typeof SignupRoute
   '/admin': typeof LayoutAdminRoute
   '/archive': typeof LayoutArchiveRoute
+  '/authors': typeof LayoutAuthorsRoute
   '/explorer': typeof LayoutExplorerRoute
   '/items': typeof LayoutItemsRoute
   '/reader': typeof LayoutReaderRoute
   '/search': typeof LayoutSearchRoute
   '/settings': typeof LayoutSettingsRoute
+  '/tags': typeof LayoutTagsRoute
   '/video': typeof LayoutVideoRoute
 }
 export interface FileRoutesByTo {
@@ -116,11 +130,13 @@ export interface FileRoutesByTo {
   '/signup': typeof SignupRoute
   '/admin': typeof LayoutAdminRoute
   '/archive': typeof LayoutArchiveRoute
+  '/authors': typeof LayoutAuthorsRoute
   '/explorer': typeof LayoutExplorerRoute
   '/items': typeof LayoutItemsRoute
   '/reader': typeof LayoutReaderRoute
   '/search': typeof LayoutSearchRoute
   '/settings': typeof LayoutSettingsRoute
+  '/tags': typeof LayoutTagsRoute
   '/video': typeof LayoutVideoRoute
   '/': typeof LayoutIndexRoute
 }
@@ -133,11 +149,13 @@ export interface FileRoutesById {
   '/signup': typeof SignupRoute
   '/_layout/admin': typeof LayoutAdminRoute
   '/_layout/archive': typeof LayoutArchiveRoute
+  '/_layout/authors': typeof LayoutAuthorsRoute
   '/_layout/explorer': typeof LayoutExplorerRoute
   '/_layout/items': typeof LayoutItemsRoute
   '/_layout/reader': typeof LayoutReaderRoute
   '/_layout/search': typeof LayoutSearchRoute
   '/_layout/settings': typeof LayoutSettingsRoute
+  '/_layout/tags': typeof LayoutTagsRoute
   '/_layout/video': typeof LayoutVideoRoute
   '/_layout/': typeof LayoutIndexRoute
 }
@@ -151,11 +169,13 @@ export interface FileRouteTypes {
     | '/signup'
     | '/admin'
     | '/archive'
+    | '/authors'
     | '/explorer'
     | '/items'
     | '/reader'
     | '/search'
     | '/settings'
+    | '/tags'
     | '/video'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -165,11 +185,13 @@ export interface FileRouteTypes {
     | '/signup'
     | '/admin'
     | '/archive'
+    | '/authors'
     | '/explorer'
     | '/items'
     | '/reader'
     | '/search'
     | '/settings'
+    | '/tags'
     | '/video'
     | '/'
   id:
@@ -181,11 +203,13 @@ export interface FileRouteTypes {
     | '/signup'
     | '/_layout/admin'
     | '/_layout/archive'
+    | '/_layout/authors'
     | '/_layout/explorer'
     | '/_layout/items'
     | '/_layout/reader'
     | '/_layout/search'
     | '/_layout/settings'
+    | '/_layout/tags'
     | '/_layout/video'
     | '/_layout/'
   fileRoutesById: FileRoutesById
@@ -249,6 +273,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutVideoRouteImport
       parentRoute: typeof LayoutRoute
     }
+    '/_layout/tags': {
+      id: '/_layout/tags'
+      path: '/tags'
+      fullPath: '/tags'
+      preLoaderRoute: typeof LayoutTagsRouteImport
+      parentRoute: typeof LayoutRoute
+    }
     '/_layout/settings': {
       id: '/_layout/settings'
       path: '/settings'
@@ -284,6 +315,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutExplorerRouteImport
       parentRoute: typeof LayoutRoute
     }
+    '/_layout/authors': {
+      id: '/_layout/authors'
+      path: '/authors'
+      fullPath: '/authors'
+      preLoaderRoute: typeof LayoutAuthorsRouteImport
+      parentRoute: typeof LayoutRoute
+    }
     '/_layout/archive': {
       id: '/_layout/archive'
       path: '/archive'
@@ -304,11 +342,13 @@ declare module '@tanstack/react-router' {
 interface LayoutRouteChildren {
   LayoutAdminRoute: typeof LayoutAdminRoute
   LayoutArchiveRoute: typeof LayoutArchiveRoute
+  LayoutAuthorsRoute: typeof LayoutAuthorsRoute
   LayoutExplorerRoute: typeof LayoutExplorerRoute
   LayoutItemsRoute: typeof LayoutItemsRoute
   LayoutReaderRoute: typeof LayoutReaderRoute
   LayoutSearchRoute: typeof LayoutSearchRoute
   LayoutSettingsRoute: typeof LayoutSettingsRoute
+  LayoutTagsRoute: typeof LayoutTagsRoute
   LayoutVideoRoute: typeof LayoutVideoRoute
   LayoutIndexRoute: typeof LayoutIndexRoute
 }
@@ -316,11 +356,13 @@ interface LayoutRouteChildren {
 const LayoutRouteChildren: LayoutRouteChildren = {
   LayoutAdminRoute: LayoutAdminRoute,
   LayoutArchiveRoute: LayoutArchiveRoute,
+  LayoutAuthorsRoute: LayoutAuthorsRoute,
   LayoutExplorerRoute: LayoutExplorerRoute,
   LayoutItemsRoute: LayoutItemsRoute,
   LayoutReaderRoute: LayoutReaderRoute,
   LayoutSearchRoute: LayoutSearchRoute,
   LayoutSettingsRoute: LayoutSettingsRoute,
+  LayoutTagsRoute: LayoutTagsRoute,
   LayoutVideoRoute: LayoutVideoRoute,
   LayoutIndexRoute: LayoutIndexRoute,
 }

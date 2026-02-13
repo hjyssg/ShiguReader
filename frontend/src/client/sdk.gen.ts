@@ -3,7 +3,35 @@
 import type { CancelablePromise } from './core/CancelablePromise';
 import { OpenAPI } from './core/OpenAPI';
 import { request as __request } from './core/request';
-import type { FilesystemGetRootsResponse, FilesystemListDirectoryData, FilesystemListDirectoryResponse, FilesystemScanDirectoryData, FilesystemScanDirectoryResponse, FilesystemScanAndWatchData, FilesystemScanAndWatchResponse, FilesystemGetScanStatusData, FilesystemGetScanStatusResponse, FilesystemGetThumbnailData, FilesystemGetThumbnailResponse, FilesystemListArchiveData, FilesystemListArchiveResponse, FilesystemExtractArchiveData, FilesystemExtractArchiveResponse, FilesystemGetArchiveFileData, FilesystemGetArchiveFileResponse, FilesystemGetFileData, FilesystemGetFileResponse, SearchSearchFilesData, SearchSearchFilesResponse, ItemsReadItemsData, ItemsReadItemsResponse, ItemsCreateItemData, ItemsCreateItemResponse, ItemsReadItemData, ItemsReadItemResponse, ItemsUpdateItemData, ItemsUpdateItemResponse, ItemsDeleteItemData, ItemsDeleteItemResponse, PrivateCreateUserData, PrivateCreateUserResponse, UsersReadUsersData, UsersReadUsersResponse, UsersCreateUserData, UsersCreateUserResponse, UsersReadUserMeResponse, UsersDeleteUserMeResponse, UsersUpdateUserMeData, UsersUpdateUserMeResponse, UsersUpdatePasswordMeData, UsersUpdatePasswordMeResponse, UsersRegisterUserData, UsersRegisterUserResponse, UsersReadUserByIdData, UsersReadUserByIdResponse, UsersUpdateUserData, UsersUpdateUserResponse, UsersDeleteUserData, UsersDeleteUserResponse, UtilsHealthCheckResponse } from './types.gen';
+import type { AuthorsReadAuthorsData, AuthorsReadAuthorsResponse, FilesystemGetRootsResponse, FilesystemListDirectoryData, FilesystemListDirectoryResponse, FilesystemScanDirectoryData, FilesystemScanDirectoryResponse, FilesystemScanAndWatchData, FilesystemScanAndWatchResponse, FilesystemGetScanStatusData, FilesystemGetScanStatusResponse, FilesystemGetThumbnailData, FilesystemGetThumbnailResponse, FilesystemListArchiveData, FilesystemListArchiveResponse, FilesystemExtractArchiveData, FilesystemExtractArchiveResponse, FilesystemGetArchiveFileData, FilesystemGetArchiveFileResponse, FilesystemGetFileData, FilesystemGetFileResponse, ParseBatchParseData, ParseBatchParseResponse, ParseGetParseResultData, ParseGetParseResultResponse, PrivateCreateUserData, PrivateCreateUserResponse, SearchSearchFilesData, SearchSearchFilesResponse, TagsReadTagsData, TagsReadTagsResponse, UsersReadUsersData, UsersReadUsersResponse, UsersCreateUserData, UsersCreateUserResponse, UsersReadUserMeResponse, UsersDeleteUserMeResponse, UsersUpdateUserMeData, UsersUpdateUserMeResponse, UsersUpdatePasswordMeData, UsersUpdatePasswordMeResponse, UsersRegisterUserData, UsersRegisterUserResponse, UsersReadUserByIdData, UsersReadUserByIdResponse, UsersUpdateUserData, UsersUpdateUserResponse, UsersDeleteUserData, UsersDeleteUserResponse, UtilsHealthCheckResponse } from './types.gen';
+
+export class AuthorsService {
+    /**
+     * Read Authors
+     * @param data The data for the request.
+     * @param data.page
+     * @param data.pageSize
+     * @param data.sortBy
+     * @param data.sortOrder
+     * @returns AuthorsResponse Successful Response
+     * @throws ApiError
+     */
+    public static readAuthors(data: AuthorsReadAuthorsData = {}): CancelablePromise<AuthorsReadAuthorsResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/authors',
+            query: {
+                page: data.page,
+                page_size: data.pageSize,
+                sort_by: data.sortBy,
+                sort_order: data.sortOrder
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+}
 
 export class FilesystemService {
     /**
@@ -39,7 +67,7 @@ export class FilesystemService {
             }
         });
     }
-
+    
     /**
      * Scan Directory
      * Scan a directory and optionally recurse into subfolders.
@@ -59,7 +87,7 @@ export class FilesystemService {
             }
         });
     }
-
+    
     /**
      * Scan And Watch
      * Scan a directory recursively and start watchdog listener.
@@ -79,7 +107,7 @@ export class FilesystemService {
             }
         });
     }
-
+    
     /**
      * Get Scan Status
      * Get background scan status for all paths or one path.
@@ -211,42 +239,19 @@ export class FilesystemService {
     }
 }
 
-export class ItemsService {
+export class ParseService {
     /**
-     * Read Items
-     * Retrieve items.
-     * @param data The data for the request.
-     * @param data.skip
-     * @param data.limit
-     * @returns ItemsPublic Successful Response
-     * @throws ApiError
-     */
-    public static readItems(data: ItemsReadItemsData = {}): CancelablePromise<ItemsReadItemsResponse> {
-        return __request(OpenAPI, {
-            method: 'GET',
-            url: '/api/v1/items/',
-            query: {
-                skip: data.skip,
-                limit: data.limit
-            },
-            errors: {
-                422: 'Validation Error'
-            }
-        });
-    }
-    
-    /**
-     * Create Item
-     * Create new item.
+     * Batch Parse
+     * Parse a list of filenames and persist results to the index DB.
      * @param data The data for the request.
      * @param data.requestBody
-     * @returns ItemPublic Successful Response
+     * @returns BatchParseResponse Successful Response
      * @throws ApiError
      */
-    public static createItem(data: ItemsCreateItemData): CancelablePromise<ItemsCreateItemResponse> {
+    public static batchParse(data: ParseBatchParseData): CancelablePromise<ParseBatchParseResponse> {
         return __request(OpenAPI, {
             method: 'POST',
-            url: '/api/v1/items/',
+            url: '/api/v1/parse/batch',
             body: data.requestBody,
             mediaType: 'application/json',
             errors: {
@@ -256,65 +261,42 @@ export class ItemsService {
     }
     
     /**
-     * Read Item
-     * Get item by ID.
+     * Get Parse Result
+     * Retrieve stored parse result for a single file.
      * @param data The data for the request.
-     * @param data.id
-     * @returns ItemPublic Successful Response
+     * @param data.filepath File path to look up
+     * @returns StoredParseResponse Successful Response
      * @throws ApiError
      */
-    public static readItem(data: ItemsReadItemData): CancelablePromise<ItemsReadItemResponse> {
+    public static getParseResult(data: ParseGetParseResultData): CancelablePromise<ParseGetParseResultResponse> {
         return __request(OpenAPI, {
             method: 'GET',
-            url: '/api/v1/items/{id}',
-            path: {
-                id: data.id
+            url: '/api/v1/parse',
+            query: {
+                filepath: data.filepath
             },
             errors: {
                 422: 'Validation Error'
             }
         });
     }
-    
+}
+
+export class PrivateService {
     /**
-     * Update Item
-     * Update an item.
+     * Create User
+     * Create a new user.
      * @param data The data for the request.
-     * @param data.id
      * @param data.requestBody
-     * @returns ItemPublic Successful Response
+     * @returns UserPublic Successful Response
      * @throws ApiError
      */
-    public static updateItem(data: ItemsUpdateItemData): CancelablePromise<ItemsUpdateItemResponse> {
+    public static createUser(data: PrivateCreateUserData): CancelablePromise<PrivateCreateUserResponse> {
         return __request(OpenAPI, {
-            method: 'PUT',
-            url: '/api/v1/items/{id}',
-            path: {
-                id: data.id
-            },
+            method: 'POST',
+            url: '/api/v1/private/users/',
             body: data.requestBody,
             mediaType: 'application/json',
-            errors: {
-                422: 'Validation Error'
-            }
-        });
-    }
-    
-    /**
-     * Delete Item
-     * Delete an item.
-     * @param data The data for the request.
-     * @param data.id
-     * @returns Message Successful Response
-     * @throws ApiError
-     */
-    public static deleteItem(data: ItemsDeleteItemData): CancelablePromise<ItemsDeleteItemResponse> {
-        return __request(OpenAPI, {
-            method: 'DELETE',
-            url: '/api/v1/items/{id}',
-            path: {
-                id: data.id
-            },
             errors: {
                 422: 'Validation Error'
             }
@@ -343,21 +325,27 @@ export class SearchService {
     }
 }
 
-export class PrivateService {
+export class TagsService {
     /**
-     * Create User
-     * Create a new user.
+     * Read Tags
      * @param data The data for the request.
-     * @param data.requestBody
-     * @returns UserPublic Successful Response
+     * @param data.page
+     * @param data.pageSize
+     * @param data.sortBy
+     * @param data.sortOrder
+     * @returns TagsResponse Successful Response
      * @throws ApiError
      */
-    public static createUser(data: PrivateCreateUserData): CancelablePromise<PrivateCreateUserResponse> {
+    public static readTags(data: TagsReadTagsData = {}): CancelablePromise<TagsReadTagsResponse> {
         return __request(OpenAPI, {
-            method: 'POST',
-            url: '/api/v1/private/users/',
-            body: data.requestBody,
-            mediaType: 'application/json',
+            method: 'GET',
+            url: '/api/v1/tags',
+            query: {
+                page: data.page,
+                page_size: data.pageSize,
+                sort_by: data.sortBy,
+                sort_order: data.sortOrder
+            },
             errors: {
                 422: 'Validation Error'
             }

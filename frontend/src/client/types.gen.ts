@@ -14,6 +14,34 @@ export type ArchiveListResponse = {
     total: number;
 };
 
+export type AuthorListItem = {
+    name: string;
+    thumbnail?: (string | null);
+    file_count: number;
+};
+
+export type AuthorsResponse = {
+    items: Array<AuthorListItem>;
+    page: number;
+    page_size: number;
+    total: number;
+};
+
+export type BatchParseItem = {
+    filepath: string;
+    result?: (ParseResponse | null);
+};
+
+export type BatchParseRequest = {
+    filepaths: Array<(string)>;
+};
+
+export type BatchParseResponse = {
+    items: Array<BatchParseItem>;
+    parsed_count: number;
+    total_count: number;
+};
+
 export type ExtractStatus = {
     status: 'extracting' | 'completed' | 'error';
     extracted_count: number;
@@ -41,31 +69,34 @@ export type HTTPValidationError = {
     detail?: Array<ValidationError>;
 };
 
-export type ItemCreate = {
-    title: string;
-    description?: (string | null);
-};
-
-export type ItemPublic = {
-    title: string;
-    description?: (string | null);
-    id: string;
-    owner_id: string;
-    created_at?: (string | null);
-};
-
-export type ItemsPublic = {
-    data: Array<ItemPublic>;
-    count: number;
-};
-
-export type ItemUpdate = {
-    title?: (string | null);
-    description?: (string | null);
-};
-
 export type ListResponse = {
     items: Array<FileSystemItem>;
+};
+
+export type Message = {
+    message: string;
+};
+
+export type ParseResponse = {
+    title: string;
+    authors: Array<(string)>;
+    group?: (string | null);
+    raw_tags: Array<(string)>;
+    event?: (string | null);
+    date_tag?: (string | null);
+    type: string;
+};
+
+export type PrivateUserCreate = {
+    email: string;
+    password: string;
+    full_name: string;
+    is_verified?: boolean;
+};
+
+export type RootItem = {
+    path: string;
+    dirname: string;
 };
 
 export type ScanRequest = {
@@ -74,7 +105,7 @@ export type ScanRequest = {
 };
 
 export type ScanStartResponse = {
-    status: 'started';
+    status: "started";
     message: string;
     path: string;
 };
@@ -92,31 +123,43 @@ export type ScanStatusItem = {
     finished_at?: (number | null);
 };
 
+export type status2 = 'running' | 'completed' | 'error';
+
 export type SearchRequest = {
     q?: string;
-    scopes?: Array<'file' | 'author' | 'tag'>;
+    scopes?: Array<('file' | 'author' | 'tag')>;
     mode?: 'exact' | 'hybrid';
 };
+
+export type mode = 'exact' | 'hybrid';
 
 export type SearchResponse = {
     items: Array<FileSystemItem>;
     total: number;
 };
 
-export type Message = {
-    message: string;
+export type StoredParseResponse = {
+    filepath: string;
+    title?: (string | null);
+    authors?: Array<(string)>;
+    group_name?: (string | null);
+    raw_tags?: Array<(string)>;
+    event?: (string | null);
+    date_tag?: (string | null);
+    media_type?: (string | null);
 };
 
-export type PrivateUserCreate = {
-    email: string;
-    password: string;
-    full_name: string;
-    is_verified?: boolean;
+export type TagListItem = {
+    name: string;
+    thumbnail?: (string | null);
+    file_count: number;
 };
 
-export type RootItem = {
-    path: string;
-    dirname: string;
+export type TagsResponse = {
+    items: Array<TagListItem>;
+    page: number;
+    page_size: number;
+    total: number;
 };
 
 export type UpdatePassword = {
@@ -175,6 +218,15 @@ export type ValidationError = {
     };
 };
 
+export type AuthorsReadAuthorsData = {
+    page?: number;
+    pageSize?: number;
+    sortBy?: 'count' | 'name';
+    sortOrder?: 'asc' | 'desc';
+};
+
+export type AuthorsReadAuthorsResponse = (AuthorsResponse);
+
 export type FilesystemGetRootsResponse = (Array<RootItem>);
 
 export type FilesystemListDirectoryData = {
@@ -199,6 +251,9 @@ export type FilesystemScanAndWatchData = {
 export type FilesystemScanAndWatchResponse = (ScanStartResponse);
 
 export type FilesystemGetScanStatusData = {
+    /**
+     * Optional path filter
+     */
     path?: (string | null);
 };
 
@@ -257,49 +312,41 @@ export type FilesystemGetFileData = {
 
 export type FilesystemGetFileResponse = (unknown);
 
-export type SearchSearchFilesData = {
-    requestBody: SearchRequest;
+export type ParseBatchParseData = {
+    requestBody: BatchParseRequest;
 };
 
-export type SearchSearchFilesResponse = (SearchResponse);
+export type ParseBatchParseResponse = (BatchParseResponse);
 
-export type ItemsReadItemsData = {
-    limit?: number;
-    skip?: number;
+export type ParseGetParseResultData = {
+    /**
+     * File path to look up
+     */
+    filepath: string;
 };
 
-export type ItemsReadItemsResponse = (ItemsPublic);
-
-export type ItemsCreateItemData = {
-    requestBody: ItemCreate;
-};
-
-export type ItemsCreateItemResponse = (ItemPublic);
-
-export type ItemsReadItemData = {
-    id: string;
-};
-
-export type ItemsReadItemResponse = (ItemPublic);
-
-export type ItemsUpdateItemData = {
-    id: string;
-    requestBody: ItemUpdate;
-};
-
-export type ItemsUpdateItemResponse = (ItemPublic);
-
-export type ItemsDeleteItemData = {
-    id: string;
-};
-
-export type ItemsDeleteItemResponse = (Message);
+export type ParseGetParseResultResponse = (StoredParseResponse);
 
 export type PrivateCreateUserData = {
     requestBody: PrivateUserCreate;
 };
 
 export type PrivateCreateUserResponse = (UserPublic);
+
+export type SearchSearchFilesData = {
+    requestBody: SearchRequest;
+};
+
+export type SearchSearchFilesResponse = (SearchResponse);
+
+export type TagsReadTagsData = {
+    page?: number;
+    pageSize?: number;
+    sortBy?: 'count' | 'name';
+    sortOrder?: 'asc' | 'desc';
+};
+
+export type TagsReadTagsResponse = (TagsResponse);
 
 export type UsersReadUsersData = {
     limit?: number;
