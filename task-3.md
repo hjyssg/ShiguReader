@@ -126,7 +126,7 @@ Score = log(1 + Fa)
 - 参数简单，易于调节
 ```
 
-task3：
+task3：  done
 参考
 D:\Git\ShiguReader\packages\frontend\src\pages
 
@@ -143,34 +143,16 @@ VideoPlayerPage
 task4：
 现在怎么清理解压的临时文件。
 
-bug：
-audio page挂了
 
-1
+1 done
 reader页面不需要header footer和sidebar。
 
-task 5：
+task 5： done
 新增 History 页面。
 
-要求：
-
-- 页面风格类似 Explorer
-- 支持 Grid View 和 Table View 两种展示模式
-- 必须支持 Pagination
-
-Table View 中：
-
-- 时间字段显示“阅读时间”（read_at），不是文件修改时间
-
-行为要求：
-
-- 如果某个文件曾被阅读，但后来被删除：
-  - 该记录在 History 中不能消失
-  - 必须明确标记为“不可用”或“已删除”
-  - 不允许正常打开
 
 
-task 6：
+task 6： done
 home要显示电脑硬盘
 
 
@@ -183,10 +165,24 @@ D:\Git\ShiguReader\packages\backend\workspace\shigureader_internal_db.sqlite
 把history数据和thumbnail导入到这个项目吗
 
 
-task 7：
-打包成exe
+
 
 
 task 8
 给explorer添加
 file-change-toolbar-move-modal
+
+bug：
+audio page挂了
+
+
+task7：
+这个项目可以打包成exe吗？我想要一个release或者build文件，里面有一个exe 我点击就能启动前后端。就能发不 
+
+task 9：
+i18n
+
+
+task10：
+http://localhost:5173/explorer?path= 
+path没有的时候，应该显示home
