@@ -257,12 +257,15 @@ function HistoryPage() {
                   onClick={() => openHistoryItem(item)}
                 >
                   <td className="p-2">
-                    <div className="flex items-center gap-2">
-                      <FileIcon fileType={item.file_type} isFolder={false} size="sm" />
+                    <div className="flex items-center gap-2 min-w-0">
+                      <div className="shrink-0">
+                        <FileIcon fileType={item.file_type} isFolder={false} size="sm" />
+                      </div>
                       <FileNameWithPreview
                         filename={item.filename}
                         filepath={item.filepath}
                         thumbnailUrl={item.thumbnail_url}
+                        className="min-w-0"
                       />
                     </div>
                   </td>

@@ -106,12 +106,13 @@ function DetailsRow({ item }: { item: FileSystemItem }) {
       )}
     >
       <td className="p-2">
-        <div className="flex items-center gap-2">
-          <FileIcon fileType={item.file_type} isFolder={isFolder} size="sm" />
+        <div className="flex items-center gap-2 min-w-0">
+          <FileIcon fileType={item.file_type} isFolder={isFolder} size="sm" className="shrink-0" />
           <FileNameWithPreview
             filename={item.name}
             filepath={item.path}
             thumbnailUrl={item.thumbnail_url}
+            className="min-w-0"
           />
         </div>
       </td>

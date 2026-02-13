@@ -29,7 +29,7 @@ export function FileNameWithPreview({
     <TooltipProvider delayDuration={300}>
       <Tooltip>
         <TooltipTrigger asChild>
-          <span className={cn("truncate", className)} title={filename}>
+          <span className={cn("truncate block min-w-0", className)} title={filename}>
             {filename}
           </span>
         </TooltipTrigger>
