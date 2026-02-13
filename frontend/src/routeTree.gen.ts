@@ -19,7 +19,10 @@ import { Route as LayoutVideoRouteImport } from './routes/_layout/video'
 import { Route as LayoutTagsRouteImport } from './routes/_layout/tags'
 import { Route as LayoutSettingsRouteImport } from './routes/_layout/settings'
 import { Route as LayoutSearchRouteImport } from './routes/_layout/search'
-import { Route as LayoutReaderRouteImport } from './routes/_layout/reader'
+import { Route as LayoutReadWaterfallRouteImport } from './routes/_layout/read-waterfall'
+import { Route as LayoutReadOverviewRouteImport } from './routes/_layout/read-overview'
+import { Route as LayoutReadMobileRouteImport } from './routes/_layout/read-mobile'
+import { Route as LayoutReadRouteImport } from './routes/_layout/read'
 import { Route as LayoutItemsRouteImport } from './routes/_layout/items'
 import { Route as LayoutExplorerRouteImport } from './routes/_layout/explorer'
 import { Route as LayoutAuthorsRouteImport } from './routes/_layout/authors'
@@ -75,9 +78,24 @@ const LayoutSearchRoute = LayoutSearchRouteImport.update({
   path: '/search',
   getParentRoute: () => LayoutRoute,
 } as any)
-const LayoutReaderRoute = LayoutReaderRouteImport.update({
-  id: '/reader',
-  path: '/reader',
+const LayoutReadWaterfallRoute = LayoutReadWaterfallRouteImport.update({
+  id: '/read-waterfall',
+  path: '/read-waterfall',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const LayoutReadOverviewRoute = LayoutReadOverviewRouteImport.update({
+  id: '/read-overview',
+  path: '/read-overview',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const LayoutReadMobileRoute = LayoutReadMobileRouteImport.update({
+  id: '/read-mobile',
+  path: '/read-mobile',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const LayoutReadRoute = LayoutReadRouteImport.update({
+  id: '/read',
+  path: '/read',
   getParentRoute: () => LayoutRoute,
 } as any)
 const LayoutItemsRoute = LayoutItemsRouteImport.update({
@@ -117,7 +135,10 @@ export interface FileRoutesByFullPath {
   '/authors': typeof LayoutAuthorsRoute
   '/explorer': typeof LayoutExplorerRoute
   '/items': typeof LayoutItemsRoute
-  '/reader': typeof LayoutReaderRoute
+  '/read': typeof LayoutReadRoute
+  '/read-mobile': typeof LayoutReadMobileRoute
+  '/read-overview': typeof LayoutReadOverviewRoute
+  '/read-waterfall': typeof LayoutReadWaterfallRoute
   '/search': typeof LayoutSearchRoute
   '/settings': typeof LayoutSettingsRoute
   '/tags': typeof LayoutTagsRoute
@@ -133,7 +154,10 @@ export interface FileRoutesByTo {
   '/authors': typeof LayoutAuthorsRoute
   '/explorer': typeof LayoutExplorerRoute
   '/items': typeof LayoutItemsRoute
-  '/reader': typeof LayoutReaderRoute
+  '/read': typeof LayoutReadRoute
+  '/read-mobile': typeof LayoutReadMobileRoute
+  '/read-overview': typeof LayoutReadOverviewRoute
+  '/read-waterfall': typeof LayoutReadWaterfallRoute
   '/search': typeof LayoutSearchRoute
   '/settings': typeof LayoutSettingsRoute
   '/tags': typeof LayoutTagsRoute
@@ -152,7 +176,10 @@ export interface FileRoutesById {
   '/_layout/authors': typeof LayoutAuthorsRoute
   '/_layout/explorer': typeof LayoutExplorerRoute
   '/_layout/items': typeof LayoutItemsRoute
-  '/_layout/reader': typeof LayoutReaderRoute
+  '/_layout/read': typeof LayoutReadRoute
+  '/_layout/read-mobile': typeof LayoutReadMobileRoute
+  '/_layout/read-overview': typeof LayoutReadOverviewRoute
+  '/_layout/read-waterfall': typeof LayoutReadWaterfallRoute
   '/_layout/search': typeof LayoutSearchRoute
   '/_layout/settings': typeof LayoutSettingsRoute
   '/_layout/tags': typeof LayoutTagsRoute
@@ -172,7 +199,10 @@ export interface FileRouteTypes {
     | '/authors'
     | '/explorer'
     | '/items'
-    | '/reader'
+    | '/read'
+    | '/read-mobile'
+    | '/read-overview'
+    | '/read-waterfall'
     | '/search'
     | '/settings'
     | '/tags'
@@ -188,7 +218,10 @@ export interface FileRouteTypes {
     | '/authors'
     | '/explorer'
     | '/items'
-    | '/reader'
+    | '/read'
+    | '/read-mobile'
+    | '/read-overview'
+    | '/read-waterfall'
     | '/search'
     | '/settings'
     | '/tags'
@@ -206,7 +239,10 @@ export interface FileRouteTypes {
     | '/_layout/authors'
     | '/_layout/explorer'
     | '/_layout/items'
-    | '/_layout/reader'
+    | '/_layout/read'
+    | '/_layout/read-mobile'
+    | '/_layout/read-overview'
+    | '/_layout/read-waterfall'
     | '/_layout/search'
     | '/_layout/settings'
     | '/_layout/tags'
@@ -294,11 +330,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutSearchRouteImport
       parentRoute: typeof LayoutRoute
     }
-    '/_layout/reader': {
-      id: '/_layout/reader'
-      path: '/reader'
-      fullPath: '/reader'
-      preLoaderRoute: typeof LayoutReaderRouteImport
+    '/_layout/read-waterfall': {
+      id: '/_layout/read-waterfall'
+      path: '/read-waterfall'
+      fullPath: '/read-waterfall'
+      preLoaderRoute: typeof LayoutReadWaterfallRouteImport
+      parentRoute: typeof LayoutRoute
+    }
+    '/_layout/read-overview': {
+      id: '/_layout/read-overview'
+      path: '/read-overview'
+      fullPath: '/read-overview'
+      preLoaderRoute: typeof LayoutReadOverviewRouteImport
+      parentRoute: typeof LayoutRoute
+    }
+    '/_layout/read-mobile': {
+      id: '/_layout/read-mobile'
+      path: '/read-mobile'
+      fullPath: '/read-mobile'
+      preLoaderRoute: typeof LayoutReadMobileRouteImport
+      parentRoute: typeof LayoutRoute
+    }
+    '/_layout/read': {
+      id: '/_layout/read'
+      path: '/read'
+      fullPath: '/read'
+      preLoaderRoute: typeof LayoutReadRouteImport
       parentRoute: typeof LayoutRoute
     }
     '/_layout/items': {
@@ -345,7 +402,10 @@ interface LayoutRouteChildren {
   LayoutAuthorsRoute: typeof LayoutAuthorsRoute
   LayoutExplorerRoute: typeof LayoutExplorerRoute
   LayoutItemsRoute: typeof LayoutItemsRoute
-  LayoutReaderRoute: typeof LayoutReaderRoute
+  LayoutReadRoute: typeof LayoutReadRoute
+  LayoutReadMobileRoute: typeof LayoutReadMobileRoute
+  LayoutReadOverviewRoute: typeof LayoutReadOverviewRoute
+  LayoutReadWaterfallRoute: typeof LayoutReadWaterfallRoute
   LayoutSearchRoute: typeof LayoutSearchRoute
   LayoutSettingsRoute: typeof LayoutSettingsRoute
   LayoutTagsRoute: typeof LayoutTagsRoute
@@ -359,7 +419,10 @@ const LayoutRouteChildren: LayoutRouteChildren = {
   LayoutAuthorsRoute: LayoutAuthorsRoute,
   LayoutExplorerRoute: LayoutExplorerRoute,
   LayoutItemsRoute: LayoutItemsRoute,
-  LayoutReaderRoute: LayoutReaderRoute,
+  LayoutReadRoute: LayoutReadRoute,
+  LayoutReadMobileRoute: LayoutReadMobileRoute,
+  LayoutReadOverviewRoute: LayoutReadOverviewRoute,
+  LayoutReadWaterfallRoute: LayoutReadWaterfallRoute,
   LayoutSearchRoute: LayoutSearchRoute,
   LayoutSettingsRoute: LayoutSettingsRoute,
   LayoutTagsRoute: LayoutTagsRoute,

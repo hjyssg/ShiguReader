@@ -11,6 +11,7 @@ import {
 import { useEffect } from "react"
 
 import { FilesystemService, OpenAPI } from "@/client"
+import { useIsMobile } from "@/hooks/useMobile"
 import { Skeleton } from "@/components/ui/skeleton"
 import { cn } from "@/lib/utils"
 
@@ -33,6 +34,7 @@ export const Route = createFileRoute("/_layout/archive")({
 function Archive() {
   const { path } = Route.useSearch()
   const navigate = useNavigate()
+  const isMobile = useIsMobile()
 
   const { data: listData, isLoading: isListLoading } = useQuery({
     queryKey: ["archive-list", path],
@@ -41,8 +43,7 @@ function Archive() {
   })
 
   const extractMutation = useMutation({
-    mutationFn: (page: number) =>
-      FilesystemService.extractArchive({ path, page: 0 }),
+    mutationFn: (page: number) => FilesystemService.extractArchive({ path, page }),
   })
 
   useEffect(() => {
@@ -56,10 +57,14 @@ function Archive() {
     if (listData) {
       const hasOnlyImages = listData.entries.every((e) => e.file_type === "image")
       if (hasOnlyImages && listData.entries.length > 0) {
-        navigate({ to: "/reader", search: { path, page: 0 }, replace: true })
+        navigate({
+          to: isMobile ? "/read-mobile" : "/read",
+          search: { path, page: 0 },
+          replace: true,
+        })
       }
     }
-  }, [listData, path, navigate])
+  }, [isMobile, listData, path, navigate])
 
   if (isListLoading) {
     return (
@@ -116,6 +121,7 @@ function Archive() {
             key={entry.entry_path}
             entry={entry}
             archivePath={path}
+            imageReaderPath={isMobile ? "/read-mobile" : "/read"}
           />
         ))}
       </div>
@@ -134,9 +140,11 @@ function Archive() {
 function ArchiveEntryItem({
   entry,
   archivePath,
+  imageReaderPath,
 }: {
   entry: { name: string; entry_path: string; file_type: string; index: number }
   archivePath: string
+  imageReaderPath: "/read" | "/read-mobile"
 }) {
   const isVideo = entry.file_type === "video"
   const isAudio = entry.file_type === "audio"
@@ -182,7 +190,7 @@ function ArchiveEntryItem({
   if (isImage) {
     return (
       <Link
-        to="/reader"
+        to={imageReaderPath}
         search={{ path: archivePath, page: entry.index }}
       >
         {content}
