@@ -8,6 +8,7 @@ import threading
 from time import time
 from pathlib import Path
 from typing import Literal
+from urllib.parse import quote
 
 from fastapi import APIRouter, BackgroundTasks, HTTPException, Query
 from fastapi.responses import FileResponse, Response
@@ -33,6 +34,11 @@ _active_watchers: dict[str, FolderWatcher] = {}
 _watcher_lock = threading.Lock()
 _scan_status: dict[str, dict] = {}
 _scan_status_lock = threading.Lock()
+
+
+def _build_thumb_url(path: Path | str) -> str:
+    encoded_path = quote(str(path), safe="")
+    return f"{settings.API_V1_STR}/fs/thumb?path={encoded_path}"
 
 
 def _parse_roots() -> list[Path]:
@@ -366,7 +372,7 @@ async def list_directory(
                     thumbnail_url = None
                     
                     if file_type in ("archive", "video", "image"):
-                        thumbnail_url = f"{settings.API_V1_STR}/fs/thumb?path={entry}"
+                        thumbnail_url = _build_thumb_url(entry)
                     
                     items.append(
                         FileSystemItem(
@@ -546,6 +552,14 @@ async def get_thumbnail(path: str = Query(..., description="File path for thumbn
     try:
         thumb_service = await ThumbService.get_instance()
         cache_path = await thumb_service.get_or_generate(validated_path)
+
+        # Cache may have been removed externally (e.g. manual cleanup), regenerate once.
+        if not cache_path.exists():
+            logger.warning(f"Thumbnail cache missing after generation, force regenerate: {validated_path}")
+            cache_path = await thumb_service.get_or_generate(validated_path, force=True)
+
+        if not cache_path.exists():
+            raise FileNotFoundError(f"Thumbnail cache not found after regeneration: {cache_path}")
         
         # Check if it's SVG (for video placeholders)
         if cache_path.suffix == ".webp" and cache_path.read_text(encoding="utf-8", errors="ignore").startswith("<svg"):

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from typing import Literal
+from urllib.parse import quote
 
 from fastapi import APIRouter
 from pydantic import BaseModel, Field
@@ -30,7 +31,7 @@ class SearchResponse(BaseModel):
 def _to_item(file: File) -> FileSystemItem:
     thumbnail_url = None
     if file.file_type in ("archive", "video", "image"):
-        thumbnail_url = f"{settings.API_V1_STR}/fs/thumb?path={file.filepath}"
+        thumbnail_url = f"{settings.API_V1_STR}/fs/thumb?path={quote(file.filepath, safe='')}"
 
     return FileSystemItem(
         name=file.filename,

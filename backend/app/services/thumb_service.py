@@ -57,10 +57,13 @@ class ThumbService:
         
         return cache_subdir / f"{hashlib.md5(fingerprint.encode()).hexdigest()}.webp"
 
-    async def get_or_generate(self, filepath: Path) -> Path:
+    async def get_or_generate(self, filepath: Path, *, force: bool = False) -> Path:
         """Get cached thumbnail or generate new one with inflight deduplication."""
         cache_path = self._get_cache_path(filepath)
-        
+
+        if force and cache_path.exists():
+            cache_path.unlink(missing_ok=True)
+
         if cache_path.exists():
             logger.info(f"Thumbnail cache hit: {filepath}")
             return cache_path

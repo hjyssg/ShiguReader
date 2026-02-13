@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import shutil
 from pathlib import Path
+from urllib.parse import quote
 
 import pytest
 from fastapi.testclient import TestClient
@@ -82,6 +83,21 @@ def test_list_directory(client_with_root: TestClient, test_fs_root: Path) -> Non
     
     txt_item = next(item for item in items if item["name"] == "test.txt")
     assert txt_item["thumbnail_url"] is None
+
+
+def test_list_directory_thumbnail_url_is_encoded(client_with_root: TestClient, test_fs_root: Path) -> None:
+    """Thumbnail URL should percent-encode special chars to avoid broken query parsing."""
+    special_name = "[あんてきぬすっ]OVA夏妻 .jpg"
+    special_path = test_fs_root / special_name
+    special_path.write_bytes(b"fake jpg")
+
+    response = client_with_root.get(f"/api/v1/fs/list?path={test_fs_root}")
+    assert response.status_code == 200
+
+    item = next(x for x in response.json()["items"] if x["name"] == special_name)
+    assert item["thumbnail_url"] is not None
+    expected = f"/api/v1/fs/thumb?path={quote(str(special_path), safe='')}"
+    assert item["thumbnail_url"] == expected
 
 
 def test_list_directory_not_found(client_with_root: TestClient, test_fs_root: Path) -> None:
