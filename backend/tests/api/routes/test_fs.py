@@ -83,11 +83,12 @@ def test_list_directory_not_found(client_with_root: TestClient, test_fs_root: Pa
     assert response.status_code == 404
 
 
-def test_list_directory_traversal_blocked(client_with_root: TestClient, test_fs_root: Path) -> None:
-    """Test that directory traversal is blocked."""
+def test_list_directory_outside_root(client_with_root: TestClient, test_fs_root: Path) -> None:
+    """Test that directories outside root can be accessed (no restriction)."""
     parent = test_fs_root.parent
     response = client_with_root.get(f"/api/v1/fs/list?path={parent}")
-    assert response.status_code == 403
+    # Should succeed now that path restrictions are removed
+    assert response.status_code == 200
 
 
 def test_get_thumbnail_not_found(client_with_root: TestClient, test_fs_root: Path) -> None:
@@ -103,14 +104,22 @@ def test_get_thumbnail_unsupported_type(client_with_root: TestClient, test_fs_ro
     assert "not supported" in response.json()["detail"].lower()
 
 
-def test_get_thumbnail_traversal_blocked(client_with_root: TestClient, test_fs_root: Path) -> None:
-    """Test that thumbnail path traversal is blocked."""
+def test_get_thumbnail_outside_root(client_with_root: TestClient, test_fs_root: Path) -> None:
+    """Test that thumbnails outside root can be accessed (no restriction)."""
     parent = test_fs_root.parent
-    response = client_with_root.get(f"/api/v1/fs/thumb?path={parent}/some_image.jpg")
-    assert response.status_code == 403
+    # Create a test image outside root
+    test_image = parent / "outside_image.jpg"
+    test_image.write_bytes(b"fake jpg")
+    
+    response = client_with_root.get(f"/api/v1/fs/thumb?path={test_image}")
+    # Should not be 403 anymore (will be 400 or 500 due to actual thumbnail generation)
+    assert response.status_code != 403
+    
+    # Cleanup
+    test_image.unlink()
 
 
-def test_no_roots_configured(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_no_roots_configured(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     """Test behavior when no FS_ROOTS configured."""
     monkeypatch.setattr(settings, "FS_ROOTS", "")
     client = TestClient(app)
@@ -119,6 +128,10 @@ def test_no_roots_configured(monkeypatch: pytest.MonkeyPatch) -> None:
     assert response.status_code == 200
     assert response.json() == []
     
-    response = client.get("/api/v1/fs/list?path=/some/path")
-    assert response.status_code == 500
-    assert "No FS_ROOTS configured" in response.json()["detail"]
+    # Create a test directory
+    test_dir = tmp_path / "test_dir"
+    test_dir.mkdir()
+    
+    # Should still work without FS_ROOTS configured
+    response = client.get(f"/api/v1/fs/list?path={test_dir}")
+    assert response.status_code == 200

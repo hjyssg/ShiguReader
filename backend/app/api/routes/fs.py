@@ -34,25 +34,12 @@ def _parse_roots() -> list[Path]:
     return [Path(r.strip()).resolve() for r in settings.FS_ROOTS.split(",") if r.strip()]
 
 
-def _validate_path_in_roots(path: Path) -> Path:
-    """Validate that path is within allowed roots. Raises HTTPException if not."""
-    roots = _parse_roots()
-    if not roots:
-        raise HTTPException(status_code=500, detail="No FS_ROOTS configured")
-    
+def _validate_path(path: Path) -> Path:
+    """Resolve and validate path."""
     try:
-        resolved = path.resolve()
+        return path.resolve()
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Invalid path: {e}")
-    
-    for root in roots:
-        try:
-            if resolved.is_relative_to(root):
-                return resolved
-        except ValueError:
-            continue
-    
-    raise HTTPException(status_code=403, detail="Path not in allowed roots")
 
 
 def _detect_file_type(filepath: Path) -> Literal["image", "video", "archive", "audio", "unknown"]:
@@ -109,7 +96,7 @@ async def list_directory(
 ) -> ListResponse:
     """List contents of a directory."""
     target_path = Path(path)
-    validated_path = _validate_path_in_roots(target_path)
+    validated_path = _validate_path(target_path)
     
     if not validated_path.exists():
         raise HTTPException(status_code=404, detail="Path not found")
@@ -229,7 +216,7 @@ async def list_directory(
 async def get_thumbnail(path: str = Query(..., description="File path for thumbnail")):
     """Get or generate thumbnail for a file."""
     target_path = Path(path)
-    validated_path = _validate_path_in_roots(target_path)
+    validated_path = _validate_path(target_path)
     
     if not validated_path.exists():
         raise HTTPException(status_code=404, detail="File not found")
@@ -315,7 +302,7 @@ def _detect_entry_file_type(entry_path: str) -> Literal["image", "video", "audio
 async def list_archive(path: str = Query(..., description="Archive file path")) -> ArchiveListResponse:
     """List contents of an archive file."""
     target_path = Path(path)
-    validated_path = _validate_path_in_roots(target_path)
+    validated_path = _validate_path(target_path)
     
     if not validated_path.exists():
         raise HTTPException(status_code=404, detail="Archive not found")
@@ -360,7 +347,7 @@ async def extract_archive(
 ) -> ExtractStatus:
     """Extract archive with prioritized extraction of current page vicinity."""
     target_path = Path(path)
-    validated_path = _validate_path_in_roots(target_path)
+    validated_path = _validate_path(target_path)
     
     if not validated_path.exists():
         raise HTTPException(status_code=404, detail="Archive not found")
@@ -428,7 +415,7 @@ async def get_archive_file(
 ):
     """Get a file from extracted archive cache."""
     target_path = Path(path)
-    validated_path = _validate_path_in_roots(target_path)
+    validated_path = _validate_path(target_path)
     
     if not validated_path.exists():
         raise HTTPException(status_code=404, detail="Archive not found")
@@ -468,7 +455,7 @@ async def get_archive_file(
 async def get_file(path: str = Query(..., description="File path")):
     """Serve a file directly from disk."""
     target_path = Path(path)
-    validated_path = _validate_path_in_roots(target_path)
+    validated_path = _validate_path(target_path)
     
     if not validated_path.exists():
         raise HTTPException(status_code=404, detail="File not found")
