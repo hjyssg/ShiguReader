@@ -178,11 +178,21 @@ audio page挂了
 
 task7：
 这个项目可以打包成exe吗？我想要一个release或者build文件，里面有一个exe 我点击就能启动前后端。就能发不 
-
-task 9：
-i18n
-
+你需要更新一个launch.json和build脚本还有readme
 
 task10：
 http://localhost:5173/explorer?path= 
 path没有的时候，应该显示home
+
+task 9：
+i18n
+
+做完一个任务git commit一次。我要出门了
+
+
+task 11
+前端现在还没有用上recommendation score
+
+
+task 10
+不要调用没必要的http://localhost:8000/api/v1/users/me

@@ -18,3 +18,5 @@ backend/.backend-dev.log
 *.exe
 /data/user.db
 /nul
+.env
+.env
