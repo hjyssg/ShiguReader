@@ -1,6 +1,7 @@
 from fastapi import APIRouter
 
 from app.api.routes import authors, fs, history, parse, private, search, tags, users, utils
+from app.api.routes import settings as settings_router
 from app.core.config import settings
 
 api_router = APIRouter()
@@ -12,6 +13,7 @@ api_router.include_router(search.router)
 api_router.include_router(tags.router)
 api_router.include_router(authors.router)
 api_router.include_router(history.router)
+api_router.include_router(settings_router.router)
 
 
 if settings.ENVIRONMENT == "local":

@@ -77,8 +77,18 @@
     "noImagesFound": "No readable images found"
   },
   "settings": {
+    "title": "Settings",
     "language": "Language",
     "theme": "Theme",
-    "appearance": "Appearance"
+    "appearance": "Appearance",
+    "favoriteDir": "Favorite Directory",
+    "favoriteDirPlaceholder": "Enter directory path, e.g., E:\\_Happy_Lesson\\_Going_to_sort",
+    "currentPath": "Current Path",
+    "save": "Save",
+    "saved": "Saved successfully",
+    "saveFailed": "Failed to save",
+    "invalidPath": "Path is invalid or does not exist",
+    "chinese": "中文",
+    "english": "English"
   }
 }

@@ -77,8 +77,18 @@
     "noImagesFound": "未找到可阅读图片"
   },
   "settings": {
+    "title": "设置",
     "language": "语言",
     "theme": "主题",
-    "appearance": "外观"
+    "appearance": "外观",
+    "favoriteDir": "收藏目录",
+    "favoriteDirPlaceholder": "输入目录路径，例如：E:\\_Happy_Lesson\\_Going_to_sort",
+    "currentPath": "当前路径",
+    "save": "保存",
+    "saved": "保存成功",
+    "saveFailed": "保存失败",
+    "invalidPath": "路径无效或不存在",
+    "chinese": "中文",
+    "english": "English"
   }
 }
