@@ -1,7 +1,10 @@
 import sentry_sdk
 from fastapi import FastAPI
 from fastapi.routing import APIRoute
+from fastapi.staticfiles import StaticFiles
 from starlette.middleware.cors import CORSMiddleware
+from pathlib import Path
+import sys
 
 from app.api.main import api_router
 from app.api.routes.fs import trigger_favorite_scan
@@ -39,3 +42,16 @@ if settings.all_cors_origins:
     )
 
 app.include_router(api_router, prefix=settings.API_V1_STR)
+
+# Serve frontend static files
+# When running as PyInstaller bundle, frontend files are in sys._MEIPASS
+if getattr(sys, 'frozen', False):
+    # Running as compiled executable
+    frontend_path = Path(sys._MEIPASS) / "frontend" / "dist"
+else:
+    # Running in development
+    frontend_path = Path(__file__).parent.parent.parent / "frontend" / "dist"
+
+if frontend_path.exists():
+    app.mount("/assets", StaticFiles(directory=str(frontend_path / "assets")), name="assets")
+    app.mount("/", StaticFiles(directory=str(frontend_path), html=True), name="frontend")
