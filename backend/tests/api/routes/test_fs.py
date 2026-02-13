@@ -6,6 +6,7 @@ from pathlib import Path
 import pytest
 from fastapi.testclient import TestClient
 
+from app.api.routes import fs as fs_route
 from app.core.config import settings
 from app.main import app
 
@@ -33,6 +34,12 @@ def client_with_root(test_fs_root: Path, monkeypatch: pytest.MonkeyPatch) -> Tes
     """Create test client with mocked FS_ROOTS."""
     monkeypatch.setattr(settings, "FS_ROOTS", str(test_fs_root))
     return TestClient(app)
+
+
+@pytest.fixture(autouse=True)
+def reset_scan_state() -> None:
+    fs_route._scan_status.clear()
+    fs_route._active_watchers.clear()
 
 
 def test_get_roots(client_with_root: TestClient, test_fs_root: Path) -> None:
@@ -135,3 +142,83 @@ def test_no_roots_configured(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) ->
     # Should still work without FS_ROOTS configured
     response = client.get(f"/api/v1/fs/list?path={test_dir}")
     assert response.status_code == 200
+
+
+def test_scan_watch_and_scan_status(client_with_root: TestClient, test_fs_root: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """scan-watch should initialize a complete status payload and status endpoint should validate."""
+
+    class DummyWatcher:
+        def __init__(self, path: Path):
+            self.path = path
+
+        def start(self) -> None:
+            return None
+
+    def fake_run_scan(path: Path, recursive: bool) -> None:
+        fs_route._update_scan_status(
+            str(path),
+            path=str(path),
+            status="completed",
+            message="Scan completed",
+            recursive=recursive,
+            scanned_folders=1,
+            scanned_files=1,
+            parsed_files=0,
+            watcher_active=True,
+        )
+
+    monkeypatch.setattr(fs_route, "FolderWatcher", DummyWatcher)
+    monkeypatch.setattr(fs_route, "_run_scan", fake_run_scan)
+
+    response = client_with_root.post(
+        "/api/v1/fs/scan-watch",
+        json={"path": str(test_fs_root), "recursive": True},
+    )
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["status"] == "started"
+    assert payload["path"] == str(test_fs_root)
+
+    status_response = client_with_root.get(f"/api/v1/fs/scan-status?path={test_fs_root}")
+    assert status_response.status_code == 200
+    items = status_response.json()
+    assert len(items) == 1
+    assert items[0]["path"] == str(test_fs_root)
+    assert items[0]["status"] in ("running", "completed")
+
+
+def test_scan_status_tolerates_partial_record(client_with_root: TestClient, test_fs_root: Path) -> None:
+    """status endpoint should not crash when historical records are incomplete."""
+    fs_route._scan_status[str(test_fs_root)] = {"watcher_active": True}
+
+    status_response = client_with_root.get(f"/api/v1/fs/scan-status?path={test_fs_root}")
+    assert status_response.status_code == 200
+    items = status_response.json()
+    assert len(items) == 1
+    assert items[0]["path"] == str(test_fs_root)
+    assert items[0]["status"] == "running"
+    assert items[0]["watcher_active"] is True
+
+
+def test_scan_endpoint_returns_started(client_with_root: TestClient, test_fs_root: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """scan endpoint should return started and schedule scan task."""
+
+    def fake_run_scan(path: Path, recursive: bool) -> None:
+        fs_route._update_scan_status(
+            str(path),
+            path=str(path),
+            status="running",
+            recursive=recursive,
+            watcher_active=False,
+        )
+
+    monkeypatch.setattr(fs_route, "_run_scan", fake_run_scan)
+
+    response = client_with_root.post(
+        "/api/v1/fs/scan",
+        json={"path": str(test_fs_root), "recursive": False},
+    )
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["status"] == "started"
+    assert payload["path"] == str(test_fs_root)

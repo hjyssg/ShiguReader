@@ -97,11 +97,18 @@ class ScanStatusItem(BaseModel):
     finished_at: int | None = None
 
 
-def _update_scan_status(path: str, **kwargs) -> None:
+def _update_scan_status(path_key: str, **kwargs) -> None:
     with _scan_status_lock:
-        current = _scan_status.get(path, {})
+        current = _scan_status.get(path_key, {})
         current.update(kwargs)
-        _scan_status[path] = current
+        _scan_status[path_key] = current
+
+
+def _build_scan_status_item(path_key: str, record: dict) -> ScanStatusItem:
+    normalized = dict(record)
+    normalized.setdefault("path", path_key)
+    normalized.setdefault("status", "running")
+    return ScanStatusItem(**normalized)
 
 
 def _run_scan(path: Path, recursive: bool) -> None:
@@ -484,7 +491,19 @@ async def scan_and_watch(background_tasks: BackgroundTasks, request: ScanRequest
             watcher.start()
             _active_watchers[path_key] = watcher
 
-    _update_scan_status(path_key, path=path_key, watcher_active=True)
+    _update_scan_status(
+        path_key,
+        path=path_key,
+        status="running",
+        message="Scan+watch task starting",
+        recursive=request.recursive,
+        scanned_folders=0,
+        scanned_files=0,
+        parsed_files=0,
+        watcher_active=True,
+        started_at=int(time()),
+        finished_at=None,
+    )
     background_tasks.add_task(_run_scan, validated_path, request.recursive)
 
     return ScanStartResponse(
@@ -502,9 +521,9 @@ async def get_scan_status(path: str | None = Query(None, description="Optional p
             record = _scan_status.get(path)
             if record is None:
                 return []
-            return [ScanStatusItem(**record)]
+            return [_build_scan_status_item(path, record)]
 
-        return [ScanStatusItem(**record) for record in _scan_status.values()]
+        return [_build_scan_status_item(path_key, record) for path_key, record in _scan_status.items()]
 
 
 @router.get("/thumb", response_model=None)
