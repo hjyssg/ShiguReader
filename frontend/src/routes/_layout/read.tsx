@@ -65,6 +65,20 @@ function ReadPage() {
       FilesystemService.extractArchive({ path, page: currentPage }),
   })
 
+  const historyMutation = useMutation({
+    mutationFn: async (payload: {
+      filepath: string
+      page_current: number
+      page_total: number
+    }) => {
+      await fetch(`${OpenAPI.BASE}/api/v1/history/record`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      })
+    },
+  })
+
   const imageEntries = useMemo<ImageEntry[]>(() => {
     if (isFolderSource) {
       return (folderData?.items || [])
@@ -132,6 +146,21 @@ function ReadPage() {
       extractMutation.mutate(currentPage)
     }
   }, [path, currentPage, isFolderSource])
+
+  useEffect(() => {
+    if (!currentEntry || totalPages <= 0) return
+
+    const historyFilepath = isFolderSource
+      ? (currentEntry.filePath ?? "")
+      : path
+    if (!historyFilepath) return
+
+    historyMutation.mutate({
+      filepath: historyFilepath,
+      page_current: currentPage + 1,
+      page_total: totalPages,
+    })
+  }, [currentEntry, totalPages, isFolderSource, path, currentPage])
 
   useEffect(() => {
     if (!isFolderSource || !filePath || totalPages === 0) return

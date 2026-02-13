@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query"
 import { createFileRoute, Link } from "@tanstack/react-router"
 import { Folder, Heart } from "lucide-react"
 
-import { FilesystemService } from "@/client"
+import { FilesystemService, OpenAPI } from "@/client"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 
@@ -26,7 +26,7 @@ function Dashboard() {
   const { data: favoriteRoot } = useQuery({
     queryKey: ["fs-favorite"],
     queryFn: async (): Promise<{ path: string; dirname: string } | null> => {
-      const response = await fetch("/api/v1/fs/favorite")
+      const response = await fetch(`${OpenAPI.BASE}/api/v1/fs/favorite`)
       if (!response.ok) return null
       return response.json()
     },
@@ -47,7 +47,7 @@ function Dashboard() {
                 <div className="flex size-12 items-center justify-center rounded-lg bg-primary/10">
                   <Heart className="size-6 text-primary" />
                 </div>
-                <CardTitle className="text-lg">最喜欢文件夹 · {favoriteRoot.dirname}</CardTitle>
+                <CardTitle className="text-lg">Like · {favoriteRoot.dirname}</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-muted-foreground truncate">

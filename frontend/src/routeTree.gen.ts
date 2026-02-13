@@ -24,6 +24,7 @@ import { Route as LayoutReadOverviewRouteImport } from './routes/_layout/read-ov
 import { Route as LayoutReadMobileRouteImport } from './routes/_layout/read-mobile'
 import { Route as LayoutReadRouteImport } from './routes/_layout/read'
 import { Route as LayoutItemsRouteImport } from './routes/_layout/items'
+import { Route as LayoutHistoryRouteImport } from './routes/_layout/history'
 import { Route as LayoutExplorerRouteImport } from './routes/_layout/explorer'
 import { Route as LayoutAuthorsRouteImport } from './routes/_layout/authors'
 import { Route as LayoutArchiveRouteImport } from './routes/_layout/archive'
@@ -103,6 +104,11 @@ const LayoutItemsRoute = LayoutItemsRouteImport.update({
   path: '/items',
   getParentRoute: () => LayoutRoute,
 } as any)
+const LayoutHistoryRoute = LayoutHistoryRouteImport.update({
+  id: '/history',
+  path: '/history',
+  getParentRoute: () => LayoutRoute,
+} as any)
 const LayoutExplorerRoute = LayoutExplorerRouteImport.update({
   id: '/explorer',
   path: '/explorer',
@@ -134,6 +140,7 @@ export interface FileRoutesByFullPath {
   '/archive': typeof LayoutArchiveRoute
   '/authors': typeof LayoutAuthorsRoute
   '/explorer': typeof LayoutExplorerRoute
+  '/history': typeof LayoutHistoryRoute
   '/items': typeof LayoutItemsRoute
   '/read': typeof LayoutReadRoute
   '/read-mobile': typeof LayoutReadMobileRoute
@@ -153,6 +160,7 @@ export interface FileRoutesByTo {
   '/archive': typeof LayoutArchiveRoute
   '/authors': typeof LayoutAuthorsRoute
   '/explorer': typeof LayoutExplorerRoute
+  '/history': typeof LayoutHistoryRoute
   '/items': typeof LayoutItemsRoute
   '/read': typeof LayoutReadRoute
   '/read-mobile': typeof LayoutReadMobileRoute
@@ -175,6 +183,7 @@ export interface FileRoutesById {
   '/_layout/archive': typeof LayoutArchiveRoute
   '/_layout/authors': typeof LayoutAuthorsRoute
   '/_layout/explorer': typeof LayoutExplorerRoute
+  '/_layout/history': typeof LayoutHistoryRoute
   '/_layout/items': typeof LayoutItemsRoute
   '/_layout/read': typeof LayoutReadRoute
   '/_layout/read-mobile': typeof LayoutReadMobileRoute
@@ -198,6 +207,7 @@ export interface FileRouteTypes {
     | '/archive'
     | '/authors'
     | '/explorer'
+    | '/history'
     | '/items'
     | '/read'
     | '/read-mobile'
@@ -217,6 +227,7 @@ export interface FileRouteTypes {
     | '/archive'
     | '/authors'
     | '/explorer'
+    | '/history'
     | '/items'
     | '/read'
     | '/read-mobile'
@@ -238,6 +249,7 @@ export interface FileRouteTypes {
     | '/_layout/archive'
     | '/_layout/authors'
     | '/_layout/explorer'
+    | '/_layout/history'
     | '/_layout/items'
     | '/_layout/read'
     | '/_layout/read-mobile'
@@ -365,6 +377,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutItemsRouteImport
       parentRoute: typeof LayoutRoute
     }
+    '/_layout/history': {
+      id: '/_layout/history'
+      path: '/history'
+      fullPath: '/history'
+      preLoaderRoute: typeof LayoutHistoryRouteImport
+      parentRoute: typeof LayoutRoute
+    }
     '/_layout/explorer': {
       id: '/_layout/explorer'
       path: '/explorer'
@@ -401,6 +420,7 @@ interface LayoutRouteChildren {
   LayoutArchiveRoute: typeof LayoutArchiveRoute
   LayoutAuthorsRoute: typeof LayoutAuthorsRoute
   LayoutExplorerRoute: typeof LayoutExplorerRoute
+  LayoutHistoryRoute: typeof LayoutHistoryRoute
   LayoutItemsRoute: typeof LayoutItemsRoute
   LayoutReadRoute: typeof LayoutReadRoute
   LayoutReadMobileRoute: typeof LayoutReadMobileRoute
@@ -418,6 +438,7 @@ const LayoutRouteChildren: LayoutRouteChildren = {
   LayoutArchiveRoute: LayoutArchiveRoute,
   LayoutAuthorsRoute: LayoutAuthorsRoute,
   LayoutExplorerRoute: LayoutExplorerRoute,
+  LayoutHistoryRoute: LayoutHistoryRoute,
   LayoutItemsRoute: LayoutItemsRoute,
   LayoutReadRoute: LayoutReadRoute,
   LayoutReadMobileRoute: LayoutReadMobileRoute,

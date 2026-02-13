@@ -143,6 +143,12 @@ VideoPlayerPage
 task4：
 现在怎么清理解压的临时文件。
 
+bug：
+audio page挂了
+
+1
+reader页面不需要header footer和sidebar。
+
 task 5：
 新增 History 页面。
 
@@ -177,3 +183,8 @@ task 7：
 
 task 6：
 home要显示电脑硬盘
+
+
+task 8
+给explorer添加
+file-change-toolbar-move-modal

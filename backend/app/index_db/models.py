@@ -91,7 +91,12 @@ class VideoMeta(SQLModel, table=True):
 class Progress(SQLModel, table=True):
     __tablename__ = "progress"
 
-    filepath: str = Field(primary_key=True, foreign_key="files.filepath")
+    filepath: str = Field(primary_key=True)
+    filename: str | None = None
+    file_type: str | None = None
+    filesize: int | None = None
+    mtime: int | None = None
+    thumbnail_url: str | None = None
     last_opened_at: int = Field(default_factory=_ts_now)
     total_time_sec: float = 0
 

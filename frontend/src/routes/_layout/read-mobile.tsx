@@ -43,6 +43,20 @@ function ReadMobilePage() {
       FilesystemService.extractArchive({ path, page: currentPage }),
   })
 
+  const historyMutation = useMutation({
+    mutationFn: async (payload: {
+      filepath: string
+      page_current: number
+      page_total: number
+    }) => {
+      await fetch(`${OpenAPI.BASE}/api/v1/history/record`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      })
+    },
+  })
+
   const imageEntries = isFolderSource
     ? (folderData?.items || [])
         .filter((item) => item.item_type === "file" && item.file_type === "image")
@@ -64,6 +78,19 @@ function ReadMobilePage() {
       extractMutation.mutate(safePage)
     }
   }, [path, safePage, isFolderSource])
+
+  useEffect(() => {
+    if (!path || imageEntries.length === 0) return
+    const currentEntry = imageEntries[safePage]
+    const historyFilepath = isFolderSource ? currentEntry?.entry_path : path
+    if (!historyFilepath) return
+
+    historyMutation.mutate({
+      filepath: historyFilepath,
+      page_current: safePage + 1,
+      page_total: imageEntries.length,
+    })
+  }, [path, imageEntries, safePage, isFolderSource])
 
   useEffect(() => {
     if (!isFolderSource || !filePath || imageEntries.length === 0) return

@@ -8,3 +8,5 @@ node_modules/
 data/index.db
 data/thumb_cache/
 data/extract_cache/
+frontend/.tanstack/
+backend/.backend-dev.log

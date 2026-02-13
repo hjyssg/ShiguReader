@@ -1,4 +1,4 @@
-import { createFileRoute, Outlet } from "@tanstack/react-router"
+import { createFileRoute, Outlet, useRouterState } from "@tanstack/react-router"
 
 import { Footer } from "@/components/Common/Footer"
 import AppSidebar from "@/components/Sidebar/AppSidebar"
@@ -12,6 +12,17 @@ export const Route = createFileRoute("/_layout")({
 })
 
 function Layout() {
+  const pathname = useRouterState({ select: (s) => s.location.pathname })
+  const isReaderRoute =
+    pathname === "/read" ||
+    pathname === "/read-mobile" ||
+    pathname === "/read-overview" ||
+    pathname === "/read-waterfall"
+
+  if (isReaderRoute) {
+    return <Outlet />
+  }
+
   return (
     <SidebarProvider>
       <AppSidebar />

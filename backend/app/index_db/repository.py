@@ -13,6 +13,7 @@ from app.index_db.models import (
     FileTag,
     Folder,
     ParsedMetadata,
+    Progress,
     Tag,
 )
 
@@ -274,6 +275,78 @@ class IndexRepository:
         self.session.commit()
         self.session.refresh(meta)
         return meta
+
+    def upsert_progress(
+        self,
+        *,
+        filepath: str,
+        filename: str | None = None,
+        file_type: str | None = None,
+        filesize: int | None = None,
+        mtime: int | None = None,
+        thumbnail_url: str | None = None,
+        page_current: int | None = None,
+        page_total: int | None = None,
+        position_sec: float | None = None,
+        duration_sec: float | None = None,
+    ) -> Progress:
+        now = _now_ts()
+        progress = self.session.get(Progress, filepath)
+        if progress is None:
+            progress = Progress(
+                filepath=filepath,
+                filename=filename,
+                file_type=file_type,
+                filesize=filesize,
+                mtime=mtime,
+                thumbnail_url=thumbnail_url,
+                last_opened_at=now,
+                page_current=page_current,
+                page_total=page_total,
+                position_sec=position_sec,
+                duration_sec=duration_sec,
+                updated_at=now,
+            )
+            self.session.add(progress)
+            self.session.commit()
+            self.session.refresh(progress)
+            return progress
+
+        progress.last_opened_at = now
+        progress.updated_at = now
+        progress.filename = filename or progress.filename
+        progress.file_type = file_type or progress.file_type
+        progress.filesize = filesize if filesize is not None else progress.filesize
+        progress.mtime = mtime if mtime is not None else progress.mtime
+        progress.thumbnail_url = thumbnail_url or progress.thumbnail_url
+        progress.page_current = page_current
+        progress.page_total = page_total
+        progress.position_sec = position_sec
+        progress.duration_sec = duration_sec
+
+        self.session.add(progress)
+        self.session.commit()
+        self.session.refresh(progress)
+        return progress
+
+    def list_progress_history(
+        self,
+        *,
+        offset: int,
+        limit: int,
+        sort_order: str = "desc",
+    ) -> list[Progress]:
+        order_clause = (
+            Progress.last_opened_at.asc()
+            if sort_order == "asc"
+            else Progress.last_opened_at.desc()
+        )
+        stmt = select(Progress).order_by(order_clause).offset(offset).limit(limit)
+        return list(self.session.exec(stmt).all())
+
+    def count_progress_history(self) -> int:
+        stmt = select(func.count()).select_from(Progress)
+        return int(self.session.exec(stmt).one())
 
     def update_file_thumbnail(self, filepath: str, thumbnail_filepath: str) -> None:
         """Update thumbnail path for a file."""
