@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query"
-import { createFileRoute, Link } from "@tanstack/react-router"
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router"
 import { ChevronRight, Home, ScanLine } from "lucide-react"
+import { useEffect } from "react"
 import { toast } from "sonner"
 
 import { FilesystemService } from "@/client"
@@ -31,7 +32,15 @@ export const Route = createFileRoute("/_layout/explorer")({
 })
 
 function Explorer() {
+  const navigate = useNavigate()
   const { path } = Route.useSearch()
+
+  // Redirect to home if path is empty
+  useEffect(() => {
+    if (!path) {
+      navigate({ to: "/" })
+    }
+  }, [path, navigate])
 
   const { data, isLoading } = useQuery({
     queryKey: ["fs-list", path],
