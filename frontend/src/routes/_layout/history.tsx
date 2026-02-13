@@ -22,7 +22,6 @@ import {
 import { Skeleton } from "@/components/ui/skeleton"
 import { useIsMobile } from "@/hooks/useMobile"
 import { getParentPath } from "@/lib/path-utils"
-import { cn } from "@/lib/utils"
 
 type SortOrder = "asc" | "desc"
 

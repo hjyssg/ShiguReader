@@ -4,27 +4,30 @@ export function FileIcon({
   fileType,
   isFolder,
   size = "md",
+  className,
 }: {
   fileType?: string | null
   isFolder: boolean
   size?: "sm" | "md"
+  className?: string
 }) {
   const baseSize = size === "sm" ? "size-4" : "size-12"
+  const iconClass = className ? `${baseSize} ${className}` : baseSize
 
   if (isFolder) {
-    return <Folder className={`${baseSize} text-yellow-500`} />
+    return <Folder className={`${iconClass} text-yellow-500`} />
   }
 
   switch (fileType) {
     case "image":
-      return <FileImage className={`${baseSize} text-green-500`} />
+      return <FileImage className={`${iconClass} text-green-500`} />
     case "video":
-      return <FileVideo className={`${baseSize} text-purple-500`} />
+      return <FileVideo className={`${iconClass} text-purple-500`} />
     case "archive":
-      return <FileArchive className={`${baseSize} text-emerald-600`} />
+      return <FileArchive className={`${iconClass} text-emerald-600`} />
     case "audio":
-      return <FileAudio className={`${baseSize} text-blue-500`} />
+      return <FileAudio className={`${iconClass} text-blue-500`} />
     default:
-      return <File className={`${baseSize} text-muted-foreground`} />
+      return <File className={`${iconClass} text-muted-foreground`} />
   }
 }

@@ -14,7 +14,8 @@ import subprocess
 import sys
 from pathlib import Path
 
-PROJECT_ROOT = Path(__file__).parent
+# Get project root (parent of build_tools directory)
+PROJECT_ROOT = Path(__file__).parent.parent
 FRONTEND_DIR = PROJECT_ROOT / "frontend"
 BACKEND_DIR = PROJECT_ROOT / "backend"
 DIST_DIR = PROJECT_ROOT / "dist"
@@ -145,7 +146,8 @@ def build_exe():
         import PyInstaller
     except ImportError:
         print("PyInstaller not found. Installing...")
-        run_command(f"{sys.executable} -m pip install pyinstaller")
+        # Use uv to install PyInstaller
+        run_command("uv pip install pyinstaller", cwd=PROJECT_ROOT)
     
     # Create spec file
     spec_file = create_pyinstaller_spec()

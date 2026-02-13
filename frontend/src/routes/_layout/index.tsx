@@ -25,7 +25,7 @@ function Dashboard() {
     queryFn: () => FilesystemService.getRoots(),
   })
 
-  const { data: drives, isLoading: drivesLoading } = useQuery({
+  const { data: drives } = useQuery({
     queryKey: ["fs-drives"],
     queryFn: () => FilesystemService.getDrives(),
   })

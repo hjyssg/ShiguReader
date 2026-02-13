@@ -16,3 +16,5 @@ backend/.backend-dev.log
 /dist/
 *.spec
 *.exe
+/data/user.db
+/nul

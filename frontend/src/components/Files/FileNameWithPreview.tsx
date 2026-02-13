@@ -17,7 +17,6 @@ interface FileNameWithPreviewProps {
 
 export function FileNameWithPreview({
   filename,
-  filepath,
   thumbnailUrl,
   className,
 }: FileNameWithPreviewProps) {

@@ -1,4 +1,4 @@
-import { FolderOpen, History, Home, Search, Settings, Tag, UserRound, Users } from "lucide-react"
+import { FolderOpen, History, Search, Settings, Tag, UserRound, Users } from "lucide-react"
 
 import { SidebarAppearance } from "@/components/Common/Appearance"
 import { Logo } from "@/components/Common/Logo"
