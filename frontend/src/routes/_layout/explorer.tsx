@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query"
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router"
 import { ChevronRight, Home, ScanLine } from "lucide-react"
 import { useEffect } from "react"
+import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
 
 import { FilesystemService } from "@/client"
@@ -32,6 +33,7 @@ export const Route = createFileRoute("/_layout/explorer")({
 })
 
 function Explorer() {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const { path } = Route.useSearch()
 
@@ -68,10 +70,10 @@ function Explorer() {
           requestBody: { path, recursive: true },
         })
       }
-      toast.success(withWatch ? "扫描并监听已启动" : "递归扫描已启动")
+      toast.success(withWatch ? t("explorer.scanAndWatchStarted") : t("explorer.scanStarted"))
       scanMutation.refetch()
     } catch {
-      toast.error("扫描启动失败")
+      toast.error(t("explorer.scanFailed"))
     }
   }
 
@@ -112,15 +114,15 @@ function Explorer() {
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="sm" className="h-8">
                 <ScanLine className="size-4 mr-1" />
-                扫描
+                {t("explorer.scan")}
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
               <DropdownMenuItem onClick={() => handleScan(false)}>
-                扫描包括子文件夹
+                {t("explorer.scanRecursive")}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => handleScan(true)}>
-                扫描并监听子文件夹
+                {t("explorer.scanAndWatch")}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

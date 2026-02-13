@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query"
 import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { ArrowDown, ArrowUp, History as HistoryIcon, LayoutGrid, List } from "lucide-react"
 import { useMemo } from "react"
+import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
 
 import { OpenAPI } from "@/client"
@@ -60,6 +61,7 @@ export const Route = createFileRoute("/_layout/history")({
 })
 
 function HistoryPage() {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const isMobile = useIsMobile()
   const { page, view, sort_order } = Route.useSearch()
@@ -120,7 +122,7 @@ function HistoryPage() {
       return
     }
 
-    toast.info("该类型暂不支持直接打开")
+    toast.info(t("history.unsupportedType"))
   }
 
   return (
@@ -128,8 +130,8 @@ function HistoryPage() {
       <div className="flex items-center justify-between gap-4 pb-2 border-b">
         <div className="flex items-center gap-2">
           <HistoryIcon className="size-5" />
-          <h1 className="text-xl font-semibold">History</h1>
-          <span className="text-sm text-muted-foreground">阅读历史</span>
+          <h1 className="text-xl font-semibold">{t("history.title")}</h1>
+          <span className="text-sm text-muted-foreground">{t("history.subtitle")}</span>
         </div>
         <div className="flex items-center gap-2">
           <Button
@@ -142,7 +144,7 @@ function HistoryPage() {
               })
             }
           >
-            <ArrowDown className="size-4 mr-1" /> 最近优先
+            <ArrowDown className="size-4 mr-1" /> {t("history.recentFirst")}
           </Button>
           <Button
             variant={sort_order === "asc" ? "default" : "outline"}
@@ -154,7 +156,7 @@ function HistoryPage() {
               })
             }
           >
-            <ArrowUp className="size-4 mr-1" /> 最早优先
+            <ArrowUp className="size-4 mr-1" /> {t("history.oldestFirst")}
           </Button>
           <Button
             variant={view === "grid" ? "default" : "ghost"}
@@ -194,7 +196,7 @@ function HistoryPage() {
         )
       ) : (data?.items.length ?? 0) === 0 ? (
         <div className="flex flex-col items-center justify-center py-12 text-center">
-          <p className="text-muted-foreground">暂无阅读历史</p>
+          <p className="text-muted-foreground">{t("history.empty")}</p>
         </div>
       ) : view === "grid" ? (
         <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
@@ -218,7 +220,7 @@ function HistoryPage() {
                 )}
                 {!item.file_exists && (
                   <Badge variant="destructive" className="absolute top-2 right-2">
-                    未知
+                    {t("history.unknown")}
                   </Badge>
                 )}
               </div>
@@ -229,7 +231,7 @@ function HistoryPage() {
                   thumbnailUrl={item.thumbnail_url}
                   className="text-sm block"
                 />
-                <p className="text-xs text-muted-foreground">阅读时间：{formatDateTime(item.read_at)}</p>
+                <p className="text-xs text-muted-foreground">{t("history.readAt")}：{formatDateTime(item.read_at)}</p>
                 <p className="text-xs text-muted-foreground">
                   {item.filesize ? formatFileSize(item.filesize) : formatFileType(item.file_type)}
                 </p>
@@ -242,11 +244,11 @@ function HistoryPage() {
           <table className="w-full">
             <thead className="bg-muted/50 border-b">
               <tr className="text-sm">
-                <th className="text-left p-2 font-medium">名称</th>
-                <th className="text-left p-2 font-medium w-[180px]">阅读时间</th>
-                <th className="text-left p-2 font-medium w-[120px]">类型</th>
-                <th className="text-right p-2 font-medium w-[100px]">大小</th>
-                <th className="text-left p-2 font-medium w-[120px]">状态</th>
+                <th className="text-left p-2 font-medium">{t("history.name")}</th>
+                <th className="text-left p-2 font-medium w-[180px]">{t("history.readAt")}</th>
+                <th className="text-left p-2 font-medium w-[120px]">{t("history.type")}</th>
+                <th className="text-right p-2 font-medium w-[100px]">{t("history.size")}</th>
+                <th className="text-left p-2 font-medium w-[120px]">{t("history.status")}</th>
               </tr>
             </thead>
             <tbody>
@@ -276,9 +278,9 @@ function HistoryPage() {
                   </td>
                   <td className="p-2">
                     {item.file_exists ? (
-                      <Badge variant="secondary">可用</Badge>
+                      <Badge variant="secondary">{t("history.available")}</Badge>
                     ) : (
-                      <Badge variant="destructive">未知</Badge>
+                      <Badge variant="destructive">{t("history.unknown")}</Badge>
                     )}
                   </td>
                 </tr>

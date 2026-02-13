@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query"
 import { createFileRoute, Link } from "@tanstack/react-router"
 import { Folder, HardDrive, Heart } from "lucide-react"
+import { useTranslation } from "react-i18next"
 
 import { FilesystemService, OpenAPI } from "@/client"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -18,6 +19,7 @@ export const Route = createFileRoute("/_layout/")({
 })
 
 function Dashboard() {
+  const { t } = useTranslation()
   const { data: roots, isLoading } = useQuery({
     queryKey: ["fs-roots"],
     queryFn: () => FilesystemService.getRoots(),
@@ -42,7 +44,7 @@ function Dashboard() {
       {/* Drives Section */}
       {drives && drives.length > 0 && (
         <div>
-          <h2 className="text-lg font-semibold mb-3">硬盘驱动器</h2>
+          <h2 className="text-lg font-semibold mb-3">{t("home.drives")}</h2>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             {drives.map((drive) => (
               <Link
@@ -67,7 +69,7 @@ function Dashboard() {
 
       {/* Configured Roots Section */}
       <div>
-        <h2 className="text-lg font-semibold mb-3">配置的目录</h2>
+        <h2 className="text-lg font-semibold mb-3">{t("home.configuredDirs")}</h2>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {favoriteRoot ? (
           <Link
@@ -81,7 +83,7 @@ function Dashboard() {
                 <div className="flex size-12 items-center justify-center rounded-lg bg-primary/10">
                   <Heart className="size-6 text-primary" />
                 </div>
-                <CardTitle className="text-lg">Like · {favoriteRoot.dirname}</CardTitle>
+                <CardTitle className="text-lg">{t("home.favorite")} · {favoriteRoot.dirname}</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-muted-foreground truncate">

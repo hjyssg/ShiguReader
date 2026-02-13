@@ -1,0 +1,84 @@
+{
+  "common": {
+    "home": "Home",
+    "loading": "加载中...",
+    "error": "错误",
+    "success": "成功",
+    "cancel": "取消",
+    "confirm": "确认",
+    "delete": "删除",
+    "edit": "编辑",
+    "save": "保存",
+    "search": "搜索",
+    "filter": "筛选",
+    "sort": "排序",
+    "refresh": "刷新"
+  },
+  "nav": {
+    "home": "Home",
+    "explorer": "Explorer",
+    "history": "History",
+    "tags": "Tags",
+    "authors": "Authors",
+    "search": "Search",
+    "admin": "Admin"
+  },
+  "home": {
+    "drives": "硬盘驱动器",
+    "configuredDirs": "配置的目录",
+    "favorite": "Like"
+  },
+  "explorer": {
+    "scan": "扫描",
+    "scanRecursive": "扫描包括子文件夹",
+    "scanAndWatch": "扫描并监听子文件夹",
+    "scanStarted": "递归扫描已启动",
+    "scanAndWatchStarted": "扫描并监听已启动",
+    "scanFailed": "扫描启动失败"
+  },
+  "history": {
+    "title": "History",
+    "subtitle": "阅读历史",
+    "recentFirst": "最近优先",
+    "oldestFirst": "最早优先",
+    "empty": "暂无阅读历史",
+    "readAt": "阅读时间",
+    "name": "名称",
+    "type": "类型",
+    "size": "大小",
+    "status": "状态",
+    "available": "可用",
+    "unknown": "未知",
+    "unsupportedType": "该类型暂不支持直接打开"
+  },
+  "file": {
+    "image": "图片",
+    "video": "视频",
+    "audio": "音频",
+    "archive": "压缩包",
+    "folder": "文件夹",
+    "unknown": "未知"
+  },
+  "tags": {
+    "title": "Tags",
+    "empty": "暂无标签数据",
+    "sortByName": "名称",
+    "sortByCount": "文件数量"
+  },
+  "authors": {
+    "title": "Authors",
+    "empty": "暂无作者数据",
+    "sortByName": "名称",
+    "sortByCount": "文件数量"
+  },
+  "reader": {
+    "openReader": "打开阅读器",
+    "noImages": "未找到可阅读的图片",
+    "noImagesFound": "未找到可阅读图片"
+  },
+  "settings": {
+    "language": "语言",
+    "theme": "主题",
+    "appearance": "外观"
+  }
+}

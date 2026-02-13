@@ -1,0 +1,84 @@
+{
+  "common": {
+    "home": "Home",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "delete": "Delete",
+    "edit": "Edit",
+    "save": "Save",
+    "search": "Search",
+    "filter": "Filter",
+    "sort": "Sort",
+    "refresh": "Refresh"
+  },
+  "nav": {
+    "home": "Home",
+    "explorer": "Explorer",
+    "history": "History",
+    "tags": "Tags",
+    "authors": "Authors",
+    "search": "Search",
+    "admin": "Admin"
+  },
+  "home": {
+    "drives": "Drives",
+    "configuredDirs": "Configured Directories",
+    "favorite": "Favorite"
+  },
+  "explorer": {
+    "scan": "Scan",
+    "scanRecursive": "Scan Including Subfolders",
+    "scanAndWatch": "Scan and Watch Subfolders",
+    "scanStarted": "Recursive scan started",
+    "scanAndWatchStarted": "Scan and watch started",
+    "scanFailed": "Failed to start scan"
+  },
+  "history": {
+    "title": "History",
+    "subtitle": "Reading History",
+    "recentFirst": "Recent First",
+    "oldestFirst": "Oldest First",
+    "empty": "No reading history",
+    "readAt": "Read At",
+    "name": "Name",
+    "type": "Type",
+    "size": "Size",
+    "status": "Status",
+    "available": "Available",
+    "unknown": "Unknown",
+    "unsupportedType": "This type is not supported yet"
+  },
+  "file": {
+    "image": "Image",
+    "video": "Video",
+    "audio": "Audio",
+    "archive": "Archive",
+    "folder": "Folder",
+    "unknown": "Unknown"
+  },
+  "tags": {
+    "title": "Tags",
+    "empty": "No tags data",
+    "sortByName": "Name",
+    "sortByCount": "File Count"
+  },
+  "authors": {
+    "title": "Authors",
+    "empty": "No authors data",
+    "sortByName": "Name",
+    "sortByCount": "File Count"
+  },
+  "reader": {
+    "openReader": "Open Reader",
+    "noImages": "No readable images found",
+    "noImagesFound": "No readable images found"
+  },
+  "settings": {
+    "language": "Language",
+    "theme": "Theme",
+    "appearance": "Appearance"
+  }
+}
