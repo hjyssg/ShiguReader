@@ -119,12 +119,18 @@ i18n 支持。
 ---
 
 ## Task11
-前端接入 recommendation score。
+前端接入 recommendation score去排序。
 
 ---
 
 ## Task12
 补充前后端 UT。
+保证所有页面都能正常打开，或许使用playwright
+
+## task13
+explorer的筛选功能（zip有无video、audio）
+排序（按zip的img number）
+怎么实现设计
 
 ---
 
