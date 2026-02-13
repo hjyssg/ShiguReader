@@ -10,3 +10,9 @@ data/thumb_cache/
 data/extract_cache/
 frontend/.tanstack/
 backend/.backend-dev.log
+
+# Build artifacts
+/build/
+/dist/
+*.spec
+*.exe
