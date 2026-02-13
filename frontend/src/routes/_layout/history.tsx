@@ -218,7 +218,7 @@ function HistoryPage() {
                 )}
                 {!item.file_exists && (
                   <Badge variant="destructive" className="absolute top-2 right-2">
-                    已删除
+                    未知
                   </Badge>
                 )}
               </div>
@@ -278,7 +278,7 @@ function HistoryPage() {
                     {item.file_exists ? (
                       <Badge variant="secondary">可用</Badge>
                     ) : (
-                      <Badge variant="destructive">已删除</Badge>
+                      <Badge variant="destructive">未知</Badge>
                     )}
                   </td>
                 </tr>
