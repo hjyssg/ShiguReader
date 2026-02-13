@@ -9,6 +9,7 @@ from sqlalchemy.exc import OperationalError
 from sqlmodel import func, select
 
 from app.core.config import settings
+from app.index_db.bootstrap import ensure_index_db_initialized
 from app.index_db.db import get_index_session
 from app.index_db.models import File, FileTag, Tag
 
@@ -37,7 +38,7 @@ async def read_tags(
 ) -> TagsResponse:
     offset = (page - 1) * page_size
 
-    try:
+    def _query_once() -> tuple[int, list[tuple[str, int]], dict[str, str]]:
         with get_index_session() as session:
             total_stmt = select(func.count()).select_from(Tag)
             total = session.exec(total_stmt).one()
@@ -78,8 +79,17 @@ async def read_tags(
                 latest_filepath = session.exec(latest_stmt).first()
                 if latest_filepath:
                     latest_by_tag[tag_name] = latest_filepath
+
+        return total, page_rows, latest_by_tag
+
+    try:
+        total, page_rows, latest_by_tag = _query_once()
     except OperationalError:
-        return TagsResponse(items=[], page=page, page_size=page_size, total=0)
+        ensure_index_db_initialized()
+        try:
+            total, page_rows, latest_by_tag = _query_once()
+        except OperationalError:
+            return TagsResponse(items=[], page=page, page_size=page_size, total=0)
 
     items = []
     for tag_name, file_count in page_rows:
