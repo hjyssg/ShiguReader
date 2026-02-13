@@ -19,4 +19,3 @@ backend/.backend-dev.log
 /data/user.db
 /nul
 .env
-.env
