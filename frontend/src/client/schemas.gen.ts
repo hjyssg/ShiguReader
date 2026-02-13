@@ -158,6 +158,18 @@ export const BatchParseResponseSchema = {
     title: 'BatchParseResponse'
 } as const;
 
+export const DeletePathRequestSchema = {
+    properties: {
+        path: {
+            type: 'string',
+            title: 'Path'
+        }
+    },
+    type: 'object',
+    required: ['path'],
+    title: 'DeletePathRequest'
+} as const;
+
 export const ExtractStatusSchema = {
     properties: {
         status: {
@@ -243,6 +255,17 @@ export const FileSystemItemSchema = {
             ],
             title: 'Thumbnail Url'
         },
+        recommendation_score: {
+            anyOf: [
+                {
+                    type: 'number'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Recommendation Score'
+        },
         scan_state: {
             type: 'integer',
             title: 'Scan State',
@@ -273,6 +296,190 @@ export const HTTPValidationErrorSchema = {
     title: 'HTTPValidationError'
 } as const;
 
+export const HistoryItemSchema = {
+    properties: {
+        filepath: {
+            type: 'string',
+            title: 'Filepath'
+        },
+        filename: {
+            type: 'string',
+            title: 'Filename'
+        },
+        file_type: {
+            type: 'string',
+            enum: ['image', 'video', 'archive', 'audio', 'unknown'],
+            title: 'File Type'
+        },
+        filesize: {
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Filesize'
+        },
+        mtime: {
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Mtime'
+        },
+        thumbnail_url: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Thumbnail Url'
+        },
+        read_at: {
+            type: 'integer',
+            title: 'Read At'
+        },
+        page_current: {
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Page Current'
+        },
+        page_total: {
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Page Total'
+        },
+        file_exists: {
+            type: 'boolean',
+            title: 'File Exists'
+        }
+    },
+    type: 'object',
+    required: ['filepath', 'filename', 'file_type', 'read_at', 'file_exists'],
+    title: 'HistoryItem'
+} as const;
+
+export const HistoryListResponseSchema = {
+    properties: {
+        items: {
+            items: {
+                '$ref': '#/components/schemas/HistoryItem'
+            },
+            type: 'array',
+            title: 'Items'
+        },
+        page: {
+            type: 'integer',
+            title: 'Page'
+        },
+        page_size: {
+            type: 'integer',
+            title: 'Page Size'
+        },
+        total: {
+            type: 'integer',
+            title: 'Total'
+        },
+        total_pages: {
+            type: 'integer',
+            title: 'Total Pages'
+        }
+    },
+    type: 'object',
+    required: ['items', 'page', 'page_size', 'total', 'total_pages'],
+    title: 'HistoryListResponse'
+} as const;
+
+export const HistoryRecordRequestSchema = {
+    properties: {
+        filepath: {
+            type: 'string',
+            title: 'Filepath'
+        },
+        page_current: {
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Page Current'
+        },
+        page_total: {
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Page Total'
+        },
+        position_sec: {
+            anyOf: [
+                {
+                    type: 'number'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Position Sec'
+        },
+        duration_sec: {
+            anyOf: [
+                {
+                    type: 'number'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Duration Sec'
+        }
+    },
+    type: 'object',
+    required: ['filepath'],
+    title: 'HistoryRecordRequest'
+} as const;
+
+export const HistoryRecordResponseSchema = {
+    properties: {
+        status: {
+            type: 'string',
+            const: 'ok',
+            title: 'Status'
+        }
+    },
+    type: 'object',
+    required: ['status'],
+    title: 'HistoryRecordResponse'
+} as const;
+
 export const ListResponseSchema = {
     properties: {
         items: {
@@ -298,6 +505,22 @@ export const MessageSchema = {
     type: 'object',
     required: ['message'],
     title: 'Message'
+} as const;
+
+export const MovePathRequestSchema = {
+    properties: {
+        source_path: {
+            type: 'string',
+            title: 'Source Path'
+        },
+        dest_path: {
+            type: 'string',
+            title: 'Dest Path'
+        }
+    },
+    type: 'object',
+    required: ['source_path', 'dest_path'],
+    title: 'MovePathRequest'
 } as const;
 
 export const ParseResponseSchema = {
@@ -361,6 +584,38 @@ export const ParseResponseSchema = {
     type: 'object',
     required: ['title', 'authors', 'raw_tags', 'type'],
     title: 'ParseResponse'
+} as const;
+
+export const PathOperationResponseSchema = {
+    properties: {
+        status: {
+            type: 'string',
+            const: 'ok',
+            title: 'Status'
+        },
+        message: {
+            type: 'string',
+            title: 'Message'
+        },
+        path: {
+            type: 'string',
+            title: 'Path'
+        },
+        dest_path: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Dest Path'
+        }
+    },
+    type: 'object',
+    required: ['status', 'message', 'path'],
+    title: 'PathOperationResponse'
 } as const;
 
 export const PrivateUserCreateSchema = {
@@ -987,4 +1242,27 @@ export const ValidationErrorSchema = {
     type: 'object',
     required: ['loc', 'msg', 'type'],
     title: 'ValidationError'
+} as const;
+
+export const ZipFolderRequestSchema = {
+    properties: {
+        folder_path: {
+            type: 'string',
+            title: 'Folder Path'
+        },
+        output_path: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Output Path'
+        }
+    },
+    type: 'object',
+    required: ['folder_path'],
+    title: 'ZipFolderRequest'
 } as const;

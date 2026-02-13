@@ -3,7 +3,7 @@
 import type { CancelablePromise } from './core/CancelablePromise';
 import { OpenAPI } from './core/OpenAPI';
 import { request as __request } from './core/request';
-import type { AuthorsReadAuthorsData, AuthorsReadAuthorsResponse, FilesystemGetRootsResponse, FilesystemListDirectoryData, FilesystemListDirectoryResponse, FilesystemScanDirectoryData, FilesystemScanDirectoryResponse, FilesystemScanAndWatchData, FilesystemScanAndWatchResponse, FilesystemGetScanStatusData, FilesystemGetScanStatusResponse, FilesystemGetThumbnailData, FilesystemGetThumbnailResponse, FilesystemListArchiveData, FilesystemListArchiveResponse, FilesystemExtractArchiveData, FilesystemExtractArchiveResponse, FilesystemGetArchiveFileData, FilesystemGetArchiveFileResponse, FilesystemGetFileData, FilesystemGetFileResponse, ParseBatchParseData, ParseBatchParseResponse, ParseGetParseResultData, ParseGetParseResultResponse, PrivateCreateUserData, PrivateCreateUserResponse, SearchSearchFilesData, SearchSearchFilesResponse, TagsReadTagsData, TagsReadTagsResponse, UsersReadUsersData, UsersReadUsersResponse, UsersCreateUserData, UsersCreateUserResponse, UsersReadUserMeResponse, UsersDeleteUserMeResponse, UsersUpdateUserMeData, UsersUpdateUserMeResponse, UsersUpdatePasswordMeData, UsersUpdatePasswordMeResponse, UsersRegisterUserData, UsersRegisterUserResponse, UsersReadUserByIdData, UsersReadUserByIdResponse, UsersUpdateUserData, UsersUpdateUserResponse, UsersDeleteUserData, UsersDeleteUserResponse, UtilsHealthCheckResponse } from './types.gen';
+import type { AuthorsReadAuthorsData, AuthorsReadAuthorsResponse, FilesystemGetRootsResponse, FilesystemGetFavoriteRootResponse, FilesystemGetDrivesResponse, FilesystemListDirectoryData, FilesystemListDirectoryResponse, FilesystemMoveFileData, FilesystemMoveFileResponse, FilesystemMoveFolderData, FilesystemMoveFolderResponse, FilesystemDeletePathData, FilesystemDeletePathResponse, FilesystemZipFolderData, FilesystemZipFolderResponse, FilesystemScanFavoriteResponse, FilesystemScanDirectoryData, FilesystemScanDirectoryResponse, FilesystemScanAndWatchData, FilesystemScanAndWatchResponse, FilesystemGetScanStatusData, FilesystemGetScanStatusResponse, FilesystemGetThumbnailData, FilesystemGetThumbnailResponse, FilesystemListArchiveData, FilesystemListArchiveResponse, FilesystemExtractArchiveData, FilesystemExtractArchiveResponse, FilesystemGetArchiveFileData, FilesystemGetArchiveFileResponse, FilesystemGetFileData, FilesystemGetFileResponse, HistoryRecordHistoryData, HistoryRecordHistoryResponse, HistoryListHistoryData, HistoryListHistoryResponse, ParseBatchParseData, ParseBatchParseResponse, ParseGetParseResultData, ParseGetParseResultResponse, PrivateCreateUserData, PrivateCreateUserResponse, SearchSearchFilesData, SearchSearchFilesResponse, TagsReadTagsData, TagsReadTagsResponse, UsersReadUsersData, UsersReadUsersResponse, UsersCreateUserData, UsersCreateUserResponse, UsersReadUserMeResponse, UsersDeleteUserMeResponse, UsersUpdateUserMeData, UsersUpdateUserMeResponse, UsersUpdatePasswordMeData, UsersUpdatePasswordMeResponse, UsersRegisterUserData, UsersRegisterUserResponse, UsersReadUserByIdData, UsersReadUserByIdResponse, UsersUpdateUserData, UsersUpdateUserResponse, UsersDeleteUserData, UsersDeleteUserResponse, UtilsHealthCheckResponse } from './types.gen';
 
 export class AuthorsService {
     /**
@@ -48,10 +48,38 @@ export class FilesystemService {
     }
     
     /**
+     * Get Favorite Root
+     * Get configured favorite directory as a root-like item.
+     * @returns unknown Successful Response
+     * @throws ApiError
+     */
+    public static getFavoriteRoot(): CancelablePromise<FilesystemGetFavoriteRootResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/fs/favorite'
+        });
+    }
+    
+    /**
+     * Get Drives
+     * Get available drive letters (Windows only).
+     * @returns RootItem Successful Response
+     * @throws ApiError
+     */
+    public static getDrives(): CancelablePromise<FilesystemGetDrivesResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/fs/drives'
+        });
+    }
+    
+    /**
      * List Directory
      * List contents of a directory.
      * @param data The data for the request.
      * @param data.path Directory path to list
+     * @param data.sortBy Sort by field
+     * @param data.sortOrder Sort order
      * @returns ListResponse Successful Response
      * @throws ApiError
      */
@@ -60,11 +88,101 @@ export class FilesystemService {
             method: 'GET',
             url: '/api/v1/fs/list',
             query: {
-                path: data.path
+                path: data.path,
+                sort_by: data.sortBy,
+                sort_order: data.sortOrder
             },
             errors: {
                 422: 'Validation Error'
             }
+        });
+    }
+    
+    /**
+     * Move File
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @returns PathOperationResponse Successful Response
+     * @throws ApiError
+     */
+    public static moveFile(data: FilesystemMoveFileData): CancelablePromise<FilesystemMoveFileResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/fs/move-file',
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Move Folder
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @returns PathOperationResponse Successful Response
+     * @throws ApiError
+     */
+    public static moveFolder(data: FilesystemMoveFolderData): CancelablePromise<FilesystemMoveFolderResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/fs/move-folder',
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Delete Path
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @returns PathOperationResponse Successful Response
+     * @throws ApiError
+     */
+    public static deletePath(data: FilesystemDeletePathData): CancelablePromise<FilesystemDeletePathResponse> {
+        return __request(OpenAPI, {
+            method: 'DELETE',
+            url: '/api/v1/fs/delete',
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Zip Folder
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @returns PathOperationResponse Successful Response
+     * @throws ApiError
+     */
+    public static zipFolder(data: FilesystemZipFolderData): CancelablePromise<FilesystemZipFolderResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/fs/zip-folder',
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Scan Favorite
+     * @returns ScanStartResponse Successful Response
+     * @throws ApiError
+     */
+    public static scanFavorite(): CancelablePromise<FilesystemScanFavoriteResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/fs/scan-favorite'
         });
     }
     
@@ -231,6 +349,51 @@ export class FilesystemService {
             url: '/api/v1/fs/file',
             query: {
                 path: data.path
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+}
+
+export class HistoryService {
+    /**
+     * Record History
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @returns HistoryRecordResponse Successful Response
+     * @throws ApiError
+     */
+    public static recordHistory(data: HistoryRecordHistoryData): CancelablePromise<HistoryRecordHistoryResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/history/record',
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * List History
+     * @param data The data for the request.
+     * @param data.page
+     * @param data.pageSize
+     * @param data.sortOrder
+     * @returns HistoryListResponse Successful Response
+     * @throws ApiError
+     */
+    public static listHistory(data: HistoryListHistoryData = {}): CancelablePromise<HistoryListHistoryResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/history/list',
+            query: {
+                page: data.page,
+                page_size: data.pageSize,
+                sort_order: data.sortOrder
             },
             errors: {
                 422: 'Validation Error'

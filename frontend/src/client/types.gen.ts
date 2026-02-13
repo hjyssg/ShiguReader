@@ -42,6 +42,10 @@ export type BatchParseResponse = {
     total_count: number;
 };
 
+export type DeletePathRequest = {
+    path: string;
+};
+
 export type ExtractStatus = {
     status: 'extracting' | 'completed' | 'error';
     extracted_count: number;
@@ -59,11 +63,47 @@ export type FileSystemItem = {
     filesize?: (number | null);
     mtime?: (number | null);
     thumbnail_url?: (string | null);
+    recommendation_score?: (number | null);
     scan_state?: number;
     watch_state?: number;
 };
 
 export type item_type = 'folder' | 'file';
+
+export type HistoryItem = {
+    filepath: string;
+    filename: string;
+    file_type: 'image' | 'video' | 'archive' | 'audio' | 'unknown';
+    filesize?: (number | null);
+    mtime?: (number | null);
+    thumbnail_url?: (string | null);
+    read_at: number;
+    page_current?: (number | null);
+    page_total?: (number | null);
+    file_exists: boolean;
+};
+
+export type file_type2 = 'image' | 'video' | 'archive' | 'audio' | 'unknown';
+
+export type HistoryListResponse = {
+    items: Array<HistoryItem>;
+    page: number;
+    page_size: number;
+    total: number;
+    total_pages: number;
+};
+
+export type HistoryRecordRequest = {
+    filepath: string;
+    page_current?: (number | null);
+    page_total?: (number | null);
+    position_sec?: (number | null);
+    duration_sec?: (number | null);
+};
+
+export type HistoryRecordResponse = {
+    status: "ok";
+};
 
 export type HTTPValidationError = {
     detail?: Array<ValidationError>;
@@ -77,6 +117,11 @@ export type Message = {
     message: string;
 };
 
+export type MovePathRequest = {
+    source_path: string;
+    dest_path: string;
+};
+
 export type ParseResponse = {
     title: string;
     authors: Array<(string)>;
@@ -85,6 +130,13 @@ export type ParseResponse = {
     event?: (string | null);
     date_tag?: (string | null);
     type: string;
+};
+
+export type PathOperationResponse = {
+    status: "ok";
+    message: string;
+    path: string;
+    dest_path?: (string | null);
 };
 
 export type PrivateUserCreate = {
@@ -218,6 +270,11 @@ export type ValidationError = {
     };
 };
 
+export type ZipFolderRequest = {
+    folder_path: string;
+    output_path?: (string | null);
+};
+
 export type AuthorsReadAuthorsData = {
     page?: number;
     pageSize?: number;
@@ -229,14 +286,52 @@ export type AuthorsReadAuthorsResponse = (AuthorsResponse);
 
 export type FilesystemGetRootsResponse = (Array<RootItem>);
 
+export type FilesystemGetFavoriteRootResponse = ((RootItem | null));
+
+export type FilesystemGetDrivesResponse = (Array<RootItem>);
+
 export type FilesystemListDirectoryData = {
     /**
      * Directory path to list
      */
     path: string;
+    /**
+     * Sort by field
+     */
+    sortBy?: 'name' | 'mtime' | 'type' | 'recommendation';
+    /**
+     * Sort order
+     */
+    sortOrder?: 'asc' | 'desc';
 };
 
 export type FilesystemListDirectoryResponse = (ListResponse);
+
+export type FilesystemMoveFileData = {
+    requestBody: MovePathRequest;
+};
+
+export type FilesystemMoveFileResponse = (PathOperationResponse);
+
+export type FilesystemMoveFolderData = {
+    requestBody: MovePathRequest;
+};
+
+export type FilesystemMoveFolderResponse = (PathOperationResponse);
+
+export type FilesystemDeletePathData = {
+    requestBody: DeletePathRequest;
+};
+
+export type FilesystemDeletePathResponse = (PathOperationResponse);
+
+export type FilesystemZipFolderData = {
+    requestBody: ZipFolderRequest;
+};
+
+export type FilesystemZipFolderResponse = (PathOperationResponse);
+
+export type FilesystemScanFavoriteResponse = (ScanStartResponse);
 
 export type FilesystemScanDirectoryData = {
     requestBody: ScanRequest;
@@ -311,6 +406,20 @@ export type FilesystemGetFileData = {
 };
 
 export type FilesystemGetFileResponse = (unknown);
+
+export type HistoryRecordHistoryData = {
+    requestBody: HistoryRecordRequest;
+};
+
+export type HistoryRecordHistoryResponse = (HistoryRecordResponse);
+
+export type HistoryListHistoryData = {
+    page?: number;
+    pageSize?: number;
+    sortOrder?: 'asc' | 'desc';
+};
+
+export type HistoryListHistoryResponse = (HistoryListResponse);
 
 export type ParseBatchParseData = {
     requestBody: BatchParseRequest;
