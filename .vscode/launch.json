@@ -10,6 +10,27 @@
       "preLaunchTask": "Install Backend Dependencies"
     },
     {
+      "name": "Backend: Run Tests",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "python -m pytest tests/ -v",
+      "cwd": "${workspaceFolder}/backend"
+    },
+    {
+      "name": "Backend: Run Tests with Coverage",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "coverage run -m pytest tests/ && coverage report --include=\"app/*\" --omit=\"app/alembic/*,app/email-templates/*,app/file_processing/*,app/index_db/*,app/services/*,app/*_pre_start.py,app/initial_data.py\"",
+      "cwd": "${workspaceFolder}/backend"
+    },
+    {
+      "name": "Backend: Run Core Tests",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "python -m pytest tests/test_utils.py tests/test_crud.py tests/core/ tests/api/test_deps.py -v",
+      "cwd": "${workspaceFolder}/backend"
+    },
+    {
       "name": "Frontend: Vite Dev Server",
       "type": "node",
       "request": "launch",
