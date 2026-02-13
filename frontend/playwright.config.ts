@@ -32,15 +32,18 @@ export default defineConfig({
 
   /* Configure projects for major browsers */
   projects: [
-    { name: 'setup', testMatch: /.*\.setup\.ts/ },
+    // Disabled auth setup - project has no authentication system
+    // { name: 'setup', testMatch: /.*\.setup\.ts/ },
 
     {
       name: 'chromium',
       use: {
         ...devices['Desktop Chrome'],
-        storageState: 'playwright/.auth/user.json',
+        // Disabled storageState - no authentication needed
+        // storageState: 'playwright/.auth/user.json',
       },
-      dependencies: ['setup'],
+      // Disabled auth dependency
+      // dependencies: ['setup'],
     },
 
     // {
