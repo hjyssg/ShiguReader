@@ -7,6 +7,7 @@ import {
   SidebarContent,
   SidebarFooter,
   SidebarHeader,
+  SidebarTrigger,
 } from "@/components/ui/sidebar"
 import useAuth from "@/hooks/useAuth"
 import { type Item, Main } from "./Main"
@@ -31,7 +32,10 @@ export function AppSidebar() {
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader className="px-4 py-6 group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:items-center">
-        <Logo variant="responsive" />
+        <div className="flex items-center justify-between w-full gap-2">
+          <Logo variant="responsive" />
+          <SidebarTrigger className="text-muted-foreground group-data-[collapsible=icon]:mx-auto" />
+        </div>
       </SidebarHeader>
       <SidebarContent>
         <Main items={items} />

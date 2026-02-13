@@ -6,6 +6,7 @@ import { toast } from "sonner"
 
 import { OpenAPI } from "@/client"
 import { FileIcon } from "@/components/Files/FileIcon"
+import { FileNameWithPreview } from "@/components/Files/FileNameWithPreview"
 import { formatDateTime, formatFileSize, formatFileType } from "@/components/Files/utils"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -88,11 +89,6 @@ function HistoryPage() {
   }, [data?.total_pages, page])
 
   const openHistoryItem = (item: HistoryItem) => {
-    if (!item.file_exists) {
-      toast.warning("该文件已删除或不可用，无法打开")
-      return
-    }
-
     if (item.file_type === "archive") {
       navigate({ to: "/archive", search: { path: item.filepath } })
       return
@@ -207,12 +203,7 @@ function HistoryPage() {
               key={`${item.filepath}-${item.read_at}`}
               type="button"
               onClick={() => openHistoryItem(item)}
-              className={cn(
-                "group relative rounded-lg border bg-card transition-all text-left",
-                item.file_exists
-                  ? "cursor-pointer hover:border-primary hover:shadow-md"
-                  : "cursor-not-allowed opacity-60"
-              )}
+              className="group relative rounded-lg border bg-card transition-all text-left cursor-pointer hover:border-primary hover:shadow-md"
             >
               <div className="aspect-square w-full overflow-hidden rounded-t-lg bg-muted flex items-center justify-center relative">
                 {item.thumbnail_url ? (
@@ -232,9 +223,12 @@ function HistoryPage() {
                 )}
               </div>
               <div className="p-2 space-y-1">
-                <p className="text-sm truncate" title={item.filename}>
-                  {item.filename}
-                </p>
+                <FileNameWithPreview
+                  filename={item.filename}
+                  filepath={item.filepath}
+                  thumbnailUrl={item.thumbnail_url}
+                  className="text-sm block"
+                />
                 <p className="text-xs text-muted-foreground">阅读时间：{formatDateTime(item.read_at)}</p>
                 <p className="text-xs text-muted-foreground">
                   {item.filesize ? formatFileSize(item.filesize) : formatFileType(item.file_type)}
@@ -259,16 +253,17 @@ function HistoryPage() {
               {data?.items.map((item) => (
                 <tr
                   key={`${item.filepath}-${item.read_at}`}
-                  className={cn(
-                    "border-b last:border-b-0 text-sm",
-                    item.file_exists ? "cursor-pointer hover:bg-muted/50" : "opacity-60"
-                  )}
+                  className="border-b last:border-b-0 text-sm cursor-pointer hover:bg-muted/50"
                   onClick={() => openHistoryItem(item)}
                 >
                   <td className="p-2">
                     <div className="flex items-center gap-2">
                       <FileIcon fileType={item.file_type} isFolder={false} size="sm" />
-                      <span className="truncate">{item.filename}</span>
+                      <FileNameWithPreview
+                        filename={item.filename}
+                        filepath={item.filepath}
+                        thumbnailUrl={item.thumbnail_url}
+                      />
                     </div>
                   </td>
                   <td className="p-2 text-muted-foreground">{formatDateTime(item.read_at)}</td>

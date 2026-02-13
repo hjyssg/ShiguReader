@@ -66,7 +66,7 @@ function ReadOverviewPage() {
   }))
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 p-[10px]">
       <nav className="flex items-center gap-2 text-sm">
         <Link to="/" className="flex items-center gap-1 text-muted-foreground hover:text-foreground">
           <Home className="size-4" />

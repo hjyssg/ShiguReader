@@ -7,6 +7,7 @@ import { getParentPath } from "@/lib/path-utils"
 import { cn } from "@/lib/utils"
 
 import { FileIcon } from "./FileIcon"
+import { FileNameWithPreview } from "./FileNameWithPreview"
 import { formatDateTime, formatFileSize, formatFileType } from "./utils"
 
 export type SortField = "name" | "type" | "mtime" | "recommendation"
@@ -107,7 +108,11 @@ function DetailsRow({ item }: { item: FileSystemItem }) {
       <td className="p-2">
         <div className="flex items-center gap-2">
           <FileIcon fileType={item.file_type} isFolder={isFolder} size="sm" />
-          <span className="truncate">{item.name}</span>
+          <FileNameWithPreview
+            filename={item.name}
+            filepath={item.path}
+            thumbnailUrl={item.thumbnail_url}
+          />
         </div>
       </td>
       <td className="p-2 text-muted-foreground">
@@ -120,7 +125,7 @@ function DetailsRow({ item }: { item: FileSystemItem }) {
         {!isFolder && item.filesize ? formatFileSize(item.filesize) : "-"}
       </td>
       <td className="p-2 text-right text-muted-foreground">
-        {!isFolder ? (item.recommendation_score ?? 0).toFixed(3) : "-"}
+        {!isFolder ? ((item as any).recommendation_score ?? 0).toFixed(3) : "-"}
       </td>
     </tr>
   )

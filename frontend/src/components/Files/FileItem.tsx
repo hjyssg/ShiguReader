@@ -8,6 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { cn } from "@/lib/utils"
 
 import { FileIcon } from "./FileIcon"
+import { FileNameWithPreview } from "./FileNameWithPreview"
 import { formatFileSize } from "./utils"
 
 function ThumbnailImage({
@@ -84,9 +85,12 @@ export function FileItem({ item }: { item: FileSystemItem }) {
       </div>
 
       <div className="p-2">
-        <p className="text-sm truncate" title={item.name}>
-          {item.name}
-        </p>
+        <FileNameWithPreview
+          filename={item.name}
+          filepath={item.path}
+          thumbnailUrl={item.thumbnail_url}
+          className="text-sm"
+        />
         {!isFolder && item.filesize && (
           <p className="text-xs text-muted-foreground">
             {formatFileSize(item.filesize)}

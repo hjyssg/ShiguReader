@@ -114,9 +114,10 @@ function ReadMobilePage() {
   }))
 
   return (
-    <Lightbox
-      open
-      slides={slides}
+    <div className="p-[10px]">
+      <Lightbox
+        open
+        slides={slides}
       index={safePage}
       close={() => navigate({ to: isFolderSource ? "/explorer" : "/archive", search: { path } })}
       on={{
@@ -133,6 +134,7 @@ function ReadMobilePage() {
       }}
       carousel={{ finite: false }}
       controller={{ closeOnBackdropClick: false }}
-    />
+      />
+    </div>
   )
 }

@@ -82,8 +82,8 @@ export function FileList({
           comparison = a.name.toLowerCase().localeCompare(b.name.toLowerCase())
         }
       } else if (sortField === "recommendation") {
-        const scoreA = a.recommendation_score || 0
-        const scoreB = b.recommendation_score || 0
+        const scoreA = (a as any).recommendation_score || 0
+        const scoreB = (b as any).recommendation_score || 0
         comparison = scoreA - scoreB
         if (comparison === 0) {
           comparison = a.name.toLowerCase().localeCompare(b.name.toLowerCase())

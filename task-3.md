@@ -170,6 +170,10 @@ Table View 中：
   - 不允许正常打开
 
 
+task 6：
+home要显示电脑硬盘
+
+
 
 task6：
 数据迁移：
@@ -178,11 +182,9 @@ D:\Git\ShiguReader\packages\backend\workspace\shigureader_internal_db.sqlite
 
 把history数据和thumbnail导入到这个项目吗
 
+
 task 7：
 打包成exe
-
-task 6：
-home要显示电脑硬盘
 
 
 task 8
