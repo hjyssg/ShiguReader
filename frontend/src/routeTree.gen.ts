@@ -17,6 +17,7 @@ import { Route as LayoutRouteImport } from './routes/_layout'
 import { Route as LayoutIndexRouteImport } from './routes/_layout/index'
 import { Route as LayoutVideoRouteImport } from './routes/_layout/video'
 import { Route as LayoutSettingsRouteImport } from './routes/_layout/settings'
+import { Route as LayoutSearchRouteImport } from './routes/_layout/search'
 import { Route as LayoutReaderRouteImport } from './routes/_layout/reader'
 import { Route as LayoutItemsRouteImport } from './routes/_layout/items'
 import { Route as LayoutExplorerRouteImport } from './routes/_layout/explorer'
@@ -62,6 +63,11 @@ const LayoutSettingsRoute = LayoutSettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => LayoutRoute,
 } as any)
+const LayoutSearchRoute = LayoutSearchRouteImport.update({
+  id: '/search',
+  path: '/search',
+  getParentRoute: () => LayoutRoute,
+} as any)
 const LayoutReaderRoute = LayoutReaderRouteImport.update({
   id: '/reader',
   path: '/reader',
@@ -99,6 +105,7 @@ export interface FileRoutesByFullPath {
   '/explorer': typeof LayoutExplorerRoute
   '/items': typeof LayoutItemsRoute
   '/reader': typeof LayoutReaderRoute
+  '/search': typeof LayoutSearchRoute
   '/settings': typeof LayoutSettingsRoute
   '/video': typeof LayoutVideoRoute
 }
@@ -112,6 +119,7 @@ export interface FileRoutesByTo {
   '/explorer': typeof LayoutExplorerRoute
   '/items': typeof LayoutItemsRoute
   '/reader': typeof LayoutReaderRoute
+  '/search': typeof LayoutSearchRoute
   '/settings': typeof LayoutSettingsRoute
   '/video': typeof LayoutVideoRoute
   '/': typeof LayoutIndexRoute
@@ -128,6 +136,7 @@ export interface FileRoutesById {
   '/_layout/explorer': typeof LayoutExplorerRoute
   '/_layout/items': typeof LayoutItemsRoute
   '/_layout/reader': typeof LayoutReaderRoute
+  '/_layout/search': typeof LayoutSearchRoute
   '/_layout/settings': typeof LayoutSettingsRoute
   '/_layout/video': typeof LayoutVideoRoute
   '/_layout/': typeof LayoutIndexRoute
@@ -145,6 +154,7 @@ export interface FileRouteTypes {
     | '/explorer'
     | '/items'
     | '/reader'
+    | '/search'
     | '/settings'
     | '/video'
   fileRoutesByTo: FileRoutesByTo
@@ -158,6 +168,7 @@ export interface FileRouteTypes {
     | '/explorer'
     | '/items'
     | '/reader'
+    | '/search'
     | '/settings'
     | '/video'
     | '/'
@@ -173,6 +184,7 @@ export interface FileRouteTypes {
     | '/_layout/explorer'
     | '/_layout/items'
     | '/_layout/reader'
+    | '/_layout/search'
     | '/_layout/settings'
     | '/_layout/video'
     | '/_layout/'
@@ -244,6 +256,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutSettingsRouteImport
       parentRoute: typeof LayoutRoute
     }
+    '/_layout/search': {
+      id: '/_layout/search'
+      path: '/search'
+      fullPath: '/search'
+      preLoaderRoute: typeof LayoutSearchRouteImport
+      parentRoute: typeof LayoutRoute
+    }
     '/_layout/reader': {
       id: '/_layout/reader'
       path: '/reader'
@@ -288,6 +307,7 @@ interface LayoutRouteChildren {
   LayoutExplorerRoute: typeof LayoutExplorerRoute
   LayoutItemsRoute: typeof LayoutItemsRoute
   LayoutReaderRoute: typeof LayoutReaderRoute
+  LayoutSearchRoute: typeof LayoutSearchRoute
   LayoutSettingsRoute: typeof LayoutSettingsRoute
   LayoutVideoRoute: typeof LayoutVideoRoute
   LayoutIndexRoute: typeof LayoutIndexRoute
@@ -299,6 +319,7 @@ const LayoutRouteChildren: LayoutRouteChildren = {
   LayoutExplorerRoute: LayoutExplorerRoute,
   LayoutItemsRoute: LayoutItemsRoute,
   LayoutReaderRoute: LayoutReaderRoute,
+  LayoutSearchRoute: LayoutSearchRoute,
   LayoutSettingsRoute: LayoutSettingsRoute,
   LayoutVideoRoute: LayoutVideoRoute,
   LayoutIndexRoute: LayoutIndexRoute,

@@ -3,7 +3,7 @@
 import type { CancelablePromise } from './core/CancelablePromise';
 import { OpenAPI } from './core/OpenAPI';
 import { request as __request } from './core/request';
-import type { FilesystemGetRootsResponse, FilesystemListDirectoryData, FilesystemListDirectoryResponse, FilesystemGetThumbnailData, FilesystemGetThumbnailResponse, FilesystemListArchiveData, FilesystemListArchiveResponse, FilesystemExtractArchiveData, FilesystemExtractArchiveResponse, FilesystemGetArchiveFileData, FilesystemGetArchiveFileResponse, FilesystemGetFileData, FilesystemGetFileResponse, ItemsReadItemsData, ItemsReadItemsResponse, ItemsCreateItemData, ItemsCreateItemResponse, ItemsReadItemData, ItemsReadItemResponse, ItemsUpdateItemData, ItemsUpdateItemResponse, ItemsDeleteItemData, ItemsDeleteItemResponse, PrivateCreateUserData, PrivateCreateUserResponse, UsersReadUsersData, UsersReadUsersResponse, UsersCreateUserData, UsersCreateUserResponse, UsersReadUserMeResponse, UsersDeleteUserMeResponse, UsersUpdateUserMeData, UsersUpdateUserMeResponse, UsersUpdatePasswordMeData, UsersUpdatePasswordMeResponse, UsersRegisterUserData, UsersRegisterUserResponse, UsersReadUserByIdData, UsersReadUserByIdResponse, UsersUpdateUserData, UsersUpdateUserResponse, UsersDeleteUserData, UsersDeleteUserResponse, UtilsHealthCheckResponse } from './types.gen';
+import type { FilesystemGetRootsResponse, FilesystemListDirectoryData, FilesystemListDirectoryResponse, FilesystemScanDirectoryData, FilesystemScanDirectoryResponse, FilesystemScanAndWatchData, FilesystemScanAndWatchResponse, FilesystemGetScanStatusData, FilesystemGetScanStatusResponse, FilesystemGetThumbnailData, FilesystemGetThumbnailResponse, FilesystemListArchiveData, FilesystemListArchiveResponse, FilesystemExtractArchiveData, FilesystemExtractArchiveResponse, FilesystemGetArchiveFileData, FilesystemGetArchiveFileResponse, FilesystemGetFileData, FilesystemGetFileResponse, SearchSearchFilesData, SearchSearchFilesResponse, ItemsReadItemsData, ItemsReadItemsResponse, ItemsCreateItemData, ItemsCreateItemResponse, ItemsReadItemData, ItemsReadItemResponse, ItemsUpdateItemData, ItemsUpdateItemResponse, ItemsDeleteItemData, ItemsDeleteItemResponse, PrivateCreateUserData, PrivateCreateUserResponse, UsersReadUsersData, UsersReadUsersResponse, UsersCreateUserData, UsersCreateUserResponse, UsersReadUserMeResponse, UsersDeleteUserMeResponse, UsersUpdateUserMeData, UsersUpdateUserMeResponse, UsersUpdatePasswordMeData, UsersUpdatePasswordMeResponse, UsersRegisterUserData, UsersRegisterUserResponse, UsersReadUserByIdData, UsersReadUserByIdResponse, UsersUpdateUserData, UsersUpdateUserResponse, UsersDeleteUserData, UsersDeleteUserResponse, UtilsHealthCheckResponse } from './types.gen';
 
 export class FilesystemService {
     /**
@@ -31,6 +31,67 @@ export class FilesystemService {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/fs/list',
+            query: {
+                path: data.path
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+
+    /**
+     * Scan Directory
+     * Scan a directory and optionally recurse into subfolders.
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @returns ScanStartResponse Successful Response
+     * @throws ApiError
+     */
+    public static scanDirectory(data: FilesystemScanDirectoryData): CancelablePromise<FilesystemScanDirectoryResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/fs/scan',
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+
+    /**
+     * Scan And Watch
+     * Scan a directory recursively and start watchdog listener.
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @returns ScanStartResponse Successful Response
+     * @throws ApiError
+     */
+    public static scanAndWatch(data: FilesystemScanAndWatchData): CancelablePromise<FilesystemScanAndWatchResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/fs/scan-watch',
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+
+    /**
+     * Get Scan Status
+     * Get background scan status for all paths or one path.
+     * @param data The data for the request.
+     * @param data.path Optional path filter
+     * @returns ScanStatusItem Successful Response
+     * @throws ApiError
+     */
+    public static getScanStatus(data: FilesystemGetScanStatusData = {}): CancelablePromise<FilesystemGetScanStatusResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/fs/scan-status',
             query: {
                 path: data.path
             },
@@ -254,6 +315,27 @@ export class ItemsService {
             path: {
                 id: data.id
             },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+}
+
+export class SearchService {
+    /**
+     * Search Files
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @returns SearchResponse Successful Response
+     * @throws ApiError
+     */
+    public static searchFiles(data: SearchSearchFilesData): CancelablePromise<SearchSearchFilesResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/search',
+            body: data.requestBody,
+            mediaType: 'application/json',
             errors: {
                 422: 'Validation Error'
             }

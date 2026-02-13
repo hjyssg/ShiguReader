@@ -1,0 +1,72 @@
+from __future__ import annotations
+
+from typing import Literal
+
+from fastapi import APIRouter
+from pydantic import BaseModel, Field
+
+from app.api.routes.fs import FileSystemItem
+from app.core.config import settings
+from app.index_db.db import get_index_session
+from app.index_db.models import File
+from app.index_db.repository import IndexRepository
+
+router = APIRouter(prefix="/search", tags=["search"])
+
+
+class SearchRequest(BaseModel):
+    q: str = Field(default="")
+    scopes: list[Literal["file", "author", "tag"]] = Field(
+        default_factory=lambda: ["file", "author", "tag"]
+    )
+    mode: Literal["exact", "hybrid"] = "hybrid"
+
+
+class SearchResponse(BaseModel):
+    items: list[FileSystemItem]
+    total: int
+
+
+def _to_item(file: File) -> FileSystemItem:
+    thumbnail_url = None
+    if file.file_type in ("archive", "video", "image"):
+        thumbnail_url = f"{settings.API_V1_STR}/fs/thumb?path={file.filepath}"
+
+    return FileSystemItem(
+        name=file.filename,
+        path=file.filepath,
+        item_type="file",
+        file_type=file.file_type,
+        filesize=file.filesize,
+        mtime=file.mtime,
+        thumbnail_url=thumbnail_url,
+        scan_state=file.scan_state,
+        watch_state=file.watch_state,
+    )
+
+
+@router.post("", response_model=SearchResponse)
+async def search_files(body: SearchRequest) -> SearchResponse:
+    q = body.q.strip()
+    if not q:
+        return SearchResponse(items=[], total=0)
+
+    by_filepath: dict[str, File] = {}
+    with get_index_session() as session:
+        repo = IndexRepository(session)
+
+        if "file" in body.scopes:
+            for f in repo.search_files(q, body.mode):
+                by_filepath[f.filepath] = f
+
+        if "author" in body.scopes:
+            for f in repo.search_by_author(q, body.mode):
+                by_filepath[f.filepath] = f
+
+        if "tag" in body.scopes:
+            for f in repo.search_by_tag(q, body.mode):
+                by_filepath[f.filepath] = f
+
+    items = [_to_item(f) for f in by_filepath.values()]
+    items.sort(key=lambda x: x.name.lower())
+    return SearchResponse(items=items, total=len(items))

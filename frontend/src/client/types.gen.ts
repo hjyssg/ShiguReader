@@ -68,6 +68,41 @@ export type ListResponse = {
     items: Array<FileSystemItem>;
 };
 
+export type ScanRequest = {
+    path: string;
+    recursive?: boolean;
+};
+
+export type ScanStartResponse = {
+    status: 'started';
+    message: string;
+    path: string;
+};
+
+export type ScanStatusItem = {
+    path: string;
+    status: 'running' | 'completed' | 'error';
+    message?: (string | null);
+    recursive?: boolean;
+    scanned_folders?: number;
+    scanned_files?: number;
+    parsed_files?: number;
+    watcher_active?: boolean;
+    started_at?: (number | null);
+    finished_at?: (number | null);
+};
+
+export type SearchRequest = {
+    q?: string;
+    scopes?: Array<'file' | 'author' | 'tag'>;
+    mode?: 'exact' | 'hybrid';
+};
+
+export type SearchResponse = {
+    items: Array<FileSystemItem>;
+    total: number;
+};
+
 export type Message = {
     message: string;
 };
@@ -151,6 +186,24 @@ export type FilesystemListDirectoryData = {
 
 export type FilesystemListDirectoryResponse = (ListResponse);
 
+export type FilesystemScanDirectoryData = {
+    requestBody: ScanRequest;
+};
+
+export type FilesystemScanDirectoryResponse = (ScanStartResponse);
+
+export type FilesystemScanAndWatchData = {
+    requestBody: ScanRequest;
+};
+
+export type FilesystemScanAndWatchResponse = (ScanStartResponse);
+
+export type FilesystemGetScanStatusData = {
+    path?: (string | null);
+};
+
+export type FilesystemGetScanStatusResponse = (Array<ScanStatusItem>);
+
 export type FilesystemGetThumbnailData = {
     /**
      * File path for thumbnail
@@ -203,6 +256,12 @@ export type FilesystemGetFileData = {
 };
 
 export type FilesystemGetFileResponse = (unknown);
+
+export type SearchSearchFilesData = {
+    requestBody: SearchRequest;
+};
+
+export type SearchSearchFilesResponse = (SearchResponse);
 
 export type ItemsReadItemsData = {
     limit?: number;

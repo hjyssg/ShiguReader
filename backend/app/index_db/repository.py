@@ -450,3 +450,70 @@ class IndexRepository:
         """Return tag names associated with a file."""
         stmt = select(FileTag.tag_name).where(FileTag.filepath == filepath)
         return list(self.session.exec(stmt).all())
+
+    # ------------------------------------------------------------------
+    # Search helpers
+    # ------------------------------------------------------------------
+
+    def search_files(self, q: str, mode: str = "hybrid") -> list[File]:
+        """Search files by filename/filepath."""
+        if not q:
+            return []
+
+        if mode == "exact":
+            stmt = select(File).where(
+                (File.filename.contains(q)) | (File.filepath.contains(q))
+            )
+        else:
+            stmt = select(File).where(
+                (File.filename.ilike(f"%{q}%")) | (File.filepath.ilike(f"%{q}%"))
+            )
+        return list(self.session.exec(stmt).all())
+
+    def search_by_author(self, q: str, mode: str = "hybrid") -> list[File]:
+        """Search files by author name."""
+        if not q:
+            return []
+
+        artist_stmt = select(Artist.artist_name)
+        if mode == "exact":
+            artist_stmt = artist_stmt.where(Artist.artist_name.contains(q))
+        else:
+            artist_stmt = artist_stmt.where(Artist.artist_name.ilike(f"%{q}%"))
+
+        artist_names = list(self.session.exec(artist_stmt).all())
+        if not artist_names:
+            return []
+
+        filepaths_stmt = select(FileArtist.filepath).where(
+            FileArtist.artist_name.in_(artist_names)
+        )
+        filepaths = list(self.session.exec(filepaths_stmt).all())
+        if not filepaths:
+            return []
+
+        files_stmt = select(File).where(File.filepath.in_(filepaths))
+        return list(self.session.exec(files_stmt).all())
+
+    def search_by_tag(self, q: str, mode: str = "hybrid") -> list[File]:
+        """Search files by tag name."""
+        if not q:
+            return []
+
+        tag_stmt = select(Tag.tag_name)
+        if mode == "exact":
+            tag_stmt = tag_stmt.where(Tag.tag_name.contains(q))
+        else:
+            tag_stmt = tag_stmt.where(Tag.tag_name.ilike(f"%{q}%"))
+
+        tag_names = list(self.session.exec(tag_stmt).all())
+        if not tag_names:
+            return []
+
+        filepaths_stmt = select(FileTag.filepath).where(FileTag.tag_name.in_(tag_names))
+        filepaths = list(self.session.exec(filepaths_stmt).all())
+        if not filepaths:
+            return []
+
+        files_stmt = select(File).where(File.filepath.in_(filepaths))
+        return list(self.session.exec(files_stmt).all())
