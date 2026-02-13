@@ -46,15 +46,9 @@ dist/ShiguReader.exe
 
 ### 注意事项
 
-#### PostgreSQL 依赖
+#### 数据库
 
-当前项目依赖 PostgreSQL 数据库。打包后的 exe 仍需要：
-1. 本机安装 PostgreSQL
-2. 配置 `.env` 文件中的数据库连接信息
-
-如果希望完全独立运行（不依赖外部数据库），需要：
-1. 将用户认证模块改为使用 SQLite
-2. 或者完全移除用户认证功能
+项目使用 SQLite 数据库，无需安装额外的数据库服务。打包后的 exe 完全独立运行。
 
 #### 数据目录
 
@@ -75,34 +69,25 @@ FS_ROOTS=D:/_TEMP_DOWNLOADS/_,E:/_Happy_Picture
 # 收藏目录
 FAVORITE_DIR=E:\_Happy_Lesson\_Going_to_sort
 
-# 数据库配置
-POSTGRES_SERVER=localhost
-POSTGRES_PORT=5432
-POSTGRES_DB=app
-POSTGRES_USER=postgres
-POSTGRES_PASSWORD=your_password
-
-# 其他配置
+# 用户配置
 FIRST_SUPERUSER=admin@example.com
 FIRST_SUPERUSER_PASSWORD=changethis
+
+# PostgreSQL 配置（已禁用，项目使用 SQLite）
+# POSTGRES_SERVER=localhost
+# POSTGRES_PORT=5432
+# POSTGRES_DB=app
+# POSTGRES_USER=postgres
+# POSTGRES_PASSWORD=your_password
 ```
 
-## 简化打包（移除 PostgreSQL 依赖）
+## 数据库说明
 
-如果想要完全独立的 exe（不依赖 PostgreSQL），需要修改代码：
+项目已从 PostgreSQL 迁移到 SQLite，使用两个 SQLite 数据库：
+- `data/user.db` - 用户认证数据
+- `data/index.db` - 索引数据
 
-### 方案 1：移除用户认证
-
-1. 删除 `backend/app/models.py` 中的用户相关模型
-2. 删除 `backend/app/api/routes/` 中的用户相关路由
-3. 修改 `backend/app/core/config.py`，移除 PostgreSQL 配置
-4. 修改 `backend/app/main.py`，移除数据库初始化
-
-### 方案 2：用户认证改用 SQLite
-
-1. 修改 `backend/app/core/config.py`，将 PostgreSQL 连接改为 SQLite
-2. 更新 Alembic 迁移脚本
-3. 重新生成数据库
+打包后的 exe 完全独立，无需安装额外的数据库服务。
 
 ## 开发模式运行
 

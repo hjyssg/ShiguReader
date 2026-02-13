@@ -4,7 +4,7 @@
 
 ## 当前保留
 
-- FastAPI + SQLModel + PostgreSQL
+- FastAPI + SQLModel + SQLite
 - React + Vite 前端
 - 基础用户/条目管理结构
 
