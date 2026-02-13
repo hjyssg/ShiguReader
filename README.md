@@ -17,9 +17,19 @@
 - Mailcatcher
 - Docker Compose + Traefik 部署文档
 
-## 本地开发（LAN）
+## 快速启动
 
-### 后端
+### 方式 1：一键启动脚本（推荐）
+
+```bash
+python build_tools/launch.py
+```
+
+这会自动启动前后端并打开浏览器。
+
+### 方式 2：手动启动
+
+#### 后端
 
 ```bash
 cd backend
@@ -31,14 +41,23 @@ uv run fastapi dev app/main.py
 
 接口文档：<http://localhost:8000/docs>
 
-### 前端
+#### 前端
 
 ```bash
-bun install
-bun run dev
+cd frontend
+npm install
+npm run dev
 ```
 
 前端地址：<http://localhost:5173>
+
+## 打包成 EXE
+
+详见 [build_tools/BUILD.md](build_tools/BUILD.md)
+
+```bash
+python build_tools/build_exe.py
+```
 
 ## 说明
 

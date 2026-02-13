@@ -41,5 +41,27 @@
         "order": 1
       }
     }
+  ],
+  "tasks": [
+    {
+      "label": "Build EXE",
+      "type": "shell",
+      "command": "python build_tools/build_exe.py",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      }
+    },
+    {
+      "label": "Launch App",
+      "type": "shell",
+      "command": "python build_tools/launch.py",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      }
+    }
   ]
 }
