@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query"
 import { createFileRoute, Link } from "@tanstack/react-router"
-import { Folder, Heart } from "lucide-react"
+import { Folder, HardDrive, Heart } from "lucide-react"
 
 import { FilesystemService, OpenAPI } from "@/client"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -23,6 +23,11 @@ function Dashboard() {
     queryFn: () => FilesystemService.getRoots(),
   })
 
+  const { data: drives, isLoading: drivesLoading } = useQuery({
+    queryKey: ["fs-drives"],
+    queryFn: () => FilesystemService.getDrives(),
+  })
+
   const { data: favoriteRoot } = useQuery({
     queryKey: ["fs-favorite"],
     queryFn: async (): Promise<{ path: string; dirname: string } | null> => {
@@ -34,8 +39,37 @@ function Dashboard() {
 
   return (
     <div className="space-y-6">
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {favoriteRoot ? (
+      {/* Drives Section */}
+      {drives && drives.length > 0 && (
+        <div>
+          <h2 className="text-lg font-semibold mb-3">硬盘驱动器</h2>
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            {drives.map((drive) => (
+              <Link
+                key={drive.path}
+                to="/explorer"
+                search={{ path: drive.path }}
+                className="transition-transform hover:scale-[1.02]"
+              >
+                <Card className="cursor-pointer hover:border-primary">
+                  <CardHeader className="flex flex-row items-center gap-4">
+                    <div className="flex size-12 items-center justify-center rounded-lg bg-primary/10">
+                      <HardDrive className="size-6 text-primary" />
+                    </div>
+                    <CardTitle className="text-lg">{drive.dirname}</CardTitle>
+                  </CardHeader>
+                </Card>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Configured Roots Section */}
+      <div>
+        <h2 className="text-lg font-semibold mb-3">配置的目录</h2>
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {favoriteRoot ? (
           <Link
             key={`favorite-${favoriteRoot.path}`}
             to="/explorer"
@@ -95,6 +129,7 @@ function Dashboard() {
             </Link>
           ))
         )}
+        </div>
       </div>
     </div>
   )

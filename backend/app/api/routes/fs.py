@@ -6,6 +6,7 @@ import logging
 import math
 import os
 import shutil
+import string
 import threading
 import zipfile
 from time import time
@@ -443,6 +444,19 @@ async def get_favorite_root() -> RootItem | None:
         return None
 
     return RootItem(path=str(path), dirname=path.name or str(path))
+
+
+@router.get("/drives", response_model=list[RootItem])
+async def get_drives() -> list[RootItem]:
+    """Get available drive letters (Windows only)."""
+    drives = []
+    for letter in string.ascii_uppercase:
+        drive_path = Path(f"{letter}:\\")
+        if drive_path.exists():
+            drives.append(
+                RootItem(path=str(drive_path), dirname=f"{letter}:")
+            )
+    return drives
 
 
 @router.get("/list", response_model=ListResponse)

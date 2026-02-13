@@ -60,9 +60,7 @@ export class FilesystemService {
             method: 'GET',
             url: '/api/v1/fs/list',
             query: {
-                path: data.path,
-                sort_by: data.sortBy,
-                sort_order: data.sortOrder
+                path: data.path
             },
             errors: {
                 422: 'Validation Error'

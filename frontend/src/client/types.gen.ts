@@ -59,7 +59,6 @@ export type FileSystemItem = {
     filesize?: (number | null);
     mtime?: (number | null);
     thumbnail_url?: (string | null);
-    recommendation_score?: (number | null);
     scan_state?: number;
     watch_state?: number;
 };
@@ -235,14 +234,6 @@ export type FilesystemListDirectoryData = {
      * Directory path to list
      */
     path: string;
-    /**
-     * Sort by field
-     */
-    sortBy?: ('name' | 'mtime' | 'type' | 'recommendation');
-    /**
-     * Sort order
-     */
-    sortOrder?: ('asc' | 'desc');
 };
 
 export type FilesystemListDirectoryResponse = (ListResponse);
