@@ -6,14 +6,15 @@ import logging
 import subprocess
 from pathlib import Path
 
-from PIL import Image, ImageOps
-
 from app.core.config import settings
 from app.file_processing._archive_backend import archive_kind, list_entries
-from app.file_processing.thumbnail_generator.service import (
-    IMAGE_SUFFIXES,
+from app.file_processing.thumbnail_generator import (
     generate_first_image_thumbnail,
+    generate_image_thumbnail,
+    generate_svg_placeholder,
+    generate_video_thumbnail,
 )
+from app.file_processing.thumbnail_generator.service import IMAGE_SUFFIXES
 from app.index_db.db import get_index_session
 from app.index_db.repository import IndexRepository
 
@@ -183,109 +184,17 @@ class ThumbService:
             raise
 
     def _generate_video_thumb(self, filepath: Path, cache_path: Path) -> None:
-        """Generate video thumbnail using ffmpeg with multiple fallback strategies."""
-        attempts = [
-            [
-                "ffmpeg",
-                "-y",
-                "-i",
-                str(filepath),
-                "-vf",
-                "select=eq(n\\,1)",
-                "-vframes",
-                "1",
-                str(cache_path),
-            ],
-            [
-                "ffmpeg",
-                "-y",
-                "-i",
-                str(filepath),
-                "-vf",
-                "select=eq(n\\,0)",
-                "-vframes",
-                "1",
-                str(cache_path),
-            ],
-            [
-                "ffmpeg",
-                "-y",
-                "-ss",
-                "00:00:00",
-                "-i",
-                str(filepath),
-                "-frames:v",
-                "1",
-                str(cache_path),
-            ],
-        ]
-
-        last_err = ""
-        for command in attempts:
-            try:
-                result = subprocess.run(
-                    command,
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.PIPE,
-                    check=False,
-                    text=True,
-                    encoding="utf-8",
-                    errors="ignore",
-                    timeout=settings.THUMB_TIMEOUT_SEC,
-                )
-                
-                if cache_path.exists() and cache_path.stat().st_size > 0:
-                    return
-                
-                if result.stderr:
-                    last_err = result.stderr.strip()
-            except FileNotFoundError:
-                last_err = "ffmpeg not found"
-                break
-            except subprocess.TimeoutExpired:
-                last_err = "ffmpeg timeout"
-                break
-
-        # Fallback: generate SVG placeholder
-        logger.warning(f"Video thumbnail generation failed, using SVG placeholder: {filepath}, error: {last_err[:200]}")
-        self._generate_svg_placeholder(cache_path)
-
-    def _generate_svg_placeholder(self, cache_path: Path) -> None:
-        """Generate SVG placeholder for video files."""
-        svg_content = '''<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300">
-  <rect width="400" height="300" fill="#1a1a1a"/>
-  <circle cx="200" cy="150" r="40" fill="#ffffff" opacity="0.8"/>
-  <polygon points="190,135 190,165 215,150" fill="#1a1a1a"/>
-  <text x="200" y="200" font-family="Arial" font-size="14" fill="#ffffff" text-anchor="middle" opacity="0.6">Video</text>
-</svg>'''
-        cache_path.write_text(svg_content, encoding="utf-8")
+        """Generate video thumbnail using ffmpeg with fallback to SVG placeholder."""
+        try:
+            generate_video_thumbnail(filepath, cache_path, timeout=settings.THUMB_TIMEOUT_SEC)
+        except (FileNotFoundError, subprocess.TimeoutExpired, RuntimeError) as e:
+            logger.warning(f"Video thumbnail generation failed, using SVG placeholder: {filepath}, error: {e}")
+            generate_svg_placeholder(cache_path)
 
     def _generate_image_thumb(self, filepath: Path, cache_path: Path) -> None:
         """Generate thumbnail from image file."""
         try:
-            with Image.open(filepath) as img_raw:
-                img = ImageOps.exif_transpose(img_raw)
-                
-                # Handle transparency
-                if img.mode in ("RGBA", "LA"):
-                    rgba = img.convert("RGBA")
-                    background = Image.new("RGB", rgba.size, (255, 255, 255))
-                    background.paste(rgba, mask=rgba.split()[-1])
-                    img = background
-                elif img.mode == "P":
-                    if "transparency" in img.info:
-                        rgba = img.convert("RGBA")
-                        background = Image.new("RGB", rgba.size, (255, 255, 255))
-                        background.paste(rgba, mask=rgba.split()[-1])
-                        img = background
-                    else:
-                        img = img.convert("RGB")
-                elif img.mode != "RGB":
-                    img = img.convert("RGB")
-
-                # Resize maintaining aspect ratio
-                img.thumbnail((400, settings.THUMB_HEIGHT))
-                img.save(cache_path, "WEBP", quality=85, optimize=True)
+            generate_image_thumbnail(filepath, cache_path, height=settings.THUMB_HEIGHT)
         except Exception as e:
             logger.error(f"Image thumbnail generation failed: {filepath}, error: {e}")
             raise
