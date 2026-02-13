@@ -66,17 +66,17 @@ def generate_video_thumbnail(
     Raises:
         FileNotFoundError: If ffmpeg is not found
         subprocess.TimeoutExpired: If ffmpeg execution times out
-        RuntimeError: If all ffmpeg strategies fail
+        RuntimeError: If all ffmpeg strategies failed
     """
     attempts = [
         [
             "ffmpeg",
             "-y",
+            "-ss",
+            "3",
             "-i",
             str(filepath),
-            "-vf",
-            "select=eq(n\\,1)",
-            "-vframes",
+            "-frames:v",
             "1",
             str(output_path),
         ],
@@ -88,17 +88,6 @@ def generate_video_thumbnail(
             "-vf",
             "select=eq(n\\,0)",
             "-vframes",
-            "1",
-            str(output_path),
-        ],
-        [
-            "ffmpeg",
-            "-y",
-            "-ss",
-            "00:00:00",
-            "-i",
-            str(filepath),
-            "-frames:v",
             "1",
             str(output_path),
         ],
