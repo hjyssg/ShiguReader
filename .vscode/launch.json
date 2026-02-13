@@ -20,11 +20,11 @@
       ],
       "cwd": "${workspaceFolder}/frontend",
       "console": "integratedTerminal",
-      "serverReadyAction": {
-        "pattern": "Local:.*?(https?://\\S+)",
-        "uriFormat": "%s",
-        "action": "debugWithChrome"
-      }
+      // "serverReadyAction": {
+      //   "pattern": "Local:.*?(https?://\\S+)",
+      //   "uriFormat": "%s",
+      //   "action": "debugWithChrome"
+      // }
     }
   ],
   "compounds": [

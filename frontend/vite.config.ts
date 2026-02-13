@@ -7,6 +7,7 @@ import { defineConfig } from "vite"
 // https://vitejs.dev/config/
 export default defineConfig({
   server: {
+    host: true, // 允许局域网访问
     open: false,
   },
   resolve: {
