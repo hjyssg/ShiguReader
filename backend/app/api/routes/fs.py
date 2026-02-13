@@ -3,6 +3,9 @@ from __future__ import annotations
 import asyncio
 import hashlib
 import logging
+import os
+import threading
+from time import time
 from pathlib import Path
 from typing import Literal
 
@@ -13,6 +16,8 @@ from pydantic import BaseModel
 from app.constants import ARCHIVE_SUFFIXES, AUDIO_SUFFIXES, IMAGE_SUFFIXES, VIDEO_SUFFIXES
 from app.core.config import settings
 from app.file_processing.archive_lister import list_archive_entries
+from app.file_processing.folder_watcher import FolderWatcher
+from app.file_processing.name_parser import parse
 from app.file_processing.stepwise_extractor import stepwise_extract
 from app.index_db.db import get_index_session
 from app.index_db.repository import IndexRepository, UpsertFileInput, UpsertFolderInput
@@ -22,6 +27,12 @@ from app.utils import detect_file_type, get_mime_type
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/fs", tags=["filesystem"])
+
+
+_active_watchers: dict[str, FolderWatcher] = {}
+_watcher_lock = threading.Lock()
+_scan_status: dict[str, dict] = {}
+_scan_status_lock = threading.Lock()
 
 
 def _parse_roots() -> list[Path]:
@@ -60,6 +71,218 @@ class FileSystemItem(BaseModel):
 
 class ListResponse(BaseModel):
     items: list[FileSystemItem]
+
+
+class ScanRequest(BaseModel):
+    path: str
+    recursive: bool = True
+
+
+class ScanStartResponse(BaseModel):
+    status: Literal["started"]
+    message: str
+    path: str
+
+
+class ScanStatusItem(BaseModel):
+    path: str
+    status: Literal["running", "completed", "error"]
+    message: str | None = None
+    recursive: bool = True
+    scanned_folders: int = 0
+    scanned_files: int = 0
+    parsed_files: int = 0
+    watcher_active: bool = False
+    started_at: int | None = None
+    finished_at: int | None = None
+
+
+def _update_scan_status(path: str, **kwargs) -> None:
+    with _scan_status_lock:
+        current = _scan_status.get(path, {})
+        current.update(kwargs)
+        _scan_status[path] = current
+
+
+def _run_scan(path: Path, recursive: bool) -> None:
+    """Recursively (or non-recursively) scan files, upsert DB and parse metadata."""
+    path_key = str(path)
+    _update_scan_status(
+        path_key,
+        path=path_key,
+        status="running",
+        message="Scanning in background",
+        recursive=recursive,
+        scanned_folders=0,
+        scanned_files=0,
+        parsed_files=0,
+        started_at=int(time()),
+        finished_at=None,
+    )
+
+    folders_to_upsert: list[UpsertFolderInput] = []
+    files_to_upsert: list[UpsertFileInput] = []
+    parse_results: list[dict] = []
+
+    scanned_folders = 0
+    scanned_files = 0
+    parsed_files = 0
+
+    try:
+        if recursive:
+            for root, _, filenames in os.walk(path):
+                root_path = Path(root)
+                try:
+                    root_stat = root_path.stat()
+                    folders_to_upsert.append(
+                        UpsertFolderInput(
+                            filepath=str(root_path),
+                            dirname=root_path.name or str(root_path),
+                            mtime=int(root_stat.st_mtime),
+                            scan_state=1,
+                            watch_state=0,
+                            scanned=True,
+                        )
+                    )
+                    scanned_folders += 1
+                except Exception as e:
+                    logger.warning(f"Failed to stat folder {root_path}: {e}")
+
+                for filename in filenames:
+                    file_path = root_path / filename
+                    try:
+                        stat = file_path.stat()
+                        file_type = detect_file_type(file_path)
+                        fingerprint = f"{file_path.name}-{stat.st_size}-{int(stat.st_mtime)}"
+                        files_to_upsert.append(
+                            UpsertFileInput(
+                                filepath=str(file_path),
+                                filename=file_path.name,
+                                mtime=int(stat.st_mtime),
+                                filesize=stat.st_size,
+                                fingerprint=fingerprint,
+                                folderpath=str(root_path),
+                                file_type=file_type,
+                                ext=file_path.suffix.lower() if file_path.suffix else None,
+                                scan_state=1,
+                                watch_state=0,
+                                scanned=True,
+                            )
+                        )
+                        scanned_files += 1
+
+                        parsed = parse(file_path.name)
+                        if parsed is not None:
+                            parse_results.append(
+                                {
+                                    "filepath": str(file_path),
+                                    "title": parsed.title,
+                                    "authors": parsed.authors,
+                                    "group_name": parsed.group,
+                                    "raw_tags": parsed.raw_tags,
+                                    "event": parsed.event,
+                                    "date_tag": parsed.date_tag,
+                                    "media_type": parsed.type,
+                                }
+                            )
+                            parsed_files += 1
+                    except Exception as e:
+                        logger.warning(f"Failed to process file {file_path}: {e}")
+        else:
+            root_stat = path.stat()
+            folders_to_upsert.append(
+                UpsertFolderInput(
+                    filepath=str(path),
+                    dirname=path.name or str(path),
+                    mtime=int(root_stat.st_mtime),
+                    scan_state=1,
+                    watch_state=0,
+                    scanned=True,
+                )
+            )
+            scanned_folders += 1
+
+            for entry in path.iterdir():
+                try:
+                    stat = entry.stat()
+                    if entry.is_dir():
+                        folders_to_upsert.append(
+                            UpsertFolderInput(
+                                filepath=str(entry),
+                                dirname=entry.name,
+                                mtime=int(stat.st_mtime),
+                                scan_state=1,
+                                watch_state=0,
+                                scanned=False,
+                            )
+                        )
+                    elif entry.is_file():
+                        file_type = detect_file_type(entry)
+                        fingerprint = f"{entry.name}-{stat.st_size}-{int(stat.st_mtime)}"
+                        files_to_upsert.append(
+                            UpsertFileInput(
+                                filepath=str(entry),
+                                filename=entry.name,
+                                mtime=int(stat.st_mtime),
+                                filesize=stat.st_size,
+                                fingerprint=fingerprint,
+                                folderpath=str(path),
+                                file_type=file_type,
+                                ext=entry.suffix.lower() if entry.suffix else None,
+                                scan_state=1,
+                                watch_state=0,
+                                scanned=True,
+                            )
+                        )
+                        scanned_files += 1
+
+                        parsed = parse(entry.name)
+                        if parsed is not None:
+                            parse_results.append(
+                                {
+                                    "filepath": str(entry),
+                                    "title": parsed.title,
+                                    "authors": parsed.authors,
+                                    "group_name": parsed.group,
+                                    "raw_tags": parsed.raw_tags,
+                                    "event": parsed.event,
+                                    "date_tag": parsed.date_tag,
+                                    "media_type": parsed.type,
+                                }
+                            )
+                            parsed_files += 1
+                except Exception as e:
+                    logger.warning(f"Failed to process entry {entry}: {e}")
+
+        with get_index_session() as session:
+            repo = IndexRepository(session)
+            if folders_to_upsert:
+                repo.batch_upsert_folders(folders_to_upsert)
+            if files_to_upsert:
+                repo.batch_upsert_files(files_to_upsert)
+            if parse_results:
+                repo.batch_save_parse_results(parse_results)
+
+        _update_scan_status(
+            path_key,
+            status="completed",
+            message="Scan completed",
+            scanned_folders=scanned_folders,
+            scanned_files=scanned_files,
+            parsed_files=parsed_files,
+            finished_at=int(time()),
+        )
+    except Exception as e:
+        logger.error(f"Scan failed for {path}: {e}")
+        _update_scan_status(
+            path_key,
+            status="error",
+            message=f"Scan failed: {e}",
+            scanned_folders=scanned_folders,
+            scanned_files=scanned_files,
+            parsed_files=parsed_files,
+            finished_at=int(time()),
+        )
 
 
 @router.get("/roots", response_model=list[RootItem])
@@ -186,6 +409,31 @@ async def list_directory(
                     repo.batch_upsert_folders(folders_to_upsert)
                 if files_to_upsert:
                     repo.batch_upsert_files(files_to_upsert)
+
+                    parse_results: list[dict] = []
+                    for file_data in files_to_upsert:
+                        try:
+                            parsed = parse(file_data.filename)
+                            if parsed is None:
+                                continue
+
+                            parse_results.append(
+                                {
+                                    "filepath": file_data.filepath,
+                                    "title": parsed.title,
+                                    "authors": parsed.authors,
+                                    "group_name": parsed.group,
+                                    "raw_tags": parsed.raw_tags,
+                                    "event": parsed.event,
+                                    "date_tag": parsed.date_tag,
+                                    "media_type": parsed.type,
+                                }
+                            )
+                        except Exception as e:
+                            logger.warning(f"Failed to parse filename {file_data.filename}: {e}")
+
+                    if parse_results:
+                        repo.batch_save_parse_results(parse_results)
             logger.info(f"DB upsert completed for {validated_path}: {len(folders_to_upsert)} folders, {len(files_to_upsert)} files")
         except Exception as e:
             logger.error(f"DB upsert failed for {validated_path}: {e}")
@@ -193,6 +441,70 @@ async def list_directory(
     background_tasks.add_task(upsert_to_db)
     
     return ListResponse(items=items)
+
+
+@router.post("/scan", response_model=ScanStartResponse)
+async def scan_directory(background_tasks: BackgroundTasks, request: ScanRequest) -> ScanStartResponse:
+    """Scan a directory and optionally recurse into subfolders."""
+    target_path = Path(request.path)
+    validated_path = _validate_path(target_path)
+
+    if not validated_path.exists():
+        raise HTTPException(status_code=404, detail="Path not found")
+
+    if not validated_path.is_dir():
+        raise HTTPException(status_code=400, detail="Path is not a directory")
+
+    background_tasks.add_task(_run_scan, validated_path, request.recursive)
+
+    return ScanStartResponse(
+        status="started",
+        message="Scan task started",
+        path=str(validated_path),
+    )
+
+
+@router.post("/scan-watch", response_model=ScanStartResponse)
+async def scan_and_watch(background_tasks: BackgroundTasks, request: ScanRequest) -> ScanStartResponse:
+    """Scan a directory recursively and start watchdog listener."""
+    target_path = Path(request.path)
+    validated_path = _validate_path(target_path)
+
+    if not validated_path.exists():
+        raise HTTPException(status_code=404, detail="Path not found")
+
+    if not validated_path.is_dir():
+        raise HTTPException(status_code=400, detail="Path is not a directory")
+
+    path_key = str(validated_path)
+    with _watcher_lock:
+        watcher = _active_watchers.get(path_key)
+        if watcher is None:
+            watcher = FolderWatcher(validated_path)
+            watcher.start()
+            _active_watchers[path_key] = watcher
+
+    _update_scan_status(path_key, path=path_key, watcher_active=True)
+    background_tasks.add_task(_run_scan, validated_path, request.recursive)
+
+    return ScanStartResponse(
+        status="started",
+        message="Scan+watch task started",
+        path=path_key,
+    )
+
+
+@router.get("/scan-status", response_model=list[ScanStatusItem])
+async def get_scan_status(path: str | None = Query(None, description="Optional path filter")) -> list[ScanStatusItem]:
+    """Get background scan status for all paths or one path."""
+    with _scan_status_lock:
+        if path:
+            record = _scan_status.get(path)
+            if record is None:
+                return []
+            return [ScanStatusItem(**record)]
+
+        return [ScanStatusItem(**record) for record in _scan_status.values()]
 
 
 @router.get("/thumb", response_model=None)
