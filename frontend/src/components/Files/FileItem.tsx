@@ -6,7 +6,7 @@ import { useIsMobile } from "@/hooks/useMobile"
 import { getParentPath } from "@/lib/path-utils"
 import { Skeleton } from "@/components/ui/skeleton"
 import { cn } from "@/lib/utils"
-import { ItemCard, CardThumbnail, CardInfo } from "@/components/semantic/layout"
+import { ItemCard, CardThumbnail, CardInfo, FileName } from "@/components/semantic/layout"
 
 import { FileIcon } from "./FileIcon"
 import { FileNameWithPreview } from "./FileNameWithPreview"
@@ -79,12 +79,18 @@ export function FileItem({ item }: { item: FileSystemItem }) {
       </CardThumbnail>
 
       <CardInfo className="file-item-info">
-        <FileNameWithPreview
-          filename={item.name}
-          filepath={item.path}
-          thumbnailUrl={item.thumbnail_url}
-          className="text-sm"
-        />
+        {item.thumbnail_url ? (
+          <FileName title={item.name} className="text-sm">
+            {item.name}
+          </FileName>
+        ) : (
+          <FileNameWithPreview
+            filename={item.name}
+            filepath={item.path}
+            thumbnailUrl={item.thumbnail_url}
+            className="text-sm"
+          />
+        )}
         {!isFolder && item.filesize && (
           <p className="text-xs text-muted-foreground">
             {formatFileSize(item.filesize)}

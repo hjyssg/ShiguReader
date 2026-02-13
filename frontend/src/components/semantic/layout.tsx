@@ -158,3 +158,11 @@ export function FormField({ children, className }: { children: React.ReactNode; 
     </div>
   )
 }
+
+export function FileName({ children, className, title }: { children: React.ReactNode; className?: string; title?: string }) {
+  return (
+    <span className={cn("ui-file-name truncate block min-w-0", className)} title={title}>
+      {children}
+    </span>
+  )
+}
