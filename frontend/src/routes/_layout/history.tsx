@@ -211,7 +211,7 @@ function HistoryPage() {
                   <img
                     src={`${OpenAPI.BASE}${item.thumbnail_url}`}
                     alt={item.filename}
-                    className="size-full object-cover"
+                    className="size-full object-contain"
                     loading="lazy"
                   />
                 ) : (

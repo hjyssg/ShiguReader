@@ -170,7 +170,7 @@ function ArchiveEntryItem({
           <img
             src={fileUrl}
             alt={entry.name}
-            className="size-full object-cover"
+            className="size-full object-contain"
             loading="lazy"
           />
         ) : isVideo ? (

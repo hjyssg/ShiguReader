@@ -44,7 +44,7 @@ function ThumbnailImage({
       <img
         src={src}
         alt={alt}
-        className={cn("size-full object-cover", !isLoaded && "opacity-0")}
+        className={cn("size-full object-contain", !isLoaded && "opacity-0")}
         loading="lazy"
         onLoad={() => setIsLoaded(true)}
         onError={() => setHasError(true)}

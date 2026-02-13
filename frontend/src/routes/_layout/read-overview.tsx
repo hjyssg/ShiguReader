@@ -123,7 +123,7 @@ function ReadOverviewPage() {
                 <img
                   src={imageUrl}
                   alt={entry.name}
-                  className="size-full object-cover group-hover:scale-105 transition-transform"
+                  className="size-full object-contain group-hover:scale-105 transition-transform"
                   loading="lazy"
                 />
               </div>
