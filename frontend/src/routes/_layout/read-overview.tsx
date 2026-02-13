@@ -5,6 +5,7 @@ import { useEffect, useMemo } from "react"
 
 import { FilesystemService, OpenAPI } from "@/client"
 import { useIsMobile } from "@/hooks/useMobile"
+import { getBaseName, joinPath, splitPath } from "@/lib/path-utils"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 
@@ -57,9 +58,12 @@ function ReadOverviewPage() {
     )
   }
 
-  const pathParts = path.split(/[/\\]/).filter(Boolean)
-  const fileName = pathParts[pathParts.length - 1] || "Archive"
-  const parentPath = pathParts.slice(0, -1).join("\\")
+  const pathParts = splitPath(path)
+  const fileName = getBaseName(path, "Archive")
+  const dirCrumbs = pathParts.slice(0, -1).map((name, index) => ({
+    name,
+    path: joinPath(pathParts.slice(0, index + 1), path),
+  }))
 
   return (
     <div className="space-y-4">
@@ -68,15 +72,15 @@ function ReadOverviewPage() {
           <Home className="size-4" />
           <span>Home</span>
         </Link>
-        <ChevronRight className="size-4 text-muted-foreground" />
-        {parentPath && (
-          <>
-            <Link to="/explorer" search={{ path: parentPath }} className="text-muted-foreground hover:text-foreground">
-              <Folder className="size-4 inline mr-1" />Explorer
-            </Link>
+        {dirCrumbs.map((crumb) => (
+          <div key={crumb.path} className="flex items-center gap-2">
             <ChevronRight className="size-4 text-muted-foreground" />
-          </>
-        )}
+            <Link to="/explorer" search={{ path: crumb.path }} className="text-muted-foreground hover:text-foreground">
+              <Folder className="size-4 inline mr-1" />{crumb.name}
+            </Link>
+          </div>
+        ))}
+        <ChevronRight className="size-4 text-muted-foreground" />
         <Link to="/archive" search={{ path }} className="text-muted-foreground hover:text-foreground">
           {fileName}
         </Link>
@@ -85,7 +89,14 @@ function ReadOverviewPage() {
       </nav>
 
       <div className="flex items-center gap-2">
-        <Button onClick={() => navigate({ to: isMobile ? "/read-mobile" : "/read", search: { path, page: 0 } })}>
+        <Button
+          onClick={() =>
+            navigate({
+              to: isMobile ? "/read-mobile" : "/read",
+              search: { path, page: 0, source: "archive", filePath: "" },
+            })
+          }
+        >
           打开阅读器
         </Button>
         <Button variant="outline" onClick={() => navigate({ to: "/read-waterfall", search: { path } })}>
@@ -105,7 +116,7 @@ function ReadOverviewPage() {
             <Link
               key={entry.entry_path}
               to={isMobile ? "/read-mobile" : "/read"}
-              search={{ path, page: index }}
+              search={{ path, page: index, source: "archive", filePath: "" }}
               className="group rounded border bg-card overflow-hidden hover:border-primary"
             >
               <div className="aspect-[3/4] bg-muted overflow-hidden">

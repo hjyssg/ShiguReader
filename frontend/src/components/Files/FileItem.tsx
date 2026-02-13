@@ -2,6 +2,8 @@ import { Link } from "@tanstack/react-router"
 import { useEffect, useState } from "react"
 
 import { type FileSystemItem, OpenAPI } from "@/client"
+import { useIsMobile } from "@/hooks/useMobile"
+import { getParentPath } from "@/lib/path-utils"
 import { Skeleton } from "@/components/ui/skeleton"
 import { cn } from "@/lib/utils"
 
@@ -51,10 +53,13 @@ function ThumbnailImage({
 }
 
 export function FileItem({ item }: { item: FileSystemItem }) {
+  const isMobile = useIsMobile()
   const isFolder = item.item_type === "folder"
   const isArchive = item.file_type === "archive"
   const isVideo = item.file_type === "video"
-  const isClickable = isFolder || isArchive || isVideo
+  const isAudio = item.file_type === "audio"
+  const isImage = item.file_type === "image"
+  const isClickable = isFolder || isArchive || isVideo || isAudio || isImage
 
   const content = (
     <div
@@ -109,7 +114,27 @@ export function FileItem({ item }: { item: FileSystemItem }) {
 
   if (isVideo) {
     return (
-      <Link to="/video" search={{ path: item.path, entry: undefined }}>
+      <Link to="/video" search={{ path: item.path, entry: undefined, media: "video" }}>
+        {content}
+      </Link>
+    )
+  }
+
+  if (isAudio) {
+    return (
+      <Link to="/video" search={{ path: item.path, entry: undefined, media: "audio" }}>
+        {content}
+      </Link>
+    )
+  }
+
+  if (isImage) {
+    const parentPath = getParentPath(item.path)
+    return (
+      <Link
+        to={isMobile ? "/read-mobile" : "/read"}
+        search={{ path: parentPath, source: "folder", page: 0, filePath: item.path }}
+      >
         {content}
       </Link>
     )

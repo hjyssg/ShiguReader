@@ -1,7 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router"
 import { ChevronRight, Folder, Home } from "lucide-react"
+import AudioPlayer from "react-h5-audio-player"
+import "react-h5-audio-player/lib/styles.css"
 
 import { OpenAPI } from "@/client"
+import { getBaseName, joinPath, splitPath } from "@/lib/path-utils"
 
 export const Route = createFileRoute("/_layout/video")({
   component: Video,
@@ -9,6 +12,7 @@ export const Route = createFileRoute("/_layout/video")({
     return {
       path: (search.path as string) || "",
       entry: (search.entry as string) || undefined,
+      media: (search.media as "video" | "audio") || "video",
     }
   },
   head: () => ({
@@ -21,26 +25,31 @@ export const Route = createFileRoute("/_layout/video")({
 })
 
 function Video() {
-  const { path, entry } = Route.useSearch()
+  const { path, entry, media } = Route.useSearch()
 
   // Determine video URL
   let videoUrl: string
   let fileName: string
-  let parentPath: string
+  let sourcePath: string
 
   if (entry) {
     // Video from archive
     videoUrl = `${OpenAPI.BASE}/api/v1/fs/archive/file?path=${encodeURIComponent(path)}&entry=${encodeURIComponent(entry)}`
     fileName = entry.split(/[/\\]/).pop() || "Video"
-    const pathParts = path.split(/[/\\]/).filter(Boolean)
-    parentPath = pathParts.slice(0, -1).join("\\")
+    sourcePath = path
   } else {
     // Video from filesystem
     videoUrl = `${OpenAPI.BASE}/api/v1/fs/file?path=${encodeURIComponent(path)}`
-    const pathParts = path.split(/[/\\]/).filter(Boolean)
-    fileName = pathParts[pathParts.length - 1] || "Video"
-    parentPath = pathParts.slice(0, -1).join("\\")
+    fileName = getBaseName(path, media === "audio" ? "Audio" : "Video")
+    sourcePath = path
   }
+
+  const pathParts = splitPath(sourcePath)
+  const targetParts = entry ? pathParts.slice(0, -1) : pathParts
+  const dirCrumbs = targetParts.map((name, index) => ({
+    name,
+    path: joinPath(targetParts.slice(0, index + 1), sourcePath),
+  }))
 
   return (
     <div className="space-y-6">
@@ -53,20 +62,20 @@ function Video() {
           <Home className="size-4" />
           <span>Home</span>
         </Link>
-        <ChevronRight className="size-4 text-muted-foreground" />
-        {parentPath && (
-          <>
+        {dirCrumbs.map((crumb) => (
+          <div key={crumb.path} className="flex items-center gap-2">
+            <ChevronRight className="size-4 text-muted-foreground" />
             <Link
               to="/explorer"
-              search={{ path: parentPath }}
+              search={{ path: crumb.path }}
               className="text-muted-foreground hover:text-foreground transition-colors"
             >
               <Folder className="size-4 inline mr-1" />
-              Explorer
+              {crumb.name}
             </Link>
-            <ChevronRight className="size-4 text-muted-foreground" />
-          </>
-        )}
+          </div>
+        ))}
+        <ChevronRight className="size-4 text-muted-foreground" />
         {entry && (
           <>
             <Link
@@ -82,18 +91,23 @@ function Video() {
         <span className="font-medium">{fileName}</span>
       </nav>
 
-      {/* Video Player */}
-      <div className="bg-black rounded-lg overflow-hidden">
-        <video
-          src={videoUrl}
-          controls
-          autoPlay
-          className="w-full max-h-[80vh]"
-          controlsList="nodownload"
-        >
-          Your browser does not support the video tag.
-        </video>
-      </div>
+      {media === "audio" ? (
+        <div className="rounded-lg border bg-card p-4">
+          <AudioPlayer src={videoUrl} autoPlay showSkipControls={false} showJumpControls={false} />
+        </div>
+      ) : (
+        <div className="bg-black rounded-lg overflow-hidden">
+          <video
+            src={videoUrl}
+            controls
+            autoPlay
+            className="w-full max-h-[80vh]"
+            controlsList="nodownload"
+          >
+            Your browser does not support the video tag.
+          </video>
+        </div>
+      )}
 
       {/* Video Info */}
       <div className="space-y-2">

@@ -12,6 +12,7 @@ import { useEffect } from "react"
 
 import { FilesystemService, OpenAPI } from "@/client"
 import { useIsMobile } from "@/hooks/useMobile"
+import { getBaseName, joinPath, splitPath } from "@/lib/path-utils"
 import { Skeleton } from "@/components/ui/skeleton"
 import { cn } from "@/lib/utils"
 
@@ -59,7 +60,7 @@ function Archive() {
       if (hasOnlyImages && listData.entries.length > 0) {
         navigate({
           to: isMobile ? "/read-mobile" : "/read",
-          search: { path, page: 0 },
+          search: { path, page: 0, source: "archive", filePath: "" },
           replace: true,
         })
       }
@@ -82,9 +83,12 @@ function Archive() {
   const entries = listData.entries
 
   // Parse breadcrumb
-  const pathParts = path.split(/[/\\]/).filter(Boolean)
-  const fileName = pathParts[pathParts.length - 1] || "Archive"
-  const parentPath = pathParts.slice(0, -1).join("\\")
+  const pathParts = splitPath(path)
+  const fileName = getBaseName(path, "Archive")
+  const dirCrumbs = pathParts.slice(0, -1).map((name, index) => ({
+    name,
+    path: joinPath(pathParts.slice(0, index + 1), path),
+  }))
 
   return (
     <div className="space-y-6">
@@ -97,20 +101,20 @@ function Archive() {
           <Home className="size-4" />
           <span>Home</span>
         </Link>
-        <ChevronRight className="size-4 text-muted-foreground" />
-        {parentPath && (
-          <>
+        {dirCrumbs.map((crumb) => (
+          <div key={crumb.path} className="flex items-center gap-2">
+            <ChevronRight className="size-4 text-muted-foreground" />
             <Link
               to="/explorer"
-              search={{ path: parentPath }}
+              search={{ path: crumb.path }}
               className="text-muted-foreground hover:text-foreground transition-colors"
             >
               <Folder className="size-4 inline mr-1" />
-              Explorer
+              {crumb.name}
             </Link>
-            <ChevronRight className="size-4 text-muted-foreground" />
-          </>
-        )}
+          </div>
+        ))}
+        <ChevronRight className="size-4 text-muted-foreground" />
         <span className="font-medium">{fileName}</span>
       </nav>
 
@@ -149,7 +153,7 @@ function ArchiveEntryItem({
   const isVideo = entry.file_type === "video"
   const isAudio = entry.file_type === "audio"
   const isImage = entry.file_type === "image"
-  const isClickable = isVideo || isImage
+  const isClickable = isVideo || isImage || isAudio
 
   const fileUrl = `${OpenAPI.BASE}/api/v1/fs/archive/file?path=${encodeURIComponent(archivePath)}&entry=${encodeURIComponent(entry.entry_path)}`
 
@@ -191,7 +195,7 @@ function ArchiveEntryItem({
     return (
       <Link
         to={imageReaderPath}
-        search={{ path: archivePath, page: entry.index }}
+        search={{ path: archivePath, page: entry.index, source: "archive", filePath: "" }}
       >
         {content}
       </Link>
@@ -202,7 +206,18 @@ function ArchiveEntryItem({
     return (
       <Link
         to="/video"
-        search={{ path: archivePath, entry: entry.entry_path }}
+        search={{ path: archivePath, entry: entry.entry_path, media: "video" }}
+      >
+        {content}
+      </Link>
+    )
+  }
+
+  if (isAudio) {
+    return (
+      <Link
+        to="/video"
+        search={{ path: archivePath, entry: entry.entry_path, media: "audio" }}
       >
         {content}
       </Link>

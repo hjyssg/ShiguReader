@@ -6,6 +6,7 @@ import { toast } from "sonner"
 import { FilesystemService } from "@/client"
 import { FileList } from "@/components/Files/FileList"
 import { Button } from "@/components/ui/button"
+import { buildPathBreadcrumbs } from "@/lib/path-utils"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -44,11 +45,7 @@ function Explorer() {
     enabled: false,
   })
 
-  const pathParts = path.split(/[/\\]/).filter(Boolean)
-  const breadcrumbs = pathParts.map((part, index) => {
-    const fullPath = pathParts.slice(0, index + 1).join("\\")
-    return { name: part, path: fullPath }
-  })
+  const breadcrumbs = buildPathBreadcrumbs(path)
 
   const handleScan = async (withWatch: boolean) => {
     if (!path) return

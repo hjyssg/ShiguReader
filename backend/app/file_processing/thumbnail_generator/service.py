@@ -9,6 +9,7 @@ from pathlib import Path
 from PIL import Image, ImageOps
 
 from app.constants import IMAGE_SUFFIXES
+from app.core.config import settings
 from app.file_processing._archive_backend import extract_single_to_temp_file, list_entries
 
 logger = logging.getLogger(__name__)
@@ -39,10 +40,18 @@ def generate_first_image_thumbnail(
     try:
         output.parent.mkdir(parents=True, exist_ok=True)
         with Image.open(extracted) as source_image:
+            source_image = ImageOps.exif_transpose(source_image)
+            if source_image.mode != "RGB":
+                source_image = source_image.convert("RGB")
             ratio = height / source_image.height
             width = max(int(source_image.width * ratio), 1)
-            thumbnail = source_image.resize((width, height), Image.Resampling.LANCZOS)
-            thumbnail.save(output)
+            thumbnail = source_image.resize((width, height), Image.Resampling.BILINEAR)
+            thumbnail.save(
+                output,
+                "JPEG",
+                quality=settings.THUMB_JPEG_QUALITY,
+                optimize=False,
+            )
     finally:
         shutil.rmtree(temp_root, ignore_errors=True)
 
@@ -137,6 +146,18 @@ def generate_svg_placeholder(output_path: Path) -> None:
     output_path.write_text(svg_content, encoding="utf-8")
 
 
+def generate_video_placeholder(output_path: Path) -> None:
+    """Generate fast JPEG placeholder for video files."""
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    with Image.new("RGB", (400, 300), color=(26, 26, 26)) as img:
+        img.save(
+            output_path,
+            "JPEG",
+            quality=settings.THUMB_JPEG_QUALITY,
+            optimize=False,
+        )
+
+
 def generate_image_thumbnail(
     filepath: Path,
     output_path: Path,
@@ -175,6 +196,11 @@ def generate_image_thumbnail(
         elif img.mode != "RGB":
             img = img.convert("RGB")
 
-        # Resize maintaining aspect ratio
-        img.thumbnail((400, height))
-        img.save(output_path, "WEBP", quality=85, optimize=True)
+        # Resize maintaining aspect ratio (faster interpolation than default)
+        img.thumbnail((400, height), Image.Resampling.BILINEAR)
+        img.save(
+            output_path,
+            "JPEG",
+            quality=settings.THUMB_JPEG_QUALITY,
+            optimize=False,
+        )

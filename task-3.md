@@ -139,5 +139,41 @@ VideoPlayerPage
 不复用他们的代码只是功能要类似。
 
 
+
 task4：
 现在怎么清理解压的临时文件。
+
+task 5：
+新增 History 页面。
+
+要求：
+
+- 页面风格类似 Explorer
+- 支持 Grid View 和 Table View 两种展示模式
+- 必须支持 Pagination
+
+Table View 中：
+
+- 时间字段显示“阅读时间”（read_at），不是文件修改时间
+
+行为要求：
+
+- 如果某个文件曾被阅读，但后来被删除：
+  - 该记录在 History 中不能消失
+  - 必须明确标记为“不可用”或“已删除”
+  - 不允许正常打开
+
+
+
+task6：
+数据迁移：
+能从D:\Git\ShiguReader\packages\backend\thumbnail
+D:\Git\ShiguReader\packages\backend\workspace\shigureader_internal_db.sqlite
+
+把history数据和thumbnail导入到这个项目吗
+
+task 7：
+打包成exe
+
+task 6：
+home要显示电脑硬盘

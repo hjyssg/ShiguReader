@@ -2,6 +2,8 @@ import { Link } from "@tanstack/react-router"
 import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react"
 
 import type { FileSystemItem } from "@/client"
+import { useIsMobile } from "@/hooks/useMobile"
+import { getParentPath } from "@/lib/path-utils"
 import { cn } from "@/lib/utils"
 
 import { FileIcon } from "./FileIcon"
@@ -87,10 +89,13 @@ export function DetailsView({
 }
 
 function DetailsRow({ item }: { item: FileSystemItem }) {
+  const isMobile = useIsMobile()
   const isFolder = item.item_type === "folder"
   const isArchive = item.file_type === "archive"
   const isVideo = item.file_type === "video"
-  const isClickable = isFolder || isArchive || isVideo
+  const isAudio = item.file_type === "audio"
+  const isImage = item.file_type === "image"
+  const isClickable = isFolder || isArchive || isVideo || isAudio || isImage
 
   const content = (
     <tr
@@ -138,7 +143,36 @@ function DetailsRow({ item }: { item: FileSystemItem }) {
 
   if (isVideo) {
     return (
-      <Link to="/video" search={{ path: item.path, entry: undefined }} className="contents">
+      <Link
+        to="/video"
+        search={{ path: item.path, entry: undefined, media: "video" }}
+        className="contents"
+      >
+        {content}
+      </Link>
+    )
+  }
+
+  if (isAudio) {
+    return (
+      <Link
+        to="/video"
+        search={{ path: item.path, entry: undefined, media: "audio" }}
+        className="contents"
+      >
+        {content}
+      </Link>
+    )
+  }
+
+  if (isImage) {
+    const parentPath = getParentPath(item.path)
+    return (
+      <Link
+        to={isMobile ? "/read-mobile" : "/read"}
+        search={{ path: parentPath, source: "folder", page: 0, filePath: item.path }}
+        className="contents"
+      >
         {content}
       </Link>
     )

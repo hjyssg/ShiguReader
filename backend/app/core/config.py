@@ -60,6 +60,7 @@ class Settings(BaseSettings):
     THUMB_CONCURRENCY: int = 3
     THUMB_TIMEOUT_SEC: int = 10
     THUMB_HEIGHT: int = 350
+    THUMB_JPEG_QUALITY: int = 70
 
     @computed_field  # type: ignore[prop-decorator]
     @property

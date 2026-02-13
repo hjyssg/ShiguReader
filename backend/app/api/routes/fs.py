@@ -847,16 +847,11 @@ async def get_thumbnail(path: str = Query(..., description="File path for thumbn
         if not cache_path.exists():
             raise FileNotFoundError(f"Thumbnail cache not found after regeneration: {cache_path}")
         
-        # Check if it's SVG (for video placeholders)
-        if cache_path.suffix == ".webp" and cache_path.read_text(encoding="utf-8", errors="ignore").startswith("<svg"):
-            return Response(
-                content=cache_path.read_text(encoding="utf-8"),
-                media_type="image/svg+xml",
-            )
-        
+        media_type = get_mime_type(cache_path)
+
         return FileResponse(
             cache_path,
-            media_type="image/webp",
+            media_type=media_type,
             headers={"Cache-Control": "public, max-age=31536000"},
         )
     except TimeoutError:

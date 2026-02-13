@@ -3,6 +3,7 @@ from .service import (
     generate_first_image_thumbnail,
     generate_image_thumbnail,
     generate_svg_placeholder,
+    generate_video_placeholder,
     generate_video_thumbnail,
 )
 
@@ -11,5 +12,6 @@ __all__ = [
     "generate_first_image_thumbnail",
     "generate_image_thumbnail",
     "generate_svg_placeholder",
+    "generate_video_placeholder",
     "generate_video_thumbnail",
 ]

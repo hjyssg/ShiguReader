@@ -17,7 +17,7 @@ from app.file_processing._archive_backend import archive_kind, list_entries
 from app.file_processing.thumbnail_generator import (
     generate_first_image_thumbnail,
     generate_image_thumbnail,
-    generate_svg_placeholder,
+    generate_video_placeholder,
     generate_video_thumbnail,
 )
 from app.index_db.db import get_index_session
@@ -55,7 +55,7 @@ class ThumbService:
         cache_subdir = self._cache_dir / path_hash[:2] / path_hash[2:]
         cache_subdir.mkdir(parents=True, exist_ok=True)
         
-        return cache_subdir / f"{hashlib.md5(fingerprint.encode()).hexdigest()}.webp"
+        return cache_subdir / f"{hashlib.md5(fingerprint.encode()).hexdigest()}.jpg"
 
     async def get_or_generate(self, filepath: Path, *, force: bool = False) -> Path:
         """Get cached thumbnail or generate new one with inflight deduplication."""
@@ -188,12 +188,12 @@ class ThumbService:
             raise
 
     def _generate_video_thumb(self, filepath: Path, cache_path: Path) -> None:
-        """Generate video thumbnail using ffmpeg with fallback to SVG placeholder."""
+        """Generate video thumbnail using ffmpeg with fallback to JPEG placeholder."""
         try:
             generate_video_thumbnail(filepath, cache_path, timeout=settings.THUMB_TIMEOUT_SEC)
         except (FileNotFoundError, subprocess.TimeoutExpired, RuntimeError) as e:
-            logger.warning(f"Video thumbnail generation failed, using SVG placeholder: {filepath}, error: {e}")
-            generate_svg_placeholder(cache_path)
+            logger.warning(f"Video thumbnail generation failed, using JPEG placeholder: {filepath}, error: {e}")
+            generate_video_placeholder(cache_path)
 
     def _generate_image_thumb(self, filepath: Path, cache_path: Path) -> None:
         """Generate thumbnail from image file."""

@@ -41,6 +41,7 @@
     "react": "^19.1.1",
     "react-dom": "^19.2.3",
     "react-error-boundary": "^6.0.0",
+    "react-h5-audio-player": "^3.10.1",
     "react-hook-form": "^7.68.0",
     "react-icons": "^5.5.0",
     "sonner": "^2.0.7",

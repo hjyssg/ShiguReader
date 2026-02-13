@@ -12,6 +12,7 @@ import {
 import { useEffect, useMemo, useRef, useState } from "react"
 
 import { FilesystemService, OpenAPI } from "@/client"
+import { getBaseName, joinPath, splitPath, wrapPageIndex } from "@/lib/path-utils"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 
@@ -20,6 +21,8 @@ export const Route = createFileRoute("/_layout/read")({
   validateSearch: (search: Record<string, unknown>) => ({
     path: (search.path as string) || "",
     page: Number(search.page) || 0,
+    source: (search.source as "archive" | "folder") || "archive",
+    filePath: (search.filePath as string) || "",
   }),
   head: () => ({
     meta: [{ title: "Reader" }],
@@ -27,8 +30,16 @@ export const Route = createFileRoute("/_layout/read")({
 })
 
 function ReadPage() {
-  const { path, page } = Route.useSearch()
+  type ImageEntry = {
+    name: string
+    index: number
+    filePath?: string
+    entryPath?: string
+  }
+
+  const { path, page, source, filePath } = Route.useSearch()
   const navigate = useNavigate()
+  const isFolderSource = source === "folder"
 
   const [scale, setScale] = useState(1)
   const [rotation, setRotation] = useState(0)
@@ -40,7 +51,13 @@ function ReadPage() {
   const { data: listData, isLoading } = useQuery({
     queryKey: ["archive-list", path],
     queryFn: () => FilesystemService.listArchive({ path }),
-    enabled: !!path,
+    enabled: !!path && !isFolderSource,
+  })
+
+  const { data: folderData, isLoading: isFolderLoading } = useQuery({
+    queryKey: ["fs-list", path],
+    queryFn: () => FilesystemService.listDirectory({ path }),
+    enabled: !!path && isFolderSource,
   })
 
   const extractMutation = useMutation({
@@ -48,13 +65,34 @@ function ReadPage() {
       FilesystemService.extractArchive({ path, page: currentPage }),
   })
 
-  const imageEntries = useMemo(
-    () => listData?.entries.filter((e) => e.file_type === "image") || [],
-    [listData],
-  )
+  const imageEntries = useMemo<ImageEntry[]>(() => {
+    if (isFolderSource) {
+      return (folderData?.items || [])
+        .filter((item) => item.item_type === "file" && item.file_type === "image")
+        .map((item, index) => ({
+          name: item.name,
+          index,
+          filePath: item.path,
+        }))
+    }
+
+    return (listData?.entries || [])
+      .filter((e) => e.file_type === "image")
+      .map((entry, index) => ({
+        name: entry.name,
+        index,
+        entryPath: entry.entry_path,
+      }))
+  }, [isFolderSource, folderData, listData])
+
+  const resolvedPage = useMemo(() => {
+    if (!isFolderSource || !filePath) return page
+    const foundIndex = imageEntries.findIndex((entry) => entry.filePath === filePath)
+    return foundIndex >= 0 ? foundIndex : page
+  }, [isFolderSource, filePath, imageEntries, page])
 
   const totalPages = imageEntries.length
-  const currentPage = Math.min(Math.max(0, page), Math.max(totalPages - 1, 0))
+  const currentPage = wrapPageIndex(resolvedPage, totalPages)
   const currentEntry = imageEntries[currentPage]
 
   const resetTransform = () => {
@@ -64,20 +102,16 @@ function ReadPage() {
   }
 
   const goToPage = (nextPage: number) => {
-    const target = Math.min(Math.max(0, nextPage), Math.max(totalPages - 1, 0))
-    navigate({ to: "/read", search: { path, page: target } })
+    const target = wrapPageIndex(nextPage, totalPages)
+    navigate({ to: "/read", search: { path, page: target, source, filePath: "" } })
   }
 
   const goNext = () => {
-    if (currentPage < totalPages - 1) {
-      goToPage(currentPage + 1)
-    }
+    goToPage(currentPage + 1)
   }
 
   const goPrev = () => {
-    if (currentPage > 0) {
-      goToPage(currentPage - 1)
-    }
+    goToPage(currentPage - 1)
   }
 
   const zoomIn = () => setScale((prev) => Math.min(5, prev * 1.1))
@@ -94,10 +128,21 @@ function ReadPage() {
 
   useEffect(() => {
     resetTransform()
-    if (path) {
+    if (path && !isFolderSource) {
       extractMutation.mutate(currentPage)
     }
-  }, [path, currentPage])
+  }, [path, currentPage, isFolderSource])
+
+  useEffect(() => {
+    if (!isFolderSource || !filePath || totalPages === 0) return
+    if (resolvedPage !== page) {
+      navigate({
+        to: "/read",
+        search: { path, source, page: wrapPageIndex(resolvedPage, totalPages), filePath: "" },
+        replace: true,
+      })
+    }
+  }, [isFolderSource, filePath, resolvedPage, page, navigate, path, source, totalPages])
 
   useEffect(() => {
     const onKeydown = (e: KeyboardEvent) => {
@@ -128,7 +173,7 @@ function ReadPage() {
       } else if (key === "s" || key === "arrowdown") {
         window.scrollBy({ top: 80, behavior: "smooth" })
       } else if (key === "escape") {
-        navigate({ to: "/archive", search: { path } })
+        navigate({ to: isFolderSource ? "/explorer" : "/archive", search: { path } })
       }
     }
 
@@ -169,7 +214,7 @@ function ReadPage() {
     }
   }
 
-  if (isLoading) {
+  if (isLoading || isFolderLoading) {
     return (
       <div className="space-y-6">
         <Skeleton className="h-8 w-64" />
@@ -182,11 +227,16 @@ function ReadPage() {
     return <div>未找到可阅读的图片</div>
   }
 
-  const pathParts = path.split(/[/\\]/).filter(Boolean)
-  const fileName = pathParts[pathParts.length - 1] || "Archive"
-  const parentPath = pathParts.slice(0, -1).join("\\")
+  const pathParts = splitPath(path)
+  const fileName = getBaseName(path, isFolderSource ? "Folder" : "Archive")
+  const dirCrumbs = pathParts.slice(0, -1).map((name, index) => ({
+    name,
+    path: joinPath(pathParts.slice(0, index + 1), path),
+  }))
 
-  const imageUrl = `${OpenAPI.BASE}/api/v1/fs/archive/file?path=${encodeURIComponent(path)}&entry=${encodeURIComponent(currentEntry.entry_path)}`
+  const imageUrl = isFolderSource
+    ? `${OpenAPI.BASE}/api/v1/fs/file?path=${encodeURIComponent(currentEntry.filePath || "")}`
+    : `${OpenAPI.BASE}/api/v1/fs/archive/file?path=${encodeURIComponent(path)}&entry=${encodeURIComponent(currentEntry.entryPath || "")}`
 
   return (
     <div className="space-y-4">
@@ -195,16 +245,20 @@ function ReadPage() {
           <Home className="size-4" />
           <span>Home</span>
         </Link>
-        <ChevronRight className="size-4 text-muted-foreground" />
-        {parentPath && (
-          <>
-            <Link to="/explorer" search={{ path: parentPath }} className="text-muted-foreground hover:text-foreground">
-              <Folder className="size-4 inline mr-1" />Explorer
-            </Link>
+        {dirCrumbs.map((crumb) => (
+          <div key={crumb.path} className="flex items-center gap-2">
             <ChevronRight className="size-4 text-muted-foreground" />
-          </>
-        )}
-        <Link to="/archive" search={{ path }} className="text-muted-foreground hover:text-foreground">
+            <Link to="/explorer" search={{ path: crumb.path }} className="text-muted-foreground hover:text-foreground">
+              <Folder className="size-4 inline mr-1" />{crumb.name}
+            </Link>
+          </div>
+        ))}
+        <ChevronRight className="size-4 text-muted-foreground" />
+        <Link
+          to={isFolderSource ? "/explorer" : "/archive"}
+          search={{ path }}
+          className="text-muted-foreground hover:text-foreground"
+        >
           {fileName}
         </Link>
       </nav>
@@ -212,8 +266,12 @@ function ReadPage() {
       <div className="flex items-center justify-between gap-2">
         <div className="text-sm text-muted-foreground truncate">{currentEntry.name}</div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={() => navigate({ to: "/read-overview", search: { path } })}>Overview</Button>
-          <Button variant="outline" size="sm" onClick={() => navigate({ to: "/read-waterfall", search: { path } })}>Waterfall</Button>
+          {!isFolderSource && (
+            <>
+              <Button variant="outline" size="sm" onClick={() => navigate({ to: "/read-overview", search: { path } })}>Overview</Button>
+              <Button variant="outline" size="sm" onClick={() => navigate({ to: "/read-waterfall", search: { path } })}>Waterfall</Button>
+            </>
+          )}
         </div>
       </div>
 
@@ -242,7 +300,6 @@ function ReadPage() {
           size="icon"
           className="absolute left-4 top-1/2 -translate-y-1/2 bg-background/80 hover:bg-background"
           onClick={goPrev}
-          disabled={currentPage === 0}
         >
           <ChevronLeft className="size-6" />
         </Button>
@@ -251,12 +308,11 @@ function ReadPage() {
           size="icon"
           className="absolute right-4 top-1/2 -translate-y-1/2 bg-background/80 hover:bg-background"
           onClick={goNext}
-          disabled={currentPage === totalPages - 1}
         >
           <ChevronRight className="size-6" />
         </Button>
 
-        {extractMutation.isPending && (
+        {!isFolderSource && extractMutation.isPending && (
           <div className="absolute right-3 top-3 rounded bg-background/80 px-2 py-1 text-xs flex items-center gap-1">
             <Loader2 className="size-3 animate-spin" /> extracting
           </div>
@@ -268,8 +324,8 @@ function ReadPage() {
           {currentPage + 1} / {totalPages}
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <Button variant="outline" size="sm" onClick={goPrev} disabled={currentPage === 0}>上一页</Button>
-          <Button variant="outline" size="sm" onClick={goNext} disabled={currentPage === totalPages - 1}>下一页</Button>
+          <Button variant="outline" size="sm" onClick={goPrev}>上一页</Button>
+          <Button variant="outline" size="sm" onClick={goNext}>下一页</Button>
           <Button variant="outline" size="sm" onClick={zoomOut}>-</Button>
           <Button variant="outline" size="sm" onClick={zoomIn}>+</Button>
           <Button variant="outline" size="icon" onClick={rotate} title="旋转">
