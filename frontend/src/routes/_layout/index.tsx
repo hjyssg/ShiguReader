@@ -1,11 +1,10 @@
 import { useQuery } from "@tanstack/react-query"
 import { createFileRoute, Link } from "@tanstack/react-router"
-import { Folder } from "lucide-react"
+import { Folder, Heart } from "lucide-react"
 
 import { FilesystemService } from "@/client"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
-import useAuth from "@/hooks/useAuth"
 
 export const Route = createFileRoute("/_layout/")({
   component: Dashboard,
@@ -19,25 +18,46 @@ export const Route = createFileRoute("/_layout/")({
 })
 
 function Dashboard() {
-  const { user: currentUser } = useAuth()
-
   const { data: roots, isLoading } = useQuery({
     queryKey: ["fs-roots"],
     queryFn: () => FilesystemService.getRoots(),
   })
 
+  const { data: favoriteRoot } = useQuery({
+    queryKey: ["fs-favorite"],
+    queryFn: async (): Promise<{ path: string; dirname: string } | null> => {
+      const response = await fetch("/api/v1/fs/favorite")
+      if (!response.ok) return null
+      return response.json()
+    },
+  })
+
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold truncate max-w-sm">
-          Hi, {currentUser?.full_name || currentUser?.email} 👋
-        </h1>
-        <p className="text-muted-foreground">
-          Select a root directory to explore
-        </p>
-      </div>
-
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        {favoriteRoot ? (
+          <Link
+            key={`favorite-${favoriteRoot.path}`}
+            to="/explorer"
+            search={{ path: favoriteRoot.path }}
+            className="transition-transform hover:scale-[1.02]"
+          >
+            <Card className="cursor-pointer border-primary/40 hover:border-primary">
+              <CardHeader className="flex flex-row items-center gap-4">
+                <div className="flex size-12 items-center justify-center rounded-lg bg-primary/10">
+                  <Heart className="size-6 text-primary" />
+                </div>
+                <CardTitle className="text-lg">最喜欢文件夹 · {favoriteRoot.dirname}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground truncate">
+                  {favoriteRoot.path}
+                </p>
+              </CardContent>
+            </Card>
+          </Link>
+        ) : null}
+
         {isLoading ? (
           <>
             {[1, 2, 3].map((i) => (

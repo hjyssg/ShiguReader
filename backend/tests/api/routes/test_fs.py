@@ -238,3 +238,88 @@ def test_scan_endpoint_returns_started(client_with_root: TestClient, test_fs_roo
     payload = response.json()
     assert payload["status"] == "started"
     assert payload["path"] == str(test_fs_root)
+
+
+def test_move_file_success(client_with_root: TestClient, test_fs_root: Path) -> None:
+    src = test_fs_root / "test.txt"
+    dst = test_fs_root / "folder1" / "moved.txt"
+
+    response = client_with_root.post(
+        "/api/v1/fs/move-file",
+        json={"source_path": str(src), "dest_path": str(dst)},
+    )
+    assert response.status_code == 200
+    assert dst.exists()
+    assert not src.exists()
+
+
+def test_move_folder_success(client_with_root: TestClient, test_fs_root: Path) -> None:
+    src = test_fs_root / "folder2"
+    dst = test_fs_root / "folder1" / "moved-folder2"
+
+    response = client_with_root.post(
+        "/api/v1/fs/move-folder",
+        json={"source_path": str(src), "dest_path": str(dst)},
+    )
+    assert response.status_code == 200
+    assert dst.exists()
+    assert not src.exists()
+
+
+def test_move_folder_into_subfolder_rejected(client_with_root: TestClient, test_fs_root: Path) -> None:
+    src = test_fs_root / "folder1"
+    dst = src / "nested"
+
+    response = client_with_root.post(
+        "/api/v1/fs/move-folder",
+        json={"source_path": str(src), "dest_path": str(dst)},
+    )
+    assert response.status_code == 400
+
+
+def test_delete_file_success(client_with_root: TestClient, test_fs_root: Path) -> None:
+    target = test_fs_root / "test.txt"
+    response = client_with_root.request(
+        "DELETE",
+        "/api/v1/fs/delete",
+        json={"path": str(target)},
+    )
+    assert response.status_code == 200
+    assert not target.exists()
+
+
+def test_delete_folder_success(client_with_root: TestClient, test_fs_root: Path) -> None:
+    target = test_fs_root / "folder2"
+    response = client_with_root.request(
+        "DELETE",
+        "/api/v1/fs/delete",
+        json={"path": str(target)},
+    )
+    assert response.status_code == 200
+    assert not target.exists()
+
+
+def test_zip_folder_success(client_with_root: TestClient, test_fs_root: Path) -> None:
+    output = test_fs_root / "archive.zip"
+    response = client_with_root.post(
+        "/api/v1/fs/zip-folder",
+        json={"folder_path": str(test_fs_root / "folder1"), "output_path": str(output)},
+    )
+    assert response.status_code == 200
+    assert output.exists()
+
+
+def test_list_directory_supports_recommendation_sort(client_with_root: TestClient, test_fs_root: Path) -> None:
+    response = client_with_root.get(
+        f"/api/v1/fs/list?path={test_fs_root}&sort_by=recommendation&sort_order=desc"
+    )
+    assert response.status_code == 200
+    items = response.json()["items"]
+    file_items = [x for x in items if x["item_type"] == "file"]
+    assert all("recommendation_score" in x for x in file_items)
+
+
+def test_scan_favorite_not_configured(client_with_root: TestClient, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(settings, "FAVORITE_DIR", "")
+    response = client_with_root.post("/api/v1/fs/scan-favorite")
+    assert response.status_code == 400

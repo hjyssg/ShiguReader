@@ -243,6 +243,17 @@ export const FileSystemItemSchema = {
             ],
             title: 'Thumbnail Url'
         },
+        recommendation_score: {
+            anyOf: [
+                {
+                    type: 'number'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Recommendation Score'
+        },
         scan_state: {
             type: 'integer',
             title: 'Scan State',

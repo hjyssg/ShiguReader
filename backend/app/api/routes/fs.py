@@ -3,8 +3,11 @@ from __future__ import annotations
 import asyncio
 import hashlib
 import logging
+import math
 import os
+import shutil
 import threading
+import zipfile
 from time import time
 from pathlib import Path
 from typing import Literal
@@ -71,6 +74,7 @@ class FileSystemItem(BaseModel):
     filesize: int | None = None
     mtime: int | None = None
     thumbnail_url: str | None = None
+    recommendation_score: float | None = None
     scan_state: int = 0  # Reserved for DB integration
     watch_state: int = 0  # Reserved for DB integration
 
@@ -101,6 +105,125 @@ class ScanStatusItem(BaseModel):
     watcher_active: bool = False
     started_at: int | None = None
     finished_at: int | None = None
+
+
+class MovePathRequest(BaseModel):
+    source_path: str
+    dest_path: str
+
+
+class DeletePathRequest(BaseModel):
+    path: str
+
+
+class ZipFolderRequest(BaseModel):
+    folder_path: str
+    output_path: str | None = None
+
+
+class PathOperationResponse(BaseModel):
+    status: Literal["ok"]
+    message: str
+    path: str
+    dest_path: str | None = None
+
+
+SortBy = Literal["name", "mtime", "type", "recommendation"]
+SortOrder = Literal["asc", "desc"]
+
+
+def _compute_recommendation_scores(repo: IndexRepository, filepaths: list[str]) -> dict[str, float]:
+    """根据 favorite 目录统计信息计算推荐分数。"""
+    if not filepaths:
+        return {}
+
+    favorite_dir = (settings.FAVORITE_DIR or "").strip()
+    if not favorite_dir:
+        return {filepath: 0.0 for filepath in filepaths}
+
+    favorite_prefix = str(Path(favorite_dir).resolve())
+
+    try:
+        author_freq = repo.get_favorite_author_frequencies(favorite_prefix)
+        tag_freq = repo.get_favorite_tag_frequencies(favorite_prefix)
+        tag_total = repo.get_tag_total_counts()
+
+        artists_by_file = repo.get_artists_by_filepaths(filepaths)
+        tags_by_file = repo.get_tags_by_filepaths(filepaths)
+    except Exception:
+        return {filepath: 0.0 for filepath in filepaths}
+
+    scores: dict[str, float] = {}
+    for filepath in filepaths:
+        authors = artists_by_file.get(filepath, [])
+        tags = tags_by_file.get(filepath, [])
+
+        fa = max((author_freq.get(author, 0) for author in authors), default=0)
+        author_score = math.log1p(fa)
+
+        tag_score = 0.0
+        for tag in tags:
+            ft = tag_freq.get(tag, 0)
+            nt = max(tag_total.get(tag, 0), 1)
+            current = math.log1p(ft) * (1.0 / math.sqrt(nt))
+            if current > tag_score:
+                tag_score = current
+
+        scores[filepath] = round(author_score + tag_score, 6)
+
+    return scores
+
+
+def _sort_items(items: list[FileSystemItem], sort_by: SortBy, sort_order: SortOrder) -> None:
+    reverse = sort_order == "desc"
+
+    def key_name(x: FileSystemItem):
+        return x.name.lower()
+
+    def key_type(x: FileSystemItem):
+        return (x.file_type or "unknown", x.name.lower())
+
+    def key_mtime(x: FileSystemItem):
+        return x.mtime or 0
+
+    def key_recommendation(x: FileSystemItem):
+        return x.recommendation_score or 0.0
+
+    folders = [x for x in items if x.item_type == "folder"]
+    files = [x for x in items if x.item_type == "file"]
+
+    folders.sort(key=key_name)
+
+    if sort_by == "type":
+        files.sort(key=key_type, reverse=reverse)
+    elif sort_by == "mtime":
+        files.sort(key=key_mtime, reverse=reverse)
+    elif sort_by == "recommendation":
+        files.sort(key=key_recommendation, reverse=reverse)
+    else:
+        files.sort(key=key_name, reverse=reverse)
+
+    items[:] = folders + files
+
+
+def trigger_favorite_scan() -> None:
+    """启动时异步扫描 favorite 目录，避免阻塞应用启动。"""
+    favorite_dir = (settings.FAVORITE_DIR or "").strip()
+    if not favorite_dir:
+        return
+
+    favorite_path = Path(favorite_dir)
+    try:
+        resolved = _validate_path(favorite_path)
+    except HTTPException:
+        logger.warning("Skip favorite scan: invalid favorite path %s", favorite_dir)
+        return
+
+    if not resolved.exists() or not resolved.is_dir():
+        logger.warning("Skip favorite scan: favorite path not found or not directory: %s", resolved)
+        return
+
+    threading.Thread(target=_run_scan, args=(resolved, True), daemon=True).start()
 
 
 def _update_scan_status(path_key: str, **kwargs) -> None:
@@ -308,10 +431,26 @@ async def get_roots() -> list[RootItem]:
     ]
 
 
+@router.get("/favorite", response_model=RootItem | None)
+async def get_favorite_root() -> RootItem | None:
+    """Get configured favorite directory as a root-like item."""
+    favorite_dir = (settings.FAVORITE_DIR or "").strip()
+    if not favorite_dir:
+        return None
+
+    path = _validate_path(Path(favorite_dir))
+    if not path.exists() or not path.is_dir():
+        return None
+
+    return RootItem(path=str(path), dirname=path.name or str(path))
+
+
 @router.get("/list", response_model=ListResponse)
 async def list_directory(
     background_tasks: BackgroundTasks,
     path: str = Query(..., description="Directory path to list"),
+    sort_by: SortBy = Query("name", description="Sort by field"),
+    sort_order: SortOrder = Query("asc", description="Sort order"),
 ) -> ListResponse:
     """List contents of a directory."""
     target_path = Path(path)
@@ -410,8 +549,19 @@ async def list_directory(
         logger.error(f"Failed to list directory {validated_path}: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to list directory: {e}")
     
-    # Sort: folders first, then files, each sorted by name
-    items.sort(key=lambda x: (x.item_type != "folder", x.name.lower()))
+    try:
+        with get_index_session() as session:
+            repo = IndexRepository(session)
+            scores = _compute_recommendation_scores(repo, [x.path for x in items if x.item_type == "file"])
+            for item in items:
+                if item.item_type == "file":
+                    item.recommendation_score = scores.get(item.path, 0.0)
+    except Exception:
+        for item in items:
+            if item.item_type == "file":
+                item.recommendation_score = 0.0
+
+    _sort_items(items, sort_by, sort_order)
     
     # Batch upsert to DB in background
     def upsert_to_db():
@@ -454,6 +604,142 @@ async def list_directory(
     background_tasks.add_task(upsert_to_db)
     
     return ListResponse(items=items)
+
+
+@router.post("/move-file", response_model=PathOperationResponse)
+async def move_file(request: MovePathRequest) -> PathOperationResponse:
+    source = _validate_path(Path(request.source_path))
+    dest = _validate_path(Path(request.dest_path))
+
+    if not source.exists() or not source.is_file():
+        raise HTTPException(status_code=404, detail="Source file not found")
+    if dest.exists():
+        raise HTTPException(status_code=409, detail="Destination already exists")
+    if not dest.parent.exists() or not dest.parent.is_dir():
+        raise HTTPException(status_code=400, detail="Destination parent is invalid")
+
+    try:
+        shutil.move(str(source), str(dest))
+    except PermissionError as e:
+        raise HTTPException(status_code=403, detail=f"Permission denied: {e}")
+    except OSError as e:
+        raise HTTPException(status_code=500, detail=f"Move failed: {e}")
+
+    try:
+        with get_index_session() as session:
+            repo = IndexRepository(session)
+            repo.delete_file(str(source))
+    except Exception as e:
+        logger.warning("DB cleanup failed after move-file %s -> %s: %s", source, dest, e)
+
+    _run_scan(dest.parent, False)
+    return PathOperationResponse(status="ok", message="File moved", path=str(source), dest_path=str(dest))
+
+
+@router.post("/move-folder", response_model=PathOperationResponse)
+async def move_folder(request: MovePathRequest) -> PathOperationResponse:
+    source = _validate_path(Path(request.source_path))
+    dest = _validate_path(Path(request.dest_path))
+
+    if not source.exists() or not source.is_dir():
+        raise HTTPException(status_code=404, detail="Source folder not found")
+    if dest.exists():
+        raise HTTPException(status_code=409, detail="Destination already exists")
+    if not dest.parent.exists() or not dest.parent.is_dir():
+        raise HTTPException(status_code=400, detail="Destination parent is invalid")
+
+    src_norm = str(source).replace("\\", "/").rstrip("/") + "/"
+    dst_norm = str(dest).replace("\\", "/").rstrip("/") + "/"
+    if dst_norm.startswith(src_norm):
+        raise HTTPException(status_code=400, detail="Cannot move folder into its own subfolder")
+
+    try:
+        shutil.move(str(source), str(dest))
+    except PermissionError as e:
+        raise HTTPException(status_code=403, detail=f"Permission denied: {e}")
+    except OSError as e:
+        raise HTTPException(status_code=500, detail=f"Move failed: {e}")
+
+    try:
+        with get_index_session() as session:
+            repo = IndexRepository(session)
+            repo.delete_paths_by_prefix(str(source))
+    except Exception as e:
+        logger.warning("DB cleanup failed after move-folder %s -> %s: %s", source, dest, e)
+
+    _run_scan(dest, True)
+    return PathOperationResponse(status="ok", message="Folder moved", path=str(source), dest_path=str(dest))
+
+
+@router.delete("/delete", response_model=PathOperationResponse)
+async def delete_path(request: DeletePathRequest) -> PathOperationResponse:
+    target = _validate_path(Path(request.path))
+
+    if not target.exists():
+        raise HTTPException(status_code=404, detail="Path not found")
+
+    try:
+        if target.is_file():
+            target.unlink()
+            try:
+                with get_index_session() as session:
+                    repo = IndexRepository(session)
+                    repo.delete_file(str(target))
+            except Exception as e:
+                logger.warning("DB cleanup failed after delete-file %s: %s", target, e)
+            return PathOperationResponse(status="ok", message="File deleted", path=str(target))
+
+        shutil.rmtree(target)
+        try:
+            with get_index_session() as session:
+                repo = IndexRepository(session)
+                repo.delete_paths_by_prefix(str(target))
+        except Exception as e:
+            logger.warning("DB cleanup failed after delete-folder %s: %s", target, e)
+        return PathOperationResponse(status="ok", message="Folder deleted", path=str(target))
+    except PermissionError as e:
+        raise HTTPException(status_code=403, detail=f"Permission denied: {e}")
+    except OSError as e:
+        raise HTTPException(status_code=500, detail=f"Delete failed: {e}")
+
+
+@router.post("/zip-folder", response_model=PathOperationResponse)
+async def zip_folder(request: ZipFolderRequest) -> PathOperationResponse:
+    folder = _validate_path(Path(request.folder_path))
+    if not folder.exists() or not folder.is_dir():
+        raise HTTPException(status_code=404, detail="Folder not found")
+
+    output_path = _validate_path(Path(request.output_path)) if request.output_path else folder.with_suffix(".zip")
+    if output_path.exists():
+        raise HTTPException(status_code=409, detail="Output zip already exists")
+    if not output_path.parent.exists() or not output_path.parent.is_dir():
+        raise HTTPException(status_code=400, detail="Output parent is invalid")
+
+    try:
+        with zipfile.ZipFile(output_path, "w", compression=zipfile.ZIP_DEFLATED) as zf:
+            for file in folder.rglob("*"):
+                if file.is_file():
+                    zf.write(file, arcname=file.relative_to(folder))
+    except PermissionError as e:
+        raise HTTPException(status_code=403, detail=f"Permission denied: {e}")
+    except OSError as e:
+        raise HTTPException(status_code=500, detail=f"Zip failed: {e}")
+
+    return PathOperationResponse(status="ok", message="Folder zipped", path=str(folder), dest_path=str(output_path))
+
+
+@router.post("/scan-favorite", response_model=ScanStartResponse)
+async def scan_favorite(background_tasks: BackgroundTasks) -> ScanStartResponse:
+    favorite_dir = (settings.FAVORITE_DIR or "").strip()
+    if not favorite_dir:
+        raise HTTPException(status_code=400, detail="FAVORITE_DIR is not configured")
+
+    favorite_path = _validate_path(Path(favorite_dir))
+    if not favorite_path.exists() or not favorite_path.is_dir():
+        raise HTTPException(status_code=404, detail="Favorite directory not found")
+
+    background_tasks.add_task(_run_scan, favorite_path, True)
+    return ScanStartResponse(status="started", message="Favorite directory scan started", path=str(favorite_path))
 
 
 @router.post("/scan", response_model=ScanStartResponse)

@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from time import time
 
-from sqlmodel import Session, select
+from sqlmodel import Session, func, select
 
 from app.index_db.models import (
     ArchiveMeta,
@@ -562,3 +562,76 @@ class IndexRepository:
 
         files_stmt = select(File).where(File.filepath.in_(filepaths))
         return list(self.session.exec(files_stmt).all())
+
+    # ------------------------------------------------------------------
+    # Path maintenance helpers
+    # ------------------------------------------------------------------
+
+    def delete_file(self, filepath: str) -> None:
+        file = self.session.get(File, filepath)
+        if file is None:
+            return
+        self.session.delete(file)
+        self.session.commit()
+
+    def delete_paths_by_prefix(self, prefix: str) -> None:
+        files_stmt = select(File).where(File.filepath.startswith(prefix))
+        for file in self.session.exec(files_stmt).all():
+            self.session.delete(file)
+
+        folders_stmt = select(Folder).where(Folder.filepath.startswith(prefix))
+        for folder in self.session.exec(folders_stmt).all():
+            self.session.delete(folder)
+
+        self.session.commit()
+
+    # ------------------------------------------------------------------
+    # Recommendation helpers
+    # ------------------------------------------------------------------
+
+    def get_favorite_author_frequencies(self, favorite_dir: str) -> dict[str, int]:
+        """作者在 favorite 目录中出现次数。"""
+        stmt = (
+            select(FileArtist.artist_name, func.count(FileArtist.filepath))
+            .join(File, File.filepath == FileArtist.filepath)
+            .where(File.filepath.startswith(favorite_dir))
+            .group_by(FileArtist.artist_name)
+        )
+        return {name: int(cnt) for name, cnt in self.session.exec(stmt).all()}
+
+    def get_favorite_tag_frequencies(self, favorite_dir: str) -> dict[str, int]:
+        """标签在 favorite 目录中出现次数。"""
+        stmt = (
+            select(FileTag.tag_name, func.count(FileTag.filepath))
+            .join(File, File.filepath == FileTag.filepath)
+            .where(File.filepath.startswith(favorite_dir))
+            .group_by(FileTag.tag_name)
+        )
+        return {name: int(cnt) for name, cnt in self.session.exec(stmt).all()}
+
+    def get_tag_total_counts(self) -> dict[str, int]:
+        """每个 tag 在整个库中的文件总数。"""
+        stmt = select(FileTag.tag_name, func.count(FileTag.filepath)).group_by(FileTag.tag_name)
+        return {name: int(cnt) for name, cnt in self.session.exec(stmt).all()}
+
+    def get_artists_by_filepaths(self, filepaths: list[str]) -> dict[str, list[str]]:
+        if not filepaths:
+            return {}
+
+        stmt = select(FileArtist.filepath, FileArtist.artist_name).where(
+            FileArtist.filepath.in_(filepaths)
+        )
+        out: dict[str, list[str]] = {}
+        for filepath, artist_name in self.session.exec(stmt).all():
+            out.setdefault(filepath, []).append(artist_name)
+        return out
+
+    def get_tags_by_filepaths(self, filepaths: list[str]) -> dict[str, list[str]]:
+        if not filepaths:
+            return {}
+
+        stmt = select(FileTag.filepath, FileTag.tag_name).where(FileTag.filepath.in_(filepaths))
+        out: dict[str, list[str]] = {}
+        for filepath, tag_name in self.session.exec(stmt).all():
+            out.setdefault(filepath, []).append(tag_name)
+        return out

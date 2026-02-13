@@ -81,6 +81,13 @@ export function FileList({
         if (comparison === 0) {
           comparison = a.name.toLowerCase().localeCompare(b.name.toLowerCase())
         }
+      } else if (sortField === "recommendation") {
+        const scoreA = a.recommendation_score || 0
+        const scoreB = b.recommendation_score || 0
+        comparison = scoreA - scoreB
+        if (comparison === 0) {
+          comparison = a.name.toLowerCase().localeCompare(b.name.toLowerCase())
+        }
       } else {
         const mtimeA = a.mtime || 0
         const mtimeB = b.mtime || 0
@@ -115,6 +122,7 @@ export function FileList({
               <SelectItem value="name">Name</SelectItem>
               <SelectItem value="type">Type</SelectItem>
               <SelectItem value="mtime">Date Modified</SelectItem>
+              <SelectItem value="recommendation">Recommendation</SelectItem>
             </SelectContent>
           </Select>
           <Button
