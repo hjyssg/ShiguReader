@@ -28,6 +28,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { TablePagination, PaginationSection, PaginationControls } from "@/components/semantic/layout"
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
@@ -46,7 +47,7 @@ export function DataTable<TData, TValue>({
   })
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="data-table-container flex flex-col gap-4">
       <Table>
         <TableHeader>
           {table.getHeaderGroups().map((headerGroup) => (
@@ -91,8 +92,8 @@ export function DataTable<TData, TValue>({
       </Table>
 
       {table.getPageCount() > 1 && (
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 border-t bg-muted/20">
-          <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+        <TablePagination>
+          <PaginationSection>
             <div className="text-sm text-muted-foreground">
               Showing{" "}
               {table.getState().pagination.pageIndex *
@@ -130,9 +131,9 @@ export function DataTable<TData, TValue>({
                 </SelectContent>
               </Select>
             </div>
-          </div>
+          </PaginationSection>
 
-          <div className="flex items-center gap-x-6">
+          <PaginationControls>
             <div className="flex items-center gap-x-1 text-sm text-muted-foreground">
               <span>Page</span>
               <span className="font-medium text-foreground">
@@ -186,8 +187,8 @@ export function DataTable<TData, TValue>({
                 <ChevronsRight className="h-4 w-4" />
               </Button>
             </div>
-          </div>
-        </div>
+          </PaginationControls>
+        </TablePagination>
       )}
     </div>
   )

@@ -6,6 +6,7 @@ import { useIsMobile } from "@/hooks/useMobile"
 import { getParentPath } from "@/lib/path-utils"
 import { Skeleton } from "@/components/ui/skeleton"
 import { cn } from "@/lib/utils"
+import { ItemCard, CardThumbnail, CardInfo } from "@/components/semantic/layout"
 
 import { FileIcon } from "./FileIcon"
 import { FileNameWithPreview } from "./FileNameWithPreview"
@@ -32,14 +33,14 @@ function ThumbnailImage({
 
   if (hasError) {
     return (
-      <div className="size-full flex items-center justify-center bg-muted">
+      <CardThumbnail className="file-thumbnail-error">
         <FileIcon fileType={fileType} isFolder={isFolder} />
-      </div>
+      </CardThumbnail>
     )
   }
 
   return (
-    <div className="relative size-full">
+    <CardThumbnail className="file-thumbnail">
       {!isLoaded && <Skeleton className="absolute inset-0 size-full rounded-none" />}
       <img
         src={src}
@@ -49,7 +50,7 @@ function ThumbnailImage({
         onLoad={() => setIsLoaded(true)}
         onError={() => setHasError(true)}
       />
-    </div>
+    </CardThumbnail>
   )
 }
 
@@ -63,15 +64,8 @@ export function FileItem({ item }: { item: FileSystemItem }) {
   const isClickable = isFolder || isArchive || isVideo || isAudio || isImage
 
   const content = (
-    <div
-      className={cn(
-        "group relative rounded-lg border bg-card transition-all",
-        isClickable
-          ? "cursor-pointer hover:border-primary hover:shadow-md"
-          : "cursor-default",
-      )}
-    >
-      <div className="aspect-square w-full overflow-hidden rounded-t-lg bg-muted flex items-center justify-center">
+    <ItemCard isClickable={isClickable} className="file-item-card">
+      <CardThumbnail className="file-card-thumbnail">
         {item.thumbnail_url ? (
           <ThumbnailImage
             src={`${OpenAPI.BASE}${item.thumbnail_url}`}
@@ -82,9 +76,9 @@ export function FileItem({ item }: { item: FileSystemItem }) {
         ) : (
           <FileIcon fileType={item.file_type} isFolder={isFolder} />
         )}
-      </div>
+      </CardThumbnail>
 
-      <div className="p-2">
+      <CardInfo className="file-item-info">
         <FileNameWithPreview
           filename={item.name}
           filepath={item.path}
@@ -96,8 +90,8 @@ export function FileItem({ item }: { item: FileSystemItem }) {
             {formatFileSize(item.filesize)}
           </p>
         )}
-      </div>
-    </div>
+      </CardInfo>
+    </ItemCard>
   )
 
   if (isFolder) {

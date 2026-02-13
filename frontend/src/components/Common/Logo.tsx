@@ -26,7 +26,7 @@ export function Logo({
 
   const content =
     variant === "responsive" ? (
-      <>
+      <div className="ui-logo flex items-center">
         <img
           src={fullLogo}
           alt="FastAPI"
@@ -43,12 +43,12 @@ export function Logo({
             className,
           )}
         />
-      </>
+      </div>
     ) : (
       <img
         src={variant === "full" ? fullLogo : iconLogo}
         alt="FastAPI"
-        className={cn(variant === "full" ? "h-6 w-auto" : "size-5", className)}
+        className={cn("ui-logo", variant === "full" ? "h-6 w-auto" : "size-5", className)}
       />
     )
 

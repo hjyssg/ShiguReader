@@ -6,6 +6,8 @@ import {
   SidebarInset,
   SidebarProvider,
 } from "@/components/ui/sidebar"
+import { PageContainer, ContentWrapper } from "@/components/semantic/layout"
+
 export const Route = createFileRoute("/_layout")({
   component: Layout,
 })
@@ -26,11 +28,11 @@ function Layout() {
     <SidebarProvider>
       <AppSidebar />
       <SidebarInset>
-        <main className="flex-1 p-6 md:p-8">
-          <div className="mx-auto max-w-screen-2xl">
+        <PageContainer>
+          <ContentWrapper>
             <Outlet />
-          </div>
-        </main>
+          </ContentWrapper>
+        </PageContainer>
         <Footer />
       </SidebarInset>
     </SidebarProvider>

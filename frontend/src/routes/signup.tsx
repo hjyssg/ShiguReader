@@ -1,178 +1,116 @@
-import { zodResolver } from "@hookform/resolvers/zod"
-import { createFileRoute, Link as RouterLink } from "@tanstack/react-router"
+import { createFileRoute, redirect } from "@tanstack/react-router"
 import { useForm } from "react-hook-form"
-import { z } from "zod"
-import { AuthLayout } from "@/components/Common/AuthLayout"
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import { LoadingButton } from "@/components/ui/loading-button"
-import { PasswordInput } from "@/components/ui/password-input"
+
+import { type UserRegister } from "@/client"
 import useAuth from "@/hooks/useAuth"
-
-const formSchema = z
-  .object({
-    email: z.email(),
-    full_name: z.string().min(1, { message: "Full Name is required" }),
-    password: z
-      .string()
-      .min(1, { message: "Password is required" })
-      .min(8, { message: "Password must be at least 8 characters" }),
-    confirm_password: z
-      .string()
-      .min(1, { message: "Password confirmation is required" }),
-  })
-  .refine((data) => data.password === data.confirm_password, {
-    message: "The passwords don't match",
-    path: ["confirm_password"],
-  })
-
-type FormData = z.infer<typeof formSchema>
+import { Button } from "@/components/ui/button"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { AuthLayout } from "@/components/Common/AuthLayout"
+import { FormStack, FormField } from "@/components/semantic/layout"
 
 export const Route = createFileRoute("/signup")({
-  component: SignUp,
-  head: () => ({
-    meta: [
-      {
-        title: "Sign Up - FastAPI Template",
-      },
-    ],
-  }),
+  component: Signup,
+  beforeLoad: async ({ context }: any) => {
+    if (context.auth?.isAuthenticated) {
+      throw redirect({ to: "/" })
+    }
+  },
 })
 
-function SignUp() {
+function Signup() {
   const { signUpMutation } = useAuth()
-  const form = useForm<FormData>({
-    resolver: zodResolver(formSchema),
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<UserRegister>({
     mode: "onBlur",
-    criteriaMode: "all",
     defaultValues: {
       email: "",
-      full_name: "",
       password: "",
-      confirm_password: "",
+      full_name: "",
     },
   })
 
-  const onSubmit = (data: FormData) => {
-    if (signUpMutation.isPending) return
-
-    // exclude confirm_password from submission data
-    const { confirm_password: _confirm_password, ...submitData } = data
-    signUpMutation.mutate(submitData)
+  const onSubmit = async (data: UserRegister) => {
+    signUpMutation.mutate(data)
   }
 
   return (
     <AuthLayout>
-      <Form {...form}>
-        <form
-          onSubmit={form.handleSubmit(onSubmit)}
-          className="flex flex-col gap-6"
-        >
-          <div className="flex flex-col items-center gap-2 text-center">
-            <h1 className="text-2xl font-bold">Create an account</h1>
-          </div>
-
-          <div className="grid gap-4">
-            <FormField
-              control={form.control}
-              name="full_name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Full Name</FormLabel>
-                  <FormControl>
-                    <Input
-                      data-testid="full-name-input"
-                      placeholder="User"
-                      type="text"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Email</FormLabel>
-                  <FormControl>
-                    <Input
-                      data-testid="email-input"
-                      placeholder="user@example.com"
-                      type="email"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="password"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Password</FormLabel>
-                  <FormControl>
-                    <PasswordInput
-                      data-testid="password-input"
-                      placeholder="Password"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="confirm_password"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Confirm Password</FormLabel>
-                  <FormControl>
-                    <PasswordInput
-                      data-testid="confirm-password-input"
-                      placeholder="Confirm Password"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <LoadingButton
-              type="submit"
-              className="w-full"
-              loading={signUpMutation.isPending}
-            >
-              Sign Up
-            </LoadingButton>
-          </div>
-
-          <div className="text-center text-sm">
-            Already have an account?{" "}
-            <RouterLink to="/login" className="underline underline-offset-4">
-              Log in
-            </RouterLink>
-          </div>
-        </form>
-      </Form>
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-2xl">Sign Up</CardTitle>
+          <CardDescription>
+            Enter your information to create an account
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit(onSubmit)}>
+            <FormStack>
+              <FormField>
+                <Label htmlFor="full_name">Full Name</Label>
+                <Input
+                  id="full_name"
+                  {...register("full_name")}
+                  placeholder="Full Name"
+                />
+              </FormField>
+              <FormField>
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="m@example.com"
+                  {...register("email", {
+                    required: "Email is required",
+                  })}
+                />
+                {errors.email && (
+                  <p className="text-destructive text-xs">
+                    {errors.email.message}
+                  </p>
+                )}
+              </FormField>
+              <FormField>
+                <Label htmlFor="password">Password</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  {...register("password", {
+                    required: "Password is required",
+                  })}
+                />
+                {errors.password && (
+                  <p className="text-destructive text-xs">
+                    {errors.password.message}
+                  </p>
+                )}
+              </FormField>
+              <Button type="submit" className="w-full" disabled={isSubmitting}>
+                Create an account
+              </Button>
+              <Button variant="outline" className="w-full" disabled={isSubmitting}>
+                Sign up with GitHub
+              </Button>
+            </FormStack>
+            <div className="mt-4 text-center text-sm">
+              Already have an account?{" "}
+              <a href="/login" className="underline underline-offset-4">
+                Login
+              </a>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
     </AuthLayout>
   )
 }
-
-export default SignUp

@@ -7,6 +7,7 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination"
 import { Skeleton } from "@/components/ui/skeleton"
+import { ResponsiveGrid } from "@/components/semantic/layout"
 
 import { EntityCard, type EntityCardItem } from "./EntityCard"
 
@@ -39,31 +40,31 @@ export function EntityGrid({
   }
 
   return (
-    <div className="space-y-6">
+    <div className="entity-grid-container space-y-6">
       {isLoading ? (
-        <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+        <ResponsiveGrid className="grid-loading">
           {[...Array(pageSize)].map((_, i) => (
-            <div key={i} className="space-y-2">
+            <div key={i} className="skeleton-card space-y-2">
               <Skeleton className="aspect-square w-full rounded-lg" />
               <Skeleton className="h-4 w-3/4" />
               <Skeleton className="h-3 w-1/2" />
             </div>
           ))}
-        </div>
+        </ResponsiveGrid>
       ) : items.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-12 text-center">
+        <div className="empty-state flex flex-col items-center justify-center py-12 text-center">
           <p className="text-muted-foreground">{emptyText}</p>
         </div>
       ) : (
-        <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+        <ResponsiveGrid className="grid-content">
           {items.map((item) => (
             <EntityCard key={item.name} item={item} onClick={() => onCardClick?.(item)} />
           ))}
-        </div>
+        </ResponsiveGrid>
       )}
 
       {total > 0 && (
-        <Pagination>
+        <Pagination className="grid-pagination">
           <PaginationContent>
             <PaginationItem>
               <PaginationPrevious

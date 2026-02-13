@@ -132,6 +132,9 @@ explorer的筛选功能（zip有无video、audio）
 排序（按zip的img number）
 怎么实现设计
 
+## task14
+需要AI写一个开发流程。
+
 ---
 
 Note：

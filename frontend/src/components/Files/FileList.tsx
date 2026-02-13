@@ -11,6 +11,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Skeleton } from "@/components/ui/skeleton"
+import { Toolbar, ToolbarGroup, ResponsiveGrid } from "@/components/semantic/layout"
 
 import { DetailsView, type SortField, type SortOrder } from "./DetailsView"
 import { FileItem } from "./FileItem"
@@ -110,9 +111,9 @@ export function FileList({
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between gap-4 pb-2 border-b">
-        <div className="flex items-center gap-2">
+    <div className="file-list-container space-y-4">
+      <Toolbar className="file-list-toolbar">
+        <ToolbarGroup className="sort-controls">
           <span className="text-sm text-muted-foreground">Sort by:</span>
           <Select value={sortField} onValueChange={(v) => setSortField(v as SortField)}>
             <SelectTrigger className="w-[140px] h-8">
@@ -138,9 +139,9 @@ export function FileList({
             )}
           </Button>
           {toolbarExtra}
-        </div>
+        </ToolbarGroup>
 
-        <div className="flex items-center gap-1">
+        <ToolbarGroup className="view-mode-controls">
           <Button
             variant={viewMode === "grid" ? "default" : "ghost"}
             size="sm"
@@ -157,36 +158,36 @@ export function FileList({
           >
             <List className="size-4" />
           </Button>
-        </div>
-      </div>
+        </ToolbarGroup>
+      </Toolbar>
 
       {isLoading ? (
         viewMode === "grid" ? (
-          <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+          <ResponsiveGrid className="grid-loading">
             {[...Array(12)].map((_, i) => (
-              <div key={i} className="space-y-2">
+              <div key={i} className="skeleton-card space-y-2">
                 <Skeleton className="aspect-square w-full rounded-lg" />
                 <Skeleton className="h-4 w-3/4" />
               </div>
             ))}
-          </div>
+          </ResponsiveGrid>
         ) : (
-          <div className="space-y-2">
+          <div className="details-loading space-y-2">
             {[...Array(8)].map((_, i) => (
               <Skeleton key={i} className="h-10 w-full" />
             ))}
           </div>
         )
       ) : sortedItems.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-12 text-center">
+        <div className="empty-state flex flex-col items-center justify-center py-12 text-center">
           <p className="text-muted-foreground">{emptyText}</p>
         </div>
       ) : viewMode === "grid" ? (
-        <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+        <ResponsiveGrid className="grid-content">
           {sortedItems.map((item) => (
             <FileItem key={item.path} item={item} />
           ))}
-        </div>
+        </ResponsiveGrid>
       ) : (
         <DetailsView
           items={sortedItems}

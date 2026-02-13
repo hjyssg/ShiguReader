@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { OpenAPI } from "@/client"
 import { Skeleton } from "@/components/ui/skeleton"
 import { cn } from "@/lib/utils"
+import { ItemCard, CardThumbnail, CardInfo } from "@/components/semantic/layout"
 
 export type EntityCardItem = {
   name: string
@@ -22,14 +23,14 @@ function ThumbnailImage({ src, alt }: { src: string; alt: string }) {
 
   if (hasError) {
     return (
-      <div className="size-full flex items-center justify-center bg-muted">
+      <CardThumbnail className="thumbnail-error">
         <ImageIcon className="size-10 text-muted-foreground" />
-      </div>
+      </CardThumbnail>
     )
   }
 
   return (
-    <div className="relative size-full">
+    <CardThumbnail className="thumbnail-container">
       {!isLoaded && <Skeleton className="absolute inset-0 size-full rounded-none" />}
       <img
         src={src}
@@ -39,7 +40,7 @@ function ThumbnailImage({ src, alt }: { src: string; alt: string }) {
         onLoad={() => setIsLoaded(true)}
         onError={() => setHasError(true)}
       />
-    </div>
+    </CardThumbnail>
   )
 }
 
@@ -51,26 +52,21 @@ export function EntityCard({
   onClick?: () => void
 }) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="group relative rounded-lg border bg-card transition-all w-full text-left cursor-pointer hover:border-primary hover:shadow-md"
-      title={item.name}
-    >
-      <div className="aspect-square w-full overflow-hidden rounded-t-lg bg-muted flex items-center justify-center">
-        {item.thumbnail ? (
-          <ThumbnailImage src={`${OpenAPI.BASE}${item.thumbnail}`} alt={item.name} />
-        ) : (
+    <ItemCard onClick={onClick} title={item.name} className="entity-card">
+      {item.thumbnail ? (
+        <ThumbnailImage src={`${OpenAPI.BASE}${item.thumbnail}`} alt={item.name} />
+      ) : (
+        <CardThumbnail className="thumbnail-placeholder">
           <ImageIcon className="size-10 text-muted-foreground" />
-        )}
-      </div>
+        </CardThumbnail>
+      )}
 
-      <div className="p-2">
+      <CardInfo className="entity-info">
         <p className="text-sm truncate" title={item.name}>
           {item.name}
         </p>
         <p className="text-xs text-muted-foreground">{item.file_count} files</p>
-      </div>
-    </button>
+      </CardInfo>
+    </ItemCard>
   )
 }
