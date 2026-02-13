@@ -5,7 +5,16 @@ from time import time
 
 from sqlmodel import Session, select
 
-from app.index_db.models import ArchiveMeta, File, Folder
+from app.index_db.models import (
+    ArchiveMeta,
+    Artist,
+    File,
+    FileArtist,
+    FileTag,
+    Folder,
+    ParsedMetadata,
+    Tag,
+)
 
 
 def _now_ts() -> int:
@@ -272,3 +281,172 @@ class IndexRepository:
         if file is not None:
             file.thumbnail_filepath = thumbnail_filepath
             self.session.commit()
+
+    # ------------------------------------------------------------------
+    # Parsed metadata helpers
+    # ------------------------------------------------------------------
+
+    def save_parse_result(
+        self,
+        filepath: str,
+        *,
+        title: str | None = None,
+        authors: list[str] | None = None,
+        group_name: str | None = None,
+        raw_tags: list[str] | None = None,
+        event: str | None = None,
+        date_tag: str | None = None,
+        media_type: str | None = None,
+    ) -> ParsedMetadata:
+        """Persist a single parse result into parsed_metadata, artists, tags
+        and their join tables."""
+        now = _now_ts()
+
+        # Upsert ParsedMetadata
+        meta = self.session.get(ParsedMetadata, filepath)
+        if meta is None:
+            meta = ParsedMetadata(
+                filepath=filepath,
+                title=title,
+                group_name=group_name,
+                event=event,
+                date_tag=date_tag,
+                media_type=media_type,
+                parsed_at=now,
+            )
+            self.session.add(meta)
+        else:
+            meta.title = title
+            meta.group_name = group_name
+            meta.event = event
+            meta.date_tag = date_tag
+            meta.media_type = media_type
+            meta.parsed_at = now
+
+        # Upsert artists + file_artists
+        if authors:
+            for author_name in authors:
+                if not self.session.get(Artist, author_name):
+                    self.session.add(Artist(artist_name=author_name))
+                fa_key = (filepath, author_name, "")
+                if not self.session.get(FileArtist, fa_key):
+                    self.session.add(
+                        FileArtist(filepath=filepath, artist_name=author_name)
+                    )
+
+        # Upsert tags + file_tags
+        if raw_tags:
+            for tag_name in raw_tags:
+                if not self.session.get(Tag, tag_name):
+                    self.session.add(Tag(tag_name=tag_name))
+                ft_key = (filepath, tag_name)
+                if not self.session.get(FileTag, ft_key):
+                    self.session.add(FileTag(filepath=filepath, tag_name=tag_name))
+
+        self.session.commit()
+        self.session.refresh(meta)
+        return meta
+
+    def batch_save_parse_results(
+        self,
+        results: list[dict],
+    ) -> None:
+        """Batch persist parse results.
+
+        Each dict in *results* must have a ``filepath`` key and may contain:
+        ``title``, ``authors``, ``group_name``, ``raw_tags``, ``event``,
+        ``date_tag``, ``media_type``.
+        """
+        if not results:
+            return
+
+        now = _now_ts()
+        filepaths = [r["filepath"] for r in results]
+
+        # Fetch existing metadata
+        stmt = select(ParsedMetadata).where(ParsedMetadata.filepath.in_(filepaths))
+        existing_meta = {
+            m.filepath: m for m in self.session.exec(stmt).all()
+        }
+
+        # Collect all unique artist / tag names
+        all_authors: set[str] = set()
+        all_tags: set[str] = set()
+        for r in results:
+            all_authors.update(r.get("authors") or [])
+            all_tags.update(r.get("raw_tags") or [])
+
+        # Fetch existing artists / tags
+        existing_artists: set[str] = set()
+        if all_authors:
+            stmt_a = select(Artist.artist_name).where(
+                Artist.artist_name.in_(list(all_authors))
+            )
+            existing_artists = set(self.session.exec(stmt_a).all())
+
+        existing_tags: set[str] = set()
+        if all_tags:
+            stmt_t = select(Tag.tag_name).where(
+                Tag.tag_name.in_(list(all_tags))
+            )
+            existing_tags = set(self.session.exec(stmt_t).all())
+
+        to_add: list[object] = []
+
+        for r in results:
+            fp = r["filepath"]
+            meta = existing_meta.get(fp)
+            if meta is None:
+                meta = ParsedMetadata(
+                    filepath=fp,
+                    title=r.get("title"),
+                    group_name=r.get("group_name"),
+                    event=r.get("event"),
+                    date_tag=r.get("date_tag"),
+                    media_type=r.get("media_type"),
+                    parsed_at=now,
+                )
+                to_add.append(meta)
+            else:
+                meta.title = r.get("title")
+                meta.group_name = r.get("group_name")
+                meta.event = r.get("event")
+                meta.date_tag = r.get("date_tag")
+                meta.media_type = r.get("media_type")
+                meta.parsed_at = now
+
+            # Artists
+            for name in r.get("authors") or []:
+                if name not in existing_artists:
+                    to_add.append(Artist(artist_name=name))
+                    existing_artists.add(name)
+                to_add.append(
+                    FileArtist(filepath=fp, artist_name=name)
+                )
+
+            # Tags
+            for tag in r.get("raw_tags") or []:
+                if tag not in existing_tags:
+                    to_add.append(Tag(tag_name=tag))
+                    existing_tags.add(tag)
+                to_add.append(
+                    FileTag(filepath=fp, tag_name=tag)
+                )
+
+        if to_add:
+            self.session.add_all(to_add)
+        self.session.commit()
+
+    def get_parsed_metadata(self, filepath: str) -> ParsedMetadata | None:
+        """Return parsed metadata for a single file."""
+        return self.session.get(ParsedMetadata, filepath)
+
+    def get_file_artists(self, filepath: str) -> list[str]:
+        """Return artist names associated with a file."""
+        stmt = select(FileArtist.artist_name).where(FileArtist.filepath == filepath)
+        return list(self.session.exec(stmt).all())
+
+    def get_file_tags(self, filepath: str) -> list[str]:
+        """Return tag names associated with a file."""
+        stmt = select(FileTag.tag_name).where(FileTag.filepath == filepath)
+        return list(self.session.exec(stmt).all())

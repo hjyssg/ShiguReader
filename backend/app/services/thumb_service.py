@@ -6,6 +6,12 @@ import logging
 import subprocess
 from pathlib import Path
 
+from app.constants import (
+    ARCHIVE_SUFFIXES,
+    AUDIO_SUFFIXES,
+    IMAGE_SUFFIXES,
+    VIDEO_SUFFIXES,
+)
 from app.core.config import settings
 from app.file_processing._archive_backend import archive_kind, list_entries
 from app.file_processing.thumbnail_generator import (
@@ -14,15 +20,10 @@ from app.file_processing.thumbnail_generator import (
     generate_svg_placeholder,
     generate_video_thumbnail,
 )
-from app.file_processing.thumbnail_generator.service import IMAGE_SUFFIXES
 from app.index_db.db import get_index_session
 from app.index_db.repository import IndexRepository
 
 logger = logging.getLogger(__name__)
-
-VIDEO_SUFFIXES = (".mp4", ".mkv", ".avi", ".mov", ".webm", ".flv", ".wmv")
-IMAGE_DIRECT_SUFFIXES = (".jpg", ".jpeg", ".png", ".webp", ".bmp", ".gif", ".heic")
-ARCHIVE_SUFFIXES = (".zip", ".cbz", ".rar", ".cbr", ".7z", ".tar", ".tar.gz", ".tgz")
 
 
 class ThumbService:
@@ -107,7 +108,7 @@ class ThumbService:
             self._generate_archive_thumb(filepath, cache_path)
         elif suffix in VIDEO_SUFFIXES:
             self._generate_video_thumb(filepath, cache_path)
-        elif suffix in IMAGE_DIRECT_SUFFIXES:
+        elif suffix in IMAGE_SUFFIXES:
             self._generate_image_thumb(filepath, cache_path)
         else:
             raise ValueError(f"Unsupported file type: {suffix}")
@@ -124,11 +125,11 @@ class ThumbService:
             
             for entry in entries:
                 suffix = Path(entry).suffix.lower()
-                if suffix in IMAGE_SUFFIXES or suffix in (".jpg", ".jpeg", ".png", ".webp", ".bmp", ".gif"):
+                if suffix in IMAGE_SUFFIXES:
                     image_count += 1
                 elif suffix in VIDEO_SUFFIXES:
                     video_count += 1
-                elif suffix in (".mp3", ".flac", ".wav", ".aac", ".ogg", ".m4a"):
+                elif suffix in AUDIO_SUFFIXES:
                     music_count += 1
             
             # Priority 1: cover.* files

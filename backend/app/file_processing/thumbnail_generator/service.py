@@ -8,11 +8,10 @@ from pathlib import Path
 
 from PIL import Image, ImageOps
 
+from app.constants import IMAGE_SUFFIXES
 from app.file_processing._archive_backend import extract_single_to_temp_file, list_entries
 
 logger = logging.getLogger(__name__)
-
-IMAGE_SUFFIXES = (".jpg", ".jpeg", ".png", ".webp", ".bmp", ".gif")
 
 
 @dataclass(slots=True)

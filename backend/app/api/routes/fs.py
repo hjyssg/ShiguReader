@@ -10,17 +10,14 @@ from fastapi import APIRouter, BackgroundTasks, HTTPException, Query
 from fastapi.responses import FileResponse, Response
 from pydantic import BaseModel
 
+from app.constants import ARCHIVE_SUFFIXES, AUDIO_SUFFIXES, IMAGE_SUFFIXES, VIDEO_SUFFIXES
 from app.core.config import settings
 from app.file_processing.archive_lister import list_archive_entries
 from app.file_processing.stepwise_extractor import stepwise_extract
 from app.index_db.db import get_index_session
 from app.index_db.repository import IndexRepository, UpsertFileInput, UpsertFolderInput
-from app.services.thumb_service import (
-    ARCHIVE_SUFFIXES,
-    IMAGE_DIRECT_SUFFIXES,
-    VIDEO_SUFFIXES,
-    ThumbService,
-)
+from app.services.thumb_service import ThumbService
+from app.utils import detect_file_type, get_mime_type
 
 logger = logging.getLogger(__name__)
 
@@ -42,20 +39,6 @@ def _validate_path(path: Path) -> Path:
         raise HTTPException(status_code=400, detail=f"Invalid path: {e}")
 
 
-def _detect_file_type(filepath: Path) -> Literal["image", "video", "archive", "audio", "unknown"]:
-    """Detect file type based on extension."""
-    suffix = filepath.suffix.lower()
-    
-    if suffix in IMAGE_DIRECT_SUFFIXES:
-        return "image"
-    if suffix in VIDEO_SUFFIXES:
-        return "video"
-    if suffix in ARCHIVE_SUFFIXES:
-        return "archive"
-    if suffix in (".mp3", ".flac", ".wav", ".aac", ".ogg", ".m4a"):
-        return "audio"
-    
-    return "unknown"
 
 
 class RootItem(BaseModel):
@@ -149,7 +132,7 @@ async def list_directory(
                         )
                     )
                 elif entry.is_file():
-                    file_type = _detect_file_type(entry)
+                    file_type = detect_file_type(entry)
                     thumbnail_url = None
                     
                     if file_type in ("archive", "video", "image"):
@@ -224,7 +207,7 @@ async def get_thumbnail(path: str = Query(..., description="File path for thumbn
     if not validated_path.is_file():
         raise HTTPException(status_code=400, detail="Path is not a file")
     
-    file_type = _detect_file_type(validated_path)
+    file_type = detect_file_type(validated_path)
     
     if file_type not in ("archive", "video", "image"):
         raise HTTPException(status_code=400, detail=f"Thumbnail not supported for file type: {file_type}")
@@ -284,18 +267,6 @@ def _get_extract_cache_dir(archive_path: Path) -> Path:
     return cache_dir
 
 
-def _detect_entry_file_type(entry_path: str) -> Literal["image", "video", "audio", "unknown"]:
-    """Detect file type for archive entry."""
-    suffix = Path(entry_path).suffix.lower()
-    
-    if suffix in IMAGE_DIRECT_SUFFIXES or suffix in (".jpg", ".jpeg", ".png", ".webp", ".bmp", ".gif"):
-        return "image"
-    if suffix in VIDEO_SUFFIXES:
-        return "video"
-    if suffix in (".mp3", ".flac", ".wav", ".aac", ".ogg", ".m4a"):
-        return "audio"
-    
-    return "unknown"
 
 
 @router.get("/archive/list", response_model=ArchiveListResponse)
@@ -310,7 +281,7 @@ async def list_archive(path: str = Query(..., description="Archive file path")) 
     if not validated_path.is_file():
         raise HTTPException(status_code=400, detail="Path is not a file")
     
-    file_type = _detect_file_type(validated_path)
+    file_type = detect_file_type(validated_path)
     if file_type != "archive":
         raise HTTPException(status_code=400, detail="File is not an archive")
     
@@ -321,7 +292,7 @@ async def list_archive(path: str = Query(..., description="Archive file path")) 
         archive_entries = []
         image_index = 0
         for entry in entries:
-            file_type = _detect_entry_file_type(entry)
+            file_type = detect_file_type(entry)
             if file_type in ("image", "video", "audio"):
                 archive_entries.append(
                     ArchiveEntry(
@@ -352,7 +323,7 @@ async def extract_archive(
     if not validated_path.exists():
         raise HTTPException(status_code=404, detail="Archive not found")
     
-    file_type = _detect_file_type(validated_path)
+    file_type = detect_file_type(validated_path)
     if file_type != "archive":
         raise HTTPException(status_code=400, detail="File is not an archive")
     
@@ -429,26 +400,7 @@ async def get_archive_file(
     if not file_path.is_file():
         raise HTTPException(status_code=400, detail="Path is not a file")
     
-    # Detect media type
-    suffix = file_path.suffix.lower()
-    media_type = "application/octet-stream"
-    
-    if suffix in (".jpg", ".jpeg"):
-        media_type = "image/jpeg"
-    elif suffix in (".png",):
-        media_type = "image/png"
-    elif suffix in (".webp",):
-        media_type = "image/webp"
-    elif suffix in (".gif",):
-        media_type = "image/gif"
-    elif suffix in (".mp4",):
-        media_type = "video/mp4"
-    elif suffix in (".webm",):
-        media_type = "video/webm"
-    elif suffix in (".mp3",):
-        media_type = "audio/mpeg"
-    
-    return FileResponse(file_path, media_type=media_type)
+    return FileResponse(file_path, media_type=get_mime_type(file_path))
 
 
 @router.get("/file", response_model=None)
@@ -463,29 +415,4 @@ async def get_file(path: str = Query(..., description="File path")):
     if not validated_path.is_file():
         raise HTTPException(status_code=400, detail="Path is not a file")
     
-    # Detect media type
-    suffix = validated_path.suffix.lower()
-    media_type = "application/octet-stream"
-    
-    if suffix in (".jpg", ".jpeg"):
-        media_type = "image/jpeg"
-    elif suffix in (".png",):
-        media_type = "image/png"
-    elif suffix in (".webp",):
-        media_type = "image/webp"
-    elif suffix in (".gif",):
-        media_type = "image/gif"
-    elif suffix in (".mp4",):
-        media_type = "video/mp4"
-    elif suffix in (".webm",):
-        media_type = "video/webm"
-    elif suffix in (".mkv",):
-        media_type = "video/x-matroska"
-    elif suffix in (".mp3",):
-        media_type = "audio/mpeg"
-    elif suffix in (".flac",):
-        media_type = "audio/flac"
-    elif suffix in (".wav",):
-        media_type = "audio/wav"
-    
-    return FileResponse(validated_path, media_type=media_type)
+    return FileResponse(validated_path, media_type=get_mime_type(validated_path))

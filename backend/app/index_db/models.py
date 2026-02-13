@@ -131,3 +131,15 @@ class FileArtist(SQLModel, table=True):
     artist_name: str = Field(primary_key=True, foreign_key="artists.artist_name")
     role: str = Field(default="", primary_key=True)
     created_at: int = Field(default_factory=_ts_now)
+
+
+class ParsedMetadata(SQLModel, table=True):
+    __tablename__ = "parsed_metadata"
+
+    filepath: str = Field(primary_key=True, foreign_key="files.filepath")
+    title: str | None = None
+    group_name: str | None = None
+    event: str | None = None
+    date_tag: str | None = None
+    media_type: str | None = None
+    parsed_at: int = Field(default_factory=_ts_now)
