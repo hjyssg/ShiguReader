@@ -719,3 +719,11 @@ class IndexRepository:
         for filepath, tag_name in self.session.exec(stmt).all():
             out.setdefault(filepath, []).append(tag_name)
         return out
+
+    def get_archive_metas_by_filepaths(self, filepaths: list[str]) -> list[ArchiveMeta]:
+        """获取多个压缩包的元数据。"""
+        if not filepaths:
+            return []
+
+        stmt = select(ArchiveMeta).where(ArchiveMeta.filepath.in_(filepaths))
+        return list(self.session.exec(stmt).all())

@@ -480,6 +480,8 @@ async def list_directory(
     path: str = Query(..., description="Directory path to list"),
     sort_by: SortBy = Query("name", description="Sort by field"),
     sort_order: SortOrder = Query("asc", description="Sort order"),
+    has_video: bool | None = Query(None, description="筛选包含视频的压缩包"),
+    has_audio: bool | None = Query(None, description="筛选包含音频的压缩包"),
 ) -> ListResponse:
     """List contents of a directory."""
     target_path = Path(path)
@@ -583,14 +585,66 @@ async def list_directory(
     try:
         with get_index_session() as session:
             repo = IndexRepository(session)
+            
+            # 获取推荐分数
             scores = _compute_recommendation_scores(repo, [x.path for x in items if x.item_type == "file"])
+            
+            # 获取压缩包元数据
+            archive_paths = [x.path for x in items if x.item_type == "file" and x.file_type == "archive"]
+            archive_meta_map = {}
+            if archive_paths:
+                try:
+                    archive_metas = repo.get_archive_metas_by_filepaths(archive_paths)
+                    archive_meta_map = {meta.filepath: meta for meta in archive_metas}
+                except Exception as e:
+                    logger.warning(f"Failed to get archive metadata: {e}")
+            
+            # 填充数据
             for item in items:
                 if item.item_type == "file":
                     item.recommendation_score = scores.get(item.path, 0.0)
-    except Exception:
+                    
+                    # 填充压缩包元数据
+                    if item.file_type == "archive":
+                        meta = archive_meta_map.get(item.path)
+                        if meta:
+                            item.image_count = meta.image_file_num
+                            item.video_count = meta.video_file_num
+                            item.audio_count = meta.music_file_num
+    except Exception as e:
+        logger.warning(f"Failed to get metadata: {e}")
         for item in items:
             if item.item_type == "file":
                 item.recommendation_score = 0.0
+
+    # 应用筛选
+    if has_video is not None or has_audio is not None:
+        filtered_items = []
+        for item in items:
+            # 保留文件夹
+            if item.item_type == "folder":
+                filtered_items.append(item)
+                continue
+            
+            # 保留非压缩包文件
+            if item.file_type != "archive":
+                filtered_items.append(item)
+                continue
+            
+            # 筛选压缩包
+            if has_video is not None:
+                has_video_content = (item.video_count or 0) > 0
+                if has_video != has_video_content:
+                    continue
+            
+            if has_audio is not None:
+                has_audio_content = (item.audio_count or 0) > 0
+                if has_audio != has_audio_content:
+                    continue
+            
+            filtered_items.append(item)
+        
+        items = filtered_items
 
     _sort_items(items, sort_by, sort_order)
     

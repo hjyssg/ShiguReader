@@ -1,7 +1,5 @@
 # 未完成（Todo / In Progress / Bug）
 
-- Task4：清理解压临时文件机制
-
 - Task8：
   - Explorer 添加 file-change-toolbar-move-modal
   - 修复 audio page 崩溃
@@ -28,9 +26,3 @@
   - 设计与实现
 
 
-- Task15：
-  - 忽略系统垃圾文件 / 隐藏文件 / 缓存目录
-
-
-- Bug：
-  - `<div data-slot="card-title" class="ui-card-title font-semibold text-lg">_TEMP_DOWNLOADS</div>`

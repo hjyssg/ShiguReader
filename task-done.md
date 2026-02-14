@@ -52,3 +52,10 @@
   - 修改 _layout.tsx，将 /video 路径加入 isReaderRoute 判断
   - video 页面现在与 reader 页面一样，不显示侧边栏、页眉和页脚
   - 状态：done
+
+
+- Task4：清理解压临时文件机制
+
+
+- Task15：
+  - 忽略系统垃圾文件 / 隐藏文件 / 缓存目录
