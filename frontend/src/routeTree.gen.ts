@@ -20,7 +20,6 @@ import { Route as LayoutTagsRouteImport } from './routes/_layout/tags'
 import { Route as LayoutSettingsRouteImport } from './routes/_layout/settings'
 import { Route as LayoutSearchRouteImport } from './routes/_layout/search'
 import { Route as LayoutReadWaterfallRouteImport } from './routes/_layout/read-waterfall'
-import { Route as LayoutReadOverviewRouteImport } from './routes/_layout/read-overview'
 import { Route as LayoutReadMobileRouteImport } from './routes/_layout/read-mobile'
 import { Route as LayoutReadRouteImport } from './routes/_layout/read'
 import { Route as LayoutHistoryRouteImport } from './routes/_layout/history'
@@ -83,11 +82,6 @@ const LayoutReadWaterfallRoute = LayoutReadWaterfallRouteImport.update({
   path: '/read-waterfall',
   getParentRoute: () => LayoutRoute,
 } as any)
-const LayoutReadOverviewRoute = LayoutReadOverviewRouteImport.update({
-  id: '/read-overview',
-  path: '/read-overview',
-  getParentRoute: () => LayoutRoute,
-} as any)
 const LayoutReadMobileRoute = LayoutReadMobileRouteImport.update({
   id: '/read-mobile',
   path: '/read-mobile',
@@ -137,7 +131,6 @@ export interface FileRoutesByFullPath {
   '/history': typeof LayoutHistoryRoute
   '/read': typeof LayoutReadRoute
   '/read-mobile': typeof LayoutReadMobileRoute
-  '/read-overview': typeof LayoutReadOverviewRoute
   '/read-waterfall': typeof LayoutReadWaterfallRoute
   '/search': typeof LayoutSearchRoute
   '/settings': typeof LayoutSettingsRoute
@@ -156,7 +149,6 @@ export interface FileRoutesByTo {
   '/history': typeof LayoutHistoryRoute
   '/read': typeof LayoutReadRoute
   '/read-mobile': typeof LayoutReadMobileRoute
-  '/read-overview': typeof LayoutReadOverviewRoute
   '/read-waterfall': typeof LayoutReadWaterfallRoute
   '/search': typeof LayoutSearchRoute
   '/settings': typeof LayoutSettingsRoute
@@ -178,7 +170,6 @@ export interface FileRoutesById {
   '/_layout/history': typeof LayoutHistoryRoute
   '/_layout/read': typeof LayoutReadRoute
   '/_layout/read-mobile': typeof LayoutReadMobileRoute
-  '/_layout/read-overview': typeof LayoutReadOverviewRoute
   '/_layout/read-waterfall': typeof LayoutReadWaterfallRoute
   '/_layout/search': typeof LayoutSearchRoute
   '/_layout/settings': typeof LayoutSettingsRoute
@@ -201,7 +192,6 @@ export interface FileRouteTypes {
     | '/history'
     | '/read'
     | '/read-mobile'
-    | '/read-overview'
     | '/read-waterfall'
     | '/search'
     | '/settings'
@@ -220,7 +210,6 @@ export interface FileRouteTypes {
     | '/history'
     | '/read'
     | '/read-mobile'
-    | '/read-overview'
     | '/read-waterfall'
     | '/search'
     | '/settings'
@@ -241,7 +230,6 @@ export interface FileRouteTypes {
     | '/_layout/history'
     | '/_layout/read'
     | '/_layout/read-mobile'
-    | '/_layout/read-overview'
     | '/_layout/read-waterfall'
     | '/_layout/search'
     | '/_layout/settings'
@@ -337,13 +325,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutReadWaterfallRouteImport
       parentRoute: typeof LayoutRoute
     }
-    '/_layout/read-overview': {
-      id: '/_layout/read-overview'
-      path: '/read-overview'
-      fullPath: '/read-overview'
-      preLoaderRoute: typeof LayoutReadOverviewRouteImport
-      parentRoute: typeof LayoutRoute
-    }
     '/_layout/read-mobile': {
       id: '/_layout/read-mobile'
       path: '/read-mobile'
@@ -404,7 +385,6 @@ interface LayoutRouteChildren {
   LayoutHistoryRoute: typeof LayoutHistoryRoute
   LayoutReadRoute: typeof LayoutReadRoute
   LayoutReadMobileRoute: typeof LayoutReadMobileRoute
-  LayoutReadOverviewRoute: typeof LayoutReadOverviewRoute
   LayoutReadWaterfallRoute: typeof LayoutReadWaterfallRoute
   LayoutSearchRoute: typeof LayoutSearchRoute
   LayoutSettingsRoute: typeof LayoutSettingsRoute
@@ -421,7 +401,6 @@ const LayoutRouteChildren: LayoutRouteChildren = {
   LayoutHistoryRoute: LayoutHistoryRoute,
   LayoutReadRoute: LayoutReadRoute,
   LayoutReadMobileRoute: LayoutReadMobileRoute,
-  LayoutReadOverviewRoute: LayoutReadOverviewRoute,
   LayoutReadWaterfallRoute: LayoutReadWaterfallRoute,
   LayoutSearchRoute: LayoutSearchRoute,
   LayoutSettingsRoute: LayoutSettingsRoute,
