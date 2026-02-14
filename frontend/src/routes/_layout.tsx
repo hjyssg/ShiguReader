@@ -18,7 +18,8 @@ function Layout() {
     pathname === "/read" ||
     pathname === "/read-mobile" ||
     pathname === "/read-overview" ||
-    pathname === "/read-waterfall"
+    pathname === "/read-waterfall" ||
+    pathname === "/video"
 
   if (isReaderRoute) {
     return <Outlet />
