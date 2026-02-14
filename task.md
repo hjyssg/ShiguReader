@@ -1,5 +1,9 @@
 # Task List
 
+Note：
+每完成一个任务执行一次 git commit。
+注释多加一点。用中文
+
 ## Task1
 后端实现文件系统 API + 单元测试：
 
@@ -132,10 +136,37 @@ explorer的筛选功能（zip有无video、audio）
 排序（按zip的img number）
 怎么实现设计
 
+
 ## task14
-需要AI写一个开发流程。
+      reader打开前几页总会加载失败。是不是要解压到一个程度，再加载
 
----
+## task14
+需要AI写一个开发流程。 
 
-Note：
-每完成一个任务执行一次 git commit。
+状态：done
+
+
+
+
+
+
+bug：
+<div data-slot="card-title" class="ui-card-title font-semibold text-lg">_TEMP_DOWNLOADS</div>
+
+
+## Hidden / System Noise Filtering（必须实现）
+
+在以下所有场景中统一忽略“系统垃圾文件 / 无意义隐藏文件 / 缓存目录”：
+
+- `lsdir`
+- `scan`
+- `thumbnail 抽取`
+- `zip 解压`
+- `zip 打包`
+- 任何文件递归遍历逻辑
+
+### 必须忽略的名称（大小写不敏感）
+
+
+
+

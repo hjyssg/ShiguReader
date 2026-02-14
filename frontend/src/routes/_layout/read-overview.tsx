@@ -1,6 +1,6 @@
 import { useMutation, useQuery } from "@tanstack/react-query"
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router"
-import { ChevronRight, Folder, Home, Loader2 } from "lucide-react"
+import { ChevronRight, Folder, Home } from "lucide-react"
 import { useEffect, useMemo } from "react"
 
 import { FilesystemService, OpenAPI } from "@/client"
@@ -8,6 +8,7 @@ import { useIsMobile } from "@/hooks/useMobile"
 import { getBaseName, joinPath, splitPath } from "@/lib/path-utils"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
+import { ExtractingIndicator } from "@/components/semantic/layout"
 
 export const Route = createFileRoute("/_layout/read-overview")({
   component: ReadOverviewPage,
@@ -102,11 +103,7 @@ function ReadOverviewPage() {
         <Button variant="outline" onClick={() => navigate({ to: "/read-waterfall", search: { path } })}>
           Waterfall
         </Button>
-        {extractMutation.isPending && (
-          <span className="text-xs text-muted-foreground flex items-center gap-1">
-            <Loader2 className="size-3 animate-spin" /> extracting
-          </span>
-        )}
+        <ExtractingIndicator status={extractMutation.data?.status} variant="inline" />
       </div>
 
       <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">

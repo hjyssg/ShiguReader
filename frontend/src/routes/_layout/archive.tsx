@@ -6,7 +6,6 @@ import {
   FileVideo,
   Folder,
   Home,
-  Loader2,
 } from "lucide-react"
 import { useEffect } from "react"
 
@@ -14,6 +13,7 @@ import { FilesystemService, OpenAPI } from "@/client"
 import { useIsMobile } from "@/hooks/useMobile"
 import { getBaseName, joinPath, splitPath } from "@/lib/path-utils"
 import { Skeleton } from "@/components/ui/skeleton"
+import { ExtractingIndicator } from "@/components/semantic/layout"
 import { cn } from "@/lib/utils"
 
 export const Route = createFileRoute("/_layout/archive")({
@@ -131,12 +131,7 @@ function Archive() {
       </div>
 
       {/* Extraction status */}
-      {extractMutation.isPending && (
-        <div className="fixed bottom-4 right-4 bg-card border rounded-lg p-4 shadow-lg flex items-center gap-2">
-          <Loader2 className="size-4 animate-spin" />
-          <span className="text-sm">Extracting archive...</span>
-        </div>
-      )}
+      <ExtractingIndicator status={extractMutation.data?.status} variant="fixed" />
     </div>
   )
 }

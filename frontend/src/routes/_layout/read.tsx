@@ -5,7 +5,6 @@ import {
   ChevronRight,
   Folder,
   Home,
-  Loader2,
   RotateCw,
   Scan,
 } from "lucide-react"
@@ -15,6 +14,7 @@ import { FilesystemService, OpenAPI } from "@/client"
 import { getBaseName, joinPath, splitPath, wrapPageIndex } from "@/lib/path-utils"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
+import { ExtractingIndicator } from "@/components/semantic/layout"
 
 export const Route = createFileRoute("/_layout/read")({
   component: ReadPage,
@@ -363,10 +363,8 @@ function ReadPage() {
           <ChevronRight className="size-6" />
         </Button>
 
-        {!isFolderSource && extractMutation.isPending && (
-          <div className="absolute right-3 top-3 rounded bg-background/80 px-2 py-1 text-xs flex items-center gap-1">
-            <Loader2 className="size-3 animate-spin" /> extracting
-          </div>
+        {!isFolderSource && (
+          <ExtractingIndicator status={extractMutation.data?.status} variant="overlay" />
         )}
       </div>
 

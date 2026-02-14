@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils"
+import { Loader2 } from "lucide-react"
 import React from "react"
 
 export function PageContainer({ children, className }: { children: React.ReactNode; className?: string }) {
@@ -163,6 +164,51 @@ export function FileName({ children, className, title }: { children: React.React
   return (
     <span className={cn("ui-file-name truncate block min-w-0", className)} title={title}>
       {children}
+    </span>
+  )
+}
+
+/**
+ * 解压状态指示器 — 仅在 status === "extracting" 时显示。
+ * 后端解压完成后返回 "completed"，此时指示器不渲染，避免翻页时闪现。
+ *
+ * variant:
+ *   - "overlay"  右上角浮层（用于 reader 页面）
+ *   - "inline"   行内文字（用于 waterfall/overview 工具栏）
+ *   - "fixed"    右下角固定浮层（用于 archive 页面）
+ */
+export function ExtractingIndicator({
+  status,
+  variant = "inline",
+  className,
+}: {
+  status?: "extracting" | "completed" | "error"
+  variant?: "overlay" | "inline" | "fixed"
+  className?: string
+}) {
+  if (status !== "extracting") return null
+
+  if (variant === "overlay") {
+    return (
+      <div className={cn("absolute right-3 top-3 rounded bg-background/80 px-2 py-1 text-xs flex items-center gap-1", className)}>
+        <Loader2 className="size-3 animate-spin" /> 解压中…
+      </div>
+    )
+  }
+
+  if (variant === "fixed") {
+    return (
+      <div className={cn("fixed bottom-4 right-4 bg-card border rounded-lg p-4 shadow-lg flex items-center gap-2", className)}>
+        <Loader2 className="size-4 animate-spin" />
+        <span className="text-sm">解压中…</span>
+      </div>
+    )
+  }
+
+  // variant === "inline"
+  return (
+    <span className={cn("text-xs text-muted-foreground flex items-center gap-1", className)}>
+      <Loader2 className="size-3 animate-spin" /> 解压中…
     </span>
   )
 }
