@@ -59,3 +59,22 @@
 
 - Task15：
   - 忽略系统垃圾文件 / 隐藏文件 / 缓存目录
+
+- Task1：文件系统能力补充（2026-02-14）
+  - 新增后端接口：
+    - POST /api/v1/fs/rename - 重命名文件/文件夹
+    - GET /api/v1/fs/download - 下载单个文件
+    - POST /api/v1/fs/unzip - 解压压缩包（保持目录结构）
+  - 完整的单元测试覆盖（6个测试全部通过）
+  - 遵循 TDD 开发流程
+  - 前端 API 客户端已更新
+  - 状态：done（后端完成，前端 UI 集成待需要时添加）
+
+- Task11：组件重构（2026-02-14）
+  - 更新开发指南，添加命名约定（Item/Entity/File）
+  - 移动未使用组件到 .abandon 文件夹
+  - 重命名 DetailsView → FileTableView
+  - 重命名 FileList → FileViewContainer
+  - 为所有组件添加简洁的中文注释（不超过30字）
+  - 统一命名和代码清理
+  - 状态：done

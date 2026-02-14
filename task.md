@@ -1,12 +1,4 @@
 # 未完成（Todo / In Progress / Bug）
-
-## Task1：文件系统能力补充
-- 在已有“移动 / 删除 / 压缩”的基础上，新增：
-  - 重命名（文件 / 文件夹）
-  - 下载（单文件 / 文件夹打包下载）
-  - 压缩包解压
-  - 文件夹打包
-  -需要加UT
 ---
 
 ## Task2：Zip 内大图压缩与再打包
@@ -76,15 +68,4 @@
 - 保证所有页面可正常打开（可用 Playwright）
 
 ---
-
-
-
-
-task11 
-
-重构任务：
-frontend\src\components\Common
-frontend\src\components\Files
-两个文件夹有雷同的component，同时命名混乱、需要重构
-detailsView的命名不好
 
