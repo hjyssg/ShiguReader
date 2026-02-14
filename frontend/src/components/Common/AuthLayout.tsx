@@ -1,7 +1,7 @@
 // 认证页面布局组件
-import { Appearance } from "@/components/.abandon/Appearance"
+import { Appearance } from "@/components/Common/Appearance"
 import { Logo } from "@/components/Common/Logo"
-import { Footer } from "@/components/.abandon/Footer"
+import { Footer } from "@/components/Common/Footer"
 import { AuthContainer, AuthSidePanel, AuthContent, CenterBox } from "@/components/semantic/layout"
 
 interface AuthLayoutProps {
