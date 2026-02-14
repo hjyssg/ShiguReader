@@ -108,6 +108,7 @@ function Explorer() {
       <FileViewContainer
         items={data?.items || []}
         isLoading={isLoading}
+        currentPath={path}
         storageKeyPrefix="explorer"
         toolbarExtra={
           <DropdownMenu>

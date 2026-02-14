@@ -1,30 +1,46 @@
-// 文件系统项表格视图，支持排序和筛选
-import { Link } from "@tanstack/react-router"
+// 文件系统项表格视图 — 支持排序、选择、双击导航、右键菜单
 import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react"
 
 import type { FileSystemItem } from "@/client"
-import { useIsMobile } from "@/hooks/useMobile"
-import { getParentPath } from "@/lib/path-utils"
 import { cn } from "@/lib/utils"
 
 import { FileIcon } from "./FileIcon"
 import { FileNameWithPreview } from "./FileNameWithPreview"
 import { formatDateTime, formatFileSize, formatFileType } from "./utils"
+import { FileContextMenu, type FileContextMenuActions } from "./FileContextMenu"
 
 export type SortField = "name" | "type" | "mtime" | "recommendation" | "image_count"
 export type SortOrder = "asc" | "desc"
+
+interface FileTableViewProps {
+  items: FileSystemItem[]
+  onSort: (field: SortField) => void
+  sortField: SortField
+  sortOrder: SortOrder
+  /** 选择相关 */
+  isSelected?: (path: string) => boolean
+  onItemClick?: (item: FileSystemItem, e: React.MouseEvent) => void
+  onItemDoubleClick?: (item: FileSystemItem, e: React.MouseEvent) => void
+  onItemContextMenu?: (item: FileSystemItem) => void
+  /** 右键菜单 */
+  buildContextMenuActions?: (item: FileSystemItem) => FileContextMenuActions
+  selectedCount?: number
+  isOpenable?: (item: FileSystemItem) => boolean
+}
 
 export function FileTableView({
   items,
   onSort,
   sortField,
   sortOrder,
-}: {
-  items: FileSystemItem[]
-  onSort: (field: SortField) => void
-  sortField: SortField
-  sortOrder: SortOrder
-}) {
+  isSelected,
+  onItemClick,
+  onItemDoubleClick,
+  onItemContextMenu,
+  buildContextMenuActions,
+  selectedCount = 0,
+  isOpenable,
+}: FileTableViewProps) {
   const SortIcon = ({ field }: { field: SortField }) => {
     if (sortField !== field) {
       return <ArrowUpDown className="size-3 ml-1 opacity-50" />
@@ -90,30 +106,64 @@ export function FileTableView({
           </tr>
         </thead>
         <tbody>
-          {items.map((item) => (
-            <DetailsRow key={item.path} item={item} />
-          ))}
+          {items.map((item) => {
+            const row = (
+              <DetailsRow
+                key={item.path}
+                item={item}
+                selected={isSelected?.(item.path) ?? false}
+                onClick={onItemClick}
+                onDoubleClick={onItemDoubleClick}
+              />
+            )
+
+            if (buildContextMenuActions) {
+              return (
+                <FileContextMenu
+                  key={item.path}
+                  item={item}
+                  selectedCount={selectedCount}
+                  isOpenable={isOpenable?.(item) ?? false}
+                  actions={buildContextMenuActions(item)}
+                  onContextMenuOpen={() => onItemContextMenu?.(item)}
+                >
+                  {row}
+                </FileContextMenu>
+              )
+            }
+
+            return row
+          })}
         </tbody>
       </table>
     </div>
   )
 }
 
-function DetailsRow({ item }: { item: FileSystemItem }) {
-  const isMobile = useIsMobile()
+function DetailsRow({
+  item,
+  selected,
+  onClick,
+  onDoubleClick,
+}: {
+  item: FileSystemItem
+  selected: boolean
+  onClick?: (item: FileSystemItem, e: React.MouseEvent) => void
+  onDoubleClick?: (item: FileSystemItem, e: React.MouseEvent) => void
+}) {
   const isFolder = item.item_type === "folder"
   const isArchive = item.file_type === "archive"
-  const isVideo = item.file_type === "video"
-  const isAudio = item.file_type === "audio"
-  const isImage = item.file_type === "image"
-  const isClickable = isFolder || isArchive || isVideo || isAudio || isImage
 
-  const content = (
+  return (
     <tr
       className={cn(
-        "border-b last:border-b-0 text-sm",
-        isClickable ? "cursor-pointer hover:bg-muted/50" : "cursor-default",
+        "border-b last:border-b-0 text-sm cursor-pointer transition-colors",
+        selected
+          ? "bg-primary/10 hover:bg-primary/15"
+          : "hover:bg-muted/50",
       )}
+      onClick={(e) => onClick?.(item, e)}
+      onDoubleClick={(e) => onDoubleClick?.(item, e)}
     >
       <td className="p-2">
         <div className="flex items-center gap-2 min-w-0">
@@ -143,59 +193,4 @@ function DetailsRow({ item }: { item: FileSystemItem }) {
       </td>
     </tr>
   )
-
-  if (isFolder) {
-    return (
-      <Link to="/explorer" search={{ path: item.path }} className="contents">
-        {content}
-      </Link>
-    )
-  }
-
-  if (isArchive) {
-    return (
-      <Link to="/archive" search={{ path: item.path }} className="contents">
-        {content}
-      </Link>
-    )
-  }
-
-  if (isVideo) {
-    return (
-      <Link
-        to="/video"
-        search={{ path: item.path, entry: undefined, media: "video" }}
-        className="contents"
-      >
-        {content}
-      </Link>
-    )
-  }
-
-  if (isAudio) {
-    return (
-      <Link
-        to="/video"
-        search={{ path: item.path, entry: undefined, media: "audio" }}
-        className="contents"
-      >
-        {content}
-      </Link>
-    )
-  }
-
-  if (isImage) {
-    const parentPath = getParentPath(item.path)
-    return (
-      <Link
-        to={isMobile ? "/read-mobile" : "/read"}
-        search={{ path: parentPath, source: "folder", page: 0, filePath: item.path }}
-        className="contents"
-      >
-        {content}
-      </Link>
-    )
-  }
-
-  return content
 }

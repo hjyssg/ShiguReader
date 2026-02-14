@@ -1,104 +1,72 @@
-// 文件系统项卡片组件，展示文件和文件夹
-import { Link } from "@tanstack/react-router"
-
-import { type FileSystemItem, OpenAPI } from "@/client"
-import { useIsMobile } from "@/hooks/useMobile"
-import { getParentPath } from "@/lib/path-utils"
-import { ItemCard, CardThumbnail, CardInfo, FileName } from "@/components/semantic/layout"
+// 文件系统项卡片组件 — 支持选择、双击导航、右键菜单
+import type { FileSystemItem } from "@/client"
+import { OpenAPI } from "@/client"
 import { ThumbnailImage } from "@/components/Common/ThumbnailImage"
+import { ItemCard, CardThumbnail, CardInfo, FileName } from "@/components/semantic/layout"
+import { cn } from "@/lib/utils"
 
 import { FileIcon } from "./FileIcon"
 import { FileNameWithPreview } from "./FileNameWithPreview"
 import { formatFileSize } from "./utils"
 
-export function FileItem({ item }: { item: FileSystemItem }) {
-  const isMobile = useIsMobile()
+interface FileItemProps {
+  item: FileSystemItem
+  /** 是否选中 */
+  isSelected?: boolean
+  /** 单击回调（处理选择） */
+  onClick?: (e: React.MouseEvent) => void
+  /** 双击回调（打开） */
+  onDoubleClick?: (e: React.MouseEvent) => void
+  /** 右键回调 */
+  onContextMenu?: (e: React.MouseEvent) => void
+}
+
+export function FileItem({ item, isSelected, onClick, onDoubleClick, onContextMenu }: FileItemProps) {
   const isFolder = item.item_type === "folder"
-  const isArchive = item.file_type === "archive"
-  const isVideo = item.file_type === "video"
-  const isAudio = item.file_type === "audio"
-  const isImage = item.file_type === "image"
-  const isClickable = isFolder || isArchive || isVideo || isAudio || isImage
 
-  const content = (
-    <ItemCard isClickable={isClickable} className="file-item-card">
-      <CardThumbnail className="file-card-thumbnail">
-        {item.thumbnail_url ? (
-          <ThumbnailImage
-            src={`${OpenAPI.BASE}${item.thumbnail_url}`}
-            alt={item.name}
-            fallback={<FileIcon fileType={item.file_type} isFolder={isFolder} />}
-          />
-        ) : (
-          <FileIcon fileType={item.file_type} isFolder={isFolder} />
-        )}
-      </CardThumbnail>
+  return (
+    <div
+      className={cn(
+        "file-item-wrapper rounded-lg transition-all",
+        isSelected && "ring-2 ring-primary ring-offset-1 ring-offset-background",
+      )}
+      onClick={onClick}
+      onDoubleClick={onDoubleClick}
+      onContextMenu={onContextMenu}
+    >
+      <ItemCard isClickable className="file-item-card">
+        <CardThumbnail className="file-card-thumbnail">
+          {item.thumbnail_url ? (
+            <ThumbnailImage
+              src={`${OpenAPI.BASE}${item.thumbnail_url}`}
+              alt={item.name}
+              fallback={<FileIcon fileType={item.file_type} isFolder={isFolder} />}
+            />
+          ) : (
+            <FileIcon fileType={item.file_type} isFolder={isFolder} />
+          )}
+        </CardThumbnail>
 
-      <CardInfo className="file-item-info">
-        {item.thumbnail_url ? (
-          <FileName title={item.name} className="text-sm">
-            {item.name}
-          </FileName>
-        ) : (
-          <FileNameWithPreview
-            filename={item.name}
-            filepath={item.path}
-            thumbnailUrl={item.thumbnail_url}
-            className="text-sm"
-          />
-        )}
-        {!isFolder && item.filesize && (
-          <p className="text-xs text-muted-foreground">
-            {formatFileSize(item.filesize)}
-          </p>
-        )}
-      </CardInfo>
-    </ItemCard>
+        <CardInfo className="file-item-info">
+          {item.thumbnail_url ? (
+            <FileName title={item.name} className="text-sm">
+              {item.name}
+            </FileName>
+          ) : (
+            <FileNameWithPreview
+              filename={item.name}
+              filepath={item.path}
+              thumbnailUrl={item.thumbnail_url}
+              className="text-sm"
+            />
+          )}
+          {!isFolder && item.filesize && (
+            <p className="text-xs text-muted-foreground">
+              {formatFileSize(item.filesize)}
+            </p>
+          )}
+        </CardInfo>
+      </ItemCard>
+    </div>
   )
-
-  if (isFolder) {
-    return (
-      <Link to="/explorer" search={{ path: item.path }}>
-        {content}
-      </Link>
-    )
-  }
-
-  if (isArchive) {
-    return (
-      <Link to="/archive" search={{ path: item.path }}>
-        {content}
-      </Link>
-    )
-  }
-
-  if (isVideo) {
-    return (
-      <Link to="/video" search={{ path: item.path, entry: undefined, media: "video" }}>
-        {content}
-      </Link>
-    )
-  }
-
-  if (isAudio) {
-    return (
-      <Link to="/video" search={{ path: item.path, entry: undefined, media: "audio" }}>
-        {content}
-      </Link>
-    )
-  }
-
-  if (isImage) {
-    const parentPath = getParentPath(item.path)
-    return (
-      <Link
-        to={isMobile ? "/read-mobile" : "/read"}
-        search={{ path: parentPath, source: "folder", page: 0, filePath: item.path }}
-      >
-        {content}
-      </Link>
-    )
-  }
-
-  return content
 }

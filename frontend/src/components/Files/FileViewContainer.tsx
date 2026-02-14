@@ -1,6 +1,6 @@
-// 文件视图容器，支持网格/表格视图和排序
+// 文件视图容器 — 集成选择、右键菜单、键盘快捷键、对话框
 import { LayoutGrid, List, ArrowDown, ArrowUp } from "lucide-react"
-import { type ReactNode, useEffect, useMemo, useState } from "react"
+import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react"
 
 import type { FileSystemItem } from "@/client"
 import { Button } from "@/components/ui/button"
@@ -14,14 +14,27 @@ import {
 import { Skeleton } from "@/components/ui/skeleton"
 import { Toolbar, ToolbarGroup, ResponsiveGrid } from "@/components/semantic/layout"
 
+import { useFileSelection } from "@/hooks/useFileSelection"
+import { useFileNavigation } from "@/hooks/useFileNavigation"
+import { useFileOperations } from "@/hooks/useFileOperations"
+import { useFileExplorerKeyboard } from "@/hooks/useFileExplorerKeyboard"
+
 import { FileTableView, type SortField, type SortOrder } from "./FileTableView"
 import { FileItem } from "./FileItem"
+import { FileContextMenu } from "./FileContextMenu"
+import { FileSelectionToolbar } from "./FileSelectionToolbar"
+import { RenameDialog } from "./dialogs/RenameDialog"
+import { DeleteDialog } from "./dialogs/DeleteDialog"
+import { MoveDialog } from "./dialogs/MoveDialog"
+import { CompressDialog, type CompressAction } from "./dialogs/CompressDialog"
+import { getBaseName } from "@/lib/path-utils"
 
 type ViewMode = "grid" | "details"
 
 export function FileViewContainer({
   items,
   isLoading,
+  currentPath = "",
   initialViewMode = "grid",
   initialSortField = "type",
   initialSortOrder = "asc",
@@ -31,6 +44,7 @@ export function FileViewContainer({
 }: {
   items: FileSystemItem[]
   isLoading: boolean
+  currentPath?: string
   initialViewMode?: ViewMode
   initialSortField?: SortField
   initialSortOrder?: SortOrder
@@ -38,6 +52,9 @@ export function FileViewContainer({
   toolbarExtra?: ReactNode
   emptyText?: string
 }) {
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  // View mode & sort state
   const [viewMode, setViewMode] = useState<ViewMode>(() => {
     const saved = localStorage.getItem(`${storageKeyPrefix}-view-mode`)
     return (saved as ViewMode) || initialViewMode
@@ -61,6 +78,7 @@ export function FileViewContainer({
     localStorage.setItem(`${storageKeyPrefix}-sort-order`, sortOrder)
   }, [storageKeyPrefix, sortOrder])
 
+  // Sorted items
   const sortedItems = useMemo(() => {
     if (!items) return []
     const list = items.filter((item) => {
@@ -102,6 +120,176 @@ export function FileViewContainer({
     return list
   }, [items, sortField, sortOrder])
 
+  // Selection
+  const selection = useFileSelection()
+  const { openItem, openItemInNewTab, isOpenable } = useFileNavigation()
+  const operations = useFileOperations(currentPath)
+
+  // Dialog state
+  const [renameDialogOpen, setRenameDialogOpen] = useState(false)
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [moveDialogOpen, setMoveDialogOpen] = useState(false)
+  const [compressDialogOpen, setCompressDialogOpen] = useState(false)
+  const [compressAction, setCompressAction] = useState<CompressAction>("zip-folder")
+  // 右键菜单操作的目标项
+  const [contextItem, setContextItem] = useState<FileSystemItem | null>(null)
+
+  const anyDialogOpen = renameDialogOpen || deleteDialogOpen || moveDialogOpen || compressDialogOpen
+
+  // 获取当前操作目标路径
+  const getTargetPaths = useCallback((): string[] => {
+    if (selection.selectedCount > 0) {
+      return Array.from(selection.selectedPaths)
+    }
+    if (contextItem) {
+      return [contextItem.path]
+    }
+    return []
+  }, [selection.selectedPaths, selection.selectedCount, contextItem])
+
+  const getFirstSelectedItem = useCallback((): FileSystemItem | null => {
+    const paths = getTargetPaths()
+    if (paths.length === 0) return null
+    return sortedItems.find((i) => i.path === paths[0]) || null
+  }, [getTargetPaths, sortedItems])
+
+  // 操作回调
+  const handleOpenRename = useCallback(() => {
+    if (selection.selectedCount === 1) {
+      setRenameDialogOpen(true)
+    }
+  }, [selection.selectedCount])
+
+  const handleOpenDelete = useCallback(() => {
+    if (getTargetPaths().length > 0) {
+      setDeleteDialogOpen(true)
+    }
+  }, [getTargetPaths])
+
+  const handleOpenMove = useCallback(() => {
+    if (getTargetPaths().length > 0) {
+      setMoveDialogOpen(true)
+    }
+  }, [getTargetPaths])
+
+  const handleMoveToFavorite = useCallback(() => {
+    const paths = getTargetPaths()
+    for (const p of paths) {
+      const item = sortedItems.find((i) => i.path === p)
+      if (item) {
+        operations.moveToFavoriteMutation.mutate({
+          sourcePath: p,
+          isFolder: item.item_type === "folder",
+        })
+      }
+    }
+    selection.clearSelection()
+  }, [getTargetPaths, sortedItems, operations.moveToFavoriteMutation, selection])
+
+  const handleOpenFirst = useCallback(() => {
+    const item = getFirstSelectedItem()
+    if (item) openItem(item)
+  }, [getFirstSelectedItem, openItem])
+
+  // 点击事件处理
+  const handleItemClick = useCallback(
+    (item: FileSystemItem, e: React.MouseEvent) => {
+      // Ctrl+Click 新标签页打开
+      if ((e.ctrlKey || e.metaKey) && e.detail === 1) {
+        // 如果不是在选择模式下，Ctrl+Click 切换选择
+        selection.handleClick(item.path, e, sortedItems)
+        return
+      }
+      selection.handleClick(item.path, e, sortedItems)
+    },
+    [selection, sortedItems],
+  )
+
+  const handleItemDoubleClick = useCallback(
+    (item: FileSystemItem, e: React.MouseEvent) => {
+      if (e.ctrlKey || e.metaKey) {
+        openItemInNewTab(item)
+      } else {
+        openItem(item)
+      }
+    },
+    [openItem, openItemInNewTab],
+  )
+
+  const handleItemContextMenu = useCallback(
+    (item: FileSystemItem) => {
+      setContextItem(item)
+      selection.handleContextMenu(item.path)
+    },
+    [selection],
+  )
+
+  // 空白区域点击清除选择
+  const handleContainerClick = useCallback(
+    (e: React.MouseEvent) => {
+      // 只在直接点击容器时清除（不是子元素冒泡）
+      if (e.target === e.currentTarget) {
+        selection.clearSelection()
+      }
+    },
+    [selection],
+  )
+
+  // 键盘快捷键
+  useFileExplorerKeyboard({
+    items: sortedItems,
+    selectedPaths: selection.selectedPaths,
+    selectAll: selection.selectAll,
+    clearSelection: selection.clearSelection,
+    onDelete: handleOpenDelete,
+    onRename: handleOpenRename,
+    onOpen: handleOpenFirst,
+    containerRef,
+    dialogOpen: anyDialogOpen,
+  })
+
+  // 构建右键菜单 actions
+  const buildContextMenuActions = useCallback(
+    (item: FileSystemItem) => ({
+      onOpen: () => openItem(item),
+      onOpenInNewTab: () => openItemInNewTab(item),
+      onRename: () => {
+        selection.select(item.path)
+        setRenameDialogOpen(true)
+      },
+      onMove: () => {
+        if (!selection.isSelected(item.path)) {
+          selection.select(item.path)
+        }
+        setMoveDialogOpen(true)
+      },
+      onMoveToFavorite: () => {
+        if (!selection.isSelected(item.path)) {
+          selection.select(item.path)
+        }
+        handleMoveToFavorite()
+      },
+      onDelete: () => {
+        if (!selection.isSelected(item.path)) {
+          selection.select(item.path)
+        }
+        setDeleteDialogOpen(true)
+      },
+      onZipFolder: () => {
+        setCompressAction("zip-folder")
+        setContextItem(item)
+        setCompressDialogOpen(true)
+      },
+      onMinifyZipImages: () => {
+        setCompressAction("minify-zip-images")
+        setContextItem(item)
+        setCompressDialogOpen(true)
+      },
+      onSelectAll: () => selection.selectAll(sortedItems),
+    }),
+    [openItem, openItemInNewTab, selection, sortedItems, handleMoveToFavorite],
+  )
+
   const handleSortFieldChange = (field: SortField) => {
     if (field === sortField) {
       setSortOrder(sortOrder === "asc" ? "desc" : "asc")
@@ -111,8 +299,66 @@ export function FileViewContainer({
     setSortOrder("asc")
   }
 
+  // Dialog confirm handlers
+  const handleRenameConfirm = useCallback(
+    (newName: string) => {
+      const paths = getTargetPaths()
+      if (paths.length === 1) {
+        operations.renameMutation.mutate(
+          { path: paths[0], newName },
+          { onSuccess: () => { setRenameDialogOpen(false); selection.clearSelection() } },
+        )
+      }
+    },
+    [getTargetPaths, operations.renameMutation, selection],
+  )
+
+  const handleDeleteConfirm = useCallback(() => {
+    const paths = getTargetPaths()
+    if (paths.length === 1) {
+      operations.deleteMutation.mutate(paths[0], {
+        onSuccess: () => { setDeleteDialogOpen(false); selection.clearSelection() },
+      })
+    } else if (paths.length > 1) {
+      operations.deleteBatchMutation.mutate(paths, {
+        onSuccess: () => { setDeleteDialogOpen(false); selection.clearSelection() },
+      })
+    }
+  }, [getTargetPaths, operations.deleteMutation, operations.deleteBatchMutation, selection])
+
+  const handleMoveConfirm = useCallback(
+    (destDir: string) => {
+      const paths = getTargetPaths()
+      for (const p of paths) {
+        const item = sortedItems.find((i) => i.path === p)
+        if (item) {
+          const fileName = getBaseName(p)
+          const destPath = `${destDir}/${fileName}`
+          operations.move(p, destPath, item.item_type === "folder")
+        }
+      }
+      setMoveDialogOpen(false)
+      selection.clearSelection()
+    },
+    [getTargetPaths, sortedItems, operations, selection],
+  )
+
+  const handleCompressConfirm = useCallback(() => {
+    if (!contextItem) return
+    if (compressAction === "zip-folder") {
+      operations.zipFolderMutation.mutate(contextItem.path, {
+        onSuccess: () => setCompressDialogOpen(false),
+      })
+    } else {
+      operations.compressArchiveImagesMutation.mutate(contextItem.path, {
+        onSuccess: () => setCompressDialogOpen(false),
+      })
+    }
+  }, [contextItem, compressAction, operations.zipFolderMutation, operations.compressArchiveImagesMutation])
+
   return (
-    <div className="file-list-container space-y-4">
+    <div className="file-list-container space-y-4" ref={containerRef} onClick={handleContainerClick}>
+      {/* Toolbar */}
       <Toolbar className="file-list-toolbar">
         <ToolbarGroup className="sort-controls">
           <span className="text-sm text-muted-foreground">Sort by:</span>
@@ -163,6 +409,16 @@ export function FileViewContainer({
         </ToolbarGroup>
       </Toolbar>
 
+      {/* Selection toolbar */}
+      <FileSelectionToolbar
+        selectedCount={selection.selectedCount}
+        onMove={handleOpenMove}
+        onMoveToFavorite={handleMoveToFavorite}
+        onDelete={handleOpenDelete}
+        onClearSelection={selection.clearSelection}
+      />
+
+      {/* Content */}
       {isLoading ? (
         viewMode === "grid" ? (
           <ResponsiveGrid className="grid-loading">
@@ -187,7 +443,23 @@ export function FileViewContainer({
       ) : viewMode === "grid" ? (
         <ResponsiveGrid className="grid-content">
           {sortedItems.map((item) => (
-            <FileItem key={item.path} item={item} />
+            <FileContextMenu
+              key={item.path}
+              item={item}
+              selectedCount={selection.selectedCount}
+              isOpenable={isOpenable(item)}
+              actions={buildContextMenuActions(item)}
+              onContextMenuOpen={() => handleItemContextMenu(item)}
+            >
+              <div>
+                <FileItem
+                  item={item}
+                  isSelected={selection.isSelected(item.path)}
+                  onClick={(e) => handleItemClick(item, e)}
+                  onDoubleClick={(e) => handleItemDoubleClick(item, e)}
+                />
+              </div>
+            </FileContextMenu>
           ))}
         </ResponsiveGrid>
       ) : (
@@ -196,8 +468,46 @@ export function FileViewContainer({
           onSort={handleSortFieldChange}
           sortField={sortField}
           sortOrder={sortOrder}
+          isSelected={selection.isSelected}
+          onItemClick={(item, e) => handleItemClick(item, e)}
+          onItemDoubleClick={(item, e) => handleItemDoubleClick(item, e)}
+          onItemContextMenu={(item) => handleItemContextMenu(item)}
+          buildContextMenuActions={buildContextMenuActions}
+          selectedCount={selection.selectedCount}
+          isOpenable={isOpenable}
         />
       )}
+
+      {/* Dialogs */}
+      <RenameDialog
+        open={renameDialogOpen}
+        onOpenChange={setRenameDialogOpen}
+        filePath={getTargetPaths()[0] || ""}
+        onConfirm={handleRenameConfirm}
+        isPending={operations.renameMutation.isPending}
+      />
+      <DeleteDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        filePaths={getTargetPaths()}
+        onConfirm={handleDeleteConfirm}
+        isPending={operations.deleteMutation.isPending || operations.deleteBatchMutation.isPending}
+      />
+      <MoveDialog
+        open={moveDialogOpen}
+        onOpenChange={setMoveDialogOpen}
+        filePaths={getTargetPaths()}
+        onConfirm={handleMoveConfirm}
+        isPending={operations.moveFileMutation.isPending || operations.moveFolderMutation.isPending}
+      />
+      <CompressDialog
+        open={compressDialogOpen}
+        onOpenChange={setCompressDialogOpen}
+        filePath={contextItem?.path || ""}
+        action={compressAction}
+        onConfirm={handleCompressConfirm}
+        isPending={operations.zipFolderMutation.isPending || operations.compressArchiveImagesMutation.isPending}
+      />
     </div>
   )
 }
