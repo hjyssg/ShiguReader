@@ -41,3 +41,14 @@
 - Task14：
   - reader 前几页加载失败
   - 可能需要解压到一定程度再加载
+
+- Task16：thumbnail 未找到时用 fingerprint 回查
+  - 在 IndexRepository 添加 find_thumbnail_by_fingerprint 方法
+  - 在 ThumbService.get_or_generate 中，缓存未命中时先通过 fingerprint 查询数据库
+  - 如果找到相同 fingerprint 的文件且其缩略图存在，则复用该缩略图
+  - 状态：done
+
+- Task17：video 页面与 reader 一致（不显示 footer/header/sidebar）
+  - 修改 _layout.tsx，将 /video 路径加入 isReaderRoute 判断
+  - video 页面现在与 reader 页面一样，不显示侧边栏、页眉和页脚
+  - 状态：done

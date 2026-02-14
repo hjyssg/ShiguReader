@@ -31,11 +31,6 @@
 - Task15：
   - 忽略系统垃圾文件 / 隐藏文件 / 缓存目录
 
-- Task16：
-  - thumbnail 未找到时用 fingerprint 回查
-
-- Task17：
-  - video 页面与 reader 一致（不显示 footer/header/sidebar）
 
 - Bug：
   - `<div data-slot="card-title" class="ui-card-title font-semibold text-lg">_TEMP_DOWNLOADS</div>`
