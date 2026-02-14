@@ -38,6 +38,7 @@ import { DeleteDialog } from "@/components/Files/dialogs/DeleteDialog"
 import { MoveDialog } from "@/components/Files/dialogs/MoveDialog"
 import { CompressDialog, type CompressAction } from "@/components/Files/dialogs/CompressDialog"
 import { ConfirmMoveDialog } from "@/components/Files/dialogs/ConfirmMoveDialog"
+import { FileNotFoundError } from "@/components/Common/FileNotFoundError"
 
 export const Route = createFileRoute("/_layout/read")({
   component: ReadPage,
@@ -84,16 +85,18 @@ function ReadPage() {
 
   const dragRef = useRef({ startX: 0, startY: 0, startTx: 0, startTy: 0 })
 
-  const { data: listData, isLoading } = useQuery({
+  const { data: listData, isLoading, error: listError } = useQuery({
     queryKey: ["archive-list", path],
     queryFn: () => FilesystemService.listArchive({ path }),
     enabled: !!path && !isFolderSource,
+    retry: false,
   })
 
-  const { data: folderData, isLoading: isFolderLoading } = useQuery({
+  const { data: folderData, isLoading: isFolderLoading, error: folderError } = useQuery({
     queryKey: ["fs-list", path],
     queryFn: () => FilesystemService.listDirectory({ path }),
     enabled: !!path && isFolderSource,
+    retry: false,
   })
 
   const extractMutation = useMutation({
@@ -296,6 +299,23 @@ function ReadPage() {
         <Skeleton className="h-8 w-64" />
         <Skeleton className="h-[70vh] w-full" />
       </div>
+    )
+  }
+
+  // 检查文件是否存在
+  const hasError = listError || folderError
+  if (hasError) {
+    const errorMessage = (listError as any)?.body?.detail || (folderError as any)?.body?.detail || "未知错误"
+    const isNotFound = errorMessage.includes("not found") || errorMessage.includes("Not found") || errorMessage.includes("404")
+    
+    return (
+      <FileNotFoundError
+        path={path}
+        fileName={fileName}
+        errorMessage={errorMessage}
+        isNotFound={isNotFound}
+        parentPath={parentPath}
+      />
     )
   }
 

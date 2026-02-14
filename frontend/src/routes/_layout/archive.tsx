@@ -37,6 +37,7 @@ import { DeleteDialog } from "@/components/Files/dialogs/DeleteDialog"
 import { MoveDialog } from "@/components/Files/dialogs/MoveDialog"
 import { CompressDialog } from "@/components/Files/dialogs/CompressDialog"
 import { ConfirmMoveDialog } from "@/components/Files/dialogs/ConfirmMoveDialog"
+import { FileNotFoundError } from "@/components/Common/FileNotFoundError"
 
 export const Route = createFileRoute("/_layout/archive")({
   component: Archive,
@@ -69,10 +70,11 @@ function Archive() {
   const [confirmFavOpen, setConfirmFavOpen] = useState(false)
   const [confirmReadOpen, setConfirmReadOpen] = useState(false)
 
-  const { data: listData, isLoading: isListLoading } = useQuery({
+  const { data: listData, isLoading: isListLoading, error: listError } = useQuery({
     queryKey: ["archive-list", path],
     queryFn: () => FilesystemService.listArchive({ path }),
     enabled: !!path,
+    retry: false,
   })
 
   const extractMutation = useMutation({
@@ -95,6 +97,22 @@ function Archive() {
         <Skeleton className="h-8 w-64" />
         <Skeleton className="h-96 w-full" />
       </div>
+    )
+  }
+
+  // 检查文件是否存在
+  if (listError) {
+    const errorMessage = (listError as any)?.body?.detail || "未知错误"
+    const isNotFound = errorMessage.includes("not found") || errorMessage.includes("Not found") || errorMessage.includes("404")
+    
+    return (
+      <FileNotFoundError
+        path={path}
+        fileName={fileName}
+        errorMessage={errorMessage}
+        isNotFound={isNotFound}
+        parentPath={parentPath}
+      />
     )
   }
 

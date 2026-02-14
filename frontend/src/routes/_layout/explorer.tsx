@@ -8,7 +8,7 @@ import { toast } from "sonner"
 import { FilesystemService } from "@/client"
 import { FileViewContainer } from "@/components/Files/FileViewContainer"
 import { Button } from "@/components/ui/button"
-import { buildPathBreadcrumbs, getBaseName } from "@/lib/path-utils"
+import { buildPathBreadcrumbs, getBaseName, getParentPath } from "@/lib/path-utils"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,6 +16,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { useDocumentTitle } from "@/hooks/useDocumentTitle"
+import { FileNotFoundError } from "@/components/Common/FileNotFoundError"
 
 export const Route = createFileRoute("/_layout/explorer")({
   component: Explorer,
@@ -47,10 +48,11 @@ function Explorer() {
     }
   }, [path, navigate])
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, error } = useQuery({
     queryKey: ["fs-list", path],
     queryFn: () => FilesystemService.listDirectory({ path }),
     enabled: !!path,
+    retry: false,
   })
 
   const scanMutation = useQuery({
@@ -60,6 +62,7 @@ function Explorer() {
   })
 
   const breadcrumbs = buildPathBreadcrumbs(path)
+  const parentPath = getParentPath(path)
 
   const handleScan = async (withWatch: boolean) => {
     if (!path) return
@@ -78,6 +81,22 @@ function Explorer() {
     } catch {
       toast.error(t("explorer.scanFailed"))
     }
+  }
+
+  // 检查文件夹是否存在
+  if (error) {
+    const errorMessage = (error as any)?.body?.detail || "未知错误"
+    const isNotFound = errorMessage.includes("not found") || errorMessage.includes("Not found") || errorMessage.includes("404")
+    
+    return (
+      <FileNotFoundError
+        path={path}
+        fileName={folderName}
+        errorMessage={errorMessage}
+        isNotFound={isNotFound}
+        parentPath={parentPath}
+      />
+    )
   }
 
   return (
