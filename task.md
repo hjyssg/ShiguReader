@@ -2,7 +2,7 @@
 
 ## Task1：Zip 内大图压缩与再打包
 - 参考：D:\Git\ShiguReader\packages
-- 对 zip 内过大的图片进行压缩后重新打包
+- 对 zip 内过大的图片进行压缩后重新打包 （用户可以在setting设置标准，你参考旧版：D:\Git\ShiguReader\packages）
 - 支持选择：
   - 输出到原文件夹
   - 输出到专门目录
@@ -51,6 +51,17 @@
 
 ## Task7：i18n
 - 补全 i18n 支持遗漏部分
+
+---
+
+## Task10：前端重构后 Import 错误修复 ✅
+- 将组件从 `.abandon` 文件夹移回 `Common` 文件夹
+  - Footer.tsx
+  - ErrorComponent.tsx
+  - Appearance.tsx
+  - DataTable.tsx
+- 修复所有 import 路径引用
+- 状态：已完成
 
 ---
 
