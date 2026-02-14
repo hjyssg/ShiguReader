@@ -79,6 +79,9 @@ class FileSystemItem(BaseModel):
     recommendation_score: float | None = None
     scan_state: int = 0  # Reserved for DB integration
     watch_state: int = 0  # Reserved for DB integration
+    image_count: int | None = None  # 压缩包内图片数量
+    video_count: int | None = None  # 压缩包内视频数量
+    audio_count: int | None = None  # 压缩包内音频数量
 
 
 class ListResponse(BaseModel):
@@ -130,7 +133,7 @@ class PathOperationResponse(BaseModel):
     dest_path: str | None = None
 
 
-SortBy = Literal["name", "mtime", "type", "recommendation"]
+SortBy = Literal["name", "mtime", "type", "recommendation", "image_count"]
 SortOrder = Literal["asc", "desc"]
 
 
@@ -191,6 +194,9 @@ def _sort_items(items: list[FileSystemItem], sort_by: SortBy, sort_order: SortOr
     def key_recommendation(x: FileSystemItem):
         return x.recommendation_score or 0.0
 
+    def key_image_count(x: FileSystemItem):
+        return x.image_count or 0
+
     folders = [x for x in items if x.item_type == "folder"]
     files = [x for x in items if x.item_type == "file"]
 
@@ -202,6 +208,8 @@ def _sort_items(items: list[FileSystemItem], sort_by: SortBy, sort_order: SortOr
         files.sort(key=key_mtime, reverse=reverse)
     elif sort_by == "recommendation":
         files.sort(key=key_recommendation, reverse=reverse)
+    elif sort_by == "image_count":
+        files.sort(key=key_image_count, reverse=reverse)
     else:
         files.sort(key=key_name, reverse=reverse)
 
