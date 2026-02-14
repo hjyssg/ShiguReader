@@ -13,6 +13,9 @@ import useCustomToast from "@/hooks/useCustomToast"
 
 export const Route = createFileRoute("/_layout/settings")({
   component: SettingsPage,
+  head: () => ({
+    meta: [{ title: "Settings" }],
+  }),
 })
 
 interface SettingsResponse {

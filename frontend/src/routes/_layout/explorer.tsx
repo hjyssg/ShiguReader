@@ -8,13 +8,14 @@ import { toast } from "sonner"
 import { FilesystemService } from "@/client"
 import { FileViewContainer } from "@/components/Files/FileViewContainer"
 import { Button } from "@/components/ui/button"
-import { buildPathBreadcrumbs } from "@/lib/path-utils"
+import { buildPathBreadcrumbs, getBaseName } from "@/lib/path-utils"
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { useDocumentTitle } from "@/hooks/useDocumentTitle"
 
 export const Route = createFileRoute("/_layout/explorer")({
   component: Explorer,
@@ -36,6 +37,8 @@ function Explorer() {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const { path } = Route.useSearch()
+  const folderName = path ? getBaseName(path, t("nav.explorer")) : t("nav.explorer")
+  useDocumentTitle(folderName)
 
   // Redirect to home if path is empty
   useEffect(() => {
