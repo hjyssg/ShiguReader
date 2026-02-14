@@ -65,6 +65,13 @@ class Settings(BaseSettings):
     THUMB_HEIGHT: int = 350
     THUMB_JPEG_QUALITY: int = 70
 
+    # Image Compression settings
+    IMAGE_COMPRESS_MAX_WIDTH: int = 2000  # 最大宽度（像素）
+    IMAGE_COMPRESS_MAX_HEIGHT: int = 2000  # 最大高度（像素）
+    IMAGE_COMPRESS_MIN_SIZE: int = 1048576  # 最小文件大小（1MB，小于此值不压缩）
+    IMAGE_COMPRESS_QUALITY: int = 85  # JPEG 压缩质量（1-100）
+    IMAGE_COMPRESS_FORMAT: str = "JPEG"  # 输出格式
+
     @computed_field  # type: ignore[prop-decorator]
     @property
     def SQLALCHEMY_DATABASE_URI(self) -> str:
