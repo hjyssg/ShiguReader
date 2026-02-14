@@ -323,3 +323,142 @@ def test_scan_favorite_not_configured(client_with_root: TestClient, monkeypatch:
     monkeypatch.setattr(settings, "FAVORITE_DIR", "")
     response = client_with_root.post("/api/v1/fs/scan-favorite")
     assert response.status_code == 400
+
+
+def test_list_directory_filter_by_video(client_with_root: TestClient, test_fs_root: Path) -> None:
+    """测试按是否包含视频筛选压缩包。"""
+    # 创建测试压缩包
+    import zipfile
+    
+    # 包含视频的压缩包
+    archive_with_video = test_fs_root / "with_video.zip"
+    with zipfile.ZipFile(archive_with_video, "w") as zf:
+        zf.writestr("image1.jpg", b"fake jpg")
+        zf.writestr("video1.mp4", b"fake mp4")
+    
+    # 不包含视频的压缩包
+    archive_without_video = test_fs_root / "without_video.zip"
+    with zipfile.ZipFile(archive_without_video, "w") as zf:
+        zf.writestr("image1.jpg", b"fake jpg")
+        zf.writestr("image2.png", b"fake png")
+    
+    # 筛选包含视频的压缩包
+    response = client_with_root.get(
+        f"/api/v1/fs/list?path={test_fs_root}&has_video=true"
+    )
+    assert response.status_code == 200
+    items = response.json()["items"]
+    archive_items = [x for x in items if x["file_type"] == "archive"]
+    
+    # 应该只返回包含视频的压缩包
+    assert len(archive_items) == 1
+    assert archive_items[0]["name"] == "with_video.zip"
+    
+    # 筛选不包含视频的压缩包
+    response = client_with_root.get(
+        f"/api/v1/fs/list?path={test_fs_root}&has_video=false"
+    )
+    assert response.status_code == 200
+    items = response.json()["items"]
+    archive_items = [x for x in items if x["file_type"] == "archive"]
+    
+    # 应该返回不包含视频的压缩包和其他文件
+    archive_names = [x["name"] for x in archive_items]
+    assert "without_video.zip" in archive_names
+    assert "with_video.zip" not in archive_names
+
+
+def test_list_directory_filter_by_audio(client_with_root: TestClient, test_fs_root: Path) -> None:
+    """测试按是否包含音频筛选压缩包。"""
+    import zipfile
+    
+    # 包含音频的压缩包
+    archive_with_audio = test_fs_root / "with_audio.zip"
+    with zipfile.ZipFile(archive_with_audio, "w") as zf:
+        zf.writestr("image1.jpg", b"fake jpg")
+        zf.writestr("music.mp3", b"fake mp3")
+    
+    # 不包含音频的压缩包
+    archive_without_audio = test_fs_root / "without_audio.zip"
+    with zipfile.ZipFile(archive_without_audio, "w") as zf:
+        zf.writestr("image1.jpg", b"fake jpg")
+    
+    # 筛选包含音频的压缩包
+    response = client_with_root.get(
+        f"/api/v1/fs/list?path={test_fs_root}&has_audio=true"
+    )
+    assert response.status_code == 200
+    items = response.json()["items"]
+    archive_items = [x for x in items if x["file_type"] == "archive"]
+    
+    assert len(archive_items) == 1
+    assert archive_items[0]["name"] == "with_audio.zip"
+
+
+def test_list_directory_sort_by_image_count(client_with_root: TestClient, test_fs_root: Path) -> None:
+    """测试按图片数量排序压缩包。"""
+    import zipfile
+    
+    # 创建包含不同数量图片的压缩包
+    archive_5_images = test_fs_root / "archive_5.zip"
+    with zipfile.ZipFile(archive_5_images, "w") as zf:
+        for i in range(5):
+            zf.writestr(f"image{i}.jpg", b"fake jpg")
+    
+    archive_10_images = test_fs_root / "archive_10.zip"
+    with zipfile.ZipFile(archive_10_images, "w") as zf:
+        for i in range(10):
+            zf.writestr(f"image{i}.jpg", b"fake jpg")
+    
+    archive_2_images = test_fs_root / "archive_2.zip"
+    with zipfile.ZipFile(archive_2_images, "w") as zf:
+        for i in range(2):
+            zf.writestr(f"image{i}.jpg", b"fake jpg")
+    
+    # 按图片数量升序排序
+    response = client_with_root.get(
+        f"/api/v1/fs/list?path={test_fs_root}&sort_by=image_count&sort_order=asc"
+    )
+    assert response.status_code == 200
+    items = response.json()["items"]
+    archive_items = [x for x in items if x["file_type"] == "archive"]
+    
+    # 验证排序顺序
+    assert len(archive_items) >= 3
+    image_counts = [x.get("image_count", 0) for x in archive_items]
+    assert image_counts == sorted(image_counts)
+    
+    # 按图片数量降序排序
+    response = client_with_root.get(
+        f"/api/v1/fs/list?path={test_fs_root}&sort_by=image_count&sort_order=desc"
+    )
+    assert response.status_code == 200
+    items = response.json()["items"]
+    archive_items = [x for x in items if x["file_type"] == "archive"]
+    
+    image_counts = [x.get("image_count", 0) for x in archive_items]
+    assert image_counts == sorted(image_counts, reverse=True)
+
+
+def test_list_directory_includes_archive_metadata(client_with_root: TestClient, test_fs_root: Path) -> None:
+    """测试返回的文件列表包含压缩包元数据。"""
+    import zipfile
+    
+    archive = test_fs_root / "test_archive.zip"
+    with zipfile.ZipFile(archive, "w") as zf:
+        zf.writestr("image1.jpg", b"fake jpg")
+        zf.writestr("image2.jpg", b"fake jpg")
+        zf.writestr("video.mp4", b"fake mp4")
+        zf.writestr("music.mp3", b"fake mp3")
+    
+    response = client_with_root.get(f"/api/v1/fs/list?path={test_fs_root}")
+    assert response.status_code == 200
+    items = response.json()["items"]
+    
+    archive_item = next((x for x in items if x["name"] == "test_archive.zip"), None)
+    assert archive_item is not None
+    
+    # 验证包含元数据字段
+    assert "image_count" in archive_item
+    assert "video_count" in archive_item
+    assert "audio_count" in archive_item
