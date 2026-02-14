@@ -122,7 +122,7 @@ export function FileViewContainer({
 
   // Selection
   const selection = useFileSelection()
-  const { openItem, openItemInNewTab, isOpenable } = useFileNavigation()
+  const { openItemInNewTab, isOpenable } = useFileNavigation()
   const operations = useFileOperations(currentPath)
 
   // Dialog state
@@ -188,32 +188,23 @@ export function FileViewContainer({
 
   const handleOpenFirst = useCallback(() => {
     const item = getFirstSelectedItem()
-    if (item) openItem(item)
-  }, [getFirstSelectedItem, openItem])
+    if (item) openItemInNewTab(item)
+  }, [getFirstSelectedItem, openItemInNewTab])
 
   // 点击事件处理
   const handleItemClick = useCallback(
     (item: FileSystemItem, e: React.MouseEvent) => {
-      // Ctrl+Click 新标签页打开
-      if ((e.ctrlKey || e.metaKey) && e.detail === 1) {
-        // 如果不是在选择模式下，Ctrl+Click 切换选择
-        selection.handleClick(item.path, e, sortedItems)
-        return
-      }
+      // Ctrl/Cmd + 点击改回多选切换；Shift 保持范围选择
       selection.handleClick(item.path, e, sortedItems)
     },
     [selection, sortedItems],
   )
 
   const handleItemDoubleClick = useCallback(
-    (item: FileSystemItem, e: React.MouseEvent) => {
-      if (e.ctrlKey || e.metaKey) {
-        openItemInNewTab(item)
-      } else {
-        openItem(item)
-      }
+    (item: FileSystemItem, _e: React.MouseEvent) => {
+      openItemInNewTab(item)
     },
-    [openItem, openItemInNewTab],
+    [openItemInNewTab],
   )
 
   const handleItemContextMenu = useCallback(
@@ -227,13 +218,38 @@ export function FileViewContainer({
   // 空白区域点击清除选择
   const handleContainerClick = useCallback(
     (e: React.MouseEvent) => {
-      // 只在直接点击容器时清除（不是子元素冒泡）
-      if (e.target === e.currentTarget) {
-        selection.clearSelection()
+      const target = e.target as HTMLElement
+      // 点击文件项内部不清除（由 item 自己的 onClick 处理）
+      if (target.closest(".file-item-wrapper") || target.closest("tr.cursor-pointer")) {
+        return
       }
+      selection.clearSelection()
     },
     [selection],
   )
+
+  // 点击 file-list-container 外部也清除选择
+  useEffect(() => {
+    const handleDocumentPointerDown = (event: PointerEvent) => {
+      if (anyDialogOpen) return
+      // 仅左键
+      if (event.button !== 0) return
+
+      const container = containerRef.current
+      const target = event.target as HTMLElement | null
+      if (!container || !target) return
+
+      // 点击容器内部，不处理
+      if (container.contains(target)) return
+
+      selection.clearSelection()
+    }
+
+    document.addEventListener("pointerdown", handleDocumentPointerDown, true)
+    return () => {
+      document.removeEventListener("pointerdown", handleDocumentPointerDown, true)
+    }
+  }, [anyDialogOpen, selection.clearSelection])
 
   // 键盘快捷键
   useFileExplorerKeyboard({
@@ -251,7 +267,6 @@ export function FileViewContainer({
   // 构建右键菜单 actions
   const buildContextMenuActions = useCallback(
     (item: FileSystemItem) => ({
-      onOpen: () => openItem(item),
       onOpenInNewTab: () => openItemInNewTab(item),
       onRename: () => {
         selection.select(item.path)
@@ -287,7 +302,7 @@ export function FileViewContainer({
       },
       onSelectAll: () => selection.selectAll(sortedItems),
     }),
-    [openItem, openItemInNewTab, selection, sortedItems, handleMoveToFavorite],
+    [openItemInNewTab, selection, sortedItems, handleMoveToFavorite],
   )
 
   const handleSortFieldChange = (field: SortField) => {
@@ -357,7 +372,7 @@ export function FileViewContainer({
   }, [contextItem, compressAction, operations.zipFolderMutation, operations.compressArchiveImagesMutation])
 
   return (
-    <div className="file-list-container space-y-4" ref={containerRef} onClick={handleContainerClick}>
+    <div className="file-list-container space-y-4 select-none" ref={containerRef} onClick={handleContainerClick}>
       {/* Toolbar */}
       <Toolbar className="file-list-toolbar">
         <ToolbarGroup className="sort-controls">

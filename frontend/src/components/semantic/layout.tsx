@@ -12,7 +12,7 @@ export function PageContainer({ children, className }: { children: React.ReactNo
 
 export function ContentWrapper({ children, className }: { children: React.ReactNode; className?: string }) {
   return (
-    <div className={cn("content-wrapper mx-auto max-w-screen-2xl", className)}>
+    <div className={cn("content-wrapper mx-auto w-full max-w-[1800px]", className)}>
       {children}
     </div>
   )
@@ -52,7 +52,7 @@ export function CenterBox({ children, className }: { children: React.ReactNode; 
 
 export function ResponsiveGrid({ children, className }: { children: React.ReactNode; className?: string }) {
   return (
-    <div className={cn("responsive-grid grid gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6", className)}>
+    <div className={cn("responsive-grid grid gap-6 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6", className)}>
       {children}
     </div>
   )

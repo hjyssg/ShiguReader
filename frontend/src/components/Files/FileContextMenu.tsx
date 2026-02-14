@@ -8,7 +8,6 @@ import {
   Star,
   Trash2,
   CheckSquare,
-  FolderOpen,
 } from "lucide-react"
 
 import type { FileSystemItem } from "@/client"
@@ -22,7 +21,6 @@ import {
 } from "@/components/ui/context-menu"
 
 export interface FileContextMenuActions {
-  onOpen: () => void
   onOpenInNewTab: () => void
   onRename: () => void
   onMove: () => void
@@ -64,18 +62,13 @@ export function FileContextMenu({
         {children}
       </ContextMenuTrigger>
       <ContextMenuContent className="w-64">
-        {/* Open */}
+        {/* Open in New Tab */}
         {isOpenable && isSingleSelection && (
           <>
-            <ContextMenuItem onClick={actions.onOpen}>
-              <FolderOpen className="mr-2 size-4" />
-              Open
-              <ContextMenuShortcut>Enter</ContextMenuShortcut>
-            </ContextMenuItem>
             <ContextMenuItem onClick={actions.onOpenInNewTab}>
               <ExternalLink className="mr-2 size-4" />
               Open in New Tab
-              <ContextMenuShortcut>Ctrl+Click</ContextMenuShortcut>
+              <ContextMenuShortcut>DoubleClick</ContextMenuShortcut>
             </ContextMenuItem>
             <ContextMenuSeparator />
           </>
