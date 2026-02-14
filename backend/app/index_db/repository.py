@@ -355,6 +355,17 @@ class IndexRepository:
             file.thumbnail_filepath = thumbnail_filepath
             self.session.commit()
 
+    def find_thumbnail_by_fingerprint(self, fingerprint: str) -> str | None:
+        """通过 fingerprint 查找已有的缩略图路径。"""
+        stmt = (
+            select(File.thumbnail_filepath)
+            .where(File.fingerprint == fingerprint)
+            .where(File.thumbnail_filepath.isnot(None))
+            .limit(1)
+        )
+        result = self.session.exec(stmt).first()
+        return result
+
     # ------------------------------------------------------------------
     # Parsed metadata helpers
     # ------------------------------------------------------------------

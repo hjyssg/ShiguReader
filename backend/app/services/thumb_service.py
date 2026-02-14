@@ -68,6 +68,27 @@ class ThumbService:
             logger.info(f"Thumbnail cache hit: {filepath}")
             return cache_path
 
+        # 尝试通过 fingerprint 查找已有的缩略图
+        stat = filepath.stat()
+        fingerprint = f"{filepath.name}-{stat.st_size}-{int(stat.st_mtime)}"
+        try:
+            with get_index_session() as session:
+                repo = IndexRepository(session)
+                existing_thumb = repo.find_thumbnail_by_fingerprint(fingerprint)
+                if existing_thumb:
+                    existing_thumb_path = Path(existing_thumb)
+                    if existing_thumb_path.exists():
+                        logger.info(f"Thumbnail found by fingerprint: {filepath} -> {existing_thumb_path}")
+                        # 复制缩略图到当前文件的缓存路径
+                        import shutil
+                        cache_path.parent.mkdir(parents=True, exist_ok=True)
+                        shutil.copy2(existing_thumb_path, cache_path)
+                        # 更新数据库中的缩略图路径
+                        repo.update_file_thumbnail(str(filepath), str(cache_path))
+                        return cache_path
+        except Exception as e:
+            logger.warning(f"Failed to find thumbnail by fingerprint: {filepath}, error: {e}")
+
         key = str(filepath.resolve())
         
         if key in self._inflight:
