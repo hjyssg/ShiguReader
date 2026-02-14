@@ -971,6 +971,95 @@ _active_extractions: dict[str, bool] = {}
 _extraction_lock = threading.Lock()
 
 
+# ---------------------------------------------------------------------------
+# extract_cache 清理
+# ---------------------------------------------------------------------------
+
+def _get_extract_cache_root() -> Path:
+    """返回 extract_cache 根目录。"""
+    return Path(settings.THUMB_CACHE_DIR).parent / "extract_cache"
+
+
+def _format_bytes(size: int) -> str:
+    """将字节数格式化为人类可读的字符串。"""
+    for unit in ("B", "KB", "MB", "GB"):
+        if size < 1024:
+            return f"{size:.1f} {unit}"
+        size /= 1024
+    return f"{size:.1f} TB"
+
+
+def clear_extract_cache() -> dict:
+    """清理所有解压缓存，返回清理统计信息。
+
+    启动时可直接调用（无活跃解压任务）。
+    手动触发时会跳过正在解压的缓存目录。
+    """
+    cache_root = _get_extract_cache_root()
+    if not cache_root.exists():
+        return {"deleted_files": 0, "freed_bytes": 0}
+
+    # 收集正在解压的 cache_dir，避免误删
+    with _extraction_lock:
+        active_keys = set(_active_extractions.keys())
+
+    deleted_files = 0
+    freed_bytes = 0
+
+    for shard_dir in list(cache_root.iterdir()):
+        if not shard_dir.is_dir():
+            continue
+        for entry_dir in list(shard_dir.iterdir()):
+            if not entry_dir.is_dir():
+                continue
+            if str(entry_dir) in active_keys:
+                logger.info("跳过正在解压的缓存: %s", entry_dir)
+                continue
+            # 统计大小
+            for f in entry_dir.rglob("*"):
+                if f.is_file():
+                    try:
+                        freed_bytes += f.stat().st_size
+                        deleted_files += 1
+                    except OSError:
+                        pass
+            shutil.rmtree(entry_dir, ignore_errors=True)
+        # 清理空的 shard 目录
+        try:
+            if shard_dir.exists() and not any(shard_dir.iterdir()):
+                shard_dir.rmdir()
+        except OSError:
+            pass
+
+    logger.info("extract_cache 清理完成: 删除 %d 个文件, 释放 %s", deleted_files, _format_bytes(freed_bytes))
+    return {"deleted_files": deleted_files, "freed_bytes": freed_bytes}
+
+
+class ClearCacheResponse(BaseModel):
+    status: Literal["ok"]
+    message: str
+    deleted_files: int
+    freed_bytes: int
+    freed_size_readable: str
+
+
+@router.delete("/extract-cache", response_model=ClearCacheResponse)
+async def clear_extract_cache_endpoint() -> ClearCacheResponse:
+    """清理所有解压缓存（跳过正在解压的目录）。"""
+    try:
+        result = await asyncio.to_thread(clear_extract_cache)
+        return ClearCacheResponse(
+            status="ok",
+            message="Extract cache cleared successfully",
+            deleted_files=result["deleted_files"],
+            freed_bytes=result["freed_bytes"],
+            freed_size_readable=_format_bytes(result["freed_bytes"]),
+        )
+    except Exception as e:
+        logger.error(f"Failed to clear extract cache: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to clear cache: {e}")
+
+
 @router.post("/archive/extract", response_model=ExtractStatus)
 async def extract_archive(
     background_tasks: BackgroundTasks,

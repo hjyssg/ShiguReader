@@ -89,6 +89,12 @@
     "saveFailed": "保存失败",
     "invalidPath": "路径无效或不存在",
     "chinese": "中文",
-    "english": "English"
+    "english": "English",
+    "cacheManagement": "缓存管理",
+    "cacheManagementDesc": "清理解压缓存以释放磁盘空间",
+    "clearExtractCache": "清理解压缓存",
+    "clearing": "清理中...",
+    "cacheCleared": "缓存已清理",
+    "cacheClearedDetail": "已删除 {count} 个文件，释放 {size}"
   }
 }

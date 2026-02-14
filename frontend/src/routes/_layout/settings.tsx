@@ -23,6 +23,14 @@ interface SettingsUpdate {
   favorite_dir: string
 }
 
+interface ClearCacheResponse {
+  status: string
+  message: string
+  deleted_files: number
+  freed_bytes: number
+  freed_size_readable: string
+}
+
 function SettingsPage() {
   const { t, i18n } = useTranslation()
   const { showSuccessToast, showErrorToast } = useCustomToast()
@@ -81,6 +89,34 @@ function SettingsPage() {
 
   const handleSaveFavoriteDir = () => {
     updateMutation.mutate({ favorite_dir: favoriteDir })
+  }
+
+  // Clear cache mutation
+  const clearCacheMutation = useMutation({
+    mutationFn: async () => {
+      const response = await fetch(`${OpenAPI.BASE}/api/v1/fs/extract-cache`, {
+        method: "DELETE",
+      })
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.detail || "Failed to clear cache")
+      }
+      return response.json() as Promise<ClearCacheResponse>
+    },
+    onSuccess: (data) => {
+      const message = t("settings.cacheClearedDetail", {
+        count: data.deleted_files,
+        size: data.freed_size_readable,
+      })
+      showSuccessToast(message)
+    },
+    onError: (error: Error) => {
+      showErrorToast(error.message || "Failed to clear cache")
+    },
+  })
+
+  const handleClearCache = () => {
+    clearCacheMutation.mutate()
   }
 
   if (isLoading) {
@@ -154,6 +190,23 @@ function SettingsPage() {
               {updateMutation.isPending ? t("common.loading") : t("settings.save")}
             </Button>
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Cache Management */}
+      <Card>
+        <CardHeader>
+          <CardTitle>{t("settings.cacheManagement")}</CardTitle>
+          <CardDescription>{t("settings.cacheManagementDesc")}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Button 
+            onClick={handleClearCache}
+            disabled={clearCacheMutation.isPending}
+            variant="destructive"
+          >
+            {clearCacheMutation.isPending ? t("settings.clearing") : t("settings.clearExtractCache")}
+          </Button>
         </CardContent>
       </Card>
     </div>

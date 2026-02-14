@@ -7,7 +7,7 @@ from pathlib import Path
 import sys
 
 from app.api.main import api_router
-from app.api.routes.fs import trigger_favorite_scan
+from app.api.routes.fs import clear_extract_cache, trigger_favorite_scan
 from app.core.config import settings
 from app.index_db import ensure_index_db_initialized
 
@@ -29,6 +29,7 @@ app = FastAPI(
 @app.on_event("startup")
 def startup_index_db() -> None:
     ensure_index_db_initialized()
+    clear_extract_cache()
     trigger_favorite_scan()
 
 # Set all CORS enabled origins

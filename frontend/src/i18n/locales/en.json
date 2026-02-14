@@ -89,6 +89,12 @@
     "saveFailed": "Failed to save",
     "invalidPath": "Path is invalid or does not exist",
     "chinese": "中文",
-    "english": "English"
+    "english": "English",
+    "cacheManagement": "Cache Management",
+    "cacheManagementDesc": "Clear extract cache to free up disk space",
+    "clearExtractCache": "Clear Extract Cache",
+    "clearing": "Clearing...",
+    "cacheCleared": "Cache cleared",
+    "cacheClearedDetail": "Deleted {count} files, freed {size}"
   }
 }

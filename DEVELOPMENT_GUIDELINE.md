@@ -61,3 +61,6 @@ alembic upgrade head
 4. 运行测试，确认通过
 5. 重构代码
 6. 重复以上步骤
+
+
+note： 代码注释用中文
