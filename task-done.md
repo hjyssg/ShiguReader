@@ -88,3 +88,13 @@
 - 修改 _layout.tsx，将 /video 路径加入 isReaderRoute 判断
 - video 页面现在与 reader 页面一样，不显示侧边栏、页眉和页脚
 - 状态：done
+
+
+## Task18：前端重构后 Import 错误修复 ✅
+- 将组件从 `.abandon` 文件夹移回 `Common` 文件夹
+  - Footer.tsx
+  - ErrorComponent.tsx
+  - Appearance.tsx
+  - DataTable.tsx
+- 修复所有 import 路径引用
+- 状态：已完成
