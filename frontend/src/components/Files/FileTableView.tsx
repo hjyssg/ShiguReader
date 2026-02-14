@@ -1,3 +1,4 @@
+// 文件系统项表格视图，支持排序和筛选
 import { Link } from "@tanstack/react-router"
 import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react"
 
@@ -13,7 +14,7 @@ import { formatDateTime, formatFileSize, formatFileType } from "./utils"
 export type SortField = "name" | "type" | "mtime" | "recommendation" | "image_count"
 export type SortOrder = "asc" | "desc"
 
-export function DetailsView({
+export function FileTableView({
   items,
   onSort,
   sortField,

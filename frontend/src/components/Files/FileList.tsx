@@ -13,7 +13,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton"
 import { Toolbar, ToolbarGroup, ResponsiveGrid } from "@/components/semantic/layout"
 
-import { DetailsView, type SortField, type SortOrder } from "./DetailsView"
+import { FileTableView, type SortField, type SortOrder } from "./FileTableView"
 import { FileItem } from "./FileItem"
 
 type ViewMode = "grid" | "details"
@@ -190,7 +190,7 @@ export function FileList({
           ))}
         </ResponsiveGrid>
       ) : (
-        <DetailsView
+        <FileTableView
           items={sortedItems}
           onSort={handleSortFieldChange}
           sortField={sortField}
