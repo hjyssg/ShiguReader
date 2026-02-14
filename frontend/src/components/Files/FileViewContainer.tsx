@@ -122,7 +122,7 @@ export function FileViewContainer({
 
   // Selection
   const selection = useFileSelection()
-  const { openItemInNewTab, isOpenable } = useFileNavigation()
+  const { openItem, openItemInNewTab, isOpenable } = useFileNavigation()
   const operations = useFileOperations(currentPath)
 
   // Dialog state
@@ -202,9 +202,14 @@ export function FileViewContainer({
 
   const handleItemDoubleClick = useCallback(
     (item: FileSystemItem, _e: React.MouseEvent) => {
-      openItemInNewTab(item)
+      // 文件夹双击：当前页面跳转；文件双击：新标签页打开
+      if (item.item_type === "folder") {
+        openItem(item)
+      } else {
+        openItemInNewTab(item)
+      }
     },
-    [openItemInNewTab],
+    [openItem, openItemInNewTab],
   )
 
   const handleItemContextMenu = useCallback(
@@ -267,6 +272,14 @@ export function FileViewContainer({
   // 构建右键菜单 actions
   const buildContextMenuActions = useCallback(
     (item: FileSystemItem) => ({
+      onOpen: () => {
+        // 文件夹：当前页面跳转；文件：新标签页打开
+        if (item.item_type === "folder") {
+          openItem(item)
+        } else {
+          openItemInNewTab(item)
+        }
+      },
       onOpenInNewTab: () => openItemInNewTab(item),
       onRename: () => {
         selection.select(item.path)
@@ -302,7 +315,7 @@ export function FileViewContainer({
       },
       onSelectAll: () => selection.selectAll(sortedItems),
     }),
-    [openItemInNewTab, selection, sortedItems, handleMoveToFavorite],
+    [openItem, openItemInNewTab, selection, sortedItems, handleMoveToFavorite],
   )
 
   const handleSortFieldChange = (field: SortField) => {
