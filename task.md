@@ -54,15 +54,19 @@
 - 保证所有页面可正常打开（可用 Playwright）
 
 
-
+# task9 
+archive没有设置tab title:
+你用参考一下reader。
+打开的一瞬间只解压10个文件，其他img都显示broken。刷新一下才有。你怎么解决
 
 ## task11：
-阅读 Explorer 右键菜单 & Windows 风格交互 — 架构设计方案.md
- Explorer 右键菜单 
- env多加一个已读文件夹，用户可以一键把文件移动到这个文件夹。
+env多加一个已读文件夹
+同时 Explorer 右键菜单 多加一个选项，用户可以把文件移动到这个文件夹。跳一个confirm modal。
+move to favorite也要confirm modal。
  
 
 ## task 10： 
-reader page参考   Explorer 右键菜单 & Windows 风格交互 — 架构设计方案.md
-也要各种文件操作
+修改reader page
+参考   Explorer
+也要各种文件操作。但ui你要设计一下。
 
