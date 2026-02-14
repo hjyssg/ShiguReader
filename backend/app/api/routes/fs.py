@@ -126,6 +126,16 @@ class ZipFolderRequest(BaseModel):
     output_path: str | None = None
 
 
+class RenameRequest(BaseModel):
+    path: str
+    new_name: str
+
+
+class UnzipRequest(BaseModel):
+    archive_path: str
+    output_dir: str | None = None
+
+
 class PathOperationResponse(BaseModel):
     status: Literal["ok"]
     message: str
@@ -815,6 +825,112 @@ async def zip_folder(request: ZipFolderRequest) -> PathOperationResponse:
         raise HTTPException(status_code=500, detail=f"Zip failed: {e}")
 
     return PathOperationResponse(status="ok", message="Folder zipped", path=str(folder), dest_path=str(output_path))
+
+
+@router.post("/rename", response_model=PathOperationResponse)
+async def rename_path(request: RenameRequest) -> PathOperationResponse:
+    """重命名文件或文件夹。"""
+    source = _validate_path(Path(request.path))
+    
+    if not source.exists():
+        raise HTTPException(status_code=404, detail="Path not found")
+    
+    # 构建目标路径（同目录下的新名称）
+    dest = source.parent / request.new_name
+    
+    if dest.exists():
+        raise HTTPException(status_code=409, detail="Destination already exists")
+    
+    try:
+        source.rename(dest)
+    except PermissionError as e:
+        raise HTTPException(status_code=403, detail=f"Permission denied: {e}")
+    except OSError as e:
+        raise HTTPException(status_code=500, detail=f"Rename failed: {e}")
+    
+    # 更新数据库
+    try:
+        with get_index_session() as session:
+            repo = IndexRepository(session)
+            if source.is_file():
+                repo.delete_file(str(source))
+            else:
+                repo.delete_paths_by_prefix(str(source))
+    except Exception as e:
+        logger.warning("DB cleanup failed after rename %s -> %s: %s", source, dest, e)
+    
+    # 重新扫描目标路径
+    if dest.is_dir():
+        _run_scan(dest, True)
+    else:
+        _run_scan(dest.parent, False)
+    
+    return PathOperationResponse(status="ok", message="Renamed successfully", path=str(source), dest_path=str(dest))
+
+
+@router.get("/download", response_model=None)
+async def download_file(path: str = Query(..., description="File path to download")):
+    """下载单个文件。"""
+    target_path = Path(path)
+    validated_path = _validate_path(target_path)
+    
+    if not validated_path.exists():
+        raise HTTPException(status_code=404, detail="File not found")
+    
+    if not validated_path.is_file():
+        raise HTTPException(status_code=400, detail="Path is not a file")
+    
+    return FileResponse(
+        validated_path,
+        media_type=get_mime_type(validated_path),
+        filename=validated_path.name,
+        headers={"Content-Disposition": f'attachment; filename="{validated_path.name}"'},
+    )
+
+
+@router.post("/unzip", response_model=PathOperationResponse)
+async def unzip_archive(request: UnzipRequest) -> PathOperationResponse:
+    """解压压缩包到指定目录，保持原始目录结构。"""
+    archive = _validate_path(Path(request.archive_path))
+    
+    if not archive.exists():
+        raise HTTPException(status_code=404, detail="Archive not found")
+    
+    if not archive.is_file():
+        raise HTTPException(status_code=400, detail="Path is not a file")
+    
+    file_type = detect_file_type(archive)
+    if file_type != "archive":
+        raise HTTPException(status_code=400, detail="File is not an archive")
+    
+    # 默认解压到同名文件夹
+    if request.output_dir:
+        output_dir = _validate_path(Path(request.output_dir))
+    else:
+        output_dir = archive.parent / archive.stem
+    
+    if output_dir.exists():
+        raise HTTPException(status_code=409, detail="Output directory already exists")
+    
+    try:
+        output_dir.mkdir(parents=True, exist_ok=False)
+        
+        with zipfile.ZipFile(archive, "r") as zf:
+            # 解压所有文件，保持原始目录结构
+            zf.extractall(output_dir)
+        
+        return PathOperationResponse(
+            status="ok",
+            message="Archive extracted successfully",
+            path=str(archive),
+            dest_path=str(output_dir),
+        )
+    except PermissionError as e:
+        raise HTTPException(status_code=403, detail=f"Permission denied: {e}")
+    except zipfile.BadZipFile as e:
+        raise HTTPException(status_code=400, detail=f"Invalid archive file: {e}")
+    except OSError as e:
+        raise HTTPException(status_code=500, detail=f"Extraction failed: {e}")
 
 
 @router.post("/scan-favorite", response_model=ScanStartResponse)

@@ -462,3 +462,92 @@ def test_list_directory_includes_archive_metadata(client_with_root: TestClient, 
     assert "image_count" in archive_item
     assert "video_count" in archive_item
     assert "audio_count" in archive_item
+
+
+def test_rename_file_success(client_with_root: TestClient, test_fs_root: Path) -> None:
+    """测试文件重命名成功。"""
+    src = test_fs_root / "test.txt"
+    new_name = "renamed.txt"
+    
+    response = client_with_root.post(
+        "/api/v1/fs/rename",
+        json={"path": str(src), "new_name": new_name},
+    )
+    assert response.status_code == 200
+    assert (test_fs_root / new_name).exists()
+    assert not src.exists()
+
+
+def test_rename_folder_success(client_with_root: TestClient, test_fs_root: Path) -> None:
+    """测试文件夹重命名成功。"""
+    src = test_fs_root / "folder1"
+    new_name = "renamed_folder"
+    
+    response = client_with_root.post(
+        "/api/v1/fs/rename",
+        json={"path": str(src), "new_name": new_name},
+    )
+    assert response.status_code == 200
+    assert (test_fs_root / new_name).exists()
+    assert not src.exists()
+
+
+def test_rename_conflict(client_with_root: TestClient, test_fs_root: Path) -> None:
+    """测试重命名时目标已存在。"""
+    src = test_fs_root / "test.txt"
+    
+    response = client_with_root.post(
+        "/api/v1/fs/rename",
+        json={"path": str(src), "new_name": "image.jpg"},  # 已存在
+    )
+    assert response.status_code == 409
+
+
+def test_download_file(client_with_root: TestClient, test_fs_root: Path) -> None:
+    """测试文件下载。"""
+    file_path = test_fs_root / "test.txt"
+    
+    response = client_with_root.get(f"/api/v1/fs/download?path={file_path}")
+    assert response.status_code == 200
+    assert response.content == b"test content"
+    assert "attachment" in response.headers.get("content-disposition", "").lower()
+
+
+def test_unzip_archive_success(client_with_root: TestClient, test_fs_root: Path) -> None:
+    """测试解压压缩包成功。"""
+    import zipfile
+    
+    archive = test_fs_root / "test.zip"
+    with zipfile.ZipFile(archive, "w") as zf:
+        zf.writestr("file1.txt", b"content1")
+        zf.writestr("subdir/file2.txt", b"content2")
+    
+    response = client_with_root.post(
+        "/api/v1/fs/unzip",
+        json={"archive_path": str(archive)},
+    )
+    assert response.status_code == 200
+    
+    # 默认解压到同名文件夹
+    output_dir = test_fs_root / "test"
+    assert output_dir.exists()
+    assert (output_dir / "file1.txt").exists()
+    assert (output_dir / "subdir" / "file2.txt").exists()
+
+
+def test_unzip_archive_preserve_structure(client_with_root: TestClient, test_fs_root: Path) -> None:
+    """测试解压保持原始目录结构。"""
+    import zipfile
+    
+    archive = test_fs_root / "nested.zip"
+    with zipfile.ZipFile(archive, "w") as zf:
+        zf.writestr("a/b/c/file.txt", b"nested content")
+    
+    response = client_with_root.post(
+        "/api/v1/fs/unzip",
+        json={"archive_path": str(archive)},
+    )
+    assert response.status_code == 200
+    
+    output_dir = test_fs_root / "nested"
+    assert (output_dir / "a" / "b" / "c" / "file.txt").exists()
