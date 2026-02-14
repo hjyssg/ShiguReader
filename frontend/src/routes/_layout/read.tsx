@@ -9,12 +9,14 @@ import {
   Scan,
 } from "lucide-react"
 import { useEffect, useMemo, useRef, useState } from "react"
+import { useTranslation } from "react-i18next"
 
 import { FilesystemService, OpenAPI } from "@/client"
 import { getBaseName, joinPath, splitPath, wrapPageIndex } from "@/lib/path-utils"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { ExtractingIndicator } from "@/components/semantic/layout"
+import { useDocumentTitle } from "@/hooks/useDocumentTitle"
 
 export const Route = createFileRoute("/_layout/read")({
   component: ReadPage,
@@ -40,6 +42,7 @@ function ReadPage() {
   const { path, page, source, filePath } = Route.useSearch()
   const navigate = useNavigate()
   const isFolderSource = source === "folder"
+  const { t } = useTranslation()
 
   const [scale, setScale] = useState(1)
   const [rotation, setRotation] = useState(0)
@@ -108,6 +111,9 @@ function ReadPage() {
   const totalPages = imageEntries.length
   const currentPage = wrapPageIndex(resolvedPage, totalPages)
   const currentEntry = imageEntries[currentPage]
+
+  const entryTitle = currentEntry?.name || getBaseName(path, t("reader.openReader"))
+  useDocumentTitle(entryTitle)
 
   const resetTransform = () => {
     setScale(1)
