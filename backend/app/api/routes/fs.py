@@ -585,6 +585,20 @@ async def get_favorite_root() -> RootItem | None:
     return RootItem(path=str(path), dirname=path.name or str(path))
 
 
+@router.get("/already-read", response_model=RootItem | None)
+async def get_already_read_root() -> RootItem | None:
+    """Get configured already-read directory as a root-like item."""
+    already_read_dir = (settings.ALREADY_READ_DIR or "").strip()
+    if not already_read_dir:
+        return None
+
+    path = _validate_path(Path(already_read_dir))
+    if not path.exists() or not path.is_dir():
+        return None
+
+    return RootItem(path=str(path), dirname=path.name or str(path))
+
+
 @router.get("/drives", response_model=list[RootItem])
 async def get_drives() -> list[RootItem]:
     """Get available drive letters (Windows only)."""

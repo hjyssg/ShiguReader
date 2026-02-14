@@ -59,6 +59,7 @@ class Settings(BaseSettings):
     # File System & Thumbnail settings
     FS_ROOTS: str = ""  # Comma-separated list of root directories
     FAVORITE_DIR: str = ""
+    ALREADY_READ_DIR: str = ""
     THUMB_CACHE_DIR: str = "../data/thumb_cache"
     THUMB_CONCURRENCY: int = 3
     THUMB_TIMEOUT_SEC: int = 10

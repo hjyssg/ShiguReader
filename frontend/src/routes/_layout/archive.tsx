@@ -1,20 +1,42 @@
 import { useMutation, useQuery } from "@tanstack/react-query"
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router"
 import {
+  BookCheck,
   ChevronRight,
   FileAudio,
   FileVideo,
   Folder,
+  FolderInput,
   Home,
+  ImageDown,
+  MoreVertical,
+  Pencil,
+  Star,
+  Trash2,
 } from "lucide-react"
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 
 import { FilesystemService, OpenAPI } from "@/client"
 import { useIsMobile } from "@/hooks/useMobile"
-import { getBaseName, joinPath, splitPath } from "@/lib/path-utils"
+import { getBaseName, getParentPath, joinPath, splitPath } from "@/lib/path-utils"
+import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { ExtractingIndicator } from "@/components/semantic/layout"
 import { cn } from "@/lib/utils"
+import { useDocumentTitle } from "@/hooks/useDocumentTitle"
+import { useFileOperations } from "@/hooks/useFileOperations"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { RenameDialog } from "@/components/Files/dialogs/RenameDialog"
+import { DeleteDialog } from "@/components/Files/dialogs/DeleteDialog"
+import { MoveDialog } from "@/components/Files/dialogs/MoveDialog"
+import { CompressDialog } from "@/components/Files/dialogs/CompressDialog"
+import { ConfirmMoveDialog } from "@/components/Files/dialogs/ConfirmMoveDialog"
 
 export const Route = createFileRoute("/_layout/archive")({
   component: Archive,
@@ -36,6 +58,16 @@ function Archive() {
   const { path } = Route.useSearch()
   const navigate = useNavigate()
   const isMobile = useIsMobile()
+
+  // File operations
+  const parentPath = getParentPath(path)
+  const operations = useFileOperations(parentPath)
+  const [renameOpen, setRenameOpen] = useState(false)
+  const [deleteOpen, setDeleteOpen] = useState(false)
+  const [moveOpen, setMoveOpen] = useState(false)
+  const [compressOpen, setCompressOpen] = useState(false)
+  const [confirmFavOpen, setConfirmFavOpen] = useState(false)
+  const [confirmReadOpen, setConfirmReadOpen] = useState(false)
 
   const { data: listData, isLoading: isListLoading } = useQuery({
     queryKey: ["archive-list", path],
@@ -67,6 +99,10 @@ function Archive() {
     }
   }, [isMobile, listData, path, navigate])
 
+  // Must call hooks before any early returns
+  const fileName = getBaseName(path, "Archive")
+  useDocumentTitle(fileName)
+
   if (isListLoading) {
     return (
       <div className="space-y-6">
@@ -84,7 +120,6 @@ function Archive() {
 
   // Parse breadcrumb
   const pathParts = splitPath(path)
-  const fileName = getBaseName(path, "Archive")
   const dirCrumbs = pathParts.slice(0, -1).map((name, index) => ({
     name,
     path: joinPath(pathParts.slice(0, index + 1), path),
@@ -92,31 +127,69 @@ function Archive() {
 
   return (
     <div className="space-y-6">
-      {/* Breadcrumb */}
-      <nav className="flex items-center gap-2 text-sm">
-        <Link
-          to="/"
-          className="flex items-center gap-1 text-muted-foreground hover:text-foreground transition-colors"
-        >
-          <Home className="size-4" />
-          <span>Home</span>
-        </Link>
-        {dirCrumbs.map((crumb) => (
-          <div key={crumb.path} className="flex items-center gap-2">
-            <ChevronRight className="size-4 text-muted-foreground" />
-            <Link
-              to="/explorer"
-              search={{ path: crumb.path }}
-              className="text-muted-foreground hover:text-foreground transition-colors"
-            >
-              <Folder className="size-4 inline mr-1" />
-              {crumb.name}
-            </Link>
-          </div>
-        ))}
-        <ChevronRight className="size-4 text-muted-foreground" />
-        <span className="font-medium">{fileName}</span>
-      </nav>
+      {/* Breadcrumb + File Operations */}
+      <div className="flex items-center justify-between gap-2">
+        <nav className="flex items-center gap-2 text-sm min-w-0">
+          <Link
+            to="/"
+            className="flex items-center gap-1 text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <Home className="size-4" />
+            <span>Home</span>
+          </Link>
+          {dirCrumbs.map((crumb) => (
+            <div key={crumb.path} className="flex items-center gap-2">
+              <ChevronRight className="size-4 text-muted-foreground" />
+              <Link
+                to="/explorer"
+                search={{ path: crumb.path }}
+                className="text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <Folder className="size-4 inline mr-1" />
+                {crumb.name}
+              </Link>
+            </div>
+          ))}
+          <ChevronRight className="size-4 text-muted-foreground" />
+          <span className="font-medium truncate">{fileName}</span>
+        </nav>
+
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" size="icon" className="shrink-0" title="File operations">
+              <MoreVertical className="size-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuItem onClick={() => setRenameOpen(true)}>
+              <Pencil className="mr-2 size-4" />
+              Rename
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setMoveOpen(true)}>
+              <FolderInput className="mr-2 size-4" />
+              Move to...
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setConfirmFavOpen(true)}>
+              <Star className="mr-2 size-4" />
+              Move to Favorites
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setConfirmReadOpen(true)}>
+              <BookCheck className="mr-2 size-4" />
+              Move to Already Read
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => setCompressOpen(true)}>
+              <ImageDown className="mr-2 size-4" />
+              Minify ZIP Images
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem variant="destructive" onClick={() => setDeleteOpen(true)}>
+              <Trash2 className="mr-2 size-4" />
+              Delete
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
 
       {/* Content - Explorer Mode */}
       <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
@@ -132,6 +205,81 @@ function Archive() {
 
       {/* Extraction status */}
       <ExtractingIndicator status={extractMutation.data?.status} variant="fixed" />
+
+      {/* File operation dialogs */}
+      <RenameDialog
+        open={renameOpen}
+        onOpenChange={setRenameOpen}
+        filePath={path}
+        onConfirm={(newName) => {
+          operations.renameMutation.mutate({ path, newName }, {
+            onSuccess: () => { setRenameOpen(false); navigate({ to: "/" }) },
+          })
+        }}
+        isPending={operations.renameMutation.isPending}
+      />
+      <DeleteDialog
+        open={deleteOpen}
+        onOpenChange={setDeleteOpen}
+        filePaths={[path]}
+        onConfirm={() => {
+          operations.deleteMutation.mutate(path, {
+            onSuccess: () => { setDeleteOpen(false); navigate({ to: "/" }) },
+          })
+        }}
+        isPending={operations.deleteMutation.isPending}
+      />
+      <MoveDialog
+        open={moveOpen}
+        onOpenChange={setMoveOpen}
+        filePaths={[path]}
+        onConfirm={(destDir) => {
+          const name = getBaseName(path)
+          const destPath = `${destDir}/${name}`
+          operations.moveFileMutation.mutate({ sourcePath: path, destPath }, {
+            onSuccess: () => { setMoveOpen(false); navigate({ to: "/" }) },
+          })
+        }}
+        isPending={operations.moveFileMutation.isPending}
+      />
+      <CompressDialog
+        open={compressOpen}
+        onOpenChange={setCompressOpen}
+        filePath={path}
+        action="minify-zip-images"
+        onConfirm={() => {
+          operations.compressArchiveImagesMutation.mutate(path, {
+            onSuccess: () => setCompressOpen(false),
+          })
+        }}
+        isPending={operations.compressArchiveImagesMutation.isPending}
+      />
+      <ConfirmMoveDialog
+        open={confirmFavOpen}
+        onOpenChange={setConfirmFavOpen}
+        filePaths={[path]}
+        destination="Favorites"
+        onConfirm={() => {
+          operations.moveToFavoriteMutation.mutate(
+            { sourcePath: path, isFolder: false },
+            { onSuccess: () => { setConfirmFavOpen(false); navigate({ to: "/" }) } },
+          )
+        }}
+        isPending={operations.moveToFavoriteMutation.isPending}
+      />
+      <ConfirmMoveDialog
+        open={confirmReadOpen}
+        onOpenChange={setConfirmReadOpen}
+        filePaths={[path]}
+        destination="Already Read"
+        onConfirm={() => {
+          operations.moveToAlreadyReadMutation.mutate(
+            { sourcePath: path, isFolder: false },
+            { onSuccess: () => { setConfirmReadOpen(false); navigate({ to: "/" }) } },
+          )
+        }}
+        isPending={operations.moveToAlreadyReadMutation.isPending}
+      />
     </div>
   )
 }
@@ -167,6 +315,20 @@ function ArchiveEntryItem({
             alt={entry.name}
             className="size-full object-contain"
             loading="lazy"
+            onError={(e) => {
+              const img = e.currentTarget
+              const retryCount = Number(img.dataset.retry || 0)
+              const maxRetries = 5
+              if (retryCount < maxRetries) {
+                img.dataset.retry = String(retryCount + 1)
+                setTimeout(() => {
+                  img.src = `${fileUrl}${fileUrl.includes("?") ? "&" : "?"}_t=${Date.now()}`
+                }, 1000 * (retryCount + 1))
+              }
+            }}
+            onLoad={(e) => {
+              e.currentTarget.dataset.retry = "0"
+            }}
           />
         ) : isVideo ? (
           <FileVideo className="size-12 text-muted-foreground" />

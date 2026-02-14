@@ -33,6 +33,21 @@ async function apiMoveToFavorite(sourcePath: string, isFolder: boolean) {
   return FilesystemService.moveFile({ requestBody: { source_path: sourcePath, dest_path: destPath } })
 }
 
+/** 移动到已读目录 */
+async function apiMoveToAlreadyRead(sourcePath: string, isFolder: boolean) {
+  const resp = await api.get("/api/v1/fs/already-read")
+  const dir = resp.data?.path
+  if (!dir) throw new Error("Already-read directory not configured")
+
+  const fileName = sourcePath.split("/").pop() || sourcePath.split("\\").pop()
+  const destPath = `${dir}/${fileName}`
+
+  if (isFolder) {
+    return FilesystemService.moveFolder({ requestBody: { source_path: sourcePath, dest_path: destPath } })
+  }
+  return FilesystemService.moveFile({ requestBody: { source_path: sourcePath, dest_path: destPath } })
+}
+
 export function useFileOperations(currentPath: string) {
   const queryClient = useQueryClient()
 
@@ -115,6 +130,18 @@ export function useFileOperations(currentPath: string) {
     },
   })
 
+  const moveToAlreadyReadMutation = useMutation({
+    mutationFn: ({ sourcePath, isFolder }: { sourcePath: string; isFolder: boolean }) =>
+      apiMoveToAlreadyRead(sourcePath, isFolder),
+    onSuccess: () => {
+      toast.success("Moved to already-read")
+      invalidate()
+    },
+    onError: (err: any) => {
+      toast.error(`Move to already-read failed: ${err?.response?.data?.detail || err.message}`)
+    },
+  })
+
   const zipFolderMutation = useMutation({
     mutationFn: (folderPath: string) =>
       FilesystemService.zipFolder({ requestBody: { folder_path: folderPath } }),
@@ -146,6 +173,7 @@ export function useFileOperations(currentPath: string) {
     moveFileMutation,
     moveFolderMutation,
     moveToFavoriteMutation,
+    moveToAlreadyReadMutation,
     zipFolderMutation,
     compressArchiveImagesMutation,
     /** 通用移动：根据 item_type 自动选择 moveFile 或 moveFolder */

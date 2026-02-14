@@ -1,5 +1,6 @@
 // 右键上下文菜单 — 根据文件类型动态显示菜单项
 import {
+  BookCheck,
   ExternalLink,
   FolderOpen,
   FolderInput,
@@ -27,6 +28,7 @@ export interface FileContextMenuActions {
   onRename: () => void
   onMove: () => void
   onMoveToFavorite: () => void
+  onMoveToAlreadyRead: () => void
   onDelete: () => void
   onZipFolder: () => void
   onMinifyZipImages: () => void
@@ -99,6 +101,12 @@ export function FileContextMenu({
         <ContextMenuItem onClick={actions.onMoveToFavorite}>
           <Star className="mr-2 size-4" />
           {isMultiSelection ? `Move ${selectedCount} to Favorites` : "Move to Favorites"}
+        </ContextMenuItem>
+
+        {/* Move to Already Read */}
+        <ContextMenuItem onClick={actions.onMoveToAlreadyRead}>
+          <BookCheck className="mr-2 size-4" />
+          {isMultiSelection ? `Move ${selectedCount} to Already Read` : "Move to Already Read"}
         </ContextMenuItem>
 
         {/* Delete */}

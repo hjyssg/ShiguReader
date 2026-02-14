@@ -27,6 +27,7 @@ import { RenameDialog } from "./dialogs/RenameDialog"
 import { DeleteDialog } from "./dialogs/DeleteDialog"
 import { MoveDialog } from "./dialogs/MoveDialog"
 import { CompressDialog, type CompressAction } from "./dialogs/CompressDialog"
+import { ConfirmMoveDialog } from "./dialogs/ConfirmMoveDialog"
 import { getBaseName } from "@/lib/path-utils"
 
 type ViewMode = "grid" | "details"
@@ -131,10 +132,12 @@ export function FileViewContainer({
   const [moveDialogOpen, setMoveDialogOpen] = useState(false)
   const [compressDialogOpen, setCompressDialogOpen] = useState(false)
   const [compressAction, setCompressAction] = useState<CompressAction>("zip-folder")
+  const [confirmFavoriteOpen, setConfirmFavoriteOpen] = useState(false)
+  const [confirmAlreadyReadOpen, setConfirmAlreadyReadOpen] = useState(false)
   // 右键菜单操作的目标项
   const [contextItem, setContextItem] = useState<FileSystemItem | null>(null)
 
-  const anyDialogOpen = renameDialogOpen || deleteDialogOpen || moveDialogOpen || compressDialogOpen
+  const anyDialogOpen = renameDialogOpen || deleteDialogOpen || moveDialogOpen || compressDialogOpen || confirmFavoriteOpen || confirmAlreadyReadOpen
 
   // 获取当前操作目标路径
   const getTargetPaths = useCallback((): string[] => {
@@ -173,6 +176,12 @@ export function FileViewContainer({
   }, [getTargetPaths])
 
   const handleMoveToFavorite = useCallback(() => {
+    if (getTargetPaths().length > 0) {
+      setConfirmFavoriteOpen(true)
+    }
+  }, [getTargetPaths])
+
+  const handleConfirmMoveToFavorite = useCallback(() => {
     const paths = getTargetPaths()
     for (const p of paths) {
       const item = sortedItems.find((i) => i.path === p)
@@ -183,8 +192,30 @@ export function FileViewContainer({
         })
       }
     }
+    setConfirmFavoriteOpen(false)
     selection.clearSelection()
   }, [getTargetPaths, sortedItems, operations.moveToFavoriteMutation, selection])
+
+  const handleMoveToAlreadyRead = useCallback(() => {
+    if (getTargetPaths().length > 0) {
+      setConfirmAlreadyReadOpen(true)
+    }
+  }, [getTargetPaths])
+
+  const handleConfirmMoveToAlreadyRead = useCallback(() => {
+    const paths = getTargetPaths()
+    for (const p of paths) {
+      const item = sortedItems.find((i) => i.path === p)
+      if (item) {
+        operations.moveToAlreadyReadMutation.mutate({
+          sourcePath: p,
+          isFolder: item.item_type === "folder",
+        })
+      }
+    }
+    setConfirmAlreadyReadOpen(false)
+    selection.clearSelection()
+  }, [getTargetPaths, sortedItems, operations.moveToAlreadyReadMutation, selection])
 
   const handleOpenFirst = useCallback(() => {
     const item = getFirstSelectedItem()
@@ -297,6 +328,12 @@ export function FileViewContainer({
         }
         handleMoveToFavorite()
       },
+      onMoveToAlreadyRead: () => {
+        if (!selection.isSelected(item.path)) {
+          selection.select(item.path)
+        }
+        handleMoveToAlreadyRead()
+      },
       onDelete: () => {
         if (!selection.isSelected(item.path)) {
           selection.select(item.path)
@@ -315,7 +352,7 @@ export function FileViewContainer({
       },
       onSelectAll: () => selection.selectAll(sortedItems),
     }),
-    [openItem, openItemInNewTab, selection, sortedItems, handleMoveToFavorite],
+    [openItem, openItemInNewTab, selection, sortedItems, handleMoveToFavorite, handleMoveToAlreadyRead],
   )
 
   const handleSortFieldChange = (field: SortField) => {
@@ -535,6 +572,22 @@ export function FileViewContainer({
         action={compressAction}
         onConfirm={handleCompressConfirm}
         isPending={operations.zipFolderMutation.isPending || operations.compressArchiveImagesMutation.isPending}
+      />
+      <ConfirmMoveDialog
+        open={confirmFavoriteOpen}
+        onOpenChange={setConfirmFavoriteOpen}
+        filePaths={getTargetPaths()}
+        destination="Favorites"
+        onConfirm={handleConfirmMoveToFavorite}
+        isPending={operations.moveToFavoriteMutation.isPending}
+      />
+      <ConfirmMoveDialog
+        open={confirmAlreadyReadOpen}
+        onOpenChange={setConfirmAlreadyReadOpen}
+        filePaths={getTargetPaths()}
+        destination="Already Read"
+        onConfirm={handleConfirmMoveToAlreadyRead}
+        isPending={operations.moveToAlreadyReadMutation.isPending}
       />
     </div>
   )
