@@ -64,3 +64,4 @@ alembic upgrade head
 
 
 note： 代码注释用中文
+多个功能的时候完成一个功能git commit一次
