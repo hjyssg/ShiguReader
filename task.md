@@ -77,3 +77,14 @@
 
 ---
 
+
+
+
+task11 
+
+重构任务：
+frontend\src\components\Common
+frontend\src\components\Files
+两个文件夹有雷同的component，同时命名混乱、需要重构
+detailsView的命名不好
+

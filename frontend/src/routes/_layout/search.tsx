@@ -4,7 +4,7 @@ import { Search } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
 
 import { SearchService } from "@/client"
-import { FileList } from "@/components/Files/FileList"
+import { FileViewContainer } from "@/components/Files/FileViewContainer"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
@@ -155,7 +155,7 @@ function SearchPage() {
       {submittedQ ? (
         <div className="space-y-2">
           <p className="text-sm text-muted-foreground">{totalText}</p>
-          <FileList
+          <FileViewContainer
             items={data?.items || []}
             isLoading={isLoading}
             storageKeyPrefix="search"

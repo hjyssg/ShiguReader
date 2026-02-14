@@ -1,4 +1,4 @@
-// 文件列表容器，支持网格和表格两种视图模式
+// 文件视图容器，支持网格/表格视图和排序
 import { LayoutGrid, List, ArrowDown, ArrowUp } from "lucide-react"
 import { type ReactNode, useEffect, useMemo, useState } from "react"
 
@@ -19,7 +19,7 @@ import { FileItem } from "./FileItem"
 
 type ViewMode = "grid" | "details"
 
-export function FileList({
+export function FileViewContainer({
   items,
   isLoading,
   initialViewMode = "grid",

@@ -6,7 +6,7 @@ import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
 
 import { FilesystemService } from "@/client"
-import { FileList } from "@/components/Files/FileList"
+import { FileViewContainer } from "@/components/Files/FileViewContainer"
 import { Button } from "@/components/ui/button"
 import { buildPathBreadcrumbs } from "@/lib/path-utils"
 import {
@@ -105,7 +105,7 @@ function Explorer() {
         ))}
       </nav>
 
-      <FileList
+      <FileViewContainer
         items={data?.items || []}
         isLoading={isLoading}
         storageKeyPrefix="explorer"
