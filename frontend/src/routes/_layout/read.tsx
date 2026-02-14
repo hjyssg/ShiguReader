@@ -282,6 +282,14 @@ function ReadPage() {
     }
   }
 
+  // Must declare these before early returns
+  const pathParts = splitPath(path)
+  const fileName = getBaseName(path, isFolderSource ? "Folder" : "Archive")
+  const dirCrumbs = pathParts.slice(0, -1).map((name, index) => ({
+    name,
+    path: joinPath(pathParts.slice(0, index + 1), path),
+  }))
+
   if (isLoading || isFolderLoading) {
     return (
       <div className="space-y-6">
@@ -292,15 +300,61 @@ function ReadPage() {
   }
 
   if (!currentEntry) {
-    return <div>未找到可阅读的图片</div>
-  }
+    // 无图片提示
+    return (
+      <div className="space-y-4 p-[10px]">
+        <nav className="flex items-center gap-2 text-sm">
+          <Link to="/" className="flex items-center gap-1 text-muted-foreground hover:text-foreground">
+            <Home className="size-4" />
+            <span>Home</span>
+          </Link>
+          {pathParts.slice(0, -1).map((name, index) => (
+            <div key={index} className="flex items-center gap-2">
+              <ChevronRight className="size-4 text-muted-foreground" />
+              <Link to="/explorer" search={{ path: joinPath(pathParts.slice(0, index + 1), path) }} className="text-muted-foreground hover:text-foreground">
+                <Folder className="size-4 inline mr-1" />{name}
+              </Link>
+            </div>
+          ))}
+          <ChevronRight className="size-4 text-muted-foreground" />
+          <Link
+            to={isFolderSource ? "/explorer" : "/archive"}
+            search={{ path }}
+            className="text-muted-foreground hover:text-foreground"
+          >
+            {fileName}
+          </Link>
+        </nav>
 
-  const pathParts = splitPath(path)
-  const fileName = getBaseName(path, isFolderSource ? "Folder" : "Archive")
-  const dirCrumbs = pathParts.slice(0, -1).map((name, index) => ({
-    name,
-    path: joinPath(pathParts.slice(0, index + 1), path),
-  }))
+        <div className="flex items-center justify-between gap-2">
+          <div className="text-sm text-muted-foreground truncate">{fileName}</div>
+          <div className="flex items-center gap-2">
+            {!isFolderSource && (
+              <>
+                <Button variant="default" size="sm" onClick={() => navigate({ to: "/archive", search: { path } })} className="animate-pulse">
+                  Explorer
+                </Button>
+                <Button variant="outline" size="sm" onClick={() => navigate({ to: "/read-waterfall", search: { path } })}>Waterfall</Button>
+              </>
+            )}
+          </div>
+        </div>
+
+        <div className="flex flex-col items-center justify-center py-24 text-center space-y-6">
+          <svg className="size-32 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            <line x1="4" y1="4" x2="20" y2="20" strokeWidth={1.5} strokeLinecap="round" />
+          </svg>
+          <div className="space-y-2">
+            <h3 className="text-lg font-medium">此压缩包没有图片</h3>
+            <p className="text-sm text-muted-foreground">
+              点击上方高亮的 Explorer 按钮查看压缩包内的其他文件
+            </p>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   const imageUrl = isFolderSource
     ? `${OpenAPI.BASE}/api/v1/fs/file?path=${encodeURIComponent(currentEntry.filePath || "")}`

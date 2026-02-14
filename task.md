@@ -71,3 +71,5 @@ move to favorite也要confirm modal。
 也要各种文件操作。但ui你要设计一下。
 
 
+## task 11：
+当打开实际没有的filepath的时候，explorer和read要显示file 不存在

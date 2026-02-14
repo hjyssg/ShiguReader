@@ -18,7 +18,11 @@ function buildNavigationTarget(item: FileSystemItem, isMobile: boolean) {
     return { to: "/explorer" as const, search: { path: item.path } }
   }
   if (isArchive) {
-    return { to: "/archive" as const, search: { path: item.path } }
+    const readRoute = isMobile ? "/read-mobile" : "/read"
+    return {
+      to: readRoute as "/read" | "/read-mobile",
+      search: { path: item.path, source: "archive" as const, page: 0, filePath: "" },
+    }
   }
   if (isVideo) {
     return { to: "/video" as const, search: { path: item.path, entry: undefined, media: "video" as const } }

@@ -85,20 +85,6 @@ function Archive() {
     }
   }, [listData])
 
-  // Check if pure image archive and redirect to reader
-  useEffect(() => {
-    if (listData) {
-      const hasOnlyImages = listData.entries.every((e) => e.file_type === "image")
-      if (hasOnlyImages && listData.entries.length > 0) {
-        navigate({
-          to: isMobile ? "/read-mobile" : "/read",
-          search: { path, page: 0, source: "archive", filePath: "" },
-          replace: true,
-        })
-      }
-    }
-  }, [isMobile, listData, path, navigate])
-
   // Must call hooks before any early returns
   const fileName = getBaseName(path, "Archive")
   useDocumentTitle(fileName)
