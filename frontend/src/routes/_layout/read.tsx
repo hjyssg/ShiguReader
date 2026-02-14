@@ -267,6 +267,26 @@ function ReadPage() {
     ? `${OpenAPI.BASE}/api/v1/fs/file?path=${encodeURIComponent(currentEntry.filePath || "")}`
     : `${OpenAPI.BASE}/api/v1/fs/archive/file?path=${encodeURIComponent(path)}&entry=${encodeURIComponent(currentEntry.entryPath || "")}`
 
+  // 图片加载失败时的重试处理
+  // 压缩包文件可能还在后台解压中，404 时自动重试（最多 5 次，递增延迟）
+  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    const img = e.currentTarget
+    const retryCount = Number(img.dataset.retry || 0)
+    const maxRetries = 5
+    if (retryCount < maxRetries) {
+      img.dataset.retry = String(retryCount + 1)
+      // 递增延迟：1s, 2s, 3s, 4s, 5s
+      setTimeout(() => {
+        img.src = `${imageUrl}${imageUrl.includes("?") ? "&" : "?"}_t=${Date.now()}`
+      }, 1000 * (retryCount + 1))
+    }
+  }
+
+  // 图片加载成功时重置重试计数
+  const handleImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    e.currentTarget.dataset.retry = "0"
+  }
+
   return (
     <div className="space-y-4 p-[10px]">
       <nav className="flex items-center gap-2 text-sm">
@@ -315,6 +335,8 @@ function ReadPage() {
           src={imageUrl}
           alt={currentEntry.name}
           onMouseDown={onMouseDown}
+          onError={handleImageError}
+          onLoad={handleImageLoad}
           draggable={false}
           className="max-w-full max-h-[80vh] object-contain select-none"
           style={{

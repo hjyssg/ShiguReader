@@ -950,32 +950,49 @@ async def list_archive(path: str = Query(..., description="Archive file path")) 
         raise HTTPException(status_code=500, detail=f"Failed to list archive: {e}")
 
 
+# ---------------------------------------------------------------------------
+# 解压任务状态追踪
+# 用于避免前端翻页时重复触发解压（幂等性保证）
+# ---------------------------------------------------------------------------
+_active_extractions: dict[str, bool] = {}
+_extraction_lock = threading.Lock()
+
+
 @router.post("/archive/extract", response_model=ExtractStatus)
 async def extract_archive(
     background_tasks: BackgroundTasks,
-    path: str = Query(..., description="Archive file path"),
-    page: int = Query(0, description="Current page number for prioritized extraction"),
+    path: str = Query(..., description="压缩包文件路径"),
+    page: int = Query(0, description="当前页码（基于过滤后的媒体文件列表）"),
 ) -> ExtractStatus:
-    """Extract archive with prioritized extraction of current page vicinity."""
+    """三阶段优先级解压压缩包。
+
+    阶段 1：当前页（立即可用）
+    阶段 2：前后 ±5 页（快速可用）
+    阶段 3：剩余文件（后台解压，图片优先）
+
+    此端点是幂等的 — 重复调用不会触发重复解压。
+    前端每次翻页都会调用此接口，后端通过 _active_extractions 锁避免重复工作。
+    """
     target_path = Path(path)
     validated_path = _validate_path(target_path)
-    
+
     if not validated_path.exists():
         raise HTTPException(status_code=404, detail="Archive not found")
-    
+
     file_type = detect_file_type(validated_path)
     if file_type != "archive":
         raise HTTPException(status_code=400, detail="File is not an archive")
-    
+
     cache_dir = _get_extract_cache_dir(validated_path)
-    
-    # Check if already extracted
+    cache_key = str(cache_dir)
+
+    # ---- 检查是否已经完全解压完成 ----
     if cache_dir.exists():
         try:
             entries = await asyncio.to_thread(list_archive_entries, validated_path)
             extracted_files = list(cache_dir.rglob("*"))
             extracted_count = len([f for f in extracted_files if f.is_file()])
-            
+
             if extracted_count >= len(entries):
                 return ExtractStatus(
                     status="completed",
@@ -984,33 +1001,80 @@ async def extract_archive(
                     cache_dir=str(cache_dir),
                 )
         except Exception as e:
-            logger.warning(f"Failed to check extraction status: {e}")
-    
-    # Start extraction in background
+            logger.warning(f"检查解压状态失败: {e}")
+
+    # ---- 检查是否正在解压中（避免重复触发） ----
+    with _extraction_lock:
+        if cache_key in _active_extractions:
+            # 已有解压任务在运行，直接返回当前进度
+            try:
+                extracted_files = list(cache_dir.rglob("*")) if cache_dir.exists() else []
+                extracted_count = len([f for f in extracted_files if f.is_file()])
+                return ExtractStatus(
+                    status="extracting",
+                    extracted_count=extracted_count,
+                    total_count=0,
+                    cache_dir=str(cache_dir),
+                )
+            except Exception:
+                return ExtractStatus(
+                    status="extracting",
+                    extracted_count=0,
+                    total_count=0,
+                    cache_dir=str(cache_dir),
+                )
+
+        # 标记为正在解压
+        _active_extractions[cache_key] = True
+
+    # ---- 在后台启动三阶段解压 ----
     async def extract_task():
         try:
-            entries = await asyncio.to_thread(list_archive_entries, validated_path)
-            
-            # Calculate prioritized entries (current page ± 10 pages)
-            start_idx = max(0, page - 10)
-            end_idx = min(len(entries), page + 11)
-            prioritized = entries[start_idx:end_idx]
-            
-            logger.info(f"Extracting archive {validated_path}, prioritizing entries {start_idx}-{end_idx}")
-            
+            # 获取压缩包内所有文件条目
+            all_entries = await asyncio.to_thread(list_archive_entries, validated_path)
+
+            # 过滤出媒体文件（与 list_archive 端点保持一致）
+            # 前端的 page 索引是基于这个过滤后的列表
+            media_entries = [
+                e for e in all_entries
+                if detect_file_type(e) in ("image", "video", "audio")
+            ]
+
+            # 阶段 1：当前页对应的媒体文件
+            current_page_entry = [media_entries[page]] if 0 <= page < len(media_entries) else []
+
+            # 阶段 2：前后 ±5 页的媒体文件（排除当前页）
+            start_idx = max(0, page - 5)
+            end_idx = min(len(media_entries), page + 6)
+            secondary = [e for e in media_entries[start_idx:end_idx] if e not in current_page_entry]
+
+            logger.info(
+                f"三阶段解压 {validated_path.name}: "
+                f"当前页={page}, 次优先={start_idx}-{end_idx}, "
+                f"媒体文件={len(media_entries)}, 总文件={len(all_entries)}"
+            )
+
+            # 调用 stepwise_extract 执行三阶段解压
+            # 注意：传入的是完整的 all_entries 对应的 entry 名称
+            # stepwise_extract 内部会自动处理剩余文件（第三阶段）
             await asyncio.to_thread(
                 stepwise_extract,
                 validated_path,
                 cache_dir,
-                prioritized_entries=prioritized,
+                current_page_entries=current_page_entry,
+                secondary_entries=secondary,
             )
-            
-            logger.info(f"Archive extraction completed: {validated_path}")
+
+            logger.info(f"解压完成: {validated_path.name}")
         except Exception as e:
-            logger.error(f"Archive extraction failed: {validated_path}, error: {e}")
-    
+            logger.error(f"解压失败: {validated_path.name}, 错误: {e}")
+        finally:
+            # 解压完成或失败后，移除活跃状态
+            with _extraction_lock:
+                _active_extractions.pop(cache_key, None)
+
     background_tasks.add_task(extract_task)
-    
+
     return ExtractStatus(
         status="extracting",
         extracted_count=0,
