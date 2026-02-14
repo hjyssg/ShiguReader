@@ -1,58 +1,14 @@
 import { Link } from "@tanstack/react-router"
-import { useEffect, useState } from "react"
 
 import { type FileSystemItem, OpenAPI } from "@/client"
 import { useIsMobile } from "@/hooks/useMobile"
 import { getParentPath } from "@/lib/path-utils"
-import { Skeleton } from "@/components/ui/skeleton"
-import { cn } from "@/lib/utils"
 import { ItemCard, CardThumbnail, CardInfo, FileName } from "@/components/semantic/layout"
+import { ThumbnailImage } from "@/components/Common/ThumbnailImage"
 
 import { FileIcon } from "./FileIcon"
 import { FileNameWithPreview } from "./FileNameWithPreview"
 import { formatFileSize } from "./utils"
-
-function ThumbnailImage({
-  src,
-  alt,
-  fileType,
-  isFolder,
-}: {
-  src: string
-  alt: string
-  fileType?: string | null
-  isFolder: boolean
-}) {
-  const [isLoaded, setIsLoaded] = useState(false)
-  const [hasError, setHasError] = useState(false)
-
-  useEffect(() => {
-    setIsLoaded(false)
-    setHasError(false)
-  }, [src])
-
-  if (hasError) {
-    return (
-      <CardThumbnail className="file-thumbnail-error">
-        <FileIcon fileType={fileType} isFolder={isFolder} />
-      </CardThumbnail>
-    )
-  }
-
-  return (
-    <CardThumbnail className="file-thumbnail">
-      {!isLoaded && <Skeleton className="absolute inset-0 size-full rounded-none" />}
-      <img
-        src={src}
-        alt={alt}
-        className={cn("size-full object-contain", !isLoaded && "opacity-0")}
-        loading="lazy"
-        onLoad={() => setIsLoaded(true)}
-        onError={() => setHasError(true)}
-      />
-    </CardThumbnail>
-  )
-}
 
 export function FileItem({ item }: { item: FileSystemItem }) {
   const isMobile = useIsMobile()
@@ -70,8 +26,7 @@ export function FileItem({ item }: { item: FileSystemItem }) {
           <ThumbnailImage
             src={`${OpenAPI.BASE}${item.thumbnail_url}`}
             alt={item.name}
-            fileType={item.file_type}
-            isFolder={isFolder}
+            fallback={<FileIcon fileType={item.file_type} isFolder={isFolder} />}
           />
         ) : (
           <FileIcon fileType={item.file_type} isFolder={isFolder} />

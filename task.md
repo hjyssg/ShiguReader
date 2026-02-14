@@ -31,7 +31,8 @@
 
 ## Task4：Explorer UI
 - 添加 file-change-toolbar-modal
-  要能进行move、rename、download、move to favorite 解压 打包等操作
+  要能进行move、rename、download、move to any folder、move to favorite 解压 打包等操作
+  操作前都要一个confirm
 ---
 
 ## Task5：Explorer 筛选与排序增强
