@@ -20,10 +20,14 @@ export const Route = createFileRoute("/_layout/settings")({
 
 interface SettingsResponse {
   favorite_dir: string
+  fs_roots: string
+  already_read_dir: string
 }
 
 interface SettingsUpdate {
-  favorite_dir: string
+  favorite_dir?: string
+  fs_roots?: string
+  already_read_dir?: string
 }
 
 interface ClearCacheResponse {
@@ -40,6 +44,8 @@ function SettingsPage() {
   const queryClient = useQueryClient()
   
   const [favoriteDir, setFavoriteDir] = useState("")
+  const [fsRoots, setFsRoots] = useState("")
+  const [alreadyReadDir, setAlreadyReadDir] = useState("")
 
   // Fetch current settings
   const { data: settings, isLoading } = useQuery<SettingsResponse>({
@@ -51,10 +57,12 @@ function SettingsPage() {
     },
   })
 
-  // Update favoriteDir when settings are loaded
+  // Update local state when settings are loaded
   useEffect(() => {
     if (settings) {
       setFavoriteDir(settings.favorite_dir || "")
+      setFsRoots(settings.fs_roots || "")
+      setAlreadyReadDir(settings.already_read_dir || "")
     }
   }, [settings])
 
@@ -77,6 +85,7 @@ function SettingsPage() {
     onSuccess: () => {
       showSuccessToast(t("settings.saved"))
       queryClient.invalidateQueries({ queryKey: ["settings"] })
+      queryClient.invalidateQueries({ queryKey: ["fs-roots"] })
       queryClient.invalidateQueries({ queryKey: ["fs-favorite"] })
     },
     onError: (error: Error) => {
@@ -88,6 +97,14 @@ function SettingsPage() {
     i18n.changeLanguage(value)
     localStorage.setItem("language", value)
     showSuccessToast(t("settings.saved"))
+  }
+
+  const handleSaveFsRoots = () => {
+    updateMutation.mutate({ fs_roots: fsRoots })
+  }
+
+  const handleSaveAlreadyReadDir = () => {
+    updateMutation.mutate({ already_read_dir: alreadyReadDir })
   }
 
   const handleSaveFavoriteDir = () => {
@@ -153,6 +170,84 @@ function SettingsPage() {
                 <SelectItem value="en">{t("settings.english")}</SelectItem>
               </SelectContent>
             </Select>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* FS Roots Settings */}
+      <Card>
+        <CardHeader>
+          <CardTitle>{t("settings.fsRoots")}</CardTitle>
+          <CardDescription>{t("settings.fsRootsDesc")}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {settings?.fs_roots && (
+              <div className="space-y-2">
+                <Label className="text-muted-foreground">{t("settings.currentPath")}</Label>
+                <div className="text-sm font-mono bg-muted p-2 rounded">
+                  {settings.fs_roots}
+                </div>
+              </div>
+            )}
+
+            <div className="space-y-2">
+              <Label htmlFor="fsRoots">{t("settings.fsRoots")}</Label>
+              <Input
+                id="fsRoots"
+                type="text"
+                placeholder={t("settings.fsRootsPlaceholder")}
+                value={fsRoots}
+                onChange={(e) => setFsRoots(e.target.value)}
+                className="font-mono"
+              />
+            </div>
+
+            <Button
+              onClick={handleSaveFsRoots}
+              disabled={updateMutation.isPending}
+            >
+              {updateMutation.isPending ? t("common.loading") : t("settings.save")}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Already Read Directory Settings */}
+      <Card>
+        <CardHeader>
+          <CardTitle>{t("settings.alreadyReadDir")}</CardTitle>
+          <CardDescription>{t("settings.alreadyReadDirDesc")}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {settings?.already_read_dir && (
+              <div className="space-y-2">
+                <Label className="text-muted-foreground">{t("settings.currentPath")}</Label>
+                <div className="text-sm font-mono bg-muted p-2 rounded">
+                  {settings.already_read_dir}
+                </div>
+              </div>
+            )}
+
+            <div className="space-y-2">
+              <Label htmlFor="alreadyReadDir">{t("settings.alreadyReadDir")}</Label>
+              <Input
+                id="alreadyReadDir"
+                type="text"
+                placeholder={t("settings.alreadyReadDirPlaceholder")}
+                value={alreadyReadDir}
+                onChange={(e) => setAlreadyReadDir(e.target.value)}
+                className="font-mono"
+              />
+            </div>
+
+            <Button
+              onClick={handleSaveAlreadyReadDir}
+              disabled={updateMutation.isPending}
+            >
+              {updateMutation.isPending ? t("common.loading") : t("settings.save")}
+            </Button>
           </div>
         </CardContent>
       </Card>

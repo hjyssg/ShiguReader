@@ -88,3 +88,15 @@ explorer默认使用这个混合mode
 
 ## task 14
 item-card的card-info还需要显示压缩文件的image number和average image size 。有些文件一开始没有meta信息，你可以在生成thumbnail的时候一并把meta信息带过。因为解压文件的时候能拿到meta信息。
+
+
+
+###task1 
+
+FS_ROOTS=D:/_TEMP_DOWNLOADS/,E:/_Happy_Picture
+ALREADY_READ_DIR
+也需要在setting有控制的
+
+
+task2：
+explorer的默认模型应该是mixed
