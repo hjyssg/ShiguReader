@@ -317,7 +317,7 @@ function ReadPage() {
         <div className="flex items-center gap-2">
           {!isFolderSource && (
             <>
-              <Button variant="outline" size="sm" onClick={() => navigate({ to: "/read-overview", search: { path } })}>Overview</Button>
+              <Button variant="outline" size="sm" onClick={() => navigate({ to: "/archive", search: { path } })}>Explorer</Button>
               <Button variant="outline" size="sm" onClick={() => navigate({ to: "/read-waterfall", search: { path } })}>Waterfall</Button>
             </>
           )}
