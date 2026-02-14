@@ -72,4 +72,8 @@ move to favorite也要confirm modal。
 
 
 ## task 11：
+通过url打开页面的时候，
 当打开实际没有的filepath的时候，explorer和read要显示file 不存在
+
+## task 12：
+search 页面没有分页。这个分页现在前端做就好了。
