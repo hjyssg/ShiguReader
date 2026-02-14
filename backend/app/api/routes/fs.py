@@ -40,6 +40,17 @@ _watcher_lock = threading.Lock()
 _scan_status: dict[str, dict] = {}
 _scan_status_lock = threading.Lock()
 
+# ---------------------------------------------------------------------------
+# 推荐分数内存缓存（避免每次 list 都查 DB）
+# ---------------------------------------------------------------------------
+_rec_cache_lock = threading.Lock()
+_rec_cache: dict[str, object] = {
+    "author_freq": {},   # dict[str, int]  作者在 favorite 中出现次数
+    "tag_freq": {},      # dict[str, int]  标签在 favorite 中出现次数
+    "tag_total": {},     # dict[str, int]  标签全局总数
+    "initialized": False,
+}
+
 
 def _build_thumb_url(path: Path | str) -> str:
     encoded_path = quote(str(path), safe="")
@@ -147,46 +158,127 @@ SortBy = Literal["name", "mtime", "type", "recommendation", "image_count"]
 SortOrder = Literal["asc", "desc"]
 
 
-def _compute_recommendation_scores(repo: IndexRepository, filepaths: list[str]) -> dict[str, float]:
-    """根据 favorite 目录统计信息计算推荐分数。"""
-    if not filepaths:
-        return {}
+def _compute_rec_score_for_file(
+    authors: list[str],
+    tags: list[str],
+    author_freq: dict[str, int],
+    tag_freq: dict[str, int],
+    tag_total: dict[str, int],
+) -> float:
+    """纯计算函数：根据缓存的频率数据算单个文件的推荐分数。"""
+    fa = max((author_freq.get(a, 0) for a in authors), default=0)
+    author_score = math.log1p(fa)
 
+    tag_score = 0.0
+    for tag in tags:
+        ft = tag_freq.get(tag, 0)
+        nt = max(tag_total.get(tag, 0), 1)
+        current = math.log1p(ft) * (1.0 / math.sqrt(nt))
+        if current > tag_score:
+            tag_score = current
+
+    return round(author_score + tag_score, 6)
+
+
+def _refresh_rec_cache(repo: IndexRepository) -> None:
+    """从 DB 刷新内存中的 favorite 频率缓存。"""
     favorite_dir = (settings.FAVORITE_DIR or "").strip()
     if not favorite_dir:
-        return {filepath: 0.0 for filepath in filepaths}
+        return
 
     favorite_prefix = str(Path(favorite_dir).resolve())
-
     try:
         author_freq = repo.get_favorite_author_frequencies(favorite_prefix)
         tag_freq = repo.get_favorite_tag_frequencies(favorite_prefix)
         tag_total = repo.get_tag_total_counts()
+    except Exception as e:
+        logger.warning("Failed to refresh rec cache: %s", e)
+        return
 
-        artists_by_file = repo.get_artists_by_filepaths(filepaths)
-        tags_by_file = repo.get_tags_by_filepaths(filepaths)
-    except Exception:
-        return {filepath: 0.0 for filepath in filepaths}
+    with _rec_cache_lock:
+        _rec_cache["author_freq"] = author_freq
+        _rec_cache["tag_freq"] = tag_freq
+        _rec_cache["tag_total"] = tag_total
+        _rec_cache["initialized"] = True
+
+    logger.info("Rec cache refreshed: %d authors, %d tags", len(author_freq), len(tag_freq))
+
+
+def _update_rec_scores_for_files(repo: IndexRepository, filepaths: list[str]) -> None:
+    """用内存缓存给指定文件计算并写入 rec_score。"""
+    if not filepaths:
+        return
+
+    with _rec_cache_lock:
+        if not _rec_cache["initialized"]:
+            return
+        author_freq = _rec_cache["author_freq"]
+        tag_freq = _rec_cache["tag_freq"]
+        tag_total = _rec_cache["tag_total"]
+
+    artists_by_file = repo.get_artists_by_filepaths(filepaths)
+    tags_by_file = repo.get_tags_by_filepaths(filepaths)
 
     scores: dict[str, float] = {}
-    for filepath in filepaths:
-        authors = artists_by_file.get(filepath, [])
-        tags = tags_by_file.get(filepath, [])
+    for fp in filepaths:
+        scores[fp] = _compute_rec_score_for_file(
+            artists_by_file.get(fp, []),
+            tags_by_file.get(fp, []),
+            author_freq,
+            tag_freq,
+            tag_total,
+        )
 
-        fa = max((author_freq.get(author, 0) for author in authors), default=0)
-        author_score = math.log1p(fa)
+    repo.batch_update_rec_scores(scores)
 
-        tag_score = 0.0
-        for tag in tags:
-            ft = tag_freq.get(tag, 0)
-            nt = max(tag_total.get(tag, 0), 1)
-            current = math.log1p(ft) * (1.0 / math.sqrt(nt))
-            if current > tag_score:
-                tag_score = current
 
-        scores[filepath] = round(author_score + tag_score, 6)
+def _refresh_all_rec_scores(repo: IndexRepository) -> None:
+    """全量重算所有文件的 rec_score（favorite 目录变化后调用）。"""
+    _refresh_rec_cache(repo)
 
-    return scores
+    with _rec_cache_lock:
+        if not _rec_cache["initialized"]:
+            return
+        author_freq = _rec_cache["author_freq"]
+        tag_freq = _rec_cache["tag_freq"]
+        tag_total = _rec_cache["tag_total"]
+
+    # 如果没有 favorite 数据，跳过
+    if not author_freq and not tag_freq:
+        return
+
+    # 分批查所有有 artist/tag 的文件
+    from sqlmodel import select as sql_select
+    from app.index_db.models import FileArtist as FA, FileTag as FT
+
+    all_fps_with_meta: set[str] = set()
+    for fp, in repo.session.exec(sql_select(FA.filepath).distinct()):
+        all_fps_with_meta.add(fp)
+    for fp, in repo.session.exec(sql_select(FT.filepath).distinct()):
+        all_fps_with_meta.add(fp)
+
+    if not all_fps_with_meta:
+        return
+
+    fp_list = list(all_fps_with_meta)
+    batch_size = 500
+    for i in range(0, len(fp_list), batch_size):
+        batch = fp_list[i : i + batch_size]
+        artists_by_file = repo.get_artists_by_filepaths(batch)
+        tags_by_file = repo.get_tags_by_filepaths(batch)
+
+        scores: dict[str, float] = {}
+        for fp in batch:
+            scores[fp] = _compute_rec_score_for_file(
+                artists_by_file.get(fp, []),
+                tags_by_file.get(fp, []),
+                author_freq,
+                tag_freq,
+                tag_total,
+            )
+        repo.batch_update_rec_scores(scores)
+
+    logger.info("All rec_scores refreshed for %d files", len(fp_list))
 
 
 def _sort_items(items: list[FileSystemItem], sort_by: SortBy, sort_order: SortOrder) -> None:
@@ -242,6 +334,13 @@ def trigger_favorite_scan() -> None:
     if not resolved.exists() or not resolved.is_dir():
         logger.warning("Skip favorite scan: favorite path not found or not directory: %s", resolved)
         return
+
+    # 先用已有 DB 数据预热 rec 缓存，这样 scan 完成前 list 也能用
+    try:
+        with get_index_session() as session:
+            _refresh_rec_cache(IndexRepository(session))
+    except Exception as e:
+        logger.warning("Failed to warm rec cache on startup: %s", e)
 
     threading.Thread(target=_run_scan, args=(resolved, True), daemon=True).start()
 
@@ -425,6 +524,21 @@ def _run_scan(path: Path, recursive: bool) -> None:
             if parse_results:
                 repo.batch_save_parse_results(parse_results)
 
+            # --- 更新 rec_score ---
+            favorite_dir = (settings.FAVORITE_DIR or "").strip()
+            is_favorite_scan = False
+            if favorite_dir:
+                fav_prefix = str(Path(favorite_dir).resolve())
+                is_favorite_scan = str(path).startswith(fav_prefix)
+
+            if is_favorite_scan:
+                # favorite 目录变化 → 刷新全局缓存 + 全量重算
+                _refresh_all_rec_scores(repo)
+            elif files_to_upsert:
+                # 非 favorite scan → 只给新文件算分数
+                new_fps = [f.filepath for f in files_to_upsert]
+                _update_rec_scores_for_files(repo, new_fps)
+
         _update_scan_status(
             path_key,
             status="completed",
@@ -592,29 +706,24 @@ async def list_directory(
         logger.error(f"Failed to list directory {validated_path}: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to list directory: {e}")
     
+    # 用 folderpath 等值查询替代 IN(...)，只需 1-2 次 SQL
+    folderpath_str = str(validated_path)
     try:
         with get_index_session() as session:
             repo = IndexRepository(session)
-            
-            # 获取推荐分数
-            scores = _compute_recommendation_scores(repo, [x.path for x in items if x.item_type == "file"])
-            
-            # 获取压缩包元数据
-            archive_paths = [x.path for x in items if x.item_type == "file" and x.file_type == "archive"]
-            archive_meta_map = {}
-            if archive_paths:
-                try:
-                    archive_metas = repo.get_archive_metas_by_filepaths(archive_paths)
-                    archive_meta_map = {meta.filepath: meta for meta in archive_metas}
-                except Exception as e:
-                    logger.warning(f"Failed to get archive metadata: {e}")
-            
+
+            # 1 次 SQL: 查出目录下所有文件的 rec_score
+            file_data_map = repo.get_file_data_by_folder(folderpath_str)
+
+            # 1 次 SQL (子查询): 查出目录下所有压缩包的 archive_meta
+            archive_meta_map = repo.get_archive_metas_by_folder(folderpath_str)
+
             # 填充数据
             for item in items:
                 if item.item_type == "file":
-                    item.recommendation_score = scores.get(item.path, 0.0)
-                    
-                    # 填充压缩包元数据
+                    fdata = file_data_map.get(item.path)
+                    item.recommendation_score = fdata["rec_score"] if fdata else 0.0
+
                     if item.file_type == "archive":
                         meta = archive_meta_map.get(item.path)
                         if meta:

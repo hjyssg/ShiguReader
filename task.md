@@ -10,22 +10,6 @@
 
 ---
 
-## Task2：解压结构与 Reader / Explorer 重构
-- 解压逻辑：
-  - 按 zip 内部原始目录结构解压（不使用 flat 结构）
-- Reader：
-  - 可直接打开 cache 中的文件
-  - 支持以 Explorer 模式浏览
-- 删除 Reader Overview 页面
-  - 直接用 Explorer 替代
-
----
-
-## Task3：Explorer UI
-- 添加 file-change-toolbar-modal
-- 要能进行 move、rename、download、move to any folder、move to favorite、解压、打包等操作
-- 操作前都要一个 confirm
-
 ---
 
 ## Task4：Explorer 筛选与排序增强
@@ -54,14 +38,6 @@
 
 ---
 
-## Task10：前端重构后 Import 错误修复 ✅
-- 将组件从 `.abandon` 文件夹移回 `Common` 文件夹
-  - Footer.tsx
-  - ErrorComponent.tsx
-  - Appearance.tsx
-  - DataTable.tsx
-- 修复所有 import 路径引用
-- 状态：已完成
 
 ---
 
@@ -76,3 +52,17 @@
 ## Task9：测试补充
 - 补充前后端 UT
 - 保证所有页面可正常打开（可用 Playwright）
+
+
+
+
+## task11：
+阅读 Explorer 右键菜单 & Windows 风格交互 — 架构设计方案.md
+ Explorer 右键菜单 
+ env多加一个已读文件夹，用户可以一键把文件移动到这个文件夹。
+ 
+
+## task 10： 
+reader page参考   Explorer 右键菜单 & Windows 风格交互 — 架构设计方案.md
+也要各种文件操作
+

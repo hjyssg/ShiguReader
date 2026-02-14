@@ -44,6 +44,8 @@ class File(SQLModel, table=True):
     fingerprint: str
     content_hash: str | None = None
 
+    rec_score: float = Field(default=0.0)
+
     scan_state: int = Field(default=0)
     watch_state: int = Field(default=0)
 

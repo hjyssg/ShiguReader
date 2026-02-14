@@ -727,3 +727,41 @@ class IndexRepository:
 
         stmt = select(ArchiveMeta).where(ArchiveMeta.filepath.in_(filepaths))
         return list(self.session.exec(stmt).all())
+
+    # ------------------------------------------------------------------
+    # Optimized folder-level queries (for /fs/list performance)
+    # ------------------------------------------------------------------
+
+    def get_file_data_by_folder(self, folderpath: str) -> dict[str, dict]:
+        """一次查出目录下所有文件的 rec_score，返回 {filepath: {rec_score: float}}。"""
+        stmt = select(File.filepath, File.rec_score).where(File.folderpath == folderpath)
+        return {
+            fp: {"rec_score": score}
+            for fp, score in self.session.exec(stmt).all()
+        }
+
+    def get_archive_metas_by_folder(self, folderpath: str) -> dict[str, ArchiveMeta]:
+        """通过子查询获取目录下所有压缩包的元数据。"""
+        sub = select(File.filepath).where(
+            File.folderpath == folderpath,
+            File.file_type == "archive",
+        )
+        stmt = select(ArchiveMeta).where(ArchiveMeta.filepath.in_(sub))
+        return {meta.filepath: meta for meta in self.session.exec(stmt).all()}
+
+    def batch_update_rec_scores(self, scores: dict[str, float]) -> None:
+        """批量更新文件的 rec_score。"""
+        if not scores:
+            return
+
+        filepaths = list(scores.keys())
+        # 分批处理，避免 SQLite 参数限制
+        batch_size = 500
+        for i in range(0, len(filepaths), batch_size):
+            batch_fps = filepaths[i : i + batch_size]
+            stmt = select(File).where(File.filepath.in_(batch_fps))
+            files = self.session.exec(stmt).all()
+            for f in files:
+                f.rec_score = scores.get(f.filepath, 0.0)
+
+        self.session.commit()

@@ -98,3 +98,51 @@
   - DataTable.tsx
 - 修复所有 import 路径引用
 - 状态：已完成
+
+
+
+
+## Task2：解压结构与 Reader / Explorer 重构
+- 解压逻辑：
+  - 按 zip 内部原始目录结构解压（不使用 flat 结构）
+- Reader：
+  - 可直接打开 cache 中的文件
+  - 支持以 Explorer 模式浏览
+- 删除 Reader Overview 页面
+  - 直接用 Explorer 替代
+
+---
+
+## Task3：Explorer UI
+- 添加 file-change-toolbar-modal
+- 要能进行 move、rename、download、move to any folder、move to favorite、解压、打包等操作
+- 操作前都要一个 confirm
+
+
+## Task10：前端重构后 Import 错误修复 ✅
+- 将组件从 `.abandon` 文件夹移回 `Common` 文件夹
+  - Footer.tsx
+  - ErrorComponent.tsx
+  - Appearance.tsx
+  - DataTable.tsx
+- 修复所有 import 路径引用
+- 状态：已完成
+
+
+task high：
+lsdir的性能太差，一个D:\_TEMP_DOWNLOADS\_ 要900ms。
+你先给我解释，这个api的扫描是怎么扫描。
+sql请求是怎么做的。我要看代码。
+
+旧版的shigureader D:\Git\ShiguReader
+api/folder/list_dir 只要4ms。
+旧版就一个list folder然后通过hashmap到每个file的信息。
+
+
+
+task：
+主要的页面的性能你进行静态分析，怎么加快加载。
+
+
+task：
+每次push都需要让github运行action帮我进行ut测试。
