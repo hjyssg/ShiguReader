@@ -12,7 +12,7 @@ export const Route = createFileRoute("/_layout/")({
   head: () => ({
     meta: [
       {
-        title: "Home - File Explorer",
+        title: "Home",
       },
     ],
   }),
