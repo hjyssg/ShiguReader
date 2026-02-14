@@ -1,3 +1,4 @@
+// 实体网格布局组件，支持分页
 import {
   Pagination,
   PaginationContent,

@@ -1,3 +1,4 @@
+// 缩略图组件，支持加载状态和错误处理
 import { useEffect, useRef, useState } from "react"
 
 import { Skeleton } from "@/components/ui/skeleton"

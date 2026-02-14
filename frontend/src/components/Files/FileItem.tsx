@@ -1,3 +1,4 @@
+// 文件系统项卡片组件，展示文件和文件夹
 import { Link } from "@tanstack/react-router"
 
 import { type FileSystemItem, OpenAPI } from "@/client"

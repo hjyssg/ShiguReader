@@ -1,3 +1,4 @@
+// Logo组件，支持完整和图标两种模式
 import { Link } from "@tanstack/react-router"
 
 import { useTheme } from "@/components/theme-provider"

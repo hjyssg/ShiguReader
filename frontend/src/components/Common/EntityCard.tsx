@@ -1,3 +1,4 @@
+// 业务实体卡片组件，用于展示作者、标签等
 import { Image as ImageIcon } from "lucide-react"
 
 import { OpenAPI } from "@/client"

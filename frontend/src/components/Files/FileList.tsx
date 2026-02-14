@@ -1,3 +1,4 @@
+// 文件列表容器，支持网格和表格两种视图模式
 import { LayoutGrid, List, ArrowDown, ArrowUp } from "lucide-react"
 import { type ReactNode, useEffect, useMemo, useState } from "react"
 

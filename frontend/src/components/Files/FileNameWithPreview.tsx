@@ -1,3 +1,4 @@
+// 文件名组件，鼠标悬停显示缩略图预览
 import { useState } from "react"
 import { OpenAPI } from "@/client"
 import {
