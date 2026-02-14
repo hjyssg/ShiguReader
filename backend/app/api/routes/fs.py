@@ -1400,3 +1400,87 @@ async def get_file(path: str = Query(..., description="File path")):
         raise HTTPException(status_code=400, detail="Path is not a file")
     
     return FileResponse(validated_path, media_type=get_mime_type(validated_path))
+
+
+# ---------------------------------------------------------------------------
+# Archive Image Compression
+# ---------------------------------------------------------------------------
+
+class CompressImagesRequest(BaseModel):
+    archive_path: str
+    output_path: str | None = None
+    max_width: int | None = None
+    max_height: int | None = None
+    quality: int | None = None
+    min_size: int | None = None
+
+
+class CompressImagesResponse(BaseModel):
+    success: bool
+    original_path: str
+    output_path: str
+    original_size: int
+    compressed_size: int
+    compression_ratio: float
+    processed_images: int
+    skipped_images: int
+    validation_passed: bool
+    error_message: str = ""
+
+
+@router.post("/archive/compress-images", response_model=CompressImagesResponse)
+async def compress_archive_images_endpoint(
+    background_tasks: BackgroundTasks,
+    request: CompressImagesRequest,
+) -> CompressImagesResponse:
+    """压缩压缩包内的大图片并重新打包。
+    
+    功能：
+    - 扫描 zip 内所有图片
+    - 压缩大于阈值的图片（默认 1MB，分辨率 > 2000x2000）
+    - 转换为 JPEG 格式，质量 85
+    - 保持原始目录结构
+    - 验证压缩包完整性
+    - 验证失败时输出文件添加 .error 后缀
+    """
+    from app.file_processing.archive_compressor import compress_archive_images
+    
+    archive = _validate_path(Path(request.archive_path))
+    
+    if not archive.exists():
+        raise HTTPException(status_code=404, detail="Archive not found")
+    
+    if not archive.is_file():
+        raise HTTPException(status_code=400, detail="Path is not a file")
+    
+    file_type = detect_file_type(archive)
+    if file_type != "archive":
+        raise HTTPException(status_code=400, detail="File is not an archive")
+    
+    try:
+        # 在后台执行压缩（可能耗时较长）
+        result = await asyncio.to_thread(
+            compress_archive_images,
+            archive,
+            output_path=Path(request.output_path) if request.output_path else None,
+            max_width=request.max_width,
+            max_height=request.max_height,
+            quality=request.quality,
+            min_size=request.min_size,
+        )
+        
+        return CompressImagesResponse(
+            success=result.success,
+            original_path=result.original_path,
+            output_path=result.output_path,
+            original_size=result.original_size,
+            compressed_size=result.compressed_size,
+            compression_ratio=result.compression_ratio,
+            processed_images=result.processed_images,
+            skipped_images=result.skipped_images,
+            validation_passed=result.validation_passed,
+            error_message=result.error_message,
+        )
+    except Exception as e:
+        logger.error(f"压缩失败: {archive}, 错误: {e}")
+        raise HTTPException(status_code=500, detail=f"Compression failed: {e}")
