@@ -63,6 +63,9 @@ export function FileItem({ item, isSelected, onClick, onDoubleClick, onContextMe
           {!isFolder && item.filesize && (
             <p className="text-xs text-muted-foreground">
               {formatFileSize(item.filesize)}
+              {item.file_type === "archive" && item.image_count != null && item.image_count > 0 && (
+                <span> · {item.image_count} imgs{item.avg_image_size != null && ` · avg ${formatFileSize(item.avg_image_size)}`}</span>
+              )}
             </p>
           )}
         </CardInfo>

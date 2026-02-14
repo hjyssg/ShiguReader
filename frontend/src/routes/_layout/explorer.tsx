@@ -131,6 +131,7 @@ function Explorer() {
         items={data?.items || []}
         isLoading={isLoading}
         currentPath={path}
+        initialViewMode="mixed"
         storageKeyPrefix="explorer"
         toolbarExtra={
           <DropdownMenu>

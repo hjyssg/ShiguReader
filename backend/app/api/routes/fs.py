@@ -93,6 +93,7 @@ class FileSystemItem(BaseModel):
     image_count: int | None = None  # 压缩包内图片数量
     video_count: int | None = None  # 压缩包内视频数量
     audio_count: int | None = None  # 压缩包内音频数量
+    avg_image_size: int | None = None  # 压缩包内图片平均大小（字节）
 
 
 class ListResponse(BaseModel):
@@ -744,6 +745,8 @@ async def list_directory(
                             item.image_count = meta.image_file_num
                             item.video_count = meta.video_file_num
                             item.audio_count = meta.music_file_num
+                            if meta.image_file_num and meta.image_file_num > 0 and item.filesize:
+                                item.avg_image_size = item.filesize // meta.image_file_num
     except Exception as e:
         logger.warning(f"Failed to get metadata: {e}")
         for item in items:

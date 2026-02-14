@@ -77,3 +77,14 @@ move to favorite也要confirm modal。
 
 ## task 12：
 search 页面没有分页。这个分页现在前端做就好了。
+
+ 你作为前端专家 
+## task 13
+view-mode-controls 需要多加一种，混合模式。
+folder和video采用简单filename list 分别两个section
+压缩文件用grid mode。
+explorer默认使用这个混合mode
+
+
+## task 14
+item-card的card-info还需要显示压缩文件的image number和average image size 。有些文件一开始没有meta信息，你可以在生成thumbnail的时候一并把meta信息带过。因为解压文件的时候能拿到meta信息。

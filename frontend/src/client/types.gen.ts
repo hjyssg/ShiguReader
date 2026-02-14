@@ -66,6 +66,10 @@ export type FileSystemItem = {
     recommendation_score?: (number | null);
     scan_state?: number;
     watch_state?: number;
+    image_count?: (number | null);
+    video_count?: (number | null);
+    audio_count?: (number | null);
+    avg_image_size?: (number | null);
 };
 
 export type item_type = 'folder' | 'file';

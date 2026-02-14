@@ -1,5 +1,5 @@
 // 文件视图容器 — 集成选择、右键菜单、键盘快捷键、对话框
-import { LayoutGrid, List, ArrowDown, ArrowUp } from "lucide-react"
+import { LayoutGrid, List, LayoutList, ArrowDown, ArrowUp } from "lucide-react"
 import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react"
 
 import type { FileSystemItem } from "@/client"
@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/select"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Toolbar, ToolbarGroup, ResponsiveGrid } from "@/components/semantic/layout"
+import { cn } from "@/lib/utils"
 
 import { useFileSelection } from "@/hooks/useFileSelection"
 import { useFileNavigation } from "@/hooks/useFileNavigation"
@@ -20,6 +21,7 @@ import { useFileOperations } from "@/hooks/useFileOperations"
 import { useFileExplorerKeyboard } from "@/hooks/useFileExplorerKeyboard"
 
 import { FileTableView, type SortField, type SortOrder } from "./FileTableView"
+import { FileIcon } from "./FileIcon"
 import { FileItem } from "./FileItem"
 import { FileContextMenu } from "./FileContextMenu"
 import { FileSelectionToolbar } from "./FileSelectionToolbar"
@@ -30,7 +32,7 @@ import { CompressDialog, type CompressAction } from "./dialogs/CompressDialog"
 import { ConfirmMoveDialog } from "./dialogs/ConfirmMoveDialog"
 import { getBaseName } from "@/lib/path-utils"
 
-type ViewMode = "grid" | "details"
+type ViewMode = "grid" | "details" | "mixed"
 
 export function FileViewContainer({
   items,
@@ -355,6 +357,42 @@ export function FileViewContainer({
     [openItem, openItemInNewTab, selection, sortedItems, handleMoveToFavorite, handleMoveToAlreadyRead],
   )
 
+  // Mixed view: group items by type
+  const mixedGroups = useMemo(() => {
+    if (viewMode !== "mixed") return { folders: [], videos: [], archives: [] }
+    const folders = sortedItems.filter((i) => i.item_type === "folder")
+    const videos = sortedItems.filter((i) => i.item_type === "file" && i.file_type === "video")
+    const archives = sortedItems.filter((i) => i.item_type === "file" && i.file_type !== "video")
+    return { folders, videos, archives }
+  }, [viewMode, sortedItems])
+
+  // 混合视图：文件名列表行渲染（用于 folder / video section）
+  const renderNameListItem = useCallback(
+    (item: FileSystemItem) => (
+      <FileContextMenu
+        key={item.path}
+        item={item}
+        selectedCount={selection.selectedCount}
+        isOpenable={isOpenable(item)}
+        actions={buildContextMenuActions(item)}
+        onContextMenuOpen={() => handleItemContextMenu(item)}
+      >
+        <div
+          className={cn(
+            "file-item-wrapper flex items-center gap-2 px-3 py-1.5 rounded-md cursor-pointer hover:bg-accent transition-colors",
+            selection.isSelected(item.path) && "bg-accent ring-1 ring-primary",
+          )}
+          onClick={(e) => handleItemClick(item, e)}
+          onDoubleClick={(e) => handleItemDoubleClick(item, e)}
+        >
+          <FileIcon fileType={item.file_type} isFolder={item.item_type === "folder"} size="sm" />
+          <span className="text-sm truncate">{item.name}</span>
+        </div>
+      </FileContextMenu>
+    ),
+    [selection, isOpenable, buildContextMenuActions, handleItemContextMenu, handleItemClick, handleItemDoubleClick],
+  )
+
   const handleSortFieldChange = (field: SortField) => {
     if (field === sortField) {
       setSortOrder(sortOrder === "asc" ? "desc" : "asc")
@@ -456,10 +494,20 @@ export function FileViewContainer({
 
         <ToolbarGroup className="view-mode-controls">
           <Button
+            variant={viewMode === "mixed" ? "default" : "ghost"}
+            size="sm"
+            onClick={() => setViewMode("mixed")}
+            className="h-8 w-8 p-0"
+            title="Mixed view"
+          >
+            <LayoutList className="size-4" />
+          </Button>
+          <Button
             variant={viewMode === "grid" ? "default" : "ghost"}
             size="sm"
             onClick={() => setViewMode("grid")}
             className="h-8 w-8 p-0"
+            title="Grid view"
           >
             <LayoutGrid className="size-4" />
           </Button>
@@ -468,6 +516,7 @@ export function FileViewContainer({
             size="sm"
             onClick={() => setViewMode("details")}
             className="h-8 w-8 p-0"
+            title="Details view"
           >
             <List className="size-4" />
           </Button>
@@ -504,6 +553,60 @@ export function FileViewContainer({
       ) : sortedItems.length === 0 ? (
         <div className="empty-state flex flex-col items-center justify-center py-12 text-center">
           <p className="text-muted-foreground">{emptyText}</p>
+        </div>
+      ) : viewMode === "mixed" ? (
+        <div className="mixed-view space-y-6">
+          {/* Folders section */}
+          {mixedGroups.folders.length > 0 && (
+            <section>
+              <h3 className="text-sm font-medium text-muted-foreground mb-2">
+                Folders ({mixedGroups.folders.length})
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-1">
+                {mixedGroups.folders.map(renderNameListItem)}
+              </div>
+            </section>
+          )}
+          {/* Videos section */}
+          {mixedGroups.videos.length > 0 && (
+            <section>
+              <h3 className="text-sm font-medium text-muted-foreground mb-2">
+                Videos ({mixedGroups.videos.length})
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-1">
+                {mixedGroups.videos.map(renderNameListItem)}
+              </div>
+            </section>
+          )}
+          {/* Archives / other files section — grid mode */}
+          {mixedGroups.archives.length > 0 && (
+            <section>
+              <h3 className="text-sm font-medium text-muted-foreground mb-2">
+                Archives ({mixedGroups.archives.length})
+              </h3>
+              <ResponsiveGrid>
+                {mixedGroups.archives.map((item) => (
+                  <FileContextMenu
+                    key={item.path}
+                    item={item}
+                    selectedCount={selection.selectedCount}
+                    isOpenable={isOpenable(item)}
+                    actions={buildContextMenuActions(item)}
+                    onContextMenuOpen={() => handleItemContextMenu(item)}
+                  >
+                    <div>
+                      <FileItem
+                        item={item}
+                        isSelected={selection.isSelected(item.path)}
+                        onClick={(e) => handleItemClick(item, e)}
+                        onDoubleClick={(e) => handleItemDoubleClick(item, e)}
+                      />
+                    </div>
+                  </FileContextMenu>
+                ))}
+              </ResponsiveGrid>
+            </section>
+          )}
         </div>
       ) : viewMode === "grid" ? (
         <ResponsiveGrid className="grid-content">
