@@ -6,6 +6,8 @@ import tempfile
 import zipfile
 from pathlib import Path
 
+from app.file_processing.ignore import should_ignore_archive_entry
+
 try:
     import py7zr
 except Exception:  # pragma: no cover
@@ -34,22 +36,25 @@ def list_entries(archive_path: Path) -> list[str]:
     kind = archive_kind(archive_path)
     if kind == "zip":
         with zipfile.ZipFile(archive_path, "r") as zf:
-            return [name for name in zf.namelist() if not name.endswith("/")]
+            raw = [name for name in zf.namelist() if not name.endswith("/")]
 
-    if kind == "tar":
+    elif kind == "tar":
         with tarfile.open(archive_path, "r:*") as tf:
-            return [m.name for m in tf.getmembers() if m.isfile()]
+            raw = [m.name for m in tf.getmembers() if m.isfile()]
 
-    if kind == "7z":
+    elif kind == "7z":
         if py7zr is None:
             raise RuntimeError("py7zr is required for .7z files")
         with py7zr.SevenZipFile(archive_path, "r") as szf:
-            return [n for n in szf.getnames() if not n.endswith("/")]
+            raw = [n for n in szf.getnames() if not n.endswith("/")]
 
-    if rarfile is None:
-        raise RuntimeError("rarfile is required for .rar files")
-    with rarfile.RarFile(archive_path) as rf:
-        return [i.filename for i in rf.infolist() if not i.isdir()]
+    else:
+        if rarfile is None:
+            raise RuntimeError("rarfile is required for .rar files")
+        with rarfile.RarFile(archive_path) as rf:
+            raw = [i.filename for i in rf.infolist() if not i.isdir()]
+
+    return [e for e in raw if not should_ignore_archive_entry(e)]
 
 
 def extract_entries(archive_path: Path, destination: Path, entries: list[str]) -> None:

@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Callable
 
 from app.file_processing._archive_backend import extract_entries, list_entries
+from app.file_processing.ignore import should_ignore
 
 
 # ---------------------------------------------------------------------------
@@ -135,9 +136,11 @@ def stepwise_extract(
         try:
             extract_entries(archive, work_dir, third_stage)
 
-            # 将临时目录中的文件逐个移动到 output_dir
+            # 将临时目录中的文件逐个移动到 output_dir（跳过系统垃圾文件）
             for file_path in work_dir.rglob("*"):
-                if file_path.is_file():
+                if file_path.is_file() and not any(
+                    should_ignore(part) for part in file_path.relative_to(work_dir).parts
+                ):
                     relative_path = file_path.relative_to(work_dir)
                     dest_path = out_dir / relative_path
                     dest_path.parent.mkdir(parents=True, exist_ok=True)

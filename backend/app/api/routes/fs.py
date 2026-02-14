@@ -21,6 +21,7 @@ from pydantic import BaseModel
 from app.constants import ARCHIVE_SUFFIXES, AUDIO_SUFFIXES, IMAGE_SUFFIXES, VIDEO_SUFFIXES
 from app.core.config import settings
 from app.file_processing.archive_lister import list_archive_entries
+from app.file_processing.ignore import should_ignore
 from app.file_processing.folder_watcher import FolderWatcher
 from app.file_processing.name_parser import parse
 from app.file_processing.stepwise_extractor import stepwise_extract
@@ -267,7 +268,11 @@ def _run_scan(path: Path, recursive: bool) -> None:
 
     try:
         if recursive:
-            for root, _, filenames in os.walk(path):
+            for root, dirs, filenames in os.walk(path):
+                # Prune ignored directories in-place to skip entire subtrees
+                dirs[:] = [d for d in dirs if not should_ignore(d)]
+                filenames = [f for f in filenames if not should_ignore(f)]
+
                 root_path = Path(root)
                 try:
                     root_stat = root_path.stat()
@@ -340,6 +345,8 @@ def _run_scan(path: Path, recursive: bool) -> None:
             scanned_folders += 1
 
             for entry in path.iterdir():
+                if should_ignore(entry.name):
+                    continue
                 try:
                     stat = entry.stat()
                     if entry.is_dir():
@@ -495,6 +502,8 @@ async def list_directory(
         )
         
         for entry in validated_path.iterdir():
+            if should_ignore(entry.name):
+                continue
             try:
                 stat = entry.stat()
                 
@@ -731,8 +740,12 @@ async def zip_folder(request: ZipFolderRequest) -> PathOperationResponse:
 
     try:
         with zipfile.ZipFile(output_path, "w", compression=zipfile.ZIP_DEFLATED) as zf:
-            for file in folder.rglob("*"):
-                if file.is_file():
+            for root, dirs, filenames in os.walk(folder):
+                dirs[:] = [d for d in dirs if not should_ignore(d)]
+                for fname in filenames:
+                    if should_ignore(fname):
+                        continue
+                    file = Path(root) / fname
                     zf.write(file, arcname=file.relative_to(folder))
     except PermissionError as e:
         raise HTTPException(status_code=403, detail=f"Permission denied: {e}")

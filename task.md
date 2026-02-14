@@ -146,26 +146,18 @@ explorer的筛选功能（zip有无video、audio）
 状态：done
 
 
+task 15：
+忽略“系统垃圾文件 / 无意义隐藏文件 / 缓存目录”
 
+task 16：
+去获得thumbnail的时候，如果没找到，可以使用fingprint去查找有没有已经有的。
 
-
+task video要和reader一样，不显示footer、header，sidebar
 
 bug：
 <div data-slot="card-title" class="ui-card-title font-semibold text-lg">_TEMP_DOWNLOADS</div>
 
 
-## Hidden / System Noise Filtering（必须实现）
-
-在以下所有场景中统一忽略“系统垃圾文件 / 无意义隐藏文件 / 缓存目录”：
-
-- `lsdir`
-- `scan`
-- `thumbnail 抽取`
-- `zip 解压`
-- `zip 打包`
-- 任何文件递归遍历逻辑
-
-### 必须忽略的名称（大小写不敏感）
 
 
 
