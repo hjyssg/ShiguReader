@@ -401,104 +401,62 @@ function ReadPage() {
   }
 
   return (
-    <div className="space-y-2 p-1">
-      <nav className="flex items-center gap-2 text-sm">
-        <Link to="/" className="flex items-center gap-1 text-muted-foreground hover:text-foreground">
-          <Home className="size-4" />
-          <span>Home</span>
+    <div className="flex flex-col h-screen">
+      {/* 顶部工具栏 - 整合导航和工具 */}
+      <nav className="flex items-center gap-1.5 text-xs text-muted-foreground px-2 py-1 bg-background/95 border-b shrink-0">
+        {/* 左侧：面包屑导航 */}
+        <Link to="/" className="flex items-center gap-1 hover:text-foreground shrink-0">
+          <Home className="size-3.5" />
         </Link>
-        {dirCrumbs.map((crumb) => (
-          <div key={crumb.path} className="flex items-center gap-2">
-            <ChevronRight className="size-4 text-muted-foreground" />
-            <Link to="/explorer" search={{ path: crumb.path }} className="text-muted-foreground hover:text-foreground">
-              <Folder className="size-4 inline mr-1" />{crumb.name}
+        {dirCrumbs.length > 2 ? (
+          <>
+            <ChevronRight className="size-3 text-muted-foreground/60" />
+            <span>…</span>
+            <ChevronRight className="size-3 text-muted-foreground/60" />
+            <Link to="/explorer" search={{ path: dirCrumbs[dirCrumbs.length - 1].path }} className="hover:text-foreground truncate max-w-[120px]">
+              {dirCrumbs[dirCrumbs.length - 1].name}
             </Link>
-          </div>
-        ))}
-        <ChevronRight className="size-4 text-muted-foreground" />
+          </>
+        ) : (
+          dirCrumbs.map((crumb) => (
+            <div key={crumb.path} className="flex items-center gap-1.5">
+              <ChevronRight className="size-3 text-muted-foreground/60" />
+              <Link to="/explorer" search={{ path: crumb.path }} className="hover:text-foreground truncate max-w-[120px]">
+                {crumb.name}
+              </Link>
+            </div>
+          ))
+        )}
+        <ChevronRight className="size-3 text-muted-foreground/60" />
         <Link
           to={isFolderSource ? "/explorer" : "/archive"}
           search={{ path }}
-          className="text-muted-foreground hover:text-foreground"
+          className="hover:text-foreground truncate max-w-[160px] font-medium text-foreground/80"
         >
           {fileName}
         </Link>
-      </nav>
 
-      <div className="flex items-center justify-between gap-2">
-        <div className="text-sm text-muted-foreground truncate">{currentEntry.name}</div>
-        <div className="flex items-center gap-2">
-          {!isFolderSource && (
-            <>
-              <Button variant="outline" size="sm" onClick={() => navigate({ to: "/archive", search: { path } })}>Explorer</Button>
-              <Button variant="outline" size="sm" onClick={() => navigate({ to: "/read-waterfall", search: { path } })}>Waterfall</Button>
-            </>
-          )}
-        </div>
-      </div>
-
-      <div
-        className="relative bg-muted rounded-lg overflow-hidden min-h-[70vh] flex items-center justify-center"
-        onMouseMove={onMouseMove}
-        onMouseUp={onMouseUp}
-        onMouseLeave={onMouseUp}
-        onWheel={onWheel}
-      >
-        <img
-          src={imageUrl}
-          alt={currentEntry.name}
-          onMouseDown={onMouseDown}
-          onError={handleImageError}
-          onLoad={handleImageLoad}
-          draggable={false}
-          className="max-w-full max-h-[80vh] object-contain select-none"
-          style={{
-            transform: `translate(${translate.x}px, ${translate.y}px) scale(${scale}) rotate(${rotation}deg)`,
-            cursor: isDragging ? "grabbing" : "grab",
-            transition: isDragging ? "none" : "transform 120ms ease-out",
-          }}
-        />
-
-        <Button
-          variant="ghost"
-          size="icon"
-          className="absolute left-4 top-1/2 -translate-y-1/2 bg-background/80 hover:bg-background"
-          onClick={goPrev}
-        >
-          <ChevronLeft className="size-6" />
-        </Button>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="absolute right-4 top-1/2 -translate-y-1/2 bg-background/80 hover:bg-background"
-          onClick={goNext}
-        >
-          <ChevronRight className="size-6" />
-        </Button>
-
-        {!isFolderSource && (
-          <ExtractingIndicator status={extractMutation.data?.status} variant="overlay" />
-        )}
-      </div>
-
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className="text-sm text-muted-foreground">
-          {currentPage + 1} / {totalPages}
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <Button variant="outline" size="sm" onClick={goPrev}>上一页</Button>
-          <Button variant="outline" size="sm" onClick={goNext}>下一页</Button>
-          <Button variant="outline" size="sm" onClick={zoomOut}>-</Button>
-          <Button variant="outline" size="sm" onClick={zoomIn}>+</Button>
-          <Button variant="outline" size="icon" onClick={rotate} title="旋转">
-            <RotateCw className="size-4" />
+        {/* 右侧：页码和工具 */}
+        <div className="ml-auto flex items-center gap-1 shrink-0">
+          <span className="text-xs text-muted-foreground tabular-nums mr-2">
+            {currentPage + 1} / {totalPages}
+          </span>
+          <Button variant="ghost" size="icon" className="size-6" onClick={zoomOut} title="缩小">
+            <span className="text-xs font-medium">−</span>
           </Button>
-          <Button variant="outline" size="icon" onClick={toggleFullscreen} title="全屏">
-            <Scan className="size-4" />
+          <Button variant="ghost" size="icon" className="size-6" onClick={zoomIn} title="放大">
+            <span className="text-xs font-medium">+</span>
+          </Button>
+          <Button variant="ghost" size="icon" className="size-6" onClick={rotate} title="旋转">
+            <RotateCw className="size-3" />
+          </Button>
+          <Button variant="ghost" size="icon" className="size-6" onClick={toggleFullscreen} title="全屏">
+            <Scan className="size-3" />
           </Button>
           <Button
-            variant="outline"
+            variant="ghost"
             size="sm"
+            className="h-6 px-2 text-xs"
             onClick={() => {
               const value = Number(prompt("跳转到第几页？"))
               if (!Number.isNaN(value) && value > 0) {
@@ -508,13 +466,18 @@ function ReadPage() {
           >
             跳页
           </Button>
-          <Button variant="ghost" size="sm" onClick={resetTransform}>重置视图</Button>
-
+          <Button variant="ghost" size="sm" className="h-6 px-2 text-xs" onClick={resetTransform}>重置</Button>
+          {!isFolderSource && (
+            <>
+              <Button variant="ghost" size="sm" className="h-6 px-2 text-xs" onClick={() => navigate({ to: "/archive", search: { path } })}>Explorer</Button>
+              <Button variant="ghost" size="sm" className="h-6 px-2 text-xs" onClick={() => navigate({ to: "/read-waterfall", search: { path } })}>Waterfall</Button>
+            </>
+          )}
           {/* File Operations Dropdown */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="icon" title="File operations">
-                <MoreVertical className="size-4" />
+              <Button variant="ghost" size="icon" className="size-6" title="File operations">
+                <MoreVertical className="size-3" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
@@ -555,6 +518,51 @@ function ReadPage() {
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
+      </nav>
+
+      {/* 图片区域 - 全屏化 */}
+      <div
+        className="relative bg-muted flex-1 flex items-center justify-center overflow-hidden"
+        onMouseMove={onMouseMove}
+        onMouseUp={onMouseUp}
+        onMouseLeave={onMouseUp}
+        onWheel={onWheel}
+      >
+        <img
+          src={imageUrl}
+          alt={currentEntry.name}
+          onMouseDown={onMouseDown}
+          onError={handleImageError}
+          onLoad={handleImageLoad}
+          draggable={false}
+          className="max-w-full max-h-full object-contain select-none"
+          style={{
+            transform: `translate(${translate.x}px, ${translate.y}px) scale(${scale}) rotate(${rotation}deg)`,
+            cursor: isDragging ? "grabbing" : "grab",
+            transition: isDragging ? "none" : "transform 120ms ease-out",
+          }}
+        />
+
+        <Button
+          variant="ghost"
+          size="icon"
+          className="absolute left-4 top-1/2 -translate-y-1/2 bg-background/60 hover:bg-background/80 opacity-50 hover:opacity-100 transition-opacity"
+          onClick={goPrev}
+        >
+          <ChevronLeft className="size-8" />
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="absolute right-4 top-1/2 -translate-y-1/2 bg-background/60 hover:bg-background/80 opacity-50 hover:opacity-100 transition-opacity"
+          onClick={goNext}
+        >
+          <ChevronRight className="size-8" />
+        </Button>
+
+        {!isFolderSource && (
+          <ExtractingIndicator status={extractMutation.data?.status} variant="overlay" />
+        )}
       </div>
 
       {/* File operation dialogs */}
