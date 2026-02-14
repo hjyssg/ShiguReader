@@ -18,10 +18,13 @@ export function FileSelectionToolbar({
   onDelete,
   onClearSelection,
 }: FileSelectionToolbarProps) {
-  if (selectedCount === 0) return null
+  const hasSelection = selectedCount > 0
 
   return (
-    <div className="flex items-center gap-2 rounded-lg border bg-muted/50 px-3 py-2 text-sm">
+    <div
+      className="flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-opacity"
+      style={{ visibility: hasSelection ? "visible" : "hidden" }}
+    >
       <span className="font-medium">{selectedCount} selected</span>
       <div className="ml-2 flex items-center gap-1">
         <Button variant="ghost" size="sm" className="h-7 gap-1" onClick={onMove}>

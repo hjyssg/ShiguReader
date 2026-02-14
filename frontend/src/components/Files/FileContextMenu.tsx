@@ -63,7 +63,7 @@ export function FileContextMenu({
       <ContextMenuTrigger asChild onContextMenu={onContextMenuOpen}>
         {children}
       </ContextMenuTrigger>
-      <ContextMenuContent className="w-56">
+      <ContextMenuContent className="w-64">
         {/* Open */}
         {isOpenable && isSingleSelection && (
           <>
