@@ -124,6 +124,7 @@ export function FileList({
               <SelectItem value="type">Type</SelectItem>
               <SelectItem value="mtime">Date Modified</SelectItem>
               <SelectItem value="recommendation">Recommendation</SelectItem>
+              <SelectItem value="image_count">Image Count</SelectItem>
             </SelectContent>
           </Select>
           <Button

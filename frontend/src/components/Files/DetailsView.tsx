@@ -10,7 +10,7 @@ import { FileIcon } from "./FileIcon"
 import { FileNameWithPreview } from "./FileNameWithPreview"
 import { formatDateTime, formatFileSize, formatFileType } from "./utils"
 
-export type SortField = "name" | "type" | "mtime" | "recommendation"
+export type SortField = "name" | "type" | "mtime" | "recommendation" | "image_count"
 export type SortOrder = "asc" | "desc"
 
 export function DetailsView({
@@ -77,6 +77,15 @@ export function DetailsView({
                 <SortIcon field="recommendation" />
               </div>
             </th>
+            <th
+              className="text-right p-2 font-medium cursor-pointer hover:bg-muted/80 transition-colors w-[110px]"
+              onClick={() => onSort("image_count")}
+            >
+              <div className="flex items-center justify-end">
+                Image Count
+                <SortIcon field="image_count" />
+              </div>
+            </th>
           </tr>
         </thead>
         <tbody>
@@ -127,6 +136,9 @@ function DetailsRow({ item }: { item: FileSystemItem }) {
       </td>
       <td className="p-2 text-right text-muted-foreground">
         {!isFolder ? ((item as any).recommendation_score ?? 0).toFixed(3) : "-"}
+      </td>
+      <td className="p-2 text-right text-muted-foreground">
+        {isArchive && (item as any).image_count ? (item as any).image_count : "-"}
       </td>
     </tr>
   )
