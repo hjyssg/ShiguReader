@@ -41,11 +41,7 @@
 
 ---
 
-## Task8：打包与运行
-- 打包为 exe（同时启动前后端）
-- 更新 launch.json / build 脚本 / README
-- 移除 `/api/v1/users/me`
-- 修复：exe 运行后打不开前端网页
+
 
 ---
 
@@ -54,10 +50,6 @@
 - 保证所有页面可正常打开（可用 Playwright）
 
 
-## task 10： 
-修改reader page
-参考   Explorer
-也要各种文件操作。但ui你要设计一下。
 
 
 ### 打开带密码的zip
@@ -70,18 +62,18 @@
  还有没有生成video .move文件的thumbnail
 
 
-## task：
-  每次push都需要让github运行action帮我进行ut测试。
+
+
 
 
 # task
 根据PERFORMANCE_GUIDLINE.md 帮我进行性能检查
 
+## task：
+  每次push都需要让github运行action帮我进行ut测试
 
-# task
-删除的confrim modal
-文件名太长会overflow。你把modal弄宽一点。如果还是超过，就换行
-
-## task15:
-现在favorite几万个文件。你看看是不是要拆分开成几批进行batchinsert
-Scan failed for E:\_Happy_Lesson\_Going_to_sort\_good: too many values to unpack (expected 1)
+## Task8：打包与运行
+- 打包为 exe（同时启动前后端）
+- 更新 launch.json / build 脚本 / README
+- 修复：exe 运行后打不开前端网页
+  情况现在能打包成exe，但打开会exe失败。

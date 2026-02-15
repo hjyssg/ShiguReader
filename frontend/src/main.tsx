@@ -17,7 +17,8 @@ import { routeTree } from "./routeTree.gen"
 OpenAPI.BASE = import.meta.env.VITE_API_URL
 
 const handleApiError = (error: Error) => {
-  if (error instanceof ApiError && [401, 403].includes(error.status)) {
+  // 仅对未认证场景做全局跳转，403 保留给业务层展示具体错误原因
+  if (error instanceof ApiError && error.status === 401) {
     window.location.href = "/"
   }
 }

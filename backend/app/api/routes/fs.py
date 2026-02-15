@@ -73,6 +73,35 @@ def _validate_path(path: Path) -> Path:
         raise HTTPException(status_code=400, detail=f"Invalid path: {e}")
 
 
+def _build_permission_denied_detail(operation: str, target: Path, error: PermissionError) -> str:
+    """构建更可调试的权限错误信息。"""
+    errno_value = getattr(error, "errno", None)
+    winerror_value = getattr(error, "winerror", None)
+    strerror_value = getattr(error, "strerror", None)
+    filename_value = getattr(error, "filename", None)
+
+    parts = [
+        f"{operation} failed (permission denied)",
+        f"path={target}",
+    ]
+    if filename_value:
+        parts.append(f"filename={filename_value}")
+    if errno_value is not None:
+        parts.append(f"errno={errno_value}")
+    if winerror_value is not None:
+        parts.append(f"winerror={winerror_value}")
+    if strerror_value:
+        parts.append(f"reason={strerror_value}")
+    else:
+        parts.append(f"reason={error}")
+
+    # Windows 常见：winerror=32（文件被其他进程占用）
+    if winerror_value == 32:
+        parts.append("hint=file is likely in use by another process")
+
+    return "; ".join(parts)
+
+
 
 
 class RootItem(BaseModel):
@@ -907,7 +936,10 @@ async def move_file(request: MovePathRequest) -> PathOperationResponse:
     try:
         shutil.move(str(source), str(dest))
     except PermissionError as e:
-        raise HTTPException(status_code=403, detail=f"Permission denied: {e}")
+        raise HTTPException(
+            status_code=403,
+            detail=_build_permission_denied_detail("move file", source, e),
+        )
     except OSError as e:
         raise HTTPException(status_code=500, detail=f"Move failed: {e}")
 
@@ -942,7 +974,10 @@ async def move_folder(request: MovePathRequest) -> PathOperationResponse:
     try:
         shutil.move(str(source), str(dest))
     except PermissionError as e:
-        raise HTTPException(status_code=403, detail=f"Permission denied: {e}")
+        raise HTTPException(
+            status_code=403,
+            detail=_build_permission_denied_detail("move folder", source, e),
+        )
     except OSError as e:
         raise HTTPException(status_code=500, detail=f"Move failed: {e}")
 
@@ -984,7 +1019,11 @@ async def delete_path(request: DeletePathRequest) -> PathOperationResponse:
             logger.warning("DB cleanup failed after delete-folder %s: %s", target, e)
         return PathOperationResponse(status="ok", message="Folder deleted", path=str(target))
     except PermissionError as e:
-        raise HTTPException(status_code=403, detail=f"Permission denied: {e}")
+        operation = "delete file" if target.is_file() else "delete folder"
+        raise HTTPException(
+            status_code=403,
+            detail=_build_permission_denied_detail(operation, target, e),
+        )
     except OSError as e:
         raise HTTPException(status_code=500, detail=f"Delete failed: {e}")
 
@@ -1011,7 +1050,10 @@ async def zip_folder(request: ZipFolderRequest) -> PathOperationResponse:
                     file = Path(root) / fname
                     zf.write(file, arcname=file.relative_to(folder))
     except PermissionError as e:
-        raise HTTPException(status_code=403, detail=f"Permission denied: {e}")
+        raise HTTPException(
+            status_code=403,
+            detail=_build_permission_denied_detail("zip folder", folder, e),
+        )
     except OSError as e:
         raise HTTPException(status_code=500, detail=f"Zip failed: {e}")
 
@@ -1035,7 +1077,11 @@ async def rename_path(request: RenameRequest) -> PathOperationResponse:
     try:
         source.rename(dest)
     except PermissionError as e:
-        raise HTTPException(status_code=403, detail=f"Permission denied: {e}")
+        operation = "rename file" if source.is_file() else "rename folder"
+        raise HTTPException(
+            status_code=403,
+            detail=_build_permission_denied_detail(operation, source, e),
+        )
     except OSError as e:
         raise HTTPException(status_code=500, detail=f"Rename failed: {e}")
     
@@ -1117,7 +1163,10 @@ async def unzip_archive(request: UnzipRequest) -> PathOperationResponse:
             dest_path=str(output_dir),
         )
     except PermissionError as e:
-        raise HTTPException(status_code=403, detail=f"Permission denied: {e}")
+        raise HTTPException(
+            status_code=403,
+            detail=_build_permission_denied_detail("extract archive", archive, e),
+        )
     except zipfile.BadZipFile as e:
         raise HTTPException(status_code=400, detail=f"Invalid archive file: {e}")
     except OSError as e:

@@ -301,6 +301,25 @@ def test_delete_folder_success(client_with_root: TestClient, test_fs_root: Path)
     assert not target.exists()
 
 
+def test_permission_denied_detail_contains_debug_fields() -> None:
+    """权限错误详情应包含 operation/path/winerror 等调试信息。"""
+    err = PermissionError(13, "Permission denied", r"D:\\data\\locked.txt")
+    # 模拟 Windows 常见占用场景
+    setattr(err, "winerror", 32)
+
+    detail = fs_route._build_permission_denied_detail(
+        "delete file",
+        Path(r"D:\\data\\locked.txt"),
+        err,
+    )
+
+    assert "delete file failed (permission denied)" in detail
+    assert r"path=D:\data\locked.txt" in detail
+    assert "errno=13" in detail
+    assert "winerror=32" in detail
+    assert "hint=file is likely in use by another process" in detail
+
+
 def test_zip_folder_success(client_with_root: TestClient, test_fs_root: Path) -> None:
     output = test_fs_root / "archive.zip"
     response = client_with_root.post(

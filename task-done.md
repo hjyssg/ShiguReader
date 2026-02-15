@@ -195,3 +195,17 @@ archive没有设置tab title:
 reader页面调整：
 
 reader的图片占的位置可以大一点。下面明明很多padding。我看到你舍得max-width。你思考怎么调整。
+
+# task
+删除的confrim modal
+文件名太长会overflow。你把modal弄宽一点。如果还是超过，就换行
+
+## task15:
+现在favorite几万个文件。你看看是不是要拆分开成几批进行batchinsert
+Scan failed for E:\_Happy_Lesson\_Going_to_sort\_good: too many values to unpack (expected 1)
+
+
+## task 10： 
+修改reader page
+参考   Explorer
+也要各种文件操作。但ui你要设计一下。

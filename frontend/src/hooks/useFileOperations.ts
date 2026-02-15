@@ -3,9 +3,36 @@ import { useMutation, useQueryClient } from "@tanstack/react-query"
 import axios from "axios"
 import { toast } from "sonner"
 
-import { FilesystemService, OpenAPI } from "@/client"
+import { ApiError, FilesystemService, OpenAPI } from "@/client"
 
 const api = axios.create({ baseURL: OpenAPI.BASE })
+
+function normalizeDetail(detail: unknown): string | null {
+  if (typeof detail === "string" && detail.trim()) return detail
+
+  if (Array.isArray(detail) && detail.length > 0) {
+    const first = detail[0] as any
+    if (typeof first === "string") return first
+    if (first?.msg) return String(first.msg)
+  }
+
+  return null
+}
+
+function extractErrorMessage(err: unknown): string {
+  if (err instanceof ApiError) {
+    const detail = normalizeDetail((err.body as any)?.detail)
+    return detail || err.message
+  }
+
+  if (axios.isAxiosError(err)) {
+    const detail = normalizeDetail((err.response?.data as any)?.detail)
+    return detail || err.message
+  }
+
+  if (err instanceof Error) return err.message
+  return "Unknown error"
+}
 
 /** 重命名文件/文件夹 */
 function apiRename(path: string, newName: string) {
@@ -73,7 +100,7 @@ export function useFileOperations(currentPath: string) {
       invalidate()
     },
     onError: (err: any) => {
-      toast.error(`Rename failed: ${err?.response?.data?.detail || err.message}`)
+      toast.error(`Rename failed: ${extractErrorMessage(err)}`)
     },
   })
 
@@ -85,7 +112,7 @@ export function useFileOperations(currentPath: string) {
       invalidate()
     },
     onError: (err: any) => {
-      toast.error(`Delete failed: ${err?.response?.data?.detail || err.message}`)
+      toast.error(`Delete failed: ${extractErrorMessage(err)}`)
     },
   })
 
@@ -100,7 +127,7 @@ export function useFileOperations(currentPath: string) {
       invalidate()
     },
     onError: (err: any) => {
-      toast.error(`Delete failed: ${err?.response?.data?.detail || err.message}`)
+      toast.error(`Delete failed: ${extractErrorMessage(err)}`)
     },
   })
 
@@ -112,7 +139,7 @@ export function useFileOperations(currentPath: string) {
       invalidate()
     },
     onError: (err: any) => {
-      toast.error(`Move failed: ${err?.response?.data?.detail || err.message}`)
+      toast.error(`Move failed: ${extractErrorMessage(err)}`)
     },
   })
 
@@ -124,7 +151,7 @@ export function useFileOperations(currentPath: string) {
       invalidate()
     },
     onError: (err: any) => {
-      toast.error(`Move failed: ${err?.response?.data?.detail || err.message}`)
+      toast.error(`Move failed: ${extractErrorMessage(err)}`)
     },
   })
 
@@ -136,7 +163,7 @@ export function useFileOperations(currentPath: string) {
       invalidate()
     },
     onError: (err: any) => {
-      toast.error(`Move to favorites failed: ${err?.response?.data?.detail || err.message}`)
+      toast.error(`Move to favorites failed: ${extractErrorMessage(err)}`)
     },
   })
 
@@ -148,7 +175,7 @@ export function useFileOperations(currentPath: string) {
       invalidate()
     },
     onError: (err: any) => {
-      toast.error(`Move to already-read failed: ${err?.response?.data?.detail || err.message}`)
+      toast.error(`Move to already-read failed: ${extractErrorMessage(err)}`)
     },
   })
 
@@ -160,7 +187,7 @@ export function useFileOperations(currentPath: string) {
       invalidate()
     },
     onError: (err: any) => {
-      toast.error(`Compress failed: ${err?.response?.data?.detail || err.message}`)
+      toast.error(`Compress failed: ${extractErrorMessage(err)}`)
     },
   })
 
@@ -172,7 +199,7 @@ export function useFileOperations(currentPath: string) {
       invalidate()
     },
     onError: (err: any) => {
-      toast.error(`Compress images failed: ${err?.response?.data?.detail || err.message}`)
+      toast.error(`Compress images failed: ${extractErrorMessage(err)}`)
     },
   })
 
@@ -187,7 +214,7 @@ export function useFileOperations(currentPath: string) {
       invalidate()
     },
     onError: (err: any) => {
-      toast.error(`Backfill failed: ${err?.response?.data?.detail || err.message}`)
+      toast.error(`Backfill failed: ${extractErrorMessage(err)}`)
     },
   })
 
