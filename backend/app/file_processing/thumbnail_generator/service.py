@@ -196,8 +196,12 @@ def generate_image_thumbnail(
         elif img.mode != "RGB":
             img = img.convert("RGB")
 
-        # Resize maintaining aspect ratio (faster interpolation than default)
-        img.thumbnail((400, height), Image.Resampling.BILINEAR)
+        # Resize by target height while maintaining aspect ratio.
+        # 不限制最大宽度，避免宽图被 thumbnail((400, h)) 压低高度导致测试失败。
+        ratio = height / img.height
+        width = max(int(img.width * ratio), 1)
+        img = img.resize((width, height), Image.Resampling.BILINEAR)
+        # 统一输出 JPEG：编码更快、解码兼容性更好，缓存命中链路也统一为 .jpg。
         img.save(
             output_path,
             "JPEG",

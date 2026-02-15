@@ -47,7 +47,7 @@ def _to_item(file: File) -> FileSystemItem:
 
 
 @router.post("", response_model=SearchResponse)
-async def search_files(body: SearchRequest) -> SearchResponse:
+def search_files(body: SearchRequest) -> SearchResponse:
     q = body.q.strip()
     if not q:
         return SearchResponse(items=[], total=0)

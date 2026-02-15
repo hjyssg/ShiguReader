@@ -657,7 +657,7 @@ def _iter_files_for_backfill(path: Path, recursive: bool):
 
 
 @router.get("/roots", response_model=list[RootItem])
-async def get_roots() -> list[RootItem]:
+def get_roots() -> list[RootItem]:
     """Get configured root directories."""
     roots = _parse_roots()
     return [
@@ -667,7 +667,7 @@ async def get_roots() -> list[RootItem]:
 
 
 @router.get("/favorite", response_model=RootItem | None)
-async def get_favorite_root() -> RootItem | None:
+def get_favorite_root() -> RootItem | None:
     """Get configured favorite directory as a root-like item."""
     favorite_dir = (settings.FAVORITE_DIR or "").strip()
     if not favorite_dir:
@@ -681,7 +681,7 @@ async def get_favorite_root() -> RootItem | None:
 
 
 @router.get("/already-read", response_model=RootItem | None)
-async def get_already_read_root() -> RootItem | None:
+def get_already_read_root() -> RootItem | None:
     """Get configured already-read directory as a root-like item."""
     already_read_dir = (settings.ALREADY_READ_DIR or "").strip()
     if not already_read_dir:
@@ -695,7 +695,7 @@ async def get_already_read_root() -> RootItem | None:
 
 
 @router.get("/drives", response_model=list[RootItem])
-async def get_drives() -> list[RootItem]:
+def get_drives() -> list[RootItem]:
     """Get available drive letters (Windows only)."""
     drives = []
     for letter in string.ascii_uppercase:
@@ -708,7 +708,7 @@ async def get_drives() -> list[RootItem]:
 
 
 @router.get("/list", response_model=ListResponse)
-async def list_directory(
+def list_directory(
     background_tasks: BackgroundTasks,
     path: str = Query(..., description="Directory path to list"),
     sort_by: SortBy = Query("name", description="Sort by field"),
@@ -841,6 +841,34 @@ async def list_directory(
                             item.audio_count = meta.music_file_num
                             if meta.image_file_num and meta.image_file_num > 0 and item.filesize:
                                 item.avg_image_size = item.filesize // meta.image_file_num
+                        else:
+                            # Fallback: DB 还没有 archive_meta 时，按需即时统计，
+                            # 保障 has_video/has_audio/image_count 排序在首次 list 就可用。
+                            try:
+                                entries = list_archive_entries(Path(item.path))
+                                image_file_num = 0
+                                video_file_num = 0
+                                music_file_num = 0
+                                for entry in entries:
+                                    et = detect_file_type(entry)
+                                    if et == "image":
+                                        image_file_num += 1
+                                    elif et == "video":
+                                        video_file_num += 1
+                                    elif et == "audio":
+                                        music_file_num += 1
+
+                                item.image_count = image_file_num
+                                item.video_count = video_file_num
+                                item.audio_count = music_file_num
+                                if image_file_num > 0 and item.filesize:
+                                    item.avg_image_size = item.filesize // image_file_num
+                            except Exception as e:
+                                logger.warning("Failed to probe archive meta for %s: %s", item.path, e)
+                                # 保持可排序/可筛选的数值语义，避免 None 破坏排序。
+                                item.image_count = 0
+                                item.video_count = 0
+                                item.audio_count = 0
     except Exception as e:
         logger.warning(f"Failed to get metadata: {e}")
         for item in items:
@@ -922,7 +950,7 @@ async def list_directory(
 
 
 @router.post("/move-file", response_model=PathOperationResponse)
-async def move_file(request: MovePathRequest) -> PathOperationResponse:
+def move_file(request: MovePathRequest) -> PathOperationResponse:
     source = _validate_path(Path(request.source_path))
     dest = _validate_path(Path(request.dest_path))
 
@@ -955,7 +983,7 @@ async def move_file(request: MovePathRequest) -> PathOperationResponse:
 
 
 @router.post("/move-folder", response_model=PathOperationResponse)
-async def move_folder(request: MovePathRequest) -> PathOperationResponse:
+def move_folder(request: MovePathRequest) -> PathOperationResponse:
     source = _validate_path(Path(request.source_path))
     dest = _validate_path(Path(request.dest_path))
 
@@ -993,7 +1021,7 @@ async def move_folder(request: MovePathRequest) -> PathOperationResponse:
 
 
 @router.delete("/delete", response_model=PathOperationResponse)
-async def delete_path(request: DeletePathRequest) -> PathOperationResponse:
+def delete_path(request: DeletePathRequest) -> PathOperationResponse:
     target = _validate_path(Path(request.path))
 
     if not target.exists():
@@ -1029,7 +1057,7 @@ async def delete_path(request: DeletePathRequest) -> PathOperationResponse:
 
 
 @router.post("/zip-folder", response_model=PathOperationResponse)
-async def zip_folder(request: ZipFolderRequest) -> PathOperationResponse:
+def zip_folder(request: ZipFolderRequest) -> PathOperationResponse:
     folder = _validate_path(Path(request.folder_path))
     if not folder.exists() or not folder.is_dir():
         raise HTTPException(status_code=404, detail="Folder not found")
@@ -1061,7 +1089,7 @@ async def zip_folder(request: ZipFolderRequest) -> PathOperationResponse:
 
 
 @router.post("/rename", response_model=PathOperationResponse)
-async def rename_path(request: RenameRequest) -> PathOperationResponse:
+def rename_path(request: RenameRequest) -> PathOperationResponse:
     """重命名文件或文件夹。"""
     source = _validate_path(Path(request.path))
     
@@ -1106,7 +1134,7 @@ async def rename_path(request: RenameRequest) -> PathOperationResponse:
 
 
 @router.get("/download", response_model=None)
-async def download_file(path: str = Query(..., description="File path to download")):
+def download_file(path: str = Query(..., description="File path to download")):
     """下载单个文件。"""
     target_path = Path(path)
     validated_path = _validate_path(target_path)
@@ -1126,7 +1154,7 @@ async def download_file(path: str = Query(..., description="File path to downloa
 
 
 @router.post("/unzip", response_model=PathOperationResponse)
-async def unzip_archive(request: UnzipRequest) -> PathOperationResponse:
+def unzip_archive(request: UnzipRequest) -> PathOperationResponse:
     """解压压缩包到指定目录，保持原始目录结构。"""
     archive = _validate_path(Path(request.archive_path))
     
@@ -1756,7 +1784,7 @@ async def extract_archive(
 
 
 @router.get("/archive/file", response_model=None)
-async def get_archive_file(
+def get_archive_file(
     path: str = Query(..., description="Archive file path"),
     entry: str = Query(..., description="Entry path within archive"),
 ):
@@ -1780,7 +1808,7 @@ async def get_archive_file(
 
 
 @router.get("/file", response_model=None)
-async def get_file(path: str = Query(..., description="File path")):
+def get_file(path: str = Query(..., description="File path")):
     """Serve a file directly from disk."""
     target_path = Path(path)
     validated_path = _validate_path(target_path)

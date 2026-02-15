@@ -23,7 +23,7 @@ def test_generate_image_thumbnail_basic(tmp_path: Path) -> None:
     with Image.open(output_file) as thumb:
         assert thumb.height == 350
         assert thumb.width > 0
-        assert thumb.format == "WEBP"
+        assert thumb.format == "JPEG"
 
 
 def test_generate_image_thumbnail_maintains_aspect_ratio(tmp_path: Path) -> None:

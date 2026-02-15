@@ -213,3 +213,12 @@ Scan failed for E:\_Happy_Lesson\_Going_to_sort\_good: too many values to unpack
 
 ## task：
   每次push都需要让github运行action帮我进行ut测试
+
+
+  # setting编辑
+  文件夹多个的那个，你要改成一个editable list。
+  每个folder path一列，可以remove edit。
+  然后最下面一个add new
+
+
+  已读目录和收藏的编辑应该是平时是一个input + 一个disable的save button。用户双击进入edit模式，修改完。点击边上的save保存。

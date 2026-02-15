@@ -69,18 +69,29 @@ async def read_authors(
 
             page_rows = session.exec(count_stmt.offset(offset).limit(page_size)).all()
 
+            # Optimized: Use window function to get latest file per author in single query
+            author_names = [author_name for author_name, _ in page_rows]
             latest_by_author: dict[str, str] = {}
-            for author_name, _ in page_rows:
-                latest_stmt = (
-                    select(File.filepath)
-                    .join(FileArtist, FileArtist.filepath == File.filepath)
-                    .where(FileArtist.artist_name == author_name)
-                    .order_by(File.mtime.desc())
-                    .limit(1)
-                )
-                latest_filepath = session.exec(latest_stmt).first()
-                if latest_filepath:
-                    latest_by_author[author_name] = latest_filepath
+
+            if author_names:
+                from sqlalchemy import text
+
+                placeholders = ", ".join([f":author_{i}" for i in range(len(author_names))])
+                window_query = text(f"""
+                    SELECT artist_name, filepath
+                    FROM (
+                        SELECT fa.artist_name, f.filepath, f.mtime,
+                               ROW_NUMBER() OVER (PARTITION BY fa.artist_name ORDER BY f.mtime DESC) as rn
+                        FROM file_artists fa
+                        JOIN files f ON f.filepath = fa.filepath
+                        WHERE fa.artist_name IN ({placeholders})
+                    )
+                    WHERE rn = 1
+                """)
+                params = {f"author_{i}": name for i, name in enumerate(author_names)}
+                result = session.execute(window_query, params)
+                for row in result:
+                    latest_by_author[row[0]] = row[1]
 
         return total, page_rows, latest_by_author
 

@@ -21,6 +21,9 @@
 - 完成设计与实现
 
 ---
+# 给reader page的文件操作加热键
+v -》 移动喜欢的文件夹
+x -》 移到已读
 
 ## Task5：推荐排序接入
 - 前端接入 recommendation score
@@ -39,11 +42,7 @@
 ---
 
 
----
 
-
-
----
 
 ## Task9：测试补充
 - 补充前后端 UT
@@ -72,21 +71,16 @@
 
   页面设计你来，好看简单
 
-# setting编辑
-  文件夹多个的那个，你要改成一个editable list。
-  每个folder path一列，可以remove edit。
-  然后最下面一个add new
 
 
-  已读目录和收藏的编辑应该是平时是一个input + 一个disable的save button。用户双击进入edit模式，修改完。点击边上的save保存。
-
-# 给reader page的文件操作加热键
-v -》 移动喜欢的文件夹
-x -》 移到已读
 
 # task
 根据PERFORMANCE_GUIDLINE.md 帮我进行性能检查。 
 
+
+# 针对cosplay图包的优化
+  对于压缩包，我们要区分漫画和cosplay图包。nameparser现在主要是日本发行的漫画。
+  抽取coser的名字抽取 + 一个coserpage
 
 ## Task8：打包与运行
 - 打包为 exe（同时启动前后端）

@@ -1,11 +1,10 @@
 from fastapi import APIRouter
 
-from app.api.routes import authors, fs, history, parse, private, search, tags, users, utils
+from app.api.routes import authors, fs, history, parse, private, search, tags, utils
 from app.api.routes import settings as settings_router
 from app.core.config import settings
 
 api_router = APIRouter()
-api_router.include_router(users.router)
 api_router.include_router(utils.router)
 api_router.include_router(fs.router)
 api_router.include_router(parse.router)
