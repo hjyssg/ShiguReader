@@ -909,12 +909,15 @@ function ReadPage() {
         onOpenChange={setDeleteOpen}
         filePaths={[path]}
         onConfirm={() => {
-          operations.deleteMutation.mutate(path, {
-            onSuccess: () => {
-              setDeleteOpen(false)
-              navigate({ to: "/" })
+          operations.deleteMutation.mutate(
+            { path, permanently: false },
+            {
+              onSuccess: () => {
+                setDeleteOpen(false)
+                navigate({ to: "/" })
+              },
             },
-          })
+          )
         }}
         isPending={operations.deleteMutation.isPending}
       />

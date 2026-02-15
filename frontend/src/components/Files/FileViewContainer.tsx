@@ -340,7 +340,6 @@ export function FileViewContainer({
 
   // 键盘快捷键
   useFileExplorerKeyboard({
-    items: sortedItems,
     selectedPaths: selection.selectedPaths,
     clearSelection: selection.clearSelection,
     onDelete: handleOpenDelete,

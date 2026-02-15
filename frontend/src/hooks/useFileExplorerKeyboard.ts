@@ -1,11 +1,7 @@
 // 键盘快捷键 Hook — Explorer 页面键盘交互
 import { useEffect } from "react"
 
-import type { FileSystemItem } from "@/client"
-
 interface KeyboardOptions {
-  /** 当前排序后的文件列表 */
-  items: FileSystemItem[]
   /** 选择操作 */
   selectedPaths: Set<string>
   clearSelection: () => void
@@ -20,7 +16,6 @@ interface KeyboardOptions {
 }
 
 export function useFileExplorerKeyboard({
-  items,
   selectedPaths,
   clearSelection,
   onDelete,
