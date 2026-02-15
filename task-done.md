@@ -245,3 +245,25 @@ Scan failed for E:\_Happy_Lesson\_Going_to_sort\_good: too many values to unpack
 - 更新 launch.json / build 脚本 / README
 - 修复：exe 运行后打不开前端网页
   情况现在能打包成exe，但打开会exe失败。
+
+
+# task 
+grid模式下的多选先用env的参数disable。效果不好
+
+# task
+右键菜单
+加一个下载文件的选项，folder不需要下载。后端api应该已经实现好了。
+
+带thumbnail的item-card的右键菜单也改成 点击icon出现的dropdown menu。
+点击出现选中状态的逻辑也删掉。
+
+file-item-wrapper的右键菜单保留
+
+# task：
+带thumbnail的item-card的右键菜单没删除。
+点击出现选中状态的逻辑也没删掉。
+
+# read page
+下面的info bar
+还需要显示zip的视频文件数和音频文件数。大于0的话，要用好看的橘色高亮。
+你先在计算avg img size的算法你检查一下是不是file size/img num，如果是的话，需要修改。应该要改后端。

@@ -15,6 +15,7 @@ import {
   Trash2,
 } from "lucide-react"
 import { useEffect, useState } from "react"
+import { useTranslation } from "react-i18next"
 
 import { FilesystemService, OpenAPI } from "@/client"
 import { useIsMobile } from "@/hooks/useMobile"
@@ -56,6 +57,7 @@ export const Route = createFileRoute("/_layout/archive")({
 })
 
 function Archive() {
+  const { t } = useTranslation()
   const { path } = Route.useSearch()
   const navigate = useNavigate()
   const isMobile = useIsMobile()
@@ -102,7 +104,7 @@ function Archive() {
 
   // 检查文件是否存在
   if (listError) {
-    const errorMessage = (listError as any)?.body?.detail || "未知错误"
+    const errorMessage = (listError as any)?.body?.detail || t("archive.unknownError")
     const isNotFound = errorMessage.includes("not found") || errorMessage.includes("Not found") || errorMessage.includes("404")
     
     return (

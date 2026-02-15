@@ -1,5 +1,6 @@
 // 实体网格布局组件，支持分页
 import { useState } from "react"
+import { useTranslation } from "react-i18next"
 import { ResponsiveGrid } from "@/components/semantic/layout"
 import {
   Pagination,
@@ -23,7 +24,7 @@ export function EntityGrid({
   total,
   onPageChange,
   onCardClick,
-  emptyText = "暂无数据",
+  emptyText,
 }: {
   items: EntityCardItem[]
   isLoading: boolean
@@ -34,6 +35,10 @@ export function EntityGrid({
   onCardClick?: (item: EntityCardItem) => void
   emptyText?: string
 }) {
+  const { t } = useTranslation()
+  const defaultEmptyText = t("common.noData")
+  const finalEmptyText = emptyText ?? defaultEmptyText
+  
   const totalPages = Math.max(1, Math.ceil(total / pageSize))
   const [jumpPage, setJumpPage] = useState("")
 
@@ -63,7 +68,7 @@ export function EntityGrid({
         </ResponsiveGrid>
       ) : items.length === 0 ? (
         <div className="empty-state flex flex-col items-center justify-center py-12 text-center">
-          <p className="text-muted-foreground">{emptyText}</p>
+          <p className="text-muted-foreground">{finalEmptyText}</p>
         </div>
       ) : (
         <ResponsiveGrid className="grid-content">
@@ -155,7 +160,7 @@ export function EntityGrid({
           </Pagination>
 
           <div className="flex items-center gap-2 text-sm">
-            <span className="text-muted-foreground">跳转到</span>
+            <span className="text-muted-foreground">{t("history.goTo")}</span>
             <input
               type="number"
               min={1}
@@ -179,7 +184,7 @@ export function EntityGrid({
                 if (!Number.isNaN(n)) goToPage(n)
               }}
             >
-              确定
+              {t("history.confirm")}
             </button>
           </div>
         </div>

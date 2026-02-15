@@ -1,6 +1,7 @@
 import { useMutation, useQuery } from "@tanstack/react-query"
 import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { useEffect } from "react"
+import { useTranslation } from "react-i18next"
 import Lightbox from "yet-another-react-lightbox"
 import type { SlideImage } from "yet-another-react-lightbox"
 import "yet-another-react-lightbox/styles.css"
@@ -22,6 +23,7 @@ export const Route = createFileRoute("/_layout/read-mobile")({
 })
 
 function ReadMobilePage() {
+  const { t } = useTranslation()
   const { path, page, source, filePath } = Route.useSearch()
   const navigate = useNavigate()
   const isFolderSource = source === "folder"
@@ -104,7 +106,7 @@ function ReadMobilePage() {
   }, [isFolderSource, filePath, imageEntries.length, resolvedPage, page, navigate, path, source, safePage])
 
   if (!path || imageEntries.length === 0) {
-    return <div>未找到可阅读图片</div>
+    return <div>{t("reader.noImagesFound")}</div>
   }
 
   const slides: SlideImage[] = imageEntries.map((entry) => ({

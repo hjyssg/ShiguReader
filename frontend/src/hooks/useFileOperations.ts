@@ -106,8 +106,8 @@ export function useFileOperations(currentPath: string) {
   })
 
   const deleteMutation = useMutation({
-    mutationFn: (path: string) =>
-      FilesystemService.deletePath({ requestBody: { path } }),
+    mutationFn: ({ path, permanently }: { path: string; permanently: boolean }) =>
+      FilesystemService.deletePath({ requestBody: { path, permanently } }),
     onSuccess: () => {
       toast.success("Deleted successfully")
       invalidate()
@@ -118,9 +118,9 @@ export function useFileOperations(currentPath: string) {
   })
 
   const deleteBatchMutation = useMutation({
-    mutationFn: async (paths: string[]) => {
+    mutationFn: async ({ paths, permanently }: { paths: string[]; permanently: boolean }) => {
       for (const path of paths) {
-        await FilesystemService.deletePath({ requestBody: { path } })
+        await FilesystemService.deletePath({ requestBody: { path, permanently } })
       }
     },
     onSuccess: () => {

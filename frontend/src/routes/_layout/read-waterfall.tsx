@@ -2,6 +2,7 @@ import { useMutation, useQuery } from "@tanstack/react-query"
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router"
 import { ChevronRight, Folder, Home } from "lucide-react"
 import { useEffect, useMemo } from "react"
+import { useTranslation } from "react-i18next"
 
 import { FilesystemService, OpenAPI } from "@/client"
 import { useIsMobile } from "@/hooks/useMobile"
@@ -21,6 +22,7 @@ export const Route = createFileRoute("/_layout/read-waterfall")({
 })
 
 function ReadWaterfallPage() {
+  const { t } = useTranslation()
   const { path } = Route.useSearch()
   const navigate = useNavigate()
   const isMobile = useIsMobile()
@@ -94,10 +96,7 @@ function ReadWaterfallPage() {
             })
           }
         >
-          打开阅读器
-        </Button>
-        <Button variant="outline" onClick={() => navigate({ to: "/read-overview", search: { path } })}>
-          Overview
+          {t("reader.openReader")}
         </Button>
         <ExtractingIndicator status={extractMutation.data?.status} variant="inline" />
       </div>

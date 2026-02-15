@@ -1,6 +1,7 @@
 import { cn } from "@/lib/utils"
 import { Loader2 } from "lucide-react"
 import React from "react"
+import { useTranslation } from "react-i18next"
 
 export function PageContainer({ children, className }: { children: React.ReactNode; className?: string }) {
   return (
@@ -74,22 +75,20 @@ export function ToolbarGroup({ children, className }: { children: React.ReactNod
   )
 }
 
-export function ItemCard({ children, className, onClick, title, isClickable = true }: { 
+export function ItemCard({ children, className, onClick, title }: {
   children: React.ReactNode; 
   className?: string;
   onClick?: () => void;
   title?: string;
-  isClickable?: boolean;
 }) {
-  const baseClass = "item-card group relative rounded-lg border bg-card transition-all w-full text-left"
-  const clickableClass = isClickable ? "cursor-pointer hover:border-primary hover:shadow-md" : "cursor-default"
+  const baseClass = "item-card group relative rounded-lg border bg-card transition-colors w-full text-left cursor-default"
   
   if (onClick) {
     return (
       <button
         type="button"
         onClick={onClick}
-        className={cn(baseClass, clickableClass, className)}
+        className={cn(baseClass, className)}
         title={title}
       >
         {children}
@@ -98,7 +97,7 @@ export function ItemCard({ children, className, onClick, title, isClickable = tr
   }
 
   return (
-    <div className={cn(baseClass, clickableClass, className)} title={title}>
+    <div className={cn(baseClass, className)} title={title}>
       {children}
     </div>
   )
@@ -106,7 +105,7 @@ export function ItemCard({ children, className, onClick, title, isClickable = tr
 
 export function CardThumbnail({ children, className }: { children: React.ReactNode; className?: string }) {
   return (
-    <div className={cn("card-thumbnail aspect-square w-full overflow-hidden rounded-t-lg bg-muted flex items-center justify-center", className)}>
+    <div className={cn("card-thumbnail aspect-square w-full overflow-hidden rounded-t-lg flex items-center justify-center", className)}>
       {children}
     </div>
   )
@@ -186,12 +185,14 @@ export function ExtractingIndicator({
   variant?: "overlay" | "inline" | "fixed"
   className?: string
 }) {
+  const { t } = useTranslation()
+  
   if (status !== "extracting") return null
 
   if (variant === "overlay") {
     return (
       <div className={cn("absolute right-3 top-3 rounded bg-background/80 px-2 py-1 text-xs flex items-center gap-1", className)}>
-        <Loader2 className="size-3 animate-spin" /> 解压中…
+        <Loader2 className="size-3 animate-spin" /> {t("common.extracting")}
       </div>
     )
   }
@@ -200,7 +201,7 @@ export function ExtractingIndicator({
     return (
       <div className={cn("fixed bottom-4 right-4 bg-card border rounded-lg p-4 shadow-lg flex items-center gap-2", className)}>
         <Loader2 className="size-4 animate-spin" />
-        <span className="text-sm">解压中…</span>
+        <span className="text-sm">{t("common.extracting")}</span>
       </div>
     )
   }
@@ -208,7 +209,7 @@ export function ExtractingIndicator({
   // variant === "inline"
   return (
     <span className={cn("text-xs text-muted-foreground flex items-center gap-1", className)}>
-      <Loader2 className="size-3 animate-spin" /> 解压中…
+      <Loader2 className="size-3 animate-spin" /> {t("common.extracting")}
     </span>
   )
 }

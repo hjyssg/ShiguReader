@@ -432,7 +432,7 @@ function HistoryPage() {
           </Pagination>
 
           <div className="flex items-center gap-2 text-sm">
-            <span className="text-muted-foreground">跳转到</span>
+            <span className="text-muted-foreground">{t("history.goTo")}</span>
             <input
               type="number"
               min={1}
@@ -456,7 +456,7 @@ function HistoryPage() {
                 if (!Number.isNaN(n)) goToPage(n)
               }}
             >
-              确定
+              {t("history.confirm")}
             </button>
           </div>
         </div>

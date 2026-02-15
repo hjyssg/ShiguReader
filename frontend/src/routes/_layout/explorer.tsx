@@ -19,6 +19,7 @@ import {
 import { useDocumentTitle } from "@/hooks/useDocumentTitle"
 import { FileNotFoundError } from "@/components/Common/FileNotFoundError"
 import { useFileOperations } from "@/hooks/useFileOperations"
+import "./explorer.css"
 
 export const Route = createFileRoute("/_layout/explorer")({
   component: Explorer,
@@ -111,7 +112,7 @@ function Explorer() {
 
   // 检查文件夹是否存在
   if (error) {
-    const errorMessage = (error as any)?.body?.detail || "未知错误"
+    const errorMessage = (error as any)?.body?.detail || t("explorer.unknownError")
     const isNotFound = errorMessage.includes("not found") || errorMessage.includes("Not found") || errorMessage.includes("404")
     
     return (
@@ -126,25 +127,25 @@ function Explorer() {
   }
 
   return (
-    <div className="space-y-4">
-      <nav className="flex items-center gap-2 text-sm">
+    <div className="explorer-page">
+      <nav className="explorer-breadcrumb" aria-label="Explorer breadcrumb">
         <Link
           to="/"
-          className="flex items-center gap-1 text-muted-foreground hover:text-foreground transition-colors"
+          className="explorer-breadcrumb__home-link"
         >
-          <Home className="size-4" />
+          <Home className="explorer-breadcrumb__home-icon" />
           <span>Home</span>
         </Link>
         {breadcrumbs.map((crumb, index) => (
-          <div key={crumb.path} className="flex items-center gap-2">
-            <ChevronRight className="size-4 text-muted-foreground" />
+          <div key={crumb.path} className="explorer-breadcrumb__item">
+            <ChevronRight className="explorer-breadcrumb__separator" />
             {index === breadcrumbs.length - 1 ? (
-              <span className="font-medium">{crumb.name}</span>
+              <span className="explorer-breadcrumb__current">{crumb.name}</span>
             ) : (
               <Link
                 to="/explorer"
                 search={{ path: crumb.path }}
-                className="text-muted-foreground hover:text-foreground transition-colors"
+                className="explorer-breadcrumb__link"
               >
                 {crumb.name}
               </Link>
@@ -161,30 +162,30 @@ function Explorer() {
         storageKeyPrefix="explorer"
         toolbarExtra={
           <>
-            <div className="flex items-center gap-3 px-1">
-              <label htmlFor="zip-has-video" className="flex items-center gap-1.5 text-xs text-muted-foreground cursor-pointer select-none">
+            <div className="explorer-zip-filter-group">
+              <label htmlFor="zip-has-video" className="explorer-zip-filter">
                 <Checkbox
                   id="zip-has-video"
                   checked={zipHasVideoOnly}
                   onCheckedChange={(checked) => setZipHasVideoOnly(Boolean(checked))}
                 />
-                zip 含 video
+                {t("explorer.zipHasVideo")}
               </label>
 
-              <label htmlFor="zip-has-audio" className="flex items-center gap-1.5 text-xs text-muted-foreground cursor-pointer select-none">
+              <label htmlFor="zip-has-audio" className="explorer-zip-filter">
                 <Checkbox
                   id="zip-has-audio"
                   checked={zipHasAudioOnly}
                   onCheckedChange={(checked) => setZipHasAudioOnly(Boolean(checked))}
                 />
-                zip 含 audio
+                {t("explorer.zipHasAudio")}
               </label>
             </div>
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="h-8">
-                  <ScanLine className="size-4 mr-1" />
+                <Button variant="outline" size="sm" className="explorer-scan-button">
+                  <ScanLine className="explorer-scan-button__icon" />
                   {t("explorer.scan")}
                 </Button>
               </DropdownMenuTrigger>

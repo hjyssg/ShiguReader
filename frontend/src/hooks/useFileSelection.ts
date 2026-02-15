@@ -1,5 +1,5 @@
 // 文件选择状态管理 Hook — 仅支持单选
-import { useCallback, useState } from "react"
+import { startTransition, useCallback, useState } from "react"
 
 import type { FileSystemItem } from "@/client"
 
@@ -28,7 +28,10 @@ export function useFileSelection(): FileSelectionState & FileSelectionActions {
   const [selectedPaths, setSelectedPaths] = useState<Set<string>>(new Set())
 
   const select = useCallback((path: string) => {
-    setSelectedPaths(new Set([path]))
+    setSelectedPaths((prev) => {
+      if (prev.size === 1 && prev.has(path)) return prev
+      return new Set([path])
+    })
   }, [])
 
   const clearSelection = useCallback(() => {
@@ -47,11 +50,14 @@ export function useFileSelection(): FileSelectionState & FileSelectionActions {
   const handleContextMenu = useCallback(
     (path: string) => {
       // 如果右键的项不在已选中集合中，则单选该项
-      if (!selectedPaths.has(path)) {
-        setSelectedPaths(new Set([path]))
-      }
+      startTransition(() => {
+        setSelectedPaths((prev) => {
+          if (prev.has(path)) return prev
+          return new Set([path])
+        })
+      })
     },
-    [selectedPaths],
+    [],
   )
 
   const getSelectedItems = useCallback(

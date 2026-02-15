@@ -1,0 +1,29 @@
+.file-actions-dropdown {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2px;
+}
+
+.file-actions-dropdown__icon-button,
+.file-actions-dropdown__trigger {
+  /* mixin-like: 统一 hover 色变量 */
+  --file-action-hover-color: #f59e0b;
+  display: inline-flex;
+  width: 28px;
+  height: 28px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  color: hsl(var(--muted-foreground));
+  border: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+.file-actions-dropdown__icon-button:hover,
+.file-actions-dropdown__trigger:hover {
+  background: transparent;
+  color: var(--file-action-hover-color);
+}

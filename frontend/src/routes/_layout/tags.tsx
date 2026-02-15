@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query"
 import { createFileRoute, useNavigate } from "@tanstack/react-router"
+import { useTranslation } from "react-i18next"
 
 import { OpenAPI } from "@/client"
 import { EntityGrid } from "@/components/Common/EntityGrid"
@@ -49,6 +50,7 @@ export const Route = createFileRoute("/_layout/tags")({
 })
 
 function TagsPage() {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const { page, sort_by, sort_order } = Route.useSearch()
   const pageSize = 24
@@ -73,13 +75,13 @@ function TagsPage() {
   return (
     <div className="space-y-6">
       <div className="space-y-2">
-        <h1 className="text-2xl font-bold tracking-tight">Tags</h1>
-        <p className="text-muted-foreground">按标签浏览文件集合</p>
+        <h1 className="text-2xl font-bold tracking-tight">{t("tags.title")}</h1>
+        <p className="text-muted-foreground">{t("tags.description")}</p>
       </div>
 
       <div className="flex flex-wrap items-center gap-4 border rounded-lg p-4">
         <div className="flex items-center gap-2">
-          <Label className="text-sm">排序字段</Label>
+          <Label className="text-sm">{t("tags.sortByField")}</Label>
           <Select
             value={sort_by}
             onValueChange={(v) => {
@@ -97,14 +99,14 @@ function TagsPage() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="count">文件数量</SelectItem>
-              <SelectItem value="name">名称</SelectItem>
+              <SelectItem value="count">{t("tags.fileCount")}</SelectItem>
+              <SelectItem value="name">{t("tags.name")}</SelectItem>
             </SelectContent>
           </Select>
         </div>
 
         <div className="flex items-center gap-2">
-          <Label className="text-sm">排序方向</Label>
+          <Label className="text-sm">{t("tags.sortDirection")}</Label>
           <Select
             value={sort_order}
             onValueChange={(v) => {
@@ -122,8 +124,8 @@ function TagsPage() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="desc">降序</SelectItem>
-              <SelectItem value="asc">升序</SelectItem>
+              <SelectItem value="desc">{t("tags.descending")}</SelectItem>
+              <SelectItem value="asc">{t("tags.ascending")}</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -152,10 +154,11 @@ function TagsPage() {
               q: item.name,
               scopes: ["tag"],
               mode: "hybrid",
+              page: 1,
             },
           })
         }}
-        emptyText="暂无标签数据"
+        emptyText={t("tags.empty")}
       />
     </div>
   )
