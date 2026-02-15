@@ -75,7 +75,13 @@
   "reader": {
     "openReader": "Open Reader",
     "noImages": "No readable images found",
-    "noImagesFound": "No readable images found"
+    "noImagesFound": "No readable images found",
+    "mtime": "Modified",
+    "size": "Size",
+    "avgImageSize": "Avg Image Size",
+    "authors": "Authors",
+    "tags": "Tags",
+    "none": "-"
   },
   "settings": {
     "title": "Settings",

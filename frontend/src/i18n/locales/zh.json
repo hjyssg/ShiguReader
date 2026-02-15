@@ -75,7 +75,13 @@
   "reader": {
     "openReader": "打开阅读器",
     "noImages": "未找到可阅读的图片",
-    "noImagesFound": "未找到可阅读图片"
+    "noImagesFound": "未找到可阅读图片",
+    "mtime": "修改时间",
+    "size": "文件大小",
+    "avgImageSize": "平均图片大小",
+    "authors": "作者",
+    "tags": "标签",
+    "none": "-"
   },
   "settings": {
     "title": "设置",

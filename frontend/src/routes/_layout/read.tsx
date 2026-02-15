@@ -19,13 +19,15 @@ import {
 import { useEffect, useMemo, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 
-import { FilesystemService, OpenAPI } from "@/client"
+import { FilesystemService, OpenAPI, ParseService } from "@/client"
 import { getBaseName, getParentPath, joinPath, splitPath, wrapPageIndex } from "@/lib/path-utils"
 import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
 import { ExtractingIndicator } from "@/components/semantic/layout"
 import { useDocumentTitle } from "@/hooks/useDocumentTitle"
 import { useFileOperations } from "@/hooks/useFileOperations"
+import { formatDateTime, formatFileSize } from "@/components/Files/utils"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -96,6 +98,26 @@ function ReadPage() {
     queryKey: ["fs-list", path],
     queryFn: () => FilesystemService.listDirectory({ path }),
     enabled: !!path && isFolderSource,
+    retry: false,
+  })
+
+  const { data: parentListData } = useQuery({
+    queryKey: ["reader-parent-list", parentPath],
+    queryFn: () => FilesystemService.listDirectory({ path: parentPath }),
+    enabled: !!parentPath,
+    retry: false,
+  })
+
+  const { data: parseMeta } = useQuery({
+    queryKey: ["reader-parse-meta", path],
+    queryFn: async () => {
+      try {
+        return await ParseService.getParseResult({ filepath: path })
+      } catch {
+        return null
+      }
+    },
+    enabled: !!path,
     retry: false,
   })
 
@@ -288,6 +310,12 @@ function ReadPage() {
   // Must declare these before early returns
   const pathParts = splitPath(path)
   const fileName = getBaseName(path, isFolderSource ? "Folder" : "Archive")
+  const currentPathMeta = parentListData?.items?.find((item) => item.path === path)
+  const mtimeText = currentPathMeta?.mtime ? formatDateTime(currentPathMeta.mtime) : "-"
+  const sizeText = currentPathMeta?.filesize ? formatFileSize(currentPathMeta.filesize) : "-"
+  const avgImageSizeText = currentPathMeta?.avg_image_size ? formatFileSize(currentPathMeta.avg_image_size) : "-"
+  const authors = parseMeta?.authors ?? []
+  const tags = parseMeta?.raw_tags ?? []
   const dirCrumbs = pathParts.slice(0, -1).map((name, index) => ({
     name,
     path: joinPath(pathParts.slice(0, index + 1), path),
@@ -431,7 +459,8 @@ function ReadPage() {
         <Link
           to={isFolderSource ? "/explorer" : "/archive"}
           search={{ path }}
-          className="hover:text-foreground truncate max-w-[400px] font-medium text-foreground/80"
+          className="hover:text-foreground truncate max-w-[500px] font-medium text-foreground/80"
+          title={fileName}
         >
           {fileName}
         </Link>
@@ -563,6 +592,56 @@ function ReadPage() {
         {!isFolderSource && (
           <ExtractingIndicator status={extractMutation.data?.status} variant="overlay" />
         )}
+      </div>
+
+      <div className="px-4 py-2 border-t bg-background/85 backdrop-blur shrink-0">
+        <div className="flex items-center gap-3 text-xs whitespace-nowrap overflow-x-auto">
+          <span className="text-muted-foreground">
+            {t("reader.mtime")}: <span className="text-foreground">{mtimeText}</span>
+          </span>
+          <span className="text-muted-foreground">
+            {t("reader.size")}: <span className="text-foreground">{sizeText}</span>
+          </span>
+          <span className="text-muted-foreground">
+            {t("reader.avgImageSize")}: <span className="text-foreground">{avgImageSizeText}</span>
+          </span>
+
+          <span className="text-muted-foreground">{t("reader.authors")}:</span>
+          {authors.length > 0 ? (
+            <div className="inline-flex items-center gap-1">
+              {authors.map((author) => (
+                <Badge key={author} asChild className="h-5 px-1.5 text-[10px]">
+                  <Link
+                    to="/search"
+                    search={{ q: author, scopes: ["author"], mode: "hybrid", page: 1 }}
+                  >
+                    {author}
+                  </Link>
+                </Badge>
+              ))}
+            </div>
+          ) : (
+            <span className="text-muted-foreground">{t("reader.none")}</span>
+          )}
+
+          <span className="text-muted-foreground">{t("reader.tags")}:</span>
+          {tags.length > 0 ? (
+            <div className="inline-flex items-center gap-1">
+              {tags.map((tag) => (
+                <Badge key={tag} asChild variant="secondary" className="h-5 px-1.5 text-[10px]">
+                  <Link
+                    to="/search"
+                    search={{ q: tag, scopes: ["tag"], mode: "hybrid", page: 1 }}
+                  >
+                    #{tag}
+                  </Link>
+                </Badge>
+              ))}
+            </div>
+          ) : (
+            <span className="text-muted-foreground">{t("reader.none")}</span>
+          )}
+        </div>
       </div>
 
       {/* File operation dialogs */}
