@@ -79,3 +79,11 @@ x -》 移到已读
 # task 
 grid模式下的多选先用env的参数disable。效果不好
 
+# task
+右键菜单
+加一个下载文件的选项，folder不需要下载。
+
+带thumbnail的item-card的右键菜单也改成 点击icon出现的dropdown menu。
+点击出现选中状态的逻辑也删掉。
+
+file-item-wrapper的右键菜单保留

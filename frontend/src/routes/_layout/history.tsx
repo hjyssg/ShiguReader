@@ -127,8 +127,8 @@ function HistoryPage() {
     }
     if (item.file_type === "audio") {
       navigate({
-        to: "/video",
-        search: { path: item.filepath, entry: undefined, media: "audio" },
+        to: "/audio",
+        search: { path: item.filepath, entry: undefined },
       })
       return
     }

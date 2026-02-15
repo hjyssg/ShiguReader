@@ -377,8 +377,8 @@ function ArchiveEntryItem({
   if (isAudio) {
     return (
       <Link
-        to="/video"
-        search={{ path: archivePath, entry: entry.entry_path, media: "audio" }}
+        to="/audio"
+        search={{ path: archivePath, entry: entry.entry_path }}
       >
         {content}
       </Link>

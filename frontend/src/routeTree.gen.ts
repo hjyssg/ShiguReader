@@ -25,6 +25,7 @@ import { Route as LayoutReadRouteImport } from './routes/_layout/read'
 import { Route as LayoutHistoryRouteImport } from './routes/_layout/history'
 import { Route as LayoutExplorerRouteImport } from './routes/_layout/explorer'
 import { Route as LayoutAuthorsRouteImport } from './routes/_layout/authors'
+import { Route as LayoutAudioRouteImport } from './routes/_layout/audio'
 import { Route as LayoutArchiveRouteImport } from './routes/_layout/archive'
 import { Route as LayoutAdminRouteImport } from './routes/_layout/admin'
 
@@ -107,6 +108,11 @@ const LayoutAuthorsRoute = LayoutAuthorsRouteImport.update({
   path: '/authors',
   getParentRoute: () => LayoutRoute,
 } as any)
+const LayoutAudioRoute = LayoutAudioRouteImport.update({
+  id: '/audio',
+  path: '/audio',
+  getParentRoute: () => LayoutRoute,
+} as any)
 const LayoutArchiveRoute = LayoutArchiveRouteImport.update({
   id: '/archive',
   path: '/archive',
@@ -126,6 +132,7 @@ export interface FileRoutesByFullPath {
   '/signup': typeof SignupRoute
   '/admin': typeof LayoutAdminRoute
   '/archive': typeof LayoutArchiveRoute
+  '/audio': typeof LayoutAudioRoute
   '/authors': typeof LayoutAuthorsRoute
   '/explorer': typeof LayoutExplorerRoute
   '/history': typeof LayoutHistoryRoute
@@ -144,6 +151,7 @@ export interface FileRoutesByTo {
   '/signup': typeof SignupRoute
   '/admin': typeof LayoutAdminRoute
   '/archive': typeof LayoutArchiveRoute
+  '/audio': typeof LayoutAudioRoute
   '/authors': typeof LayoutAuthorsRoute
   '/explorer': typeof LayoutExplorerRoute
   '/history': typeof LayoutHistoryRoute
@@ -165,6 +173,7 @@ export interface FileRoutesById {
   '/signup': typeof SignupRoute
   '/_layout/admin': typeof LayoutAdminRoute
   '/_layout/archive': typeof LayoutArchiveRoute
+  '/_layout/audio': typeof LayoutAudioRoute
   '/_layout/authors': typeof LayoutAuthorsRoute
   '/_layout/explorer': typeof LayoutExplorerRoute
   '/_layout/history': typeof LayoutHistoryRoute
@@ -187,6 +196,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/admin'
     | '/archive'
+    | '/audio'
     | '/authors'
     | '/explorer'
     | '/history'
@@ -205,6 +215,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/admin'
     | '/archive'
+    | '/audio'
     | '/authors'
     | '/explorer'
     | '/history'
@@ -225,6 +236,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/_layout/admin'
     | '/_layout/archive'
+    | '/_layout/audio'
     | '/_layout/authors'
     | '/_layout/explorer'
     | '/_layout/history'
@@ -360,6 +372,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutAuthorsRouteImport
       parentRoute: typeof LayoutRoute
     }
+    '/_layout/audio': {
+      id: '/_layout/audio'
+      path: '/audio'
+      fullPath: '/audio'
+      preLoaderRoute: typeof LayoutAudioRouteImport
+      parentRoute: typeof LayoutRoute
+    }
     '/_layout/archive': {
       id: '/_layout/archive'
       path: '/archive'
@@ -380,6 +399,7 @@ declare module '@tanstack/react-router' {
 interface LayoutRouteChildren {
   LayoutAdminRoute: typeof LayoutAdminRoute
   LayoutArchiveRoute: typeof LayoutArchiveRoute
+  LayoutAudioRoute: typeof LayoutAudioRoute
   LayoutAuthorsRoute: typeof LayoutAuthorsRoute
   LayoutExplorerRoute: typeof LayoutExplorerRoute
   LayoutHistoryRoute: typeof LayoutHistoryRoute
@@ -396,6 +416,7 @@ interface LayoutRouteChildren {
 const LayoutRouteChildren: LayoutRouteChildren = {
   LayoutAdminRoute: LayoutAdminRoute,
   LayoutArchiveRoute: LayoutArchiveRoute,
+  LayoutAudioRoute: LayoutAudioRoute,
   LayoutAuthorsRoute: LayoutAuthorsRoute,
   LayoutExplorerRoute: LayoutExplorerRoute,
   LayoutHistoryRoute: LayoutHistoryRoute,

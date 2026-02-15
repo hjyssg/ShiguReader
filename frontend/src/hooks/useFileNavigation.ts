@@ -28,7 +28,7 @@ function buildNavigationTarget(item: FileSystemItem, isMobile: boolean) {
     return { to: "/video" as const, search: { path: item.path, entry: undefined, media: "video" as const } }
   }
   if (isAudio) {
-    return { to: "/video" as const, search: { path: item.path, entry: undefined, media: "audio" as const } }
+    return { to: "/audio" as const, search: { path: item.path, entry: undefined } }
   }
   if (isImage) {
     const parentPath = getParentPath(item.path)
