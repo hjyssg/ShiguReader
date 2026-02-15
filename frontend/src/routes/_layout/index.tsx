@@ -39,6 +39,15 @@ function Dashboard() {
     },
   })
 
+  const { data: alreadyReadRoot } = useQuery({
+    queryKey: ["fs-already-read"],
+    queryFn: async (): Promise<{ path: string; dirname: string } | null> => {
+      const response = await fetch(`${OpenAPI.BASE}/api/v1/fs/already-read`)
+      if (!response.ok) return null
+      return response.json()
+    },
+  })
+
   return (
     <div className="space-y-6">
       {/* Drives Section */}
@@ -69,31 +78,57 @@ function Dashboard() {
 
       {/* Configured Roots Section */}
       <div>
+        <h2 className="text-lg font-semibold mb-3">{t("home.specialFolders")}</h2>
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mb-6">
+          {favoriteRoot ? (
+            <Link
+              key={`favorite-${favoriteRoot.path}`}
+              to="/explorer"
+              search={{ path: favoriteRoot.path }}
+              className="transition-transform hover:scale-[1.02]"
+            >
+              <Card className="cursor-pointer border-primary/40 hover:border-primary">
+                <CardHeader className="flex flex-row items-center gap-4">
+                  <div className="flex size-12 items-center justify-center rounded-lg bg-primary/10">
+                    <Heart className="size-6 text-primary" />
+                  </div>
+                  <CardTitle className="text-lg">{t("home.favorite")} · {favoriteRoot.dirname}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground truncate">
+                    {favoriteRoot.path}
+                  </p>
+                </CardContent>
+              </Card>
+            </Link>
+          ) : null}
+
+          {alreadyReadRoot ? (
+            <Link
+              key={`already-read-${alreadyReadRoot.path}`}
+              to="/explorer"
+              search={{ path: alreadyReadRoot.path }}
+              className="transition-transform hover:scale-[1.02]"
+            >
+              <Card className="cursor-pointer border-primary/40 hover:border-primary">
+                <CardHeader className="flex flex-row items-center gap-4">
+                  <div className="flex size-12 items-center justify-center rounded-lg bg-primary/10">
+                    <Folder className="size-6 text-primary" />
+                  </div>
+                  <CardTitle className="text-lg">{t("home.alreadyRead")} · {alreadyReadRoot.dirname}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground truncate">
+                    {alreadyReadRoot.path}
+                  </p>
+                </CardContent>
+              </Card>
+            </Link>
+          ) : null}
+        </div>
+
         <h2 className="text-lg font-semibold mb-3">{t("home.configuredDirs")}</h2>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {favoriteRoot ? (
-          <Link
-            key={`favorite-${favoriteRoot.path}`}
-            to="/explorer"
-            search={{ path: favoriteRoot.path }}
-            className="transition-transform hover:scale-[1.02]"
-          >
-            <Card className="cursor-pointer border-primary/40 hover:border-primary">
-              <CardHeader className="flex flex-row items-center gap-4">
-                <div className="flex size-12 items-center justify-center rounded-lg bg-primary/10">
-                  <Heart className="size-6 text-primary" />
-                </div>
-                <CardTitle className="text-lg">{t("home.favorite")} · {favoriteRoot.dirname}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground truncate">
-                  {favoriteRoot.path}
-                </p>
-              </CardContent>
-            </Card>
-          </Link>
-        ) : null}
-
         {isLoading ? (
           <>
             {[1, 2, 3].map((i) => (

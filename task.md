@@ -80,8 +80,12 @@
 
   已读目录和收藏的编辑应该是平时是一个input + 一个disable的save button。用户双击进入edit模式，修改完。点击边上的save保存。
 
+# 给reader page的文件操作加热键
+v -》 移动喜欢的文件夹
+x -》 移到已读
+
 # task
-根据PERFORMANCE_GUIDLINE.md 帮我进行性能检查
+根据PERFORMANCE_GUIDLINE.md 帮我进行性能检查。 
 
 
 ## Task8：打包与运行

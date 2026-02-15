@@ -25,8 +25,10 @@
   },
   "home": {
     "drives": "硬盘驱动器",
+    "specialFolders": "特殊目录",
     "configuredDirs": "配置的目录",
-    "favorite": "Like"
+    "favorite": "收藏",
+    "alreadyRead": "已读"
   },
   "explorer": {
     "scan": "扫描",
@@ -86,6 +88,7 @@
   "settings": {
     "title": "设置",
     "language": "语言",
+    "languageDesc": "选择你偏好的语言",
     "theme": "主题",
     "appearance": "外观",
     "favoriteDir": "收藏目录",
@@ -97,9 +100,13 @@
     "invalidPath": "路径无效或不存在",
     "fsRoots": "文件系统根目录",
     "fsRootsDesc": "配置要浏览的根目录，多个目录用逗号分隔",
+    "folderPath": "文件夹路径",
+    "remove": "移除",
+    "addNew": "新增",
     "fsRootsPlaceholder": "例如：D:/_TEMP_DOWNLOADS/",
     "alreadyReadDir": "已读目录",
     "alreadyReadDirDesc": "配置已读文件的移动目标目录",
+    "doubleClickToEdit": "双击输入框进入编辑模式",
     "alreadyReadDirPlaceholder": "输入目录路径，例如：E:\\_Read_Archive",
     "chinese": "中文",
     "english": "English",

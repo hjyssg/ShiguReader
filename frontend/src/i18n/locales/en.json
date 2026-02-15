@@ -25,8 +25,10 @@
   },
   "home": {
     "drives": "Drives",
+    "specialFolders": "Special Folders",
     "configuredDirs": "Configured Directories",
-    "favorite": "Favorite"
+    "favorite": "Favorite",
+    "alreadyRead": "Already Read"
   },
   "explorer": {
     "scan": "Scan",
@@ -86,6 +88,7 @@
   "settings": {
     "title": "Settings",
     "language": "Language",
+    "languageDesc": "Choose your preferred language",
     "theme": "Theme",
     "appearance": "Appearance",
     "favoriteDir": "Favorite Directory",
@@ -97,9 +100,13 @@
     "invalidPath": "Path is invalid or does not exist",
     "fsRoots": "File System Roots",
     "fsRootsDesc": "Configure root directories to browse, separated by commas",
+    "folderPath": "Folder Path",
+    "remove": "Remove",
+    "addNew": "Add New",
     "fsRootsPlaceholder": "e.g., D:/_DOWNLOADS",
     "alreadyReadDir": "Already Read Directory",
     "alreadyReadDirDesc": "Configure the target directory for moving already-read files",
+    "doubleClickToEdit": "Double-click the input field to enter edit mode",
     "alreadyReadDirPlaceholder": "Enter directory path, e.g., E:\\_Read_Archive",
     "chinese": "中文",
     "english": "English",

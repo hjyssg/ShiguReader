@@ -42,10 +42,20 @@ function SettingsPage() {
   const { t, i18n } = useTranslation()
   const { showSuccessToast, showErrorToast } = useCustomToast()
   const queryClient = useQueryClient()
-  
+
+  const [fsRootList, setFsRootList] = useState<string[]>([""])
   const [favoriteDir, setFavoriteDir] = useState("")
-  const [fsRoots, setFsRoots] = useState("")
   const [alreadyReadDir, setAlreadyReadDir] = useState("")
+  const [isEditingFavoriteDir, setIsEditingFavoriteDir] = useState(false)
+  const [isEditingAlreadyReadDir, setIsEditingAlreadyReadDir] = useState(false)
+
+  const parseFsRoots = (value: string): string[] => {
+    const paths = (value || "")
+      .split(",")
+      .map((item) => item.trim())
+      .filter(Boolean)
+    return paths.length > 0 ? paths : [""]
+  }
 
   // Fetch current settings
   const { data: settings, isLoading } = useQuery<SettingsResponse>({
@@ -60,9 +70,11 @@ function SettingsPage() {
   // Update local state when settings are loaded
   useEffect(() => {
     if (settings) {
+      setFsRootList(parseFsRoots(settings.fs_roots || ""))
       setFavoriteDir(settings.favorite_dir || "")
-      setFsRoots(settings.fs_roots || "")
       setAlreadyReadDir(settings.already_read_dir || "")
+      setIsEditingFavoriteDir(false)
+      setIsEditingAlreadyReadDir(false)
     }
   }, [settings])
 
@@ -87,6 +99,7 @@ function SettingsPage() {
       queryClient.invalidateQueries({ queryKey: ["settings"] })
       queryClient.invalidateQueries({ queryKey: ["fs-roots"] })
       queryClient.invalidateQueries({ queryKey: ["fs-favorite"] })
+      queryClient.invalidateQueries({ queryKey: ["fs-already-read"] })
     },
     onError: (error: Error) => {
       showErrorToast(error.message || t("settings.saveFailed"))
@@ -100,15 +113,73 @@ function SettingsPage() {
   }
 
   const handleSaveFsRoots = () => {
-    updateMutation.mutate({ fs_roots: fsRoots })
+    const normalized = fsRootList
+      .map((item) => item.trim())
+      .filter(Boolean)
+      .join(",")
+    updateMutation.mutate({ fs_roots: normalized })
   }
 
   const handleSaveAlreadyReadDir = () => {
-    updateMutation.mutate({ already_read_dir: alreadyReadDir })
+    updateMutation.mutate(
+      { already_read_dir: alreadyReadDir.trim() },
+      {
+        onSuccess: () => {
+          setIsEditingAlreadyReadDir(false)
+        },
+      },
+    )
   }
 
   const handleSaveFavoriteDir = () => {
-    updateMutation.mutate({ favorite_dir: favoriteDir })
+    updateMutation.mutate(
+      { favorite_dir: favoriteDir.trim() },
+      {
+        onSuccess: () => {
+          setIsEditingFavoriteDir(false)
+        },
+      },
+    )
+  }
+
+  const handleFsRootItemChange = (index: number, value: string) => {
+    setFsRootList((prev) => prev.map((item, i) => (i === index ? value : item)))
+  }
+
+  const handleRemoveFsRoot = (index: number) => {
+    setFsRootList((prev) => {
+      if (prev.length <= 1) {
+        return [""]
+      }
+      return prev.filter((_, i) => i !== index)
+    })
+  }
+
+  const handleAddFsRoot = () => {
+    setFsRootList((prev) => [...prev, ""])
+  }
+
+  const currentFsRoots = settings?.fs_roots || ""
+  const normalizedFsRoots = fsRootList
+    .map((item) => item.trim())
+    .filter(Boolean)
+    .join(",")
+  const canSaveFsRoots = !updateMutation.isPending && normalizedFsRoots !== currentFsRoots
+  const currentFavoriteDir = settings?.favorite_dir || ""
+  const canSaveFavoriteDir =
+    isEditingFavoriteDir && !updateMutation.isPending && favoriteDir.trim() !== currentFavoriteDir
+  const currentAlreadyReadDir = settings?.already_read_dir || ""
+  const canSaveAlreadyReadDir =
+    isEditingAlreadyReadDir && !updateMutation.isPending && alreadyReadDir.trim() !== currentAlreadyReadDir
+
+  const handleCancelFavoriteEdit = () => {
+    setFavoriteDir(currentFavoriteDir)
+    setIsEditingFavoriteDir(false)
+  }
+
+  const handleCancelAlreadyReadEdit = () => {
+    setAlreadyReadDir(currentAlreadyReadDir)
+    setIsEditingAlreadyReadDir(false)
   }
 
   // Clear cache mutation
@@ -156,7 +227,7 @@ function SettingsPage() {
       <Card>
         <CardHeader>
           <CardTitle>{t("settings.language")}</CardTitle>
-          <CardDescription>Choose your preferred language</CardDescription>
+          <CardDescription>{t("settings.languageDesc")}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-2">
@@ -192,20 +263,36 @@ function SettingsPage() {
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="fsRoots">{t("settings.fsRoots")}</Label>
-              <Input
-                id="fsRoots"
-                type="text"
-                placeholder={t("settings.fsRootsPlaceholder")}
-                value={fsRoots}
-                onChange={(e) => setFsRoots(e.target.value)}
-                className="font-mono"
-              />
+              <Label>{t("settings.folderPath")}</Label>
+              <div className="space-y-2">
+                {fsRootList.map((item, index) => (
+                  <div key={`fs-root-${index}`} className="flex flex-col gap-2 md:flex-row">
+                    <Input
+                      type="text"
+                      placeholder={t("settings.fsRootsPlaceholder")}
+                      value={item}
+                      onChange={(e) => handleFsRootItemChange(index, e.target.value)}
+                      className="font-mono"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => handleRemoveFsRoot(index)}
+                    >
+                      {t("settings.remove")}
+                    </Button>
+                  </div>
+                ))}
+              </div>
             </div>
+
+            <Button type="button" variant="outline" onClick={handleAddFsRoot}>
+              {t("settings.addNew")}
+            </Button>
 
             <Button
               onClick={handleSaveFsRoots}
-              disabled={updateMutation.isPending}
+              disabled={!canSaveFsRoots}
             >
               {updateMutation.isPending ? t("common.loading") : t("settings.save")}
             </Button>
@@ -217,7 +304,7 @@ function SettingsPage() {
       <Card>
         <CardHeader>
           <CardTitle>{t("settings.alreadyReadDir")}</CardTitle>
-          <CardDescription>{t("settings.alreadyReadDirDesc")}</CardDescription>
+          <CardDescription>{t("settings.doubleClickToEdit")}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
@@ -238,13 +325,20 @@ function SettingsPage() {
                 placeholder={t("settings.alreadyReadDirPlaceholder")}
                 value={alreadyReadDir}
                 onChange={(e) => setAlreadyReadDir(e.target.value)}
+                onDoubleClick={() => setIsEditingAlreadyReadDir(true)}
+                onKeyDown={(e) => {
+                  if (e.key === "Escape") {
+                    handleCancelAlreadyReadEdit()
+                  }
+                }}
+                readOnly={!isEditingAlreadyReadDir}
                 className="font-mono"
               />
             </div>
 
             <Button
               onClick={handleSaveAlreadyReadDir}
-              disabled={updateMutation.isPending}
+              disabled={!canSaveAlreadyReadDir}
             >
               {updateMutation.isPending ? t("common.loading") : t("settings.save")}
             </Button>
@@ -256,7 +350,7 @@ function SettingsPage() {
       <Card>
         <CardHeader>
           <CardTitle>{t("settings.favoriteDir")}</CardTitle>
-          <CardDescription>Configure your favorite directory path</CardDescription>
+          <CardDescription>{t("settings.doubleClickToEdit")}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
@@ -277,13 +371,20 @@ function SettingsPage() {
                 placeholder={t("settings.favoriteDirPlaceholder")}
                 value={favoriteDir}
                 onChange={(e) => setFavoriteDir(e.target.value)}
+                onDoubleClick={() => setIsEditingFavoriteDir(true)}
+                onKeyDown={(e) => {
+                  if (e.key === "Escape") {
+                    handleCancelFavoriteEdit()
+                  }
+                }}
+                readOnly={!isEditingFavoriteDir}
                 className="font-mono"
               />
             </div>
 
-            <Button 
+            <Button
               onClick={handleSaveFavoriteDir}
-              disabled={updateMutation.isPending}
+              disabled={!canSaveFavoriteDir}
             >
               {updateMutation.isPending ? t("common.loading") : t("settings.save")}
             </Button>
