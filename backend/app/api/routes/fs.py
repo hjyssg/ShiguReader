@@ -469,8 +469,9 @@ def _run_scan(path: Path, recursive: bool) -> None:
                             or len(files_to_upsert) >= _SCAN_DB_BATCH_SIZE
                             or len(parse_results) >= _SCAN_DB_BATCH_SIZE
                         ):
-                            with get_index_session() as session:
-                                _flush_scan_batch(IndexRepository(session))
+                            # Stability-first: avoid opening many short-lived write sessions
+                            # during scan; flush at the final write stage instead.
+                            pass
                     except Exception as e:
                         logger.warning(f"Failed to process file {file_path}: {e}")
         else:
@@ -545,8 +546,9 @@ def _run_scan(path: Path, recursive: bool) -> None:
                             or len(files_to_upsert) >= _SCAN_DB_BATCH_SIZE
                             or len(parse_results) >= _SCAN_DB_BATCH_SIZE
                         ):
-                            with get_index_session() as session:
-                                _flush_scan_batch(IndexRepository(session))
+                            # Stability-first: avoid opening many short-lived write sessions
+                            # during scan; flush at the final write stage instead.
+                            pass
                 except Exception as e:
                     logger.warning(f"Failed to process entry {entry}: {e}")
 
