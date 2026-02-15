@@ -67,7 +67,7 @@ export function FileItem({ item, isSelected, actionSlot, onClick, onDoubleClick,
       onDoubleClick={onDoubleClick}
       onContextMenu={onContextMenu}
     >
-      <ItemCard isClickable={false} className="file-item-card">
+      <ItemCard className="file-item-card">
         {fileNameNode}
 
         {href ? (

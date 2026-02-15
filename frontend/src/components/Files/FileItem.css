@@ -1,6 +1,5 @@
 .file-item-root {
   border-radius: 0.5rem;
-  cursor: pointer;
 }
 
 .file-item-root--selected {
@@ -21,6 +20,10 @@
   display: block;
   min-width: 0;
   margin-bottom: 6px;
+}
+
+.file-item-name-link:hover .file-item-name-text {
+  text-decoration: underline;
 }
 
 .file-item-name-text {

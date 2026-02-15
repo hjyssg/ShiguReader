@@ -8,6 +8,8 @@
 
 .file-actions-dropdown__icon-button,
 .file-actions-dropdown__trigger {
+  /* mixin-like: 统一 hover 色变量 */
+  --file-action-hover-color: #f59e0b;
   display: inline-flex;
   width: 28px;
   height: 28px;
@@ -22,11 +24,6 @@
 
 .file-actions-dropdown__icon-button:hover,
 .file-actions-dropdown__trigger:hover {
-  background: hsl(var(--accent));
-  color: hsl(var(--accent-foreground));
-}
-
-.file-actions-dropdown__icon-button--danger:hover {
-  background: hsl(var(--destructive) / 0.12);
-  color: hsl(var(--destructive));
+  background: transparent;
+  color: var(--file-action-hover-color);
 }

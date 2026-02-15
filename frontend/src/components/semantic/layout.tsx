@@ -74,22 +74,20 @@ export function ToolbarGroup({ children, className }: { children: React.ReactNod
   )
 }
 
-export function ItemCard({ children, className, onClick, title, isClickable = true }: { 
+export function ItemCard({ children, className, onClick, title }: {
   children: React.ReactNode; 
   className?: string;
   onClick?: () => void;
   title?: string;
-  isClickable?: boolean;
 }) {
-  const baseClass = "item-card group relative rounded-lg border bg-card transition-colors w-full text-left"
-  const clickableClass = isClickable ? "cursor-pointer hover:border-primary hover:shadow-md" : "cursor-pointer"
+  const baseClass = "item-card group relative rounded-lg border bg-card transition-colors w-full text-left cursor-default"
   
   if (onClick) {
     return (
       <button
         type="button"
         onClick={onClick}
-        className={cn(baseClass, clickableClass, className)}
+        className={cn(baseClass, className)}
         title={title}
       >
         {children}
@@ -98,7 +96,7 @@ export function ItemCard({ children, className, onClick, title, isClickable = tr
   }
 
   return (
-    <div className={cn(baseClass, clickableClass, className)} title={title}>
+    <div className={cn(baseClass, className)} title={title}>
       {children}
     </div>
   )
