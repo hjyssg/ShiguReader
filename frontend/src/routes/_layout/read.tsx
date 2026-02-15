@@ -320,9 +320,8 @@ function ReadPage() {
   const mtimeText = currentPathMeta?.mtime ? formatDateTime(currentPathMeta.mtime) : "-"
   const sizeText = currentPathMeta?.filesize ? formatFileSize(currentPathMeta.filesize) : "-"
   const avgImageSizeText = currentPathMeta?.avg_image_size ? formatFileSize(currentPathMeta.avg_image_size) : "-"
-  const isZipArchive = !!currentPathMeta?.path?.toLowerCase().endsWith(".zip")
-  const zipVideoCount = isZipArchive ? (currentPathMeta?.video_count ?? 0) : 0
-  const zipAudioCount = isZipArchive ? (currentPathMeta?.audio_count ?? 0) : 0
+  const archiveVideoCount = currentPathMeta?.video_count ?? 0
+  const archiveAudioCount = currentPathMeta?.audio_count ?? 0
   const authors = parseMeta?.authors ?? []
   const tags = parseMeta?.raw_tags ?? []
   const readerBarTextClass = "text-xs"
@@ -616,10 +615,10 @@ function ReadPage() {
             {t("reader.avgImageSize")}: <span className="text-foreground">{avgImageSizeText}</span>
           </span>
           <span className="text-muted-foreground">
-            Video: <span className={zipVideoCount > 0 ? "text-orange-500 font-medium" : "text-foreground"}>{zipVideoCount}</span>
+            ZIP Video: <span className={archiveVideoCount > 0 ? "text-orange-500 font-medium" : "text-foreground"}>{archiveVideoCount}</span>
           </span>
           <span className="text-muted-foreground">
-            Audio: <span className={zipAudioCount > 0 ? "text-orange-500 font-medium" : "text-foreground"}>{zipAudioCount}</span>
+            ZIP Audio: <span className={archiveAudioCount > 0 ? "text-orange-500 font-medium" : "text-foreground"}>{archiveAudioCount}</span>
           </span>
 
           <span className="text-muted-foreground">{t("reader.authors")}:</span>
