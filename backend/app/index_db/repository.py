@@ -7,6 +7,7 @@ from typing import Iterator, TypeVar
 from sqlmodel import Session, func, select
 
 from app.index_db.db import index_write_guard
+from app.index_db.confidence import SCAN_FRESH_WINDOW_SEC
 from app.index_db.models import (
     ArchiveMeta,
     Artist,
@@ -62,6 +63,16 @@ class UpsertFileInput:
 
 
 class IndexRepository:
+    def _apply_presence_filter(self, stmt, presence_filter: str):
+        if presence_filter == "watched":
+            return stmt.where(File.watch_state == 1)
+
+        if presence_filter == "scanned_recent":
+            cutoff = _now_ts() - SCAN_FRESH_WINDOW_SEC
+            return stmt.where(File.scan_state == 1).where(File.last_seen_at >= cutoff)
+
+        return stmt
+
     def __init__(self, session: Session) -> None:
         self.session = session
 
@@ -616,7 +627,7 @@ class IndexRepository:
     # Search helpers
     # ------------------------------------------------------------------
 
-    def search_files(self, q: str, mode: str = "hybrid") -> list[File]:
+    def search_files(self, q: str, mode: str = "hybrid", presence_filter: str = "all") -> list[File]:
         """Search files by filename/filepath."""
         if not q:
             return []
@@ -629,9 +640,10 @@ class IndexRepository:
             stmt = select(File).where(
                 (File.filename.ilike(f"%{q}%")) | (File.filepath.ilike(f"%{q}%"))
             )
+        stmt = self._apply_presence_filter(stmt, presence_filter)
         return list(self.session.exec(stmt).all())
 
-    def search_by_author(self, q: str, mode: str = "hybrid") -> list[File]:
+    def search_by_author(self, q: str, mode: str = "hybrid", presence_filter: str = "all") -> list[File]:
         """Search files by author name."""
         if not q:
             return []
@@ -654,9 +666,10 @@ class IndexRepository:
             return []
 
         files_stmt = select(File).where(File.filepath.in_(filepaths))
+        files_stmt = self._apply_presence_filter(files_stmt, presence_filter)
         return list(self.session.exec(files_stmt).all())
 
-    def search_by_tag(self, q: str, mode: str = "hybrid") -> list[File]:
+    def search_by_tag(self, q: str, mode: str = "hybrid", presence_filter: str = "all") -> list[File]:
         """Search files by tag name."""
         if not q:
             return []
@@ -677,6 +690,7 @@ class IndexRepository:
             return []
 
         files_stmt = select(File).where(File.filepath.in_(filepaths))
+        files_stmt = self._apply_presence_filter(files_stmt, presence_filter)
         return list(self.session.exec(files_stmt).all())
 
     # ------------------------------------------------------------------

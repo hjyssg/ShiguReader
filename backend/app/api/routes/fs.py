@@ -25,6 +25,7 @@ from app.file_processing.ignore import should_ignore
 from app.file_processing.folder_watcher import FolderWatcher
 from app.file_processing.name_parser import parse
 from app.file_processing.stepwise_extractor import stepwise_extract
+from app.index_db.confidence import compute_confidence
 from app.index_db.db import get_index_session
 from app.index_db.repository import IndexRepository, UpsertFileInput, UpsertFolderInput
 from app.services.thumb_service import ThumbService
@@ -144,6 +145,8 @@ class FileSystemItem(BaseModel):
     recommendation_score: float | None = None
     scan_state: int = 0  # Reserved for DB integration
     watch_state: int = 0  # Reserved for DB integration
+    confidence_level: Literal["certain", "likely_present", "uncertain"] = "uncertain"
+    confidence_score: float = 0.2
     image_count: int | None = None  # 压缩包内图片数量
     video_count: int | None = None  # 压缩包内视频数量
     audio_count: int | None = None  # 压缩包内音频数量
@@ -775,6 +778,11 @@ def list_directory(
                 stat = entry.stat()
                 
                 if entry.is_dir():
+                    confidence_level, confidence_score = compute_confidence(
+                        scan_state=1,
+                        watch_state=0,
+                        last_seen_at=int(time()),
+                    )
                     items.append(
                         FileSystemItem(
                             name=entry.name,
@@ -784,6 +792,10 @@ def list_directory(
                             filesize=None,
                             mtime=int(stat.st_mtime),
                             thumbnail_url=None,
+                            scan_state=1,
+                            watch_state=0,
+                            confidence_level=confidence_level,
+                            confidence_score=confidence_score,
                         )
                     )
                     folders_to_upsert.append(
@@ -799,6 +811,11 @@ def list_directory(
                 elif entry.is_file():
                     file_type = detect_file_type(entry)
                     thumbnail_url = None
+                    confidence_level, confidence_score = compute_confidence(
+                        scan_state=1,
+                        watch_state=0,
+                        last_seen_at=int(time()),
+                    )
                     
                     if file_type in ("archive", "video", "image"):
                         thumbnail_url = _build_thumb_url(entry)
@@ -812,6 +829,10 @@ def list_directory(
                             filesize=stat.st_size,
                             mtime=int(stat.st_mtime),
                             thumbnail_url=thumbnail_url,
+                            scan_state=1,
+                            watch_state=0,
+                            confidence_level=confidence_level,
+                            confidence_score=confidence_score,
                         )
                     )
                     

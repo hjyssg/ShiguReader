@@ -845,6 +845,7 @@ function ReadPage() {
                       scopes: ["author"],
                       mode: "hybrid",
                       page: 1,
+                      presenceFilter: "all",
                     }}
                   >
                     {author}
@@ -873,6 +874,7 @@ function ReadPage() {
                       scopes: ["tag"],
                       mode: "hybrid",
                       page: 1,
+                      presenceFilter: "all",
                     }}
                   >
                     #{tag}

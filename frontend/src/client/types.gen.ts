@@ -67,6 +67,8 @@ export type FileSystemItem = {
     recommendation_score?: (number | null);
     scan_state?: number;
     watch_state?: number;
+    confidence_level?: ('certain' | 'likely_present' | 'uncertain');
+    confidence_score?: number;
     image_count?: (number | null);
     video_count?: (number | null);
     audio_count?: (number | null);
@@ -186,6 +188,7 @@ export type SearchRequest = {
     q?: string;
     scopes?: Array<('file' | 'author' | 'tag')>;
     mode?: 'exact' | 'hybrid';
+    presence_filter?: 'all' | 'watched' | 'scanned_recent';
 };
 
 export type mode = 'exact' | 'hybrid';

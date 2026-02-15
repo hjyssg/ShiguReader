@@ -157,6 +157,7 @@ function TagsPage() {
               scopes: ["tag"],
               mode: "hybrid",
               page: 1,
+              presenceFilter: "all",
             },
           })
         }}
