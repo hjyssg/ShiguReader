@@ -116,6 +116,9 @@
     "clearExtractCache": "Clear Extract Cache",
     "clearing": "Clearing...",
     "cacheCleared": "Cache cleared",
-    "cacheClearedDetail": "Deleted {count} files, freed {size}"
+    "cacheClearedDetail": "Deleted {count} files, freed {size}",
+    "fetchFailed": "Failed to fetch settings",
+    "updateFailed": "Failed to update settings",
+    "clearCacheFailed": "Failed to clear cache"
   }
 }
