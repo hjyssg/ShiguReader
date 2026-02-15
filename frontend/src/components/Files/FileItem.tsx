@@ -38,6 +38,18 @@ export function FileItem({ item, isSelected, actionSlot, onClick, onDoubleClick,
       }`
       : "-"
 
+  const fileNameNode = href ? (
+    <a href={href} className="file-item-name-link" draggable={false}>
+      <FileName title={item.name} className="file-item-name-text">
+        {item.name}
+      </FileName>
+    </a>
+  ) : (
+    <FileName title={item.name} className="file-item-name-text">
+      {item.name}
+    </FileName>
+  )
+
   return (
     <div
       className={cn(
@@ -53,6 +65,8 @@ export function FileItem({ item, isSelected, actionSlot, onClick, onDoubleClick,
       onContextMenu={onContextMenu}
     >
       <ItemCard isClickable={false} className="file-item-card">
+        {fileNameNode}
+
         {href ? (
           <a href={href} className="file-item-thumbnail-link" draggable={false}>
             <CardThumbnail className="file-card-thumbnail">
@@ -82,17 +96,6 @@ export function FileItem({ item, isSelected, actionSlot, onClick, onDoubleClick,
         )}
 
         <CardInfo className="file-item-info">
-          {href ? (
-            <a href={href} className="file-item-name-link" draggable={false}>
-              <FileName title={item.name} className="file-item-name-text">
-                {item.name}
-              </FileName>
-            </a>
-          ) : (
-            <FileName title={item.name} className="file-item-name-text">
-              {item.name}
-            </FileName>
-          )}
           {actionSlot && (
             <div className="file-item-action-slot">
               {actionSlot}
