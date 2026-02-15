@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from time import time
+from typing import Iterator, TypeVar
 
 from sqlmodel import Session, func, select
 
@@ -20,6 +21,16 @@ from app.index_db.models import (
 
 def _now_ts() -> int:
     return int(time())
+
+
+T = TypeVar("T")
+
+
+def _iter_chunks(items: list[T], chunk_size: int) -> Iterator[list[T]]:
+    if chunk_size <= 0:
+        chunk_size = 500
+    for i in range(0, len(items), chunk_size):
+        yield items[i : i + chunk_size]
 
 
 @dataclass(slots=True)
@@ -137,109 +148,111 @@ class IndexRepository:
         self.session.refresh(file)
         return file
 
-    def batch_upsert_folders(self, data_list: list[UpsertFolderInput]) -> None:
+    def batch_upsert_folders(self, data_list: list[UpsertFolderInput], batch_size: int = 500) -> None:
         """Batch upsert folders for better performance."""
         if not data_list:
             return
 
         now = _now_ts()
-        filepaths = [d.filepath for d in data_list]
+        for chunk in _iter_chunks(data_list, batch_size):
+            filepaths = [d.filepath for d in chunk]
 
-        # Query existing folders
-        stmt = select(Folder).where(Folder.filepath.in_(filepaths))
-        existing = {f.filepath: f for f in self.session.exec(stmt).all()}
+            # Query existing folders
+            stmt = select(Folder).where(Folder.filepath.in_(filepaths))
+            existing = {f.filepath: f for f in self.session.exec(stmt).all()}
 
-        to_add = []
-        for data in data_list:
-            folder = existing.get(data.filepath)
-            if folder is None:
-                # Create new
-                folder = Folder(
-                    filepath=data.filepath,
-                    dirname=data.dirname,
-                    mtime=data.mtime,
-                    scan_state=data.scan_state,
-                    watch_state=data.watch_state,
-                    first_seen_at=now if data.scan_state == 1 else None,
-                    last_seen_at=now if data.scan_state == 1 else None,
-                    last_scanned_at=now if data.scanned else None,
-                )
-                to_add.append(folder)
-            else:
-                # Update existing
-                folder.dirname = data.dirname
-                folder.mtime = data.mtime
-                folder.scan_state = data.scan_state
-                folder.watch_state = data.watch_state
-                if data.scan_state == 1:
-                    if folder.first_seen_at is None:
-                        folder.first_seen_at = now
-                    folder.last_seen_at = now
-                if data.scanned:
-                    folder.last_scanned_at = now
+            to_add = []
+            for data in chunk:
+                folder = existing.get(data.filepath)
+                if folder is None:
+                    # Create new
+                    folder = Folder(
+                        filepath=data.filepath,
+                        dirname=data.dirname,
+                        mtime=data.mtime,
+                        scan_state=data.scan_state,
+                        watch_state=data.watch_state,
+                        first_seen_at=now if data.scan_state == 1 else None,
+                        last_seen_at=now if data.scan_state == 1 else None,
+                        last_scanned_at=now if data.scanned else None,
+                    )
+                    to_add.append(folder)
+                else:
+                    # Update existing
+                    folder.dirname = data.dirname
+                    folder.mtime = data.mtime
+                    folder.scan_state = data.scan_state
+                    folder.watch_state = data.watch_state
+                    if data.scan_state == 1:
+                        if folder.first_seen_at is None:
+                            folder.first_seen_at = now
+                        folder.last_seen_at = now
+                    if data.scanned:
+                        folder.last_scanned_at = now
 
-        if to_add:
-            self.session.add_all(to_add)
-        self.session.commit()
+            if to_add:
+                self.session.add_all(to_add)
+            self.session.commit()
 
-    def batch_upsert_files(self, data_list: list[UpsertFileInput]) -> None:
+    def batch_upsert_files(self, data_list: list[UpsertFileInput], batch_size: int = 500) -> None:
         """Batch upsert files for better performance."""
         if not data_list:
             return
 
         now = _now_ts()
-        filepaths = [d.filepath for d in data_list]
+        for chunk in _iter_chunks(data_list, batch_size):
+            filepaths = [d.filepath for d in chunk]
 
-        # Query existing files
-        stmt = select(File).where(File.filepath.in_(filepaths))
-        existing = {f.filepath: f for f in self.session.exec(stmt).all()}
+            # Query existing files
+            stmt = select(File).where(File.filepath.in_(filepaths))
+            existing = {f.filepath: f for f in self.session.exec(stmt).all()}
 
-        to_add = []
-        for data in data_list:
-            file = existing.get(data.filepath)
-            if file is None:
-                # Create new
-                file = File(
-                    filepath=data.filepath,
-                    folderpath=data.folderpath,
-                    filename=data.filename,
-                    mtime=data.mtime,
-                    filesize=data.filesize,
-                    file_type=data.file_type,
-                    ext=data.ext,
-                    thumbnail_filepath=data.thumbnail_filepath,
-                    fingerprint=data.fingerprint,
-                    content_hash=data.content_hash,
-                    scan_state=data.scan_state,
-                    watch_state=data.watch_state,
-                    first_seen_at=now if data.scan_state == 1 else None,
-                    last_seen_at=now if data.scan_state == 1 else None,
-                    last_scanned_at=now if data.scanned else None,
-                )
-                to_add.append(file)
-            else:
-                # Update existing
-                file.folderpath = data.folderpath
-                file.filename = data.filename
-                file.mtime = data.mtime
-                file.filesize = data.filesize
-                file.file_type = data.file_type
-                file.ext = data.ext
-                file.thumbnail_filepath = data.thumbnail_filepath
-                file.fingerprint = data.fingerprint
-                file.content_hash = data.content_hash
-                file.scan_state = data.scan_state
-                file.watch_state = data.watch_state
-                if data.scan_state == 1:
-                    if file.first_seen_at is None:
-                        file.first_seen_at = now
-                    file.last_seen_at = now
-                if data.scanned:
-                    file.last_scanned_at = now
+            to_add = []
+            for data in chunk:
+                file = existing.get(data.filepath)
+                if file is None:
+                    # Create new
+                    file = File(
+                        filepath=data.filepath,
+                        folderpath=data.folderpath,
+                        filename=data.filename,
+                        mtime=data.mtime,
+                        filesize=data.filesize,
+                        file_type=data.file_type,
+                        ext=data.ext,
+                        thumbnail_filepath=data.thumbnail_filepath,
+                        fingerprint=data.fingerprint,
+                        content_hash=data.content_hash,
+                        scan_state=data.scan_state,
+                        watch_state=data.watch_state,
+                        first_seen_at=now if data.scan_state == 1 else None,
+                        last_seen_at=now if data.scan_state == 1 else None,
+                        last_scanned_at=now if data.scanned else None,
+                    )
+                    to_add.append(file)
+                else:
+                    # Update existing
+                    file.folderpath = data.folderpath
+                    file.filename = data.filename
+                    file.mtime = data.mtime
+                    file.filesize = data.filesize
+                    file.file_type = data.file_type
+                    file.ext = data.ext
+                    file.thumbnail_filepath = data.thumbnail_filepath
+                    file.fingerprint = data.fingerprint
+                    file.content_hash = data.content_hash
+                    file.scan_state = data.scan_state
+                    file.watch_state = data.watch_state
+                    if data.scan_state == 1:
+                        if file.first_seen_at is None:
+                            file.first_seen_at = now
+                        file.last_seen_at = now
+                    if data.scanned:
+                        file.last_scanned_at = now
 
-        if to_add:
-            self.session.add_all(to_add)
-        self.session.commit()
+            if to_add:
+                self.session.add_all(to_add)
+            self.session.commit()
 
     def upsert_archive_meta(
         self,
@@ -434,6 +447,7 @@ class IndexRepository:
     def batch_save_parse_results(
         self,
         results: list[dict],
+        batch_size: int = 500,
     ) -> None:
         """Batch persist parse results.
 
@@ -444,6 +458,11 @@ class IndexRepository:
         if not results:
             return
 
+        for chunk in _iter_chunks(results, batch_size):
+            self._batch_save_parse_results_chunk(chunk)
+
+    def _batch_save_parse_results_chunk(self, results: list[dict]) -> None:
+        """Persist one chunk of parse results."""
         now = _now_ts()
         filepaths = [r["filepath"] for r in results]
 

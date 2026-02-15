@@ -172,3 +172,72 @@ def test_count_progress_history(test_repo: IndexRepository) -> None:
     """Test counting progress history."""
     count = test_repo.count_progress_history()
     assert count >= 0
+
+
+def test_batch_upsert_files_handles_large_input_with_chunking(test_repo: IndexRepository) -> None:
+    """Large inputs should be split into chunks and still be persisted correctly."""
+    total = 1201
+    files = [
+        UpsertFileInput(
+            filepath=f"/bulk/file_{i}.jpg",
+            filename=f"file_{i}.jpg",
+            mtime=100 + i,
+            filesize=1024 + i,
+            fingerprint=f"fp-{i}",
+            file_type="image",
+            ext=".jpg",
+            scan_state=1,
+            watch_state=0,
+            scanned=True,
+        )
+        for i in range(total)
+    ]
+
+    test_repo.batch_upsert_files(files, batch_size=500)
+
+    found = test_repo.search_files("/bulk/file_", mode="exact")
+    assert len(found) == total
+
+
+def test_batch_save_parse_results_handles_large_input_with_chunking(test_repo: IndexRepository) -> None:
+    """Large parse-result payloads should be chunked without breaking FK/link writes."""
+    total = 1201
+    files = [
+        UpsertFileInput(
+            filepath=f"/bulk_parse/file_{i}.cbz",
+            filename=f"file_{i}.cbz",
+            mtime=100 + i,
+            filesize=2048 + i,
+            fingerprint=f"parse-fp-{i}",
+            file_type="archive",
+            ext=".cbz",
+            scan_state=1,
+            watch_state=0,
+            scanned=True,
+        )
+        for i in range(total)
+    ]
+    test_repo.batch_upsert_files(files, batch_size=500)
+
+    results = [
+        {
+            "filepath": f"/bulk_parse/file_{i}.cbz",
+            "title": f"Title {i}",
+            "authors": [f"Author{i % 7}"],
+            "group_name": "G",
+            "raw_tags": [f"tag{i % 11}"],
+            "event": None,
+            "date_tag": None,
+            "media_type": "manga",
+        }
+        for i in range(total)
+    ]
+
+    test_repo.batch_save_parse_results(results, batch_size=500)
+
+    sample_fp = "/bulk_parse/file_1000.cbz"
+    meta = test_repo.get_parsed_metadata(sample_fp)
+    assert meta is not None
+    assert meta.title == "Title 1000"
+    assert test_repo.get_file_artists(sample_fp)
+    assert test_repo.get_file_tags(sample_fp)

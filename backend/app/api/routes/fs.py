@@ -39,6 +39,7 @@ _active_watchers: dict[str, FolderWatcher] = {}
 _watcher_lock = threading.Lock()
 _scan_status: dict[str, dict] = {}
 _scan_status_lock = threading.Lock()
+_SCAN_DB_BATCH_SIZE = 500
 
 # ---------------------------------------------------------------------------
 # 推荐分数内存缓存（避免每次 list 都查 DB）
@@ -253,10 +254,12 @@ def _refresh_all_rec_scores(repo: IndexRepository) -> None:
     from app.index_db.models import FileArtist as FA, FileTag as FT
 
     all_fps_with_meta: set[str] = set()
-    for fp, in repo.session.exec(sql_select(FA.filepath).distinct()):
-        all_fps_with_meta.add(fp)
-    for fp, in repo.session.exec(sql_select(FT.filepath).distinct()):
-        all_fps_with_meta.add(fp)
+    for fp in repo.session.exec(sql_select(FA.filepath).distinct()):
+        if fp:
+            all_fps_with_meta.add(fp)
+    for fp in repo.session.exec(sql_select(FT.filepath).distinct()):
+        if fp:
+            all_fps_with_meta.add(fp)
 
     if not all_fps_with_meta:
         return
@@ -383,6 +386,19 @@ def _run_scan(path: Path, recursive: bool) -> None:
     scanned_folders = 0
     scanned_files = 0
     parsed_files = 0
+    scanned_filepaths: list[str] = []
+
+    def _flush_scan_batch(repo: IndexRepository) -> None:
+        nonlocal folders_to_upsert, files_to_upsert, parse_results
+        if folders_to_upsert:
+            repo.batch_upsert_folders(folders_to_upsert, batch_size=_SCAN_DB_BATCH_SIZE)
+            folders_to_upsert = []
+        if files_to_upsert:
+            repo.batch_upsert_files(files_to_upsert, batch_size=_SCAN_DB_BATCH_SIZE)
+            files_to_upsert = []
+        if parse_results:
+            repo.batch_save_parse_results(parse_results, batch_size=_SCAN_DB_BATCH_SIZE)
+            parse_results = []
 
     try:
         if recursive:
@@ -429,6 +445,7 @@ def _run_scan(path: Path, recursive: bool) -> None:
                                 scanned=True,
                             )
                         )
+                        scanned_filepaths.append(str(file_path))
                         scanned_files += 1
 
                         parsed = parse(file_path.name)
@@ -446,6 +463,14 @@ def _run_scan(path: Path, recursive: bool) -> None:
                                 }
                             )
                             parsed_files += 1
+
+                        if (
+                            len(folders_to_upsert) >= _SCAN_DB_BATCH_SIZE
+                            or len(files_to_upsert) >= _SCAN_DB_BATCH_SIZE
+                            or len(parse_results) >= _SCAN_DB_BATCH_SIZE
+                        ):
+                            with get_index_session() as session:
+                                _flush_scan_batch(IndexRepository(session))
                     except Exception as e:
                         logger.warning(f"Failed to process file {file_path}: {e}")
         else:
@@ -496,6 +521,7 @@ def _run_scan(path: Path, recursive: bool) -> None:
                                 scanned=True,
                             )
                         )
+                        scanned_filepaths.append(str(entry))
                         scanned_files += 1
 
                         parsed = parse(entry.name)
@@ -513,17 +539,20 @@ def _run_scan(path: Path, recursive: bool) -> None:
                                 }
                             )
                             parsed_files += 1
+
+                        if (
+                            len(folders_to_upsert) >= _SCAN_DB_BATCH_SIZE
+                            or len(files_to_upsert) >= _SCAN_DB_BATCH_SIZE
+                            or len(parse_results) >= _SCAN_DB_BATCH_SIZE
+                        ):
+                            with get_index_session() as session:
+                                _flush_scan_batch(IndexRepository(session))
                 except Exception as e:
                     logger.warning(f"Failed to process entry {entry}: {e}")
 
         with get_index_session() as session:
             repo = IndexRepository(session)
-            if folders_to_upsert:
-                repo.batch_upsert_folders(folders_to_upsert)
-            if files_to_upsert:
-                repo.batch_upsert_files(files_to_upsert)
-            if parse_results:
-                repo.batch_save_parse_results(parse_results)
+            _flush_scan_batch(repo)
 
             # --- 更新 rec_score ---
             favorite_dir = (settings.FAVORITE_DIR or "").strip()
@@ -535,10 +564,9 @@ def _run_scan(path: Path, recursive: bool) -> None:
             if is_favorite_scan:
                 # favorite 目录变化 → 刷新全局缓存 + 全量重算
                 _refresh_all_rec_scores(repo)
-            elif files_to_upsert:
+            elif scanned_filepaths:
                 # 非 favorite scan → 只给新文件算分数
-                new_fps = [f.filepath for f in files_to_upsert]
-                _update_rec_scores_for_files(repo, new_fps)
+                _update_rec_scores_for_files(repo, scanned_filepaths)
 
         _update_scan_status(
             path_key,

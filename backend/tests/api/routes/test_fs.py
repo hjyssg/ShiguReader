@@ -325,6 +325,51 @@ def test_scan_favorite_not_configured(client_with_root: TestClient, monkeypatch:
     assert response.status_code == 400
 
 
+def test_refresh_all_rec_scores_accepts_scalar_filepath_rows(monkeypatch: pytest.MonkeyPatch) -> None:
+    """_refresh_all_rec_scores should handle scalar rows from single-column select()."""
+
+    class DummySession:
+        def __init__(self) -> None:
+            self.calls = 0
+
+        def exec(self, _stmt):
+            self.calls += 1
+            if self.calls == 1:
+                return ["/fav/a.cbz", "/fav/b.cbz"]
+            return ["/fav/b.cbz", "/fav/c.cbz"]
+
+    class DummyRepo:
+        def __init__(self) -> None:
+            self.session = DummySession()
+            self.updated_scores_calls = 0
+
+        def get_artists_by_filepaths(self, filepaths: list[str]):
+            return {fp: [] for fp in filepaths}
+
+        def get_tags_by_filepaths(self, filepaths: list[str]):
+            return {fp: [] for fp in filepaths}
+
+        def batch_update_rec_scores(self, scores: dict[str, float]) -> None:
+            assert scores
+            self.updated_scores_calls += 1
+
+        def get_favorite_author_frequencies(self, _favorite_dir: str):
+            return {"author": 1}
+
+        def get_favorite_tag_frequencies(self, _favorite_dir: str):
+            return {"tag": 1}
+
+        def get_tag_total_counts(self):
+            return {"tag": 1}
+
+    monkeypatch.setattr(settings, "FAVORITE_DIR", "/fav")
+    repo = DummyRepo()
+
+    fs_route._refresh_all_rec_scores(repo)
+
+    assert repo.updated_scores_calls >= 1
+
+
 def test_list_directory_filter_by_video(client_with_root: TestClient, test_fs_root: Path) -> None:
     """测试按是否包含视频筛选压缩包。"""
     # 创建测试压缩包
