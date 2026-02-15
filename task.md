@@ -68,11 +68,15 @@ x -》 移到已读
   对于压缩包，我们要区分漫画和cosplay图包。nameparser现在主要是日本发行的漫画。
   抽取coser的名字抽取 + 一个coserpage
 
-## Task8：打包与运行
-- 打包为 exe（同时启动前后端）
-- 更新 launch.json / build 脚本 / README
-- 修复：exe 运行后打不开前端网页
-  情况现在能打包成exe，但打开会exe失败。
 
+# task
+文件的status状态
 
-打开exe的时候，是直接后台运行吗 黑色terminal一闪就消失了 我怎么知道服务器状态？
+# task
+给代码加上你觉得合适需要的注释
+进行你觉得合理应该的重构，保证项目之后还是好维护
+
+# grid模式下的多选先用env的参数disable。效果不好
+
+# task
+你思考现在这个项目改叫什么 要有创意好传播
