@@ -134,7 +134,7 @@ lsdir的性能太差，一个D:\_TEMP_DOWNLOADS\_ 要900ms。
 你先给我解释，这个api的扫描是怎么扫描。
 sql请求是怎么做的。我要看代码。
 
-旧版的sv2 D:\Git\ShiguReader
+旧版的 D:\Git\ShiguReader
 api/folder/list_dir 只要4ms。
 旧版就一个list folder然后通过hashmap到每个file的信息。
 
