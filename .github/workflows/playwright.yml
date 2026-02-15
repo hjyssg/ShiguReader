@@ -3,7 +3,7 @@ name: Playwright Tests
 on:
   push:
     branches:
-    - master
+    - "**"
   pull_request:
     types:
     - opened
@@ -16,29 +16,7 @@ on:
         default: 'false'
 
 jobs:
-  changes:
-    runs-on: ubuntu-latest
-    # Set job outputs to values from filter step
-    outputs:
-      changed: ${{ steps.filter.outputs.changed }}
-    steps:
-    - uses: actions/checkout@v6
-    # For pull requests it's not necessary to checkout the code but for the main branch it is
-    - uses: dorny/paths-filter@v3
-      id: filter
-      with:
-        filters: |
-          changed:
-            - backend/**
-            - frontend/**
-            - .env
-            - compose*.yml
-            - .github/workflows/playwright.yml
-
   test-playwright:
-    needs:
-      - changes
-    if: ${{ needs.changes.outputs.changed == 'true' }}
     timeout-minutes: 60
     runs-on: ubuntu-latest
     strategy:
@@ -81,9 +59,8 @@ jobs:
   merge-playwright-reports:
     needs:
       - test-playwright
-      - changes
     # Merge reports after playwright-tests, even if some shards have failed
-    if: ${{ !cancelled() && needs.changes.outputs.changed == 'true' }}
+    if: ${{ !cancelled() }}
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v6
