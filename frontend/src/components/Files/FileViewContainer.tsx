@@ -238,9 +238,14 @@ export function FileViewContainer({
   // 点击事件处理
   const handleItemClick = useCallback(
     (item: FileSystemItem, _e: React.MouseEvent) => {
-      selection.handleClick(item.path)
+      // 左键直接打开：文件夹当前页打开，文件新标签打开
+      if (item.item_type === "folder") {
+        openItem(item)
+      } else {
+        openItemInNewTab(item)
+      }
     },
-    [selection],
+    [openItem, openItemInNewTab],
   )
 
   const handleItemDoubleClick = useCallback(
@@ -399,8 +404,7 @@ export function FileViewContainer({
       >
         <div
           className={cn(
-            "file-item-wrapper flex items-center gap-2 px-3 py-1.5 rounded-md cursor-pointer hover:bg-accent transition-colors",
-            selection.isSelected(item.path) && "bg-accent ring-1 ring-primary",
+            "file-item-wrapper flex items-center gap-2 px-3 py-1.5 rounded-md cursor-pointer transition-colors",
           )}
           onClick={(e) => handleItemClick(item, e)}
           onDoubleClick={(e) => handleItemDoubleClick(item, e)}
@@ -605,7 +609,7 @@ export function FileViewContainer({
                     <div>
                       <FileItem
                         item={item}
-                        isSelected={useIconDropdown ? false : selection.isSelected(item.path)}
+                        isSelected={false}
                         actionSlot={useIconDropdown ? (
                           <FileActionsDropdown
                             item={item}
@@ -639,7 +643,7 @@ export function FileViewContainer({
                 <div>
                   <FileItem
                     item={item}
-                    isSelected={useIconDropdown ? false : selection.isSelected(item.path)}
+                    isSelected={false}
                     actionSlot={useIconDropdown ? (
                       <FileActionsDropdown
                         item={item}
@@ -661,7 +665,7 @@ export function FileViewContainer({
           onSort={handleSortFieldChange}
           sortField={sortField}
           sortOrder={sortOrder}
-          isSelected={selection.isSelected}
+          isSelected={() => false}
           onItemClick={(item, e) => handleItemClick(item, e)}
           onItemDoubleClick={(item, e) => handleItemDoubleClick(item, e)}
           onItemContextMenu={(item) => handleItemContextMenu(item)}

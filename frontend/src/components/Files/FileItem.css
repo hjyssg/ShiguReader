@@ -1,0 +1,39 @@
+.file-item-root {
+  border-radius: 0.5rem;
+  cursor: pointer;
+}
+
+.file-item-root--selected {
+  box-shadow: 0 0 0 2px hsl(var(--primary));
+}
+
+.file-item-thumbnail-link,
+.file-item-name-link {
+  color: inherit;
+  text-decoration: none;
+}
+
+.file-item-thumbnail-link {
+  display: block;
+}
+
+.file-item-name-link {
+  display: block;
+  min-width: 0;
+}
+
+.file-item-name-text {
+  display: block;
+  min-width: 0;
+  font-size: 0.875rem;
+}
+
+.file-item-action-slot {
+  width: 100%;
+  padding-top: 2px;
+}
+
+.file-item-info-text {
+  font-size: 0.75rem;
+  color: hsl(var(--muted-foreground));
+}

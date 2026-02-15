@@ -156,8 +156,8 @@ function DetailsRow({
       className={cn(
         "border-b last:border-b-0 text-sm cursor-pointer transition-colors",
         selected
-          ? "bg-primary/10 hover:bg-primary/15"
-          : "hover:bg-muted/50",
+          ? "bg-primary/10"
+          : "",
       )}
       onClick={(e) => onClick?.(item, e)}
       onDoubleClick={(e) => onDoubleClick?.(item, e)}

@@ -512,7 +512,7 @@ function ReadPage() {
             </>
           )}
           {/* File Operations Dropdown */}
-          <DropdownMenu>
+          <DropdownMenu modal={false}>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" className={readerBarTextClass} title="File operations">
                 <MoreVertical className="size-3" />
