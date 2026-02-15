@@ -63,7 +63,7 @@ export function FileItem({ item, isSelected, actionSlot, onClick, onDoubleClick,
               <FileName title={item.name} className="text-sm min-w-0">
                 {item.name}
               </FileName>
-              <p className="text-xs text-muted-foreground">{infoText}</p>
+              {/* <p className="text-xs text-muted-foreground">{infoText}</p> */}
               {actionSlot && <div className="w-full pt-0.5">{actionSlot}</div>}
             </div>
           ) : (
@@ -75,12 +75,7 @@ export function FileItem({ item, isSelected, actionSlot, onClick, onDoubleClick,
             />
           )}
           {!isFolder && item.filesize && (
-            <p className="text-xs text-muted-foreground">
-              {formatFileSize(item.filesize)}
-              {item.file_type === "archive" && item.image_count != null && item.image_count > 0 && (
-                <span> · {item.image_count} imgs{item.avg_image_size != null && ` · avg ${formatFileSize(item.avg_image_size)}`}</span>
-              )}
-            </p>
+              <p className="text-xs text-muted-foreground">{infoText}</p>
           )}
         </CardInfo>
       </ItemCard>
