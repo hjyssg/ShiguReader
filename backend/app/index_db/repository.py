@@ -6,6 +6,7 @@ from typing import Iterator, TypeVar
 
 from sqlmodel import Session, func, select
 
+from app.index_db.db import index_write_guard
 from app.index_db.models import (
     ArchiveMeta,
     Artist,
@@ -64,6 +65,10 @@ class IndexRepository:
     def __init__(self, session: Session) -> None:
         self.session = session
 
+    def _commit(self) -> None:
+        with index_write_guard():
+            self.session.commit()
+
     def upsert_folder(self, data: UpsertFolderInput) -> Folder:
         now = _now_ts()
         folder = self.session.get(Folder, data.filepath)
@@ -79,7 +84,7 @@ class IndexRepository:
                 last_scanned_at=now if data.scanned else None,
             )
             self.session.add(folder)
-            self.session.commit()
+            self._commit()
             self.session.refresh(folder)
             return folder
 
@@ -95,7 +100,7 @@ class IndexRepository:
             folder.last_scanned_at = now
 
         self.session.add(folder)
-        self.session.commit()
+        self._commit()
         self.session.refresh(folder)
         return folder
 
@@ -121,7 +126,7 @@ class IndexRepository:
                 last_scanned_at=now if data.scanned else None,
             )
             self.session.add(file)
-            self.session.commit()
+            self._commit()
             self.session.refresh(file)
             return file
 
@@ -144,7 +149,7 @@ class IndexRepository:
             file.last_scanned_at = now
 
         self.session.add(file)
-        self.session.commit()
+        self._commit()
         self.session.refresh(file)
         return file
 
@@ -192,7 +197,7 @@ class IndexRepository:
 
             if to_add:
                 self.session.add_all(to_add)
-            self.session.commit()
+            self._commit()
 
     def batch_upsert_files(self, data_list: list[UpsertFileInput], batch_size: int = 500) -> None:
         """Batch upsert files for better performance."""
@@ -252,7 +257,7 @@ class IndexRepository:
 
             if to_add:
                 self.session.add_all(to_add)
-            self.session.commit()
+            self._commit()
 
     def upsert_archive_meta(
         self,
@@ -285,7 +290,7 @@ class IndexRepository:
             meta.music_file_num = music_file_num
             meta.scanned_at = now
 
-        self.session.commit()
+        self._commit()
         self.session.refresh(meta)
         return meta
 
@@ -321,7 +326,7 @@ class IndexRepository:
                 updated_at=now,
             )
             self.session.add(progress)
-            self.session.commit()
+            self._commit()
             self.session.refresh(progress)
             return progress
 
@@ -338,7 +343,7 @@ class IndexRepository:
         progress.duration_sec = duration_sec
 
         self.session.add(progress)
-        self.session.commit()
+        self._commit()
         self.session.refresh(progress)
         return progress
 
@@ -366,7 +371,7 @@ class IndexRepository:
         file = self.session.get(File, filepath)
         if file is not None:
             file.thumbnail_filepath = thumbnail_filepath
-            self.session.commit()
+            self._commit()
 
     def find_thumbnail_by_fingerprint(self, fingerprint: str) -> str | None:
         """通过 fingerprint 查找已有的缩略图路径。"""
@@ -440,7 +445,7 @@ class IndexRepository:
                 if not self.session.get(FileTag, ft_key):
                     self.session.add(FileTag(filepath=filepath, tag_name=tag_name))
 
-        self.session.commit()
+        self._commit()
         self.session.refresh(meta)
         return meta
 
@@ -546,7 +551,7 @@ class IndexRepository:
             self.session.add_all(to_add)
         # First commit ParsedMetadata + master tables (artists/tags), then write
         # join tables. This avoids intermittent FK failures under bulk flush.
-        self.session.commit()
+        self._commit()
 
         target_filepaths = [fp for fp in filepaths if fp in existing_files]
 
@@ -583,7 +588,7 @@ class IndexRepository:
 
         if link_to_add:
             self.session.add_all(link_to_add)
-            self.session.commit()
+            self._commit()
 
     def get_parsed_metadata(self, filepath: str) -> ParsedMetadata | None:
         """Return parsed metadata for a single file."""
@@ -675,7 +680,7 @@ class IndexRepository:
         if file is None:
             return
         self.session.delete(file)
-        self.session.commit()
+        self._commit()
 
     def delete_paths_by_prefix(self, prefix: str) -> None:
         files_stmt = select(File).where(File.filepath.startswith(prefix))
@@ -686,7 +691,7 @@ class IndexRepository:
         for folder in self.session.exec(folders_stmt).all():
             self.session.delete(folder)
 
-        self.session.commit()
+        self._commit()
 
     # ------------------------------------------------------------------
     # Recommendation helpers
@@ -783,4 +788,4 @@ class IndexRepository:
             for f in files:
                 f.rec_score = scores.get(f.filepath, 0.0)
 
-        self.session.commit()
+        self._commit()

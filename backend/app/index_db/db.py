@@ -4,12 +4,16 @@ from collections.abc import Iterator
 from contextlib import contextmanager
 from functools import lru_cache
 from pathlib import Path
+import threading
 
 from sqlalchemy import event
 from sqlalchemy.engine import Engine
 from sqlmodel import Session, create_engine
 
 from app.core.config import settings
+
+
+_index_write_lock = threading.RLock()
 
 
 def ensure_sqlite_parent_dir_exists(index_db_url: str) -> None:
@@ -30,7 +34,8 @@ def _register_sqlite_pragma(engine: Engine) -> None:
         # Improve read/write concurrency and reduce request stalls under scan/migration load.
         cursor.execute("PRAGMA journal_mode = WAL")
         cursor.execute("PRAGMA synchronous = NORMAL")
-        cursor.execute("PRAGMA busy_timeout = 5000")
+        # Stability-first: prefer waiting over immediate "database is locked" errors.
+        cursor.execute("PRAGMA busy_timeout = 30000")
         cursor.close()
 
 
@@ -52,6 +57,16 @@ def get_index_engine() -> Engine:
 
 def clear_index_engine_cache() -> None:
     _engine_by_url.cache_clear()
+
+
+@contextmanager
+def index_write_guard() -> Iterator[None]:
+    """Serialize all index-db writes to avoid SQLite lock contention.
+
+    This intentionally trades write throughput for stability.
+    """
+    with _index_write_lock:
+        yield
 
 
 @contextmanager
