@@ -67,18 +67,34 @@ async def read_tags(
 
             page_rows = session.exec(count_stmt.offset(offset).limit(page_size)).all()
 
+            # Optimized: Use window function to get latest file per tag in single query
+            tag_names = [tag_name for tag_name, _ in page_rows]
             latest_by_tag: dict[str, str] = {}
-            for tag_name, _ in page_rows:
-                latest_stmt = (
-                    select(File.filepath)
-                    .join(FileTag, FileTag.filepath == File.filepath)
-                    .where(FileTag.tag_name == tag_name)
-                    .order_by(File.mtime.desc())
-                    .limit(1)
-                )
-                latest_filepath = session.exec(latest_stmt).first()
-                if latest_filepath:
-                    latest_by_tag[tag_name] = latest_filepath
+
+            if tag_names:
+                # Use ROW_NUMBER() window function for efficient single query
+                # SQLite 3.25+ supports window functions
+                from sqlalchemy import text
+
+                # Single query using window function to get latest file per tag
+                # Build IN clause placeholders dynamically for SQLite compatibility
+                placeholders = ", ".join([f":tag_{i}" for i in range(len(tag_names))])
+                window_query = text(f"""
+                    SELECT tag_name, filepath
+                    FROM (
+                        SELECT ft.tag_name, f.filepath, f.mtime,
+                               ROW_NUMBER() OVER (PARTITION BY ft.tag_name ORDER BY f.mtime DESC) as rn
+                        FROM file_tags ft
+                        JOIN files f ON f.filepath = ft.filepath
+                        WHERE ft.tag_name IN ({placeholders})
+                    )
+                    WHERE rn = 1
+                """)
+                # Build params dict
+                params = {f"tag_{i}": tag for i, tag in enumerate(tag_names)}
+                result = session.execute(window_query, params)
+                for row in result:
+                    latest_by_tag[row[0]] = row[1]
 
         return total, page_rows, latest_by_tag
 

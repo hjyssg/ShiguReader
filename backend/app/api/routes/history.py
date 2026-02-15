@@ -57,7 +57,7 @@ class HistoryItem(BaseModel):
     read_at: int
     page_current: int | None = None
     page_total: int | None = None
-    file_exists: bool
+    file_exists: bool | None = None  # None = unknown, True = exists, False = not exists
 
 
 class HistoryListResponse(BaseModel):
@@ -155,15 +155,13 @@ async def list_history(
     items: list[HistoryItem] = []
     for row in rows:
         filepath = row.filepath
-        target = Path(filepath)
-        file_exists = target.exists() and target.is_file()
-
-        filename = row.filename or target.name or filepath
-        file_type = row.file_type or (_detect_file_type(target) if file_exists else "unknown")
+        # Use database record for filename and file_type, no filesystem check
+        filename = row.filename or Path(filepath).name or filepath
+        file_type = row.file_type or "unknown"
 
         thumbnail_url = row.thumbnail_url
-        if file_exists and not thumbnail_url and file_type in {"image", "video", "archive"}:
-            thumbnail_url = _build_thumb_url(target)
+        if not thumbnail_url and file_type in {"image", "video", "archive"}:
+            thumbnail_url = _build_thumb_url(filepath)
 
         items.append(
             HistoryItem(
@@ -176,7 +174,7 @@ async def list_history(
                 read_at=row.last_opened_at,
                 page_current=row.page_current,
                 page_total=row.page_total,
-                file_exists=file_exists,
+                file_exists=None,  # Unknown - frontend can check if needed
             )
         )
 

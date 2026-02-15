@@ -91,12 +91,39 @@ item-card的card-info还需要显示压缩文件的image number和average image 
 
 
 
-###task1 
+### task1 
 
 FS_ROOTS=D:/_TEMP_DOWNLOADS/,E:/_Happy_Picture
 ALREADY_READ_DIR
 也需要在setting有控制的
 
 
-task2：
-explorer的默认模型应该是mixed
+### task2:
+reader页面调整：
+
+reader的图片占的位置可以大一点。下面明明很多padding。我看到你舍得max-width。你思考怎么调整。
+
+
+### 打开带密码的zip
+需要前端输出代码 然后去解压或者打开
+
+
+
+### task
+ archive page和explorer page太像。
+还有没有生成video .move文件的thumbnail
+
+
+# task
+性能优化
+
+
+/api/v1/history/list?page=1&page_size=24&sort_order=desc
+要300ms 太慢
+
+
+/api/v1/tags?page=1&page_size=24&sort_by=count&sort_order=desc
+要400ms
+
+/api/v1/tags?page=1&page_size=24&sort_by=count&sort_order=desc
+要400ms
