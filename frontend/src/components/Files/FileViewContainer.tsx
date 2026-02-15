@@ -23,7 +23,7 @@ import { useFileExplorerKeyboard } from "@/hooks/useFileExplorerKeyboard"
 import { FileTableView, type SortField, type SortOrder } from "./FileTableView"
 import { FileIcon } from "./FileIcon"
 import { FileItem } from "./FileItem"
-import { FileContextMenu } from "./FileContextMenu"
+import { FileActionsDropdown, FileContextMenu } from "./FileContextMenu"
 import { RenameDialog } from "./dialogs/RenameDialog"
 import { DeleteDialog } from "./dialogs/DeleteDialog"
 import { MoveDialog } from "./dialogs/MoveDialog"
@@ -177,12 +177,6 @@ export function FileViewContainer({
     }
   }, [getTargetPaths])
 
-  const handleOpenMove = useCallback(() => {
-    if (getTargetPaths().length > 0) {
-      setMoveDialogOpen(true)
-    }
-  }, [getTargetPaths])
-
   const handleMoveToFavorite = useCallback(() => {
     if (getTargetPaths().length > 0) {
       setConfirmFavoriteOpen(true)
@@ -229,6 +223,17 @@ export function FileViewContainer({
     const item = getFirstSelectedItem()
     if (item) openItemInNewTab(item)
   }, [getFirstSelectedItem, openItemInNewTab])
+
+  const handleDownload = useCallback((item: FileSystemItem) => {
+    if (item.item_type === "folder") return
+    const href = `/api/v1/fs/download?path=${encodeURIComponent(item.path)}`
+    const anchor = document.createElement("a")
+    anchor.href = href
+    anchor.download = item.name
+    document.body.appendChild(anchor)
+    anchor.click()
+    document.body.removeChild(anchor)
+  }, [])
 
   // 点击事件处理
   const handleItemClick = useCallback(
@@ -318,6 +323,7 @@ export function FileViewContainer({
         }
       },
       onOpenInNewTab: () => openItemInNewTab(item),
+      onDownload: () => handleDownload(item),
       onRename: () => {
         selection.select(item.path)
         setRenameDialogOpen(true)
@@ -363,6 +369,7 @@ export function FileViewContainer({
     [
       openItem,
       openItemInNewTab,
+      handleDownload,
       selection,
       sortedItems,
       handleMoveToFavorite,
@@ -585,48 +592,68 @@ export function FileViewContainer({
                 Archives ({mixedGroups.archives.length})
               </h3>
               <ResponsiveGrid>
-                {mixedGroups.archives.map((item) => (
+                {mixedGroups.archives.map((item) => {
+                  const useIconDropdown = Boolean(item.thumbnail_url)
+                  return (
                   <FileContextMenu
                     key={item.path}
                     item={item}
                     isOpenable={isOpenable(item)}
                     actions={buildContextMenuActions(item)}
-                    onContextMenuOpen={() => handleItemContextMenu(item)}
+                    onContextMenuOpen={useIconDropdown ? undefined : () => handleItemContextMenu(item)}
                   >
                     <div>
                       <FileItem
                         item={item}
-                        isSelected={selection.isSelected(item.path)}
-                        onClick={(e) => handleItemClick(item, e)}
+                        isSelected={useIconDropdown ? false : selection.isSelected(item.path)}
+                        actionSlot={useIconDropdown ? (
+                          <FileActionsDropdown
+                            item={item}
+                            isOpenable={isOpenable(item)}
+                            actions={buildContextMenuActions(item)}
+                          />
+                        ) : undefined}
+                        onClick={useIconDropdown ? undefined : (e) => handleItemClick(item, e)}
                         onDoubleClick={(e) => handleItemDoubleClick(item, e)}
                       />
                     </div>
                   </FileContextMenu>
-                ))}
+                  )
+                })}
               </ResponsiveGrid>
             </section>
           )}
         </div>
       ) : viewMode === "grid" ? (
         <ResponsiveGrid className="grid-content">
-          {sortedItems.map((item) => (
-            <FileContextMenu
-              key={item.path}
-              item={item}
-              isOpenable={isOpenable(item)}
-              actions={buildContextMenuActions(item)}
-              onContextMenuOpen={() => handleItemContextMenu(item)}
-            >
-              <div>
-                <FileItem
-                  item={item}
-                  isSelected={selection.isSelected(item.path)}
-                  onClick={(e) => handleItemClick(item, e)}
-                  onDoubleClick={(e) => handleItemDoubleClick(item, e)}
-                />
-              </div>
-            </FileContextMenu>
-          ))}
+          {sortedItems.map((item) => {
+            const useIconDropdown = Boolean(item.thumbnail_url)
+            return (
+              <FileContextMenu
+                key={item.path}
+                item={item}
+                isOpenable={isOpenable(item)}
+                actions={buildContextMenuActions(item)}
+                onContextMenuOpen={useIconDropdown ? undefined : () => handleItemContextMenu(item)}
+              >
+                <div>
+                  <FileItem
+                    item={item}
+                    isSelected={useIconDropdown ? false : selection.isSelected(item.path)}
+                    actionSlot={useIconDropdown ? (
+                      <FileActionsDropdown
+                        item={item}
+                        isOpenable={isOpenable(item)}
+                        actions={buildContextMenuActions(item)}
+                      />
+                    ) : undefined}
+                    onClick={useIconDropdown ? undefined : (e) => handleItemClick(item, e)}
+                    onDoubleClick={(e) => handleItemDoubleClick(item, e)}
+                  />
+                </div>
+              </FileContextMenu>
+            )
+          })}
         </ResponsiveGrid>
       ) : (
         <FileTableView
