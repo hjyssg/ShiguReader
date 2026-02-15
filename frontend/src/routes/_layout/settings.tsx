@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { createFileRoute } from "@tanstack/react-router"
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 
 import { OpenAPI } from "@/client"
@@ -36,6 +36,110 @@ interface ClearCacheResponse {
   deleted_files: number
   freed_bytes: number
   freed_size_readable: string
+}
+
+interface EditablePathCardProps {
+  title: string
+  description: string
+  id: string
+  label: string
+  value: string
+  placeholder: string
+  isEditing: boolean
+  canSave: boolean
+  isPending: boolean
+  saveText: string
+  editText: string
+  cancelText: string
+  loadingText: string
+  onStartEdit: () => void
+  onCancelEdit: () => void
+  onSave: () => void
+  onValueChange: (value: string) => void
+}
+
+function EditablePathCard(props: EditablePathCardProps) {
+  const {
+    title,
+    description,
+    id,
+    label,
+    value,
+    placeholder,
+    isEditing,
+    canSave,
+    isPending,
+    saveText,
+    editText,
+    cancelText,
+    loadingText,
+    onStartEdit,
+    onCancelEdit,
+    onSave,
+    onValueChange,
+  } = props
+
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    if (!isEditing) return
+    const input = inputRef.current
+    if (!input) return
+    input.focus()
+    const len = input.value.length
+    input.setSelectionRange(len, len)
+  }, [isEditing])
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>{title}</CardTitle>
+        <CardDescription>{description}</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor={id}>{label}</Label>
+            <Input
+              ref={inputRef}
+              id={id}
+              type="text"
+              placeholder={placeholder}
+              value={value}
+              onChange={(e) => onValueChange(e.target.value)}
+              onDoubleClick={onStartEdit}
+              onKeyDown={(e) => {
+                if (e.key === "Escape") {
+                  e.preventDefault()
+                  onCancelEdit()
+                }
+                if (e.key === "Enter" && canSave) {
+                  e.preventDefault()
+                  onSave()
+                }
+              }}
+              readOnly={!isEditing}
+              className={`font-mono ${!isEditing ? "bg-muted/40" : ""}`}
+            />
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            <Button type="button" variant="outline" onClick={onStartEdit} disabled={isEditing || isPending}>
+              {editText}
+            </Button>
+            {isEditing && (
+              <Button type="button" variant="outline" onClick={onCancelEdit} disabled={isPending}>
+                {cancelText}
+              </Button>
+            )}
+            <Button type="button" onClick={onSave} disabled={!canSave}>
+              {isPending ? loadingText : saveText}
+            </Button>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  )
 }
 
 function SettingsPage() {
@@ -301,96 +405,46 @@ function SettingsPage() {
       </Card>
 
       {/* Already Read Directory Settings */}
-      <Card>
-        <CardHeader>
-          <CardTitle>{t("settings.alreadyReadDir")}</CardTitle>
-          <CardDescription>{t("settings.doubleClickToEdit")}</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {settings?.already_read_dir && (
-              <div className="space-y-2">
-                <Label className="text-muted-foreground">{t("settings.currentPath")}</Label>
-                <div className="text-sm font-mono bg-muted p-2 rounded">
-                  {settings.already_read_dir}
-                </div>
-              </div>
-            )}
-
-            <div className="space-y-2">
-              <Label htmlFor="alreadyReadDir">{t("settings.alreadyReadDir")}</Label>
-              <Input
-                id="alreadyReadDir"
-                type="text"
-                placeholder={t("settings.alreadyReadDirPlaceholder")}
-                value={alreadyReadDir}
-                onChange={(e) => setAlreadyReadDir(e.target.value)}
-                onDoubleClick={() => setIsEditingAlreadyReadDir(true)}
-                onKeyDown={(e) => {
-                  if (e.key === "Escape") {
-                    handleCancelAlreadyReadEdit()
-                  }
-                }}
-                readOnly={!isEditingAlreadyReadDir}
-                className="font-mono"
-              />
-            </div>
-
-            <Button
-              onClick={handleSaveAlreadyReadDir}
-              disabled={!canSaveAlreadyReadDir}
-            >
-              {updateMutation.isPending ? t("common.loading") : t("settings.save")}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      <EditablePathCard
+        title={t("settings.alreadyReadDir")}
+        description={t("settings.editHint")}
+        id="alreadyReadDir"
+        label={t("settings.alreadyReadDir")}
+        value={alreadyReadDir}
+        placeholder={t("settings.alreadyReadDirPlaceholder")}
+        isEditing={isEditingAlreadyReadDir}
+        canSave={canSaveAlreadyReadDir}
+        isPending={updateMutation.isPending}
+        saveText={t("settings.save")}
+        editText={t("common.edit")}
+        cancelText={t("common.cancel")}
+        loadingText={t("common.loading")}
+        onStartEdit={() => setIsEditingAlreadyReadDir(true)}
+        onCancelEdit={handleCancelAlreadyReadEdit}
+        onSave={handleSaveAlreadyReadDir}
+        onValueChange={setAlreadyReadDir}
+      />
 
       {/* Favorite Directory Settings */}
-      <Card>
-        <CardHeader>
-          <CardTitle>{t("settings.favoriteDir")}</CardTitle>
-          <CardDescription>{t("settings.doubleClickToEdit")}</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {settings?.favorite_dir && (
-              <div className="space-y-2">
-                <Label className="text-muted-foreground">{t("settings.currentPath")}</Label>
-                <div className="text-sm font-mono bg-muted p-2 rounded">
-                  {settings.favorite_dir}
-                </div>
-              </div>
-            )}
-            
-            <div className="space-y-2">
-              <Label htmlFor="favoriteDir">{t("settings.favoriteDir")}</Label>
-              <Input
-                id="favoriteDir"
-                type="text"
-                placeholder={t("settings.favoriteDirPlaceholder")}
-                value={favoriteDir}
-                onChange={(e) => setFavoriteDir(e.target.value)}
-                onDoubleClick={() => setIsEditingFavoriteDir(true)}
-                onKeyDown={(e) => {
-                  if (e.key === "Escape") {
-                    handleCancelFavoriteEdit()
-                  }
-                }}
-                readOnly={!isEditingFavoriteDir}
-                className="font-mono"
-              />
-            </div>
-
-            <Button
-              onClick={handleSaveFavoriteDir}
-              disabled={!canSaveFavoriteDir}
-            >
-              {updateMutation.isPending ? t("common.loading") : t("settings.save")}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      <EditablePathCard
+        title={t("settings.favoriteDir")}
+        description={t("settings.editHint")}
+        id="favoriteDir"
+        label={t("settings.favoriteDir")}
+        value={favoriteDir}
+        placeholder={t("settings.favoriteDirPlaceholder")}
+        isEditing={isEditingFavoriteDir}
+        canSave={canSaveFavoriteDir}
+        isPending={updateMutation.isPending}
+        saveText={t("settings.save")}
+        editText={t("common.edit")}
+        cancelText={t("common.cancel")}
+        loadingText={t("common.loading")}
+        onStartEdit={() => setIsEditingFavoriteDir(true)}
+        onCancelEdit={handleCancelFavoriteEdit}
+        onSave={handleSaveFavoriteDir}
+        onValueChange={setFavoriteDir}
+      />
 
       {/* Cache Management */}
       <Card>

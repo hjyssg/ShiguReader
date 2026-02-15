@@ -107,6 +107,7 @@
     "alreadyReadDir": "Already Read Directory",
     "alreadyReadDirDesc": "Configure the target directory for moving already-read files",
     "doubleClickToEdit": "Double-click the input field to enter edit mode",
+    "editHint": "Click Edit or double-click the input to modify. Esc cancels, Enter saves",
     "alreadyReadDirPlaceholder": "Enter directory path, e.g., E:\\_Read_Archive",
     "chinese": "中文",
     "english": "English",

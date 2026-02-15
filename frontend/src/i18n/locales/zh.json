@@ -107,6 +107,7 @@
     "alreadyReadDir": "已读目录",
     "alreadyReadDirDesc": "配置已读文件的移动目标目录",
     "doubleClickToEdit": "双击输入框进入编辑模式",
+    "editHint": "点击“编辑”或双击输入框后可修改，Esc 取消，Enter 保存",
     "alreadyReadDirPlaceholder": "输入目录路径，例如：E:\\_Read_Archive",
     "chinese": "中文",
     "english": "English",
