@@ -6,6 +6,7 @@ import { ItemCard, CardThumbnail, CardInfo, FileName } from "@/components/semant
 import { cn } from "@/lib/utils"
 import { useIsMobile } from "@/hooks/useMobile"
 import { getParentPath } from "@/lib/path-utils"
+import { useTranslation } from "react-i18next"
 
 import { FileIcon } from "./FileIcon"
 import { formatFileSize } from "./utils"
@@ -26,17 +27,18 @@ interface FileItemProps {
 }
 
 export function FileItem({ item, isSelected, actionSlot, onClick, onDoubleClick, onContextMenu }: FileItemProps) {
+  const { t } = useTranslation()
   const isMobile = useIsMobile()
   const isFolder = item.item_type === "folder"
   const href = buildItemHref(item, isMobile)
   const infoMetrics = !isFolder && item.filesize
     ? [
-      { label: formatFileSize(item.filesize), title: "文件大小" },
+      { label: formatFileSize(item.filesize), title: t("file.fileSize") },
       ...(item.file_type === "archive" && item.image_count != null && item.image_count > 0
-        ? [{ label: `${item.image_count} imgs`, title: "图片数量" }]
+        ? [{ label: `${item.image_count} imgs`, title: t("file.imageCount") }]
         : []),
       ...(item.file_type === "archive" && item.avg_image_size != null
-        ? [{ label: formatFileSize(item.avg_image_size), title: "平均图片大小" }]
+        ? [{ label: formatFileSize(item.avg_image_size), title: t("file.avgImageSize") }]
         : []),
     ]
     : []

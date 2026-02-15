@@ -1,5 +1,6 @@
 import { ChevronRight, Folder, Home } from "lucide-react"
 import { Link, useNavigate } from "@tanstack/react-router"
+import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
 import { joinPath, splitPath } from "@/lib/path-utils"
 
@@ -18,6 +19,7 @@ export function FileNotFoundError({
   isNotFound,
   parentPath,
 }: FileNotFoundErrorProps) {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const pathParts = splitPath(path)
 
@@ -56,21 +58,21 @@ export function FileNotFoundError({
         </svg>
         <div className="space-y-2">
           <h3 className="text-lg font-medium text-destructive">
-            {isNotFound ? "文件不存在" : "加载失败"}
+            {isNotFound ? t("explorer.fileNotFound") : t("explorer.loadFailed")}
           </h3>
           <p className="text-sm text-muted-foreground max-w-md">
-            {isNotFound ? `无法找到文件：${fileName}` : `加载文件时出错：${errorMessage}`}
+            {isNotFound ? t("explorer.fileNotFoundMessage", { fileName }) : t("explorer.loadErrorMessage", { errorMessage })}
           </p>
           <div className="pt-4 flex gap-2 justify-center">
             <Button variant="outline" onClick={() => navigate({ to: "/" })}>
-              返回首页
+              {t("explorer.returnHome")}
             </Button>
             {parentPath && (
               <Button
                 variant="outline"
                 onClick={() => navigate({ to: "/explorer", search: { path: parentPath } })}
               >
-                打开父目录
+                {t("explorer.openParent")}
               </Button>
             )}
           </div>

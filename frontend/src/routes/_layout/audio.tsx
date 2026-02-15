@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query"
 import { createFileRoute, Link } from "@tanstack/react-router"
 import { ChevronRight, Folder, Home, Music4 } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
+import { useTranslation } from "react-i18next"
 import AudioPlayer from "react-h5-audio-player"
 import "react-h5-audio-player/lib/styles.css"
 
@@ -27,6 +28,7 @@ export const Route = createFileRoute("/_layout/audio")({
 })
 
 function AudioPage() {
+  const { t } = useTranslation()
   const { path, entry } = Route.useSearch()
   const isArchive = Boolean(entry)
 
@@ -163,7 +165,7 @@ function AudioPage() {
 
           <div className="space-y-2 rounded-md border bg-card p-4 max-h-[46vh] overflow-auto">
             {tracks.length === 0 ? (
-              <div className="text-sm text-muted-foreground">未找到音频文件</div>
+              <div className="text-sm text-muted-foreground">{t("audio.noAudioFiles")}</div>
             ) : (
               tracks.map((track, index) => (
                 <button

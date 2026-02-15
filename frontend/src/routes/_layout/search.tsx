@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query"
 import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { Search } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
+import { useTranslation } from "react-i18next"
 
 import { SearchService } from "@/client"
 import { FileViewContainer } from "@/components/Files/FileViewContainer"
@@ -62,6 +63,7 @@ export const Route = createFileRoute("/_layout/search")({
 })
 
 function SearchPage() {
+  const { t } = useTranslation()
   const search = Route.useSearch()
   const navigate = useNavigate()
 
@@ -106,8 +108,8 @@ function SearchPage() {
 
   const totalText = useMemo(() => {
     if (!submittedQ) return ""
-    return `共 ${data?.total ?? 0} 条结果`
-  }, [data?.total, submittedQ])
+    return t("search.resultCount", { count: data?.total ?? 0 })
+  }, [data?.total, submittedQ, t])
 
   const paginatedItems = useMemo(() => {
     if (!data?.items) return []
@@ -142,8 +144,8 @@ function SearchPage() {
   return (
     <div className="space-y-6">
       <div className="space-y-2">
-        <h1 className="text-2xl font-bold tracking-tight">Search</h1>
-        <p className="text-muted-foreground">按文件名 / 作者 / 标签搜索</p>
+        <h1 className="text-2xl font-bold tracking-tight">{t("search.title")}</h1>
+        <p className="text-muted-foreground">{t("search.description")}</p>
       </div>
 
       <div className="border rounded-lg p-4 space-y-4">
@@ -156,23 +158,23 @@ function SearchPage() {
                 setSubmittedQ(q.trim())
               }
             }}
-            placeholder="输入关键词..."
+            placeholder={t("search.placeholder")}
           />
           <Button onClick={() => setSubmittedQ(q.trim())} disabled={!q.trim()}>
             <Search className="size-4 mr-1" />
-            搜索
+            {t("search.searchButton")}
           </Button>
         </div>
 
         <div className="flex flex-wrap items-center gap-6">
           <div className="flex items-center gap-4">
-            <Label className="text-sm">范围</Label>
+            <Label className="text-sm">{t("search.scope")}</Label>
             <div className="flex items-center gap-3">
               {(
                 [
-                  ["file", "文件"],
-                  ["author", "作者"],
-                  ["tag", "标签"],
+                  ["file", t("search.file")],
+                  ["author", t("search.author")],
+                  ["tag", t("search.tag")],
                 ] as [Scope, string][]
               ).map(([value, text]) => {
                 const checkboxId = `scope-${value}`
@@ -194,7 +196,7 @@ function SearchPage() {
           </div>
 
           <div className="flex items-center gap-2">
-            <Label className="text-sm">模式</Label>
+            <Label className="text-sm">{t("search.mode")}</Label>
             <Select value={mode} onValueChange={(v) => setMode(v as Mode)}>
               <SelectTrigger className="w-[140px] h-8">
                 <SelectValue />
@@ -215,7 +217,7 @@ function SearchPage() {
             items={paginatedItems}
             isLoading={isLoading}
             storageKeyPrefix="search"
-            emptyText="没有找到匹配结果"
+            emptyText={t("search.noResults")}
           />
           {(data?.total ?? 0) > pageSize && (
             <div className="flex flex-col items-center gap-3">
@@ -299,7 +301,7 @@ function SearchPage() {
               </Pagination>
 
               <div className="flex items-center gap-2 text-sm">
-                <span className="text-muted-foreground">跳转到</span>
+                <span className="text-muted-foreground">{t("search.goTo")}</span>
                 <Input
                   type="number"
                   min={1}
@@ -324,7 +326,7 @@ function SearchPage() {
                     if (!Number.isNaN(n)) goToPage(n)
                   }}
                 >
-                  确定
+                  {t("search.confirm")}
                 </Button>
               </div>
             </div>

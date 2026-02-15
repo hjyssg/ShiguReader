@@ -257,7 +257,7 @@ function ReadPage() {
         toggleFullscreen()
       } else if (key === "g") {
         e.preventDefault()
-        const value = Number(prompt("跳转到第几页？"))
+        const value = Number(prompt(t("reader.jumpToPage")))
         if (!Number.isNaN(value) && value > 0) {
           goToPage(value - 1)
         }
@@ -342,7 +342,7 @@ function ReadPage() {
   // 检查文件是否存在
   const hasError = listError || folderError
   if (hasError) {
-    const errorMessage = (listError as any)?.body?.detail || (folderError as any)?.body?.detail || "未知错误"
+    const errorMessage = (listError as any)?.body?.detail || (folderError as any)?.body?.detail || t("reader.unknownError")
     const isNotFound = errorMessage.includes("not found") || errorMessage.includes("Not found") || errorMessage.includes("404")
     
     return (
@@ -363,7 +363,7 @@ function ReadPage() {
         <nav className="flex items-center gap-2 text-sm">
           <Link to="/" className="flex items-center gap-1 text-muted-foreground hover:text-foreground">
             <Home className="size-4" />
-            <span>Home</span>
+            <span>{t("common.home")}</span>
           </Link>
           {pathParts.slice(0, -1).map((name, index) => (
             <div key={index} className="flex items-center gap-2">
@@ -403,9 +403,9 @@ function ReadPage() {
             <line x1="4" y1="4" x2="20" y2="20" strokeWidth={1.5} strokeLinecap="round" />
           </svg>
           <div className="space-y-2">
-            <h3 className="text-lg font-medium">此压缩包没有图片</h3>
+            <h3 className="text-lg font-medium">{t("reader.archiveNoImages")}</h3>
             <p className="text-sm text-muted-foreground">
-              点击上方高亮的 Explorer 按钮查看压缩包内的其他文件
+              {t("reader.explorerButton")}
             </p>
           </div>
         </div>
@@ -479,16 +479,16 @@ function ReadPage() {
           <span className={`${readerBarTextClass} text-muted-foreground tabular-nums mr-2`}>
             {currentPage + 1} / {totalPages}
           </span>
-          <Button variant="ghost" size="icon" className={readerBarTextClass} onClick={zoomOut} title="缩小">
+          <Button variant="ghost" size="icon" className={readerBarTextClass} onClick={zoomOut} title={t("reader.zoomOut")}>
             <span className={`${readerBarTextClass} font-medium`}>−</span>
           </Button>
-          <Button variant="ghost" size="icon" className={readerBarTextClass} onClick={zoomIn} title="放大">
+          <Button variant="ghost" size="icon" className={readerBarTextClass} onClick={zoomIn} title={t("reader.zoomIn")}>
             <span className={`${readerBarTextClass} font-medium`}>+</span>
           </Button>
-          <Button variant="ghost" size="icon" className={readerBarTextClass} onClick={rotate} title="旋转">
+          <Button variant="ghost" size="icon" className={readerBarTextClass} onClick={rotate} title={t("reader.rotate")}>
             <RotateCw className="size-3" />
           </Button>
-          <Button variant="ghost" size="icon" className={readerBarTextClass} onClick={toggleFullscreen} title="全屏">
+          <Button variant="ghost" size="icon" className={readerBarTextClass} onClick={toggleFullscreen} title={t("reader.fullscreen")}>
             <Scan className="size-3" />
           </Button>
           <Button
@@ -496,15 +496,15 @@ function ReadPage() {
             size="sm"
             className={`h-6 px-2 ${readerBarTextClass}`}
             onClick={() => {
-              const value = Number(prompt("跳转到第几页？"))
+              const value = Number(prompt(t("reader.jumpToPage")))
               if (!Number.isNaN(value) && value > 0) {
                 goToPage(value - 1)
               }
             }}
           >
-            跳页
+            {t("reader.jumpPage")}
           </Button>
-          <Button variant="ghost" size="sm" className={`h-6 px-2 ${readerBarTextClass}`} onClick={resetTransform}>重置</Button>
+          <Button variant="ghost" size="sm" className={`h-6 px-2 ${readerBarTextClass}`} onClick={resetTransform}>{t("reader.reset")}</Button>
           {!isFolderSource && (
             <>
               <Button variant="ghost" size="sm" className={`h-6 px-2 ${readerBarTextClass}`} onClick={() => navigate({ to: "/archive", search: { path } })}>Explorer</Button>

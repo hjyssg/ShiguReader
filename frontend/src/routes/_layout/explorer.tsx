@@ -112,7 +112,7 @@ function Explorer() {
 
   // 检查文件夹是否存在
   if (error) {
-    const errorMessage = (error as any)?.body?.detail || "未知错误"
+    const errorMessage = (error as any)?.body?.detail || t("explorer.unknownError")
     const isNotFound = errorMessage.includes("not found") || errorMessage.includes("Not found") || errorMessage.includes("404")
     
     return (
@@ -169,7 +169,7 @@ function Explorer() {
                   checked={zipHasVideoOnly}
                   onCheckedChange={(checked) => setZipHasVideoOnly(Boolean(checked))}
                 />
-                zip 含 video
+                {t("explorer.zipHasVideo")}
               </label>
 
               <label htmlFor="zip-has-audio" className="explorer-zip-filter">
@@ -178,7 +178,7 @@ function Explorer() {
                   checked={zipHasAudioOnly}
                   onCheckedChange={(checked) => setZipHasAudioOnly(Boolean(checked))}
                 />
-                zip 含 audio
+                {t("explorer.zipHasAudio")}
               </label>
             </div>
 

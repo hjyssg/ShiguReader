@@ -12,7 +12,9 @@
     "search": "Search",
     "filter": "Filter",
     "sort": "Sort",
-    "refresh": "Refresh"
+    "refresh": "Refresh",
+    "extracting": "Extracting...",
+    "noData": "No data"
   },
   "nav": {
     "home": "Home",
@@ -37,7 +39,16 @@
     "backfillMissingMetaThumbnail": "Backfill Missing Thumbnail + Meta",
     "scanStarted": "Recursive scan started",
     "scanAndWatchStarted": "Scan and watch started",
-    "scanFailed": "Failed to start scan"
+    "scanFailed": "Failed to start scan",
+    "zipHasVideo": "zip has video",
+    "zipHasAudio": "zip has audio",
+    "unknownError": "Unknown error",
+    "fileNotFound": "File not found",
+    "loadFailed": "Load failed",
+    "fileNotFoundMessage": "Cannot find file: {fileName}",
+    "loadErrorMessage": "Error loading file: {errorMessage}",
+    "returnHome": "Return to Home",
+    "openParent": "Open Parent Directory"
   },
   "history": {
     "title": "History",
@@ -52,7 +63,9 @@
     "status": "Status",
     "available": "Available",
     "unknown": "Unknown",
-    "unsupportedType": "This type is not supported yet"
+    "unsupportedType": "This type is not supported yet",
+    "goTo": "Go to",
+    "confirm": "Confirm"
   },
   "file": {
     "image": "Image",
@@ -60,19 +73,47 @@
     "audio": "Audio",
     "archive": "Archive",
     "folder": "Folder",
-    "unknown": "Unknown"
+    "unknown": "Unknown",
+    "fileSize": "File Size",
+    "imageCount": "Image Count",
+    "avgImageSize": "Avg Image Size"
   },
   "tags": {
     "title": "Tags",
-    "empty": "No tags data",
-    "sortByName": "Name",
-    "sortByCount": "File Count"
+    "description": "Browse file collections by tags",
+    "sortByField": "Sort Field",
+    "fileCount": "File Count",
+    "name": "Name",
+    "sortDirection": "Sort Direction",
+    "descending": "Descending",
+    "ascending": "Ascending",
+    "empty": "No tags data"
   },
   "authors": {
     "title": "Authors",
-    "empty": "No authors data",
-    "sortByName": "Name",
-    "sortByCount": "File Count"
+    "description": "Browse file collections by authors",
+    "sortByField": "Sort Field",
+    "fileCount": "File Count",
+    "name": "Name",
+    "sortDirection": "Sort Direction",
+    "descending": "Descending",
+    "ascending": "Ascending",
+    "empty": "No authors data"
+  },
+  "search": {
+    "title": "Search",
+    "resultCount": "Total {count} results",
+    "description": "Search by filename / author / tag",
+    "placeholder": "Enter keywords...",
+    "searchButton": "Search",
+    "scope": "Scope",
+    "file": "File",
+    "author": "Author",
+    "tag": "Tag",
+    "mode": "Mode",
+    "noResults": "No matching results found",
+    "goTo": "Go to",
+    "confirm": "Confirm"
   },
   "reader": {
     "openReader": "Open Reader",
@@ -83,7 +124,22 @@
     "avgImageSize": "Avg Image Size",
     "authors": "Authors",
     "tags": "Tags",
-    "none": "-"
+    "none": "-",
+    "jumpToPage": "Jump to page?",
+    "unknownError": "Unknown error",
+    "archiveNoImages": "This archive has no images",
+    "explorerButton": "Click the highlighted Explorer button above to view other files in the archive",
+    "retry": "Retry",
+    "imageLoading": "Loading image...",
+    "imageError": "Failed to load image",
+    "zoomOut": "Zoom out",
+    "zoomIn": "Zoom in",
+    "rotate": "Rotate",
+    "fullscreen": "Fullscreen",
+    "jumpPage": "Jump",
+    "reset": "Reset",
+    "page": "Page",
+    "of": "of"
   },
   "settings": {
     "title": "Settings",
@@ -120,5 +176,11 @@
     "fetchFailed": "Failed to fetch settings",
     "updateFailed": "Failed to update settings",
     "clearCacheFailed": "Failed to clear cache"
+  },
+  "archive": {
+    "unknownError": "Unknown error"
+  },
+  "audio": {
+    "noAudioFiles": "No audio files found"
   }
 }

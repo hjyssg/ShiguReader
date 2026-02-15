@@ -14,7 +14,7 @@ import useCustomToast from "@/hooks/useCustomToast"
 export const Route = createFileRoute("/_layout/settings")({
   component: SettingsPage,
   head: () => ({
-    meta: [{ title: "设置" }],
+    meta: [{ title: "settings.title" }],
   }),
 })
 

@@ -1,6 +1,6 @@
 {
   "common": {
-    "home": "Home",
+    "home": "首页",
     "loading": "加载中...",
     "error": "错误",
     "success": "成功",
@@ -12,16 +12,18 @@
     "search": "搜索",
     "filter": "筛选",
     "sort": "排序",
-    "refresh": "刷新"
+    "refresh": "刷新",
+    "extracting": "解压中...",
+    "noData": "暂无数据"
   },
   "nav": {
-    "home": "Home",
-    "explorer": "Explorer",
-    "history": "History",
-    "tags": "Tags",
-    "authors": "Authors",
-    "search": "Search",
-    "admin": "Admin"
+    "home": "首页",
+    "explorer": "文件浏览器",
+    "history": "历史",
+    "tags": "标签",
+    "authors": "作者",
+    "search": "搜索",
+    "admin": "管理"
   },
   "home": {
     "drives": "硬盘驱动器",
@@ -37,10 +39,19 @@
     "backfillMissingMetaThumbnail": "补全缺失缩略图与元信息",
     "scanStarted": "递归扫描已启动",
     "scanAndWatchStarted": "扫描并监听已启动",
-    "scanFailed": "扫描启动失败"
+    "scanFailed": "扫描启动失败",
+    "zipHasVideo": "zip 含视频",
+    "zipHasAudio": "zip 含音频",
+    "unknownError": "未知错误",
+    "fileNotFound": "文件不存在",
+    "loadFailed": "加载失败",
+    "fileNotFoundMessage": "无法找到文件：{fileName}",
+    "loadErrorMessage": "加载文件时出错：{errorMessage}",
+    "returnHome": "返回首页",
+    "openParent": "打开父目录"
   },
   "history": {
-    "title": "History",
+    "title": "历史",
     "subtitle": "阅读历史",
     "recentFirst": "最近优先",
     "oldestFirst": "最早优先",
@@ -52,7 +63,9 @@
     "status": "状态",
     "available": "可用",
     "unknown": "未知",
-    "unsupportedType": "该类型暂不支持直接打开"
+    "unsupportedType": "该类型暂不支持直接打开",
+    "goTo": "跳转到",
+    "confirm": "确定"
   },
   "file": {
     "image": "图片",
@@ -60,19 +73,47 @@
     "audio": "音频",
     "archive": "压缩包",
     "folder": "文件夹",
-    "unknown": "未知"
+    "unknown": "未知",
+    "fileSize": "文件大小",
+    "imageCount": "图片数量",
+    "avgImageSize": "平均图片大小"
   },
   "tags": {
-    "title": "Tags",
-    "empty": "暂无标签数据",
-    "sortByName": "名称",
-    "sortByCount": "文件数量"
+    "title": "标签",
+    "description": "按标签浏览文件集合",
+    "sortByField": "排序字段",
+    "fileCount": "文件数量",
+    "name": "名称",
+    "sortDirection": "排序方向",
+    "descending": "降序",
+    "ascending": "升序",
+    "empty": "暂无标签数据"
   },
   "authors": {
-    "title": "Authors",
-    "empty": "暂无作者数据",
-    "sortByName": "名称",
-    "sortByCount": "文件数量"
+    "title": "作者",
+    "description": "按作者浏览文件集合",
+    "sortByField": "排序字段",
+    "fileCount": "文件数量",
+    "name": "名称",
+    "sortDirection": "排序方向",
+    "descending": "降序",
+    "ascending": "升序",
+    "empty": "暂无作者数据"
+  },
+  "search": {
+    "title": "搜索",
+    "resultCount": "共 {count} 条结果",
+    "description": "按文件名 / 作者 / 标签搜索",
+    "placeholder": "输入关键词...",
+    "searchButton": "搜索",
+    "scope": "范围",
+    "file": "文件",
+    "author": "作者",
+    "tag": "标签",
+    "mode": "模式",
+    "noResults": "没有找到匹配结果",
+    "goTo": "跳转到",
+    "confirm": "确定"
   },
   "reader": {
     "openReader": "打开阅读器",
@@ -83,7 +124,22 @@
     "avgImageSize": "平均图片大小",
     "authors": "作者",
     "tags": "标签",
-    "none": "-"
+    "none": "-",
+    "jumpToPage": "跳转到第几页？",
+    "unknownError": "未知错误",
+    "archiveNoImages": "此压缩包没有图片",
+    "explorerButton": "点击上方高亮的 Explorer 按钮查看压缩包内的其他文件",
+    "retry": "重试",
+    "imageLoading": "加载图片中...",
+    "imageError": "图片加载失败",
+    "zoomOut": "缩小",
+    "zoomIn": "放大",
+    "rotate": "旋转",
+    "fullscreen": "全屏",
+    "jumpPage": "跳页",
+    "reset": "重置",
+    "page": "第",
+    "of": "页，共"
   },
   "settings": {
     "title": "设置",
@@ -103,11 +159,11 @@
     "folderPath": "文件夹路径",
     "remove": "移除",
     "addNew": "新增",
-    "fsRootsPlaceholder": "例如：D:/_TEMP_DOWNLOADS/",
+    "fsRootsPlaceholder": "例如：D:/_DOWNLOADS",
     "alreadyReadDir": "已读目录",
     "alreadyReadDirDesc": "配置已读文件的移动目标目录",
     "doubleClickToEdit": "双击输入框进入编辑模式",
-    "editHint": "点击“编辑”或双击输入框后可修改，Esc 取消，Enter 保存",
+    "editHint": "点击「编辑」或双击输入框后可修改，Esc 取消，Enter 保存",
     "alreadyReadDirPlaceholder": "输入目录路径，例如：E:\\_Read_Archive",
     "chinese": "中文",
     "english": "English",
@@ -120,5 +176,11 @@
     "fetchFailed": "获取设置失败",
     "updateFailed": "更新设置失败",
     "clearCacheFailed": "清理缓存失败"
+  },
+  "archive": {
+    "unknownError": "未知错误"
+  },
+  "audio": {
+    "noAudioFiles": "未找到音频文件"
   }
 }

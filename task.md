@@ -66,6 +66,16 @@ x -》 移到已读
 
 # task
 文件的status状态
+scan/listdir 10分钟以外 应该不确定
+刚刚被scan/listdir 10分钟内 应该在
+被scan/watch 百分百确定
+
+这个要影响到search和各种算法。你打算怎么处理
+我也不是没事就去扫描。
+
+有点太复杂了，而且我也不是没事就去扫描。有的文件夹从来不改变，给出好方
+案。我有一个想法是setting页面设置，search的时候是只看watched还是被scan过
+得，scan的失效之类的。
 
 # task
 给代码加上你觉得合适需要的注释

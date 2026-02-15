@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query"
 import { createFileRoute, useNavigate } from "@tanstack/react-router"
+import { useTranslation } from "react-i18next"
 
 import { OpenAPI } from "@/client"
 import { EntityGrid } from "@/components/Common/EntityGrid"
@@ -49,6 +50,7 @@ export const Route = createFileRoute("/_layout/authors")({
 })
 
 function AuthorsPage() {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const { page, sort_by, sort_order } = Route.useSearch()
   const pageSize = 24
@@ -73,13 +75,13 @@ function AuthorsPage() {
   return (
     <div className="space-y-6">
       <div className="space-y-2">
-        <h1 className="text-2xl font-bold tracking-tight">Authors</h1>
-        <p className="text-muted-foreground">按作者浏览文件集合</p>
+        <h1 className="text-2xl font-bold tracking-tight">{t("authors.title")}</h1>
+        <p className="text-muted-foreground">{t("authors.description")}</p>
       </div>
 
       <div className="flex flex-wrap items-center gap-4 border rounded-lg p-4">
         <div className="flex items-center gap-2">
-          <Label className="text-sm">排序字段</Label>
+          <Label className="text-sm">{t("authors.sortByField")}</Label>
           <Select
             value={sort_by}
             onValueChange={(v) => {
@@ -97,14 +99,14 @@ function AuthorsPage() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="count">文件数量</SelectItem>
-              <SelectItem value="name">名称</SelectItem>
+              <SelectItem value="count">{t("authors.fileCount")}</SelectItem>
+              <SelectItem value="name">{t("authors.name")}</SelectItem>
             </SelectContent>
           </Select>
         </div>
 
         <div className="flex items-center gap-2">
-          <Label className="text-sm">排序方向</Label>
+          <Label className="text-sm">{t("authors.sortDirection")}</Label>
           <Select
             value={sort_order}
             onValueChange={(v) => {
@@ -122,8 +124,8 @@ function AuthorsPage() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="desc">降序</SelectItem>
-              <SelectItem value="asc">升序</SelectItem>
+              <SelectItem value="desc">{t("authors.descending")}</SelectItem>
+              <SelectItem value="asc">{t("authors.ascending")}</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -152,10 +154,11 @@ function AuthorsPage() {
               q: item.name,
               scopes: ["author"],
               mode: "hybrid",
+              page: 1,
             },
           })
         }}
-        emptyText="暂无作者数据"
+        emptyText={t("authors.empty")}
       />
     </div>
   )
