@@ -166,6 +166,21 @@ def build_exe():
     
     print(f"\n✓ Executable built successfully: {exe_path}")
     print(f"  Size: {exe_path.stat().st_size / (1024*1024):.1f} MB")
+
+    # Ensure dist/.env exists for release handoff (copy exe template if missing)
+    dist_env = DIST_DIR / ".env"
+    env_exe = PROJECT_ROOT / "build_tools" / ".env.exe"
+    env_example = PROJECT_ROOT / ".env.example"
+    env_source = env_exe if env_exe.exists() else env_example
+    if not dist_env.exists() and env_source.exists():
+        dist_env.write_text(env_source.read_text(encoding="utf-8"), encoding="utf-8")
+        print(f"✓ Generated env template for release: {dist_env}")
+
+    # Ensure dist/data directories exist for exe runtime
+    (DIST_DIR / "data").mkdir(parents=True, exist_ok=True)
+    (DIST_DIR / "data" / "thumb_cache").mkdir(parents=True, exist_ok=True)
+    (DIST_DIR / "data" / "extract_cache").mkdir(parents=True, exist_ok=True)
+
     return exe_path
 
 

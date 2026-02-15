@@ -52,15 +52,16 @@ dist/ShiguReader.exe
 #### 数据目录
 
 打包后的应用会在以下位置创建数据：
-- `data/index.db` - SQLite 索引数据库
-- `data/thumb_cache/` - 缩略图缓存
-- `data/extract_cache/` - 压缩包解压缓存
+- `dist/data/index.db` - SQLite 索引数据库
+- `dist/data/user.db` - 用户数据库
+- `dist/data/thumb_cache/` - 缩略图缓存
+- `dist/data/extract_cache/` - 压缩包解压缓存
 
-建议将 `data/` 目录与 exe 放在同一目录下。
+现在默认配置即为“所有运行数据放在 `dist/data`”。
 
 #### 配置文件
 
-可选在 exe 同目录下创建 `.env` 文件覆盖默认配置（不提供也可启动）：
+可选在 exe 同目录下创建 `.env` 文件覆盖默认配置（打包脚本会自动生成一份 EXE 专用模板）：
 ```env
 # 文件系统根目录（逗号分隔）
 FS_ROOTS=D:/_TEMP_DOWNLOADS/_,E:/_Happy_Picture
@@ -72,6 +73,11 @@ FAVORITE_DIR=E:\_Happy_Lesson\_Going_to_sort
 FIRST_SUPERUSER=admin@example.com
 FIRST_SUPERUSER_PASSWORD=changethis
 
+# SQLite（全部放在 dist/data）
+INDEX_SQLITE_URL=sqlite:///./data/index.db
+USER_SQLITE_URL=sqlite:///./data/user.db
+THUMB_CACHE_DIR=./data/thumb_cache
+
 # PostgreSQL 配置（已禁用，项目使用 SQLite）
 # POSTGRES_SERVER=localhost
 # POSTGRES_PORT=5432
@@ -82,8 +88,7 @@ FIRST_SUPERUSER_PASSWORD=changethis
 
 说明：
 - `dist/` 是最终交付目录（`ShiguReader.exe` 所在目录）。
-- `.env` 不会自动生成。
-- 如需自定义配置，请手动复制：`cp .env.example dist/.env`（Windows 可在资源管理器复制并重命名）。
+- 打包后会自动生成 `dist/.env`（来源：`build_tools/.env.exe`）。
 - 若不放 `.env`，应用会使用内置默认值启动。
 
 ## 数据库说明
