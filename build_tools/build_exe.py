@@ -1,15 +1,6 @@
-"""
-Build script to package the application as a standalone executable.
+"""Build script to package ShiguReader as a standalone Windows executable."""
 
-This script:
-1. Builds the frontend (React/Vite)
-2. Packages the backend with PyInstaller
-3. Includes frontend build in the exe
-4. Creates a single executable file
-"""
-
-import os
-import shutil
+import json
 import subprocess
 import sys
 from pathlib import Path
@@ -17,15 +8,21 @@ from pathlib import Path
 # Get project root (parent of build_tools directory)
 PROJECT_ROOT = Path(__file__).parent.parent
 FRONTEND_DIR = PROJECT_ROOT / "frontend"
-BACKEND_DIR = PROJECT_ROOT / "backend"
 DIST_DIR = PROJECT_ROOT / "dist"
-BUILD_DIR = PROJECT_ROOT / "build"
 
 
 def run_command(cmd, cwd=None):
     """Run a shell command and check for errors."""
     print(f"\n>>> Running: {cmd}")
-    result = subprocess.run(cmd, shell=True, cwd=cwd, capture_output=True, text=True)
+    result = subprocess.run(
+        cmd,
+        shell=True,
+        cwd=cwd,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="ignore",
+    )
     if result.returncode != 0:
         print(f"Error: {result.stderr}")
         sys.exit(1)
@@ -34,7 +31,7 @@ def run_command(cmd, cwd=None):
 
 
 def build_frontend():
-    """Build the frontend with Vite."""
+    """Build frontend bundle for exe packaging."""
     print("\n" + "=" * 60)
     print("Building Frontend...")
     print("=" * 60)
@@ -44,9 +41,14 @@ def build_frontend():
         print("Installing frontend dependencies...")
         run_command("npm install", cwd=FRONTEND_DIR)
     
-    # Build frontend
+    # Build frontend: prefer build:exe (no tsc blocking), fallback to vite build
     print("Building frontend production bundle...")
-    run_command("npm run build", cwd=FRONTEND_DIR)
+    package_json = json.loads((FRONTEND_DIR / "package.json").read_text(encoding="utf-8"))
+    scripts = package_json.get("scripts", {})
+    if "build:exe" in scripts:
+        run_command("npm run build:exe", cwd=FRONTEND_DIR)
+    else:
+        run_command("npx vite build", cwd=FRONTEND_DIR)
     
     # Verify build output
     frontend_dist = FRONTEND_DIR / "dist"
@@ -69,13 +71,13 @@ def create_pyinstaller_spec():
 block_cipher = None
 
 a = Analysis(
-    ['backend/app/main.py'],
+    ['build_tools/exe_launcher.py'],
     pathex=[],
     binaries=[],
     datas=[
         ('frontend/dist', 'frontend/dist'),
         ('backend/app', 'app'),
-        ('.env', '.'),
+        ('.env.example', '.'),
     ],
     hiddenimports=[
         'uvicorn.logging',
@@ -154,7 +156,7 @@ def build_exe():
     
     # Run PyInstaller
     print("Running PyInstaller...")
-    run_command(f"pyinstaller --clean --noconfirm {spec_file}")
+    run_command(f"{sys.executable} -m PyInstaller --clean --noconfirm {spec_file}")
     
     # Check output
     exe_path = DIST_DIR / "ShiguReader.exe"
@@ -174,7 +176,7 @@ def main():
     print("=" * 60)
     
     # Step 1: Build frontend
-    frontend_dist = build_frontend()
+    build_frontend()
     
     # Step 2: Build executable
     exe_path = build_exe()
@@ -185,7 +187,7 @@ def main():
     print(f"\nExecutable: {exe_path}")
     print("\nTo run the application:")
     print(f"  {exe_path}")
-    print("\nNote: Make sure to configure .env file before running.")
+    print("\nNote: Optional .env can be placed next to exe; defaults allow quick start.")
 
 
 if __name__ == "__main__":

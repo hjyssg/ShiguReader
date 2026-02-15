@@ -3,9 +3,10 @@ import { useMutation, useQueryClient } from "@tanstack/react-query"
 import axios from "axios"
 import { toast } from "sonner"
 
-import { ApiError, FilesystemService, OpenAPI } from "@/client"
+import { ApiError, FilesystemService } from "@/client"
 
-const api = axios.create({ baseURL: OpenAPI.BASE })
+// 使用相对路径，始终走当前页面同源，避免 localhost/127.0.0.1 混用触发 CORS。
+const api = axios.create()
 
 function normalizeDetail(detail: unknown): string | null {
   if (typeof detail === "string" && detail.trim()) return detail

@@ -59,6 +59,14 @@ npm run dev
 python build_tools/build_exe.py
 ```
 
+运行：
+
+```bash
+./dist/ShiguReader.exe
+```
+
+EXE 会自动启动后端并托管前端，同时自动打开浏览器到 `http://127.0.0.1:8000`。
+
 ## 说明
 
 - 本分支面向内网使用，认证已按你的要求禁用。

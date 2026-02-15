@@ -63,20 +63,6 @@ x -》 移到已读
 
 
 
-# reader page要能显示文件的相关信息：
-  mtime
-  size
-  avg img size
-  文件的tag author -》点击要能跳转到search
-
-  页面设计你来，好看简单
-
-
-
-
-# task
-根据PERFORMANCE_GUIDLINE.md 帮我进行性能检查。 
-
 
 # 针对cosplay图包的优化
   对于压缩包，我们要区分漫画和cosplay图包。nameparser现在主要是日本发行的漫画。
@@ -89,3 +75,4 @@ x -》 移到已读
   情况现在能打包成exe，但打开会exe失败。
 
 
+打开exe的时候，是直接后台运行吗 黑色terminal一闪就消失了 我怎么知道服务器状态？

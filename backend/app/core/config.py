@@ -1,5 +1,7 @@
 import warnings
 from typing import Annotated, Any, Literal
+from pathlib import Path
+import sys
 
 from pydantic import (
     AnyUrl,
@@ -23,9 +25,16 @@ def parse_cors(v: Any) -> list[str] | str:
 
 
 class Settings(BaseSettings):
+    @staticmethod
+    def _resolve_env_file() -> str:
+        """Resolve .env path for both source mode and PyInstaller onefile mode."""
+        if getattr(sys, "frozen", False):
+            return str(Path(sys.executable).resolve().parent / ".env")
+        return str(Path(__file__).resolve().parents[3] / ".env")
+
     model_config = SettingsConfigDict(
-        # Use top level .env file (one level above ./backend/)
-        env_file="../.env",
+        # Use top level .env in source mode, and exe directory .env in bundled mode
+        env_file=_resolve_env_file.__func__(),
         env_ignore_empty=True,
         extra="ignore",
     )
@@ -44,7 +53,7 @@ class Settings(BaseSettings):
             self.FRONTEND_HOST
         ]
 
-    PROJECT_NAME: str
+    PROJECT_NAME: str = "ShiguReader"
     SENTRY_DSN: HttpUrl | None = None
     # PostgreSQL settings (optional, not used by default - using SQLite instead)
     POSTGRES_SERVER: str = ""
@@ -79,8 +88,8 @@ class Settings(BaseSettings):
         # Use SQLite instead of PostgreSQL for user data
         return self.USER_SQLITE_URL
 
-    FIRST_SUPERUSER: EmailStr
-    FIRST_SUPERUSER_PASSWORD: str
+    FIRST_SUPERUSER: EmailStr = "admin@example.com"
+    FIRST_SUPERUSER_PASSWORD: str = "changethis"
 
     # def _check_default_secret(self, var_name: str, value: str | None) -> None:
     #     if value == "changethis":

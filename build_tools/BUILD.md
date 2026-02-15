@@ -11,18 +11,16 @@
 ### 打包步骤
 
 ```bash
-# 1. 安装 PyInstaller
-pip install pyinstaller
-
-# 2. 运行打包脚本
-python build_exe.py
+# 在项目根目录执行
+python build_tools/build_exe.py
 ```
 
 打包脚本会自动：
 - 构建前端（React/Vite）
-- 使用 PyInstaller 打包后端
-- 将前端静态文件打包进 exe
+- 使用 PyInstaller 打包 EXE 启动器
+- 将后端代码 + 前端静态文件打包进 exe
 - 生成单个可执行文件
+- 若 `frontend` 存在历史 TS 报错，会使用 `build:exe`（仅 vite build）避免阻断打包
 
 ### 输出
 
@@ -41,8 +39,9 @@ dist/ShiguReader.exe
 ```
 
 应用会自动：
-1. 启动后端服务器（默认端口 8000）
-2. 打开浏览器访问 http://localhost:8000
+1. 启动后端服务器（默认端口 `127.0.0.1:8000`）
+2. 后端同时托管前端静态文件
+3. 自动打开浏览器访问 `http://127.0.0.1:8000`
 
 ### 注意事项
 
@@ -61,7 +60,7 @@ dist/ShiguReader.exe
 
 #### 配置文件
 
-需要在 exe 同目录下创建 `.env` 文件，配置：
+可选在 exe 同目录下创建 `.env` 文件覆盖默认配置（不提供也可启动）：
 ```env
 # 文件系统根目录（逗号分隔）
 FS_ROOTS=D:/_TEMP_DOWNLOADS/_,E:/_Happy_Picture
@@ -69,7 +68,7 @@ FS_ROOTS=D:/_TEMP_DOWNLOADS/_,E:/_Happy_Picture
 # 收藏目录
 FAVORITE_DIR=E:\_Happy_Lesson\_Going_to_sort
 
-# 用户配置
+# 可选用户配置（默认已内置）
 FIRST_SUPERUSER=admin@example.com
 FIRST_SUPERUSER_PASSWORD=changethis
 
@@ -81,6 +80,12 @@ FIRST_SUPERUSER_PASSWORD=changethis
 # POSTGRES_PASSWORD=your_password
 ```
 
+说明：
+- `dist/` 是最终交付目录（`ShiguReader.exe` 所在目录）。
+- `.env` 不会自动生成。
+- 如需自定义配置，请手动复制：`cp .env.example dist/.env`（Windows 可在资源管理器复制并重命名）。
+- 若不放 `.env`，应用会使用内置默认值启动。
+
 ## 数据库说明
 
 项目已从 PostgreSQL 迁移到 SQLite，使用两个 SQLite 数据库：
@@ -88,6 +93,15 @@ FIRST_SUPERUSER_PASSWORD=changethis
 - `data/index.db` - 索引数据
 
 打包后的 exe 完全独立，无需安装额外的数据库服务。
+
+## VS Code 中运行
+
+- 任务：
+  - `Build EXE`
+  - `Run EXE`
+- 调试配置：
+  - `Build Tools: Build EXE`
+  - `Build Tools: Run EXE`
 
 ## 开发模式运行
 

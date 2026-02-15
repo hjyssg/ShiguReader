@@ -222,3 +222,19 @@ Scan failed for E:\_Happy_Lesson\_Going_to_sort\_good: too many values to unpack
 
 
   已读目录和收藏的编辑应该是平时是一个input + 一个disable的save button。用户双击进入edit模式，修改完。点击边上的save保存。
+
+
+
+# reader page要能显示文件的相关信息：
+  mtime
+  size
+  avg img size
+  文件的tag author -》点击要能跳转到search
+
+  页面设计你来，好看简单
+
+
+
+
+# task
+根据PERFORMANCE_GUIDLINE.md 帮我进行性能检查。 
