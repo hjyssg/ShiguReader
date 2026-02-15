@@ -81,7 +81,7 @@ export function ItemCard({ children, className, onClick, title, isClickable = tr
   title?: string;
   isClickable?: boolean;
 }) {
-  const baseClass = "item-card group relative rounded-lg border bg-card transition-all w-full text-left"
+  const baseClass = "item-card group relative rounded-lg border bg-card transition-colors w-full text-left"
   const clickableClass = isClickable ? "cursor-pointer hover:border-primary hover:shadow-md" : "cursor-default"
   
   if (onClick) {

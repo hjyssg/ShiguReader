@@ -37,7 +37,7 @@ export function FileItem({ item, isSelected, actionSlot, onClick, onDoubleClick,
   return (
     <div
       className={cn(
-        "file-item-wrapper rounded-lg transition-all",
+        "file-item-wrapper rounded-lg transition-colors",
         isSelected && "ring-2 ring-primary ring-offset-1 ring-offset-background",
       )}
       onClick={onClick}
