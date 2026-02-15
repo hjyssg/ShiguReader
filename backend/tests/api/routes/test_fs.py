@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import shutil
 from pathlib import Path
+from types import SimpleNamespace
+from contextlib import contextmanager
 from urllib.parse import quote
 
 import pytest
@@ -596,3 +598,203 @@ def test_unzip_archive_preserve_structure(client_with_root: TestClient, test_fs_
     
     output_dir = test_fs_root / "nested"
     assert (output_dir / "a" / "b" / "c" / "file.txt").exists()
+
+
+def test_backfill_directory_success(
+    client_with_root: TestClient,
+    test_fs_root: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """应能补全目录及子目录缺失的 thumbnail 与 meta。"""
+    import zipfile
+
+    image_file = test_fs_root / "cover.jpg"
+    image_file.write_bytes(b"fake-image")
+
+    archive_file = test_fs_root / "[作者] 作品.zip"
+    with zipfile.ZipFile(archive_file, "w") as zf:
+        zf.writestr("001.jpg", b"fake-jpg")
+        zf.writestr("clip.mp4", b"fake-mp4")
+
+    nested = test_fs_root / "nested"
+    nested.mkdir(exist_ok=True)
+    nested_archive = nested / "[作者2] 子作品.zip"
+    with zipfile.ZipFile(nested_archive, "w") as zf:
+        zf.writestr("001.jpg", b"fake-jpg")
+
+    class FakeThumbService:
+        async def get_or_generate(self, _filepath: Path, *, force: bool = False):
+            return test_fs_root / "thumb.webp"
+
+    class FakeRepo:
+        def __init__(self, _session):
+            self.files: dict[str, object] = {}
+            self.folders: set[str] = set()
+            self.parsed: set[str] = set()
+            self.archive_meta: set[str] = set()
+
+        def upsert_folder(self, data):
+            self.folders.add(data.filepath)
+            return SimpleNamespace(filepath=data.filepath)
+
+        def get_file(self, filepath: str):
+            return self.files.get(filepath)
+
+        def upsert_file(self, data):
+            row = SimpleNamespace(filepath=data.filepath, thumbnail_filepath=None)
+            self.files[data.filepath] = row
+            return row
+
+        def get_parsed_metadata(self, filepath: str):
+            return SimpleNamespace(filepath=filepath) if filepath in self.parsed else None
+
+        def save_parse_result(self, filepath: str, **_kwargs):
+            self.parsed.add(filepath)
+
+        def get_archive_meta(self, filepath: str):
+            return SimpleNamespace(filepath=filepath) if filepath in self.archive_meta else None
+
+        def upsert_archive_meta(self, filepath: str, **_kwargs):
+            self.archive_meta.add(filepath)
+
+    @contextmanager
+    def fake_get_index_session():
+        yield object()
+
+    async def fake_get_thumb_service():
+        return FakeThumbService()
+
+    monkeypatch.setattr(fs_route.ThumbService, "get_instance", staticmethod(fake_get_thumb_service))
+    monkeypatch.setattr(fs_route, "IndexRepository", FakeRepo)
+    monkeypatch.setattr(fs_route, "get_index_session", fake_get_index_session)
+    monkeypatch.setattr(
+        fs_route,
+        "list_archive_entries",
+        lambda _p: ["001.jpg", "clip.mp4"],
+    )
+
+    def fake_parse(name: str):
+        if name.endswith(".zip"):
+            return SimpleNamespace(
+                title="作品",
+                authors=["作者"],
+                group=None,
+                raw_tags=["标签"],
+                event=None,
+                date_tag=None,
+                type="doujinshi",
+            )
+        return None
+
+    monkeypatch.setattr(fs_route, "parse", fake_parse)
+
+    response = client_with_root.post(
+        "/api/v1/fs/backfill",
+        json={
+            "path": str(test_fs_root),
+            "recursive": True,
+            "fill_thumbnail": True,
+            "fill_meta": True,
+        },
+    )
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["status"] == "ok"
+    assert payload["scanned_files"] >= 3
+    assert payload["backfilled_thumbnails"] >= 3  # cover.jpg + 两个 zip
+    assert payload["backfilled_meta"] >= 4  # 两个 zip 的 parse + 两个 zip 的 archive_meta
+
+
+def test_backfill_directory_non_recursive(
+    client_with_root: TestClient,
+    test_fs_root: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """recursive=false 时只处理当前目录文件。"""
+    import zipfile
+
+    root_archive = test_fs_root / "[A] root.zip"
+    with zipfile.ZipFile(root_archive, "w") as zf:
+        zf.writestr("001.jpg", b"fake-jpg")
+
+    nested_dir = test_fs_root / "sub"
+    nested_dir.mkdir(exist_ok=True)
+    nested_archive = nested_dir / "[B] nested.zip"
+    with zipfile.ZipFile(nested_archive, "w") as zf:
+        zf.writestr("001.jpg", b"fake-jpg")
+
+    class FakeThumbService:
+        async def get_or_generate(self, _filepath: Path, *, force: bool = False):
+            return test_fs_root / "thumb.webp"
+
+    class FakeRepo:
+        def __init__(self, _session):
+            self.files: dict[str, object] = {}
+            self.folders: set[str] = set()
+            self.parsed: set[str] = set()
+            self.archive_meta: set[str] = set()
+
+        def upsert_folder(self, data):
+            self.folders.add(data.filepath)
+            return SimpleNamespace(filepath=data.filepath)
+
+        def get_file(self, filepath: str):
+            return self.files.get(filepath)
+
+        def upsert_file(self, data):
+            row = SimpleNamespace(filepath=data.filepath, thumbnail_filepath=None)
+            self.files[data.filepath] = row
+            return row
+
+        def get_parsed_metadata(self, filepath: str):
+            return SimpleNamespace(filepath=filepath) if filepath in self.parsed else None
+
+        def save_parse_result(self, filepath: str, **_kwargs):
+            self.parsed.add(filepath)
+
+        def get_archive_meta(self, filepath: str):
+            return SimpleNamespace(filepath=filepath) if filepath in self.archive_meta else None
+
+        def upsert_archive_meta(self, filepath: str, **_kwargs):
+            self.archive_meta.add(filepath)
+
+    @contextmanager
+    def fake_get_index_session():
+        yield object()
+
+    async def fake_get_thumb_service():
+        return FakeThumbService()
+
+    monkeypatch.setattr(fs_route.ThumbService, "get_instance", staticmethod(fake_get_thumb_service))
+    monkeypatch.setattr(fs_route, "IndexRepository", FakeRepo)
+    monkeypatch.setattr(fs_route, "get_index_session", fake_get_index_session)
+    monkeypatch.setattr(fs_route, "list_archive_entries", lambda _p: ["001.jpg"])
+    monkeypatch.setattr(
+        fs_route,
+        "parse",
+        lambda _name: SimpleNamespace(
+            title="作品",
+            authors=["作者"],
+            group=None,
+            raw_tags=[],
+            event=None,
+            date_tag=None,
+            type="doujinshi",
+        ),
+    )
+
+    response = client_with_root.post(
+        "/api/v1/fs/backfill",
+        json={
+            "path": str(test_fs_root),
+            "recursive": False,
+            "fill_thumbnail": True,
+            "fill_meta": True,
+        },
+    )
+    assert response.status_code == 200
+    payload = response.json()
+    # 不应扫描到 sub/nested.zip
+    assert payload["scanned_files"] < 10
+    assert payload["backfilled_meta"] >= 2

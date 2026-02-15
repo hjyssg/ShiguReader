@@ -32,6 +32,7 @@
     "scan": "扫描",
     "scanRecursive": "扫描包括子文件夹",
     "scanAndWatch": "扫描并监听子文件夹",
+    "backfillMissingMetaThumbnail": "补全缺失缩略图与元信息",
     "scanStarted": "递归扫描已启动",
     "scanAndWatchStarted": "扫描并监听已启动",
     "scanFailed": "扫描启动失败"

@@ -21,6 +21,7 @@ import {
   ContextMenuShortcut,
   ContextMenuTrigger,
 } from "@/components/ui/context-menu"
+import { useTranslation } from "react-i18next"
 
 export interface FileContextMenuActions {
   onOpen: () => void
@@ -29,6 +30,7 @@ export interface FileContextMenuActions {
   onMove: () => void
   onMoveToFavorite: () => void
   onMoveToAlreadyRead: () => void
+  onBackfillFolder: () => void
   onDelete: () => void
   onZipFolder: () => void
   onMinifyZipImages: () => void
@@ -55,6 +57,7 @@ export function FileContextMenu({
   actions,
   onContextMenuOpen,
 }: FileContextMenuProps) {
+  const { t } = useTranslation()
   const isFolder = item.item_type === "folder"
   const isArchive = item.file_type === "archive"
   const isSingleSelection = selectedCount <= 1
@@ -108,6 +111,14 @@ export function FileContextMenu({
           <BookCheck className="mr-2 size-4" />
           {isMultiSelection ? `Move ${selectedCount} to Already Read` : "Move to Already Read"}
         </ContextMenuItem>
+
+        {/* Backfill folder meta/thumb */}
+        {isSingleSelection && isFolder && (
+          <ContextMenuItem onClick={actions.onBackfillFolder}>
+            <CheckSquare className="mr-2 size-4" />
+            {t("explorer.backfillMissingMetaThumbnail")}
+          </ContextMenuItem>
+        )}
 
         {/* Delete */}
         <ContextMenuItem onClick={actions.onDelete} className="text-destructive focus:text-destructive">

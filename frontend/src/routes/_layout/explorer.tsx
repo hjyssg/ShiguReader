@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { useDocumentTitle } from "@/hooks/useDocumentTitle"
 import { FileNotFoundError } from "@/components/Common/FileNotFoundError"
+import { useFileOperations } from "@/hooks/useFileOperations"
 
 export const Route = createFileRoute("/_layout/explorer")({
   component: Explorer,
@@ -63,6 +64,7 @@ function Explorer() {
 
   const breadcrumbs = buildPathBreadcrumbs(path)
   const parentPath = getParentPath(path)
+  const operations = useFileOperations(path)
 
   const handleScan = async (withWatch: boolean) => {
     if (!path) return
@@ -147,6 +149,9 @@ function Explorer() {
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => handleScan(true)}>
                 {t("explorer.scanAndWatch")}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => operations.backfillFolderMutation.mutate(path)}>
+                {t("explorer.backfillMissingMetaThumbnail")}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

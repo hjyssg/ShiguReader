@@ -108,8 +108,16 @@ reader的图片占的位置可以大一点。下面明明很多padding。我看�
 
 
 # task
-PERFORMANCE_GUIDLINE.md
+根据PERFORMANCE_GUIDLINE.md 帮我进行性能检查
 
+# task
+给文件夹加一个dropdown menu 让用户可以给这个文件夹及其子文件夹的文件
+thumbnail缺失、meta信息的补上
+
+
+# task
+删除的confrim modal
+文件名太长会overflow。你把modal弄宽一点。如果还是超过，就换行
 
 ## task15:
 现在favorite几万个文件。你看看是不是要拆分开成几批进行batchinsert

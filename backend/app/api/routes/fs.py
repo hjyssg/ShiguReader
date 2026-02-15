@@ -106,6 +106,21 @@ class ScanRequest(BaseModel):
     recursive: bool = True
 
 
+class BackfillRequest(BaseModel):
+    path: str
+    recursive: bool = True
+    fill_thumbnail: bool = True
+    fill_meta: bool = True
+
+
+class BackfillResponse(BaseModel):
+    status: Literal["ok"]
+    scanned_files: int
+    backfilled_thumbnails: int
+    backfilled_meta: int
+    message: str
+
+
 class ScanStartResponse(BaseModel):
     status: Literal["started"]
     message: str
@@ -590,6 +605,26 @@ def _run_scan(path: Path, recursive: bool) -> None:
             parsed_files=parsed_files,
             finished_at=int(time()),
         )
+
+
+def _iter_files_for_backfill(path: Path, recursive: bool):
+    """Yield files under a directory for backfill operation."""
+    if recursive:
+        for root, dirs, filenames in os.walk(path):
+            dirs[:] = [d for d in dirs if not should_ignore(d)]
+            filenames = [f for f in filenames if not should_ignore(f)]
+            root_path = Path(root)
+            for filename in filenames:
+                file_path = root_path / filename
+                if file_path.is_file():
+                    yield file_path
+        return
+
+    for entry in path.iterdir():
+        if should_ignore(entry.name):
+            continue
+        if entry.is_file():
+            yield entry
 
 
 @router.get("/roots", response_model=list[RootItem])
@@ -1121,6 +1156,158 @@ async def scan_directory(background_tasks: BackgroundTasks, request: ScanRequest
         status="started",
         message="Scan task started",
         path=str(validated_path),
+    )
+
+
+@router.post("/backfill", response_model=BackfillResponse)
+async def backfill_directory(request: BackfillRequest) -> BackfillResponse:
+    """Backfill missing thumbnail/meta for files under a folder."""
+    target_path = Path(request.path)
+    validated_path = _validate_path(target_path)
+
+    if not validated_path.exists():
+        raise HTTPException(status_code=404, detail="Path not found")
+
+    if not validated_path.is_dir():
+        raise HTTPException(status_code=400, detail="Path is not a directory")
+
+    if not request.fill_thumbnail and not request.fill_meta:
+        raise HTTPException(status_code=400, detail="Nothing to backfill")
+
+    scanned_files = 0
+    backfilled_thumbnails = 0
+    backfilled_meta = 0
+
+    thumb_service: ThumbService | None = None
+    if request.fill_thumbnail:
+        thumb_service = await ThumbService.get_instance()
+
+    with get_index_session() as session:
+        repo = IndexRepository(session)
+        ensured_folders: set[str] = set()
+
+        def ensure_folder_row(folder_path: Path) -> None:
+            folder_str = str(folder_path)
+            if folder_str in ensured_folders:
+                return
+            try:
+                folder_stat = folder_path.stat()
+                folder_mtime = int(folder_stat.st_mtime)
+            except Exception:
+                folder_mtime = None
+
+            repo.upsert_folder(
+                UpsertFolderInput(
+                    filepath=folder_str,
+                    dirname=folder_path.name or folder_str,
+                    mtime=folder_mtime,
+                    scan_state=1,
+                    watch_state=0,
+                    scanned=False,
+                )
+            )
+            ensured_folders.add(folder_str)
+
+        # Ensure target folder itself exists in DB, then ensure each file parent folder on demand.
+        ensure_folder_row(validated_path)
+
+        for file_path in _iter_files_for_backfill(validated_path, request.recursive):
+            scanned_files += 1
+
+            try:
+                stat = file_path.stat()
+            except Exception as e:
+                logger.warning("Backfill skipped stat failed for %s: %s", file_path, e)
+                continue
+
+            file_type = detect_file_type(file_path)
+            filepath = str(file_path)
+            ensure_folder_row(file_path.parent)
+
+            # Ensure file row exists for downstream metadata writes.
+            db_file = repo.get_file(filepath)
+            if db_file is None:
+                fingerprint = f"{file_path.name}-{stat.st_size}-{int(stat.st_mtime)}"
+                db_file = repo.upsert_file(
+                    UpsertFileInput(
+                        filepath=filepath,
+                        filename=file_path.name,
+                        mtime=int(stat.st_mtime),
+                        filesize=stat.st_size,
+                        fingerprint=fingerprint,
+                        folderpath=str(file_path.parent),
+                        file_type=file_type,
+                        ext=file_path.suffix.lower() if file_path.suffix else None,
+                        scan_state=1,
+                        watch_state=0,
+                        scanned=False,
+                    )
+                )
+
+            if request.fill_thumbnail and file_type in ("archive", "video", "image"):
+                missing_thumb = not (db_file.thumbnail_filepath or "").strip()
+                if missing_thumb and thumb_service is not None:
+                    try:
+                        await thumb_service.get_or_generate(file_path)
+                        backfilled_thumbnails += 1
+                    except Exception as e:
+                        logger.warning("Backfill thumbnail failed for %s: %s", file_path, e)
+
+            if request.fill_meta:
+                # Parsed metadata from filename
+                if repo.get_parsed_metadata(filepath) is None:
+                    try:
+                        parsed = parse(file_path.name)
+                        if parsed is not None:
+                            repo.save_parse_result(
+                                filepath,
+                                title=parsed.title,
+                                authors=parsed.authors,
+                                group_name=parsed.group,
+                                raw_tags=parsed.raw_tags,
+                                event=parsed.event,
+                                date_tag=parsed.date_tag,
+                                media_type=parsed.type,
+                            )
+                            backfilled_meta += 1
+                    except Exception as e:
+                        logger.warning("Backfill parse meta failed for %s: %s", file_path, e)
+
+                # Archive content metadata
+                if file_type == "archive" and repo.get_archive_meta(filepath) is None:
+                    try:
+                        entries = list_archive_entries(file_path)
+                        image_file_num = 0
+                        video_file_num = 0
+                        music_file_num = 0
+
+                        for entry in entries:
+                            et = detect_file_type(entry)
+                            if et == "image":
+                                image_file_num += 1
+                            elif et == "video":
+                                video_file_num += 1
+                            elif et == "audio":
+                                music_file_num += 1
+
+                        repo.upsert_archive_meta(
+                            filepath=filepath,
+                            archive_type=file_path.suffix.lower().lstrip("."),
+                            entry_count=len(entries),
+                            image_file_num=image_file_num,
+                            video_file_num=video_file_num,
+                            music_file_num=music_file_num,
+                        )
+                        backfilled_meta += 1
+                    except Exception as e:
+                        logger.warning("Backfill archive meta failed for %s: %s", file_path, e)
+
+    return BackfillResponse(
+        status="ok",
+        scanned_files=scanned_files,
+        backfilled_thumbnails=backfilled_thumbnails,
+        backfilled_meta=backfilled_meta,
+        message="Backfill completed",
     )
 
 

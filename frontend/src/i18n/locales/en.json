@@ -32,6 +32,7 @@
     "scan": "Scan",
     "scanRecursive": "Scan Including Subfolders",
     "scanAndWatch": "Scan and Watch Subfolders",
+    "backfillMissingMetaThumbnail": "Backfill Missing Thumbnail + Meta",
     "scanStarted": "Recursive scan started",
     "scanAndWatchStarted": "Scan and watch started",
     "scanFailed": "Failed to start scan"

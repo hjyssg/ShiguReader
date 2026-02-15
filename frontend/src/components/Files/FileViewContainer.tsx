@@ -336,6 +336,9 @@ export function FileViewContainer({
         }
         handleMoveToAlreadyRead()
       },
+      onBackfillFolder: () => {
+        operations.backfillFolderMutation.mutate(item.path)
+      },
       onDelete: () => {
         if (!selection.isSelected(item.path)) {
           selection.select(item.path)
@@ -354,7 +357,7 @@ export function FileViewContainer({
       },
       onSelectAll: () => selection.selectAll(sortedItems),
     }),
-    [openItem, openItemInNewTab, selection, sortedItems, handleMoveToFavorite, handleMoveToAlreadyRead],
+    [openItem, openItemInNewTab, selection, sortedItems, handleMoveToFavorite, handleMoveToAlreadyRead, operations.backfillFolderMutation],
   )
 
   // Mixed view: group items by type

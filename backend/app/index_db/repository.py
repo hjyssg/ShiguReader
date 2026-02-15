@@ -373,6 +373,14 @@ class IndexRepository:
             file.thumbnail_filepath = thumbnail_filepath
             self._commit()
 
+    def get_file(self, filepath: str) -> File | None:
+        """Get a file row by filepath."""
+        return self.session.get(File, filepath)
+
+    def get_archive_meta(self, filepath: str) -> ArchiveMeta | None:
+        """Get archive metadata row by filepath."""
+        return self.session.get(ArchiveMeta, filepath)
+
     def find_thumbnail_by_fingerprint(self, fingerprint: str) -> str | None:
         """通过 fingerprint 查找已有的缩略图路径。"""
         stmt = (

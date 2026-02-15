@@ -17,6 +17,16 @@ function apiCompressArchiveImages(archivePath: string) {
   return api.post("/api/v1/fs/archive/compress-images", { archive_path: archivePath })
 }
 
+/** 为目录补全缺失的 thumbnail/meta（含子目录） */
+function apiBackfillFolder(folderPath: string) {
+  return api.post("/api/v1/fs/backfill", {
+    path: folderPath,
+    recursive: true,
+    fill_thumbnail: true,
+    fill_meta: true,
+  })
+}
+
 /** 移动到收藏夹目录 */
 async function apiMoveToFavorite(sourcePath: string, isFolder: boolean) {
   // 先获取收藏夹目录
@@ -166,6 +176,21 @@ export function useFileOperations(currentPath: string) {
     },
   })
 
+  const backfillFolderMutation = useMutation({
+    mutationFn: (folderPath: string) => apiBackfillFolder(folderPath),
+    onSuccess: (resp) => {
+      const payload = resp?.data || {}
+      const scanned = payload.scanned_files ?? 0
+      const thumbs = payload.backfilled_thumbnails ?? 0
+      const meta = payload.backfilled_meta ?? 0
+      toast.success(`Backfill completed: scanned ${scanned}, thumbnails ${thumbs}, meta ${meta}`)
+      invalidate()
+    },
+    onError: (err: any) => {
+      toast.error(`Backfill failed: ${err?.response?.data?.detail || err.message}`)
+    },
+  })
+
   return {
     renameMutation,
     deleteMutation,
@@ -176,6 +201,7 @@ export function useFileOperations(currentPath: string) {
     moveToAlreadyReadMutation,
     zipFolderMutation,
     compressArchiveImagesMutation,
+    backfillFolderMutation,
     /** 通用移动：根据 item_type 自动选择 moveFile 或 moveFolder */
     move: (sourcePath: string, destPath: string, isFolder: boolean) => {
       if (isFolder) {

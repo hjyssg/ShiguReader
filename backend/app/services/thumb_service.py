@@ -38,6 +38,15 @@ class ThumbService:
         self._cache_dir = Path(settings.THUMB_CACHE_DIR).resolve()
         self._cache_dir.mkdir(parents=True, exist_ok=True)
 
+    @staticmethod
+    def _consume_future_exception(fut: asyncio.Future[Path]) -> None:
+        """避免 set_exception 后无人 await 导致 `Future exception was never retrieved` 日志。"""
+        try:
+            _ = fut.exception()
+        except Exception:
+            # 这里不二次抛出，真实异常由调用栈继续抛出并记录。
+            pass
+
     @classmethod
     async def get_instance(cls) -> ThumbService:
         if cls._instance is None:
@@ -96,6 +105,7 @@ class ThumbService:
             return await self._inflight[key]
 
         future: asyncio.Future[Path] = asyncio.Future()
+        future.add_done_callback(self._consume_future_exception)
         self._inflight[key] = future
 
         try:
