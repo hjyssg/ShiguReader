@@ -2,9 +2,11 @@
   display: flex;
   width: 100%;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: space-between;
+  gap: 2px;
 }
 
+.file-actions-dropdown__icon-button,
 .file-actions-dropdown__trigger {
   display: inline-flex;
   width: 28px;
@@ -16,4 +18,15 @@
   border: none;
   background: transparent;
   cursor: pointer;
+}
+
+.file-actions-dropdown__icon-button:hover,
+.file-actions-dropdown__trigger:hover {
+  background: hsl(var(--accent));
+  color: hsl(var(--accent-foreground));
+}
+
+.file-actions-dropdown__icon-button--danger:hover {
+  background: hsl(var(--destructive) / 0.12);
+  color: hsl(var(--destructive));
 }

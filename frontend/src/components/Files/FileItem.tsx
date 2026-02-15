@@ -29,14 +29,17 @@ export function FileItem({ item, isSelected, actionSlot, onClick, onDoubleClick,
   const isMobile = useIsMobile()
   const isFolder = item.item_type === "folder"
   const href = buildItemHref(item, isMobile)
-  const infoText = isFolder
-    ? "Folder"
-    : item.filesize
-      ? `${formatFileSize(item.filesize)}${item.file_type === "archive" && item.image_count != null && item.image_count > 0
-        ? ` · ${item.image_count} imgs${item.avg_image_size != null ? ` · avg ${formatFileSize(item.avg_image_size)}` : ""}`
-        : ""
-      }`
-      : "-"
+  const infoMetrics = !isFolder && item.filesize
+    ? [
+      { label: formatFileSize(item.filesize), title: "文件大小" },
+      ...(item.file_type === "archive" && item.image_count != null && item.image_count > 0
+        ? [{ label: `${item.image_count} imgs`, title: "图片数量" }]
+        : []),
+      ...(item.file_type === "archive" && item.avg_image_size != null
+        ? [{ label: formatFileSize(item.avg_image_size), title: "平均图片大小" }]
+        : []),
+    ]
+    : []
 
   const fileNameNode = href ? (
     <a href={href} className="file-item-name-link" draggable={false}>
@@ -101,8 +104,14 @@ export function FileItem({ item, isSelected, actionSlot, onClick, onDoubleClick,
               {actionSlot}
             </div>
           )}
-          {!isFolder && item.filesize && (
-              <p className="file-item-info-text">{infoText}</p>
+          {infoMetrics.length > 0 && (
+            <div className="file-item-info-metrics">
+              {infoMetrics.map((metric) => (
+                <span key={`${metric.title}-${metric.label}`} className="file-item-info-metric" title={metric.title}>
+                  {metric.label}
+                </span>
+              ))}
+            </div>
           )}
         </CardInfo>
       </ItemCard>

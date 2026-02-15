@@ -20,12 +20,19 @@
 .file-item-name-link {
   display: block;
   min-width: 0;
+  margin-bottom: 6px;
 }
 
 .file-item-name-text {
   display: block;
   min-width: 0;
   font-size: 0.875rem;
+  line-height: 1.25;
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .file-item-action-slot {
@@ -33,7 +40,16 @@
   padding-top: 2px;
 }
 
-.file-item-info-text {
+.file-item-info-metrics {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.file-item-info-metric {
+  display: inline-block;
+  min-width: 0;
   font-size: 0.75rem;
   color: hsl(var(--muted-foreground));
 }

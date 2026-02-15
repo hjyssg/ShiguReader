@@ -1,5 +1,6 @@
 // 右键上下文菜单 — 根据文件类型动态显示菜单项
 import {
+  Check,
   BookCheck,
   Download,
   ExternalLink,
@@ -12,6 +13,7 @@ import {
   Star,
   Trash2,
   CheckSquare,
+  X,
 } from "lucide-react"
 
 import type { FileSystemItem } from "@/client"
@@ -71,6 +73,45 @@ export function FileActionsDropdown({
 
   return (
     <div className="file-actions-dropdown">
+      <button
+        type="button"
+        className="file-actions-dropdown__icon-button"
+        aria-label="Move to Favorites"
+        title="Move to Favorites"
+        onClick={(e) => {
+          e.stopPropagation()
+          actions.onMoveToFavorite()
+        }}
+      >
+        <Check className="size-4" />
+      </button>
+
+      <button
+        type="button"
+        className="file-actions-dropdown__icon-button"
+        aria-label="Move to Already Read"
+        title="Move to Already Read"
+        onClick={(e) => {
+          e.stopPropagation()
+          actions.onMoveToAlreadyRead()
+        }}
+      >
+        <X className="size-4" />
+      </button>
+
+      <button
+        type="button"
+        className="file-actions-dropdown__icon-button file-actions-dropdown__icon-button--danger"
+        aria-label="Delete"
+        title="Delete"
+        onClick={(e) => {
+          e.stopPropagation()
+          actions.onDelete()
+        }}
+      >
+        <Trash2 className="size-4" />
+      </button>
+
       <DropdownMenu modal={false}>
         <DropdownMenuTrigger asChild>
         <button
