@@ -72,7 +72,7 @@ def test_create_user_duplicate_email(client: TestClient, user_session: Session) 
         session=user_session,
         user_create=UserCreate(
             email="existing@example.com",
-            password="pass123",
+            password="pass1234",
         ),
     )
     
@@ -81,7 +81,7 @@ def test_create_user_duplicate_email(client: TestClient, user_session: Session) 
         "/api/v1/users/",
         json={
             "email": "existing@example.com",
-            "password": "pass123",
+            "password": "pass1234",
         },
     )
     
@@ -134,14 +134,14 @@ def test_update_user_me_email_conflict(client: TestClient, user_session: Session
         session=user_session,
         user_create=UserCreate(
             email="user1@example.com",
-            password="pass123",
+            password="pass1234",
         ),
     )
     crud.create_user(
         session=user_session,
         user_create=UserCreate(
             email="user2@example.com",
-            password="pass123",
+            password="pass1234",
         ),
     )
     
@@ -243,7 +243,7 @@ def test_register_user_duplicate_email(client: TestClient, user_session: Session
         session=user_session,
         user_create=UserCreate(
             email="existing@example.com",
-            password="pass123",
+            password="pass1234",
         ),
     )
     
@@ -251,7 +251,7 @@ def test_register_user_duplicate_email(client: TestClient, user_session: Session
         "/api/v1/users/signup",
         json={
             "email": "existing@example.com",
-            "password": "pass123",
+            "password": "pass1234",
         },
     )
     
@@ -277,7 +277,7 @@ def test_read_user_by_id(client: TestClient, user_session: Session) -> None:
 
 
 def test_read_user_by_id_not_found(client: TestClient, user_session: Session) -> None:
-    """Test reading non-existent user returns 404."""
+    """Test non-superuser reading others returns 403 before not-found check."""
     crud.create_user(
         session=user_session,
         user_create=UserCreate(
@@ -288,7 +288,7 @@ def test_read_user_by_id_not_found(client: TestClient, user_session: Session) ->
     
     response = client.get("/api/v1/users/00000000-0000-0000-0000-000000000000")
     
-    assert response.status_code == 404
+    assert response.status_code == 403
 
 
 def test_delete_user_me_regular_user(client: TestClient, user_session: Session) -> None:
