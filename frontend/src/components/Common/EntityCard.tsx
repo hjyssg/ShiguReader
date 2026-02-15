@@ -33,7 +33,7 @@ export function EntityCard({
       )}
 
       <CardInfo className="entity-info">
-        <p className="text-sm truncate" title={item.name}>
+        <p className="text-sm truncate" title={item.name} title={item.name}>
           {item.name}
         </p>
         <p className="text-xs text-muted-foreground">{item.file_count} files</p>

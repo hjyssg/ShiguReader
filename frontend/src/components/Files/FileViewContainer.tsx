@@ -389,7 +389,7 @@ export function FileViewContainer({
           onDoubleClick={(e) => handleItemDoubleClick(item, e)}
         >
           <FileIcon fileType={item.file_type} isFolder={item.item_type === "folder"} size="sm" />
-          <span className="text-sm truncate">{item.name}</span>
+          <span className="text-sm truncate" title={item.name}>{item.name}</span>
         </div>
       </FileContextMenu>
     ),

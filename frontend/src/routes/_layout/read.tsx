@@ -316,6 +316,7 @@ function ReadPage() {
   const avgImageSizeText = currentPathMeta?.avg_image_size ? formatFileSize(currentPathMeta.avg_image_size) : "-"
   const authors = parseMeta?.authors ?? []
   const tags = parseMeta?.raw_tags ?? []
+  const readerBarTextClass = "text-xs"
   const dirCrumbs = pathParts.slice(0, -1).map((name, index) => ({
     name,
     path: joinPath(pathParts.slice(0, index + 1), path),
@@ -431,7 +432,7 @@ function ReadPage() {
   return (
     <div className="flex flex-col h-screen">
       {/* 顶部工具栏 - 整合导航和工具 */}
-      <nav className="flex items-center gap-1.5 text-s text-muted-foreground px-6 py-4 bg-background/95 border-b shrink-0">
+      <nav className={`flex items-center gap-1.5 ${readerBarTextClass} text-muted-foreground px-4 py-2 bg-background/95 border-b shrink-0`}>
         {/* 左侧：面包屑导航 */}
         <Link to="/" className="flex items-center gap-1 hover:text-foreground shrink-0">
           <Home className="size-3.5" />
@@ -466,26 +467,26 @@ function ReadPage() {
         </Link>
 
         {/* 右侧：页码和工具 */}
-        <div className="ml-auto flex items-center gap-1 shrink-0">
-          <span className="text-base text-muted-foreground tabular-nums mr-2">
+        <div className={"ml-auto flex items-center gap-1 shrink-0"}>
+          <span className={`${readerBarTextClass} text-muted-foreground tabular-nums mr-2`}>
             {currentPage + 1} / {totalPages}
           </span>
-          <Button variant="ghost" size="icon" className="size-6" onClick={zoomOut} title="缩小">
-            <span className="text-base font-medium">−</span>
+          <Button variant="ghost" size="icon" className={readerBarTextClass} onClick={zoomOut} title="缩小">
+            <span className={`${readerBarTextClass} font-medium`}>−</span>
           </Button>
-          <Button variant="ghost" size="icon" className="size-6" onClick={zoomIn} title="放大">
-            <span className="text-base font-medium">+</span>
+          <Button variant="ghost" size="icon" className={readerBarTextClass} onClick={zoomIn} title="放大">
+            <span className={`${readerBarTextClass} font-medium`}>+</span>
           </Button>
-          <Button variant="ghost" size="icon" className="size-6" onClick={rotate} title="旋转">
+          <Button variant="ghost" size="icon" className={readerBarTextClass} onClick={rotate} title="旋转">
             <RotateCw className="size-3" />
           </Button>
-          <Button variant="ghost" size="icon" className="size-6" onClick={toggleFullscreen} title="全屏">
+          <Button variant="ghost" size="icon" className={readerBarTextClass} onClick={toggleFullscreen} title="全屏">
             <Scan className="size-3" />
           </Button>
           <Button
             variant="ghost"
             size="sm"
-            className="h-6 px-2 text-base"
+            className={`h-6 px-2 ${readerBarTextClass}`}
             onClick={() => {
               const value = Number(prompt("跳转到第几页？"))
               if (!Number.isNaN(value) && value > 0) {
@@ -495,17 +496,17 @@ function ReadPage() {
           >
             跳页
           </Button>
-          <Button variant="ghost" size="sm" className="h-6 px-2 text-base" onClick={resetTransform}>重置</Button>
+          <Button variant="ghost" size="sm" className={`h-6 px-2 ${readerBarTextClass}`} onClick={resetTransform}>重置</Button>
           {!isFolderSource && (
             <>
-              <Button variant="ghost" size="sm" className="h-6 px-2 text-base" onClick={() => navigate({ to: "/archive", search: { path } })}>Explorer</Button>
-              <Button variant="ghost" size="sm" className="h-6 px-2 text-base" onClick={() => navigate({ to: "/read-waterfall", search: { path } })}>Waterfall</Button>
+              <Button variant="ghost" size="sm" className={`h-6 px-2 ${readerBarTextClass}`} onClick={() => navigate({ to: "/archive", search: { path } })}>Explorer</Button>
+              <Button variant="ghost" size="sm" className={`h-6 px-2 ${readerBarTextClass}`} onClick={() => navigate({ to: "/read-waterfall", search: { path } })}>Waterfall</Button>
             </>
           )}
           {/* File Operations Dropdown */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="size-6" title="File operations">
+              <Button variant="ghost" size="icon" className={readerBarTextClass} title="File operations">
                 <MoreVertical className="size-3" />
               </Button>
             </DropdownMenuTrigger>
@@ -595,7 +596,7 @@ function ReadPage() {
       </div>
 
       <div className="px-4 py-2 border-t bg-background/85 backdrop-blur shrink-0">
-        <div className="flex items-center gap-3 text-xs whitespace-nowrap overflow-x-auto">
+        <div className={`flex items-center gap-3 ${readerBarTextClass} whitespace-nowrap overflow-x-auto`}>
           <span className="text-muted-foreground">
             {t("reader.mtime")}: <span className="text-foreground">{mtimeText}</span>
           </span>
