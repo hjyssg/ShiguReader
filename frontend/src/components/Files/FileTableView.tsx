@@ -8,6 +8,7 @@ import { FileIcon } from "./FileIcon"
 import { FileNameWithPreview } from "./FileNameWithPreview"
 import { formatDateTime, formatFileSize, formatFileType } from "./utils"
 import { FileContextMenu, type FileContextMenuActions } from "./FileContextMenu"
+import "./FileTableView.css"
 
 export type SortField = "name" | "type" | "mtime" | "recommendation" | "image_count"
 export type SortOrder = "asc" | "desc"
@@ -51,52 +52,52 @@ export function FileTableView({
   }
 
   return (
-    <div className="border rounded-lg overflow-hidden">
-      <table className="w-full">
-        <thead className="bg-muted/50 border-b">
-          <tr className="text-sm">
+    <div className="file-table-view">
+      <table className="file-table-view__table">
+        <thead className="file-table-view__head">
+          <tr className="file-table-view__head-row">
             <th
-              className="text-left p-2 font-medium cursor-pointer hover:bg-muted/80 transition-colors"
+              className="file-table-view__head-cell file-table-view__head-cell--sortable"
               onClick={() => onSort("name")}
             >
-              <div className="flex items-center">
+              <div className="file-table-view__head-cell-content">
                 Name
                 <SortIcon field="name" />
               </div>
             </th>
             <th
-              className="text-left p-2 font-medium cursor-pointer hover:bg-muted/80 transition-colors w-[180px]"
+              className="file-table-view__head-cell file-table-view__head-cell--sortable file-table-view__head-cell--mtime"
               onClick={() => onSort("mtime")}
             >
-              <div className="flex items-center">
+              <div className="file-table-view__head-cell-content">
                 Date Modified
                 <SortIcon field="mtime" />
               </div>
             </th>
             <th
-              className="text-left p-2 font-medium cursor-pointer hover:bg-muted/80 transition-colors w-[120px]"
+              className="file-table-view__head-cell file-table-view__head-cell--sortable file-table-view__head-cell--type"
               onClick={() => onSort("type")}
             >
-              <div className="flex items-center">
+              <div className="file-table-view__head-cell-content">
                 Type
                 <SortIcon field="type" />
               </div>
             </th>
-            <th className="text-right p-2 font-medium w-[100px]">Size</th>
+            <th className="file-table-view__head-cell file-table-view__head-cell--align-right file-table-view__head-cell--size">Size</th>
             <th
-              className="text-right p-2 font-medium cursor-pointer hover:bg-muted/80 transition-colors w-[130px]"
+              className="file-table-view__head-cell file-table-view__head-cell--sortable file-table-view__head-cell--align-right file-table-view__head-cell--recommendation"
               onClick={() => onSort("recommendation")}
             >
-              <div className="flex items-center justify-end">
+              <div className="file-table-view__head-cell-content file-table-view__head-cell-content--align-right">
                 Recommendation
                 <SortIcon field="recommendation" />
               </div>
             </th>
             <th
-              className="text-right p-2 font-medium cursor-pointer hover:bg-muted/80 transition-colors w-[110px]"
+              className="file-table-view__head-cell file-table-view__head-cell--sortable file-table-view__head-cell--align-right file-table-view__head-cell--image-count"
               onClick={() => onSort("image_count")}
             >
-              <div className="flex items-center justify-end">
+              <div className="file-table-view__head-cell-content file-table-view__head-cell-content--align-right">
                 Image Count
                 <SortIcon field="image_count" />
               </div>
@@ -153,17 +154,12 @@ function TableRowItem({
 
   return (
     <tr
-      className={cn(
-        "border-b last:border-b-0 text-sm cursor-pointer transition-colors",
-        selected
-          ? "bg-primary/10"
-          : "hover:bg-muted/50",
-      )}
+      className={cn("file-table-row", selected ? "file-table-row--selected" : "file-table-row--hoverable")}
       onClick={(e) => onClick?.(item, e)}
       onDoubleClick={(e) => onDoubleClick?.(item, e)}
     >
-      <td className="p-2">
-        <div className="flex items-center gap-2 min-w-0">
+      <td className="file-table-cell">
+        <div className="file-table-name-cell">
           <FileIcon fileType={item.file_type} isFolder={isFolder} size="sm" className="shrink-0" />
           <FileNameWithPreview
             filename={item.name}
@@ -173,19 +169,19 @@ function TableRowItem({
           />
         </div>
       </td>
-      <td className="p-2 text-muted-foreground">
+      <td className="file-table-cell file-table-cell--muted">
         {item.mtime ? formatDateTime(item.mtime) : "-"}
       </td>
-      <td className="p-2 text-muted-foreground">
+      <td className="file-table-cell file-table-cell--muted">
         {isFolder ? "Folder" : formatFileType(item.file_type)}
       </td>
-      <td className="p-2 text-right text-muted-foreground">
+      <td className="file-table-cell file-table-cell--align-right file-table-cell--muted">
         {!isFolder && item.filesize ? formatFileSize(item.filesize) : "-"}
       </td>
-      <td className="p-2 text-right text-muted-foreground">
+      <td className="file-table-cell file-table-cell--align-right file-table-cell--muted">
         {!isFolder ? ((item as any).recommendation_score ?? 0).toFixed(3) : "-"}
       </td>
-      <td className="p-2 text-right text-muted-foreground">
+      <td className="file-table-cell file-table-cell--align-right file-table-cell--muted">
         {isArchive && (item as any).image_count ? (item as any).image_count : "-"}
       </td>
     </tr>
