@@ -267,6 +267,12 @@ function ReadPage() {
         window.scrollBy({ top: 80, behavior: "smooth" })
       } else if (key === "escape") {
         navigate({ to: isFolderSource ? "/explorer" : "/archive", search: { path } })
+      } else if (key === "v") {
+        e.preventDefault()
+        setConfirmFavOpen(true)
+      } else if (key === "x") {
+        e.preventDefault()
+        setConfirmReadOpen(true)
       }
     }
 

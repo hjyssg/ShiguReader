@@ -1,12 +1,13 @@
 import { useQuery } from "@tanstack/react-query"
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router"
 import { ChevronRight, Home, ScanLine } from "lucide-react"
-import { useEffect } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
 
 import { FilesystemService } from "@/client"
 import { FileViewContainer } from "@/components/Files/FileViewContainer"
+import { Checkbox } from "@/components/ui/checkbox"
 import { Button } from "@/components/ui/button"
 import { buildPathBreadcrumbs, getBaseName, getParentPath } from "@/lib/path-utils"
 import {
@@ -41,6 +42,8 @@ function Explorer() {
   const { path } = Route.useSearch()
   const folderName = path ? getBaseName(path, t("nav.explorer")) : t("nav.explorer")
   useDocumentTitle(folderName)
+  const [zipHasVideoOnly, setZipHasVideoOnly] = useState(false)
+  const [zipHasAudioOnly, setZipHasAudioOnly] = useState(false)
 
   // Redirect to home if path is empty
   useEffect(() => {
@@ -65,6 +68,27 @@ function Explorer() {
   const breadcrumbs = buildPathBreadcrumbs(path)
   const parentPath = getParentPath(path)
   const operations = useFileOperations(path)
+
+  const filteredItems = useMemo(() => {
+    const items = data?.items || []
+    if (!zipHasVideoOnly && !zipHasAudioOnly) return items
+
+    return items.filter((item) => {
+      if (item.item_type !== "file" || item.file_type !== "archive") {
+        return true
+      }
+
+      if (zipHasVideoOnly && (item.video_count ?? 0) <= 0) {
+        return false
+      }
+
+      if (zipHasAudioOnly && (item.audio_count ?? 0) <= 0) {
+        return false
+      }
+
+      return true
+    })
+  }, [data?.items, zipHasVideoOnly, zipHasAudioOnly])
 
   const handleScan = async (withWatch: boolean) => {
     if (!path) return
@@ -130,31 +154,53 @@ function Explorer() {
       </nav>
 
       <FileViewContainer
-        items={data?.items || []}
+        items={filteredItems}
         isLoading={isLoading}
         currentPath={path}
         initialViewMode="mixed"
         storageKeyPrefix="explorer"
         toolbarExtra={
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="h-8">
-                <ScanLine className="size-4 mr-1" />
-                {t("explorer.scan")}
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <DropdownMenuItem onClick={() => handleScan(false)}>
-                {t("explorer.scanRecursive")}
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleScan(true)}>
-                {t("explorer.scanAndWatch")}
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => operations.backfillFolderMutation.mutate(path)}>
-                {t("explorer.backfillMissingMetaThumbnail")}
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <>
+            <div className="flex items-center gap-3 px-1">
+              <label htmlFor="zip-has-video" className="flex items-center gap-1.5 text-xs text-muted-foreground cursor-pointer select-none">
+                <Checkbox
+                  id="zip-has-video"
+                  checked={zipHasVideoOnly}
+                  onCheckedChange={(checked) => setZipHasVideoOnly(Boolean(checked))}
+                />
+                zip 含 video
+              </label>
+
+              <label htmlFor="zip-has-audio" className="flex items-center gap-1.5 text-xs text-muted-foreground cursor-pointer select-none">
+                <Checkbox
+                  id="zip-has-audio"
+                  checked={zipHasAudioOnly}
+                  onCheckedChange={(checked) => setZipHasAudioOnly(Boolean(checked))}
+                />
+                zip 含 audio
+              </label>
+            </div>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="h-8">
+                  <ScanLine className="size-4 mr-1" />
+                  {t("explorer.scan")}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem onClick={() => handleScan(false)}>
+                  {t("explorer.scanRecursive")}
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleScan(true)}>
+                  {t("explorer.scanAndWatch")}
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => operations.backfillFolderMutation.mutate(path)}>
+                  {t("explorer.backfillMissingMetaThumbnail")}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </>
         }
       />
     </div>

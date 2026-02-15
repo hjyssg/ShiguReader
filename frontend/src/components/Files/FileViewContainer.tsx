@@ -104,6 +104,13 @@ export function FileViewContainer({
         if (comparison === 0) {
           comparison = a.name.toLowerCase().localeCompare(b.name.toLowerCase())
         }
+      } else if (sortField === "image_count") {
+        const imageCountA = (a.image_count ?? 0)
+        const imageCountB = (b.image_count ?? 0)
+        comparison = imageCountA - imageCountB
+        if (comparison === 0) {
+          comparison = a.name.toLowerCase().localeCompare(b.name.toLowerCase())
+        }
       } else if (sortField === "recommendation") {
         const scoreA = (a as any).recommendation_score || 0
         const scoreB = (b as any).recommendation_score || 0
