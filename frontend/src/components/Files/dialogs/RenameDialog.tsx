@@ -41,7 +41,7 @@ export function RenameDialog({ open, onOpenChange, filePath, onConfirm, isPendin
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-xl">
         <DialogHeader>
           <DialogTitle>Rename</DialogTitle>
         </DialogHeader>

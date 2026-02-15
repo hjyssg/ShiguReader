@@ -33,10 +33,10 @@ export function ConfirmMoveDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent className="sm:max-w-xl">
         <DialogHeader>
           <DialogTitle>Move to {destination}</DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="break-all whitespace-normal">
             Are you sure you want to move {count === 1 ? `"${displayNames}"` : `${count} items`} to {destination}?
           </DialogDescription>
         </DialogHeader>

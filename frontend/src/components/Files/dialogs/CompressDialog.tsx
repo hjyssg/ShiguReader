@@ -42,7 +42,7 @@ export function CompressDialog({ open, onOpenChange, filePath, action, onConfirm
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-xl">
         <DialogHeader>
           <DialogTitle>{labels.title}</DialogTitle>
           <DialogDescription>
@@ -50,7 +50,7 @@ export function CompressDialog({ open, onOpenChange, filePath, action, onConfirm
           </DialogDescription>
         </DialogHeader>
         <div className="py-4">
-          <p className="text-sm">Target: <span className="font-medium">{name}</span></p>
+          <p className="text-sm break-all whitespace-normal">Target: <span className="font-medium">{name}</span></p>
         </div>
         <DialogFooter>
           <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>

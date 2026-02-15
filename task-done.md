@@ -171,3 +171,27 @@ env多加一个已读文件夹
 同时 Explorer 右键菜单 多加一个选项，用户可以把文件移动到这个文件夹。跳一个confirm modal。
 move to favorite也要confirm modal。
  
+# task
+给文件夹加一个dropdown menu 让用户可以给这个文件夹及其子文件夹的文件
+thumbnail缺失、meta信息的补上
+
+## task 14
+item-card的card-info还需要显示压缩文件的image number和average image size 。有些文件一开始没有meta信息，你可以在生成thumbnail的时候一并把meta信息带过。因为解压文件的时候能拿到meta信息。
+
+## task 13
+view-mode-controls 需要多加一种，混合模式。
+folder和video采用简单filename list 分别两个section
+压缩文件用grid mode。
+explorer默认使用这个混合mode
+
+
+# task9 
+archive没有设置tab title:
+你用参考一下reader。
+打开的一瞬间只解压10个文件，其他img都显示broken。刷新一下才有。你怎么解决
+
+
+### task2:
+reader页面调整：
+
+reader的图片占的位置可以大一点。下面明明很多padding。我看到你舍得max-width。你思考怎么调整。

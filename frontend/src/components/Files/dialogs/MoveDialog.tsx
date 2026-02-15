@@ -46,10 +46,10 @@ export function MoveDialog({ open, onOpenChange, filePaths, onConfirm, isPending
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="sm:max-w-xl">
         <DialogHeader>
           <DialogTitle>Move {count > 1 ? `${count} items` : "item"}</DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="break-all whitespace-normal">
             Moving: {displayNames.join(", ")}{count > 3 ? ` and ${count - 3} more` : ""}
           </DialogDescription>
         </DialogHeader>

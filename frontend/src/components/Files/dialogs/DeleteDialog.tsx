@@ -26,7 +26,7 @@ export function DeleteDialog({ open, onOpenChange, filePaths, onConfirm, isPendi
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-xl">
         <DialogHeader>
           <DialogTitle>Delete {count > 1 ? `${count} items` : "item"}</DialogTitle>
           <DialogDescription>
@@ -36,7 +36,7 @@ export function DeleteDialog({ open, onOpenChange, filePaths, onConfirm, isPendi
         <div className="py-4">
           <ul className="list-disc pl-5 space-y-1 text-sm max-h-40 overflow-y-auto">
             {displayNames.map((name) => (
-              <li key={name} className="truncate">{name}</li>
+              <li key={name} className="whitespace-normal break-all">{name}</li>
             ))}
             {hasMore && <li className="text-muted-foreground">...and {count - 5} more</li>}
           </ul>
