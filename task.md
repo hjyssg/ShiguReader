@@ -88,8 +88,11 @@ grid模式下的多选先用env的参数disable。效果不好
 
 file-item-wrapper的右键菜单保留
 
+# task：
+带thumbnail的item-card的右键菜单没删除。
+点击出现选中状态的逻辑也没删掉。
+
 # read page
 下面的info bar
-
 还需要显示zip的视频文件数和音频文件数。大于0的话，要用好看的橘色高亮。
 你先在计算avg img size的算法你检查一下是不是file size/img num，如果是的话，需要修改。应该要改后端。

@@ -320,6 +320,9 @@ function ReadPage() {
   const mtimeText = currentPathMeta?.mtime ? formatDateTime(currentPathMeta.mtime) : "-"
   const sizeText = currentPathMeta?.filesize ? formatFileSize(currentPathMeta.filesize) : "-"
   const avgImageSizeText = currentPathMeta?.avg_image_size ? formatFileSize(currentPathMeta.avg_image_size) : "-"
+  const isZipArchive = !!currentPathMeta?.path?.toLowerCase().endsWith(".zip")
+  const zipVideoCount = isZipArchive ? (currentPathMeta?.video_count ?? 0) : 0
+  const zipAudioCount = isZipArchive ? (currentPathMeta?.audio_count ?? 0) : 0
   const authors = parseMeta?.authors ?? []
   const tags = parseMeta?.raw_tags ?? []
   const readerBarTextClass = "text-xs"
@@ -611,6 +614,12 @@ function ReadPage() {
           </span>
           <span className="text-muted-foreground">
             {t("reader.avgImageSize")}: <span className="text-foreground">{avgImageSizeText}</span>
+          </span>
+          <span className="text-muted-foreground">
+            Video: <span className={zipVideoCount > 0 ? "text-orange-500 font-medium" : "text-foreground"}>{zipVideoCount}</span>
+          </span>
+          <span className="text-muted-foreground">
+            Audio: <span className={zipAudioCount > 0 ? "text-orange-500 font-medium" : "text-foreground"}>{zipAudioCount}</span>
           </span>
 
           <span className="text-muted-foreground">{t("reader.authors")}:</span>

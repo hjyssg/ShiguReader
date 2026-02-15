@@ -102,6 +102,30 @@ def _build_permission_denied_detail(operation: str, target: Path, error: Permiss
     return "; ".join(parts)
 
 
+def _probe_zip_media_stats(archive_path: Path) -> tuple[int, int, int, int | None]:
+    """统计 zip 内媒体数量，并按图片条目实际字节计算平均图片大小。"""
+    image_file_num = 0
+    video_file_num = 0
+    music_file_num = 0
+    image_total_size = 0
+
+    with zipfile.ZipFile(archive_path, "r") as zf:
+        for info in zf.infolist():
+            if info.is_dir():
+                continue
+            file_type = detect_file_type(info.filename)
+            if file_type == "image":
+                image_file_num += 1
+                image_total_size += max(0, int(info.file_size))
+            elif file_type == "video":
+                video_file_num += 1
+            elif file_type == "audio":
+                music_file_num += 1
+
+    avg_image_size = image_total_size // image_file_num if image_file_num > 0 else None
+    return image_file_num, video_file_num, music_file_num, avg_image_size
+
+
 
 
 class RootItem(BaseModel):
@@ -839,36 +863,64 @@ def list_directory(
                             item.image_count = meta.image_file_num
                             item.video_count = meta.video_file_num
                             item.audio_count = meta.music_file_num
-                            if meta.image_file_num and meta.image_file_num > 0 and item.filesize:
-                                item.avg_image_size = item.filesize // meta.image_file_num
+                            if item.path.lower().endswith(".zip"):
+                                try:
+                                    (
+                                        image_file_num,
+                                        video_file_num,
+                                        music_file_num,
+                                        avg_image_size,
+                                    ) = _probe_zip_media_stats(Path(item.path))
+                                    item.image_count = image_file_num
+                                    item.video_count = video_file_num
+                                    item.audio_count = music_file_num
+                                    item.avg_image_size = avg_image_size
+                                except Exception as e:
+                                    logger.warning("Failed to probe zip media stats for %s: %s", item.path, e)
+                                    item.avg_image_size = None
+                            else:
+                                # 非 zip 暂无可靠的按图片字节均值统计，避免使用错误公式（filesize/image_count）
+                                item.avg_image_size = None
                         else:
                             # Fallback: DB 还没有 archive_meta 时，按需即时统计，
                             # 保障 has_video/has_audio/image_count 排序在首次 list 就可用。
                             try:
-                                entries = list_archive_entries(Path(item.path))
-                                image_file_num = 0
-                                video_file_num = 0
-                                music_file_num = 0
-                                for entry in entries:
-                                    et = detect_file_type(entry)
-                                    if et == "image":
-                                        image_file_num += 1
-                                    elif et == "video":
-                                        video_file_num += 1
-                                    elif et == "audio":
-                                        music_file_num += 1
+                                if item.path.lower().endswith(".zip"):
+                                    (
+                                        image_file_num,
+                                        video_file_num,
+                                        music_file_num,
+                                        avg_image_size,
+                                    ) = _probe_zip_media_stats(Path(item.path))
+                                    item.image_count = image_file_num
+                                    item.video_count = video_file_num
+                                    item.audio_count = music_file_num
+                                    item.avg_image_size = avg_image_size
+                                else:
+                                    entries = list_archive_entries(Path(item.path))
+                                    image_file_num = 0
+                                    video_file_num = 0
+                                    music_file_num = 0
+                                    for entry in entries:
+                                        et = detect_file_type(entry)
+                                        if et == "image":
+                                            image_file_num += 1
+                                        elif et == "video":
+                                            video_file_num += 1
+                                        elif et == "audio":
+                                            music_file_num += 1
 
-                                item.image_count = image_file_num
-                                item.video_count = video_file_num
-                                item.audio_count = music_file_num
-                                if image_file_num > 0 and item.filesize:
-                                    item.avg_image_size = item.filesize // image_file_num
+                                    item.image_count = image_file_num
+                                    item.video_count = video_file_num
+                                    item.audio_count = music_file_num
+                                    item.avg_image_size = None
                             except Exception as e:
                                 logger.warning("Failed to probe archive meta for %s: %s", item.path, e)
                                 # 保持可排序/可筛选的数值语义，避免 None 破坏排序。
                                 item.image_count = 0
                                 item.video_count = 0
                                 item.audio_count = 0
+                                item.avg_image_size = None
     except Exception as e:
         logger.warning(f"Failed to get metadata: {e}")
         for item in items:
