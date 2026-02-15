@@ -1,14 +1,17 @@
 // 实体网格布局组件，支持分页
+import { useState } from "react"
+import { ResponsiveGrid } from "@/components/semantic/layout"
 import {
   Pagination,
   PaginationContent,
+  PaginationFirst,
   PaginationItem,
+  PaginationLast,
   PaginationLink,
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination"
 import { Skeleton } from "@/components/ui/skeleton"
-import { ResponsiveGrid } from "@/components/semantic/layout"
 
 import { EntityCard, type EntityCardItem } from "./EntityCard"
 
@@ -32,12 +35,18 @@ export function EntityGrid({
   emptyText?: string
 }) {
   const totalPages = Math.max(1, Math.ceil(total / pageSize))
+  const [jumpPage, setJumpPage] = useState("")
 
   const visiblePages = []
   const start = Math.max(1, page - 2)
   const end = Math.min(totalPages, start + 4)
   for (let i = start; i <= end; i += 1) {
     visiblePages.push(i)
+  }
+
+  const goToPage = (nextPage: number) => {
+    const target = Math.min(totalPages, Math.max(1, nextPage))
+    if (target !== page) onPageChange(target)
   }
 
   return (
@@ -59,50 +68,121 @@ export function EntityGrid({
       ) : (
         <ResponsiveGrid className="grid-content">
           {items.map((item) => (
-            <EntityCard key={item.name} item={item} onClick={() => onCardClick?.(item)} />
+            <EntityCard
+              key={item.name}
+              item={item}
+              onClick={() => onCardClick?.(item)}
+            />
           ))}
         </ResponsiveGrid>
       )}
 
       {total > 0 && (
-        <Pagination className="grid-pagination">
-          <PaginationContent>
-            <PaginationItem>
-              <PaginationPrevious
-                href="#"
-                onClick={(e) => {
-                  e.preventDefault()
-                  if (page > 1) onPageChange(page - 1)
-                }}
-              />
-            </PaginationItem>
-
-            {visiblePages.map((p) => (
-              <PaginationItem key={p}>
-                <PaginationLink
+        <div className="flex flex-col items-center gap-3">
+          <Pagination className="grid-pagination">
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationFirst
                   href="#"
-                  isActive={p === page}
                   onClick={(e) => {
                     e.preventDefault()
-                    onPageChange(p)
+                    goToPage(1)
                   }}
-                >
-                  {p}
-                </PaginationLink>
+                  className={
+                    page <= 1 ? "pointer-events-none opacity-50" : undefined
+                  }
+                />
               </PaginationItem>
-            ))}
 
-            <PaginationItem>
-              <PaginationNext
-                href="#"
-                onClick={(e) => {
-                  e.preventDefault()
-                  if (page < totalPages) onPageChange(page + 1)
-                }}
-              />
-            </PaginationItem>
-          </PaginationContent>
-        </Pagination>
+              <PaginationItem>
+                <PaginationPrevious
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault()
+                    goToPage(page - 1)
+                  }}
+                  className={
+                    page <= 1 ? "pointer-events-none opacity-50" : undefined
+                  }
+                />
+              </PaginationItem>
+
+              {visiblePages.map((p) => (
+                <PaginationItem key={p}>
+                  <PaginationLink
+                    href="#"
+                    isActive={p === page}
+                    onClick={(e) => {
+                      e.preventDefault()
+                      goToPage(p)
+                    }}
+                  >
+                    {p}
+                  </PaginationLink>
+                </PaginationItem>
+              ))}
+
+              <PaginationItem>
+                <PaginationNext
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault()
+                    goToPage(page + 1)
+                  }}
+                  className={
+                    page >= totalPages
+                      ? "pointer-events-none opacity-50"
+                      : undefined
+                  }
+                />
+              </PaginationItem>
+
+              <PaginationItem>
+                <PaginationLast
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault()
+                    goToPage(totalPages)
+                  }}
+                  className={
+                    page >= totalPages
+                      ? "pointer-events-none opacity-50"
+                      : undefined
+                  }
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+
+          <div className="flex items-center gap-2 text-sm">
+            <span className="text-muted-foreground">跳转到</span>
+            <input
+              type="number"
+              min={1}
+              max={totalPages}
+              value={jumpPage}
+              onChange={(e) => setJumpPage(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  const n = Number(jumpPage)
+                  if (!Number.isNaN(n)) goToPage(n)
+                }
+              }}
+              className="h-8 w-20 rounded-md border bg-background px-2"
+              placeholder={`1-${totalPages}`}
+            />
+            <button
+              type="button"
+              className="h-8 rounded-md border px-3"
+              onClick={() => {
+                const n = Number(jumpPage)
+                if (!Number.isNaN(n)) goToPage(n)
+              }}
+            >
+              确定
+            </button>
+          </div>
+        </div>
       )}
     </div>
   )

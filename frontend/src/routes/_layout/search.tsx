@@ -12,7 +12,9 @@ import { Label } from "@/components/ui/label"
 import {
   Pagination,
   PaginationContent,
+  PaginationFirst,
   PaginationItem,
+  PaginationLast,
   PaginationLink,
   PaginationNext,
   PaginationPrevious,
@@ -46,7 +48,8 @@ export const Route = createFileRoute("/_layout/search")({
       q,
       mode,
       page,
-      scopes: scopes.length > 0 ? scopes : (["file", "author", "tag"] as Scope[]),
+      scopes:
+        scopes.length > 0 ? scopes : (["file", "author", "tag"] as Scope[]),
     } as { q: string; mode: Mode; page: number; scopes: Scope[] }
   },
   head: () => ({
@@ -66,6 +69,7 @@ function SearchPage() {
   const [submittedQ, setSubmittedQ] = useState(search.q)
   const [scopes, setScopes] = useState<Scope[]>(search.scopes)
   const [mode, setMode] = useState<Mode>(search.mode)
+  const [jumpPage, setJumpPage] = useState("")
 
   const pageSize = 24
 
@@ -110,12 +114,12 @@ function SearchPage() {
     const startIndex = (search.page - 1) * pageSize
     const endIndex = startIndex + pageSize
     return data.items.slice(startIndex, endIndex)
-  }, [data?.items, search.page, pageSize])
+  }, [data?.items, search.page])
 
   const totalPages = useMemo(() => {
     if (!data?.items) return 1
     return Math.max(1, Math.ceil(data.items.length / pageSize))
-  }, [data?.items, pageSize])
+  }, [data?.items])
 
   const visiblePages = useMemo(() => {
     const out: number[] = []
@@ -124,6 +128,16 @@ function SearchPage() {
     for (let i = start; i <= end; i += 1) out.push(i)
     return out
   }, [totalPages, search.page])
+
+  const goToPage = (nextPage: number) => {
+    const target = Math.min(totalPages, Math.max(1, nextPage))
+    if (target !== search.page) {
+      navigate({
+        to: "/search",
+        search: { q: submittedQ, mode, scopes, page: target },
+      })
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -154,19 +168,28 @@ function SearchPage() {
           <div className="flex items-center gap-4">
             <Label className="text-sm">范围</Label>
             <div className="flex items-center gap-3">
-              {([
-                ["file", "文件"],
-                ["author", "作者"],
-                ["tag", "标签"],
-              ] as [Scope, string][]).map(([value, text]) => (
-                <label key={value} className="flex items-center gap-2 text-sm">
-                  <Checkbox
-                    checked={scopes.includes(value)}
-                    onCheckedChange={(checked) => toggleScope(value, Boolean(checked))}
-                  />
-                  {text}
-                </label>
-              ))}
+              {(
+                [
+                  ["file", "文件"],
+                  ["author", "作者"],
+                  ["tag", "标签"],
+                ] as [Scope, string][]
+              ).map(([value, text]) => {
+                const checkboxId = `scope-${value}`
+
+                return (
+                  <div key={value} className="flex items-center gap-2 text-sm">
+                    <Checkbox
+                      id={checkboxId}
+                      checked={scopes.includes(value)}
+                      onCheckedChange={(checked) =>
+                        toggleScope(value, Boolean(checked))
+                      }
+                    />
+                    <Label htmlFor={checkboxId}>{text}</Label>
+                  </div>
+                )
+              })}
             </div>
           </div>
 
@@ -195,57 +218,116 @@ function SearchPage() {
             emptyText="没有找到匹配结果"
           />
           {(data?.total ?? 0) > pageSize && (
-            <Pagination>
-              <PaginationContent>
-                <PaginationItem>
-                  <PaginationPrevious
-                    href="#"
-                    onClick={(e) => {
-                      e.preventDefault()
-                      if (search.page > 1) {
-                        navigate({
-                          to: "/search",
-                          search: { q: submittedQ, mode, scopes, page: search.page - 1 },
-                        })
-                      }
-                    }}
-                  />
-                </PaginationItem>
-
-                {visiblePages.map((p) => (
-                  <PaginationItem key={p}>
-                    <PaginationLink
+            <div className="flex flex-col items-center gap-3">
+              <Pagination>
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationFirst
                       href="#"
-                      isActive={p === search.page}
                       onClick={(e) => {
                         e.preventDefault()
-                        navigate({
-                          to: "/search",
-                          search: { q: submittedQ, mode, scopes, page: p },
-                        })
+                        goToPage(1)
                       }}
-                    >
-                      {p}
-                    </PaginationLink>
-                  </PaginationItem>
-                ))}
-
-                <PaginationItem>
-                  <PaginationNext
-                    href="#"
-                    onClick={(e) => {
-                      e.preventDefault()
-                      if (search.page < totalPages) {
-                        navigate({
-                          to: "/search",
-                          search: { q: submittedQ, mode, scopes, page: search.page + 1 },
-                        })
+                      className={
+                        search.page <= 1
+                          ? "pointer-events-none opacity-50"
+                          : undefined
                       }
-                    }}
-                  />
-                </PaginationItem>
-              </PaginationContent>
-            </Pagination>
+                    />
+                  </PaginationItem>
+
+                  <PaginationItem>
+                    <PaginationPrevious
+                      href="#"
+                      onClick={(e) => {
+                        e.preventDefault()
+                        goToPage(search.page - 1)
+                      }}
+                      className={
+                        search.page <= 1
+                          ? "pointer-events-none opacity-50"
+                          : undefined
+                      }
+                    />
+                  </PaginationItem>
+
+                  {visiblePages.map((p) => (
+                    <PaginationItem key={p}>
+                      <PaginationLink
+                        href="#"
+                        isActive={p === search.page}
+                        onClick={(e) => {
+                          e.preventDefault()
+                          goToPage(p)
+                        }}
+                      >
+                        {p}
+                      </PaginationLink>
+                    </PaginationItem>
+                  ))}
+
+                  <PaginationItem>
+                    <PaginationNext
+                      href="#"
+                      onClick={(e) => {
+                        e.preventDefault()
+                        goToPage(search.page + 1)
+                      }}
+                      className={
+                        search.page >= totalPages
+                          ? "pointer-events-none opacity-50"
+                          : undefined
+                      }
+                    />
+                  </PaginationItem>
+
+                  <PaginationItem>
+                    <PaginationLast
+                      href="#"
+                      onClick={(e) => {
+                        e.preventDefault()
+                        goToPage(totalPages)
+                      }}
+                      className={
+                        search.page >= totalPages
+                          ? "pointer-events-none opacity-50"
+                          : undefined
+                      }
+                    />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
+
+              <div className="flex items-center gap-2 text-sm">
+                <span className="text-muted-foreground">跳转到</span>
+                <Input
+                  type="number"
+                  min={1}
+                  max={totalPages}
+                  value={jumpPage}
+                  onChange={(e) => setJumpPage(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      const n = Number(jumpPage)
+                      if (!Number.isNaN(n)) goToPage(n)
+                    }
+                  }}
+                  className="h-8 w-20"
+                  placeholder={`1-${totalPages}`}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    const n = Number(jumpPage)
+                    if (!Number.isNaN(n)) goToPage(n)
+                  }}
+                >
+                  确定
+                </Button>
+              </div>
+            </div>
           )}
         </div>
       ) : null}

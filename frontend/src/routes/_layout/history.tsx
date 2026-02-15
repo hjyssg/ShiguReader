@@ -1,20 +1,32 @@
 import { useQuery } from "@tanstack/react-query"
 import { createFileRoute, useNavigate } from "@tanstack/react-router"
-import { ArrowDown, ArrowUp, History as HistoryIcon, LayoutGrid, List } from "lucide-react"
-import { useMemo } from "react"
+import {
+  ArrowDown,
+  ArrowUp,
+  History as HistoryIcon,
+  LayoutGrid,
+  List,
+} from "lucide-react"
+import { useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
 
 import { OpenAPI } from "@/client"
 import { FileIcon } from "@/components/Files/FileIcon"
 import { FileNameWithPreview } from "@/components/Files/FileNameWithPreview"
-import { formatDateTime, formatFileSize, formatFileType } from "@/components/Files/utils"
+import {
+  formatDateTime,
+  formatFileSize,
+  formatFileType,
+} from "@/components/Files/utils"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
   Pagination,
   PaginationContent,
+  PaginationFirst,
   PaginationItem,
+  PaginationLast,
   PaginationLink,
   PaginationNext,
   PaginationPrevious,
@@ -63,6 +75,7 @@ function HistoryPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const isMobile = useIsMobile()
+  const [jumpPage, setJumpPage] = useState("")
   const { page, view, sort_order } = Route.useSearch()
   const pageSize = view === "grid" ? 24 : 50
 
@@ -74,7 +87,9 @@ function HistoryPage() {
         page_size: String(pageSize),
         sort_order,
       })
-      const res = await fetch(`${OpenAPI.BASE}/api/v1/history/list?${params.toString()}`)
+      const res = await fetch(
+        `${OpenAPI.BASE}/api/v1/history/list?${params.toString()}`,
+      )
       if (!res.ok) throw new Error("Failed to fetch history")
       return (await res.json()) as HistoryResponse
     },
@@ -88,6 +103,15 @@ function HistoryPage() {
     for (let i = start; i <= end; i += 1) out.push(i)
     return out
   }, [data?.total_pages, page])
+
+  const totalPages = Math.max(1, data?.total_pages ?? 1)
+
+  const goToPage = (nextPage: number) => {
+    const target = Math.min(totalPages, Math.max(1, nextPage))
+    if (target !== page) {
+      navigate({ to: "/history", search: { page: target, view, sort_order } })
+    }
+  }
 
   const openHistoryItem = (item: HistoryItem) => {
     if (item.file_type === "archive") {
@@ -130,7 +154,9 @@ function HistoryPage() {
         <div className="flex items-center gap-2">
           <HistoryIcon className="size-5" />
           <h1 className="text-xl font-semibold">{t("history.title")}</h1>
-          <span className="text-sm text-muted-foreground">{t("history.subtitle")}</span>
+          <span className="text-sm text-muted-foreground">
+            {t("history.subtitle")}
+          </span>
         </div>
         <div className="flex items-center gap-2">
           <Button
@@ -160,7 +186,12 @@ function HistoryPage() {
           <Button
             variant={view === "grid" ? "default" : "ghost"}
             size="sm"
-            onClick={() => navigate({ to: "/history", search: { page: 1, view: "grid", sort_order } })}
+            onClick={() =>
+              navigate({
+                to: "/history",
+                search: { page: 1, view: "grid", sort_order },
+              })
+            }
             className="h-8 w-8 p-0"
           >
             <LayoutGrid className="size-4" />
@@ -168,7 +199,12 @@ function HistoryPage() {
           <Button
             variant={view === "table" ? "default" : "ghost"}
             size="sm"
-            onClick={() => navigate({ to: "/history", search: { page: 1, view: "table", sort_order } })}
+            onClick={() =>
+              navigate({
+                to: "/history",
+                search: { page: 1, view: "table", sort_order },
+              })
+            }
             className="h-8 w-8 p-0"
           >
             <List className="size-4" />
@@ -218,7 +254,10 @@ function HistoryPage() {
                   <FileIcon fileType={item.file_type} isFolder={false} />
                 )}
                 {!item.file_exists && (
-                  <Badge variant="destructive" className="absolute top-2 right-2">
+                  <Badge
+                    variant="destructive"
+                    className="absolute top-2 right-2"
+                  >
                     {t("history.unknown")}
                   </Badge>
                 )}
@@ -230,9 +269,13 @@ function HistoryPage() {
                   thumbnailUrl={item.thumbnail_url}
                   className="text-sm block"
                 />
-                <p className="text-xs text-muted-foreground">{t("history.readAt")}：{formatDateTime(item.read_at)}</p>
                 <p className="text-xs text-muted-foreground">
-                  {item.filesize ? formatFileSize(item.filesize) : formatFileType(item.file_type)}
+                  {t("history.readAt")}：{formatDateTime(item.read_at)}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {item.filesize
+                    ? formatFileSize(item.filesize)
+                    : formatFileType(item.file_type)}
                 </p>
               </div>
             </button>
@@ -243,11 +286,21 @@ function HistoryPage() {
           <table className="w-full">
             <thead className="bg-muted/50 border-b">
               <tr className="text-sm">
-                <th className="text-left p-2 font-medium">{t("history.name")}</th>
-                <th className="text-left p-2 font-medium w-[180px]">{t("history.readAt")}</th>
-                <th className="text-left p-2 font-medium w-[120px]">{t("history.type")}</th>
-                <th className="text-right p-2 font-medium w-[100px]">{t("history.size")}</th>
-                <th className="text-left p-2 font-medium w-[120px]">{t("history.status")}</th>
+                <th className="text-left p-2 font-medium">
+                  {t("history.name")}
+                </th>
+                <th className="text-left p-2 font-medium w-[180px]">
+                  {t("history.readAt")}
+                </th>
+                <th className="text-left p-2 font-medium w-[120px]">
+                  {t("history.type")}
+                </th>
+                <th className="text-right p-2 font-medium w-[100px]">
+                  {t("history.size")}
+                </th>
+                <th className="text-left p-2 font-medium w-[120px]">
+                  {t("history.status")}
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -260,7 +313,11 @@ function HistoryPage() {
                   <td className="p-2">
                     <div className="flex items-center gap-2 min-w-0">
                       <div className="shrink-0">
-                        <FileIcon fileType={item.file_type} isFolder={false} size="sm" />
+                        <FileIcon
+                          fileType={item.file_type}
+                          isFolder={false}
+                          size="sm"
+                        />
                       </div>
                       <FileNameWithPreview
                         filename={item.filename}
@@ -270,16 +327,24 @@ function HistoryPage() {
                       />
                     </div>
                   </td>
-                  <td className="p-2 text-muted-foreground">{formatDateTime(item.read_at)}</td>
-                  <td className="p-2 text-muted-foreground">{formatFileType(item.file_type)}</td>
+                  <td className="p-2 text-muted-foreground">
+                    {formatDateTime(item.read_at)}
+                  </td>
+                  <td className="p-2 text-muted-foreground">
+                    {formatFileType(item.file_type)}
+                  </td>
                   <td className="p-2 text-right text-muted-foreground">
                     {item.filesize ? formatFileSize(item.filesize) : "-"}
                   </td>
                   <td className="p-2">
                     {item.file_exists ? (
-                      <Badge variant="secondary">{t("history.available")}</Badge>
+                      <Badge variant="secondary">
+                        {t("history.available")}
+                      </Badge>
                     ) : (
-                      <Badge variant="destructive">{t("history.unknown")}</Badge>
+                      <Badge variant="destructive">
+                        {t("history.unknown")}
+                      </Badge>
                     )}
                   </td>
                 </tr>
@@ -290,48 +355,111 @@ function HistoryPage() {
       )}
 
       {(data?.total ?? 0) > 0 && (
-        <Pagination>
-          <PaginationContent>
-            <PaginationItem>
-              <PaginationPrevious
-                href="#"
-                onClick={(e) => {
-                  e.preventDefault()
-                  if (page > 1) {
-                    navigate({ to: "/history", search: { page: page - 1, view, sort_order } })
-                  }
-                }}
-              />
-            </PaginationItem>
-
-            {visiblePages.map((p) => (
-              <PaginationItem key={p}>
-                <PaginationLink
+        <div className="flex flex-col items-center gap-3">
+          <Pagination>
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationFirst
                   href="#"
-                  isActive={p === page}
                   onClick={(e) => {
                     e.preventDefault()
-                    navigate({ to: "/history", search: { page: p, view, sort_order } })
+                    goToPage(1)
                   }}
-                >
-                  {p}
-                </PaginationLink>
-              </PaginationItem>
-            ))}
-
-            <PaginationItem>
-              <PaginationNext
-                href="#"
-                onClick={(e) => {
-                  e.preventDefault()
-                  if (page < (data?.total_pages ?? 1)) {
-                    navigate({ to: "/history", search: { page: page + 1, view, sort_order } })
+                  className={
+                    page <= 1 ? "pointer-events-none opacity-50" : undefined
                   }
-                }}
-              />
-            </PaginationItem>
-          </PaginationContent>
-        </Pagination>
+                />
+              </PaginationItem>
+
+              <PaginationItem>
+                <PaginationPrevious
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault()
+                    goToPage(page - 1)
+                  }}
+                  className={
+                    page <= 1 ? "pointer-events-none opacity-50" : undefined
+                  }
+                />
+              </PaginationItem>
+
+              {visiblePages.map((p) => (
+                <PaginationItem key={p}>
+                  <PaginationLink
+                    href="#"
+                    isActive={p === page}
+                    onClick={(e) => {
+                      e.preventDefault()
+                      goToPage(p)
+                    }}
+                  >
+                    {p}
+                  </PaginationLink>
+                </PaginationItem>
+              ))}
+
+              <PaginationItem>
+                <PaginationNext
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault()
+                    goToPage(page + 1)
+                  }}
+                  className={
+                    page >= totalPages
+                      ? "pointer-events-none opacity-50"
+                      : undefined
+                  }
+                />
+              </PaginationItem>
+
+              <PaginationItem>
+                <PaginationLast
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault()
+                    goToPage(totalPages)
+                  }}
+                  className={
+                    page >= totalPages
+                      ? "pointer-events-none opacity-50"
+                      : undefined
+                  }
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+
+          <div className="flex items-center gap-2 text-sm">
+            <span className="text-muted-foreground">跳转到</span>
+            <input
+              type="number"
+              min={1}
+              max={totalPages}
+              value={jumpPage}
+              onChange={(e) => setJumpPage(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  const n = Number(jumpPage)
+                  if (!Number.isNaN(n)) goToPage(n)
+                }
+              }}
+              className="h-8 w-20 rounded-md border bg-background px-2"
+              placeholder={`1-${totalPages}`}
+            />
+            <button
+              type="button"
+              className="h-8 rounded-md border px-3"
+              onClick={() => {
+                const n = Number(jumpPage)
+                if (!Number.isNaN(n)) goToPage(n)
+              }}
+            >
+              确定
+            </button>
+          </div>
+        </div>
       )}
     </div>
   )
