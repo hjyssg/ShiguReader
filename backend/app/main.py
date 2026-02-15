@@ -2,6 +2,8 @@ import sentry_sdk
 from fastapi import FastAPI
 from fastapi.routing import APIRoute
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+from fastapi import HTTPException
 from starlette.middleware.cors import CORSMiddleware
 from pathlib import Path
 import sys
@@ -13,7 +15,9 @@ from app.index_db import ensure_index_db_initialized
 
 
 def custom_generate_unique_id(route: APIRoute) -> str:
-    return f"{route.tags[0]}-{route.name}"
+    if route.tags:
+        return f"{route.tags[0]}-{route.name}"
+    return route.name
 
 
 if settings.SENTRY_DSN and settings.ENVIRONMENT != "local":
@@ -55,4 +59,22 @@ else:
 
 if frontend_path.exists():
     app.mount("/assets", StaticFiles(directory=str(frontend_path / "assets")), name="assets")
-    app.mount("/", StaticFiles(directory=str(frontend_path), html=True), name="frontend")
+
+
+@app.get("/{full_path:path}", include_in_schema=False)
+def frontend_spa_fallback(full_path: str):
+    """Serve SPA entry for frontend routes such as /read, /explorer, etc."""
+    if not frontend_path.exists():
+        raise HTTPException(status_code=404, detail="Frontend bundle not found")
+
+    # API routes should be handled by api_router; fallback keeps clear 404 for unexpected misses
+    if full_path.startswith("api/"):
+        raise HTTPException(status_code=404, detail="Not Found")
+
+    # Allow direct static file access under dist root (favicon, manifest, etc.)
+    requested_file = frontend_path / full_path
+    if full_path and requested_file.is_file():
+        return FileResponse(str(requested_file))
+
+    index_file = frontend_path / "index.html"
+    return FileResponse(str(index_file))

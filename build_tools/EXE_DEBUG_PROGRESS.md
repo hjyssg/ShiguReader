@@ -35,6 +35,29 @@
 - 重新运行 `./dist/ShiguReader.exe`：`/api/v1/fs/favorite|already-read|roots|drives` 均返回 200。
 - 若浏览器仍偶发请求旧版哈希 JS（404），执行一次硬刷新（Ctrl+F5）即可。
 
+## 三次修复与验证（2026-02-15）
+- 修复了 EXE 深链 404 根因：
+  - 在 `backend/app/main.py` 增加 SPA fallback 路由 `/{full_path:path}`，对 `/read`、`/video`、`/explorer` 等前端路由统一回退 `index.html`。
+  - 同时修复 `custom_generate_unique_id`：当路由无 tags（fallback 路由）时不再抛 `IndexError`。
+- 改进了 EXE 启动可见性：
+  - `build_tools/exe_launcher.py` 增加端口占用检测；若 `8000` 已有实例则提示并仅打开浏览器，不再“黑窗一闪就退”。
+  - 保留控制台前台日志，方便观察服务器状态（启动、请求、报错）。
+- 关键回归验证（程序内测试）：
+  - `/read?...` -> 200 + `text/html`
+  - `/video?...` -> 200 + `text/html`
+  - `/explorer?...` -> 200 + `text/html`
+
+### 当前已确认
+- EXE 启动后可看到持续日志，非静默后台进程。
+- 前端深链路由不再应由后端直接返回 404。
+
+### 如再次遇到 404（快速排查）
+1. 先确认是否运行的是最新 `dist/ShiguReader.exe`（重新打包后再启动）。
+2. 确认没有旧实例占用 `8000`：
+   - `netstat -ano | findstr :8000`
+3. 浏览器执行硬刷新（Ctrl+F5）清除旧哈希资源缓存。
+4. 若仍异常，保留 EXE 控制台日志并继续记录到本文件。
+
 ## 已知问题
 - `frontend` 的 TypeScript 全量检查存在历史报错，原 `npm run build` 会失败。
 - EXE 打包现已改为优先 `build:exe`，否则回退 `npx vite build`，避免被 TS 历史错误阻断。
@@ -42,5 +65,5 @@
 ## 下一步
 1. 执行 `python build_tools/build_exe.py`
 2. 运行 `dist/ShiguReader.exe`
-3. 验证浏览器自动打开 + 前端可访问
-4. 补齐文档和 launch/tasks
+3. 验证 `/read`、`/video`、`/explorer` 深链打开不再 404
+4. 评估是否引入桌面 UI 套壳（PySide6/Tauri）
