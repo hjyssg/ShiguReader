@@ -116,6 +116,9 @@
     "clearExtractCache": "清理解压缓存",
     "clearing": "清理中...",
     "cacheCleared": "缓存已清理",
-    "cacheClearedDetail": "已删除 {count} 个文件，释放 {size}"
+    "cacheClearedDetail": "已删除 {count} 个文件，释放 {size}",
+    "fetchFailed": "获取设置失败",
+    "updateFailed": "更新设置失败",
+    "clearCacheFailed": "清理缓存失败"
   }
 }

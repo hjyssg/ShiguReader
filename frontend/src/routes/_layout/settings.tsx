@@ -14,7 +14,7 @@ import useCustomToast from "@/hooks/useCustomToast"
 export const Route = createFileRoute("/_layout/settings")({
   component: SettingsPage,
   head: () => ({
-    meta: [{ title: "Settings" }],
+    meta: [{ title: "设置" }],
   }),
 })
 
@@ -166,7 +166,7 @@ function SettingsPage() {
     queryKey: ["settings"],
     queryFn: async () => {
       const response = await fetch(`${OpenAPI.BASE}/api/v1/settings`)
-      if (!response.ok) throw new Error("Failed to fetch settings")
+      if (!response.ok) throw new Error(t("settings.fetchFailed"))
       return response.json()
     },
   })
@@ -194,7 +194,7 @@ function SettingsPage() {
       })
       if (!response.ok) {
         const error = await response.json()
-        throw new Error(error.detail || "Failed to update settings")
+        throw new Error(error.detail || t("settings.updateFailed"))
       }
       return response.json()
     },
@@ -294,7 +294,7 @@ function SettingsPage() {
       })
       if (!response.ok) {
         const error = await response.json()
-        throw new Error(error.detail || "Failed to clear cache")
+        throw new Error(error.detail || t("settings.clearCacheFailed"))
       }
       return response.json() as Promise<ClearCacheResponse>
     },
@@ -306,7 +306,7 @@ function SettingsPage() {
       showSuccessToast(message)
     },
     onError: (error: Error) => {
-      showErrorToast(error.message || "Failed to clear cache")
+      showErrorToast(error.message || t("settings.clearCacheFailed"))
     },
   })
 
