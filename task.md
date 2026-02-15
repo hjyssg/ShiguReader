@@ -59,11 +59,6 @@ archive没有设置tab title:
 你用参考一下reader。
 打开的一瞬间只解压10个文件，其他img都显示broken。刷新一下才有。你怎么解决
 
-## task11：
-env多加一个已读文件夹
-同时 Explorer 右键菜单 多加一个选项，用户可以把文件移动到这个文件夹。跳一个confirm modal。
-move to favorite也要confirm modal。
- 
 
 ## task 10： 
 修改reader page
@@ -71,12 +66,7 @@ move to favorite也要confirm modal。
 也要各种文件操作。但ui你要设计一下。
 
 
-## task 11：
-通过url打开页面的时候，
-当打开实际没有的filepath的时候，explorer和read要显示file 不存在
 
-## task 12：
-search 页面没有分页。这个分页现在前端做就好了。
 
  你作为前端专家 
 ## task 13
@@ -91,11 +81,7 @@ item-card的card-info还需要显示压缩文件的image number和average image 
 
 
 
-### task1 
 
-FS_ROOTS=D:/_TEMP_DOWNLOADS/,E:/_Happy_Picture
-ALREADY_READ_DIR
-也需要在setting有控制的
 
 
 ### task2:
@@ -109,21 +95,22 @@ reader的图片占的位置可以大一点。下面明明很多padding。我看�
 
 
 
+
+
 ### task
  archive page和explorer page太像。
-还有没有生成video .move文件的thumbnail
+ 还有没有生成video .move文件的thumbnail
+
+
+
+## task：
+  每次push都需要让github运行action帮我进行ut测试。
 
 
 # task
-性能优化
+PERFORMANCE_GUIDLINE.md
 
 
-/api/v1/history/list?page=1&page_size=24&sort_order=desc
-要300ms 太慢
-
-
-/api/v1/tags?page=1&page_size=24&sort_by=count&sort_order=desc
-要400ms
-
-/api/v1/tags?page=1&page_size=24&sort_by=count&sort_order=desc
-要400ms
+## task15:
+现在favorite几万个文件。你看看是不是要拆分开成几批进行batchinsert
+Scan failed for E:\_Happy_Lesson\_Going_to_sort\_good: too many values to unpack (expected 1)

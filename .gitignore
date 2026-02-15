@@ -19,3 +19,5 @@ backend/.backend-dev.log
 /data/user.db
 /nul
 .env
+/data/index.db-shm
+/data/index.db-wal

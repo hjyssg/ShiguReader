@@ -139,10 +139,35 @@ api/folder/list_dir 只要4ms。
 旧版就一个list folder然后通过hashmap到每个file的信息。
 
 
+# task
+性能优化
 
-task：
-主要的页面的性能你进行静态分析，怎么加快加载。
+/api/v1/history/list?page=1&page_size=24&sort_order=desc
+要300ms 太慢
 
 
-task：
-每次push都需要让github运行action帮我进行ut测试。
+/api/v1/tags?page=1&page_size=24&sort_by=count&sort_order=desc
+要400ms
+
+/api/v1/tags?page=1&page_size=24&sort_by=count&sort_order=desc
+要400ms
+
+
+### task1 
+
+FS_ROOTS=D:/_TEMP_DOWNLOADS/,E:/_Happy_Picture
+ALREADY_READ_DIR
+也需要在setting有控制的
+
+## task 11：
+通过url打开页面的时候，
+当打开实际没有的filepath的时候，explorer和read要显示file 不存在
+
+## task 12：
+search 页面没有分页。这个分页现在前端做就好了。
+
+## task11：
+env多加一个已读文件夹
+同时 Explorer 右键菜单 多加一个选项，用户可以把文件移动到这个文件夹。跳一个confirm modal。
+move to favorite也要confirm modal。
+ 
