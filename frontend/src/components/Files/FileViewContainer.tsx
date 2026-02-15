@@ -441,10 +441,10 @@ export function FileViewContainer({
     [getTargetPaths, operations.renameMutation, selection],
   )
 
-  const handleDeleteConfirm = useCallback(() => {
+  const handleDeleteConfirm = useCallback((permanently: boolean) => {
     const paths = getTargetPaths()
     if (paths.length > 0) {
-      operations.deleteMutation.mutate(paths[0], {
+      operations.deleteMutation.mutate({ path: paths[0], permanently }, {
         onSuccess: () => { setDeleteDialogOpen(false); selection.clearSelection() },
       })
     }

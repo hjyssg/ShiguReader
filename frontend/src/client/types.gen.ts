@@ -44,6 +44,7 @@ export type BatchParseResponse = {
 
 export type DeletePathRequest = {
     path: string;
+    permanently?: boolean;
 };
 
 export type ExtractStatus = {
