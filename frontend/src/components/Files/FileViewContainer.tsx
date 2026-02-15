@@ -607,7 +607,6 @@ export function FileViewContainer({
                     actions={buildContextMenuActions(item)}
                     onContextMenuOpen={useIconDropdown ? undefined : () => handleItemContextMenu(item)}
                   >
-                    <div>
                       <FileItem
                         item={item}
                         isSelected={false}
@@ -621,7 +620,6 @@ export function FileViewContainer({
                         onClick={useIconDropdown ? undefined : (e) => handleItemClick(item, e)}
                         onDoubleClick={(e) => handleItemDoubleClick(item, e)}
                       />
-                    </div>
                   </FileContextMenu>
                   )
                 })}
@@ -641,7 +639,6 @@ export function FileViewContainer({
                 actions={buildContextMenuActions(item)}
                 onContextMenuOpen={useIconDropdown ? undefined : () => handleItemContextMenu(item)}
               >
-                <div>
                   <FileItem
                     item={item}
                     isSelected={false}
@@ -655,7 +652,6 @@ export function FileViewContainer({
                     onClick={useIconDropdown ? undefined : (e) => handleItemClick(item, e)}
                     onDoubleClick={(e) => handleItemDoubleClick(item, e)}
                   />
-                </div>
               </FileContextMenu>
             )
           })}
