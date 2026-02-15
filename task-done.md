@@ -238,3 +238,10 @@ Scan failed for E:\_Happy_Lesson\_Going_to_sort\_good: too many values to unpack
 
 # task
 根据PERFORMANCE_GUIDLINE.md 帮我进行性能检查。 
+
+
+## Task8：打包与运行
+- 打包为 exe（同时启动前后端）
+- 更新 launch.json / build 脚本 / README
+- 修复：exe 运行后打不开前端网页
+  情况现在能打包成exe，但打开会exe失败。

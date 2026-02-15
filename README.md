@@ -67,6 +67,22 @@ python build_tools/build_exe.py
 
 EXE 会自动启动后端并托管前端，同时自动打开浏览器到 `http://127.0.0.1:8000`。
 
+## 一键打包分发 ZIP（推荐给别人直接运行）
+
+```bash
+python build_tools/package_dist.py
+```
+
+该命令会自动：
+1. 执行 EXE 打包（等价 `python build_tools/build_exe.py`）
+2. 将整个 `dist/` 目录打成 zip，输出到 `release/`
+3. **自动排除 `dist/data` 的真实内容**（防止测试数据泄露），仅保留空目录结构
+
+示例产物：
+- `release/ShiguReader-dist-20260215-180000.zip`
+
+对外分发时，直接把这个 ZIP 发给别人，解压后运行 `ShiguReader.exe` 即可。
+
 ## 说明
 
 - 本分支面向内网使用，认证已按你的要求禁用。

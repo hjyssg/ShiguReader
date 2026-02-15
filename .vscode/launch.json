@@ -60,6 +60,13 @@
       "request": "launch",
       "command": "./dist/ShiguReader.exe",
       "cwd": "${workspaceFolder}"
+    },
+    {
+      "name": "Build Tools: Package Dist ZIP",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "python build_tools/package_dist.py",
+      "cwd": "${workspaceFolder}"
     }
   ],
   "compounds": [

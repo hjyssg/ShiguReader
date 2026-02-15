@@ -104,9 +104,28 @@ THUMB_CACHE_DIR=./data/thumb_cache
 - 任务：
   - `Build EXE`
   - `Run EXE`
+  - `Package Dist ZIP`
 - 调试配置：
   - `Build Tools: Build EXE`
   - `Build Tools: Run EXE`
+  - `Build Tools: Package Dist ZIP`
+
+## 一键打包分发 ZIP
+
+如果你想一次命令直接产出“可发给别人”的压缩包：
+
+```bash
+python build_tools/package_dist.py
+```
+
+此脚本会：
+1. 先执行 `python build_tools/build_exe.py`
+2. 再把整个 `dist/` 打包为 `release/ShiguReader-dist-<时间戳>.zip`
+3. 打包时自动排除 `dist/data` 下已有真实数据，仅保留空目录结构（防止隐私泄露）
+
+对外分发建议：
+- 把 `release/` 下最新 zip 发给使用者
+- 使用者解压后双击 `ShiguReader.exe` 即可运行
 
 ## 开发模式运行
 

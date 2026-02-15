@@ -21,3 +21,4 @@ backend/.backend-dev.log
 .env
 /data/index.db-shm
 /data/index.db-wal
+/release/
