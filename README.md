@@ -1,4 +1,4 @@
-# ShiguReader (orpha branch)
+# ShiguReader
 
 基于 `fastapi/full-stack-fastapi-template` 初始化，并按 **LAN 内网最小化部署** 做了裁剪。
 

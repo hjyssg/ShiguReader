@@ -1,5 +1,5 @@
 {
-  "name": "fastapi-full-stack-template",
+  "name": "ShiguReader",
   "private": true,
   "workspaces": [
     "frontend"
