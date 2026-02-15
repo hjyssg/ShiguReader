@@ -104,7 +104,7 @@ export function ItemCard({ children, className, onClick, title }: {
 
 export function CardThumbnail({ children, className }: { children: React.ReactNode; className?: string }) {
   return (
-    <div className={cn("card-thumbnail aspect-square w-full overflow-hidden rounded-t-lg bg-muted flex items-center justify-center", className)}>
+    <div className={cn("card-thumbnail aspect-square w-full overflow-hidden rounded-t-lg flex items-center justify-center", className)}>
       {children}
     </div>
   )

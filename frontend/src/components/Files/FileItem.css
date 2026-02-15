@@ -2,6 +2,12 @@
   border-radius: 0.5rem;
 }
 
+.file-item-card {
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+}
+
 .file-item-root--selected {
   box-shadow: 0 0 0 2px hsl(var(--primary));
 }
@@ -10,6 +16,9 @@
 .file-item-name-link {
   color: inherit;
   text-decoration: none;
+  margin-top: 4px;
+  margin-right: 4px;
+  margin-left: 4px;
 }
 
 .file-item-thumbnail-link {
@@ -20,6 +29,8 @@
   display: block;
   min-width: 0;
   margin-bottom: 6px;
+  min-height: 2.2em;
+  text-align: center;
 }
 
 .file-item-name-link:hover .file-item-name-text {
@@ -27,15 +38,22 @@
 }
 
 .file-item-name-text {
-  display: block;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
   min-width: 0;
   font-size: 0.875rem;
   line-height: 1.25;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
   white-space: normal !important;
-  overflow: visible !important;
-  text-overflow: clip !important;
   overflow-wrap: anywhere;
   word-break: break-word;
+  text-align: center;
+}
+
+.file-item-info {
+  margin-top: auto;
 }
 
 .file-item-action-slot {

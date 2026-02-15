@@ -31,7 +31,7 @@ import { CompressDialog, type CompressAction } from "./dialogs/CompressDialog"
 import { ConfirmMoveDialog } from "./dialogs/ConfirmMoveDialog"
 import { getBaseName } from "@/lib/path-utils"
 
-type ViewMode = "grid" | "details" | "mixed"
+type ViewMode = "grid" | "table" | "mixed"
 
 export function FileViewContainer({
   items,
@@ -59,6 +59,7 @@ export function FileViewContainer({
   // View mode & sort state
   const [viewMode, setViewMode] = useState<ViewMode>(() => {
     const saved = localStorage.getItem(`${storageKeyPrefix}-view-mode`)
+    if (saved === "details") return "table"
     return (saved as ViewMode) || initialViewMode
   })
   const [sortField, setSortField] = useState<SortField>(() => {
@@ -404,7 +405,7 @@ export function FileViewContainer({
       >
         <div
           className={cn(
-            "file-item-wrapper flex items-center gap-2 px-3 py-1.5 rounded-md cursor-pointer transition-colors",
+            "file-item-wrapper flex items-center gap-2 px-3 py-1.5 rounded-md cursor-pointer transition-colors hover:bg-accent/50",
           )}
           onClick={(e) => handleItemClick(item, e)}
           onDoubleClick={(e) => handleItemDoubleClick(item, e)}
@@ -532,11 +533,11 @@ export function FileViewContainer({
             <LayoutGrid className="size-4" />
           </Button>
           <Button
-            variant={viewMode === "details" ? "default" : "ghost"}
+            variant={viewMode === "table" ? "default" : "ghost"}
             size="sm"
-            onClick={() => setViewMode("details")}
+            onClick={() => setViewMode("table")}
             className="h-8 w-8 p-0"
-            title="Details view"
+            title="Table view"
           >
             <List className="size-4" />
           </Button>
@@ -555,7 +556,7 @@ export function FileViewContainer({
             ))}
           </ResponsiveGrid>
         ) : (
-          <div className="details-loading space-y-2">
+          <div className="table-loading space-y-2">
             {[...Array(8)].map((_, i) => (
               <Skeleton key={i} className="h-10 w-full" />
             ))}

@@ -106,7 +106,7 @@ export function FileTableView({
         <tbody>
           {items.map((item) => {
             const row = (
-              <DetailsRow
+              <TableRowItem
                 key={item.path}
                 item={item}
                 selected={isSelected?.(item.path) ?? false}
@@ -137,7 +137,7 @@ export function FileTableView({
   )
 }
 
-function DetailsRow({
+function TableRowItem({
   item,
   selected,
   onClick,
@@ -157,7 +157,7 @@ function DetailsRow({
         "border-b last:border-b-0 text-sm cursor-pointer transition-colors",
         selected
           ? "bg-primary/10"
-          : "",
+          : "hover:bg-muted/50",
       )}
       onClick={(e) => onClick?.(item, e)}
       onDoubleClick={(e) => onDoubleClick?.(item, e)}
