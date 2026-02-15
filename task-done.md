@@ -134,7 +134,7 @@ lsdir的性能太差，一个D:\_TEMP_DOWNLOADS\_ 要900ms。
 你先给我解释，这个api的扫描是怎么扫描。
 sql请求是怎么做的。我要看代码。
 
-旧版的shigureader D:\Git\ShiguReader
+旧版的 D:\Git\ShiguReader
 api/folder/list_dir 只要4ms。
 旧版就一个list folder然后通过hashmap到每个file的信息。
 
@@ -222,3 +222,26 @@ Scan failed for E:\_Happy_Lesson\_Going_to_sort\_good: too many values to unpack
 
 
   已读目录和收藏的编辑应该是平时是一个input + 一个disable的save button。用户双击进入edit模式，修改完。点击边上的save保存。
+
+
+
+# reader page要能显示文件的相关信息：
+  mtime
+  size
+  avg img size
+  文件的tag author -》点击要能跳转到search
+
+  页面设计你来，好看简单
+
+
+
+
+# task
+根据PERFORMANCE_GUIDLINE.md 帮我进行性能检查。 
+
+
+## Task8：打包与运行
+- 打包为 exe（同时启动前后端）
+- 更新 launch.json / build 脚本 / README
+- 修复：exe 运行后打不开前端网页
+  情况现在能打包成exe，但打开会exe失败。

@@ -8,7 +8,6 @@ interface KeyboardOptions {
   items: FileSystemItem[]
   /** 选择操作 */
   selectedPaths: Set<string>
-  selectAll: (items: FileSystemItem[]) => void
   clearSelection: () => void
   /** 触发操作的回调 */
   onDelete: () => void
@@ -23,7 +22,6 @@ interface KeyboardOptions {
 export function useFileExplorerKeyboard({
   items,
   selectedPaths,
-  selectAll,
   clearSelection,
   onDelete,
   onRename,
@@ -46,13 +44,6 @@ export function useFileExplorerKeyboard({
       // 忽略输入框内的按键
       const tag = (e.target as HTMLElement)?.tagName
       if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return
-
-      // Ctrl+A 全选
-      if ((e.ctrlKey || e.metaKey) && e.key === "a") {
-        e.preventDefault()
-        selectAll(items)
-        return
-      }
 
       // Escape 取消选择
       if (e.key === "Escape") {
@@ -85,5 +76,5 @@ export function useFileExplorerKeyboard({
 
     document.addEventListener("keydown", handler)
     return () => document.removeEventListener("keydown", handler)
-  }, [items, selectedPaths, selectAll, clearSelection, onDelete, onRename, onOpen, containerRef, dialogOpen])
+  }, [items, selectedPaths, clearSelection, onDelete, onRename, onOpen, containerRef, dialogOpen])
 }

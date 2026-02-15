@@ -14,7 +14,20 @@ import "./i18n"
 import "./index.css"
 import { routeTree } from "./routeTree.gen"
 
-OpenAPI.BASE = import.meta.env.VITE_API_URL
+const resolveApiBase = () => {
+  const configured = import.meta.env.VITE_API_URL?.trim()
+  const runtimeOrigin = window.location.origin
+
+  // EXE 场景：前端由后端同源托管（127.0.0.1:8000）
+  // 若配置写成 localhost:8000，会触发 localhost/127 跨源，优先回落到当前同源。
+  if (window.location.port === "8000") {
+    return runtimeOrigin
+  }
+
+  return configured || runtimeOrigin
+}
+
+OpenAPI.BASE = resolveApiBase()
 
 const handleApiError = (error: Error) => {
   // 仅对未认证场景做全局跳转，403 保留给业务层展示具体错误原因

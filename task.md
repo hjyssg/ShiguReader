@@ -63,29 +63,33 @@ x -》 移到已读
 
 
 
-# reader page要能显示文件的相关信息：
-  mtime
-  size
-  avg img size
-  文件的tag author -》点击要能跳转到search
-
-  页面设计你来，好看简单
-
-
-
-
-# task
-根据PERFORMANCE_GUIDLINE.md 帮我进行性能检查。 
-
 
 # 针对cosplay图包的优化
   对于压缩包，我们要区分漫画和cosplay图包。nameparser现在主要是日本发行的漫画。
   抽取coser的名字抽取 + 一个coserpage
 
-## Task8：打包与运行
-- 打包为 exe（同时启动前后端）
-- 更新 launch.json / build 脚本 / README
-- 修复：exe 运行后打不开前端网页
-  情况现在能打包成exe，但打开会exe失败。
 
+# task
+文件的status状态
 
+# task
+给代码加上你觉得合适需要的注释
+进行你觉得合理应该的重构，保证项目之后还是好维护
+
+# task 
+grid模式下的多选先用env的参数disable。效果不好
+
+# task
+右键菜单
+加一个下载文件的选项，folder不需要下载。后端api应该已经实现好了。
+
+带thumbnail的item-card的右键菜单也改成 点击icon出现的dropdown menu。
+点击出现选中状态的逻辑也删掉。
+
+file-item-wrapper的右键菜单保留
+
+# read page
+下面的info bar
+
+还需要显示zip的视频文件数和音频文件数。大于0的话，要用好看的橘色高亮。
+你先在计算avg img size的算法你检查一下是不是file size/img num，如果是的话，需要修改。应该要改后端。

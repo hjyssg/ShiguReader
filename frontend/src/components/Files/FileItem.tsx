@@ -13,6 +13,8 @@ interface FileItemProps {
   item: FileSystemItem
   /** 是否选中 */
   isSelected?: boolean
+  /** 卡片底部右侧操作区（如 ... dropdown） */
+  actionSlot?: React.ReactNode
   /** 单击回调（处理选择） */
   onClick?: (e: React.MouseEvent) => void
   /** 双击回调（打开） */
@@ -21,8 +23,16 @@ interface FileItemProps {
   onContextMenu?: (e: React.MouseEvent) => void
 }
 
-export function FileItem({ item, isSelected, onClick, onDoubleClick, onContextMenu }: FileItemProps) {
+export function FileItem({ item, isSelected, actionSlot, onClick, onDoubleClick, onContextMenu }: FileItemProps) {
   const isFolder = item.item_type === "folder"
+  const infoText = isFolder
+    ? "Folder"
+    : item.filesize
+      ? `${formatFileSize(item.filesize)}${item.file_type === "archive" && item.image_count != null && item.image_count > 0
+        ? ` · ${item.image_count} imgs${item.avg_image_size != null ? ` · avg ${formatFileSize(item.avg_image_size)}` : ""}`
+        : ""
+      }`
+      : "-"
 
   return (
     <div
@@ -49,9 +59,13 @@ export function FileItem({ item, isSelected, onClick, onDoubleClick, onContextMe
 
         <CardInfo className="file-item-info">
           {item.thumbnail_url ? (
-            <FileName title={item.name} className="text-sm">
-              {item.name}
-            </FileName>
+            <div className="space-y-1">
+              <FileName title={item.name} className="text-sm min-w-0">
+                {item.name}
+              </FileName>
+              <p className="text-xs text-muted-foreground">{infoText}</p>
+              {actionSlot && <div className="w-full pt-0.5">{actionSlot}</div>}
+            </div>
           ) : (
             <FileNameWithPreview
               filename={item.name}

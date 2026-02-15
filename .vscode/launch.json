@@ -46,6 +46,27 @@
       //   "uriFormat": "%s",
       //   "action": "debugWithChrome"
       // }
+    },
+    {
+      "name": "Build Tools: Build EXE",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "python build_tools/build_exe.py",
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "name": "Build Tools: Run EXE",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "./dist/ShiguReader.exe",
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "name": "Build Tools: Package Dist ZIP",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "python build_tools/package_dist.py",
+      "cwd": "${workspaceFolder}"
     }
   ],
   "compounds": [
@@ -60,28 +81,6 @@
         "hidden": false,
         "group": "fullstack",
         "order": 1
-      }
-    }
-  ],
-  "tasks": [
-    {
-      "label": "Build EXE",
-      "type": "shell",
-      "command": "python build_tools/build_exe.py",
-      "problemMatcher": [],
-      "presentation": {
-        "reveal": "always",
-        "panel": "new"
-      }
-    },
-    {
-      "label": "Launch App",
-      "type": "shell",
-      "command": "python build_tools/launch.py",
-      "problemMatcher": [],
-      "presentation": {
-        "reveal": "always",
-        "panel": "new"
       }
     }
   ]
