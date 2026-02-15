@@ -24,7 +24,6 @@ interface FileTableViewProps {
   onItemContextMenu?: (item: FileSystemItem) => void
   /** 右键菜单 */
   buildContextMenuActions?: (item: FileSystemItem) => FileContextMenuActions
-  selectedCount?: number
   isOpenable?: (item: FileSystemItem) => boolean
 }
 
@@ -38,7 +37,6 @@ export function FileTableView({
   onItemDoubleClick,
   onItemContextMenu,
   buildContextMenuActions,
-  selectedCount = 0,
   isOpenable,
 }: FileTableViewProps) {
   const SortIcon = ({ field }: { field: SortField }) => {
@@ -122,7 +120,6 @@ export function FileTableView({
                 <FileContextMenu
                   key={item.path}
                   item={item}
-                  selectedCount={selectedCount}
                   isOpenable={isOpenable?.(item) ?? false}
                   actions={buildContextMenuActions(item)}
                   onContextMenuOpen={() => onItemContextMenu?.(item)}

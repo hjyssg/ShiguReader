@@ -34,15 +34,12 @@ export interface FileContextMenuActions {
   onDelete: () => void
   onZipFolder: () => void
   onMinifyZipImages: () => void
-  onSelectAll: () => void
 }
 
 interface FileContextMenuProps {
   children: React.ReactNode
   /** 右键点击的主要文件项（用于判断类型） */
   item: FileSystemItem
-  /** 当前选中数量 */
-  selectedCount: number
   /** 是否可打开 */
   isOpenable: boolean
   actions: FileContextMenuActions
@@ -52,7 +49,6 @@ interface FileContextMenuProps {
 export function FileContextMenu({
   children,
   item,
-  selectedCount,
   isOpenable,
   actions,
   onContextMenuOpen,
@@ -60,8 +56,6 @@ export function FileContextMenu({
   const { t } = useTranslation()
   const isFolder = item.item_type === "folder"
   const isArchive = item.file_type === "archive"
-  const isSingleSelection = selectedCount <= 1
-  const isMultiSelection = selectedCount > 1
 
   return (
     <ContextMenu>
@@ -70,7 +64,7 @@ export function FileContextMenu({
       </ContextMenuTrigger>
       <ContextMenuContent className="w-64">
         {/* Open / Open in New Tab */}
-        {isOpenable && isSingleSelection && (
+        {isOpenable && (
           <>
             <ContextMenuItem onClick={actions.onOpen}>
               <FolderOpen className="mr-2 size-4" />
@@ -86,34 +80,34 @@ export function FileContextMenu({
         )}
 
         {/* Rename — 仅单选 */}
-        {isSingleSelection && (
+        {
           <ContextMenuItem onClick={actions.onRename}>
             <Pencil className="mr-2 size-4" />
             Rename
             <ContextMenuShortcut>F2</ContextMenuShortcut>
           </ContextMenuItem>
-        )}
+        }
 
         {/* Move */}
         <ContextMenuItem onClick={actions.onMove}>
           <FolderInput className="mr-2 size-4" />
-          {isMultiSelection ? `Move ${selectedCount} items...` : "Move to..."}
+          Move to...
         </ContextMenuItem>
 
         {/* Move to Favorites */}
         <ContextMenuItem onClick={actions.onMoveToFavorite}>
           <Star className="mr-2 size-4" />
-          {isMultiSelection ? `Move ${selectedCount} to Favorites` : "Move to Favorites"}
+          Move to Favorites
         </ContextMenuItem>
 
         {/* Move to Already Read */}
         <ContextMenuItem onClick={actions.onMoveToAlreadyRead}>
           <BookCheck className="mr-2 size-4" />
-          {isMultiSelection ? `Move ${selectedCount} to Already Read` : "Move to Already Read"}
+          Move to Already Read
         </ContextMenuItem>
 
         {/* Backfill folder meta/thumb */}
-        {isSingleSelection && isFolder && (
+        {isFolder && (
           <ContextMenuItem onClick={actions.onBackfillFolder}>
             <CheckSquare className="mr-2 size-4" />
             {t("explorer.backfillMissingMetaThumbnail")}
@@ -123,12 +117,12 @@ export function FileContextMenu({
         {/* Delete */}
         <ContextMenuItem onClick={actions.onDelete} className="text-destructive focus:text-destructive">
           <Trash2 className="mr-2 size-4" />
-          {isMultiSelection ? `Delete ${selectedCount} items` : "Delete"}
+          Delete
           <ContextMenuShortcut>Del</ContextMenuShortcut>
         </ContextMenuItem>
 
         {/* 压缩/压图操作 — 仅单选 */}
-        {isSingleSelection && (isFolder || isArchive) && (
+        {(isFolder || isArchive) && (
           <>
             <ContextMenuSeparator />
             {isFolder && (
@@ -145,13 +139,6 @@ export function FileContextMenu({
             )}
           </>
         )}
-
-        <ContextMenuSeparator />
-        <ContextMenuItem onClick={actions.onSelectAll}>
-          <CheckSquare className="mr-2 size-4" />
-          Select All
-          <ContextMenuShortcut>Ctrl+A</ContextMenuShortcut>
-        </ContextMenuItem>
       </ContextMenuContent>
     </ContextMenu>
   )
