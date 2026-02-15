@@ -42,7 +42,9 @@ function apiRename(path: string, newName: string) {
 
 /** 压缩 archive 内大图 */
 function apiCompressArchiveImages(archivePath: string) {
-  return api.post("/api/v1/fs/archive/compress-images", { archive_path: archivePath })
+  return api.post("/api/v1/fs/archive/compress-images", {
+    archive_path: archivePath,
+  })
 }
 
 /** 为目录补全缺失的 thumbnail/meta（含子目录） */
@@ -66,9 +68,13 @@ async function apiMoveToFavorite(sourcePath: string, isFolder: boolean) {
   const destPath = `${favDir}/${fileName}`
 
   if (isFolder) {
-    return FilesystemService.moveFolder({ requestBody: { source_path: sourcePath, dest_path: destPath } })
+    return FilesystemService.moveFolder({
+      requestBody: { source_path: sourcePath, dest_path: destPath },
+    })
   }
-  return FilesystemService.moveFile({ requestBody: { source_path: sourcePath, dest_path: destPath } })
+  return FilesystemService.moveFile({
+    requestBody: { source_path: sourcePath, dest_path: destPath },
+  })
 }
 
 /** 移动到已读目录 */
@@ -81,9 +87,13 @@ async function apiMoveToAlreadyRead(sourcePath: string, isFolder: boolean) {
   const destPath = `${dir}/${fileName}`
 
   if (isFolder) {
-    return FilesystemService.moveFolder({ requestBody: { source_path: sourcePath, dest_path: destPath } })
+    return FilesystemService.moveFolder({
+      requestBody: { source_path: sourcePath, dest_path: destPath },
+    })
   }
-  return FilesystemService.moveFile({ requestBody: { source_path: sourcePath, dest_path: destPath } })
+  return FilesystemService.moveFile({
+    requestBody: { source_path: sourcePath, dest_path: destPath },
+  })
 }
 
 export function useFileOperations(currentPath: string) {
@@ -106,8 +116,13 @@ export function useFileOperations(currentPath: string) {
   })
 
   const deleteMutation = useMutation({
-    mutationFn: ({ path, permanently }: { path: string; permanently: boolean }) =>
-      FilesystemService.deletePath({ requestBody: { path, permanently } }),
+    mutationFn: ({
+      path,
+      permanently,
+    }: {
+      path: string
+      permanently: boolean
+    }) => FilesystemService.deletePath({ requestBody: { path, permanently } }),
     onSuccess: () => {
       toast.success("Deleted successfully")
       invalidate()
@@ -118,9 +133,17 @@ export function useFileOperations(currentPath: string) {
   })
 
   const deleteBatchMutation = useMutation({
-    mutationFn: async ({ paths, permanently }: { paths: string[]; permanently: boolean }) => {
+    mutationFn: async ({
+      paths,
+      permanently,
+    }: {
+      paths: string[]
+      permanently: boolean
+    }) => {
       for (const path of paths) {
-        await FilesystemService.deletePath({ requestBody: { path, permanently } })
+        await FilesystemService.deletePath({
+          requestBody: { path, permanently },
+        })
       }
     },
     onSuccess: () => {
@@ -133,8 +156,16 @@ export function useFileOperations(currentPath: string) {
   })
 
   const moveFileMutation = useMutation({
-    mutationFn: ({ sourcePath, destPath }: { sourcePath: string; destPath: string }) =>
-      FilesystemService.moveFile({ requestBody: { source_path: sourcePath, dest_path: destPath } }),
+    mutationFn: ({
+      sourcePath,
+      destPath,
+    }: {
+      sourcePath: string
+      destPath: string
+    }) =>
+      FilesystemService.moveFile({
+        requestBody: { source_path: sourcePath, dest_path: destPath },
+      }),
     onSuccess: () => {
       toast.success("Moved successfully")
       invalidate()
@@ -145,8 +176,16 @@ export function useFileOperations(currentPath: string) {
   })
 
   const moveFolderMutation = useMutation({
-    mutationFn: ({ sourcePath, destPath }: { sourcePath: string; destPath: string }) =>
-      FilesystemService.moveFolder({ requestBody: { source_path: sourcePath, dest_path: destPath } }),
+    mutationFn: ({
+      sourcePath,
+      destPath,
+    }: {
+      sourcePath: string
+      destPath: string
+    }) =>
+      FilesystemService.moveFolder({
+        requestBody: { source_path: sourcePath, dest_path: destPath },
+      }),
     onSuccess: () => {
       toast.success("Moved successfully")
       invalidate()
@@ -157,8 +196,13 @@ export function useFileOperations(currentPath: string) {
   })
 
   const moveToFavoriteMutation = useMutation({
-    mutationFn: ({ sourcePath, isFolder }: { sourcePath: string; isFolder: boolean }) =>
-      apiMoveToFavorite(sourcePath, isFolder),
+    mutationFn: ({
+      sourcePath,
+      isFolder,
+    }: {
+      sourcePath: string
+      isFolder: boolean
+    }) => apiMoveToFavorite(sourcePath, isFolder),
     onSuccess: () => {
       toast.success("Moved to favorites")
       invalidate()
@@ -169,8 +213,13 @@ export function useFileOperations(currentPath: string) {
   })
 
   const moveToAlreadyReadMutation = useMutation({
-    mutationFn: ({ sourcePath, isFolder }: { sourcePath: string; isFolder: boolean }) =>
-      apiMoveToAlreadyRead(sourcePath, isFolder),
+    mutationFn: ({
+      sourcePath,
+      isFolder,
+    }: {
+      sourcePath: string
+      isFolder: boolean
+    }) => apiMoveToAlreadyRead(sourcePath, isFolder),
     onSuccess: () => {
       toast.success("Moved to already-read")
       invalidate()
@@ -193,8 +242,7 @@ export function useFileOperations(currentPath: string) {
   })
 
   const compressArchiveImagesMutation = useMutation({
-    mutationFn: (archivePath: string) =>
-      apiCompressArchiveImages(archivePath),
+    mutationFn: (archivePath: string) => apiCompressArchiveImages(archivePath),
     onSuccess: () => {
       toast.success("Archive images compressed successfully")
       invalidate()
@@ -211,7 +259,9 @@ export function useFileOperations(currentPath: string) {
       const scanned = payload.scanned_files ?? 0
       const thumbs = payload.backfilled_thumbnails ?? 0
       const meta = payload.backfilled_meta ?? 0
-      toast.success(`Backfill completed: scanned ${scanned}, thumbnails ${thumbs}, meta ${meta}`)
+      toast.success(
+        `Backfill completed: scanned ${scanned}, thumbnails ${thumbs}, meta ${meta}`,
+      )
       invalidate()
     },
     onError: (err: any) => {

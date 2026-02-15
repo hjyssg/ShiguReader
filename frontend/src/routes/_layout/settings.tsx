@@ -5,10 +5,22 @@ import { useTranslation } from "react-i18next"
 
 import { OpenAPI } from "@/client"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import useCustomToast from "@/hooks/useCustomToast"
 
 export const Route = createFileRoute("/_layout/settings")({
@@ -124,11 +136,21 @@ function EditablePathCard(props: EditablePathCardProps) {
           </div>
 
           <div className="flex flex-wrap gap-2">
-            <Button type="button" variant="outline" onClick={onStartEdit} disabled={isEditing || isPending}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onStartEdit}
+              disabled={isEditing || isPending}
+            >
               {editText}
             </Button>
             {isEditing && (
-              <Button type="button" variant="outline" onClick={onCancelEdit} disabled={isPending}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={onCancelEdit}
+                disabled={isPending}
+              >
                 {cancelText}
               </Button>
             )}
@@ -180,7 +202,7 @@ function SettingsPage() {
       setIsEditingFavoriteDir(false)
       setIsEditingAlreadyReadDir(false)
     }
-  }, [settings])
+  }, [settings, parseFsRoots])
 
   // Update settings mutation
   const updateMutation = useMutation({
@@ -268,13 +290,18 @@ function SettingsPage() {
     .map((item) => item.trim())
     .filter(Boolean)
     .join(",")
-  const canSaveFsRoots = !updateMutation.isPending && normalizedFsRoots !== currentFsRoots
+  const canSaveFsRoots =
+    !updateMutation.isPending && normalizedFsRoots !== currentFsRoots
   const currentFavoriteDir = settings?.favorite_dir || ""
   const canSaveFavoriteDir =
-    isEditingFavoriteDir && !updateMutation.isPending && favoriteDir.trim() !== currentFavoriteDir
+    isEditingFavoriteDir &&
+    !updateMutation.isPending &&
+    favoriteDir.trim() !== currentFavoriteDir
   const currentAlreadyReadDir = settings?.already_read_dir || ""
   const canSaveAlreadyReadDir =
-    isEditingAlreadyReadDir && !updateMutation.isPending && alreadyReadDir.trim() !== currentAlreadyReadDir
+    isEditingAlreadyReadDir &&
+    !updateMutation.isPending &&
+    alreadyReadDir.trim() !== currentAlreadyReadDir
 
   const handleCancelFavoriteEdit = () => {
     setFavoriteDir(currentFavoriteDir)
@@ -359,7 +386,9 @@ function SettingsPage() {
           <div className="space-y-4">
             {settings?.fs_roots && (
               <div className="space-y-2">
-                <Label className="text-muted-foreground">{t("settings.currentPath")}</Label>
+                <Label className="text-muted-foreground">
+                  {t("settings.currentPath")}
+                </Label>
                 <div className="text-sm font-mono bg-muted p-2 rounded">
                   {settings.fs_roots}
                 </div>
@@ -370,12 +399,17 @@ function SettingsPage() {
               <Label>{t("settings.folderPath")}</Label>
               <div className="space-y-2">
                 {fsRootList.map((item, index) => (
-                  <div key={`fs-root-${index}`} className="flex flex-col gap-2 md:flex-row">
+                  <div
+                    key={`fs-root-${index}`}
+                    className="flex flex-col gap-2 md:flex-row"
+                  >
                     <Input
                       type="text"
                       placeholder={t("settings.fsRootsPlaceholder")}
                       value={item}
-                      onChange={(e) => handleFsRootItemChange(index, e.target.value)}
+                      onChange={(e) =>
+                        handleFsRootItemChange(index, e.target.value)
+                      }
                       className="font-mono"
                     />
                     <Button
@@ -394,11 +428,10 @@ function SettingsPage() {
               {t("settings.addNew")}
             </Button>
 
-            <Button
-              onClick={handleSaveFsRoots}
-              disabled={!canSaveFsRoots}
-            >
-              {updateMutation.isPending ? t("common.loading") : t("settings.save")}
+            <Button onClick={handleSaveFsRoots} disabled={!canSaveFsRoots}>
+              {updateMutation.isPending
+                ? t("common.loading")
+                : t("settings.save")}
             </Button>
           </div>
         </CardContent>
@@ -453,12 +486,14 @@ function SettingsPage() {
           <CardDescription>{t("settings.cacheManagementDesc")}</CardDescription>
         </CardHeader>
         <CardContent>
-          <Button 
+          <Button
             onClick={handleClearCache}
             disabled={clearCacheMutation.isPending}
             variant="destructive"
           >
-            {clearCacheMutation.isPending ? t("settings.clearing") : t("settings.clearExtractCache")}
+            {clearCacheMutation.isPending
+              ? t("settings.clearing")
+              : t("settings.clearExtractCache")}
           </Button>
         </CardContent>
       </Card>

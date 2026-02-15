@@ -93,7 +93,12 @@ function Video() {
 
       {media === "audio" ? (
         <div className="rounded-lg border bg-card p-4">
-          <AudioPlayer src={videoUrl} autoPlay showSkipControls={false} showJumpControls={false} />
+          <AudioPlayer
+            src={videoUrl}
+            autoPlay
+            showSkipControls={false}
+            showJumpControls={false}
+          />
         </div>
       ) : (
         <div className="bg-black rounded-lg overflow-hidden">

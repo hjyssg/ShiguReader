@@ -2,11 +2,8 @@ import { createFileRoute, Outlet, useRouterState } from "@tanstack/react-router"
 
 import { Footer } from "@/components/Common/Footer"
 import AppSidebar from "@/components/Sidebar/AppSidebar"
-import {
-  SidebarInset,
-  SidebarProvider,
-} from "@/components/ui/sidebar"
-import { PageContainer, ContentWrapper } from "@/components/semantic/layout"
+import { ContentWrapper, PageContainer } from "@/components/semantic/layout"
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 
 export const Route = createFileRoute("/_layout")({
   component: Layout,

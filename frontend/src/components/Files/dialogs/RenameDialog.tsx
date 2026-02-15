@@ -21,7 +21,13 @@ interface RenameDialogProps {
   isPending?: boolean
 }
 
-export function RenameDialog({ open, onOpenChange, filePath, onConfirm, isPending }: RenameDialogProps) {
+export function RenameDialog({
+  open,
+  onOpenChange,
+  filePath,
+  onConfirm,
+  isPending,
+}: RenameDialogProps) {
   const currentName = getBaseName(filePath)
   const [newName, setNewName] = useState(currentName)
 
@@ -67,10 +73,19 @@ export function RenameDialog({ open, onOpenChange, filePath, onConfirm, isPendin
             </div>
           </div>
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+            >
               Cancel
             </Button>
-            <Button type="submit" disabled={isPending || !newName.trim() || newName.trim() === currentName}>
+            <Button
+              type="submit"
+              disabled={
+                isPending || !newName.trim() || newName.trim() === currentName
+              }
+            >
               {isPending ? "Renaming..." : "Rename"}
             </Button>
           </DialogFooter>

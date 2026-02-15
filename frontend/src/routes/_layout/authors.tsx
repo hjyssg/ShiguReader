@@ -64,7 +64,9 @@ function AuthorsPage() {
         sort_by,
         sort_order,
       })
-      const res = await fetch(`${OpenAPI.BASE}/api/v1/authors?${params.toString()}`)
+      const res = await fetch(
+        `${OpenAPI.BASE}/api/v1/authors?${params.toString()}`,
+      )
       if (!res.ok) {
         throw new Error("Failed to fetch authors")
       }
@@ -75,7 +77,9 @@ function AuthorsPage() {
   return (
     <div className="space-y-6">
       <div className="space-y-2">
-        <h1 className="text-2xl font-bold tracking-tight">{t("authors.title")}</h1>
+        <h1 className="text-2xl font-bold tracking-tight">
+          {t("authors.title")}
+        </h1>
         <p className="text-muted-foreground">{t("authors.description")}</p>
       </div>
 

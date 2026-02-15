@@ -1,8 +1,13 @@
 // 认证页面布局组件
 import { Appearance } from "@/components/Common/Appearance"
-import { Logo } from "@/components/Common/Logo"
 import { Footer } from "@/components/Common/Footer"
-import { AuthContainer, AuthSidePanel, AuthContent, CenterBox } from "@/components/semantic/layout"
+import { Logo } from "@/components/Common/Logo"
+import {
+  AuthContainer,
+  AuthContent,
+  AuthSidePanel,
+  CenterBox,
+} from "@/components/semantic/layout"
 
 interface AuthLayoutProps {
   children: React.ReactNode
@@ -18,9 +23,7 @@ export function AuthLayout({ children }: AuthLayoutProps) {
         <div className="flex justify-end">
           <Appearance />
         </div>
-        <CenterBox>
-          {children}
-        </CenterBox>
+        <CenterBox>{children}</CenterBox>
         <Footer />
       </AuthContent>
     </AuthContainer>

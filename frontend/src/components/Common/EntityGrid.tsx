@@ -38,7 +38,7 @@ export function EntityGrid({
   const { t } = useTranslation()
   const defaultEmptyText = t("common.noData")
   const finalEmptyText = emptyText ?? defaultEmptyText
-  
+
   const totalPages = Math.max(1, Math.ceil(total / pageSize))
   const [jumpPage, setJumpPage] = useState("")
 

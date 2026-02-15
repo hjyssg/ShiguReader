@@ -1,10 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { useNavigate } from "@tanstack/react-router"
 
-import {
-  type UserRegister,
-  UsersService,
-} from "@/client"
+import { type UserRegister, UsersService } from "@/client"
 import { handleError } from "@/utils"
 import useCustomToast from "./useCustomToast"
 

@@ -1,9 +1,15 @@
-import { cn } from "@/lib/utils"
 import { Loader2 } from "lucide-react"
-import React from "react"
+import type React from "react"
 import { useTranslation } from "react-i18next"
+import { cn } from "@/lib/utils"
 
-export function PageContainer({ children, className }: { children: React.ReactNode; className?: string }) {
+export function PageContainer({
+  children,
+  className,
+}: {
+  children: React.ReactNode
+  className?: string
+}) {
   return (
     <main className={cn("page-container flex-1 p-6 md:p-8", className)}>
       {children}
@@ -11,63 +17,137 @@ export function PageContainer({ children, className }: { children: React.ReactNo
   )
 }
 
-export function ContentWrapper({ children, className }: { children: React.ReactNode; className?: string }) {
+export function ContentWrapper({
+  children,
+  className,
+}: {
+  children: React.ReactNode
+  className?: string
+}) {
   return (
-    <div className={cn("content-wrapper mx-auto w-full max-w-[1800px]", className)}>
+    <div
+      className={cn("content-wrapper mx-auto w-full max-w-[1800px]", className)}
+    >
       {children}
     </div>
   )
 }
 
-export function AuthContainer({ children, className }: { children: React.ReactNode; className?: string }) {
+export function AuthContainer({
+  children,
+  className,
+}: {
+  children: React.ReactNode
+  className?: string
+}) {
   return (
-    <div className={cn("auth-container grid min-h-svh lg:grid-cols-2", className)}>
+    <div
+      className={cn("auth-container grid min-h-svh lg:grid-cols-2", className)}
+    >
       {children}
     </div>
   )
 }
 
-export function AuthSidePanel({ children, className }: { children: React.ReactNode; className?: string }) {
+export function AuthSidePanel({
+  children,
+  className,
+}: {
+  children: React.ReactNode
+  className?: string
+}) {
   return (
-    <div className={cn("auth-side-panel bg-muted dark:bg-zinc-900 relative hidden lg:flex lg:items-center lg:justify-center", className)}>
+    <div
+      className={cn(
+        "auth-side-panel bg-muted dark:bg-zinc-900 relative hidden lg:flex lg:items-center lg:justify-center",
+        className,
+      )}
+    >
       {children}
     </div>
   )
 }
 
-export function AuthContent({ children, className }: { children: React.ReactNode; className?: string }) {
+export function AuthContent({
+  children,
+  className,
+}: {
+  children: React.ReactNode
+  className?: string
+}) {
   return (
-    <div className={cn("auth-content flex flex-col gap-4 p-6 md:p-10", className)}>
+    <div
+      className={cn("auth-content flex flex-col gap-4 p-6 md:p-10", className)}
+    >
       {children}
     </div>
   )
 }
 
-export function CenterBox({ children, className }: { children: React.ReactNode; className?: string }) {
+export function CenterBox({
+  children,
+  className,
+}: {
+  children: React.ReactNode
+  className?: string
+}) {
   return (
-    <div className={cn("center-box flex flex-1 items-center justify-center", className)}>
+    <div
+      className={cn(
+        "center-box flex flex-1 items-center justify-center",
+        className,
+      )}
+    >
       <div className="w-full max-w-xs">{children}</div>
     </div>
   )
 }
 
-export function ResponsiveGrid({ children, className }: { children: React.ReactNode; className?: string }) {
+export function ResponsiveGrid({
+  children,
+  className,
+}: {
+  children: React.ReactNode
+  className?: string
+}) {
   return (
-    <div className={cn("responsive-grid grid gap-6 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6", className)}>
+    <div
+      className={cn(
+        "responsive-grid grid gap-6 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6",
+        className,
+      )}
+    >
       {children}
     </div>
   )
 }
 
-export function Toolbar({ children, className }: { children: React.ReactNode; className?: string }) {
+export function Toolbar({
+  children,
+  className,
+}: {
+  children: React.ReactNode
+  className?: string
+}) {
   return (
-    <div className={cn("ui-toolbar flex items-center justify-between gap-4 pb-2 border-b", className)}>
+    <div
+      className={cn(
+        "ui-toolbar flex items-center justify-between gap-4 pb-2 border-b",
+        className,
+      )}
+    >
       {children}
     </div>
   )
 }
 
-export function ToolbarGroup({ children, className }: { children: React.ReactNode; className?: string }) {
+export function ToolbarGroup({
+  children,
+  className,
+}: {
+  children: React.ReactNode
+  className?: string
+}) {
   return (
     <div className={cn("ui-toolbar-group flex items-center gap-2", className)}>
       {children}
@@ -75,14 +155,20 @@ export function ToolbarGroup({ children, className }: { children: React.ReactNod
   )
 }
 
-export function ItemCard({ children, className, onClick, title }: {
-  children: React.ReactNode; 
-  className?: string;
-  onClick?: () => void;
-  title?: string;
+export function ItemCard({
+  children,
+  className,
+  onClick,
+  title,
+}: {
+  children: React.ReactNode
+  className?: string
+  onClick?: () => void
+  title?: string
 }) {
-  const baseClass = "item-card group relative rounded-lg border bg-card transition-colors w-full text-left cursor-default"
-  
+  const baseClass =
+    "item-card group relative rounded-lg border bg-card transition-colors w-full text-left cursor-default"
+
   if (onClick) {
     return (
       <button
@@ -103,47 +189,96 @@ export function ItemCard({ children, className, onClick, title }: {
   )
 }
 
-export function CardThumbnail({ children, className }: { children: React.ReactNode; className?: string }) {
+export function CardThumbnail({
+  children,
+  className,
+}: {
+  children: React.ReactNode
+  className?: string
+}) {
   return (
-    <div className={cn("card-thumbnail aspect-square w-full overflow-hidden rounded-t-lg flex items-center justify-center", className)}>
+    <div
+      className={cn(
+        "card-thumbnail aspect-square w-full overflow-hidden rounded-t-lg flex items-center justify-center",
+        className,
+      )}
+    >
       {children}
     </div>
   )
 }
 
-export function CardInfo({ children, className }: { children: React.ReactNode; className?: string }) {
+export function CardInfo({
+  children,
+  className,
+}: {
+  children: React.ReactNode
+  className?: string
+}) {
+  return <div className={cn("card-info p-2", className)}>{children}</div>
+}
+
+export function TablePagination({
+  children,
+  className,
+}: {
+  children: React.ReactNode
+  className?: string
+}) {
   return (
-    <div className={cn("card-info p-2", className)}>
+    <div
+      className={cn(
+        "table-pagination flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 border-t bg-muted/20",
+        className,
+      )}
+    >
       {children}
     </div>
   )
 }
 
-export function TablePagination({ children, className }: { children: React.ReactNode; className?: string }) {
+export function PaginationSection({
+  children,
+  className,
+}: {
+  children: React.ReactNode
+  className?: string
+}) {
   return (
-    <div className={cn("table-pagination flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 border-t bg-muted/20", className)}>
+    <div
+      className={cn(
+        "pagination-section flex flex-col sm:flex-row sm:items-center gap-4",
+        className,
+      )}
+    >
       {children}
     </div>
   )
 }
 
-export function PaginationSection({ children, className }: { children: React.ReactNode; className?: string }) {
+export function PaginationControls({
+  children,
+  className,
+}: {
+  children: React.ReactNode
+  className?: string
+}) {
   return (
-    <div className={cn("pagination-section flex flex-col sm:flex-row sm:items-center gap-4", className)}>
+    <div
+      className={cn("pagination-controls flex items-center gap-x-6", className)}
+    >
       {children}
     </div>
   )
 }
 
-export function PaginationControls({ children, className }: { children: React.ReactNode; className?: string }) {
-  return (
-    <div className={cn("pagination-controls flex items-center gap-x-6", className)}>
-      {children}
-    </div>
-  )
-}
-
-export function FormStack({ children, className }: { children: React.ReactNode; className?: string }) {
+export function FormStack({
+  children,
+  className,
+}: {
+  children: React.ReactNode
+  className?: string
+}) {
   return (
     <div className={cn("form-stack flex flex-col gap-6", className)}>
       {children}
@@ -151,17 +286,32 @@ export function FormStack({ children, className }: { children: React.ReactNode; 
   )
 }
 
-export function FormField({ children, className }: { children: React.ReactNode; className?: string }) {
+export function FormField({
+  children,
+  className,
+}: {
+  children: React.ReactNode
+  className?: string
+}) {
   return (
-    <div className={cn("form-field grid gap-2", className)}>
-      {children}
-    </div>
+    <div className={cn("form-field grid gap-2", className)}>{children}</div>
   )
 }
 
-export function FileName({ children, className, title }: { children: React.ReactNode; className?: string; title?: string }) {
+export function FileName({
+  children,
+  className,
+  title,
+}: {
+  children: React.ReactNode
+  className?: string
+  title?: string
+}) {
   return (
-    <span className={cn("ui-file-name truncate block min-w-0", className)} title={title}>
+    <span
+      className={cn("ui-file-name truncate block min-w-0", className)}
+      title={title}
+    >
       {children}
     </span>
   )
@@ -186,12 +336,17 @@ export function ExtractingIndicator({
   className?: string
 }) {
   const { t } = useTranslation()
-  
+
   if (status !== "extracting") return null
 
   if (variant === "overlay") {
     return (
-      <div className={cn("absolute right-3 top-3 rounded bg-background/80 px-2 py-1 text-xs flex items-center gap-1", className)}>
+      <div
+        className={cn(
+          "absolute right-3 top-3 rounded bg-background/80 px-2 py-1 text-xs flex items-center gap-1",
+          className,
+        )}
+      >
         <Loader2 className="size-3 animate-spin" /> {t("common.extracting")}
       </div>
     )
@@ -199,7 +354,12 @@ export function ExtractingIndicator({
 
   if (variant === "fixed") {
     return (
-      <div className={cn("fixed bottom-4 right-4 bg-card border rounded-lg p-4 shadow-lg flex items-center gap-2", className)}>
+      <div
+        className={cn(
+          "fixed bottom-4 right-4 bg-card border rounded-lg p-4 shadow-lg flex items-center gap-2",
+          className,
+        )}
+      >
         <Loader2 className="size-4 animate-spin" />
         <span className="text-sm">{t("common.extracting")}</span>
       </div>
@@ -208,7 +368,12 @@ export function ExtractingIndicator({
 
   // variant === "inline"
   return (
-    <span className={cn("text-xs text-muted-foreground flex items-center gap-1", className)}>
+    <span
+      className={cn(
+        "text-xs text-muted-foreground flex items-center gap-1",
+        className,
+      )}
+    >
       <Loader2 className="size-3 animate-spin" /> {t("common.extracting")}
     </span>
   )

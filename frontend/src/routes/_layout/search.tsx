@@ -144,7 +144,9 @@ function SearchPage() {
   return (
     <div className="space-y-6">
       <div className="space-y-2">
-        <h1 className="text-2xl font-bold tracking-tight">{t("search.title")}</h1>
+        <h1 className="text-2xl font-bold tracking-tight">
+          {t("search.title")}
+        </h1>
         <p className="text-muted-foreground">{t("search.description")}</p>
       </div>
 
@@ -301,7 +303,9 @@ function SearchPage() {
               </Pagination>
 
               <div className="flex items-center gap-2 text-sm">
-                <span className="text-muted-foreground">{t("search.goTo")}</span>
+                <span className="text-muted-foreground">
+                  {t("search.goTo")}
+                </span>
                 <Input
                   type="number"
                   min={1}

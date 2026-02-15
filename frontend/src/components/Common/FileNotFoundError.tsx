@@ -1,5 +1,5 @@
-import { ChevronRight, Folder, Home } from "lucide-react"
 import { Link, useNavigate } from "@tanstack/react-router"
+import { ChevronRight, Folder, Home } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
 import { joinPath, splitPath } from "@/lib/path-utils"
@@ -26,7 +26,10 @@ export function FileNotFoundError({
   return (
     <div className="space-y-4 p-[10px]">
       <nav className="flex items-center gap-2 text-sm">
-        <Link to="/" className="flex items-center gap-1 text-muted-foreground hover:text-foreground">
+        <Link
+          to="/"
+          className="flex items-center gap-1 text-muted-foreground hover:text-foreground"
+        >
           <Home className="size-4" />
           <span>Home</span>
         </Link>
@@ -48,7 +51,12 @@ export function FileNotFoundError({
       </nav>
 
       <div className="flex flex-col items-center justify-center py-24 text-center space-y-6">
-        <svg className="size-32 text-destructive" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <svg
+          className="size-32 text-destructive"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
           <path
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -61,7 +69,9 @@ export function FileNotFoundError({
             {isNotFound ? t("explorer.fileNotFound") : t("explorer.loadFailed")}
           </h3>
           <p className="text-sm text-muted-foreground max-w-md">
-            {isNotFound ? t("explorer.fileNotFoundMessage", { fileName }) : t("explorer.loadErrorMessage", { errorMessage })}
+            {isNotFound
+              ? t("explorer.fileNotFoundMessage", { fileName })
+              : t("explorer.loadErrorMessage", { errorMessage })}
           </p>
           <div className="pt-4 flex gap-2 justify-center">
             <Button variant="outline" onClick={() => navigate({ to: "/" })}>
@@ -70,7 +80,9 @@ export function FileNotFoundError({
             {parentPath && (
               <Button
                 variant="outline"
-                onClick={() => navigate({ to: "/explorer", search: { path: parentPath } })}
+                onClick={() =>
+                  navigate({ to: "/explorer", search: { path: parentPath } })
+                }
               >
                 {t("explorer.openParent")}
               </Button>

@@ -1,8 +1,20 @@
 // 文件视图容器 — 集成选择、右键菜单、键盘快捷键、对话框
-import { LayoutGrid, List, LayoutList, ArrowDown, ArrowUp } from "lucide-react"
-import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { ArrowDown, ArrowUp, LayoutGrid, LayoutList, List } from "lucide-react"
+import {
+  type ReactNode,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react"
 
 import type { FileSystemItem } from "@/client"
+import {
+  ResponsiveGrid,
+  Toolbar,
+  ToolbarGroup,
+} from "@/components/semantic/layout"
 import { Button } from "@/components/ui/button"
 import {
   Select,
@@ -12,24 +24,21 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Skeleton } from "@/components/ui/skeleton"
-import { Toolbar, ToolbarGroup, ResponsiveGrid } from "@/components/semantic/layout"
-import { cn } from "@/lib/utils"
-
-import { useFileSelection } from "@/hooks/useFileSelection"
+import { useFileExplorerKeyboard } from "@/hooks/useFileExplorerKeyboard"
 import { useFileNavigation } from "@/hooks/useFileNavigation"
 import { useFileOperations } from "@/hooks/useFileOperations"
-import { useFileExplorerKeyboard } from "@/hooks/useFileExplorerKeyboard"
-
-import { FileTableView, type SortField, type SortOrder } from "./FileTableView"
-import { FileIcon } from "./FileIcon"
-import { FileItem } from "./FileItem"
-import { FileActionsDropdown, FileContextMenu } from "./FileContextMenu"
-import { RenameDialog } from "./dialogs/RenameDialog"
+import { useFileSelection } from "@/hooks/useFileSelection"
+import { getBaseName } from "@/lib/path-utils"
+import { cn } from "@/lib/utils"
+import { type CompressAction, CompressDialog } from "./dialogs/CompressDialog"
+import { ConfirmMoveDialog } from "./dialogs/ConfirmMoveDialog"
 import { DeleteDialog } from "./dialogs/DeleteDialog"
 import { MoveDialog } from "./dialogs/MoveDialog"
-import { CompressDialog, type CompressAction } from "./dialogs/CompressDialog"
-import { ConfirmMoveDialog } from "./dialogs/ConfirmMoveDialog"
-import { getBaseName } from "@/lib/path-utils"
+import { RenameDialog } from "./dialogs/RenameDialog"
+import { FileActionsDropdown, FileContextMenu } from "./FileContextMenu"
+import { FileIcon } from "./FileIcon"
+import { FileItem } from "./FileItem"
+import { FileTableView, type SortField, type SortOrder } from "./FileTableView"
 
 type ViewMode = "grid" | "table" | "mixed"
 
@@ -105,8 +114,8 @@ export function FileViewContainer({
           comparison = a.name.toLowerCase().localeCompare(b.name.toLowerCase())
         }
       } else if (sortField === "image_count") {
-        const imageCountA = (a.image_count ?? 0)
-        const imageCountB = (b.image_count ?? 0)
+        const imageCountA = a.image_count ?? 0
+        const imageCountB = b.image_count ?? 0
         comparison = imageCountA - imageCountB
         if (comparison === 0) {
           comparison = a.name.toLowerCase().localeCompare(b.name.toLowerCase())
@@ -140,13 +149,20 @@ export function FileViewContainer({
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [moveDialogOpen, setMoveDialogOpen] = useState(false)
   const [compressDialogOpen, setCompressDialogOpen] = useState(false)
-  const [compressAction, setCompressAction] = useState<CompressAction>("zip-folder")
+  const [compressAction, setCompressAction] =
+    useState<CompressAction>("zip-folder")
   const [confirmFavoriteOpen, setConfirmFavoriteOpen] = useState(false)
   const [confirmAlreadyReadOpen, setConfirmAlreadyReadOpen] = useState(false)
   // 右键菜单操作的目标项
   const [contextItem, setContextItem] = useState<FileSystemItem | null>(null)
 
-  const anyDialogOpen = renameDialogOpen || deleteDialogOpen || moveDialogOpen || compressDialogOpen || confirmFavoriteOpen || confirmAlreadyReadOpen
+  const anyDialogOpen =
+    renameDialogOpen ||
+    deleteDialogOpen ||
+    moveDialogOpen ||
+    compressDialogOpen ||
+    confirmFavoriteOpen ||
+    confirmAlreadyReadOpen
 
   // 获取当前操作目标路径
   const getTargetPaths = useCallback((): string[] => {
@@ -197,7 +213,12 @@ export function FileViewContainer({
     }
     setConfirmFavoriteOpen(false)
     selection.clearSelection()
-  }, [getTargetPaths, sortedItems, operations.moveToFavoriteMutation, selection])
+  }, [
+    getTargetPaths,
+    sortedItems,
+    operations.moveToFavoriteMutation,
+    selection,
+  ])
 
   const handleMoveToAlreadyRead = useCallback(() => {
     if (getTargetPaths().length > 0) {
@@ -218,7 +239,12 @@ export function FileViewContainer({
     }
     setConfirmAlreadyReadOpen(false)
     selection.clearSelection()
-  }, [getTargetPaths, sortedItems, operations.moveToAlreadyReadMutation, selection])
+  }, [
+    getTargetPaths,
+    sortedItems,
+    operations.moveToAlreadyReadMutation,
+    selection,
+  ])
 
   const handleOpenFirst = useCallback(() => {
     const item = getFirstSelectedItem()
@@ -274,7 +300,10 @@ export function FileViewContainer({
     (e: React.MouseEvent) => {
       const target = e.target as HTMLElement
       // 点击文件项内部不清除（由 item 自己的 onClick 处理）
-      if (target.closest(".file-item-wrapper") || target.closest("tr.cursor-pointer")) {
+      if (
+        target.closest(".file-item-wrapper") ||
+        target.closest("tr.cursor-pointer")
+      ) {
         return
       }
       selection.clearSelection()
@@ -301,9 +330,13 @@ export function FileViewContainer({
 
     document.addEventListener("pointerdown", handleDocumentPointerDown, true)
     return () => {
-      document.removeEventListener("pointerdown", handleDocumentPointerDown, true)
+      document.removeEventListener(
+        "pointerdown",
+        handleDocumentPointerDown,
+        true,
+      )
     }
-  }, [anyDialogOpen, selection.clearSelection])
+  }, [anyDialogOpen, selection.clearSelection, selection])
 
   // 键盘快捷键
   useFileExplorerKeyboard({
@@ -377,7 +410,6 @@ export function FileViewContainer({
       openItemInNewTab,
       handleDownload,
       selection,
-      sortedItems,
       handleMoveToFavorite,
       handleMoveToAlreadyRead,
       operations.backfillFolderMutation,
@@ -388,8 +420,12 @@ export function FileViewContainer({
   const mixedGroups = useMemo(() => {
     if (viewMode !== "mixed") return { folders: [], videos: [], archives: [] }
     const folders = sortedItems.filter((i) => i.item_type === "folder")
-    const videos = sortedItems.filter((i) => i.item_type === "file" && i.file_type === "video")
-    const archives = sortedItems.filter((i) => i.item_type === "file" && i.file_type !== "video")
+    const videos = sortedItems.filter(
+      (i) => i.item_type === "file" && i.file_type === "video",
+    )
+    const archives = sortedItems.filter(
+      (i) => i.item_type === "file" && i.file_type !== "video",
+    )
     return { folders, videos, archives }
   }, [viewMode, sortedItems])
 
@@ -410,12 +446,24 @@ export function FileViewContainer({
           onClick={(e) => handleItemClick(item, e)}
           onDoubleClick={(e) => handleItemDoubleClick(item, e)}
         >
-          <FileIcon fileType={item.file_type} isFolder={item.item_type === "folder"} size="sm" />
-          <span className="text-sm truncate" title={item.name}>{item.name}</span>
+          <FileIcon
+            fileType={item.file_type}
+            isFolder={item.item_type === "folder"}
+            size="sm"
+          />
+          <span className="text-sm truncate" title={item.name}>
+            {item.name}
+          </span>
         </div>
       </FileContextMenu>
     ),
-    [selection, isOpenable, buildContextMenuActions, handleItemContextMenu, handleItemClick, handleItemDoubleClick],
+    [
+      isOpenable,
+      buildContextMenuActions,
+      handleItemContextMenu,
+      handleItemClick,
+      handleItemDoubleClick,
+    ],
   )
 
   const handleSortFieldChange = (field: SortField) => {
@@ -434,21 +482,35 @@ export function FileViewContainer({
       if (paths.length === 1) {
         operations.renameMutation.mutate(
           { path: paths[0], newName },
-          { onSuccess: () => { setRenameDialogOpen(false); selection.clearSelection() } },
+          {
+            onSuccess: () => {
+              setRenameDialogOpen(false)
+              selection.clearSelection()
+            },
+          },
         )
       }
     },
     [getTargetPaths, operations.renameMutation, selection],
   )
 
-  const handleDeleteConfirm = useCallback((permanently: boolean) => {
-    const paths = getTargetPaths()
-    if (paths.length > 0) {
-      operations.deleteMutation.mutate({ path: paths[0], permanently }, {
-        onSuccess: () => { setDeleteDialogOpen(false); selection.clearSelection() },
-      })
-    }
-  }, [getTargetPaths, operations.deleteMutation, selection])
+  const handleDeleteConfirm = useCallback(
+    (permanently: boolean) => {
+      const paths = getTargetPaths()
+      if (paths.length > 0) {
+        operations.deleteMutation.mutate(
+          { path: paths[0], permanently },
+          {
+            onSuccess: () => {
+              setDeleteDialogOpen(false)
+              selection.clearSelection()
+            },
+          },
+        )
+      }
+    },
+    [getTargetPaths, operations.deleteMutation, selection],
+  )
 
   const handleMoveConfirm = useCallback(
     (destDir: string) => {
@@ -478,15 +540,27 @@ export function FileViewContainer({
         onSuccess: () => setCompressDialogOpen(false),
       })
     }
-  }, [contextItem, compressAction, operations.zipFolderMutation, operations.compressArchiveImagesMutation])
+  }, [
+    contextItem,
+    compressAction,
+    operations.zipFolderMutation,
+    operations.compressArchiveImagesMutation,
+  ])
 
   return (
-    <div className="file-list-container space-y-4 select-none" ref={containerRef} onClick={handleContainerClick}>
+    <div
+      className="file-list-container space-y-4 select-none"
+      ref={containerRef}
+      onClick={handleContainerClick}
+    >
       {/* Toolbar */}
       <Toolbar className="file-list-toolbar">
         <ToolbarGroup className="sort-controls">
           <span className="text-sm text-muted-foreground">Sort by:</span>
-          <Select value={sortField} onValueChange={(v) => setSortField(v as SortField)}>
+          <Select
+            value={sortField}
+            onValueChange={(v) => setSortField(v as SortField)}
+          >
             <SelectTrigger className="w-[140px] h-8">
               <SelectValue />
             </SelectTrigger>
@@ -600,27 +674,37 @@ export function FileViewContainer({
                 {mixedGroups.archives.map((item) => {
                   const useIconDropdown = Boolean(item.thumbnail_url)
                   return (
-                  <FileContextMenu
-                    key={item.path}
-                    item={item}
-                    isOpenable={isOpenable(item)}
-                    actions={buildContextMenuActions(item)}
-                    onContextMenuOpen={useIconDropdown ? undefined : () => handleItemContextMenu(item)}
-                  >
+                    <FileContextMenu
+                      key={item.path}
+                      item={item}
+                      isOpenable={isOpenable(item)}
+                      actions={buildContextMenuActions(item)}
+                      onContextMenuOpen={
+                        useIconDropdown
+                          ? undefined
+                          : () => handleItemContextMenu(item)
+                      }
+                    >
                       <FileItem
                         item={item}
                         isSelected={false}
-                        actionSlot={useIconDropdown ? (
-                          <FileActionsDropdown
-                            item={item}
-                            isOpenable={isOpenable(item)}
-                            actions={buildContextMenuActions(item)}
-                          />
-                        ) : undefined}
-                        onClick={useIconDropdown ? undefined : (e) => handleItemClick(item, e)}
+                        actionSlot={
+                          useIconDropdown ? (
+                            <FileActionsDropdown
+                              item={item}
+                              isOpenable={isOpenable(item)}
+                              actions={buildContextMenuActions(item)}
+                            />
+                          ) : undefined
+                        }
+                        onClick={
+                          useIconDropdown
+                            ? undefined
+                            : (e) => handleItemClick(item, e)
+                        }
                         onDoubleClick={(e) => handleItemDoubleClick(item, e)}
                       />
-                  </FileContextMenu>
+                    </FileContextMenu>
                   )
                 })}
               </ResponsiveGrid>
@@ -637,21 +721,31 @@ export function FileViewContainer({
                 item={item}
                 isOpenable={isOpenable(item)}
                 actions={buildContextMenuActions(item)}
-                onContextMenuOpen={useIconDropdown ? undefined : () => handleItemContextMenu(item)}
+                onContextMenuOpen={
+                  useIconDropdown
+                    ? undefined
+                    : () => handleItemContextMenu(item)
+                }
               >
-                  <FileItem
-                    item={item}
-                    isSelected={false}
-                    actionSlot={useIconDropdown ? (
+                <FileItem
+                  item={item}
+                  isSelected={false}
+                  actionSlot={
+                    useIconDropdown ? (
                       <FileActionsDropdown
                         item={item}
                         isOpenable={isOpenable(item)}
                         actions={buildContextMenuActions(item)}
                       />
-                    ) : undefined}
-                    onClick={useIconDropdown ? undefined : (e) => handleItemClick(item, e)}
-                    onDoubleClick={(e) => handleItemDoubleClick(item, e)}
-                  />
+                    ) : undefined
+                  }
+                  onClick={
+                    useIconDropdown
+                      ? undefined
+                      : (e) => handleItemClick(item, e)
+                  }
+                  onDoubleClick={(e) => handleItemDoubleClick(item, e)}
+                />
               </FileContextMenu>
             )
           })}
@@ -691,7 +785,10 @@ export function FileViewContainer({
         onOpenChange={setMoveDialogOpen}
         filePaths={getTargetPaths()}
         onConfirm={handleMoveConfirm}
-        isPending={operations.moveFileMutation.isPending || operations.moveFolderMutation.isPending}
+        isPending={
+          operations.moveFileMutation.isPending ||
+          operations.moveFolderMutation.isPending
+        }
       />
       <CompressDialog
         open={compressDialogOpen}
@@ -699,7 +796,10 @@ export function FileViewContainer({
         filePath={contextItem?.path || ""}
         action={compressAction}
         onConfirm={handleCompressConfirm}
-        isPending={operations.zipFolderMutation.isPending || operations.compressArchiveImagesMutation.isPending}
+        isPending={
+          operations.zipFolderMutation.isPending ||
+          operations.compressArchiveImagesMutation.isPending
+        }
       />
       <ConfirmMoveDialog
         open={confirmFavoriteOpen}

@@ -23,7 +23,13 @@ interface MoveDialogProps {
   isPending?: boolean
 }
 
-export function MoveDialog({ open, onOpenChange, filePaths, onConfirm, isPending }: MoveDialogProps) {
+export function MoveDialog({
+  open,
+  onOpenChange,
+  filePaths,
+  onConfirm,
+  isPending,
+}: MoveDialogProps) {
   const count = filePaths.length
   const defaultDest = filePaths.length > 0 ? getParentPath(filePaths[0]) : ""
   const [destDir, setDestDir] = useState(defaultDest)
@@ -48,9 +54,12 @@ export function MoveDialog({ open, onOpenChange, filePaths, onConfirm, isPending
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-xl">
         <DialogHeader>
-          <DialogTitle>Move {count > 1 ? `${count} items` : "item"}</DialogTitle>
+          <DialogTitle>
+            Move {count > 1 ? `${count} items` : "item"}
+          </DialogTitle>
           <DialogDescription className="break-all whitespace-normal">
-            Moving: {displayNames.join(", ")}{count > 3 ? ` and ${count - 3} more` : ""}
+            Moving: {displayNames.join(", ")}
+            {count > 3 ? ` and ${count - 3} more` : ""}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
@@ -67,7 +76,11 @@ export function MoveDialog({ open, onOpenChange, filePaths, onConfirm, isPending
             </div>
           </div>
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+            >
               Cancel
             </Button>
             <Button type="submit" disabled={isPending || !destDir.trim()}>

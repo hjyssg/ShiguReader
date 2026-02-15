@@ -44,9 +44,9 @@
   min-width: 0;
   font-size: 0.875rem;
   line-height: 1.25;
-  overflow: hidden !important;
-  text-overflow: ellipsis !important;
-  white-space: normal !important;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: normal;
   overflow-wrap: anywhere;
   word-break: break-word;
   text-align: center;

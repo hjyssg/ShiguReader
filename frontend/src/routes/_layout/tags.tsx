@@ -64,7 +64,9 @@ function TagsPage() {
         sort_by,
         sort_order,
       })
-      const res = await fetch(`${OpenAPI.BASE}/api/v1/tags?${params.toString()}`)
+      const res = await fetch(
+        `${OpenAPI.BASE}/api/v1/tags?${params.toString()}`,
+      )
       if (!res.ok) {
         throw new Error("Failed to fetch tags")
       }

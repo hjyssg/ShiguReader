@@ -22,7 +22,9 @@ export function getBaseName(path: string, fallback = ""): string {
   return parts[parts.length - 1] || fallback
 }
 
-export function buildPathBreadcrumbs(path: string): Array<{ name: string; path: string }> {
+export function buildPathBreadcrumbs(
+  path: string,
+): Array<{ name: string; path: string }> {
   const parts = splitPath(path)
   return parts.map((part, index) => ({
     name: part,

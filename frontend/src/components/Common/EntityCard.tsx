@@ -2,7 +2,7 @@
 import { Image as ImageIcon } from "lucide-react"
 
 import { OpenAPI } from "@/client"
-import { ItemCard, CardThumbnail, CardInfo } from "@/components/semantic/layout"
+import { CardInfo, CardThumbnail, ItemCard } from "@/components/semantic/layout"
 import { ThumbnailImage } from "./ThumbnailImage"
 
 export type EntityCardItem = {

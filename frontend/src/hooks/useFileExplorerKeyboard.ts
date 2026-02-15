@@ -37,7 +37,10 @@ export function useFileExplorerKeyboard({
       // 只在容器内或 body 上触发
       const container = containerRef.current
       if (!container) return
-      if (!container.contains(document.activeElement) && document.activeElement !== document.body) {
+      if (
+        !container.contains(document.activeElement) &&
+        document.activeElement !== document.body
+      ) {
         return
       }
 
@@ -76,5 +79,13 @@ export function useFileExplorerKeyboard({
 
     document.addEventListener("keydown", handler)
     return () => document.removeEventListener("keydown", handler)
-  }, [items, selectedPaths, clearSelection, onDelete, onRename, onOpen, containerRef, dialogOpen])
+  }, [
+    selectedPaths,
+    clearSelection,
+    onDelete,
+    onRename,
+    onOpen,
+    containerRef,
+    dialogOpen,
+  ])
 }

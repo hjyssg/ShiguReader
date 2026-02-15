@@ -267,3 +267,38 @@ file-item-wrapper的右键菜单保留
 下面的info bar
 还需要显示zip的视频文件数和音频文件数。大于0的话，要用好看的橘色高亮。
 你先在计算avg img size的算法你检查一下是不是file size/img num，如果是的话，需要修改。应该要改后端。
+
+
+## task
+现在删除是彻底删除。
+你要支持移到回收站。点开三个选项，默认回收站。
+然后是彻底删除和cancel
+你后端也需要支持。
+
+## Task7：i18n
+- 补全 i18n 支持遗漏部分
+
+
+## Task4：Explorer 筛选与排序增强
+- 筛选：
+  - zip 是否包含 video
+  - zip 是否包含 audio
+- 排序：
+  - 按 zip 内 img number
+- 完成设计与实现
+
+
+---
+# 给reader page的文件操作加热键
+v -》 移动喜欢的文件夹
+x -》 移到已读
+
+
+## Task5：推荐排序接入
+- 前端接入 recommendation score
+- Explorer 页面添加排序选项
+
+
+
+## Task6：Audio Page
+- 修复 audio page 崩溃问题

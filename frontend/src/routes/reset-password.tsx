@@ -1,7 +1,4 @@
-import {
-  createFileRoute,
-  Link as RouterLink,
-} from "@tanstack/react-router"
+import { createFileRoute, Link as RouterLink } from "@tanstack/react-router"
 import { AuthLayout } from "@/components/Common/AuthLayout"
 import { Button } from "@/components/ui/button"
 
