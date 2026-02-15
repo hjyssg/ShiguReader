@@ -403,7 +403,7 @@ function ReadPage() {
   return (
     <div className="flex flex-col h-screen">
       {/* 顶部工具栏 - 整合导航和工具 */}
-      <nav className="flex items-center gap-1.5 text-xs text-muted-foreground px-2 py-1 bg-background/95 border-b shrink-0">
+      <nav className="flex items-center gap-1.5 text-s text-muted-foreground px-6 py-4 bg-background/95 border-b shrink-0">
         {/* 左侧：面包屑导航 */}
         <Link to="/" className="flex items-center gap-1 hover:text-foreground shrink-0">
           <Home className="size-3.5" />
@@ -431,21 +431,21 @@ function ReadPage() {
         <Link
           to={isFolderSource ? "/explorer" : "/archive"}
           search={{ path }}
-          className="hover:text-foreground truncate max-w-[160px] font-medium text-foreground/80"
+          className="hover:text-foreground truncate max-w-[400px] font-medium text-foreground/80"
         >
           {fileName}
         </Link>
 
         {/* 右侧：页码和工具 */}
         <div className="ml-auto flex items-center gap-1 shrink-0">
-          <span className="text-xs text-muted-foreground tabular-nums mr-2">
+          <span className="text-base text-muted-foreground tabular-nums mr-2">
             {currentPage + 1} / {totalPages}
           </span>
           <Button variant="ghost" size="icon" className="size-6" onClick={zoomOut} title="缩小">
-            <span className="text-xs font-medium">−</span>
+            <span className="text-base font-medium">−</span>
           </Button>
           <Button variant="ghost" size="icon" className="size-6" onClick={zoomIn} title="放大">
-            <span className="text-xs font-medium">+</span>
+            <span className="text-base font-medium">+</span>
           </Button>
           <Button variant="ghost" size="icon" className="size-6" onClick={rotate} title="旋转">
             <RotateCw className="size-3" />
@@ -456,7 +456,7 @@ function ReadPage() {
           <Button
             variant="ghost"
             size="sm"
-            className="h-6 px-2 text-xs"
+            className="h-6 px-2 text-base"
             onClick={() => {
               const value = Number(prompt("跳转到第几页？"))
               if (!Number.isNaN(value) && value > 0) {
@@ -466,11 +466,11 @@ function ReadPage() {
           >
             跳页
           </Button>
-          <Button variant="ghost" size="sm" className="h-6 px-2 text-xs" onClick={resetTransform}>重置</Button>
+          <Button variant="ghost" size="sm" className="h-6 px-2 text-base" onClick={resetTransform}>重置</Button>
           {!isFolderSource && (
             <>
-              <Button variant="ghost" size="sm" className="h-6 px-2 text-xs" onClick={() => navigate({ to: "/archive", search: { path } })}>Explorer</Button>
-              <Button variant="ghost" size="sm" className="h-6 px-2 text-xs" onClick={() => navigate({ to: "/read-waterfall", search: { path } })}>Waterfall</Button>
+              <Button variant="ghost" size="sm" className="h-6 px-2 text-base" onClick={() => navigate({ to: "/archive", search: { path } })}>Explorer</Button>
+              <Button variant="ghost" size="sm" className="h-6 px-2 text-base" onClick={() => navigate({ to: "/read-waterfall", search: { path } })}>Waterfall</Button>
             </>
           )}
           {/* File Operations Dropdown */}
