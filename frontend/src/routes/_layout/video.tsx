@@ -86,15 +86,14 @@ function Video() {
         </div>
       )}
 
-      {/* Video Info */}
+      {/*
       <div className="space-y-2">
-        <h2 className="text-2xl font-semibold">{fileName}</h2>
         {entry && (
           <p className="text-sm text-muted-foreground">
             From archive: {path.split(/[/\\]/).pop()}
           </p>
         )}
-      </div>
+      </div> */}
     </div>
   )
 }
