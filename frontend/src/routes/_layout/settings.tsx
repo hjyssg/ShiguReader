@@ -70,6 +70,14 @@ interface EditablePathCardProps {
   onValueChange: (value: string) => void
 }
 
+const parseFsRoots = (value: string): string[] => {
+  const paths = (value || "")
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean)
+  return paths.length > 0 ? paths : [""]
+}
+
 function EditablePathCard(props: EditablePathCardProps) {
   const {
     title,
@@ -175,14 +183,6 @@ function SettingsPage() {
   const [isEditingFavoriteDir, setIsEditingFavoriteDir] = useState(false)
   const [isEditingAlreadyReadDir, setIsEditingAlreadyReadDir] = useState(false)
 
-  const parseFsRoots = (value: string): string[] => {
-    const paths = (value || "")
-      .split(",")
-      .map((item) => item.trim())
-      .filter(Boolean)
-    return paths.length > 0 ? paths : [""]
-  }
-
   // Fetch current settings
   const { data: settings, isLoading } = useQuery<SettingsResponse>({
     queryKey: ["settings"],
@@ -202,7 +202,7 @@ function SettingsPage() {
       setIsEditingFavoriteDir(false)
       setIsEditingAlreadyReadDir(false)
     }
-  }, [settings, parseFsRoots])
+  }, [settings])
 
   // Update settings mutation
   const updateMutation = useMutation({
