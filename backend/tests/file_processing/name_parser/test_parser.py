@@ -2,11 +2,9 @@
 
 from __future__ import annotations
 
-import json
 import pytest
 
 from app.file_processing.name_parser.parser import ParseResult, clear_cache, parse
-from app.core.config import settings
 
 
 @pytest.fixture(autouse=True)
@@ -249,70 +247,6 @@ class TestCaching:
         r2 = parse("[作者] 作品名.zip")
         assert r1 is not r2
         assert r1.authors == r2.authors
-
-
-class TestSlmFallback:
-    def test_fallback_to_slm_when_no_rule_match(self, monkeypatch):
-        class _Resp:
-            def __enter__(self):
-                return self
-
-            def __exit__(self, exc_type, exc, tb):
-                return False
-
-            def read(self):
-                payload = {
-                    "choices": [
-                        {
-                            "message": {
-                                "content": json.dumps(
-                                    {
-                                        "title": "SLM Parsed",
-                                        "authors": [],
-                                        "cosers": ["Nekomiya"],
-                                        "group": None,
-                                        "raw_tags": ["Azur Lane"],
-                                        "event": None,
-                                        "date_tag": None,
-                                        "type": "COSPLAY",
-                                        "pack_kind": "cosplay",
-                                    }
-                                )
-                            }
-                        }
-                    ]
-                }
-                return json.dumps(payload).encode("utf-8")
-
-        monkeypatch.setattr(settings, "SLM_FALLBACK_ENABLED", True)
-        monkeypatch.setattr(settings, "SLM_BASE_URL", "http://127.0.0.1:1234")
-        monkeypatch.setattr(
-            "app.file_processing.name_parser.parser.urlrequest.urlopen",
-            lambda *_args, **_kwargs: _Resp(),
-        )
-
-        r = parse("plain_filename_without_brackets.zip")
-
-        assert r is not None
-        assert r.cosers == ["Nekomiya"]
-        assert r.pack_kind == "cosplay"
-
-    def test_rule_based_has_priority_over_slm(self, monkeypatch):
-        monkeypatch.setattr(settings, "SLM_FALLBACK_ENABLED", True)
-
-        def _should_not_call(*_args, **_kwargs):
-            raise AssertionError("SLM should not be called when rule parser succeeds")
-
-        monkeypatch.setattr(
-            "app.file_processing.name_parser.parser.urlrequest.urlopen",
-            _should_not_call,
-        )
-
-        r = parse("[武田弘光] 作品名 (東方Project).zip")
-
-        assert r is not None
-        assert r.authors == ["武田弘光"]
-        assert r.pack_kind == "manga"
 
 
 # ---------------------------------------------------------------------------

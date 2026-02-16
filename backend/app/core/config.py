@@ -82,12 +82,6 @@ class Settings(BaseSettings):
     IMAGE_COMPRESS_QUALITY: int = 85  # JPEG 压缩质量（1-100）
     IMAGE_COMPRESS_FORMAT: str = "JPEG"  # 输出格式
 
-    # SLM fallback parser settings
-    SLM_FALLBACK_ENABLED: bool = False
-    SLM_BASE_URL: str = "http://127.0.0.1:1234"
-    SLM_MODEL: str = "local-model"
-    SLM_TIMEOUT_SEC: int = 12
-
     @computed_field  # type: ignore[prop-decorator]
     @property
     def SQLALCHEMY_DATABASE_URI(self) -> str:
