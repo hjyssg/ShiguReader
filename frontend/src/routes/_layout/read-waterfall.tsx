@@ -34,15 +34,15 @@ function ReadWaterfallPage() {
     enabled: !!path,
   })
 
-  const extractMutation = useMutation({
+  const { mutate: extractArchive, data: extractResult } = useMutation({
     mutationFn: () => FilesystemService.extractArchive({ path, page: 0 }),
   })
 
   useEffect(() => {
     if (path) {
-      extractMutation.mutate()
+      extractArchive()
     }
-  }, [path])
+  }, [path, extractArchive])
 
   const imageEntries = useMemo(
     () => listData?.entries.filter((e) => e.file_type === "image") || [],
@@ -109,7 +109,7 @@ function ReadWaterfallPage() {
           {t("reader.openReader")}
         </Button>
         <ExtractingIndicator
-          status={extractMutation.data?.status}
+          status={extractResult?.status}
           variant="inline"
         />
       </div>

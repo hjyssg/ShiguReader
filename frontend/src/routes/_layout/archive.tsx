@@ -88,16 +88,16 @@ function Archive() {
     retry: false,
   })
 
-  const extractMutation = useMutation({
+  const { mutate: extractArchive, data: extractResult } = useMutation({
     mutationFn: (page: number) =>
       FilesystemService.extractArchive({ path, page }),
   })
 
   useEffect(() => {
-    if (listData && !extractMutation.data) {
-      extractMutation.mutate(0)
+    if (listData && !extractResult) {
+      extractArchive(0)
     }
-  }, [listData, extractMutation])
+  }, [listData, extractResult, extractArchive])
 
   // Must call hooks before any early returns
   const fileName = getBaseName(path, "Archive")
@@ -233,7 +233,7 @@ function Archive() {
 
       {/* Extraction status */}
       <ExtractingIndicator
-        status={extractMutation.data?.status}
+        status={extractResult?.status}
         variant="fixed"
       />
 
