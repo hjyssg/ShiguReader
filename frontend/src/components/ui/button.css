@@ -63,8 +63,7 @@
 }
 
 .ui-button--default:hover {
-    background-color: color-mix(in srgb, var(--primary), black 10%);
-    /* hover:bg-primary/90 */
+    background-color: color-mix(in srgb, var(--primary), black 15%);
 }
 
 /* Destructive 变体 */
@@ -74,11 +73,15 @@
 }
 
 .ui-button--destructive:hover {
-    background-color: color-mix(in srgb, var(--destructive), black 10%);
+    background-color: color-mix(in srgb, var(--destructive), black 15%);
 }
 
 .dark .ui-button--destructive {
     background-color: color-mix(in srgb, var(--destructive), transparent 40%);
+}
+
+.dark .ui-button--destructive:hover {
+    background-color: var(--destructive);
 }
 
 /* Outline 变体 */
@@ -86,12 +89,12 @@
     border: 1px solid var(--border);
     background-color: var(--background);
     box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-    /* shadow-xs */
 }
 
 .ui-button--outline:hover {
     background-color: var(--accent);
     color: var(--accent-foreground);
+    border-color: var(--accent);
 }
 
 .dark .ui-button--outline {
@@ -100,7 +103,8 @@
 }
 
 .dark .ui-button--outline:hover {
-    background-color: color-mix(in srgb, var(--input), transparent 50%);
+    background-color: var(--accent);
+    border-color: var(--accent);
 }
 
 /* Secondary 变体 */
@@ -124,7 +128,7 @@
 }
 
 .dark .ui-button--ghost:hover {
-    background-color: color-mix(in srgb, var(--accent), transparent 50%);
+    background-color: color-mix(in srgb, var(--accent), white 10%);
 }
 
 /* Link 变体 */
@@ -136,6 +140,7 @@
 
 .ui-button--link:hover {
     text-decoration: underline;
+    background-color: color-mix(in srgb, var(--primary), transparent 90%);
 }
 
 /* --- 按钮尺寸 (Sizes) --- */
