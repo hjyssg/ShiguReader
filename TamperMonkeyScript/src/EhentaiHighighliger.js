@@ -26,7 +26,7 @@ GM_addStyle(`
 const IS_EHENTAI = window.location.hostname.includes("exhentai") || window.location.hostname.includes("e-hentai");
 const IS_NYAA = window.location.hostname.includes("nyaa");
 
-const production_port = 3000;
+const production_port = 8000;
 const QUICK_MATCH_BATCH_SIZE = 20;
 const QUICK_MATCH_LIMIT = 5;
 
