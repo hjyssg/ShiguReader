@@ -35,10 +35,10 @@ export function AppSidebar() {
   const { state } = useSidebar()
   return (
     <Sidebar collapsible="icon">
-      <SidebarHeader className="px-4 py-6 group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:items-center">
+      <SidebarHeader className="px-4 py-6">
         <div className="flex items-center justify-between w-full gap-2">
           {state !== "collapsed" && <Logo variant="responsive" />}
-          <SidebarTrigger className="text-muted-foreground group-data-[collapsible=icon]:mx-auto" />
+          <SidebarTrigger className="text-muted-foreground" />
         </div>
       </SidebarHeader>
       <SidebarContent>
