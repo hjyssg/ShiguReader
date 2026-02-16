@@ -29,6 +29,7 @@ class TagsResponse(BaseModel):
     total: int
 
 
+# 接口说明：分页获取标签列表及封面。
 @router.get("", response_model=TagsResponse)
 async def read_tags(
     page: int = Query(1, ge=1),

@@ -22,7 +22,7 @@ from app.index_db.models import (
 
 
 def _now_ts() -> int:
-    """Return current Unix timestamp in seconds."""
+    """返回当前秒级 Unix 时间戳。"""
     return int(time())
 
 
@@ -39,6 +39,7 @@ def _iter_chunks(items: list[T], chunk_size: int) -> Iterator[list[T]]:
 
 @dataclass(slots=True)
 class UpsertFolderInput:
+    """目录 upsert 入参。"""
     filepath: str
     dirname: str
     mtime: int | None = None
@@ -49,6 +50,7 @@ class UpsertFolderInput:
 
 @dataclass(slots=True)
 class UpsertFileInput:
+    """文件 upsert 入参。"""
     filepath: str
     filename: str
     mtime: int
@@ -65,6 +67,7 @@ class UpsertFileInput:
 
 
 class IndexRepository:
+    """索引数据库的统一读写仓储。"""
     def _apply_presence_filter(self, stmt, presence_filter: str):
         """Apply watched/scanned presence filters to a SQL statement."""
         if presence_filter == "watched":

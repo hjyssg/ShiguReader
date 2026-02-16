@@ -84,6 +84,7 @@ def _to_response(r: ParseResult) -> ParseResponse:
 # ---------------------------------------------------------------------------
 
 
+# 接口说明：批量解析文件名并写入解析结果。
 @router.post("/batch", response_model=BatchParseResponse)
 async def batch_parse(body: BatchParseRequest) -> BatchParseResponse:
     """Parse a list of filenames and persist results to the index DB."""
@@ -135,6 +136,7 @@ async def batch_parse(body: BatchParseRequest) -> BatchParseResponse:
     )
 
 
+# 接口说明：根据文件路径查询已保存的解析结果。
 @router.get("", response_model=StoredParseResponse)
 async def get_parse_result(
     filepath: str = Query(..., description="File path to look up"),

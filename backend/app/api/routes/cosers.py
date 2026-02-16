@@ -30,6 +30,7 @@ class CosersResponse(BaseModel):
     total: int
 
 
+# 接口说明：分页获取 coser 列表及封面。
 @router.get("", response_model=CosersResponse)
 async def read_cosers(
     page: int = Query(1, ge=1),

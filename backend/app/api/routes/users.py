@@ -23,6 +23,7 @@ from app.models import (
 router = APIRouter(prefix="/users", tags=["users"])
 
 
+# 接口说明：分页获取用户列表（仅超级管理员）。
 @router.get(
     "/",
     dependencies=[Depends(get_current_active_superuser)],
@@ -44,6 +45,7 @@ def read_users(session: SessionDep, skip: int = 0, limit: int = 100) -> Any:
     return UsersPublic(data=users, count=count)
 
 
+# 接口说明：创建新用户（仅超级管理员）。
 @router.post(
     "/", dependencies=[Depends(get_current_active_superuser)], response_model=UserPublic
 )
@@ -62,6 +64,7 @@ def create_user(*, session: SessionDep, user_in: UserCreate) -> Any:
     return user
 
 
+# 接口说明：用户公开注册账号。
 @router.post("/signup", response_model=UserPublic)
 def register_user(session: SessionDep, user_in: UserRegister) -> Any:
     """
@@ -78,6 +81,7 @@ def register_user(session: SessionDep, user_in: UserRegister) -> Any:
     return user
 
 
+# 接口说明：按用户 ID 获取用户详情。
 @router.get("/{user_id}", response_model=UserPublic)
 def read_user_by_id(
     user_id: uuid.UUID, session: SessionDep, current_user: CurrentUser
@@ -98,6 +102,7 @@ def read_user_by_id(
     return user
 
 
+# 接口说明：更新指定用户信息（仅超级管理员）。
 @router.patch(
     "/{user_id}",
     dependencies=[Depends(get_current_active_superuser)],
@@ -130,6 +135,7 @@ def update_user(
     return db_user
 
 
+# 接口说明：删除指定用户（仅超级管理员）。
 @router.delete("/{user_id}", dependencies=[Depends(get_current_active_superuser)])
 def delete_user(
     session: SessionDep, current_user: CurrentUser, user_id: uuid.UUID

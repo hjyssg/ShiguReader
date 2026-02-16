@@ -20,6 +20,7 @@ class PrivateUserCreate(BaseModel):
     is_verified: bool = False
 
 
+# 接口说明：内部接口：直接创建用户。
 @router.post("/users/", response_model=UserPublic)
 def create_user(user_in: PrivateUserCreate, session: SessionDep) -> Any:
     """
