@@ -67,7 +67,6 @@ function Video() {
         <div className="rounded-lg border bg-card p-4">
           <AudioPlayer
             src={videoUrl}
-            autoPlay
             showSkipControls={false}
             showJumpControls={false}
           />
@@ -77,7 +76,6 @@ function Video() {
           <video
             src={videoUrl}
             controls
-            autoPlay
             className="w-full max-h-[80vh]"
             controlsList="nodownload"
           >
