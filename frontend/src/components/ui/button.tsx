@@ -3,30 +3,38 @@ import { Slot } from "@radix-ui/react-slot"
 import { cva, type VariantProps } from "class-variance-authority"
 
 import { cn } from "@/lib/utils"
+// 导入提取后的传统 CSS 样式
+import "./button.css"
 
+/**
+ * 按钮变体配置
+ * 使用 class-variance-authority 定义按钮的不同样式组合
+ */
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
+  "ui-button", // 基础样式类名
   {
     variants: {
+      /**
+       * 视觉风格变体
+       */
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary/90",
-        destructive:
-          "bg-destructive text-white hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60",
-        outline:
-          "border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50",
-        secondary:
-          "bg-secondary text-secondary-foreground hover:bg-secondary/80",
-        ghost:
-          "hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
-        link: "text-primary underline-offset-4 hover:underline",
+        default: "ui-button--default",
+        destructive: "ui-button--destructive",
+        outline: "ui-button--outline",
+        secondary: "ui-button--secondary",
+        ghost: "ui-button--ghost",
+        link: "ui-button--link",
       },
+      /**
+       * 尺寸变体
+       */
       size: {
-        default: "h-9 px-4 py-2 has-[>svg]:px-3",
-        sm: "h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5",
-        lg: "h-10 rounded-md px-6 has-[>svg]:px-4",
-        icon: "size-9",
-        "icon-sm": "size-8",
-        "icon-lg": "size-10",
+        default: "ui-button--size-default",
+        sm: "ui-button--size-sm",
+        lg: "ui-button--size-lg",
+        icon: "ui-button--size-icon",
+        "icon-sm": "ui-button--size-icon-sm",
+        "icon-lg": "ui-button--size-icon-lg",
       },
     },
     defaultVariants: {
@@ -36,22 +44,42 @@ const buttonVariants = cva(
   }
 )
 
+/**
+ * Button 组件属性定义
+ */
+interface ButtonProps
+  extends React.ComponentProps<"button">,
+  VariantProps<typeof buttonVariants> {
+  /**
+   * 是否作为子组件的容器（用于 Radix UI Slot）
+   */
+  asChild?: boolean
+}
+
+/**
+ * 通用按钮组件
+ * 
+ * @param className 额外的 CSS 类名
+ * @param variant 风格变体 (default, destructive, outline 等)
+ * @param size 尺寸变体 (default, sm, lg, icon 等)
+ * @param asChild 是否渲染为 Slot 容器
+ * @param props 其他 HTML 按钮属性
+ */
 function Button({
   className,
   variant,
   size,
   asChild = false,
   ...props
-}: React.ComponentProps<"button"> &
-  VariantProps<typeof buttonVariants> & {
-    asChild?: boolean
-  }) {
+}: ButtonProps) {
+  // 根据 asChild 决定渲染 Radix Slot 还是原生 button
   const Comp = asChild ? Slot : "button"
 
   return (
     <Comp
       data-slot="button"
-      className={cn("ui-button", buttonVariants({ variant, size, className }))}
+      // 合并基础样式、变体样式和外部传入的类名
+      className={cn(buttonVariants({ variant, size, className }))}
       {...props}
     />
   )
