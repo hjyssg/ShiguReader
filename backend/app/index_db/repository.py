@@ -424,6 +424,10 @@ class IndexRepository:
         and their join tables."""
         now = _now_ts()
 
+        # 业务约束：author(漫画作者) 与 coser(三次元) 不应出现在同一 zip。
+        if cosers:
+            authors = []
+
         # Upsert ParsedMetadata
         meta = self.session.get(ParsedMetadata, filepath)
         if meta is None:
@@ -521,8 +525,10 @@ class IndexRepository:
         for r in results:
             if r["filepath"] not in existing_files:
                 continue
-            all_authors.update({a for a in (r.get("authors") or []) if a})
-            all_cosers.update({c for c in (r.get("cosers") or []) if c})
+            row_cosers = {c for c in (r.get("cosers") or []) if c}
+            row_authors = set() if row_cosers else {a for a in (r.get("authors") or []) if a}
+            all_authors.update(row_authors)
+            all_cosers.update(row_cosers)
             all_tags.update({t for t in (r.get("raw_tags") or []) if t})
 
         all_artists = all_authors | all_cosers
@@ -570,12 +576,15 @@ class IndexRepository:
                 meta.parsed_at = now
 
             # Artists (dedupe within each file)
-            for name in {a for a in (r.get("authors") or []) if a}:
+            row_cosers = {c for c in (r.get("cosers") or []) if c}
+            row_authors = set() if row_cosers else {a for a in (r.get("authors") or []) if a}
+
+            for name in row_authors:
                 if name not in existing_artists:
                     to_add.append(Artist(artist_name=name))
                     existing_artists.add(name)
 
-            for name in {c for c in (r.get("cosers") or []) if c}:
+            for name in row_cosers:
                 if name not in existing_artists:
                     to_add.append(Artist(artist_name=name))
                     existing_artists.add(name)
@@ -613,13 +622,16 @@ class IndexRepository:
             if fp not in existing_files:
                 continue
 
-            for name in {a for a in (r.get("authors") or []) if a}:
+            row_cosers = {c for c in (r.get("cosers") or []) if c}
+            row_authors = set() if row_cosers else {a for a in (r.get("authors") or []) if a}
+
+            for name in row_authors:
                 key = (fp, name, "")
                 if key not in existing_file_artists:
                     link_to_add.append(FileArtist(filepath=fp, artist_name=name))
                     existing_file_artists.add(key)
 
-            for name in {c for c in (r.get("cosers") or []) if c}:
+            for name in row_cosers:
                 key = (fp, name, "coser")
                 if key not in existing_file_artists:
                     link_to_add.append(FileArtist(filepath=fp, artist_name=name, role="coser"))
