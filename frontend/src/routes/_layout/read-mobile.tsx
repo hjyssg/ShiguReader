@@ -82,9 +82,9 @@ function ReadMobilePage() {
 
   useEffect(() => {
     if (path && !isFolderSource) {
-      extractMutation.mutate(safePage)
+      extractMutation.mutate(0)
     }
-  }, [path, safePage, isFolderSource, extractMutation])
+  }, [path])
 
   useEffect(() => {
     if (!path || imageEntries.length === 0) return
@@ -149,9 +149,6 @@ function ReadMobilePage() {
               search: { path, page: index, source, filePath: "" },
               replace: true,
             })
-            if (!isFolderSource) {
-              extractMutation.mutate(index)
-            }
           },
         }}
         carousel={{ finite: false }}

@@ -97,6 +97,7 @@ function ReadPage() {
   const isArchiveSource = !isFolderSource
 
   const dragRef = useRef({ startX: 0, startY: 0, startTx: 0, startTy: 0 })
+  const lastExtractPathRef = useRef<string>("")
 
   const {
     data: listData,
@@ -232,11 +233,15 @@ function ReadPage() {
   }
 
   useEffect(() => {
-    resetTransform()
-    if (path && !isFolderSource) {
-      extractMutation.mutate(currentPage)
-    }
-  }, [path, currentPage, isFolderSource, extractMutation, resetTransform])
+    setScale(1)
+    setRotation(0)
+    setTranslate({ x: 0, y: 0 })
+
+    // 仅在 path 变化时触发一次，避免翻页/重渲染导致重复请求
+    if (!path || isFolderSource || lastExtractPathRef.current === path) return
+    lastExtractPathRef.current = path
+    extractMutation.mutate(0)
+  }, [path])
 
   useEffect(() => {
     if (!currentEntry || totalPages <= 0) return

@@ -42,7 +42,7 @@ function ReadWaterfallPage() {
     if (path) {
       extractMutation.mutate()
     }
-  }, [path, extractMutation])
+  }, [path])
 
   const imageEntries = useMemo(
     () => listData?.entries.filter((e) => e.file_type === "image") || [],
