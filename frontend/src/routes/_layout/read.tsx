@@ -232,7 +232,8 @@ function ReadPage() {
     setRotation(0)
     setTranslate({ x: 0, y: 0 })
     setImageLoaded(false)
-    setArchiveImageReady(isFolderSource)
+    // setArchiveImageReady(isFolderSource) // Removed: keep the status instead of resetting to false immediately
+
 
     if (!path || isFolderSource) return
 
@@ -250,8 +251,34 @@ function ReadPage() {
   }, [path, isFolderSource])
 
   useEffect(() => {
+    // When the actual image URL changes, we mark it as not loaded yet to trigger skeleton or overlay logic
+    // But we don't necessarily want to hide the OLD image immediately if we want a smooth transition.
+    // For now, let's keep it simple: only reset if the path actually changed significantly (e.g. entry path)
     setImageLoaded(false)
-  }, [path, source, currentEntry?.entryPath, currentEntry?.filePath])
+  }, [currentEntry?.entryPath, currentEntry?.filePath])
+
+  // Preloading logic
+  useEffect(() => {
+    if (totalPages <= 1) return
+
+    const preloadIndices = [
+      wrapPageIndex(currentPage + 1, totalPages),
+      wrapPageIndex(currentPage - 1, totalPages),
+    ]
+
+    preloadIndices.forEach((idx) => {
+      const entry = imageEntries[idx]
+      if (!entry) return
+
+      const url = isFolderSource
+        ? `${OpenAPI.BASE}/api/v1/fs/file?path=${encodeURIComponent(entry.filePath || "")}`
+        : `${OpenAPI.BASE}/api/v1/fs/archive/file?path=${encodeURIComponent(path)}&entry=${encodeURIComponent(entry.entryPath || "")}`
+
+      const img = new Image()
+      img.src = url
+    })
+  }, [currentPage, totalPages, imageEntries, isFolderSource, path])
+
 
   useEffect(() => {
     if (!currentEntry || totalPages <= 0) return
@@ -741,26 +768,31 @@ function ReadPage() {
         onWheel={onWheel}
       >
         {showImagePlaceholder && (
-          <div className="reader-image-stage__placeholder" aria-hidden="true">
+          <div
+            className={`reader-image-stage__placeholder ${imageLoaded ? "reader-image-stage__placeholder--hidden" : ""}`}
+            aria-hidden="true"
+          >
             <Skeleton className="reader-image-stage__skeleton" />
           </div>
         )}
 
         <img
+          key={imageUrl} // Use key to force re-render/smooth transition trigger if needed, though here we want content to swap
+
           src={canRequestImage ? imageUrl : undefined}
           alt={currentEntry.name}
           onMouseDown={onMouseDown}
           onError={handleImageError}
           onLoad={handleImageLoad}
           draggable={false}
-          className="reader-image-stage__image"
+          className={`reader-image-stage__image ${imageLoaded ? "reader-image-stage__image--loaded" : ""}`}
           style={{
             transform: `translate(${translate.x}px, ${translate.y}px) scale(${scale}) rotate(${rotation}deg)`,
             cursor: isDragging ? "grabbing" : "grab",
-            transition: isDragging ? "none" : "transform 120ms ease-out",
-            visibility: imageLoaded ? "visible" : "hidden",
+            transition: isDragging ? "none" : "transform 120ms ease-out, opacity 0.3s ease-in-out",
           }}
         />
+
 
         <button
           type="button"

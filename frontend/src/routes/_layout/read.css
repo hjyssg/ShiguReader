@@ -98,6 +98,12 @@
   align-items: center;
   justify-content: center;
   pointer-events: none;
+  opacity: 1;
+  /* transition: opacity 0.3s ease-in-out; */
+}
+
+.reader-image-stage__placeholder--hidden {
+  opacity: 0;
 }
 
 .reader-image-stage__skeleton {
@@ -111,7 +117,13 @@
   max-height: 100%;
   object-fit: contain;
   user-select: none;
+  opacity: 0;
 }
+
+.reader-image-stage__image--loaded {
+  opacity: 1;
+}
+
 
 .reader-nav-button {
   position: absolute;
