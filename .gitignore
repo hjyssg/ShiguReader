@@ -1,27 +1,53 @@
+# IDE
 .vscode/*
 !.vscode/extensions.json
+
+# Environment
+.env
+
+# Dependencies
 node_modules/
+
+# Frontend build/cache/test artifacts
+frontend/.tanstack/
 /test-results/
 /playwright-report/
 /blob-report/
 /playwright/.cache/
-data/index.db
-data/thumb_cache/
-data/extract_cache/
-frontend/.tanstack/
-backend/.backend-dev.log
 
-# Build artifacts
+# General build/release artifacts
 /build/
 /dist/
+/release/
 *.spec
+
+# Executables (default ignore), with ffmpeg bundle allowlist
 *.exe
-/data/user.db
+!backend/tools/ffmpeg/
+!backend/tools/ffmpeg/*.exe
+!backend/tools/ffmpeg/*.dll
+
+# Runtime/log/temp
 /nul
-.env
+backend/.backend-dev.log
+
+# Local data caches/databases
+data/thumb_cache/
+data/extract_cache/
+data/index.db
 /data/index.db-shm
 /data/index.db-wal
-/release/
+/data/user.db
 
 # Coser database (contains personal data)
 backend/app/file_processing/name_parser/coser_names.idx
+/backend/tools/ffmpeg/avcodec-62.dll
+/backend/tools/ffmpeg/avdevice-62.dll
+/backend/tools/ffmpeg/avfilter-11.dll
+/backend/tools/ffmpeg/avformat-62.dll
+/backend/tools/ffmpeg/avutil-60.dll
+/backend/tools/ffmpeg/ffmpeg.exe
+/backend/tools/ffmpeg/ffplay.exe
+/backend/tools/ffmpeg/ffprobe.exe
+/backend/tools/ffmpeg/swresample-6.dll
+/backend/tools/ffmpeg/swscale-9.dll
