@@ -102,6 +102,7 @@ export type CosersResponse = {
 
 export type DeletePathRequest = {
     path: string;
+    permanently?: boolean;
 };
 
 export type ExtractStatus = {

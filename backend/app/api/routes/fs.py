@@ -17,6 +17,7 @@ from urllib.parse import quote
 from fastapi import APIRouter, BackgroundTasks, HTTPException, Query
 from fastapi.responses import FileResponse, Response
 from pydantic import BaseModel
+from send2trash import send2trash
 
 from app.constants import ARCHIVE_SUFFIXES, AUDIO_SUFFIXES, IMAGE_SUFFIXES, VIDEO_SUFFIXES
 from app.core.config import settings
@@ -203,6 +204,7 @@ class MovePathRequest(BaseModel):
 
 class DeletePathRequest(BaseModel):
     path: str
+    permanently: bool = False
 
 
 class ZipFolderRequest(BaseModel):
@@ -1103,27 +1105,32 @@ def delete_path(request: DeletePathRequest) -> PathOperationResponse:
     if not target.exists():
         raise HTTPException(status_code=404, detail="Path not found")
 
-    try:
-        if target.is_file():
-            target.unlink()
-            try:
-                with get_index_session() as session:
-                    repo = IndexRepository(session)
-                    repo.delete_file(str(target))
-            except Exception as e:
-                logger.warning("DB cleanup failed after delete-file %s: %s", target, e)
-            return PathOperationResponse(status="ok", message="File deleted", path=str(target))
+    is_file_target = target.is_file()
 
-        shutil.rmtree(target)
+    try:
+        if request.permanently:
+            if is_file_target:
+                target.unlink()
+            else:
+                shutil.rmtree(target)
+            message = "Deleted permanently"
+        else:
+            send2trash(str(target))
+            message = "Moved to recycle bin"
+
         try:
             with get_index_session() as session:
                 repo = IndexRepository(session)
-                repo.delete_paths_by_prefix(str(target))
+                if is_file_target:
+                    repo.delete_file(str(target))
+                else:
+                    repo.delete_paths_by_prefix(str(target))
         except Exception as e:
-            logger.warning("DB cleanup failed after delete-folder %s: %s", target, e)
-        return PathOperationResponse(status="ok", message="Folder deleted", path=str(target))
+            logger.warning("DB cleanup failed after delete %s: %s", target, e)
+
+        return PathOperationResponse(status="ok", message=message, path=str(target))
     except PermissionError as e:
-        operation = "delete file" if target.is_file() else "delete folder"
+        operation = "delete file" if is_file_target else "delete folder"
         raise HTTPException(
             status_code=403,
             detail=_build_permission_denied_detail(operation, target, e),
