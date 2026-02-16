@@ -68,19 +68,23 @@ _DIGIT_RE = re.compile(r"\d+")
 
 
 def _normalize_text(value: str) -> str:
+    """Normalize text for matching by trimming spaces and lowercasing."""
     normalized = " ".join((value or "").strip().lower().split())
     return normalized
 
 
 def _extract_digit_tokens(value: str) -> list[str]:
+    """Extract all digit chunks from a string in original order."""
     return _DIGIT_RE.findall(value or "")
 
 
 def _compare_internal_digits(lhs: str, rhs: str) -> bool:
+    """Return True only when two strings have identical internal digit sequences."""
     return _extract_digit_tokens(lhs) == _extract_digit_tokens(rhs)
 
 
 def _levenshtein_distance(lhs: str, rhs: str) -> int:
+    """Compute Levenshtein edit distance between two strings."""
     if lhs == rhs:
         return 0
     if not lhs:
@@ -104,6 +108,7 @@ def _levenshtein_distance(lhs: str, rhs: str) -> int:
 
 
 def _is_highly_similar_title(lhs: str, rhs: str) -> bool:
+    """Judge whether two titles are highly similar with digit-guarded fuzzy matching."""
     a = _normalize_text(lhs)
     b = _normalize_text(rhs)
     if not a and not b:
@@ -121,6 +126,7 @@ def _is_highly_similar_title(lhs: str, rhs: str) -> bool:
 
 
 def _extract_core_query(raw_title: str) -> str:
+    """Extract a compact core phrase from a long title for fast candidate recall."""
     title = (raw_title or "").strip()
     if not title:
         return ""
@@ -140,6 +146,7 @@ def _extract_core_query(raw_title: str) -> str:
 
 
 def _author_set(parsed: ParseResult | None) -> set[str]:
+    """Build a normalized author/group set from parsed metadata."""
     if parsed is None:
         return set()
     out = {_normalize_text(a) for a in parsed.authors if _normalize_text(a)}
@@ -151,6 +158,7 @@ def _author_set(parsed: ParseResult | None) -> set[str]:
 
 
 def _parsed_title(parsed: ParseResult | None, fallback: str) -> str:
+    """Return parsed title when available, otherwise fallback to raw text."""
     if parsed and parsed.title:
         return parsed.title
     return fallback
@@ -163,6 +171,7 @@ def _score_match(
     candidate_parsed: ParseResult | None,
     candidate_authors: list[str],
 ) -> tuple[Literal["downloaded", "likely", "same_author", "different"], float, str]:
+    """Score one candidate against one query and return level, confidence, and reason."""
     query_title = _parsed_title(query_parsed, query)
     candidate_title = _parsed_title(candidate_parsed, candidate.filename)
 
@@ -187,6 +196,7 @@ def _score_match(
 
 
 def _best_level_rank(level: str) -> int:
+    """Map match level to a sortable rank where higher means stronger match."""
     return {
         "downloaded": 4,
         "likely": 3,
@@ -197,10 +207,12 @@ def _best_level_rank(level: str) -> int:
 
 @lru_cache(maxsize=2048)
 def _parse_cached(value: str) -> ParseResult | None:
+    """Parse title text with LRU cache to reduce repeated parser overhead."""
     return parse(value)
 
 
 def _to_item(file: File) -> FileSystemItem:
+    """Convert an index File row into API FileSystemItem payload."""
     thumbnail_url = None
     if file.file_type in ("archive", "video", "image"):
         thumbnail_url = f"{settings.API_V1_STR}/fs/thumb?path={quote(file.filepath, safe='')}"
@@ -228,6 +240,7 @@ def _to_item(file: File) -> FileSystemItem:
 
 @router.post("", response_model=SearchResponse)
 def search_files(body: SearchRequest) -> SearchResponse:
+    """Run unified search across selected scopes and return deduplicated items."""
     q = body.q.strip()
     if not q:
         return SearchResponse(items=[], total=0)
@@ -259,6 +272,7 @@ def search_files(body: SearchRequest) -> SearchResponse:
 
 @router.post("/quick-match-batch", response_model=QuickMatchBatchResponse)
 def quick_match_batch(body: QuickMatchBatchRequest) -> QuickMatchBatchResponse:
+    """Batch-evaluate queries for fast downloaded/not-downloaded matching."""
     queries = [(q or "").strip() for q in body.queries]
     queries = [q for q in queries if q]
     if not queries:

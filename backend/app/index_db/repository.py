@@ -22,6 +22,7 @@ from app.index_db.models import (
 
 
 def _now_ts() -> int:
+    """Return current Unix timestamp in seconds."""
     return int(time())
 
 
@@ -29,6 +30,7 @@ T = TypeVar("T")
 
 
 def _iter_chunks(items: list[T], chunk_size: int) -> Iterator[list[T]]:
+    """Yield a list in fixed-size chunks for batched processing."""
     if chunk_size <= 0:
         chunk_size = 500
     for i in range(0, len(items), chunk_size):
@@ -64,6 +66,7 @@ class UpsertFileInput:
 
 class IndexRepository:
     def _apply_presence_filter(self, stmt, presence_filter: str):
+        """Apply watched/scanned presence filters to a SQL statement."""
         if presence_filter == "watched":
             return stmt.where(File.watch_state == 1)
 
@@ -74,13 +77,16 @@ class IndexRepository:
         return stmt
 
     def __init__(self, session: Session) -> None:
+        """Initialize repository with a SQLModel session."""
         self.session = session
 
     def _commit(self) -> None:
+        """Commit current transaction under index-db write guard."""
         with index_write_guard():
             self.session.commit()
 
     def upsert_folder(self, data: UpsertFolderInput) -> Folder:
+        """Insert or update a folder row by filepath."""
         now = _now_ts()
         folder = self.session.get(Folder, data.filepath)
         if folder is None:
@@ -116,6 +122,7 @@ class IndexRepository:
         return folder
 
     def upsert_file(self, data: UpsertFileInput) -> File:
+        """Insert or update a file row by filepath."""
         now = _now_ts()
         file = self.session.get(File, data.filepath)
         if file is None:
@@ -365,6 +372,7 @@ class IndexRepository:
         limit: int,
         sort_order: str = "desc",
     ) -> list[Progress]:
+        """Return paginated reading progress history ordered by last opened time."""
         order_clause = (
             Progress.last_opened_at.asc()
             if sort_order == "asc"
@@ -374,6 +382,7 @@ class IndexRepository:
         return list(self.session.exec(stmt).all())
 
     def count_progress_history(self) -> int:
+        """Return total count of progress records."""
         stmt = select(func.count()).select_from(Progress)
         return int(self.session.exec(stmt).one())
 
@@ -783,6 +792,7 @@ class IndexRepository:
     # ------------------------------------------------------------------
 
     def delete_file(self, filepath: str) -> None:
+        """Delete a single file row when it exists."""
         file = self.session.get(File, filepath)
         if file is None:
             return
@@ -790,6 +800,7 @@ class IndexRepository:
         self._commit()
 
     def delete_paths_by_prefix(self, prefix: str) -> None:
+        """Delete all file/folder rows whose filepath starts with prefix."""
         files_stmt = select(File).where(File.filepath.startswith(prefix))
         for file in self.session.exec(files_stmt).all():
             self.session.delete(file)
@@ -831,6 +842,7 @@ class IndexRepository:
         return {name: int(cnt) for name, cnt in self.session.exec(stmt).all()}
 
     def get_artists_by_filepaths(self, filepaths: list[str]) -> dict[str, list[str]]:
+        """Return author names grouped by filepath for given files."""
         if not filepaths:
             return {}
 
@@ -844,6 +856,7 @@ class IndexRepository:
         return out
 
     def get_cosers_by_filepaths(self, filepaths: list[str]) -> dict[str, list[str]]:
+        """Return coser names grouped by filepath for given files."""
         if not filepaths:
             return {}
 
@@ -857,6 +870,7 @@ class IndexRepository:
         return out
 
     def get_tags_by_filepaths(self, filepaths: list[str]) -> dict[str, list[str]]:
+        """Return tag names grouped by filepath for given files."""
         if not filepaths:
             return {}
 
