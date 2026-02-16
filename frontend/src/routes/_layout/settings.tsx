@@ -119,7 +119,7 @@ function EditablePathCard(props: EditablePathCardProps) {
       <CardContent>
         <div className="space-y-4">
           <div className="space-y-2">
-            {/* <Label htmlFor={id}>{label}</Label> 和上面的title重复了 */ }
+            <Label htmlFor={id}>{label}</Label>
             <Input
               ref={inputRef}
               id={id}
