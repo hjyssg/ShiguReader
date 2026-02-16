@@ -1,3 +1,24 @@
+"""
+IndexRepository（index_db 数据访问层）
+
+本模块集中封装 ShiguReader 的 index_db（SQLite + SQLModel）所有读写操作，
+是索引数据库的统一入口。
+
+主要职责：
+- 文件/文件夹索引：upsert 与批量 upsert（维护 first_seen / last_seen / last_scanned）。
+- 解析结果持久化：保存 ParsedMetadata、Artist/Tag 主表及 FileArtist/FileTag 关联表。
+- 搜索能力：按 文件名/路径/作者/coser/tag 查询，支持 presence 过滤。
+- 阅读进度：Progress 记录、分页历史、统计总数。
+- 压缩包元数据：ArchiveMeta 存储与查询。
+- 推荐相关：统计 favorite 频次、批量更新 rec_score。
+- 目录级优化查询：减少 N+1，用于 /fs/list 等高频接口。
+
+实现要点：
+- 所有写操作在 index_write_guard() 下提交，避免并发写冲突。
+- 批量操作采用分块处理，规避 SQLite 参数上限并提升性能。
+"""
+
+
 from __future__ import annotations
 
 from dataclasses import dataclass
