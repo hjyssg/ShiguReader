@@ -651,6 +651,14 @@ class IndexRepository:
         """Return parsed metadata for a single file."""
         return self.session.get(ParsedMetadata, filepath)
 
+    def get_parsed_metadata_by_filepaths(self, filepaths: list[str]) -> dict[str, ParsedMetadata]:
+        """Return parsed metadata map keyed by filepath."""
+        if not filepaths:
+            return {}
+
+        stmt = select(ParsedMetadata).where(ParsedMetadata.filepath.in_(filepaths))
+        return {meta.filepath: meta for meta in self.session.exec(stmt).all()}
+
     def get_file_artists(self, filepath: str) -> list[str]:
         """Return artist names associated with a file."""
         stmt = select(FileArtist.artist_name).where(
