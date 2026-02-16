@@ -119,7 +119,7 @@ function EditablePathCard(props: EditablePathCardProps) {
       <CardContent>
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor={id}>{label}</Label>
+            {/* <Label htmlFor={id}>{label}</Label> 和上面的title重复了 */ }
             <Input
               ref={inputRef}
               id={id}
@@ -384,7 +384,7 @@ function SettingsPage() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {settings?.fs_roots && (
+            {/* {settings?.fs_roots && (
               <div className="space-y-2">
                 <Label className="text-muted-foreground">
                   {t("settings.currentPath")}
@@ -393,7 +393,7 @@ function SettingsPage() {
                   {settings.fs_roots}
                 </div>
               </div>
-            )}
+            )} */}
 
             <div className="space-y-2">
               <Label>{t("settings.folderPath")}</Label>
@@ -424,15 +424,19 @@ function SettingsPage() {
               </div>
             </div>
 
-            <Button type="button" variant="outline" onClick={handleAddFsRoot}>
-              {t("settings.addNew")}
-            </Button>
 
-            <Button onClick={handleSaveFsRoots} disabled={!canSaveFsRoots}>
-              {updateMutation.isPending
-                ? t("common.loading")
-                : t("settings.save")}
-            </Button>
+              <div className="flex flex-wrap gap-2">
+                  <Button type="button" variant="outline" onClick={handleAddFsRoot}>
+                    {t("settings.addNew")}
+                  </Button>
+
+                  <Button onClick={handleSaveFsRoots} disabled={!canSaveFsRoots}>
+                    {updateMutation.isPending
+                      ? t("common.loading")
+                      : t("settings.save")}
+                  </Button>
+              </div>
+
           </div>
         </CardContent>
       </Card>
