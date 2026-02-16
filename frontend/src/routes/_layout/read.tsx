@@ -558,14 +558,21 @@ function ReadPage() {
     e.currentTarget.dataset.retry = "0"
   }
 
-  const pagination = ( <span className="reader-toolbar__page-indicator cursor-pointer"  onClick={() => {
-              const value = Number(prompt(t("reader.jumpToPage")))
-              if (!Number.isNaN(value) && value > 0) {
-                goToPage(value - 1)
-              }
-            }}>
-            {currentPage + 1} / {totalPages}
-          </span>)
+  const pagination = (
+    <button
+      type="button"
+      className="reader-pagination"
+      onClick={() => {
+        const value = Number(prompt(t("reader.jumpToPage")))
+        if (!Number.isNaN(value) && value > 0) {
+          goToPage(value - 1)
+        }
+      }}
+      title={t("reader.jumpPage")}
+    >
+      {currentPage + 1} / {totalPages}
+    </button>
+  )
 
   return (
     <div className="reader-page">
@@ -612,9 +619,8 @@ function ReadPage() {
           {fileName}
         </Link>
 
-        {/* 右侧：页码和工具 */}
+        {/* 右侧：工具 */}
         <div className="reader-toolbar__actions">
-          {pagination}
           {/* <Button
             variant="ghost"
             size="icon"
@@ -808,7 +814,8 @@ function ReadPage() {
       </div>
 
       <div className="reader-meta-bar">
-        <div className="reader-meta-bar__row">
+        <div className="reader-meta-bar__left">
+          <div className="reader-meta-bar__row">
           <span className="text-muted-foreground">
             {t("reader.mtime")}:{" "}
             <span className="text-foreground">{mtimeText}</span>
@@ -922,7 +929,10 @@ function ReadPage() {
           ) : (
             <span className="text-muted-foreground">{t("reader.none")}</span>
           )}
+          </div>
         </div>
+
+        <div className="reader-meta-bar__right">{pagination}</div>
       </div>
 
       {/* File operation dialogs */}
