@@ -694,6 +694,7 @@ def _iter_files_for_backfill(path: Path, recursive: bool):
             yield entry
 
 
+# 接口说明：获取可浏览的根目录列表。
 @router.get("/roots", response_model=list[RootItem])
 def get_roots() -> list[RootItem]:
     """Get configured root directories."""
@@ -704,6 +705,7 @@ def get_roots() -> list[RootItem]:
     ]
 
 
+# 接口说明：获取收藏目录信息。
 @router.get("/favorite", response_model=RootItem | None)
 def get_favorite_root() -> RootItem | None:
     """Get configured favorite directory as a root-like item."""
@@ -718,6 +720,7 @@ def get_favorite_root() -> RootItem | None:
     return RootItem(path=str(path), dirname=path.name or str(path))
 
 
+# 接口说明：获取已读目录信息。
 @router.get("/already-read", response_model=RootItem | None)
 def get_already_read_root() -> RootItem | None:
     """Get configured already-read directory as a root-like item."""
@@ -732,6 +735,7 @@ def get_already_read_root() -> RootItem | None:
     return RootItem(path=str(path), dirname=path.name or str(path))
 
 
+# 接口说明：获取系统可用盘符（Windows）。
 @router.get("/drives", response_model=list[RootItem])
 def get_drives() -> list[RootItem]:
     """Get available drive letters (Windows only)."""
@@ -745,6 +749,7 @@ def get_drives() -> list[RootItem]:
     return drives
 
 
+# 接口说明：列出目录内容并返回文件元信息。
 @router.get("/list", response_model=ListResponse)
 def list_directory(
     background_tasks: BackgroundTasks,
@@ -1034,6 +1039,7 @@ def list_directory(
     return ListResponse(items=items)
 
 
+# 接口说明：移动单个文件。
 @router.post("/move-file", response_model=PathOperationResponse)
 def move_file(request: MovePathRequest) -> PathOperationResponse:
     source = _validate_path(Path(request.source_path))
@@ -1067,6 +1073,7 @@ def move_file(request: MovePathRequest) -> PathOperationResponse:
     return PathOperationResponse(status="ok", message="File moved", path=str(source), dest_path=str(dest))
 
 
+# 接口说明：移动整个文件夹。
 @router.post("/move-folder", response_model=PathOperationResponse)
 def move_folder(request: MovePathRequest) -> PathOperationResponse:
     source = _validate_path(Path(request.source_path))
@@ -1105,6 +1112,7 @@ def move_folder(request: MovePathRequest) -> PathOperationResponse:
     return PathOperationResponse(status="ok", message="Folder moved", path=str(source), dest_path=str(dest))
 
 
+# 接口说明：删除文件或目录。
 @router.delete("/delete", response_model=PathOperationResponse)
 def delete_path(request: DeletePathRequest) -> PathOperationResponse:
     target = _validate_path(Path(request.path))
@@ -1146,6 +1154,7 @@ def delete_path(request: DeletePathRequest) -> PathOperationResponse:
         raise HTTPException(status_code=500, detail=f"Delete failed: {e}")
 
 
+# 接口说明：将目录打包为 zip 文件。
 @router.post("/zip-folder", response_model=PathOperationResponse)
 def zip_folder(request: ZipFolderRequest) -> PathOperationResponse:
     folder = _validate_path(Path(request.folder_path))
@@ -1178,6 +1187,7 @@ def zip_folder(request: ZipFolderRequest) -> PathOperationResponse:
     return PathOperationResponse(status="ok", message="Folder zipped", path=str(folder), dest_path=str(output_path))
 
 
+# 接口说明：重命名文件或目录。
 @router.post("/rename", response_model=PathOperationResponse)
 def rename_path(request: RenameRequest) -> PathOperationResponse:
     """重命名文件或文件夹。"""
@@ -1223,6 +1233,7 @@ def rename_path(request: RenameRequest) -> PathOperationResponse:
     return PathOperationResponse(status="ok", message="Renamed successfully", path=str(source), dest_path=str(dest))
 
 
+# 接口说明：下载指定文件。
 @router.get("/download", response_model=None)
 def download_file(path: str = Query(..., description="File path to download")):
     """下载单个文件。"""
@@ -1243,6 +1254,7 @@ def download_file(path: str = Query(..., description="File path to download")):
     )
 
 
+# 接口说明：解压压缩包到目标目录。
 @router.post("/unzip", response_model=PathOperationResponse)
 def unzip_archive(request: UnzipRequest) -> PathOperationResponse:
     """解压压缩包到指定目录，保持原始目录结构。"""
@@ -1291,6 +1303,7 @@ def unzip_archive(request: UnzipRequest) -> PathOperationResponse:
         raise HTTPException(status_code=500, detail=f"Extraction failed: {e}")
 
 
+# 接口说明：触发收藏目录后台扫描。
 @router.post("/scan-favorite", response_model=ScanStartResponse)
 async def scan_favorite(background_tasks: BackgroundTasks) -> ScanStartResponse:
     favorite_dir = (settings.FAVORITE_DIR or "").strip()
@@ -1305,6 +1318,7 @@ async def scan_favorite(background_tasks: BackgroundTasks) -> ScanStartResponse:
     return ScanStartResponse(status="started", message="Favorite directory scan started", path=str(favorite_path))
 
 
+# 接口说明：触发指定目录后台扫描。
 @router.post("/scan", response_model=ScanStartResponse)
 async def scan_directory(background_tasks: BackgroundTasks, request: ScanRequest) -> ScanStartResponse:
     """Scan a directory and optionally recurse into subfolders."""
@@ -1326,6 +1340,7 @@ async def scan_directory(background_tasks: BackgroundTasks, request: ScanRequest
     )
 
 
+# 接口说明：回填目录文件的缩略图与元数据。
 @router.post("/backfill", response_model=BackfillResponse)
 async def backfill_directory(request: BackfillRequest) -> BackfillResponse:
     """Backfill missing thumbnail/meta for files under a folder."""
@@ -1479,6 +1494,7 @@ async def backfill_directory(request: BackfillRequest) -> BackfillResponse:
     )
 
 
+# 接口说明：扫描目录并开启实时监听。
 @router.post("/scan-watch", response_model=ScanStartResponse)
 async def scan_and_watch(background_tasks: BackgroundTasks, request: ScanRequest) -> ScanStartResponse:
     """Scan a directory recursively and start watchdog listener."""
@@ -1521,6 +1537,7 @@ async def scan_and_watch(background_tasks: BackgroundTasks, request: ScanRequest
     )
 
 
+# 接口说明：查询扫描任务状态。
 @router.get("/scan-status", response_model=list[ScanStatusItem])
 async def get_scan_status(path: str | None = Query(None, description="Optional path filter")) -> list[ScanStatusItem]:
     """Get background scan status for all paths or one path."""
@@ -1534,6 +1551,7 @@ async def get_scan_status(path: str | None = Query(None, description="Optional p
         return [_build_scan_status_item(path_key, record) for path_key, record in _scan_status.items()]
 
 
+# 接口说明：获取（或生成）文件缩略图。
 @router.get("/thumb", response_model=None)
 async def get_thumbnail(path: str = Query(..., description="File path for thumbnail")):
     """Get or generate thumbnail for a file."""
@@ -1611,6 +1629,7 @@ def _get_extract_cache_dir(archive_path: Path) -> Path:
 
 
 
+# 接口说明：列出压缩包内文件与统计信息。
 @router.get("/archive/list", response_model=ArchiveListResponse)
 async def list_archive(path: str = Query(..., description="Archive file path")) -> ArchiveListResponse:
     """List contents of an archive file."""
@@ -1732,6 +1751,7 @@ class ClearCacheResponse(BaseModel):
     freed_size_readable: str
 
 
+# 接口说明：清理压缩包解压缓存。
 @router.delete("/extract-cache", response_model=ClearCacheResponse)
 async def clear_extract_cache_endpoint() -> ClearCacheResponse:
     """清理所有解压缓存（跳过正在解压的目录）。"""
@@ -1749,6 +1769,7 @@ async def clear_extract_cache_endpoint() -> ClearCacheResponse:
         raise HTTPException(status_code=500, detail=f"Failed to clear cache: {e}")
 
 
+# 接口说明：按页优先解压压缩包内容。
 @router.post("/archive/extract", response_model=ExtractStatus)
 async def extract_archive(
     background_tasks: BackgroundTasks,
@@ -1896,6 +1917,7 @@ async def extract_archive(
     )
 
 
+# 接口说明：读取压缩包缓存中的指定文件。
 @router.get("/archive/file", response_model=None)
 def get_archive_file(
     path: str = Query(..., description="Archive file path"),
@@ -1920,6 +1942,7 @@ def get_archive_file(
     return FileResponse(file_path, media_type=get_mime_type(file_path))
 
 
+# 接口说明：直接读取本地文件内容。
 @router.get("/file", response_model=None)
 def get_file(path: str = Query(..., description="File path")):
     """Serve a file directly from disk."""
@@ -1961,6 +1984,7 @@ class CompressImagesResponse(BaseModel):
     error_message: str = ""
 
 
+# 接口说明：压缩压缩包内图片并重新打包。
 @router.post("/archive/compress-images", response_model=CompressImagesResponse)
 async def compress_archive_images_endpoint(
     background_tasks: BackgroundTasks,

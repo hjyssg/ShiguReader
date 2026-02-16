@@ -29,6 +29,7 @@ class AuthorsResponse(BaseModel):
     total: int
 
 
+# 接口说明：分页获取作者列表及封面。
 @router.get("", response_model=AuthorsResponse)
 async def read_authors(
     page: int = Query(1, ge=1),

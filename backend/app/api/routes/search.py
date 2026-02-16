@@ -238,6 +238,7 @@ def _to_item(file: File) -> FileSystemItem:
     )
 
 
+# 接口说明：按范围执行综合搜索。
 @router.post("", response_model=SearchResponse)
 def search_files(body: SearchRequest) -> SearchResponse:
     """Run unified search across selected scopes and return deduplicated items."""
@@ -270,6 +271,7 @@ def search_files(body: SearchRequest) -> SearchResponse:
     return SearchResponse(items=items, total=len(items))
 
 
+# 接口说明：批量快速匹配“是否已下载”。
 @router.post("/quick-match-batch", response_model=QuickMatchBatchResponse)
 def quick_match_batch(body: QuickMatchBatchRequest) -> QuickMatchBatchResponse:
     """Batch-evaluate queries for fast downloaded/not-downloaded matching."""
