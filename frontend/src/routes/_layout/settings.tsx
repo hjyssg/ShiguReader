@@ -1,17 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { createFileRoute } from "@tanstack/react-router"
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 
 import { OpenAPI } from "@/client"
 import { Button } from "@/components/ui/button"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import {
   Select,
@@ -20,10 +14,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import useCustomToast from "@/hooks/useCustomToast"
-import { Badge } from "@/components/ui/badge"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+
+import "./settings.css"
 
 type SettingsSearch = {
   tab?: "general" | "scan"
@@ -54,43 +49,17 @@ interface SettingsUpdate {
 }
 
 interface ClearCacheResponse {
-  status: string
-  message: string
   deleted_files: number
-  freed_bytes: number
   freed_size_readable: string
 }
 
 interface ScanStatusItem {
   path: string
   status: "running" | "completed" | "error"
-  message?: string
-  recursive: boolean
   scanned_folders: number
   scanned_files: number
   parsed_files: number
   watcher_active: boolean
-  started_at?: number
-  finished_at?: number
-}
-
-interface EditablePathCardProps {
-  title: string
-  description: string
-  id: string
-  value: string
-  placeholder: string
-  isEditing: boolean
-  canSave: boolean
-  isPending: boolean
-  saveText: string
-  editText: string
-  cancelText: string
-  loadingText: string
-  onStartEdit: () => void
-  onCancelEdit: () => void
-  onSave: () => void
-  onValueChange: (value: string) => void
 }
 
 const parseFsRoots = (value: string): string[] => {
@@ -101,98 +70,6 @@ const parseFsRoots = (value: string): string[] => {
   return paths.length > 0 ? paths : [""]
 }
 
-function EditablePathCard(props: EditablePathCardProps) {
-  const {
-    title,
-    description,
-    id,
-    value,
-    placeholder,
-    isEditing,
-    canSave,
-    isPending,
-    saveText,
-    editText,
-    cancelText,
-    loadingText,
-    onStartEdit,
-    onCancelEdit,
-    onSave,
-    onValueChange,
-  } = props
-
-  const inputRef = useRef<HTMLInputElement>(null)
-
-  useEffect(() => {
-    if (!isEditing) return
-    const input = inputRef.current
-    if (!input) return
-    input.focus()
-    const len = input.value.length
-    input.setSelectionRange(len, len)
-  }, [isEditing])
-
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{title}</CardTitle>
-        <CardDescription>{description}</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <Input
-              ref={inputRef}
-              id={id}
-              type="text"
-              placeholder={placeholder}
-              value={value}
-              onChange={(e) => onValueChange(e.target.value)}
-              onDoubleClick={onStartEdit}
-              onKeyDown={(e) => {
-                if (e.key === "Escape") {
-                  e.preventDefault()
-                  onCancelEdit()
-                }
-                if (e.key === "Enter" && canSave) {
-                  e.preventDefault()
-                  onSave()
-                }
-              }}
-              readOnly={!isEditing}
-              className={`font-mono ${!isEditing ? "bg-muted/40" : ""}`}
-            />
-          </div>
-
-          <div className="flex flex-wrap gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onStartEdit}
-              disabled={isEditing || isPending}
-            >
-              {editText}
-            </Button>
-            {isEditing && (
-              <Button
-                type="button"
-                variant="outline"
-                onClick={onCancelEdit}
-                disabled={isPending}
-              >
-                {cancelText}
-              </Button>
-            )}
-            <Button type="button" onClick={onSave} disabled={!canSave}>
-              {isPending ? loadingText : saveText}
-            </Button>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  )
-}
-
 function SettingsPage() {
   const { t, i18n } = useTranslation()
   const { showSuccessToast, showErrorToast } = useCustomToast()
@@ -200,17 +77,14 @@ function SettingsPage() {
   const { tab } = Route.useSearch()
   const navigate = Route.useNavigate()
 
+  const [fsRootList, setFsRootList] = useState<string[]>([""])
+  const [favoriteDir, setFavoriteDir] = useState("")
+  const [alreadyReadDir, setAlreadyReadDir] = useState("")
+
   const handleTabChange = (value: string) => {
     navigate({ search: (prev) => ({ ...prev, tab: value as any }) })
   }
 
-  const [fsRootList, setFsRootList] = useState<string[]>([""])
-  const [favoriteDir, setFavoriteDir] = useState("")
-  const [alreadyReadDir, setAlreadyReadDir] = useState("")
-  const [isEditingFavoriteDir, setIsEditingFavoriteDir] = useState(false)
-  const [isEditingAlreadyReadDir, setIsEditingAlreadyReadDir] = useState(false)
-
-  // Fetch current settings
   const { data: settings, isLoading } = useQuery<SettingsResponse>({
     queryKey: ["settings"],
     queryFn: async () => {
@@ -220,18 +94,13 @@ function SettingsPage() {
     },
   })
 
-  // Update local state when settings are loaded
   useEffect(() => {
-    if (settings) {
-      setFsRootList(parseFsRoots(settings.fs_roots || ""))
-      setFavoriteDir(settings.favorite_dir || "")
-      setAlreadyReadDir(settings.already_read_dir || "")
-      setIsEditingFavoriteDir(false)
-      setIsEditingAlreadyReadDir(false)
-    }
+    if (!settings) return
+    setFsRootList(parseFsRoots(settings.fs_roots || ""))
+    setFavoriteDir(settings.favorite_dir || "")
+    setAlreadyReadDir(settings.already_read_dir || "")
   }, [settings])
 
-  // Update settings mutation
   const updateMutation = useMutation({
     mutationFn: async (data: SettingsUpdate) => {
       const response = await fetch(`${OpenAPI.BASE}/api/v1/settings`, {
@@ -259,40 +128,30 @@ function SettingsPage() {
     },
   })
 
-  const handleLanguageChange = (value: string) => {
-    i18n.changeLanguage(value)
-    localStorage.setItem("language", value)
-    showSuccessToast(t("settings.saved"))
+  const currentFsRoots = settings?.fs_roots || ""
+  const normalizedFsRoots = fsRootList
+    .map((item) => item.trim())
+    .filter(Boolean)
+    .join(",")
+
+  const currentFavoriteDir = settings?.favorite_dir || ""
+  const currentAlreadyReadDir = settings?.already_read_dir || ""
+
+  const saveFsRootsIfChanged = () => {
+    if (updateMutation.isPending || normalizedFsRoots === currentFsRoots) return
+    updateMutation.mutate({ fs_roots: normalizedFsRoots })
   }
 
-  const handleSaveFsRoots = () => {
-    const normalized = fsRootList
-      .map((item) => item.trim())
-      .filter(Boolean)
-      .join(",")
-    updateMutation.mutate({ fs_roots: normalized })
+  const saveFavoriteDirIfChanged = () => {
+    const normalized = favoriteDir.trim()
+    if (updateMutation.isPending || normalized === currentFavoriteDir) return
+    updateMutation.mutate({ favorite_dir: normalized })
   }
 
-  const handleSaveAlreadyReadDir = () => {
-    updateMutation.mutate(
-      { already_read_dir: alreadyReadDir.trim() },
-      {
-        onSuccess: () => {
-          setIsEditingAlreadyReadDir(false)
-        },
-      },
-    )
-  }
-
-  const handleSaveFavoriteDir = () => {
-    updateMutation.mutate(
-      { favorite_dir: favoriteDir.trim() },
-      {
-        onSuccess: () => {
-          setIsEditingFavoriteDir(false)
-        },
-      },
-    )
+  const saveAlreadyReadDirIfChanged = () => {
+    const normalized = alreadyReadDir.trim()
+    if (updateMutation.isPending || normalized === currentAlreadyReadDir) return
+    updateMutation.mutate({ already_read_dir: normalized })
   }
 
   const handleFsRootItemChange = (index: number, value: string) => {
@@ -312,35 +171,12 @@ function SettingsPage() {
     setFsRootList((prev) => [...prev, ""])
   }
 
-  const currentFsRoots = settings?.fs_roots || ""
-  const normalizedFsRoots = fsRootList
-    .map((item) => item.trim())
-    .filter(Boolean)
-    .join(",")
-  const canSaveFsRoots =
-    !updateMutation.isPending && normalizedFsRoots !== currentFsRoots
-  const currentFavoriteDir = settings?.favorite_dir || ""
-  const canSaveFavoriteDir =
-    isEditingFavoriteDir &&
-    !updateMutation.isPending &&
-    favoriteDir.trim() !== currentFavoriteDir
-  const currentAlreadyReadDir = settings?.already_read_dir || ""
-  const canSaveAlreadyReadDir =
-    isEditingAlreadyReadDir &&
-    !updateMutation.isPending &&
-    alreadyReadDir.trim() !== currentAlreadyReadDir
-
-  const handleCancelFavoriteEdit = () => {
-    setFavoriteDir(currentFavoriteDir)
-    setIsEditingFavoriteDir(false)
+  const handleLanguageChange = (value: string) => {
+    i18n.changeLanguage(value)
+    localStorage.setItem("language", value)
+    showSuccessToast(t("settings.saved"))
   }
 
-  const handleCancelAlreadyReadEdit = () => {
-    setAlreadyReadDir(currentAlreadyReadDir)
-    setIsEditingAlreadyReadDir(false)
-  }
-
-  // Clear cache mutation
   const clearCacheMutation = useMutation({
     mutationFn: async () => {
       const response = await fetch(`${OpenAPI.BASE}/api/v1/fs/extract-cache`, {
@@ -364,11 +200,6 @@ function SettingsPage() {
     },
   })
 
-  const handleClearCache = () => {
-    clearCacheMutation.mutate()
-  }
-
-  // Fetch scan status with polling
   const { data: scanStatus } = useQuery<ScanStatusItem[]>({
     queryKey: ["scan-status"],
     queryFn: async () => {
@@ -376,250 +207,236 @@ function SettingsPage() {
       if (!response.ok) throw new Error("Failed to fetch scan status")
       return response.json()
     },
-    refetchInterval: 3000, // Poll every 3 seconds
+    refetchInterval: 3000,
   })
 
   if (isLoading) {
     return (
-      <div className="space-y-6">
-        <h1 className="text-3xl font-bold">{t("settings.title")}</h1>
+      <div className="settings-page">
+        <h1 className="settings-page__title">{t("settings.title")}</h1>
         <div>{t("common.loading")}</div>
       </div>
     )
   }
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-3xl font-bold">{t("settings.title")}</h1>
+    <div className="settings-page">
+      <h1 className="settings-page__title">{t("settings.title")}</h1>
 
-      <Tabs value={tab} onValueChange={handleTabChange} className="w-full">
-        <TabsList className="mb-4">
+      <Tabs value={tab} onValueChange={handleTabChange} className="settings-page__tabs">
+        <TabsList className="settings-page__tab-list">
           <TabsTrigger value="general">{t("settings.general")}</TabsTrigger>
           <TabsTrigger value="scan">
             {t("settings.scanProgress")}
             {scanStatus?.some((s) => s.status === "running") && (
-              <Badge className="ml-2 h-2 w-2 rounded-full p-0 animate-pulse bg-primary" />
+              <Badge className="settings-page__scan-pulse" />
             )}
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="general" className="space-y-6">
-          {/* Language Settings */}
-          <Card>
-            <CardHeader>
-              <CardTitle>{t("settings.language")}</CardTitle>
-              <CardDescription>{t("settings.languageDesc")}</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                <Select value={i18n.language} onValueChange={handleLanguageChange}>
-                  <SelectTrigger id="language" className="w-full md:w-[300px]">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="zh">{t("settings.chinese")}</SelectItem>
-                    <SelectItem value="en">{t("settings.english")}</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </CardContent>
-          </Card>
+        <TabsContent value="general" className="settings-main">
+          <section className="settings-section settings-section--compact">
+            <div className="settings-section__heading">
+              <h2>{t("settings.language")}</h2>
+              <p>{t("settings.languageDesc")}</p>
+            </div>
+            <Select value={i18n.language} onValueChange={handleLanguageChange}>
+              <SelectTrigger id="language" className="settings-language-select">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="zh">{t("settings.chinese")}</SelectItem>
+                <SelectItem value="en">{t("settings.english")}</SelectItem>
+              </SelectContent>
+            </Select>
+          </section>
 
-          {/* FS Roots Settings */}
-          <Card>
-            <CardHeader>
-              <CardTitle>{t("settings.fsRoots")}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {/* {settings?.fs_roots && (
-              <div className="space-y-2">
-                <Label className="text-muted-foreground">
-                  {t("settings.currentPath")}
-                </Label>
-                <div className="text-sm font-mono bg-muted p-2 rounded">
-                  {settings.fs_roots}
-                </div>
-              </div>
-            )} */}
+          <section className="settings-section settings-section--blue">
+            <div className="settings-section__heading">
+              <h2>📌 {t("settings.fsRoots")}</h2>
+              <p>{t("settings.fsRootsDesc")}</p>
+            </div>
 
-                <div className="space-y-2">
-                  <div className="space-y-2">
-                    {fsRootList.map((item, index) => (
-                      <div
-                        key={`fs-root-${index}`}
-                        className="flex flex-col gap-2 md:flex-row"
+            <div className="path-table">
+              <div className="path-table__header">
+                <span>#</span>
+                <span>{t("settings.path")}</span>
+                <span>{`${t("common.edit")}/${t("common.delete")}`}</span>
+              </div>
+
+              <div className="path-table__body">
+                {fsRootList.map((item, index) => (
+                  <div key={`fs-root-${index}`} className="path-row">
+                    <span className="path-row__index">{index + 1}</span>
+                    <Input
+                      type="text"
+                      placeholder={t("settings.fsRootsPlaceholder")}
+                      value={item}
+                      onChange={(e) => handleFsRootItemChange(index, e.target.value)}
+                      onBlur={saveFsRootsIfChanged}
+                      className="path-row__input"
+                    />
+                    <div className="path-row__actions">
+                      <Button type="button" variant="ghost" onClick={saveFsRootsIfChanged} aria-label="save">
+                        ✎
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        onClick={() => {
+                          handleRemoveFsRoot(index)
+                          setTimeout(saveFsRootsIfChanged, 0)
+                        }}
+                        aria-label="remove"
                       >
-                        <Input
-                          type="text"
-                          placeholder={t("settings.fsRootsPlaceholder")}
-                          value={item}
-                          onChange={(e) =>
-                            handleFsRootItemChange(index, e.target.value)
-                          }
-                          className="font-mono"
-                        />
-                        <Button
-                          type="button"
-                          variant="outline"
-                          onClick={() => handleRemoveFsRoot(index)}
-                        >
-                          {t("settings.remove")}
-                        </Button>
-                      </div>
-                    ))}
+                        🗑️
+                      </Button>
+                    </div>
                   </div>
-                </div>
-
-
-                <div className="flex flex-wrap gap-2">
-                  <Button type="button" variant="outline" onClick={handleAddFsRoot}>
-                    {t("settings.addNew")}
-                  </Button>
-
-                  <Button onClick={handleSaveFsRoots} disabled={!canSaveFsRoots}>
-                    {updateMutation.isPending
-                      ? t("common.loading")
-                      : t("settings.save")}
-                  </Button>
-                </div>
-
+                ))}
               </div>
-            </CardContent>
-          </Card>
 
-          {/* Already Read Directory Settings */}
-          <EditablePathCard
-            title={t("settings.alreadyReadDir")}
-            description={t("settings.alreadyReadDirDesc")}
-            id="alreadyReadDir"
-            value={alreadyReadDir}
-            placeholder={t("settings.alreadyReadDirPlaceholder")}
-            isEditing={isEditingAlreadyReadDir}
-            canSave={canSaveAlreadyReadDir}
-            isPending={updateMutation.isPending}
-            saveText={t("settings.save")}
-            editText={t("common.edit")}
-            cancelText={t("common.cancel")}
-            loadingText={t("common.loading")}
-            onStartEdit={() => setIsEditingAlreadyReadDir(true)}
-            onCancelEdit={handleCancelAlreadyReadEdit}
-            onSave={handleSaveAlreadyReadDir}
-            onValueChange={setAlreadyReadDir}
-          />
+              <button type="button" className="path-table__empty-add" onClick={handleAddFsRoot}>
+                + {t("settings.addNew")}...
+              </button>
+            </div>
+          </section>
 
-          {/* Favorite Directory Settings */}
-          <EditablePathCard
-            title={t("settings.favoriteDir")}
-            description={t("settings.favoriteDirDesc")}
-            id="favoriteDir"
-            value={favoriteDir}
-            placeholder={t("settings.favoriteDirPlaceholder")}
-            isEditing={isEditingFavoriteDir}
-            canSave={canSaveFavoriteDir}
-            isPending={updateMutation.isPending}
-            saveText={t("settings.save")}
-            editText={t("common.edit")}
-            cancelText={t("common.cancel")}
-            loadingText={t("common.loading")}
-            onStartEdit={() => setIsEditingFavoriteDir(true)}
-            onCancelEdit={handleCancelFavoriteEdit}
-            onSave={handleSaveFavoriteDir}
-            onValueChange={setFavoriteDir}
-          />
+          <section className="settings-section settings-section--green">
+            <div className="settings-section__heading">
+              <h2>📖 {t("settings.alreadyReadDir")}</h2>
+              <p>{t("settings.alreadyReadDirDesc")}</p>
+            </div>
+            <div className="single-path-row">
+              <span className="single-path-row__icon">📁</span>
+              <Input
+                id="alreadyReadDir"
+                type="text"
+                placeholder={t("settings.alreadyReadDirPlaceholder")}
+                value={alreadyReadDir}
+                onChange={(e) => setAlreadyReadDir(e.target.value)}
+                onBlur={saveAlreadyReadDirIfChanged}
+                className="single-path-row__input"
+              />
+              <div className="single-path-row__actions">
+                <Button type="button" variant="ghost" onClick={saveAlreadyReadDirIfChanged}>
+                  ✎
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => {
+                    setAlreadyReadDir("")
+                    setTimeout(saveAlreadyReadDirIfChanged, 0)
+                  }}
+                >
+                  {t("common.reset")}
+                </Button>
+              </div>
+            </div>
+          </section>
 
-          {/* Cache Management */}
-          <Card>
-            <CardHeader>
-              <CardTitle>{t("settings.cacheManagement")}</CardTitle>
-              <CardDescription>{t("settings.cacheManagementDesc")}</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button
-                onClick={handleClearCache}
-                disabled={clearCacheMutation.isPending}
-                variant="destructive"
-              >
-                {clearCacheMutation.isPending
-                  ? t("settings.clearing")
-                  : t("settings.clearExtractCache")}
-              </Button>
-            </CardContent>
-          </Card>
+          <section className="settings-section settings-section--gold">
+            <div className="settings-section__heading">
+              <h2>⭐ {t("settings.favoriteDir")}</h2>
+              <p>{t("settings.favoriteDirDesc")}</p>
+            </div>
+            <div className="single-path-row">
+              <span className="single-path-row__icon">📁</span>
+              <Input
+                id="favoriteDir"
+                type="text"
+                placeholder={t("settings.favoriteDirPlaceholder")}
+                value={favoriteDir}
+                onChange={(e) => setFavoriteDir(e.target.value)}
+                onBlur={saveFavoriteDirIfChanged}
+                className="single-path-row__input"
+              />
+              <div className="single-path-row__actions">
+                <Button type="button" variant="ghost" onClick={saveFavoriteDirIfChanged}>
+                  ✎
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => {
+                    setFavoriteDir("")
+                    setTimeout(saveFavoriteDirIfChanged, 0)
+                  }}
+                >
+                  {favoriteDir.trim() ? t("common.reset") : `➕ ${t("settings.addNew")}`}
+                </Button>
+              </div>
+            </div>
+          </section>
+
+          <section className="settings-section settings-section--compact settings-base-row">
+            <div className="settings-section__heading">
+              <h2>⚙️ {t("settings.cacheManagement")}</h2>
+              <p>{t("settings.cacheManagementDesc")}</p>
+            </div>
+            <Button
+              onClick={() => clearCacheMutation.mutate()}
+              disabled={clearCacheMutation.isPending}
+              variant="destructive"
+            >
+              {clearCacheMutation.isPending
+                ? t("settings.clearing")
+                : t("settings.clearExtractCache")}
+            </Button>
+          </section>
         </TabsContent>
 
         <TabsContent value="scan">
-          <Card>
-            <CardHeader>
-              <CardTitle>{t("settings.scanStatus")}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {scanStatus && scanStatus.length > 0 ? (
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>{t("settings.path")}</TableHead>
-                        <TableHead>{t("settings.status")}</TableHead>
-                        <TableHead className="text-right">
-                          {t("settings.scannedFolders")}
-                        </TableHead>
-                        <TableHead className="text-right">
-                          {t("settings.scannedFiles")}
-                        </TableHead>
-                        <TableHead className="text-right">
-                          {t("settings.parsedFiles")}
-                        </TableHead>
-                        <TableHead>{t("settings.watcher")}</TableHead>
+          <div className="scan-status-panel">
+            <h2>{t("settings.scanStatus")}</h2>
+            {scanStatus && scanStatus.length > 0 ? (
+              <div className="scan-status-panel__table-wrap">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>{t("settings.path")}</TableHead>
+                      <TableHead>{t("settings.status")}</TableHead>
+                      <TableHead className="settings-table-right">{t("settings.scannedFolders")}</TableHead>
+                      <TableHead className="settings-table-right">{t("settings.scannedFiles")}</TableHead>
+                      <TableHead className="settings-table-right">{t("settings.parsedFiles")}</TableHead>
+                      <TableHead>{t("settings.watcher")}</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {scanStatus.map((item) => (
+                      <TableRow key={item.path}>
+                        <TableCell className="settings-table-path">{item.path}</TableCell>
+                        <TableCell>
+                          <Badge
+                            variant={
+                              item.status === "running"
+                                ? "default"
+                                : item.status === "error"
+                                  ? "destructive"
+                                  : "secondary"
+                            }
+                          >
+                            {t(`settings.${item.status}`)}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="settings-table-right">{item.scanned_folders}</TableCell>
+                        <TableCell className="settings-table-right">{item.scanned_files}</TableCell>
+                        <TableCell className="settings-table-right">{item.parsed_files}</TableCell>
+                        <TableCell>
+                          <Badge variant="outline">
+                            {item.watcher_active ? t("settings.active") : t("settings.inactive")}
+                          </Badge>
+                        </TableCell>
                       </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {scanStatus.map((item) => (
-                        <TableRow key={item.path}>
-                          <TableCell className="max-w-[300px] truncate font-mono text-xs">
-                            {item.path}
-                          </TableCell>
-                          <TableCell>
-                            <Badge
-                              variant={
-                                item.status === "running"
-                                  ? "default"
-                                  : item.status === "error"
-                                    ? "destructive"
-                                    : "secondary"
-                              }
-                            >
-                              {t(`settings.${item.status}`)}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-right">
-                            {item.scanned_folders}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            {item.scanned_files}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            {item.parsed_files}
-                          </TableCell>
-                          <TableCell>
-                            <Badge variant="outline">
-                              {item.watcher_active
-                                ? t("settings.active")
-                                : t("settings.inactive")}
-                            </Badge>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              ) : (
-                <div className="py-8 text-center text-muted-foreground">
-                  {t("common.noData")}
-                </div>
-              )}
-            </CardContent>
-          </Card>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            ) : (
+              <div className="scan-status-panel__empty">{t("common.noData")}</div>
+            )}
+          </div>
         </TabsContent>
       </Tabs>
     </div>
