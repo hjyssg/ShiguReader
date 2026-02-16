@@ -189,7 +189,24 @@
     "cacheClearedDetail": "Deleted {count} files, freed {size}",
     "fetchFailed": "Failed to fetch settings",
     "updateFailed": "Failed to update settings",
-    "clearCacheFailed": "Failed to clear cache"
+    "clearCacheFailed": "Failed to clear cache",
+    "general": "General",
+    "scanProgress": "Scan Progress",
+    "scanStatus": "File Watcher / Scan",
+    "path": "Path",
+    "status": "Status",
+    "message": "Message",
+    "scannedFolders": "Scanned Folders",
+    "scannedFiles": "Scanned Files",
+    "parsedFiles": "Parsed Files",
+    "watcher": "Watcher",
+    "active": "Active",
+    "inactive": "Inactive",
+    "startTime": "Start Time",
+    "endTime": "End Time",
+    "running": "Running",
+    "completed": "Completed",
+    "error": "Error"
   },
   "archive": {
     "unknownError": "Unknown error"

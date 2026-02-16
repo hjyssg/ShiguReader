@@ -189,7 +189,24 @@
     "cacheClearedDetail": "已删除 {count} 个文件，释放 {size}",
     "fetchFailed": "获取设置失败",
     "updateFailed": "更新设置失败",
-    "clearCacheFailed": "清理缓存失败"
+    "clearCacheFailed": "清理缓存失败",
+    "general": "常规",
+    "scanProgress": "扫描进度",
+    "scanStatus": "文件监听/扫描",
+    "path": "路径",
+    "status": "状态",
+    "message": "消息",
+    "scannedFolders": "已扫描文件夹",
+    "scannedFiles": "已扫描文件",
+    "parsedFiles": "已解析文件",
+    "watcher": "监听器",
+    "active": "正在运行",
+    "inactive": "空闲",
+    "startTime": "开始时间",
+    "endTime": "结束时间",
+    "running": "正在进行",
+    "completed": "已完成",
+    "error": "出错"
   },
   "archive": {
     "unknownError": "未知错误"

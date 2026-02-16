@@ -546,6 +546,9 @@ def _run_scan(path: Path, recursive: bool) -> None:
                             # Stability-first: avoid opening many short-lived write sessions
                             # during scan; flush at the final write stage instead.
                             pass
+
+                        if scanned_files % 100 == 0:
+                            logger.info(f"Scanning {path_key}: {scanned_files} files, {scanned_folders} folders...")
                     except Exception as e:
                         logger.warning(f"Failed to process file {file_path}: {e}")
         else:
@@ -624,6 +627,9 @@ def _run_scan(path: Path, recursive: bool) -> None:
                             # Stability-first: avoid opening many short-lived write sessions
                             # during scan; flush at the final write stage instead.
                             pass
+
+                        if scanned_files % 100 == 0:
+                            logger.info(f"Scanning {path_key}: {scanned_files} files, {scanned_folders} folders...")
                 except Exception as e:
                     logger.warning(f"Failed to process entry {entry}: {e}")
 

@@ -56,6 +56,10 @@ scan/listdir 10分钟以外 应该不确定
 
 
 # task
-scan的时候看不到进度。
+scan including subfodler
+scan and watch subfolders的时候看不到进度。
+
 1 后端至少要看到log 文件数
-2 希望前端能看到进度条和文件数
+2 希望前端能在setting看到scan进度和整个watch的folder。
+  setting的用tab。一个tab是原来的setting。
+  第二格tab是现在这些东西。

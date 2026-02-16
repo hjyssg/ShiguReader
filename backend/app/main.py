@@ -12,6 +12,13 @@ from app.api.main import api_router
 from app.api.routes.fs import clear_extract_cache, trigger_favorite_scan
 from app.core.config import settings
 from app.index_db import ensure_index_db_initialized
+import logging
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    stream=sys.stdout,
+)
 
 
 def custom_generate_unique_id(route: APIRoute) -> str:
