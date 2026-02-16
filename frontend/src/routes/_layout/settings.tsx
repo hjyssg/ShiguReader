@@ -378,7 +378,6 @@ function SettingsPage() {
       <Card>
         <CardHeader>
           <CardTitle>{t("settings.fsRoots")}</CardTitle>
-          <CardDescription>{t("settings.fsRootsDesc")}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
