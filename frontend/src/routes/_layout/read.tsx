@@ -558,6 +558,15 @@ function ReadPage() {
     e.currentTarget.dataset.retry = "0"
   }
 
+  const pagination = ( <span className="reader-toolbar__page-indicator cursor-pointer"  onClick={() => {
+              const value = Number(prompt(t("reader.jumpToPage")))
+              if (!Number.isNaN(value) && value > 0) {
+                goToPage(value - 1)
+              }
+            }}>
+            {currentPage + 1} / {totalPages}
+          </span>)
+
   return (
     <div className="reader-page">
       {/* 顶部工具栏 - 整合导航和工具 */}
@@ -605,10 +614,8 @@ function ReadPage() {
 
         {/* 右侧：页码和工具 */}
         <div className="reader-toolbar__actions">
-          <span className="reader-toolbar__page-indicator">
-            {currentPage + 1} / {totalPages}
-          </span>
-          <Button
+          {pagination}
+          {/* <Button
             variant="ghost"
             size="icon"
             className="reader-toolbar__icon-button"
@@ -625,7 +632,7 @@ function ReadPage() {
             title={t("reader.zoomIn")}
           >
             <span className="reader-toolbar__button-symbol">+</span>
-          </Button>
+          </Button> */}
           <Button
             variant="ghost"
             size="icon"
@@ -644,7 +651,7 @@ function ReadPage() {
           >
             <Scan className="size-3" />
           </Button>
-          <Button
+          {/* <Button
             variant="ghost"
             size="sm"
             className="reader-toolbar__text-button"
@@ -656,15 +663,15 @@ function ReadPage() {
             }}
           >
             {t("reader.jumpPage")}
-          </Button>
-          <Button
+          </Button> */}
+          {/* <Button
             variant="ghost"
             size="sm"
             className="reader-toolbar__text-button"
             onClick={resetTransform}
           >
             {t("reader.reset")}
-          </Button>
+          </Button> */}
           {!isFolderSource && (
             <>
               <Button
