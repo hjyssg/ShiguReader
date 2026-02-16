@@ -132,11 +132,13 @@ export type MovePathRequest = {
 export type ParseResponse = {
     title: string;
     authors: Array<(string)>;
+    cosers?: Array<(string)>;
     group?: (string | null);
     raw_tags: Array<(string)>;
     event?: (string | null);
     date_tag?: (string | null);
     type: string;
+    pack_kind?: string;
 };
 
 export type PathOperationResponse = {
@@ -186,7 +188,7 @@ export type status2 = 'running' | 'completed' | 'error';
 
 export type SearchRequest = {
     q?: string;
-    scopes?: Array<('file' | 'author' | 'tag')>;
+    scopes?: Array<('file' | 'author' | 'coser' | 'tag')>;
     mode?: 'exact' | 'hybrid';
     presence_filter?: 'all' | 'watched' | 'scanned_recent';
 };
@@ -202,6 +204,7 @@ export type StoredParseResponse = {
     filepath: string;
     title?: (string | null);
     authors?: Array<(string)>;
+    cosers?: Array<(string)>;
     group_name?: (string | null);
     raw_tags?: Array<(string)>;
     event?: (string | null);

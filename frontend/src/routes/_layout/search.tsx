@@ -28,7 +28,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 
-type Scope = "file" | "author" | "tag"
+type Scope = "file" | "author" | "coser" | "tag"
 type Mode = "exact" | "hybrid"
 type PresenceFilter = "all" | "watched" | "scanned_recent"
 
@@ -47,7 +47,8 @@ export const Route = createFileRoute("/_layout/search")({
     const rawScopes = search.scopes
     const scopes = Array.isArray(rawScopes)
       ? rawScopes.filter(
-          (s): s is Scope => s === "file" || s === "author" || s === "tag",
+          (s): s is Scope =>
+            s === "file" || s === "author" || s === "coser" || s === "tag",
         )
       : []
 
@@ -57,7 +58,9 @@ export const Route = createFileRoute("/_layout/search")({
       page,
       presenceFilter,
       scopes:
-        scopes.length > 0 ? scopes : (["file", "author", "tag"] as Scope[]),
+        scopes.length > 0
+          ? scopes
+          : (["file", "author", "coser", "tag"] as Scope[]),
     } as {
       q: string
       mode: Mode
@@ -200,6 +203,7 @@ function SearchPage() {
                 [
                   ["file", t("search.file")],
                   ["author", t("search.author")],
+                  ["coser", t("search.coser")],
                   ["tag", t("search.tag")],
                 ] as [Scope, string][]
               ).map(([value, text]) => {

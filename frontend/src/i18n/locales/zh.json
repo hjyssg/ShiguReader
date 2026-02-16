@@ -22,6 +22,7 @@
     "history": "历史",
     "tags": "标签",
     "authors": "作者",
+    "cosers": "Coser",
     "search": "搜索",
     "admin": "管理"
   },
@@ -100,6 +101,17 @@
     "ascending": "升序",
     "empty": "暂无作者数据"
   },
+  "cosers": {
+    "title": "Coser",
+    "description": "按 coser 浏览图包集合",
+    "sortByField": "排序字段",
+    "fileCount": "文件数量",
+    "name": "名称",
+    "sortDirection": "排序方向",
+    "descending": "降序",
+    "ascending": "升序",
+    "empty": "暂无 coser 数据"
+  },
   "search": {
     "title": "搜索",
     "resultCount": "共 {count} 条结果",
@@ -109,6 +121,7 @@
     "scope": "范围",
     "file": "文件",
     "author": "作者",
+    "coser": "Coser",
     "tag": "标签",
     "mode": "模式",
     "noResults": "没有找到匹配结果",
@@ -123,6 +136,7 @@
     "size": "文件大小",
     "avgImageSize": "平均图片大小",
     "authors": "作者",
+    "cosers": "Coser",
     "tags": "标签",
     "none": "-",
     "jumpToPage": "跳转到第几页？",

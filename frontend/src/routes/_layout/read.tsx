@@ -393,6 +393,7 @@ function ReadPage() {
   const archiveVideoCount = currentPathMeta?.video_count ?? 0
   const archiveAudioCount = currentPathMeta?.audio_count ?? 0
   const authors = parseMeta?.authors ?? []
+  const cosers = parseMeta?.cosers ?? []
   const tags = parseMeta?.raw_tags ?? []
   const dirCrumbs = pathParts.slice(0, -1).map((name, index) => ({
     name,
@@ -849,6 +850,30 @@ function ReadPage() {
                     }}
                   >
                     {author}
+                  </Link>
+                </Badge>
+              ))}
+            </div>
+          ) : (
+            <span className="text-muted-foreground">{t("reader.none")}</span>
+          )}
+
+          <span className="text-muted-foreground">{t("reader.cosers")}:</span>
+          {cosers.length > 0 ? (
+            <div className="inline-flex items-center gap-1">
+              {cosers.map((coser) => (
+                <Badge key={coser} asChild className="h-5 px-1.5 text-[10px]">
+                  <Link
+                    to="/search"
+                    search={{
+                      q: coser,
+                      scopes: ["coser"],
+                      mode: "hybrid",
+                      page: 1,
+                      presenceFilter: "all",
+                    }}
+                  >
+                    {coser}
                   </Link>
                 </Badge>
               ))}

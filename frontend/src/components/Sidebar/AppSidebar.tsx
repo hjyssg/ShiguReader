@@ -4,6 +4,7 @@ import {
   Search,
   Settings,
   Tag,
+  User as UserIcon,
   UserRound,
   Users,
 } from "lucide-react"
@@ -27,6 +28,7 @@ const baseItems: Item[] = [
   { icon: History, title: "History", path: "/history" },
   { icon: Tag, title: "Tags", path: "/tags" },
   { icon: UserRound, title: "Authors", path: "/authors" },
+  { icon: UserIcon, title: "Cosers", path: "/cosers" },
   { icon: Search, title: "Search", path: "/search" },
   { icon: Settings, title: "Settings", path: "/settings" },
 ]

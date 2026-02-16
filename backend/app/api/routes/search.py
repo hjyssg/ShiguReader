@@ -18,8 +18,8 @@ router = APIRouter(prefix="/search", tags=["search"])
 
 class SearchRequest(BaseModel):
     q: str = Field(default="")
-    scopes: list[Literal["file", "author", "tag"]] = Field(
-        default_factory=lambda: ["file", "author", "tag"]
+    scopes: list[Literal["file", "author", "coser", "tag"]] = Field(
+        default_factory=lambda: ["file", "author", "coser", "tag"]
     )
     mode: Literal["exact", "hybrid"] = "hybrid"
     presence_filter: Literal["all", "watched", "scanned_recent"] = "all"
@@ -72,6 +72,10 @@ def search_files(body: SearchRequest) -> SearchResponse:
 
         if "author" in body.scopes:
             for f in repo.search_by_author(q, body.mode, body.presence_filter):
+                by_filepath[f.filepath] = f
+
+        if "coser" in body.scopes:
+            for f in repo.search_by_coser(q, body.mode, body.presence_filter):
                 by_filepath[f.filepath] = f
 
         if "tag" in body.scopes:

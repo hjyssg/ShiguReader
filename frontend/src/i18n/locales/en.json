@@ -22,6 +22,7 @@
     "history": "History",
     "tags": "Tags",
     "authors": "Authors",
+    "cosers": "Cosers",
     "search": "Search",
     "admin": "Admin"
   },
@@ -100,6 +101,17 @@
     "ascending": "Ascending",
     "empty": "No authors data"
   },
+  "cosers": {
+    "title": "Cosers",
+    "description": "Browse file collections by cosers",
+    "sortByField": "Sort Field",
+    "fileCount": "File Count",
+    "name": "Name",
+    "sortDirection": "Sort Direction",
+    "descending": "Descending",
+    "ascending": "Ascending",
+    "empty": "No cosers data"
+  },
   "search": {
     "title": "Search",
     "resultCount": "Total {count} results",
@@ -109,6 +121,7 @@
     "scope": "Scope",
     "file": "File",
     "author": "Author",
+    "coser": "Coser",
     "tag": "Tag",
     "mode": "Mode",
     "noResults": "No matching results found",
@@ -123,6 +136,7 @@
     "size": "Size",
     "avgImageSize": "Avg Image Size",
     "authors": "Authors",
+    "cosers": "Cosers",
     "tags": "Tags",
     "none": "-",
     "jumpToPage": "Jump to page?",

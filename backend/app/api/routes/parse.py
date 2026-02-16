@@ -24,11 +24,13 @@ router = APIRouter(prefix="/parse", tags=["parse"])
 class ParseResponse(BaseModel):
     title: str
     authors: list[str]
+    cosers: list[str] = []
     group: str | None = None
     raw_tags: list[str]
     event: str | None = None
     date_tag: str | None = None
     type: str
+    pack_kind: str = "manga"
 
 
 class BatchParseRequest(BaseModel):
@@ -50,6 +52,7 @@ class StoredParseResponse(BaseModel):
     filepath: str
     title: str | None = None
     authors: list[str] = []
+    cosers: list[str] = []
     group_name: str | None = None
     raw_tags: list[str] = []
     event: str | None = None
@@ -66,11 +69,13 @@ def _to_response(r: ParseResult) -> ParseResponse:
     return ParseResponse(
         title=r.title,
         authors=r.authors,
+        cosers=r.cosers,
         group=r.group,
         raw_tags=r.raw_tags,
         event=r.event,
         date_tag=r.date_tag,
         type=r.type,
+        pack_kind=r.pack_kind,
     )
 
 
@@ -102,6 +107,7 @@ async def batch_parse(body: BatchParseRequest) -> BatchParseResponse:
                     "filepath": fp,
                     "title": result.title,
                     "authors": result.authors,
+                    "cosers": result.cosers,
                     "group_name": result.group,
                     "raw_tags": result.raw_tags,
                     "event": result.event,
@@ -141,12 +147,14 @@ async def get_parse_result(
             raise HTTPException(status_code=404, detail="No parse result found")
 
         authors = repo.get_file_artists(filepath)
+        cosers = repo.get_file_cosers(filepath)
         tags = repo.get_file_tags(filepath)
 
     return StoredParseResponse(
         filepath=filepath,
         title=meta.title,
         authors=authors,
+        cosers=cosers,
         group_name=meta.group_name,
         raw_tags=tags,
         event=meta.event,

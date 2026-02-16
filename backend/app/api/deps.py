@@ -2,6 +2,7 @@ from collections.abc import Generator
 from typing import Annotated
 
 from fastapi import Depends, HTTPException
+from sqlalchemy.exc import OperationalError
 from sqlmodel import Session, select
 
 from app.core.db import engine
@@ -17,7 +18,12 @@ SessionDep = Annotated[Session, Depends(get_db)]
 
 
 def get_current_user(session: SessionDep) -> User:
-    user = session.exec(select(User).order_by(User.created_at.asc())).first()
+    try:
+        # Prefer deterministic order on modern schema.
+        user = session.exec(select(User).order_by(User.created_at.asc())).first()
+    except OperationalError:
+        # Backward compatibility: old SQLite user table may not have created_at.
+        user = session.exec(select(User).order_by(User.id.asc())).first()
     if not user:
         raise HTTPException(
             status_code=503,

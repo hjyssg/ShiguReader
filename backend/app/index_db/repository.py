@@ -413,6 +413,7 @@ class IndexRepository:
         *,
         title: str | None = None,
         authors: list[str] | None = None,
+        cosers: list[str] | None = None,
         group_name: str | None = None,
         raw_tags: list[str] | None = None,
         event: str | None = None,
@@ -455,6 +456,16 @@ class IndexRepository:
                         FileArtist(filepath=filepath, artist_name=author_name)
                     )
 
+        if cosers:
+            for coser_name in cosers:
+                if not self.session.get(Artist, coser_name):
+                    self.session.add(Artist(artist_name=coser_name))
+                fc_key = (filepath, coser_name, "coser")
+                if not self.session.get(FileArtist, fc_key):
+                    self.session.add(
+                        FileArtist(filepath=filepath, artist_name=coser_name, role="coser")
+                    )
+
         # Upsert tags + file_tags
         if raw_tags:
             for tag_name in raw_tags:
@@ -476,7 +487,7 @@ class IndexRepository:
         """Batch persist parse results.
 
         Each dict in *results* must have a ``filepath`` key and may contain:
-        ``title``, ``authors``, ``group_name``, ``raw_tags``, ``event``,
+        ``title``, ``authors``, ``cosers``, ``group_name``, ``raw_tags``, ``event``,
         ``date_tag``, ``media_type``.
         """
         if not results:
@@ -505,18 +516,22 @@ class IndexRepository:
 
         # Collect all unique artist / tag names
         all_authors: set[str] = set()
+        all_cosers: set[str] = set()
         all_tags: set[str] = set()
         for r in results:
             if r["filepath"] not in existing_files:
                 continue
             all_authors.update({a for a in (r.get("authors") or []) if a})
+            all_cosers.update({c for c in (r.get("cosers") or []) if c})
             all_tags.update({t for t in (r.get("raw_tags") or []) if t})
+
+        all_artists = all_authors | all_cosers
 
         # Fetch existing artists / tags
         existing_artists: set[str] = set()
-        if all_authors:
+        if all_artists:
             stmt_a = select(Artist.artist_name).where(
-                Artist.artist_name.in_(list(all_authors))
+                Artist.artist_name.in_(list(all_artists))
             )
             existing_artists = set(self.session.exec(stmt_a).all())
 
@@ -560,6 +575,11 @@ class IndexRepository:
                     to_add.append(Artist(artist_name=name))
                     existing_artists.add(name)
 
+            for name in {c for c in (r.get("cosers") or []) if c}:
+                if name not in existing_artists:
+                    to_add.append(Artist(artist_name=name))
+                    existing_artists.add(name)
+
             # Tags (dedupe within each file)
             for tag in {t for t in (r.get("raw_tags") or []) if t}:
                 if tag not in existing_tags:
@@ -599,6 +619,12 @@ class IndexRepository:
                     link_to_add.append(FileArtist(filepath=fp, artist_name=name))
                     existing_file_artists.add(key)
 
+            for name in {c for c in (r.get("cosers") or []) if c}:
+                key = (fp, name, "coser")
+                if key not in existing_file_artists:
+                    link_to_add.append(FileArtist(filepath=fp, artist_name=name, role="coser"))
+                    existing_file_artists.add(key)
+
             for tag in {t for t in (r.get("raw_tags") or []) if t}:
                 key = (fp, tag)
                 if key not in existing_file_tags:
@@ -615,7 +641,18 @@ class IndexRepository:
 
     def get_file_artists(self, filepath: str) -> list[str]:
         """Return artist names associated with a file."""
-        stmt = select(FileArtist.artist_name).where(FileArtist.filepath == filepath)
+        stmt = select(FileArtist.artist_name).where(
+            FileArtist.filepath == filepath,
+            FileArtist.role == "",
+        )
+        return list(self.session.exec(stmt).all())
+
+    def get_file_cosers(self, filepath: str) -> list[str]:
+        """Return coser names associated with a file."""
+        stmt = select(FileArtist.artist_name).where(
+            FileArtist.filepath == filepath,
+            FileArtist.role == "coser",
+        )
         return list(self.session.exec(stmt).all())
 
     def get_file_tags(self, filepath: str) -> list[str]:
@@ -659,7 +696,35 @@ class IndexRepository:
             return []
 
         filepaths_stmt = select(FileArtist.filepath).where(
-            FileArtist.artist_name.in_(artist_names)
+            FileArtist.artist_name.in_(artist_names),
+            FileArtist.role == "",
+        )
+        filepaths = list(self.session.exec(filepaths_stmt).all())
+        if not filepaths:
+            return []
+
+        files_stmt = select(File).where(File.filepath.in_(filepaths))
+        files_stmt = self._apply_presence_filter(files_stmt, presence_filter)
+        return list(self.session.exec(files_stmt).all())
+
+    def search_by_coser(self, q: str, mode: str = "hybrid", presence_filter: str = "all") -> list[File]:
+        """Search files by coser name."""
+        if not q:
+            return []
+
+        artist_stmt = select(Artist.artist_name)
+        if mode == "exact":
+            artist_stmt = artist_stmt.where(Artist.artist_name.contains(q))
+        else:
+            artist_stmt = artist_stmt.where(Artist.artist_name.ilike(f"%{q}%"))
+
+        artist_names = list(self.session.exec(artist_stmt).all())
+        if not artist_names:
+            return []
+
+        filepaths_stmt = select(FileArtist.filepath).where(
+            FileArtist.artist_name.in_(artist_names),
+            FileArtist.role == "coser",
         )
         filepaths = list(self.session.exec(filepaths_stmt).all())
         if not filepaths:
@@ -724,6 +789,7 @@ class IndexRepository:
         stmt = (
             select(FileArtist.artist_name, func.count(FileArtist.filepath))
             .join(File, File.filepath == FileArtist.filepath)
+            .where(FileArtist.role == "")
             .where(File.filepath.startswith(favorite_dir))
             .group_by(FileArtist.artist_name)
         )
@@ -749,7 +815,21 @@ class IndexRepository:
             return {}
 
         stmt = select(FileArtist.filepath, FileArtist.artist_name).where(
-            FileArtist.filepath.in_(filepaths)
+            FileArtist.filepath.in_(filepaths),
+            FileArtist.role == "",
+        )
+        out: dict[str, list[str]] = {}
+        for filepath, artist_name in self.session.exec(stmt).all():
+            out.setdefault(filepath, []).append(artist_name)
+        return out
+
+    def get_cosers_by_filepaths(self, filepaths: list[str]) -> dict[str, list[str]]:
+        if not filepaths:
+            return {}
+
+        stmt = select(FileArtist.filepath, FileArtist.artist_name).where(
+            FileArtist.filepath.in_(filepaths),
+            FileArtist.role == "coser",
         )
         out: dict[str, list[str]] = {}
         for filepath, artist_name in self.session.exec(stmt).all():
