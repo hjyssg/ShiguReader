@@ -143,7 +143,7 @@
 
 
 .path-table__empty-add {
-  width: 100%;
+  width: fit-content;
   margin-top: 0.55rem;
   border: 1px dashed hsl(var(--border));
   background: transparent;

@@ -71,6 +71,70 @@ const parseFsRoots = (value: string): string[] => {
   return paths.length > 0 ? paths : [""]
 }
 
+interface SinglePathSectionProps {
+  title: string
+  description: string
+  value: string
+  placeholder: string
+  id: string
+  colorClass: string
+  onChange: (value: string) => void
+  onSave: () => void
+  onReset: () => void
+  t: (key: string, options?: any) => string
+}
+
+function SinglePathSection({
+  title,
+  description,
+  value,
+  placeholder,
+  id,
+  colorClass,
+  onChange,
+  onSave,
+  onReset,
+  t,
+}: SinglePathSectionProps) {
+  return (
+    <section className={`settings-section ${colorClass}`}>
+      <div className="settings-section__heading">
+        <h2>{title}</h2>
+        <p>{description}</p>
+      </div>
+      <div className="single-path-row">
+        <Input
+          id={id}
+          type="text"
+          placeholder={placeholder}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          onBlur={onSave}
+          className="single-path-row__input"
+        />
+        <div className="single-path-row__actions">
+          <Button variant="ghost" size="icon-sm" onClick={onSave} aria-label="save">
+            <Pencil className="h-4 w-4" />
+          </Button>
+          <Button variant="ghost" size="sm" onClick={onReset}>
+            {value.trim() ? (
+              <>
+                <RotateCcw className="mr-2 h-4 w-4" />
+                {t("common.reset")}
+              </>
+            ) : (
+              <>
+                <Plus className="mr-2 h-4 w-4" />
+                {t("settings.addNew")}
+              </>
+            )}
+          </Button>
+        </div>
+      </div>
+    </section>
+  )
+}
+
 function SettingsPage() {
   const { t, i18n } = useTranslation()
   const { showSuccessToast, showErrorToast } = useCustomToast()
@@ -324,96 +388,48 @@ function SettingsPage() {
 
               <Button
                 variant="outline"
-                className="path-table__empty-add w-full justify-start mt-2"
+                className="path-table__empty-add justify-start mt-2"
                 onClick={handleAddFsRoot}
                 disabled={fsRootList.some((p) => !p.trim())}
               >
                 <Plus className="mr-2 h-4 w-4" />
-                {t("settings.addNew")}...
+                {t("settings.addNew")}
               </Button>
             </div>
           </section>
 
-          <section className="settings-section settings-section--green">
-            <div className="settings-section__heading">
-              <h2>{t("settings.alreadyReadDir")}</h2>
-              <p>{t("settings.alreadyReadDirDesc")}</p>
-            </div>
-            <div className="single-path-row">
-              <Input
-                id="alreadyReadDir"
-                type="text"
-                placeholder={t("settings.alreadyReadDirPlaceholder")}
-                value={alreadyReadDir}
-                onChange={(e) => setAlreadyReadDir(e.target.value)}
-                onBlur={saveAlreadyReadDirIfChanged}
-                className="single-path-row__input"
-              />
-              <div className="single-path-row__actions">
-                <Button variant="ghost" size="icon-sm" onClick={saveAlreadyReadDirIfChanged}>
-                  <Pencil className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
-                    setAlreadyReadDir("")
-                    setTimeout(saveAlreadyReadDirIfChanged, 0)
-                  }}
-                >
-                  <RotateCcw className="mr-2 h-4 w-4" />
-                  {t("common.reset")}
-                </Button>
-              </div>
-            </div>
-          </section>
+          <SinglePathSection
+            title={t("settings.alreadyReadDir")}
+            description={t("settings.alreadyReadDirDesc")}
+            value={alreadyReadDir}
+            placeholder={t("settings.alreadyReadDirPlaceholder")}
+            id="alreadyReadDir"
+            colorClass="settings-section--green"
+            onChange={setAlreadyReadDir}
+            onSave={saveAlreadyReadDirIfChanged}
+            onReset={() => {
+              setAlreadyReadDir("")
+              setTimeout(saveAlreadyReadDirIfChanged, 0)
+            }}
+            t={t}
+          />
 
-          <section className="settings-section settings-section--gold">
-            <div className="settings-section__heading">
-              <h2>{t("settings.favoriteDir")}</h2>
-              <p>{t("settings.favoriteDirDesc")}</p>
-            </div>
-            <div className="single-path-row">
-              <Input
-                id="favoriteDir"
-                type="text"
-                placeholder={t("settings.favoriteDirPlaceholder")}
-                value={favoriteDir}
-                onChange={(e) => setFavoriteDir(e.target.value)}
-                onBlur={saveFavoriteDirIfChanged}
-                className="single-path-row__input"
-              />
-              <div className="single-path-row__actions">
-                <Button variant="ghost" size="icon-sm" onClick={saveFavoriteDirIfChanged}>
-                  <Pencil className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
-                    if (favoriteDir.trim()) {
-                      setFavoriteDir("")
-                      setTimeout(saveFavoriteDirIfChanged, 0)
-                    } else {
-                      // Logic for add new if needed, currently just placeholder
-                    }
-                  }}
-                >
-                  {favoriteDir.trim() ? (
-                    <>
-                      <RotateCcw className="mr-2 h-4 w-4" />
-                      {t("common.reset")}
-                    </>
-                  ) : (
-                    <>
-                      <Plus className="mr-2 h-4 w-4" />
-                      {t("settings.addNew")}
-                    </>
-                  )}
-                </Button>
-              </div>
-            </div>
-          </section>
+          <SinglePathSection
+            title={t("settings.favoriteDir")}
+            description={t("settings.favoriteDirDesc")}
+            value={favoriteDir}
+            placeholder={t("settings.favoriteDirPlaceholder")}
+            id="favoriteDir"
+            colorClass="settings-section--gold"
+            onChange={setFavoriteDir}
+            onSave={saveFavoriteDirIfChanged}
+            onReset={() => {
+              setFavoriteDir("")
+              setTimeout(saveFavoriteDirIfChanged, 0)
+            }}
+            t={t}
+          />
+
 
         </TabsContent>
 
