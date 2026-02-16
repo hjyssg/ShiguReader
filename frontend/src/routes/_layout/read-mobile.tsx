@@ -45,7 +45,7 @@ function ReadMobilePage() {
       FilesystemService.extractArchive({ path, page: currentPage }),
   })
 
-  const historyMutation = useMutation({
+  const { mutate: recordHistory } = useMutation({
     mutationFn: async (payload: {
       filepath: string
       page_current: number
@@ -61,21 +61,21 @@ function ReadMobilePage() {
 
   const imageEntries = isFolderSource
     ? (folderData?.items || [])
-        .filter(
-          (item) => item.item_type === "file" && item.file_type === "image",
-        )
-        .map((item, index) => ({
-          index,
-          entry_path: item.path,
-        }))
+      .filter(
+        (item) => item.item_type === "file" && item.file_type === "image",
+      )
+      .map((item, index) => ({
+        index,
+        entry_path: item.path,
+      }))
     : (listData?.entries || []).filter((e) => e.file_type === "image")
 
   const resolvedPage =
     isFolderSource && filePath
       ? Math.max(
-          imageEntries.findIndex((entry) => entry.entry_path === filePath),
-          0,
-        )
+        imageEntries.findIndex((entry) => entry.entry_path === filePath),
+        0,
+      )
       : page
 
   const safePage = wrapPageIndex(resolvedPage, imageEntries.length)
@@ -92,12 +92,12 @@ function ReadMobilePage() {
     const historyFilepath = isFolderSource ? currentEntry?.entry_path : path
     if (!historyFilepath) return
 
-    historyMutation.mutate({
+    recordHistory({
       filepath: historyFilepath,
       page_current: safePage + 1,
       page_total: imageEntries.length,
     })
-  }, [path, imageEntries, safePage, isFolderSource, historyMutation])
+  }, [path, imageEntries, safePage, isFolderSource, recordHistory])
 
   useEffect(() => {
     if (!isFolderSource || !filePath || imageEntries.length === 0) return

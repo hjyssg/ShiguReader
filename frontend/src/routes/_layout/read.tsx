@@ -146,7 +146,7 @@ function ReadPage() {
       FilesystemService.extractArchive({ path, page: currentPage }),
   })
 
-  const historyMutation = useMutation({
+  const { mutate: recordHistory } = useMutation({
     mutationFn: async (payload: {
       filepath: string
       page_current: number
@@ -251,7 +251,7 @@ function ReadPage() {
       : path
     if (!historyFilepath) return
 
-    historyMutation.mutate({
+    recordHistory({
       filepath: historyFilepath,
       page_current: currentPage + 1,
       page_total: totalPages,
@@ -262,7 +262,7 @@ function ReadPage() {
     isFolderSource,
     path,
     currentPage,
-    historyMutation,
+    recordHistory,
   ])
 
   useEffect(() => {
@@ -815,7 +815,7 @@ function ReadPage() {
             <span className="text-foreground">{avgImageSizeText}</span>
           </span>
           <span className="text-muted-foreground">
-            ZIP Video:{" "}
+            Video:{" "}
             <span
               className={
                 archiveVideoCount > 0
@@ -827,7 +827,7 @@ function ReadPage() {
             </span>
           </span>
           <span className="text-muted-foreground">
-            ZIP Audio:{" "}
+            Audio:{" "}
             <span
               className={
                 archiveAudioCount > 0
