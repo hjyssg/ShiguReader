@@ -1,6 +1,5 @@
 // 认证页面布局组件
 import { Appearance } from "@/components/Common/Appearance"
-import { Footer } from "@/components/Common/Footer"
 import { Logo } from "@/components/Common/Logo"
 import {
   AuthContainer,
@@ -24,7 +23,7 @@ export function AuthLayout({ children }: AuthLayoutProps) {
           <Appearance />
         </div>
         <CenterBox>{children}</CenterBox>
-        <Footer />
+        {/* <Footer /> */}
       </AuthContent>
     </AuthContainer>
   )
