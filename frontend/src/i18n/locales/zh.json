@@ -14,7 +14,8 @@
     "sort": "排序",
     "refresh": "刷新",
     "extracting": "解压中...",
-    "noData": "暂无数据"
+    "noData": "暂无数据",
+    "reset": "重置"
   },
   "nav": {
     "home": "首页",

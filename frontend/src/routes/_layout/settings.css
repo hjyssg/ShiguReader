@@ -1,0 +1,231 @@
+.settings-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.settings-page__title {
+  font-size: 1.8rem;
+  font-weight: 700;
+}
+
+.settings-page__tabs {
+  width: 100%;
+}
+
+.settings-page__tab-list {
+  margin-bottom: 0.75rem;
+}
+
+.settings-page__scan-pulse {
+  margin-left: 0.5rem;
+  width: 0.5rem;
+  height: 0.5rem;
+  padding: 0;
+  border-radius: 999px;
+  animation: pulse 1.5s infinite;
+}
+
+.settings-main {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.settings-section {
+  border: 1px solid hsl(var(--border));
+  border-radius: 10px;
+  padding: 0.875rem 1rem;
+  background: hsl(var(--background));
+}
+
+.settings-section--compact {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: center;
+}
+
+.settings-section--blue {
+  border: 1px solid #4e8cff;
+}
+
+.settings-section--green {
+  border: 1px solid #42b983;
+}
+
+.settings-section--gold {
+  border: 1px solid #d8a600;
+}
+
+.settings-section--white {
+  border: 1px solid #ffffff;
+}
+
+.section-group {
+  flex: 1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.section-divider {
+  width: 1px;
+  height: 2.5rem;
+  background-color: hsl(var(--border));
+  margin: 0 0.5rem;
+}
+
+.settings-section__heading h2 {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.settings-section__heading p {
+  margin-top: 0.2rem;
+  font-size: 0.82rem;
+  color: hsl(var(--muted-foreground));
+}
+
+.settings-language-select {
+  width: 18rem;
+}
+
+.path-table {
+  margin-top: 0.75rem;
+  border-top: 1px solid hsl(var(--border));
+  --path-index-width: 44px;
+}
+
+.path-table__header,
+.path-row {
+  display: grid;
+  grid-template-columns: var(--path-index-width) 1fr 100px;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.path-table__header {
+  font-size: 0.78rem;
+  color: hsl(var(--muted-foreground));
+  padding: 0.5rem 0;
+}
+
+.path-table__body {
+  max-height: 260px;
+  border-top: 1px solid hsl(var(--border));
+  border-bottom: 1px solid hsl(var(--border));
+}
+
+.path-row {
+  padding: 0.45rem 0;
+  border-bottom: 1px solid hsl(var(--border));
+}
+
+.path-row:last-child {
+  border-bottom: none;
+}
+
+.path-row__index,
+.path-row__input,
+.single-path-row__input,
+.settings-table-path {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
+.path-row__actions,
+.single-path-row__actions {
+  display: inline-flex;
+  gap: 0.25rem;
+  transition: opacity 0.15s ease;
+}
+
+
+.path-table__empty-add {
+  width: 100%;
+  margin-top: 0.55rem;
+  border: 1px dashed hsl(var(--border));
+  background: transparent;
+  border-radius: 8px;
+  color: hsl(var(--muted-foreground));
+  padding: 0.6rem 0.7rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.path-table__empty-add:hover:not(:disabled) {
+  border-color: hsl(var(--primary));
+  color: hsl(var(--foreground));
+}
+
+.path-table__empty-add:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  filter: grayscale(1);
+}
+
+.single-path-row {
+  margin-top: 0.75rem;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 0.5rem;
+  border-top: 1px solid hsl(var(--border));
+  padding-top: 0.65rem;
+}
+
+.single-path-row__icon {
+  color: hsl(var(--muted-foreground));
+}
+
+.settings-base-row {
+  margin-bottom: 0.25rem;
+}
+
+.scan-status-panel {
+  border: 1px solid hsl(var(--border));
+  border-radius: 10px;
+  padding: 1rem;
+}
+
+.scan-status-panel h2 {
+  margin-bottom: 0.8rem;
+  font-weight: 600;
+}
+
+.scan-status-panel__table-wrap {
+  overflow-x: auto;
+}
+
+.scan-status-panel__empty {
+  padding: 2rem 0;
+  text-align: center;
+  color: hsl(var(--muted-foreground));
+}
+
+.settings-table-right {
+  text-align: right;
+}
+
+.settings-table-path {
+  max-width: 300px;
+  font-size: 0.78rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 0.4;
+  }
+
+  50% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0.4;
+  }
+}

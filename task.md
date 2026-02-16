@@ -55,14 +55,6 @@ scan/listdir 10分钟以外 应该不确定
 案。我有一个想法是search画面给出选项，search的时候是只看watched还是被scan过得，scan的失效之类的。
 
 
-# task
-scan including subfodler
-scan and watch subfolders的时候看不到进度。
-
-1 后端至少要看到log 文件数
-2 希望前端能在setting看到scan进度和整个watch的folder。
-  setting的用tab。一个tab是原来的setting。
-  第二格tab是现在这些东西。
 
 
 
@@ -72,12 +64,4 @@ scan and watch subfolders的时候看不到进度。
 
 打开的时候，如果前端服务器没启动。我想要有youtube那种空白页面说服务器没启动。
 
-# video 页面的breadcrumb把filename显示了两次
-# reader的图片在加载出来前会显示broken。是因为反复确认图片存在与否吗。感觉api/v1/fs/archive/extract，可以在第一张图存在后再返回（但你要思考没图的时候怎么办）
-# i18的bug
-
-    "cacheClearedDetail": "Deleted {count} files, freed {size}",
-        "fileNotFoundMessage": "Cannot find file: {fileName}",
-    "loadErrorMessage": "Error loading file: {errorMessage}",
-
-  显示的{}的数值没被替换，因为没做空值处理吗
+效果不好
