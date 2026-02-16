@@ -927,3 +927,29 @@ def test_collect_cached_scan_for_root_prefers_live_cache(tmp_path: Path) -> None
     finally:
         fs_route._scan_live_cache.clear()
         fs_route._scan_snapshot_cache.clear()
+
+
+def test_should_update_existing_file_restores_deleted_state() -> None:
+    assert fs_route._should_update_existing_file(
+        db_size=100,
+        db_mtime=200,
+        db_scan_state=0,
+        real_size=100,
+        real_mtime=200,
+    ) is True
+
+
+def test_build_folder_sync_mappings_creates_missing_parent_rows() -> None:
+    now_ts = 123
+    to_insert, to_update = fs_route._build_folder_sync_mappings(
+        real_filepaths={"/data/new_dir/a.jpg", "/data/existing_dir/b.jpg"},
+        db_folder_paths={"/data/existing_dir"},
+        now_ts=now_ts,
+    )
+
+    inserted_paths = {item["filepath"] for item in to_insert}
+    assert "/data/new_dir" in inserted_paths
+    assert "/data/existing_dir" not in inserted_paths
+
+    updated_paths = {item["filepath"] for item in to_update}
+    assert "/data/existing_dir" in updated_paths

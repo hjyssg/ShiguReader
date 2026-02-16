@@ -33,7 +33,7 @@ from app.file_processing.name_parser import parse
 from app.file_processing.stepwise_extractor import stepwise_extract
 from app.index_db.confidence import compute_confidence
 from app.index_db.db import get_index_session
-from app.index_db.models import File
+from app.index_db.models import File, Folder
 from app.index_db.repository import IndexRepository, UpsertFileInput, UpsertFolderInput
 from app.services.thumb_service import ThumbService
 from app.utils import detect_file_type, get_mime_type
@@ -803,12 +803,65 @@ def _scan_root_with_scandir(root: Path) -> dict[str, tuple[int, int]]:
     return files
 
 
+
+
+def _should_update_existing_file(
+    db_size: int,
+    db_mtime: int,
+    db_scan_state: int,
+    real_size: int,
+    real_mtime: int,
+) -> bool:
+    """文件仍存在时，元数据变化或曾被标记删除都应回写。"""
+    return db_size != real_size or db_mtime != real_mtime or db_scan_state == 0
+
+
+def _build_folder_sync_mappings(
+    real_filepaths: set[str],
+    db_folder_paths: set[str],
+    now_ts: int,
+) -> tuple[list[dict[str, object]], list[dict[str, object]]]:
+    """基于真实文件集合生成 folders 的批量插入/更新映射。"""
+    real_folder_paths = {str(Path(filepath).parent) for filepath in real_filepaths}
+
+    to_insert_folders: list[dict[str, object]] = []
+    for folderpath in real_folder_paths - db_folder_paths:
+        folder = Path(folderpath)
+        to_insert_folders.append(
+            {
+                "filepath": folderpath,
+                "dirname": folder.name or folderpath,
+                "mtime": None,
+                "scan_state": 1,
+                "watch_state": 0,
+                "first_seen_at": now_ts,
+                "last_seen_at": now_ts,
+                "last_scanned_at": now_ts,
+                "created_at": now_ts,
+                "updated_at": now_ts,
+            }
+        )
+
+    to_update_folders = [
+        {
+            "filepath": folderpath,
+            "scan_state": 1,
+            "last_seen_at": now_ts,
+            "last_scanned_at": now_ts,
+            "updated_at": now_ts,
+        }
+        for folderpath in (real_folder_paths & db_folder_paths)
+    ]
+
+    return to_insert_folders, to_update_folders
+
 def _sync_file_table_with_filesystem() -> None:
     """同步 files 表与真实文件系统。真实文件系统是唯一真相。"""
     started = time()
     with get_index_session() as session:
         repo = IndexRepository(session)
         db_rows = list(session.exec(select(File.filepath, File.filesize, File.mtime, File.scan_state)).all())
+        db_folder_paths = set(session.exec(select(Folder.filepath)).all())
 
         if not db_rows:
             logger.info("[file-sync] skip: no records in file table")
@@ -868,7 +921,13 @@ def _sync_file_table_with_filesystem() -> None:
         changed_paths = {
             filepath
             for filepath in common_paths
-            if db_map[filepath][0] != real_map[filepath][0] or db_map[filepath][1] != real_map[filepath][1]
+            if _should_update_existing_file(
+                db_size=db_map[filepath][0],
+                db_mtime=db_map[filepath][1],
+                db_scan_state=db_map[filepath][2],
+                real_size=real_map[filepath][0],
+                real_mtime=real_map[filepath][1],
+            )
         }
 
         to_update_changed: list[dict[str, object]] = []
@@ -902,13 +961,20 @@ def _sync_file_table_with_filesystem() -> None:
             if db_map[filepath][2] != 0
         ]
 
+        to_insert_folders, to_update_folders = _build_folder_sync_mappings(real_paths, db_folder_paths, now_ts)
+
+        if to_insert_folders:
+            session.bulk_insert_mappings(Folder, to_insert_folders)
+        if to_update_folders:
+            session.bulk_update_mappings(Folder, to_update_folders)
+
         if to_insert:
             session.bulk_insert_mappings(File, to_insert)
         if to_update_changed:
             session.bulk_update_mappings(File, to_update_changed)
         if to_mark_deleted:
             session.bulk_update_mappings(File, to_mark_deleted)
-        if to_insert or to_update_changed or to_mark_deleted:
+        if to_insert_folders or to_update_folders or to_insert or to_update_changed or to_mark_deleted:
             repo._commit()
 
         elapsed = time() - started
