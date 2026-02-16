@@ -44,14 +44,26 @@ def startup_index_db() -> None:
     trigger_favorite_scan()
 
 # Set all CORS enabled origins
-if settings.all_cors_origins:
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=settings.all_cors_origins,
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
+cors_options = {
+    "allow_origins": settings.all_cors_origins,
+    "allow_credentials": True,
+    "allow_methods": ["*"],
+    "allow_headers": ["*"],
+}
+
+# 本地开发场景允许常见局域网源（含端口），避免仅 localhost 时 LAN 调试被 CORS 拦截。
+# 仅在 ENVIRONMENT=local 生效，staging/production 仍走显式白名单。
+if settings.ENVIRONMENT == "local":
+    cors_options["allow_origin_regex"] = (
+        r"^https?://"
+        r"(?:localhost|127\.0\.0\.1|\[::1\]"
+        r"|10(?:\.\d{1,3}){3}"
+        r"|192\.168(?:\.\d{1,3}){2}"
+        r"|172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})"
+        r"(?::\d+)?$"
     )
+
+app.add_middleware(CORSMiddleware, **cors_options)
 
 app.include_router(api_router, prefix=settings.API_V1_STR)
 
