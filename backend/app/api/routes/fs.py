@@ -21,6 +21,7 @@ from send2trash import send2trash
 
 from app.constants import ARCHIVE_SUFFIXES, AUDIO_SUFFIXES, IMAGE_SUFFIXES, VIDEO_SUFFIXES
 from app.core.config import settings
+from app.file_processing._archive_backend import extract_entries
 from app.file_processing.archive_lister import list_archive_entries
 from app.file_processing.ignore import should_ignore
 from app.file_processing.folder_watcher import FolderWatcher
@@ -1776,18 +1777,48 @@ async def extract_archive(
     cache_dir = _get_extract_cache_dir(validated_path)
     cache_key = str(cache_dir)
 
+    # 先获取条目清单，后续用于：
+    # 1) 判断无媒体时直接 completed 返回；
+    # 2) 计算当前页优先解压目标。
+    try:
+        all_entries = await asyncio.to_thread(list_archive_entries, validated_path)
+    except Exception as e:
+        logger.error(f"Failed to list archive entries for extraction: {validated_path}: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to list archive: {e}")
+
+    media_entries = [
+        e for e in all_entries
+        if detect_file_type(e) in ("image", "video", "audio")
+    ]
+
+    # 没有可解压媒体时直接返回 completed，避免前端等待。
+    if not media_entries:
+        return ExtractStatus(
+            status="completed",
+            extracted_count=0,
+            total_count=0,
+            cache_dir=str(cache_dir),
+        )
+
+    # 阶段 1：当前页（同步保证首屏可用）
+    current_page_entry = [media_entries[page]] if 0 <= page < len(media_entries) else []
+
+    # 阶段 2：前后 ±5 页（后台）
+    start_idx = max(0, page - 5)
+    end_idx = min(len(media_entries), page + 6)
+    secondary = [e for e in media_entries[start_idx:end_idx] if e not in current_page_entry]
+
     # ---- 检查是否已经完全解压完成 ----
     if cache_dir.exists():
         try:
-            entries = await asyncio.to_thread(list_archive_entries, validated_path)
             extracted_files = list(cache_dir.rglob("*"))
             extracted_count = len([f for f in extracted_files if f.is_file()])
 
-            if extracted_count >= len(entries):
+            if extracted_count >= len(all_entries):
                 return ExtractStatus(
                     status="completed",
                     extracted_count=extracted_count,
-                    total_count=len(entries),
+                    total_count=len(media_entries),
                     cache_dir=str(cache_dir),
                 )
         except Exception as e:
@@ -1803,41 +1834,33 @@ async def extract_archive(
                 return ExtractStatus(
                     status="extracting",
                     extracted_count=extracted_count,
-                    total_count=0,
+                    total_count=len(media_entries),
                     cache_dir=str(cache_dir),
                 )
             except Exception:
                 return ExtractStatus(
                     status="extracting",
                     extracted_count=0,
-                    total_count=0,
+                    total_count=len(media_entries),
                     cache_dir=str(cache_dir),
                 )
 
         # 标记为正在解压
         _active_extractions[cache_key] = True
 
+    # ---- 阶段 1：同步解压当前页，确保返回时首图可读 ----
+    try:
+        if current_page_entry:
+            await asyncio.to_thread(extract_entries, validated_path, cache_dir, current_page_entry)
+    except Exception as e:
+        logger.error(f"阶段1解压失败: {validated_path.name}, 错误: {e}")
+        with _extraction_lock:
+            _active_extractions.pop(cache_key, None)
+        raise HTTPException(status_code=500, detail=f"Failed to extract current page: {e}")
+
     # ---- 在后台启动三阶段解压 ----
     async def extract_task():
         try:
-            # 获取压缩包内所有文件条目
-            all_entries = await asyncio.to_thread(list_archive_entries, validated_path)
-
-            # 过滤出媒体文件（与 list_archive 端点保持一致）
-            # 前端的 page 索引是基于这个过滤后的列表
-            media_entries = [
-                e for e in all_entries
-                if detect_file_type(e) in ("image", "video", "audio")
-            ]
-
-            # 阶段 1：当前页对应的媒体文件
-            current_page_entry = [media_entries[page]] if 0 <= page < len(media_entries) else []
-
-            # 阶段 2：前后 ±5 页的媒体文件（排除当前页）
-            start_idx = max(0, page - 5)
-            end_idx = min(len(media_entries), page + 6)
-            secondary = [e for e in media_entries[start_idx:end_idx] if e not in current_page_entry]
-
             logger.info(
                 f"三阶段解压 {validated_path.name}: "
                 f"当前页={page}, 次优先={start_idx}-{end_idx}, "
@@ -1867,8 +1890,8 @@ async def extract_archive(
 
     return ExtractStatus(
         status="extracting",
-        extracted_count=0,
-        total_count=0,
+        extracted_count=1 if current_page_entry else 0,
+        total_count=len(media_entries),
         cache_dir=str(cache_dir),
     )
 

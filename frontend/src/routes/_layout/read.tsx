@@ -82,6 +82,8 @@ function ReadPage() {
   const [rotation, setRotation] = useState(0)
   const [translate, setTranslate] = useState({ x: 0, y: 0 })
   const [isDragging, setIsDragging] = useState(false)
+  const [archiveImageReady, setArchiveImageReady] = useState(isFolderSource)
+  const [imageLoaded, setImageLoaded] = useState(false)
 
   // File operations state
   const parentPath = getParentPath(path)
@@ -236,12 +238,27 @@ function ReadPage() {
     setScale(1)
     setRotation(0)
     setTranslate({ x: 0, y: 0 })
+    setImageLoaded(false)
+    setArchiveImageReady(isFolderSource)
+
+    if (!path || isFolderSource) return
 
     // 仅在 path 变化时触发一次，避免翻页/重渲染导致重复请求
-    if (!path || isFolderSource || lastExtractPathRef.current === path) return
+    if (lastExtractPathRef.current === path) {
+      setArchiveImageReady(true)
+      return
+    }
+
     lastExtractPathRef.current = path
-    extractMutation.mutate(0)
-  }, [path])
+    extractMutation.mutate(0, {
+      onSuccess: () => setArchiveImageReady(true),
+      onError: () => setArchiveImageReady(true),
+    })
+  }, [path, isFolderSource])
+
+  useEffect(() => {
+    setImageLoaded(false)
+  }, [path, source, currentEntry?.entryPath, currentEntry?.filePath])
 
   useEffect(() => {
     if (!currentEntry || totalPages <= 0) return
@@ -539,6 +556,7 @@ function ReadPage() {
   // 压缩包文件可能还在后台解压中，404 时自动重试（最多 5 次，递增延迟）
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
     const img = e.currentTarget
+    setImageLoaded(false)
     const retryCount = Number(img.dataset.retry || 0)
     const maxRetries = 5
     if (retryCount < maxRetries) {
@@ -556,7 +574,11 @@ function ReadPage() {
   // 图片加载成功时重置重试计数
   const handleImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
     e.currentTarget.dataset.retry = "0"
+    setImageLoaded(true)
   }
+
+  const canRequestImage = isFolderSource || archiveImageReady
+  const showImagePlaceholder = !canRequestImage || !imageLoaded
 
   const pagination = (
     <button
@@ -773,8 +795,14 @@ function ReadPage() {
         onMouseLeave={onMouseUp}
         onWheel={onWheel}
       >
+        {showImagePlaceholder && (
+          <div className="reader-image-stage__placeholder" aria-hidden="true">
+            <Skeleton className="reader-image-stage__skeleton" />
+          </div>
+        )}
+
         <img
-          src={imageUrl}
+          src={canRequestImage ? imageUrl : undefined}
           alt={currentEntry.name}
           onMouseDown={onMouseDown}
           onError={handleImageError}
@@ -785,6 +813,7 @@ function ReadPage() {
             transform: `translate(${translate.x}px, ${translate.y}px) scale(${scale}) rotate(${rotation}deg)`,
             cursor: isDragging ? "grabbing" : "grab",
             transition: isDragging ? "none" : "transform 120ms ease-out",
+            visibility: imageLoaded ? "visible" : "hidden",
           }}
         />
 

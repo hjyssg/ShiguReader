@@ -46,8 +46,8 @@
     "unknownError": "Unknown error",
     "fileNotFound": "File not found",
     "loadFailed": "Load failed",
-    "fileNotFoundMessage": "Cannot find file: {fileName}",
-    "loadErrorMessage": "Error loading file: {errorMessage}",
+    "fileNotFoundMessage": "Cannot find file: {{fileName}}",
+    "loadErrorMessage": "Error loading file: {{errorMessage}}",
     "returnHome": "Return to Home",
     "openParent": "Open Parent Directory"
   },
@@ -114,7 +114,7 @@
   },
   "search": {
     "title": "Search",
-    "resultCount": "Total {count} results",
+    "resultCount": "Total {{count}} results",
     "description": "Search by filename / author / tag",
     "placeholder": "Enter keywords...",
     "searchButton": "Search",
@@ -186,7 +186,7 @@
     "clearExtractCache": "Clear Extract Cache",
     "clearing": "Clearing...",
     "cacheCleared": "Cache cleared",
-    "cacheClearedDetail": "Deleted {count} files, freed {size}",
+    "cacheClearedDetail": "Deleted {{count}} files, freed {{size}}",
     "fetchFailed": "Failed to fetch settings",
     "updateFailed": "Failed to update settings",
     "clearCacheFailed": "Failed to clear cache",

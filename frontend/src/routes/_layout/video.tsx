@@ -45,7 +45,8 @@ function Video() {
   }
 
   const pathParts = splitPath(sourcePath)
-  const targetParts = entry ? pathParts.slice(0, -1) : pathParts
+  // 目录面包屑仅展示父目录，避免把文件名显示两次
+  const targetParts = pathParts.slice(0, -1)
   const dirCrumbs = targetParts.map((name, index) => ({
     name,
     path: joinPath(targetParts.slice(0, index + 1), sourcePath),

@@ -91,6 +91,21 @@
   overflow: hidden;
 }
 
+.reader-image-stage__placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.reader-image-stage__skeleton {
+  width: min(70vw, 70vh);
+  height: min(70vw, 70vh);
+  border-radius: 0.5rem;
+}
+
 .reader-image-stage__image {
   max-width: 100%;
   max-height: 100%;

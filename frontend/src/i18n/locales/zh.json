@@ -46,8 +46,8 @@
     "unknownError": "未知错误",
     "fileNotFound": "文件不存在",
     "loadFailed": "加载失败",
-    "fileNotFoundMessage": "无法找到文件：{fileName}",
-    "loadErrorMessage": "加载文件时出错：{errorMessage}",
+    "fileNotFoundMessage": "无法找到文件：{{fileName}}",
+    "loadErrorMessage": "加载文件时出错：{{errorMessage}}",
     "returnHome": "返回首页",
     "openParent": "打开父目录"
   },
@@ -114,7 +114,7 @@
   },
   "search": {
     "title": "搜索",
-    "resultCount": "共 {count} 条结果",
+    "resultCount": "共 {{count}} 条结果",
     "description": "按文件名 / 作者 / 标签搜索",
     "placeholder": "输入关键词...",
     "searchButton": "搜索",
@@ -186,7 +186,7 @@
     "clearExtractCache": "清理解压缓存",
     "clearing": "清理中...",
     "cacheCleared": "缓存已清理",
-    "cacheClearedDetail": "已删除 {count} 个文件，释放 {size}",
+    "cacheClearedDetail": "已删除 {{count}} 个文件，释放 {{size}}",
     "fetchFailed": "获取设置失败",
     "updateFailed": "更新设置失败",
     "clearCacheFailed": "清理缓存失败",
