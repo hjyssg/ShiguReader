@@ -440,7 +440,7 @@ function SettingsPage() {
       {/* Already Read Directory Settings */}
       <EditablePathCard
         title={t("settings.alreadyReadDir")}
-        description={t("settings.editHint")}
+        description={t("settings.alreadyReadDirDesc")}
         id="alreadyReadDir"
         label={t("settings.alreadyReadDir")}
         value={alreadyReadDir}
@@ -461,7 +461,7 @@ function SettingsPage() {
       {/* Favorite Directory Settings */}
       <EditablePathCard
         title={t("settings.favoriteDir")}
-        description={t("settings.editHint")}
+        description={t("settings.favoriteDirDesc")}
         id="favoriteDir"
         label={t("settings.favoriteDir")}
         value={favoriteDir}
