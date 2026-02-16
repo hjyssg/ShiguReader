@@ -119,7 +119,6 @@ function EditablePathCard(props: EditablePathCardProps) {
       <CardContent>
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor={id}>{label}</Label>
             <Input
               ref={inputRef}
               id={id}
@@ -362,7 +361,6 @@ function SettingsPage() {
         </CardHeader>
         <CardContent>
           <div className="space-y-2">
-            <Label htmlFor="language">{t("settings.language")}</Label>
             <Select value={i18n.language} onValueChange={handleLanguageChange}>
               <SelectTrigger id="language" className="w-full md:w-[300px]">
                 <SelectValue />
@@ -396,7 +394,6 @@ function SettingsPage() {
             )} */}
 
             <div className="space-y-2">
-              <Label>{t("settings.folderPath")}</Label>
               <div className="space-y-2">
                 {fsRootList.map((item, index) => (
                   <div
