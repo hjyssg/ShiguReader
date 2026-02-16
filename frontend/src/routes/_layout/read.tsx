@@ -788,22 +788,22 @@ function ReadPage() {
           }}
         />
 
-        <Button
-          variant="ghost"
-          size="icon"
-          className="reader-image-stage__nav-button reader-image-stage__nav-button--left"
+        <button
+          type="button"
+          className="reader-nav-button reader-nav-button--left"
           onClick={goPrev}
+          aria-label={t("reader.prevPage")}
         >
-          <ChevronLeft className="size-8" />
-        </Button>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="reader-image-stage__nav-button reader-image-stage__nav-button--right"
+          <ChevronLeft className="reader-nav-button__icon" />
+        </button>
+        <button
+          type="button"
+          className="reader-nav-button reader-nav-button--right"
           onClick={goNext}
+          aria-label={t("reader.nextPage")}
         >
-          <ChevronRight className="size-8" />
-        </Button>
+          <ChevronRight className="reader-nav-button__icon" />
+        </button>
 
         {!isFolderSource && (
           <ExtractingIndicator

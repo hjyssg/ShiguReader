@@ -63,3 +63,8 @@ scan and watch subfolders的时候看不到进度。
 2 希望前端能在setting看到scan进度和整个watch的folder。
   setting的用tab。一个tab是原来的setting。
   第二格tab是现在这些东西。
+
+
+
+# task想在windows的file explorer可以右键
+打开文件、文件夹
