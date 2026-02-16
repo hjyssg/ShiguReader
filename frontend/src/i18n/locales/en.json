@@ -14,7 +14,8 @@
     "sort": "Sort",
     "refresh": "Refresh",
     "extracting": "Extracting...",
-    "noData": "No data"
+    "noData": "No data",
+    "reset": "Reset"
   },
   "nav": {
     "home": "Home",

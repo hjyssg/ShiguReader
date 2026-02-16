@@ -47,15 +47,15 @@
 }
 
 .settings-section--blue {
-  border-left: 3px solid #4e8cff;
+  border: 1px solid #4e8cff;
 }
 
 .settings-section--green {
-  border-left: 3px solid #42b983;
+  border: 1px solid #42b983;
 }
 
 .settings-section--gold {
-  border-left: 3px solid #d8a600;
+  border: 1px solid #d8a600;
 }
 
 .settings-section__heading h2 {
@@ -94,7 +94,6 @@
 
 .path-table__body {
   max-height: 260px;
-  overflow: auto;
   border-top: 1px solid hsl(var(--border));
   border-bottom: 1px solid hsl(var(--border));
 }
@@ -119,14 +118,9 @@
 .single-path-row__actions {
   display: inline-flex;
   gap: 0.25rem;
-  opacity: 0;
   transition: opacity 0.15s ease;
 }
 
-.path-row:hover .path-row__actions,
-.single-path-row:hover .single-path-row__actions {
-  opacity: 1;
-}
 
 .path-table__empty-add {
   width: 100%;
@@ -197,7 +191,15 @@
 }
 
 @keyframes pulse {
-  0% { opacity: 0.4; }
-  50% { opacity: 1; }
-  100% { opacity: 0.4; }
+  0% {
+    opacity: 0.4;
+  }
+
+  50% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0.4;
+  }
 }
