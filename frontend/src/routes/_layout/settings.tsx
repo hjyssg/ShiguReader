@@ -207,7 +207,7 @@ function SettingsPage() {
       if (!response.ok) throw new Error("Failed to fetch scan status")
       return response.json()
     },
-    refetchInterval: 3000,
+    refetchInterval: tab === "scan" ? 3000 : false,
   })
 
   if (isLoading) {
@@ -235,20 +235,38 @@ function SettingsPage() {
         </TabsList>
 
         <TabsContent value="general" className="settings-main">
-          <section className="settings-section settings-section--compact">
-            <div className="settings-section__heading">
-              <h2>{t("settings.language")}</h2>
-              <p>{t("settings.languageDesc")}</p>
+          <section className="settings-section settings-section--white settings-section--compact">
+            <div className="section-group">
+              <div className="settings-section__heading">
+                <h2>{t("settings.language")}</h2>
+                <p>{t("settings.languageDesc")}</p>
+              </div>
+              <Select value={i18n.language} onValueChange={handleLanguageChange}>
+                <SelectTrigger id="language" className="settings-language-select">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="zh">{t("settings.chinese")}</SelectItem>
+                  <SelectItem value="en">{t("settings.english")}</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-            <Select value={i18n.language} onValueChange={handleLanguageChange}>
-              <SelectTrigger id="language" className="settings-language-select">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="zh">{t("settings.chinese")}</SelectItem>
-                <SelectItem value="en">{t("settings.english")}</SelectItem>
-              </SelectContent>
-            </Select>
+
+            <div className="section-divider" />
+
+            <div className="section-group">
+              <div className="settings-section__heading">
+                <h2>⚙️ {t("settings.cacheManagement")}</h2>
+                <p>{t("settings.cacheManagementDesc")}</p>
+              </div>
+              <Button
+                onClick={() => clearCacheMutation.mutate()}
+                disabled={clearCacheMutation.isPending}
+                variant="destructive"
+              >
+                {clearCacheMutation.isPending ? t("settings.clearing") : t("settings.clearExtractCache")}
+              </Button>
+            </div>
           </section>
 
           <section className="settings-section settings-section--blue">
@@ -296,7 +314,12 @@ function SettingsPage() {
                 ))}
               </div>
 
-              <button type="button" className="path-table__empty-add" onClick={handleAddFsRoot}>
+              <button
+                type="button"
+                className="path-table__empty-add"
+                onClick={handleAddFsRoot}
+                disabled={fsRootList.some((p) => !p.trim())}
+              >
                 + {t("settings.addNew")}...
               </button>
             </div>
@@ -370,21 +393,6 @@ function SettingsPage() {
             </div>
           </section>
 
-          <section className="settings-section settings-section--compact settings-base-row">
-            <div className="settings-section__heading">
-              <h2>⚙️ {t("settings.cacheManagement")}</h2>
-              <p>{t("settings.cacheManagementDesc")}</p>
-            </div>
-            <Button
-              onClick={() => clearCacheMutation.mutate()}
-              disabled={clearCacheMutation.isPending}
-              variant="destructive"
-            >
-              {clearCacheMutation.isPending
-                ? t("settings.clearing")
-                : t("settings.clearExtractCache")}
-            </Button>
-          </section>
         </TabsContent>
 
         <TabsContent value="scan">
