@@ -138,6 +138,41 @@
   }
 }
 
+/* Unified breadcrumb style */
+.app-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  min-width: 0;
+}
+
+.app-breadcrumb__home-link,
+.app-breadcrumb__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: hsl(var(--muted-foreground));
+  transition: color 0.2s;
+}
+
+.app-breadcrumb__home-link:hover,
+.app-breadcrumb__link:hover {
+  color: hsl(var(--foreground));
+}
+
+.app-breadcrumb__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.app-breadcrumb__current {
+  color: hsl(var(--foreground) / 0.85);
+  font-weight: 500;
+}
+
 /* Sidebar Standard CSS */
 
 :root {

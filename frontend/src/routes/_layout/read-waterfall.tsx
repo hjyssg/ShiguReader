@@ -1,15 +1,15 @@
 import { useMutation, useQuery } from "@tanstack/react-query"
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router"
-import { ChevronRight, Folder, Home } from "lucide-react"
 import { useEffect, useMemo } from "react"
 import { useTranslation } from "react-i18next"
 
 import { FilesystemService, OpenAPI } from "@/client"
+import { PathBreadcrumb } from "@/components/Common/PathBreadcrumb"
 import { ExtractingIndicator } from "@/components/semantic/layout"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useIsMobile } from "@/hooks/useMobile"
-import { getBaseName, joinPath, splitPath } from "@/lib/path-utils"
+import { getBaseName } from "@/lib/path-utils"
 import "./read.css"
 
 export const Route = createFileRoute("/_layout/read-waterfall")({
@@ -58,44 +58,21 @@ function ReadWaterfallPage() {
     )
   }
 
-  const pathParts = splitPath(path)
   const fileName = getBaseName(path, "Archive")
-  const dirCrumbs = pathParts.slice(0, -1).map((name, index) => ({
-    name,
-    path: joinPath(pathParts.slice(0, index + 1), path),
-  }))
 
   return (
     <div className="reader-waterfall-page">
-      <nav className="reader-waterfall-breadcrumb">
-        <Link to="/" className="reader-waterfall-breadcrumb__home-link">
-          <Home className="size-4" />
-          <span>Home</span>
-        </Link>
-        {dirCrumbs.map((crumb) => (
-          <div key={crumb.path} className="reader-waterfall-breadcrumb__item">
-            <ChevronRight className="size-4 text-muted-foreground" />
-            <Link
-              to="/explorer"
-              search={{ path: crumb.path }}
-              className="reader-waterfall-breadcrumb__link"
-            >
-              <Folder className="size-4 inline mr-1" />
-              {crumb.name}
-            </Link>
-          </div>
-        ))}
-        <ChevronRight className="size-4 text-muted-foreground" />
-        <Link
-          to="/archive"
-          search={{ path }}
-          className="reader-waterfall-breadcrumb__link"
-        >
-          {fileName}
-        </Link>
-        <ChevronRight className="size-4 text-muted-foreground" />
-        <span className="font-medium">Waterfall</span>
-      </nav>
+      <PathBreadcrumb
+        sourcePath={path}
+        extraCrumbs={[
+          {
+            label: fileName,
+            to: "/archive",
+            search: { path },
+          },
+        ]}
+        currentLabel="Waterfall"
+      />
 
       <div className="reader-waterfall-actions">
         <Button

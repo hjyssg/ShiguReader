@@ -4,9 +4,7 @@ import {
   BookCheck,
   ChevronLeft,
   ChevronRight,
-  Folder,
   FolderInput,
-  Home,
   ImageDown,
   MoreVertical,
   Package,
@@ -21,6 +19,7 @@ import { useTranslation } from "react-i18next"
 
 import { FilesystemService, OpenAPI, ParseService } from "@/client"
 import { FileNotFoundError } from "@/components/Common/FileNotFoundError"
+import { PathBreadcrumb } from "@/components/Common/PathBreadcrumb"
 import {
   type CompressAction,
   CompressDialog,
@@ -43,13 +42,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton"
 import { useDocumentTitle } from "@/hooks/useDocumentTitle"
 import { useFileOperations } from "@/hooks/useFileOperations"
-import {
-  getBaseName,
-  getParentPath,
-  joinPath,
-  splitPath,
-  wrapPageIndex,
-} from "@/lib/path-utils"
+import { getBaseName, getParentPath, wrapPageIndex } from "@/lib/path-utils"
 import "./read.css"
 
 export const Route = createFileRoute("/_layout/read")({
@@ -200,7 +193,7 @@ function ReadPage() {
     currentEntry?.name || getBaseName(path, t("reader.openReader"))
   useDocumentTitle(entryTitle)
 
-  const resetTransform = () => {
+  const _resetTransform = () => {
     setScale(1)
     setRotation(0)
     setTranslate({ x: 0, y: 0 })
@@ -398,7 +391,6 @@ function ReadPage() {
   }
 
   // Must declare these before early returns
-  const pathParts = splitPath(path)
   const fileName = getBaseName(path, isFolderSource ? "Folder" : "Archive")
   const currentPathMeta = parentListData?.items?.find(
     (item) => item.path === path,
@@ -417,11 +409,6 @@ function ReadPage() {
   const authors = parseMeta?.authors ?? []
   const cosers = parseMeta?.cosers ?? []
   const tags = parseMeta?.raw_tags ?? []
-  const dirCrumbs = pathParts.slice(0, -1).map((name, index) => ({
-    name,
-    path: joinPath(pathParts.slice(0, index + 1), path),
-  }))
-
   if (isLoading || isFolderLoading) {
     return (
       <div className="space-y-6">
@@ -458,33 +445,14 @@ function ReadPage() {
     // 无图片提示
     return (
       <div className="reader-empty-page">
-        <nav className="reader-empty-breadcrumb">
-          <Link to="/" className="reader-empty-breadcrumb__home-link">
-            <Home className="size-4" />
-            <span>{t("common.home")}</span>
-          </Link>
-          {pathParts.slice(0, -1).map((name, index) => (
-            <div key={index} className="reader-empty-breadcrumb__item">
-              <ChevronRight className="size-4 text-muted-foreground" />
-              <Link
-                to="/explorer"
-                search={{ path: joinPath(pathParts.slice(0, index + 1), path) }}
-                className="reader-empty-breadcrumb__link"
-              >
-                <Folder className="size-4 inline mr-1" />
-                {name}
-              </Link>
-            </div>
-          ))}
-          <ChevronRight className="size-4 text-muted-foreground" />
-          <Link
-            to={isFolderSource ? "/explorer" : "/archive"}
-            search={{ path }}
-            className="reader-empty-breadcrumb__link"
-          >
-            {fileName}
-          </Link>
-        </nav>
+        <PathBreadcrumb
+          sourcePath={path}
+          homeLabel={t("common.home")}
+          separatorClassName="size-4 text-muted-foreground"
+          currentTo={isFolderSource ? "/explorer" : "/archive"}
+          currentSearch={{ path }}
+          currentLabel={fileName}
+        />
 
         <div className="reader-empty-header">
           <div className="reader-empty-header__title">{fileName}</div>
@@ -601,45 +569,22 @@ function ReadPage() {
       {/* 顶部工具栏 - 整合导航和工具 */}
       <nav className="reader-toolbar">
         {/* 左侧：面包屑导航 */}
-        <Link to="/" className="reader-toolbar__home-link">
-          <Home className="size-3.5" />
-        </Link>
-        {dirCrumbs.length > 2 ? (
-          <>
-            <ChevronRight className="size-3 text-muted-foreground/60" />
-            <span>…</span>
-            <ChevronRight className="size-3 text-muted-foreground/60" />
-            <Link
-              to="/explorer"
-              search={{ path: dirCrumbs[dirCrumbs.length - 1].path }}
-              className="reader-toolbar__crumb-link"
-            >
-              {dirCrumbs[dirCrumbs.length - 1].name}
-            </Link>
-          </>
-        ) : (
-          dirCrumbs.map((crumb) => (
-            <div key={crumb.path} className="reader-toolbar__crumb-item">
-              <ChevronRight className="size-3 text-muted-foreground/60" />
-              <Link
-                to="/explorer"
-                search={{ path: crumb.path }}
-                className="reader-toolbar__crumb-link"
-              >
-                {crumb.name}
-              </Link>
-            </div>
-          ))
-        )}
-        <ChevronRight className="size-3 text-muted-foreground/60" />
-        <Link
-          to={isFolderSource ? "/explorer" : "/archive"}
-          search={{ path }}
-          className="reader-toolbar__current-link"
-          title={fileName}
-        >
-          {fileName}
-        </Link>
+        <PathBreadcrumb
+          as="div"
+          sourcePath={path}
+          homeLabel={null}
+          homeLinkClassName="reader-toolbar__home-link"
+          homeIconClassName="size-3.5"
+          dirItemClassName="reader-toolbar__crumb-item"
+          dirLinkClassName="reader-toolbar__crumb-link"
+          separatorClassName="size-3 text-muted-foreground/60"
+          showFolderIcon={false}
+          collapseDirCrumbsAfter={2}
+          currentTo={isFolderSource ? "/explorer" : "/archive"}
+          currentSearch={{ path }}
+          currentLabel={fileName}
+          currentClassName="reader-toolbar__current-link"
+        />
 
         {/* 右侧：工具 */}
         <div className="reader-toolbar__actions">
@@ -845,119 +790,125 @@ function ReadPage() {
       <div className="reader-meta-bar">
         <div className="reader-meta-bar__left">
           <div className="reader-meta-bar__row">
-          <span className="text-muted-foreground">
-            {t("reader.mtime")}:{" "}
-            <span className="text-foreground">{mtimeText}</span>
-          </span>
-          <span className="text-muted-foreground">
-            {t("reader.size")}:{" "}
-            <span className="text-foreground">{sizeText}</span>
-          </span>
-          <span className="text-muted-foreground">
-            {t("reader.avgImageSize")}:{" "}
-            <span className="text-foreground">{avgImageSizeText}</span>
-          </span>
-          <span className="text-muted-foreground">
-            Video:{" "}
-            <span
-              className={
-                archiveVideoCount > 0
-                  ? "text-orange-500 font-medium"
-                  : "text-foreground"
-              }
-            >
-              {archiveVideoCount}
+            <span className="text-muted-foreground">
+              {t("reader.mtime")}:{" "}
+              <span className="text-foreground">{mtimeText}</span>
             </span>
-          </span>
-          <span className="text-muted-foreground">
-            Audio:{" "}
-            <span
-              className={
-                archiveAudioCount > 0
-                  ? "text-orange-500 font-medium"
-                  : "text-foreground"
-              }
-            >
-              {archiveAudioCount}
+            <span className="text-muted-foreground">
+              {t("reader.size")}:{" "}
+              <span className="text-foreground">{sizeText}</span>
             </span>
-          </span>
+            <span className="text-muted-foreground">
+              {t("reader.avgImageSize")}:{" "}
+              <span className="text-foreground">{avgImageSizeText}</span>
+            </span>
+            <span className="text-muted-foreground">
+              Video:{" "}
+              <span
+                className={
+                  archiveVideoCount > 0
+                    ? "text-orange-500 font-medium"
+                    : "text-foreground"
+                }
+              >
+                {archiveVideoCount}
+              </span>
+            </span>
+            <span className="text-muted-foreground">
+              Audio:{" "}
+              <span
+                className={
+                  archiveAudioCount > 0
+                    ? "text-orange-500 font-medium"
+                    : "text-foreground"
+                }
+              >
+                {archiveAudioCount}
+              </span>
+            </span>
 
-          <span className="text-muted-foreground">{t("reader.authors")}:</span>
-          {authors.length > 0 ? (
-            <div className="inline-flex items-center gap-1">
-              {authors.map((author) => (
-                <Badge key={author} asChild className="h-5 px-1.5 text-[10px]">
-                  <Link
-                    to="/search"
-                    search={{
-                      q: author,
-                      scopes: ["author"],
-                      mode: "hybrid",
-                      page: 1,
-                      presenceFilter: "all",
-                    }}
+            <span className="text-muted-foreground">
+              {t("reader.authors")}:
+            </span>
+            {authors.length > 0 ? (
+              <div className="inline-flex items-center gap-1">
+                {authors.map((author) => (
+                  <Badge
+                    key={author}
+                    asChild
+                    className="h-5 px-1.5 text-[10px]"
                   >
-                    {author}
-                  </Link>
-                </Badge>
-              ))}
-            </div>
-          ) : (
-            <span className="text-muted-foreground">{t("reader.none")}</span>
-          )}
+                    <Link
+                      to="/search"
+                      search={{
+                        q: author,
+                        scopes: ["author"],
+                        mode: "hybrid",
+                        page: 1,
+                        presenceFilter: "all",
+                      }}
+                    >
+                      {author}
+                    </Link>
+                  </Badge>
+                ))}
+              </div>
+            ) : (
+              <span className="text-muted-foreground">{t("reader.none")}</span>
+            )}
 
-          <span className="text-muted-foreground">{t("reader.cosers")}:</span>
-          {cosers.length > 0 ? (
-            <div className="inline-flex items-center gap-1">
-              {cosers.map((coser) => (
-                <Badge key={coser} asChild className="h-5 px-1.5 text-[10px]">
-                  <Link
-                    to="/search"
-                    search={{
-                      q: coser,
-                      scopes: ["coser"],
-                      mode: "hybrid",
-                      page: 1,
-                      presenceFilter: "all",
-                    }}
-                  >
-                    {coser}
-                  </Link>
-                </Badge>
-              ))}
-            </div>
-          ) : (
-            <span className="text-muted-foreground">{t("reader.none")}</span>
-          )}
+            <span className="text-muted-foreground">{t("reader.cosers")}:</span>
+            {cosers.length > 0 ? (
+              <div className="inline-flex items-center gap-1">
+                {cosers.map((coser) => (
+                  <Badge key={coser} asChild className="h-5 px-1.5 text-[10px]">
+                    <Link
+                      to="/search"
+                      search={{
+                        q: coser,
+                        scopes: ["coser"],
+                        mode: "hybrid",
+                        page: 1,
+                        presenceFilter: "all",
+                      }}
+                    >
+                      {coser}
+                    </Link>
+                  </Badge>
+                ))}
+              </div>
+            ) : (
+              <span className="text-muted-foreground">{t("reader.none")}</span>
+            )}
 
-          <span className="text-muted-foreground">{t("reader.tags")}:</span>
-          {tags.length > 0 ? (
-            <div className="inline-flex items-center gap-1">
-              {tags.map((tag) => (
-                <Badge
-                  key={tag}
-                  asChild
-                  variant="secondary"
-                  className="h-5 px-1.5 text-[10px]"
-                >
-                  <Link
-                    to="/search"
-                    search={{
-                      q: tag,
-                      scopes: ["tag"],
-                      mode: "hybrid",
-                      page: 1,
-                      presenceFilter: "all",
-                    }}
+            <span className="text-muted-foreground">{t("reader.tags")}:</span>
+            {tags.length > 0 ? (
+              <div className="inline-flex items-center gap-1">
+                {tags.map((tag) => (
+                  <Badge
+                    key={tag}
+                    asChild
+                    variant="secondary"
+                    className="h-5 px-1.5 text-[10px]"
                   >
-                    #{tag}
-                  </Link>
-                </Badge>
-              ))}
-            </div>
-          ) : (
-            <span className="text-muted-foreground">{t("reader.none")}</span>
-          )}
+                    <Link
+                      to="/search"
+                      search={{
+                        q: tag,
+                        scopes: ["tag"],
+                        mode: "hybrid",
+                        page: 1,
+                        presenceFilter: "all",
+                      }}
+                    >
+                      #{tag}
+                    </Link>
+                  </Badge>
+                ))}
+              </div>
+            ) : (
+              <span className="text-muted-foreground">{t("reader.none")}</span>
+            )}
           </div>
         </div>
 

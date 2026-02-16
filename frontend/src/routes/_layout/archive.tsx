@@ -2,12 +2,9 @@ import { useMutation, useQuery } from "@tanstack/react-query"
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router"
 import {
   BookCheck,
-  ChevronRight,
   FileAudio,
   FileVideo,
-  Folder,
   FolderInput,
-  Home,
   ImageDown,
   MoreVertical,
   Pencil,
@@ -19,6 +16,7 @@ import { useTranslation } from "react-i18next"
 
 import { FilesystemService, OpenAPI } from "@/client"
 import { FileNotFoundError } from "@/components/Common/FileNotFoundError"
+import { PathBreadcrumb } from "@/components/Common/PathBreadcrumb"
 import { CompressDialog } from "@/components/Files/dialogs/CompressDialog"
 import { ConfirmMoveDialog } from "@/components/Files/dialogs/ConfirmMoveDialog"
 import { DeleteDialog } from "@/components/Files/dialogs/DeleteDialog"
@@ -37,12 +35,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { useDocumentTitle } from "@/hooks/useDocumentTitle"
 import { useFileOperations } from "@/hooks/useFileOperations"
 import { useIsMobile } from "@/hooks/useMobile"
-import {
-  getBaseName,
-  getParentPath,
-  joinPath,
-  splitPath,
-} from "@/lib/path-utils"
+import { getBaseName, getParentPath } from "@/lib/path-utils"
 import { cn } from "@/lib/utils"
 
 export const Route = createFileRoute("/_layout/archive")({
@@ -138,41 +131,14 @@ function Archive() {
 
   const entries = listData.entries
 
-  // Parse breadcrumb
-  const pathParts = splitPath(path)
-  const dirCrumbs = pathParts.slice(0, -1).map((name, index) => ({
-    name,
-    path: joinPath(pathParts.slice(0, index + 1), path),
-  }))
-
   return (
     <div className="space-y-6">
       {/* Breadcrumb + File Operations */}
       <div className="flex items-center justify-between gap-2">
-        <nav className="flex items-center gap-2 text-sm min-w-0">
-          <Link
-            to="/"
-            className="flex items-center gap-1 text-muted-foreground hover:text-foreground transition-colors"
-          >
-            <Home className="size-4" />
-            <span>Home</span>
-          </Link>
-          {dirCrumbs.map((crumb) => (
-            <div key={crumb.path} className="flex items-center gap-2">
-              <ChevronRight className="size-4 text-muted-foreground" />
-              <Link
-                to="/explorer"
-                search={{ path: crumb.path }}
-                className="text-muted-foreground hover:text-foreground transition-colors"
-              >
-                <Folder className="size-4 inline mr-1" />
-                {crumb.name}
-              </Link>
-            </div>
-          ))}
-          <ChevronRight className="size-4 text-muted-foreground" />
-          <span className="font-medium truncate">{fileName}</span>
-        </nav>
+        <PathBreadcrumb
+          sourcePath={path}
+          currentLabel={fileName}
+        />
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -232,10 +198,7 @@ function Archive() {
       </div>
 
       {/* Extraction status */}
-      <ExtractingIndicator
-        status={extractResult?.status}
-        variant="fixed"
-      />
+      <ExtractingIndicator status={extractResult?.status} variant="fixed" />
 
       {/* File operation dialogs */}
       <RenameDialog

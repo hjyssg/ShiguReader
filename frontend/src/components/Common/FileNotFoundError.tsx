@@ -1,8 +1,7 @@
-import { Link, useNavigate } from "@tanstack/react-router"
-import { ChevronRight, Folder, Home } from "lucide-react"
+import { useNavigate } from "@tanstack/react-router"
 import { useTranslation } from "react-i18next"
+import { PathBreadcrumb } from "@/components/Common/PathBreadcrumb"
 import { Button } from "@/components/ui/button"
-import { joinPath, splitPath } from "@/lib/path-utils"
 
 interface FileNotFoundErrorProps {
   path: string
@@ -21,34 +20,13 @@ export function FileNotFoundError({
 }: FileNotFoundErrorProps) {
   const { t } = useTranslation()
   const navigate = useNavigate()
-  const pathParts = splitPath(path)
 
   return (
     <div className="space-y-4 p-[10px]">
-      <nav className="flex items-center gap-2 text-sm">
-        <Link
-          to="/"
-          className="flex items-center gap-1 text-muted-foreground hover:text-foreground"
-        >
-          <Home className="size-4" />
-          <span>Home</span>
-        </Link>
-        {pathParts.slice(0, -1).map((name, index) => (
-          <div key={index} className="flex items-center gap-2">
-            <ChevronRight className="size-4 text-muted-foreground" />
-            <Link
-              to="/explorer"
-              search={{ path: joinPath(pathParts.slice(0, index + 1), path) }}
-              className="text-muted-foreground hover:text-foreground"
-            >
-              <Folder className="size-4 inline mr-1" />
-              {name}
-            </Link>
-          </div>
-        ))}
-        <ChevronRight className="size-4 text-muted-foreground" />
-        <span className="text-muted-foreground">{fileName}</span>
-      </nav>
+      <PathBreadcrumb
+        sourcePath={path}
+        currentLabel={fileName}
+      />
 
       <div className="flex flex-col items-center justify-center py-24 text-center space-y-6">
         <svg
