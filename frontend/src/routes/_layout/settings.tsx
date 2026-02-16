@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { createFileRoute } from "@tanstack/react-router"
 import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
+import { Pencil, Trash2, Plus, RotateCcw } from "lucide-react"
 
 import { OpenAPI } from "@/client"
 import { Button } from "@/components/ui/button"
@@ -256,7 +257,7 @@ function SettingsPage() {
 
             <div className="section-group">
               <div className="settings-section__heading">
-                <h2>⚙️ {t("settings.cacheManagement")}</h2>
+                <h2>{t("settings.cacheManagement")}</h2>
                 <p>{t("settings.cacheManagementDesc")}</p>
               </div>
               <Button
@@ -271,7 +272,7 @@ function SettingsPage() {
 
           <section className="settings-section settings-section--blue">
             <div className="settings-section__heading">
-              <h2>📌 {t("settings.fsRoots")}</h2>
+              <h2>{t("settings.fsRoots")}</h2>
               <p>{t("settings.fsRootsDesc")}</p>
             </div>
 
@@ -295,43 +296,50 @@ function SettingsPage() {
                       className="path-row__input"
                     />
                     <div className="path-row__actions">
-                      <Button type="button" variant="ghost" onClick={saveFsRootsIfChanged} aria-label="save">
-                        ✎
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon-sm"
+                        onClick={saveFsRootsIfChanged}
+                        aria-label="save"
+                      >
+                        <Pencil className="h-4 w-4" />
                       </Button>
                       <Button
                         type="button"
                         variant="ghost"
+                        size="icon-sm"
                         onClick={() => {
                           handleRemoveFsRoot(index)
                           setTimeout(saveFsRootsIfChanged, 0)
                         }}
                         aria-label="remove"
                       >
-                        🗑️
+                        <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
                   </div>
                 ))}
               </div>
 
-              <button
-                type="button"
-                className="path-table__empty-add"
+              <Button
+                variant="outline"
+                className="path-table__empty-add w-full justify-start mt-2"
                 onClick={handleAddFsRoot}
                 disabled={fsRootList.some((p) => !p.trim())}
               >
-                + {t("settings.addNew")}...
-              </button>
+                <Plus className="mr-2 h-4 w-4" />
+                {t("settings.addNew")}...
+              </Button>
             </div>
           </section>
 
           <section className="settings-section settings-section--green">
             <div className="settings-section__heading">
-              <h2>📖 {t("settings.alreadyReadDir")}</h2>
+              <h2>{t("settings.alreadyReadDir")}</h2>
               <p>{t("settings.alreadyReadDirDesc")}</p>
             </div>
             <div className="single-path-row">
-              <span className="single-path-row__icon">📁</span>
               <Input
                 id="alreadyReadDir"
                 type="text"
@@ -342,17 +350,18 @@ function SettingsPage() {
                 className="single-path-row__input"
               />
               <div className="single-path-row__actions">
-                <Button type="button" variant="ghost" onClick={saveAlreadyReadDirIfChanged}>
-                  ✎
+                <Button variant="ghost" size="icon-sm" onClick={saveAlreadyReadDirIfChanged}>
+                  <Pencil className="h-4 w-4" />
                 </Button>
                 <Button
-                  type="button"
                   variant="ghost"
+                  size="sm"
                   onClick={() => {
                     setAlreadyReadDir("")
                     setTimeout(saveAlreadyReadDirIfChanged, 0)
                   }}
                 >
+                  <RotateCcw className="mr-2 h-4 w-4" />
                   {t("common.reset")}
                 </Button>
               </div>
@@ -361,11 +370,10 @@ function SettingsPage() {
 
           <section className="settings-section settings-section--gold">
             <div className="settings-section__heading">
-              <h2>⭐ {t("settings.favoriteDir")}</h2>
+              <h2>{t("settings.favoriteDir")}</h2>
               <p>{t("settings.favoriteDirDesc")}</p>
             </div>
             <div className="single-path-row">
-              <span className="single-path-row__icon">📁</span>
               <Input
                 id="favoriteDir"
                 type="text"
@@ -376,18 +384,32 @@ function SettingsPage() {
                 className="single-path-row__input"
               />
               <div className="single-path-row__actions">
-                <Button type="button" variant="ghost" onClick={saveFavoriteDirIfChanged}>
-                  ✎
+                <Button variant="ghost" size="icon-sm" onClick={saveFavoriteDirIfChanged}>
+                  <Pencil className="h-4 w-4" />
                 </Button>
                 <Button
-                  type="button"
                   variant="ghost"
+                  size="sm"
                   onClick={() => {
-                    setFavoriteDir("")
-                    setTimeout(saveFavoriteDirIfChanged, 0)
+                    if (favoriteDir.trim()) {
+                      setFavoriteDir("")
+                      setTimeout(saveFavoriteDirIfChanged, 0)
+                    } else {
+                      // Logic for add new if needed, currently just placeholder
+                    }
                   }}
                 >
-                  {favoriteDir.trim() ? t("common.reset") : `➕ ${t("settings.addNew")}`}
+                  {favoriteDir.trim() ? (
+                    <>
+                      <RotateCcw className="mr-2 h-4 w-4" />
+                      {t("common.reset")}
+                    </>
+                  ) : (
+                    <>
+                      <Plus className="mr-2 h-4 w-4" />
+                      {t("settings.addNew")}
+                    </>
+                  )}
                 </Button>
               </div>
             </div>
