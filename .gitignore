@@ -22,3 +22,6 @@ backend/.backend-dev.log
 /data/index.db-shm
 /data/index.db-wal
 /release/
+
+# Coser database (contains personal data)
+backend/app/file_processing/name_parser/coser_names.idx
