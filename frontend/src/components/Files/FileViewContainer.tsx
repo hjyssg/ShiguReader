@@ -1,5 +1,6 @@
 // 文件视图容器 — 集成选择、右键菜单、键盘快捷键、对话框
 import { ArrowDown, ArrowUp, LayoutGrid, LayoutList, List } from "lucide-react"
+import { Link } from "@tanstack/react-router"
 import {
   type ReactNode,
   useCallback,
@@ -430,38 +431,56 @@ export function FileViewContainer({
 
   // 混合视图：文件名列表行渲染（用于 folder / video section）
   const renderNameListItem = useCallback(
-    (item: FileSystemItem) => (
-      <FileContextMenu
-        key={item.path}
-        item={item}
-        isOpenable={isOpenable(item)}
-        actions={buildContextMenuActions(item)}
-        onContextMenuOpen={() => handleItemContextMenu(item)}
-      >
-        <div
-          className={cn(
-            "file-item-wrapper flex items-center gap-2 px-3 py-1.5 rounded-md cursor-pointer transition-colors hover:bg-accent/50",
-          )}
-          onClick={(e) => handleItemClick(item, e)}
-          onDoubleClick={(e) => handleItemDoubleClick(item, e)}
+    (item: FileSystemItem) => {
+      const linkProps =
+        item.item_type === "folder"
+          ? {
+              to: "/explorer" as const,
+              search: { path: item.path },
+            }
+          : {
+              to: "/video" as const,
+              search: {
+                path: item.path,
+                entry: undefined,
+                media: "video" as const,
+              },
+            }
+
+      return (
+        <FileContextMenu
+          key={item.path}
+          item={item}
+          isOpenable={isOpenable(item)}
+          actions={buildContextMenuActions(item)}
+          onContextMenuOpen={() => handleItemContextMenu(item)}
         >
-          <FileIcon
-            fileType={item.file_type}
-            isFolder={item.item_type === "folder"}
-            size="sm"
-          />
-          <span className="text-sm truncate" title={item.name}>
-            {item.name}
-          </span>
-        </div>
-      </FileContextMenu>
-    ),
+          <Link
+            {...linkProps}
+            className={cn(
+              "file-item-wrapper group flex items-center gap-2 px-3 py-1.5 rounded-md cursor-pointer transition-colors hover:bg-accent/50",
+            )}
+          >
+            <FileIcon
+              fileType={item.file_type}
+              isFolder={item.item_type === "folder"}
+              size="sm"
+              className="shrink-0"
+            />
+            <span
+              className="min-w-0 text-sm truncate group-hover:underline"
+              title={item.name}
+            >
+              {item.name}
+            </span>
+          </Link>
+        </FileContextMenu>
+      )
+    },
     [
       isOpenable,
       buildContextMenuActions,
       handleItemContextMenu,
-      handleItemClick,
-      handleItemDoubleClick,
     ],
   )
 

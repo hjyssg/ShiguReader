@@ -66,5 +66,18 @@ scan and watch subfolders的时候看不到进度。
 
 
 
-# task想在windows的file explorer可以右键
+# task
+想在windows的file explorer可以右键
 打开文件、文件夹
+
+打开的时候，如果前端服务器没启动。我想要有youtube那种空白页面说服务器没启动。
+
+# video 页面的breadcrumb把filename显示了两次
+# reader的图片在加载出来前会显示broken。是因为反复确认图片存在与否吗。感觉api/v1/fs/archive/extract，可以在第一张图存在后再返回（但你要思考没图的时候怎么办）
+# i18的bug
+
+    "cacheClearedDetail": "Deleted {count} files, freed {size}",
+        "fileNotFoundMessage": "Cannot find file: {fileName}",
+    "loadErrorMessage": "Error loading file: {errorMessage}",
+
+  显示的{}的数值没被替换，因为没做空值处理吗

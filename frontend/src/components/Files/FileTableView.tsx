@@ -173,7 +173,6 @@ function TableRowItem({
             fileType={item.file_type}
             isFolder={isFolder}
             size="sm"
-            className="shrink-0"
           />
           <FileNameWithPreview
             filename={item.name}
