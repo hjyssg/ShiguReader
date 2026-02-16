@@ -54,6 +54,16 @@ function AuthorsPage() {
   const navigate = useNavigate()
   const { page, sort_by, sort_order } = Route.useSearch()
   const pageSize = 24
+  const buildSearchHref = (q: string) => {
+    const params = new URLSearchParams({
+      q,
+      mode: "hybrid",
+      page: "1",
+      presenceFilter: "all",
+    })
+    params.append("scopes", "author")
+    return `/search?${params.toString()}`
+  }
 
   const { data, isLoading } = useQuery({
     queryKey: ["authors", page, pageSize, sort_by, sort_order],
@@ -151,18 +161,7 @@ function AuthorsPage() {
             },
           })
         }}
-        onCardClick={(item) => {
-          navigate({
-            to: "/search",
-            search: {
-              q: item.name,
-              scopes: ["author"],
-              mode: "hybrid",
-              page: 1,
-              presenceFilter: "all",
-            },
-          })
-        }}
+        getItemHref={(item) => buildSearchHref(item.name)}
         emptyText={t("authors.empty")}
       />
     </div>

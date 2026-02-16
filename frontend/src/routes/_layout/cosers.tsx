@@ -54,6 +54,16 @@ function CosersPage() {
   const navigate = useNavigate()
   const { page, sort_by, sort_order } = Route.useSearch()
   const pageSize = 24
+  const buildSearchHref = (q: string) => {
+    const params = new URLSearchParams({
+      q,
+      mode: "hybrid",
+      page: "1",
+      presenceFilter: "all",
+    })
+    params.append("scopes", "coser")
+    return `/search?${params.toString()}`
+  }
 
   const { data, isLoading } = useQuery({
     queryKey: ["cosers", page, pageSize, sort_by, sort_order],
@@ -151,18 +161,7 @@ function CosersPage() {
             },
           })
         }}
-        onCardClick={(item) => {
-          navigate({
-            to: "/search",
-            search: {
-              q: item.name,
-              scopes: ["coser"],
-              mode: "hybrid",
-              page: 1,
-              presenceFilter: "all",
-            },
-          })
-        }}
+        getItemHref={(item) => buildSearchHref(item.name)}
         emptyText={t("cosers.empty")}
       />
     </div>

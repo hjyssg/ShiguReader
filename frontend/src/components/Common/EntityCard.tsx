@@ -1,6 +1,5 @@
 // 业务实体卡片组件，用于展示作者、标签等
 import { Image as ImageIcon } from "lucide-react"
-import type { MouseEvent } from "react"
 
 import { OpenAPI } from "@/client"
 import { CardInfo, CardThumbnail, ItemCard } from "@/components/semantic/layout"
@@ -14,20 +13,15 @@ export type EntityCardItem = {
 
 export function EntityCard({
   item,
-  onClick,
+  href,
 }: {
   item: EntityCardItem
-  onClick?: () => void
+  href?: string
 }) {
-  const handleLinkClick = (e: MouseEvent<HTMLAnchorElement>) => {
-    e.preventDefault()
-    onClick?.()
-  }
-
   return (
     <ItemCard title={item.name} className="entity-card">
-      {onClick ? (
-        <a href="#" className="block focus-visible:outline-none" onClick={handleLinkClick}>
+      {href ? (
+        <a href={href} className="block focus-visible:outline-none">
           {item.thumbnail ? (
             <ThumbnailImage
               src={`${OpenAPI.BASE}${item.thumbnail}`}
@@ -53,12 +47,11 @@ export function EntityCard({
       )}
 
       <CardInfo className="entity-info">
-        {onClick ? (
+        {href ? (
           <a
             className="text-sm truncate block hover:underline"
-            href="#"
+            href={href}
             title={item.name}
-            onClick={handleLinkClick}
           >
             {item.name}
           </a>
