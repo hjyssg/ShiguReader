@@ -580,15 +580,15 @@ export function FileViewContainer({
             value={sortField}
             onValueChange={(v) => setSortField(v as SortField)}
           >
-            <SelectTrigger className="w-[140px] h-8">
-              <SelectValue />
+            <SelectTrigger className="h-8 w-[140px] text-xs leading-none">
+              <SelectValue className="text-xs" />
             </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="name">Name</SelectItem>
-              <SelectItem value="type">Type</SelectItem>
-              <SelectItem value="mtime">Date Modified</SelectItem>
-              <SelectItem value="recommendation">Recommendation</SelectItem>
-              <SelectItem value="image_count">Image Count</SelectItem>
+            <SelectContent className="text-xs">
+              <SelectItem className="text-xs" value="name">Name</SelectItem>
+              <SelectItem className="text-xs" value="type">Type</SelectItem>
+              <SelectItem className="text-xs" value="mtime">Date Modified</SelectItem>
+              <SelectItem className="text-xs" value="recommendation">Recommendation</SelectItem>
+              <SelectItem className="text-xs" value="image_count">Image Count</SelectItem>
             </SelectContent>
           </Select>
           <SortDirectionToggle
