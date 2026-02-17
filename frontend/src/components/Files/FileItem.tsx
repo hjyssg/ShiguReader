@@ -81,6 +81,20 @@ export function FileItem({
     </FileName>
   )
 
+  const thumbcard = (<CardThumbnail className="file-card-thumbnail">
+            {item.thumbnail_url ? (
+              <ThumbnailImage
+                src={`${OpenAPI.BASE}${item.thumbnail_url}`}
+                alt={item.name}
+                fallback={
+                  <FileIcon fileType={item.file_type} isFolder={isFolder} />
+                }
+              />
+            ) : (
+              <FileIcon fileType={item.file_type} isFolder={isFolder} />
+            )}
+          </CardThumbnail>)
+
   return (
     <div
       className={cn("file-item-root", isSelected && "file-item-root--selected")}
@@ -97,34 +111,10 @@ export function FileItem({
 
         {href ? (
           <a href={href} className="file-item-thumbnail-link" draggable={false}>
-            <CardThumbnail className="file-card-thumbnail">
-              {item.thumbnail_url ? (
-                <ThumbnailImage
-                  src={`${OpenAPI.BASE}${item.thumbnail_url}`}
-                  alt={item.name}
-                  fallback={
-                    <FileIcon fileType={item.file_type} isFolder={isFolder} />
-                  }
-                />
-              ) : (
-                <FileIcon fileType={item.file_type} isFolder={isFolder} />
-              )}
-            </CardThumbnail>
+            {thumbcard}
           </a>
         ) : (
-          <CardThumbnail className="file-card-thumbnail">
-            {item.thumbnail_url ? (
-              <ThumbnailImage
-                src={`${OpenAPI.BASE}${item.thumbnail_url}`}
-                alt={item.name}
-                fallback={
-                  <FileIcon fileType={item.file_type} isFolder={isFolder} />
-                }
-              />
-            ) : (
-              <FileIcon fileType={item.file_type} isFolder={isFolder} />
-            )}
-          </CardThumbnail>
+          thumbcard
         )}
 
         <CardInfo className="file-item-info">
