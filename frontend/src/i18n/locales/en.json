@@ -39,7 +39,9 @@
     "activityFilterSystem": "System Tasks",
     "activityEmptyHint": "Startup tasks will appear here after server boot.",
     "retry": "Retry",
-    "scannedFiles": "Scanned Files"
+    "scannedFiles": "Scanned Files",
+    "topOpenedFolders": "Most Opened Folders",
+    "noTopOpenedFolders": "No frequently opened folders in the last 90 days"
   },
   "explorer": {
     "scan": "Scan",

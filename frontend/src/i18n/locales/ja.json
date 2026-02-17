@@ -39,7 +39,9 @@
     "activityFilterSystem": "システムタスク",
     "activityEmptyHint": "サーバー起動後、ここに自動タスクが表示されます。",
     "retry": "再試行",
-    "scannedFiles": "スキャン済みファイル"
+    "scannedFiles": "スキャン済みファイル",
+    "topOpenedFolders": "よく開くフォルダ",
+    "noTopOpenedFolders": "直近90日でよく開くフォルダのデータはありません"
   },
   "explorer": {
     "scan": "スキャン",
