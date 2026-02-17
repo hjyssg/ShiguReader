@@ -186,9 +186,6 @@
   border-color: var(--primary);
 }
 
-.home-activity-item__icon.is-spinning {
-  animation: home-spin 1s linear infinite;
-}
 
 .home-activity-item__icon.is-failed {
   color: #ef4444;

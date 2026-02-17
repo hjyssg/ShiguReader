@@ -79,7 +79,7 @@ export function RecentActivityPanel({ items }: Props) {
         const isFailed = item.status === "failed"
         const icon =
           item.status === "running" || item.status === "started" ? (
-            <Loader2 className="home-activity-item__icon is-spinning" />
+            <Loader2 className="home-activity-item__icon" />
           ) : item.status === "failed" ? (
             <TriangleAlert className="home-activity-item__icon is-failed" />
           ) : item.activity_type === "cache_cleanup" ? (
