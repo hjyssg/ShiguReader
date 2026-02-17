@@ -1040,9 +1040,10 @@ function ReadPage() {
         onOpenChange={setConfirmFavOpen}
         filePaths={[path]}
         destination="Favorites"
-        onConfirm={() => {
+        showSubfolder
+        onConfirm={(subfolder) => {
           operations.moveToFavoriteMutation.mutate(
-            { sourcePath: path, isFolder: isFolderSource },
+            { sourcePath: path, isFolder: isFolderSource, subfolder },
             {
               onSuccess: () => {
                 setConfirmFavOpen(false)

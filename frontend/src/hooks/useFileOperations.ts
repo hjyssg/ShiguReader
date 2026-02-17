@@ -57,15 +57,25 @@ function apiBackfillFolder(folderPath: string) {
   })
 }
 
-/** 移动到收藏夹目录 */
-async function apiMoveToFavorite(sourcePath: string, isFolder: boolean) {
+/** 移动到收藏夹目录（可选子文件夹，如 good_2026_02_01） */
+async function apiMoveToFavorite(sourcePath: string, isFolder: boolean, subfolder?: string) {
   // 先获取收藏夹目录
   const favResp = await api.get("/api/v1/fs/favorite")
   const favDir = favResp.data?.path
   if (!favDir) throw new Error("Favorite directory not configured")
 
+  const targetDir = subfolder ? `${favDir}/${subfolder}` : favDir
   const fileName = sourcePath.split("/").pop() || sourcePath.split("\\").pop()
-  const destPath = `${favDir}/${fileName}`
+  const destPath = `${targetDir}/${fileName}`
+
+  // 如果使用子文件夹，先确保目录存在（后端 move 会检查 parent）
+  if (subfolder) {
+    try {
+      await api.post("/api/v1/fs/ensure-dir", { path: targetDir })
+    } catch {
+      // 忽略：后端可能没有 ensure-dir，靠 move 自身报错
+    }
+  }
 
   if (isFolder) {
     return FilesystemService.moveFolder({
@@ -199,10 +209,12 @@ export function useFileOperations(currentPath: string) {
     mutationFn: ({
       sourcePath,
       isFolder,
+      subfolder,
     }: {
       sourcePath: string
       isFolder: boolean
-    }) => apiMoveToFavorite(sourcePath, isFolder),
+      subfolder?: string
+    }) => apiMoveToFavorite(sourcePath, isFolder, subfolder),
     onSuccess: () => {
       toast.success("Moved to favorites")
       invalidate()

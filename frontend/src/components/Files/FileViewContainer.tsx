@@ -204,7 +204,7 @@ export function FileViewContainer({
     }
   }, [getTargetPaths])
 
-  const handleConfirmMoveToFavorite = useCallback(() => {
+  const handleConfirmMoveToFavorite = useCallback((subfolder?: string) => {
     const paths = getTargetPaths()
     for (const p of paths) {
       const item = sortedItems.find((i) => i.path === p)
@@ -212,6 +212,7 @@ export function FileViewContainer({
         operations.moveToFavoriteMutation.mutate({
           sourcePath: p,
           isFolder: item.item_type === "folder",
+          subfolder,
         })
       }
     }
@@ -817,6 +818,7 @@ export function FileViewContainer({
         onOpenChange={setConfirmFavoriteOpen}
         filePaths={getTargetPaths()}
         destination="Favorites"
+        showSubfolder
         onConfirm={handleConfirmMoveToFavorite}
         isPending={operations.moveToFavoriteMutation.isPending}
       />

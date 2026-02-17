@@ -1585,6 +1585,21 @@ def list_directory(
     return ListResponse(items=items)
 
 
+# 接口说明：确保目录存在（不存在则创建）。
+class EnsureDirRequest(BaseModel):
+    path: str
+
+
+@router.post("/ensure-dir", response_model=PathOperationResponse)
+def ensure_dir(request: EnsureDirRequest) -> PathOperationResponse:
+    """Ensure a directory exists, creating it if necessary."""
+    target = _validate_path(Path(request.path))
+    if target.exists() and not target.is_dir():
+        raise HTTPException(status_code=400, detail="Path exists but is not a directory")
+    target.mkdir(parents=True, exist_ok=True)
+    return PathOperationResponse(status="ok", message="Directory ensured", path=str(target))
+
+
 # 接口说明：移动单个文件。
 @router.post("/move-file", response_model=PathOperationResponse)
 def move_file(request: MovePathRequest) -> PathOperationResponse:
