@@ -25,6 +25,7 @@ from dataclasses import dataclass
 from time import time
 from typing import Iterator, TypeVar
 
+from sqlalchemy import exists
 from sqlmodel import Session, func, select
 
 from app.index_db.db import index_write_guard
@@ -873,6 +874,27 @@ class IndexRepository:
     # Path maintenance helpers
     # ------------------------------------------------------------------
 
+    def _prune_orphan_tags_and_artists(self) -> None:
+        """删除没有任何文件关联的 tag / artist 主表孤儿记录。"""
+        orphan_tags = self.session.exec(
+            select(Tag).where(
+                ~exists().where(FileTag.tag_name == Tag.tag_name)
+            )
+        ).all()
+        for row in orphan_tags:
+            self.session.delete(row)
+
+        orphan_artists = self.session.exec(
+            select(Artist).where(
+                ~exists().where(FileArtist.artist_name == Artist.artist_name)
+            )
+        ).all()
+        for row in orphan_artists:
+            self.session.delete(row)
+
+        if orphan_tags or orphan_artists:
+            self._commit()
+
     def delete_file(self, filepath: str) -> None:
         """Delete a single file row when it exists."""
         file = self.session.get(File, filepath)
@@ -880,6 +902,7 @@ class IndexRepository:
             return
         self.session.delete(file)
         self._commit()
+        self._prune_orphan_tags_and_artists()
 
     def delete_paths_by_prefix(self, prefix: str) -> None:
         """Delete all file/folder rows whose filepath starts with prefix."""
@@ -892,6 +915,7 @@ class IndexRepository:
             self.session.delete(folder)
 
         self._commit()
+        self._prune_orphan_tags_and_artists()
 
     # ------------------------------------------------------------------
     # Recommendation helpers
