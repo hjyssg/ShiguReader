@@ -30,12 +30,14 @@ from sqlmodel import Session, func, select
 from app.index_db.db import index_write_guard
 from app.index_db.confidence import SCAN_FRESH_WINDOW_SEC
 from app.index_db.models import (
+    ActivityLog,
     ArchiveMeta,
     Artist,
     File,
     FileArtist,
     FileTag,
     Folder,
+    FolderOpenHistory,
     ParsedMetadata,
     Progress,
     Tag,
@@ -57,6 +59,14 @@ def _iter_chunks(items: list[T], chunk_size: int) -> Iterator[list[T]]:
     for i in range(0, len(items), chunk_size):
         yield items[i : i + chunk_size]
 
+
+
+
+@dataclass(slots=True)
+class ActivityLogInput:
+    activity_type: str
+    message: str
+    target_path: str | None = None
 
 @dataclass(slots=True)
 class UpsertFolderInput:
@@ -335,6 +345,54 @@ class IndexRepository:
         self._commit()
         self.session.refresh(meta)
         return meta
+
+    def record_folder_open(self, folderpath: str) -> FolderOpenHistory:
+        now = _now_ts()
+        row = self.session.get(FolderOpenHistory, folderpath)
+        if row is None:
+            row = FolderOpenHistory(
+                folderpath=folderpath,
+                last_opened_at=now,
+                open_count=1,
+                updated_at=now,
+            )
+            self.session.add(row)
+            self._commit()
+            self.session.refresh(row)
+            return row
+
+        row.last_opened_at = now
+        row.open_count += 1
+        row.updated_at = now
+        self.session.add(row)
+        self._commit()
+        self.session.refresh(row)
+        return row
+
+    def log_activity(self, data: ActivityLogInput) -> ActivityLog:
+        row = ActivityLog(
+            activity_type=data.activity_type,
+            message=data.message,
+            target_path=data.target_path,
+            created_at=_now_ts(),
+        )
+        self.session.add(row)
+        self._commit()
+        self.session.refresh(row)
+        return row
+
+    def list_activity_logs(self, limit: int = 10) -> list[ActivityLog]:
+        stmt = select(ActivityLog).order_by(ActivityLog.created_at.desc(), ActivityLog.id.desc()).limit(limit)
+        return list(self.session.exec(stmt).all())
+
+    def count_files_by_type(self, file_type: str) -> int:
+        stmt = select(func.count()).select_from(File).where(File.file_type == file_type).where(File.scan_state == 1)
+        return int(self.session.exec(stmt).one())
+
+    def count_folders(self) -> int:
+        stmt = select(func.count()).select_from(Folder).where(Folder.scan_state == 1)
+        return int(self.session.exec(stmt).one())
+
 
     def upsert_progress(
         self,

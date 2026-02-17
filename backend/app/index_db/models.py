@@ -100,6 +100,24 @@ class VideoMeta(SQLModel, table=True):
     scanned_at: int | None = None  # 视频元信息扫描时间
 
 
+class FolderOpenHistory(SQLModel, table=True):
+    __tablename__ = "folder_open_history"
+
+    folderpath: str = Field(primary_key=True, foreign_key="folders.filepath")
+    last_opened_at: int = Field(default_factory=_ts_now)
+    open_count: int = 1
+    updated_at: int = Field(default_factory=_ts_now)
+
+
+class ActivityLog(SQLModel, table=True):
+    __tablename__ = "activity_logs"
+
+    id: int | None = Field(default=None, primary_key=True)
+    activity_type: str
+    message: str
+    target_path: str | None = None
+    created_at: int = Field(default_factory=_ts_now)
+
 class Progress(SQLModel, table=True):
     __tablename__ = "progress"
 

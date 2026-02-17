@@ -12,6 +12,8 @@ from fastapi.testclient import TestClient
 from app.api.routes import fs as fs_route
 from app.core.config import settings
 from app.main import app
+from app.index_db.db import get_index_session
+from app.index_db.models import FolderOpenHistory
 
 
 @pytest.fixture
@@ -953,3 +955,36 @@ def test_build_folder_sync_mappings_creates_missing_parent_rows() -> None:
 
     updated_paths = {item["filepath"] for item in to_update}
     assert "/data/existing_dir" in updated_paths
+
+
+def test_list_directory_records_folder_open(client_with_root: TestClient, test_fs_root: Path) -> None:
+    response = client_with_root.get(f"/api/v1/fs/list?path={test_fs_root}")
+    assert response.status_code == 200
+
+    with get_index_session() as session:
+        row = session.get(FolderOpenHistory, str(test_fs_root))
+        assert row is not None
+        assert row.open_count >= 1
+
+
+def test_recent_activity_and_library_overview(client_with_root: TestClient, test_fs_root: Path) -> None:
+    (test_fs_root / "book.zip").write_bytes(b"zip")
+    (test_fs_root / "song.mp3").write_bytes(b"audio")
+
+    # 触发扫描并写入 activity
+    scan_resp = client_with_root.post(
+        "/api/v1/fs/scan",
+        json={"path": str(test_fs_root), "recursive": False},
+    )
+    assert scan_resp.status_code == 200
+
+    activity_resp = client_with_root.get("/api/v1/fs/recent-activity?limit=10")
+    assert activity_resp.status_code == 200
+    items = activity_resp.json()["items"]
+    assert len(items) >= 1
+    assert any(item["activity_type"] == "scan" for item in items)
+
+    overview_resp = client_with_root.get("/api/v1/fs/library-overview")
+    assert overview_resp.status_code == 200
+    payload = overview_resp.json()
+    assert set(payload.keys()) == {"archives", "videos", "images", "audio", "folders"}

@@ -32,7 +32,9 @@
     "specialFolders": "特別フォルダー",
     "configuredDirs": "設定済みディレクトリ",
     "favorite": "お気に入り",
-    "alreadyRead": "既読"
+    "alreadyRead": "既読",
+    "recentActivity": "最近のアクティビティ",
+    "libraryOverview": "ライブラリ概要"
   },
   "explorer": {
     "scan": "スキャン",

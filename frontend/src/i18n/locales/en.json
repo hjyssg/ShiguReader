@@ -32,7 +32,9 @@
     "specialFolders": "Special Folders",
     "configuredDirs": "Configured Directories",
     "favorite": "Favorite",
-    "alreadyRead": "Already Read"
+    "alreadyRead": "Already Read",
+    "recentActivity": "Recent Activity",
+    "libraryOverview": "Library Overview"
   },
   "explorer": {
     "scan": "Scan",
