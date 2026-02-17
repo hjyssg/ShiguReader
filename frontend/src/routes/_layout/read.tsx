@@ -17,6 +17,8 @@ import {
 import { useEffect, useMemo, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 
+import axios from "axios"
+
 import { FilesystemService, OpenAPI, ParseService } from "@/client"
 import { FileNotFoundError } from "@/components/Common/FileNotFoundError"
 import { PathBreadcrumb } from "@/components/Common/PathBreadcrumb"
@@ -89,6 +91,7 @@ function ReadPage() {
     useState<CompressAction>("zip-folder")
   const [confirmFavOpen, setConfirmFavOpen] = useState(false)
   const [confirmReadOpen, setConfirmReadOpen] = useState(false)
+  const [resolving, setResolving] = useState(false)
   const isArchiveSource = !isFolderSource
 
   const dragRef = useRef({ startX: 0, startY: 0, startTx: 0, startTy: 0 })
@@ -431,6 +434,48 @@ function ReadPage() {
   const authors = parseMeta?.authors ?? []
   const cosers = parseMeta?.cosers ?? []
   const tags = parseMeta?.raw_tags ?? []
+
+  // 文件被移动后自动跳转新路径
+  const hasError = listError || folderError
+  const errorMessage = hasError
+    ? ((listError as any)?.body?.detail ||
+       (folderError as any)?.body?.detail ||
+       t("reader.unknownError"))
+    : ""
+  const isNotFound = !!(hasError && (
+    errorMessage.includes("not found") ||
+    errorMessage.includes("Not found") ||
+    errorMessage.includes("404")
+  ))
+
+  useEffect(() => {
+    if (!isNotFound || resolving) return
+    setResolving(true)
+
+    const filename = path.split("/").pop() || path.split("\\").pop() || ""
+    if (!filename) {
+      setResolving(false)
+      return
+    }
+
+    axios
+      .get("/api/v1/fs/resolve-path", {
+        params: { filename, old_path: path },
+      })
+      .then((resp) => {
+        const newPath = resp.data?.path
+        if (newPath && newPath !== path) {
+          navigate({
+            to: "/read",
+            search: { path: newPath, page, source, filePath: "" },
+            replace: true,
+          })
+        }
+      })
+      .catch(() => {})
+      .finally(() => setResolving(false))
+  }, [isNotFound, path, page, source, navigate, resolving])
+
   if (isLoading || isFolderLoading) {
     return (
       <div className="space-y-6">
@@ -440,17 +485,15 @@ function ReadPage() {
     )
   }
 
-  // 检查文件是否存在
-  const hasError = listError || folderError
   if (hasError) {
-    const errorMessage =
-      (listError as any)?.body?.detail ||
-      (folderError as any)?.body?.detail ||
-      t("reader.unknownError")
-    const isNotFound =
-      errorMessage.includes("not found") ||
-      errorMessage.includes("Not found") ||
-      errorMessage.includes("404")
+    if (resolving) {
+      return (
+        <div className="space-y-6">
+          <Skeleton className="h-8 w-64" />
+          <Skeleton className="h-[70vh] w-full" />
+        </div>
+      )
+    }
 
     return (
       <FileNotFoundError

@@ -1585,6 +1585,51 @@ def list_directory(
     return ListResponse(items=items)
 
 
+# 接口说明：根据文件名查找文件的最新路径（用于文件被移动后的重定向）。
+class ResolvePathResponse(BaseModel):
+    found: bool
+    path: str | None = None
+
+
+@router.get("/resolve-path", response_model=ResolvePathResponse)
+def resolve_path(
+    filename: str = Query(..., description="文件名"),
+    old_path: str = Query("", description="旧路径（用于排除）"),
+) -> ResolvePathResponse:
+    """通过文件名在索引库中查找文件的最新路径。
+
+    用于文件被移动后，reader 页面自动跳转到新位置。
+    只返回 scan_state=1（存在）且文件系统上确实存在的结果。
+    """
+    if not filename.strip():
+        return ResolvePathResponse(found=False)
+
+    try:
+        with get_index_session() as session:
+            repo = IndexRepository(session)
+            # 按 filename 查找，优先最近 seen 的
+            stmt = (
+                select(File.filepath)
+                .where(File.filename == filename.strip())
+                .where(File.scan_state == 1)
+                .order_by(File.last_seen_at.desc())
+                .limit(5)
+            )
+            candidates = list(session.exec(stmt).all())
+
+            for candidate in candidates:
+                if candidate == old_path.strip():
+                    continue
+                # 确认文件系统上真实存在
+                if Path(candidate).exists():
+                    return ResolvePathResponse(found=True, path=candidate)
+
+        return ResolvePathResponse(found=False)
+    except Exception as e:
+        logger.warning("resolve-path failed for filename=%s: %s", filename, e)
+        return ResolvePathResponse(found=False)
+
+
 # 接口说明：确保目录存在（不存在则创建）。
 class EnsureDirRequest(BaseModel):
     path: str
