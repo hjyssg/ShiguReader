@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react"
-import { CheckCircle2, History, Loader2, RefreshCw, TriangleAlert, Database, ScanSearch, Trash2 } from "lucide-react"
+import { RefreshCw } from "lucide-react"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { useTranslation } from "react-i18next"
 
@@ -77,26 +77,9 @@ export function RecentActivityPanel({ items }: Props) {
 
       {filteredItems.map((item) => {
         const isFailed = item.status === "failed"
-        const icon =
-          item.status === "running" || item.status === "started" ? (
-            <Loader2 className="home-activity-item__icon" />
-          ) : item.status === "failed" ? (
-            <TriangleAlert className="home-activity-item__icon is-failed" />
-          ) : item.activity_type === "cache_cleanup" ? (
-            <Trash2 className="home-activity-item__icon" />
-          ) : item.activity_type === "db_sync" ? (
-            <Database className="home-activity-item__icon" />
-          ) : item.activity_type === "scan" ? (
-            <ScanSearch className="home-activity-item__icon" />
-          ) : item.status === "completed" ? (
-            <CheckCircle2 className="home-activity-item__icon is-completed" />
-          ) : (
-            <History className="home-activity-item__icon" />
-          )
 
         return (
           <div key={item.id} className="home-activity-item">
-            {icon}
             <div className="home-activity-item__content">
               <div className="home-activity-item__message">{item.message}</div>
               <div className="home-activity-item__meta">{new Date(item.created_at * 1000).toLocaleString()}</div>
