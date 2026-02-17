@@ -19,6 +19,9 @@ import { formatFileSize } from "./utils"
 import "./FileItem.css"
 
 interface FileItemProps {
+  className?: string
+  metaText?: string
+
   item: FileSystemItem
   /** 是否选中 */
   isSelected?: boolean
@@ -36,6 +39,8 @@ export function FileItem({
   actionSlot,
   onClick,
   onContextMenu,
+  className,
+  metaText,
 }: FileItemProps) {
   const { t } = useTranslation()
   const isMobile = useIsMobile()
@@ -94,7 +99,7 @@ export function FileItem({
 
   return (
     <div
-      className={cn("file-item-root", isSelected && "file-item-root--selected")}
+      className={cn("file-item-root", isSelected && "file-item-root--selected", className)}
       onClick={(e) => {
         const target = e.target as HTMLElement
         if (target.closest("a")) return
@@ -117,6 +122,7 @@ export function FileItem({
           {actionSlot && (
             <div className="file-item-action-slot">{actionSlot}</div>
           )}
+          {metaText && <p className="file-item-meta-text">{metaText}</p>}
           {infoMetrics.length > 0 && (
             <div className="file-item-info-metrics">
               {infoMetrics.map((metric) => (
