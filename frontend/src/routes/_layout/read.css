@@ -5,15 +5,43 @@
 }
 
 .reader-toolbar {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  gap: 0.375rem;
-  padding: 0.5rem 1rem;
+  padding: 0.25rem 1rem;
   color: hsl(var(--muted-foreground));
   font-size: 0.75rem;
   border-bottom: 1px solid hsl(var(--border));
   background: hsl(var(--background) / 0.95);
   flex-shrink: 0;
+  min-height: 2.5rem;
+}
+
+.reader-toolbar__left {
+  display: flex;
+  align-items: center;
+}
+
+.reader-toolbar__center {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  justify-content: center;
+  min-width: 0;
+  /* Allow shrinking */
+}
+
+.reader-toolbar__favicon {
+  width: 1.25rem;
+  height: 1.25rem;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.reader-toolbar__right {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
 }
 
 .reader-toolbar__home-link {
@@ -53,7 +81,6 @@
 }
 
 .reader-toolbar__actions {
-  margin-left: auto;
   display: flex;
   align-items: center;
   gap: 0.25rem;
