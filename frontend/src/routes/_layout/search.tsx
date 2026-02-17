@@ -210,25 +210,6 @@ function SearchPage() {
           </Button>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
-          <Label className="text-sm text-muted-foreground">Open in new tab</Label>
-          {externalLinks.map((item) => (
-            <Button
-              key={item.label}
-              asChild
-              variant="outline"
-              size="sm"
-              disabled={!trimmedQ}
-              className="h-8"
-            >
-              <a href={item.href} target="_blank" rel="noreferrer noopener">
-                <ExternalLink className="size-3.5 mr-1" />
-                {item.label}
-              </a>
-            </Button>
-          ))}
-        </div>
-
         <div className="flex flex-wrap items-center gap-6">
           <div className="flex items-center gap-4">
             <Label className="text-sm">{t("search.scope")}</Label>
@@ -290,6 +271,24 @@ function SearchPage() {
               </SelectContent>
             </Select>
           </div>
+        </div>
+
+                <div className="flex flex-wrap items-center gap-2">
+          {externalLinks.map((item) => (
+            <Button
+              key={item.label}
+              asChild
+              variant="outline"
+              size="sm"
+              disabled={!trimmedQ}
+              className="h-8"
+            >
+              <a href={item.href} target="_blank" rel="noreferrer noopener">
+                <ExternalLink className="size-3.5 mr-1" />
+                {item.label}
+              </a>
+            </Button>
+          ))}
         </div>
       </div>
 
