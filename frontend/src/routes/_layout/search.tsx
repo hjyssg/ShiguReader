@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query"
 import { createFileRoute, useNavigate } from "@tanstack/react-router"
-import { Search } from "lucide-react"
+import { ExternalLink, Search } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 
@@ -168,6 +168,21 @@ function SearchPage() {
     }
   }
 
+  const trimmedQ = submittedQ.trim()
+  const externalLinks = useMemo(
+    () => [
+      {
+        label: "ExHentai",
+        href: `https://exhentai.org/?f_search=${encodeURIComponent(trimmedQ)}`,
+      },
+      {
+        label: "Sukebei",
+        href: `https://sukebei.nyaa.si/?f=0&c=0_0&q=${encodeURIComponent(trimmedQ)}`,
+      },
+    ],
+    [trimmedQ],
+  )
+
   return (
     <div className="space-y-6">
       <div className="space-y-2">
@@ -193,6 +208,25 @@ function SearchPage() {
             <Search className="size-4 mr-1" />
             {t("search.searchButton")}
           </Button>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2">
+          <Label className="text-sm text-muted-foreground">Open in new tab</Label>
+          {externalLinks.map((item) => (
+            <Button
+              key={item.label}
+              asChild
+              variant="outline"
+              size="sm"
+              disabled={!trimmedQ}
+              className="h-8"
+            >
+              <a href={item.href} target="_blank" rel="noreferrer noopener">
+                <ExternalLink className="size-3.5 mr-1" />
+                {item.label}
+              </a>
+            </Button>
+          ))}
         </div>
 
         <div className="flex flex-wrap items-center gap-6">
