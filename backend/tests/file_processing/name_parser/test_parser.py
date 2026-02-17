@@ -198,6 +198,16 @@ class TestTagExtraction:
         assert r is not None
         assert "修正版" not in r.raw_tags
 
+    def test_numeric_tags_filtered(self):
+        r = parse("[作者] 作品名 (131715678).zip")
+        assert r is not None
+        assert "131715678" not in r.raw_tags
+
+    def test_non_pure_numeric_tags_kept(self):
+        r = parse("[作者] 作品名 (C101).zip")
+        assert r is not None
+        assert "C101" in r.raw_tags or r.event == "C101"
+
 
 # ---------------------------------------------------------------------------
 # Title extraction

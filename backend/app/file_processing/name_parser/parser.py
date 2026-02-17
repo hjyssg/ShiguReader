@@ -151,6 +151,7 @@ def _parse_cosplay(text: str, b_matches: list[str], p_matches: list[str]) -> Par
         and t not in coser_set
         and not _classify_misc(t)
         and not is_useless_tag(t)
+        and not t.isdigit()
     ]
 
     # 去重保序
@@ -363,6 +364,7 @@ def parse(text: str) -> ParseResult | None:
         and t not in author_set
         and not is_useless_tag(t)
         and not is_media_type(t)
+        and not t.isdigit()
     ]
 
     # ------------------------------------------------------------------
