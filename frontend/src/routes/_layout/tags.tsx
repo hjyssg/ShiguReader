@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next"
 
 import { OpenAPI } from "@/client"
 import { EntityGrid } from "@/components/Common/EntityGrid"
+import { SortDirectionToggle } from "@/components/Common/SortDirectionToggle"
 import { Label } from "@/components/ui/label"
 import {
   Select,
@@ -119,27 +120,22 @@ function TagsPage() {
 
         <div className="flex items-center gap-2">
           <Label className="text-sm">{t("tags.sortDirection")}</Label>
-          <Select
+          <SortDirectionToggle
             value={sort_order}
-            onValueChange={(v) => {
+            title={
+              sort_order === "asc" ? t("tags.ascending") : t("tags.descending")
+            }
+            onToggle={() => {
               navigate({
                 to: "/tags",
                 search: {
                   page: 1,
                   sort_by,
-                  sort_order: v as SortOrder,
+                  sort_order: sort_order === "asc" ? "desc" : "asc",
                 },
               })
             }}
-          >
-            <SelectTrigger className="w-[140px] h-8">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="desc">{t("tags.descending")}</SelectItem>
-              <SelectItem value="asc">{t("tags.ascending")}</SelectItem>
-            </SelectContent>
-          </Select>
+          />
         </div>
       </div>
 

@@ -86,6 +86,26 @@ def _normalize_person_name(token: str) -> str:
     return name.strip(" -_")
 
 
+
+
+def _normalize_cosers_by_db(candidates: list[str]) -> list[str]:
+    """Keep only coser names that can be mapped by coser DB (main name / alias)."""
+    if not candidates:
+        return []
+
+    try:
+        from app.file_processing.name_parser.coser_db import lookup_coser
+    except Exception:
+        return []
+
+    normalized: list[str] = []
+    for name in candidates:
+        mapped = lookup_coser(name)
+        if mapped:
+            normalized.append(mapped)
+
+    return list(dict.fromkeys(normalized))
+
 def _parse_cosplay(text: str, b_matches: list[str], p_matches: list[str]) -> ParseResult | None:
     """Cosplay filename parser.
     """
@@ -158,18 +178,8 @@ def _parse_cosplay(text: str, b_matches: list[str], p_matches: list[str]) -> Par
     cosers = list(dict.fromkeys(cosers))
     raw_tags = list(dict.fromkeys(raw_tags))
 
-    # 标准化 coser 名字（使用数据库查找）
-    # 直接从原始文本中用 Aho-Corasick 查找，避免循环
-    try:
-        from app.file_processing.name_parser.coser_db import find_cosers_in_text
-        # 从原始文本中查找所有匹配的coser（比循环快得多）
-        db_cosers = find_cosers_in_text(text)
-        if db_cosers:
-            # 如果数据库找到了coser，使用数据库结果
-            cosers = db_cosers
-    except Exception:
-        # 如果数据库不存在或出错，保持原解析结果
-        pass
+    # 只保留名单内（主名/别名可映射）的 coser，避免误识别漫画家名
+    cosers = _normalize_cosers_by_db(cosers)
 
     title = _BRACKET_RE.sub("", text)
     title = _PAREN_RE.sub("", title)

@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router"
 import { ChevronRight, Folder, Home } from "lucide-react"
-import type { ReactNode } from "react"
+import type { MouseEvent, ReactNode } from "react"
 
 import { joinPath, splitPath } from "@/lib/path-utils"
 import { cn } from "@/lib/utils"
@@ -14,6 +14,32 @@ type ExtraCrumb = {
   className?: string
   wrapperClassName?: string
   icon?: ReactNode
+}
+
+
+
+function getTitleText(value: ReactNode): string | undefined {
+  if (typeof value === "string" || typeof value === "number") {
+    return String(value)
+  }
+  return undefined
+}
+
+async function copyText(text: string) {
+  if (!text) return
+  try {
+    await navigator.clipboard.writeText(text)
+  } catch {
+    const el = document.createElement("textarea")
+    el.value = text
+    el.setAttribute("readonly", "")
+    el.style.position = "fixed"
+    el.style.opacity = "0"
+    document.body.appendChild(el)
+    el.select()
+    document.execCommand("copy")
+    document.body.removeChild(el)
+  }
 }
 
 interface PathBreadcrumbProps {
@@ -104,6 +130,7 @@ export function PathBreadcrumb({
             to={dirTo}
             search={{ path: crumb.path }}
             className={dirLinkClassName}
+            title={crumb.name}
           >
             {showFolderIcon ? <Folder className={folderIconClassName} /> : null}
             {crumb.name}
@@ -128,11 +155,12 @@ export function PathBreadcrumb({
                 to={crumb.to}
                 search={crumb.search}
                 className={extraClassName}
+                title={getTitleText(crumb.label)}
               >
                 {content}
               </Link>
             ) : (
-              <span className={extraClassName}>{content}</span>
+              <span className={extraClassName} title={getTitleText(crumb.label)}>{content}</span>
             )}
           </div>
         )
@@ -145,12 +173,23 @@ export function PathBreadcrumb({
             <Link
               to={currentTo}
               search={currentSearch}
-              className={currentClassName}
+              className={cn(currentClassName, "cursor-copy")}
+              title={getTitleText(currentLabel)}
+              onClick={(e: MouseEvent<HTMLAnchorElement>) => {
+                e.preventDefault()
+                copyText(getTitleText(currentLabel) ?? "")
+              }}
             >
               {currentLabel}
             </Link>
           ) : (
-            <span className={currentClassName}>{currentLabel}</span>
+            <span
+              className={cn(currentClassName, "cursor-copy")}
+              title={getTitleText(currentLabel)}
+              onClick={() => copyText(getTitleText(currentLabel) ?? "")}
+            >
+              {currentLabel}
+            </span>
           )}
         </>
       ) : null}

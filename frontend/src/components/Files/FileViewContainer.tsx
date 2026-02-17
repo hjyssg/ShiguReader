@@ -1,5 +1,5 @@
 // 文件视图容器 — 集成选择、右键菜单、键盘快捷键、对话框
-import { ArrowDown, ArrowUp, LayoutGrid, LayoutList, List } from "lucide-react"
+import { LayoutGrid, LayoutList, List } from "lucide-react"
 import { Link } from "@tanstack/react-router"
 import {
   type ReactNode,
@@ -16,6 +16,7 @@ import {
   Toolbar,
   ToolbarGroup,
 } from "@/components/semantic/layout"
+import { SortDirectionToggle } from "@/components/Common/SortDirectionToggle"
 import { Button } from "@/components/ui/button"
 import {
   Select,
@@ -590,18 +591,10 @@ export function FileViewContainer({
               <SelectItem value="image_count">Image Count</SelectItem>
             </SelectContent>
           </Select>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
-            className="h-8 w-8 p-0"
-          >
-            {sortOrder === "asc" ? (
-              <ArrowUp className="size-4" />
-            ) : (
-              <ArrowDown className="size-4" />
-            )}
-          </Button>
+          <SortDirectionToggle
+            value={sortOrder}
+            onToggle={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
+          />
           {toolbarExtra}
         </ToolbarGroup>
 
