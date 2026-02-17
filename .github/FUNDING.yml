@@ -1,1 +1,2 @@
-github: [tiangolo]
+# Keep empty to disable "Sponsor this project" button on GitHub.
+github: []
