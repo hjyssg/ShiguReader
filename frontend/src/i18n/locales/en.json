@@ -32,7 +32,16 @@
     "specialFolders": "Special Folders",
     "configuredDirs": "Configured Directories",
     "favorite": "Favorite",
-    "alreadyRead": "Already Read"
+    "alreadyRead": "Already Read",
+    "recentActivity": "Recent Activity",
+    "libraryOverview": "Library Overview",
+    "activityFilterAll": "All Activity",
+    "activityFilterSystem": "System Tasks",
+    "activityEmptyHint": "Startup tasks will appear here after server boot.",
+    "retry": "Retry",
+    "scannedFiles": "Scanned Files",
+    "topOpenedFolders": "Most Opened Folders",
+    "noTopOpenedFolders": "No frequently opened folders in the last 90 days"
   },
   "explorer": {
     "scan": "Scan",
@@ -50,7 +59,16 @@
     "fileNotFoundMessage": "Cannot find file: {{fileName}}",
     "loadErrorMessage": "Error loading file: {{errorMessage}}",
     "returnHome": "Return to Home",
-    "openParent": "Open Parent Directory"
+    "openParent": "Open Parent Directory",
+    "sortBy": "Sort by:",
+    "table": {
+      "name": "Name",
+      "dateModified": "Date Modified",
+      "type": "Type",
+      "size": "Size",
+      "likeScore": "Like Score",
+      "imageCount": "Image Count"
+    }
   },
   "history": {
     "title": "History",
@@ -207,7 +225,9 @@
     "endTime": "End Time",
     "running": "Running",
     "completed": "Completed",
-    "error": "Error"
+    "error": "Error",
+    "japanese": "Japanese",
+    "korean": "Korean"
   },
   "archive": {
     "unknownError": "Unknown error"

@@ -326,3 +326,85 @@ scan and watch subfolders的时候看不到进度。
   setting的用tab。一个tab是原来的setting。
   第二格tab是现在这些东西。
 
+
+
+
+
+# task
+文件的status状态 引入置信度的概念
+scan/listdir 10分钟以外 应该不确定
+刚刚被scan/listdir 10分钟内 应该在
+被scan/watch 百分百确定
+
+这个要影响到search和各种算法。你打算怎么处理
+我也不是没事就去扫描所有文件夹。
+
+有的文件夹从来不改变，给出好方
+案。我有一个想法是search画面给出选项，search的时候是只看watched还是被scan过得，scan的失效之类的。
+
+
+
+
+
+# task
+想在windows的file explorer可以右键
+打开文件、文件夹
+
+打开的时候，如果前端服务器没启动。我想要有youtube那种空白页面说服务器没启动。
+
+效果不好
+
+
+## task
+explorer和他使用ui的需要语义化，class需要清晰。
+现在太多tailwind，看的很累。你进行重构，每个重要div的class都要简单。效果你在css写。
+
+
+## 前端task
+search页面需要加一个link，点下去可以open in a new tab。
+
+https://exhentai.org/?f_search={刚才的搜索词}
+https://sukebei.nyaa.si/?f=0&c=0_0&q={刚才的搜索词}
+
+你想一下怎么设计好看
+
+
+## 前端task
+tag page的sort direction要和explorer页面的一样。考虑用共通component 
+
+## frontend\src\components\Common\PathBreadcrumb.tsx
+里面能被省略的label全部都要带title attribute
+
+### 前端task
+breadcrumb 的最后一个filename/foldername点击下去行为不统一
+统一成点击下去 等于 ctrl + c filename/foldername
+
+
+### 前端task
+history的fileitem要复用和其他explorer一样的style。不要用button。
+显示thumbnail和filename和上次阅读时间。
+
+
+### 前端task
+table抽出共通
+你要实现一个table component。
+保证exploer和history的table样式是一样，只是列不一样而已。
+我觉得history的table比较好看
+
+
+
+## task
+  home需要显示最常用的文件夹
+  根据folder_open_history
+    给你一个**极简但信息完整**的 prompt，直接丢给 AI 生成代码即可：
+
+     要求：
+     1. 只统计最近 90 天的数据。
+     2. 使用时间衰减算法：
+        open_score = sum(exp(-(now - opened_at_ts) / tau))
+     3. tau = 14 天（秒）。
+     4. 按 open_score 降序排序。
+     5. 返回 folder_id 列表。
+     6. 使用一条 SQL 完成聚合（SQLite）。
+     7. 性能要考虑索引建议。
+    

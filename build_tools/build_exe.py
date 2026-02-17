@@ -9,6 +9,8 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).parent.parent
 FRONTEND_DIR = PROJECT_ROOT / "frontend"
 DIST_DIR = PROJECT_ROOT / "dist"
+FAVICON_PNG = FRONTEND_DIR / "public" / "assets" / "images" / "favicon.png"
+FAVICON_ICO = PROJECT_ROOT / "build_tools" / "favicon.ico"
 
 
 def run_command(cmd, cwd=None):
@@ -66,6 +68,9 @@ def create_pyinstaller_spec():
     print("Creating PyInstaller spec...")
     print("=" * 60)
     
+    icon_path = resolve_exe_icon()
+    icon_value = repr(str(icon_path)) if icon_path else "None"
+
     spec_content = """# -*- mode: python ; coding: utf-8 -*-
 
 block_cipher = None
@@ -127,14 +132,35 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon=None,
+    icon=__ICON_VALUE__,
 )
 """
+    spec_content = spec_content.replace('__ICON_VALUE__', icon_value)
     
     spec_file = PROJECT_ROOT / "shigureader.spec"
     spec_file.write_text(spec_content)
     print(f"✓ Created spec file: {spec_file}")
     return spec_file
+
+
+def resolve_exe_icon():
+    """Resolve icon path for PyInstaller EXE packaging."""
+    if not FAVICON_PNG.exists():
+        print(f"! Icon source not found: {FAVICON_PNG}")
+        return None
+
+    # Prefer .ico for Windows executable icon.
+    try:
+        from PIL import Image
+
+        with Image.open(FAVICON_PNG) as img:
+            img.save(FAVICON_ICO, format="ICO", sizes=[(256, 256), (128, 128), (64, 64), (32, 32), (16, 16)])
+        print(f"✓ Using exe icon: {FAVICON_ICO}")
+        return FAVICON_ICO
+    except Exception as exc:
+        print(f"! Failed to convert png to ico ({exc}), fallback to png icon")
+        print(f"✓ Using exe icon: {FAVICON_PNG}")
+        return FAVICON_PNG
 
 
 def build_exe():

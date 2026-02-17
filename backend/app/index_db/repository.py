@@ -22,20 +22,24 @@ IndexRepository（index_db 数据访问层）
 from __future__ import annotations
 
 from dataclasses import dataclass
+import json
 from time import time
 from typing import Iterator, TypeVar
 
+from sqlalchemy import exists, text
 from sqlmodel import Session, func, select
 
 from app.index_db.db import index_write_guard
 from app.index_db.confidence import SCAN_FRESH_WINDOW_SEC
 from app.index_db.models import (
+    ActivityLog,
     ArchiveMeta,
     Artist,
     File,
     FileArtist,
     FileTag,
     Folder,
+    FolderOpenHistory,
     ParsedMetadata,
     Progress,
     Tag,
@@ -57,6 +61,17 @@ def _iter_chunks(items: list[T], chunk_size: int) -> Iterator[list[T]]:
     for i in range(0, len(items), chunk_size):
         yield items[i : i + chunk_size]
 
+
+
+
+@dataclass(slots=True)
+class ActivityLogInput:
+    activity_type: str
+    status: str = "completed"
+    task_key: str | None = None
+    message: str = ""
+    target_path: str | None = None
+    context: dict[str, object] | None = None
 
 @dataclass(slots=True)
 class UpsertFolderInput:
@@ -335,6 +350,158 @@ class IndexRepository:
         self._commit()
         self.session.refresh(meta)
         return meta
+
+    def record_folder_open(self, folderpath: str) -> FolderOpenHistory:
+        now = _now_ts()
+        row = self.session.get(FolderOpenHistory, folderpath)
+        if row is None:
+            row = FolderOpenHistory(
+                folderpath=folderpath,
+                last_opened_at=now,
+                open_count=1,
+                updated_at=now,
+            )
+            self.session.add(row)
+            self._commit()
+            self.session.refresh(row)
+            return row
+
+        row.last_opened_at = now
+        row.open_count += 1
+        row.updated_at = now
+        self.session.add(row)
+        self._commit()
+        self.session.refresh(row)
+        return row
+
+    def list_top_opened_folder_ids(
+        self,
+        *,
+        limit: int = 5,
+        now_ts: int | None = None,
+        lookback_days: int = 90,
+        tau_days: int = 14,
+    ) -> list[str]:
+        """Return top opened folder ids with time decay score in one SQLite SQL."""
+        if limit <= 0:
+            return []
+
+        now_ts = now_ts or _now_ts()
+        lookback_sec = max(1, lookback_days) * 24 * 60 * 60
+        tau_sec = max(1, tau_days) * 24 * 60 * 60
+        cutoff_ts = now_ts - lookback_sec
+
+        stmt = text(
+            """
+            WITH recent_events AS (
+                SELECT
+                    h.folderpath AS folder_id,
+                    h.last_opened_at AS opened_at_ts
+                FROM folder_open_history h
+                WHERE h.last_opened_at >= :cutoff_ts
+
+                UNION ALL
+
+                SELECT
+                    f.folderpath AS folder_id,
+                    p.last_opened_at AS opened_at_ts
+                FROM progress p
+                JOIN files f ON f.filepath = p.filepath
+                WHERE p.last_opened_at >= :cutoff_ts
+                  AND f.folderpath IS NOT NULL
+            )
+            SELECT folder_id
+            FROM recent_events
+            GROUP BY folder_id
+            ORDER BY SUM(exp(-((:now_ts - opened_at_ts) * 1.0) / :tau_sec)) DESC
+            LIMIT :limit;
+            """
+        )
+
+        rows = self.session.execute(
+            stmt,
+            {
+                "cutoff_ts": cutoff_ts,
+                "now_ts": now_ts,
+                "tau_sec": tau_sec,
+                "limit": limit,
+            },
+        ).all()
+        return [str(row[0]) for row in rows if row[0]]
+
+    def log_activity(self, data: ActivityLogInput) -> ActivityLog:
+        row = ActivityLog(
+            activity_type=data.activity_type,
+            status=data.status,
+            task_key=data.task_key,
+            message=data.message,
+            target_path=data.target_path,
+            context_json=json.dumps(data.context, ensure_ascii=False) if data.context else None,
+            created_at=_now_ts(),
+        )
+        self.session.add(row)
+        self._commit()
+        self.session.refresh(row)
+        return row
+
+    def list_activity_logs(self, limit: int = 10) -> list[ActivityLog]:
+        stmt = select(ActivityLog).order_by(ActivityLog.created_at.desc(), ActivityLog.id.desc()).limit(limit)
+        return list(self.session.exec(stmt).all())
+
+
+
+    def list_activity_logs_since_latest_startup(self, limit: int = 200) -> list[ActivityLog]:
+        if limit <= 0:
+            limit = 200
+
+        latest_startup_id = self.session.exec(
+            select(ActivityLog.id)
+            .where(ActivityLog.activity_type == "startup")
+            .where(ActivityLog.status == "started")
+            .order_by(ActivityLog.created_at.desc(), ActivityLog.id.desc())
+            .limit(1)
+        ).first()
+
+        if latest_startup_id is None:
+            return self.list_activity_logs(limit=limit)
+
+        stmt = (
+            select(ActivityLog)
+            .where(ActivityLog.id >= latest_startup_id)
+            .order_by(ActivityLog.created_at.desc(), ActivityLog.id.desc())
+            .limit(limit)
+        )
+        return list(self.session.exec(stmt).all())
+
+    def cleanup_activity_logs(self, keep_latest: int = 500) -> None:
+        if keep_latest <= 0:
+            keep_latest = 500
+
+        ids = list(
+            self.session.exec(
+                select(ActivityLog.id).order_by(ActivityLog.created_at.desc(), ActivityLog.id.desc()).limit(keep_latest)
+            ).all()
+        )
+        keep_ids = [x for x in ids if x is not None]
+        if not keep_ids:
+            return
+
+        old_rows = list(self.session.exec(select(ActivityLog).where(~ActivityLog.id.in_(keep_ids))).all())
+        if not old_rows:
+            return
+
+        for row in old_rows:
+            self.session.delete(row)
+        self._commit()
+
+    def count_files_by_type(self, file_type: str) -> int:
+        stmt = select(func.count()).select_from(File).where(File.file_type == file_type).where(File.scan_state == 1)
+        return int(self.session.exec(stmt).one())
+
+    def count_folders(self) -> int:
+        stmt = select(func.count()).select_from(Folder).where(Folder.scan_state == 1)
+        return int(self.session.exec(stmt).one())
+
 
     def upsert_progress(
         self,
@@ -815,6 +982,27 @@ class IndexRepository:
     # Path maintenance helpers
     # ------------------------------------------------------------------
 
+    def _prune_orphan_tags_and_artists(self) -> None:
+        """删除没有任何文件关联的 tag / artist 主表孤儿记录。"""
+        orphan_tags = self.session.exec(
+            select(Tag).where(
+                ~exists().where(FileTag.tag_name == Tag.tag_name)
+            )
+        ).all()
+        for row in orphan_tags:
+            self.session.delete(row)
+
+        orphan_artists = self.session.exec(
+            select(Artist).where(
+                ~exists().where(FileArtist.artist_name == Artist.artist_name)
+            )
+        ).all()
+        for row in orphan_artists:
+            self.session.delete(row)
+
+        if orphan_tags or orphan_artists:
+            self._commit()
+
     def delete_file(self, filepath: str) -> None:
         """Delete a single file row when it exists."""
         file = self.session.get(File, filepath)
@@ -822,6 +1010,7 @@ class IndexRepository:
             return
         self.session.delete(file)
         self._commit()
+        self._prune_orphan_tags_and_artists()
 
     def delete_paths_by_prefix(self, prefix: str) -> None:
         """Delete all file/folder rows whose filepath starts with prefix."""
@@ -834,6 +1023,7 @@ class IndexRepository:
             self.session.delete(folder)
 
         self._commit()
+        self._prune_orphan_tags_and_artists()
 
     # ------------------------------------------------------------------
     # Recommendation helpers

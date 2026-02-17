@@ -198,6 +198,16 @@ class TestTagExtraction:
         assert r is not None
         assert "修正版" not in r.raw_tags
 
+    def test_numeric_tags_filtered(self):
+        r = parse("[作者] 作品名 (131715678).zip")
+        assert r is not None
+        assert "131715678" not in r.raw_tags
+
+    def test_non_pure_numeric_tags_kept(self):
+        r = parse("[作者] 作品名 (C101).zip")
+        assert r is not None
+        assert "C101" in r.raw_tags or r.event == "C101"
+
 
 # ---------------------------------------------------------------------------
 # Title extraction
@@ -279,3 +289,26 @@ class TestRealWorldFilenames:
         assert r is not None
         assert r.type == "成年コミック"
         assert r.authors == ["作者名"]
+
+
+class TestCosplayCoserNormalization:
+    def test_only_keep_cosers_in_db(self, monkeypatch: pytest.MonkeyPatch):
+        from app.file_processing.name_parser import coser_db
+
+        mapping = {
+            "RealCoser": "RealCoser",
+            "RC": "RealCoser",
+        }
+        monkeypatch.setattr(coser_db, "lookup_coser", lambda name: mapping.get(name))
+
+        r = parse("[Cosplay] [RealCoser] [武田弘光] Set.zip")
+        assert r is not None
+        assert r.cosers == ["RealCoser"]
+
+    def test_no_db_match_results_in_no_coser(self, monkeypatch: pytest.MonkeyPatch):
+        from app.file_processing.name_parser import coser_db
+
+        monkeypatch.setattr(coser_db, "lookup_coser", lambda _name: None)
+
+        r = parse("[Cosplay] [武田弘光] Set.zip")
+        assert r is None or r.cosers == []

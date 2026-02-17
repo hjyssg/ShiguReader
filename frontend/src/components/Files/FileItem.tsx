@@ -1,4 +1,4 @@
-// 文件系统项卡片组件 — 支持选择、双击导航、右键菜单
+// 文件系统项卡片组件 — 支持选择、右键菜单
 
 import { useTranslation } from "react-i18next"
 import type { FileSystemItem } from "@/client"
@@ -19,6 +19,9 @@ import { formatFileSize } from "./utils"
 import "./FileItem.css"
 
 interface FileItemProps {
+  className?: string
+  metaText?: string
+
   item: FileSystemItem
   /** 是否选中 */
   isSelected?: boolean
@@ -26,8 +29,6 @@ interface FileItemProps {
   actionSlot?: React.ReactNode
   /** 单击回调（处理选择） */
   onClick?: (e: React.MouseEvent) => void
-  /** 双击回调（打开） */
-  onDoubleClick?: (e: React.MouseEvent) => void
   /** 右键回调 */
   onContextMenu?: (e: React.MouseEvent) => void
 }
@@ -37,8 +38,9 @@ export function FileItem({
   isSelected,
   actionSlot,
   onClick,
-  onDoubleClick,
   onContextMenu,
+  className,
+  metaText,
 }: FileItemProps) {
   const { t } = useTranslation()
   const isMobile = useIsMobile()
@@ -81,38 +83,7 @@ export function FileItem({
     </FileName>
   )
 
-  return (
-    <div
-      className={cn("file-item-root", isSelected && "file-item-root--selected")}
-      onClick={(e) => {
-        const target = e.target as HTMLElement
-        if (target.closest("a")) return
-        onClick?.(e)
-      }}
-      onDoubleClick={onDoubleClick}
-      onContextMenu={onContextMenu}
-    >
-      <ItemCard className="file-item-card">
-        {fileNameNode}
-
-        {href ? (
-          <a href={href} className="file-item-thumbnail-link" draggable={false}>
-            <CardThumbnail className="file-card-thumbnail">
-              {item.thumbnail_url ? (
-                <ThumbnailImage
-                  src={`${OpenAPI.BASE}${item.thumbnail_url}`}
-                  alt={item.name}
-                  fallback={
-                    <FileIcon fileType={item.file_type} isFolder={isFolder} />
-                  }
-                />
-              ) : (
-                <FileIcon fileType={item.file_type} isFolder={isFolder} />
-              )}
-            </CardThumbnail>
-          </a>
-        ) : (
-          <CardThumbnail className="file-card-thumbnail">
+  const thumbcard = (<CardThumbnail className="file-card-thumbnail">
             {item.thumbnail_url ? (
               <ThumbnailImage
                 src={`${OpenAPI.BASE}${item.thumbnail_url}`}
@@ -124,13 +95,34 @@ export function FileItem({
             ) : (
               <FileIcon fileType={item.file_type} isFolder={isFolder} />
             )}
-          </CardThumbnail>
+          </CardThumbnail>)
+
+  return (
+    <div
+      className={cn("file-item-root", isSelected && "file-item-root--selected", className)}
+      onClick={(e) => {
+        const target = e.target as HTMLElement
+        if (target.closest("a")) return
+        onClick?.(e)
+      }}
+      onContextMenu={onContextMenu}
+    >
+      <ItemCard className="file-item-card">
+        {fileNameNode}
+
+        {href ? (
+          <a href={href} className="file-item-thumbnail-link" draggable={false}>
+            {thumbcard}
+          </a>
+        ) : (
+          thumbcard
         )}
 
         <CardInfo className="file-item-info">
           {actionSlot && (
             <div className="file-item-action-slot">{actionSlot}</div>
           )}
+          {metaText && <p className="file-item-meta-text">{metaText}</p>}
           {infoMetrics.length > 0 && (
             <div className="file-item-info-metrics">
               {infoMetrics.map((metric) => (

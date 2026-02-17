@@ -1,6 +1,7 @@
 // 文件视图容器 — 集成选择、右键菜单、键盘快捷键、对话框
-import { ArrowDown, ArrowUp, LayoutGrid, LayoutList, List } from "lucide-react"
+import { LayoutGrid, LayoutList, List } from "lucide-react"
 import { Link } from "@tanstack/react-router"
+import { useTranslation } from "react-i18next"
 import {
   type ReactNode,
   useCallback,
@@ -16,6 +17,7 @@ import {
   Toolbar,
   ToolbarGroup,
 } from "@/components/semantic/layout"
+import { SortDirectionToggle } from "@/components/Common/SortDirectionToggle"
 import { Button } from "@/components/ui/button"
 import {
   Select,
@@ -65,6 +67,7 @@ export function FileViewContainer({
   emptyText?: string
 }) {
   const containerRef = useRef<HTMLDivElement>(null)
+  const { t } = useTranslation()
 
   // View mode & sort state
   const [viewMode, setViewMode] = useState<ViewMode>(() => {
@@ -121,7 +124,7 @@ export function FileViewContainer({
         if (comparison === 0) {
           comparison = a.name.toLowerCase().localeCompare(b.name.toLowerCase())
         }
-      } else if (sortField === "recommendation") {
+      } else if (sortField === "likeScore") {
         const scoreA = (a as any).recommendation_score || 0
         const scoreB = (b as any).recommendation_score || 0
         comparison = scoreA - scoreB
@@ -574,34 +577,26 @@ export function FileViewContainer({
       {/* Toolbar */}
       <Toolbar className="file-list-toolbar">
         <ToolbarGroup className="sort-controls">
-          <span className="text-sm text-muted-foreground">Sort by:</span>
+          <span className="text-sm text-muted-foreground">{t("explorer.sortBy")}</span>
           <Select
             value={sortField}
             onValueChange={(v) => setSortField(v as SortField)}
           >
-            <SelectTrigger className="w-[140px] h-8">
-              <SelectValue />
+            <SelectTrigger className="h-8 w-[140px] text-xs leading-none">
+              <SelectValue className="text-xs" />
             </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="name">Name</SelectItem>
-              <SelectItem value="type">Type</SelectItem>
-              <SelectItem value="mtime">Date Modified</SelectItem>
-              <SelectItem value="recommendation">Recommendation</SelectItem>
-              <SelectItem value="image_count">Image Count</SelectItem>
+            <SelectContent className="text-xs">
+              <SelectItem className="text-xs" value="name">{t("explorer.table.name")}</SelectItem>
+              <SelectItem className="text-xs" value="type">{t("explorer.table.type")}</SelectItem>
+              <SelectItem className="text-xs" value="mtime">{t("explorer.table.dateModified")}</SelectItem>
+              <SelectItem className="text-xs" value="likeScore">{t("explorer.table.likeScore")}</SelectItem>
+              <SelectItem className="text-xs" value="image_count">{t("explorer.table.imageCount")}</SelectItem>
             </SelectContent>
           </Select>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
-            className="h-8 w-8 p-0"
-          >
-            {sortOrder === "asc" ? (
-              <ArrowUp className="size-4" />
-            ) : (
-              <ArrowDown className="size-4" />
-            )}
-          </Button>
+          <SortDirectionToggle
+            value={sortOrder}
+            onToggle={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
+          />
           {toolbarExtra}
         </ToolbarGroup>
 
@@ -720,7 +715,6 @@ export function FileViewContainer({
                             ? undefined
                             : (e) => handleItemClick(item, e)
                         }
-                        onDoubleClick={(e) => handleItemDoubleClick(item, e)}
                       />
                     </FileContextMenu>
                   )
@@ -762,7 +756,6 @@ export function FileViewContainer({
                       ? undefined
                       : (e) => handleItemClick(item, e)
                   }
-                  onDoubleClick={(e) => handleItemDoubleClick(item, e)}
                 />
               </FileContextMenu>
             )

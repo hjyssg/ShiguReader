@@ -193,11 +193,6 @@ function ReadPage() {
     currentEntry?.name || getBaseName(path, t("reader.openReader"))
   useDocumentTitle(entryTitle)
 
-  const _resetTransform = () => {
-    setScale(1)
-    setRotation(0)
-    setTranslate({ x: 0, y: 0 })
-  }
 
   const goToPage = (nextPage: number) => {
     const target = wrapPageIndex(nextPage, totalPages)
@@ -595,27 +590,29 @@ function ReadPage() {
     <div className="reader-page">
       {/* 顶部工具栏 - 整合导航和工具 */}
       <nav className="reader-toolbar">
-        {/* 左侧：面包屑导航 */}
-        <PathBreadcrumb
-          as="div"
-          sourcePath={path}
-          homeLabel={null}
-          homeLinkClassName="reader-toolbar__home-link"
-          homeIconClassName="size-3.5"
-          dirItemClassName="reader-toolbar__crumb-item"
-          dirLinkClassName="reader-toolbar__crumb-link"
-          separatorClassName="size-3 text-muted-foreground/60"
-          showFolderIcon={false}
-          collapseDirCrumbsAfter={2}
-          currentTo={isFolderSource ? "/explorer" : "/archive"}
-          currentSearch={{ path }}
-          currentLabel={fileName}
-          currentClassName="reader-toolbar__current-link"
-        />
+        <div className="reader-toolbar__left">
+          <PathBreadcrumb
+            as="div"
+            sourcePath={path}
+            homeLabel={null}
+            homeLinkClassName="reader-toolbar__home-link"
+            homeIconClassName="size-3.5"
+            dirItemClassName="reader-toolbar__crumb-item"
+            dirLinkClassName="reader-toolbar__crumb-link"
+            separatorClassName="size-3 text-muted-foreground/60"
+            showFolderIcon={false}
+            collapseDirCrumbsAfter={2}
+            currentTo={isFolderSource ? "/explorer" : "/archive"}
+            currentSearch={{ path }}
+            currentLabel={fileName}
+            currentClassName="reader-toolbar__current-link"
+          />
+        </div>
 
         {/* 右侧：工具 */}
-        <div className="reader-toolbar__actions">
-          {/* <Button
+        <div className="reader-toolbar__right">
+          <div className="reader-toolbar__actions">
+            {/* <Button
             variant="ghost"
             size="icon"
             className="reader-toolbar__icon-button"
@@ -633,25 +630,25 @@ function ReadPage() {
           >
             <span className="reader-toolbar__button-symbol">+</span>
           </Button> */}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="reader-toolbar__icon-button"
-            onClick={rotate}
-            title={t("reader.rotate")}
-          >
-            <RotateCw className="size-3" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="reader-toolbar__icon-button"
-            onClick={toggleFullscreen}
-            title={t("reader.fullscreen")}
-          >
-            <Scan className="size-3" />
-          </Button>
-          {/* <Button
+            <Button
+              variant="ghost"
+              size="icon"
+              className="reader-toolbar__icon-button"
+              onClick={rotate}
+              title={t("reader.rotate")}
+            >
+              <RotateCw className="size-3" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="reader-toolbar__icon-button"
+              onClick={toggleFullscreen}
+              title={t("reader.fullscreen")}
+            >
+              <Scan className="size-3" />
+            </Button>
+            {/* <Button
             variant="ghost"
             size="sm"
             className="reader-toolbar__text-button"
@@ -664,7 +661,7 @@ function ReadPage() {
           >
             {t("reader.jumpPage")}
           </Button> */}
-          {/* <Button
+            {/* <Button
             variant="ghost"
             size="sm"
             className="reader-toolbar__text-button"
@@ -672,90 +669,91 @@ function ReadPage() {
           >
             {t("reader.reset")}
           </Button> */}
-          {!isFolderSource && (
-            <>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="reader-toolbar__text-button"
-                onClick={() => navigate({ to: "/archive", search: { path } })}
-              >
-                Explorer
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="reader-toolbar__text-button"
-                onClick={() =>
-                  navigate({ to: "/read-waterfall", search: { path } })
-                }
-              >
-                Waterfall
-              </Button>
-            </>
-          )}
-          {/* File Operations Dropdown */}
-          <DropdownMenu modal={false}>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="reader-toolbar__icon-button"
-                title="File operations"
-              >
-                <MoreVertical className="size-3" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuItem onClick={() => setRenameOpen(true)}>
-                <Pencil className="mr-2 size-4" />
-                Rename
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setMoveOpen(true)}>
-                <FolderInput className="mr-2 size-4" />
-                Move to...
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setConfirmFavOpen(true)}>
-                <Star className="mr-2 size-4" />
-                Move to Favorites
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setConfirmReadOpen(true)}>
-                <BookCheck className="mr-2 size-4" />
-                Move to Already Read
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              {isArchiveSource && (
-                <DropdownMenuItem
-                  onClick={() => {
-                    setCompressAction("minify-zip-images")
-                    setCompressOpen(true)
-                  }}
+            {!isFolderSource && (
+              <>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="reader-toolbar__text-button"
+                  onClick={() => navigate({ to: "/archive", search: { path } })}
                 >
-                  <ImageDown className="mr-2 size-4" />
-                  Minify ZIP Images
-                </DropdownMenuItem>
-              )}
-              {isFolderSource && (
-                <DropdownMenuItem
-                  onClick={() => {
-                    setCompressAction("zip-folder")
-                    setCompressOpen(true)
-                  }}
+                  Explorer
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="reader-toolbar__text-button"
+                  onClick={() =>
+                    navigate({ to: "/read-waterfall", search: { path } })
+                  }
                 >
-                  <Package className="mr-2 size-4" />
-                  Compress to ZIP
+                  Waterfall
+                </Button>
+              </>
+            )}
+            {/* File Operations Dropdown */}
+            <DropdownMenu modal={false}>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="reader-toolbar__icon-button"
+                  title="File operations"
+                >
+                  <MoreVertical className="size-3" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuItem onClick={() => setRenameOpen(true)}>
+                  <Pencil className="mr-2 size-4" />
+                  Rename
                 </DropdownMenuItem>
-              )}
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                variant="destructive"
-                onClick={() => setDeleteOpen(true)}
-              >
-                <Trash2 className="mr-2 size-4" />
-                Delete
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+                <DropdownMenuItem onClick={() => setMoveOpen(true)}>
+                  <FolderInput className="mr-2 size-4" />
+                  Move to...
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setConfirmFavOpen(true)}>
+                  <Star className="mr-2 size-4" />
+                  Move to Favorites
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setConfirmReadOpen(true)}>
+                  <BookCheck className="mr-2 size-4" />
+                  Move to Already Read
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                {isArchiveSource && (
+                  <DropdownMenuItem
+                    onClick={() => {
+                      setCompressAction("minify-zip-images")
+                      setCompressOpen(true)
+                    }}
+                  >
+                    <ImageDown className="mr-2 size-4" />
+                    Minify ZIP Images
+                  </DropdownMenuItem>
+                )}
+                {isFolderSource && (
+                  <DropdownMenuItem
+                    onClick={() => {
+                      setCompressAction("zip-folder")
+                      setCompressOpen(true)
+                    }}
+                  >
+                    <Package className="mr-2 size-4" />
+                    Compress to ZIP
+                  </DropdownMenuItem>
+                )}
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  variant="destructive"
+                  onClick={() => setDeleteOpen(true)}
+                >
+                  <Trash2 className="mr-2 size-4" />
+                  Delete
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
       </nav>
 

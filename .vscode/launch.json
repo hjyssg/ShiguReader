@@ -10,6 +10,31 @@
       "preLaunchTask": "Install Backend Dependencies"
     },
     {
+      "name": "Backend: Update DB Schema",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "uv run python -c \"from app.index_db import ensure_index_db_initialized; ensure_index_db_initialized()\"",
+      "cwd": "${workspaceFolder}/backend"
+    },
+    {
+      "name": "Backend: FastAPI (debug)",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "uvicorn",
+      "cwd": "${workspaceFolder}/backend",
+      "args": [
+        "app.main:app",
+        "--host",
+        "0.0.0.0",
+        "--port",
+        "8000",
+        "--reload"
+      ],
+      "console": "integratedTerminal",
+      "justMyCode": false,
+      "envFile": "${workspaceFolder}/backend/.env"
+    },
+    {
       "name": "Backend: SQLite 一键解锁并启动",
       "type": "debugpy",
       "request": "launch",

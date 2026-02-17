@@ -1,11 +1,30 @@
 import { useQuery } from "@tanstack/react-query"
 import { createFileRoute, Link } from "@tanstack/react-router"
-import { Folder, HardDrive, Heart } from "lucide-react"
+import { Folder, HardDrive, Heart, BookOpen, Film, Image, Music2 } from "lucide-react"
 import { useTranslation } from "react-i18next"
 
 import { FilesystemService, OpenAPI } from "@/client"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Skeleton } from "@/components/ui/skeleton"
+
+import { HomeCard } from "@/components/Home/HomeCard"
+import { RecentActivityPanel, type ActivityItem } from "@/components/Home/RecentActivityPanel"
+
+import "./home.css"
+
+type RecentActivityResponse = {
+  items: ActivityItem[]
+}
+
+type LibraryOverviewResponse = {
+  archives: number
+  videos: number
+  images: number
+  audio: number
+  folders: number
+}
+
+type TopOpenedFoldersResponse = {
+  folder_ids: string[]
+}
 
 export const Route = createFileRoute("/_layout/")({
   component: Dashboard,
@@ -48,130 +67,141 @@ function Dashboard() {
     },
   })
 
+  const { data: recentActivity } = useQuery({
+    queryKey: ["home-recent-activity"],
+    queryFn: async (): Promise<RecentActivityResponse> => {
+      const response = await fetch(`${OpenAPI.BASE}/api/v1/fs/recent-activity?limit=200&since_latest_startup=true`)
+      if (!response.ok) {
+        return { items: [] }
+      }
+      return response.json()
+    },
+  })
+
+
+  const { data: topOpenedFolders } = useQuery({
+    queryKey: ["home-top-opened-folders"],
+    queryFn: async (): Promise<TopOpenedFoldersResponse> => {
+      const response = await fetch(`${OpenAPI.BASE}/api/v1/fs/top-opened-folders?limit=5`)
+      if (!response.ok) {
+        return { folder_ids: [] }
+      }
+      return response.json()
+    },
+  })
+
+  const { data: libraryOverview } = useQuery({
+    queryKey: ["home-library-overview"],
+    queryFn: async (): Promise<LibraryOverviewResponse | null> => {
+      const response = await fetch(`${OpenAPI.BASE}/api/v1/fs/library-overview`)
+      if (!response.ok) return null
+      return response.json()
+    },
+  })
+
   return (
-    <div className="space-y-6">
-      {/* Drives Section */}
-      {drives && drives.length > 0 && (
-        <div>
-          <h2 className="text-lg font-semibold mb-3">{t("home.drives")}</h2>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+    <div className="home-page">
+      {drives && drives.length > 0 ? (
+        <section className="home-section">
+          <h2 className="home-section__title">{t("home.drives")}</h2>
+          <div className="home-grid home-grid--drives">
             {drives.map((drive) => (
-              <Link
-                key={drive.path}
-                to="/explorer"
-                search={{ path: drive.path }}
-                className="transition-transform hover:scale-[1.02]"
-              >
-                <Card className="cursor-pointer hover:border-primary">
-                  <CardHeader className="flex flex-row items-center gap-4">
-                    <div className="flex size-12 items-center justify-center rounded-lg bg-primary/10">
-                      <HardDrive className="size-6 text-primary" />
-                    </div>
-                    <CardTitle className="text-lg">{drive.dirname}</CardTitle>
-                  </CardHeader>
-                </Card>
+              <Link key={drive.path} to="/explorer" search={{ path: drive.path }} className="home-card-link">
+                <HomeCard icon={HardDrive} title={drive.dirname} />
               </Link>
             ))}
           </div>
-        </div>
-      )}
+        </section>
+      ) : null}
 
-      {/* Configured Roots Section */}
-      <div>
-        <h2 className="text-lg font-semibold mb-3">
-          {t("home.specialFolders")}
-        </h2>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mb-6">
+      <section className="home-section">
+        <h2 className="home-section__title">{t("home.specialFolders")}</h2>
+        <div className="home-grid home-grid--folders">
           {favoriteRoot ? (
-            <Link
-              key={`favorite-${favoriteRoot.path}`}
-              to="/explorer"
-              search={{ path: favoriteRoot.path }}
-              className="transition-transform hover:scale-[1.02]"
-            >
-              <Card className="cursor-pointer border-primary/40 hover:border-primary">
-                <CardHeader className="flex flex-row items-center gap-4">
-                  <div className="flex size-12 items-center justify-center rounded-lg bg-primary/10">
-                    <Heart className="size-6 text-primary" />
-                  </div>
-                  <CardTitle className="text-lg">
-                    {t("home.favorite")} · {favoriteRoot.dirname}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-muted-foreground truncate">
-                    {favoriteRoot.path}
-                  </p>
-                </CardContent>
-              </Card>
+            <Link to="/explorer" search={{ path: favoriteRoot.path }} className="home-card-link">
+              <HomeCard icon={Heart} title={favoriteRoot.dirname} />
             </Link>
           ) : null}
 
           {alreadyReadRoot ? (
-            <Link
-              key={`already-read-${alreadyReadRoot.path}`}
-              to="/explorer"
-              search={{ path: alreadyReadRoot.path }}
-              className="transition-transform hover:scale-[1.02]"
-            >
-              <Card className="cursor-pointer border-primary/40 hover:border-primary">
-                <CardHeader className="flex flex-row items-center gap-4">
-                  <div className="flex size-12 items-center justify-center rounded-lg bg-primary/10">
-                    <Folder className="size-6 text-primary" />
-                  </div>
-                  <CardTitle className="text-lg">
-                    {t("home.alreadyRead")} · {alreadyReadRoot.dirname}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-muted-foreground truncate">
-                    {alreadyReadRoot.path}
-                  </p>
-                </CardContent>
-              </Card>
+            <Link to="/explorer" search={{ path: alreadyReadRoot.path }} className="home-card-link">
+              <HomeCard icon={Folder} title={alreadyReadRoot.dirname} />
             </Link>
           ) : null}
         </div>
+      </section>
 
-        <h2 className="text-lg font-semibold mb-3">
-          {t("home.configuredDirs")}
-        </h2>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {isLoading
-            ? [1, 2, 3].map((i) => (
-                <Card key={i}>
-                  <CardHeader>
-                    <Skeleton className="h-6 w-3/4" />
-                  </CardHeader>
-                  <CardContent>
-                    <Skeleton className="h-4 w-full" />
-                  </CardContent>
-                </Card>
-              ))
-            : roots?.map((root) => (
-                <Link
-                  key={root.path}
-                  to="/explorer"
-                  search={{ path: root.path }}
-                  className="transition-transform hover:scale-[1.02]"
-                >
-                  <Card className="cursor-pointer hover:border-primary">
-                    <CardHeader className="flex flex-row items-center gap-4">
-                      <div className="flex size-12 items-center justify-center rounded-lg bg-primary/10">
-                        <Folder className="size-6 text-primary" />
-                      </div>
-                      <CardTitle className="text-lg">{root.dirname}</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-sm text-muted-foreground truncate">
-                        {root.path}
-                      </p>
-                    </CardContent>
-                  </Card>
-                </Link>
-              ))}
+      {/* 快捷访问 */}
+      <section className="home-section">
+        <h2 className="home-section__title">{t("settings.fsRoots")}</h2>
+        <div className="home-grid home-grid--folders">
+          {isLoading ? <div className="home-empty">{t("common.loading")}</div> : null}
+          {roots?.map((root) => (
+            <Link key={root.path} to="/explorer" search={{ path: root.path }} className="home-card-link">
+              <HomeCard icon={Folder} title={root.dirname} />
+            </Link>
+          ))}
         </div>
-      </div>
+      </section>
+
+
+      <section className="home-section">
+        <h2 className="home-section__title">{t("home.topOpenedFolders")}</h2>
+        <div className="home-grid home-grid--folders">
+          {topOpenedFolders?.folder_ids.map((folderPath) => (
+            <Link key={folderPath} to="/explorer" search={{ path: folderPath }} className="home-card-link">
+              <HomeCard icon={Folder} title={folderPath.split(/[\\/]/).filter(Boolean).at(-1) ?? folderPath} subtitle={folderPath} />
+            </Link>
+          ))}
+          {topOpenedFolders && topOpenedFolders.folder_ids.length === 0 ? <div className="home-empty">{t("home.noTopOpenedFolders")}</div> : null}
+        </div>
+      </section>
+
+      <section className="home-section">
+        <h2 className="home-section__title">{t("home.recentActivity")}</h2>
+        <RecentActivityPanel items={recentActivity?.items ?? []} />
+      </section>
+
+      <section className="home-section">
+        <h2 className="home-section__title">{t("home.libraryOverview")}</h2>
+        <div className="home-overview-list">
+          <div className="home-overview-item">
+            <div className="home-overview-item__label-group">
+              <BookOpen className="home-overview-item__icon" />
+              <span className="home-overview-item__label">Archives</span>
+            </div>
+            <span className="home-overview-item__value">{libraryOverview?.archives ?? 0}</span>
+          </div>
+          <div className="home-overview-item">
+            <div className="home-overview-item__label-group">
+              <Film className="home-overview-item__icon" />
+              <span className="home-overview-item__label">Videos</span>
+            </div>
+            <span className="home-overview-item__value">{libraryOverview?.videos ?? 0}</span>
+          </div>
+          <div className="home-overview-item">
+            <div className="home-overview-item__label-group">
+              <Image className="home-overview-item__icon" />
+              <span className="home-overview-item__label">Images</span>
+            </div>
+            <span className="home-overview-item__value">{libraryOverview?.images ?? 0}</span>
+          </div>
+          <div className="home-overview-item">
+            <div className="home-overview-item__label-group">
+              <Music2 className="home-overview-item__icon" />
+              <span className="home-overview-item__label">Audio</span>
+            </div>
+            <span className="home-overview-item__value">{libraryOverview?.audio ?? 0}</span>
+          </div>
+          <div className="home-overview-item">
+            <div className="home-overview-item__label-group">
+              <Folder className="home-overview-item__icon" />
+              <span className="home-overview-item__label">Folders</span>
+            </div>
+            <span className="home-overview-item__value">{libraryOverview?.folders ?? 0}</span>
+          </div>
+        </div>
+      </section>
     </div>
   )
 }

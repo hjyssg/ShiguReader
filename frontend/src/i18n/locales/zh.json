@@ -32,7 +32,16 @@
     "specialFolders": "特殊目录",
     "configuredDirs": "配置的目录",
     "favorite": "收藏",
-    "alreadyRead": "已读"
+    "alreadyRead": "已读",
+    "recentActivity": "最近活动",
+    "libraryOverview": "库总览",
+    "activityFilterAll": "全部活动",
+    "activityFilterSystem": "系统任务",
+    "activityEmptyHint": "服务器启动后会自动执行扫描和同步任务。",
+    "retry": "重试",
+    "scannedFiles": "已扫描文件",
+    "topOpenedFolders": "最常用文件夹",
+    "noTopOpenedFolders": "最近 90 天暂无常用文件夹数据"
   },
   "explorer": {
     "scan": "扫描",
@@ -50,7 +59,16 @@
     "fileNotFoundMessage": "无法找到文件：{{fileName}}",
     "loadErrorMessage": "加载文件时出错：{{errorMessage}}",
     "returnHome": "返回首页",
-    "openParent": "打开父目录"
+    "openParent": "打开父目录",
+    "sortBy": "排序：",
+    "table": {
+      "name": "名称",
+      "dateModified": "修改日期",
+      "type": "类型",
+      "size": "大小",
+      "likeScore": "Like Score",
+      "imageCount": "图片数"
+    }
   },
   "history": {
     "title": "历史",
@@ -207,7 +225,9 @@
     "endTime": "结束时间",
     "running": "正在进行",
     "completed": "已完成",
-    "error": "出错"
+    "error": "出错",
+    "japanese": "日本語",
+    "korean": "한국어"
   },
   "archive": {
     "unknownError": "未知错误"
