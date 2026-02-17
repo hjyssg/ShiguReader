@@ -1,7 +1,9 @@
 {
   "typescript.disableAutomaticTypeAcquisition": true,
-  "typescript.tsserver.maxTsServerMemory": 768,
+  "typescript.tsserver.maxTsServerMemory": 512,
   "typescript.tsserver.experimental.enableProjectDiagnostics": false,
+  "typescript.disableReferencedProjectLoad": true,
+  "typescript.disableSolutionSearching": true,
   "typescript.tsserver.watchOptions": {
     "watchFile": "useFsEventsOnParentDirectory",
     "watchDirectory": "useFsEvents",
@@ -11,6 +13,7 @@
   "javascript.suggest.autoImports": false,
   "typescript.preferences.includePackageJsonAutoImports": "off",
   "typescript.tsserver.useSeparateSyntaxServer": false,
+  "javascript.validate.enable": false,
 
   "python.analysis.indexing": false,
   "python.analysis.autoImportCompletions": false,
@@ -65,5 +68,9 @@
     "**/.pytest_cache": true,
     "**/.mypy_cache": true,
     "**/coverage": true
-  }
+  },
+
+  "editor.semanticHighlighting.enabled": false,
+  "git.autorefresh": false,
+  "npm.autoDetect": "off"
 }

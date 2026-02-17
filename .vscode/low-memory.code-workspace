@@ -1,0 +1,29 @@
+{
+  "folders": [
+    { "path": "../frontend" },
+    { "path": "../backend/app" },
+    { "path": "../backend/tests" },
+    { "path": "../backend/scripts" }
+  ],
+  "settings": {
+    "typescript.disableAutomaticTypeAcquisition": true,
+    "typescript.tsserver.maxTsServerMemory": 512,
+    "typescript.disableReferencedProjectLoad": true,
+    "typescript.disableSolutionSearching": true,
+    "typescript.tsserver.experimental.enableProjectDiagnostics": false,
+    "python.analysis.indexing": false,
+    "python.analysis.diagnosticMode": "openFilesOnly",
+    "tailwindCSS.experimental.configFile": "frontend/src/index.css",
+    "files.watcherExclude": {
+      "**/node_modules/**": true,
+      "**/.venv/**": true,
+      "**/venv/**": true,
+      "**/dist/**": true,
+      "**/build/**": true,
+      "**/coverage/**": true,
+      "**/.pytest_cache/**": true,
+      "**/.mypy_cache/**": true,
+      "**/public/assets/**": true
+    }
+  }
+}
