@@ -856,24 +856,29 @@ def _scan_root_with_scandir(root: Path) -> dict[str, tuple[int, int]]:
         try:
             with os.scandir(current) as entries:
                 for entry in entries:
-                    name = entry.name
-                    if entry.is_dir(follow_symlinks=False):
-                        if name.startswith(".") or should_ignore(name):
+                    try:
+                        name = entry.name
+                        if entry.is_dir(follow_symlinks=False):
+                            if name.startswith(".") or should_ignore(name):
+                                continue
+                            pending.append(Path(entry.path))
                             continue
-                        pending.append(Path(entry.path))
-                        continue
 
-                    if not entry.is_file(follow_symlinks=False):
-                        continue
-                    if should_ignore(name) or not _is_target_extension(name):
-                        continue
+                        if not entry.is_file(follow_symlinks=False):
+                            continue
+                        if should_ignore(name) or not _is_target_extension(name):
+                            continue
 
-                    stat = entry.stat(follow_symlinks=False)
-                    files[entry.path] = (int(stat.st_size), int(stat.st_mtime))
-                    visited += 1
-                    if visited % _SYNC_LOW_PRIORITY_SLEEP_EVERY == 0:
-                        sleep(_SYNC_LOW_PRIORITY_SLEEP_SEC)
-        except (FileNotFoundError, NotADirectoryError, PermissionError):
+                        stat = entry.stat(follow_symlinks=False)
+                        files[entry.path] = (int(stat.st_size), int(stat.st_mtime))
+                        visited += 1
+                        if visited % _SYNC_LOW_PRIORITY_SLEEP_EVERY == 0:
+                            sleep(_SYNC_LOW_PRIORITY_SLEEP_SEC)
+                    except (FileNotFoundError, NotADirectoryError, PermissionError, OSError, ValueError) as e:
+                        logger.warning("[file-sync] skip invalid entry: %s (%s)", getattr(entry, "path", current), e)
+                        continue
+        except (FileNotFoundError, NotADirectoryError, PermissionError, OSError, ValueError) as e:
+            logger.warning("[file-sync] skip invalid directory: %s (%s)", current, e)
             continue
 
     with _scan_snapshot_lock:
