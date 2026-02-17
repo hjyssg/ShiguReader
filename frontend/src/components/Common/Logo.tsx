@@ -19,9 +19,14 @@ export function Logo({
       {/* <div className="flex size-6 items-center justify-center rounded-lg bg-primary text-primary-foreground">
         S
       </div> */}
+      <img
+        src="/assets/images/favicon.png"
+        alt="Logo"
+        className="size-7 object-contain rounded-md shadow-sm border border-border/50"
+      />
       <span
         className={cn(
-          "sidebar-logo-text text-xl tracking-tight transition-all pl-2 pt-1",
+          "sidebar-logo-text text-xl tracking-tight transition-all pt-1",
           variant === "icon" && "hidden",
         )}
       >
