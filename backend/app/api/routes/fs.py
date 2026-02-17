@@ -845,6 +845,23 @@ def _collect_cached_scan_for_root(root: Path) -> dict[str, tuple[int, int]] | No
     return None
 
 
+def _should_skip_sync_path(path: Path) -> bool:
+    """
+    file-sync 的硬编码跳过规则（Windows 兼容/历史目录）。
+
+    这些目录经常包含重解析点/循环别名（如 Local Settings -> Application Data -> ...），
+    会触发 WinError 1921 / 非法路径。业务上也不应纳入媒体索引扫描。
+    """
+    normalized = str(path).replace("\\", "/").lower()
+    skip_fragments = (
+        "/temporary internet files/",
+        "/content.ie5/",
+        "/local settings/application data/",
+        "/appdata/local/microsoft/windows/inetcache/",
+    )
+    return any(fragment in normalized for fragment in skip_fragments)
+
+
 def _scan_root_with_scandir(root: Path) -> dict[str, tuple[int, int]]:
     """使用 os.scandir 递归扫描目录，仅收集目标扩展文件。"""
     files: dict[str, tuple[int, int]] = {}
@@ -853,6 +870,10 @@ def _scan_root_with_scandir(root: Path) -> dict[str, tuple[int, int]]:
 
     while pending:
         current = pending.pop()
+        if _should_skip_sync_path(current):
+            logger.info("[file-sync] skip system path: %s", current)
+            continue
+
         try:
             with os.scandir(current) as entries:
                 for entry in entries:
@@ -861,7 +882,10 @@ def _scan_root_with_scandir(root: Path) -> dict[str, tuple[int, int]]:
                         if entry.is_dir(follow_symlinks=False):
                             if name.startswith(".") or should_ignore(name):
                                 continue
-                            pending.append(Path(entry.path))
+                            dir_path = Path(entry.path)
+                            if _should_skip_sync_path(dir_path):
+                                continue
+                            pending.append(dir_path)
                             continue
 
                         if not entry.is_file(follow_symlinks=False):
