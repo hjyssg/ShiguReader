@@ -12,14 +12,15 @@ import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
 
 import { OpenAPI } from "@/client"
-import { FileIcon } from "@/components/Files/FileIcon"
+import type { FileSystemItem } from "@/client/types.gen"
+import { ListTable, type ListTableColumn } from "@/components/Common/ListTable"
+import { FileItem } from "@/components/Files/FileItem"
 import { FileNameWithPreview } from "@/components/Files/FileNameWithPreview"
 import {
   formatDateTime,
   formatFileSize,
   formatFileType,
 } from "@/components/Files/utils"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
   Pagination,
@@ -148,15 +149,30 @@ function HistoryPage() {
     toast.info(t("history.unsupportedType"))
   }
 
+  const tableColumns: ListTableColumn[] = [
+    { key: "name", header: t("history.name") },
+    { key: "readAt", header: t("history.readAt"), headerClassName: "w-[180px]" },
+    { key: "type", header: t("history.type"), headerClassName: "w-[120px]" },
+    { key: "size", header: t("history.size"), headerClassName: "w-[100px] text-right" },
+  ]
+
+  const toFileSystemItem = (item: HistoryItem): FileSystemItem => ({
+    name: item.filename,
+    path: item.filepath,
+    item_type: "file",
+    file_type: item.file_type,
+    filesize: item.filesize,
+    mtime: item.mtime,
+    thumbnail_url: item.thumbnail_url,
+  })
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-4 pb-2 border-b">
         <div className="flex items-center gap-2">
           <HistoryIcon className="size-5" />
           <h1 className="text-xl font-semibold">{t("history.title")}</h1>
-          <span className="text-sm text-muted-foreground">
-            {t("history.subtitle")}
-          </span>
+          <span className="text-sm text-muted-foreground">{t("history.subtitle")}</span>
         </div>
         <div className="flex items-center gap-2">
           <Button
@@ -214,7 +230,7 @@ function HistoryPage() {
 
       {isLoading ? (
         view === "grid" ? (
-          <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+          <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-7">
             {[...Array(12)].map((_, i) => (
               <div key={i} className="space-y-2">
                 <Skeleton className="aspect-square w-full rounded-lg" />
@@ -234,112 +250,47 @@ function HistoryPage() {
           <p className="text-muted-foreground">{t("history.empty")}</p>
         </div>
       ) : view === "grid" ? (
-        <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+        <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-7">
           {data?.items.map((item) => (
-            <button
+            <div
               key={`${item.filepath}-${item.read_at}`}
-              type="button"
               onClick={() => openHistoryItem(item)}
-              className="group relative rounded-lg border bg-card transition-all text-left cursor-pointer hover:border-primary hover:shadow-md"
+              className="cursor-pointer"
             >
-              <div className="aspect-square w-full overflow-hidden rounded-t-lg bg-muted flex items-center justify-center relative">
-                {item.thumbnail_url ? (
-                  <img
-                    src={`${OpenAPI.BASE}${item.thumbnail_url}`}
-                    alt={item.filename}
-                    className="size-full object-contain"
-                    loading="lazy"
-                  />
-                ) : (
-                  <FileIcon fileType={item.file_type} isFolder={false} />
-                )}
-                {/*
-                  不需要显示这个了，用户点开reader就知道有没有就好了
-                {!item.file_exists && (
-                  <Badge
-                    variant="destructive"
-                    className="absolute top-2 right-2"
-                  >
-                    {t("history.unknown")}
-                  </Badge>
-                )} */}
-              </div>
-              <div className="p-2 space-y-1">
-                <FileNameWithPreview
-                  filename={item.filename}
-                  filepath={item.filepath}
-                  thumbnailUrl={item.thumbnail_url}
-                  className="text-sm block"
-                />
-                <p className="text-xs text-muted-foreground">
-                  {t("history.readAt")}：{formatDateTime(item.read_at)}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  {item.filesize
-                    ? formatFileSize(item.filesize)
-                    : formatFileType(item.file_type)}
-                </p>
-              </div>
-            </button>
+              <FileItem
+                item={toFileSystemItem(item)}
+                className="file-item-root--compact"
+                metaText={`${t("history.readAt")}：${formatDateTime(item.read_at)}`}
+              />
+            </div>
           ))}
         </div>
       ) : (
-        <div className="border rounded-lg overflow-hidden">
-          <table className="w-full">
-            <thead className="bg-muted/50 border-b">
-              <tr className="text-sm">
-                <th className="text-left p-2 font-medium">
-                  {t("history.name")}
-                </th>
-                <th className="text-left p-2 font-medium w-[180px]">
-                  {t("history.readAt")}
-                </th>
-                <th className="text-left p-2 font-medium w-[120px]">
-                  {t("history.type")}
-                </th>
-                <th className="text-right p-2 font-medium w-[100px]">
-                  {t("history.size")}
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {data?.items.map((item) => (
-                <tr
-                  key={`${item.filepath}-${item.read_at}`}
-                  className="border-b last:border-b-0 text-sm cursor-pointer hover:bg-muted/50"
-                  onClick={() => openHistoryItem(item)}
-                >
-                  <td className="p-2">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <div className="shrink-0">
-                        <FileIcon
-                          fileType={item.file_type}
-                          isFolder={false}
-                          size="sm"
-                        />
-                      </div>
-                      <FileNameWithPreview
-                        filename={item.filename}
-                        filepath={item.filepath}
-                        thumbnailUrl={item.thumbnail_url}
-                        className="min-w-0"
-                      />
-                    </div>
-                  </td>
-                  <td className="p-2 text-muted-foreground">
-                    {formatDateTime(item.read_at)}
-                  </td>
-                  <td className="p-2 text-muted-foreground">
-                    {formatFileType(item.file_type)}
-                  </td>
-                  <td className="p-2 text-right text-muted-foreground">
-                    {item.filesize ? formatFileSize(item.filesize) : "-"}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <ListTable
+          columns={tableColumns}
+          rows={data?.items ?? []}
+          renderRow={(item) => (
+            <tr
+              key={`${item.filepath}-${item.read_at}`}
+              className="border-b last:border-b-0 text-sm cursor-pointer hover:bg-muted/50"
+              onClick={() => openHistoryItem(item)}
+            >
+              <td className="p-2">
+                <div className="flex items-center gap-2 min-w-0">
+                  <FileNameWithPreview
+                    filename={item.filename}
+                    filepath={item.filepath}
+                    thumbnailUrl={item.thumbnail_url}
+                    className="min-w-0"
+                  />
+                </div>
+              </td>
+              <td className="p-2 text-muted-foreground">{formatDateTime(item.read_at)}</td>
+              <td className="p-2 text-muted-foreground">{formatFileType(item.file_type)}</td>
+              <td className="p-2 text-right text-muted-foreground">{item.filesize ? formatFileSize(item.filesize) : "-"}</td>
+            </tr>
+          )}
+        />
       )}
 
       {(data?.total ?? 0) > 0 && (
@@ -353,9 +304,7 @@ function HistoryPage() {
                     e.preventDefault()
                     goToPage(1)
                   }}
-                  className={
-                    page <= 1 ? "pointer-events-none opacity-50" : undefined
-                  }
+                  className={page <= 1 ? "pointer-events-none opacity-50" : undefined}
                 />
               </PaginationItem>
 
@@ -366,9 +315,7 @@ function HistoryPage() {
                     e.preventDefault()
                     goToPage(page - 1)
                   }}
-                  className={
-                    page <= 1 ? "pointer-events-none opacity-50" : undefined
-                  }
+                  className={page <= 1 ? "pointer-events-none opacity-50" : undefined}
                 />
               </PaginationItem>
 
@@ -394,11 +341,7 @@ function HistoryPage() {
                     e.preventDefault()
                     goToPage(page + 1)
                   }}
-                  className={
-                    page >= totalPages
-                      ? "pointer-events-none opacity-50"
-                      : undefined
-                  }
+                  className={page >= totalPages ? "pointer-events-none opacity-50" : undefined}
                 />
               </PaginationItem>
 
@@ -409,11 +352,7 @@ function HistoryPage() {
                     e.preventDefault()
                     goToPage(totalPages)
                   }}
-                  className={
-                    page >= totalPages
-                      ? "pointer-events-none opacity-50"
-                      : undefined
-                  }
+                  className={page >= totalPages ? "pointer-events-none opacity-50" : undefined}
                 />
               </PaginationItem>
             </PaginationContent>

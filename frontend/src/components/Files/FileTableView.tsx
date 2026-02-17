@@ -2,12 +2,12 @@
 import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react"
 
 import type { FileSystemItem } from "@/client"
+import { ListTable, type ListTableColumn } from "@/components/Common/ListTable"
 import { cn } from "@/lib/utils"
 import { FileContextMenu, type FileContextMenuActions } from "./FileContextMenu"
 import { FileIcon } from "./FileIcon"
 import { FileNameWithPreview } from "./FileNameWithPreview"
 import { formatDateTime, formatFileSize, formatFileType } from "./utils"
-import "./FileTableView.css"
 
 export type SortField =
   | "name"
@@ -22,12 +22,10 @@ interface FileTableViewProps {
   onSort: (field: SortField) => void
   sortField: SortField
   sortOrder: SortOrder
-  /** 选择相关 */
   isSelected?: (path: string) => boolean
   onItemClick?: (item: FileSystemItem, e: React.MouseEvent) => void
   onItemDoubleClick?: (item: FileSystemItem, e: React.MouseEvent) => void
   onItemContextMenu?: (item: FileSystemItem) => void
-  /** 右键菜单 */
   buildContextMenuActions?: (item: FileSystemItem) => FileContextMenuActions
   isOpenable?: (item: FileSystemItem) => boolean
 }
@@ -45,160 +43,73 @@ export function FileTableView({
   isOpenable,
 }: FileTableViewProps) {
   const SortIcon = ({ field }: { field: SortField }) => {
-    if (sortField !== field) {
-      return <ArrowUpDown className="size-3 ml-1 opacity-50" />
-    }
-    return sortOrder === "asc" ? (
-      <ArrowUp className="size-3 ml-1" />
-    ) : (
-      <ArrowDown className="size-3 ml-1" />
-    )
+    if (sortField !== field) return <ArrowUpDown className="size-3 ml-1 opacity-50" />
+    return sortOrder === "asc" ? <ArrowUp className="size-3 ml-1" /> : <ArrowDown className="size-3 ml-1" />
   }
 
+  const columns: ListTableColumn[] = [
+    { key: "name", header: <button className="inline-flex items-center" onClick={() => onSort("name")}>Name<SortIcon field="name" /></button> },
+    { key: "mtime", header: <button className="inline-flex items-center" onClick={() => onSort("mtime")}>Date Modified<SortIcon field="mtime" /></button>, headerClassName: "w-[180px]" },
+    { key: "type", header: <button className="inline-flex items-center" onClick={() => onSort("type")}>Type<SortIcon field="type" /></button>, headerClassName: "w-[120px]" },
+    { key: "size", header: "Size", headerClassName: "w-[100px] text-right" },
+    { key: "recommendation", header: <button className="ml-auto inline-flex items-center" onClick={() => onSort("recommendation")}>Recommendation<SortIcon field="recommendation" /></button>, headerClassName: "w-[130px] text-right" },
+    { key: "image_count", header: <button className="ml-auto inline-flex items-center" onClick={() => onSort("image_count")}>Image Count<SortIcon field="image_count" /></button>, headerClassName: "w-[110px] text-right" },
+  ]
+
   return (
-    <div className="file-table-view">
-      <table className="file-table-view__table">
-        <thead className="file-table-view__head">
-          <tr className="file-table-view__head-row">
-            <th
-              className="file-table-view__head-cell file-table-view__head-cell--sortable"
-              onClick={() => onSort("name")}
-            >
-              <div className="file-table-view__head-cell-content">
-                Name
-                <SortIcon field="name" />
-              </div>
-            </th>
-            <th
-              className="file-table-view__head-cell file-table-view__head-cell--sortable file-table-view__head-cell--mtime"
-              onClick={() => onSort("mtime")}
-            >
-              <div className="file-table-view__head-cell-content">
-                Date Modified
-                <SortIcon field="mtime" />
-              </div>
-            </th>
-            <th
-              className="file-table-view__head-cell file-table-view__head-cell--sortable file-table-view__head-cell--type"
-              onClick={() => onSort("type")}
-            >
-              <div className="file-table-view__head-cell-content">
-                Type
-                <SortIcon field="type" />
-              </div>
-            </th>
-            <th className="file-table-view__head-cell file-table-view__head-cell--align-right file-table-view__head-cell--size">
-              Size
-            </th>
-            <th
-              className="file-table-view__head-cell file-table-view__head-cell--sortable file-table-view__head-cell--align-right file-table-view__head-cell--recommendation"
-              onClick={() => onSort("recommendation")}
-            >
-              <div className="file-table-view__head-cell-content file-table-view__head-cell-content--align-right">
-                Recommendation
-                <SortIcon field="recommendation" />
-              </div>
-            </th>
-            <th
-              className="file-table-view__head-cell file-table-view__head-cell--sortable file-table-view__head-cell--align-right file-table-view__head-cell--image-count"
-              onClick={() => onSort("image_count")}
-            >
-              <div className="file-table-view__head-cell-content file-table-view__head-cell-content--align-right">
-                Image Count
-                <SortIcon field="image_count" />
-              </div>
-            </th>
+    <ListTable
+      columns={columns}
+      rows={items}
+      renderRow={(item) => {
+        const row = (
+          <tr
+            key={item.path}
+            className={cn(
+              "border-b last:border-b-0 text-sm cursor-pointer hover:bg-muted/50",
+              isSelected?.(item.path) && "bg-primary/10",
+            )}
+            onClick={(e) => onItemClick?.(item, e)}
+            onDoubleClick={(e) => onItemDoubleClick?.(item, e)}
+          >
+            <TableRowCells item={item} />
           </tr>
-        </thead>
-        <tbody>
-          {items.map((item) => {
-            const row = (
-              <TableRowItem
-                key={item.path}
-                item={item}
-                selected={isSelected?.(item.path) ?? false}
-                onClick={onItemClick}
-                onDoubleClick={onItemDoubleClick}
-              />
-            )
+        )
 
-            if (buildContextMenuActions) {
-              return (
-                <FileContextMenu
-                  key={item.path}
-                  item={item}
-                  isOpenable={isOpenable?.(item) ?? false}
-                  actions={buildContextMenuActions(item)}
-                  onContextMenuOpen={() => onItemContextMenu?.(item)}
-                >
-                  {row}
-                </FileContextMenu>
-              )
-            }
+        if (!buildContextMenuActions) return row
 
-            return row
-          })}
-        </tbody>
-      </table>
-    </div>
+        return (
+          <FileContextMenu
+            key={item.path}
+            item={item}
+            isOpenable={isOpenable?.(item) ?? false}
+            actions={buildContextMenuActions(item)}
+            onContextMenuOpen={() => onItemContextMenu?.(item)}
+          >
+            {row}
+          </FileContextMenu>
+        )
+      }}
+    />
   )
 }
 
-function TableRowItem({
-  item,
-  selected,
-  onClick,
-  onDoubleClick,
-}: {
-  item: FileSystemItem
-  selected: boolean
-  onClick?: (item: FileSystemItem, e: React.MouseEvent) => void
-  onDoubleClick?: (item: FileSystemItem, e: React.MouseEvent) => void
-}) {
+function TableRowCells({ item }: { item: FileSystemItem }) {
   const isFolder = item.item_type === "folder"
   const isArchive = item.file_type === "archive"
 
   return (
-    <tr
-      className={cn(
-        "file-table-row",
-        selected ? "file-table-row--selected" : "file-table-row--hoverable",
-      )}
-      onClick={(e) => onClick?.(item, e)}
-      onDoubleClick={(e) => onDoubleClick?.(item, e)}
-    >
-      <td className="file-table-cell">
-        <div className="file-table-name-cell">
-          <FileIcon
-            fileType={item.file_type}
-            isFolder={isFolder}
-            size="sm"
-          />
-          <FileNameWithPreview
-            filename={item.name}
-            filepath={item.path}
-            thumbnailUrl={item.thumbnail_url}
-            className="min-w-0"
-          />
+    <>
+      <td className="p-2">
+        <div className="flex min-w-0 items-center gap-2">
+          <FileIcon fileType={item.file_type} isFolder={isFolder} size="sm" />
+          <FileNameWithPreview filename={item.name} filepath={item.path} thumbnailUrl={item.thumbnail_url} className="min-w-0" />
         </div>
       </td>
-      <td className="file-table-cell file-table-cell--muted">
-        {item.mtime ? formatDateTime(item.mtime) : "-"}
-      </td>
-      <td className="file-table-cell file-table-cell--muted">
-        {isFolder ? "Folder" : formatFileType(item.file_type)}
-      </td>
-      <td className="file-table-cell file-table-cell--align-right file-table-cell--muted">
-        {!isFolder && item.filesize ? formatFileSize(item.filesize) : "-"}
-      </td>
-      <td className="file-table-cell file-table-cell--align-right file-table-cell--muted">
-        {!isFolder ? ((item as any).recommendation_score ?? 0).toFixed(3) : "-"}
-      </td>
-      <td className="file-table-cell file-table-cell--align-right file-table-cell--muted">
-        {isArchive && (item as any).image_count
-          ? (item as any).image_count
-          : "-"}
-      </td>
-    </tr>
+      <td className="p-2 text-muted-foreground">{item.mtime ? formatDateTime(item.mtime) : "-"}</td>
+      <td className="p-2 text-muted-foreground">{isFolder ? "Folder" : formatFileType(item.file_type)}</td>
+      <td className="p-2 text-right text-muted-foreground">{!isFolder && item.filesize ? formatFileSize(item.filesize) : "-"}</td>
+      <td className="p-2 text-right text-muted-foreground">{!isFolder ? ((item as any).recommendation_score ?? 0).toFixed(3) : "-"}</td>
+      <td className="p-2 text-right text-muted-foreground">{isArchive && (item as any).image_count ? (item as any).image_count : "-"}</td>
+    </>
   )
 }
