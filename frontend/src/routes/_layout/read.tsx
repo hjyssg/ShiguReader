@@ -591,7 +591,6 @@ function ReadPage() {
       {/* 顶部工具栏 - 整合导航和工具 */}
       <nav className="reader-toolbar">
         <div className="reader-toolbar__left">
-          <img src="/assets/images/favicon.png" alt="ShiguReader" className="reader-toolbar__favicon" />
           <PathBreadcrumb
             as="div"
             sourcePath={path}
