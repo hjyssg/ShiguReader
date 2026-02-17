@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next"
 
 import { OpenAPI } from "@/client"
 import { EntityGrid } from "@/components/Common/EntityGrid"
+import { SortDirectionToggle } from "@/components/Common/SortDirectionToggle"
 import { Label } from "@/components/ui/label"
 import {
   Select,
@@ -119,30 +120,24 @@ function AuthorsPage() {
           </Select>
         </div>
 
-        <div className="flex items-center gap-2">
-          <Label className="text-sm">{t("authors.sortDirection")}</Label>
-          <Select
-            value={sort_order}
-            onValueChange={(v) => {
-              navigate({
-                to: "/authors",
-                search: {
-                  page: 1,
-                  sort_by,
-                  sort_order: v as SortOrder,
-                },
-              })
-            }}
-          >
-            <SelectTrigger className="w-[140px] h-8">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="desc">{t("authors.descending")}</SelectItem>
-              <SelectItem value="asc">{t("authors.ascending")}</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+        <SortDirectionToggle
+          value={sort_order}
+          title={
+            sort_order === "asc"
+              ? t("authors.ascending")
+              : t("authors.descending")
+          }
+          onToggle={() => {
+            navigate({
+              to: "/authors",
+              search: {
+                page: 1,
+                sort_by,
+                sort_order: sort_order === "asc" ? "desc" : "asc",
+              },
+            })
+          }}
+        />
       </div>
 
       <EntityGrid
