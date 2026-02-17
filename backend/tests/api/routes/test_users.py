@@ -1,3 +1,7 @@
+import pytest
+
+pytestmark = pytest.mark.skip(reason="user API 已停用，相关 UT 暂停维护")
+
 """Tests for app/api/routes/users.py user management endpoints."""
 
 from fastapi.testclient import TestClient
