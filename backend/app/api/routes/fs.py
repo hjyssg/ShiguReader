@@ -34,7 +34,7 @@ from app.file_processing.stepwise_extractor import stepwise_extract
 from app.index_db.confidence import compute_confidence
 from app.index_db.db import get_index_session
 from app.index_db.models import File, Folder
-from app.index_db.repository import IndexRepository, UpsertFileInput, UpsertFolderInput
+from app.index_db.repository import ActivityLogInput, IndexRepository, UpsertFileInput, UpsertFolderInput
 from app.services.thumb_service import ThumbService
 from app.utils import detect_file_type, get_mime_type
 
@@ -84,6 +84,22 @@ _rec_cache: dict[str, object] = {
 def _build_thumb_url(path: Path | str) -> str:
     encoded_path = quote(str(path), safe="")
     return f"{settings.API_V1_STR}/fs/thumb?path={encoded_path}"
+
+
+
+def _log_activity(activity_type: str, message: str, target_path: str | None = None) -> None:
+    try:
+        with get_index_session() as session:
+            repo = IndexRepository(session)
+            repo.log_activity(
+                ActivityLogInput(
+                    activity_type=activity_type,
+                    message=message,
+                    target_path=target_path,
+                )
+            )
+    except Exception as e:
+        logger.warning("log activity failed: %s", e)
 
 
 def _parse_roots() -> list[Path]:
@@ -246,6 +262,26 @@ class RenameRequest(BaseModel):
 class UnzipRequest(BaseModel):
     archive_path: str
     output_dir: str | None = None
+
+
+class ActivityItem(BaseModel):
+    id: int
+    activity_type: Literal["scan", "minify_zip_images", "move", "delete", "rename"]
+    message: str
+    target_path: str | None = None
+    created_at: int
+
+
+class RecentActivityResponse(BaseModel):
+    items: list[ActivityItem]
+
+
+class LibraryOverviewResponse(BaseModel):
+    archives: int
+    videos: int
+    images: int
+    audio: int
+    folders: int
 
 
 class PathOperationResponse(BaseModel):
@@ -1083,7 +1119,14 @@ def list_directory(
     
     if not validated_path.is_dir():
         raise HTTPException(status_code=400, detail="Path is not a directory")
-    
+
+    try:
+        with get_index_session() as session:
+            repo = IndexRepository(session)
+            repo.record_folder_open(str(validated_path))
+    except Exception as e:
+        logger.warning("record folder open failed for %s: %s", validated_path, e)
+
     items: list[FileSystemItem] = []
     folders_to_upsert: list[UpsertFolderInput] = []
     files_to_upsert: list[UpsertFileInput] = []
@@ -1385,6 +1428,7 @@ def move_file(request: MovePathRequest) -> PathOperationResponse:
         logger.warning("DB cleanup failed after move-file %s -> %s: %s", source, dest, e)
 
     _run_scan(dest.parent, False)
+    _log_activity("move", f"Moved file: {source.name} -> {dest.name}", str(dest))
     return PathOperationResponse(status="ok", message="File moved", path=str(source), dest_path=str(dest))
 
 
@@ -1424,6 +1468,7 @@ def move_folder(request: MovePathRequest) -> PathOperationResponse:
         logger.warning("DB cleanup failed after move-folder %s -> %s: %s", source, dest, e)
 
     _run_scan(dest, True)
+    _log_activity("move", f"Moved folder: {source.name} -> {dest.name}", str(dest))
     return PathOperationResponse(status="ok", message="Folder moved", path=str(source), dest_path=str(dest))
 
 
@@ -1458,6 +1503,7 @@ def delete_path(request: DeletePathRequest) -> PathOperationResponse:
         except Exception as e:
             logger.warning("DB cleanup failed after delete %s: %s", target, e)
 
+        _log_activity("delete", f"Deleted: {target.name}", str(target))
         return PathOperationResponse(status="ok", message=message, path=str(target))
     except PermissionError as e:
         operation = "delete file" if is_file_target else "delete folder"
@@ -1545,6 +1591,7 @@ def rename_path(request: RenameRequest) -> PathOperationResponse:
     else:
         _run_scan(dest.parent, False)
     
+    _log_activity("rename", f"Renamed: {source.name} -> {dest.name}", str(dest))
     return PathOperationResponse(status="ok", message="Renamed successfully", path=str(source), dest_path=str(dest))
 
 
@@ -1630,6 +1677,7 @@ async def scan_favorite(background_tasks: BackgroundTasks) -> ScanStartResponse:
         raise HTTPException(status_code=404, detail="Favorite directory not found")
 
     background_tasks.add_task(_run_scan, favorite_path, True)
+    _log_activity("scan", f"Started favorite scan: {favorite_path}", str(favorite_path))
     return ScanStartResponse(status="started", message="Favorite directory scan started", path=str(favorite_path))
 
 
@@ -1647,6 +1695,7 @@ async def scan_directory(background_tasks: BackgroundTasks, request: ScanRequest
         raise HTTPException(status_code=400, detail="Path is not a directory")
 
     background_tasks.add_task(_run_scan, validated_path, request.recursive)
+    _log_activity("scan", f"Started scan: {validated_path}", str(validated_path))
 
     return ScanStartResponse(
         status="started",
@@ -1844,6 +1893,7 @@ async def scan_and_watch(background_tasks: BackgroundTasks, request: ScanRequest
         finished_at=None,
     )
     background_tasks.add_task(_run_scan, validated_path, request.recursive)
+    _log_activity("scan", f"Started scan: {validated_path}", str(validated_path))
 
     return ScanStartResponse(
         status="started",
@@ -1864,6 +1914,41 @@ async def get_scan_status(path: str | None = Query(None, description="Optional p
             return [_build_scan_status_item(path, record)]
 
         return [_build_scan_status_item(path_key, record) for path_key, record in _scan_status.items()]
+
+
+# 接口说明：获取最近活动（默认10条）。
+@router.get("/recent-activity", response_model=RecentActivityResponse)
+def get_recent_activity(limit: int = Query(10, ge=1, le=50)) -> RecentActivityResponse:
+    with get_index_session() as session:
+        repo = IndexRepository(session)
+        rows = repo.list_activity_logs(limit=limit)
+
+    return RecentActivityResponse(
+        items=[
+            ActivityItem(
+                id=row.id or 0,
+                activity_type=row.activity_type,
+                message=row.message,
+                target_path=row.target_path,
+                created_at=row.created_at,
+            )
+            for row in rows
+        ]
+    )
+
+
+# 接口说明：获取全库总览统计。
+@router.get("/library-overview", response_model=LibraryOverviewResponse)
+def get_library_overview() -> LibraryOverviewResponse:
+    with get_index_session() as session:
+        repo = IndexRepository(session)
+        return LibraryOverviewResponse(
+            archives=repo.count_files_by_type("archive"),
+            videos=repo.count_files_by_type("video"),
+            images=repo.count_files_by_type("image"),
+            audio=repo.count_files_by_type("audio"),
+            folders=repo.count_folders(),
+        )
 
 
 # 接口说明：获取（或生成）文件缩略图。
@@ -2341,6 +2426,7 @@ async def compress_archive_images_endpoint(
             min_size=request.min_size,
         )
         
+        _log_activity("minify_zip_images", f"Minified archive images: {archive.name}", result.output_path)
         return CompressImagesResponse(
             success=result.success,
             original_path=result.original_path,

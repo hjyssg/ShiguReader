@@ -32,7 +32,9 @@
     "specialFolders": "特殊目录",
     "configuredDirs": "配置的目录",
     "favorite": "收藏",
-    "alreadyRead": "已读"
+    "alreadyRead": "已读",
+    "recentActivity": "最近活动",
+    "libraryOverview": "库总览"
   },
   "explorer": {
     "scan": "扫描",
