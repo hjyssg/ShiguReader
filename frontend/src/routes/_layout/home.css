@@ -218,3 +218,22 @@
     transform: rotate(360deg);
   }
 }
+
+
+.recent-activity-panel {
+  max-height: 420px;
+  overflow-y: auto;
+}
+
+.recent-activity-panel::-webkit-scrollbar {
+  width: 8px;
+}
+
+.recent-activity-panel::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 999px;
+}
+
+.recent-activity-panel::-webkit-scrollbar-track {
+  background: transparent;
+}

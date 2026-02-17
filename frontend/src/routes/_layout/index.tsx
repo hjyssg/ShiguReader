@@ -66,7 +66,7 @@ function Dashboard() {
   const { data: recentActivity } = useQuery({
     queryKey: ["home-recent-activity"],
     queryFn: async (): Promise<RecentActivityResponse> => {
-      const response = await fetch(`${OpenAPI.BASE}/api/v1/fs/recent-activity?limit=10`)
+      const response = await fetch(`${OpenAPI.BASE}/api/v1/fs/recent-activity?limit=200&since_latest_startup=true`)
       if (!response.ok) {
         return { items: [] }
       }

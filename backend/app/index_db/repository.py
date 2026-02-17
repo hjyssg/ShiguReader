@@ -394,6 +394,30 @@ class IndexRepository:
         return list(self.session.exec(stmt).all())
 
 
+
+    def list_activity_logs_since_latest_startup(self, limit: int = 200) -> list[ActivityLog]:
+        if limit <= 0:
+            limit = 200
+
+        latest_startup_id = self.session.exec(
+            select(ActivityLog.id)
+            .where(ActivityLog.activity_type == "startup")
+            .where(ActivityLog.status == "started")
+            .order_by(ActivityLog.created_at.desc(), ActivityLog.id.desc())
+            .limit(1)
+        ).first()
+
+        if latest_startup_id is None:
+            return self.list_activity_logs(limit=limit)
+
+        stmt = (
+            select(ActivityLog)
+            .where(ActivityLog.id >= latest_startup_id)
+            .order_by(ActivityLog.created_at.desc(), ActivityLog.id.desc())
+            .limit(limit)
+        )
+        return list(self.session.exec(stmt).all())
+
     def cleanup_activity_logs(self, keep_latest: int = 500) -> None:
         if keep_latest <= 0:
             keep_latest = 500

@@ -1984,12 +1984,19 @@ async def sync_file_table_now() -> PathOperationResponse:
 
 
 
-# 接口说明：获取最近活动（默认10条）。
+## 接口说明：获取最近活动（默认从本次启动开始，最多200条）。
 @router.get("/recent-activity", response_model=RecentActivityResponse)
-def get_recent_activity(limit: int = Query(10, ge=1, le=50)) -> RecentActivityResponse:
+def get_recent_activity(
+    limit: int = Query(200, ge=1, le=500),
+    since_latest_startup: bool = Query(True, description="Only show activities from latest startup"),
+) -> RecentActivityResponse:
     with get_index_session() as session:
         repo = IndexRepository(session)
-        rows = repo.list_activity_logs(limit=limit)
+        rows = (
+            repo.list_activity_logs_since_latest_startup(limit=limit)
+            if since_latest_startup
+            else repo.list_activity_logs(limit=limit)
+        )
 
     return RecentActivityResponse(
         items=[
