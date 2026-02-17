@@ -10,6 +10,13 @@
       "preLaunchTask": "Install Backend Dependencies"
     },
     {
+      "name": "Backend: Update DB Schema",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "uv run python -c \"from app.index_db import ensure_index_db_initialized; ensure_index_db_initialized()\"",
+      "cwd": "${workspaceFolder}/backend"
+    },
+    {
       "name": "Backend: SQLite 一键解锁并启动",
       "type": "debugpy",
       "request": "launch",
