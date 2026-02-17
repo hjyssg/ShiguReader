@@ -34,7 +34,12 @@
     "favorite": "お気に入り",
     "alreadyRead": "既読",
     "recentActivity": "最近のアクティビティ",
-    "libraryOverview": "ライブラリ概要"
+    "libraryOverview": "ライブラリ概要",
+    "activityFilterAll": "すべてのアクティビティ",
+    "activityFilterSystem": "システムタスク",
+    "activityEmptyHint": "サーバー起動後、ここに自動タスクが表示されます。",
+    "retry": "再試行",
+    "scannedFiles": "スキャン済みファイル"
   },
   "explorer": {
     "scan": "スキャン",

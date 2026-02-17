@@ -34,7 +34,12 @@
     "favorite": "Favorite",
     "alreadyRead": "Already Read",
     "recentActivity": "Recent Activity",
-    "libraryOverview": "Library Overview"
+    "libraryOverview": "Library Overview",
+    "activityFilterAll": "All Activity",
+    "activityFilterSystem": "System Tasks",
+    "activityEmptyHint": "Startup tasks will appear here after server boot.",
+    "retry": "Retry",
+    "scannedFiles": "Scanned Files"
   },
   "explorer": {
     "scan": "Scan",

@@ -1,23 +1,14 @@
 import { useQuery } from "@tanstack/react-query"
 import { createFileRoute, Link } from "@tanstack/react-router"
-import { Folder, HardDrive, Heart, History, BookOpen, Film, Image, Music2 } from "lucide-react"
+import { Folder, HardDrive, Heart, BookOpen, Film, Image, Music2 } from "lucide-react"
 import { useTranslation } from "react-i18next"
 
 import { FilesystemService, OpenAPI } from "@/client"
 
 import { HomeCard } from "@/components/Home/HomeCard"
+import { RecentActivityPanel, type ActivityItem } from "@/components/Home/RecentActivityPanel"
 
 import "./home.css"
-
-type ActivityType = "scan" | "minify_zip_images" | "move" | "delete" | "rename"
-
-type ActivityItem = {
-  id: number
-  activity_type: ActivityType
-  message: string
-  target_path: string | null
-  created_at: number
-}
 
 type RecentActivityResponse = {
   items: ActivityItem[]
@@ -75,7 +66,7 @@ function Dashboard() {
   const { data: recentActivity } = useQuery({
     queryKey: ["home-recent-activity"],
     queryFn: async (): Promise<RecentActivityResponse> => {
-      const response = await fetch(`${OpenAPI.BASE}/api/v1/fs/recent-activity?limit=10`)
+      const response = await fetch(`${OpenAPI.BASE}/api/v1/fs/recent-activity?limit=200&since_latest_startup=true`)
       if (!response.ok) {
         return { items: [] }
       }
@@ -139,18 +130,7 @@ function Dashboard() {
 
       <section className="home-section">
         <h2 className="home-section__title">{t("home.recentActivity")}</h2>
-        <div className="home-panel">
-          {(recentActivity?.items ?? []).length === 0 ? <div className="home-empty">{t("common.noData")}</div> : null}
-          {recentActivity?.items.map((item) => (
-            <div key={item.id} className="home-activity-item">
-              <History className="home-activity-item__icon" />
-              <div className="home-activity-item__content">
-                <div className="home-activity-item__message">{item.message}</div>
-                <div className="home-activity-item__meta">{new Date(item.created_at * 1000).toLocaleString()}</div>
-              </div>
-            </div>
-          ))}
-        </div>
+        <RecentActivityPanel items={recentActivity?.items ?? []} />
       </section>
 
       <section className="home-section">
