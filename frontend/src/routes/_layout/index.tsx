@@ -5,6 +5,8 @@ import { useTranslation } from "react-i18next"
 
 import { FilesystemService, OpenAPI } from "@/client"
 
+import { HomeCard } from "@/components/Home/HomeCard"
+
 import "./home.css"
 
 type ActivityType = "scan" | "minify_zip_images" | "move" | "delete" | "rename"
@@ -98,13 +100,7 @@ function Dashboard() {
           <div className="home-grid home-grid--drives">
             {drives.map((drive) => (
               <Link key={drive.path} to="/explorer" search={{ path: drive.path }} className="home-card-link">
-                <article className="home-card">
-                  <HardDrive className="home-card__icon" />
-                  <div>
-                    <div className="home-card__title">{drive.dirname}</div>
-                    <div className="home-card__subtitle">{drive.path}</div>
-                  </div>
-                </article>
+                <HomeCard icon={HardDrive} title={drive.dirname} />
               </Link>
             ))}
           </div>
@@ -116,43 +112,26 @@ function Dashboard() {
         <div className="home-grid home-grid--folders">
           {favoriteRoot ? (
             <Link to="/explorer" search={{ path: favoriteRoot.path }} className="home-card-link">
-              <article className="home-card">
-                <Heart className="home-card__icon" />
-                <div>
-                  <div className="home-card__title">{t("home.favorite")} · {favoriteRoot.dirname}</div>
-                  <div className="home-card__subtitle">{favoriteRoot.path}</div>
-                </div>
-              </article>
+              <HomeCard icon={Heart} title={favoriteRoot.dirname} />
             </Link>
           ) : null}
 
           {alreadyReadRoot ? (
             <Link to="/explorer" search={{ path: alreadyReadRoot.path }} className="home-card-link">
-              <article className="home-card">
-                <Folder className="home-card__icon" />
-                <div>
-                  <div className="home-card__title">{t("home.alreadyRead")} · {alreadyReadRoot.dirname}</div>
-                  <div className="home-card__subtitle">{alreadyReadRoot.path}</div>
-                </div>
-              </article>
+              <HomeCard icon={Folder} title={alreadyReadRoot.dirname} />
             </Link>
           ) : null}
         </div>
       </section>
 
+      {/* 快捷访问 */}
       <section className="home-section">
-        <h2 className="home-section__title">{t("home.configuredDirs")}</h2>
+        <h2 className="home-section__title">{t("settings.fsRoots")}</h2>
         <div className="home-grid home-grid--folders">
           {isLoading ? <div className="home-empty">{t("common.loading")}</div> : null}
           {roots?.map((root) => (
             <Link key={root.path} to="/explorer" search={{ path: root.path }} className="home-card-link">
-              <article className="home-card">
-                <Folder className="home-card__icon" />
-                <div>
-                  <div className="home-card__title">{root.dirname}</div>
-                  <div className="home-card__subtitle">{root.path}</div>
-                </div>
-              </article>
+              <HomeCard icon={Folder} title={root.dirname} />
             </Link>
           ))}
         </div>
@@ -176,12 +155,42 @@ function Dashboard() {
 
       <section className="home-section">
         <h2 className="home-section__title">{t("home.libraryOverview")}</h2>
-        <div className="home-overview-grid">
-          <article className="home-overview-card"><BookOpen className="home-overview-card__icon" /><div><div className="home-overview-card__label">Archives</div><div className="home-overview-card__value">{libraryOverview?.archives ?? 0}</div></div></article>
-          <article className="home-overview-card"><Film className="home-overview-card__icon" /><div><div className="home-overview-card__label">Videos</div><div className="home-overview-card__value">{libraryOverview?.videos ?? 0}</div></div></article>
-          <article className="home-overview-card"><Image className="home-overview-card__icon" /><div><div className="home-overview-card__label">Images</div><div className="home-overview-card__value">{libraryOverview?.images ?? 0}</div></div></article>
-          <article className="home-overview-card"><Music2 className="home-overview-card__icon" /><div><div className="home-overview-card__label">Audio</div><div className="home-overview-card__value">{libraryOverview?.audio ?? 0}</div></div></article>
-          <article className="home-overview-card"><Folder className="home-overview-card__icon" /><div><div className="home-overview-card__label">Folders</div><div className="home-overview-card__value">{libraryOverview?.folders ?? 0}</div></div></article>
+        <div className="home-overview-list">
+          <div className="home-overview-item">
+            <div className="home-overview-item__label-group">
+              <BookOpen className="home-overview-item__icon" />
+              <span className="home-overview-item__label">Archives</span>
+            </div>
+            <span className="home-overview-item__value">{libraryOverview?.archives ?? 0}</span>
+          </div>
+          <div className="home-overview-item">
+            <div className="home-overview-item__label-group">
+              <Film className="home-overview-item__icon" />
+              <span className="home-overview-item__label">Videos</span>
+            </div>
+            <span className="home-overview-item__value">{libraryOverview?.videos ?? 0}</span>
+          </div>
+          <div className="home-overview-item">
+            <div className="home-overview-item__label-group">
+              <Image className="home-overview-item__icon" />
+              <span className="home-overview-item__label">Images</span>
+            </div>
+            <span className="home-overview-item__value">{libraryOverview?.images ?? 0}</span>
+          </div>
+          <div className="home-overview-item">
+            <div className="home-overview-item__label-group">
+              <Music2 className="home-overview-item__icon" />
+              <span className="home-overview-item__label">Audio</span>
+            </div>
+            <span className="home-overview-item__value">{libraryOverview?.audio ?? 0}</span>
+          </div>
+          <div className="home-overview-item">
+            <div className="home-overview-item__label-group">
+              <Folder className="home-overview-item__icon" />
+              <span className="home-overview-item__label">Folders</span>
+            </div>
+            <span className="home-overview-item__value">{libraryOverview?.folders ?? 0}</span>
+          </div>
         </div>
       </section>
     </div>
