@@ -48,20 +48,21 @@ coser pages大面积不是名单里面的coser，而是name parser解析出来�
 
 
 
-## task
-  home需要显示最常用的文件夹
-  根据folder_open_history
-    给你一个**极简但信息完整**的 prompt，直接丢给 AI 生成代码即可：
-
-     要求：
-     1. 只统计最近 90 天的数据。
-     2. 使用时间衰减算法：
-        open_score = sum(exp(-(now - opened_at_ts) / tau))
-     3. tau = 14 天（秒）。
-     4. 按 open_score 降序排序。
-     5. 返回 folder_id 列表。
-     6. 使用一条 SQL 完成聚合（SQLite）。
-     7. 性能要考虑索引建议。
-    
 
 
+# task 
+  现在内部跳转或者打开新页面缺乏统一管理。你需要进行统一
+
+# task
+  move to favorite：
+  追加选项。
+  默认选项是 移动到喜欢文件夹下面的子文件夹。
+  命名比如 good_2026_02_01 
+
+
+# explorer
+  需要追加pagination
+  需要能根据img num进行sort
+
+# history page
+  /api/v1/fs/list 在文件 9000个的时候会卡。进行优化

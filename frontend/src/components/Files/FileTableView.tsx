@@ -71,7 +71,6 @@ export function FileTableView({
               isSelected?.(item.path) && "bg-primary/10",
             )}
             onClick={(e) => onItemClick?.(item, e)}
-            onDoubleClick={(e) => onItemDoubleClick?.(item, e)}
           >
             <TableRowCells item={item} />
           </tr>
