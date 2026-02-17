@@ -253,6 +253,8 @@ function HistoryPage() {
                 ) : (
                   <FileIcon fileType={item.file_type} isFolder={false} />
                 )}
+                {/*
+                  不需要显示这个了，用户点开reader就知道有没有就好了
                 {!item.file_exists && (
                   <Badge
                     variant="destructive"
@@ -260,7 +262,7 @@ function HistoryPage() {
                   >
                     {t("history.unknown")}
                   </Badge>
-                )}
+                )} */}
               </div>
               <div className="p-2 space-y-1">
                 <FileNameWithPreview
