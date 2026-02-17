@@ -1,13 +1,14 @@
 <div align="center">
-  <img src="frontend/public/assets/images/favicon.png" width="100" height="100" alt="ShiguReader Logo" />
+  <img src="../frontend/public/assets/images/favicon.png" width="100" height="100" alt="ShiguReader Logo" />
   <h1>ShiguReader</h1>
   <p>A local/LAN-oriented content organization and browsing tool.</p>
   <p>"Out-of-the-box, simple deployment, perfect for personal collection management."</p>
 
   <div>
-    <a href="README.md">中文</a> | 
+    <a href="../README.md">中文</a> |
     <a href="#ShiguReader">English</a> |
-    <a href="README.ja.md">日本語</a>
+    <a href="README.ja.md">日本語</a> |
+    <a href="README.ko.md">한국어</a>
   </div>
 </div>
 
@@ -39,13 +40,13 @@ ShiguReader is a tool designed for organizing and browsing content over a local 
 ### Documentation
 
 - [Technical Notes (Stack & Implementation)](TECHNICAL.md)
-- [EXE Build Guide](build_tools/BUILD.md)
+- [EXE Build Guide](../build_tools/BUILD.md)
 
 ### Screenshots
 
 <div align="center">
-  <img src="img/explorer.png" alt="Explorer" width="800" />
+  <img src="../img/explorer.png" alt="Explorer" width="800" />
   <p><em>Explorer Interface</em></p>
-  <img src="img/read.png" alt="Reader" width="800" />
+  <img src="../img/read.png" alt="Reader" width="800" />
   <p><em>Reader Interface</em></p>
 </div>

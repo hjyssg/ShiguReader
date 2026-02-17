@@ -1,14 +1,14 @@
 <div align="center">
   <img src="frontend/public/assets/images/favicon.png" width="100" height="100" alt="ShiguReader Logo" />
   <h1>ShiguReader</h1>
+  <div>
+    <a href="#ShiguReader">中文</a> |
+    <a href="docs/README.en.md">English</a> |
+    <a href="docs/README.ja.md">日本語</a> |
+    <a href="docs/README.ko.md">한국어</a>
+  </div>
   <p>面向本地 / 局域网的内容整理与浏览工具</p>
   <p>「开箱即用、部署简单、适合个人收藏管理」</p>
-
-  <div>
-    <a href="#ShiguReader">中文</a> | 
-    <a href="README.en.md">English</a> |
-    <a href="README.ja.md">日本語</a>
-  </div>
 </div>
 
 ---
@@ -38,7 +38,7 @@ ShiguReader 是一个面向本地 / 局域网的内容整理与浏览工具，�
 
 ### 相关文档
 
-- [技术文档（环境与实现细节）](TECHNICAL.md)
+- [技术文档（环境与实现细节）](docs/TECHNICAL.md)
 - [EXE 打包说明](build_tools/BUILD.md)
 
 ### 界面预览
