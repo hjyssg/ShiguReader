@@ -2,6 +2,15 @@ from __future__ import annotations
 
 from sqlmodel import Field, SQLModel
 
+# scan_state / watch_state 状态位约定：
+# - 0: inactive（当前不在该状态）
+# - 1: active（当前在该状态）
+#
+# scan_state: 是否在最近一次文件系统扫描中“确认存在/可见”
+# watch_state: 是否处于目录监听（watcher）覆盖范围
+STATE_INACTIVE = 0
+STATE_ACTIVE = 1
+
 
 def _ts_now() -> int:
     """统一的秒级时间戳默认值工厂。"""
@@ -13,49 +22,49 @@ def _ts_now() -> int:
 class Folder(SQLModel, table=True):
     __tablename__ = "folders"
 
-    filepath: str = Field(primary_key=True)
-    dirname: str
-    mtime: int | None = None
+    filepath: str = Field(primary_key=True)  # 目录绝对路径（主键）
+    dirname: str  # 目录名（basename）
+    mtime: int | None = None  # 目录最后修改时间（秒级 Unix 时间戳）
 
-    scan_state: int = Field(default=0)
-    watch_state: int = Field(default=0)
+    scan_state: int = Field(default=STATE_INACTIVE)  # 0=未确认存在，1=扫描确认存在
+    watch_state: int = Field(default=STATE_INACTIVE)  # 0=未监听，1=已在 watcher 监听范围
 
-    first_seen_at: int | None = None
-    last_seen_at: int | None = None
-    last_scanned_at: int | None = None
+    first_seen_at: int | None = None  # 首次被扫描发现时间
+    last_seen_at: int | None = None  # 最近一次“仍存在”确认时间
+    last_scanned_at: int | None = None  # 最近一次被主动扫描时间
 
-    created_at: int = Field(default_factory=_ts_now)
-    updated_at: int = Field(default_factory=_ts_now)
+    created_at: int = Field(default_factory=_ts_now)  # 记录创建时间
+    updated_at: int = Field(default_factory=_ts_now)  # 记录更新时间
 
 
 class File(SQLModel, table=True):
     __tablename__ = "files"
 
-    filepath: str = Field(primary_key=True)
-    folderpath: str | None = Field(default=None, foreign_key="folders.filepath")
+    filepath: str = Field(primary_key=True)  # 文件绝对路径（主键）
+    folderpath: str | None = Field(default=None, foreign_key="folders.filepath")  # 所属目录路径
 
-    filename: str
-    mtime: int
-    filesize: int
+    filename: str  # 文件名（basename）
+    mtime: int  # 文件最后修改时间（秒级 Unix 时间戳）
+    filesize: int  # 文件大小（字节）
 
-    file_type: str = Field(default="unknown")
-    ext: str | None = None
-    thumbnail_filepath: str | None = None
+    file_type: str = Field(default="unknown")  # 业务类型：image/video/archive/audio/unknown
+    ext: str | None = None  # 扩展名（小写，含点）
+    thumbnail_filepath: str | None = None  # 缩略图缓存路径（本地）
 
-    fingerprint: str
-    content_hash: str | None = None
+    fingerprint: str  # 轻量指纹（通常由 name-size-mtime 组成）
+    content_hash: str | None = None  # 内容哈希（可选；大多数流程不依赖）
 
-    rec_score: float = Field(default=0.0)
+    rec_score: float = Field(default=0.0)  # 推荐分数（用于排序）
 
-    scan_state: int = Field(default=0)
-    watch_state: int = Field(default=0)
+    scan_state: int = Field(default=STATE_INACTIVE)  # 0=未确认存在，1=扫描确认存在
+    watch_state: int = Field(default=STATE_INACTIVE)  # 0=未监听，1=已在 watcher 监听范围
 
-    first_seen_at: int | None = None
-    last_seen_at: int | None = None
-    last_scanned_at: int | None = None
+    first_seen_at: int | None = None  # 首次被扫描发现时间
+    last_seen_at: int | None = None  # 最近一次“仍存在”确认时间
+    last_scanned_at: int | None = None  # 最近一次被主动扫描时间
 
-    created_at: int = Field(default_factory=_ts_now)
-    updated_at: int = Field(default_factory=_ts_now)
+    created_at: int = Field(default_factory=_ts_now)  # 记录创建时间
+    updated_at: int = Field(default_factory=_ts_now)  # 记录更新时间
 
 
 class ArchiveMeta(SQLModel, table=True):
@@ -87,8 +96,8 @@ class VideoMeta(SQLModel, table=True):
     audio_channels: int | None = None
     sample_rate: int | None = None
 
-    has_subtitle: int = 0
-    scanned_at: int | None = None
+    has_subtitle: int = 0  # 0=无字幕，1=有字幕
+    scanned_at: int | None = None  # 视频元信息扫描时间
 
 
 class Progress(SQLModel, table=True):
@@ -100,16 +109,16 @@ class Progress(SQLModel, table=True):
     filesize: int | None = None
     mtime: int | None = None
     thumbnail_url: str | None = None
-    last_opened_at: int = Field(default_factory=_ts_now)
-    total_time_sec: float = 0
+    last_opened_at: int = Field(default_factory=_ts_now)  # 最近打开时间
+    total_time_sec: float = 0  # 累计阅读/播放时长（秒）
 
-    page_current: int | None = None
-    page_total: int | None = None
+    page_current: int | None = None  # 当前页（图像/文档）
+    page_total: int | None = None  # 总页数
 
-    position_sec: float | None = None
-    duration_sec: float | None = None
+    position_sec: float | None = None  # 当前播放位置（秒）
+    duration_sec: float | None = None  # 媒体总时长（秒）
 
-    updated_at: int = Field(default_factory=_ts_now)
+    updated_at: int = Field(default_factory=_ts_now)  # 进度更新时间
 
 
 class Tag(SQLModel, table=True):

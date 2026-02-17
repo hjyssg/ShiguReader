@@ -43,6 +43,8 @@ def client_with_root(test_fs_root: Path, monkeypatch: pytest.MonkeyPatch) -> Tes
 def reset_scan_state() -> None:
     fs_route._scan_status.clear()
     fs_route._active_watchers.clear()
+    fs_route._scan_live_cache.clear()
+    fs_route._scan_snapshot_cache.clear()
 
 
 def test_get_roots(client_with_root: TestClient, test_fs_root: Path) -> None:
@@ -881,3 +883,73 @@ def test_backfill_directory_non_recursive(
     # 不应扫描到 sub/nested.zip
     assert payload["scanned_files"] < 10
     assert payload["backfilled_meta"] >= 2
+
+
+def test_derive_minimal_root_dirs_removes_nested_dirs() -> None:
+    roots = fs_route._derive_minimal_root_dirs([
+        "/data/library/a/1.jpg",
+        "/data/library/a/sub/2.jpg",
+        "/data/library/b/3.jpg",
+    ])
+
+    assert roots == [Path('/data/library/a'), Path('/data/library/b')]
+
+
+def test_scan_root_with_scandir_skips_hidden_and_ignored(tmp_path: Path) -> None:
+    root = tmp_path / "root"
+    root.mkdir()
+    (root / "node_modules").mkdir()
+    (root / "node_modules" / "a.jpg").write_bytes(b"x")
+    (root / ".hidden").mkdir()
+    (root / ".hidden" / "b.jpg").write_bytes(b"x")
+    (root / "ok").mkdir()
+    (root / "ok" / "keep.jpg").write_bytes(b"x")
+    (root / "ok" / "skip.txt").write_text("x")
+
+    result = fs_route._scan_root_with_scandir(root)
+
+    assert str(root / "ok" / "keep.jpg") in result
+    assert str(root / "node_modules" / "a.jpg") not in result
+    assert str(root / ".hidden" / "b.jpg") not in result
+    assert str(root / "ok" / "skip.txt") not in result
+
+
+def test_collect_cached_scan_for_root_prefers_live_cache(tmp_path: Path) -> None:
+    root = tmp_path / "live"
+    root.mkdir()
+    file_a = root / "a.jpg"
+    file_a.write_bytes(b"x")
+
+    fs_route._scan_live_cache[str(root)] = {str(file_a): (1, 2)}
+    try:
+        result = fs_route._collect_cached_scan_for_root(root)
+        assert result == {str(file_a): (1, 2)}
+    finally:
+        fs_route._scan_live_cache.clear()
+        fs_route._scan_snapshot_cache.clear()
+
+
+def test_should_update_existing_file_restores_deleted_state() -> None:
+    assert fs_route._should_update_existing_file(
+        db_size=100,
+        db_mtime=200,
+        db_scan_state=0,
+        real_size=100,
+        real_mtime=200,
+    ) is True
+
+
+def test_build_folder_sync_mappings_creates_missing_parent_rows() -> None:
+    now_ts = 123
+    to_insert, to_update = fs_route._build_folder_sync_mappings(
+        real_filepaths={"/data/new_dir/a.jpg", "/data/existing_dir/b.jpg"},
+        db_folder_paths={"/data/existing_dir"},
+        now_ts=now_ts,
+    )
+
+    inserted_paths = {item["filepath"] for item in to_insert}
+    assert "/data/new_dir" in inserted_paths
+    assert "/data/existing_dir" not in inserted_paths
+
+    updated_paths = {item["filepath"] for item in to_update}
+    assert "/data/existing_dir" in updated_paths

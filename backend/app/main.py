@@ -9,7 +9,7 @@ from pathlib import Path
 import sys
 
 from app.api.main import api_router
-from app.api.routes.fs import clear_extract_cache, trigger_favorite_scan
+from app.api.routes.fs import clear_extract_cache, trigger_favorite_scan, trigger_file_db_sync
 from app.core.config import settings
 from app.index_db import ensure_index_db_initialized
 import logging
@@ -42,6 +42,7 @@ def startup_index_db() -> None:
     ensure_index_db_initialized()
     clear_extract_cache()
     trigger_favorite_scan()
+    trigger_file_db_sync()
 
 # Set all CORS enabled origins
 cors_options = {

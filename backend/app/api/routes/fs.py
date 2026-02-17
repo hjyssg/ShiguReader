@@ -9,7 +9,10 @@ import shutil
 import string
 import threading
 import zipfile
+from dataclasses import dataclass
+from collections.abc import Iterable
 from time import time
+from time import sleep
 from pathlib import Path
 from typing import Literal
 from urllib.parse import quote
@@ -18,6 +21,7 @@ from fastapi import APIRouter, BackgroundTasks, HTTPException, Query
 from fastapi.responses import FileResponse, Response
 from pydantic import BaseModel
 from send2trash import send2trash
+from sqlmodel import select
 
 from app.constants import ARCHIVE_SUFFIXES, AUDIO_SUFFIXES, IMAGE_SUFFIXES, VIDEO_SUFFIXES
 from app.core.config import settings
@@ -29,6 +33,7 @@ from app.file_processing.name_parser import parse
 from app.file_processing.stepwise_extractor import stepwise_extract
 from app.index_db.confidence import compute_confidence
 from app.index_db.db import get_index_session
+from app.index_db.models import File, Folder
 from app.index_db.repository import IndexRepository, UpsertFileInput, UpsertFolderInput
 from app.services.thumb_service import ThumbService
 from app.utils import detect_file_type, get_mime_type
@@ -43,6 +48,26 @@ _watcher_lock = threading.Lock()
 _scan_status: dict[str, dict] = {}
 _scan_status_lock = threading.Lock()
 _SCAN_DB_BATCH_SIZE = 500
+_SYNC_LOW_PRIORITY_SLEEP_EVERY = 500
+_SYNC_LOW_PRIORITY_SLEEP_SEC = 0.001
+_SCAN_SNAPSHOT_TTL_SEC = 300
+
+
+@dataclass(slots=True)
+class ScanSnapshot:
+    root: str
+    recursive: bool
+    created_at: float
+    files: dict[str, tuple[int, int]]
+
+
+_scan_snapshot_lock = threading.Lock()
+_scan_snapshot_cache: dict[str, ScanSnapshot] = {}
+_scan_live_cache: dict[str, dict[str, tuple[int, int]]] = {}
+
+_TARGET_SUFFIXES = tuple(
+    sorted({*IMAGE_SUFFIXES, *VIDEO_SUFFIXES, *ARCHIVE_SUFFIXES, *AUDIO_SUFFIXES}, key=len, reverse=True)
+)
 
 # ---------------------------------------------------------------------------
 # 推荐分数内存缓存（避免每次 list 都查 DB）
@@ -423,6 +448,12 @@ def trigger_favorite_scan() -> None:
     threading.Thread(target=_run_scan, args=(resolved, True), daemon=True).start()
 
 
+def trigger_file_db_sync() -> None:
+    """启动时后台同步 file 表与真实文件系统（低优先级，不阻塞 API）。"""
+
+    threading.Thread(target=_sync_file_table_with_filesystem, daemon=True, name="file-db-sync").start()
+
+
 def _update_scan_status(path_key: str, **kwargs) -> None:
     with _scan_status_lock:
         current = _scan_status.get(path_key, {})
@@ -461,6 +492,10 @@ def _run_scan(path: Path, recursive: bool) -> None:
     scanned_files = 0
     parsed_files = 0
     scanned_filepaths: list[str] = []
+    live_snapshot: dict[str, tuple[int, int]] = {}
+
+    with _scan_snapshot_lock:
+        _scan_live_cache[path_key] = live_snapshot
 
     def _flush_scan_batch(repo: IndexRepository) -> None:
         nonlocal folders_to_upsert, files_to_upsert, parse_results
@@ -520,6 +555,7 @@ def _run_scan(path: Path, recursive: bool) -> None:
                             )
                         )
                         scanned_filepaths.append(str(file_path))
+                        live_snapshot[str(file_path)] = (int(stat.st_size), int(stat.st_mtime))
                         scanned_files += 1
 
                         parsed = parse(file_path.name)
@@ -601,6 +637,7 @@ def _run_scan(path: Path, recursive: bool) -> None:
                             )
                         )
                         scanned_filepaths.append(str(entry))
+                        live_snapshot[str(entry)] = (int(stat.st_size), int(stat.st_mtime))
                         scanned_files += 1
 
                         parsed = parse(entry.name)
@@ -671,6 +708,284 @@ def _run_scan(path: Path, recursive: bool) -> None:
             scanned_files=scanned_files,
             parsed_files=parsed_files,
             finished_at=int(time()),
+        )
+    finally:
+        with _scan_snapshot_lock:
+            current_live = _scan_live_cache.pop(path_key, live_snapshot)
+            _scan_snapshot_cache[path_key] = ScanSnapshot(
+                root=path_key,
+                recursive=recursive,
+                created_at=time(),
+                files=dict(current_live),
+            )
+
+
+def _is_target_extension(name: str) -> bool:
+    lowered = name.lower()
+    return any(lowered.endswith(suffix) for suffix in _TARGET_SUFFIXES)
+
+
+def _derive_minimal_root_dirs(filepaths: Iterable[str]) -> list[Path]:
+    """从 file 表路径推导最小覆盖目录集合（不向上扩展）。"""
+    dir_paths = sorted({str(Path(filepath).parent) for filepath in filepaths if filepath}, key=lambda x: (x.count(os.sep), x))
+    selected: list[Path] = []
+    for dir_path in dir_paths:
+        candidate = Path(dir_path)
+        if any(candidate == root or candidate.is_relative_to(root) for root in selected):
+            continue
+        selected.append(candidate)
+    return selected
+
+
+def _snapshot_covers_root(snapshot_root: str, root: Path) -> bool:
+    snapshot_path = Path(snapshot_root)
+    return root == snapshot_path or root.is_relative_to(snapshot_path)
+
+
+def _collect_cached_scan_for_root(root: Path) -> dict[str, tuple[int, int]] | None:
+    """复用已有扫描任务的 live/snapshot 结果，避免重复 IO。"""
+    now_ts = time()
+    with _scan_snapshot_lock:
+        for snapshot_root, live_map in _scan_live_cache.items():
+            if _snapshot_covers_root(snapshot_root, root):
+                prefix = str(root)
+                return {p: stat for p, stat in live_map.items() if p == prefix or p.startswith(prefix + os.sep)}
+
+        stale_keys = [k for k, s in _scan_snapshot_cache.items() if now_ts - s.created_at > _SCAN_SNAPSHOT_TTL_SEC]
+        for key in stale_keys:
+            _scan_snapshot_cache.pop(key, None)
+
+        for snapshot in _scan_snapshot_cache.values():
+            if _snapshot_covers_root(snapshot.root, root):
+                prefix = str(root)
+                return {p: stat for p, stat in snapshot.files.items() if p == prefix or p.startswith(prefix + os.sep)}
+    return None
+
+
+def _scan_root_with_scandir(root: Path) -> dict[str, tuple[int, int]]:
+    """使用 os.scandir 递归扫描目录，仅收集目标扩展文件。"""
+    files: dict[str, tuple[int, int]] = {}
+    pending: list[Path] = [root]
+    visited = 0
+
+    while pending:
+        current = pending.pop()
+        try:
+            with os.scandir(current) as entries:
+                for entry in entries:
+                    name = entry.name
+                    if entry.is_dir(follow_symlinks=False):
+                        if name.startswith(".") or should_ignore(name):
+                            continue
+                        pending.append(Path(entry.path))
+                        continue
+
+                    if not entry.is_file(follow_symlinks=False):
+                        continue
+                    if should_ignore(name) or not _is_target_extension(name):
+                        continue
+
+                    stat = entry.stat(follow_symlinks=False)
+                    files[entry.path] = (int(stat.st_size), int(stat.st_mtime))
+                    visited += 1
+                    if visited % _SYNC_LOW_PRIORITY_SLEEP_EVERY == 0:
+                        sleep(_SYNC_LOW_PRIORITY_SLEEP_SEC)
+        except (FileNotFoundError, NotADirectoryError, PermissionError):
+            continue
+
+    with _scan_snapshot_lock:
+        _scan_snapshot_cache[str(root)] = ScanSnapshot(
+            root=str(root),
+            recursive=True,
+            created_at=time(),
+            files=dict(files),
+        )
+    return files
+
+
+
+
+def _should_update_existing_file(
+    db_size: int,
+    db_mtime: int,
+    db_scan_state: int,
+    real_size: int,
+    real_mtime: int,
+) -> bool:
+    """文件仍存在时，元数据变化或曾被标记删除都应回写。"""
+    return db_size != real_size or db_mtime != real_mtime or db_scan_state == 0
+
+
+def _build_folder_sync_mappings(
+    real_filepaths: set[str],
+    db_folder_paths: set[str],
+    now_ts: int,
+) -> tuple[list[dict[str, object]], list[dict[str, object]]]:
+    """基于真实文件集合生成 folders 的批量插入/更新映射。"""
+    real_folder_paths = {str(Path(filepath).parent) for filepath in real_filepaths}
+
+    to_insert_folders: list[dict[str, object]] = []
+    for folderpath in real_folder_paths - db_folder_paths:
+        folder = Path(folderpath)
+        to_insert_folders.append(
+            {
+                "filepath": folderpath,
+                "dirname": folder.name or folderpath,
+                "mtime": None,
+                "scan_state": 1,
+                "watch_state": 0,
+                "first_seen_at": now_ts,
+                "last_seen_at": now_ts,
+                "last_scanned_at": now_ts,
+                "created_at": now_ts,
+                "updated_at": now_ts,
+            }
+        )
+
+    to_update_folders = [
+        {
+            "filepath": folderpath,
+            "scan_state": 1,
+            "last_seen_at": now_ts,
+            "last_scanned_at": now_ts,
+            "updated_at": now_ts,
+        }
+        for folderpath in (real_folder_paths & db_folder_paths)
+    ]
+
+    return to_insert_folders, to_update_folders
+
+def _sync_file_table_with_filesystem() -> None:
+    """同步 files 表与真实文件系统。真实文件系统是唯一真相。"""
+    started = time()
+    with get_index_session() as session:
+        repo = IndexRepository(session)
+        db_rows = list(session.exec(select(File.filepath, File.filesize, File.mtime, File.scan_state)).all())
+        db_folder_paths = set(session.exec(select(Folder.filepath)).all())
+
+        if not db_rows:
+            logger.info("[file-sync] skip: no records in file table")
+            return
+
+        db_map: dict[str, tuple[int, int, int]] = {fp: (int(size), int(mtime), int(scan_state)) for fp, size, mtime, scan_state in db_rows}
+        root_dirs = _derive_minimal_root_dirs(db_map.keys())
+
+        real_map: dict[str, tuple[int, int]] = {}
+        for root_dir in root_dirs:
+            if not root_dir.exists() or not root_dir.is_dir():
+                continue
+
+            cached = _collect_cached_scan_for_root(root_dir)
+            if cached is not None:
+                real_map.update(cached)
+                continue
+
+            scanned = _scan_root_with_scandir(root_dir)
+            real_map.update(scanned)
+
+        db_paths = set(db_map.keys())
+        real_paths = set(real_map.keys())
+
+        new_paths = real_paths - db_paths
+        deleted_paths = db_paths - real_paths
+        common_paths = db_paths & real_paths
+
+        now_ts = int(time())
+        to_insert: list[dict[str, object]] = []
+        for filepath in new_paths:
+            path = Path(filepath)
+            size, mtime = real_map[filepath]
+            to_insert.append(
+                {
+                    "filepath": filepath,
+                    "folderpath": str(path.parent),
+                    "filename": path.name,
+                    "mtime": mtime,
+                    "filesize": size,
+                    "file_type": detect_file_type(path),
+                    "ext": path.suffix.lower() if path.suffix else None,
+                    "thumbnail_filepath": None,
+                    "fingerprint": f"{path.name}-{size}-{mtime}",
+                    "content_hash": None,
+                    "rec_score": 0.0,
+                    "scan_state": 1,
+                    "watch_state": 0,
+                    "first_seen_at": now_ts,
+                    "last_seen_at": now_ts,
+                    "last_scanned_at": now_ts,
+                    "created_at": now_ts,
+                    "updated_at": now_ts,
+                }
+            )
+
+        changed_paths = {
+            filepath
+            for filepath in common_paths
+            if _should_update_existing_file(
+                db_size=db_map[filepath][0],
+                db_mtime=db_map[filepath][1],
+                db_scan_state=db_map[filepath][2],
+                real_size=real_map[filepath][0],
+                real_mtime=real_map[filepath][1],
+            )
+        }
+
+        to_update_changed: list[dict[str, object]] = []
+        for filepath in changed_paths:
+            path = Path(filepath)
+            size, mtime = real_map[filepath]
+            to_update_changed.append(
+                {
+                    "filepath": filepath,
+                    "folderpath": str(path.parent),
+                    "filename": path.name,
+                    "mtime": mtime,
+                    "filesize": size,
+                    "file_type": detect_file_type(path),
+                    "ext": path.suffix.lower() if path.suffix else None,
+                    "fingerprint": f"{path.name}-{size}-{mtime}",
+                    "scan_state": 1,
+                    "last_seen_at": now_ts,
+                    "last_scanned_at": now_ts,
+                    "updated_at": now_ts,
+                }
+            )
+
+        to_mark_deleted = [
+            {
+                "filepath": filepath,
+                "scan_state": 0,
+                "updated_at": now_ts,
+            }
+            for filepath in deleted_paths
+            if db_map[filepath][2] != 0
+        ]
+
+        to_insert_folders, to_update_folders = _build_folder_sync_mappings(real_paths, db_folder_paths, now_ts)
+
+        if to_insert_folders:
+            session.bulk_insert_mappings(Folder, to_insert_folders)
+        if to_update_folders:
+            session.bulk_update_mappings(Folder, to_update_folders)
+
+        if to_insert:
+            session.bulk_insert_mappings(File, to_insert)
+        if to_update_changed:
+            session.bulk_update_mappings(File, to_update_changed)
+        if to_mark_deleted:
+            session.bulk_update_mappings(File, to_mark_deleted)
+        if to_insert_folders or to_update_folders or to_insert or to_update_changed or to_mark_deleted:
+            repo._commit()
+
+        elapsed = time() - started
+        logger.info(
+            "[file-sync] roots=%d scanned_files=%d new=%d deleted=%d changed=%d elapsed=%.3fs",
+            len(root_dirs),
+            len(real_map),
+            len(to_insert),
+            len(to_mark_deleted),
+            len(to_update_changed),
+            elapsed,
         )
 
 
