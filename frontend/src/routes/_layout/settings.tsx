@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { createFileRoute } from "@tanstack/react-router"
 import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
-import { Pencil, Trash2, Plus, RotateCcw } from "lucide-react"
+import { Trash2, Plus, RotateCcw } from "lucide-react"
 
 import { OpenAPI } from "@/client"
 import { Button } from "@/components/ui/button"
@@ -110,12 +110,8 @@ function SinglePathSection({
           value={value}
           onChange={(e) => onChange(e.target.value)}
           onBlur={onSave}
-          className="single-path-row__input"
         />
         <div className="single-path-row__actions">
-          <Button variant="ghost" size="icon-sm" onClick={onSave} aria-label="save">
-            <Pencil className="h-4 w-4" />
-          </Button>
           <Button variant="ghost" size="sm" onClick={onReset}>
             {value.trim() ? (
               <>
@@ -345,7 +341,7 @@ function SettingsPage() {
               <div className="path-table__header">
                 <span>#</span>
                 <span>{t("settings.path")}</span>
-                <span>{`${t("common.edit")}/${t("common.delete")}`}</span>
+                <span>{t("common.delete")}</span>
               </div>
 
               <div className="path-table__body">
@@ -361,15 +357,6 @@ function SettingsPage() {
                       className="path-row__input"
                     />
                     <div className="path-row__actions">
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon-sm"
-                        onClick={saveFsRootsIfChanged}
-                        aria-label="save"
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
                       <Button
                         type="button"
                         variant="ghost"
