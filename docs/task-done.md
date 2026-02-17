@@ -326,3 +326,55 @@ scan and watch subfolders的时候看不到进度。
   setting的用tab。一个tab是原来的setting。
   第二格tab是现在这些东西。
 
+
+
+
+
+# task
+文件的status状态 引入置信度的概念
+scan/listdir 10分钟以外 应该不确定
+刚刚被scan/listdir 10分钟内 应该在
+被scan/watch 百分百确定
+
+这个要影响到search和各种算法。你打算怎么处理
+我也不是没事就去扫描所有文件夹。
+
+有的文件夹从来不改变，给出好方
+案。我有一个想法是search画面给出选项，search的时候是只看watched还是被scan过得，scan的失效之类的。
+
+
+
+
+
+# task
+想在windows的file explorer可以右键
+打开文件、文件夹
+
+打开的时候，如果前端服务器没启动。我想要有youtube那种空白页面说服务器没启动。
+
+效果不好
+
+
+## task
+explorer和他使用ui的需要语义化，class需要清晰。
+现在太多tailwind，看的很累。你进行重构，每个重要div的class都要简单。效果你在css写。
+
+
+## 前端task
+search页面需要加一个link，点下去可以open in a new tab。
+
+https://exhentai.org/?f_search={刚才的搜索词}
+https://sukebei.nyaa.si/?f=0&c=0_0&q={刚才的搜索词}
+
+你想一下怎么设计好看
+
+
+## 前端task
+tag page的sort direction要和explorer页面的一样。考虑用共通component 
+
+## frontend\src\components\Common\PathBreadcrumb.tsx
+里面能被省略的label全部都要带title attribute
+
+### 前端task
+breadcrumb 的最后一个filename/foldername点击下去行为不统一
+统一成点击下去 等于 ctrl + c filename/foldername

@@ -37,31 +37,12 @@
 
 
 
-## task
-explorer和他使用ui的需要语义化，class需要清晰。
-现在太多tailwind，看的很累。你进行重构，每个重要div的class都要简单。效果你在css写。
 
 
-# task
-文件的status状态 引入置信度的概念
-scan/listdir 10分钟以外 应该不确定
-刚刚被scan/listdir 10分钟内 应该在
-被scan/watch 百分百确定
+## 后端task 
+coser pages大面积不是名单里面的coser，而是name parser解析出来的漫画家名字
 
-这个要影响到search和各种算法。你打算怎么处理
-我也不是没事就去扫描所有文件夹。
-
-有的文件夹从来不改变，给出好方
-案。我有一个想法是search画面给出选项，search的时候是只看watched还是被scan过得，scan的失效之类的。
+列出实现计划，最后要有四个commit。
 
 
-
-
-
-# task
-想在windows的file explorer可以右键
-打开文件、文件夹
-
-打开的时候，如果前端服务器没启动。我想要有youtube那种空白页面说服务器没启动。
-
-效果不好
+### 现在这个项目很多UI因为没有实现定义共通，经常出现重复时候和行为样式不一样。需要重构
