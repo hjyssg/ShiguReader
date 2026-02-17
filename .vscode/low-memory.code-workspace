@@ -1,9 +1,12 @@
 {
   "folders": [
     { "path": "../frontend" },
-    { "path": "../backend/app" },
-    { "path": "../backend/tests" },
-    { "path": "../backend/scripts" }
+    { "path": "../backend" },
+    { "path": "../build_tools" },
+    { "path": "../docs" },
+    { "path": "../scripts" },
+    { "path": "../hooks" },
+    { "path": "../TamperMonkeyScript" }
   ],
   "settings": {
     "typescript.disableAutomaticTypeAcquisition": true,
@@ -15,6 +18,7 @@
     "python.analysis.diagnosticMode": "openFilesOnly",
     "tailwindCSS.experimental.configFile": "frontend/src/index.css",
     "files.watcherExclude": {
+      "**/.git/**": true,
       "**/node_modules/**": true,
       "**/.venv/**": true,
       "**/venv/**": true,
@@ -23,7 +27,20 @@
       "**/coverage/**": true,
       "**/.pytest_cache/**": true,
       "**/.mypy_cache/**": true,
-      "**/public/assets/**": true
+      "**/backend/tools/**": true,
+      "**/frontend/public/assets/**": true
+    },
+    "search.exclude": {
+      "**/node_modules": true,
+      "**/.venv": true,
+      "**/venv": true,
+      "**/dist": true,
+      "**/build": true,
+      "**/coverage": true,
+      "**/.pytest_cache": true,
+      "**/.mypy_cache": true,
+      "**/backend/tools": true,
+      "**/frontend/public/assets": true
     }
   }
 }
