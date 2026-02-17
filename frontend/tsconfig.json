@@ -22,7 +22,8 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": ["src", "tests", "playwright.config.ts"],
+  "include": ["src", "vite-env.d.ts"],
+  "exclude": ["tests", "playwright.config.ts", "dist", "node_modules"],
   "references": [
     {
       "path": "./tsconfig.node.json"
