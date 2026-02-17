@@ -65,9 +65,10 @@
 .section-group {
   flex: 1;
   display: flex;
-  justify-content: space-between;
+  /* justify-content: space-between; */
   align-items: center;
   gap: 1rem;
+  /* border: 1px solid #4e8cff; */
 }
 
 .section-divider {

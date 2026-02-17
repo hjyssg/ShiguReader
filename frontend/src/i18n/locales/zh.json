@@ -52,7 +52,16 @@
     "fileNotFoundMessage": "无法找到文件：{{fileName}}",
     "loadErrorMessage": "加载文件时出错：{{errorMessage}}",
     "returnHome": "返回首页",
-    "openParent": "打开父目录"
+    "openParent": "打开父目录",
+    "sortBy": "排序：",
+    "table": {
+      "name": "名称",
+      "dateModified": "修改日期",
+      "type": "类型",
+      "size": "大小",
+      "likeScore": "Like Score",
+      "imageCount": "图片数"
+    }
   },
   "history": {
     "title": "历史",

@@ -1,6 +1,7 @@
 // 文件视图容器 — 集成选择、右键菜单、键盘快捷键、对话框
 import { LayoutGrid, LayoutList, List } from "lucide-react"
 import { Link } from "@tanstack/react-router"
+import { useTranslation } from "react-i18next"
 import {
   type ReactNode,
   useCallback,
@@ -66,6 +67,7 @@ export function FileViewContainer({
   emptyText?: string
 }) {
   const containerRef = useRef<HTMLDivElement>(null)
+  const { t } = useTranslation()
 
   // View mode & sort state
   const [viewMode, setViewMode] = useState<ViewMode>(() => {
@@ -122,7 +124,7 @@ export function FileViewContainer({
         if (comparison === 0) {
           comparison = a.name.toLowerCase().localeCompare(b.name.toLowerCase())
         }
-      } else if (sortField === "recommendation") {
+      } else if (sortField === "likeScore") {
         const scoreA = (a as any).recommendation_score || 0
         const scoreB = (b as any).recommendation_score || 0
         comparison = scoreA - scoreB
@@ -575,7 +577,7 @@ export function FileViewContainer({
       {/* Toolbar */}
       <Toolbar className="file-list-toolbar">
         <ToolbarGroup className="sort-controls">
-          <span className="text-sm text-muted-foreground">Sort by:</span>
+          <span className="text-sm text-muted-foreground">{t("explorer.sortBy")}</span>
           <Select
             value={sortField}
             onValueChange={(v) => setSortField(v as SortField)}
@@ -584,11 +586,11 @@ export function FileViewContainer({
               <SelectValue className="text-xs" />
             </SelectTrigger>
             <SelectContent className="text-xs">
-              <SelectItem className="text-xs" value="name">Name</SelectItem>
-              <SelectItem className="text-xs" value="type">Type</SelectItem>
-              <SelectItem className="text-xs" value="mtime">Date Modified</SelectItem>
-              <SelectItem className="text-xs" value="recommendation">Recommendation</SelectItem>
-              <SelectItem className="text-xs" value="image_count">Image Count</SelectItem>
+              <SelectItem className="text-xs" value="name">{t("explorer.table.name")}</SelectItem>
+              <SelectItem className="text-xs" value="type">{t("explorer.table.type")}</SelectItem>
+              <SelectItem className="text-xs" value="mtime">{t("explorer.table.dateModified")}</SelectItem>
+              <SelectItem className="text-xs" value="likeScore">{t("explorer.table.likeScore")}</SelectItem>
+              <SelectItem className="text-xs" value="image_count">{t("explorer.table.imageCount")}</SelectItem>
             </SelectContent>
           </Select>
           <SortDirectionToggle

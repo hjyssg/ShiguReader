@@ -52,7 +52,16 @@
     "fileNotFoundMessage": "Cannot find file: {{fileName}}",
     "loadErrorMessage": "Error loading file: {{errorMessage}}",
     "returnHome": "Return to Home",
-    "openParent": "Open Parent Directory"
+    "openParent": "Open Parent Directory",
+    "sortBy": "Sort by:",
+    "table": {
+      "name": "Name",
+      "dateModified": "Date Modified",
+      "type": "Type",
+      "size": "Size",
+      "likeScore": "Like Score",
+      "imageCount": "Image Count"
+    }
   },
   "history": {
     "title": "History",

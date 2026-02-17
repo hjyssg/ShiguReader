@@ -52,7 +52,16 @@
     "fileNotFoundMessage": "ファイルが見つかりません: {{fileName}}",
     "loadErrorMessage": "ファイル読み込みエラー: {{errorMessage}}",
     "returnHome": "ホームに戻る",
-    "openParent": "親フォルダーを開く"
+    "openParent": "親フォルダーを開く",
+    "sortBy": "並び替え:",
+    "table": {
+      "name": "名前",
+      "dateModified": "更新日時",
+      "type": "種類",
+      "size": "サイズ",
+      "likeScore": "Like Score",
+      "imageCount": "画像数"
+    }
   },
   "history": {
     "title": "履歴",

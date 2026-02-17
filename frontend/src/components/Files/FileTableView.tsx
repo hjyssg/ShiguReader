@@ -1,5 +1,6 @@
 // 文件系统项表格视图 — 支持排序、选择、双击导航、右键菜单
 import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react"
+import { useTranslation } from "react-i18next"
 
 import type { FileSystemItem } from "@/client"
 import { ListTable, type ListTableColumn } from "@/components/Common/ListTable"
@@ -13,7 +14,7 @@ export type SortField =
   | "name"
   | "type"
   | "mtime"
-  | "recommendation"
+  | "likeScore"
   | "image_count"
 export type SortOrder = "asc" | "desc"
 
@@ -42,18 +43,19 @@ export function FileTableView({
   buildContextMenuActions,
   isOpenable,
 }: FileTableViewProps) {
+  const { t } = useTranslation()
   const SortIcon = ({ field }: { field: SortField }) => {
     if (sortField !== field) return <ArrowUpDown className="size-3 ml-1 opacity-50" />
     return sortOrder === "asc" ? <ArrowUp className="size-3 ml-1" /> : <ArrowDown className="size-3 ml-1" />
   }
 
   const columns: ListTableColumn[] = [
-    { key: "name", header: <button className="inline-flex items-center" onClick={() => onSort("name")}>Name<SortIcon field="name" /></button> },
-    { key: "mtime", header: <button className="inline-flex items-center" onClick={() => onSort("mtime")}>Date Modified<SortIcon field="mtime" /></button>, headerClassName: "w-[180px]" },
-    { key: "type", header: <button className="inline-flex items-center" onClick={() => onSort("type")}>Type<SortIcon field="type" /></button>, headerClassName: "w-[120px]" },
-    { key: "size", header: "Size", headerClassName: "w-[100px] text-right" },
-    { key: "recommendation", header: <button className="ml-auto inline-flex items-center" onClick={() => onSort("recommendation")}>Recommendation<SortIcon field="recommendation" /></button>, headerClassName: "w-[130px] text-right" },
-    { key: "image_count", header: <button className="ml-auto inline-flex items-center" onClick={() => onSort("image_count")}>Image Count<SortIcon field="image_count" /></button>, headerClassName: "w-[110px] text-right" },
+    { key: "name", header: <button className="inline-flex items-center" onClick={() => onSort("name")}>{t("explorer.table.name")}<SortIcon field="name" /></button> },
+    { key: "mtime", header: <button className="inline-flex items-center" onClick={() => onSort("mtime")}>{t("explorer.table.dateModified")}<SortIcon field="mtime" /></button>, headerClassName: "w-[180px]" },
+    { key: "type", header: <button className="inline-flex items-center" onClick={() => onSort("type")}>{t("explorer.table.type")}<SortIcon field="type" /></button>, headerClassName: "w-[120px]" },
+    { key: "size", header: t("explorer.table.size"), headerClassName: "w-[100px] text-right" },
+    { key: "likeScore", header: <button className="ml-auto inline-flex items-center" onClick={() => onSort("likeScore")}>{t("explorer.table.likeScore")}<SortIcon field="likeScore" /></button>, headerClassName: "w-[130px] text-right" },
+    { key: "image_count", header: <button className="ml-auto inline-flex items-center" onClick={() => onSort("image_count")}>{t("explorer.table.imageCount")}<SortIcon field="image_count" /></button>, headerClassName: "w-[110px] text-right" },
   ]
 
   return (
@@ -94,6 +96,7 @@ export function FileTableView({
 }
 
 function TableRowCells({ item }: { item: FileSystemItem }) {
+  const { t } = useTranslation()
   const isFolder = item.item_type === "folder"
   const isArchive = item.file_type === "archive"
 
@@ -106,7 +109,7 @@ function TableRowCells({ item }: { item: FileSystemItem }) {
         </div>
       </td>
       <td className="p-2 text-muted-foreground">{item.mtime ? formatDateTime(item.mtime) : "-"}</td>
-      <td className="p-2 text-muted-foreground">{isFolder ? "Folder" : formatFileType(item.file_type)}</td>
+      <td className="p-2 text-muted-foreground">{isFolder ? t("file.folder") : formatFileType(item.file_type)}</td>
       <td className="p-2 text-right text-muted-foreground">{!isFolder && item.filesize ? formatFileSize(item.filesize) : "-"}</td>
       <td className="p-2 text-right text-muted-foreground">{!isFolder ? ((item as any).recommendation_score ?? 0).toFixed(3) : "-"}</td>
       <td className="p-2 text-right text-muted-foreground">{isArchive && (item as any).image_count ? (item as any).image_count : "-"}</td>
