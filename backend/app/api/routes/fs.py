@@ -5,6 +5,7 @@ import hashlib
 import logging
 import math
 import os
+import stat as stat_module
 import shutil
 import string
 import threading
@@ -862,6 +863,74 @@ def _should_skip_sync_path(path: Path) -> bool:
     return any(fragment in normalized for fragment in skip_fragments)
 
 
+def _is_filesystem_root(path: Path) -> bool:
+    """判断路径是否为文件系统根目录（如 Windows 的 C:\\ 或 POSIX 的 /）。"""
+    try:
+        resolved = path.resolve()
+    except Exception:
+        resolved = path
+    return resolved.parent == resolved
+
+
+def _has_windows_reparse_point(path: Path | str) -> bool:
+    """Windows 下判断路径是否为 reparse point（junction/symlink 等）。"""
+    if os.name != "nt":
+        return False
+    try:
+        st = os.lstat(path)
+    except OSError:
+        return False
+    attrs = getattr(st, "st_file_attributes", 0)
+    reparse_flag = getattr(stat_module, "FILE_ATTRIBUTE_REPARSE_POINT", 0x400)
+    return bool(attrs & reparse_flag)
+
+
+def _is_link_or_reparse(path: Path | str) -> bool:
+    """统一判断符号链接/重解析点，避免扫描进入别名目录或循环路径。"""
+    p = Path(path)
+    try:
+        if p.is_symlink():
+            return True
+    except OSError:
+        pass
+    return _has_windows_reparse_point(p)
+
+
+def _collect_allowed_sync_roots() -> list[Path]:
+    """收集 file-sync 允许扫描的根目录白名单。"""
+    candidates: list[Path] = []
+    candidates.extend(_parse_roots())
+
+    for optional_dir in (settings.FAVORITE_DIR, settings.ALREADY_READ_DIR):
+        if optional_dir and optional_dir.strip():
+            try:
+                candidates.append(Path(optional_dir.strip()).resolve())
+            except Exception:
+                logger.warning("[file-sync] skip invalid allowed root config: %s", optional_dir)
+
+    allowlist: list[Path] = []
+    for candidate in candidates:
+        try:
+            resolved = candidate.resolve()
+        except Exception:
+            continue
+        if not resolved.exists() or not resolved.is_dir():
+            continue
+        if _is_filesystem_root(resolved):
+            logger.warning(
+                "[file-sync] skip allowed root because filesystem root is forbidden: %s",
+                resolved,
+            )
+            continue
+
+        if any(resolved == root or resolved.is_relative_to(root) for root in allowlist):
+            continue
+        allowlist = [root for root in allowlist if not root.is_relative_to(resolved)]
+        allowlist.append(resolved)
+
+    return allowlist
+
+
 def _scan_root_with_scandir(root: Path) -> dict[str, tuple[int, int]]:
     """使用 os.scandir 递归扫描目录，仅收集目标扩展文件。"""
     files: dict[str, tuple[int, int]] = {}
@@ -870,6 +939,9 @@ def _scan_root_with_scandir(root: Path) -> dict[str, tuple[int, int]]:
 
     while pending:
         current = pending.pop()
+        if _is_filesystem_root(current):
+            logger.warning("[file-sync] skip filesystem root directory: %s", current)
+            continue
         if _should_skip_sync_path(current):
             logger.info("[file-sync] skip system path: %s", current)
             continue
@@ -879,10 +951,16 @@ def _scan_root_with_scandir(root: Path) -> dict[str, tuple[int, int]]:
                 for entry in entries:
                     try:
                         name = entry.name
+                        if _is_link_or_reparse(entry.path):
+                            logger.info("[file-sync] skip link/reparse entry: %s", entry.path)
+                            continue
                         if entry.is_dir(follow_symlinks=False):
                             if name.startswith(".") or should_ignore(name):
                                 continue
                             dir_path = Path(entry.path)
+                            if _is_filesystem_root(dir_path):
+                                logger.warning("[file-sync] skip filesystem root directory: %s", dir_path)
+                                continue
                             if _should_skip_sync_path(dir_path):
                                 continue
                             pending.append(dir_path)
@@ -983,6 +1061,21 @@ def _sync_file_table_with_filesystem() -> None:
 
             db_map: dict[str, tuple[int, int, int]] = {fp: (int(size), int(mtime), int(scan_state)) for fp, size, mtime, scan_state in db_rows}
             root_dirs = _derive_minimal_root_dirs(db_map.keys())
+            allowed_roots = _collect_allowed_sync_roots()
+
+            filtered_roots: list[Path] = []
+            for root_dir in root_dirs:
+                if _is_filesystem_root(root_dir):
+                    logger.warning("[file-sync] skip filesystem root directory: %s", root_dir)
+                    continue
+
+                if allowed_roots and not any(root_dir == ar or root_dir.is_relative_to(ar) for ar in allowed_roots):
+                    logger.info("[file-sync] skip root outside allowlist: %s", root_dir)
+                    continue
+
+                filtered_roots.append(root_dir)
+
+            root_dirs = filtered_roots
 
             real_map: dict[str, tuple[int, int]] = {}
             for root_dir in root_dirs:
@@ -1235,6 +1328,8 @@ def list_directory(
         
         for entry in validated_path.iterdir():
             if should_ignore(entry.name):
+                if _is_link_or_reparse(entry):
+                    continue
                 continue
             try:
                 stat = entry.stat()
@@ -1619,11 +1714,20 @@ def zip_folder(request: ZipFolderRequest) -> PathOperationResponse:
     try:
         with zipfile.ZipFile(output_path, "w", compression=zipfile.ZIP_DEFLATED) as zf:
             for root, dirs, filenames in os.walk(folder):
-                dirs[:] = [d for d in dirs if not should_ignore(d)]
+                root_path = Path(root)
+                dirs[:] = [
+                    d
+                    for d in dirs
+                    if not should_ignore(d)
+                    and not _is_link_or_reparse(root_path / d)
+                    and not _is_filesystem_root(root_path / d)
+                ]
                 for fname in filenames:
                     if should_ignore(fname):
                         continue
                     file = Path(root) / fname
+                    if _is_link_or_reparse(file):
+                        continue
                     zf.write(file, arcname=file.relative_to(folder))
     except PermissionError as e:
         raise HTTPException(
@@ -1782,6 +1886,9 @@ async def scan_directory(background_tasks: BackgroundTasks, request: ScanRequest
     if not validated_path.is_dir():
         raise HTTPException(status_code=400, detail="Path is not a directory")
 
+    if _is_filesystem_root(validated_path):
+        raise HTTPException(status_code=400, detail="Refuse to scan filesystem root directory")
+
     background_tasks.add_task(_run_scan, validated_path, request.recursive)
     _log_activity("scan", f"Started scan: {validated_path}", str(validated_path))
 
@@ -1804,6 +1911,9 @@ async def backfill_directory(request: BackfillRequest) -> BackfillResponse:
 
     if not validated_path.is_dir():
         raise HTTPException(status_code=400, detail="Path is not a directory")
+
+    if _is_filesystem_root(validated_path):
+        raise HTTPException(status_code=400, detail="Refuse to scan filesystem root directory")
 
     if not request.fill_thumbnail and not request.fill_meta:
         raise HTTPException(status_code=400, detail="Nothing to backfill")
@@ -1958,6 +2068,9 @@ async def scan_and_watch(background_tasks: BackgroundTasks, request: ScanRequest
 
     if not validated_path.is_dir():
         raise HTTPException(status_code=400, detail="Path is not a directory")
+
+    if _is_filesystem_root(validated_path):
+        raise HTTPException(status_code=400, detail="Refuse to scan filesystem root directory")
 
     path_key = str(validated_path)
     with _watcher_lock:
