@@ -114,8 +114,11 @@ class ActivityLog(SQLModel, table=True):
 
     id: int | None = Field(default=None, primary_key=True)
     activity_type: str
+    status: str = Field(default="completed")
+    task_key: str | None = None
     message: str
     target_path: str | None = None
+    context_json: str | None = None
     created_at: int = Field(default_factory=_ts_now)
 
 class Progress(SQLModel, table=True):

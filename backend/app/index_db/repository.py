@@ -22,6 +22,7 @@ IndexRepository（index_db 数据访问层）
 from __future__ import annotations
 
 from dataclasses import dataclass
+import json
 from time import time
 from typing import Iterator, TypeVar
 
@@ -66,8 +67,11 @@ def _iter_chunks(items: list[T], chunk_size: int) -> Iterator[list[T]]:
 @dataclass(slots=True)
 class ActivityLogInput:
     activity_type: str
-    message: str
+    status: str = "completed"
+    task_key: str | None = None
+    message: str = ""
     target_path: str | None = None
+    context: dict[str, object] | None = None
 
 @dataclass(slots=True)
 class UpsertFolderInput:
@@ -373,8 +377,11 @@ class IndexRepository:
     def log_activity(self, data: ActivityLogInput) -> ActivityLog:
         row = ActivityLog(
             activity_type=data.activity_type,
+            status=data.status,
+            task_key=data.task_key,
             message=data.message,
             target_path=data.target_path,
+            context_json=json.dumps(data.context, ensure_ascii=False) if data.context else None,
             created_at=_now_ts(),
         )
         self.session.add(row)
@@ -385,6 +392,28 @@ class IndexRepository:
     def list_activity_logs(self, limit: int = 10) -> list[ActivityLog]:
         stmt = select(ActivityLog).order_by(ActivityLog.created_at.desc(), ActivityLog.id.desc()).limit(limit)
         return list(self.session.exec(stmt).all())
+
+
+    def cleanup_activity_logs(self, keep_latest: int = 500) -> None:
+        if keep_latest <= 0:
+            keep_latest = 500
+
+        ids = list(
+            self.session.exec(
+                select(ActivityLog.id).order_by(ActivityLog.created_at.desc(), ActivityLog.id.desc()).limit(keep_latest)
+            ).all()
+        )
+        keep_ids = [x for x in ids if x is not None]
+        if not keep_ids:
+            return
+
+        old_rows = list(self.session.exec(select(ActivityLog).where(~ActivityLog.id.in_(keep_ids))).all())
+        if not old_rows:
+            return
+
+        for row in old_rows:
+            self.session.delete(row)
+        self._commit()
 
     def count_files_by_type(self, file_type: str) -> int:
         stmt = select(func.count()).select_from(File).where(File.file_type == file_type).where(File.scan_state == 1)

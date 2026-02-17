@@ -159,3 +159,62 @@
   color: var(--muted-foreground);
   font-size: 13px;
 }
+
+.recent-activity-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.recent-activity-panel__toolbar {
+  display: flex;
+  gap: 8px;
+  padding: 8px;
+}
+
+.recent-activity-panel__tab {
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--background);
+  color: var(--muted-foreground);
+  font-size: 12px;
+  padding: 4px 10px;
+}
+
+.recent-activity-panel__tab.is-active {
+  color: var(--foreground);
+  border-color: var(--primary);
+}
+
+.home-activity-item__icon.is-spinning {
+  animation: home-spin 1s linear infinite;
+}
+
+.home-activity-item__icon.is-failed {
+  color: #ef4444;
+}
+
+.home-activity-item__icon.is-completed {
+  color: #22c55e;
+}
+
+.recent-activity-panel__retry {
+  border: 1px solid var(--border);
+  background: transparent;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--muted-foreground);
+  padding: 2px 6px;
+}
+
+@keyframes home-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}

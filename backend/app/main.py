@@ -9,7 +9,7 @@ from pathlib import Path
 import sys
 
 from app.api.main import api_router
-from app.api.routes.fs import clear_extract_cache, trigger_favorite_scan, trigger_file_db_sync
+from app.api.routes.fs import clear_extract_cache, trigger_favorite_scan, trigger_file_db_sync, _log_activity
 from app.core.config import settings
 from app.index_db import ensure_index_db_initialized
 import logging
@@ -39,10 +39,22 @@ app = FastAPI(
 
 @app.on_event("startup")
 def startup_index_db() -> None:
+    _log_activity("startup", "服务器启动初始化开始", status="started", task_key="startup:init")
     ensure_index_db_initialized()
-    clear_extract_cache()
+
+    _log_activity("cache_cleanup", "开始清理解压缓存", status="started", task_key="startup:cache_cleanup")
+    cleanup_result = clear_extract_cache()
+    _log_activity(
+        "cache_cleanup",
+        f"解压缓存清理完成：删除 {cleanup_result['deleted_files']} 个文件",
+        status="completed",
+        task_key="startup:cache_cleanup",
+        context=cleanup_result,
+    )
+
     trigger_favorite_scan()
     trigger_file_db_sync()
+    _log_activity("startup", "服务器启动初始化已完成", status="completed", task_key="startup:init")
 
 # Set all CORS enabled origins
 cors_options = {
