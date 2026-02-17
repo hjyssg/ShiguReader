@@ -53,11 +53,6 @@ coser pages大面积不是名单里面的coser，而是name parser解析出来�
 # task 
   现在内部跳转或者打开新页面缺乏统一管理。你需要进行统一
 
-# task
-  move to favorite：
-  追加选项。
-  默认选项是 移动到喜欢文件夹下面的子文件夹。
-  命名比如 good_2026_02_01 
 
 
 # explorer
@@ -66,3 +61,24 @@ coser pages大面积不是名单里面的coser，而是name parser解析出来�
 
 # history page
   /api/v1/fs/list 在文件 9000个的时候会卡。进行优化
+
+
+# task
+  前端重构任务： 现在内部跳转或者打开新页面缺乏统一管理。你需要进行统一的url util去管理。
+  
+
+
+# task
+  move to favorite：
+  追加选项。
+  默认选项是 移动到喜欢文件夹下面的子文件夹。
+  命名比如 good_2026_02_01 
+
+
+# task：
+  打开reader，以及其他reader变种的时候，如果这个文件被移动走了。但是filetable能找到这个文件的最新位置（通过print判断）。并且在一个path.esixt彻底确定这个文件存在。直接跳转到新path。
+
+
+# task
+  frontend\src\routes\_layout\history.tsx 的table的视线和explorer的table不一样。你需要改造frontend\src\components\Files\FileTableView.tsx让history也使用它。
+  然后filename都要统一体验，就是渲染成<link>而不是点击触发跳转。
