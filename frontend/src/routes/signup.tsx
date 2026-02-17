@@ -1,8 +1,9 @@
 import { createFileRoute, redirect } from "@tanstack/react-router"
 import { useForm } from "react-hook-form"
 
-import { type UserRegister } from "@/client"
-import useAuth from "@/hooks/useAuth"
+import type { UserRegister } from "@/client"
+import { AuthLayout } from "@/components/Common/AuthLayout"
+import { FormField, FormStack } from "@/components/semantic/layout"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -13,8 +14,7 @@ import {
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { AuthLayout } from "@/components/Common/AuthLayout"
-import { FormStack, FormField } from "@/components/semantic/layout"
+import useAuth from "@/hooks/useAuth"
 
 export const Route = createFileRoute("/signup")({
   component: Signup,
@@ -98,7 +98,11 @@ function Signup() {
               <Button type="submit" className="w-full" disabled={isSubmitting}>
                 Create an account
               </Button>
-              <Button variant="outline" className="w-full" disabled={isSubmitting}>
+              <Button
+                variant="outline"
+                className="w-full"
+                disabled={isSubmitting}
+              >
                 Sign up with GitHub
               </Button>
             </FormStack>

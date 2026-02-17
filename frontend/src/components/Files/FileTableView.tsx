@@ -3,14 +3,18 @@ import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react"
 
 import type { FileSystemItem } from "@/client"
 import { cn } from "@/lib/utils"
-
+import { FileContextMenu, type FileContextMenuActions } from "./FileContextMenu"
 import { FileIcon } from "./FileIcon"
 import { FileNameWithPreview } from "./FileNameWithPreview"
 import { formatDateTime, formatFileSize, formatFileType } from "./utils"
-import { FileContextMenu, type FileContextMenuActions } from "./FileContextMenu"
 import "./FileTableView.css"
 
-export type SortField = "name" | "type" | "mtime" | "recommendation" | "image_count"
+export type SortField =
+  | "name"
+  | "type"
+  | "mtime"
+  | "recommendation"
+  | "image_count"
 export type SortOrder = "asc" | "desc"
 
 interface FileTableViewProps {
@@ -83,7 +87,9 @@ export function FileTableView({
                 <SortIcon field="type" />
               </div>
             </th>
-            <th className="file-table-view__head-cell file-table-view__head-cell--align-right file-table-view__head-cell--size">Size</th>
+            <th className="file-table-view__head-cell file-table-view__head-cell--align-right file-table-view__head-cell--size">
+              Size
+            </th>
             <th
               className="file-table-view__head-cell file-table-view__head-cell--sortable file-table-view__head-cell--align-right file-table-view__head-cell--recommendation"
               onClick={() => onSort("recommendation")}
@@ -154,13 +160,20 @@ function TableRowItem({
 
   return (
     <tr
-      className={cn("file-table-row", selected ? "file-table-row--selected" : "file-table-row--hoverable")}
+      className={cn(
+        "file-table-row",
+        selected ? "file-table-row--selected" : "file-table-row--hoverable",
+      )}
       onClick={(e) => onClick?.(item, e)}
       onDoubleClick={(e) => onDoubleClick?.(item, e)}
     >
       <td className="file-table-cell">
         <div className="file-table-name-cell">
-          <FileIcon fileType={item.file_type} isFolder={isFolder} size="sm" className="shrink-0" />
+          <FileIcon
+            fileType={item.file_type}
+            isFolder={isFolder}
+            size="sm"
+          />
           <FileNameWithPreview
             filename={item.name}
             filepath={item.path}
@@ -182,7 +195,9 @@ function TableRowItem({
         {!isFolder ? ((item as any).recommendation_score ?? 0).toFixed(3) : "-"}
       </td>
       <td className="file-table-cell file-table-cell--align-right file-table-cell--muted">
-        {isArchive && (item as any).image_count ? (item as any).image_count : "-"}
+        {isArchive && (item as any).image_count
+          ? (item as any).image_count
+          : "-"}
       </td>
     </tr>
   )

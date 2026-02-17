@@ -11,7 +11,11 @@ import {
   ChevronsLeft,
   ChevronsRight,
 } from "lucide-react"
-
+import {
+  PaginationControls,
+  PaginationSection,
+  TablePagination,
+} from "@/components/semantic/layout"
 import { Button } from "@/components/ui/button"
 import {
   Select,
@@ -28,7 +32,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { TablePagination, PaginationSection, PaginationControls } from "@/components/semantic/layout"
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]

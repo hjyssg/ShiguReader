@@ -114,6 +114,41 @@ def test_batch_save_parse_results(test_repo: IndexRepository) -> None:
     test_repo.batch_save_parse_results(results)
 
 
+def test_author_coser_mutually_exclusive_in_same_zip(test_repo: IndexRepository) -> None:
+    """同一 zip 若出现 coser，应忽略 author（业务互斥约束）。"""
+    test_repo.batch_upsert_files([
+        UpsertFileInput(
+            filepath="/test/mixed_role.zip",
+            filename="mixed_role.zip",
+            mtime=100,
+            filesize=1024,
+            fingerprint="mixed-fp",
+            file_type="archive",
+            ext=".zip",
+            scan_state=1,
+            watch_state=0,
+            scanned=True,
+        ),
+    ])
+
+    test_repo.batch_save_parse_results([
+        {
+            "filepath": "/test/mixed_role.zip",
+            "title": "Mixed",
+            "authors": ["MangaAuthor"],
+            "cosers": ["RealCoser"],
+            "group_name": None,
+            "raw_tags": ["tag1"],
+            "event": None,
+            "date_tag": None,
+            "media_type": "COSPLAY",
+        }
+    ])
+
+    assert test_repo.get_file_artists("/test/mixed_role.zip") == []
+    assert test_repo.get_file_cosers("/test/mixed_role.zip") == ["RealCoser"]
+
+
 def test_search_files(test_repo: IndexRepository) -> None:
     """Test searching files."""
     # Create test files

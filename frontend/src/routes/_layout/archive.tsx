@@ -2,12 +2,9 @@ import { useMutation, useQuery } from "@tanstack/react-query"
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router"
 import {
   BookCheck,
-  ChevronRight,
   FileAudio,
   FileVideo,
-  Folder,
   FolderInput,
-  Home,
   ImageDown,
   MoreVertical,
   Pencil,
@@ -18,14 +15,15 @@ import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 
 import { FilesystemService, OpenAPI } from "@/client"
-import { useIsMobile } from "@/hooks/useMobile"
-import { getBaseName, getParentPath, joinPath, splitPath } from "@/lib/path-utils"
-import { Button } from "@/components/ui/button"
-import { Skeleton } from "@/components/ui/skeleton"
+import { FileNotFoundError } from "@/components/Common/FileNotFoundError"
+import { PathBreadcrumb } from "@/components/Common/PathBreadcrumb"
+import { CompressDialog } from "@/components/Files/dialogs/CompressDialog"
+import { ConfirmMoveDialog } from "@/components/Files/dialogs/ConfirmMoveDialog"
+import { DeleteDialog } from "@/components/Files/dialogs/DeleteDialog"
+import { MoveDialog } from "@/components/Files/dialogs/MoveDialog"
+import { RenameDialog } from "@/components/Files/dialogs/RenameDialog"
 import { ExtractingIndicator } from "@/components/semantic/layout"
-import { cn } from "@/lib/utils"
-import { useDocumentTitle } from "@/hooks/useDocumentTitle"
-import { useFileOperations } from "@/hooks/useFileOperations"
+import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -33,12 +31,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { RenameDialog } from "@/components/Files/dialogs/RenameDialog"
-import { DeleteDialog } from "@/components/Files/dialogs/DeleteDialog"
-import { MoveDialog } from "@/components/Files/dialogs/MoveDialog"
-import { CompressDialog } from "@/components/Files/dialogs/CompressDialog"
-import { ConfirmMoveDialog } from "@/components/Files/dialogs/ConfirmMoveDialog"
-import { FileNotFoundError } from "@/components/Common/FileNotFoundError"
+import { Skeleton } from "@/components/ui/skeleton"
+import { useDocumentTitle } from "@/hooks/useDocumentTitle"
+import { useFileOperations } from "@/hooks/useFileOperations"
+import { useIsMobile } from "@/hooks/useMobile"
+import { getBaseName, getParentPath } from "@/lib/path-utils"
+import { cn } from "@/lib/utils"
 
 export const Route = createFileRoute("/_layout/archive")({
   component: Archive,
@@ -72,22 +70,27 @@ function Archive() {
   const [confirmFavOpen, setConfirmFavOpen] = useState(false)
   const [confirmReadOpen, setConfirmReadOpen] = useState(false)
 
-  const { data: listData, isLoading: isListLoading, error: listError } = useQuery({
+  const {
+    data: listData,
+    isLoading: isListLoading,
+    error: listError,
+  } = useQuery({
     queryKey: ["archive-list", path],
     queryFn: () => FilesystemService.listArchive({ path }),
     enabled: !!path,
     retry: false,
   })
 
-  const extractMutation = useMutation({
-    mutationFn: (page: number) => FilesystemService.extractArchive({ path, page }),
+  const { mutate: extractArchive, data: extractResult } = useMutation({
+    mutationFn: (page: number) =>
+      FilesystemService.extractArchive({ path, page }),
   })
 
   useEffect(() => {
-    if (listData && !extractMutation.data) {
-      extractMutation.mutate(0)
+    if (listData && !extractResult) {
+      extractArchive(0)
     }
-  }, [listData])
+  }, [listData, extractResult, extractArchive])
 
   // Must call hooks before any early returns
   const fileName = getBaseName(path, "Archive")
@@ -104,9 +107,13 @@ function Archive() {
 
   // 检查文件是否存在
   if (listError) {
-    const errorMessage = (listError as any)?.body?.detail || t("archive.unknownError")
-    const isNotFound = errorMessage.includes("not found") || errorMessage.includes("Not found") || errorMessage.includes("404")
-    
+    const errorMessage =
+      (listError as any)?.body?.detail || t("archive.unknownError")
+    const isNotFound =
+      errorMessage.includes("not found") ||
+      errorMessage.includes("Not found") ||
+      errorMessage.includes("404")
+
     return (
       <FileNotFoundError
         path={path}
@@ -124,45 +131,23 @@ function Archive() {
 
   const entries = listData.entries
 
-  // Parse breadcrumb
-  const pathParts = splitPath(path)
-  const dirCrumbs = pathParts.slice(0, -1).map((name, index) => ({
-    name,
-    path: joinPath(pathParts.slice(0, index + 1), path),
-  }))
-
   return (
     <div className="space-y-6">
       {/* Breadcrumb + File Operations */}
       <div className="flex items-center justify-between gap-2">
-        <nav className="flex items-center gap-2 text-sm min-w-0">
-          <Link
-            to="/"
-            className="flex items-center gap-1 text-muted-foreground hover:text-foreground transition-colors"
-          >
-            <Home className="size-4" />
-            <span>Home</span>
-          </Link>
-          {dirCrumbs.map((crumb) => (
-            <div key={crumb.path} className="flex items-center gap-2">
-              <ChevronRight className="size-4 text-muted-foreground" />
-              <Link
-                to="/explorer"
-                search={{ path: crumb.path }}
-                className="text-muted-foreground hover:text-foreground transition-colors"
-              >
-                <Folder className="size-4 inline mr-1" />
-                {crumb.name}
-              </Link>
-            </div>
-          ))}
-          <ChevronRight className="size-4 text-muted-foreground" />
-          <span className="font-medium truncate">{fileName}</span>
-        </nav>
+        <PathBreadcrumb
+          sourcePath={path}
+          currentLabel={fileName}
+        />
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="icon" className="shrink-0" title="File operations">
+            <Button
+              variant="outline"
+              size="icon"
+              className="shrink-0"
+              title="File operations"
+            >
               <MoreVertical className="size-4" />
             </Button>
           </DropdownMenuTrigger>
@@ -189,7 +174,10 @@ function Archive() {
               Minify ZIP Images
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem variant="destructive" onClick={() => setDeleteOpen(true)}>
+            <DropdownMenuItem
+              variant="destructive"
+              onClick={() => setDeleteOpen(true)}
+            >
               <Trash2 className="mr-2 size-4" />
               Delete
             </DropdownMenuItem>
@@ -210,7 +198,7 @@ function Archive() {
       </div>
 
       {/* Extraction status */}
-      <ExtractingIndicator status={extractMutation.data?.status} variant="fixed" />
+      <ExtractingIndicator status={extractResult?.status} variant="fixed" />
 
       {/* File operation dialogs */}
       <RenameDialog
@@ -218,9 +206,15 @@ function Archive() {
         onOpenChange={setRenameOpen}
         filePath={path}
         onConfirm={(newName) => {
-          operations.renameMutation.mutate({ path, newName }, {
-            onSuccess: () => { setRenameOpen(false); navigate({ to: "/" }) },
-          })
+          operations.renameMutation.mutate(
+            { path, newName },
+            {
+              onSuccess: () => {
+                setRenameOpen(false)
+                navigate({ to: "/" })
+              },
+            },
+          )
         }}
         isPending={operations.renameMutation.isPending}
       />
@@ -229,9 +223,15 @@ function Archive() {
         onOpenChange={setDeleteOpen}
         filePaths={[path]}
         onConfirm={() => {
-          operations.deleteMutation.mutate(path, {
-            onSuccess: () => { setDeleteOpen(false); navigate({ to: "/" }) },
-          })
+          operations.deleteMutation.mutate(
+            { path, permanently: false },
+            {
+              onSuccess: () => {
+                setDeleteOpen(false)
+                navigate({ to: "/" })
+              },
+            },
+          )
         }}
         isPending={operations.deleteMutation.isPending}
       />
@@ -242,9 +242,15 @@ function Archive() {
         onConfirm={(destDir) => {
           const name = getBaseName(path)
           const destPath = `${destDir}/${name}`
-          operations.moveFileMutation.mutate({ sourcePath: path, destPath }, {
-            onSuccess: () => { setMoveOpen(false); navigate({ to: "/" }) },
-          })
+          operations.moveFileMutation.mutate(
+            { sourcePath: path, destPath },
+            {
+              onSuccess: () => {
+                setMoveOpen(false)
+                navigate({ to: "/" })
+              },
+            },
+          )
         }}
         isPending={operations.moveFileMutation.isPending}
       />
@@ -268,7 +274,12 @@ function Archive() {
         onConfirm={() => {
           operations.moveToFavoriteMutation.mutate(
             { sourcePath: path, isFolder: false },
-            { onSuccess: () => { setConfirmFavOpen(false); navigate({ to: "/" }) } },
+            {
+              onSuccess: () => {
+                setConfirmFavOpen(false)
+                navigate({ to: "/" })
+              },
+            },
           )
         }}
         isPending={operations.moveToFavoriteMutation.isPending}
@@ -281,7 +292,12 @@ function Archive() {
         onConfirm={() => {
           operations.moveToAlreadyReadMutation.mutate(
             { sourcePath: path, isFolder: false },
-            { onSuccess: () => { setConfirmReadOpen(false); navigate({ to: "/" }) } },
+            {
+              onSuccess: () => {
+                setConfirmReadOpen(false)
+                navigate({ to: "/" })
+              },
+            },
           )
         }}
         isPending={operations.moveToAlreadyReadMutation.isPending}
@@ -310,7 +326,9 @@ function ArchiveEntryItem({
     <div
       className={cn(
         "group relative rounded-lg border bg-card transition-all",
-        isClickable ? "cursor-pointer hover:border-primary hover:shadow-md" : ""
+        isClickable
+          ? "cursor-pointer hover:border-primary hover:shadow-md"
+          : "",
       )}
     >
       {/* Thumbnail/Icon */}
@@ -327,9 +345,12 @@ function ArchiveEntryItem({
               const maxRetries = 5
               if (retryCount < maxRetries) {
                 img.dataset.retry = String(retryCount + 1)
-                setTimeout(() => {
-                  img.src = `${fileUrl}${fileUrl.includes("?") ? "&" : "?"}_t=${Date.now()}`
-                }, 1000 * (retryCount + 1))
+                setTimeout(
+                  () => {
+                    img.src = `${fileUrl}${fileUrl.includes("?") ? "&" : "?"}_t=${Date.now()}`
+                  },
+                  1000 * (retryCount + 1),
+                )
               }
             }}
             onLoad={(e) => {
@@ -358,7 +379,12 @@ function ArchiveEntryItem({
     return (
       <Link
         to={imageReaderPath}
-        search={{ path: archivePath, page: entry.index, source: "archive", filePath: "" }}
+        search={{
+          path: archivePath,
+          page: entry.index,
+          source: "archive",
+          filePath: "",
+        }}
       >
         {content}
       </Link>
@@ -378,10 +404,7 @@ function ArchiveEntryItem({
 
   if (isAudio) {
     return (
-      <Link
-        to="/audio"
-        search={{ path: archivePath, entry: entry.entry_path }}
-      >
+      <Link to="/audio" search={{ path: archivePath, entry: entry.entry_path }}>
         {content}
       </Link>
     )

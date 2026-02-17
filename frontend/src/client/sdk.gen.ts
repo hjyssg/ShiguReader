@@ -3,7 +3,7 @@
 import type { CancelablePromise } from './core/CancelablePromise';
 import { OpenAPI } from './core/OpenAPI';
 import { request as __request } from './core/request';
-import type { AuthorsReadAuthorsData, AuthorsReadAuthorsResponse, FilesystemGetRootsResponse, FilesystemGetFavoriteRootResponse, FilesystemGetDrivesResponse, FilesystemListDirectoryData, FilesystemListDirectoryResponse, FilesystemMoveFileData, FilesystemMoveFileResponse, FilesystemMoveFolderData, FilesystemMoveFolderResponse, FilesystemDeletePathData, FilesystemDeletePathResponse, FilesystemZipFolderData, FilesystemZipFolderResponse, FilesystemScanFavoriteResponse, FilesystemScanDirectoryData, FilesystemScanDirectoryResponse, FilesystemScanAndWatchData, FilesystemScanAndWatchResponse, FilesystemGetScanStatusData, FilesystemGetScanStatusResponse, FilesystemGetThumbnailData, FilesystemGetThumbnailResponse, FilesystemListArchiveData, FilesystemListArchiveResponse, FilesystemExtractArchiveData, FilesystemExtractArchiveResponse, FilesystemGetArchiveFileData, FilesystemGetArchiveFileResponse, FilesystemGetFileData, FilesystemGetFileResponse, HistoryRecordHistoryData, HistoryRecordHistoryResponse, HistoryListHistoryData, HistoryListHistoryResponse, ParseBatchParseData, ParseBatchParseResponse, ParseGetParseResultData, ParseGetParseResultResponse, PrivateCreateUserData, PrivateCreateUserResponse, SearchSearchFilesData, SearchSearchFilesResponse, TagsReadTagsData, TagsReadTagsResponse, UsersReadUsersData, UsersReadUsersResponse, UsersCreateUserData, UsersCreateUserResponse, UsersReadUserMeResponse, UsersDeleteUserMeResponse, UsersUpdateUserMeData, UsersUpdateUserMeResponse, UsersUpdatePasswordMeData, UsersUpdatePasswordMeResponse, UsersRegisterUserData, UsersRegisterUserResponse, UsersReadUserByIdData, UsersReadUserByIdResponse, UsersUpdateUserData, UsersUpdateUserResponse, UsersDeleteUserData, UsersDeleteUserResponse, UtilsHealthCheckResponse } from './types.gen';
+import type { AuthorsReadAuthorsData, AuthorsReadAuthorsResponse, CosersReadCosersData, CosersReadCosersResponse, FilesystemGetRootsResponse, FilesystemGetFavoriteRootResponse, FilesystemGetAlreadyReadRootResponse, FilesystemGetDrivesResponse, FilesystemListDirectoryData, FilesystemListDirectoryResponse, FilesystemMoveFileData, FilesystemMoveFileResponse, FilesystemMoveFolderData, FilesystemMoveFolderResponse, FilesystemDeletePathData, FilesystemDeletePathResponse, FilesystemZipFolderData, FilesystemZipFolderResponse, FilesystemRenamePathData, FilesystemRenamePathResponse, FilesystemDownloadFileData, FilesystemDownloadFileResponse, FilesystemUnzipArchiveData, FilesystemUnzipArchiveResponse, FilesystemScanFavoriteResponse, FilesystemScanDirectoryData, FilesystemScanDirectoryResponse, FilesystemBackfillDirectoryData, FilesystemBackfillDirectoryResponse, FilesystemScanAndWatchData, FilesystemScanAndWatchResponse, FilesystemGetScanStatusData, FilesystemGetScanStatusResponse, FilesystemGetThumbnailData, FilesystemGetThumbnailResponse, FilesystemListArchiveData, FilesystemListArchiveResponse, FilesystemClearExtractCacheEndpointResponse, FilesystemExtractArchiveData, FilesystemExtractArchiveResponse, FilesystemGetArchiveFileData, FilesystemGetArchiveFileResponse, FilesystemGetFileData, FilesystemGetFileResponse, FilesystemCompressArchiveImagesEndpointData, FilesystemCompressArchiveImagesEndpointResponse, HistoryRecordHistoryData, HistoryRecordHistoryResponse, HistoryListHistoryData, HistoryListHistoryResponse, ParseBatchParseData, ParseBatchParseResponse, ParseGetParseResultData, ParseGetParseResultResponse, PrivateCreateUserData, PrivateCreateUserResponse, SearchSearchFilesData, SearchSearchFilesResponse, SettingsGetSettingsResponse, SettingsUpdateSettingsData, SettingsUpdateSettingsResponse, TagsReadTagsData, TagsReadTagsResponse, UsersReadUsersData, UsersReadUsersResponse, UsersCreateUserData, UsersCreateUserResponse, UsersRegisterUserData, UsersRegisterUserResponse, UsersReadUserByIdData, UsersReadUserByIdResponse, UsersUpdateUserData, UsersUpdateUserResponse, UsersDeleteUserData, UsersDeleteUserResponse, UtilsHealthCheckResponse } from './types.gen';
 
 export class AuthorsService {
     /**
@@ -20,6 +20,34 @@ export class AuthorsService {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/authors',
+            query: {
+                page: data.page,
+                page_size: data.pageSize,
+                sort_by: data.sortBy,
+                sort_order: data.sortOrder
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+}
+
+export class CosersService {
+    /**
+     * Read Cosers
+     * @param data The data for the request.
+     * @param data.page
+     * @param data.pageSize
+     * @param data.sortBy
+     * @param data.sortOrder
+     * @returns CosersResponse Successful Response
+     * @throws ApiError
+     */
+    public static readCosers(data: CosersReadCosersData = {}): CancelablePromise<CosersReadCosersResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/cosers',
             query: {
                 page: data.page,
                 page_size: data.pageSize,
@@ -61,6 +89,19 @@ export class FilesystemService {
     }
     
     /**
+     * Get Already Read Root
+     * Get configured already-read directory as a root-like item.
+     * @returns unknown Successful Response
+     * @throws ApiError
+     */
+    public static getAlreadyReadRoot(): CancelablePromise<FilesystemGetAlreadyReadRootResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/fs/already-read'
+        });
+    }
+    
+    /**
      * Get Drives
      * Get available drive letters (Windows only).
      * @returns RootItem Successful Response
@@ -80,6 +121,8 @@ export class FilesystemService {
      * @param data.path Directory path to list
      * @param data.sortBy Sort by field
      * @param data.sortOrder Sort order
+     * @param data.hasVideo 筛选包含视频的压缩包
+     * @param data.hasAudio 筛选包含音频的压缩包
      * @returns ListResponse Successful Response
      * @throws ApiError
      */
@@ -90,7 +133,9 @@ export class FilesystemService {
             query: {
                 path: data.path,
                 sort_by: data.sortBy,
-                sort_order: data.sortOrder
+                sort_order: data.sortOrder,
+                has_video: data.hasVideo,
+                has_audio: data.hasAudio
             },
             errors: {
                 422: 'Validation Error'
@@ -175,6 +220,67 @@ export class FilesystemService {
     }
     
     /**
+     * Rename Path
+     * 重命名文件或文件夹。
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @returns PathOperationResponse Successful Response
+     * @throws ApiError
+     */
+    public static renamePath(data: FilesystemRenamePathData): CancelablePromise<FilesystemRenamePathResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/fs/rename',
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Download File
+     * 下载单个文件。
+     * @param data The data for the request.
+     * @param data.path File path to download
+     * @returns unknown Successful Response
+     * @throws ApiError
+     */
+    public static downloadFile(data: FilesystemDownloadFileData): CancelablePromise<FilesystemDownloadFileResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/fs/download',
+            query: {
+                path: data.path
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Unzip Archive
+     * 解压压缩包到指定目录，保持原始目录结构。
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @returns PathOperationResponse Successful Response
+     * @throws ApiError
+     */
+    public static unzipArchive(data: FilesystemUnzipArchiveData): CancelablePromise<FilesystemUnzipArchiveResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/fs/unzip',
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
      * Scan Favorite
      * @returns ScanStartResponse Successful Response
      * @throws ApiError
@@ -198,6 +304,26 @@ export class FilesystemService {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/v1/fs/scan',
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Backfill Directory
+     * Backfill missing thumbnail/meta for files under a folder.
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @returns BackfillResponse Successful Response
+     * @throws ApiError
+     */
+    public static backfillDirectory(data: FilesystemBackfillDirectoryData): CancelablePromise<FilesystemBackfillDirectoryResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/fs/backfill',
             body: data.requestBody,
             mediaType: 'application/json',
             errors: {
@@ -290,11 +416,31 @@ export class FilesystemService {
     }
     
     /**
+     * Clear Extract Cache Endpoint
+     * 清理所有解压缓存（跳过正在解压的目录）。
+     * @returns ClearCacheResponse Successful Response
+     * @throws ApiError
+     */
+    public static clearExtractCacheEndpoint(): CancelablePromise<FilesystemClearExtractCacheEndpointResponse> {
+        return __request(OpenAPI, {
+            method: 'DELETE',
+            url: '/api/v1/fs/extract-cache'
+        });
+    }
+    
+    /**
      * Extract Archive
-     * Extract archive with prioritized extraction of current page vicinity.
+     * 三阶段优先级解压压缩包。
+     *
+     * 阶段 1：当前页（立即可用）
+     * 阶段 2：前后 ±5 页（快速可用）
+     * 阶段 3：剩余文件（后台解压，图片优先）
+     *
+     * 此端点是幂等的 — 重复调用不会触发重复解压。
+     * 前端每次翻页都会调用此接口，后端通过 _active_extractions 锁避免重复工作。
      * @param data The data for the request.
-     * @param data.path Archive file path
-     * @param data.page Current page number for prioritized extraction
+     * @param data.path 压缩包文件路径
+     * @param data.page 当前页码（基于过滤后的媒体文件列表）
      * @returns ExtractStatus Successful Response
      * @throws ApiError
      */
@@ -350,6 +496,34 @@ export class FilesystemService {
             query: {
                 path: data.path
             },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Compress Archive Images Endpoint
+     * 压缩压缩包内的大图片并重新打包。
+     *
+     * 功能：
+     * - 扫描 zip 内所有图片
+     * - 压缩大于阈值的图片（默认 1MB，分辨率 > 2000x2000）
+     * - 转换为 JPEG 格式，质量 85
+     * - 保持原始目录结构
+     * - 验证压缩包完整性
+     * - 验证失败时输出文件添加 .error 后缀
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @returns CompressImagesResponse Successful Response
+     * @throws ApiError
+     */
+    public static compressArchiveImagesEndpoint(data: FilesystemCompressArchiveImagesEndpointData): CancelablePromise<FilesystemCompressArchiveImagesEndpointResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/fs/archive/compress-images',
+            body: data.requestBody,
+            mediaType: 'application/json',
             errors: {
                 422: 'Validation Error'
             }
@@ -488,6 +662,41 @@ export class SearchService {
     }
 }
 
+export class SettingsService {
+    /**
+     * Get Settings
+     * Get current settings.
+     * @returns SettingsResponse Successful Response
+     * @throws ApiError
+     */
+    public static getSettings(): CancelablePromise<SettingsGetSettingsResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/settings'
+        });
+    }
+    
+    /**
+     * Update Settings
+     * Update settings in .env file.
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @returns SettingsResponse Successful Response
+     * @throws ApiError
+     */
+    public static updateSettings(data: SettingsUpdateSettingsData): CancelablePromise<SettingsUpdateSettingsResponse> {
+        return __request(OpenAPI, {
+            method: 'PUT',
+            url: '/api/v1/settings',
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+}
+
 export class TagsService {
     /**
      * Read Tags
@@ -552,72 +761,6 @@ export class UsersService {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/v1/users/',
-            body: data.requestBody,
-            mediaType: 'application/json',
-            errors: {
-                422: 'Validation Error'
-            }
-        });
-    }
-    
-    /**
-     * Read User Me
-     * Get current user.
-     * @returns UserPublic Successful Response
-     * @throws ApiError
-     */
-    public static readUserMe(): CancelablePromise<UsersReadUserMeResponse> {
-        return __request(OpenAPI, {
-            method: 'GET',
-            url: '/api/v1/users/me'
-        });
-    }
-    
-    /**
-     * Delete User Me
-     * Delete own user.
-     * @returns Message Successful Response
-     * @throws ApiError
-     */
-    public static deleteUserMe(): CancelablePromise<UsersDeleteUserMeResponse> {
-        return __request(OpenAPI, {
-            method: 'DELETE',
-            url: '/api/v1/users/me'
-        });
-    }
-    
-    /**
-     * Update User Me
-     * Update own user.
-     * @param data The data for the request.
-     * @param data.requestBody
-     * @returns UserPublic Successful Response
-     * @throws ApiError
-     */
-    public static updateUserMe(data: UsersUpdateUserMeData): CancelablePromise<UsersUpdateUserMeResponse> {
-        return __request(OpenAPI, {
-            method: 'PATCH',
-            url: '/api/v1/users/me',
-            body: data.requestBody,
-            mediaType: 'application/json',
-            errors: {
-                422: 'Validation Error'
-            }
-        });
-    }
-    
-    /**
-     * Update Password Me
-     * Update own password.
-     * @param data The data for the request.
-     * @param data.requestBody
-     * @returns Message Successful Response
-     * @throws ApiError
-     */
-    public static updatePasswordMe(data: UsersUpdatePasswordMeData): CancelablePromise<UsersUpdatePasswordMeResponse> {
-        return __request(OpenAPI, {
-            method: 'PATCH',
-            url: '/api/v1/users/me/password',
             body: data.requestBody,
             mediaType: 'application/json',
             errors: {

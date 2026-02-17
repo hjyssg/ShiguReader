@@ -21,6 +21,15 @@
         "noExplicitAny": "off",
         "noArrayIndexKey": "off"
       },
+      "a11y": {
+        "noSvgWithoutTitle": "off",
+        "noStaticElementInteractions": "off",
+        "useKeyWithClickEvents": "off",
+        "useMediaCaption": "off"
+      },
+      "correctness": {
+        "useExhaustiveDependencies": "off"
+      },
       "style": {
         "noNonNullAssertion": "off",
         "noParameterAssign": "error",

@@ -54,6 +54,16 @@ function AuthorsPage() {
   const navigate = useNavigate()
   const { page, sort_by, sort_order } = Route.useSearch()
   const pageSize = 24
+  const buildSearchHref = (q: string) => {
+    const params = new URLSearchParams({
+      q,
+      mode: "hybrid",
+      page: "1",
+      presenceFilter: "all",
+    })
+    params.append("scopes", "author")
+    return `/search?${params.toString()}`
+  }
 
   const { data, isLoading } = useQuery({
     queryKey: ["authors", page, pageSize, sort_by, sort_order],
@@ -64,7 +74,9 @@ function AuthorsPage() {
         sort_by,
         sort_order,
       })
-      const res = await fetch(`${OpenAPI.BASE}/api/v1/authors?${params.toString()}`)
+      const res = await fetch(
+        `${OpenAPI.BASE}/api/v1/authors?${params.toString()}`,
+      )
       if (!res.ok) {
         throw new Error("Failed to fetch authors")
       }
@@ -75,7 +87,9 @@ function AuthorsPage() {
   return (
     <div className="space-y-6">
       <div className="space-y-2">
-        <h1 className="text-2xl font-bold tracking-tight">{t("authors.title")}</h1>
+        <h1 className="text-2xl font-bold tracking-tight">
+          {t("authors.title")}
+        </h1>
         <p className="text-muted-foreground">{t("authors.description")}</p>
       </div>
 
@@ -147,17 +161,7 @@ function AuthorsPage() {
             },
           })
         }}
-        onCardClick={(item) => {
-          navigate({
-            to: "/search",
-            search: {
-              q: item.name,
-              scopes: ["author"],
-              mode: "hybrid",
-              page: 1,
-            },
-          })
-        }}
+        getItemHref={(item) => buildSearchHref(item.name)}
         emptyText={t("authors.empty")}
       />
     </div>

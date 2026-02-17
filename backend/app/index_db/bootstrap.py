@@ -10,6 +10,7 @@ from app.index_db.db import ensure_sqlite_parent_dir_exists
 
 
 def _build_alembic_config(index_db_url: str) -> Config:
+    """构建仅用于索引库迁移的 Alembic 配置。"""
     config = Config()
     script_location = Path(__file__).resolve().parent / "alembic"
     config.set_main_option("script_location", str(script_location))
@@ -18,6 +19,7 @@ def _build_alembic_config(index_db_url: str) -> Config:
 
 
 def ensure_index_db_initialized(index_db_url: str | None = None) -> None:
+    """确保索引数据库完成迁移并可用。"""
     db_url = index_db_url or settings.INDEX_SQLITE_URL
     ensure_sqlite_parent_dir_exists(db_url)
     config = _build_alembic_config(db_url)

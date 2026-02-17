@@ -14,6 +14,12 @@ import "./i18n"
 import "./index.css"
 import { routeTree } from "./routeTree.gen"
 
+const LOCAL_HOSTNAMES = new Set(["localhost", "127.0.0.1", "::1"])
+
+const isLocalHostname = (hostname: string) => LOCAL_HOSTNAMES.has(hostname)
+
+const stripTrailingSlash = (value: string) => value.replace(/\/+$/, "")
+
 const resolveApiBase = () => {
   const configured = import.meta.env.VITE_API_URL?.trim()
   const runtimeOrigin = window.location.origin
@@ -24,7 +30,30 @@ const resolveApiBase = () => {
     return runtimeOrigin
   }
 
-  return configured || runtimeOrigin
+  if (!configured) {
+    return runtimeOrigin
+  }
+
+  try {
+    const configuredUrl = new URL(configured)
+    const runtimeUrl = new URL(runtimeOrigin)
+
+    // LAN 访问 dev server 时，若 API 仍配置为 localhost/127，自动替换为当前页面主机。
+    // 例如: 页面 http://192.168.1.113:5173 + API http://localhost:8000
+    // => 自动改为 http://192.168.1.113:8000
+    if (
+      isLocalHostname(configuredUrl.hostname) &&
+      !isLocalHostname(runtimeUrl.hostname)
+    ) {
+      configuredUrl.hostname = runtimeUrl.hostname
+      return stripTrailingSlash(configuredUrl.toString())
+    }
+
+    return stripTrailingSlash(configuredUrl.toString())
+  } catch {
+    // 兼容非标准配置值，保持原行为
+    return configured
+  }
 }
 
 OpenAPI.BASE = resolveApiBase()

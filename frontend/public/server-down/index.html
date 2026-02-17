@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0f0f0f" />
+    <title>Shigureader 服务器未启动</title>
+    <style>
+      :root {
+        --bg: #0f0f0f;
+        --card: #1c1c1c;
+        --text: #f1f1f1;
+        --sub: #a8a8a8;
+        --accent: #3ea6ff;
+        --danger: #ff4e45;
+        --line: #2a2a2a;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background: radial-gradient(circle at 50% 15%, #1f1f1f 0%, var(--bg) 45%);
+        color: var(--text);
+        font-family:
+          "Segoe UI", "PingFang SC", "Microsoft YaHei", system-ui, -apple-system,
+          sans-serif;
+        display: grid;
+        place-items: center;
+        padding: 20px;
+      }
+
+      .card {
+        width: min(720px, 100%);
+        border: 1px solid var(--line);
+        background: linear-gradient(180deg, #202020 0%, var(--card) 100%);
+        border-radius: 20px;
+        padding: 30px 24px;
+        box-shadow: 0 30px 80px rgba(0, 0, 0, 0.45);
+      }
+
+      .hero {
+        display: grid;
+        place-items: center;
+        margin-bottom: 18px;
+      }
+
+      .hero svg {
+        width: 92px;
+        height: 92px;
+      }
+
+      h1 {
+        margin: 8px 0 10px;
+        text-align: center;
+        font-size: clamp(24px, 4vw, 34px);
+        letter-spacing: 0.2px;
+      }
+
+      .desc {
+        margin: 0 auto;
+        max-width: 580px;
+        text-align: center;
+        line-height: 1.7;
+        color: var(--sub);
+        font-size: 15px;
+      }
+
+      .tips {
+        margin: 22px auto 16px;
+        max-width: 620px;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 14px 16px;
+        background: #161616;
+      }
+
+      .tips h2 {
+        margin: 0 0 10px;
+        font-size: 14px;
+        color: #d7d7d7;
+      }
+
+      .tips ol {
+        margin: 0;
+        padding-left: 20px;
+        color: var(--sub);
+        line-height: 1.8;
+        font-size: 14px;
+      }
+
+      code {
+        background: #232323;
+        border: 1px solid #333;
+        border-radius: 8px;
+        padding: 2px 7px;
+        color: #d2ecff;
+        font-family: "Cascadia Code", "Consolas", monospace;
+        font-size: 13px;
+      }
+
+      .actions {
+        margin-top: 22px;
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      .btn {
+        border: 1px solid #3a3a3a;
+        background: #282828;
+        color: var(--text);
+        padding: 10px 16px;
+        border-radius: 999px;
+        cursor: pointer;
+        font-size: 14px;
+      }
+
+      .btn.primary {
+        background: var(--accent);
+        color: #031827;
+        border-color: transparent;
+        font-weight: 600;
+      }
+
+      .status {
+        margin-top: 16px;
+        text-align: center;
+        color: var(--sub);
+        font-size: 13px;
+      }
+
+      .status strong {
+        color: var(--danger);
+      }
+    </style>
+  </head>
+  <body>
+    <main class="card" role="main" aria-live="polite">
+      <div class="hero" aria-hidden="true">
+        <svg viewBox="0 0 96 96" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="48" cy="48" r="44" fill="#1A1A1A" stroke="#313131" stroke-width="2" />
+          <path
+            d="M29 45C29 37.8203 34.8203 32 42 32C45.0879 32 47.9245 33.0774 50.1534 34.8757C51.6627 31.9703 54.7042 30 58.2 30C63.6124 30 68 34.3876 68 39.8C68 40.1712 67.9794 40.5377 67.9393 40.8982C71.4787 42.1112 74 45.4719 74 49.4C74 54.3495 69.9899 58.36 65.0404 58.36H35.2C31.7758 58.36 29 55.5842 29 52.16V45Z"
+            fill="#2A2A2A"
+          />
+          <path d="M39 40L57 58" stroke="#FF4E45" stroke-width="5" stroke-linecap="round" />
+          <path d="M57 40L39 58" stroke="#FF4E45" stroke-width="5" stroke-linecap="round" />
+        </svg>
+      </div>
+
+      <h1>Shigureader 服务器未启动</h1>
+      <p class="desc">
+        当前无法连接到本地服务（前端通常为 <code>5173</code>，后端通常为
+        <code>8000</code>）。请先启动服务，再回到此页面重试。
+      </p>
+
+      <section class="tips">
+        <h2>建议操作</h2>
+        <ol>
+          <li>在项目根目录启动前端：<code>npm run dev</code></li>
+          <li>确保后端服务正在运行（默认端口 <code>8000</code>）</li>
+          <li>启动后点击下方“重新检测服务”</li>
+        </ol>
+      </section>
+
+      <div class="actions">
+        <button class="btn primary" id="retryBtn" type="button">重新检测服务</button>
+        <button class="btn" id="reloadBtn" type="button">刷新页面</button>
+      </div>
+
+      <div class="status" id="statusText">状态：等待检测</div>
+    </main>
+
+    <script>
+      const statusText = document.getElementById("statusText")
+      const retryBtn = document.getElementById("retryBtn")
+      const reloadBtn = document.getElementById("reloadBtn")
+
+      async function probe(url) {
+        try {
+          await fetch(url, { mode: "no-cors", cache: "no-store" })
+          return true
+        } catch {
+          return false
+        }
+      }
+
+      async function checkServers() {
+        statusText.innerHTML = "状态：正在检测 <code>5173</code> / <code>8000</code> ..."
+
+        const [viteUp, backendUp, vite127Up, backend127Up] = await Promise.all([
+          probe("http://localhost:5173/"),
+          probe("http://localhost:8000/"),
+          probe("http://127.0.0.1:5173/"),
+          probe("http://127.0.0.1:8000/"),
+        ])
+
+        const frontendUp = viteUp || vite127Up
+        const apiUp = backendUp || backend127Up
+
+        if (frontendUp || apiUp) {
+          const ready = []
+          if (frontendUp) ready.push("5173")
+          if (apiUp) ready.push("8000")
+          statusText.innerHTML = `状态：<strong style="color:#35d07f">已检测到服务可用（${ready.join("/")}）</strong>`
+          return
+        }
+
+        statusText.innerHTML = "状态：<strong>仍未检测到可用服务</strong>"
+      }
+
+      retryBtn.addEventListener("click", checkServers)
+      reloadBtn.addEventListener("click", () => location.reload())
+
+      if (
+        "serviceWorker" in navigator &&
+        (location.protocol === "https:" ||
+          location.hostname === "localhost" ||
+          location.hostname === "127.0.0.1")
+      ) {
+        navigator.serviceWorker
+          .register("./server-down.sw.js")
+          .catch((err) => console.warn("Service Worker 注册失败:", err))
+      }
+
+      checkServers()
+    </script>
+  </body>
+</html>

@@ -267,3 +267,62 @@ file-item-wrapper的右键菜单保留
 下面的info bar
 还需要显示zip的视频文件数和音频文件数。大于0的话，要用好看的橘色高亮。
 你先在计算avg img size的算法你检查一下是不是file size/img num，如果是的话，需要修改。应该要改后端。
+
+
+## task
+现在删除是彻底删除。
+你要支持移到回收站。点开三个选项，默认回收站。
+然后是彻底删除和cancel
+你后端也需要支持。
+
+## Task7：i18n
+- 补全 i18n 支持遗漏部分
+
+
+## Task4：Explorer 筛选与排序增强
+- 筛选：
+  - zip 是否包含 video
+  - zip 是否包含 audio
+- 排序：
+  - 按 zip 内 img number
+- 完成设计与实现
+
+
+---
+# 给reader page的文件操作加热键
+v -》 移动喜欢的文件夹
+x -》 移到已读
+
+
+## Task5：推荐排序接入
+- 前端接入 recommendation score
+- Explorer 页面添加排序选项
+
+
+
+## Task6：Audio Page
+- 修复 audio page 崩溃问题
+
+
+# Task
+  video 页面的breadcrumb把filename显示了两次
+# Task
+  reader的图片在加载出来前会显示broken。是因为反复确认图片存在与否吗。感觉api/v1/fs/archive/extract，可以在第一张图存在后再返回（但你要思考没图的时候怎么办）
+
+# Task
+i18的bug
+    "cacheClearedDetail": "Deleted {count} files, freed {size}",
+        "fileNotFoundMessage": "Cannot find file: {fileName}",
+    "loadErrorMessage": "Error loading file: {errorMessage}",
+  显示的{}的数值没被替换，因为没做空值处理吗
+
+
+# task
+scan including subfodler
+scan and watch subfolders的时候看不到进度。
+
+1 后端至少要看到log 文件数
+2 希望前端能在setting看到scan进度和整个watch的folder。
+  setting的用tab。一个tab是原来的setting。
+  第二格tab是现在这些东西。
+

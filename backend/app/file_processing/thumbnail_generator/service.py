@@ -21,6 +21,31 @@ class ThumbnailResult:
     output_path: Path
 
 
+def _resolve_ffmpeg_executable() -> str:
+    """Resolve ffmpeg executable path.
+
+    Priority:
+    1) bundled binary: backend/tools/ffmpeg/ffmpeg.exe (or ffmpeg on non-Windows)
+    2) PATH lookup via shutil.which("ffmpeg")
+    """
+    backend_dir = Path(__file__).resolve().parents[3]
+    candidates = [
+        backend_dir / "tools" / "ffmpeg" / "ffmpeg.exe",
+        backend_dir / "tools" / "ffmpeg" / "ffmpeg",
+    ]
+
+    for candidate in candidates:
+        if candidate.exists() and candidate.is_file():
+            return str(candidate)
+
+    ffmpeg_in_path = shutil.which("ffmpeg")
+    if ffmpeg_in_path:
+        return ffmpeg_in_path
+
+    tried = ", ".join(str(p) for p in candidates)
+    raise FileNotFoundError(f"ffmpeg not found. Tried bundled path(s): {tried}, and PATH")
+
+
 def generate_first_image_thumbnail(
     archive_path: str | Path,
     output_path: str | Path,
@@ -76,9 +101,11 @@ def generate_video_thumbnail(
         subprocess.TimeoutExpired: If ffmpeg execution times out
         RuntimeError: If all ffmpeg strategies failed
     """
+    ffmpeg_bin = _resolve_ffmpeg_executable()
+
     attempts = [
         [
-            "ffmpeg",
+            ffmpeg_bin,
             "-y",
             "-ss",
             "3",
@@ -89,7 +116,7 @@ def generate_video_thumbnail(
             str(output_path),
         ],
         [
-            "ffmpeg",
+            ffmpeg_bin,
             "-y",
             "-i",
             str(filepath),
@@ -121,8 +148,8 @@ def generate_video_thumbnail(
             if result.stderr:
                 last_err = result.stderr.strip()
         except FileNotFoundError:
-            last_err = "ffmpeg not found"
-            raise FileNotFoundError("ffmpeg not found in PATH")
+            last_err = f"ffmpeg not found: {command[0]}"
+            raise FileNotFoundError(last_err)
         except subprocess.TimeoutExpired as e:
             last_err = "ffmpeg timeout"
             raise

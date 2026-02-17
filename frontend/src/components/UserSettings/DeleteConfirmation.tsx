@@ -1,7 +1,3 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query"
-import { useForm } from "react-hook-form"
-
-import { UsersService } from "@/client"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -13,33 +9,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
-import { LoadingButton } from "@/components/ui/loading-button"
-import useAuth from "@/hooks/useAuth"
-import useCustomToast from "@/hooks/useCustomToast"
-import { handleError } from "@/utils"
 
 const DeleteConfirmation = () => {
-  const queryClient = useQueryClient()
-  const { showSuccessToast, showErrorToast } = useCustomToast()
-  const { handleSubmit } = useForm()
-  const { logout } = useAuth()
-
-  const mutation = useMutation({
-    mutationFn: () => UsersService.deleteUserMe(),
-    onSuccess: () => {
-      showSuccessToast("Your account has been successfully deleted")
-      logout()
-    },
-    onError: handleError.bind(showErrorToast),
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["currentUser"] })
-    },
-  })
-
-  const onSubmit = async () => {
-    mutation.mutate()
-  }
-
   return (
     <Dialog>
       <DialogTrigger asChild>
@@ -48,30 +19,22 @@ const DeleteConfirmation = () => {
         </Button>
       </DialogTrigger>
       <DialogContent>
-        <form onSubmit={handleSubmit(onSubmit)}>
+        <form>
           <DialogHeader>
             <DialogTitle>Confirmation Required</DialogTitle>
             <DialogDescription>
-              All your account data will be{" "}
-              <strong>permanently deleted.</strong> If you are sure, please
-              click <strong>"Confirm"</strong> to proceed. This action cannot be
-              undone.
+              Account self-service API (`/api/v1/users/me`)
+              已移除。请由管理员侧完成账号管理。
             </DialogDescription>
           </DialogHeader>
 
           <DialogFooter className="mt-4">
             <DialogClose asChild>
-              <Button variant="outline" disabled={mutation.isPending}>
-                Cancel
-              </Button>
+              <Button variant="outline">Cancel</Button>
             </DialogClose>
-            <LoadingButton
-              variant="destructive"
-              type="submit"
-              loading={mutation.isPending}
-            >
-              Delete
-            </LoadingButton>
+            <Button variant="destructive" type="button" disabled>
+              Delete Disabled
+            </Button>
           </DialogFooter>
         </form>
       </DialogContent>

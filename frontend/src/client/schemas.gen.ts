@@ -98,6 +98,62 @@ export const AuthorsResponseSchema = {
     title: 'AuthorsResponse'
 } as const;
 
+export const BackfillRequestSchema = {
+    properties: {
+        path: {
+            type: 'string',
+            title: 'Path'
+        },
+        recursive: {
+            type: 'boolean',
+            title: 'Recursive',
+            default: true
+        },
+        fill_thumbnail: {
+            type: 'boolean',
+            title: 'Fill Thumbnail',
+            default: true
+        },
+        fill_meta: {
+            type: 'boolean',
+            title: 'Fill Meta',
+            default: true
+        }
+    },
+    type: 'object',
+    required: ['path'],
+    title: 'BackfillRequest'
+} as const;
+
+export const BackfillResponseSchema = {
+    properties: {
+        status: {
+            type: 'string',
+            const: 'ok',
+            title: 'Status'
+        },
+        scanned_files: {
+            type: 'integer',
+            title: 'Scanned Files'
+        },
+        backfilled_thumbnails: {
+            type: 'integer',
+            title: 'Backfilled Thumbnails'
+        },
+        backfilled_meta: {
+            type: 'integer',
+            title: 'Backfilled Meta'
+        },
+        message: {
+            type: 'string',
+            title: 'Message'
+        }
+    },
+    type: 'object',
+    required: ['status', 'scanned_files', 'backfilled_thumbnails', 'backfilled_meta', 'message'],
+    title: 'BackfillResponse'
+} as const;
+
 export const BatchParseItemSchema = {
     properties: {
         filepath: {
@@ -156,6 +212,205 @@ export const BatchParseResponseSchema = {
     type: 'object',
     required: ['items', 'parsed_count', 'total_count'],
     title: 'BatchParseResponse'
+} as const;
+
+export const ClearCacheResponseSchema = {
+    properties: {
+        status: {
+            type: 'string',
+            const: 'ok',
+            title: 'Status'
+        },
+        message: {
+            type: 'string',
+            title: 'Message'
+        },
+        deleted_files: {
+            type: 'integer',
+            title: 'Deleted Files'
+        },
+        freed_bytes: {
+            type: 'integer',
+            title: 'Freed Bytes'
+        },
+        freed_size_readable: {
+            type: 'string',
+            title: 'Freed Size Readable'
+        }
+    },
+    type: 'object',
+    required: ['status', 'message', 'deleted_files', 'freed_bytes', 'freed_size_readable'],
+    title: 'ClearCacheResponse'
+} as const;
+
+export const CompressImagesRequestSchema = {
+    properties: {
+        archive_path: {
+            type: 'string',
+            title: 'Archive Path'
+        },
+        output_path: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Output Path'
+        },
+        max_width: {
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Max Width'
+        },
+        max_height: {
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Max Height'
+        },
+        quality: {
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Quality'
+        },
+        min_size: {
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Min Size'
+        }
+    },
+    type: 'object',
+    required: ['archive_path'],
+    title: 'CompressImagesRequest'
+} as const;
+
+export const CompressImagesResponseSchema = {
+    properties: {
+        success: {
+            type: 'boolean',
+            title: 'Success'
+        },
+        original_path: {
+            type: 'string',
+            title: 'Original Path'
+        },
+        output_path: {
+            type: 'string',
+            title: 'Output Path'
+        },
+        original_size: {
+            type: 'integer',
+            title: 'Original Size'
+        },
+        compressed_size: {
+            type: 'integer',
+            title: 'Compressed Size'
+        },
+        compression_ratio: {
+            type: 'number',
+            title: 'Compression Ratio'
+        },
+        processed_images: {
+            type: 'integer',
+            title: 'Processed Images'
+        },
+        skipped_images: {
+            type: 'integer',
+            title: 'Skipped Images'
+        },
+        validation_passed: {
+            type: 'boolean',
+            title: 'Validation Passed'
+        },
+        error_message: {
+            type: 'string',
+            title: 'Error Message',
+            default: ''
+        }
+    },
+    type: 'object',
+    required: ['success', 'original_path', 'output_path', 'original_size', 'compressed_size', 'compression_ratio', 'processed_images', 'skipped_images', 'validation_passed'],
+    title: 'CompressImagesResponse'
+} as const;
+
+export const CoserListItemSchema = {
+    properties: {
+        name: {
+            type: 'string',
+            title: 'Name'
+        },
+        thumbnail: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Thumbnail'
+        },
+        file_count: {
+            type: 'integer',
+            title: 'File Count'
+        }
+    },
+    type: 'object',
+    required: ['name', 'file_count'],
+    title: 'CoserListItem'
+} as const;
+
+export const CosersResponseSchema = {
+    properties: {
+        items: {
+            items: {
+                '$ref': '#/components/schemas/CoserListItem'
+            },
+            type: 'array',
+            title: 'Items'
+        },
+        page: {
+            type: 'integer',
+            title: 'Page'
+        },
+        page_size: {
+            type: 'integer',
+            title: 'Page Size'
+        },
+        total: {
+            type: 'integer',
+            title: 'Total'
+        }
+    },
+    type: 'object',
+    required: ['items', 'page', 'page_size', 'total'],
+    title: 'CosersResponse'
 } as const;
 
 export const DeletePathRequestSchema = {
@@ -275,6 +530,61 @@ export const FileSystemItemSchema = {
             type: 'integer',
             title: 'Watch State',
             default: 0
+        },
+        confidence_level: {
+            type: 'string',
+            enum: ['certain', 'likely_present', 'uncertain'],
+            title: 'Confidence Level',
+            default: 'uncertain'
+        },
+        confidence_score: {
+            type: 'number',
+            title: 'Confidence Score',
+            default: 0.2
+        },
+        image_count: {
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Image Count'
+        },
+        video_count: {
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Video Count'
+        },
+        audio_count: {
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Audio Count'
+        },
+        avg_image_size: {
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Avg Image Size'
         }
     },
     type: 'object',
@@ -371,12 +681,19 @@ export const HistoryItemSchema = {
             title: 'Page Total'
         },
         file_exists: {
-            type: 'boolean',
+            anyOf: [
+                {
+                    type: 'boolean'
+                },
+                {
+                    type: 'null'
+                }
+            ],
             title: 'File Exists'
         }
     },
     type: 'object',
-    required: ['filepath', 'filename', 'file_type', 'read_at', 'file_exists'],
+    required: ['filepath', 'filename', 'file_type', 'read_at'],
     title: 'HistoryItem'
 } as const;
 
@@ -536,6 +853,14 @@ export const ParseResponseSchema = {
             type: 'array',
             title: 'Authors'
         },
+        cosers: {
+            items: {
+                type: 'string'
+            },
+            type: 'array',
+            title: 'Cosers',
+            default: []
+        },
         group: {
             anyOf: [
                 {
@@ -579,6 +904,11 @@ export const ParseResponseSchema = {
         type: {
             type: 'string',
             title: 'Type'
+        },
+        pack_kind: {
+            type: 'string',
+            title: 'Pack Kind',
+            default: 'manga'
         }
     },
     type: 'object',
@@ -641,6 +971,22 @@ export const PrivateUserCreateSchema = {
     type: 'object',
     required: ['email', 'password', 'full_name'],
     title: 'PrivateUserCreate'
+} as const;
+
+export const RenameRequestSchema = {
+    properties: {
+        path: {
+            type: 'string',
+            title: 'Path'
+        },
+        new_name: {
+            type: 'string',
+            title: 'New Name'
+        }
+    },
+    type: 'object',
+    required: ['path', 'new_name'],
+    title: 'RenameRequest'
 } as const;
 
 export const RootItemSchema = {
@@ -782,7 +1128,7 @@ export const SearchRequestSchema = {
         scopes: {
             items: {
                 type: 'string',
-                enum: ['file', 'author', 'tag']
+                enum: ['file', 'author', 'coser', 'tag']
             },
             type: 'array',
             title: 'Scopes'
@@ -792,6 +1138,12 @@ export const SearchRequestSchema = {
             enum: ['exact', 'hybrid'],
             title: 'Mode',
             default: 'hybrid'
+        },
+        presence_filter: {
+            type: 'string',
+            enum: ['all', 'watched', 'scanned_recent'],
+            title: 'Presence Filter',
+            default: 'all'
         }
     },
     type: 'object',
@@ -817,6 +1169,66 @@ export const SearchResponseSchema = {
     title: 'SearchResponse'
 } as const;
 
+export const SettingsResponseSchema = {
+    properties: {
+        favorite_dir: {
+            type: 'string',
+            title: 'Favorite Dir'
+        },
+        fs_roots: {
+            type: 'string',
+            title: 'Fs Roots'
+        },
+        already_read_dir: {
+            type: 'string',
+            title: 'Already Read Dir'
+        }
+    },
+    type: 'object',
+    required: ['favorite_dir', 'fs_roots', 'already_read_dir'],
+    title: 'SettingsResponse'
+} as const;
+
+export const SettingsUpdateSchema = {
+    properties: {
+        favorite_dir: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Favorite Dir'
+        },
+        fs_roots: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Fs Roots'
+        },
+        already_read_dir: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Already Read Dir'
+        }
+    },
+    type: 'object',
+    title: 'SettingsUpdate'
+} as const;
+
 export const StoredParseResponseSchema = {
     properties: {
         filepath: {
@@ -840,6 +1252,14 @@ export const StoredParseResponseSchema = {
             },
             type: 'array',
             title: 'Authors',
+            default: []
+        },
+        cosers: {
+            items: {
+                type: 'string'
+            },
+            type: 'array',
+            title: 'Cosers',
             default: []
         },
         group_name: {
@@ -954,24 +1374,27 @@ export const TagsResponseSchema = {
     title: 'TagsResponse'
 } as const;
 
-export const UpdatePasswordSchema = {
+export const UnzipRequestSchema = {
     properties: {
-        current_password: {
+        archive_path: {
             type: 'string',
-            maxLength: 128,
-            minLength: 8,
-            title: 'Current Password'
+            title: 'Archive Path'
         },
-        new_password: {
-            type: 'string',
-            maxLength: 128,
-            minLength: 8,
-            title: 'New Password'
+        output_dir: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Output Dir'
         }
     },
     type: 'object',
-    required: ['current_password', 'new_password'],
-    title: 'UpdatePassword'
+    required: ['archive_path'],
+    title: 'UnzipRequest'
 } as const;
 
 export const UserCreateSchema = {
@@ -1154,38 +1577,6 @@ export const UserUpdateSchema = {
     },
     type: 'object',
     title: 'UserUpdate'
-} as const;
-
-export const UserUpdateMeSchema = {
-    properties: {
-        full_name: {
-            anyOf: [
-                {
-                    type: 'string',
-                    maxLength: 255
-                },
-                {
-                    type: 'null'
-                }
-            ],
-            title: 'Full Name'
-        },
-        email: {
-            anyOf: [
-                {
-                    type: 'string',
-                    maxLength: 255,
-                    format: 'email'
-                },
-                {
-                    type: 'null'
-                }
-            ],
-            title: 'Email'
-        }
-    },
-    type: 'object',
-    title: 'UserUpdateMe'
 } as const;
 
 export const UsersPublicSchema = {

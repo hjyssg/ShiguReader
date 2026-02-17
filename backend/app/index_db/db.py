@@ -13,10 +13,11 @@ from sqlmodel import Session, create_engine
 from app.core.config import settings
 
 
-_index_write_lock = threading.RLock()
+_index_write_lock = threading.RLock()  # 串行化写入，降低 sqlite 锁冲突
 
 
 def ensure_sqlite_parent_dir_exists(index_db_url: str) -> None:
+    """当使用 sqlite 文件库时，确保数据库目录存在。"""
     if not index_db_url.startswith("sqlite:///"):
         return
     db_path = index_db_url.removeprefix("sqlite:///")
@@ -52,10 +53,12 @@ def _engine_by_url(index_db_url: str) -> Engine:
 
 
 def get_index_engine() -> Engine:
+    """获取索引库 Engine（按 URL 缓存）。"""
     return _engine_by_url(settings.INDEX_SQLITE_URL)
 
 
 def clear_index_engine_cache() -> None:
+    """清理 Engine 缓存，便于测试或配置切换。"""
     _engine_by_url.cache_clear()
 
 
@@ -71,5 +74,6 @@ def index_write_guard() -> Iterator[None]:
 
 @contextmanager
 def get_index_session() -> Iterator[Session]:
+    """创建索引库会话上下文。"""
     with Session(get_index_engine()) as session:
         yield session

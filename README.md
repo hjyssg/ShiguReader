@@ -1,89 +1,74 @@
 # ShiguReader
 
-基于 `fastapi/full-stack-fastapi-template` 初始化，并按 **LAN 内网最小化部署** 做了裁剪。
+[中文](#中文说明) | [English](#english)
 
-## 当前保留
+---
 
-- FastAPI + SQLModel + SQLite
-- React + Vite 前端
-- 基础用户/条目管理结构
+## 中文说明
 
-## 已移除 / 禁用
+ShiguReader 是一个面向本地 / 局域网的内容整理与浏览工具，目标是「开箱即用、部署简单、适合个人收藏管理」。
 
-- Docker Compose（开发/生产）
-- Traefik 相关配置
-- JWT 鉴权流程
-- 邮件找回密码流程
-- Mailcatcher
-- Docker Compose + Traefik 部署文档
+### 它能做什么
 
-## 快速启动
+- 扫描和整理本地内容目录
+- 提供统一的网页界面进行浏览
+- 记录与管理基础条目信息
+- 支持本地运行，适合家庭网络 / 小团队内网使用
 
-### 方式 1：一键启动脚本（推荐）
+### 适合谁用
 
-```bash
-python build_tools/launch.py
-```
+- 想把分散文件集中管理的个人用户
+- 只想在本机或局域网内使用，不想折腾复杂部署的用户
+- 希望打包后直接分发给他人运行的场景
 
-这会自动启动前后端并打开浏览器。
+### 运行方式
 
-### 方式 2：手动启动
+- 开发时可直接本地启动
+- 可打包为 EXE 给其他人直接运行
+- 可生成分发 ZIP，便于交付
 
-#### 后端
+### 相关文档
 
-```bash
-cd backend
-uv sync
-uv run fastapi dev app/main.py
-```
+- 技术文档（环境与实现细节）：[TECHNICAL.md](TECHNICAL.md)
+- EXE 打包说明：[build_tools/BUILD.md](build_tools/BUILD.md)
 
-后端地址：<http://localhost:8000>
+### 截图
 
-接口文档：<http://localhost:8000/docs>
+![登录页](img/login.png)
+![主界面](img/dashboard.png)
 
-#### 前端
+---
 
-```bash
-cd frontend
-npm install
-npm run dev
-```
+## English
 
-前端地址：<http://localhost:5173>
+ShiguReader is a local/LAN-oriented content organization and browsing tool.
+Its goal is to be easy to run, easy to deploy, and practical for personal collections.
 
-## 打包成 EXE
+### What it does
 
-详见 [build_tools/BUILD.md](build_tools/BUILD.md)
+- Scans and organizes local content folders
+- Provides a unified web UI for browsing
+- Supports basic item metadata management
+- Runs locally, suitable for home network / small LAN teams
 
-```bash
-python build_tools/build_exe.py
-```
+### Who it is for
 
-运行：
+- Individual users who want to manage scattered files in one place
+- Users who prefer local/LAN usage over complex deployments
+- Scenarios where an EXE package can be shared directly
 
-```bash
-./dist/ShiguReader.exe
-```
+### Delivery options
 
-EXE 会自动启动后端并托管前端，同时自动打开浏览器到 `http://127.0.0.1:8000`。
+- Run locally for development
+- Build an EXE for direct use
+- Package a distributable ZIP for handoff
 
-## 一键打包分发 ZIP（推荐给别人直接运行）
+### Documentation
 
-```bash
-python build_tools/package_dist.py
-```
+- Technical notes (environment/setup/implementation): [TECHNICAL.md](TECHNICAL.md)
+- EXE build guide: [build_tools/BUILD.md](build_tools/BUILD.md)
 
-该命令会自动：
-1. 执行 EXE 打包（等价 `python build_tools/build_exe.py`）
-2. 将整个 `dist/` 目录打成 zip，输出到 `release/`
-3. **自动排除 `dist/data` 的真实内容**（防止测试数据泄露），仅保留空目录结构
+### Screenshots
 
-示例产物：
-- `release/ShiguReader-dist-20260215-180000.zip`
-
-对外分发时，直接把这个 ZIP 发给别人，解压后运行 `ShiguReader.exe` 即可。
-
-## 说明
-
-- 本分支面向内网使用，认证已按你的要求禁用。
-- 生产公网场景请不要直接使用当前安全策略。
+![Login](img/login.png)
+![Dashboard](img/dashboard.png)

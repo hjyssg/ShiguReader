@@ -23,7 +23,7 @@ export function EntityGrid({
   pageSize,
   total,
   onPageChange,
-  onCardClick,
+  getItemHref,
   emptyText,
 }: {
   items: EntityCardItem[]
@@ -32,13 +32,13 @@ export function EntityGrid({
   pageSize: number
   total: number
   onPageChange: (page: number) => void
-  onCardClick?: (item: EntityCardItem) => void
+  getItemHref?: (item: EntityCardItem) => string | undefined
   emptyText?: string
 }) {
   const { t } = useTranslation()
   const defaultEmptyText = t("common.noData")
   const finalEmptyText = emptyText ?? defaultEmptyText
-  
+
   const totalPages = Math.max(1, Math.ceil(total / pageSize))
   const [jumpPage, setJumpPage] = useState("")
 
@@ -76,7 +76,7 @@ export function EntityGrid({
             <EntityCard
               key={item.name}
               item={item}
-              onClick={() => onCardClick?.(item)}
+              href={getItemHref?.(item)}
             />
           ))}
         </ResponsiveGrid>

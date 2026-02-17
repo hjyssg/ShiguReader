@@ -2,13 +2,18 @@ import { useQuery } from "@tanstack/react-query"
 import { createFileRoute, Link } from "@tanstack/react-router"
 import { ChevronRight, Folder, Home, Music4 } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
-import { useTranslation } from "react-i18next"
 import AudioPlayer from "react-h5-audio-player"
+import { useTranslation } from "react-i18next"
 import "react-h5-audio-player/lib/styles.css"
 
 import { FilesystemService, OpenAPI } from "@/client"
-import { getBaseName, getParentPath, joinPath, splitPath } from "@/lib/path-utils"
 import { useDocumentTitle } from "@/hooks/useDocumentTitle"
+import {
+  getBaseName,
+  getParentPath,
+  joinPath,
+  splitPath,
+} from "@/lib/path-utils"
 
 export const Route = createFileRoute("/_layout/audio")({
   component: AudioPage,
@@ -84,12 +89,16 @@ function AudioPage() {
 
   const coverUrl = useMemo(() => {
     if (isArchive) {
-      const imageEntry = (archiveQuery.data?.entries || []).find((e) => e.file_type === "image")
+      const imageEntry = (archiveQuery.data?.entries || []).find(
+        (e) => e.file_type === "image",
+      )
       if (!imageEntry) return undefined
       return `${OpenAPI.BASE}/api/v1/fs/archive/file?path=${encodeURIComponent(path)}&entry=${encodeURIComponent(imageEntry.entry_path)}`
     }
 
-    const imageItem = (folderQuery.data?.items || []).find((i) => i.item_type === "file" && i.file_type === "image")
+    const imageItem = (folderQuery.data?.items || []).find(
+      (i) => i.item_type === "file" && i.file_type === "image",
+    )
     if (!imageItem) return undefined
     return `${OpenAPI.BASE}/api/v1/fs/file?path=${encodeURIComponent(imageItem.path)}`
   }, [isArchive, archiveQuery.data?.entries, folderQuery.data?.items, path])
@@ -134,7 +143,10 @@ function AudioPage() {
   return (
     <div className="mx-auto max-w-5xl space-y-6 pb-4">
       <nav className="flex items-center gap-2 text-sm">
-        <Link to="/" className="flex items-center gap-1 text-muted-foreground hover:text-foreground transition-colors">
+        <Link
+          to="/"
+          className="flex items-center gap-1 text-muted-foreground hover:text-foreground transition-colors"
+        >
           <Home className="size-4" />
           <span>Home</span>
         </Link>
@@ -159,13 +171,19 @@ function AudioPage() {
         <>
           {coverUrl && (
             <div className="mx-auto w-full max-w-[520px] rounded-md overflow-hidden border bg-card">
-              <img src={coverUrl} alt={fileName} className="w-full object-contain" />
+              <img
+                src={coverUrl}
+                alt={fileName}
+                className="w-full object-contain"
+              />
             </div>
           )}
 
           <div className="space-y-2 rounded-md border bg-card p-4 max-h-[46vh] overflow-auto">
             {tracks.length === 0 ? (
-              <div className="text-sm text-muted-foreground">{t("audio.noAudioFiles")}</div>
+              <div className="text-sm text-muted-foreground">
+                {t("audio.noAudioFiles")}
+              </div>
             ) : (
               tracks.map((track, index) => (
                 <button
@@ -173,11 +191,17 @@ function AudioPage() {
                   type="button"
                   onClick={() => setCurrentIndex(index)}
                   className={`w-full text-left px-2 py-1.5 rounded transition-colors ${
-                    index === currentIndex ? "bg-primary/15 text-primary" : "hover:bg-accent"
+                    index === currentIndex
+                      ? "bg-primary/15 text-primary"
+                      : "hover:bg-accent"
                   }`}
                 >
                   <span className="inline-flex items-center gap-2 text-sm">
-                    {index === currentIndex ? <Music4 className="size-4" /> : <span className="w-4" />}
+                    {index === currentIndex ? (
+                      <Music4 className="size-4" />
+                    ) : (
+                      <span className="w-4" />
+                    )}
                     {track.name}
                   </span>
                 </button>

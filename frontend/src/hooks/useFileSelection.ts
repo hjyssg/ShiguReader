@@ -43,22 +43,22 @@ export function useFileSelection(): FileSelectionState & FileSelectionActions {
     [selectedPaths],
   )
 
-  const handleClick = useCallback((path: string) => {
-    select(path)
-  }, [select])
-
-  const handleContextMenu = useCallback(
+  const handleClick = useCallback(
     (path: string) => {
-      // 如果右键的项不在已选中集合中，则单选该项
-      startTransition(() => {
-        setSelectedPaths((prev) => {
-          if (prev.has(path)) return prev
-          return new Set([path])
-        })
-      })
+      select(path)
     },
-    [],
+    [select],
   )
+
+  const handleContextMenu = useCallback((path: string) => {
+    // 如果右键的项不在已选中集合中，则单选该项
+    startTransition(() => {
+      setSelectedPaths((prev) => {
+        if (prev.has(path)) return prev
+        return new Set([path])
+      })
+    })
+  }, [])
 
   const getSelectedItems = useCallback(
     (items: FileSystemItem[]) => {

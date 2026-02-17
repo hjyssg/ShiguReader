@@ -284,7 +284,7 @@ def test_delete_file_success(client_with_root: TestClient, test_fs_root: Path) -
     response = client_with_root.request(
         "DELETE",
         "/api/v1/fs/delete",
-        json={"path": str(target)},
+        json={"path": str(target), "permanently": True},
     )
     assert response.status_code == 200
     assert not target.exists()
@@ -295,10 +295,72 @@ def test_delete_folder_success(client_with_root: TestClient, test_fs_root: Path)
     response = client_with_root.request(
         "DELETE",
         "/api/v1/fs/delete",
-        json={"path": str(target)},
+        json={"path": str(target), "permanently": True},
     )
     assert response.status_code == 200
     assert not target.exists()
+
+
+def test_delete_file_to_recycle_bin(client_with_root: TestClient, test_fs_root: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    target = test_fs_root / "test.txt"
+    called: dict[str, str] = {}
+
+    def fake_send2trash(path: str) -> None:
+        called["path"] = path
+
+    monkeypatch.setattr(fs_route, "send2trash", fake_send2trash)
+
+    response = client_with_root.request(
+        "DELETE",
+        "/api/v1/fs/delete",
+        json={"path": str(target), "permanently": False},
+    )
+
+    assert response.status_code == 200
+    assert response.json()["message"] == "Moved to recycle bin"
+    assert called.get("path") == str(target)
+
+
+def test_delete_folder_to_recycle_bin(client_with_root: TestClient, test_fs_root: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    target = test_fs_root / "folder2"
+    called: dict[str, str] = {}
+
+    def fake_send2trash(path: str) -> None:
+        called["path"] = path
+
+    monkeypatch.setattr(fs_route, "send2trash", fake_send2trash)
+
+    response = client_with_root.request(
+        "DELETE",
+        "/api/v1/fs/delete",
+        json={"path": str(target), "permanently": False},
+    )
+
+    assert response.status_code == 200
+    assert response.json()["message"] == "Moved to recycle bin"
+    assert called.get("path") == str(target)
+
+
+def test_delete_to_recycle_bin_error_returns_500(
+    client_with_root: TestClient,
+    test_fs_root: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    target = test_fs_root / "test.txt"
+
+    def fake_send2trash(_path: str) -> None:
+        raise OSError("recycle failed")
+
+    monkeypatch.setattr(fs_route, "send2trash", fake_send2trash)
+
+    response = client_with_root.request(
+        "DELETE",
+        "/api/v1/fs/delete",
+        json={"path": str(target), "permanently": False},
+    )
+
+    assert response.status_code == 500
+    assert "Delete failed" in response.json()["detail"]
 
 
 def test_permission_denied_detail_contains_debug_fields() -> None:
@@ -697,6 +759,7 @@ def test_backfill_directory_success(
             return SimpleNamespace(
                 title="作品",
                 authors=["作者"],
+                cosers=[],
                 group=None,
                 raw_tags=["标签"],
                 event=None,
@@ -795,6 +858,7 @@ def test_backfill_directory_non_recursive(
         lambda _name: SimpleNamespace(
             title="作品",
             authors=["作者"],
+            cosers=[],
             group=None,
             raw_tags=[],
             event=None,

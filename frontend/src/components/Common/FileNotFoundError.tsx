@@ -1,8 +1,7 @@
-import { ChevronRight, Folder, Home } from "lucide-react"
-import { Link, useNavigate } from "@tanstack/react-router"
+import { useNavigate } from "@tanstack/react-router"
 import { useTranslation } from "react-i18next"
+import { PathBreadcrumb } from "@/components/Common/PathBreadcrumb"
 import { Button } from "@/components/ui/button"
-import { joinPath, splitPath } from "@/lib/path-utils"
 
 interface FileNotFoundErrorProps {
   path: string
@@ -21,34 +20,21 @@ export function FileNotFoundError({
 }: FileNotFoundErrorProps) {
   const { t } = useTranslation()
   const navigate = useNavigate()
-  const pathParts = splitPath(path)
 
   return (
     <div className="space-y-4 p-[10px]">
-      <nav className="flex items-center gap-2 text-sm">
-        <Link to="/" className="flex items-center gap-1 text-muted-foreground hover:text-foreground">
-          <Home className="size-4" />
-          <span>Home</span>
-        </Link>
-        {pathParts.slice(0, -1).map((name, index) => (
-          <div key={index} className="flex items-center gap-2">
-            <ChevronRight className="size-4 text-muted-foreground" />
-            <Link
-              to="/explorer"
-              search={{ path: joinPath(pathParts.slice(0, index + 1), path) }}
-              className="text-muted-foreground hover:text-foreground"
-            >
-              <Folder className="size-4 inline mr-1" />
-              {name}
-            </Link>
-          </div>
-        ))}
-        <ChevronRight className="size-4 text-muted-foreground" />
-        <span className="text-muted-foreground">{fileName}</span>
-      </nav>
+      <PathBreadcrumb
+        sourcePath={path}
+        currentLabel={fileName}
+      />
 
       <div className="flex flex-col items-center justify-center py-24 text-center space-y-6">
-        <svg className="size-32 text-destructive" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <svg
+          className="size-32 text-destructive"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
           <path
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -61,7 +47,9 @@ export function FileNotFoundError({
             {isNotFound ? t("explorer.fileNotFound") : t("explorer.loadFailed")}
           </h3>
           <p className="text-sm text-muted-foreground max-w-md">
-            {isNotFound ? t("explorer.fileNotFoundMessage", { fileName }) : t("explorer.loadErrorMessage", { errorMessage })}
+            {isNotFound
+              ? t("explorer.fileNotFoundMessage", { fileName })
+              : t("explorer.loadErrorMessage", { errorMessage })}
           </p>
           <div className="pt-4 flex gap-2 justify-center">
             <Button variant="outline" onClick={() => navigate({ to: "/" })}>
@@ -70,7 +58,9 @@ export function FileNotFoundError({
             {parentPath && (
               <Button
                 variant="outline"
-                onClick={() => navigate({ to: "/explorer", search: { path: parentPath } })}
+                onClick={() =>
+                  navigate({ to: "/explorer", search: { path: parentPath } })
+                }
               >
                 {t("explorer.openParent")}
               </Button>

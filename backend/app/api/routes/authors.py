@@ -29,6 +29,7 @@ class AuthorsResponse(BaseModel):
     total: int
 
 
+# 接口说明：分页获取作者列表及封面。
 @router.get("", response_model=AuthorsResponse)
 async def read_authors(
     page: int = Query(1, ge=1),
@@ -40,7 +41,12 @@ async def read_authors(
 
     def _query_once() -> tuple[int, list[tuple[str, int]], dict[str, str]]:
         with get_index_session() as session:
-            total_stmt = select(func.count()).select_from(Artist)
+            total_stmt = (
+                select(func.count(func.distinct(Artist.artist_name)))
+                .select_from(Artist)
+                .join(FileArtist, FileArtist.artist_name == Artist.artist_name)
+                .where(FileArtist.role == "")
+            )
             total = session.exec(total_stmt).one()
 
             count_stmt = (
@@ -50,6 +56,7 @@ async def read_authors(
                 )
                 .select_from(Artist)
                 .join(FileArtist, FileArtist.artist_name == Artist.artist_name, isouter=True)
+                .where(FileArtist.role == "")
                 .group_by(Artist.artist_name)
             )
 
@@ -84,7 +91,8 @@ async def read_authors(
                                ROW_NUMBER() OVER (PARTITION BY fa.artist_name ORDER BY f.mtime DESC) as rn
                         FROM file_artists fa
                         JOIN files f ON f.filepath = fa.filepath
-                        WHERE fa.artist_name IN ({placeholders})
+                        WHERE fa.role = ''
+                          AND fa.artist_name IN ({placeholders})
                     )
                     WHERE rn = 1
                 """)

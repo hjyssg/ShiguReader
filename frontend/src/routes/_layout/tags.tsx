@@ -54,6 +54,16 @@ function TagsPage() {
   const navigate = useNavigate()
   const { page, sort_by, sort_order } = Route.useSearch()
   const pageSize = 24
+  const buildSearchHref = (q: string) => {
+    const params = new URLSearchParams({
+      q,
+      mode: "hybrid",
+      page: "1",
+      presenceFilter: "all",
+    })
+    params.append("scopes", "tag")
+    return `/search?${params.toString()}`
+  }
 
   const { data, isLoading } = useQuery({
     queryKey: ["tags", page, pageSize, sort_by, sort_order],
@@ -64,7 +74,9 @@ function TagsPage() {
         sort_by,
         sort_order,
       })
-      const res = await fetch(`${OpenAPI.BASE}/api/v1/tags?${params.toString()}`)
+      const res = await fetch(
+        `${OpenAPI.BASE}/api/v1/tags?${params.toString()}`,
+      )
       if (!res.ok) {
         throw new Error("Failed to fetch tags")
       }
@@ -147,17 +159,7 @@ function TagsPage() {
             },
           })
         }}
-        onCardClick={(item) => {
-          navigate({
-            to: "/search",
-            search: {
-              q: item.name,
-              scopes: ["tag"],
-              mode: "hybrid",
-              page: 1,
-            },
-          })
-        }}
+        getItemHref={(item) => buildSearchHref(item.name)}
         emptyText={t("tags.empty")}
       />
     </div>

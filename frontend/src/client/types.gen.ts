@@ -27,6 +27,21 @@ export type AuthorsResponse = {
     total: number;
 };
 
+export type BackfillRequest = {
+    path: string;
+    recursive?: boolean;
+    fill_thumbnail?: boolean;
+    fill_meta?: boolean;
+};
+
+export type BackfillResponse = {
+    status: "ok";
+    scanned_files: number;
+    backfilled_thumbnails: number;
+    backfilled_meta: number;
+    message: string;
+};
+
 export type BatchParseItem = {
     filepath: string;
     result?: (ParseResponse | null);
@@ -40,6 +55,49 @@ export type BatchParseResponse = {
     items: Array<BatchParseItem>;
     parsed_count: number;
     total_count: number;
+};
+
+export type ClearCacheResponse = {
+    status: "ok";
+    message: string;
+    deleted_files: number;
+    freed_bytes: number;
+    freed_size_readable: string;
+};
+
+export type CompressImagesRequest = {
+    archive_path: string;
+    output_path?: (string | null);
+    max_width?: (number | null);
+    max_height?: (number | null);
+    quality?: (number | null);
+    min_size?: (number | null);
+};
+
+export type CompressImagesResponse = {
+    success: boolean;
+    original_path: string;
+    output_path: string;
+    original_size: number;
+    compressed_size: number;
+    compression_ratio: number;
+    processed_images: number;
+    skipped_images: number;
+    validation_passed: boolean;
+    error_message?: string;
+};
+
+export type CoserListItem = {
+    name: string;
+    thumbnail?: (string | null);
+    file_count: number;
+};
+
+export type CosersResponse = {
+    items: Array<CoserListItem>;
+    page: number;
+    page_size: number;
+    total: number;
 };
 
 export type DeletePathRequest = {
@@ -67,6 +125,8 @@ export type FileSystemItem = {
     recommendation_score?: (number | null);
     scan_state?: number;
     watch_state?: number;
+    confidence_level?: 'certain' | 'likely_present' | 'uncertain';
+    confidence_score?: number;
     image_count?: (number | null);
     video_count?: (number | null);
     audio_count?: (number | null);
@@ -74,6 +134,8 @@ export type FileSystemItem = {
 };
 
 export type item_type = 'folder' | 'file';
+
+export type confidence_level = 'certain' | 'likely_present' | 'uncertain';
 
 export type HistoryItem = {
     filepath: string;
@@ -85,7 +147,7 @@ export type HistoryItem = {
     read_at: number;
     page_current?: (number | null);
     page_total?: (number | null);
-    file_exists: boolean;
+    file_exists?: (boolean | null);
 };
 
 export type file_type2 = 'image' | 'video' | 'archive' | 'audio' | 'unknown';
@@ -130,11 +192,13 @@ export type MovePathRequest = {
 export type ParseResponse = {
     title: string;
     authors: Array<(string)>;
+    cosers?: Array<(string)>;
     group?: (string | null);
     raw_tags: Array<(string)>;
     event?: (string | null);
     date_tag?: (string | null);
     type: string;
+    pack_kind?: string;
 };
 
 export type PathOperationResponse = {
@@ -149,6 +213,11 @@ export type PrivateUserCreate = {
     password: string;
     full_name: string;
     is_verified?: boolean;
+};
+
+export type RenameRequest = {
+    path: string;
+    new_name: string;
 };
 
 export type RootItem = {
@@ -184,21 +253,37 @@ export type status2 = 'running' | 'completed' | 'error';
 
 export type SearchRequest = {
     q?: string;
-    scopes?: Array<('file' | 'author' | 'tag')>;
+    scopes?: Array<('file' | 'author' | 'coser' | 'tag')>;
     mode?: 'exact' | 'hybrid';
+    presence_filter?: 'all' | 'watched' | 'scanned_recent';
 };
 
 export type mode = 'exact' | 'hybrid';
+
+export type presence_filter = 'all' | 'watched' | 'scanned_recent';
 
 export type SearchResponse = {
     items: Array<FileSystemItem>;
     total: number;
 };
 
+export type SettingsResponse = {
+    favorite_dir: string;
+    fs_roots: string;
+    already_read_dir: string;
+};
+
+export type SettingsUpdate = {
+    favorite_dir?: (string | null);
+    fs_roots?: (string | null);
+    already_read_dir?: (string | null);
+};
+
 export type StoredParseResponse = {
     filepath: string;
     title?: (string | null);
     authors?: Array<(string)>;
+    cosers?: Array<(string)>;
     group_name?: (string | null);
     raw_tags?: Array<(string)>;
     event?: (string | null);
@@ -219,9 +304,9 @@ export type TagsResponse = {
     total: number;
 };
 
-export type UpdatePassword = {
-    current_password: string;
-    new_password: string;
+export type UnzipRequest = {
+    archive_path: string;
+    output_dir?: (string | null);
 };
 
 export type UserCreate = {
@@ -260,11 +345,6 @@ export type UserUpdate = {
     password?: (string | null);
 };
 
-export type UserUpdateMe = {
-    full_name?: (string | null);
-    email?: (string | null);
-};
-
 export type ValidationError = {
     loc: Array<(string | number)>;
     msg: string;
@@ -289,13 +369,32 @@ export type AuthorsReadAuthorsData = {
 
 export type AuthorsReadAuthorsResponse = (AuthorsResponse);
 
+export type CosersReadCosersData = {
+    page?: number;
+    pageSize?: number;
+    sortBy?: 'count' | 'name';
+    sortOrder?: 'asc' | 'desc';
+};
+
+export type CosersReadCosersResponse = (CosersResponse);
+
 export type FilesystemGetRootsResponse = (Array<RootItem>);
 
 export type FilesystemGetFavoriteRootResponse = ((RootItem | null));
 
+export type FilesystemGetAlreadyReadRootResponse = ((RootItem | null));
+
 export type FilesystemGetDrivesResponse = (Array<RootItem>);
 
 export type FilesystemListDirectoryData = {
+    /**
+     * 筛选包含音频的压缩包
+     */
+    hasAudio?: (boolean | null);
+    /**
+     * 筛选包含视频的压缩包
+     */
+    hasVideo?: (boolean | null);
     /**
      * Directory path to list
      */
@@ -303,7 +402,7 @@ export type FilesystemListDirectoryData = {
     /**
      * Sort by field
      */
-    sortBy?: 'name' | 'mtime' | 'type' | 'recommendation';
+    sortBy?: 'name' | 'mtime' | 'type' | 'recommendation' | 'image_count';
     /**
      * Sort order
      */
@@ -336,6 +435,27 @@ export type FilesystemZipFolderData = {
 
 export type FilesystemZipFolderResponse = (PathOperationResponse);
 
+export type FilesystemRenamePathData = {
+    requestBody: RenameRequest;
+};
+
+export type FilesystemRenamePathResponse = (PathOperationResponse);
+
+export type FilesystemDownloadFileData = {
+    /**
+     * File path to download
+     */
+    path: string;
+};
+
+export type FilesystemDownloadFileResponse = (unknown);
+
+export type FilesystemUnzipArchiveData = {
+    requestBody: UnzipRequest;
+};
+
+export type FilesystemUnzipArchiveResponse = (PathOperationResponse);
+
 export type FilesystemScanFavoriteResponse = (ScanStartResponse);
 
 export type FilesystemScanDirectoryData = {
@@ -343,6 +463,12 @@ export type FilesystemScanDirectoryData = {
 };
 
 export type FilesystemScanDirectoryResponse = (ScanStartResponse);
+
+export type FilesystemBackfillDirectoryData = {
+    requestBody: BackfillRequest;
+};
+
+export type FilesystemBackfillDirectoryResponse = (BackfillResponse);
 
 export type FilesystemScanAndWatchData = {
     requestBody: ScanRequest;
@@ -377,13 +503,15 @@ export type FilesystemListArchiveData = {
 
 export type FilesystemListArchiveResponse = (ArchiveListResponse);
 
+export type FilesystemClearExtractCacheEndpointResponse = (ClearCacheResponse);
+
 export type FilesystemExtractArchiveData = {
     /**
-     * Current page number for prioritized extraction
+     * 当前页码（基于过滤后的媒体文件列表）
      */
     page?: number;
     /**
-     * Archive file path
+     * 压缩包文件路径
      */
     path: string;
 };
@@ -411,6 +539,12 @@ export type FilesystemGetFileData = {
 };
 
 export type FilesystemGetFileResponse = (unknown);
+
+export type FilesystemCompressArchiveImagesEndpointData = {
+    requestBody: CompressImagesRequest;
+};
+
+export type FilesystemCompressArchiveImagesEndpointResponse = (CompressImagesResponse);
 
 export type HistoryRecordHistoryData = {
     requestBody: HistoryRecordRequest;
@@ -453,6 +587,14 @@ export type SearchSearchFilesData = {
 
 export type SearchSearchFilesResponse = (SearchResponse);
 
+export type SettingsGetSettingsResponse = (SettingsResponse);
+
+export type SettingsUpdateSettingsData = {
+    requestBody: SettingsUpdate;
+};
+
+export type SettingsUpdateSettingsResponse = (SettingsResponse);
+
 export type TagsReadTagsData = {
     page?: number;
     pageSize?: number;
@@ -474,22 +616,6 @@ export type UsersCreateUserData = {
 };
 
 export type UsersCreateUserResponse = (UserPublic);
-
-export type UsersReadUserMeResponse = (UserPublic);
-
-export type UsersDeleteUserMeResponse = (Message);
-
-export type UsersUpdateUserMeData = {
-    requestBody: UserUpdateMe;
-};
-
-export type UsersUpdateUserMeResponse = (UserPublic);
-
-export type UsersUpdatePasswordMeData = {
-    requestBody: UpdatePassword;
-};
-
-export type UsersUpdatePasswordMeResponse = (Message);
 
 export type UsersRegisterUserData = {
     requestBody: UserRegister;

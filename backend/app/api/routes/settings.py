@@ -48,6 +48,7 @@ def _update_env_key(lines: list[str], key: str, value: str) -> list[str]:
     return lines
 
 
+# 接口说明：读取当前系统目录相关配置。
 @router.get("/settings", response_model=SettingsResponse)
 def get_settings() -> Any:
     """Get current settings."""
@@ -58,6 +59,7 @@ def get_settings() -> Any:
     )
 
 
+# 接口说明：更新并持久化系统目录相关配置。
 @router.put("/settings", response_model=SettingsResponse)
 def update_settings(settings_update: SettingsUpdate) -> Any:
     """Update settings in .env file."""

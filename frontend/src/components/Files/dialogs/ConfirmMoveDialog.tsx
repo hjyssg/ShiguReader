@@ -29,7 +29,8 @@ export function ConfirmMoveDialog({
 }: ConfirmMoveDialogProps) {
   const count = filePaths.length
   const names = filePaths.slice(0, 3).map((p) => getBaseName(p))
-  const displayNames = count > 3 ? `${names.join(", ")} and ${count - 3} more` : names.join(", ")
+  const displayNames =
+    count > 3 ? `${names.join(", ")} and ${count - 3} more` : names.join(", ")
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -37,11 +38,17 @@ export function ConfirmMoveDialog({
         <DialogHeader>
           <DialogTitle>Move to {destination}</DialogTitle>
           <DialogDescription className="break-all whitespace-normal">
-            Are you sure you want to move {count === 1 ? `"${displayNames}"` : `${count} items`} to {destination}?
+            Are you sure you want to move{" "}
+            {count === 1 ? `"${displayNames}"` : `${count} items`} to{" "}
+            {destination}?
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isPending}>
+          <Button
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+            disabled={isPending}
+          >
             Cancel
           </Button>
           <Button onClick={onConfirm} disabled={isPending}>

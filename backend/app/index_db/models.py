@@ -4,6 +4,7 @@ from sqlmodel import Field, SQLModel
 
 
 def _ts_now() -> int:
+    """统一的秒级时间戳默认值工厂。"""
     from time import time
 
     return int(time())

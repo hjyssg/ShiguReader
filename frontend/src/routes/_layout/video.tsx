@@ -1,10 +1,11 @@
-import { createFileRoute, Link } from "@tanstack/react-router"
-import { ChevronRight, Folder, Home } from "lucide-react"
+import { createFileRoute } from "@tanstack/react-router"
+import { useMemo, useRef } from "react"
 import AudioPlayer from "react-h5-audio-player"
 import "react-h5-audio-player/lib/styles.css"
 
 import { OpenAPI } from "@/client"
-import { getBaseName, joinPath, splitPath } from "@/lib/path-utils"
+import { PathBreadcrumb } from "@/components/Common/PathBreadcrumb"
+import { getBaseName } from "@/lib/path-utils"
 
 export const Route = createFileRoute("/_layout/video")({
   component: Video,
@@ -26,6 +27,9 @@ export const Route = createFileRoute("/_layout/video")({
 
 function Video() {
   const { path, entry, media } = Route.useSearch()
+  const videoRef = useRef<HTMLVideoElement | null>(null)
+  const audioPlayerRef = useRef<any>(null)
+  const lastSavedAtRef = useRef(0)
 
   // Determine video URL
   let videoUrl: string
@@ -44,80 +48,109 @@ function Video() {
     sourcePath = path
   }
 
-  const pathParts = splitPath(sourcePath)
-  const targetParts = entry ? pathParts.slice(0, -1) : pathParts
-  const dirCrumbs = targetParts.map((name, index) => ({
-    name,
-    path: joinPath(targetParts.slice(0, index + 1), sourcePath),
-  }))
+  const progressStorageKey = useMemo(
+    () => `media-progress:${media}:${path}:${entry ?? ""}`,
+    [media, path, entry],
+  )
+
+  const restoreProgress = (element: HTMLMediaElement | null) => {
+    if (!element) return
+    const saved = localStorage.getItem(progressStorageKey)
+    const savedTime = saved ? Number(saved) : NaN
+    if (!Number.isFinite(savedTime) || savedTime <= 0) return
+
+    const duration = element.duration
+    if (!Number.isFinite(duration) || duration <= 0) return
+
+    // Avoid restoring to very end.
+    const target = Math.min(savedTime, Math.max(0, duration - 3))
+    if (target > 0) {
+      element.currentTime = target
+    }
+  }
+
+  const saveProgress = (element: HTMLMediaElement | null) => {
+    if (!element) return
+    const now = Date.now()
+    if (now - lastSavedAtRef.current < 2000) return
+    lastSavedAtRef.current = now
+
+    const current = element.currentTime
+    if (Number.isFinite(current) && current > 0) {
+      localStorage.setItem(progressStorageKey, String(current))
+    }
+  }
+
+  const clearProgress = () => {
+    localStorage.removeItem(progressStorageKey)
+  }
 
   return (
     <div className="space-y-6">
       {/* Breadcrumb */}
-      <nav className="flex items-center gap-2 text-sm">
-        <Link
-          to="/"
-          className="flex items-center gap-1 text-muted-foreground hover:text-foreground transition-colors"
-        >
-          <Home className="size-4" />
-          <span>Home</span>
-        </Link>
-        {dirCrumbs.map((crumb) => (
-          <div key={crumb.path} className="flex items-center gap-2">
-            <ChevronRight className="size-4 text-muted-foreground" />
-            <Link
-              to="/explorer"
-              search={{ path: crumb.path }}
-              className="text-muted-foreground hover:text-foreground transition-colors"
-            >
-              <Folder className="size-4 inline mr-1" />
-              {crumb.name}
-            </Link>
-          </div>
-        ))}
-        <ChevronRight className="size-4 text-muted-foreground" />
-        {entry && (
-          <>
-            <Link
-              to="/archive"
-              search={{ path }}
-              className="text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Archive
-            </Link>
-            <ChevronRight className="size-4 text-muted-foreground" />
-          </>
-        )}
-        <span className="font-medium">{fileName}</span>
-      </nav>
+      <PathBreadcrumb
+        sourcePath={sourcePath}
+        extraCrumbs={
+          entry
+            ? [
+                {
+                  label: "Archive",
+                  to: "/archive",
+                  search: { path },
+                },
+              ]
+            : []
+        }
+        currentLabel={fileName}
+      />
 
       {media === "audio" ? (
         <div className="rounded-lg border bg-card p-4">
-          <AudioPlayer src={videoUrl} autoPlay showSkipControls={false} showJumpControls={false} />
+          <AudioPlayer
+            ref={audioPlayerRef}
+            src={videoUrl}
+            showSkipControls={false}
+            showJumpControls={false}
+            onLoadedMetadata={() => {
+              const audio = audioPlayerRef.current?.audio?.current as
+                | HTMLAudioElement
+                | undefined
+              restoreProgress(audio ?? null)
+            }}
+            onListen={() => {
+              const audio = audioPlayerRef.current?.audio?.current as
+                | HTMLAudioElement
+                | undefined
+              saveProgress(audio ?? null)
+            }}
+            onEnded={clearProgress}
+          />
         </div>
       ) : (
         <div className="bg-black rounded-lg overflow-hidden">
           <video
+            ref={videoRef}
             src={videoUrl}
             controls
-            autoPlay
             className="w-full max-h-[80vh]"
             controlsList="nodownload"
+            onLoadedMetadata={() => restoreProgress(videoRef.current)}
+            onTimeUpdate={() => saveProgress(videoRef.current)}
+            onEnded={clearProgress}
           >
             Your browser does not support the video tag.
           </video>
         </div>
       )}
 
-      {/* Video Info */}
+      {/*
       <div className="space-y-2">
-        <h2 className="text-2xl font-semibold">{fileName}</h2>
         {entry && (
           <p className="text-sm text-muted-foreground">
             From archive: {path.split(/[/\\]/).pop()}
           </p>
         )}
-      </div>
+      </div> */}
     </div>
   )
 }

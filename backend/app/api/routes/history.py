@@ -68,6 +68,7 @@ class HistoryListResponse(BaseModel):
     total_pages: int
 
 
+# 接口说明：记录或更新文件阅读/播放进度。
 @router.post("/record", response_model=HistoryRecordResponse)
 async def record_history(request: HistoryRecordRequest) -> HistoryRecordResponse:
     filepath = request.filepath.strip()
@@ -127,6 +128,7 @@ async def record_history(request: HistoryRecordRequest) -> HistoryRecordResponse
     return HistoryRecordResponse(status="ok")
 
 
+# 接口说明：分页获取历史记录列表。
 @router.get("/list", response_model=HistoryListResponse)
 async def list_history(
     page: int = Query(1, ge=1),

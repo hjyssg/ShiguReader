@@ -2,8 +2,8 @@ import { useMutation, useQuery } from "@tanstack/react-query"
 import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { useEffect } from "react"
 import { useTranslation } from "react-i18next"
-import Lightbox from "yet-another-react-lightbox"
 import type { SlideImage } from "yet-another-react-lightbox"
+import Lightbox from "yet-another-react-lightbox"
 import "yet-another-react-lightbox/styles.css"
 
 import { FilesystemService, OpenAPI } from "@/client"
@@ -45,7 +45,7 @@ function ReadMobilePage() {
       FilesystemService.extractArchive({ path, page: currentPage }),
   })
 
-  const historyMutation = useMutation({
+  const { mutate: recordHistory } = useMutation({
     mutationFn: async (payload: {
       filepath: string
       page_current: number
@@ -61,25 +61,30 @@ function ReadMobilePage() {
 
   const imageEntries = isFolderSource
     ? (folderData?.items || [])
-        .filter((item) => item.item_type === "file" && item.file_type === "image")
-        .map((item, index) => ({
-          index,
-          entry_path: item.path,
-        }))
+      .filter(
+        (item) => item.item_type === "file" && item.file_type === "image",
+      )
+      .map((item, index) => ({
+        index,
+        entry_path: item.path,
+      }))
     : (listData?.entries || []).filter((e) => e.file_type === "image")
 
   const resolvedPage =
     isFolderSource && filePath
-      ? Math.max(imageEntries.findIndex((entry) => entry.entry_path === filePath), 0)
+      ? Math.max(
+        imageEntries.findIndex((entry) => entry.entry_path === filePath),
+        0,
+      )
       : page
 
   const safePage = wrapPageIndex(resolvedPage, imageEntries.length)
 
   useEffect(() => {
     if (path && !isFolderSource) {
-      extractMutation.mutate(safePage)
+      extractMutation.mutate(0)
     }
-  }, [path, safePage, isFolderSource])
+  }, [path])
 
   useEffect(() => {
     if (!path || imageEntries.length === 0) return
@@ -87,12 +92,12 @@ function ReadMobilePage() {
     const historyFilepath = isFolderSource ? currentEntry?.entry_path : path
     if (!historyFilepath) return
 
-    historyMutation.mutate({
+    recordHistory({
       filepath: historyFilepath,
       page_current: safePage + 1,
       page_total: imageEntries.length,
     })
-  }, [path, imageEntries, safePage, isFolderSource])
+  }, [path, imageEntries, safePage, isFolderSource, recordHistory])
 
   useEffect(() => {
     if (!isFolderSource || !filePath || imageEntries.length === 0) return
@@ -103,7 +108,17 @@ function ReadMobilePage() {
         replace: true,
       })
     }
-  }, [isFolderSource, filePath, imageEntries.length, resolvedPage, page, navigate, path, source, safePage])
+  }, [
+    isFolderSource,
+    filePath,
+    imageEntries.length,
+    resolvedPage,
+    page,
+    navigate,
+    path,
+    source,
+    safePage,
+  ])
 
   if (!path || imageEntries.length === 0) {
     return <div>{t("reader.noImagesFound")}</div>
@@ -120,22 +135,24 @@ function ReadMobilePage() {
       <Lightbox
         open
         slides={slides}
-      index={safePage}
-      close={() => navigate({ to: isFolderSource ? "/explorer" : "/archive", search: { path } })}
-      on={{
-        view: ({ index }) => {
+        index={safePage}
+        close={() =>
           navigate({
-            to: "/read-mobile",
-            search: { path, page: index, source, filePath: "" },
-            replace: true,
+            to: isFolderSource ? "/explorer" : "/archive",
+            search: { path },
           })
-          if (!isFolderSource) {
-            extractMutation.mutate(index)
-          }
-        },
-      }}
-      carousel={{ finite: false }}
-      controller={{ closeOnBackdropClick: false }}
+        }
+        on={{
+          view: ({ index }) => {
+            navigate({
+              to: "/read-mobile",
+              search: { path, page: index, source, filePath: "" },
+              replace: true,
+            })
+          },
+        }}
+        carousel={{ finite: false }}
+        controller={{ closeOnBackdropClick: false }}
       />
     </div>
   )

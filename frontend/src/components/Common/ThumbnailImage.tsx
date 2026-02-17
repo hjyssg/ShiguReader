@@ -1,9 +1,8 @@
 // 缩略图组件，支持加载状态和错误处理
 import { useEffect, useRef, useState } from "react"
-
+import { CardThumbnail } from "@/components/semantic/layout"
 import { Skeleton } from "@/components/ui/skeleton"
 import { cn } from "@/lib/utils"
-import { CardThumbnail } from "@/components/semantic/layout"
 
 type ThumbnailImageProps = {
   src: string
@@ -17,7 +16,12 @@ type ThumbnailImageProps = {
  * - 使用 ref 缓存已加载的图片，避免重复加载
  * - 图片始终可见，Skeleton 只作为背景提示
  */
-export function ThumbnailImage({ src, alt, fallback, className }: ThumbnailImageProps) {
+export function ThumbnailImage({
+  src,
+  alt,
+  fallback,
+  className,
+}: ThumbnailImageProps) {
   const [isLoaded, setIsLoaded] = useState(false)
   const [hasError, setHasError] = useState(false)
   const loadedSrcsRef = useRef<Set<string>>(new Set())
@@ -54,7 +58,9 @@ export function ThumbnailImage({ src, alt, fallback, className }: ThumbnailImage
 
   return (
     <CardThumbnail className={cn("thumbnail-container", className)}>
-      {!isLoaded && <Skeleton className="absolute inset-0 size-full rounded-none" />}
+      {!isLoaded && (
+        <Skeleton className="absolute inset-0 size-full rounded-none" />
+      )}
       <img
         src={src}
         alt={alt}

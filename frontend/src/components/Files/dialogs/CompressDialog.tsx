@@ -21,7 +21,10 @@ interface CompressDialogProps {
   isPending?: boolean
 }
 
-const actionLabels: Record<CompressAction, { title: string; description: string; button: string; pending: string }> = {
+const actionLabels: Record<
+  CompressAction,
+  { title: string; description: string; button: string; pending: string }
+> = {
   "zip-folder": {
     title: "Compress to ZIP",
     description: "This will compress the folder into a ZIP archive.",
@@ -30,13 +33,21 @@ const actionLabels: Record<CompressAction, { title: string; description: string;
   },
   "minify-zip-images": {
     title: "Minify ZIP Images",
-    description: "This will compress large images inside the archive and repack it. The original archive will be replaced.",
+    description:
+      "This will compress large images inside the archive and repack it. The original archive will be replaced.",
     button: "Minify",
     pending: "Minifying...",
   },
 }
 
-export function CompressDialog({ open, onOpenChange, filePath, action, onConfirm, isPending }: CompressDialogProps) {
+export function CompressDialog({
+  open,
+  onOpenChange,
+  filePath,
+  action,
+  onConfirm,
+  isPending,
+}: CompressDialogProps) {
   const labels = actionLabels[action]
   const name = getBaseName(filePath)
 
@@ -45,15 +56,19 @@ export function CompressDialog({ open, onOpenChange, filePath, action, onConfirm
       <DialogContent className="sm:max-w-xl">
         <DialogHeader>
           <DialogTitle>{labels.title}</DialogTitle>
-          <DialogDescription>
-            {labels.description}
-          </DialogDescription>
+          <DialogDescription>{labels.description}</DialogDescription>
         </DialogHeader>
         <div className="py-4">
-          <p className="text-sm break-all whitespace-normal">Target: <span className="font-medium">{name}</span></p>
+          <p className="text-sm break-all whitespace-normal">
+            Target: <span className="font-medium">{name}</span>
+          </p>
         </div>
         <DialogFooter>
-          <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+          >
             Cancel
           </Button>
           <Button type="button" onClick={onConfirm} disabled={isPending}>

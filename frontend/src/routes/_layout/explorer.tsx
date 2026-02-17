@@ -6,10 +6,10 @@ import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
 
 import { FilesystemService } from "@/client"
+import { FileNotFoundError } from "@/components/Common/FileNotFoundError"
 import { FileViewContainer } from "@/components/Files/FileViewContainer"
-import { Checkbox } from "@/components/ui/checkbox"
 import { Button } from "@/components/ui/button"
-import { buildPathBreadcrumbs, getBaseName, getParentPath } from "@/lib/path-utils"
+import { Checkbox } from "@/components/ui/checkbox"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,8 +17,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { useDocumentTitle } from "@/hooks/useDocumentTitle"
-import { FileNotFoundError } from "@/components/Common/FileNotFoundError"
 import { useFileOperations } from "@/hooks/useFileOperations"
+import {
+  buildPathBreadcrumbs,
+  getBaseName,
+  getParentPath,
+} from "@/lib/path-utils"
 import "./explorer.css"
 
 export const Route = createFileRoute("/_layout/explorer")({
@@ -41,7 +45,9 @@ function Explorer() {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const { path } = Route.useSearch()
-  const folderName = path ? getBaseName(path, t("nav.explorer")) : t("nav.explorer")
+  const folderName = path
+    ? getBaseName(path, t("nav.explorer"))
+    : t("nav.explorer")
   useDocumentTitle(folderName)
   const [zipHasVideoOnly, setZipHasVideoOnly] = useState(false)
   const [zipHasAudioOnly, setZipHasAudioOnly] = useState(false)
@@ -103,7 +109,11 @@ function Explorer() {
           requestBody: { path, recursive: true },
         })
       }
-      toast.success(withWatch ? t("explorer.scanAndWatchStarted") : t("explorer.scanStarted"))
+      toast.success(
+        withWatch
+          ? t("explorer.scanAndWatchStarted")
+          : t("explorer.scanStarted"),
+      )
       scanMutation.refetch()
     } catch {
       toast.error(t("explorer.scanFailed"))
@@ -112,9 +122,13 @@ function Explorer() {
 
   // 检查文件夹是否存在
   if (error) {
-    const errorMessage = (error as any)?.body?.detail || t("explorer.unknownError")
-    const isNotFound = errorMessage.includes("not found") || errorMessage.includes("Not found") || errorMessage.includes("404")
-    
+    const errorMessage =
+      (error as any)?.body?.detail || t("explorer.unknownError")
+    const isNotFound =
+      errorMessage.includes("not found") ||
+      errorMessage.includes("Not found") ||
+      errorMessage.includes("404")
+
     return (
       <FileNotFoundError
         path={path}
@@ -129,10 +143,7 @@ function Explorer() {
   return (
     <div className="explorer-page">
       <nav className="explorer-breadcrumb" aria-label="Explorer breadcrumb">
-        <Link
-          to="/"
-          className="explorer-breadcrumb__home-link"
-        >
+        <Link to="/" className="explorer-breadcrumb__home-link">
           <Home className="explorer-breadcrumb__home-icon" />
           <span>Home</span>
         </Link>
@@ -167,7 +178,9 @@ function Explorer() {
                 <Checkbox
                   id="zip-has-video"
                   checked={zipHasVideoOnly}
-                  onCheckedChange={(checked) => setZipHasVideoOnly(Boolean(checked))}
+                  onCheckedChange={(checked) =>
+                    setZipHasVideoOnly(Boolean(checked))
+                  }
                 />
                 {t("explorer.zipHasVideo")}
               </label>
@@ -176,7 +189,9 @@ function Explorer() {
                 <Checkbox
                   id="zip-has-audio"
                   checked={zipHasAudioOnly}
-                  onCheckedChange={(checked) => setZipHasAudioOnly(Boolean(checked))}
+                  onCheckedChange={(checked) =>
+                    setZipHasAudioOnly(Boolean(checked))
+                  }
                 />
                 {t("explorer.zipHasAudio")}
               </label>
@@ -184,7 +199,11 @@ function Explorer() {
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="explorer-scan-button">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="explorer-scan-button"
+                >
                   <ScanLine className="explorer-scan-button__icon" />
                   {t("explorer.scan")}
                 </Button>
@@ -196,7 +215,9 @@ function Explorer() {
                 <DropdownMenuItem onClick={() => handleScan(true)}>
                   {t("explorer.scanAndWatch")}
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => operations.backfillFolderMutation.mutate(path)}>
+                <DropdownMenuItem
+                  onClick={() => operations.backfillFolderMutation.mutate(path)}
+                >
                   {t("explorer.backfillMissingMetaThumbnail")}
                 </DropdownMenuItem>
               </DropdownMenuContent>

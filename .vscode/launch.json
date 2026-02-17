@@ -10,6 +10,37 @@
       "preLaunchTask": "Install Backend Dependencies"
     },
     {
+      "name": "Backend: SQLite 一键解锁并启动",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/backend/scripts/sqlite_rescue_and_run.py",
+      "cwd": "${workspaceFolder}/backend",
+      "console": "integratedTerminal",
+      "justMyCode": true,
+      "envFile": "${workspaceFolder}/.env",
+      "args": [
+        "--kill-port",
+        "--port",
+        "8000"
+      ]
+    },
+    {
+      "name": "Backend: 仅 SQLite 解锁修复",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/backend/scripts/sqlite_rescue_and_run.py",
+      "cwd": "${workspaceFolder}/backend",
+      "console": "integratedTerminal",
+      "justMyCode": true,
+      "envFile": "${workspaceFolder}/.env",
+      "args": [
+        "--kill-port",
+        "--port",
+        "8000",
+        "--repair-only"
+      ]
+    },
+    {
       "name": "Backend: Run Tests",
       "type": "node-terminal",
       "request": "launch",
@@ -40,12 +71,7 @@
         "dev"
       ],
       "cwd": "${workspaceFolder}/frontend",
-      "console": "integratedTerminal",
-      // "serverReadyAction": {
-      //   "pattern": "Local:.*?(https?://\\S+)",
-      //   "uriFormat": "%s",
-      //   "action": "debugWithChrome"
-      // }
+      "console": "integratedTerminal"
     },
     {
       "name": "Build Tools: Build EXE",

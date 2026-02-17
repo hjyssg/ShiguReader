@@ -30,11 +30,13 @@ from app.file_processing.name_parser.utils import match_all
 class ParseResult:
     title: str = ""
     authors: list[str] = field(default_factory=list)
+    cosers: list[str] = field(default_factory=list)
     group: str | None = None
     raw_tags: list[str] = field(default_factory=list)
     event: str | None = None
     date_tag: str | None = None
     type: str = "UNKNOWN"
+    pack_kind: str = "manga"
 
 
 # ---------------------------------------------------------------------------
@@ -46,6 +48,7 @@ _PAREN_RE = re.compile(r"\((.*?)\)")  # matches content inside ()
 
 # Pattern: "group (name)" inside a single bracket token
 _GROUP_AND_NAME_RE = re.compile(r"^(.*?)\s*\((.*?)\)$")
+_COSPLAY_HINT_RE = re.compile(r"cosplay|コスプレ|cosrom|coser", re.IGNORECASE)
 
 
 def _get_group_and_name(token: str) -> tuple[str | None, str]:
@@ -54,6 +57,146 @@ def _get_group_and_name(token: str) -> tuple[str | None, str]:
     if m:
         return m.group(1).strip() or None, m.group(2).strip()
     return None, token.strip()
+
+
+def _is_cosplay_pack(text: str, bracket_tokens: list[str]) -> bool:
+    """Best-effort cosplay pack detection.
+    """
+    if _COSPLAY_HINT_RE.search(text):
+        return True
+
+    for token in bracket_tokens:
+        t = token.strip()
+        if not t:
+            continue
+        if _COSPLAY_HINT_RE.search(t):
+            return True
+        # CHxx / Cosrom 常见于 cosplay 发布
+        if re.match(r"^CH\d{1,3}$", t, re.IGNORECASE):
+            return True
+
+    return False
+
+
+def _normalize_person_name(token: str) -> str:
+    name = token.strip()
+    name = re.sub(r"^@+", "", name)
+    name = re.sub(r"^coser\s*[@：:]?\s*", "", name, flags=re.IGNORECASE)
+    name = re.sub(r"^cosplayer\s*[@：:]?\s*", "", name, flags=re.IGNORECASE)
+    return name.strip(" -_")
+
+
+def _parse_cosplay(text: str, b_matches: list[str], p_matches: list[str]) -> ParseResult | None:
+    """Cosplay filename parser.
+    """
+    cosers: list[str] = []
+    tags: list[str] = []
+    date_tag: str | None = None
+    event: str | None = None
+
+    def _classify_misc(token: str) -> bool:
+        nonlocal date_tag, event
+        if not token:
+            return True
+        if _COSPLAY_HINT_RE.search(token):
+            return True
+        if belongs_to_event(token):
+            event = token
+            return True
+        if _is_str_date(token):
+            date_tag = token
+            return True
+        if is_media_type(token) or is_useless_tag(token):
+            return True
+        return False
+
+    # 1) 先用 [] 提取人名候选
+    for raw in b_matches:
+        token = raw.strip()
+        if not token or _classify_misc(token):
+            continue
+        norm = _normalize_person_name(token)
+        if norm and not is_not_author(norm.lower()):
+            cosers.append(norm)
+        else:
+            tags.append(token)
+
+    # 2) 处理 "(Cosplay) Name - Character" 的前缀 name
+    # 去掉开头的括号块，取第一个连字符前的段
+    head = _BRACKET_RE.sub("", text)
+    head = _PAREN_RE.sub("", head)
+    if " - " in head:
+        left, right = head.split(" - ", 1)
+        left_name = _normalize_person_name(left)
+        if left_name and not _classify_misc(left_name) and not is_not_author(left_name.lower()):
+            cosers.append(left_name)
+        # 角色名作为 tag 候选
+        right_tag = right.rsplit(".", 1)[0].strip()
+        if right_tag and not _classify_misc(right_tag):
+            tags.append(right_tag)
+
+    # 3) () 内容一般作为作品/角色标签
+    tags.extend([t.strip() for t in p_matches if t.strip()])
+
+    # 清洗 tag
+    split_tags: list[str] = []
+    for t in tags:
+        split_tags.extend(TAG_SEPARATOR.split(t))
+    raw_tags = [t.strip() for t in split_tags if t.strip()]
+    coser_set = {c for c in cosers if c}
+    raw_tags = [
+        t
+        for t in raw_tags
+        if len(t) > 1
+        and t not in coser_set
+        and not _classify_misc(t)
+        and not is_useless_tag(t)
+    ]
+
+    # 去重保序
+    cosers = list(dict.fromkeys(cosers))
+    raw_tags = list(dict.fromkeys(raw_tags))
+
+    # 标准化 coser 名字（使用数据库查找）
+    # 直接从原始文本中用 Aho-Corasick 查找，避免循环
+    try:
+        from app.file_processing.name_parser.coser_db import find_cosers_in_text
+        # 从原始文本中查找所有匹配的coser（比循环快得多）
+        db_cosers = find_cosers_in_text(text)
+        if db_cosers:
+            # 如果数据库找到了coser，使用数据库结果
+            cosers = db_cosers
+    except Exception:
+        # 如果数据库不存在或出错，保持原解析结果
+        pass
+
+    title = _BRACKET_RE.sub("", text)
+    title = _PAREN_RE.sub("", title)
+    if "." in title:
+        title = title.rsplit(".", 1)[0]
+    title = title.strip()
+
+    if not cosers and not raw_tags:
+        return None
+
+    return ParseResult(
+        title=title,
+        authors=[],
+        cosers=cosers,
+        group=None,
+        raw_tags=raw_tags,
+        event=event,
+        date_tag=date_tag,
+        type="COSPLAY",
+        pack_kind="cosplay",
+    )
+
+
+def _strip_filename_ext(text: str) -> str:
+    value = text.strip()
+    if "." in value:
+        value = value.rsplit(".", 1)[0]
+    return value.strip()
 
 
 # ---------------------------------------------------------------------------
@@ -124,6 +267,16 @@ def parse(text: str) -> ParseResult | None:
     p_matches = match_all(_PAREN_RE, text)  # content inside ()
 
     if not b_matches and not p_matches:
+        _cache[text] = None
+        return None
+
+    # Cosplay strategy: 与传统漫画 parser 分流
+    if _is_cosplay_pack(text, b_matches):
+        cosplay_result = _parse_cosplay(text, b_matches, p_matches)
+        if cosplay_result is not None:
+            _cache[text] = cosplay_result
+            return cosplay_result
+
         _cache[text] = None
         return None
 
@@ -235,19 +388,18 @@ def parse(text: str) -> ParseResult | None:
     title = _BRACKET_RE.sub("", text)
     title = _PAREN_RE.sub("", title)
     
-    # Remove file extension
-    if "." in title:
-        title = title.rsplit(".", 1)[0]
-    title = title.strip()
+    title = _strip_filename_ext(title)
 
     result = ParseResult(
         title=title,
         authors=authors,
+        cosers=[],
         group=group,
         raw_tags=raw_tags,
         event=event,
         date_tag=date_tag,
         type=media_type,
+        pack_kind="manga",
     )
     _cache[text] = result
     return result

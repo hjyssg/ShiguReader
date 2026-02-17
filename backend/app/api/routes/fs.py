@@ -17,14 +17,17 @@ from urllib.parse import quote
 from fastapi import APIRouter, BackgroundTasks, HTTPException, Query
 from fastapi.responses import FileResponse, Response
 from pydantic import BaseModel
+from send2trash import send2trash
 
 from app.constants import ARCHIVE_SUFFIXES, AUDIO_SUFFIXES, IMAGE_SUFFIXES, VIDEO_SUFFIXES
 from app.core.config import settings
+from app.file_processing._archive_backend import extract_entries
 from app.file_processing.archive_lister import list_archive_entries
 from app.file_processing.ignore import should_ignore
 from app.file_processing.folder_watcher import FolderWatcher
 from app.file_processing.name_parser import parse
 from app.file_processing.stepwise_extractor import stepwise_extract
+from app.index_db.confidence import compute_confidence
 from app.index_db.db import get_index_session
 from app.index_db.repository import IndexRepository, UpsertFileInput, UpsertFolderInput
 from app.services.thumb_service import ThumbService
@@ -144,6 +147,8 @@ class FileSystemItem(BaseModel):
     recommendation_score: float | None = None
     scan_state: int = 0  # Reserved for DB integration
     watch_state: int = 0  # Reserved for DB integration
+    confidence_level: Literal["certain", "likely_present", "uncertain"] = "uncertain"
+    confidence_score: float = 0.2
     image_count: int | None = None  # 压缩包内图片数量
     video_count: int | None = None  # 压缩包内视频数量
     audio_count: int | None = None  # 压缩包内音频数量
@@ -200,6 +205,7 @@ class MovePathRequest(BaseModel):
 
 class DeletePathRequest(BaseModel):
     path: str
+    permanently: bool = False
 
 
 class ZipFolderRequest(BaseModel):
@@ -523,6 +529,7 @@ def _run_scan(path: Path, recursive: bool) -> None:
                                     "filepath": str(file_path),
                                     "title": parsed.title,
                                     "authors": parsed.authors,
+                                    "cosers": parsed.cosers,
                                     "group_name": parsed.group,
                                     "raw_tags": parsed.raw_tags,
                                     "event": parsed.event,
@@ -540,6 +547,9 @@ def _run_scan(path: Path, recursive: bool) -> None:
                             # Stability-first: avoid opening many short-lived write sessions
                             # during scan; flush at the final write stage instead.
                             pass
+
+                        if scanned_files % 100 == 0:
+                            logger.info(f"Scanning {path_key}: {scanned_files} files, {scanned_folders} folders...")
                     except Exception as e:
                         logger.warning(f"Failed to process file {file_path}: {e}")
         else:
@@ -600,6 +610,7 @@ def _run_scan(path: Path, recursive: bool) -> None:
                                     "filepath": str(entry),
                                     "title": parsed.title,
                                     "authors": parsed.authors,
+                                    "cosers": parsed.cosers,
                                     "group_name": parsed.group,
                                     "raw_tags": parsed.raw_tags,
                                     "event": parsed.event,
@@ -617,6 +628,9 @@ def _run_scan(path: Path, recursive: bool) -> None:
                             # Stability-first: avoid opening many short-lived write sessions
                             # during scan; flush at the final write stage instead.
                             pass
+
+                        if scanned_files % 100 == 0:
+                            logger.info(f"Scanning {path_key}: {scanned_files} files, {scanned_folders} folders...")
                 except Exception as e:
                     logger.warning(f"Failed to process entry {entry}: {e}")
 
@@ -680,6 +694,7 @@ def _iter_files_for_backfill(path: Path, recursive: bool):
             yield entry
 
 
+# 接口说明：获取可浏览的根目录列表。
 @router.get("/roots", response_model=list[RootItem])
 def get_roots() -> list[RootItem]:
     """Get configured root directories."""
@@ -690,6 +705,7 @@ def get_roots() -> list[RootItem]:
     ]
 
 
+# 接口说明：获取收藏目录信息。
 @router.get("/favorite", response_model=RootItem | None)
 def get_favorite_root() -> RootItem | None:
     """Get configured favorite directory as a root-like item."""
@@ -704,6 +720,7 @@ def get_favorite_root() -> RootItem | None:
     return RootItem(path=str(path), dirname=path.name or str(path))
 
 
+# 接口说明：获取已读目录信息。
 @router.get("/already-read", response_model=RootItem | None)
 def get_already_read_root() -> RootItem | None:
     """Get configured already-read directory as a root-like item."""
@@ -718,6 +735,7 @@ def get_already_read_root() -> RootItem | None:
     return RootItem(path=str(path), dirname=path.name or str(path))
 
 
+# 接口说明：获取系统可用盘符（Windows）。
 @router.get("/drives", response_model=list[RootItem])
 def get_drives() -> list[RootItem]:
     """Get available drive letters (Windows only)."""
@@ -731,6 +749,7 @@ def get_drives() -> list[RootItem]:
     return drives
 
 
+# 接口说明：列出目录内容并返回文件元信息。
 @router.get("/list", response_model=ListResponse)
 def list_directory(
     background_tasks: BackgroundTasks,
@@ -775,6 +794,11 @@ def list_directory(
                 stat = entry.stat()
                 
                 if entry.is_dir():
+                    confidence_level, confidence_score = compute_confidence(
+                        scan_state=1,
+                        watch_state=0,
+                        last_seen_at=int(time()),
+                    )
                     items.append(
                         FileSystemItem(
                             name=entry.name,
@@ -784,6 +808,10 @@ def list_directory(
                             filesize=None,
                             mtime=int(stat.st_mtime),
                             thumbnail_url=None,
+                            scan_state=1,
+                            watch_state=0,
+                            confidence_level=confidence_level,
+                            confidence_score=confidence_score,
                         )
                     )
                     folders_to_upsert.append(
@@ -799,6 +827,11 @@ def list_directory(
                 elif entry.is_file():
                     file_type = detect_file_type(entry)
                     thumbnail_url = None
+                    confidence_level, confidence_score = compute_confidence(
+                        scan_state=1,
+                        watch_state=0,
+                        last_seen_at=int(time()),
+                    )
                     
                     if file_type in ("archive", "video", "image"):
                         thumbnail_url = _build_thumb_url(entry)
@@ -812,6 +845,10 @@ def list_directory(
                             filesize=stat.st_size,
                             mtime=int(stat.st_mtime),
                             thumbnail_url=thumbnail_url,
+                            scan_state=1,
+                            watch_state=0,
+                            confidence_level=confidence_level,
+                            confidence_score=confidence_score,
                         )
                     )
                     
@@ -980,6 +1017,7 @@ def list_directory(
                                     "filepath": file_data.filepath,
                                     "title": parsed.title,
                                     "authors": parsed.authors,
+                                    "cosers": parsed.cosers,
                                     "group_name": parsed.group,
                                     "raw_tags": parsed.raw_tags,
                                     "event": parsed.event,
@@ -1001,6 +1039,7 @@ def list_directory(
     return ListResponse(items=items)
 
 
+# 接口说明：移动单个文件。
 @router.post("/move-file", response_model=PathOperationResponse)
 def move_file(request: MovePathRequest) -> PathOperationResponse:
     source = _validate_path(Path(request.source_path))
@@ -1034,6 +1073,7 @@ def move_file(request: MovePathRequest) -> PathOperationResponse:
     return PathOperationResponse(status="ok", message="File moved", path=str(source), dest_path=str(dest))
 
 
+# 接口说明：移动整个文件夹。
 @router.post("/move-folder", response_model=PathOperationResponse)
 def move_folder(request: MovePathRequest) -> PathOperationResponse:
     source = _validate_path(Path(request.source_path))
@@ -1072,6 +1112,7 @@ def move_folder(request: MovePathRequest) -> PathOperationResponse:
     return PathOperationResponse(status="ok", message="Folder moved", path=str(source), dest_path=str(dest))
 
 
+# 接口说明：删除文件或目录。
 @router.delete("/delete", response_model=PathOperationResponse)
 def delete_path(request: DeletePathRequest) -> PathOperationResponse:
     target = _validate_path(Path(request.path))
@@ -1079,27 +1120,32 @@ def delete_path(request: DeletePathRequest) -> PathOperationResponse:
     if not target.exists():
         raise HTTPException(status_code=404, detail="Path not found")
 
-    try:
-        if target.is_file():
-            target.unlink()
-            try:
-                with get_index_session() as session:
-                    repo = IndexRepository(session)
-                    repo.delete_file(str(target))
-            except Exception as e:
-                logger.warning("DB cleanup failed after delete-file %s: %s", target, e)
-            return PathOperationResponse(status="ok", message="File deleted", path=str(target))
+    is_file_target = target.is_file()
 
-        shutil.rmtree(target)
+    try:
+        if request.permanently:
+            if is_file_target:
+                target.unlink()
+            else:
+                shutil.rmtree(target)
+            message = "Deleted permanently"
+        else:
+            send2trash(str(target))
+            message = "Moved to recycle bin"
+
         try:
             with get_index_session() as session:
                 repo = IndexRepository(session)
-                repo.delete_paths_by_prefix(str(target))
+                if is_file_target:
+                    repo.delete_file(str(target))
+                else:
+                    repo.delete_paths_by_prefix(str(target))
         except Exception as e:
-            logger.warning("DB cleanup failed after delete-folder %s: %s", target, e)
-        return PathOperationResponse(status="ok", message="Folder deleted", path=str(target))
+            logger.warning("DB cleanup failed after delete %s: %s", target, e)
+
+        return PathOperationResponse(status="ok", message=message, path=str(target))
     except PermissionError as e:
-        operation = "delete file" if target.is_file() else "delete folder"
+        operation = "delete file" if is_file_target else "delete folder"
         raise HTTPException(
             status_code=403,
             detail=_build_permission_denied_detail(operation, target, e),
@@ -1108,6 +1154,7 @@ def delete_path(request: DeletePathRequest) -> PathOperationResponse:
         raise HTTPException(status_code=500, detail=f"Delete failed: {e}")
 
 
+# 接口说明：将目录打包为 zip 文件。
 @router.post("/zip-folder", response_model=PathOperationResponse)
 def zip_folder(request: ZipFolderRequest) -> PathOperationResponse:
     folder = _validate_path(Path(request.folder_path))
@@ -1140,6 +1187,7 @@ def zip_folder(request: ZipFolderRequest) -> PathOperationResponse:
     return PathOperationResponse(status="ok", message="Folder zipped", path=str(folder), dest_path=str(output_path))
 
 
+# 接口说明：重命名文件或目录。
 @router.post("/rename", response_model=PathOperationResponse)
 def rename_path(request: RenameRequest) -> PathOperationResponse:
     """重命名文件或文件夹。"""
@@ -1185,6 +1233,7 @@ def rename_path(request: RenameRequest) -> PathOperationResponse:
     return PathOperationResponse(status="ok", message="Renamed successfully", path=str(source), dest_path=str(dest))
 
 
+# 接口说明：下载指定文件。
 @router.get("/download", response_model=None)
 def download_file(path: str = Query(..., description="File path to download")):
     """下载单个文件。"""
@@ -1205,6 +1254,7 @@ def download_file(path: str = Query(..., description="File path to download")):
     )
 
 
+# 接口说明：解压压缩包到目标目录。
 @router.post("/unzip", response_model=PathOperationResponse)
 def unzip_archive(request: UnzipRequest) -> PathOperationResponse:
     """解压压缩包到指定目录，保持原始目录结构。"""
@@ -1253,6 +1303,7 @@ def unzip_archive(request: UnzipRequest) -> PathOperationResponse:
         raise HTTPException(status_code=500, detail=f"Extraction failed: {e}")
 
 
+# 接口说明：触发收藏目录后台扫描。
 @router.post("/scan-favorite", response_model=ScanStartResponse)
 async def scan_favorite(background_tasks: BackgroundTasks) -> ScanStartResponse:
     favorite_dir = (settings.FAVORITE_DIR or "").strip()
@@ -1267,6 +1318,7 @@ async def scan_favorite(background_tasks: BackgroundTasks) -> ScanStartResponse:
     return ScanStartResponse(status="started", message="Favorite directory scan started", path=str(favorite_path))
 
 
+# 接口说明：触发指定目录后台扫描。
 @router.post("/scan", response_model=ScanStartResponse)
 async def scan_directory(background_tasks: BackgroundTasks, request: ScanRequest) -> ScanStartResponse:
     """Scan a directory and optionally recurse into subfolders."""
@@ -1288,6 +1340,7 @@ async def scan_directory(background_tasks: BackgroundTasks, request: ScanRequest
     )
 
 
+# 接口说明：回填目录文件的缩略图与元数据。
 @router.post("/backfill", response_model=BackfillResponse)
 async def backfill_directory(request: BackfillRequest) -> BackfillResponse:
     """Backfill missing thumbnail/meta for files under a folder."""
@@ -1392,6 +1445,7 @@ async def backfill_directory(request: BackfillRequest) -> BackfillResponse:
                                 filepath,
                                 title=parsed.title,
                                 authors=parsed.authors,
+                                cosers=parsed.cosers,
                                 group_name=parsed.group,
                                 raw_tags=parsed.raw_tags,
                                 event=parsed.event,
@@ -1440,6 +1494,7 @@ async def backfill_directory(request: BackfillRequest) -> BackfillResponse:
     )
 
 
+# 接口说明：扫描目录并开启实时监听。
 @router.post("/scan-watch", response_model=ScanStartResponse)
 async def scan_and_watch(background_tasks: BackgroundTasks, request: ScanRequest) -> ScanStartResponse:
     """Scan a directory recursively and start watchdog listener."""
@@ -1482,6 +1537,7 @@ async def scan_and_watch(background_tasks: BackgroundTasks, request: ScanRequest
     )
 
 
+# 接口说明：查询扫描任务状态。
 @router.get("/scan-status", response_model=list[ScanStatusItem])
 async def get_scan_status(path: str | None = Query(None, description="Optional path filter")) -> list[ScanStatusItem]:
     """Get background scan status for all paths or one path."""
@@ -1495,6 +1551,7 @@ async def get_scan_status(path: str | None = Query(None, description="Optional p
         return [_build_scan_status_item(path_key, record) for path_key, record in _scan_status.items()]
 
 
+# 接口说明：获取（或生成）文件缩略图。
 @router.get("/thumb", response_model=None)
 async def get_thumbnail(path: str = Query(..., description="File path for thumbnail")):
     """Get or generate thumbnail for a file."""
@@ -1572,6 +1629,7 @@ def _get_extract_cache_dir(archive_path: Path) -> Path:
 
 
 
+# 接口说明：列出压缩包内文件与统计信息。
 @router.get("/archive/list", response_model=ArchiveListResponse)
 async def list_archive(path: str = Query(..., description="Archive file path")) -> ArchiveListResponse:
     """List contents of an archive file."""
@@ -1693,6 +1751,7 @@ class ClearCacheResponse(BaseModel):
     freed_size_readable: str
 
 
+# 接口说明：清理压缩包解压缓存。
 @router.delete("/extract-cache", response_model=ClearCacheResponse)
 async def clear_extract_cache_endpoint() -> ClearCacheResponse:
     """清理所有解压缓存（跳过正在解压的目录）。"""
@@ -1710,6 +1769,7 @@ async def clear_extract_cache_endpoint() -> ClearCacheResponse:
         raise HTTPException(status_code=500, detail=f"Failed to clear cache: {e}")
 
 
+# 接口说明：按页优先解压压缩包内容。
 @router.post("/archive/extract", response_model=ExtractStatus)
 async def extract_archive(
     background_tasks: BackgroundTasks,
@@ -1738,18 +1798,48 @@ async def extract_archive(
     cache_dir = _get_extract_cache_dir(validated_path)
     cache_key = str(cache_dir)
 
+    # 先获取条目清单，后续用于：
+    # 1) 判断无媒体时直接 completed 返回；
+    # 2) 计算当前页优先解压目标。
+    try:
+        all_entries = await asyncio.to_thread(list_archive_entries, validated_path)
+    except Exception as e:
+        logger.error(f"Failed to list archive entries for extraction: {validated_path}: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to list archive: {e}")
+
+    media_entries = [
+        e for e in all_entries
+        if detect_file_type(e) in ("image", "video", "audio")
+    ]
+
+    # 没有可解压媒体时直接返回 completed，避免前端等待。
+    if not media_entries:
+        return ExtractStatus(
+            status="completed",
+            extracted_count=0,
+            total_count=0,
+            cache_dir=str(cache_dir),
+        )
+
+    # 阶段 1：当前页（同步保证首屏可用）
+    current_page_entry = [media_entries[page]] if 0 <= page < len(media_entries) else []
+
+    # 阶段 2：前后 ±5 页（后台）
+    start_idx = max(0, page - 5)
+    end_idx = min(len(media_entries), page + 6)
+    secondary = [e for e in media_entries[start_idx:end_idx] if e not in current_page_entry]
+
     # ---- 检查是否已经完全解压完成 ----
     if cache_dir.exists():
         try:
-            entries = await asyncio.to_thread(list_archive_entries, validated_path)
             extracted_files = list(cache_dir.rglob("*"))
             extracted_count = len([f for f in extracted_files if f.is_file()])
 
-            if extracted_count >= len(entries):
+            if extracted_count >= len(all_entries):
                 return ExtractStatus(
                     status="completed",
                     extracted_count=extracted_count,
-                    total_count=len(entries),
+                    total_count=len(media_entries),
                     cache_dir=str(cache_dir),
                 )
         except Exception as e:
@@ -1765,41 +1855,33 @@ async def extract_archive(
                 return ExtractStatus(
                     status="extracting",
                     extracted_count=extracted_count,
-                    total_count=0,
+                    total_count=len(media_entries),
                     cache_dir=str(cache_dir),
                 )
             except Exception:
                 return ExtractStatus(
                     status="extracting",
                     extracted_count=0,
-                    total_count=0,
+                    total_count=len(media_entries),
                     cache_dir=str(cache_dir),
                 )
 
         # 标记为正在解压
         _active_extractions[cache_key] = True
 
+    # ---- 阶段 1：同步解压当前页，确保返回时首图可读 ----
+    try:
+        if current_page_entry:
+            await asyncio.to_thread(extract_entries, validated_path, cache_dir, current_page_entry)
+    except Exception as e:
+        logger.error(f"阶段1解压失败: {validated_path.name}, 错误: {e}")
+        with _extraction_lock:
+            _active_extractions.pop(cache_key, None)
+        raise HTTPException(status_code=500, detail=f"Failed to extract current page: {e}")
+
     # ---- 在后台启动三阶段解压 ----
     async def extract_task():
         try:
-            # 获取压缩包内所有文件条目
-            all_entries = await asyncio.to_thread(list_archive_entries, validated_path)
-
-            # 过滤出媒体文件（与 list_archive 端点保持一致）
-            # 前端的 page 索引是基于这个过滤后的列表
-            media_entries = [
-                e for e in all_entries
-                if detect_file_type(e) in ("image", "video", "audio")
-            ]
-
-            # 阶段 1：当前页对应的媒体文件
-            current_page_entry = [media_entries[page]] if 0 <= page < len(media_entries) else []
-
-            # 阶段 2：前后 ±5 页的媒体文件（排除当前页）
-            start_idx = max(0, page - 5)
-            end_idx = min(len(media_entries), page + 6)
-            secondary = [e for e in media_entries[start_idx:end_idx] if e not in current_page_entry]
-
             logger.info(
                 f"三阶段解压 {validated_path.name}: "
                 f"当前页={page}, 次优先={start_idx}-{end_idx}, "
@@ -1829,12 +1911,13 @@ async def extract_archive(
 
     return ExtractStatus(
         status="extracting",
-        extracted_count=0,
-        total_count=0,
+        extracted_count=1 if current_page_entry else 0,
+        total_count=len(media_entries),
         cache_dir=str(cache_dir),
     )
 
 
+# 接口说明：读取压缩包缓存中的指定文件。
 @router.get("/archive/file", response_model=None)
 def get_archive_file(
     path: str = Query(..., description="Archive file path"),
@@ -1859,6 +1942,7 @@ def get_archive_file(
     return FileResponse(file_path, media_type=get_mime_type(file_path))
 
 
+# 接口说明：直接读取本地文件内容。
 @router.get("/file", response_model=None)
 def get_file(path: str = Query(..., description="File path")):
     """Serve a file directly from disk."""
@@ -1900,6 +1984,7 @@ class CompressImagesResponse(BaseModel):
     error_message: str = ""
 
 
+# 接口说明：压缩压缩包内图片并重新打包。
 @router.post("/archive/compress-images", response_model=CompressImagesResponse)
 async def compress_archive_images_endpoint(
     background_tasks: BackgroundTasks,

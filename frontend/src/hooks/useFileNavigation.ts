@@ -21,28 +21,46 @@ function buildNavigationTarget(item: FileSystemItem, isMobile: boolean) {
     const readRoute = isMobile ? "/read-mobile" : "/read"
     return {
       to: readRoute as "/read" | "/read-mobile",
-      search: { path: item.path, source: "archive" as const, page: 0, filePath: "" },
+      search: {
+        path: item.path,
+        source: "archive" as const,
+        page: 0,
+        filePath: "",
+      },
     }
   }
   if (isVideo) {
-    return { to: "/video" as const, search: { path: item.path, entry: undefined, media: "video" as const } }
+    return {
+      to: "/video" as const,
+      search: { path: item.path, entry: undefined, media: "video" as const },
+    }
   }
   if (isAudio) {
-    return { to: "/audio" as const, search: { path: item.path, entry: undefined } }
+    return {
+      to: "/audio" as const,
+      search: { path: item.path, entry: undefined },
+    }
   }
   if (isImage) {
     const parentPath = getParentPath(item.path)
     const readRoute = isMobile ? "/read-mobile" : "/read"
     return {
       to: readRoute as "/read" | "/read-mobile",
-      search: { path: parentPath, source: "folder" as const, page: 0, filePath: item.path },
+      search: {
+        path: parentPath,
+        source: "folder" as const,
+        page: 0,
+        filePath: item.path,
+      },
     }
   }
   return null
 }
 
 /** 构建完整 URL 用于新标签页打开 */
-function buildUrl(target: ReturnType<typeof buildNavigationTarget>): string | null {
+function buildUrl(
+  target: ReturnType<typeof buildNavigationTarget>,
+): string | null {
   if (!target) return null
   const params = new URLSearchParams()
   for (const [key, value] of Object.entries(target.search)) {
@@ -81,9 +99,12 @@ export function useFileNavigation() {
   )
 
   /** 判断文件是否可打开 */
-  const isOpenable = useCallback((item: FileSystemItem) => {
-    return buildNavigationTarget(item, isMobile) !== null
-  }, [isMobile])
+  const isOpenable = useCallback(
+    (item: FileSystemItem) => {
+      return buildNavigationTarget(item, isMobile) !== null
+    },
+    [isMobile],
+  )
 
   return { openItem, openItemInNewTab, isOpenable }
 }

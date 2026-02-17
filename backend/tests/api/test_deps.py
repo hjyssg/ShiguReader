@@ -2,6 +2,7 @@
 
 import pytest
 from fastapi import HTTPException
+from sqlalchemy.exc import OperationalError
 from sqlmodel import Session
 
 from app import crud
@@ -63,3 +64,37 @@ def test_get_current_user_inactive_user_raises_400(user_session: Session) -> Non
     
     assert exc_info.value.status_code == 400
     assert "Inactive user" in exc_info.value.detail
+
+
+def test_get_current_user_fallback_when_missing_created_at_column() -> None:
+    """兼容旧库：第一次按 created_at 查询失败时回退到 id 排序。"""
+
+    class _Result:
+        def __init__(self, user):
+            self._user = user
+
+        def first(self):
+            return self._user
+
+    class _SessionStub:
+        def __init__(self, user):
+            self.user = user
+            self.calls = 0
+
+        def exec(self, _stmt):
+            self.calls += 1
+            if self.calls == 1:
+                raise OperationalError("SELECT ...", {}, Exception("no such column"))
+            return _Result(self.user)
+
+    class _UserStub:
+        email = "compat@example.com"
+        is_active = True
+
+    user = _UserStub()
+    session_stub = _SessionStub(user)
+
+    current_user = get_current_user(session_stub)
+
+    assert current_user.email == "compat@example.com"
+    assert session_stub.calls == 2

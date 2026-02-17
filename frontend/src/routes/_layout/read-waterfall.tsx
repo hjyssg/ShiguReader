@@ -1,15 +1,16 @@
 import { useMutation, useQuery } from "@tanstack/react-query"
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router"
-import { ChevronRight, Folder, Home } from "lucide-react"
 import { useEffect, useMemo } from "react"
 import { useTranslation } from "react-i18next"
 
 import { FilesystemService, OpenAPI } from "@/client"
-import { useIsMobile } from "@/hooks/useMobile"
-import { getBaseName, joinPath, splitPath } from "@/lib/path-utils"
+import { PathBreadcrumb } from "@/components/Common/PathBreadcrumb"
+import { ExtractingIndicator } from "@/components/semantic/layout"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
-import { ExtractingIndicator } from "@/components/semantic/layout"
+import { useIsMobile } from "@/hooks/useMobile"
+import { getBaseName } from "@/lib/path-utils"
+import "./read.css"
 
 export const Route = createFileRoute("/_layout/read-waterfall")({
   component: ReadWaterfallPage,
@@ -33,15 +34,15 @@ function ReadWaterfallPage() {
     enabled: !!path,
   })
 
-  const extractMutation = useMutation({
+  const { mutate: extractArchive, data: extractResult } = useMutation({
     mutationFn: () => FilesystemService.extractArchive({ path, page: 0 }),
   })
 
   useEffect(() => {
     if (path) {
-      extractMutation.mutate()
+      extractArchive()
     }
-  }, [path])
+  }, [path, extractArchive])
 
   const imageEntries = useMemo(
     () => listData?.entries.filter((e) => e.file_type === "image") || [],
@@ -57,37 +58,23 @@ function ReadWaterfallPage() {
     )
   }
 
-  const pathParts = splitPath(path)
   const fileName = getBaseName(path, "Archive")
-  const dirCrumbs = pathParts.slice(0, -1).map((name, index) => ({
-    name,
-    path: joinPath(pathParts.slice(0, index + 1), path),
-  }))
 
   return (
-    <div className="space-y-4 p-[10px]">
-      <nav className="flex items-center gap-2 text-sm">
-        <Link to="/" className="flex items-center gap-1 text-muted-foreground hover:text-foreground">
-          <Home className="size-4" />
-          <span>Home</span>
-        </Link>
-        {dirCrumbs.map((crumb) => (
-          <div key={crumb.path} className="flex items-center gap-2">
-            <ChevronRight className="size-4 text-muted-foreground" />
-            <Link to="/explorer" search={{ path: crumb.path }} className="text-muted-foreground hover:text-foreground">
-              <Folder className="size-4 inline mr-1" />{crumb.name}
-            </Link>
-          </div>
-        ))}
-        <ChevronRight className="size-4 text-muted-foreground" />
-        <Link to="/archive" search={{ path }} className="text-muted-foreground hover:text-foreground">
-          {fileName}
-        </Link>
-        <ChevronRight className="size-4 text-muted-foreground" />
-        <span className="font-medium">Waterfall</span>
-      </nav>
+    <div className="reader-waterfall-page">
+      <PathBreadcrumb
+        sourcePath={path}
+        extraCrumbs={[
+          {
+            label: fileName,
+            to: "/archive",
+            search: { path },
+          },
+        ]}
+        currentLabel="Waterfall"
+      />
 
-      <div className="flex items-center gap-2">
+      <div className="reader-waterfall-actions">
         <Button
           onClick={() =>
             navigate({
@@ -98,10 +85,13 @@ function ReadWaterfallPage() {
         >
           {t("reader.openReader")}
         </Button>
-        <ExtractingIndicator status={extractMutation.data?.status} variant="inline" />
+        <ExtractingIndicator
+          status={extractResult?.status}
+          variant="inline"
+        />
       </div>
 
-      <div className="space-y-2">
+      <div className="reader-waterfall-list">
         {imageEntries.map((entry, index) => {
           const imageUrl = `${OpenAPI.BASE}/api/v1/fs/archive/file?path=${encodeURIComponent(path)}&entry=${encodeURIComponent(entry.entry_path)}`
           return (
@@ -109,10 +99,15 @@ function ReadWaterfallPage() {
               key={entry.entry_path}
               to={isMobile ? "/read-mobile" : "/read"}
               search={{ path, page: index, source: "archive", filePath: "" }}
-              className="block rounded border bg-card overflow-hidden hover:border-primary"
+              className="reader-waterfall-item"
             >
-              <img src={imageUrl} alt={entry.name} className="w-full object-contain bg-muted" loading="lazy" />
-              <div className="px-2 py-1 text-xs text-muted-foreground">
+              <img
+                src={imageUrl}
+                alt={entry.name}
+                className="reader-waterfall-item__image"
+                loading="lazy"
+              />
+              <div className="reader-waterfall-item__caption">
                 {index + 1}. {entry.name}
               </div>
             </Link>

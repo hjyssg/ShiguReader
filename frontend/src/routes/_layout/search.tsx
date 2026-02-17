@@ -28,8 +28,9 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 
-type Scope = "file" | "author" | "tag"
+type Scope = "file" | "author" | "coser" | "tag"
 type Mode = "exact" | "hybrid"
+type PresenceFilter = "all" | "watched" | "scanned_recent"
 
 export const Route = createFileRoute("/_layout/search")({
   component: SearchPage,
@@ -37,11 +38,17 @@ export const Route = createFileRoute("/_layout/search")({
     const q = typeof search.q === "string" ? search.q : ""
     const mode: Mode = search.mode === "exact" ? "exact" : "hybrid"
     const page = Math.max(1, Number(search.page) || 1)
+    const presenceFilter: PresenceFilter =
+      search.presenceFilter === "watched" ||
+      search.presenceFilter === "scanned_recent"
+        ? search.presenceFilter
+        : "all"
 
     const rawScopes = search.scopes
     const scopes = Array.isArray(rawScopes)
       ? rawScopes.filter(
-          (s): s is Scope => s === "file" || s === "author" || s === "tag",
+          (s): s is Scope =>
+            s === "file" || s === "author" || s === "coser" || s === "tag",
         )
       : []
 
@@ -49,9 +56,18 @@ export const Route = createFileRoute("/_layout/search")({
       q,
       mode,
       page,
+      presenceFilter,
       scopes:
-        scopes.length > 0 ? scopes : (["file", "author", "tag"] as Scope[]),
-    } as { q: string; mode: Mode; page: number; scopes: Scope[] }
+        scopes.length > 0
+          ? scopes
+          : (["file", "author", "coser", "tag"] as Scope[]),
+    } as {
+      q: string
+      mode: Mode
+      page: number
+      scopes: Scope[]
+      presenceFilter: PresenceFilter
+    }
   },
   head: () => ({
     meta: [
@@ -71,6 +87,9 @@ function SearchPage() {
   const [submittedQ, setSubmittedQ] = useState(search.q)
   const [scopes, setScopes] = useState<Scope[]>(search.scopes)
   const [mode, setMode] = useState<Mode>(search.mode)
+  const [presenceFilter, setPresenceFilter] = useState<PresenceFilter>(
+    search.presenceFilter,
+  )
   const [jumpPage, setJumpPage] = useState("")
 
   const pageSize = 24
@@ -80,16 +99,18 @@ function SearchPage() {
     setSubmittedQ(search.q)
     setScopes(search.scopes)
     setMode(search.mode)
-  }, [search.mode, search.q, search.scopes])
+    setPresenceFilter(search.presenceFilter)
+  }, [search.mode, search.presenceFilter, search.q, search.scopes])
 
   const { data, isLoading } = useQuery({
-    queryKey: ["search", submittedQ, scopes, mode],
+    queryKey: ["search", submittedQ, scopes, mode, presenceFilter],
     queryFn: () =>
       SearchService.searchFiles({
         requestBody: {
           q: submittedQ,
           scopes,
           mode,
+          presence_filter: presenceFilter,
         },
       }),
     enabled: submittedQ.trim().length > 0,
@@ -136,7 +157,13 @@ function SearchPage() {
     if (target !== search.page) {
       navigate({
         to: "/search",
-        search: { q: submittedQ, mode, scopes, page: target },
+        search: {
+          q: submittedQ,
+          mode,
+          scopes,
+          page: target,
+          presenceFilter,
+        },
       })
     }
   }
@@ -144,7 +171,9 @@ function SearchPage() {
   return (
     <div className="space-y-6">
       <div className="space-y-2">
-        <h1 className="text-2xl font-bold tracking-tight">{t("search.title")}</h1>
+        <h1 className="text-2xl font-bold tracking-tight">
+          {t("search.title")}
+        </h1>
         <p className="text-muted-foreground">{t("search.description")}</p>
       </div>
 
@@ -174,6 +203,7 @@ function SearchPage() {
                 [
                   ["file", t("search.file")],
                   ["author", t("search.author")],
+                  ["coser", t("search.coser")],
                   ["tag", t("search.tag")],
                 ] as [Scope, string][]
               ).map(([value, text]) => {
@@ -204,6 +234,25 @@ function SearchPage() {
               <SelectContent>
                 <SelectItem value="exact">Exact</SelectItem>
                 <SelectItem value="hybrid">Hybrid</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Label className="text-sm">Presence</Label>
+            <Select
+              value={presenceFilter}
+              onValueChange={(v) => setPresenceFilter(v as PresenceFilter)}
+            >
+              <SelectTrigger className="w-[180px] h-8">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All</SelectItem>
+                <SelectItem value="watched">Watched only</SelectItem>
+                <SelectItem value="scanned_recent">
+                  Scanned &lt; 10min
+                </SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -301,7 +350,9 @@ function SearchPage() {
               </Pagination>
 
               <div className="flex items-center gap-2 text-sm">
-                <span className="text-muted-foreground">{t("search.goTo")}</span>
+                <span className="text-muted-foreground">
+                  {t("search.goTo")}
+                </span>
                 <Input
                   type="number"
                   min={1}

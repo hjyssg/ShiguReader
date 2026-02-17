@@ -1,5 +1,12 @@
 // 文件类型图标组件，根据类型显示不同图标
-import { File, FileArchive, FileAudio, FileImage, FileVideo, Folder } from "lucide-react"
+import {
+  File,
+  FileArchive,
+  FileAudio,
+  FileImage,
+  FileVideo,
+  Folder,
+} from "lucide-react"
 
 export function FileIcon({
   fileType,

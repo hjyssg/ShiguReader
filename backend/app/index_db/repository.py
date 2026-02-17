@@ -1,3 +1,24 @@
+"""
+IndexRepository（index_db 数据访问层）
+
+本模块集中封装 ShiguReader 的 index_db（SQLite + SQLModel）所有读写操作，
+是索引数据库的统一入口。
+
+主要职责：
+- 文件/文件夹索引：upsert 与批量 upsert（维护 first_seen / last_seen / last_scanned）。
+- 解析结果持久化：保存 ParsedMetadata、Artist/Tag 主表及 FileArtist/FileTag 关联表。
+- 搜索能力：按 文件名/路径/作者/coser/tag 查询，支持 presence 过滤。
+- 阅读进度：Progress 记录、分页历史、统计总数。
+- 压缩包元数据：ArchiveMeta 存储与查询。
+- 推荐相关：统计 favorite 频次、批量更新 rec_score。
+- 目录级优化查询：减少 N+1，用于 /fs/list 等高频接口。
+
+实现要点：
+- 所有写操作在 index_write_guard() 下提交，避免并发写冲突。
+- 批量操作采用分块处理，规避 SQLite 参数上限并提升性能。
+"""
+
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -7,6 +28,7 @@ from typing import Iterator, TypeVar
 from sqlmodel import Session, func, select
 
 from app.index_db.db import index_write_guard
+from app.index_db.confidence import SCAN_FRESH_WINDOW_SEC
 from app.index_db.models import (
     ArchiveMeta,
     Artist,
@@ -21,6 +43,7 @@ from app.index_db.models import (
 
 
 def _now_ts() -> int:
+    """返回当前秒级 Unix 时间戳。"""
     return int(time())
 
 
@@ -28,6 +51,7 @@ T = TypeVar("T")
 
 
 def _iter_chunks(items: list[T], chunk_size: int) -> Iterator[list[T]]:
+    """Yield a list in fixed-size chunks for batched processing."""
     if chunk_size <= 0:
         chunk_size = 500
     for i in range(0, len(items), chunk_size):
@@ -36,6 +60,7 @@ def _iter_chunks(items: list[T], chunk_size: int) -> Iterator[list[T]]:
 
 @dataclass(slots=True)
 class UpsertFolderInput:
+    """目录 upsert 入参。"""
     filepath: str
     dirname: str
     mtime: int | None = None
@@ -46,6 +71,7 @@ class UpsertFolderInput:
 
 @dataclass(slots=True)
 class UpsertFileInput:
+    """文件 upsert 入参。"""
     filepath: str
     filename: str
     mtime: int
@@ -62,14 +88,29 @@ class UpsertFileInput:
 
 
 class IndexRepository:
+    """索引数据库的统一读写仓储。"""
+    def _apply_presence_filter(self, stmt, presence_filter: str):
+        """Apply watched/scanned presence filters to a SQL statement."""
+        if presence_filter == "watched":
+            return stmt.where(File.watch_state == 1)
+
+        if presence_filter == "scanned_recent":
+            cutoff = _now_ts() - SCAN_FRESH_WINDOW_SEC
+            return stmt.where(File.scan_state == 1).where(File.last_seen_at >= cutoff)
+
+        return stmt
+
     def __init__(self, session: Session) -> None:
+        """Initialize repository with a SQLModel session."""
         self.session = session
 
     def _commit(self) -> None:
+        """Commit current transaction under index-db write guard."""
         with index_write_guard():
             self.session.commit()
 
     def upsert_folder(self, data: UpsertFolderInput) -> Folder:
+        """Insert or update a folder row by filepath."""
         now = _now_ts()
         folder = self.session.get(Folder, data.filepath)
         if folder is None:
@@ -105,6 +146,7 @@ class IndexRepository:
         return folder
 
     def upsert_file(self, data: UpsertFileInput) -> File:
+        """Insert or update a file row by filepath."""
         now = _now_ts()
         file = self.session.get(File, data.filepath)
         if file is None:
@@ -354,6 +396,7 @@ class IndexRepository:
         limit: int,
         sort_order: str = "desc",
     ) -> list[Progress]:
+        """Return paginated reading progress history ordered by last opened time."""
         order_clause = (
             Progress.last_opened_at.asc()
             if sort_order == "asc"
@@ -363,6 +406,7 @@ class IndexRepository:
         return list(self.session.exec(stmt).all())
 
     def count_progress_history(self) -> int:
+        """Return total count of progress records."""
         stmt = select(func.count()).select_from(Progress)
         return int(self.session.exec(stmt).one())
 
@@ -402,6 +446,7 @@ class IndexRepository:
         *,
         title: str | None = None,
         authors: list[str] | None = None,
+        cosers: list[str] | None = None,
         group_name: str | None = None,
         raw_tags: list[str] | None = None,
         event: str | None = None,
@@ -411,6 +456,10 @@ class IndexRepository:
         """Persist a single parse result into parsed_metadata, artists, tags
         and their join tables."""
         now = _now_ts()
+
+        # 业务约束：author(漫画作者) 与 coser(三次元) 不应出现在同一 zip。
+        if cosers:
+            authors = []
 
         # Upsert ParsedMetadata
         meta = self.session.get(ParsedMetadata, filepath)
@@ -444,6 +493,16 @@ class IndexRepository:
                         FileArtist(filepath=filepath, artist_name=author_name)
                     )
 
+        if cosers:
+            for coser_name in cosers:
+                if not self.session.get(Artist, coser_name):
+                    self.session.add(Artist(artist_name=coser_name))
+                fc_key = (filepath, coser_name, "coser")
+                if not self.session.get(FileArtist, fc_key):
+                    self.session.add(
+                        FileArtist(filepath=filepath, artist_name=coser_name, role="coser")
+                    )
+
         # Upsert tags + file_tags
         if raw_tags:
             for tag_name in raw_tags:
@@ -465,7 +524,7 @@ class IndexRepository:
         """Batch persist parse results.
 
         Each dict in *results* must have a ``filepath`` key and may contain:
-        ``title``, ``authors``, ``group_name``, ``raw_tags``, ``event``,
+        ``title``, ``authors``, ``cosers``, ``group_name``, ``raw_tags``, ``event``,
         ``date_tag``, ``media_type``.
         """
         if not results:
@@ -494,18 +553,24 @@ class IndexRepository:
 
         # Collect all unique artist / tag names
         all_authors: set[str] = set()
+        all_cosers: set[str] = set()
         all_tags: set[str] = set()
         for r in results:
             if r["filepath"] not in existing_files:
                 continue
-            all_authors.update({a for a in (r.get("authors") or []) if a})
+            row_cosers = {c for c in (r.get("cosers") or []) if c}
+            row_authors = set() if row_cosers else {a for a in (r.get("authors") or []) if a}
+            all_authors.update(row_authors)
+            all_cosers.update(row_cosers)
             all_tags.update({t for t in (r.get("raw_tags") or []) if t})
+
+        all_artists = all_authors | all_cosers
 
         # Fetch existing artists / tags
         existing_artists: set[str] = set()
-        if all_authors:
+        if all_artists:
             stmt_a = select(Artist.artist_name).where(
-                Artist.artist_name.in_(list(all_authors))
+                Artist.artist_name.in_(list(all_artists))
             )
             existing_artists = set(self.session.exec(stmt_a).all())
 
@@ -544,7 +609,15 @@ class IndexRepository:
                 meta.parsed_at = now
 
             # Artists (dedupe within each file)
-            for name in {a for a in (r.get("authors") or []) if a}:
+            row_cosers = {c for c in (r.get("cosers") or []) if c}
+            row_authors = set() if row_cosers else {a for a in (r.get("authors") or []) if a}
+
+            for name in row_authors:
+                if name not in existing_artists:
+                    to_add.append(Artist(artist_name=name))
+                    existing_artists.add(name)
+
+            for name in row_cosers:
                 if name not in existing_artists:
                     to_add.append(Artist(artist_name=name))
                     existing_artists.add(name)
@@ -582,10 +655,19 @@ class IndexRepository:
             if fp not in existing_files:
                 continue
 
-            for name in {a for a in (r.get("authors") or []) if a}:
+            row_cosers = {c for c in (r.get("cosers") or []) if c}
+            row_authors = set() if row_cosers else {a for a in (r.get("authors") or []) if a}
+
+            for name in row_authors:
                 key = (fp, name, "")
                 if key not in existing_file_artists:
                     link_to_add.append(FileArtist(filepath=fp, artist_name=name))
+                    existing_file_artists.add(key)
+
+            for name in row_cosers:
+                key = (fp, name, "coser")
+                if key not in existing_file_artists:
+                    link_to_add.append(FileArtist(filepath=fp, artist_name=name, role="coser"))
                     existing_file_artists.add(key)
 
             for tag in {t for t in (r.get("raw_tags") or []) if t}:
@@ -602,9 +684,28 @@ class IndexRepository:
         """Return parsed metadata for a single file."""
         return self.session.get(ParsedMetadata, filepath)
 
+    def get_parsed_metadata_by_filepaths(self, filepaths: list[str]) -> dict[str, ParsedMetadata]:
+        """Return parsed metadata map keyed by filepath."""
+        if not filepaths:
+            return {}
+
+        stmt = select(ParsedMetadata).where(ParsedMetadata.filepath.in_(filepaths))
+        return {meta.filepath: meta for meta in self.session.exec(stmt).all()}
+
     def get_file_artists(self, filepath: str) -> list[str]:
         """Return artist names associated with a file."""
-        stmt = select(FileArtist.artist_name).where(FileArtist.filepath == filepath)
+        stmt = select(FileArtist.artist_name).where(
+            FileArtist.filepath == filepath,
+            FileArtist.role == "",
+        )
+        return list(self.session.exec(stmt).all())
+
+    def get_file_cosers(self, filepath: str) -> list[str]:
+        """Return coser names associated with a file."""
+        stmt = select(FileArtist.artist_name).where(
+            FileArtist.filepath == filepath,
+            FileArtist.role == "coser",
+        )
         return list(self.session.exec(stmt).all())
 
     def get_file_tags(self, filepath: str) -> list[str]:
@@ -616,7 +717,7 @@ class IndexRepository:
     # Search helpers
     # ------------------------------------------------------------------
 
-    def search_files(self, q: str, mode: str = "hybrid") -> list[File]:
+    def search_files(self, q: str, mode: str = "hybrid", presence_filter: str = "all") -> list[File]:
         """Search files by filename/filepath."""
         if not q:
             return []
@@ -629,9 +730,10 @@ class IndexRepository:
             stmt = select(File).where(
                 (File.filename.ilike(f"%{q}%")) | (File.filepath.ilike(f"%{q}%"))
             )
+        stmt = self._apply_presence_filter(stmt, presence_filter)
         return list(self.session.exec(stmt).all())
 
-    def search_by_author(self, q: str, mode: str = "hybrid") -> list[File]:
+    def search_by_author(self, q: str, mode: str = "hybrid", presence_filter: str = "all") -> list[File]:
         """Search files by author name."""
         if not q:
             return []
@@ -647,16 +749,45 @@ class IndexRepository:
             return []
 
         filepaths_stmt = select(FileArtist.filepath).where(
-            FileArtist.artist_name.in_(artist_names)
+            FileArtist.artist_name.in_(artist_names),
+            FileArtist.role == "",
         )
         filepaths = list(self.session.exec(filepaths_stmt).all())
         if not filepaths:
             return []
 
         files_stmt = select(File).where(File.filepath.in_(filepaths))
+        files_stmt = self._apply_presence_filter(files_stmt, presence_filter)
         return list(self.session.exec(files_stmt).all())
 
-    def search_by_tag(self, q: str, mode: str = "hybrid") -> list[File]:
+    def search_by_coser(self, q: str, mode: str = "hybrid", presence_filter: str = "all") -> list[File]:
+        """Search files by coser name."""
+        if not q:
+            return []
+
+        artist_stmt = select(Artist.artist_name)
+        if mode == "exact":
+            artist_stmt = artist_stmt.where(Artist.artist_name.contains(q))
+        else:
+            artist_stmt = artist_stmt.where(Artist.artist_name.ilike(f"%{q}%"))
+
+        artist_names = list(self.session.exec(artist_stmt).all())
+        if not artist_names:
+            return []
+
+        filepaths_stmt = select(FileArtist.filepath).where(
+            FileArtist.artist_name.in_(artist_names),
+            FileArtist.role == "coser",
+        )
+        filepaths = list(self.session.exec(filepaths_stmt).all())
+        if not filepaths:
+            return []
+
+        files_stmt = select(File).where(File.filepath.in_(filepaths))
+        files_stmt = self._apply_presence_filter(files_stmt, presence_filter)
+        return list(self.session.exec(files_stmt).all())
+
+    def search_by_tag(self, q: str, mode: str = "hybrid", presence_filter: str = "all") -> list[File]:
         """Search files by tag name."""
         if not q:
             return []
@@ -677,6 +808,7 @@ class IndexRepository:
             return []
 
         files_stmt = select(File).where(File.filepath.in_(filepaths))
+        files_stmt = self._apply_presence_filter(files_stmt, presence_filter)
         return list(self.session.exec(files_stmt).all())
 
     # ------------------------------------------------------------------
@@ -684,6 +816,7 @@ class IndexRepository:
     # ------------------------------------------------------------------
 
     def delete_file(self, filepath: str) -> None:
+        """Delete a single file row when it exists."""
         file = self.session.get(File, filepath)
         if file is None:
             return
@@ -691,6 +824,7 @@ class IndexRepository:
         self._commit()
 
     def delete_paths_by_prefix(self, prefix: str) -> None:
+        """Delete all file/folder rows whose filepath starts with prefix."""
         files_stmt = select(File).where(File.filepath.startswith(prefix))
         for file in self.session.exec(files_stmt).all():
             self.session.delete(file)
@@ -710,6 +844,7 @@ class IndexRepository:
         stmt = (
             select(FileArtist.artist_name, func.count(FileArtist.filepath))
             .join(File, File.filepath == FileArtist.filepath)
+            .where(FileArtist.role == "")
             .where(File.filepath.startswith(favorite_dir))
             .group_by(FileArtist.artist_name)
         )
@@ -731,11 +866,27 @@ class IndexRepository:
         return {name: int(cnt) for name, cnt in self.session.exec(stmt).all()}
 
     def get_artists_by_filepaths(self, filepaths: list[str]) -> dict[str, list[str]]:
+        """Return author names grouped by filepath for given files."""
         if not filepaths:
             return {}
 
         stmt = select(FileArtist.filepath, FileArtist.artist_name).where(
-            FileArtist.filepath.in_(filepaths)
+            FileArtist.filepath.in_(filepaths),
+            FileArtist.role == "",
+        )
+        out: dict[str, list[str]] = {}
+        for filepath, artist_name in self.session.exec(stmt).all():
+            out.setdefault(filepath, []).append(artist_name)
+        return out
+
+    def get_cosers_by_filepaths(self, filepaths: list[str]) -> dict[str, list[str]]:
+        """Return coser names grouped by filepath for given files."""
+        if not filepaths:
+            return {}
+
+        stmt = select(FileArtist.filepath, FileArtist.artist_name).where(
+            FileArtist.filepath.in_(filepaths),
+            FileArtist.role == "coser",
         )
         out: dict[str, list[str]] = {}
         for filepath, artist_name in self.session.exec(stmt).all():
@@ -743,6 +894,7 @@ class IndexRepository:
         return out
 
     def get_tags_by_filepaths(self, filepaths: list[str]) -> dict[str, list[str]]:
+        """Return tag names grouped by filepath for given files."""
         if not filepaths:
             return {}
 

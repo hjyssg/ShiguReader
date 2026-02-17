@@ -78,7 +78,9 @@ function Dashboard() {
 
       {/* Configured Roots Section */}
       <div>
-        <h2 className="text-lg font-semibold mb-3">{t("home.specialFolders")}</h2>
+        <h2 className="text-lg font-semibold mb-3">
+          {t("home.specialFolders")}
+        </h2>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mb-6">
           {favoriteRoot ? (
             <Link
@@ -92,7 +94,9 @@ function Dashboard() {
                   <div className="flex size-12 items-center justify-center rounded-lg bg-primary/10">
                     <Heart className="size-6 text-primary" />
                   </div>
-                  <CardTitle className="text-lg">{t("home.favorite")} · {favoriteRoot.dirname}</CardTitle>
+                  <CardTitle className="text-lg">
+                    {t("home.favorite")} · {favoriteRoot.dirname}
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p className="text-sm text-muted-foreground truncate">
@@ -115,7 +119,9 @@ function Dashboard() {
                   <div className="flex size-12 items-center justify-center rounded-lg bg-primary/10">
                     <Folder className="size-6 text-primary" />
                   </div>
-                  <CardTitle className="text-lg">{t("home.alreadyRead")} · {alreadyReadRoot.dirname}</CardTitle>
+                  <CardTitle className="text-lg">
+                    {t("home.alreadyRead")} · {alreadyReadRoot.dirname}
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p className="text-sm text-muted-foreground truncate">
@@ -127,45 +133,43 @@ function Dashboard() {
           ) : null}
         </div>
 
-        <h2 className="text-lg font-semibold mb-3">{t("home.configuredDirs")}</h2>
+        <h2 className="text-lg font-semibold mb-3">
+          {t("home.configuredDirs")}
+        </h2>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {isLoading ? (
-          <>
-            {[1, 2, 3].map((i) => (
-              <Card key={i}>
-                <CardHeader>
-                  <Skeleton className="h-6 w-3/4" />
-                </CardHeader>
-                <CardContent>
-                  <Skeleton className="h-4 w-full" />
-                </CardContent>
-              </Card>
-            ))}
-          </>
-        ) : (
-          roots?.map((root) => (
-            <Link
-              key={root.path}
-              to="/explorer"
-              search={{ path: root.path }}
-              className="transition-transform hover:scale-[1.02]"
-            >
-              <Card className="cursor-pointer hover:border-primary">
-                <CardHeader className="flex flex-row items-center gap-4">
-                  <div className="flex size-12 items-center justify-center rounded-lg bg-primary/10">
-                    <Folder className="size-6 text-primary" />
-                  </div>
-                  <CardTitle className="text-lg">{root.dirname}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-muted-foreground truncate">
-                    {root.path}
-                  </p>
-                </CardContent>
-              </Card>
-            </Link>
-          ))
-        )}
+          {isLoading
+            ? [1, 2, 3].map((i) => (
+                <Card key={i}>
+                  <CardHeader>
+                    <Skeleton className="h-6 w-3/4" />
+                  </CardHeader>
+                  <CardContent>
+                    <Skeleton className="h-4 w-full" />
+                  </CardContent>
+                </Card>
+              ))
+            : roots?.map((root) => (
+                <Link
+                  key={root.path}
+                  to="/explorer"
+                  search={{ path: root.path }}
+                  className="transition-transform hover:scale-[1.02]"
+                >
+                  <Card className="cursor-pointer hover:border-primary">
+                    <CardHeader className="flex flex-row items-center gap-4">
+                      <div className="flex size-12 items-center justify-center rounded-lg bg-primary/10">
+                        <Folder className="size-6 text-primary" />
+                      </div>
+                      <CardTitle className="text-lg">{root.dirname}</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-sm text-muted-foreground truncate">
+                        {root.path}
+                      </p>
+                    </CardContent>
+                  </Card>
+                </Link>
+              ))}
         </div>
       </div>
     </div>

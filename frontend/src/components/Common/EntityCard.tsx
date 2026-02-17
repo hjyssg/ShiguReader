@@ -2,7 +2,7 @@
 import { Image as ImageIcon } from "lucide-react"
 
 import { OpenAPI } from "@/client"
-import { ItemCard, CardThumbnail, CardInfo } from "@/components/semantic/layout"
+import { CardInfo, CardThumbnail, ItemCard } from "@/components/semantic/layout"
 import { ThumbnailImage } from "./ThumbnailImage"
 
 export type EntityCardItem = {
@@ -13,14 +13,28 @@ export type EntityCardItem = {
 
 export function EntityCard({
   item,
-  onClick,
+  href,
 }: {
   item: EntityCardItem
-  onClick?: () => void
+  href?: string
 }) {
   return (
-    <ItemCard onClick={onClick} title={item.name} className="entity-card">
-      {item.thumbnail ? (
+    <ItemCard title={item.name} className="entity-card">
+      {href ? (
+        <a href={href} className="block focus-visible:outline-none">
+          {item.thumbnail ? (
+            <ThumbnailImage
+              src={`${OpenAPI.BASE}${item.thumbnail}`}
+              alt={item.name}
+              fallback={<ImageIcon className="size-10 text-muted-foreground" />}
+            />
+          ) : (
+            <CardThumbnail className="thumbnail-placeholder">
+              <ImageIcon className="size-10 text-muted-foreground" />
+            </CardThumbnail>
+          )}
+        </a>
+      ) : item.thumbnail ? (
         <ThumbnailImage
           src={`${OpenAPI.BASE}${item.thumbnail}`}
           alt={item.name}
@@ -33,9 +47,19 @@ export function EntityCard({
       )}
 
       <CardInfo className="entity-info">
-        <p className="text-sm truncate" title={item.name} title={item.name}>
-          {item.name}
-        </p>
+        {href ? (
+          <a
+            className="text-sm truncate block hover:underline"
+            href={href}
+            title={item.name}
+          >
+            {item.name}
+          </a>
+        ) : (
+          <p className="text-sm truncate" title={item.name}>
+            {item.name}
+          </p>
+        )}
         <p className="text-xs text-muted-foreground">{item.file_count} files</p>
       </CardInfo>
     </ItemCard>
