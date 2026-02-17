@@ -22,6 +22,10 @@ type LibraryOverviewResponse = {
   folders: number
 }
 
+type TopOpenedFoldersResponse = {
+  folder_ids: string[]
+}
+
 export const Route = createFileRoute("/_layout/")({
   component: Dashboard,
   head: () => ({
@@ -69,6 +73,18 @@ function Dashboard() {
       const response = await fetch(`${OpenAPI.BASE}/api/v1/fs/recent-activity?limit=200&since_latest_startup=true`)
       if (!response.ok) {
         return { items: [] }
+      }
+      return response.json()
+    },
+  })
+
+
+  const { data: topOpenedFolders } = useQuery({
+    queryKey: ["home-top-opened-folders"],
+    queryFn: async (): Promise<TopOpenedFoldersResponse> => {
+      const response = await fetch(`${OpenAPI.BASE}/api/v1/fs/top-opened-folders?limit=5`)
+      if (!response.ok) {
+        return { folder_ids: [] }
       }
       return response.json()
     },
@@ -125,6 +141,19 @@ function Dashboard() {
               <HomeCard icon={Folder} title={root.dirname} />
             </Link>
           ))}
+        </div>
+      </section>
+
+
+      <section className="home-section">
+        <h2 className="home-section__title">{t("home.topOpenedFolders")}</h2>
+        <div className="home-grid home-grid--folders">
+          {topOpenedFolders?.folder_ids.map((folderPath) => (
+            <Link key={folderPath} to="/explorer" search={{ path: folderPath }} className="home-card-link">
+              <HomeCard icon={Folder} title={folderPath.split(/[\\/]/).filter(Boolean).at(-1) ?? folderPath} subtitle={folderPath} />
+            </Link>
+          ))}
+          {topOpenedFolders && topOpenedFolders.folder_ids.length === 0 ? <div className="home-empty">{t("home.noTopOpenedFolders")}</div> : null}
         </div>
       </section>
 

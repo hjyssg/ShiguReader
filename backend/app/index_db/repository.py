@@ -26,7 +26,7 @@ import json
 from time import time
 from typing import Iterator, TypeVar
 
-from sqlalchemy import exists
+from sqlalchemy import exists, text
 from sqlmodel import Session, func, select
 
 from app.index_db.db import index_write_guard
@@ -373,6 +373,61 @@ class IndexRepository:
         self._commit()
         self.session.refresh(row)
         return row
+
+    def list_top_opened_folder_ids(
+        self,
+        *,
+        limit: int = 5,
+        now_ts: int | None = None,
+        lookback_days: int = 90,
+        tau_days: int = 14,
+    ) -> list[str]:
+        """Return top opened folder ids with time decay score in one SQLite SQL."""
+        if limit <= 0:
+            return []
+
+        now_ts = now_ts or _now_ts()
+        lookback_sec = max(1, lookback_days) * 24 * 60 * 60
+        tau_sec = max(1, tau_days) * 24 * 60 * 60
+        cutoff_ts = now_ts - lookback_sec
+
+        stmt = text(
+            """
+            WITH recent_events AS (
+                SELECT
+                    h.folderpath AS folder_id,
+                    h.last_opened_at AS opened_at_ts
+                FROM folder_open_history h
+                WHERE h.last_opened_at >= :cutoff_ts
+
+                UNION ALL
+
+                SELECT
+                    f.folderpath AS folder_id,
+                    p.last_opened_at AS opened_at_ts
+                FROM progress p
+                JOIN files f ON f.filepath = p.filepath
+                WHERE p.last_opened_at >= :cutoff_ts
+                  AND f.folderpath IS NOT NULL
+            )
+            SELECT folder_id
+            FROM recent_events
+            GROUP BY folder_id
+            ORDER BY SUM(exp(-((:now_ts - opened_at_ts) * 1.0) / :tau_sec)) DESC
+            LIMIT :limit;
+            """
+        )
+
+        rows = self.session.execute(
+            stmt,
+            {
+                "cutoff_ts": cutoff_ts,
+                "now_ts": now_ts,
+                "tau_sec": tau_sec,
+                "limit": limit,
+            },
+        ).all()
+        return [str(row[0]) for row in rows if row[0]]
 
     def log_activity(self, data: ActivityLogInput) -> ActivityLog:
         row = ActivityLog(

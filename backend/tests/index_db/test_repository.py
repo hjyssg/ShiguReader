@@ -6,6 +6,7 @@ import pytest
 from sqlmodel import Session, create_engine
 
 from app.index_db.bootstrap import ensure_index_db_initialized
+from app.index_db.models import File, Folder, FolderOpenHistory, Progress
 from app.index_db.repository import IndexRepository, UpsertFileInput, UpsertFolderInput
 
 
@@ -276,3 +277,34 @@ def test_batch_save_parse_results_handles_large_input_with_chunking(test_repo: I
     assert meta.title == "Title 1000"
     assert test_repo.get_file_artists(sample_fp)
     assert test_repo.get_file_tags(sample_fp)
+
+
+def test_list_top_opened_folder_ids_with_decay_and_lookback(test_repo: IndexRepository) -> None:
+    now_ts = 2_000_000_000
+
+    folder_a = Folder(filepath="/top/a", dirname="a")
+    folder_b = Folder(filepath="/top/b", dirname="b")
+    folder_old = Folder(filepath="/top/old", dirname="old")
+    file_b = File(
+        filepath="/top/b/file1.cbz",
+        folderpath="/top/b",
+        filename="file1.cbz",
+        mtime=now_ts,
+        filesize=100,
+        fingerprint="fp-top-b-1",
+    )
+
+    test_repo.session.add(folder_a)
+    test_repo.session.add(folder_b)
+    test_repo.session.add(folder_old)
+    test_repo.session.add(file_b)
+
+    test_repo.session.add(FolderOpenHistory(folderpath="/top/a", last_opened_at=now_ts - 3600, open_count=1, updated_at=now_ts - 3600))
+    test_repo.session.add(Progress(filepath="/top/b/file1.cbz", last_opened_at=now_ts - 60))
+    test_repo.session.add(FolderOpenHistory(folderpath="/top/old", last_opened_at=now_ts - 100 * 24 * 3600, open_count=1, updated_at=now_ts))
+    test_repo.session.commit()
+
+    folder_ids = test_repo.list_top_opened_folder_ids(limit=5, now_ts=now_ts)
+
+    assert folder_ids == ["/top/b", "/top/a"]
+

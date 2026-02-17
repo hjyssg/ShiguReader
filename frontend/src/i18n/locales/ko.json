@@ -40,7 +40,9 @@
     "activityFilterSystem": "시스템 작업",
     "activityEmptyHint": "서버 시작 후 자동 작업이 여기에 표시됩니다.",
     "retry": "재시도",
-    "scannedFiles": "스캔된 파일"
+    "scannedFiles": "스캔된 파일",
+    "topOpenedFolders": "자주 여는 폴더",
+    "noTopOpenedFolders": "최근 90일 자주 연 폴더 데이터가 없습니다"
   },
   "explorer": {
     "scan": "스캔",

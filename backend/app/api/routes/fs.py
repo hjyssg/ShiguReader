@@ -313,6 +313,11 @@ class LibraryOverviewResponse(BaseModel):
     folders: int
 
 
+
+class TopOpenedFoldersResponse(BaseModel):
+    folder_ids: list[str]
+
+
 class PathOperationResponse(BaseModel):
     status: Literal["ok"]
     message: str
@@ -2155,6 +2160,15 @@ def get_recent_activity(
             for row in rows
         ]
     )
+
+
+
+@router.get("/top-opened-folders", response_model=TopOpenedFoldersResponse)
+def get_top_opened_folders(limit: int = Query(5, ge=1, le=20)) -> TopOpenedFoldersResponse:
+    with get_index_session() as session:
+        repo = IndexRepository(session)
+        folder_ids = repo.list_top_opened_folder_ids(limit=limit)
+    return TopOpenedFoldersResponse(folder_ids=folder_ids)
 
 
 # 接口说明：获取全库总览统计。
