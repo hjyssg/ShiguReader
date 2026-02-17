@@ -713,7 +713,6 @@ export function FileViewContainer({
                             ? undefined
                             : (e) => handleItemClick(item, e)
                         }
-                        onDoubleClick={(e) => handleItemDoubleClick(item, e)}
                       />
                     </FileContextMenu>
                   )
@@ -755,7 +754,6 @@ export function FileViewContainer({
                       ? undefined
                       : (e) => handleItemClick(item, e)
                   }
-                  onDoubleClick={(e) => handleItemDoubleClick(item, e)}
                 />
               </FileContextMenu>
             )
