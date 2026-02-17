@@ -378,3 +378,15 @@ tag page的sort direction要和explorer页面的一样。考虑用共通componen
 ### 前端task
 breadcrumb 的最后一个filename/foldername点击下去行为不统一
 统一成点击下去 等于 ctrl + c filename/foldername
+
+
+### 前端task
+history的fileitem要复用和其他explorer一样的style。不要用button。
+显示thumbnail和filename和上次阅读时间。
+
+
+### 前端task
+table抽出共通
+你要实现一个table component。
+保证exploer和history的table样式是一样，只是列不一样而已。
+我觉得history的table比较好看

@@ -9,15 +9,13 @@
 - 需要加UT
 
 
-
-
 ## Task9：测试补充
 - 补充前后端 UT
 - 保证所有页面可正常打开（可用 Playwright）
 
 
-
-### 打开带密码的zip
+### task
+打开带密码的zip
 需要前端输出代码 然后去解压或者打开
 
 
@@ -36,23 +34,14 @@
 进行你觉得合理应该的重构，保证项目之后还是好维护
 
 
-
-
-
 ## 后端task 
 coser pages大面积不是名单里面的coser，而是name parser解析出来的漫画家名字
 
-列出实现计划，最后要有四个commit。
 
-
-### 现在这个项目很多UI因为没有实现定义共通，经常出现重复时候和行为样式不一样。需要重构
-
-
-# history的fileitem要复用和其他explorer一样的style。不要用button。
-显示thumbnail和filename和上次阅读时间。
-
-
-# table抽出共通
-你要实现一个table component。
-保证exploer和history的table样式是一样，只是列不一样而已。
-我觉得history的table比较好看
+## task
+   需要在前端让用户知道启动服务器的时候的要做什么，扫描和各种动作。否则用户会不安
+   显示在home的最近活动。
+   比如开始扫描，结束saomia 
+      开始清除table之类。
+   然后最近活动抽成一个component。之后可能移动到别的文件夹。
+   你进行深度思考，告诉我怎么做最让用户不产生不熟悉的焦虑感。
