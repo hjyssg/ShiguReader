@@ -219,7 +219,8 @@
     "endTime": "終了時刻",
     "running": "実行中",
     "completed": "完了",
-    "error": "エラー"
+    "error": "エラー",
+    "korean": "한국어"
   },
   "archive": {
     "unknownError": "不明なエラー"

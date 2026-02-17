@@ -1,13 +1,14 @@
 <div align="center">
-  <img src="frontend/public/assets/images/favicon.png" width="100" height="100" alt="ShiguReader Logo" />
+  <img src="../frontend/public/assets/images/favicon.png" width="100" height="100" alt="ShiguReader Logo" />
   <h1>ShiguReader</h1>
   <p>ローカル / LAN 向けのコンテンツ整理・閲覧ツール</p>
   <p>「すぐ使える・簡単にデプロイ・個人コレクション管理に最適」</p>
 
   <div>
-    <a href="README.md">中文</a> | 
+    <a href="../README.md">中文</a> |
     <a href="README.en.md">English</a> |
-    <a href="#ShiguReader">日本語</a>
+    <a href="#ShiguReader">日本語</a> |
+    <a href="README.ko.md">한국어</a>
   </div>
 </div>
 
@@ -39,13 +40,13 @@ ShiguReader は、ローカル / LAN 環境でコンテンツを整理・閲覧�
 ### ドキュメント
 
 - [技術ドキュメント（環境と実装の詳細）](TECHNICAL.md)
-- [EXE ビルド手順](build_tools/BUILD.md)
+- [EXE ビルド手順](../build_tools/BUILD.md)
 
 ### スクリーンショット
 
 <div align="center">
-  <img src="img/explorer.png" alt="Explorer" width="800" />
+  <img src="../img/explorer.png" alt="Explorer" width="800" />
   <p><em>Explorer 画面</em></p>
-  <img src="img/read.png" alt="Reader" width="800" />
+  <img src="../img/read.png" alt="Reader" width="800" />
   <p><em>Reader 画面</em></p>
 </div>

@@ -219,7 +219,8 @@
     "running": "正在进行",
     "completed": "已完成",
     "error": "出错",
-    "japanese": "日本語"
+    "japanese": "日本語",
+    "korean": "한국어"
   },
   "archive": {
     "unknownError": "未知错误"

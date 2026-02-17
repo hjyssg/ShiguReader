@@ -219,7 +219,8 @@
     "running": "Running",
     "completed": "Completed",
     "error": "Error",
-    "japanese": "Japanese"
+    "japanese": "Japanese",
+    "korean": "Korean"
   },
   "archive": {
     "unknownError": "Unknown error"
