@@ -45,3 +45,23 @@ coser pages大面积不是名单里面的coser，而是name parser解析出来�
       开始清除table之类。
    然后最近活动抽成一个component。之后可能移动到别的文件夹。
    你进行深度思考，告诉我怎么做最让用户不产生不熟悉的焦虑感。
+
+
+
+## task
+  home需要显示最常用的文件夹
+  根据folder_open_history
+    给你一个**极简但信息完整**的 prompt，直接丢给 AI 生成代码即可：
+
+     要求：
+     1. 只统计最近 90 天的数据。
+     2. 使用时间衰减算法：
+        open_score = sum(exp(-(now - opened_at_ts) / tau))
+     3. tau = 14 天（秒）。
+     4. 按 open_score 降序排序。
+     5. 返回 folder_id 列表。
+     6. 使用一条 SQL 完成聚合（SQLite）。
+     7. 性能要考虑索引建议。
+    
+
+
