@@ -207,7 +207,8 @@
     "endTime": "End Time",
     "running": "Running",
     "completed": "Completed",
-    "error": "Error"
+    "error": "Error",
+    "japanese": "Japanese"
   },
   "archive": {
     "unknownError": "Unknown error"
