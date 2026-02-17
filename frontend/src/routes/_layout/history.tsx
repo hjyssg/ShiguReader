@@ -300,9 +300,6 @@ function HistoryPage() {
                 <th className="text-right p-2 font-medium w-[100px]">
                   {t("history.size")}
                 </th>
-                <th className="text-left p-2 font-medium w-[120px]">
-                  {t("history.status")}
-                </th>
               </tr>
             </thead>
             <tbody>
@@ -337,17 +334,6 @@ function HistoryPage() {
                   </td>
                   <td className="p-2 text-right text-muted-foreground">
                     {item.filesize ? formatFileSize(item.filesize) : "-"}
-                  </td>
-                  <td className="p-2">
-                    {item.file_exists ? (
-                      <Badge variant="secondary">
-                        {t("history.available")}
-                      </Badge>
-                    ) : (
-                      <Badge variant="destructive">
-                        {t("history.unknown")}
-                      </Badge>
-                    )}
                   </td>
                 </tr>
               ))}

@@ -46,3 +46,13 @@ coser pages大面积不是名单里面的coser，而是name parser解析出来�
 
 
 ### 现在这个项目很多UI因为没有实现定义共通，经常出现重复时候和行为样式不一样。需要重构
+
+
+# history的fileitem要复用和其他explorer一样的style。不要用button。
+显示thumbnail和filename和上次阅读时间。
+
+
+# table抽出共通
+你要实现一个table component。
+保证exploer和history的table样式是一样，只是列不一样而已。
+我觉得history的table比较好看
