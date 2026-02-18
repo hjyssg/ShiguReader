@@ -1,4 +1,4 @@
-// 文件视图容器 — 集成选择、右键菜单、键盘快捷键、对话框
+// 文件视图容器 — 集成选择、键盘快捷键、对话框
 import { LayoutGrid, LayoutList, List } from "lucide-react"
 import { Link } from "@tanstack/react-router"
 import { useTranslation } from "react-i18next"
@@ -48,9 +48,8 @@ import { ConfirmMoveDialog } from "./dialogs/ConfirmMoveDialog"
 import { DeleteDialog } from "./dialogs/DeleteDialog"
 import { MoveDialog } from "./dialogs/MoveDialog"
 import { RenameDialog } from "./dialogs/RenameDialog"
-import { FileActionsDropdown, FileContextMenu } from "./FileContextMenu"
+import { FileGridView } from "./FileGridView"
 import { FileIcon } from "./FileIcon"
-import { FileItem } from "./FileItem"
 import { FileTableView, type SortField, type SortOrder } from "./FileTableView"
 
 type ViewMode = "grid" | "table" | "mixed"
@@ -252,7 +251,7 @@ export function FileViewContainer({
   const [confirmFavoriteOpen, setConfirmFavoriteOpen] = useState(false)
   const [confirmAlreadyReadOpen, setConfirmAlreadyReadOpen] = useState(false)
   const [jumpPage, setJumpPage] = useState("")
-  // 右键菜单操作的目标项
+  // 当前操作的目标项
   const [contextItem, setContextItem] = useState<FileSystemItem | null>(null)
 
   const anyDialogOpen =
@@ -387,14 +386,6 @@ export function FileViewContainer({
     [openItem, openItemInNewTab],
   )
 
-  const handleItemContextMenu = useCallback(
-    (item: FileSystemItem) => {
-      setContextItem(item)
-      selection.handleContextMenu(item.path)
-    },
-    [selection],
-  )
-
   // 空白区域点击清除选择
   const handleContainerClick = useCallback(
     (e: React.MouseEvent) => {
@@ -449,7 +440,7 @@ export function FileViewContainer({
     dialogOpen: anyDialogOpen,
   })
 
-  // 构建右键菜单 actions
+  // 构建操作区 actions
   const buildContextMenuActions = useCallback(
     (item: FileSystemItem) => ({
       onOpen: () => {
@@ -552,40 +543,29 @@ export function FileViewContainer({
             }
 
       return (
-        <FileContextMenu
+        <Link
           key={item.path}
-          item={item}
-          isOpenable={isOpenable(item)}
-          actions={buildContextMenuActions(item)}
-          onContextMenuOpen={() => handleItemContextMenu(item)}
+          {...linkProps}
+          className={cn(
+            "file-item-wrapper group flex items-center gap-2 px-3 py-1.5 rounded-md cursor-pointer transition-colors hover:bg-accent/50",
+          )}
         >
-          <Link
-            {...linkProps}
-            className={cn(
-              "file-item-wrapper group flex items-center gap-2 px-3 py-1.5 rounded-md cursor-pointer transition-colors hover:bg-accent/50",
-            )}
+          <FileIcon
+            fileType={item.file_type}
+            isFolder={item.item_type === "folder"}
+            size="sm"
+            className="shrink-0"
+          />
+          <span
+            className="min-w-0 text-sm truncate group-hover:underline"
+            title={item.name}
           >
-            <FileIcon
-              fileType={item.file_type}
-              isFolder={item.item_type === "folder"}
-              size="sm"
-              className="shrink-0"
-            />
-            <span
-              className="min-w-0 text-sm truncate group-hover:underline"
-              title={item.name}
-            >
-              {item.name}
-            </span>
-          </Link>
-        </FileContextMenu>
+            {item.name}
+          </span>
+        </Link>
       )
     },
-    [
-      isOpenable,
-      buildContextMenuActions,
-      handleItemContextMenu,
-    ],
+    [],
   )
 
   const handleSortFieldChange = (field: SortField) => {
@@ -784,84 +764,23 @@ export function FileViewContainer({
               <h3 className="text-sm font-medium text-muted-foreground mb-2">
                 Archives ({mixedGroups.archives.length})
               </h3>
-              <ResponsiveGrid>
-                {mixedGroups.archives.map((item) => {
-                  const useIconDropdown = Boolean(item.thumbnail_url)
-                  return (
-                    <FileContextMenu
-                      key={item.path}
-                      item={item}
-                      isOpenable={isOpenable(item)}
-                      actions={buildContextMenuActions(item)}
-                      onContextMenuOpen={
-                        useIconDropdown
-                          ? undefined
-                          : () => handleItemContextMenu(item)
-                      }
-                    >
-                      <FileItem
-                        item={item}
-                        isSelected={false}
-                        actionSlot={
-                          useIconDropdown ? (
-                            <FileActionsDropdown
-                              item={item}
-                              isOpenable={isOpenable(item)}
-                              actions={buildContextMenuActions(item)}
-                            />
-                          ) : undefined
-                        }
-                        onClick={
-                          useIconDropdown
-                            ? undefined
-                            : (e) => handleItemClick(item, e)
-                        }
-                      />
-                    </FileContextMenu>
-                  )
-                })}
-              </ResponsiveGrid>
+              <FileGridView
+                items={mixedGroups.archives}
+                isOpenable={isOpenable}
+                buildActions={buildContextMenuActions}
+                onItemClick={handleItemClick}
+              />
             </section>
           )}
         </div>
       ) : viewMode === "grid" ? (
-        <ResponsiveGrid className="grid-content">
-          {pagedItems.map((item) => {
-            const useIconDropdown = Boolean(item.thumbnail_url)
-            return (
-              <FileContextMenu
-                key={item.path}
-                item={item}
-                isOpenable={isOpenable(item)}
-                actions={buildContextMenuActions(item)}
-                onContextMenuOpen={
-                  useIconDropdown
-                    ? undefined
-                    : () => handleItemContextMenu(item)
-                }
-              >
-                <FileItem
-                  item={item}
-                  isSelected={false}
-                  actionSlot={
-                    useIconDropdown ? (
-                      <FileActionsDropdown
-                        item={item}
-                        isOpenable={isOpenable(item)}
-                        actions={buildContextMenuActions(item)}
-                      />
-                    ) : undefined
-                  }
-                  onClick={
-                    useIconDropdown
-                      ? undefined
-                      : (e) => handleItemClick(item, e)
-                  }
-                />
-              </FileContextMenu>
-            )
-          })}
-        </ResponsiveGrid>
+        <FileGridView
+          items={pagedItems}
+          isOpenable={isOpenable}
+          buildActions={buildContextMenuActions}
+          onItemClick={handleItemClick}
+          className="grid-content"
+        />
       ) : (
         <FileTableView
           items={pagedItems}
@@ -871,9 +790,6 @@ export function FileViewContainer({
           isSelected={() => false}
           onItemClick={(item, e) => handleItemClick(item, e)}
           onItemDoubleClick={(item, e) => handleItemDoubleClick(item, e)}
-          onItemContextMenu={(item) => handleItemContextMenu(item)}
-          buildContextMenuActions={buildContextMenuActions}
-          isOpenable={isOpenable}
         />
       )}
 
