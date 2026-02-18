@@ -26,6 +26,15 @@ type TopOpenedFoldersResponse = {
   folder_ids: string[]
 }
 
+function parseGoodFolderMonth(name: string): number | null {
+  const match = /^good_(\d{4})_(\d{2})_(\d{2})$/.exec(name)
+  if (!match) return null
+  const year = Number(match[1])
+  const month = Number(match[2])
+  if (!Number.isFinite(year) || !Number.isFinite(month)) return null
+  return year * 100 + month
+}
+
 function HomeFolderLinkCard({
   path,
   name,
@@ -127,7 +136,32 @@ function Dashboard() {
     enabled: !!favoriteRoot?.path,
     queryFn: async () => {
       const list = await FilesystemService.listDirectory({ path: favoriteRoot!.path })
-      return list.items.filter((item) => item.item_type === "folder")
+      const folders = list.items.filter((item) => item.item_type === "folder")
+      const goodFolders = folders.filter((item) => parseGoodFolderMonth(item.name) !== null)
+
+      if (goodFolders.length > 0) {
+        const latestMonth = Math.max(
+          ...goodFolders.map((item) => parseGoodFolderMonth(item.name) || 0),
+        )
+
+        const latestMonthFolders = goodFolders.filter(
+          (item) => parseGoodFolderMonth(item.name) === latestMonth,
+        )
+
+        // 同月内优先显示 good_YYYY_MM_01；若不存在则显示该月字典序最小的一个。
+        const firstDayFolder = latestMonthFolders.find((item) =>
+          item.name.endsWith("_01"),
+        )
+
+        return [
+          firstDayFolder ||
+            [...latestMonthFolders].sort((a, b) =>
+              a.name.localeCompare(b.name),
+            )[0],
+        ]
+      }
+
+      return []
     },
   })
 
