@@ -27,6 +27,16 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Skeleton } from "@/components/ui/skeleton"
+import {
+  Pagination,
+  PaginationContent,
+  PaginationFirst,
+  PaginationItem,
+  PaginationLast,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination"
 import { useFileExplorerKeyboard } from "@/hooks/useFileExplorerKeyboard"
 import { useFileNavigation } from "@/hooks/useFileNavigation"
 import { useFileOperations } from "@/hooks/useFileOperations"
@@ -45,6 +55,15 @@ import { FileTableView, type SortField, type SortOrder } from "./FileTableView"
 
 type ViewMode = "grid" | "table" | "mixed"
 
+type PaginationState = {
+  page: number
+  pageSize: number
+}
+
+type PaginationConfig = PaginationState & {
+  onChange: (next: PaginationState) => void
+}
+
 export function FileViewContainer({
   items,
   isLoading,
@@ -52,6 +71,11 @@ export function FileViewContainer({
   initialViewMode = "grid",
   initialSortField = "type",
   initialSortOrder = "asc",
+  sortField: controlledSortField,
+  sortOrder: controlledSortOrder,
+  onSortFieldChange,
+  onSortOrderChange,
+  pagination,
   storageKeyPrefix = "file-list",
   toolbarExtra,
   emptyText = "This folder is empty",
@@ -62,6 +86,11 @@ export function FileViewContainer({
   initialViewMode?: ViewMode
   initialSortField?: SortField
   initialSortOrder?: SortOrder
+  sortField?: SortField
+  sortOrder?: SortOrder
+  onSortFieldChange?: (field: SortField) => void
+  onSortOrderChange?: (order: SortOrder) => void
+  pagination?: PaginationConfig
   storageKeyPrefix?: string
   toolbarExtra?: ReactNode
   emptyText?: string
@@ -75,24 +104,53 @@ export function FileViewContainer({
     if (saved === "details") return "table"
     return (saved as ViewMode) || initialViewMode
   })
-  const [sortField, setSortField] = useState<SortField>(() => {
+  const [internalSortField, setInternalSortField] = useState<SortField>(() => {
     const saved = localStorage.getItem(`${storageKeyPrefix}-sort-field`)
     return (saved as SortField) || initialSortField
   })
-  const [sortOrder, setSortOrder] = useState<SortOrder>(() => {
+  const [internalSortOrder, setInternalSortOrder] = useState<SortOrder>(() => {
     const saved = localStorage.getItem(`${storageKeyPrefix}-sort-order`)
     return (saved as SortOrder) || initialSortOrder
   })
+
+  const sortField = controlledSortField ?? internalSortField
+  const sortOrder = controlledSortOrder ?? internalSortOrder
 
   useEffect(() => {
     localStorage.setItem(`${storageKeyPrefix}-view-mode`, viewMode)
   }, [storageKeyPrefix, viewMode])
   useEffect(() => {
-    localStorage.setItem(`${storageKeyPrefix}-sort-field`, sortField)
-  }, [storageKeyPrefix, sortField])
+    if (controlledSortField === undefined) {
+      localStorage.setItem(`${storageKeyPrefix}-sort-field`, internalSortField)
+    }
+  }, [storageKeyPrefix, internalSortField, controlledSortField])
   useEffect(() => {
-    localStorage.setItem(`${storageKeyPrefix}-sort-order`, sortOrder)
-  }, [storageKeyPrefix, sortOrder])
+    if (controlledSortOrder === undefined) {
+      localStorage.setItem(`${storageKeyPrefix}-sort-order`, internalSortOrder)
+    }
+  }, [storageKeyPrefix, internalSortOrder, controlledSortOrder])
+
+  const setSortField = useCallback(
+    (field: SortField) => {
+      if (onSortFieldChange) {
+        onSortFieldChange(field)
+        return
+      }
+      setInternalSortField(field)
+    },
+    [onSortFieldChange],
+  )
+
+  const setSortOrder = useCallback(
+    (order: SortOrder) => {
+      if (onSortOrderChange) {
+        onSortOrderChange(order)
+        return
+      }
+      setInternalSortOrder(order)
+    },
+    [onSortOrderChange],
+  )
 
   // Sorted items
   const sortedItems = useMemo(() => {
@@ -143,6 +201,42 @@ export function FileViewContainer({
     return list
   }, [items, sortField, sortOrder])
 
+  const currentPage = pagination?.page ?? 1
+  const pageSize = pagination?.pageSize ?? sortedItems.length
+  const totalPages = Math.max(1, Math.ceil(sortedItems.length / pageSize))
+  const normalizedPage = Math.min(Math.max(currentPage, 1), totalPages)
+  const visiblePages = useMemo(() => {
+    const out: number[] = []
+    const start = Math.max(1, normalizedPage - 2)
+    const end = Math.min(totalPages, start + 4)
+    for (let i = start; i <= end; i += 1) out.push(i)
+    return out
+  }, [normalizedPage, totalPages])
+
+  const goToPage = useCallback(
+    (nextPage: number) => {
+      if (!pagination) return
+      const target = Math.min(totalPages, Math.max(1, nextPage))
+      if (target !== normalizedPage) {
+        pagination.onChange({ page: target, pageSize })
+      }
+    },
+    [pagination, totalPages, normalizedPage, pageSize],
+  )
+
+  const pagedItems = useMemo(() => {
+    if (!pagination) return sortedItems
+    const start = (normalizedPage - 1) * pageSize
+    return sortedItems.slice(start, start + pageSize)
+  }, [pagination, sortedItems, normalizedPage, pageSize])
+
+  useEffect(() => {
+    if (!pagination) return
+    if (pagination.page !== normalizedPage) {
+      pagination.onChange({ page: normalizedPage, pageSize })
+    }
+  }, [pagination, normalizedPage, pageSize])
+
   // Selection
   const selection = useFileSelection()
   const { openItem, openItemInNewTab, isOpenable } = useFileNavigation()
@@ -157,6 +251,7 @@ export function FileViewContainer({
     useState<CompressAction>("zip-folder")
   const [confirmFavoriteOpen, setConfirmFavoriteOpen] = useState(false)
   const [confirmAlreadyReadOpen, setConfirmAlreadyReadOpen] = useState(false)
+  const [jumpPage, setJumpPage] = useState("")
   // 右键菜单操作的目标项
   const [contextItem, setContextItem] = useState<FileSystemItem | null>(null)
 
@@ -423,15 +518,15 @@ export function FileViewContainer({
   // Mixed view: group items by type
   const mixedGroups = useMemo(() => {
     if (viewMode !== "mixed") return { folders: [], videos: [], archives: [] }
-    const folders = sortedItems.filter((i) => i.item_type === "folder")
-    const videos = sortedItems.filter(
+    const folders = pagedItems.filter((i) => i.item_type === "folder")
+    const videos = pagedItems.filter(
       (i) => i.item_type === "file" && i.file_type === "video",
     )
-    const archives = sortedItems.filter(
+    const archives = pagedItems.filter(
       (i) => i.item_type === "file" && i.file_type !== "video",
     )
     return { folders, videos, archives }
-  }, [viewMode, sortedItems])
+  }, [viewMode, pagedItems])
 
   // 混合视图：文件名列表行渲染（用于 folder / video section）
   const renderNameListItem = useCallback(
@@ -650,7 +745,7 @@ export function FileViewContainer({
             ))}
           </div>
         )
-      ) : sortedItems.length === 0 ? (
+      ) : pagedItems.length === 0 ? (
         <div className="empty-state flex flex-col items-center justify-center py-12 text-center">
           <p className="text-muted-foreground">{emptyText}</p>
         </div>
@@ -726,7 +821,7 @@ export function FileViewContainer({
         </div>
       ) : viewMode === "grid" ? (
         <ResponsiveGrid className="grid-content">
-          {sortedItems.map((item) => {
+          {pagedItems.map((item) => {
             const useIconDropdown = Boolean(item.thumbnail_url)
             return (
               <FileContextMenu
@@ -764,7 +859,7 @@ export function FileViewContainer({
         </ResponsiveGrid>
       ) : (
         <FileTableView
-          items={sortedItems}
+          items={pagedItems}
           onSort={handleSortFieldChange}
           sortField={sortField}
           sortOrder={sortOrder}
@@ -830,6 +925,101 @@ export function FileViewContainer({
         onConfirm={handleConfirmMoveToAlreadyRead}
         isPending={operations.moveToAlreadyReadMutation.isPending}
       />
+      {pagination && sortedItems.length > 0 && (
+        <div className="flex flex-col items-center gap-3 pt-2">
+          <Pagination>
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationFirst
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault()
+                    goToPage(1)
+                  }}
+                  className={normalizedPage <= 1 ? "pointer-events-none opacity-50" : undefined}
+                />
+              </PaginationItem>
+
+              <PaginationItem>
+                <PaginationPrevious
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault()
+                    goToPage(normalizedPage - 1)
+                  }}
+                  className={normalizedPage <= 1 ? "pointer-events-none opacity-50" : undefined}
+                />
+              </PaginationItem>
+
+              {visiblePages.map((p) => (
+                <PaginationItem key={p}>
+                  <PaginationLink
+                    href="#"
+                    isActive={p === normalizedPage}
+                    onClick={(e) => {
+                      e.preventDefault()
+                      goToPage(p)
+                    }}
+                  >
+                    {p}
+                  </PaginationLink>
+                </PaginationItem>
+              ))}
+
+              <PaginationItem>
+                <PaginationNext
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault()
+                    goToPage(normalizedPage + 1)
+                  }}
+                  className={normalizedPage >= totalPages ? "pointer-events-none opacity-50" : undefined}
+                />
+              </PaginationItem>
+
+              <PaginationItem>
+                <PaginationLast
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault()
+                    goToPage(totalPages)
+                  }}
+                  className={normalizedPage >= totalPages ? "pointer-events-none opacity-50" : undefined}
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+
+          <div className="flex items-center gap-2 text-sm">
+            <span className="text-muted-foreground">Go to</span>
+            <input
+              type="number"
+              min={1}
+              max={totalPages}
+              value={jumpPage}
+              onChange={(e) => setJumpPage(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  const n = Number(jumpPage)
+                  if (!Number.isNaN(n)) goToPage(n)
+                }
+              }}
+              className="h-8 w-20 rounded-md border bg-background px-2"
+              placeholder={`1-${totalPages}`}
+            />
+            <button
+              type="button"
+              className="h-8 rounded-md border px-3"
+              onClick={() => {
+                const n = Number(jumpPage)
+                if (!Number.isNaN(n)) goToPage(n)
+              }}
+            >
+              Confirm
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

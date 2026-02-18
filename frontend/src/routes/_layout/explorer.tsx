@@ -25,13 +25,40 @@ import {
   getBaseName,
   getParentPath,
 } from "@/lib/path-utils"
+import type { SortField, SortOrder } from "@/components/Files/FileTableView"
 import "./explorer.css"
 
 export const Route = createFileRoute("/_layout/explorer")({
   component: Explorer,
   validateSearch: (search: Record<string, unknown>) => {
+    const rawPage = Number(search.page)
+    const rawPageSize = Number(search.pageSize)
+    const page = Number.isFinite(rawPage) && rawPage > 0 ? Math.floor(rawPage) : 1
+    const pageSize =
+      Number.isFinite(rawPageSize) && rawPageSize > 0
+        ? Math.floor(rawPageSize)
+        : 48
+    const sortFieldCandidates: SortField[] = [
+      "name",
+      "type",
+      "mtime",
+      "likeScore",
+      "image_count",
+    ]
+    const sortOrderCandidates: SortOrder[] = ["asc", "desc"]
+    const rawSortField = String(search.sortField || "")
+    const rawSortOrder = String(search.sortOrder || "")
+
     return {
       path: (search.path as string) || "",
+      page,
+      pageSize,
+      sortField: sortFieldCandidates.includes(rawSortField as SortField)
+        ? (rawSortField as SortField)
+        : "type",
+      sortOrder: sortOrderCandidates.includes(rawSortOrder as SortOrder)
+        ? (rawSortOrder as SortOrder)
+        : "asc",
     }
   },
   head: () => ({
@@ -46,7 +73,7 @@ export const Route = createFileRoute("/_layout/explorer")({
 function Explorer() {
   const { t } = useTranslation()
   const navigate = useNavigate()
-  const { path } = Route.useSearch()
+  const { path, page, pageSize, sortField, sortOrder } = Route.useSearch()
   const folderName = path
     ? getBaseName(path, t("nav.explorer"))
     : t("nav.explorer")
@@ -85,11 +112,19 @@ function Explorer() {
     (newPath) => {
       navigate({
         to: "/explorer",
-        search: { path: newPath },
+        search: { path: newPath, page: 1, pageSize, sortField, sortOrder },
         replace: true,
       })
     },
   )
+
+  const buildSearchForPath = (nextPath: string) => ({
+    path: nextPath,
+    page: 1,
+    pageSize,
+    sortField,
+    sortOrder,
+  })
 
   const filteredItems = useMemo(() => {
     const items = data?.items || []
@@ -172,7 +207,7 @@ function Explorer() {
             ) : (
               <Link
                 to="/explorer"
-                search={{ path: crumb.path }}
+                search={buildSearchForPath(crumb.path)}
                 className="explorer-breadcrumb__link"
               >
                 {crumb.name}
@@ -187,6 +222,41 @@ function Explorer() {
         isLoading={isLoading}
         currentPath={path}
         initialViewMode="mixed"
+        sortField={sortField}
+        sortOrder={sortOrder}
+        onSortFieldChange={(nextSortField) =>
+          navigate({
+            search: (prev) => ({
+              ...prev,
+              sortField: nextSortField,
+              page: 1,
+            }),
+            replace: true,
+          })
+        }
+        onSortOrderChange={(nextSortOrder) =>
+          navigate({
+            search: (prev) => ({
+              ...prev,
+              sortOrder: nextSortOrder,
+              page: 1,
+            }),
+            replace: true,
+          })
+        }
+        pagination={{
+          page,
+          pageSize,
+          onChange: ({ page: nextPage, pageSize: nextPageSize }) =>
+            navigate({
+              search: (prev) => ({
+                ...prev,
+                page: nextPage,
+                pageSize: nextPageSize,
+              }),
+              replace: true,
+            }),
+        }}
         storageKeyPrefix="explorer"
         toolbarExtra={
           <>
