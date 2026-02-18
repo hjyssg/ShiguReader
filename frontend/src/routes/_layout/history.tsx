@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query"
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router"
+import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import {
   ArrowDown,
   ArrowUp,
@@ -15,7 +15,7 @@ import { OpenAPI } from "@/client"
 import type { FileSystemItem } from "@/client/types.gen"
 import { ListTable, type ListTableColumn } from "@/components/Common/ListTable"
 import { FileItem } from "@/components/Files/FileItem"
-import { FileNameWithPreview } from "@/components/Files/FileNameWithPreview"
+import { FileNameLinkCell } from "@/components/Files/FileNameLinkCell"
 import {
   formatDateTime,
   formatFileSize,
@@ -33,8 +33,8 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination"
 import { Skeleton } from "@/components/ui/skeleton"
+import { buildNavigationTarget } from "@/hooks/useFileNavigation"
 import { useIsMobile } from "@/hooks/useMobile"
-import { getParentPath } from "@/lib/path-utils"
 
 type SortOrder = "asc" | "desc"
 
@@ -114,39 +114,8 @@ function HistoryPage() {
     }
   }
 
-
-  const getHistoryItemLink = (item: HistoryItem) => {
-    if (item.file_type === "archive") {
-      return { to: "/archive", search: { path: item.filepath } } as const
-    }
-    if (item.file_type === "video") {
-      return {
-        to: "/video",
-        search: { path: item.filepath, entry: undefined, media: "video" },
-      } as const
-    }
-    if (item.file_type === "audio") {
-      return {
-        to: "/audio",
-        search: { path: item.filepath, entry: undefined },
-      } as const
-    }
-    if (item.file_type === "image") {
-      return {
-        to: isMobile ? "/read-mobile" : "/read",
-        search: {
-          path: getParentPath(item.filepath),
-          source: "folder",
-          page: 0,
-          filePath: item.filepath,
-        },
-      } as const
-    }
-
-    return null
-  }
   const openHistoryItem = (item: HistoryItem) => {
-    const target = getHistoryItemLink(item)
+    const target = buildNavigationTarget(toFileSystemItem(item), isMobile)
     if (!target) {
       toast.info(t("history.unsupportedType"))
       return
@@ -157,9 +126,17 @@ function HistoryPage() {
 
   const tableColumns: ListTableColumn[] = [
     { key: "name", header: t("history.name") },
-    { key: "readAt", header: t("history.readAt"), headerClassName: "w-[180px]" },
+    {
+      key: "readAt",
+      header: t("history.readAt"),
+      headerClassName: "w-[180px]",
+    },
     { key: "type", header: t("history.type"), headerClassName: "w-[120px]" },
-    { key: "size", header: t("history.size"), headerClassName: "w-[100px] text-right" },
+    {
+      key: "size",
+      header: t("history.size"),
+      headerClassName: "w-[100px] text-right",
+    },
   ]
 
   const toFileSystemItem = (item: HistoryItem): FileSystemItem => ({
@@ -178,7 +155,9 @@ function HistoryPage() {
         <div className="flex items-center gap-2">
           <HistoryIcon className="size-5" />
           <h1 className="text-xl font-semibold">{t("history.title")}</h1>
-          <span className="text-sm text-muted-foreground">{t("history.subtitle")}</span>
+          <span className="text-sm text-muted-foreground">
+            {t("history.subtitle")}
+          </span>
         </div>
         <div className="flex items-center gap-2">
           <Button
@@ -276,7 +255,10 @@ function HistoryPage() {
           columns={tableColumns}
           rows={data?.items ?? []}
           renderRow={(item) => {
-            const target = getHistoryItemLink(item)
+            const target = buildNavigationTarget(
+              toFileSystemItem(item),
+              isMobile,
+            )
 
             return (
               <tr
@@ -284,29 +266,23 @@ function HistoryPage() {
                 className="border-b last:border-b-0 text-sm hover:bg-muted/50"
               >
                 <td className="p-2">
-                  {target ? (
-                    <Link to={target.to} search={target.search} className="flex items-center gap-2 min-w-0">
-                      <FileNameWithPreview
-                        filename={item.filename}
-                        filepath={item.filepath}
-                        thumbnailUrl={item.thumbnail_url}
-                        className="min-w-0"
-                      />
-                    </Link>
-                  ) : (
-                    <div className="flex items-center gap-2 min-w-0">
-                      <FileNameWithPreview
-                        filename={item.filename}
-                        filepath={item.filepath}
-                        thumbnailUrl={item.thumbnail_url}
-                        className="min-w-0"
-                      />
-                    </div>
-                  )}
+                  <FileNameLinkCell
+                    filename={item.filename}
+                    filepath={item.filepath}
+                    thumbnailUrl={item.thumbnail_url}
+                    fileType={item.file_type}
+                    target={target}
+                  />
                 </td>
-                <td className="p-2 text-muted-foreground">{formatDateTime(item.read_at)}</td>
-                <td className="p-2 text-muted-foreground">{formatFileType(item.file_type)}</td>
-                <td className="p-2 text-right text-muted-foreground">{item.filesize ? formatFileSize(item.filesize) : "-"}</td>
+                <td className="p-2 text-muted-foreground">
+                  {formatDateTime(item.read_at)}
+                </td>
+                <td className="p-2 text-muted-foreground">
+                  {formatFileType(item.file_type)}
+                </td>
+                <td className="p-2 text-right text-muted-foreground">
+                  {item.filesize ? formatFileSize(item.filesize) : "-"}
+                </td>
               </tr>
             )
           }}
@@ -324,7 +300,9 @@ function HistoryPage() {
                     e.preventDefault()
                     goToPage(1)
                   }}
-                  className={page <= 1 ? "pointer-events-none opacity-50" : undefined}
+                  className={
+                    page <= 1 ? "pointer-events-none opacity-50" : undefined
+                  }
                 />
               </PaginationItem>
 
@@ -335,7 +313,9 @@ function HistoryPage() {
                     e.preventDefault()
                     goToPage(page - 1)
                   }}
-                  className={page <= 1 ? "pointer-events-none opacity-50" : undefined}
+                  className={
+                    page <= 1 ? "pointer-events-none opacity-50" : undefined
+                  }
                 />
               </PaginationItem>
 
@@ -361,7 +341,11 @@ function HistoryPage() {
                     e.preventDefault()
                     goToPage(page + 1)
                   }}
-                  className={page >= totalPages ? "pointer-events-none opacity-50" : undefined}
+                  className={
+                    page >= totalPages
+                      ? "pointer-events-none opacity-50"
+                      : undefined
+                  }
                 />
               </PaginationItem>
 
@@ -372,7 +356,11 @@ function HistoryPage() {
                     e.preventDefault()
                     goToPage(totalPages)
                   }}
-                  className={page >= totalPages ? "pointer-events-none opacity-50" : undefined}
+                  className={
+                    page >= totalPages
+                      ? "pointer-events-none opacity-50"
+                      : undefined
+                  }
                 />
               </PaginationItem>
             </PaginationContent>
