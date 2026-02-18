@@ -68,7 +68,8 @@
       "type": "유형",
       "size": "크기",
       "likeScore": "선호도 점수",
-      "imageCount": "이미지 수"
+      "imageCount": "이미지 수",
+      "lastReadAt": "마지막 열람 시간"
     }
   },
   "history": {

@@ -27,6 +27,7 @@ class FileSystemItem(BaseModel):
     video_count: int | None = None  # 压缩包内视频数量
     audio_count: int | None = None  # 压缩包内音频数量
     avg_image_size: int | None = None  # 压缩包内图片平均大小（字节）
+    last_read_at: int | None = None  # 最近一次阅读/播放时间
 
 
 class ListResponse(BaseModel):
@@ -131,5 +132,5 @@ class PathOperationResponse(BaseModel):
     dest_path: str | None = None
 
 
-SortBy = Literal["name", "mtime", "type", "recommendation", "image_count"]
+SortBy = Literal["name", "mtime", "type", "recommendation", "image_count", "last_read_at"]
 SortOrder = Literal["asc", "desc"]

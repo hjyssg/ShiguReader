@@ -1,3 +1,6 @@
+/**
+ * 文件浏览器 - 浏览文件系统目录，支持排序、过滤和扫描功能
+ */
 import { useQuery } from "@tanstack/react-query"
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router"
 import { ChevronRight, Home, ScanLine } from "lucide-react"
@@ -44,6 +47,7 @@ export const Route = createFileRoute("/_layout/explorer")({
       "mtime",
       "likeScore",
       "image_count",
+      "last_read_at",
     ]
     const sortOrderCandidates: SortOrder[] = ["asc", "desc"]
     const rawSortField = String(search.sortField || "")
@@ -58,7 +62,7 @@ export const Route = createFileRoute("/_layout/explorer")({
         : "type",
       sortOrder: sortOrderCandidates.includes(rawSortOrder as SortOrder)
         ? (rawSortOrder as SortOrder)
-        : "asc",
+        : "desc",
     }
   },
   head: () => ({
@@ -69,6 +73,26 @@ export const Route = createFileRoute("/_layout/explorer")({
     ],
   }),
 })
+
+type FilterCheckboxProps = {
+  id: string
+  label: string
+  checked: boolean
+  onChange: (checked: boolean) => void
+}
+
+function FilterCheckbox({ id, label, checked, onChange }: FilterCheckboxProps) {
+  return (
+    <label htmlFor={id} className="explorer-zip-filter">
+      <Checkbox
+        id={id}
+        checked={checked}
+        onCheckedChange={(checked) => onChange(Boolean(checked))}
+      />
+      {label}
+    </label>
+  )
+}
 
 function Explorer() {
   const { t } = useTranslation()
@@ -261,27 +285,18 @@ function Explorer() {
         toolbarExtra={
           <>
             <div className="explorer-zip-filter-group">
-              <label htmlFor="zip-has-video" className="explorer-zip-filter">
-                <Checkbox
-                  id="zip-has-video"
-                  checked={zipHasVideoOnly}
-                  onCheckedChange={(checked) =>
-                    setZipHasVideoOnly(Boolean(checked))
-                  }
-                />
-                {t("explorer.zipHasVideo")}
-              </label>
-
-              <label htmlFor="zip-has-audio" className="explorer-zip-filter">
-                <Checkbox
-                  id="zip-has-audio"
-                  checked={zipHasAudioOnly}
-                  onCheckedChange={(checked) =>
-                    setZipHasAudioOnly(Boolean(checked))
-                  }
-                />
-                {t("explorer.zipHasAudio")}
-              </label>
+              <FilterCheckbox
+                id="zip-has-video"
+                label={t("explorer.zipHasVideo")}
+                checked={zipHasVideoOnly}
+                onChange={setZipHasVideoOnly}
+              />
+              <FilterCheckbox
+                id="zip-has-audio"
+                label={t("explorer.zipHasAudio")}
+                checked={zipHasAudioOnly}
+                onChange={setZipHasAudioOnly}
+              />
             </div>
 
             <DropdownMenu>

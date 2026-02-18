@@ -50,28 +50,32 @@ coser pages大面积不是名单里面的coser，而是name parser解析出来�
 # fs.py变成巨无霸了，需要重构一下。
   需要模块化
 
-# home的特殊目录
+# task1
+home的特殊目录
 还需要显示move to favorite的移动子文件夹。（参考move to favorite的modal）
 
 特殊目录
 快捷访问文件夹
 最常用文件夹
-的folder name，都需要title attribute。你写一个内部component。
+的folder name，都需要title attribute。你写一个内部component避免重复代码。
 
 
-# UnifiedPagination的分页的时候。
+# task2
+UnifiedPagination的分页的时候。
 folder和video不分页。在第一页显示全部的folder和video
 只针对archives分页
 
-# bug：
-api path resolve失败的时候会导致无限loop
 
 
-# task
+# task3
 frontend\src\routes\_layout\archive.tsx
 frontend\src\routes\_layout\read.tsx
 
 文件被移动之后，不要navigate({ to: "/" }) 而是navigate到移动filepath的page
 
-# task
+# task4
 frontend\src\routes\_layout\video.tsx 现在不需要支持audio了，删除对应代码。
+
+# bug 5：
+api path resolve失败的时候会导致无限loop
+修改前端。

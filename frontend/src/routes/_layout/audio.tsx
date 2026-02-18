@@ -1,3 +1,6 @@
+/**
+ * 音频播放器页面 - 支持播放文件夹或压缩包中的音频文件，显示封面和播放列表
+ */
 import { useQuery } from "@tanstack/react-query"
 import { createFileRoute, Link } from "@tanstack/react-router"
 import { ChevronRight, Folder, Home, Music4 } from "lucide-react"

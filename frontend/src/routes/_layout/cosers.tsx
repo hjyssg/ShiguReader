@@ -1,3 +1,6 @@
+/**
+ * Coser 列表页面 - 显示所有 Coser 及其文件数量，支持排序和搜索
+ */
 import { useQuery } from "@tanstack/react-query"
 import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { useTranslation } from "react-i18next"

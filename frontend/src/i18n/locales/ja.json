@@ -67,7 +67,8 @@
       "type": "種類",
       "size": "サイズ",
       "likeScore": "Like Score",
-      "imageCount": "画像数"
+      "imageCount": "画像数",
+      "lastReadAt": "最終閲覧日時"
     }
   },
   "history": {

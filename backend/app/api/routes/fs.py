@@ -232,6 +232,9 @@ def _sort_items(items: list[FileSystemItem], sort_by: SortBy, sort_order: SortOr
     def key_image_count(x: FileSystemItem):
         return x.image_count or 0
 
+    def key_last_read_at(x: FileSystemItem):
+        return x.last_read_at or 0
+
     folders = [x for x in items if x.item_type == "folder"]
     files = [x for x in items if x.item_type == "file"]
 
@@ -245,6 +248,8 @@ def _sort_items(items: list[FileSystemItem], sort_by: SortBy, sort_order: SortOr
         files.sort(key=key_recommendation, reverse=reverse)
     elif sort_by == "image_count":
         files.sort(key=key_image_count, reverse=reverse)
+    elif sort_by == "last_read_at":
+        files.sort(key=key_last_read_at, reverse=reverse)
     else:
         files.sort(key=key_name, reverse=reverse)
 
@@ -1209,6 +1214,7 @@ def list_directory(
                 if item.item_type == "file":
                     fdata = file_data_map.get(item.path)
                     item.recommendation_score = fdata["rec_score"] if fdata else 0.0
+                    item.last_read_at = fdata["last_read_at"] if fdata else None
 
                     if item.file_type == "archive":
                         meta = archive_meta_map.get(item.path)
@@ -1230,6 +1236,7 @@ def list_directory(
         for item in items:
             if item.item_type == "file":
                 item.recommendation_score = 0.0
+                item.last_read_at = None
 
     # 应用筛选
     if has_video is not None or has_audio is not None:
@@ -1535,7 +1542,7 @@ def zip_folder(request: ZipFolderRequest) -> PathOperationResponse:
                     for d in dirs
                     if not should_ignore(d)
                     and not _is_link_or_reparse(root_path / d)
-                    and not _is_filesystem_root(root_path / d)
+                    and not is_filesystem_root(root_path / d)
                 ]
                 for fname in filenames:
                     if should_ignore(fname):
@@ -1701,7 +1708,7 @@ async def scan_directory(background_tasks: BackgroundTasks, request: ScanRequest
     if not validated_path.is_dir():
         raise HTTPException(status_code=400, detail="Path is not a directory")
 
-    if _is_filesystem_root(validated_path):
+    if is_filesystem_root(validated_path):
         raise HTTPException(status_code=400, detail="Refuse to scan filesystem root directory")
 
     background_tasks.add_task(_run_scan, validated_path, request.recursive)
@@ -1727,7 +1734,7 @@ async def backfill_directory(request: BackfillRequest) -> BackfillResponse:
     if not validated_path.is_dir():
         raise HTTPException(status_code=400, detail="Path is not a directory")
 
-    if _is_filesystem_root(validated_path):
+    if is_filesystem_root(validated_path):
         raise HTTPException(status_code=400, detail="Refuse to scan filesystem root directory")
 
     if not request.fill_thumbnail and not request.fill_meta:
@@ -1884,7 +1891,7 @@ async def scan_and_watch(background_tasks: BackgroundTasks, request: ScanRequest
     if not validated_path.is_dir():
         raise HTTPException(status_code=400, detail="Path is not a directory")
 
-    if _is_filesystem_root(validated_path):
+    if is_filesystem_root(validated_path):
         raise HTTPException(status_code=400, detail="Refuse to scan filesystem root directory")
 
     path_key = str(validated_path)

@@ -1,3 +1,6 @@
+/**
+ * 压缩包查看器 - 显示压缩包内容，支持图片、视频、音频预览
+ */
 import { useMutation, useQuery } from "@tanstack/react-query"
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router"
 import {

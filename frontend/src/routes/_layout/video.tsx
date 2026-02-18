@@ -1,3 +1,6 @@
+/**
+ * 视频/音频播放器 - 支持播放视频和音频文件，自动保存播放进度
+ */
 import { createFileRoute } from "@tanstack/react-router"
 import { useMemo, useRef } from "react"
 
