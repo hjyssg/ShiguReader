@@ -7,6 +7,7 @@ import { Folder, HardDrive, Heart, BookOpen, Film, Image, Music2, type LucideIco
 import { useTranslation } from "react-i18next"
 
 import { FilesystemService, OpenAPI } from "@/client"
+import { getBaseName, getParentPath } from "@/lib/path-utils"
 
 import { HomeCard } from "@/components/Home/HomeCard"
 import { RecentActivityPanel, type ActivityItem } from "@/components/Home/RecentActivityPanel"
@@ -40,15 +41,14 @@ function parseGoodFolderMonth(name: string): number | null {
 
 function HomeFolderLinkCard({
   path,
-  name,
   icon,
-  subtitle,
 }: {
   path: string
-  name: string
   icon: typeof Folder | typeof Heart
-  subtitle?: string
 }) {
+  const name = getBaseName(path, path)
+  const subtitle = getParentPath(path)
+
   return (
     <Link
       to="/explorer"
@@ -56,7 +56,7 @@ function HomeFolderLinkCard({
       className="home-card-link"
       title={name}
     >
-      <HomeCard icon={icon} title={name} subtitle={subtitle} />
+      <HomeCard icon={icon} title={name} subtitle={subtitle || undefined} />
     </Link>
   )
 }
@@ -221,7 +221,6 @@ function Dashboard() {
           {favoriteRoot ? (
             <HomeFolderLinkCard
               path={favoriteRoot.path}
-              name={favoriteRoot.dirname}
               icon={Heart}
             />
           ) : null}
@@ -230,16 +229,13 @@ function Dashboard() {
             <HomeFolderLinkCard
               key={folder.path}
               path={folder.path}
-              name={folder.name}
               icon={Folder}
-              subtitle={favoriteRoot?.dirname}
             />
           ))}
 
           {alreadyReadRoot ? (
             <HomeFolderLinkCard
               path={alreadyReadRoot.path}
-              name={alreadyReadRoot.dirname}
               icon={Folder}
             />
           ) : null}
@@ -255,7 +251,6 @@ function Dashboard() {
             <HomeFolderLinkCard
               key={root.path}
               path={root.path}
-              name={root.dirname}
               icon={Folder}
             />
           ))}
@@ -270,9 +265,7 @@ function Dashboard() {
             <HomeFolderLinkCard
               key={folderPath}
               path={folderPath}
-              name={folderPath.split(/[\\/]/).filter(Boolean).at(-1) ?? folderPath}
               icon={Folder}
-              subtitle={folderPath}
             />
           ))}
           {topOpenedFolders && topOpenedFolders.folder_ids.length === 0 ? <div className="home-empty">{t("home.noTopOpenedFolders")}</div> : null}
