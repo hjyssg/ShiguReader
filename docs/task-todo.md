@@ -65,3 +65,8 @@ coser pages大面积不是名单里面的coser，而是name parser解析出来�
   
 
 
+# bug
+   move的确认modal的确认button需要auto focus？用户按回车才能确认
+   而不是toggle fullscreen
+
+   ALREADY_READ_DIR设置了，但为什么还显示没有。

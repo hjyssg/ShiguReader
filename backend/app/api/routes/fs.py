@@ -1272,12 +1272,15 @@ def list_directory(
     if not validated_path.is_dir():
         raise HTTPException(status_code=400, detail="Path is not a directory")
 
-    try:
-        with get_index_session() as session:
-            repo = IndexRepository(session)
-            repo.record_folder_open(str(validated_path))
-    except Exception as e:
-        logger.warning("record folder open failed for %s: %s", validated_path, e)
+    # record_folder_open 移到后台，避免阻塞响应
+    def _bg_record_open():
+        try:
+            with get_index_session() as session:
+                repo = IndexRepository(session)
+                repo.record_folder_open(str(validated_path))
+        except Exception as e:
+            logger.warning("record folder open failed for %s: %s", validated_path, e)
+    background_tasks.add_task(_bg_record_open)
 
     items: list[FileSystemItem] = []
     folders_to_upsert: list[UpsertFolderInput] = []
@@ -1400,6 +1403,9 @@ def list_directory(
             # 1 次 SQL (子查询): 查出目录下所有压缩包的 archive_meta
             archive_meta_map = repo.get_archive_metas_by_folder(folderpath_str)
 
+            # 收集没有 DB 缓存的压缩包路径，后台回填
+            archives_missing_meta: list[str] = []
+
             # 填充数据
             for item in items:
                 if item.item_type == "file":
@@ -1409,67 +1415,18 @@ def list_directory(
                     if item.file_type == "archive":
                         meta = archive_meta_map.get(item.path)
                         if meta:
+                            # DB 已有缓存，直接使用，不再打开压缩包
                             item.image_count = meta.image_file_num
                             item.video_count = meta.video_file_num
                             item.audio_count = meta.music_file_num
-                            if item.path.lower().endswith(".zip"):
-                                try:
-                                    (
-                                        image_file_num,
-                                        video_file_num,
-                                        music_file_num,
-                                        avg_image_size,
-                                    ) = _probe_zip_media_stats(Path(item.path))
-                                    item.image_count = image_file_num
-                                    item.video_count = video_file_num
-                                    item.audio_count = music_file_num
-                                    item.avg_image_size = avg_image_size
-                                except Exception as e:
-                                    logger.warning("Failed to probe zip media stats for %s: %s", item.path, e)
-                                    item.avg_image_size = None
-                            else:
-                                # 非 zip 暂无可靠的按图片字节均值统计，避免使用错误公式（filesize/image_count）
-                                item.avg_image_size = None
+                            item.avg_image_size = None  # avg_image_size 仅在需要时按需计算
                         else:
-                            # Fallback: DB 还没有 archive_meta 时，按需即时统计，
-                            # 保障 has_video/has_audio/image_count 排序在首次 list 就可用。
-                            try:
-                                if item.path.lower().endswith(".zip"):
-                                    (
-                                        image_file_num,
-                                        video_file_num,
-                                        music_file_num,
-                                        avg_image_size,
-                                    ) = _probe_zip_media_stats(Path(item.path))
-                                    item.image_count = image_file_num
-                                    item.video_count = video_file_num
-                                    item.audio_count = music_file_num
-                                    item.avg_image_size = avg_image_size
-                                else:
-                                    entries = list_archive_entries(Path(item.path))
-                                    image_file_num = 0
-                                    video_file_num = 0
-                                    music_file_num = 0
-                                    for entry in entries:
-                                        et = detect_file_type(entry)
-                                        if et == "image":
-                                            image_file_num += 1
-                                        elif et == "video":
-                                            video_file_num += 1
-                                        elif et == "audio":
-                                            music_file_num += 1
-
-                                    item.image_count = image_file_num
-                                    item.video_count = video_file_num
-                                    item.audio_count = music_file_num
-                                    item.avg_image_size = None
-                            except Exception as e:
-                                logger.warning("Failed to probe archive meta for %s: %s", item.path, e)
-                                # 保持可排序/可筛选的数值语义，避免 None 破坏排序。
-                                item.image_count = 0
-                                item.video_count = 0
-                                item.audio_count = 0
-                                item.avg_image_size = None
+                            # DB 无缓存：先给默认值让排序/筛选可用，后台异步回填
+                            item.image_count = 0
+                            item.video_count = 0
+                            item.audio_count = 0
+                            item.avg_image_size = None
+                            archives_missing_meta.append(item.path)
     except Exception as e:
         logger.warning(f"Failed to get metadata: {e}")
         for item in items:
@@ -1542,6 +1499,35 @@ def list_directory(
 
                     if parse_results:
                         repo.batch_save_parse_results(parse_results)
+
+                # 后台回填缺失的 archive_meta（避免阻塞 list 响应）
+                for archive_path_str in archives_missing_meta:
+                    try:
+                        ap = Path(archive_path_str)
+                        if ap.suffix.lower() == ".zip":
+                            img_n, vid_n, aud_n, _ = _probe_zip_media_stats(ap)
+                        else:
+                            entries = list_archive_entries(ap)
+                            img_n = vid_n = aud_n = 0
+                            for ent in entries:
+                                et = detect_file_type(ent)
+                                if et == "image":
+                                    img_n += 1
+                                elif et == "video":
+                                    vid_n += 1
+                                elif et == "audio":
+                                    aud_n += 1
+                        repo.upsert_archive_meta(
+                            filepath=archive_path_str,
+                            archive_type=ap.suffix.lower().lstrip("."),
+                            entry_count=img_n + vid_n + aud_n,
+                            image_file_num=img_n,
+                            video_file_num=vid_n,
+                            music_file_num=aud_n,
+                        )
+                    except Exception as e:
+                        logger.warning("bg backfill archive meta failed for %s: %s", archive_path_str, e)
+
             logger.info(f"DB upsert completed for {validated_path}: {len(folders_to_upsert)} folders, {len(files_to_upsert)} files")
         except Exception as e:
             logger.error(f"DB upsert failed for {validated_path}: {e}")
