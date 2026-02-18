@@ -27,6 +27,16 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Skeleton } from "@/components/ui/skeleton"
+import {
+  Pagination,
+  PaginationContent,
+  PaginationFirst,
+  PaginationItem,
+  PaginationLast,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination"
 import { useFileExplorerKeyboard } from "@/hooks/useFileExplorerKeyboard"
 import { useFileNavigation } from "@/hooks/useFileNavigation"
 import { useFileOperations } from "@/hooks/useFileOperations"
@@ -897,33 +907,65 @@ export function FileViewContainer({
         isPending={operations.moveToAlreadyReadMutation.isPending}
       />
       {pagination && sortedItems.length > 0 && (
-        <div className="flex items-center justify-end gap-2 pt-2">
-          <span className="text-xs text-muted-foreground">
-            {normalizedPage} / {totalPages}
-          </span>
-          <Button
-            variant="outline"
-            size="sm"
-            className="h-8"
-            disabled={normalizedPage <= 1}
-            onClick={() =>
-              pagination.onChange({ page: normalizedPage - 1, pageSize })
-            }
-          >
-            Prev
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            className="h-8"
-            disabled={normalizedPage >= totalPages}
-            onClick={() =>
-              pagination.onChange({ page: normalizedPage + 1, pageSize })
-            }
-          >
-            Next
-          </Button>
-        </div>
+        <Pagination className="justify-end pt-2">
+          <PaginationContent>
+            <PaginationItem>
+              <PaginationFirst
+                href="#"
+                className={cn(normalizedPage <= 1 && "pointer-events-none opacity-50")}
+                onClick={(e) => {
+                  e.preventDefault()
+                  if (normalizedPage <= 1) return
+                  pagination.onChange({ page: 1, pageSize })
+                }}
+              />
+            </PaginationItem>
+            <PaginationItem>
+              <PaginationPrevious
+                href="#"
+                className={cn(normalizedPage <= 1 && "pointer-events-none opacity-50")}
+                onClick={(e) => {
+                  e.preventDefault()
+                  if (normalizedPage <= 1) return
+                  pagination.onChange({ page: normalizedPage - 1, pageSize })
+                }}
+              />
+            </PaginationItem>
+
+            <PaginationItem>
+              <PaginationLink href="#" isActive onClick={(e) => e.preventDefault()}>
+                {normalizedPage} / {totalPages}
+              </PaginationLink>
+            </PaginationItem>
+
+            <PaginationItem>
+              <PaginationNext
+                href="#"
+                className={cn(
+                  normalizedPage >= totalPages && "pointer-events-none opacity-50",
+                )}
+                onClick={(e) => {
+                  e.preventDefault()
+                  if (normalizedPage >= totalPages) return
+                  pagination.onChange({ page: normalizedPage + 1, pageSize })
+                }}
+              />
+            </PaginationItem>
+            <PaginationItem>
+              <PaginationLast
+                href="#"
+                className={cn(
+                  normalizedPage >= totalPages && "pointer-events-none opacity-50",
+                )}
+                onClick={(e) => {
+                  e.preventDefault()
+                  if (normalizedPage >= totalPages) return
+                  pagination.onChange({ page: totalPages, pageSize })
+                }}
+              />
+            </PaginationItem>
+          </PaginationContent>
+        </Pagination>
       )}
     </div>
   )
