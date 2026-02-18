@@ -3,7 +3,6 @@ from __future__ import annotations
 import asyncio
 import hashlib
 import logging
-import math
 import os
 import stat as stat_module
 import shutil
@@ -21,10 +20,36 @@ from urllib.parse import quote
 
 from fastapi import APIRouter, BackgroundTasks, HTTPException, Query
 from fastapi.responses import FileResponse, Response
-from pydantic import BaseModel
 from send2trash import send2trash
 from sqlmodel import select
 
+from app.api.routes.fs_models import (
+    ActivityItem,
+    BackfillRequest,
+    BackfillResponse,
+    DeletePathRequest,
+    FileSystemItem,
+    LibraryOverviewResponse,
+    ListResponse,
+    MovePathRequest,
+    PathOperationResponse,
+    RecentActivityResponse,
+    RenameRequest,
+    RootItem,
+    ScanRequest,
+    ScanStartResponse,
+    ScanStatusItem,
+    SortBy,
+    SortOrder,
+    TopOpenedFoldersResponse,
+    UnzipRequest,
+    ZipFolderRequest,
+)
+from app.api.routes.fs_recommendation import (
+    refresh_all_rec_scores as _refresh_all_rec_scores,
+    refresh_rec_cache as _refresh_rec_cache,
+    update_rec_scores_for_files as _update_rec_scores_for_files,
+)
 from app.constants import ARCHIVE_SUFFIXES, AUDIO_SUFFIXES, IMAGE_SUFFIXES, VIDEO_SUFFIXES
 from app.core.config import settings
 from app.file_processing._archive_backend import extract_entries
@@ -71,17 +96,6 @@ _scan_live_cache: dict[str, dict[str, tuple[int, int]]] = {}
 _TARGET_SUFFIXES = tuple(
     sorted({*IMAGE_SUFFIXES, *VIDEO_SUFFIXES, *ARCHIVE_SUFFIXES, *AUDIO_SUFFIXES}, key=len, reverse=True)
 )
-
-# ---------------------------------------------------------------------------
-# 推荐分数内存缓存（避免每次 list 都查 DB）
-# ---------------------------------------------------------------------------
-_rec_cache_lock = threading.Lock()
-_rec_cache: dict[str, object] = {
-    "author_freq": {},   # dict[str, int]  作者在 favorite 中出现次数
-    "tag_freq": {},      # dict[str, int]  标签在 favorite 中出现次数
-    "tag_total": {},     # dict[str, int]  标签全局总数
-    "initialized": False,
-}
 
 
 def _build_thumb_url(path: Path | str) -> str:
@@ -197,262 +211,6 @@ def _probe_zip_media_stats(archive_path: Path) -> tuple[int, int, int, int | Non
     return image_file_num, video_file_num, music_file_num, avg_image_size
 
 
-
-
-class RootItem(BaseModel):
-    path: str
-    dirname: str
-
-
-class FileSystemItem(BaseModel):
-    name: str
-    path: str
-    item_type: Literal["folder", "file"]
-    file_type: Literal["image", "video", "archive", "audio", "unknown"] | None = None
-    filesize: int | None = None
-    mtime: int | None = None
-    thumbnail_url: str | None = None
-    recommendation_score: float | None = None
-    scan_state: int = 0  # Reserved for DB integration
-    watch_state: int = 0  # Reserved for DB integration
-    confidence_level: Literal["certain", "likely_present", "uncertain"] = "uncertain"
-    confidence_score: float = 0.2
-    image_count: int | None = None  # 压缩包内图片数量
-    video_count: int | None = None  # 压缩包内视频数量
-    audio_count: int | None = None  # 压缩包内音频数量
-    avg_image_size: int | None = None  # 压缩包内图片平均大小（字节）
-
-
-class ListResponse(BaseModel):
-    items: list[FileSystemItem]
-
-
-class ScanRequest(BaseModel):
-    path: str
-    recursive: bool = True
-
-
-class BackfillRequest(BaseModel):
-    path: str
-    recursive: bool = True
-    fill_thumbnail: bool = True
-    fill_meta: bool = True
-
-
-class BackfillResponse(BaseModel):
-    status: Literal["ok"]
-    scanned_files: int
-    backfilled_thumbnails: int
-    backfilled_meta: int
-    message: str
-
-
-class ScanStartResponse(BaseModel):
-    status: Literal["started"]
-    message: str
-    path: str
-
-
-class ScanStatusItem(BaseModel):
-    path: str
-    status: Literal["running", "completed", "error"]
-    message: str | None = None
-    recursive: bool = True
-    scanned_folders: int = 0
-    scanned_files: int = 0
-    parsed_files: int = 0
-    watcher_active: bool = False
-    started_at: int | None = None
-    finished_at: int | None = None
-
-
-class MovePathRequest(BaseModel):
-    source_path: str
-    dest_path: str
-
-
-class DeletePathRequest(BaseModel):
-    path: str
-    permanently: bool = False
-
-
-class ZipFolderRequest(BaseModel):
-    folder_path: str
-    output_path: str | None = None
-
-
-class RenameRequest(BaseModel):
-    path: str
-    new_name: str
-
-
-class UnzipRequest(BaseModel):
-    archive_path: str
-    output_dir: str | None = None
-
-
-class ActivityItem(BaseModel):
-    id: int
-    activity_type: Literal["scan", "minify_zip_images", "move", "delete", "rename", "startup", "cache_cleanup", "db_sync"]
-    status: Literal["started", "running", "completed", "failed"] = "completed"
-    task_key: str | None = None
-    message: str
-    target_path: str | None = None
-    context: dict | None = None
-    created_at: int
-
-
-class RecentActivityResponse(BaseModel):
-    items: list[ActivityItem]
-
-
-class LibraryOverviewResponse(BaseModel):
-    archives: int
-    videos: int
-    images: int
-    audio: int
-    folders: int
-
-
-
-class TopOpenedFoldersResponse(BaseModel):
-    folder_ids: list[str]
-
-
-class PathOperationResponse(BaseModel):
-    status: Literal["ok"]
-    message: str
-    path: str
-    dest_path: str | None = None
-
-
-SortBy = Literal["name", "mtime", "type", "recommendation", "image_count"]
-SortOrder = Literal["asc", "desc"]
-
-
-def _compute_rec_score_for_file(
-    authors: list[str],
-    tags: list[str],
-    author_freq: dict[str, int],
-    tag_freq: dict[str, int],
-    tag_total: dict[str, int],
-) -> float:
-    """纯计算函数：根据缓存的频率数据算单个文件的推荐分数。"""
-    fa = max((author_freq.get(a, 0) for a in authors), default=0)
-    author_score = math.log1p(fa)
-
-    tag_score = 0.0
-    for tag in tags:
-        ft = tag_freq.get(tag, 0)
-        nt = max(tag_total.get(tag, 0), 1)
-        current = math.log1p(ft) * (1.0 / math.sqrt(nt))
-        if current > tag_score:
-            tag_score = current
-
-    return round(author_score + tag_score, 6)
-
-
-def _refresh_rec_cache(repo: IndexRepository) -> None:
-    """从 DB 刷新内存中的 favorite 频率缓存。"""
-    favorite_dir = (settings.FAVORITE_DIR or "").strip()
-    if not favorite_dir:
-        return
-
-    favorite_prefix = str(Path(favorite_dir).resolve())
-    try:
-        author_freq = repo.get_favorite_author_frequencies(favorite_prefix)
-        tag_freq = repo.get_favorite_tag_frequencies(favorite_prefix)
-        tag_total = repo.get_tag_total_counts()
-    except Exception as e:
-        logger.warning("Failed to refresh rec cache: %s", e)
-        return
-
-    with _rec_cache_lock:
-        _rec_cache["author_freq"] = author_freq
-        _rec_cache["tag_freq"] = tag_freq
-        _rec_cache["tag_total"] = tag_total
-        _rec_cache["initialized"] = True
-
-    logger.info("Rec cache refreshed: %d authors, %d tags", len(author_freq), len(tag_freq))
-
-
-def _update_rec_scores_for_files(repo: IndexRepository, filepaths: list[str]) -> None:
-    """用内存缓存给指定文件计算并写入 rec_score。"""
-    if not filepaths:
-        return
-
-    with _rec_cache_lock:
-        if not _rec_cache["initialized"]:
-            return
-        author_freq = _rec_cache["author_freq"]
-        tag_freq = _rec_cache["tag_freq"]
-        tag_total = _rec_cache["tag_total"]
-
-    artists_by_file = repo.get_artists_by_filepaths(filepaths)
-    tags_by_file = repo.get_tags_by_filepaths(filepaths)
-
-    scores: dict[str, float] = {}
-    for fp in filepaths:
-        scores[fp] = _compute_rec_score_for_file(
-            artists_by_file.get(fp, []),
-            tags_by_file.get(fp, []),
-            author_freq,
-            tag_freq,
-            tag_total,
-        )
-
-    repo.batch_update_rec_scores(scores)
-
-
-def _refresh_all_rec_scores(repo: IndexRepository) -> None:
-    """全量重算所有文件的 rec_score（favorite 目录变化后调用）。"""
-    _refresh_rec_cache(repo)
-
-    with _rec_cache_lock:
-        if not _rec_cache["initialized"]:
-            return
-        author_freq = _rec_cache["author_freq"]
-        tag_freq = _rec_cache["tag_freq"]
-        tag_total = _rec_cache["tag_total"]
-
-    # 如果没有 favorite 数据，跳过
-    if not author_freq and not tag_freq:
-        return
-
-    # 分批查所有有 artist/tag 的文件
-    from sqlmodel import select as sql_select
-    from app.index_db.models import FileArtist as FA, FileTag as FT
-
-    all_fps_with_meta: set[str] = set()
-    for fp in repo.session.exec(sql_select(FA.filepath).distinct()):
-        if fp:
-            all_fps_with_meta.add(fp)
-    for fp in repo.session.exec(sql_select(FT.filepath).distinct()):
-        if fp:
-            all_fps_with_meta.add(fp)
-
-    if not all_fps_with_meta:
-        return
-
-    fp_list = list(all_fps_with_meta)
-    batch_size = 500
-    for i in range(0, len(fp_list), batch_size):
-        batch = fp_list[i : i + batch_size]
-        artists_by_file = repo.get_artists_by_filepaths(batch)
-        tags_by_file = repo.get_tags_by_filepaths(batch)
-
-        scores: dict[str, float] = {}
-        for fp in batch:
-            scores[fp] = _compute_rec_score_for_file(
-                artists_by_file.get(fp, []),
-                tags_by_file.get(fp, []),
-                author_freq,
-                tag_freq,
-                tag_total,
-            )
-        repo.batch_update_rec_scores(scores)
-
-    logger.info("All rec_scores refreshed for %d files", len(fp_list))
 
 
 def _sort_items(items: list[FileSystemItem], sort_by: SortBy, sort_order: SortOrder) -> None:
