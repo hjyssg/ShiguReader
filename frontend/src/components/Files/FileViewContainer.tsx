@@ -189,7 +189,7 @@ export function FileViewContainer({
       } else {
         const mtimeA = a.mtime || 0
         const mtimeB = b.mtime || 0
-        comparison = mtimeB - mtimeA
+        comparison = mtimeA - mtimeB;
       }
 
       return sortOrder === "asc" ? comparison : -comparison
