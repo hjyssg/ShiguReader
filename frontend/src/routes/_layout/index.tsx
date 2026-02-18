@@ -26,6 +26,38 @@ type TopOpenedFoldersResponse = {
   folder_ids: string[]
 }
 
+function parseGoodFolderMonth(name: string): number | null {
+  const match = /^good_(\d{4})_(\d{2})_(\d{2})$/.exec(name)
+  if (!match) return null
+  const year = Number(match[1])
+  const month = Number(match[2])
+  if (!Number.isFinite(year) || !Number.isFinite(month)) return null
+  return year * 100 + month
+}
+
+function HomeFolderLinkCard({
+  path,
+  name,
+  icon,
+  subtitle,
+}: {
+  path: string
+  name: string
+  icon: typeof Folder | typeof Heart
+  subtitle?: string
+}) {
+  return (
+    <Link
+      to="/explorer"
+      search={{ path }}
+      className="home-card-link"
+      title={name}
+    >
+      <HomeCard icon={icon} title={name} subtitle={subtitle} />
+    </Link>
+  )
+}
+
 export const Route = createFileRoute("/_layout/")({
   component: Dashboard,
   head: () => ({
@@ -99,6 +131,40 @@ function Dashboard() {
     },
   })
 
+  const { data: favoriteSubfolders } = useQuery({
+    queryKey: ["home-favorite-subfolders", favoriteRoot?.path],
+    enabled: !!favoriteRoot?.path,
+    queryFn: async () => {
+      const list = await FilesystemService.listDirectory({ path: favoriteRoot!.path })
+      const folders = list.items.filter((item) => item.item_type === "folder")
+      const goodFolders = folders.filter((item) => parseGoodFolderMonth(item.name) !== null)
+
+      if (goodFolders.length > 0) {
+        const latestMonth = Math.max(
+          ...goodFolders.map((item) => parseGoodFolderMonth(item.name) || 0),
+        )
+
+        const latestMonthFolders = goodFolders.filter(
+          (item) => parseGoodFolderMonth(item.name) === latestMonth,
+        )
+
+        // 同月内优先显示 good_YYYY_MM_01；若不存在则显示该月字典序最小的一个。
+        const firstDayFolder = latestMonthFolders.find((item) =>
+          item.name.endsWith("_01"),
+        )
+
+        return [
+          firstDayFolder ||
+            [...latestMonthFolders].sort((a, b) =>
+              a.name.localeCompare(b.name),
+            )[0],
+        ]
+      }
+
+      return []
+    },
+  })
+
   return (
     <div className="home-page">
       {drives && drives.length > 0 ? (
@@ -118,15 +184,29 @@ function Dashboard() {
         <h2 className="home-section__title">{t("home.specialFolders")}</h2>
         <div className="home-grid home-grid--folders">
           {favoriteRoot ? (
-            <Link to="/explorer" search={{ path: favoriteRoot.path }} className="home-card-link">
-              <HomeCard icon={Heart} title={favoriteRoot.dirname} />
-            </Link>
+            <HomeFolderLinkCard
+              path={favoriteRoot.path}
+              name={favoriteRoot.dirname}
+              icon={Heart}
+            />
           ) : null}
 
+          {favoriteSubfolders?.map((folder) => (
+            <HomeFolderLinkCard
+              key={folder.path}
+              path={folder.path}
+              name={folder.name}
+              icon={Folder}
+              subtitle={favoriteRoot?.dirname}
+            />
+          ))}
+
           {alreadyReadRoot ? (
-            <Link to="/explorer" search={{ path: alreadyReadRoot.path }} className="home-card-link">
-              <HomeCard icon={Folder} title={alreadyReadRoot.dirname} />
-            </Link>
+            <HomeFolderLinkCard
+              path={alreadyReadRoot.path}
+              name={alreadyReadRoot.dirname}
+              icon={Folder}
+            />
           ) : null}
         </div>
       </section>
@@ -137,9 +217,12 @@ function Dashboard() {
         <div className="home-grid home-grid--folders">
           {isLoading ? <div className="home-empty">{t("common.loading")}</div> : null}
           {roots?.map((root) => (
-            <Link key={root.path} to="/explorer" search={{ path: root.path }} className="home-card-link">
-              <HomeCard icon={Folder} title={root.dirname} />
-            </Link>
+            <HomeFolderLinkCard
+              key={root.path}
+              path={root.path}
+              name={root.dirname}
+              icon={Folder}
+            />
           ))}
         </div>
       </section>
@@ -149,9 +232,13 @@ function Dashboard() {
         <h2 className="home-section__title">{t("home.topOpenedFolders")}</h2>
         <div className="home-grid home-grid--folders">
           {topOpenedFolders?.folder_ids.map((folderPath) => (
-            <Link key={folderPath} to="/explorer" search={{ path: folderPath }} className="home-card-link">
-              <HomeCard icon={Folder} title={folderPath.split(/[\\/]/).filter(Boolean).at(-1) ?? folderPath} subtitle={folderPath} />
-            </Link>
+            <HomeFolderLinkCard
+              key={folderPath}
+              path={folderPath}
+              name={folderPath.split(/[\\/]/).filter(Boolean).at(-1) ?? folderPath}
+              icon={Folder}
+              subtitle={folderPath}
+            />
           ))}
           {topOpenedFolders && topOpenedFolders.folder_ids.length === 0 ? <div className="home-empty">{t("home.noTopOpenedFolders")}</div> : null}
         </div>

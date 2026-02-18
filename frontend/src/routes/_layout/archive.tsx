@@ -64,6 +64,11 @@ function Archive() {
   // File operations
   const parentPath = getParentPath(path)
   const operations = useFileOperations(parentPath)
+
+  const navigateToMovedArchive = (movedPath?: string | null) => {
+    const nextPath = movedPath || path
+    navigate({ to: "/archive", search: { path: nextPath } })
+  }
   const [renameOpen, setRenameOpen] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [moveOpen, setMoveOpen] = useState(false)
@@ -261,9 +266,9 @@ function Archive() {
           operations.moveFileMutation.mutate(
             { sourcePath: path, destPath },
             {
-              onSuccess: () => {
+              onSuccess: (resp) => {
                 setMoveOpen(false)
-                navigate({ to: "/" })
+                navigateToMovedArchive(resp?.dest_path)
               },
             },
           )
@@ -287,13 +292,14 @@ function Archive() {
         onOpenChange={setConfirmFavOpen}
         filePaths={[path]}
         destination="Favorites"
-        onConfirm={() => {
+        showSubfolder
+        onConfirm={(subfolder) => {
           operations.moveToFavoriteMutation.mutate(
-            { sourcePath: path, isFolder: false },
+            { sourcePath: path, isFolder: false, subfolder },
             {
-              onSuccess: () => {
+              onSuccess: (resp) => {
                 setConfirmFavOpen(false)
-                navigate({ to: "/" })
+                navigateToMovedArchive(resp?.dest_path)
               },
             },
           )
@@ -309,9 +315,9 @@ function Archive() {
           operations.moveToAlreadyReadMutation.mutate(
             { sourcePath: path, isFolder: false },
             {
-              onSuccess: () => {
+              onSuccess: (resp) => {
                 setConfirmReadOpen(false)
-                navigate({ to: "/" })
+                navigateToMovedArchive(resp?.dest_path)
               },
             },
           )
@@ -411,7 +417,7 @@ function ArchiveEntryItem({
     return (
       <Link
         to="/video"
-        search={{ path: archivePath, entry: entry.entry_path, media: "video" }}
+        search={{ path: archivePath, entry: entry.entry_path }}
       >
         {content}
       </Link>
