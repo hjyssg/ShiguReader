@@ -41,7 +41,7 @@ import { useFileExplorerKeyboard } from "@/hooks/useFileExplorerKeyboard"
 import { useFileNavigation } from "@/hooks/useFileNavigation"
 import { useFileOperations } from "@/hooks/useFileOperations"
 import { useFileSelection } from "@/hooks/useFileSelection"
-import { getBaseName } from "@/lib/path-utils"
+import { detectPathSeparator, getBaseName } from "@/lib/path-utils"
 import { cn } from "@/lib/utils"
 import { type CompressAction, CompressDialog } from "./dialogs/CompressDialog"
 import { ConfirmMoveDialog } from "./dialogs/ConfirmMoveDialog"
@@ -622,7 +622,9 @@ export function FileViewContainer({
       const item = sortedItems.find((i) => i.path === sourcePath)
       if (item) {
         const fileName = getBaseName(sourcePath)
-        const destPath = `${destDir}/${fileName}`
+        const separator = detectPathSeparator(destDir || sourcePath)
+        const normalizedDestDir = destDir.replace(/[\\/]+$/, "")
+        const destPath = `${normalizedDestDir}${separator}${fileName}`
         operations.move(sourcePath, destPath, item.item_type === "folder")
       }
       setMoveDialogOpen(false)

@@ -1,5 +1,6 @@
-import axios from "axios"
 import { useEffect, useRef, useState } from "react"
+
+import { requestJson } from "@/utils/http"
 
 /**
  * 当文件/文件夹被移动后，通过 filetable 查找新路径并自动跳转。
@@ -36,12 +37,11 @@ export function useResolveMovedFile(
 
     setResolving(true)
 
-    axios
-      .get("/api/v1/fs/resolve-path", {
-        params: { filename, old_path: path },
-      })
-      .then((resp) => {
-        const newPath = resp.data?.path
+    requestJson<{ path?: string }>("/api/v1/fs/resolve-path", {
+      query: { filename, old_path: path },
+    })
+      .then((data) => {
+        const newPath = data?.path
         if (newPath && newPath !== path) {
           onResolvedRef.current(newPath)
         }
