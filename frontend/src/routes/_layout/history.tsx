@@ -11,7 +11,8 @@ import {
   List,
 } from "lucide-react"
 import { useTranslation } from "react-i18next"
-import { toast } from "sonner"
+
+import { toastInfo } from "@/lib/toast"
 
 import { OpenAPI } from "@/client"
 import type { FileSystemItem } from "@/client/types.gen"
@@ -101,7 +102,7 @@ function HistoryPage() {
   const openHistoryItem = (item: HistoryItem) => {
     const target = buildNavigationTarget(toFileSystemItem(item), isMobile)
     if (!target) {
-      toast.info(t("history.unsupportedType"))
+      toastInfo(t("history.unsupportedType"))
       return
     }
 

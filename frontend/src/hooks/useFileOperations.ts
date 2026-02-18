@@ -1,6 +1,6 @@
 // 文件操作 API 封装 — 统一 mutation hooks
 import { useMutation, useQueryClient } from "@tanstack/react-query"
-import { toast } from "sonner"
+import { toastError, toastSuccess } from "@/lib/toast"
 
 import { ApiError, FilesystemService } from "@/client"
 import { detectPathSeparator, getBaseName } from "@/lib/path-utils"
@@ -153,11 +153,11 @@ export function useFileOperations(currentPath: string) {
     mutationFn: ({ path, newName }: { path: string; newName: string }) =>
       apiRename(path, newName),
     onSuccess: () => {
-      toast.success("Renamed successfully")
+      toastSuccess("Renamed successfully")
       invalidate()
     },
     onError: (err: any) => {
-      toast.error(`Rename failed: ${extractErrorMessage(err)}`)
+      toastError(`Rename failed: ${extractErrorMessage(err)}`)
     },
   })
 
@@ -170,11 +170,11 @@ export function useFileOperations(currentPath: string) {
       permanently: boolean
     }) => FilesystemService.deletePath({ requestBody: { path, permanently } }),
     onSuccess: () => {
-      toast.success("Deleted successfully")
+      toastSuccess("Deleted successfully")
       invalidate()
     },
     onError: (err: any) => {
-      toast.error(`Delete failed: ${extractErrorMessage(err)}`)
+      toastError(`Delete failed: ${extractErrorMessage(err)}`)
     },
   })
 
@@ -193,11 +193,11 @@ export function useFileOperations(currentPath: string) {
       }
     },
     onSuccess: () => {
-      toast.success("Deleted successfully")
+      toastSuccess("Deleted successfully")
       invalidate()
     },
     onError: (err: any) => {
-      toast.error(`Delete failed: ${extractErrorMessage(err)}`)
+      toastError(`Delete failed: ${extractErrorMessage(err)}`)
     },
   })
 
@@ -213,13 +213,11 @@ export function useFileOperations(currentPath: string) {
         requestBody: { source_path: sourcePath, dest_path: destPath },
       }),
     onSuccess: () => {
-      toast.success("Moved successfully")
+      toastSuccess("Moved successfully")
       invalidate()
     },
     onError: (err: any) => {
-      toast.error(`Move failed: ${extractErrorMessage(err)}`, {
-        duration: 7000,
-      })
+      toastError(`Move failed: ${extractErrorMessage(err)}`)
     },
   })
 
@@ -235,13 +233,11 @@ export function useFileOperations(currentPath: string) {
         requestBody: { source_path: sourcePath, dest_path: destPath },
       }),
     onSuccess: () => {
-      toast.success("Moved successfully")
+      toastSuccess("Moved successfully")
       invalidate()
     },
     onError: (err: any) => {
-      toast.error(`Move failed: ${extractErrorMessage(err)}`, {
-        duration: 7000,
-      })
+      toastError(`Move failed: ${extractErrorMessage(err)}`)
     },
   })
 
@@ -256,11 +252,11 @@ export function useFileOperations(currentPath: string) {
       subfolder?: string
     }) => apiMoveToFavorite(sourcePath, isFolder, subfolder),
     onSuccess: () => {
-      toast.success("Moved to favorites")
+      toastSuccess("Moved to favorites")
       invalidate()
     },
     onError: (err: any) => {
-      toast.error(`Move to favorites failed: ${extractErrorMessage(err)}`)
+      toastError(`Move to favorites failed: ${extractErrorMessage(err)}`)
     },
   })
 
@@ -273,11 +269,11 @@ export function useFileOperations(currentPath: string) {
       isFolder: boolean
     }) => apiMoveToAlreadyRead(sourcePath, isFolder),
     onSuccess: () => {
-      toast.success("Moved to already-read")
+      toastSuccess("Moved to already-read")
       invalidate()
     },
     onError: (err: any) => {
-      toast.error(`Move to already-read failed: ${extractErrorMessage(err)}`)
+      toastError(`Move to already-read failed: ${extractErrorMessage(err)}`)
     },
   })
 
@@ -285,22 +281,22 @@ export function useFileOperations(currentPath: string) {
     mutationFn: (folderPath: string) =>
       FilesystemService.zipFolder({ requestBody: { folder_path: folderPath } }),
     onSuccess: () => {
-      toast.success("Compressed to ZIP successfully")
+      toastSuccess("Compressed to ZIP successfully")
       invalidate()
     },
     onError: (err: any) => {
-      toast.error(`Compress failed: ${extractErrorMessage(err)}`)
+      toastError(`Compress failed: ${extractErrorMessage(err)}`)
     },
   })
 
   const compressArchiveImagesMutation = useMutation({
     mutationFn: (archivePath: string) => apiCompressArchiveImages(archivePath),
     onSuccess: () => {
-      toast.success("Archive images compressed successfully")
+      toastSuccess("Archive images compressed successfully")
       invalidate()
     },
     onError: (err: any) => {
-      toast.error(`Compress images failed: ${extractErrorMessage(err)}`)
+      toastError(`Compress images failed: ${extractErrorMessage(err)}`)
     },
   })
 
@@ -311,13 +307,13 @@ export function useFileOperations(currentPath: string) {
       const scanned = payload.scanned_files ?? 0
       const thumbs = payload.backfilled_thumbnails ?? 0
       const meta = payload.backfilled_meta ?? 0
-      toast.success(
+      toastSuccess(
         `Backfill completed: scanned ${scanned}, thumbnails ${thumbs}, meta ${meta}`,
       )
       invalidate()
     },
     onError: (err: any) => {
-      toast.error(`Backfill failed: ${extractErrorMessage(err)}`)
+      toastError(`Backfill failed: ${extractErrorMessage(err)}`)
     },
   })
 

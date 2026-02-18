@@ -6,7 +6,8 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router"
 import { ChevronRight, Home, ScanLine } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
-import { toast } from "sonner"
+
+import { toastError, toastSuccess } from "@/lib/toast"
 
 import { FilesystemService } from "@/client"
 import { FileNotFoundError } from "@/components/Common/FileNotFoundError"
@@ -183,14 +184,14 @@ function Explorer() {
           requestBody: { path, recursive: true },
         })
       }
-      toast.success(
+      toastSuccess(
         withWatch
           ? t("explorer.scanAndWatchStarted")
           : t("explorer.scanStarted"),
       )
       scanMutation.refetch()
     } catch {
-      toast.error(t("explorer.scanFailed"))
+      toastError(t("explorer.scanFailed"))
     }
   }
 
