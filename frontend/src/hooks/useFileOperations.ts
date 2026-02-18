@@ -217,7 +217,9 @@ export function useFileOperations(currentPath: string) {
       invalidate()
     },
     onError: (err: any) => {
-      toast.error(`Move failed: ${extractErrorMessage(err)}`)
+      toast.error(`Move failed: ${extractErrorMessage(err)}`, {
+        duration: 7000,
+      })
     },
   })
 
@@ -237,7 +239,9 @@ export function useFileOperations(currentPath: string) {
       invalidate()
     },
     onError: (err: any) => {
-      toast.error(`Move failed: ${extractErrorMessage(err)}`)
+      toast.error(`Move failed: ${extractErrorMessage(err)}`, {
+        duration: 7000,
+      })
     },
   })
 
