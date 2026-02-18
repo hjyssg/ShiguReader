@@ -1,14 +1,14 @@
-import { toast } from "sonner"
+import { toastError, toastSuccess } from "@/lib/toast"
 
 const useCustomToast = () => {
   const showSuccessToast = (description: string) => {
-    toast.success("Success!", {
+    toastSuccess("Success!", {
       description,
     })
   }
 
   const showErrorToast = (description: string) => {
-    toast.error("Something went wrong!", {
+    toastError("Something went wrong!", {
       description,
     })
   }

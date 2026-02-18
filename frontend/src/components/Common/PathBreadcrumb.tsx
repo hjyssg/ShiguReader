@@ -1,7 +1,8 @@
 import { Link } from "@tanstack/react-router"
 import { ChevronRight, Folder, Home } from "lucide-react"
 import type { MouseEvent, ReactNode } from "react"
-import { toast } from "sonner"
+
+import { toastSuccess } from "@/lib/toast"
 
 import { joinPath, splitPath } from "@/lib/path-utils"
 import { cn } from "@/lib/utils"
@@ -30,7 +31,7 @@ async function copyText(text: string) {
   if (!text) return
   try {
     await navigator.clipboard.writeText(text)
-    toast.success("已复制", { position: "top-right" })
+    toastSuccess("已复制", { position: "top-right" })
   } catch {
     const el = document.createElement("textarea")
     el.value = text
@@ -41,7 +42,7 @@ async function copyText(text: string) {
     el.select()
     document.execCommand("copy")
     document.body.removeChild(el)
-    toast.success("已复制", { position: "top-right" })
+    toastSuccess("已复制", { position: "top-right" })
   }
 }
 
