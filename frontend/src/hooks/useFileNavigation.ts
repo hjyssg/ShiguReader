@@ -7,7 +7,7 @@ import { useIsMobile } from "@/hooks/useMobile"
 import { getParentPath } from "@/lib/path-utils"
 
 /** 根据文件类型构建导航目标 */
-function buildNavigationTarget(item: FileSystemItem, isMobile: boolean) {
+export function buildNavigationTarget(item: FileSystemItem, isMobile: boolean) {
   const isFolder = item.item_type === "folder"
   const isArchive = item.file_type === "archive"
   const isVideo = item.file_type === "video"

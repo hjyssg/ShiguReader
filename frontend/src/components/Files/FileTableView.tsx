@@ -2,12 +2,14 @@
 import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react"
 import { useTranslation } from "react-i18next"
 
+import { useIsMobile } from "@/hooks/useMobile"
+
 import type { FileSystemItem } from "@/client"
 import { ListTable, type ListTableColumn } from "@/components/Common/ListTable"
 import { cn } from "@/lib/utils"
 import { FileContextMenu, type FileContextMenuActions } from "./FileContextMenu"
-import { FileIcon } from "./FileIcon"
-import { FileNameWithPreview } from "./FileNameWithPreview"
+import { buildNavigationTarget } from "@/hooks/useFileNavigation"
+import { FileNameLinkCell } from "./FileNameLinkCell"
 import { formatDateTime, formatFileSize, formatFileType } from "./utils"
 
 export type SortField =
@@ -96,16 +98,15 @@ export function FileTableView({
 
 function TableRowCells({ item }: { item: FileSystemItem }) {
   const { t } = useTranslation()
+  const isMobile = useIsMobile()
   const isFolder = item.item_type === "folder"
   const isArchive = item.file_type === "archive"
+  const target = buildNavigationTarget(item, isMobile)
 
   return (
     <>
       <td className="p-2">
-        <div className="flex min-w-0 items-center gap-2">
-          <FileIcon fileType={item.file_type} isFolder={isFolder} size="sm" />
-          <FileNameWithPreview filename={item.name} filepath={item.path} thumbnailUrl={item.thumbnail_url} className="min-w-0" />
-        </div>
+        <FileNameLinkCell item={item} target={target} />
       </td>
       <td className="p-2 text-muted-foreground">{item.mtime ? formatDateTime(item.mtime) : "-"}</td>
       <td className="p-2 text-muted-foreground">{isFolder ? t("file.folder") : formatFileType(item.file_type)}</td>
