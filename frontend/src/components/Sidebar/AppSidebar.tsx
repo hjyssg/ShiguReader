@@ -7,6 +7,7 @@ import {
   VenetianMask,
   UserRound,
 } from "lucide-react"
+import { useTranslation } from "react-i18next"
 
 import { SidebarAppearance } from "@/components/Common/Appearance"
 import { Logo } from "@/components/Common/Logo"
@@ -21,18 +22,24 @@ import {
 import { type Item, Main } from "./Main"
 
 const baseItems: Item[] = [
-  // { icon: Home, title: "Home", path: "/" },
-  { icon: FolderOpen, title: "Explorer", path: "/" },
-  { icon: History, title: "History", path: "/history" },
-  { icon: Tag, title: "Tags", path: "/tags" },
-  { icon: UserRound, title: "Authors", path: "/authors" },
-  { icon: VenetianMask, title: "Cosers", path: "/cosers" },
-  { icon: Search, title: "Search", path: "/search" },
-  { icon: Settings, title: "Settings", path: "/settings" },
+  // { icon: Home, title: "home", path: "/" },
+  { icon: FolderOpen, title: "explorer", path: "/" },
+  { icon: History, title: "history", path: "/history" },
+  { icon: Tag, title: "tags", path: "/tags" },
+  { icon: UserRound, title: "authors", path: "/authors" },
+  { icon: VenetianMask, title: "cosers", path: "/cosers" },
+  { icon: Search, title: "search", path: "/search" },
+  { icon: Settings, title: "settings", path: "/settings" },
 ]
 
 export function AppSidebar() {
+  const { t } = useTranslation()
   const { state } = useSidebar()
+  const items = baseItems.map((item) => ({
+    ...item,
+    title: t(`nav.${item.title}`),
+  }))
+
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader className="px-4 py-6">
@@ -42,7 +49,7 @@ export function AppSidebar() {
         </div>
       </SidebarHeader>
       <SidebarContent>
-        <Main items={baseItems} />
+        <Main items={items} />
       </SidebarContent>
       <SidebarFooter>
         <SidebarAppearance />
