@@ -59,7 +59,7 @@ export const Route = createFileRoute("/_layout/explorer")({
       pageSize,
       sortField: sortFieldCandidates.includes(rawSortField as SortField)
         ? (rawSortField as SortField)
-        : "type",
+        : "mtime",
       sortOrder: sortOrderCandidates.includes(rawSortOrder as SortOrder)
         ? (rawSortOrder as SortOrder)
         : "desc",
