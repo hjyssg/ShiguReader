@@ -25,7 +25,8 @@
     "authors": "Authors",
     "cosers": "Cosers (preview)",
     "search": "Search",
-    "admin": "Admin"
+    "admin": "Admin",
+    "settings": "Settings"
   },
   "home": {
     "drives": "Drives",

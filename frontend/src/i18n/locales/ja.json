@@ -25,7 +25,8 @@
     "authors": "作者",
     "cosers": "Coser (preview)",
     "search": "検索",
-    "admin": "管理"
+    "admin": "管理",
+    "settings": "設定"
   },
   "home": {
     "drives": "ドライブ",

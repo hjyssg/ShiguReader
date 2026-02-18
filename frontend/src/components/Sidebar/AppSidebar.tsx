@@ -29,7 +29,7 @@ const baseItems: Item[] = [
   { icon: UserRound, title: "authors", path: "/authors" },
   { icon: VenetianMask, title: "cosers", path: "/cosers" },
   { icon: Search, title: "search", path: "/search" },
-  { icon: Settings, title: "settings.title", path: "/settings" },
+  { icon: Settings, title: "settings", path: "/settings" },
 ]
 
 export function AppSidebar() {
@@ -37,7 +37,7 @@ export function AppSidebar() {
   const { state } = useSidebar()
   const items = baseItems.map((item) => ({
     ...item,
-    title: item.title.includes(".") ? t(item.title) : t(`nav.${item.title}`),
+    title: t(`nav.${item.title}`),
   }))
 
   return (

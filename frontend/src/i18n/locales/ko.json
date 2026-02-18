@@ -26,7 +26,8 @@
     "authors": "작가",
     "cosers": "코서 (preview)",
     "search": "검색",
-    "admin": "관리"
+    "admin": "관리",
+    "settings": "설정"
   },
   "home": {
     "drives": "드라이브",
