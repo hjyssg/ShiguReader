@@ -1542,7 +1542,7 @@ def zip_folder(request: ZipFolderRequest) -> PathOperationResponse:
                     for d in dirs
                     if not should_ignore(d)
                     and not _is_link_or_reparse(root_path / d)
-                    and not _is_filesystem_root(root_path / d)
+                    and not is_filesystem_root(root_path / d)
                 ]
                 for fname in filenames:
                     if should_ignore(fname):
@@ -1708,7 +1708,7 @@ async def scan_directory(background_tasks: BackgroundTasks, request: ScanRequest
     if not validated_path.is_dir():
         raise HTTPException(status_code=400, detail="Path is not a directory")
 
-    if _is_filesystem_root(validated_path):
+    if is_filesystem_root(validated_path):
         raise HTTPException(status_code=400, detail="Refuse to scan filesystem root directory")
 
     background_tasks.add_task(_run_scan, validated_path, request.recursive)
@@ -1734,7 +1734,7 @@ async def backfill_directory(request: BackfillRequest) -> BackfillResponse:
     if not validated_path.is_dir():
         raise HTTPException(status_code=400, detail="Path is not a directory")
 
-    if _is_filesystem_root(validated_path):
+    if is_filesystem_root(validated_path):
         raise HTTPException(status_code=400, detail="Refuse to scan filesystem root directory")
 
     if not request.fill_thumbnail and not request.fill_meta:
@@ -1891,7 +1891,7 @@ async def scan_and_watch(background_tasks: BackgroundTasks, request: ScanRequest
     if not validated_path.is_dir():
         raise HTTPException(status_code=400, detail="Path is not a directory")
 
-    if _is_filesystem_root(validated_path):
+    if is_filesystem_root(validated_path):
         raise HTTPException(status_code=400, detail="Refuse to scan filesystem root directory")
 
     path_key = str(validated_path)
