@@ -1,4 +1,4 @@
-// 文件系统项表格视图 — 支持排序、选择、双击导航、右键菜单
+// 文件系统项表格视图 — 支持排序、选择、双击导航
 import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react"
 import { useTranslation } from "react-i18next"
 
@@ -7,7 +7,6 @@ import { ListTable, type ListTableColumn } from "@/components/Common/ListTable"
 import { buildNavigationTarget } from "@/hooks/useFileNavigation"
 import { useIsMobile } from "@/hooks/useMobile"
 import { cn } from "@/lib/utils"
-import { FileContextMenu, type FileContextMenuActions } from "./FileContextMenu"
 import { FileNameLinkCell } from "./FileNameLinkCell"
 import { formatDateTime, formatFileSize, formatFileType } from "./utils"
 
@@ -22,9 +21,6 @@ interface FileTableViewProps {
   isSelected?: (path: string) => boolean
   onItemClick?: (item: FileSystemItem, e: React.MouseEvent) => void
   onItemDoubleClick?: (item: FileSystemItem, e: React.MouseEvent) => void
-  onItemContextMenu?: (item: FileSystemItem) => void
-  buildContextMenuActions?: (item: FileSystemItem) => FileContextMenuActions
-  isOpenable?: (item: FileSystemItem) => boolean
 }
 
 export function FileTableView({
@@ -35,9 +31,6 @@ export function FileTableView({
   isSelected,
   onItemClick,
   onItemDoubleClick,
-  onItemContextMenu,
-  buildContextMenuActions,
-  isOpenable,
 }: FileTableViewProps) {
   const { t } = useTranslation()
   const isMobile = useIsMobile()
@@ -135,7 +128,7 @@ export function FileTableView({
       columns={columns}
       rows={items}
       renderRow={(item) => {
-        const row = (
+        return (
           <tr
             key={item.path}
             className={cn(
@@ -147,20 +140,6 @@ export function FileTableView({
           >
             <TableRowCells item={item} isMobile={isMobile} />
           </tr>
-        )
-
-        if (!buildContextMenuActions) return row
-
-        return (
-          <FileContextMenu
-            key={item.path}
-            item={item}
-            isOpenable={isOpenable?.(item) ?? false}
-            actions={buildContextMenuActions(item)}
-            onContextMenuOpen={() => onItemContextMenu?.(item)}
-          >
-            {row}
-          </FileContextMenu>
         )
       }}
     />

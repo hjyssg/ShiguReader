@@ -89,8 +89,25 @@ async function apiMoveToFavorite(sourcePath: string, isFolder: boolean, subfolde
 
 /** 移动到已读目录 */
 async function apiMoveToAlreadyRead(sourcePath: string, isFolder: boolean) {
-  const resp = await api.get("/api/v1/fs/already-read")
-  const dir = resp.data?.path
+  // 优先使用 fs/already-read；若目录尚未创建，回退读取 settings 并尝试自动创建。
+  let resp = await api.get("/api/v1/fs/already-read")
+  let dir = resp.data?.path as string | undefined
+
+  if (!dir) {
+    const settingsResp = await api.get("/api/v1/settings")
+    const configuredDir = (settingsResp.data?.already_read_dir as string | undefined)?.trim()
+    if (configuredDir) {
+      dir = configuredDir
+      try {
+        await api.post("/api/v1/fs/ensure-dir", { path: dir })
+        resp = await api.get("/api/v1/fs/already-read")
+        dir = (resp.data?.path as string | undefined) || dir
+      } catch {
+        // 忽略：若后端不支持 ensure-dir，后续 move 会给出明确错误。
+      }
+    }
+  }
+
   if (!dir) throw new Error("Already-read directory not configured")
 
   const fileName = sourcePath.split("/").pop() || sourcePath.split("\\").pop()

@@ -90,6 +90,7 @@ export function DeleteDialog({
             type="button"
             variant={deleteMode === "permanent" ? "destructive" : "default"}
             onClick={() => onConfirm(deleteMode === "permanent")}
+            autoFocus
             disabled={isPending}
           >
             {isPending
