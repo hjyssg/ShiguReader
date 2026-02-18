@@ -1,3 +1,6 @@
+/**
+ * 搜索页面 - 支持文件、作者、Coser、标签的多维度搜索
+ */
 import { useQuery } from "@tanstack/react-query"
 import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { ExternalLink, Search } from "lucide-react"

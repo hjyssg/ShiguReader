@@ -1,3 +1,6 @@
+/**
+ * 图片阅读器 - 支持压缩包和文件夹图片浏览，带缩放、旋转、拖拽功能
+ */
 import { useMutation, useQuery } from "@tanstack/react-query"
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router"
 import {

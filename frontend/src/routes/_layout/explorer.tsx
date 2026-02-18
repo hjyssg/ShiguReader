@@ -1,3 +1,6 @@
+/**
+ * 文件浏览器 - 浏览文件系统目录，支持排序、过滤和扫描功能
+ */
 import { useQuery } from "@tanstack/react-query"
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router"
 import { ChevronRight, Home, ScanLine } from "lucide-react"

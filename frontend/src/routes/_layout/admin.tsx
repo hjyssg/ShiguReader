@@ -1,3 +1,6 @@
+/**
+ * 管理页面 - 用户管理（当前已禁用，项目无用户认证系统）
+ */
 import { createFileRoute } from "@tanstack/react-router"
 import { Suspense } from "react"
 

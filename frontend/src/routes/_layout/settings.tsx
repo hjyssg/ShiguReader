@@ -1,3 +1,6 @@
+/**
+ * 设置页面 - 管理文件系统根目录、特殊文件夹、语言和缓存
+ */
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { createFileRoute } from "@tanstack/react-router"
 import { useEffect, useState } from "react"
