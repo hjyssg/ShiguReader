@@ -117,6 +117,7 @@ export function ConfirmMoveDialog({
                 : undefined
               onConfirm(sub)
             }}
+            autoFocus
             disabled={isPending}
           >
             {isPending ? "Moving..." : "Confirm"}

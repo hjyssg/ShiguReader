@@ -463,31 +463,38 @@ export function FileViewContainer({
       onOpenInNewTab: () => openItemInNewTab(item),
       onDownload: () => handleDownload(item),
       onRename: () => {
-        selection.select(item.path)
+        setContextItem(item)
+        if (!selection.isSelected(item.path)) {
+          selection.select(item.path)
+        }
         setRenameDialogOpen(true)
       },
       onMove: () => {
+        setContextItem(item)
         if (!selection.isSelected(item.path)) {
           selection.select(item.path)
         }
         setMoveDialogOpen(true)
       },
       onMoveToFavorite: () => {
+        setContextItem(item)
         if (!selection.isSelected(item.path)) {
           selection.select(item.path)
         }
-        handleMoveToFavorite()
+        setConfirmFavoriteOpen(true)
       },
       onMoveToAlreadyRead: () => {
+        setContextItem(item)
         if (!selection.isSelected(item.path)) {
           selection.select(item.path)
         }
-        handleMoveToAlreadyRead()
+        setConfirmAlreadyReadOpen(true)
       },
       onBackfillFolder: () => {
         operations.backfillFolderMutation.mutate(item.path)
       },
       onDelete: () => {
+        setContextItem(item)
         if (!selection.isSelected(item.path)) {
           selection.select(item.path)
         }
@@ -509,8 +516,6 @@ export function FileViewContainer({
       openItemInNewTab,
       handleDownload,
       selection,
-      handleMoveToFavorite,
-      handleMoveToAlreadyRead,
       operations.backfillFolderMutation,
     ],
   )
