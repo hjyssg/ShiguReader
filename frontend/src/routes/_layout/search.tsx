@@ -81,6 +81,57 @@ export const Route = createFileRoute("/_layout/search")({
   }),
 })
 
+type ScopeCheckboxProps = {
+  value: Scope
+  label: string
+  checked: boolean
+  onToggle: (scope: Scope, checked: boolean) => void
+}
+
+function ScopeCheckbox({ value, label, checked, onToggle }: ScopeCheckboxProps) {
+  const checkboxId = `scope-${value}`
+  return (
+    <div className="flex items-center gap-2 text-sm">
+      <Checkbox
+        id={checkboxId}
+        checked={checked}
+        onCheckedChange={(checked) => onToggle(value, Boolean(checked))}
+      />
+      <Label htmlFor={checkboxId}>{label}</Label>
+    </div>
+  )
+}
+
+type ExternalSearchLinkProps = {
+  label: string
+  href: string
+  disabled: boolean
+}
+
+function ExternalSearchLink({ label, href, disabled }: ExternalSearchLinkProps) {
+  return (
+    <Button
+      asChild
+      variant="outline"
+      size="sm"
+      disabled={disabled}
+      className="h-8"
+    >
+      <a href={href} target="_blank" rel="noreferrer noopener">
+        <ExternalLink className="size-3.5 mr-1" />
+        {label}
+      </a>
+    </Button>
+  )
+}
+
+const SCOPE_OPTIONS: Array<{ value: Scope; labelKey: string }> = [
+  { value: "file", labelKey: "search.file" },
+  { value: "author", labelKey: "search.author" },
+  { value: "coser", labelKey: "search.coser" },
+  { value: "tag", labelKey: "search.tag" },
+]
+
 function SearchPage() {
   const { t } = useTranslation()
   const search = Route.useSearch()
@@ -217,29 +268,15 @@ function SearchPage() {
           <div className="flex items-center gap-4">
             <Label className="text-sm">{t("search.scope")}</Label>
             <div className="flex items-center gap-3">
-              {(
-                [
-                  ["file", t("search.file")],
-                  ["author", t("search.author")],
-                  ["coser", t("search.coser")],
-                  ["tag", t("search.tag")],
-                ] as [Scope, string][]
-              ).map(([value, text]) => {
-                const checkboxId = `scope-${value}`
-
-                return (
-                  <div key={value} className="flex items-center gap-2 text-sm">
-                    <Checkbox
-                      id={checkboxId}
-                      checked={scopes.includes(value)}
-                      onCheckedChange={(checked) =>
-                        toggleScope(value, Boolean(checked))
-                      }
-                    />
-                    <Label htmlFor={checkboxId}>{text}</Label>
-                  </div>
-                )
-              })}
+              {SCOPE_OPTIONS.map((option) => (
+                <ScopeCheckbox
+                  key={option.value}
+                  value={option.value}
+                  label={t(option.labelKey)}
+                  checked={scopes.includes(option.value)}
+                  onToggle={toggleScope}
+                />
+              ))}
             </div>
           </div>
 
@@ -278,19 +315,12 @@ function SearchPage() {
 
                 <div className="flex flex-wrap items-center gap-2">
           {externalLinks.map((item) => (
-            <Button
+            <ExternalSearchLink
               key={item.label}
-              asChild
-              variant="outline"
-              size="sm"
+              label={item.label}
+              href={item.href}
               disabled={!trimmedQ}
-              className="h-8"
-            >
-              <a href={item.href} target="_blank" rel="noreferrer noopener">
-                <ExternalLink className="size-3.5 mr-1" />
-                {item.label}
-              </a>
-            </Button>
+            />
           ))}
         </div>
       </div>

@@ -74,6 +74,26 @@ export const Route = createFileRoute("/_layout/explorer")({
   }),
 })
 
+type FilterCheckboxProps = {
+  id: string
+  label: string
+  checked: boolean
+  onChange: (checked: boolean) => void
+}
+
+function FilterCheckbox({ id, label, checked, onChange }: FilterCheckboxProps) {
+  return (
+    <label htmlFor={id} className="explorer-zip-filter">
+      <Checkbox
+        id={id}
+        checked={checked}
+        onCheckedChange={(checked) => onChange(Boolean(checked))}
+      />
+      {label}
+    </label>
+  )
+}
+
 function Explorer() {
   const { t } = useTranslation()
   const navigate = useNavigate()
@@ -265,27 +285,18 @@ function Explorer() {
         toolbarExtra={
           <>
             <div className="explorer-zip-filter-group">
-              <label htmlFor="zip-has-video" className="explorer-zip-filter">
-                <Checkbox
-                  id="zip-has-video"
-                  checked={zipHasVideoOnly}
-                  onCheckedChange={(checked) =>
-                    setZipHasVideoOnly(Boolean(checked))
-                  }
-                />
-                {t("explorer.zipHasVideo")}
-              </label>
-
-              <label htmlFor="zip-has-audio" className="explorer-zip-filter">
-                <Checkbox
-                  id="zip-has-audio"
-                  checked={zipHasAudioOnly}
-                  onCheckedChange={(checked) =>
-                    setZipHasAudioOnly(Boolean(checked))
-                  }
-                />
-                {t("explorer.zipHasAudio")}
-              </label>
+              <FilterCheckbox
+                id="zip-has-video"
+                label={t("explorer.zipHasVideo")}
+                checked={zipHasVideoOnly}
+                onChange={setZipHasVideoOnly}
+              />
+              <FilterCheckbox
+                id="zip-has-audio"
+                label={t("explorer.zipHasAudio")}
+                checked={zipHasAudioOnly}
+                onChange={setZipHasAudioOnly}
+              />
             </div>
 
             <DropdownMenu>

@@ -59,3 +59,87 @@ coser pages大面积不是名单里面的coser，而是name parser解析出来�
 
 # task
 检查前后端的编译器warning。
+
+# 现在不同layout的pagination的代码太长了。
+一个pagination几十行，还不好统一行为。
+        <Pagination className="grid-pagination">
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationFirst
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault()
+                    goToPage(1)
+                  }}
+                  className={
+                    page <= 1 ? "pointer-events-none opacity-50" : undefined
+                  }
+                />
+              </PaginationItem>
+
+              <PaginationItem>
+                <PaginationPrevious
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault()
+                    goToPage(page - 1)
+                  }}
+                  className={
+                    page <= 1 ? "pointer-events-none opacity-50" : undefined
+                  }
+                />
+              </PaginationItem>
+
+              {visiblePages.map((p) => (
+                <PaginationItem key={p}>
+                  <PaginationLink
+                    href="#"
+                    isActive={p === page}
+                    onClick={(e) => {
+                      e.preventDefault()
+                      goToPage(p)
+                    }}
+                  >
+                    {p}
+                  </PaginationLink>
+                </PaginationItem>
+              ))}
+
+              <PaginationItem>
+                <PaginationNext
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault()
+                    goToPage(page + 1)
+                  }}
+                  className={
+                    page >= totalPages
+                      ? "pointer-events-none opacity-50"
+                      : undefined
+                  }
+                />
+              </PaginationItem>
+
+              <PaginationItem>
+                <PaginationLast
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault()
+                    goToPage(totalPages)
+                  }}
+                  className={
+                    page >= totalPages
+                      ? "pointer-events-none opacity-50"
+                      : undefined
+                  }
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination
+
+
+你去实现一个统一的pagination。
+
+
+# task 
+  search的mode和presence没有i18化。
