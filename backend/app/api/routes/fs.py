@@ -20,6 +20,7 @@ from urllib.parse import quote
 
 from fastapi import APIRouter, BackgroundTasks, HTTPException, Query
 from fastapi.responses import FileResponse, Response
+from pydantic import BaseModel
 from send2trash import send2trash
 from sqlmodel import select
 
