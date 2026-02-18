@@ -205,6 +205,24 @@ export function FileViewContainer({
   const pageSize = pagination?.pageSize ?? sortedItems.length
   const totalPages = Math.max(1, Math.ceil(sortedItems.length / pageSize))
   const normalizedPage = Math.min(Math.max(currentPage, 1), totalPages)
+  const visiblePages = useMemo(() => {
+    const out: number[] = []
+    const start = Math.max(1, normalizedPage - 2)
+    const end = Math.min(totalPages, start + 4)
+    for (let i = start; i <= end; i += 1) out.push(i)
+    return out
+  }, [normalizedPage, totalPages])
+
+  const goToPage = useCallback(
+    (nextPage: number) => {
+      if (!pagination) return
+      const target = Math.min(totalPages, Math.max(1, nextPage))
+      if (target !== normalizedPage) {
+        pagination.onChange({ page: target, pageSize })
+      }
+    },
+    [pagination, totalPages, normalizedPage, pageSize],
+  )
 
   const pagedItems = useMemo(() => {
     if (!pagination) return sortedItems
@@ -233,6 +251,7 @@ export function FileViewContainer({
     useState<CompressAction>("zip-folder")
   const [confirmFavoriteOpen, setConfirmFavoriteOpen] = useState(false)
   const [confirmAlreadyReadOpen, setConfirmAlreadyReadOpen] = useState(false)
+  const [jumpPage, setJumpPage] = useState("")
   // 右键菜单操作的目标项
   const [contextItem, setContextItem] = useState<FileSystemItem | null>(null)
 
@@ -907,65 +926,99 @@ export function FileViewContainer({
         isPending={operations.moveToAlreadyReadMutation.isPending}
       />
       {pagination && sortedItems.length > 0 && (
-        <Pagination className="justify-end pt-2">
-          <PaginationContent>
-            <PaginationItem>
-              <PaginationFirst
-                href="#"
-                className={cn(normalizedPage <= 1 && "pointer-events-none opacity-50")}
-                onClick={(e) => {
-                  e.preventDefault()
-                  if (normalizedPage <= 1) return
-                  pagination.onChange({ page: 1, pageSize })
-                }}
-              />
-            </PaginationItem>
-            <PaginationItem>
-              <PaginationPrevious
-                href="#"
-                className={cn(normalizedPage <= 1 && "pointer-events-none opacity-50")}
-                onClick={(e) => {
-                  e.preventDefault()
-                  if (normalizedPage <= 1) return
-                  pagination.onChange({ page: normalizedPage - 1, pageSize })
-                }}
-              />
-            </PaginationItem>
+        <div className="flex flex-col items-center gap-3 pt-2">
+          <Pagination>
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationFirst
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault()
+                    goToPage(1)
+                  }}
+                  className={normalizedPage <= 1 ? "pointer-events-none opacity-50" : undefined}
+                />
+              </PaginationItem>
 
-            <PaginationItem>
-              <PaginationLink href="#" isActive onClick={(e) => e.preventDefault()}>
-                {normalizedPage} / {totalPages}
-              </PaginationLink>
-            </PaginationItem>
+              <PaginationItem>
+                <PaginationPrevious
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault()
+                    goToPage(normalizedPage - 1)
+                  }}
+                  className={normalizedPage <= 1 ? "pointer-events-none opacity-50" : undefined}
+                />
+              </PaginationItem>
 
-            <PaginationItem>
-              <PaginationNext
-                href="#"
-                className={cn(
-                  normalizedPage >= totalPages && "pointer-events-none opacity-50",
-                )}
-                onClick={(e) => {
-                  e.preventDefault()
-                  if (normalizedPage >= totalPages) return
-                  pagination.onChange({ page: normalizedPage + 1, pageSize })
-                }}
-              />
-            </PaginationItem>
-            <PaginationItem>
-              <PaginationLast
-                href="#"
-                className={cn(
-                  normalizedPage >= totalPages && "pointer-events-none opacity-50",
-                )}
-                onClick={(e) => {
-                  e.preventDefault()
-                  if (normalizedPage >= totalPages) return
-                  pagination.onChange({ page: totalPages, pageSize })
-                }}
-              />
-            </PaginationItem>
-          </PaginationContent>
-        </Pagination>
+              {visiblePages.map((p) => (
+                <PaginationItem key={p}>
+                  <PaginationLink
+                    href="#"
+                    isActive={p === normalizedPage}
+                    onClick={(e) => {
+                      e.preventDefault()
+                      goToPage(p)
+                    }}
+                  >
+                    {p}
+                  </PaginationLink>
+                </PaginationItem>
+              ))}
+
+              <PaginationItem>
+                <PaginationNext
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault()
+                    goToPage(normalizedPage + 1)
+                  }}
+                  className={normalizedPage >= totalPages ? "pointer-events-none opacity-50" : undefined}
+                />
+              </PaginationItem>
+
+              <PaginationItem>
+                <PaginationLast
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault()
+                    goToPage(totalPages)
+                  }}
+                  className={normalizedPage >= totalPages ? "pointer-events-none opacity-50" : undefined}
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+
+          <div className="flex items-center gap-2 text-sm">
+            <span className="text-muted-foreground">Go to</span>
+            <input
+              type="number"
+              min={1}
+              max={totalPages}
+              value={jumpPage}
+              onChange={(e) => setJumpPage(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  const n = Number(jumpPage)
+                  if (!Number.isNaN(n)) goToPage(n)
+                }
+              }}
+              className="h-8 w-20 rounded-md border bg-background px-2"
+              placeholder={`1-${totalPages}`}
+            />
+            <button
+              type="button"
+              className="h-8 rounded-md border px-3"
+              onClick={() => {
+                const n = Number(jumpPage)
+                if (!Number.isNaN(n)) goToPage(n)
+              }}
+            >
+              Confirm
+            </button>
+          </div>
+        </div>
       )}
     </div>
   )
