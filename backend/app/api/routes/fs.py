@@ -232,6 +232,9 @@ def _sort_items(items: list[FileSystemItem], sort_by: SortBy, sort_order: SortOr
     def key_image_count(x: FileSystemItem):
         return x.image_count or 0
 
+    def key_last_read_at(x: FileSystemItem):
+        return x.last_read_at or 0
+
     folders = [x for x in items if x.item_type == "folder"]
     files = [x for x in items if x.item_type == "file"]
 
@@ -245,6 +248,8 @@ def _sort_items(items: list[FileSystemItem], sort_by: SortBy, sort_order: SortOr
         files.sort(key=key_recommendation, reverse=reverse)
     elif sort_by == "image_count":
         files.sort(key=key_image_count, reverse=reverse)
+    elif sort_by == "last_read_at":
+        files.sort(key=key_last_read_at, reverse=reverse)
     else:
         files.sort(key=key_name, reverse=reverse)
 
@@ -1209,6 +1214,7 @@ def list_directory(
                 if item.item_type == "file":
                     fdata = file_data_map.get(item.path)
                     item.recommendation_score = fdata["rec_score"] if fdata else 0.0
+                    item.last_read_at = fdata["last_read_at"] if fdata else None
 
                     if item.file_type == "archive":
                         meta = archive_meta_map.get(item.path)
@@ -1230,6 +1236,7 @@ def list_directory(
         for item in items:
             if item.item_type == "file":
                 item.recommendation_score = 0.0
+                item.last_read_at = None
 
     # 应用筛选
     if has_video is not None or has_audio is not None:

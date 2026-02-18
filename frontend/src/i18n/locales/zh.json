@@ -67,7 +67,8 @@
       "type": "类型",
       "size": "大小",
       "likeScore": "Like Score",
-      "imageCount": "图片数"
+      "imageCount": "图片数",
+      "lastReadAt": "最后阅读时间"
     }
   },
   "history": {

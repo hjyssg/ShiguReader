@@ -44,6 +44,7 @@ export const Route = createFileRoute("/_layout/explorer")({
       "mtime",
       "likeScore",
       "image_count",
+      "last_read_at",
     ]
     const sortOrderCandidates: SortOrder[] = ["asc", "desc"]
     const rawSortField = String(search.sortField || "")

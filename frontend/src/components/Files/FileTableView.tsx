@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils"
 import { FileNameLinkCell } from "./FileNameLinkCell"
 import { formatDateTime, formatFileSize, formatFileType } from "./utils"
 
-export type SortField = "name" | "type" | "mtime" | "likeScore" | "image_count"
+export type SortField = "name" | "type" | "mtime" | "likeScore" | "image_count" | "last_read_at"
 export type SortOrder = "asc" | "desc"
 
 interface FileTableViewProps {
@@ -121,6 +121,20 @@ export function FileTableView({
       ),
       headerClassName: "w-[110px] text-right",
     },
+    {
+      key: "last_read_at",
+      header: (
+        <button
+          type="button"
+          className="ml-auto inline-flex items-center"
+          onClick={() => onSort("last_read_at")}
+        >
+          {t("explorer.table.lastReadAt")}
+          <SortIcon field="last_read_at" />
+        </button>
+      ),
+      headerClassName: "w-[180px] text-right",
+    },
   ]
 
   return (
@@ -185,6 +199,11 @@ function TableRowCells({
       <td className="p-2 text-right text-muted-foreground">
         {isArchive && (item as any).image_count
           ? (item as any).image_count
+          : "-"}
+      </td>
+      <td className="p-2 text-right text-muted-foreground">
+        {!isFolder && (item as any).last_read_at
+          ? formatDateTime((item as any).last_read_at)
           : "-"}
       </td>
     </>

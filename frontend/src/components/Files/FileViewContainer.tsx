@@ -188,6 +188,13 @@ export function FileViewContainer({
         if (comparison === 0) {
           comparison = a.name.toLowerCase().localeCompare(b.name.toLowerCase())
         }
+      } else if (sortField === "last_read_at") {
+        const readAtA = (a as any).last_read_at || 0
+        const readAtB = (b as any).last_read_at || 0
+        comparison = readAtA - readAtB
+        if (comparison === 0) {
+          comparison = a.name.toLowerCase().localeCompare(b.name.toLowerCase())
+        }
       } else {
         const mtimeA = a.mtime || 0
         const mtimeB = b.mtime || 0
@@ -674,6 +681,7 @@ export function FileViewContainer({
               <SelectItem className="text-xs" value="mtime">{t("explorer.table.dateModified")}</SelectItem>
               <SelectItem className="text-xs" value="likeScore">{t("explorer.table.likeScore")}</SelectItem>
               <SelectItem className="text-xs" value="image_count">{t("explorer.table.imageCount")}</SelectItem>
+              <SelectItem className="text-xs" value="last_read_at">{t("explorer.table.lastReadAt")}</SelectItem>
             </SelectContent>
           </Select>
           <SortDirectionToggle

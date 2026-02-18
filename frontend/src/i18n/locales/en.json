@@ -67,7 +67,8 @@
       "type": "Type",
       "size": "Size",
       "likeScore": "Like Score",
-      "imageCount": "Image Count"
+      "imageCount": "Image Count",
+      "lastReadAt": "Last Read"
     }
   },
   "history": {

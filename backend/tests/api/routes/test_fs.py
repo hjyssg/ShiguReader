@@ -13,7 +13,7 @@ from app.api.routes import fs as fs_route
 from app.core.config import settings
 from app.main import app
 from app.index_db.db import get_index_session
-from app.index_db.models import FolderOpenHistory
+from app.index_db.models import FolderOpenHistory, Progress
 
 
 @pytest.fixture
@@ -405,6 +405,33 @@ def test_list_directory_supports_recommendation_sort(client_with_root: TestClien
     file_items = [x for x in items if x["item_type"] == "file"]
     assert all("recommendation_score" in x for x in file_items)
 
+
+
+
+def test_list_directory_sort_by_last_read_at(client_with_root: TestClient, test_fs_root: Path) -> None:
+    """按最近阅读时间排序应可用，并返回 last_read_at 字段。"""
+    first = test_fs_root / "read_old.jpg"
+    second = test_fs_root / "read_new.jpg"
+    first.write_bytes(b"old")
+    second.write_bytes(b"new")
+
+    with get_index_session() as session:
+        session.add(Progress(filepath=str(first), filename=first.name, last_opened_at=100))
+        session.add(Progress(filepath=str(second), filename=second.name, last_opened_at=200))
+        session.commit()
+
+    response = client_with_root.get(
+        f"/api/v1/fs/list?path={test_fs_root}&sort_by=last_read_at&sort_order=desc"
+    )
+    assert response.status_code == 200
+
+    items = [x for x in response.json()["items"] if x["item_type"] == "file"]
+    target_names = [x["name"] for x in items if x["name"] in {"read_old.jpg", "read_new.jpg"}]
+    assert target_names[:2] == ["read_new.jpg", "read_old.jpg"]
+
+    by_name = {x["name"]: x for x in items}
+    assert by_name["read_old.jpg"].get("last_read_at") == 100
+    assert by_name["read_new.jpg"].get("last_read_at") == 200
 
 def test_scan_favorite_not_configured(client_with_root: TestClient, monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(settings, "FAVORITE_DIR", "")

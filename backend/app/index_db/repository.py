@@ -1107,11 +1107,16 @@ class IndexRepository:
     # ------------------------------------------------------------------
 
     def get_file_data_by_folder(self, folderpath: str) -> dict[str, dict]:
-        """一次查出目录下所有文件的 rec_score，返回 {filepath: {rec_score: float}}。"""
-        stmt = select(File.filepath, File.rec_score).where(File.folderpath == folderpath)
+        """一次查出目录下所有文件的推荐分与阅读时间，返回 {filepath: {...}}。"""
+        stmt = (
+            select(File.filepath, File.rec_score, Progress.last_opened_at)
+            .select_from(File)
+            .join(Progress, Progress.filepath == File.filepath, isouter=True)
+            .where(File.folderpath == folderpath)
+        )
         return {
-            fp: {"rec_score": score}
-            for fp, score in self.session.exec(stmt).all()
+            fp: {"rec_score": score, "last_read_at": last_read_at}
+            for fp, score, last_read_at in self.session.exec(stmt).all()
         }
 
     def get_archive_metas_by_folder(self, folderpath: str) -> dict[str, ArchiveMeta]:
