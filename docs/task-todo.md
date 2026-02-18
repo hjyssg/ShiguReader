@@ -78,6 +78,7 @@ coser pages大面积不是名单里面的coser，而是name parser解析出来�
 # task：
   打开reader，以及其他reader变种的时候，如果这个文件被移动走了。但是filetable能找到这个文件的最新位置（通过print判断）。并且在一个path.esixt彻底确定这个文件存在。直接跳转到新path。
 
+  需要测试
 
 # 后端
   FS.PY 的寻找根目录算法
@@ -110,7 +111,6 @@ coser pages大面积不是名单里面的coser，而是name parser解析出来�
 
   reader右上角的explorer和waterfall要替换成link
 
-# reader现在tab tile不知道为什么变成当前图片的名字而不是file/folder的名字
 
 # 前端task
 history的table view也要是link，才可以左键跳转。ctrl+左键open in a new tab。
