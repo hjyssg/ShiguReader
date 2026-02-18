@@ -55,9 +55,6 @@ coser pages大面积不是名单里面的coser，而是name parser解析出来�
 
 
 
-# explorer
-  需要追加pagination
-  需要能根据img num进行sort
 
 # explorer page
   /api/v1/fs/list 在文件 9000个的时候会卡。进行优化
