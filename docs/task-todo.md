@@ -71,7 +71,7 @@ coser pages大面积不是名单里面的coser，而是name parser解析出来�
 # task
   move to favorite：
   追加选项。
-  默认选项是 移动到喜欢文件夹下面的子文件夹。
+  默认选项是 移动到喜欢文件夹下面的子文件夹。子文件夹如果没有就mkdir
   命名比如 good_2026_02_01 
 
 
@@ -79,6 +79,21 @@ coser pages大面积不是名单里面的coser，而是name parser解析出来�
   打开reader，以及其他reader变种的时候，如果这个文件被移动走了。但是filetable能找到这个文件的最新位置（通过print判断）。并且在一个path.esixt彻底确定这个文件存在。直接跳转到新path。
 
 
-# task
+# 后端
+  task寻找根目录算法
+  root_dirs = _derive_minimal_root_dirs(db_map.keys())
+  allowed_roots = _collect_allowed_sync_roots()
+  应该抽象一个独立模块。拥有很好的ut
+  要避免出现c盘这种扫描根目录，同时还要保证所有的文件都扫描到。
+
+
+# 前端
+  比如navigate我更喜欢渲染link。这样用户才可以open in a tab or navigate
+
+# reader现在tab tile不知道为什么变成当前图片的名字而不是file/folder的名字
+
+# 前端task
+history的table view也要是link，才可以左键跳转。ctrl+左键open in a new tab。
+
   frontend\src\routes\_layout\history.tsx 的table的视线和explorer的table不一样。你需要改造frontend\src\components\Files\FileTableView.tsx让history也使用它。
   然后filename都要统一体验，就是渲染成<link>而不是点击触发跳转。
