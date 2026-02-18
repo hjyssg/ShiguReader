@@ -5,6 +5,11 @@ import type { FileSystemItem } from "@/client"
 import { OpenAPI } from "@/client"
 import { ThumbnailImage } from "@/components/Common/ThumbnailImage"
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
+import {
   CardInfo,
   CardThumbnail,
   FileName,
@@ -15,7 +20,7 @@ import { getParentPath } from "@/lib/path-utils"
 import { cn } from "@/lib/utils"
 
 import { FileIcon } from "./FileIcon"
-import { formatFileSize } from "./utils"
+import { formatDateTime, formatFileSize } from "./utils"
 import "./FileItem.css"
 
 interface FileItemProps {
@@ -83,6 +88,14 @@ export function FileItem({
     </FileName>
   )
 
+  const likeScore = (item as any).likeScore ?? (item as any).recommendation_score
+  const lastReadAt = (item as any).last_read_at
+  const thumbnailTooltip = [
+    `${t("explorer.table.dateModified")}: ${item.mtime ? formatDateTime(item.mtime) : "-"}`,
+    `${t("explorer.table.likeScore")}: ${likeScore != null ? Number(likeScore).toFixed(3) : "-"}`,
+    `${t("explorer.table.lastReadAt")}: ${lastReadAt ? formatDateTime(lastReadAt) : "-"}`,
+  ].join("\n")
+
   const thumbcard = (<CardThumbnail className="file-card-thumbnail">
             {item.thumbnail_url ? (
               <ThumbnailImage
@@ -111,9 +124,30 @@ export function FileItem({
         {fileNameNode}
 
         {href ? (
-          <a href={href} className="file-item-thumbnail-link" draggable={false}>
-            {thumbcard}
-          </a>
+          item.thumbnail_url ? (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <a
+                  href={href}
+                  className="file-item-thumbnail-link"
+                  draggable={false}
+                >
+                  {thumbcard}
+                </a>
+              </TooltipTrigger>
+              <TooltipContent className="whitespace-pre-line">
+                {thumbnailTooltip}
+              </TooltipContent>
+            </Tooltip>
+          ) : (
+            <a
+              href={href}
+              className="file-item-thumbnail-link"
+              draggable={false}
+            >
+              {thumbcard}
+            </a>
+          )
         ) : (
           thumbcard
         )}
