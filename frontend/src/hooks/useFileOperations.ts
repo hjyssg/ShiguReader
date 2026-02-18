@@ -3,6 +3,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 
 import { ApiError, FilesystemService } from "@/client"
+import { detectPathSeparator, getBaseName } from "@/lib/path-utils"
 import { requestJson } from "@/utils/http"
 
 
@@ -31,6 +32,13 @@ function extractErrorMessage(err: unknown): string {
 
   if (err instanceof Error) return err.message
   return "Unknown error"
+}
+
+function buildDestPath(destDir: string, sourcePath: string): string {
+  const fileName = getBaseName(sourcePath)
+  const separator = detectPathSeparator(destDir || sourcePath)
+  const normalizedDestDir = destDir.replace(/[\\/]+$/, "")
+  return `${normalizedDestDir}${separator}${fileName}`
 }
 
 /** 重命名文件/文件夹 */
@@ -72,8 +80,7 @@ async function apiMoveToFavorite(sourcePath: string, isFolder: boolean, subfolde
   if (!favDir) throw new Error("Favorite directory not configured")
 
   const targetDir = subfolder ? `${favDir}/${subfolder}` : favDir
-  const fileName = sourcePath.split("/").pop() || sourcePath.split("\\").pop()
-  const destPath = `${targetDir}/${fileName}`
+  const destPath = buildDestPath(targetDir, sourcePath)
 
   // 如果使用子文件夹，先确保目录存在（后端 move 会检查 parent）
   if (subfolder) {
@@ -123,8 +130,7 @@ async function apiMoveToAlreadyRead(sourcePath: string, isFolder: boolean) {
 
   if (!dir) throw new Error("Already-read directory not configured")
 
-  const fileName = sourcePath.split("/").pop() || sourcePath.split("\\").pop()
-  const destPath = `${dir}/${fileName}`
+  const destPath = buildDestPath(dir, sourcePath)
 
   if (isFolder) {
     return FilesystemService.moveFolder({
