@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router"
 import { useTranslation } from "react-i18next"
 import { PathBreadcrumb } from "@/components/Common/PathBreadcrumb"
-import { Button } from "@/components/ui/button"
+import { buttonVariants } from "@/components/ui/button"
 
 interface FileNotFoundErrorProps {
   path: string
@@ -51,15 +51,17 @@ export function FileNotFoundError({
               : t("explorer.loadErrorMessage", { errorMessage })}
           </p>
           <div className="pt-4 flex gap-2 justify-center">
-            <Button variant="outline" asChild>
-              <Link to="/">{t("explorer.returnHome")}</Link>
-            </Button>
+            <Link to="/" className={buttonVariants({ variant: "outline" })}>
+              {t("explorer.returnHome")}
+            </Link>
             {parentPath && (
-              <Button variant="outline" asChild>
-                <Link to="/explorer" search={{ path: parentPath }}>
-                  {t("explorer.openParent")}
-                </Link>
-              </Button>
+              <Link
+                to="/explorer"
+                search={{ path: parentPath }}
+                className={buttonVariants({ variant: "outline" })}
+              >
+                {t("explorer.openParent")}
+              </Link>
             )}
           </div>
         </div>

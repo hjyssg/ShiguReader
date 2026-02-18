@@ -31,7 +31,7 @@ import { RenameDialog } from "@/components/Files/dialogs/RenameDialog"
 import { formatDateTime, formatFileSize } from "@/components/Files/utils"
 import { ExtractingIndicator } from "@/components/semantic/layout"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
+import { Button, buttonVariants } from "@/components/ui/button"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -496,16 +496,24 @@ function ReadPage() {
           <div className="reader-empty-header__actions">
             {!isFolderSource && (
               <>
-                <Button variant="default" size="sm" className="animate-pulse" asChild>
-                  <Link to="/archive" search={{ path }}>
-                    Explorer
-                  </Link>
-                </Button>
-                <Button variant="outline" size="sm" asChild>
-                  <Link to="/read-waterfall" search={{ path }}>
-                    Waterfall
-                  </Link>
-                </Button>
+                <Link
+                  to="/archive"
+                  search={{ path }}
+                  className={buttonVariants({
+                    variant: "default",
+                    size: "sm",
+                    className: "animate-pulse",
+                  })}
+                >
+                  Explorer
+                </Link>
+                <Link
+                  to="/read-waterfall"
+                  search={{ path }}
+                  className={buttonVariants({ variant: "outline", size: "sm" })}
+                >
+                  Waterfall
+                </Link>
               </>
             )}
           </div>
@@ -679,26 +687,28 @@ function ReadPage() {
           </Button> */}
             {!isFolderSource && (
               <>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="reader-toolbar__text-button"
-                  asChild
+                <Link
+                  to="/archive"
+                  search={{ path }}
+                  className={buttonVariants({
+                    variant: "ghost",
+                    size: "sm",
+                    className: "reader-toolbar__text-button",
+                  })}
                 >
-                  <Link to="/archive" search={{ path }}>
-                    Explorer
-                  </Link>
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="reader-toolbar__text-button"
-                  asChild
+                  Explorer
+                </Link>
+                <Link
+                  to="/read-waterfall"
+                  search={{ path }}
+                  className={buttonVariants({
+                    variant: "ghost",
+                    size: "sm",
+                    className: "reader-toolbar__text-button",
+                  })}
                 >
-                  <Link to="/read-waterfall" search={{ path }}>
-                    Waterfall
-                  </Link>
-                </Button>
+                  Waterfall
+                </Link>
               </>
             )}
             {/* File Operations Dropdown */}
