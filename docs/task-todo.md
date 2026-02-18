@@ -59,7 +59,7 @@ coser pages大面积不是名单里面的coser，而是name parser解析出来�
   需要追加pagination
   需要能根据img num进行sort
 
-# history page
+# explorer page
   /api/v1/fs/list 在文件 9000个的时候会卡。进行优化
 
 
@@ -80,15 +80,35 @@ coser pages大面积不是名单里面的coser，而是name parser解析出来�
 
 
 # 后端
-  task寻找根目录算法
-  root_dirs = _derive_minimal_root_dirs(db_map.keys())
-  allowed_roots = _collect_allowed_sync_roots()
+  FS.PY 的寻找根目录算法
+
+            db_map: dict[str, tuple[int, int, int]] = {fp: (int(size), int(mtime), int(scan_state)) for fp, size, mtime, scan_state in db_rows}
+            root_dirs = _derive_minimal_root_dirs(db_map.keys())
+            allowed_roots = _collect_allowed_sync_roots()
+
+            filtered_roots: list[Path] = []
+            for root_dir in root_dirs:
+                if _is_filesystem_root(root_dir):
+                    logger.warning("[file-sync] skip filesystem root directory: %s", root_dir)
+                    continue
+
+                if allowed_roots and not any(root_dir == ar or root_dir.is_relative_to(ar) for ar in allowed_roots):
+                    logger.info("[file-sync] skip root outside allowlist: %s", root_dir)
+                    continue
+
+                filtered_roots.append(root_dir)
+
+            root_dirs = filtered_roots
+
   应该抽象一个独立模块。拥有很好的ut
   要避免出现c盘这种扫描根目录，同时还要保证所有的文件都扫描到。
+  不應該算出来然后去过滤，应该在算的过程中就考虑不可以读取的。
 
 
 # 前端
-  比如navigate我更喜欢渲染link。这样用户才可以open in a tab or navigate
+  比起用button click去navigate，我更喜欢<link>。这样用户才可以open in a tab or navigate
+
+  reader右上角的explorer和waterfall要替换成link
 
 # reader现在tab tile不知道为什么变成当前图片的名字而不是file/folder的名字
 

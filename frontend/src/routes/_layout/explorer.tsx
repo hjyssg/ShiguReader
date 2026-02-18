@@ -16,8 +16,10 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { Skeleton } from "@/components/ui/skeleton"
 import { useDocumentTitle } from "@/hooks/useDocumentTitle"
 import { useFileOperations } from "@/hooks/useFileOperations"
+import { useResolveMovedFile } from "@/hooks/useResolveMovedFile"
 import {
   buildPathBreadcrumbs,
   getBaseName,
@@ -76,6 +78,19 @@ function Explorer() {
   const parentPath = getParentPath(path)
   const operations = useFileOperations(path)
 
+  // 文件夹被移动后自动跳转新路径
+  const { resolving, isNotFound, errorMessage } = useResolveMovedFile(
+    path,
+    error ?? null,
+    (newPath) => {
+      navigate({
+        to: "/explorer",
+        search: { path: newPath },
+        replace: true,
+      })
+    },
+  )
+
   const filteredItems = useMemo(() => {
     const items = data?.items || []
     if (!zipHasVideoOnly && !zipHasAudioOnly) return items
@@ -122,12 +137,14 @@ function Explorer() {
 
   // 检查文件夹是否存在
   if (error) {
-    const errorMessage =
-      (error as any)?.body?.detail || t("explorer.unknownError")
-    const isNotFound =
-      errorMessage.includes("not found") ||
-      errorMessage.includes("Not found") ||
-      errorMessage.includes("404")
+    if (resolving) {
+      return (
+        <div className="space-y-6">
+          <Skeleton className="h-8 w-64" />
+          <Skeleton className="h-96 w-full" />
+        </div>
+      )
+    }
 
     return (
       <FileNotFoundError

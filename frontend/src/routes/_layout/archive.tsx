@@ -35,6 +35,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { useDocumentTitle } from "@/hooks/useDocumentTitle"
 import { useFileOperations } from "@/hooks/useFileOperations"
 import { useIsMobile } from "@/hooks/useMobile"
+import { useResolveMovedFile } from "@/hooks/useResolveMovedFile"
 import { getBaseName, getParentPath } from "@/lib/path-utils"
 import { cn } from "@/lib/utils"
 
@@ -96,6 +97,19 @@ function Archive() {
   const fileName = getBaseName(path, "Archive")
   useDocumentTitle(fileName)
 
+  // 文件被移动后自动跳转新路径
+  const { resolving, isNotFound, errorMessage } = useResolveMovedFile(
+    path,
+    listError ?? null,
+    (newPath) => {
+      navigate({
+        to: "/archive",
+        search: { path: newPath },
+        replace: true,
+      })
+    },
+  )
+
   if (isListLoading) {
     return (
       <div className="space-y-6">
@@ -107,12 +121,14 @@ function Archive() {
 
   // 检查文件是否存在
   if (listError) {
-    const errorMessage =
-      (listError as any)?.body?.detail || t("archive.unknownError")
-    const isNotFound =
-      errorMessage.includes("not found") ||
-      errorMessage.includes("Not found") ||
-      errorMessage.includes("404")
+    if (resolving) {
+      return (
+        <div className="space-y-6">
+          <Skeleton className="h-8 w-64" />
+          <Skeleton className="h-96 w-full" />
+        </div>
+      )
+    }
 
     return (
       <FileNotFoundError

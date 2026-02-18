@@ -7,7 +7,10 @@ import Lightbox from "yet-another-react-lightbox"
 import "yet-another-react-lightbox/styles.css"
 
 import { FilesystemService, OpenAPI } from "@/client"
-import { wrapPageIndex } from "@/lib/path-utils"
+import { FileNotFoundError } from "@/components/Common/FileNotFoundError"
+import { Skeleton } from "@/components/ui/skeleton"
+import { useResolveMovedFile } from "@/hooks/useResolveMovedFile"
+import { getBaseName, getParentPath, wrapPageIndex } from "@/lib/path-utils"
 
 export const Route = createFileRoute("/_layout/read-mobile")({
   component: ReadMobilePage,
@@ -28,17 +31,33 @@ function ReadMobilePage() {
   const navigate = useNavigate()
   const isFolderSource = source === "folder"
 
-  const { data: listData } = useQuery({
+  const { data: listData, error: listError } = useQuery({
     queryKey: ["archive-list", path],
     queryFn: () => FilesystemService.listArchive({ path }),
     enabled: !!path && !isFolderSource,
+    retry: false,
   })
 
-  const { data: folderData } = useQuery({
+  const { data: folderData, error: folderError } = useQuery({
     queryKey: ["fs-list", path],
     queryFn: () => FilesystemService.listDirectory({ path }),
     enabled: !!path && isFolderSource,
+    retry: false,
   })
+
+  // 文件被移动后自动跳转新路径
+  const hasError = listError || folderError
+  const { resolving, isNotFound, errorMessage } = useResolveMovedFile(
+    path,
+    hasError ? (listError || folderError) : null,
+    (newPath) => {
+      navigate({
+        to: "/read-mobile",
+        search: { path: newPath, page, source, filePath: "" },
+        replace: true,
+      })
+    },
+  )
 
   const extractMutation = useMutation({
     mutationFn: (currentPage: number) =>
@@ -119,6 +138,29 @@ function ReadMobilePage() {
     source,
     safePage,
   ])
+
+  const fileName = getBaseName(path, isFolderSource ? "Folder" : "Archive")
+  const parentPath = getParentPath(path)
+
+  if (hasError) {
+    if (resolving) {
+      return (
+        <div className="space-y-6">
+          <Skeleton className="h-8 w-64" />
+          <Skeleton className="h-[70vh] w-full" />
+        </div>
+      )
+    }
+    return (
+      <FileNotFoundError
+        path={path}
+        fileName={fileName}
+        errorMessage={errorMessage}
+        isNotFound={isNotFound}
+        parentPath={parentPath}
+      />
+    )
+  }
 
   if (!path || imageEntries.length === 0) {
     return <div>{t("reader.noImagesFound")}</div>

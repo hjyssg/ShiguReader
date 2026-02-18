@@ -4,12 +4,14 @@ import { useEffect, useMemo } from "react"
 import { useTranslation } from "react-i18next"
 
 import { FilesystemService, OpenAPI } from "@/client"
+import { FileNotFoundError } from "@/components/Common/FileNotFoundError"
 import { PathBreadcrumb } from "@/components/Common/PathBreadcrumb"
 import { ExtractingIndicator } from "@/components/semantic/layout"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useIsMobile } from "@/hooks/useMobile"
-import { getBaseName } from "@/lib/path-utils"
+import { useResolveMovedFile } from "@/hooks/useResolveMovedFile"
+import { getBaseName, getParentPath } from "@/lib/path-utils"
 import "./read.css"
 
 export const Route = createFileRoute("/_layout/read-waterfall")({
@@ -28,11 +30,25 @@ function ReadWaterfallPage() {
   const navigate = useNavigate()
   const isMobile = useIsMobile()
 
-  const { data: listData, isLoading } = useQuery({
+  const { data: listData, isLoading, error: listError } = useQuery({
     queryKey: ["archive-list", path],
     queryFn: () => FilesystemService.listArchive({ path }),
     enabled: !!path,
+    retry: false,
   })
+
+  // 文件被移动后自动跳转新路径
+  const { resolving, isNotFound, errorMessage } = useResolveMovedFile(
+    path,
+    listError ?? null,
+    (newPath) => {
+      navigate({
+        to: "/read-waterfall",
+        search: { path: newPath },
+        replace: true,
+      })
+    },
+  )
 
   const { mutate: extractArchive, data: extractResult } = useMutation({
     mutationFn: () => FilesystemService.extractArchive({ path, page: 0 }),
@@ -49,6 +65,9 @@ function ReadWaterfallPage() {
     [listData],
   )
 
+  const fileName = getBaseName(path, "Archive")
+  const parentPath = getParentPath(path)
+
   if (isLoading) {
     return (
       <div className="space-y-4">
@@ -58,7 +77,25 @@ function ReadWaterfallPage() {
     )
   }
 
-  const fileName = getBaseName(path, "Archive")
+  if (listError) {
+    if (resolving) {
+      return (
+        <div className="space-y-4">
+          <Skeleton className="h-8 w-64" />
+          <Skeleton className="h-[70vh] w-full" />
+        </div>
+      )
+    }
+    return (
+      <FileNotFoundError
+        path={path}
+        fileName={fileName}
+        errorMessage={errorMessage}
+        isNotFound={isNotFound}
+        parentPath={parentPath}
+      />
+    )
+  }
 
   return (
     <div className="reader-waterfall-page">
