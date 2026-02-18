@@ -496,22 +496,15 @@ function ReadPage() {
           <div className="reader-empty-header__actions">
             {!isFolderSource && (
               <>
-                <Button
-                  variant="default"
-                  size="sm"
-                  onClick={() => navigate({ to: "/archive", search: { path } })}
-                  className="animate-pulse"
-                >
-                  Explorer
+                <Button variant="default" size="sm" className="animate-pulse" asChild>
+                  <Link to="/archive" search={{ path }}>
+                    Explorer
+                  </Link>
                 </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() =>
-                    navigate({ to: "/read-waterfall", search: { path } })
-                  }
-                >
-                  Waterfall
+                <Button variant="outline" size="sm" asChild>
+                  <Link to="/read-waterfall" search={{ path }}>
+                    Waterfall
+                  </Link>
                 </Button>
               </>
             )}
@@ -690,19 +683,21 @@ function ReadPage() {
                   variant="ghost"
                   size="sm"
                   className="reader-toolbar__text-button"
-                  onClick={() => navigate({ to: "/archive", search: { path } })}
+                  asChild
                 >
-                  Explorer
+                  <Link to="/archive" search={{ path }}>
+                    Explorer
+                  </Link>
                 </Button>
                 <Button
                   variant="ghost"
                   size="sm"
                   className="reader-toolbar__text-button"
-                  onClick={() =>
-                    navigate({ to: "/read-waterfall", search: { path } })
-                  }
+                  asChild
                 >
-                  Waterfall
+                  <Link to="/read-waterfall" search={{ path }}>
+                    Waterfall
+                  </Link>
                 </Button>
               </>
             )}

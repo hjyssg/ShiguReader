@@ -1,4 +1,4 @@
-import { useNavigate } from "@tanstack/react-router"
+import { Link } from "@tanstack/react-router"
 import { useTranslation } from "react-i18next"
 import { PathBreadcrumb } from "@/components/Common/PathBreadcrumb"
 import { Button } from "@/components/ui/button"
@@ -19,7 +19,6 @@ export function FileNotFoundError({
   parentPath,
 }: FileNotFoundErrorProps) {
   const { t } = useTranslation()
-  const navigate = useNavigate()
 
   return (
     <div className="space-y-4 p-[10px]">
@@ -52,17 +51,14 @@ export function FileNotFoundError({
               : t("explorer.loadErrorMessage", { errorMessage })}
           </p>
           <div className="pt-4 flex gap-2 justify-center">
-            <Button variant="outline" onClick={() => navigate({ to: "/" })}>
-              {t("explorer.returnHome")}
+            <Button variant="outline" asChild>
+              <Link to="/">{t("explorer.returnHome")}</Link>
             </Button>
             {parentPath && (
-              <Button
-                variant="outline"
-                onClick={() =>
-                  navigate({ to: "/explorer", search: { path: parentPath } })
-                }
-              >
-                {t("explorer.openParent")}
+              <Button variant="outline" asChild>
+                <Link to="/explorer" search={{ path: parentPath }}>
+                  {t("explorer.openParent")}
+                </Link>
               </Button>
             )}
           </div>

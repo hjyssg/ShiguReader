@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query"
-import { createFileRoute, useNavigate } from "@tanstack/react-router"
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router"
 import {
   ArrowDown,
   ArrowUp,
@@ -114,27 +114,25 @@ function HistoryPage() {
     }
   }
 
-  const openHistoryItem = (item: HistoryItem) => {
+
+  const getHistoryItemLink = (item: HistoryItem) => {
     if (item.file_type === "archive") {
-      navigate({ to: "/archive", search: { path: item.filepath } })
-      return
+      return { to: "/archive", search: { path: item.filepath } } as const
     }
     if (item.file_type === "video") {
-      navigate({
+      return {
         to: "/video",
         search: { path: item.filepath, entry: undefined, media: "video" },
-      })
-      return
+      } as const
     }
     if (item.file_type === "audio") {
-      navigate({
+      return {
         to: "/audio",
         search: { path: item.filepath, entry: undefined },
-      })
-      return
+      } as const
     }
     if (item.file_type === "image") {
-      navigate({
+      return {
         to: isMobile ? "/read-mobile" : "/read",
         search: {
           path: getParentPath(item.filepath),
@@ -142,11 +140,19 @@ function HistoryPage() {
           page: 0,
           filePath: item.filepath,
         },
-      })
+      } as const
+    }
+
+    return null
+  }
+  const openHistoryItem = (item: HistoryItem) => {
+    const target = getHistoryItemLink(item)
+    if (!target) {
+      toast.info(t("history.unsupportedType"))
       return
     }
 
-    toast.info(t("history.unsupportedType"))
+    navigate(target)
   }
 
   const tableColumns: ListTableColumn[] = [
@@ -269,27 +275,41 @@ function HistoryPage() {
         <ListTable
           columns={tableColumns}
           rows={data?.items ?? []}
-          renderRow={(item) => (
-            <tr
-              key={`${item.filepath}-${item.read_at}`}
-              className="border-b last:border-b-0 text-sm cursor-pointer hover:bg-muted/50"
-              onClick={() => openHistoryItem(item)}
-            >
-              <td className="p-2">
-                <div className="flex items-center gap-2 min-w-0">
-                  <FileNameWithPreview
-                    filename={item.filename}
-                    filepath={item.filepath}
-                    thumbnailUrl={item.thumbnail_url}
-                    className="min-w-0"
-                  />
-                </div>
-              </td>
-              <td className="p-2 text-muted-foreground">{formatDateTime(item.read_at)}</td>
-              <td className="p-2 text-muted-foreground">{formatFileType(item.file_type)}</td>
-              <td className="p-2 text-right text-muted-foreground">{item.filesize ? formatFileSize(item.filesize) : "-"}</td>
-            </tr>
-          )}
+          renderRow={(item) => {
+            const target = getHistoryItemLink(item)
+
+            return (
+              <tr
+                key={`${item.filepath}-${item.read_at}`}
+                className="border-b last:border-b-0 text-sm hover:bg-muted/50"
+              >
+                <td className="p-2">
+                  {target ? (
+                    <Link to={target.to} search={target.search} className="flex items-center gap-2 min-w-0">
+                      <FileNameWithPreview
+                        filename={item.filename}
+                        filepath={item.filepath}
+                        thumbnailUrl={item.thumbnail_url}
+                        className="min-w-0"
+                      />
+                    </Link>
+                  ) : (
+                    <div className="flex items-center gap-2 min-w-0">
+                      <FileNameWithPreview
+                        filename={item.filename}
+                        filepath={item.filepath}
+                        thumbnailUrl={item.thumbnail_url}
+                        className="min-w-0"
+                      />
+                    </div>
+                  )}
+                </td>
+                <td className="p-2 text-muted-foreground">{formatDateTime(item.read_at)}</td>
+                <td className="p-2 text-muted-foreground">{formatFileType(item.file_type)}</td>
+                <td className="p-2 text-right text-muted-foreground">{item.filesize ? formatFileSize(item.filesize) : "-"}</td>
+              </tr>
+            )
+          }}
         />
       )}
 
