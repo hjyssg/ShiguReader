@@ -24,7 +24,7 @@
     "history": "기록",
     "tags": "태그",
     "authors": "작가",
-    "cosers": "코서 preview",
+    "cosers": "코서 (preview)",
     "search": "검색",
     "admin": "관리"
   },
@@ -122,7 +122,7 @@
     "empty": "작가 데이터가 없습니다"
   },
   "cosers": {
-    "title": "코서 preview",
+    "title": "코서 (preview)",
     "description": "코서별로 파일 컬렉션을 탐색",
     "sortByField": "정렬 항목",
     "fileCount": "파일 수",

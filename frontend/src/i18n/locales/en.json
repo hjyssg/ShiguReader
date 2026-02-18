@@ -23,7 +23,7 @@
     "history": "History",
     "tags": "Tags",
     "authors": "Authors",
-    "cosers": "Cosers preview",
+    "cosers": "Cosers (preview)",
     "search": "Search",
     "admin": "Admin"
   },
@@ -121,7 +121,7 @@
     "empty": "No authors data"
   },
   "cosers": {
-    "title": "Cosers preview",
+    "title": "Cosers (preview)",
     "description": "Browse file collections by cosers",
     "sortByField": "Sort Field",
     "fileCount": "File Count",

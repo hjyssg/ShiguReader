@@ -23,7 +23,7 @@
     "history": "历史",
     "tags": "标签",
     "authors": "作者",
-    "cosers": "Coser preview",
+    "cosers": "Coser (preview)",
     "search": "搜索",
     "admin": "管理"
   },
@@ -121,7 +121,7 @@
     "empty": "暂无作者数据"
   },
   "cosers": {
-    "title": "Coser preview",
+    "title": "Coser (preview)",
     "description": "按 coser 浏览图包集合",
     "sortByField": "排序字段",
     "fileCount": "文件数量",
