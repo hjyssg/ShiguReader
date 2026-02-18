@@ -1286,6 +1286,9 @@ def list_directory(
     folders_to_upsert: list[UpsertFolderInput] = []
     files_to_upsert: list[UpsertFileInput] = []
     
+    # 预计算 now_ts，避免每个 entry 都调 time()
+    now_ts = int(time())
+    
     try:
         # Upsert current directory itself
         dir_stat = validated_path.stat()
@@ -1300,93 +1303,129 @@ def list_directory(
             )
         )
         
-        for entry in validated_path.iterdir():
-            if should_ignore(entry.name):
-                if _is_link_or_reparse(entry):
+        # 用 os.scandir() 替代 iterdir() + stat()，减少系统调用
+        with os.scandir(validated_path) as entries:
+            for entry in entries:
+                # 先检查 ignore，避免无用的 lstat 调用
+                if should_ignore(entry.name):
                     continue
-                continue
-            try:
-                stat = entry.stat()
                 
-                if entry.is_dir():
-                    confidence_level, confidence_score = compute_confidence(
-                        scan_state=1,
-                        watch_state=0,
-                        last_seen_at=int(time()),
-                    )
-                    items.append(
-                        FileSystemItem(
-                            name=entry.name,
-                            path=str(entry),
-                            item_type="folder",
-                            file_type=None,
-                            filesize=None,
-                            mtime=int(stat.st_mtime),
-                            thumbnail_url=None,
-                            scan_state=1,
-                            watch_state=0,
-                            confidence_level=confidence_level,
-                            confidence_score=confidence_score,
-                        )
-                    )
-                    folders_to_upsert.append(
-                        UpsertFolderInput(
-                            filepath=str(entry),
-                            dirname=entry.name,
-                            mtime=int(stat.st_mtime),
-                            scan_state=1,
-                            watch_state=0,
-                            scanned=False,
-                        )
-                    )
-                elif entry.is_file():
-                    file_type = detect_file_type(entry)
-                    thumbnail_url = None
-                    confidence_level, confidence_score = compute_confidence(
-                        scan_state=1,
-                        watch_state=0,
-                        last_seen_at=int(time()),
-                    )
+                # 检查是否为链接/重解析点
+                if _is_link_or_reparse(entry.path):
+                    continue
+                
+                try:
+                    # scandir 的 entry.stat() 在 Windows 上已缓存，不会额外系统调用
+                    stat = entry.stat(follow_symlinks=False)
                     
-                    if file_type in ("archive", "video", "image"):
-                        thumbnail_url = _build_thumb_url(entry)
-                    
-                    items.append(
-                        FileSystemItem(
-                            name=entry.name,
-                            path=str(entry),
-                            item_type="file",
-                            file_type=file_type,
-                            filesize=stat.st_size,
-                            mtime=int(stat.st_mtime),
-                            thumbnail_url=thumbnail_url,
+                    if entry.is_dir(follow_symlinks=False):
+                        confidence_level, confidence_score = compute_confidence(
                             scan_state=1,
                             watch_state=0,
-                            confidence_level=confidence_level,
-                            confidence_score=confidence_score,
+                            last_seen_at=now_ts,
+                            now_ts=now_ts,
                         )
-                    )
-                    
-                    # Prepare file for DB upsert
-                    fingerprint = f"{entry.name}-{stat.st_size}-{int(stat.st_mtime)}"
-                    files_to_upsert.append(
-                        UpsertFileInput(
-                            filepath=str(entry),
-                            filename=entry.name,
-                            mtime=int(stat.st_mtime),
-                            filesize=stat.st_size,
-                            fingerprint=fingerprint,
-                            folderpath=str(validated_path),
-                            file_type=file_type,
-                            ext=entry.suffix.lower() if entry.suffix else None,
+                        items.append(
+                            FileSystemItem(
+                                name=entry.name,
+                                path=entry.path,
+                                item_type="folder",
+                                file_type=None,
+                                filesize=None,
+                                mtime=int(stat.st_mtime),
+                                thumbnail_url=None,
+                                scan_state=1,
+                                watch_state=0,
+                                confidence_level=confidence_level,
+                                confidence_score=confidence_score,
+                            )
+                        )
+                        folders_to_upsert.append(
+                            UpsertFolderInput(
+                                filepath=entry.path,
+                                dirname=entry.name,
+                                mtime=int(stat.st_mtime),
+                                scan_state=1,
+                                watch_state=0,
+                                scanned=False,
+                            )
+                        )
+                    elif entry.is_file(follow_symlinks=False):
+                        # 直接用字符串操作检测文件类型，避免创建 Path 对象
+                        name_lower = entry.name.lower()
+                        file_type = "unknown"
+                        for suffix in IMAGE_SUFFIXES:
+                            if name_lower.endswith(suffix):
+                                file_type = "image"
+                                break
+                        if file_type == "unknown":
+                            for suffix in VIDEO_SUFFIXES:
+                                if name_lower.endswith(suffix):
+                                    file_type = "video"
+                                    break
+                        if file_type == "unknown":
+                            for suffix in ARCHIVE_SUFFIXES:
+                                if name_lower.endswith(suffix):
+                                    file_type = "archive"
+                                    break
+                        if file_type == "unknown":
+                            for suffix in AUDIO_SUFFIXES:
+                                if name_lower.endswith(suffix):
+                                    file_type = "audio"
+                                    break
+                        
+                        thumbnail_url = None
+                        confidence_level, confidence_score = compute_confidence(
                             scan_state=1,
                             watch_state=0,
-                            scanned=False,
+                            last_seen_at=now_ts,
+                            now_ts=now_ts,
                         )
-                    )
-            except Exception as e:
-                logger.warning(f"Failed to process entry {entry}: {e}")
-                continue
+                        
+                        if file_type in ("archive", "video", "image"):
+                            thumbnail_url = _build_thumb_url(entry.path)
+                        
+                        items.append(
+                            FileSystemItem(
+                                name=entry.name,
+                                path=entry.path,
+                                item_type="file",
+                                file_type=file_type,
+                                filesize=stat.st_size,
+                                mtime=int(stat.st_mtime),
+                                thumbnail_url=thumbnail_url,
+                                scan_state=1,
+                                watch_state=0,
+                                confidence_level=confidence_level,
+                                confidence_score=confidence_score,
+                            )
+                        )
+                        
+                        # Prepare file for DB upsert
+                        # 获取扩展名（避免 Path 对象）
+                        ext = None
+                        if "." in entry.name:
+                            ext = "." + entry.name.rsplit(".", 1)[1].lower()
+                        
+                        fingerprint = f"{entry.name}-{stat.st_size}-{int(stat.st_mtime)}"
+                        files_to_upsert.append(
+                            UpsertFileInput(
+                                filepath=entry.path,
+                                filename=entry.name,
+                                mtime=int(stat.st_mtime),
+                                filesize=stat.st_size,
+                                fingerprint=fingerprint,
+                                folderpath=str(validated_path),
+                                file_type=file_type,
+                                ext=ext,
+                                scan_state=1,
+                                watch_state=0,
+                                scanned=False,
+                            )
+                        )
+                except Exception as e:
+                    logger.warning(f"Failed to process entry {entry.name}: {e}")
+                    continue
     except Exception as e:
         logger.error(f"Failed to list directory {validated_path}: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to list directory: {e}")

@@ -79,4 +79,7 @@ coser pages大面积不是名单里面的coser，而是name parser解析出来�
 
 
 # bug
+  frontend\src\components\Files\FileViewContainer.tsx 代码还有右键菜单的残留，但实际已经把右键菜单删除了。
+
+# bug
   fs.py已经成巨无霸程序。需要拆分吗
