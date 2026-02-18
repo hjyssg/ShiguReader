@@ -32,7 +32,7 @@ export function buildNavigationTarget(item: FileSystemItem, isMobile: boolean) {
   if (isVideo) {
     return {
       to: "/video" as const,
-      search: { path: item.path, entry: undefined, media: "video" as const },
+      search: { path: item.path, entry: undefined },
     }
   }
   if (isAudio) {

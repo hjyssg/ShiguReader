@@ -16,6 +16,7 @@ export function useResolveMovedFile(
 ) {
   const [resolving, setResolving] = useState(false)
   const onResolvedRef = useRef(onResolved)
+  const attemptedPathsRef = useRef(new Set<string>())
   onResolvedRef.current = onResolved
 
   const errorMessage = error
@@ -31,11 +32,13 @@ export function useResolveMovedFile(
 
   useEffect(() => {
     if (!isNotFound || resolving) return
+    if (attemptedPathsRef.current.has(path)) return
 
     const filename = path.split("/").pop() || path.split("\\").pop() || ""
     if (!filename) return
 
     setResolving(true)
+    attemptedPathsRef.current.add(path)
 
     requestJson<{ path?: string }>("/api/v1/fs/resolve-path", {
       query: { filename, old_path: path },

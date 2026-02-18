@@ -82,6 +82,14 @@ function ReadPage() {
   // File operations state
   const parentPath = getParentPath(path)
   const operations = useFileOperations(parentPath)
+  const navigateToMovedPath = (movedPath?: string | null) => {
+    const nextPath = movedPath || path
+    navigate({
+      to: "/read",
+      search: { path: nextPath, page: 0, source, filePath: "" },
+      replace: true,
+    })
+  }
   const [renameOpen, setRenameOpen] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [moveOpen, setMoveOpen] = useState(false)
@@ -1011,9 +1019,9 @@ function ReadPage() {
             operations.moveFolderMutation.mutate(
               { sourcePath: path, destPath },
               {
-                onSuccess: () => {
+                onSuccess: (resp) => {
                   setMoveOpen(false)
-                  navigate({ to: "/" })
+                  navigateToMovedPath(resp?.dest_path)
                 },
               },
             )
@@ -1021,9 +1029,9 @@ function ReadPage() {
             operations.moveFileMutation.mutate(
               { sourcePath: path, destPath },
               {
-                onSuccess: () => {
+                onSuccess: (resp) => {
                   setMoveOpen(false)
-                  navigate({ to: "/" })
+                  navigateToMovedPath(resp?.dest_path)
                 },
               },
             )
@@ -1065,9 +1073,9 @@ function ReadPage() {
           operations.moveToFavoriteMutation.mutate(
             { sourcePath: path, isFolder: isFolderSource, subfolder },
             {
-              onSuccess: () => {
+              onSuccess: (resp) => {
                 setConfirmFavOpen(false)
-                navigate({ to: "/" })
+                navigateToMovedPath(resp?.dest_path)
               },
             },
           )
@@ -1083,9 +1091,9 @@ function ReadPage() {
           operations.moveToAlreadyReadMutation.mutate(
             { sourcePath: path, isFolder: isFolderSource },
             {
-              onSuccess: () => {
+              onSuccess: (resp) => {
                 setConfirmReadOpen(false)
-                navigate({ to: "/" })
+                navigateToMovedPath(resp?.dest_path)
               },
             },
           )

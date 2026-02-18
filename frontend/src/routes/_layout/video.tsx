@@ -1,7 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router"
 import { useMemo, useRef } from "react"
-import AudioPlayer from "react-h5-audio-player"
-import "react-h5-audio-player/lib/styles.css"
 
 import { OpenAPI } from "@/client"
 import { PathBreadcrumb } from "@/components/Common/PathBreadcrumb"
@@ -14,7 +12,6 @@ export const Route = createFileRoute("/_layout/video")({
     return {
       path: (search.path as string) || "",
       entry: (search.entry as string) || undefined,
-      media: (search.media as "video" | "audio") || "video",
     }
   },
   head: () => ({
@@ -27,9 +24,8 @@ export const Route = createFileRoute("/_layout/video")({
 })
 
 function Video() {
-  const { path, entry, media } = Route.useSearch()
+  const { path, entry } = Route.useSearch()
   const videoRef = useRef<HTMLVideoElement | null>(null)
-  const audioPlayerRef = useRef<any>(null)
   const lastSavedAtRef = useRef(0)
 
   // Determine video URL
@@ -45,15 +41,15 @@ function Video() {
   } else {
     // Video from filesystem
     videoUrl = `${OpenAPI.BASE}/api/v1/fs/file?path=${encodeURIComponent(path)}`
-    fileName = getBaseName(path, media === "audio" ? "Audio" : "Video")
+    fileName = getBaseName(path, "Video")
     sourcePath = path
   }
   
   useDocumentTitle(fileName)
 
   const progressStorageKey = useMemo(
-    () => `media-progress:${media}:${path}:${entry ?? ""}`,
-    [media, path, entry],
+    () => `media-progress:video:${path}:${entry ?? ""}`,
+    [path, entry],
   )
 
   const restoreProgress = (element: HTMLMediaElement | null) => {
@@ -107,44 +103,20 @@ function Video() {
         currentLabel={fileName}
       />
 
-      {media === "audio" ? (
-        <div className="rounded-lg border bg-card p-4">
-          <AudioPlayer
-            ref={audioPlayerRef}
-            src={videoUrl}
-            showSkipControls={false}
-            showJumpControls={false}
-            onLoadedMetadata={() => {
-              const audio = audioPlayerRef.current?.audio?.current as
-                | HTMLAudioElement
-                | undefined
-              restoreProgress(audio ?? null)
-            }}
-            onListen={() => {
-              const audio = audioPlayerRef.current?.audio?.current as
-                | HTMLAudioElement
-                | undefined
-              saveProgress(audio ?? null)
-            }}
-            onEnded={clearProgress}
-          />
-        </div>
-      ) : (
-        <div className="overflow-hidden">
-          <video
-            ref={videoRef}
-            src={videoUrl}
-            controls
-            className="w-full max-h-[90vh]"
-            controlsList="nodownload"
-            onLoadedMetadata={() => restoreProgress(videoRef.current)}
-            onTimeUpdate={() => saveProgress(videoRef.current)}
-            onEnded={clearProgress}
-          >
-            Your browser does not support the video tag.
-          </video>
-        </div>
-      )}
+      <div className="overflow-hidden">
+        <video
+          ref={videoRef}
+          src={videoUrl}
+          controls
+          className="w-full max-h-[90vh]"
+          controlsList="nodownload"
+          onLoadedMetadata={() => restoreProgress(videoRef.current)}
+          onTimeUpdate={() => saveProgress(videoRef.current)}
+          onEnded={clearProgress}
+        >
+          Your browser does not support the video tag.
+        </video>
+      </div>
 
       {/*
       <div className="space-y-2">

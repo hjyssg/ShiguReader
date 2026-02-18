@@ -193,7 +193,21 @@ export function FileViewContainer({
 
   const currentPage = pagination?.page ?? 1
   const pageSize = pagination?.pageSize ?? sortedItems.length
-  const totalPages = Math.max(1, Math.ceil(sortedItems.length / pageSize))
+  const folderAndVideoItems = useMemo(
+    () =>
+      sortedItems.filter(
+        (item) => item.item_type === "folder" || item.file_type === "video",
+      ),
+    [sortedItems],
+  )
+  const archiveItems = useMemo(
+    () =>
+      sortedItems.filter(
+        (item) => item.item_type !== "folder" && item.file_type !== "video",
+      ),
+    [sortedItems],
+  )
+  const totalPages = Math.max(1, Math.ceil(archiveItems.length / pageSize))
   const normalizedPage = Math.min(Math.max(currentPage, 1), totalPages)
   const goToPage = useCallback(
     (nextPage: number) => {
@@ -209,8 +223,12 @@ export function FileViewContainer({
   const pagedItems = useMemo(() => {
     if (!pagination) return sortedItems
     const start = (normalizedPage - 1) * pageSize
-    return sortedItems.slice(start, start + pageSize)
-  }, [pagination, sortedItems, normalizedPage, pageSize])
+    const pagedArchives = archiveItems.slice(start, start + pageSize)
+    if (normalizedPage === 1) {
+      return [...folderAndVideoItems, ...pagedArchives]
+    }
+    return pagedArchives
+  }, [pagination, sortedItems, normalizedPage, pageSize, archiveItems, folderAndVideoItems])
 
   useEffect(() => {
     if (!pagination) return
@@ -520,7 +538,6 @@ export function FileViewContainer({
               search: {
                 path: item.path,
                 entry: undefined,
-                media: "video" as const,
               },
             }
 
