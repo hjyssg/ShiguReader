@@ -471,3 +471,32 @@ table抽出共通
 # bug
     move的确认modal的确认button需要auto focus？用户按回车才能确认
    而不是toggle fullscreen
+
+
+# bug
+frontend\src\hooks\useFileOperations.ts
+frontend\src\hooks\useResolveMovedFile.ts
+莫名其妙用axis，应该参考layout/_index.tsx的调用
+明显有问题。
+
+# task
+move的文件夹目的地，就是之前使用过的可以smart suggestion。
+
+
+# bug
+  file-item的打勾、打叉、trash button点下去，跳出modal有明显卡顿。为什么
+  而且第一下click不能起作用，要点击第二下
+
+
+
+# bug
+  frontend\src\components\Files\FileViewContainer.tsx 代码还有右键菜单的残留，但实际已经把右键菜单删除了。
+
+
+## task
+   需要在前端让用户知道启动服务器的时候的要做什么，扫描和各种动作。否则用户会不安
+   显示在home的最近活动。
+   比如开始扫描，结束saomia 
+      开始清除table之类。
+   然后最近活动抽成一个component。之后可能移动到别的文件夹。
+   你进行深度思考，告诉我怎么做最让用户不产生不熟悉的焦虑感。

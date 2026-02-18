@@ -38,18 +38,9 @@
 coser pages大面积不是名单里面的coser，而是name parser解析出来的漫画家名字
 
 
-## task
-   需要在前端让用户知道启动服务器的时候的要做什么，扫描和各种动作。否则用户会不安
-   显示在home的最近活动。
-   比如开始扫描，结束saomia 
-      开始清除table之类。
-   然后最近活动抽成一个component。之后可能移动到别的文件夹。
-   你进行深度思考，告诉我怎么做最让用户不产生不熟悉的焦虑感。
-
 
 # task 
   现在内部跳转或者打开新页面缺乏统一管理。你需要进行统一
-
 
 
 # task
@@ -59,49 +50,3 @@ coser pages大面积不是名单里面的coser，而是name parser解析出来�
 # fs.py变成巨无霸了，需要重构一下。
   需要模块化
 
-# bug
-    FAVORITE和ALREADY_READ_DIR设置了，但为什么还显示没有。
-
-    我看f12， http://127.0.0.1:5173/api/v1/fs/already-read
-    返回的是
-
-    <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <script type="module">import { injectIntoGlobalHook } from "/@react-refresh";
-injectIntoGlobalHook(window);
-window.$RefreshReg$ = () => {};
-window.$RefreshSig$ = () => (type) => type;</script>
-
-    <script type="module" src="/@vite/client"></script>
-
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ShiguReader</title>
-    <link rel="icon" type="image/x-icon" href="/assets/images/favicon.png" />
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx?t=1771391221850"></script>
-  </body>
-</html>
-
-明显有问题。
-
-# task
-move的文件夹目的地，就是之前使用过的可以smart suggestion。
-ALREADY_READ_DIR设置了，但为什么还显示没有。
-
-
-# bug
-  file-item的打勾、打叉、trash button点下去，跳出modal有明显卡顿。为什么
-  而且第一下click不能起作用，要点击第二下
-
-
-
-# bug
-  frontend\src\components\Files\FileViewContainer.tsx 代码还有右键菜单的残留，但实际已经把右键菜单删除了。
-
-# bug
-  fs.py已经成巨无霸程序。需要拆分吗
