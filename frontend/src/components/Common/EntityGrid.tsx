@@ -1,18 +1,8 @@
 // 实体网格布局组件，支持分页
-import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { ResponsiveGrid } from "@/components/semantic/layout"
-import {
-  Pagination,
-  PaginationContent,
-  PaginationFirst,
-  PaginationItem,
-  PaginationLast,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination"
 import { Skeleton } from "@/components/ui/skeleton"
+import { UnifiedPagination } from "@/components/Common/UnifiedPagination"
 
 import { EntityCard, type EntityCardItem } from "./EntityCard"
 
@@ -40,20 +30,6 @@ export function EntityGrid({
   const finalEmptyText = emptyText ?? defaultEmptyText
 
   const totalPages = Math.max(1, Math.ceil(total / pageSize))
-  const [jumpPage, setJumpPage] = useState("")
-
-  const visiblePages = []
-  const start = Math.max(1, page - 2)
-  const end = Math.min(totalPages, start + 4)
-  for (let i = start; i <= end; i += 1) {
-    visiblePages.push(i)
-  }
-
-  const goToPage = (nextPage: number) => {
-    const target = Math.min(totalPages, Math.max(1, nextPage))
-    if (target !== page) onPageChange(target)
-  }
-
   return (
     <div className="entity-grid-container space-y-6">
       {isLoading ? (
@@ -83,111 +59,14 @@ export function EntityGrid({
       )}
 
       {total > 0 && (
-        <div className="flex flex-col items-center gap-3">
-          <Pagination className="grid-pagination">
-            <PaginationContent>
-              <PaginationItem>
-                <PaginationFirst
-                  href="#"
-                  onClick={(e) => {
-                    e.preventDefault()
-                    goToPage(1)
-                  }}
-                  className={
-                    page <= 1 ? "pointer-events-none opacity-50" : undefined
-                  }
-                />
-              </PaginationItem>
-
-              <PaginationItem>
-                <PaginationPrevious
-                  href="#"
-                  onClick={(e) => {
-                    e.preventDefault()
-                    goToPage(page - 1)
-                  }}
-                  className={
-                    page <= 1 ? "pointer-events-none opacity-50" : undefined
-                  }
-                />
-              </PaginationItem>
-
-              {visiblePages.map((p) => (
-                <PaginationItem key={p}>
-                  <PaginationLink
-                    href="#"
-                    isActive={p === page}
-                    onClick={(e) => {
-                      e.preventDefault()
-                      goToPage(p)
-                    }}
-                  >
-                    {p}
-                  </PaginationLink>
-                </PaginationItem>
-              ))}
-
-              <PaginationItem>
-                <PaginationNext
-                  href="#"
-                  onClick={(e) => {
-                    e.preventDefault()
-                    goToPage(page + 1)
-                  }}
-                  className={
-                    page >= totalPages
-                      ? "pointer-events-none opacity-50"
-                      : undefined
-                  }
-                />
-              </PaginationItem>
-
-              <PaginationItem>
-                <PaginationLast
-                  href="#"
-                  onClick={(e) => {
-                    e.preventDefault()
-                    goToPage(totalPages)
-                  }}
-                  className={
-                    page >= totalPages
-                      ? "pointer-events-none opacity-50"
-                      : undefined
-                  }
-                />
-              </PaginationItem>
-            </PaginationContent>
-          </Pagination>
-
-          <div className="flex items-center gap-2 text-sm">
-            <span className="text-muted-foreground">{t("history.goTo")}</span>
-            <input
-              type="number"
-              min={1}
-              max={totalPages}
-              value={jumpPage}
-              onChange={(e) => setJumpPage(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  const n = Number(jumpPage)
-                  if (!Number.isNaN(n)) goToPage(n)
-                }
-              }}
-              className="h-8 w-20 rounded-md border bg-background px-2"
-              placeholder={`1-${totalPages}`}
-            />
-            <button
-              type="button"
-              className="h-8 rounded-md border px-3"
-              onClick={() => {
-                const n = Number(jumpPage)
-                if (!Number.isNaN(n)) goToPage(n)
-              }}
-            >
-              {t("history.confirm")}
-            </button>
-          </div>
-        </div>
+        <UnifiedPagination
+          page={page}
+          totalPages={totalPages}
+          onPageChange={onPageChange}
+          paginationClassName="grid-pagination"
+          jumpLabel={t("history.goTo")}
+          confirmLabel={t("history.confirm")}
+        />
       )}
     </div>
   )

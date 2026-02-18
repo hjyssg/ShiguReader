@@ -27,16 +27,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Skeleton } from "@/components/ui/skeleton"
-import {
-  Pagination,
-  PaginationContent,
-  PaginationFirst,
-  PaginationItem,
-  PaginationLast,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination"
+import { UnifiedPagination } from "@/components/Common/UnifiedPagination"
 import { useFileExplorerKeyboard } from "@/hooks/useFileExplorerKeyboard"
 import { useFileNavigation } from "@/hooks/useFileNavigation"
 import { useFileOperations } from "@/hooks/useFileOperations"
@@ -204,14 +195,6 @@ export function FileViewContainer({
   const pageSize = pagination?.pageSize ?? sortedItems.length
   const totalPages = Math.max(1, Math.ceil(sortedItems.length / pageSize))
   const normalizedPage = Math.min(Math.max(currentPage, 1), totalPages)
-  const visiblePages = useMemo(() => {
-    const out: number[] = []
-    const start = Math.max(1, normalizedPage - 2)
-    const end = Math.min(totalPages, start + 4)
-    for (let i = start; i <= end; i += 1) out.push(i)
-    return out
-  }, [normalizedPage, totalPages])
-
   const goToPage = useCallback(
     (nextPage: number) => {
       if (!pagination) return
@@ -250,7 +233,6 @@ export function FileViewContainer({
     useState<CompressAction>("zip-folder")
   const [confirmFavoriteOpen, setConfirmFavoriteOpen] = useState(false)
   const [confirmAlreadyReadOpen, setConfirmAlreadyReadOpen] = useState(false)
-  const [jumpPage, setJumpPage] = useState("")
   // 当前操作的目标项
   const [contextItem, setContextItem] = useState<FileSystemItem | null>(null)
 
@@ -849,99 +831,12 @@ export function FileViewContainer({
         isPending={operations.moveToAlreadyReadMutation.isPending}
       />
       {pagination && sortedItems.length > 0 && (
-        <div className="flex flex-col items-center gap-3 pt-2">
-          <Pagination>
-            <PaginationContent>
-              <PaginationItem>
-                <PaginationFirst
-                  href="#"
-                  onClick={(e) => {
-                    e.preventDefault()
-                    goToPage(1)
-                  }}
-                  className={normalizedPage <= 1 ? "pointer-events-none opacity-50" : undefined}
-                />
-              </PaginationItem>
-
-              <PaginationItem>
-                <PaginationPrevious
-                  href="#"
-                  onClick={(e) => {
-                    e.preventDefault()
-                    goToPage(normalizedPage - 1)
-                  }}
-                  className={normalizedPage <= 1 ? "pointer-events-none opacity-50" : undefined}
-                />
-              </PaginationItem>
-
-              {visiblePages.map((p) => (
-                <PaginationItem key={p}>
-                  <PaginationLink
-                    href="#"
-                    isActive={p === normalizedPage}
-                    onClick={(e) => {
-                      e.preventDefault()
-                      goToPage(p)
-                    }}
-                  >
-                    {p}
-                  </PaginationLink>
-                </PaginationItem>
-              ))}
-
-              <PaginationItem>
-                <PaginationNext
-                  href="#"
-                  onClick={(e) => {
-                    e.preventDefault()
-                    goToPage(normalizedPage + 1)
-                  }}
-                  className={normalizedPage >= totalPages ? "pointer-events-none opacity-50" : undefined}
-                />
-              </PaginationItem>
-
-              <PaginationItem>
-                <PaginationLast
-                  href="#"
-                  onClick={(e) => {
-                    e.preventDefault()
-                    goToPage(totalPages)
-                  }}
-                  className={normalizedPage >= totalPages ? "pointer-events-none opacity-50" : undefined}
-                />
-              </PaginationItem>
-            </PaginationContent>
-          </Pagination>
-
-          <div className="flex items-center gap-2 text-sm">
-            <span className="text-muted-foreground">Go to</span>
-            <input
-              type="number"
-              min={1}
-              max={totalPages}
-              value={jumpPage}
-              onChange={(e) => setJumpPage(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  const n = Number(jumpPage)
-                  if (!Number.isNaN(n)) goToPage(n)
-                }
-              }}
-              className="h-8 w-20 rounded-md border bg-background px-2"
-              placeholder={`1-${totalPages}`}
-            />
-            <button
-              type="button"
-              className="h-8 rounded-md border px-3"
-              onClick={() => {
-                const n = Number(jumpPage)
-                if (!Number.isNaN(n)) goToPage(n)
-              }}
-            >
-              Confirm
-            </button>
-          </div>
-        </div>
+        <UnifiedPagination
+          page={normalizedPage}
+          totalPages={totalPages}
+          onPageChange={goToPage}
+          containerClassName="flex flex-col items-center gap-3 pt-2"
+        />
       )}
     </div>
   )

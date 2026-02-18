@@ -10,16 +10,7 @@ import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import {
-  Pagination,
-  PaginationContent,
-  PaginationFirst,
-  PaginationItem,
-  PaginationLast,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination"
+import { UnifiedPagination } from "@/components/Common/UnifiedPagination"
 import {
   Select,
   SelectContent,
@@ -90,7 +81,6 @@ function SearchPage() {
   const [presenceFilter, setPresenceFilter] = useState<PresenceFilter>(
     search.presenceFilter,
   )
-  const [jumpPage, setJumpPage] = useState("")
 
   const pageSize = 24
 
@@ -143,14 +133,6 @@ function SearchPage() {
     if (!data?.items) return 1
     return Math.max(1, Math.ceil(data.items.length / pageSize))
   }, [data?.items])
-
-  const visiblePages = useMemo(() => {
-    const out: number[] = []
-    const start = Math.max(1, search.page - 2)
-    const end = Math.min(totalPages, start + 4)
-    for (let i = start; i <= end; i += 1) out.push(i)
-    return out
-  }, [totalPages, search.page])
 
   const goToPage = (nextPage: number) => {
     const target = Math.min(totalPages, Math.max(1, nextPage))
@@ -302,118 +284,15 @@ function SearchPage() {
             emptyText={t("search.noResults")}
           />
           {(data?.total ?? 0) > pageSize && (
-            <div className="flex flex-col items-center gap-3">
-              <Pagination>
-                <PaginationContent>
-                  <PaginationItem>
-                    <PaginationFirst
-                      href="#"
-                      onClick={(e) => {
-                        e.preventDefault()
-                        goToPage(1)
-                      }}
-                      className={
-                        search.page <= 1
-                          ? "pointer-events-none opacity-50"
-                          : undefined
-                      }
-                    />
-                  </PaginationItem>
-
-                  <PaginationItem>
-                    <PaginationPrevious
-                      href="#"
-                      onClick={(e) => {
-                        e.preventDefault()
-                        goToPage(search.page - 1)
-                      }}
-                      className={
-                        search.page <= 1
-                          ? "pointer-events-none opacity-50"
-                          : undefined
-                      }
-                    />
-                  </PaginationItem>
-
-                  {visiblePages.map((p) => (
-                    <PaginationItem key={p}>
-                      <PaginationLink
-                        href="#"
-                        isActive={p === search.page}
-                        onClick={(e) => {
-                          e.preventDefault()
-                          goToPage(p)
-                        }}
-                      >
-                        {p}
-                      </PaginationLink>
-                    </PaginationItem>
-                  ))}
-
-                  <PaginationItem>
-                    <PaginationNext
-                      href="#"
-                      onClick={(e) => {
-                        e.preventDefault()
-                        goToPage(search.page + 1)
-                      }}
-                      className={
-                        search.page >= totalPages
-                          ? "pointer-events-none opacity-50"
-                          : undefined
-                      }
-                    />
-                  </PaginationItem>
-
-                  <PaginationItem>
-                    <PaginationLast
-                      href="#"
-                      onClick={(e) => {
-                        e.preventDefault()
-                        goToPage(totalPages)
-                      }}
-                      className={
-                        search.page >= totalPages
-                          ? "pointer-events-none opacity-50"
-                          : undefined
-                      }
-                    />
-                  </PaginationItem>
-                </PaginationContent>
-              </Pagination>
-
-              <div className="flex items-center gap-2 text-sm">
-                <span className="text-muted-foreground">
-                  {t("search.goTo")}
-                </span>
-                <Input
-                  type="number"
-                  min={1}
-                  max={totalPages}
-                  value={jumpPage}
-                  onChange={(e) => setJumpPage(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      const n = Number(jumpPage)
-                      if (!Number.isNaN(n)) goToPage(n)
-                    }
-                  }}
-                  className="h-8 w-20"
-                  placeholder={`1-${totalPages}`}
-                />
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    const n = Number(jumpPage)
-                    if (!Number.isNaN(n)) goToPage(n)
-                  }}
-                >
-                  {t("search.confirm")}
-                </Button>
-              </div>
-            </div>
+            <UnifiedPagination
+              page={search.page}
+              totalPages={totalPages}
+              onPageChange={goToPage}
+              jumpLabel={t("search.goTo")}
+              confirmLabel={t("search.confirm")}
+              jumpInputClassName="h-8 w-20"
+              confirmButtonClassName="inline-flex items-center justify-center rounded-md border border-input bg-background px-3 text-sm font-medium shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground h-8"
+            />
           )}
         </div>
       ) : null}
