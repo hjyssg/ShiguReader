@@ -1,81 +1,66 @@
 # 未完成（Todo / In Progress / Bug）
 
-## Task1：Zip 内大图压缩与再打包
-- 参考：D:\Git\ShiguReader\packages
-- 对 zip 内过大的图片进行压缩后重新打包 （用户可以在setting设置标准，你参考旧版：D:\Git\ShiguReader\packages）
-- 支持选择：
-  - 输出到原文件夹
-  - 输出到专门目录
-- 需要加UT
+## 1. Zip 内大图压缩与再打包
 
+* 参考：`D:\Git\ShiguReader\packages`
+* 对 zip 内过大的图片进行压缩后重新打包（用户可以在 setting 设置标准，你参考旧版：`D:\Git\ShiguReader\packages`）
+* 支持选择：
 
-## Task9：测试补充
-- 补充前后端 UT
-- 保证所有页面可正常打开（可用 Playwright）
+  * 输出到原文件夹
+  * 输出到专门目录
+* 需要加 UT
 
+---
 
-### task
-打开带密码的zip
-需要前端输出代码 然后去解压或者打开
+## 2. 测试补充
 
+* 补充前后端 UT
+* 保证所有页面可正常打开（可用 Playwright）
 
-### task
- archive page和explorer page太像。
- 还有没有生成video .move文件的thumbnail
+### 2.1 打开带密码的 zip
 
+* 需要前端输出代码，然后去解压或者打开
+* 低优先级
 
-# 针对cosplay图包的优化
-  对于压缩包，我们要区分漫画和cosplay图包。nameparser现在主要是日本发行的漫画。
-  抽取coser的名字抽取 + 一个coserpage
+### 2.2 archive page 和 explorer page 过于相似
 
+* archive page 和 explorer page 太像
+* 没有生成 video `.move` 文件的 thumbnail
 
-# task
-给代码加上你觉得合适需要的注释
-进行你觉得合理应该的重构，保证项目之后还是好维护
+---
 
+## 3. 针对 cosplay 图包的优化
 
-## 后端task 
-coser pages大面积不是名单里面的coser，而是name parser解析出来的漫画家名字
+* 对于压缩包，需要区分漫画和 cosplay 图包
+* name parser 现在主要针对日本发行的漫画
+* 抽取 coser 名字
+* 增加一个 coser page
 
+---
 
+## 4. 代码维护优化
 
-# task 
-  现在内部跳转或者打开新页面缺乏统一管理。你需要进行统一
+* 给代码加上合适且必要的注释
+* 进行合理重构，保证项目后续易维护
 
+---
 
-# task
-  前端重构任务： 现在内部跳转或者打开新页面缺乏统一管理。你需要进行统一的url util去管理。
-  
+## 5. 后端优化
 
-# fs.py变成巨无霸了，需要重构一下。
-  需要模块化
+* coser pages 大面积不是名单中的 coser，而是 name parser 解析出来的漫画家名字
 
-# task1
-home的特殊目录
-还需要显示move to favorite的移动子文件夹。（参考move to favorite的modal）
+---
 
-特殊目录
-快捷访问文件夹
-最常用文件夹
-的folder name，都需要title attribute。你写一个内部component避免重复代码。
+## 6. 前端跳转统一管理
 
+* 现在内部跳转或打开新页面缺乏统一管理，需要进行统一
 
-# task2
-UnifiedPagination的分页的时候。
-folder和video不分页。在第一页显示全部的folder和video
-只针对archives分页
+---
 
+## 7. 前端 URL 管理重构
 
+* 前端重构任务：
 
-# task3
-frontend\src\routes\_layout\archive.tsx
-frontend\src\routes\_layout\read.tsx
+  * 现在内部跳转或打开新页面缺乏统一管理
+  * 需要使用统一的 URL util 进行管理
 
-文件被移动之后，不要navigate({ to: "/" }) 而是navigate到移动filepath的page
-
-# task4
-frontend\src\routes\_layout\video.tsx 现在不需要支持audio了，删除对应代码。
-
-# bug 5：
-api path resolve失败的时候会导致无限loop
-修改前端。
