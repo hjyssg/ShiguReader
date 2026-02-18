@@ -55,3 +55,7 @@ coser pages大面积不是名单里面的coser，而是name parser解析出来�
 
 # bug
 /api/v1/parse?filepath=D%3A%5C_TEMP_DOWNLOADS%5CDLRAW.AC_Seitokai_nimo_Ana_wa_Aru%20vol%2001-11.rar parse不出东西，也不应该是404。应该是返回没有的就行了
+
+
+# task
+检查前后端的编译器warning。
