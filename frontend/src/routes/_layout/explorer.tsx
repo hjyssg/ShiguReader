@@ -59,7 +59,7 @@ export const Route = createFileRoute("/_layout/explorer")({
         : "type",
       sortOrder: sortOrderCandidates.includes(rawSortOrder as SortOrder)
         ? (rawSortOrder as SortOrder)
-        : "asc",
+        : "desc",
     }
   },
   head: () => ({
