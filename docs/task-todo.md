@@ -47,17 +47,9 @@ coser pages大面积不是名单里面的coser，而是name parser解析出来�
    你进行深度思考，告诉我怎么做最让用户不产生不熟悉的焦虑感。
 
 
-
-
-
 # task 
   现在内部跳转或者打开新页面缺乏统一管理。你需要进行统一
 
-
-
-
-# explorer page
-  /api/v1/fs/list 在文件 9000个的时候会卡。进行优化
 
 
 # task
