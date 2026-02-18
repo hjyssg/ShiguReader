@@ -70,3 +70,13 @@ coser pages大面积不是名单里面的coser，而是name parser解析出来�
    而不是toggle fullscreen
 
    ALREADY_READ_DIR设置了，但为什么还显示没有。
+
+
+# bug
+  file-item的打勾、打叉、trash button点下去，跳出modal有明显卡顿。为什么
+  而且第一下click不能起作用，要点击第二下
+
+
+
+# bug
+  fs.py已经成巨无霸程序。需要拆分吗
