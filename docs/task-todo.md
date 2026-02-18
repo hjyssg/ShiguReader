@@ -47,10 +47,6 @@ coser pages大面积不是名单里面的coser，而是name parser解析出来�
   前端重构任务： 现在内部跳转或者打开新页面缺乏统一管理。你需要进行统一的url util去管理。
   
 
-# fs.py变成巨无霸了，需要重构一下。
-  需要模块化
-
-
 # bug
   后端解压archive不会去自动更新archive的meta吗？
   我的希望是解压/生成thumbnail的时候回去更新archive的meta。
@@ -59,6 +55,3 @@ coser pages大面积不是名单里面的coser，而是name parser解析出来�
 
 # bug
 /api/v1/parse?filepath=D%3A%5C_TEMP_DOWNLOADS%5CDLRAW.AC_Seitokai_nimo_Ana_wa_Aru%20vol%2001-11.rar parse不出东西，也不应该是404。应该是返回没有的就行了
-
-# bug
-http://localhost:8000/api/v1/fs/backfill 现在500了
