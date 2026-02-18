@@ -1,12 +1,10 @@
 // 文件操作 API 封装 — 统一 mutation hooks
 import { useMutation, useQueryClient } from "@tanstack/react-query"
-import axios from "axios"
 import { toast } from "sonner"
 
 import { ApiError, FilesystemService } from "@/client"
+import { requestJson } from "@/utils/http"
 
-// 使用相对路径，始终走当前页面同源，避免 localhost/127.0.0.1 混用触发 CORS。
-const api = axios.create()
 
 function normalizeDetail(detail: unknown): string | null {
   if (typeof detail === "string" && detail.trim()) return detail
@@ -26,9 +24,9 @@ function extractErrorMessage(err: unknown): string {
     return detail || err.message
   }
 
-  if (axios.isAxiosError(err)) {
-    const detail = normalizeDetail((err.response?.data as any)?.detail)
-    return detail || err.message
+  if (typeof err === "object" && err !== null && "detail" in err) {
+    const detail = normalizeDetail((err as any).detail)
+    if (detail) return detail
   }
 
   if (err instanceof Error) return err.message
@@ -37,31 +35,40 @@ function extractErrorMessage(err: unknown): string {
 
 /** 重命名文件/文件夹 */
 function apiRename(path: string, newName: string) {
-  return api.post("/api/v1/fs/rename", { path, new_name: newName })
+  return requestJson("/api/v1/fs/rename", {
+    method: "POST",
+    body: { path, new_name: newName },
+  })
 }
 
 /** 压缩 archive 内大图 */
 function apiCompressArchiveImages(archivePath: string) {
-  return api.post("/api/v1/fs/archive/compress-images", {
-    archive_path: archivePath,
+  return requestJson("/api/v1/fs/archive/compress-images", {
+    method: "POST",
+    body: {
+      archive_path: archivePath,
+    },
   })
 }
 
 /** 为目录补全缺失的 thumbnail/meta（含子目录） */
 function apiBackfillFolder(folderPath: string) {
-  return api.post("/api/v1/fs/backfill", {
-    path: folderPath,
-    recursive: true,
-    fill_thumbnail: true,
-    fill_meta: true,
+  return requestJson("/api/v1/fs/backfill", {
+    method: "POST",
+    body: {
+      path: folderPath,
+      recursive: true,
+      fill_thumbnail: true,
+      fill_meta: true,
+    },
   })
 }
 
 /** 移动到收藏夹目录（可选子文件夹，如 good_2026_02_01） */
 async function apiMoveToFavorite(sourcePath: string, isFolder: boolean, subfolder?: string) {
   // 先获取收藏夹目录
-  const favResp = await api.get("/api/v1/fs/favorite")
-  const favDir = favResp.data?.path
+  const favResp = await requestJson<{ path?: string }>("/api/v1/fs/favorite")
+  const favDir = favResp.path
   if (!favDir) throw new Error("Favorite directory not configured")
 
   const targetDir = subfolder ? `${favDir}/${subfolder}` : favDir
@@ -71,7 +78,10 @@ async function apiMoveToFavorite(sourcePath: string, isFolder: boolean, subfolde
   // 如果使用子文件夹，先确保目录存在（后端 move 会检查 parent）
   if (subfolder) {
     try {
-      await api.post("/api/v1/fs/ensure-dir", { path: targetDir })
+      await requestJson("/api/v1/fs/ensure-dir", {
+        method: "POST",
+        body: { path: targetDir },
+      })
     } catch {
       // 忽略：后端可能没有 ensure-dir，靠 move 自身报错
     }
@@ -90,18 +100,21 @@ async function apiMoveToFavorite(sourcePath: string, isFolder: boolean, subfolde
 /** 移动到已读目录 */
 async function apiMoveToAlreadyRead(sourcePath: string, isFolder: boolean) {
   // 优先使用 fs/already-read；若目录尚未创建，回退读取 settings 并尝试自动创建。
-  let resp = await api.get("/api/v1/fs/already-read")
-  let dir = resp.data?.path as string | undefined
+  let resp = await requestJson<{ path?: string }>("/api/v1/fs/already-read")
+  let dir = resp.path
 
   if (!dir) {
-    const settingsResp = await api.get("/api/v1/settings")
-    const configuredDir = (settingsResp.data?.already_read_dir as string | undefined)?.trim()
+    const settingsResp = await requestJson<{ already_read_dir?: string }>("/api/v1/settings")
+    const configuredDir = settingsResp.already_read_dir?.trim()
     if (configuredDir) {
       dir = configuredDir
       try {
-        await api.post("/api/v1/fs/ensure-dir", { path: dir })
-        resp = await api.get("/api/v1/fs/already-read")
-        dir = (resp.data?.path as string | undefined) || dir
+        await requestJson("/api/v1/fs/ensure-dir", {
+          method: "POST",
+          body: { path: dir },
+        })
+        resp = await requestJson<{ path?: string }>("/api/v1/fs/already-read")
+        dir = resp.path || dir
       } catch {
         // 忽略：若后端不支持 ensure-dir，后续 move 会给出明确错误。
       }
@@ -284,7 +297,7 @@ export function useFileOperations(currentPath: string) {
   const backfillFolderMutation = useMutation({
     mutationFn: (folderPath: string) => apiBackfillFolder(folderPath),
     onSuccess: (resp) => {
-      const payload = resp?.data || {}
+      const payload = resp || {}
       const scanned = payload.scanned_files ?? 0
       const thumbs = payload.backfilled_thumbnails ?? 0
       const meta = payload.backfilled_meta ?? 0
