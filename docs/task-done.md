@@ -466,3 +466,8 @@ table抽出共通
 
 # explorer page
   /api/v1/fs/list 在文件 9000个的时候会卡。进行优化
+
+
+# bug
+    move的确认modal的确认button需要auto focus？用户按回车才能确认
+   而不是toggle fullscreen

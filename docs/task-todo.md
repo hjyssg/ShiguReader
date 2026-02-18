@@ -56,9 +56,39 @@ coser pages大面积不是名单里面的coser，而是name parser解析出来�
   前端重构任务： 现在内部跳转或者打开新页面缺乏统一管理。你需要进行统一的url util去管理。
   
 
+# fs.py变成巨无霸了，需要重构一下。
+  需要模块化
 
 # bug
-   move的确认modal的确认button需要auto focus？用户按回车才能确认
-   而不是toggle fullscreen
+    FAVORITE和ALREADY_READ_DIR设置了，但为什么还显示没有。
 
-   ALREADY_READ_DIR设置了，但为什么还显示没有。
+    我看f12， http://127.0.0.1:5173/api/v1/fs/already-read
+    返回的是
+
+    <!DOCTYPE html>
+<html lang="en">
+  <head>
+    <script type="module">import { injectIntoGlobalHook } from "/@react-refresh";
+injectIntoGlobalHook(window);
+window.$RefreshReg$ = () => {};
+window.$RefreshSig$ = () => (type) => type;</script>
+
+    <script type="module" src="/@vite/client"></script>
+
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ShiguReader</title>
+    <link rel="icon" type="image/x-icon" href="/assets/images/favicon.png" />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx?t=1771391221850"></script>
+  </body>
+</html>
+
+明显有问题。
+
+# task
+move的文件夹目的地，就是之前使用过的可以smart suggestion。
+
