@@ -134,6 +134,42 @@ function SinglePathSection({
   )
 }
 
+type PathRowProps = {
+  index: number
+  value: string
+  placeholder: string
+  onChange: (index: number, value: string) => void
+  onRemove: (index: number) => void
+  onBlur: () => void
+}
+
+function PathRow({ index, value, placeholder, onChange, onRemove, onBlur }: PathRowProps) {
+  return (
+    <div className="path-row">
+      <span className="path-row__index">{index + 1}</span>
+      <Input
+        type="text"
+        placeholder={placeholder}
+        value={value}
+        onChange={(e) => onChange(index, e.target.value)}
+        onBlur={onBlur}
+        className="path-row__input"
+      />
+      <div className="path-row__actions">
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon-sm"
+          onClick={() => onRemove(index)}
+          aria-label="remove"
+        >
+          <Trash2 className="h-4 w-4" />
+        </Button>
+      </div>
+    </div>
+  )
+}
+
 function SettingsPage() {
   const { t, i18n } = useTranslation()
   const { showSuccessToast, showErrorToast } = useCustomToast()
@@ -350,31 +386,18 @@ function SettingsPage() {
 
               <div className="path-table__body">
                 {fsRootList.map((item, index) => (
-                  <div key={`fs-root-${index}`} className="path-row">
-                    <span className="path-row__index">{index + 1}</span>
-                    <Input
-                      type="text"
-                      placeholder={t("settings.fsRootsPlaceholder")}
-                      value={item}
-                      onChange={(e) => handleFsRootItemChange(index, e.target.value)}
-                      onBlur={saveFsRootsIfChanged}
-                      className="path-row__input"
-                    />
-                    <div className="path-row__actions">
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon-sm"
-                        onClick={() => {
-                          handleRemoveFsRoot(index)
-                          setTimeout(saveFsRootsIfChanged, 0)
-                        }}
-                        aria-label="remove"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
+                  <PathRow
+                    key={`fs-root-${index}`}
+                    index={index}
+                    value={item}
+                    placeholder={t("settings.fsRootsPlaceholder")}
+                    onChange={handleFsRootItemChange}
+                    onRemove={(idx) => {
+                      handleRemoveFsRoot(idx)
+                      setTimeout(saveFsRootsIfChanged, 0)
+                    }}
+                    onBlur={saveFsRootsIfChanged}
+                  />
                 ))}
               </div>
 

@@ -138,7 +138,7 @@ coser pages大面积不是名单里面的coser，而是name parser解析出来�
           </Pagination
 
 
-你去实现一个统一的pagination。
+你去实现一个统一的pagination。然后替换
 
 
 # task 
