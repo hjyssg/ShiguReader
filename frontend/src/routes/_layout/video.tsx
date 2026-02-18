@@ -6,6 +6,7 @@ import "react-h5-audio-player/lib/styles.css"
 import { OpenAPI } from "@/client"
 import { PathBreadcrumb } from "@/components/Common/PathBreadcrumb"
 import { getBaseName } from "@/lib/path-utils"
+import { useDocumentTitle } from "@/hooks/useDocumentTitle"
 
 export const Route = createFileRoute("/_layout/video")({
   component: Video,
@@ -47,6 +48,8 @@ function Video() {
     fileName = getBaseName(path, media === "audio" ? "Audio" : "Video")
     sourcePath = path
   }
+  
+  useDocumentTitle(fileName)
 
   const progressStorageKey = useMemo(
     () => `media-progress:${media}:${path}:${entry ?? ""}`,
@@ -127,12 +130,12 @@ function Video() {
           />
         </div>
       ) : (
-        <div className="bg-black rounded-lg overflow-hidden">
+        <div className="overflow-hidden">
           <video
             ref={videoRef}
             src={videoUrl}
             controls
-            className="w-full max-h-[80vh]"
+            className="w-full max-h-[90vh]"
             controlsList="nodownload"
             onLoadedMetadata={() => restoreProgress(videoRef.current)}
             onTimeUpdate={() => saveProgress(videoRef.current)}
