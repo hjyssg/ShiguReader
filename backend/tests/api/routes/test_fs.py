@@ -887,15 +887,6 @@ def test_backfill_directory_non_recursive(
     assert payload["backfilled_meta"] >= 2
 
 
-def test_derive_minimal_root_dirs_removes_nested_dirs() -> None:
-    roots = fs_route._derive_minimal_root_dirs([
-        "/data/library/a/1.jpg",
-        "/data/library/a/sub/2.jpg",
-        "/data/library/b/3.jpg",
-    ])
-
-    assert roots == [Path('/data/library/a'), Path('/data/library/b')]
-
 
 def test_scan_root_with_scandir_skips_hidden_and_ignored(tmp_path: Path) -> None:
     root = tmp_path / "root"

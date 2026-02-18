@@ -37,6 +37,7 @@ from app.index_db.confidence import compute_confidence
 from app.index_db.db import get_index_session
 from app.index_db.models import File, Folder
 from app.index_db.repository import ActivityLogInput, IndexRepository, UpsertFileInput, UpsertFolderInput
+from app.services.file_sync_roots import derive_minimal_scan_roots, is_filesystem_root, normalize_allowed_roots
 from app.services.thumb_service import ThumbService
 from app.utils import detect_file_type, get_mime_type
 
@@ -814,18 +815,6 @@ def _is_target_extension(name: str) -> bool:
     return any(lowered.endswith(suffix) for suffix in _TARGET_SUFFIXES)
 
 
-def _derive_minimal_root_dirs(filepaths: Iterable[str]) -> list[Path]:
-    """从 file 表路径推导最小覆盖目录集合（不向上扩展）。"""
-    dir_paths = sorted({str(Path(filepath).parent) for filepath in filepaths if filepath}, key=lambda x: (x.count(os.sep), x))
-    selected: list[Path] = []
-    for dir_path in dir_paths:
-        candidate = Path(dir_path)
-        if any(candidate == root or candidate.is_relative_to(root) for root in selected):
-            continue
-        selected.append(candidate)
-    return selected
-
-
 def _snapshot_covers_root(snapshot_root: str, root: Path) -> bool:
     snapshot_path = Path(snapshot_root)
     return root == snapshot_path or root.is_relative_to(snapshot_path)
@@ -868,15 +857,6 @@ def _should_skip_sync_path(path: Path) -> bool:
     return any(fragment in normalized for fragment in skip_fragments)
 
 
-def _is_filesystem_root(path: Path) -> bool:
-    """判断路径是否为文件系统根目录（如 Windows 的 C:\\ 或 POSIX 的 /）。"""
-    try:
-        resolved = path.resolve()
-    except Exception:
-        resolved = path
-    return resolved.parent == resolved
-
-
 def _has_windows_reparse_point(path: Path | str) -> bool:
     """Windows 下判断路径是否为 reparse point（junction/symlink 等）。"""
     if os.name != "nt":
@@ -913,7 +893,7 @@ def _collect_allowed_sync_roots() -> list[Path]:
             except Exception:
                 logger.warning("[file-sync] skip invalid allowed root config: %s", optional_dir)
 
-    allowlist: list[Path] = []
+    existing_candidates: list[Path] = []
     for candidate in candidates:
         try:
             resolved = candidate.resolve()
@@ -921,19 +901,16 @@ def _collect_allowed_sync_roots() -> list[Path]:
             continue
         if not resolved.exists() or not resolved.is_dir():
             continue
-        if _is_filesystem_root(resolved):
+        if is_filesystem_root(resolved):
             logger.warning(
                 "[file-sync] skip allowed root because filesystem root is forbidden: %s",
                 resolved,
             )
             continue
 
-        if any(resolved == root or resolved.is_relative_to(root) for root in allowlist):
-            continue
-        allowlist = [root for root in allowlist if not root.is_relative_to(resolved)]
-        allowlist.append(resolved)
+        existing_candidates.append(resolved)
 
-    return allowlist
+    return normalize_allowed_roots(existing_candidates)
 
 
 def _scan_root_with_scandir(root: Path) -> dict[str, tuple[int, int]]:
@@ -944,7 +921,7 @@ def _scan_root_with_scandir(root: Path) -> dict[str, tuple[int, int]]:
 
     while pending:
         current = pending.pop()
-        if _is_filesystem_root(current):
+        if is_filesystem_root(current):
             logger.warning("[file-sync] skip filesystem root directory: %s", current)
             continue
         if _should_skip_sync_path(current):
@@ -963,7 +940,7 @@ def _scan_root_with_scandir(root: Path) -> dict[str, tuple[int, int]]:
                             if name.startswith(".") or should_ignore(name):
                                 continue
                             dir_path = Path(entry.path)
-                            if _is_filesystem_root(dir_path):
+                            if is_filesystem_root(dir_path):
                                 logger.warning("[file-sync] skip filesystem root directory: %s", dir_path)
                                 continue
                             if _should_skip_sync_path(dir_path):
@@ -1065,22 +1042,11 @@ def _sync_file_table_with_filesystem() -> None:
                 return
 
             db_map: dict[str, tuple[int, int, int]] = {fp: (int(size), int(mtime), int(scan_state)) for fp, size, mtime, scan_state in db_rows}
-            root_dirs = _derive_minimal_root_dirs(db_map.keys())
             allowed_roots = _collect_allowed_sync_roots()
-
-            filtered_roots: list[Path] = []
-            for root_dir in root_dirs:
-                if _is_filesystem_root(root_dir):
-                    logger.warning("[file-sync] skip filesystem root directory: %s", root_dir)
-                    continue
-
-                if allowed_roots and not any(root_dir == ar or root_dir.is_relative_to(ar) for ar in allowed_roots):
-                    logger.info("[file-sync] skip root outside allowlist: %s", root_dir)
-                    continue
-
-                filtered_roots.append(root_dir)
-
-            root_dirs = filtered_roots
+            root_dirs = derive_minimal_scan_roots(
+                db_map.keys(),
+                allowed_roots=allowed_roots,
+            )
 
             real_map: dict[str, tuple[int, int]] = {}
             for root_dir in root_dirs:
