@@ -22,6 +22,10 @@ type UnifiedPaginationProps = {
   confirmLabel?: ReactNode
   jumpInputClassName?: string
   confirmButtonClassName?: string
+  pageSizeLabel?: ReactNode
+  pageSizeButtonText?: ReactNode
+  onPageSizeCycle?: () => void
+  pageSizeButtonClassName?: string
 }
 
 export function UnifiedPagination({
@@ -35,6 +39,10 @@ export function UnifiedPagination({
   confirmLabel = "Confirm",
   jumpInputClassName = "h-8 w-20 rounded-md border bg-background px-2",
   confirmButtonClassName = "h-8 rounded-md border px-3",
+  pageSizeLabel,
+  pageSizeButtonText,
+  onPageSizeCycle,
+  pageSizeButtonClassName = "h-8 rounded-md border px-3",
 }: UnifiedPaginationProps) {
   const [jumpPage, setJumpPage] = useState("")
 
@@ -124,38 +132,56 @@ export function UnifiedPagination({
         </PaginationContent>
       </Pagination>
 
-      {showJump && (
+      {(showJump || onPageSizeCycle) && (
         <div className="flex items-center gap-2 text-sm">
-          <span className="text-muted-foreground">{jumpLabel}</span>
-          <input
-            type="number"
-            min={1}
-            max={totalPages}
-            value={jumpPage}
-            onChange={(e) => setJumpPage(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                const n = Number(jumpPage)
-                if (!Number.isNaN(n)) {
-                  goToPage(n)
-                }
-              }
-            }}
-            className={jumpInputClassName}
-            placeholder={`1-${totalPages}`}
-          />
-          <button
-            type="button"
-            className={confirmButtonClassName}
-            onClick={() => {
-              const n = Number(jumpPage)
-              if (!Number.isNaN(n)) {
-                goToPage(n)
-              }
-            }}
-          >
-            {confirmLabel}
-          </button>
+          {onPageSizeCycle && (
+            <>
+              {pageSizeLabel && (
+                <span className="text-muted-foreground">{pageSizeLabel}</span>
+              )}
+              <button
+                type="button"
+                className={pageSizeButtonClassName}
+                onClick={onPageSizeCycle}
+              >
+                {pageSizeButtonText}
+              </button>
+            </>
+          )}
+          {showJump && <span className="text-muted-foreground">{jumpLabel}</span>}
+          {showJump && (
+            <>
+              <input
+                type="number"
+                min={1}
+                max={totalPages}
+                value={jumpPage}
+                onChange={(e) => setJumpPage(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    const n = Number(jumpPage)
+                    if (!Number.isNaN(n)) {
+                      goToPage(n)
+                    }
+                  }
+                }}
+                className={jumpInputClassName}
+                placeholder={`1-${totalPages}`}
+              />
+              <button
+                type="button"
+                className={confirmButtonClassName}
+                onClick={() => {
+                  const n = Number(jumpPage)
+                  if (!Number.isNaN(n)) {
+                    goToPage(n)
+                  }
+                }}
+              >
+                {confirmLabel}
+              </button>
+            </>
+          )}
         </div>
       )}
     </div>
