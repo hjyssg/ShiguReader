@@ -13,6 +13,7 @@ from app.index_db.bootstrap import ensure_index_db_initialized
 from app.index_db.db import get_index_session
 from app.index_db.models import Artist, File, FileArtist
 
+
 router = APIRouter(prefix="/authors", tags=["authors"])
 
 
@@ -34,7 +35,7 @@ class AuthorsResponse(BaseModel):
 async def read_authors(
     page: int = Query(1, ge=1),
     page_size: int = Query(24, ge=1, le=100),
-    sort_by: Literal["count", "name"] = Query("count"),
+    sort_by: Literal["count", "name", "recommendation"] = Query("count"),
     sort_order: Literal["asc", "desc"] = Query("desc"),
 ) -> AuthorsResponse:
     offset = (page - 1) * page_size
@@ -53,9 +54,11 @@ async def read_authors(
                 select(
                     Artist.artist_name,
                     func.count(FileArtist.filepath).label("file_count"),
+                    func.avg(File.rec_score).label("avg_rec_score"),
                 )
                 .select_from(Artist)
                 .join(FileArtist, FileArtist.artist_name == Artist.artist_name, isouter=True)
+                .join(File, File.filepath == FileArtist.filepath, isouter=True)
                 .where(FileArtist.role == "")
                 .group_by(Artist.artist_name)
             )
@@ -65,6 +68,13 @@ async def read_authors(
                     Artist.artist_name.asc()
                     if sort_order == "asc"
                     else Artist.artist_name.desc()
+                )
+            elif sort_by == "recommendation":
+                count_stmt = count_stmt.order_by(
+                    func.avg(File.rec_score).asc()
+                    if sort_order == "asc"
+                    else func.avg(File.rec_score).desc(),
+                    Artist.artist_name.asc(),
                 )
             else:
                 count_stmt = count_stmt.order_by(
@@ -77,7 +87,7 @@ async def read_authors(
             page_rows = session.exec(count_stmt.offset(offset).limit(page_size)).all()
 
             # Optimized: Use window function to get latest file per author in single query
-            author_names = [author_name for author_name, _ in page_rows]
+            author_names = [author_name for author_name, _, _avg in page_rows]
             latest_by_author: dict[str, str] = {}
 
             if author_names:
@@ -113,7 +123,7 @@ async def read_authors(
             return AuthorsResponse(items=[], page=page, page_size=page_size, total=0)
 
     items = []
-    for author_name, file_count in page_rows:
+    for author_name, file_count, _avg_rec in page_rows:
         filepath = latest_by_author.get(author_name)
         thumbnail = (
             f"{settings.API_V1_STR}/fs/thumb?path={quote(filepath, safe='')}"

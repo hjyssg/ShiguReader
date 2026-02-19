@@ -37,7 +37,7 @@ class TagsResponse(BaseModel):
 async def read_tags(
     page: int = Query(1, ge=1),
     page_size: int = Query(24, ge=1, le=100),
-    sort_by: Literal["count", "name"] = Query("count"),
+    sort_by: Literal["count", "name", "recommendation"] = Query("count"),
     sort_order: Literal["asc", "desc"] = Query("desc"),
 ) -> TagsResponse:
     offset = (page - 1) * page_size
@@ -51,15 +51,24 @@ async def read_tags(
                 select(
                     Tag.tag_name,
                     func.count(FileTag.filepath).label("file_count"),
+                    func.avg(File.rec_score).label("avg_rec_score"),
                 )
                 .select_from(Tag)
                 .join(FileTag, FileTag.tag_name == Tag.tag_name, isouter=True)
+                .join(File, File.filepath == FileTag.filepath, isouter=True)
                 .group_by(Tag.tag_name)
             )
 
             if sort_by == "name":
                 count_stmt = count_stmt.order_by(
                     Tag.tag_name.asc() if sort_order == "asc" else Tag.tag_name.desc()
+                )
+            elif sort_by == "recommendation":
+                count_stmt = count_stmt.order_by(
+                    func.avg(File.rec_score).asc()
+                    if sort_order == "asc"
+                    else func.avg(File.rec_score).desc(),
+                    Tag.tag_name.asc(),
                 )
             else:
                 count_stmt = count_stmt.order_by(
@@ -72,7 +81,7 @@ async def read_tags(
             page_rows = session.exec(count_stmt.offset(offset).limit(page_size)).all()
 
             # Optimized: Use window function to get latest file per tag in single query
-            tag_names = [tag_name for tag_name, _ in page_rows]
+            tag_names = [tag_name for tag_name, _, _avg in page_rows]
             latest_candidates_by_tag: dict[str, list[str]] = {}
 
             if tag_names:
@@ -116,7 +125,7 @@ async def read_tags(
 
     items = []
     path_exists_cache: dict[str, bool] = {}
-    for tag_name, file_count in page_rows:
+    for tag_name, file_count, _avg_rec in page_rows:
         filepath: str | None = None
         for candidate in latest_candidates_by_tag.get(tag_name, []):
             if candidate not in path_exists_cache:

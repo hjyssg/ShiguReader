@@ -17,7 +17,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 
-type SortBy = "count" | "name"
+type SortBy = "count" | "name" | "recommendation"
 type SortOrder = "asc" | "desc"
 
 type TagsResponse = {
@@ -35,7 +35,12 @@ export const Route = createFileRoute("/_layout/tags")({
   component: TagsPage,
   validateSearch: (search: Record<string, unknown>) => {
     const page = Math.max(1, Number(search.page) || 1)
-    const sort_by: SortBy = search.sort_by === "name" ? "name" : "count"
+    const sort_by: SortBy =
+      search.sort_by === "name"
+        ? "name"
+        : search.sort_by === "recommendation"
+          ? "recommendation"
+          : "count"
     const sort_order: SortOrder = search.sort_order === "asc" ? "asc" : "desc"
 
     return {
@@ -117,6 +122,7 @@ function TagsPage() {
             <SelectContent>
               <SelectItem value="count">{t("tags.fileCount")}</SelectItem>
               <SelectItem value="name">{t("tags.name")}</SelectItem>
+              <SelectItem value="recommendation">{t("tags.recommendation")}</SelectItem>
             </SelectContent>
           </Select>
         </div>
