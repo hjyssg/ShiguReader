@@ -1,0 +1,13 @@
+pyinstaller
+fastapi[standard]
+sqlmodel
+alembic
+pillow
+watchdog
+py7zr
+rarfile
+send2trash
+tenacity
+pwdlib[argon2,bcrypt]
+pydantic-settings
+sentry-sdk[fastapi]
