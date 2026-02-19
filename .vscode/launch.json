@@ -2,133 +2,25 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Backend: FastAPI",
+      "name": "Run Frontend",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "npm run dev",
+      "cwd": "${workspaceFolder}/frontend"
+    },
+    {
+      "name": "Run Backend",
       "type": "node-terminal",
       "request": "launch",
       "command": "uv run fastapi dev app/main.py --host 0.0.0.0 --port 8000",
-      "cwd": "${workspaceFolder}/backend",
-      "preLaunchTask": "Install Backend Dependencies"
-    },
-    {
-      "name": "Backend: Update DB Schema",
-      "type": "node-terminal",
-      "request": "launch",
-      "command": "uv run python -c \"from app.index_db import ensure_index_db_initialized; ensure_index_db_initialized()\"",
       "cwd": "${workspaceFolder}/backend"
-    },
-    {
-      "name": "Backend: FastAPI (debug)",
-      "type": "debugpy",
-      "request": "launch",
-      "module": "uvicorn",
-      "cwd": "${workspaceFolder}/backend",
-      "args": [
-        "app.main:app",
-        "--host",
-        "0.0.0.0",
-        "--port",
-        "8000",
-        "--reload"
-      ],
-      "console": "integratedTerminal",
-      "justMyCode": false,
-      "envFile": "${workspaceFolder}/backend/.env"
-    },
-    {
-      "name": "Backend: SQLite 一键解锁并启动",
-      "type": "debugpy",
-      "request": "launch",
-      "program": "${workspaceFolder}/backend/scripts/sqlite_rescue_and_run.py",
-      "cwd": "${workspaceFolder}/backend",
-      "console": "integratedTerminal",
-      "justMyCode": true,
-      "envFile": "${workspaceFolder}/.env",
-      "args": [
-        "--kill-port",
-        "--port",
-        "8000"
-      ]
-    },
-    {
-      "name": "Backend: 仅 SQLite 解锁修复",
-      "type": "debugpy",
-      "request": "launch",
-      "program": "${workspaceFolder}/backend/scripts/sqlite_rescue_and_run.py",
-      "cwd": "${workspaceFolder}/backend",
-      "console": "integratedTerminal",
-      "justMyCode": true,
-      "envFile": "${workspaceFolder}/.env",
-      "args": [
-        "--kill-port",
-        "--port",
-        "8000",
-        "--repair-only"
-      ]
-    },
-    {
-      "name": "Backend: Run Tests",
-      "type": "node-terminal",
-      "request": "launch",
-      "command": "python -m pytest tests/ -v",
-      "cwd": "${workspaceFolder}/backend"
-    },
-    {
-      "name": "Backend: Run Tests with Coverage",
-      "type": "node-terminal",
-      "request": "launch",
-      "command": "coverage run -m pytest tests/ && coverage report --include=\"app/*\" --omit=\"app/alembic/*,app/email-templates/*,app/file_processing/*,app/index_db/*,app/services/*,app/*_pre_start.py,app/initial_data.py\"",
-      "cwd": "${workspaceFolder}/backend"
-    },
-    {
-      "name": "Backend: Run Core Tests",
-      "type": "node-terminal",
-      "request": "launch",
-      "command": "python -m pytest tests/test_utils.py tests/test_crud.py tests/core/ tests/api/test_deps.py -v",
-      "cwd": "${workspaceFolder}/backend"
-    },
-    {
-      "name": "Frontend: Vite Dev Server",
-      "type": "node-terminal",
-      "request": "launch",
-      "cwd": "${workspaceFolder}/frontend",
-      "console": "integratedTerminal",
-      "command": "npm run dev"
-    },
-    {
-      "name": "Build Tools: Build EXE",
-      "type": "node-terminal",
-      "request": "launch",
-      "command": "python build_tools/build_exe.py",
-      "cwd": "${workspaceFolder}"
-    },
-    {
-      "name": "Build Tools: Run EXE",
-      "type": "node-terminal",
-      "request": "launch",
-      "command": "./dist/ShiguReader.exe",
-      "cwd": "${workspaceFolder}"
-    },
-    {
-      "name": "Build Tools: Package Dist ZIP",
-      "type": "node-terminal",
-      "request": "launch",
-      "command": "python build_tools/package_dist.py",
-      "cwd": "${workspaceFolder}"
     }
   ],
   "compounds": [
     {
-      "name": "Full Stack: Frontend + Backend",
-      "configurations": [
-        "Backend: FastAPI",
-        "Frontend: Vite Dev Server"
-      ],
-      "stopAll": true,
-      "presentation": {
-        "hidden": false,
-        "group": "fullstack",
-        "order": 1
-      }
+      "name": "Run Full Stack",
+      "configurations": ["Run Frontend", "Run Backend"],
+      "stopAll": true
     }
   ]
 }
