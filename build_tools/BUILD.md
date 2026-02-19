@@ -45,6 +45,25 @@ dist/ShiguReader.exe
 
 ### 注意事项
 
+#### Windows Defender 误报说明
+
+为降低被 Defender 误报为病毒的概率，打包脚本已默认关闭 PyInstaller 的 `upx` 压缩。
+
+如需进一步降低误报，建议：
+- 使用代码签名证书对 `ShiguReader.exe` 进行签名
+- 避免频繁修改 exe 文件名和版本号
+- 通过稳定渠道分发同一签名版本
+
+如需自动签名，可在打包前设置环境变量（Windows）：
+```powershell
+$env:SIGN_CERT_PATH="C:\certs\your-cert.pfx"
+$env:SIGN_CERT_PASSWORD="你的证书密码"   # 可选（证书无密码可不填）
+$env:SIGN_TIMESTAMP_URL="http://timestamp.digicert.com"  # 可选
+# 如 signtool 不在 PATH，可指定完整路径
+$env:SIGNTOOL_PATH="C:\Program Files (x86)\Windows Kits\10\bin\x64\signtool.exe"
+python build_tools/build_exe.py
+```
+
 #### 数据库
 
 项目使用 SQLite 数据库，无需安装额外的数据库服务。打包后的 exe 完全独立运行。

@@ -1,6 +1,9 @@
 """Build script to package ShiguReader as a standalone Windows executable."""
 
 import json
+import os
+import shlex
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -123,7 +126,8 @@ exe = EXE(
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
-    upx=True,
+    # UPX 压缩常见触发 Windows Defender 误报，默认关闭降低误杀概率
+    upx=False,
     upx_exclude=[],
     runtime_tmpdir=None,
     console=True,
@@ -163,6 +167,52 @@ def resolve_exe_icon():
         return FAVICON_PNG
 
 
+
+def sign_executable(exe_path: Path):
+    """Optionally sign exe with signtool when SIGN_* env is provided."""
+    cert_path = os.getenv("SIGN_CERT_PATH", "").strip()
+    cert_password = os.getenv("SIGN_CERT_PASSWORD", "").strip()
+    timestamp_url = os.getenv("SIGN_TIMESTAMP_URL", "http://timestamp.digicert.com").strip()
+    signtool_path = os.getenv("SIGNTOOL_PATH", "signtool").strip()
+
+    if not cert_path:
+        print("- Skip signing: SIGN_CERT_PATH not set")
+        return
+
+    cert_file = Path(cert_path).expanduser()
+    if not cert_file.exists():
+        print(f"Error: SIGN_CERT_PATH does not exist: {cert_file}")
+        sys.exit(1)
+
+    resolved_signtool = shutil.which(signtool_path) if signtool_path == "signtool" else signtool_path
+    if not resolved_signtool:
+        print("Error: signtool not found. Set SIGNTOOL_PATH to full signtool.exe path.")
+        sys.exit(1)
+
+    cmd = [
+        resolved_signtool,
+        "sign",
+        "/fd",
+        "SHA256",
+        "/f",
+        str(cert_file),
+        "/tr",
+        timestamp_url,
+        "/td",
+        "SHA256",
+    ]
+
+    if cert_password:
+        cmd.extend(["/p", cert_password])
+
+    cmd.append(str(exe_path))
+
+    cmd_str = " ".join(shlex.quote(part) for part in cmd)
+    print("Signing executable with signtool...")
+    run_command(cmd_str, cwd=PROJECT_ROOT)
+    print("✓ EXE signed successfully")
+
+
 def build_exe():
     """Build executable with PyInstaller."""
     print("\n" + "=" * 60)
@@ -192,6 +242,9 @@ def build_exe():
     
     print(f"\n✓ Executable built successfully: {exe_path}")
     print(f"  Size: {exe_path.stat().st_size / (1024*1024):.1f} MB")
+
+    # Optional code signing (recommended to reduce Defender false positives)
+    sign_executable(exe_path)
 
     # Ensure dist/.env exists for release handoff (copy exe template if missing)
     dist_env = DIST_DIR / ".env"
