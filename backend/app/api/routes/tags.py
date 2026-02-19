@@ -1,22 +1,23 @@
 from __future__ import annotations
 
-from pathlib import Path
 from typing import Literal
-from urllib.parse import quote
 
 from fastapi import APIRouter, Query
 from pydantic import BaseModel
 from sqlalchemy.exc import OperationalError
 from sqlmodel import func, select
 
-from app.core.config import settings
 from app.index_db.bootstrap import ensure_index_db_initialized
 from app.index_db.db import get_index_session
 from app.index_db.models import File, FileTag, Tag
 
-router = APIRouter(prefix="/tags", tags=["tags"])
+from ._entity_thumb import (
+    build_thumbnail_url,
+    find_existing_thumbnail,
+    query_tag_thumb_candidates,
+)
 
-_TAG_THUMB_CANDIDATE_LIMIT = 3
+router = APIRouter(prefix="/tags", tags=["tags"])
 
 
 class TagListItem(BaseModel):
@@ -33,7 +34,6 @@ class TagsResponse(BaseModel):
     total: int
 
 
-# 接口说明：分页获取标签列表及封面。
 @router.get("", response_model=TagsResponse)
 async def read_tags(
     page: int = Query(1, ge=1),
@@ -43,7 +43,7 @@ async def read_tags(
 ) -> TagsResponse:
     offset = (page - 1) * page_size
 
-    def _query_once() -> tuple[int, list[tuple[str, int]], dict[str, list[str]]]:
+    def _query_once() -> tuple[int, list, dict[str, list[str]]]:
         with get_index_session() as session:
             total_stmt = select(func.count()).select_from(Tag)
             total = session.exec(total_stmt).one()
@@ -66,86 +66,40 @@ async def read_tags(
                 )
             elif sort_by == "recommendation":
                 count_stmt = count_stmt.order_by(
-                    func.avg(File.rec_score).asc()
-                    if sort_order == "asc"
-                    else func.avg(File.rec_score).desc(),
+                    func.avg(File.rec_score).asc() if sort_order == "asc" else func.avg(File.rec_score).desc(),
                     Tag.tag_name.asc(),
                 )
             else:
                 count_stmt = count_stmt.order_by(
-                    func.count(FileTag.filepath).asc()
-                    if sort_order == "asc"
-                    else func.count(FileTag.filepath).desc(),
+                    func.count(FileTag.filepath).asc() if sort_order == "asc" else func.count(FileTag.filepath).desc(),
                     Tag.tag_name.asc(),
                 )
 
             page_rows = session.exec(count_stmt.offset(offset).limit(page_size)).all()
+            tag_names = [name for name, _, _ in page_rows]
+            candidates = query_tag_thumb_candidates(session, tag_names)
 
-            # Optimized: Use window function to get latest file per tag in single query
-            tag_names = [tag_name for tag_name, _, _avg in page_rows]
-            latest_candidates_by_tag: dict[str, list[str]] = {}
-
-            if tag_names:
-                # Use ROW_NUMBER() window function for efficient single query
-                # SQLite 3.25+ supports window functions
-                from sqlalchemy import text
-
-                # Single query using window function to get latest file per tag
-                # Build IN clause placeholders dynamically for SQLite compatibility
-                placeholders = ", ".join([f":tag_{i}" for i in range(len(tag_names))])
-                window_query = text(f"""
-                    SELECT tag_name, filepath
-                    FROM (
-                        SELECT ft.tag_name, f.filepath, f.mtime,
-                               ROW_NUMBER() OVER (PARTITION BY ft.tag_name ORDER BY f.mtime DESC) as rn
-                        FROM file_tags ft
-                        JOIN files f ON f.filepath = ft.filepath
-                        WHERE ft.tag_name IN ({placeholders})
-                          AND f.scan_state = 1
-                    )
-                    WHERE rn <= :candidate_limit
-                    ORDER BY tag_name, rn
-                """)
-                # Build params dict
-                params = {f"tag_{i}": tag for i, tag in enumerate(tag_names)}
-                params["candidate_limit"] = _TAG_THUMB_CANDIDATE_LIMIT
-                result = session.execute(window_query, params)
-                for row in result:
-                    latest_candidates_by_tag.setdefault(row[0], []).append(row[1])
-
-        return total, page_rows, latest_candidates_by_tag
+        return total, page_rows, candidates
 
     try:
-        total, page_rows, latest_candidates_by_tag = _query_once()
+        total, page_rows, candidates = _query_once()
     except OperationalError:
         ensure_index_db_initialized()
         try:
-            total, page_rows, latest_candidates_by_tag = _query_once()
+            total, page_rows, candidates = _query_once()
         except OperationalError:
             return TagsResponse(items=[], page=page, page_size=page_size, total=0)
 
+    cache: dict[str, bool] = {}
     items = []
-    path_exists_cache: dict[str, bool] = {}
-    for tag_name, file_count, _avg_rec in page_rows:
-        filepath: str | None = None
-        for candidate in latest_candidates_by_tag.get(tag_name, []):
-            if candidate not in path_exists_cache:
-                path_exists_cache[candidate] = Path(candidate).exists()
-            if path_exists_cache[candidate]:
-                filepath = candidate
-                break
-
-        thumbnail = (
-            f"{settings.API_V1_STR}/fs/thumb?path={quote(filepath, safe='')}"
-            if filepath
-            else None
-        )
+    for tag_name, file_count, avg_rec in page_rows:
+        filepath = find_existing_thumbnail(candidates.get(tag_name, []), cache)
         items.append(
             TagListItem(
                 name=tag_name,
-                thumbnail=thumbnail,
+                thumbnail=build_thumbnail_url(filepath) if filepath else None,
                 file_count=file_count,
-                avg_rec_score=float(_avg_rec or 0.0),
+                avg_rec_score=float(avg_rec or 0.0),
             )
         )
 
