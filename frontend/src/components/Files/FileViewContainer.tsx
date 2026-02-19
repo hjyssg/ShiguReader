@@ -52,6 +52,9 @@ type PaginationState = {
 
 type PaginationConfig = PaginationState & {
   onChange: (next: PaginationState) => void
+  onPageSizeChange?: (pageSize: number) => void
+  pageSizeOptions?: readonly number[]
+  pageSizeLabel?: ReactNode
 }
 
 export function FileViewContainer({
@@ -59,8 +62,8 @@ export function FileViewContainer({
   isLoading,
   currentPath = "",
   initialViewMode = "grid",
-  initialSortField = "type",
-  initialSortOrder = "asc",
+  initialSortField = "mtime",
+  initialSortOrder = "desc",
   sortField: controlledSortField,
   sortOrder: controlledSortOrder,
   onSortFieldChange,
@@ -200,21 +203,25 @@ export function FileViewContainer({
 
   const currentPage = pagination?.page ?? 1
   const pageSize = pagination?.pageSize ?? sortedItems.length
-  const folderAndVideoItems = useMemo(
+
+  // 目录和视频固定展示在第一页，不参与分页计数。
+  const pinnedFirstPageItems = useMemo(
     () =>
       sortedItems.filter(
         (item) => item.item_type === "folder" || item.file_type === "video",
       ),
     [sortedItems],
   )
-  const archiveItems = useMemo(
+  // 仅归档文件参与分页，且保持与 sortedItems 一致的排序结果。
+  const pagedArchiveItems = useMemo(
     () =>
       sortedItems.filter(
         (item) => item.item_type !== "folder" && item.file_type !== "video",
       ),
     [sortedItems],
   )
-  const totalPages = Math.max(1, Math.ceil(archiveItems.length / pageSize))
+
+  const totalPages = Math.max(1, Math.ceil(pagedArchiveItems.length / pageSize))
   const normalizedPage = Math.min(Math.max(currentPage, 1), totalPages)
   const goToPage = useCallback(
     (nextPage: number) => {
@@ -229,13 +236,24 @@ export function FileViewContainer({
 
   const pagedItems = useMemo(() => {
     if (!pagination) return sortedItems
+
+    // 分页只针对归档文件：第 1 页展示 [固定项 + 第 1 页归档]，其余页仅展示当页归档。
     const start = (normalizedPage - 1) * pageSize
-    const pagedArchives = archiveItems.slice(start, start + pageSize)
+    const archivesOfCurrentPage = pagedArchiveItems.slice(start, start + pageSize)
+
     if (normalizedPage === 1) {
-      return [...folderAndVideoItems, ...pagedArchives]
+      return [...pinnedFirstPageItems, ...archivesOfCurrentPage]
     }
-    return pagedArchives
-  }, [pagination, sortedItems, normalizedPage, pageSize, archiveItems, folderAndVideoItems])
+
+    return archivesOfCurrentPage
+  }, [
+    pagination,
+    sortedItems,
+    normalizedPage,
+    pageSize,
+    pagedArchiveItems,
+    pinnedFirstPageItems,
+  ])
 
   useEffect(() => {
     if (!pagination) return
@@ -861,6 +879,10 @@ export function FileViewContainer({
           totalPages={totalPages}
           onPageChange={goToPage}
           containerClassName="flex flex-col items-center gap-3 pt-2"
+          onPageSizeChange={pagination.onPageSizeChange}
+          pageSize={pageSize}
+          pageSizeOptions={pagination.pageSizeOptions}
+          pageSizeLabel={pagination.pageSizeLabel}
         />
       )}
     </div>

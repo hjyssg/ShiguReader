@@ -13,7 +13,6 @@ import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { UnifiedPagination } from "@/components/Common/UnifiedPagination"
 import {
   Select,
   SelectContent,
@@ -123,6 +122,9 @@ const SCOPE_OPTIONS: Array<{ value: Scope; labelKey: string }> = [
   { value: "tag", labelKey: "search.tag" },
 ]
 
+const PAGE_SIZE_OPTIONS = [24, 48, 100] as const
+const DEFAULT_PAGE_SIZE = PAGE_SIZE_OPTIONS[0]
+
 function SearchPage() {
   const { t } = useTranslation()
   const search = Route.useSearch()
@@ -136,7 +138,7 @@ function SearchPage() {
     search.presenceFilter,
   )
 
-  const pageSize = 24
+  const [pageSize, setPageSize] = useState<number>(DEFAULT_PAGE_SIZE)
 
   useEffect(() => {
     setQ(search.q)
@@ -176,20 +178,8 @@ function SearchPage() {
     return t("search.resultCount", { count: data?.total ?? 0 })
   }, [data?.total, submittedQ, t])
 
-  const paginatedItems = useMemo(() => {
-    if (!data?.items) return []
-    const startIndex = (search.page - 1) * pageSize
-    const endIndex = startIndex + pageSize
-    return data.items.slice(startIndex, endIndex)
-  }, [data?.items, search.page])
-
-  const totalPages = useMemo(() => {
-    if (!data?.items) return 1
-    return Math.max(1, Math.ceil(data.items.length / pageSize))
-  }, [data?.items])
-
   const goToPage = (nextPage: number) => {
-    const target = Math.min(totalPages, Math.max(1, nextPage))
+    const target = Math.max(1, nextPage)
     if (target !== search.page) {
       navigate({
         to: "/search",
@@ -203,6 +193,7 @@ function SearchPage() {
       })
     }
   }
+
 
   const trimmedQ = submittedQ.trim()
   const externalLinks = useMemo(
@@ -295,7 +286,7 @@ function SearchPage() {
           </div>
         </div>
 
-                <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {externalLinks.map((item) => (
             <ExternalSearchLink
               key={item.label}
@@ -311,22 +302,24 @@ function SearchPage() {
         <div className="space-y-4">
           <p className="text-sm text-muted-foreground">{totalText}</p>
           <FileViewContainer
-            items={paginatedItems}
+            items={data?.items ?? []}
             isLoading={isLoading}
+            pagination={{
+              page: search.page,
+              pageSize,
+              onChange: ({ page }) => goToPage(page),
+              onPageSizeChange: (nextPageSize) => {
+                setPageSize(nextPageSize)
+                if (search.page !== 1) {
+                  goToPage(1)
+                }
+              },
+              pageSizeOptions: PAGE_SIZE_OPTIONS,
+              pageSizeLabel: "Page size",
+            }}
             storageKeyPrefix="search"
             emptyText={t("search.noResults")}
           />
-          {(data?.total ?? 0) > pageSize && (
-            <UnifiedPagination
-              page={search.page}
-              totalPages={totalPages}
-              onPageChange={goToPage}
-              jumpLabel={t("search.goTo")}
-              confirmLabel={t("search.confirm")}
-              jumpInputClassName="h-8 w-20"
-              confirmButtonClassName="inline-flex items-center justify-center rounded-md border border-input bg-background px-3 text-sm font-medium shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground h-8"
-            />
-          )}
         </div>
       ) : null}
     </div>
