@@ -15,7 +15,10 @@ export function buildNavigationTarget(item: FileSystemItem, isMobile: boolean) {
   const isImage = item.file_type === "image"
 
   if (isFolder) {
-    return { to: "/explorer" as const, search: { path: item.path } }
+    return {
+      to: "/explorer" as const,
+      search: { path: item.path, page: 1, pageSize: 48, sortField: "mtime" as const, sortOrder: "desc" as const },
+    }
   }
   if (isArchive) {
     const readRoute = isMobile ? "/read-mobile" : "/read"

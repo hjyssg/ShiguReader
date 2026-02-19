@@ -158,7 +158,7 @@ function AudioPage() {
             <ChevronRight className="size-4 text-muted-foreground" />
             <Link
               to="/explorer"
-              search={{ path: crumb.path }}
+              search={{ path: crumb.path, page: 1, pageSize: 48, sortField: "mtime", sortOrder: "desc" }}
               className="text-muted-foreground hover:text-foreground transition-colors"
             >
               <Folder className="size-4 inline mr-1" />

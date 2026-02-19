@@ -15,7 +15,6 @@ import {
   Trash2,
 } from "lucide-react"
 import { useEffect, useState } from "react"
-import { useTranslation } from "react-i18next"
 
 import { FilesystemService, OpenAPI } from "@/client"
 import { FileNotFoundError } from "@/components/Common/FileNotFoundError"
@@ -59,7 +58,6 @@ export const Route = createFileRoute("/_layout/archive")({
 })
 
 function Archive() {
-  const { t } = useTranslation()
   const { path } = Route.useSearch()
   const navigate = useNavigate()
   const isMobile = useIsMobile()

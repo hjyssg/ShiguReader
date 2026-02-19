@@ -251,21 +251,15 @@ function Explorer() {
         sortOrder={sortOrder}
         onSortFieldChange={(nextSortField) =>
           navigate({
-            search: (prev) => ({
-              ...prev,
-              sortField: nextSortField,
-              page: 1,
-            }),
+            to: "/explorer",
+            search: { path, page: 1, pageSize, sortField: nextSortField, sortOrder },
             replace: true,
           })
         }
         onSortOrderChange={(nextSortOrder) =>
           navigate({
-            search: (prev) => ({
-              ...prev,
-              sortOrder: nextSortOrder,
-              page: 1,
-            }),
+            to: "/explorer",
+            search: { path, page: 1, pageSize, sortField, sortOrder: nextSortOrder },
             replace: true,
           })
         }
@@ -274,11 +268,8 @@ function Explorer() {
           pageSize,
           onChange: ({ page: nextPage, pageSize: nextPageSize }) =>
             navigate({
-              search: (prev) => ({
-                ...prev,
-                page: nextPage,
-                pageSize: nextPageSize,
-              }),
+              to: "/explorer",
+              search: { path, page: nextPage, pageSize: nextPageSize, sortField, sortOrder },
               replace: true,
             }),
         }}

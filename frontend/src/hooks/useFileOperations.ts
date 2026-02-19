@@ -59,9 +59,15 @@ function apiCompressArchiveImages(archivePath: string) {
   })
 }
 
+type BackfillResult = {
+  scanned_files?: number
+  backfilled_thumbnails?: number
+  backfilled_meta?: number
+}
+
 /** 为目录补全缺失的 thumbnail/meta（含子目录） */
 function apiBackfillFolder(folderPath: string) {
-  return requestJson("/api/v1/fs/backfill", {
+  return requestJson<BackfillResult>("/api/v1/fs/backfill", {
     method: "POST",
     body: {
       path: folderPath,

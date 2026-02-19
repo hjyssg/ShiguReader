@@ -64,7 +64,7 @@ function DialogContent({
 
           // Dialog 内存在原生 autofocus 元素时，关闭 Radix 的默认焦点接管。
           // 让浏览器按原生行为处理 autofocus，避免与手动 focus 逻辑互相覆盖。
-          if (event.currentTarget.querySelector("[autofocus]")) {
+          if ((event.currentTarget as HTMLElement | null)?.querySelector("[autofocus]")) {
             event.preventDefault()
           }
         }}

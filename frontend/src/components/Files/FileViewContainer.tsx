@@ -317,12 +317,6 @@ export function FileViewContainer({
     }
   }, [getTargetPaths])
 
-  const handleMoveToFavorite = useCallback(() => {
-    if (getTargetPaths().length > 0) {
-      setConfirmFavoriteOpen(true)
-    }
-  }, [getTargetPaths])
-
   const handleConfirmMoveToFavorite = useCallback((subfolder?: string) => {
     const paths = getTargetPaths()
     for (const p of paths) {
@@ -343,12 +337,6 @@ export function FileViewContainer({
     operations.moveToFavoriteMutation,
     selection,
   ])
-
-  const handleMoveToAlreadyRead = useCallback(() => {
-    if (getTargetPaths().length > 0) {
-      setConfirmAlreadyReadOpen(true)
-    }
-  }, [getTargetPaths])
 
   const handleConfirmMoveToAlreadyRead = useCallback(() => {
     const paths = getTargetPaths()
@@ -556,13 +544,13 @@ export function FileViewContainer({
         item.item_type === "folder"
           ? {
               to: "/explorer" as const,
-              search: { path: item.path },
+              search: { path: item.path, page: 1, pageSize: 48, sortField: "mtime" as const, sortOrder: "desc" as const },
             }
           : {
               to: "/video" as const,
               search: {
                 path: item.path,
-                entry: undefined,
+                entry: undefined as string | undefined,
               },
             }
 
