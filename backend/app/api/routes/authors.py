@@ -21,6 +21,7 @@ class AuthorListItem(BaseModel):
     name: str
     thumbnail: str | None = None
     file_count: int
+    avg_rec_score: float = 0.0
 
 
 class AuthorsResponse(BaseModel):
@@ -135,6 +136,7 @@ async def read_authors(
                 name=author_name,
                 thumbnail=thumbnail,
                 file_count=file_count,
+                avg_rec_score=float(_avg_rec or 0.0),
             )
         )
 

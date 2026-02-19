@@ -25,6 +25,7 @@ type TagsResponse = {
     name: string
     thumbnail?: string | null
     file_count: number
+    avg_rec_score?: number | null
   }[]
   page: number
   page_size: number
