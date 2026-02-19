@@ -39,13 +39,16 @@ function getSql(tableName){
         tt.subtype,
         MAX(ft.mTime) AS maxTime, 
         COUNT(tt.tag) AS count, 
-        MAX(th.thumbnailFileName) AS thumbnailFileName
+        MAX(th.thumbnailFileName) AS thumbnailFileName,
+        COALESCE(MAX(tg.score), 0) AS likeScore
     FROM 
         ${tableName} tt
     INNER JOIN 
         file_table ft ON tt.filePath = ft.filePath
     LEFT JOIN 
         thumbnail_table th ON ft.filePath = th.filePath AND th.thumbnailFileName IS NOT NULL
+    LEFT JOIN
+        tag_table tg ON tg.tag = tt.tag AND tg.type = tt.type AND tg.subtype = tt.subtype
     GROUP BY 
         tt.tag, tt.type, tt.subtype
     HAVING 
