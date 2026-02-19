@@ -135,8 +135,6 @@ export default class TagPage extends Component {
     let rows = [];
     // rows.push([tag]);
     const tag = item.tag;
-    const likeScore = this.getScore(item);
-    rows.push(["like score", likeScore]);
     rows.push(["     "]);
     if(this.isAuthorMode()){
       rows.push(...clientUtil.convertSimpleObj2tooltipRow(this.getAuthorCount(tag)));
@@ -238,8 +236,8 @@ export default class TagPage extends Component {
     }else  if (sortOrder == BY_GOOD_SCORE){
       // 再按喜好排序
       items.sort((a, b)=> {
-          const s1 = this.getScore(a);
-          const s2 = this.getScore(b);
+          const s1 = this.getScore(a.tag);
+          const s2 = this.getScore(b.tag);
           if(s1 === s2){
               return a.count - b.count;
           }else{
@@ -268,15 +266,7 @@ export default class TagPage extends Component {
     return items;
   }
 
-  getScore(itemOrTag) {
-    if (_.isObject(itemOrTag) && itemOrTag.likeScore !== undefined) {
-      const rowScore = Number(itemOrTag.likeScore);
-      if (!Number.isNaN(rowScore)) {
-        return rowScore;
-      }
-    }
-
-    const tag = _.isObject(itemOrTag) ? itemOrTag.tag : itemOrTag;
+  getScore(tag) {
     if(this.isAuthorMode()){
       return this.getAuthorCount(tag).score || 0;
     }else{
