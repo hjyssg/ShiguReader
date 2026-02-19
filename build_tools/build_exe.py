@@ -123,7 +123,8 @@ exe = EXE(
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
-    upx=True,
+    # UPX 压缩常见触发 Windows Defender 误报，默认关闭降低误杀概率
+    upx=False,
     upx_exclude=[],
     runtime_tmpdir=None,
     console=True,

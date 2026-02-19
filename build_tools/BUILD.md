@@ -45,6 +45,15 @@ dist/ShiguReader.exe
 
 ### 注意事项
 
+#### Windows Defender 误报说明
+
+为降低被 Defender 误报为病毒的概率，打包脚本已默认关闭 PyInstaller 的 `upx` 压缩。
+
+如需进一步降低误报，建议：
+- 使用代码签名证书对 `ShiguReader.exe` 进行签名
+- 避免频繁修改 exe 文件名和版本号
+- 通过稳定渠道分发同一签名版本
+
 #### 数据库
 
 项目使用 SQLite 数据库，无需安装额外的数据库服务。打包后的 exe 完全独立运行。

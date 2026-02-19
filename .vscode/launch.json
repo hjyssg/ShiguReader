@@ -88,15 +88,11 @@
     },
     {
       "name": "Frontend: Vite Dev Server",
-      "type": "node",
+      "type": "node-terminal",
       "request": "launch",
-      "runtimeExecutable": "npm",
-      "runtimeArgs": [
-        "run",
-        "dev"
-      ],
       "cwd": "${workspaceFolder}/frontend",
-      "console": "integratedTerminal"
+      "console": "integratedTerminal",
+      "command": "npm run dev"
     },
     {
       "name": "Build Tools: Build EXE",
