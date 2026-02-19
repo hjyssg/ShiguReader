@@ -52,6 +52,9 @@ type PaginationState = {
 
 type PaginationConfig = PaginationState & {
   onChange: (next: PaginationState) => void
+  onPageSizeCycle?: () => void
+  pageSizeButtonText?: ReactNode
+  pageSizeLabel?: ReactNode
 }
 
 export function FileViewContainer({
@@ -876,6 +879,9 @@ export function FileViewContainer({
           totalPages={totalPages}
           onPageChange={goToPage}
           containerClassName="flex flex-col items-center gap-3 pt-2"
+          onPageSizeCycle={pagination.onPageSizeCycle}
+          pageSizeButtonText={pagination.pageSizeButtonText}
+          pageSizeLabel={pagination.pageSizeLabel}
         />
       )}
     </div>

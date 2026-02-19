@@ -13,7 +13,6 @@ import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { UnifiedPagination } from "@/components/Common/UnifiedPagination"
 import {
   Select,
   SelectContent,
@@ -179,13 +178,8 @@ function SearchPage() {
     return t("search.resultCount", { count: data?.total ?? 0 })
   }, [data?.total, submittedQ, t])
 
-  const totalPages = useMemo(() => {
-    const total = data?.total ?? 0
-    return Math.max(1, Math.ceil(total / pageSize))
-  }, [data?.total, pageSize])
-
   const goToPage = (nextPage: number) => {
-    const target = Math.min(totalPages, Math.max(1, nextPage))
+    const target = Math.max(1, nextPage)
     if (target !== search.page) {
       navigate({
         to: "/search",
@@ -332,25 +326,13 @@ function SearchPage() {
               page: search.page,
               pageSize,
               onChange: ({ page }) => goToPage(page),
+              onPageSizeCycle: cyclePageSize,
+              pageSizeButtonText: pageSize,
+              pageSizeLabel: "Page size",
             }}
             storageKeyPrefix="search"
             emptyText={t("search.noResults")}
           />
-          {(data?.total ?? 0) > 0 && (
-            <UnifiedPagination
-              page={search.page}
-              totalPages={totalPages}
-              onPageChange={goToPage}
-              jumpLabel={t("search.goTo")}
-              confirmLabel={t("search.confirm")}
-              jumpInputClassName="h-8 w-20"
-              confirmButtonClassName="inline-flex items-center justify-center rounded-md border border-input bg-background px-3 text-sm font-medium shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground h-8"
-              pageSizeLabel="Page size"
-              pageSizeButtonText={pageSize}
-              onPageSizeCycle={cyclePageSize}
-              pageSizeButtonClassName="inline-flex items-center justify-center rounded-md border border-input bg-background px-3 text-sm font-medium shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground h-8"
-            />
-          )}
         </div>
       ) : null}
     </div>
