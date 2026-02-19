@@ -1,5 +1,6 @@
 // 移动对话框 — 输入目标路径
 import { useEffect, useState } from "react"
+import { useQuery } from "@tanstack/react-query"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -12,6 +13,7 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { OpenAPI } from "@/client"
 import { getBaseName, getParentPath } from "@/lib/path-utils"
 
 interface MoveDialogProps {
@@ -21,7 +23,6 @@ interface MoveDialogProps {
   filePaths: string[]
   onConfirm: (destDir: string) => void
   isPending?: boolean
-  initialDestDir?: string
 }
 
 export function MoveDialog({
@@ -30,17 +31,28 @@ export function MoveDialog({
   filePaths,
   onConfirm,
   isPending,
-  initialDestDir,
 }: MoveDialogProps) {
   const count = filePaths.length
   const defaultDest = filePaths.length > 0 ? getParentPath(filePaths[0]) : ""
-  const [destDir, setDestDir] = useState(initialDestDir?.trim() || defaultDest)
+
+  const { data: settingsData } = useQuery<{ move_place_dir?: string }>({
+    queryKey: ["settings", "move-dialog-default-dest"],
+    queryFn: async () => {
+      const response = await fetch(`${OpenAPI.BASE}/api/v1/settings`)
+      if (!response.ok) return {}
+      return response.json()
+    },
+    retry: false,
+  })
+
+  const preferredDest = settingsData?.move_place_dir?.trim() || defaultDest
+  const [destDir, setDestDir] = useState(preferredDest)
 
   useEffect(() => {
     if (open) {
-      setDestDir(initialDestDir?.trim() || defaultDest)
+      setDestDir(preferredDest)
     }
-  }, [open, defaultDest, initialDestDir])
+  }, [open, preferredDest])
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
