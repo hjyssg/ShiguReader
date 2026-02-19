@@ -194,24 +194,6 @@ function SearchPage() {
     }
   }
 
-  const cyclePageSize = () => {
-    const currentIndex = PAGE_SIZE_OPTIONS.indexOf(pageSize as (typeof PAGE_SIZE_OPTIONS)[number])
-    const nextIndex = (currentIndex + 1) % PAGE_SIZE_OPTIONS.length
-    const nextPageSize = PAGE_SIZE_OPTIONS[nextIndex]
-    setPageSize(nextPageSize)
-    if (search.page !== 1) {
-      navigate({
-        to: "/search",
-        search: {
-          q: submittedQ,
-          mode,
-          scopes,
-          page: 1,
-          presenceFilter,
-        },
-      })
-    }
-  }
 
   const trimmedQ = submittedQ.trim()
   const externalLinks = useMemo(
@@ -326,8 +308,13 @@ function SearchPage() {
               page: search.page,
               pageSize,
               onChange: ({ page }) => goToPage(page),
-              onPageSizeCycle: cyclePageSize,
-              pageSizeButtonText: pageSize,
+              onPageSizeChange: (nextPageSize) => {
+                setPageSize(nextPageSize)
+                if (search.page !== 1) {
+                  goToPage(1)
+                }
+              },
+              pageSizeOptions: PAGE_SIZE_OPTIONS,
               pageSizeLabel: "Page size",
             }}
             storageKeyPrefix="search"

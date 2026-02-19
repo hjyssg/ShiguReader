@@ -23,8 +23,9 @@ type UnifiedPaginationProps = {
   jumpInputClassName?: string
   confirmButtonClassName?: string
   pageSizeLabel?: ReactNode
-  pageSizeButtonText?: ReactNode
-  onPageSizeCycle?: () => void
+  pageSize?: number
+  pageSizeOptions?: readonly number[]
+  onPageSizeChange?: (pageSize: number) => void
   pageSizeButtonClassName?: string
 }
 
@@ -40,8 +41,9 @@ export function UnifiedPagination({
   jumpInputClassName = "h-8 w-20 rounded-md border bg-background px-2",
   confirmButtonClassName = "h-8 rounded-md border px-3",
   pageSizeLabel,
-  pageSizeButtonText,
-  onPageSizeCycle,
+  pageSize,
+  pageSizeOptions = [24, 48, 100],
+  onPageSizeChange,
   pageSizeButtonClassName = "h-8 rounded-md border px-3",
 }: UnifiedPaginationProps) {
   const [jumpPage, setJumpPage] = useState("")
@@ -61,6 +63,15 @@ export function UnifiedPagination({
     if (target !== page) {
       onPageChange(target)
     }
+  }
+
+  const cyclePageSize = () => {
+    if (!onPageSizeChange || pageSize === undefined || pageSizeOptions.length === 0) {
+      return
+    }
+    const currentIndex = pageSizeOptions.indexOf(pageSize)
+    const nextIndex = (currentIndex + 1) % pageSizeOptions.length
+    onPageSizeChange(pageSizeOptions[nextIndex])
   }
 
   return (
@@ -132,9 +143,9 @@ export function UnifiedPagination({
         </PaginationContent>
       </Pagination>
 
-      {(showJump || onPageSizeCycle) && (
+      {(showJump || onPageSizeChange) && (
         <div className="flex items-center gap-2 text-sm">
-          {onPageSizeCycle && (
+          {onPageSizeChange && pageSize !== undefined && (
             <>
               {pageSizeLabel && (
                 <span className="text-muted-foreground">{pageSizeLabel}</span>
@@ -142,9 +153,9 @@ export function UnifiedPagination({
               <button
                 type="button"
                 className={pageSizeButtonClassName}
-                onClick={onPageSizeCycle}
+                onClick={cyclePageSize}
               >
-                {pageSizeButtonText}
+                {pageSize}
               </button>
             </>
           )}
