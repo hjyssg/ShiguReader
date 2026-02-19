@@ -229,7 +229,12 @@
     "completed": "Completed",
     "error": "Error",
     "japanese": "Japanese",
-    "korean": "Korean"
+    "korean": "Korean",
+    "movePlaceDir": "Move To default directory",
+    "movePlaceDirDesc": "Default destination prefilled when opening \"Move to...\"",
+    "movePlaceDirPlaceholder": "Enter directory path, e.g., E:\\_To_Sort",
+    "envFilePath": ".env file path",
+    "envFilePathDesc": "The currently used .env file location for manual editing"
   },
   "archive": {
     "unknownError": "Unknown error"

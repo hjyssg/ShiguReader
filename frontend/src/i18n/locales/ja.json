@@ -229,7 +229,12 @@
     "running": "実行中",
     "completed": "完了",
     "error": "エラー",
-    "korean": "한국어"
+    "korean": "한국어",
+    "movePlaceDir": "Move To の既定ディレクトリ",
+    "movePlaceDirDesc": "「Move to...」を開いたときに事前入力する移動先ディレクトリ",
+    "movePlaceDirPlaceholder": "ディレクトリパスを入力（例：E:\\_To_Sort）",
+    "envFilePath": ".env ファイルパス",
+    "envFilePathDesc": "現在使用中の .env ファイルの場所（手動編集用）"
   },
   "archive": {
     "unknownError": "不明なエラー"

@@ -13,12 +13,15 @@ class SettingsResponse(BaseModel):
     favorite_dir: str
     fs_roots: str
     already_read_dir: str
+    move_place_dir: str
+    env_file_path: str
 
 
 class SettingsUpdate(BaseModel):
     favorite_dir: str | None = None
     fs_roots: str | None = None
     already_read_dir: str | None = None
+    move_place_dir: str | None = None
 
 
 def _validate_dir_path(path_str: str, field_name: str) -> None:
@@ -56,6 +59,8 @@ def get_settings() -> Any:
         favorite_dir=settings.FAVORITE_DIR,
         fs_roots=settings.FS_ROOTS,
         already_read_dir=settings.ALREADY_READ_DIR,
+        move_place_dir=settings.MOVE_PLACE_DIR,
+        env_file_path=settings.ENV_FILE_PATH,
     )
 
 
@@ -63,7 +68,7 @@ def get_settings() -> Any:
 @router.put("/settings", response_model=SettingsResponse)
 def update_settings(settings_update: SettingsUpdate) -> Any:
     """Update settings in .env file."""
-    env_path = Path(__file__).parent.parent.parent.parent.parent / ".env"
+    env_path = Path(settings.ENV_FILE_PATH)
 
     if not env_path.exists():
         raise HTTPException(status_code=500, detail=".env file not found")
@@ -95,11 +100,20 @@ def update_settings(settings_update: SettingsUpdate) -> Any:
             _validate_dir_path(already_read_dir, "already_read_dir")
         updates["ALREADY_READ_DIR"] = already_read_dir
 
+    # --- move_place_dir ---
+    if settings_update.move_place_dir is not None:
+        move_place_dir = settings_update.move_place_dir.strip()
+        if move_place_dir:
+            _validate_dir_path(move_place_dir, "move_place_dir")
+        updates["MOVE_PLACE_DIR"] = move_place_dir
+
     if not updates:
         return SettingsResponse(
             favorite_dir=settings.FAVORITE_DIR,
             fs_roots=settings.FS_ROOTS,
             already_read_dir=settings.ALREADY_READ_DIR,
+            move_place_dir=settings.MOVE_PLACE_DIR,
+            env_file_path=settings.ENV_FILE_PATH,
         )
 
     try:
@@ -120,6 +134,8 @@ def update_settings(settings_update: SettingsUpdate) -> Any:
             favorite_dir=settings.FAVORITE_DIR,
             fs_roots=settings.FS_ROOTS,
             already_read_dir=settings.ALREADY_READ_DIR,
+            move_place_dir=settings.MOVE_PLACE_DIR,
+            env_file_path=settings.ENV_FILE_PATH,
         )
     except HTTPException:
         raise
