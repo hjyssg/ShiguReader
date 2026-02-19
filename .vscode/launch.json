@@ -12,14 +12,17 @@
       "name": "Run Backend",
       "type": "node-terminal",
       "request": "launch",
-      "command": "uv run fastapi dev app/main.py --host 0.0.0.0 --port 8000",
+      "command": "uv run fastapi run app/main.py --host 0.0.0.0 --port 8000",
       "cwd": "${workspaceFolder}/backend"
     }
   ],
   "compounds": [
     {
       "name": "Run Full Stack",
-      "configurations": ["Run Frontend", "Run Backend"],
+      "configurations": [
+        "Run Frontend",
+        "Run Backend"
+      ],
       "stopAll": true
     }
   ]
