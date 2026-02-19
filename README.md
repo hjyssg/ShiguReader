@@ -36,6 +36,46 @@ ShiguReader 是一个面向本地 / 局域网的内容整理与浏览工具，�
 - **便捷运行**：可打包为 EXE 单文件，双击即用。
 - **分发支持**：支持生成分发 ZIP 包。
 
+---
+
+## 开发环境搭建
+
+**前置要求**：安装 [uv](https://docs.astral.sh/uv/getting-started/installation/) 和 [Node.js](https://nodejs.org/)
+
+```bash
+# 安装后端依赖
+cd backend
+uv sync
+
+# 安装前端依赖
+cd ../frontend
+npm install
+```
+
+### 启动（命令行）
+
+打开两个终端分别运行：
+
+```bash
+# 终端 1 - 后端
+source ./.venv/Scripts/activate
+cd backend
+uv run fastapi dev app/main.py --host 0.0.0.0 --port 8000
+
+# 终端 2 - 前端
+cd frontend
+npm run dev
+```
+
+### 启动（VS Code）
+
+使用 **Full Stack: Frontend + Backend** 启动配置一键启动。
+
+> **Windows 用户**：建议将项目根目录下的 `.venv` 文件夹加入 Windows Defender 排除列表，避免环境被误删。
+> 设置路径：Windows 安全中心 → 病毒和威胁防护 → 管理设置 → 排除项
+
+---
+
 ### 相关文档
 
 - [技术文档（环境与实现细节）](docs/TECHNICAL.md)
