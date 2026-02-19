@@ -179,8 +179,52 @@ def extract_all(archive_path: Path, destination: Path) -> None:
 
 def extract_single_to_temp_file(archive_path: Path, entry: str) -> Path:
     temp_dir = Path(tempfile.mkdtemp(prefix="fp-thumb-"))
+    suffix = Path(entry).suffix or ".bin"
+    output_path = temp_dir / f"entry{suffix}"
+
+    kind = archive_kind(archive_path)
+    try:
+        if kind == "zip":
+            with zipfile.ZipFile(archive_path, "r") as zf:
+                with zf.open(entry, "r") as source, output_path.open("wb") as target:
+                    shutil.copyfileobj(source, target)
+            return output_path
+
+        if kind == "tar":
+            with tarfile.open(archive_path, "r:*") as tf:
+                member = tf.getmember(entry)
+                source = tf.extractfile(member)
+                if source is None:
+                    raise FileNotFoundError(f"Entry not found in tar archive: {entry}")
+                with source, output_path.open("wb") as target:
+                    shutil.copyfileobj(source, target)
+            return output_path
+
+        if kind == "7z" and py7zr is not None:
+            with py7zr.SevenZipFile(archive_path, "r") as szf:
+                extracted = szf.read(targets=[entry])
+                if entry not in extracted or not extracted[entry]:
+                    raise FileNotFoundError(f"Entry not found in 7z archive: {entry}")
+                with extracted[entry][0] as source, output_path.open("wb") as target:
+                    shutil.copyfileobj(source, target)
+            return output_path
+
+        if kind == "rar" and rarfile is not None:
+            with rarfile.RarFile(archive_path) as rf:
+                source = rf.open(entry)
+                with source, output_path.open("wb") as target:
+                    shutil.copyfileobj(source, target)
+            return output_path
+    except Exception:
+        shutil.rmtree(temp_dir, ignore_errors=True)
+        raise
+
     extract_entries(archive_path, temp_dir, [entry])
-    return temp_dir / entry
+    extracted_files = [p for p in temp_dir.rglob("*") if p.is_file()]
+    if not extracted_files:
+        shutil.rmtree(temp_dir, ignore_errors=True)
+        raise FileNotFoundError(f"Entry not extracted: {entry}")
+    return extracted_files[0]
 
 
 def replace_dir_atomic(src_dir: Path, dest_dir: Path) -> None:
