@@ -2002,16 +2002,52 @@ def get_library_overview() -> LibraryOverviewResponse:
         )
 
 
+# 文件名 stem 最短长度阈值，太短的文件名（如 1.mp4、1.png）不做回退查找
+_MIN_STEM_LEN_FOR_FALLBACK = 5
+
+
+def _is_filename_long_enough(filename: str) -> bool:
+    """判断文件名 stem 是否足够长，避免用 1.mp4 这类通用名做回退匹配。"""
+    stem = Path(filename).stem
+    return len(stem) > _MIN_STEM_LEN_FOR_FALLBACK
+
+
+def _find_fallback_path(original_path: Path) -> Path | None:
+    """当原始文件不存在时，通过文件名在 DB 中查找实际存在的同名文件。"""
+    filename = original_path.name
+    if not _is_filename_long_enough(filename):
+        logger.debug(f"Filename too short for fallback lookup: {filename}")
+        return None
+
+    try:
+        with get_index_session() as session:
+            repo = IndexRepository(session)
+            candidates = repo.find_files_by_filename(filename, exclude_path=str(original_path))
+            for candidate in candidates:
+                candidate_path = Path(candidate.filepath)
+                if candidate_path.exists() and candidate_path.is_file():
+                    logger.info(f"Thumb fallback: {original_path} -> {candidate_path}")
+                    return candidate_path
+    except Exception as e:
+        logger.warning(f"Fallback path lookup failed for {original_path}: {e}")
+    return None
+
+
 # 接口说明：获取（或生成）文件缩略图。
 @router.get("/thumb", response_model=None)
 async def get_thumbnail(path: str = Query(..., description="File path for thumbnail")):
     """Get or generate thumbnail for a file."""
     target_path = Path(path)
     validated_path = _validate_path(target_path)
-    
+
+    # 文件不存在时，尝试通过文件名在 DB 中找到同名但路径不同的文件
     if not validated_path.exists():
-        raise HTTPException(status_code=404, detail="File not found")
-    
+        fallback = _find_fallback_path(validated_path)
+        if fallback is None:
+            raise HTTPException(status_code=404, detail="File not found")
+        logger.info(f"Thumbnail using fallback path: {validated_path} -> {fallback}")
+        validated_path = fallback
+
     if not validated_path.is_file():
         raise HTTPException(status_code=400, detail="Path is not a file")
     

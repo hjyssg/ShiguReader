@@ -603,6 +603,20 @@ class IndexRepository:
         result = self.session.exec(stmt).first()
         return result
 
+    def find_files_by_filename(self, filename: str, exclude_path: str = "", limit: int = 10) -> list[File]:
+        """通过文件名查找所有匹配的文件记录（用于文件路径变更后的回退查找）。"""
+        stmt = (
+            select(File)
+            .where(File.filename == filename)
+            .where(File.scan_state == 1)
+            .order_by(File.last_seen_at.desc())
+            .limit(limit)
+        )
+        results = list(self.session.exec(stmt).all())
+        if exclude_path:
+            results = [f for f in results if f.filepath != exclude_path]
+        return results
+
     # ------------------------------------------------------------------
     # Parsed metadata helpers
     # ------------------------------------------------------------------
