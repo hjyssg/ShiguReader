@@ -64,3 +64,5 @@
   * 现在内部跳转或打开新页面缺乏统一管理
   * 需要使用统一的 URL util 进行管理
 
+### 
+tag author页面要根据favorite score/recommedation去排序
