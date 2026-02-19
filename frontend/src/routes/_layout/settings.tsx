@@ -44,12 +44,15 @@ interface SettingsResponse {
   favorite_dir: string
   fs_roots: string
   already_read_dir: string
+  move_place_dir: string
+  env_file_path: string
 }
 
 interface SettingsUpdate {
   favorite_dir?: string
   fs_roots?: string
   already_read_dir?: string
+  move_place_dir?: string
 }
 
 interface ClearCacheResponse {
@@ -180,6 +183,7 @@ function SettingsPage() {
   const [fsRootList, setFsRootList] = useState<string[]>([""])
   const [favoriteDir, setFavoriteDir] = useState("")
   const [alreadyReadDir, setAlreadyReadDir] = useState("")
+  const [movePlaceDir, setMovePlaceDir] = useState("")
 
   const handleTabChange = (value: string) => {
     navigate({ search: (prev) => ({ ...prev, tab: value as any }) })
@@ -199,6 +203,7 @@ function SettingsPage() {
     setFsRootList(parseFsRoots(settings.fs_roots || ""))
     setFavoriteDir(settings.favorite_dir || "")
     setAlreadyReadDir(settings.already_read_dir || "")
+    setMovePlaceDir(settings.move_place_dir || "")
   }, [settings])
 
   const updateMutation = useMutation({
@@ -236,6 +241,7 @@ function SettingsPage() {
 
   const currentFavoriteDir = settings?.favorite_dir || ""
   const currentAlreadyReadDir = settings?.already_read_dir || ""
+  const currentMovePlaceDir = settings?.move_place_dir || ""
 
   const saveFsRootsIfChanged = () => {
     if (updateMutation.isPending || normalizedFsRoots === currentFsRoots) return
@@ -252,6 +258,12 @@ function SettingsPage() {
     const normalized = alreadyReadDir.trim()
     if (updateMutation.isPending || normalized === currentAlreadyReadDir) return
     updateMutation.mutate({ already_read_dir: normalized })
+  }
+
+  const saveMovePlaceDirIfChanged = () => {
+    const normalized = movePlaceDir.trim()
+    if (updateMutation.isPending || normalized === currentMovePlaceDir) return
+    updateMutation.mutate({ move_place_dir: normalized })
   }
 
   const handleFsRootItemChange = (index: number, value: string) => {
@@ -428,6 +440,30 @@ function SettingsPage() {
             }}
             t={t}
           />
+
+          <SinglePathSection
+            title={t("settings.movePlaceDir")}
+            description={t("settings.movePlaceDirDesc")}
+            value={movePlaceDir}
+            placeholder={t("settings.movePlaceDirPlaceholder")}
+            id="movePlaceDir"
+            colorClass="settings-section--blue"
+            onChange={setMovePlaceDir}
+            onSave={saveMovePlaceDirIfChanged}
+            onReset={() => {
+              setMovePlaceDir("")
+              setTimeout(saveMovePlaceDirIfChanged, 0)
+            }}
+            t={t}
+          />
+
+          <section className="settings-section settings-section--white">
+            <div className="settings-section__heading">
+              <h2>{t("settings.envFilePath")}</h2>
+              <p>{t("settings.envFilePathDesc")}</p>
+            </div>
+            <Input value={settings?.env_file_path || ""} readOnly />
+          </section>
 
           <SinglePathSection
             title={t("settings.favoriteDir")}

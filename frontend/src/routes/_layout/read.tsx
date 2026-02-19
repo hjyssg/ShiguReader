@@ -135,6 +135,17 @@ function ReadPage() {
     retry: false,
   })
 
+
+  const { data: readerSettings } = useQuery<{ move_place_dir?: string }>({
+    queryKey: ["settings", "reader-move-place-dir"],
+    queryFn: async () => {
+      const response = await fetch(`${OpenAPI.BASE}/api/v1/settings`)
+      if (!response.ok) return {}
+      return response.json()
+    },
+    retry: false,
+  })
+
   const { data: parseMeta } = useQuery({
     queryKey: ["reader-parse-meta", path],
     queryFn: async () => {
@@ -1044,6 +1055,7 @@ function ReadPage() {
           operations.moveFileMutation.isPending ||
           operations.moveFolderMutation.isPending
         }
+        initialDestDir={readerSettings?.move_place_dir?.trim() || undefined}
       />
       <CompressDialog
         open={compressOpen}

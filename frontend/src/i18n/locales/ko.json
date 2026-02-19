@@ -230,7 +230,12 @@
     "endTime": "종료 시각",
     "running": "실행 중",
     "completed": "완료",
-    "error": "오류"
+    "error": "오류",
+    "movePlaceDir": "Move To 기본 디렉터리",
+    "movePlaceDirDesc": "\"Move to...\"를 열 때 미리 채워질 기본 대상 디렉터리",
+    "movePlaceDirPlaceholder": "디렉터리 경로 입력 (예: E:\\_To_Sort)",
+    "envFilePath": ".env 파일 경로",
+    "envFilePathDesc": "수동 편집을 위한 현재 사용 중인 .env 파일 위치"
   },
   "archive": {
     "unknownError": "알 수 없는 오류"

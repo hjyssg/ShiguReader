@@ -69,6 +69,8 @@ def test_settings_read(misc_client: TestClient) -> None:
     assert "favorite_dir" in data
     assert "fs_roots" in data
     assert "already_read_dir" in data
+    assert "move_place_dir" in data
+    assert "env_file_path" in data
 
 
 def test_private_create_user(client: TestClient) -> None:

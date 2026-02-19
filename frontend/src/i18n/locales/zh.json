@@ -229,7 +229,12 @@
     "completed": "已完成",
     "error": "出错",
     "japanese": "日本語",
-    "korean": "한국어"
+    "korean": "한국어",
+    "movePlaceDir": "Move To 默认目录",
+    "movePlaceDirDesc": "点击“Move to...”时默认填充的目标目录",
+    "movePlaceDirPlaceholder": "输入目录路径，例如：E:\\_To_Sort",
+    "envFilePath": ".env 文件路径",
+    "envFilePathDesc": "当前正在使用的 .env 文件位置，方便手动编辑"
   },
   "archive": {
     "unknownError": "未知错误"

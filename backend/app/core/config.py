@@ -69,6 +69,7 @@ class Settings(BaseSettings):
     FS_ROOTS: str = ""  # Comma-separated list of root directories
     FAVORITE_DIR: str = ""
     ALREADY_READ_DIR: str = ""
+    MOVE_PLACE_DIR: str = ""
     THUMB_CACHE_DIR: str = "../data/thumb_cache"
     THUMB_CONCURRENCY: int = 3
     THUMB_TIMEOUT_SEC: int = 10
@@ -81,6 +82,11 @@ class Settings(BaseSettings):
     IMAGE_COMPRESS_MIN_SIZE: int = 1048576  # 最小文件大小（1MB，小于此值不压缩）
     IMAGE_COMPRESS_QUALITY: int = 85  # JPEG 压缩质量（1-100）
     IMAGE_COMPRESS_FORMAT: str = "JPEG"  # 输出格式
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def ENV_FILE_PATH(self) -> str:
+        return self._resolve_env_file()
 
     @computed_field  # type: ignore[prop-decorator]
     @property

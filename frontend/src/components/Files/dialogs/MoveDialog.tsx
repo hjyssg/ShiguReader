@@ -21,6 +21,7 @@ interface MoveDialogProps {
   filePaths: string[]
   onConfirm: (destDir: string) => void
   isPending?: boolean
+  initialDestDir?: string
 }
 
 export function MoveDialog({
@@ -29,16 +30,17 @@ export function MoveDialog({
   filePaths,
   onConfirm,
   isPending,
+  initialDestDir,
 }: MoveDialogProps) {
   const count = filePaths.length
   const defaultDest = filePaths.length > 0 ? getParentPath(filePaths[0]) : ""
-  const [destDir, setDestDir] = useState(defaultDest)
+  const [destDir, setDestDir] = useState(initialDestDir?.trim() || defaultDest)
 
   useEffect(() => {
     if (open) {
-      setDestDir(defaultDest)
+      setDestDir(initialDestDir?.trim() || defaultDest)
     }
-  }, [open, defaultDest])
+  }, [open, defaultDest, initialDestDir])
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
