@@ -3,7 +3,7 @@ import path from "node:path";
 import fs from "node:fs";
 import { getDb } from "../db/client.js";
 import { IndexRepository } from "../db/repository.js";
-import { getFileType, getMimeType, isDisplayable, makeFingerprint } from "../utils/fileType.js";
+import { getFileType, getMimeType, makeFingerprint } from "../utils/fileType.js";
 import { config } from "../config.js";
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
@@ -142,7 +142,6 @@ async function listDirectory(
   try {
     const repo = getRepo();
     const fileItems = items.filter(i => i.item_type === "file");
-    const filePaths = fileItems.map(i => i.path);
 
     const fileDataMap = repo.getFileDataByFolder(dirPath);
     const archivePaths = fileItems.filter(i => i.file_type === "archive").map(i => i.path);
@@ -304,10 +303,222 @@ async function scanDirectory(
   return reply.send({ status: "started", message: "Scan task started", path: dirPath });
 }
 
+// ─── drives (Windows) ────────────────────────────────────────────────────────
+
+async function getDrives(_req: FastifyRequest, reply: FastifyReply) {
+  // On Windows, try A-Z; on other OS return root
+  const drives: { path: string; label: string }[] = [];
+  if (process.platform === "win32") {
+    for (let i = 65; i <= 90; i++) {
+      const letter = String.fromCharCode(i);
+      const drivePath = `${letter}:\\`;
+      try {
+        fs.accessSync(drivePath);
+        drives.push({ path: drivePath, label: `${letter}:` });
+      } catch { /* not available */ }
+    }
+  } else {
+    drives.push({ path: "/", label: "/" });
+  }
+  return reply.send({ drives });
+}
+
+// ─── file operations ─────────────────────────────────────────────────────────
+
+async function moveFile(
+  req: FastifyRequest<{ Body: { src: string; dst: string } }>,
+  reply: FastifyReply
+) {
+  const { src, dst } = req.body ?? {};
+  if (!src || !dst) return reply.status(400).send({ error: "src and dst are required" });
+  try {
+    fs.mkdirSync(path.dirname(dst), { recursive: true });
+    fs.renameSync(src, dst);
+    return reply.send({ status: "ok" });
+  } catch (e) {
+    return reply.status(500).send({ error: String(e) });
+  }
+}
+
+async function moveFolder(
+  req: FastifyRequest<{ Body: { src: string; dst: string } }>,
+  reply: FastifyReply
+) {
+  const { src, dst } = req.body ?? {};
+  if (!src || !dst) return reply.status(400).send({ error: "src and dst are required" });
+  try {
+    fs.mkdirSync(path.dirname(dst), { recursive: true });
+    fs.renameSync(src, dst);
+    return reply.send({ status: "ok" });
+  } catch (e) {
+    return reply.status(500).send({ error: String(e) });
+  }
+}
+
+async function deleteItem(
+  req: FastifyRequest<{ Body: { path: string } }>,
+  reply: FastifyReply
+) {
+  const { path: itemPath } = req.body ?? {};
+  if (!itemPath) return reply.status(400).send({ error: "path is required" });
+  try {
+    fs.rmSync(itemPath, { recursive: true, force: true });
+    return reply.send({ status: "ok" });
+  } catch (e) {
+    return reply.status(500).send({ error: String(e) });
+  }
+}
+
+async function renameItem(
+  req: FastifyRequest<{ Body: { path: string; new_name: string } }>,
+  reply: FastifyReply
+) {
+  const { path: itemPath, new_name } = req.body ?? {};
+  if (!itemPath || !new_name) return reply.status(400).send({ error: "path and new_name are required" });
+  const newPath = path.join(path.dirname(itemPath), new_name);
+  try {
+    fs.renameSync(itemPath, newPath);
+    return reply.send({ status: "ok", new_path: newPath });
+  } catch (e) {
+    return reply.status(500).send({ error: String(e) });
+  }
+}
+
+async function downloadFile(
+  req: FastifyRequest<{ Querystring: { path: string } }>,
+  reply: FastifyReply
+) {
+  const { path: filePath } = req.query;
+  if (!filePath) return reply.status(400).send({ error: "path is required" });
+  try {
+    fs.accessSync(filePath);
+    const mime = getMimeType(filePath);
+    const filename = path.basename(filePath);
+    reply.header("Content-Disposition", `attachment; filename="${encodeURIComponent(filename)}"`);
+    return reply.type(mime).send(fs.createReadStream(filePath));
+  } catch (e) {
+    return reply.status(404).send({ error: "File not found" });
+  }
+}
+
+async function serveFile(
+  req: FastifyRequest<{ Querystring: { path: string } }>,
+  reply: FastifyReply
+) {
+  const { path: filePath } = req.query;
+  if (!filePath) return reply.status(400).send({ error: "path is required" });
+  try {
+    fs.accessSync(filePath);
+    const mime = getMimeType(filePath);
+    return reply.type(mime).send(fs.createReadStream(filePath));
+  } catch {
+    return reply.status(404).send({ error: "File not found" });
+  }
+}
+
+async function ensureDir(
+  req: FastifyRequest<{ Body: { path: string } }>,
+  reply: FastifyReply
+) {
+  const { path: dirPath } = req.body ?? {};
+  if (!dirPath) return reply.status(400).send({ error: "path is required" });
+  try {
+    fs.mkdirSync(dirPath, { recursive: true });
+    return reply.send({ status: "ok" });
+  } catch (e) {
+    return reply.status(500).send({ error: String(e) });
+  }
+}
+
+async function resolvePath(
+  req: FastifyRequest<{ Querystring: { path: string } }>,
+  reply: FastifyReply
+) {
+  const { path: p } = req.query;
+  if (!p) return reply.status(400).send({ error: "path is required" });
+  const resolved = path.resolve(p);
+  try {
+    const stat = fs.statSync(resolved);
+    return reply.send({ path: resolved, exists: true, is_dir: stat.isDirectory() });
+  } catch {
+    return reply.send({ path: resolved, exists: false, is_dir: false });
+  }
+}
+
+// ─── archive stubs ────────────────────────────────────────────────────────────
+
+async function listArchive(
+  req: FastifyRequest<{ Querystring: { path: string } }>,
+  reply: FastifyReply
+) {
+  // Stub: real implementation would use 7zip or similar
+  return reply.send({ entries: [], message: "Archive listing not yet implemented" });
+}
+
+async function extractArchive(
+  req: FastifyRequest<{ Body: { path: string; dest?: string } }>,
+  reply: FastifyReply
+) {
+  return reply.send({ status: "not_implemented", message: "Archive extraction not yet implemented" });
+}
+
+async function getArchiveFile(
+  req: FastifyRequest<{ Querystring: { path: string; entry: string } }>,
+  reply: FastifyReply
+) {
+  return reply.status(501).send({ error: "Not implemented" });
+}
+
+async function clearExtractCache(_req: FastifyRequest, reply: FastifyReply) {
+  return reply.send({ status: "ok", cleared: 0 });
+}
+
+async function compressImages(
+  req: FastifyRequest<{ Body: { path: string } }>,
+  reply: FastifyReply
+) {
+  return reply.send({ status: "not_implemented" });
+}
+
+async function zipFolder(
+  req: FastifyRequest<{ Body: { path: string; dest?: string } }>,
+  reply: FastifyReply
+) {
+  return reply.send({ status: "not_implemented" });
+}
+
+async function unzip(
+  req: FastifyRequest<{ Body: { path: string; dest?: string } }>,
+  reply: FastifyReply
+) {
+  return reply.send({ status: "not_implemented" });
+}
+
+// ─── scan stubs ───────────────────────────────────────────────────────────────
+
+async function scanFavorite(_req: FastifyRequest, reply: FastifyReply) {
+  const dir = config.FAVORITE_DIR.trim();
+  if (!dir) return reply.send({ status: "skipped", message: "FAVORITE_DIR not configured" });
+  return reply.send({ status: "started", path: dir });
+}
+
+async function backfill(_req: FastifyRequest, reply: FastifyReply) {
+  return reply.send({ status: "not_implemented" });
+}
+
+async function scanWatch(_req: FastifyRequest, reply: FastifyReply) {
+  return reply.send({ status: "not_implemented" });
+}
+
+async function getScanStatus(_req: FastifyRequest, reply: FastifyReply) {
+  return reply.send({ running: false, progress: null });
+}
+
 // ─── plugin ──────────────────────────────────────────────────────────────────
 
 export async function fsRoutes(app: FastifyInstance) {
   app.get("/roots", getRoots);
+  app.get("/drives", getDrives);
   app.get("/favorite", getFavorite);
   app.get("/already-read", getAlreadyRead);
   app.get("/list", listDirectory);
@@ -315,4 +526,23 @@ export async function fsRoutes(app: FastifyInstance) {
   app.get("/recent-activity", getRecentActivity);
   app.get("/top-opened-folders", getTopOpenedFolders);
   app.post("/scan", scanDirectory);
+  app.post("/scan-favorite", scanFavorite);
+  app.post("/backfill", backfill);
+  app.post("/scan-watch", scanWatch);
+  app.get("/scan-status", getScanStatus);
+  app.post("/move-file", moveFile);
+  app.post("/move-folder", moveFolder);
+  app.delete("/delete", deleteItem);
+  app.post("/rename", renameItem);
+  app.get("/download", downloadFile);
+  app.get("/file", serveFile);
+  app.post("/ensure-dir", ensureDir);
+  app.get("/resolve-path", resolvePath);
+  app.post("/zip-folder", zipFolder);
+  app.post("/unzip", unzip);
+  app.get("/archive/list", listArchive);
+  app.post("/archive/extract", extractArchive);
+  app.get("/archive/file", getArchiveFile);
+  app.delete("/extract-cache", clearExtractCache);
+  app.post("/archive/compress-images", compressImages);
 }
