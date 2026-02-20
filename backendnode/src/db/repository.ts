@@ -44,6 +44,11 @@ export interface UpsertFolderInput {
   scan_state?: number; watch_state?: number; scanned?: boolean;
 }
 
+// Helper: cast node:sqlite .all() result to a typed array
+function rows<T>(result: unknown): T[] {
+  return result as T[];
+}
+
 export class IndexRepository {
   constructor(private db: DatabaseSync) {}
 
@@ -77,8 +82,8 @@ export class IndexRepository {
   }
 
   findFilesByFilename(filename: string, excludePath = "", limit = 10): FileRow[] {
-    const rows = this.db.prepare("SELECT * FROM files WHERE filename = ? AND scan_state = 1 ORDER BY last_seen_at DESC LIMIT ?").all(filename, limit) as FileRow[];
-    return excludePath ? rows.filter(r => r.filepath !== excludePath) : rows;
+    const result = rows<FileRow>(this.db.prepare("SELECT * FROM files WHERE filename = ? AND scan_state = 1 ORDER BY last_seen_at DESC LIMIT ?").all(filename, limit));
+    return excludePath ? result.filter(r => r.filepath !== excludePath) : result;
   }
 
   countFilesByType(fileType: string): number {
@@ -91,37 +96,37 @@ export class IndexRepository {
 
   searchFiles(q: string, presenceFilter = "all"): FileRow[] {
     const p = `%${q}%`;
-    return this.db.prepare("SELECT * FROM files WHERE (filename LIKE ? OR filepath LIKE ?)" + this._presenceClause(presenceFilter)).all(p, p) as FileRow[];
+    return rows<FileRow>(this.db.prepare("SELECT * FROM files WHERE (filename LIKE ? OR filepath LIKE ?)" + this._presenceClause(presenceFilter)).all(p, p));
   }
 
   searchByAuthor(q: string, presenceFilter = "all"): FileRow[] {
-    const artists = this.db.prepare("SELECT artist_name FROM artists WHERE artist_name LIKE ?").all(`%${q}%`) as { artist_name: string }[];
+    const artists = rows<{ artist_name: string }>(this.db.prepare("SELECT artist_name FROM artists WHERE artist_name LIKE ?").all(`%${q}%`));
     if (!artists.length) return [];
     const names = artists.map(a => a.artist_name);
-    const fps = this.db.prepare(`SELECT filepath FROM file_artists WHERE artist_name IN (${names.map(() => "?").join(",")}) AND role = ''`).all(...names) as { filepath: string }[];
+    const fps = rows<{ filepath: string }>(this.db.prepare(`SELECT filepath FROM file_artists WHERE artist_name IN (${names.map(() => "?").join(",")}) AND role = ''`).all(...names));
     if (!fps.length) return [];
     const paths = fps.map(f => f.filepath);
-    return this.db.prepare(`SELECT * FROM files WHERE filepath IN (${paths.map(() => "?").join(",")})` + this._presenceClause(presenceFilter)).all(...paths) as FileRow[];
+    return rows<FileRow>(this.db.prepare(`SELECT * FROM files WHERE filepath IN (${paths.map(() => "?").join(",")})` + this._presenceClause(presenceFilter)).all(...paths));
   }
 
   searchByCoser(q: string, presenceFilter = "all"): FileRow[] {
-    const artists = this.db.prepare("SELECT artist_name FROM artists WHERE artist_name LIKE ?").all(`%${q}%`) as { artist_name: string }[];
+    const artists = rows<{ artist_name: string }>(this.db.prepare("SELECT artist_name FROM artists WHERE artist_name LIKE ?").all(`%${q}%`));
     if (!artists.length) return [];
     const names = artists.map(a => a.artist_name);
-    const fps = this.db.prepare(`SELECT filepath FROM file_artists WHERE artist_name IN (${names.map(() => "?").join(",")}) AND role = 'coser'`).all(...names) as { filepath: string }[];
+    const fps = rows<{ filepath: string }>(this.db.prepare(`SELECT filepath FROM file_artists WHERE artist_name IN (${names.map(() => "?").join(",")}) AND role = 'coser'`).all(...names));
     if (!fps.length) return [];
     const paths = fps.map(f => f.filepath);
-    return this.db.prepare(`SELECT * FROM files WHERE filepath IN (${paths.map(() => "?").join(",")})` + this._presenceClause(presenceFilter)).all(...paths) as FileRow[];
+    return rows<FileRow>(this.db.prepare(`SELECT * FROM files WHERE filepath IN (${paths.map(() => "?").join(",")})` + this._presenceClause(presenceFilter)).all(...paths));
   }
 
   searchByTag(q: string, presenceFilter = "all"): FileRow[] {
-    const tags = this.db.prepare("SELECT tag_name FROM tags WHERE tag_name LIKE ?").all(`%${q}%`) as { tag_name: string }[];
+    const tags = rows<{ tag_name: string }>(this.db.prepare("SELECT tag_name FROM tags WHERE tag_name LIKE ?").all(`%${q}%`));
     if (!tags.length) return [];
     const names = tags.map(t => t.tag_name);
-    const fps = this.db.prepare(`SELECT filepath FROM file_tags WHERE tag_name IN (${names.map(() => "?").join(",")})`).all(...names) as { filepath: string }[];
+    const fps = rows<{ filepath: string }>(this.db.prepare(`SELECT filepath FROM file_tags WHERE tag_name IN (${names.map(() => "?").join(",")})`).all(...names));
     if (!fps.length) return [];
     const paths = fps.map(f => f.filepath);
-    return this.db.prepare(`SELECT * FROM files WHERE filepath IN (${paths.map(() => "?").join(",")})` + this._presenceClause(presenceFilter)).all(...paths) as FileRow[];
+    return rows<FileRow>(this.db.prepare(`SELECT * FROM files WHERE filepath IN (${paths.map(() => "?").join(",")})` + this._presenceClause(presenceFilter)).all(...paths));
   }
 
   private _presenceClause(filter: string): string {
@@ -158,11 +163,11 @@ export class IndexRepository {
   }
 
   getArchiveMetasByFolder(folderpath: string): Map<string, ArchiveMetaRow> {
-    const fps = this.db.prepare("SELECT filepath FROM files WHERE folderpath = ? AND file_type = 'archive'").all(folderpath) as { filepath: string }[];
+    const fps = rows<{ filepath: string }>(this.db.prepare("SELECT filepath FROM files WHERE folderpath = ? AND file_type = 'archive'").all(folderpath));
     if (!fps.length) return new Map();
     const paths = fps.map(f => f.filepath);
-    const rows = this.db.prepare(`SELECT * FROM archive_meta WHERE filepath IN (${paths.map(() => "?").join(",")})`).all(...paths) as ArchiveMetaRow[];
-    return new Map(rows.map(r => [r.filepath, r]));
+    const result = rows<ArchiveMetaRow>(this.db.prepare(`SELECT * FROM archive_meta WHERE filepath IN (${paths.map(() => "?").join(",")})`).all(...paths));
+    return new Map(result.map(r => [r.filepath, r]));
   }
 
   upsertProgress(data: Partial<ProgressRow> & { filepath: string }): void {
@@ -177,7 +182,7 @@ export class IndexRepository {
 
   listProgressHistory(offset: number, limit: number, sortOrder = "desc"): ProgressRow[] {
     const order = sortOrder === "asc" ? "ASC" : "DESC";
-    return this.db.prepare(`SELECT * FROM progress ORDER BY last_opened_at ${order} LIMIT ? OFFSET ?`).all(limit, offset) as ProgressRow[];
+    return rows<ProgressRow>(this.db.prepare(`SELECT * FROM progress ORDER BY last_opened_at ${order} LIMIT ? OFFSET ?`).all(limit, offset));
   }
 
   countProgressHistory(): number {
@@ -191,13 +196,13 @@ export class IndexRepository {
   }
 
   listActivityLogs(limit = 200): ActivityLogRow[] {
-    return this.db.prepare("SELECT * FROM activity_logs ORDER BY created_at DESC, id DESC LIMIT ?").all(limit) as ActivityLogRow[];
+    return rows<ActivityLogRow>(this.db.prepare("SELECT * FROM activity_logs ORDER BY created_at DESC, id DESC LIMIT ?").all(limit));
   }
 
   listActivityLogsSinceLatestStartup(limit = 200): ActivityLogRow[] {
     const row = this.db.prepare("SELECT id FROM activity_logs WHERE activity_type = 'startup' AND status = 'started' ORDER BY created_at DESC, id DESC LIMIT 1").get() as { id: number } | undefined;
     if (!row) return this.listActivityLogs(limit);
-    return this.db.prepare("SELECT * FROM activity_logs WHERE id >= ? ORDER BY created_at DESC, id DESC LIMIT ?").all(row.id, limit) as ActivityLogRow[];
+    return rows<ActivityLogRow>(this.db.prepare("SELECT * FROM activity_logs WHERE id >= ? ORDER BY created_at DESC, id DESC LIMIT ?").all(row.id, limit));
   }
 
   recordFolderOpen(folderpath: string): void {
@@ -209,8 +214,7 @@ export class IndexRepository {
     const now = nowTs();
     const cutoff = now - 90 * 86400;
     const tau = 14 * 86400;
-    // open_count used as weight so repeated opens rank higher even at same timestamp
-    const rows = this.db.prepare(`
+    const result = rows<{ folder_id: string }>(this.db.prepare(`
       WITH folder_scores AS (
         SELECT h.folderpath AS folder_id,
                h.open_count * exp(-((?-h.last_opened_at)*1.0)/?) AS score
@@ -225,8 +229,8 @@ export class IndexRepository {
       combined AS (SELECT * FROM folder_scores UNION ALL SELECT * FROM progress_scores)
       SELECT folder_id FROM combined GROUP BY folder_id
       ORDER BY SUM(score) DESC LIMIT ?
-    `).all(now, tau, cutoff, now, tau, cutoff, limit) as { folder_id: string }[];
-    return rows.map(r => r.folder_id);
+    `).all(now, tau, cutoff, now, tau, cutoff, limit));
+    return result.map(r => r.folder_id);
   }
 
   saveParsedMetadata(filepath: string, data: { title?: string; authors?: string[]; cosers?: string[]; groupName?: string; rawTags?: string[]; event?: string; dateTag?: string; mediaType?: string }): void {
@@ -253,40 +257,40 @@ export class IndexRepository {
   }
 
   getFileArtists(filepath: string): string[] {
-    return (this.db.prepare("SELECT artist_name FROM file_artists WHERE filepath = ? AND role = ''").all(filepath) as { artist_name: string }[]).map(r => r.artist_name);
+    return rows<{ artist_name: string }>(this.db.prepare("SELECT artist_name FROM file_artists WHERE filepath = ? AND role = ''").all(filepath)).map(r => r.artist_name);
   }
 
   getFileCosers(filepath: string): string[] {
-    return (this.db.prepare("SELECT artist_name FROM file_artists WHERE filepath = ? AND role = 'coser'").all(filepath) as { artist_name: string }[]).map(r => r.artist_name);
+    return rows<{ artist_name: string }>(this.db.prepare("SELECT artist_name FROM file_artists WHERE filepath = ? AND role = 'coser'").all(filepath)).map(r => r.artist_name);
   }
 
   getFileTags(filepath: string): string[] {
-    return (this.db.prepare("SELECT tag_name FROM file_tags WHERE filepath = ?").all(filepath) as { tag_name: string }[]).map(r => r.tag_name);
+    return rows<{ tag_name: string }>(this.db.prepare("SELECT tag_name FROM file_tags WHERE filepath = ?").all(filepath)).map(r => r.tag_name);
   }
 
   getArtistsByFilepaths(filepaths: string[]): Map<string, string[]> {
     if (!filepaths.length) return new Map();
-    const rows = this.db.prepare(`SELECT filepath,artist_name FROM file_artists WHERE filepath IN (${filepaths.map(() => "?").join(",")}) AND role = ''`).all(...filepaths) as { filepath: string; artist_name: string }[];
+    const result = rows<{ filepath: string; artist_name: string }>(this.db.prepare(`SELECT filepath,artist_name FROM file_artists WHERE filepath IN (${filepaths.map(() => "?").join(",")}) AND role = ''`).all(...filepaths));
     const map = new Map<string, string[]>();
-    for (const r of rows) { const arr = map.get(r.filepath) ?? []; arr.push(r.artist_name); map.set(r.filepath, arr); }
+    for (const r of result) { const arr = map.get(r.filepath) ?? []; arr.push(r.artist_name); map.set(r.filepath, arr); }
     return map;
   }
 
   getParsedMetadataByFilepaths(filepaths: string[]): Map<string, ParsedMetaRow> {
     if (!filepaths.length) return new Map();
-    const rows = this.db.prepare(`SELECT * FROM parsed_metadata WHERE filepath IN (${filepaths.map(() => "?").join(",")})`).all(...filepaths) as unknown as ParsedMetaRow[];
-    return new Map(rows.map(r => [r.filepath, r]));
+    const result = rows<ParsedMetaRow>(this.db.prepare(`SELECT * FROM parsed_metadata WHERE filepath IN (${filepaths.map(() => "?").join(",")})`).all(...filepaths));
+    return new Map(result.map(r => [r.filepath, r]));
   }
 
   getFileDataByFolder(folderpath: string): Map<string, { rec_score: number; last_read_at: number | null }> {
-    const rows = this.db.prepare("SELECT f.filepath, f.rec_score, p.last_opened_at FROM files f LEFT JOIN progress p ON p.filepath = f.filepath WHERE f.folderpath = ?").all(folderpath) as { filepath: string; rec_score: number; last_opened_at: number | null }[];
-    return new Map(rows.map(r => [r.filepath, { rec_score: r.rec_score, last_read_at: r.last_opened_at }]));
+    const result = rows<{ filepath: string; rec_score: number; last_opened_at: number | null }>(this.db.prepare("SELECT f.filepath, f.rec_score, p.last_opened_at FROM files f LEFT JOIN progress p ON p.filepath = f.filepath WHERE f.folderpath = ?").all(folderpath));
+    return new Map(result.map(r => [r.filepath, { rec_score: r.rec_score, last_read_at: r.last_opened_at }]));
   }
 
   listTagsWithCounts(offset: number, limit: number, sortBy = "count", sortOrder = "desc"): { tag_name: string; file_count: number; avg_rec_score: number }[] {
     const col = sortBy === "name" ? "tag_name" : sortBy === "recommendation" ? "avg_rec_score" : "file_count";
     const dir = sortOrder === "asc" ? "ASC" : "DESC";
-    return this.db.prepare(`SELECT t.tag_name, COUNT(ft.filepath) as file_count, AVG(COALESCE(f.rec_score,0)) as avg_rec_score FROM tags t LEFT JOIN file_tags ft ON ft.tag_name = t.tag_name LEFT JOIN files f ON f.filepath = ft.filepath GROUP BY t.tag_name ORDER BY ${col} ${dir}, t.tag_name ASC LIMIT ? OFFSET ?`).all(limit, offset) as { tag_name: string; file_count: number; avg_rec_score: number }[];
+    return rows<{ tag_name: string; file_count: number; avg_rec_score: number }>(this.db.prepare(`SELECT t.tag_name, COUNT(ft.filepath) as file_count, AVG(COALESCE(f.rec_score,0)) as avg_rec_score FROM tags t LEFT JOIN file_tags ft ON ft.tag_name = t.tag_name LEFT JOIN files f ON f.filepath = ft.filepath GROUP BY t.tag_name ORDER BY ${col} ${dir}, t.tag_name ASC LIMIT ? OFFSET ?`).all(limit, offset));
   }
 
   countTags(): number {
@@ -296,7 +300,7 @@ export class IndexRepository {
   listArtistsWithCounts(offset: number, limit: number, role = "", sortBy = "count", sortOrder = "desc"): { artist_name: string; file_count: number; avg_rec_score: number }[] {
     const col = sortBy === "name" ? "artist_name" : sortBy === "recommendation" ? "avg_rec_score" : "file_count";
     const dir = sortOrder === "asc" ? "ASC" : "DESC";
-    return this.db.prepare(`SELECT a.artist_name, COUNT(fa.filepath) as file_count, AVG(COALESCE(f.rec_score,0)) as avg_rec_score FROM artists a LEFT JOIN file_artists fa ON fa.artist_name = a.artist_name AND fa.role = ? LEFT JOIN files f ON f.filepath = fa.filepath GROUP BY a.artist_name ORDER BY ${col} ${dir}, a.artist_name ASC LIMIT ? OFFSET ?`).all(role, limit, offset) as { artist_name: string; file_count: number; avg_rec_score: number }[];
+    return rows<{ artist_name: string; file_count: number; avg_rec_score: number }>(this.db.prepare(`SELECT a.artist_name, COUNT(fa.filepath) as file_count, AVG(COALESCE(f.rec_score,0)) as avg_rec_score FROM artists a LEFT JOIN file_artists fa ON fa.artist_name = a.artist_name AND fa.role = ? LEFT JOIN files f ON f.filepath = fa.filepath GROUP BY a.artist_name ORDER BY ${col} ${dir}, a.artist_name ASC LIMIT ? OFFSET ?`).all(role, limit, offset));
   }
 
   countArtists(role = ""): number {
@@ -310,13 +314,13 @@ export class IndexRepository {
   }
 
   getFavoriteAuthorFrequencies(favoriteDir: string): Map<string, number> {
-    const rows = this.db.prepare("SELECT fa.artist_name, COUNT(fa.filepath) as cnt FROM file_artists fa JOIN files f ON f.filepath = fa.filepath WHERE fa.role = '' AND f.filepath LIKE ? GROUP BY fa.artist_name").all(favoriteDir + "%") as { artist_name: string; cnt: number }[];
-    return new Map(rows.map(r => [r.artist_name, r.cnt]));
+    const result = rows<{ artist_name: string; cnt: number }>(this.db.prepare("SELECT fa.artist_name, COUNT(fa.filepath) as cnt FROM file_artists fa JOIN files f ON f.filepath = fa.filepath WHERE fa.role = '' AND f.filepath LIKE ? GROUP BY fa.artist_name").all(favoriteDir + "%"));
+    return new Map(result.map(r => [r.artist_name, r.cnt]));
   }
 
   getFavoriteTagFrequencies(favoriteDir: string): Map<string, number> {
-    const rows = this.db.prepare("SELECT ft.tag_name, COUNT(ft.filepath) as cnt FROM file_tags ft JOIN files f ON f.filepath = ft.filepath WHERE f.filepath LIKE ? GROUP BY ft.tag_name").all(favoriteDir + "%") as { tag_name: string; cnt: number }[];
-    return new Map(rows.map(r => [r.tag_name, r.cnt]));
+    const result = rows<{ tag_name: string; cnt: number }>(this.db.prepare("SELECT ft.tag_name, COUNT(ft.filepath) as cnt FROM file_tags ft JOIN files f ON f.filepath = ft.filepath WHERE f.filepath LIKE ? GROUP BY ft.tag_name").all(favoriteDir + "%"));
+    return new Map(result.map(r => [r.tag_name, r.cnt]));
   }
 
   private _pruneOrphans(): void {
