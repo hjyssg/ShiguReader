@@ -14,12 +14,12 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { getBaseName } from "@/lib/path-utils"
 
-/** 生成默认子文件夹名：good_YYYY_MM_DD */
+/** 生成默认子文件夹名：good_YYYY_MM_01（固定当月1号） */
 function defaultSubfolder(): string {
   const now = new Date()
   const y = now.getFullYear()
   const m = String(now.getMonth() + 1).padStart(2, "0")
-  const d = String(now.getDate()).padStart(2, "0")
+  const d = "01"
   return `good_${y}_${m}_${d}`
 }
 
