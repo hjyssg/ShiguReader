@@ -105,7 +105,6 @@ CREATE TABLE IF NOT EXISTS progress_old (
   position_sec FLOAT NULL,
   duration_sec FLOAT NULL,
   updated_at INTEGER NOT NULL DEFAULT (strftime('%s','now')),
-  FOREIGN KEY(filepath) REFERENCES files(filepath) ON DELETE CASCADE
 )
 """
     )

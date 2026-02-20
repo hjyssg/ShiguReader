@@ -37,7 +37,6 @@ def upgrade():
     op.alter_column('item', 'new_id', nullable=False)
 
     # Drop old columns and rename new columns
-    op.drop_constraint('item_owner_id_fkey', 'item', type_='foreignkey')
     op.drop_column('item', 'owner_id')
     op.alter_column('item', 'new_owner_id', new_column_name='owner_id')
 
@@ -51,8 +50,6 @@ def upgrade():
     op.create_primary_key('user_pkey', 'user', ['id'])
     op.create_primary_key('item_pkey', 'item', ['id'])
 
-    # Recreate foreign key constraint
-    op.create_foreign_key('item_owner_id_fkey', 'item', 'user', ['owner_id'], ['id'])
 
 def downgrade():
     # Reverse the upgrade process
@@ -72,7 +69,6 @@ def downgrade():
     op.execute('UPDATE item SET old_id = nextval(\'item_id_seq\'), old_owner_id = (SELECT old_id FROM "user" WHERE "user".id = item.owner_id)')
 
     # Drop new columns and rename old columns back
-    op.drop_constraint('item_owner_id_fkey', 'item', type_='foreignkey')
     op.drop_column('item', 'owner_id')
     op.alter_column('item', 'old_owner_id', new_column_name='owner_id')
 
@@ -86,5 +82,3 @@ def downgrade():
     op.create_primary_key('user_pkey', 'user', ['id'])
     op.create_primary_key('item_pkey', 'item', ['id'])
 
-    # Recreate foreign key constraint
-    op.create_foreign_key('item_owner_id_fkey', 'item', 'user', ['owner_id'], ['id'])
