@@ -12,7 +12,7 @@
       "name": "Run Backend",
       "type": "node-terminal",
       "request": "launch",
-      "command": "uv run fastapi run app/main.py --host 0.0.0.0 --port 8000",
+      "command": "python -m fastapi run app/main.py --host 0.0.0.0 --port 8000",
       "cwd": "${workspaceFolder}/backend"
     }
   ],
