@@ -36,8 +36,7 @@ class TestCoserDatabase:
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 coser_id INTEGER NOT NULL,
                 alias TEXT NOT NULL,
-                FOREIGN KEY (coser_id) REFERENCES coser(id),
-                UNIQUE (coser_id, alias)
+                    UNIQUE (coser_id, alias)
             )
         """)
         

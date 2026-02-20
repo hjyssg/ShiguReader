@@ -41,7 +41,7 @@ class File(SQLModel, table=True):
     __tablename__ = "files"
 
     filepath: str = Field(primary_key=True)  # 文件绝对路径（主键）
-    folderpath: str | None = Field(default=None, foreign_key="folders.filepath")  # 所属目录路径
+    folderpath: str | None = Field(default=None)  # 所属目录路径
 
     filename: str  # 文件名（basename）
     mtime: int  # 文件最后修改时间（秒级 Unix 时间戳）
@@ -70,7 +70,7 @@ class File(SQLModel, table=True):
 class ArchiveMeta(SQLModel, table=True):
     __tablename__ = "archive_meta"
 
-    filepath: str = Field(primary_key=True, foreign_key="files.filepath")
+    filepath: str = Field(primary_key=True)
     archive_type: str
     entry_count: int = 0
     image_file_num: int = 0
@@ -82,7 +82,7 @@ class ArchiveMeta(SQLModel, table=True):
 class VideoMeta(SQLModel, table=True):
     __tablename__ = "video_meta"
 
-    filepath: str = Field(primary_key=True, foreign_key="files.filepath")
+    filepath: str = Field(primary_key=True)
 
     duration_sec: float | None = None
     width: int | None = None
@@ -103,7 +103,7 @@ class VideoMeta(SQLModel, table=True):
 class FolderOpenHistory(SQLModel, table=True):
     __tablename__ = "folder_open_history"
 
-    folderpath: str = Field(primary_key=True, foreign_key="folders.filepath")
+    folderpath: str = Field(primary_key=True)
     last_opened_at: int = Field(default_factory=_ts_now)
     open_count: int = 1
     updated_at: int = Field(default_factory=_ts_now)
@@ -151,8 +151,8 @@ class Tag(SQLModel, table=True):
 class FileTag(SQLModel, table=True):
     __tablename__ = "file_tags"
 
-    filepath: str = Field(primary_key=True, foreign_key="files.filepath")
-    tag_name: str = Field(primary_key=True, foreign_key="tags.tag_name")
+    filepath: str = Field(primary_key=True)
+    tag_name: str = Field(primary_key=True)
     created_at: int = Field(default_factory=_ts_now)
 
 
@@ -165,8 +165,8 @@ class Artist(SQLModel, table=True):
 class FileArtist(SQLModel, table=True):
     __tablename__ = "file_artists"
 
-    filepath: str = Field(primary_key=True, foreign_key="files.filepath")
-    artist_name: str = Field(primary_key=True, foreign_key="artists.artist_name")
+    filepath: str = Field(primary_key=True)
+    artist_name: str = Field(primary_key=True)
     role: str = Field(default="", primary_key=True)
     created_at: int = Field(default_factory=_ts_now)
 
@@ -174,7 +174,7 @@ class FileArtist(SQLModel, table=True):
 class ParsedMetadata(SQLModel, table=True):
     __tablename__ = "parsed_metadata"
 
-    filepath: str = Field(primary_key=True, foreign_key="files.filepath")
+    filepath: str = Field(primary_key=True)
     title: str | None = None
     group_name: str | None = None
     event: str | None = None

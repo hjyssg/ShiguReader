@@ -30,7 +30,6 @@ def upgrade() -> None:
             nullable=False,
             server_default=sa.text("(strftime('%s','now'))"),
         ),
-        sa.ForeignKeyConstraint(["filepath"], ["files.filepath"], ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("filepath"),
     )
     op.create_index("idx_parsed_metadata_event", "parsed_metadata", ["event"])

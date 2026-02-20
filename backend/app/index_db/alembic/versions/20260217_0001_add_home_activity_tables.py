@@ -24,7 +24,6 @@ def upgrade() -> None:
         sa.Column("last_opened_at", sa.Integer(), nullable=False),
         sa.Column("open_count", sa.Integer(), nullable=False, server_default="1"),
         sa.Column("updated_at", sa.Integer(), nullable=False),
-        sa.ForeignKeyConstraint(["folderpath"], ["folders.filepath"]),
         sa.PrimaryKeyConstraint("folderpath"),
     )
 

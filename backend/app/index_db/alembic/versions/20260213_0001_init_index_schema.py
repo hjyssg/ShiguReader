@@ -84,7 +84,6 @@ def upgrade() -> None:
         ),
         sa.CheckConstraint("scan_state IN (0,1,2)", name="ck_files_scan_state"),
         sa.CheckConstraint("watch_state IN (0,1)", name="ck_files_watch_state"),
-        sa.ForeignKeyConstraint(["folderpath"], ["folders.filepath"], ondelete="SET NULL"),
         sa.PrimaryKeyConstraint("filepath"),
     )
 
@@ -106,7 +105,6 @@ def upgrade() -> None:
         sa.Column("video_file_num", sa.Integer(), nullable=False, server_default="0"),
         sa.Column("music_file_num", sa.Integer(), nullable=False, server_default="0"),
         sa.Column("scanned_at", sa.Integer(), nullable=True),
-        sa.ForeignKeyConstraint(["filepath"], ["files.filepath"], ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("filepath"),
     )
     op.create_index("idx_archive_meta_scanned_at", "archive_meta", ["scanned_at"])
@@ -126,7 +124,6 @@ def upgrade() -> None:
         sa.Column("has_subtitle", sa.Integer(), nullable=False, server_default="0"),
         sa.Column("scanned_at", sa.Integer(), nullable=True),
         sa.CheckConstraint("has_subtitle IN (0,1)", name="ck_video_meta_has_subtitle"),
-        sa.ForeignKeyConstraint(["filepath"], ["files.filepath"], ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("filepath"),
     )
     op.create_index("idx_video_meta_scanned_at", "video_meta", ["scanned_at"])
@@ -151,7 +148,6 @@ def upgrade() -> None:
             nullable=False,
             server_default=sa.text("(strftime('%s','now'))"),
         ),
-        sa.ForeignKeyConstraint(["filepath"], ["files.filepath"], ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("filepath"),
     )
     op.create_index("idx_progress_last_opened", "progress", ["last_opened_at"])
@@ -168,8 +164,6 @@ def upgrade() -> None:
             nullable=False,
             server_default=sa.text("(strftime('%s','now'))"),
         ),
-        sa.ForeignKeyConstraint(["filepath"], ["files.filepath"], ondelete="CASCADE"),
-        sa.ForeignKeyConstraint(["tag_name"], ["tags.tag_name"], ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("filepath", "tag_name"),
     )
     op.create_index("idx_file_tags_tag_name", "file_tags", ["tag_name"])
@@ -190,12 +184,6 @@ def upgrade() -> None:
             sa.Integer(),
             nullable=False,
             server_default=sa.text("(strftime('%s','now'))"),
-        ),
-        sa.ForeignKeyConstraint(["filepath"], ["files.filepath"], ondelete="CASCADE"),
-        sa.ForeignKeyConstraint(
-            ["artist_name"],
-            ["artists.artist_name"],
-            ondelete="CASCADE",
         ),
         sa.PrimaryKeyConstraint("filepath", "artist_name", "role"),
     )

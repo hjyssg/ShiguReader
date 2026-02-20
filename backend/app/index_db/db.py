@@ -31,7 +31,7 @@ def _register_sqlite_pragma(engine: Engine) -> None:
     @event.listens_for(engine, "connect")
     def _set_sqlite_pragma(dbapi_connection: object, _: object) -> None:  # noqa: ANN001
         cursor = dbapi_connection.cursor()  # type: ignore[attr-defined]
-        cursor.execute("PRAGMA foreign_keys = ON")
+        cursor.execute("PRAGMA foreign_keys = OFF")
         # Improve read/write concurrency and reduce request stalls under scan/migration load.
         cursor.execute("PRAGMA journal_mode = WAL")
         cursor.execute("PRAGMA synchronous = NORMAL")
