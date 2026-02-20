@@ -26,7 +26,7 @@ export const config = {
   BACKEND_CORS_ORIGINS: env("BACKEND_CORS_ORIGINS", ""),
 
   // SQLite
-  INDEX_SQLITE_PATH: env("INDEX_SQLITE_PATH", "../data/index.db"),
+  INDEX_SQLITE_PATH: env("INDEX_SQLITE_PATH", "../data/index_node.db"),
 
   // File system
   FS_ROOTS: env("FS_ROOTS", ""),

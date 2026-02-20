@@ -13,7 +13,7 @@ import { cosersRoutes } from "./routes/cosers.js";
 import { settingsRoutes } from "./routes/settings.js";
 import { parseRoutes } from "./routes/parse.js";
 import { config } from "./config.js";
-import { resolveThumbSource } from "./services/thumbService.js";
+import { getOrGenerateThumb } from "./services/thumbService.js";
 import { getMimeType } from "./utils/fileType.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -42,12 +42,11 @@ export function buildApp() {
     const { path: filePath } = req.query as { path?: string };
     if (!filePath) return reply.status(400).send({ error: "path is required" });
 
-    const src = resolveThumbSource(filePath);
+    const src = await getOrGenerateThumb(filePath);
     if (!src) return reply.status(404).send({ error: "Thumbnail not found" });
 
     const mime = getMimeType(src);
-    const stream = fs.createReadStream(src);
-    return reply.type(mime).send(stream);
+    return reply.type(mime).send(fs.createReadStream(src));
   });
 
   // ── Health ─────────────────────────────────────────────────────────────────
