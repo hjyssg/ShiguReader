@@ -161,6 +161,45 @@
 
 ---
 
+## 19. fs/recent-activity — activity_type 枚举值后端未完整记录
+
+| 项目 | 前端期望 | 后端实现 |
+|------|---------|---------|
+| `activity_type` 枚举 | `"scan" \| "minify_zip_images" \| "move" \| "delete" \| "rename" \| "startup" \| "cache_cleanup" \| "db_sync"` | 实际只写入 `"scan"`、`"backfill"`（`"backfill"` 前端不认识） |
+
+**受影响路由：** `GET /api/v1/fs/recent-activity`
+
+缺少写入的类型：
+- `"startup"` — 服务器启动时应写入，`since_latest_startup` 过滤器依赖此记录
+- `"cache_cleanup"` — 清理 extract cache 时应写入
+- `"db_sync"` — 同步文件表时应写入
+- `"move"` — move-file / move-folder 操作时应写入
+- `"delete"` — delete 操作时应写入
+- `"rename"` — rename 操作时应写入
+- `"minify_zip_images"` — compress-images 操作时应写入
+
+---
+
+## 20. fs/recent-activity — since_latest_startup 过滤器永远失效
+
+| 项目 | 前端期望 | 后端实现 |
+|------|---------|---------|
+| `since_latest_startup=true` | 只返回最近一次启动之后的日志 | 查询 `activity_type = 'startup'` 的记录，但后端从不写入此类型，导致永远回退到返回全部日志 |
+
+**受影响路由：** `GET /api/v1/fs/recent-activity?since_latest_startup=true`（前端默认传此参数）
+
+---
+
+## 21. fs/sync-file-table — 端点缺失
+
+| 项目 | 前端期望 | 后端实现 |
+|------|---------|---------|
+| 重试 db_sync 活动 | `POST /api/v1/fs/sync-file-table` | **不存在** |
+
+`RecentActivityPanel` 对 `activity_type === "db_sync"` 的失败条目提供重试按钮，调用此端点。
+
+---
+
 ## 修复状态
 
 - [x] #1 Authors/Cosers/Tags 分页参数
@@ -181,3 +220,6 @@
 - [x] #16 backfill `recursive` 字段
 - [x] #17 scan-watch `recursive` 字段
 - [x] #18 FileSystemItem 缺少字段
+- [x] #19 recent-activity activity_type 枚举值未完整记录
+- [x] #20 recent-activity since_latest_startup 过滤器永远失效
+- [x] #21 sync-file-table 端点缺失

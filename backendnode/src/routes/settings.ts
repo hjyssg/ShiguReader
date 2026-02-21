@@ -13,6 +13,7 @@ function buildResponse() {
     favorite_dir: config.FAVORITE_DIR || "",
     fs_roots: config.FS_ROOTS || "",
     already_read_dir: config.ALREADY_READ_DIR || "",
+    env_file_path: ENV_FILE,
   };
 }
 
@@ -69,6 +70,7 @@ async function updateSettings(
     favorite_dir: process.env["FAVORITE_DIR"] ?? config.FAVORITE_DIR ?? "",
     fs_roots: process.env["FS_ROOTS"] ?? config.FS_ROOTS ?? "",
     already_read_dir: process.env["ALREADY_READ_DIR"] ?? config.ALREADY_READ_DIR ?? "",
+    env_file_path: ENV_FILE,
   });
 }
 

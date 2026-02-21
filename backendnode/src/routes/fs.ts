@@ -18,6 +18,7 @@ import {
 } from "../services/archiveService.js";
 import { getOrGenerateThumb } from "../services/thumbService.js";
 import { parseName } from "../utils/nameParser.js";
+import trash from "trash";
 
 const execFileAsync = promisify(execFile);
 
@@ -313,20 +314,31 @@ async function scanDirectory(
   }
   if (!stat.isDirectory()) return reply.status(400).send({ error: "Path is not a directory" });
 
+  const startedAt = Math.floor(Date.now() / 1000);
+  scanStatusMap.set(dirPath, {
+    path: dirPath, status: "running", message: "Scan started",
+    recursive, scanned_folders: 0, scanned_files: 0,
+    watcher_active: false, started_at: startedAt, finished_at: null,
+  });
+
   // Fire-and-forget background scan
   setImmediate(() => {
     try {
       const repo = getRepo();
+      let scannedFolders = 0;
+      let scannedFiles = 0;
       const walk = (dir: string, recurse: boolean) => {
         const entries = fs.readdirSync(dir, { withFileTypes: true });
         repo.upsertFolder({ filepath: dir, dirname: path.basename(dir) || dir, scanned: true });
+        scannedFolders++;
+        scanStatusMap.set(dirPath, { ...scanStatusMap.get(dirPath)!, scanned_folders: scannedFolders, scanned_files: scannedFiles });
         for (const entry of entries) {
           const full = path.join(dir, entry.name);
           try {
             const s = fs.statSync(full);
             if (entry.isDirectory() && recurse) {
               walk(full, true);
-              } else if (entry.isFile()) {
+            } else if (entry.isFile()) {
               repo.upsertFile({
                 filepath: full,
                 folderpath: dir,
@@ -349,13 +361,17 @@ async function scanDirectory(
                 dateTag: parsed.dateTag ?? undefined,
                 mediaType: parsed.mediaType ?? undefined,
               });
+              scannedFiles++;
+              scanStatusMap.set(dirPath, { ...scanStatusMap.get(dirPath)!, scanned_files: scannedFiles });
             }
           } catch { /* skip */ }
         }
       };
       walk(dirPath, recursive);
-      repo.logActivity("scan", `Scan completed: ${dirPath}`, "completed", `scan:${dirPath}`, dirPath);
+      scanStatusMap.set(dirPath, { ...scanStatusMap.get(dirPath)!, status: "completed", message: `Scan completed: ${dirPath}`, finished_at: Math.floor(Date.now() / 1000) });
+      repo.logActivity("scan", `Scan completed: ${dirPath}`, "completed", `scan:${dirPath}`, dirPath, { scanned_files: scannedFiles, scanned_folders: scannedFolders });
     } catch (e) {
+      scanStatusMap.set(dirPath, { ...scanStatusMap.get(dirPath)!, status: "error", message: `Scan failed: ${dirPath}`, finished_at: Math.floor(Date.now() / 1000) });
       try {
         getRepo().logActivity("scan", `Scan failed: ${dirPath}`, "failed", `scan:${dirPath}`, dirPath);
       } catch { /* ignore */ }
@@ -396,6 +412,7 @@ async function moveFile(
   try {
     fs.mkdirSync(path.dirname(dest_path), { recursive: true });
     fs.renameSync(source_path, dest_path);
+    try { getRepo().logActivity("move", `Moved file: ${source_path} → ${dest_path}`, "completed", `move:${source_path}`, source_path); } catch { /* ignore */ }
     return reply.send({ status: "ok", message: "File moved", path: source_path, dest_path });
   } catch (e) {
     return reply.status(500).send({ error: String(e) });
@@ -411,6 +428,7 @@ async function moveFolder(
   try {
     fs.mkdirSync(path.dirname(dest_path), { recursive: true });
     fs.renameSync(source_path, dest_path);
+    try { getRepo().logActivity("move", `Moved folder: ${source_path} → ${dest_path}`, "completed", `move:${source_path}`, source_path); } catch { /* ignore */ }
     return reply.send({ status: "ok", message: "Folder moved", path: source_path, dest_path });
   } catch (e) {
     return reply.status(500).send({ error: String(e) });
@@ -421,11 +439,16 @@ async function deleteItem(
   req: FastifyRequest<{ Body: { path: string; permanently?: boolean } }>,
   reply: FastifyReply
 ) {
-  const { path: itemPath, permanently = true } = req.body ?? {};
+  const { path: itemPath, permanently = false } = req.body ?? {};
   if (!itemPath) return reply.status(400).send({ error: "path is required" });
   try {
-    fs.rmSync(itemPath, { recursive: true, force: true });
-    return reply.send({ status: "ok", message: "Deleted", path: itemPath });
+    if (permanently) {
+      fs.rmSync(itemPath, { recursive: true, force: true });
+    } else {
+      await trash(itemPath);
+    }
+    try { getRepo().logActivity("delete", `Deleted: ${itemPath}`, "completed", `delete:${itemPath}`, itemPath); } catch { /* ignore */ }
+    return reply.send({ status: "ok", message: permanently ? "Permanently deleted" : "Moved to trash", path: itemPath });
   } catch (e) {
     return reply.status(500).send({ error: String(e) });
   }
@@ -440,6 +463,7 @@ async function renameItem(
   const newPath = path.join(path.dirname(itemPath), new_name);
   try {
     fs.renameSync(itemPath, newPath);
+    try { getRepo().logActivity("rename", `Renamed: ${itemPath} → ${newPath}`, "completed", `rename:${itemPath}`, itemPath); } catch { /* ignore */ }
     return reply.send({ status: "ok", message: "Renamed", path: itemPath, dest_path: newPath });
   } catch (e) {
     return reply.status(500).send({ error: String(e) });
@@ -602,6 +626,7 @@ async function getArchiveFile(
 async function clearExtractCache(_req: FastifyRequest, reply: FastifyReply) {
   try {
     const result = svcClearExtractCache();
+    try { getRepo().logActivity("cache_cleanup", "Extract cache cleared", "completed", "cache_cleanup"); } catch { /* ignore */ }
     return reply.send({ status: "ok", ...result });
   } catch (e) {
     return reply.status(500).send({ error: String(e) });
@@ -621,6 +646,7 @@ async function compressImages(
   }
   try {
     const result = await compressArchiveImages(archive_path, max_height ?? 1600, quality ?? 85);
+    try { getRepo().logActivity("minify_zip_images", `Compressed images: ${archive_path}`, "completed", `minify:${archive_path}`, archive_path); } catch { /* ignore */ }
     return reply.send(result);
   } catch (e) {
     return reply.status(500).send({ error: String(e) });
@@ -866,6 +892,52 @@ async function getScanStatus(
   })));
 }
 
+async function syncFileTable(_req: FastifyRequest, reply: FastifyReply) {
+  const taskKey = "db_sync:manual";
+  try { getRepo().logActivity("db_sync", "File table sync started", "started", taskKey); } catch { /* ignore */ }
+
+  setImmediate(async () => {
+    const repo = getRepo();
+    try {
+      const roots = parseRoots();
+      let syncedFiles = 0;
+      for (const root of roots) {
+        try {
+          const walk = (dir: string) => {
+            const entries = fs.readdirSync(dir, { withFileTypes: true });
+            repo.upsertFolder({ filepath: dir, dirname: path.basename(dir) || dir, scanned: true });
+            for (const entry of entries) {
+              const full = path.join(dir, entry.name);
+              try {
+                const s = fs.statSync(full);
+                if (entry.isDirectory()) {
+                  walk(full);
+                } else if (entry.isFile()) {
+                  repo.upsertFile({
+                    filepath: full, folderpath: dir, filename: entry.name,
+                    mtime: Math.floor(s.mtimeMs / 1000), filesize: s.size,
+                    file_type: getFileType(entry.name),
+                    ext: path.extname(entry.name).toLowerCase() || null,
+                    fingerprint: makeFingerprint(full, Math.floor(s.mtimeMs / 1000), s.size),
+                    scan_state: 1,
+                  });
+                  syncedFiles++;
+                }
+              } catch { /* skip */ }
+            }
+          };
+          walk(root);
+        } catch { /* skip root */ }
+      }
+      repo.logActivity("db_sync", `File table sync completed: ${syncedFiles} files`, "completed", taskKey, undefined, { synced_files: syncedFiles });
+    } catch (e) {
+      try { repo.logActivity("db_sync", `File table sync failed: ${e}`, "failed", taskKey); } catch { /* ignore */ }
+    }
+  });
+
+  return reply.send({ status: "started", message: "File table sync started" });
+}
+
 // ─── plugin ──────────────────────────────────────────────────────────────────
 
 export async function fsRoutes(app: FastifyInstance) {
@@ -897,4 +969,5 @@ export async function fsRoutes(app: FastifyInstance) {
   app.get("/archive/file", getArchiveFile);
   app.delete("/extract-cache", clearExtractCache);
   app.post("/archive/compress-images", compressImages);
+  app.post("/sync-file-table", syncFileTable);
 }
