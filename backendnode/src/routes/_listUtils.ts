@@ -1,4 +1,3 @@
-import fs from "node:fs";
 import type { FastifyRequest, FastifyReply } from "fastify";
 import { getDb } from "../db/client.js";
 import { IndexRepository } from "../db/repository.js";
@@ -8,19 +7,13 @@ export function buildThumbUrl(filePath: string): string {
   return `${config.API_V1_STR}/fs/thumb?path=${encodeURIComponent(filePath)}`;
 }
 
-export function resolveThumbUrl(candidates: string[]): string | null {
-  for (const fp of candidates) {
-    try { fs.accessSync(fp); return buildThumbUrl(fp); } catch { /* next */ }
-  }
-  return candidates.length > 0 ? buildThumbUrl(candidates[0]) : null;
-}
-
 type PaginatedQuery = { page?: string; page_size?: string; sort_by?: string; sort_order?: string };
 
 interface ListHandlerOptions<R extends Record<string, unknown>> {
   count: (repo: IndexRepository) => number;
   list: (repo: IndexRepository, offset: number, pageSize: number, sortBy: string, sortOrder: string) => R[];
-  thumbCandidates: (repo: IndexRepository, names: string[]) => Map<string, string[]>;
+  /** Returns a map of name → cached thumbnail_filepath (DB only, no file I/O). */
+  thumbnailPaths: (repo: IndexRepository, names: string[]) => Map<string, string>;
   nameKey: keyof R & string;
 }
 
@@ -39,14 +32,18 @@ export function makeListHandler<R extends Record<string, unknown>>(opts: ListHan
     const total = opts.count(repo);
     const rows = opts.list(repo, offset, pageSize, sortBy, sortOrder);
     const names = rows.map(r => r[opts.nameKey] as string);
-    const candidatesMap = opts.thumbCandidates(repo, names);
+    const thumbMap = opts.thumbnailPaths(repo, names);
 
-    const items = rows.map(r => ({
-      name: r[opts.nameKey] as string,
-      file_count: r.file_count,
-      recommendation_score: r.avg_rec_score,
-      thumbnail: resolveThumbUrl(candidatesMap.get(r[opts.nameKey] as string) ?? []),
-    }));
+    const items = rows.map(r => {
+      const name = r[opts.nameKey] as string;
+      const thumbPath = thumbMap.get(name);
+      return {
+        name,
+        file_count: r.file_count,
+        recommendation_score: r.avg_rec_score,
+        thumbnail: thumbPath ? buildThumbUrl(thumbPath) : null,
+      };
+    });
 
     return reply.send({ items, page, page_size: pageSize, total });
   };

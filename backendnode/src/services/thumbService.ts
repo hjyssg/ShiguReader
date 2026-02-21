@@ -55,9 +55,9 @@ export function getCachedThumbPath(filePath: string): string {
   return path.join(thumbCacheDir(), `${hash}.jpg`);
 }
 
-function isCached(p: string): boolean {
+async function isCached(p: string): Promise<boolean> {
   try {
-    return fs.statSync(p).size > 0;
+    return (await fs.promises.stat(p)).size > 0;
   } catch {
     return false;
   }
@@ -168,7 +168,7 @@ async function generateImageThumb(imagePath: string, outputPath: string): Promis
  */
 export async function getOrGenerateThumb(filePath: string): Promise<string | null> {
   const outputPath = getCachedThumbPath(filePath);
-  if (isCached(outputPath)) return outputPath;
+  if (await isCached(outputPath)) return outputPath;
 
   const fileType = getFileType(filePath);
 
@@ -183,30 +183,29 @@ export async function getOrGenerateThumb(filePath: string): Promise<string | nul
       return null;
     }
   } catch (e) {
-    // log but don't crash
     console.error(`[thumb] Failed to generate thumbnail for ${filePath}:`, e);
     return null;
   }
 
-  return isCached(outputPath) ? outputPath : null;
+  return (await isCached(outputPath)) ? outputPath : null;
 }
 
-/** Legacy sync helper — only returns cached path, no generation. */
-export function resolveCachedThumb(filePath: string): string | null {
+/** Returns cached thumb path if it exists, null otherwise. */
+export async function resolveCachedThumb(filePath: string): Promise<string | null> {
   const p = getCachedThumbPath(filePath);
-  return isCached(p) ? p : null;
+  return (await isCached(p)) ? p : null;
 }
 
 /**
- * For image files the file itself can be served directly as a thumbnail
- * (sync, used by the old endpoint — prefer getOrGenerateThumb for new code).
+ * For image files the file itself can be served directly as a thumbnail.
+ * Prefer getOrGenerateThumb for new code.
  */
-export function resolveThumbSource(filePath: string): string | null {
+export async function resolveThumbSource(filePath: string): Promise<string | null> {
   const ext = path.extname(filePath).toLowerCase();
   const imageExts = new Set([".jpg", ".jpeg", ".png", ".webp", ".gif", ".bmp"]);
   if (imageExts.has(ext)) {
     try {
-      fs.accessSync(filePath, fs.constants.R_OK);
+      await fs.promises.access(filePath, fs.constants.R_OK);
       return filePath;
     } catch {
       return null;

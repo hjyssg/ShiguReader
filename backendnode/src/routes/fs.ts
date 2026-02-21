@@ -394,17 +394,16 @@ async function scanDirectory(
 // ─── drives (Windows) ────────────────────────────────────────────────────────
 
 async function getDrives(_req: FastifyRequest, reply: FastifyReply) {
-  // On Windows, try A-Z; on other OS return root
   const drives: { path: string; dirname: string }[] = [];
   if (process.platform === "win32") {
-    for (let i = 65; i <= 90; i++) {
-      const letter = String.fromCharCode(i);
+    const checks = Array.from({ length: 26 }, (_, i) => {
+      const letter = String.fromCharCode(65 + i);
       const drivePath = `${letter}:\\`;
-      try {
-        fs.accessSync(drivePath);
-        drives.push({ path: drivePath, dirname: `${letter}:` });
-      } catch { /* not available */ }
-    }
+      return fs.promises.access(drivePath)
+        .then(() => drives.push({ path: drivePath, dirname: `${letter}:` }))
+        .catch(() => { /* not available */ });
+    });
+    await Promise.all(checks);
   } else {
     drives.push({ path: "/", dirname: "/" });
   }

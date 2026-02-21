@@ -5,7 +5,7 @@ const listAuthors = makeListHandler({
   count: repo => repo.countArtists(""),
   list: (repo, offset, pageSize, sortBy, sortOrder) =>
     repo.listArtistsWithCounts(offset, pageSize, "", sortBy, sortOrder),
-  thumbCandidates: (repo, names) => repo.getArtistThumbCandidates(names, ""),
+  thumbnailPaths: (repo, names) => repo.getArtistThumbnailPaths(names, ""),
   nameKey: "artist_name",
 });
 

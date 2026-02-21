@@ -125,6 +125,7 @@ CREATE TABLE IF NOT EXISTS file_artists (
 
 CREATE INDEX IF NOT EXISTS idx_file_artists_artist ON file_artists(artist_name);
 CREATE INDEX IF NOT EXISTS idx_file_artists_role ON file_artists(role);
+CREATE INDEX IF NOT EXISTS idx_file_artists_role_artist ON file_artists(role, artist_name);
 
 CREATE TABLE IF NOT EXISTS parsed_metadata (
   filepath TEXT PRIMARY KEY,

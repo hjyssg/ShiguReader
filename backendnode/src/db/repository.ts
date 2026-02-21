@@ -432,6 +432,36 @@ export class IndexRepository {
     return map;
   }
 
+  /** Returns the cached thumbnail_filepath for each artist (no file I/O). */
+  getArtistThumbnailPaths(names: string[], role: string): Map<string, string> {
+    if (!names.length) return new Map();
+    const placeholders = names.map(() => "?").join(",");
+    const result = rows<{ artist_name: string; thumbnail_filepath: string }>(this.db.prepare(`
+      SELECT fa.artist_name, f.thumbnail_filepath
+      FROM file_artists fa
+      JOIN files f ON f.filepath = fa.filepath
+      WHERE fa.role = ? AND fa.artist_name IN (${placeholders})
+        AND f.thumbnail_filepath IS NOT NULL AND f.scan_state = 1
+      GROUP BY fa.artist_name
+    `).all(role, ...names));
+    return new Map(result.map(r => [r.artist_name, r.thumbnail_filepath]));
+  }
+
+  /** Returns the cached thumbnail_filepath for each tag (no file I/O). */
+  getTagThumbnailPaths(names: string[]): Map<string, string> {
+    if (!names.length) return new Map();
+    const placeholders = names.map(() => "?").join(",");
+    const result = rows<{ tag_name: string; thumbnail_filepath: string }>(this.db.prepare(`
+      SELECT ft.tag_name, f.thumbnail_filepath
+      FROM file_tags ft
+      JOIN files f ON f.filepath = ft.filepath
+      WHERE ft.tag_name IN (${placeholders})
+        AND f.thumbnail_filepath IS NOT NULL AND f.scan_state = 1
+      GROUP BY ft.tag_name
+    `).all(...names));
+    return new Map(result.map(r => [r.tag_name, r.thumbnail_filepath]));
+  }
+
   getFavoriteAuthorFrequencies(favoriteDir: string): Map<string, number> {
     const result = rows<{ artist_name: string; cnt: number }>(this.db.prepare("SELECT fa.artist_name, COUNT(fa.filepath) as cnt FROM file_artists fa JOIN files f ON f.filepath = fa.filepath WHERE fa.role = '' AND f.filepath LIKE ? GROUP BY fa.artist_name").all(favoriteDir + "%"));
     return new Map(result.map(r => [r.artist_name, r.cnt]));
