@@ -17,6 +17,7 @@ export type EntityCardItem = {
   thumbnail?: string | null
   file_count: number
   avg_rec_score?: number | null
+  entityType?: "tag" | "author" | "coser"
 }
 
 export function EntityCard({
@@ -30,9 +31,15 @@ export function EntityCard({
   const recScore = item.avg_rec_score ?? 0
   const tooltipText = `${t("authors.recommendation")}: ${recScore.toFixed(3)}`
 
-  const thumbContent = item.thumbnail ? (
+  const resolvedThumbSrc = item.thumbnail
+    ? `${OpenAPI.BASE}${item.thumbnail}`
+    : item.entityType
+      ? `${OpenAPI.BASE}/api/v1/thumbnail?type=${item.entityType}&name=${encodeURIComponent(item.name)}`
+      : null
+
+  const thumbContent = resolvedThumbSrc ? (
     <ThumbnailImage
-      src={`${OpenAPI.BASE}${item.thumbnail}`}
+      src={resolvedThumbSrc}
       alt={item.name}
       fallback={<ImageIcon className="size-10 text-muted-foreground" />}
     />

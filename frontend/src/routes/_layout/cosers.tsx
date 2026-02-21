@@ -144,7 +144,7 @@ function CosersPage() {
       </div>
 
       <EntityGrid
-        items={data?.items ?? []}
+        items={(data?.items ?? []).map((item) => ({ ...item, entityType: "coser" as const }))}
         isLoading={isLoading}
         page={page}
         pageSize={pageSize}

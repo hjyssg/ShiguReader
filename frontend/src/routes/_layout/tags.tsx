@@ -150,7 +150,7 @@ function TagsPage() {
       </div>
 
       <EntityGrid
-        items={data?.items ?? []}
+        items={(data?.items ?? []).map((item) => ({ ...item, entityType: "tag" as const }))}
         isLoading={isLoading}
         page={page}
         pageSize={pageSize}

@@ -151,7 +151,7 @@ function AuthorsPage() {
       </div>
 
       <EntityGrid
-        items={data?.items ?? []}
+        items={(data?.items ?? []).map((item) => ({ ...item, entityType: "author" as const }))}
         isLoading={isLoading}
         page={page}
         pageSize={pageSize}

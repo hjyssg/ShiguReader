@@ -12,6 +12,7 @@ import { authorsRoutes } from "./routes/authors.js";
 import { cosersRoutes } from "./routes/cosers.js";
 import { settingsRoutes } from "./routes/settings.js";
 import { parseRoutes } from "./routes/parse.js";
+import { thumbnailRoutes } from "./routes/thumbnail.js";
 import { config } from "./config.js";
 import { getOrGenerateThumb } from "./services/thumbService.js";
 import { getMimeType } from "./utils/fileType.js";
@@ -37,6 +38,7 @@ export function buildApp() {
   app.register(cosersRoutes,   { prefix: `${config.API_V1_STR}/cosers` });
   app.register(settingsRoutes, { prefix: `${config.API_V1_STR}/settings` });
   app.register(parseRoutes,    { prefix: `${config.API_V1_STR}/parse` });
+  app.register(thumbnailRoutes, { prefix: `${config.API_V1_STR}/thumbnail` });
 
   // ── Thumbnail endpoint ─────────────────────────────────────────────────────
   // GET /api/v1/fs/thumb?path=<absolute-path>
