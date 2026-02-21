@@ -1,4 +1,4 @@
-﻿import { DatabaseSync } from "node:sqlite";
+import { DatabaseSync } from "node:sqlite";
 import { nowTs } from "./client.js";
 
 export interface FileRow {
@@ -311,6 +311,53 @@ export class IndexRepository {
     if (!scores.size) return;
     const stmt = this.db.prepare("UPDATE files SET rec_score = ? WHERE filepath = ?");
     for (const [fp, score] of scores) stmt.run(score, fp);
+  }
+
+  getTagTotalCounts(): Map<string, number> {
+    const result = rows<{ tag_name: string; cnt: number }>(this.db.prepare("SELECT ft.tag_name, COUNT(ft.filepath) as cnt FROM file_tags ft GROUP BY ft.tag_name").all());
+    return new Map(result.map(r => [r.tag_name, r.cnt]));
+  }
+
+  getTagsByFilepaths(filepaths: string[]): Map<string, string[]> {
+    if (!filepaths.length) return new Map();
+    const result = rows<{ filepath: string; tag_name: string }>(this.db.prepare(`SELECT filepath,tag_name FROM file_tags WHERE filepath IN (${filepaths.map(() => "?").join(",")})`).all(...filepaths));
+    const map = new Map<string, string[]>();
+    for (const r of result) { const arr = map.get(r.filepath) ?? []; arr.push(r.tag_name); map.set(r.filepath, arr); }
+    return map;
+  }
+
+  getArtistThumbCandidates(names: string[], role: string, limit = 3): Map<string, string[]> {
+    if (!names.length) return new Map();
+    const placeholders = names.map(() => "?").join(",");
+    const result = rows<{ artist_name: string; filepath: string }>(this.db.prepare(`
+      SELECT artist_name, filepath FROM (
+        SELECT fa.artist_name, f.filepath, f.mtime,
+               ROW_NUMBER() OVER (PARTITION BY fa.artist_name ORDER BY f.mtime DESC) as rn
+        FROM file_artists fa
+        JOIN files f ON f.filepath = fa.filepath
+        WHERE fa.role = ? AND fa.artist_name IN (${placeholders}) AND f.scan_state = 1
+      ) WHERE rn <= ?
+    `).all(role, ...names, limit));
+    const map = new Map<string, string[]>();
+    for (const r of result) { const arr = map.get(r.artist_name) ?? []; arr.push(r.filepath); map.set(r.artist_name, arr); }
+    return map;
+  }
+
+  getTagThumbCandidates(names: string[], limit = 3): Map<string, string[]> {
+    if (!names.length) return new Map();
+    const placeholders = names.map(() => "?").join(",");
+    const result = rows<{ tag_name: string; filepath: string }>(this.db.prepare(`
+      SELECT tag_name, filepath FROM (
+        SELECT ft.tag_name, f.filepath, f.mtime,
+               ROW_NUMBER() OVER (PARTITION BY ft.tag_name ORDER BY f.mtime DESC) as rn
+        FROM file_tags ft
+        JOIN files f ON f.filepath = ft.filepath
+        WHERE ft.tag_name IN (${placeholders}) AND f.scan_state = 1
+      ) WHERE rn <= ?
+    `).all(...names, limit));
+    const map = new Map<string, string[]>();
+    for (const r of result) { const arr = map.get(r.tag_name) ?? []; arr.push(r.filepath); map.set(r.tag_name, arr); }
+    return map;
   }
 
   getFavoriteAuthorFrequencies(favoriteDir: string): Map<string, number> {

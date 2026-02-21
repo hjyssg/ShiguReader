@@ -19,6 +19,7 @@ import {
 import { getOrGenerateThumb } from "../services/thumbService.js";
 import { parseName } from "../utils/nameParser.js";
 import trash from "trash";
+import { refreshAllRecScores } from "../services/recService.js";
 
 const execFileAsync = promisify(execFile);
 
@@ -370,6 +371,8 @@ async function scanDirectory(
       walk(dirPath, recursive);
       scanStatusMap.set(dirPath, { ...scanStatusMap.get(dirPath)!, status: "completed", message: `Scan completed: ${dirPath}`, finished_at: Math.floor(Date.now() / 1000) });
       repo.logActivity("scan", `Scan completed: ${dirPath}`, "completed", `scan:${dirPath}`, dirPath, { scanned_files: scannedFiles, scanned_folders: scannedFolders });
+      // 扫描完成后异步重算 rec_score
+      setImmediate(() => { try { refreshAllRecScores(); } catch { /* ignore */ } });
     } catch (e) {
       scanStatusMap.set(dirPath, { ...scanStatusMap.get(dirPath)!, status: "error", message: `Scan failed: ${dirPath}`, finished_at: Math.floor(Date.now() / 1000) });
       try {
