@@ -332,20 +332,20 @@ async function scanDirectory(
 
 async function getDrives(_req: FastifyRequest, reply: FastifyReply) {
   // On Windows, try A-Z; on other OS return root
-  const drives: { path: string; label: string }[] = [];
+  const drives: { path: string; dirname: string }[] = [];
   if (process.platform === "win32") {
     for (let i = 65; i <= 90; i++) {
       const letter = String.fromCharCode(i);
       const drivePath = `${letter}:\\`;
       try {
         fs.accessSync(drivePath);
-        drives.push({ path: drivePath, label: `${letter}:` });
+        drives.push({ path: drivePath, dirname: `${letter}:` });
       } catch { /* not available */ }
     }
   } else {
-    drives.push({ path: "/", label: "/" });
+    drives.push({ path: "/", dirname: "/" });
   }
-  return reply.send({ drives });
+  return reply.send(drives);
 }
 
 // ─── file operations ─────────────────────────────────────────────────────────
@@ -432,13 +432,42 @@ async function serveFile(
 ) {
   const { path: filePath } = req.query;
   if (!filePath) return reply.status(400).send({ error: "path is required" });
+
+  let stat: fs.Stats;
   try {
-    fs.accessSync(filePath);
-    const mime = getMimeType(filePath);
-    return reply.type(mime).send(fs.createReadStream(filePath));
+    stat = fs.statSync(filePath);
   } catch {
     return reply.status(404).send({ error: "File not found" });
   }
+
+  const mime = getMimeType(filePath);
+  const fileSize = stat.size;
+  const rangeHeader = (req.raw as { headers?: Record<string, string> }).headers?.range
+    ?? (req.headers as Record<string, string | undefined>)["range"];
+
+  if (rangeHeader) {
+    const match = /bytes=(\d*)-(\d*)/.exec(rangeHeader);
+    if (!match) return reply.status(416).send({ error: "Invalid Range header" });
+
+    const start = match[1] ? parseInt(match[1], 10) : 0;
+    const end = match[2] ? parseInt(match[2], 10) : fileSize - 1;
+
+    if (start > end || end >= fileSize) {
+      reply.header("Content-Range", `bytes */${fileSize}`);
+      return reply.status(416).send({ error: "Range Not Satisfiable" });
+    }
+
+    const chunkSize = end - start + 1;
+    reply.status(206);
+    reply.header("Content-Range", `bytes ${start}-${end}/${fileSize}`);
+    reply.header("Accept-Ranges", "bytes");
+    reply.header("Content-Length", chunkSize);
+    return reply.type(mime).send(fs.createReadStream(filePath, { start, end }));
+  }
+
+  reply.header("Accept-Ranges", "bytes");
+  reply.header("Content-Length", fileSize);
+  return reply.type(mime).send(fs.createReadStream(filePath));
 }
 
 async function ensureDir(
