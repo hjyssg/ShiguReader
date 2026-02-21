@@ -22,7 +22,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export function buildApp() {
   const app = Fastify({
-    logger: true,
+    logger: { level: "warn" }, // 只保留 warn/error，屏蔽每次请求的 info 日志
   });
 
   // ── CORS ──────────────────────────────────────────────────────────────────

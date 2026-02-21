@@ -13,6 +13,7 @@ import { fileURLToPath } from "node:url";
 import pLimit from "p-limit";
 import { config } from "../config.js";
 import { IMAGE_SUFFIXES, VIDEO_SUFFIXES, AUDIO_SUFFIXES } from "../constants.js";
+import { logger } from "../logger.js";
 
 const execFileAsync = promisify(execFile);
 
@@ -336,6 +337,7 @@ export async function compressArchiveImages(
 ): Promise<{ processed: number; original_bytes: number; output_bytes: number }> {
   const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "shigure-compress-"));
   const outputPath = archivePath.replace(/(\.[^.]+)$/, "_compressed$1");
+  logger.compress(`Start: ${path.basename(archivePath)} → ${path.basename(outputPath)}`);
 
   try {
     // Extract all
@@ -388,6 +390,8 @@ export async function compressArchiveImages(
       throw new Error(`Output zip integrity check failed: ${e}`);
     }
 
+    const savedBytes = originalBytes - outputBytes;
+    logger.compress(`Done: ${path.basename(archivePath)} — ${processed} images, saved ${formatBytes(savedBytes > 0 ? savedBytes : 0)}`);
     return { processed, original_bytes: originalBytes, output_bytes: outputBytes };
   } finally {
     fs.rmSync(tmpDir, { recursive: true, force: true });

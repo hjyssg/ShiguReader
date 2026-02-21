@@ -22,6 +22,7 @@ import { parseName } from "../utils/nameParser.js";
 import trash from "trash";
 import { getDiskInfo } from "node-disk-info";
 import { refreshAllRecScores } from "../services/recService.js";
+import { logger } from "../logger.js";
 
 const execFileAsync = promisify(execFile);
 
@@ -304,12 +305,15 @@ async function scanDirectory(
     watcher_active: false, started_at: startedAt, finished_at: null,
   });
 
+  logger.scan(`Started: ${dirPath} (recursive=${recursive})`);
+
   // Fire-and-forget background scan (async)
   setImmediate(async () => {
     try {
       const repo = getRepo();
       let scannedFolders = 0;
       let scannedFiles = 0;
+      const PROGRESS_INTERVAL = 500;
       const walk = async (dir: string, recurse: boolean) => {
         const entries = await fs.promises.readdir(dir, { withFileTypes: true });
         repo.upsertFolder({ filepath: dir, dirname: path.basename(dir) || dir });
@@ -346,6 +350,10 @@ async function scanDirectory(
               });
               scannedFiles++;
               scanStatusMap.set(dirPath, { ...scanStatusMap.get(dirPath)!, scanned_files: scannedFiles });
+              // 每 500 个文件打一次进度
+              if (scannedFiles % PROGRESS_INTERVAL === 0) {
+                logger.scan(`Progress: ${scannedFiles} files, ${scannedFolders} folders — ${dirPath}`);
+              }
             }
           } catch { /* skip */ }
         }
@@ -353,11 +361,13 @@ async function scanDirectory(
         repo.markMissingInFolder(dir, presentPaths);
       };
       await walk(dirPath, recursive);
+      logger.scan(`Completed: ${scannedFiles} files, ${scannedFolders} folders — ${dirPath}`);
       scanStatusMap.set(dirPath, { ...scanStatusMap.get(dirPath)!, status: "completed", message: `Scan completed: ${dirPath}`, finished_at: Math.floor(Date.now() / 1000) });
       repo.logActivity("scan", `Scan completed: ${dirPath}`, "completed", `scan:${dirPath}`, dirPath, { scanned_files: scannedFiles, scanned_folders: scannedFolders });
       // 扫描完成后异步重算 rec_score
       setImmediate(() => { try { refreshAllRecScores(); } catch { /* ignore */ } });
     } catch (e) {
+      logger.scan(`Failed: ${dirPath} — ${e}`);
       scanStatusMap.set(dirPath, { ...scanStatusMap.get(dirPath)!, status: "error", message: `Scan failed: ${dirPath}`, finished_at: Math.floor(Date.now() / 1000) });
       try {
         getRepo().logActivity("scan", `Scan failed: ${dirPath}`, "failed", `scan:${dirPath}`, dirPath);
@@ -401,6 +411,7 @@ async function moveFile(
   try {
     await fs.promises.mkdir(path.dirname(dest_path), { recursive: true });
     await fs.promises.rename(source_path, dest_path);
+    logger.fs(`move file: ${source_path} → ${dest_path}`);
     try { getRepo().logActivity("move", `Moved file: ${source_path} → ${dest_path}`, "completed", `move:${source_path}`, source_path); } catch { /* ignore */ }
     return reply.send({ status: "ok", message: "File moved", path: source_path, dest_path });
   } catch (e) {
@@ -417,6 +428,7 @@ async function moveFolder(
   try {
     await fs.promises.mkdir(path.dirname(dest_path), { recursive: true });
     await fs.promises.rename(source_path, dest_path);
+    logger.fs(`move folder: ${source_path} → ${dest_path}`);
     try { getRepo().logActivity("move", `Moved folder: ${source_path} → ${dest_path}`, "completed", `move:${source_path}`, source_path); } catch { /* ignore */ }
     return reply.send({ status: "ok", message: "Folder moved", path: source_path, dest_path });
   } catch (e) {
@@ -436,6 +448,7 @@ async function deleteItem(
     } else {
       await trash(itemPath);
     }
+    logger.fs(`delete (${permanently ? "permanent" : "trash"}): ${itemPath}`);
     try { getRepo().logActivity("delete", `Deleted: ${itemPath}`, "completed", `delete:${itemPath}`, itemPath); } catch { /* ignore */ }
     return reply.send({ status: "ok", message: permanently ? "Permanently deleted" : "Moved to trash", path: itemPath });
   } catch (e) {
@@ -452,6 +465,7 @@ async function renameItem(
   const newPath = path.join(path.dirname(itemPath), new_name);
   try {
     await fs.promises.rename(itemPath, newPath);
+    logger.fs(`rename: ${itemPath} → ${newPath}`);
     try { getRepo().logActivity("rename", `Renamed: ${itemPath} → ${newPath}`, "completed", `rename:${itemPath}`, itemPath); } catch { /* ignore */ }
     return reply.send({ status: "ok", message: "Renamed", path: itemPath, dest_path: newPath });
   } catch (e) {

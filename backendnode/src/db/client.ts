@@ -2,6 +2,7 @@ import { DatabaseSync } from "node:sqlite";
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { logger } from "../logger.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const SCHEMA_PATH = path.resolve(__dirname, "schema.sql");
@@ -18,6 +19,7 @@ export function getDb(): DatabaseSync {
 export function initDb(dbPath: string): DatabaseSync {
   if (_db) return _db;
 
+  logger.db(`Opening database at ${dbPath}`);
   _db = new DatabaseSync(dbPath);
 
   // Enable WAL mode for better concurrent read performance
@@ -25,10 +27,12 @@ export function initDb(dbPath: string): DatabaseSync {
   _db.exec("PRAGMA synchronous=NORMAL");
   _db.exec("PRAGMA foreign_keys=ON");
   _db.exec("PRAGMA busy_timeout=5000");
+  logger.db("WAL mode enabled, pragmas set");
 
   // Apply schema
   const schema = readFileSync(SCHEMA_PATH, "utf-8");
   _db.exec(schema);
+  logger.db("Schema applied — DB ready");
 
   return _db;
 }
