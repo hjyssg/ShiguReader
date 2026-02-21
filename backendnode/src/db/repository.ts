@@ -17,6 +17,7 @@ export interface FolderRow {
 export interface ArchiveMetaRow {
   filepath: string; archive_type: string; entry_count: number;
   image_file_num: number; video_file_num: number; music_file_num: number; scanned_at: number | null;
+  version_sig: string | null; cover_entry: string | null; index_status: string;
 }
 export interface ProgressRow {
   filepath: string; filename: string | null; file_type: string | null;
@@ -239,9 +240,38 @@ export class IndexRepository {
 
   // ─── archive meta ─────────────────────────────────────────────────────────
 
-  upsertArchiveMeta(filepath: string, archiveType: string, entryCount: number, imageNum: number, videoNum: number, musicNum: number): void {
+  upsertArchiveMeta(
+    filepath: string,
+    archiveType: string,
+    entryCount: number,
+    imageNum: number,
+    videoNum: number,
+    musicNum: number,
+    versionSig?: string | null,
+    coverEntry?: string | null,
+  ): void {
     const now = nowTs();
-    this.db.prepare("INSERT INTO archive_meta (filepath,archive_type,entry_count,image_file_num,video_file_num,music_file_num,scanned_at) VALUES (?,?,?,?,?,?,?) ON CONFLICT(filepath) DO UPDATE SET archive_type=excluded.archive_type,entry_count=excluded.entry_count,image_file_num=excluded.image_file_num,video_file_num=excluded.video_file_num,music_file_num=excluded.music_file_num,scanned_at=excluded.scanned_at").run(filepath, archiveType, entryCount, imageNum, videoNum, musicNum, now);
+    this.db.prepare(`
+      INSERT INTO archive_meta
+        (filepath,archive_type,entry_count,image_file_num,video_file_num,music_file_num,scanned_at,version_sig,cover_entry,index_status)
+      VALUES (?,?,?,?,?,?,?,?,?,'fresh')
+      ON CONFLICT(filepath) DO UPDATE SET
+        archive_type=excluded.archive_type,
+        entry_count=excluded.entry_count,
+        image_file_num=excluded.image_file_num,
+        video_file_num=excluded.video_file_num,
+        music_file_num=excluded.music_file_num,
+        scanned_at=excluded.scanned_at,
+        version_sig=excluded.version_sig,
+        cover_entry=excluded.cover_entry,
+        index_status='fresh'
+    `).run(filepath, archiveType, entryCount, imageNum, videoNum, musicNum, now, versionSig ?? null, coverEntry ?? null);
+  }
+
+  /** 快速获取 version_sig，用于判断 archive 是否需要重新索引 */
+  getArchiveVersionSig(filepath: string): string | null {
+    const row = this.db.prepare("SELECT version_sig FROM archive_meta WHERE filepath = ?").get(filepath) as { version_sig: string | null } | undefined;
+    return row?.version_sig ?? null;
   }
 
   getArchiveMeta(filepath: string): ArchiveMetaRow | undefined {

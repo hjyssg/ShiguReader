@@ -16,6 +16,7 @@ import {
   compressArchiveImages,
 } from "../services/archiveService.js";
 import { getOrGenerateThumb } from "../services/thumbService.js";
+import { observeFilePresence } from "../services/reconcileQueue.js";
 import { parseName } from "../utils/nameParser.js";
 import trash from "trash";
 import { getDiskInfo } from "node-disk-info";
@@ -221,6 +222,11 @@ async function listDirectory(
             });
           }
         }
+        // Phase 1: 标记 DB 里有但磁盘上已消失的文件为 missing
+        const presentPaths = items
+          .filter(i => i.item_type === "file")
+          .map(i => i.path);
+        r.markMissingInFolder(dirPath, presentPaths);
         r.recordFolderOpen(dirPath);
       } catch { /* ignore bg errors */ }
     });
@@ -473,11 +479,15 @@ async function downloadFile(
   if (!filePath) return reply.status(400).send({ error: "path is required" });
   try {
     await fs.promises.access(filePath);
+    // Phase 3: 顺手更新文件存在状态
+    observeFilePresence(filePath, true);
     const mime = getMimeType(filePath);
     const filename = path.basename(filePath);
     reply.header("Content-Disposition", `attachment; filename="${encodeURIComponent(filename)}"`);
     return reply.type(mime).send(fs.createReadStream(filePath));
   } catch (e) {
+    // Phase 3: 文件不存在时标记 missing
+    observeFilePresence(filePath, false);
     return reply.status(404).send({ error: "File not found" });
   }
 }
@@ -492,7 +502,11 @@ async function serveFile(
   let stat: fs.Stats;
   try {
     stat = await fs.promises.stat(filePath);
+    // Phase 3: 顺手更新文件存在状态
+    observeFilePresence(filePath, true);
   } catch {
+    // Phase 3: 文件不存在时标记 missing
+    observeFilePresence(filePath, false);
     return reply.status(404).send({ error: "File not found" });
   }
 
@@ -557,19 +571,53 @@ async function resolvePath(
 
 // ─── archive handlers ─────────────────────────────────────────────────────────
 
+// Phase 4: 从 archive entries 提取元数据并异步回写 DB（含缩略图）
+function _backfillArchiveMeta(archivePath: string, archiveStat: fs.Stats, entries: Awaited<ReturnType<typeof listEntries>>): void {
+  setImmediate(async () => {
+    try {
+      const repo = getRepo();
+      const versionSig = `${Math.floor(archiveStat.mtimeMs / 1000)}:${archiveStat.size}`;
+      const existingSig = repo.getArchiveVersionSig(archivePath);
+      if (existingSig === versionSig) return; // 签名一致，无需更新
+
+      const imageEntries = entries.filter(e => e.file_type === "image");
+      const videoEntries = entries.filter(e => e.file_type === "video");
+      const audioEntries = entries.filter(e => e.file_type === "audio");
+      const coverEntry = imageEntries[0]?.entry_path ?? null;
+      const ext = path.extname(archivePath).toLowerCase().slice(1);
+
+      repo.upsertArchiveMeta(
+        archivePath, ext, entries.length,
+        imageEntries.length, videoEntries.length, audioEntries.length,
+        versionSig, coverEntry,
+      );
+
+      // 如果 files 表里没有缩略图，顺手生成
+      const fileRow = repo.getFile(archivePath);
+      if (fileRow && !fileRow.thumbnail_filepath) {
+        const thumbPath = await getOrGenerateThumb(archivePath).catch(() => null);
+        if (thumbPath) repo.updateFileThumbnail(archivePath, thumbPath);
+      }
+    } catch { /* 后台任务失败不影响主流程 */ }
+  });
+}
+
 async function listArchive(
   req: FastifyRequest<{ Querystring: { path: string } }>,
   reply: FastifyReply
 ) {
   const { path: archivePath } = req.query;
   if (!archivePath) return reply.status(400).send({ error: "path is required" });
+  let archiveStat: fs.Stats;
   try {
-    await fs.promises.access(archivePath);
+    archiveStat = await fs.promises.stat(archivePath);
   } catch {
     return reply.status(404).send({ error: "File not found" });
   }
   try {
     const entries = await listEntries(archivePath);
+    // Phase 4: 顺手更新 archive 元数据 + 缩略图
+    _backfillArchiveMeta(archivePath, archiveStat, entries);
     return reply.send({ entries, total: entries.length });
   } catch (e) {
     return reply.status(500).send({ error: String(e) });
@@ -583,13 +631,32 @@ async function extractArchive(
   const { path: archivePath, page: pageStr = "0" } = req.query;
   const page = parseInt(pageStr, 10) || 0;
   if (!archivePath) return reply.status(400).send({ error: "path is required" });
+  let archiveStat: fs.Stats;
   try {
-    await fs.promises.access(archivePath);
+    archiveStat = await fs.promises.stat(archivePath);
   } catch {
     return reply.status(404).send({ error: "File not found" });
   }
   try {
     const result = await stepwiseExtract(archivePath, page);
+    // Phase 4: 翻页时也顺手更新 archive 元数据（利用 stepwiseExtract 已经调用过 listEntries 的结果）
+    // 这里单独再调一次 listEntries 成本较高，改为只在签名变化时触发一次后台 stat 检查
+    setImmediate(async () => {
+      try {
+        const repo = getRepo();
+        const versionSig = `${Math.floor(archiveStat.mtimeMs / 1000)}:${archiveStat.size}`;
+        if (repo.getArchiveVersionSig(archivePath) !== versionSig) {
+          const entries = await listEntries(archivePath);
+          _backfillArchiveMeta(archivePath, archiveStat, entries);
+        }
+        // 缩略图检查
+        const fileRow = repo.getFile(archivePath);
+        if (fileRow && !fileRow.thumbnail_filepath) {
+          const thumbPath = await getOrGenerateThumb(archivePath).catch(() => null);
+          if (thumbPath) repo.updateFileThumbnail(archivePath, thumbPath);
+        }
+      } catch { /* ignore */ }
+    });
     return reply.send(result);
   } catch (e) {
     return reply.status(500).send({ error: String(e) });
@@ -747,8 +814,14 @@ async function backfill(
         scannedFiles++;
 
         if (fill_thumbnail && ["archive", "video", "image"].includes(fileType)) {
+          // Phase 2: 生成缩略图后把路径写回 DB
           getOrGenerateThumb(fullPath)
-            .then(() => { backfilledThumbnails++; })
+            .then(thumbPath => {
+              backfilledThumbnails++;
+              if (thumbPath) {
+                try { getRepo().updateFileThumbnail(fullPath, thumbPath); } catch { /* ignore */ }
+              }
+            })
             .catch(() => { /* ignore thumb errors */ });
         }
 
