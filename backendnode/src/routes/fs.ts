@@ -19,6 +19,7 @@ import {
 import { getOrGenerateThumb } from "../services/thumbService.js";
 import { parseName } from "../utils/nameParser.js";
 import trash from "trash";
+import { getDiskInfoSync } from "node-disk-info";
 import { refreshAllRecScores } from "../services/recService.js";
 
 const execFileAsync = promisify(execFile);
@@ -394,20 +395,17 @@ async function scanDirectory(
 // ─── drives (Windows) ────────────────────────────────────────────────────────
 
 async function getDrives(_req: FastifyRequest, reply: FastifyReply) {
-  const drives: { path: string; dirname: string }[] = [];
-  if (process.platform === "win32") {
-    const checks = Array.from({ length: 26 }, (_, i) => {
-      const letter = String.fromCharCode(65 + i);
-      const drivePath = `${letter}:\\`;
-      return fs.promises.access(drivePath)
-        .then(() => drives.push({ path: drivePath, dirname: `${letter}:` }))
-        .catch(() => { /* not available */ });
-    });
-    await Promise.all(checks);
-  } else {
-    drives.push({ path: "/", dirname: "/" });
+  try {
+    const disks = getDiskInfoSync();
+    const drives = disks.map(d => ({
+      path: d.mounted,
+      dirname: d.filesystem || d.mounted,
+    }));
+    return reply.send(drives);
+  } catch {
+    // fallback for unexpected errors
+    return reply.send(process.platform !== "win32" ? [{ path: "/", dirname: "/" }] : []);
   }
-  return reply.send(drives);
 }
 
 // ─── file operations ─────────────────────────────────────────────────────────
