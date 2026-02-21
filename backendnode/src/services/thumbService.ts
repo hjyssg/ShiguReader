@@ -13,11 +13,15 @@ import os from "node:os";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { fileURLToPath } from "node:url";
+import pLimit from "p-limit";
 import { config } from "../config.js";
 import { getFileType } from "../utils/fileType.js";
 import { IMAGE_SUFFIXES } from "../constants.js";
 
 const execFileAsync = promisify(execFile);
+
+// Limit concurrent thumbnail generation to avoid HDD thrashing
+const thumbLimit = pLimit(config.THUMB_CONCURRENCY);
 
 // ── tool resolution ──────────────────────────────────────────────────────────
 
@@ -168,26 +172,31 @@ async function generateImageThumb(imagePath: string, outputPath: string): Promis
  */
 export async function getOrGenerateThumb(filePath: string): Promise<string | null> {
   const outputPath = getCachedThumbPath(filePath);
+  // Fast path: already cached, no need to acquire the limiter
   if (await isCached(outputPath)) return outputPath;
 
-  const fileType = getFileType(filePath);
+  return thumbLimit(async () => {
+    // Double-check after acquiring slot (another request may have just generated it)
+    if (await isCached(outputPath)) return outputPath;
 
-  try {
-    if (fileType === "archive") {
-      await generateArchiveThumb(filePath, outputPath);
-    } else if (fileType === "video") {
-      await generateVideoThumb(filePath, outputPath);
-    } else if (fileType === "image") {
-      await generateImageThumb(filePath, outputPath);
-    } else {
+    const fileType = getFileType(filePath);
+    try {
+      if (fileType === "archive") {
+        await generateArchiveThumb(filePath, outputPath);
+      } else if (fileType === "video") {
+        await generateVideoThumb(filePath, outputPath);
+      } else if (fileType === "image") {
+        await generateImageThumb(filePath, outputPath);
+      } else {
+        return null;
+      }
+    } catch (e) {
+      console.error(`[thumb] Failed to generate thumbnail for ${filePath}:`, e);
       return null;
     }
-  } catch (e) {
-    console.error(`[thumb] Failed to generate thumbnail for ${filePath}:`, e);
-    return null;
-  }
 
-  return (await isCached(outputPath)) ? outputPath : null;
+    return (await isCached(outputPath)) ? outputPath : null;
+  });
 }
 
 /** Returns cached thumb path if it exists, null otherwise. */

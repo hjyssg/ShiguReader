@@ -40,6 +40,10 @@ vi.mock("../../src/config.js", () => ({
     FS_ROOTS: "",
     FAVORITE_DIR: "",
     ALREADY_READ_DIR: "",
+    THUMB_CONCURRENCY: 3,
+    EXTRACT_CONCURRENCY: 2,
+    THUMB_CACHE_DIR: "../data/thumb_cache",
+    EXTRACT_CACHE_DIR: "../data/extract_cache",
   },
 }));
 

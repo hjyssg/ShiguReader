@@ -23,6 +23,11 @@ vi.mock("node:util", async (importOriginal) => {
 vi.mock("../../src/config.js", () => ({
   config: {
     EXTRACT_CACHE_DIR: "/fake/cache",
+    EXTRACT_CONCURRENCY: 2,
+    THUMB_CONCURRENCY: 3,
+    THUMB_TIMEOUT_SEC: 10,
+    THUMB_HEIGHT: 350,
+    THUMB_JPEG_QUALITY: 70,
   },
 }));
 

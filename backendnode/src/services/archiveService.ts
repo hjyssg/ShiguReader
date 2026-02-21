@@ -10,10 +10,14 @@ import os from "node:os";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { fileURLToPath } from "node:url";
+import pLimit from "p-limit";
 import { config } from "../config.js";
 import { IMAGE_SUFFIXES, VIDEO_SUFFIXES, AUDIO_SUFFIXES } from "../constants.js";
 
 const execFileAsync = promisify(execFile);
+
+// Limit concurrent archive extractions to avoid HDD thrashing
+const extractLimit = pLimit(config.EXTRACT_CONCURRENCY);
 
 // ── tool resolution ──────────────────────────────────────────────────────────
 
@@ -134,20 +138,23 @@ export async function extractEntries(
   entries: string[]
 ): Promise<void> {
   if (!entries.length) return;
-  fs.mkdirSync(destDir, { recursive: true });
 
-  // Write entry list to a temp UTF-8 file
-  const listFile = path.join(os.tmpdir(), `shigure-extract-${Date.now()}.txt`);
-  try {
-    fs.writeFileSync(listFile, entries.join("\n"), "utf8");
-    await execFileAsync(
-      get7z(),
-      ["x", archivePath, `-o${destDir}`, "-y", "-scsUTF-8", `@${listFile}`],
-      { timeout: 120000, maxBuffer: 4 * 1024 * 1024 }
-    );
-  } finally {
-    try { fs.unlinkSync(listFile); } catch { /* ignore */ }
-  }
+  return extractLimit(async () => {
+    fs.mkdirSync(destDir, { recursive: true });
+
+    // Write entry list to a temp UTF-8 file
+    const listFile = path.join(os.tmpdir(), `shigure-extract-${Date.now()}.txt`);
+    try {
+      fs.writeFileSync(listFile, entries.join("\n"), "utf8");
+      await execFileAsync(
+        get7z(),
+        ["x", archivePath, `-o${destDir}`, "-y", "-scsUTF-8", `@${listFile}`],
+        { timeout: 120000, maxBuffer: 4 * 1024 * 1024 }
+      );
+    } finally {
+      try { fs.unlinkSync(listFile); } catch { /* ignore */ }
+    }
+  });
 }
 
 // ── stepwise extract ─────────────────────────────────────────────────────────
