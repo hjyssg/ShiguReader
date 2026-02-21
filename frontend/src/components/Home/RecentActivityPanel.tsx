@@ -53,9 +53,6 @@ export function RecentActivityPanel({ items }: Props) {
         return
       }
 
-      if (item.activity_type === "db_sync") {
-        await fetch(`${OpenAPI.BASE}/api/v1/fs/sync-file-table`, { method: "POST" })
-      }
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ["home-recent-activity"] })

@@ -10,7 +10,6 @@ import { getFileType, getMimeType } from "../utils/fileType.js";
 import { config } from "../config.js";
 import {
   listEntries,
-  extractEntries,
   stepwiseExtract,
   getExtractCacheDir,
   clearExtractCache as svcClearExtractCache,
@@ -208,7 +207,6 @@ async function listDirectory(
               filesize: item.filesize,
               file_type: item.file_type ?? "unknown",
               ext: path.extname(item.name).toLowerCase() || null,
-              fingerprint: makeFingerprint(item.path, item.mtime, item.filesize),
             });
             const parsed = parseName(item.name);
             r.saveParsedMetadata(item.path, {
@@ -323,6 +321,7 @@ async function scanDirectory(
         repo.upsertFolder({ filepath: dir, dirname: path.basename(dir) || dir });
         scannedFolders++;
         scanStatusMap.set(dirPath, { ...scanStatusMap.get(dirPath)!, scanned_folders: scannedFolders, scanned_files: scannedFiles });
+        const presentPaths: string[] = [];
         for (const entry of entries) {
           const full = path.join(dir, entry.name);
           try {
@@ -330,6 +329,7 @@ async function scanDirectory(
             if (entry.isDirectory() && recurse) {
               await walk(full, true);
             } else if (entry.isFile()) {
+              presentPaths.push(full);
               repo.upsertFile({
                 filepath: full,
                 folderpath: dir,
@@ -338,7 +338,6 @@ async function scanDirectory(
                 filesize: s.size,
                 file_type: getFileType(entry.name),
                 ext: path.extname(entry.name).toLowerCase() || null,
-                fingerprint: makeFingerprint(full, Math.floor(s.mtimeMs / 1000), s.size),
               });
               const parsed = parseName(entry.name);
               repo.saveParsedMetadata(full, {
@@ -356,6 +355,8 @@ async function scanDirectory(
             }
           } catch { /* skip */ }
         }
+        // Mark files no longer on disk as missing
+        repo.markMissingInFolder(dir, presentPaths);
       };
       await walk(dirPath, recursive);
       scanStatusMap.set(dirPath, { ...scanStatusMap.get(dirPath)!, status: "completed", message: `Scan completed: ${dirPath}`, finished_at: Math.floor(Date.now() / 1000) });
@@ -742,7 +743,6 @@ async function backfill(
           filesize: s.size,
           file_type: fileType,
           ext: path.extname(entry.name).toLowerCase() || null,
-          fingerprint: makeFingerprint(fullPath, Math.floor(s.mtimeMs / 1000), s.size),
         });
         scannedFiles++;
 
@@ -831,8 +831,6 @@ async function scanWatch(
             filesize: s.size,
             file_type: getFileType(fullPath),
             ext: path.extname(fullPath).toLowerCase() || null,
-            fingerprint: makeFingerprint(fullPath, Math.floor(s.mtimeMs / 1000), s.size),
-            scan_state: 1,
           });
         } catch { /* file may have been deleted */ }
       });
@@ -894,51 +892,6 @@ async function getScanStatus(
   })));
 }
 
-async function syncFileTable(_req: FastifyRequest, reply: FastifyReply) {
-  const taskKey = "db_sync:manual";
-  try { getRepo().logActivity("db_sync", "File table sync started", "started", taskKey); } catch { /* ignore */ }
-
-  setImmediate(async () => {
-    const repo = getRepo();
-    try {
-      const roots = parseRoots();
-      let syncedFiles = 0;
-      for (const root of roots) {
-        try {
-          const walk = async (dir: string) => {
-            const entries = await fs.promises.readdir(dir, { withFileTypes: true });
-            repo.upsertFolder({ filepath: dir, dirname: path.basename(dir) || dir });
-            for (const entry of entries) {
-              const full = path.join(dir, entry.name);
-              try {
-                const s = await fs.promises.stat(full);
-                if (entry.isDirectory()) {
-                  await walk(full);
-                } else if (entry.isFile()) {
-                  repo.upsertFile({
-                    filepath: full, folderpath: dir, filename: entry.name,
-                    mtime: Math.floor(s.mtimeMs / 1000), filesize: s.size,
-                    file_type: getFileType(entry.name),
-                    ext: path.extname(entry.name).toLowerCase() || null,
-                    fingerprint: makeFingerprint(full, Math.floor(s.mtimeMs / 1000), s.size),
-                  });
-                  syncedFiles++;
-                }
-              } catch { /* skip */ }
-            }
-          };
-          await walk(root);
-        } catch { /* skip root */ }
-      }
-      repo.logActivity("db_sync", `File table sync completed: ${syncedFiles} files`, "completed", taskKey, undefined, { synced_files: syncedFiles });
-    } catch (e) {
-      try { repo.logActivity("db_sync", `File table sync failed: ${e}`, "failed", taskKey); } catch { /* ignore */ }
-    }
-  });
-
-  return reply.send({ status: "started", message: "File table sync started" });
-}
-
 // ─── plugin ──────────────────────────────────────────────────────────────────
 
 export async function fsRoutes(app: FastifyInstance) {
@@ -970,5 +923,4 @@ export async function fsRoutes(app: FastifyInstance) {
   app.get("/archive/file", getArchiveFile);
   app.delete("/extract-cache", clearExtractCache);
   app.post("/archive/compress-images", compressImages);
-  app.post("/sync-file-table", syncFileTable);
 }
