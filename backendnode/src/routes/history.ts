@@ -1,4 +1,5 @@
 import type { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
+import fs from "node:fs";
 import { getDb } from "../db/client.js";
 import { IndexRepository } from "../db/repository.js";
 import { config } from "../config.js";
@@ -34,9 +35,10 @@ async function listHistory(
       filesize: r.filesize,
       mtime: r.mtime,
       thumbnail_url: r.thumbnail_url ?? (r.filepath ? buildThumbUrl(r.filepath) : null),
-      read_at: r.last_opened_at,   // #4: rename last_opened_at → read_at
+      read_at: r.last_opened_at,
       page_current: r.page_current,
       page_total: r.page_total,
+      file_exists: r.filepath ? fs.existsSync(r.filepath) : null,
     })),
     page,
     page_size: pageSize,

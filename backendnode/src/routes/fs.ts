@@ -105,10 +105,12 @@ async function getAlreadyRead(_req: FastifyRequest, reply: FastifyReply) {
 }
 
 async function listDirectory(
-  req: FastifyRequest<{ Querystring: { path: string; sort_by?: string; sort_order?: string } }>,
+  req: FastifyRequest<{ Querystring: { path: string; sort_by?: string; sort_order?: string; has_video?: string; has_audio?: string } }>,
   reply: FastifyReply
 ) {
-  const { path: dirPath, sort_by = "name", sort_order = "asc" } = req.query;
+  const { path: dirPath, sort_by = "name", sort_order = "asc", has_video, has_audio } = req.query;
+  const filterHasVideo = has_video === "true";
+  const filterHasAudio = has_audio === "true";
   if (!dirPath) return reply.status(400).send({ error: "path is required" });
 
   let stat: fs.Stats;
@@ -243,13 +245,24 @@ async function listDirectory(
     });
   } catch { /* ignore DB errors, still return FS data */ }
 
+  // Apply has_video / has_audio filters (only applies to archive files)
+  let filteredItems = items;
+  if (filterHasVideo) {
+    filteredItems = filteredItems.filter(i => i.item_type !== "file" || i.file_type !== "archive" || (i.video_count !== null && i.video_count > 0));
+  }
+  if (filterHasAudio) {
+    filteredItems = filteredItems.filter(i => i.item_type !== "file" || i.file_type !== "archive" || (i.audio_count !== null && i.audio_count > 0));
+  }
+
   // Sort
-  const folders = items.filter(i => i.item_type === "folder").sort((a, b) => a.name.localeCompare(b.name));
-  const files = items.filter(i => i.item_type === "file");
+  const folders = filteredItems.filter(i => i.item_type === "folder").sort((a, b) => a.name.localeCompare(b.name));
+  const files = filteredItems.filter(i => i.item_type === "file");
   const rev = sort_order === "desc" ? -1 : 1;
   files.sort((a, b) => {
     if (sort_by === "mtime") return rev * ((a.mtime ?? 0) - (b.mtime ?? 0));
     if (sort_by === "recommendation") return rev * (a.recommendation_score - b.recommendation_score);
+    if (sort_by === "type") return rev * ((a.file_type ?? "").localeCompare(b.file_type ?? ""));
+    if (sort_by === "image_count") return rev * ((a.image_count ?? 0) - (b.image_count ?? 0));
     return rev * a.name.localeCompare(b.name);
   });
 
@@ -318,7 +331,7 @@ async function scanDirectory(
   const startedAt = Math.floor(Date.now() / 1000);
   scanStatusMap.set(dirPath, {
     path: dirPath, status: "running", message: "Scan started",
-    recursive, scanned_folders: 0, scanned_files: 0,
+    recursive, scanned_folders: 0, scanned_files: 0, parsed_files: 0,
     watcher_active: false, started_at: startedAt, finished_at: null,
   });
 
@@ -731,71 +744,82 @@ async function backfill(
     return reply.status(404).send({ error: "Directory not found" });
   }
 
-  // Fire-and-forget background backfill
-  setImmediate(async () => {
-    try {
-      const repo = getRepo();
-      const entries = fs.readdirSync(dirPath, { withFileTypes: true });
-      for (const entry of entries) {
-        if (!entry.isFile()) continue;
-        const fullPath = path.join(dirPath, entry.name);
-        const fileType = getFileType(entry.name);
-        if (fileType === "unknown") continue;
+  // Synchronous backfill — returns actual stats matching BackfillResponse
+  let scannedFiles = 0;
+  let backfilledThumbnails = 0;
+  let backfilledMeta = 0;
 
-        try {
-          const s = fs.statSync(fullPath);
-          repo.upsertFile({
-            filepath: fullPath,
-            folderpath: dirPath,
-            filename: entry.name,
-            mtime: Math.floor(s.mtimeMs / 1000),
-            filesize: s.size,
-            file_type: fileType,
-            ext: path.extname(entry.name).toLowerCase() || null,
-            fingerprint: makeFingerprint(fullPath, Math.floor(s.mtimeMs / 1000), s.size),
-            scan_state: 1,
-          });
+  try {
+    const repo = getRepo();
+    const entries = fs.readdirSync(dirPath, { withFileTypes: true });
+    for (const entry of entries) {
+      if (!entry.isFile()) continue;
+      const fullPath = path.join(dirPath, entry.name);
+      const fileType = getFileType(entry.name);
+      if (fileType === "unknown") continue;
 
-          if (fill_thumbnail && ["archive", "video", "image"].includes(fileType)) {
-            getOrGenerateThumb(fullPath).catch(() => { /* ignore thumb errors */ });
-          }
-
-          if (fill_meta) {
-            const parsed = parseName(entry.name);
-            // Convert null → undefined to match saveParsedMetadata signature
-            repo.saveParsedMetadata(fullPath, {
-              title: parsed.title ?? undefined,
-              authors: parsed.authors,
-              cosers: parsed.cosers,
-              groupName: parsed.groupName ?? undefined,
-              rawTags: parsed.rawTags,
-              event: parsed.event ?? undefined,
-              dateTag: parsed.dateTag ?? undefined,
-              mediaType: parsed.mediaType ?? undefined,
-            });
-
-            if (fileType === "archive") {
-              try {
-                const archiveEntries = await listEntries(fullPath);
-                const imageNum = archiveEntries.filter(e => e.type === "image").length;
-                const videoNum = archiveEntries.filter(e => e.type === "video").length;
-                const audioNum = archiveEntries.filter(e => e.type === "audio").length;
-                const ext = path.extname(entry.name).toLowerCase().slice(1);
-                repo.upsertArchiveMeta(fullPath, ext, archiveEntries.length, imageNum, videoNum, audioNum);
-              } catch { /* skip if archive listing fails */ }
-            }
-          }
-        } catch { /* skip individual file errors */ }
-      }
-      repo.logActivity("backfill", `Backfill completed: ${dirPath}`, "completed", `backfill:${dirPath}`, dirPath);
-    } catch (e) {
       try {
-        getRepo().logActivity("backfill", `Backfill failed: ${dirPath}`, "failed", `backfill:${dirPath}`, dirPath);
-      } catch { /* ignore */ }
-    }
-  });
+        const s = fs.statSync(fullPath);
+        repo.upsertFile({
+          filepath: fullPath,
+          folderpath: dirPath,
+          filename: entry.name,
+          mtime: Math.floor(s.mtimeMs / 1000),
+          filesize: s.size,
+          file_type: fileType,
+          ext: path.extname(entry.name).toLowerCase() || null,
+          fingerprint: makeFingerprint(fullPath, Math.floor(s.mtimeMs / 1000), s.size),
+          scan_state: 1,
+        });
+        scannedFiles++;
 
-  return reply.send({ status: "started", message: "Backfill task started", path: dirPath });
+        if (fill_thumbnail && ["archive", "video", "image"].includes(fileType)) {
+          getOrGenerateThumb(fullPath)
+            .then(() => { backfilledThumbnails++; })
+            .catch(() => { /* ignore thumb errors */ });
+        }
+
+        if (fill_meta) {
+          const parsed = parseName(entry.name);
+          repo.saveParsedMetadata(fullPath, {
+            title: parsed.title ?? undefined,
+            authors: parsed.authors,
+            cosers: parsed.cosers,
+            groupName: parsed.groupName ?? undefined,
+            rawTags: parsed.rawTags,
+            event: parsed.event ?? undefined,
+            dateTag: parsed.dateTag ?? undefined,
+            mediaType: parsed.mediaType ?? undefined,
+          });
+          backfilledMeta++;
+
+          if (fileType === "archive") {
+            try {
+              const archiveEntries = await listEntries(fullPath);
+              const imageNum = archiveEntries.filter(e => e.type === "image").length;
+              const videoNum = archiveEntries.filter(e => e.type === "video").length;
+              const audioNum = archiveEntries.filter(e => e.type === "audio").length;
+              const ext = path.extname(entry.name).toLowerCase().slice(1);
+              repo.upsertArchiveMeta(fullPath, ext, archiveEntries.length, imageNum, videoNum, audioNum);
+            } catch { /* skip if archive listing fails */ }
+          }
+        }
+      } catch { /* skip individual file errors */ }
+    }
+    repo.logActivity("backfill", `Backfill completed: ${dirPath}`, "completed", `backfill:${dirPath}`, dirPath);
+  } catch (e) {
+    try {
+      getRepo().logActivity("backfill", `Backfill failed: ${dirPath}`, "failed", `backfill:${dirPath}`, dirPath);
+    } catch { /* ignore */ }
+  }
+
+  return reply.send({
+    status: "ok",
+    scanned_files: scannedFiles,
+    backfilled_thumbnails: backfilledThumbnails,
+    backfilled_meta: backfilledMeta,
+    message: `Backfill completed: ${scannedFiles} files scanned`,
+  });
 }
 
 // Simple in-memory watcher registry
@@ -855,6 +879,7 @@ const scanStatusMap = new Map<string, {
   recursive: boolean;
   scanned_folders: number;
   scanned_files: number;
+  parsed_files: number;
   watcher_active: boolean;
   started_at: number | null;
   finished_at: number | null;
@@ -881,6 +906,7 @@ async function getScanStatus(
           recursive: true,
           scanned_folders: 0,
           scanned_files: 0,
+          parsed_files: 0,
           watcher_active: true,
           started_at: null,
           finished_at: null,

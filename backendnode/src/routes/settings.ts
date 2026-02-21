@@ -3,6 +3,8 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { config } from "../config.js";
+import { getDb } from "../db/client.js";
+import { IndexRepository } from "../db/repository.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __routeDir = path.dirname(__filename);
@@ -74,7 +76,66 @@ async function updateSettings(
   });
 }
 
+// POST /api/v1/settings/verify-files
+// 计算 DB 中所有 filepath 的共同 root，遍历确认文件是否真实存在，
+// 将不存在的文件标记 scan_state=0。由用户在 Settings 页手动触发。
+async function verifyFiles(_req: FastifyRequest, reply: FastifyReply) {
+  const repo = new IndexRepository(getDb());
+
+  // 获取所有 scan_state=1 的文件路径
+  const db = getDb();
+  const rows = db.prepare("SELECT filepath FROM files WHERE scan_state = 1").all() as { filepath: string }[];
+
+  if (!rows.length) {
+    return reply.send({ status: "ok", checked: 0, missing: 0, message: "No files to verify" });
+  }
+
+  // 计算所有路径的共同 root（最长公共前缀目录）
+  const filepaths = rows.map(r => r.filepath);
+  let commonRoot = path.dirname(filepaths[0]);
+  for (const fp of filepaths) {
+    const dir = path.dirname(fp);
+    // 找公共前缀
+    while (commonRoot && !dir.startsWith(commonRoot)) {
+      commonRoot = path.dirname(commonRoot);
+    }
+  }
+
+  let checked = 0;
+  let missing = 0;
+  const missingPaths: string[] = [];
+
+  for (const fp of filepaths) {
+    checked++;
+    if (!fs.existsSync(fp)) {
+      missing++;
+      missingPaths.push(fp);
+    }
+  }
+
+  // 批量标记不存在的文件 scan_state=0
+  if (missingPaths.length > 0) {
+    const stmt = db.prepare("UPDATE files SET scan_state = 0, updated_at = ? WHERE filepath = ?");
+    const now = Math.floor(Date.now() / 1000);
+    for (const fp of missingPaths) {
+      stmt.run(now, fp);
+    }
+    try {
+      repo.logActivity("verify_files", `File verification: ${missing} missing out of ${checked}`, "completed", "verify_files", undefined, { checked, missing, common_root: commonRoot });
+    } catch { /* ignore */ }
+  }
+
+  return reply.send({
+    status: "ok",
+    checked,
+    missing,
+    common_root: commonRoot,
+    message: `Verified ${checked} files: ${missing} missing (marked scan_state=0)`,
+  });
+}
+
 export async function settingsRoutes(app: FastifyInstance) {
   app.get("", getSettings);
   app.put("", updateSettings);
+  app.post("/verify-files", verifyFiles);
 }

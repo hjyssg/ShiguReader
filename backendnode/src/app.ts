@@ -72,6 +72,8 @@ export function buildApp() {
 
   // ── Health ─────────────────────────────────────────────────────────────────
   app.get("/health", async () => ({ status: "ok", project: config.PROJECT_NAME }));
+  // Frontend SDK calls /api/v1/utils/health-check/
+  app.get(`${config.API_V1_STR}/utils/health-check/`, async () => true);
 
   // ── Serve frontend static build ────────────────────────────────────────────
   // Looks for ../frontend/dist relative to this file (dev) or dist/ (built)
