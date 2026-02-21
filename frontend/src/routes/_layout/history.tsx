@@ -42,7 +42,6 @@ type HistoryItem = {
   read_at: number
   page_current: number | null
   page_total: number | null
-  file_exists: boolean
 }
 
 type HistoryResponse = {
