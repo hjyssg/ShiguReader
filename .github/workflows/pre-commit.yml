@@ -37,7 +37,7 @@ jobs:
         run: npm install
       - name: Run biome lint
         working-directory: frontend
-        run: npm run lint
+        run: npx @biomejs/biome check --no-errors-on-unmatched --files-ignore-unknown=true ./
 
   # https://github.com/marketplace/actions/alls-green#why
   pre-commit-alls-green:
