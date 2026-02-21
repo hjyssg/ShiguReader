@@ -8,20 +8,21 @@ function getRepo() {
 
 async function listAuthors(
   req: FastifyRequest<{
-    Querystring: { offset?: string; limit?: string; sort_by?: string; sort_order?: string };
+    Querystring: { page?: string; page_size?: string; sort_by?: string; sort_order?: string };
   }>,
   reply: FastifyReply
 ) {
-  const offset = Math.max(0, parseInt(req.query.offset ?? "0", 10) || 0);
-  const limit = Math.min(500, Math.max(1, parseInt(req.query.limit ?? "100", 10) || 100));
+  const page = Math.max(1, parseInt(req.query.page ?? "1", 10) || 1);
+  const pageSize = Math.min(500, Math.max(1, parseInt(req.query.page_size ?? "100", 10) || 100));
+  const offset = (page - 1) * pageSize;
   const sortBy = req.query.sort_by ?? "count";
   const sortOrder = req.query.sort_order ?? "desc";
 
   const repo = getRepo();
   const total = repo.countArtists("");
-  const items = repo.listArtistsWithCounts(offset, limit, "", sortBy, sortOrder);
+  const items = repo.listArtistsWithCounts(offset, pageSize, "", sortBy, sortOrder);
 
-  return reply.send({ total, items });
+  return reply.send({ items, page, page_size: pageSize, total });
 }
 
 export async function authorsRoutes(app: FastifyInstance) {

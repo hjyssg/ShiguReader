@@ -60,7 +60,12 @@ interface FileSystemItem {
   image_count: number | null;
   video_count: number | null;
   audio_count: number | null;
+  avg_image_size: number | null;
   recommendation_score: number;
+  scan_state: number | null;
+  watch_state: number | null;
+  confidence_level: string | null;
+  confidence_score: number | null;
   last_read_at: number | null;
 }
 
@@ -132,7 +137,12 @@ async function listDirectory(
             image_count: null,
             video_count: null,
             audio_count: null,
+            avg_image_size: null,
             recommendation_score: 0,
+            scan_state: null,
+            watch_state: null,
+            confidence_level: null,
+            confidence_score: null,
             last_read_at: null,
           });
         } else if (entry.isFile()) {
@@ -151,7 +161,12 @@ async function listDirectory(
             image_count: null,
             video_count: null,
             audio_count: null,
+            avg_image_size: null,
             recommendation_score: 0,
+            scan_state: null,
+            watch_state: null,
+            confidence_level: null,
+            confidence_score: null,
             last_read_at: null,
           });
         }
@@ -351,44 +366,44 @@ async function getDrives(_req: FastifyRequest, reply: FastifyReply) {
 // ─── file operations ─────────────────────────────────────────────────────────
 
 async function moveFile(
-  req: FastifyRequest<{ Body: { src: string; dst: string } }>,
+  req: FastifyRequest<{ Body: { source_path: string; dest_path: string } }>,
   reply: FastifyReply
 ) {
-  const { src, dst } = req.body ?? {};
-  if (!src || !dst) return reply.status(400).send({ error: "src and dst are required" });
+  const { source_path, dest_path } = req.body ?? {};
+  if (!source_path || !dest_path) return reply.status(400).send({ error: "source_path and dest_path are required" });
   try {
-    fs.mkdirSync(path.dirname(dst), { recursive: true });
-    fs.renameSync(src, dst);
-    return reply.send({ status: "ok" });
+    fs.mkdirSync(path.dirname(dest_path), { recursive: true });
+    fs.renameSync(source_path, dest_path);
+    return reply.send({ status: "ok", message: "File moved", path: source_path, dest_path });
   } catch (e) {
     return reply.status(500).send({ error: String(e) });
   }
 }
 
 async function moveFolder(
-  req: FastifyRequest<{ Body: { src: string; dst: string } }>,
+  req: FastifyRequest<{ Body: { source_path: string; dest_path: string } }>,
   reply: FastifyReply
 ) {
-  const { src, dst } = req.body ?? {};
-  if (!src || !dst) return reply.status(400).send({ error: "src and dst are required" });
+  const { source_path, dest_path } = req.body ?? {};
+  if (!source_path || !dest_path) return reply.status(400).send({ error: "source_path and dest_path are required" });
   try {
-    fs.mkdirSync(path.dirname(dst), { recursive: true });
-    fs.renameSync(src, dst);
-    return reply.send({ status: "ok" });
+    fs.mkdirSync(path.dirname(dest_path), { recursive: true });
+    fs.renameSync(source_path, dest_path);
+    return reply.send({ status: "ok", message: "Folder moved", path: source_path, dest_path });
   } catch (e) {
     return reply.status(500).send({ error: String(e) });
   }
 }
 
 async function deleteItem(
-  req: FastifyRequest<{ Body: { path: string } }>,
+  req: FastifyRequest<{ Body: { path: string; permanently?: boolean } }>,
   reply: FastifyReply
 ) {
-  const { path: itemPath } = req.body ?? {};
+  const { path: itemPath, permanently = true } = req.body ?? {};
   if (!itemPath) return reply.status(400).send({ error: "path is required" });
   try {
     fs.rmSync(itemPath, { recursive: true, force: true });
-    return reply.send({ status: "ok" });
+    return reply.send({ status: "ok", message: "Deleted", path: itemPath });
   } catch (e) {
     return reply.status(500).send({ error: String(e) });
   }
@@ -403,7 +418,7 @@ async function renameItem(
   const newPath = path.join(path.dirname(itemPath), new_name);
   try {
     fs.renameSync(itemPath, newPath);
-    return reply.send({ status: "ok", new_path: newPath });
+    return reply.send({ status: "ok", message: "Renamed", path: itemPath, dest_path: newPath });
   } catch (e) {
     return reply.status(500).send({ error: String(e) });
   }
@@ -572,75 +587,73 @@ async function clearExtractCache(_req: FastifyRequest, reply: FastifyReply) {
 }
 
 async function compressImages(
-  req: FastifyRequest<{ Body: { path: string; max_height?: number; quality?: number } }>,
+  req: FastifyRequest<{ Body: { archive_path: string; output_path?: string | null; max_width?: number | null; max_height?: number | null; quality?: number | null; min_size?: number | null } }>,
   reply: FastifyReply
 ) {
-  const { path: archivePath, max_height = 1600, quality = 85 } = req.body ?? {};
-  if (!archivePath) return reply.status(400).send({ error: "path is required" });
+  const { archive_path, max_height = 1600, quality = 85 } = req.body ?? {};
+  if (!archive_path) return reply.status(400).send({ error: "archive_path is required" });
   try {
-    fs.accessSync(archivePath);
+    fs.accessSync(archive_path);
   } catch {
     return reply.status(404).send({ error: "File not found" });
   }
   try {
-    const result = await compressArchiveImages(archivePath, max_height, quality);
-    return reply.send({ status: "ok", ...result });
+    const result = await compressArchiveImages(archive_path, max_height ?? 1600, quality ?? 85);
+    return reply.send(result);
   } catch (e) {
     return reply.status(500).send({ error: String(e) });
   }
 }
 
 async function zipFolder(
-  req: FastifyRequest<{ Body: { path: string; dest?: string } }>,
+  req: FastifyRequest<{ Body: { folder_path: string; output_path?: string | null } }>,
   reply: FastifyReply
 ) {
-  const { path: folderPath, dest } = req.body ?? {};
-  if (!folderPath) return reply.status(400).send({ error: "path is required" });
+  const { folder_path, output_path } = req.body ?? {};
+  if (!folder_path) return reply.status(400).send({ error: "folder_path is required" });
   try {
-    const stat = fs.statSync(folderPath);
-    if (!stat.isDirectory()) return reply.status(400).send({ error: "path is not a directory" });
+    const stat = fs.statSync(folder_path);
+    if (!stat.isDirectory()) return reply.status(400).send({ error: "folder_path is not a directory" });
   } catch {
     return reply.status(404).send({ error: "Folder not found" });
   }
-  const outputZip = dest ?? `${folderPath}.zip`;
+  const outputZip = output_path ?? `${folder_path}.zip`;
   if (fs.existsSync(outputZip)) {
     return reply.status(409).send({ error: "Output zip already exists", path: outputZip });
   }
   try {
-    // 7z a <output.zip> <folder>/* -y
-    await execFileAsync(get7zBin(), ["a", "-tzip", outputZip, folderPath + path.sep + "*", "-y"], {
+    await execFileAsync(get7zBin(), ["a", "-tzip", outputZip, folder_path + path.sep + "*", "-y"], {
       timeout: 300000,
     });
-    return reply.send({ status: "ok", output: outputZip });
+    return reply.send({ status: "ok", message: "Zip created", path: folder_path, dest_path: outputZip });
   } catch (e) {
     return reply.status(500).send({ error: String(e) });
   }
 }
 
 async function unzip(
-  req: FastifyRequest<{ Body: { path: string; dest?: string } }>,
+  req: FastifyRequest<{ Body: { archive_path: string; output_dir?: string | null } }>,
   reply: FastifyReply
 ) {
-  const { path: archivePath, dest } = req.body ?? {};
-  if (!archivePath) return reply.status(400).send({ error: "path is required" });
+  const { archive_path, output_dir } = req.body ?? {};
+  if (!archive_path) return reply.status(400).send({ error: "archive_path is required" });
   try {
-    fs.accessSync(archivePath);
+    fs.accessSync(archive_path);
   } catch {
     return reply.status(404).send({ error: "File not found" });
   }
-  // Default dest: same-name directory next to archive
-  const outputDir = dest ?? path.join(
-    path.dirname(archivePath),
-    path.basename(archivePath, path.extname(archivePath))
+  const outputDir = output_dir ?? path.join(
+    path.dirname(archive_path),
+    path.basename(archive_path, path.extname(archive_path))
   );
   if (fs.existsSync(outputDir)) {
     return reply.status(409).send({ error: "Destination already exists", path: outputDir });
   }
   try {
-    await execFileAsync(get7zBin(), ["x", archivePath, `-o${outputDir}`, "-y", "-scsUTF-8"], {
+    await execFileAsync(get7zBin(), ["x", archive_path, `-o${outputDir}`, "-y", "-scsUTF-8"], {
       timeout: 300000,
     });
-    return reply.send({ status: "ok", output: outputDir });
+    return reply.send({ status: "ok", message: "Unzipped", path: archive_path, dest_path: outputDir });
   } catch (e) {
     return reply.status(500).send({ error: String(e) });
   }
@@ -650,12 +663,12 @@ async function unzip(
 
 async function scanFavorite(_req: FastifyRequest, reply: FastifyReply) {
   const dir = config.FAVORITE_DIR.trim();
-  if (!dir) return reply.send({ status: "skipped", message: "FAVORITE_DIR not configured" });
-  return reply.send({ status: "started", path: dir });
+  if (!dir) return reply.send({ status: "started", message: "FAVORITE_DIR not configured", path: "" });
+  return reply.send({ status: "started", message: "Scan started", path: dir });
 }
 
 async function backfill(
-  req: FastifyRequest<{ Body: { path: string; fill_thumbnail?: boolean; fill_meta?: boolean } }>,
+  req: FastifyRequest<{ Body: { path: string; recursive?: boolean; fill_thumbnail?: boolean; fill_meta?: boolean } }>,
   reply: FastifyReply
 ) {
   const { path: dirPath, fill_thumbnail = true, fill_meta = true } = req.body ?? {};
@@ -738,7 +751,7 @@ async function backfill(
 const activeWatchers = new Map<string, fs.FSWatcher>();
 
 async function scanWatch(
-  req: FastifyRequest<{ Body: { path: string } }>,
+  req: FastifyRequest<{ Body: { path: string; recursive?: boolean } }>,
   reply: FastifyReply
 ) {
   const { path: dirPath } = req.body ?? {};
@@ -777,14 +790,58 @@ async function scanWatch(
       });
     });
     activeWatchers.set(dirPath, watcher);
-    return reply.send({ status: "started", path: dirPath });
+    return reply.send({ status: "started", message: "Watch started", path: dirPath });
   } catch (e) {
     return reply.status(500).send({ error: String(e) });
   }
 }
 
-async function getScanStatus(_req: FastifyRequest, reply: FastifyReply) {
-  return reply.send({ running: false, progress: null });
+// In-memory scan status registry (populated by scanDirectory)
+const scanStatusMap = new Map<string, {
+  path: string;
+  status: "running" | "completed" | "error";
+  message: string | null;
+  recursive: boolean;
+  scanned_folders: number;
+  scanned_files: number;
+  watcher_active: boolean;
+  started_at: number | null;
+  finished_at: number | null;
+}>();
+
+async function getScanStatus(
+  req: FastifyRequest<{ Querystring: { path?: string } }>,
+  reply: FastifyReply
+) {
+  const filterPath = req.query.path;
+  const watcherPaths = new Set(activeWatchers.keys());
+  const entries = filterPath
+    ? (scanStatusMap.has(filterPath) ? [scanStatusMap.get(filterPath)!] : [])
+    : [...scanStatusMap.values()];
+
+  // Also include active watchers not in scan map
+  if (!filterPath) {
+    for (const wp of watcherPaths) {
+      if (!scanStatusMap.has(wp)) {
+        entries.push({
+          path: wp,
+          status: "completed",
+          message: null,
+          recursive: true,
+          scanned_folders: 0,
+          scanned_files: 0,
+          watcher_active: true,
+          started_at: null,
+          finished_at: null,
+        });
+      }
+    }
+  }
+
+  return reply.send(entries.map(e => ({
+    ...e,
+    watcher_active: watcherPaths.has(e.path),
+  })));
 }
 
 // ─── plugin ──────────────────────────────────────────────────────────────────

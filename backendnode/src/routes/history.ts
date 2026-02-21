@@ -11,20 +11,22 @@ function buildThumbUrl(filePath: string): string {
   return `${config.API_V1_STR}/fs/thumb?path=${encodeURIComponent(filePath)}`;
 }
 
+// GET /api/v1/history/list
 async function listHistory(
-  req: FastifyRequest<{ Querystring: { offset?: string; limit?: string; sort_order?: string } }>,
+  req: FastifyRequest<{ Querystring: { page?: string; page_size?: string; sort_order?: string } }>,
   reply: FastifyReply
 ) {
-  const offset = Math.max(0, parseInt(req.query.offset ?? "0", 10) || 0);
-  const limit = Math.min(200, Math.max(1, parseInt(req.query.limit ?? "50", 10) || 50));
+  const page = Math.max(1, parseInt(req.query.page ?? "1", 10) || 1);
+  const pageSize = Math.min(200, Math.max(1, parseInt(req.query.page_size ?? "50", 10) || 50));
+  const offset = (page - 1) * pageSize;
   const sortOrder = req.query.sort_order === "asc" ? "asc" : "desc";
 
   const repo = getRepo();
   const total = repo.countProgressHistory();
-  const rows = repo.listProgressHistory(offset, limit, sortOrder);
+  const totalPages = Math.ceil(total / pageSize);
+  const rows = repo.listProgressHistory(offset, pageSize, sortOrder);
 
   return reply.send({
-    total,
     items: rows.map(r => ({
       filepath: r.filepath,
       filename: r.filename,
@@ -32,25 +34,22 @@ async function listHistory(
       filesize: r.filesize,
       mtime: r.mtime,
       thumbnail_url: r.thumbnail_url ?? (r.filepath ? buildThumbUrl(r.filepath) : null),
-      last_opened_at: r.last_opened_at,
-      total_time_sec: r.total_time_sec,
+      read_at: r.last_opened_at,   // #4: rename last_opened_at → read_at
       page_current: r.page_current,
       page_total: r.page_total,
-      position_sec: r.position_sec,
-      duration_sec: r.duration_sec,
     })),
+    page,
+    page_size: pageSize,
+    total,
+    total_pages: totalPages,
   });
 }
 
-async function upsertProgress(
+// POST /api/v1/history/record
+async function recordHistory(
   req: FastifyRequest<{
     Body: {
       filepath: string;
-      filename?: string;
-      file_type?: string;
-      filesize?: number;
-      mtime?: number;
-      thumbnail_url?: string;
       page_current?: number;
       page_total?: number;
       position_sec?: number;
@@ -68,6 +67,6 @@ async function upsertProgress(
 }
 
 export async function historyRoutes(app: FastifyInstance) {
-  app.get("", listHistory);
-  app.post("", upsertProgress);
+  app.get("/list", listHistory);
+  app.post("/record", recordHistory);
 }
