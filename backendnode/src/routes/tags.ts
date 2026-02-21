@@ -1,52 +1,13 @@
-import type { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
-import fs from "node:fs";
-import { getDb } from "../db/client.js";
-import { IndexRepository } from "../db/repository.js";
-import { config } from "../config.js";
+import type { FastifyInstance } from "fastify";
+import { makeListHandler } from "./_listUtils.js";
 
-function getRepo() {
-  return new IndexRepository(getDb());
-}
-
-function buildThumbUrl(filePath: string): string {
-  return `${config.API_V1_STR}/fs/thumb?path=${encodeURIComponent(filePath)}`;
-}
-
-function resolveThumbUrl(candidates: string[]): string | null {
-  for (const fp of candidates) {
-    try { fs.accessSync(fp); return buildThumbUrl(fp); } catch { /* next */ }
-  }
-  return candidates.length > 0 ? buildThumbUrl(candidates[0]) : null;
-}
-
-async function listTags(
-  req: FastifyRequest<{
-    Querystring: { page?: string; page_size?: string; sort_by?: string; sort_order?: string };
-  }>,
-  reply: FastifyReply
-) {
-  const page = Math.max(1, parseInt(req.query.page ?? "1", 10) || 1);
-  const pageSize = Math.min(500, Math.max(1, parseInt(req.query.page_size ?? "100", 10) || 100));
-  const offset = (page - 1) * pageSize;
-  const sortBy = req.query.sort_by ?? "count";
-  const sortOrder = req.query.sort_order ?? "desc";
-
-  const repo = getRepo();
-  const total = repo.countTags();
-  const rows = repo.listTagsWithCounts(offset, pageSize, sortBy, sortOrder);
-
-  const names = rows.map(r => r.tag_name);
-  const candidatesMap = repo.getTagThumbCandidates(names);
-
-  const items = rows.map(r => ({
-    name: r.tag_name,
-    file_count: r.file_count,
-    recommendation_score: r.avg_rec_score,
-    thumbnail: resolveThumbUrl(candidatesMap.get(r.tag_name) ?? []),
-  }));
-
-  return reply.send({ items, page, page_size: pageSize, total });
-}
+const listTags = makeListHandler({
+  count: repo => repo.countTags(),
+  list: (repo, offset, pageSize, sortBy, sortOrder) =>
+    repo.listTagsWithCounts(offset, pageSize, sortBy, sortOrder),
+  thumbCandidates: (repo, names) => repo.getTagThumbCandidates(names),
+  nameKey: "tag_name",
+});
 
 export async function tagsRoutes(app: FastifyInstance) {
   app.get("", listTags);
