@@ -25,7 +25,7 @@ jobs:
         shardTotal: [4]
       fail-fast: false
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v4
     - uses: oven-sh/setup-bun@v2
     - uses: actions/setup-node@v4
       with:
@@ -50,7 +50,7 @@ jobs:
     - run: docker compose down -v --remove-orphans
     - name: Upload blob report to GitHub Actions Artifacts
       if: ${{ !cancelled() }}
-      uses: actions/upload-artifact@v6
+      uses: actions/upload-artifact@v4
       with:
         name: blob-report-${{ matrix.shardIndex }}
         path: frontend/blob-report
@@ -64,12 +64,13 @@ jobs:
     if: ${{ !cancelled() }}
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v4
     - uses: oven-sh/setup-bun@v2
     - name: Install dependencies
       run: bun ci
+      working-directory: frontend
     - name: Download blob reports from GitHub Actions Artifacts
-      uses: actions/download-artifact@v7
+      uses: actions/download-artifact@v4
       with:
         path: frontend/all-blob-reports
         pattern: blob-report-*
@@ -78,7 +79,7 @@ jobs:
       run: bunx playwright merge-reports --reporter html ./all-blob-reports
       working-directory: frontend
     - name: Upload HTML report
-      uses: actions/upload-artifact@v6
+      uses: actions/upload-artifact@v4
       with:
         name: html-report--attempt-${{ github.run_attempt }}
         path: frontend/playwright-report
