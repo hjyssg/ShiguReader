@@ -4,15 +4,14 @@ import { nowTs } from "./client.js";
 export interface FileRow {
   filepath: string; folderpath: string | null; filename: string;
   mtime: number; filesize: number; file_type: string; ext: string | null;
-  thumbnail_filepath: string | null; fingerprint: string; content_hash: string | null;
-  rec_score: number; scan_state: number; watch_state: number;
-  first_seen_at: number | null; last_seen_at: number | null; last_scanned_at: number | null;
+  thumbnail_filepath: string | null;
+  rec_score: number; is_missing: number;
+  last_seen_at: number | null;
   created_at: number; updated_at: number;
 }
 export interface FolderRow {
   filepath: string; dirname: string; mtime: number | null;
-  scan_state: number; watch_state: number;
-  first_seen_at: number | null; last_seen_at: number | null; last_scanned_at: number | null;
+  last_seen_at: number | null;
   created_at: number; updated_at: number;
 }
 export interface ArchiveMetaRow {
@@ -37,14 +36,11 @@ export interface ParsedMetaRow {
 export interface UpsertFileInput {
   filepath: string; folderpath?: string | null; filename: string;
   mtime: number; filesize: number; file_type?: string; ext?: string | null;
-  fingerprint: string; scan_state?: number; watch_state?: number;
 }
 export interface UpsertFolderInput {
   filepath: string; dirname: string; mtime?: number | null;
-  scan_state?: number; watch_state?: number; scanned?: boolean;
 }
 
-// Helper: cast node:sqlite .all() result to a typed array
 function rows<T>(result: unknown): T[] {
   return result as T[];
 }
@@ -55,17 +51,15 @@ export class IndexRepository {
   upsertFile(data: UpsertFileInput): void {
     const now = nowTs();
     this.db.prepare(`
-      INSERT INTO files (filepath,folderpath,filename,mtime,filesize,file_type,ext,fingerprint,scan_state,watch_state,first_seen_at,last_seen_at,created_at,updated_at)
-      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+      INSERT INTO files (filepath,folderpath,filename,mtime,filesize,file_type,ext,is_missing,last_seen_at,created_at,updated_at)
+      VALUES (?,?,?,?,?,?,?,0,?,?,?)
       ON CONFLICT(filepath) DO UPDATE SET
         folderpath=excluded.folderpath, filename=excluded.filename, mtime=excluded.mtime,
         filesize=excluded.filesize, file_type=excluded.file_type, ext=excluded.ext,
-        fingerprint=excluded.fingerprint, scan_state=excluded.scan_state,
-        last_seen_at=excluded.last_seen_at, updated_at=excluded.updated_at
+        is_missing=0, last_seen_at=excluded.last_seen_at, updated_at=excluded.updated_at
     `).run(
       data.filepath, data.folderpath ?? null, data.filename, data.mtime, data.filesize,
-      data.file_type ?? "unknown", data.ext ?? null, data.fingerprint,
-      data.scan_state ?? 1, data.watch_state ?? 0, now, now, now, now,
+      data.file_type ?? "unknown", data.ext ?? null, now, now, now,
     );
   }
 
@@ -90,6 +84,70 @@ export class IndexRepository {
     this._pruneOrphans();
   }
 
+  /** Mark a file as missing (deleted from disk). Keeps the record for history. */
+  markFileDeleted(filepath: string): void {
+    const now = nowTs();
+    this.db.prepare("UPDATE files SET is_missing=1, updated_at=? WHERE filepath=?").run(now, filepath);
+  }
+
+  /** After listing a folder, mark DB entries not present on disk as missing. */
+  markMissingInFolder(folderpath: string, presentPaths: string[]): void {
+    const now = nowTs();
+    if (!presentPaths.length) {
+      this.db.prepare("UPDATE files SET is_missing=1, updated_at=? WHERE folderpath=?").run(now, folderpath);
+      return;
+    }
+    const placeholders = presentPaths.map(() => "?").join(",");
+    this.db.prepare(
+      `UPDATE files SET is_missing=1, updated_at=? WHERE folderpath=? AND filepath NOT IN (${placeholders})`
+    ).run(now, folderpath, ...presentPaths);
+  }
+
+  /** Relocate a single file in all tables (rename / move). */
+  relocateFile(oldPath: string, newPath: string, newFolderPath?: string): void {
+    const now = nowTs();
+    this.db.exec("BEGIN");
+    try {
+      const fp = newFolderPath ?? null;
+      // files
+      this.db.prepare("UPDATE files SET filepath=?, folderpath=COALESCE(?,folderpath), updated_at=? WHERE filepath=?").run(newPath, fp, now, oldPath);
+      // dependent tables
+      for (const tbl of ["archive_meta", "video_meta", "progress", "parsed_metadata"]) {
+        this.db.prepare(`UPDATE ${tbl} SET filepath=? WHERE filepath=?`).run(newPath, oldPath);
+      }
+      this.db.prepare("UPDATE file_tags SET filepath=? WHERE filepath=?").run(newPath, oldPath);
+      this.db.prepare("UPDATE file_artists SET filepath=? WHERE filepath=?").run(newPath, oldPath);
+      this.db.exec("COMMIT");
+    } catch (e) {
+      this.db.exec("ROLLBACK");
+      throw e;
+    }
+  }
+
+  /** Relocate all files under a folder prefix (folder move). */
+  relocateFolder(oldPrefix: string, newPrefix: string): void {
+    const now = nowTs();
+    // Normalize: ensure trailing separator for safety
+    const oldPfx = oldPrefix.endsWith("/") || oldPrefix.endsWith("\\") ? oldPrefix : oldPrefix;
+    this.db.exec("BEGIN");
+    try {
+      // folders table
+      this.db.prepare("UPDATE folders SET filepath=REPLACE(filepath,?,?), updated_at=? WHERE filepath LIKE ?").run(oldPfx, newPrefix, now, oldPfx + "%");
+      // files table
+      this.db.prepare("UPDATE files SET filepath=REPLACE(filepath,?,?), folderpath=REPLACE(folderpath,?,?), updated_at=? WHERE filepath LIKE ?").run(oldPfx, newPrefix, oldPfx, newPrefix, now, oldPfx + "%");
+      // dependent tables
+      for (const tbl of ["archive_meta", "video_meta", "progress", "parsed_metadata"]) {
+        this.db.prepare(`UPDATE ${tbl} SET filepath=REPLACE(filepath,?,?) WHERE filepath LIKE ?`).run(oldPfx, newPrefix, oldPfx + "%");
+      }
+      this.db.prepare("UPDATE file_tags SET filepath=REPLACE(filepath,?,?) WHERE filepath LIKE ?").run(oldPfx, newPrefix, oldPfx + "%");
+      this.db.prepare("UPDATE file_artists SET filepath=REPLACE(filepath,?,?) WHERE filepath LIKE ?").run(oldPfx, newPrefix, oldPfx + "%");
+      this.db.exec("COMMIT");
+    } catch (e) {
+      this.db.exec("ROLLBACK");
+      throw e;
+    }
+  }
+
   deleteByPrefix(prefix: string): void {
     this.db.prepare("DELETE FROM files WHERE filepath LIKE ?").run(prefix + "%");
     this.db.prepare("DELETE FROM folders WHERE filepath LIKE ?").run(prefix + "%");
@@ -97,24 +155,33 @@ export class IndexRepository {
   }
 
   findFilesByFilename(filename: string, excludePath = "", limit = 10): FileRow[] {
-    const result = rows<FileRow>(this.db.prepare("SELECT * FROM files WHERE filename = ? AND scan_state = 1 ORDER BY last_seen_at DESC LIMIT ?").all(filename, limit));
+    const result = rows<FileRow>(this.db.prepare("SELECT * FROM files WHERE filename = ? AND is_missing = 0 ORDER BY last_seen_at DESC LIMIT ?").all(filename, limit));
     return excludePath ? result.filter(r => r.filepath !== excludePath) : result;
   }
 
   countFilesByType(fileType: string): number {
-    return (this.db.prepare("SELECT COUNT(*) as n FROM files WHERE file_type = ? AND scan_state = 1").get(fileType) as { n: number }).n;
+    return (this.db.prepare("SELECT COUNT(*) as n FROM files WHERE file_type = ? AND is_missing = 0").get(fileType) as { n: number }).n;
   }
 
   updateFileThumbnail(filepath: string, thumbPath: string): void {
     this.db.prepare("UPDATE files SET thumbnail_filepath = ? WHERE filepath = ?").run(thumbPath, filepath);
   }
 
-  searchFiles(q: string, presenceFilter = "all"): FileRow[] {
+  // ─── search ───────────────────────────────────────────────────────────────
+
+  private _presenceClause(filter: string): string {
+    if (filter === "all") return "";
+    if (filter === "watched") return " AND filepath IN (SELECT filepath FROM progress)";
+    if (filter === "scanned_recent") return ` AND is_missing = 0 AND last_seen_at >= ${nowTs() - 600}`;
+    return " AND is_missing = 0"; // default: present
+  }
+
+  searchFiles(q: string, presenceFilter = "present"): FileRow[] {
     const p = `%${q}%`;
     return rows<FileRow>(this.db.prepare("SELECT * FROM files WHERE (filename LIKE ? OR filepath LIKE ?)" + this._presenceClause(presenceFilter)).all(p, p));
   }
 
-  searchByAuthor(q: string, presenceFilter = "all"): FileRow[] {
+  searchByAuthor(q: string, presenceFilter = "present"): FileRow[] {
     const artists = rows<{ artist_name: string }>(this.db.prepare("SELECT artist_name FROM artists WHERE artist_name LIKE ?").all(`%${q}%`));
     if (!artists.length) return [];
     const names = artists.map(a => a.artist_name);
@@ -124,7 +191,7 @@ export class IndexRepository {
     return rows<FileRow>(this.db.prepare(`SELECT * FROM files WHERE filepath IN (${paths.map(() => "?").join(",")})` + this._presenceClause(presenceFilter)).all(...paths));
   }
 
-  searchByCoser(q: string, presenceFilter = "all"): FileRow[] {
+  searchByCoser(q: string, presenceFilter = "present"): FileRow[] {
     const artists = rows<{ artist_name: string }>(this.db.prepare("SELECT artist_name FROM artists WHERE artist_name LIKE ?").all(`%${q}%`));
     if (!artists.length) return [];
     const names = artists.map(a => a.artist_name);
@@ -134,7 +201,7 @@ export class IndexRepository {
     return rows<FileRow>(this.db.prepare(`SELECT * FROM files WHERE filepath IN (${paths.map(() => "?").join(",")})` + this._presenceClause(presenceFilter)).all(...paths));
   }
 
-  searchByTag(q: string, presenceFilter = "all"): FileRow[] {
+  searchByTag(q: string, presenceFilter = "present"): FileRow[] {
     const tags = rows<{ tag_name: string }>(this.db.prepare("SELECT tag_name FROM tags WHERE tag_name LIKE ?").all(`%${q}%`));
     if (!tags.length) return [];
     const names = tags.map(t => t.tag_name);
@@ -144,26 +211,17 @@ export class IndexRepository {
     return rows<FileRow>(this.db.prepare(`SELECT * FROM files WHERE filepath IN (${paths.map(() => "?").join(",")})` + this._presenceClause(presenceFilter)).all(...paths));
   }
 
-  private _presenceClause(filter: string): string {
-    if (filter === "watched") return " AND watch_state = 1";
-    if (filter === "scanned_recent") return ` AND scan_state = 1 AND last_seen_at >= ${nowTs() - 86400 * 30}`;
-    return "";
-  }
+  // ─── folders ──────────────────────────────────────────────────────────────
 
   upsertFolder(data: UpsertFolderInput): void {
     const now = nowTs();
     this.db.prepare(`
-      INSERT INTO folders (filepath,dirname,mtime,scan_state,watch_state,first_seen_at,last_seen_at,last_scanned_at,created_at,updated_at)
-      VALUES (?,?,?,?,?,?,?,?,?,?)
+      INSERT INTO folders (filepath,dirname,mtime,last_seen_at,created_at,updated_at)
+      VALUES (?,?,?,?,?,?)
       ON CONFLICT(filepath) DO UPDATE SET
-        dirname=excluded.dirname, mtime=excluded.mtime, scan_state=excluded.scan_state,
-        last_seen_at=excluded.last_seen_at, last_scanned_at=excluded.last_scanned_at,
-        updated_at=excluded.updated_at
-    `).run(
-      data.filepath, data.dirname, data.mtime ?? null,
-      data.scan_state ?? 1, data.watch_state ?? 0,
-      now, now, data.scanned ? now : null, now, now,
-    );
+        dirname=excluded.dirname, mtime=excluded.mtime,
+        last_seen_at=excluded.last_seen_at, updated_at=excluded.updated_at
+    `).run(data.filepath, data.dirname, data.mtime ?? null, now, now, now);
   }
 
   batchUpsertFolders(list: UpsertFolderInput[]): void {
@@ -172,15 +230,14 @@ export class IndexRepository {
     try {
       for (const item of list) this.upsertFolder(item);
       this.db.exec("COMMIT");
-    } catch (e) {
-      this.db.exec("ROLLBACK");
-      throw e;
-    }
+    } catch (e) { this.db.exec("ROLLBACK"); throw e; }
   }
 
   countFolders(): number {
-    return (this.db.prepare("SELECT COUNT(*) as n FROM folders WHERE scan_state = 1").get() as { n: number }).n;
+    return (this.db.prepare("SELECT COUNT(*) as n FROM folders").get() as { n: number }).n;
   }
+
+  // ─── archive meta ─────────────────────────────────────────────────────────
 
   upsertArchiveMeta(filepath: string, archiveType: string, entryCount: number, imageNum: number, videoNum: number, musicNum: number): void {
     const now = nowTs();
@@ -193,12 +250,13 @@ export class IndexRepository {
 
   getArchiveMetasByFolder(folderpath: string): Map<string, ArchiveMetaRow> {
     const result = rows<ArchiveMetaRow>(this.db.prepare(`
-      SELECT am.* FROM archive_meta am
-      JOIN files f ON f.filepath = am.filepath
+      SELECT am.* FROM archive_meta am JOIN files f ON f.filepath = am.filepath
       WHERE f.folderpath = ? AND f.file_type = 'archive'
     `).all(folderpath));
     return new Map(result.map(r => [r.filepath, r]));
   }
+
+  // ─── progress ─────────────────────────────────────────────────────────────
 
   upsertProgress(data: Partial<ProgressRow> & { filepath: string }): void {
     const now = nowTs();
@@ -229,6 +287,8 @@ export class IndexRepository {
     return (this.db.prepare("SELECT COUNT(*) as n FROM progress").get() as { n: number }).n;
   }
 
+  // ─── activity logs ────────────────────────────────────────────────────────
+
   logActivity(activityType: string, message: string, status = "completed", taskKey?: string, targetPath?: string, context?: object): void {
     const now = nowTs();
     this.db.prepare("INSERT INTO activity_logs (activity_type,status,task_key,message,target_path,context_json,created_at) VALUES (?,?,?,?,?,?,?)").run(activityType, status, taskKey ?? null, message, targetPath ?? null, context ? JSON.stringify(context) : null, now);
@@ -245,6 +305,8 @@ export class IndexRepository {
     return rows<ActivityLogRow>(this.db.prepare("SELECT * FROM activity_logs WHERE id >= ? ORDER BY created_at DESC, id DESC LIMIT ?").all(row.id, limit));
   }
 
+  // ─── folder open history ──────────────────────────────────────────────────
+
   recordFolderOpen(folderpath: string): void {
     const now = nowTs();
     this.db.prepare("INSERT INTO folder_open_history (folderpath,last_opened_at,open_count,updated_at) VALUES (?,?,1,?) ON CONFLICT(folderpath) DO UPDATE SET last_opened_at=excluded.last_opened_at,open_count=open_count+1,updated_at=excluded.updated_at").run(folderpath, now, now);
@@ -256,22 +318,21 @@ export class IndexRepository {
     const tau = 14 * 86400;
     const result = rows<{ folder_id: string }>(this.db.prepare(`
       WITH folder_scores AS (
-        SELECT h.folderpath AS folder_id,
-               h.open_count * exp(-((?-h.last_opened_at)*1.0)/?) AS score
+        SELECT h.folderpath AS folder_id, h.open_count * exp(-((?-h.last_opened_at)*1.0)/?) AS score
         FROM folder_open_history h WHERE h.last_opened_at >= ?
       ),
       progress_scores AS (
-        SELECT f.folderpath AS folder_id,
-               exp(-((?-p.last_opened_at)*1.0)/?) AS score
+        SELECT f.folderpath AS folder_id, exp(-((?-p.last_opened_at)*1.0)/?) AS score
         FROM progress p JOIN files f ON f.filepath = p.filepath
         WHERE p.last_opened_at >= ? AND f.folderpath IS NOT NULL
       ),
       combined AS (SELECT * FROM folder_scores UNION ALL SELECT * FROM progress_scores)
-      SELECT folder_id FROM combined GROUP BY folder_id
-      ORDER BY SUM(score) DESC LIMIT ?
+      SELECT folder_id FROM combined GROUP BY folder_id ORDER BY SUM(score) DESC LIMIT ?
     `).all(now, tau, cutoff, now, tau, cutoff, limit));
     return result.map(r => r.folder_id);
   }
+
+  // ─── parsed metadata ──────────────────────────────────────────────────────
 
   saveParsedMetadata(filepath: string, data: { title?: string; authors?: string[]; cosers?: string[]; groupName?: string; rawTags?: string[]; event?: string; dateTag?: string; mediaType?: string }): void {
     const now = nowTs();
@@ -285,23 +346,11 @@ export class IndexRepository {
     this.db.exec("BEGIN");
     try {
       stmtMeta.run(filepath, data.title ?? null, data.groupName ?? null, data.event ?? null, data.dateTag ?? null, data.mediaType ?? null, now);
-      for (const name of authors) {
-        stmtArtist.run(name);
-        stmtFileArtist.run(filepath, name, "");
-      }
-      for (const name of cosers) {
-        stmtArtist.run(name);
-        stmtFileArtist.run(filepath, name, "coser");
-      }
-      for (const tag of (data.rawTags ?? [])) {
-        stmtTag.run(tag);
-        stmtFileTag.run(filepath, tag);
-      }
+      for (const name of authors) { stmtArtist.run(name); stmtFileArtist.run(filepath, name, ""); }
+      for (const name of cosers) { stmtArtist.run(name); stmtFileArtist.run(filepath, name, "coser"); }
+      for (const tag of (data.rawTags ?? [])) { stmtTag.run(tag); stmtFileTag.run(filepath, tag); }
       this.db.exec("COMMIT");
-    } catch (e) {
-      this.db.exec("ROLLBACK");
-      throw e;
-    }
+    } catch (e) { this.db.exec("ROLLBACK"); throw e; }
   }
 
   getParsedMetadata(filepath: string): ParsedMetaRow | undefined {
@@ -339,6 +388,8 @@ export class IndexRepository {
     return new Map(result.map(r => [r.filepath, { rec_score: r.rec_score, last_read_at: r.last_opened_at }]));
   }
 
+  // ─── tags / artists listing ───────────────────────────────────────────────
+
   listTagsWithCounts(offset: number, limit: number, sortBy = "count", sortOrder = "desc"): { tag_name: string; file_count: number; avg_rec_score: number }[] {
     const col = sortBy === "name" ? "tag_name" : sortBy === "recommendation" ? "avg_rec_score" : "file_count";
     const dir = sortOrder === "asc" ? "ASC" : "DESC";
@@ -366,10 +417,7 @@ export class IndexRepository {
     try {
       for (const [fp, score] of scores) stmt.run(score, fp);
       this.db.exec("COMMIT");
-    } catch (e) {
-      this.db.exec("ROLLBACK");
-      throw e;
-    }
+    } catch (e) { this.db.exec("ROLLBACK"); throw e; }
   }
 
   getLibraryOverview(): { archives: number; videos: number; images: number; audio: number; folders: number } {
@@ -379,10 +427,9 @@ export class IndexRepository {
         SUM(CASE WHEN file_type = 'video'   THEN 1 ELSE 0 END) as videos,
         SUM(CASE WHEN file_type = 'image'   THEN 1 ELSE 0 END) as images,
         SUM(CASE WHEN file_type = 'audio'   THEN 1 ELSE 0 END) as audio
-      FROM files WHERE scan_state = 1
+      FROM files WHERE is_missing = 0
     `).get() as { archives: number; videos: number; images: number; audio: number };
-    const folders = this.countFolders();
-    return { archives: row.archives ?? 0, videos: row.videos ?? 0, images: row.images ?? 0, audio: row.audio ?? 0, folders };
+    return { archives: row.archives ?? 0, videos: row.videos ?? 0, images: row.images ?? 0, audio: row.audio ?? 0, folders: this.countFolders() };
   }
 
   getTagTotalCounts(): Map<string, number> {
@@ -405,9 +452,8 @@ export class IndexRepository {
       SELECT artist_name, filepath FROM (
         SELECT fa.artist_name, f.filepath, f.mtime,
                ROW_NUMBER() OVER (PARTITION BY fa.artist_name ORDER BY f.mtime DESC) as rn
-        FROM file_artists fa
-        JOIN files f ON f.filepath = fa.filepath
-        WHERE fa.role = ? AND fa.artist_name IN (${placeholders}) AND f.scan_state = 1
+        FROM file_artists fa JOIN files f ON f.filepath = fa.filepath
+        WHERE fa.role = ? AND fa.artist_name IN (${placeholders}) AND f.is_missing = 0
       ) WHERE rn <= ?
     `).all(role, ...names, limit));
     const map = new Map<string, string[]>();
@@ -422,9 +468,8 @@ export class IndexRepository {
       SELECT tag_name, filepath FROM (
         SELECT ft.tag_name, f.filepath, f.mtime,
                ROW_NUMBER() OVER (PARTITION BY ft.tag_name ORDER BY f.mtime DESC) as rn
-        FROM file_tags ft
-        JOIN files f ON f.filepath = ft.filepath
-        WHERE ft.tag_name IN (${placeholders}) AND f.scan_state = 1
+        FROM file_tags ft JOIN files f ON f.filepath = ft.filepath
+        WHERE ft.tag_name IN (${placeholders}) AND f.is_missing = 0
       ) WHERE rn <= ?
     `).all(...names, limit));
     const map = new Map<string, string[]>();
@@ -432,31 +477,27 @@ export class IndexRepository {
     return map;
   }
 
-  /** Returns the cached thumbnail_filepath for each artist (no file I/O). */
   getArtistThumbnailPaths(names: string[], role: string): Map<string, string> {
     if (!names.length) return new Map();
     const placeholders = names.map(() => "?").join(",");
     const result = rows<{ artist_name: string; thumbnail_filepath: string }>(this.db.prepare(`
-      SELECT fa.artist_name, f.thumbnail_filepath
-      FROM file_artists fa
+      SELECT fa.artist_name, f.thumbnail_filepath FROM file_artists fa
       JOIN files f ON f.filepath = fa.filepath
       WHERE fa.role = ? AND fa.artist_name IN (${placeholders})
-        AND f.thumbnail_filepath IS NOT NULL AND f.scan_state = 1
+        AND f.thumbnail_filepath IS NOT NULL AND f.is_missing = 0
       GROUP BY fa.artist_name
     `).all(role, ...names));
     return new Map(result.map(r => [r.artist_name, r.thumbnail_filepath]));
   }
 
-  /** Returns the cached thumbnail_filepath for each tag (no file I/O). */
   getTagThumbnailPaths(names: string[]): Map<string, string> {
     if (!names.length) return new Map();
     const placeholders = names.map(() => "?").join(",");
     const result = rows<{ tag_name: string; thumbnail_filepath: string }>(this.db.prepare(`
-      SELECT ft.tag_name, f.thumbnail_filepath
-      FROM file_tags ft
+      SELECT ft.tag_name, f.thumbnail_filepath FROM file_tags ft
       JOIN files f ON f.filepath = ft.filepath
       WHERE ft.tag_name IN (${placeholders})
-        AND f.thumbnail_filepath IS NOT NULL AND f.scan_state = 1
+        AND f.thumbnail_filepath IS NOT NULL AND f.is_missing = 0
       GROUP BY ft.tag_name
     `).all(...names));
     return new Map(result.map(r => [r.tag_name, r.thumbnail_filepath]));

@@ -4,11 +4,7 @@ CREATE TABLE IF NOT EXISTS folders (
   filepath TEXT PRIMARY KEY,
   dirname TEXT NOT NULL,
   mtime INTEGER,
-  scan_state INTEGER NOT NULL DEFAULT 0,
-  watch_state INTEGER NOT NULL DEFAULT 0,
-  first_seen_at INTEGER,
   last_seen_at INTEGER,
-  last_scanned_at INTEGER,
   created_at INTEGER NOT NULL DEFAULT (unixepoch()),
   updated_at INTEGER NOT NULL DEFAULT (unixepoch())
 );
@@ -22,14 +18,9 @@ CREATE TABLE IF NOT EXISTS files (
   file_type TEXT NOT NULL DEFAULT 'unknown',
   ext TEXT,
   thumbnail_filepath TEXT,
-  fingerprint TEXT NOT NULL,
-  content_hash TEXT,
   rec_score REAL NOT NULL DEFAULT 0.0,
-  scan_state INTEGER NOT NULL DEFAULT 0,
-  watch_state INTEGER NOT NULL DEFAULT 0,
-  first_seen_at INTEGER,
+  is_missing INTEGER NOT NULL DEFAULT 0,
   last_seen_at INTEGER,
-  last_scanned_at INTEGER,
   created_at INTEGER NOT NULL DEFAULT (unixepoch()),
   updated_at INTEGER NOT NULL DEFAULT (unixepoch())
 );
@@ -37,7 +28,7 @@ CREATE TABLE IF NOT EXISTS files (
 CREATE INDEX IF NOT EXISTS idx_files_folderpath ON files(folderpath);
 CREATE INDEX IF NOT EXISTS idx_files_filename ON files(filename);
 CREATE INDEX IF NOT EXISTS idx_files_file_type ON files(file_type);
-CREATE INDEX IF NOT EXISTS idx_files_scan_state ON files(scan_state);
+CREATE INDEX IF NOT EXISTS idx_files_is_missing ON files(is_missing);
 
 CREATE TABLE IF NOT EXISTS archive_meta (
   filepath TEXT PRIMARY KEY,

@@ -6,7 +6,7 @@ import { promisify } from "node:util";
 import { fileURLToPath } from "node:url";
 import { getDb } from "../db/client.js";
 import { IndexRepository } from "../db/repository.js";
-import { getFileType, getMimeType, makeFingerprint } from "../utils/fileType.js";
+import { getFileType, getMimeType } from "../utils/fileType.js";
 import { config } from "../config.js";
 import {
   listEntries,
@@ -70,10 +70,7 @@ interface FileSystemItem {
   audio_count: number | null;
   avg_image_size: number | null;
   recommendation_score: number;
-  scan_state: number | null;
-  watch_state: number | null;
-  confidence_level: string | null;
-  confidence_score: number | null;
+  is_missing: number;
   last_read_at: number | null;
 }
 
@@ -148,47 +145,19 @@ async function listDirectory(
       const { entry, fullPath, entryStat } = result;
       if (entry.isDirectory()) {
         items.push({
-          name: entry.name,
-          path: fullPath,
-          item_type: "folder",
-          file_type: null,
-          filesize: null,
-          mtime: Math.floor(entryStat.mtimeMs / 1000),
-          thumbnail_url: null,
-          image_count: null,
-          video_count: null,
-          audio_count: null,
-          avg_image_size: null,
-          recommendation_score: 0,
-          scan_state: null,
-          watch_state: null,
-          confidence_level: null,
-          confidence_score: null,
-          last_read_at: null,
+          name: entry.name, path: fullPath, item_type: "folder",
+          file_type: null, filesize: null, mtime: Math.floor(entryStat.mtimeMs / 1000),
+          thumbnail_url: null, image_count: null, video_count: null, audio_count: null,
+          avg_image_size: null, recommendation_score: 0, is_missing: 0, last_read_at: null,
         });
       } else if (entry.isFile()) {
         const fileType = getFileType(entry.name);
-        const thumbUrl = ["archive", "video", "image"].includes(fileType)
-          ? buildThumbUrl(fullPath)
-          : null;
         items.push({
-          name: entry.name,
-          path: fullPath,
-          item_type: "file",
-          file_type: fileType,
-          filesize: entryStat.size,
-          mtime: Math.floor(entryStat.mtimeMs / 1000),
-          thumbnail_url: thumbUrl,
-          image_count: null,
-          video_count: null,
-          audio_count: null,
-          avg_image_size: null,
-          recommendation_score: 0,
-          scan_state: null,
-          watch_state: null,
-          confidence_level: null,
-          confidence_score: null,
-          last_read_at: null,
+          name: entry.name, path: fullPath, item_type: "file",
+          file_type: fileType, filesize: entryStat.size, mtime: Math.floor(entryStat.mtimeMs / 1000),
+          thumbnail_url: ["archive", "video", "image"].includes(fileType) ? buildThumbUrl(fullPath) : null,
+          image_count: null, video_count: null, audio_count: null,
+          avg_image_size: null, recommendation_score: 0, is_missing: 0, last_read_at: null,
         });
       }
     }
@@ -351,7 +320,7 @@ async function scanDirectory(
       let scannedFiles = 0;
       const walk = async (dir: string, recurse: boolean) => {
         const entries = await fs.promises.readdir(dir, { withFileTypes: true });
-        repo.upsertFolder({ filepath: dir, dirname: path.basename(dir) || dir, scanned: true });
+        repo.upsertFolder({ filepath: dir, dirname: path.basename(dir) || dir });
         scannedFolders++;
         scanStatusMap.set(dirPath, { ...scanStatusMap.get(dirPath)!, scanned_folders: scannedFolders, scanned_files: scannedFiles });
         for (const entry of entries) {
@@ -370,7 +339,6 @@ async function scanDirectory(
                 file_type: getFileType(entry.name),
                 ext: path.extname(entry.name).toLowerCase() || null,
                 fingerprint: makeFingerprint(full, Math.floor(s.mtimeMs / 1000), s.size),
-                scan_state: 1,
               });
               const parsed = parseName(entry.name);
               repo.saveParsedMetadata(full, {
@@ -775,7 +743,6 @@ async function backfill(
           file_type: fileType,
           ext: path.extname(entry.name).toLowerCase() || null,
           fingerprint: makeFingerprint(fullPath, Math.floor(s.mtimeMs / 1000), s.size),
-          scan_state: 1,
         });
         scannedFiles++;
 
@@ -940,7 +907,7 @@ async function syncFileTable(_req: FastifyRequest, reply: FastifyReply) {
         try {
           const walk = async (dir: string) => {
             const entries = await fs.promises.readdir(dir, { withFileTypes: true });
-            repo.upsertFolder({ filepath: dir, dirname: path.basename(dir) || dir, scanned: true });
+            repo.upsertFolder({ filepath: dir, dirname: path.basename(dir) || dir });
             for (const entry of entries) {
               const full = path.join(dir, entry.name);
               try {
@@ -954,7 +921,6 @@ async function syncFileTable(_req: FastifyRequest, reply: FastifyReply) {
                     file_type: getFileType(entry.name),
                     ext: path.extname(entry.name).toLowerCase() || null,
                     fingerprint: makeFingerprint(full, Math.floor(s.mtimeMs / 1000), s.size),
-                    scan_state: 1,
                   });
                   syncedFiles++;
                 }
