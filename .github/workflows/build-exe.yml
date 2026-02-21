@@ -31,7 +31,7 @@ jobs:
         run: python build_tools/build_exe.py
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: ShiguReader-windows
           path: dist/ShiguReader.exe
