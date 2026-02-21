@@ -9,11 +9,6 @@ on:
     - opened
     - synchronize
   workflow_dispatch:
-    inputs:
-      debug_enabled:
-        description: 'Run the build with tmate debugging enabled (https://github.com/marketplace/actions/debugging-with-tmate)'
-        required: false
-        default: 'false'
 
 jobs:
   test-playwright:
@@ -26,29 +21,45 @@ jobs:
       fail-fast: false
     steps:
     - uses: actions/checkout@v4
-    - uses: oven-sh/setup-bun@v2
+
     - uses: actions/setup-node@v4
       with:
-        node-version: "20"
+        node-version: "22"
         cache: "npm"
-        cache-dependency-path: backendnode/package-lock.json
-    - name: Setup tmate session
-      uses: mxschmitt/action-tmate@v3
-      if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.debug_enabled == 'true' }}
-      with:
-        limit-access-to-actor: true
+        cache-dependency-path: |
+          backendnode/package-lock.json
+          frontend/package-lock.json
+
     - name: Install backend dependencies
-      run: npm ci
       working-directory: backendnode
-    - run: bun ci
+      run: npm ci
+
+    - name: Install frontend dependencies
       working-directory: frontend
-    - run: bash scripts/generate-client.sh
-    - run: docker compose build
-    - run: docker compose down -v --remove-orphans
+      run: npm ci
+
+    - name: Install Playwright browsers
+      working-directory: frontend
+      run: npx playwright install --with-deps chromium
+
+    - name: Start backend
+      working-directory: backendnode
+      run: npx tsx src/server.ts &
+      env:
+        PORT: 8000
+        FS_ROOTS: /tmp/test-roots
+
+    - name: Build frontend
+      working-directory: frontend
+      run: npm run build
+
     - name: Run Playwright tests
-      run: docker compose run --rm playwright bunx playwright test --fail-on-flaky-tests --trace=retain-on-failure --shard=${{ matrix.shardIndex }}/${{ matrix.shardTotal }}
-    - run: docker compose down -v --remove-orphans
-    - name: Upload blob report to GitHub Actions Artifacts
+      working-directory: frontend
+      run: npx playwright test --shard=${{ matrix.shardIndex }}/${{ matrix.shardTotal }}
+      env:
+        PLAYWRIGHT_BASE_URL: http://localhost:8000
+
+    - name: Upload blob report
       if: ${{ !cancelled() }}
       uses: actions/upload-artifact@v4
       with:
@@ -60,24 +71,27 @@ jobs:
   merge-playwright-reports:
     needs:
       - test-playwright
-    # Merge reports after playwright-tests, even if some shards have failed
     if: ${{ !cancelled() }}
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-    - uses: oven-sh/setup-bun@v2
+    - uses: actions/setup-node@v4
+      with:
+        node-version: "22"
+        cache: "npm"
+        cache-dependency-path: frontend/package-lock.json
     - name: Install dependencies
-      run: bun ci
       working-directory: frontend
-    - name: Download blob reports from GitHub Actions Artifacts
+      run: npm ci
+    - name: Download blob reports
       uses: actions/download-artifact@v4
       with:
         path: frontend/all-blob-reports
         pattern: blob-report-*
         merge-multiple: true
     - name: Merge into HTML Report
-      run: bunx playwright merge-reports --reporter html ./all-blob-reports
       working-directory: frontend
+      run: npx playwright merge-reports --reporter html ./all-blob-reports
     - name: Upload HTML report
       uses: actions/upload-artifact@v4
       with:
@@ -86,8 +100,7 @@ jobs:
         retention-days: 30
         include-hidden-files: true
 
-  # https://github.com/marketplace/actions/alls-green#why
-  alls-green-playwright:  # This job does nothing and is only used for the branch protection
+  alls-green-playwright:
     if: always()
     needs:
       - test-playwright

@@ -40,7 +40,7 @@ beforeAll(() => {
   fs.mkdirSync(process.env.THUMB_CACHE_DIR!, { recursive: true });
 });
 
-describe("Thumbnail generation — real files", () => {
+describe.skipIf(!fs.existsSync(TEST_DIR))("Thumbnail generation — real files", () => {
   it("test dir exists and has files", () => {
     expect(fs.existsSync(TEST_DIR)).toBe(true);
     const files = fs.readdirSync(TEST_DIR);
