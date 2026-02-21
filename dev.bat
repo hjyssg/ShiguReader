@@ -1,0 +1,22 @@
+@echo off
+chcp 65001 >nul
+title ShiguReader Dev
+
+cd /d "%~dp0"
+
+echo Starting ShiguReader in development mode...
+echo  - Frontend: http://localhost:5173 (Vite HMR)
+echo  - Backend:  http://localhost:8000
+echo.
+
+:: Start frontend dev server in a new window
+start "ShiguReader Frontend" cmd /k "chcp 65001 >nul && cd /d "%~dp0frontend" && npm run dev"
+
+:: Start backend with tsx watch in a new window
+start "ShiguReader Backend" cmd /k "chcp 65001 >nul && cd /d "%~dp0backendnode" && npx tsx watch src/server.ts"
+
+:: Open browser after a short delay
+timeout /t 3 /nobreak >nul
+start http://localhost:5173
+
+echo Both servers started. Close the terminal windows to stop.
