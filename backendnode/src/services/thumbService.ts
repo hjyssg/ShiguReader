@@ -71,19 +71,6 @@ async function isCached(p: string): Promise<boolean> {
 
 const IMAGE_EXTS = new Set(IMAGE_SUFFIXES as readonly string[]);
 
-async function listArchiveEntries(archivePath: string): Promise<string[]> {
-  const { stdout } = await execFileAsync(get7z(), ["l", "-ba", "-slt", archivePath], {
-    timeout: config.THUMB_TIMEOUT_SEC * 1000,
-  });
-  // parse "Path = ..." lines
-  const entries: string[] = [];
-  for (const line of stdout.split(/\r?\n/)) {
-    const m = line.match(/^Path = (.+)$/);
-    if (m) entries.push(m[1].trim());
-  }
-  return entries;
-}
-
 async function generateArchiveThumb(archivePath: string, outputPath: string): Promise<void> {
   const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "shiguthumb-"));
   try {

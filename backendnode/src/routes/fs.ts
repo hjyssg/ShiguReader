@@ -4,10 +4,9 @@ import fs from "node:fs";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { fileURLToPath } from "node:url";
-import { getDb } from "../db/client.js";
-import { IndexRepository } from "../db/repository.js";
 import { getFileType, getMimeType } from "../utils/fileType.js";
 import { config } from "../config.js";
+import { getRepo, buildThumbUrl } from "./_listUtils.js";
 import {
   listEntries,
   stepwiseExtract,
@@ -17,6 +16,8 @@ import {
 } from "../services/archiveService.js";
 import { getOrGenerateThumb } from "../services/thumbService.js";
 import { observeFilePresence } from "../services/reconcileQueue.js";
+// parseName 约束：只能传 filename（entry.name / item.name）或 parent folder name，
+// 不能传完整 filepath，否则路径分隔符会干扰括号解析逻辑
 import { parseName } from "../utils/nameParser.js";
 import trash from "trash";
 import { getDiskInfo } from "node-disk-info";
@@ -29,14 +30,10 @@ const __filename = fileURLToPath(import.meta.url);
 const __routeDir = path.dirname(__filename);
 const _TOOLS_DIR = path.resolve(__routeDir, "../../tools");
 
-async function get7zBin(): Promise<string> {
+/** 返回 7z 可执行文件路径：优先使用 bundled，否则 fallback 到 PATH */
+function get7zBin(): string {
   const bundled = path.join(_TOOLS_DIR, "7zip-lite/7z.exe");
-  try {
-    await fs.promises.access(bundled);
-    return bundled;
-  } catch {
-    return "7z";
-  }
+  return fs.existsSync(bundled) ? bundled : "7z";
 }
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
@@ -44,15 +41,6 @@ async function get7zBin(): Promise<string> {
 function parseRoots(): string[] {
   if (!config.FS_ROOTS) return [];
   return config.FS_ROOTS.split(",").map(r => r.trim()).filter(Boolean);
-}
-
-function buildThumbUrl(filePath: string): string {
-  const encoded = encodeURIComponent(filePath);
-  return `${config.API_V1_STR}/fs/thumb?path=${encoded}`;
-}
-
-function getRepo(): IndexRepository {
-  return new IndexRepository(getDb());
 }
 
 // ─── types ───────────────────────────────────────────────────────────────────
@@ -842,9 +830,10 @@ async function backfill(
           if (fileType === "archive") {
             try {
               const archiveEntries = await listEntries(fullPath);
-              const imageNum = archiveEntries.filter(e => e.type === "image").length;
-              const videoNum = archiveEntries.filter(e => e.type === "video").length;
-              const audioNum = archiveEntries.filter(e => e.type === "audio").length;
+              // 使用 file_type（非 deprecated 的 type 字段）
+              const imageNum = archiveEntries.filter(e => e.file_type === "image").length;
+              const videoNum = archiveEntries.filter(e => e.file_type === "video").length;
+              const audioNum = archiveEntries.filter(e => e.file_type === "audio").length;
               const ext = path.extname(entry.name).toLowerCase().slice(1);
               repo.upsertArchiveMeta(fullPath, ext, archiveEntries.length, imageNum, videoNum, audioNum);
             } catch { /* skip if archive listing fails */ }

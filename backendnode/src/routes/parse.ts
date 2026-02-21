@@ -1,12 +1,7 @@
 import type { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
 import path from "node:path";
 import { parseName } from "../utils/nameParser.js";
-import { getDb } from "../db/client.js";
-import { IndexRepository } from "../db/repository.js";
-
-function getRepo() {
-  return new IndexRepository(getDb());
-}
+import { getRepo } from "./_listUtils.js";
 
 // GET /api/v1/parse?filepath=...
 // Returns StoredParseResponse shape

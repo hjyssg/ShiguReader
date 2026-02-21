@@ -224,6 +224,18 @@ function classifyToken(token: string): ClassifyResult {
 
 // ── Main parse function ───────────────────────────────────────────────────────
 
+/**
+ * 从文件名解析结构化元数据。
+ *
+ * ⚠️ 约束：只能传入 **filename**（basename）或 **parent folder name**，
+ * 不能传入完整 filepath。完整路径中的路径分隔符会干扰括号解析逻辑，
+ * 导致 author / tag 提取错误。
+ *
+ * @example
+ *   parseName("[Circle (Author)] Title [C102].zip")
+ *   parseName(path.basename(fullPath))  // ✅ correct
+ *   parseName(fullPath)                 // ❌ wrong
+ */
 export function parseName(filename: string): ParsedName {
   // Strip extension
   const base = filename.replace(/\.[^.]+$/, "").trim();

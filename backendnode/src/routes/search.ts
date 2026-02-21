@@ -1,15 +1,5 @@
 import type { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
-import { getDb } from "../db/client.js";
-import { IndexRepository } from "../db/repository.js";
-import { config } from "../config.js";
-
-function getRepo() {
-  return new IndexRepository(getDb());
-}
-
-function buildThumbUrl(filePath: string): string {
-  return `${config.API_V1_STR}/fs/thumb?path=${encodeURIComponent(filePath)}`;
-}
+import { getRepo, buildThumbUrl } from "./_listUtils.js";
 
 function toItem(row: { filepath: string; filename: string; file_type: string; filesize: number | null; mtime: number | null }) {
   const thumbUrl = ["archive", "video", "image"].includes(row.file_type)

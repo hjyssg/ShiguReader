@@ -1,47 +1,165 @@
 import { DatabaseSync } from "node:sqlite";
 import { nowTs } from "./client.js";
 
+/**
+ * 数据库 schema 与本文件 interface 的关系：
+ *   schema.sql 是 SQLite 建表 DDL（source of truth），本文件的 interface 是对应表的 TypeScript 类型映射。
+ *   两者字段名和类型一一对应，没有自动生成机制——改了 schema 需要手动同步这里的 interface。
+ */
+
+/** `files` 表的行类型，对应磁盘上的单个文件记录 */
 export interface FileRow {
-  filepath: string; folderpath: string | null; filename: string;
-  mtime: number; filesize: number; file_type: string; ext: string | null;
+  /** 文件绝对路径，主键 */
+  filepath: string;
+  /** 所在目录的绝对路径，顶层文件可为 null */
+  folderpath: string | null;
+  /** 文件名（含扩展名） */
+  filename: string;
+  /** 文件修改时间，Unix 秒时间戳 */
+  mtime: number;
+  /** 文件大小，字节 */
+  filesize: number;
+  /** 文件类型：archive / video / image / audio / unknown */
+  file_type: string;
+  /** 小写扩展名，如 ".zip"，无扩展名时为 null */
+  ext: string | null;
+  /** 已生成的缩略图在磁盘上的绝对路径，未生成时为 null */
   thumbnail_filepath: string | null;
-  rec_score: number; is_missing: number;
+  /** 推荐分数，由 recService 计算，默认 0.0 */
+  rec_score: number;
+  /** 1 = 文件已从磁盘消失但保留历史记录；0 = 正常存在 */
+  is_missing: number;
+  /** 最近一次被扫描到的时间戳，首次插入时设为当前时间 */
   last_seen_at: number | null;
-  created_at: number; updated_at: number;
-}
-export interface FolderRow {
-  filepath: string; dirname: string; mtime: number | null;
-  last_seen_at: number | null;
-  created_at: number; updated_at: number;
-}
-export interface ArchiveMetaRow {
-  filepath: string; archive_type: string; entry_count: number;
-  image_file_num: number; video_file_num: number; music_file_num: number; scanned_at: number | null;
-  version_sig: string | null; cover_entry: string | null; index_status: string;
-}
-export interface ProgressRow {
-  filepath: string; filename: string | null; file_type: string | null;
-  filesize: number | null; mtime: number | null; thumbnail_url: string | null;
-  last_opened_at: number; total_time_sec: number;
-  page_current: number | null; page_total: number | null;
-  position_sec: number | null; duration_sec: number | null; updated_at: number;
-}
-export interface ActivityLogRow {
-  id: number; activity_type: string; status: string; task_key: string | null;
-  message: string; target_path: string | null; context_json: string | null; created_at: number;
-}
-export interface ParsedMetaRow {
-  filepath: string; title: string | null; group_name: string | null;
-  event: string | null; date_tag: string | null; media_type: string | null; parsed_at: number;
-}
-export interface UpsertFileInput {
-  filepath: string; folderpath?: string | null; filename: string;
-  mtime: number; filesize: number; file_type?: string; ext?: string | null;
-}
-export interface UpsertFolderInput {
-  filepath: string; dirname: string; mtime?: number | null;
+  /** 记录首次创建时间 */
+  created_at: number;
+  /** 记录最近更新时间 */
+  updated_at: number;
 }
 
+/** `folders` 表的行类型，对应磁盘上的目录 */
+export interface FolderRow {
+  /** 目录绝对路径，主键 */
+  filepath: string;
+  /** 目录名（basename） */
+  dirname: string;
+  /** 目录修改时间，Unix 秒时间戳，可为 null */
+  mtime: number | null;
+  /** 最近一次被扫描到的时间戳 */
+  last_seen_at: number | null;
+  created_at: number;
+  updated_at: number;
+}
+
+/** `archive_meta` 表的行类型，存储压缩包内容统计信息 */
+export interface ArchiveMetaRow {
+  /** 压缩包文件路径，主键，外键关联 files.filepath */
+  filepath: string;
+  /** 压缩包格式，如 "zip" / "7z" / "rar" */
+  archive_type: string;
+  /** 压缩包内媒体文件总数 */
+  entry_count: number;
+  /** 压缩包内图片文件数量 */
+  image_file_num: number;
+  /** 压缩包内视频文件数量 */
+  video_file_num: number;
+  /** 压缩包内音频文件数量 */
+  music_file_num: number;
+  /** 最近一次扫描时间戳 */
+  scanned_at: number | null;
+  /** 版本签名，格式为 "mtime:size"，用于判断是否需要重新索引 */
+  version_sig: string | null;
+  /** 封面图在压缩包内的路径（第一张图片） */
+  cover_entry: string | null;
+  /** 索引状态：fresh = 已扫描且最新 */
+  index_status: string;
+}
+
+/** `progress` 表的行类型，记录用户的阅读/观看进度 */
+export interface ProgressRow {
+  /** 文件路径，主键 */
+  filepath: string;
+  /** 文件名快照（冗余存储，方便历史列表展示） */
+  filename: string | null;
+  /** 文件类型快照 */
+  file_type: string | null;
+  /** 文件大小快照 */
+  filesize: number | null;
+  /** 文件修改时间快照 */
+  mtime: number | null;
+  /** 缩略图 URL 快照 */
+  thumbnail_url: string | null;
+  /** 最近一次打开的时间戳 */
+  last_opened_at: number;
+  /** 累计阅读/观看时长，秒 */
+  total_time_sec: number;
+  /** 当前页码（图片/漫画） */
+  page_current: number | null;
+  /** 总页数 */
+  page_total: number | null;
+  /** 当前播放位置，秒（视频/音频） */
+  position_sec: number | null;
+  /** 总时长，秒（视频/音频） */
+  duration_sec: number | null;
+  updated_at: number;
+}
+
+/** `activity_logs` 表的行类型，记录后台操作日志 */
+export interface ActivityLogRow {
+  /** 自增主键 */
+  id: number;
+  /** 操作类型：scan / backfill / move / delete / rename / startup 等 */
+  activity_type: string;
+  /** 操作状态：started / completed / failed */
+  status: string;
+  /** 任务唯一键，用于去重或关联，如 "scan:/path/to/dir" */
+  task_key: string | null;
+  /** 人类可读的操作描述 */
+  message: string;
+  /** 操作涉及的文件/目录路径 */
+  target_path: string | null;
+  /** 附加上下文，JSON 字符串 */
+  context_json: string | null;
+  created_at: number;
+}
+
+/** `parsed_metadata` 表的行类型，存储从文件名解析出的元数据 */
+export interface ParsedMetaRow {
+  /** 文件路径，主键 */
+  filepath: string;
+  /** 解析出的作品标题 */
+  title: string | null;
+  /** 社团/出版社名称 */
+  group_name: string | null;
+  /** 发布活动/展会名称，如 "C102" */
+  event: string | null;
+  /** 日期标签，如 "20230415" */
+  date_tag: string | null;
+  /** 媒体类型，如 "同人誌" / "同人CG" */
+  media_type: string | null;
+  /** 解析时间戳 */
+  parsed_at: number;
+}
+
+/** upsertFile 的输入类型，file_type 和 ext 可选（有默认值） */
+export interface UpsertFileInput {
+  filepath: string;
+  folderpath?: string | null;
+  filename: string;
+  mtime: number;
+  filesize: number;
+  file_type?: string;
+  ext?: string | null;
+}
+
+/** upsertFolder 的输入类型 */
+export interface UpsertFolderInput {
+  filepath: string;
+  dirname: string;
+  mtime?: number | null;
+}
+
+/** node:sqlite 返回的是 unknown，这个辅助函数做类型断言 */
 function rows<T>(result: unknown): T[] {
   return result as T[];
 }
@@ -49,6 +167,7 @@ function rows<T>(result: unknown): T[] {
 export class IndexRepository {
   constructor(private db: DatabaseSync) {}
 
+  /** 插入或更新一条文件记录（upsert by filepath）。重新出现的文件会自动清除 is_missing 标记 */
   upsertFile(data: UpsertFileInput): void {
     const now = nowTs();
     this.db.prepare(`
@@ -64,6 +183,7 @@ export class IndexRepository {
     );
   }
 
+  /** 批量 upsert 文件，包裹在单个事务中提升性能 */
   batchUpsertFiles(list: UpsertFileInput[]): void {
     if (!list.length) return;
     this.db.exec("BEGIN");
@@ -76,10 +196,12 @@ export class IndexRepository {
     }
   }
 
+  /** 按 filepath 查询单条文件记录 */
   getFile(filepath: string): FileRow | undefined {
     return this.db.prepare("SELECT * FROM files WHERE filepath = ?").get(filepath) as FileRow | undefined;
   }
 
+  /** 物理删除文件记录，并清理孤立的 tags/artists */
   deleteFile(filepath: string): void {
     this.db.prepare("DELETE FROM files WHERE filepath = ?").run(filepath);
     this._pruneOrphans();
@@ -149,21 +271,25 @@ export class IndexRepository {
     }
   }
 
+  /** 删除指定路径前缀下的所有文件和目录记录（用于目录整体删除） */
   deleteByPrefix(prefix: string): void {
     this.db.prepare("DELETE FROM files WHERE filepath LIKE ?").run(prefix + "%");
     this.db.prepare("DELETE FROM folders WHERE filepath LIKE ?").run(prefix + "%");
     this._pruneOrphans();
   }
 
+  /** 按文件名精确匹配，返回最近扫描到的记录，可排除自身路径（用于查找重复文件） */
   findFilesByFilename(filename: string, excludePath = "", limit = 10): FileRow[] {
     const result = rows<FileRow>(this.db.prepare("SELECT * FROM files WHERE filename = ? AND is_missing = 0 ORDER BY last_seen_at DESC LIMIT ?").all(filename, limit));
     return excludePath ? result.filter(r => r.filepath !== excludePath) : result;
   }
 
+  /** 统计指定类型的非缺失文件数量 */
   countFilesByType(fileType: string): number {
     return (this.db.prepare("SELECT COUNT(*) as n FROM files WHERE file_type = ? AND is_missing = 0").get(fileType) as { n: number }).n;
   }
 
+  /** 更新文件的缩略图路径 */
   updateFileThumbnail(filepath: string, thumbPath: string): void {
     this.db.prepare("UPDATE files SET thumbnail_filepath = ? WHERE filepath = ?").run(thumbPath, filepath);
   }
@@ -177,11 +303,13 @@ export class IndexRepository {
     return " AND is_missing = 0"; // default: present
   }
 
+  /** 按文件名/路径模糊搜索 */
   searchFiles(q: string, presenceFilter = "present"): FileRow[] {
     const p = `%${q}%`;
     return rows<FileRow>(this.db.prepare("SELECT * FROM files WHERE (filename LIKE ? OR filepath LIKE ?)" + this._presenceClause(presenceFilter)).all(p, p));
   }
 
+  /** 按作者名模糊搜索，返回关联文件列表 */
   searchByAuthor(q: string, presenceFilter = "present"): FileRow[] {
     const artists = rows<{ artist_name: string }>(this.db.prepare("SELECT artist_name FROM artists WHERE artist_name LIKE ?").all(`%${q}%`));
     if (!artists.length) return [];
@@ -192,6 +320,7 @@ export class IndexRepository {
     return rows<FileRow>(this.db.prepare(`SELECT * FROM files WHERE filepath IN (${paths.map(() => "?").join(",")})` + this._presenceClause(presenceFilter)).all(...paths));
   }
 
+  /** 按 coser 名模糊搜索，返回关联文件列表 */
   searchByCoser(q: string, presenceFilter = "present"): FileRow[] {
     const artists = rows<{ artist_name: string }>(this.db.prepare("SELECT artist_name FROM artists WHERE artist_name LIKE ?").all(`%${q}%`));
     if (!artists.length) return [];
@@ -202,6 +331,7 @@ export class IndexRepository {
     return rows<FileRow>(this.db.prepare(`SELECT * FROM files WHERE filepath IN (${paths.map(() => "?").join(",")})` + this._presenceClause(presenceFilter)).all(...paths));
   }
 
+  /** 按 tag 名模糊搜索，返回关联文件列表 */
   searchByTag(q: string, presenceFilter = "present"): FileRow[] {
     const tags = rows<{ tag_name: string }>(this.db.prepare("SELECT tag_name FROM tags WHERE tag_name LIKE ?").all(`%${q}%`));
     if (!tags.length) return [];
@@ -214,6 +344,7 @@ export class IndexRepository {
 
   // ─── folders ──────────────────────────────────────────────────────────────
 
+  /** 插入或更新目录记录 */
   upsertFolder(data: UpsertFolderInput): void {
     const now = nowTs();
     this.db.prepare(`
@@ -225,6 +356,7 @@ export class IndexRepository {
     `).run(data.filepath, data.dirname, data.mtime ?? null, now, now, now);
   }
 
+  /** 批量 upsert 目录，包裹在单个事务中 */
   batchUpsertFolders(list: UpsertFolderInput[]): void {
     if (!list.length) return;
     this.db.exec("BEGIN");
@@ -234,12 +366,14 @@ export class IndexRepository {
     } catch (e) { this.db.exec("ROLLBACK"); throw e; }
   }
 
+  /** 返回 folders 表总行数 */
   countFolders(): number {
     return (this.db.prepare("SELECT COUNT(*) as n FROM folders").get() as { n: number }).n;
   }
 
   // ─── archive meta ─────────────────────────────────────────────────────────
 
+  /** 插入或更新压缩包元数据，同时将 index_status 置为 'fresh' */
   upsertArchiveMeta(
     filepath: string,
     archiveType: string,
@@ -274,10 +408,12 @@ export class IndexRepository {
     return row?.version_sig ?? null;
   }
 
+  /** 获取单条压缩包元数据 */
   getArchiveMeta(filepath: string): ArchiveMetaRow | undefined {
     return this.db.prepare("SELECT * FROM archive_meta WHERE filepath = ?").get(filepath) as ArchiveMetaRow | undefined;
   }
 
+  /** 批量获取某目录下所有压缩包的元数据，返回 filepath → ArchiveMetaRow 的 Map */
   getArchiveMetasByFolder(folderpath: string): Map<string, ArchiveMetaRow> {
     const result = rows<ArchiveMetaRow>(this.db.prepare(`
       SELECT am.* FROM archive_meta am JOIN files f ON f.filepath = am.filepath
@@ -288,6 +424,7 @@ export class IndexRepository {
 
   // ─── progress ─────────────────────────────────────────────────────────────
 
+  /** 插入或更新阅读/观看进度，快照字段用 COALESCE 保留旧值 */
   upsertProgress(data: Partial<ProgressRow> & { filepath: string }): void {
     const now = nowTs();
     this.db.prepare(`
@@ -308,27 +445,32 @@ export class IndexRepository {
     );
   }
 
+  /** 分页查询阅读历史，按 last_opened_at 排序 */
   listProgressHistory(offset: number, limit: number, sortOrder = "desc"): ProgressRow[] {
     const order = sortOrder === "asc" ? "ASC" : "DESC";
     return rows<ProgressRow>(this.db.prepare(`SELECT * FROM progress ORDER BY last_opened_at ${order} LIMIT ? OFFSET ?`).all(limit, offset));
   }
 
+  /** 返回 progress 表总行数 */
   countProgressHistory(): number {
     return (this.db.prepare("SELECT COUNT(*) as n FROM progress").get() as { n: number }).n;
   }
 
   // ─── activity logs ────────────────────────────────────────────────────────
 
+  /** 写入一条操作日志，并自动裁剪超出 500 条的旧记录 */
   logActivity(activityType: string, message: string, status = "completed", taskKey?: string, targetPath?: string, context?: object): void {
     const now = nowTs();
     this.db.prepare("INSERT INTO activity_logs (activity_type,status,task_key,message,target_path,context_json,created_at) VALUES (?,?,?,?,?,?,?)").run(activityType, status, taskKey ?? null, message, targetPath ?? null, context ? JSON.stringify(context) : null, now);
     this.db.prepare("DELETE FROM activity_logs WHERE id NOT IN (SELECT id FROM activity_logs ORDER BY created_at DESC, id DESC LIMIT 500)").run();
   }
 
+  /** 查询最近 N 条操作日志 */
   listActivityLogs(limit = 200): ActivityLogRow[] {
     return rows<ActivityLogRow>(this.db.prepare("SELECT * FROM activity_logs ORDER BY created_at DESC, id DESC LIMIT ?").all(limit));
   }
 
+  /** 查询最近一次 startup 日志之后的所有操作日志，若无 startup 则返回全部 */
   listActivityLogsSinceLatestStartup(limit = 200): ActivityLogRow[] {
     const row = this.db.prepare("SELECT id FROM activity_logs WHERE activity_type = 'startup' AND status = 'started' ORDER BY created_at DESC, id DESC LIMIT 1").get() as { id: number } | undefined;
     if (!row) return this.listActivityLogs(limit);
@@ -337,11 +479,13 @@ export class IndexRepository {
 
   // ─── folder open history ──────────────────────────────────────────────────
 
+  /** 记录目录被打开一次，累加 open_count 并更新 last_opened_at */
   recordFolderOpen(folderpath: string): void {
     const now = nowTs();
     this.db.prepare("INSERT INTO folder_open_history (folderpath,last_opened_at,open_count,updated_at) VALUES (?,?,1,?) ON CONFLICT(folderpath) DO UPDATE SET last_opened_at=excluded.last_opened_at,open_count=open_count+1,updated_at=excluded.updated_at").run(folderpath, now, now);
   }
 
+  /** 按时间衰减加权算法，返回最近常用的 top N 目录 ID */
   listTopOpenedFolderIds(limit = 5): string[] {
     const now = nowTs();
     const cutoff = now - 90 * 86400;
@@ -364,6 +508,7 @@ export class IndexRepository {
 
   // ─── parsed metadata ──────────────────────────────────────────────────────
 
+  /** 保存从文件名解析出的元数据，同时写入 artists / cosers / tags 关联表 */
   saveParsedMetadata(filepath: string, data: { title?: string; authors?: string[]; cosers?: string[]; groupName?: string; rawTags?: string[]; event?: string; dateTag?: string; mediaType?: string }): void {
     const now = nowTs();
     const cosers = data.cosers ?? [];
@@ -383,22 +528,27 @@ export class IndexRepository {
     } catch (e) { this.db.exec("ROLLBACK"); throw e; }
   }
 
+  /** 获取单条解析元数据 */
   getParsedMetadata(filepath: string): ParsedMetaRow | undefined {
     return this.db.prepare("SELECT * FROM parsed_metadata WHERE filepath = ?").get(filepath) as ParsedMetaRow | undefined;
   }
 
+  /** 获取文件关联的作者名列表（role = ''） */
   getFileArtists(filepath: string): string[] {
     return rows<{ artist_name: string }>(this.db.prepare("SELECT artist_name FROM file_artists WHERE filepath = ? AND role = ''").all(filepath)).map(r => r.artist_name);
   }
 
+  /** 获取文件关联的 coser 名列表（role = 'coser'） */
   getFileCosers(filepath: string): string[] {
     return rows<{ artist_name: string }>(this.db.prepare("SELECT artist_name FROM file_artists WHERE filepath = ? AND role = 'coser'").all(filepath)).map(r => r.artist_name);
   }
 
+  /** 获取文件关联的 tag 列表 */
   getFileTags(filepath: string): string[] {
     return rows<{ tag_name: string }>(this.db.prepare("SELECT tag_name FROM file_tags WHERE filepath = ?").all(filepath)).map(r => r.tag_name);
   }
 
+  /** 批量获取多个文件的作者列表，返回 filepath → string[] 的 Map */
   getArtistsByFilepaths(filepaths: string[]): Map<string, string[]> {
     if (!filepaths.length) return new Map();
     const result = rows<{ filepath: string; artist_name: string }>(this.db.prepare(`SELECT filepath,artist_name FROM file_artists WHERE filepath IN (${filepaths.map(() => "?").join(",")}) AND role = ''`).all(...filepaths));
@@ -407,12 +557,14 @@ export class IndexRepository {
     return map;
   }
 
+  /** 批量获取多个文件的解析元数据，返回 filepath → ParsedMetaRow 的 Map */
   getParsedMetadataByFilepaths(filepaths: string[]): Map<string, ParsedMetaRow> {
     if (!filepaths.length) return new Map();
     const result = rows<ParsedMetaRow>(this.db.prepare(`SELECT * FROM parsed_metadata WHERE filepath IN (${filepaths.map(() => "?").join(",")})`).all(...filepaths));
     return new Map(result.map(r => [r.filepath, r]));
   }
 
+  /** 批量获取某目录下所有文件的 rec_score 和最近阅读时间，用于列表排序 */
   getFileDataByFolder(folderpath: string): Map<string, { rec_score: number; last_read_at: number | null }> {
     const result = rows<{ filepath: string; rec_score: number; last_opened_at: number | null }>(this.db.prepare("SELECT f.filepath, f.rec_score, p.last_opened_at FROM files f LEFT JOIN progress p ON p.filepath = f.filepath WHERE f.folderpath = ?").all(folderpath));
     return new Map(result.map(r => [r.filepath, { rec_score: r.rec_score, last_read_at: r.last_opened_at }]));
@@ -420,26 +572,31 @@ export class IndexRepository {
 
   // ─── tags / artists listing ───────────────────────────────────────────────
 
+  /** 分页列出所有 tag 及其关联文件数和平均推荐分 */
   listTagsWithCounts(offset: number, limit: number, sortBy = "count", sortOrder = "desc"): { tag_name: string; file_count: number; avg_rec_score: number }[] {
     const col = sortBy === "name" ? "tag_name" : sortBy === "recommendation" ? "avg_rec_score" : "file_count";
     const dir = sortOrder === "asc" ? "ASC" : "DESC";
     return rows<{ tag_name: string; file_count: number; avg_rec_score: number }>(this.db.prepare(`SELECT t.tag_name, COUNT(ft.filepath) as file_count, AVG(COALESCE(f.rec_score,0)) as avg_rec_score FROM tags t LEFT JOIN file_tags ft ON ft.tag_name = t.tag_name LEFT JOIN files f ON f.filepath = ft.filepath GROUP BY t.tag_name ORDER BY ${col} ${dir}, t.tag_name ASC LIMIT ? OFFSET ?`).all(limit, offset));
   }
 
+  /** 返回 tags 表总行数 */
   countTags(): number {
     return (this.db.prepare("SELECT COUNT(*) as n FROM tags").get() as { n: number }).n;
   }
 
+  /** 分页列出所有 artist（可按 role 过滤）及其关联文件数和平均推荐分 */
   listArtistsWithCounts(offset: number, limit: number, role = "", sortBy = "count", sortOrder = "desc"): { artist_name: string; file_count: number; avg_rec_score: number }[] {
     const col = sortBy === "name" ? "artist_name" : sortBy === "recommendation" ? "avg_rec_score" : "file_count";
     const dir = sortOrder === "asc" ? "ASC" : "DESC";
     return rows<{ artist_name: string; file_count: number; avg_rec_score: number }>(this.db.prepare(`SELECT a.artist_name, COUNT(fa.filepath) as file_count, AVG(COALESCE(f.rec_score,0)) as avg_rec_score FROM artists a LEFT JOIN file_artists fa ON fa.artist_name = a.artist_name AND fa.role = ? LEFT JOIN files f ON f.filepath = fa.filepath GROUP BY a.artist_name ORDER BY ${col} ${dir}, a.artist_name ASC LIMIT ? OFFSET ?`).all(role, limit, offset));
   }
 
+  /** 返回指定 role 的 artist 去重总数 */
   countArtists(role = ""): number {
     return (this.db.prepare("SELECT COUNT(DISTINCT artist_name) as n FROM file_artists WHERE role = ?").get(role) as { n: number }).n;
   }
 
+  /** 批量更新文件推荐分，包裹在单个事务中 */
   batchUpdateRecScores(scores: Map<string, number>): void {
     if (!scores.size) return;
     const stmt = this.db.prepare("UPDATE files SET rec_score = ? WHERE filepath = ?");
@@ -450,6 +607,7 @@ export class IndexRepository {
     } catch (e) { this.db.exec("ROLLBACK"); throw e; }
   }
 
+  /** 返回媒体库各类型文件数量概览 */
   getLibraryOverview(): { archives: number; videos: number; images: number; audio: number; folders: number } {
     const row = this.db.prepare(`
       SELECT
@@ -462,11 +620,13 @@ export class IndexRepository {
     return { archives: row.archives ?? 0, videos: row.videos ?? 0, images: row.images ?? 0, audio: row.audio ?? 0, folders: this.countFolders() };
   }
 
+  /** 返回所有 tag 的文件关联数，用于推荐分计算 */
   getTagTotalCounts(): Map<string, number> {
     const result = rows<{ tag_name: string; cnt: number }>(this.db.prepare("SELECT ft.tag_name, COUNT(ft.filepath) as cnt FROM file_tags ft GROUP BY ft.tag_name").all());
     return new Map(result.map(r => [r.tag_name, r.cnt]));
   }
 
+  /** 批量获取多个文件的 tag 列表，返回 filepath → string[] 的 Map */
   getTagsByFilepaths(filepaths: string[]): Map<string, string[]> {
     if (!filepaths.length) return new Map();
     const result = rows<{ filepath: string; tag_name: string }>(this.db.prepare(`SELECT filepath,tag_name FROM file_tags WHERE filepath IN (${filepaths.map(() => "?").join(",")})`).all(...filepaths));
@@ -475,6 +635,7 @@ export class IndexRepository {
     return map;
   }
 
+  /** 为一批 artist 各取最近 N 个文件路径，用于封面候选 */
   getArtistThumbCandidates(names: string[], role: string, limit = 3): Map<string, string[]> {
     if (!names.length) return new Map();
     const placeholders = names.map(() => "?").join(",");
@@ -491,6 +652,7 @@ export class IndexRepository {
     return map;
   }
 
+  /** 为一批 tag 各取最近 N 个文件路径，用于封面候选 */
   getTagThumbCandidates(names: string[], limit = 3): Map<string, string[]> {
     if (!names.length) return new Map();
     const placeholders = names.map(() => "?").join(",");
@@ -507,6 +669,7 @@ export class IndexRepository {
     return map;
   }
 
+  /** 批量获取 artist 已生成的缩略图路径，返回 artist_name → thumbnail_filepath 的 Map */
   getArtistThumbnailPaths(names: string[], role: string): Map<string, string> {
     if (!names.length) return new Map();
     const placeholders = names.map(() => "?").join(",");
@@ -520,6 +683,7 @@ export class IndexRepository {
     return new Map(result.map(r => [r.artist_name, r.thumbnail_filepath]));
   }
 
+  /** 批量获取 tag 已生成的缩略图路径，返回 tag_name → thumbnail_filepath 的 Map */
   getTagThumbnailPaths(names: string[]): Map<string, string> {
     if (!names.length) return new Map();
     const placeholders = names.map(() => "?").join(",");
@@ -533,11 +697,13 @@ export class IndexRepository {
     return new Map(result.map(r => [r.tag_name, r.thumbnail_filepath]));
   }
 
+  /** 统计收藏目录下各作者的文件数，用于推荐分计算 */
   getFavoriteAuthorFrequencies(favoriteDir: string): Map<string, number> {
     const result = rows<{ artist_name: string; cnt: number }>(this.db.prepare("SELECT fa.artist_name, COUNT(fa.filepath) as cnt FROM file_artists fa JOIN files f ON f.filepath = fa.filepath WHERE fa.role = '' AND f.filepath LIKE ? GROUP BY fa.artist_name").all(favoriteDir + "%"));
     return new Map(result.map(r => [r.artist_name, r.cnt]));
   }
 
+  /** 统计收藏目录下各 tag 的文件数，用于推荐分计算 */
   getFavoriteTagFrequencies(favoriteDir: string): Map<string, number> {
     const result = rows<{ tag_name: string; cnt: number }>(this.db.prepare("SELECT ft.tag_name, COUNT(ft.filepath) as cnt FROM file_tags ft JOIN files f ON f.filepath = ft.filepath WHERE f.filepath LIKE ? GROUP BY ft.tag_name").all(favoriteDir + "%"));
     return new Map(result.map(r => [r.tag_name, r.cnt]));
