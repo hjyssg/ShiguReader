@@ -24,7 +24,7 @@ const execFileAsync = promisify(execFile);
 // Module-level __dirname for ESM (same pattern as thumbService)
 const __filename = fileURLToPath(import.meta.url);
 const __routeDir = path.dirname(__filename);
-const _TOOLS_DIR = path.resolve(__routeDir, "../../../backend/tools");
+const _TOOLS_DIR = path.resolve(__routeDir, "../../tools");
 
 function get7zBin(): string {
   const bundled = path.join(_TOOLS_DIR, "7zip-lite/7z.exe");

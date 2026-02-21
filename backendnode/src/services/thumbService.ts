@@ -22,8 +22,8 @@ const execFileAsync = promisify(execFile);
 // ── tool resolution ──────────────────────────────────────────────────────────
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-// src/services/ → ../../.. → project root → backend/tools
-const TOOLS_DIR = path.resolve(__dirname, "../../../backend/tools");
+// src/services/ → ../.. → backendnode/tools/
+const TOOLS_DIR = path.resolve(__dirname, "../../tools");
 
 function resolveTool(subpath: string, fallbackCmd: string): string {
   const bundled = path.join(TOOLS_DIR, subpath);

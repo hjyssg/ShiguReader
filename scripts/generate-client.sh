@@ -1,11 +1,6 @@
-#! /usr/bin/env bash
-
-set -e
-set -x
-
-cd backend
-uv run python -c "import app.main; import json; print(json.dumps(app.main.app.openapi()))" > ../openapi.json
-cd ..
-mv openapi.json frontend/
-bun run --filter frontend generate-client
-bun run lint
+#!/usr/bin/env bash
+# NOTE: Python backend has been removed. This script is no longer used.
+# The frontend client code in frontend/src/client/ is now maintained manually
+# or can be regenerated if a Node.js OpenAPI endpoint is added to backendnode.
+echo "generate-client.sh: Python backend removed, script disabled."
+exit 0

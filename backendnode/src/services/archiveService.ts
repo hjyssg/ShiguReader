@@ -18,7 +18,7 @@ const execFileAsync = promisify(execFile);
 // ── tool resolution ──────────────────────────────────────────────────────────
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const TOOLS_DIR = path.resolve(__dirname, "../../../backend/tools");
+const TOOLS_DIR = path.resolve(__dirname, "../../tools");
 
 function get7z(): string {
   const bundled = path.join(TOOLS_DIR, "7zip-lite/7z.exe");
