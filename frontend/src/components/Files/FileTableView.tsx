@@ -194,16 +194,16 @@ function TableRowCells({
         {!isFolder && item.filesize ? formatFileSize(item.filesize) : "-"}
       </td>
       <td className="p-2 text-right text-muted-foreground">
-        {!isFolder ? ((item as any).recommendation_score ?? 0).toFixed(3) : "-"}
+        {!isFolder ? (item.recommendation_score ?? 0).toFixed(3) : "-"}
       </td>
       <td className="p-2 text-right text-muted-foreground">
-        {isArchive && (item as any).image_count
-          ? (item as any).image_count
+        {isArchive && item.image_count
+          ? item.image_count
           : "-"}
       </td>
       <td className="p-2 text-right text-muted-foreground">
-        {!isFolder && (item as any).last_read_at
-          ? formatDateTime((item as any).last_read_at)
+        {!isFolder && item.last_read_at
+          ? formatDateTime(item.last_read_at)
           : "-"}
       </td>
     </>

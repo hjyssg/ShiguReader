@@ -20,7 +20,7 @@ export function useResolveMovedFile(
   onResolvedRef.current = onResolved
 
   const errorMessage = error
-    ? ((error as any)?.body?.detail ?? String(error))
+    ? ((error instanceof Error && "body" in error) ? ((error as Record<string, unknown>).body as Record<string, unknown>)?.detail as string ?? String(error) : String(error))
     : ""
 
   const isNotFound = !!(

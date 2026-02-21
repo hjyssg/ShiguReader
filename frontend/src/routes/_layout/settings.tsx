@@ -87,7 +87,7 @@ interface SinglePathSectionProps {
   onChange: (value: string) => void
   onSave: () => void
   onReset: () => void
-  t: (key: string, options?: any) => string
+  t: (key: string, options?: Record<string, unknown>) => string
 }
 
 function SinglePathSection({
@@ -186,7 +186,7 @@ function SettingsPage() {
   const [movePlaceDir, setMovePlaceDir] = useState("")
 
   const handleTabChange = (value: string) => {
-    navigate({ search: (prev) => ({ ...prev, tab: value as any }) })
+    navigate({ search: (prev) => ({ ...prev, tab: value as "general" | "scan" }) })
   }
 
   const { data: settings, isLoading } = useQuery<SettingsResponse>({

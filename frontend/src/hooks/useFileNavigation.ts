@@ -83,7 +83,10 @@ export function useFileNavigation() {
     (item: FileSystemItem) => {
       const target = buildNavigationTarget(item, isMobile)
       if (target) {
-        navigate({ to: target.to, search: target.search as any })
+        // TanStack Router's navigate requires exact route-specific search types;
+        // the union from buildNavigationTarget is structurally correct but not narrowed per-route.
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        navigate({ to: target.to, search: target.search as Record<string, unknown> })
       }
     },
     [navigate, isMobile],

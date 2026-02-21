@@ -131,57 +131,65 @@ async function listDirectory(
 
   try {
     const entries = await fs.promises.readdir(dirPath, { withFileTypes: true });
-    for (const entry of entries) {
-      const fullPath = path.join(dirPath, entry.name);
-      try {
-        const entryStat = await fs.promises.stat(fullPath);
-        if (entry.isDirectory()) {
-          items.push({
-            name: entry.name,
-            path: fullPath,
-            item_type: "folder",
-            file_type: null,
-            filesize: null,
-            mtime: Math.floor(entryStat.mtimeMs / 1000),
-            thumbnail_url: null,
-            image_count: null,
-            video_count: null,
-            audio_count: null,
-            avg_image_size: null,
-            recommendation_score: 0,
-            scan_state: null,
-            watch_state: null,
-            confidence_level: null,
-            confidence_score: null,
-            last_read_at: null,
-          });
-        } else if (entry.isFile()) {
-          const fileType = getFileType(entry.name);
-          const thumbUrl = ["archive", "video", "image"].includes(fileType)
-            ? buildThumbUrl(fullPath)
-            : null;
-          items.push({
-            name: entry.name,
-            path: fullPath,
-            item_type: "file",
-            file_type: fileType,
-            filesize: entryStat.size,
-            mtime: Math.floor(entryStat.mtimeMs / 1000),
-            thumbnail_url: thumbUrl,
-            image_count: null,
-            video_count: null,
-            audio_count: null,
-            avg_image_size: null,
-            recommendation_score: 0,
-            scan_state: null,
-            watch_state: null,
-            confidence_level: null,
-            confidence_score: null,
-            last_read_at: null,
-          });
+    // Parallel stat for all entries
+    const statResults = await Promise.all(
+      entries.map(async (entry) => {
+        const fullPath = path.join(dirPath, entry.name);
+        try {
+          const entryStat = await fs.promises.stat(fullPath);
+          return { entry, fullPath, entryStat };
+        } catch {
+          return null; // skip unreadable entries
         }
-      } catch {
-        // skip unreadable entries
+      })
+    );
+    for (const result of statResults) {
+      if (!result) continue;
+      const { entry, fullPath, entryStat } = result;
+      if (entry.isDirectory()) {
+        items.push({
+          name: entry.name,
+          path: fullPath,
+          item_type: "folder",
+          file_type: null,
+          filesize: null,
+          mtime: Math.floor(entryStat.mtimeMs / 1000),
+          thumbnail_url: null,
+          image_count: null,
+          video_count: null,
+          audio_count: null,
+          avg_image_size: null,
+          recommendation_score: 0,
+          scan_state: null,
+          watch_state: null,
+          confidence_level: null,
+          confidence_score: null,
+          last_read_at: null,
+        });
+      } else if (entry.isFile()) {
+        const fileType = getFileType(entry.name);
+        const thumbUrl = ["archive", "video", "image"].includes(fileType)
+          ? buildThumbUrl(fullPath)
+          : null;
+        items.push({
+          name: entry.name,
+          path: fullPath,
+          item_type: "file",
+          file_type: fileType,
+          filesize: entryStat.size,
+          mtime: Math.floor(entryStat.mtimeMs / 1000),
+          thumbnail_url: thumbUrl,
+          image_count: null,
+          video_count: null,
+          audio_count: null,
+          avg_image_size: null,
+          recommendation_score: 0,
+          scan_state: null,
+          watch_state: null,
+          confidence_level: null,
+          confidence_score: null,
+          last_read_at: null,
+        });
       }
     }
   } catch (e) {

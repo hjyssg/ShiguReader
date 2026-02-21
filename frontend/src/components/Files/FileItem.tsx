@@ -88,8 +88,8 @@ export function FileItem({
     </FileName>
   )
 
-  const likeScore = (item as any).likeScore ?? (item as any).recommendation_score
-  const lastReadAt = (item as any).last_read_at
+  const likeScore = item.likeScore ?? item.recommendation_score
+  const lastReadAt = item.last_read_at
   const thumbnailTooltip = [
     `${t("explorer.table.dateModified")}: ${item.mtime ? formatDateTime(item.mtime) : "-"}`,
     `${t("explorer.table.likeScore")}: ${likeScore != null ? Number(likeScore).toFixed(3) : "-"}`,

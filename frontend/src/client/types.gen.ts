@@ -131,6 +131,8 @@ export type FileSystemItem = {
     video_count?: (number | null);
     audio_count?: (number | null);
     avg_image_size?: (number | null);
+    last_read_at?: (number | null);
+    likeScore?: (number | null);
 };
 
 export type item_type = 'folder' | 'file';

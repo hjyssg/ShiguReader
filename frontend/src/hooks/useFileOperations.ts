@@ -11,7 +11,7 @@ function normalizeDetail(detail: unknown): string | null {
   if (typeof detail === "string" && detail.trim()) return detail
 
   if (Array.isArray(detail) && detail.length > 0) {
-    const first = detail[0] as any
+    const first = detail[0] as unknown
     if (typeof first === "string") return first
     if (first?.msg) return String(first.msg)
   }
@@ -21,12 +21,13 @@ function normalizeDetail(detail: unknown): string | null {
 
 function extractErrorMessage(err: unknown): string {
   if (err instanceof ApiError) {
-    const detail = normalizeDetail((err.body as any)?.detail)
+    const body = err.body as Record<string, unknown> | undefined;
+    const detail = normalizeDetail(body?.detail)
     return detail || err.message
   }
 
   if (typeof err === "object" && err !== null && "detail" in err) {
-    const detail = normalizeDetail((err as any).detail)
+    const detail = normalizeDetail((err as Record<string, unknown>).detail)
     if (detail) return detail
   }
 
@@ -162,7 +163,7 @@ export function useFileOperations(currentPath: string) {
       toastSuccess("Renamed successfully")
       invalidate()
     },
-    onError: (err: any) => {
+    onError: (err: Error) => {
       toastError(`Rename failed: ${extractErrorMessage(err)}`)
     },
   })
@@ -179,7 +180,7 @@ export function useFileOperations(currentPath: string) {
       toastSuccess("Deleted successfully")
       invalidate()
     },
-    onError: (err: any) => {
+    onError: (err: Error) => {
       toastError(`Delete failed: ${extractErrorMessage(err)}`)
     },
   })
@@ -202,7 +203,7 @@ export function useFileOperations(currentPath: string) {
       toastSuccess("Deleted successfully")
       invalidate()
     },
-    onError: (err: any) => {
+    onError: (err: Error) => {
       toastError(`Delete failed: ${extractErrorMessage(err)}`)
     },
   })
@@ -222,7 +223,7 @@ export function useFileOperations(currentPath: string) {
       toastSuccess("Moved successfully")
       invalidate()
     },
-    onError: (err: any) => {
+    onError: (err: Error) => {
       toastError(`Move failed: ${extractErrorMessage(err)}`)
     },
   })
@@ -242,7 +243,7 @@ export function useFileOperations(currentPath: string) {
       toastSuccess("Moved successfully")
       invalidate()
     },
-    onError: (err: any) => {
+    onError: (err: Error) => {
       toastError(`Move failed: ${extractErrorMessage(err)}`)
     },
   })
@@ -261,7 +262,7 @@ export function useFileOperations(currentPath: string) {
       toastSuccess("Moved to favorites")
       invalidate()
     },
-    onError: (err: any) => {
+    onError: (err: Error) => {
       toastError(`Move to favorites failed: ${extractErrorMessage(err)}`)
     },
   })
@@ -278,7 +279,7 @@ export function useFileOperations(currentPath: string) {
       toastSuccess("Moved to already-read")
       invalidate()
     },
-    onError: (err: any) => {
+    onError: (err: Error) => {
       toastError(`Move to already-read failed: ${extractErrorMessage(err)}`)
     },
   })
@@ -290,7 +291,7 @@ export function useFileOperations(currentPath: string) {
       toastSuccess("Compressed to ZIP successfully")
       invalidate()
     },
-    onError: (err: any) => {
+    onError: (err: Error) => {
       toastError(`Compress failed: ${extractErrorMessage(err)}`)
     },
   })
@@ -301,7 +302,7 @@ export function useFileOperations(currentPath: string) {
       toastSuccess("Archive images compressed successfully")
       invalidate()
     },
-    onError: (err: any) => {
+    onError: (err: Error) => {
       toastError(`Compress images failed: ${extractErrorMessage(err)}`)
     },
   })
@@ -318,7 +319,7 @@ export function useFileOperations(currentPath: string) {
       )
       invalidate()
     },
-    onError: (err: any) => {
+    onError: (err: Error) => {
       toastError(`Backfill failed: ${extractErrorMessage(err)}`)
     },
   })

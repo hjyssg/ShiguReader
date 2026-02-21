@@ -127,6 +127,13 @@ CREATE INDEX IF NOT EXISTS idx_file_artists_artist ON file_artists(artist_name);
 CREATE INDEX IF NOT EXISTS idx_file_artists_role ON file_artists(role);
 CREATE INDEX IF NOT EXISTS idx_file_artists_role_artist ON file_artists(role, artist_name);
 
+-- Additional performance indexes
+CREATE INDEX IF NOT EXISTS idx_files_rec_score ON files(rec_score);
+CREATE INDEX IF NOT EXISTS idx_files_folderpath_file_type ON files(folderpath, file_type);
+CREATE INDEX IF NOT EXISTS idx_activity_logs_activity_type ON activity_logs(activity_type, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_progress_last_opened_at ON progress(last_opened_at DESC);
+CREATE INDEX IF NOT EXISTS idx_folder_open_history_last_opened_at ON folder_open_history(last_opened_at);
+
 CREATE TABLE IF NOT EXISTS parsed_metadata (
   filepath TEXT PRIMARY KEY,
   title TEXT,

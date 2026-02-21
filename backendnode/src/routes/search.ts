@@ -32,11 +32,15 @@ async function searchFiles(
       q?: string;
       scopes?: string[];
       presence_filter?: string;
+      limit?: number;
+      offset?: number;
     };
   }>,
   reply: FastifyReply
 ) {
   const { q = "", scopes = ["file", "author", "coser", "tag"], presence_filter = "all" } = req.body ?? {};
+  const limit = Math.min(500, Math.max(1, req.body?.limit ?? 200));
+  const offset = Math.max(0, req.body?.offset ?? 0);
   const query = q.trim();
   if (!query) return reply.send({ items: [], total: 0 });
 
@@ -56,8 +60,10 @@ async function searchFiles(
     for (const row of repo.searchByTag(query, presence_filter)) byPath.set(row.filepath, toItem(row));
   }
 
-  const items = [...byPath.values()].sort((a, b) => a.name.localeCompare(b.name));
-  return reply.send({ items, total: items.length });
+  const allItems = [...byPath.values()].sort((a, b) => a.name.localeCompare(b.name));
+  const total = allItems.length;
+  const items = allItems.slice(offset, offset + limit);
+  return reply.send({ items, total });
 }
 
 export async function searchRoutes(app: FastifyInstance) {

@@ -176,15 +176,15 @@ export function FileViewContainer({
           comparison = a.name.toLowerCase().localeCompare(b.name.toLowerCase())
         }
       } else if (sortField === "likeScore") {
-        const scoreA = (a as any).recommendation_score || 0
-        const scoreB = (b as any).recommendation_score || 0
+        const scoreA = a.recommendation_score ?? a.likeScore ?? 0
+        const scoreB = b.recommendation_score ?? b.likeScore ?? 0
         comparison = scoreA - scoreB
         if (comparison === 0) {
           comparison = a.name.toLowerCase().localeCompare(b.name.toLowerCase())
         }
       } else if (sortField === "last_read_at") {
-        const readAtA = (a as any).last_read_at || 0
-        const readAtB = (b as any).last_read_at || 0
+        const readAtA = a.last_read_at ?? 0
+        const readAtB = b.last_read_at ?? 0
         comparison = readAtA - readAtB
         if (comparison === 0) {
           comparison = a.name.toLowerCase().localeCompare(b.name.toLowerCase())

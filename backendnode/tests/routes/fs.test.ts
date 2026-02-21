@@ -20,6 +20,8 @@ const mockRepo = {
   listActivityLogsSinceLatestStartup: vi.fn(() => []),
   listTopOpenedFolderIds: vi.fn(() => []),
   logActivity: vi.fn(),
+  getLibraryOverview: vi.fn(() => ({ archives: 0, videos: 0, images: 0, audio: 0, folders: 0 })),
+  findFilesByFilename: vi.fn(() => []),
 };
 
 vi.mock("../../src/db/repository.js", () => ({
@@ -39,20 +41,32 @@ vi.mock("../../src/config.js", () => ({
 
 // ── fake filesystem via spyOn ────────────────────────────────────────────────
 // Use forward-slash paths; normalize on comparison to handle Windows backslashes
+import path from "node:path";
 const TMP = "/fake/testdir";
+const RESOLVED_TMP = path.resolve(TMP);
 const ns = (p: string) => p.replace(/\\/g, "/");
 
-const fakeStatSync = (p: string): Partial<fs.Stats> => {
+const RESOLVED_NS = ns(RESOLVED_TMP);
+
+const isTestDir = (p: string) => {
   const n = ns(p);
-  if (n === "/fake/testdir")          return { isDirectory: () => true,  isFile: () => false, size: 0,    mtimeMs: 1700000000000 };
-  if (n === "/fake/testdir/sub")      return { isDirectory: () => true,  isFile: () => false, size: 0,    mtimeMs: 1700000000000 };
-  if (n === "/fake/testdir/file.zip") return { isDirectory: () => false, isFile: () => true,  size: 1024, mtimeMs: 1700000000000 };
-  if (n === "/fake/testdir/img.jpg")  return { isDirectory: () => false, isFile: () => true,  size: 512,  mtimeMs: 1700000000000 };
+  return n === "/fake/testdir" || n === RESOLVED_NS;
+};
+const isTestChild = (p: string, name: string) => {
+  const n = ns(p);
+  return n === `/fake/testdir/${name}` || n === `${RESOLVED_NS}/${name}`;
+};
+
+const fakeStat = async (p: string): Promise<Partial<fs.Stats>> => {
+  if (isTestDir(p))                  return { isDirectory: () => true,  isFile: () => false, size: 0,    mtimeMs: 1700000000000 };
+  if (isTestChild(p, "sub"))         return { isDirectory: () => true,  isFile: () => false, size: 0,    mtimeMs: 1700000000000 };
+  if (isTestChild(p, "file.zip"))    return { isDirectory: () => false, isFile: () => true,  size: 1024, mtimeMs: 1700000000000 };
+  if (isTestChild(p, "img.jpg"))     return { isDirectory: () => false, isFile: () => true,  size: 512,  mtimeMs: 1700000000000 };
   throw Object.assign(new Error("ENOENT"), { code: "ENOENT" });
 };
 
-const fakeReaddirSync = (p: string): unknown[] => {
-  if (ns(p) === "/fake/testdir") {
+const fakeReaddir = async (p: string): Promise<unknown[]> => {
+  if (isTestDir(p)) {
     return [
       { name: "sub",      isDirectory: () => true,  isFile: () => false, isSymbolicLink: () => false },
       { name: "file.zip", isDirectory: () => false, isFile: () => true,  isSymbolicLink: () => false },
@@ -62,9 +76,15 @@ const fakeReaddirSync = (p: string): unknown[] => {
   return [];
 };
 
+const fakeAccess = async (p: string): Promise<void> => {
+  if (isTestDir(p) || isTestChild(p, "sub") || isTestChild(p, "file.zip") || isTestChild(p, "img.jpg")) return;
+  throw Object.assign(new Error("ENOENT"), { code: "ENOENT" });
+};
+
 beforeEach(() => {
-  vi.spyOn(fs, "statSync").mockImplementation(fakeStatSync as typeof fs.statSync);
-  vi.spyOn(fs, "readdirSync").mockImplementation(fakeReaddirSync as typeof fs.readdirSync);
+  vi.spyOn(fs.promises, "stat").mockImplementation(fakeStat as typeof fs.promises.stat);
+  vi.spyOn(fs.promises, "readdir").mockImplementation(fakeReaddir as typeof fs.promises.readdir);
+  vi.spyOn(fs.promises, "access").mockImplementation(fakeAccess as typeof fs.promises.access);
 });
 
 afterEach(() => {

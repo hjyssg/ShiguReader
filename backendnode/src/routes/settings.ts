@@ -105,9 +105,20 @@ async function verifyFiles(_req: FastifyRequest, reply: FastifyReply) {
   let missing = 0;
   const missingPaths: string[] = [];
 
-  for (const fp of filepaths) {
+  // Parallel file existence check
+  const existResults = await Promise.all(
+    filepaths.map(async (fp) => {
+      try {
+        await fs.promises.access(fp);
+        return { fp, exists: true };
+      } catch {
+        return { fp, exists: false };
+      }
+    })
+  );
+  for (const { fp, exists } of existResults) {
     checked++;
-    if (!fs.existsSync(fp)) {
+    if (!exists) {
       missing++;
       missingPaths.push(fp);
     }
