@@ -9,6 +9,20 @@ echo  - Frontend: http://localhost:5173 (Vite HMR)
 echo  - Backend:  http://localhost:8000
 echo.
 
+:: Install frontend dependencies if needed
+if not exist "%~dp0frontend\node_modules" (
+    echo [Setup] Installing frontend dependencies...
+    cd /d "%~dp0frontend"
+    call npm install
+)
+
+:: Install backend dependencies if needed
+if not exist "%~dp0backendnode\node_modules" (
+    echo [Setup] Installing backend dependencies...
+    cd /d "%~dp0backendnode"
+    call npm install
+)
+
 :: Start frontend dev server in a new window
 start "ShiguReader Frontend" cmd /k "chcp 65001 >nul && cd /d "%~dp0frontend" && npm run dev"
 
