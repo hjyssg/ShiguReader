@@ -1,10 +1,35 @@
 import type { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
 import path from "node:path";
 import fs from "node:fs";
+import { execFile } from "node:child_process";
+import { promisify } from "node:util";
+import { fileURLToPath } from "node:url";
 import { getDb } from "../db/client.js";
 import { IndexRepository } from "../db/repository.js";
 import { getFileType, getMimeType, makeFingerprint } from "../utils/fileType.js";
 import { config } from "../config.js";
+import {
+  listEntries,
+  extractEntries,
+  stepwiseExtract,
+  getExtractCacheDir,
+  clearExtractCache as svcClearExtractCache,
+  compressArchiveImages,
+} from "../services/archiveService.js";
+import { getOrGenerateThumb } from "../services/thumbService.js";
+import { parseName } from "../utils/nameParser.js";
+
+const execFileAsync = promisify(execFile);
+
+// Module-level __dirname for ESM (same pattern as thumbService)
+const __filename = fileURLToPath(import.meta.url);
+const __routeDir = path.dirname(__filename);
+const _TOOLS_DIR = path.resolve(__routeDir, "../../../backend/tools");
+
+function get7zBin(): string {
+  const bundled = path.join(_TOOLS_DIR, "7zip-lite/7z.exe");
+  return fs.existsSync(bundled) ? bundled : "7z";
+}
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
 
@@ -445,56 +470,153 @@ async function resolvePath(
   }
 }
 
-// ─── archive stubs ────────────────────────────────────────────────────────────
+// ─── archive handlers ─────────────────────────────────────────────────────────
 
 async function listArchive(
   req: FastifyRequest<{ Querystring: { path: string } }>,
   reply: FastifyReply
 ) {
-  // Stub: real implementation would use 7zip or similar
-  return reply.send({ entries: [], message: "Archive listing not yet implemented" });
+  const { path: archivePath } = req.query;
+  if (!archivePath) return reply.status(400).send({ error: "path is required" });
+  try {
+    fs.accessSync(archivePath);
+  } catch {
+    return reply.status(404).send({ error: "File not found" });
+  }
+  try {
+    const entries = await listEntries(archivePath);
+    return reply.send({ entries });
+  } catch (e) {
+    return reply.status(500).send({ error: String(e) });
+  }
 }
 
 async function extractArchive(
-  req: FastifyRequest<{ Body: { path: string; dest?: string } }>,
+  req: FastifyRequest<{ Body: { path: string; page?: number } }>,
   reply: FastifyReply
 ) {
-  return reply.send({ status: "not_implemented", message: "Archive extraction not yet implemented" });
+  const { path: archivePath, page = 0 } = req.body ?? {};
+  if (!archivePath) return reply.status(400).send({ error: "path is required" });
+  try {
+    fs.accessSync(archivePath);
+  } catch {
+    return reply.status(404).send({ error: "File not found" });
+  }
+  try {
+    const result = await stepwiseExtract(archivePath, page);
+    return reply.send(result);
+  } catch (e) {
+    return reply.status(500).send({ error: String(e) });
+  }
 }
 
 async function getArchiveFile(
   req: FastifyRequest<{ Querystring: { path: string; entry: string } }>,
   reply: FastifyReply
 ) {
-  return reply.status(501).send({ error: "Not implemented" });
+  const { path: archivePath, entry } = req.query;
+  if (!archivePath || !entry) return reply.status(400).send({ error: "path and entry are required" });
+  const cacheDir = getExtractCacheDir(archivePath);
+  const filePath = path.join(cacheDir, entry);
+  // Security: ensure resolved path is within cacheDir
+  const resolved = path.resolve(filePath);
+  if (!resolved.startsWith(path.resolve(cacheDir))) {
+    return reply.status(400).send({ error: "Invalid entry path" });
+  }
+  try {
+    fs.accessSync(resolved);
+    const mime = getMimeType(resolved);
+    return reply.type(mime).send(fs.createReadStream(resolved));
+  } catch {
+    return reply.status(404).send({ error: "File not found in extract cache" });
+  }
 }
 
 async function clearExtractCache(_req: FastifyRequest, reply: FastifyReply) {
-  return reply.send({ status: "ok", cleared: 0 });
+  try {
+    const result = svcClearExtractCache();
+    return reply.send({ status: "ok", ...result });
+  } catch (e) {
+    return reply.status(500).send({ error: String(e) });
+  }
 }
 
 async function compressImages(
-  req: FastifyRequest<{ Body: { path: string } }>,
+  req: FastifyRequest<{ Body: { path: string; max_height?: number; quality?: number } }>,
   reply: FastifyReply
 ) {
-  return reply.send({ status: "not_implemented" });
+  const { path: archivePath, max_height = 1600, quality = 85 } = req.body ?? {};
+  if (!archivePath) return reply.status(400).send({ error: "path is required" });
+  try {
+    fs.accessSync(archivePath);
+  } catch {
+    return reply.status(404).send({ error: "File not found" });
+  }
+  try {
+    const result = await compressArchiveImages(archivePath, max_height, quality);
+    return reply.send({ status: "ok", ...result });
+  } catch (e) {
+    return reply.status(500).send({ error: String(e) });
+  }
 }
 
 async function zipFolder(
   req: FastifyRequest<{ Body: { path: string; dest?: string } }>,
   reply: FastifyReply
 ) {
-  return reply.send({ status: "not_implemented" });
+  const { path: folderPath, dest } = req.body ?? {};
+  if (!folderPath) return reply.status(400).send({ error: "path is required" });
+  try {
+    const stat = fs.statSync(folderPath);
+    if (!stat.isDirectory()) return reply.status(400).send({ error: "path is not a directory" });
+  } catch {
+    return reply.status(404).send({ error: "Folder not found" });
+  }
+  const outputZip = dest ?? `${folderPath}.zip`;
+  if (fs.existsSync(outputZip)) {
+    return reply.status(409).send({ error: "Output zip already exists", path: outputZip });
+  }
+  try {
+    // 7z a <output.zip> <folder>/* -y
+    await execFileAsync(get7zBin(), ["a", "-tzip", outputZip, folderPath + path.sep + "*", "-y"], {
+      timeout: 300000,
+    });
+    return reply.send({ status: "ok", output: outputZip });
+  } catch (e) {
+    return reply.status(500).send({ error: String(e) });
+  }
 }
 
 async function unzip(
   req: FastifyRequest<{ Body: { path: string; dest?: string } }>,
   reply: FastifyReply
 ) {
-  return reply.send({ status: "not_implemented" });
+  const { path: archivePath, dest } = req.body ?? {};
+  if (!archivePath) return reply.status(400).send({ error: "path is required" });
+  try {
+    fs.accessSync(archivePath);
+  } catch {
+    return reply.status(404).send({ error: "File not found" });
+  }
+  // Default dest: same-name directory next to archive
+  const outputDir = dest ?? path.join(
+    path.dirname(archivePath),
+    path.basename(archivePath, path.extname(archivePath))
+  );
+  if (fs.existsSync(outputDir)) {
+    return reply.status(409).send({ error: "Destination already exists", path: outputDir });
+  }
+  try {
+    await execFileAsync(get7zBin(), ["x", archivePath, `-o${outputDir}`, "-y", "-scsUTF-8"], {
+      timeout: 300000,
+    });
+    return reply.send({ status: "ok", output: outputDir });
+  } catch (e) {
+    return reply.status(500).send({ error: String(e) });
+  }
 }
 
-// ─── scan stubs ───────────────────────────────────────────────────────────────
+// ─── scan handlers ────────────────────────────────────────────────────────────
 
 async function scanFavorite(_req: FastifyRequest, reply: FastifyReply) {
   const dir = config.FAVORITE_DIR.trim();
@@ -502,12 +624,133 @@ async function scanFavorite(_req: FastifyRequest, reply: FastifyReply) {
   return reply.send({ status: "started", path: dir });
 }
 
-async function backfill(_req: FastifyRequest, reply: FastifyReply) {
-  return reply.send({ status: "not_implemented" });
+async function backfill(
+  req: FastifyRequest<{ Body: { path: string; fill_thumbnail?: boolean; fill_meta?: boolean } }>,
+  reply: FastifyReply
+) {
+  const { path: dirPath, fill_thumbnail = true, fill_meta = true } = req.body ?? {};
+  if (!dirPath) return reply.status(400).send({ error: "path is required" });
+  try {
+    const stat = fs.statSync(dirPath);
+    if (!stat.isDirectory()) return reply.status(400).send({ error: "path is not a directory" });
+  } catch {
+    return reply.status(404).send({ error: "Directory not found" });
+  }
+
+  // Fire-and-forget background backfill
+  setImmediate(async () => {
+    try {
+      const repo = getRepo();
+      const entries = fs.readdirSync(dirPath, { withFileTypes: true });
+      for (const entry of entries) {
+        if (!entry.isFile()) continue;
+        const fullPath = path.join(dirPath, entry.name);
+        const fileType = getFileType(entry.name);
+        if (fileType === "unknown") continue;
+
+        try {
+          const s = fs.statSync(fullPath);
+          repo.upsertFile({
+            filepath: fullPath,
+            folderpath: dirPath,
+            filename: entry.name,
+            mtime: Math.floor(s.mtimeMs / 1000),
+            filesize: s.size,
+            file_type: fileType,
+            ext: path.extname(entry.name).toLowerCase() || null,
+            fingerprint: makeFingerprint(fullPath, Math.floor(s.mtimeMs / 1000), s.size),
+            scan_state: 1,
+          });
+
+          if (fill_thumbnail && ["archive", "video", "image"].includes(fileType)) {
+            getOrGenerateThumb(fullPath).catch(() => { /* ignore thumb errors */ });
+          }
+
+          if (fill_meta) {
+            const parsed = parseName(entry.name);
+            // Convert null → undefined to match saveParsedMetadata signature
+            repo.saveParsedMetadata(fullPath, {
+              title: parsed.title ?? undefined,
+              authors: parsed.authors,
+              cosers: parsed.cosers,
+              groupName: parsed.groupName ?? undefined,
+              rawTags: parsed.rawTags,
+              event: parsed.event ?? undefined,
+              dateTag: parsed.dateTag ?? undefined,
+              mediaType: parsed.mediaType ?? undefined,
+            });
+
+            if (fileType === "archive") {
+              try {
+                const archiveEntries = await listEntries(fullPath);
+                const imageNum = archiveEntries.filter(e => e.type === "image").length;
+                const videoNum = archiveEntries.filter(e => e.type === "video").length;
+                const audioNum = archiveEntries.filter(e => e.type === "audio").length;
+                const ext = path.extname(entry.name).toLowerCase().slice(1);
+                repo.upsertArchiveMeta(fullPath, ext, archiveEntries.length, imageNum, videoNum, audioNum);
+              } catch { /* skip if archive listing fails */ }
+            }
+          }
+        } catch { /* skip individual file errors */ }
+      }
+      repo.logActivity("backfill", `Backfill completed: ${dirPath}`, "completed", `backfill:${dirPath}`, dirPath);
+    } catch (e) {
+      try {
+        getRepo().logActivity("backfill", `Backfill failed: ${dirPath}`, "failed", `backfill:${dirPath}`, dirPath);
+      } catch { /* ignore */ }
+    }
+  });
+
+  return reply.send({ status: "started", message: "Backfill task started", path: dirPath });
 }
 
-async function scanWatch(_req: FastifyRequest, reply: FastifyReply) {
-  return reply.send({ status: "not_implemented" });
+// Simple in-memory watcher registry
+const activeWatchers = new Map<string, fs.FSWatcher>();
+
+async function scanWatch(
+  req: FastifyRequest<{ Body: { path: string } }>,
+  reply: FastifyReply
+) {
+  const { path: dirPath } = req.body ?? {};
+  if (!dirPath) return reply.status(400).send({ error: "path is required" });
+  try {
+    const stat = fs.statSync(dirPath);
+    if (!stat.isDirectory()) return reply.status(400).send({ error: "path is not a directory" });
+  } catch {
+    return reply.status(404).send({ error: "Directory not found" });
+  }
+
+  if (activeWatchers.has(dirPath)) {
+    return reply.send({ status: "already_watching", path: dirPath });
+  }
+
+  try {
+    const watcher = fs.watch(dirPath, { recursive: true }, (_event, filename) => {
+      if (!filename) return;
+      const fullPath = path.join(dirPath, filename);
+      setImmediate(() => {
+        try {
+          const s = fs.statSync(fullPath);
+          const repo = getRepo();
+          repo.upsertFile({
+            filepath: fullPath,
+            folderpath: dirPath,
+            filename: path.basename(fullPath),
+            mtime: Math.floor(s.mtimeMs / 1000),
+            filesize: s.size,
+            file_type: getFileType(fullPath),
+            ext: path.extname(fullPath).toLowerCase() || null,
+            fingerprint: makeFingerprint(fullPath, Math.floor(s.mtimeMs / 1000), s.size),
+            scan_state: 1,
+          });
+        } catch { /* file may have been deleted */ }
+      });
+    });
+    activeWatchers.set(dirPath, watcher);
+    return reply.send({ status: "started", path: dirPath });
+  } catch (e) {
+    return reply.status(500).send({ error: String(e) });
+  }
 }
 
 async function getScanStatus(_req: FastifyRequest, reply: FastifyReply) {

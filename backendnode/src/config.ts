@@ -34,6 +34,9 @@ export const config = {
   ALREADY_READ_DIR: env("ALREADY_READ_DIR", ""),
   MOVE_PLACE_DIR: env("MOVE_PLACE_DIR", ""),
 
+  // Extract cache
+  EXTRACT_CACHE_DIR: env("EXTRACT_CACHE_DIR", "../data/extract_cache"),
+
   // Thumbnails
   THUMB_CACHE_DIR: env("THUMB_CACHE_DIR", "../data/thumb_cache"),
   THUMB_CONCURRENCY: envInt("THUMB_CONCURRENCY", 3),

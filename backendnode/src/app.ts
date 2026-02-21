@@ -15,6 +15,8 @@ import { parseRoutes } from "./routes/parse.js";
 import { config } from "./config.js";
 import { getOrGenerateThumb } from "./services/thumbService.js";
 import { getMimeType } from "./utils/fileType.js";
+import { getDb } from "./db/client.js";
+import { IndexRepository } from "./db/repository.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -42,7 +44,26 @@ export function buildApp() {
     const { path: filePath } = req.query as { path?: string };
     if (!filePath) return reply.status(400).send({ error: "path is required" });
 
-    const src = await getOrGenerateThumb(filePath);
+    // Try the requested path first
+    let resolvedPath = filePath;
+
+    // If file doesn't exist, fallback: find by filename in DB
+    if (!fs.existsSync(filePath)) {
+      try {
+        const repo = new IndexRepository(getDb());
+        const filename = path.basename(filePath);
+        const matches = repo.findFilesByFilename(filename, filePath, 1);
+        if (matches.length > 0) {
+          resolvedPath = matches[0].filepath;
+        } else {
+          return reply.status(404).send({ error: "File not found" });
+        }
+      } catch {
+        return reply.status(404).send({ error: "File not found" });
+      }
+    }
+
+    const src = await getOrGenerateThumb(resolvedPath);
     if (!src) return reply.status(404).send({ error: "Thumbnail not found" });
 
     const mime = getMimeType(src);
