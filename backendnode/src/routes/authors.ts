@@ -20,7 +20,8 @@ async function listAuthors(
 
   const repo = getRepo();
   const total = repo.countArtists("");
-  const items = repo.listArtistsWithCounts(offset, pageSize, "", sortBy, sortOrder);
+  const rows = repo.listArtistsWithCounts(offset, pageSize, "", sortBy, sortOrder);
+  const items = rows.map(r => ({ name: r.artist_name, file_count: r.file_count, thumbnail: null }));
 
   return reply.send({ items, page, page_size: pageSize, total });
 }

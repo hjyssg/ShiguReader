@@ -223,6 +223,17 @@ async function listDirectory(
               ext: path.extname(item.name).toLowerCase() || null,
               fingerprint: makeFingerprint(item.path, item.mtime, item.filesize),
             });
+            const parsed = parseName(item.name);
+            r.saveParsedMetadata(item.path, {
+              title: parsed.title ?? undefined,
+              authors: parsed.authors,
+              cosers: parsed.cosers,
+              groupName: parsed.groupName ?? undefined,
+              rawTags: parsed.rawTags,
+              event: parsed.event ?? undefined,
+              dateTag: parsed.dateTag ?? undefined,
+              mediaType: parsed.mediaType ?? undefined,
+            });
           }
         }
         r.recordFolderOpen(dirPath);
@@ -315,7 +326,7 @@ async function scanDirectory(
             const s = fs.statSync(full);
             if (entry.isDirectory() && recurse) {
               walk(full, true);
-            } else if (entry.isFile()) {
+              } else if (entry.isFile()) {
               repo.upsertFile({
                 filepath: full,
                 folderpath: dir,
@@ -326,6 +337,17 @@ async function scanDirectory(
                 ext: path.extname(entry.name).toLowerCase() || null,
                 fingerprint: makeFingerprint(full, Math.floor(s.mtimeMs / 1000), s.size),
                 scan_state: 1,
+              });
+              const parsed = parseName(entry.name);
+              repo.saveParsedMetadata(full, {
+                title: parsed.title ?? undefined,
+                authors: parsed.authors,
+                cosers: parsed.cosers,
+                groupName: parsed.groupName ?? undefined,
+                rawTags: parsed.rawTags,
+                event: parsed.event ?? undefined,
+                dateTag: parsed.dateTag ?? undefined,
+                mediaType: parsed.mediaType ?? undefined,
               });
             }
           } catch { /* skip */ }

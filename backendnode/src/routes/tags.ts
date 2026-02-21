@@ -20,7 +20,8 @@ async function listTags(
 
   const repo = getRepo();
   const total = repo.countTags();
-  const items = repo.listTagsWithCounts(offset, pageSize, sortBy, sortOrder);
+  const rows = repo.listTagsWithCounts(offset, pageSize, sortBy, sortOrder);
+  const items = rows.map(r => ({ name: r.tag_name, file_count: r.file_count, thumbnail: null }));
 
   return reply.send({ items, page, page_size: pageSize, total });
 }
