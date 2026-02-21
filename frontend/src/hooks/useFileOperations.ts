@@ -11,9 +11,9 @@ function normalizeDetail(detail: unknown): string | null {
   if (typeof detail === "string" && detail.trim()) return detail
 
   if (Array.isArray(detail) && detail.length > 0) {
-    const first = detail[0] as unknown
+    const first = detail[0] as Record<string, unknown> | string | null
     if (typeof first === "string") return first
-    if (first?.msg) return String(first.msg)
+    if (first && typeof first === "object" && first.msg) return String(first.msg)
   }
 
   return null

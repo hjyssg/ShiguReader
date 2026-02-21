@@ -86,7 +86,7 @@ export function useFileNavigation() {
         // TanStack Router's navigate requires exact route-specific search types;
         // the union from buildNavigationTarget is structurally correct but not narrowed per-route.
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        navigate({ to: target.to, search: target.search as Record<string, unknown> })
+        navigate({ to: target.to as any, search: target.search as any })
       }
     },
     [navigate, isMobile],
