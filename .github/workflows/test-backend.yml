@@ -1,4 +1,4 @@
-name: Test Backend
+name: Test Backend (Node)
 
 on:
   push:
@@ -14,28 +14,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
-      - name: Set up Python
-        uses: actions/setup-python@v6
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          python-version: "3.10"
-      - name: Install uv
-        uses: astral-sh/setup-uv@v7
-      - run: docker compose down -v --remove-orphans
-      - run: docker compose up -d db mailcatcher
-      - name: Migrate DB
-        run: uv run bash scripts/prestart.sh
-        working-directory: backend
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: backendnode/package-lock.json
+
+      - name: Install dependencies
+        working-directory: backendnode
+        run: npm ci
+
       - name: Run tests
-        run: uv run bash scripts/tests-start.sh "Coverage for ${{ github.sha }}"
-        working-directory: backend
-      - run: docker compose down -v --remove-orphans
-      - name: Store coverage files
-        uses: actions/upload-artifact@v6
-        with:
-          name: coverage-html
-          path: backend/htmlcov
-          include-hidden-files: true
-      - name: Coverage report
-        run: uv run coverage report --fail-under=90
-        working-directory: backend
+        working-directory: backendnode
+        run: npx vitest --run

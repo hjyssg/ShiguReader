@@ -19,7 +19,7 @@ import {
 import { getOrGenerateThumb } from "../services/thumbService.js";
 import { parseName } from "../utils/nameParser.js";
 import trash from "trash";
-import { getDiskInfoSync } from "node-disk-info";
+import { getDiskInfo } from "node-disk-info";
 import { refreshAllRecScores } from "../services/recService.js";
 
 const execFileAsync = promisify(execFile);
@@ -29,9 +29,14 @@ const __filename = fileURLToPath(import.meta.url);
 const __routeDir = path.dirname(__filename);
 const _TOOLS_DIR = path.resolve(__routeDir, "../../tools");
 
-function get7zBin(): string {
+async function get7zBin(): Promise<string> {
   const bundled = path.join(_TOOLS_DIR, "7zip-lite/7z.exe");
-  return fs.existsSync(bundled) ? bundled : "7z";
+  try {
+    await fs.promises.access(bundled);
+    return bundled;
+  } catch {
+    return "7z";
+  }
 }
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
@@ -85,7 +90,7 @@ async function getFavorite(_req: FastifyRequest, reply: FastifyReply) {
   const dir = config.FAVORITE_DIR.trim();
   if (!dir) return reply.send(null);
   try {
-    const stat = fs.statSync(dir);
+    const stat = await fs.promises.stat(dir);
     if (!stat.isDirectory()) return reply.send(null);
     return reply.send({ path: dir, dirname: path.basename(dir) || dir });
   } catch {
@@ -97,7 +102,7 @@ async function getAlreadyRead(_req: FastifyRequest, reply: FastifyReply) {
   const dir = config.ALREADY_READ_DIR.trim();
   if (!dir) return reply.send(null);
   try {
-    const stat = fs.statSync(dir);
+    const stat = await fs.promises.stat(dir);
     if (!stat.isDirectory()) return reply.send(null);
     return reply.send({ path: dir, dirname: path.basename(dir) || dir });
   } catch {
@@ -116,7 +121,7 @@ async function listDirectory(
 
   let stat: fs.Stats;
   try {
-    stat = fs.statSync(dirPath);
+    stat = await fs.promises.stat(dirPath);
   } catch {
     return reply.status(404).send({ error: "Path not found" });
   }
@@ -125,11 +130,11 @@ async function listDirectory(
   const items: FileSystemItem[] = [];
 
   try {
-    const entries = fs.readdirSync(dirPath, { withFileTypes: true });
+    const entries = await fs.promises.readdir(dirPath, { withFileTypes: true });
     for (const entry of entries) {
       const fullPath = path.join(dirPath, entry.name);
       try {
-        const entryStat = fs.statSync(fullPath);
+        const entryStat = await fs.promises.stat(fullPath);
         if (entry.isDirectory()) {
           items.push({
             name: entry.name,
@@ -317,7 +322,7 @@ async function scanDirectory(
 
   let stat: fs.Stats;
   try {
-    stat = fs.statSync(dirPath);
+    stat = await fs.promises.stat(dirPath);
   } catch {
     return reply.status(404).send({ error: "Path not found" });
   }
@@ -330,23 +335,23 @@ async function scanDirectory(
     watcher_active: false, started_at: startedAt, finished_at: null,
   });
 
-  // Fire-and-forget background scan
-  setImmediate(() => {
+  // Fire-and-forget background scan (async)
+  setImmediate(async () => {
     try {
       const repo = getRepo();
       let scannedFolders = 0;
       let scannedFiles = 0;
-      const walk = (dir: string, recurse: boolean) => {
-        const entries = fs.readdirSync(dir, { withFileTypes: true });
+      const walk = async (dir: string, recurse: boolean) => {
+        const entries = await fs.promises.readdir(dir, { withFileTypes: true });
         repo.upsertFolder({ filepath: dir, dirname: path.basename(dir) || dir, scanned: true });
         scannedFolders++;
         scanStatusMap.set(dirPath, { ...scanStatusMap.get(dirPath)!, scanned_folders: scannedFolders, scanned_files: scannedFiles });
         for (const entry of entries) {
           const full = path.join(dir, entry.name);
           try {
-            const s = fs.statSync(full);
+            const s = await fs.promises.stat(full);
             if (entry.isDirectory() && recurse) {
-              walk(full, true);
+              await walk(full, true);
             } else if (entry.isFile()) {
               repo.upsertFile({
                 filepath: full,
@@ -376,7 +381,7 @@ async function scanDirectory(
           } catch { /* skip */ }
         }
       };
-      walk(dirPath, recursive);
+      await walk(dirPath, recursive);
       scanStatusMap.set(dirPath, { ...scanStatusMap.get(dirPath)!, status: "completed", message: `Scan completed: ${dirPath}`, finished_at: Math.floor(Date.now() / 1000) });
       repo.logActivity("scan", `Scan completed: ${dirPath}`, "completed", `scan:${dirPath}`, dirPath, { scanned_files: scannedFiles, scanned_folders: scannedFolders });
       // 扫描完成后异步重算 rec_score
@@ -396,14 +401,20 @@ async function scanDirectory(
 
 async function getDrives(_req: FastifyRequest, reply: FastifyReply) {
   try {
-    const disks = getDiskInfoSync();
-    const drives = disks.map(d => ({
-      path: d.mounted,
-      dirname: d.filesystem || d.mounted,
-    }));
+    const disks = await getDiskInfo();
+    const drives = disks.map(d => {
+      // On Windows, node-disk-info returns mounted as "C:" — normalize to "C:\"
+      let mountPath = d.mounted;
+      if (process.platform === "win32" && /^[A-Za-z]:$/.test(mountPath)) {
+        mountPath = mountPath + "\\";
+      }
+      return {
+        path: mountPath,
+        dirname: d.filesystem || d.mounted,
+      };
+    });
     return reply.send(drives);
   } catch {
-    // fallback for unexpected errors
     return reply.send(process.platform !== "win32" ? [{ path: "/", dirname: "/" }] : []);
   }
 }
@@ -417,8 +428,8 @@ async function moveFile(
   const { source_path, dest_path } = req.body ?? {};
   if (!source_path || !dest_path) return reply.status(400).send({ error: "source_path and dest_path are required" });
   try {
-    fs.mkdirSync(path.dirname(dest_path), { recursive: true });
-    fs.renameSync(source_path, dest_path);
+    await fs.promises.mkdir(path.dirname(dest_path), { recursive: true });
+    await fs.promises.rename(source_path, dest_path);
     try { getRepo().logActivity("move", `Moved file: ${source_path} → ${dest_path}`, "completed", `move:${source_path}`, source_path); } catch { /* ignore */ }
     return reply.send({ status: "ok", message: "File moved", path: source_path, dest_path });
   } catch (e) {
@@ -433,8 +444,8 @@ async function moveFolder(
   const { source_path, dest_path } = req.body ?? {};
   if (!source_path || !dest_path) return reply.status(400).send({ error: "source_path and dest_path are required" });
   try {
-    fs.mkdirSync(path.dirname(dest_path), { recursive: true });
-    fs.renameSync(source_path, dest_path);
+    await fs.promises.mkdir(path.dirname(dest_path), { recursive: true });
+    await fs.promises.rename(source_path, dest_path);
     try { getRepo().logActivity("move", `Moved folder: ${source_path} → ${dest_path}`, "completed", `move:${source_path}`, source_path); } catch { /* ignore */ }
     return reply.send({ status: "ok", message: "Folder moved", path: source_path, dest_path });
   } catch (e) {
@@ -450,7 +461,7 @@ async function deleteItem(
   if (!itemPath) return reply.status(400).send({ error: "path is required" });
   try {
     if (permanently) {
-      fs.rmSync(itemPath, { recursive: true, force: true });
+      await fs.promises.rm(itemPath, { recursive: true, force: true });
     } else {
       await trash(itemPath);
     }
@@ -469,7 +480,7 @@ async function renameItem(
   if (!itemPath || !new_name) return reply.status(400).send({ error: "path and new_name are required" });
   const newPath = path.join(path.dirname(itemPath), new_name);
   try {
-    fs.renameSync(itemPath, newPath);
+    await fs.promises.rename(itemPath, newPath);
     try { getRepo().logActivity("rename", `Renamed: ${itemPath} → ${newPath}`, "completed", `rename:${itemPath}`, itemPath); } catch { /* ignore */ }
     return reply.send({ status: "ok", message: "Renamed", path: itemPath, dest_path: newPath });
   } catch (e) {
@@ -484,7 +495,7 @@ async function downloadFile(
   const { path: filePath } = req.query;
   if (!filePath) return reply.status(400).send({ error: "path is required" });
   try {
-    fs.accessSync(filePath);
+    await fs.promises.access(filePath);
     const mime = getMimeType(filePath);
     const filename = path.basename(filePath);
     reply.header("Content-Disposition", `attachment; filename="${encodeURIComponent(filename)}"`);
@@ -503,7 +514,7 @@ async function serveFile(
 
   let stat: fs.Stats;
   try {
-    stat = fs.statSync(filePath);
+    stat = await fs.promises.stat(filePath);
   } catch {
     return reply.status(404).send({ error: "File not found" });
   }
@@ -545,7 +556,7 @@ async function ensureDir(
   const { path: dirPath } = req.body ?? {};
   if (!dirPath) return reply.status(400).send({ error: "path is required" });
   try {
-    fs.mkdirSync(dirPath, { recursive: true });
+    await fs.promises.mkdir(dirPath, { recursive: true });
     return reply.send({ status: "ok" });
   } catch (e) {
     return reply.status(500).send({ error: String(e) });
@@ -560,7 +571,7 @@ async function resolvePath(
   if (!p) return reply.status(400).send({ error: "path is required" });
   const resolved = path.resolve(p);
   try {
-    const stat = fs.statSync(resolved);
+    const stat = await fs.promises.stat(resolved);
     return reply.send({ path: resolved, exists: true, is_dir: stat.isDirectory() });
   } catch {
     return reply.send({ path: resolved, exists: false, is_dir: false });
@@ -576,7 +587,7 @@ async function listArchive(
   const { path: archivePath } = req.query;
   if (!archivePath) return reply.status(400).send({ error: "path is required" });
   try {
-    fs.accessSync(archivePath);
+    await fs.promises.access(archivePath);
   } catch {
     return reply.status(404).send({ error: "File not found" });
   }
@@ -596,7 +607,7 @@ async function extractArchive(
   const page = parseInt(pageStr, 10) || 0;
   if (!archivePath) return reply.status(400).send({ error: "path is required" });
   try {
-    fs.accessSync(archivePath);
+    await fs.promises.access(archivePath);
   } catch {
     return reply.status(404).send({ error: "File not found" });
   }
@@ -622,7 +633,7 @@ async function getArchiveFile(
     return reply.status(400).send({ error: "Invalid entry path" });
   }
   try {
-    fs.accessSync(resolved);
+    await fs.promises.access(resolved);
     const mime = getMimeType(resolved);
     return reply.type(mime).send(fs.createReadStream(resolved));
   } catch {
@@ -647,7 +658,7 @@ async function compressImages(
   const { archive_path, max_height = 1600, quality = 85 } = req.body ?? {};
   if (!archive_path) return reply.status(400).send({ error: "archive_path is required" });
   try {
-    fs.accessSync(archive_path);
+    await fs.promises.access(archive_path);
   } catch {
     return reply.status(404).send({ error: "File not found" });
   }
@@ -667,15 +678,13 @@ async function zipFolder(
   const { folder_path, output_path } = req.body ?? {};
   if (!folder_path) return reply.status(400).send({ error: "folder_path is required" });
   try {
-    const stat = fs.statSync(folder_path);
+    const stat = await fs.promises.stat(folder_path);
     if (!stat.isDirectory()) return reply.status(400).send({ error: "folder_path is not a directory" });
   } catch {
     return reply.status(404).send({ error: "Folder not found" });
   }
   const outputZip = output_path ?? `${folder_path}.zip`;
-  if (fs.existsSync(outputZip)) {
-    return reply.status(409).send({ error: "Output zip already exists", path: outputZip });
-  }
+  try { await fs.promises.access(outputZip); return reply.status(409).send({ error: "Output zip already exists", path: outputZip }); } catch { /* doesn't exist, proceed */ }
   try {
     await execFileAsync(get7zBin(), ["a", "-tzip", outputZip, folder_path + path.sep + "*", "-y"], {
       timeout: 300000,
@@ -693,7 +702,7 @@ async function unzip(
   const { archive_path, output_dir } = req.body ?? {};
   if (!archive_path) return reply.status(400).send({ error: "archive_path is required" });
   try {
-    fs.accessSync(archive_path);
+    await fs.promises.access(archive_path);
   } catch {
     return reply.status(404).send({ error: "File not found" });
   }
@@ -701,9 +710,7 @@ async function unzip(
     path.dirname(archive_path),
     path.basename(archive_path, path.extname(archive_path))
   );
-  if (fs.existsSync(outputDir)) {
-    return reply.status(409).send({ error: "Destination already exists", path: outputDir });
-  }
+  try { await fs.promises.access(outputDir); return reply.status(409).send({ error: "Destination already exists", path: outputDir }); } catch { /* doesn't exist, proceed */ }
   try {
     await execFileAsync(get7zBin(), ["x", archive_path, `-o${outputDir}`, "-y", "-scsUTF-8"], {
       timeout: 300000,
@@ -729,20 +736,20 @@ async function backfill(
   const { path: dirPath, fill_thumbnail = true, fill_meta = true } = req.body ?? {};
   if (!dirPath) return reply.status(400).send({ error: "path is required" });
   try {
-    const stat = fs.statSync(dirPath);
+    const stat = await fs.promises.stat(dirPath);
     if (!stat.isDirectory()) return reply.status(400).send({ error: "path is not a directory" });
   } catch {
     return reply.status(404).send({ error: "Directory not found" });
   }
 
-  // Synchronous backfill — returns actual stats matching BackfillResponse
+  // async backfill — returns actual stats matching BackfillResponse
   let scannedFiles = 0;
   let backfilledThumbnails = 0;
   let backfilledMeta = 0;
 
   try {
     const repo = getRepo();
-    const entries = fs.readdirSync(dirPath, { withFileTypes: true });
+    const entries = await fs.promises.readdir(dirPath, { withFileTypes: true });
     for (const entry of entries) {
       if (!entry.isFile()) continue;
       const fullPath = path.join(dirPath, entry.name);
@@ -750,7 +757,7 @@ async function backfill(
       if (fileType === "unknown") continue;
 
       try {
-        const s = fs.statSync(fullPath);
+        const s = await fs.promises.stat(fullPath);
         repo.upsertFile({
           filepath: fullPath,
           folderpath: dirPath,
@@ -823,7 +830,7 @@ async function scanWatch(
   const { path: dirPath } = req.body ?? {};
   if (!dirPath) return reply.status(400).send({ error: "path is required" });
   try {
-    const stat = fs.statSync(dirPath);
+    const stat = await fs.promises.stat(dirPath);
     if (!stat.isDirectory()) return reply.status(400).send({ error: "path is not a directory" });
   } catch {
     return reply.status(404).send({ error: "Directory not found" });
@@ -923,15 +930,15 @@ async function syncFileTable(_req: FastifyRequest, reply: FastifyReply) {
       let syncedFiles = 0;
       for (const root of roots) {
         try {
-          const walk = (dir: string) => {
-            const entries = fs.readdirSync(dir, { withFileTypes: true });
+          const walk = async (dir: string) => {
+            const entries = await fs.promises.readdir(dir, { withFileTypes: true });
             repo.upsertFolder({ filepath: dir, dirname: path.basename(dir) || dir, scanned: true });
             for (const entry of entries) {
               const full = path.join(dir, entry.name);
               try {
-                const s = fs.statSync(full);
+                const s = await fs.promises.stat(full);
                 if (entry.isDirectory()) {
-                  walk(full);
+                  await walk(full);
                 } else if (entry.isFile()) {
                   repo.upsertFile({
                     filepath: full, folderpath: dir, filename: entry.name,
@@ -946,7 +953,7 @@ async function syncFileTable(_req: FastifyRequest, reply: FastifyReply) {
               } catch { /* skip */ }
             }
           };
-          walk(root);
+          await walk(root);
         } catch { /* skip root */ }
       }
       repo.logActivity("db_sync", `File table sync completed: ${syncedFiles} files`, "completed", taskKey, undefined, { synced_files: syncedFiles });
