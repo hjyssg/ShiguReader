@@ -54,16 +54,31 @@ export class IndexRepository {
 
   upsertFile(data: UpsertFileInput): void {
     const now = nowTs();
-    const existing = this.db.prepare("SELECT filepath FROM files WHERE filepath = ?").get(data.filepath);
-    if (!existing) {
-      this.db.prepare("INSERT INTO files (filepath,folderpath,filename,mtime,filesize,file_type,ext,fingerprint,scan_state,watch_state,first_seen_at,last_seen_at,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)").run(data.filepath, data.folderpath ?? null, data.filename, data.mtime, data.filesize, data.file_type ?? "unknown", data.ext ?? null, data.fingerprint, data.scan_state ?? 1, data.watch_state ?? 0, now, now, now, now);
-    } else {
-      this.db.prepare("UPDATE files SET folderpath=?,filename=?,mtime=?,filesize=?,file_type=?,ext=?,fingerprint=?,scan_state=?,last_seen_at=?,updated_at=? WHERE filepath=?").run(data.folderpath ?? null, data.filename, data.mtime, data.filesize, data.file_type ?? "unknown", data.ext ?? null, data.fingerprint, data.scan_state ?? 1, now, now, data.filepath);
-    }
+    this.db.prepare(`
+      INSERT INTO files (filepath,folderpath,filename,mtime,filesize,file_type,ext,fingerprint,scan_state,watch_state,first_seen_at,last_seen_at,created_at,updated_at)
+      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+      ON CONFLICT(filepath) DO UPDATE SET
+        folderpath=excluded.folderpath, filename=excluded.filename, mtime=excluded.mtime,
+        filesize=excluded.filesize, file_type=excluded.file_type, ext=excluded.ext,
+        fingerprint=excluded.fingerprint, scan_state=excluded.scan_state,
+        last_seen_at=excluded.last_seen_at, updated_at=excluded.updated_at
+    `).run(
+      data.filepath, data.folderpath ?? null, data.filename, data.mtime, data.filesize,
+      data.file_type ?? "unknown", data.ext ?? null, data.fingerprint,
+      data.scan_state ?? 1, data.watch_state ?? 0, now, now, now, now,
+    );
   }
 
   batchUpsertFiles(list: UpsertFileInput[]): void {
-    for (const item of list) this.upsertFile(item);
+    if (!list.length) return;
+    this.db.exec("BEGIN");
+    try {
+      for (const item of list) this.upsertFile(item);
+      this.db.exec("COMMIT");
+    } catch (e) {
+      this.db.exec("ROLLBACK");
+      throw e;
+    }
   }
 
   getFile(filepath: string): FileRow | undefined {
@@ -137,16 +152,30 @@ export class IndexRepository {
 
   upsertFolder(data: UpsertFolderInput): void {
     const now = nowTs();
-    const existing = this.db.prepare("SELECT filepath FROM folders WHERE filepath = ?").get(data.filepath);
-    if (!existing) {
-      this.db.prepare("INSERT INTO folders (filepath,dirname,mtime,scan_state,watch_state,first_seen_at,last_seen_at,last_scanned_at,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?)").run(data.filepath, data.dirname, data.mtime ?? null, data.scan_state ?? 1, data.watch_state ?? 0, now, now, data.scanned ? now : null, now, now);
-    } else {
-      this.db.prepare("UPDATE folders SET dirname=?,mtime=?,scan_state=?,last_seen_at=?,last_scanned_at=?,updated_at=? WHERE filepath=?").run(data.dirname, data.mtime ?? null, data.scan_state ?? 1, now, data.scanned ? now : null, now, data.filepath);
-    }
+    this.db.prepare(`
+      INSERT INTO folders (filepath,dirname,mtime,scan_state,watch_state,first_seen_at,last_seen_at,last_scanned_at,created_at,updated_at)
+      VALUES (?,?,?,?,?,?,?,?,?,?)
+      ON CONFLICT(filepath) DO UPDATE SET
+        dirname=excluded.dirname, mtime=excluded.mtime, scan_state=excluded.scan_state,
+        last_seen_at=excluded.last_seen_at, last_scanned_at=excluded.last_scanned_at,
+        updated_at=excluded.updated_at
+    `).run(
+      data.filepath, data.dirname, data.mtime ?? null,
+      data.scan_state ?? 1, data.watch_state ?? 0,
+      now, now, data.scanned ? now : null, now, now,
+    );
   }
 
   batchUpsertFolders(list: UpsertFolderInput[]): void {
-    for (const item of list) this.upsertFolder(item);
+    if (!list.length) return;
+    this.db.exec("BEGIN");
+    try {
+      for (const item of list) this.upsertFolder(item);
+      this.db.exec("COMMIT");
+    } catch (e) {
+      this.db.exec("ROLLBACK");
+      throw e;
+    }
   }
 
   countFolders(): number {
@@ -163,21 +192,32 @@ export class IndexRepository {
   }
 
   getArchiveMetasByFolder(folderpath: string): Map<string, ArchiveMetaRow> {
-    const fps = rows<{ filepath: string }>(this.db.prepare("SELECT filepath FROM files WHERE folderpath = ? AND file_type = 'archive'").all(folderpath));
-    if (!fps.length) return new Map();
-    const paths = fps.map(f => f.filepath);
-    const result = rows<ArchiveMetaRow>(this.db.prepare(`SELECT * FROM archive_meta WHERE filepath IN (${paths.map(() => "?").join(",")})`).all(...paths));
+    const result = rows<ArchiveMetaRow>(this.db.prepare(`
+      SELECT am.* FROM archive_meta am
+      JOIN files f ON f.filepath = am.filepath
+      WHERE f.folderpath = ? AND f.file_type = 'archive'
+    `).all(folderpath));
     return new Map(result.map(r => [r.filepath, r]));
   }
 
   upsertProgress(data: Partial<ProgressRow> & { filepath: string }): void {
     const now = nowTs();
-    const existing = this.db.prepare("SELECT filepath FROM progress WHERE filepath = ?").get(data.filepath);
-    if (!existing) {
-      this.db.prepare("INSERT INTO progress (filepath,filename,file_type,filesize,mtime,thumbnail_url,last_opened_at,page_current,page_total,position_sec,duration_sec,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)").run(data.filepath, data.filename ?? null, data.file_type ?? null, data.filesize ?? null, data.mtime ?? null, data.thumbnail_url ?? null, now, data.page_current ?? null, data.page_total ?? null, data.position_sec ?? null, data.duration_sec ?? null, now);
-    } else {
-      this.db.prepare("UPDATE progress SET filename=COALESCE(?,filename),file_type=COALESCE(?,file_type),filesize=COALESCE(?,filesize),mtime=COALESCE(?,mtime),thumbnail_url=COALESCE(?,thumbnail_url),last_opened_at=?,page_current=?,page_total=?,position_sec=?,duration_sec=?,updated_at=? WHERE filepath=?").run(data.filename ?? null, data.file_type ?? null, data.filesize ?? null, data.mtime ?? null, data.thumbnail_url ?? null, now, data.page_current ?? null, data.page_total ?? null, data.position_sec ?? null, data.duration_sec ?? null, now, data.filepath);
-    }
+    this.db.prepare(`
+      INSERT INTO progress (filepath,filename,file_type,filesize,mtime,thumbnail_url,last_opened_at,page_current,page_total,position_sec,duration_sec,updated_at)
+      VALUES (?,?,?,?,?,?,?,?,?,?,?,?)
+      ON CONFLICT(filepath) DO UPDATE SET
+        filename=COALESCE(excluded.filename,filename), file_type=COALESCE(excluded.file_type,file_type),
+        filesize=COALESCE(excluded.filesize,filesize), mtime=COALESCE(excluded.mtime,mtime),
+        thumbnail_url=COALESCE(excluded.thumbnail_url,thumbnail_url),
+        last_opened_at=excluded.last_opened_at, page_current=excluded.page_current,
+        page_total=excluded.page_total, position_sec=excluded.position_sec,
+        duration_sec=excluded.duration_sec, updated_at=excluded.updated_at
+    `).run(
+      data.filepath, data.filename ?? null, data.file_type ?? null, data.filesize ?? null,
+      data.mtime ?? null, data.thumbnail_url ?? null, now,
+      data.page_current ?? null, data.page_total ?? null,
+      data.position_sec ?? null, data.duration_sec ?? null, now,
+    );
   }
 
   listProgressHistory(offset: number, limit: number, sortOrder = "desc"): ProgressRow[] {
@@ -237,18 +277,30 @@ export class IndexRepository {
     const now = nowTs();
     const cosers = data.cosers ?? [];
     const authors = cosers.length ? [] : (data.authors ?? []);
-    this.db.prepare("INSERT INTO parsed_metadata (filepath,title,group_name,event,date_tag,media_type,parsed_at) VALUES (?,?,?,?,?,?,?) ON CONFLICT(filepath) DO UPDATE SET title=excluded.title,group_name=excluded.group_name,event=excluded.event,date_tag=excluded.date_tag,media_type=excluded.media_type,parsed_at=excluded.parsed_at").run(filepath, data.title ?? null, data.groupName ?? null, data.event ?? null, data.dateTag ?? null, data.mediaType ?? null, now);
-    for (const name of authors) {
-      this.db.prepare("INSERT OR IGNORE INTO artists (artist_name) VALUES (?)").run(name);
-      this.db.prepare("INSERT OR IGNORE INTO file_artists (filepath,artist_name,role) VALUES (?,?,'')").run(filepath, name);
-    }
-    for (const name of cosers) {
-      this.db.prepare("INSERT OR IGNORE INTO artists (artist_name) VALUES (?)").run(name);
-      this.db.prepare("INSERT OR IGNORE INTO file_artists (filepath,artist_name,role) VALUES (?,?,'coser')").run(filepath, name);
-    }
-    for (const tag of (data.rawTags ?? [])) {
-      this.db.prepare("INSERT OR IGNORE INTO tags (tag_name) VALUES (?)").run(tag);
-      this.db.prepare("INSERT OR IGNORE INTO file_tags (filepath,tag_name) VALUES (?,?)").run(filepath, tag);
+    const stmtMeta = this.db.prepare("INSERT INTO parsed_metadata (filepath,title,group_name,event,date_tag,media_type,parsed_at) VALUES (?,?,?,?,?,?,?) ON CONFLICT(filepath) DO UPDATE SET title=excluded.title,group_name=excluded.group_name,event=excluded.event,date_tag=excluded.date_tag,media_type=excluded.media_type,parsed_at=excluded.parsed_at");
+    const stmtArtist = this.db.prepare("INSERT OR IGNORE INTO artists (artist_name) VALUES (?)");
+    const stmtFileArtist = this.db.prepare("INSERT OR IGNORE INTO file_artists (filepath,artist_name,role) VALUES (?,?,?)");
+    const stmtTag = this.db.prepare("INSERT OR IGNORE INTO tags (tag_name) VALUES (?)");
+    const stmtFileTag = this.db.prepare("INSERT OR IGNORE INTO file_tags (filepath,tag_name) VALUES (?,?)");
+    this.db.exec("BEGIN");
+    try {
+      stmtMeta.run(filepath, data.title ?? null, data.groupName ?? null, data.event ?? null, data.dateTag ?? null, data.mediaType ?? null, now);
+      for (const name of authors) {
+        stmtArtist.run(name);
+        stmtFileArtist.run(filepath, name, "");
+      }
+      for (const name of cosers) {
+        stmtArtist.run(name);
+        stmtFileArtist.run(filepath, name, "coser");
+      }
+      for (const tag of (data.rawTags ?? [])) {
+        stmtTag.run(tag);
+        stmtFileTag.run(filepath, tag);
+      }
+      this.db.exec("COMMIT");
+    } catch (e) {
+      this.db.exec("ROLLBACK");
+      throw e;
     }
   }
 
@@ -310,7 +362,27 @@ export class IndexRepository {
   batchUpdateRecScores(scores: Map<string, number>): void {
     if (!scores.size) return;
     const stmt = this.db.prepare("UPDATE files SET rec_score = ? WHERE filepath = ?");
-    for (const [fp, score] of scores) stmt.run(score, fp);
+    this.db.exec("BEGIN");
+    try {
+      for (const [fp, score] of scores) stmt.run(score, fp);
+      this.db.exec("COMMIT");
+    } catch (e) {
+      this.db.exec("ROLLBACK");
+      throw e;
+    }
+  }
+
+  getLibraryOverview(): { archives: number; videos: number; images: number; audio: number; folders: number } {
+    const row = this.db.prepare(`
+      SELECT
+        SUM(CASE WHEN file_type = 'archive' THEN 1 ELSE 0 END) as archives,
+        SUM(CASE WHEN file_type = 'video'   THEN 1 ELSE 0 END) as videos,
+        SUM(CASE WHEN file_type = 'image'   THEN 1 ELSE 0 END) as images,
+        SUM(CASE WHEN file_type = 'audio'   THEN 1 ELSE 0 END) as audio
+      FROM files WHERE scan_state = 1
+    `).get() as { archives: number; videos: number; images: number; audio: number };
+    const folders = this.countFolders();
+    return { archives: row.archives ?? 0, videos: row.videos ?? 0, images: row.images ?? 0, audio: row.audio ?? 0, folders };
   }
 
   getTagTotalCounts(): Map<string, number> {

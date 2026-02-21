@@ -271,13 +271,7 @@ async function listDirectory(
 
 async function getLibraryOverview(_req: FastifyRequest, reply: FastifyReply) {
   const repo = getRepo();
-  return reply.send({
-    archives: repo.countFilesByType("archive"),
-    videos: repo.countFilesByType("video"),
-    images: repo.countFilesByType("image"),
-    audio: repo.countFilesByType("audio"),
-    folders: repo.countFolders(),
-  });
+  return reply.send(repo.getLibraryOverview());
 }
 
 async function getRecentActivity(
