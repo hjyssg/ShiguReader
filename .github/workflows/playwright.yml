@@ -25,7 +25,7 @@ jobs:
         shardTotal: [4]
       fail-fast: false
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
     - uses: oven-sh/setup-bun@v2
     - uses: actions/setup-node@v4
       with:
@@ -64,7 +64,7 @@ jobs:
     if: ${{ !cancelled() }}
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
     - uses: oven-sh/setup-bun@v2
     - name: Install dependencies
       run: bun ci
