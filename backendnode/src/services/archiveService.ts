@@ -54,8 +54,13 @@ const AUDIO_EXTS = new Set(AUDIO_SUFFIXES as readonly string[]);
 export type EntryType = "image" | "video" | "audio" | "other";
 
 export interface ArchiveEntry {
-  path: string;       // path inside archive
+  name: string;       // basename of entry
+  entry_path: string; // full path inside archive
   index: number;
+  file_type: EntryType;
+  /** @deprecated use entry_path */
+  path: string;
+  /** @deprecated use file_type */
   type: EntryType;
 }
 
@@ -104,11 +109,17 @@ export async function listEntries(archivePath: string): Promise<ArchiveEntry[]> 
   // Sort naturally
   mediaEntries.sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: "base" }));
 
-  return mediaEntries.map((p, i) => ({
-    path: p,
-    index: i,
-    type: getEntryType(p),
-  }));
+  return mediaEntries.map((p, i) => {
+    const t = getEntryType(p);
+    return {
+      name: path.basename(p),
+      entry_path: p,
+      path: p,          // deprecated compat
+      index: i,
+      file_type: t,
+      type: t,          // deprecated compat
+    };
+  });
 }
 
 // ── extract entries ──────────────────────────────────────────────────────────

@@ -3,12 +3,12 @@ import path from "node:path";
 import { parseName } from "../utils/nameParser.js";
 
 async function parseSingle(
-  req: FastifyRequest<{ Querystring: { filename: string } }>,
+  req: FastifyRequest<{ Querystring: { filename?: string; filepath?: string } }>,
   reply: FastifyReply
 ) {
-  const { filename } = req.query;
-  if (!filename) return reply.status(400).send({ error: "filename is required" });
-  const base = path.basename(filename);
+  const input = req.query.filepath ?? req.query.filename;
+  if (!input) return reply.status(400).send({ error: "filepath is required" });
+  const base = path.basename(input);
   return reply.send(parseName(base));
 }
 

@@ -485,17 +485,18 @@ async function listArchive(
   }
   try {
     const entries = await listEntries(archivePath);
-    return reply.send({ entries });
+    return reply.send({ entries, total: entries.length });
   } catch (e) {
     return reply.status(500).send({ error: String(e) });
   }
 }
 
 async function extractArchive(
-  req: FastifyRequest<{ Body: { path: string; page?: number } }>,
+  req: FastifyRequest<{ Querystring: { path: string; page?: string } }>,
   reply: FastifyReply
 ) {
-  const { path: archivePath, page = 0 } = req.body ?? {};
+  const { path: archivePath, page: pageStr = "0" } = req.query;
+  const page = parseInt(pageStr, 10) || 0;
   if (!archivePath) return reply.status(400).send({ error: "path is required" });
   try {
     fs.accessSync(archivePath);
