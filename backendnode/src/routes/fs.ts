@@ -21,7 +21,6 @@ import { observeFilePresence } from "../services/reconcileQueue.js";
 // 不能传完整 filepath，否则路径分隔符会干扰括号解析逻辑
 import { parseName } from "../utils/nameParser.js";
 import trash from "trash";
-import { getDiskInfo } from "node-disk-info";
 import { refreshAllRecScores } from "../services/recService.js";
 import { logger } from "../logger.js";
 
@@ -372,22 +371,20 @@ async function scanDirectory(
 // ─── drives (Windows) ────────────────────────────────────────────────────────
 
 async function getDrives(_req: FastifyRequest, reply: FastifyReply) {
+  if (process.platform !== "win32") {
+    return reply.send([{ path: "/", dirname: "/" }]);
+  }
   try {
-    const disks = await getDiskInfo();
-    const drives = disks.map(d => {
-      // On Windows, node-disk-info returns mounted as "C:" — normalize to "C:\"
-      let mountPath = d.mounted;
-      if (process.platform === "win32" && /^[A-Za-z]:$/.test(mountPath)) {
-        mountPath = mountPath + "\\";
-      }
-      return {
-        path: mountPath,
-        dirname: d.filesystem || d.mounted,
-      };
-    });
-    return reply.send(drives);
+    // Use fsutil instead of wmic (wmic is deprecated/removed in Windows 11)
+    const { stdout } = await execFileAsync("fsutil", ["fsinfo", "drives"]);
+    // Output: "Drives: C:\ D:\ E:\"
+    const drives = (stdout.match(/[A-Za-z]:\\/g) ?? []).map(d => ({
+      path: d,
+      dirname: d,
+    }));
+    return reply.send(drives.length ? drives : []);
   } catch {
-    return reply.send(process.platform !== "win32" ? [{ path: "/", dirname: "/" }] : []);
+    return reply.send([]);
   }
 }
 
