@@ -76,21 +76,14 @@ CREATE TABLE IF NOT EXISTS activity_logs (
   created_at INTEGER NOT NULL DEFAULT (unixepoch())
 );
 
-CREATE TABLE IF NOT EXISTS progress (
-  filepath TEXT PRIMARY KEY,
-  filename TEXT,
-  file_type TEXT,
-  filesize INTEGER,
-  mtime INTEGER,
-  thumbnail_url TEXT,
-  last_opened_at INTEGER NOT NULL DEFAULT (unixepoch()),
-  total_time_sec REAL NOT NULL DEFAULT 0,
-  page_current INTEGER,
-  page_total INTEGER,
-  position_sec REAL,
-  duration_sec REAL,
-  updated_at INTEGER NOT NULL DEFAULT (unixepoch())
+CREATE TABLE IF NOT EXISTS read_history (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  filepath TEXT NOT NULL,
+  opened_at INTEGER NOT NULL DEFAULT (unixepoch())
 );
+
+CREATE INDEX IF NOT EXISTS idx_read_history_opened_at ON read_history(opened_at DESC);
+CREATE INDEX IF NOT EXISTS idx_read_history_filepath ON read_history(filepath);
 
 CREATE TABLE IF NOT EXISTS tags (
   tag_name TEXT PRIMARY KEY
@@ -125,7 +118,6 @@ CREATE INDEX IF NOT EXISTS idx_file_artists_role_artist ON file_artists(role, ar
 CREATE INDEX IF NOT EXISTS idx_files_rec_score ON files(rec_score);
 CREATE INDEX IF NOT EXISTS idx_files_folderpath_file_type ON files(folderpath, file_type);
 CREATE INDEX IF NOT EXISTS idx_activity_logs_activity_type ON activity_logs(activity_type, created_at DESC);
-CREATE INDEX IF NOT EXISTS idx_progress_last_opened_at ON progress(last_opened_at DESC);
 CREATE INDEX IF NOT EXISTS idx_folder_open_history_last_opened_at ON folder_open_history(last_opened_at);
 
 CREATE TABLE IF NOT EXISTS parsed_metadata (

@@ -177,30 +177,34 @@ describe("IndexRepository – archive_meta", () => {
   });
 });
 
-// ─── progress ─────────────────────────────────────────────────────────────────
+// ─── read_history ─────────────────────────────────────────────────────────────
 
-describe("IndexRepository – progress", () => {
+describe("IndexRepository – read_history", () => {
   const fp = "/a/book.zip";
 
-  it("upsertProgress inserts and listProgressHistory returns it", () => {
-    repo.upsertProgress({ filepath: fp, filename: "book.zip", page_current: 3, page_total: 50 });
-    const list = repo.listProgressHistory(0, 10);
+  it("recordRead inserts and listReadHistory returns it", () => {
+    repo.upsertFile({ filepath: fp, filename: "book.zip", mtime: 1700000000, filesize: 100 });
+    repo.recordRead(fp);
+    const list = repo.listReadHistory(0, 10);
     expect(list.length).toBe(1);
     expect(list[0].filepath).toBe(fp);
-    expect(list[0].page_current).toBe(3);
+    expect(list[0].opened_at).toBeGreaterThan(0);
   });
 
-  it("upsertProgress updates existing row", () => {
-    repo.upsertProgress({ filepath: fp, page_current: 3, page_total: 50 });
-    repo.upsertProgress({ filepath: fp, page_current: 10 });
-    const list = repo.listProgressHistory(0, 10);
-    expect(list[0].page_current).toBe(10);
+  it("recordRead appends multiple entries for same file", () => {
+    repo.upsertFile({ filepath: fp, filename: "book.zip", mtime: 1700000000, filesize: 100 });
+    repo.recordRead(fp);
+    repo.recordRead(fp);
+    const list = repo.listReadHistory(0, 10);
+    expect(list.length).toBe(2);
   });
 
-  it("countProgressHistory returns correct count", () => {
-    repo.upsertProgress({ filepath: "/a.zip" });
-    repo.upsertProgress({ filepath: "/b.zip" });
-    expect(repo.countProgressHistory()).toBe(2);
+  it("countReadHistory returns correct count", () => {
+    repo.upsertFile({ filepath: "/a.zip", filename: "a.zip", mtime: 1700000000, filesize: 100 });
+    repo.upsertFile({ filepath: "/b.zip", filename: "b.zip", mtime: 1700000000, filesize: 100 });
+    repo.recordRead("/a.zip");
+    repo.recordRead("/b.zip");
+    expect(repo.countReadHistory()).toBe(2);
   });
 });
 

@@ -5,7 +5,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { fsRoutes } from "./routes/fs.js";
-import { searchRoutes } from "./routes/search.js";
+import { searchRoutes, quickMatchBatchHandler } from "./routes/search.js";
 import { historyRoutes } from "./routes/history.js";
 import { tagsRoutes } from "./routes/tags.js";
 import { authorsRoutes } from "./routes/authors.js";
@@ -71,6 +71,9 @@ export function buildApp() {
     const mime = getMimeType(src);
     return reply.type(mime).send(fs.createReadStream(src));
   });
+
+  // ── Compatibility aliases (Tampermonkey script uses /api/search/...) ───────
+  app.post("/api/search/quick-match-batch", quickMatchBatchHandler);
 
   // ── Health ─────────────────────────────────────────────────────────────────
   app.get("/health", async () => ({ status: "ok", project: config.PROJECT_NAME }));

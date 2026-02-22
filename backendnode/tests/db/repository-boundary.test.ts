@@ -103,13 +103,13 @@ describe("boundary: tags and artists", () => {
   });
 });
 
-describe("boundary: progress", () => {
-  it("countProgressHistory returns 0 when empty", () => {
-    expect(repo.countProgressHistory()).toBe(0);
+describe("boundary: read_history", () => {
+  it("countReadHistory returns 0 when empty", () => {
+    expect(repo.countReadHistory()).toBe(0);
   });
 
-  it("listProgressHistory with offset beyond data returns empty", () => {
-    expect(repo.listProgressHistory(1000, 10)).toEqual([]);
+  it("listReadHistory with offset beyond data returns empty", () => {
+    expect(repo.listReadHistory(1000, 10)).toEqual([]);
   });
 });
 

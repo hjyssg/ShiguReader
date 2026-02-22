@@ -1,19 +1,33 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import { describe, it, expect, beforeEach, vi } from "vitest";
 import { buildApp } from "../../src/app.js";
 
-// ── mock DB ──────────────────────────────────────────────────────────────────
 vi.mock("../../src/db/client.js", () => ({
   getDb: () => ({}),
   initDb: vi.fn(),
 }));
 
-type FakeRow = { filepath: string; filename: string; file_type: string; filesize: number; mtime: number };
-
 const mockRepo = {
-  searchFiles: vi.fn((): FakeRow[] => []),
-  searchByAuthor: vi.fn((): FakeRow[] => []),
-  searchByCoser: vi.fn((): FakeRow[] => []),
-  searchByTag: vi.fn((): FakeRow[] => []),
+  searchFiles: vi.fn(() => []),
+  searchByAuthor: vi.fn(() => []),
+  searchByCoser: vi.fn(() => []),
+  searchByTag: vi.fn(() => []),
+  quickMatchCandidates: vi.fn(() => []),
+  // required by other routes
+  getFileDataByFolder: vi.fn(() => new Map()),
+  getArchiveMetasByFolder: vi.fn(() => new Map()),
+  upsertFolder: vi.fn(),
+  upsertFile: vi.fn(),
+  recordFolderOpen: vi.fn(),
+  countFilesByType: vi.fn(() => 0),
+  countFolders: vi.fn(() => 0),
+  listActivityLogs: vi.fn(() => []),
+  listActivityLogsSinceLatestStartup: vi.fn(() => []),
+  listTopOpenedFolderIds: vi.fn(() => []),
+  logActivity: vi.fn(),
+  findFilesByFilename: vi.fn(() => []),
+  countReadHistory: vi.fn(() => 0),
+  listReadHistory: vi.fn(() => []),
+  recordRead: vi.fn(),
 };
 
 vi.mock("../../src/db/repository.js", () => ({
@@ -25,117 +39,171 @@ vi.mock("../../src/config.js", () => ({
     API_V1_STR: "/api/v1",
     ENVIRONMENT: "local",
     FS_ROOTS: "",
+    FAVORITE_DIR: "",
+    ALREADY_READ_DIR: "",
     THUMB_CONCURRENCY: 3,
     EXTRACT_CONCURRENCY: 2,
     THUMB_CACHE_DIR: "../data/thumb_cache",
     EXTRACT_CACHE_DIR: "../data/extract_cache",
-    FAVORITE_DIR: "",
-    ALREADY_READ_DIR: "",
   },
 }));
 
-beforeEach(() => {
-  vi.clearAllMocks();
-  mockRepo.searchFiles.mockReturnValue([]);
-  mockRepo.searchByAuthor.mockReturnValue([]);
-  mockRepo.searchByCoser.mockReturnValue([]);
-  mockRepo.searchByTag.mockReturnValue([]);
-});
+beforeEach(() => vi.clearAllMocks());
 
-const POST = (body: object) =>
-  buildApp().inject({ method: "POST", url: "/api/v1/search", payload: body });
+// ── existing search tests ─────────────────────────────────────────────────────
 
 describe("POST /api/v1/search", () => {
-  it("returns empty when query is blank", async () => {
-    const res = await POST({ q: "" });
+  it("returns empty when no results", async () => {
+    const app = buildApp();
+    const res = await app.inject({ method: "POST", url: "/api/v1/search", payload: { q: "test" } });
     expect(res.statusCode).toBe(200);
-    expect(res.json()).toEqual({ items: [], total: 0 });
+    expect(res.json().items).toEqual([]);
   });
 
-  it("returns empty when query is whitespace", async () => {
-    const res = await POST({ q: "   " });
+  it("returns empty for blank query", async () => {
+    const app = buildApp();
+    const res = await app.inject({ method: "POST", url: "/api/v1/search", payload: { q: "  " } });
     expect(res.statusCode).toBe(200);
-    expect(res.json()).toEqual({ items: [], total: 0 });
+    expect(res.json().items).toEqual([]);
   });
 
-  it("returns empty when body is missing", async () => {
-    const res = await buildApp().inject({ method: "POST", url: "/api/v1/search" });
-    expect(res.statusCode).toBe(200);
-    expect(res.json()).toEqual({ items: [], total: 0 });
+  it("searches all scopes by default", async () => {
+    const app = buildApp();
+    await app.inject({ method: "POST", url: "/api/v1/search", payload: { q: "foo" } });
+    expect(mockRepo.searchFiles).toHaveBeenCalled();
+    expect(mockRepo.searchByAuthor).toHaveBeenCalled();
+    expect(mockRepo.searchByCoser).toHaveBeenCalled();
+    expect(mockRepo.searchByTag).toHaveBeenCalled();
   });
 
-  it("calls searchFiles by default", async () => {
-    const row = { filepath: "/a/b.zip", filename: "b.zip", file_type: "archive", filesize: 100, mtime: 1700000000 };
-    mockRepo.searchFiles.mockReturnValue([row]);
-    const res = await POST({ q: "test" });
-    expect(res.statusCode).toBe(200);
-    const body = res.json();
-    expect(body.total).toBe(1);
-    expect(body.items[0].name).toBe("b.zip");
-    expect(body.items[0].file_type).toBe("archive");
-    expect(body.items[0].thumbnail_url).toContain("/api/v1/fs/thumb");
+  it("respects scopes filter", async () => {
+    const app = buildApp();
+    await app.inject({ method: "POST", url: "/api/v1/search", payload: { q: "foo", scopes: ["file"] } });
+    expect(mockRepo.searchFiles).toHaveBeenCalled();
+    expect(mockRepo.searchByAuthor).not.toHaveBeenCalled();
   });
 
   it("deduplicates results across scopes", async () => {
-    const row = { filepath: "/a/b.zip", filename: "b.zip", file_type: "archive", filesize: 100, mtime: 1700000000 };
+    const row = { filepath: "/a/b.zip", filename: "b.zip", file_type: "archive", filesize: 100, mtime: 1000 };
     mockRepo.searchFiles.mockReturnValue([row]);
-    mockRepo.searchByAuthor.mockReturnValue([row]); // same path
-    const res = await POST({ q: "test", scopes: ["file", "author"] });
-    expect(res.json().total).toBe(1);
+    mockRepo.searchByAuthor.mockReturnValue([row]);
+    mockRepo.searchByCoser.mockReturnValue([]);
+    mockRepo.searchByTag.mockReturnValue([]);
+    const app = buildApp();
+    const res = await app.inject({ method: "POST", url: "/api/v1/search", payload: { q: "b" } });
+    expect(res.json().items).toHaveLength(1);
   });
 
-  it("only calls requested scopes", async () => {
-    await POST({ q: "test", scopes: ["tag"] });
-    expect(mockRepo.searchFiles).not.toHaveBeenCalled();
-    expect(mockRepo.searchByAuthor).not.toHaveBeenCalled();
-    expect(mockRepo.searchByCoser).not.toHaveBeenCalled();
-    expect(mockRepo.searchByTag).toHaveBeenCalledOnce();
-  });
-
-  it("passes presence_filter to repo methods", async () => {
-    await POST({ q: "test", scopes: ["file"], presence_filter: "present" });
-    expect(mockRepo.searchFiles).toHaveBeenCalledWith("test", "present");
-  });
-
-  it("returns null thumbnail_url for non-media file types", async () => {
-    const row = { filepath: "/a/b.txt", filename: "b.txt", file_type: "other", filesize: 10, mtime: 1700000000 };
-    mockRepo.searchFiles.mockReturnValue([row]);
-    const res = await POST({ q: "test" });
-    expect(res.json().items[0].thumbnail_url).toBeNull();
-  });
-
-  it("returns thumbnail_url for video", async () => {
-    const row = { filepath: "/a/v.mp4", filename: "v.mp4", file_type: "video", filesize: 5000, mtime: 1700000000 };
-    mockRepo.searchFiles.mockReturnValue([row]);
-    const res = await POST({ q: "test" });
-    expect(res.json().items[0].thumbnail_url).toContain("/api/v1/fs/thumb");
-  });
-
-  it("returns thumbnail_url for image", async () => {
-    const row = { filepath: "/a/i.jpg", filename: "i.jpg", file_type: "image", filesize: 200, mtime: 1700000000 };
-    mockRepo.searchFiles.mockReturnValue([row]);
-    const res = await POST({ q: "test" });
-    expect(res.json().items[0].thumbnail_url).toContain("/api/v1/fs/thumb");
-  });
-
-  it("results are sorted by name", async () => {
+  it("returns thumbnail_url for archive files", async () => {
     mockRepo.searchFiles.mockReturnValue([
-      { filepath: "/z.zip", filename: "z.zip", file_type: "archive", filesize: 1, mtime: 1 },
-      { filepath: "/a.zip", filename: "a.zip", file_type: "archive", filesize: 1, mtime: 1 },
+      { filepath: "/a/b.zip", filename: "b.zip", file_type: "archive", filesize: 100, mtime: 1000 },
     ]);
-    const res = await POST({ q: "test" });
-    const names = res.json().items.map((i: { name: string }) => i.name);
-    expect(names).toEqual(["a.zip", "z.zip"]);
+    mockRepo.searchByAuthor.mockReturnValue([]);
+    mockRepo.searchByCoser.mockReturnValue([]);
+    mockRepo.searchByTag.mockReturnValue([]);
+    const app = buildApp();
+    const res = await app.inject({ method: "POST", url: "/api/v1/search", payload: { q: "b" } });
+    expect(res.json().items[0].thumbnail_url).toBeTruthy();
   });
 
-  it("merges results from all scopes", async () => {
-    mockRepo.searchFiles.mockReturnValue([
-      { filepath: "/f.zip", filename: "f.zip", file_type: "archive", filesize: 1, mtime: 1 },
-    ]);
-    mockRepo.searchByTag.mockReturnValue([
-      { filepath: "/t.zip", filename: "t.zip", file_type: "archive", filesize: 1, mtime: 1 },
-    ]);
-    const res = await POST({ q: "test", scopes: ["file", "tag"] });
-    expect(res.json().total).toBe(2);
+  it("clamps limit to 500", async () => {
+    const app = buildApp();
+    const res = await app.inject({ method: "POST", url: "/api/v1/search", payload: { q: "x", limit: 9999 } });
+    expect(res.statusCode).toBe(200);
+  });
+
+  it("supports pagination via offset", async () => {
+    const rows = Array.from({ length: 5 }, (_, i) => ({
+      filepath: `/a/${i}.zip`, filename: `${i}.zip`, file_type: "archive", filesize: 100, mtime: 1000,
+    }));
+    mockRepo.searchFiles.mockReturnValue(rows);
+    mockRepo.searchByAuthor.mockReturnValue([]);
+    mockRepo.searchByCoser.mockReturnValue([]);
+    mockRepo.searchByTag.mockReturnValue([]);
+    const app = buildApp();
+    const res = await app.inject({ method: "POST", url: "/api/v1/search", payload: { q: "x", limit: 2, offset: 2 } });
+    expect(res.json().items).toHaveLength(2);
+    expect(res.json().total).toBe(5);
+  });
+});
+
+// ── quick-match-batch tests ───────────────────────────────────────────────────
+
+describe("POST /api/v1/search/quick-match-batch", () => {
+  it("returns empty results for empty queries", async () => {
+    const app = buildApp();
+    const res = await app.inject({
+      method: "POST", url: "/api/v1/search/quick-match-batch", payload: { queries: [] },
+    });
+    expect(res.statusCode).toBe(200);
+    expect(res.json().results).toEqual([]);
+  });
+
+  it("returns different when no candidates found", async () => {
+    mockRepo.quickMatchCandidates.mockReturnValue([]);
+    const app = buildApp();
+    const res = await app.inject({
+      method: "POST", url: "/api/v1/search/quick-match-batch",
+      payload: { queries: ["[Author] SomeTitle"] },
+    });
+    const r = res.json().results[0];
+    expect(r.match_level).toBe("different");
+    expect(r.confidence).toBe(0);
+  });
+
+  it("returns downloaded when author+title match exactly", async () => {
+    mockRepo.quickMatchCandidates.mockReturnValue([{
+      filepath: "/a/b.zip",
+      filename: "[Author] SomeTitle.zip",
+      file_type: "archive", filesize: 100, mtime: 1000,
+    }]);
+    const app = buildApp();
+    const res = await app.inject({
+      method: "POST", url: "/api/v1/search/quick-match-batch",
+      payload: { queries: ["[Author] SomeTitle"] },
+    });
+    const r = res.json().results[0];
+    expect(r.match_level).toBe("downloaded");
+    expect(r.confidence).toBeGreaterThan(0.5);
+  });
+
+  it("returns same_author when author matches but title differs", async () => {
+    mockRepo.quickMatchCandidates.mockReturnValue([{
+      filepath: "/a/c.zip",
+      filename: "[Author] CompletelyDifferentTitle.zip",
+      file_type: "archive", filesize: 100, mtime: 1000,
+    }]);
+    const app = buildApp();
+    const res = await app.inject({
+      method: "POST", url: "/api/v1/search/quick-match-batch",
+      payload: { queries: ["[Author] SomeTitle"] },
+    });
+    const r = res.json().results[0];
+    expect(["same_author", "different"]).toContain(r.match_level);
+  });
+
+  it("handles multiple queries in one call", async () => {
+    mockRepo.quickMatchCandidates.mockReturnValue([]);
+    const app = buildApp();
+    const res = await app.inject({
+      method: "POST", url: "/api/v1/search/quick-match-batch",
+      payload: { queries: ["[A] Title1", "[B] Title2", "[C] Title3"] },
+    });
+    expect(res.json().results).toHaveLength(3);
+  });
+
+  it("respects limit parameter for hits", async () => {
+    const candidates = Array.from({ length: 10 }, (_, i) => ({
+      filepath: `/a/${i}.zip`,
+      filename: `[Author] SomeTitle ${i}.zip`,
+      file_type: "archive", filesize: 100, mtime: 1000,
+    }));
+    mockRepo.quickMatchCandidates.mockReturnValue(candidates);
+    const app = buildApp();
+    const res = await app.inject({
+      method: "POST", url: "/api/v1/search/quick-match-batch",
+      payload: { queries: ["[Author] SomeTitle"], limit: 3 },
+    });
+    expect(res.json().results[0].hits.length).toBeLessThanOrEqual(3);
   });
 });

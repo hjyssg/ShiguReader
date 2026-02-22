@@ -12,21 +12,20 @@ async function listHistory(
   const sortOrder = req.query.sort_order === "asc" ? "asc" : "desc";
 
   const repo = getRepo();
-  const total = repo.countProgressHistory();
+  const total = repo.countReadHistory();
   const totalPages = Math.ceil(total / pageSize);
-  const rows = repo.listProgressHistory(offset, pageSize, sortOrder);
+  const rows = repo.listReadHistory(offset, pageSize, sortOrder);
 
   return reply.send({
     items: rows.map(r => ({
+      id: r.id,
       filepath: r.filepath,
-      filename: r.filename,
-      file_type: r.file_type,
-      filesize: r.filesize,
-      mtime: r.mtime,
-      thumbnail_url: r.thumbnail_url ?? (r.filepath ? buildThumbUrl(r.filepath) : null),
-      read_at: r.last_opened_at,
-      page_current: r.page_current,
-      page_total: r.page_total,
+      filename: r.filename ?? null,
+      file_type: r.file_type ?? null,
+      thumbnail_url: r.thumbnail_filepath
+        ? buildThumbUrl(r.thumbnail_filepath)
+        : (r.filepath ? buildThumbUrl(r.filepath) : null),
+      opened_at: r.opened_at,
     })),
     page,
     page_size: pageSize,
@@ -37,22 +36,14 @@ async function listHistory(
 
 // POST /api/v1/history/record
 async function recordHistory(
-  req: FastifyRequest<{
-    Body: {
-      filepath: string;
-      page_current?: number;
-      page_total?: number;
-      position_sec?: number;
-      duration_sec?: number;
-    };
-  }>,
+  req: FastifyRequest<{ Body: { filepath: string } }>,
   reply: FastifyReply
 ) {
   const body = req.body ?? {};
   if (!body.filepath) return reply.status(400).send({ error: "filepath is required" });
 
   const repo = getRepo();
-  repo.upsertProgress(body);
+  repo.recordRead(body.filepath);
   return reply.send({ status: "ok" });
 }
 

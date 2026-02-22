@@ -7,9 +7,9 @@ vi.mock("../../src/db/client.js", () => ({
 }));
 
 const mockRepo = {
-  countProgressHistory: vi.fn(() => 0),
-  listProgressHistory: vi.fn(() => []),
-  upsertProgress: vi.fn(),
+  countReadHistory: vi.fn(() => 0),
+  listReadHistory: vi.fn(() => []),
+  recordRead: vi.fn(),
   // required by other routes
   getFileDataByFolder: vi.fn(() => new Map()),
   getArchiveMetasByFolder: vi.fn(() => new Map()),
@@ -45,8 +45,8 @@ vi.mock("../../src/config.js", () => ({
 
 beforeEach(() => {
   vi.clearAllMocks();
-  mockRepo.countProgressHistory.mockReturnValue(0);
-  mockRepo.listProgressHistory.mockReturnValue([]);
+  mockRepo.countReadHistory.mockReturnValue(0);
+  mockRepo.listReadHistory.mockReturnValue([]);
 });
 
 describe("GET /api/v1/history/list", () => {
@@ -60,21 +60,14 @@ describe("GET /api/v1/history/list", () => {
   });
 
   it("returns paginated history items", async () => {
-    mockRepo.countProgressHistory.mockReturnValue(1);
-    mockRepo.listProgressHistory.mockReturnValue([{
+    mockRepo.countReadHistory.mockReturnValue(1);
+    mockRepo.listReadHistory.mockReturnValue([{
+      id: 1,
       filepath: "/a/book.zip",
       filename: "book.zip",
       file_type: "archive",
-      filesize: 1024,
-      mtime: 1700000000,
-      thumbnail_url: null,
-      last_opened_at: 1700000000,
-      total_time_sec: 0,
-      page_current: 5,
-      page_total: 50,
-      position_sec: null,
-      duration_sec: null,
-      updated_at: 1700000000,
+      thumbnail_filepath: null,
+      opened_at: 1700000000,
     }]);
     const app = buildApp();
     const res = await app.inject({ method: "GET", url: "/api/v1/history/list?page=1&page_size=10" });
@@ -82,20 +75,20 @@ describe("GET /api/v1/history/list", () => {
     const body = res.json();
     expect(body.items).toHaveLength(1);
     expect(body.items[0].filepath).toBe("/a/book.zip");
-    expect(body.items[0].page_current).toBe(5);
+    expect(body.items[0].opened_at).toBe(1700000000);
     expect(body.page).toBe(1);
   });
 
   it("clamps page_size to max 200", async () => {
     const app = buildApp();
     await app.inject({ method: "GET", url: "/api/v1/history/list?page_size=999" });
-    expect(mockRepo.listProgressHistory).toHaveBeenCalledWith(0, 200, "desc");
+    expect(mockRepo.listReadHistory).toHaveBeenCalledWith(0, 200, "desc");
   });
 
   it("supports sort_order=asc", async () => {
     const app = buildApp();
     await app.inject({ method: "GET", url: "/api/v1/history/list?sort_order=asc" });
-    expect(mockRepo.listProgressHistory).toHaveBeenCalledWith(0, 50, "asc");
+    expect(mockRepo.listReadHistory).toHaveBeenCalledWith(0, 50, "asc");
   });
 });
 
@@ -106,25 +99,22 @@ describe("POST /api/v1/history/record", () => {
     expect(res.statusCode).toBe(400);
   });
 
-  it("records progress successfully", async () => {
+  it("records read successfully", async () => {
     const app = buildApp();
     const res = await app.inject({
       method: "POST",
       url: "/api/v1/history/record",
-      payload: { filepath: "/a/book.zip", page_current: 10, page_total: 50 },
+      payload: { filepath: "/a/book.zip" },
     });
     expect(res.statusCode).toBe(200);
     expect(res.json().status).toBe("ok");
-    expect(mockRepo.upsertProgress).toHaveBeenCalledOnce();
+    expect(mockRepo.recordRead).toHaveBeenCalledWith("/a/book.zip");
   });
 
-  it("handles null optional fields", async () => {
+  it("same file can be recorded multiple times", async () => {
     const app = buildApp();
-    const res = await app.inject({
-      method: "POST",
-      url: "/api/v1/history/record",
-      payload: { filepath: "/a/video.mp4", position_sec: 120.5, duration_sec: 3600 },
-    });
-    expect(res.statusCode).toBe(200);
+    await app.inject({ method: "POST", url: "/api/v1/history/record", payload: { filepath: "/a/book.zip" } });
+    await app.inject({ method: "POST", url: "/api/v1/history/record", payload: { filepath: "/a/book.zip" } });
+    expect(mockRepo.recordRead).toHaveBeenCalledTimes(2);
   });
 });

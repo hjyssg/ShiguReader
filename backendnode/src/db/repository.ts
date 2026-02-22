@@ -75,33 +75,15 @@ export interface ArchiveMetaRow {
   index_status: string;
 }
 
-/** `progress` 表的行类型，记录用户的阅读/观看进度 */
-export interface ProgressRow {
-  /** 文件路径，主键 */
+/** `read_history` 表的行类型，记录文件打开历史（append log） */
+export interface ReadHistoryRow {
+  id: number;
   filepath: string;
-  /** 文件名快照（冗余存储，方便历史列表展示） */
-  filename: string | null;
-  /** 文件类型快照 */
-  file_type: string | null;
-  /** 文件大小快照 */
-  filesize: number | null;
-  /** 文件修改时间快照 */
-  mtime: number | null;
-  /** 缩略图 URL 快照 */
-  thumbnail_url: string | null;
-  /** 最近一次打开的时间戳 */
-  last_opened_at: number;
-  /** 累计阅读/观看时长，秒 */
-  total_time_sec: number;
-  /** 当前页码（图片/漫画） */
-  page_current: number | null;
-  /** 总页数 */
-  page_total: number | null;
-  /** 当前播放位置，秒（视频/音频） */
-  position_sec: number | null;
-  /** 总时长，秒（视频/音频） */
-  duration_sec: number | null;
-  updated_at: number;
+  opened_at: number;
+  /** JOIN files 后附加的展示字段，查询时可能为 null（文件已删除） */
+  filename?: string | null;
+  file_type?: string | null;
+  thumbnail_filepath?: string | null;
 }
 
 /** `activity_logs` 表的行类型，记录后台操作日志 */
@@ -235,7 +217,7 @@ export class IndexRepository {
       // files
       this.db.prepare("UPDATE files SET filepath=?, folderpath=COALESCE(?,folderpath), updated_at=? WHERE filepath=?").run(newPath, fp, now, oldPath);
       // dependent tables
-      for (const tbl of ["archive_meta", "video_meta", "progress", "parsed_metadata"]) {
+      for (const tbl of ["archive_meta", "video_meta", "read_history", "parsed_metadata"]) {
         this.db.prepare(`UPDATE ${tbl} SET filepath=? WHERE filepath=?`).run(newPath, oldPath);
       }
       this.db.prepare("UPDATE file_tags SET filepath=? WHERE filepath=?").run(newPath, oldPath);
@@ -259,7 +241,7 @@ export class IndexRepository {
       // files table
       this.db.prepare("UPDATE files SET filepath=REPLACE(filepath,?,?), folderpath=REPLACE(folderpath,?,?), updated_at=? WHERE filepath LIKE ?").run(oldPfx, newPrefix, oldPfx, newPrefix, now, oldPfx + "%");
       // dependent tables
-      for (const tbl of ["archive_meta", "video_meta", "progress", "parsed_metadata"]) {
+      for (const tbl of ["archive_meta", "video_meta", "read_history", "parsed_metadata"]) {
         this.db.prepare(`UPDATE ${tbl} SET filepath=REPLACE(filepath,?,?) WHERE filepath LIKE ?`).run(oldPfx, newPrefix, oldPfx + "%");
       }
       this.db.prepare("UPDATE file_tags SET filepath=REPLACE(filepath,?,?) WHERE filepath LIKE ?").run(oldPfx, newPrefix, oldPfx + "%");
@@ -298,7 +280,7 @@ export class IndexRepository {
 
   private _presenceClause(filter: string): string {
     if (filter === "all") return "";
-    if (filter === "watched") return " AND filepath IN (SELECT filepath FROM progress)";
+    if (filter === "watched") return " AND filepath IN (SELECT filepath FROM read_history)";
     if (filter === "scanned_recent") return ` AND is_missing = 0 AND last_seen_at >= ${nowTs() - 600}`;
     return " AND is_missing = 0"; // default: present
   }
@@ -422,38 +404,30 @@ export class IndexRepository {
     return new Map(result.map(r => [r.filepath, r]));
   }
 
-  // ─── progress ─────────────────────────────────────────────────────────────
+  // ─── read history ─────────────────────────────────────────────────────────
 
-  /** 插入或更新阅读/观看进度，快照字段用 COALESCE 保留旧值 */
-  upsertProgress(data: Partial<ProgressRow> & { filepath: string }): void {
+  /** 记录文件被打开一次（append log） */
+  recordRead(filepath: string): void {
     const now = nowTs();
-    this.db.prepare(`
-      INSERT INTO progress (filepath,filename,file_type,filesize,mtime,thumbnail_url,last_opened_at,page_current,page_total,position_sec,duration_sec,updated_at)
-      VALUES (?,?,?,?,?,?,?,?,?,?,?,?)
-      ON CONFLICT(filepath) DO UPDATE SET
-        filename=COALESCE(excluded.filename,filename), file_type=COALESCE(excluded.file_type,file_type),
-        filesize=COALESCE(excluded.filesize,filesize), mtime=COALESCE(excluded.mtime,mtime),
-        thumbnail_url=COALESCE(excluded.thumbnail_url,thumbnail_url),
-        last_opened_at=excluded.last_opened_at, page_current=excluded.page_current,
-        page_total=excluded.page_total, position_sec=excluded.position_sec,
-        duration_sec=excluded.duration_sec, updated_at=excluded.updated_at
-    `).run(
-      data.filepath, data.filename ?? null, data.file_type ?? null, data.filesize ?? null,
-      data.mtime ?? null, data.thumbnail_url ?? null, now,
-      data.page_current ?? null, data.page_total ?? null,
-      data.position_sec ?? null, data.duration_sec ?? null, now,
-    );
+    this.db.prepare("INSERT INTO read_history (filepath, opened_at) VALUES (?, ?)").run(filepath, now);
   }
 
-  /** 分页查询阅读历史，按 last_opened_at 排序 */
-  listProgressHistory(offset: number, limit: number, sortOrder = "desc"): ProgressRow[] {
+  /** 分页查询阅读历史，JOIN files 获取展示字段，按 opened_at 排序 */
+  listReadHistory(offset: number, limit: number, sortOrder = "desc"): ReadHistoryRow[] {
     const order = sortOrder === "asc" ? "ASC" : "DESC";
-    return rows<ProgressRow>(this.db.prepare(`SELECT * FROM progress ORDER BY last_opened_at ${order} LIMIT ? OFFSET ?`).all(limit, offset));
+    return rows<ReadHistoryRow>(this.db.prepare(`
+      SELECT h.id, h.filepath, h.opened_at,
+             f.filename, f.file_type, f.thumbnail_filepath
+      FROM read_history h
+      LEFT JOIN files f ON f.filepath = h.filepath
+      ORDER BY h.opened_at ${order}
+      LIMIT ? OFFSET ?
+    `).all(limit, offset));
   }
 
-  /** 返回 progress 表总行数 */
-  countProgressHistory(): number {
-    return (this.db.prepare("SELECT COUNT(*) as n FROM progress").get() as { n: number }).n;
+  /** 返回 read_history 表总行数 */
+  countReadHistory(): number {
+    return (this.db.prepare("SELECT COUNT(*) as n FROM read_history").get() as { n: number }).n;
   }
 
   // ─── activity logs ────────────────────────────────────────────────────────
@@ -495,12 +469,12 @@ export class IndexRepository {
         SELECT h.folderpath AS folder_id, h.open_count * exp(-((?-h.last_opened_at)*1.0)/?) AS score
         FROM folder_open_history h WHERE h.last_opened_at >= ?
       ),
-      progress_scores AS (
-        SELECT f.folderpath AS folder_id, exp(-((?-p.last_opened_at)*1.0)/?) AS score
-        FROM progress p JOIN files f ON f.filepath = p.filepath
-        WHERE p.last_opened_at >= ? AND f.folderpath IS NOT NULL
+      read_scores AS (
+        SELECT f.folderpath AS folder_id, exp(-((?-h.opened_at)*1.0)/?) AS score
+        FROM read_history h JOIN files f ON f.filepath = h.filepath
+        WHERE h.opened_at >= ? AND f.folderpath IS NOT NULL
       ),
-      combined AS (SELECT * FROM folder_scores UNION ALL SELECT * FROM progress_scores)
+      combined AS (SELECT * FROM folder_scores UNION ALL SELECT * FROM read_scores)
       SELECT folder_id FROM combined GROUP BY folder_id ORDER BY SUM(score) DESC LIMIT ?
     `).all(now, tau, cutoff, now, tau, cutoff, limit));
     return result.map(r => r.folder_id);
@@ -566,8 +540,58 @@ export class IndexRepository {
 
   /** 批量获取某目录下所有文件的 rec_score 和最近阅读时间，用于列表排序 */
   getFileDataByFolder(folderpath: string): Map<string, { rec_score: number; last_read_at: number | null }> {
-    const result = rows<{ filepath: string; rec_score: number; last_opened_at: number | null }>(this.db.prepare("SELECT f.filepath, f.rec_score, p.last_opened_at FROM files f LEFT JOIN progress p ON p.filepath = f.filepath WHERE f.folderpath = ?").all(folderpath));
-    return new Map(result.map(r => [r.filepath, { rec_score: r.rec_score, last_read_at: r.last_opened_at }]));
+    const result = rows<{ filepath: string; rec_score: number; last_read_at: number | null }>(this.db.prepare(`
+      SELECT f.filepath, f.rec_score,
+             (SELECT MAX(h.opened_at) FROM read_history h WHERE h.filepath = f.filepath) AS last_read_at
+      FROM files f WHERE f.folderpath = ?
+    `).all(folderpath));
+    return new Map(result.map(r => [r.filepath, { rec_score: r.rec_score, last_read_at: r.last_read_at }]));
+  }
+
+  // ─── quick match ──────────────────────────────────────────────────────────
+
+  /**
+   * 搜索 quick-match 候选文件。
+   * 按 author 名精确匹配 + 按 title 关键词模糊搜索，合并去重后返回。
+   * presenceFilter: "all" | "present"
+   */
+  quickMatchCandidates(
+    authorName: string | null,
+    titleKeyword: string | null,
+    presenceFilter = "all",
+    limit = 30,
+  ): FileRow[] {
+    const presence = this._presenceClause(presenceFilter);
+    const byPath = new Map<string, FileRow>();
+
+    if (authorName) {
+      const artists = rows<{ artist_name: string }>(
+        this.db.prepare("SELECT artist_name FROM artists WHERE artist_name LIKE ?").all(`%${authorName}%`)
+      );
+      if (artists.length) {
+        const names = artists.map(a => a.artist_name);
+        const fps = rows<{ filepath: string }>(
+          this.db.prepare(`SELECT filepath FROM file_artists WHERE artist_name IN (${names.map(() => "?").join(",")}) AND role = ''`).all(...names)
+        );
+        if (fps.length) {
+          const paths = fps.map(f => f.filepath);
+          const fileRows = rows<FileRow>(
+            this.db.prepare(`SELECT * FROM files WHERE filepath IN (${paths.map(() => "?").join(",")})${presence} LIMIT ?`).all(...paths, limit)
+          );
+          for (const r of fileRows) byPath.set(r.filepath, r);
+        }
+      }
+    }
+
+    if (titleKeyword && byPath.size < limit) {
+      const p = `%${titleKeyword}%`;
+      const fileRows = rows<FileRow>(
+        this.db.prepare(`SELECT * FROM files WHERE filename LIKE ?${presence} LIMIT ?`).all(p, limit)
+      );
+      for (const r of fileRows) byPath.set(r.filepath, r);
+    }
+
+    return [...byPath.values()].slice(0, limit);
   }
 
   // ─── tags / artists listing ───────────────────────────────────────────────
