@@ -19,7 +19,7 @@ export const Route = createFileRoute("/_layout/read-mobile")({
     page: Number(search.page) || 0,
     source: (search.source as "archive" | "folder") || "archive",
     // sourceFolderPath: 仅 source=folder 时有效，用于定位到特定图片
-    sourceFolderPath: (search.sourceFolderPath as string) || (search.filePath as string) || "",
+    sourceFolderPath: (search.sourceFolderPath as string) || "",
   }),
   head: () => ({
     meta: [{ title: "Reader Mobile" }],
@@ -184,7 +184,7 @@ function ReadMobilePage() {
           navigate({
             to: "/explorer",
             search: isFolderSource
-              ? { path, page: 1, pageSize: 48, sortField: "mtime", sortOrder: "desc" }
+              ? { path, archivePath: "", page: 1, pageSize: 48, sortField: "mtime", sortOrder: "desc" }
               : { path, archivePath: path, page: 1, pageSize: 48, sortField: "mtime", sortOrder: "desc" },
           })
         }

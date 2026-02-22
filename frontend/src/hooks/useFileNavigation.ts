@@ -17,7 +17,7 @@ export function buildNavigationTarget(item: FileSystemItem, isMobile: boolean) {
   if (isFolder) {
     return {
       to: "/explorer" as const,
-      search: { path: item.path, page: 1, pageSize: 48, sortField: "mtime" as const, sortOrder: "desc" as const },
+      search: { path: item.path, archivePath: "" as const, page: 1, pageSize: 48, sortField: "mtime" as const, sortOrder: "desc" as const },
     }
   }
   if (isArchive) {

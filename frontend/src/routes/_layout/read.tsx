@@ -67,7 +67,7 @@ export const Route = createFileRoute("/_layout/read")({
     // sourceFolderPath: 仅 source=folder 时有效。
     // 用于从外部（如 explorer 点击某张图片）跳转到阅读器时定位到特定图片。
     // 解析后会被 replace 成对应的 page 数字，之后 sourceFolderPath 置空。
-    sourceFolderPath: (search.sourceFolderPath as string) || (search.filePath as string) || "",
+    sourceFolderPath: (search.sourceFolderPath as string) || "",
     mode: (search.mode as "audio") || undefined,
   }),
   head: () => ({
@@ -412,7 +412,7 @@ function ReadPage() {
         navigate({
           to: "/explorer",
           search: isFolderSource
-            ? { path, page: 1, pageSize: 48, sortField: "mtime", sortOrder: "desc" }
+            ? { path, archivePath: "", page: 1, pageSize: 48, sortField: "mtime", sortOrder: "desc" }
             : { path, archivePath: path, page: 1, pageSize: 48, sortField: "mtime", sortOrder: "desc" },
         })
       } else if (key === "v") {

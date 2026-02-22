@@ -58,7 +58,7 @@ export const Route = createFileRoute("/_layout/explorer")({
     return {
       path: (search.path as string) || "",
       // archivePath: 当从 archive 文件跳转过来时携带，Explorer 内部触发解压后清除
-      archivePath: (search.archivePath as string) || undefined,
+      archivePath: (search.archivePath as string) || "",
       page,
       pageSize,
       sortField: sortFieldCandidates.includes(rawSortField as SortField)
@@ -113,7 +113,7 @@ function Explorer() {
   const { isExtracting } = useArchiveExtract(archivePath, (cacheDir) => {
     navigate({
       to: "/explorer",
-      search: { path: cacheDir, page: 1, pageSize, sortField, sortOrder },
+      search: { path: cacheDir, archivePath: "", page: 1, pageSize, sortField, sortOrder },
       replace: true,
     })
   })
@@ -149,7 +149,7 @@ function Explorer() {
     (newPath) => {
       navigate({
         to: "/explorer",
-        search: { path: newPath, page: 1, pageSize, sortField, sortOrder },
+        search: { path: newPath, archivePath: "", page: 1, pageSize, sortField, sortOrder },
         replace: true,
       })
     },
@@ -157,6 +157,7 @@ function Explorer() {
 
   const buildSearchForPath = (nextPath: string) => ({
     path: nextPath,
+    archivePath: "",
     page: 1,
     pageSize,
     sortField,
@@ -275,14 +276,14 @@ function Explorer() {
         onSortFieldChange={(nextSortField) =>
           navigate({
             to: "/explorer",
-            search: { path, page: 1, pageSize, sortField: nextSortField, sortOrder },
+            search: { path, archivePath: "", page: 1, pageSize, sortField: nextSortField, sortOrder },
             replace: true,
           })
         }
         onSortOrderChange={(nextSortOrder) =>
           navigate({
             to: "/explorer",
-            search: { path, page: 1, pageSize, sortField, sortOrder: nextSortOrder },
+            search: { path, archivePath: "", page: 1, pageSize, sortField, sortOrder: nextSortOrder },
             replace: true,
           })
         }
@@ -292,7 +293,7 @@ function Explorer() {
           onChange: ({ page: nextPage, pageSize: nextPageSize }) =>
             navigate({
               to: "/explorer",
-              search: { path, page: nextPage, pageSize: nextPageSize, sortField, sortOrder },
+              search: { path, archivePath: "", page: nextPage, pageSize: nextPageSize, sortField, sortOrder },
               replace: true,
             }),
         }}

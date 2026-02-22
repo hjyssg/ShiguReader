@@ -188,7 +188,7 @@ function buildItemHref(item: FileSystemItem, isMobile: boolean): string | null {
     params.set("path", item.path)
     params.set("source", "archive")
     params.set("page", "0")
-    params.set("filePath", "")
+    params.set("sourceFolderPath", "")
     const route = isMobile ? "/read-mobile" : "/read"
     return `${route}?${params.toString()}`
   }
@@ -208,7 +208,7 @@ function buildItemHref(item: FileSystemItem, isMobile: boolean): string | null {
     params.set("path", getParentPath(item.path))
     params.set("source", "folder")
     params.set("page", "0")
-    params.set("filePath", item.path)
+    params.set("sourceFolderPath", item.path)
     const route = isMobile ? "/read-mobile" : "/read"
     return `${route}?${params.toString()}`
   }
