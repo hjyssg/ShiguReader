@@ -12,11 +12,23 @@ async function main() {
   const dbPath = path.resolve(__dirname, "../../", config.INDEX_SQLITE_PATH);
   initDb(dbPath);
 
+  // 启动前清理解压缓存，避免复用旧缓存导致 reader / explorer 状态不一致
+  try {
+    const { clearExtractCache } = await import("./services/archiveService.js");
+    const cacheResult = clearExtractCache();
+    console.log(`[startup] extract cache cleared: files=${cacheResult.deleted_files}, freed=${cacheResult.freed_size_readable}`);
+  } catch (error) {
+    console.log(`[startup] clear extract cache failed: ${error}`);
+  }
+
   // 写入 startup 日志，用于 listActivityLogsSinceLatestStartup 过滤本次启动后的活动
   try {
     const repo = new IndexRepository(getDb());
     repo.logActivity("startup", "Server started", "started", "startup");
-  } catch { /* ignore */ }
+    console.log("[startup] activity log inserted");
+  } catch (error) {
+    console.log(`[startup] failed to write activity log: ${error}`);
+  }
 
   const app = buildApp();
 

@@ -11,7 +11,7 @@ import { toastError, toastSuccess } from "@/lib/toast"
 
 import { FilesystemService } from "@/client"
 import { FileNotFoundError } from "@/components/Common/FileNotFoundError"
-import { FileViewContainer } from "@/components/Files/FileViewContainer"
+import { FileViewContainer, type ViewMode } from "@/components/Files/FileViewContainer"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import {
@@ -51,10 +51,12 @@ export const Route = createFileRoute("/_layout/explorer")({
       "last_read_at",
     ]
     const sortOrderCandidates: SortOrder[] = ["asc", "desc"]
+    const viewModeCandidates: ViewMode[] = ["grid", "table", "mixed"]
     const rawSortField = String(search.sortField || "")
     const rawSortOrder = String(search.sortOrder || "")
+    const rawViewMode = String(search.viewMode || "")
 
-    return {
+    const validated = {
       path: (search.path as string) || "",
       page,
       pageSize,
@@ -65,6 +67,11 @@ export const Route = createFileRoute("/_layout/explorer")({
         ? (rawSortOrder as SortOrder)
         : "desc",
     }
+
+    if (viewModeCandidates.includes(rawViewMode as ViewMode)) {
+      return { ...validated, viewMode: rawViewMode as ViewMode }
+    }
+    return validated
   },
   head: () => ({
     meta: [
@@ -98,7 +105,9 @@ function FilterCheckbox({ id, label, checked, onChange }: FilterCheckboxProps) {
 function Explorer() {
   const { t } = useTranslation()
   const navigate = useNavigate()
-  const { path, page, pageSize, sortField, sortOrder } = Route.useSearch()
+  const search = Route.useSearch()
+  const { path, page, pageSize, sortField, sortOrder } = search
+  const viewMode = "viewMode" in search ? search.viewMode : undefined
   const folderName = path
     ? getBaseName(path, t("nav.explorer"))
     : t("nav.explorer")
@@ -137,7 +146,7 @@ function Explorer() {
     (newPath) => {
       navigate({
         to: "/explorer",
-        search: { path: newPath, page: 1, pageSize, sortField, sortOrder },
+        search: { path: newPath, page: 1, pageSize, sortField, sortOrder, viewMode },
         replace: true,
       })
     },
@@ -149,6 +158,7 @@ function Explorer() {
     pageSize,
     sortField,
     sortOrder,
+    viewMode,
   })
 
   const filteredItems = useMemo(() => {
@@ -247,20 +257,20 @@ function Explorer() {
         items={filteredItems}
         isLoading={isLoading}
         currentPath={path}
-        initialViewMode="mixed"
+        initialViewMode={viewMode ?? "mixed"}
         sortField={sortField}
         sortOrder={sortOrder}
         onSortFieldChange={(nextSortField) =>
           navigate({
             to: "/explorer",
-            search: { path, page: 1, pageSize, sortField: nextSortField, sortOrder },
+            search: { path, page: 1, pageSize, sortField: nextSortField, sortOrder, viewMode },
             replace: true,
           })
         }
         onSortOrderChange={(nextSortOrder) =>
           navigate({
             to: "/explorer",
-            search: { path, page: 1, pageSize, sortField, sortOrder: nextSortOrder },
+            search: { path, page: 1, pageSize, sortField, sortOrder: nextSortOrder, viewMode },
             replace: true,
           })
         }
@@ -270,7 +280,7 @@ function Explorer() {
           onChange: ({ page: nextPage, pageSize: nextPageSize }) =>
             navigate({
               to: "/explorer",
-              search: { path, page: nextPage, pageSize: nextPageSize, sortField, sortOrder },
+              search: { path, page: nextPage, pageSize: nextPageSize, sortField, sortOrder, viewMode },
               replace: true,
             }),
         }}

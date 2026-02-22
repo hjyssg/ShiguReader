@@ -43,7 +43,7 @@ import { FileGridView } from "./FileGridView"
 import { FileIcon } from "./FileIcon"
 import { FileTableView, type SortField, type SortOrder } from "./FileTableView"
 
-type ViewMode = "grid" | "table" | "mixed"
+export type ViewMode = "grid" | "table" | "mixed"
 
 type PaginationState = {
   page: number

@@ -571,7 +571,7 @@ function ReadPage() {
               showFolderIcon={false}
               collapseDirCrumbsAfter={2}
               currentTo="/explorer"
-              currentSearch={{ path: extractStatus?.cache_dir || path, page: 1, pageSize: 48, sortField: "mtime", sortOrder: "desc" }}
+              currentSearch={{ path: extractStatus?.cache_dir || path, page: 1, pageSize: 48, sortField: "name", sortOrder: "asc", viewMode: "table" }}
               currentLabel={fileName}
               currentClassName="reader-toolbar__current-link"
             />
@@ -654,8 +654,8 @@ function ReadPage() {
           separatorClassName="size-4 text-muted-foreground"
             currentTo="/explorer"
             currentSearch={isFolderSource
-              ? { path, page: 1, pageSize: 48, sortField: "mtime", sortOrder: "desc" }
-              : { path: extractStatus?.cache_dir || path, page: 1, pageSize: 48, sortField: "mtime", sortOrder: "desc" }}
+              ? { path, page: 1, pageSize: 48, sortField: "name", sortOrder: "asc", viewMode: "table" }
+              : { path: extractStatus?.cache_dir || path, page: 1, pageSize: 48, sortField: "name", sortOrder: "asc", viewMode: "table" }}
           currentLabel={fileName}
         />
 
@@ -666,7 +666,7 @@ function ReadPage() {
               <>
                 <Link
                   to="/explorer"
-                  search={{ path: extractStatus?.cache_dir || path, page: 1, pageSize: 48, sortField: "mtime", sortOrder: "desc" }}
+                  search={{ path: extractStatus?.cache_dir || path, page: 1, pageSize: 48, sortField: "name", sortOrder: "asc", viewMode: "table" }}
                   className={buttonVariants({
                     variant: "default",
                     size: "sm",
@@ -788,8 +788,8 @@ function ReadPage() {
             collapseDirCrumbsAfter={2}
             currentTo="/explorer"
             currentSearch={isFolderSource
-              ? { path, page: 1, pageSize: 48, sortField: "mtime", sortOrder: "desc" }
-              : { path: extractStatus?.cache_dir || path, page: 1, pageSize: 48, sortField: "mtime", sortOrder: "desc" }}
+              ? { path, page: 1, pageSize: 48, sortField: "name", sortOrder: "asc", viewMode: "table" }
+              : { path: extractStatus?.cache_dir || path, page: 1, pageSize: 48, sortField: "name", sortOrder: "asc", viewMode: "table" }}
             currentLabel={fileName}
             currentClassName="reader-toolbar__current-link"
           />
@@ -859,7 +859,7 @@ function ReadPage() {
               <>
                 <Link
                   to="/explorer"
-                  search={{ path: extractStatus?.cache_dir || path, page: 1, pageSize: 48, sortField: "mtime", sortOrder: "desc" }}
+                  search={{ path: extractStatus?.cache_dir || path, page: 1, pageSize: 48, sortField: "name", sortOrder: "asc", viewMode: "table" }}
                   className={buttonVariants({
                     variant: "ghost",
                     size: "sm",

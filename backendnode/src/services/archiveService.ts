@@ -69,7 +69,8 @@ function getEntryType(entryPath: string): EntryType {
 export function getExtractCacheDir(archivePath: string): string {
   const hash = crypto.createHash("sha256").update(archivePath).digest("hex");
   const base = path.resolve(config.EXTRACT_CACHE_DIR);
-  return path.join(base, hash.slice(0, 2), hash.slice(2));
+  const shortHash = hash.slice(0, 10);
+  return path.join(base, shortHash.slice(0, 2), shortHash.slice(2));
 }
 
 // ── list entries ─────────────────────────────────────────────────────────────
