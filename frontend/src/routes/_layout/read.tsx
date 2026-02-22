@@ -852,42 +852,16 @@ function ReadPage() {
       <div className="reader-meta-bar">
         <div className="reader-meta-bar__left">
           <div className="reader-meta-bar__row">
-            <span className="text-muted-foreground">
-              {t("reader.mtime")}:{" "}
-              <span className="text-foreground">{mtimeText}</span>
-            </span>
-            <span className="text-muted-foreground">
-              {t("reader.size")}:{" "}
-              <span className="text-foreground">{sizeText}</span>
-            </span>
-            <span className="text-muted-foreground">
-              {t("reader.avgImageSize")}:{" "}
-              <span className="text-foreground">{avgImageSizeText}</span>
-            </span>
-            <span className="text-muted-foreground">
-              Video:{" "}
-              <span
-                className={
-                  archiveVideoCount > 0
-                    ? "text-orange-500 font-medium"
-                    : "text-foreground"
-                }
-              >
-                {archiveVideoCount}
-              </span>
-            </span>
-            <span className="text-muted-foreground">
-              Audio:{" "}
-              <span
-                className={
-                  archiveAudioCount > 0
-                    ? "text-orange-500 font-medium"
-                    : "text-foreground"
-                }
-              >
-                {archiveAudioCount}
-              </span>
-            </span>
+            {/* 文件元数据：hover title 显示 label，只展示值 */}
+            <span title={t("reader.mtime")} className="text-foreground cursor-default">{mtimeText}</span>
+            <span title={t("reader.size")} className="text-foreground cursor-default">{sizeText}</span>
+            <span title={t("reader.avgImageSize")} className="text-foreground cursor-default">{avgImageSizeText}</span>
+            {archiveVideoCount > 0 && (
+              <span title="Video" className="text-orange-500 font-medium cursor-default">{archiveVideoCount} video</span>
+            )}
+            {archiveAudioCount > 0 && (
+              <span title="Audio" className="text-orange-500 font-medium cursor-default">{archiveAudioCount} audio</span>
+            )}
 
             <span className="text-muted-foreground">
               {t("reader.authors")}:

@@ -24,7 +24,6 @@ import { Route as LayoutCosersRouteImport } from './routes/_layout/cosers'
 import { Route as LayoutAuthorsRouteImport } from './routes/_layout/authors'
 import { Route as LayoutAudioRouteImport } from './routes/_layout/audio'
 import { Route as LayoutArchiveRouteImport } from './routes/_layout/archive'
-import { Route as LayoutAdminRouteImport } from './routes/_layout/admin'
 
 const LayoutRoute = LayoutRouteImport.update({
   id: '/_layout',
@@ -100,15 +99,9 @@ const LayoutArchiveRoute = LayoutArchiveRouteImport.update({
   path: '/archive',
   getParentRoute: () => LayoutRoute,
 } as any)
-const LayoutAdminRoute = LayoutAdminRouteImport.update({
-  id: '/admin',
-  path: '/admin',
-  getParentRoute: () => LayoutRoute,
-} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof LayoutIndexRoute
-  '/admin': typeof LayoutAdminRoute
   '/archive': typeof LayoutArchiveRoute
   '/audio': typeof LayoutAudioRoute
   '/authors': typeof LayoutAuthorsRoute
@@ -124,7 +117,6 @@ export interface FileRoutesByFullPath {
   '/video': typeof LayoutVideoRoute
 }
 export interface FileRoutesByTo {
-  '/admin': typeof LayoutAdminRoute
   '/archive': typeof LayoutArchiveRoute
   '/audio': typeof LayoutAudioRoute
   '/authors': typeof LayoutAuthorsRoute
@@ -143,7 +135,6 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_layout': typeof LayoutRouteWithChildren
-  '/_layout/admin': typeof LayoutAdminRoute
   '/_layout/archive': typeof LayoutArchiveRoute
   '/_layout/audio': typeof LayoutAudioRoute
   '/_layout/authors': typeof LayoutAuthorsRoute
@@ -163,7 +154,6 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/admin'
     | '/archive'
     | '/audio'
     | '/authors'
@@ -179,7 +169,6 @@ export interface FileRouteTypes {
     | '/video'
   fileRoutesByTo: FileRoutesByTo
   to:
-    | '/admin'
     | '/archive'
     | '/audio'
     | '/authors'
@@ -197,7 +186,6 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/_layout'
-    | '/_layout/admin'
     | '/_layout/archive'
     | '/_layout/audio'
     | '/_layout/authors'
@@ -325,18 +313,10 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutArchiveRouteImport
       parentRoute: typeof LayoutRoute
     }
-    '/_layout/admin': {
-      id: '/_layout/admin'
-      path: '/admin'
-      fullPath: '/admin'
-      preLoaderRoute: typeof LayoutAdminRouteImport
-      parentRoute: typeof LayoutRoute
-    }
   }
 }
 
 interface LayoutRouteChildren {
-  LayoutAdminRoute: typeof LayoutAdminRoute
   LayoutArchiveRoute: typeof LayoutArchiveRoute
   LayoutAudioRoute: typeof LayoutAudioRoute
   LayoutAuthorsRoute: typeof LayoutAuthorsRoute
@@ -354,7 +334,6 @@ interface LayoutRouteChildren {
 }
 
 const LayoutRouteChildren: LayoutRouteChildren = {
-  LayoutAdminRoute: LayoutAdminRoute,
   LayoutArchiveRoute: LayoutArchiveRoute,
   LayoutAudioRoute: LayoutAudioRoute,
   LayoutAuthorsRoute: LayoutAuthorsRoute,

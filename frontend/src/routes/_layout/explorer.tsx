@@ -219,6 +219,7 @@ function Explorer() {
 
   return (
     <div className="explorer-page">
+      {/* 面包屑导航 */}
       <nav className="explorer-breadcrumb" aria-label="Explorer breadcrumb">
         <Link to="/" className="explorer-breadcrumb__home-link">
           <Home className="explorer-breadcrumb__home-icon" />
@@ -276,6 +277,7 @@ function Explorer() {
         storageKeyPrefix="explorer"
         toolbarExtra={
           <>
+            {/* 压缩包内容过滤：只显示含视频/音频的 zip */}
             <div className="explorer-zip-filter-group">
               <FilterCheckbox
                 id="zip-has-video"
