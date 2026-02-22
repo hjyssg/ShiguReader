@@ -107,3 +107,8 @@ audio
 --------------
 1 启动服务需要删除解压的缓存 
     需要log actitive和一个简单的log在console。
+
+3 后端加压的文件夹是hash过的我没问题。就是现在文件夹名太长了，你缩短一点 10的length也不会冲突的。
+
+2
+从reader打开exlorer要是默认table view。用文件名排序。如果explorer支持这mode的url参数，你要追加。

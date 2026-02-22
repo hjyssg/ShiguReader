@@ -321,7 +321,6 @@ function SearchPage() {
               pageSizeOptions: PAGE_SIZE_OPTIONS,
               pageSizeLabel: "Page size",
             }}
-            storageKeyPrefix="search"
             emptyText={t("search.noResults")}
           />
         </div>

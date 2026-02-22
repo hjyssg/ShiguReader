@@ -1,6 +1,5 @@
 /**
- * 图片阅读器 - 支持压缩包和文件夹图片浏览，带缩放、旋转、拖拽功能
- */
+ * 图片阅读器 - 支持压缩包和文件夹图片浏览，带缩放、旋转、拖拽功能 */
 import { useMutation } from "@/shims/react-query"
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router"
 import {
@@ -64,9 +63,7 @@ export const Route = createFileRoute("/_layout/read")({
     path: (search.path as string) || "",
     page: Number(search.page) || 0,
     source: (search.source as "archive" | "folder") || "archive",
-    // sourceFolderPath: 仅 source=folder 时有效。
-    // 用于从外部（如 explorer 点击某张图片）跳转到阅读器时定位到特定图片。
-    // 解析后会被 replace 成对应的 page 数字，之后 sourceFolderPath 置空。
+    // sourceFolderPath: 仅 source=folder 时有效。 用于从外部（如 explorer 点击某张图片）跳转到阅读器时定位到特定图片。 解析后会被 replace 成对应的 page 数字，之后 sourceFolderPath 置空。
     sourceFolderPath: (search.sourceFolderPath as string) || "",
     mode: (search.mode as "audio") || undefined,
   }),
@@ -427,7 +424,7 @@ function ReadPage() {
         const targetPath = isFolderSource ? path : (extractStatus?.cache_dir || path)
         navigate({
           to: "/explorer",
-          search: { path: targetPath, page: 1, pageSize: 48, sortField: "mtime", sortOrder: "desc" },
+          search: { path: targetPath, page: 1, pageSize: 48, sortField: "name", sortOrder: "asc", viewMode: "table" },
         })
       } else if (key === "v") {
         e.preventDefault()
@@ -499,7 +496,7 @@ function ReadPage() {
   const sizeText = currentPathMeta?.filesize
     ? formatFileSize(currentPathMeta.filesize)
     : "-"
-  // 优先用 extractMutation 实时返回的值，fallback 到父目录列表的 DB 缓存
+  // 优先�?extractMutation 实时返回的值，fallback 到父目录列表�?DB 缓存
   const avgImageSize = extractStatus?.avg_image_size ?? currentPathMeta?.avg_image_size ?? null
   const avgImageSizeText = avgImageSize != null ? formatFileSize(avgImageSize) : "-"
   const archiveVideoCount = currentPathMeta?.video_count ?? 0
@@ -508,8 +505,7 @@ function ReadPage() {
   const cosers = parseMeta?.cosers ?? []
   const tags = parseMeta?.raw_tags ?? []
 
-  // 文件被移动后自动跳转新路径
-  const hasError = loadError
+  // 文件被移动后自动跳转新路�?  const hasError = loadError
   const { resolving, isNotFound, errorMessage } = useResolveMovedFile(
     path,
     hasError ? loadError : null,
@@ -571,7 +567,7 @@ function ReadPage() {
               showFolderIcon={false}
               collapseDirCrumbsAfter={2}
               currentTo="/explorer"
-              currentSearch={{ path: extractStatus?.cache_dir || path, page: 1, pageSize: 48, sortField: "mtime", sortOrder: "desc" }}
+              currentSearch={{ path: extractStatus?.cache_dir || path, page: 1, pageSize: 48, sortField: "name", sortOrder: "asc", viewMode: "table" }}
               currentLabel={fileName}
               currentClassName="reader-toolbar__current-link"
             />
@@ -645,8 +641,8 @@ function ReadPage() {
   }
 
   if (!currentEntry) {
-    // 无图片提示
-    return (
+    // 无图片提�?   
+     return (
       <div className="reader-empty-page">
         <PathBreadcrumb
           sourcePath={path}
@@ -654,8 +650,8 @@ function ReadPage() {
           separatorClassName="size-4 text-muted-foreground"
             currentTo="/explorer"
             currentSearch={isFolderSource
-              ? { path, page: 1, pageSize: 48, sortField: "mtime", sortOrder: "desc" }
-              : { path: extractStatus?.cache_dir || path, page: 1, pageSize: 48, sortField: "mtime", sortOrder: "desc" }}
+              ? { path, page: 1, pageSize: 48, sortField: "name", sortOrder: "asc", viewMode: "table" }
+              : { path: extractStatus?.cache_dir || path, page: 1, pageSize: 48, sortField: "name", sortOrder: "asc", viewMode: "table" }}
           currentLabel={fileName}
         />
 
@@ -666,7 +662,7 @@ function ReadPage() {
               <>
                 <Link
                   to="/explorer"
-                  search={{ path: extractStatus?.cache_dir || path, page: 1, pageSize: 48, sortField: "mtime", sortOrder: "desc" }}
+                  search={{ path: extractStatus?.cache_dir || path, page: 1, pageSize: 48, sortField: "name", sortOrder: "asc", viewMode: "table" }}
                   className={buttonVariants({
                     variant: "default",
                     size: "sm",
@@ -727,7 +723,7 @@ function ReadPage() {
     : `${OpenAPI.BASE}/api/v1/fs/archive/file?path=${encodeURIComponent(path)}&entry=${encodeURIComponent(currentEntry.entryPath || "")}`
 
   // 图片加载失败时的重试处理
-  // 压缩包文件可能还在后台解压中，404 时自动重试（最多 5 次，递增延迟）
+  // 压缩包文件可能还在后台解压中�?04 时自动重试（最�?5 次，递增延迟�?  
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
     const img = e.currentTarget
     setImageLoaded(false)
@@ -735,7 +731,7 @@ function ReadPage() {
     const maxRetries = 5
     if (retryCount < maxRetries) {
       img.dataset.retry = String(retryCount + 1)
-      // 递增延迟：1s, 2s, 3s, 4s, 5s
+      // 递增延迟�?s, 2s, 3s, 4s, 5s
       setTimeout(
         () => {
           img.src = `${imageUrl}${imageUrl.includes("?") ? "&" : "?"}_t=${Date.now()}`
@@ -745,7 +741,7 @@ function ReadPage() {
     }
   }
 
-  // 图片加载成功时重置重试计数
+  // 图片加载成功时重置重试计�? 
   const handleImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
     e.currentTarget.dataset.retry = "0"
     setImageLoaded(true)
@@ -772,7 +768,7 @@ function ReadPage() {
 
   return (
     <div className="reader-page">
-      {/* ── 顶部工具栏：面包屑导航 + 旋转/全屏/模式切换/文件操作菜单 ── */}
+      {/* ── 顶部工具栏：面包屑导�?+ 旋转/全屏/模式切换/文件操作菜单 ── */}
       <nav className="reader-toolbar">
         <div className="reader-toolbar__left">
           <PathBreadcrumb
@@ -788,14 +784,14 @@ function ReadPage() {
             collapseDirCrumbsAfter={2}
             currentTo="/explorer"
             currentSearch={isFolderSource
-              ? { path, page: 1, pageSize: 48, sortField: "mtime", sortOrder: "desc" }
-              : { path: extractStatus?.cache_dir || path, page: 1, pageSize: 48, sortField: "mtime", sortOrder: "desc" }}
+              ? { path, page: 1, pageSize: 48, sortField: "name", sortOrder: "asc", viewMode: "table" }
+              : { path: extractStatus?.cache_dir || path, page: 1, pageSize: 48, sortField: "name", sortOrder: "asc", viewMode: "table" }}
             currentLabel={fileName}
             currentClassName="reader-toolbar__current-link"
           />
         </div>
 
-        {/* 右侧：工具 */}
+        {/* 右侧：工�?*/}
         <div className="reader-toolbar__right">
           <div className="reader-toolbar__actions">
             {/* <Button
@@ -805,7 +801,7 @@ function ReadPage() {
             onClick={zoomOut}
             title={t("reader.zoomOut")}
           >
-            <span className="reader-toolbar__button-symbol">−</span>
+            <span className="reader-toolbar__button-symbol">�?/span>
           </Button>
           <Button
             variant="ghost"
@@ -859,7 +855,7 @@ function ReadPage() {
               <>
                 <Link
                   to="/explorer"
-                  search={{ path: extractStatus?.cache_dir || path, page: 1, pageSize: 48, sortField: "mtime", sortOrder: "desc" }}
+                  search={{ path: extractStatus?.cache_dir || path, page: 1, pageSize: 48, sortField: "name", sortOrder: "asc", viewMode: "table" }}
                   className={buttonVariants({
                     variant: "ghost",
                     size: "sm",
@@ -960,7 +956,7 @@ function ReadPage() {
         </div>
       </nav>
 
-      {/* ── 图片主舞台：支持鼠标拖拽平移、滚轮缩放、左右翻页按钮、解压进度指示 ── */}
+      {/* ── 图片主舞台：支持鼠标拖拽平移、滚轮缩放、左右翻页按钮、解压进度指�?── */}
       <div
         className="reader-image-stage"
         onMouseMove={onMouseMove}
@@ -1020,11 +1016,11 @@ function ReadPage() {
         )}
       </div>
 
-      {/* ── 底部 meta 栏：文件信息（时间/大小/均图大小/视频音频数）+ 作者/coser/tag 可点击跳搜索 + 页码 ── */}
+      {/* ── 底部 meta 栏：文件信息（时�?大小/均图大小/视频音频数）+ 作�?coser/tag 可点击跳搜索 + 页码 ── */}
       <div className="reader-meta-bar">
         <div className="reader-meta-bar__left">
           <div className="reader-meta-bar__row">
-            {/* 文件元数据：hover title 显示 label，只展示值 */}
+            {/* 文件元数据：hover title 显示 label，只展示�?*/}
             <span title={t("reader.mtime")} className="text-foreground cursor-default">{mtimeText}</span>
             <span title={t("reader.size")} className="text-foreground cursor-default">{sizeText}</span>
             <span title={t("reader.avgImageSize")} className="text-foreground cursor-default">{avgImageSizeText}</span>

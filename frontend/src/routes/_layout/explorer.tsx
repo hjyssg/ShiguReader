@@ -30,6 +30,7 @@ import {
   getParentPath,
 } from "@/lib/path-utils"
 import type { SortField, SortOrder } from "@/components/Files/FileTableView"
+import type { ViewMode } from "@/components/Files/FileViewContainer"
 import "./explorer.css"
 
 export const Route = createFileRoute("/_layout/explorer")({
@@ -51,8 +52,10 @@ export const Route = createFileRoute("/_layout/explorer")({
       "last_read_at",
     ]
     const sortOrderCandidates: SortOrder[] = ["asc", "desc"]
+    const viewModeCandidates: ViewMode[] = ["grid", "table", "mixed"]
     const rawSortField = String(search.sortField || "")
     const rawSortOrder = String(search.sortOrder || "")
+    const rawViewMode = String(search.viewMode || "")
 
     return {
       path: (search.path as string) || "",
@@ -64,6 +67,9 @@ export const Route = createFileRoute("/_layout/explorer")({
       sortOrder: sortOrderCandidates.includes(rawSortOrder as SortOrder)
         ? (rawSortOrder as SortOrder)
         : "desc",
+      viewMode: viewModeCandidates.includes(rawViewMode as ViewMode)
+        ? (rawViewMode as ViewMode)
+        : undefined,
     }
   },
   head: () => ({
@@ -98,7 +104,7 @@ function FilterCheckbox({ id, label, checked, onChange }: FilterCheckboxProps) {
 function Explorer() {
   const { t } = useTranslation()
   const navigate = useNavigate()
-  const { path, page, pageSize, sortField, sortOrder } = Route.useSearch()
+  const { path, page, pageSize, sortField, sortOrder, viewMode } = Route.useSearch()
   const folderName = path
     ? getBaseName(path, t("nav.explorer"))
     : t("nav.explorer")
@@ -247,7 +253,7 @@ function Explorer() {
         items={filteredItems}
         isLoading={isLoading}
         currentPath={path}
-        initialViewMode="mixed"
+        initialViewMode={viewMode ?? "mixed"}
         sortField={sortField}
         sortOrder={sortOrder}
         onSortFieldChange={(nextSortField) =>
@@ -274,7 +280,6 @@ function Explorer() {
               replace: true,
             }),
         }}
-        storageKeyPrefix="explorer"
         toolbarExtra={
           <>
             {/* 压缩包内容过滤：只显示含视频/音频的 zip */}

@@ -43,7 +43,7 @@ import { FileGridView } from "./FileGridView"
 import { FileIcon } from "./FileIcon"
 import { FileTableView, type SortField, type SortOrder } from "./FileTableView"
 
-type ViewMode = "grid" | "table" | "mixed"
+export type ViewMode = "grid" | "table" | "mixed"
 
 type PaginationState = {
   page: number
@@ -69,7 +69,6 @@ export function FileViewContainer({
   onSortFieldChange,
   onSortOrderChange,
   pagination,
-  storageKeyPrefix = "file-list",
   toolbarExtra,
   emptyText = "This folder is empty",
 }: {
@@ -84,44 +83,19 @@ export function FileViewContainer({
   onSortFieldChange?: (field: SortField) => void
   onSortOrderChange?: (order: SortOrder) => void
   pagination?: PaginationConfig
-  storageKeyPrefix?: string
   toolbarExtra?: ReactNode
   emptyText?: string
 }) {
   const containerRef = useRef<HTMLDivElement>(null)
   const { t } = useTranslation()
 
-  // View mode & sort state
-  const [viewMode, setViewMode] = useState<ViewMode>(() => {
-    const saved = localStorage.getItem(`${storageKeyPrefix}-view-mode`)
-    if (saved === "details") return "table"
-    return (saved as ViewMode) || initialViewMode
-  })
-  const [internalSortField, setInternalSortField] = useState<SortField>(() => {
-    const saved = localStorage.getItem(`${storageKeyPrefix}-sort-field`)
-    return (saved as SortField) || initialSortField
-  })
-  const [internalSortOrder, setInternalSortOrder] = useState<SortOrder>(() => {
-    const saved = localStorage.getItem(`${storageKeyPrefix}-sort-order`)
-    return (saved as SortOrder) || initialSortOrder
-  })
+  // View mode & sort state — URL params / props are the sole source of truth
+  const [viewMode, setViewMode] = useState<ViewMode>(initialViewMode)
+  const [internalSortField, setInternalSortField] = useState<SortField>(initialSortField)
+  const [internalSortOrder, setInternalSortOrder] = useState<SortOrder>(initialSortOrder)
 
   const sortField = controlledSortField ?? internalSortField
   const sortOrder = controlledSortOrder ?? internalSortOrder
-
-  useEffect(() => {
-    localStorage.setItem(`${storageKeyPrefix}-view-mode`, viewMode)
-  }, [storageKeyPrefix, viewMode])
-  useEffect(() => {
-    if (controlledSortField === undefined) {
-      localStorage.setItem(`${storageKeyPrefix}-sort-field`, internalSortField)
-    }
-  }, [storageKeyPrefix, internalSortField, controlledSortField])
-  useEffect(() => {
-    if (controlledSortOrder === undefined) {
-      localStorage.setItem(`${storageKeyPrefix}-sort-order`, internalSortOrder)
-    }
-  }, [storageKeyPrefix, internalSortOrder, controlledSortOrder])
 
   const setSortField = useCallback(
     (field: SortField) => {
