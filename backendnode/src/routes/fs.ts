@@ -9,6 +9,7 @@ import { config } from "../config.js";
 import { getRepo, buildThumbUrl } from "./_listUtils.js";
 import {
   listEntries,
+  calcAvgImageSize,
   stepwiseExtract,
   getExtractCacheDir,
   clearExtractCache as svcClearExtractCache,
@@ -178,6 +179,7 @@ async function listDirectory(
           item.image_count = meta.image_file_num;
           item.video_count = meta.video_file_num;
           item.audio_count = meta.music_file_num;
+          item.avg_image_size = meta.avg_image_size ?? null;
         }
       }
     }
@@ -573,7 +575,7 @@ async function resolvePath(
 
 // ─── archive handlers ─────────────────────────────────────────────────────────
 
-// Phase 4: 从 archive entries 提取元数据并异步回写 DB（含缩略图）
+// Phase 4: 从 archive entries 提取元数据并异步回写 DB（含缩略图和 avg_image_size）
 function _backfillArchiveMeta(archivePath: string, archiveStat: fs.Stats, entries: Awaited<ReturnType<typeof listEntries>>): void {
   setImmediate(async () => {
     try {
@@ -587,11 +589,12 @@ function _backfillArchiveMeta(archivePath: string, archiveStat: fs.Stats, entrie
       const audioEntries = entries.filter(e => e.file_type === "audio");
       const coverEntry = imageEntries[0]?.entry_path ?? null;
       const ext = path.extname(archivePath).toLowerCase().slice(1);
+      const avgImgSize = calcAvgImageSize(entries);
 
       repo.upsertArchiveMeta(
         archivePath, ext, entries.length,
         imageEntries.length, videoEntries.length, audioEntries.length,
-        versionSig, coverEntry,
+        versionSig, coverEntry, avgImgSize,
       );
 
       // 如果 files 表里没有缩略图，顺手生成

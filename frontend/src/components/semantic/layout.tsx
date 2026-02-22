@@ -331,7 +331,7 @@ export function ExtractingIndicator({
   variant = "inline",
   className,
 }: {
-  status?: "extracting" | "completed" | "error"
+  status?: "extracting" | "completed" | "error" | "started" | "already_running"
   variant?: "overlay" | "inline" | "fixed"
   className?: string
 }) {

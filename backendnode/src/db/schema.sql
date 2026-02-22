@@ -37,6 +37,7 @@ CREATE TABLE IF NOT EXISTS archive_meta (
   image_file_num INTEGER NOT NULL DEFAULT 0,
   video_file_num INTEGER NOT NULL DEFAULT 0,
   music_file_num INTEGER NOT NULL DEFAULT 0,
+  avg_image_size INTEGER,
   scanned_at INTEGER,
   version_sig TEXT,
   cover_entry TEXT,

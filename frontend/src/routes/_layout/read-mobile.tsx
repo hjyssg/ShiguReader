@@ -173,6 +173,7 @@ function ReadMobilePage() {
   }))
 
   return (
+    // ── 全屏 Lightbox 图片浏览器（移动端优化，支持滑动翻页）──
     <div className="p-[10px]">
       <Lightbox
         open

@@ -106,10 +106,11 @@ export type DeletePathRequest = {
 };
 
 export type ExtractStatus = {
-    status: 'extracting' | 'completed' | 'error';
+    status: 'extracting' | 'completed' | 'error' | 'started' | 'already_running';
     extracted_count: number;
     total_count: number;
     cache_dir: string;
+    avg_image_size?: (number | null);
 };
 
 export type status = 'extracting' | 'completed' | 'error';

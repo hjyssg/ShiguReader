@@ -34,6 +34,12 @@ export function initDb(dbPath: string): DatabaseSync {
   _db.exec(schema);
   logger.db("Schema applied — DB ready");
 
+  // Migrations: add columns that may not exist in older DBs
+  try {
+    _db.exec("ALTER TABLE archive_meta ADD COLUMN avg_image_size INTEGER");
+    logger.db("Migration: added archive_meta.avg_image_size");
+  } catch { /* column already exists */ }
+
   return _db;
 }
 

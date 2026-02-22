@@ -212,6 +212,7 @@ function SearchPage() {
 
   return (
     <div className="space-y-6">
+      {/* ── 页面标题 ── */}
       <div className="space-y-2">
         <h1 className="text-2xl font-bold tracking-tight">
           {t("search.title")}
@@ -219,7 +220,9 @@ function SearchPage() {
         <p className="text-muted-foreground">{t("search.description")}</p>
       </div>
 
+      {/* ── 搜索框 + 范围/模式/presence 过滤器 + 外部搜索链接 ── */}
       <div className="border rounded-lg p-4 space-y-4">
+        {/* 搜索输入框 */}
         <div className="flex items-center gap-2">
           <Input
             value={q}
@@ -298,6 +301,7 @@ function SearchPage() {
         </div>
       </div>
 
+      {/* ── 搜索结果列表（仅在提交过查询后显示）── */}
       {submittedQ ? (
         <div className="space-y-4">
           <p className="text-sm text-muted-foreground">{totalText}</p>

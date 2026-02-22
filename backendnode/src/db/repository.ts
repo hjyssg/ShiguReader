@@ -65,6 +65,8 @@ export interface ArchiveMetaRow {
   video_file_num: number;
   /** 压缩包内音频文件数量 */
   music_file_num: number;
+  /** 图片文件的平均大小（字节），null 表示未统计 */
+  avg_image_size: number | null;
   /** 最近一次扫描时间戳 */
   scanned_at: number | null;
   /** 版本签名，格式为 "mtime:size"，用于判断是否需要重新索引 */
@@ -365,23 +367,25 @@ export class IndexRepository {
     musicNum: number,
     versionSig?: string | null,
     coverEntry?: string | null,
+    avgImageSize?: number | null,
   ): void {
     const now = nowTs();
     this.db.prepare(`
       INSERT INTO archive_meta
-        (filepath,archive_type,entry_count,image_file_num,video_file_num,music_file_num,scanned_at,version_sig,cover_entry,index_status)
-      VALUES (?,?,?,?,?,?,?,?,?,'fresh')
+        (filepath,archive_type,entry_count,image_file_num,video_file_num,music_file_num,avg_image_size,scanned_at,version_sig,cover_entry,index_status)
+      VALUES (?,?,?,?,?,?,?,?,?,?,'fresh')
       ON CONFLICT(filepath) DO UPDATE SET
         archive_type=excluded.archive_type,
         entry_count=excluded.entry_count,
         image_file_num=excluded.image_file_num,
         video_file_num=excluded.video_file_num,
         music_file_num=excluded.music_file_num,
+        avg_image_size=excluded.avg_image_size,
         scanned_at=excluded.scanned_at,
         version_sig=excluded.version_sig,
         cover_entry=excluded.cover_entry,
         index_status='fresh'
-    `).run(filepath, archiveType, entryCount, imageNum, videoNum, musicNum, now, versionSig ?? null, coverEntry ?? null);
+    `).run(filepath, archiveType, entryCount, imageNum, videoNum, musicNum, avgImageSize ?? null, now, versionSig ?? null, coverEntry ?? null);
   }
 
   /** 快速获取 version_sig，用于判断 archive 是否需要重新索引 */

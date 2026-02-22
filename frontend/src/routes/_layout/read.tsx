@@ -437,9 +437,9 @@ function ReadPage() {
   const sizeText = currentPathMeta?.filesize
     ? formatFileSize(currentPathMeta.filesize)
     : "-"
-  const avgImageSizeText = currentPathMeta?.avg_image_size
-    ? formatFileSize(currentPathMeta.avg_image_size)
-    : "-"
+  // 优先用 extractMutation 实时返回的值，fallback 到父目录列表的 DB 缓存
+  const avgImageSize = extractMutation.data?.avg_image_size ?? currentPathMeta?.avg_image_size ?? null
+  const avgImageSizeText = avgImageSize != null ? formatFileSize(avgImageSize) : "-"
   const archiveVideoCount = currentPathMeta?.video_count ?? 0
   const archiveAudioCount = currentPathMeta?.audio_count ?? 0
   const authors = parseMeta?.authors ?? []
@@ -616,7 +616,7 @@ function ReadPage() {
 
   return (
     <div className="reader-page">
-      {/* 顶部工具栏 - 整合导航和工具 */}
+      {/* ── 顶部工具栏：面包屑导航 + 旋转/全屏/模式切换/文件操作菜单 ── */}
       <nav className="reader-toolbar">
         <div className="reader-toolbar__left">
           <PathBreadcrumb
@@ -789,7 +789,7 @@ function ReadPage() {
         </div>
       </nav>
 
-      {/* 图片区域 - 全屏化 */}
+      {/* ── 图片主舞台：支持鼠标拖拽平移、滚轮缩放、左右翻页按钮、解压进度指示 ── */}
       <div
         className="reader-image-stage"
         onMouseMove={onMouseMove}
@@ -849,6 +849,7 @@ function ReadPage() {
         )}
       </div>
 
+      {/* ── 底部 meta 栏：文件信息（时间/大小/均图大小/视频音频数）+ 作者/coser/tag 可点击跳搜索 + 页码 ── */}
       <div className="reader-meta-bar">
         <div className="reader-meta-bar__left">
           <div className="reader-meta-bar__row">

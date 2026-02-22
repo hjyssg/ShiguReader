@@ -63,6 +63,8 @@ export interface ArchiveEntry {
   entry_path: string; // full path inside archive
   index: number;
   file_type: EntryType;
+  /** 文件大小（字节），7z -slt 解析得到，0 表示未知 */
+  size: number;
   /** @deprecated use entry_path */
   path: string;
   /** @deprecated use file_type */
@@ -88,8 +90,8 @@ export function getExtractCacheDir(archivePath: string): string {
 // ── list entries ─────────────────────────────────────────────────────────────
 
 /**
- * List all media entries in an archive, sorted, with index.
- * Uses `7z l -ba -slt -scsUTF-8` to parse Path= lines.
+ * List all media entries in an archive, sorted, with index and file size.
+ * Uses `7z l -ba -slt -scsUTF-8` to parse Path= and Size= lines per entry block.
  */
 export async function listEntries(archivePath: string): Promise<ArchiveEntry[]> {
   const { stdout } = await execFileAsync(
@@ -98,33 +100,68 @@ export async function listEntries(archivePath: string): Promise<ArchiveEntry[]> 
     { timeout: 30000, maxBuffer: 10 * 1024 * 1024 }
   );
 
-  const rawPaths: string[] = [];
+  // 7z -slt 输出每个 entry 的属性块，以空行分隔
+  // 每块包含 Path = ... 和 Size = ... 等字段
+  const rawEntries: { entryPath: string; size: number }[] = [];
+  let currentPath: string | null = null;
+  let currentSize = 0;
+
   for (const line of stdout.split(/\r?\n/)) {
-    const m = line.match(/^Path = (.+)$/);
-    if (m) rawPaths.push(m[1].trim());
+    const pathMatch = line.match(/^Path = (.+)$/);
+    const sizeMatch = line.match(/^Size = (\d+)$/);
+
+    if (pathMatch) {
+      // 新 entry 开始（Path 行总是在 Size 行之前）
+      currentPath = pathMatch[1].trim();
+      currentSize = 0;
+    } else if (sizeMatch && currentPath !== null) {
+      currentSize = parseInt(sizeMatch[1], 10);
+    } else if (line.trim() === "" && currentPath !== null) {
+      // 空行 = entry 块结束，提交
+      rawEntries.push({ entryPath: currentPath, size: currentSize });
+      currentPath = null;
+      currentSize = 0;
+    }
+  }
+  // 末尾没有空行时也提交最后一个 entry
+  if (currentPath !== null) {
+    rawEntries.push({ entryPath: currentPath, size: currentSize });
   }
 
   // Filter: keep only media files, skip ignored
-  const mediaEntries = rawPaths.filter(p => {
-    if (shouldIgnore(p)) return false;
-    const type = getEntryType(p);
-    return type !== "other";
+  const mediaEntries = rawEntries.filter(({ entryPath }) => {
+    if (shouldIgnore(entryPath)) return false;
+    return getEntryType(entryPath) !== "other";
   });
 
-  // Sort naturally
-  mediaEntries.sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: "base" }));
+  // Sort naturally by path
+  mediaEntries.sort((a, b) => a.entryPath.localeCompare(b.entryPath, undefined, { numeric: true, sensitivity: "base" }));
 
-  return mediaEntries.map((p, i) => {
-    const t = getEntryType(p);
+  return mediaEntries.map(({ entryPath, size }, i) => {
+    const t = getEntryType(entryPath);
     return {
-      name: path.basename(p),
-      entry_path: p,
-      path: p,          // deprecated compat
+      name: path.basename(entryPath),
+      entry_path: entryPath,
+      path: entryPath,  // deprecated compat
       index: i,
       file_type: t,
       type: t,          // deprecated compat
+      size,
     };
   });
+}
+
+/**
+ * 计算 entries 中图片文件的平均大小（字节）。
+ * 仅统计 size > 0 的条目，避免未解析到大小的条目拉低均值。
+ * 返回 null 表示没有有效图片条目。
+ */
+export function calcAvgImageSize(entries: ArchiveEntry[]): number | null {
+  const imageSizes = entries
+    .filter(e => e.file_type === "image" && e.size > 0)
+    .map(e => e.size);
+  if (!imageSizes.length) return null;
+  return Math.round(imageSizes.reduce((a, b) => a + b, 0) / imageSizes.length);
 }
 
 // ── extract entries ──────────────────────────────────────────────────────────
@@ -165,6 +202,8 @@ export interface StepwiseExtractResult {
   extracted_count: number;
   total_count: number;
   cache_dir: string;
+  /** 压缩包内图片文件的平均大小（字节），用于前端展示 */
+  avg_image_size: number | null;
 }
 
 // Track in-progress extractions to avoid duplicate work
@@ -185,7 +224,7 @@ export async function stepwiseExtract(
   if (inProgress.has(archivePath)) {
     // Count already extracted
     const extracted = countExtractedFiles(cacheDir);
-    return { status: "already_running", extracted_count: extracted, total_count: 0, cache_dir: cacheDir };
+    return { status: "already_running", extracted_count: extracted, total_count: 0, cache_dir: cacheDir, avg_image_size: null };
   }
 
   // Get full entry list
@@ -198,7 +237,7 @@ export async function stepwiseExtract(
 
   const total = entries.length;
   if (total === 0) {
-    return { status: "completed", extracted_count: 0, total_count: 0, cache_dir: cacheDir };
+    return { status: "completed", extracted_count: 0, total_count: 0, cache_dir: cacheDir, avg_image_size: null };
   }
 
   // Phase 1: current page ± 2 (synchronous)
@@ -243,7 +282,8 @@ export async function stepwiseExtract(
     }
   });
 
-  return { status: "started", extracted_count: extracted, total_count: total, cache_dir: cacheDir };
+  const avgImageSize = calcAvgImageSize(entries);
+  return { status: "started", extracted_count: extracted, total_count: total, cache_dir: cacheDir, avg_image_size: avgImageSize };
 }
 
 function countExtractedFiles(dir: string): number {
