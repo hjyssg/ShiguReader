@@ -214,7 +214,7 @@
     "updateFailed": "更新设置失败",
     "clearCacheFailed": "清理缓存失败",
     "general": "常规",
-    "scanProgress": "扫描进度",
+    "scanProgress": "扫描",
     "scanStatus": "文件监听/扫描",
     "path": "路径",
     "status": "状态",
@@ -236,7 +236,15 @@
     "movePlaceDirDesc": "点击“Move to...”时默认填充的目标目录",
     "movePlaceDirPlaceholder": "输入目录路径，例如：E:\\_To_Sort",
     "envFilePath": ".env 文件路径",
-    "envFilePathDesc": "当前正在使用的 .env 文件位置，方便手动编辑"
+    "envFilePathDesc": "当前正在使用的 .env 文件位置，方便手动编辑",
+    "selectDirsToScan": "选择要扫描的目录",
+    "selectAll": "全选",
+    "selectNone": "取消全选",
+    "noConfiguredDirs": "尚未配置任何目录，请先在常规设置中添加路径",
+    "startScan": "开始扫描 ({{count}})",
+    "scanning": "扫描中...",
+    "scanStarted": "扫描任务已启动",
+    "scanFailed": "扫描启动失败"
   },
   "archive": {
     "unknownError": "未知错误"

@@ -214,7 +214,7 @@
     "updateFailed": "Failed to update settings",
     "clearCacheFailed": "Failed to clear cache",
     "general": "General",
-    "scanProgress": "Scan Progress",
+    "scanProgress": "Scan",
     "scanStatus": "File Watcher / Scan",
     "path": "Path",
     "status": "Status",
@@ -236,7 +236,15 @@
     "movePlaceDirDesc": "Default destination prefilled when opening \"Move to...\"",
     "movePlaceDirPlaceholder": "Enter directory path, e.g., E:\\_To_Sort",
     "envFilePath": ".env file path",
-    "envFilePathDesc": "The currently used .env file location for manual editing"
+    "envFilePathDesc": "The currently used .env file location for manual editing",
+    "selectDirsToScan": "Select directories to scan",
+    "selectAll": "Select All",
+    "selectNone": "Deselect All",
+    "noConfiguredDirs": "No directories configured. Add paths in General settings first.",
+    "startScan": "Start Scan ({{count}})",
+    "scanning": "Scanning...",
+    "scanStarted": "Scan task started",
+    "scanFailed": "Failed to start scan"
   },
   "archive": {
     "unknownError": "Unknown error"

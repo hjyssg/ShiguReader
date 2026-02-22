@@ -1,9 +1,9 @@
 /**
- * 首页/仪表板 - 显示驱动器、特殊文件夹、快捷访问、最近活动和库概览
+ * 首页/仪表板 - 显示驱动器、特殊文件夹、快捷访问、最近活动
  */
 import { useQuery } from "@tanstack/react-query"
 import { createFileRoute, Link } from "@tanstack/react-router"
-import { Folder, HardDrive, Heart, BookOpen, Film, Image, Music2, type LucideIcon } from "lucide-react"
+import { Folder, HardDrive, Heart } from "lucide-react"
 import { useTranslation } from "react-i18next"
 
 import { FilesystemService, OpenAPI } from "@/client"
@@ -16,14 +16,6 @@ import "./home.css"
 
 type RecentActivityResponse = {
   items: ActivityItem[]
-}
-
-type LibraryOverviewResponse = {
-  archives: number
-  videos: number
-  images: number
-  audio: number
-  folders: number
 }
 
 type TopOpenedFoldersResponse = {
@@ -72,38 +64,6 @@ export const Route = createFileRoute("/_layout/")({
   }),
 })
 
-type OverviewItemData = {
-  icon: LucideIcon
-  label: string
-  key: keyof LibraryOverviewResponse
-}
-
-const OVERVIEW_ITEMS: OverviewItemData[] = [
-  { icon: BookOpen, label: "Archives", key: "archives" },
-  { icon: Film, label: "Videos", key: "videos" },
-  { icon: Image, label: "Images", key: "images" },
-  { icon: Music2, label: "Audio", key: "audio" },
-  { icon: Folder, label: "Folders", key: "folders" },
-]
-
-type OverviewItemProps = {
-  icon: LucideIcon
-  label: string
-  value: number
-}
-
-function OverviewItem({ icon: Icon, label, value }: OverviewItemProps) {
-  return (
-    <div className="home-overview-item">
-      <div className="home-overview-item__label-group">
-        <Icon className="home-overview-item__icon" />
-        <span className="home-overview-item__label">{label}</span>
-      </div>
-      <span className="home-overview-item__value">{value}</span>
-    </div>
-  )
-}
-
 function Dashboard() {
   const { t } = useTranslation()
   const { data: roots, isLoading } = useQuery({
@@ -145,7 +105,6 @@ function Dashboard() {
     },
   })
 
-
   const { data: topOpenedFolders } = useQuery({
     queryKey: ["home-top-opened-folders"],
     queryFn: async (): Promise<TopOpenedFoldersResponse> => {
@@ -153,15 +112,6 @@ function Dashboard() {
       if (!response.ok) {
         return { folder_ids: [] }
       }
-      return response.json()
-    },
-  })
-
-  const { data: libraryOverview } = useQuery({
-    queryKey: ["home-library-overview"],
-    queryFn: async (): Promise<LibraryOverviewResponse | null> => {
-      const response = await fetch(`${OpenAPI.BASE}/api/v1/fs/library-overview`)
-      if (!response.ok) return null
       return response.json()
     },
   })
@@ -183,7 +133,6 @@ function Dashboard() {
           (item) => parseGoodFolderMonth(item.name) === latestMonth,
         )
 
-        // 同月内优先显示 good_YYYY_MM_01；若不存在则显示该月字典序最小的一个。
         const firstDayFolder = latestMonthFolders.find((item) =>
           item.name.endsWith("_01"),
         )
@@ -242,7 +191,6 @@ function Dashboard() {
         </div>
       </section>
 
-      {/* 快捷访问 */}
       <section className="home-section">
         <h2 className="home-section__title">{t("settings.fsRoots")}</h2>
         <div className="home-grid home-grid--folders">
@@ -256,7 +204,6 @@ function Dashboard() {
           ))}
         </div>
       </section>
-
 
       <section className="home-section">
         <h2 className="home-section__title">{t("home.topOpenedFolders")}</h2>
@@ -275,20 +222,6 @@ function Dashboard() {
       <section className="home-section">
         <h2 className="home-section__title">{t("home.recentActivity")}</h2>
         <RecentActivityPanel items={recentActivity?.items ?? []} />
-      </section>
-
-      <section className="home-section">
-        <h2 className="home-section__title">{t("home.libraryOverview")}</h2>
-        <div className="home-overview-list">
-          {OVERVIEW_ITEMS.map((item) => (
-            <OverviewItem
-              key={item.key}
-              icon={item.icon}
-              label={item.label}
-              value={libraryOverview?.[item.key] ?? 0}
-            />
-          ))}
-        </div>
       </section>
     </div>
   )
