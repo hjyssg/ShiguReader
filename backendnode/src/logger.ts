@@ -12,6 +12,8 @@ function ts(): string {
 }
 
 export const logger = {
+  /** 启动相关 */
+  startup: (msg: string) => console.log(`${ts()} [STARTUP]  ${msg}`),
   /** DB 初始化相关 */
   db: (msg: string) => console.log(`${ts()} [DB]       ${msg}`),
   /** 扫描进度 */
@@ -20,4 +22,6 @@ export const logger = {
   fs: (msg: string) => console.log(`${ts()} [FS]       ${msg}`),
   /** 压缩任务 */
   compress: (msg: string) => console.log(`${ts()} [COMPRESS] ${msg}`),
+  /** 解压缓存 */
+  extract: (msg: string) => console.log(`${ts()} [EXTRACT]  ${msg}`),
 };

@@ -67,7 +67,7 @@ function getEntryType(entryPath: string): EntryType {
 // ── cache dir ────────────────────────────────────────────────────────────────
 
 export function getExtractCacheDir(archivePath: string): string {
-  const hash = crypto.createHash("sha256").update(archivePath).digest("hex");
+  const hash = crypto.createHash("sha256").update(archivePath).digest("hex").slice(0, 10);
   const base = path.resolve(config.EXTRACT_CACHE_DIR);
   return path.join(base, hash.slice(0, 2), hash.slice(2));
 }
