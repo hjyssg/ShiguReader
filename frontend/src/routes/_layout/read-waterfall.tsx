@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next"
 
 import { FilesystemService, OpenAPI } from "@/client"
 import { FileNotFoundError } from "@/components/Common/FileNotFoundError"
-import { PathBreadcrumb } from "@/components/Common/PathBreadcrumb"
+import { ReaderToolbar } from "@/components/Reader/ReaderToolbar"
 import { ExtractingIndicator } from "@/components/semantic/layout"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -98,19 +98,14 @@ function ReadWaterfallPage() {
   }
 
   return (
-    <div className="reader-waterfall-page">
-      <PathBreadcrumb
+    <div className="reader-page">
+      <ReaderToolbar
         sourcePath={path}
-        extraCrumbs={[
-          {
-            label: fileName,
-            to: "/archive",
-            search: { path },
-          },
-        ]}
-        currentLabel="Waterfall"
+        fileName="Waterfall"
+        extraCrumbs={[{ label: fileName, to: "/archive", search: { path } }]}
       />
 
+      <div className="reader-waterfall-page flex-1 overflow-auto">
       <div className="reader-waterfall-actions">
         <Button
           onClick={() =>
@@ -150,6 +145,7 @@ function ReadWaterfallPage() {
             </Link>
           )
         })}
+      </div>
       </div>
     </div>
   )

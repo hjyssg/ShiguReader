@@ -10,6 +10,7 @@ import {
   FolderInput,
   ImageDown,
   MoreVertical,
+  Music4,
   Package,
   Pencil,
   RotateCw,
@@ -18,7 +19,9 @@ import {
   Trash2,
 } from "lucide-react"
 import { useEffect, useMemo, useRef, useState } from "react"
+import AudioPlayer from "react-h5-audio-player"
 import { useTranslation } from "react-i18next"
+import "react-h5-audio-player/lib/styles.css"
 
 import { FilesystemService, OpenAPI, ParseService } from "@/client"
 import { FileNotFoundError } from "@/components/Common/FileNotFoundError"
@@ -51,11 +54,18 @@ import "./read.css"
 
 export const Route = createFileRoute("/_layout/read")({
   component: ReadPage,
-  validateSearch: (search: Record<string, unknown>) => ({
+  validateSearch: (search: Record<string, unknown>): {
+    path: string
+    page: number
+    source: "archive" | "folder"
+    filePath: string
+    mode?: "audio"
+  } => ({
     path: (search.path as string) || "",
     page: Number(search.page) || 0,
     source: (search.source as "archive" | "folder") || "archive",
     filePath: (search.filePath as string) || "",
+    mode: (search.mode as "audio") || undefined,
   }),
   head: () => ({
     meta: [{ title: "Reader" }],
@@ -70,10 +80,11 @@ function ReadPage() {
     entryPath?: string
   }
 
-  const { path, page, source, filePath } = Route.useSearch()
+  const { path, page, source, filePath, mode } = Route.useSearch()
   const navigate = useNavigate()
   const isFolderSource = source === "folder"
   const { t } = useTranslation()
+  const [audioIndex, setAudioIndex] = useState(0)
 
   const [scale, setScale] = useState(1)
   const [rotation, setRotation] = useState(0)
@@ -89,7 +100,7 @@ function ReadPage() {
     const nextPath = movedPath || path
     navigate({
       to: "/read",
-      search: { path: nextPath, page: 0, source, filePath: "" },
+      search: { path: nextPath, page: 0, source, filePath: "", mode: undefined },
       replace: true,
     })
   }
@@ -190,6 +201,36 @@ function ReadPage() {
       }))
   }, [isFolderSource, folderData, listData])
 
+  // Audio tracks（仅 archive source）
+  const audioTracks = useMemo(() => {
+    if (isFolderSource) return []
+    return (listData?.entries || [])
+      .filter((e) => e.file_type === "audio")
+      .map((e) => ({
+        name: e.name,
+        sourcePath: e.entry_path,
+        url: `${OpenAPI.BASE}/api/v1/fs/archive/file?path=${encodeURIComponent(path)}&entry=${encodeURIComponent(e.entry_path)}`,
+      }))
+  }, [isFolderSource, listData, path])
+
+  // 封面图（audio mode 用）
+  const audioCoverUrl = useMemo(() => {
+    if (isFolderSource) return undefined
+    const imageEntry = (listData?.entries || []).find((e) => e.file_type === "image")
+    if (!imageEntry) return undefined
+    return `${OpenAPI.BASE}/api/v1/fs/archive/file?path=${encodeURIComponent(path)}&entry=${encodeURIComponent(imageEntry.entry_path)}`
+  }, [isFolderSource, listData, path])
+
+  // 自动进入 audio mode：archive 有音频但无图片时
+  const shouldAutoAudio = !isFolderSource && !isLoading && listData &&
+    audioTracks.length > 0 && imageEntries.length === 0 && mode !== "audio"
+
+  useEffect(() => {
+    if (shouldAutoAudio) {
+      navigate({ to: "/read", search: { path, page: 0, source, filePath: "", mode: "audio" }, replace: true })
+    }
+  }, [shouldAutoAudio, navigate, path, source])
+
   const resolvedPage = useMemo(() => {
     if (!isFolderSource || !filePath) return page
     const foundIndex = imageEntries.findIndex(
@@ -211,7 +252,7 @@ function ReadPage() {
     const target = wrapPageIndex(nextPage, totalPages)
     navigate({
       to: "/read",
-      search: { path, page: target, source, filePath: "" },
+      search: { path, page: target, source, filePath: "", mode: undefined },
     })
   }
 
@@ -252,7 +293,7 @@ function ReadPage() {
     }
 
     lastExtractPathRef.current = path
-    extractMutation.mutate(0, {
+    extractMutation.mutate(currentPage, {
       onSuccess: () => setArchiveImageReady(true),
       onError: () => setArchiveImageReady(true),
     })
@@ -320,6 +361,7 @@ function ReadPage() {
           source,
           page: wrapPageIndex(resolvedPage, totalPages),
           filePath: "",
+          mode: undefined,
         },
         replace: true,
       })
@@ -454,7 +496,7 @@ function ReadPage() {
     (newPath) => {
       navigate({
         to: "/read",
-        search: { path: newPath, page, source, filePath: "" },
+        search: { path: newPath, page, source, filePath: "", mode: undefined },
         replace: true,
       })
     },
@@ -487,6 +529,98 @@ function ReadPage() {
         isNotFound={isNotFound}
         parentPath={parentPath}
       />
+    )
+  }
+
+  // ── Audio mode ──
+  if (mode === "audio" && !isFolderSource) {
+    const selectedTrack = audioTracks[audioIndex]
+    return (
+      <div className="reader-page">
+        <nav className="reader-toolbar">
+          <div className="reader-toolbar__left">
+            <PathBreadcrumb
+              as="div"
+              sourcePath={path}
+              homeLabel={null}
+              homeLinkClassName="reader-toolbar__home-link"
+              homeIconClassName="size-3.5"
+              dirItemClassName="reader-toolbar__crumb-item"
+              dirLinkClassName="reader-toolbar__crumb-link"
+              separatorClassName="size-3 text-muted-foreground/60"
+              showFolderIcon={false}
+              collapseDirCrumbsAfter={2}
+              currentTo="/archive"
+              currentSearch={{ path }}
+              currentLabel={fileName}
+              currentClassName="reader-toolbar__current-link"
+            />
+          </div>
+          {imageEntries.length > 0 && (
+            <div className="reader-toolbar__right">
+              <div className="reader-toolbar__actions">
+                <Link
+                  to="/read"
+                  search={{ path, page: 0, source, filePath: "", mode: undefined }}
+                  className={buttonVariants({ variant: "ghost", size: "sm", className: "reader-toolbar__text-button" })}
+                >
+                  Images
+                </Link>
+              </div>
+            </div>
+          )}
+        </nav>
+
+        <div className="flex-1 overflow-auto">
+          <div className="mx-auto max-w-3xl space-y-4 p-4">
+            {audioCoverUrl && (
+              <div className="mx-auto w-full max-w-[400px] rounded-md overflow-hidden border bg-card">
+                <img src={audioCoverUrl} alt={fileName} className="w-full object-contain" />
+              </div>
+            )}
+            <div className="space-y-1 rounded-md border bg-card p-3 max-h-[40vh] overflow-auto">
+              {audioTracks.length === 0 ? (
+                <div className="text-sm text-muted-foreground">{t("audio.noAudioFiles")}</div>
+              ) : (
+                audioTracks.map((track, index) => (
+                  <button
+                    key={track.sourcePath}
+                    type="button"
+                    onClick={() => setAudioIndex(index)}
+                    className={`w-full text-left px-2 py-1.5 rounded transition-colors ${
+                      index === audioIndex ? "bg-primary/15 text-primary" : "hover:bg-accent"
+                    }`}
+                  >
+                    <span className="inline-flex items-center gap-2 text-sm">
+                      {index === audioIndex ? <Music4 className="size-4" /> : <span className="w-4" />}
+                      {track.name}
+                    </span>
+                  </button>
+                ))
+              )}
+            </div>
+            {selectedTrack && (
+              <div className="rounded-lg border bg-card p-3">
+                <AudioPlayer
+                  src={selectedTrack.url}
+                  autoPlay
+                  showSkipControls={false}
+                  showJumpControls={false}
+                />
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="reader-meta-bar">
+          <div className="reader-meta-bar__left">
+            <div className="reader-meta-bar__row">
+              <span title={t("reader.mtime")} className="text-foreground cursor-default">{mtimeText}</span>
+              <span title={t("reader.size")} className="text-foreground cursor-default">{sizeText}</span>
+            </div>
+          </div>
+        </div>
+      </div>
     )
   }
 
@@ -721,6 +855,19 @@ function ReadPage() {
                 >
                   Waterfall
                 </Link>
+                {audioTracks.length > 0 && (
+                  <Link
+                    to="/read"
+                    search={{ path, page: 0, source, filePath: "", mode: "audio" }}
+                    className={buttonVariants({
+                      variant: "ghost",
+                      size: "sm",
+                      className: "reader-toolbar__text-button",
+                    })}
+                  >
+                    Audio
+                  </Link>
+                )}
               </>
             )}
             {/* File Operations Dropdown */}
