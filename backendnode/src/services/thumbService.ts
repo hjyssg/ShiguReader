@@ -12,41 +12,16 @@ import crypto from "node:crypto";
 import os from "node:os";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
-import { fileURLToPath } from "node:url";
 import pLimit from "p-limit";
 import { config } from "../config.js";
 import { getFileType } from "../utils/fileType.js";
 import { IMAGE_SUFFIXES } from "../constants.js";
+import { get7z, getMagick, getFfmpeg } from "../utils/tools.js";
 
 const execFileAsync = promisify(execFile);
 
 // Limit concurrent thumbnail generation to avoid HDD thrashing
 const thumbLimit = pLimit(config.THUMB_CONCURRENCY);
-
-// ── tool resolution ──────────────────────────────────────────────────────────
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-// src/services/ → ../.. → backendnode/tools/
-const TOOLS_DIR = path.resolve(__dirname, "../../tools");
-
-function resolveTool(subpath: string, fallbackCmd: string): string {
-  const bundled = path.join(TOOLS_DIR, subpath);
-  if (fs.existsSync(bundled)) return bundled;
-  // fallback: assume on PATH
-  return fallbackCmd;
-}
-
-function get7z(): string {
-  return resolveTool("7zip-lite/7z.exe", "7z");
-}
-
-function getFfmpeg(): string {
-  return resolveTool("ffmpeg/ffmpeg.exe", "ffmpeg");
-}
-
-function getMagick(): string {
-  return resolveTool("imagemagick/magick.exe", "magick");
-}
 
 // ── cache helpers ────────────────────────────────────────────────────────────
 

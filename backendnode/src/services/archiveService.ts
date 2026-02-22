@@ -9,31 +9,16 @@ import crypto from "node:crypto";
 import os from "node:os";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
-import { fileURLToPath } from "node:url";
 import pLimit from "p-limit";
 import { config } from "../config.js";
 import { IMAGE_SUFFIXES, VIDEO_SUFFIXES, AUDIO_SUFFIXES } from "../constants.js";
 import { logger } from "../logger.js";
+import { get7z, getMagick } from "../utils/tools.js";
 
 const execFileAsync = promisify(execFile);
 
 // Limit concurrent archive extractions to avoid HDD thrashing
 const extractLimit = pLimit(config.EXTRACT_CONCURRENCY);
-
-// ── tool resolution ──────────────────────────────────────────────────────────
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const TOOLS_DIR = path.resolve(__dirname, "../../tools");
-
-function get7z(): string {
-  const bundled = path.join(TOOLS_DIR, "7zip-lite/7z.exe");
-  return fs.existsSync(bundled) ? bundled : "7z";
-}
-
-function getMagick(): string {
-  const bundled = path.join(TOOLS_DIR, "imagemagick/magick.exe");
-  return fs.existsSync(bundled) ? bundled : "magick";
-}
 
 // ── ignore rules ─────────────────────────────────────────────────────────────
 

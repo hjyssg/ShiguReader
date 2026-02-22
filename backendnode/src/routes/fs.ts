@@ -3,8 +3,8 @@ import path from "node:path";
 import fs from "node:fs";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
-import { fileURLToPath } from "node:url";
 import { getFileType, getMimeType } from "../utils/fileType.js";
+import { get7z as get7zBin } from "../utils/tools.js";
 import { config } from "../config.js";
 import { getRepo, buildThumbUrl } from "./_listUtils.js";
 import {
@@ -26,17 +26,6 @@ import { refreshAllRecScores } from "../services/recService.js";
 import { logger } from "../logger.js";
 
 const execFileAsync = promisify(execFile);
-
-// Module-level __dirname for ESM (same pattern as thumbService)
-const __filename = fileURLToPath(import.meta.url);
-const __routeDir = path.dirname(__filename);
-const _TOOLS_DIR = path.resolve(__routeDir, "../../tools");
-
-/** 返回 7z 可执行文件路径：优先使用 bundled，否则 fallback 到 PATH */
-function get7zBin(): string {
-  const bundled = path.join(_TOOLS_DIR, "7zip-lite/7z.exe");
-  return fs.existsSync(bundled) ? bundled : "7z";
-}
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
 
