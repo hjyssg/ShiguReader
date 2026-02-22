@@ -58,13 +58,16 @@ export const Route = createFileRoute("/_layout/read")({
     path: string
     page: number
     source: "archive" | "folder"
-    filePath: string
+    sourceFolderPath: string
     mode?: "audio"
   } => ({
     path: (search.path as string) || "",
     page: Number(search.page) || 0,
     source: (search.source as "archive" | "folder") || "archive",
-    filePath: (search.filePath as string) || "",
+    // sourceFolderPath: 仅 source=folder 时有效。
+    // 用于从外部（如 explorer 点击某张图片）跳转到阅读器时定位到特定图片。
+    // 解析后会被 replace 成对应的 page 数字，之后 sourceFolderPath 置空。
+    sourceFolderPath: (search.sourceFolderPath as string) || (search.filePath as string) || "",
     mode: (search.mode as "audio") || undefined,
   }),
   head: () => ({
@@ -80,7 +83,7 @@ function ReadPage() {
     entryPath?: string
   }
 
-  const { path, page, source, filePath, mode } = Route.useSearch()
+  const { path, page, source, sourceFolderPath, mode } = Route.useSearch()
   const navigate = useNavigate()
   const isFolderSource = source === "folder"
   const { t } = useTranslation()
@@ -100,7 +103,7 @@ function ReadPage() {
     const nextPath = movedPath || path
     navigate({
       to: "/read",
-      search: { path: nextPath, page: 0, source, filePath: "", mode: undefined },
+      search: { path: nextPath, page: 0, source, sourceFolderPath: "", mode: undefined },
       replace: true,
     })
   }
@@ -227,17 +230,17 @@ function ReadPage() {
 
   useEffect(() => {
     if (shouldAutoAudio) {
-      navigate({ to: "/read", search: { path, page: 0, source, filePath: "", mode: "audio" }, replace: true })
+      navigate({ to: "/read", search: { path, page: 0, source, sourceFolderPath: "", mode: "audio" }, replace: true })
     }
   }, [shouldAutoAudio, navigate, path, source])
 
   const resolvedPage = useMemo(() => {
-    if (!isFolderSource || !filePath) return page
+    if (!isFolderSource || !sourceFolderPath) return page
     const foundIndex = imageEntries.findIndex(
-      (entry) => entry.filePath === filePath,
+      (entry) => entry.filePath === sourceFolderPath,
     )
     return foundIndex >= 0 ? foundIndex : page
-  }, [isFolderSource, filePath, imageEntries, page])
+  }, [isFolderSource, sourceFolderPath, imageEntries, page])
 
   const totalPages = imageEntries.length
   const currentPage = wrapPageIndex(resolvedPage, totalPages)
@@ -252,7 +255,7 @@ function ReadPage() {
     const target = wrapPageIndex(nextPage, totalPages)
     navigate({
       to: "/read",
-      search: { path, page: target, source, filePath: "", mode: undefined },
+      search: { path, page: target, source, sourceFolderPath: "", mode: undefined },
     })
   }
 
@@ -352,7 +355,7 @@ function ReadPage() {
   ])
 
   useEffect(() => {
-    if (!isFolderSource || !filePath || totalPages === 0) return
+    if (!isFolderSource || !sourceFolderPath || totalPages === 0) return
     if (resolvedPage !== page) {
       navigate({
         to: "/read",
@@ -360,7 +363,7 @@ function ReadPage() {
           path,
           source,
           page: wrapPageIndex(resolvedPage, totalPages),
-          filePath: "",
+          sourceFolderPath: "",
           mode: undefined,
         },
         replace: true,
@@ -368,7 +371,7 @@ function ReadPage() {
     }
   }, [
     isFolderSource,
-    filePath,
+    sourceFolderPath,
     resolvedPage,
     page,
     navigate,
@@ -407,8 +410,10 @@ function ReadPage() {
         window.scrollBy({ top: 80, behavior: "smooth" })
       } else if (key === "escape") {
         navigate({
-          to: isFolderSource ? "/explorer" : "/archive",
-          search: { path },
+          to: "/explorer",
+          search: isFolderSource
+            ? { path, page: 1, pageSize: 48, sortField: "mtime", sortOrder: "desc" }
+            : { path, archivePath: path, page: 1, pageSize: 48, sortField: "mtime", sortOrder: "desc" },
         })
       } else if (key === "v") {
         e.preventDefault()
@@ -494,9 +499,9 @@ function ReadPage() {
     path,
     hasError ? (listError || folderError) : null,
     (newPath) => {
-      navigate({
+        navigate({
         to: "/read",
-        search: { path: newPath, page, source, filePath: "", mode: undefined },
+        search: { path: newPath, page, source, sourceFolderPath: "", mode: undefined },
         replace: true,
       })
     },
@@ -550,8 +555,8 @@ function ReadPage() {
               separatorClassName="size-3 text-muted-foreground/60"
               showFolderIcon={false}
               collapseDirCrumbsAfter={2}
-              currentTo="/archive"
-              currentSearch={{ path }}
+              currentTo="/explorer"
+              currentSearch={{ path, archivePath: path, page: 1, pageSize: 48, sortField: "mtime", sortOrder: "desc" }}
               currentLabel={fileName}
               currentClassName="reader-toolbar__current-link"
             />
@@ -561,7 +566,7 @@ function ReadPage() {
               <div className="reader-toolbar__actions">
                 <Link
                   to="/read"
-                  search={{ path, page: 0, source, filePath: "", mode: undefined }}
+                  search={{ path, page: 0, source, sourceFolderPath: "", mode: undefined }}
                   className={buttonVariants({ variant: "ghost", size: "sm", className: "reader-toolbar__text-button" })}
                 >
                   Images
@@ -632,8 +637,10 @@ function ReadPage() {
           sourcePath={path}
           homeLabel={t("common.home")}
           separatorClassName="size-4 text-muted-foreground"
-          currentTo={isFolderSource ? "/explorer" : "/archive"}
-          currentSearch={{ path }}
+            currentTo="/explorer"
+            currentSearch={isFolderSource
+              ? { path, page: 1, pageSize: 48, sortField: "mtime", sortOrder: "desc" }
+              : { path, archivePath: path, page: 1, pageSize: 48, sortField: "mtime", sortOrder: "desc" }}
           currentLabel={fileName}
         />
 
@@ -643,8 +650,8 @@ function ReadPage() {
             {!isFolderSource && (
               <>
                 <Link
-                  to="/archive"
-                  search={{ path }}
+                  to="/explorer"
+                  search={{ path, archivePath: path, page: 1, pageSize: 48, sortField: "mtime", sortOrder: "desc" }}
                   className={buttonVariants({
                     variant: "default",
                     size: "sm",
@@ -764,8 +771,10 @@ function ReadPage() {
             separatorClassName="size-3 text-muted-foreground/60"
             showFolderIcon={false}
             collapseDirCrumbsAfter={2}
-            currentTo={isFolderSource ? "/explorer" : "/archive"}
-            currentSearch={{ path }}
+            currentTo="/explorer"
+            currentSearch={isFolderSource
+              ? { path, page: 1, pageSize: 48, sortField: "mtime", sortOrder: "desc" }
+              : { path, archivePath: path, page: 1, pageSize: 48, sortField: "mtime", sortOrder: "desc" }}
             currentLabel={fileName}
             currentClassName="reader-toolbar__current-link"
           />
@@ -834,8 +843,8 @@ function ReadPage() {
             {!isFolderSource && (
               <>
                 <Link
-                  to="/archive"
-                  search={{ path }}
+                  to="/explorer"
+                  search={{ path, archivePath: path, page: 1, pageSize: 48, sortField: "mtime", sortOrder: "desc" }}
                   className={buttonVariants({
                     variant: "ghost",
                     size: "sm",
@@ -858,7 +867,7 @@ function ReadPage() {
                 {audioTracks.length > 0 && (
                   <Link
                     to="/read"
-                    search={{ path, page: 0, source, filePath: "", mode: "audio" }}
+                    search={{ path, page: 0, source, sourceFolderPath: "", mode: "audio" }}
                     className={buttonVariants({
                       variant: "ghost",
                       size: "sm",

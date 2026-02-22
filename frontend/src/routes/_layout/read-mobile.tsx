@@ -18,7 +18,8 @@ export const Route = createFileRoute("/_layout/read-mobile")({
     path: (search.path as string) || "",
     page: Number(search.page) || 0,
     source: (search.source as "archive" | "folder") || "archive",
-    filePath: (search.filePath as string) || "",
+    // sourceFolderPath: 仅 source=folder 时有效，用于定位到特定图片
+    sourceFolderPath: (search.sourceFolderPath as string) || (search.filePath as string) || "",
   }),
   head: () => ({
     meta: [{ title: "Reader Mobile" }],
@@ -27,7 +28,7 @@ export const Route = createFileRoute("/_layout/read-mobile")({
 
 function ReadMobilePage() {
   const { t } = useTranslation()
-  const { path, page, source, filePath } = Route.useSearch()
+  const { path, page, source, sourceFolderPath } = Route.useSearch()
   const navigate = useNavigate()
   const isFolderSource = source === "folder"
 
@@ -53,7 +54,7 @@ function ReadMobilePage() {
     (newPath) => {
       navigate({
         to: "/read-mobile",
-        search: { path: newPath, page, source, filePath: "" },
+        search: { path: newPath, page, source, sourceFolderPath: "" },
         replace: true,
       })
     },
@@ -90,9 +91,9 @@ function ReadMobilePage() {
     : (listData?.entries || []).filter((e) => e.file_type === "image")
 
   const resolvedPage =
-    isFolderSource && filePath
+    isFolderSource && sourceFolderPath
       ? Math.max(
-        imageEntries.findIndex((entry) => entry.entry_path === filePath),
+        imageEntries.findIndex((entry) => entry.entry_path === sourceFolderPath),
         0,
       )
       : page
@@ -119,17 +120,17 @@ function ReadMobilePage() {
   }, [path, imageEntries, safePage, isFolderSource, recordHistory])
 
   useEffect(() => {
-    if (!isFolderSource || !filePath || imageEntries.length === 0) return
+    if (!isFolderSource || !sourceFolderPath || imageEntries.length === 0) return
     if (resolvedPage !== page) {
       navigate({
         to: "/read-mobile",
-        search: { path, source, page: safePage, filePath: "" },
+        search: { path, source, page: safePage, sourceFolderPath: "" },
         replace: true,
       })
     }
   }, [
     isFolderSource,
-    filePath,
+    sourceFolderPath,
     imageEntries.length,
     resolvedPage,
     page,
@@ -181,15 +182,17 @@ function ReadMobilePage() {
         index={safePage}
         close={() =>
           navigate({
-            to: isFolderSource ? "/explorer" : "/archive",
-            search: { path },
+            to: "/explorer",
+            search: isFolderSource
+              ? { path, page: 1, pageSize: 48, sortField: "mtime", sortOrder: "desc" }
+              : { path, archivePath: path, page: 1, pageSize: 48, sortField: "mtime", sortOrder: "desc" },
           })
         }
-        on={{
+          on={{
           view: ({ index }) => {
             navigate({
               to: "/read-mobile",
-              search: { path, page: index, source, filePath: "" },
+              search: { path, page: index, source, sourceFolderPath: "" },
               replace: true,
             })
           },

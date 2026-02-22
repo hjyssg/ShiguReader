@@ -102,16 +102,16 @@ function ReadWaterfallPage() {
       <ReaderToolbar
         sourcePath={path}
         fileName="Waterfall"
-        extraCrumbs={[{ label: fileName, to: "/archive", search: { path } }]}
+        extraCrumbs={[{ label: fileName, to: "/explorer", search: { path, archivePath: path, page: 1, pageSize: 48, sortField: "mtime", sortOrder: "desc" } }]}
       />
 
       <div className="reader-waterfall-page flex-1 overflow-auto">
       <div className="reader-waterfall-actions">
         <Button
           onClick={() =>
-            navigate({
+          navigate({
               to: isMobile ? "/read-mobile" : "/read",
-              search: { path, page: 0, source: "archive", filePath: "" },
+              search: { path, page: 0, source: "archive", sourceFolderPath: "" },
             })
           }
         >
@@ -130,7 +130,7 @@ function ReadWaterfallPage() {
             <Link
               key={entry.entry_path}
               to={isMobile ? "/read-mobile" : "/read"}
-              search={{ path, page: index, source: "archive", filePath: "" }}
+              search={{ path, page: index, source: "archive", sourceFolderPath: "" }}
               className="reader-waterfall-item"
             >
               <img

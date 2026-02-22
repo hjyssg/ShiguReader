@@ -21,15 +21,10 @@ export function buildNavigationTarget(item: FileSystemItem, isMobile: boolean) {
     }
   }
   if (isArchive) {
-    const readRoute = isMobile ? "/read-mobile" : "/read"
+    // archive: 跳转 explorer 并携带 archivePath，由 explorer 内部触发解压
     return {
-      to: readRoute as "/read" | "/read-mobile",
-      search: {
-        path: item.path,
-        source: "archive" as const,
-        page: 0,
-        filePath: "",
-      },
+      to: "/explorer" as const,
+      search: { path: item.path, archivePath: item.path, page: 1, pageSize: 48, sortField: "mtime" as const, sortOrder: "desc" as const },
     }
   }
   if (isVideo) {
@@ -53,7 +48,7 @@ export function buildNavigationTarget(item: FileSystemItem, isMobile: boolean) {
         path: parentPath,
         source: "folder" as const,
         page: 0,
-        filePath: item.path,
+        sourceFolderPath: item.path,
       },
     }
   }
