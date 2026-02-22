@@ -424,11 +424,10 @@ function ReadPage() {
       } else if (key === "s" || key === "arrowdown") {
         window.scrollBy({ top: 80, behavior: "smooth" })
       } else if (key === "escape") {
+        const targetPath = isFolderSource ? path : (extractStatus?.cache_dir || path)
         navigate({
           to: "/explorer",
-          search: isFolderSource
-            ? { path, archivePath: "", page: 1, pageSize: 48, sortField: "mtime", sortOrder: "desc" }
-            : { path, archivePath: path, page: 1, pageSize: 48, sortField: "mtime", sortOrder: "desc" },
+          search: { path: targetPath, page: 1, pageSize: 48, sortField: "mtime", sortOrder: "desc" },
         })
       } else if (key === "v") {
         e.preventDefault()
@@ -443,6 +442,7 @@ function ReadPage() {
     return () => window.removeEventListener("keydown", onKeydown)
   }, [
     path,
+    extractStatus,
     goNext,
     goPrev,
     goToPage,
@@ -571,7 +571,7 @@ function ReadPage() {
               showFolderIcon={false}
               collapseDirCrumbsAfter={2}
               currentTo="/explorer"
-              currentSearch={{ path, archivePath: path, page: 1, pageSize: 48, sortField: "mtime", sortOrder: "desc" }}
+              currentSearch={{ path: extractStatus?.cache_dir || path, page: 1, pageSize: 48, sortField: "mtime", sortOrder: "desc" }}
               currentLabel={fileName}
               currentClassName="reader-toolbar__current-link"
             />
@@ -655,7 +655,7 @@ function ReadPage() {
             currentTo="/explorer"
             currentSearch={isFolderSource
               ? { path, page: 1, pageSize: 48, sortField: "mtime", sortOrder: "desc" }
-              : { path, archivePath: path, page: 1, pageSize: 48, sortField: "mtime", sortOrder: "desc" }}
+              : { path: extractStatus?.cache_dir || path, page: 1, pageSize: 48, sortField: "mtime", sortOrder: "desc" }}
           currentLabel={fileName}
         />
 
@@ -666,7 +666,7 @@ function ReadPage() {
               <>
                 <Link
                   to="/explorer"
-                  search={{ path, archivePath: path, page: 1, pageSize: 48, sortField: "mtime", sortOrder: "desc" }}
+                  search={{ path: extractStatus?.cache_dir || path, page: 1, pageSize: 48, sortField: "mtime", sortOrder: "desc" }}
                   className={buttonVariants({
                     variant: "default",
                     size: "sm",
@@ -789,7 +789,7 @@ function ReadPage() {
             currentTo="/explorer"
             currentSearch={isFolderSource
               ? { path, page: 1, pageSize: 48, sortField: "mtime", sortOrder: "desc" }
-              : { path, archivePath: path, page: 1, pageSize: 48, sortField: "mtime", sortOrder: "desc" }}
+              : { path: extractStatus?.cache_dir || path, page: 1, pageSize: 48, sortField: "mtime", sortOrder: "desc" }}
             currentLabel={fileName}
             currentClassName="reader-toolbar__current-link"
           />
@@ -859,7 +859,7 @@ function ReadPage() {
               <>
                 <Link
                   to="/explorer"
-                  search={{ path, archivePath: path, page: 1, pageSize: 48, sortField: "mtime", sortOrder: "desc" }}
+                  search={{ path: extractStatus?.cache_dir || path, page: 1, pageSize: 48, sortField: "mtime", sortOrder: "desc" }}
                   className={buttonVariants({
                     variant: "ghost",
                     size: "sm",

@@ -544,7 +544,7 @@ export function FileViewContainer({
         item.item_type === "folder"
           ? {
               to: "/explorer" as const,
-              search: { path: item.path, archivePath: "" as const, page: 1, pageSize: 48, sortField: "mtime" as const, sortOrder: "desc" as const },
+              search: { path: item.path, page: 1, pageSize: 48, sortField: "mtime" as const, sortOrder: "desc" as const },
             }
           : {
               to: "/video" as const,

@@ -83,7 +83,7 @@ function Video() {
       <ReaderToolbar
         sourcePath={path}
         fileName={fileName}
-        extraCrumbs={entry ? [{ label: "Archive", to: "/explorer", search: { path, archivePath: path, page: 1, pageSize: 48, sortField: "mtime", sortOrder: "desc" } }] : []}
+        extraCrumbs={entry ? [{ label: "Archive", to: "/explorer", search: { path, page: 1, pageSize: 48, sortField: "mtime", sortOrder: "desc" } }] : []}
       />
 
       {/* 视频播放区域 */}

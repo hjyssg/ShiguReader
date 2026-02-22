@@ -116,7 +116,7 @@ function AudioPage() {
       <ReaderToolbar
         sourcePath={isArchive ? path : folderPath}
         fileName={fileName}
-        extraCrumbs={isArchive ? [{ label: "Archive", to: "/explorer", search: { path, archivePath: path, page: 1, pageSize: 48, sortField: "mtime", sortOrder: "desc" } }] : []}
+        extraCrumbs={isArchive ? [{ label: "Archive", to: "/explorer", search: { path, page: 1, pageSize: 48, sortField: "mtime", sortOrder: "desc" } }] : []}
       />
 
       <div className="flex-1 overflow-auto">

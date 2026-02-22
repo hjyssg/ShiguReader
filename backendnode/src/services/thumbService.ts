@@ -49,20 +49,58 @@ const IMAGE_EXTS = new Set(IMAGE_SUFFIXES as readonly string[]);
 async function generateArchiveThumb(archivePath: string, outputPath: string): Promise<void> {
   const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "shiguthumb-"));
   try {
-    // Use wildcard extraction — avoids parsing 7z l output which has encoding issues
-    // on Windows with non-ASCII filenames (Japanese etc.).
-    // `7z e` extracts without directory structure (flat), `-y` auto-confirms.
-    // We pass each image extension as a separate wildcard argument.
-    const imageWildcards = [...IMAGE_EXTS].map(ext => `*${ext}`);
-    await execFileAsync(
+    // Strategy: list entries first via `7z l -slt -scsUTF-8`, find the first image,
+    // then extract only that single file using a temp list file (@listfile).
+    // This avoids wildcard extraction (slow for large archives) and command-line
+    // encoding issues with non-ASCII filenames on Windows.
+
+    // Step 1: List entries
+    const { stdout } = await execFileAsync(
       get7z(),
-      ["e", archivePath, `-o${tmpDir}`, "-y", "-r", ...imageWildcards],
-      { timeout: config.THUMB_TIMEOUT_SEC * 1000 }
+      ["l", "-ba", "-slt", "-scsUTF-8", archivePath],
+      { timeout: config.THUMB_TIMEOUT_SEC * 1000, maxBuffer: 10 * 1024 * 1024 }
     );
 
-    // Pick the first image file alphabetically from the flat tmpDir
+    // Parse 7z -slt output to find the first image entry path
+    let firstImageEntry: string | null = null;
+    let currentPath: string | null = null;
+    for (const line of stdout.split(/\r?\n/)) {
+      const pathMatch = line.match(/^Path = (.+)$/);
+      if (pathMatch) {
+        currentPath = pathMatch[1].trim();
+      } else if (line.trim() === "" && currentPath !== null) {
+        const ext = path.extname(currentPath).toLowerCase();
+        if (IMAGE_EXTS.has(ext)) {
+          firstImageEntry = currentPath;
+          break;
+        }
+        currentPath = null;
+      }
+    }
+    // Handle last entry without trailing blank line
+    if (!firstImageEntry && currentPath !== null) {
+      const ext = path.extname(currentPath).toLowerCase();
+      if (IMAGE_EXTS.has(ext)) firstImageEntry = currentPath;
+    }
+
+    if (!firstImageEntry) throw new Error(`No image found in archive: ${archivePath}`);
+
+    // Step 2: Extract only that one file using a temp list file to avoid encoding issues
+    const listFile = path.join(os.tmpdir(), `shiguthumb-list-${Date.now()}.txt`);
+    try {
+      fs.writeFileSync(listFile, firstImageEntry, "utf8");
+      await execFileAsync(
+        get7z(),
+        ["x", archivePath, `-o${tmpDir}`, "-y", "-scsUTF-8", `@${listFile}`],
+        { timeout: config.THUMB_TIMEOUT_SEC * 1000 }
+      );
+    } finally {
+      try { fs.unlinkSync(listFile); } catch { /* ignore */ }
+    }
+
+    // Step 3: Find the extracted file (7z x preserves directory structure)
     const extracted = findFirstImageInDir(tmpDir);
-    if (!extracted) throw new Error(`No image found in archive after extraction to ${tmpDir}`);
+    if (!extracted) throw new Error(`Extraction succeeded but image not found in ${tmpDir}`);
 
     fs.mkdirSync(path.dirname(outputPath), { recursive: true });
     await execFileAsync(

@@ -184,8 +184,14 @@ function ReadMobilePage() {
           navigate({
             to: "/explorer",
             search: isFolderSource
-              ? { path, archivePath: "", page: 1, pageSize: 48, sortField: "mtime", sortOrder: "desc" }
-              : { path, archivePath: path, page: 1, pageSize: 48, sortField: "mtime", sortOrder: "desc" },
+              ? { path, page: 1, pageSize: 48, sortField: "mtime", sortOrder: "desc" }
+              : {
+                path: extractMutation.data?.cache_dir || path,
+                page: 1,
+                pageSize: 48,
+                sortField: "mtime",
+                sortOrder: "desc",
+              },
           })
         }
           on={{

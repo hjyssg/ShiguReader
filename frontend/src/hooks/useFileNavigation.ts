@@ -17,14 +17,19 @@ export function buildNavigationTarget(item: FileSystemItem, isMobile: boolean) {
   if (isFolder) {
     return {
       to: "/explorer" as const,
-      search: { path: item.path, archivePath: "" as const, page: 1, pageSize: 48, sortField: "mtime" as const, sortOrder: "desc" as const },
+      search: { path: item.path, page: 1, pageSize: 48, sortField: "mtime" as const, sortOrder: "desc" as const },
     }
   }
   if (isArchive) {
-    // archive: 跳转 explorer 并携带 archivePath，由 explorer 内部触发解压
+    // archive: 直接进入阅读器，由阅读器负责解压
     return {
-      to: "/explorer" as const,
-      search: { path: item.path, archivePath: item.path, page: 1, pageSize: 48, sortField: "mtime" as const, sortOrder: "desc" as const },
+      to: (isMobile ? "/read-mobile" : "/read") as "/read" | "/read-mobile",
+      search: {
+        path: item.path,
+        source: "archive" as const,
+        page: 0,
+        sourceFolderPath: "",
+      },
     }
   }
   if (isVideo) {

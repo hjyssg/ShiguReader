@@ -21,7 +21,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Skeleton } from "@/components/ui/skeleton"
-import { useArchiveExtract } from "@/hooks/useArchiveExtract"
 import { useDocumentTitle } from "@/hooks/useDocumentTitle"
 import { useFileOperations } from "@/hooks/useFileOperations"
 import { useResolveMovedFile } from "@/hooks/useResolveMovedFile"
@@ -57,8 +56,6 @@ export const Route = createFileRoute("/_layout/explorer")({
 
     return {
       path: (search.path as string) || "",
-      // archivePath: 当从 archive 文件跳转过来时携带，Explorer 内部触发解压后清除
-      archivePath: (search.archivePath as string) || "",
       page,
       pageSize,
       sortField: sortFieldCandidates.includes(rawSortField as SortField)
@@ -101,22 +98,13 @@ function FilterCheckbox({ id, label, checked, onChange }: FilterCheckboxProps) {
 function Explorer() {
   const { t } = useTranslation()
   const navigate = useNavigate()
-  const { path, page, pageSize, sortField, sortOrder, archivePath } = Route.useSearch()
+  const { path, page, pageSize, sortField, sortOrder } = Route.useSearch()
   const folderName = path
     ? getBaseName(path, t("nav.explorer"))
     : t("nav.explorer")
   useDocumentTitle(folderName)
   const [zipHasVideoOnly, setZipHasVideoOnly] = useState(false)
   const [zipHasAudioOnly, setZipHasAudioOnly] = useState(false)
-
-  // 解压 archive 并跳转到解压目录
-  const { isExtracting } = useArchiveExtract(archivePath, (cacheDir) => {
-    navigate({
-      to: "/explorer",
-      search: { path: cacheDir, archivePath: "", page: 1, pageSize, sortField, sortOrder },
-      replace: true,
-    })
-  })
 
   // Redirect to home if path is empty
   useEffect(() => {
@@ -149,7 +137,7 @@ function Explorer() {
     (newPath) => {
       navigate({
         to: "/explorer",
-        search: { path: newPath, archivePath: "", page: 1, pageSize, sortField, sortOrder },
+        search: { path: newPath, page: 1, pageSize, sortField, sortOrder },
         replace: true,
       })
     },
@@ -157,7 +145,6 @@ function Explorer() {
 
   const buildSearchForPath = (nextPath: string) => ({
     path: nextPath,
-    archivePath: "",
     page: 1,
     pageSize,
     sortField,
@@ -206,16 +193,6 @@ function Explorer() {
     } catch {
       toastError(t("explorer.scanFailed"))
     }
-  }
-
-  // 解压中：显示 loading
-  if (isExtracting) {
-    return (
-      <div className="space-y-6">
-        <Skeleton className="h-8 w-64" />
-        <Skeleton className="h-96 w-full" />
-      </div>
-    )
   }
 
   // 检查文件夹是否存在
@@ -276,14 +253,14 @@ function Explorer() {
         onSortFieldChange={(nextSortField) =>
           navigate({
             to: "/explorer",
-            search: { path, archivePath: "", page: 1, pageSize, sortField: nextSortField, sortOrder },
+            search: { path, page: 1, pageSize, sortField: nextSortField, sortOrder },
             replace: true,
           })
         }
         onSortOrderChange={(nextSortOrder) =>
           navigate({
             to: "/explorer",
-            search: { path, archivePath: "", page: 1, pageSize, sortField, sortOrder: nextSortOrder },
+            search: { path, page: 1, pageSize, sortField, sortOrder: nextSortOrder },
             replace: true,
           })
         }
@@ -293,7 +270,7 @@ function Explorer() {
           onChange: ({ page: nextPage, pageSize: nextPageSize }) =>
             navigate({
               to: "/explorer",
-              search: { path, archivePath: "", page: nextPage, pageSize: nextPageSize, sortField, sortOrder },
+              search: { path, page: nextPage, pageSize: nextPageSize, sortField, sortOrder },
               replace: true,
             }),
         }}

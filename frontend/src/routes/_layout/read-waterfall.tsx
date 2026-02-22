@@ -102,7 +102,7 @@ function ReadWaterfallPage() {
       <ReaderToolbar
         sourcePath={path}
         fileName="Waterfall"
-        extraCrumbs={[{ label: fileName, to: "/explorer", search: { path, archivePath: path, page: 1, pageSize: 48, sortField: "mtime", sortOrder: "desc" } }]}
+        extraCrumbs={[{ label: fileName, to: "/explorer", search: { path: extractResult?.cache_dir || path, page: 1, pageSize: 48, sortField: "mtime", sortOrder: "desc" } }]}
       />
 
       <div className="reader-waterfall-page flex-1 overflow-auto">

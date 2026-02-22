@@ -44,7 +44,7 @@ function HomeFolderLinkCard({
   return (
     <Link
       to="/explorer"
-      search={{ path, archivePath: "", page: 1, pageSize: 48, sortField: "mtime", sortOrder: "desc" }}
+      search={{ path, page: 1, pageSize: 48, sortField: "mtime", sortOrder: "desc" }}
       className="home-card-link"
       title={name}
     >
@@ -156,7 +156,7 @@ function Dashboard() {
           <h2 className="home-section__title">{t("home.drives")}</h2>
           <div className="home-grid home-grid--drives">
             {drives.map((drive) => (
-              <Link key={drive.path} to="/explorer" search={{ path: drive.path, archivePath: "", page: 1, pageSize: 48, sortField: "mtime", sortOrder: "desc" }} className="home-card-link">
+              <Link key={drive.path} to="/explorer" search={{ path: drive.path, page: 1, pageSize: 48, sortField: "mtime", sortOrder: "desc" }} className="home-card-link">
                 <HomeCard icon={HardDrive} title={drive.dirname} />
               </Link>
             ))}

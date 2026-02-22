@@ -57,7 +57,7 @@ export function FileNotFoundError({
             {parentPath && (
               <Link
                 to="/explorer"
-                search={{ path: parentPath, archivePath: "", page: 1, pageSize: 48, sortField: "mtime", sortOrder: "desc" }}
+                search={{ path: parentPath, page: 1, pageSize: 48, sortField: "mtime", sortOrder: "desc" }}
                 className={buttonVariants({ variant: "outline" })}
               >
                 {t("explorer.openParent")}
