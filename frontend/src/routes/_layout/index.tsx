@@ -1,7 +1,7 @@
 /**
  * 首页/仪表板 - 显示驱动器、特殊文件夹、快捷访问、最近活动
  */
-import { useQuery } from "@tanstack/react-query"
+import { useQuery } from "@/shims/react-query"
 import { createFileRoute, Link } from "@tanstack/react-router"
 import { Folder, HardDrive, Heart } from "lucide-react"
 import { useTranslation } from "react-i18next"

@@ -2,7 +2,7 @@
  * 通用实体列表页 - 供 authors/tags/cosers 页面复用
  * 包含：标题/描述、排序控件、EntityGrid 分页网格
  */
-import { useQuery } from "@tanstack/react-query"
+import { useQuery } from "@/shims/react-query"
 import { OpenAPI } from "@/client"
 import { EntityGrid } from "@/components/Common/EntityGrid"
 import { SortDirectionToggle } from "@/components/Common/SortDirectionToggle"

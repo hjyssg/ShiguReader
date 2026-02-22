@@ -1,36 +1,30 @@
 // 文件操作 API 封装 — 统一 mutation hooks
-import { useMutation, useQueryClient } from "@tanstack/react-query"
+import { useMutation, useQueryClient } from "@/shims/react-query"
 import { toastError, toastSuccess } from "@/lib/toast"
-
 import { ApiError, FilesystemService } from "@/client"
 import { detectPathSeparator, getBaseName } from "@/lib/path-utils"
 import { requestJson } from "@/utils/http"
 
-
 function normalizeDetail(detail: unknown): string | null {
   if (typeof detail === "string" && detail.trim()) return detail
-
   if (Array.isArray(detail) && detail.length > 0) {
     const first = detail[0] as Record<string, unknown> | string | null
     if (typeof first === "string") return first
     if (first && typeof first === "object" && first.msg) return String(first.msg)
   }
-
   return null
 }
 
 function extractErrorMessage(err: unknown): string {
   if (err instanceof ApiError) {
-    const body = err.body as Record<string, unknown> | undefined;
+    const body = err.body as Record<string, unknown> | undefined
     const detail = normalizeDetail(body?.detail)
     return detail || err.message
   }
-
   if (typeof err === "object" && err !== null && "detail" in err) {
     const detail = normalizeDetail((err as Record<string, unknown>).detail)
     if (detail) return detail
   }
-
   if (err instanceof Error) return err.message
   return "Unknown error"
 }
@@ -42,113 +36,6 @@ function buildDestPath(destDir: string, sourcePath: string): string {
   return `${normalizedDestDir}${separator}${fileName}`
 }
 
-/** 重命名文件/文件夹 */
-function apiRename(path: string, newName: string) {
-  return requestJson("/api/v1/fs/rename", {
-    method: "POST",
-    body: { path, new_name: newName },
-  })
-}
-
-/** 压缩 archive 内大图 */
-function apiCompressArchiveImages(archivePath: string) {
-  return requestJson("/api/v1/fs/archive/compress-images", {
-    method: "POST",
-    body: {
-      archive_path: archivePath,
-    },
-  })
-}
-
-type BackfillResult = {
-  scanned_files?: number
-  backfilled_thumbnails?: number
-  backfilled_meta?: number
-}
-
-/** 为目录补全缺失的 thumbnail/meta（含子目录） */
-function apiBackfillFolder(folderPath: string) {
-  return requestJson<BackfillResult>("/api/v1/fs/backfill", {
-    method: "POST",
-    body: {
-      path: folderPath,
-      recursive: true,
-      fill_thumbnail: true,
-      fill_meta: true,
-    },
-  })
-}
-
-/** 移动到收藏夹目录（可选子文件夹，如 good_2026_02_01） */
-async function apiMoveToFavorite(sourcePath: string, isFolder: boolean, subfolder?: string) {
-  // 先获取收藏夹目录
-  const favResp = await requestJson<{ path?: string }>("/api/v1/fs/favorite")
-  const favDir = favResp.path
-  if (!favDir) throw new Error("Favorite directory not configured")
-
-  const targetDir = subfolder ? `${favDir}/${subfolder}` : favDir
-  const destPath = buildDestPath(targetDir, sourcePath)
-
-  // 如果使用子文件夹，先确保目录存在（后端 move 会检查 parent）
-  if (subfolder) {
-    try {
-      await requestJson("/api/v1/fs/ensure-dir", {
-        method: "POST",
-        body: { path: targetDir },
-      })
-    } catch {
-      // 忽略：后端可能没有 ensure-dir，靠 move 自身报错
-    }
-  }
-
-  if (isFolder) {
-    return FilesystemService.moveFolder({
-      requestBody: { source_path: sourcePath, dest_path: destPath },
-    })
-  }
-  return FilesystemService.moveFile({
-    requestBody: { source_path: sourcePath, dest_path: destPath },
-  })
-}
-
-/** 移动到已读目录 */
-async function apiMoveToAlreadyRead(sourcePath: string, isFolder: boolean) {
-  // 优先使用 fs/already-read；若目录尚未创建，回退读取 settings 并尝试自动创建。
-  let resp = await requestJson<{ path?: string }>("/api/v1/fs/already-read")
-  let dir = resp.path
-
-  if (!dir) {
-    const settingsResp = await requestJson<{ already_read_dir?: string }>("/api/v1/settings")
-    const configuredDir = settingsResp.already_read_dir?.trim()
-    if (configuredDir) {
-      dir = configuredDir
-      try {
-        await requestJson("/api/v1/fs/ensure-dir", {
-          method: "POST",
-          body: { path: dir },
-        })
-        resp = await requestJson<{ path?: string }>("/api/v1/fs/already-read")
-        dir = resp.path || dir
-      } catch {
-        // 忽略：若后端不支持 ensure-dir，后续 move 会给出明确错误。
-      }
-    }
-  }
-
-  if (!dir) throw new Error("Already-read directory not configured")
-
-  const destPath = buildDestPath(dir, sourcePath)
-
-  if (isFolder) {
-    return FilesystemService.moveFolder({
-      requestBody: { source_path: sourcePath, dest_path: destPath },
-    })
-  }
-  return FilesystemService.moveFile({
-    requestBody: { source_path: sourcePath, dest_path: destPath },
-  })
-}
-
 export function useFileOperations(currentPath: string) {
   const queryClient = useQueryClient()
 
@@ -158,7 +45,7 @@ export function useFileOperations(currentPath: string) {
 
   const renameMutation = useMutation({
     mutationFn: ({ path, newName }: { path: string; newName: string }) =>
-      apiRename(path, newName),
+      requestJson("/api/v1/fs/rename", { method: "POST", body: { path, new_name: newName } }),
     onSuccess: () => {
       toastSuccess("Renamed successfully")
       invalidate()
@@ -169,13 +56,8 @@ export function useFileOperations(currentPath: string) {
   })
 
   const deleteMutation = useMutation({
-    mutationFn: ({
-      path,
-      permanently,
-    }: {
-      path: string
-      permanently: boolean
-    }) => FilesystemService.deletePath({ requestBody: { path, permanently } }),
+    mutationFn: ({ path, permanently }: { path: string; permanently: boolean }) =>
+      FilesystemService.deletePath({ requestBody: { path, permanently } }),
     onSuccess: () => {
       toastSuccess("Deleted successfully")
       invalidate()
@@ -186,17 +68,9 @@ export function useFileOperations(currentPath: string) {
   })
 
   const deleteBatchMutation = useMutation({
-    mutationFn: async ({
-      paths,
-      permanently,
-    }: {
-      paths: string[]
-      permanently: boolean
-    }) => {
+    mutationFn: async ({ paths, permanently }: { paths: string[]; permanently: boolean }) => {
       for (const path of paths) {
-        await FilesystemService.deletePath({
-          requestBody: { path, permanently },
-        })
+        await FilesystemService.deletePath({ requestBody: { path, permanently } })
       }
     },
     onSuccess: () => {
@@ -209,16 +83,8 @@ export function useFileOperations(currentPath: string) {
   })
 
   const moveFileMutation = useMutation({
-    mutationFn: ({
-      sourcePath,
-      destPath,
-    }: {
-      sourcePath: string
-      destPath: string
-    }) =>
-      FilesystemService.moveFile({
-        requestBody: { source_path: sourcePath, dest_path: destPath },
-      }),
+    mutationFn: ({ sourcePath, destPath }: { sourcePath: string; destPath: string }) =>
+      FilesystemService.moveFile({ requestBody: { source_path: sourcePath, dest_path: destPath } }),
     onSuccess: () => {
       toastSuccess("Moved successfully")
       invalidate()
@@ -229,16 +95,8 @@ export function useFileOperations(currentPath: string) {
   })
 
   const moveFolderMutation = useMutation({
-    mutationFn: ({
-      sourcePath,
-      destPath,
-    }: {
-      sourcePath: string
-      destPath: string
-    }) =>
-      FilesystemService.moveFolder({
-        requestBody: { source_path: sourcePath, dest_path: destPath },
-      }),
+    mutationFn: ({ sourcePath, destPath }: { sourcePath: string; destPath: string }) =>
+      FilesystemService.moveFolder({ requestBody: { source_path: sourcePath, dest_path: destPath } }),
     onSuccess: () => {
       toastSuccess("Moved successfully")
       invalidate()
@@ -249,7 +107,7 @@ export function useFileOperations(currentPath: string) {
   })
 
   const moveToFavoriteMutation = useMutation({
-    mutationFn: ({
+    mutationFn: async ({
       sourcePath,
       isFolder,
       subfolder,
@@ -257,7 +115,26 @@ export function useFileOperations(currentPath: string) {
       sourcePath: string
       isFolder: boolean
       subfolder?: string
-    }) => apiMoveToFavorite(sourcePath, isFolder, subfolder),
+    }) => {
+      const favResp = await requestJson<{ path?: string }>("/api/v1/fs/favorite")
+      const favDir = favResp.path
+      if (!favDir) throw new Error("Favorite directory not configured")
+      const targetDir = subfolder ? `${favDir}/${subfolder}` : favDir
+      if (subfolder) {
+        try {
+          await requestJson("/api/v1/fs/ensure-dir", {
+            method: "POST",
+            body: { path: targetDir },
+          })
+        } catch {
+          // ignore
+        }
+      }
+      const destPath = buildDestPath(targetDir, sourcePath)
+      return isFolder
+        ? FilesystemService.moveFolder({ requestBody: { source_path: sourcePath, dest_path: destPath } })
+        : FilesystemService.moveFile({ requestBody: { source_path: sourcePath, dest_path: destPath } })
+    },
     onSuccess: () => {
       toastSuccess("Moved to favorites")
       invalidate()
@@ -268,13 +145,34 @@ export function useFileOperations(currentPath: string) {
   })
 
   const moveToAlreadyReadMutation = useMutation({
-    mutationFn: ({
-      sourcePath,
-      isFolder,
-    }: {
-      sourcePath: string
-      isFolder: boolean
-    }) => apiMoveToAlreadyRead(sourcePath, isFolder),
+    mutationFn: async ({ sourcePath, isFolder }: { sourcePath: string; isFolder: boolean }) => {
+      let resp = await requestJson<{ path?: string }>("/api/v1/fs/already-read")
+      let dir = resp.path
+
+      if (!dir) {
+        const settingsResp = await requestJson<{ already_read_dir?: string }>("/api/v1/settings")
+        const configuredDir = settingsResp.already_read_dir?.trim()
+        if (configuredDir) {
+          dir = configuredDir
+          try {
+            await requestJson("/api/v1/fs/ensure-dir", {
+              method: "POST",
+              body: { path: dir },
+            })
+            resp = await requestJson<{ path?: string }>("/api/v1/fs/already-read")
+            dir = resp.path || dir
+          } catch {
+            // ignore
+          }
+        }
+      }
+
+      if (!dir) throw new Error("Already-read directory not configured")
+      const destPath = buildDestPath(dir, sourcePath)
+      return isFolder
+        ? FilesystemService.moveFolder({ requestBody: { source_path: sourcePath, dest_path: destPath } })
+        : FilesystemService.moveFile({ requestBody: { source_path: sourcePath, dest_path: destPath } })
+    },
     onSuccess: () => {
       toastSuccess("Moved to already-read")
       invalidate()
@@ -297,7 +195,11 @@ export function useFileOperations(currentPath: string) {
   })
 
   const compressArchiveImagesMutation = useMutation({
-    mutationFn: (archivePath: string) => apiCompressArchiveImages(archivePath),
+    mutationFn: (archivePath: string) =>
+      requestJson("/api/v1/fs/archive/compress-images", {
+        method: "POST",
+        body: { archive_path: archivePath },
+      }),
     onSuccess: () => {
       toastSuccess("Archive images compressed successfully")
       invalidate()
@@ -308,15 +210,24 @@ export function useFileOperations(currentPath: string) {
   })
 
   const backfillFolderMutation = useMutation({
-    mutationFn: (folderPath: string) => apiBackfillFolder(folderPath),
-    onSuccess: (resp) => {
-      const payload = resp || {}
-      const scanned = payload.scanned_files ?? 0
-      const thumbs = payload.backfilled_thumbnails ?? 0
-      const meta = payload.backfilled_meta ?? 0
-      toastSuccess(
-        `Backfill completed: scanned ${scanned}, thumbnails ${thumbs}, meta ${meta}`,
-      )
+    mutationFn: (folderPath: string) =>
+      requestJson<{ scanned_files?: number; backfilled_thumbnails?: number; backfilled_meta?: number }>(
+        "/api/v1/fs/backfill",
+        {
+          method: "POST",
+          body: {
+            path: folderPath,
+            recursive: true,
+            fill_thumbnail: true,
+            fill_meta: true,
+          },
+        },
+      ),
+    onSuccess: (payload) => {
+      const scanned = payload?.scanned_files ?? 0
+      const thumbs = payload?.backfilled_thumbnails ?? 0
+      const meta = payload?.backfilled_meta ?? 0
+      toastSuccess(`Backfill completed: scanned ${scanned}, thumbnails ${thumbs}, meta ${meta}`)
       invalidate()
     },
     onError: (err: Error) => {
@@ -335,7 +246,6 @@ export function useFileOperations(currentPath: string) {
     zipFolderMutation,
     compressArchiveImagesMutation,
     backfillFolderMutation,
-    /** 通用移动：根据 item_type 自动选择 moveFile 或 moveFolder */
     move: (sourcePath: string, destPath: string, isFolder: boolean) => {
       if (isFolder) {
         moveFolderMutation.mutate({ sourcePath, destPath })

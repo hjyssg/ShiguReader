@@ -5,7 +5,7 @@
  *   - 常规：语言、缓存、路径配置
  *   - 扫描：选择目录并触发扫描 + 查看扫描状态
  */
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { useMutation, useQuery, useQueryClient } from "@/shims/react-query"
 import { createFileRoute } from "@tanstack/react-router"
 import { useEffect, useState, useMemo } from "react"
 import { useTranslation } from "react-i18next"

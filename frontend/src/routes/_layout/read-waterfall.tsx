@@ -1,4 +1,4 @@
-import { useMutation, useQuery } from "@tanstack/react-query"
+import { useMutation, useQuery } from "@/shims/react-query"
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router"
 import { useEffect, useMemo } from "react"
 import { useTranslation } from "react-i18next"

@@ -1,7 +1,7 @@
 /**
  * 文件浏览器 - 浏览文件系统目录，支持排序、过滤和扫描功能
  */
-import { useQuery } from "@tanstack/react-query"
+import { useQuery } from "@/shims/react-query"
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router"
 import { ChevronRight, Home, ScanLine } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
@@ -126,7 +126,7 @@ function Explorer() {
   }, [path, navigate])
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ["fs-list", path],
+    queryKey: [],
     queryFn: () => FilesystemService.listDirectory({ path }),
     enabled: !!path,
     retry: false,

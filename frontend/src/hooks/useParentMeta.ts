@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query"
+import { useQuery } from "@/shims/react-query"
 import { FilesystemService } from "@/client"
 import { formatDateTime, formatFileSize } from "@/components/Files/utils"
 import { getParentPath } from "@/lib/path-utils"

@@ -1,6 +1,6 @@
 // 移动对话框 — 输入目标路径
 import { useEffect, useState } from "react"
-import { useQuery } from "@tanstack/react-query"
+import { useFetch } from "@/utils/query"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -35,15 +35,13 @@ export function MoveDialog({
   const count = filePaths.length
   const defaultDest = filePaths.length > 0 ? getParentPath(filePaths[0]) : ""
 
-  const { data: settingsData } = useQuery<{ move_place_dir?: string }>({
-    queryKey: ["settings", "move-dialog-default-dest"],
-    queryFn: async () => {
+  const { data: settingsData } = useFetch<{ move_place_dir?: string }>(
+    async () => {
       const response = await fetch(`${OpenAPI.BASE}/api/v1/settings`)
       if (!response.ok) return {}
       return response.json()
     },
-    retry: false,
-  })
+  )
 
   const preferredDest = settingsData?.move_place_dir?.trim() || defaultDest
   const [destDir, setDestDir] = useState(preferredDest)

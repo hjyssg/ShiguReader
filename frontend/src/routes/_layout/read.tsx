@@ -1,7 +1,7 @@
 /**
  * 图片阅读器 - 支持压缩包和文件夹图片浏览，带缩放、旋转、拖拽功能
  */
-import { useMutation, useQuery } from "@tanstack/react-query"
+import { useMutation } from "@/shims/react-query"
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router"
 import {
   BookCheck,
@@ -118,55 +118,18 @@ function ReadPage() {
   const isArchiveSource = !isFolderSource
 
   const dragRef = useRef({ startX: 0, startY: 0, startTx: 0, startTy: 0 })
-  const lastExtractPathRef = useRef<string>("")
+  type ArchiveListData = Awaited<ReturnType<typeof FilesystemService.listArchive>>
+  type DirectoryListData = Awaited<ReturnType<typeof FilesystemService.listDirectory>>
+  type ExtractStatusData = Awaited<ReturnType<typeof FilesystemService.extractArchive>>
+  type ParseMetaData = Awaited<ReturnType<typeof ParseService.getParseResult>> | null
 
-  const {
-    data: listData,
-    isLoading,
-    error: listError,
-  } = useQuery({
-    queryKey: ["archive-list", path],
-    queryFn: () => FilesystemService.listArchive({ path }),
-    enabled: !!path && !isFolderSource,
-    retry: false,
-  })
-
-  const {
-    data: folderData,
-    isLoading: isFolderLoading,
-    error: folderError,
-  } = useQuery({
-    queryKey: ["fs-list", path],
-    queryFn: () => FilesystemService.listDirectory({ path }),
-    enabled: !!path && isFolderSource,
-    retry: false,
-  })
-
-  const { data: parentListData } = useQuery({
-    queryKey: ["reader-parent-list", parentPath],
-    queryFn: () => FilesystemService.listDirectory({ path: parentPath }),
-    enabled: !!parentPath,
-    retry: false,
-  })
-
-
-  const { data: parseMeta } = useQuery({
-    queryKey: ["reader-parse-meta", path],
-    queryFn: async () => {
-      try {
-        return await ParseService.getParseResult({ filepath: path })
-      } catch {
-        return null
-      }
-    },
-    enabled: !!path,
-    retry: false,
-  })
-
-  const extractMutation = useMutation({
-    mutationFn: (currentPage: number) =>
-      FilesystemService.extractArchive({ path, page: currentPage }),
-  })
+  const [listData, setListData] = useState<ArchiveListData | null>(null)
+  const [folderData, setFolderData] = useState<DirectoryListData | null>(null)
+  const [parentListData, setParentListData] = useState<DirectoryListData | null>(null)
+  const [parseMeta, setParseMeta] = useState<ParseMetaData>(null)
+  const [extractStatus, setExtractStatus] = useState<ExtractStatusData | null>(null)
+  const [isLoading, setIsLoading] = useState(false)
+  const [loadError, setLoadError] = useState<unknown>(null)
 
   const { mutate: recordHistory } = useMutation({
     mutationFn: async (payload: {
@@ -181,6 +144,74 @@ function ReadPage() {
       })
     },
   })
+
+  useEffect(() => {
+    let cancelled = false
+
+    const loadReaderData = async () => {
+      if (!path) return
+
+      setIsLoading(true)
+      setLoadError(null)
+      setAudioIndex(0)
+      setListData(null)
+      setFolderData(null)
+      setParentListData(null)
+      setParseMeta(null)
+      setExtractStatus(null)
+      setArchiveImageReady(isFolderSource)
+
+      try {
+        if (isFolderSource) {
+          // folder: list 当前 folder
+          const currentFolderData = await FilesystemService.listDirectory({ path })
+          if (cancelled) return
+          setFolderData(currentFolderData)
+        } else {
+          // archive: 打开时先解压一次，再拉 archive 列表与 parent 列表
+          setArchiveImageReady(false)
+          const [extractResult, archiveData, parentData] = await Promise.all([
+            FilesystemService.extractArchive({ path, page: 0 }),
+            FilesystemService.listArchive({ path }),
+            parentPath
+              ? FilesystemService.listDirectory({ path: parentPath })
+              : Promise.resolve(null),
+          ])
+          if (cancelled) return
+          setExtractStatus(extractResult)
+          setListData(archiveData)
+          setParentListData(parentData)
+          setArchiveImageReady(true)
+        }
+
+        try {
+          const parsed = await ParseService.getParseResult({ filepath: path })
+          if (!cancelled) {
+            setParseMeta(parsed)
+          }
+        } catch {
+          if (!cancelled) {
+            setParseMeta(null)
+          }
+        }
+      } catch (error) {
+        if (!cancelled) {
+          setLoadError(error)
+          setArchiveImageReady(true)
+        }
+      } finally {
+        if (!cancelled) {
+          setIsLoading(false)
+        }
+      }
+    }
+
+    void loadReaderData()
+
+    return () => {
+      cancelled = true
+    }
+  }, [path, isFolderSource, parentPath])
 
   const imageEntries = useMemo<ImageEntry[]>(() => {
     if (isFolderSource) {
@@ -284,22 +315,6 @@ function ReadPage() {
     setRotation(0)
     setTranslate({ x: 0, y: 0 })
     setImageLoaded(false)
-    // setArchiveImageReady(isFolderSource) // Removed: keep the status instead of resetting to false immediately
-
-
-    if (!path || isFolderSource) return
-
-    // 仅在 path 变化时触发一次，避免翻页/重渲染导致重复请求
-    if (lastExtractPathRef.current === path) {
-      setArchiveImageReady(true)
-      return
-    }
-
-    lastExtractPathRef.current = path
-    extractMutation.mutate(currentPage, {
-      onSuccess: () => setArchiveImageReady(true),
-      onError: () => setArchiveImageReady(true),
-    })
   }, [path, isFolderSource])
 
   useEffect(() => {
@@ -485,7 +500,7 @@ function ReadPage() {
     ? formatFileSize(currentPathMeta.filesize)
     : "-"
   // 优先用 extractMutation 实时返回的值，fallback 到父目录列表的 DB 缓存
-  const avgImageSize = extractMutation.data?.avg_image_size ?? currentPathMeta?.avg_image_size ?? null
+  const avgImageSize = extractStatus?.avg_image_size ?? currentPathMeta?.avg_image_size ?? null
   const avgImageSizeText = avgImageSize != null ? formatFileSize(avgImageSize) : "-"
   const archiveVideoCount = currentPathMeta?.video_count ?? 0
   const archiveAudioCount = currentPathMeta?.audio_count ?? 0
@@ -494,10 +509,10 @@ function ReadPage() {
   const tags = parseMeta?.raw_tags ?? []
 
   // 文件被移动后自动跳转新路径
-  const hasError = listError || folderError
+  const hasError = loadError
   const { resolving, isNotFound, errorMessage } = useResolveMovedFile(
     path,
-    hasError ? (listError || folderError) : null,
+    hasError ? loadError : null,
     (newPath) => {
         navigate({
         to: "/read",
@@ -507,7 +522,7 @@ function ReadPage() {
     },
   )
 
-  if (isLoading || isFolderLoading) {
+  if (isLoading) {
     return (
       <div className="space-y-6">
         <Skeleton className="h-8 w-64" />
@@ -999,7 +1014,7 @@ function ReadPage() {
 
         {!isFolderSource && (
           <ExtractingIndicator
-            status={extractMutation.data?.status}
+            status={extractStatus?.status}
             variant="overlay"
           />
         )}

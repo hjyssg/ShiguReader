@@ -1,7 +1,7 @@
 /**
  * 历史记录页面 - 显示最近浏览的文件，支持网格和列表视图
  */
-import { useQuery } from "@tanstack/react-query"
+import { useQuery } from "@/shims/react-query"
 import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import {
   ArrowDown,

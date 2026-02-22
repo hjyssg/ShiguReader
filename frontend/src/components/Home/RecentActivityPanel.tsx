@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react"
 import { RefreshCw } from "lucide-react"
-import { useMutation, useQueryClient } from "@tanstack/react-query"
+import { useMutation, useQueryClient } from "@/shims/react-query"
 import { useTranslation } from "react-i18next"
 
 import { OpenAPI } from "@/client"

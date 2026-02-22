@@ -1,7 +1,7 @@
 /**
  * 音频播放器 - 支持文件夹和压缩包内音频，显示封面和播放列表
  */
-import { useQuery } from "@tanstack/react-query"
+import { useQuery } from "@/shims/react-query"
 import { createFileRoute } from "@tanstack/react-router"
 import { Music4 } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"

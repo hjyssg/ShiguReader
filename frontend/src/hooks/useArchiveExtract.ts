@@ -2,7 +2,7 @@
  * 解压 archive 并重定向到解压目录的 hook。
  * 供 Explorer 页面使用：检测到 archivePath 参数时触发解压，成功后跳转到 cache_dir。
  */
-import { useMutation } from "@tanstack/react-query"
+import { useMutation } from "@/shims/react-query"
 import { useEffect } from "react"
 import { FilesystemService } from "@/client"
 
