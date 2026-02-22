@@ -86,6 +86,10 @@ const parseFsRoots = (value: string): string[] => {
   return paths.length > 0 ? paths : [""]
 }
 
+/**
+ * 单路径配置区块 - 用于收藏目录、已读目录、Move To 目录等单个路径的输入
+ * onBlur 时自动保存（只有值变化才发请求）
+ */
 interface SinglePathSectionProps {
   title: string
   description: string
@@ -146,6 +150,7 @@ function SinglePathSection({
   )
 }
 
+/** fs_roots 列表中的单行路径输入 + 删除按钮 */
 type PathRowProps = {
   index: number
   value: string
@@ -189,6 +194,15 @@ type ScanPathEntry = {
   checked: boolean
 }
 
+/**
+ * 扫描 Tab — 上半部分：带 checkbox 的目录列表 + 全选/取消全选 + 开始扫描按钮
+ *            下半部分：实时刷新的扫描状态表（每 3 秒轮询一次）
+ *
+ * allPaths 由 settings 中的三类路径聚合而来：
+ *   favorite_dir → heart 图标
+ *   already_read_dir → star 图标
+ *   fs_roots（逗号分隔）→ folder 图标
+ */
 type ScanTabProps = {
   settings: SettingsResponse | undefined
   scanStatus: ScanStatusItem[] | undefined
@@ -250,8 +264,8 @@ function ScanTab({ settings, scanStatus, t, showSuccessToast, showErrorToast }: 
 
   return (
     <div className="scan-tab">
-      {/* 路径选择区 */}
-      <div className="scan-select-panel">
+      {/* 路径选择区 — 蓝色边框 section 风格 */}
+      <div className="scan-select-panel settings-section--blue">
         <div className="scan-select-panel__header">
           <span className="scan-select-panel__title">{t("settings.selectDirsToScan")}</span>
           <div className="scan-select-panel__header-actions">
@@ -353,18 +367,21 @@ function ScanTab({ settings, scanStatus, t, showSuccessToast, showErrorToast }: 
   )
 }
 
+/** 设置页面主组件，管理所有本地状态和 API 调用 */
 function SettingsPage() {
   const { t, i18n } = useTranslation()
   const { showSuccessToast, showErrorToast } = useCustomToast()
   const queryClient = useQueryClient()
-  const { tab } = Route.useSearch()
+  const { tab } = Route.useSearch()  // 当前激活的 tab，通过 URL search 参数同步
   const navigate = Route.useNavigate()
 
+  // 本地编辑状态（从 settings 初始化，onBlur 时同步到后端）
   const [fsRootList, setFsRootList] = useState<string[]>([""])
   const [favoriteDir, setFavoriteDir] = useState("")
   const [alreadyReadDir, setAlreadyReadDir] = useState("")
   const [movePlaceDir, setMovePlaceDir] = useState("")
 
+  // 切换 tab 时更新 URL，保持页面刷新后 tab 状态不丢失
   const handleTabChange = (value: string) => {
     navigate({ search: (prev) => ({ ...prev, tab: value as "general" | "scan" }) })
   }
@@ -527,11 +544,10 @@ function SettingsPage() {
         </TabsList>
 
         <TabsContent value="general" className="settings-main">
-          <section className="settings-section settings-section--white settings-section--compact">
+          <section className="settings-section settings-section--blue settings-section--compact">
             <div className="section-group">
               <div className="settings-section__heading">
                 <h2>{t("settings.language")}</h2>
-                <p>{t("settings.languageDesc")}</p>
               </div>
               <Select value={i18n.language} onValueChange={handleLanguageChange}>
                 <SelectTrigger id="language" className="settings-language-select">
@@ -551,7 +567,6 @@ function SettingsPage() {
             <div className="section-group">
               <div className="settings-section__heading">
                 <h2>{t("settings.cacheManagement")}</h2>
-                <p>{t("settings.cacheManagementDesc")}</p>
               </div>
               <Button
                 onClick={() => clearCacheMutation.mutate()}
@@ -611,7 +626,7 @@ function SettingsPage() {
             value={alreadyReadDir}
             placeholder={t("settings.alreadyReadDirPlaceholder")}
             id="alreadyReadDir"
-            colorClass="settings-section--green"
+            colorClass="settings-section--blue"
             onChange={setAlreadyReadDir}
             onSave={saveAlreadyReadDirIfChanged}
             onReset={() => {
@@ -637,7 +652,7 @@ function SettingsPage() {
             t={t}
           />
 
-          <section className="settings-section settings-section--white">
+          <section className="settings-section settings-section--blue">
             <div className="settings-section__heading">
               <h2>{t("settings.envFilePath")}</h2>
               <p>{t("settings.envFilePathDesc")}</p>
@@ -651,7 +666,7 @@ function SettingsPage() {
             value={favoriteDir}
             placeholder={t("settings.favoriteDirPlaceholder")}
             id="favoriteDir"
-            colorClass="settings-section--gold"
+            colorClass="settings-section--blue"
             onChange={setFavoriteDir}
             onSave={saveFavoriteDirIfChanged}
             onReset={() => {

@@ -78,15 +78,23 @@
   margin: 0 0.5rem;
 }
 
+.settings-section__heading {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
 .settings-section__heading h2 {
   font-size: 1rem;
   font-weight: 600;
+  white-space: nowrap;
 }
 
 .settings-section__heading p {
-  margin-top: 0.2rem;
-  font-size: 0.82rem;
+  font-size: 0.78rem;
   color: hsl(var(--muted-foreground));
+  margin: 0;
 }
 
 .settings-language-select {
@@ -226,7 +234,6 @@
 }
 
 .scan-select-panel {
-  border: 1px solid hsl(var(--border));
   border-radius: 10px;
   overflow: hidden;
 }
