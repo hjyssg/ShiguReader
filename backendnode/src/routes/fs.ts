@@ -374,18 +374,16 @@ async function getDrives(_req: FastifyRequest, reply: FastifyReply) {
   if (process.platform !== "win32") {
     return reply.send([{ path: "/", dirname: "/" }]);
   }
-  try {
-    // Use fsutil instead of wmic (wmic is deprecated/removed in Windows 11)
-    const { stdout } = await execFileAsync("fsutil", ["fsinfo", "drives"]);
-    // Output: "Drives: C:\ D:\ E:\"
-    const drives = (stdout.match(/[A-Za-z]:\\/g) ?? []).map(d => ({
-      path: d,
-      dirname: d,
-    }));
-    return reply.send(drives.length ? drives : []);
-  } catch {
-    return reply.send([]);
+  // Probe A-Z — no external commands, no wmic, no encoding issues
+  const drives: { path: string; dirname: string }[] = [];
+  for (let code = 65; code <= 90; code++) {
+    const drivePath = `${String.fromCharCode(code)}:\\`;
+    try {
+      await fs.promises.access(drivePath);
+      drives.push({ path: drivePath, dirname: drivePath });
+    } catch { /* drive not present */ }
   }
+  return reply.send(drives);
 }
 
 // ─── file operations ─────────────────────────────────────────────────────────
