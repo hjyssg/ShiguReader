@@ -330,11 +330,7 @@ function ReadPage() {
     setImageLoaded(false)
   }, [path, isFolderSource])
 
-  useEffect(() => {
-    setImageLoaded(false)
-  }, [currentEntry?.entryPath, currentEntry?.filePath])
-
-  // ── 快速翻页 debounce：页码立即更新，但图片 src 延迟 150ms 才设置 ──
+  // ── 快速翻页 debounce：页码立即更新，但图片 src 延迟 50ms 才设置 ──
   // 快速连续翻页时，中间页的图片请求会被跳过，只加载最终停下来的那一页
   const [settledPage, setSettledPage] = useState(currentPage)
   const settleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -343,7 +339,7 @@ function ReadPage() {
     if (settleTimerRef.current) clearTimeout(settleTimerRef.current)
     settleTimerRef.current = setTimeout(() => {
       setSettledPage(currentPage)
-    }, 150)
+    }, 50)
     return () => {
       if (settleTimerRef.current) clearTimeout(settleTimerRef.current)
     }
@@ -753,8 +749,8 @@ function ReadPage() {
     ? `${OpenAPI.BASE}/api/v1/fs/file?path=${encodeURIComponent(currentEntry.filePath || "")}`
     : `${OpenAPI.BASE}/api/v1/fs/archive/file?path=${encodeURIComponent(path)}&entry=${encodeURIComponent(currentEntry.entryPath || "")}`
 
-  // 实际传给 <img src> 的 URL：只有当 settledPage 追上 currentPage 时才设置
-  const actualImageSrc = settledPage === currentPage ? settledImageUrl : undefined
+  // 实际传给 <img src> 的 URL：保持上一张图直到 settledPage 更新，避免翻页时中间闪烁
+  const actualImageSrc = settledImageUrl
 
   // 图片加载失败时的重试处理
   // 压缩包文件可能还在后台解压中，404 时自动重试（最多 5 次，递增延迟）
@@ -782,7 +778,8 @@ function ReadPage() {
   }
 
   const canRequestImage = isFolderSource || archiveImageReady
-  const showImagePlaceholder = !canRequestImage || !imageLoaded
+  // 仅在压缩包尚未可请求时显示占位，翻页过程中不再显示 skeleton
+  const showImagePlaceholder = !canRequestImage
 
   const pagination = (
     <button
