@@ -12,18 +12,8 @@
       "name": "Run Backend",
       "type": "node-terminal",
       "request": "launch",
-      "command": "python -m fastapi run app/main.py --host 0.0.0.0 --port 8000",
-      "cwd": "${workspaceFolder}/backend"
-    }
-  ],
-  "compounds": [
-    {
-      "name": "Run Full Stack",
-      "configurations": [
-        "Run Frontend",
-        "Run Backend"
-      ],
-      "stopAll": true
+      "command": "npm run dev",
+      "cwd": "${workspaceFolder}/backendnode"
     }
   ]
 }
