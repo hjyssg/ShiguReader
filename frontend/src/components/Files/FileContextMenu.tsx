@@ -187,13 +187,13 @@ export function FileActionsDropdown({
               {isFolder && (
                 <DropdownMenuItem onClick={actions.onZipFolder}>
                   <Package className="mr-2 size-4" />
-                  Compress to ZIP
+                  Compress to Zip
                 </DropdownMenuItem>
               )}
               {isArchive && (
                 <DropdownMenuItem onClick={actions.onMinifyZipImages}>
                   <ImageDown className="mr-2 size-4" />
-                  Minify ZIP Images
+                  Minify Zip Images
                 </DropdownMenuItem>
               )}
             </>

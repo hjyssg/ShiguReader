@@ -206,7 +206,7 @@ export function useFileOperations(currentPath: string) {
     mutationFn: (folderPath: string) =>
       FilesystemService.zipFolder({ requestBody: { folder_path: folderPath } }),
     onSuccess: () => {
-      toastSuccess("Compressed to ZIP successfully")
+      toastSuccess("Compressed to Zip successfully")
       invalidate()
     },
     onError: (err: Error) => {

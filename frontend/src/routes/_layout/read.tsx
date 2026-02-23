@@ -959,7 +959,7 @@ function ReadPage() {
                     }}
                   >
                     <ImageDown className="mr-2 size-4" />
-                    Minify ZIP Images
+                    Minify Zip Images
                   </DropdownMenuItem>
                 )}
                 {isFolderSource && (
@@ -970,7 +970,7 @@ function ReadPage() {
                     }}
                   >
                     <Package className="mr-2 size-4" />
-                    Compress to ZIP
+                    Compress to Zip
                   </DropdownMenuItem>
                 )}
                 <DropdownMenuSeparator />

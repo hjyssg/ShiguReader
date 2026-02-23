@@ -26,13 +26,13 @@ const actionLabels: Record<
   { title: string; description: string; button: string; pending: string }
 > = {
   "zip-folder": {
-    title: "Compress to ZIP",
-    description: "This will compress the folder into a ZIP archive.",
+    title: "Compress to Zip",
+    description: "This will compress the folder into a Zip archive.",
     button: "Compress",
     pending: "Compressing...",
   },
   "minify-zip-images": {
-    title: "Minify ZIP Images",
+    title: "Minify Zip Images",
     description:
       "This will compress large images inside the archive and repack it. The original archive will be replaced.",
     button: "Minify",
