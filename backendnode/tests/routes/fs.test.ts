@@ -33,6 +33,7 @@ vi.mock("../../src/config.js", () => ({
   config: {
     API_V1_STR: "/api/v1",
     ENVIRONMENT: "local",
+    INDEX_SQLITE_PATH: "./data/index.db",
     FS_ROOTS: "",
     FAVORITE_DIR: "",
     ALREADY_READ_DIR: "",
@@ -233,6 +234,97 @@ describe("POST /api/v1/fs/scan", () => {
     const res = await app.inject({ method: "POST", url: "/api/v1/fs/scan", payload: { path: TMP } });
     expect(res.statusCode).toBe(200);
     expect(res.json().status).toBe("started");
+  });
+});
+
+describe("POST /api/v1/fs/move-file", () => {
+  it("moves file via rename on same device", async () => {
+    const renameSpy = vi.spyOn(fs.promises, "rename").mockResolvedValue(undefined);
+    const mkdirSpy = vi.spyOn(fs.promises, "mkdir").mockResolvedValue(undefined as unknown as string);
+    const copySpy = vi.spyOn(fs.promises, "copyFile").mockResolvedValue(undefined);
+    const unlinkSpy = vi.spyOn(fs.promises, "unlink").mockResolvedValue(undefined);
+
+    const app = buildApp();
+    const source = "/fake/testdir/file.zip";
+    const dest = "/fake/dest/file.zip";
+    const res = await app.inject({
+      method: "POST",
+      url: "/api/v1/fs/move-file",
+      payload: { source_path: source, dest_path: dest },
+    });
+
+    expect(res.statusCode).toBe(200);
+    expect(renameSpy).toHaveBeenCalledWith(source, dest);
+    expect(copySpy).not.toHaveBeenCalled();
+    expect(unlinkSpy).not.toHaveBeenCalled();
+    expect(mkdirSpy).toHaveBeenCalled();
+  });
+
+  it("falls back to copy+unlink on EXDEV", async () => {
+    const exdev = Object.assign(new Error("EXDEV"), { code: "EXDEV" });
+    const renameSpy = vi.spyOn(fs.promises, "rename").mockRejectedValue(exdev);
+    const mkdirSpy = vi.spyOn(fs.promises, "mkdir").mockResolvedValue(undefined as unknown as string);
+    const copySpy = vi.spyOn(fs.promises, "copyFile").mockResolvedValue(undefined);
+    const unlinkSpy = vi.spyOn(fs.promises, "unlink").mockResolvedValue(undefined);
+
+    const app = buildApp();
+    const source = "/fake/testdir/file.zip";
+    const dest = "/fake/dest/file.zip";
+    const res = await app.inject({
+      method: "POST",
+      url: "/api/v1/fs/move-file",
+      payload: { source_path: source, dest_path: dest },
+    });
+
+    expect(res.statusCode).toBe(200);
+    expect(renameSpy).toHaveBeenCalledWith(source, dest);
+    expect(copySpy).toHaveBeenCalledWith(source, dest);
+    expect(unlinkSpy).toHaveBeenCalledWith(source);
+    expect(mkdirSpy).toHaveBeenCalled();
+  });
+
+  it("returns 500 for non-EXDEV rename error", async () => {
+    const renameSpy = vi.spyOn(fs.promises, "rename").mockRejectedValue(new Error("EACCES"));
+    vi.spyOn(fs.promises, "mkdir").mockResolvedValue(undefined as unknown as string);
+    const copySpy = vi.spyOn(fs.promises, "copyFile").mockResolvedValue(undefined);
+    const unlinkSpy = vi.spyOn(fs.promises, "unlink").mockResolvedValue(undefined);
+
+    const app = buildApp();
+    const res = await app.inject({
+      method: "POST",
+      url: "/api/v1/fs/move-file",
+      payload: { source_path: "/fake/testdir/file.zip", dest_path: "/fake/dest/file.zip" },
+    });
+
+    expect(res.statusCode).toBe(500);
+    expect(renameSpy).toHaveBeenCalled();
+    expect(copySpy).not.toHaveBeenCalled();
+    expect(unlinkSpy).not.toHaveBeenCalled();
+  });
+});
+
+describe("POST /api/v1/fs/move-folder", () => {
+  it("falls back to cp+rm on EXDEV", async () => {
+    const exdev = Object.assign(new Error("EXDEV"), { code: "EXDEV" });
+    const renameSpy = vi.spyOn(fs.promises, "rename").mockRejectedValue(exdev);
+    const mkdirSpy = vi.spyOn(fs.promises, "mkdir").mockResolvedValue(undefined as unknown as string);
+    const cpSpy = vi.spyOn(fs.promises, "cp").mockResolvedValue(undefined);
+    const rmSpy = vi.spyOn(fs.promises, "rm").mockResolvedValue(undefined);
+
+    const app = buildApp();
+    const source = "/fake/testdir/sub";
+    const dest = "/fake/dest/sub";
+    const res = await app.inject({
+      method: "POST",
+      url: "/api/v1/fs/move-folder",
+      payload: { source_path: source, dest_path: dest },
+    });
+
+    expect(res.statusCode).toBe(200);
+    expect(renameSpy).toHaveBeenCalledWith(source, dest);
+    expect(cpSpy).toHaveBeenCalledWith(source, dest, { recursive: true, force: false, errorOnExist: true });
+    expect(rmSpy).toHaveBeenCalledWith(source, { recursive: true, force: true });
+    expect(mkdirSpy).toHaveBeenCalled();
   });
 });
 

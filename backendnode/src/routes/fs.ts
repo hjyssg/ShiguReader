@@ -27,6 +27,30 @@ import { isHiddenFile } from "../utils/fileFilters.js";
 
 const execFileAsync = promisify(execFile);
 
+function isExdevError(err: unknown): err is NodeJS.ErrnoException {
+  return typeof err === "object" && err !== null && (err as NodeJS.ErrnoException).code === "EXDEV";
+}
+
+async function moveFileCompat(sourcePath: string, destPath: string): Promise<void> {
+  try {
+    await fs.promises.rename(sourcePath, destPath);
+  } catch (err) {
+    if (!isExdevError(err)) throw err;
+    await fs.promises.copyFile(sourcePath, destPath);
+    await fs.promises.unlink(sourcePath);
+  }
+}
+
+async function moveFolderCompat(sourcePath: string, destPath: string): Promise<void> {
+  try {
+    await fs.promises.rename(sourcePath, destPath);
+  } catch (err) {
+    if (!isExdevError(err)) throw err;
+    await fs.promises.cp(sourcePath, destPath, { recursive: true, force: false, errorOnExist: true });
+    await fs.promises.rm(sourcePath, { recursive: true, force: true });
+  }
+}
+
 // ─── helpers ─────────────────────────────────────────────────────────────────
 
 function parseRoots(): string[] {
@@ -398,7 +422,7 @@ async function moveFile(
   if (!source_path || !dest_path) return reply.status(400).send({ error: "source_path and dest_path are required" });
   try {
     await fs.promises.mkdir(path.dirname(dest_path), { recursive: true });
-    await fs.promises.rename(source_path, dest_path);
+    await moveFileCompat(source_path, dest_path);
     logger.fs(`move file: ${source_path} → ${dest_path}`);
     try { getRepo().logActivity("move", `Moved file: ${source_path} → ${dest_path}`, "completed", `move:${source_path}`, source_path); } catch { /* ignore */ }
     return reply.send({ status: "ok", message: "File moved", path: source_path, dest_path });
@@ -415,7 +439,7 @@ async function moveFolder(
   if (!source_path || !dest_path) return reply.status(400).send({ error: "source_path and dest_path are required" });
   try {
     await fs.promises.mkdir(path.dirname(dest_path), { recursive: true });
-    await fs.promises.rename(source_path, dest_path);
+    await moveFolderCompat(source_path, dest_path);
     logger.fs(`move folder: ${source_path} → ${dest_path}`);
     try { getRepo().logActivity("move", `Moved folder: ${source_path} → ${dest_path}`, "completed", `move:${source_path}`, source_path); } catch { /* ignore */ }
     return reply.send({ status: "ok", message: "Folder moved", path: source_path, dest_path });

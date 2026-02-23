@@ -36,6 +36,16 @@ function buildDestPath(destDir: string, sourcePath: string): string {
   return `${normalizedDestDir}${separator}${fileName}`
 }
 
+function buildReadUrl(path: string): string {
+  const params = new URLSearchParams({
+    path,
+    source: "archive",
+    page: "0",
+    sourceFolderPath: "",
+  })
+  return `/read?${params.toString()}`
+}
+
 export function useFileOperations(currentPath: string) {
   const queryClient = useQueryClient()
 
@@ -85,8 +95,18 @@ export function useFileOperations(currentPath: string) {
   const moveFileMutation = useMutation({
     mutationFn: ({ sourcePath, destPath }: { sourcePath: string; destPath: string }) =>
       FilesystemService.moveFile({ requestBody: { source_path: sourcePath, dest_path: destPath } }),
-    onSuccess: () => {
-      toastSuccess("Moved successfully")
+    onSuccess: (resp) => {
+      const movedPath = resp?.dest_path
+      toastSuccess("Moved successfully", movedPath
+        ? {
+            action: {
+              label: "Read",
+              onClick: () => {
+                window.open(buildReadUrl(movedPath), "_blank")
+              },
+            },
+          }
+        : undefined)
       invalidate()
     },
     onError: (err: Error) => {
