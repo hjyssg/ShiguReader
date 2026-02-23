@@ -3,8 +3,15 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-// Load .env from project root (two levels up from src/)
-loadDotenv({ path: path.resolve(__dirname, "../../.env") });
+export const PROJECT_ROOT = path.resolve(__dirname, "../..");
+export const ENV_FILE_PATH = path.join(PROJECT_ROOT, ".env");
+
+// Load .env from project root
+loadDotenv({ path: ENV_FILE_PATH });
+
+export function resolveProjectPath(p: string): string {
+  return path.isAbsolute(p) ? p : path.resolve(PROJECT_ROOT, p);
+}
 
 function env(key: string, fallback: string): string {
   return process.env[key] ?? fallback;
@@ -26,7 +33,7 @@ export const config = {
   BACKEND_CORS_ORIGINS: env("BACKEND_CORS_ORIGINS", ""),
 
   // SQLite
-  INDEX_SQLITE_PATH: env("INDEX_SQLITE_PATH", "../data/index_node.db"),
+  INDEX_SQLITE_PATH: env("INDEX_SQLITE_PATH", "data/index_node.db"),
 
   // File system
   FS_ROOTS: env("FS_ROOTS", ""),
@@ -47,5 +54,7 @@ export const config = {
 
   PROJECT_NAME: env("PROJECT_NAME", "ShiguReader"),
 } as const;
+
+export const DB_FILE_PATH = resolveProjectPath(config.INDEX_SQLITE_PATH);
 
 export type Config = typeof config;

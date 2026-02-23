@@ -1,18 +1,13 @@
 import { buildApp } from "./app.js";
 import { initDb, getDb } from "./db/client.js";
 import { IndexRepository } from "./db/repository.js";
-import { config } from "./config.js";
+import { config, DB_FILE_PATH } from "./config.js";
 import { logger } from "./logger.js";
 import { clearExtractCache } from "./services/archiveService.js";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 async function main() {
   // Init DB
-  const dbPath = path.resolve(__dirname, "../../", config.INDEX_SQLITE_PATH);
-  initDb(dbPath);
+  initDb(DB_FILE_PATH);
 
   // 写入 startup 日志，用于 listActivityLogsSinceLatestStartup 过滤本次启动后的活动
   try {

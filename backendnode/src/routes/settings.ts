@@ -1,15 +1,12 @@
 import type { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
 import fs from "node:fs";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
-import { config } from "../config.js";
+import { config, ENV_FILE_PATH, DB_FILE_PATH } from "../config.js";
 import { getDb } from "../db/client.js";
 import { IndexRepository } from "../db/repository.js";
 
-const __filename = fileURLToPath(import.meta.url);
-const __routeDir = path.dirname(__filename);
-const ENV_FILE = path.resolve(__routeDir, "../../../.env");
-const DB_FILE = path.resolve(__routeDir, "../../../", config.INDEX_SQLITE_PATH ?? "../data/index_node.db");
+const ENV_FILE = ENV_FILE_PATH;
+const DB_FILE = DB_FILE_PATH;
 
 function buildResponse() {
   return {
