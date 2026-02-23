@@ -97,6 +97,10 @@ export async function listEntries(archivePath: string): Promise<ArchiveEntry[]> 
     const sizeMatch = line.match(/^Size = (\d+)$/);
 
     if (pathMatch) {
+      // 若上一条 entry 尚未遇到空行，先提交，兼容精简/模拟输出（仅 Path 行）
+      if (currentPath !== null) {
+        rawEntries.push({ entryPath: currentPath, size: currentSize });
+      }
       // 新 entry 开始（Path 行总是在 Size 行之前）
       currentPath = pathMatch[1].trim();
       currentSize = 0;
