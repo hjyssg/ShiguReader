@@ -27,6 +27,7 @@ interface FileItemProps {
   className?: string
   metaText?: string
   metaTitle?: string
+  thumbnailTooltip?: string
 
   item: FileSystemItem
   /** 是否选中 */
@@ -48,6 +49,7 @@ export function FileItem({
   className,
   metaText,
   metaTitle,
+  thumbnailTooltip,
 }: FileItemProps) {
   const { t } = useTranslation()
   const isMobile = useIsMobile()
@@ -92,7 +94,7 @@ export function FileItem({
 
   const likeScore = item.likeScore ?? item.recommendation_score
   const lastReadAt = item.last_read_at
-  const thumbnailTooltip = [
+  const defaultThumbnailTooltip = [
     `${t("explorer.table.dateModified")}: ${item.mtime ? formatDateTime(item.mtime) : "-"}`,
     `${t("explorer.table.likeScore")}: ${likeScore != null ? Number(likeScore).toFixed(3) : "-"}`,
     `${t("explorer.table.lastReadAt")}: ${lastReadAt ? formatDateTime(lastReadAt) : "-"}`,
@@ -138,7 +140,7 @@ export function FileItem({
                 </a>
               </TooltipTrigger>
               <TooltipContent className="whitespace-pre-line">
-                {thumbnailTooltip}
+                {thumbnailTooltip ?? defaultThumbnailTooltip}
               </TooltipContent>
             </Tooltip>
           ) : (

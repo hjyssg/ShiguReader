@@ -235,6 +235,7 @@ function HistoryPage() {
                 className="file-item-root--compact"
                 metaText={`${formatDateTime(getHistoryTimestamp(item))}`}
                 metaTitle={t("history.readAt")}
+                thumbnailTooltip={`${t("history.readAt")}: ${formatDateTime(getHistoryTimestamp(item))}`}
               />
             </div>
           ))}
