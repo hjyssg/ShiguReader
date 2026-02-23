@@ -122,7 +122,7 @@ function Explorer() {
   }, [path, navigate])
 
   const { data, isLoading, error } = useQuery({
-    queryKey: [],
+    queryKey: [path],
     queryFn: () => FilesystemService.listDirectory({ path }),
     enabled: !!path,
     retry: false,
