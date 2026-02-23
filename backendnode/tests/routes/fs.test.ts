@@ -107,40 +107,40 @@ describe("GET /api/v1/fs/roots", () => {
   });
 });
 
-describe("GET /api/v1/fs/favorite", () => {
+describe("GET /api/v1/fs/favorite-folder", () => {
   it("returns null when FAVORITE_DIR not set", async () => {
     const app = buildApp();
-    const res = await app.inject({ method: "GET", url: "/api/v1/fs/favorite" });
+    const res = await app.inject({ method: "GET", url: "/api/v1/fs/favorite-folder" });
     expect(res.statusCode).toBe(200);
     expect(res.json()).toBeNull();
   });
 });
 
-describe("GET /api/v1/fs/already-read", () => {
+describe("GET /api/v1/fs/already-read-folder", () => {
   it("returns null when ALREADY_READ_DIR not set", async () => {
     const app = buildApp();
-    const res = await app.inject({ method: "GET", url: "/api/v1/fs/already-read" });
+    const res = await app.inject({ method: "GET", url: "/api/v1/fs/already-read-folder" });
     expect(res.statusCode).toBe(200);
     expect(res.json()).toBeNull();
   });
 });
 
-describe("GET /api/v1/fs/list", () => {
+describe("GET /api/v1/fs/listdir", () => {
   it("returns 400 when path is missing", async () => {
     const app = buildApp();
-    const res = await app.inject({ method: "GET", url: "/api/v1/fs/list" });
+    const res = await app.inject({ method: "GET", url: "/api/v1/fs/listdir" });
     expect(res.statusCode).toBe(400);
   });
 
   it("returns 404 for non-existent path", async () => {
     const app = buildApp();
-    const res = await app.inject({ method: "GET", url: "/api/v1/fs/list?path=/does/not/exist" });
+    const res = await app.inject({ method: "GET", url: "/api/v1/fs/listdir?path=/does/not/exist" });
     expect(res.statusCode).toBe(404);
   });
 
   it("lists directory contents with folders first", async () => {
     const app = buildApp();
-    const res = await app.inject({ method: "GET", url: `/api/v1/fs/list?path=${encodeURIComponent(TMP)}` });
+    const res = await app.inject({ method: "GET", url: `/api/v1/fs/listdir?path=${encodeURIComponent(TMP)}` });
     expect(res.statusCode).toBe(200);
     const body = res.json();
     expect(body.items).toBeDefined();
@@ -151,7 +151,7 @@ describe("GET /api/v1/fs/list", () => {
 
   it("assigns correct item_type and file_type", async () => {
     const app = buildApp();
-    const res = await app.inject({ method: "GET", url: `/api/v1/fs/list?path=${encodeURIComponent(TMP)}` });
+    const res = await app.inject({ method: "GET", url: `/api/v1/fs/listdir?path=${encodeURIComponent(TMP)}` });
     const body = res.json();
     // items may be empty if statSync path matching fails on this OS — guard with optional chaining
     const sub = body.items.find((i: { name: string }) => i.name === "sub");
@@ -169,7 +169,7 @@ describe("GET /api/v1/fs/list", () => {
 
   it("sets thumbnail_url for archive and image", async () => {
     const app = buildApp();
-    const res = await app.inject({ method: "GET", url: `/api/v1/fs/list?path=${encodeURIComponent(TMP)}` });
+    const res = await app.inject({ method: "GET", url: `/api/v1/fs/listdir?path=${encodeURIComponent(TMP)}` });
     const body = res.json();
     const zip = body.items.find((i: { name: string }) => i.name === "file.zip");
     const img = body.items.find((i: { name: string }) => i.name === "img.jpg");

@@ -61,7 +61,7 @@ interface SettingsUpdate {
   move_place_dir?: string
 }
 
-/** DELETE /api/v1/fs/extract-cache 的响应 */
+/** DELETE /api/v1/fs/clean-extract-cache 的响应 */
 interface ClearCacheResponse {
   deleted_files: number
   freed_size_readable: string
@@ -488,7 +488,7 @@ function SettingsPage() {
 
   const clearCacheMutation = useMutation({
     mutationFn: async () => {
-      const response = await fetch(`${OpenAPI.BASE}/api/v1/fs/extract-cache`, {
+      const response = await fetch(`${OpenAPI.BASE}/api/v1/fs/clean-extract-cache`, {
         method: "DELETE",
       })
       if (!response.ok) {

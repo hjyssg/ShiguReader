@@ -116,13 +116,13 @@ export function useFileOperations(currentPath: string) {
       isFolder: boolean
       subfolder?: string
     }) => {
-      const favResp = await requestJson<{ path?: string }>("/api/v1/fs/favorite")
+      const favResp = await requestJson<{ path?: string }>("/api/v1/fs/favorite-folder")
       const favDir = favResp.path
       if (!favDir) throw new Error("Favorite directory not configured")
       const targetDir = subfolder ? `${favDir}/${subfolder}` : favDir
       if (subfolder) {
         try {
-          await requestJson("/api/v1/fs/ensure-dir", {
+        await requestJson("/api/v1/fs/mkdir", {
             method: "POST",
             body: { path: targetDir },
           })
@@ -146,7 +146,7 @@ export function useFileOperations(currentPath: string) {
 
   const moveToAlreadyReadMutation = useMutation({
     mutationFn: async ({ sourcePath, isFolder }: { sourcePath: string; isFolder: boolean }) => {
-      let resp = await requestJson<{ path?: string }>("/api/v1/fs/already-read")
+      let resp = await requestJson<{ path?: string }>("/api/v1/fs/already-read-folder")
       let dir = resp.path
 
       if (!dir) {
@@ -155,11 +155,11 @@ export function useFileOperations(currentPath: string) {
         if (configuredDir) {
           dir = configuredDir
           try {
-            await requestJson("/api/v1/fs/ensure-dir", {
+            await requestJson("/api/v1/fs/mkdir", {
               method: "POST",
               body: { path: dir },
             })
-            resp = await requestJson<{ path?: string }>("/api/v1/fs/already-read")
+            resp = await requestJson<{ path?: string }>("/api/v1/fs/already-read-folder")
             dir = resp.path || dir
           } catch {
             // ignore
@@ -212,7 +212,7 @@ export function useFileOperations(currentPath: string) {
   const backfillFolderMutation = useMutation({
     mutationFn: (folderPath: string) =>
       requestJson<{ scanned_files?: number; backfilled_thumbnails?: number; backfilled_meta?: number }>(
-        "/api/v1/fs/backfill",
+        "/api/v1/fs/generate",
         {
           method: "POST",
           body: {

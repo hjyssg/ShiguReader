@@ -79,7 +79,7 @@ function Dashboard() {
   const { data: favoriteRoot } = useQuery({
     queryKey: ["fs-favorite"],
     queryFn: async (): Promise<{ path: string; dirname: string } | null> => {
-      const response = await fetch(`${OpenAPI.BASE}/api/v1/fs/favorite`)
+      const response = await fetch(`${OpenAPI.BASE}/api/v1/fs/favorite-folder`)
       if (!response.ok) return null
       return response.json()
     },
@@ -88,7 +88,7 @@ function Dashboard() {
   const { data: alreadyReadRoot } = useQuery({
     queryKey: ["fs-already-read"],
     queryFn: async (): Promise<{ path: string; dirname: string } | null> => {
-      const response = await fetch(`${OpenAPI.BASE}/api/v1/fs/already-read`)
+      const response = await fetch(`${OpenAPI.BASE}/api/v1/fs/already-read-folder`)
       if (!response.ok) return null
       return response.json()
     },

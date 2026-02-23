@@ -49,7 +49,7 @@ export function RecentActivityPanel({ items }: Props) {
       }
 
       if (item.activity_type === "cache_cleanup") {
-        await fetch(`${OpenAPI.BASE}/api/v1/fs/extract-cache`, { method: "DELETE" })
+        await fetch(`${OpenAPI.BASE}/api/v1/fs/clean-extract-cache`, { method: "DELETE" })
         return
       }
 
