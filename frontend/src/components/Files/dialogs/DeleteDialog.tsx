@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button"
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -44,9 +43,6 @@ export function DeleteDialog({
           <DialogTitle>
             Delete {count > 1 ? `${count} items` : "item"}
           </DialogTitle>
-          <DialogDescription>
-            Are you sure you want to delete the following items?
-          </DialogDescription>
         </DialogHeader>
 
         <div className="py-4 space-y-4">

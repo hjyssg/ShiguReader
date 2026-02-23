@@ -66,10 +66,9 @@ export function ConfirmMoveDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-xl">
         <DialogHeader>
-          <DialogTitle>Move to destination folder</DialogTitle>
+          <DialogTitle>Move</DialogTitle>
           <DialogDescription className="break-all whitespace-normal">
-            Are you sure you want to move{" "}
-            {count === 1 ? `"${displayNames}"` : `${count} items`} to{" "}
+            move {count === 1 ? `"${displayNames}"` : `${count} items`} to{" "}
             "{destinationText}"?
           </DialogDescription>
         </DialogHeader>
