@@ -159,7 +159,6 @@ function AudioPage() {
                     src={selectedTrack.url}
                     autoPlay
                     showSkipControls={false}
-                    showJumpControls={false}
                   />
                 </div>
               )}

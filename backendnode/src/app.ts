@@ -15,7 +15,6 @@ import { parseRoutes } from "./routes/parse.js";
 import { thumbnailRoutes } from "./routes/thumbnail.js";
 import { config } from "./config.js";
 import { getOrGenerateThumb } from "./services/thumbService.js";
-import { getMimeType } from "./utils/fileType.js";
 import { getDb } from "./db/client.js";
 import { IndexRepository } from "./db/repository.js";
 
@@ -28,6 +27,13 @@ export function buildApp() {
 
   // ── CORS ──────────────────────────────────────────────────────────────────
   app.register(cors, { origin: true, credentials: true });
+
+  // ── @fastify/static — 注册 reply.sendFile() 装饰器 ────────────────────────
+  // serve: false → 不自动托管文件，仅提供 reply.sendFile(basename, dirname)
+  app.register(staticPlugin, {
+    root: path.resolve(__dirname),   // 占位 root，实际调用时都会传 dirname 覆盖
+    serve: false,
+  });
 
   // ── API routes ─────────────────────────────────────────────────────────────
   app.register(fsRoutes,       { prefix: `${config.API_V1_STR}/fs` });
@@ -68,8 +74,7 @@ export function buildApp() {
     const src = await getOrGenerateThumb(resolvedPath);
     if (!src) return reply.status(404).send({ error: "Thumbnail not found" });
 
-    const mime = getMimeType(src);
-    return reply.type(mime).send(fs.createReadStream(src));
+    return reply.sendFile(path.basename(src), path.dirname(src));
   });
 
   // ── Compatibility aliases (Tampermonkey script uses /api/search/...) ───────

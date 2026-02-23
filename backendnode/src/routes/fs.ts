@@ -486,46 +486,14 @@ async function serveFile(
 ) {
   const { path: filePath } = req.query;
   if (!filePath) return reply.status(400).send({ error: "path is required" });
-
-  let stat: fs.Stats;
   try {
-    stat = await fs.promises.stat(filePath);
-    // Phase 3: 顺手更新文件存在状态
+    await fs.promises.access(filePath);
     observeFilePresence(filePath, true);
   } catch {
-    // Phase 3: 文件不存在时标记 missing
     observeFilePresence(filePath, false);
     return reply.status(404).send({ error: "File not found" });
   }
-
-  const mime = getMimeType(filePath);
-  const fileSize = stat.size;
-  const rangeHeader = (req.raw as { headers?: Record<string, string> }).headers?.range
-    ?? (req.headers as Record<string, string | undefined>)["range"];
-
-  if (rangeHeader) {
-    const match = /bytes=(\d*)-(\d*)/.exec(rangeHeader);
-    if (!match) return reply.status(416).send({ error: "Invalid Range header" });
-
-    const start = match[1] ? parseInt(match[1], 10) : 0;
-    const end = match[2] ? parseInt(match[2], 10) : fileSize - 1;
-
-    if (start > end || end >= fileSize) {
-      reply.header("Content-Range", `bytes */${fileSize}`);
-      return reply.status(416).send({ error: "Range Not Satisfiable" });
-    }
-
-    const chunkSize = end - start + 1;
-    reply.status(206);
-    reply.header("Content-Range", `bytes ${start}-${end}/${fileSize}`);
-    reply.header("Accept-Ranges", "bytes");
-    reply.header("Content-Length", chunkSize);
-    return reply.type(mime).send(fs.createReadStream(filePath, { start, end }));
-  }
-
-  reply.header("Accept-Ranges", "bytes");
-  reply.header("Content-Length", fileSize);
-  return reply.type(mime).send(fs.createReadStream(filePath));
+  return reply.sendFile(path.basename(filePath), path.dirname(filePath));
 }
 
 async function ensureDir(
@@ -667,11 +635,10 @@ async function getArchiveFile(
   }
   try {
     await fs.promises.access(resolved);
-    const mime = getMimeType(resolved);
-    return reply.type(mime).send(fs.createReadStream(resolved));
   } catch {
     return reply.status(404).send({ error: "File not found in extract cache" });
   }
+  return reply.sendFile(path.basename(resolved), path.dirname(resolved));
 }
 
 async function clearExtractCache(_req: FastifyRequest, reply: FastifyReply) {
