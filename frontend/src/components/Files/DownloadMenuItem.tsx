@@ -24,22 +24,25 @@ export function DownloadMenuItem({
     href ||
     (path ? `/api/v1/fs/download?path=${encodeURIComponent(path)}` : undefined)
 
+  if (!downloadHref) {
+    return (
+      <DropdownMenuItem disabled>
+        <Download className="mr-2 size-4" />
+        {label}
+      </DropdownMenuItem>
+    )
+  }
+
   return (
-    <DropdownMenuItem
-      disabled={!downloadHref}
-      onClick={() => {
-        if (!downloadHref) return
-        const anchor = document.createElement("a")
-        anchor.href = downloadHref
-        if (name) anchor.download = name
-        document.body.appendChild(anchor)
-        anchor.click()
-        document.body.removeChild(anchor)
-        onDownloaded?.()
-      }}
-    >
-      <Download className="mr-2 size-4" />
-      {label}
+    <DropdownMenuItem asChild>
+      <a
+        href={downloadHref}
+        download={name}
+        onClick={() => onDownloaded?.()}
+      >
+        <Download className="mr-2 size-4" />
+        {label}
+      </a>
     </DropdownMenuItem>
   )
 }

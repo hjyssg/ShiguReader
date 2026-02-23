@@ -106,6 +106,10 @@ function Video() {
 
   const clearProgress = () => localStorage.removeItem(progressStorageKey)
 
+  const downloadHref = entry
+    ? `${OpenAPI.BASE}/api/v1/fs/archive/file?path=${encodeURIComponent(path)}&entry=${encodeURIComponent(entry)}`
+    : undefined
+
   const recordOpenedHistory = () => {
     if (!path) return
     recordHistory({ filepath: path })
@@ -130,7 +134,11 @@ function Video() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
-              <DownloadMenuItem path={path} name={fileName} />
+              <DownloadMenuItem
+                path={entry ? undefined : path}
+                href={downloadHref}
+                name={fileName}
+              />
               <DropdownMenuItem onClick={() => setRenameOpen(true)}>
                 <Pencil className="mr-2 size-4" />
                 Rename
