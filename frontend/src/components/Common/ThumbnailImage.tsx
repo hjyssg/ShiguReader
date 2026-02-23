@@ -1,5 +1,6 @@
 // 缩略图组件，支持加载状态和错误处理
-import { useEffect, useRef, useState } from "react"
+// 使用 IntersectionObserver 实现视口内才加载，避免大量缩略图同时请求
+import { useCallback, useEffect, useRef, useState } from "react"
 import { CardThumbnail } from "@/components/semantic/layout"
 import { Skeleton } from "@/components/ui/skeleton"
 import { cn } from "@/lib/utils"
@@ -13,6 +14,7 @@ type ThumbnailImageProps = {
 
 /**
  * 共享的缩略图组件，支持加载状态和错误处理
+ * - 使用 IntersectionObserver 精确控制：只有进入视口附近才设置真实 src
  * - 使用 ref 缓存已加载的图片，避免重复加载
  * - 图片始终可见，Skeleton 只作为背景提示
  */
@@ -24,29 +26,58 @@ export function ThumbnailImage({
 }: ThumbnailImageProps) {
   const [isLoaded, setIsLoaded] = useState(false)
   const [hasError, setHasError] = useState(false)
+  const [isInView, setIsInView] = useState(false)
   const loadedSrcsRef = useRef<Set<string>>(new Set())
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  // IntersectionObserver：进入视口 200px 范围内才标记可见
+  useEffect(() => {
+    const el = containerRef.current
+    if (!el) return
+
+    // 已加载过的 src 直接标记可见，跳过 observer
+    if (loadedSrcsRef.current.has(src)) {
+      setIsInView(true)
+      return
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsInView(true)
+          observer.disconnect()
+        }
+      },
+      { rootMargin: "200px" },
+    )
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [src])
 
   useEffect(() => {
-    // 如果这个 src 已经加载过，直接标记为已加载
     if (loadedSrcsRef.current.has(src)) {
       setIsLoaded(true)
       setHasError(false)
       return
     }
-
-    // 否则重置状态
     setIsLoaded(false)
     setHasError(false)
   }, [src])
 
-  const handleLoad = () => {
+  // src 变化时重置 inView（新图片需要重新判断是否在视口内）
+  useEffect(() => {
+    if (loadedSrcsRef.current.has(src)) return
+    setIsInView(false)
+  }, [src])
+
+  const handleLoad = useCallback(() => {
     setIsLoaded(true)
     loadedSrcsRef.current.add(src)
-  }
+  }, [src])
 
-  const handleError = () => {
+  const handleError = useCallback(() => {
     setHasError(true)
-  }
+  }, [])
 
   if (hasError) {
     return (
@@ -57,18 +88,19 @@ export function ThumbnailImage({
   }
 
   return (
-    <CardThumbnail className={cn("thumbnail-container", className)}>
+    <CardThumbnail ref={containerRef} className={cn("thumbnail-container", className)}>
       {!isLoaded && (
         <Skeleton className="absolute inset-0 size-full rounded-none" />
       )}
-      <img
-        src={src}
-        alt={alt}
-        className="size-full object-contain"
-        loading="lazy"
-        onLoad={handleLoad}
-        onError={handleError}
-      />
+      {isInView && (
+        <img
+          src={src}
+          alt={alt}
+          className="size-full object-contain"
+          onLoad={handleLoad}
+          onError={handleError}
+        />
+      )}
     </CardThumbnail>
   )
 }

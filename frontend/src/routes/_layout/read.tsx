@@ -315,19 +315,40 @@ function ReadPage() {
   }, [path, isFolderSource])
 
   useEffect(() => {
-    // When the actual image URL changes, we mark it as not loaded yet to trigger skeleton or overlay logic
-    // But we don't necessarily want to hide the OLD image immediately if we want a smooth transition.
-    // For now, let's keep it simple: only reset if the path actually changed significantly (e.g. entry path)
     setImageLoaded(false)
   }, [currentEntry?.entryPath, currentEntry?.filePath])
 
-  // Preloading logic
+  // ── 快速翻页 debounce：页码立即更新，但图片 src 延迟 150ms 才设置 ──
+  // 快速连续翻页时，中间页的图片请求会被跳过，只加载最终停下来的那一页
+  const [settledPage, setSettledPage] = useState(currentPage)
+  const settleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
   useEffect(() => {
-    if (totalPages <= 1) return
+    if (settleTimerRef.current) clearTimeout(settleTimerRef.current)
+    settleTimerRef.current = setTimeout(() => {
+      setSettledPage(currentPage)
+    }, 150)
+    return () => {
+      if (settleTimerRef.current) clearTimeout(settleTimerRef.current)
+    }
+  }, [currentPage])
+
+  // 构建当前应该加载的图片 URL（基于 debounced settledPage）
+  const settledEntry = imageEntries[settledPage]
+  const settledImageUrl = useMemo(() => {
+    if (!settledEntry) return undefined
+    return isFolderSource
+      ? `${OpenAPI.BASE}/api/v1/fs/file?path=${encodeURIComponent(settledEntry.filePath || "")}`
+      : `${OpenAPI.BASE}/api/v1/fs/archive/file?path=${encodeURIComponent(path)}&entry=${encodeURIComponent(settledEntry.entryPath || "")}`
+  }, [settledEntry, isFolderSource, path])
+
+  // Preloading logic — 也基于 settledPage，避免快速翻页时预加载中间页
+  useEffect(() => {
+    if (totalPages <= 1 || !settledImageUrl) return
 
     const preloadIndices = [
-      wrapPageIndex(currentPage + 1, totalPages),
-      wrapPageIndex(currentPage - 1, totalPages),
+      wrapPageIndex(settledPage + 1, totalPages),
+      wrapPageIndex(settledPage - 1, totalPages),
     ]
 
     preloadIndices.forEach((idx) => {
@@ -341,7 +362,7 @@ function ReadPage() {
       const img = new Image()
       img.src = url
     })
-  }, [currentPage, totalPages, imageEntries, isFolderSource, path])
+  }, [settledPage, totalPages, imageEntries, isFolderSource, path, settledImageUrl])
 
 
   // 只在打开文件时记录一次阅读历史，不再每翻一页都记录
@@ -711,9 +732,13 @@ function ReadPage() {
     )
   }
 
+  // imageUrl 用于 key（立即切换 DOM），actualSrc 用于真正的 src（debounced）
   const imageUrl = isFolderSource
     ? `${OpenAPI.BASE}/api/v1/fs/file?path=${encodeURIComponent(currentEntry.filePath || "")}`
     : `${OpenAPI.BASE}/api/v1/fs/archive/file?path=${encodeURIComponent(path)}&entry=${encodeURIComponent(currentEntry.entryPath || "")}`
+
+  // 实际传给 <img src> 的 URL：只有当 settledPage 追上 currentPage 时才设置
+  const actualImageSrc = settledPage === currentPage ? settledImageUrl : undefined
 
   // 图片加载失败时的重试处理
   // 压缩包文件可能还在后台解压中，404 时自动重试（最多 5 次，递增延迟）
@@ -724,10 +749,10 @@ function ReadPage() {
     const maxRetries = 5
     if (retryCount < maxRetries) {
       img.dataset.retry = String(retryCount + 1)
-      // 递增延迟 1s, 2s, 3s, 4s, 5s
+      const retryUrl = settledImageUrl || imageUrl
       setTimeout(
         () => {
-          img.src = `${imageUrl}${imageUrl.includes("?") ? "&" : "?"}_t=${Date.now()}`
+          img.src = `${retryUrl}${retryUrl.includes("?") ? "&" : "?"}_t=${Date.now()}`
         },
         1000 * (retryCount + 1),
       )
@@ -966,22 +991,23 @@ function ReadPage() {
           </div>
         )}
 
-        <img
-          key={imageUrl} // Use key to force re-render/smooth transition trigger if needed, though here we want content to swap
-
-          src={canRequestImage ? imageUrl : undefined}
-          alt={currentEntry.name}
-          onMouseDown={onMouseDown}
-          onError={handleImageError}
-          onLoad={handleImageLoad}
-          draggable={false}
-          className={`reader-image-stage__image ${imageLoaded ? "reader-image-stage__image--loaded" : ""}`}
-          style={{
-            transform: `translate(${translate.x}px, ${translate.y}px) scale(${scale}) rotate(${rotation}deg)`,
-            cursor: isDragging ? "grabbing" : "grab",
-            transition: isDragging ? "none" : "transform 120ms ease-out, opacity 0.3s ease-in-out",
-          }}
-        />
+        {canRequestImage && actualImageSrc && (
+          <img
+            // key={actualImageSrc}
+            src={actualImageSrc}
+            alt={currentEntry.name}
+            onMouseDown={onMouseDown}
+            onError={handleImageError}
+            onLoad={handleImageLoad}
+            draggable={false}
+            className={`reader-image-stage__image ${imageLoaded ? "reader-image-stage__image--loaded" : ""}`}
+            style={{
+              transform: `translate(${translate.x}px, ${translate.y}px) scale(${scale}) rotate(${rotation}deg)`,
+              cursor: isDragging ? "grabbing" : "grab",
+              transition: isDragging ? "none" : "transform 120ms ease-out, opacity 0.3s ease-in-out",
+            }}
+          />
+        )}
 
 
         <button
