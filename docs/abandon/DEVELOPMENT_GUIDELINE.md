@@ -158,3 +158,38 @@ export function FileItem({ item }: { item: FileSystemItem }) {
 
 - 代码注释用中文
 - 多个功能的时候完成一个功能git commit一次
+
+---
+
+## ⚠️ 前端下载链接 / 直接导航请求必须用完整 URL
+
+**踩坑记录（Codex 写错，Sonnet 救场）**
+
+### 问题
+
+`<a href="/api/v1/fs/download-full?path=...">` 用的是相对路径。
+
+- JS `fetch` / axios 请求：走 `OpenAPI.BASE`（`http://localhost:8000`），直接打到后端 ✅
+- `<a href>` / `window.location` / `window.open` 等浏览器原生导航：走当前页面 origin（`http://localhost:5173`，Vite dev server），**没有 proxy**，Vite 返回 SPA 的 `index.html`（1kb）❌
+
+结果：下载到的文件永远是 1kb 的 HTML，不是真实文件。
+
+### 根本原因
+
+Vite dev server 的 proxy 只代理 `fetch`/XHR 请求，**不代理浏览器原生导航**（`<a href>`、`<form action>`、`window.location.href` 等）。
+
+### 正确写法
+
+凡是需要浏览器直接导航的 URL（下载链接、新窗口打开等），必须用 `OpenAPI.BASE` 拼完整地址：
+
+```tsx
+import { OpenAPI } from "@/client"
+
+// ❌ 错误：相对路径，dev 环境打到 Vite，返回 SPA
+<a href={`/api/v1/fs/download-full?path=${encodeURIComponent(path)}`} download>
+
+// ✅ 正确：完整 URL，直接打到后端
+<a href={`${OpenAPI.BASE}/api/v1/fs/download-full?path=${encodeURIComponent(path)}`} download>
+```
+
+`OpenAPI.BASE` 在 dev 环境是 `http://localhost:8000`，生产环境（后端同源托管）是当前 origin，两种场景都正确。

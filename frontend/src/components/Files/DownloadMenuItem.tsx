@@ -1,9 +1,10 @@
 import { Download } from "lucide-react"
 
+import { OpenAPI } from "@/client"
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu"
 
 interface DownloadMenuItemProps {
-  /** 走 /api/v1/fs/download 的文件路径 */
+  /** 走 /api/v1/fs/download-full 的文件路径 */
   path?: string
   /** 自定义下载地址（如压缩包内 entry） */
   href?: string
@@ -18,11 +19,11 @@ export function DownloadMenuItem({
   href,
   name,
   label = "Download",
-  onDownloaded,
+  onDownloaded: _onDownloaded,
 }: DownloadMenuItemProps) {
   const downloadHref =
     href ||
-    (path ? `/api/v1/fs/download?path=${encodeURIComponent(path)}` : undefined)
+    (path ? `${OpenAPI.BASE}/api/v1/fs/download-full?path=${encodeURIComponent(path)}` : undefined)
 
   if (!downloadHref) {
     return (
@@ -38,7 +39,6 @@ export function DownloadMenuItem({
       <a
         href={downloadHref}
         download={name}
-        onClick={() => onDownloaded?.()}
       >
         <Download className="mr-2 size-4" />
         {label}

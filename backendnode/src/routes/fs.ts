@@ -506,6 +506,46 @@ async function downloadFile(
   }
 }
 
+/**
+ * 下载完整文件（attachment）
+ *
+ * 与 `serveFile` 的区别：
+ * - 设置 `Content-Disposition: attachment`，浏览器触发"另存为"对话框
+ * - 用于用户主动下载文件到本地
+ *
+ * 使用 `reply.sendFile(basename, rootDir)` 而非 `reply.download()`，
+ * 因为 `reply.download()` 的第二个参数是 options 对象，不支持传 rootPath。
+ */
+async function downloadFileFull(
+  req: FastifyRequest<{ Querystring: { path: string } }>,
+  reply: FastifyReply
+) {
+  const { path: filePath } = req.query;
+  if (!filePath) return reply.status(400).send({ error: "path is required" });
+
+  try {
+    await fs.promises.access(filePath);
+    observeFilePresence(filePath, true);
+  } catch {
+    observeFilePresence(filePath, false);
+    return reply.status(404).send({ error: "File not found" });
+  }
+
+  // reply.sendFile(basename, rootDir) 正确覆盖 root，@fastify/static 会自动设置 Content-Length
+  reply.header(
+    "Content-Disposition",
+    `attachment; filename*=UTF-8''${encodeURIComponent(path.basename(filePath))}`
+  );
+  return reply.sendFile(path.basename(filePath), path.dirname(filePath));
+}
+
+/**
+ * 内联返回文件流（inline）
+ *
+ * 与 `downloadFileFull` 的区别：
+ * - 不设置 `Content-Disposition`，浏览器直接展示内容（图片预览、视频播放等）
+ * - 用于在线阅读/预览场景，不触发下载对话框
+ */
 async function serveFile(
   req: FastifyRequest<{ Querystring: { path: string } }>,
   reply: FastifyReply
@@ -969,6 +1009,7 @@ export async function fsRoutes(app: FastifyInstance) {
   app.delete("/delete", { schema: { summary: "删除文件或文件夹（回收站/永久）", tags: ["文件操作"] } }, deleteItem);
   app.post("/rename", { schema: { summary: "重命名文件或文件夹", tags: ["文件操作"] } }, renameItem);
   app.get("/download", { schema: { summary: "下载文件（attachment）", tags: ["文件操作"] } }, downloadFile);
+  app.get("/download-full", { schema: { summary: "下载完整文件（带 Content-Length）", tags: ["文件操作"] } }, downloadFileFull);
   app.get("/file", { schema: { summary: "直接返回文件流（inline）", tags: ["文件操作"] } }, serveFile);
   app.post("/mkdir", { schema: { summary: "创建目录（递归）", tags: ["文件操作"] } }, ensureDir);
   app.get("/resolve-path", { schema: { summary: "解析路径并检查是否存在", tags: ["文件操作"] } }, resolvePath);
