@@ -11,7 +11,8 @@ import {
   useState,
 } from "react"
 
-import type { FileSystemItem } from "@/client"
+import { useQuery } from "@/shims/react-query"
+import { OpenAPI, type FileSystemItem } from "@/client"
 import {
   ResponsiveGrid,
   Toolbar,
@@ -240,6 +241,22 @@ export function FileViewContainer({
   const selection = useFileSelection()
   const { openItem, openItemInNewTab, isOpenable } = useFileNavigation()
   const operations = useFileOperations(currentPath)
+  const { data: favoriteRoot } = useQuery({
+    queryKey: ["fs-favorite"],
+    queryFn: async (): Promise<{ path: string; dirname: string } | null> => {
+      const response = await fetch(`${OpenAPI.BASE}/api/v1/fs/favorite-folder`)
+      if (!response.ok) return null
+      return response.json()
+    },
+  })
+  const { data: alreadyReadRoot } = useQuery({
+    queryKey: ["fs-already-read"],
+    queryFn: async (): Promise<{ path: string; dirname: string } | null> => {
+      const response = await fetch(`${OpenAPI.BASE}/api/v1/fs/already-read-folder`)
+      if (!response.ok) return null
+      return response.json()
+    },
+  })
 
   // Dialog state
   const [renameDialogOpen, setRenameDialogOpen] = useState(false)
@@ -823,6 +840,7 @@ export function FileViewContainer({
         onOpenChange={setConfirmFavoriteOpen}
         filePaths={getTargetPaths()}
         destination="Favorites"
+        destinationPath={favoriteRoot?.path}
         showSubfolder
         onConfirm={handleConfirmMoveToFavorite}
         isPending={operations.moveToFavoriteMutation.isPending}
@@ -832,6 +850,7 @@ export function FileViewContainer({
         onOpenChange={setConfirmAlreadyReadOpen}
         filePaths={getTargetPaths()}
         destination="Already Read"
+        destinationPath={alreadyReadRoot?.path}
         onConfirm={handleConfirmMoveToAlreadyRead}
         isPending={operations.moveToAlreadyReadMutation.isPending}
       />

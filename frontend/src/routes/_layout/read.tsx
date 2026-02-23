@@ -1,6 +1,6 @@
 /**
  * 图片阅读器 - 支持压缩包和文件夹图片浏览，带缩放、旋转、拖拽功能 */
-import { useMutation } from "@/shims/react-query"
+import { useMutation, useQuery } from "@/shims/react-query"
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router"
 import {
   BookCheck,
@@ -96,6 +96,22 @@ function ReadPage() {
   // File operations state
   const parentPath = getParentPath(path)
   const operations = useFileOperations(parentPath)
+  const { data: favoriteRoot } = useQuery({
+    queryKey: ["fs-favorite"],
+    queryFn: async (): Promise<{ path: string; dirname: string } | null> => {
+      const response = await fetch(`${OpenAPI.BASE}/api/v1/fs/favorite-folder`)
+      if (!response.ok) return null
+      return response.json()
+    },
+  })
+  const { data: alreadyReadRoot } = useQuery({
+    queryKey: ["fs-already-read"],
+    queryFn: async (): Promise<{ path: string; dirname: string } | null> => {
+      const response = await fetch(`${OpenAPI.BASE}/api/v1/fs/already-read-folder`)
+      if (!response.ok) return null
+      return response.json()
+    },
+  })
   const navigateToMovedPath = (movedPath?: string | null) => {
     const nextPath = movedPath || path
     navigate({
@@ -1233,6 +1249,7 @@ function ReadPage() {
         onOpenChange={setConfirmFavOpen}
         filePaths={[path]}
         destination="Favorites"
+        destinationPath={favoriteRoot?.path}
         showSubfolder
         onConfirm={(subfolder) => {
           operations.moveToFavoriteMutation.mutate(
@@ -1252,6 +1269,7 @@ function ReadPage() {
         onOpenChange={setConfirmReadOpen}
         filePaths={[path]}
         destination="Already Read"
+        destinationPath={alreadyReadRoot?.path}
         onConfirm={() => {
           operations.moveToAlreadyReadMutation.mutate(
             { sourcePath: path, isFolder: isFolderSource },

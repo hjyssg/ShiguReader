@@ -28,6 +28,7 @@ interface ConfirmMoveDialogProps {
   onOpenChange: (open: boolean) => void
   filePaths: string[]
   destination: string
+  destinationPath?: string
   /** 是否显示子文件夹选项（仅 Favorites 需要） */
   showSubfolder?: boolean
   onConfirm: (subfolder?: string) => void
@@ -39,6 +40,7 @@ export function ConfirmMoveDialog({
   onOpenChange,
   filePaths,
   destination,
+  destinationPath,
   showSubfolder = false,
   onConfirm,
   isPending,
@@ -47,6 +49,7 @@ export function ConfirmMoveDialog({
   const names = filePaths.slice(0, 3).map((p) => getBaseName(p))
   const displayNames =
     count > 3 ? `${names.join(", ")} and ${count - 3} more` : names.join(", ")
+  const destinationText = destinationPath?.trim() || destination
 
   const [useSubfolder, setUseSubfolder] = useState(true)
   const [subfolder, setSubfolder] = useState(defaultSubfolder)
@@ -63,11 +66,11 @@ export function ConfirmMoveDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-xl">
         <DialogHeader>
-          <DialogTitle>Move to {destination}</DialogTitle>
+          <DialogTitle>Move to destination folder</DialogTitle>
           <DialogDescription className="break-all whitespace-normal">
             Are you sure you want to move{" "}
             {count === 1 ? `"${displayNames}"` : `${count} items`} to{" "}
-            {destination}?
+            "{destinationText}"?
           </DialogDescription>
         </DialogHeader>
 
