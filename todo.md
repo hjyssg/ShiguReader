@@ -112,3 +112,23 @@ audio
 
 2
 从reader打开exlorer要是默认table view。用文件名排序。如果explorer支持这mode的url参数，你要追加。
+
+-------------
+有的图片因为解码的缘故，thumbnail api拿不到它的缩略图。但是 api/v1/fs/archive/extract  的时候，顺便检查一下有没有thumbnail。如果没有顺手补上
+
+
+-----------
+move的dialog不能只显示dest的folder name，是显示folder path。
+
+-------------
+生成thumbnail的时候要过滤掉 ._2.jpg 这种假/hidden文件。
+
+参考代码
+const isHiddenFile function (f) {
+    const temp = path.basename(f);
+    return temp && temp[0] === ".";
+}
+
+
+/api/v1/fs/archive/list 
+/api/v1/fs/listdir 也需要需要过滤掉
