@@ -57,6 +57,10 @@ export const Route = createFileRoute("/_layout/explorer")({
     const rawSortOrder = String(search.sortOrder || "")
     const rawViewMode = String(search.viewMode || "")
 
+    const resolvedViewMode = viewModeCandidates.includes(rawViewMode as ViewMode)
+      ? (rawViewMode as ViewMode)
+      : undefined
+
     return {
       path: (search.path as string) || "",
       page,
@@ -67,9 +71,7 @@ export const Route = createFileRoute("/_layout/explorer")({
       sortOrder: sortOrderCandidates.includes(rawSortOrder as SortOrder)
         ? (rawSortOrder as SortOrder)
         : "desc",
-      viewMode: viewModeCandidates.includes(rawViewMode as ViewMode)
-        ? (rawViewMode as ViewMode)
-        : undefined,
+      ...(resolvedViewMode !== undefined ? { viewMode: resolvedViewMode } : {}),
     }
   },
   head: () => ({

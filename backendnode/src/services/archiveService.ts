@@ -228,7 +228,9 @@ export async function stepwiseExtract(
   // Phase 1: current page ± 2 (synchronous)
   const phase1Start = Math.max(0, currentPage - 2);
   const phase1End = Math.min(total - 1, currentPage + 2);
-  const phase1Entries = entries.slice(phase1Start, phase1End + 1);
+  const phase1Entries = entries
+    .slice(phase1Start, phase1End + 1)
+    .filter(e => !isAlreadyExtracted(cacheDir, e.path));
 
   inProgress.add(archivePath);
   try {

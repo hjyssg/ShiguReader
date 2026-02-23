@@ -75,6 +75,15 @@ export function buildApp() {
   // ── Compatibility aliases (Tampermonkey script uses /api/search/...) ───────
   app.post("/api/search/quick-match-batch", quickMatchBatchHandler);
 
+  // ── Global error handler (dev-friendly: includes stack trace) ─────────────
+  app.setErrorHandler((error, _req, reply) => {
+    const status = (error as { statusCode?: number }).statusCode ?? 500;
+    reply.status(status).send({
+      error: error.message,
+      stack: error.stack,
+    });
+  });
+
   // ── Health ─────────────────────────────────────────────────────────────────
   app.get("/health", async () => ({ status: "ok", project: config.PROJECT_NAME }));
   // Frontend SDK calls /api/v1/utils/health-check/

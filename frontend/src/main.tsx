@@ -1,6 +1,5 @@
 import { createRouter, RouterProvider } from "@tanstack/react-router"
 import qs from "qs"
-import { StrictMode } from "react"
 import ReactDOM from "react-dom/client"
 import { OpenAPI } from "./client"
 import { ThemeProvider } from "./components/theme-provider"
@@ -79,10 +78,8 @@ declare module "@tanstack/react-router" {
 }
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
-  <StrictMode>
-    <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
-        <RouterProvider router={router} />
-        <Toaster richColors closeButton />
-    </ThemeProvider>
-  </StrictMode>,
+  <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+      <RouterProvider router={router} />
+      <Toaster richColors closeButton />
+  </ThemeProvider>,
 )
