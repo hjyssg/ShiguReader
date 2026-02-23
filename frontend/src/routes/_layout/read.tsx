@@ -496,7 +496,7 @@ function ReadPage() {
   const sizeText = currentPathMeta?.filesize
     ? formatFileSize(currentPathMeta.filesize)
     : "-"
-  // 优先�?extractMutation 实时返回的值，fallback 到父目录列表�?DB 缓存
+  // 优先用 extractMutation 实时返回的值，fallback 到父目录列表的 DB 缓存
   const avgImageSize = extractStatus?.avg_image_size ?? currentPathMeta?.avg_image_size ?? null
   const avgImageSizeText = avgImageSize != null ? formatFileSize(avgImageSize) : "-"
   const archiveVideoCount = currentPathMeta?.video_count ?? 0
@@ -505,7 +505,8 @@ function ReadPage() {
   const cosers = parseMeta?.cosers ?? []
   const tags = parseMeta?.raw_tags ?? []
 
-  // 文件被移动后自动跳转新路�?  const hasError = loadError
+  // 文件被移动后自动跳转新路径
+  const hasError = loadError
   const { resolving, isNotFound, errorMessage } = useResolveMovedFile(
     path,
     hasError ? loadError : null,
@@ -641,8 +642,8 @@ function ReadPage() {
   }
 
   if (!currentEntry) {
-    // 无图片提�?   
-     return (
+    // 无图片提示
+    return (
       <div className="reader-empty-page">
         <PathBreadcrumb
           sourcePath={path}
@@ -723,7 +724,7 @@ function ReadPage() {
     : `${OpenAPI.BASE}/api/v1/fs/archive/file?path=${encodeURIComponent(path)}&entry=${encodeURIComponent(currentEntry.entryPath || "")}`
 
   // 图片加载失败时的重试处理
-  // 压缩包文件可能还在后台解压中�?04 时自动重试（最�?5 次，递增延迟�?  
+  // 压缩包文件可能还在后台解压中，404 时自动重试（最多 5 次，递增延迟）
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
     const img = e.currentTarget
     setImageLoaded(false)
@@ -731,7 +732,7 @@ function ReadPage() {
     const maxRetries = 5
     if (retryCount < maxRetries) {
       img.dataset.retry = String(retryCount + 1)
-      // 递增延迟�?s, 2s, 3s, 4s, 5s
+      // 递增延迟 1s, 2s, 3s, 4s, 5s
       setTimeout(
         () => {
           img.src = `${imageUrl}${imageUrl.includes("?") ? "&" : "?"}_t=${Date.now()}`
@@ -741,7 +742,7 @@ function ReadPage() {
     }
   }
 
-  // 图片加载成功时重置重试计�? 
+  // 图片加载成功时重置重试计数
   const handleImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
     e.currentTarget.dataset.retry = "0"
     setImageLoaded(true)
@@ -768,7 +769,7 @@ function ReadPage() {
 
   return (
     <div className="reader-page">
-      {/* ── 顶部工具栏：面包屑导�?+ 旋转/全屏/模式切换/文件操作菜单 ── */}
+      {/* ── 顶部工具栏：面包屑导航 + 旋转/全屏/模式切换/文件操作菜单 ── */}
       <nav className="reader-toolbar">
         <div className="reader-toolbar__left">
           <PathBreadcrumb
@@ -791,7 +792,7 @@ function ReadPage() {
           />
         </div>
 
-        {/* 右侧：工�?*/}
+        {/* 右侧：工具栏 */}
         <div className="reader-toolbar__right">
           <div className="reader-toolbar__actions">
             {/* <Button
@@ -956,7 +957,7 @@ function ReadPage() {
         </div>
       </nav>
 
-      {/* ── 图片主舞台：支持鼠标拖拽平移、滚轮缩放、左右翻页按钮、解压进度指�?── */}
+      {/* ── 图片主舞台：支持鼠标拖拽平移、滚轮缩放、左右翻页按钮、解压进度指示 ── */}
       <div
         className="reader-image-stage"
         onMouseMove={onMouseMove}
@@ -1016,11 +1017,11 @@ function ReadPage() {
         )}
       </div>
 
-      {/* ── 底部 meta 栏：文件信息（时�?大小/均图大小/视频音频数）+ 作�?coser/tag 可点击跳搜索 + 页码 ── */}
+      {/* ── 底部 meta 栏：文件信息（时间/大小/均图大小/视频音频数）+ 作者/coser/tag 可点击跳搜索 + 页码 ── */}
       <div className="reader-meta-bar">
         <div className="reader-meta-bar__left">
           <div className="reader-meta-bar__row">
-            {/* 文件元数据：hover title 显示 label，只展示�?*/}
+            {/* 文件元数据：hover title 显示 label，只展示值 */}
             <span title={t("reader.mtime")} className="text-foreground cursor-default">{mtimeText}</span>
             <span title={t("reader.size")} className="text-foreground cursor-default">{sizeText}</span>
             <span title={t("reader.avgImageSize")} className="text-foreground cursor-default">{avgImageSizeText}</span>
