@@ -109,6 +109,7 @@ describe("listEntries", () => {
         ".DS_Store",
         "page001.jpg",
         ".hidden.jpg",
+        "._2.jpg",
       ]),
       stderr: "",
     });

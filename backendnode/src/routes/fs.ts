@@ -23,6 +23,7 @@ import { parseName } from "../utils/nameParser.js";
 import trash from "trash";
 import { refreshAllRecScores } from "../services/recService.js";
 import { logger } from "../logger.js";
+import { isHiddenFile } from "../utils/fileFilters.js";
 
 const execFileAsync = promisify(execFile);
 
@@ -106,9 +107,10 @@ async function listDirectory(
 
   try {
     const entries = await fs.promises.readdir(dirPath, { withFileTypes: true });
+    const visibleEntries = entries.filter(entry => !isHiddenFile(entry.name));
     // Parallel stat for all entries
     const statResults = await Promise.all(
-      entries.map(async (entry) => {
+      visibleEntries.map(async (entry) => {
         const fullPath = path.join(dirPath, entry.name);
         try {
           const entryStat = await fs.promises.stat(fullPath);

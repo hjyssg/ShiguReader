@@ -17,6 +17,7 @@ import { config } from "../config.js";
 import { getFileType } from "../utils/fileType.js";
 import { IMAGE_SUFFIXES } from "../constants.js";
 import { get7z, getMagick, getFfmpeg } from "../utils/tools.js";
+import { isHiddenFile } from "../utils/fileFilters.js";
 
 const execFileAsync = promisify(execFile);
 
@@ -70,7 +71,7 @@ async function generateArchiveThumb(archivePath: string, outputPath: string): Pr
         currentPath = pathMatch[1].trim();
       } else if (line.trim() === "" && currentPath !== null) {
         const ext = path.extname(currentPath).toLowerCase();
-        if (IMAGE_EXTS.has(ext)) {
+        if (IMAGE_EXTS.has(ext) && !isHiddenFile(currentPath)) {
           firstImageEntry = currentPath;
           break;
         }
@@ -80,7 +81,7 @@ async function generateArchiveThumb(archivePath: string, outputPath: string): Pr
     // Handle last entry without trailing blank line
     if (!firstImageEntry && currentPath !== null) {
       const ext = path.extname(currentPath).toLowerCase();
-      if (IMAGE_EXTS.has(ext)) firstImageEntry = currentPath;
+      if (IMAGE_EXTS.has(ext) && !isHiddenFile(currentPath)) firstImageEntry = currentPath;
     }
 
     if (!firstImageEntry) throw new Error(`No image found in archive: ${archivePath}`);
@@ -120,7 +121,7 @@ function findFirstImageInDir(dir: string): string | null {
     const sorted = entries.slice().sort((a, b) => a.name.localeCompare(b.name));
     for (const e of sorted) {
       const full = path.join(dir, e.name);
-      if (e.isFile() && IMAGE_EXTS.has(path.extname(e.name).toLowerCase())) return full;
+      if (e.isFile() && IMAGE_EXTS.has(path.extname(e.name).toLowerCase()) && !isHiddenFile(e.name)) return full;
       if (e.isDirectory()) {
         const found = findFirstImageInDir(full);
         if (found) return found;

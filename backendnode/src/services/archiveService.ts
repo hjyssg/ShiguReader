@@ -14,6 +14,7 @@ import { config } from "../config.js";
 import { IMAGE_SUFFIXES, VIDEO_SUFFIXES, AUDIO_SUFFIXES } from "../constants.js";
 import { logger } from "../logger.js";
 import { get7z, getMagick } from "../utils/tools.js";
+import { isHiddenFile } from "../utils/fileFilters.js";
 
 const execFileAsync = promisify(execFile);
 
@@ -28,7 +29,7 @@ const IGNORE_PREFIXES = ["__MACOSX/", ".git/"];
 function shouldIgnore(entryPath: string): boolean {
   const name = path.basename(entryPath);
   if (IGNORE_NAMES.has(name)) return true;
-  if (name.startsWith(".")) return true;
+  if (isHiddenFile(name)) return true;
   for (const prefix of IGNORE_PREFIXES) {
     if (entryPath.startsWith(prefix) || entryPath.includes("/" + prefix)) return true;
   }

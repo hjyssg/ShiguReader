@@ -69,6 +69,7 @@ const fakeStat = async (p: string): Promise<Partial<fs.Stats>> => {
   if (isTestChild(p, "sub"))         return { isDirectory: () => true,  isFile: () => false, size: 0,    mtimeMs: 1700000000000 };
   if (isTestChild(p, "file.zip"))    return { isDirectory: () => false, isFile: () => true,  size: 1024, mtimeMs: 1700000000000 };
   if (isTestChild(p, "img.jpg"))     return { isDirectory: () => false, isFile: () => true,  size: 512,  mtimeMs: 1700000000000 };
+  if (isTestChild(p, "._2.jpg"))     return { isDirectory: () => false, isFile: () => true,  size: 12,   mtimeMs: 1700000000000 };
   throw Object.assign(new Error("ENOENT"), { code: "ENOENT" });
 };
 
@@ -78,13 +79,14 @@ const fakeReaddir = async (p: string): Promise<unknown[]> => {
       { name: "sub",      isDirectory: () => true,  isFile: () => false, isSymbolicLink: () => false },
       { name: "file.zip", isDirectory: () => false, isFile: () => true,  isSymbolicLink: () => false },
       { name: "img.jpg",  isDirectory: () => false, isFile: () => true,  isSymbolicLink: () => false },
+      { name: "._2.jpg", isDirectory: () => false, isFile: () => true,  isSymbolicLink: () => false },
     ];
   }
   return [];
 };
 
 const fakeAccess = async (p: string): Promise<void> => {
-  if (isTestDir(p) || isTestChild(p, "sub") || isTestChild(p, "file.zip") || isTestChild(p, "img.jpg")) return;
+  if (isTestDir(p) || isTestChild(p, "sub") || isTestChild(p, "file.zip") || isTestChild(p, "img.jpg") || isTestChild(p, "._2.jpg")) return;
   throw Object.assign(new Error("ENOENT"), { code: "ENOENT" });
 };
 
@@ -147,6 +149,8 @@ describe("GET /api/v1/fs/listdir", () => {
     const names = body.items.map((i: { name: string }) => i.name);
     // folder "sub" should come before files
     expect(names.indexOf("sub")).toBeLessThan(names.indexOf("file.zip"));
+    // hidden file should be filtered
+    expect(names).not.toContain("._2.jpg");
   });
 
   it("assigns correct item_type and file_type", async () => {
