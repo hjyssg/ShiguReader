@@ -90,6 +90,6 @@ async function parseBatch(
 }
 
 export async function parseRoutes(app: FastifyInstance) {
-  app.get("", parseSingle);
-  app.post("/batch", parseBatch);
+  app.get("", { schema: { summary: "解析单个文件名元数据（作者/标签/标题）", tags: ["解析"] } }, parseSingle);
+  app.post("/batch", { schema: { summary: "批量解析文件名元数据", tags: ["解析"] } }, parseBatch);
 }

@@ -10,5 +10,5 @@ const listTags = makeListHandler({
 });
 
 export async function tagsRoutes(app: FastifyInstance) {
-  app.get("", listTags);
+  app.get("", { schema: { summary: "获取标签列表（分页，含文件数）", tags: ["标签/作者"] } }, listTags);
 }

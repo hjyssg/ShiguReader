@@ -146,7 +146,7 @@ async function verifyFiles(_req: FastifyRequest, reply: FastifyReply) {
 }
 
 export async function settingsRoutes(app: FastifyInstance) {
-  app.get("", getSettings);
-  app.put("", updateSettings);
-  app.post("/verify-files", verifyFiles);
+  app.get("", { schema: { summary: "获取当前设置", tags: ["设置"] } }, getSettings);
+  app.put("", { schema: { summary: "更新设置（fs_roots/favorite_dir 等）", tags: ["设置"] } }, updateSettings);
+  app.post("/verify-files", { schema: { summary: "验证 DB 中文件是否存在，标记缺失", tags: ["设置"] } }, verifyFiles);
 }

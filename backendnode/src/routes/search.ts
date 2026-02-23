@@ -193,6 +193,6 @@ async function quickMatchBatch(
 export { quickMatchBatch as quickMatchBatchHandler };
 
 export async function searchRoutes(app: FastifyInstance) {
-  app.post("", searchFiles);
-  app.post("/quick-match-batch", quickMatchBatch);
+  app.post("", { schema: { summary: "搜索文件（支持文件名/作者/coser/标签）", tags: ["搜索"] } }, searchFiles);
+  app.post("/quick-match-batch", { schema: { summary: "批量快速匹配（油猴脚本用）", tags: ["搜索"] } }, quickMatchBatch);
 }

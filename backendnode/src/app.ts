@@ -1,5 +1,7 @@
 import Fastify from "fastify";
 import cors from "@fastify/cors";
+import swagger from "@fastify/swagger";
+import swaggerUi from "@fastify/swagger-ui";
 import staticPlugin from "@fastify/static";
 import fs from "node:fs";
 import path from "node:path";
@@ -28,6 +30,25 @@ export function buildApp() {
   // ── CORS ──────────────────────────────────────────────────────────────────
   app.register(cors, { origin: true, credentials: true });
 
+  // ── Swagger (API docs like FastAPI) ────────────────────────────────────────
+  app.register(swagger, {
+    openapi: {
+      info: {
+        title: "ShiguReader API",
+        description: "ShiguReader backend API — 类似 FastAPI 的交互式文档",
+        version: "1.0.0",
+      },
+      servers: [{ url: `http://localhost:${config.PORT}` }],
+    },
+  });
+  app.register(swaggerUi, {
+    routePrefix: "/docs",
+    uiConfig: {
+      docExpansion: "list",
+      deepLinking: true,
+    },
+  });
+
   // ── @fastify/static — 注册 reply.sendFile() 装饰器 ────────────────────────
   // serve: false → 不自动托管文件，仅提供 reply.sendFile(basename, dirname)
   app.register(staticPlugin, {
@@ -48,7 +69,7 @@ export function buildApp() {
 
   // ── Thumbnail endpoint ─────────────────────────────────────────────────────
   // GET /api/v1/fs/thumb?path=<absolute-path>
-  app.get(`${config.API_V1_STR}/fs/thumb`, async (req, reply) => {
+  app.get(`${config.API_V1_STR}/fs/thumb`, { schema: { summary: "获取文件缩略图", tags: ["缩略图"] } }, async (req, reply) => {
     const { path: filePath } = req.query as { path?: string };
     if (!filePath) return reply.status(400).send({ error: "path is required" });
 
@@ -78,7 +99,7 @@ export function buildApp() {
   });
 
   // ── Compatibility aliases (Tampermonkey script uses /api/search/...) ───────
-  app.post("/api/search/quick-match-batch", quickMatchBatchHandler);
+  app.post("/api/search/quick-match-batch", { schema: { summary: "批量快速匹配（兼容别名，油猴脚本用）", tags: ["搜索"] } }, quickMatchBatchHandler);
 
   // ── Global error handler (dev-friendly: includes stack trace) ─────────────
   app.setErrorHandler((error, _req, reply) => {
@@ -90,9 +111,9 @@ export function buildApp() {
   });
 
   // ── Health ─────────────────────────────────────────────────────────────────
-  app.get("/health", async () => ({ status: "ok", project: config.PROJECT_NAME }));
+  app.get("/health", { schema: { summary: "健康检查", tags: ["系统"] } }, async () => ({ status: "ok", project: config.PROJECT_NAME }));
   // Frontend SDK calls /api/v1/utils/health-check/
-  app.get(`${config.API_V1_STR}/utils/health-check/`, async () => true);
+  app.get(`${config.API_V1_STR}/utils/health-check/`, { schema: { summary: "前端 SDK 健康检查", tags: ["系统"] } }, async () => true);
 
   // ── Serve frontend static build ────────────────────────────────────────────
   // Looks for ../frontend/dist relative to this file (dev) or dist/ (built)

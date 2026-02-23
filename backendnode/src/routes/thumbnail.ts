@@ -13,7 +13,7 @@ import { getMimeType } from "../utils/fileType.js";
 type ThumbnailQuery = { type?: string; name?: string };
 
 export async function thumbnailRoutes(app: FastifyInstance) {
-  app.get("", async (req, reply) => {
+  app.get("", { schema: { summary: "按实体名获取缩略图（tag/author/coser）", tags: ["缩略图"] } }, async (req, reply) => {
     const { type, name } = req.query as ThumbnailQuery;
     if (!type || !name) {
       return reply.status(400).send({ error: "type and name are required" });

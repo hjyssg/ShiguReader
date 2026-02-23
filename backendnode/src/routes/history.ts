@@ -48,6 +48,6 @@ async function recordHistory(
 }
 
 export async function historyRoutes(app: FastifyInstance) {
-  app.get("/list", listHistory);
-  app.post("/record", recordHistory);
+  app.get("/list", { schema: { summary: "获取阅读历史列表（分页）", tags: ["历史"] } }, listHistory);
+  app.post("/record", { schema: { summary: "记录一次阅读", tags: ["历史"] } }, recordHistory);
 }

@@ -10,5 +10,5 @@ const listCosers = makeListHandler({
 });
 
 export async function cosersRoutes(app: FastifyInstance) {
-  app.get("", listCosers);
+  app.get("", { schema: { summary: "获取 Coser 列表（分页，含文件数）", tags: ["标签/作者"] } }, listCosers);
 }
