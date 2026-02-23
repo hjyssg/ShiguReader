@@ -3,7 +3,6 @@ import {
   BookCheck,
   Check,
   CheckSquare,
-  Download,
   ExternalLink,
   FolderInput,
   FolderOpen,
@@ -25,6 +24,7 @@ import {
   DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { DownloadMenuItem } from "@/components/Files/DownloadMenuItem"
 import "./FileContextMenu.css"
 
 export interface FileContextMenuActions {
@@ -138,10 +138,11 @@ export function FileActionsDropdown({
           )}
 
           {!isFolder && (
-            <DropdownMenuItem onClick={actions.onDownload}>
-              <Download className="mr-2 size-4" />
-              Download File
-            </DropdownMenuItem>
+            <DownloadMenuItem
+              path={item.path}
+              name={item.name}
+              label="Download File"
+            />
           )}
 
           <DropdownMenuItem onClick={actions.onRename}>

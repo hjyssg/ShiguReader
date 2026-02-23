@@ -1,16 +1,29 @@
 /**
  * 视频播放器 - 支持文件系统和压缩包内视频，自动保存/恢复播放进度
  */
+import { MoreVertical, Pencil, Trash2 } from "lucide-react"
 import { createFileRoute } from "@tanstack/react-router"
 import { useMutation } from "@/shims/react-query"
-import { useMemo, useRef } from "react"
+import { useMemo, useRef, useState } from "react"
+import { useNavigate } from "@tanstack/react-router"
 
 import { OpenAPI } from "@/client"
+import { DownloadMenuItem } from "@/components/Files/DownloadMenuItem"
+import { DeleteDialog } from "@/components/Files/dialogs/DeleteDialog"
+import { RenameDialog } from "@/components/Files/dialogs/RenameDialog"
 import { ReaderMetaBar } from "@/components/Reader/ReaderMetaBar"
 import { ReaderToolbar } from "@/components/Reader/ReaderToolbar"
 import { useDocumentTitle } from "@/hooks/useDocumentTitle"
+import { useFileOperations } from "@/hooks/useFileOperations"
 import { useParentMeta } from "@/hooks/useParentMeta"
 import { getBaseName, getParentPath } from "@/lib/path-utils"
+import { Button } from "@/components/ui/button"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import "./read.css"
 
 export const Route = createFileRoute("/_layout/video")({
@@ -28,8 +41,11 @@ export const Route = createFileRoute("/_layout/video")({
 
 function Video() {
   const { path, entry } = Route.useSearch()
+  const navigate = useNavigate()
   const videoRef = useRef<HTMLVideoElement | null>(null)
   const lastSavedAtRef = useRef(0)
+  const [renameOpen, setRenameOpen] = useState(false)
+  const [deleteOpen, setDeleteOpen] = useState(false)
 
   const { mutate: recordHistory } = useMutation({
     mutationFn: async (payload: { filepath: string }) => {
@@ -57,6 +73,7 @@ function Video() {
 
   // 读取父目录元数据（用于底部 meta bar）
   const parentPath = entry ? path : getParentPath(path)
+  const operations = useFileOperations(parentPath)
   const { mtimeText, sizeText } = useParentMeta(entry ? path : path, parentPath)
 
   // 播放进度持久化（localStorage）
@@ -100,6 +117,34 @@ function Video() {
         sourcePath={path}
         fileName={fileName}
         extraCrumbs={entry ? [{ label: "Archive", to: "/explorer", search: { path, page: 1, pageSize: 48, sortField: "mtime", sortOrder: "desc" } }] : []}
+        actions={(
+          <DropdownMenu modal={false}>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="reader-toolbar__icon-button"
+                title="File operations"
+              >
+                <MoreVertical className="size-3" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DownloadMenuItem path={path} name={fileName} />
+              <DropdownMenuItem onClick={() => setRenameOpen(true)}>
+                <Pencil className="mr-2 size-4" />
+                Rename
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                variant="destructive"
+                onClick={() => setDeleteOpen(true)}
+              >
+                <Trash2 className="mr-2 size-4" />
+                Delete
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
       />
 
       {/* 视频播放区域 */}
@@ -126,6 +171,42 @@ function Video() {
             <span title="文件大小" className="text-foreground cursor-default">{sizeText}</span>
           </>
         }
+      />
+
+      <RenameDialog
+        open={renameOpen}
+        onOpenChange={setRenameOpen}
+        filePath={path}
+        onConfirm={(newName) => {
+          operations.renameMutation.mutate(
+            { path, newName },
+            {
+              onSuccess: () => {
+                setRenameOpen(false)
+                navigate({ to: "/" })
+              },
+            },
+          )
+        }}
+        isPending={operations.renameMutation.isPending}
+      />
+
+      <DeleteDialog
+        open={deleteOpen}
+        onOpenChange={setDeleteOpen}
+        filePaths={[path]}
+        onConfirm={() => {
+          operations.deleteMutation.mutate(
+            { path, permanently: false },
+            {
+              onSuccess: () => {
+                setDeleteOpen(false)
+                navigate({ to: "/" })
+              },
+            },
+          )
+        }}
+        isPending={operations.deleteMutation.isPending}
       />
     </div>
   )

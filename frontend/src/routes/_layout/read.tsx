@@ -30,6 +30,7 @@ import {
   CompressDialog,
 } from "@/components/Files/dialogs/CompressDialog"
 import { ConfirmMoveDialog } from "@/components/Files/dialogs/ConfirmMoveDialog"
+import { DownloadMenuItem } from "@/components/Files/DownloadMenuItem"
 import { DeleteDialog } from "@/components/Files/dialogs/DeleteDialog"
 import { MoveDialog } from "@/components/Files/dialogs/MoveDialog"
 import { RenameDialog } from "@/components/Files/dialogs/RenameDialog"
@@ -268,9 +269,9 @@ function ReadPage() {
     return `${OpenAPI.BASE}/api/v1/fs/archive/file?path=${encodeURIComponent(path)}&entry=${encodeURIComponent(imageEntry.entry_path)}`
   }, [isFolderSource, listData, path])
 
-  // 自动进入 audio mode：archive 有音频但无图片时
+  // 自动进入 audio mode：archive/list 里存在音频时
   const shouldAutoAudio = !isFolderSource && !isLoading && listData &&
-    audioTracks.length > 0 && imageEntries.length === 0 && mode !== "audio"
+    audioTracks.length > 0 && mode !== "audio"
 
   useEffect(() => {
     if (shouldAutoAudio) {
@@ -934,6 +935,7 @@ function ReadPage() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
+                <DownloadMenuItem path={path} name={fileName} />
                 <DropdownMenuItem onClick={() => setRenameOpen(true)}>
                   <Pencil className="mr-2 size-4" />
                   Rename
