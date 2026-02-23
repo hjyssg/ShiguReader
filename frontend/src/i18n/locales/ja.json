@@ -236,6 +236,7 @@
     "movePlaceDirDesc": "「Move to...」を開いたときに事前入力する移動先ディレクトリ",
     "movePlaceDirPlaceholder": "ディレクトリパスを入力（例：E:\\_To_Sort）",
     "envFilePath": ".env ファイルパス",
+    "dbFilePath": "DB ファイルパス",
     "envFilePathDesc": "現在使用中の .env ファイルの場所（手動編集用）",
     "selectDirsToScan": "スキャンするディレクトリを選択",
     "selectAll": "すべて選択",

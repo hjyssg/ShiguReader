@@ -237,6 +237,7 @@
     "movePlaceDirDesc": "\"Move to...\"를 열 때 미리 채워질 기본 대상 디렉터리",
     "movePlaceDirPlaceholder": "디렉터리 경로 입력 (예: E:\\_To_Sort)",
     "envFilePath": ".env 파일 경로",
+    "dbFilePath": "DB 파일 경로",
     "envFilePathDesc": "수동 편집을 위한 현재 사용 중인 .env 파일 위치",
     "selectDirsToScan": "스캔할 디렉터리 선택",
     "selectAll": "전체 선택",

@@ -9,6 +9,7 @@ import { IndexRepository } from "../db/repository.js";
 const __filename = fileURLToPath(import.meta.url);
 const __routeDir = path.dirname(__filename);
 const ENV_FILE = path.resolve(__routeDir, "../../../.env");
+const DB_FILE = path.resolve(__routeDir, "../../../", config.INDEX_SQLITE_PATH);
 
 function buildResponse() {
   return {
@@ -16,6 +17,7 @@ function buildResponse() {
     fs_roots: config.FS_ROOTS || "",
     already_read_dir: config.ALREADY_READ_DIR || "",
     env_file_path: ENV_FILE,
+    db_file_path: DB_FILE,
   };
 }
 
@@ -73,6 +75,7 @@ async function updateSettings(
     fs_roots: process.env["FS_ROOTS"] ?? config.FS_ROOTS ?? "",
     already_read_dir: process.env["ALREADY_READ_DIR"] ?? config.ALREADY_READ_DIR ?? "",
     env_file_path: ENV_FILE,
+    db_file_path: DB_FILE,
   });
 }
 

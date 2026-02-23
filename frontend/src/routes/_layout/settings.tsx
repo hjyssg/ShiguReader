@@ -51,6 +51,7 @@ interface SettingsResponse {
   already_read_dir: string
   move_place_dir: string
   env_file_path: string  // .env 文件路径（只读展示）
+  db_file_path: string   // DB 文件路径（只读展示）
 }
 
 /** PUT /api/v1/settings 的请求体，所有字段可选 */
@@ -654,8 +655,12 @@ function SettingsPage() {
 
           <section className="settings-section settings-section--blue">
             <div className="settings-section__heading">
+              <h2>{t("settings.dbFilePath")}</h2>
+            </div>
+            <Input value={settings?.db_file_path || ""} readOnly />
+
+            <div className="settings-section__heading  mt-4" >
               <h2>{t("settings.envFilePath")}</h2>
-              <p>{t("settings.envFilePathDesc")}</p>
             </div>
             <Input value={settings?.env_file_path || ""} readOnly />
           </section>
