@@ -46,8 +46,14 @@ import {
 const mockExecFile = execFile as unknown as ReturnType<typeof vi.fn>;
 
 // Helper: build fake 7z -slt stdout
-function make7zOutput(paths: string[]): string {
-  return paths.map(p => `Path = ${p}`).join("\n") + "\n";
+function make7zOutput(entries: Array<{ path: string; size?: number }>): string {
+  return entries
+    .map(({ path, size = 123 }) => [
+      `Path = ${path}`,
+      `Size = ${size}`,
+      "",
+    ].join("\n"))
+    .join("\n");
 }
 
 describe("listEntries", () => {
@@ -61,7 +67,11 @@ describe("listEntries", () => {
 
   it("returns image entries with correct fields", async () => {
     mockExecFile.mockResolvedValueOnce({
-      stdout: make7zOutput(["img/page001.jpg", "img/page002.png", "img/page003.webp"]),
+      stdout: make7zOutput([
+        { path: "img/page001.jpg" },
+        { path: "img/page002.png" },
+        { path: "img/page003.webp" },
+      ]),
       stderr: "",
     });
 
@@ -83,11 +93,11 @@ describe("listEntries", () => {
   it("filters out non-media files", async () => {
     mockExecFile.mockResolvedValueOnce({
       stdout: make7zOutput([
-        "page001.jpg",
-        "readme.txt",
-        "data.json",
-        "video.mp4",
-        "music.mp3",
+        { path: "page001.jpg" },
+        { path: "readme.txt" },
+        { path: "data.json" },
+        { path: "video.mp4" },
+        { path: "music.mp3" },
       ]),
       stderr: "",
     });
@@ -105,11 +115,11 @@ describe("listEntries", () => {
   it("filters out __MACOSX and .DS_Store entries", async () => {
     mockExecFile.mockResolvedValueOnce({
       stdout: make7zOutput([
-        "__MACOSX/._page001.jpg",
-        ".DS_Store",
-        "page001.jpg",
-        ".hidden.jpg",
-        "._2.jpg",
+        { path: "__MACOSX/._page001.jpg" },
+        { path: ".DS_Store" },
+        { path: "page001.jpg" },
+        { path: ".hidden.jpg" },
+        { path: "._2.jpg" },
       ]),
       stderr: "",
     });
@@ -122,10 +132,10 @@ describe("listEntries", () => {
   it("sorts entries naturally (numeric order)", async () => {
     mockExecFile.mockResolvedValueOnce({
       stdout: make7zOutput([
-        "page10.jpg",
-        "page2.jpg",
-        "page1.jpg",
-        "page20.jpg",
+        { path: "page10.jpg" },
+        { path: "page2.jpg" },
+        { path: "page1.jpg" },
+        { path: "page20.jpg" },
       ]),
       stderr: "",
     });
@@ -137,7 +147,7 @@ describe("listEntries", () => {
 
   it("assigns sequential index starting from 0", async () => {
     mockExecFile.mockResolvedValueOnce({
-      stdout: make7zOutput(["a.jpg", "b.jpg", "c.jpg"]),
+      stdout: make7zOutput([{ path: "a.jpg" }, { path: "b.jpg" }, { path: "c.jpg" }]),
       stderr: "",
     });
 
@@ -147,7 +157,7 @@ describe("listEntries", () => {
 
   it("returns empty array when archive has no media files", async () => {
     mockExecFile.mockResolvedValueOnce({
-      stdout: make7zOutput(["readme.txt", "info.xml"]),
+      stdout: make7zOutput([{ path: "readme.txt" }, { path: "info.xml" }]),
       stderr: "",
     });
 
@@ -157,7 +167,7 @@ describe("listEntries", () => {
 
   it("correctly identifies video and audio types", async () => {
     mockExecFile.mockResolvedValueOnce({
-      stdout: make7zOutput(["clip.mp4", "song.flac", "cover.jpg"]),
+      stdout: make7zOutput([{ path: "clip.mp4" }, { path: "song.flac" }, { path: "cover.jpg" }]),
       stderr: "",
     });
 

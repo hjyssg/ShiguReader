@@ -191,7 +191,7 @@ describe("history/record + history/list — integration", () => {
     expect(body.total).toBe(1);
   });
 
-  it("same file recorded multiple times → multiple entries (append log)", async () => {
+  it("same file recorded multiple times within short time window → deduplicated", async () => {
     const fp = path.join(tmpDir, "book.zip");
     repo.upsertFile({ filepath: fp, filename: "book.zip", mtime: 1700000000, filesize: 100 });
 
@@ -201,7 +201,7 @@ describe("history/record + history/list — integration", () => {
     }
 
     const listRes = await app.inject({ method: "GET", url: "/api/v1/history/list" });
-    expect(listRes.json().total).toBe(3);
+    expect(listRes.json().total).toBe(1);
   });
 
   it("pagination works correctly", async () => {

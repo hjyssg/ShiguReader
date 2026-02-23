@@ -1,52 +1,22 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { buildApp } from "../../src/app.js";
+import { createRouteMockRepo } from "../testUtils/mocks.js";
 
 vi.mock("../../src/db/client.js", () => ({
   getDb: () => ({}),
   initDb: vi.fn(),
 }));
 
-const mockRepo = {
-  searchFiles: vi.fn(() => []),
-  searchByAuthor: vi.fn(() => []),
-  searchByCoser: vi.fn(() => []),
-  searchByTag: vi.fn(() => []),
-  quickMatchCandidates: vi.fn(() => []),
-  // required by other routes
-  getFileDataByFolder: vi.fn(() => new Map()),
-  getArchiveMetasByFolder: vi.fn(() => new Map()),
-  upsertFolder: vi.fn(),
-  upsertFile: vi.fn(),
-  recordFolderOpen: vi.fn(),
-  countFilesByType: vi.fn(() => 0),
-  countFolders: vi.fn(() => 0),
-  listActivityLogs: vi.fn(() => []),
-  listActivityLogsSinceLatestStartup: vi.fn(() => []),
-  listTopOpenedFolderIds: vi.fn(() => []),
-  logActivity: vi.fn(),
-  findFilesByFilename: vi.fn(() => []),
-  countReadHistory: vi.fn(() => 0),
-  listReadHistory: vi.fn(() => []),
-  recordRead: vi.fn(),
-};
+const mockRepo = createRouteMockRepo();
 
 vi.mock("../../src/db/repository.js", () => ({
   IndexRepository: vi.fn(() => mockRepo),
 }));
 
-vi.mock("../../src/config.js", () => ({
-  config: {
-    API_V1_STR: "/api/v1",
-    ENVIRONMENT: "local",
-    FS_ROOTS: "",
-    FAVORITE_DIR: "",
-    ALREADY_READ_DIR: "",
-    THUMB_CONCURRENCY: 3,
-    EXTRACT_CONCURRENCY: 2,
-    THUMB_CACHE_DIR: "../data/thumb_cache",
-    EXTRACT_CACHE_DIR: "../data/extract_cache",
-  },
-}));
+vi.mock("../../src/config.js", async () => {
+  const { baseTestConfig } = await import("../testUtils/mocks.js");
+  return { config: baseTestConfig };
+});
 
 beforeEach(() => vi.clearAllMocks());
 

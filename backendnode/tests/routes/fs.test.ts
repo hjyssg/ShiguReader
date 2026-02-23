@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import fs from "node:fs";
 import { buildApp } from "../../src/app.js";
+import { createRouteMockRepo } from "../testUtils/mocks.js";
 
 // ── mock DB so tests don't need a real SQLite file ──────────────────────────
 vi.mock("../../src/db/client.js", () => ({
@@ -8,44 +9,17 @@ vi.mock("../../src/db/client.js", () => ({
   initDb: vi.fn(),
 }));
 
-const mockRepo = {
-  getFileDataByFolder: vi.fn(() => new Map()),
-  getArchiveMetasByFolder: vi.fn(() => new Map()),
-  upsertFolder: vi.fn(),
-  upsertFile: vi.fn(),
-  recordFolderOpen: vi.fn(),
-  countFilesByType: vi.fn(() => 0),
-  countFolders: vi.fn(() => 0),
-  listActivityLogs: vi.fn(() => []),
-  listActivityLogsSinceLatestStartup: vi.fn(() => []),
-  listTopOpenedFolderIds: vi.fn(() => []),
-  logActivity: vi.fn(),
-  getLibraryOverview: vi.fn(() => ({ archives: 0, videos: 0, images: 0, audio: 0, folders: 0 })),
-  findFilesByFilename: vi.fn(() => []),
-};
+const mockRepo = createRouteMockRepo();
 
 vi.mock("../../src/db/repository.js", () => ({
   IndexRepository: vi.fn(() => mockRepo),
 }));
 
 // ── mock config ──────────────────────────────────────────────────────────────
-vi.mock("../../src/config.js", () => ({
-  config: {
-    API_V1_STR: "/api/v1",
-    ENVIRONMENT: "local",
-    INDEX_SQLITE_PATH: "./data/index.db",
-    FS_ROOTS: "",
-    FAVORITE_DIR: "",
-    ALREADY_READ_DIR: "",
-    THUMB_CONCURRENCY: 3,
-    EXTRACT_CONCURRENCY: 2,
-    THUMB_TIMEOUT_SEC: 10,
-    THUMB_HEIGHT: 350,
-    THUMB_JPEG_QUALITY: 70,
-    THUMB_CACHE_DIR: "../data/thumb_cache",
-    EXTRACT_CACHE_DIR: "../data/extract_cache",
-  },
-}));
+vi.mock("../../src/config.js", async () => {
+  const { baseTestConfig } = await import("../testUtils/mocks.js");
+  return { config: baseTestConfig };
+});
 
 // ── fake filesystem via spyOn ────────────────────────────────────────────────
 // Use forward-slash paths; normalize on comparison to handle Windows backslashes

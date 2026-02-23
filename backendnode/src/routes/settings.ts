@@ -9,7 +9,7 @@ import { IndexRepository } from "../db/repository.js";
 const __filename = fileURLToPath(import.meta.url);
 const __routeDir = path.dirname(__filename);
 const ENV_FILE = path.resolve(__routeDir, "../../../.env");
-const DB_FILE = path.resolve(__routeDir, "../../../", config.INDEX_SQLITE_PATH);
+const DB_FILE = path.resolve(__routeDir, "../../../", config.INDEX_SQLITE_PATH ?? "../data/index_node.db");
 
 function buildResponse() {
   return {
