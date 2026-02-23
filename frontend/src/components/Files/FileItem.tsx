@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next"
 import type { FileSystemItem } from "@/client"
 import { OpenAPI } from "@/client"
 import { ThumbnailImage } from "@/components/Common/ThumbnailImage"
+import { THUMBNAIL_TOOLTIP_SIDE } from "@/constants/ui"
 import {
   Tooltip,
   TooltipContent,
@@ -139,7 +140,7 @@ export function FileItem({
                   {thumbcard}
                 </a>
               </TooltipTrigger>
-              <TooltipContent className="whitespace-pre-line">
+              <TooltipContent side={THUMBNAIL_TOOLTIP_SIDE} className="whitespace-pre-line">
                 {thumbnailTooltip ?? defaultThumbnailTooltip}
               </TooltipContent>
             </Tooltip>

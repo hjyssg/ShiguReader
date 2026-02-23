@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next"
 
 import { OpenAPI } from "@/client"
 import { CardInfo, CardThumbnail, ItemCard } from "@/components/semantic/layout"
+import { THUMBNAIL_TOOLTIP_SIDE } from "@/constants/ui"
 import {
   Tooltip,
   TooltipContent,
@@ -61,31 +62,33 @@ export function EntityCard({
             <div>{thumbContent}</div>
           )}
         </TooltipTrigger>
-        <TooltipContent className="whitespace-pre-line">
+        <TooltipContent side={THUMBNAIL_TOOLTIP_SIDE} className="whitespace-pre-line">
           {tooltipText}
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>
   )
 
+  const entityNameNode = href ? (
+    <a
+      className="text-sm truncate block hover:underline"
+      href={href}
+      title={item.name}
+    >
+      {item.name}
+    </a>
+  ) : (
+    <p className="text-sm truncate" title={item.name}>
+      {item.name}
+    </p>
+  )
+
   return (
     <ItemCard title={item.name} className="entity-card">
+      {entityNameNode}
       {wrappedThumb}
 
       <CardInfo className="entity-info">
-        {href ? (
-          <a
-            className="text-sm truncate block hover:underline"
-            href={href}
-            title={item.name}
-          >
-            {item.name}
-          </a>
-        ) : (
-          <p className="text-sm truncate" title={item.name}>
-            {item.name}
-          </p>
-        )}
         <p className="text-xs text-muted-foreground">{item.file_count} files</p>
       </CardInfo>
     </ItemCard>
