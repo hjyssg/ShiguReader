@@ -1,5 +1,24 @@
 import type { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
+import path from "node:path";
 import { getRepo, buildThumbUrl } from "./_listUtils.js";
+import { config, resolveProjectPath } from "../config.js";
+
+function isPathInside(targetPath: string, parentPath: string): boolean {
+  const target = path.resolve(targetPath);
+  const parent = path.resolve(parentPath);
+
+  if (target === parent) return true;
+
+  const normalizedTarget = process.platform === "win32" ? target.toLowerCase() : target;
+  const normalizedParent = process.platform === "win32" ? parent.toLowerCase() : parent;
+  return normalizedTarget.startsWith(`${normalizedParent}${path.sep}`);
+}
+
+function shouldSkipHistoryRecord(filepath: string): boolean {
+  const extractCacheDir = resolveProjectPath(config.EXTRACT_CACHE_DIR);
+  const thumbCacheDir = resolveProjectPath(config.THUMB_CACHE_DIR);
+  return isPathInside(filepath, extractCacheDir) || isPathInside(filepath, thumbCacheDir);
+}
 
 // GET /api/v1/history/list
 async function listHistory(
@@ -41,6 +60,10 @@ async function recordHistory(
 ) {
   const body = req.body ?? {};
   if (!body.filepath) return reply.status(400).send({ error: "filepath is required" });
+
+  if (shouldSkipHistoryRecord(body.filepath)) {
+    return reply.send({ status: "skipped", reason: "cache_path" });
+  }
 
   const repo = getRepo();
   repo.recordRead(body.filepath);

@@ -2,6 +2,7 @@
  * 视频播放器 - 支持文件系统和压缩包内视频，自动保存/恢复播放进度
  */
 import { createFileRoute } from "@tanstack/react-router"
+import { useMutation } from "@/shims/react-query"
 import { useMemo, useRef } from "react"
 
 import { OpenAPI } from "@/client"
@@ -29,6 +30,16 @@ function Video() {
   const { path, entry } = Route.useSearch()
   const videoRef = useRef<HTMLVideoElement | null>(null)
   const lastSavedAtRef = useRef(0)
+
+  const { mutate: recordHistory } = useMutation({
+    mutationFn: async (payload: { filepath: string }) => {
+      await fetch(`${OpenAPI.BASE}/api/v1/history/record`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      })
+    },
+  })
 
   // 确定视频 URL 和文件名
   let videoUrl: string
@@ -78,6 +89,11 @@ function Video() {
 
   const clearProgress = () => localStorage.removeItem(progressStorageKey)
 
+  const recordOpenedHistory = () => {
+    if (!path) return
+    recordHistory({ filepath: path })
+  }
+
   return (
     <div className="reader-page">
       <ReaderToolbar
@@ -95,6 +111,7 @@ function Video() {
           className="max-w-full max-h-full"
           controlsList="nodownload"
           onLoadedMetadata={() => restoreProgress(videoRef.current)}
+          onPlay={recordOpenedHistory}
           onTimeUpdate={() => saveProgress(videoRef.current)}
           onEnded={clearProgress}
         >

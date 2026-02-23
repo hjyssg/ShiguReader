@@ -39,7 +39,8 @@ type HistoryItem = {
   filesize: number | null
   mtime: number | null
   thumbnail_url: string | null
-  read_at: number
+  read_at?: number
+  opened_at?: number
   page_current: number | null
   page_total: number | null
 }
@@ -133,6 +134,9 @@ function HistoryPage() {
     thumbnail_url: item.thumbnail_url,
   })
 
+  const getHistoryTimestamp = (item: HistoryItem): number =>
+    item.read_at ?? item.opened_at ?? 0
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-4 pb-2 border-b">
@@ -222,14 +226,15 @@ function HistoryPage() {
         <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-7">
           {data?.items.map((item) => (
             <div
-              key={`${item.filepath}-${item.read_at}`}
+              key={`${item.filepath}-${getHistoryTimestamp(item)}`}
               onClick={() => openHistoryItem(item)}
               className="cursor-pointer"
             >
               <FileItem
                 item={toFileSystemItem(item)}
                 className="file-item-root--compact"
-                metaText={`${t("history.readAt")}：${formatDateTime(item.read_at)}`}
+                metaText={`${formatDateTime(getHistoryTimestamp(item))}`}
+                metaTitle={t("history.readAt")}
               />
             </div>
           ))}
@@ -246,7 +251,7 @@ function HistoryPage() {
 
             return (
               <tr
-                key={`${item.filepath}-${item.read_at}`}
+                key={`${item.filepath}-${getHistoryTimestamp(item)}`}
                 className="border-b last:border-b-0 text-sm hover:bg-muted/50"
               >
                 <td className="p-2">
@@ -259,7 +264,7 @@ function HistoryPage() {
                   />
                 </td>
                 <td className="p-2 text-muted-foreground">
-                  {formatDateTime(item.read_at)}
+                  {formatDateTime(getHistoryTimestamp(item))}
                 </td>
                 <td className="p-2 text-muted-foreground">
                   {formatFileType(item.file_type)}

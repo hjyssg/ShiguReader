@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
+import path from "node:path";
 import { buildApp } from "../../src/app.js";
 import { createRouteMockRepo } from "../testUtils/mocks.js";
 
@@ -15,7 +16,14 @@ vi.mock("../../src/db/repository.js", () => ({
 
 vi.mock("../../src/config.js", async () => {
   const { baseTestConfig } = await import("../testUtils/mocks.js");
-  return { config: baseTestConfig };
+  const PROJECT_ROOT = process.cwd();
+  return {
+    config: baseTestConfig,
+    PROJECT_ROOT,
+    ENV_FILE_PATH: path.join(PROJECT_ROOT, ".env"),
+    DB_FILE_PATH: path.join(PROJECT_ROOT, "data", "index_node.db"),
+    resolveProjectPath: (p: string) => path.isAbsolute(p) ? p : path.resolve(process.cwd(), p),
+  };
 });
 
 beforeEach(() => {
@@ -91,5 +99,19 @@ describe("POST /api/v1/history/record", () => {
     await app.inject({ method: "POST", url: "/api/v1/history/record", payload: { filepath: "/a/book.zip" } });
     await app.inject({ method: "POST", url: "/api/v1/history/record", payload: { filepath: "/a/book.zip" } });
     expect(mockRepo.recordRead).toHaveBeenCalledTimes(2);
+  });
+
+  it("skips recording when filepath is inside extract cache", async () => {
+    const app = buildApp();
+    const cacheFile = path.resolve("../data/extract_cache/demo/image.jpg");
+    const res = await app.inject({
+      method: "POST",
+      url: "/api/v1/history/record",
+      payload: { filepath: cacheFile },
+    });
+
+    expect(res.statusCode).toBe(200);
+    expect(res.json().status).toBe("skipped");
+    expect(mockRepo.recordRead).not.toHaveBeenCalled();
   });
 });

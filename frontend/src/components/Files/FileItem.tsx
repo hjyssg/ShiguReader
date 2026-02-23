@@ -26,6 +26,7 @@ import "./FileItem.css"
 interface FileItemProps {
   className?: string
   metaText?: string
+  metaTitle?: string
 
   item: FileSystemItem
   /** 是否选中 */
@@ -46,6 +47,7 @@ export function FileItem({
   onContextMenu,
   className,
   metaText,
+  metaTitle,
 }: FileItemProps) {
   const { t } = useTranslation()
   const isMobile = useIsMobile()
@@ -156,7 +158,11 @@ export function FileItem({
           {actionSlot && (
             <div className="file-item-action-slot">{actionSlot}</div>
           )}
-          {metaText && <p className="file-item-meta-text">{metaText}</p>}
+          {metaText && (
+            <p className="file-item-meta-text" title={metaTitle}>
+              {metaText}
+            </p>
+          )}
           {infoMetrics.length > 0 && (
             <div className="file-item-info-metrics">
               {infoMetrics.map((metric) => (
