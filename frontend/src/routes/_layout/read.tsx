@@ -344,27 +344,19 @@ function ReadPage() {
   }, [currentPage, totalPages, imageEntries, isFolderSource, path])
 
 
+  // 只在打开文件时记录一次阅读历史，不再每翻一页都记录
   useEffect(() => {
-    if (!currentEntry || totalPages <= 0) return
+    if (!path || totalPages <= 0) return
 
-    const historyFilepath = isFolderSource
-      ? (currentEntry.filePath ?? "")
-      : path
+    const historyFilepath = isFolderSource ? path : path
     if (!historyFilepath) return
 
     recordHistory({
       filepath: historyFilepath,
-      page_current: currentPage + 1,
+      page_current: 1,
       page_total: totalPages,
     })
-  }, [
-    currentEntry,
-    totalPages,
-    isFolderSource,
-    path,
-    currentPage,
-    recordHistory,
-  ])
+  }, [path, totalPages, isFolderSource, recordHistory])
 
   useEffect(() => {
     if (!isFolderSource || !sourceFolderPath || totalPages === 0) return

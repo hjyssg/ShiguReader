@@ -191,12 +191,12 @@ describe("IndexRepository – read_history", () => {
     expect(list[0].opened_at).toBeGreaterThan(0);
   });
 
-  it("recordRead appends multiple entries for same file", () => {
+  it("recordRead deduplicates within 5 minutes for same file", () => {
     repo.upsertFile({ filepath: fp, filename: "book.zip", mtime: 1700000000, filesize: 100 });
     repo.recordRead(fp);
-    repo.recordRead(fp);
+    repo.recordRead(fp); // 5 分钟内重复调用，应被跳过
     const list = repo.listReadHistory(0, 10);
-    expect(list.length).toBe(2);
+    expect(list.length).toBe(1);
   });
 
   it("countReadHistory returns correct count", () => {

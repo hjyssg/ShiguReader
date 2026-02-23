@@ -410,9 +410,18 @@ export class IndexRepository {
 
   // ─── read history ─────────────────────────────────────────────────────────
 
-  /** 记录文件被打开一次（append log） */
+  /** 记录文件被打开一次。同一文件 5 分钟内只记录一次（参考旧版 ShiguReader 去重逻辑） */
   recordRead(filepath: string): void {
     const now = nowTs();
+    const FIVE_MINUTES = 5 * 60; // 秒
+    const last = this.db.prepare(
+      "SELECT opened_at FROM read_history WHERE filepath = ? ORDER BY opened_at DESC LIMIT 1"
+    ).get(filepath) as { opened_at: number } | undefined;
+
+    if (last && (now - last.opened_at) < FIVE_MINUTES) {
+      return; // 5 分钟内已记录，跳过
+    }
+
     this.db.prepare("INSERT INTO read_history (filepath, opened_at) VALUES (?, ?)").run(filepath, now);
   }
 
