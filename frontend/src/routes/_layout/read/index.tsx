@@ -294,48 +294,55 @@ function ReadPage() {
   useEffect(() => {
     const onKeydown = (e: KeyboardEvent) => {
       const key = e.key.toLowerCase()
-      if (key === "arrowright" || key === "d") {
-        e.preventDefault()
-        goNext()
-      } else if (key === "arrowleft" || key === "a") {
-        e.preventDefault()
-        goPrev()
-      } else if (key === "+" || key === "=") {
-        e.preventDefault()
-        zoomIn()
-      } else if (key === "-") {
-        e.preventDefault()
-        zoomOut()
-      } else if (key === "enter") {
-        e.preventDefault()
-        toggleFullscreen()
-      } else if (key === "g") {
-        e.preventDefault()
-        const value = Number(prompt(t("reader.jumpToPage")))
-        if (!Number.isNaN(value) && value > 0) {
-          goToPage(value - 1)
+      const isGallery = !mode || mode === "gallery"
+
+      // mobile 模式不响应任何热键
+      if (mode === "mobile") return
+
+      // gallery-only 热键
+      if (isGallery) {
+        if (key === "arrowright" || key === "d") {
+          e.preventDefault(); goNext(); return
         }
-      } else if (key === "w" || key === "arrowup") {
+        if (key === "arrowleft" || key === "a") {
+          e.preventDefault(); goPrev(); return
+        }
+        if (key === "+" || key === "=") {
+          e.preventDefault(); zoomIn(); return
+        }
+        if (key === "-") {
+          e.preventDefault(); zoomOut(); return
+        }
+        if (key === "enter") {
+          e.preventDefault(); toggleFullscreen(); return
+        }
+        if (key === "g") {
+          e.preventDefault()
+          const value = Number(prompt(t("reader.jumpToPage")))
+          if (!Number.isNaN(value) && value > 0) goToPage(value - 1)
+          return
+        }
+        if (key === "v") {
+          e.preventDefault(); setConfirmFavOpen(true); return
+        }
+        if (key === "x") {
+          e.preventDefault(); setConfirmReadOpen(true); return
+        }
+        if (key === "m") {
+          e.preventDefault(); setMoveOpen(true); return
+        }
+      }
+
+      // 滚动：所有非 mobile 模式
+      if (key === "w" || key === "arrowup") {
         window.scrollBy({ top: -80, behavior: "smooth" })
       } else if (key === "s" || key === "arrowdown") {
         window.scrollBy({ top: 80, behavior: "smooth" })
-      } else if (key === "escape") {
-        const targetPath = isFolderSource ? path : (extractStatus?.cache_dir || path)
-        navigate({
-          to: "/explorer",
-          search: { path: targetPath, page: 1, pageSize: 48, sortField: "name", sortOrder: "asc", viewMode: "table" },
-        })
-      } else if (key === "v") {
-        e.preventDefault()
-        setConfirmFavOpen(true)
-      } else if (key === "x") {
-        e.preventDefault()
-        setConfirmReadOpen(true)
       }
     }
     window.addEventListener("keydown", onKeydown)
     return () => window.removeEventListener("keydown", onKeydown)
-  }, [path, extractStatus, goNext, goPrev, goToPage, isFolderSource, navigate, t, toggleFullscreen, zoomIn, zoomOut])
+  }, [mode, path, extractStatus, goNext, goPrev, goToPage, isFolderSource, navigate, t, toggleFullscreen, zoomIn, zoomOut])
 
   const onMouseDown: React.MouseEventHandler<HTMLDivElement> = (e) => {
     setIsDragging(true)

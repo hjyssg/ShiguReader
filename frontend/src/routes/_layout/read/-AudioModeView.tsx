@@ -7,7 +7,7 @@ import { buttonVariants } from "@/components/ui/button"
 import { getParentPath } from "@/lib/path-utils"
 import { Link } from "@tanstack/react-router"
 import { ChevronLeft, ChevronRight, Music4 } from "lucide-react"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import AudioPlayer from "react-h5-audio-player"
 import { useTranslation } from "react-i18next"
 import "react-h5-audio-player/lib/styles.css"
@@ -52,6 +52,22 @@ export function AudioModeView({
 
   const goPrevImage = () => setImageIndex((i) => (i - 1 + totalImages) % totalImages)
   const goNextImage = () => setImageIndex((i) => (i + 1) % totalImages)
+
+  useEffect(() => {
+    if (totalImages === 0) return
+    const onKeydown = (e: KeyboardEvent) => {
+      const key = e.key.toLowerCase()
+      if (key === "arrowright" || key === "d") {
+        e.preventDefault()
+        setImageIndex((i) => (i + 1) % totalImages)
+      } else if (key === "arrowleft" || key === "a") {
+        e.preventDefault()
+        setImageIndex((i) => (i - 1 + totalImages) % totalImages)
+      }
+    }
+    window.addEventListener("keydown", onKeydown)
+    return () => window.removeEventListener("keydown", onKeydown)
+  }, [totalImages])
 
   return (
     <div className="reader-page">
