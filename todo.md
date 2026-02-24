@@ -132,3 +132,8 @@ const isHiddenFile function (f) {
 
 /api/v1/fs/archive/list 
 /api/v1/fs/listdir 也需要需要过滤掉
+
+
+
+先给read加注释，然后重构
+

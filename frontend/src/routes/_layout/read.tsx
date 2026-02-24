@@ -1,5 +1,5 @@
 /**
- * 图片阅读器 - 支持压缩包和文件夹图片浏览，带缩放、旋转、拖拽功能 */
+ * 图片音乐阅读器 - 支持压缩包和文件夹图片音乐浏览，带缩放、旋转、拖拽功能 */
 import { useMutation, useQuery } from "@/shims/react-query"
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router"
 import {
