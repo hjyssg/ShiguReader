@@ -152,7 +152,7 @@
     "modeHybrid": "混合",
     "presence": "存在状态",
     "presenceAll": "全部",
-    "presenceWatched": "仅已观看",
+    "presenceWatched": "处于文件监听",
     "presenceScannedRecent": "10 分钟内扫描",
     "noResults": "没有找到匹配结果",
     "goTo": "跳转到",

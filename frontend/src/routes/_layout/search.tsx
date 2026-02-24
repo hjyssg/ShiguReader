@@ -38,22 +38,28 @@ export const Route = createFileRoute("/_layout/search")({
         : "all"
 
     const rawScopes = search.scopes
-    const scopes = Array.isArray(rawScopes)
-      ? rawScopes.filter(
-          (s): s is Scope =>
-            s === "file" || s === "author" || s === "coser" || s === "tag",
-        )
-      : []
+    const validScope = (s: unknown): s is Scope =>
+      s === "file" || s === "author" || s === "coser" || s === "tag"
+
+    let scopes: Scope[]
+    if (Array.isArray(rawScopes)) {
+      scopes = rawScopes.filter(validScope)
+    } else if (validScope(rawScopes)) {
+      scopes = [rawScopes]
+    } else {
+      scopes = []
+    }
+
+    if (scopes.length === 0) {
+      scopes = ["file", "author", "coser", "tag"]
+    }
 
     return {
       q,
       mode,
       page,
       presenceFilter,
-      scopes:
-        scopes.length > 0
-          ? scopes
-          : (["file", "author", "coser", "tag"] as Scope[]),
+      scopes,
     } as {
       q: string
       mode: Mode
