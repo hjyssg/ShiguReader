@@ -1,14 +1,15 @@
-import { useMutation, useQuery } from "@/shims/react-query"
+import { useMutation } from "@/shims/react-query"
 import { createFileRoute, useNavigate } from "@tanstack/react-router"
-import { useEffect } from "react"
+import { useEffect, useMemo } from "react"
 import { useTranslation } from "react-i18next"
 import type { SlideImage } from "yet-another-react-lightbox"
 import Lightbox from "yet-another-react-lightbox"
 import "yet-another-react-lightbox/styles.css"
 
-import { FilesystemService, OpenAPI } from "@/client"
+import { OpenAPI } from "@/client"
 import { FileNotFoundError } from "@/components/Common/FileNotFoundError"
 import { Skeleton } from "@/components/ui/skeleton"
+import { useArchiveExtract } from "@/hooks/useArchiveExtract"
 import { useResolveMovedFile } from "@/hooks/useResolveMovedFile"
 import { getBaseName, getParentPath, wrapPageIndex } from "@/lib/path-utils"
 
@@ -18,7 +19,6 @@ export const Route = createFileRoute("/_layout/read-mobile")({
     path: (search.path as string) || "",
     page: Number(search.page) || 0,
     source: (search.source as "archive" | "folder") || "archive",
-    // sourceFolderPath: 仅 source=folder 时有效，用于定位到特定图片
     sourceFolderPath: (search.sourceFolderPath as string) || "",
   }),
   head: () => ({
@@ -32,25 +32,16 @@ function ReadMobilePage() {
   const navigate = useNavigate()
   const isFolderSource = source === "folder"
 
-  const { data: listData, error: listError } = useQuery({
-    queryKey: ["archive-list", path],
-    queryFn: () => FilesystemService.listArchive({ path }),
-    enabled: !!path && !isFolderSource,
-    retry: false,
-  })
+  const {
+    isLoading,
+    loadError,
+    extractStatus,
+    imageEntries,
+  } = useArchiveExtract(path, isFolderSource)
 
-  const { data: folderData, error: folderError } = useQuery({
-    queryKey: ["fs-list", path],
-    queryFn: () => FilesystemService.listDirectory({ path }),
-    enabled: !!path && isFolderSource,
-    retry: false,
-  })
-
-  // 文件被移动后自动跳转新路径
-  const hasError = listError || folderError
   const { resolving, isNotFound, errorMessage } = useResolveMovedFile(
     path,
-    hasError ? (listError || folderError) : null,
+    loadError ?? null,
     (newPath) => {
       navigate({
         to: "/read-mobile",
@@ -59,11 +50,6 @@ function ReadMobilePage() {
       })
     },
   )
-
-  const extractMutation = useMutation({
-    mutationFn: (currentPage: number) =>
-      FilesystemService.extractArchive({ path, page: currentPage }),
-  })
 
   const { mutate: recordHistory } = useMutation({
     mutationFn: async (payload: {
@@ -79,39 +65,19 @@ function ReadMobilePage() {
     },
   })
 
-  const imageEntries = isFolderSource
-    ? (folderData?.items || [])
-      .filter(
-        (item) => item.item_type === "file" && item.file_type === "image",
-      )
-      .map((item, index) => ({
-        index,
-        entry_path: item.path,
-      }))
-    : (listData?.entries || []).filter((e) => e.file_type === "image")
-
-  const resolvedPage =
-    isFolderSource && sourceFolderPath
-      ? Math.max(
-        imageEntries.findIndex((entry) => entry.entry_path === sourceFolderPath),
-        0,
-      )
-      : page
+  const resolvedPage = useMemo(() => {
+    if (!isFolderSource || !sourceFolderPath) return page
+    const idx = imageEntries.findIndex((e) => e.filePath === sourceFolderPath)
+    return idx >= 0 ? idx : page
+  }, [isFolderSource, sourceFolderPath, imageEntries, page])
 
   const safePage = wrapPageIndex(resolvedPage, imageEntries.length)
 
   useEffect(() => {
-    if (path && !isFolderSource) {
-      extractMutation.mutate(0)
-    }
-  }, [path])
-
-  useEffect(() => {
     if (!path || imageEntries.length === 0) return
     const currentEntry = imageEntries[safePage]
-    const historyFilepath = isFolderSource ? currentEntry?.entry_path : path
+    const historyFilepath = isFolderSource ? currentEntry?.filePath : path
     if (!historyFilepath) return
-
     recordHistory({
       filepath: historyFilepath,
       page_current: safePage + 1,
@@ -143,7 +109,16 @@ function ReadMobilePage() {
   const fileName = getBaseName(path, isFolderSource ? "Folder" : "Archive")
   const parentPath = getParentPath(path)
 
-  if (hasError) {
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <Skeleton className="h-8 w-64" />
+        <Skeleton className="h-[70vh] w-full" />
+      </div>
+    )
+  }
+
+  if (loadError) {
     if (resolving) {
       return (
         <div className="space-y-6">
@@ -169,12 +144,11 @@ function ReadMobilePage() {
 
   const slides: SlideImage[] = imageEntries.map((entry) => ({
     src: isFolderSource
-      ? `${OpenAPI.BASE}/api/v1/fs/file?path=${encodeURIComponent(entry.entry_path)}`
-      : `${OpenAPI.BASE}/api/v1/fs/archive/file?path=${encodeURIComponent(path)}&entry=${encodeURIComponent(entry.entry_path)}`,
+      ? `${OpenAPI.BASE}/api/v1/fs/file?path=${encodeURIComponent(entry.filePath || "")}`
+      : `${OpenAPI.BASE}/api/v1/fs/archive/file?path=${encodeURIComponent(path)}&entry=${encodeURIComponent(entry.entryPath || "")}`,
   }))
 
   return (
-    // ── 全屏 Lightbox 图片浏览器（移动端优化，支持滑动翻页）──
     <div className="p-[10px]">
       <Lightbox
         open
@@ -186,15 +160,15 @@ function ReadMobilePage() {
             search: isFolderSource
               ? { path, page: 1, pageSize: 48, sortField: "mtime", sortOrder: "desc" }
               : {
-                path: extractMutation.data?.cache_dir || path,
-                page: 1,
-                pageSize: 48,
-                sortField: "mtime",
-                sortOrder: "desc",
-              },
+                  path: extractStatus?.cache_dir || path,
+                  page: 1,
+                  pageSize: 48,
+                  sortField: "mtime",
+                  sortOrder: "desc",
+                },
           })
         }
-          on={{
+        on={{
           view: ({ index }) => {
             navigate({
               to: "/read-mobile",

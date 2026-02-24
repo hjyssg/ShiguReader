@@ -22,7 +22,7 @@ import AudioPlayer from "react-h5-audio-player"
 import { useTranslation } from "react-i18next"
 import "react-h5-audio-player/lib/styles.css"
 
-import { FilesystemService, OpenAPI, ParseService } from "@/client"
+import { OpenAPI, ParseService } from "@/client"
 import { FileNotFoundError } from "@/components/Common/FileNotFoundError"
 import { PathBreadcrumb } from "@/components/Common/PathBreadcrumb"
 import {
@@ -46,6 +46,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Skeleton } from "@/components/ui/skeleton"
+import { useArchiveExtract } from "@/hooks/useArchiveExtract"
 import { useDocumentTitle } from "@/hooks/useDocumentTitle"
 import { useFileOperations } from "@/hooks/useFileOperations"
 import { useResolveMovedFile } from "@/hooks/useResolveMovedFile"
@@ -74,13 +75,6 @@ export const Route = createFileRoute("/_layout/read")({
 })
 
 function ReadPage() {
-  type ImageEntry = {
-    name: string
-    index: number
-    filePath?: string
-    entryPath?: string
-  }
-
   const { path, page, source, sourceFolderPath, mode } = Route.useSearch()
   const navigate = useNavigate()
   const isFolderSource = source === "folder"
@@ -91,7 +85,6 @@ function ReadPage() {
   const [rotation, setRotation] = useState(0)
   const [translate, setTranslate] = useState({ x: 0, y: 0 })
   const [isDragging, setIsDragging] = useState(false)
-  const [archiveImageReady, setArchiveImageReady] = useState(isFolderSource)
   const [imageLoaded, setImageLoaded] = useState(false)
 
   // File operations state
@@ -132,18 +125,31 @@ function ReadPage() {
   const isArchiveSource = !isFolderSource
 
   const dragRef = useRef({ startX: 0, startY: 0, startTx: 0, startTy: 0 })
-  type ArchiveListData = Awaited<ReturnType<typeof FilesystemService.listArchive>>
-  type DirectoryListData = Awaited<ReturnType<typeof FilesystemService.listDirectory>>
-  type ExtractStatusData = Awaited<ReturnType<typeof FilesystemService.extractArchive>>
   type ParseMetaData = Awaited<ReturnType<typeof ParseService.getParseResult>> | null
 
-  const [listData, setListData] = useState<ArchiveListData | null>(null)
-  const [folderData, setFolderData] = useState<DirectoryListData | null>(null)
-  const [parentListData, setParentListData] = useState<DirectoryListData | null>(null)
+  const {
+    isLoading,
+    loadError,
+    extractStatus,
+    parentListData,
+    archiveImageReady,
+    imageEntries,
+    audioTracks,
+    audioCoverUrl,
+  } = useArchiveExtract(path, isFolderSource)
+
   const [parseMeta, setParseMeta] = useState<ParseMetaData>(null)
-  const [extractStatus, setExtractStatus] = useState<ExtractStatusData | null>(null)
-  const [isLoading, setIsLoading] = useState(false)
-  const [loadError, setLoadError] = useState<unknown>(null)
+
+  // parseMeta: 独立加载，不阻塞主流程
+  useEffect(() => {
+    let cancelled = false
+    if (!path) return
+    setParseMeta(null)
+    ParseService.getParseResult({ filepath: path })
+      .then((parsed) => { if (!cancelled) setParseMeta(parsed) })
+      .catch(() => { if (!cancelled) setParseMeta(null) })
+    return () => { cancelled = true }
+  }, [path])
 
   const { mutate: recordHistory } = useMutation({
     mutationFn: async (payload: {
@@ -159,119 +165,8 @@ function ReadPage() {
     },
   })
 
-  useEffect(() => {
-    let cancelled = false
-
-    const loadReaderData = async () => {
-      if (!path) return
-
-      setIsLoading(true)
-      setLoadError(null)
-      setAudioIndex(0)
-      setListData(null)
-      setFolderData(null)
-      setParentListData(null)
-      setParseMeta(null)
-      setExtractStatus(null)
-      setArchiveImageReady(isFolderSource)
-
-      try {
-        if (isFolderSource) {
-          // folder: list 当前 folder
-          const currentFolderData = await FilesystemService.listDirectory({ path })
-          if (cancelled) return
-          setFolderData(currentFolderData)
-        } else {
-          // archive: 打开时先解压一次，再拉 archive 列表与 parent 列表
-          setArchiveImageReady(false)
-          const [extractResult, archiveData, parentData] = await Promise.all([
-            FilesystemService.extractArchive({ path, page: 0 }),
-            FilesystemService.listArchive({ path }),
-            parentPath
-              ? FilesystemService.listDirectory({ path: parentPath })
-              : Promise.resolve(null),
-          ])
-          if (cancelled) return
-          setExtractStatus(extractResult)
-          setListData(archiveData)
-          setParentListData(parentData)
-          setArchiveImageReady(true)
-        }
-
-        try {
-          const parsed = await ParseService.getParseResult({ filepath: path })
-          if (!cancelled) {
-            setParseMeta(parsed)
-          }
-        } catch {
-          if (!cancelled) {
-            setParseMeta(null)
-          }
-        }
-      } catch (error) {
-        if (!cancelled) {
-          setLoadError(error)
-          setArchiveImageReady(true)
-        }
-      } finally {
-        if (!cancelled) {
-          setIsLoading(false)
-        }
-      }
-    }
-
-    void loadReaderData()
-
-    return () => {
-      cancelled = true
-    }
-  }, [path, isFolderSource, parentPath])
-
-  const imageEntries = useMemo<ImageEntry[]>(() => {
-    if (isFolderSource) {
-      return (folderData?.items || [])
-        .filter(
-          (item) => item.item_type === "file" && item.file_type === "image",
-        )
-        .map((item, index) => ({
-          name: item.name,
-          index,
-          filePath: item.path,
-        }))
-    }
-
-    return (listData?.entries || [])
-      .filter((e) => e.file_type === "image")
-      .map((entry, index) => ({
-        name: entry.name,
-        index,
-        entryPath: entry.entry_path,
-      }))
-  }, [isFolderSource, folderData, listData])
-
-  // Audio tracks（仅 archive source）
-  const audioTracks = useMemo(() => {
-    if (isFolderSource) return []
-    return (listData?.entries || [])
-      .filter((e) => e.file_type === "audio")
-      .map((e) => ({
-        name: e.name,
-        sourcePath: e.entry_path,
-        url: `${OpenAPI.BASE}/api/v1/fs/archive/file?path=${encodeURIComponent(path)}&entry=${encodeURIComponent(e.entry_path)}`,
-      }))
-  }, [isFolderSource, listData, path])
-
-  // 封面图（audio mode 用）
-  const audioCoverUrl = useMemo(() => {
-    if (isFolderSource) return undefined
-    const imageEntry = (listData?.entries || []).find((e) => e.file_type === "image")
-    if (!imageEntry) return undefined
-    return `${OpenAPI.BASE}/api/v1/fs/archive/file?path=${encodeURIComponent(path)}&entry=${encodeURIComponent(imageEntry.entry_path)}`
-  }, [isFolderSource, listData, path])
-
   // 自动进入 audio mode：archive/list 里存在音频时
-  const shouldAutoAudio = !isFolderSource && !isLoading && listData &&
-    audioTracks.length > 0 && mode !== "audio"
+  const shouldAutoAudio = !isFolderSource && !isLoading && audioTracks.length > 0 && mode !== "audio"
 
   useEffect(() => {
     if (shouldAutoAudio) {

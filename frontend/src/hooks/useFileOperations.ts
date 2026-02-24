@@ -2,7 +2,7 @@
 import { useMutation, useQueryClient } from "@/shims/react-query"
 import { toastError, toastSuccess } from "@/lib/toast"
 import { ApiError, FilesystemService } from "@/client"
-import { detectPathSeparator, getBaseName } from "@/lib/path-utils"
+import { buildDestPath, buildReadUrl } from "@/lib/path-utils"
 import { requestJson } from "@/utils/http"
 
 function normalizeDetail(detail: unknown): string | null {
@@ -27,23 +27,6 @@ function extractErrorMessage(err: unknown): string {
   }
   if (err instanceof Error) return err.message
   return "Unknown error"
-}
-
-function buildDestPath(destDir: string, sourcePath: string): string {
-  const fileName = getBaseName(sourcePath)
-  const separator = detectPathSeparator(destDir || sourcePath)
-  const normalizedDestDir = destDir.replace(/[\\/]+$/, "")
-  return `${normalizedDestDir}${separator}${fileName}`
-}
-
-function buildReadUrl(path: string): string {
-  const params = new URLSearchParams({
-    path,
-    source: "archive",
-    page: "0",
-    sourceFolderPath: "",
-  })
-  return `/read?${params.toString()}`
 }
 
 export function useFileOperations(currentPath: string) {
