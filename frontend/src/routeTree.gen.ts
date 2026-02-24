@@ -12,14 +12,15 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as LayoutRouteImport } from './routes/_layout'
 import { Route as LayoutIndexRouteImport } from './routes/_layout/index'
 import { Route as LayoutVideoRouteImport } from './routes/_layout/video'
-import { Route as LayoutTagsRouteImport } from './routes/_layout/tags'
 import { Route as LayoutSettingsRouteImport } from './routes/_layout/settings'
 import { Route as LayoutSearchRouteImport } from './routes/_layout/search'
 import { Route as LayoutHistoryRouteImport } from './routes/_layout/history'
 import { Route as LayoutExplorerRouteImport } from './routes/_layout/explorer'
-import { Route as LayoutCosersRouteImport } from './routes/_layout/cosers'
-import { Route as LayoutAuthorsRouteImport } from './routes/_layout/authors'
+import { Route as LayoutEntitiesRouteImport } from './routes/_layout/_entities'
 import { Route as LayoutReadIndexRouteImport } from './routes/_layout/read/index'
+import { Route as LayoutEntitiesTagsRouteImport } from './routes/_layout/_entities/tags'
+import { Route as LayoutEntitiesCosersRouteImport } from './routes/_layout/_entities/cosers'
+import { Route as LayoutEntitiesAuthorsRouteImport } from './routes/_layout/_entities/authors'
 
 const LayoutRoute = LayoutRouteImport.update({
   id: '/_layout',
@@ -33,11 +34,6 @@ const LayoutIndexRoute = LayoutIndexRouteImport.update({
 const LayoutVideoRoute = LayoutVideoRouteImport.update({
   id: '/video',
   path: '/video',
-  getParentRoute: () => LayoutRoute,
-} as any)
-const LayoutTagsRoute = LayoutTagsRouteImport.update({
-  id: '/tags',
-  path: '/tags',
   getParentRoute: () => LayoutRoute,
 } as any)
 const LayoutSettingsRoute = LayoutSettingsRouteImport.update({
@@ -60,14 +56,8 @@ const LayoutExplorerRoute = LayoutExplorerRouteImport.update({
   path: '/explorer',
   getParentRoute: () => LayoutRoute,
 } as any)
-const LayoutCosersRoute = LayoutCosersRouteImport.update({
-  id: '/cosers',
-  path: '/cosers',
-  getParentRoute: () => LayoutRoute,
-} as any)
-const LayoutAuthorsRoute = LayoutAuthorsRouteImport.update({
-  id: '/authors',
-  path: '/authors',
+const LayoutEntitiesRoute = LayoutEntitiesRouteImport.update({
+  id: '/_entities',
   getParentRoute: () => LayoutRoute,
 } as any)
 const LayoutReadIndexRoute = LayoutReadIndexRouteImport.update({
@@ -75,82 +65,99 @@ const LayoutReadIndexRoute = LayoutReadIndexRouteImport.update({
   path: '/read/',
   getParentRoute: () => LayoutRoute,
 } as any)
+const LayoutEntitiesTagsRoute = LayoutEntitiesTagsRouteImport.update({
+  id: '/tags',
+  path: '/tags',
+  getParentRoute: () => LayoutEntitiesRoute,
+} as any)
+const LayoutEntitiesCosersRoute = LayoutEntitiesCosersRouteImport.update({
+  id: '/cosers',
+  path: '/cosers',
+  getParentRoute: () => LayoutEntitiesRoute,
+} as any)
+const LayoutEntitiesAuthorsRoute = LayoutEntitiesAuthorsRouteImport.update({
+  id: '/authors',
+  path: '/authors',
+  getParentRoute: () => LayoutEntitiesRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof LayoutIndexRoute
-  '/authors': typeof LayoutAuthorsRoute
-  '/cosers': typeof LayoutCosersRoute
   '/explorer': typeof LayoutExplorerRoute
   '/history': typeof LayoutHistoryRoute
   '/search': typeof LayoutSearchRoute
   '/settings': typeof LayoutSettingsRoute
-  '/tags': typeof LayoutTagsRoute
   '/video': typeof LayoutVideoRoute
+  '/authors': typeof LayoutEntitiesAuthorsRoute
+  '/cosers': typeof LayoutEntitiesCosersRoute
+  '/tags': typeof LayoutEntitiesTagsRoute
   '/read/': typeof LayoutReadIndexRoute
 }
 export interface FileRoutesByTo {
-  '/authors': typeof LayoutAuthorsRoute
-  '/cosers': typeof LayoutCosersRoute
+  '/': typeof LayoutIndexRoute
   '/explorer': typeof LayoutExplorerRoute
   '/history': typeof LayoutHistoryRoute
   '/search': typeof LayoutSearchRoute
   '/settings': typeof LayoutSettingsRoute
-  '/tags': typeof LayoutTagsRoute
   '/video': typeof LayoutVideoRoute
-  '/': typeof LayoutIndexRoute
+  '/authors': typeof LayoutEntitiesAuthorsRoute
+  '/cosers': typeof LayoutEntitiesCosersRoute
+  '/tags': typeof LayoutEntitiesTagsRoute
   '/read': typeof LayoutReadIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_layout': typeof LayoutRouteWithChildren
-  '/_layout/authors': typeof LayoutAuthorsRoute
-  '/_layout/cosers': typeof LayoutCosersRoute
+  '/_layout/_entities': typeof LayoutEntitiesRouteWithChildren
   '/_layout/explorer': typeof LayoutExplorerRoute
   '/_layout/history': typeof LayoutHistoryRoute
   '/_layout/search': typeof LayoutSearchRoute
   '/_layout/settings': typeof LayoutSettingsRoute
-  '/_layout/tags': typeof LayoutTagsRoute
   '/_layout/video': typeof LayoutVideoRoute
   '/_layout/': typeof LayoutIndexRoute
+  '/_layout/_entities/authors': typeof LayoutEntitiesAuthorsRoute
+  '/_layout/_entities/cosers': typeof LayoutEntitiesCosersRoute
+  '/_layout/_entities/tags': typeof LayoutEntitiesTagsRoute
   '/_layout/read/': typeof LayoutReadIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/authors'
-    | '/cosers'
     | '/explorer'
     | '/history'
     | '/search'
     | '/settings'
-    | '/tags'
     | '/video'
+    | '/authors'
+    | '/cosers'
+    | '/tags'
     | '/read/'
   fileRoutesByTo: FileRoutesByTo
   to:
-    | '/authors'
-    | '/cosers'
+    | '/'
     | '/explorer'
     | '/history'
     | '/search'
     | '/settings'
-    | '/tags'
     | '/video'
-    | '/'
+    | '/authors'
+    | '/cosers'
+    | '/tags'
     | '/read'
   id:
     | '__root__'
     | '/_layout'
-    | '/_layout/authors'
-    | '/_layout/cosers'
+    | '/_layout/_entities'
     | '/_layout/explorer'
     | '/_layout/history'
     | '/_layout/search'
     | '/_layout/settings'
-    | '/_layout/tags'
     | '/_layout/video'
     | '/_layout/'
+    | '/_layout/_entities/authors'
+    | '/_layout/_entities/cosers'
+    | '/_layout/_entities/tags'
     | '/_layout/read/'
   fileRoutesById: FileRoutesById
 }
@@ -181,13 +188,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutVideoRouteImport
       parentRoute: typeof LayoutRoute
     }
-    '/_layout/tags': {
-      id: '/_layout/tags'
-      path: '/tags'
-      fullPath: '/tags'
-      preLoaderRoute: typeof LayoutTagsRouteImport
-      parentRoute: typeof LayoutRoute
-    }
     '/_layout/settings': {
       id: '/_layout/settings'
       path: '/settings'
@@ -216,18 +216,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutExplorerRouteImport
       parentRoute: typeof LayoutRoute
     }
-    '/_layout/cosers': {
-      id: '/_layout/cosers'
-      path: '/cosers'
-      fullPath: '/cosers'
-      preLoaderRoute: typeof LayoutCosersRouteImport
-      parentRoute: typeof LayoutRoute
-    }
-    '/_layout/authors': {
-      id: '/_layout/authors'
-      path: '/authors'
-      fullPath: '/authors'
-      preLoaderRoute: typeof LayoutAuthorsRouteImport
+    '/_layout/_entities': {
+      id: '/_layout/_entities'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof LayoutEntitiesRouteImport
       parentRoute: typeof LayoutRoute
     }
     '/_layout/read/': {
@@ -237,30 +230,63 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutReadIndexRouteImport
       parentRoute: typeof LayoutRoute
     }
+    '/_layout/_entities/tags': {
+      id: '/_layout/_entities/tags'
+      path: '/tags'
+      fullPath: '/tags'
+      preLoaderRoute: typeof LayoutEntitiesTagsRouteImport
+      parentRoute: typeof LayoutEntitiesRoute
+    }
+    '/_layout/_entities/cosers': {
+      id: '/_layout/_entities/cosers'
+      path: '/cosers'
+      fullPath: '/cosers'
+      preLoaderRoute: typeof LayoutEntitiesCosersRouteImport
+      parentRoute: typeof LayoutEntitiesRoute
+    }
+    '/_layout/_entities/authors': {
+      id: '/_layout/_entities/authors'
+      path: '/authors'
+      fullPath: '/authors'
+      preLoaderRoute: typeof LayoutEntitiesAuthorsRouteImport
+      parentRoute: typeof LayoutEntitiesRoute
+    }
   }
 }
 
+interface LayoutEntitiesRouteChildren {
+  LayoutEntitiesAuthorsRoute: typeof LayoutEntitiesAuthorsRoute
+  LayoutEntitiesCosersRoute: typeof LayoutEntitiesCosersRoute
+  LayoutEntitiesTagsRoute: typeof LayoutEntitiesTagsRoute
+}
+
+const LayoutEntitiesRouteChildren: LayoutEntitiesRouteChildren = {
+  LayoutEntitiesAuthorsRoute: LayoutEntitiesAuthorsRoute,
+  LayoutEntitiesCosersRoute: LayoutEntitiesCosersRoute,
+  LayoutEntitiesTagsRoute: LayoutEntitiesTagsRoute,
+}
+
+const LayoutEntitiesRouteWithChildren = LayoutEntitiesRoute._addFileChildren(
+  LayoutEntitiesRouteChildren,
+)
+
 interface LayoutRouteChildren {
-  LayoutAuthorsRoute: typeof LayoutAuthorsRoute
-  LayoutCosersRoute: typeof LayoutCosersRoute
+  LayoutEntitiesRoute: typeof LayoutEntitiesRouteWithChildren
   LayoutExplorerRoute: typeof LayoutExplorerRoute
   LayoutHistoryRoute: typeof LayoutHistoryRoute
   LayoutSearchRoute: typeof LayoutSearchRoute
   LayoutSettingsRoute: typeof LayoutSettingsRoute
-  LayoutTagsRoute: typeof LayoutTagsRoute
   LayoutVideoRoute: typeof LayoutVideoRoute
   LayoutIndexRoute: typeof LayoutIndexRoute
   LayoutReadIndexRoute: typeof LayoutReadIndexRoute
 }
 
 const LayoutRouteChildren: LayoutRouteChildren = {
-  LayoutAuthorsRoute: LayoutAuthorsRoute,
-  LayoutCosersRoute: LayoutCosersRoute,
+  LayoutEntitiesRoute: LayoutEntitiesRouteWithChildren,
   LayoutExplorerRoute: LayoutExplorerRoute,
   LayoutHistoryRoute: LayoutHistoryRoute,
   LayoutSearchRoute: LayoutSearchRoute,
   LayoutSettingsRoute: LayoutSettingsRoute,
-  LayoutTagsRoute: LayoutTagsRoute,
   LayoutVideoRoute: LayoutVideoRoute,
   LayoutIndexRoute: LayoutIndexRoute,
   LayoutReadIndexRoute: LayoutReadIndexRoute,

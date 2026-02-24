@@ -17,7 +17,7 @@ export type EntityCardItem = {
   name: string
   thumbnail?: string | null
   file_count: number
-  avg_rec_score?: number | null
+  recommendation_score?: number | null
   entityType?: "tag" | "author" | "coser"
 }
 
@@ -29,7 +29,7 @@ export function EntityCard({
   href?: string
 }) {
   const { t } = useTranslation()
-  const recScore = item.avg_rec_score ?? 0
+  const recScore = item.recommendation_score ?? 0
   const tooltipText = `${t("authors.recommendation")}: ${recScore.toFixed(3)}`
 
   const resolvedThumbSrc = item.thumbnail

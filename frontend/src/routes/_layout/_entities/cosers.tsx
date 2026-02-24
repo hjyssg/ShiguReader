@@ -9,7 +9,7 @@ import { EntityListPage } from "@/components/Common/EntityListPage"
 type SortBy = "count" | "name"
 type SortOrder = "asc" | "desc"
 
-export const Route = createFileRoute("/_layout/cosers")({
+export const Route = createFileRoute("/_layout/_entities/cosers")({
   component: CosersPage,
   validateSearch: (search: Record<string, unknown>) => ({
     page: Math.max(1, Number(search.page) || 1),

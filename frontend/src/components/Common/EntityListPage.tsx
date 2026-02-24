@@ -27,7 +27,7 @@ type EntityItem = {
   name: string
   thumbnail?: string | null
   file_count: number
-  avg_rec_score?: number | null
+  recommendation_score?: number | null
 }
 
 type EntityListResponse = {

@@ -9,7 +9,7 @@ import { EntityListPage } from "@/components/Common/EntityListPage"
 type SortBy = "count" | "name" | "recommendation"
 type SortOrder = "asc" | "desc"
 
-export const Route = createFileRoute("/_layout/tags")({
+export const Route = createFileRoute("/_layout/_entities/tags")({
   component: TagsPage,
   validateSearch: (search: Record<string, unknown>) => ({
     page: Math.max(1, Number(search.page) || 1),

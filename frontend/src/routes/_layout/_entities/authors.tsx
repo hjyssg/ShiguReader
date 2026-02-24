@@ -9,7 +9,7 @@ import { EntityListPage } from "@/components/Common/EntityListPage"
 type SortBy = "count" | "name" | "recommendation"
 type SortOrder = "asc" | "desc"
 
-export const Route = createFileRoute("/_layout/authors")({
+export const Route = createFileRoute("/_layout/_entities/authors")({
   component: AuthorsPage,
   validateSearch: (search: Record<string, unknown>) => ({
     page: Math.max(1, Number(search.page) || 1),

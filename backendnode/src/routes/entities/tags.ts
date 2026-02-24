@@ -1,5 +1,5 @@
 import type { FastifyInstance } from "fastify";
-import { makeListHandler } from "./_listUtils.js";
+import { makeListHandler } from "../_listUtils.js";
 
 const listTags = makeListHandler({
   count: repo => repo.countTags(),
