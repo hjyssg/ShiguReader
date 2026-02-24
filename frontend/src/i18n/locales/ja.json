@@ -292,6 +292,8 @@
     "minifyZipImagesDescription": "アーカイブ内の大きな画像を圧縮して再パックします。元のアーカイブは置き換えられます。",
     "minify": "最適化",
     "minifying": "最適化中...",
-    "target": "対象"
+    "target": "対象",
+    "download": "ダウンロード",
+    "fileActions": "ファイル操作"
   }
 }

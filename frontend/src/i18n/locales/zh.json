@@ -292,6 +292,8 @@
     "minifyZipImagesDescription": "压缩压缩包中的大图并重新打包，原压缩包会被替换。",
     "minify": "压缩",
     "minifying": "压缩处理中...",
-    "target": "目标"
+    "target": "目标",
+    "download": "下载",
+    "fileActions": "文件操作"
   }
 }

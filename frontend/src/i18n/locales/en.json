@@ -292,6 +292,8 @@
     "minifyZipImagesDescription": "This will compress large images inside the archive and repack it. The original archive will be replaced.",
     "minify": "Minify",
     "minifying": "Minifying...",
-    "target": "Target"
+    "target": "Target",
+    "download": "Download",
+    "fileActions": "File actions"
   }
 }

@@ -293,6 +293,8 @@
     "minifyZipImagesDescription": "아카이브 내 큰 이미지를 압축해 다시 패킹합니다. 원본 아카이브는 대체됩니다.",
     "minify": "최적화",
     "minifying": "최적화 중...",
-    "target": "대상"
+    "target": "대상",
+    "download": "다운로드",
+    "fileActions": "파일 작업"
   }
 }
