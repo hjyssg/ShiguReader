@@ -183,7 +183,8 @@
     "jumpPage": "Jump",
     "reset": "Reset",
     "page": "Page",
-    "of": "of"
+    "of": "of",
+    "waterfall": "Waterfall"
   },
   "settings": {
     "title": "Settings",
@@ -259,5 +260,38 @@
   },
   "audio": {
     "noAudioFiles": "No audio files found"
+  },
+  "fileOps": {
+    "title": "File operations",
+    "rename": "Rename",
+    "renaming": "Renaming...",
+    "newName": "New name",
+    "move": "Move",
+    "moveTo": "Move to...",
+    "moveItems": "Move {{count}} items",
+    "moving": "Moving",
+    "movingAction": "Moving...",
+    "itemsCount": "{{count}} items",
+    "destinationDirectory": "Destination directory",
+    "enterDestinationPath": "Enter destination path...",
+    "andMore": " and {{count}} more",
+    "deleteItems": "Delete {{count}} items",
+    "deleting": "Deleting...",
+    "moveToRecycleBin": "Move to Recycle Bin",
+    "permanentlyDelete": "Permanently Delete",
+    "moveToFavorites": "Move to Favorites",
+    "moveToAlreadyRead": "Move to Already Read",
+    "moveToDestination": "move {{item}} to \"{{destination}}\"?",
+    "moveToSubfolder": "Move to subfolder",
+    "subfolderName": "Subfolder name",
+    "compressToZip": "Compress to Zip",
+    "compressToZipDescription": "This will compress the folder into a Zip archive.",
+    "compress": "Compress",
+    "compressing": "Compressing...",
+    "minifyZipImages": "Minify Zip Images",
+    "minifyZipImagesDescription": "This will compress large images inside the archive and repack it. The original archive will be replaced.",
+    "minify": "Minify",
+    "minifying": "Minifying...",
+    "target": "Target"
   }
 }

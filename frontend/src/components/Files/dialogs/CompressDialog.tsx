@@ -1,4 +1,5 @@
 // 压缩/压图确认对话框
+import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -21,25 +22,6 @@ interface CompressDialogProps {
   isPending?: boolean
 }
 
-const actionLabels: Record<
-  CompressAction,
-  { title: string; description: string; button: string; pending: string }
-> = {
-  "zip-folder": {
-    title: "Compress to Zip",
-    description: "This will compress the folder into a Zip archive.",
-    button: "Compress",
-    pending: "Compressing...",
-  },
-  "minify-zip-images": {
-    title: "Minify Zip Images",
-    description:
-      "This will compress large images inside the archive and repack it. The original archive will be replaced.",
-    button: "Minify",
-    pending: "Minifying...",
-  },
-}
-
 export function CompressDialog({
   open,
   onOpenChange,
@@ -48,8 +30,22 @@ export function CompressDialog({
   onConfirm,
   isPending,
 }: CompressDialogProps) {
-  const labels = actionLabels[action]
+  const { t } = useTranslation()
   const name = getBaseName(filePath)
+
+  const labels = action === "zip-folder"
+    ? {
+      title: t("fileOps.compressToZip"),
+      description: t("fileOps.compressToZipDescription"),
+      button: t("fileOps.compress"),
+      pending: t("fileOps.compressing"),
+    }
+    : {
+      title: t("fileOps.minifyZipImages"),
+      description: t("fileOps.minifyZipImagesDescription"),
+      button: t("fileOps.minify"),
+      pending: t("fileOps.minifying"),
+    }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -60,7 +56,7 @@ export function CompressDialog({
         </DialogHeader>
         <div className="py-4">
           <p className="text-sm break-all whitespace-normal">
-            Target: <span className="font-medium">{name}</span>
+            {t("fileOps.target")}: <span className="font-medium">{name}</span>
           </p>
         </div>
         <DialogFooter>
@@ -69,7 +65,7 @@ export function CompressDialog({
             variant="outline"
             onClick={() => onOpenChange(false)}
           >
-            Cancel
+            {t("common.cancel")}
           </Button>
           <Button type="button" onClick={onConfirm} disabled={isPending}>
             {isPending ? labels.pending : labels.button}

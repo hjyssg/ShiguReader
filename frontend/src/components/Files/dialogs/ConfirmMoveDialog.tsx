@@ -1,5 +1,6 @@
 // 确认移动对话框 — 用于 Move to Favorites / Move to Already Read
 import { useEffect, useState } from "react"
+import { useTranslation } from "react-i18next"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -46,9 +47,10 @@ export function ConfirmMoveDialog({
   isPending,
 }: ConfirmMoveDialogProps) {
   const count = filePaths.length
+  const { t } = useTranslation()
   const names = filePaths.slice(0, 3).map((p) => getBaseName(p))
   const displayNames =
-    count > 3 ? `${names.join(", ")} and ${count - 3} more` : names.join(", ")
+    count > 3 ? `${names.join(", ")}${t("fileOps.andMore", { count: count - 3 })}` : names.join(", ")
   const destinationText = destinationPath?.trim() || destination
 
   const [useSubfolder, setUseSubfolder] = useState(true)
@@ -66,10 +68,12 @@ export function ConfirmMoveDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-xl">
         <DialogHeader>
-          <DialogTitle>Move</DialogTitle>
+          <DialogTitle>{t("fileOps.move")}</DialogTitle>
           <DialogDescription className="break-all whitespace-normal">
-            move {count === 1 ? `"${displayNames}"` : `${count} items`} to{" "}
-            "{destinationText}"?
+            {t("fileOps.moveToDestination", {
+              item: count === 1 ? `"${displayNames}"` : t("fileOps.itemsCount", { count }),
+              destination: destinationText,
+            })}
           </DialogDescription>
         </DialogHeader>
 
@@ -84,13 +88,13 @@ export function ConfirmMoveDialog({
                 className="size-4 rounded border"
               />
               <Label htmlFor="use-subfolder" className="text-sm cursor-pointer">
-                Move to subfolder
+                {t("fileOps.moveToSubfolder")}
               </Label>
             </div>
             {useSubfolder && (
               <div className="pl-6">
                 <Label htmlFor="subfolder-name" className="text-xs text-muted-foreground">
-                  Subfolder name
+                  {t("fileOps.subfolderName")}
                 </Label>
                 <Input
                   id="subfolder-name"
@@ -110,7 +114,7 @@ export function ConfirmMoveDialog({
             onClick={() => onOpenChange(false)}
             disabled={isPending}
           >
-            Cancel
+            {t("common.cancel")}
           </Button>
           <Button
             onClick={() => {
@@ -122,7 +126,7 @@ export function ConfirmMoveDialog({
             autoFocus
             disabled={isPending}
           >
-            {isPending ? "Moving..." : "Confirm"}
+            {isPending ? t("fileOps.movingAction") : t("common.confirm")}
           </Button>
         </DialogFooter>
       </DialogContent>

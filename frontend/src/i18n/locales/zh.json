@@ -183,7 +183,8 @@
     "jumpPage": "跳页",
     "reset": "重置",
     "page": "第",
-    "of": "页，共"
+    "of": "页，共",
+    "waterfall": "瀑布流"
   },
   "settings": {
     "title": "设置",
@@ -259,5 +260,38 @@
   },
   "audio": {
     "noAudioFiles": "未找到音频文件"
+  },
+  "fileOps": {
+    "title": "文件操作",
+    "rename": "重命名",
+    "renaming": "重命名中...",
+    "newName": "新名称",
+    "move": "移动",
+    "moveTo": "移动到...",
+    "moveItems": "移动 {{count}} 项",
+    "moving": "正在移动",
+    "movingAction": "移动中...",
+    "itemsCount": "{{count}} 项",
+    "destinationDirectory": "目标目录",
+    "enterDestinationPath": "输入目标路径...",
+    "andMore": " 以及另外 {{count}} 项",
+    "deleteItems": "删除 {{count}} 项",
+    "deleting": "删除中...",
+    "moveToRecycleBin": "移到回收站",
+    "permanentlyDelete": "永久删除",
+    "moveToFavorites": "移动到收藏",
+    "moveToAlreadyRead": "移动到已读",
+    "moveToDestination": "将 {{item}} 移动到 “{{destination}}” 吗？",
+    "moveToSubfolder": "移动到子文件夹",
+    "subfolderName": "子文件夹名称",
+    "compressToZip": "压缩为 Zip",
+    "compressToZipDescription": "将此文件夹压缩为 Zip 压缩包。",
+    "compress": "压缩",
+    "compressing": "压缩中...",
+    "minifyZipImages": "压缩 Zip 图片",
+    "minifyZipImagesDescription": "压缩压缩包中的大图并重新打包，原压缩包会被替换。",
+    "minify": "压缩",
+    "minifying": "压缩处理中...",
+    "target": "目标"
   }
 }

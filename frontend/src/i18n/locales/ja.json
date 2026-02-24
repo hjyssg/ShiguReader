@@ -183,7 +183,8 @@
     "jumpPage": "移動",
     "reset": "リセット",
     "page": "ページ",
-    "of": "/"
+    "of": "/",
+    "waterfall": "ウォーターフォール"
   },
   "settings": {
     "title": "設定",
@@ -259,5 +260,38 @@
   },
   "audio": {
     "noAudioFiles": "音声ファイルが見つかりません"
+  },
+  "fileOps": {
+    "title": "ファイル操作",
+    "rename": "名前変更",
+    "renaming": "名前変更中...",
+    "newName": "新しい名前",
+    "move": "移動",
+    "moveTo": "移動先...",
+    "moveItems": "{{count}} 件を移動",
+    "moving": "移動中",
+    "movingAction": "移動中...",
+    "itemsCount": "{{count}} 件",
+    "destinationDirectory": "移動先フォルダー",
+    "enterDestinationPath": "移動先パスを入力...",
+    "andMore": " ほか {{count}} 件",
+    "deleteItems": "{{count}} 件を削除",
+    "deleting": "削除中...",
+    "moveToRecycleBin": "ごみ箱に移動",
+    "permanentlyDelete": "完全に削除",
+    "moveToFavorites": "お気に入りに移動",
+    "moveToAlreadyRead": "既読に移動",
+    "moveToDestination": "{{item}} を「{{destination}}」へ移動しますか？",
+    "moveToSubfolder": "サブフォルダーに移動",
+    "subfolderName": "サブフォルダー名",
+    "compressToZip": "Zip に圧縮",
+    "compressToZipDescription": "このフォルダーを Zip アーカイブに圧縮します。",
+    "compress": "圧縮",
+    "compressing": "圧縮中...",
+    "minifyZipImages": "Zip 画像を最適化",
+    "minifyZipImagesDescription": "アーカイブ内の大きな画像を圧縮して再パックします。元のアーカイブは置き換えられます。",
+    "minify": "最適化",
+    "minifying": "最適化中...",
+    "target": "対象"
   }
 }
