@@ -1,5 +1,6 @@
 import Fastify from "fastify";
 import cors from "@fastify/cors";
+import cookie from "@fastify/cookie";
 import swagger from "@fastify/swagger";
 import swaggerUi from "@fastify/swagger-ui";
 import staticPlugin from "@fastify/static";
@@ -22,6 +23,16 @@ import { IndexRepository } from "./db/repository.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
+const ACCESS_COOKIE_NAME = "shigureader_access";
+const ACCESS_COOKIE_MAX_AGE_SECONDS = 5 * 24 * 60 * 60;
+
+function isAccessExemptPath(url: string): boolean {
+  if (url === "/health" || url.startsWith("/docs")) return true;
+  if (url.startsWith(`${config.API_V1_STR}/utils/health-check/`)) return true;
+  if (url === `${config.API_V1_STR}/access/login`) return true;
+  return false;
+}
+
 export function buildApp() {
   const app = Fastify({
     logger: { level: "warn" }, // 只保留 warn/error，屏蔽每次请求的 info 日志
@@ -29,6 +40,7 @@ export function buildApp() {
 
   // ── CORS ──────────────────────────────────────────────────────────────────
   app.register(cors, { origin: true, credentials: true });
+  app.register(cookie);
 
   // ── Swagger (API docs like FastAPI) ────────────────────────────────────────
   app.register(swagger, {
@@ -54,6 +66,35 @@ export function buildApp() {
   app.register(staticPlugin, {
     root: path.resolve(__dirname),   // 占位 root，实际调用时都会传 dirname 覆盖
     serve: false,
+  });
+
+  app.post(`${config.API_V1_STR}/access/login`, { schema: { summary: "访问密码登录", tags: ["系统"] } }, async (req, reply) => {
+    if (!config.ACCESS_PASSWORD) {
+      return { ok: true, disabled: true };
+    }
+
+    const { password } = (req.body ?? {}) as { password?: string };
+    if (!password || password !== config.ACCESS_PASSWORD) {
+      return reply.status(401).send({ error: "Invalid password" });
+    }
+
+    reply.setCookie(ACCESS_COOKIE_NAME, config.ACCESS_PASSWORD, {
+      path: "/",
+      httpOnly: true,
+      sameSite: "lax",
+      maxAge: ACCESS_COOKIE_MAX_AGE_SECONDS,
+    });
+    return { ok: true };
+  });
+
+  app.addHook("onRequest", async (req, reply) => {
+    if (!config.ACCESS_PASSWORD) return;
+    if (isAccessExemptPath(req.url)) return;
+
+    const accessCookie = req.cookies[ACCESS_COOKIE_NAME];
+    if (accessCookie === config.ACCESS_PASSWORD) return;
+
+    return reply.status(401).send({ error: "Unauthorized" });
   });
 
   // ── API routes ─────────────────────────────────────────────────────────────
