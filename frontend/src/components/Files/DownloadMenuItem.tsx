@@ -1,4 +1,5 @@
 import { Download } from "lucide-react"
+import { useTranslation } from "react-i18next"
 
 import { OpenAPI } from "@/client"
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu"
@@ -18,9 +19,11 @@ export function DownloadMenuItem({
   path,
   href,
   name,
-  label = "Download",
+  label,
   onDownloaded: _onDownloaded,
 }: DownloadMenuItemProps) {
+  const { t } = useTranslation()
+  const resolvedLabel = label ?? t("fileOps.download")
   const downloadHref =
     href ||
     (path ? `${OpenAPI.BASE}/api/v1/fs/download-full?path=${encodeURIComponent(path)}` : undefined)
@@ -29,7 +32,7 @@ export function DownloadMenuItem({
     return (
       <DropdownMenuItem disabled>
         <Download className="mr-2 size-4" />
-        {label}
+        {resolvedLabel}
       </DropdownMenuItem>
     )
   }
@@ -41,7 +44,7 @@ export function DownloadMenuItem({
         download={name}
       >
         <Download className="mr-2 size-4" />
-        {label}
+        {resolvedLabel}
       </a>
     </DropdownMenuItem>
   )
