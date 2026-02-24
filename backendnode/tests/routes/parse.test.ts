@@ -19,7 +19,7 @@ vi.mock("../../src/db/repository.js", () => ({
 
 vi.mock("../../src/config.js", async () => {
   const { baseTestConfig } = await import("../testUtils/mocks.js");
-  return { config: baseTestConfig };
+  return baseTestConfig;
 });
 
 beforeEach(() => {

@@ -1,19 +1,23 @@
 import { vi } from "vitest";
 
 export const baseTestConfig = {
-  API_V1_STR: "/api/v1",
-  ENVIRONMENT: "local",
-  INDEX_SQLITE_PATH: "./data/index.db",
-  FS_ROOTS: "",
-  FAVORITE_DIR: "",
-  ALREADY_READ_DIR: "",
-  THUMB_CONCURRENCY: 3,
-  EXTRACT_CONCURRENCY: 2,
-  THUMB_TIMEOUT_SEC: 10,
-  THUMB_HEIGHT: 350,
-  THUMB_JPEG_QUALITY: 70,
-  THUMB_CACHE_DIR: "../data/thumb_cache",
-  EXTRACT_CACHE_DIR: "../data/extract_cache",
+  config: {
+    API_V1_STR: "/api/v1",
+    ENVIRONMENT: "local",
+    INDEX_SQLITE_PATH: "./data/index.db",
+    FS_ROOTS: "",
+    FAVORITE_DIR: "",
+    ALREADY_READ_DIR: "",
+    THUMB_CONCURRENCY: 3,
+    EXTRACT_CONCURRENCY: 2,
+    THUMB_TIMEOUT_SEC: 10,
+    THUMB_HEIGHT: 350,
+    THUMB_JPEG_QUALITY: 70,
+    THUMB_CACHE_DIR: "../data/thumb_cache",
+    EXTRACT_CACHE_DIR: "../data/extract_cache",
+  },
+  ENV_FILE_PATH: "/fake/.env",
+  DB_FILE_PATH: "/fake/db.sqlite",
 } as const;
 
 type MockFn = ReturnType<typeof vi.fn>;

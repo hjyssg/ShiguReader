@@ -18,11 +18,11 @@ vi.mock("../../src/config.js", async () => {
   const { baseTestConfig } = await import("../testUtils/mocks.js");
   const PROJECT_ROOT = process.cwd();
   return {
-    config: baseTestConfig,
+    ...baseTestConfig,
     PROJECT_ROOT,
     ENV_FILE_PATH: path.join(PROJECT_ROOT, ".env"),
     DB_FILE_PATH: path.join(PROJECT_ROOT, "data", "index_node.db"),
-    resolveProjectPath: (p: string) => path.isAbsolute(p) ? p : path.resolve(process.cwd(), p),
+    resolveProjectPath: (p: string) => (path.isAbsolute(p) ? p : path.resolve(process.cwd(), p)),
   };
 });
 

@@ -101,7 +101,7 @@ describe("listEntries", () => {
       stderr: "",
     });
 
-    const entries = await listEntries("/fake/test.zip");
+    const entries = await listEntries("/fake/test-nonmedia.zip");
     const names = entries.map(e => e.name);
 
     expect(names).toContain("page001.jpg");
@@ -123,7 +123,7 @@ describe("listEntries", () => {
       stderr: "",
     });
 
-    const entries = await listEntries("/fake/test.zip");
+    const entries = await listEntries("/fake/test-macosx.zip");
     expect(entries).toHaveLength(1);
     expect(entries[0].name).toBe("page001.jpg");
   });
@@ -139,7 +139,7 @@ describe("listEntries", () => {
       stderr: "",
     });
 
-    const entries = await listEntries("/fake/test.zip");
+    const entries = await listEntries("/fake/test-sort.zip");
     const names = entries.map(e => e.name);
     expect(names).toEqual(["page1.jpg", "page2.jpg", "page10.jpg", "page20.jpg"]);
   });
@@ -150,7 +150,7 @@ describe("listEntries", () => {
       stderr: "",
     });
 
-    const entries = await listEntries("/fake/test.zip");
+    const entries = await listEntries("/fake/test-index.zip");
     expect(entries.map(e => e.index)).toEqual([0, 1, 2]);
   });
 
@@ -160,7 +160,7 @@ describe("listEntries", () => {
       stderr: "",
     });
 
-    const entries = await listEntries("/fake/test.zip");
+    const entries = await listEntries("/fake/test-empty.zip");
     expect(entries).toHaveLength(0);
   });
 
@@ -170,7 +170,7 @@ describe("listEntries", () => {
       stderr: "",
     });
 
-    const entries = await listEntries("/fake/test.zip");
+    const entries = await listEntries("/fake/test-types.zip");
     const byName = Object.fromEntries(entries.map(e => [e.name, e]));
 
     expect(byName["clip.mp4"].file_type).toBe("video");
@@ -180,7 +180,7 @@ describe("listEntries", () => {
 
   it("throws when 7z command fails", async () => {
     mockExecFile.mockRejectedValueOnce(new Error("7z not found"));
-    await expect(listEntries("/fake/test.zip")).rejects.toThrow("7z not found");
+    await expect(listEntries("/fake/test-fail.zip")).rejects.toThrow("7z not found");
   });
 });
 

@@ -18,7 +18,7 @@ vi.mock("../../src/db/repository.js", () => ({
 // ── mock config ──────────────────────────────────────────────────────────────
 vi.mock("../../src/config.js", async () => {
   const { baseTestConfig } = await import("../testUtils/mocks.js");
-  return { config: baseTestConfig };
+  return baseTestConfig;
 });
 
 // ── fake filesystem via spyOn ────────────────────────────────────────────────
