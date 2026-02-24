@@ -13,7 +13,6 @@ import type { ImageEntry } from "./-types"
 
 interface MobileModeViewProps {
   path: string
-  source: "archive" | "folder"
   isFolderSource: boolean
   currentPage: number
   imageEntries: ImageEntry[]
@@ -23,7 +22,6 @@ interface MobileModeViewProps {
 
 export function MobileModeView({
   path,
-  source: _source,
   isFolderSource,
   currentPage,
   imageEntries,

@@ -4,7 +4,7 @@
 import { OpenAPI } from "@/client"
 import { PathBreadcrumb } from "@/components/Common/PathBreadcrumb"
 import { buttonVariants } from "@/components/ui/button"
-import { getParentPath } from "@/lib/path-utils"
+import { getParentPath, inferPathType } from "@/lib/path-utils"
 import { Link } from "@tanstack/react-router"
 import { ChevronLeft, ChevronRight, Music4 } from "lucide-react"
 import { useEffect, useState } from "react"
@@ -16,7 +16,6 @@ import type { AudioTrack, ImageEntry } from "./-types"
 
 interface AudioModeViewProps {
   path: string
-  source: "archive" | "folder"
   fileName: string
   audioTracks: AudioTrack[]
   imageEntries: ImageEntry[]
@@ -27,7 +26,6 @@ interface AudioModeViewProps {
 
 export function AudioModeView({
   path,
-  source,
   fileName,
   audioTracks,
   imageEntries,
@@ -40,7 +38,7 @@ export function AudioModeView({
   const [imageIndex, setImageIndex] = useState(0)
   const selectedTrack = audioTracks[audioIndex]
   const parentPath = getParentPath(path)
-  const isFolderSource = source === "folder"
+  const isFolderSource = inferPathType(path) !== "archive"
 
   const totalImages = imageEntries.length
   const currentImageEntry = imageEntries[imageIndex]
@@ -95,7 +93,7 @@ export function AudioModeView({
             {imageEntries.length > 0 && (
               <Link
                 to="/read"
-                search={{ path, page: 0, source, sourceFolderPath: "", mode: "gallery" } as any}
+                search={{ path, page: 0, mode: "gallery" } as any}
                 className={buttonVariants({ variant: "ghost", size: "sm", className: "reader-toolbar__text-button" })}
               >
                 Images

@@ -44,20 +44,30 @@ export function buildDestPath(destDir: string, sourcePath: string): string {
   return `${normalizedDestDir}${separator}${fileName}`
 }
 
+const ARCHIVE_EXTENSIONS = new Set([
+  "zip", "cbz", "cbr", "rar", "7z", "tar", "gz", "bz2",
+])
+
+/**
+ * 从 path 推断文件类型：
+ * - `"archive"` — 有压缩包扩展名
+ * - `"folder"`  — 无扩展名（目录）
+ * - `"file"`    — 有扩展名但不是压缩包（图片、音频等普通文件）
+ */
+export function inferPathType(path: string): "archive" | "folder" | "file" {
+  const base = getBaseName(path)
+  const dotIndex = base.lastIndexOf(".")
+  if (dotIndex <= 0) return "folder"  // 无扩展名视为目录
+  const ext = base.slice(dotIndex + 1).toLowerCase()
+  if (ARCHIVE_EXTENSIONS.has(ext)) return "archive"
+  return "file"
+}
+
 export function buildReadUrl(
   path: string,
-  options: {
-    source?: "archive" | "folder"
-    page?: number
-    sourceFolderPath?: string
-  } = {},
+  options: { page?: number } = {},
 ): string {
-  const { source = "archive", page = 0, sourceFolderPath = "" } = options
-  const params = new URLSearchParams({
-    path,
-    source,
-    page: String(page),
-    sourceFolderPath,
-  })
+  const { page = 0 } = options
+  const params = new URLSearchParams({ path, page: String(page) })
   return `/read?${params.toString()}`
 }

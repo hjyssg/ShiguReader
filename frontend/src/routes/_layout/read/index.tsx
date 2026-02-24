@@ -45,7 +45,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Skeleton } from "@/components/ui/skeleton"
-import { useArchiveExtract, type ReadSource } from "@/hooks/useArchiveExtract"
+import { useArchiveExtract } from "@/hooks/useArchiveExtract"
 import { useDocumentTitle } from "@/hooks/useDocumentTitle"
 import { useFileOperations } from "@/hooks/useFileOperations"
 import { useResolveMovedFile } from "@/hooks/useResolveMovedFile"
@@ -62,14 +62,10 @@ export const Route = createFileRoute("/_layout/read/")({
   validateSearch: (search: Record<string, unknown>): {
     path: string
     page: number
-    source: ReadSource
-    sourceFolderPath: string
     mode?: ReadMode
   } => ({
     path: (search.path as string) || "",
     page: Number(search.page) || 0,
-    source: (search.source as ReadSource) || "archive",
-    sourceFolderPath: (search.sourceFolderPath as string) || "",
     mode: (search.mode as ReadMode) || undefined,
   }),
   head: () => ({
@@ -78,9 +74,8 @@ export const Route = createFileRoute("/_layout/read/")({
 })
 
 function ReadPage() {
-  const { path, page, source, sourceFolderPath, mode } = Route.useSearch()
+  const { path, page, mode } = Route.useSearch()
   const navigate = useNavigate()
-  const isFolderSource = source === "folder"
   const { t } = useTranslation()
 
   const [scale, setScale] = useState(1)
@@ -112,7 +107,7 @@ function ReadPage() {
     const nextPath = movedPath || path
     navigate({
       to: "/read",
-      search: { path: nextPath, page: 0, source, sourceFolderPath: "", mode: undefined },
+      search: { path: nextPath, page: 0, mode: undefined },
       replace: true,
     })
   }
@@ -124,7 +119,6 @@ function ReadPage() {
     useState<CompressAction>("zip-folder")
   const [confirmFavOpen, setConfirmFavOpen] = useState(false)
   const [confirmReadOpen, setConfirmReadOpen] = useState(false)
-  const isArchiveSource = !isFolderSource
 
   const hasAutoSwitchedRef = useRef(false)
   useEffect(() => { hasAutoSwitchedRef.current = false }, [path])
@@ -141,7 +135,11 @@ function ReadPage() {
     audioTracks,
     mtime,
     filesize,
-  } = useArchiveExtract(path, source)
+    source,
+    siblingInitialPage,
+  } = useArchiveExtract(path)
+  const isFolderSource = source === "folder"
+  const isArchiveSource = source === "archive"
 
   const [parseMeta, setParseMeta] = useState<ParseMetaData>(null)
 
@@ -176,17 +174,12 @@ function ReadPage() {
   useEffect(() => {
     if (shouldAutoAudio) {
       hasAutoSwitchedRef.current = true
-      navigate({ to: "/read", search: { path, page: 0, source, sourceFolderPath: "", mode: "audio" }, replace: true })
+      navigate({ to: "/read", search: { path, page: 0, mode: "audio" }, replace: true })
     }
-  }, [shouldAutoAudio, navigate, path, source])
+  }, [shouldAutoAudio, navigate, path])
 
-  const resolvedPage = useMemo(() => {
-    if (!isFolderSource || !sourceFolderPath) return page
-    const foundIndex = imageEntries.findIndex(
-      (entry) => entry.filePath === sourceFolderPath,
-    )
-    return foundIndex >= 0 ? foundIndex : page
-  }, [isFolderSource, sourceFolderPath, imageEntries, page])
+  // sibling 模式（path 指向具体图片/音频文件）：加载完目录后定位到该文件的 index
+  const resolvedPage = siblingInitialPage !== null ? siblingInitialPage : page
 
   const totalPages = imageEntries.length
   const currentPage = wrapPageIndex(resolvedPage, totalPages)
@@ -196,7 +189,7 @@ function ReadPage() {
     const target = wrapPageIndex(nextPage, totalPages)
     navigate({
       to: "/read",
-      search: { path, page: target, source, sourceFolderPath: "", mode: undefined },
+      search: { path, page: target, mode: undefined },
     })
   }
 
@@ -265,31 +258,8 @@ function ReadPage() {
   // 只在打开文件时记录一次阅读历史
   useEffect(() => {
     if (!path || totalPages <= 0) return
-    const historyFilepath = isFolderSource ? path : path
-    if (!historyFilepath) return
-    recordHistory({
-      filepath: historyFilepath,
-      page_current: 1,
-      page_total: totalPages,
-    })
-  }, [path, totalPages, isFolderSource, recordHistory])
-
-  useEffect(() => {
-    if (!isFolderSource || !sourceFolderPath || totalPages === 0) return
-    if (resolvedPage !== page) {
-      navigate({
-        to: "/read",
-        search: {
-          path,
-          source,
-          page: wrapPageIndex(resolvedPage, totalPages),
-          sourceFolderPath: "",
-          mode: undefined,
-        },
-        replace: true,
-      })
-    }
-  }, [isFolderSource, sourceFolderPath, resolvedPage, page, navigate, path, source, totalPages])
+    recordHistory({ filepath: path, page_current: 1, page_total: totalPages })
+  }, [path, totalPages, recordHistory])
 
   useEffect(() => {
     const onKeydown = (e: KeyboardEvent) => {
@@ -395,7 +365,7 @@ function ReadPage() {
     (newPath) => {
       navigate({
         to: "/read",
-        search: { path: newPath, page, source, sourceFolderPath: "", mode: undefined },
+        search: { path: newPath, page, mode: undefined },
         replace: true,
       })
     },
@@ -437,7 +407,6 @@ function ReadPage() {
     return (
       <AudioModeView
         path={path}
-        source={source}
         fileName={fileName}
         audioTracks={audioTracks}
         imageEntries={imageEntries}
@@ -452,7 +421,6 @@ function ReadPage() {
     return (
       <MobileModeView
         path={path}
-        source={source}
         isFolderSource={isFolderSource}
         currentPage={currentPage}
         imageEntries={imageEntries}
@@ -607,7 +575,7 @@ function ReadPage() {
                   {t("reader.waterfall")}
                 </Link>
                 {audioTracks.length > 0 && (
-                  <Link to="/read" search={{ path, page: 0, source, sourceFolderPath: "", mode: "audio" } as any} className={buttonVariants({ variant: "ghost", size: "sm", className: "reader-toolbar__text-button" })}>
+                  <Link to="/read" search={{ path, page: 0, mode: "audio" } as any} className={buttonVariants({ variant: "ghost", size: "sm", className: "reader-toolbar__text-button" })}>
                     {t("file.audio")}
                   </Link>
                 )}

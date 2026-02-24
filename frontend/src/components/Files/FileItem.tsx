@@ -17,7 +17,6 @@ import {
   ItemCard,
 } from "@/components/semantic/layout"
 import { useIsMobile } from "@/hooks/useMobile"
-import { getParentPath } from "@/lib/path-utils"
 import { cn } from "@/lib/utils"
 
 import { FileIcon } from "./FileIcon"
@@ -195,9 +194,7 @@ function buildItemHref(item: FileSystemItem, isMobile: boolean): string | null {
 
   if (item.file_type === "archive") {
     params.set("path", item.path)
-    params.set("source", "archive")
     params.set("page", "0")
-    params.set("sourceFolderPath", "")
     if (isMobile) params.set("mode", "mobile")
     return `/read?${params.toString()}`
   }
@@ -209,20 +206,15 @@ function buildItemHref(item: FileSystemItem, isMobile: boolean): string | null {
   }
 
   if (item.file_type === "audio") {
-    const parentPath = getParentPath(item.path)
-    params.set("path", parentPath)
-    params.set("source", "folder")
+    params.set("path", item.path)
     params.set("page", "0")
-    params.set("sourceFolderPath", item.path)
     params.set("mode", "audio")
     return `/read?${params.toString()}`
   }
 
   if (item.file_type === "image") {
-    params.set("path", getParentPath(item.path))
-    params.set("source", "folder")
+    params.set("path", item.path)
     params.set("page", "0")
-    params.set("sourceFolderPath", item.path)
     if (isMobile) params.set("mode", "mobile")
     return `/read?${params.toString()}`
   }
