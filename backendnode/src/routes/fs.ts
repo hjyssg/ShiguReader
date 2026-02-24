@@ -499,7 +499,7 @@ async function downloadFile(
     const filename = path.basename(filePath);
     reply.header("Content-Disposition", `attachment; filename="${encodeURIComponent(filename)}"`);
     return reply.type(mime).send(fs.createReadStream(filePath));
-  } catch (e) {
+  } catch (_e) {
     // Phase 3: 文件不存在时标记 missing
     observeFilePresence(filePath, false);
     return reply.status(404).send({ error: "File not found" });
@@ -752,7 +752,7 @@ async function zipFolder(
   const outputZip = output_path ?? `${folder_path}.zip`;
   try { await fs.promises.access(outputZip); return reply.status(409).send({ error: "Output zip already exists", path: outputZip }); } catch { /* doesn't exist, proceed */ }
   try {
-    await execFileAsync(get7zBin(), ["a", "-tzip", outputZip, folder_path + path.sep + "*", "-y"], {
+    await execFileAsync(get7zBin(), ["a", "-tzip", outputZip, `${folder_path + path.sep}*`, "-y"], {
       timeout: 300000,
     });
     return reply.send({ status: "ok", message: "Zip created", path: folder_path, dest_path: outputZip });
@@ -876,7 +876,7 @@ async function backfill(
       } catch { /* skip individual file errors */ }
     }
     repo.logActivity("backfill", `Backfill completed: ${dirPath}`, "completed", `backfill:${dirPath}`, dirPath);
-  } catch (e) {
+  } catch (_e) {
     try {
       getRepo().logActivity("backfill", `Backfill failed: ${dirPath}`, "failed", `backfill:${dirPath}`, dirPath);
     } catch { /* ignore */ }

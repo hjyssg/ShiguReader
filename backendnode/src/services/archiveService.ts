@@ -31,7 +31,7 @@ function shouldIgnore(entryPath: string): boolean {
   if (IGNORE_NAMES.has(name)) return true;
   if (isHiddenFile(name)) return true;
   for (const prefix of IGNORE_PREFIXES) {
-    if (entryPath.startsWith(prefix) || entryPath.includes("/" + prefix)) return true;
+    if (entryPath.startsWith(prefix) || entryPath.includes(`/${prefix}`)) return true;
   }
   return false;
 }

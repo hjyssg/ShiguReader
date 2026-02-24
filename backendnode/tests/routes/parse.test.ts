@@ -38,7 +38,7 @@ describe("GET /api/v1/parse", () => {
     const app = buildApp();
     const res = await app.inject({
       method: "GET",
-      url: "/api/v1/parse?filepath=" + encodeURIComponent("/a/[Author] Title [Tag].zip"),
+      url: `/api/v1/parse?filepath=${encodeURIComponent("/a/[Author] Title [Tag].zip")}`,
     });
     expect(res.statusCode).toBe(200);
     const body = res.json();
@@ -64,7 +64,7 @@ describe("GET /api/v1/parse", () => {
     const app = buildApp();
     const res = await app.inject({
       method: "GET",
-      url: "/api/v1/parse?filepath=" + encodeURIComponent("/a/test.zip"),
+      url: `/api/v1/parse?filepath=${encodeURIComponent("/a/test.zip")}`,
     });
     expect(res.statusCode).toBe(200);
     const body = res.json();

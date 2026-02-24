@@ -653,7 +653,7 @@ function ReadPage() {
       {/* ── 图片主舞台 ── */}
       <div className="reader-image-stage" onMouseMove={onMouseMove} onMouseUp={onMouseUp} onMouseLeave={onMouseUp} onWheel={onWheel}>
         {showImagePlaceholder && (
-          <div className={"reader-image-stage__placeholder" + (imageLoaded ? " reader-image-stage__placeholder--hidden" : "")} aria-hidden="true">
+          <div className={`reader-image-stage__placeholder${imageLoaded ? " reader-image-stage__placeholder--hidden" : ""}`} aria-hidden="true">
             <Skeleton className="reader-image-stage__skeleton" />
           </div>
         )}

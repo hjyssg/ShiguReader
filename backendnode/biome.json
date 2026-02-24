@@ -9,7 +9,8 @@
     "rules": {
       "recommended": true,
       "suspicious": {
-        "noExplicitAny": "off"
+        "noExplicitAny": "off",
+        "noAssignInExpressions": "off"
       },
       "correctness": {
         "useExhaustiveDependencies": "off"
@@ -22,7 +23,7 @@
     }
   },
   "formatter": {
-    "indentStyle": "space"
+    "enabled": false
   },
   "javascript": {
     "formatter": {

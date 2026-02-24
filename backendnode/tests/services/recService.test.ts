@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { describe, it, expect, beforeEach } from "vitest";
 import { createTestDb } from "../../src/db/client.js";
 import { IndexRepository } from "../../src/db/repository.js";
 import type { DatabaseSync } from "node:sqlite";

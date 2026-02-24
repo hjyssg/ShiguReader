@@ -1,4 +1,4 @@
-import { DatabaseSync } from "node:sqlite";
+import type { DatabaseSync } from "node:sqlite";
 import { nowTs } from "./client.js";
 
 /**
@@ -241,15 +241,15 @@ export class IndexRepository {
     this.db.exec("BEGIN");
     try {
       // folders table
-      this.db.prepare("UPDATE folders SET filepath=REPLACE(filepath,?,?), updated_at=? WHERE filepath LIKE ?").run(oldPfx, newPrefix, now, oldPfx + "%");
+      this.db.prepare("UPDATE folders SET filepath=REPLACE(filepath,?,?), updated_at=? WHERE filepath LIKE ?").run(oldPfx, newPrefix, now, `${oldPfx}%`);
       // files table
-      this.db.prepare("UPDATE files SET filepath=REPLACE(filepath,?,?), folderpath=REPLACE(folderpath,?,?), updated_at=? WHERE filepath LIKE ?").run(oldPfx, newPrefix, oldPfx, newPrefix, now, oldPfx + "%");
+      this.db.prepare("UPDATE files SET filepath=REPLACE(filepath,?,?), folderpath=REPLACE(folderpath,?,?), updated_at=? WHERE filepath LIKE ?").run(oldPfx, newPrefix, oldPfx, newPrefix, now, `${oldPfx}%`);
       // dependent tables
       for (const tbl of ["archive_meta", "video_meta", "read_history", "parsed_metadata"]) {
-        this.db.prepare(`UPDATE ${tbl} SET filepath=REPLACE(filepath,?,?) WHERE filepath LIKE ?`).run(oldPfx, newPrefix, oldPfx + "%");
+        this.db.prepare(`UPDATE ${tbl} SET filepath=REPLACE(filepath,?,?) WHERE filepath LIKE ?`).run(oldPfx, newPrefix, `${oldPfx}%`);
       }
-      this.db.prepare("UPDATE file_tags SET filepath=REPLACE(filepath,?,?) WHERE filepath LIKE ?").run(oldPfx, newPrefix, oldPfx + "%");
-      this.db.prepare("UPDATE file_artists SET filepath=REPLACE(filepath,?,?) WHERE filepath LIKE ?").run(oldPfx, newPrefix, oldPfx + "%");
+      this.db.prepare("UPDATE file_tags SET filepath=REPLACE(filepath,?,?) WHERE filepath LIKE ?").run(oldPfx, newPrefix, `${oldPfx}%`);
+      this.db.prepare("UPDATE file_artists SET filepath=REPLACE(filepath,?,?) WHERE filepath LIKE ?").run(oldPfx, newPrefix, `${oldPfx}%`);
       this.db.exec("COMMIT");
     } catch (e) {
       this.db.exec("ROLLBACK");
@@ -259,8 +259,8 @@ export class IndexRepository {
 
   /** 删除指定路径前缀下的所有文件和目录记录（用于目录整体删除） */
   deleteByPrefix(prefix: string): void {
-    this.db.prepare("DELETE FROM files WHERE filepath LIKE ?").run(prefix + "%");
-    this.db.prepare("DELETE FROM folders WHERE filepath LIKE ?").run(prefix + "%");
+    this.db.prepare("DELETE FROM files WHERE filepath LIKE ?").run(`${prefix}%`);
+    this.db.prepare("DELETE FROM folders WHERE filepath LIKE ?").run(`${prefix}%`);
     this._pruneOrphans();
   }
 
@@ -292,7 +292,7 @@ export class IndexRepository {
   /** 按文件名/路径模糊搜索 */
   searchFiles(q: string, presenceFilter = "present"): FileRow[] {
     const p = `%${q}%`;
-    return rows<FileRow>(this.db.prepare("SELECT * FROM files WHERE (filename LIKE ? OR filepath LIKE ?)" + this._presenceClause(presenceFilter)).all(p, p));
+    return rows<FileRow>(this.db.prepare(`SELECT * FROM files WHERE (filename LIKE ? OR filepath LIKE ?)${this._presenceClause(presenceFilter)}`).all(p, p));
   }
 
   /** 按作者名模糊搜索，返回关联文件列表 */
@@ -303,7 +303,7 @@ export class IndexRepository {
     const fps = rows<{ filepath: string }>(this.db.prepare(`SELECT filepath FROM file_artists WHERE artist_name IN (${names.map(() => "?").join(",")}) AND role = ''`).all(...names));
     if (!fps.length) return [];
     const paths = fps.map(f => f.filepath);
-    return rows<FileRow>(this.db.prepare(`SELECT * FROM files WHERE filepath IN (${paths.map(() => "?").join(",")})` + this._presenceClause(presenceFilter)).all(...paths));
+    return rows<FileRow>(this.db.prepare(`SELECT * FROM files WHERE filepath IN (${paths.map(() => "?").join(",")})${this._presenceClause(presenceFilter)}`).all(...paths));
   }
 
   /** 按 coser 名模糊搜索，返回关联文件列表 */
@@ -314,7 +314,7 @@ export class IndexRepository {
     const fps = rows<{ filepath: string }>(this.db.prepare(`SELECT filepath FROM file_artists WHERE artist_name IN (${names.map(() => "?").join(",")}) AND role = 'coser'`).all(...names));
     if (!fps.length) return [];
     const paths = fps.map(f => f.filepath);
-    return rows<FileRow>(this.db.prepare(`SELECT * FROM files WHERE filepath IN (${paths.map(() => "?").join(",")})` + this._presenceClause(presenceFilter)).all(...paths));
+    return rows<FileRow>(this.db.prepare(`SELECT * FROM files WHERE filepath IN (${paths.map(() => "?").join(",")})${this._presenceClause(presenceFilter)}`).all(...paths));
   }
 
   /** 按 tag 名模糊搜索，返回关联文件列表 */
@@ -325,7 +325,7 @@ export class IndexRepository {
     const fps = rows<{ filepath: string }>(this.db.prepare(`SELECT filepath FROM file_tags WHERE tag_name IN (${names.map(() => "?").join(",")})`).all(...names));
     if (!fps.length) return [];
     const paths = fps.map(f => f.filepath);
-    return rows<FileRow>(this.db.prepare(`SELECT * FROM files WHERE filepath IN (${paths.map(() => "?").join(",")})` + this._presenceClause(presenceFilter)).all(...paths));
+    return rows<FileRow>(this.db.prepare(`SELECT * FROM files WHERE filepath IN (${paths.map(() => "?").join(",")})${this._presenceClause(presenceFilter)}`).all(...paths));
   }
 
   // ─── folders ──────────────────────────────────────────────────────────────
@@ -738,13 +738,13 @@ export class IndexRepository {
 
   /** 统计收藏目录下各作者的文件数，用于推荐分计算 */
   getFavoriteAuthorFrequencies(favoriteDir: string): Map<string, number> {
-    const result = rows<{ artist_name: string; cnt: number }>(this.db.prepare("SELECT fa.artist_name, COUNT(fa.filepath) as cnt FROM file_artists fa JOIN files f ON f.filepath = fa.filepath WHERE fa.role = '' AND f.filepath LIKE ? GROUP BY fa.artist_name").all(favoriteDir + "%"));
+    const result = rows<{ artist_name: string; cnt: number }>(this.db.prepare("SELECT fa.artist_name, COUNT(fa.filepath) as cnt FROM file_artists fa JOIN files f ON f.filepath = fa.filepath WHERE fa.role = '' AND f.filepath LIKE ? GROUP BY fa.artist_name").all(`${favoriteDir}%`));
     return new Map(result.map(r => [r.artist_name, r.cnt]));
   }
 
   /** 统计收藏目录下各 tag 的文件数，用于推荐分计算 */
   getFavoriteTagFrequencies(favoriteDir: string): Map<string, number> {
-    const result = rows<{ tag_name: string; cnt: number }>(this.db.prepare("SELECT ft.tag_name, COUNT(ft.filepath) as cnt FROM file_tags ft JOIN files f ON f.filepath = ft.filepath WHERE f.filepath LIKE ? GROUP BY ft.tag_name").all(favoriteDir + "%"));
+    const result = rows<{ tag_name: string; cnt: number }>(this.db.prepare("SELECT ft.tag_name, COUNT(ft.filepath) as cnt FROM file_tags ft JOIN files f ON f.filepath = ft.filepath WHERE f.filepath LIKE ? GROUP BY ft.tag_name").all(`${favoriteDir}%`));
     return new Map(result.map(r => [r.tag_name, r.cnt]));
   }
 

@@ -80,9 +80,9 @@ export function RecentActivityPanel({ items }: Props) {
             <div className="home-activity-item__content">
               <div className="home-activity-item__message">{item.message}</div>
               <div className="home-activity-item__meta">{new Date(item.created_at * 1000).toLocaleString()}</div>
-              {typeof item.context?.["scanned_files"] === "number" ? (
+              {typeof item.context?.scanned_files === "number" ? (
                 <div className="home-activity-item__meta">
-                  {t("home.scannedFiles")}: {String(item.context?.["scanned_files"])}
+                  {t("home.scannedFiles")}: {String(item.context?.scanned_files)}
                 </div>
               ) : null}
             </div>

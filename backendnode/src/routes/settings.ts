@@ -35,13 +35,13 @@ async function updateSettings(
 
   // Update process.env so config picks up new values at runtime
   if (body.favorite_dir !== undefined && body.favorite_dir !== null) {
-    process.env["FAVORITE_DIR"] = body.favorite_dir;
+    process.env.FAVORITE_DIR = body.favorite_dir;
   }
   if (body.fs_roots !== undefined && body.fs_roots !== null) {
-    process.env["FS_ROOTS"] = body.fs_roots;
+    process.env.FS_ROOTS = body.fs_roots;
   }
   if (body.already_read_dir !== undefined && body.already_read_dir !== null) {
-    process.env["ALREADY_READ_DIR"] = body.already_read_dir;
+    process.env.ALREADY_READ_DIR = body.already_read_dir;
   }
 
   // Persist to .env file if it exists
@@ -49,9 +49,9 @@ async function updateSettings(
     if (fs.existsSync(ENV_FILE)) {
       let content = fs.readFileSync(ENV_FILE, "utf-8");
       const updates: Record<string, string> = {};
-      if (body.favorite_dir !== undefined && body.favorite_dir !== null) updates["FAVORITE_DIR"] = body.favorite_dir;
-      if (body.fs_roots !== undefined && body.fs_roots !== null) updates["FS_ROOTS"] = body.fs_roots;
-      if (body.already_read_dir !== undefined && body.already_read_dir !== null) updates["ALREADY_READ_DIR"] = body.already_read_dir;
+      if (body.favorite_dir !== undefined && body.favorite_dir !== null) updates.FAVORITE_DIR = body.favorite_dir;
+      if (body.fs_roots !== undefined && body.fs_roots !== null) updates.FS_ROOTS = body.fs_roots;
+      if (body.already_read_dir !== undefined && body.already_read_dir !== null) updates.ALREADY_READ_DIR = body.already_read_dir;
 
       for (const [key, val] of Object.entries(updates)) {
         const regex = new RegExp(`^${key}=.*$`, "m");
@@ -68,9 +68,9 @@ async function updateSettings(
 
   // Return current values from process.env (config is frozen at startup)
   return reply.send({
-    favorite_dir: process.env["FAVORITE_DIR"] ?? config.FAVORITE_DIR ?? "",
-    fs_roots: process.env["FS_ROOTS"] ?? config.FS_ROOTS ?? "",
-    already_read_dir: process.env["ALREADY_READ_DIR"] ?? config.ALREADY_READ_DIR ?? "",
+    favorite_dir: process.env.FAVORITE_DIR ?? config.FAVORITE_DIR ?? "",
+    fs_roots: process.env.FS_ROOTS ?? config.FS_ROOTS ?? "",
+    already_read_dir: process.env.ALREADY_READ_DIR ?? config.ALREADY_READ_DIR ?? "",
     env_file_path: ENV_FILE,
     db_file_path: DB_FILE,
   });

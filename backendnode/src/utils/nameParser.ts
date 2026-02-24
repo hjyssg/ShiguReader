@@ -134,7 +134,6 @@ function isStrDate(text: string): boolean {
       if (day < 1 || day > 31) continue;
       return true;
     } catch {
-      continue;
     }
   }
   return false;

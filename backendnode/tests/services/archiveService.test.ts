@@ -3,7 +3,6 @@
  * 测试 listEntries 解析逻辑 和 extractEntries / stepwiseExtract 流程
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import path from "node:path";
 
 // ── mock execFile ────────────────────────────────────────────────────────────
 // We mock child_process so no real 7z binary is needed
@@ -228,7 +227,7 @@ describe("extractEntries", () => {
     await extractEntries("/fake/test.zip", "/fake/dest", ["page001.jpg", "page002.jpg"]);
 
     expect(mockExecFile).toHaveBeenCalledOnce();
-    const [bin, args] = mockExecFile.mock.calls[0] as [string, string[]];
+    const [_bin, args] = mockExecFile.mock.calls[0] as [string, string[]];
     expect(args[0]).toBe("x");
     expect(args[1]).toBe("/fake/test.zip");
     // Should include -o flag

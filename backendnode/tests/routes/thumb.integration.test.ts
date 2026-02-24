@@ -12,7 +12,7 @@ import path from "node:path";
 import os from "node:os";
 
 // Override config before importing thumbService
-process.env.THUMB_CACHE_DIR = path.join(os.tmpdir(), "shigureader-thumb-test-" + Date.now());
+process.env.THUMB_CACHE_DIR = path.join(os.tmpdir(), `shigureader-thumb-test-${Date.now()}`);
 process.env.THUMB_HEIGHT = "200";
 process.env.THUMB_JPEG_QUALITY = "70";
 process.env.THUMB_TIMEOUT_SEC = "30";

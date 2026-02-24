@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
-import { createTestDb, closeDb } from "../../src/db/client.js";
+import { createTestDb } from "../../src/db/client.js";
 import { IndexRepository } from "../../src/db/repository.js";
 import type { DatabaseSync } from "node:sqlite";
 
