@@ -45,7 +45,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Skeleton } from "@/components/ui/skeleton"
-import { useArchiveExtract } from "@/hooks/useArchiveExtract"
+import { useArchiveExtract, type ReadSource } from "@/hooks/useArchiveExtract"
 import { useDocumentTitle } from "@/hooks/useDocumentTitle"
 import { useFileOperations } from "@/hooks/useFileOperations"
 import { useResolveMovedFile } from "@/hooks/useResolveMovedFile"
@@ -62,13 +62,13 @@ export const Route = createFileRoute("/_layout/read/")({
   validateSearch: (search: Record<string, unknown>): {
     path: string
     page: number
-    source: "archive" | "folder"
+    source: ReadSource
     sourceFolderPath: string
     mode?: ReadMode
   } => ({
     path: (search.path as string) || "",
     page: Number(search.page) || 0,
-    source: (search.source as "archive" | "folder") || "archive",
+    source: (search.source as ReadSource) || "archive",
     sourceFolderPath: (search.sourceFolderPath as string) || "",
     mode: (search.mode as ReadMode) || undefined,
   }),
@@ -136,12 +136,13 @@ function ReadPage() {
     isLoading,
     loadError,
     extractStatus,
-    parentListData,
     archiveImageReady,
     imageEntries,
     audioTracks,
     audioCoverUrl,
-  } = useArchiveExtract(path, isFolderSource)
+    mtime,
+    filesize,
+  } = useArchiveExtract(path, source)
 
   const [parseMeta, setParseMeta] = useState<ParseMetaData>(null)
 
@@ -370,13 +371,12 @@ function ReadPage() {
   // Computed values
   const fileName = getBaseName(path, isFolderSource ? "Folder" : "Archive")
   useDocumentTitle(fileName)
-  const currentPathMeta = parentListData?.items?.find((item) => item.path === path)
-  const mtimeText = currentPathMeta?.mtime ? formatDateTime(currentPathMeta.mtime) : "-"
-  const sizeText = currentPathMeta?.filesize ? formatFileSize(currentPathMeta.filesize) : "-"
-  const avgImageSize = extractStatus?.avg_image_size ?? currentPathMeta?.avg_image_size ?? null
+  const mtimeText = mtime ? formatDateTime(mtime) : "-"
+  const sizeText = filesize ? formatFileSize(filesize) : "-"
+  const avgImageSize = extractStatus?.avg_image_size ?? null
   const avgImageSizeText = avgImageSize != null ? formatFileSize(avgImageSize) : "-"
-  const archiveVideoCount = currentPathMeta?.video_count ?? 0
-  const archiveAudioCount = currentPathMeta?.audio_count ?? 0
+  const archiveVideoCount = (extractStatus?.entries ?? []).filter((e) => e.file_type === "video").length
+  const archiveAudioCount = (extractStatus?.entries ?? []).filter((e) => e.file_type === "audio").length
   const authors = parseMeta?.authors ?? []
   const cosers = parseMeta?.cosers ?? []
   const tags = parseMeta?.raw_tags ?? []

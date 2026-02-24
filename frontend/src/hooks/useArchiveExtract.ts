@@ -1,12 +1,16 @@
 // 压缩包/文件夹加载 Hook — 封装 read 页面的数据加载逻辑
+// source 四种模式：
+//   "folder"  → listDirectory(path)
+//   "archive" → extractArchive(path)，entries/mtime/filesize 内联返回
+//   "image"   → listDirectory(parentPath)，从兄弟文件中找图片
+//   "audio"   → listDirectory(parentPath)，从兄弟文件中找音频
 import { useEffect, useMemo, useState } from "react"
 
 import { FilesystemService, OpenAPI } from "@/client"
-import type {
-  ExtractStatus,
-  ListResponse,
-} from "@/client"
-import { getParentPath } from "@/lib/path-utils"
+import type { ExtractStatus, ListResponse } from "@/client"
+import { getBaseName, getParentPath } from "@/lib/path-utils"
+
+export type ReadSource = "archive" | "folder" | "image" | "audio"
 
 export type ImageEntry = {
   name: string
@@ -26,26 +30,29 @@ export interface ArchiveExtractResult {
   loadError: unknown
   extractStatus: ExtractStatus | null
   folderData: ListResponse | null
-  parentListData: ListResponse | null
-  /** 压缩包图片已可请求（解压完成或 folder source） */
+  /** 压缩包图片已可请求（解压完成或 folder/image/audio source） */
   archiveImageReady: boolean
   imageEntries: ImageEntry[]
   audioTracks: AudioTrack[]
   audioCoverUrl: string | undefined
+  /** 文件修改时间（Unix 秒），archive 分支从 extractStatus 读，其余从 folderData 读 */
+  mtime: number | null
+  /** 文件大小（字节） */
+  filesize: number | null
 }
 
 export function useArchiveExtract(
   path: string,
-  isFolderSource: boolean,
+  source: ReadSource,
 ): ArchiveExtractResult {
   const parentPath = getParentPath(path)
+  const isFolderSource = source === "folder"
 
   const [folderData, setFolderData] = useState<ListResponse | null>(null)
-  const [parentListData, setParentListData] = useState<ListResponse | null>(null)
   const [extractStatus, setExtractStatus] = useState<ExtractStatus | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [loadError, setLoadError] = useState<unknown>(null)
-  const [archiveImageReady, setArchiveImageReady] = useState(isFolderSource)
+  const [archiveImageReady, setArchiveImageReady] = useState(source !== "archive")
 
   useEffect(() => {
     let cancelled = false
@@ -56,27 +63,27 @@ export function useArchiveExtract(
       setIsLoading(true)
       setLoadError(null)
       setFolderData(null)
-      setParentListData(null)
       setExtractStatus(null)
-      setArchiveImageReady(isFolderSource)
+      setArchiveImageReady(source !== "archive")
 
       try {
-        if (isFolderSource) {
+        if (source === "folder") {
+          // folder: list the folder itself
           const data = await FilesystemService.listDirectory({ path })
           if (!cancelled) setFolderData(data)
-        } else {
+        } else if (source === "archive") {
+          // archive: extract returns entries + mtime + filesize inline
           setArchiveImageReady(false)
-          // extractArchive now returns entries inline — no need for a separate listArchive call
-          const [extractResult, parentData] = await Promise.all([
-            FilesystemService.extractArchive({ path, page: 0 }),
-            parentPath
-              ? FilesystemService.listDirectory({ path: parentPath })
-              : Promise.resolve(null),
-          ])
-          if (cancelled) return
-          setExtractStatus(extractResult)
-          setParentListData(parentData)
-          setArchiveImageReady(true)
+          const result = await FilesystemService.extractArchive({ path, page: 0 })
+          if (!cancelled) {
+            setExtractStatus(result)
+            setArchiveImageReady(true)
+          }
+        } else {
+          // image / audio: list parent directory to get sibling files
+          const dir = parentPath || path
+          const data = await FilesystemService.listDirectory({ path: dir })
+          if (!cancelled) setFolderData(data)
         }
       } catch (error) {
         if (!cancelled) {
@@ -90,23 +97,29 @@ export function useArchiveExtract(
 
     void load()
     return () => { cancelled = true }
-  }, [path, isFolderSource, parentPath])
+  }, [path, source, parentPath])
 
   const archiveEntries = extractStatus?.entries ?? []
 
   const imageEntries = useMemo<ImageEntry[]>(() => {
-    if (isFolderSource) {
+    if (source === "folder") {
       return (folderData?.items ?? [])
         .filter((item) => item.item_type === "file" && item.file_type === "image")
         .map((item, index) => ({ name: item.name, index, filePath: item.path }))
     }
-    return archiveEntries
-      .filter((e) => e.file_type === "image")
-      .map((entry, index) => ({ name: entry.name, index, entryPath: entry.entry_path }))
-  }, [isFolderSource, folderData, archiveEntries])
+    if (source === "archive") {
+      return archiveEntries
+        .filter((e) => e.file_type === "image")
+        .map((entry, index) => ({ name: entry.name, index, entryPath: entry.entry_path }))
+    }
+    // image / audio: sibling image files from parent dir
+    return (folderData?.items ?? [])
+      .filter((item) => item.item_type === "file" && item.file_type === "image")
+      .map((item, index) => ({ name: item.name, index, filePath: item.path }))
+  }, [source, folderData, archiveEntries])
 
   const audioTracks = useMemo<AudioTrack[]>(() => {
-    if (isFolderSource) {
+    if (source === "folder") {
       return (folderData?.items ?? [])
         .filter((item) => item.item_type === "file" && item.file_type === "audio")
         .map((item) => ({
@@ -115,37 +128,65 @@ export function useArchiveExtract(
           url: `${OpenAPI.BASE}/api/v1/fs/file?path=${encodeURIComponent(item.path)}`,
         }))
     }
-    return archiveEntries
-      .filter((e) => e.file_type === "audio")
-      .map((e) => ({
-        name: e.name,
-        sourcePath: e.entry_path,
-        url: `${OpenAPI.BASE}/api/v1/fs/archive/file?path=${encodeURIComponent(path)}&entry=${encodeURIComponent(e.entry_path)}`,
+    if (source === "archive") {
+      return archiveEntries
+        .filter((e) => e.file_type === "audio")
+        .map((e) => ({
+          name: e.name,
+          sourcePath: e.entry_path,
+          url: `${OpenAPI.BASE}/api/v1/fs/archive/file?path=${encodeURIComponent(path)}&entry=${encodeURIComponent(e.entry_path)}`,
+        }))
+    }
+    // image / audio: sibling audio files from parent dir
+    return (folderData?.items ?? [])
+      .filter((item) => item.item_type === "file" && item.file_type === "audio")
+      .map((item) => ({
+        name: item.name,
+        sourcePath: item.path,
+        url: `${OpenAPI.BASE}/api/v1/fs/file?path=${encodeURIComponent(item.path)}`,
       }))
-  }, [isFolderSource, folderData, archiveEntries, path])
+  }, [source, folderData, archiveEntries, path])
 
   const audioCoverUrl = useMemo<string | undefined>(() => {
-    if (isFolderSource) {
-      const imageItem = (folderData?.items ?? []).find(
-        (item) => item.item_type === "file" && item.file_type === "image",
-      )
-      if (!imageItem) return undefined
-      return `${OpenAPI.BASE}/api/v1/fs/file?path=${encodeURIComponent(imageItem.path)}`
+    if (source === "archive") {
+      const imageEntry = archiveEntries.find((e) => e.file_type === "image")
+      if (!imageEntry) return undefined
+      return `${OpenAPI.BASE}/api/v1/fs/archive/file?path=${encodeURIComponent(path)}&entry=${encodeURIComponent(imageEntry.entry_path)}`
     }
-    const imageEntry = archiveEntries.find((e) => e.file_type === "image")
-    if (!imageEntry) return undefined
-    return `${OpenAPI.BASE}/api/v1/fs/archive/file?path=${encodeURIComponent(path)}&entry=${encodeURIComponent(imageEntry.entry_path)}`
-  }, [isFolderSource, folderData, archiveEntries, path])
+    // folder / image / audio: first image from folderData
+    const imageItem = (folderData?.items ?? []).find(
+      (item) => item.item_type === "file" && item.file_type === "image",
+    )
+    if (!imageItem) return undefined
+    return `${OpenAPI.BASE}/api/v1/fs/file?path=${encodeURIComponent(imageItem.path)}`
+  }, [source, folderData, archiveEntries, path])
+
+  // mtime / filesize: archive from extractStatus, others from folderData current file
+  const currentFileMeta = useMemo(() => {
+    if (source === "archive") return null
+    return (folderData?.items ?? []).find((item) => item.path === path) ?? null
+  }, [source, folderData, path])
+
+  const mtime: number | null =
+    source === "archive"
+      ? (extractStatus?.mtime ?? null)
+      : (currentFileMeta?.mtime ?? null)
+
+  const filesize: number | null =
+    source === "archive"
+      ? (extractStatus?.filesize ?? null)
+      : (currentFileMeta?.filesize ?? null)
 
   return {
     isLoading,
     loadError,
     extractStatus,
     folderData,
-    parentListData,
     archiveImageReady,
     imageEntries,
     audioTracks,
     audioCoverUrl,
+    mtime,
+    filesize,
   }
 }

@@ -102,7 +102,11 @@ export async function extractArchive(
         }
       } catch { /* ignore */ }
     });
-    return reply.send(result);
+    return reply.send({
+      ...result,
+      mtime: Math.floor(archiveStat.mtimeMs / 1000),
+      filesize: archiveStat.size,
+    });
   } catch (e) {
     return reply.status(500).send({ error: String(e) });
   }

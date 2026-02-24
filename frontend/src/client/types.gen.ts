@@ -112,6 +112,8 @@ export type ExtractStatus = {
     cache_dir: string;
     avg_image_size?: (number | null);
     entries?: Array<ArchiveEntry>;
+    mtime?: number;
+    filesize?: number;
 };
 
 export type status = 'extracting' | 'completed' | 'error';
