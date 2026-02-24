@@ -16,6 +16,7 @@
     "extracting": "압축 해제 중...",
     "noData": "데이터가 없습니다",
     "reset": "초기화",
+    "copied": "복사됨",
     "close": "닫기"
   },
   "nav": {
@@ -148,6 +149,12 @@
     "coser": "코서",
     "tag": "태그",
     "mode": "모드",
+    "modeExact": "정확히 일치",
+    "modeHybrid": "하이브리드",
+    "presence": "존재 상태",
+    "presenceAll": "전체",
+    "presenceWatched": "시청한 항목만",
+    "presenceScannedRecent": "10분 이내 스캔",
     "noResults": "일치하는 결과가 없습니다",
     "goTo": "이동",
     "confirm": "확인"
@@ -177,7 +184,8 @@
     "jumpPage": "이동",
     "reset": "초기화",
     "page": "페이지",
-    "of": "/"
+    "of": "/",
+    "waterfall": "워터폴"
   },
   "settings": {
     "title": "설정",
@@ -253,5 +261,40 @@
   },
   "audio": {
     "noAudioFiles": "오디오 파일을 찾을 수 없습니다"
+  },
+  "fileOps": {
+    "title": "파일 작업",
+    "rename": "이름 변경",
+    "renaming": "이름 변경 중...",
+    "newName": "새 이름",
+    "move": "이동",
+    "moveTo": "이동...",
+    "moveItems": "{{count}}개 항목 이동",
+    "moving": "이동 중",
+    "movingAction": "이동 중...",
+    "itemsCount": "{{count}}개 항목",
+    "destinationDirectory": "대상 디렉터리",
+    "enterDestinationPath": "대상 경로 입력...",
+    "andMore": " 외 {{count}}개",
+    "deleteItems": "{{count}}개 항목 삭제",
+    "deleting": "삭제 중...",
+    "moveToRecycleBin": "휴지통으로 이동",
+    "permanentlyDelete": "영구 삭제",
+    "moveToFavorites": "즐겨찾기로 이동",
+    "moveToAlreadyRead": "읽음으로 이동",
+    "moveToDestination": "{{item}}을(를) \"{{destination}}\"(으)로 이동할까요?",
+    "moveToSubfolder": "하위 폴더로 이동",
+    "subfolderName": "하위 폴더 이름",
+    "compressToZip": "Zip으로 압축",
+    "compressToZipDescription": "이 폴더를 Zip 아카이브로 압축합니다.",
+    "compress": "압축",
+    "compressing": "압축 중...",
+    "minifyZipImages": "Zip 이미지 최적화",
+    "minifyZipImagesDescription": "아카이브 내 큰 이미지를 압축해 다시 패킹합니다. 원본 아카이브는 대체됩니다.",
+    "minify": "최적화",
+    "minifying": "최적화 중...",
+    "target": "대상",
+    "download": "다운로드",
+    "fileActions": "파일 작업"
   }
 }

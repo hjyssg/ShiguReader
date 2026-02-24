@@ -231,7 +231,7 @@ function Explorer() {
       <nav className="explorer-breadcrumb" aria-label="Explorer breadcrumb">
         <Link to="/" className="explorer-breadcrumb__home-link">
           <Home className="explorer-breadcrumb__home-icon" />
-          <span>Home</span>
+          <span>{t("nav.home")}</span>
         </Link>
         {breadcrumbs.map((crumb, index) => (
           <div key={crumb.path} className="explorer-breadcrumb__item">

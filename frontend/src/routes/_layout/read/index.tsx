@@ -497,14 +497,14 @@ function ReadPage() {
                   search={{ path: extractStatus?.cache_dir || path, page: 1, pageSize: 48, sortField: "name", sortOrder: "asc", viewMode: "table" }}
                   className={buttonVariants({ variant: "default", size: "sm", className: "animate-pulse" })}
                 >
-                  Explorer
+                  {t("nav.explorer")}
                 </Link>
                 <Link
                   to="/read"
                   search={{ path, mode: "waterfall" } as any}
                   className={buttonVariants({ variant: "outline", size: "sm" })}
                 >
-                  Waterfall
+                  {t("reader.waterfall")}
                 </Link>
               </>
             )}
@@ -601,14 +601,14 @@ function ReadPage() {
             {!isFolderSource && (
               <>
                 <Link to="/explorer" search={{ path: extractStatus?.cache_dir || path, page: 1, pageSize: 48, sortField: "name", sortOrder: "asc", viewMode: "table" }} className={buttonVariants({ variant: "ghost", size: "sm", className: "reader-toolbar__text-button" })}>
-                  Explorer
+                  {t("nav.explorer")}
                 </Link>
                 <Link to="/read" search={{ path, mode: "waterfall" } as any} className={buttonVariants({ variant: "ghost", size: "sm", className: "reader-toolbar__text-button" })}>
-                  Waterfall
+                  {t("reader.waterfall")}
                 </Link>
                 {audioTracks.length > 0 && (
                   <Link to="/read" search={{ path, page: 0, source, sourceFolderPath: "", mode: "audio" } as any} className={buttonVariants({ variant: "ghost", size: "sm", className: "reader-toolbar__text-button" })}>
-                    Audio
+                    {t("file.audio")}
                   </Link>
                 )}
               </>
@@ -616,38 +616,38 @@ function ReadPage() {
             {/* File Operations Dropdown */}
             <DropdownMenu modal={false}>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="reader-toolbar__icon-button" title="File operations">
+                <Button variant="ghost" size="icon" className="reader-toolbar__icon-button" title={t("fileOps.title")}>
                   <MoreVertical className="size-3" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
                 <DownloadMenuItem path={path} name={fileName} />
                 <DropdownMenuItem onClick={() => setRenameOpen(true)}>
-                  <Pencil className="mr-2 size-4" />Rename
+                  <Pencil className="mr-2 size-4" />{t("fileOps.rename")}
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => setMoveOpen(true)}>
-                  <FolderInput className="mr-2 size-4" />Move to...
+                  <FolderInput className="mr-2 size-4" />{t("fileOps.moveTo")}
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => setConfirmFavOpen(true)}>
-                  <Star className="mr-2 size-4" />Move to Favorites
+                  <Star className="mr-2 size-4" />{t("fileOps.moveToFavorites")}
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => setConfirmReadOpen(true)}>
-                  <BookCheck className="mr-2 size-4" />Move to Already Read
+                  <BookCheck className="mr-2 size-4" />{t("fileOps.moveToAlreadyRead")}
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 {isArchiveSource && (
                   <DropdownMenuItem onClick={() => { setCompressAction("minify-zip-images"); setCompressOpen(true) }}>
-                    <ImageDown className="mr-2 size-4" />Minify Zip Images
+                    <ImageDown className="mr-2 size-4" />{t("fileOps.minifyZipImages")}
                   </DropdownMenuItem>
                 )}
                 {isFolderSource && (
                   <DropdownMenuItem onClick={() => { setCompressAction("zip-folder"); setCompressOpen(true) }}>
-                    <Package className="mr-2 size-4" />Compress to Zip
+                    <Package className="mr-2 size-4" />{t("fileOps.compressToZip")}
                   </DropdownMenuItem>
                 )}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem variant="destructive" onClick={() => setDeleteOpen(true)}>
-                  <Trash2 className="mr-2 size-4" />Delete
+                  <Trash2 className="mr-2 size-4" />{t("common.delete")}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -694,8 +694,8 @@ function ReadPage() {
             <span title={t("reader.mtime")} className="text-foreground cursor-default">{mtimeText}</span>
             <span title={t("reader.size")} className="text-foreground cursor-default">{sizeText}</span>
             <span title={t("reader.avgImageSize")} className="text-foreground cursor-default">{avgImageSizeText}</span>
-            {archiveVideoCount > 0 && <span title="Video" className="text-orange-500 font-medium cursor-default">{archiveVideoCount} video</span>}
-            {archiveAudioCount > 0 && <span title="Audio" className="text-orange-500 font-medium cursor-default">{archiveAudioCount} audio</span>}
+            {archiveVideoCount > 0 && <span title={t("file.video")} className="text-orange-500 font-medium cursor-default">{archiveVideoCount} {t("file.video")}</span>}
+            {archiveAudioCount > 0 && <span title={t("file.audio")} className="text-orange-500 font-medium cursor-default">{archiveAudioCount} {t("file.audio")}</span>}
             <span className="text-muted-foreground">{t("reader.authors")}:</span>
             {authors.length > 0 ? (
               <div className="inline-flex items-center gap-1">
@@ -736,8 +736,8 @@ function ReadPage() {
       <DeleteDialog open={deleteOpen} onOpenChange={setDeleteOpen} filePaths={[path]} onConfirm={() => { operations.deleteMutation.mutate({ path, permanently: false }, { onSuccess: () => { setDeleteOpen(false); navigate({ to: "/" }) } }) }} isPending={operations.deleteMutation.isPending} />
       <MoveDialog open={moveOpen} onOpenChange={setMoveOpen} filePaths={[path]} onConfirm={(destDir) => { const name = getBaseName(path); const destPath = `${destDir}/${name}`; if (isFolderSource) { operations.moveFolderMutation.mutate({ sourcePath: path, destPath }, { onSuccess: (resp) => { setMoveOpen(false); navigateToMovedPath(resp?.dest_path) } }) } else { operations.moveFileMutation.mutate({ sourcePath: path, destPath }, { onSuccess: (resp) => { setMoveOpen(false); navigateToMovedPath(resp?.dest_path) } }) } }} isPending={operations.moveFileMutation.isPending || operations.moveFolderMutation.isPending} />
       <CompressDialog open={compressOpen} onOpenChange={setCompressOpen} filePath={path} action={compressAction} onConfirm={() => { if (compressAction === "zip-folder") { operations.zipFolderMutation.mutate(path, { onSuccess: () => setCompressOpen(false) }) } else { operations.compressArchiveImagesMutation.mutate(path, { onSuccess: () => setCompressOpen(false) }) } }} isPending={operations.zipFolderMutation.isPending || operations.compressArchiveImagesMutation.isPending} />
-      <ConfirmMoveDialog open={confirmFavOpen} onOpenChange={setConfirmFavOpen} filePaths={[path]} destination="Favorites" destinationPath={favoriteRoot?.path} showSubfolder onConfirm={(subfolder) => { operations.moveToFavoriteMutation.mutate({ sourcePath: path, isFolder: isFolderSource, subfolder }, { onSuccess: (resp) => { setConfirmFavOpen(false); navigateToMovedPath(resp?.dest_path) } }) }} isPending={operations.moveToFavoriteMutation.isPending} />
-      <ConfirmMoveDialog open={confirmReadOpen} onOpenChange={setConfirmReadOpen} filePaths={[path]} destination="Already Read" destinationPath={alreadyReadRoot?.path} onConfirm={() => { operations.moveToAlreadyReadMutation.mutate({ sourcePath: path, isFolder: isFolderSource }, { onSuccess: (resp) => { setConfirmReadOpen(false); navigateToMovedPath(resp?.dest_path) } }) }} isPending={operations.moveToAlreadyReadMutation.isPending} />
+      <ConfirmMoveDialog open={confirmFavOpen} onOpenChange={setConfirmFavOpen} filePaths={[path]} destination={t("home.favorite")} destinationPath={favoriteRoot?.path} showSubfolder onConfirm={(subfolder) => { operations.moveToFavoriteMutation.mutate({ sourcePath: path, isFolder: isFolderSource, subfolder }, { onSuccess: (resp) => { setConfirmFavOpen(false); navigateToMovedPath(resp?.dest_path) } }) }} isPending={operations.moveToFavoriteMutation.isPending} />
+      <ConfirmMoveDialog open={confirmReadOpen} onOpenChange={setConfirmReadOpen} filePaths={[path]} destination={t("home.alreadyRead")} destinationPath={alreadyReadRoot?.path} onConfirm={() => { operations.moveToAlreadyReadMutation.mutate({ sourcePath: path, isFolder: isFolderSource }, { onSuccess: (resp) => { setConfirmReadOpen(false); navigateToMovedPath(resp?.dest_path) } }) }} isPending={operations.moveToAlreadyReadMutation.isPending} />
     </div>
   )
 }
