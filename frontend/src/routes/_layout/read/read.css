@@ -119,7 +119,6 @@
   justify-content: center;
   pointer-events: none;
   opacity: 1;
-  /* transition: opacity 0.3s ease-in-out; */
 }
 
 .reader-image-stage__placeholder--hidden {
@@ -143,7 +142,6 @@
 .reader-image-stage__image--loaded {
   opacity: 1;
 }
-
 
 .reader-nav-button {
   position: absolute;
@@ -298,9 +296,7 @@
 }
 
 .reader-waterfall-item__image {
-  /* width: 100%; */
   height: 90vh;
-
   object-fit: contain;
   background: hsl(var(--muted));
 }

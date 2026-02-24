@@ -24,7 +24,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import "./read.css"
+import "./read/read.css"
 
 export const Route = createFileRoute("/_layout/video")({
   component: Video,

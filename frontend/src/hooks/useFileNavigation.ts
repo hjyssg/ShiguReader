@@ -23,12 +23,13 @@ export function buildNavigationTarget(item: FileSystemItem, isMobile: boolean) {
   if (isArchive) {
     // archive: 直接进入阅读器，由阅读器负责解压
     return {
-      to: (isMobile ? "/read-mobile" : "/read") as "/read" | "/read-mobile",
+      to: "/read" as const,
       search: {
         path: item.path,
         source: "archive" as const,
         page: 0,
         sourceFolderPath: "",
+        mode: isMobile ? ("mobile" as const) : undefined,
       },
     }
   }
@@ -40,9 +41,8 @@ export function buildNavigationTarget(item: FileSystemItem, isMobile: boolean) {
   }
   if (isAudio) {
     const parentPath = getParentPath(item.path)
-    const readRoute = isMobile ? "/read-mobile" : "/read"
     return {
-      to: readRoute as "/read" | "/read-mobile",
+      to: "/read" as const,
       search: {
         path: parentPath,
         source: "folder" as const,
@@ -54,14 +54,14 @@ export function buildNavigationTarget(item: FileSystemItem, isMobile: boolean) {
   }
   if (isImage) {
     const parentPath = getParentPath(item.path)
-    const readRoute = isMobile ? "/read-mobile" : "/read"
     return {
-      to: readRoute as "/read" | "/read-mobile",
+      to: "/read" as const,
       search: {
         path: parentPath,
         source: "folder" as const,
         page: 0,
         sourceFolderPath: item.path,
+        mode: isMobile ? ("mobile" as const) : undefined,
       },
     }
   }

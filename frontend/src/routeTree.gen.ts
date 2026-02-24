@@ -15,13 +15,11 @@ import { Route as LayoutVideoRouteImport } from './routes/_layout/video'
 import { Route as LayoutTagsRouteImport } from './routes/_layout/tags'
 import { Route as LayoutSettingsRouteImport } from './routes/_layout/settings'
 import { Route as LayoutSearchRouteImport } from './routes/_layout/search'
-import { Route as LayoutReadWaterfallRouteImport } from './routes/_layout/read-waterfall'
-import { Route as LayoutReadMobileRouteImport } from './routes/_layout/read-mobile'
-import { Route as LayoutReadRouteImport } from './routes/_layout/read'
 import { Route as LayoutHistoryRouteImport } from './routes/_layout/history'
 import { Route as LayoutExplorerRouteImport } from './routes/_layout/explorer'
 import { Route as LayoutCosersRouteImport } from './routes/_layout/cosers'
 import { Route as LayoutAuthorsRouteImport } from './routes/_layout/authors'
+import { Route as LayoutReadIndexRouteImport } from './routes/_layout/read/index'
 
 const LayoutRoute = LayoutRouteImport.update({
   id: '/_layout',
@@ -52,21 +50,6 @@ const LayoutSearchRoute = LayoutSearchRouteImport.update({
   path: '/search',
   getParentRoute: () => LayoutRoute,
 } as any)
-const LayoutReadWaterfallRoute = LayoutReadWaterfallRouteImport.update({
-  id: '/read-waterfall',
-  path: '/read-waterfall',
-  getParentRoute: () => LayoutRoute,
-} as any)
-const LayoutReadMobileRoute = LayoutReadMobileRouteImport.update({
-  id: '/read-mobile',
-  path: '/read-mobile',
-  getParentRoute: () => LayoutRoute,
-} as any)
-const LayoutReadRoute = LayoutReadRouteImport.update({
-  id: '/read',
-  path: '/read',
-  getParentRoute: () => LayoutRoute,
-} as any)
 const LayoutHistoryRoute = LayoutHistoryRouteImport.update({
   id: '/history',
   path: '/history',
@@ -87,6 +70,11 @@ const LayoutAuthorsRoute = LayoutAuthorsRouteImport.update({
   path: '/authors',
   getParentRoute: () => LayoutRoute,
 } as any)
+const LayoutReadIndexRoute = LayoutReadIndexRouteImport.update({
+  id: '/read/',
+  path: '/read/',
+  getParentRoute: () => LayoutRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof LayoutIndexRoute
@@ -94,27 +82,23 @@ export interface FileRoutesByFullPath {
   '/cosers': typeof LayoutCosersRoute
   '/explorer': typeof LayoutExplorerRoute
   '/history': typeof LayoutHistoryRoute
-  '/read': typeof LayoutReadRoute
-  '/read-mobile': typeof LayoutReadMobileRoute
-  '/read-waterfall': typeof LayoutReadWaterfallRoute
   '/search': typeof LayoutSearchRoute
   '/settings': typeof LayoutSettingsRoute
   '/tags': typeof LayoutTagsRoute
   '/video': typeof LayoutVideoRoute
+  '/read/': typeof LayoutReadIndexRoute
 }
 export interface FileRoutesByTo {
   '/authors': typeof LayoutAuthorsRoute
   '/cosers': typeof LayoutCosersRoute
   '/explorer': typeof LayoutExplorerRoute
   '/history': typeof LayoutHistoryRoute
-  '/read': typeof LayoutReadRoute
-  '/read-mobile': typeof LayoutReadMobileRoute
-  '/read-waterfall': typeof LayoutReadWaterfallRoute
   '/search': typeof LayoutSearchRoute
   '/settings': typeof LayoutSettingsRoute
   '/tags': typeof LayoutTagsRoute
   '/video': typeof LayoutVideoRoute
   '/': typeof LayoutIndexRoute
+  '/read': typeof LayoutReadIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -123,14 +107,12 @@ export interface FileRoutesById {
   '/_layout/cosers': typeof LayoutCosersRoute
   '/_layout/explorer': typeof LayoutExplorerRoute
   '/_layout/history': typeof LayoutHistoryRoute
-  '/_layout/read': typeof LayoutReadRoute
-  '/_layout/read-mobile': typeof LayoutReadMobileRoute
-  '/_layout/read-waterfall': typeof LayoutReadWaterfallRoute
   '/_layout/search': typeof LayoutSearchRoute
   '/_layout/settings': typeof LayoutSettingsRoute
   '/_layout/tags': typeof LayoutTagsRoute
   '/_layout/video': typeof LayoutVideoRoute
   '/_layout/': typeof LayoutIndexRoute
+  '/_layout/read/': typeof LayoutReadIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -140,27 +122,23 @@ export interface FileRouteTypes {
     | '/cosers'
     | '/explorer'
     | '/history'
-    | '/read'
-    | '/read-mobile'
-    | '/read-waterfall'
     | '/search'
     | '/settings'
     | '/tags'
     | '/video'
+    | '/read/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/authors'
     | '/cosers'
     | '/explorer'
     | '/history'
-    | '/read'
-    | '/read-mobile'
-    | '/read-waterfall'
     | '/search'
     | '/settings'
     | '/tags'
     | '/video'
     | '/'
+    | '/read'
   id:
     | '__root__'
     | '/_layout'
@@ -168,14 +146,12 @@ export interface FileRouteTypes {
     | '/_layout/cosers'
     | '/_layout/explorer'
     | '/_layout/history'
-    | '/_layout/read'
-    | '/_layout/read-mobile'
-    | '/_layout/read-waterfall'
     | '/_layout/search'
     | '/_layout/settings'
     | '/_layout/tags'
     | '/_layout/video'
     | '/_layout/'
+    | '/_layout/read/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -226,27 +202,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutSearchRouteImport
       parentRoute: typeof LayoutRoute
     }
-    '/_layout/read-waterfall': {
-      id: '/_layout/read-waterfall'
-      path: '/read-waterfall'
-      fullPath: '/read-waterfall'
-      preLoaderRoute: typeof LayoutReadWaterfallRouteImport
-      parentRoute: typeof LayoutRoute
-    }
-    '/_layout/read-mobile': {
-      id: '/_layout/read-mobile'
-      path: '/read-mobile'
-      fullPath: '/read-mobile'
-      preLoaderRoute: typeof LayoutReadMobileRouteImport
-      parentRoute: typeof LayoutRoute
-    }
-    '/_layout/read': {
-      id: '/_layout/read'
-      path: '/read'
-      fullPath: '/read'
-      preLoaderRoute: typeof LayoutReadRouteImport
-      parentRoute: typeof LayoutRoute
-    }
     '/_layout/history': {
       id: '/_layout/history'
       path: '/history'
@@ -275,6 +230,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutAuthorsRouteImport
       parentRoute: typeof LayoutRoute
     }
+    '/_layout/read/': {
+      id: '/_layout/read/'
+      path: '/read'
+      fullPath: '/read/'
+      preLoaderRoute: typeof LayoutReadIndexRouteImport
+      parentRoute: typeof LayoutRoute
+    }
   }
 }
 
@@ -283,14 +245,12 @@ interface LayoutRouteChildren {
   LayoutCosersRoute: typeof LayoutCosersRoute
   LayoutExplorerRoute: typeof LayoutExplorerRoute
   LayoutHistoryRoute: typeof LayoutHistoryRoute
-  LayoutReadRoute: typeof LayoutReadRoute
-  LayoutReadMobileRoute: typeof LayoutReadMobileRoute
-  LayoutReadWaterfallRoute: typeof LayoutReadWaterfallRoute
   LayoutSearchRoute: typeof LayoutSearchRoute
   LayoutSettingsRoute: typeof LayoutSettingsRoute
   LayoutTagsRoute: typeof LayoutTagsRoute
   LayoutVideoRoute: typeof LayoutVideoRoute
   LayoutIndexRoute: typeof LayoutIndexRoute
+  LayoutReadIndexRoute: typeof LayoutReadIndexRoute
 }
 
 const LayoutRouteChildren: LayoutRouteChildren = {
@@ -298,14 +258,12 @@ const LayoutRouteChildren: LayoutRouteChildren = {
   LayoutCosersRoute: LayoutCosersRoute,
   LayoutExplorerRoute: LayoutExplorerRoute,
   LayoutHistoryRoute: LayoutHistoryRoute,
-  LayoutReadRoute: LayoutReadRoute,
-  LayoutReadMobileRoute: LayoutReadMobileRoute,
-  LayoutReadWaterfallRoute: LayoutReadWaterfallRoute,
   LayoutSearchRoute: LayoutSearchRoute,
   LayoutSettingsRoute: LayoutSettingsRoute,
   LayoutTagsRoute: LayoutTagsRoute,
   LayoutVideoRoute: LayoutVideoRoute,
   LayoutIndexRoute: LayoutIndexRoute,
+  LayoutReadIndexRoute: LayoutReadIndexRoute,
 }
 
 const LayoutRouteWithChildren =

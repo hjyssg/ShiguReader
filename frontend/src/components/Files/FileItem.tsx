@@ -198,8 +198,8 @@ function buildItemHref(item: FileSystemItem, isMobile: boolean): string | null {
     params.set("source", "archive")
     params.set("page", "0")
     params.set("sourceFolderPath", "")
-    const route = isMobile ? "/read-mobile" : "/read"
-    return `${route}?${params.toString()}`
+    if (isMobile) params.set("mode", "mobile")
+    return `/read?${params.toString()}`
   }
 
   if (item.file_type === "video") {
@@ -215,8 +215,7 @@ function buildItemHref(item: FileSystemItem, isMobile: boolean): string | null {
     params.set("page", "0")
     params.set("sourceFolderPath", item.path)
     params.set("mode", "audio")
-    const route = isMobile ? "/read-mobile" : "/read"
-    return `${route}?${params.toString()}`
+    return `/read?${params.toString()}`
   }
 
   if (item.file_type === "image") {
@@ -224,8 +223,8 @@ function buildItemHref(item: FileSystemItem, isMobile: boolean): string | null {
     params.set("source", "folder")
     params.set("page", "0")
     params.set("sourceFolderPath", item.path)
-    const route = isMobile ? "/read-mobile" : "/read"
-    return `${route}?${params.toString()}`
+    if (isMobile) params.set("mode", "mobile")
+    return `/read?${params.toString()}`
   }
 
   return null
