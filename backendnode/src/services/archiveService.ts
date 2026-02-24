@@ -172,12 +172,28 @@ export async function extractEntries(
       fs.writeFileSync(listFile, entries.join("\n"), "utf8");
       await execFileAsync(
         get7z(),
-        ["x", archivePath, `-o${destDir}`, "-y", "-scsUTF-8", `@${listFile}`],
+        ["x", archivePath, `-o${destDir}`, "-aos", "-scsUTF-8", `@${listFile}`],
         { timeout: 120000, maxBuffer: 4 * 1024 * 1024 }
       );
     } finally {
       try { fs.unlinkSync(listFile); } catch { /* ignore */ }
     }
+  });
+}
+
+// ── extract all ──────────────────────────────────────────────────────────────
+
+/**
+ * Extract the entire archive to destDir (fallback when stepwise fails).
+ */
+async function extractAll(archivePath: string, destDir: string): Promise<void> {
+  return extractLimit(async () => {
+    fs.mkdirSync(destDir, { recursive: true });
+    await execFileAsync(
+      get7z(),
+      ["x", archivePath, `-o${destDir}`, "-aos", "-scsUTF-8"],
+      { timeout: 3600000, maxBuffer: 64 * 1024 * 1024 }  // 1h / 64MB for large archives
+    );
   });
 }
 
@@ -236,9 +252,14 @@ export async function stepwiseExtract(
   inProgress.add(archivePath);
   try {
     await extractEntries(archivePath, cacheDir, phase1Entries.map(e => e.path));
-  } catch (e) {
-    inProgress.delete(archivePath);
-    throw e;
+  } catch {
+    // Phase 1 stepwise failed → fallback to full extraction
+    try {
+      await extractAll(archivePath, cacheDir);
+    } catch (e) {
+      inProgress.delete(archivePath);
+      throw e;
+    }
   }
 
   const extracted = countExtractedFiles(cacheDir);
@@ -264,8 +285,10 @@ export async function stepwiseExtract(
       if (phase3Entries.length) {
         await extractEntries(archivePath, cacheDir, phase3Entries.map(e => e.path));
       }
-    } catch { /* background errors are non-fatal */ }
-    finally {
+    } catch {
+      // Phase 2/3 stepwise failed → fallback to full extraction
+      try { await extractAll(archivePath, cacheDir); } catch { /* ignore */ }
+    } finally {
       inProgress.delete(archivePath);
     }
   });
