@@ -109,7 +109,15 @@ export function useArchiveExtract(
   }, [isFolderSource, folderData, listData])
 
   const audioTracks = useMemo<AudioTrack[]>(() => {
-    if (isFolderSource) return []
+    if (isFolderSource) {
+      return (folderData?.items ?? [])
+        .filter((item) => item.item_type === "file" && item.file_type === "audio")
+        .map((item) => ({
+          name: item.name,
+          sourcePath: item.path,
+          url: `${OpenAPI.BASE}/api/v1/fs/file?path=${encodeURIComponent(item.path)}`,
+        }))
+    }
     return (listData?.entries ?? [])
       .filter((e) => e.file_type === "audio")
       .map((e) => ({
@@ -117,14 +125,20 @@ export function useArchiveExtract(
         sourcePath: e.entry_path,
         url: `${OpenAPI.BASE}/api/v1/fs/archive/file?path=${encodeURIComponent(path)}&entry=${encodeURIComponent(e.entry_path)}`,
       }))
-  }, [isFolderSource, listData, path])
+  }, [isFolderSource, folderData, listData, path])
 
   const audioCoverUrl = useMemo<string | undefined>(() => {
-    if (isFolderSource) return undefined
+    if (isFolderSource) {
+      const imageItem = (folderData?.items ?? []).find(
+        (item) => item.item_type === "file" && item.file_type === "image",
+      )
+      if (!imageItem) return undefined
+      return `${OpenAPI.BASE}/api/v1/fs/file?path=${encodeURIComponent(imageItem.path)}`
+    }
     const imageEntry = (listData?.entries ?? []).find((e) => e.file_type === "image")
     if (!imageEntry) return undefined
     return `${OpenAPI.BASE}/api/v1/fs/archive/file?path=${encodeURIComponent(path)}&entry=${encodeURIComponent(imageEntry.entry_path)}`
-  }, [isFolderSource, listData, path])
+  }, [isFolderSource, folderData, listData, path])
 
   return {
     isLoading,

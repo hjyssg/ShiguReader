@@ -124,6 +124,10 @@ function ReadPage() {
   const [confirmReadOpen, setConfirmReadOpen] = useState(false)
   const isArchiveSource = !isFolderSource
 
+  const hasAutoSwitchedRef = useRef(false)
+  // path 变化时重置自动跳转标记
+  useEffect(() => { hasAutoSwitchedRef.current = false }, [path])
+
   const dragRef = useRef({ startX: 0, startY: 0, startTx: 0, startTy: 0 })
   type ParseMetaData = Awaited<ReturnType<typeof ParseService.getParseResult>> | null
 
@@ -165,11 +169,12 @@ function ReadPage() {
     },
   })
 
-  // 自动进入 audio mode：archive/list 里存在音频时
-  const shouldAutoAudio = !isFolderSource && !isLoading && audioTracks.length > 0 && mode !== "audio"
+  // 自动进入 audio mode：仅首次打开时触发一次，之后用户可手动切换
+  const shouldAutoAudio = !hasAutoSwitchedRef.current && !isLoading && audioTracks.length > 0 && mode !== "audio"
 
   useEffect(() => {
     if (shouldAutoAudio) {
+      hasAutoSwitchedRef.current = true
       navigate({ to: "/read", search: { path, page: 0, source, sourceFolderPath: "", mode: "audio" }, replace: true })
     }
   }, [shouldAutoAudio, navigate, path, source])
@@ -471,7 +476,7 @@ function ReadPage() {
   }
 
   // ── Audio mode ──
-  if (mode === "audio" && !isFolderSource) {
+  if (mode === "audio") {
     const selectedTrack = audioTracks[audioIndex]
     return (
       <div className="reader-page">

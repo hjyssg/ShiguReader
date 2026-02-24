@@ -209,8 +209,14 @@ function buildItemHref(item: FileSystemItem, isMobile: boolean): string | null {
   }
 
   if (item.file_type === "audio") {
-    params.set("path", item.path)
-    return `/audio?${params.toString()}`
+    const parentPath = getParentPath(item.path)
+    params.set("path", parentPath)
+    params.set("source", "folder")
+    params.set("page", "0")
+    params.set("sourceFolderPath", item.path)
+    params.set("mode", "audio")
+    const route = isMobile ? "/read-mobile" : "/read"
+    return `${route}?${params.toString()}`
   }
 
   if (item.file_type === "image") {

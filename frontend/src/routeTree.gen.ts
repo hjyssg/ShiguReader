@@ -22,7 +22,6 @@ import { Route as LayoutHistoryRouteImport } from './routes/_layout/history'
 import { Route as LayoutExplorerRouteImport } from './routes/_layout/explorer'
 import { Route as LayoutCosersRouteImport } from './routes/_layout/cosers'
 import { Route as LayoutAuthorsRouteImport } from './routes/_layout/authors'
-import { Route as LayoutAudioRouteImport } from './routes/_layout/audio'
 
 const LayoutRoute = LayoutRouteImport.update({
   id: '/_layout',
@@ -88,15 +87,9 @@ const LayoutAuthorsRoute = LayoutAuthorsRouteImport.update({
   path: '/authors',
   getParentRoute: () => LayoutRoute,
 } as any)
-const LayoutAudioRoute = LayoutAudioRouteImport.update({
-  id: '/audio',
-  path: '/audio',
-  getParentRoute: () => LayoutRoute,
-} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof LayoutIndexRoute
-  '/audio': typeof LayoutAudioRoute
   '/authors': typeof LayoutAuthorsRoute
   '/cosers': typeof LayoutCosersRoute
   '/explorer': typeof LayoutExplorerRoute
@@ -110,7 +103,6 @@ export interface FileRoutesByFullPath {
   '/video': typeof LayoutVideoRoute
 }
 export interface FileRoutesByTo {
-  '/audio': typeof LayoutAudioRoute
   '/authors': typeof LayoutAuthorsRoute
   '/cosers': typeof LayoutCosersRoute
   '/explorer': typeof LayoutExplorerRoute
@@ -127,7 +119,6 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_layout': typeof LayoutRouteWithChildren
-  '/_layout/audio': typeof LayoutAudioRoute
   '/_layout/authors': typeof LayoutAuthorsRoute
   '/_layout/cosers': typeof LayoutCosersRoute
   '/_layout/explorer': typeof LayoutExplorerRoute
@@ -145,7 +136,6 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/audio'
     | '/authors'
     | '/cosers'
     | '/explorer'
@@ -159,7 +149,6 @@ export interface FileRouteTypes {
     | '/video'
   fileRoutesByTo: FileRoutesByTo
   to:
-    | '/audio'
     | '/authors'
     | '/cosers'
     | '/explorer'
@@ -175,7 +164,6 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/_layout'
-    | '/_layout/audio'
     | '/_layout/authors'
     | '/_layout/cosers'
     | '/_layout/explorer'
@@ -287,18 +275,10 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutAuthorsRouteImport
       parentRoute: typeof LayoutRoute
     }
-    '/_layout/audio': {
-      id: '/_layout/audio'
-      path: '/audio'
-      fullPath: '/audio'
-      preLoaderRoute: typeof LayoutAudioRouteImport
-      parentRoute: typeof LayoutRoute
-    }
   }
 }
 
 interface LayoutRouteChildren {
-  LayoutAudioRoute: typeof LayoutAudioRoute
   LayoutAuthorsRoute: typeof LayoutAuthorsRoute
   LayoutCosersRoute: typeof LayoutCosersRoute
   LayoutExplorerRoute: typeof LayoutExplorerRoute
@@ -314,7 +294,6 @@ interface LayoutRouteChildren {
 }
 
 const LayoutRouteChildren: LayoutRouteChildren = {
-  LayoutAudioRoute: LayoutAudioRoute,
   LayoutAuthorsRoute: LayoutAuthorsRoute,
   LayoutCosersRoute: LayoutCosersRoute,
   LayoutExplorerRoute: LayoutExplorerRoute,

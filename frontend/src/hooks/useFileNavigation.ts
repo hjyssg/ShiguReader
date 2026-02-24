@@ -39,9 +39,17 @@ export function buildNavigationTarget(item: FileSystemItem, isMobile: boolean) {
     }
   }
   if (isAudio) {
+    const parentPath = getParentPath(item.path)
+    const readRoute = isMobile ? "/read-mobile" : "/read"
     return {
-      to: "/audio" as const,
-      search: { path: item.path, entry: undefined },
+      to: readRoute as "/read" | "/read-mobile",
+      search: {
+        path: parentPath,
+        source: "folder" as const,
+        page: 0,
+        sourceFolderPath: item.path,
+        mode: "audio" as const,
+      },
     }
   }
   if (isImage) {
