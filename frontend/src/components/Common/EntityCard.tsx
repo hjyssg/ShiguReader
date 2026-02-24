@@ -71,14 +71,15 @@ export function EntityCard({
 
   const entityNameNode = href ? (
     <a
-      className="text-sm truncate block hover:underline"
+      className="entity-name text-sm truncate block text-center mt-1 mb-1  hover:underline"
       href={href}
       title={item.name}
+      aria-label={item.name}
     >
       {item.name}
     </a>
   ) : (
-    <p className="text-sm truncate" title={item.name}>
+    <p className="entity-name text-sm truncate text-center mt-1 mb-1 " title={item.name}>
       {item.name}
     </p>
   )
