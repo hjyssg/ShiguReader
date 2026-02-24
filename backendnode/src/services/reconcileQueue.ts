@@ -10,8 +10,8 @@
  * - 攒 200ms 窗口后批量 flush（事务内 UPDATE）
  */
 
-import { getDb } from "../db/client.js";
-import { nowTs } from "../db/client.js";
+import { getDb, nowTs } from "../db/client.js";
+import { IndexRepository } from "../db/repository.js";
 
 // ── 类型 ──────────────────────────────────────────────────────────────────────
 
@@ -81,31 +81,8 @@ function flush(): void {
   pending.clear();
 
   try {
-    const db = getDb();
-    const now = nowTs();
-
-    db.exec("BEGIN");
-    try {
-      const stmtPresent = db.prepare(
-        "UPDATE files SET is_missing=0, last_seen_at=?, updated_at=? WHERE filepath=? AND is_missing!=0"
-      );
-      const stmtMissing = db.prepare(
-        "UPDATE files SET is_missing=1, updated_at=? WHERE filepath=? AND is_missing!=1"
-      );
-
-      for (const ev of events) {
-        if (ev.exists) {
-          stmtPresent.run(ev.observedAt, now, ev.filepath);
-        } else {
-          stmtMissing.run(now, ev.filepath);
-        }
-        lastFlushed.set(ev.filepath, ev.observedAt);
-      }
-      db.exec("COMMIT");
-    } catch (e) {
-      db.exec("ROLLBACK");
-      throw e;
-    }
+    new IndexRepository(getDb()).batchReconcilePresence(events);
+    for (const ev of events) lastFlushed.set(ev.filepath, ev.observedAt);
   } catch {
     // DB 写失败不影响主流程，静默忽略
   }

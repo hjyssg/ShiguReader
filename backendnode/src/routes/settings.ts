@@ -82,16 +82,13 @@ async function updateSettings(
 async function verifyFiles(_req: FastifyRequest, reply: FastifyReply) {
   const repo = new IndexRepository(getDb());
 
-  // 获取所有 scan_state=1 的文件路径
-  const db = getDb();
-  const rows = db.prepare("SELECT filepath FROM files WHERE scan_state = 1").all() as { filepath: string }[];
+  const filepaths = repo.getAllPresentFilepaths();
 
-  if (!rows.length) {
+  if (!filepaths.length) {
     return reply.send({ status: "ok", checked: 0, missing: 0, message: "No files to verify" });
   }
 
   // 计算所有路径的共同 root（最长公共前缀目录）
-  const filepaths = rows.map(r => r.filepath);
   let commonRoot = path.dirname(filepaths[0]);
   for (const fp of filepaths) {
     const dir = path.dirname(fp);
@@ -124,13 +121,10 @@ async function verifyFiles(_req: FastifyRequest, reply: FastifyReply) {
     }
   }
 
-  // 批量标记不存在的文件 scan_state=0
+  // 批量标记不存在的文件为 is_missing=1
   if (missingPaths.length > 0) {
-    const stmt = db.prepare("UPDATE files SET scan_state = 0, updated_at = ? WHERE filepath = ?");
     const now = Math.floor(Date.now() / 1000);
-    for (const fp of missingPaths) {
-      stmt.run(now, fp);
-    }
+    repo.batchReconcilePresence(missingPaths.map(fp => ({ filepath: fp, exists: false, observedAt: now })));
     try {
       repo.logActivity("verify_files", `File verification: ${missing} missing out of ${checked}`, "completed", "verify_files", undefined, { checked, missing, common_root: commonRoot });
     } catch { /* ignore */ }

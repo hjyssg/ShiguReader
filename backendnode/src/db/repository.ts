@@ -748,6 +748,40 @@ export class IndexRepository {
     return new Map(result.map(r => [r.tag_name, r.cnt]));
   }
 
+  /** 返回所有非缺失文件的路径列表，用于文件存在性校验 */
+  getAllPresentFilepaths(): string[] {
+    return rows<{ filepath: string }>(this.db.prepare("SELECT filepath FROM files WHERE is_missing = 0").all()).map(r => r.filepath);
+  }
+
+  /**
+   * 批量更新文件存在性状态（reconcile）。
+   * 对每条事件只在状态真正需要变更时才写入，避免无效 UPDATE。
+   */
+  batchReconcilePresence(events: Array<{ filepath: string; exists: boolean; observedAt: number }>): void {
+    if (!events.length) return;
+    const now = nowTs();
+    const stmtPresent = this.db.prepare(
+      "UPDATE files SET is_missing=0, last_seen_at=?, updated_at=? WHERE filepath=? AND is_missing!=0"
+    );
+    const stmtMissing = this.db.prepare(
+      "UPDATE files SET is_missing=1, updated_at=? WHERE filepath=? AND is_missing!=1"
+    );
+    this.db.exec("BEGIN");
+    try {
+      for (const ev of events) {
+        if (ev.exists) {
+          stmtPresent.run(ev.observedAt, now, ev.filepath);
+        } else {
+          stmtMissing.run(now, ev.filepath);
+        }
+      }
+      this.db.exec("COMMIT");
+    } catch (e) {
+      this.db.exec("ROLLBACK");
+      throw e;
+    }
+  }
+
   private _pruneOrphans(): void {
     this.db.prepare("DELETE FROM tags WHERE tag_name NOT IN (SELECT DISTINCT tag_name FROM file_tags)").run();
     this.db.prepare("DELETE FROM artists WHERE artist_name NOT IN (SELECT DISTINCT artist_name FROM file_artists)").run();
