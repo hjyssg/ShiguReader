@@ -43,7 +43,7 @@ export function WaterfallModeView({
             onClick={() =>
               navigate({
                 to: "/read",
-                search: { path, page: 0, source: "archive", sourceFolderPath: "", mode: isMobile ? "mobile" : "gallery" } as any,
+                search: { path, page: 0, mode: isMobile ? "mobile" : "gallery" } as any,
               })
             }
           >
@@ -62,7 +62,7 @@ export function WaterfallModeView({
               <Link
                 key={entry.entryPath}
                 to="/read"
-                search={{ path, page: index, source: "archive", sourceFolderPath: "", mode: isMobile ? "mobile" : "gallery" } as any}
+                search={{ path, page: index, mode: isMobile ? "mobile" : "gallery" } as any}
                 className="reader-waterfall-item"
               >
                 <img

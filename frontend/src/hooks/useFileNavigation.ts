@@ -4,8 +4,6 @@ import { useCallback } from "react"
 
 import type { FileSystemItem } from "@/client"
 import { useIsMobile } from "@/hooks/useMobile"
-import { getParentPath } from "@/lib/path-utils"
-
 /** 根据文件类型构建导航目标 */
 export function buildNavigationTarget(item: FileSystemItem, isMobile: boolean) {
   const isFolder = item.item_type === "folder"
@@ -21,14 +19,11 @@ export function buildNavigationTarget(item: FileSystemItem, isMobile: boolean) {
     }
   }
   if (isArchive) {
-    // archive: 直接进入阅读器，由阅读器负责解压
     return {
       to: "/read" as const,
       search: {
         path: item.path,
-        source: "archive" as const,
         page: 0,
-        sourceFolderPath: "",
         mode: isMobile ? ("mobile" as const) : undefined,
       },
     }
@@ -40,27 +35,21 @@ export function buildNavigationTarget(item: FileSystemItem, isMobile: boolean) {
     }
   }
   if (isAudio) {
-    const parentPath = getParentPath(item.path)
     return {
       to: "/read" as const,
       search: {
-        path: parentPath,
-        source: "folder" as const,
+        path: item.path,
         page: 0,
-        sourceFolderPath: item.path,
         mode: "audio" as const,
       },
     }
   }
   if (isImage) {
-    const parentPath = getParentPath(item.path)
     return {
       to: "/read" as const,
       search: {
-        path: parentPath,
-        source: "folder" as const,
+        path: item.path,
         page: 0,
-        sourceFolderPath: item.path,
         mode: isMobile ? ("mobile" as const) : undefined,
       },
     }
