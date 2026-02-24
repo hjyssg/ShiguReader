@@ -3,9 +3,7 @@ import {
   BookCheck,
   Check,
   CheckSquare,
-  ExternalLink,
   FolderInput,
-  FolderOpen,
   ImageDown,
   MoreVertical,
   Package,
@@ -63,7 +61,7 @@ export function FileContextMenu({
 
 export function FileActionsDropdown({
   item,
-  isOpenable,
+  isOpenable: _isOpenable,
   actions,
 }: Omit<FileContextMenuProps, "children" | "onContextMenuOpen">) {
   const { t } = useTranslation()
