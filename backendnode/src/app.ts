@@ -102,8 +102,8 @@ export function buildApp() {
   app.post("/api/search/quick-match-batch", { schema: { summary: "批量快速匹配（兼容别名，油猴脚本用）", tags: ["搜索"] } }, quickMatchBatchHandler);
 
   // ── Global error handler (dev-friendly: includes stack trace) ─────────────
-  app.setErrorHandler((error, _req, reply) => {
-    const status = (error as { statusCode?: number }).statusCode ?? 500;
+  app.setErrorHandler((error: Error & { statusCode?: number }, _req, reply) => {
+    const status = error.statusCode ?? 500;
     reply.status(status).send({
       error: error.message,
       stack: error.stack,

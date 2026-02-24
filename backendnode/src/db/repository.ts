@@ -134,6 +134,8 @@ export interface UpsertFileInput {
   filesize: number;
   file_type?: string;
   ext?: string | null;
+  /** 文件指纹，用于去重匹配（可选） */
+  fingerprint?: string | null;
 }
 
 /** upsertFolder 的输入类型 */

@@ -7,7 +7,8 @@
     "build": "tsc",
     "start": "node dist/server.js",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "lint": "biome check --no-errors-on-unmatched --files-ignore-unknown=true ./"
   },
   "dependencies": {
     "@fastify/cors": "^10.0.2",
@@ -21,6 +22,7 @@
     "trash": "^10.1.0"
   },
   "devDependencies": {
+    "@biomejs/biome": "^2.4.4",
     "@types/node": "^22.13.4",
     "tsx": "^4.19.2",
     "typescript": "^5.7.3",
