@@ -6,6 +6,7 @@ import { config } from "../config.js";
 import { getRepo, buildThumbUrl } from "./_listUtils.js";
 import { parseName } from "../utils/nameParser.js";
 import { isHiddenFile } from "../utils/fileFilters.js";
+import { fileExists } from "../utils/fsUtils.js";
 
 // ─── types ───────────────────────────────────────────────────────────────────
 
@@ -47,10 +48,9 @@ export async function getDrives(_req: FastifyRequest, reply: FastifyReply) {
   const drives: { path: string; dirname: string }[] = [];
   for (let code = 65; code <= 90; code++) {
     const drivePath = `${String.fromCharCode(code)}:\\`;
-    try {
-      await fs.promises.access(drivePath);
+    if (await fileExists(drivePath)) {
       drives.push({ path: drivePath, dirname: drivePath });
-    } catch { /* drive not present */ }
+    }
   }
   return reply.send(drives);
 }

@@ -1,6 +1,7 @@
 import type { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
 import fs from "node:fs";
 import path from "node:path";
+import { fileExists } from "../utils/fsUtils.js";
 import { config, ENV_FILE_PATH, DB_FILE_PATH } from "../config.js";
 import { getDb } from "../db/client.js";
 import { IndexRepository } from "../db/repository.js";
@@ -104,14 +105,7 @@ async function verifyFiles(_req: FastifyRequest, reply: FastifyReply) {
 
   // Parallel file existence check
   const existResults = await Promise.all(
-    filepaths.map(async (fp) => {
-      try {
-        await fs.promises.access(fp);
-        return { fp, exists: true };
-      } catch {
-        return { fp, exists: false };
-      }
-    })
+    filepaths.map(async (fp) => ({ fp, exists: await fileExists(fp) }))
   );
   for (const { fp, exists } of existResults) {
     checked++;

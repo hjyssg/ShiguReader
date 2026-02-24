@@ -18,6 +18,7 @@ import { getFileType } from "../utils/fileType.js";
 import { IMAGE_SUFFIXES } from "../constants.js";
 import { get7z, getMagick, getFfmpeg } from "../utils/tools.js";
 import { isHiddenFile } from "../utils/fileFilters.js";
+import { fileExists } from "../utils/fsUtils.js";
 
 const execFileAsync = promisify(execFile);
 
@@ -214,12 +215,7 @@ export async function resolveThumbSource(filePath: string): Promise<string | nul
   const ext = path.extname(filePath).toLowerCase();
   const imageExts = new Set([".jpg", ".jpeg", ".png", ".webp", ".gif", ".bmp"]);
   if (imageExts.has(ext)) {
-    try {
-      await fs.promises.access(filePath, fs.constants.R_OK);
-      return filePath;
-    } catch {
-      return null;
-    }
+    return await fileExists(filePath, fs.constants.R_OK) ? filePath : null;
   }
   return resolveCachedThumb(filePath);
 }

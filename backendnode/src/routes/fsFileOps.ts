@@ -4,6 +4,7 @@ import fs from "node:fs";
 import { getMimeType } from "../utils/fileType.js";
 import { getRepo } from "./_listUtils.js";
 import { observeFilePresence } from "../services/reconcileQueue.js";
+import { fileExists } from "../utils/fsUtils.js";
 import { logger } from "../logger.js";
 import trash from "trash";
 
@@ -112,17 +113,15 @@ export async function downloadFile(
 ) {
   const { path: filePath } = req.query;
   if (!filePath) return reply.status(400).send({ error: "path is required" });
-  try {
-    await fs.promises.access(filePath);
-    observeFilePresence(filePath, true);
-    const mime = getMimeType(filePath);
-    const filename = path.basename(filePath);
-    reply.header("Content-Disposition", `attachment; filename="${encodeURIComponent(filename)}"`);
-    return reply.type(mime).send(fs.createReadStream(filePath));
-  } catch {
+  if (!await fileExists(filePath)) {
     observeFilePresence(filePath, false);
     return reply.status(404).send({ error: "File not found" });
   }
+  observeFilePresence(filePath, true);
+  const mime = getMimeType(filePath);
+  const filename = path.basename(filePath);
+  reply.header("Content-Disposition", `attachment; filename="${encodeURIComponent(filename)}"`);
+  return reply.type(mime).send(fs.createReadStream(filePath));
 }
 
 /**
@@ -135,13 +134,11 @@ export async function downloadFileFull(
 ) {
   const { path: filePath } = req.query;
   if (!filePath) return reply.status(400).send({ error: "path is required" });
-  try {
-    await fs.promises.access(filePath);
-    observeFilePresence(filePath, true);
-  } catch {
+  if (!await fileExists(filePath)) {
     observeFilePresence(filePath, false);
     return reply.status(404).send({ error: "File not found" });
   }
+  observeFilePresence(filePath, true);
   reply.header("Content-Disposition", `attachment; filename*=UTF-8''${encodeURIComponent(path.basename(filePath))}`);
   return reply.sendFile(path.basename(filePath), path.dirname(filePath));
 }
@@ -155,13 +152,11 @@ export async function serveFile(
 ) {
   const { path: filePath } = req.query;
   if (!filePath) return reply.status(400).send({ error: "path is required" });
-  try {
-    await fs.promises.access(filePath);
-    observeFilePresence(filePath, true);
-  } catch {
+  if (!await fileExists(filePath)) {
     observeFilePresence(filePath, false);
     return reply.status(404).send({ error: "File not found" });
   }
+  observeFilePresence(filePath, true);
   return reply.sendFile(path.basename(filePath), path.dirname(filePath));
 }
 

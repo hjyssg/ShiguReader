@@ -4,6 +4,7 @@ import fs from "node:fs";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { get7z as get7zBin } from "../utils/tools.js";
+import { fileExists } from "../utils/fsUtils.js";
 import { getRepo } from "./_listUtils.js";
 import {
   listEntries,
@@ -124,9 +125,7 @@ export async function getArchiveFile(
   if (!resolved.startsWith(path.resolve(cacheDir))) {
     return reply.status(400).send({ error: "Invalid entry path" });
   }
-  try {
-    await fs.promises.access(resolved);
-  } catch {
+  if (!await fileExists(resolved)) {
     return reply.status(404).send({ error: "File not found in extract cache" });
   }
   return reply.sendFile(path.basename(resolved), path.dirname(resolved));
@@ -148,9 +147,7 @@ export async function compressImages(
 ) {
   const { archive_path, max_height = 1600, quality = 85 } = req.body ?? {};
   if (!archive_path) return reply.status(400).send({ error: "archive_path is required" });
-  try {
-    await fs.promises.access(archive_path);
-  } catch {
+  if (!await fileExists(archive_path)) {
     return reply.status(404).send({ error: "File not found" });
   }
   try {
@@ -175,7 +172,9 @@ export async function zipFolder(
     return reply.status(404).send({ error: "Folder not found" });
   }
   const outputZip = output_path ?? `${folder_path}.zip`;
-  try { await fs.promises.access(outputZip); return reply.status(409).send({ error: "Output zip already exists", path: outputZip }); } catch { /* doesn't exist, proceed */ }
+  if (await fileExists(outputZip)) {
+    return reply.status(409).send({ error: "Output zip already exists", path: outputZip });
+  }
   try {
     await execFileAsync(get7zBin(), ["a", "-tzip", outputZip, `${folder_path + path.sep}*`, "-y"], { timeout: 300000 });
     return reply.send({ status: "ok", message: "Zip created", path: folder_path, dest_path: outputZip });
@@ -190,16 +189,16 @@ export async function unzip(
 ) {
   const { archive_path, output_dir } = req.body ?? {};
   if (!archive_path) return reply.status(400).send({ error: "archive_path is required" });
-  try {
-    await fs.promises.access(archive_path);
-  } catch {
+  if (!await fileExists(archive_path)) {
     return reply.status(404).send({ error: "File not found" });
   }
   const outputDir = output_dir ?? path.join(
     path.dirname(archive_path),
     path.basename(archive_path, path.extname(archive_path))
   );
-  try { await fs.promises.access(outputDir); return reply.status(409).send({ error: "Destination already exists", path: outputDir }); } catch { /* doesn't exist, proceed */ }
+  if (await fileExists(outputDir)) {
+    return reply.status(409).send({ error: "Destination already exists", path: outputDir });
+  }
   try {
     await execFileAsync(get7zBin(), ["x", archive_path, `-o${outputDir}`, "-y", "-scsUTF-8"], { timeout: 300000 });
     return reply.send({ status: "ok", message: "Unzipped", path: archive_path, dest_path: outputDir });
