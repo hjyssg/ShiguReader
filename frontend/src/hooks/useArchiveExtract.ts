@@ -8,7 +8,7 @@ import { useEffect, useMemo, useState } from "react"
 
 import { FilesystemService, OpenAPI } from "@/client"
 import type { ExtractStatus, ListResponse } from "@/client"
-import { getBaseName, getParentPath } from "@/lib/path-utils"
+import { getParentPath } from "@/lib/path-utils"
 
 export type ReadSource = "archive" | "folder" | "image" | "audio"
 
@@ -46,7 +46,6 @@ export function useArchiveExtract(
   source: ReadSource,
 ): ArchiveExtractResult {
   const parentPath = getParentPath(path)
-  const isFolderSource = source === "folder"
 
   const [folderData, setFolderData] = useState<ListResponse | null>(null)
   const [extractStatus, setExtractStatus] = useState<ExtractStatus | null>(null)
@@ -68,11 +67,9 @@ export function useArchiveExtract(
 
       try {
         if (source === "folder") {
-          // folder: list the folder itself
           const data = await FilesystemService.listDirectory({ path })
           if (!cancelled) setFolderData(data)
         } else if (source === "archive") {
-          // archive: extract returns entries + mtime + filesize inline
           setArchiveImageReady(false)
           const result = await FilesystemService.extractArchive({ path, page: 0 })
           if (!cancelled) {
@@ -81,8 +78,7 @@ export function useArchiveExtract(
           }
         } else {
           // image / audio: list parent directory to get sibling files
-          const dir = parentPath || path
-          const data = await FilesystemService.listDirectory({ path: dir })
+          const data = await FilesystemService.listDirectory({ path: parentPath })
           if (!cancelled) setFolderData(data)
         }
       } catch (error) {
@@ -102,32 +98,17 @@ export function useArchiveExtract(
   const archiveEntries = extractStatus?.entries ?? []
 
   const imageEntries = useMemo<ImageEntry[]>(() => {
-    if (source === "folder") {
-      return (folderData?.items ?? [])
-        .filter((item) => item.item_type === "file" && item.file_type === "image")
-        .map((item, index) => ({ name: item.name, index, filePath: item.path }))
-    }
     if (source === "archive") {
       return archiveEntries
         .filter((e) => e.file_type === "image")
         .map((entry, index) => ({ name: entry.name, index, entryPath: entry.entry_path }))
     }
-    // image / audio: sibling image files from parent dir
     return (folderData?.items ?? [])
       .filter((item) => item.item_type === "file" && item.file_type === "image")
       .map((item, index) => ({ name: item.name, index, filePath: item.path }))
   }, [source, folderData, archiveEntries])
 
   const audioTracks = useMemo<AudioTrack[]>(() => {
-    if (source === "folder") {
-      return (folderData?.items ?? [])
-        .filter((item) => item.item_type === "file" && item.file_type === "audio")
-        .map((item) => ({
-          name: item.name,
-          sourcePath: item.path,
-          url: `${OpenAPI.BASE}/api/v1/fs/file?path=${encodeURIComponent(item.path)}`,
-        }))
-    }
     if (source === "archive") {
       return archiveEntries
         .filter((e) => e.file_type === "audio")
@@ -137,7 +118,6 @@ export function useArchiveExtract(
           url: `${OpenAPI.BASE}/api/v1/fs/archive/file?path=${encodeURIComponent(path)}&entry=${encodeURIComponent(e.entry_path)}`,
         }))
     }
-    // image / audio: sibling audio files from parent dir
     return (folderData?.items ?? [])
       .filter((item) => item.item_type === "file" && item.file_type === "audio")
       .map((item) => ({
@@ -153,29 +133,20 @@ export function useArchiveExtract(
       if (!imageEntry) return undefined
       return `${OpenAPI.BASE}/api/v1/fs/archive/file?path=${encodeURIComponent(path)}&entry=${encodeURIComponent(imageEntry.entry_path)}`
     }
-    // folder / image / audio: first image from folderData
-    const imageItem = (folderData?.items ?? []).find(
-      (item) => item.item_type === "file" && item.file_type === "image",
-    )
+    const imageItem = (folderData?.items ?? []).find((item) => item.item_type === "file" && item.file_type === "image")
     if (!imageItem) return undefined
     return `${OpenAPI.BASE}/api/v1/fs/file?path=${encodeURIComponent(imageItem.path)}`
   }, [source, folderData, archiveEntries, path])
 
-  // mtime / filesize: archive from extractStatus, others from folderData current file
-  const currentFileMeta = useMemo(() => {
-    if (source === "archive") return null
-    return (folderData?.items ?? []).find((item) => item.path === path) ?? null
-  }, [source, folderData, path])
-
   const mtime: number | null =
     source === "archive"
       ? (extractStatus?.mtime ?? null)
-      : (currentFileMeta?.mtime ?? null)
+      : ((folderData?.items ?? []).find((item) => item.path === path)?.mtime ?? null)
 
   const filesize: number | null =
     source === "archive"
       ? (extractStatus?.filesize ?? null)
-      : (currentFileMeta?.filesize ?? null)
+      : ((folderData?.items ?? []).find((item) => item.path === path)?.filesize ?? null)
 
   return {
     isLoading,
