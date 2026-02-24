@@ -16,6 +16,7 @@
     "extracting": "압축 해제 중...",
     "noData": "데이터가 없습니다",
     "reset": "초기화",
+    "copied": "복사됨",
     "close": "닫기"
   },
   "nav": {
@@ -148,6 +149,12 @@
     "coser": "코서",
     "tag": "태그",
     "mode": "모드",
+    "modeExact": "정확히 일치",
+    "modeHybrid": "하이브리드",
+    "presence": "존재 상태",
+    "presenceAll": "전체",
+    "presenceWatched": "시청한 항목만",
+    "presenceScannedRecent": "10분 이내 스캔",
     "noResults": "일치하는 결과가 없습니다",
     "goTo": "이동",
     "confirm": "확인"

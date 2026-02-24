@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router"
 import { ChevronRight, Folder, Home } from "lucide-react"
 import type { MouseEvent, ReactNode } from "react"
+import { useTranslation } from "react-i18next"
 
 import { toastSuccess } from "@/lib/toast"
 
@@ -27,11 +28,11 @@ function getTitleText(value: ReactNode): string | undefined {
   return undefined
 }
 
-async function copyText(text: string) {
+async function copyText(text: string, copiedText: string) {
   if (!text) return
   try {
     await navigator.clipboard.writeText(text)
-    toastSuccess("已复制", { position: "top-right" })
+    toastSuccess(copiedText, { position: "top-right" })
   } catch {
     const el = document.createElement("textarea")
     el.value = text
@@ -42,7 +43,7 @@ async function copyText(text: string) {
     el.select()
     document.execCommand("copy")
     document.body.removeChild(el)
-    toastSuccess("已复制", { position: "top-right" })
+    toastSuccess(copiedText, { position: "top-right" })
   }
 }
 
@@ -97,6 +98,7 @@ export function PathBreadcrumb({
   currentClassName = "app-breadcrumb__current",
 }: PathBreadcrumbProps) {
   const Container = as
+  const { t } = useTranslation()
 
   const pathParts = splitPath(sourcePath)
   const allDirCrumbs = pathParts.slice(0, -1).map((name, index) => ({
@@ -181,7 +183,7 @@ export function PathBreadcrumb({
               title={getTitleText(currentLabel)}
               onClick={(e: MouseEvent<HTMLAnchorElement>) => {
                 e.preventDefault()
-                copyText(getTitleText(currentLabel) ?? "")
+                copyText(getTitleText(currentLabel) ?? "", t("common.copied"))
               }}
             >
               {currentLabel}
@@ -190,7 +192,7 @@ export function PathBreadcrumb({
             <span
               className={cn(currentClassName, "cursor-copy")}
               title={getTitleText(currentLabel)}
-              onClick={() => copyText(getTitleText(currentLabel) ?? "")}
+              onClick={() => copyText(getTitleText(currentLabel) ?? "", t("common.copied"))}
             >
               {currentLabel}
             </span>

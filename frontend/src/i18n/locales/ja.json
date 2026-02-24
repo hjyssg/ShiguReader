@@ -15,7 +15,8 @@
     "refresh": "更新",
     "extracting": "展開中...",
     "noData": "データなし",
-    "reset": "リセット"
+    "reset": "リセット",
+    "copied": "コピーしました"
   },
   "nav": {
     "home": "ホーム",
@@ -147,6 +148,12 @@
     "coser": "Coser",
     "tag": "タグ",
     "mode": "モード",
+    "modeExact": "完全一致",
+    "modeHybrid": "ハイブリッド",
+    "presence": "存在状態",
+    "presenceAll": "すべて",
+    "presenceWatched": "閲覧済みのみ",
+    "presenceScannedRecent": "10分以内にスキャン",
     "noResults": "一致する結果がありません",
     "goTo": "移動",
     "confirm": "確認"

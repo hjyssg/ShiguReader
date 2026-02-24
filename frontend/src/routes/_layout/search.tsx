@@ -263,14 +263,14 @@ function SearchPage() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="exact">Exact</SelectItem>
-                <SelectItem value="hybrid">Hybrid</SelectItem>
+                <SelectItem value="exact">{t("search.modeExact")}</SelectItem>
+                <SelectItem value="hybrid">{t("search.modeHybrid")}</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           <div className="flex items-center gap-2">
-            <Label className="text-sm">Presence</Label>
+            <Label className="text-sm">{t("search.presence")}</Label>
             <Select
               value={presenceFilter}
               onValueChange={(v) => setPresenceFilter(v as PresenceFilter)}
@@ -279,10 +279,10 @@ function SearchPage() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All</SelectItem>
-                <SelectItem value="watched">Watched only</SelectItem>
+                <SelectItem value="all">{t("search.presenceAll")}</SelectItem>
+                <SelectItem value="watched">{t("search.presenceWatched")}</SelectItem>
                 <SelectItem value="scanned_recent">
-                  Scanned &lt; 10min
+                  {t("search.presenceScannedRecent")}
                 </SelectItem>
               </SelectContent>
             </Select>

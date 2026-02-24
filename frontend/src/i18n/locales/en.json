@@ -15,7 +15,8 @@
     "refresh": "Refresh",
     "extracting": "Extracting...",
     "noData": "No data",
-    "reset": "Reset"
+    "reset": "Reset",
+    "copied": "Copied"
   },
   "nav": {
     "home": "Home",
@@ -147,6 +148,12 @@
     "coser": "Coser",
     "tag": "Tag",
     "mode": "Mode",
+    "modeExact": "Exact",
+    "modeHybrid": "Hybrid",
+    "presence": "Presence",
+    "presenceAll": "All",
+    "presenceWatched": "Watched only",
+    "presenceScannedRecent": "Scanned < 10min",
     "noResults": "No matching results found",
     "goTo": "Go to",
     "confirm": "Confirm"

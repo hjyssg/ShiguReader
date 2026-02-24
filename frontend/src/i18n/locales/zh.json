@@ -15,7 +15,8 @@
     "refresh": "刷新",
     "extracting": "解压中...",
     "noData": "暂无数据",
-    "reset": "重置"
+    "reset": "重置",
+    "copied": "已复制"
   },
   "nav": {
     "home": "首页",
@@ -147,6 +148,12 @@
     "coser": "Coser",
     "tag": "标签",
     "mode": "模式",
+    "modeExact": "精确",
+    "modeHybrid": "混合",
+    "presence": "存在状态",
+    "presenceAll": "全部",
+    "presenceWatched": "仅已观看",
+    "presenceScannedRecent": "10 分钟内扫描",
     "noResults": "没有找到匹配结果",
     "goTo": "跳转到",
     "confirm": "确定"
