@@ -14,10 +14,18 @@ export function getExt(filepath: string): string {
 
 export function getFileType(filepath: string): FileType {
   const ext = getExt(filepath);
-  if ((IMAGE_SUFFIXES as readonly string[]).includes(ext)) return "image";
-  if ((VIDEO_SUFFIXES as readonly string[]).includes(ext)) return "video";
-  if ((ARCHIVE_SUFFIXES as readonly string[]).includes(ext)) return "archive";
-  if ((AUDIO_SUFFIXES as readonly string[]).includes(ext)) return "audio";
+  if ((IMAGE_SUFFIXES as readonly string[]).includes(ext)) {
+    return "image";
+  }
+  if ((VIDEO_SUFFIXES as readonly string[]).includes(ext)) {
+    return "video";
+  }
+  if ((ARCHIVE_SUFFIXES as readonly string[]).includes(ext)) {
+    return "archive";
+  }
+  if ((AUDIO_SUFFIXES as readonly string[]).includes(ext)) {
+    return "audio";
+  }
   return "unknown";
 }
 

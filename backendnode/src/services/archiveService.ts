@@ -28,10 +28,16 @@ const IGNORE_PREFIXES = ["__MACOSX/", ".git/"];
 
 function shouldIgnore(entryPath: string): boolean {
   const name = path.basename(entryPath);
-  if (IGNORE_NAMES.has(name)) return true;
-  if (isHiddenFile(name)) return true;
+  if (IGNORE_NAMES.has(name)) {
+    return true;
+  }
+  if (isHiddenFile(name)) {
+    return true;
+  }
   for (const prefix of IGNORE_PREFIXES) {
-    if (entryPath.startsWith(prefix) || entryPath.includes(`/${prefix}`)) return true;
+    if (entryPath.startsWith(prefix) || entryPath.includes(`/${prefix}`)) {
+      return true;
+    }
   }
   return false;
 }
@@ -45,7 +51,7 @@ const AUDIO_EXTS = new Set(AUDIO_SUFFIXES as readonly string[]);
 export type EntryType = "image" | "video" | "audio" | "other";
 
 export interface ArchiveEntry {
-  name: string;       // basename of entry
+  name: string; // basename of entry
   entry_path: string; // full path inside archive
   index: number;
   file_type: EntryType;
@@ -59,9 +65,15 @@ export interface ArchiveEntry {
 
 function getEntryType(entryPath: string): EntryType {
   const ext = path.extname(entryPath).toLowerCase();
-  if (IMAGE_EXTS.has(ext)) return "image";
-  if (VIDEO_EXTS.has(ext)) return "video";
-  if (AUDIO_EXTS.has(ext)) return "audio";
+  if (IMAGE_EXTS.has(ext)) {
+    return "image";
+  }
+  if (VIDEO_EXTS.has(ext)) {
+    return "video";
+  }
+  if (AUDIO_EXTS.has(ext)) {
+    return "audio";
+  }
   return "other";
 }
 
@@ -86,13 +98,14 @@ const entriesCache = new Map<string, { entries: ArchiveEntry[]; expireAt: number
 export async function listEntries(archivePath: string): Promise<ArchiveEntry[]> {
   const now = Date.now();
   const cached = entriesCache.get(archivePath);
-  if (cached && cached.expireAt > now) return cached.entries;
+  if (cached && cached.expireAt > now) {
+    return cached.entries;
+  }
 
-  const { stdout } = await execFileAsync(
-    get7z(),
-    ["l", "-ba", "-slt", "-scsUTF-8", archivePath],
-    { timeout: 30000, maxBuffer: 10 * 1024 * 1024 }
-  );
+  const { stdout } = await execFileAsync(get7z(), ["l", "-ba", "-slt", "-scsUTF-8", archivePath], {
+    timeout: 30000,
+    maxBuffer: 10 * 1024 * 1024,
+  });
 
   // 7z -slt 输出每个 entry 的属性块，以空行分隔
   // 每块包含 Path = ... 和 Size = ... 等字段
@@ -124,22 +137,26 @@ export async function listEntries(archivePath: string): Promise<ArchiveEntry[]> 
 
   // Filter: keep only media files, skip ignored
   const mediaEntries = rawEntries.filter(({ entryPath }) => {
-    if (shouldIgnore(entryPath)) return false;
+    if (shouldIgnore(entryPath)) {
+      return false;
+    }
     return getEntryType(entryPath) !== "other";
   });
 
   // Sort naturally by path
-  mediaEntries.sort((a, b) => a.entryPath.localeCompare(b.entryPath, undefined, { numeric: true, sensitivity: "base" }));
+  mediaEntries.sort((a, b) =>
+    a.entryPath.localeCompare(b.entryPath, undefined, { numeric: true, sensitivity: "base" }),
+  );
 
   const result = mediaEntries.map(({ entryPath, size }, i) => {
     const t = getEntryType(entryPath);
     return {
       name: path.basename(entryPath),
       entry_path: entryPath,
-      path: entryPath,  // deprecated compat
+      path: entryPath, // deprecated compat
       index: i,
       file_type: t,
-      type: t,          // deprecated compat
+      type: t, // deprecated compat
       size,
     };
   });
@@ -154,10 +171,10 @@ export async function listEntries(archivePath: string): Promise<ArchiveEntry[]> 
  * 返回 null 表示没有有效图片条目。
  */
 export function calcAvgImageSize(entries: ArchiveEntry[]): number | null {
-  const imageSizes = entries
-    .filter(e => e.file_type === "image" && e.size > 0)
-    .map(e => e.size);
-  if (!imageSizes.length) return null;
+  const imageSizes = entries.filter((e) => e.file_type === "image" && e.size > 0).map((e) => e.size);
+  if (!imageSizes.length) {
+    return null;
+  }
   return Math.round(imageSizes.reduce((a, b) => a + b, 0) / imageSizes.length);
 }
 
@@ -167,12 +184,10 @@ export function calcAvgImageSize(entries: ArchiveEntry[]): number | null {
  * Extract specific entries from an archive to destDir.
  * Uses a temp list file to avoid command-line length limits and encoding issues.
  */
-export async function extractEntries(
-  archivePath: string,
-  destDir: string,
-  entries: string[]
-): Promise<void> {
-  if (!entries.length) return;
+export async function extractEntries(archivePath: string, destDir: string, entries: string[]): Promise<void> {
+  if (!entries.length) {
+    return;
+  }
 
   return extractLimit(async () => {
     fs.mkdirSync(destDir, { recursive: true });
@@ -181,13 +196,16 @@ export async function extractEntries(
     const listFile = path.join(os.tmpdir(), `shigure-extract-${Date.now()}.txt`);
     try {
       fs.writeFileSync(listFile, entries.join("\n"), "utf8");
-      await execFileAsync(
-        get7z(),
-        ["x", archivePath, `-o${destDir}`, "-aos", "-scsUTF-8", `@${listFile}`],
-        { timeout: 120000, maxBuffer: 4 * 1024 * 1024 }
-      );
+      await execFileAsync(get7z(), ["x", archivePath, `-o${destDir}`, "-aos", "-scsUTF-8", `@${listFile}`], {
+        timeout: 120000,
+        maxBuffer: 4 * 1024 * 1024,
+      });
     } finally {
-      try { fs.unlinkSync(listFile); } catch { /* ignore */ }
+      try {
+        fs.unlinkSync(listFile);
+      } catch {
+        /* ignore */
+      }
     }
   });
 }
@@ -200,11 +218,10 @@ export async function extractEntries(
 async function extractAll(archivePath: string, destDir: string): Promise<void> {
   return extractLimit(async () => {
     fs.mkdirSync(destDir, { recursive: true });
-    await execFileAsync(
-      get7z(),
-      ["x", archivePath, `-o${destDir}`, "-aos", "-scsUTF-8"],
-      { timeout: 3600000, maxBuffer: 64 * 1024 * 1024 }  
-    );
+    await execFileAsync(get7z(), ["x", archivePath, `-o${destDir}`, "-aos", "-scsUTF-8"], {
+      timeout: 3600000,
+      maxBuffer: 64 * 1024 * 1024,
+    });
   });
 }
 
@@ -230,17 +247,21 @@ const inProgress = new Set<string>();
  *   Phase 2 (async): ± 10 pages
  *   Phase 3 (async): remaining
  */
-export async function stepwiseExtract(
-  archivePath: string,
-  currentPage: number
-): Promise<StepwiseExtractResult> {
+export async function stepwiseExtract(archivePath: string, currentPage: number): Promise<StepwiseExtractResult> {
   const cacheDir = getExtractCacheDir(archivePath);
 
   if (inProgress.has(archivePath)) {
     // Count already extracted; use cached entries if available (avoids extra 7z l)
     const extracted = countExtractedFiles(cacheDir);
     const cachedEntries = await listEntries(archivePath).catch(() => []);
-    return { status: "already_running", extracted_count: extracted, total_count: cachedEntries.length, cache_dir: cacheDir, avg_image_size: calcAvgImageSize(cachedEntries), entries: cachedEntries };
+    return {
+      status: "already_running",
+      extracted_count: extracted,
+      total_count: cachedEntries.length,
+      cache_dir: cacheDir,
+      avg_image_size: calcAvgImageSize(cachedEntries),
+      entries: cachedEntries,
+    };
   }
 
   // Get full entry list
@@ -253,19 +274,28 @@ export async function stepwiseExtract(
 
   const total = entries.length;
   if (total === 0) {
-    return { status: "completed", extracted_count: 0, total_count: 0, cache_dir: cacheDir, avg_image_size: null, entries: [] };
+    return {
+      status: "completed",
+      extracted_count: 0,
+      total_count: 0,
+      cache_dir: cacheDir,
+      avg_image_size: null,
+      entries: [],
+    };
   }
 
   // Phase 1: current page ± 2 (synchronous)
   const phase1Start = Math.max(0, currentPage - 2);
   const phase1End = Math.min(total - 1, currentPage + 2);
-  const phase1Entries = entries
-    .slice(phase1Start, phase1End + 1)
-    .filter(e => !isAlreadyExtracted(cacheDir, e.path));
+  const phase1Entries = entries.slice(phase1Start, phase1End + 1).filter((e) => !isAlreadyExtracted(cacheDir, e.path));
 
   inProgress.add(archivePath);
   try {
-    await extractEntries(archivePath, cacheDir, phase1Entries.map(e => e.path));
+    await extractEntries(
+      archivePath,
+      cacheDir,
+      phase1Entries.map((e) => e.path),
+    );
   } catch {
     // Phase 1 stepwise failed → fallback to full extraction
     try {
@@ -286,29 +316,48 @@ export async function stepwiseExtract(
       const phase2End = Math.min(total - 1, currentPage + 10);
       const phase2Entries = entries
         .slice(phase2Start, phase2End + 1)
-        .filter(e => !isAlreadyExtracted(cacheDir, e.path));
+        .filter((e) => !isAlreadyExtracted(cacheDir, e.path));
       if (phase2Entries.length) {
-        await extractEntries(archivePath, cacheDir, phase2Entries.map(e => e.path));
+        await extractEntries(
+          archivePath,
+          cacheDir,
+          phase2Entries.map((e) => e.path),
+        );
       }
 
       // Phase 3: remaining (images first, then others)
-      const remaining = entries.filter(e => !isAlreadyExtracted(cacheDir, e.path));
-      const images = remaining.filter(e => e.type === "image");
-      const others = remaining.filter(e => e.type !== "image");
+      const remaining = entries.filter((e) => !isAlreadyExtracted(cacheDir, e.path));
+      const images = remaining.filter((e) => e.type === "image");
+      const others = remaining.filter((e) => e.type !== "image");
       const phase3Entries = [...images, ...others];
       if (phase3Entries.length) {
-        await extractEntries(archivePath, cacheDir, phase3Entries.map(e => e.path));
+        await extractEntries(
+          archivePath,
+          cacheDir,
+          phase3Entries.map((e) => e.path),
+        );
       }
     } catch {
       // Phase 2/3 stepwise failed → fallback to full extraction
-      try { await extractAll(archivePath, cacheDir); } catch { /* ignore */ }
+      try {
+        await extractAll(archivePath, cacheDir);
+      } catch {
+        /* ignore */
+      }
     } finally {
       inProgress.delete(archivePath);
     }
   });
 
   const avgImageSize = calcAvgImageSize(entries);
-  return { status: "started", extracted_count: extracted, total_count: total, cache_dir: cacheDir, avg_image_size: avgImageSize, entries };
+  return {
+    status: "started",
+    extracted_count: extracted,
+    total_count: total,
+    cache_dir: cacheDir,
+    avg_image_size: avgImageSize,
+    entries,
+  };
 }
 
 function countExtractedFiles(dir: string): number {
@@ -333,9 +382,15 @@ export interface ClearCacheResult {
 }
 
 function formatBytes(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  if (bytes < 1024 * 1024 * 1024) return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+  if (bytes < 1024) {
+    return `${bytes} B`;
+  }
+  if (bytes < 1024 * 1024) {
+    return `${(bytes / 1024).toFixed(1)} KB`;
+  }
+  if (bytes < 1024 * 1024 * 1024) {
+    return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+  }
   return `${(bytes / 1024 / 1024 / 1024).toFixed(2)} GB`;
 }
 
@@ -360,27 +415,37 @@ export function clearExtractCache(): ClearCacheResult {
           try {
             freedBytes += fs.statSync(full).size;
             deletedFiles++;
-          } catch { /* ignore */ }
+          } catch {
+            /* ignore */
+          }
         }
       }
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
   }
 
   // Only delete subdirectories (hash dirs), not the root itself
   try {
     const topDirs = fs.readdirSync(cacheBase, { withFileTypes: true });
     for (const d of topDirs) {
-      if (!d.isDirectory()) continue;
+      if (!d.isDirectory()) {
+        continue;
+      }
       const fullDir = path.join(cacheBase, d.name);
       // Skip if currently being extracted
       if (inProgress.size > 0) {
-        const activeDir = [...inProgress].some(ap => getExtractCacheDir(ap).startsWith(fullDir));
-        if (activeDir) continue;
+        const activeDir = [...inProgress].some((ap) => getExtractCacheDir(ap).startsWith(fullDir));
+        if (activeDir) {
+          continue;
+        }
       }
       countDir(fullDir);
       fs.rmSync(fullDir, { recursive: true, force: true });
     }
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
 
   return {
     deleted_files: deletedFiles,
@@ -398,7 +463,7 @@ export function clearExtractCache(): ClearCacheResult {
 export async function compressArchiveImages(
   archivePath: string,
   maxHeight = 1600,
-  quality = 85
+  quality = 85,
 ): Promise<{ processed: number; original_bytes: number; output_bytes: number }> {
   const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "shigure-compress-"));
   const outputPath = archivePath.replace(/(\.[^.]+)$/, "_compressed$1");
@@ -425,11 +490,9 @@ export async function compressArchiveImages(
           const stat = fs.statSync(full);
           originalBytes += stat.size;
           try {
-            await execFileAsync(
-              getMagick(),
-              [full, "-resize", `x${maxHeight}>`, "-quality", String(quality), full],
-              { timeout: 30000 }
-            );
+            await execFileAsync(getMagick(), [full, "-resize", `x${maxHeight}>`, "-quality", String(quality), full], {
+              timeout: 30000,
+            });
             outputBytes += fs.statSync(full).size;
             processed++;
           } catch {
@@ -451,12 +514,18 @@ export async function compressArchiveImages(
       await execFileAsync(get7z(), ["t", outputPath], { timeout: 60000 });
     } catch (e) {
       // Verification failed — remove corrupt output
-      try { fs.unlinkSync(outputPath); } catch { /* ignore */ }
+      try {
+        fs.unlinkSync(outputPath);
+      } catch {
+        /* ignore */
+      }
       throw new Error(`Output zip integrity check failed: ${e}`);
     }
 
     const savedBytes = originalBytes - outputBytes;
-    logger.compress(`Done: ${path.basename(archivePath)} — ${processed} images, saved ${formatBytes(savedBytes > 0 ? savedBytes : 0)}`);
+    logger.compress(
+      `Done: ${path.basename(archivePath)} — ${processed} images, saved ${formatBytes(savedBytes > 0 ? savedBytes : 0)}`,
+    );
     return { processed, original_bytes: originalBytes, output_bytes: outputBytes };
   } finally {
     fs.rmSync(tmpDir, { recursive: true, force: true });

@@ -43,7 +43,9 @@ let flushTimer: ReturnType<typeof setTimeout> | null = null;
 export function observeFilePresence(filepath: string, exists: boolean): void {
   const now = nowTs();
   const last = lastFlushed.get(filepath);
-  if (last !== undefined && now - last < DEDUP_TTL_SEC) return;
+  if (last !== undefined && now - last < DEDUP_TTL_SEC) {
+    return;
+  }
 
   pending.set(filepath, { filepath, exists, observedAt: now });
 
@@ -75,14 +77,18 @@ export function resetQueue(): void {
 
 function flush(): void {
   flushTimer = null;
-  if (!pending.size) return;
+  if (!pending.size) {
+    return;
+  }
 
   const events = [...pending.values()];
   pending.clear();
 
   try {
     new IndexRepository(getDb()).batchReconcilePresence(events);
-    for (const ev of events) lastFlushed.set(ev.filepath, ev.observedAt);
+    for (const ev of events) {
+      lastFlushed.set(ev.filepath, ev.observedAt);
+    }
   } catch {
     // DB 写失败不影响主流程，静默忽略
   }

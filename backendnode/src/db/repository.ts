@@ -156,25 +156,39 @@ export class IndexRepository {
   /** 插入或更新一条文件记录（upsert by filepath）。重新出现的文件会自动清除 is_missing 标记 */
   upsertFile(data: UpsertFileInput): void {
     const now = nowTs();
-    this.db.prepare(`
+    this.db
+      .prepare(`
       INSERT INTO files (filepath,folderpath,filename,mtime,filesize,file_type,ext,is_missing,last_seen_at,created_at,updated_at)
       VALUES (?,?,?,?,?,?,?,0,?,?,?)
       ON CONFLICT(filepath) DO UPDATE SET
         folderpath=excluded.folderpath, filename=excluded.filename, mtime=excluded.mtime,
         filesize=excluded.filesize, file_type=excluded.file_type, ext=excluded.ext,
         is_missing=0, last_seen_at=excluded.last_seen_at, updated_at=excluded.updated_at
-    `).run(
-      data.filepath, data.folderpath ?? null, data.filename, data.mtime, data.filesize,
-      data.file_type ?? "unknown", data.ext ?? null, now, now, now,
-    );
+    `)
+      .run(
+        data.filepath,
+        data.folderpath ?? null,
+        data.filename,
+        data.mtime,
+        data.filesize,
+        data.file_type ?? "unknown",
+        data.ext ?? null,
+        now,
+        now,
+        now,
+      );
   }
 
   /** 批量 upsert 文件，包裹在单个事务中提升性能 */
   batchUpsertFiles(list: UpsertFileInput[]): void {
-    if (!list.length) return;
+    if (!list.length) {
+      return;
+    }
     this.db.exec("BEGIN");
     try {
-      for (const item of list) this.upsertFile(item);
+      for (const item of list) {
+        this.upsertFile(item);
+      }
       this.db.exec("COMMIT");
     } catch (e) {
       this.db.exec("ROLLBACK");
@@ -207,9 +221,9 @@ export class IndexRepository {
       return;
     }
     const placeholders = presentPaths.map(() => "?").join(",");
-    this.db.prepare(
-      `UPDATE files SET is_missing=1, updated_at=? WHERE folderpath=? AND filepath NOT IN (${placeholders})`
-    ).run(now, folderpath, ...presentPaths);
+    this.db
+      .prepare(`UPDATE files SET is_missing=1, updated_at=? WHERE folderpath=? AND filepath NOT IN (${placeholders})`)
+      .run(now, folderpath, ...presentPaths);
   }
 
   /** Relocate a single file in all tables (rename / move). */
@@ -219,7 +233,9 @@ export class IndexRepository {
     try {
       const fp = newFolderPath ?? null;
       // files
-      this.db.prepare("UPDATE files SET filepath=?, folderpath=COALESCE(?,folderpath), updated_at=? WHERE filepath=?").run(newPath, fp, now, oldPath);
+      this.db
+        .prepare("UPDATE files SET filepath=?, folderpath=COALESCE(?,folderpath), updated_at=? WHERE filepath=?")
+        .run(newPath, fp, now, oldPath);
       // dependent tables
       for (const tbl of ["archive_meta", "video_meta", "read_history", "parsed_metadata"]) {
         this.db.prepare(`UPDATE ${tbl} SET filepath=? WHERE filepath=?`).run(newPath, oldPath);
@@ -241,15 +257,27 @@ export class IndexRepository {
     this.db.exec("BEGIN");
     try {
       // folders table
-      this.db.prepare("UPDATE folders SET filepath=REPLACE(filepath,?,?), updated_at=? WHERE filepath LIKE ?").run(oldPfx, newPrefix, now, `${oldPfx}%`);
+      this.db
+        .prepare("UPDATE folders SET filepath=REPLACE(filepath,?,?), updated_at=? WHERE filepath LIKE ?")
+        .run(oldPfx, newPrefix, now, `${oldPfx}%`);
       // files table
-      this.db.prepare("UPDATE files SET filepath=REPLACE(filepath,?,?), folderpath=REPLACE(folderpath,?,?), updated_at=? WHERE filepath LIKE ?").run(oldPfx, newPrefix, oldPfx, newPrefix, now, `${oldPfx}%`);
+      this.db
+        .prepare(
+          "UPDATE files SET filepath=REPLACE(filepath,?,?), folderpath=REPLACE(folderpath,?,?), updated_at=? WHERE filepath LIKE ?",
+        )
+        .run(oldPfx, newPrefix, oldPfx, newPrefix, now, `${oldPfx}%`);
       // dependent tables
       for (const tbl of ["archive_meta", "video_meta", "read_history", "parsed_metadata"]) {
-        this.db.prepare(`UPDATE ${tbl} SET filepath=REPLACE(filepath,?,?) WHERE filepath LIKE ?`).run(oldPfx, newPrefix, `${oldPfx}%`);
+        this.db
+          .prepare(`UPDATE ${tbl} SET filepath=REPLACE(filepath,?,?) WHERE filepath LIKE ?`)
+          .run(oldPfx, newPrefix, `${oldPfx}%`);
       }
-      this.db.prepare("UPDATE file_tags SET filepath=REPLACE(filepath,?,?) WHERE filepath LIKE ?").run(oldPfx, newPrefix, `${oldPfx}%`);
-      this.db.prepare("UPDATE file_artists SET filepath=REPLACE(filepath,?,?) WHERE filepath LIKE ?").run(oldPfx, newPrefix, `${oldPfx}%`);
+      this.db
+        .prepare("UPDATE file_tags SET filepath=REPLACE(filepath,?,?) WHERE filepath LIKE ?")
+        .run(oldPfx, newPrefix, `${oldPfx}%`);
+      this.db
+        .prepare("UPDATE file_artists SET filepath=REPLACE(filepath,?,?) WHERE filepath LIKE ?")
+        .run(oldPfx, newPrefix, `${oldPfx}%`);
       this.db.exec("COMMIT");
     } catch (e) {
       this.db.exec("ROLLBACK");
@@ -266,13 +294,21 @@ export class IndexRepository {
 
   /** 按文件名精确匹配，返回最近扫描到的记录，可排除自身路径（用于查找重复文件） */
   findFilesByFilename(filename: string, excludePath = "", limit = 10): FileRow[] {
-    const result = rows<FileRow>(this.db.prepare("SELECT * FROM files WHERE filename = ? AND is_missing = 0 ORDER BY last_seen_at DESC LIMIT ?").all(filename, limit));
-    return excludePath ? result.filter(r => r.filepath !== excludePath) : result;
+    const result = rows<FileRow>(
+      this.db
+        .prepare("SELECT * FROM files WHERE filename = ? AND is_missing = 0 ORDER BY last_seen_at DESC LIMIT ?")
+        .all(filename, limit),
+    );
+    return excludePath ? result.filter((r) => r.filepath !== excludePath) : result;
   }
 
   /** 统计指定类型的非缺失文件数量 */
   countFilesByType(fileType: string): number {
-    return (this.db.prepare("SELECT COUNT(*) as n FROM files WHERE file_type = ? AND is_missing = 0").get(fileType) as { n: number }).n;
+    return (
+      this.db.prepare("SELECT COUNT(*) as n FROM files WHERE file_type = ? AND is_missing = 0").get(fileType) as {
+        n: number;
+      }
+    ).n;
   }
 
   /** 更新文件的缩略图路径 */
@@ -283,49 +319,113 @@ export class IndexRepository {
   // ─── search ───────────────────────────────────────────────────────────────
 
   private _presenceClause(filter: string): string {
-    if (filter === "all") return "";
-    if (filter === "watched") return " AND filepath IN (SELECT filepath FROM read_history)";
-    if (filter === "scanned_recent") return ` AND is_missing = 0 AND last_seen_at >= ${nowTs() - 600}`;
+    if (filter === "all") {
+      return "";
+    }
+    if (filter === "watched") {
+      return " AND filepath IN (SELECT filepath FROM read_history)";
+    }
+    if (filter === "scanned_recent") {
+      return ` AND is_missing = 0 AND last_seen_at >= ${nowTs() - 600}`;
+    }
     return " AND is_missing = 0"; // default: present
   }
 
   /** 按文件名/路径模糊搜索 */
   searchFiles(q: string, presenceFilter = "present"): FileRow[] {
     const p = `%${q}%`;
-    return rows<FileRow>(this.db.prepare(`SELECT * FROM files WHERE (filename LIKE ? OR filepath LIKE ?)${this._presenceClause(presenceFilter)}`).all(p, p));
+    return rows<FileRow>(
+      this.db
+        .prepare(
+          `SELECT * FROM files WHERE (filename LIKE ? OR filepath LIKE ?)${this._presenceClause(presenceFilter)}`,
+        )
+        .all(p, p),
+    );
   }
 
   /** 按作者名模糊搜索，返回关联文件列表 */
   searchByAuthor(q: string, presenceFilter = "present"): FileRow[] {
-    const artists = rows<{ artist_name: string }>(this.db.prepare("SELECT artist_name FROM artists WHERE artist_name LIKE ?").all(`%${q}%`));
-    if (!artists.length) return [];
-    const names = artists.map(a => a.artist_name);
-    const fps = rows<{ filepath: string }>(this.db.prepare(`SELECT filepath FROM file_artists WHERE artist_name IN (${names.map(() => "?").join(",")}) AND role = ''`).all(...names));
-    if (!fps.length) return [];
-    const paths = fps.map(f => f.filepath);
-    return rows<FileRow>(this.db.prepare(`SELECT * FROM files WHERE filepath IN (${paths.map(() => "?").join(",")})${this._presenceClause(presenceFilter)}`).all(...paths));
+    const artists = rows<{ artist_name: string }>(
+      this.db.prepare("SELECT artist_name FROM artists WHERE artist_name LIKE ?").all(`%${q}%`),
+    );
+    if (!artists.length) {
+      return [];
+    }
+    const names = artists.map((a) => a.artist_name);
+    const fps = rows<{ filepath: string }>(
+      this.db
+        .prepare(
+          `SELECT filepath FROM file_artists WHERE artist_name IN (${names.map(() => "?").join(",")}) AND role = ''`,
+        )
+        .all(...names),
+    );
+    if (!fps.length) {
+      return [];
+    }
+    const paths = fps.map((f) => f.filepath);
+    return rows<FileRow>(
+      this.db
+        .prepare(
+          `SELECT * FROM files WHERE filepath IN (${paths.map(() => "?").join(",")})${this._presenceClause(presenceFilter)}`,
+        )
+        .all(...paths),
+    );
   }
 
   /** 按 coser 名模糊搜索，返回关联文件列表 */
   searchByCoser(q: string, presenceFilter = "present"): FileRow[] {
-    const artists = rows<{ artist_name: string }>(this.db.prepare("SELECT artist_name FROM artists WHERE artist_name LIKE ?").all(`%${q}%`));
-    if (!artists.length) return [];
-    const names = artists.map(a => a.artist_name);
-    const fps = rows<{ filepath: string }>(this.db.prepare(`SELECT filepath FROM file_artists WHERE artist_name IN (${names.map(() => "?").join(",")}) AND role = 'coser'`).all(...names));
-    if (!fps.length) return [];
-    const paths = fps.map(f => f.filepath);
-    return rows<FileRow>(this.db.prepare(`SELECT * FROM files WHERE filepath IN (${paths.map(() => "?").join(",")})${this._presenceClause(presenceFilter)}`).all(...paths));
+    const artists = rows<{ artist_name: string }>(
+      this.db.prepare("SELECT artist_name FROM artists WHERE artist_name LIKE ?").all(`%${q}%`),
+    );
+    if (!artists.length) {
+      return [];
+    }
+    const names = artists.map((a) => a.artist_name);
+    const fps = rows<{ filepath: string }>(
+      this.db
+        .prepare(
+          `SELECT filepath FROM file_artists WHERE artist_name IN (${names.map(() => "?").join(",")}) AND role = 'coser'`,
+        )
+        .all(...names),
+    );
+    if (!fps.length) {
+      return [];
+    }
+    const paths = fps.map((f) => f.filepath);
+    return rows<FileRow>(
+      this.db
+        .prepare(
+          `SELECT * FROM files WHERE filepath IN (${paths.map(() => "?").join(",")})${this._presenceClause(presenceFilter)}`,
+        )
+        .all(...paths),
+    );
   }
 
   /** 按 tag 名模糊搜索，返回关联文件列表 */
   searchByTag(q: string, presenceFilter = "present"): FileRow[] {
-    const tags = rows<{ tag_name: string }>(this.db.prepare("SELECT tag_name FROM tags WHERE tag_name LIKE ?").all(`%${q}%`));
-    if (!tags.length) return [];
-    const names = tags.map(t => t.tag_name);
-    const fps = rows<{ filepath: string }>(this.db.prepare(`SELECT filepath FROM file_tags WHERE tag_name IN (${names.map(() => "?").join(",")})`).all(...names));
-    if (!fps.length) return [];
-    const paths = fps.map(f => f.filepath);
-    return rows<FileRow>(this.db.prepare(`SELECT * FROM files WHERE filepath IN (${paths.map(() => "?").join(",")})${this._presenceClause(presenceFilter)}`).all(...paths));
+    const tags = rows<{ tag_name: string }>(
+      this.db.prepare("SELECT tag_name FROM tags WHERE tag_name LIKE ?").all(`%${q}%`),
+    );
+    if (!tags.length) {
+      return [];
+    }
+    const names = tags.map((t) => t.tag_name);
+    const fps = rows<{ filepath: string }>(
+      this.db
+        .prepare(`SELECT filepath FROM file_tags WHERE tag_name IN (${names.map(() => "?").join(",")})`)
+        .all(...names),
+    );
+    if (!fps.length) {
+      return [];
+    }
+    const paths = fps.map((f) => f.filepath);
+    return rows<FileRow>(
+      this.db
+        .prepare(
+          `SELECT * FROM files WHERE filepath IN (${paths.map(() => "?").join(",")})${this._presenceClause(presenceFilter)}`,
+        )
+        .all(...paths),
+    );
   }
 
   // ─── folders ──────────────────────────────────────────────────────────────
@@ -333,23 +433,32 @@ export class IndexRepository {
   /** 插入或更新目录记录 */
   upsertFolder(data: UpsertFolderInput): void {
     const now = nowTs();
-    this.db.prepare(`
+    this.db
+      .prepare(`
       INSERT INTO folders (filepath,dirname,mtime,last_seen_at,created_at,updated_at)
       VALUES (?,?,?,?,?,?)
       ON CONFLICT(filepath) DO UPDATE SET
         dirname=excluded.dirname, mtime=excluded.mtime,
         last_seen_at=excluded.last_seen_at, updated_at=excluded.updated_at
-    `).run(data.filepath, data.dirname, data.mtime ?? null, now, now, now);
+    `)
+      .run(data.filepath, data.dirname, data.mtime ?? null, now, now, now);
   }
 
   /** 批量 upsert 目录，包裹在单个事务中 */
   batchUpsertFolders(list: UpsertFolderInput[]): void {
-    if (!list.length) return;
+    if (!list.length) {
+      return;
+    }
     this.db.exec("BEGIN");
     try {
-      for (const item of list) this.upsertFolder(item);
+      for (const item of list) {
+        this.upsertFolder(item);
+      }
       this.db.exec("COMMIT");
-    } catch (e) { this.db.exec("ROLLBACK"); throw e; }
+    } catch (e) {
+      this.db.exec("ROLLBACK");
+      throw e;
+    }
   }
 
   /** 返回 folders 表总行数 */
@@ -372,7 +481,8 @@ export class IndexRepository {
     avgImageSize?: number | null,
   ): void {
     const now = nowTs();
-    this.db.prepare(`
+    this.db
+      .prepare(`
       INSERT INTO archive_meta
         (filepath,archive_type,entry_count,image_file_num,video_file_num,music_file_num,avg_image_size,scanned_at,version_sig,cover_entry,index_status)
       VALUES (?,?,?,?,?,?,?,?,?,?,'fresh')
@@ -387,12 +497,26 @@ export class IndexRepository {
         version_sig=excluded.version_sig,
         cover_entry=excluded.cover_entry,
         index_status='fresh'
-    `).run(filepath, archiveType, entryCount, imageNum, videoNum, musicNum, avgImageSize ?? null, now, versionSig ?? null, coverEntry ?? null);
+    `)
+      .run(
+        filepath,
+        archiveType,
+        entryCount,
+        imageNum,
+        videoNum,
+        musicNum,
+        avgImageSize ?? null,
+        now,
+        versionSig ?? null,
+        coverEntry ?? null,
+      );
   }
 
   /** 快速获取 version_sig，用于判断 archive 是否需要重新索引 */
   getArchiveVersionSig(filepath: string): string | null {
-    const row = this.db.prepare("SELECT version_sig FROM archive_meta WHERE filepath = ?").get(filepath) as { version_sig: string | null } | undefined;
+    const row = this.db.prepare("SELECT version_sig FROM archive_meta WHERE filepath = ?").get(filepath) as
+      | { version_sig: string | null }
+      | undefined;
     return row?.version_sig ?? null;
   }
 
@@ -403,11 +527,15 @@ export class IndexRepository {
 
   /** 批量获取某目录下所有压缩包的元数据，返回 filepath → ArchiveMetaRow 的 Map */
   getArchiveMetasByFolder(folderpath: string): Map<string, ArchiveMetaRow> {
-    const result = rows<ArchiveMetaRow>(this.db.prepare(`
+    const result = rows<ArchiveMetaRow>(
+      this.db
+        .prepare(`
       SELECT am.* FROM archive_meta am JOIN files f ON f.filepath = am.filepath
       WHERE f.folderpath = ? AND f.file_type = 'archive'
-    `).all(folderpath));
-    return new Map(result.map(r => [r.filepath, r]));
+    `)
+        .all(folderpath),
+    );
+    return new Map(result.map((r) => [r.filepath, r]));
   }
 
   // ─── read history ─────────────────────────────────────────────────────────
@@ -416,11 +544,11 @@ export class IndexRepository {
   recordRead(filepath: string): void {
     const now = nowTs();
     const FIVE_MINUTES = 5 * 60; // 秒
-    const last = this.db.prepare(
-      "SELECT opened_at FROM read_history WHERE filepath = ? ORDER BY opened_at DESC LIMIT 1"
-    ).get(filepath) as { opened_at: number } | undefined;
+    const last = this.db
+      .prepare("SELECT opened_at FROM read_history WHERE filepath = ? ORDER BY opened_at DESC LIMIT 1")
+      .get(filepath) as { opened_at: number } | undefined;
 
-    if (last && (now - last.opened_at) < FIVE_MINUTES) {
+    if (last && now - last.opened_at < FIVE_MINUTES) {
       return; // 5 分钟内已记录，跳过
     }
 
@@ -430,14 +558,18 @@ export class IndexRepository {
   /** 分页查询阅读历史，JOIN files 获取展示字段，按 opened_at 排序 */
   listReadHistory(offset: number, limit: number, sortOrder = "desc"): ReadHistoryRow[] {
     const order = sortOrder === "asc" ? "ASC" : "DESC";
-    return rows<ReadHistoryRow>(this.db.prepare(`
+    return rows<ReadHistoryRow>(
+      this.db
+        .prepare(`
       SELECT h.id, h.filepath, h.opened_at,
              f.filename, f.file_type, f.thumbnail_filepath
       FROM read_history h
       LEFT JOIN files f ON f.filepath = h.filepath
       ORDER BY h.opened_at ${order}
       LIMIT ? OFFSET ?
-    `).all(limit, offset));
+    `)
+        .all(limit, offset),
+    );
   }
 
   /** 返回 read_history 表总行数 */
@@ -448,22 +580,57 @@ export class IndexRepository {
   // ─── activity logs ────────────────────────────────────────────────────────
 
   /** 写入一条操作日志，并自动裁剪超出 500 条的旧记录 */
-  logActivity(activityType: string, message: string, status = "completed", taskKey?: string, targetPath?: string, context?: object): void {
+  logActivity(
+    activityType: string,
+    message: string,
+    status = "completed",
+    taskKey?: string,
+    targetPath?: string,
+    context?: object,
+  ): void {
     const now = nowTs();
-    this.db.prepare("INSERT INTO activity_logs (activity_type,status,task_key,message,target_path,context_json,created_at) VALUES (?,?,?,?,?,?,?)").run(activityType, status, taskKey ?? null, message, targetPath ?? null, context ? JSON.stringify(context) : null, now);
-    this.db.prepare("DELETE FROM activity_logs WHERE id NOT IN (SELECT id FROM activity_logs ORDER BY created_at DESC, id DESC LIMIT 500)").run();
+    this.db
+      .prepare(
+        "INSERT INTO activity_logs (activity_type,status,task_key,message,target_path,context_json,created_at) VALUES (?,?,?,?,?,?,?)",
+      )
+      .run(
+        activityType,
+        status,
+        taskKey ?? null,
+        message,
+        targetPath ?? null,
+        context ? JSON.stringify(context) : null,
+        now,
+      );
+    this.db
+      .prepare(
+        "DELETE FROM activity_logs WHERE id NOT IN (SELECT id FROM activity_logs ORDER BY created_at DESC, id DESC LIMIT 500)",
+      )
+      .run();
   }
 
   /** 查询最近 N 条操作日志 */
   listActivityLogs(limit = 200): ActivityLogRow[] {
-    return rows<ActivityLogRow>(this.db.prepare("SELECT * FROM activity_logs ORDER BY created_at DESC, id DESC LIMIT ?").all(limit));
+    return rows<ActivityLogRow>(
+      this.db.prepare("SELECT * FROM activity_logs ORDER BY created_at DESC, id DESC LIMIT ?").all(limit),
+    );
   }
 
   /** 查询最近一次 startup 日志之后的所有操作日志，若无 startup 则返回全部 */
   listActivityLogsSinceLatestStartup(limit = 200): ActivityLogRow[] {
-    const row = this.db.prepare("SELECT id FROM activity_logs WHERE activity_type = 'startup' AND status = 'started' ORDER BY created_at DESC, id DESC LIMIT 1").get() as { id: number } | undefined;
-    if (!row) return this.listActivityLogs(limit);
-    return rows<ActivityLogRow>(this.db.prepare("SELECT * FROM activity_logs WHERE id >= ? ORDER BY created_at DESC, id DESC LIMIT ?").all(row.id, limit));
+    const row = this.db
+      .prepare(
+        "SELECT id FROM activity_logs WHERE activity_type = 'startup' AND status = 'started' ORDER BY created_at DESC, id DESC LIMIT 1",
+      )
+      .get() as { id: number } | undefined;
+    if (!row) {
+      return this.listActivityLogs(limit);
+    }
+    return rows<ActivityLogRow>(
+      this.db
+        .prepare("SELECT * FROM activity_logs WHERE id >= ? ORDER BY created_at DESC, id DESC LIMIT ?")
+        .all(row.id, limit),
+    );
   }
 
   // ─── folder open history ──────────────────────────────────────────────────
@@ -471,7 +638,11 @@ export class IndexRepository {
   /** 记录目录被打开一次，累加 open_count 并更新 last_opened_at */
   recordFolderOpen(folderpath: string): void {
     const now = nowTs();
-    this.db.prepare("INSERT INTO folder_open_history (folderpath,last_opened_at,open_count,updated_at) VALUES (?,?,1,?) ON CONFLICT(folderpath) DO UPDATE SET last_opened_at=excluded.last_opened_at,open_count=open_count+1,updated_at=excluded.updated_at").run(folderpath, now, now);
+    this.db
+      .prepare(
+        "INSERT INTO folder_open_history (folderpath,last_opened_at,open_count,updated_at) VALUES (?,?,1,?) ON CONFLICT(folderpath) DO UPDATE SET last_opened_at=excluded.last_opened_at,open_count=open_count+1,updated_at=excluded.updated_at",
+      )
+      .run(folderpath, now, now);
   }
 
   /** 按时间衰减加权算法，返回最近常用的 top N 目录 ID */
@@ -479,7 +650,9 @@ export class IndexRepository {
     const now = nowTs();
     const cutoff = now - 90 * 86400;
     const tau = 14 * 86400;
-    const result = rows<{ folder_id: string }>(this.db.prepare(`
+    const result = rows<{ folder_id: string }>(
+      this.db
+        .prepare(`
       WITH folder_scores AS (
         SELECT h.folderpath AS folder_id, h.open_count * exp(-((?-h.last_opened_at)*1.0)/?) AS score
         FROM folder_open_history h WHERE h.last_opened_at >= ?
@@ -491,76 +664,144 @@ export class IndexRepository {
       ),
       combined AS (SELECT * FROM folder_scores UNION ALL SELECT * FROM read_scores)
       SELECT folder_id FROM combined GROUP BY folder_id ORDER BY SUM(score) DESC LIMIT ?
-    `).all(now, tau, cutoff, now, tau, cutoff, limit));
-    return result.map(r => r.folder_id);
+    `)
+        .all(now, tau, cutoff, now, tau, cutoff, limit),
+    );
+    return result.map((r) => r.folder_id);
   }
 
   // ─── parsed metadata ──────────────────────────────────────────────────────
 
   /** 保存从文件名解析出的元数据，同时写入 artists / cosers / tags 关联表 */
-  saveParsedMetadata(filepath: string, data: { title?: string; authors?: string[]; cosers?: string[]; groupName?: string; rawTags?: string[]; event?: string; dateTag?: string; mediaType?: string }): void {
+  saveParsedMetadata(
+    filepath: string,
+    data: {
+      title?: string;
+      authors?: string[];
+      cosers?: string[];
+      groupName?: string;
+      rawTags?: string[];
+      event?: string;
+      dateTag?: string;
+      mediaType?: string;
+    },
+  ): void {
     const now = nowTs();
     const cosers = data.cosers ?? [];
     const authors = cosers.length ? [] : (data.authors ?? []);
-    const stmtMeta = this.db.prepare("INSERT INTO parsed_metadata (filepath,title,group_name,event,date_tag,media_type,parsed_at) VALUES (?,?,?,?,?,?,?) ON CONFLICT(filepath) DO UPDATE SET title=excluded.title,group_name=excluded.group_name,event=excluded.event,date_tag=excluded.date_tag,media_type=excluded.media_type,parsed_at=excluded.parsed_at");
+    const stmtMeta = this.db.prepare(
+      "INSERT INTO parsed_metadata (filepath,title,group_name,event,date_tag,media_type,parsed_at) VALUES (?,?,?,?,?,?,?) ON CONFLICT(filepath) DO UPDATE SET title=excluded.title,group_name=excluded.group_name,event=excluded.event,date_tag=excluded.date_tag,media_type=excluded.media_type,parsed_at=excluded.parsed_at",
+    );
     const stmtArtist = this.db.prepare("INSERT OR IGNORE INTO artists (artist_name) VALUES (?)");
-    const stmtFileArtist = this.db.prepare("INSERT OR IGNORE INTO file_artists (filepath,artist_name,role) VALUES (?,?,?)");
+    const stmtFileArtist = this.db.prepare(
+      "INSERT OR IGNORE INTO file_artists (filepath,artist_name,role) VALUES (?,?,?)",
+    );
     const stmtTag = this.db.prepare("INSERT OR IGNORE INTO tags (tag_name) VALUES (?)");
     const stmtFileTag = this.db.prepare("INSERT OR IGNORE INTO file_tags (filepath,tag_name) VALUES (?,?)");
     this.db.exec("BEGIN");
     try {
-      stmtMeta.run(filepath, data.title ?? null, data.groupName ?? null, data.event ?? null, data.dateTag ?? null, data.mediaType ?? null, now);
-      for (const name of authors) { stmtArtist.run(name); stmtFileArtist.run(filepath, name, ""); }
-      for (const name of cosers) { stmtArtist.run(name); stmtFileArtist.run(filepath, name, "coser"); }
-      for (const tag of (data.rawTags ?? [])) { stmtTag.run(tag); stmtFileTag.run(filepath, tag); }
+      stmtMeta.run(
+        filepath,
+        data.title ?? null,
+        data.groupName ?? null,
+        data.event ?? null,
+        data.dateTag ?? null,
+        data.mediaType ?? null,
+        now,
+      );
+      for (const name of authors) {
+        stmtArtist.run(name);
+        stmtFileArtist.run(filepath, name, "");
+      }
+      for (const name of cosers) {
+        stmtArtist.run(name);
+        stmtFileArtist.run(filepath, name, "coser");
+      }
+      for (const tag of data.rawTags ?? []) {
+        stmtTag.run(tag);
+        stmtFileTag.run(filepath, tag);
+      }
       this.db.exec("COMMIT");
-    } catch (e) { this.db.exec("ROLLBACK"); throw e; }
+    } catch (e) {
+      this.db.exec("ROLLBACK");
+      throw e;
+    }
   }
 
   /** 获取单条解析元数据 */
   getParsedMetadata(filepath: string): ParsedMetaRow | undefined {
-    return this.db.prepare("SELECT * FROM parsed_metadata WHERE filepath = ?").get(filepath) as ParsedMetaRow | undefined;
+    return this.db.prepare("SELECT * FROM parsed_metadata WHERE filepath = ?").get(filepath) as
+      | ParsedMetaRow
+      | undefined;
   }
 
   /** 获取文件关联的作者名列表（role = ''） */
   getFileArtists(filepath: string): string[] {
-    return rows<{ artist_name: string }>(this.db.prepare("SELECT artist_name FROM file_artists WHERE filepath = ? AND role = ''").all(filepath)).map(r => r.artist_name);
+    return rows<{ artist_name: string }>(
+      this.db.prepare("SELECT artist_name FROM file_artists WHERE filepath = ? AND role = ''").all(filepath),
+    ).map((r) => r.artist_name);
   }
 
   /** 获取文件关联的 coser 名列表（role = 'coser'） */
   getFileCosers(filepath: string): string[] {
-    return rows<{ artist_name: string }>(this.db.prepare("SELECT artist_name FROM file_artists WHERE filepath = ? AND role = 'coser'").all(filepath)).map(r => r.artist_name);
+    return rows<{ artist_name: string }>(
+      this.db.prepare("SELECT artist_name FROM file_artists WHERE filepath = ? AND role = 'coser'").all(filepath),
+    ).map((r) => r.artist_name);
   }
 
   /** 获取文件关联的 tag 列表 */
   getFileTags(filepath: string): string[] {
-    return rows<{ tag_name: string }>(this.db.prepare("SELECT tag_name FROM file_tags WHERE filepath = ?").all(filepath)).map(r => r.tag_name);
+    return rows<{ tag_name: string }>(
+      this.db.prepare("SELECT tag_name FROM file_tags WHERE filepath = ?").all(filepath),
+    ).map((r) => r.tag_name);
   }
 
   /** 批量获取多个文件的作者列表，返回 filepath → string[] 的 Map */
   getArtistsByFilepaths(filepaths: string[]): Map<string, string[]> {
-    if (!filepaths.length) return new Map();
-    const result = rows<{ filepath: string; artist_name: string }>(this.db.prepare(`SELECT filepath,artist_name FROM file_artists WHERE filepath IN (${filepaths.map(() => "?").join(",")}) AND role = ''`).all(...filepaths));
+    if (!filepaths.length) {
+      return new Map();
+    }
+    const result = rows<{ filepath: string; artist_name: string }>(
+      this.db
+        .prepare(
+          `SELECT filepath,artist_name FROM file_artists WHERE filepath IN (${filepaths.map(() => "?").join(",")}) AND role = ''`,
+        )
+        .all(...filepaths),
+    );
     const map = new Map<string, string[]>();
-    for (const r of result) { const arr = map.get(r.filepath) ?? []; arr.push(r.artist_name); map.set(r.filepath, arr); }
+    for (const r of result) {
+      const arr = map.get(r.filepath) ?? [];
+      arr.push(r.artist_name);
+      map.set(r.filepath, arr);
+    }
     return map;
   }
 
   /** 批量获取多个文件的解析元数据，返回 filepath → ParsedMetaRow 的 Map */
   getParsedMetadataByFilepaths(filepaths: string[]): Map<string, ParsedMetaRow> {
-    if (!filepaths.length) return new Map();
-    const result = rows<ParsedMetaRow>(this.db.prepare(`SELECT * FROM parsed_metadata WHERE filepath IN (${filepaths.map(() => "?").join(",")})`).all(...filepaths));
-    return new Map(result.map(r => [r.filepath, r]));
+    if (!filepaths.length) {
+      return new Map();
+    }
+    const result = rows<ParsedMetaRow>(
+      this.db
+        .prepare(`SELECT * FROM parsed_metadata WHERE filepath IN (${filepaths.map(() => "?").join(",")})`)
+        .all(...filepaths),
+    );
+    return new Map(result.map((r) => [r.filepath, r]));
   }
 
   /** 批量获取某目录下所有文件的 rec_score 和最近阅读时间，用于列表排序 */
   getFileDataByFolder(folderpath: string): Map<string, { rec_score: number; last_read_at: number | null }> {
-    const result = rows<{ filepath: string; rec_score: number; last_read_at: number | null }>(this.db.prepare(`
+    const result = rows<{ filepath: string; rec_score: number; last_read_at: number | null }>(
+      this.db
+        .prepare(`
       SELECT f.filepath, f.rec_score,
              (SELECT MAX(h.opened_at) FROM read_history h WHERE h.filepath = f.filepath) AS last_read_at
       FROM files f WHERE f.folderpath = ?
-    `).all(folderpath));
-    return new Map(result.map(r => [r.filepath, { rec_score: r.rec_score, last_read_at: r.last_read_at }]));
+    `)
+        .all(folderpath),
+    );
+    return new Map(result.map((r) => [r.filepath, { rec_score: r.rec_score, last_read_at: r.last_read_at }]));
   }
 
   // ─── quick match ──────────────────────────────────────────────────────────
@@ -581,19 +822,27 @@ export class IndexRepository {
 
     if (authorName) {
       const artists = rows<{ artist_name: string }>(
-        this.db.prepare("SELECT artist_name FROM artists WHERE artist_name LIKE ?").all(`%${authorName}%`)
+        this.db.prepare("SELECT artist_name FROM artists WHERE artist_name LIKE ?").all(`%${authorName}%`),
       );
       if (artists.length) {
-        const names = artists.map(a => a.artist_name);
+        const names = artists.map((a) => a.artist_name);
         const fps = rows<{ filepath: string }>(
-          this.db.prepare(`SELECT filepath FROM file_artists WHERE artist_name IN (${names.map(() => "?").join(",")}) AND role = ''`).all(...names)
+          this.db
+            .prepare(
+              `SELECT filepath FROM file_artists WHERE artist_name IN (${names.map(() => "?").join(",")}) AND role = ''`,
+            )
+            .all(...names),
         );
         if (fps.length) {
-          const paths = fps.map(f => f.filepath);
+          const paths = fps.map((f) => f.filepath);
           const fileRows = rows<FileRow>(
-            this.db.prepare(`SELECT * FROM files WHERE filepath IN (${paths.map(() => "?").join(",")})${presence} LIMIT ?`).all(...paths, limit)
+            this.db
+              .prepare(`SELECT * FROM files WHERE filepath IN (${paths.map(() => "?").join(",")})${presence} LIMIT ?`)
+              .all(...paths, limit),
           );
-          for (const r of fileRows) byPath.set(r.filepath, r);
+          for (const r of fileRows) {
+            byPath.set(r.filepath, r);
+          }
         }
       }
     }
@@ -601,9 +850,11 @@ export class IndexRepository {
     if (titleKeyword && byPath.size < limit) {
       const p = `%${titleKeyword}%`;
       const fileRows = rows<FileRow>(
-        this.db.prepare(`SELECT * FROM files WHERE filename LIKE ?${presence} LIMIT ?`).all(p, limit)
+        this.db.prepare(`SELECT * FROM files WHERE filename LIKE ?${presence} LIMIT ?`).all(p, limit),
       );
-      for (const r of fileRows) byPath.set(r.filepath, r);
+      for (const r of fileRows) {
+        byPath.set(r.filepath, r);
+      }
     }
 
     return [...byPath.values()].slice(0, limit);
@@ -612,10 +863,21 @@ export class IndexRepository {
   // ─── tags / artists listing ───────────────────────────────────────────────
 
   /** 分页列出所有 tag 及其关联文件数和平均推荐分 */
-  listTagsWithCounts(offset: number, limit: number, sortBy = "count", sortOrder = "desc"): { tag_name: string; file_count: number; avg_rec_score: number }[] {
+  listTagsWithCounts(
+    offset: number,
+    limit: number,
+    sortBy = "count",
+    sortOrder = "desc",
+  ): { tag_name: string; file_count: number; avg_rec_score: number }[] {
     const col = sortBy === "name" ? "tag_name" : sortBy === "recommendation" ? "avg_rec_score" : "file_count";
     const dir = sortOrder === "asc" ? "ASC" : "DESC";
-    return rows<{ tag_name: string; file_count: number; avg_rec_score: number }>(this.db.prepare(`SELECT t.tag_name, COUNT(ft.filepath) as file_count, AVG(COALESCE(f.rec_score,0)) as avg_rec_score FROM tags t LEFT JOIN file_tags ft ON ft.tag_name = t.tag_name LEFT JOIN files f ON f.filepath = ft.filepath GROUP BY t.tag_name ORDER BY ${col} ${dir}, t.tag_name ASC LIMIT ? OFFSET ?`).all(limit, offset));
+    return rows<{ tag_name: string; file_count: number; avg_rec_score: number }>(
+      this.db
+        .prepare(
+          `SELECT t.tag_name, COUNT(ft.filepath) as file_count, AVG(COALESCE(f.rec_score,0)) as avg_rec_score FROM tags t LEFT JOIN file_tags ft ON ft.tag_name = t.tag_name LEFT JOIN files f ON f.filepath = ft.filepath GROUP BY t.tag_name ORDER BY ${col} ${dir}, t.tag_name ASC LIMIT ? OFFSET ?`,
+        )
+        .all(limit, offset),
+    );
   }
 
   /** 返回 tags 表总行数 */
@@ -624,133 +886,222 @@ export class IndexRepository {
   }
 
   /** 分页列出所有 artist（可按 role 过滤）及其关联文件数和平均推荐分 */
-  listArtistsWithCounts(offset: number, limit: number, role = "", sortBy = "count", sortOrder = "desc"): { artist_name: string; file_count: number; avg_rec_score: number }[] {
+  listArtistsWithCounts(
+    offset: number,
+    limit: number,
+    role = "",
+    sortBy = "count",
+    sortOrder = "desc",
+  ): { artist_name: string; file_count: number; avg_rec_score: number }[] {
     const col = sortBy === "name" ? "artist_name" : sortBy === "recommendation" ? "avg_rec_score" : "file_count";
     const dir = sortOrder === "asc" ? "ASC" : "DESC";
-    return rows<{ artist_name: string; file_count: number; avg_rec_score: number }>(this.db.prepare(`SELECT a.artist_name, COUNT(fa.filepath) as file_count, AVG(COALESCE(f.rec_score,0)) as avg_rec_score FROM artists a LEFT JOIN file_artists fa ON fa.artist_name = a.artist_name AND fa.role = ? LEFT JOIN files f ON f.filepath = fa.filepath GROUP BY a.artist_name ORDER BY ${col} ${dir}, a.artist_name ASC LIMIT ? OFFSET ?`).all(role, limit, offset));
+    return rows<{ artist_name: string; file_count: number; avg_rec_score: number }>(
+      this.db
+        .prepare(
+          `SELECT a.artist_name, COUNT(fa.filepath) as file_count, AVG(COALESCE(f.rec_score,0)) as avg_rec_score FROM artists a LEFT JOIN file_artists fa ON fa.artist_name = a.artist_name AND fa.role = ? LEFT JOIN files f ON f.filepath = fa.filepath GROUP BY a.artist_name ORDER BY ${col} ${dir}, a.artist_name ASC LIMIT ? OFFSET ?`,
+        )
+        .all(role, limit, offset),
+    );
   }
 
   /** 返回指定 role 的 artist 去重总数 */
   countArtists(role = ""): number {
-    return (this.db.prepare("SELECT COUNT(DISTINCT artist_name) as n FROM file_artists WHERE role = ?").get(role) as { n: number }).n;
+    return (
+      this.db.prepare("SELECT COUNT(DISTINCT artist_name) as n FROM file_artists WHERE role = ?").get(role) as {
+        n: number;
+      }
+    ).n;
   }
 
   /** 批量更新文件推荐分，包裹在单个事务中 */
   batchUpdateRecScores(scores: Map<string, number>): void {
-    if (!scores.size) return;
+    if (!scores.size) {
+      return;
+    }
     const stmt = this.db.prepare("UPDATE files SET rec_score = ? WHERE filepath = ?");
     this.db.exec("BEGIN");
     try {
-      for (const [fp, score] of scores) stmt.run(score, fp);
+      for (const [fp, score] of scores) {
+        stmt.run(score, fp);
+      }
       this.db.exec("COMMIT");
-    } catch (e) { this.db.exec("ROLLBACK"); throw e; }
+    } catch (e) {
+      this.db.exec("ROLLBACK");
+      throw e;
+    }
   }
 
   /** 返回媒体库各类型文件数量概览 */
   getLibraryOverview(): { archives: number; videos: number; images: number; audio: number; folders: number } {
-    const row = this.db.prepare(`
+    const row = this.db
+      .prepare(`
       SELECT
         SUM(CASE WHEN file_type = 'archive' THEN 1 ELSE 0 END) as archives,
         SUM(CASE WHEN file_type = 'video'   THEN 1 ELSE 0 END) as videos,
         SUM(CASE WHEN file_type = 'image'   THEN 1 ELSE 0 END) as images,
         SUM(CASE WHEN file_type = 'audio'   THEN 1 ELSE 0 END) as audio
       FROM files WHERE is_missing = 0
-    `).get() as { archives: number; videos: number; images: number; audio: number };
-    return { archives: row.archives ?? 0, videos: row.videos ?? 0, images: row.images ?? 0, audio: row.audio ?? 0, folders: this.countFolders() };
+    `)
+      .get() as { archives: number; videos: number; images: number; audio: number };
+    return {
+      archives: row.archives ?? 0,
+      videos: row.videos ?? 0,
+      images: row.images ?? 0,
+      audio: row.audio ?? 0,
+      folders: this.countFolders(),
+    };
   }
 
   /** 返回所有 tag 的文件关联数，用于推荐分计算 */
   getTagTotalCounts(): Map<string, number> {
-    const result = rows<{ tag_name: string; cnt: number }>(this.db.prepare("SELECT ft.tag_name, COUNT(ft.filepath) as cnt FROM file_tags ft GROUP BY ft.tag_name").all());
-    return new Map(result.map(r => [r.tag_name, r.cnt]));
+    const result = rows<{ tag_name: string; cnt: number }>(
+      this.db.prepare("SELECT ft.tag_name, COUNT(ft.filepath) as cnt FROM file_tags ft GROUP BY ft.tag_name").all(),
+    );
+    return new Map(result.map((r) => [r.tag_name, r.cnt]));
   }
 
   /** 批量获取多个文件的 tag 列表，返回 filepath → string[] 的 Map */
   getTagsByFilepaths(filepaths: string[]): Map<string, string[]> {
-    if (!filepaths.length) return new Map();
-    const result = rows<{ filepath: string; tag_name: string }>(this.db.prepare(`SELECT filepath,tag_name FROM file_tags WHERE filepath IN (${filepaths.map(() => "?").join(",")})`).all(...filepaths));
+    if (!filepaths.length) {
+      return new Map();
+    }
+    const result = rows<{ filepath: string; tag_name: string }>(
+      this.db
+        .prepare(`SELECT filepath,tag_name FROM file_tags WHERE filepath IN (${filepaths.map(() => "?").join(",")})`)
+        .all(...filepaths),
+    );
     const map = new Map<string, string[]>();
-    for (const r of result) { const arr = map.get(r.filepath) ?? []; arr.push(r.tag_name); map.set(r.filepath, arr); }
+    for (const r of result) {
+      const arr = map.get(r.filepath) ?? [];
+      arr.push(r.tag_name);
+      map.set(r.filepath, arr);
+    }
     return map;
   }
 
   /** 为一批 artist 各取最近 N 个文件路径，用于封面候选 */
   getArtistThumbCandidates(names: string[], role: string, limit = 3): Map<string, string[]> {
-    if (!names.length) return new Map();
+    if (!names.length) {
+      return new Map();
+    }
     const placeholders = names.map(() => "?").join(",");
-    const result = rows<{ artist_name: string; filepath: string }>(this.db.prepare(`
+    const result = rows<{ artist_name: string; filepath: string }>(
+      this.db
+        .prepare(`
       SELECT artist_name, filepath FROM (
         SELECT fa.artist_name, f.filepath, f.mtime,
                ROW_NUMBER() OVER (PARTITION BY fa.artist_name ORDER BY f.mtime DESC) as rn
         FROM file_artists fa JOIN files f ON f.filepath = fa.filepath
         WHERE fa.role = ? AND fa.artist_name IN (${placeholders}) AND f.is_missing = 0
       ) WHERE rn <= ?
-    `).all(role, ...names, limit));
+    `)
+        .all(role, ...names, limit),
+    );
     const map = new Map<string, string[]>();
-    for (const r of result) { const arr = map.get(r.artist_name) ?? []; arr.push(r.filepath); map.set(r.artist_name, arr); }
+    for (const r of result) {
+      const arr = map.get(r.artist_name) ?? [];
+      arr.push(r.filepath);
+      map.set(r.artist_name, arr);
+    }
     return map;
   }
 
   /** 为一批 tag 各取最近 N 个文件路径，用于封面候选 */
   getTagThumbCandidates(names: string[], limit = 3): Map<string, string[]> {
-    if (!names.length) return new Map();
+    if (!names.length) {
+      return new Map();
+    }
     const placeholders = names.map(() => "?").join(",");
-    const result = rows<{ tag_name: string; filepath: string }>(this.db.prepare(`
+    const result = rows<{ tag_name: string; filepath: string }>(
+      this.db
+        .prepare(`
       SELECT tag_name, filepath FROM (
         SELECT ft.tag_name, f.filepath, f.mtime,
                ROW_NUMBER() OVER (PARTITION BY ft.tag_name ORDER BY f.mtime DESC) as rn
         FROM file_tags ft JOIN files f ON f.filepath = ft.filepath
         WHERE ft.tag_name IN (${placeholders}) AND f.is_missing = 0
       ) WHERE rn <= ?
-    `).all(...names, limit));
+    `)
+        .all(...names, limit),
+    );
     const map = new Map<string, string[]>();
-    for (const r of result) { const arr = map.get(r.tag_name) ?? []; arr.push(r.filepath); map.set(r.tag_name, arr); }
+    for (const r of result) {
+      const arr = map.get(r.tag_name) ?? [];
+      arr.push(r.filepath);
+      map.set(r.tag_name, arr);
+    }
     return map;
   }
 
   /** 批量获取 artist 已生成的缩略图路径，返回 artist_name → thumbnail_filepath 的 Map */
   getArtistThumbnailPaths(names: string[], role: string): Map<string, string> {
-    if (!names.length) return new Map();
+    if (!names.length) {
+      return new Map();
+    }
     const placeholders = names.map(() => "?").join(",");
-    const result = rows<{ artist_name: string; thumbnail_filepath: string }>(this.db.prepare(`
+    const result = rows<{ artist_name: string; thumbnail_filepath: string }>(
+      this.db
+        .prepare(`
       SELECT fa.artist_name, f.thumbnail_filepath FROM file_artists fa
       JOIN files f ON f.filepath = fa.filepath
       WHERE fa.role = ? AND fa.artist_name IN (${placeholders})
         AND f.thumbnail_filepath IS NOT NULL AND f.is_missing = 0
       GROUP BY fa.artist_name
-    `).all(role, ...names));
-    return new Map(result.map(r => [r.artist_name, r.thumbnail_filepath]));
+    `)
+        .all(role, ...names),
+    );
+    return new Map(result.map((r) => [r.artist_name, r.thumbnail_filepath]));
   }
 
   /** 批量获取 tag 已生成的缩略图路径，返回 tag_name → thumbnail_filepath 的 Map */
   getTagThumbnailPaths(names: string[]): Map<string, string> {
-    if (!names.length) return new Map();
+    if (!names.length) {
+      return new Map();
+    }
     const placeholders = names.map(() => "?").join(",");
-    const result = rows<{ tag_name: string; thumbnail_filepath: string }>(this.db.prepare(`
+    const result = rows<{ tag_name: string; thumbnail_filepath: string }>(
+      this.db
+        .prepare(`
       SELECT ft.tag_name, f.thumbnail_filepath FROM file_tags ft
       JOIN files f ON f.filepath = ft.filepath
       WHERE ft.tag_name IN (${placeholders})
         AND f.thumbnail_filepath IS NOT NULL AND f.is_missing = 0
       GROUP BY ft.tag_name
-    `).all(...names));
-    return new Map(result.map(r => [r.tag_name, r.thumbnail_filepath]));
+    `)
+        .all(...names),
+    );
+    return new Map(result.map((r) => [r.tag_name, r.thumbnail_filepath]));
   }
 
   /** 统计收藏目录下各作者的文件数，用于推荐分计算 */
   getFavoriteAuthorFrequencies(favoriteDir: string): Map<string, number> {
-    const result = rows<{ artist_name: string; cnt: number }>(this.db.prepare("SELECT fa.artist_name, COUNT(fa.filepath) as cnt FROM file_artists fa JOIN files f ON f.filepath = fa.filepath WHERE fa.role = '' AND f.filepath LIKE ? GROUP BY fa.artist_name").all(`${favoriteDir}%`));
-    return new Map(result.map(r => [r.artist_name, r.cnt]));
+    const result = rows<{ artist_name: string; cnt: number }>(
+      this.db
+        .prepare(
+          "SELECT fa.artist_name, COUNT(fa.filepath) as cnt FROM file_artists fa JOIN files f ON f.filepath = fa.filepath WHERE fa.role = '' AND f.filepath LIKE ? GROUP BY fa.artist_name",
+        )
+        .all(`${favoriteDir}%`),
+    );
+    return new Map(result.map((r) => [r.artist_name, r.cnt]));
   }
 
   /** 统计收藏目录下各 tag 的文件数，用于推荐分计算 */
   getFavoriteTagFrequencies(favoriteDir: string): Map<string, number> {
-    const result = rows<{ tag_name: string; cnt: number }>(this.db.prepare("SELECT ft.tag_name, COUNT(ft.filepath) as cnt FROM file_tags ft JOIN files f ON f.filepath = ft.filepath WHERE f.filepath LIKE ? GROUP BY ft.tag_name").all(`${favoriteDir}%`));
-    return new Map(result.map(r => [r.tag_name, r.cnt]));
+    const result = rows<{ tag_name: string; cnt: number }>(
+      this.db
+        .prepare(
+          "SELECT ft.tag_name, COUNT(ft.filepath) as cnt FROM file_tags ft JOIN files f ON f.filepath = ft.filepath WHERE f.filepath LIKE ? GROUP BY ft.tag_name",
+        )
+        .all(`${favoriteDir}%`),
+    );
+    return new Map(result.map((r) => [r.tag_name, r.cnt]));
   }
 
   /** 返回所有非缺失文件的路径列表，用于文件存在性校验 */
   getAllPresentFilepaths(): string[] {
-    return rows<{ filepath: string }>(this.db.prepare("SELECT filepath FROM files WHERE is_missing = 0").all()).map(r => r.filepath);
+    return rows<{ filepath: string }>(this.db.prepare("SELECT filepath FROM files WHERE is_missing = 0").all()).map(
+      (r) => r.filepath,
+    );
   }
 
   /**
@@ -758,13 +1109,15 @@ export class IndexRepository {
    * 对每条事件只在状态真正需要变更时才写入，避免无效 UPDATE。
    */
   batchReconcilePresence(events: Array<{ filepath: string; exists: boolean; observedAt: number }>): void {
-    if (!events.length) return;
+    if (!events.length) {
+      return;
+    }
     const now = nowTs();
     const stmtPresent = this.db.prepare(
-      "UPDATE files SET is_missing=0, last_seen_at=?, updated_at=? WHERE filepath=? AND is_missing!=0"
+      "UPDATE files SET is_missing=0, last_seen_at=?, updated_at=? WHERE filepath=? AND is_missing!=0",
     );
     const stmtMissing = this.db.prepare(
-      "UPDATE files SET is_missing=1, updated_at=? WHERE filepath=? AND is_missing!=1"
+      "UPDATE files SET is_missing=1, updated_at=? WHERE filepath=? AND is_missing!=1",
     );
     this.db.exec("BEGIN");
     try {
@@ -784,6 +1137,8 @@ export class IndexRepository {
 
   private _pruneOrphans(): void {
     this.db.prepare("DELETE FROM tags WHERE tag_name NOT IN (SELECT DISTINCT tag_name FROM file_tags)").run();
-    this.db.prepare("DELETE FROM artists WHERE artist_name NOT IN (SELECT DISTINCT artist_name FROM file_artists)").run();
+    this.db
+      .prepare("DELETE FROM artists WHERE artist_name NOT IN (SELECT DISTINCT artist_name FROM file_artists)")
+      .run();
   }
 }

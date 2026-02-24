@@ -21,7 +21,9 @@ function computeScore(authors: string[], tags: string[]): number {
     const ft = _tagFreq.get(tag) ?? 0;
     const nt = Math.max(_tagTotal.get(tag) ?? 0, 1);
     const s = Math.log1p(ft) / Math.sqrt(nt);
-    if (s > tagScore) tagScore = s;
+    if (s > tagScore) {
+      tagScore = s;
+    }
   }
 
   return Math.round((authorScore + tagScore) * 1e6) / 1e6;
@@ -29,7 +31,9 @@ function computeScore(authors: string[], tags: string[]): number {
 
 export function refreshRecCache(): void {
   const favoriteDir = (config.FAVORITE_DIR || "").trim();
-  if (!favoriteDir) return;
+  if (!favoriteDir) {
+    return;
+  }
 
   try {
     const repo = new IndexRepository(getDb());
@@ -44,8 +48,12 @@ export function refreshRecCache(): void {
 
 export function refreshAllRecScores(): void {
   refreshRecCache();
-  if (!_initialized) return;
-  if (!_authorFreq.size && !_tagFreq.size) return;
+  if (!_initialized) {
+    return;
+  }
+  if (!_authorFreq.size && !_tagFreq.size) {
+    return;
+  }
 
   try {
     const repo = new IndexRepository(getDb());
@@ -54,8 +62,12 @@ export function refreshAllRecScores(): void {
     const db = getDb();
     const artistFps = db.prepare("SELECT DISTINCT filepath FROM file_artists").all() as { filepath: string }[];
     const tagFps = db.prepare("SELECT DISTINCT filepath FROM file_tags").all() as { filepath: string }[];
-    for (const r of artistFps) allFps.add(r.filepath);
-    for (const r of tagFps) allFps.add(r.filepath);
+    for (const r of artistFps) {
+      allFps.add(r.filepath);
+    }
+    for (const r of tagFps) {
+      allFps.add(r.filepath);
+    }
 
     const fpList = [...allFps];
     const batchSize = 500;
@@ -75,7 +87,9 @@ export function refreshAllRecScores(): void {
 }
 
 export function updateRecScoresForFiles(filepaths: string[]): void {
-  if (!_initialized || !filepaths.length) return;
+  if (!_initialized || !filepaths.length) {
+    return;
+  }
   try {
     const repo = new IndexRepository(getDb());
     const artistsByFile = repo.getArtistsByFilepaths(filepaths);

@@ -57,11 +57,10 @@ async function generateArchiveThumb(archivePath: string, outputPath: string): Pr
     // encoding issues with non-ASCII filenames on Windows.
 
     // Step 1: List entries
-    const { stdout } = await execFileAsync(
-      get7z(),
-      ["l", "-ba", "-slt", "-scsUTF-8", archivePath],
-      { timeout: config.THUMB_TIMEOUT_SEC * 1000, maxBuffer: 10 * 1024 * 1024 }
-    );
+    const { stdout } = await execFileAsync(get7z(), ["l", "-ba", "-slt", "-scsUTF-8", archivePath], {
+      timeout: config.THUMB_TIMEOUT_SEC * 1000,
+      maxBuffer: 10 * 1024 * 1024,
+    });
 
     // Parse 7z -slt output to find the first image entry path
     let firstImageEntry: string | null = null;
@@ -82,33 +81,41 @@ async function generateArchiveThumb(archivePath: string, outputPath: string): Pr
     // Handle last entry without trailing blank line
     if (!firstImageEntry && currentPath !== null) {
       const ext = path.extname(currentPath).toLowerCase();
-      if (IMAGE_EXTS.has(ext) && !isHiddenFile(currentPath)) firstImageEntry = currentPath;
+      if (IMAGE_EXTS.has(ext) && !isHiddenFile(currentPath)) {
+        firstImageEntry = currentPath;
+      }
     }
 
-    if (!firstImageEntry) throw new Error(`No image found in archive: ${archivePath}`);
+    if (!firstImageEntry) {
+      throw new Error(`No image found in archive: ${archivePath}`);
+    }
 
     // Step 2: Extract only that one file using a temp list file to avoid encoding issues
     const listFile = path.join(os.tmpdir(), `shiguthumb-list-${Date.now()}.txt`);
     try {
       fs.writeFileSync(listFile, firstImageEntry, "utf8");
-      await execFileAsync(
-        get7z(),
-        ["x", archivePath, `-o${tmpDir}`, "-y", "-scsUTF-8", `@${listFile}`],
-        { timeout: config.THUMB_TIMEOUT_SEC * 1000 }
-      );
+      await execFileAsync(get7z(), ["x", archivePath, `-o${tmpDir}`, "-y", "-scsUTF-8", `@${listFile}`], {
+        timeout: config.THUMB_TIMEOUT_SEC * 1000,
+      });
     } finally {
-      try { fs.unlinkSync(listFile); } catch { /* ignore */ }
+      try {
+        fs.unlinkSync(listFile);
+      } catch {
+        /* ignore */
+      }
     }
 
     // Step 3: Find the extracted file (7z x preserves directory structure)
     const extracted = findFirstImageInDir(tmpDir);
-    if (!extracted) throw new Error(`Extraction succeeded but image not found in ${tmpDir}`);
+    if (!extracted) {
+      throw new Error(`Extraction succeeded but image not found in ${tmpDir}`);
+    }
 
     fs.mkdirSync(path.dirname(outputPath), { recursive: true });
     await execFileAsync(
       getMagick(),
       [extracted, "-resize", `x${config.THUMB_HEIGHT}`, "-quality", String(config.THUMB_JPEG_QUALITY), outputPath],
-      { timeout: config.THUMB_TIMEOUT_SEC * 1000 }
+      { timeout: config.THUMB_TIMEOUT_SEC * 1000 },
     );
   } finally {
     fs.rmSync(tmpDir, { recursive: true, force: true });
@@ -122,13 +129,19 @@ function findFirstImageInDir(dir: string): string | null {
     const sorted = entries.slice().sort((a, b) => a.name.localeCompare(b.name));
     for (const e of sorted) {
       const full = path.join(dir, e.name);
-      if (e.isFile() && IMAGE_EXTS.has(path.extname(e.name).toLowerCase()) && !isHiddenFile(e.name)) return full;
+      if (e.isFile() && IMAGE_EXTS.has(path.extname(e.name).toLowerCase()) && !isHiddenFile(e.name)) {
+        return full;
+      }
       if (e.isDirectory()) {
         const found = findFirstImageInDir(full);
-        if (found) return found;
+        if (found) {
+          return found;
+        }
       }
     }
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
   return null;
 }
 
@@ -147,7 +160,9 @@ async function generateVideoThumb(videoPath: string, outputPath: string): Promis
   for (const args of attempts) {
     try {
       await execFileAsync(getFfmpeg(), args, { timeout });
-      if (fs.existsSync(outputPath) && fs.statSync(outputPath).size > 0) return;
+      if (fs.existsSync(outputPath) && fs.statSync(outputPath).size > 0) {
+        return;
+      }
     } catch {
       // try next
     }
@@ -162,7 +177,7 @@ async function generateImageThumb(imagePath: string, outputPath: string): Promis
   await execFileAsync(
     getMagick(),
     [imagePath, "-resize", `x${config.THUMB_HEIGHT}`, "-quality", String(config.THUMB_JPEG_QUALITY), outputPath],
-    { timeout: config.THUMB_TIMEOUT_SEC * 1000 }
+    { timeout: config.THUMB_TIMEOUT_SEC * 1000 },
   );
 }
 
@@ -175,11 +190,15 @@ async function generateImageThumb(imagePath: string, outputPath: string): Promis
 export async function getOrGenerateThumb(filePath: string): Promise<string | null> {
   const outputPath = getCachedThumbPath(filePath);
   // Fast path: already cached, no need to acquire the limiter
-  if (await isCached(outputPath)) return outputPath;
+  if (await isCached(outputPath)) {
+    return outputPath;
+  }
 
   return thumbLimit(async () => {
     // Double-check after acquiring slot (another request may have just generated it)
-    if (await isCached(outputPath)) return outputPath;
+    if (await isCached(outputPath)) {
+      return outputPath;
+    }
 
     const fileType = getFileType(filePath);
     try {
@@ -215,7 +234,7 @@ export async function resolveThumbSource(filePath: string): Promise<string | nul
   const ext = path.extname(filePath).toLowerCase();
   const imageExts = new Set([".jpg", ".jpeg", ".png", ".webp", ".gif", ".bmp"]);
   if (imageExts.has(ext)) {
-    return await fileExists(filePath, fs.constants.R_OK) ? filePath : null;
+    return (await fileExists(filePath, fs.constants.R_OK)) ? filePath : null;
   }
   return resolveCachedThumb(filePath);
 }

@@ -30,7 +30,7 @@ async function updateSettings(
   req: FastifyRequest<{
     Body: { favorite_dir?: string | null; fs_roots?: string | null; already_read_dir?: string | null };
   }>,
-  reply: FastifyReply
+  reply: FastifyReply,
 ) {
   const body = req.body ?? {};
 
@@ -50,9 +50,15 @@ async function updateSettings(
     if (fs.existsSync(ENV_FILE)) {
       let content = fs.readFileSync(ENV_FILE, "utf-8");
       const updates: Record<string, string> = {};
-      if (body.favorite_dir !== undefined && body.favorite_dir !== null) updates.FAVORITE_DIR = body.favorite_dir;
-      if (body.fs_roots !== undefined && body.fs_roots !== null) updates.FS_ROOTS = body.fs_roots;
-      if (body.already_read_dir !== undefined && body.already_read_dir !== null) updates.ALREADY_READ_DIR = body.already_read_dir;
+      if (body.favorite_dir !== undefined && body.favorite_dir !== null) {
+        updates.FAVORITE_DIR = body.favorite_dir;
+      }
+      if (body.fs_roots !== undefined && body.fs_roots !== null) {
+        updates.FS_ROOTS = body.fs_roots;
+      }
+      if (body.already_read_dir !== undefined && body.already_read_dir !== null) {
+        updates.ALREADY_READ_DIR = body.already_read_dir;
+      }
 
       for (const [key, val] of Object.entries(updates)) {
         const regex = new RegExp(`^${key}=.*$`, "m");
@@ -65,7 +71,9 @@ async function updateSettings(
       }
       fs.writeFileSync(ENV_FILE, content, "utf-8");
     }
-  } catch { /* ignore .env write errors */ }
+  } catch {
+    /* ignore .env write errors */
+  }
 
   // Return current values from process.env (config is frozen at startup)
   return reply.send({
@@ -104,9 +112,7 @@ async function verifyFiles(_req: FastifyRequest, reply: FastifyReply) {
   const missingPaths: string[] = [];
 
   // Parallel file existence check
-  const existResults = await Promise.all(
-    filepaths.map(async (fp) => ({ fp, exists: await fileExists(fp) }))
-  );
+  const existResults = await Promise.all(filepaths.map(async (fp) => ({ fp, exists: await fileExists(fp) })));
   for (const { fp, exists } of existResults) {
     checked++;
     if (!exists) {
@@ -118,10 +124,19 @@ async function verifyFiles(_req: FastifyRequest, reply: FastifyReply) {
   // 批量标记不存在的文件为 is_missing=1
   if (missingPaths.length > 0) {
     const now = Math.floor(Date.now() / 1000);
-    repo.batchReconcilePresence(missingPaths.map(fp => ({ filepath: fp, exists: false, observedAt: now })));
+    repo.batchReconcilePresence(missingPaths.map((fp) => ({ filepath: fp, exists: false, observedAt: now })));
     try {
-      repo.logActivity("verify_files", `File verification: ${missing} missing out of ${checked}`, "completed", "verify_files", undefined, { checked, missing, common_root: commonRoot });
-    } catch { /* ignore */ }
+      repo.logActivity(
+        "verify_files",
+        `File verification: ${missing} missing out of ${checked}`,
+        "completed",
+        "verify_files",
+        undefined,
+        { checked, missing, common_root: commonRoot },
+      );
+    } catch {
+      /* ignore */
+    }
   }
 
   return reply.send({

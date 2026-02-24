@@ -5,4 +5,3 @@ export function isHiddenFile(filePath: string): boolean {
   const base = path.basename(filePath);
   return Boolean(base) && base.startsWith(".");
 }
-

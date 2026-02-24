@@ -5,12 +5,11 @@ import { getRepo } from "./_listUtils.js";
 
 // GET /api/v1/parse?filepath=...
 // Returns StoredParseResponse shape
-async function parseSingle(
-  req: FastifyRequest<{ Querystring: { filepath?: string } }>,
-  reply: FastifyReply
-) {
+async function parseSingle(req: FastifyRequest<{ Querystring: { filepath?: string } }>, reply: FastifyReply) {
   const { filepath } = req.query;
-  if (!filepath) return reply.status(400).send({ error: "filepath is required" });
+  if (!filepath) {
+    return reply.status(400).send({ error: "filepath is required" });
+  }
 
   // Try DB first
   try {
@@ -33,7 +32,9 @@ async function parseSingle(
         media_type: stored.media_type ?? null,
       });
     }
-  } catch { /* fall through to live parse */ }
+  } catch {
+    /* fall through to live parse */
+  }
 
   // Fallback: live parse from filename
   const base = path.basename(filepath);
@@ -56,7 +57,7 @@ async function parseSingle(
 // Returns BatchParseResponse with result fields matching ParseResponse (snake_case)
 async function parseBatch(
   req: FastifyRequest<{ Body: { filepaths?: string[]; filenames?: string[] } }>,
-  reply: FastifyReply
+  reply: FastifyReply,
 ) {
   // Accept both filepaths (new) and filenames (legacy)
   const filepaths = req.body?.filepaths ?? req.body?.filenames ?? [];
@@ -68,23 +69,25 @@ async function parseBatch(
     // Map to ParseResponse shape (snake_case, matching frontend types.gen.ts)
     items.push({
       filepath: fp,
-      result: parsed ? {
-        title: parsed.title ?? "",
-        authors: parsed.authors ?? [],
-        cosers: parsed.cosers ?? [],
-        group: parsed.groupName ?? null,
-        raw_tags: parsed.rawTags ?? [],
-        event: parsed.event ?? null,
-        date_tag: parsed.dateTag ?? null,
-        type: parsed.mediaType ?? "unknown",
-        pack_kind: undefined,
-      } : null,
+      result: parsed
+        ? {
+            title: parsed.title ?? "",
+            authors: parsed.authors ?? [],
+            cosers: parsed.cosers ?? [],
+            group: parsed.groupName ?? null,
+            raw_tags: parsed.rawTags ?? [],
+            event: parsed.event ?? null,
+            date_tag: parsed.dateTag ?? null,
+            type: parsed.mediaType ?? "unknown",
+            pack_kind: undefined,
+          }
+        : null,
     });
   }
 
   return reply.send({
     items,
-    parsed_count: items.filter(i => i.result !== null).length,
+    parsed_count: items.filter((i) => i.result !== null).length,
     total_count: filepaths.length,
   });
 }

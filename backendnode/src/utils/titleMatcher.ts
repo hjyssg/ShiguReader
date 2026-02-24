@@ -7,14 +7,26 @@ import { distance } from "fastest-levenshtein";
 // ── Noise tokens to strip before comparison ───────────────────────────────────
 
 const NOISE_TOKENS = [
-  "DL版", "オリジナル", "修正版", "別スキャン", "デジタル版",
-  "電子版", "完全版", "増補版", "再版", "新装版", "文庫版",
-  "English", "Chinese", "Decensored", "Uncensored",
+  "DL版",
+  "オリジナル",
+  "修正版",
+  "別スキャン",
+  "デジタル版",
+  "電子版",
+  "完全版",
+  "増補版",
+  "再版",
+  "新装版",
+  "文庫版",
+  "English",
+  "Chinese",
+  "Decensored",
+  "Uncensored",
 ];
 
 const NOISE_RE = new RegExp(
-  `[\\[\\(]\\s*(${NOISE_TOKENS.map(t => t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|")})\\s*[\\]\\)]`,
-  "gi"
+  `[\\[\\(]\\s*(${NOISE_TOKENS.map((t) => t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|")})\\s*[\\]\\)]`,
+  "gi",
 );
 
 // ── Volume markers at end of title ────────────────────────────────────────────
@@ -46,7 +58,9 @@ export function stripNoise(title: string): string {
  */
 export function extractVolume(title: string): string | null {
   const m = VOLUME_RE.exec(title);
-  if (!m) return null;
+  if (!m) {
+    return null;
+  }
   // Return whichever group matched
   return (m[1] ?? m[2] ?? m[3] ?? m[4] ?? "").toLowerCase();
 }
@@ -101,7 +115,9 @@ export function compareTitles(a: string, b: string): TitleCompareResult {
   const cmpA = baseA || cleanA;
   const cmpB = baseB || cleanB;
   const maxLen = Math.max(cmpA.length, cmpB.length);
-  if (maxLen === 0) return { score: 1.0, differentVolume: false, reason: "both empty" };
+  if (maxLen === 0) {
+    return { score: 1.0, differentVolume: false, reason: "both empty" };
+  }
 
   const dist = distance(cmpA, cmpB);
   const similarity = 1 - dist / maxLen;

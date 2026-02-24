@@ -37,10 +37,7 @@ interface ListHandlerOptions<R extends Record<string, unknown>> {
  * 供 tags / authors / cosers 等列表路由复用。
  */
 export function makeListHandler<R extends Record<string, unknown>>(opts: ListHandlerOptions<R>) {
-  return async (
-    req: FastifyRequest<{ Querystring: PaginatedQuery }>,
-    reply: FastifyReply,
-  ) => {
+  return async (req: FastifyRequest<{ Querystring: PaginatedQuery }>, reply: FastifyReply) => {
     const page = Math.max(1, parseInt(req.query.page ?? "1", 10) || 1);
     const pageSize = Math.min(500, Math.max(1, parseInt(req.query.page_size ?? "100", 10) || 100));
     const offset = (page - 1) * pageSize;
@@ -50,10 +47,10 @@ export function makeListHandler<R extends Record<string, unknown>>(opts: ListHan
     const repo = new IndexRepository(getDb());
     const total = opts.count(repo);
     const rows = opts.list(repo, offset, pageSize, sortBy, sortOrder);
-    const names = rows.map(r => r[opts.nameKey] as string);
+    const names = rows.map((r) => r[opts.nameKey] as string);
     const thumbMap = opts.thumbnailPaths(repo, names);
 
-    const items = rows.map(r => {
+    const items = rows.map((r) => {
       const name = r[opts.nameKey] as string;
       const thumbPath = thumbMap.get(name);
       return {

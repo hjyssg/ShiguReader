@@ -17,7 +17,9 @@ export function getDb(): DatabaseSync {
 }
 
 export function initDb(dbPath: string): DatabaseSync {
-  if (_db) return _db;
+  if (_db) {
+    return _db;
+  }
 
   logger.db(`Opening database at ${dbPath}`);
   _db = new DatabaseSync(dbPath);
@@ -38,7 +40,9 @@ export function initDb(dbPath: string): DatabaseSync {
   try {
     _db.exec("ALTER TABLE archive_meta ADD COLUMN avg_image_size INTEGER");
     logger.db("Migration: added archive_meta.avg_image_size");
-  } catch { /* column already exists */ }
+  } catch {
+    /* column already exists */
+  }
 
   return _db;
 }

@@ -3,10 +3,14 @@ import { getRepo, buildThumbUrl } from "./_listUtils.js";
 import { parseName } from "../utils/nameParser.js";
 import { compareTitles } from "../utils/titleMatcher.js";
 
-function toItem(row: { filepath: string; filename: string; file_type: string; filesize: number | null; mtime: number | null }) {
-  const thumbUrl = ["archive", "video", "image"].includes(row.file_type)
-    ? buildThumbUrl(row.filepath)
-    : null;
+function toItem(row: {
+  filepath: string;
+  filename: string;
+  file_type: string;
+  filesize: number | null;
+  mtime: number | null;
+}) {
+  const thumbUrl = ["archive", "video", "image"].includes(row.file_type) ? buildThumbUrl(row.filepath) : null;
   return {
     name: row.filename,
     path: row.filepath,
@@ -28,28 +32,38 @@ async function searchFiles(
       offset?: number;
     };
   }>,
-  reply: FastifyReply
+  reply: FastifyReply,
 ) {
   const { q = "", scopes = ["file", "author", "coser", "tag"], presence_filter = "all" } = req.body ?? {};
   const limit = Math.min(500, Math.max(1, req.body?.limit ?? 200));
   const offset = Math.max(0, req.body?.offset ?? 0);
   const query = q.trim();
-  if (!query) return reply.send({ items: [], total: 0 });
+  if (!query) {
+    return reply.send({ items: [], total: 0 });
+  }
 
   const repo = getRepo();
   const byPath = new Map<string, ReturnType<typeof toItem>>();
 
   if (scopes.includes("file")) {
-    for (const row of repo.searchFiles(query, presence_filter)) byPath.set(row.filepath, toItem(row));
+    for (const row of repo.searchFiles(query, presence_filter)) {
+      byPath.set(row.filepath, toItem(row));
+    }
   }
   if (scopes.includes("author")) {
-    for (const row of repo.searchByAuthor(query, presence_filter)) byPath.set(row.filepath, toItem(row));
+    for (const row of repo.searchByAuthor(query, presence_filter)) {
+      byPath.set(row.filepath, toItem(row));
+    }
   }
   if (scopes.includes("coser")) {
-    for (const row of repo.searchByCoser(query, presence_filter)) byPath.set(row.filepath, toItem(row));
+    for (const row of repo.searchByCoser(query, presence_filter)) {
+      byPath.set(row.filepath, toItem(row));
+    }
   }
   if (scopes.includes("tag")) {
-    for (const row of repo.searchByTag(query, presence_filter)) byPath.set(row.filepath, toItem(row));
+    for (const row of repo.searchByTag(query, presence_filter)) {
+      byPath.set(row.filepath, toItem(row));
+    }
   }
 
   const allItems = [...byPath.values()].sort((a, b) => a.name.localeCompare(b.name));
@@ -75,7 +89,9 @@ interface QuickMatchResult {
  * Takes ~12 chars from the middle to avoid event/author noise at the start.
  */
 function extractTitleKeyword(title: string | null): string | null {
-  if (!title || title.length < 4) return title;
+  if (!title || title.length < 4) {
+    return title;
+  }
   const start = Math.floor(title.length * 0.2);
   return title.slice(start, start + 12);
 }
@@ -91,10 +107,12 @@ function scoreCandidate(
   // Author score
   let authorScore = 0;
   if (queryAuthors.length && parsed.authors.length) {
-    const qSet = new Set(queryAuthors.map(a => a.toLowerCase()));
-    const cSet = new Set(parsed.authors.map(a => a.toLowerCase()));
-    const hasMatch = [...qSet].some(a => cSet.has(a));
-    if (hasMatch) authorScore = 1.0;
+    const qSet = new Set(queryAuthors.map((a) => a.toLowerCase()));
+    const cSet = new Set(parsed.authors.map((a) => a.toLowerCase()));
+    const hasMatch = [...qSet].some((a) => cSet.has(a));
+    if (hasMatch) {
+      authorScore = 1.0;
+    }
   }
   if (authorScore === 0 && queryGroup && parsed.groupName) {
     if (queryGroup.toLowerCase() === parsed.groupName.toLowerCase()) {
@@ -118,10 +136,18 @@ function scoreCandidate(
 }
 
 function decideMatchLevel(authorScore: number, titleScore: number, differentVolume: boolean): MatchLevel {
-  if (authorScore >= 1.0 && titleScore >= 0.85) return "downloaded";
-  if (authorScore >= 0.7 && titleScore >= 0.75) return "likely";
-  if (authorScore >= 1.0 && (differentVolume || titleScore < 0.5)) return "same_author";
-  if (titleScore >= 0.85) return "likely"; // strong title match even without author
+  if (authorScore >= 1.0 && titleScore >= 0.85) {
+    return "downloaded";
+  }
+  if (authorScore >= 0.7 && titleScore >= 0.75) {
+    return "likely";
+  }
+  if (authorScore >= 1.0 && (differentVolume || titleScore < 0.5)) {
+    return "same_author";
+  }
+  if (titleScore >= 0.85) {
+    return "likely"; // strong title match even without author
+  }
   return "different";
 }
 
@@ -133,10 +159,12 @@ async function quickMatchBatch(
       presence_filter?: string;
     };
   }>,
-  reply: FastifyReply
+  reply: FastifyReply,
 ) {
   const { queries = [], limit = 5, presence_filter = "all" } = req.body ?? {};
-  if (!queries.length) return reply.send({ results: [] });
+  if (!queries.length) {
+    return reply.send({ results: [] });
+  }
 
   const repo = getRepo();
   const results: QuickMatchResult[] = [];
@@ -162,9 +190,12 @@ async function quickMatchBatch(
     }
 
     // Score each candidate
-    const scored = candidates.map(c => {
+    const scored = candidates.map((c) => {
       const { authorScore, titleScore, titleReason, differentVolume } = scoreCandidate(
-        parsed.title, parsed.authors, parsed.groupName, c.filename
+        parsed.title,
+        parsed.authors,
+        parsed.groupName,
+        c.filename,
       );
       const level = decideMatchLevel(authorScore, titleScore, differentVolume);
       const confidence = Math.round((authorScore * 0.4 + titleScore * 0.6) * 100) / 100;
@@ -183,7 +214,7 @@ async function quickMatchBatch(
       match_level: best.match_level,
       confidence: best.confidence,
       reason: best.reason,
-      hits: topHits.map(h => ({ name: h.name, match_level: h.match_level, confidence: h.confidence })),
+      hits: topHits.map((h) => ({ name: h.name, match_level: h.match_level, confidence: h.confidence })),
     });
   }
 
@@ -194,5 +225,9 @@ export { quickMatchBatch as quickMatchBatchHandler };
 
 export async function searchRoutes(app: FastifyInstance) {
   app.post("", { schema: { summary: "搜索文件（支持文件名/作者/coser/标签）", tags: ["搜索"] } }, searchFiles);
-  app.post("/quick-match-batch", { schema: { summary: "批量快速匹配（油猴脚本用）", tags: ["搜索"] } }, quickMatchBatch);
+  app.post(
+    "/quick-match-batch",
+    { schema: { summary: "批量快速匹配（油猴脚本用）", tags: ["搜索"] } },
+    quickMatchBatch,
+  );
 }

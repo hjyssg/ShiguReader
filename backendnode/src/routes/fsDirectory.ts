@@ -30,15 +30,19 @@ export interface FileSystemItem {
 // ─── helpers ─────────────────────────────────────────────────────────────────
 
 export function parseRoots(): string[] {
-  if (!config.FS_ROOTS) return [];
-  return config.FS_ROOTS.split(",").map(r => r.trim()).filter(Boolean);
+  if (!config.FS_ROOTS) {
+    return [];
+  }
+  return config.FS_ROOTS.split(",")
+    .map((r) => r.trim())
+    .filter(Boolean);
 }
 
 // ─── handlers ────────────────────────────────────────────────────────────────
 
 export async function getRoots(_req: FastifyRequest, reply: FastifyReply) {
   const roots = parseRoots();
-  return reply.send(roots.map(r => ({ path: r, dirname: path.basename(r) || r })));
+  return reply.send(roots.map((r) => ({ path: r, dirname: path.basename(r) || r })));
 }
 
 export async function getDrives(_req: FastifyRequest, reply: FastifyReply) {
@@ -57,10 +61,14 @@ export async function getDrives(_req: FastifyRequest, reply: FastifyReply) {
 
 export async function getFavorite(_req: FastifyRequest, reply: FastifyReply) {
   const dir = config.FAVORITE_DIR.trim();
-  if (!dir) return reply.send(null);
+  if (!dir) {
+    return reply.send(null);
+  }
   try {
     const stat = await fs.promises.stat(dir);
-    if (!stat.isDirectory()) return reply.send(null);
+    if (!stat.isDirectory()) {
+      return reply.send(null);
+    }
     return reply.send({ path: dir, dirname: path.basename(dir) || dir });
   } catch {
     return reply.send(null);
@@ -69,10 +77,14 @@ export async function getFavorite(_req: FastifyRequest, reply: FastifyReply) {
 
 export async function getAlreadyRead(_req: FastifyRequest, reply: FastifyReply) {
   const dir = config.ALREADY_READ_DIR.trim();
-  if (!dir) return reply.send(null);
+  if (!dir) {
+    return reply.send(null);
+  }
   try {
     const stat = await fs.promises.stat(dir);
-    if (!stat.isDirectory()) return reply.send(null);
+    if (!stat.isDirectory()) {
+      return reply.send(null);
+    }
     return reply.send({ path: dir, dirname: path.basename(dir) || dir });
   } catch {
     return reply.send(null);
@@ -80,13 +92,17 @@ export async function getAlreadyRead(_req: FastifyRequest, reply: FastifyReply) 
 }
 
 export async function listDirectory(
-  req: FastifyRequest<{ Querystring: { path: string; sort_by?: string; sort_order?: string; has_video?: string; has_audio?: string } }>,
-  reply: FastifyReply
+  req: FastifyRequest<{
+    Querystring: { path: string; sort_by?: string; sort_order?: string; has_video?: string; has_audio?: string };
+  }>,
+  reply: FastifyReply,
 ) {
   const { path: dirPath, sort_by = "name", sort_order = "asc", has_video, has_audio } = req.query;
   const filterHasVideo = has_video === "true";
   const filterHasAudio = has_audio === "true";
-  if (!dirPath) return reply.status(400).send({ error: "path is required" });
+  if (!dirPath) {
+    return reply.status(400).send({ error: "path is required" });
+  }
 
   let stat: fs.Stats;
   try {
@@ -94,13 +110,15 @@ export async function listDirectory(
   } catch {
     return reply.status(404).send({ error: "Path not found" });
   }
-  if (!stat.isDirectory()) return reply.status(400).send({ error: "Path is not a directory" });
+  if (!stat.isDirectory()) {
+    return reply.status(400).send({ error: "Path is not a directory" });
+  }
 
   const items: FileSystemItem[] = [];
 
   try {
     const entries = await fs.promises.readdir(dirPath, { withFileTypes: true });
-    const visibleEntries = entries.filter(entry => !isHiddenFile(entry.name));
+    const visibleEntries = entries.filter((entry) => !isHiddenFile(entry.name));
     const statResults = await Promise.all(
       visibleEntries.map(async (entry) => {
         const fullPath = path.join(dirPath, entry.name);
@@ -110,26 +128,47 @@ export async function listDirectory(
         } catch {
           return null;
         }
-      })
+      }),
     );
     for (const result of statResults) {
-      if (!result) continue;
+      if (!result) {
+        continue;
+      }
       const { entry, fullPath, entryStat } = result;
       if (entry.isDirectory()) {
         items.push({
-          name: entry.name, path: fullPath, item_type: "folder",
-          file_type: null, filesize: null, mtime: Math.floor(entryStat.mtimeMs / 1000),
-          thumbnail_url: null, image_count: null, video_count: null, audio_count: null,
-          avg_image_size: null, recommendation_score: 0, is_missing: 0, last_read_at: null,
+          name: entry.name,
+          path: fullPath,
+          item_type: "folder",
+          file_type: null,
+          filesize: null,
+          mtime: Math.floor(entryStat.mtimeMs / 1000),
+          thumbnail_url: null,
+          image_count: null,
+          video_count: null,
+          audio_count: null,
+          avg_image_size: null,
+          recommendation_score: 0,
+          is_missing: 0,
+          last_read_at: null,
         });
       } else if (entry.isFile()) {
         const fileType = getFileType(entry.name);
         items.push({
-          name: entry.name, path: fullPath, item_type: "file",
-          file_type: fileType, filesize: entryStat.size, mtime: Math.floor(entryStat.mtimeMs / 1000),
+          name: entry.name,
+          path: fullPath,
+          item_type: "file",
+          file_type: fileType,
+          filesize: entryStat.size,
+          mtime: Math.floor(entryStat.mtimeMs / 1000),
           thumbnail_url: ["archive", "video", "image"].includes(fileType) ? buildThumbUrl(fullPath) : null,
-          image_count: null, video_count: null, audio_count: null,
-          avg_image_size: null, recommendation_score: 0, is_missing: 0, last_read_at: null,
+          image_count: null,
+          video_count: null,
+          audio_count: null,
+          avg_image_size: null,
+          recommendation_score: 0,
+          is_missing: 0,
+          last_read_at: null,
         });
       }
     }
@@ -140,13 +179,15 @@ export async function listDirectory(
   // Enrich from DB
   try {
     const repo = getRepo();
-    const fileItems = items.filter(i => i.item_type === "file");
+    const fileItems = items.filter((i) => i.item_type === "file");
     const fileDataMap = repo.getFileDataByFolder(dirPath);
-    const archivePaths = fileItems.filter(i => i.file_type === "archive").map(i => i.path);
+    const archivePaths = fileItems.filter((i) => i.file_type === "archive").map((i) => i.path);
     const archiveMetaMap = archivePaths.length ? repo.getArchiveMetasByFolder(dirPath) : new Map();
 
     for (const item of items) {
-      if (item.item_type !== "file") continue;
+      if (item.item_type !== "file") {
+        continue;
+      }
       const fd = fileDataMap.get(item.path);
       if (fd) {
         item.recommendation_score = fd.rec_score;
@@ -171,45 +212,68 @@ export async function listDirectory(
         for (const item of items) {
           if (item.item_type === "file" && item.filesize !== null && item.mtime !== null) {
             r.upsertFile({
-              filepath: item.path, folderpath: dirPath, filename: item.name,
-              mtime: item.mtime, filesize: item.filesize,
+              filepath: item.path,
+              folderpath: dirPath,
+              filename: item.name,
+              mtime: item.mtime,
+              filesize: item.filesize,
               file_type: item.file_type ?? "unknown",
               ext: path.extname(item.name).toLowerCase() || null,
             });
             const parsed = parseName(item.name);
             r.saveParsedMetadata(item.path, {
-              title: parsed.title ?? undefined, authors: parsed.authors,
-              cosers: parsed.cosers, groupName: parsed.groupName ?? undefined,
-              rawTags: parsed.rawTags, event: parsed.event ?? undefined,
-              dateTag: parsed.dateTag ?? undefined, mediaType: parsed.mediaType ?? undefined,
+              title: parsed.title ?? undefined,
+              authors: parsed.authors,
+              cosers: parsed.cosers,
+              groupName: parsed.groupName ?? undefined,
+              rawTags: parsed.rawTags,
+              event: parsed.event ?? undefined,
+              dateTag: parsed.dateTag ?? undefined,
+              mediaType: parsed.mediaType ?? undefined,
             });
           }
         }
-        const presentPaths = items.filter(i => i.item_type === "file").map(i => i.path);
+        const presentPaths = items.filter((i) => i.item_type === "file").map((i) => i.path);
         r.markMissingInFolder(dirPath, presentPaths);
         r.recordFolderOpen(dirPath);
-      } catch { /* ignore bg errors */ }
+      } catch {
+        /* ignore bg errors */
+      }
     });
-  } catch { /* ignore DB errors, still return FS data */ }
+  } catch {
+    /* ignore DB errors, still return FS data */
+  }
 
   // Apply has_video / has_audio filters
   let filteredItems = items;
   if (filterHasVideo) {
-    filteredItems = filteredItems.filter(i => i.item_type !== "file" || i.file_type !== "archive" || (i.video_count !== null && i.video_count > 0));
+    filteredItems = filteredItems.filter(
+      (i) => i.item_type !== "file" || i.file_type !== "archive" || (i.video_count !== null && i.video_count > 0),
+    );
   }
   if (filterHasAudio) {
-    filteredItems = filteredItems.filter(i => i.item_type !== "file" || i.file_type !== "archive" || (i.audio_count !== null && i.audio_count > 0));
+    filteredItems = filteredItems.filter(
+      (i) => i.item_type !== "file" || i.file_type !== "archive" || (i.audio_count !== null && i.audio_count > 0),
+    );
   }
 
   // Sort: folders first (by name), then files
-  const folders = filteredItems.filter(i => i.item_type === "folder").sort((a, b) => a.name.localeCompare(b.name));
-  const files = filteredItems.filter(i => i.item_type === "file");
+  const folders = filteredItems.filter((i) => i.item_type === "folder").sort((a, b) => a.name.localeCompare(b.name));
+  const files = filteredItems.filter((i) => i.item_type === "file");
   const rev = sort_order === "desc" ? -1 : 1;
   files.sort((a, b) => {
-    if (sort_by === "mtime") return rev * ((a.mtime ?? 0) - (b.mtime ?? 0));
-    if (sort_by === "recommendation") return rev * (a.recommendation_score - b.recommendation_score);
-    if (sort_by === "type") return rev * ((a.file_type ?? "").localeCompare(b.file_type ?? ""));
-    if (sort_by === "image_count") return rev * ((a.image_count ?? 0) - (b.image_count ?? 0));
+    if (sort_by === "mtime") {
+      return rev * ((a.mtime ?? 0) - (b.mtime ?? 0));
+    }
+    if (sort_by === "recommendation") {
+      return rev * (a.recommendation_score - b.recommendation_score);
+    }
+    if (sort_by === "type") {
+      return rev * (a.file_type ?? "").localeCompare(b.file_type ?? "");
+    }
+    if (sort_by === "image_count") {
+      return rev * ((a.image_count ?? 0) - (b.image_count ?? 0));
+    }
     return rev * a.name.localeCompare(b.name);
   });
 
@@ -222,16 +286,14 @@ export async function getLibraryOverview(_req: FastifyRequest, reply: FastifyRep
 
 export async function getRecentActivity(
   req: FastifyRequest<{ Querystring: { limit?: string; since_latest_startup?: string } }>,
-  reply: FastifyReply
+  reply: FastifyReply,
 ) {
   const limit = Math.min(500, Math.max(1, parseInt(req.query.limit ?? "200", 10) || 200));
   const sinceStartup = req.query.since_latest_startup !== "false";
   const repo = getRepo();
-  const rows = sinceStartup
-    ? repo.listActivityLogsSinceLatestStartup(limit)
-    : repo.listActivityLogs(limit);
+  const rows = sinceStartup ? repo.listActivityLogsSinceLatestStartup(limit) : repo.listActivityLogs(limit);
   return reply.send({
-    items: rows.map(r => ({
+    items: rows.map((r) => ({
       id: r.id,
       activity_type: r.activity_type,
       status: r.status,
@@ -246,7 +308,7 @@ export async function getRecentActivity(
 
 export async function getTopOpenedFolders(
   req: FastifyRequest<{ Querystring: { limit?: string } }>,
-  reply: FastifyReply
+  reply: FastifyReply,
 ) {
   const limit = Math.min(20, Math.max(1, parseInt(req.query.limit ?? "5", 10) || 5));
   return reply.send({ folder_ids: getRepo().listTopOpenedFolderIds(limit) });
