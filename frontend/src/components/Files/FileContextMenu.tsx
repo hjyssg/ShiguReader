@@ -123,25 +123,11 @@ export function FileActionsDropdown({
           </button>
         </DropdownMenuTrigger>
         <DropdownMenuContent className="w-64" align="end" sideOffset={6}>
-          {isOpenable && (
-            <>
-              <DropdownMenuItem onClick={actions.onOpen}>
-                <FolderOpen className="mr-2 size-4" />
-                Open
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={actions.onOpenInNewTab}>
-                <ExternalLink className="mr-2 size-4" />
-                Open in New Tab
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-            </>
-          )}
-
           {!isFolder && (
             <DownloadMenuItem
               path={item.path}
               name={item.name}
-              label="Download File"
+              label="Download"
             />
           )}
 
