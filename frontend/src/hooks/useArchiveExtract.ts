@@ -3,7 +3,6 @@ import { useEffect, useMemo, useState } from "react"
 
 import { FilesystemService, OpenAPI } from "@/client"
 import type {
-  ArchiveListResponse,
   ExtractStatus,
   ListResponse,
 } from "@/client"
@@ -26,7 +25,6 @@ export interface ArchiveExtractResult {
   isLoading: boolean
   loadError: unknown
   extractStatus: ExtractStatus | null
-  listData: ArchiveListResponse | null
   folderData: ListResponse | null
   parentListData: ListResponse | null
   /** 压缩包图片已可请求（解压完成或 folder source） */
@@ -42,7 +40,6 @@ export function useArchiveExtract(
 ): ArchiveExtractResult {
   const parentPath = getParentPath(path)
 
-  const [listData, setListData] = useState<ArchiveListResponse | null>(null)
   const [folderData, setFolderData] = useState<ListResponse | null>(null)
   const [parentListData, setParentListData] = useState<ListResponse | null>(null)
   const [extractStatus, setExtractStatus] = useState<ExtractStatus | null>(null)
@@ -58,7 +55,6 @@ export function useArchiveExtract(
 
       setIsLoading(true)
       setLoadError(null)
-      setListData(null)
       setFolderData(null)
       setParentListData(null)
       setExtractStatus(null)
@@ -70,16 +66,15 @@ export function useArchiveExtract(
           if (!cancelled) setFolderData(data)
         } else {
           setArchiveImageReady(false)
-          const [extractResult, archiveData, parentData] = await Promise.all([
+          // extractArchive now returns entries inline — no need for a separate listArchive call
+          const [extractResult, parentData] = await Promise.all([
             FilesystemService.extractArchive({ path, page: 0 }),
-            FilesystemService.listArchive({ path }),
             parentPath
               ? FilesystemService.listDirectory({ path: parentPath })
               : Promise.resolve(null),
           ])
           if (cancelled) return
           setExtractStatus(extractResult)
-          setListData(archiveData)
           setParentListData(parentData)
           setArchiveImageReady(true)
         }
@@ -97,16 +92,18 @@ export function useArchiveExtract(
     return () => { cancelled = true }
   }, [path, isFolderSource, parentPath])
 
+  const archiveEntries = extractStatus?.entries ?? []
+
   const imageEntries = useMemo<ImageEntry[]>(() => {
     if (isFolderSource) {
       return (folderData?.items ?? [])
         .filter((item) => item.item_type === "file" && item.file_type === "image")
         .map((item, index) => ({ name: item.name, index, filePath: item.path }))
     }
-    return (listData?.entries ?? [])
+    return archiveEntries
       .filter((e) => e.file_type === "image")
       .map((entry, index) => ({ name: entry.name, index, entryPath: entry.entry_path }))
-  }, [isFolderSource, folderData, listData])
+  }, [isFolderSource, folderData, archiveEntries])
 
   const audioTracks = useMemo<AudioTrack[]>(() => {
     if (isFolderSource) {
@@ -118,14 +115,14 @@ export function useArchiveExtract(
           url: `${OpenAPI.BASE}/api/v1/fs/file?path=${encodeURIComponent(item.path)}`,
         }))
     }
-    return (listData?.entries ?? [])
+    return archiveEntries
       .filter((e) => e.file_type === "audio")
       .map((e) => ({
         name: e.name,
         sourcePath: e.entry_path,
         url: `${OpenAPI.BASE}/api/v1/fs/archive/file?path=${encodeURIComponent(path)}&entry=${encodeURIComponent(e.entry_path)}`,
       }))
-  }, [isFolderSource, folderData, listData, path])
+  }, [isFolderSource, folderData, archiveEntries, path])
 
   const audioCoverUrl = useMemo<string | undefined>(() => {
     if (isFolderSource) {
@@ -135,16 +132,15 @@ export function useArchiveExtract(
       if (!imageItem) return undefined
       return `${OpenAPI.BASE}/api/v1/fs/file?path=${encodeURIComponent(imageItem.path)}`
     }
-    const imageEntry = (listData?.entries ?? []).find((e) => e.file_type === "image")
+    const imageEntry = archiveEntries.find((e) => e.file_type === "image")
     if (!imageEntry) return undefined
     return `${OpenAPI.BASE}/api/v1/fs/archive/file?path=${encodeURIComponent(path)}&entry=${encodeURIComponent(imageEntry.entry_path)}`
-  }, [isFolderSource, folderData, listData, path])
+  }, [isFolderSource, folderData, archiveEntries, path])
 
   return {
     isLoading,
     loadError,
     extractStatus,
-    listData,
     folderData,
     parentListData,
     archiveImageReady,

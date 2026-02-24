@@ -75,11 +75,19 @@ export function getExtractCacheDir(archivePath: string): string {
 
 // ── list entries ─────────────────────────────────────────────────────────────
 
+// In-memory cache for listEntries results (TTL: 60s)
+const entriesCache = new Map<string, { entries: ArchiveEntry[]; expireAt: number }>();
+
 /**
  * List all media entries in an archive, sorted, with index and file size.
  * Uses `7z l -ba -slt -scsUTF-8` to parse Path= and Size= lines per entry block.
+ * Results are cached in memory for 60 seconds to avoid redundant 7z l calls.
  */
 export async function listEntries(archivePath: string): Promise<ArchiveEntry[]> {
+  const now = Date.now();
+  const cached = entriesCache.get(archivePath);
+  if (cached && cached.expireAt > now) return cached.entries;
+
   const { stdout } = await execFileAsync(
     get7z(),
     ["l", "-ba", "-slt", "-scsUTF-8", archivePath],
@@ -123,7 +131,7 @@ export async function listEntries(archivePath: string): Promise<ArchiveEntry[]> 
   // Sort naturally by path
   mediaEntries.sort((a, b) => a.entryPath.localeCompare(b.entryPath, undefined, { numeric: true, sensitivity: "base" }));
 
-  return mediaEntries.map(({ entryPath, size }, i) => {
+  const result = mediaEntries.map(({ entryPath, size }, i) => {
     const t = getEntryType(entryPath);
     return {
       name: path.basename(entryPath),
@@ -135,6 +143,9 @@ export async function listEntries(archivePath: string): Promise<ArchiveEntry[]> 
       size,
     };
   });
+
+  entriesCache.set(archivePath, { entries: result, expireAt: Date.now() + 60_000 });
+  return result;
 }
 
 /**
@@ -192,7 +203,7 @@ async function extractAll(archivePath: string, destDir: string): Promise<void> {
     await execFileAsync(
       get7z(),
       ["x", archivePath, `-o${destDir}`, "-aos", "-scsUTF-8"],
-      { timeout: 3600000, maxBuffer: 64 * 1024 * 1024 }  // 1h / 64MB for large archives
+      { timeout: 3600000, maxBuffer: 64 * 1024 * 1024 }  
     );
   });
 }
@@ -206,6 +217,8 @@ export interface StepwiseExtractResult {
   cache_dir: string;
   /** 压缩包内图片文件的平均大小（字节），用于前端展示 */
   avg_image_size: number | null;
+  /** 压缩包内媒体文件列表，供前端直接使用，避免额外的 list 请求 */
+  entries: ArchiveEntry[];
 }
 
 // Track in-progress extractions to avoid duplicate work
@@ -224,9 +237,10 @@ export async function stepwiseExtract(
   const cacheDir = getExtractCacheDir(archivePath);
 
   if (inProgress.has(archivePath)) {
-    // Count already extracted
+    // Count already extracted; use cached entries if available (avoids extra 7z l)
     const extracted = countExtractedFiles(cacheDir);
-    return { status: "already_running", extracted_count: extracted, total_count: 0, cache_dir: cacheDir, avg_image_size: null };
+    const cachedEntries = await listEntries(archivePath).catch(() => []);
+    return { status: "already_running", extracted_count: extracted, total_count: cachedEntries.length, cache_dir: cacheDir, avg_image_size: calcAvgImageSize(cachedEntries), entries: cachedEntries };
   }
 
   // Get full entry list
@@ -239,7 +253,7 @@ export async function stepwiseExtract(
 
   const total = entries.length;
   if (total === 0) {
-    return { status: "completed", extracted_count: 0, total_count: 0, cache_dir: cacheDir, avg_image_size: null };
+    return { status: "completed", extracted_count: 0, total_count: 0, cache_dir: cacheDir, avg_image_size: null, entries: [] };
   }
 
   // Phase 1: current page ± 2 (synchronous)
@@ -294,7 +308,7 @@ export async function stepwiseExtract(
   });
 
   const avgImageSize = calcAvgImageSize(entries);
-  return { status: "started", extracted_count: extracted, total_count: total, cache_dir: cacheDir, avg_image_size: avgImageSize };
+  return { status: "started", extracted_count: extracted, total_count: total, cache_dir: cacheDir, avg_image_size: avgImageSize, entries };
 }
 
 function countExtractedFiles(dir: string): number {
