@@ -139,7 +139,6 @@ function ReadPage() {
     archiveImageReady,
     imageEntries,
     audioTracks,
-    audioCoverUrl,
     mtime,
     filesize,
   } = useArchiveExtract(path, source)
@@ -434,7 +433,6 @@ function ReadPage() {
         source={source}
         fileName={fileName}
         audioTracks={audioTracks}
-        audioCoverUrl={audioCoverUrl}
         imageEntries={imageEntries}
         extractStatus={extractStatus}
         mtimeText={mtimeText}

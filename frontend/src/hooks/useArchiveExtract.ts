@@ -1,9 +1,12 @@
-// 压缩包/文件夹加载 Hook — 封装 read 页面的数据加载逻辑
-// source 四种模式：
-//   "folder"  → listDirectory(path)
-//   "archive" → extractArchive(path)，entries/mtime/filesize 内联返回
-//   "image"   → listDirectory(parentPath)，从兄弟文件中找图片
-//   "audio"   → listDirectory(parentPath)，从兄弟文件中找音频
+/**
+ * 压缩包/文件夹加载 Hook — 封装 read 页面的数据加载逻辑
+ *
+ * source 四种模式：
+ * - `"archive"` — 调用 `extractArchive(path)`，解压后从 entries 读取图片/音频列表
+ * - `"folder"`  — 调用 `listDirectory(path)`，直接列目录内容
+ * - `"image"`   — 调用 `listDirectory(parentPath)`，从兄弟文件中筛选图片
+ * - `"audio"`   — 调用 `listDirectory(parentPath)`，从兄弟文件中筛选音频
+ */
 import { useEffect, useMemo, useState } from "react"
 
 import { FilesystemService, OpenAPI } from "@/client"
@@ -34,7 +37,6 @@ export interface ArchiveExtractResult {
   archiveImageReady: boolean
   imageEntries: ImageEntry[]
   audioTracks: AudioTrack[]
-  audioCoverUrl: string | undefined
   /** 文件修改时间（Unix 秒），archive 分支从 extractStatus 读，其余从 folderData 读 */
   mtime: number | null
   /** 文件大小（字节） */
@@ -127,17 +129,6 @@ export function useArchiveExtract(
       }))
   }, [source, folderData, archiveEntries, path])
 
-  const audioCoverUrl = useMemo<string | undefined>(() => {
-    if (source === "archive") {
-      const imageEntry = archiveEntries.find((e) => e.file_type === "image")
-      if (!imageEntry) return undefined
-      return `${OpenAPI.BASE}/api/v1/fs/archive/file?path=${encodeURIComponent(path)}&entry=${encodeURIComponent(imageEntry.entry_path)}`
-    }
-    const imageItem = (folderData?.items ?? []).find((item) => item.item_type === "file" && item.file_type === "image")
-    if (!imageItem) return undefined
-    return `${OpenAPI.BASE}/api/v1/fs/file?path=${encodeURIComponent(imageItem.path)}`
-  }, [source, folderData, archiveEntries, path])
-
   const mtime: number | null =
     source === "archive"
       ? (extractStatus?.mtime ?? null)
@@ -156,7 +147,6 @@ export function useArchiveExtract(
     archiveImageReady,
     imageEntries,
     audioTracks,
-    audioCoverUrl,
     mtime,
     filesize,
   }

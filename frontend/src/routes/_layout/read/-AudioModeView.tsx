@@ -1,15 +1,16 @@
 /**
- * 音频播放模式 — 展示音频列表 + 封面 + 播放器
+ * 音频播放模式 — 单页翻图 + 音频列表 + 播放器
  */
+import { OpenAPI } from "@/client"
+import { PathBreadcrumb } from "@/components/Common/PathBreadcrumb"
+import { buttonVariants } from "@/components/ui/button"
+import { getParentPath } from "@/lib/path-utils"
 import { Link } from "@tanstack/react-router"
-import { Music4 } from "lucide-react"
+import { ChevronLeft, ChevronRight, Music4 } from "lucide-react"
 import { useState } from "react"
 import AudioPlayer from "react-h5-audio-player"
 import { useTranslation } from "react-i18next"
 import "react-h5-audio-player/lib/styles.css"
-
-import { PathBreadcrumb } from "@/components/Common/PathBreadcrumb"
-import { buttonVariants } from "@/components/ui/button"
 
 import type { AudioTrack, ImageEntry } from "./-types"
 
@@ -18,7 +19,6 @@ interface AudioModeViewProps {
   source: "archive" | "folder"
   fileName: string
   audioTracks: AudioTrack[]
-  audioCoverUrl: string | null | undefined
   imageEntries: ImageEntry[]
   extractStatus: { cache_dir?: string; status?: string } | null
   mtimeText: string
@@ -30,7 +30,6 @@ export function AudioModeView({
   source,
   fileName,
   audioTracks,
-  audioCoverUrl,
   imageEntries,
   extractStatus,
   mtimeText,
@@ -38,7 +37,21 @@ export function AudioModeView({
 }: AudioModeViewProps) {
   const { t } = useTranslation()
   const [audioIndex, setAudioIndex] = useState(0)
+  const [imageIndex, setImageIndex] = useState(0)
   const selectedTrack = audioTracks[audioIndex]
+  const parentPath = getParentPath(path)
+  const isFolderSource = source === "folder"
+
+  const totalImages = imageEntries.length
+  const currentImageEntry = imageEntries[imageIndex]
+  const currentImageSrc = currentImageEntry
+    ? isFolderSource
+      ? `${OpenAPI.BASE}/api/v1/fs/file?path=${encodeURIComponent(currentImageEntry.filePath || "")}`
+      : `${OpenAPI.BASE}/api/v1/fs/archive/file?path=${encodeURIComponent(path)}&entry=${encodeURIComponent(currentImageEntry.entryPath || "")}`
+    : undefined
+
+  const goPrevImage = () => setImageIndex((i) => (i - 1 + totalImages) % totalImages)
+  const goNextImage = () => setImageIndex((i) => (i + 1) % totalImages)
 
   return (
     <div className="reader-page">
@@ -61,9 +74,9 @@ export function AudioModeView({
             currentClassName="reader-toolbar__current-link"
           />
         </div>
-        {imageEntries.length > 0 && (
-          <div className="reader-toolbar__right">
-            <div className="reader-toolbar__actions">
+        <div className="reader-toolbar__right">
+          <div className="reader-toolbar__actions">
+            {imageEntries.length > 0 && (
               <Link
                 to="/read"
                 search={{ path, page: 0, source, sourceFolderPath: "", mode: "gallery" } as any}
@@ -71,19 +84,54 @@ export function AudioModeView({
               >
                 Images
               </Link>
-            </div>
+            )}
+            <Link
+              to="/explorer"
+              search={{ path: isFolderSource ? parentPath : (extractStatus?.cache_dir || parentPath), page: 1, pageSize: 48, sortField: "name", sortOrder: "asc", viewMode: "table" }}
+              className={buttonVariants({ variant: "ghost", size: "sm", className: "reader-toolbar__text-button" })}
+            >
+              Explorer
+            </Link>
           </div>
-        )}
+        </div>
       </nav>
 
       <div className="flex-1 overflow-auto">
         <div className="mx-auto max-w-3xl space-y-4 p-4">
-          {audioCoverUrl && (
-            <div className="mx-auto w-full max-w-[400px] rounded-md overflow-hidden border bg-card">
-              <img src={audioCoverUrl} alt={fileName} className="w-full object-contain" />
+          {/* 单页翻图区 — 高度比 gallery 小，留空间给音轨列表 */}
+          {totalImages > 0 && currentImageSrc && (
+            <div className="relative flex items-center justify-center rounded-md border bg-card overflow-hidden h-[35vh]">
+              <img
+                src={currentImageSrc}
+                alt={currentImageEntry?.name}
+                className="h-full w-full object-contain"
+              />
+                <>
+                  <button
+                    type="button"
+                    onClick={goPrevImage}
+                    className="reader-nav-button reader-nav-button--left"
+                    aria-label={t("reader.prevPage")}
+                  >
+                    <ChevronLeft className="reader-nav-button__icon" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={goNextImage}
+                    className="reader-nav-button reader-nav-button--right"
+                    aria-label={t("reader.nextPage")}
+                  >
+                    <ChevronRight className="reader-nav-button__icon" />
+                  </button>
+                  <span className="absolute bottom-2 left-1/2 -translate-x-1/2 text-xs text-white bg-black/50 rounded px-2 py-0.5 select-none">
+                    {imageIndex + 1} / {totalImages}
+                  </span>
+                </>
             </div>
           )}
-          <div className="space-y-1 rounded-md border bg-card p-3 max-h-[40vh] overflow-auto">
+
+          {/* 音轨列表 */}
+          <div className="space-y-1 rounded-md border bg-card p-3 max-h-[30vh] overflow-auto">
             {audioTracks.length === 0 ? (
               <div className="text-sm text-muted-foreground">{t("audio.noAudioFiles")}</div>
             ) : (
@@ -104,6 +152,8 @@ export function AudioModeView({
               ))
             )}
           </div>
+
+          {/* 播放器 */}
           {selectedTrack && (
             <div className="rounded-lg border bg-card p-3">
               <AudioPlayer
