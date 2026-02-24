@@ -108,7 +108,7 @@ export function AudioModeView({
             <div className="rounded-lg border bg-card p-3">
               <AudioPlayer
                 src={selectedTrack.url}
-                autoPlay
+                autoPlay={false}
                 showSkipControls={false}
                 showJumpControls={false}
               />
