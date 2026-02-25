@@ -150,21 +150,19 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 3rem;
-  height: 3rem;
+  width: 6rem;
+  height: 6rem;
   border: none;
   border-radius: 9999px;
-  background: transparent;
+  border: 2px solid var(--secondary-foreground);
   color: hsl(var(--foreground));
-  opacity: 0.7;
+  /* opacity: 0.7; */
   cursor: pointer;
-  transition:
-    opacity 0.2s,
-    background 0.2s;
+  animation: all .5s;
 }
 
 .reader-nav-button:hover {
-  background: hsl(var(--background) / 0.8);
+  background: var(--secondary);
   opacity: 1;
 }
 
@@ -174,8 +172,8 @@
 }
 
 .reader-nav-button__icon {
-  width: 2rem;
-  height: 2rem;
+  width: 3.5rem;
+  height: 3.5rem;
 }
 
 .reader-nav-button--left {
