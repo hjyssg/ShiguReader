@@ -8,7 +8,7 @@ const portConfig = require('./src/config/port-config');
 const { default_http_port } = portConfig;
 
 const config = {
-  entry: ['babel-polyfill', './src/main.jsx'],
+  entry: ['./src/main.jsx'],
   output: {
     path: path.join(__dirname, outputDirectory),
     filename: 'bundle.js',

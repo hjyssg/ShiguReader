@@ -1,6 +1,6 @@
 const path = require('path');
 const execa = require('../utils/own-execa');
-const pfs = require('promise-fs');
+const pfs = require('fs').promises;
 const _ = require('underscore');
 const zipInfoDb = require("../models/zip-info-db");
 const logger = require("../config/logger");

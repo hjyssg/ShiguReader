@@ -435,9 +435,6 @@ export default class FileChangeToolbar extends Component {
     }
 
     renderMoveButton() {
-        // return (<div tabIndex="0" className="fas fa-pen move-button" title="Move File"
-        //     onClick={this.handleRename.bind(this, "move")}></div>)
-
         return (<div tabIndex="0" className="fas fa-pen move-button" title="Move File"
             onClick={() => this.switchMode("move_menu")}></div>)
     }

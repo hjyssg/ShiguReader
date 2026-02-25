@@ -1,6 +1,6 @@
 const _ = require('underscore');
 const path = require('path');
-const pfs = require('promise-fs');
+const pfs = require('fs').promises;
 
 const serverUtil = require('../utils/server-util');
 const thumbnailUtil = require('./thumbnail-query');

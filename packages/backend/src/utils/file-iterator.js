@@ -2,7 +2,7 @@
 
 const path = require('path');
 const _ = require("underscore");
-const pfs = require('promise-fs');
+const pfs = require('fs').promises;
 const pathUtil = require("./path-util");
 
 

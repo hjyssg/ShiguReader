@@ -1,6 +1,6 @@
 
 const stringHash = require("string-hash");
-const pfs = require('promise-fs');
+const pfs = require('fs').promises;
 const path = require('path');
 const express = require('express');
 const router = express.Router();

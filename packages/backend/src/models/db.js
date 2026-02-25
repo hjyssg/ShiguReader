@@ -7,7 +7,7 @@ const serverUtil = require("../utils/server-util");
 const util = require('../../../common/src/util');
 const _util = require('util');
 const { isImage, isCompress, isMusic, isVideo, getCurrentTime } = util;
-const pfs = require('promise-fs');
+const pfs = require('fs').promises;
 const nameParser = require('../../../name-parser');
 const namePicker = require("../human-name-picker");
 

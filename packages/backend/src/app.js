@@ -1,6 +1,6 @@
 const path = require('path');
 const express = require('express');
-const pfs = require('promise-fs');
+const pfs = require('fs').promises;
 const dateFormat = require('dateformat');
 const _ = require('underscore');
 const qrcode = require('qrcode-terminal');

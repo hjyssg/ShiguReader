@@ -6,7 +6,7 @@ const nameParser = require('../../../name-parser');
 // const { isImage, isCompress } = util;
 const fs = require('fs');
 const logger = require("../config/logger");
-const pfs = require('promise-fs');
+const pfs = require('fs').promises;
 const pathUtil = require("./path-util");
 const userConfig = require('../config/user-config');
 const net = require('net');
@@ -164,7 +164,7 @@ const asyncWrapper = (fn) => {
                 // next
                 try {
                     logger.error("asyncWrapper", reason, "\n\n", req);
-                    res.send({ faled: true, reason: reason?.stack });
+                    res.send({ failed: true, reason: reason?.stack });
                 } catch (e) {
                     debugger;
                 }

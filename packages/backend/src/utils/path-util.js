@@ -11,7 +11,7 @@ const _ = require('underscore');
 const logger = require("../config/logger");
 const { isImage, isMusic, isVideo, isDisplayableInOnebook } = util;
 // const cache_folder_name = userConfig.cache_folder_name;
-const pfs = require('promise-fs');
+const pfs = require('fs').promises;
 const junk = require('junk');
 const { pathEqual } = require('path-equal');
 

@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 // const _ = require('underscore');
 const path = require('path');
-const pfs = require('promise-fs');
+const pfs = require('fs').promises;
 
 const pathUtil = require("../utils/path-util");
 const {

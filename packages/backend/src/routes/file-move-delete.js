@@ -1,5 +1,5 @@
 const path = require('path');
-const pfs = require('promise-fs');
+const pfs = require('fs').promises;
 const execa = require('../utils/own-execa');
 const userConfig = require('../config/user-config');
 const express = require('express');
