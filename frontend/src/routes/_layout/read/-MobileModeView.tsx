@@ -16,7 +16,6 @@ interface MobileModeViewProps {
   isFolderSource: boolean
   currentPage: number
   imageEntries: ImageEntry[]
-  extractStatus: { cache_dir?: string; status?: string } | null
   onPageChange: (page: number) => void
 }
 
@@ -25,7 +24,6 @@ export function MobileModeView({
   isFolderSource,
   currentPage,
   imageEntries,
-  extractStatus,
   onPageChange,
 }: MobileModeViewProps) {
   const navigate = useNavigate()

@@ -224,7 +224,6 @@ function Explorer() {
       <FileViewContainer
         items={filteredItems}
         isLoading={isLoading}
-        currentPath={path}
         initialViewMode={viewMode ?? "mixed"}
         sortField={sortField}
         sortOrder={sortOrder}

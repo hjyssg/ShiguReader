@@ -12,8 +12,6 @@ import {
 } from "lucide-react"
 import { useTranslation } from "react-i18next"
 
-import { toastInfo } from "@/lib/toast"
-
 import { OpenAPI } from "@/client"
 import type { FileSystemItem } from "@/client/types.gen"
 import { ListTable, type ListTableColumn } from "@/components/Common/ListTable"
@@ -29,7 +27,6 @@ import { UnifiedPagination } from "@/components/Common/UnifiedPagination"
 import { Skeleton } from "@/components/ui/skeleton"
 import { buildNavigationTarget } from "@/hooks/useFileNavigation"
 import { useIsMobile } from "@/hooks/useMobile"
-import { getLinkTarget } from "@/constants/openBehavior"
 
 type SortOrder = "asc" | "desc"
 
