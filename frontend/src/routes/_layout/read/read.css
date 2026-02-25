@@ -295,10 +295,24 @@
   border-color: hsl(var(--primary));
 }
 
-.reader-waterfall-item__image {
+.reader-waterfall-item__image-wrap {
+  position: relative;
   height: 90vh;
-  object-fit: contain;
   background: hsl(var(--muted));
+}
+
+.reader-waterfall-item__skeleton {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 0;
+}
+
+.reader-waterfall-item__image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
 
 .reader-waterfall-item__caption {
