@@ -151,3 +151,20 @@ const isHiddenFile function (f) {
 
 、-------------
 之前加了右键菜单，后来不要了。但是代码没有删除干净的样子。
+
+interface FileItemProps {
+  className?: string
+  metaText?: string
+  metaTitle?: string
+  thumbnailTooltip?: string
+
+  item: FileSystemItem
+  /** 是否选中 */
+  isSelected?: boolean
+  /** 卡片底部右侧操作区（如 ... dropdown） */
+  actionSlot?: React.ReactNode
+  /** 单击回调（处理选择） */
+  onClick?: (e: React.MouseEvent) => void
+  /** 右键回调 */
+  onContextMenu?: (e: React.MouseEvent) => void
+}
