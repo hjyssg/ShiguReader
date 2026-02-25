@@ -119,8 +119,6 @@ function Video() {
     <div className="reader-page">
       <ReaderToolbar
         sourcePath={path}
-        fileName={fileName}
-        extraCrumbs={entry ? [{ label: "Archive", to: "/explorer", search: { path, page: 1, pageSize: 48, sortField: "mtime", sortOrder: "desc" } }] : []}
         actions={(
           <DropdownMenu modal={false}>
             <DropdownMenuTrigger asChild>

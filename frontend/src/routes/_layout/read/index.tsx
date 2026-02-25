@@ -408,10 +408,8 @@ function ReadPage() {
     return (
       <AudioModeView
         path={path}
-        fileName={fileName}
         audioTracks={audioTracks}
         imageEntries={imageEntries}
-        extractStatus={extractStatus}
         imagesReady={imagesReady}
         mtimeText={mtimeText}
         sizeText={sizeText}
@@ -436,7 +434,6 @@ function ReadPage() {
     return (
       <WaterfallModeView
         path={path}
-        fileName={fileName}
         imageEntries={imageEntries}
         extractStatus={extractStatus}
       />
@@ -447,16 +444,7 @@ function ReadPage() {
   if (!currentEntry) {
     return (
       <div className="reader-empty-page">
-        <PathBreadcrumb
-          sourcePath={path}
-          homeLabel={t("common.home")}
-          separatorClassName="size-4 text-muted-foreground"
-          currentTo="/explorer"
-          currentSearch={isFolderSource
-            ? { path, page: 1, pageSize: 48, sortField: "name", sortOrder: "asc", viewMode: "table" }
-            : { path: extractStatus?.cache_dir || path, page: 1, pageSize: 48, sortField: "name", sortOrder: "asc", viewMode: "table" }}
-          currentLabel={fileName}
-        />
+        <PathBreadcrumb sourcePath={path} />
         <div className="reader-empty-header">
           <div className="reader-empty-header__title">{fileName}</div>
           <div className="reader-empty-header__actions">
@@ -541,24 +529,7 @@ function ReadPage() {
       {/* ── 顶部工具栏 ── */}
       <nav className="reader-toolbar">
         <div className="reader-toolbar__left">
-          <PathBreadcrumb
-            as="div"
-            sourcePath={path}
-            homeLabel={null}
-            homeLinkClassName="reader-toolbar__home-link"
-            homeIconClassName="size-3.5"
-            dirItemClassName="reader-toolbar__crumb-item"
-            dirLinkClassName="reader-toolbar__crumb-link"
-            separatorClassName="size-3 text-muted-foreground/60"
-            showFolderIcon={false}
-            collapseDirCrumbsAfter={2}
-            currentTo="/explorer"
-            currentSearch={isFolderSource
-              ? { path, page: 1, pageSize: 48, sortField: "name", sortOrder: "asc", viewMode: "table" }
-              : { path: extractStatus?.cache_dir || path, page: 1, pageSize: 48, sortField: "name", sortOrder: "asc", viewMode: "table" }}
-            currentLabel={fileName}
-            currentClassName="reader-toolbar__current-link"
-          />
+          <PathBreadcrumb sourcePath={path} className="reader-toolbar__crumb" />
         </div>
         <div className="reader-toolbar__right">
           <div className="reader-toolbar__actions">

@@ -22,10 +22,7 @@ export function FileNotFoundError({
 
   return (
     <div className="space-y-4 p-[10px]">
-      <PathBreadcrumb
-        sourcePath={path}
-        currentLabel={fileName}
-      />
+      <PathBreadcrumb sourcePath={path} />
 
       <div className="flex flex-col items-center justify-center py-24 text-center space-y-6">
         <svg

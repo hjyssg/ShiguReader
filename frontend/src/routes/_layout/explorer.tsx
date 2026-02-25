@@ -2,8 +2,8 @@
  * 文件浏览器 - 浏览文件系统目录，支持排序、过滤和扫描功能
  */
 import { useQuery } from "@/shims/react-query"
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router"
-import { ChevronRight, Home, ScanLine } from "lucide-react"
+import { createFileRoute, useNavigate } from "@tanstack/react-router"
+import { ScanLine } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 
@@ -11,6 +11,7 @@ import { toastError, toastSuccess } from "@/lib/toast"
 
 import { FilesystemService } from "@/client"
 import { FileNotFoundError } from "@/components/Common/FileNotFoundError"
+import { PathBreadcrumb } from "@/components/Common/PathBreadcrumb"
 import { FileViewContainer } from "@/components/Files/FileViewContainer"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -25,7 +26,6 @@ import { useDocumentTitle } from "@/hooks/useDocumentTitle"
 import { useFileOperations } from "@/hooks/useFileOperations"
 import { useResolveMovedFile } from "@/hooks/useResolveMovedFile"
 import {
-  buildPathBreadcrumbs,
   getBaseName,
   getParentPath,
 } from "@/lib/path-utils"
@@ -134,7 +134,6 @@ function Explorer() {
     enabled: false,
   })
 
-  const breadcrumbs = buildPathBreadcrumbs(path)
   const parentPath = getParentPath(path)
   const operations = useFileOperations(path)
 
@@ -150,14 +149,6 @@ function Explorer() {
       })
     },
   )
-
-  const buildSearchForPath = (nextPath: string) => ({
-    path: nextPath,
-    page: 1,
-    pageSize,
-    sortField,
-    sortOrder,
-  })
 
   const filteredItems = useMemo(() => {
     const items = data?.items || []
@@ -228,24 +219,7 @@ function Explorer() {
   return (
     <div className="explorer-page">
       {/* 面包屑导航 */}
-      <nav className="explorer-breadcrumb" aria-label="Explorer breadcrumb">
-        {breadcrumbs.map((crumb, index) => (
-          <div key={crumb.path} className="explorer-breadcrumb__item">
-            { index > 0 &&  <ChevronRight className="explorer-breadcrumb__separator" /> }
-            {index === breadcrumbs.length - 1 ? (
-              <span className="explorer-breadcrumb__current">{crumb.name}</span>
-            ) : (
-              <Link
-                to="/explorer"
-                search={buildSearchForPath(crumb.path)}
-                className="explorer-breadcrumb__link"
-              >
-                {crumb.name}
-              </Link>
-            )}
-          </div>
-        ))}
-      </nav>
+      <PathBreadcrumb sourcePath={path} className="explorer-breadcrumb" />
 
       <FileViewContainer
         items={filteredItems}

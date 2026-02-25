@@ -52,14 +52,12 @@ function WaterfallImage({ src, alt }: { src: string; alt: string }) {
 
 interface WaterfallModeViewProps {
   path: string
-  fileName: string
   imageEntries: ImageEntry[]
   extractStatus: { cache_dir?: string; status?: "extracting" | "completed" | "error" | "started" | "already_running" } | null
 }
 
 export function WaterfallModeView({
   path,
-  fileName,
   imageEntries,
   extractStatus,
 }: WaterfallModeViewProps) {
@@ -70,8 +68,6 @@ export function WaterfallModeView({
     <div className="reader-page">
       <ReaderToolbar
         sourcePath={path}
-        fileName="Waterfall"
-        extraCrumbs={[{ label: fileName, to: "/explorer", search: { path: extractStatus?.cache_dir || path, page: 1, pageSize: 48, sortField: "mtime", sortOrder: "desc" } }]}
       />
 
       <div className="reader-waterfall-page flex-1 overflow-auto">

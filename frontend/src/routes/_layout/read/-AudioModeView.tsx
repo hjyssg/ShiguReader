@@ -18,10 +18,8 @@ import type { AudioTrack, ImageEntry } from "./-types"
 
 interface AudioModeViewProps {
   path: string
-  fileName: string
   audioTracks: AudioTrack[]
   imageEntries: ImageEntry[]
-  extractStatus: { cache_dir?: string; status?: string } | null
   imagesReady: boolean
   mtimeText: string
   sizeText: string
@@ -29,10 +27,8 @@ interface AudioModeViewProps {
 
 export function AudioModeView({
   path,
-  fileName,
   audioTracks,
   imageEntries,
-  extractStatus,
   imagesReady,
   mtimeText,
   sizeText,
@@ -100,22 +96,7 @@ export function AudioModeView({
     <div className="reader-page">
       <nav className="reader-toolbar">
         <div className="reader-toolbar__left">
-          <PathBreadcrumb
-            as="div"
-            sourcePath={path}
-            homeLabel={null}
-            homeLinkClassName="reader-toolbar__home-link"
-            homeIconClassName="size-3.5"
-            dirItemClassName="reader-toolbar__crumb-item"
-            dirLinkClassName="reader-toolbar__crumb-link"
-            separatorClassName="size-3 text-muted-foreground/60"
-            showFolderIcon={false}
-            collapseDirCrumbsAfter={2}
-            currentTo="/explorer"
-            currentSearch={{ path: extractStatus?.cache_dir || path, page: 1, pageSize: 48, sortField: "name", sortOrder: "asc", viewMode: "table" }}
-            currentLabel={fileName}
-            currentClassName="reader-toolbar__current-link"
-          />
+          <PathBreadcrumb sourcePath={path} className="reader-toolbar__crumb" />
         </div>
         <div className="reader-toolbar__right">
           <div className="reader-toolbar__actions">
@@ -130,7 +111,7 @@ export function AudioModeView({
             )}
             <Link
               to="/explorer"
-              search={{ path: isFolderSource ? parentPath : (extractStatus?.cache_dir || parentPath), page: 1, pageSize: 48, sortField: "name", sortOrder: "asc", viewMode: "table" }}
+              search={{ path: parentPath, page: 1, pageSize: 48, sortField: "name", sortOrder: "asc", viewMode: "table" }}
               className={buttonVariants({ variant: "ghost", size: "sm", className: "reader-toolbar__text-button" })}
             >
               Explorer
