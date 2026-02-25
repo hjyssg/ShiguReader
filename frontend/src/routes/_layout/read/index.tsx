@@ -672,8 +672,10 @@ function ReadPage() {
             ) : <span className="text-muted-foreground">{t("reader.none")}</span>}
           </div>
         </div>
-        <div className="reader-meta-bar__right">{pagination}</div>
       </div>
+
+      {/* ── 页码指示器（固定右下角，始终显示） ── */}
+      {pagination}
 
       {/* ── File operation dialogs ── */}
       <RenameDialog open={renameOpen} onOpenChange={setRenameOpen} filePath={path} onConfirm={(newName) => { operations.renameMutation.mutate({ path, newName }, { onSuccess: () => { setRenameOpen(false); navigate({ to: "/" }) } }) }} isPending={operations.renameMutation.isPending} />

@@ -67,7 +67,7 @@ export function CompressDialog({
           >
             {t("common.cancel")}
           </Button>
-          <Button type="button" onClick={onConfirm} disabled={isPending}>
+          <Button type="button" onClick={onConfirm} autoFocus disabled={isPending}>
             {isPending ? labels.pending : labels.button}
           </Button>
         </DialogFooter>
