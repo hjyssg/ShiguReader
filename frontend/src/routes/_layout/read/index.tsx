@@ -189,7 +189,7 @@ function ReadPage() {
     const target = wrapPageIndex(nextPage, totalPages)
     navigate({
       to: "/read",
-      search: (prev) => ({ ...prev, page: target }),
+      search: { path, page: target, mode },
       replace: true,
     })
   }
@@ -424,7 +424,6 @@ function ReadPage() {
         isFolderSource={isFolderSource}
         currentPage={currentPage}
         imageEntries={imageEntries}
-        extractStatus={extractStatus}
         onPageChange={(p) => goToPage(p)}
       />
     )
