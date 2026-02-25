@@ -31,8 +31,8 @@ export interface ArchiveExtractResult {
   loadError: unknown
   extractStatus: ExtractStatus | null
   folderData: ListResponse | null
-  /** 压缩包图片已可请求（解压完成或 folder/sibling source） */
-  archiveImageReady: boolean
+  /** 图片已可请求（压缩包解压完成，或 folder/sibling source 无需等待） */
+  imagesReady: boolean
   imageEntries: ImageEntry[]
   audioTracks: AudioTrack[]
   /** 文件修改时间（Unix 秒） */
@@ -63,7 +63,7 @@ export function useArchiveExtract(
   const [extractStatus, setExtractStatus] = useState<ExtractStatus | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [loadError, setLoadError] = useState<unknown>(null)
-  const [archiveImageReady, setArchiveImageReady] = useState(internalSource !== "archive")
+  const [imagesReady, setImagesReady] = useState(internalSource !== "archive")
 
   useEffect(() => {
     let cancelled = false
@@ -76,15 +76,15 @@ export function useArchiveExtract(
       setFolderData(null)
       setExtractStatus(null)
       const src = inferInternalSource(path)
-      setArchiveImageReady(src !== "archive")
+      setImagesReady(src !== "archive")
 
       try {
         if (src === "archive") {
-          setArchiveImageReady(false)
+          setImagesReady(false)
           const result = await FilesystemService.extractArchive({ path, page: 0 })
           if (!cancelled) {
             setExtractStatus(result)
-            setArchiveImageReady(true)
+            setImagesReady(true)
           }
         } else if (src === "folder") {
           const data = await FilesystemService.listDirectory({ path })
@@ -97,7 +97,7 @@ export function useArchiveExtract(
       } catch (error) {
         if (!cancelled) {
           setLoadError(error)
-          setArchiveImageReady(true)
+          setImagesReady(true)
         }
       } finally {
         if (!cancelled) setIsLoading(false)
@@ -155,7 +155,7 @@ export function useArchiveExtract(
     loadError,
     extractStatus,
     folderData,
-    archiveImageReady,
+    imagesReady,
     imageEntries,
     audioTracks,
     mtime,

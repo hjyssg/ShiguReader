@@ -130,7 +130,7 @@ function ReadPage() {
     isLoading,
     loadError,
     extractStatus,
-    archiveImageReady,
+    imagesReady,
     imageEntries,
     audioTracks,
     mtime,
@@ -409,6 +409,7 @@ function ReadPage() {
         audioTracks={audioTracks}
         imageEntries={imageEntries}
         extractStatus={extractStatus}
+        imagesReady={imagesReady}
         mtimeText={mtimeText}
         sizeText={sizeText}
       />
@@ -515,7 +516,7 @@ function ReadPage() {
     setImageLoaded(true)
   }
 
-  const canRequestImage = isFolderSource || archiveImageReady
+  const canRequestImage = isFolderSource || imagesReady
   const showImagePlaceholder = !canRequestImage
 
   const pagination = (
