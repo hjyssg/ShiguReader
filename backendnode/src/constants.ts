@@ -1,10 +1,3 @@
-export const IMAGE_SUFFIXES = [".jpg", ".jpeg", ".png", ".webp", ".bmp", ".gif", ".heic"] as const;
-export const VIDEO_SUFFIXES = [".mp4", ".mkv", ".avi", ".mov", ".webm", ".flv", ".wmv"] as const;
-export const ARCHIVE_SUFFIXES = [".zip", ".cbz", ".rar", ".cbr", ".7z", ".tar", ".tar.gz", ".tgz"] as const;
-export const AUDIO_SUFFIXES = [".mp3", ".flac", ".wav", ".aac", ".ogg", ".m4a"] as const;
-
-export type FileType = "image" | "video" | "archive" | "audio" | "unknown";
-
 export const MIME_TYPE_MAP: Record<string, string> = {
   ".jpg": "image/jpeg",
   ".jpeg": "image/jpeg",

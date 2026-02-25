@@ -11,7 +11,7 @@ import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import pLimit from "p-limit";
 import { config } from "../config.js";
-import { IMAGE_SUFFIXES, VIDEO_SUFFIXES, AUDIO_SUFFIXES } from "../constants.js";
+import { getFileType } from "../utils/fileType.js";
 import { logger } from "../logger.js";
 import { get7z, getMagick } from "../utils/tools.js";
 import { isHiddenFile } from "../utils/fileFilters.js";
@@ -44,10 +44,6 @@ function shouldIgnore(entryPath: string): boolean {
 
 // ── entry type detection ─────────────────────────────────────────────────────
 
-const IMAGE_EXTS = new Set(IMAGE_SUFFIXES as readonly string[]);
-const VIDEO_EXTS = new Set(VIDEO_SUFFIXES as readonly string[]);
-const AUDIO_EXTS = new Set(AUDIO_SUFFIXES as readonly string[]);
-
 export type EntryType = "image" | "video" | "audio" | "other";
 
 export interface ArchiveEntry {
@@ -64,16 +60,10 @@ export interface ArchiveEntry {
 }
 
 function getEntryType(entryPath: string): EntryType {
-  const ext = path.extname(entryPath).toLowerCase();
-  if (IMAGE_EXTS.has(ext)) {
-    return "image";
-  }
-  if (VIDEO_EXTS.has(ext)) {
-    return "video";
-  }
-  if (AUDIO_EXTS.has(ext)) {
-    return "audio";
-  }
+  const t = getFileType(entryPath);
+  if (t === "image") return "image";
+  if (t === "video") return "video";
+  if (t === "audio") return "audio";
   return "other";
 }
 
@@ -480,13 +470,13 @@ export async function compressArchiveImages(
     let originalBytes = 0;
     let outputBytes = 0;
 
-    const walkAndCompress = async (dir: string) => {
+      const walkAndCompress = async (dir: string) => {
       const entries = fs.readdirSync(dir, { withFileTypes: true });
       for (const e of entries) {
         const full = path.join(dir, e.name);
         if (e.isDirectory()) {
           await walkAndCompress(full);
-        } else if (e.isFile() && IMAGE_EXTS.has(path.extname(e.name).toLowerCase())) {
+        } else if (e.isFile() && getFileType(e.name) === "image") {
           const stat = fs.statSync(full);
           originalBytes += stat.size;
           try {

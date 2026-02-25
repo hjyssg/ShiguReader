@@ -14,8 +14,7 @@ import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import pLimit from "p-limit";
 import { config } from "../config.js";
-import { getFileType } from "../utils/fileType.js";
-import { IMAGE_SUFFIXES } from "../constants.js";
+import { getFileType, isImage } from "../utils/fileType.js";
 import { get7z, getMagick, getFfmpeg } from "../utils/tools.js";
 import { isHiddenFile } from "../utils/fileFilters.js";
 import { fileExists } from "../utils/fsUtils.js";
@@ -46,16 +45,9 @@ async function isCached(p: string): Promise<boolean> {
 
 // ── archive thumbnail ────────────────────────────────────────────────────────
 
-const IMAGE_EXTS = new Set(IMAGE_SUFFIXES as readonly string[]);
-
 async function generateArchiveThumb(archivePath: string, outputPath: string): Promise<void> {
   const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "shiguthumb-"));
   try {
-    // Strategy: list entries first via `7z l -slt -scsUTF-8`, find the first image,
-    // then extract only that single file using a temp list file (@listfile).
-    // This avoids wildcard extraction (slow for large archives) and command-line
-    // encoding issues with non-ASCII filenames on Windows.
-
     // Step 1: List entries
     const { stdout } = await execFileAsync(get7z(), ["l", "-ba", "-slt", "-scsUTF-8", archivePath], {
       timeout: config.THUMB_TIMEOUT_SEC * 1000,
@@ -70,8 +62,7 @@ async function generateArchiveThumb(archivePath: string, outputPath: string): Pr
       if (pathMatch) {
         currentPath = pathMatch[1].trim();
       } else if (line.trim() === "" && currentPath !== null) {
-        const ext = path.extname(currentPath).toLowerCase();
-        if (IMAGE_EXTS.has(ext) && !isHiddenFile(currentPath)) {
+        if (isImage(currentPath) && !isHiddenFile(currentPath)) {
           firstImageEntry = currentPath;
           break;
         }
@@ -80,8 +71,7 @@ async function generateArchiveThumb(archivePath: string, outputPath: string): Pr
     }
     // Handle last entry without trailing blank line
     if (!firstImageEntry && currentPath !== null) {
-      const ext = path.extname(currentPath).toLowerCase();
-      if (IMAGE_EXTS.has(ext) && !isHiddenFile(currentPath)) {
+      if (isImage(currentPath) && !isHiddenFile(currentPath)) {
         firstImageEntry = currentPath;
       }
     }
@@ -129,7 +119,7 @@ function findFirstImageInDir(dir: string): string | null {
     const sorted = entries.slice().sort((a, b) => a.name.localeCompare(b.name));
     for (const e of sorted) {
       const full = path.join(dir, e.name);
-      if (e.isFile() && IMAGE_EXTS.has(path.extname(e.name).toLowerCase()) && !isHiddenFile(e.name)) {
+      if (e.isFile() && isImage(e.name) && !isHiddenFile(e.name)) {
         return full;
       }
       if (e.isDirectory()) {
@@ -231,9 +221,7 @@ export async function resolveCachedThumb(filePath: string): Promise<string | nul
  * Prefer getOrGenerateThumb for new code.
  */
 export async function resolveThumbSource(filePath: string): Promise<string | null> {
-  const ext = path.extname(filePath).toLowerCase();
-  const imageExts = new Set([".jpg", ".jpeg", ".png", ".webp", ".gif", ".bmp"]);
-  if (imageExts.has(ext)) {
+  if (isImage(filePath)) {
     return (await fileExists(filePath, fs.constants.R_OK)) ? filePath : null;
   }
   return resolveCachedThumb(filePath);

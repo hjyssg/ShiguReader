@@ -10,7 +10,8 @@ import { useEffect, useMemo, useState } from "react"
 
 import { FilesystemService, OpenAPI } from "@/client"
 import type { ExtractStatus, ListResponse } from "@/client"
-import { getParentPath, inferPathType } from "@/lib/path-utils"
+import { getFileType } from "@common/fileTypeUtil"
+import { getParentPath } from "@/lib/path-utils"
 
 export type ImageEntry = {
   name: string
@@ -45,10 +46,10 @@ export interface ArchiveExtractResult {
 type InternalSource = "archive" | "folder" | "sibling"
 
 function inferInternalSource(path: string): InternalSource {
-  const type = inferPathType(path)
-  if (type === "file") return "sibling"   // 图片/音频等普通文件 → 列父目录
+  const type = getFileType(path)
   if (type === "archive") return "archive"
-  return "folder"
+  if (type === "folder") return "folder"
+  return "sibling"  // image/audio/video/unknown → 列父目录
 }
 
 export function useArchiveExtract(

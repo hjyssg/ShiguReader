@@ -55,3 +55,4 @@ backend/app/file_processing/name_parser/coser_names.idx
 /data/index_node.db-shm
 /data/index_node.db
 /data/index_node.db-wal
+/backendnode/dist

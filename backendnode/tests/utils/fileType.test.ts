@@ -72,7 +72,10 @@ describe("getFileType", () => {
 
   it("returns unknown for unrecognised extension", () => {
     expect(getFileType("/a/file.xyz")).toBe("unknown");
-    expect(getFileType("/a/README")).toBe("unknown");
+  });
+
+  it("returns folder for no extension", () => {
+    expect(getFileType("/a/README")).toBe("folder");
   });
 
   it("is case-insensitive", () => {

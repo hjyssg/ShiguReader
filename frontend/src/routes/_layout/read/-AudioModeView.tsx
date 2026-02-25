@@ -4,7 +4,8 @@
 import { OpenAPI } from "@/client"
 import { PathBreadcrumb } from "@/components/Common/PathBreadcrumb"
 import { buttonVariants } from "@/components/ui/button"
-import { getParentPath, inferPathType } from "@/lib/path-utils"
+import { isArchive } from "@common/fileTypeUtil"
+import { getParentPath } from "@/lib/path-utils"
 import { Link } from "@tanstack/react-router"
 import { ChevronLeft, ChevronRight, Music4 } from "lucide-react"
 import { useEffect, useState } from "react"
@@ -38,7 +39,7 @@ export function AudioModeView({
   const [imageIndex, setImageIndex] = useState(0)
   const selectedTrack = audioTracks[audioIndex]
   const parentPath = getParentPath(path)
-  const isFolderSource = inferPathType(path) !== "archive"
+  const isFolderSource = !isArchive(path)
 
   const totalImages = imageEntries.length
   const currentImageEntry = imageEntries[imageIndex]
