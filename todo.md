@@ -137,3 +137,12 @@ const isHiddenFile function (f) {
 
 先给read加注释，然后重构
 
+
+
+----
+想在env里面提供一个密码选项，作为极简的访问检查。这个密码作为cookie，五天过期。 前端发送任意请求被拒绝了就专挑到login page。 而且我要防御别人暴力破解，试超过5次禁止ip 24小时。你总结一下的我思路。
+
+---
+
+---------
+read页面不做自动区分mobile与否了，在read右上角放一个切换mobile view的link，和waterfall一样，点击了切换。
