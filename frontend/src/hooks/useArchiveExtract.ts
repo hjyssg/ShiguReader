@@ -40,11 +40,6 @@ export interface ArchiveExtractResult {
   filesize: number | null
   /** 推断出的数据源类型 */
   source: "archive" | "folder"
-  /**
-   * sibling 模式下（path 指向具体图片/音频文件），加载完目录后定位到该文件的 index。
-   * 其他模式下为 null，调用方应使用 URL 中的 page 参数。
-   */
-  siblingInitialPage: number | null
 }
 
 type InternalSource = "archive" | "folder" | "sibling"
@@ -154,13 +149,6 @@ export function useArchiveExtract(
       ? (extractStatus?.filesize ?? null)
       : ((folderData?.items ?? []).find((item) => item.path === path)?.filesize ?? null)
 
-  // sibling 模式：定位到 path 对应的 index
-  const siblingInitialPage = useMemo<number | null>(() => {
-    if (internalSource !== "sibling") return null
-    const idx = imageEntries.findIndex((e) => e.filePath === path)
-    return idx >= 0 ? idx : 0
-  }, [internalSource, imageEntries, path])
-
   return {
     isLoading,
     loadError,
@@ -172,6 +160,5 @@ export function useArchiveExtract(
     mtime,
     filesize,
     source,
-    siblingInitialPage,
   }
 }

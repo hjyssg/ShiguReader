@@ -136,7 +136,6 @@ function ReadPage() {
     mtime,
     filesize,
     source,
-    siblingInitialPage,
   } = useArchiveExtract(path)
   const isFolderSource = source === "folder"
   const isArchiveSource = source === "archive"
@@ -178,8 +177,7 @@ function ReadPage() {
     }
   }, [shouldAutoAudio, navigate, path])
 
-  // sibling 模式（path 指向具体图片/音频文件）：加载完目录后定位到该文件的 index
-  const resolvedPage = siblingInitialPage !== null ? siblingInitialPage : page
+  const resolvedPage = page || Math.max(0, imageEntries.findIndex((e) => e.filePath === path))
 
   const totalPages = imageEntries.length
   const currentPage = wrapPageIndex(resolvedPage, totalPages)
