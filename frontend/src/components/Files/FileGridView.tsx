@@ -8,7 +8,7 @@ interface FileGridViewProps {
   items: FileSystemItem[]
   isOpenable: (item: FileSystemItem) => boolean
   buildActions: (item: FileSystemItem) => FileContextMenuActions
-  onItemClick: (item: FileSystemItem, e: React.MouseEvent) => void
+  onItemClick?: (item: FileSystemItem, e: React.MouseEvent) => void
   className?: string
 }
 
@@ -16,33 +16,25 @@ export function FileGridView({
   items,
   isOpenable,
   buildActions,
-  onItemClick,
   className,
 }: FileGridViewProps) {
   return (
     <ResponsiveGrid className={className}>
       {items.map((item) => {
-        const useIconDropdown = Boolean(item.thumbnail_url)
         const actions = buildActions(item)
 
         return (
           <FileItem
             key={item.path}
             item={item}
-            isSelected={false}
             actionSlot={
-              useIconDropdown ? (
+              item.thumbnail_url ? (
                 <FileActionsDropdown
                   item={item}
                   isOpenable={isOpenable(item)}
                   actions={actions}
                 />
               ) : undefined
-            }
-            onClick={
-              useIconDropdown
-                ? undefined
-                : (e) => onItemClick(item, e)
             }
           />
         )

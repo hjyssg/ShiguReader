@@ -96,7 +96,7 @@ export function ThumbnailImage({
         <img
           src={src}
           alt={alt}
-          className="size-full object-contain"
+          className="thumbnail-img size-full object-contain"
           onLoad={handleLoad}
           onError={handleError}
         />

@@ -774,7 +774,6 @@ export function FileViewContainer({
                 items={mixedGroups.archives}
                 isOpenable={isOpenable}
                 buildActions={buildContextMenuActions}
-                onItemClick={handleItemClick}
               />
             </section>
           )}
@@ -784,7 +783,6 @@ export function FileViewContainer({
           items={pagedItems}
           isOpenable={isOpenable}
           buildActions={buildContextMenuActions}
-          onItemClick={handleItemClick}
           className="grid-content"
         />
       ) : (

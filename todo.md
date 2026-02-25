@@ -145,3 +145,9 @@ const isHiddenFile function (f) {
 ---
 
 ---------
+从entity/search/explorer去打开read/video/img/audio之类的的时候
+默认要打开在一个新tab。用一个变量定义在env
+
+
+、-------------
+之前加了右键菜单，后来不要了。但是代码没有删除干净的样子。

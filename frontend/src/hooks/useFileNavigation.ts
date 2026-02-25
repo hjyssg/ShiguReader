@@ -3,6 +3,7 @@ import { useNavigate } from "@tanstack/react-router"
 import { useCallback } from "react"
 
 import type { FileSystemItem } from "@/client"
+import { getLinkTarget } from "@/constants/openBehavior"
 import { useIsMobile } from "@/hooks/useMobile"
 /** 根据文件类型构建导航目标 */
 export function buildNavigationTarget(item: FileSystemItem, isMobile: boolean) {
@@ -75,11 +76,15 @@ export function useFileNavigation() {
   const navigate = useNavigate()
   const isMobile = useIsMobile()
 
-  /** 当前标签页打开 */
+  /** 当前标签页打开（若 OPEN_FILE_IN_NEW_TAB=true 且非文件夹，则改为新标签页） */
   const openItem = useCallback(
     (item: FileSystemItem) => {
       const target = buildNavigationTarget(item, isMobile)
-      if (target) {
+      if (!target) return
+      if (getLinkTarget(item.path) !== undefined) {
+        const url = buildUrl(target)
+        if (url) window.open(url, "_blank")
+      } else {
         // TanStack Router's navigate requires exact route-specific search types;
         // the union from buildNavigationTarget is structurally correct but not narrowed per-route.
         // eslint-disable-next-line @typescript-eslint/no-explicit-any

@@ -29,6 +29,7 @@ import { UnifiedPagination } from "@/components/Common/UnifiedPagination"
 import { Skeleton } from "@/components/ui/skeleton"
 import { buildNavigationTarget } from "@/hooks/useFileNavigation"
 import { useIsMobile } from "@/hooks/useMobile"
+import { getLinkTarget } from "@/constants/openBehavior"
 
 type SortOrder = "asc" | "desc"
 
@@ -97,16 +98,6 @@ function HistoryPage() {
     if (target !== page) {
       navigate({ to: "/history", search: { page: target, view, sort_order } })
     }
-  }
-
-  const openHistoryItem = (item: HistoryItem) => {
-    const target = buildNavigationTarget(toFileSystemItem(item), isMobile)
-    if (!target) {
-      toastInfo(t("history.unsupportedType"))
-      return
-    }
-
-    navigate(target)
   }
 
   const tableColumns: ListTableColumn[] = [
@@ -225,11 +216,6 @@ function HistoryPage() {
       ) : view === "grid" ? (
         <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-7">
           {data?.items.map((item) => (
-            <div
-              key={`${item.filepath}-${getHistoryTimestamp(item)}`}
-              onClick={() => openHistoryItem(item)}
-              className="cursor-pointer"
-            >
               <FileItem
                 item={toFileSystemItem(item)}
                 className="file-item-root--compact"
@@ -237,7 +223,6 @@ function HistoryPage() {
                 metaTitle={t("history.readAt")}
                 thumbnailTooltip={`${t("history.readAt")}: ${formatDateTime(getHistoryTimestamp(item))}`}
               />
-            </div>
           ))}
         </div>
       ) : (

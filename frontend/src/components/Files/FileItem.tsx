@@ -1,4 +1,4 @@
-// 文件系统项卡片组件 — 支持选择、右键菜单
+// 文件系统项卡片组件
 
 import { useTranslation } from "react-i18next"
 import type { FileSystemItem } from "@/client"
@@ -19,6 +19,8 @@ import {
 import { useIsMobile } from "@/hooks/useMobile"
 import { cn } from "@/lib/utils"
 
+import { getLinkTarget } from "@/constants/openBehavior"
+
 import { FileIcon } from "./FileIcon"
 import { formatDateTime, formatFileSize } from "./utils"
 import "./FileItem.css"
@@ -30,22 +32,13 @@ interface FileItemProps {
   thumbnailTooltip?: string
 
   item: FileSystemItem
-  /** 是否选中 */
-  isSelected?: boolean
   /** 卡片底部右侧操作区（如 ... dropdown） */
   actionSlot?: React.ReactNode
-  /** 单击回调（处理选择） */
-  onClick?: (e: React.MouseEvent) => void
-  /** 右键回调 */
-  onContextMenu?: (e: React.MouseEvent) => void
 }
 
 export function FileItem({
   item,
-  isSelected,
   actionSlot,
-  onClick,
-  onContextMenu,
   className,
   metaText,
   metaTitle,
@@ -80,8 +73,11 @@ export function FileItem({
         ]
       : []
 
+
+  const linkTarget = getLinkTarget(item.path)
+
   const fileNameNode = href ? (
-    <a href={href} className="file-item-name-link" draggable={false}>
+    <a href={href} className="file-item-name-link" draggable={false} target={linkTarget}>
       <FileName title={item.name} className="file-item-name-text">
         {item.name}
       </FileName>
@@ -100,61 +96,49 @@ export function FileItem({
     `${t("explorer.table.lastReadAt")}: ${lastReadAt ? formatDateTime(lastReadAt) : "-"}`,
   ].join("\n")
 
-  const thumbcard = (<CardThumbnail className="file-card-thumbnail">
-            {item.thumbnail_url ? (
-              <ThumbnailImage
-                src={`${OpenAPI.BASE}${item.thumbnail_url}`}
-                alt={item.name}
-                fallback={
-                  <FileIcon fileType={item.file_type} isFolder={isFolder} />
-                }
-              />
-            ) : (
-              <FileIcon fileType={item.file_type} isFolder={isFolder} />
-            )}
-          </CardThumbnail>)
+  const thumbcard = (
+    <CardThumbnail className="file-card-thumbnail">
+      {item.thumbnail_url ? (
+        <ThumbnailImage
+          src={`${OpenAPI.BASE}${item.thumbnail_url}`}
+          alt={item.name}
+          fallback={
+            <FileIcon fileType={item.file_type} isFolder={isFolder} />
+          }
+        />
+      ) : (
+        <FileIcon fileType={item.file_type} isFolder={isFolder} />
+      )}
+    </CardThumbnail>
+  )
+
+  const thumbLink = href ? (
+    item.thumbnail_url ? (
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <a href={href} className="file-item-thumbnail-link" draggable={false} target={linkTarget}>
+            {thumbcard}
+          </a>
+        </TooltipTrigger>
+        <TooltipContent side={THUMBNAIL_TOOLTIP_SIDE} className="whitespace-pre-line">
+          {thumbnailTooltip ?? defaultThumbnailTooltip}
+        </TooltipContent>
+      </Tooltip>
+    ) : (
+      <a href={href} className="file-item-thumbnail-link" draggable={false} target={linkTarget}>
+        {thumbcard}
+      </a>
+    )
+  ) : (
+    thumbcard
+  )
 
   return (
-    <div
-      className={cn("file-item-root", isSelected && "file-item-root--selected", className)}
-      onClick={(e) => {
-        const target = e.target as HTMLElement
-        if (target.closest("a")) return
-        onClick?.(e)
-      }}
-      onContextMenu={onContextMenu}
-    >
+    <div className={cn("file-item-root", className)}>
       <ItemCard className="file-item-card">
         {fileNameNode}
 
-        {href ? (
-          item.thumbnail_url ? (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <a
-                  href={href}
-                  className="file-item-thumbnail-link"
-                  draggable={false}
-                >
-                  {thumbcard}
-                </a>
-              </TooltipTrigger>
-              <TooltipContent side={THUMBNAIL_TOOLTIP_SIDE} className="whitespace-pre-line">
-                {thumbnailTooltip ?? defaultThumbnailTooltip}
-              </TooltipContent>
-            </Tooltip>
-          ) : (
-            <a
-              href={href}
-              className="file-item-thumbnail-link"
-              draggable={false}
-            >
-              {thumbcard}
-            </a>
-          )
-        ) : (
-          thumbcard
-        )}
+        {thumbLink}
 
         <CardInfo className="file-item-info">
           {actionSlot && (
