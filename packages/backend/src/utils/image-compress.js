@@ -3,6 +3,7 @@
 const util = require('../../../common/src/util');
 const execa = require('./own-execa');
 const pathUtil = require("./path-util");
+const imageMagick = require("../services/image-magick");
 const logger = require("../config/logger");
 const { getCurrentTime } = util;
 const Jimp = require('jimp');
@@ -39,7 +40,7 @@ async function doMinifyTempImage(inputFilePath, outputFilePath, height) {
             if (global._has_magick_) {
                 //https://imagemagick.org/Usage/resize/#shrink
                 const opt = [inputFilePath, "-thumbnail", `${height}x${height}\>`, "-quality", "92",  outputFilePath];
-                let { stdout, stderr } = await execa("magick", opt);
+                let { stdout, stderr } = await execa(imageMagick.getMagickCmd(), opt);
                 if (stderr) {
                     throw stderr;
                 }

@@ -34,6 +34,7 @@ function logFail(filePath, e) {
 
 global._has_magick_ = false;
 let magick_cmd = "magick";
+module.exports.getMagickCmd = function() { return magick_cmd; };
 module.exports.init = function(){
     if (global.isWindows) {
         try{

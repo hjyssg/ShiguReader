@@ -31,19 +31,15 @@ module.exports.init = function(){
 
   
     if (global.isWindows) {
-        //https://stackoverflow.com/questions/15878969/enumerate-system-drives-in-nodejs
+        // 枚举磁盘：遍历 A-Z 检查是否存在，避免使用已废弃的 wmic
         try{
-            const child = require('child_process');
-            const stdout = child.execSync('wmic logicaldisk get name');
-            hdd_list = stdout.toString().split('\r\r\n')
-                .filter(util.isWindowsPath)
-                .map(value => value.trim());
-    
-            //no c drive
-            hdd_list = hdd_list.filter(e => !e.toLocaleLowerCase().startsWith("c"));
-            // hdd_list = hdd_list.map(e => path.resolve(e));
-            // F: 的时候，会莫名其妙显示shigureader文件夹的内容
-            hdd_list = hdd_list.map(e => e + "\\");
+            const fs = require('fs');
+            for (let code = 65; code <= 90; code++) {
+                const drivePath = `${String.fromCharCode(code)}:\\`;
+                if (fs.existsSync(drivePath) && !drivePath.toLowerCase().startsWith("c")) {
+                    hdd_list.push(drivePath);
+                }
+            }
         }catch(e){
             logger.warn("[get hdd]",e);
         }
