@@ -16,7 +16,8 @@
     "extracting": "Extracting...",
     "noData": "No data",
     "reset": "Reset",
-    "copied": "Copied"
+    "copied": "Copied",
+    "close": "Close"
   },
   "nav": {
     "home": "Home",
@@ -184,7 +185,8 @@
     "reset": "Reset",
     "page": "Page",
     "of": "of",
-    "waterfall": "Waterfall"
+    "waterfall": "Waterfall",
+    "mobileView": "Mobile View"
   },
   "settings": {
     "title": "Settings",

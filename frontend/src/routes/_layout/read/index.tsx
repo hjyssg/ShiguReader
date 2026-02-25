@@ -9,12 +9,14 @@ import {
   ChevronLeft,
   ChevronRight,
   FolderInput,
+  GalleryVertical,
   ImageDown,
   MoreVertical,
   Package,
   Pencil,
   RotateCw,
   Scan,
+  Smartphone,
   Star,
   Trash2,
 } from "lucide-react"
@@ -187,7 +189,8 @@ function ReadPage() {
     const target = wrapPageIndex(nextPage, totalPages)
     navigate({
       to: "/read",
-      search: { path, page: target, mode: undefined },
+      search: (prev) => ({ ...prev, page: target }),
+      replace: true,
     })
   }
 
@@ -570,9 +573,6 @@ function ReadPage() {
                 <Link to="/explorer" search={{ path: extractStatus?.cache_dir || path, page: 1, pageSize: 48, sortField: "name", sortOrder: "asc", viewMode: "table" }} className={buttonVariants({ variant: "ghost", size: "sm", className: "reader-toolbar__text-button" })}>
                   {t("nav.explorer")}
                 </Link>
-                <Link to="/read" search={{ path, mode: "waterfall" } as any} className={buttonVariants({ variant: "ghost", size: "sm", className: "reader-toolbar__text-button" })}>
-                  {t("reader.waterfall")}
-                </Link>
                 {audioTracks.length > 0 && (
                   <Link to="/read" search={{ path, page: 0, mode: "audio" } as any} className={buttonVariants({ variant: "ghost", size: "sm", className: "reader-toolbar__text-button" })}>
                     {t("file.audio")}
@@ -588,6 +588,13 @@ function ReadPage() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuItem onClick={() => navigate({ to: "/read", search: { path, page: currentPage, mode: "mobile" } as any })}>
+                  <Smartphone className="mr-2 size-4" />{t("reader.mobileView")}
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => navigate({ to: "/read", search: { path, page: 0, mode: "waterfall" } as any })}>
+                  <GalleryVertical className="mr-2 size-4" />{t("reader.waterfall")}
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
                 <DownloadMenuItem path={path} name={fileName} />
                 <DropdownMenuItem onClick={() => setRenameOpen(true)}>
                   <Pencil className="mr-2 size-4" />{t("fileOps.rename")}

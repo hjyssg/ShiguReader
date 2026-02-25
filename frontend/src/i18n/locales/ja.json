@@ -16,7 +16,8 @@
     "extracting": "展開中...",
     "noData": "データなし",
     "reset": "リセット",
-    "copied": "コピーしました"
+    "copied": "コピーしました",
+    "close": "閉じる"
   },
   "nav": {
     "home": "ホーム",
@@ -184,7 +185,8 @@
     "reset": "リセット",
     "page": "ページ",
     "of": "/",
-    "waterfall": "ウォーターフォール"
+    "waterfall": "ウォーターフォール",
+    "mobileView": "モバイルビュー"
   },
   "settings": {
     "title": "設定",

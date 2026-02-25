@@ -1,13 +1,13 @@
 /**
- * 移动端模式 — 使用 Lightbox 全屏滑动浏览图片
+ * 移动端模式 — 全屏图片，点击右半下一页，左半上一页
  */
 import { useNavigate } from "@tanstack/react-router"
+import { X } from "lucide-react"
 import { useMemo } from "react"
-import type { SlideImage } from "yet-another-react-lightbox"
-import Lightbox from "yet-another-react-lightbox"
-import "yet-another-react-lightbox/styles.css"
+import { useTranslation } from "react-i18next"
 
 import { OpenAPI } from "@/client"
+import { wrapPageIndex } from "@/lib/path-utils"
 
 import type { ImageEntry } from "./-types"
 
@@ -29,43 +29,63 @@ export function MobileModeView({
   onPageChange,
 }: MobileModeViewProps) {
   const navigate = useNavigate()
+  const { t } = useTranslation()
+  const totalPages = imageEntries.length
+  const entry = imageEntries[currentPage]
 
-  const slides: SlideImage[] = useMemo(
-    () =>
-      imageEntries.map((entry) => ({
-        src: isFolderSource
-          ? `${OpenAPI.BASE}/api/v1/fs/file?path=${encodeURIComponent(entry.filePath || "")}`
-          : `${OpenAPI.BASE}/api/v1/fs/archive/file?path=${encodeURIComponent(path)}&entry=${encodeURIComponent(entry.entryPath || "")}`,
-      })),
-    [imageEntries, isFolderSource, path],
-  )
+  const imageUrl = useMemo(() => {
+    if (!entry) return ""
+    return isFolderSource
+      ? `${OpenAPI.BASE}/api/v1/fs/file?path=${encodeURIComponent(entry.filePath || "")}`
+      : `${OpenAPI.BASE}/api/v1/fs/archive/file?path=${encodeURIComponent(path)}&entry=${encodeURIComponent(entry.entryPath || "")}`
+  }, [entry, isFolderSource, path])
+
+  const goNext = () => onPageChange(wrapPageIndex(currentPage + 1, totalPages))
+  const goPrev = () => onPageChange(wrapPageIndex(currentPage - 1, totalPages))
+
+  const handleClose = () =>
+    navigate({
+      to: "/read",
+      search: { path, page: currentPage, mode: undefined },
+      replace: true,
+    })
+
+  const handleTap: React.MouseEventHandler<HTMLDivElement> = (e) => {
+    const x = e.clientX
+    const half = window.innerWidth / 2
+    if (x >= half) goNext()
+    else goPrev()
+  }
 
   return (
-    <div className="p-[10px]">
-      <Lightbox
-        open
-        slides={slides}
-        index={currentPage}
-        close={() =>
-          navigate({
-            to: "/explorer",
-            search: isFolderSource
-              ? { path, page: 1, pageSize: 48, sortField: "mtime", sortOrder: "desc" }
-              : {
-                  path: extractStatus?.cache_dir || path,
-                  page: 1,
-                  pageSize: 48,
-                  sortField: "mtime",
-                  sortOrder: "desc",
-                },
-          })
-        }
-        on={{
-          view: ({ index }) => onPageChange(index),
-        }}
-        carousel={{ finite: false }}
-        controller={{ closeOnBackdropClick: false }}
-      />
+    <div className="mobile-reader">
+      {/* toolbar */}
+      <div className="mobile-reader__toolbar">
+        <span className="mobile-reader__page">
+          {currentPage + 1} / {totalPages}
+        </span>
+        <button
+          type="button"
+          className="mobile-reader__close"
+          onClick={handleClose}
+          aria-label={t("common.close")}
+        >
+          <X className="size-5" />
+        </button>
+      </div>
+
+      {/* image + tap zones */}
+      <div className="mobile-reader__stage" onClick={handleTap}>
+        {entry && (
+          <img
+            key={currentPage}
+            src={imageUrl}
+            alt={entry.name}
+            className="mobile-reader__image"
+            draggable={false}
+          />
+        )}
+      </div>
     </div>
   )
 }

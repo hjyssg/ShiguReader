@@ -145,4 +145,3 @@ const isHiddenFile function (f) {
 ---
 
 ---------
-read页面不做自动区分mobile与否了，在read右上角放一个切换mobile view的link，和waterfall一样，点击了切换。

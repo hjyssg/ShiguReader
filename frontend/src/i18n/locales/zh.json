@@ -16,7 +16,8 @@
     "extracting": "解压中...",
     "noData": "暂无数据",
     "reset": "重置",
-    "copied": "已复制"
+    "copied": "已复制",
+    "close": "关闭"
   },
   "nav": {
     "home": "首页",
@@ -184,7 +185,8 @@
     "reset": "重置",
     "page": "第",
     "of": "页，共",
-    "waterfall": "瀑布流"
+    "waterfall": "瀑布流",
+    "mobileView": "移动端视图"
   },
   "settings": {
     "title": "设置",

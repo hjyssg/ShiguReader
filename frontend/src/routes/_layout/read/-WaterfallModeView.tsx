@@ -10,7 +10,6 @@ import { ReaderToolbar } from "@/components/Reader/ReaderToolbar"
 import { ExtractingIndicator } from "@/components/semantic/layout"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
-import { useIsMobile } from "@/hooks/useMobile"
 
 import type { ImageEntry } from "./-types"
 
@@ -66,7 +65,6 @@ export function WaterfallModeView({
 }: WaterfallModeViewProps) {
   const { t } = useTranslation()
   const navigate = useNavigate()
-  const isMobile = useIsMobile()
 
   return (
     <div className="reader-page">
@@ -82,7 +80,8 @@ export function WaterfallModeView({
             onClick={() =>
               navigate({
                 to: "/read",
-                search: { path, page: 0, mode: isMobile ? "mobile" : "gallery" } as any,
+                search: { path, page: 0, mode: undefined },
+                replace: true,
               })
             }
           >
@@ -101,7 +100,7 @@ export function WaterfallModeView({
               <Link
                 key={entry.entryPath}
                 to="/read"
-                search={{ path, page: index, mode: isMobile ? "mobile" : "gallery" } as any}
+                search={{ path, page: index, mode: "gallery" } as any}
                 className="reader-waterfall-item"
               >
                 <WaterfallImage src={imageUrl} alt={entry.name} />
