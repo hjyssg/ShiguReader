@@ -229,13 +229,9 @@ function Explorer() {
     <div className="explorer-page">
       {/* 面包屑导航 */}
       <nav className="explorer-breadcrumb" aria-label="Explorer breadcrumb">
-        <Link to="/" className="explorer-breadcrumb__home-link">
-          <Home className="explorer-breadcrumb__home-icon" />
-          <span>{t("nav.home")}</span>
-        </Link>
         {breadcrumbs.map((crumb, index) => (
           <div key={crumb.path} className="explorer-breadcrumb__item">
-            <ChevronRight className="explorer-breadcrumb__separator" />
+            { index > 0 &&  <ChevronRight className="explorer-breadcrumb__separator" /> }
             {index === breadcrumbs.length - 1 ? (
               <span className="explorer-breadcrumb__current">{crumb.name}</span>
             ) : (

@@ -25,6 +25,7 @@ import { cn } from "@/lib/utils"
 import { FileGridView } from "./FileGridView"
 import { FileIcon } from "./FileIcon"
 import { FileTableView, type SortField, type SortOrder } from "./FileTableView"
+import { getLinkTarget } from "@/constants/openBehavior"
 
 export type ViewMode = "grid" | "table" | "mixed"
 
@@ -194,6 +195,7 @@ export function FileViewContainer({
         className={cn(
           "group flex items-center gap-2 px-3 py-1.5 rounded-md transition-colors hover:bg-accent/50",
         )}
+        target={getLinkTarget(item.path)}
       >
         <FileIcon
           fileType={item.file_type}

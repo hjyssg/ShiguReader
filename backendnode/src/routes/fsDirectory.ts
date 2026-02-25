@@ -97,7 +97,10 @@ export async function listDirectory(
   }>,
   reply: FastifyReply,
 ) {
-  const { path: dirPath, sort_by = "name", sort_order = "asc", has_video, has_audio } = req.query;
+  const rawDirPath = req.query.path;
+  // Normalize Windows drive-letter-only paths: "D:" → "D:\"
+  const dirPath = /^[A-Za-z]:$/.test(rawDirPath) ? rawDirPath + "\\" : rawDirPath;
+  const { sort_by = "name", sort_order = "asc", has_video, has_audio } = req.query;
   const filterHasVideo = has_video === "true";
   const filterHasAudio = has_audio === "true";
   if (!dirPath) {
