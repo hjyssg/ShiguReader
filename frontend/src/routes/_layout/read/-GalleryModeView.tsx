@@ -385,19 +385,12 @@ export function GalleryModeView({
                 fileName={currentEntry.name}
                 isFolder={isFolderSource}
                 isArchive={isArchiveSource}
-                onRename={() => openRename(path)}
-                onMove={() => openMove(path)}
-                onMoveToFavorite={() => openMove(path, undefined, "favorite")}
-                onMoveToAlreadyRead={() => openMove(path, undefined, "already_read")}
-                onDelete={() => openDelete([path])}
-                onCompressToZip={isFolderSource ? () => openCompress(path, "zip-folder", true) : undefined}
-                onMinifyZipImages={
-                  isFolderSource
-                    ? () => openCompress(path, "minify-zip-images", true)
-                    : isArchiveSource
-                      ? () => openCompress(path, "minify-zip-images")
-                      : undefined
-                }
+                openers={{
+                  openRename,
+                  openMove,
+                  openDelete,
+                  openCompress: (isFolderSource || isArchiveSource) ? openCompress : undefined,
+                }}
               />
             </DropdownMenuContent>
           </DropdownMenu>

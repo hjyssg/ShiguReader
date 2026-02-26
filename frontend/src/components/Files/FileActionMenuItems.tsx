@@ -21,6 +21,15 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { DownloadMenuItem } from "./DownloadMenuItem"
 
+/** 文件操作触发函数集合，由 useFileOperationDialogs 提供 */
+export interface FileActionOpeners {
+  openRename: (filePath: string) => void
+  openMove: (filePath: string, defaultSelected?: string, defaultMode?: "favorite" | "already_read") => void
+  openDelete: (filePaths: string[]) => void
+  openCompress?: (filePath: string, action: "zip-folder" | "minify-zip-images", isFolder?: boolean) => void
+  onBackfillFolder?: () => void
+}
+
 export interface FileActionMenuItemsProps {
   /** 文件路径 */
   filePath: string
@@ -32,15 +41,8 @@ export interface FileActionMenuItemsProps {
   isArchive: boolean
   /** 是否显示快捷键提示 (F2 / Del) */
   showShortcuts?: boolean
-  /** 是否显示 backfill 选项（仅 explorer 文件夹用） */
-  onBackfillFolder?: () => void
-  onRename: () => void
-  onMove: () => void
-  onMoveToFavorite: () => void
-  onMoveToAlreadyRead: () => void
-  onDelete: () => void
-  onCompressToZip?: () => void
-  onMinifyZipImages?: () => void
+  /** 操作触发函数集合 */
+  openers: FileActionOpeners
 }
 
 export function FileActionMenuItems({
@@ -49,31 +51,29 @@ export function FileActionMenuItems({
   isFolder,
   isArchive,
   showShortcuts,
-  onBackfillFolder,
-  onRename,
-  onMove,
-  onMoveToFavorite,
-  onMoveToAlreadyRead,
-  onDelete,
-  onCompressToZip,
-  onMinifyZipImages,
+  openers,
 }: FileActionMenuItemsProps) {
+  const { openRename, openMove, openDelete, openCompress, onBackfillFolder } = openers
   const { t } = useTranslation()
+
+  const canCompress = !!openCompress
+  const canZip = canCompress && isFolder
+  const canMinify = canCompress && (isArchive || isFolder)
 
   return (
     <>
       {!isFolder && <DownloadMenuItem path={filePath} name={fileName} />}
-      <DropdownMenuItem onClick={onRename}>
+      <DropdownMenuItem onClick={() => openRename(filePath)}>
         <Pencil className="mr-2 size-4" />{t("fileOps.rename")}
         {showShortcuts && <DropdownMenuShortcut>F2</DropdownMenuShortcut>}
       </DropdownMenuItem>
-      <DropdownMenuItem onClick={onMove}>
+      <DropdownMenuItem onClick={() => openMove(filePath)}>
         <FolderInput className="mr-2 size-4" />{t("fileOps.moveTo")}
       </DropdownMenuItem>
-      <DropdownMenuItem onClick={onMoveToFavorite}>
+      <DropdownMenuItem onClick={() => openMove(filePath, undefined, "favorite")}>
         <Star className="mr-2 size-4" />{t("fileOps.moveToFavorites")}
       </DropdownMenuItem>
-      <DropdownMenuItem onClick={onMoveToAlreadyRead}>
+      <DropdownMenuItem onClick={() => openMove(filePath, undefined, "already_read")}>
         <BookCheck className="mr-2 size-4" />{t("fileOps.moveToAlreadyRead")}
       </DropdownMenuItem>
       {onBackfillFolder && isFolder && (
@@ -82,22 +82,22 @@ export function FileActionMenuItems({
         </DropdownMenuItem>
       )}
       <DropdownMenuItem
-        onClick={onDelete}
+        onClick={() => openDelete([filePath])}
         className="text-destructive focus:text-destructive"
       >
         <Trash2 className="mr-2 size-4" />{t("common.delete")}
         {showShortcuts && <DropdownMenuShortcut>Del</DropdownMenuShortcut>}
       </DropdownMenuItem>
-      {(onCompressToZip || onMinifyZipImages) && (
+      {(canZip || canMinify) && (
         <>
           <DropdownMenuSeparator />
-          {onCompressToZip && isFolder && (
-            <DropdownMenuItem onClick={onCompressToZip}>
+          {canZip && (
+            <DropdownMenuItem onClick={() => openCompress!(filePath, "zip-folder", true)}>
               <Package className="mr-2 size-4" />{t("fileOps.compressToZip")}
             </DropdownMenuItem>
           )}
-          {onMinifyZipImages && (isArchive || isFolder) && (
-            <DropdownMenuItem onClick={onMinifyZipImages}>
+          {canMinify && (
+            <DropdownMenuItem onClick={() => openCompress!(filePath, "minify-zip-images", isFolder)}>
               <ImageDown className="mr-2 size-4" />{t("fileOps.minifyZipImages")}
             </DropdownMenuItem>
           )}

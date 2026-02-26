@@ -85,13 +85,12 @@ export function FileActionsDropdown({ item }: { item: FileSystemItem }) {
             isFolder={isFolder}
             isArchive={isArchive}
             showShortcuts
-            onRename={() => openRename(item.path)}
-            onMove={() => openMove(item.path)}
-            onMoveToFavorite={() => openMove(item.path, undefined, "favorite")}
-            onMoveToAlreadyRead={() => openMove(item.path, undefined, "already_read")}
-            onDelete={() => openDelete([item.path])}
-            onCompressToZip={isFolder ? () => openCompress(item.path, "zip-folder", true) : undefined}
-            onMinifyZipImages={(isArchive || isFolder) ? () => openCompress(item.path, "minify-zip-images", isFolder) : undefined}
+            openers={{
+              openRename,
+              openMove,
+              openDelete,
+              openCompress: (isArchive || isFolder) ? openCompress : undefined,
+            }}
           />
         </DropdownMenuContent>
       </DropdownMenu>
