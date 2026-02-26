@@ -20,6 +20,7 @@ import { useIsMobile } from "@/hooks/useMobile"
 import { cn } from "@/lib/utils"
 
 import { getLinkTarget } from "@/constants/openBehavior"
+import { getParentPath } from "@/lib/path-utils"
 
 import { FileIcon } from "./FileIcon"
 import { formatDateTime, formatFileSize } from "./utils"
@@ -91,6 +92,7 @@ export function FileItem({
   const likeScore = item.likeScore ?? item.recommendation_score
   const lastReadAt = item.last_read_at
   const defaultThumbnailTooltip = [
+    getParentPath(item.path),
     `${t("explorer.table.dateModified")}: ${item.mtime ? formatDateTime(item.mtime) : "-"}`,
     `${t("explorer.table.likeScore")}: ${likeScore != null ? Number(likeScore).toFixed(3) : "-"}`,
     `${t("explorer.table.lastReadAt")}: ${lastReadAt ? formatDateTime(lastReadAt) : "-"}`,

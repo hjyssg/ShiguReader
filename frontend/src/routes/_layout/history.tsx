@@ -27,6 +27,7 @@ import { UnifiedPagination } from "@/components/Common/UnifiedPagination"
 import { Skeleton } from "@/components/ui/skeleton"
 import { buildNavigationTarget } from "@/hooks/useFileNavigation"
 import { useIsMobile } from "@/hooks/useMobile"
+import { getParentPath } from "@/lib/path-utils"
 
 type SortOrder = "asc" | "desc"
 
@@ -218,7 +219,7 @@ function HistoryPage() {
                 className="file-item-root--compact"
                 metaText={`${formatDateTime(getHistoryTimestamp(item))}`}
                 metaTitle={t("history.readAt")}
-                thumbnailTooltip={`${t("history.readAt")}: ${formatDateTime(getHistoryTimestamp(item))}`}
+                thumbnailTooltip={`${getParentPath(item.filepath)}\n${t("history.readAt")}: ${formatDateTime(getHistoryTimestamp(item))}`}
               />
           ))}
         </div>

@@ -8,6 +8,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { cn } from "@/lib/utils"
+import { getParentPath } from "@/lib/path-utils"
 
 interface FileNameWithPreviewProps {
   filename: string
@@ -18,6 +19,7 @@ interface FileNameWithPreviewProps {
 
 export function FileNameWithPreview({
   filename,
+  filepath,
   thumbnailUrl,
   className,
 }: FileNameWithPreviewProps) {
@@ -36,16 +38,21 @@ export function FileNameWithPreview({
             {filename}
           </span>
         </TooltipTrigger>
-        {hasThumbnail && (
-          <TooltipContent side="right" className="p-0 border-0">
-            <img
-              src={`${OpenAPI.BASE}${thumbnailUrl}`}
-              alt={filename}
-              className="max-w-[300px] max-h-[400px] object-contain rounded-md shadow-lg"
-              onError={() => setImgError(true)}
-            />
-          </TooltipContent>
-        )}
+        <TooltipContent side="right" className={hasThumbnail ? "p-0 border-0" : undefined}>
+          {hasThumbnail ? (
+            <div className="flex flex-col gap-1">
+              <img
+                src={`${OpenAPI.BASE}${thumbnailUrl}`}
+                alt={filename}
+                className="max-w-[300px] max-h-[400px] object-contain rounded-md shadow-lg"
+                onError={() => setImgError(true)}
+              />
+              <span className="px-2 pb-1 text-xs text-muted-foreground break-all">{getParentPath(filepath)}</span>
+            </div>
+          ) : (
+            <span className="text-xs break-all">{getParentPath(filepath)}</span>
+          )}
+        </TooltipContent>
       </Tooltip>
     </TooltipProvider>
   )
