@@ -446,18 +446,70 @@ export function clearExtractCache(): ClearCacheResult {
 
 // ── compress images ───────────────────────────────────────────────────────────
 
+export type CompressOutputMode = "new" | "replace";
+
+export interface CompressArchiveImagesResult {
+  processed: number;
+  original_bytes: number;
+  output_bytes: number;
+  output_path: string;
+  output_mode: CompressOutputMode;
+  entries_matched: boolean;
+  source_entry_count: number;
+  output_entry_count: number;
+  missing_entries: string[];
+  extra_entries: string[];
+}
+
+/**
+ * Compare entry path sets between two zip files.
+ * Returns matched=true if both have identical entry path sets (order-insensitive).
+ */
+async function compareZipEntries(
+  srcPath: string,
+  outPath: string,
+): Promise<{
+  matched: boolean;
+  sourceCount: number;
+  outputCount: number;
+  missing: string[];
+  extra: string[];
+}> {
+  const [srcEntries, outEntries] = await Promise.all([
+    listEntries(srcPath),
+    listEntries(outPath),
+  ]);
+  const srcSet = new Set(srcEntries.map((e) => e.entry_path));
+  const outSet = new Set(outEntries.map((e) => e.entry_path));
+  const missing = [...srcSet].filter((p) => !outSet.has(p));
+  const extra = [...outSet].filter((p) => !srcSet.has(p));
+  return {
+    matched: missing.length === 0 && extra.length === 0,
+    sourceCount: srcSet.size,
+    outputCount: outSet.size,
+    missing,
+    extra,
+  };
+}
+
 /**
  * Extract zip → compress large images → repack.
- * Low priority feature.
+ * Supports two output modes:
+ *   "new"     — write to <name>_compressed.<ext> (default, non-destructive)
+ *   "replace" — write to a temp file, verify, then atomically replace original
  */
 export async function compressArchiveImages(
   archivePath: string,
   maxHeight = 1600,
   quality = 85,
-): Promise<{ processed: number; original_bytes: number; output_bytes: number }> {
+  outputMode: CompressOutputMode = "new",
+): Promise<CompressArchiveImagesResult> {
   const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "shigure-compress-"));
-  const outputPath = archivePath.replace(/(\.[^.]+)$/, "_compressed$1");
-  logger.compress(`Start: ${path.basename(archivePath)} → ${path.basename(outputPath)}`);
+  const newOutputPath = archivePath.replace(/(\.[^.]+)$/, "_compressed$1");
+  const tmpOutputPath = archivePath.replace(/(\.[^.]+)$/, `_tmp_${Date.now()}$1`);
+  const finalOutputPath = outputMode === "replace" ? tmpOutputPath : newOutputPath;
+
+  logger.compress(`Start [${outputMode}]: ${path.basename(archivePath)} → ${path.basename(finalOutputPath)}`);
 
   try {
     // Extract all
@@ -470,7 +522,7 @@ export async function compressArchiveImages(
     let originalBytes = 0;
     let outputBytes = 0;
 
-      const walkAndCompress = async (dir: string) => {
+    const walkAndCompress = async (dir: string) => {
       const entries = fs.readdirSync(dir, { withFileTypes: true });
       for (const e of entries) {
         const full = path.join(dir, e.name);
@@ -494,30 +546,59 @@ export async function compressArchiveImages(
 
     await walkAndCompress(tmpDir);
 
-    // Repack
-    await execFileAsync(get7z(), ["a", "-tzip", outputPath, path.join(tmpDir, "*"), "-y"], {
+    // Repack to finalOutputPath
+    await execFileAsync(get7z(), ["a", "-tzip", finalOutputPath, path.join(tmpDir, "*"), "-y"], {
       timeout: 300000,
     });
 
     // Verify output zip integrity
     try {
-      await execFileAsync(get7z(), ["t", outputPath], { timeout: 60000 });
+      await execFileAsync(get7z(), ["t", finalOutputPath], { timeout: 60000 });
     } catch (e) {
-      // Verification failed — remove corrupt output
-      try {
-        fs.unlinkSync(outputPath);
-      } catch {
-        /* ignore */
-      }
+      try { fs.unlinkSync(finalOutputPath); } catch { /* ignore */ }
       throw new Error(`Output zip integrity check failed: ${e}`);
+    }
+
+    // Compare entries between source and output
+    const cmp = await compareZipEntries(archivePath, finalOutputPath);
+
+    // For replace mode: atomically overwrite original only after all checks pass
+    let resolvedOutputPath = finalOutputPath;
+    if (outputMode === "replace") {
+      if (!cmp.matched) {
+        try { fs.unlinkSync(finalOutputPath); } catch { /* ignore */ }
+        throw new Error(
+          `Entry mismatch — aborting replace. Missing: [${cmp.missing.join(", ")}], Extra: [${cmp.extra.join(", ")}]`,
+        );
+      }
+      fs.renameSync(finalOutputPath, archivePath);
+      resolvedOutputPath = archivePath;
+      // Invalidate listEntries cache for the replaced file
+      entriesCache.delete(archivePath);
     }
 
     const savedBytes = originalBytes - outputBytes;
     logger.compress(
-      `Done: ${path.basename(archivePath)} — ${processed} images, saved ${formatBytes(savedBytes > 0 ? savedBytes : 0)}`,
+      `Done [${outputMode}]: ${path.basename(archivePath)} — ${processed} images, saved ${formatBytes(savedBytes > 0 ? savedBytes : 0)}, entries ${cmp.matched ? "matched" : "MISMATCH"}`,
     );
-    return { processed, original_bytes: originalBytes, output_bytes: outputBytes };
+
+    return {
+      processed,
+      original_bytes: originalBytes,
+      output_bytes: outputBytes,
+      output_path: resolvedOutputPath,
+      output_mode: outputMode,
+      entries_matched: cmp.matched,
+      source_entry_count: cmp.sourceCount,
+      output_entry_count: cmp.outputCount,
+      missing_entries: cmp.missing,
+      extra_entries: cmp.extra,
+    };
   } finally {
     fs.rmSync(tmpDir, { recursive: true, force: true });
+    // Clean up temp output if it still exists (e.g. replace mode failed before rename)
+    if (outputMode === "replace" && fs.existsSync(tmpOutputPath)) {
+      try { fs.unlinkSync(tmpOutputPath); } catch { /* ignore */ }
+    }
   }
 }

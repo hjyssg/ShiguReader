@@ -13,6 +13,7 @@ import {
   getExtractCacheDir,
   clearExtractCache as svcClearExtractCache,
   compressArchiveImages,
+  type CompressOutputMode,
 } from "../services/archiveService.js";
 import { getOrGenerateThumb } from "../services/thumbService.js";
 
@@ -172,7 +173,7 @@ export async function compressImages(
   req: FastifyRequest<{
     Body: {
       archive_path: string;
-      output_path?: string | null;
+      output_mode?: CompressOutputMode | null;
       max_width?: number | null;
       max_height?: number | null;
       quality?: number | null;
@@ -181,19 +182,20 @@ export async function compressImages(
   }>,
   reply: FastifyReply,
 ) {
-  const { archive_path, max_height = 1600, quality = 85 } = req.body ?? {};
+  const { archive_path, output_mode, max_height = 1600, quality = 85 } = req.body ?? {};
   if (!archive_path) {
     return reply.status(400).send({ error: "archive_path is required" });
   }
   if (!(await fileExists(archive_path))) {
     return reply.status(404).send({ error: "File not found" });
   }
+  const mode: CompressOutputMode = output_mode === "replace" ? "replace" : "new";
   try {
-    const result = await compressArchiveImages(archive_path, max_height ?? 1600, quality ?? 85);
+    const result = await compressArchiveImages(archive_path, max_height ?? 1600, quality ?? 85, mode);
     try {
       getRepo().logActivity(
         "minify_zip_images",
-        `Compressed images: ${archive_path}`,
+        `Compressed images [${mode}]: ${archive_path}`,
         "completed",
         `minify:${archive_path}`,
         archive_path,

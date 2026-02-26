@@ -13,7 +13,7 @@ import { useState } from "react"
 import { DeleteDialog } from "@/components/Files/dialogs/DeleteDialog"
 import { RenameDialog } from "@/components/Files/dialogs/RenameDialog"
 import { UnifiedMoveDialog } from "@/components/Files/dialogs/UnifiedMoveDialog"
-import { CompressDialog, type CompressAction } from "@/components/Files/dialogs/CompressDialog"
+import { CompressDialog, type CompressAction, type MinifyOutputMode } from "@/components/Files/dialogs/CompressDialog"
 import { useFileOperations } from "./useFileOperations"
 
 export interface FileOperationDialogsOptions {
@@ -111,15 +111,16 @@ export function useFileOperationDialogs(opts: FileOperationDialogsOptions) {
         onOpenChange={setCompressOpen}
         filePath={compressTarget}
         action={compressAction}
-        onConfirm={() => {
+        onConfirm={(outputMode?: MinifyOutputMode) => {
           if (compressAction === "zip-folder") {
             operations.zipFolderMutation.mutate(compressTarget, {
               onSuccess: () => setCompressOpen(false),
             })
           } else {
-            operations.compressArchiveImagesMutation.mutate(compressTarget, {
-              onSuccess: () => setCompressOpen(false),
-            })
+            operations.compressArchiveImagesMutation.mutate(
+              { archivePath: compressTarget, outputMode },
+              { onSuccess: () => setCompressOpen(false) },
+            )
           }
         }}
         isPending={

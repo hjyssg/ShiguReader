@@ -122,10 +122,10 @@ export function useFileOperations(currentPath: string) {
   })
 
   const compressArchiveImagesMutation = useMutation({
-    mutationFn: (archivePath: string) =>
+    mutationFn: ({ archivePath, outputMode }: { archivePath: string; outputMode?: "new" | "replace" }) =>
       requestJson("/api/v1/fs/archive/compress-images", {
         method: "POST",
-        body: { archive_path: archivePath },
+        body: { archive_path: archivePath, output_mode: outputMode ?? "new" },
       }),
     onSuccess: () => {
       toastSuccess("Archive images compressed successfully")
