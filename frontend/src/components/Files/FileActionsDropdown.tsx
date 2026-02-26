@@ -12,10 +12,10 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { FileOperationMenuItems } from "./FileOperationMenuItems"
+import { FileActionMenuItems } from "./FileActionMenuItems"
 import { useFileOperationDialogs } from "@/hooks/useFileOperationDialogs"
 import { getParentPath } from "@/lib/path-utils"
-import "./FileContextMenu.css"
+import "./FileActionsDropdown.css"
 
 
 export function FileActionsDropdown({ item }: { item: FileSystemItem }) {
@@ -79,7 +79,7 @@ export function FileActionsDropdown({ item }: { item: FileSystemItem }) {
           </button>
         </DropdownMenuTrigger>
         <DropdownMenuContent className="w-64" align="end" sideOffset={6}>
-          <FileOperationMenuItems
+          <FileActionMenuItems
             filePath={item.path}
             fileName={item.name}
             isFolder={isFolder}

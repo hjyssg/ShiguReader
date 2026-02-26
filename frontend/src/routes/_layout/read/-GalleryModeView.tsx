@@ -15,7 +15,7 @@ import { useTranslation } from "react-i18next"
 
 import { OpenAPI } from "@/client"
 import { PathBreadcrumb } from "@/components/Common/PathBreadcrumb"
-import { FileOperationMenuItems } from "@/components/Files/FileOperationMenuItems"
+import { FileActionMenuItems } from "@/components/Files/FileActionMenuItems"
 import { formatDateTime, formatFileSize } from "@/components/Files/utils"
 import { ExtractingIndicator } from "@/components/semantic/layout"
 import { Badge } from "@/components/ui/badge"
@@ -42,7 +42,7 @@ interface GalleryModeViewProps {
     cache_dir?: string
     status?: "extracting" | "completed" | "error" | "started" | "already_running"
     entries?: { file_type: string }[]
-    avg_image_size?: number
+    avg_image_size?: number | null
   } | null
   parseMeta: {
     authors?: string[]
@@ -380,7 +380,7 @@ export function GalleryModeView({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="w-56">
-              <FileOperationMenuItems
+              <FileActionMenuItems
                 filePath={path}
                 fileName={currentEntry.name}
                 isFolder={isFolderSource}

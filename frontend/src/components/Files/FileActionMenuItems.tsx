@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { DownloadMenuItem } from "./DownloadMenuItem"
 
-export interface FileOperationMenuItemsProps {
+export interface FileActionMenuItemsProps {
   /** 文件路径 */
   filePath: string
   /** 文件名（用于下载） */
@@ -43,7 +43,7 @@ export interface FileOperationMenuItemsProps {
   onMinifyZipImages?: () => void
 }
 
-export function FileOperationMenuItems({
+export function FileActionMenuItems({
   filePath,
   fileName,
   isFolder,
@@ -57,7 +57,7 @@ export function FileOperationMenuItems({
   onDelete,
   onCompressToZip,
   onMinifyZipImages,
-}: FileOperationMenuItemsProps) {
+}: FileActionMenuItemsProps) {
   const { t } = useTranslation()
 
   return (
