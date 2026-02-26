@@ -121,7 +121,7 @@ function ReadPage() {
     path,
     hasError ? loadError : null,
     (newPath) => {
-      navigate({ to: "/read", search: { path: newPath, page, mode: undefined }, replace: true })
+      navigate({ to: "/read", search: { path: newPath, page, mode }, replace: true })
     },
   )
 
@@ -253,6 +253,7 @@ function ReadPage() {
       mtime={mtime}
       filesize={filesize}
       audioTracks={audioTracks}
+      mode={mode}
       onPageChange={goToPage}
     />
   )

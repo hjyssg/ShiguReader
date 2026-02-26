@@ -29,7 +29,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { getParentPath, wrapPageIndex } from "@/lib/path-utils"
 import { useFileOperationDialogs } from "@/hooks/useFileOperationDialogs"
 
-import type { AudioTrack, ImageEntry } from "./-types"
+import type { AudioTrack, ImageEntry, ReadMode } from "./-types"
 
 interface GalleryModeViewProps {
   path: string
@@ -52,6 +52,7 @@ interface GalleryModeViewProps {
   mtime: number | null
   filesize: number | null
   audioTracks: AudioTrack[]
+  mode?: ReadMode
   onPageChange: (page: number) => void
 }
 
@@ -67,6 +68,7 @@ export function GalleryModeView({
   mtime,
   filesize,
   audioTracks,
+  mode,
   onPageChange,
 }: GalleryModeViewProps) {
   const navigate = useNavigate()
@@ -76,7 +78,7 @@ export function GalleryModeView({
     currentPath: parentPath,
     onAfterRename: () => navigate({ to: "/" }),
     onAfterDelete: () => navigate({ to: "/" }),
-    onMoveSuccess: (destPath) => navigate({ to: "/read", search: { path: destPath || path, page: 0, mode: undefined }, replace: true }),
+    onMoveSuccess: (destPath) => navigate({ to: "/read", search: { path: destPath || path, page: currentPage, mode }, replace: true }),
   })
 
   const [scale, setScale] = useState(1)
