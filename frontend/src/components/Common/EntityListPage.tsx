@@ -108,8 +108,7 @@ export function EntityListPage({
   })
 
   const buildSearchHref = (q: string) => {
-    const params = new URLSearchParams({ q, mode: "exact", page: "1", presenceFilter: "all" })
-    params.append("scopes", searchScope)
+    const params = new URLSearchParams({ q, mode: "exact", page: "1", presenceFilter: "all", scopes: JSON.stringify([searchScope]) })
     return `/search?${params.toString()}`
   }
 

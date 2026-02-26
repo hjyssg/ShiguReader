@@ -41,18 +41,16 @@ export const Route = createFileRoute("/_layout/search")({
     const validScope = (s: unknown): s is Scope =>
       s === "file" || s === "author" || s === "coser" || s === "tag"
 
-    let scopes: Scope[]
-    if (Array.isArray(rawScopes)) {
-      scopes = rawScopes.filter(validScope)
-    } else if (validScope(rawScopes)) {
-      scopes = [rawScopes]
-    } else {
-      scopes = []
-    }
+    // Normalize to array: TanStack Router may serialize arrays as JSON strings
+    const scopesList: unknown[] = Array.isArray(rawScopes)
+      ? rawScopes
+      : typeof rawScopes === "string"
+        ? (JSON.parse(rawScopes) as unknown[])
+        : []
 
-    if (scopes.length === 0) {
-      scopes = ["file", "author", "coser", "tag"]
-    }
+    const scopes: Scope[] = scopesList.length > 0
+      ? scopesList.filter(validScope)
+      : ["file", "author", "coser", "tag"]
 
     return {
       q,
@@ -87,7 +85,7 @@ type ScopeCheckboxProps = {
 function ScopeCheckbox({ value, label, checked, onToggle }: ScopeCheckboxProps) {
   const checkboxId = `scope-${value}`
   return (
-    <div className="flex items-center gap-2 text-sm">
+    <div className="flex items-center gap-1 text-sm">
       <Checkbox
         id={checkboxId}
         checked={checked}
@@ -247,9 +245,8 @@ function SearchPage() {
         </div>
 
         <div className="flex flex-wrap items-center gap-6">
-          <div className="flex items-center gap-4">
-            <Label className="text-sm">{t("search.scope")}</Label>
-            <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1">
+            <div className="flex items-center gap-4">
               {SCOPE_OPTIONS.map((option) => (
                 <ScopeCheckbox
                   key={option.value}
