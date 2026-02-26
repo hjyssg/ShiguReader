@@ -121,7 +121,7 @@ export function AudioModeView({
       </nav>
 
       <div className="flex-1 overflow-auto">
-        <div className="mx-auto max-w-3xl space-y-4 p-4">
+        <div className="mx-auto max-w-3xl space-y-4 p-11">
           {/* 单页翻图区 — 高度比 gallery 小，留空间给音轨列表 */}
           {totalImages > 0 && (
             <div className="relative flex items-center justify-center rounded-md border bg-card overflow-hidden h-[35vh]">

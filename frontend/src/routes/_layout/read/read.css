@@ -19,12 +19,7 @@
   background: hsl(var(--background) / 0.95);
   min-height: 2.5rem;
   justify-content: space-between;
-  opacity: 0;
   transition: opacity 0.3s ease;
-}
-
-.reader-toolbar:hover {
-  opacity: 1;
 }
 
 .reader-toolbar__left {
@@ -208,13 +203,9 @@
   border-top: 1px solid hsl(var(--border));
   background: hsl(var(--background) / 0.85);
   backdrop-filter: blur(4px);
-  opacity: 0;
   transition: opacity 0.3s ease;
 }
 
-.reader-meta-bar:hover {
-  opacity: 1;
-}
 
 .reader-meta-bar__left {
   flex: 1;
