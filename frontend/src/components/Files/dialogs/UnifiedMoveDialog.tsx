@@ -19,7 +19,7 @@ import { toastSuccess, toastError } from "@/lib/toast"
 import { requestJson } from "@/utils/http"
 
 /** good_YYYY_MM_01 — 当月第一天 */
-function monthlySubfolder(): string {
+export function monthlySubfolder(): string {
   const now = new Date()
   const y = now.getFullYear()
   const m = String(now.getMonth() + 1).padStart(2, "0")
@@ -33,6 +33,8 @@ interface UnifiedMoveDialogProps {
   isFolder: boolean
   /** 打开时预选的目标路径（不传则默认选第一个） */
   defaultSelected?: string
+  /** "favorite" 时自动预选 favorite 子文件夹 */
+  defaultMode?: "favorite"
   onSuccess?: (destPath: string) => void
 }
 
@@ -42,6 +44,7 @@ export function UnifiedMoveDialog({
   filePath,
   isFolder,
   defaultSelected,
+  defaultMode,
   onSuccess,
 }: UnifiedMoveDialogProps) {
   const { t } = useTranslation()
@@ -89,16 +92,32 @@ export function UnifiedMoveDialog({
   // 打开时 reset
   useEffect(() => {
     if (open) {
-      // 如果传了 defaultSelected 且在选项中存在，则预选它
-      if (defaultSelected && options.includes(defaultSelected)) {
+      if (defaultMode === "favorite") {
+        // favorite 模式：预选子文件夹
+        const favDir = settings?.favorite_dir?.trim()
+        const subDir = favDir ? appendSubdir(favDir, monthlySubfolder()) : undefined
+        if (subDir && options.includes(subDir)) {
+          setSelected(subDir)
+        } else if (favDir && options.includes(favDir.replace(/[\\/]+$/, ""))) {
+          setSelected(favDir.replace(/[\\/]+$/, ""))
+        } else {
+          setSelected(options[0] ?? "custom")
+        }
+      } else if (defaultSelected && options.includes(defaultSelected)) {
         setSelected(defaultSelected)
       } else {
-        setSelected(options[0] ?? "custom")
+        // 没有 defaultSelected 时，优先选 move_place_dir
+        const moveDir = settings?.move_place_dir?.trim().replace(/[\\/]+$/, "")
+        if (moveDir && options.includes(moveDir)) {
+          setSelected(moveDir)
+        } else {
+          setSelected(options[0] ?? "custom")
+        }
       }
       setCustomPath("")
       setPending(false)
     }
-  }, [open, options, defaultSelected])
+  }, [open, options, defaultSelected, defaultMode, settings])
 
   const handleConfirm = async () => {
     const destDir = selected === "custom" ? customPath.trim() : selected

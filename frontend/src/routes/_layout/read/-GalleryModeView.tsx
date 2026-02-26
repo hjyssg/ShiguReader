@@ -55,7 +55,7 @@ interface GalleryModeViewProps {
   fileOpDialogs: ReactNode
   openRename: (path: string) => void
   openDelete: (paths: string[]) => void
-  openMove: (path: string, isFolder: boolean, destDir?: string) => void
+  openMove: (path: string, isFolder: boolean, destDir?: string, defaultMode?: "favorite") => void
   openCompress: (path: string, type: string) => void
   setMoveOpen: (open: boolean) => void
   onPageChange: (page: number) => void
@@ -393,10 +393,7 @@ export function GalleryModeView({
                 alreadyReadDir={settingsData?.already_read_dir?.trim()}
                 onRename={() => openRename(path)}
                 onMove={() => openMove(path, isFolderSource)}
-                onMoveToFavorite={() => {
-                  const favDir = settingsData?.favorite_dir?.trim()
-                  if (favDir) openMove(path, isFolderSource, favDir)
-                }}
+                onMoveToFavorite={() => openMove(path, isFolderSource, undefined, "favorite")}
                 onMoveToAlreadyRead={() => {
                   const readDir = settingsData?.already_read_dir?.trim()
                   if (readDir) openMove(path, isFolderSource, readDir)

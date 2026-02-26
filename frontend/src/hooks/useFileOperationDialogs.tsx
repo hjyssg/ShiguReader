@@ -48,6 +48,7 @@ export function useFileOperationDialogs(opts: FileOperationDialogsOptions) {
   const [moveTarget, setMoveTarget] = useState("")
   const [moveIsFolder, setMoveIsFolder] = useState(false)
   const [moveDefaultSelected, setMoveDefaultSelected] = useState<string | undefined>()
+  const [moveDefaultMode, setMoveDefaultMode] = useState<"favorite" | undefined>()
 
   const [compressOpen, setCompressOpen] = useState(false)
   const [compressTarget, setCompressTarget] = useState("")
@@ -64,10 +65,11 @@ export function useFileOperationDialogs(opts: FileOperationDialogsOptions) {
     setDeleteOpen(true)
   }
 
-  const openMove = (filePath: string, isFolder: boolean, defaultSelected?: string) => {
+  const openMove = (filePath: string, isFolder: boolean, defaultSelected?: string, defaultMode?: "favorite") => {
     setMoveTarget(filePath)
     setMoveIsFolder(isFolder)
     setMoveDefaultSelected(defaultSelected)
+    setMoveDefaultMode(defaultMode)
     setMoveOpen(true)
   }
 
@@ -110,6 +112,7 @@ export function useFileOperationDialogs(opts: FileOperationDialogsOptions) {
         filePath={moveTarget}
         isFolder={moveIsFolder}
         defaultSelected={moveDefaultSelected}
+        defaultMode={moveDefaultMode}
         onSuccess={onMoveSuccess}
       />
       <CompressDialog

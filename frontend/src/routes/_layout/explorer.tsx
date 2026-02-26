@@ -193,8 +193,7 @@ function Explorer() {
       onRename: () => openRename(item.path),
       onMove: () => openMove(item.path, item.item_type === "folder"),
       onMoveToFavorite: () => {
-        const favDir = settingsData?.favorite_dir?.trim()
-        if (favDir) openMove(item.path, item.item_type === "folder", favDir)
+        openMove(item.path, item.item_type === "folder", undefined, "favorite")
       },
       onMoveToAlreadyRead: () => {
         const readDir = settingsData?.already_read_dir?.trim()
