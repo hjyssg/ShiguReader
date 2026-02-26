@@ -37,6 +37,13 @@ export function wrapPageIndex(index: number, total: number): number {
   return ((index % total) + total) % total
 }
 
+/** 在父路径后追加子目录名，自动使用父路径的分隔符 */
+export function appendSubdir(parentDir: string, subdir: string): string {
+  const sep = detectPathSeparator(parentDir)
+  const normalized = parentDir.replace(/[\\/]+$/, "")
+  return `${normalized}${sep}${subdir}`
+}
+
 export function buildDestPath(destDir: string, sourcePath: string): string {
   const fileName = getBaseName(sourcePath)
   const separator = detectPathSeparator(destDir || sourcePath)

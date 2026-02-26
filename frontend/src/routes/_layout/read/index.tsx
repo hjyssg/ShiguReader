@@ -5,9 +5,9 @@
 import { useMutation, useQuery } from "@/shims/react-query"
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router"
 import {
-  BookCheck,
   ChevronLeft,
   ChevronRight,
+  BookCheck,
   FolderInput,
   GalleryVertical,
   ImageDown,
@@ -30,10 +30,9 @@ import {
   type CompressAction,
   CompressDialog,
 } from "@/components/Files/dialogs/CompressDialog"
-import { ConfirmMoveDialog } from "@/components/Files/dialogs/ConfirmMoveDialog"
 import { DownloadMenuItem } from "@/components/Files/DownloadMenuItem"
 import { DeleteDialog } from "@/components/Files/dialogs/DeleteDialog"
-import { MoveDialog } from "@/components/Files/dialogs/MoveDialog"
+import { UnifiedMoveDialog } from "@/components/Files/dialogs/UnifiedMoveDialog"
 import { RenameDialog } from "@/components/Files/dialogs/RenameDialog"
 import { formatDateTime, formatFileSize } from "@/components/Files/utils"
 import { ExtractingIndicator } from "@/components/semantic/layout"
@@ -89,20 +88,6 @@ function ReadPage() {
   // File operations state
   const parentPath = getParentPath(path)
   const operations = useFileOperations(parentPath)
-  const { data: settingsData } = useQuery({
-    queryKey: ["settings"],
-    queryFn: async () => {
-      const response = await fetch(`${OpenAPI.BASE}/api/v1/settings`)
-      if (!response.ok) return null
-      return response.json() as Promise<{ favorite_dir?: string; already_read_dir?: string }>
-    },
-  })
-  const favoriteRoot = settingsData?.favorite_dir?.trim()
-    ? { path: settingsData.favorite_dir.trim(), dirname: getBaseName(settingsData.favorite_dir.trim(), settingsData.favorite_dir.trim()) }
-    : null
-  const alreadyReadRoot = settingsData?.already_read_dir?.trim()
-    ? { path: settingsData.already_read_dir.trim(), dirname: getBaseName(settingsData.already_read_dir.trim(), settingsData.already_read_dir.trim()) }
-    : null
   const navigateToMovedPath = (movedPath?: string | null) => {
     const nextPath = movedPath || path
     navigate({
@@ -114,11 +99,18 @@ function ReadPage() {
   const [renameOpen, setRenameOpen] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [moveOpen, setMoveOpen] = useState(false)
+  const [moveDefaultSelected, setMoveDefaultSelected] = useState<string | undefined>()
+  const { data: settingsData } = useQuery({
+    queryKey: ["settings"],
+    queryFn: async () => {
+      const response = await fetch(`${OpenAPI.BASE}/api/v1/settings`)
+      if (!response.ok) return null
+      return response.json() as Promise<{ favorite_dir?: string; already_read_dir?: string }>
+    },
+  })
   const [compressOpen, setCompressOpen] = useState(false)
   const [compressAction, setCompressAction] =
     useState<CompressAction>("zip-folder")
-  const [confirmFavOpen, setConfirmFavOpen] = useState(false)
-  const [confirmReadOpen, setConfirmReadOpen] = useState(false)
 
   const hasAutoSwitchedRef = useRef(false)
   useEffect(() => { hasAutoSwitchedRef.current = false }, [path])
@@ -291,13 +283,7 @@ function ReadPage() {
           if (!Number.isNaN(value) && value > 0) goToPage(value - 1)
           return
         }
-        if (key === "v") {
-          e.preventDefault(); setConfirmFavOpen(true); return
-        }
-        if (key === "x") {
-          e.preventDefault(); setConfirmReadOpen(true); return
-        }
-        if (key === "m") {
+        if (key === "v" || key === "x" || key === "m") {
           e.preventDefault(); setMoveOpen(true); return
         }
       }
@@ -567,15 +553,19 @@ function ReadPage() {
                 <DropdownMenuItem onClick={() => setRenameOpen(true)}>
                   <Pencil className="mr-2 size-4" />{t("fileOps.rename")}
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setMoveOpen(true)}>
-                  <FolderInput className="mr-2 size-4" />{t("fileOps.moveTo")}
+                <DropdownMenuItem onClick={() => { setMoveDefaultSelected(undefined); setMoveOpen(true) }}>
+                  <FolderInput className="mr-2 size-4" />{t("fileOps.moveFile")}
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setConfirmFavOpen(true)}>
-                  <Star className="mr-2 size-4" />{t("fileOps.moveToFavorites")}
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setConfirmReadOpen(true)}>
-                  <BookCheck className="mr-2 size-4" />{t("fileOps.moveToAlreadyRead")}
-                </DropdownMenuItem>
+                {settingsData?.favorite_dir?.trim() && (
+                  <DropdownMenuItem onClick={() => { setMoveDefaultSelected(settingsData.favorite_dir!.trim()); setMoveOpen(true) }}>
+                    <Star className="mr-2 size-4" />{t("fileOps.moveToFavorites")}
+                  </DropdownMenuItem>
+                )}
+                {settingsData?.already_read_dir?.trim() && (
+                  <DropdownMenuItem onClick={() => { setMoveDefaultSelected(settingsData.already_read_dir!.trim()); setMoveOpen(true) }}>
+                    <BookCheck className="mr-2 size-4" />{t("fileOps.moveToAlreadyRead")}
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuSeparator />
                 {isArchiveSource && (
                   <DropdownMenuItem onClick={() => { setCompressAction("minify-zip-images"); setCompressOpen(true) }}>
@@ -678,10 +668,8 @@ function ReadPage() {
       {/* ── File operation dialogs ── */}
       <RenameDialog open={renameOpen} onOpenChange={setRenameOpen} filePath={path} onConfirm={(newName) => { operations.renameMutation.mutate({ path, newName }, { onSuccess: () => { setRenameOpen(false); navigate({ to: "/" }) } }) }} isPending={operations.renameMutation.isPending} />
       <DeleteDialog open={deleteOpen} onOpenChange={setDeleteOpen} filePaths={[path]} onConfirm={() => { operations.deleteMutation.mutate({ path, permanently: false }, { onSuccess: () => { setDeleteOpen(false); navigate({ to: "/" }) } }) }} isPending={operations.deleteMutation.isPending} />
-      <MoveDialog open={moveOpen} onOpenChange={setMoveOpen} filePaths={[path]} onConfirm={(destDir) => { const name = getBaseName(path); const destPath = `${destDir}/${name}`; if (isFolderSource) { operations.moveFolderMutation.mutate({ sourcePath: path, destPath }, { onSuccess: (resp) => { setMoveOpen(false); navigateToMovedPath(resp?.dest_path) } }) } else { operations.moveFileMutation.mutate({ sourcePath: path, destPath }, { onSuccess: (resp) => { setMoveOpen(false); navigateToMovedPath(resp?.dest_path) } }) } }} isPending={operations.moveFileMutation.isPending || operations.moveFolderMutation.isPending} />
+      <UnifiedMoveDialog open={moveOpen} onClose={() => setMoveOpen(false)} filePath={path} isFolder={isFolderSource} defaultSelected={moveDefaultSelected} onSuccess={(destPath) => navigateToMovedPath(destPath)} />
       <CompressDialog open={compressOpen} onOpenChange={setCompressOpen} filePath={path} action={compressAction} onConfirm={() => { if (compressAction === "zip-folder") { operations.zipFolderMutation.mutate(path, { onSuccess: () => setCompressOpen(false) }) } else { operations.compressArchiveImagesMutation.mutate(path, { onSuccess: () => setCompressOpen(false) }) } }} isPending={operations.zipFolderMutation.isPending || operations.compressArchiveImagesMutation.isPending} />
-      <ConfirmMoveDialog open={confirmFavOpen} onOpenChange={setConfirmFavOpen} filePaths={[path]} destination={t("home.favorite")} destinationPath={favoriteRoot?.path} showSubfolder onConfirm={(subfolder) => { operations.moveToFavoriteMutation.mutate({ sourcePath: path, isFolder: isFolderSource, subfolder }, { onSuccess: (resp) => { setConfirmFavOpen(false); navigateToMovedPath(resp?.dest_path) } }) }} isPending={operations.moveToFavoriteMutation.isPending} />
-      <ConfirmMoveDialog open={confirmReadOpen} onOpenChange={setConfirmReadOpen} filePaths={[path]} destination={t("home.alreadyRead")} destinationPath={alreadyReadRoot?.path} onConfirm={() => { operations.moveToAlreadyReadMutation.mutate({ sourcePath: path, isFolder: isFolderSource }, { onSuccess: (resp) => { setConfirmReadOpen(false); navigateToMovedPath(resp?.dest_path) } }) }} isPending={operations.moveToAlreadyReadMutation.isPending} />
     </div>
   )
 }

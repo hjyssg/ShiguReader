@@ -2,7 +2,7 @@
 import { useMutation, useQueryClient } from "@/shims/react-query"
 import { toastError, toastSuccess } from "@/lib/toast"
 import { ApiError, FilesystemService } from "@/client"
-import { buildDestPath, buildReadUrl } from "@/lib/path-utils"
+import { buildReadUrl } from "@/lib/path-utils"
 import { requestJson } from "@/utils/http"
 
 function normalizeDetail(detail: unknown): string | null {
@@ -109,71 +109,6 @@ export function useFileOperations(currentPath: string) {
     },
   })
 
-  const moveToFavoriteMutation = useMutation({
-    mutationFn: async ({
-      sourcePath,
-      isFolder,
-      subfolder,
-    }: {
-      sourcePath: string
-      isFolder: boolean
-      subfolder?: string
-    }) => {
-      const settingsResp = await requestJson<{ favorite_dir?: string }>("/api/v1/settings")
-      const favDir = settingsResp.favorite_dir?.trim()
-      if (!favDir) throw new Error("Favorite directory not configured")
-      const targetDir = subfolder ? `${favDir}/${subfolder}` : favDir
-      if (subfolder) {
-        try {
-        await requestJson("/api/v1/fs/mkdir", {
-            method: "POST",
-            body: { path: targetDir },
-          })
-        } catch {
-          // ignore
-        }
-      }
-      const destPath = buildDestPath(targetDir, sourcePath)
-      return isFolder
-        ? FilesystemService.moveFolder({ requestBody: { source_path: sourcePath, dest_path: destPath } })
-        : FilesystemService.moveFile({ requestBody: { source_path: sourcePath, dest_path: destPath } })
-    },
-    onSuccess: () => {
-      toastSuccess("Moved to favorites")
-      invalidate()
-    },
-    onError: (err: Error) => {
-      toastError(`Move to favorites failed: ${extractErrorMessage(err)}`)
-    },
-  })
-
-  const moveToAlreadyReadMutation = useMutation({
-    mutationFn: async ({ sourcePath, isFolder }: { sourcePath: string; isFolder: boolean }) => {
-      const settingsResp = await requestJson<{ already_read_dir?: string }>("/api/v1/settings")
-      const dir = settingsResp.already_read_dir?.trim()
-      if (!dir) throw new Error("Already-read directory not configured")
-      try {
-        await requestJson("/api/v1/fs/mkdir", {
-          method: "POST",
-          body: { path: dir },
-        })
-      } catch {
-        // ignore — directory may already exist
-      }
-      const destPath = buildDestPath(dir, sourcePath)
-      return isFolder
-        ? FilesystemService.moveFolder({ requestBody: { source_path: sourcePath, dest_path: destPath } })
-        : FilesystemService.moveFile({ requestBody: { source_path: sourcePath, dest_path: destPath } })
-    },
-    onSuccess: () => {
-      toastSuccess("Moved to already-read")
-      invalidate()
-    },
-    onError: (err: Error) => {
-      toastError(`Move to already-read failed: ${extractErrorMessage(err)}`)
-    },
-  })
-
   const zipFolderMutation = useMutation({
     mutationFn: (folderPath: string) =>
       FilesystemService.zipFolder({ requestBody: { folder_path: folderPath } }),
@@ -233,8 +168,6 @@ export function useFileOperations(currentPath: string) {
     deleteBatchMutation,
     moveFileMutation,
     moveFolderMutation,
-    moveToFavoriteMutation,
-    moveToAlreadyReadMutation,
     zipFolderMutation,
     compressArchiveImagesMutation,
     backfillFolderMutation,
