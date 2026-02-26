@@ -30,10 +30,6 @@ export interface FileOperationMenuItemsProps {
   isFolder: boolean
   /** 是否为压缩包来源 */
   isArchive: boolean
-  /** settings 中的 favorite_dir */
-  favoriteDir?: string
-  /** settings 中的 already_read_dir */
-  alreadyReadDir?: string
   /** 是否显示快捷键提示 (F2 / Del) */
   showShortcuts?: boolean
   /** 是否显示 backfill 选项（仅 explorer 文件夹用） */
@@ -52,8 +48,6 @@ export function FileOperationMenuItems({
   fileName,
   isFolder,
   isArchive,
-  favoriteDir,
-  alreadyReadDir,
   showShortcuts,
   onBackfillFolder,
   onRename,
@@ -76,16 +70,12 @@ export function FileOperationMenuItems({
       <DropdownMenuItem onClick={onMove}>
         <FolderInput className="mr-2 size-4" />{t("fileOps.moveTo")}
       </DropdownMenuItem>
-      {favoriteDir && (
-        <DropdownMenuItem onClick={onMoveToFavorite}>
-          <Star className="mr-2 size-4" />{t("fileOps.moveToFavorites")}
-        </DropdownMenuItem>
-      )}
-      {alreadyReadDir && (
-        <DropdownMenuItem onClick={onMoveToAlreadyRead}>
-          <BookCheck className="mr-2 size-4" />{t("fileOps.moveToAlreadyRead")}
-        </DropdownMenuItem>
-      )}
+      <DropdownMenuItem onClick={onMoveToFavorite}>
+        <Star className="mr-2 size-4" />{t("fileOps.moveToFavorites")}
+      </DropdownMenuItem>
+      <DropdownMenuItem onClick={onMoveToAlreadyRead}>
+        <BookCheck className="mr-2 size-4" />{t("fileOps.moveToAlreadyRead")}
+      </DropdownMenuItem>
       {onBackfillFolder && isFolder && (
         <DropdownMenuItem onClick={onBackfillFolder}>
           <CheckSquare className="mr-2 size-4" />{t("explorer.backfillMissingMetaThumbnail")}

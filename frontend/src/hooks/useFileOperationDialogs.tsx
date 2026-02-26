@@ -1,11 +1,15 @@
 /**
  * 文件操作对话框统一管理 hook
- * 将 rename / delete / move / compress 四个 dialog 的状态 + 渲染集中管理，
- * 供 explorer 和 read 页面共用，消除重复代码。
+ *
+ * 将 rename / delete / move / compress 四个 dialog 的状态和渲染集中在此，
+ * 调用方只需传入 currentPath（用于 invalidate 缓存），然后调用对应的 open* 方法触发弹窗。
+ * 所有 API 调用、toast 提示均在 dialog 内部完成，调用方无需关心实现细节。
+ *
+ * 主要使用场景：
+ * - FileActionsDropdown：每个文件卡片的操作按钮，currentPath 为文件所在目录
+ * - GalleryModeView（read 页面）：阅读时的文件操作，currentPath 为当前文件的父目录
  */
 import { useState } from "react"
-import { useQuery } from "@/shims/react-query"
-import { OpenAPI } from "@/client"
 import { DeleteDialog } from "@/components/Files/dialogs/DeleteDialog"
 import { RenameDialog } from "@/components/Files/dialogs/RenameDialog"
 import { UnifiedMoveDialog } from "@/components/Files/dialogs/UnifiedMoveDialog"
@@ -27,16 +31,6 @@ export function useFileOperationDialogs(opts: FileOperationDialogsOptions) {
   const { currentPath, onAfterRename, onAfterDelete, onMoveSuccess } = opts
   const operations = useFileOperations(currentPath)
 
-  // --- settings ---
-  const { data: settingsData } = useQuery({
-    queryKey: ["settings"],
-    queryFn: async () => {
-      const resp = await fetch(`${OpenAPI.BASE}/api/v1/settings`)
-      if (!resp.ok) return null
-      return resp.json() as Promise<{ favorite_dir?: string; already_read_dir?: string }>
-    },
-  })
-
   // --- dialog state ---
   const [renameOpen, setRenameOpen] = useState(false)
   const [renameTarget, setRenameTarget] = useState("")
@@ -46,9 +40,8 @@ export function useFileOperationDialogs(opts: FileOperationDialogsOptions) {
 
   const [moveOpen, setMoveOpen] = useState(false)
   const [moveTarget, setMoveTarget] = useState("")
-  const [moveIsFolder, setMoveIsFolder] = useState(false)
   const [moveDefaultSelected, setMoveDefaultSelected] = useState<string | undefined>()
-  const [moveDefaultMode, setMoveDefaultMode] = useState<"favorite" | undefined>()
+  const [moveDefaultMode, setMoveDefaultMode] = useState<"favorite" | "already_read" | undefined>()
 
   const [compressOpen, setCompressOpen] = useState(false)
   const [compressTarget, setCompressTarget] = useState("")
@@ -65,9 +58,8 @@ export function useFileOperationDialogs(opts: FileOperationDialogsOptions) {
     setDeleteOpen(true)
   }
 
-  const openMove = (filePath: string, isFolder: boolean, defaultSelected?: string, defaultMode?: "favorite") => {
+  const openMove = (filePath: string, defaultSelected?: string, defaultMode?: "favorite" | "already_read") => {
     setMoveTarget(filePath)
-    setMoveIsFolder(isFolder)
     setMoveDefaultSelected(defaultSelected)
     setMoveDefaultMode(defaultMode)
     setMoveOpen(true)
@@ -110,7 +102,6 @@ export function useFileOperationDialogs(opts: FileOperationDialogsOptions) {
         open={moveOpen}
         onClose={() => setMoveOpen(false)}
         filePath={moveTarget}
-        isFolder={moveIsFolder}
         defaultSelected={moveDefaultSelected}
         defaultMode={moveDefaultMode}
         onSuccess={onMoveSuccess}
@@ -142,12 +133,10 @@ export function useFileOperationDialogs(opts: FileOperationDialogsOptions) {
 
   return {
     operations,
-    settingsData,
     openRename,
     openDelete,
     openMove,
     openCompress,
-    setMoveOpen,
     dialogs,
   }
 }

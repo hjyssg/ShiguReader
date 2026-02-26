@@ -13,43 +13,32 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { FileOperationMenuItems } from "./FileOperationMenuItems"
+import { useFileOperationDialogs } from "@/hooks/useFileOperationDialogs"
+import { getParentPath } from "@/lib/path-utils"
 import "./FileContextMenu.css"
-
-export interface FileContextMenuActions {
-  onRename: () => void
-  onMove: () => void
-  onMoveToFavorite: () => void
-  onMoveToAlreadyRead: () => void
-  onBackfillFolder: () => void
-  onDelete: () => void
-  onZipFolder: () => void
-  onMinifyZipImages: () => void
-}
 
 interface FileContextMenuProps {
   children: React.ReactNode
   /** 右键点击的主要文件项（用于判断类型） */
   item: FileSystemItem
-  actions: FileContextMenuActions
   onContextMenuOpen?: () => void
 }
 
 export function FileContextMenu({
   children,
   item: _item,
-  actions: _actions,
   onContextMenuOpen: _onContextMenuOpen,
 }: FileContextMenuProps) {
   return <>{children}</>
 }
 
-export function FileActionsDropdown({
-  item,
-  actions,
-}: Omit<FileContextMenuProps, "children" | "onContextMenuOpen">) {
+export function FileActionsDropdown({ item }: { item: FileSystemItem }) {
   const { t } = useTranslation()
   const isFolder = item.item_type === "folder"
   const isArchive = item.file_type === "archive"
+
+  const { openRename, openDelete, openMove, openCompress, dialogs } =
+    useFileOperationDialogs({ currentPath: getParentPath(item.path) })
 
   return (
     <div className="file-actions-dropdown">
@@ -60,7 +49,7 @@ export function FileActionsDropdown({
         title={t("fileOps.moveToFavorites")}
         onClick={(e) => {
           e.stopPropagation()
-          actions.onMoveToFavorite()
+          openMove(item.path, undefined, "favorite")
         }}
       >
         <Check className="size-4" />
@@ -73,7 +62,7 @@ export function FileActionsDropdown({
         title={t("fileOps.moveToAlreadyRead")}
         onClick={(e) => {
           e.stopPropagation()
-          actions.onMoveToAlreadyRead()
+          openMove(item.path, undefined, "already_read")
         }}
       >
         <X className="size-4" />
@@ -86,7 +75,7 @@ export function FileActionsDropdown({
         title={t("common.delete")}
         onClick={(e) => {
           e.stopPropagation()
-          actions.onDelete()
+          openDelete([item.path])
         }}
       >
         <Trash2 className="size-4" />
@@ -109,20 +98,19 @@ export function FileActionsDropdown({
             fileName={item.name}
             isFolder={isFolder}
             isArchive={isArchive}
-            favoriteDir="__always__"
-            alreadyReadDir="__always__"
             showShortcuts
-            onBackfillFolder={isFolder ? actions.onBackfillFolder : undefined}
-            onRename={actions.onRename}
-            onMove={actions.onMove}
-            onMoveToFavorite={actions.onMoveToFavorite}
-            onMoveToAlreadyRead={actions.onMoveToAlreadyRead}
-            onDelete={actions.onDelete}
-            onCompressToZip={actions.onZipFolder}
-            onMinifyZipImages={actions.onMinifyZipImages}
+            onRename={() => openRename(item.path)}
+            onMove={() => openMove(item.path)}
+            onMoveToFavorite={() => openMove(item.path, undefined, "favorite")}
+            onMoveToAlreadyRead={() => openMove(item.path, undefined, "already_read")}
+            onDelete={() => openDelete([item.path])}
+            onCompressToZip={isFolder ? () => openCompress(item.path, "zip-folder") : undefined}
+            onMinifyZipImages={isArchive ? () => openCompress(item.path, "minify-zip-images") : undefined}
           />
         </DropdownMenuContent>
       </DropdownMenu>
+
+      {dialogs}
     </div>
   )
 }

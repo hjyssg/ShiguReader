@@ -10,7 +10,7 @@ import {
   RotateCw,
   Smartphone,
 } from "lucide-react"
-import { type ReactNode, useEffect, useMemo, useRef, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 
 import { OpenAPI } from "@/client"
@@ -26,7 +26,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Skeleton } from "@/components/ui/skeleton"
-import { wrapPageIndex } from "@/lib/path-utils"
+import { getParentPath, wrapPageIndex } from "@/lib/path-utils"
+import { useFileOperationDialogs } from "@/hooks/useFileOperationDialogs"
 
 import type { AudioTrack, ImageEntry } from "./-types"
 
@@ -50,14 +51,10 @@ interface GalleryModeViewProps {
   } | null
   mtime: number | null
   filesize: number | null
-  settingsData: { favorite_dir?: string; already_read_dir?: string } | undefined
   audioTracks: AudioTrack[]
-  fileOpDialogs: ReactNode
-  openRename: (path: string) => void
-  openDelete: (paths: string[]) => void
-  openMove: (path: string, isFolder: boolean, destDir?: string, defaultMode?: "favorite") => void
-  openCompress: (path: string, type: string) => void
-  setMoveOpen: (open: boolean) => void
+  onAfterRename?: () => void
+  onAfterDelete?: () => void
+  onMoveSuccess?: (destPath: string) => void
   onPageChange: (page: number) => void
 }
 
@@ -72,18 +69,21 @@ export function GalleryModeView({
   parseMeta,
   mtime,
   filesize,
-  settingsData,
   audioTracks,
-  fileOpDialogs,
-  openRename,
-  openDelete,
-  openMove,
-  openCompress,
-  setMoveOpen,
+  onAfterRename,
+  onAfterDelete,
+  onMoveSuccess,
   onPageChange,
 }: GalleryModeViewProps) {
   const navigate = useNavigate()
   const { t } = useTranslation()
+  const parentPath = getParentPath(path)
+  const { openRename, openDelete, openMove, openCompress, dialogs: fileOpDialogs } = useFileOperationDialogs({
+    currentPath: parentPath,
+    onAfterRename,
+    onAfterDelete,
+    onMoveSuccess,
+  })
 
   const [scale, setScale] = useState(1)
   const [rotation, setRotation] = useState(0)
@@ -159,13 +159,13 @@ export function GalleryModeView({
         if (!Number.isNaN(value) && value > 0) onPageChange(value - 1)
         return
       }
-      if (key === "v" || key === "x" || key === "m") { e.preventDefault(); setMoveOpen(true); return }
+      if (key === "v" || key === "x" || key === "m") { e.preventDefault(); openMove(path); return }
       if (key === "w" || key === "arrowup") window.scrollBy({ top: -80, behavior: "smooth" })
       else if (key === "s" || key === "arrowdown") window.scrollBy({ top: 80, behavior: "smooth" })
     }
     window.addEventListener("keydown", onKeydown)
     return () => window.removeEventListener("keydown", onKeydown)
-  }, [goNext, goPrev, zoomIn, zoomOut, onPageChange, setMoveOpen, t])
+  }, [goNext, goPrev, zoomIn, zoomOut, onPageChange, openMove, path, t])
 
   // ── Mouse drag ──
   const onMouseDown: React.MouseEventHandler<HTMLDivElement> = (e) => {
@@ -389,15 +389,10 @@ export function GalleryModeView({
                 fileName={currentEntry.name}
                 isFolder={isFolderSource}
                 isArchive={isArchiveSource}
-                favoriteDir={settingsData?.favorite_dir?.trim()}
-                alreadyReadDir={settingsData?.already_read_dir?.trim()}
                 onRename={() => openRename(path)}
-                onMove={() => openMove(path, isFolderSource)}
-                onMoveToFavorite={() => openMove(path, isFolderSource, undefined, "favorite")}
-                onMoveToAlreadyRead={() => {
-                  const readDir = settingsData?.already_read_dir?.trim()
-                  if (readDir) openMove(path, isFolderSource, readDir)
-                }}
+                onMove={() => openMove(path)}
+                onMoveToFavorite={() => openMove(path, undefined, "favorite")}
+                onMoveToAlreadyRead={() => openMove(path, undefined, "already_read")}
                 onDelete={() => openDelete([path])}
                 onCompressToZip={() => openCompress(path, "zip-folder")}
                 onMinifyZipImages={() => openCompress(path, "minify-zip-images")}

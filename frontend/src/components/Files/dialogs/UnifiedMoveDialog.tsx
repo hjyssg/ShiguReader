@@ -2,6 +2,7 @@
 import { useEffect, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useQuery } from "@/shims/react-query"
+import { isFolder as isFolderPath } from "@common/fileTypeUtil"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -23,11 +24,10 @@ interface UnifiedMoveDialogProps {
   open: boolean
   onClose: () => void
   filePath: string
-  isFolder: boolean
   /** 打开时预选的目标路径（不传则默认选第一个） */
   defaultSelected?: string
-  /** "favorite" 时自动预选 favorite 子文件夹 */
-  defaultMode?: "favorite"
+  /** "favorite" 时自动预选 favorite 子文件夹；"already_read" 时预选已读文件夹 */
+  defaultMode?: "favorite" | "already_read"
   onSuccess?: (destPath: string) => void
 }
 
@@ -35,7 +35,6 @@ export function UnifiedMoveDialog({
   open,
   onClose,
   filePath,
-  isFolder,
   defaultSelected,
   defaultMode,
   onSuccess,
@@ -96,6 +95,13 @@ export function UnifiedMoveDialog({
         } else {
           setSelected(options[0] ?? "custom")
         }
+      } else if (defaultMode === "already_read") {
+        const readDir = settings?.already_read_dir?.trim().replace(/[\\/]+$/, "")
+        if (readDir && options.includes(readDir)) {
+          setSelected(readDir)
+        } else {
+          setSelected(options[0] ?? "custom")
+        }
       } else if (defaultSelected && options.includes(defaultSelected)) {
         setSelected(defaultSelected)
       } else {
@@ -129,7 +135,7 @@ export function UnifiedMoveDialog({
       }
 
       const destPath = buildDestPath(destDir, filePath)
-      const resp = isFolder
+      const resp = isFolderPath(filePath)
         ? await FilesystemService.moveFolder({
             requestBody: { source_path: filePath, dest_path: destPath },
           })

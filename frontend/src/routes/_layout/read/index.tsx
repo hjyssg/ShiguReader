@@ -16,7 +16,6 @@ import { buttonVariants } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useArchiveExtract } from "@/hooks/useArchiveExtract"
 import { useDocumentTitle } from "@/hooks/useDocumentTitle"
-import { useFileOperationDialogs } from "@/hooks/useFileOperationDialogs"
 import { useResolveMovedFile } from "@/hooks/useResolveMovedFile"
 import { getBaseName, getParentPath, wrapPageIndex } from "@/lib/path-utils"
 
@@ -49,26 +48,6 @@ function ReadPage() {
   const { t } = useTranslation()
 
   const parentPath = getParentPath(path)
-  const {
-    settingsData,
-    openRename,
-    openDelete,
-    openMove,
-    openCompress,
-    setMoveOpen,
-    dialogs: fileOpDialogs,
-  } = useFileOperationDialogs({
-    currentPath: parentPath,
-    onAfterRename: () => navigate({ to: "/" }),
-    onAfterDelete: () => navigate({ to: "/" }),
-    onMoveSuccess: (destPath) => {
-      navigate({
-        to: "/read",
-        search: { path: destPath || path, page: 0, mode: undefined },
-        replace: true,
-      })
-    },
-  })
 
   const hasAutoSwitchedRef = useRef(false)
   useEffect(() => { hasAutoSwitchedRef.current = false }, [path])
@@ -273,14 +252,10 @@ function ReadPage() {
       parseMeta={parseMeta}
       mtime={mtime}
       filesize={filesize}
-      settingsData={settingsData}
       audioTracks={audioTracks}
-      fileOpDialogs={fileOpDialogs}
-      openRename={openRename}
-      openDelete={openDelete}
-      openMove={openMove}
-      openCompress={openCompress}
-      setMoveOpen={setMoveOpen}
+      onAfterRename={() => navigate({ to: "/" })} // todo 不跳转
+      onAfterDelete={() => navigate({ to: "/" })} // todo 不跳转
+      onMoveSuccess={(destPath) => navigate({ to: "/read", search: { path: destPath || path, page: 0, mode: undefined }, replace: true })} 
       onPageChange={goToPage}
     />
   )

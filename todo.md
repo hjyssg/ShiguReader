@@ -168,3 +168,19 @@ interface FileItemProps {
   /** 右键回调 */
   onContextMenu?: (e: React.MouseEvent) => void
 }
+
+
+
+1 search by text scope, 只看文件名 不看filepath。否则一次超级多结果
+search页面的q要保持在url，toottip要显示filepath。
+histoy的toottip要显示filepath。
+
+
+2 useFileOperationDialogs现在move 还要从read和explorer去传什么move的函数，我真是受不了。乱的要命。
+就把filepath给move dialog，然后各种操作都在dialog实现。toast也要在dialog实现。
+
+你给我认真看代码，各种异味代码都改了
+
+
+----
+scan and watch是坏的
