@@ -28,6 +28,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton"
 import { getParentPath, wrapPageIndex } from "@/lib/path-utils"
 import { useFileOperationDialogs } from "@/hooks/useFileOperationDialogs"
+import { navToRead } from "@/utils/appNavigate"
 
 import type { AudioTrack, ImageEntry, ReadMode } from "./-types"
 
@@ -78,7 +79,7 @@ export function GalleryModeView({
     currentPath: parentPath,
     onAfterRename: () => navigate({ to: "/" }),
     onAfterDelete: () => navigate({ to: "/" }),
-    onMoveSuccess: (destPath) => navigate({ to: "/read", search: { path: destPath || path, page: currentPage, mode }, replace: true }),
+    onMoveSuccess: (destPath) => navToRead(navigate, { path: destPath || path, page: currentPage, mode }, true),
   })
 
   const [scale, setScale] = useState(1)
@@ -341,7 +342,7 @@ export function GalleryModeView({
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => navigate({ to: "/read", search: { path, page: currentPage, mode: "mobile" } as any })}
+            onClick={() => navToRead(navigate, { path, page: currentPage, mode: "mobile" })}
           >
             <Smartphone className="mr-1 size-3.5" />{t("reader.mobileView")}
           </Button>
@@ -349,7 +350,7 @@ export function GalleryModeView({
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => navigate({ to: "/read", search: { path, page: 0, mode: "waterfall" } as any })}
+            onClick={() => navToRead(navigate, { path, page: 0, mode: "waterfall" })}
           >
             <GalleryVertical className="mr-1 size-3.5" />{t("reader.waterfall")}
           </Button>

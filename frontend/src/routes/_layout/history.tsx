@@ -26,6 +26,7 @@ import { Button } from "@/components/ui/button"
 import { UnifiedPagination } from "@/components/Common/UnifiedPagination"
 import { Skeleton } from "@/components/ui/skeleton"
 import { buildNavigationTarget } from "@/hooks/useFileNavigation"
+import { navToHistory } from "@/utils/appNavigate"
 import { useIsMobile } from "@/hooks/useMobile"
 import { getParentPath } from "@/lib/path-utils"
 
@@ -54,9 +55,9 @@ type HistoryResponse = {
 
 export const Route = createFileRoute("/_layout/history")({
   component: HistoryPage,
-  validateSearch: (search: Record<string, unknown>) => {
+  validateSearch: (search: Record<string, unknown>): { page: number; view: "grid" | "table"; sort_order: SortOrder } => {
     const page = Math.max(1, Number(search.page) || 1)
-    const view = search.view === "table" ? "table" : "grid"
+    const view: "grid" | "table" = search.view === "table" ? "table" : "grid"
     const sort_order: SortOrder = search.sort_order === "asc" ? "asc" : "desc"
     return { page, view, sort_order }
   },
@@ -94,7 +95,7 @@ function HistoryPage() {
   const goToPage = (nextPage: number) => {
     const target = Math.min(totalPages, Math.max(1, nextPage))
     if (target !== page) {
-      navigate({ to: "/history", search: { page: target, view, sort_order } })
+      navToHistory(navigate, { page: target, view, sort_order })
     }
   }
 
@@ -140,36 +141,21 @@ function HistoryPage() {
           <Button
             variant={sort_order === "desc" ? "default" : "outline"}
             size="sm"
-            onClick={() =>
-              navigate({
-                to: "/history",
-                search: { page: 1, view, sort_order: "desc" },
-              })
-            }
+            onClick={() => navToHistory(navigate, { page: 1, view, sort_order: "desc" })}
           >
             <ArrowDown className="size-4 mr-1" /> {t("history.recentFirst")}
           </Button>
           <Button
             variant={sort_order === "asc" ? "default" : "outline"}
             size="sm"
-            onClick={() =>
-              navigate({
-                to: "/history",
-                search: { page: 1, view, sort_order: "asc" },
-              })
-            }
+            onClick={() => navToHistory(navigate, { page: 1, view, sort_order: "asc" })}
           >
             <ArrowUp className="size-4 mr-1" /> {t("history.oldestFirst")}
           </Button>
           <Button
             variant={view === "grid" ? "default" : "ghost"}
             size="sm"
-            onClick={() =>
-              navigate({
-                to: "/history",
-                search: { page: 1, view: "grid", sort_order },
-              })
-            }
+            onClick={() => navToHistory(navigate, { page: 1, view: "grid", sort_order })}
             className="h-8 w-8 p-0"
           >
             <LayoutGrid className="size-4" />
@@ -177,12 +163,7 @@ function HistoryPage() {
           <Button
             variant={view === "table" ? "default" : "ghost"}
             size="sm"
-            onClick={() =>
-              navigate({
-                to: "/history",
-                search: { page: 1, view: "table", sort_order },
-              })
-            }
+            onClick={() => navToHistory(navigate, { page: 1, view: "table", sort_order })}
             className="h-8 w-8 p-0"
           >
             <List className="size-4" />

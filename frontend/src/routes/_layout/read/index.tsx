@@ -18,6 +18,7 @@ import { useArchiveExtract } from "@/hooks/useArchiveExtract"
 import { useDocumentTitle } from "@/hooks/useDocumentTitle"
 import { useResolveMovedFile } from "@/hooks/useResolveMovedFile"
 import { getBaseName, getParentPath, wrapPageIndex } from "@/lib/path-utils"
+import { navToRead } from "@/utils/appNavigate"
 
 import { AudioModeView } from "./-AudioModeView"
 import { GalleryModeView } from "./-GalleryModeView"
@@ -94,7 +95,7 @@ function ReadPage() {
   useEffect(() => {
     if (shouldAutoAudio) {
       hasAutoSwitchedRef.current = true
-      navigate({ to: "/read", search: { path, page: 0, mode: "audio" }, replace: true })
+      navToRead(navigate, { path, page: 0, mode: "audio" }, true)
     }
   }, [shouldAutoAudio, navigate, path])
 
@@ -104,7 +105,7 @@ function ReadPage() {
 
   const goToPage = (nextPage: number) => {
     const target = wrapPageIndex(nextPage, totalPages)
-    navigate({ to: "/read", search: { path, page: target, mode }, replace: true })
+    navToRead(navigate, { path, page: target, mode }, true)
   }
 
   // 记录阅读历史
@@ -121,7 +122,7 @@ function ReadPage() {
     path,
     hasError ? loadError : null,
     (newPath) => {
-      navigate({ to: "/read", search: { path: newPath, page, mode }, replace: true })
+      navToRead(navigate, { path: newPath, page, mode }, true)
     },
   )
 

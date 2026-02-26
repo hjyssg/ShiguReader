@@ -5,6 +5,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { useTranslation } from "react-i18next"
 
 import { EntityListPage } from "@/components/Common/EntityListPage"
+import { navToEntityList } from "@/utils/appNavigate"
 
 type SortBy = "count" | "name"
 type SortOrder = "asc" | "desc"
@@ -42,9 +43,9 @@ function CosersPage() {
       sortOrder={sort_order}
       ascLabel={t("cosers.ascending")}
       descLabel={t("cosers.descending")}
-      onPageChange={(p) => navigate({ to: "/cosers", search: { page: p, sort_by, sort_order } })}
-      onSortByChange={(v) => navigate({ to: "/cosers", search: { page: 1, sort_by: v as SortBy, sort_order } })}
-      onSortOrderToggle={() => navigate({ to: "/cosers", search: { page: 1, sort_by, sort_order: sort_order === "asc" ? "desc" : "asc" } })}
+      onPageChange={(p) => navToEntityList(navigate, "/cosers", { page: p, sort_by, sort_order })}
+      onSortByChange={(v) => navToEntityList(navigate, "/cosers", { page: 1, sort_by: v, sort_order })}
+      onSortOrderToggle={() => navToEntityList(navigate, "/cosers", { page: 1, sort_by, sort_order: sort_order === "asc" ? "desc" : "asc" })}
     />
   )
 }

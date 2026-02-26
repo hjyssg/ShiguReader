@@ -5,6 +5,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { useTranslation } from "react-i18next"
 
 import { EntityListPage } from "@/components/Common/EntityListPage"
+import { navToEntityList } from "@/utils/appNavigate"
 
 type SortBy = "count" | "name" | "recommendation"
 type SortOrder = "asc" | "desc"
@@ -45,9 +46,9 @@ function TagsPage() {
       sortOrder={sort_order}
       ascLabel={t("tags.ascending")}
       descLabel={t("tags.descending")}
-      onPageChange={(p) => navigate({ to: "/tags", search: { page: p, sort_by, sort_order } })}
-      onSortByChange={(v) => navigate({ to: "/tags", search: { page: 1, sort_by: v as SortBy, sort_order } })}
-      onSortOrderToggle={() => navigate({ to: "/tags", search: { page: 1, sort_by, sort_order: sort_order === "asc" ? "desc" : "asc" } })}
+      onPageChange={(p) => navToEntityList(navigate, "/tags", { page: p, sort_by, sort_order })}
+      onSortByChange={(v) => navToEntityList(navigate, "/tags", { page: 1, sort_by: v, sort_order })}
+      onSortOrderToggle={() => navToEntityList(navigate, "/tags", { page: 1, sort_by, sort_order: sort_order === "asc" ? "desc" : "asc" })}
     />
   )
 }

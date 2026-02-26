@@ -31,6 +31,7 @@ import {
 } from "@/lib/path-utils"
 import type { SortField, SortOrder } from "@/components/Files/FileTableView"
 import type { ViewMode } from "@/components/Files/FileViewContainer"
+import { navToExplorer } from "@/utils/appNavigate"
 import "./explorer.css"
 
 export const Route = createFileRoute("/_layout/explorer")({
@@ -149,11 +150,7 @@ function Explorer() {
     path,
     error ?? null,
     (newPath) => {
-      navigate({
-        to: "/explorer",
-        search: { path: newPath, page: 1, pageSize, sortField, sortOrder },
-        replace: true,
-      })
+      navToExplorer(navigate, { path: newPath, page: 1, pageSize, sortField, sortOrder }, true)
     },
   )
 
@@ -235,28 +232,16 @@ function Explorer() {
         sortField={sortField}
         sortOrder={sortOrder}
         onSortFieldChange={(nextSortField) =>
-          navigate({
-            to: "/explorer",
-            search: { path, page: 1, pageSize, sortField: nextSortField, sortOrder },
-            replace: true,
-          })
+          navToExplorer(navigate, { path, page: 1, pageSize, sortField: nextSortField, sortOrder }, true)
         }
         onSortOrderChange={(nextSortOrder) =>
-          navigate({
-            to: "/explorer",
-            search: { path, page: 1, pageSize, sortField, sortOrder: nextSortOrder },
-            replace: true,
-          })
+          navToExplorer(navigate, { path, page: 1, pageSize, sortField, sortOrder: nextSortOrder }, true)
         }
         pagination={{
           page,
           pageSize,
           onChange: ({ page: nextPage, pageSize: nextPageSize }) =>
-            navigate({
-              to: "/explorer",
-              search: { path, page: nextPage, pageSize: nextPageSize, sortField, sortOrder },
-              replace: true,
-            }),
+            navToExplorer(navigate, { path, page: nextPage, pageSize: nextPageSize, sortField, sortOrder }, true),
         }}
         toolbarExtra={
           <>
