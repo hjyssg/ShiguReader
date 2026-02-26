@@ -46,6 +46,7 @@ export function UnifiedMoveDialog({
 
   const { data: settings } = useQuery({
     queryKey: ["settings"],
+    enabled: open,
     queryFn: async () => {
       const resp = await fetch(`${OpenAPI.BASE}/api/v1/settings`)
       if (!resp.ok) return {}
