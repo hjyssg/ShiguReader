@@ -7,7 +7,7 @@ import {
   getRecentActivity,
   getTopOpenedFolders,
 } from "./fsDirectory.js";
-import { scanDirectory, scanFavorite, getScanStatus, scanWatch, backfill } from "./fsScan.js";
+import { scanDirectory, scanFavorite, getScanStatus, scanAndWatch, backfill } from "./fsScan.js";
 import {
   moveFile,
   moveFolder,
@@ -46,7 +46,7 @@ export async function fsRoutes(app: FastifyInstance) {
   app.post("/scan", { schema: { summary: "扫描目录并索引文件", tags: ["扫描"] } }, scanDirectory);
   app.post("/scan-favorite", { schema: { summary: "扫描收藏目录", tags: ["扫描"] } }, scanFavorite);
   app.post("/generate", { schema: { summary: "生成元数据和缩略图", tags: ["扫描"] } }, backfill);
-  app.post("/scan-and-watch", { schema: { summary: "扫描并启动目录文件监听", tags: ["扫描"] } }, scanWatch);
+  app.post("/scan-and-watch", { schema: { summary: "扫描并启动目录文件监听", tags: ["扫描"] } }, scanAndWatch);
   app.get("/scan-status", { schema: { summary: "查询扫描任务状态", tags: ["扫描"] } }, getScanStatus);
 
   // ── 文件操作 ─────────────────────────────────────────────────────────────

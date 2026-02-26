@@ -32,25 +32,9 @@ export const activeWatchers = new Map<string, fs.FSWatcher>();
 
 // ─── handlers ────────────────────────────────────────────────────────────────
 
-export async function scanDirectory(
-  req: FastifyRequest<{ Body: { path: string; recursive?: boolean } }>,
-  reply: FastifyReply,
-) {
-  const { path: dirPath, recursive = true } = req.body ?? {};
-  if (!dirPath) {
-    return reply.status(400).send({ error: "path is required" });
-  }
+// ─── shared scan logic ────────────────────────────────────────────────────────
 
-  let stat: fs.Stats;
-  try {
-    stat = await fs.promises.stat(dirPath);
-  } catch {
-    return reply.status(404).send({ error: "Path not found" });
-  }
-  if (!stat.isDirectory()) {
-    return reply.status(400).send({ error: "Path is not a directory" });
-  }
-
+export function startScanTask(dirPath: string, recursive: boolean): void {
   const startedAt = Math.floor(Date.now() / 1000);
   scanStatusMap.set(dirPath, {
     path: dirPath,
@@ -159,7 +143,28 @@ export async function scanDirectory(
       }
     }
   });
+}
 
+export async function scanDirectory(
+  req: FastifyRequest<{ Body: { path: string; recursive?: boolean } }>,
+  reply: FastifyReply,
+) {
+  const { path: dirPath, recursive = true } = req.body ?? {};
+  if (!dirPath) {
+    return reply.status(400).send({ error: "path is required" });
+  }
+
+  let stat: fs.Stats;
+  try {
+    stat = await fs.promises.stat(dirPath);
+  } catch {
+    return reply.status(404).send({ error: "Path not found" });
+  }
+  if (!stat.isDirectory()) {
+    return reply.status(400).send({ error: "Path is not a directory" });
+  }
+
+  startScanTask(dirPath, recursive);
   return reply.send({ status: "started", message: "Scan task started", path: dirPath });
 }
 
@@ -202,11 +207,11 @@ export async function getScanStatus(req: FastifyRequest<{ Querystring: { path?: 
   return reply.send(entries.map((e) => ({ ...e, watcher_active: watcherPaths.has(e.path) })));
 }
 
-export async function scanWatch(
+export async function scanAndWatch(
   req: FastifyRequest<{ Body: { path: string; recursive?: boolean } }>,
   reply: FastifyReply,
 ) {
-  const { path: dirPath } = req.body ?? {};
+  const { path: dirPath, recursive = true } = req.body ?? {};
   if (!dirPath) {
     return reply.status(400).send({ error: "path is required" });
   }
@@ -219,38 +224,41 @@ export async function scanWatch(
     return reply.status(404).send({ error: "Directory not found" });
   }
 
-  if (activeWatchers.has(dirPath)) {
-    return reply.send({ status: "already_watching", path: dirPath });
+  // 先触发扫描
+  startScanTask(dirPath, recursive);
+
+  // 再启动 watcher（已在监听则跳过）
+  if (!activeWatchers.has(dirPath)) {
+    try {
+      const watcher = fs.watch(dirPath, { recursive: true }, (_event, filename) => {
+        if (!filename) {
+          return;
+        }
+        const fullPath = path.join(dirPath, filename);
+        setImmediate(() => {
+          try {
+            const s = fs.statSync(fullPath);
+            getRepo().upsertFile({
+              filepath: fullPath,
+              folderpath: dirPath,
+              filename: path.basename(fullPath),
+              mtime: Math.floor(s.mtimeMs / 1000),
+              filesize: s.size,
+              file_type: getFileType(fullPath),
+              ext: path.extname(fullPath).toLowerCase() || null,
+            });
+          } catch {
+            /* file may have been deleted */
+          }
+        });
+      });
+      activeWatchers.set(dirPath, watcher);
+    } catch (e) {
+      return reply.status(500).send({ error: String(e) });
+    }
   }
 
-  try {
-    const watcher = fs.watch(dirPath, { recursive: true }, (_event, filename) => {
-      if (!filename) {
-        return;
-      }
-      const fullPath = path.join(dirPath, filename);
-      setImmediate(() => {
-        try {
-          const s = fs.statSync(fullPath);
-          getRepo().upsertFile({
-            filepath: fullPath,
-            folderpath: dirPath,
-            filename: path.basename(fullPath),
-            mtime: Math.floor(s.mtimeMs / 1000),
-            filesize: s.size,
-            file_type: getFileType(fullPath),
-            ext: path.extname(fullPath).toLowerCase() || null,
-          });
-        } catch {
-          /* file may have been deleted */
-        }
-      });
-    });
-    activeWatchers.set(dirPath, watcher);
-    return reply.send({ status: "started", message: "Watch started", path: dirPath });
-  } catch (e) {
-    return reply.status(500).send({ error: String(e) });
-  }
+  return reply.send({ status: "started", message: "Scan and watch started", path: dirPath });
 }
 
 export async function backfill(

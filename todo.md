@@ -172,8 +172,16 @@ interface FileItemProps {
 
 
 1 search by text scope, 只看文件名 不看filepath。否则一次超级多结果
-search页面的q要保持在url，toottip要显示filepath。
+
+search页面的q要保持在url，
+
+
+search页面的toottip要显示filepath。
 histoy的toottip要显示filepath。
+
+Prop drilling
+
+scan and watch是坏的
 
 
 2 useFileOperationDialogs现在move 还要从read和explorer去传什么move的函数，我真是受不了。乱的要命。
@@ -183,4 +191,3 @@ histoy的toottip要显示filepath。
 
 
 ----
-scan and watch是坏的
