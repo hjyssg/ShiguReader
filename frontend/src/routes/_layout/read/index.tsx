@@ -2,23 +2,16 @@
  * 阅读器主路由 — 支持 gallery / audio / mobile / waterfall 四种模式
  * mode 通过 URL search param 切换，默认为 gallery
  */
-import { useMutation, useQuery } from "@/shims/react-query"
+import { useMutation } from "@/shims/react-query"
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router"
 import {
   ChevronLeft,
   ChevronRight,
-  BookCheck,
-  FolderInput,
   GalleryVertical,
-  ImageDown,
   MoreVertical,
-  Package,
-  Pencil,
   RotateCw,
   Scan,
   Smartphone,
-  Star,
-  Trash2,
 } from "lucide-react"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
@@ -26,14 +19,7 @@ import { useTranslation } from "react-i18next"
 import { OpenAPI, ParseService } from "@/client"
 import { FileNotFoundError } from "@/components/Common/FileNotFoundError"
 import { PathBreadcrumb } from "@/components/Common/PathBreadcrumb"
-import {
-  type CompressAction,
-  CompressDialog,
-} from "@/components/Files/dialogs/CompressDialog"
-import { DownloadMenuItem } from "@/components/Files/DownloadMenuItem"
-import { DeleteDialog } from "@/components/Files/dialogs/DeleteDialog"
-import { UnifiedMoveDialog } from "@/components/Files/dialogs/UnifiedMoveDialog"
-import { RenameDialog } from "@/components/Files/dialogs/RenameDialog"
+import { FileOperationMenuItems } from "@/components/Files/FileOperationMenuItems"
 import { formatDateTime, formatFileSize } from "@/components/Files/utils"
 import { ExtractingIndicator } from "@/components/semantic/layout"
 import { Badge } from "@/components/ui/badge"
@@ -48,7 +34,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton"
 import { useArchiveExtract } from "@/hooks/useArchiveExtract"
 import { useDocumentTitle } from "@/hooks/useDocumentTitle"
-import { useFileOperations } from "@/hooks/useFileOperations"
+import { useFileOperationDialogs } from "@/hooks/useFileOperationDialogs"
 import { useResolveMovedFile } from "@/hooks/useResolveMovedFile"
 import { getBaseName, getParentPath, wrapPageIndex } from "@/lib/path-utils"
 
@@ -85,32 +71,28 @@ function ReadPage() {
   const [isDragging, setIsDragging] = useState(false)
   const [imageLoaded, setImageLoaded] = useState(false)
 
-  // File operations state
+  // File operations (shared hook)
   const parentPath = getParentPath(path)
-  const operations = useFileOperations(parentPath)
-  const navigateToMovedPath = (movedPath?: string | null) => {
-    const nextPath = movedPath || path
-    navigate({
-      to: "/read",
-      search: { path: nextPath, page: 0, mode: undefined },
-      replace: true,
-    })
-  }
-  const [renameOpen, setRenameOpen] = useState(false)
-  const [deleteOpen, setDeleteOpen] = useState(false)
-  const [moveOpen, setMoveOpen] = useState(false)
-  const [moveDefaultSelected, setMoveDefaultSelected] = useState<string | undefined>()
-  const { data: settingsData } = useQuery({
-    queryKey: ["settings"],
-    queryFn: async () => {
-      const response = await fetch(`${OpenAPI.BASE}/api/v1/settings`)
-      if (!response.ok) return null
-      return response.json() as Promise<{ favorite_dir?: string; already_read_dir?: string }>
+  const {
+    settingsData,
+    openRename,
+    openDelete,
+    openMove,
+    openCompress,
+    setMoveOpen,
+    dialogs: fileOpDialogs,
+  } = useFileOperationDialogs({
+    currentPath: parentPath,
+    onAfterRename: () => navigate({ to: "/" }),
+    onAfterDelete: () => navigate({ to: "/" }),
+    onMoveSuccess: (destPath) => {
+      navigate({
+        to: "/read",
+        search: { path: destPath || path, page: 0, mode: undefined },
+        replace: true,
+      })
     },
   })
-  const [compressOpen, setCompressOpen] = useState(false)
-  const [compressAction, setCompressAction] =
-    useState<CompressAction>("zip-folder")
 
   const hasAutoSwitchedRef = useRef(false)
   useEffect(() => { hasAutoSwitchedRef.current = false }, [path])
@@ -549,38 +531,27 @@ function ReadPage() {
                   <GalleryVertical className="mr-2 size-4" />{t("reader.waterfall")}
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DownloadMenuItem path={path} name={fileName} />
-                <DropdownMenuItem onClick={() => setRenameOpen(true)}>
-                  <Pencil className="mr-2 size-4" />{t("fileOps.rename")}
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => { setMoveDefaultSelected(undefined); setMoveOpen(true) }}>
-                  <FolderInput className="mr-2 size-4" />{t("fileOps.moveFile")}
-                </DropdownMenuItem>
-                {settingsData?.favorite_dir?.trim() && (
-                  <DropdownMenuItem onClick={() => { setMoveDefaultSelected(settingsData.favorite_dir!.trim()); setMoveOpen(true) }}>
-                    <Star className="mr-2 size-4" />{t("fileOps.moveToFavorites")}
-                  </DropdownMenuItem>
-                )}
-                {settingsData?.already_read_dir?.trim() && (
-                  <DropdownMenuItem onClick={() => { setMoveDefaultSelected(settingsData.already_read_dir!.trim()); setMoveOpen(true) }}>
-                    <BookCheck className="mr-2 size-4" />{t("fileOps.moveToAlreadyRead")}
-                  </DropdownMenuItem>
-                )}
-                <DropdownMenuSeparator />
-                {isArchiveSource && (
-                  <DropdownMenuItem onClick={() => { setCompressAction("minify-zip-images"); setCompressOpen(true) }}>
-                    <ImageDown className="mr-2 size-4" />{t("fileOps.minifyZipImages")}
-                  </DropdownMenuItem>
-                )}
-                {isFolderSource && (
-                  <DropdownMenuItem onClick={() => { setCompressAction("zip-folder"); setCompressOpen(true) }}>
-                    <Package className="mr-2 size-4" />{t("fileOps.compressToZip")}
-                  </DropdownMenuItem>
-                )}
-                <DropdownMenuSeparator />
-                <DropdownMenuItem variant="destructive" onClick={() => setDeleteOpen(true)}>
-                  <Trash2 className="mr-2 size-4" />{t("common.delete")}
-                </DropdownMenuItem>
+                <FileOperationMenuItems
+                  filePath={path}
+                  fileName={fileName}
+                  isFolder={isFolderSource}
+                  isArchive={isArchiveSource}
+                  favoriteDir={settingsData?.favorite_dir?.trim()}
+                  alreadyReadDir={settingsData?.already_read_dir?.trim()}
+                  onRename={() => openRename(path)}
+                  onMove={() => openMove(path, isFolderSource)}
+                  onMoveToFavorite={() => {
+                    const favDir = settingsData?.favorite_dir?.trim()
+                    if (favDir) openMove(path, isFolderSource, favDir)
+                  }}
+                  onMoveToAlreadyRead={() => {
+                    const readDir = settingsData?.already_read_dir?.trim()
+                    if (readDir) openMove(path, isFolderSource, readDir)
+                  }}
+                  onDelete={() => openDelete([path])}
+                  onCompressToZip={() => openCompress(path, "zip-folder")}
+                  onMinifyZipImages={() => openCompress(path, "minify-zip-images")}
+                />
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
@@ -665,11 +636,7 @@ function ReadPage() {
       {/* ── 页码指示器（固定右下角，始终显示） ── */}
       {pagination}
 
-      {/* ── File operation dialogs ── */}
-      <RenameDialog open={renameOpen} onOpenChange={setRenameOpen} filePath={path} onConfirm={(newName) => { operations.renameMutation.mutate({ path, newName }, { onSuccess: () => { setRenameOpen(false); navigate({ to: "/" }) } }) }} isPending={operations.renameMutation.isPending} />
-      <DeleteDialog open={deleteOpen} onOpenChange={setDeleteOpen} filePaths={[path]} onConfirm={() => { operations.deleteMutation.mutate({ path, permanently: false }, { onSuccess: () => { setDeleteOpen(false); navigate({ to: "/" }) } }) }} isPending={operations.deleteMutation.isPending} />
-      <UnifiedMoveDialog open={moveOpen} onClose={() => setMoveOpen(false)} filePath={path} isFolder={isFolderSource} defaultSelected={moveDefaultSelected} onSuccess={(destPath) => navigateToMovedPath(destPath)} />
-      <CompressDialog open={compressOpen} onOpenChange={setCompressOpen} filePath={path} action={compressAction} onConfirm={() => { if (compressAction === "zip-folder") { operations.zipFolderMutation.mutate(path, { onSuccess: () => setCompressOpen(false) }) } else { operations.compressArchiveImagesMutation.mutate(path, { onSuccess: () => setCompressOpen(false) }) } }} isPending={operations.zipFolderMutation.isPending || operations.compressArchiveImagesMutation.isPending} />
+      {fileOpDialogs}
     </div>
   )
 }

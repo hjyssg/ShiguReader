@@ -4,12 +4,14 @@
 import { useQuery } from "@/shims/react-query"
 import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { ScanLine } from "lucide-react"
-import { useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 
 import { toastError, toastSuccess } from "@/lib/toast"
 
 import { FilesystemService } from "@/client"
+import type { FileSystemItem } from "@/client"
+import type { FileContextMenuActions } from "@/components/Files/FileContextMenu"
 import { FileNotFoundError } from "@/components/Common/FileNotFoundError"
 import { PathBreadcrumb } from "@/components/Common/PathBreadcrumb"
 import { FileViewContainer } from "@/components/Files/FileViewContainer"
@@ -23,7 +25,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useDocumentTitle } from "@/hooks/useDocumentTitle"
-import { useFileOperations } from "@/hooks/useFileOperations"
+import { useFileOperationDialogs } from "@/hooks/useFileOperationDialogs"
 import { useResolveMovedFile } from "@/hooks/useResolveMovedFile"
 import {
   getBaseName,
@@ -142,7 +144,15 @@ function Explorer() {
   })
 
   const parentPath = getParentPath(path)
-  const operations = useFileOperations(path)
+  const {
+    operations,
+    settingsData,
+    openRename,
+    openDelete,
+    openMove,
+    openCompress,
+    dialogs,
+  } = useFileOperationDialogs({ currentPath: path })
 
   // 文件夹被移动后自动跳转新路径
   const { resolving, isNotFound, errorMessage } = useResolveMovedFile(
@@ -177,6 +187,30 @@ function Explorer() {
       return true
     })
   }, [data?.items, zipHasVideoOnly, zipHasAudioOnly])
+
+  const buildActions = useCallback(
+    (item: FileSystemItem): FileContextMenuActions => ({
+      onRename: () => openRename(item.path),
+      onMove: () => openMove(item.path, item.item_type === "folder"),
+      onMoveToFavorite: () => {
+        const favDir = settingsData?.favorite_dir?.trim()
+        if (favDir) openMove(item.path, item.item_type === "folder", favDir)
+      },
+      onMoveToAlreadyRead: () => {
+        const readDir = settingsData?.already_read_dir?.trim()
+        if (readDir) openMove(item.path, item.item_type === "folder", readDir)
+      },
+      onBackfillFolder: () => {
+        if (item.item_type === "folder") {
+          operations.backfillFolderMutation.mutate(item.path)
+        }
+      },
+      onDelete: () => openDelete([item.path]),
+      onZipFolder: () => openCompress(item.path, "zip-folder"),
+      onMinifyZipImages: () => openCompress(item.path, "minify-zip-images"),
+    }),
+    [settingsData, operations, openRename, openMove, openDelete, openCompress],
+  )
 
   const handleScan = async (withWatch: boolean) => {
     if (!path) return
@@ -234,6 +268,7 @@ function Explorer() {
         initialViewMode={viewMode ?? "mixed"}
         sortField={sortField}
         sortOrder={sortOrder}
+        buildActions={buildActions}
         onSortFieldChange={(nextSortField) =>
           navigate({
             to: "/explorer",
@@ -304,6 +339,8 @@ function Explorer() {
           </>
         }
       />
+
+      {dialogs}
     </div>
   )
 }

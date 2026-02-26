@@ -22,6 +22,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton"
 import { UnifiedPagination } from "@/components/Common/UnifiedPagination"
 import { cn } from "@/lib/utils"
+import type { FileContextMenuActions } from "./FileContextMenu"
 import { FileGridView } from "./FileGridView"
 import { FileIcon } from "./FileIcon"
 import { FileTableView, type SortField, type SortOrder } from "./FileTableView"
@@ -54,6 +55,7 @@ export function FileViewContainer({
   pagination,
   toolbarExtra,
   emptyText = "This folder is empty",
+  buildActions,
 }: {
   items: FileSystemItem[]
   isLoading: boolean
@@ -67,6 +69,7 @@ export function FileViewContainer({
   pagination?: PaginationConfig
   toolbarExtra?: ReactNode
   emptyText?: string
+  buildActions?: (item: FileSystemItem) => FileContextMenuActions
 }) {
   const { t } = useTranslation()
 
@@ -307,12 +310,12 @@ export function FileViewContainer({
               <h3 className="text-sm font-medium text-muted-foreground mb-2">
                 Archives ({mixedGroups.archives.length})
               </h3>
-              <FileGridView items={mixedGroups.archives} />
+              <FileGridView items={mixedGroups.archives} buildActions={buildActions} />
             </section>
           )}
         </div>
       ) : viewMode === "grid" ? (
-        <FileGridView items={pagedItems} className="grid-content" />
+        <FileGridView items={pagedItems} className="grid-content" buildActions={buildActions} />
       ) : (
         <FileTableView
           items={pagedItems}

@@ -1,14 +1,7 @@
 // 根据文件类型动态显示菜单项
 import {
-  BookCheck,
   Check,
-  CheckSquare,
-  FolderInput,
-  ImageDown,
   MoreVertical,
-  Package,
-  Pencil,
-  Star,
   Trash2,
   X,
 } from "lucide-react"
@@ -17,18 +10,12 @@ import type { FileSystemItem } from "@/client"
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { DownloadMenuItem } from "@/components/Files/DownloadMenuItem"
+import { FileOperationMenuItems } from "./FileOperationMenuItems"
 import "./FileContextMenu.css"
 
 export interface FileContextMenuActions {
-  onOpen: () => void
-  onOpenInNewTab: () => void
-  onDownload: () => void
   onRename: () => void
   onMove: () => void
   onMoveToFavorite: () => void
@@ -43,8 +30,6 @@ interface FileContextMenuProps {
   children: React.ReactNode
   /** 右键点击的主要文件项（用于判断类型） */
   item: FileSystemItem
-  /** 是否可打开 */
-  isOpenable: boolean
   actions: FileContextMenuActions
   onContextMenuOpen?: () => void
 }
@@ -52,7 +37,6 @@ interface FileContextMenuProps {
 export function FileContextMenu({
   children,
   item: _item,
-  isOpenable: _isOpenable,
   actions: _actions,
   onContextMenuOpen: _onContextMenuOpen,
 }: FileContextMenuProps) {
@@ -61,7 +45,6 @@ export function FileContextMenu({
 
 export function FileActionsDropdown({
   item,
-  isOpenable: _isOpenable,
   actions,
 }: Omit<FileContextMenuProps, "children" | "onContextMenuOpen">) {
   const { t } = useTranslation()
@@ -121,68 +104,23 @@ export function FileActionsDropdown({
           </button>
         </DropdownMenuTrigger>
         <DropdownMenuContent className="w-64" align="end" sideOffset={6}>
-          {!isFolder && (
-            <DownloadMenuItem
-              path={item.path}
-              name={item.name}
-              label={t("fileOps.download")}
-            />
-          )}
-
-          <DropdownMenuItem onClick={actions.onRename}>
-            <Pencil className="mr-2 size-4" />
-            {t("fileOps.rename")}
-            <DropdownMenuShortcut>F2</DropdownMenuShortcut>
-          </DropdownMenuItem>
-
-          <DropdownMenuItem onClick={actions.onMove}>
-            <FolderInput className="mr-2 size-4" />
-            {t("fileOps.moveTo")}
-          </DropdownMenuItem>
-
-          <DropdownMenuItem onClick={actions.onMoveToFavorite}>
-            <Star className="mr-2 size-4" />
-            {t("fileOps.moveToFavorites")}
-          </DropdownMenuItem>
-
-          <DropdownMenuItem onClick={actions.onMoveToAlreadyRead}>
-            <BookCheck className="mr-2 size-4" />
-            {t("fileOps.moveToAlreadyRead")}
-          </DropdownMenuItem>
-
-          {isFolder && (
-            <DropdownMenuItem onClick={actions.onBackfillFolder}>
-              <CheckSquare className="mr-2 size-4" />
-              {t("explorer.backfillMissingMetaThumbnail")}
-            </DropdownMenuItem>
-          )}
-
-          <DropdownMenuItem
-            onClick={actions.onDelete}
-            className="text-destructive focus:text-destructive"
-          >
-            <Trash2 className="mr-2 size-4" />
-            {t("common.delete")}
-            <DropdownMenuShortcut>Del</DropdownMenuShortcut>
-          </DropdownMenuItem>
-
-          {(isFolder || isArchive) && (
-            <>
-              <DropdownMenuSeparator />
-              {isFolder && (
-                <DropdownMenuItem onClick={actions.onZipFolder}>
-                  <Package className="mr-2 size-4" />
-                  {t("fileOps.compressToZip")}
-                </DropdownMenuItem>
-              )}
-              {isArchive && (
-                <DropdownMenuItem onClick={actions.onMinifyZipImages}>
-                  <ImageDown className="mr-2 size-4" />
-                  {t("fileOps.minifyZipImages")}
-                </DropdownMenuItem>
-              )}
-            </>
-          )}
+          <FileOperationMenuItems
+            filePath={item.path}
+            fileName={item.name}
+            isFolder={isFolder}
+            isArchive={isArchive}
+            favoriteDir="__always__"
+            alreadyReadDir="__always__"
+            showShortcuts
+            onBackfillFolder={isFolder ? actions.onBackfillFolder : undefined}
+            onRename={actions.onRename}
+            onMove={actions.onMove}
+            onMoveToFavorite={actions.onMoveToFavorite}
+            onMoveToAlreadyRead={actions.onMoveToAlreadyRead}
+            onDelete={actions.onDelete}
+            onCompressToZip={actions.onZipFolder}
+            onMinifyZipImages={actions.onMinifyZipImages}
+          />
         </DropdownMenuContent>
       </DropdownMenu>
     </div>
