@@ -16,8 +16,8 @@ import pLimit from "p-limit";
 import { config } from "../config.js";
 import { getFileType, isImage } from "../utils/fileType.js";
 import { get7z, getMagick, getFfmpeg } from "../utils/tools.js";
-import { isHiddenFile } from "../utils/fileFilters.js";
 import { fileExists } from "../utils/fsUtils.js";
+import { listEntries } from "./archiveService.js";
 
 const execFileAsync = promisify(execFile);
 
@@ -46,87 +46,55 @@ async function isCached(p: string): Promise<boolean> {
 // ── archive thumbnail ────────────────────────────────────────────────────────
 
 async function generateArchiveThumb(archivePath: string, outputPath: string): Promise<void> {
-  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "shiguthumb-"));
+  // Step 1: 复用 archiveService.listEntries() 获取已排序的图片条目，避免重复解析 7z 输出
+  const entries = await listEntries(archivePath);
+  const firstImageEntry = entries.find((e) => e.file_type === "image");
+  if (!firstImageEntry) {
+    throw new Error(`No image found in archive: ${archivePath}`);
+  }
+
+  // Step 2: Extract only that one file using a temp list file to avoid encoding issues
+  const tmpDir = await fs.promises.mkdtemp(path.join(os.tmpdir(), "shiguthumb-"));
   try {
-    // Step 1: List entries
-    const { stdout } = await execFileAsync(get7z(), ["l", "-ba", "-slt", "-scsUTF-8", archivePath], {
-      timeout: config.THUMB_TIMEOUT_SEC * 1000,
-      maxBuffer: 10 * 1024 * 1024,
-    });
-
-    // Parse 7z -slt output to find the first image entry path
-    let firstImageEntry: string | null = null;
-    let currentPath: string | null = null;
-    for (const line of stdout.split(/\r?\n/)) {
-      const pathMatch = line.match(/^Path = (.+)$/);
-      if (pathMatch) {
-        currentPath = pathMatch[1].trim();
-      } else if (line.trim() === "" && currentPath !== null) {
-        if (isImage(currentPath) && !isHiddenFile(currentPath)) {
-          firstImageEntry = currentPath;
-          break;
-        }
-        currentPath = null;
-      }
-    }
-    // Handle last entry without trailing blank line
-    if (!firstImageEntry && currentPath !== null) {
-      if (isImage(currentPath) && !isHiddenFile(currentPath)) {
-        firstImageEntry = currentPath;
-      }
-    }
-
-    if (!firstImageEntry) {
-      throw new Error(`No image found in archive: ${archivePath}`);
-    }
-
-    // Step 2: Extract only that one file using a temp list file to avoid encoding issues
     const listFile = path.join(os.tmpdir(), `shiguthumb-list-${Date.now()}.txt`);
     try {
-      fs.writeFileSync(listFile, firstImageEntry, "utf8");
+      await fs.promises.writeFile(listFile, firstImageEntry.entry_path, "utf8");
       await execFileAsync(get7z(), ["x", archivePath, `-o${tmpDir}`, "-y", "-scsUTF-8", `@${listFile}`], {
         timeout: config.THUMB_TIMEOUT_SEC * 1000,
       });
     } finally {
-      try {
-        fs.unlinkSync(listFile);
-      } catch {
-        /* ignore */
-      }
+      await fs.promises.unlink(listFile).catch(() => {});
     }
 
     // Step 3: Find the extracted file (7z x preserves directory structure)
-    const extracted = findFirstImageInDir(tmpDir);
+    const extracted = await findFirstImageInDir(tmpDir);
     if (!extracted) {
       throw new Error(`Extraction succeeded but image not found in ${tmpDir}`);
     }
 
-    fs.mkdirSync(path.dirname(outputPath), { recursive: true });
+    await fs.promises.mkdir(path.dirname(outputPath), { recursive: true });
     await execFileAsync(
       getMagick(),
       [extracted, "-resize", `x${config.THUMB_HEIGHT}`, "-quality", String(config.THUMB_JPEG_QUALITY), outputPath],
       { timeout: config.THUMB_TIMEOUT_SEC * 1000 },
     );
   } finally {
-    fs.rmSync(tmpDir, { recursive: true, force: true });
+    await fs.promises.rm(tmpDir, { recursive: true, force: true });
   }
 }
 
-function findFirstImageInDir(dir: string): string | null {
+async function findFirstImageInDir(dir: string): Promise<string | null> {
   try {
-    const entries = fs.readdirSync(dir, { withFileTypes: true });
-    // Sort for deterministic "first" selection
+    const entries = await fs.promises.readdir(dir, { withFileTypes: true });
     const sorted = entries.slice().sort((a, b) => a.name.localeCompare(b.name));
     for (const e of sorted) {
       const full = path.join(dir, e.name);
-      if (e.isFile() && isImage(e.name) && !isHiddenFile(e.name)) {
+      if (e.isFile() && isImage(e.name)) {
         return full;
       }
       if (e.isDirectory()) {
-        const found = findFirstImageInDir(full);
-        if (found) {
-          return found;
-        }
+        const found = await findFirstImageInDir(full);
+        if (found) return found;
       }
     }
   } catch {
@@ -138,7 +106,7 @@ function findFirstImageInDir(dir: string): string | null {
 // ── video thumbnail ──────────────────────────────────────────────────────────
 
 async function generateVideoThumb(videoPath: string, outputPath: string): Promise<void> {
-  fs.mkdirSync(path.dirname(outputPath), { recursive: true });
+  await fs.promises.mkdir(path.dirname(outputPath), { recursive: true });
   const timeout = config.THUMB_TIMEOUT_SEC * 1000;
 
   // try at 3s first, fallback to first frame
@@ -150,7 +118,8 @@ async function generateVideoThumb(videoPath: string, outputPath: string): Promis
   for (const args of attempts) {
     try {
       await execFileAsync(getFfmpeg(), args, { timeout });
-      if (fs.existsSync(outputPath) && fs.statSync(outputPath).size > 0) {
+      const stat = await fs.promises.stat(outputPath).catch(() => null);
+      if (stat && stat.size > 0) {
         return;
       }
     } catch {
@@ -163,7 +132,7 @@ async function generateVideoThumb(videoPath: string, outputPath: string): Promis
 // ── image thumbnail ──────────────────────────────────────────────────────────
 
 async function generateImageThumb(imagePath: string, outputPath: string): Promise<void> {
-  fs.mkdirSync(path.dirname(outputPath), { recursive: true });
+  await fs.promises.mkdir(path.dirname(outputPath), { recursive: true });
   await execFileAsync(
     getMagick(),
     [imagePath, "-resize", `x${config.THUMB_HEIGHT}`, "-quality", String(config.THUMB_JPEG_QUALITY), outputPath],

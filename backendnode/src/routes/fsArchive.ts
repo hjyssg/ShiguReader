@@ -157,7 +157,7 @@ export async function getArchiveFile(
 
 export async function clearExtractCache(_req: FastifyRequest, reply: FastifyReply) {
   try {
-    const result = svcClearExtractCache();
+    const result = await svcClearExtractCache();
     try {
       getRepo().logActivity("cache_cleanup", "Extract cache cleared", "completed", "cache_cleanup");
     } catch {

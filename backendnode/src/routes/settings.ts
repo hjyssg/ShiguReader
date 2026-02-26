@@ -51,8 +51,8 @@ async function updateSettings(
 
   // Persist to .env file if it exists
   try {
-    if (fs.existsSync(ENV_FILE)) {
-      let content = fs.readFileSync(ENV_FILE, "utf-8");
+    if (await fileExists(ENV_FILE)) {
+      let content = await fs.promises.readFile(ENV_FILE, "utf-8");
       const updates: Record<string, string> = {};
       if (body.favorite_dir !== undefined && body.favorite_dir !== null) {
         updates.FAVORITE_DIR = body.favorite_dir;
@@ -76,7 +76,7 @@ async function updateSettings(
           content += `\n${line}`;
         }
       }
-      fs.writeFileSync(ENV_FILE, content, "utf-8");
+      await fs.promises.writeFile(ENV_FILE, content, "utf-8");
     }
   } catch {
     /* ignore .env write errors */

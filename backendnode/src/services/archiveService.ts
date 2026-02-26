@@ -180,22 +180,18 @@ export async function extractEntries(archivePath: string, destDir: string, entri
   }
 
   return extractLimit(async () => {
-    fs.mkdirSync(destDir, { recursive: true });
+    await fs.promises.mkdir(destDir, { recursive: true });
 
     // Write entry list to a temp UTF-8 file
     const listFile = path.join(os.tmpdir(), `shigure-extract-${Date.now()}.txt`);
     try {
-      fs.writeFileSync(listFile, entries.join("\n"), "utf8");
+      await fs.promises.writeFile(listFile, entries.join("\n"), "utf8");
       await execFileAsync(get7z(), ["x", archivePath, `-o${destDir}`, "-aos", "-scsUTF-8", `@${listFile}`], {
         timeout: 120000,
         maxBuffer: 4 * 1024 * 1024,
       });
     } finally {
-      try {
-        fs.unlinkSync(listFile);
-      } catch {
-        /* ignore */
-      }
+      await fs.promises.unlink(listFile).catch(() => {});
     }
   });
 }
@@ -207,7 +203,7 @@ export async function extractEntries(archivePath: string, destDir: string, entri
  */
 async function extractAll(archivePath: string, destDir: string): Promise<void> {
   return extractLimit(async () => {
-    fs.mkdirSync(destDir, { recursive: true });
+    await fs.promises.mkdir(destDir, { recursive: true });
     await execFileAsync(get7z(), ["x", archivePath, `-o${destDir}`, "-aos", "-scsUTF-8"], {
       timeout: 3600000,
       maxBuffer: 64 * 1024 * 1024,
@@ -242,7 +238,7 @@ export async function stepwiseExtract(archivePath: string, currentPage: number):
 
   if (inProgress.has(archivePath)) {
     // Count already extracted; use cached entries if available (avoids extra 7z l)
-    const extracted = countExtractedFiles(cacheDir);
+    const extracted = await countExtractedFiles(cacheDir);
     const cachedEntries = await listEntries(archivePath).catch(() => []);
     return {
       status: "already_running",
@@ -274,10 +270,12 @@ export async function stepwiseExtract(archivePath: string, currentPage: number):
     };
   }
 
-  // Phase 1: current page ± 2 (synchronous)
+  // Phase 1: current page ± 2
   const phase1Start = Math.max(0, currentPage - 2);
   const phase1End = Math.min(total - 1, currentPage + 2);
-  const phase1Entries = entries.slice(phase1Start, phase1End + 1).filter((e) => !isAlreadyExtracted(cacheDir, e.path));
+  const phase1Slice = entries.slice(phase1Start, phase1End + 1);
+  const phase1Flags = await Promise.all(phase1Slice.map((e) => isAlreadyExtracted(cacheDir, e.path)));
+  const phase1Entries = phase1Slice.filter((_, i) => !phase1Flags[i]);
 
   inProgress.add(archivePath);
   try {
@@ -296,7 +294,7 @@ export async function stepwiseExtract(archivePath: string, currentPage: number):
     }
   }
 
-  const extracted = countExtractedFiles(cacheDir);
+  const extracted = await countExtractedFiles(cacheDir);
 
   // Phase 2 & 3: background
   setImmediate(async () => {
@@ -304,9 +302,9 @@ export async function stepwiseExtract(archivePath: string, currentPage: number):
       // Phase 2: ± 10 pages
       const phase2Start = Math.max(0, currentPage - 10);
       const phase2End = Math.min(total - 1, currentPage + 10);
-      const phase2Entries = entries
-        .slice(phase2Start, phase2End + 1)
-        .filter((e) => !isAlreadyExtracted(cacheDir, e.path));
+      const phase2Slice = entries.slice(phase2Start, phase2End + 1);
+      const phase2Flags = await Promise.all(phase2Slice.map((e) => isAlreadyExtracted(cacheDir, e.path)));
+      const phase2Entries = phase2Slice.filter((_, i) => !phase2Flags[i]);
       if (phase2Entries.length) {
         await extractEntries(
           archivePath,
@@ -316,7 +314,8 @@ export async function stepwiseExtract(archivePath: string, currentPage: number):
       }
 
       // Phase 3: remaining (images first, then others)
-      const remaining = entries.filter((e) => !isAlreadyExtracted(cacheDir, e.path));
+      const allFlags = await Promise.all(entries.map((e) => isAlreadyExtracted(cacheDir, e.path)));
+      const remaining = entries.filter((_, i) => !allFlags[i]);
       const images = remaining.filter((e) => e.type === "image");
       const others = remaining.filter((e) => e.type !== "image");
       const phase3Entries = [...images, ...others];
@@ -350,17 +349,17 @@ export async function stepwiseExtract(archivePath: string, currentPage: number):
   };
 }
 
-function countExtractedFiles(dir: string): number {
+async function countExtractedFiles(dir: string): Promise<number> {
   try {
-    return fs.readdirSync(dir, { recursive: true }).length;
+    return (await fs.promises.readdir(dir, { recursive: true })).length;
   } catch {
     return 0;
   }
 }
 
-function isAlreadyExtracted(cacheDir: string, entryPath: string): boolean {
+async function isAlreadyExtracted(cacheDir: string, entryPath: string): Promise<boolean> {
   // 7z x preserves directory structure
-  return fs.existsSync(path.join(cacheDir, entryPath));
+  return fs.promises.stat(path.join(cacheDir, entryPath)).then(() => true).catch(() => false);
 }
 
 // ── clear extract cache ───────────────────────────────────────────────────────
@@ -384,26 +383,27 @@ function formatBytes(bytes: number): string {
   return `${(bytes / 1024 / 1024 / 1024).toFixed(2)} GB`;
 }
 
-export function clearExtractCache(): ClearCacheResult {
+export async function clearExtractCache(): Promise<ClearCacheResult> {
   const cacheBase = path.resolve(config.EXTRACT_CACHE_DIR);
   let deletedFiles = 0;
   let freedBytes = 0;
 
-  if (!fs.existsSync(cacheBase)) {
+  const cacheExists = await fs.promises.stat(cacheBase).then(() => true).catch(() => false);
+  if (!cacheExists) {
     return { deleted_files: 0, freed_bytes: 0, freed_size_readable: "0 B" };
   }
 
   // Walk and count before deleting
-  function countDir(dir: string): void {
+  async function countDir(dir: string): Promise<void> {
     try {
-      const entries = fs.readdirSync(dir, { withFileTypes: true });
+      const entries = await fs.promises.readdir(dir, { withFileTypes: true });
       for (const e of entries) {
         const full = path.join(dir, e.name);
         if (e.isDirectory()) {
-          countDir(full);
+          await countDir(full);
         } else if (e.isFile()) {
           try {
-            freedBytes += fs.statSync(full).size;
+            freedBytes += (await fs.promises.stat(full)).size;
             deletedFiles++;
           } catch {
             /* ignore */
@@ -417,7 +417,7 @@ export function clearExtractCache(): ClearCacheResult {
 
   // Only delete subdirectories (hash dirs), not the root itself
   try {
-    const topDirs = fs.readdirSync(cacheBase, { withFileTypes: true });
+    const topDirs = await fs.promises.readdir(cacheBase, { withFileTypes: true });
     for (const d of topDirs) {
       if (!d.isDirectory()) {
         continue;
@@ -430,8 +430,8 @@ export function clearExtractCache(): ClearCacheResult {
           continue;
         }
       }
-      countDir(fullDir);
-      fs.rmSync(fullDir, { recursive: true, force: true });
+      await countDir(fullDir);
+      await fs.promises.rm(fullDir, { recursive: true, force: true });
     }
   } catch {
     /* ignore */
@@ -506,19 +506,19 @@ async function compressFolderImagesInPlace(
   let outputBytes = 0;
 
   const walk = async (dir: string) => {
-    const entries = fs.readdirSync(dir, { withFileTypes: true });
+    const entries = await fs.promises.readdir(dir, { withFileTypes: true });
     for (const e of entries) {
       const full = path.join(dir, e.name);
       if (e.isDirectory()) {
         await walk(full);
       } else if (e.isFile() && getFileType(e.name) === "image") {
-        const stat = fs.statSync(full);
+        const stat = await fs.promises.stat(full);
         originalBytes += stat.size;
         try {
           await execFileAsync(getMagick(), [full, "-resize", `x${maxHeight}>`, "-quality", String(quality), full], {
             timeout: 30000,
           });
-          outputBytes += fs.statSync(full).size;
+          outputBytes += (await fs.promises.stat(full)).size;
           processed++;
         } catch {
           outputBytes += stat.size; // unchanged
@@ -549,7 +549,7 @@ export async function compressArchiveImages(
   outputMode: CompressOutputMode = "new",
 ): Promise<CompressArchiveImagesResult> {
   // ── Folder mode ──────────────────────────────────────────────────────────
-  const stat = fs.statSync(archivePath);
+  const stat = await fs.promises.stat(archivePath);
   if (stat.isDirectory()) {
     logger.compress(`Start [folder]: ${path.basename(archivePath)}`);
     const { processed, originalBytes, outputBytes } = await compressFolderImagesInPlace(archivePath, maxHeight, quality);
@@ -572,7 +572,7 @@ export async function compressArchiveImages(
   }
 
   // ── Archive mode ──────────────────────────────────────────────────────────
-  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "shigure-compress-"));
+  const tmpDir = await fs.promises.mkdtemp(path.join(os.tmpdir(), "shigure-compress-"));
   const newOutputPath = archivePath.replace(/(\.[^.]+)$/, "_compressed$1");
   const tmpOutputPath = archivePath.replace(/(\.[^.]+)$/, `_tmp_${Date.now()}$1`);
   const finalOutputPath = outputMode === "replace" ? tmpOutputPath : newOutputPath;
@@ -597,7 +597,7 @@ export async function compressArchiveImages(
     try {
       await execFileAsync(get7z(), ["t", finalOutputPath], { timeout: 60000 });
     } catch (e) {
-      try { fs.unlinkSync(finalOutputPath); } catch { /* ignore */ }
+      await fs.promises.unlink(finalOutputPath).catch(() => {});
       throw new Error(`Output zip integrity check failed: ${e}`);
     }
 
@@ -608,12 +608,12 @@ export async function compressArchiveImages(
     let resolvedOutputPath = finalOutputPath;
     if (outputMode === "replace") {
       if (!cmp.matched) {
-        try { fs.unlinkSync(finalOutputPath); } catch { /* ignore */ }
+        await fs.promises.unlink(finalOutputPath).catch(() => {});
         throw new Error(
           `Entry mismatch — aborting replace. Missing: [${cmp.missing.join(", ")}], Extra: [${cmp.extra.join(", ")}]`,
         );
       }
-      fs.renameSync(finalOutputPath, archivePath);
+      await fs.promises.rename(finalOutputPath, archivePath);
       resolvedOutputPath = archivePath;
       // Invalidate listEntries cache for the replaced file
       entriesCache.delete(archivePath);
@@ -637,10 +637,10 @@ export async function compressArchiveImages(
       extra_entries: cmp.extra,
     };
   } finally {
-    fs.rmSync(tmpDir, { recursive: true, force: true });
+    await fs.promises.rm(tmpDir, { recursive: true, force: true });
     // Clean up temp output if it still exists (e.g. replace mode failed before rename)
-    if (outputMode === "replace" && fs.existsSync(tmpOutputPath)) {
-      try { fs.unlinkSync(tmpOutputPath); } catch { /* ignore */ }
+    if (outputMode === "replace") {
+      await fs.promises.unlink(tmpOutputPath).catch(() => {});
     }
   }
 }

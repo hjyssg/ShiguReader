@@ -235,9 +235,9 @@ export async function scanAndWatch(
           return;
         }
         const fullPath = path.join(dirPath, filename);
-        setImmediate(() => {
+        setImmediate(async () => {
           try {
-            const s = fs.statSync(fullPath);
+            const s = await fs.promises.stat(fullPath);
             getRepo().upsertFile({
               filepath: fullPath,
               folderpath: dirPath,
