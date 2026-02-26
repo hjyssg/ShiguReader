@@ -435,7 +435,7 @@ function ReadPage() {
               <>
                 <Link
                   to="/explorer"
-                  search={{ path: extractStatus?.cache_dir || path, page: 1, pageSize: 48, sortField: "name", sortOrder: "asc", viewMode: "table" }}
+                  search={{ path: extractStatus?.cache_dir || path, sortField: "name", sortOrder: "asc", viewMode: "table" }}
                   className={buttonVariants({ variant: "default", size: "sm", className: "animate-pulse" })}
                 >
                   {t("nav.explorer")}
@@ -524,7 +524,7 @@ function ReadPage() {
             </Button>
             {!isFolderSource && (
               <>
-                <Link to="/explorer" search={{ path: extractStatus?.cache_dir || path, page: 1, pageSize: 48, sortField: "name", sortOrder: "asc", viewMode: "table" }} className={buttonVariants({ variant: "ghost", size: "sm", className: "reader-toolbar__text-button" })}>
+                <Link to="/explorer" search={{ path: extractStatus?.cache_dir || path, sortField: "name", sortOrder: "asc", viewMode: "table" }} className={buttonVariants({ variant: "ghost", size: "sm", className: "reader-toolbar__text-button" })}>
                   {t("nav.explorer")}
                 </Link>
                 {audioTracks.length > 0 && (

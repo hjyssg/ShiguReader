@@ -43,15 +43,24 @@ export function PathBreadcrumb({ sourcePath, className }: PathBreadcrumbProps) {
       {items.map((item, index) => (
         <span key={item.path} className="app-breadcrumb__item">
           {index > 0 && <span className="app-breadcrumb__sep">/</span>}
-          <Link
-            to="/explorer"
-            search={{ path: item.path, page: 1, pageSize: 48, sortField: "mtime", sortOrder: "desc" }}
-            className="app-breadcrumb__link"
-            title={item.name}
-            onClick={() => copyText(item.name, t("common.copied"))}
-          >
-            {item.name}
-          </Link>
+          {index === items.length - 1 ? (
+            <span
+              className="app-breadcrumb__link"
+              title={item.name}
+              onClick={() => copyText(item.name, t("common.copied"))}
+            >
+              {item.name}
+            </span>
+          ) : (
+            <Link
+              to="/explorer"
+              search={{ path: item.path }}
+              className="app-breadcrumb__link"
+              title={item.name}
+            >
+              {item.name}
+            </Link>
+          )}
         </span>
       ))}
     </div>

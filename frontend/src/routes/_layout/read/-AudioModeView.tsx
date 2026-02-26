@@ -111,7 +111,7 @@ export function AudioModeView({
             )}
             <Link
               to="/explorer"
-              search={{ path: parentPath, page: 1, pageSize: 48, sortField: "name", sortOrder: "asc", viewMode: "table" }}
+              search={{ path: parentPath, sortField: "name", sortOrder: "asc", viewMode: "table" }}
               className={buttonVariants({ variant: "ghost", size: "sm", className: "reader-toolbar__text-button" })}
             >
               Explorer

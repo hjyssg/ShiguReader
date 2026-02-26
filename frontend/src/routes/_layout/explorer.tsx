@@ -35,7 +35,14 @@ import "./explorer.css"
 
 export const Route = createFileRoute("/_layout/explorer")({
   component: Explorer,
-  validateSearch: (search: Record<string, unknown>) => {
+  validateSearch: (search: Record<string, unknown>): {
+    path: string
+    page?: number
+    pageSize?: number
+    sortField?: SortField
+    sortOrder?: SortOrder
+    viewMode?: ViewMode
+  } => {
     const rawPage = Number(search.page)
     const rawPageSize = Number(search.pageSize)
     const page = Number.isFinite(rawPage) && rawPage > 0 ? Math.floor(rawPage) : 1
@@ -106,7 +113,7 @@ function FilterCheckbox({ id, label, checked, onChange }: FilterCheckboxProps) {
 function Explorer() {
   const { t } = useTranslation()
   const navigate = useNavigate()
-  const { path, page, pageSize, sortField, sortOrder, viewMode } = Route.useSearch()
+  const { path, page = 1, pageSize = 48, sortField = "mtime" as SortField, sortOrder = "desc" as SortOrder, viewMode } = Route.useSearch()
   const folderName = path
     ? getBaseName(path, t("nav.explorer"))
     : t("nav.explorer")
