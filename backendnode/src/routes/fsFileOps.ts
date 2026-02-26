@@ -53,7 +53,9 @@ export async function moveFile(
     await moveFileCompat(source_path, dest_path);
     logger.fs(`move file: ${source_path} → ${dest_path}`);
     try {
-      getRepo().logActivity(
+      const repo = getRepo();
+      repo.relocateFile(source_path, dest_path, path.dirname(dest_path));
+      repo.logActivity(
         "move",
         `Moved file: ${source_path} → ${dest_path}`,
         "completed",
@@ -82,7 +84,9 @@ export async function moveFolder(
     await moveFolderCompat(source_path, dest_path);
     logger.fs(`move folder: ${source_path} → ${dest_path}`);
     try {
-      getRepo().logActivity(
+      const repo = getRepo();
+      repo.relocateFolder(source_path, dest_path);
+      repo.logActivity(
         "move",
         `Moved folder: ${source_path} → ${dest_path}`,
         "completed",
@@ -141,7 +145,9 @@ export async function renameItem(
     await fs.promises.rename(itemPath, newPath);
     logger.fs(`rename: ${itemPath} → ${newPath}`);
     try {
-      getRepo().logActivity("rename", `Renamed: ${itemPath} → ${newPath}`, "completed", `rename:${itemPath}`, itemPath);
+      const repo = getRepo();
+      repo.relocateFile(itemPath, newPath, path.dirname(newPath));
+      repo.logActivity("rename", `Renamed: ${itemPath} → ${newPath}`, "completed", `rename:${itemPath}`, itemPath);
     } catch {
       /* ignore */
     }

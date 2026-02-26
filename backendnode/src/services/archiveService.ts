@@ -69,8 +69,18 @@ function getEntryType(entryPath: string): EntryType {
 
 // ── cache dir ────────────────────────────────────────────────────────────────
 
-export function getExtractCacheDir(archivePath: string): string {
-  const hash = crypto.createHash("sha256").update(archivePath).digest("hex").slice(0, 10);
+/**
+ * 根据文件名 + mtime + size 计算 cache dir。
+ * 使用内容指纹而非路径，move 后路径变了但内容不变，cache 可复用。
+ * stat 必须由调用方传入，避免重复 IO。
+ */
+export function getExtractCacheDir(
+  archivePath: string,
+  stat: { mtimeMs: number; size: number },
+): string {
+  const filename = path.basename(archivePath);
+  const key = `${filename}|${Math.floor(stat.mtimeMs / 1000)}|${stat.size}`;
+  const hash = crypto.createHash("sha256").update(key).digest("hex").slice(0, 10);
   const base = path.resolve(config.EXTRACT_CACHE_DIR);
   return path.join(base, hash.slice(0, 2), hash.slice(2));
 }
@@ -224,8 +234,8 @@ export interface StepwiseExtractResult {
   entries: ArchiveEntry[];
 }
 
-// Track in-progress extractions to avoid duplicate work
-const inProgress = new Set<string>();
+// Track in-progress extractions: archivePath → cacheDir
+const inProgress = new Map<string, string>();
 
 /**
  * Three-phase progressive extraction:
@@ -234,7 +244,14 @@ const inProgress = new Set<string>();
  *   Phase 3 (async): remaining
  */
 export async function stepwiseExtract(archivePath: string, currentPage: number): Promise<StepwiseExtractResult> {
-  const cacheDir = getExtractCacheDir(archivePath);
+  // Stat first to compute content-based cache dir
+  let archiveStat: fs.Stats;
+  try {
+    archiveStat = await fs.promises.stat(archivePath);
+  } catch {
+    throw new Error(`Archive not found: ${archivePath}`);
+  }
+  const cacheDir = getExtractCacheDir(archivePath, archiveStat);
 
   if (inProgress.has(archivePath)) {
     // Count already extracted; use cached entries if available (avoids extra 7z l)
@@ -277,7 +294,7 @@ export async function stepwiseExtract(archivePath: string, currentPage: number):
   const phase1Flags = await Promise.all(phase1Slice.map((e) => isAlreadyExtracted(cacheDir, e.path)));
   const phase1Entries = phase1Slice.filter((_, i) => !phase1Flags[i]);
 
-  inProgress.add(archivePath);
+  inProgress.set(archivePath, cacheDir);
   try {
     await extractEntries(
       archivePath,
@@ -425,7 +442,7 @@ export async function clearExtractCache(): Promise<ClearCacheResult> {
       const fullDir = path.join(cacheBase, d.name);
       // Skip if currently being extracted
       if (inProgress.size > 0) {
-        const activeDir = [...inProgress].some((ap) => getExtractCacheDir(ap).startsWith(fullDir));
+        const activeDir = [...inProgress.values()].some((cd) => cd.startsWith(fullDir));
         if (activeDir) {
           continue;
         }

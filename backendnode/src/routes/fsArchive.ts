@@ -143,7 +143,14 @@ export async function getArchiveFile(
   if (!archivePath || !entry) {
     return reply.status(400).send({ error: "path and entry are required" });
   }
-  const cacheDir = getExtractCacheDir(archivePath);
+
+  let archiveStat: fs.Stats;
+  try {
+    archiveStat = await fs.promises.stat(archivePath);
+  } catch {
+    return reply.status(404).send({ error: "File not found" });
+  }
+  const cacheDir = getExtractCacheDir(archivePath, archiveStat);
   const filePath = path.join(cacheDir, entry);
   const resolved = path.resolve(filePath);
   if (!resolved.startsWith(path.resolve(cacheDir))) {
