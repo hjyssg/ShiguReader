@@ -186,10 +186,18 @@ export async function compressImages(
   if (!archive_path) {
     return reply.status(400).send({ error: "archive_path is required" });
   }
-  if (!(await fileExists(archive_path))) {
+  // Accept both files and directories
+  let pathStat: import("node:fs").Stats;
+  try {
+    pathStat = await fs.promises.stat(archive_path);
+  } catch {
     return reply.status(404).send({ error: "File not found" });
   }
-  const mode: CompressOutputMode = output_mode === "replace" ? "replace" : "new";
+  if (!pathStat.isFile() && !pathStat.isDirectory()) {
+    return reply.status(400).send({ error: "Path must be a file or directory" });
+  }
+  // output_mode only applies to archive files; folders always compress in-place
+  const mode: CompressOutputMode = (!pathStat.isDirectory() && output_mode === "replace") ? "replace" : "new";
   try {
     const result = await compressArchiveImages(archive_path, max_height ?? 1600, quality ?? 85, mode);
     try {

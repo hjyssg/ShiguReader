@@ -493,10 +493,54 @@ async function compareZipEntries(
 }
 
 /**
- * Extract zip → compress large images → repack.
- * Supports two output modes:
- *   "new"     — write to <name>_compressed.<ext> (default, non-destructive)
- *   "replace" — write to a temp file, verify, then atomically replace original
+ * Walk a directory and compress images in-place using ImageMagick.
+ * Returns stats: processed count, original bytes, output bytes.
+ */
+async function compressFolderImagesInPlace(
+  folderPath: string,
+  maxHeight: number,
+  quality: number,
+): Promise<{ processed: number; originalBytes: number; outputBytes: number }> {
+  let processed = 0;
+  let originalBytes = 0;
+  let outputBytes = 0;
+
+  const walk = async (dir: string) => {
+    const entries = fs.readdirSync(dir, { withFileTypes: true });
+    for (const e of entries) {
+      const full = path.join(dir, e.name);
+      if (e.isDirectory()) {
+        await walk(full);
+      } else if (e.isFile() && getFileType(e.name) === "image") {
+        const stat = fs.statSync(full);
+        originalBytes += stat.size;
+        try {
+          await execFileAsync(getMagick(), [full, "-resize", `x${maxHeight}>`, "-quality", String(quality), full], {
+            timeout: 30000,
+          });
+          outputBytes += fs.statSync(full).size;
+          processed++;
+        } catch {
+          outputBytes += stat.size; // unchanged
+        }
+      }
+    }
+  };
+
+  await walk(folderPath);
+  return { processed, originalBytes, outputBytes };
+}
+
+/**
+ * Compress images inside a zip archive or a plain folder.
+ *
+ * Folder mode:
+ *   - Walks the folder and compresses images in-place with ImageMagick.
+ *   - outputMode is ignored (always "new" semantically — originals are modified in-place).
+ *
+ * Archive mode:
+ *   - "new"     — write to <name>_compressed.<ext> (default, non-destructive)
+ *   - "replace" — write to a temp file, verify, then atomically replace original
  */
 export async function compressArchiveImages(
   archivePath: string,
@@ -504,6 +548,30 @@ export async function compressArchiveImages(
   quality = 85,
   outputMode: CompressOutputMode = "new",
 ): Promise<CompressArchiveImagesResult> {
+  // ── Folder mode ──────────────────────────────────────────────────────────
+  const stat = fs.statSync(archivePath);
+  if (stat.isDirectory()) {
+    logger.compress(`Start [folder]: ${path.basename(archivePath)}`);
+    const { processed, originalBytes, outputBytes } = await compressFolderImagesInPlace(archivePath, maxHeight, quality);
+    const savedBytes = originalBytes - outputBytes;
+    logger.compress(
+      `Done [folder]: ${path.basename(archivePath)} — ${processed} images, saved ${formatBytes(savedBytes > 0 ? savedBytes : 0)}`,
+    );
+    return {
+      processed,
+      original_bytes: originalBytes,
+      output_bytes: outputBytes,
+      output_path: archivePath,
+      output_mode: "new",
+      entries_matched: true,
+      source_entry_count: processed,
+      output_entry_count: processed,
+      missing_entries: [],
+      extra_entries: [],
+    };
+  }
+
+  // ── Archive mode ──────────────────────────────────────────────────────────
   const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "shigure-compress-"));
   const newOutputPath = archivePath.replace(/(\.[^.]+)$/, "_compressed$1");
   const tmpOutputPath = archivePath.replace(/(\.[^.]+)$/, `_tmp_${Date.now()}$1`);
@@ -518,33 +586,7 @@ export async function compressArchiveImages(
     });
 
     // Find and compress images
-    let processed = 0;
-    let originalBytes = 0;
-    let outputBytes = 0;
-
-    const walkAndCompress = async (dir: string) => {
-      const entries = fs.readdirSync(dir, { withFileTypes: true });
-      for (const e of entries) {
-        const full = path.join(dir, e.name);
-        if (e.isDirectory()) {
-          await walkAndCompress(full);
-        } else if (e.isFile() && getFileType(e.name) === "image") {
-          const stat = fs.statSync(full);
-          originalBytes += stat.size;
-          try {
-            await execFileAsync(getMagick(), [full, "-resize", `x${maxHeight}>`, "-quality", String(quality), full], {
-              timeout: 30000,
-            });
-            outputBytes += fs.statSync(full).size;
-            processed++;
-          } catch {
-            outputBytes += stat.size; // unchanged
-          }
-        }
-      }
-    };
-
-    await walkAndCompress(tmpDir);
+    const { processed, originalBytes, outputBytes } = await compressFolderImagesInPlace(tmpDir, maxHeight, quality);
 
     // Repack to finalOutputPath
     await execFileAsync(get7z(), ["a", "-tzip", finalOutputPath, path.join(tmpDir, "*"), "-y"], {

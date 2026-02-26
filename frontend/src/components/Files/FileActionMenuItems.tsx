@@ -96,7 +96,7 @@ export function FileActionMenuItems({
               <Package className="mr-2 size-4" />{t("fileOps.compressToZip")}
             </DropdownMenuItem>
           )}
-          {onMinifyZipImages && isArchive && (
+          {onMinifyZipImages && (isArchive || isFolder) && (
             <DropdownMenuItem onClick={onMinifyZipImages}>
               <ImageDown className="mr-2 size-4" />{t("fileOps.minifyZipImages")}
             </DropdownMenuItem>

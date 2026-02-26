@@ -22,6 +22,8 @@ interface CompressDialogProps {
   onOpenChange: (open: boolean) => void
   filePath: string
   action: CompressAction
+  /** 目标是否为文件夹（文件夹模式不支持 replace，隐藏输出模式选项） */
+  isFolder?: boolean
   onConfirm: (outputMode?: MinifyOutputMode) => void
   isPending?: boolean
 }
@@ -31,6 +33,7 @@ export function CompressDialog({
   onOpenChange,
   filePath,
   action,
+  isFolder,
   onConfirm,
   isPending,
 }: CompressDialogProps) {
@@ -65,7 +68,7 @@ export function CompressDialog({
           <p className="text-sm break-all whitespace-normal">
             {t("fileOps.target")}: <span className="font-medium">{name}</span>
           </p>
-          {isMinify && (
+          {isMinify && !isFolder && (
             <RadioGroup
               value={outputMode}
               onValueChange={(v) => setOutputMode(v as MinifyOutputMode)}

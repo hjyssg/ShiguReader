@@ -46,6 +46,7 @@ export function useFileOperationDialogs(opts: FileOperationDialogsOptions) {
   const [compressOpen, setCompressOpen] = useState(false)
   const [compressTarget, setCompressTarget] = useState("")
   const [compressAction, setCompressAction] = useState<CompressAction>("zip-folder")
+  const [compressIsFolder, setCompressIsFolder] = useState(false)
 
   // --- openers ---
   const openRename = (filePath: string) => {
@@ -65,9 +66,10 @@ export function useFileOperationDialogs(opts: FileOperationDialogsOptions) {
     setMoveOpen(true)
   }
 
-  const openCompress = (filePath: string, action: CompressAction) => {
+  const openCompress = (filePath: string, action: CompressAction, isFolder = false) => {
     setCompressTarget(filePath)
     setCompressAction(action)
+    setCompressIsFolder(isFolder)
     setCompressOpen(true)
   }
 
@@ -111,6 +113,7 @@ export function useFileOperationDialogs(opts: FileOperationDialogsOptions) {
         onOpenChange={setCompressOpen}
         filePath={compressTarget}
         action={compressAction}
+        isFolder={compressIsFolder}
         onConfirm={(outputMode?: MinifyOutputMode) => {
           if (compressAction === "zip-folder") {
             operations.zipFolderMutation.mutate(compressTarget, {
