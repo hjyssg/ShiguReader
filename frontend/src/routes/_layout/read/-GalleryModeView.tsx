@@ -159,7 +159,9 @@ export function GalleryModeView({
         if (!Number.isNaN(value) && value > 0) onPageChange(value - 1)
         return
       }
-      if (key === "v" || key === "x" || key === "m") { e.preventDefault(); openMove(path); return }
+      if (key === "v") { e.preventDefault(); openMove(path, undefined, "favorite"); return }
+      if (key === "x") { e.preventDefault(); openMove(path, undefined, "already_read"); return }
+      if (key === "m") { e.preventDefault(); openMove(path); return }
       if (key === "w" || key === "arrowup") window.scrollBy({ top: -80, behavior: "smooth" })
       else if (key === "s" || key === "arrowdown") window.scrollBy({ top: 80, behavior: "smooth" })
     }
