@@ -257,11 +257,11 @@ export function GalleryModeView({
             onError={handleImageError}
             onLoad={handleImageLoad}
             draggable={false}
-            className={`gallery-stage__image${imageLoaded ? " gallery-stage__image--loaded" : ""}`}
+            className="gallery-stage__image"
             style={{
               transform: `translate(${translate.x}px, ${translate.y}px) scale(${scale}) rotate(${rotation}deg)`,
               cursor: isDragging ? "grabbing" : "grab",
-              transition: isDragging ? "none" : "transform 120ms ease-out, opacity 0.3s ease-in-out",
+              transition: isDragging ? "none" : "transform 120ms ease-out",
             }}
           />
         )}

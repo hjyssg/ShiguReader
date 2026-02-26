@@ -163,13 +163,12 @@
   justify-content: center;
   width: 6rem;
   height: 6rem;
-  border: none;
   border-radius: 9999px;
   border: 2px solid var(--secondary-foreground);
   color: hsl(var(--foreground));
   opacity: 0;
   cursor: pointer;
-  animation: all .5s;
+  transition: opacity 0.2s ease;
 }
 
 .reader-nav-button:hover {
@@ -297,11 +296,6 @@
   max-height: 100%;
   object-fit: contain;
   user-select: none;
-  opacity: 0;
-}
-
-.gallery-stage__image--loaded {
-  opacity: 1;
 }
 
 .gallery-meta {
