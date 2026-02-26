@@ -119,8 +119,8 @@ export function useFileOperations(currentPath: string) {
       isFolder: boolean
       subfolder?: string
     }) => {
-      const favResp = await requestJson<{ path?: string }>("/api/v1/fs/favorite-folder")
-      const favDir = favResp.path
+      const settingsResp = await requestJson<{ favorite_dir?: string }>("/api/v1/settings")
+      const favDir = settingsResp.favorite_dir?.trim()
       if (!favDir) throw new Error("Favorite directory not configured")
       const targetDir = subfolder ? `${favDir}/${subfolder}` : favDir
       if (subfolder) {
@@ -149,28 +149,17 @@ export function useFileOperations(currentPath: string) {
 
   const moveToAlreadyReadMutation = useMutation({
     mutationFn: async ({ sourcePath, isFolder }: { sourcePath: string; isFolder: boolean }) => {
-      let resp = await requestJson<{ path?: string }>("/api/v1/fs/already-read-folder")
-      let dir = resp.path
-
-      if (!dir) {
-        const settingsResp = await requestJson<{ already_read_dir?: string }>("/api/v1/settings")
-        const configuredDir = settingsResp.already_read_dir?.trim()
-        if (configuredDir) {
-          dir = configuredDir
-          try {
-            await requestJson("/api/v1/fs/mkdir", {
-              method: "POST",
-              body: { path: dir },
-            })
-            resp = await requestJson<{ path?: string }>("/api/v1/fs/already-read-folder")
-            dir = resp.path || dir
-          } catch {
-            // ignore
-          }
-        }
-      }
-
+      const settingsResp = await requestJson<{ already_read_dir?: string }>("/api/v1/settings")
+      const dir = settingsResp.already_read_dir?.trim()
       if (!dir) throw new Error("Already-read directory not configured")
+      try {
+        await requestJson("/api/v1/fs/mkdir", {
+          method: "POST",
+          body: { path: dir },
+        })
+      } catch {
+        // ignore — directory may already exist
+      }
       const destPath = buildDestPath(dir, sourcePath)
       return isFolder
         ? FilesystemService.moveFolder({ requestBody: { source_path: sourcePath, dest_path: destPath } })

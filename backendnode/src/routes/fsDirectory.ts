@@ -59,37 +59,6 @@ export async function getDrives(_req: FastifyRequest, reply: FastifyReply) {
   return reply.send(drives);
 }
 
-export async function getFavorite(_req: FastifyRequest, reply: FastifyReply) {
-  const dir = config.FAVORITE_DIR.trim();
-  if (!dir) {
-    return reply.send(null);
-  }
-  try {
-    const stat = await fs.promises.stat(dir);
-    if (!stat.isDirectory()) {
-      return reply.send(null);
-    }
-    return reply.send({ path: dir, dirname: path.basename(dir) || dir });
-  } catch {
-    return reply.send(null);
-  }
-}
-
-export async function getAlreadyRead(_req: FastifyRequest, reply: FastifyReply) {
-  const dir = config.ALREADY_READ_DIR.trim();
-  if (!dir) {
-    return reply.send(null);
-  }
-  try {
-    const stat = await fs.promises.stat(dir);
-    if (!stat.isDirectory()) {
-      return reply.send(null);
-    }
-    return reply.send({ path: dir, dirname: path.basename(dir) || dir });
-  } catch {
-    return reply.send(null);
-  }
-}
 
 export async function listDirectory(
   req: FastifyRequest<{

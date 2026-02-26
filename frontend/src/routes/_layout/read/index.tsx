@@ -89,22 +89,20 @@ function ReadPage() {
   // File operations state
   const parentPath = getParentPath(path)
   const operations = useFileOperations(parentPath)
-  const { data: favoriteRoot } = useQuery({
-    queryKey: ["fs-favorite"],
-    queryFn: async (): Promise<{ path: string; dirname: string } | null> => {
-      const response = await fetch(`${OpenAPI.BASE}/api/v1/fs/favorite-folder`)
+  const { data: settingsData } = useQuery({
+    queryKey: ["settings"],
+    queryFn: async () => {
+      const response = await fetch(`${OpenAPI.BASE}/api/v1/settings`)
       if (!response.ok) return null
-      return response.json()
+      return response.json() as Promise<{ favorite_dir?: string; already_read_dir?: string }>
     },
   })
-  const { data: alreadyReadRoot } = useQuery({
-    queryKey: ["fs-already-read"],
-    queryFn: async (): Promise<{ path: string; dirname: string } | null> => {
-      const response = await fetch(`${OpenAPI.BASE}/api/v1/fs/already-read-folder`)
-      if (!response.ok) return null
-      return response.json()
-    },
-  })
+  const favoriteRoot = settingsData?.favorite_dir?.trim()
+    ? { path: settingsData.favorite_dir.trim(), dirname: getBaseName(settingsData.favorite_dir.trim(), settingsData.favorite_dir.trim()) }
+    : null
+  const alreadyReadRoot = settingsData?.already_read_dir?.trim()
+    ? { path: settingsData.already_read_dir.trim(), dirname: getBaseName(settingsData.already_read_dir.trim(), settingsData.already_read_dir.trim()) }
+    : null
   const navigateToMovedPath = (movedPath?: string | null) => {
     const nextPath = movedPath || path
     navigate({

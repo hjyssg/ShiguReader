@@ -84,23 +84,6 @@ describe("GET /api/v1/fs/roots", () => {
   });
 });
 
-describe("GET /api/v1/fs/favorite-folder", () => {
-  it("returns null when FAVORITE_DIR not set", async () => {
-    const app = buildApp();
-    const res = await app.inject({ method: "GET", url: "/api/v1/fs/favorite-folder" });
-    expect(res.statusCode).toBe(200);
-    expect(res.json()).toBeNull();
-  });
-});
-
-describe("GET /api/v1/fs/already-read-folder", () => {
-  it("returns null when ALREADY_READ_DIR not set", async () => {
-    const app = buildApp();
-    const res = await app.inject({ method: "GET", url: "/api/v1/fs/already-read-folder" });
-    expect(res.statusCode).toBe(200);
-    expect(res.json()).toBeNull();
-  });
-});
 
 describe("GET /api/v1/fs/listdir", () => {
   it("returns 400 when path is missing", async () => {

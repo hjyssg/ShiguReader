@@ -14,6 +14,7 @@ function buildResponse() {
     favorite_dir: config.FAVORITE_DIR || "",
     fs_roots: config.FS_ROOTS || "",
     already_read_dir: config.ALREADY_READ_DIR || "",
+    move_place_dir: config.MOVE_PLACE_DIR || "",
     env_file_path: ENV_FILE,
     db_file_path: DB_FILE,
   };
@@ -25,10 +26,10 @@ async function getSettings(_req: FastifyRequest, reply: FastifyReply) {
 }
 
 // PUT /api/v1/settings
-// Request: { favorite_dir?, fs_roots?, already_read_dir? }
+// Request: { favorite_dir?, fs_roots?, already_read_dir?, move_place_dir? }
 async function updateSettings(
   req: FastifyRequest<{
-    Body: { favorite_dir?: string | null; fs_roots?: string | null; already_read_dir?: string | null };
+    Body: { favorite_dir?: string | null; fs_roots?: string | null; already_read_dir?: string | null; move_place_dir?: string | null };
   }>,
   reply: FastifyReply,
 ) {
@@ -44,6 +45,9 @@ async function updateSettings(
   if (body.already_read_dir !== undefined && body.already_read_dir !== null) {
     process.env.ALREADY_READ_DIR = body.already_read_dir;
   }
+  if (body.move_place_dir !== undefined && body.move_place_dir !== null) {
+    process.env.MOVE_PLACE_DIR = body.move_place_dir;
+  }
 
   // Persist to .env file if it exists
   try {
@@ -58,6 +62,9 @@ async function updateSettings(
       }
       if (body.already_read_dir !== undefined && body.already_read_dir !== null) {
         updates.ALREADY_READ_DIR = body.already_read_dir;
+      }
+      if (body.move_place_dir !== undefined && body.move_place_dir !== null) {
+        updates.MOVE_PLACE_DIR = body.move_place_dir;
       }
 
       for (const [key, val] of Object.entries(updates)) {
@@ -80,6 +87,7 @@ async function updateSettings(
     favorite_dir: process.env.FAVORITE_DIR ?? config.FAVORITE_DIR ?? "",
     fs_roots: process.env.FS_ROOTS ?? config.FS_ROOTS ?? "",
     already_read_dir: process.env.ALREADY_READ_DIR ?? config.ALREADY_READ_DIR ?? "",
+    move_place_dir: process.env.MOVE_PLACE_DIR ?? config.MOVE_PLACE_DIR ?? "",
     env_file_path: ENV_FILE,
     db_file_path: DB_FILE,
   });

@@ -423,8 +423,6 @@ function SettingsPage() {
       showSuccessToast(t("settings.saved"))
       queryClient.invalidateQueries({ queryKey: ["settings"] })
       queryClient.invalidateQueries({ queryKey: ["fs-roots"] })
-      queryClient.invalidateQueries({ queryKey: ["fs-favorite"] })
-      queryClient.invalidateQueries({ queryKey: ["fs-already-read"] })
     },
     onError: (error: Error) => {
       showErrorToast(error.message || t("settings.saveFailed"))

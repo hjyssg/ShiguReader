@@ -2,8 +2,6 @@ import type { FastifyInstance } from "fastify";
 import {
   getRoots,
   getDrives,
-  getFavorite,
-  getAlreadyRead,
   listDirectory,
   getLibraryOverview,
   getRecentActivity,
@@ -35,8 +33,6 @@ export async function fsRoutes(app: FastifyInstance) {
   // ── 目录 / 信息 ──────────────────────────────────────────────────────────
   app.get("/roots", { schema: { summary: "获取配置的根目录列表", tags: ["文件系统"] } }, getRoots);
   app.get("/drives", { schema: { summary: "获取系统盘符 (Windows)", tags: ["文件系统"] } }, getDrives);
-  app.get("/favorite-folder", { schema: { summary: "获取收藏目录信息", tags: ["文件系统"] } }, getFavorite);
-  app.get("/already-read-folder", { schema: { summary: "获取已读目录信息", tags: ["文件系统"] } }, getAlreadyRead);
   app.get("/listdir", { schema: { summary: "列出目录内容（文件+文件夹）", tags: ["文件系统"] } }, listDirectory);
   app.get("/library-overview", { schema: { summary: "获取库概览统计", tags: ["文件系统"] } }, getLibraryOverview);
   app.get("/recent-activity", { schema: { summary: "获取最近活动日志", tags: ["文件系统"] } }, getRecentActivity);
