@@ -7,7 +7,8 @@ import { Folder, HardDrive, Heart } from "lucide-react"
 import { useTranslation } from "react-i18next"
 
 import { FilesystemService, OpenAPI } from "@/client"
-import { getBaseName, getParentPath } from "@/lib/path-utils"
+import { getBaseName, getParentPath, appendSubdir } from "@/lib/path-utils"
+import { monthlySubfolder } from "@/lib/good-folder"
 
 import { HomeCard } from "@/components/Home/HomeCard"
 import { RecentActivityPanel, type ActivityItem } from "@/components/Home/RecentActivityPanel"
@@ -20,15 +21,6 @@ type RecentActivityResponse = {
 
 type TopOpenedFoldersResponse = {
   folder_ids: string[]
-}
-
-function parseGoodFolderMonth(name: string): number | null {
-  const match = /^good_(\d{4})_(\d{2})_(\d{2})$/.exec(name)
-  if (!match) return null
-  const year = Number(match[1])
-  const month = Number(match[2])
-  if (!Number.isFinite(year) || !Number.isFinite(month)) return null
-  return year * 100 + month
 }
 
 function HomeFolderLinkCard({
@@ -115,38 +107,10 @@ function Dashboard() {
     },
   })
 
-  const { data: favoriteSubfolders } = useQuery({
-    queryKey: ["home-favorite-subfolders", favoriteRoot?.path],
-    enabled: !!favoriteRoot?.path,
-    queryFn: async () => {
-      const list = await FilesystemService.listDirectory({ path: favoriteRoot!.path })
-      const folders = list.items.filter((item) => item.item_type === "folder")
-      const goodFolders = folders.filter((item) => parseGoodFolderMonth(item.name) !== null)
-
-      if (goodFolders.length > 0) {
-        const latestMonth = Math.max(
-          ...goodFolders.map((item) => parseGoodFolderMonth(item.name) || 0),
-        )
-
-        const latestMonthFolders = goodFolders.filter(
-          (item) => parseGoodFolderMonth(item.name) === latestMonth,
-        )
-
-        const firstDayFolder = latestMonthFolders.find((item) =>
-          item.name.endsWith("_01"),
-        )
-
-        return [
-          firstDayFolder ||
-            [...latestMonthFolders].sort((a, b) =>
-              a.name.localeCompare(b.name),
-            )[0],
-        ]
-      }
-
-      return []
-    },
-  })
+  // 当月 good 子文件夹路径，由后端启动时保证已创建，前端直接计算无需 listdir
+  const favoriteMonthlyPath = favoriteRoot?.path
+    ? appendSubdir(favoriteRoot.path, monthlySubfolder())
+    : null
 
   return (
     <div className="home-page">
@@ -173,13 +137,12 @@ function Dashboard() {
             />
           ) : null}
 
-          {favoriteSubfolders?.map((folder) => (
+          {favoriteMonthlyPath ? (
             <HomeFolderLinkCard
-              key={folder.path}
-              path={folder.path}
+              path={favoriteMonthlyPath}
               icon={Folder}
             />
-          ))}
+          ) : null}
 
           {alreadyReadRoot ? (
             <HomeFolderLinkCard
