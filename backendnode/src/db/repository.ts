@@ -331,8 +331,15 @@ export class IndexRepository {
     return " AND is_missing = 0"; // default: present
   }
 
-  /** 按文件名/路径模糊搜索 */
-  searchFiles(q: string, presenceFilter = "present"): FileRow[] {
+  /** 按文件名/路径搜索，mode="exact" 时精确匹配，mode="hybrid" 时模糊匹配 */
+  searchFiles(q: string, presenceFilter = "present", mode = "hybrid"): FileRow[] {
+    if (mode === "exact") {
+      return rows<FileRow>(
+        this.db
+          .prepare(`SELECT * FROM files WHERE (filename = ? OR filepath = ?)${this._presenceClause(presenceFilter)}`)
+          .all(q, q),
+      );
+    }
     const p = `%${q}%`;
     return rows<FileRow>(
       this.db
@@ -343,10 +350,12 @@ export class IndexRepository {
     );
   }
 
-  /** 按作者名模糊搜索，返回关联文件列表 */
-  searchByAuthor(q: string, presenceFilter = "present"): FileRow[] {
+  /** 按作者名搜索，mode="exact" 时精确匹配，mode="hybrid" 时模糊匹配 */
+  searchByAuthor(q: string, presenceFilter = "present", mode = "hybrid"): FileRow[] {
     const artists = rows<{ artist_name: string }>(
-      this.db.prepare("SELECT artist_name FROM artists WHERE artist_name LIKE ?").all(`%${q}%`),
+      mode === "exact"
+        ? this.db.prepare("SELECT artist_name FROM artists WHERE artist_name = ?").all(q)
+        : this.db.prepare("SELECT artist_name FROM artists WHERE artist_name LIKE ?").all(`%${q}%`),
     );
     if (!artists.length) {
       return [];
@@ -372,10 +381,12 @@ export class IndexRepository {
     );
   }
 
-  /** 按 coser 名模糊搜索，返回关联文件列表 */
-  searchByCoser(q: string, presenceFilter = "present"): FileRow[] {
+  /** 按 coser 名搜索，mode="exact" 时精确匹配，mode="hybrid" 时模糊匹配 */
+  searchByCoser(q: string, presenceFilter = "present", mode = "hybrid"): FileRow[] {
     const artists = rows<{ artist_name: string }>(
-      this.db.prepare("SELECT artist_name FROM artists WHERE artist_name LIKE ?").all(`%${q}%`),
+      mode === "exact"
+        ? this.db.prepare("SELECT artist_name FROM artists WHERE artist_name = ?").all(q)
+        : this.db.prepare("SELECT artist_name FROM artists WHERE artist_name LIKE ?").all(`%${q}%`),
     );
     if (!artists.length) {
       return [];
@@ -401,10 +412,12 @@ export class IndexRepository {
     );
   }
 
-  /** 按 tag 名模糊搜索，返回关联文件列表 */
-  searchByTag(q: string, presenceFilter = "present"): FileRow[] {
+  /** 按 tag 名搜索，mode="exact" 时精确匹配，mode="hybrid" 时模糊匹配 */
+  searchByTag(q: string, presenceFilter = "present", mode = "hybrid"): FileRow[] {
     const tags = rows<{ tag_name: string }>(
-      this.db.prepare("SELECT tag_name FROM tags WHERE tag_name LIKE ?").all(`%${q}%`),
+      mode === "exact"
+        ? this.db.prepare("SELECT tag_name FROM tags WHERE tag_name = ?").all(q)
+        : this.db.prepare("SELECT tag_name FROM tags WHERE tag_name LIKE ?").all(`%${q}%`),
     );
     if (!tags.length) {
       return [];

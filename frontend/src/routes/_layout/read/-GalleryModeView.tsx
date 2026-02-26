@@ -309,7 +309,7 @@ export function GalleryModeView({
           <span className="gallery-meta__label">{t("reader.authors")}:</span>
           {authors.length > 0 ? authors.map((a) => (
             <Badge key={a} asChild className="h-5 px-1.5 text-[10px]">
-              <Link to="/search" search={{ q: a, scopes: ["author"], mode: "hybrid", page: 1, presenceFilter: "all" }}>{a}</Link>
+              <Link to="/search" search={{ q: a, scopes: ["author"], mode: "exact", page: 1, presenceFilter: "all" }}>{a}</Link>
             </Badge>
           )) : <span className="gallery-meta__empty">{t("reader.none")}</span>}
         </div>
@@ -319,7 +319,7 @@ export function GalleryModeView({
           <span className="gallery-meta__label">{t("reader.cosers")}:</span>
           {cosers.length > 0 ? cosers.map((c) => (
             <Badge key={c} asChild className="h-5 px-1.5 text-[10px]">
-              <Link to="/search" search={{ q: c, scopes: ["coser"], mode: "hybrid", page: 1, presenceFilter: "all" }}>{c}</Link>
+              <Link to="/search" search={{ q: c, scopes: ["coser"], mode: "exact", page: 1, presenceFilter: "all" }}>{c}</Link>
             </Badge>
           )) : <span className="gallery-meta__empty">{t("reader.none")}</span>}
         </div>
@@ -329,7 +329,7 @@ export function GalleryModeView({
           <span className="gallery-meta__label">{t("reader.tags")}:</span>
           {tags.length > 0 ? tags.map((tag) => (
             <Badge key={tag} asChild variant="secondary" className="h-5 px-1.5 text-[10px]">
-              <Link to="/search" search={{ q: tag, scopes: ["tag"], mode: "hybrid", page: 1, presenceFilter: "all" }}>#{tag}</Link>
+              <Link to="/search" search={{ q: tag, scopes: ["tag"], mode: "exact", page: 1, presenceFilter: "all" }}>#{tag}</Link>
             </Badge>
           )) : <span className="gallery-meta__empty">{t("reader.none")}</span>}
         </div>

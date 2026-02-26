@@ -28,13 +28,14 @@ async function searchFiles(
       q?: string;
       scopes?: string[];
       presence_filter?: string;
+      mode?: string;
       limit?: number;
       offset?: number;
     };
   }>,
   reply: FastifyReply,
 ) {
-  const { q = "", scopes = ["file", "author", "coser", "tag"], presence_filter = "all" } = req.body ?? {};
+  const { q = "", scopes = ["file", "author", "coser", "tag"], presence_filter = "all", mode = "hybrid" } = req.body ?? {};
   const limit = Math.min(500, Math.max(1, req.body?.limit ?? 200));
   const offset = Math.max(0, req.body?.offset ?? 0);
   const query = q.trim();
@@ -46,22 +47,22 @@ async function searchFiles(
   const byPath = new Map<string, ReturnType<typeof toItem>>();
 
   if (scopes.includes("file")) {
-    for (const row of repo.searchFiles(query, presence_filter)) {
+    for (const row of repo.searchFiles(query, presence_filter, mode)) {
       byPath.set(row.filepath, toItem(row));
     }
   }
   if (scopes.includes("author")) {
-    for (const row of repo.searchByAuthor(query, presence_filter)) {
+    for (const row of repo.searchByAuthor(query, presence_filter, mode)) {
       byPath.set(row.filepath, toItem(row));
     }
   }
   if (scopes.includes("coser")) {
-    for (const row of repo.searchByCoser(query, presence_filter)) {
+    for (const row of repo.searchByCoser(query, presence_filter, mode)) {
       byPath.set(row.filepath, toItem(row));
     }
   }
   if (scopes.includes("tag")) {
-    for (const row of repo.searchByTag(query, presence_filter)) {
+    for (const row of repo.searchByTag(query, presence_filter, mode)) {
       byPath.set(row.filepath, toItem(row));
     }
   }
