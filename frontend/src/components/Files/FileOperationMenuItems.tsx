@@ -39,8 +39,8 @@ export interface FileOperationMenuItemsProps {
   onMoveToFavorite: () => void
   onMoveToAlreadyRead: () => void
   onDelete: () => void
-  onCompressToZip: () => void
-  onMinifyZipImages: () => void
+  onCompressToZip?: () => void
+  onMinifyZipImages?: () => void
 }
 
 export function FileOperationMenuItems({
@@ -88,15 +88,15 @@ export function FileOperationMenuItems({
         <Trash2 className="mr-2 size-4" />{t("common.delete")}
         {showShortcuts && <DropdownMenuShortcut>Del</DropdownMenuShortcut>}
       </DropdownMenuItem>
-      {(isFolder || isArchive) && (
+      {(onCompressToZip || onMinifyZipImages) && (
         <>
           <DropdownMenuSeparator />
-          {isFolder && (
+          {onCompressToZip && isFolder && (
             <DropdownMenuItem onClick={onCompressToZip}>
               <Package className="mr-2 size-4" />{t("fileOps.compressToZip")}
             </DropdownMenuItem>
           )}
-          {isArchive && (
+          {onMinifyZipImages && isArchive && (
             <DropdownMenuItem onClick={onMinifyZipImages}>
               <ImageDown className="mr-2 size-4" />{t("fileOps.minifyZipImages")}
             </DropdownMenuItem>

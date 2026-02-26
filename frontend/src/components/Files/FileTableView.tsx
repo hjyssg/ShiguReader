@@ -26,7 +26,6 @@ export function FileTableView({
   sortOrder,
 }: FileTableViewProps) {
   const { t } = useTranslation()
-  const isMobile = useIsMobile()
 
   const SortIcon = ({ field }: { field: SortField }) => {
     if (sortField !== field) {
@@ -140,7 +139,7 @@ export function FileTableView({
             key={item.path}
             className="border-b text-sm last:border-b-0 hover:bg-muted/50"
           >
-            <TableRowCells item={item} isMobile={isMobile} />
+            <TableRowCells item={item} />
           </tr>
         )
       }}
@@ -148,14 +147,9 @@ export function FileTableView({
   )
 }
 
-function TableRowCells({
-  item,
-  isMobile,
-}: {
-  item: FileSystemItem
-  isMobile: boolean
-}) {
+function TableRowCells({ item }: { item: FileSystemItem }) {
   const { t } = useTranslation()
+  const isMobile = useIsMobile()
   const isFolder = item.item_type === "folder"
   const isArchive = item.file_type === "archive"
   const target = buildNavigationTarget(item, isMobile)

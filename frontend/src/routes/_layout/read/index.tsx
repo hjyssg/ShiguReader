@@ -253,9 +253,6 @@ function ReadPage() {
       mtime={mtime}
       filesize={filesize}
       audioTracks={audioTracks}
-      onAfterRename={() => navigate({ to: "/" })} // todo 不跳转
-      onAfterDelete={() => navigate({ to: "/" })} // todo 不跳转
-      onMoveSuccess={(destPath) => navigate({ to: "/read", search: { path: destPath || path, page: 0, mode: undefined }, replace: true })} 
       onPageChange={goToPage}
     />
   )

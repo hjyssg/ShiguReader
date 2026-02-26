@@ -1,4 +1,4 @@
-// 根据文件类型动态显示菜单项
+// 文件操作下拉菜单
 import {
   Check,
   MoreVertical,
@@ -17,20 +17,6 @@ import { useFileOperationDialogs } from "@/hooks/useFileOperationDialogs"
 import { getParentPath } from "@/lib/path-utils"
 import "./FileContextMenu.css"
 
-interface FileContextMenuProps {
-  children: React.ReactNode
-  /** 右键点击的主要文件项（用于判断类型） */
-  item: FileSystemItem
-  onContextMenuOpen?: () => void
-}
-
-export function FileContextMenu({
-  children,
-  item: _item,
-  onContextMenuOpen: _onContextMenuOpen,
-}: FileContextMenuProps) {
-  return <>{children}</>
-}
 
 export function FileActionsDropdown({ item }: { item: FileSystemItem }) {
   const { t } = useTranslation()

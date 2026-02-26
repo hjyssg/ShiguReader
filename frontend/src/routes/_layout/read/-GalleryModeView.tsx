@@ -52,9 +52,6 @@ interface GalleryModeViewProps {
   mtime: number | null
   filesize: number | null
   audioTracks: AudioTrack[]
-  onAfterRename?: () => void
-  onAfterDelete?: () => void
-  onMoveSuccess?: (destPath: string) => void
   onPageChange: (page: number) => void
 }
 
@@ -70,9 +67,6 @@ export function GalleryModeView({
   mtime,
   filesize,
   audioTracks,
-  onAfterRename,
-  onAfterDelete,
-  onMoveSuccess,
   onPageChange,
 }: GalleryModeViewProps) {
   const navigate = useNavigate()
@@ -80,9 +74,9 @@ export function GalleryModeView({
   const parentPath = getParentPath(path)
   const { openRename, openDelete, openMove, openCompress, dialogs: fileOpDialogs } = useFileOperationDialogs({
     currentPath: parentPath,
-    onAfterRename,
-    onAfterDelete,
-    onMoveSuccess,
+    onAfterRename: () => navigate({ to: "/" }),
+    onAfterDelete: () => navigate({ to: "/" }),
+    onMoveSuccess: (destPath) => navigate({ to: "/read", search: { path: destPath || path, page: 0, mode: undefined }, replace: true }),
   })
 
   const [scale, setScale] = useState(1)
@@ -396,8 +390,8 @@ export function GalleryModeView({
                 onMoveToFavorite={() => openMove(path, undefined, "favorite")}
                 onMoveToAlreadyRead={() => openMove(path, undefined, "already_read")}
                 onDelete={() => openDelete([path])}
-                onCompressToZip={() => openCompress(path, "zip-folder")}
-                onMinifyZipImages={() => openCompress(path, "minify-zip-images")}
+                onCompressToZip={isFolderSource ? () => openCompress(path, "zip-folder") : undefined}
+                onMinifyZipImages={isArchiveSource ? () => openCompress(path, "minify-zip-images") : undefined}
               />
             </DropdownMenuContent>
           </DropdownMenu>
